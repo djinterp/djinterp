@@ -39,7 +39,7 @@
 // separators -- that need not end in a NUL, so the helpers below can be
 // handed part of a path without a copy. A span holding a root has the whole
 // path as its text and the root's length as its length.
-struct d_internal_path_span
+struct dj_internal_path_span
 {
     const char* text;    // the first byte
     size_t      length;  // the number of bytes
@@ -52,8 +52,8 @@ and treating it as a separator would silently corrupt legitimate names. Under
 Windows syntax '\\' always separates, being Windows' own, and '/' does as well
 unless D_CFG_FILE_PATH_ACCEPT_ALT_SEP turns it away.
 */
-static int
-d_internal_path_is_sep(
+static
+int d_internal_path_is_sep(
     char _c
 )
 {
@@ -74,8 +74,8 @@ d_internal_path_is_letter
   An ASCII letter, compared by range so the C locale has no say in what a
 drive letter is.
 */
-static int
-d_internal_path_is_letter(
+static
+int d_internal_path_is_letter(
     char _c
 )
 {
@@ -92,8 +92,8 @@ failure, not a shortened path. Silently handing back a prefix of a path is how
 a program deletes the wrong directory. The source need not be NUL-terminated;
 the copy always is.
 */
-static char*
-d_internal_path_copy(
+static
+char* d_internal_path_copy(
     char*       _buf,
     size_t      _bufsize,
     const char* _src,
@@ -132,8 +132,8 @@ d_internal_path_share_len
 and a name: the server (or the "?" of an extended path), then a separator and
 the share's own name, where there is one.
 */
-static size_t
-d_internal_path_share_len(
+static
+size_t d_internal_path_share_len(
     const char* _path
 )
 {
@@ -170,8 +170,8 @@ d_internal_path_share_len(
  *         share as d_internal_path_share_len measures one, the separator after
  *         it aside; a volume name with the separator after it.
  */
-static size_t
-d_internal_path_long_root_len(
+static
+size_t d_internal_path_long_root_len(
     const char* _rest
 )
 {
@@ -241,8 +241,8 @@ build always parses its own:
 Each byte is read only once the one before it has been seen not to end the
 string, so a short path is never read past its terminator.
 */
-static size_t
-d_internal_path_root_len(
+static
+size_t d_internal_path_root_len(
     const char* _path
 )
 {
@@ -309,8 +309,8 @@ d_internal_path_is_bare_drive
 no directory on it. It anchors nothing -- ".." may climb out of "C:x" -- and
 a component follows it directly, since "C:\\x" means something else.
 */
-static int
-d_internal_path_is_bare_drive(
+static
+int d_internal_path_is_bare_drive(
     const char* _path,
     size_t      _root_len
 )
@@ -326,8 +326,8 @@ d_internal_path_root_needs_sep
 a share does: a root directory ends in one already, a bare drive takes its
 component directly, and an empty root is no root at all.
 */
-static int
-d_internal_path_root_needs_sep(
+static
+int d_internal_path_root_needs_sep(
     const char* _path,
     size_t      _root_len
 )
@@ -346,8 +346,8 @@ roots have no name. A join keeps the first path's name when the second brings
 only a root directory ("\\x"), and lets the second's replace it unless the two
 name the same volume.
 */
-static size_t
-d_internal_path_root_name_len(
+static
+size_t d_internal_path_root_name_len(
     const char* _path,
     size_t      _root_len
 )
@@ -378,8 +378,8 @@ d_internal_path_fold
   A byte of a root name as Windows compares it: either separator the same,
 and ASCII letters without case.
 */
-static char
-d_internal_path_fold(
+static
+char d_internal_path_fold(
     char _c
 )
 {
@@ -404,8 +404,8 @@ d_internal_path_same_name
   Whether two root names name the same volume, compared as Windows compares
 them: "c:" is "C:", and "//server/share" is "\\\\SERVER\\share".
 */
-static int
-d_internal_path_same_name(
+static
+int d_internal_path_same_name(
     const char* _a,
     size_t      _a_len,
     const char* _b,
@@ -438,8 +438,8 @@ separators is what makes them agree. A root is never trimmed away -- "/" would
 otherwise become "". The result is the index one past the last meaningful
 byte.
 */
-static size_t
-d_internal_path_end(
+static
+size_t d_internal_path_end(
     const char* _path,
     size_t      _length,
     size_t      _root_len
@@ -463,13 +463,13 @@ d_internal_path_concat
 with ERANGE when they do not fit. _head may begin at _buf itself, as when a
 caller joins onto its own buffer; _tail may not overlap it.
 */
-static char*
-d_internal_path_concat(
-    char*                       _buf,
-    size_t                      _bufsize,
-    struct d_internal_path_span _head,
-    int                         _sep,
-    struct d_internal_path_span _tail
+static
+char* d_internal_path_concat(
+    char*                        _buf,
+    size_t                       _bufsize,
+    struct dj_internal_path_span _head,
+    int                          _sep,
+    struct dj_internal_path_span _tail
 )
 {
     // the joined path and its terminator must fit
@@ -520,12 +520,12 @@ separators. "/" and "b" give "/b", "C:" and "b" give "C:b", and a share and
 "b" give "\\\\server\\share\\b". The first path is a whole path, ending in its
 terminator, since its root is measured; the second is only copied.
 */
-static char*
-d_internal_path_join_relative(
-    char*                       _buf,
-    size_t                      _bufsize,
-    struct d_internal_path_span _path1,
-    struct d_internal_path_span _path2
+static
+char* d_internal_path_join_relative(
+    char*                        _buf,
+    size_t                       _bufsize,
+    struct dj_internal_path_span _path1,
+    struct dj_internal_path_span _path2
 )
 {
     // nothing to add: the first path stands alone
@@ -546,7 +546,7 @@ d_internal_path_join_relative(
                                                          root1));
 
     // the first path without its trailing separators, its root kept whole
-    const struct d_internal_path_span head = { _path1.text, end1 };
+    const struct dj_internal_path_span head = { _path1.text, end1 };
 
     // the second component brings no separators of its own
     while ( (_path2.length > 0) &&
@@ -573,13 +573,13 @@ give "C:\\a\\x"); and a root directory alone ("\\x") keeps the first path's
 volume and nothing else ("C:\\a" and "\\x" give "C:\\x"). Under POSIX syntax
 every root is absolute, so the first rule is the only one.
 */
-static char*
-d_internal_path_join_rooted(
-    char*                       _buf,
-    size_t                      _bufsize,
-    struct d_internal_path_span _path1,
-    struct d_internal_path_span _path2,
-    size_t                      _root2
+static
+char* d_internal_path_join_rooted(
+    char*                        _buf,
+    size_t                       _bufsize,
+    struct dj_internal_path_span _path1,
+    struct dj_internal_path_span _path2,
+    size_t                       _root2
 )
 {
     // an anchored second path is not a suffix, it is a replacement
@@ -601,7 +601,7 @@ d_internal_path_join_rooted(
     // a root directory alone: the first path's volume, then the second
     if (name2 == 0)
     {
-        const struct d_internal_path_span volume1 = { _path1.text, name1 };
+        const struct dj_internal_path_span volume1 = { _path1.text, name1 };
 
         return d_internal_path_concat(_buf,
                                       _bufsize,
@@ -623,7 +623,7 @@ d_internal_path_join_rooted(
     }
 
     // the same volume: what follows the second's name joins the first
-    const struct d_internal_path_span rest2 = { _path2.text + name2,
+    const struct dj_internal_path_span rest2 = { _path2.text + name2,
                                                 _path2.length - name2 };
 
     return d_internal_path_join_relative(_buf,
@@ -638,8 +638,8 @@ d_internal_path_ends_in_dotdot
 with nothing left to climb over -- which a later ".." must keep company with
 rather than climb over.
 */
-static int
-d_internal_path_ends_in_dotdot(
+static
+int d_internal_path_ends_in_dotdot(
     const char* _buf,
     size_t      _out,
     size_t      _root_len
@@ -660,8 +660,8 @@ the front can only be the one written ahead of a drive-like component
 (d_internal_path_looks_like_drive) -- a "." of the input is never written --
 so it goes with that component.
 */
-static size_t
-d_internal_path_climb(
+static
+size_t d_internal_path_climb(
     const char* _buf,
     size_t      _out,
     size_t      _root_len
@@ -699,8 +699,8 @@ d_internal_path_put_seps
   Writes _count of this build's separators at _out and reports where the
 output now ends.
 */
-static size_t
-d_internal_path_put_seps(
+static
+size_t d_internal_path_put_seps(
     char*  _buf,
     size_t _out,
     size_t _count
@@ -725,12 +725,12 @@ root in the input is kept whole without collapsing ("///a" stays "///a");
 otherwise only a share takes a separator there, since a root directory ends
 in one and a bare drive takes its component directly ("C:a\\..\\b" is "C:b").
 */
-static size_t
-d_internal_path_separate(
-    char*                       _buf,
-    size_t                      _out,
-    struct d_internal_path_span _root,
-    struct d_internal_path_span _run
+static
+size_t d_internal_path_separate(
+    char*                        _buf,
+    size_t                       _out,
+    struct dj_internal_path_span _root,
+    struct dj_internal_path_span _run
 )
 {
     const int collapse = D_CFG_IS_ON(D_CFG_FILE_PATH_COLLAPSE_SEPARATORS);
@@ -770,12 +770,12 @@ the whole run where runs are kept, after the last component, or after a
 share, whose root directory they are. A root that ends in a separator already
 keeps itself as it is.
 */
-static size_t
-d_internal_path_trailing(
-    char*                       _buf,
-    size_t                      _out,
-    struct d_internal_path_span _root,
-    struct d_internal_path_span _run
+static
+size_t d_internal_path_trailing(
+    char*                        _buf,
+    size_t                       _out,
+    struct dj_internal_path_span _root,
+    struct dj_internal_path_span _run
 )
 {
     const int collapse = D_CFG_IS_ON(D_CFG_FILE_PATH_COLLAPSE_SEPARATORS);
@@ -802,8 +802,8 @@ drive: a letter and a colon. In "./D:" the component is a name; written as
 "D:" it would be drive D's current directory instead, so normalize keeps a
 "./" ahead of it, as Python's ntpath.normpath does.
 */
-static int
-d_internal_path_looks_like_drive(
+static
+int d_internal_path_looks_like_drive(
     const char* _seg,
     size_t      _len
 )
@@ -818,8 +818,8 @@ d_internal_path_looks_like_drive(
 d_internal_path_is_dot
   Whether the _len bytes at _seg are "." (_dots 1) or ".." (_dots 2).
 */
-static int
-d_internal_path_is_dot(
+static
+int d_internal_path_is_dot(
     const char* _seg,
     size_t      _len,
     size_t      _dots
@@ -843,8 +843,7 @@ that ends the parent and then past the separator run itself, never into the
 root. A path that is only a root is its own parent, and a relative path with
 no separator has "." as its parent.
 */
-char*
-d_path_dirname(
+char* d_path_dirname(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -943,8 +942,7 @@ d_path_basename
   The final component runs from the separator before the meaningful end up to
 that end; a path that is nothing but a root names itself.
 */
-char*
-d_path_basename(
+char* d_path_basename(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -1009,8 +1007,7 @@ opens the name is hiding the file, not typing it, so it starts no extension.
 A path that ends in a separator has an empty final name here, and so no
 extension: the result is a suffix of _path, which would carry the separator.
 */
-const char*
-d_path_extension(
+const char* d_path_extension(
     const char* _path
 )
 {
@@ -1076,8 +1073,7 @@ end to cut. Where there is an extension the path does not end in a separator,
 so the extension is the end of the basename, and stem and extension can never
 disagree.
 */
-char*
-d_path_stem(
+char* d_path_stem(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -1126,8 +1122,7 @@ silently builds "/base/etc/passwd" for code that meant to be handed an
 absolute override. Otherwise the two are joined as text, with exactly one
 separator between them where the first is not a root that needs none.
 */
-char*
-d_path_join(
+char* d_path_join(
     char*       _buf,
     size_t      _bufsize,
     const char* _path1,
@@ -1169,8 +1164,8 @@ d_path_join(
                                     len1);
     }
 
-    const struct d_internal_path_span path1 = { _path1, len1 };
-    const struct d_internal_path_span path2 = { _path2, len2 };
+    const struct dj_internal_path_span path1 = { _path1, len1 };
+    const struct dj_internal_path_span path2 = { _path2, len2 };
     const size_t                      root2 = d_internal_path_root_len(_path2);
 
     // a second component with a root decides what of the first survives
@@ -1199,8 +1194,7 @@ drive) is anchored -- each leaves the volume or the directory to the process,
 as std::filesystem and Python's ntpath both hold. Under POSIX syntax every
 root is absolute.
 */
-int
-d_path_is_absolute(
+int d_path_is_absolute(
     const char* _path
 )
 {
@@ -1231,8 +1225,7 @@ d_path_root_length
   The public face of d_internal_path_root_len, with NULL answered as a path
 that has no root.
 */
-size_t
-d_path_root_length(
+size_t d_path_root_length(
     const char* _path
 )
 {
@@ -1260,8 +1253,7 @@ relative result that would begin with a drive begins with "./" instead
 (d_internal_path_looks_like_drive). Output is never longer than input, so the
 input's size bounds the buffer, and _buf may be _path itself.
 */
-char*
-d_path_normalize(
+char* d_path_normalize(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -1293,7 +1285,7 @@ d_path_normalize(
                             (!d_internal_path_is_bare_drive(_path,
                                                             root_len));
 
-    const struct d_internal_path_span root = { _path, root_len };
+    const struct dj_internal_path_span root = { _path, root_len };
 
     // the result is never longer than the input, so the input must fit
     if ((length + 1) > _bufsize)
@@ -1331,7 +1323,7 @@ d_path_normalize(
             ++idx;
         }
 
-        const struct d_internal_path_span run = { _path + run_start,
+        const struct dj_internal_path_span run = { _path + run_start,
                                                   idx - run_start };
 
         // separators with no component after them end the path

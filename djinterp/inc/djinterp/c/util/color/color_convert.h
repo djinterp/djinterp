@@ -107,8 +107,8 @@ Parameter(s):
 Return:
   The interpolated component value.
 */
-D_COLOR_FN float
-d_color_hsl_hue_to_rgb(
+D_COLOR_FN
+float d_color_hsl_hue_to_rgb(
     float _p,
     float _q,
     float _t
@@ -151,11 +151,11 @@ d_color_convert_rgb_to_hsl
 Parameter(s):
   _rgb: source color.
 Return:
-  The equivalent d_color_hsl.
+  The equivalent dj_color_hsl.
 */
-D_COLOR_FN struct d_color_hsl
-d_color_convert_rgb_to_hsl(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_hsl d_color_convert_rgb_to_hsl(
+    struct dj_color_rgb _rgb
 )
 {
     float max   = d_color_max3(_rgb.r, _rgb.g, _rgb.b);
@@ -205,11 +205,11 @@ d_color_convert_hsl_to_rgb
 Parameter(s):
   _hsl: source color.
 Return:
-  The equivalent d_color_rgb.
+  The equivalent dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_convert_hsl_to_rgb(
-    struct d_color_hsl _hsl
+D_COLOR_FN
+struct dj_color_rgb d_color_convert_hsl_to_rgb(
+    struct dj_color_hsl _hsl
 )
 {
     float q      = 0.0f;
@@ -246,11 +246,11 @@ d_color_convert_rgb_to_hsv
 Parameter(s):
   _rgb: source color.
 Return:
-  The equivalent d_color_hsv.
+  The equivalent dj_color_hsv.
 */
-D_COLOR_FN struct d_color_hsv
-d_color_convert_rgb_to_hsv(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_hsv d_color_convert_rgb_to_hsv(
+    struct dj_color_rgb _rgb
 )
 {
     float max   = d_color_max3(_rgb.r, _rgb.g, _rgb.b);
@@ -293,11 +293,11 @@ d_color_convert_hsv_to_rgb
 Parameter(s):
   _hsv: source color.
 Return:
-  The equivalent d_color_rgb.
+  The equivalent dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_convert_hsv_to_rgb(
-    struct d_color_hsv _hsv
+D_COLOR_FN
+struct dj_color_rgb d_color_convert_hsv_to_rgb(
+    struct dj_color_hsv _hsv
 )
 {
     float h      = 0.0f;
@@ -343,11 +343,11 @@ d_color_convert_hsl_to_hsv
 Parameter(s):
   _hsl: source color.
 Return:
-  The equivalent d_color_hsv.
+  The equivalent dj_color_hsv.
 */
-D_COLOR_FN struct d_color_hsv
-d_color_convert_hsl_to_hsv(
-    struct d_color_hsl _hsl
+D_COLOR_FN
+struct dj_color_hsv d_color_convert_hsl_to_hsv(
+    struct dj_color_hsl _hsl
 )
 {
     return d_color_convert_rgb_to_hsv(d_color_convert_hsl_to_rgb(_hsl));
@@ -360,11 +360,11 @@ d_color_convert_hsv_to_hsl
 Parameter(s):
   _hsv: source color.
 Return:
-  The equivalent d_color_hsl.
+  The equivalent dj_color_hsl.
 */
-D_COLOR_FN struct d_color_hsl
-d_color_convert_hsv_to_hsl(
-    struct d_color_hsv _hsv
+D_COLOR_FN
+struct dj_color_hsl d_color_convert_hsv_to_hsl(
+    struct dj_color_hsv _hsv
 )
 {
     return d_color_convert_rgb_to_hsl(d_color_convert_hsv_to_rgb(_hsv));
@@ -382,11 +382,11 @@ d_color_convert_rgb_to_cmyk
 Parameter(s):
   _rgb: source color.
 Return:
-  The equivalent d_color_cmyk.
+  The equivalent dj_color_cmyk.
 */
-D_COLOR_FN struct d_color_cmyk
-d_color_convert_rgb_to_cmyk(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_cmyk d_color_convert_rgb_to_cmyk(
+    struct dj_color_rgb _rgb
 )
 {
     float k     = 1.0f - d_color_max3(_rgb.r, _rgb.g, _rgb.b);
@@ -414,11 +414,11 @@ d_color_convert_cmyk_to_rgb
 Parameter(s):
   _cmyk: source color.
 Return:
-  The equivalent d_color_rgb.
+  The equivalent dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_convert_cmyk_to_rgb(
-    struct d_color_cmyk _cmyk
+D_COLOR_FN
+struct dj_color_rgb d_color_convert_cmyk_to_rgb(
+    struct dj_color_cmyk _cmyk
 )
 {
     float k_comp = 1.0f - _cmyk.k;
@@ -442,11 +442,11 @@ d_color_convert_rgb_to_ycbcr
 Parameter(s):
   _rgb: source color.
 Return:
-  The equivalent d_color_ycbcr.
+  The equivalent dj_color_ycbcr.
 */
-D_COLOR_FN struct d_color_ycbcr
-d_color_convert_rgb_to_ycbcr(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_ycbcr d_color_convert_rgb_to_ycbcr(
+    struct dj_color_rgb _rgb
 )
 {
     return d_color_ycbcr_make(
@@ -463,11 +463,11 @@ d_color_convert_ycbcr_to_rgb
 Parameter(s):
   _ycbcr: source color.
 Return:
-  The equivalent d_color_rgb.
+  The equivalent dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_convert_ycbcr_to_rgb(
-    struct d_color_ycbcr _ycbcr
+D_COLOR_FN
+struct dj_color_rgb d_color_convert_ycbcr_to_rgb(
+    struct dj_color_ycbcr _ycbcr
 )
 {
     return d_color_rgb_make(
@@ -489,11 +489,11 @@ d_color_convert_rgb_to_xyz
 Parameter(s):
   _rgb: source color.
 Return:
-  The equivalent d_color_xyz.
+  The equivalent dj_color_xyz.
 */
-D_COLOR_FN struct d_color_xyz
-d_color_convert_rgb_to_xyz(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_xyz d_color_convert_rgb_to_xyz(
+    struct dj_color_rgb _rgb
 )
 {
     return d_color_xyz_make(
@@ -510,11 +510,11 @@ d_color_convert_xyz_to_rgb
 Parameter(s):
   _xyz: source color.
 Return:
-  The equivalent d_color_rgb.
+  The equivalent dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_convert_xyz_to_rgb(
-    struct d_color_xyz _xyz
+D_COLOR_FN
+struct dj_color_rgb d_color_convert_xyz_to_rgb(
+    struct dj_color_xyz _xyz
 )
 {
     return d_color_rgb_make(
@@ -536,11 +536,11 @@ d_color_convert_xyz_to_lab
 Parameter(s):
   _xyz: source color.
 Return:
-  The equivalent d_color_lab.
+  The equivalent dj_color_lab.
 */
-D_COLOR_FN_RT struct d_color_lab
-d_color_convert_xyz_to_lab(
-    struct d_color_xyz _xyz
+D_COLOR_FN_RT
+struct dj_color_lab d_color_convert_xyz_to_lab(
+    struct dj_color_xyz _xyz
 )
 {
     float fx = d_color_lab_f(_xyz.x / D_COLOR_XYZ_WHITE_X);
@@ -561,11 +561,11 @@ d_color_convert_lab_to_xyz
 Parameter(s):
   _lab: source color.
 Return:
-  The equivalent d_color_xyz.
+  The equivalent dj_color_xyz.
 */
-D_COLOR_FN_RT struct d_color_xyz
-d_color_convert_lab_to_xyz(
-    struct d_color_lab _lab
+D_COLOR_FN_RT
+struct dj_color_xyz d_color_convert_lab_to_xyz(
+    struct dj_color_lab _lab
 )
 {
     float fy = (_lab.l + 16.0f) / 116.0f;
@@ -591,11 +591,11 @@ d_color_convert_rgb_to_lab
 Parameter(s):
   _rgb: source color.
 Return:
-  The equivalent d_color_lab.
+  The equivalent dj_color_lab.
 */
-D_COLOR_FN_RT struct d_color_lab
-d_color_convert_rgb_to_lab(
-    struct d_color_rgb _rgb
+D_COLOR_FN_RT
+struct dj_color_lab d_color_convert_rgb_to_lab(
+    struct dj_color_rgb _rgb
 )
 {
     return d_color_convert_xyz_to_lab(d_color_convert_rgb_to_xyz(_rgb));
@@ -608,11 +608,11 @@ d_color_convert_lab_to_rgb
 Parameter(s):
   _lab: source color.
 Return:
-  The equivalent d_color_rgb.
+  The equivalent dj_color_rgb.
 */
-D_COLOR_FN_RT struct d_color_rgb
-d_color_convert_lab_to_rgb(
-    struct d_color_lab _lab
+D_COLOR_FN_RT
+struct dj_color_rgb d_color_convert_lab_to_rgb(
+    struct dj_color_lab _lab
 )
 {
     return d_color_convert_xyz_to_rgb(d_color_convert_lab_to_xyz(_lab));

@@ -33,28 +33,28 @@
 // djinterp
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"                      // d_awk_parse
 #include "../../../../inc/djinterp/tools/dawk/dtree.h"                       // d_awk_source_tree_init
-#include "../../../../inc/djinterp/tools/dawk/dsettings.h"                   // d_settings
-#include "../../../../inc/djinterp/tools/dawk/ext/cmake/dhost_cmake.h"       // d_host_cmake
-#include "../../../../inc/djinterp/tools/dawk/ext/git/dhost_git.h"           // d_host_git
-#include "../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_msvs.h"         // d_host_msvs
-#include "../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_sln.h"          // d_host_sln
-#include "../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_vcxproj.h"      // d_host_vcxproj
-#include "../../../../inc/djinterp/tools/dawk/ext/ninja/dhost_ninja.h"       // d_host_ninja
+#include "../../../../inc/djinterp/tools/dawk/dsettings.h"                   // dj_settings
+#include "../../../../inc/djinterp/tools/dawk/ext/cmake/dhost_cmake.h"       // dj_host_cmake
+#include "../../../../inc/djinterp/tools/dawk/ext/git/dhost_git.h"           // dj_host_git
+#include "../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_msvs.h"         // dj_host_msvs
+#include "../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_sln.h"          // dj_host_sln
+#include "../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_vcxproj.h"      // dj_host_vcxproj
+#include "../../../../inc/djinterp/tools/dawk/ext/ninja/dhost_ninja.h"       // dj_host_ninja
 #include "../../../../inc/djinterp/tools/dawk/ext/story/dhost_articulate.h"  // d_articulate_driver
-#include "../../../../inc/djinterp/tools/dawk/ext/story/dhost_story.h"       // d_host_story
-#include "../../../../inc/djinterp/tools/dawk/ext/wiki/dhost_wiki.h"         // d_host_wiki
+#include "../../../../inc/djinterp/tools/dawk/ext/story/dhost_story.h"       // dj_host_story
+#include "../../../../inc/djinterp/tools/dawk/ext/wiki/dhost_wiki.h"         // dj_host_wiki
 
 
 // the environment, which ENVIRON is built from; POSIX declares it, and no
 // header of ISO C does
 extern char** environ;
 
-// d_internal_options
+// dj_internal_options
 //   struct: what the command line asked for.  Program files and -v
 // assignments are kept in the order given, which is the order POSIX applies
 // them in; every pointer borrows from argv, and `operands` is the tail of it
 // after the program.
-struct d_internal_options
+struct dj_internal_options
 {
     const char*  separator;
     const char*  tree_root;
@@ -74,11 +74,11 @@ struct d_internal_options
 //   struct: an extension -x can name: how its state is made, how it is
 // installed into an interpreter, and how it is released after the run; and
 // the extension it is a part of, which installs it too, or NULL.
-struct d_internal_extension
+struct dj_internal_extension
 {
     const char* name;
     void*       (*make)(void);
-    bool        (*install)(void*, struct d_awk_interp*);
+    bool        (*install)(void*, struct dj_awk_interp*);
     void        (*release)(void*);
     const char* part_of;
 };
@@ -86,7 +86,7 @@ struct d_internal_extension
 // d_internal_source
 //   struct: the program text and, for each -f file, the line of the text its
 // first line became, so a diagnostic can be traced back to its file.
-struct d_internal_source
+struct dj_internal_source
 {
     char*   text;
     size_t  length;
@@ -106,8 +106,8 @@ Parameter(s):
 Return:
   The contents, owned by the caller, or NULL on failure.
 */
-static char*
-d_internal_slurp(
+static
+char* d_internal_slurp(
     const char* _path,
     size_t*     _out_length
 )
@@ -184,8 +184,8 @@ Return:
   - true, if the string was appended, or
   - false, if the list could not grow.
 */
-static bool
-d_internal_push_text(
+static
+bool d_internal_push_text(
     const char*** _list,
     size_t*       _count,
     const char*   _text
@@ -211,10 +211,10 @@ d_internal_push_text(
 d_internal_story_make, d_internal_story_install, d_internal_story_release
   The storyline extension, with every driver this build has.
 */
-static void*
-d_internal_story_make(void)
+static
+void* d_internal_story_make(void)
 {
-    struct d_host_story* const host = d_host_story_new();
+    struct dj_host_story* const host = d_host_story_new();
 
     // an extension that cannot take its driver is not made
     if ( (host) &&
@@ -229,18 +229,18 @@ d_internal_story_make(void)
 }
 
 
-static bool
-d_internal_story_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_story_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_story_install(_state, _interp);
 }
 
 
-static void
-d_internal_story_release(
+static
+void d_internal_story_release(
     void* _state
 )
 {
@@ -254,25 +254,25 @@ d_internal_story_release(
 d_internal_cmake_make, d_internal_cmake_install, d_internal_cmake_release
   The CMake extension.
 */
-static void*
-d_internal_cmake_make(void)
+static
+void* d_internal_cmake_make(void)
 {
     return d_host_cmake_new();
 }
 
 
-static bool
-d_internal_cmake_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_cmake_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_cmake_install(_state, _interp);
 }
 
 
-static void
-d_internal_cmake_release(
+static
+void d_internal_cmake_release(
     void* _state
 )
 {
@@ -286,25 +286,25 @@ d_internal_cmake_release(
 d_internal_ninja_make, d_internal_ninja_install, d_internal_ninja_release
   The Ninja extension: Ninja's files, and builds loaded as ninja loads them.
 */
-static void*
-d_internal_ninja_make(void)
+static
+void* d_internal_ninja_make(void)
 {
     return d_host_ninja_new();
 }
 
 
-static bool
-d_internal_ninja_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_ninja_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_ninja_install(_state, _interp);
 }
 
 
-static void
-d_internal_ninja_release(
+static
+void d_internal_ninja_release(
     void* _state
 )
 {
@@ -318,25 +318,25 @@ d_internal_ninja_release(
 d_internal_msvs_make, d_internal_msvs_install, d_internal_msvs_release
   The Visual Studio extension, both its parts.
 */
-static void*
-d_internal_msvs_make(void)
+static
+void* d_internal_msvs_make(void)
 {
     return d_host_msvs_new();
 }
 
 
-static bool
-d_internal_msvs_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_msvs_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_msvs_install(_state, _interp);
 }
 
 
-static void
-d_internal_msvs_release(
+static
+void d_internal_msvs_release(
     void* _state
 )
 {
@@ -350,25 +350,25 @@ d_internal_msvs_release(
 d_internal_sln_make, d_internal_sln_install, d_internal_sln_release
   The solutions part alone.
 */
-static void*
-d_internal_sln_make(void)
+static
+void* d_internal_sln_make(void)
 {
     return d_host_sln_new();
 }
 
 
-static bool
-d_internal_sln_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_sln_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_sln_install(_state, _interp);
 }
 
 
-static void
-d_internal_sln_release(
+static
+void d_internal_sln_release(
     void* _state
 )
 {
@@ -383,25 +383,25 @@ d_internal_vcxproj_make, d_internal_vcxproj_install,
 d_internal_vcxproj_release
   The MSBuild part alone.
 */
-static void*
-d_internal_vcxproj_make(void)
+static
+void* d_internal_vcxproj_make(void)
 {
     return d_host_vcxproj_new();
 }
 
 
-static bool
-d_internal_vcxproj_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_vcxproj_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_vcxproj_install(_state, _interp);
 }
 
 
-static void
-d_internal_vcxproj_release(
+static
+void d_internal_vcxproj_release(
     void* _state
 )
 {
@@ -415,25 +415,25 @@ d_internal_vcxproj_release(
 d_internal_wiki_make, d_internal_wiki_install, d_internal_wiki_release
   The wiki extension: a wiki's pages.
 */
-static void*
-d_internal_wiki_make(void)
+static
+void* d_internal_wiki_make(void)
 {
     return d_host_wiki_new();
 }
 
 
-static bool
-d_internal_wiki_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_wiki_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_wiki_install(_state, _interp);
 }
 
 
-static void
-d_internal_wiki_release(
+static
+void d_internal_wiki_release(
     void* _state
 )
 {
@@ -447,25 +447,25 @@ d_internal_wiki_release(
 d_internal_git_make, d_internal_git_install, d_internal_git_release
   The git extension: git's own files, and a repository.
 */
-static void*
-d_internal_git_make(void)
+static
+void* d_internal_git_make(void)
 {
     return d_host_git_new();
 }
 
 
-static bool
-d_internal_git_install(
-    void*                _state,
-    struct d_awk_interp* _interp
+static
+bool d_internal_git_install(
+    void*                 _state,
+    struct dj_awk_interp* _interp
 )
 {
     return d_host_git_install(_state, _interp);
 }
 
 
-static void
-d_internal_git_release(
+static
+void d_internal_git_release(
     void* _state
 )
 {
@@ -479,12 +479,12 @@ d_internal_git_release(
 d_internal_extension_named
   The extension -x names, or NULL.
 */
-static const struct d_internal_extension*
-d_internal_extension_named(
+static
+const struct dj_internal_extension* d_internal_extension_named(
     const char* _name
 )
 {
-    static const struct d_internal_extension extensions[] =
+    static const struct dj_internal_extension extensions[] =
     {
         { "story",   d_internal_story_make,   d_internal_story_install,
           d_internal_story_release,   NULL   },
@@ -536,12 +536,12 @@ Return:
   -1 to go on and run, or the status to exit with at once: 0 after
   --settings, 2 on a usage error.
 */
-static int
-d_internal_take_options(
-    int                        _argc,
-    char**                     _argv,
-    int*                       _at,
-    struct d_internal_options* _options
+static
+int d_internal_take_options(
+    int                         _argc,
+    char**                      _argv,
+    int*                        _at,
+    struct dj_internal_options* _options
 )
 {
     char call_depth_text[24];
@@ -552,7 +552,7 @@ d_internal_take_options(
     (void)snprintf(stack_budget_text, sizeof(stack_budget_text), "%lu",
                    (unsigned long)D_AWK_STACK_BUDGET_DEFAULT);
 
-    const struct d_setting_def interp_settings[] =
+    const struct dj_setting_def interp_settings[] =
     {
         { "interp.call-depth", D_SETTING_INT, call_depth_text, NULL, NULL,
           1L, 1000000L, NULL,
@@ -563,7 +563,7 @@ d_internal_take_options(
           "crash -- set it lower on a small thread" }
     };
 
-    struct d_settings* settings = d_settings_new();
+    struct dj_settings* settings = d_settings_new();
     char               problem[256];
 
     // a settings registry that cannot be built, or an environment it
@@ -721,10 +721,10 @@ Return:
   - true, if every file was read, or
   - false, otherwise, with the reason reported.
 */
-static bool
-d_internal_read_files(
-    const struct d_internal_options* _options,
-    struct d_internal_source*        _source
+static
+bool d_internal_read_files(
+    const struct dj_internal_options* _options,
+    struct dj_internal_source*        _source
 )
 {
     const size_t files = _options->prog_file_count;
@@ -809,12 +809,12 @@ Parameter(s):
   _origin:  the origin the program was parsed under.
   _message: the diagnostic, as d_awk_parse_error gives it.
 */
-static void
-d_internal_report_parse_error(
-    const struct d_internal_options* _options,
-    const struct d_internal_source*  _source,
-    const char*                      _origin,
-    const char*                      _message
+static
+void d_internal_report_parse_error(
+    const struct dj_internal_options* _options,
+    const struct dj_internal_source*  _source,
+    const char*                       _origin,
+    const char*                       _message
 )
 {
     const size_t origin_length = strlen(_origin);
@@ -865,10 +865,10 @@ Return:
   - true, if every assignment was applied, or
   - false, otherwise, with the reason reported.
 */
-static bool
-d_internal_apply_assignments(
-    const struct d_internal_options* _options,
-    struct d_awk_interp*             _interp
+static
+bool d_internal_apply_assignments(
+    const struct dj_internal_options* _options,
+    struct dj_awk_interp*             _interp
 )
 {
     // -F is FS=<its value>, spelled out so that it decodes as -v would
@@ -933,11 +933,11 @@ Return:
   - true, if every extension was installed, or
   - false, otherwise, with the reason reported.
 */
-static bool
-d_internal_install(
-    const struct d_internal_options* _options,
-    struct d_awk_interp*             _interp,
-    void**                           _states
+static
+bool d_internal_install(
+    const struct dj_internal_options* _options,
+    struct dj_awk_interp*             _interp,
+    void**                            _states
 )
 {
     // more extensions than there are to name is a usage error
@@ -950,7 +950,7 @@ d_internal_install(
 
     for (size_t which = 0; which < _options->extension_count; ++which)
     {
-        const struct d_internal_extension* const extension =
+        const struct dj_internal_extension* const extension =
             d_internal_extension_named(_options->extensions[which]);
         bool repeated = false;
 
@@ -1006,14 +1006,14 @@ Parameter(s):
 Return:
   The program's exit status, or 2 on a usage or runtime error.
 */
-static int
-d_internal_run(
-    const struct d_internal_options* _options,
-    const struct d_internal_source*  _source,
-    const char*                      _origin
+static
+int d_internal_run(
+    const struct dj_internal_options* _options,
+    const struct dj_internal_source*  _source,
+    const char*                       _origin
 )
 {
-    struct d_awk_program* const program = d_awk_parse(_source->text,
+    struct dj_awk_program* const program = d_awk_parse(_source->text,
                                                       _source->length,
                                                       _origin);
 
@@ -1029,7 +1029,7 @@ d_internal_run(
         return 2;
     }
 
-    struct d_awk_interp* const interp = d_awk_interp_new(program);
+    struct dj_awk_interp* const interp = d_awk_interp_new(program);
 
     // abandon the run when the interpreter could not be held
     if (!interp)
@@ -1046,7 +1046,7 @@ d_internal_run(
     (void)d_awk_interp_set_environ(interp, environ);
 
     void*               states[8]   = { NULL };
-    struct d_awk_source tree_source = { 0 };
+    struct dj_awk_source tree_source = { 0 };
     int                 status      = 2;
 
     // the extensions, then the assignments, and -T <root> must name a tree
@@ -1117,15 +1117,14 @@ Parameter(s):
 Return:
   The program's exit status, or 2 on a usage or runtime error.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
 {
-    struct d_internal_options options = { NULL, NULL, NULL, 0, NULL, 0,
+    struct dj_internal_options options = { NULL, NULL, NULL, 0, NULL, 0,
                                           0,    0,    NULL, 0, NULL, 0 };
-    struct d_internal_source  source  = { NULL, 0, NULL, 0 };
+    struct dj_internal_source  source  = { NULL, 0, NULL, 0 };
     int                       at      = 1;
     int                       status  = d_internal_take_options(argc,
                                                                 argv,

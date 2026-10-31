@@ -41,7 +41,7 @@ statement says what it does.
 int
 d_sqlite_begin_transaction(
     sqlite3*                       _db,
-    enum d_sqlite_transaction_mode _mode
+    enum dj_sqlite_transaction_mode _mode
 )
 {
     // parameter validation
@@ -72,8 +72,7 @@ d_sqlite_begin_transaction(
 d_sqlite_commit
   COMMIT; on SQLITE_BUSY SQLite leaves the transaction open for a retry.
 */
-int
-d_sqlite_commit(
+int d_sqlite_commit(
     sqlite3* _db
 )
 {
@@ -90,8 +89,7 @@ d_sqlite_commit(
 d_sqlite_rollback
   ROLLBACK, which also closes every savepoint.
 */
-int
-d_sqlite_rollback(
+int d_sqlite_rollback(
     sqlite3* _db
 )
 {
@@ -110,8 +108,7 @@ d_sqlite_rollback(
 d_sqlite_in_transaction
   Autocommit is off exactly while a transaction is open.
 */
-bool
-d_sqlite_in_transaction(
+bool d_sqlite_in_transaction(
     sqlite3* _db
 )
 {
@@ -134,8 +131,7 @@ d_sqlite_in_transaction(
 d_sqlite_create_savepoint
   SAVEPOINT, its name quoted.
 */
-int
-d_sqlite_create_savepoint(
+int d_sqlite_create_savepoint(
     sqlite3*    _db,
     const char* _name
 )
@@ -154,8 +150,7 @@ d_sqlite_create_savepoint(
 d_sqlite_release_savepoint
   RELEASE, which also releases every savepoint opened after this one.
 */
-int
-d_sqlite_release_savepoint(
+int d_sqlite_release_savepoint(
     sqlite3*    _db,
     const char* _name
 )
@@ -174,8 +169,7 @@ d_sqlite_release_savepoint(
 d_sqlite_rollback_to_savepoint
   ROLLBACK TO undoes back to the savepoint and leaves it open.
 */
-int
-d_sqlite_rollback_to_savepoint(
+int d_sqlite_rollback_to_savepoint(
     sqlite3*    _db,
     const char* _name
 )
@@ -208,7 +202,7 @@ d_sqlite_begin_transaction
 int
 d_sqlite_begin_transaction(
     struct sqlite3*                _db,
-    enum d_sqlite_transaction_mode _mode
+    enum dj_sqlite_transaction_mode _mode
 )
 {
     (void)_db;
@@ -221,8 +215,7 @@ d_sqlite_begin_transaction(
 d_sqlite_commit
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_commit(
+int d_sqlite_commit(
     struct sqlite3* _db
 )
 {
@@ -235,8 +228,7 @@ d_sqlite_commit(
 d_sqlite_rollback
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_rollback(
+int d_sqlite_rollback(
     struct sqlite3* _db
 )
 {
@@ -249,8 +241,7 @@ d_sqlite_rollback(
 d_sqlite_in_transaction
   Without SQLite, false.
 */
-bool
-d_sqlite_in_transaction(
+bool d_sqlite_in_transaction(
     struct sqlite3* _db
 )
 {
@@ -263,8 +254,7 @@ d_sqlite_in_transaction(
 d_sqlite_create_savepoint
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_create_savepoint(
+int d_sqlite_create_savepoint(
     struct sqlite3* _db,
     const char*     _name
 )
@@ -279,8 +269,7 @@ d_sqlite_create_savepoint(
 d_sqlite_release_savepoint
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_release_savepoint(
+int d_sqlite_release_savepoint(
     struct sqlite3* _db,
     const char*     _name
 )
@@ -295,8 +284,7 @@ d_sqlite_release_savepoint(
 d_sqlite_rollback_to_savepoint
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_rollback_to_savepoint(
+int d_sqlite_rollback_to_savepoint(
     struct sqlite3* _db,
     const char*     _name
 )

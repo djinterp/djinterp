@@ -1,0 +1,19 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\inc\djinterp\core\memory\
+├── 📁 pool
+│   ├── 📄 pool.hpp
+│   ├── 📄 pool_allocator.hpp
+│   └── 📄 pool_traits.hpp
+├── 📁 strategy
+│   ├── 📄 allocator_memory_strategy.hpp
+│   ├── 📄 memory_strategy_concepts.hpp
+│   ├── 📄 memory_strategy_traits.hpp
+│   ├── 📄 monotonic_byte_arena.hpp
+│   ├── 📄 pool_memory_strategy.hpp
+│   └── 📄 static_buffer_strategy.hpp
+├── 📄 allocator_memory_strategy.hpp
+├── 📄 container_memory_strategy.hpp
+├── 📄 memory_strategy_concepts.hpp
+├── 📄 memory_strategy_traits.hpp
+├── 📄 monotonic_byte_arena.hpp
+├── 📄 pool_memory_strategy.hpp
+└── 📄 static_buffer_strategy.hpp

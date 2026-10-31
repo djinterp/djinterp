@@ -14,7 +14,7 @@
 
 // djinterp
 #include "./byte_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -26,10 +26,8 @@ d_tests_sa_byte_array_byte_0_of_1
     - Handles zero value
     - Handles max value (0xFF)
 */
-bool
-d_tests_sa_byte_array_byte_0_of_1
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_byte_0_of_1(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -81,10 +79,8 @@ d_tests_sa_byte_array_bytes_of_2
     - BYTE_1_OF_2 extracts high byte (little-endian)
     - Correct extraction from various 16-bit values
 */
-bool
-d_tests_sa_byte_array_bytes_of_2
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_of_2(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
@@ -162,10 +158,8 @@ d_tests_sa_byte_array_bytes_of_4
     - Little-endian ordering (byte 0 is lowest address)
     - Correct extraction from various 32-bit values
 */
-bool
-d_tests_sa_byte_array_bytes_of_4
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_of_4(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
@@ -256,10 +250,8 @@ d_tests_sa_byte_array_bytes_of_8
     - Little-endian ordering
     - Correct extraction from various 64-bit values
 */
-bool
-d_tests_sa_byte_array_bytes_of_8
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_of_8(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
@@ -356,10 +348,8 @@ d_tests_sa_byte_array_bytes_of_8
 d_tests_sa_byte_array_extraction_all
     Aggregation function that runs all byte extraction tests.
 */
-bool
-d_tests_sa_byte_array_extraction_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_extraction_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

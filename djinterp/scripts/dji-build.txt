@@ -1,0 +1,49 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\build\cmake\config\testing\djinterp\core\util\
+├── 📁 archive
+│   ├── 📄 archive_tests_runner.cpp
+│   └── 📄 CMakeLists.txt
+├── 📁 archive_options
+│   ├── 📄 archive_options_tests_runner.cpp
+│   └── 📄 CMakeLists.txt
+├── 📁 compress
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 compress_tests_runner.cpp
+├── 📁 compress_options
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 compress_options_tests_runner.cpp
+├── 📁 counter
+│   ├── 📁 counter
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 counter_tests_runner.cpp
+│   └── 📄 CMakeLists.txt
+├── 📁 sort
+│   ├── 📁 bubble_sort
+│   │   └── 📄 bubble_sort_tests_runner.cpp
+│   ├── 📁 heap_sort
+│   │   └── 📄 heap_sort_tests_runner.cpp
+│   ├── 📁 insertion_sort
+│   │   └── 📄 insertion_sort_tests_runner.cpp
+│   ├── 📁 merge_sort
+│   │   └── 📄 merge_sort_tests_runner.cpp
+│   ├── 📁 quick_sort
+│   │   └── 📄 quick_sort_tests_runner.cpp
+│   ├── 📁 selection_sort
+│   │   └── 📄 selection_sort_tests_runner.cpp
+│   ├── 📁 sort
+│   │   └── 📄 sort_tests_runner.cpp
+│   ├── 📁 sort_common
+│   │   └── 📄 sort_common_tests_runner.cpp
+│   ├── 📁 sort_dispatch
+│   │   └── 📄 sort_dispatch_tests_runner.cpp
+│   ├── 📁 sort_monoid
+│   │   └── 📄 sort_monoid_tests_runner.cpp
+│   ├── 📁 sort_view
+│   │   └── 📄 sort_view_tests_runner.cpp
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 sort_conformance_tests_runner.cpp
+├── 📁 timer
+│   ├── 📁 timer
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 timer_tests_runner.cpp
+│   └── 📄 CMakeLists.txt
+└── 📄 CMakeLists.txt

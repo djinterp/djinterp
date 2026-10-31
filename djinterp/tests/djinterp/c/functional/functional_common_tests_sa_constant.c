@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,10 +22,8 @@ d_tests_sa_functional_constant_true
   - returns true with NULL element and non-NULL context
   - always returns true regardless of any argument combination
 */
-bool
-d_tests_sa_functional_constant_true
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_constant_true(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -93,10 +91,8 @@ d_tests_sa_functional_constant_false
   - returns false with NULL element and non-NULL context
   - always returns false regardless of any argument combination
 */
-bool
-d_tests_sa_functional_constant_false
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_constant_false(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;

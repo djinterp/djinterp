@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./predicate_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,14 +20,12 @@ d_tests_sa_predicate_macro_and
   - field values match macro arguments
   - evaluation produces correct results through compound literal
 */
-bool
-d_tests_sa_predicate_macro_and
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_and(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_predicate_and combo;
+    struct dj_predicate_and combo;
     int                    value;
     int                    threshold;
 
@@ -89,14 +87,12 @@ d_tests_sa_predicate_macro_or
   - correct struct initialization with predicates and contexts
   - evaluation produces correct results through compound literal
 */
-bool
-d_tests_sa_predicate_macro_or
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_or(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_predicate_or combo;
+    struct dj_predicate_or combo;
     int                   value;
     int                   threshold;
 
@@ -146,14 +142,12 @@ d_tests_sa_predicate_macro_xor
   - correct struct initialization with predicates and contexts
   - evaluation produces correct results through compound literal
 */
-bool
-d_tests_sa_predicate_macro_xor
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_xor(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_predicate_xor combo;
+    struct dj_predicate_xor combo;
     int                    value;
     int                    threshold;
 
@@ -205,14 +199,12 @@ d_tests_sa_predicate_macro_not
   - correct struct initialization with predicate and context
   - evaluation produces correct results through compound literal
 */
-bool
-d_tests_sa_predicate_macro_not
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_not(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_predicate_not combo;
+    struct dj_predicate_not combo;
     int                    value;
     int                    threshold;
 
@@ -261,14 +253,12 @@ d_tests_sa_predicate_macro_and_simple
   - correct struct initialization with predicates and NULL contexts
   - evaluation produces correct results
 */
-bool
-d_tests_sa_predicate_macro_and_simple
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_and_simple(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_predicate_and combo;
+    struct dj_predicate_and combo;
     int                    value;
 
     result = true;
@@ -319,14 +309,12 @@ d_tests_sa_predicate_macro_or_simple
   - correct struct initialization with predicates and NULL contexts
   - evaluation produces correct results
 */
-bool
-d_tests_sa_predicate_macro_or_simple
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_or_simple(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_predicate_or combo;
+    struct dj_predicate_or combo;
     int                   value;
 
     result = true;
@@ -371,14 +359,12 @@ d_tests_sa_predicate_macro_xor_simple
   - correct struct initialization with predicates and NULL contexts
   - evaluation produces correct results
 */
-bool
-d_tests_sa_predicate_macro_xor_simple
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_xor_simple(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_predicate_xor combo;
+    struct dj_predicate_xor combo;
     int                    value;
 
     result = true;
@@ -425,14 +411,12 @@ d_tests_sa_predicate_macro_not_simple
   - correct struct initialization with predicate and NULL context
   - evaluation produces correct results
 */
-bool
-d_tests_sa_predicate_macro_not_simple
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_not_simple(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_predicate_not combo;
+    struct dj_predicate_not combo;
     int                    value;
 
     result = true;
@@ -476,10 +460,8 @@ d_tests_sa_predicate_macro_not_simple
 d_tests_sa_predicate_macro_all
   Aggregation function that runs all macro tests.
 */
-bool
-d_tests_sa_predicate_macro_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_macro_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

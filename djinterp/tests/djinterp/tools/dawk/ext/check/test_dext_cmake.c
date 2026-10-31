@@ -44,8 +44,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -68,14 +68,14 @@ d_tests_attribute
   A node's attribute by name: its text, "" for one with no value, or NULL
 for one it does not have.
 */
-static const char*
-d_tests_attribute(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _name
+static
+const char* d_tests_attribute(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _name
 )
 {
-    const struct d_node* const node = d_node_at(_tree, _node);
+    const struct dj_node* const node = d_node_at(_tree, _node);
 
     // a node that is not there has nothing
     if (!node)
@@ -85,7 +85,7 @@ d_tests_attribute(
 
     for (uint32_t at = 0; at < node->attribute_count; ++at)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, node->first_attribute + at);
 
         if ( (attribute) &&
@@ -105,12 +105,12 @@ d_tests_attribute(
 d_tests_is
   Whether a node's attribute holds a text.
 */
-static bool
-d_tests_is(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _name,
-    const char*         _value
+static
+bool d_tests_is(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _name,
+    const char*          _value
 )
 {
     const char* const value = d_tests_attribute(_tree, _node, _name);
@@ -124,11 +124,11 @@ d_tests_is(
 d_tests_find
   The `_nth` node, from 0, of a type.
 */
-static uint32_t
-d_tests_find(
-    struct d_node_tree* _tree,
-    const char*         _type,
-    size_t              _nth
+static
+uint32_t d_tests_find(
+    struct dj_node_tree* _tree,
+    const char*          _type,
+    size_t               _nth
 )
 {
     size_t seen = 0;
@@ -151,16 +151,16 @@ d_tests_find(
 d_tests_matches
   How many nodes of a CMake text's tree a one-rule sheet matches.
 */
-static size_t
-d_tests_matches(
+static
+size_t d_tests_matches(
     const char* _rule,
     const char* _text
 )
 {
-    struct d_dss_error        error;
-    struct d_dss_sheet* const sheet = d_dss_parse(_rule, strlen(_rule),
+    struct dj_dss_error        error;
+    struct dj_dss_sheet* const sheet = d_dss_parse(_rule, strlen(_rule),
                                                   &error);
-    struct d_node_tree* const tree  = d_node_tree_new();
+    struct dj_node_tree* const tree  = d_node_tree_new();
     size_t                    hits  = 0;
 
     // a sheet that does not parse matches nothing, and says so
@@ -201,8 +201,8 @@ d_tests_claims
   Tests the following:
   - CMake's file names are claimed, and nothing else
 */
-static void
-d_tests_claims(void)
+static
+void d_tests_claims(void)
 {
     printf("claims\n");
 
@@ -250,8 +250,8 @@ d_tests_selectors
     their body between
   - comments stand beneath what holds them
 */
-static void
-d_tests_selectors(void)
+static
+void d_tests_selectors(void)
 {
     printf("selectors\n");
 
@@ -319,8 +319,8 @@ d_tests_broken
   - a refusal, where it stands, and the commands before it
   - a generated file is marked, and given no tree
 */
-static void
-d_tests_broken(void)
+static
+void d_tests_broken(void)
 {
     printf("broken\n");
 
@@ -338,8 +338,8 @@ d_tests_broken(void)
                     == 1u),
                    "a closer passing over a block closes its own");
 
-    struct d_node_tree* const tree = d_node_tree_new();
-    struct d_ext_cmake_stats  stats;
+    struct dj_node_tree* const tree = d_node_tree_new();
+    struct dj_ext_cmake_stats  stats;
     static const char         text[] = "set(a)\nset(b \"c\n";
 
     (void)d_ext_cmake_build(tree, D_DSS_NO_INDEX, text, sizeof(text) - 1u,
@@ -356,7 +356,7 @@ d_tests_broken(void)
                    "a refusal says where and why, after what came before");
     d_node_tree_free(tree);
 
-    struct d_node_tree* const generated = d_node_tree_new();
+    struct dj_node_tree* const generated = d_node_tree_new();
     static const char         install[] =
         "# Install script for directory: D:/x\nset(a)\n";
 
@@ -372,7 +372,7 @@ d_tests_broken(void)
                    "a generated file is marked, and given no tree");
     d_node_tree_free(generated);
 
-    struct d_node_tree* const listed = d_node_tree_new();
+    struct dj_node_tree* const listed = d_node_tree_new();
 
     (void)d_ext_cmake_build(listed, D_DSS_NO_INDEX, "set(a)\n", 7u,
                             "out/CMakeFiles/3.28/CMakeCCompiler.cmake",
@@ -389,21 +389,21 @@ d_tests_geometry
   Tests the following:
   - a node's line, columns and width are its first line's
 */
-static void
-d_tests_geometry(void)
+static
+void d_tests_geometry(void)
 {
-    struct d_node_tree* const tree = d_node_tree_new();
+    struct dj_node_tree* const tree = d_node_tree_new();
 
     printf("geometry\n");
 
     (void)d_ext_cmake_build(tree, D_DSS_NO_INDEX, LEAF, sizeof(LEAF) - 1u,
                             NULL, NULL);
 
-    const struct d_node* const command =
+    const struct dj_node* const command =
         d_node_at(tree, d_tests_find(tree, "command", 3u));
-    const struct d_node* const quoted =
+    const struct dj_node* const quoted =
         d_node_at(tree, d_tests_find(tree, "argument", 11u));
-    const struct d_node* const spanning =
+    const struct dj_node* const spanning =
         d_node_at(tree, d_tests_find(tree, "command", 8u));
 
     d_tests_check( (command) && (command->line == 7u) &&
@@ -430,10 +430,10 @@ d_tests_relocation
   - a node given an attribute after another node has one keeps all of its
     own, the new one last
 */
-static void
-d_tests_relocation(void)
+static
+void d_tests_relocation(void)
 {
-    struct d_node_tree* const tree = d_node_tree_new();
+    struct dj_node_tree* const tree = d_node_tree_new();
 
     printf("relocation\n");
 
@@ -467,8 +467,8 @@ d_tests_relocation(void)
 d_tests_write
   Writes a text to a file, making the directories on its way.
 */
-static bool
-d_tests_write(
+static
+bool d_tests_write(
     const char* _path,
     const char* _text
 )
@@ -496,8 +496,8 @@ d_tests_banner
   - the facts of a file under build/cmake: its root, path and subsystem
   - delimiters in `#` comments
 */
-static void
-d_tests_banner(
+static
+void d_tests_banner(
     const char* _work
 )
 {
@@ -550,7 +550,7 @@ d_tests_banner(
                    root);
     d_tests_check(made && d_tests_write(path, text), "the file is written");
 
-    struct d_node_tree* const tree   = d_node_tree_new();
+    struct dj_node_tree* const tree   = d_node_tree_new();
     const uint32_t            banner = d_banner_build(tree, path, root);
     const uint32_t            file   = (banner != D_DSS_NO_INDEX)
                                      ? d_node_at(tree, banner)->parent
@@ -571,7 +571,7 @@ d_tests_banner(
 
     for (uint32_t at = 0; at < (uint32_t)d_node_count(tree); ++at)
     {
-        const struct d_node* const node = d_node_at(tree, at);
+        const struct dj_node* const node = d_node_at(tree, at);
 
         if ( (strcmp(d_node_name(tree, node->type), "field") == 0) &&
              (node->present) )
@@ -604,8 +604,7 @@ d_tests_banner(
 main
   Runs the checks, writing into the directory given or the current one.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )

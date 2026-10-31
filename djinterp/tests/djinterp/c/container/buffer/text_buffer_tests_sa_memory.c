@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_text_buffer_free
   - frees a buffer with chunks without error
   - frees a buffer after modifications without error
 */
-bool
-d_tests_sa_text_buffer_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -112,10 +110,8 @@ d_tests_sa_text_buffer_free
 d_tests_sa_text_buffer_memory_all
   Aggregation function that runs all memory management tests.
 */
-bool
-d_tests_sa_text_buffer_memory_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_memory_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

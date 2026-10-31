@@ -18,13 +18,10 @@
 d_tests_file_open_close
   Tests d_file_open / d_file_close_fd.
 */
-static struct d_test_object*
-d_tests_file_open_close
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_open_close(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     char                  fresh[D_TEST_FILE_PATH_BUF];
     int                   fd;
@@ -74,13 +71,10 @@ d_tests_file_dup
   Tests d_file_dup_fd / d_file_dup2_fd, and the close-on-exec property POSIX would silently
 drop.
 */
-static struct d_test_object*
-d_tests_file_dup
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_dup(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     int                   fd;
     int                   dup_fd;
@@ -154,13 +148,10 @@ d_tests_file_dup
 d_tests_file_fileno
   Tests d_file_descriptor_stream.
 */
-static struct d_test_object*
-d_tests_file_fileno
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fileno(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     FILE*                 file;
     size_t                idx;
@@ -190,13 +181,9 @@ d_tests_file_fileno
 d_tests_file_desc_all
   Runs every file_desc test.
 */
-struct d_test_object*
-d_tests_file_desc_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_desc_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

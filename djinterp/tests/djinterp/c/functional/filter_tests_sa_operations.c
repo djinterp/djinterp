@@ -9,14 +9,18 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPER PREDICATES
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool pred_always_true(const void* _element, void* _context)
+static
+bool pred_always_true(
+    const void* _element,
+    void*       _context
+)
 {
     (void)_element;
     (void)_context;
@@ -24,7 +28,11 @@ static bool pred_always_true(const void* _element, void* _context)
     return true;
 }
 
-static bool pred_always_false(const void* _element, void* _context)
+static
+bool pred_always_false(
+    const void* _element,
+    void*       _context
+)
 {
     (void)_element;
     (void)_context;
@@ -32,7 +40,11 @@ static bool pred_always_false(const void* _element, void* _context)
     return false;
 }
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -48,7 +60,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -64,7 +80,11 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static bool pred_greater_than_context(const void* _element, void* _context)
+static
+bool pred_greater_than_context(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
     const int* threshold;
@@ -81,7 +101,12 @@ static bool pred_greater_than_context(const void* _element, void* _context)
     return (*value > *threshold);
 }
 
-static int cmp_int(const void* _a, const void* _b, void* _context)
+static
+int cmp_int(
+    const void* _a,
+    const void* _b,
+    void*       _context
+)
 {
     const int* a;
     const int* b;
@@ -105,14 +130,12 @@ head, and tail.
   - parameter storage (count, step)
   - head/tail as special cases of take_first(1)/take_last(1)
 */
-bool
-d_tests_sa_filter_op_take
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_op_take(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
     result = true;
 
@@ -214,13 +237,11 @@ d_tests_sa_filter_op_skip
   - correct operation type assignment
   - init/rest as special cases
 */
-bool
-d_tests_sa_filter_op_skip
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_op_skip(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
     bool                       result;
 
     result = true;
@@ -289,13 +310,11 @@ d_tests_sa_filter_op_range_slice
   - slice stores start, end, and step correctly
   - slice step=0 defaults to 1
 */
-bool
-d_tests_sa_filter_op_range_slice
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_op_range_slice(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
     bool                       result;
 
     result = true;
@@ -359,13 +378,11 @@ where_not, where_not_context.
   - predicate function pointer storage
   - context pointer storage (NULL and non-NULL)
 */
-bool
-d_tests_sa_filter_op_where
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_op_where(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
     int                        threshold;
     bool                       result;
 
@@ -457,13 +474,11 @@ d_tests_sa_filter_op_indices
   - at_indices copies the indices array
   - at_indices with NULL/empty input
 */
-bool
-d_tests_sa_filter_op_indices
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_op_indices(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
     size_t                     idx_array[4];
     bool                       result;
 
@@ -567,13 +582,11 @@ d_tests_sa_filter_op_distinct_reverse
   - distinct stores comparator function pointer
   - reverse sets type with no parameters
 */
-bool
-d_tests_sa_filter_op_distinct_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_op_distinct_reverse(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
     bool                       result;
 
     result = true;
@@ -613,13 +626,11 @@ d_tests_sa_filter_op_free
   - freeing operation with no allocated resources
   - NULL safety
 */
-bool
-d_tests_sa_filter_op_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_op_free(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
     size_t                     idx_array[2];
     bool                       result;
 
@@ -686,10 +697,8 @@ d_tests_sa_filter_op_free
 d_tests_sa_filter_operations_all
   Aggregation function that runs all filter operation tests.
 */
-bool
-d_tests_sa_filter_operations_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_operations_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

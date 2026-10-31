@@ -62,7 +62,7 @@
 *   ONE DELIBERATE DIVERGENCE FROM THAT PRECEDENT. `compress_common.h` spells
 * the protocol `(_out, _out_capacity, _out_size)` -- status returned, count
 * written through an out-parameter. These functions return
-* `struct d_option_result` instead, which carries the count in its success arm
+* `struct dj_option_result` instead, which carries the count in its success arm
 * and the status in its error arm, so there is no out-parameter at all.
 *   That is not a stylistic preference. Stage 3 of the testing roadmap required
 * the pack facade to return the `result` carrier and it could not, because
@@ -91,7 +91,7 @@
 #include "./option_set_common.h"
 #include "./option_override_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t, uint32_t, uint64_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -118,24 +118,30 @@ D_EXTERN_C_BEGIN
 
 // d_option_set_added_keys
 //   function: K(Ob) \ K(Oa) -- keys the delta introduces. Delta's order.
-struct d_option_result d_option_set_added_keys(const struct d_option_set* _base,
-                                               const struct d_option_set* _delta,
-                                               uint64_t*                  _out,
-                                               uint32_t                   _capacity);
+struct dj_option_result d_option_set_added_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity
+);
 
 // d_option_set_removed_keys
 //   function: K(Oa) \ K(Ob) -- keys the delta drops. Base's order.
-struct d_option_result d_option_set_removed_keys(const struct d_option_set* _base,
-                                                 const struct d_option_set* _delta,
-                                                 uint64_t*                  _out,
-                                                 uint32_t                   _capacity);
+struct dj_option_result d_option_set_removed_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity
+);
 
 // d_option_set_keys
 //   function: K(O) -- every key in a set, in its own order. Not one of the
 // .tex's operators; it is the enumeration the others are expressed over.
-struct d_option_result d_option_set_keys(const struct d_option_set* _set,
-                                         uint64_t*                  _out,
-                                         uint32_t                   _capacity);
+struct dj_option_result d_option_set_keys(
+    const struct dj_option_set* _set,
+    uint64_t*                   _out,
+    uint32_t                    _capacity
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -151,13 +157,15 @@ struct d_option_result d_option_set_keys(const struct d_option_set* _set,
 //   Empty exactly when the sets AGREE under pi. That is the .tex's first
 // characterisation, and it makes this function the cheapest correct
 // implementation of agreement rather than a neighbour of one.
-struct d_option_result d_option_set_changed_keys(const struct d_option_set* _base,
-                                                 const struct d_option_set* _delta,
-                                                 uint64_t*                  _out,
-                                                 uint32_t                   _capacity,
-                                                 fn_option_project          _project,
-                                                 fn_binary_predicate        _compare,
-                                                 void*                      _context);
+struct dj_option_result d_option_set_changed_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
+);
 
 // d_option_set_unchanged_keys
 //   function: shared keys whose projections agree. Base's order.
@@ -166,13 +174,15 @@ struct d_option_result d_option_set_changed_keys(const struct d_option_set* _bas
 // disjointness property, worth asserting alongside the one in the file header.
 //   Not named in the .tex, which is why it sits here rather than in section
 // III: it is a convenience over the document's operators, not one of them.
-struct d_option_result d_option_set_unchanged_keys(const struct d_option_set* _base,
-                                                   const struct d_option_set* _delta,
-                                                   uint64_t*                  _out,
-                                                   uint32_t                   _capacity,
-                                                   fn_option_project          _project,
-                                                   fn_binary_predicate        _compare,
-                                                   void*                      _context);
+struct dj_option_result d_option_set_unchanged_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -187,13 +197,15 @@ struct d_option_result d_option_set_unchanged_keys(const struct d_option_set* _b
 //   Emitted in a stated order -- removed and changed in the base's order, then
 // added in the delta's -- so the result is reproducible. The three parts are
 // disjoint, so no key appears twice and the count is their sum.
-struct d_option_result d_option_set_diff_keys(const struct d_option_set* _base,
-                                              const struct d_option_set* _delta,
-                                              uint64_t*                  _out,
-                                              uint32_t                   _capacity,
-                                              fn_option_project          _project,
-                                              fn_binary_predicate        _compare,
-                                              void*                      _context);
+struct dj_option_result d_option_set_diff_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
+);
 
 // fn_option_exempt
 //   function pointer: the exemption predicate epsilon. Returns true for a key
@@ -204,8 +216,8 @@ struct d_option_result d_option_set_diff_keys(const struct d_option_set* _base,
 // their absence, which is the same thing the difference itself has to do.
 // Note: `_context` may be NULL.
 typedef bool (*fn_option_exempt)(uint64_t               _key,
-                                 const struct d_option* _base_option,
-                                 const struct d_option* _delta_option,
+                                 const struct dj_option* _base_option,
+                                 const struct dj_option* _delta_option,
                                  void*                  _context);
 
 // d_option_set_diff_keys_exempt
@@ -221,25 +233,29 @@ typedef bool (*fn_option_exempt)(uint64_t               _key,
 //   `_exempt` NULL is the unfiltered difference, which makes
 // `d_option_set_diff_keys` the epsilon = false instance of this function
 // rather than a separate algorithm with its own opportunity to disagree.
-struct d_option_result d_option_set_diff_keys_exempt(const struct d_option_set* _base,
-                                                     const struct d_option_set* _delta,
-                                                     uint64_t*                  _out,
-                                                     uint32_t                   _capacity,
-                                                     fn_option_project          _project,
-                                                     fn_binary_predicate        _compare,
-                                                     fn_option_exempt           _exempt,
-                                                     void*                      _context);
+struct dj_option_result d_option_set_diff_keys_exempt(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    fn_option_exempt            _exempt,
+    void*                       _context
+);
 
 // d_option_set_diff_count
 //   function: |diff_pi|. One walk, no storage, and the measurement every
 // enumeration above is sized by.
 //   Equal to |added| + |changed| + |removed| by disjointness -- an identity
 // that is a conformance test, not a comment.
-struct d_option_result d_option_set_diff_count(const struct d_option_set* _base,
-                                               const struct d_option_set* _delta,
-                                               fn_option_project          _project,
-                                               fn_binary_predicate        _compare,
-                                               void*                      _context);
+struct dj_option_result d_option_set_diff_count(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -267,11 +283,11 @@ struct d_option_result d_option_set_diff_count(const struct d_option_set* _base,
 #define D_OPTION_DIFF_ADDED         ((int32_t)2)
 #define D_OPTION_DIFF_REMOVED       ((int32_t)3)
 
-// d_option_diff_entry
+// dj_option_diff_entry
 //   struct: one key's verdict. Sixteen bytes, no padding, and the verdict is
 // `int32_t` rather than an enum for the reason option_common.h gives -- an
 // enum has implementation-defined size and this record reaches a wire format.
-struct d_option_diff_entry
+struct dj_option_diff_entry
 {
     uint64_t key;       // the key this verdict is about
     int32_t  verdict;   // D_OPTION_DIFF_*
@@ -287,30 +303,34 @@ struct d_option_diff_entry
 // is recovered by dropping the unchanged rows. A report wants the complete
 // account, the operator wants the filtered one, and computing the former once
 // is cheaper than computing the latter and then going back for the rest.
-struct d_option_result d_option_set_diff(const struct d_option_set*  _base,
-                                         const struct d_option_set*  _delta,
-                                         struct d_option_diff_entry* _out,
-                                         uint32_t                    _capacity,
-                                         fn_option_project           _project,
-                                         fn_binary_predicate         _compare,
-                                         void*                       _context);
+struct dj_option_result d_option_set_diff(
+    const struct dj_option_set*  _base,
+    const struct dj_option_set*  _delta,
+    struct dj_option_diff_entry* _out,
+    uint32_t                     _capacity,
+    fn_option_project            _project,
+    fn_binary_predicate          _compare,
+    void*                        _context
+);
 
 // d_option_diff_verdict_name
 //   function: the verdict's stable spelling, for reports and for the parity
 // oracle. Never NULL.
-const char* d_option_diff_verdict_name(int32_t _verdict);
+const char* d_option_diff_verdict_name(
+    int32_t _verdict
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             V.    LAYOUT ASSERTIONS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-D_STATIC_ASSERT(sizeof(struct d_option_diff_entry) == 16,
-                "d_option_diff_entry layout drift: expected 16 bytes");
-D_STATIC_ASSERT(offsetof(struct d_option_diff_entry, verdict) == 8,
-                "d_option_diff_entry layout drift: verdict");
-D_STATIC_ASSERT(offsetof(struct d_option_diff_entry, reserved) == 12,
-                "d_option_diff_entry layout drift: reserved");
+D_STATIC_ASSERT(sizeof(struct dj_option_diff_entry) == 16,
+                "dj_option_diff_entry layout drift: expected 16 bytes");
+D_STATIC_ASSERT(offsetof(struct dj_option_diff_entry, verdict) == 8,
+                "dj_option_diff_entry layout drift: verdict");
+D_STATIC_ASSERT(offsetof(struct dj_option_diff_entry, reserved) == 12,
+                "dj_option_diff_entry layout drift: reserved");
 
 
 D_EXTERN_C_END

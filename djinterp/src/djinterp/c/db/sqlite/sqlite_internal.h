@@ -56,9 +56,9 @@ TABLE OF CONTENTS
 #include "../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../inc/djinterp/c/db/sqlite/sqlite_common.h"  // layer
 #include "../../../../../inc/djinterp/env/db/sqlite/env_sqlite.h"  // sqlite3.h
-#include "../db_internal.h"  // d_internal_db_names, d_internal_db_rows
+#include "../db_internal.h"  // dj_internal_db_names, dj_internal_db_rows
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_SQLITE == 1)
@@ -156,12 +156,24 @@ TABLE OF CONTENTS
 // "main" as SQLite does, ignoring ASCII case; _name_ok is false for a NULL or
 // empty name, and _schema_ok for an empty one, NULL meaning "main";
 // _runtime_at_least compares the library loaded now
-const char* d_internal_sqlite_schema(const char* _schema);
-const char* d_internal_sqlite_schema_table(const char* _schema);
-bool        d_internal_sqlite_is_main(const char* _schema);
-bool        d_internal_sqlite_name_ok(const char* _name);
-bool        d_internal_sqlite_schema_ok(const char* _schema);
-bool        d_internal_sqlite_runtime_at_least(int _version);
+const char* d_internal_sqlite_schema(
+    const char* _schema
+);
+const char* d_internal_sqlite_schema_table(
+    const char* _schema
+);
+bool d_internal_sqlite_is_main(
+    const char* _schema
+);
+bool d_internal_sqlite_name_ok(
+    const char* _name
+);
+bool d_internal_sqlite_schema_ok(
+    const char* _schema
+);
+bool d_internal_sqlite_runtime_at_least(
+    int _version
+);
 
 
 //==============================================================================
@@ -188,15 +200,19 @@ bool        d_internal_sqlite_runtime_at_least(int _version);
  *         result of sqlite3_prepare_v2.
  * @post On success the caller finalizes `*_statement`.
  */
-int  d_internal_sqlite_vprepare(sqlite3*       _db,
-                                sqlite3_stmt** _statement,
-                                const char*    _format,
-                                va_list        _args);
+int d_internal_sqlite_vprepare(
+    sqlite3*       _db,
+    sqlite3_stmt** _statement,
+    const char*    _format,
+    va_list        _args
+);
 // as d_internal_sqlite_vprepare, taking the arguments directly
-int  d_internal_sqlite_prepare(sqlite3*       _db,
-                               sqlite3_stmt** _statement,
-                               const char*    _format,
-                               ...);
+int d_internal_sqlite_prepare(
+    sqlite3*       _db,
+    sqlite3_stmt** _statement,
+    const char*    _format,
+    ...
+);
 /**
  * @brief Prepares exactly one statement, as written.
  *
@@ -210,16 +226,20 @@ int  d_internal_sqlite_prepare(sqlite3*       _db,
  * The text after the statement is read, not compiled, so refusing it leaves
  * the connection's error state as the first statement's preparation left it.
  */
-int  d_internal_sqlite_prepare_one(sqlite3*       _db,
-                                   sqlite3_stmt** _statement,
-                                   const char*    _sql);
+int d_internal_sqlite_prepare_one(
+    sqlite3*       _db,
+    sqlite3_stmt** _statement,
+    const char*    _sql
+);
 // as d_internal_sqlite_prepare_one, the statement formatted first: SQLITE_NOMEM
 // when formatting ran out of memory, SQLITE_MISUSE for a shared-dialect format
 // it refuses
-int  d_internal_sqlite_vprepare_one(sqlite3*       _db,
-                                    sqlite3_stmt** _statement,
-                                    const char*    _format,
-                                    va_list        _args);
+int d_internal_sqlite_vprepare_one(
+    sqlite3*       _db,
+    sqlite3_stmt** _statement,
+    const char*    _format,
+    va_list        _args
+);
 /**
  * @brief Formats one or more statements and runs them to completion.
  *
@@ -230,13 +250,17 @@ int  d_internal_sqlite_vprepare_one(sqlite3*       _db,
  *         SQLITE_MISUSE for a shared-dialect format it refuses; or the
  *         result of the statement that failed.
  */
-int  d_internal_sqlite_vexecute(sqlite3*    _db,
-                                const char* _format,
-                                va_list     _args);
+int d_internal_sqlite_vexecute(
+    sqlite3*    _db,
+    const char* _format,
+    va_list     _args
+);
 // as d_internal_sqlite_vexecute, taking the arguments directly
-int  d_internal_sqlite_execute(sqlite3*    _db,
-                               const char* _format,
-                               ...);
+int d_internal_sqlite_execute(
+    sqlite3*    _db,
+    const char* _format,
+    ...
+);
 /**
  * @brief Runs every statement in text, one at a time, and counts the rows
  *        the last one changed.
@@ -251,16 +275,20 @@ int  d_internal_sqlite_execute(sqlite3*    _db,
  * Each statement is prepared where the last ended, as sqlite3_exec prepares
  * them; text that holds none counts 0.
  */
-int  d_internal_sqlite_execute_counted(sqlite3*    _db,
-                                       int64_t*    _changes,
-                                       const char* _sql);
+int d_internal_sqlite_execute_counted(
+    sqlite3*    _db,
+    int64_t*    _changes,
+    const char* _sql
+);
 // as d_internal_sqlite_execute_counted, the statements formatted first:
 // SQLITE_NOMEM when formatting ran out of memory, SQLITE_MISUSE for a
 // shared-dialect format it refuses
-int  d_internal_sqlite_vexecute_counted(sqlite3*    _db,
-                                        int64_t*    _changes,
-                                        const char* _format,
-                                        va_list     _args);
+int d_internal_sqlite_vexecute_counted(
+    sqlite3*    _db,
+    int64_t*    _changes,
+    const char* _format,
+    va_list     _args
+);
 /**
  * @brief Finalizes a statement and settles the result of using it.
  *
@@ -270,8 +298,10 @@ int  d_internal_sqlite_vexecute_counted(sqlite3*    _db,
  *         sees; otherwise what sqlite3_finalize returned.
  * @post `_statement` is invalid.
  */
-int  d_internal_sqlite_finish(sqlite3_stmt* _statement,
-                              int           _result);
+int d_internal_sqlite_finish(
+    sqlite3_stmt* _statement,
+    int           _result
+);
 
 // 3.2    Single-value results
 //------------------------------------------------------------------------------
@@ -280,12 +310,18 @@ int  d_internal_sqlite_finish(sqlite3_stmt* _statement,
 // yields SQLITE_OK and the value, written only then; no row is D_DB_NOT_FOUND;
 // a failure is its SQLite result code. A NULL reads as 0, or as a NULL string.
 // _text's string is the caller's, released with d_db_free.
-int  d_internal_sqlite_step_int64(sqlite3_stmt* _statement,
-                                  int64_t*      _value);
-int  d_internal_sqlite_step_double(sqlite3_stmt* _statement,
-                                   double*       _value);
-int  d_internal_sqlite_step_text(sqlite3_stmt* _statement,
-                                 char**        _value);
+int d_internal_sqlite_step_int64(
+    sqlite3_stmt* _statement,
+    int64_t*      _value
+);
+int d_internal_sqlite_step_double(
+    sqlite3_stmt* _statement,
+    double*       _value
+);
+int d_internal_sqlite_step_text(
+    sqlite3_stmt* _statement,
+    char**        _value
+);
 
 // 3.3    Name lists
 //------------------------------------------------------------------------------
@@ -300,9 +336,11 @@ int  d_internal_sqlite_step_text(sqlite3_stmt* _statement,
  *         SQLite result code of the step that failed.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int  d_internal_sqlite_collect_names(sqlite3_stmt*          _statement,
-                                     int                    _column,
-                                     struct d_db_name_list* _names);
+int d_internal_sqlite_collect_names(
+    sqlite3_stmt*           _statement,
+    int                     _column,
+    struct dj_db_name_list* _names
+);
 
 // 3.4    Rows
 //------------------------------------------------------------------------------
@@ -311,10 +349,14 @@ int  d_internal_sqlite_collect_names(sqlite3_stmt*          _statement,
 // _keep_row copies the row a step has just produced, every value as SQLite
 // gives it. Each returns SQLITE_OK, or SQLITE_NOMEM, the builder then left
 // for its owner to release
-int  d_internal_sqlite_describe_columns(sqlite3_stmt*              _statement,
-                                        struct d_internal_db_rows* _builder);
-int  d_internal_sqlite_keep_row(sqlite3_stmt*              _statement,
-                                struct d_internal_db_rows* _builder);
+int d_internal_sqlite_describe_columns(
+    sqlite3_stmt*               _statement,
+    struct dj_internal_db_rows* _builder
+);
+int d_internal_sqlite_keep_row(
+    sqlite3_stmt*               _statement,
+    struct dj_internal_db_rows* _builder
+);
 /**
  * @brief Runs a prepared statement from its beginning to its end, collecting
  *        its rows, and resets it.
@@ -326,8 +368,10 @@ int  d_internal_sqlite_keep_row(sqlite3_stmt*              _statement,
  *         SQLite result code of the step that failed.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int  d_internal_sqlite_collect_rows(sqlite3_stmt*     _statement,
-                                    struct d_db_rows* _rows);
+int d_internal_sqlite_collect_rows(
+    sqlite3_stmt*      _statement,
+    struct dj_db_rows* _rows
+);
 /**
  * @brief Runs a prepared statement from its beginning to its end, discarding
  *        its rows, and resets it.
@@ -342,12 +386,15 @@ int  d_internal_sqlite_collect_rows(sqlite3_stmt*     _statement,
  * statement that changed rows from one that did not, for which
  * sqlite3_changes still holds an earlier statement's count.
  */
-int  d_internal_sqlite_run(sqlite3_stmt* _statement,
-                           int64_t*      _changes);
+int d_internal_sqlite_run(
+    sqlite3_stmt* _statement,
+    int64_t*      _changes
+);
 // the type a declared type names, as sqlite_query.h tabulates; NULL, for an
 // expression's column, is D_DB_TYPE_NONE
-enum d_db_type
-     d_internal_sqlite_declared_type(const char* _declared);
+enum dj_db_type d_internal_sqlite_declared_type(
+    const char* _declared
+);
 
 
 #endif  // D_INTERNAL_SQLITE

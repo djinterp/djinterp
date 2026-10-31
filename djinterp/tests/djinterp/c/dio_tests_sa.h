@@ -25,73 +25,125 @@
 #include "../../../inc/djinterp/c/dio.h"
 #include "../../../inc/djinterp/c/string_fn.h"
 #include "../../../inc/djinterp/c/dstring.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * I. FORMATTED INPUT FUNCTION TESTS
  *****************************************************************************/
-bool d_tests_sa_dio_sscanf(struct d_test_counter* _counter);
-bool d_tests_sa_dio_sscanf_s(struct d_test_counter* _counter);
-bool d_tests_sa_dio_vsscanf(struct d_test_counter* _counter);
-bool d_tests_sa_dio_vsscanf_s(struct d_test_counter* _counter);
-bool d_tests_sa_dio_fscanf(struct d_test_counter* _counter);
-bool d_tests_sa_dio_fscanf_s(struct d_test_counter* _counter);
+bool d_tests_sa_dio_sscanf(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_sscanf_s(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_vsscanf(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_vsscanf_s(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_fscanf(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_fscanf_s(
+    struct dj_test_counter* _counter
+);
 
 // I.   aggregation function
-bool d_tests_sa_dio_formatted_input_all(struct d_test_counter* _counter);
+bool d_tests_sa_dio_formatted_input_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * II. FORMATTED OUTPUT FUNCTION TESTS
  *****************************************************************************/
-bool d_tests_sa_dio_sprintf_s(struct d_test_counter* _counter);
-bool d_tests_sa_dio_vsprintf_s(struct d_test_counter* _counter);
-bool d_tests_sa_dio_snprintf(struct d_test_counter* _counter);
-bool d_tests_sa_dio_vsnprintf(struct d_test_counter* _counter);
+bool d_tests_sa_dio_sprintf_s(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_vsprintf_s(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_snprintf(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_vsnprintf(
+    struct dj_test_counter* _counter
+);
 
 // II.  aggregation function
-bool d_tests_sa_dio_formatted_output_all(struct d_test_counter* _counter);
+bool d_tests_sa_dio_formatted_output_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * III. CHARACTER AND STRING I/O FUNCTION TESTS
  *****************************************************************************/
-bool d_tests_sa_dio_gets_s(struct d_test_counter* _counter);
-bool d_tests_sa_dio_fputs(struct d_test_counter* _counter);
-bool d_tests_sa_dio_fgets(struct d_test_counter* _counter);
+bool d_tests_sa_dio_gets_s(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_fputs(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_fgets(
+    struct dj_test_counter* _counter
+);
 
 // III. aggregation function
-bool d_tests_sa_dio_char_string_io_all(struct d_test_counter* _counter);
+bool d_tests_sa_dio_char_string_io_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IV. LARGE FILE STREAM POSITIONING FUNCTION TESTS
  *****************************************************************************/
-bool d_tests_sa_dio_fgetpos(struct d_test_counter* _counter);
-bool d_tests_sa_dio_fsetpos(struct d_test_counter* _counter);
-bool d_tests_sa_dio_rewind(struct d_test_counter* _counter);
+bool d_tests_sa_dio_fgetpos(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_fsetpos(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_rewind(
+    struct dj_test_counter* _counter
+);
 
 // IV.  aggregation function
-bool d_tests_sa_dio_file_positioning_all(struct d_test_counter* _counter);
+bool d_tests_sa_dio_file_positioning_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * V. ERROR HANDLING FUNCTION TESTS
  *****************************************************************************/
-bool d_tests_sa_dio_perror(struct d_test_counter* _counter);
-bool d_tests_sa_dio_feof(struct d_test_counter* _counter);
-bool d_tests_sa_dio_ferror(struct d_test_counter* _counter);
-bool d_tests_sa_dio_clearerr(struct d_test_counter* _counter);
+bool d_tests_sa_dio_perror(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_feof(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_ferror(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_dio_clearerr(
+    struct dj_test_counter* _counter
+);
 
 // V.   aggregation function
-bool d_tests_sa_dio_error_handling_all(struct d_test_counter* _counter);
+bool d_tests_sa_dio_error_handling_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
-bool d_tests_sa_dio_run_all(struct d_test_counter* _counter);
+bool d_tests_sa_dio_run_all(
+    struct dj_test_counter* _counter
+);
 
 
 #endif  // DJINTERP_TESTS_DIO_SA_

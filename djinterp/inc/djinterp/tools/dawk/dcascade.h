@@ -40,8 +40,8 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
-#include "./dss.h"    // d_dss_sheet
+#include "./dnode.h"  // dj_node_tree
+#include "./dss.h"    // dj_dss_sheet
 
 
 //==============================================================================
@@ -52,9 +52,9 @@ TABLE OF CONTENTS
 // 1.1    Enumerations
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_cascade_policy
+// dj_cascade_policy
 //   enum: how competing declarations resolve.
-enum d_cascade_policy
+enum dj_cascade_policy
 {
     D_CASCADE_FIRST = 0,  // higher layer, then earlier rule; the linter's
     D_CASCADE_ALL,        // every declaration counts
@@ -64,9 +64,9 @@ enum d_cascade_policy
 // 1.2    Opaque types
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_cascade
+// dj_cascade
 //   struct: one tree's matches, ranked per node.
-struct d_cascade;
+struct dj_cascade;
 
 
 //==============================================================================
@@ -81,12 +81,16 @@ struct d_cascade;
  *
  * @param[in] _sheet   the sheet; bound (d_dss_bind) so properties compare as
  *                     symbols.  It must outlive the cascade.
- * @param[in] _policy  a d_cascade_policy.
+ * @param[in] _policy  a dj_cascade_policy.
  * @return the cascade, or `NULL` if allocation failed.
  */
-struct d_cascade* d_cascade_new(const struct d_dss_sheet* _sheet,
-                                enum d_cascade_policy     _policy);
-void              d_cascade_free(struct d_cascade* _cascade);
+struct dj_cascade* d_cascade_new(
+    const struct dj_dss_sheet* _sheet,
+    enum dj_cascade_policy     _policy
+);
+void d_cascade_free(
+    struct dj_cascade* _cascade
+);
 
 // 2.2    Recording
 //------------------------------------------------------------------------------
@@ -97,8 +101,10 @@ void              d_cascade_free(struct d_cascade* _cascade);
  * @param[in]     _node_count  the tree's node count.
  * @return `true` on success, `false` if allocation failed.
  */
-bool              d_cascade_reset(struct d_cascade* _cascade,
-                                  size_t            _node_count);
+bool d_cascade_reset(
+    struct dj_cascade* _cascade,
+    size_t             _node_count
+);
 /**
  * @brief Records that a rule matches a node, in any order.
  *
@@ -109,33 +115,43 @@ bool              d_cascade_reset(struct d_cascade* _cascade,
  *                              the CSS policy only.
  * @return `true` on success, `false` if allocation failed.
  */
-bool              d_cascade_add(struct d_cascade* _cascade,
-                                uint32_t          _node,
-                                uint32_t          _rule,
-                                uint32_t          _specificity);
+bool d_cascade_add(
+    struct dj_cascade* _cascade,
+    uint32_t           _node,
+    uint32_t           _rule,
+    uint32_t           _specificity
+);
 /**
  * @brief Orders every node's matches best first; the queries need it.
  *
  * @param[in,out] _cascade  the cascade.
  * @return `true` on success, `false` if allocation failed.
  */
-bool              d_cascade_rank(struct d_cascade* _cascade);
+bool d_cascade_rank(
+    struct dj_cascade* _cascade
+);
 
 // 2.3    Queries
 //------------------------------------------------------------------------------
 // a node's matching rules, best first; the count, with *_out_rules set
-size_t            d_cascade_matched(const struct d_cascade* _cascade,
-                                    uint32_t                _node,
-                                    const uint32_t**        _out_rules);
+size_t d_cascade_matched(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _node,
+    const uint32_t**         _out_rules
+);
 // the best-ranked matching rule declaring the property, or D_DSS_NO_INDEX
-uint32_t          d_cascade_winning_rule(const struct d_cascade* _cascade,
-                                         uint32_t                _node,
-                                         uint32_t                _property);
+uint32_t d_cascade_winning_rule(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _node,
+    uint32_t                 _property
+);
 // whether a rule's declarations of the property count; always under ALL
-bool              d_cascade_wins(const struct d_cascade* _cascade,
-                                 uint32_t                _node,
-                                 uint32_t                _rule,
-                                 uint32_t                _property);
+bool d_cascade_wins(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _node,
+    uint32_t                 _rule,
+    uint32_t                 _property
+);
 /**
  * @brief The declaration that decides a property at a node.
  *
@@ -147,11 +163,13 @@ bool              d_cascade_wins(const struct d_cascade* _cascade,
  * @return the declaration's index, or `D_DSS_NO_INDEX` when the property
  *         takes its initial value.
  */
-uint32_t          d_cascade_computed(const struct d_cascade* _cascade,
-                                     struct d_node_tree*     _tree,
-                                     uint32_t                _node,
-                                     uint32_t                _property,
-                                     bool                    _inherited);
+uint32_t d_cascade_computed(
+    const struct dj_cascade* _cascade,
+    struct dj_node_tree*     _tree,
+    uint32_t                 _node,
+    uint32_t                 _property,
+    bool                     _inherited
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DCASCADE_H

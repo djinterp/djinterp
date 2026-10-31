@@ -22,7 +22,7 @@
 #include <string.h>            // memchr, memcmp, memset, strchr, strcmp,
                                // strlen
 // djinterp
-#include "./dmake_internal.h"  // d_make_reader
+#include "./dmake_internal.h"  // dj_make_reader
 
 
 //==============================================================================
@@ -30,7 +30,7 @@
 //==============================================================================
 
 
-// the names of the makes, in the order of d_make_dialect
+// the names of the makes, in the order of dj_make_dialect
 static const char* const g_dialect_names[] =
 {
     "gnu",
@@ -84,7 +84,7 @@ d_make_dialect_name
 */
 const char*
 d_make_dialect_name(
-    enum d_make_dialect _dialect
+    enum dj_make_dialect _dialect
 )
 {
     // a value past the table names nothing
@@ -105,7 +105,7 @@ d_make_dialect_of
 bool
 d_make_dialect_of(
     const char*          _name,
-    enum d_make_dialect* _out
+    enum dj_make_dialect* _out
 )
 {
     // nothing to find, or nowhere to put it
@@ -124,7 +124,7 @@ d_make_dialect_of(
         if (strcmp(_name,
                    g_dialect_names[index]) == 0)
         {
-            *_out = (enum d_make_dialect)index;
+            *_out = (enum dj_make_dialect)index;
 
             return true;
         }
@@ -150,8 +150,8 @@ d_make_dialect_of(
  * @return the place of the line's ending: its CR when CR LF ends it, its
  *         line feed when LF alone does, or the text's length.
  */
-static size_t
-d_internal_physical_end(
+static
+size_t d_internal_physical_end(
     const char* _text,
     size_t      _length,
     size_t      _at,
@@ -196,7 +196,7 @@ d_make_continues(
     const char*         _text,
     size_t              _start,
     size_t              _end,
-    enum d_make_dialect _dialect
+    enum dj_make_dialect _dialect
 )
 {
     // a line that does not end in a backslash ends
@@ -252,12 +252,12 @@ d_make_continues(
  * A continuation joins a line to the next only when there is a next: a
  * backslash and a line feed that end the text end its last line.
  */
-static void
-d_internal_logical_line(
-    const struct d_make_lines* _lines,
-    size_t                     _at,
-    size_t                     _number,
-    struct d_make_line*        _out
+static
+void d_internal_logical_line(
+    const struct dj_make_lines* _lines,
+    size_t                      _at,
+    size_t                      _number,
+    struct dj_make_line*        _out
 )
 {
     size_t next = 0;
@@ -299,10 +299,10 @@ d_make_lines_read
 */
 bool
 d_make_lines_read(
-    struct d_make_lines* _out,
+    struct dj_make_lines* _out,
     const char*          _text,
     size_t               _length,
-    enum d_make_dialect  _dialect
+    enum dj_make_dialect  _dialect
 )
 {
     // nowhere to put the lines
@@ -340,7 +340,7 @@ d_make_lines_read(
             capacity    = wanted;
         }
 
-        struct d_make_line* const line = &_out->lines[_out->count];
+        struct dj_make_line* const line = &_out->lines[_out->count];
 
         d_internal_logical_line(_out,
                                 at,
@@ -367,9 +367,8 @@ d_make_lines_read(
 d_make_lines_release
   Leaves the record empty, so a second release does nothing.
 */
-void
-d_make_lines_release(
-    struct d_make_lines* _lines
+void d_make_lines_release(
+    struct dj_make_lines* _lines
 )
 {
     // nothing to release
@@ -399,8 +398,8 @@ d_make_lines_release(
  * @param[in] _fold    whether letters compare in either case.
  * @return `true` if the word is the table's.
  */
-static bool
-d_internal_word_in(
+static
+bool d_internal_word_in(
     const char* const* _table,
     const char*        _word,
     size_t             _length,
@@ -450,8 +449,8 @@ d_internal_word_in(
  * @param[in] _end   where the line ends.
  * @return the place past the name.
  */
-static size_t
-d_internal_name_end(
+static
+size_t d_internal_name_end(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -483,8 +482,8 @@ d_internal_name_end(
  * @param[in] _end   where the line ends.
  * @return `true` if the name ends there.
  */
-static bool
-d_internal_name_ends(
+static
+bool d_internal_name_ends(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -515,8 +514,8 @@ d_internal_name_ends(
  * @return `true` if a `$(` or a `${` opens a call of one of them, its name
  *         followed by a blank.
  */
-static bool
-d_internal_calls_gnu(
+static
+bool d_internal_calls_gnu(
     const char* _text,
     size_t      _start,
     size_t      _end
@@ -567,8 +566,8 @@ d_internal_calls_gnu(
 static bool
 d_internal_line_dialect(
     const char*               _text,
-    const struct d_make_line* _line,
-    enum d_make_dialect*      _out
+    const struct dj_make_line* _line,
+    enum dj_make_dialect*      _out
 )
 {
     const size_t end = _line->end;
@@ -662,10 +661,10 @@ d_internal_line_dialect(
  * BSD make reads `:=` too, and a BSD makefile's `.include` often comes
  * after it, so the suggestion stands only when no line decides.
  */
-static bool
-d_internal_suggests_gnu(
-    const char*               _text,
-    const struct d_make_line* _line
+static
+bool d_internal_suggests_gnu(
+    const char*                _text,
+    const struct dj_make_line* _line
 )
 {
     // a recipe's line, or an empty one
@@ -705,13 +704,13 @@ d_make_guess
   The lines are joined by GNU's rule while guessing: the makes differ only
 in a run of backslashes ending a line, which no line that decides holds.
 */
-enum d_make_dialect
+enum dj_make_dialect
 d_make_guess(
     const char* _text,
     size_t      _length
 )
 {
-    struct d_make_lines lines;
+    struct dj_make_lines lines;
 
     memset(&lines, 0, sizeof(lines));
     lines.text    = _text ? _text : "";
@@ -720,13 +719,13 @@ d_make_guess(
 
     size_t              at       = 0;
     size_t              number   = 1;
-    enum d_make_dialect fallback = D_MAKE_POSIX;
+    enum dj_make_dialect fallback = D_MAKE_POSIX;
 
     // each logical line until one decides
     while (at < lines.length)
     {
-        struct d_make_line  line;
-        enum d_make_dialect found = D_MAKE_POSIX;
+        struct dj_make_line  line;
+        enum dj_make_dialect found = D_MAKE_POSIX;
 
         d_internal_logical_line(&lines, at, number, &line);
 
@@ -765,8 +764,8 @@ d_make_guess(
  * @param[in]     _size      the size of one.
  * @return `true` if there is room; `false` when memory runs out.
  */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _array,
     size_t* _capacity,
     size_t  _count,
@@ -800,14 +799,13 @@ d_make_reader_fail
   The message is kept bare in the records and given with its line to the
 caller, as d_make_read's contract says.
 */
-bool
-d_make_reader_fail(
-    struct d_make_reader* _reader,
-    size_t                _line,
-    const char*           _message
+bool d_make_reader_fail(
+    struct dj_make_reader* _reader,
+    size_t                 _line,
+    const char*            _message
 )
 {
-    struct d_make* const make = _reader->make;
+    struct dj_make* const make = _reader->make;
 
     make->error_line = _line;
     (void)snprintf(make->error, sizeof(make->error), "%s", _message);
@@ -833,12 +831,12 @@ parts its statement has.
 */
 size_t
 d_make_reader_statement(
-    struct d_make_reader*     _reader,
-    enum d_make_kind          _kind,
-    const struct d_make_line* _line
+    struct dj_make_reader*     _reader,
+    enum dj_make_kind          _kind,
+    const struct dj_make_line* _line
 )
 {
-    struct d_make* const make = _reader->make;
+    struct dj_make* const make = _reader->make;
 
     // room for the statement
     if (!d_internal_grow((void**)&make->statements,
@@ -851,9 +849,9 @@ d_make_reader_statement(
         return D_MAKE_NONE;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &make->statements[make->statement_count];
-    const struct d_make_span       empty = { _line->start, _line->start };
+    const struct dj_make_span       empty = { _line->start, _line->start };
 
     memset(statement, 0, sizeof(*statement));
     statement->kind        = _kind;
@@ -882,15 +880,14 @@ d_make_reader_statement(
 d_make_reader_comment
   A comment's line is found from its start, so a reader gives only places.
 */
-bool
-d_make_reader_comment(
-    struct d_make_reader* _reader,
-    size_t                _start,
-    size_t                _end,
-    size_t                _within
+bool d_make_reader_comment(
+    struct dj_make_reader* _reader,
+    size_t                 _start,
+    size_t                 _end,
+    size_t                 _within
 )
 {
-    struct d_make* const make = _reader->make;
+    struct dj_make* const make = _reader->make;
 
     // room for the comment
     if (!d_internal_grow((void**)&make->comments,
@@ -903,7 +900,7 @@ d_make_reader_comment(
                                   "out of memory");
     }
 
-    struct d_make_comment* const comment =
+    struct dj_make_comment* const comment =
         &make->comments[make->comment_count];
 
     comment->start  = _start;
@@ -933,8 +930,8 @@ d_make_reader_comment(
  * Within a logical line every line feed is a continuation's, so a backslash
  * just before one is the continuation's own.
  */
-static size_t
-d_internal_continuation(
+static
+size_t d_internal_continuation(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -968,8 +965,8 @@ d_internal_continuation(
  * @return `true` for a space, a tab, a vertical tab, a form feed, a CR or a
  *         line feed.
  */
-static bool
-d_internal_is_blank(
+static
+bool d_internal_is_blank(
     char _byte
 )
 {
@@ -987,8 +984,7 @@ d_make_skip_blanks
   A continuation is taken whole, so its backslash is never left as a byte of
 the word after it.
 */
-size_t
-d_make_skip_blanks(
+size_t d_make_skip_blanks(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -1025,8 +1021,7 @@ d_make_trim_end
   A line feed met from behind is taken back with its CR and the backslash of
 its continuation.
 */
-size_t
-d_make_trim_end(
+size_t d_make_trim_end(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -1068,8 +1063,7 @@ d_make_word_end
   A word ends at a blank, as make's end_of_token finds it: a reference's
 brackets do not hold a word together.
 */
-size_t
-d_make_word_end(
+size_t d_make_word_end(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -1093,8 +1087,7 @@ d_make_word_end(
 d_make_find
   Backslash is the escape, as GNU make's find_map_unquote has it.
 */
-size_t
-d_make_find(
+size_t d_make_find(
     const char* _text,
     size_t      _at,
     size_t      _end,
@@ -1114,8 +1107,7 @@ d_make_find_with
   As make's find_map_unquote looks: a reference is stepped over whole, and a
 stop counts only when the escapes before it are even in number.
 */
-size_t
-d_make_find_with(
+size_t d_make_find_with(
     const char* _text,
     size_t      _at,
     size_t      _end,
@@ -1170,8 +1162,7 @@ d_make_is_word
   Compared by length first, so a word that only begins with another is not
 it.
 */
-bool
-d_make_is_word(
+bool d_make_is_word(
     const char* _text,
     size_t      _start,
     size_t      _end,
@@ -1190,8 +1181,7 @@ d_make_reference_end
   Only brackets of the reference's own kind are counted, as make counts
 them, so `$(a{)` closes at its `)`.
 */
-size_t
-d_make_reference_end(
+size_t d_make_reference_end(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -1239,7 +1229,7 @@ d_make_reference_end(
 //==============================================================================
 
 
-// the kinds' names, in the order of d_make_kind
+// the kinds' names, in the order of dj_make_kind
 static const char* const g_kind_names[] =
 {
     "assignment",
@@ -1260,7 +1250,7 @@ d_make_kind_name
 */
 const char*
 d_make_kind_name(
-    enum d_make_kind _kind
+    enum dj_make_kind _kind
 )
 {
     // a value past the table names nothing
@@ -1280,11 +1270,11 @@ then takes them into statements.
 */
 bool
 d_make_read(
-    struct d_make*         _out,
+    struct dj_make*         _out,
     const char*            _text,
     size_t                 _length,
-    enum d_make_dialect    _dialect,
-    struct d_make_problem* _problem
+    enum dj_make_dialect    _dialect,
+    struct dj_make_problem* _problem
 )
 {
     // nowhere to put the records
@@ -1298,7 +1288,7 @@ d_make_read(
     _out->length  = _text ? _length : 0u;
     _out->dialect = _dialect;
 
-    struct d_make_reader reader;
+    struct dj_make_reader reader;
 
     memset(&reader, 0, sizeof(reader));
     reader.make    = _out;
@@ -1341,9 +1331,8 @@ d_make_read(
 d_make_release
   Leaves the record empty, so a second release does nothing.
 */
-void
-d_make_release(
-    struct d_make* _make
+void d_make_release(
+    struct dj_make* _make
 )
 {
     // nothing to release
@@ -1368,10 +1357,9 @@ feeds before the place within it are counted.
   Long as two searches, each a short loop: the logical line by halving, then
 the line feeds within it.
 */
-size_t
-d_make_line_of(
-    const struct d_make* _make,
-    size_t               _at
+size_t d_make_line_of(
+    const struct dj_make* _make,
+    size_t                _at
 )
 {
     // no lines, the first
@@ -1381,7 +1369,7 @@ d_make_line_of(
         return 1u;
     }
 
-    const struct d_make_line* const lines = _make->lines.lines;
+    const struct dj_make_line* const lines = _make->lines.lines;
     size_t                          low   = 0;
     size_t                          high  = _make->lines.count;
 
@@ -1424,12 +1412,11 @@ d_make_words
   A word ends at a blank, a reference stepped over whole, so the blanks
 within `$(...)` do not split it.
 */
-size_t
-d_make_words(
-    const struct d_make* _make,
-    struct d_make_span   _span,
-    struct d_make_span*  _out,
-    size_t               _room
+size_t d_make_words(
+    const struct dj_make* _make,
+    struct dj_make_span   _span,
+    struct dj_make_span*  _out,
+    size_t                _room
 )
 {
     const char* const text  = _make->text;

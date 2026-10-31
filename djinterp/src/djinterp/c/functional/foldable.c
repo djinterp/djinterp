@@ -17,21 +17,20 @@ d_internal_foldable_drive_array
   The Foldable instance for a plain array.
 
 Parameter(s):
-  _carrier: a `d_array_carrier`.
+  _carrier: a `dj_array_carrier`.
   _reducer: the reducer to fold into.
   _state:   the reducing state.
 Return:
   The number of elements delivered.
 */
-static size_t
-d_internal_foldable_drive_array
-(
-    const void*              _carrier,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state
+static
+size_t d_internal_foldable_drive_array(
+    const void*               _carrier,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
 )
 {
-    const struct d_array_carrier* carrier;
+    const struct dj_array_carrier* carrier;
 
     // a NULL carrier delivers nothing
     if (!_carrier)
@@ -39,7 +38,7 @@ d_internal_foldable_drive_array
         return 0;
     }
 
-    carrier = (const struct d_array_carrier*)_carrier;
+    carrier = (const struct dj_array_carrier*)_carrier;
 
     return d_reducer_drive_array(_reducer,
                                  _state,
@@ -53,18 +52,17 @@ d_internal_foldable_drive_maybe
   The Foldable instance for `maybe`: 0 or 1 elements.
 
 Parameter(s):
-  _carrier: a `struct d_maybe`.
+  _carrier: a `struct dj_maybe`.
   _reducer: the reducer to fold into.
   _state:   the reducing state.
 Return:
   1 for a just, 0 for a nothing.
 */
-static size_t
-d_internal_foldable_drive_maybe
-(
-    const void*              _carrier,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state
+static
+size_t d_internal_foldable_drive_maybe(
+    const void*               _carrier,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
 )
 {
     // a NULL carrier delivers nothing
@@ -73,7 +71,7 @@ d_internal_foldable_drive_maybe
         return 0;
     }
 
-    return d_maybe_drive((const struct d_maybe*)_carrier, _reducer, _state);
+    return d_maybe_drive((const struct dj_maybe*)_carrier, _reducer, _state);
 }
 
 /*
@@ -81,18 +79,17 @@ d_internal_foldable_drive_result
   The Foldable instance for `result`: the success arm only.
 
 Parameter(s):
-  _carrier: a `struct d_result`.
+  _carrier: a `struct dj_result`.
   _reducer: the reducer to fold into.
   _state:   the reducing state.
 Return:
   1 for an ok, 0 for an err.
 */
-static size_t
-d_internal_foldable_drive_result
-(
-    const void*              _carrier,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state
+static
+size_t d_internal_foldable_drive_result(
+    const void*               _carrier,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
 )
 {
     // a NULL carrier delivers nothing
@@ -101,7 +98,7 @@ d_internal_foldable_drive_result
         return 0;
     }
 
-    return d_result_drive((const struct d_result*)_carrier, _reducer, _state);
+    return d_result_drive((const struct dj_result*)_carrier, _reducer, _state);
 }
 
 /*
@@ -110,21 +107,20 @@ d_internal_foldable_drive_producer
 may be folded only once -- which is a property of the carrier, not of Foldable.
 
 Parameter(s):
-  _carrier: a `d_producer_carrier`.
+  _carrier: a `dj_producer_carrier`.
   _reducer: the reducer to fold into.
   _state:   the reducing state.
 Return:
   The number of values pulled.
 */
-static size_t
-d_internal_foldable_drive_producer
-(
-    const void*              _carrier,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state
+static
+size_t d_internal_foldable_drive_producer(
+    const void*               _carrier,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
 )
 {
-    const struct d_producer_carrier* carrier;
+    const struct dj_producer_carrier* carrier;
 
     // a NULL carrier delivers nothing
     if (!_carrier)
@@ -132,7 +128,7 @@ d_internal_foldable_drive_producer
         return 0;
     }
 
-    carrier = (const struct d_producer_carrier*)_carrier;
+    carrier = (const struct dj_producer_carrier*)_carrier;
 
     return d_producer_drive(carrier->producer,
                             _reducer,
@@ -151,12 +147,11 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_foldable_count_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_foldable_count_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
     (void)_element;
@@ -186,12 +181,11 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_foldable_first_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_foldable_first_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
     (void)_element;
@@ -216,23 +210,22 @@ d_internal_alternative_alt_maybe
   The Alternative choice for `maybe`.
 
 Parameter(s):
-  _first:  a `struct d_maybe`.
-  _second: a `struct d_maybe`.
-  _out:    a `struct d_maybe` to write through.
+  _first:  a `struct dj_maybe`.
+  _second: a `struct dj_maybe`.
+  _out:    a `struct dj_maybe` to write through.
 Return:
   A boolean value corresponding to whether the result holds a value.
 */
-static bool
-d_internal_alternative_alt_maybe
-(
+static
+bool d_internal_alternative_alt_maybe(
     const void* _first,
     const void* _second,
     void*       _out
 )
 {
-    return d_maybe_alt((const struct d_maybe*)_first,
-                       (const struct d_maybe*)_second,
-                       (struct d_maybe*)_out);
+    return d_maybe_alt((const struct dj_maybe*)_first,
+                       (const struct dj_maybe*)_second,
+                       (struct dj_maybe*)_out);
 }
 
 /*
@@ -240,37 +233,34 @@ d_internal_alternative_aempty_maybe
   The Alternative identity for `maybe`.
 
 Parameter(s):
-  _out: a `struct d_maybe` to write through.
+  _out: a `struct dj_maybe` to write through.
 Return:
   A boolean value corresponding to whether the cell was marked empty.
 */
-static bool
-d_internal_alternative_aempty_maybe
-(
+static
+bool d_internal_alternative_aempty_maybe(
     void* _out
 )
 {
-    return d_maybe_aempty((struct d_maybe*)_out);
+    return d_maybe_aempty((struct dj_maybe*)_out);
 }
 
 
 /*
 d_foldable_array
   The Foldable dictionary for a plain array. Its carrier is a
-`d_array_carrier`.
+`dj_array_carrier`.
 
 Parameter(s):
   _element_size: the width of a yielded element.
 Return:
   A dictionary by value.
 */
-struct d_foldable
-d_foldable_array
-(
+struct dj_foldable d_foldable_array(
     size_t _element_size
 )
 {
-    struct d_foldable foldable;
+    struct dj_foldable foldable;
 
     foldable.drive        = &d_internal_foldable_drive_array;
     foldable.element_size = _element_size;
@@ -280,20 +270,18 @@ d_foldable_array
 
 /*
 d_foldable_maybe
-  The Foldable dictionary for `maybe`. Its carrier is a `struct d_maybe`.
+  The Foldable dictionary for `maybe`. Its carrier is a `struct dj_maybe`.
 
 Parameter(s):
   _element_size: the width of a yielded element.
 Return:
   A dictionary by value.
 */
-struct d_foldable
-d_foldable_maybe
-(
+struct dj_foldable d_foldable_maybe(
     size_t _element_size
 )
 {
-    struct d_foldable foldable;
+    struct dj_foldable foldable;
 
     foldable.drive        = &d_internal_foldable_drive_maybe;
     foldable.element_size = _element_size;
@@ -303,7 +291,7 @@ d_foldable_maybe
 
 /*
 d_foldable_result
-  The Foldable dictionary for `result`. Its carrier is a `struct d_result`, and
+  The Foldable dictionary for `result`. Its carrier is a `struct dj_result`, and
 it yields the success arm only -- an error is an empty sequence, not a failure.
 
 Parameter(s):
@@ -311,13 +299,11 @@ Parameter(s):
 Return:
   A dictionary by value.
 */
-struct d_foldable
-d_foldable_result
-(
+struct dj_foldable d_foldable_result(
     size_t _element_size
 )
 {
-    struct d_foldable foldable;
+    struct dj_foldable foldable;
 
     foldable.drive        = &d_internal_foldable_drive_result;
     foldable.element_size = _element_size;
@@ -328,20 +314,18 @@ d_foldable_result
 /*
 d_foldable_producer
   The Foldable dictionary for a producer. Its carrier is a
-`d_producer_carrier`, and folding it consumes it.
+`dj_producer_carrier`, and folding it consumes it.
 
 Parameter(s):
   _element_size: the width of a yielded element.
 Return:
   A dictionary by value.
 */
-struct d_foldable
-d_foldable_producer
-(
+struct dj_foldable d_foldable_producer(
     size_t _element_size
 )
 {
-    struct d_foldable foldable;
+    struct dj_foldable foldable;
 
     foldable.drive        = &d_internal_foldable_drive_producer;
     foldable.element_size = _element_size;
@@ -360,10 +344,8 @@ Return:
   - true, if the drive is set and the element width is non-zero, or
   - false, otherwise.
 */
-bool
-d_foldable_is_valid
-(
-    const struct d_foldable* _foldable
+bool d_foldable_is_valid(
+    const struct dj_foldable* _foldable
 )
 {
     // a NULL dictionary is not valid
@@ -389,13 +371,11 @@ Parameter(s):
 Return:
   The number of elements delivered.
 */
-size_t
-d_foldable_drive
-(
-    const struct d_foldable* _foldable,
-    const void*              _carrier,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state
+size_t d_foldable_drive(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
 )
 {
     // an unusable dictionary delivers nothing
@@ -417,15 +397,13 @@ Parameter(s):
 Return:
   The number of elements the carrier yielded.
 */
-size_t
-d_foldable_length
-(
-    const struct d_foldable* _foldable,
-    const void*              _carrier
+size_t d_foldable_length(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier
 )
 {
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     size_t                  total;
 
     total   = 0;
@@ -450,15 +428,13 @@ Return:
   - true, if the carrier yielded nothing, or
   - false, if it yielded at least one element.
 */
-bool
-d_foldable_is_empty
-(
-    const struct d_foldable* _foldable,
-    const void*              _carrier
+bool d_foldable_is_empty(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier
 )
 {
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     bool                    empty;
 
     empty   = true;
@@ -485,19 +461,17 @@ Return:
   - true, if the fold ran, or
   - false, if the parameters were unusable.
 */
-bool
-d_foldable_fold
-(
-    const struct d_foldable* _foldable,
-    const void*              _carrier,
-    void*                    _accumulator,
-    fn_fold                  _step,
-    void*                    _context
+bool d_foldable_fold(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    void*                     _accumulator,
+    fn_fold                   _step,
+    void*                     _context
 )
 {
-    struct d_fold_binding   binding;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_fold_binding   binding;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
 
     // an unusable request folds nothing
     if ( (!d_foldable_is_valid(_foldable)) ||
@@ -531,18 +505,16 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether some element satisfied the predicate.
 */
-bool
-d_foldable_any
-(
-    const struct d_foldable* _foldable,
-    const void*              _carrier,
-    fn_predicate             _predicate,
-    void*                    _context
+bool d_foldable_any(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    fn_predicate              _predicate,
+    void*                     _context
 )
 {
-    struct d_quantifier     quantifier;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_quantifier     quantifier;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     bool                    answer;
 
     answer = false;
@@ -579,18 +551,16 @@ Return:
   A boolean value corresponding to whether every element satisfied the
 predicate.
 */
-bool
-d_foldable_all
-(
-    const struct d_foldable* _foldable,
-    const void*              _carrier,
-    fn_predicate             _predicate,
-    void*                    _context
+bool d_foldable_all(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    fn_predicate              _predicate,
+    void*                     _context
 )
 {
-    struct d_quantifier     quantifier;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_quantifier     quantifier;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     bool                    answer;
 
     answer = true;
@@ -629,17 +599,15 @@ Return:
   - true, if the combination (or the identity) was written, or
   - false, if the parameters were unusable.
 */
-bool
-d_foldable_mconcat
-(
-    const struct d_foldable* _foldable,
-    const void*              _carrier,
-    const struct d_monoid*   _monoid,
-    void*                    _out
+bool d_foldable_mconcat(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    const struct dj_monoid*   _monoid,
+    void*                     _out
 )
 {
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
 
     // an unusable request writes nothing
     if ( (!d_foldable_is_valid(_foldable)) ||
@@ -668,7 +636,7 @@ d_foldable_mconcat
 
 /*
 d_alternative_maybe
-  The Alternative dictionary for `maybe`. Its carrier is a `struct d_maybe`.
+  The Alternative dictionary for `maybe`. Its carrier is a `struct dj_maybe`.
   Note that `producer` is also an Alternative in Table 7.3 and has no instance
 here: `d_producer_alt` needs caller-owned concat state, and a signature of three
 `void*` has nowhere to put it. That is the same shape of problem as the
@@ -680,13 +648,9 @@ Parameter(s):
 Return:
   A dictionary by value.
 */
-struct d_alternative
-d_alternative_maybe
-(
-    void
-)
+struct dj_alternative d_alternative_maybe(void)
 {
-    struct d_alternative alternative;
+    struct dj_alternative alternative;
 
     alternative.alt    = &d_internal_alternative_alt_maybe;
     alternative.aempty = &d_internal_alternative_aempty_maybe;
@@ -705,10 +669,8 @@ Return:
   - true, if both operations are set, or
   - false, otherwise.
 */
-bool
-d_alternative_is_valid
-(
-    const struct d_alternative* _alternative
+bool d_alternative_is_valid(
+    const struct dj_alternative* _alternative
 )
 {
     // a NULL dictionary is not valid
@@ -733,13 +695,11 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the result holds a value.
 */
-bool
-d_alternative_alt
-(
-    const struct d_alternative* _alternative,
-    const void*                 _first,
-    const void*                 _second,
-    void*                       _out
+bool d_alternative_alt(
+    const struct dj_alternative* _alternative,
+    const void*                  _first,
+    const void*                  _second,
+    void*                        _out
 )
 {
     // an unusable dictionary chooses nothing
@@ -761,11 +721,9 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the identity was written.
 */
-bool
-d_alternative_aempty
-(
-    const struct d_alternative* _alternative,
-    void*                       _out
+bool d_alternative_aempty(
+    const struct dj_alternative* _alternative,
+    void*                        _out
 )
 {
     // an unusable dictionary writes nothing

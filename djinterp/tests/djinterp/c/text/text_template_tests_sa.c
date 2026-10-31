@@ -19,11 +19,7 @@
 d_tests_sa_text_template_setup
   Sets up test environment for text template tests.
 */
-bool
-d_tests_sa_text_template_setup
-(
-    void
-)
+bool d_tests_sa_text_template_setup(void)
 {
     /* no specific setup needed; present for consistency */
 
@@ -34,11 +30,7 @@ d_tests_sa_text_template_setup
 d_tests_sa_text_template_teardown
   Cleans up test environment.
 */
-bool
-d_tests_sa_text_template_teardown
-(
-    void
-)
+bool d_tests_sa_text_template_teardown(void)
 {
     /* no specific teardown needed; present for consistency */
 
@@ -52,7 +44,7 @@ d_tests_sa_text_template_teardown
 
 /*
 d_tests_sa_text_template_run_all
-  Master test runner for all text_template module tests.
+  Master test runner for all DTextTemplate module tests.
   Tests the following:
   - Template lifecycle (new, new_with_markers, free, clear)
   - Marker configuration (set_markers, get_prefix, get_suffix)
@@ -62,13 +54,9 @@ d_tests_sa_text_template_run_all
   - Key wrapping (wrap_keys, wrap_keys_alloc)
   - Utility functions (error_string)
 */
-struct d_test_object*
-d_tests_sa_text_template_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_run_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  setup_ok;
     size_t                idx;
 

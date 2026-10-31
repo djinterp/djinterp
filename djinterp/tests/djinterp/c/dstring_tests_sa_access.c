@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                      dstring_tests_sa_access.c
 *
-*   Unit tests for d_string access functions:
+*   Unit tests for dj_string access functions:
 *     - d_string_length
 *     - d_string_size
 *     - d_string_cstr
@@ -46,14 +46,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_length
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_length(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     size_t                len;
 
@@ -274,14 +270,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_size
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_size(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     size_t                sz;
 
@@ -434,14 +426,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     const char*           cstr;
 
@@ -617,14 +605,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_data
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_data(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     char*                 data;
 
@@ -805,14 +789,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_is_empty
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_is_empty(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     bool                  is_empty;
 
@@ -1017,14 +997,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_char_at
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_char_at(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     char                  ch;
 
@@ -1311,14 +1287,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_set_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_set_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     bool                  result;
 
@@ -1531,14 +1503,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_front
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_front(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     char                  ch;
 
@@ -1702,14 +1670,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_back
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_back(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     char                  ch;
 
@@ -1885,16 +1849,12 @@ Parameter(s):
 Return:
   Test object containing all access function test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_access_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_access_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Access Functions", 9);
+    group     = d_test_object_new_interior("dj_string Access Functions", 9);
     child_idx = 0;
 
     if (!group)

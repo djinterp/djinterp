@@ -96,7 +96,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_ENV_ARCH_H 1
 
 // djinterp
-#include "../config/core/env/cfg_env_arch.h"  // D_CFG_ENV_ARCH_ENABLED
+#include "../config/env/cfg_env_arch.h"  // D_CFG_ENV_ARCH_ENABLED
 
 
 //==============================================================================

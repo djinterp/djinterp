@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./ptr_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -17,9 +17,8 @@
  *****************************************************************************/
 
 // helper comparator for int pointer values
-static int
-int_ptr_comparator
-(
+static
+int int_ptr_comparator(
     const void* _a,
     const void* _b
 )
@@ -36,9 +35,8 @@ int_ptr_comparator
 
 
 // helper comparator for sorting int pointers by their pointed-to values
-static int
-int_ptr_sort_comparator
-(
+static
+int int_ptr_sort_comparator(
     const void* _a,
     const void* _b
 )
@@ -68,14 +66,12 @@ d_tests_sa_ptr_array_append_element
   - appending to non-empty array
   - multiple appends maintain order
 */
-bool
-d_tests_sa_ptr_array_append_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_append_element(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[4];
 
     result = true;
@@ -153,14 +149,12 @@ d_tests_sa_ptr_array_append_elements
   - valid append of multiple elements
   - append with count 0 does nothing
 */
-bool
-d_tests_sa_ptr_array_append_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_append_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
     const void*          source[3];
 
@@ -255,16 +249,14 @@ d_tests_sa_ptr_array_append_array
   - valid append of array to array
   - append empty array does nothing
 */
-bool
-d_tests_sa_ptr_array_append_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_append_array(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  dest;
-    struct d_ptr_array*  src;
-    struct d_ptr_array*  empty;
+    struct dj_ptr_array*  dest;
+    struct dj_ptr_array*  src;
+    struct dj_ptr_array*  empty;
     int                  values[5];
 
     result = true;
@@ -385,14 +377,12 @@ d_tests_sa_ptr_array_contains
   - value found returns true
   - value not found returns false
 */
-bool
-d_tests_sa_ptr_array_contains
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_contains(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[3];
     int                  not_in_array;
 
@@ -459,14 +449,12 @@ d_tests_sa_ptr_array_fill
   - fill empty array does nothing
   - fill array with value
 */
-bool
-d_tests_sa_ptr_array_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  fill_value;
     int                  values[3];
 
@@ -535,14 +523,12 @@ d_tests_sa_ptr_array_find
   - value not found returns -1
   - finds first occurrence
 */
-bool
-d_tests_sa_ptr_array_find
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_find(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
     int                  not_in_array;
     ssize_t              idx;
@@ -631,14 +617,12 @@ d_tests_sa_ptr_array_insert_element
   - insert at end
   - insert with negative index
 */
-bool
-d_tests_sa_ptr_array_insert_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_insert_element(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
 
     result = true;
@@ -737,14 +721,12 @@ d_tests_sa_ptr_array_insert_elements
   - valid insert of multiple elements
   - insert with count 0 does nothing
 */
-bool
-d_tests_sa_ptr_array_insert_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_insert_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[6];
     const void*          to_insert[2];
 
@@ -848,15 +830,13 @@ d_tests_sa_ptr_array_insert_array
   - NULL source returns failure
   - valid insert of array into array
 */
-bool
-d_tests_sa_ptr_array_insert_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_insert_array(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  dest;
-    struct d_ptr_array*  src;
+    struct dj_ptr_array*  dest;
+    struct dj_ptr_array*  src;
     int                  values[5];
 
     result = true;
@@ -947,14 +927,12 @@ d_tests_sa_ptr_array_is_empty
   - empty array returns true
   - non-empty array returns false
 */
-bool
-d_tests_sa_ptr_array_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  value;
 
     result = true;
@@ -1007,14 +985,12 @@ d_tests_sa_ptr_array_prepend_element
   - prepend to empty array
   - prepend to non-empty array maintains order
 */
-bool
-d_tests_sa_ptr_array_prepend_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_prepend_element(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[3];
 
     result = true;
@@ -1085,14 +1061,12 @@ d_tests_sa_ptr_array_prepend_elements
   - NULL array returns failure
   - valid prepend of multiple elements
 */
-bool
-d_tests_sa_ptr_array_prepend_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_prepend_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
     const void*          to_prepend[2];
 
@@ -1156,15 +1130,13 @@ d_tests_sa_ptr_array_prepend_array
   - NULL source returns failure
   - valid prepend of array to array
 */
-bool
-d_tests_sa_ptr_array_prepend_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_prepend_array(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  dest;
-    struct d_ptr_array*  src;
+    struct dj_ptr_array*  dest;
+    struct dj_ptr_array*  src;
     int                  values[5];
 
     result = true;
@@ -1257,14 +1229,12 @@ d_tests_sa_ptr_array_reverse
   - reverse multiple elements
   - reverse odd count elements
 */
-bool
-d_tests_sa_ptr_array_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_reverse(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
 
     result = true;
@@ -1386,14 +1356,12 @@ d_tests_sa_ptr_array_resize_amount
   - resize by negative amount (shrink)
   - resize by zero does nothing
 */
-bool
-d_tests_sa_ptr_array_resize_amount
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_resize_amount(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
 
     result = true;
@@ -1487,14 +1455,12 @@ d_tests_sa_ptr_array_resize_factor
   - resize by factor < 1 (shrink)
   - resize by factor 1.0 does nothing
 */
-bool
-d_tests_sa_ptr_array_resize_factor
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_resize_factor(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
 
     result = true;
@@ -1582,14 +1548,12 @@ d_tests_sa_ptr_array_sort
   - sort already sorted array
   - sort unsorted array
 */
-bool
-d_tests_sa_ptr_array_sort
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_sort(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[5];
 
     result = true;
@@ -1673,10 +1637,8 @@ d_tests_sa_ptr_array_sort
 d_tests_sa_ptr_array_element_all
   Aggregation function that runs all element manipulation tests.
 */
-bool
-d_tests_sa_ptr_array_element_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_element_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

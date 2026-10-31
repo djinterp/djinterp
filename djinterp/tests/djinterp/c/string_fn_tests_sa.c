@@ -19,11 +19,7 @@
 d_tests_sa_string_fn_setup
   Sets up test environment for string tests.
 */
-bool
-d_tests_sa_string_fn_setup
-(
-    void
-)
+bool d_tests_sa_string_fn_setup(void)
 {
     // no specific setup needed for string tests
     // this function is here for consistency and potential future use
@@ -35,11 +31,7 @@ d_tests_sa_string_fn_setup
 d_tests_sa_string_fn_teardown
   Cleans up test environment.
 */
-bool
-d_tests_sa_string_fn_teardown
-(
-    void
-)
+bool d_tests_sa_string_fn_teardown(void)
 {
     // no specific teardown needed for string tests
     // this function is here for consistency and potential future use
@@ -51,9 +43,7 @@ d_tests_sa_string_fn_teardown
 d_tests_sa_string_fn_fill_buffer
   Fills a buffer with a specific character pattern.
 */
-void
-d_tests_sa_string_fn_fill_buffer
-(
+void d_tests_sa_string_fn_fill_buffer(
     char*  _buffer,
     size_t _size,
     char   _pattern
@@ -81,9 +71,7 @@ d_tests_sa_string_fn_fill_buffer
 d_tests_sa_string_fn_compare_buffers
   Compares two buffers byte-by-byte.
 */
-bool
-d_tests_sa_string_fn_compare_buffers
-(
+bool d_tests_sa_string_fn_compare_buffers(
     const char* _buf1,
     const char* _buf2,
     size_t      _size
@@ -134,13 +122,9 @@ d_tests_sa_string_fn_run_all
   - NULL parameter handling
   - Boundary conditions
 */
-struct d_test_object*
-d_tests_sa_string_fn_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_run_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  setup_success;
     size_t                idx;
 

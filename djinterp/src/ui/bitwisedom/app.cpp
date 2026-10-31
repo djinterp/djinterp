@@ -81,8 +81,7 @@ using uxoxo::option_set;
 
 // today
 //   the local date, as the generator's banner wants it.
-std::string
-today()
+std::string today()
 {
     const std::time_t now   = std::time(nullptr);
     const std::tm*    local = std::localtime(&now);
@@ -106,8 +105,7 @@ today()
 
 // directory_of
 //   the directory part of a path, with its separator; empty for none.
-std::string
-directory_of(
+std::string directory_of(
     const std::string& _path
 )
 {
@@ -119,8 +117,7 @@ directory_of(
 
 // as_number
 //   a payload's number, posted as a long or as a double.
-double
-as_number(
+double as_number(
     const option_set&  _payload,
     const std::string& _key,
     double             _fallback
@@ -148,8 +145,7 @@ as_number(
 
 // visible_order
 //   the rows the grid and the tree show, in the order they show them.
-std::vector<int>
-visible_order(
+std::vector<int> visible_order(
     const model& _model
 )
 {
@@ -168,8 +164,7 @@ visible_order(
 
 // byte_bits
 //   the bits one byte covers, by the sheet's byte numbering.
-void
-byte_bits(
+void byte_bits(
     const sheet& _sheet,
     int          _byte,
     int&         _low,
@@ -195,8 +190,7 @@ byte_bits(
 // sheet_number
 //   a number typed for a sheet -- an operand, the probe -- as the sheet's
 // bits: a negative one is its two's complement in the sheet's width.
-bool
-sheet_number(
+bool sheet_number(
     const std::string& _text,
     int                _width,
     wide&              _bits
@@ -230,8 +224,7 @@ struct remembered
     bool        read   = false;   // the file said something of it
 };
 
-remembered&
-memory()
+remembered& memory()
 {
     static remembered held;
 
@@ -241,8 +234,7 @@ memory()
 // ini_open / ini_line / ini_write
 //   the settings handler's three parts: the section it owns, one of its
 // lines read, and all of it written.
-void*
-ini_open(
+void* ini_open(
     ImGuiContext*         _context,
     ImGuiSettingsHandler* _handler,
     const char*           _name
@@ -254,8 +246,7 @@ ini_open(
     return (std::strcmp(_name, "window") == 0) ? &memory() : nullptr;
 }
 
-void
-ini_line(
+void ini_line(
     ImGuiContext*         _context,
     ImGuiSettingsHandler* _handler,
     void*                 _entry,
@@ -342,8 +333,7 @@ ini_line(
     return;
 }
 
-void
-ini_write(
+void ini_write(
     ImGuiContext*         _context,
     ImGuiSettingsHandler* _handler,
     ImGuiTextBuffer*      _out
@@ -378,8 +368,7 @@ ini_write(
 // remember
 //   the theme and scheme and the preferences, to be written to the
 // settings file.
-void
-remember(
+void remember(
     const shell_state& _shell
 )
 {
@@ -399,8 +388,7 @@ remember(
 // file_parts
 //   a path's file name, the name without its extension, and the
 // extension, lower-cased, without its dot.
-void
-file_parts(
+void file_parts(
     const std::string& _path,
     std::string&       _name,
     std::string&       _stem,
@@ -431,8 +419,7 @@ json_stem
   A JSON file's name with what says its shape taken off: uart_cr for
 uart_cr.bitwisedom.json, uart_cr.bitfield.json or uart_cr.export.json.
 */
-std::string
-json_stem(
+std::string json_stem(
     const std::string& _path
 )
 {
@@ -466,8 +453,7 @@ number that is no number -- the weight of a table's column, saved before
 the table had laid itself out, is "nan" -- would leave the column no width
 at all. The column, without its line, takes its default.
 */
-std::string
-readable(
+std::string readable(
     const std::string& _text
 )
 {
@@ -514,8 +500,7 @@ utf8_path
   A file's name as the system means it: names travel through the window as
 UTF-8, and a path made from UTF-8 says so, on every platform.
 */
-std::filesystem::path
-utf8_path(
+std::filesystem::path utf8_path(
     const std::string& _utf8
 )
 {
@@ -532,8 +517,7 @@ new_row
 none of its own, its bits drawn plain; the palette's, each its own, as a
 row left to the palette is; or the one colour, every new row alike.
 */
-row
-new_row(
+row new_row(
     const preferences& _prefs
 )
 {
@@ -560,8 +544,7 @@ new_row(
 //   the window the renderers draw for: the one whose frame registered them
 // last. A second window -- a test's, in an ImGui of its own -- registers
 // its own, and each frame puts back those of the window it draws.
-const void*&
-drawing()
+const void*& drawing()
 {
     static const void* held = nullptr;
 
@@ -586,8 +569,7 @@ const float VALUE_FLOOR = 32.0f;
 // within_setting
 //   a width held to the bounds its setting has, so a drag in the grid and
 // the settings panel agree on how wide a column may be.
-float
-within_setting(
+float within_setting(
     const char* _path,
     float       _width
 )
@@ -618,8 +600,7 @@ $XDG_CONFIG_HOME/bitwisedom, or ~/.config/bitwisedom. The path is UTF-8,
 which is how ImGui and read_file open a file by name; empty when there is
 nowhere to keep one.
 */
-std::string
-config_file(
+std::string config_file(
     const char* _name
 )
 {
@@ -675,14 +656,12 @@ config_file(
 }  // anonymous namespace
 
 
-std::string
-preferences_path()
+std::string preferences_path()
 {
     return config_file("bitwisedom.ini");
 }
 
-std::string
-session_path()
+std::string session_path()
 {
     return config_file("session.json");
 }
@@ -694,8 +673,7 @@ const char* const NODE_KINDS[NODE_KIND_COUNT] = {
     "Bit", "Range", "Value in a range", "Literal", "Expression", "Macro",
     "Group" };
 
-std::vector<int>
-op_targets(
+std::vector<int> op_targets(
     const model& _model
 )
 {
@@ -812,8 +790,7 @@ keep_preferences
 and when the window closes: what ImGui holds, without what it could not
 read back.
 */
-void
-app::keep_preferences()
+void app::keep_preferences()
 {
     if (ImGui::GetCurrentContext() == nullptr)
     {
@@ -846,8 +823,7 @@ operation -- and each window's zoom. It is written a moment after what it
 keeps last changed, and at once when the window closes; the layout of the
 windows is ImGui's, in the settings file.
 */
-void
-app::keep_session(
+void app::keep_session(
     bool _now
 )
 {
@@ -991,8 +967,7 @@ unchanged read again from its file, which may have changed since -- the
 one in front of each, their tool windows and each window's zoom. False,
 and nothing changed, when there is no session to open.
 */
-bool
-app::restore_session()
+bool app::restore_session()
 {
     std::string text;
     std::string error;
@@ -1327,8 +1302,7 @@ app::restore_session()
     return true;
 }
 
-void
-app::load_fonts(
+void app::load_fonts(
     float _size
 )
 {
@@ -1344,26 +1318,22 @@ app::load_fonts(
     return;
 }
 
-bool
-app::quitting() const
+bool app::quitting() const
 {
     return m_shell.quit;
 }
 
-const model&
-app::state() const
+const model& app::state() const
 {
     return *m_doc;
 }
 
-const shell_state&
-app::shell() const
+const shell_state& app::shell() const
 {
     return m_shell;
 }
 
-std::vector<const model*>
-app::documents() const
+std::vector<const model*> app::documents() const
 {
     std::vector<const model*> out;
 
@@ -1375,8 +1345,7 @@ app::documents() const
     return out;
 }
 
-const model*
-app::document(
+const model* app::document(
     int _id
 ) const
 {
@@ -1391,8 +1360,7 @@ app::document(
     return nullptr;
 }
 
-void
-app::post(
+void app::post(
     const event& _event
 )
 {
@@ -1403,20 +1371,17 @@ app::post(
 
 // ------------------------------------------------- documents and workspaces
 
-model&
-app::doc()
+model& app::doc()
 {
     return *m_doc;
 }
 
-const model&
-app::doc() const
+const model& app::doc() const
 {
     return *m_doc;
 }
 
-model*
-app::find_document(
+model* app::find_document(
     int _id
 )
 {
@@ -1436,8 +1401,7 @@ open_document
   A new, empty document in the workspace in front, put in front of it: the
 look the window has, and today's date for its header's banner.
 */
-model&
-app::open_document()
+model& app::open_document()
 {
     std::unique_ptr<model> made = std::make_unique<model>();
 
@@ -1465,8 +1429,7 @@ window if it is not already -- and its window brought to the front of its
 dock, unless the user brought it there already, by clicking in it. A
 document already in front stays so, and nothing is built again.
 */
-void
-app::activate(
+void app::activate(
     int  _id,
     bool _raise
 )
@@ -1502,14 +1465,12 @@ app::activate(
     return;
 }
 
-workspace&
-app::current()
+workspace& app::current()
 {
     return m_shell.workspaces[m_shell.current];
 }
 
-workspace*
-app::holding(
+workspace* app::holding(
     int _document
 )
 {
@@ -1531,8 +1492,7 @@ add_workspace
 symbols tree among them only when the user keeps it apart from the grid --
 and no documents yet. It is added, not put in front.
 */
-workspace&
-app::add_workspace()
+workspace& app::add_workspace()
 {
     workspace made;
 
@@ -1559,8 +1519,7 @@ to_workspace
   A workspace put in front, with the document in front of it -- a new one,
 if it has none.
 */
-void
-app::to_workspace(
+void app::to_workspace(
     std::size_t _index
 )
 {
@@ -1599,8 +1558,7 @@ other documents, and put in front of it -- and that workspace in front of
 the window. The workspace it left keeps a document: a new one, if it was
 its last.
 */
-void
-app::move_document(
+void app::move_document(
     int         _document,
     std::size_t _index
 )
@@ -1639,8 +1597,7 @@ close_document
 lose them: then the dialog asks first. The workspace it was in puts
 another document in front -- a new one, if it was the last.
 */
-void
-app::close_document(
+void app::close_document(
     int  _id,
     bool _discard
 )
@@ -1732,8 +1689,7 @@ tool_to
   A tool window of the workspace in front opened or closed, and brought to
 the front of its dock once.
 */
-void
-app::tool_to(
+void app::tool_to(
     tool _tool,
     bool _open,
     bool _focus
@@ -1749,8 +1705,7 @@ app::tool_to(
     return;
 }
 
-void
-app::shell_changed()
+void app::shell_changed()
 {
     ++m_shell.version;
 
@@ -1762,8 +1717,7 @@ zoom
   A window's zoom, by its key, a step in or out -- or, for a step of 0,
 back to 1.
 */
-void
-app::zoom(
+void app::zoom(
     const std::string& _key,
     float              _step
 )
@@ -1803,8 +1757,7 @@ app::zoom(
     return;
 }
 
-void
-app::status(
+void app::status(
     const std::string& _text,
     bool               _error
 )
@@ -1816,8 +1769,7 @@ app::status(
     return;
 }
 
-void
-app::changed()
+void app::changed()
 {
     doc().ui.theme        = m_shell.theme;
     doc().ui.scheme       = m_shell.scheme;
@@ -1852,8 +1804,7 @@ app::changed()
 }
 
 template<typename Change>
-void
-app::edit(
+void app::edit(
     const std::string& _key,
     Change             _change
 )
@@ -1877,8 +1828,7 @@ app::edit(
 }
 
 template<typename Change>
-void
-app::quietly(
+void app::quietly(
     Change _change
 )
 {
@@ -1905,8 +1855,7 @@ sheet has, for the root's id. As one group's arrow does, it changes how the
 sheet is seen, which is saved with it, and is not a step to undo. A sheet
 already so is left as it was, and not marked changed.
 */
-void
-app::open_all(
+void app::open_all(
     int  _group,
     bool _open
 )
@@ -1954,8 +1903,7 @@ app::open_all(
     return;
 }
 
-void
-app::load_sheet_into(
+void app::load_sheet_into(
     sheet              _sheet,
     const std::string& _path
 )
@@ -1994,8 +1942,7 @@ window around it, has moved on; the style is set again only when the theme
 or accent has. The window is one host, filling the screen under its menu
 bar, whose dock space the documents' and the tool windows dock in.
 */
-void
-app::frame()
+void app::frame()
 {
     // the renderers draw this window's documents
     if (drawing() != this)
@@ -2208,8 +2155,7 @@ app::frame()
     return;
 }
 
-void
-app::shortcuts(
+void app::shortcuts(
     uxoxo::platform::imgui_frame& _frame
 )
 {
@@ -2316,8 +2262,7 @@ app::shortcuts(
 
 // ------------------------------------------------------------------- apply
 
-void
-app::apply(
+void app::apply(
     const event& _event
 )
 {
@@ -3089,8 +3034,7 @@ themselves, brought to the front and closed; the workspaces; the windows,
 their arrangement and their zoom; the tool windows; the look; the Options
 window and the settings files. True when the event was one of these.
 */
-bool
-app::apply_shell(
+bool app::apply_shell(
     const event& _event
 )
 {
@@ -3432,8 +3376,7 @@ what follows from it: every sheet drawn in a new theme or scheme, the
 symbols tree's window opened or closed in every workspace. The settings
 file keeps it.
 */
-void
-app::set_environment(
+void app::set_environment(
     const option_set& _payload
 )
 {
@@ -3476,8 +3419,7 @@ app::set_environment(
 restyle
   Every document drawn again in the window's theme and colour scheme.
 */
-void
-app::restyle()
+void app::restyle()
 {
     model* const front = m_doc;
 
@@ -3497,8 +3439,7 @@ zoom_key
   The window the zoom keys and menu act on: the one last in front, if it is
 still one of this workspace's -- else the document in front.
 */
-std::string
-app::zoom_key() const
+std::string app::zoom_key() const
 {
     const workspace&  here   = m_shell.workspaces[m_shell.current];
     const std::string prefix = "w" + format_dec(static_cast<u64>(here.id)) +
@@ -3528,8 +3469,7 @@ written to one, read from one and applied, and the files the window keeps
 a list of -- applied again, forgotten, or deleted. A file is kept on the
 list while it is where it was written or read.
 */
-void
-app::settings_file(
+void app::settings_file(
     const std::string& _kind,
     const option_set&  _payload
 )
@@ -3708,8 +3648,7 @@ fresh_document
 never touched or an example only looked at -- else a new document beside
 it.
 */
-model&
-app::fresh_document()
+model& app::fresh_document()
 {
     if ( ( (doc().ui.pristine) ||
            (doc().ui.browsing) ) &&
@@ -3727,8 +3666,7 @@ close_workspace
 after it, for the first -- docked among the documents there, which comes
 to the front. The window keeps one workspace at least.
 */
-void
-app::close_workspace(
+void app::close_workspace(
     std::size_t _index
 )
 {
@@ -3801,8 +3739,7 @@ close_dialog
   A sheet with changes the user asked to close: saved first, closed with
 its changes lost, or kept open.
 */
-void
-app::close_dialog()
+void app::close_dialog()
 {
     const char* const title = "Close the sheet?##bitwisedom";
 
@@ -3883,8 +3820,7 @@ naming_dialog
   The workspace in front, given a name: Enter or OK names it, Escape or
 Cancel leaves it as it was.
 */
-void
-app::naming_dialog()
+void app::naming_dialog()
 {
     const char* const title = "Name the workspace##bitwisedom";
     bool              focus = false;
@@ -3947,8 +3883,7 @@ select
   A plain click selects one row; Ctrl adds or removes one; Shift selects the
 visible rows from the anchor to this one.
 */
-void
-app::select(
+void app::select(
     int _id,
     int _column
 )
@@ -4020,8 +3955,7 @@ place_cursor
 itself, for one cell: the cells as the cursor names them. A run of Tabs
 and End mode end with it.
 */
-void
-app::place_cursor(
+void app::place_cursor(
     int _row,
     int _column,
     int _to_row,
@@ -4054,8 +3988,7 @@ them, or the corners' -- are the selection, the cursor's first; the bits
 it covers -- "low" to "high" -- are the block of cells selected, when it is
 more than one cell. End mode ends with the move.
 */
-void
-app::cursor_to(
+void app::cursor_to(
     const option_set& _payload
 )
 {
@@ -4181,8 +4114,7 @@ or at the end of the sheet. A bit takes the lowest bit its group leaves
 free; a range starts there, one bit wide; a value is placed in the range
 selected, or the nearest range before it.
 */
-void
-app::add_row(
+void app::add_row(
     int _kind
 )
 {
@@ -4277,8 +4209,7 @@ identifier once its affixes are added, or that is another symbol's, is
 refused as a rename would be, and the field gets it back to be put right.
 Either way the field has the keyboard again, for the next name.
 */
-void
-app::add_child(
+void app::add_child(
     int                _parent,
     const std::string& _text
 )
@@ -4345,8 +4276,7 @@ app::add_child(
     return;
 }
 
-void
-app::delete_rows()
+void app::delete_rows()
 {
     const std::vector<int> doomed = doc().ui.selection;
 
@@ -4367,8 +4297,7 @@ app::delete_rows()
     return;
 }
 
-void
-app::duplicate_rows()
+void app::duplicate_rows()
 {
     const std::vector<int> originals = doc().ui.selection;
     std::vector<int>       copies;
@@ -4390,8 +4319,7 @@ app::duplicate_rows()
     return;
 }
 
-void
-app::move_row_by(
+void app::move_row_by(
     int _step
 )
 {
@@ -4421,8 +4349,7 @@ sorted_note
 -- and the header -- but is shown where the sort puts it: the status line
 says so.
 */
-void
-app::sorted_note()
+void app::sorted_note()
 {
     if (doc().doc.grid.sort_by != sort_key::sheet)
     {
@@ -4440,8 +4367,7 @@ drop_row
   A row dropped on a group goes to the end of it; dropped on a symbol, it
 goes just before that symbol, in that symbol's group.
 */
-void
-app::drop_row(
+void app::drop_row(
     int _dragged,
     int _onto
 )
@@ -4509,8 +4435,7 @@ window, its row in the making: by its name, from the event's payload. A
 range or a byte is worked out in the sheet the row is in, and a value's
 default bias from its field's width there.
 */
-void
-write_field(
+void write_field(
     row&               _row,
     const std::string& _field,
     const option_set&  _payload,
@@ -4680,8 +4605,7 @@ write_field(
 
 }  // anonymous namespace
 
-void
-app::row_edit(
+void app::row_edit(
     const event& _event
 )
 {
@@ -4717,8 +4641,7 @@ read back as a number; a range stretches to take the bit in (a drag sets a
 range exactly). Expressions and macros are defined by their text, and a
 click leaves them be.
 */
-void
-app::grid_toggle(
+void app::grid_toggle(
     int _id,
     int _bit
 )
@@ -4802,8 +4725,7 @@ app::grid_toggle(
     return;
 }
 
-void
-app::grid_span(
+void app::grid_span(
     int  _id,
     int  _low,
     int  _high,
@@ -4855,8 +4777,7 @@ collapse_segment
 byte, say -- has nothing to keep the state in, so clicking it makes it a
 segment of the user's, collapsed, named for its bits.
 */
-void
-app::collapse_segment(
+void app::collapse_segment(
     const option_set& _payload
 )
 {
@@ -4902,8 +4823,7 @@ const char* const QUIET[] = { "window.focus", "window.arranged" };
 // value_text
 //   one of an action's values, as the console writes it: a text quoted,
 // and cut short.
-std::string
-value_text(
+std::string value_text(
     const ::djinterp::option_value& _value
 )
 {
@@ -4945,8 +4865,7 @@ or a window takes the keyboard. The same action again, on the same target, is on
 action more times over: a drag, a slider, a name typed letter by letter.
 Only so many are kept, the oldest let go first.
 */
-void
-app::note_action(
+void app::note_action(
     const event& _event
 )
 {
@@ -5037,8 +4956,7 @@ another group or range; "node.first", first there or last. Every other
 is. "node.add" adds the row -- "close" closing the window after -- and the
 window starts the next. Nothing but the add is a step to undo.
 */
-void
-app::node_edit(
+void app::node_edit(
     const event& _event
 )
 {
@@ -5173,8 +5091,7 @@ group or range -- a bit, at the next bit free there, until another kind is
 chosen; one already being made keeps what it has, in its new place. It is
 brought to the front.
 */
-void
-app::open_node(
+void app::open_node(
     int _parent
 )
 {
@@ -5209,8 +5126,7 @@ the copy resolved. A name that is not a C identifier once its affixes are
 added, or that is another symbol's, is why it would be refused; the issues
 the copy finds with it are shown with it.
 */
-void
-app::refresh_node()
+void app::refresh_node()
 {
     node_draft& n = doc().ui.node;
 
@@ -5269,8 +5185,7 @@ and said on the status line. The window starts the next -- the same kind,
 in the same place, at the next bit free, with no name typed -- or closes.
 A row it would refuse is not added; the status line says why.
 */
-void
-app::add_node(
+void app::add_node(
     bool _close
 )
 {
@@ -5355,8 +5270,7 @@ just after it, placed as it is; "special.remove" takes it away -- the last
 of its kind is hidden instead, and keeps its place. Each shows its kind,
 and is one step to undo.
 */
-void
-app::special_edit(
+void app::special_edit(
     const event& _event
 )
 {
@@ -5462,8 +5376,7 @@ the Display window's combo: 0 as the grid, 1 shown, 2 hidden.
 "display.remove" removes rule "value"; "display.clear", every rule. Each is
 one step to undo.
 */
-void
-app::display_edit(
+void app::display_edit(
     const event& _event
 )
 {
@@ -5609,8 +5522,7 @@ sort_rows, by the grid's key and way round -- and the sort put back to the
 sheet's, so the header, which follows the sheet, follows it too. One step
 to undo.
 */
-void
-app::keep_sorted()
+void app::keep_sorted()
 {
     const sort_key key        = doc().doc.grid.sort_by;
     const bool     descending = doc().doc.grid.sort_descending;
@@ -5633,8 +5545,7 @@ app::keep_sorted()
 
 // ------------------------------------------------- segments and templates
 
-void
-app::segment_edit(
+void app::segment_edit(
     const event& _event
 )
 {
@@ -5743,8 +5654,7 @@ app::segment_edit(
     return;
 }
 
-void
-app::template_edit(
+void app::template_edit(
     const event& _event
 )
 {
@@ -5897,8 +5807,7 @@ already open brings its document to the front instead. The path typed into
 the document in front's field was a file to open, not that document's new
 name: the field has the document's own file back.
 */
-void
-app::open_file(
+void app::open_file(
     const std::string& _path
 )
 {
@@ -5968,14 +5877,12 @@ app::macro_header
   A deliberately minimal export. Each usable symbol gets one #define, with
   symbolic expression references rewritten to their full macro names.
 */
-std::string
-app::macro_header() const
+std::string app::macro_header() const
 {
     return generate_simple_defines(doc().doc, doc().res);
 }
 
-void
-app::save_file(
+void app::save_file(
     int _extension
 )
 {
@@ -6043,8 +5950,7 @@ does, and the rest wait for the menu again; a definition file's tab is
 closed alone -- its x takes the file from its sheet, a step to undo -- and
 stays among others.
 */
-void
-app::close_tabs(
+void app::close_tabs(
     const std::string& _which
 )
 {
@@ -6115,8 +6021,7 @@ when it stopped to ask about its changes, and the rest should wait; a tool
 window, as its x closes it; the Add node window; and a definition file's,
 only when it was _asked for alone, its file taken from its sheet.
 */
-bool
-app::close_tab(
+bool app::close_tab(
     const std::string& _key,
     bool               _asked
 )
@@ -6185,8 +6090,7 @@ that is empty, or names a folder, or holds what no file name may, is
 refused, and the tab keeps its name. Nothing on the disk changes: the sheet
 is marked changed, and Save writes it under its new name.
 */
-void
-app::rename_file(
+void app::rename_file(
     const std::string& _text
 )
 {
@@ -6258,8 +6162,7 @@ open_dialog
 header -- typed, or, on Windows, chosen in Explorer's picker. Enter or Open
 opens it as a new sheet; Escape or Cancel asks nothing.
 */
-void
-app::open_dialog()
+void app::open_dialog()
 {
     if (m_open_open)
     {
@@ -6354,8 +6257,7 @@ app::open_dialog()
     return;
 }
 
-void
-app::save_as_dialog()
+void app::save_as_dialog()
 {
     if (m_save_as_open)
     {
@@ -6401,8 +6303,7 @@ app::save_as_dialog()
 
 // Import multiple existing preprocessor sources into independent editor tabs.
 // One file path per line: each source is embedded in the sheet's JSON.
-void
-app::import_definitions_dialog()
+void app::import_definitions_dialog()
 {
     if (m_import_open)
     {
@@ -6538,8 +6439,7 @@ keyboard shortcuts -- the keys shortcuts() answers, the "Add child..."
 field's, and what the mouse does in the grid -- in a table; and what
 bitwis(e)dom is. Close, or Escape, closes either.
 */
-void
-app::help_dialog()
+void app::help_dialog()
 {
     const char* const keys  = "Keyboard shortcuts##bitwisedom";
     const char* const about = "About bitwis(e)dom##bitwisedom";
@@ -6721,8 +6621,7 @@ app::help_dialog()
     return;
 }
 
-void
-app::export_header()
+void app::export_header()
 {
     const std::string stem = json_stem(doc().ui.path);
     const std::string& file = doc().doc.gen.file_name;
@@ -6747,8 +6646,7 @@ export_json
 a program can write as well as read, or everything -- the sheet, every
 row as it resolves, the issues and the header.
 */
-void
-app::export_json(
+void app::export_json(
     bool _everything
 )
 {
@@ -6784,8 +6682,7 @@ is a new sheet beside the file it came from -- or, from the clipboard,
 beside the sheet that was open -- named for it, and not yet saved. What
 the reading passed over is listed on the Issues page.
 */
-void
-app::import_json_text(
+void app::import_json_text(
     const std::string& _path,
     const std::string& _text
 )
@@ -6861,8 +6758,7 @@ open_menu
 put first in the selection, which is the one the inspector shows and an
 addition goes beside.
 */
-void
-app::open_menu(
+void app::open_menu(
     const std::string&       _kind,
     const std::string&       _where,
     const uxoxo::option_set& _payload
@@ -6930,8 +6826,7 @@ begin_rename
 it are opened so that it shows, or in the grid. It is selected, and the
 field takes the keyboard.
 */
-void
-app::begin_rename(
+void app::begin_rename(
     int                _id,
     const std::string& _where
 )
@@ -6997,8 +6892,7 @@ finish_rename
 another symbol's, leaves the sheet and its history as they were, and the
 status line says why.
 */
-void
-app::finish_rename(
+void app::finish_rename(
     int                _id,
     const std::string& _text
 )
@@ -7047,8 +6941,7 @@ begin_segment_rename
   A band the sheet made itself -- a byte, say -- has no name to keep, so
 renaming it first makes it a segment of the sheet's own.
 */
-void
-app::begin_segment_rename(
+void app::begin_segment_rename(
     const uxoxo::option_set& _payload
 )
 {
@@ -7091,8 +6984,7 @@ app::begin_segment_rename(
     return;
 }
 
-void
-app::finish_segment_rename(
+void app::finish_segment_rename(
     const std::string& _text
 )
 {
@@ -7123,8 +7015,7 @@ copy_code
   The selection as code to paste elsewhere when the row asked about is in
 it, the row alone when it is not, and the whole sheet for none.
 */
-void
-app::copy_code(
+void app::copy_code(
     int _id
 )
 {
@@ -7162,8 +7053,7 @@ paste_code
 beside the row asked about, or into it when it is a group. A name the
 sheet has already takes the pasted definition.
 */
-void
-app::paste_code(
+void app::paste_code(
     int _id
 )
 {
@@ -7215,8 +7105,7 @@ import_code_text
 came from, under its name. A C++ file is read as C++, at C++17 when the
 sheet was C; the rest at the sheet's own level.
 */
-void
-app::import_code_text(
+void app::import_code_text(
     const std::string& _path,
     const std::string& _text
 )
@@ -7283,8 +7172,7 @@ app::import_code_text(
 // grid_width
 //   a column of the grid set to a width: the name or value column fitted
 // to its text, or the bits' cells.
-void
-app::grid_width(
+void app::grid_width(
     const uxoxo::option_set& _payload
 )
 {
@@ -7342,8 +7230,7 @@ app::grid_width(
 
 // -------------------------------------------------------------- operations
 
-void
-app::apply_operation()
+void app::apply_operation()
 {
     const op_kind op   = static_cast<op_kind>(
         std::clamp(doc().ui.op, 0, OP_COUNT - 1));

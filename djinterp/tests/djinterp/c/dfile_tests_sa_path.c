@@ -25,13 +25,9 @@ d_tests_dfile_getcwd
   - path is a directory
   - returns NULL for NULL buffer
 */
-struct d_test_object*
-d_tests_dfile_getcwd
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_getcwd(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  cwd_buf[D_FILE_PATH_MAX];
     char*                 result;
     bool                  test_get_cwd;
@@ -79,13 +75,9 @@ d_tests_dfile_chdir
   - returns error for nonexistent directory
   - returns error for NULL path
 */
-struct d_test_object*
-d_tests_dfile_chdir
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_chdir(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  original_cwd[D_FILE_PATH_MAX];
     char                  new_cwd[D_FILE_PATH_MAX];
     int                   result;
@@ -144,13 +136,9 @@ d_tests_dfile_realpath
   - returns NULL for nonexistent file
   - returns NULL for NULL path
 */
-struct d_test_object*
-d_tests_dfile_realpath
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_realpath(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  resolved[D_FILE_PATH_MAX];
     char*                 result;
@@ -209,13 +197,9 @@ d_tests_dfile_dirname
   - handles path with trailing separator
   - returns NULL for NULL path
 */
-struct d_test_object*
-d_tests_dfile_dirname
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_dirname(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  buf[D_FILE_PATH_MAX];
     char*                 result;
     bool                  test_with_file;
@@ -258,13 +242,9 @@ d_tests_dfile_basename
   - handles path without directory
   - returns NULL for NULL path
 */
-struct d_test_object*
-d_tests_dfile_basename
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_basename(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  buf[D_FILE_PATH_MAX];
     char*                 result;
     bool                  test_with_dir;
@@ -315,13 +295,9 @@ d_tests_dfile_path_join
   - handles NULL first path (uses second path)
   - returns NULL for NULL buffer
 */
-struct d_test_object*
-d_tests_dfile_path_join
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_path_join(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  buf[D_FILE_PATH_MAX];
     char*                 result;
     bool                  test_join;
@@ -371,13 +347,9 @@ d_tests_dfile_path_normalize
   - resolves . and .. components
   - returns NULL for NULL path
 */
-struct d_test_object*
-d_tests_dfile_path_normalize
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_path_normalize(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  buf[D_FILE_PATH_MAX];
     char*                 result;
     bool                  test_normalize;
@@ -420,13 +392,9 @@ d_tests_dfile_path_is_absolute
   - returns 0 for relative path
   - returns 0 for NULL path
 */
-struct d_test_object*
-d_tests_dfile_path_is_absolute
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_path_is_absolute(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   result;
     bool                  test_absolute;
     bool                  test_relative;
@@ -483,13 +451,9 @@ d_tests_dfile_get_extension
   - returns NULL for NULL path
   - handles hidden files correctly
 */
-struct d_test_object*
-d_tests_dfile_get_extension
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_get_extension(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     const char*           result;
     bool                  test_with_ext;
     bool                  test_no_ext;
@@ -553,13 +517,9 @@ d_tests_dfile_path_utilities_all
   - d_path_is_absolute
   - d_path_extension
 */
-struct d_test_object*
-d_tests_dfile_path_utilities_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_path_utilities_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("XII. Path Utilities", 9);

@@ -64,7 +64,7 @@
 #include "../dmacro.h"
 
 #ifdef __cplusplus
-    #include "../../djinterp.hpp"
+    #include "../djinterp_cpp.h"
 #endif  // __cplusplus
 
 // ---- tier -1: configuration, resolved before anything reads it ----
@@ -72,7 +72,7 @@
 // needs one module's knobs includes that module's config; pulling this from
 // event_table_common.h would load the queue's defaults for a caller who never
 // included the queue, which is demand-loading running backwards.
-#include "../../config/core/event/cfg_event.h"
+#include "../../config/c/event/cfg_event.h"
 
 // ---- tier 0: the shared core, in dependency order ----
 #include "./event_common.h"
@@ -81,7 +81,7 @@
 #include "./event_registry_common.h"
 #include "./event_dispatcher_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -95,7 +95,7 @@
 // C core.
 #if ( (D_ENV_LANG_USING_CPP) &&                                           \
       (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
-    #include "../../core/event/event.hpp"
+    // C++ callers include event.hpp themselves (no C header includes C++)
 #endif  // C++11 and up
 
 

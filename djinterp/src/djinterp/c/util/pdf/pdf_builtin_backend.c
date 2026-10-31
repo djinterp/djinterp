@@ -22,7 +22,7 @@
 #include <string.h>  // memcpy
 #include <time.h>    // time, localtime, gmtime, strftime
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, int64_t
 
 
 /*
@@ -30,8 +30,8 @@ d_internal_pdf_put
   Appends one byte at *_length if it fits below the terminator, and counts it
 whether or not it did.
 */
-static void
-d_internal_pdf_put(
+static
+void d_internal_pdf_put(
     char*   _out,
     size_t  _out_capacity,
     size_t* _length,
@@ -54,8 +54,8 @@ d_internal_pdf_terminate
   Terminates what was written: at the full length when it fit, at the last
 byte of the buffer when it did not.
 */
-static void
-d_internal_pdf_terminate(
+static
+void d_internal_pdf_terminate(
     char*  _out,
     size_t _out_capacity,
     size_t _length
@@ -75,8 +75,7 @@ d_pdf_escape_text
   The C++ escape: a backslash before ( ) and \, printable ASCII as itself,
 and every other byte as a three-digit octal escape.
 */
-size_t
-d_pdf_escape_text(
+size_t d_pdf_escape_text(
     const char* _text,
     size_t      _length,
     char*       _out,
@@ -123,16 +122,15 @@ d_pdf_escape_text(
 d_internal_pdf_print_length
   An snprintf result as a length, with an encoding error read as nothing.
 */
-static size_t
-d_internal_pdf_print_length(
+static
+size_t d_internal_pdf_print_length(
     int _written
 )
 {
     return (_written > 0) ? (size_t)_written : 0u;
 }
 
-size_t
-d_pdf_num(
+size_t d_pdf_num(
     double _value,
     char*  _out,
     size_t _out_capacity
@@ -151,12 +149,11 @@ d_pdf_set_color
 "K" for cmyk, and "r g b rg" or "RG" for rgb and any other space. A missing
 colour writes nothing.
 */
-size_t
-d_pdf_set_color(
-    const struct d_pdf_color* _color,
-    int32_t                   _fill,
-    char*                     _out,
-    size_t                    _out_capacity
+size_t d_pdf_set_color(
+    const struct dj_pdf_color* _color,
+    int32_t                    _fill,
+    char*                      _out,
+    size_t                     _out_capacity
 )
 {
     char* const  out      = _out;
@@ -197,8 +194,7 @@ does not fit the platform's time_t, or that the C library cannot break
 down, yields nothing. localtime and gmtime share static storage in C99, so
 this is not safe to call from two threads at once.
 */
-size_t
-d_pdf_format_date(
+size_t d_pdf_format_date(
     int64_t _unix_seconds,
     int32_t _use_local_time,
     char*   _out,
@@ -241,8 +237,7 @@ d_pdf_format_date(
     return (size_t)D_PDF_DATE_MAX;
 }
 
-size_t
-d_pdf_creation_date(
+size_t d_pdf_creation_date(
     char*  _out,
     size_t _out_capacity
 )
@@ -258,8 +253,7 @@ d_pdf_begin_object
 left there. Returns the marker's length; a negative object number is no
 object, and returns 0.
 */
-size_t
-d_pdf_begin_object(
+size_t d_pdf_begin_object(
     char*   _out,
     size_t  _out_capacity,
     size_t  _out_length,

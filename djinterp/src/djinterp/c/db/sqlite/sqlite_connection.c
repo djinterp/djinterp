@@ -28,7 +28,7 @@
 #include "../../../../../inc/djinterp/config/c/db/sqlite/cfg_sqlite_connection.h"  // defaults
 #include "./sqlite_internal.h"  // sqlite3.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_SQLITE == 1)
@@ -52,8 +52,8 @@
  * is the extended one, read from the handle before it is closed: the
  * connection the caller would have used is the one that reports in that mode.
  */
-static int
-d_internal_sqlite_open(
+static
+int d_internal_sqlite_open(
     const char* _path,
     int         _flags,
     const char* _vfs,
@@ -100,8 +100,7 @@ d_internal_sqlite_open(
 d_sqlite_open
   READWRITE | CREATE is sqlite3_open's own behaviour, made explicit.
 */
-int
-d_sqlite_open(
+int d_sqlite_open(
     const char* _path,
     sqlite3**   _db
 )
@@ -123,8 +122,7 @@ d_sqlite_open(
 d_sqlite_open_readonly
   READONLY without CREATE: a missing file is SQLITE_CANTOPEN, not a new one.
 */
-int
-d_sqlite_open_readonly(
+int d_sqlite_open_readonly(
     const char* _path,
     sqlite3**   _db
 )
@@ -144,8 +142,7 @@ d_sqlite_open_memory
   ":memory:" opens a database private to this connection on every version;
 SQLITE_OPEN_MEMORY, the flag form, arrived only in 3.7.13.
 */
-int
-d_sqlite_open_memory(
+int d_sqlite_open_memory(
     sqlite3** _db
 )
 {
@@ -168,8 +165,7 @@ outside its list undefined: one way of opening, no unknown bit, and not both
 of a pair. A flag newer than the library loaded is refused rather than
 passed, which an older library would take silently and ignore.
 */
-int
-d_sqlite_open_with(
+int d_sqlite_open_with(
     const char* _path,
     unsigned    _flags,
     const char* _vfs,
@@ -229,8 +225,7 @@ d_sqlite_apply_defaults
 branches compile in every configuration. Foreign keys go last: their PRAGMA
 is the only step that can fail, and its failure is then the one reported.
 */
-int
-d_sqlite_apply_defaults(
+int d_sqlite_apply_defaults(
     sqlite3* _db
 )
 {
@@ -267,8 +262,7 @@ d_sqlite_close
 finalized instead of failing with SQLITE_BUSY, which is what a convenience
 close should do.
 */
-int
-d_sqlite_close(
+int d_sqlite_close(
     sqlite3* _db
 )
 {
@@ -283,8 +277,7 @@ d_sqlite_database_path
 and, on some versions, for one held in memory. sqlite3_db_readonly tells them
 apart: it is -1 only for a name that is not attached.
 */
-const char*
-d_sqlite_database_path(
+const char* d_sqlite_database_path(
     sqlite3*    _db,
     const char* _schema
 )
@@ -311,8 +304,7 @@ d_sqlite_database_path(
 d_sqlite_is_readonly
   sqlite3_db_readonly (3.7.11) is 1, 0, or -1 for no such database.
 */
-bool
-d_sqlite_is_readonly(
+bool d_sqlite_is_readonly(
     sqlite3*    _db,
     const char* _schema
 )
@@ -332,8 +324,7 @@ d_sqlite_is_readonly(
 d_sqlite_last_insert_id
   SQLite's rowid is 64-bit on every version.
 */
-int64_t
-d_sqlite_last_insert_id(
+int64_t d_sqlite_last_insert_id(
     sqlite3* _db
 )
 {
@@ -352,8 +343,7 @@ d_sqlite_changes
 (3.37.0) does not, and D_INTERNAL_SQLITE_CHANGES is the newer where the header
 has it.
 */
-int64_t
-d_sqlite_changes(
+int64_t d_sqlite_changes(
     sqlite3* _db
 )
 {
@@ -370,8 +360,7 @@ d_sqlite_changes(
 d_sqlite_total_changes
   As d_sqlite_changes, over the connection's lifetime.
 */
-int64_t
-d_sqlite_total_changes(
+int64_t d_sqlite_total_changes(
     sqlite3* _db
 )
 {
@@ -397,8 +386,7 @@ the call, and put back as it was; SQL's load_extension() has the other switch,
 which only d_sqlite_enable_load_extension touches. SQLite's message is in its
 own memory, and is copied into the C runtime's, for d_db_free.
 */
-int
-d_sqlite_load_extension(
+int d_sqlite_load_extension(
     sqlite3*    _db,
     const char* _path,
     const char* _entry_point,
@@ -499,8 +487,7 @@ d_sqlite_load_extension(
 d_sqlite_enable_load_extension
   SQLite's own switch, for SQL and the C API together.
 */
-int
-d_sqlite_enable_load_extension(
+int d_sqlite_enable_load_extension(
     sqlite3* _db,
     bool     _enabled
 )
@@ -540,8 +527,7 @@ d_sqlite_open
   Without SQLite there is no connection to open: D_DB_UNSUPPORTED, and the
 handle NULL, as a failed open leaves it.
 */
-int
-d_sqlite_open(
+int d_sqlite_open(
     const char*      _path,
     struct sqlite3** _db
 )
@@ -562,8 +548,7 @@ d_sqlite_open_readonly
   Without SQLite there is no connection to open: D_DB_UNSUPPORTED, and the
 handle NULL, as a failed open leaves it.
 */
-int
-d_sqlite_open_readonly(
+int d_sqlite_open_readonly(
     const char*      _path,
     struct sqlite3** _db
 )
@@ -584,8 +569,7 @@ d_sqlite_open_memory
   Without SQLite there is no connection to open: D_DB_UNSUPPORTED, and the
 handle NULL, as a failed open leaves it.
 */
-int
-d_sqlite_open_memory(
+int d_sqlite_open_memory(
     struct sqlite3** _db
 )
 {
@@ -604,8 +588,7 @@ d_sqlite_open_with
   Without SQLite there is no connection to open: D_DB_UNSUPPORTED, and the
 handle NULL, as a failed open leaves it.
 */
-int
-d_sqlite_open_with(
+int d_sqlite_open_with(
     const char*      _path,
     unsigned         _flags,
     const char*      _vfs,
@@ -629,8 +612,7 @@ d_sqlite_open_with(
 d_sqlite_apply_defaults
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_apply_defaults(
+int d_sqlite_apply_defaults(
     struct sqlite3* _db
 )
 {
@@ -644,8 +626,7 @@ d_sqlite_close
   Without SQLite no connection exists: NULL closes as it always does, and
 anything else is no connection.
 */
-int
-d_sqlite_close(
+int d_sqlite_close(
     struct sqlite3* _db
 )
 {
@@ -656,8 +637,7 @@ d_sqlite_close(
 d_sqlite_database_path
   Without SQLite, NULL.
 */
-const char*
-d_sqlite_database_path(
+const char* d_sqlite_database_path(
     struct sqlite3* _db,
     const char*     _schema
 )
@@ -672,8 +652,7 @@ d_sqlite_database_path(
 d_sqlite_is_readonly
   Without SQLite, false.
 */
-bool
-d_sqlite_is_readonly(
+bool d_sqlite_is_readonly(
     struct sqlite3* _db,
     const char*     _schema
 )
@@ -688,8 +667,7 @@ d_sqlite_is_readonly(
 d_sqlite_last_insert_id
   Without SQLite there are no rows: 0.
 */
-int64_t
-d_sqlite_last_insert_id(
+int64_t d_sqlite_last_insert_id(
     struct sqlite3* _db
 )
 {
@@ -702,8 +680,7 @@ d_sqlite_last_insert_id(
 d_sqlite_changes
   Without SQLite there are no rows: 0.
 */
-int64_t
-d_sqlite_changes(
+int64_t d_sqlite_changes(
     struct sqlite3* _db
 )
 {
@@ -716,8 +693,7 @@ d_sqlite_changes(
 d_sqlite_total_changes
   Without SQLite there are no rows: 0.
 */
-int64_t
-d_sqlite_total_changes(
+int64_t d_sqlite_total_changes(
     struct sqlite3* _db
 )
 {
@@ -730,8 +706,7 @@ d_sqlite_total_changes(
 d_sqlite_load_extension
   Without SQLite, D_DB_UNSUPPORTED; nothing said.
 */
-int
-d_sqlite_load_extension(
+int d_sqlite_load_extension(
     struct sqlite3* _db,
     const char*     _path,
     const char*     _entry_point,
@@ -754,8 +729,7 @@ d_sqlite_load_extension(
 d_sqlite_enable_load_extension
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_enable_load_extension(
+int d_sqlite_enable_load_extension(
     struct sqlite3* _db,
     bool            _enabled
 )

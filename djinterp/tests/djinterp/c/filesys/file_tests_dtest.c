@@ -18,9 +18,9 @@
 #include <string.h>  // strlen, memcpy
 
 
-// d_internal_dtest_record
+// dj_internal_dtest_record
 //   struct: one test and what its checks found.
-struct d_internal_dtest_record
+struct dj_internal_dtest_record
 {
     const char* module;
     const char* block;
@@ -36,7 +36,7 @@ struct d_internal_dtest_record
 //   struct: the records, the open module and block, and the report mode.
 struct dtest_suite
 {
-    struct d_internal_dtest_record* tests;
+    struct dj_internal_dtest_record* tests;
     size_t                          count;
     size_t                          capacity;
     const char*                     module;
@@ -53,8 +53,8 @@ struct dtest_suite
  * @param[in]     _name   the name; `NULL` reads as empty.
  * @return the copy, or "?" when it could not be made.
  */
-static const char*
-d_internal_dtest_keep(
+static
+const char* d_internal_dtest_keep(
     dtest_suite* _suite,
     const char*  _name
 )
@@ -78,10 +78,7 @@ d_internal_dtest_keep(
     return copy;
 }
 
-dtest_suite*
-dtest_create(
-    void
-)
+dtest_suite* dtest_create(void)
 {
     dtest_suite* const suite = calloc(1,
                                       sizeof(*suite));
@@ -97,8 +94,7 @@ dtest_create(
     return suite;
 }
 
-void
-dtest_destroy(
+void dtest_destroy(
     dtest_suite* _suite
 )
 {
@@ -111,7 +107,7 @@ dtest_destroy(
     // the first time a test names it
     for (size_t i = 0; i < _suite->count; ++i)
     {
-        const struct d_internal_dtest_record* const r = &_suite->tests[i];
+        const struct dj_internal_dtest_record* const r = &_suite->tests[i];
 
         free((void*)r->name);
 
@@ -134,8 +130,7 @@ dtest_destroy(
     return;
 }
 
-void
-dtest_use_console(
+void dtest_use_console(
     dtest_suite* _suite,
     int          _show
 )
@@ -148,8 +143,7 @@ dtest_use_console(
     return;
 }
 
-void
-dtest_module(
+void dtest_module(
     dtest_suite* _suite,
     const char*  _name
 )
@@ -164,8 +158,7 @@ dtest_module(
     return;
 }
 
-void
-dtest_block(
+void dtest_block(
     dtest_suite* _suite,
     const char*  _name
 )
@@ -179,8 +172,7 @@ dtest_block(
     return;
 }
 
-void
-dtest_test(
+void dtest_test(
     dtest_suite* _suite,
     const char*  _name
 )
@@ -196,7 +188,7 @@ dtest_test(
         const size_t                    grown = (_suite->capacity)
                                                     ? (_suite->capacity * 2)
                                                     : 64;
-        struct d_internal_dtest_record* more  =
+        struct dj_internal_dtest_record* more  =
             realloc(_suite->tests,
                     grown * sizeof(*more));
 
@@ -212,7 +204,7 @@ dtest_test(
         _suite->capacity = grown;
     }
 
-    struct d_internal_dtest_record* const r = &_suite->tests[_suite->count++];
+    struct dj_internal_dtest_record* const r = &_suite->tests[_suite->count++];
 
     memset(r,
            0,
@@ -225,8 +217,7 @@ dtest_test(
     return;
 }
 
-void
-dtest_assert_expr(
+void dtest_assert_expr(
     dtest_suite* _suite,
     bool         _result,
     const char*  _expr,
@@ -241,7 +232,7 @@ dtest_assert_expr(
         return;
     }
 
-    struct d_internal_dtest_record* const r = &_suite->tests[_suite->count - 1];
+    struct dj_internal_dtest_record* const r = &_suite->tests[_suite->count - 1];
 
     r->checks++;
 
@@ -261,8 +252,7 @@ dtest_assert_expr(
     return;
 }
 
-int
-dtest_run(
+int dtest_run(
     dtest_suite*   _suite,
     dtest_summary* _summary
 )
@@ -276,7 +266,7 @@ dtest_run(
 
     for (size_t i = 0; i < _suite->count; ++i)
     {
-        const struct d_internal_dtest_record* const r    = &_suite->tests[i];
+        const struct dj_internal_dtest_record* const r    = &_suite->tests[i];
         const bool                                  pass = ( (r->checks > 0) &&
                                                              (r->failed == 0) );
 

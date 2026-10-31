@@ -30,12 +30,11 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_test_record
-(
-    struct d_test_tally* _tally,
-    bool                 _condition,
-    const char*          _label
+static
+void d_internal_test_record(
+    struct dj_test_tally* _tally,
+    bool                  _condition,
+    const char*           _label
 )
 {
     // a NULL tally is a caller error
@@ -65,15 +64,14 @@ d_internal_test_pred_is_even
 
 Parameter(s):
   _element: the `intmax_t` under test.
-  _context: an optional `d_test_probe` counting calls.
+  _context: an optional `dj_test_probe` counting calls.
 Return:
   A boolean value corresponding to either:
   - true, if the element is even, or
   - false, otherwise.
 */
-static bool
-d_internal_test_pred_is_even
-(
+static
+bool d_internal_test_pred_is_even(
     const void* _element,
     void*       _context
 )
@@ -87,8 +85,8 @@ d_internal_test_pred_is_even
     // the probe is optional, so a bare predicate call still works
     if (_context)
     {
-        ((struct d_test_probe*)_context)->calls =
-            ((struct d_test_probe*)_context)->calls + 1;
+        ((struct dj_test_probe*)_context)->calls =
+            ((struct dj_test_probe*)_context)->calls + 1;
     }
 
     return ( ((*(const intmax_t*)_element) % 2) == 0 );
@@ -100,20 +98,19 @@ d_internal_test_pred_equals_probe
 
 Parameter(s):
   _element: the `intmax_t` under test.
-  _context: the `d_test_probe` supplying the target and counting calls.
+  _context: the `dj_test_probe` supplying the target and counting calls.
 Return:
   A boolean value corresponding to either:
   - true, if the element equals the probe's target, or
   - false, otherwise.
 */
-static bool
-d_internal_test_pred_equals_probe
-(
+static
+bool d_internal_test_pred_equals_probe(
     const void* _element,
     void*       _context
 )
 {
-    struct d_test_probe* probe;
+    struct dj_test_probe* probe;
 
     // both the element and the probe are required
     if ( (!_element) ||
@@ -122,7 +119,7 @@ d_internal_test_pred_equals_probe
         return false;
     }
 
-    probe = (struct d_test_probe*)_context;
+    probe = (struct dj_test_probe*)_context;
 
     probe->calls = probe->calls + 1;
 
@@ -135,20 +132,19 @@ d_internal_test_pred_less_than_probe
 
 Parameter(s):
   _element: the `intmax_t` under test.
-  _context: the `d_test_probe` supplying the bound and counting calls.
+  _context: the `dj_test_probe` supplying the bound and counting calls.
 Return:
   A boolean value corresponding to either:
   - true, if the element is below the probe's target, or
   - false, otherwise.
 */
-static bool
-d_internal_test_pred_less_than_probe
-(
+static
+bool d_internal_test_pred_less_than_probe(
     const void* _element,
     void*       _context
 )
 {
-    struct d_test_probe* probe;
+    struct dj_test_probe* probe;
 
     // both the element and the probe are required
     if ( (!_element) ||
@@ -157,7 +153,7 @@ d_internal_test_pred_less_than_probe
         return false;
     }
 
-    probe = (struct d_test_probe*)_context;
+    probe = (struct dj_test_probe*)_context;
 
     probe->calls = probe->calls + 1;
 
@@ -177,9 +173,8 @@ Return:
   - true, if the successor was written, or
   - false, if either pointer was NULL.
 */
-static bool
-d_internal_test_transform_increment
-(
+static
+bool d_internal_test_transform_increment(
     const void* _input,
     void*       _output,
     void*       _context
@@ -212,9 +207,8 @@ Return:
   - true, if the widened value was written, or
   - false, if either pointer was NULL.
 */
-static bool
-d_internal_test_transform_int_to_intmax
-(
+static
+bool d_internal_test_transform_int_to_intmax(
     const void* _input,
     void*       _output,
     void*       _context
@@ -246,9 +240,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_test_fold_decimal_shift
-(
+static
+void d_internal_test_fold_decimal_shift(
     void*       _accumulator,
     const void* _element,
     void*       _context
@@ -275,13 +268,12 @@ d_internal_test_consume_count
 
 Parameter(s):
   _element: the incoming value; unused beyond its arrival.
-  _context: the `d_test_probe` counting arrivals.
+  _context: the `dj_test_probe` counting arrivals.
 Return:
   none.
 */
-static void
-d_internal_test_consume_count
-(
+static
+void d_internal_test_consume_count(
     const void* _element,
     void*       _context
 )
@@ -294,8 +286,8 @@ d_internal_test_consume_count
         return;
     }
 
-    ((struct d_test_probe*)_context)->calls =
-        ((struct d_test_probe*)_context)->calls + 1;
+    ((struct dj_test_probe*)_context)->calls =
+        ((struct dj_test_probe*)_context)->calls + 1;
 
     return;
 }
@@ -312,12 +304,11 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_test_assoc_intmax
-(
-    struct d_test_tally*   _tally,
-    const struct d_monoid* _monoid,
-    const char*            _label
+static
+void d_internal_test_assoc_intmax(
+    struct dj_test_tally*   _tally,
+    const struct dj_monoid* _monoid,
+    const char*             _label
 )
 {
     intmax_t a;
@@ -375,19 +366,17 @@ d_tests_semigroup_laws
   - that `first` has no identity, by witness
   - that a semigroup fold over an empty array fails, having no identity
 */
-bool
-d_tests_semigroup_laws
-(
-    struct d_test_tally* _tally
+bool d_tests_semigroup_laws(
+    struct dj_test_tally* _tally
 )
 {
-    struct d_semigroup first;
-    struct d_monoid    sum;
-    struct d_monoid    product;
-    struct d_monoid    minimum;
-    struct d_monoid    maximum;
-    struct d_monoid    all;
-    struct d_monoid    any;
+    struct dj_semigroup first;
+    struct dj_monoid    sum;
+    struct dj_monoid    product;
+    struct dj_monoid    minimum;
+    struct dj_monoid    maximum;
+    struct dj_monoid    all;
+    struct dj_monoid    any;
     intmax_t           accumulator;
     intmax_t           operand;
     intmax_t           candidate;
@@ -487,14 +476,12 @@ d_tests_fold_and_quantifiers
   - that each quantifier short-circuits, measured by predicate calls
   - that count_if runs to exhaustion, having no early answer
 */
-bool
-d_tests_fold_and_quantifiers
-(
-    struct d_test_tally* _tally
+bool d_tests_fold_and_quantifiers(
+    struct dj_test_tally* _tally
 )
 {
-    struct d_monoid     sum;
-    struct d_test_probe probe;
+    struct dj_monoid     sum;
+    struct dj_test_probe probe;
     intmax_t            digits[3];
     intmax_t            values[5];
     int                 narrow[3];
@@ -630,25 +617,23 @@ d_tests_producer_protocol
   - that filter and transform compose over a producer
   - that the same reducer driven over an array and over a producer agrees
 */
-bool
-d_tests_producer_protocol
-(
-    struct d_test_tally* _tally
+bool d_tests_producer_protocol(
+    struct dj_test_tally* _tally
 )
 {
-    struct d_producer_range_state  range_state;
-    struct d_producer_repeat_state repeat_state;
-    struct d_producer_array_state  array_state;
-    struct d_producer_iterate_state iterate_state;
-    struct d_producer_take_state   take_state;
-    struct d_producer_concat_state concat_state;
-    struct d_producer_filter_state filter_state;
-    struct d_producer              source;
-    struct d_producer              bounded;
-    struct d_producer              second;
-    struct d_producer              joined;
-    struct d_producer              filtered;
-    struct d_monoid                sum;
+    struct dj_producer_range_state  range_state;
+    struct dj_producer_repeat_state repeat_state;
+    struct dj_producer_array_state  array_state;
+    struct dj_producer_iterate_state iterate_state;
+    struct dj_producer_take_state   take_state;
+    struct dj_producer_concat_state concat_state;
+    struct dj_producer_filter_state filter_state;
+    struct dj_producer              source;
+    struct dj_producer              bounded;
+    struct dj_producer              second;
+    struct dj_producer              joined;
+    struct dj_producer              filtered;
+    struct dj_monoid                sum;
     intmax_t                       collected[16];
     intmax_t                       elements[5];
     intmax_t                       seed;
@@ -790,19 +775,17 @@ d_tests_transducer_composition
   - that a chain over an array and the same chain over a producer agree
   - that filter expressed as predicate plus sink matches the array form
 */
-bool
-d_tests_transducer_composition
-(
-    struct d_test_tally* _tally
+bool d_tests_transducer_composition(
+    struct dj_test_tally* _tally
 )
 {
-    struct d_transducer_stage     stages[2];
-    struct d_transducer           transducer;
-    struct d_array_sink           sink;
-    struct d_reducing_state       state;
-    struct d_producer_array_state array_state;
-    struct d_producer             source;
-    struct d_test_probe           probe;
+    struct dj_transducer_stage     stages[2];
+    struct dj_transducer           transducer;
+    struct dj_array_sink           sink;
+    struct dj_reducing_state       state;
+    struct dj_producer_array_state array_state;
+    struct dj_producer             source;
+    struct dj_test_probe           probe;
     intmax_t                      elements[10];
     intmax_t                      latch_input[5];
     intmax_t                      output[16];
@@ -952,15 +935,13 @@ d_tests_cost_and_layout
   - that a transducer chain collapses to a plain two-word reducer
   - that the callable union costs no more than one function pointer
 */
-bool
-d_tests_cost_and_layout
-(
-    struct d_test_tally* _tally
+bool d_tests_cost_and_layout(
+    struct dj_test_tally* _tally
 )
 {
-    struct d_monoid     sum;
-    struct d_transducer transducer;
-    struct d_reducer    collapsed;
+    struct dj_monoid     sum;
+    struct dj_transducer transducer;
+    struct dj_reducer    collapsed;
 
     // a NULL tally leaves nothing to record into
     if (!_tally)
@@ -973,14 +954,14 @@ d_tests_cost_and_layout
     sum = d_monoid_sum_intmax();
 
     D_TEST_CHECK(_tally,
-                 (sizeof(struct d_monoid) ==
-                      (sizeof(struct d_semigroup) + sizeof(fn_mempty))),
+                 (sizeof(struct dj_monoid) ==
+                      (sizeof(struct dj_semigroup) + sizeof(fn_mempty))),
                  "monoid costs its semigroup plus one pointer");
     D_TEST_CHECK(_tally,
                  ((const void*)d_monoid_semigroup(&sum) == (const void*)&sum),
                  "the forgetful map is free");
     D_TEST_CHECK(_tally,
-                 (sizeof(union d_transducer_callable) == sizeof(fn_predicate)),
+                 (sizeof(union dj_transducer_callable) == sizeof(fn_predicate)),
                  "the callable union costs one function pointer");
 
     transducer.stages = NULL;
@@ -1006,13 +987,9 @@ Parameter(s):
 Return:
   0 if every assertion passed, or 1 otherwise.
 */
-int
-main
-(
-    void
-)
+int main(void)
 {
-    struct d_test_tally tally;
+    struct dj_test_tally tally;
 
     tally.checked = 0;
     tally.passed  = 0;

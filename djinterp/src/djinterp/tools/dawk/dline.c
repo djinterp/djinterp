@@ -36,10 +36,10 @@
 // included; a longer one is not carried.
 #define D_INTERNAL_DLINE_SUMMARY_MAX 128
 
-// d_internal_line_facts
+// dj_internal_line_facts
 //   struct: what one line was found to hold, gathered before its node is
 // written, since the node's attributes must be contiguous.
-struct d_internal_line_facts
+struct dj_internal_line_facts
 {
     size_t  length;
     bool    blank;
@@ -61,11 +61,11 @@ struct d_internal_line_facts
  * @param[in] _cp     the code point.
  * @return `true` if some range holds it, `false` otherwise.
  */
-static bool
-d_internal_in_table(
+static
+bool d_internal_in_table(
     const uint32_t (*_table)[2],
-    size_t         _count,
-    uint32_t       _cp
+    size_t   _count,
+    uint32_t _cp
 )
 {
     size_t low  = 0u;
@@ -99,8 +99,8 @@ d_internal_in_table(
  * @return the bytes consumed, or 0 when the sequence is malformed, in which
  *         case the caller consumes one byte.
  */
-static size_t
-d_internal_decode(
+static
+size_t d_internal_decode(
     const unsigned char* _text,
     size_t               _length,
     uint32_t*            _cp
@@ -171,10 +171,10 @@ d_internal_decode(
  * @param[in,out] _facts  the line's facts.
  * @param[in]     _cp     the code point.
  */
-static void
-d_internal_classify(
-    struct d_internal_line_facts* _facts,
-    uint32_t                      _cp
+static
+void d_internal_classify(
+    struct dj_internal_line_facts* _facts,
+    uint32_t                       _cp
 )
 {
     const size_t wide_count =
@@ -222,11 +222,11 @@ d_internal_classify(
  * @param[in]  _length  its bytes, the terminator excluded.
  * @param[out] _facts   receives what the line holds; `cr` is left alone.
  */
-static void
-d_internal_measure(
-    const unsigned char*          _text,
-    size_t                        _length,
-    struct d_internal_line_facts* _facts
+static
+void d_internal_measure(
+    const unsigned char*           _text,
+    size_t                         _length,
+    struct dj_internal_line_facts* _facts
 )
 {
     size_t at = 0u;
@@ -271,12 +271,12 @@ d_internal_measure(
  * @param[in]     _name   the attribute's name.
  * @param[in]     _value  its value.
  */
-static void
-d_internal_number(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _name,
-    size_t              _value
+static
+void d_internal_number(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _name,
+    size_t               _value
 )
 {
     char text[D_INTERNAL_DLINE_NUMBER_MAX];
@@ -297,12 +297,12 @@ d_internal_number(
  * @param[in]     _length  their count.
  * @return the `text` node, or `D_DSS_NO_INDEX`.
  */
-static uint32_t
-d_internal_emit_text(
-    struct d_node_tree* _tree,
-    uint32_t            _file,
-    const char*         _text,
-    size_t              _length
+static
+uint32_t d_internal_emit_text(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _text,
+    size_t               _length
 )
 {
     size_t lf   = 0u;
@@ -375,7 +375,7 @@ d_internal_emit_text(
         (void)d_node_set_attribute(_tree, node, "generated", NULL);
     }
 
-    struct d_node* const text = d_node_at(_tree, node);
+    struct dj_node* const text = d_node_at(_tree, node);
 
     text->line         = 1u;
     text->start_column = 1u;
@@ -400,8 +400,8 @@ d_internal_emit_text(
  * @return the bytes through the name's closing quote or bracket, or 0 when
  *         the line is no `#include`.
  */
-static size_t
-d_internal_include_end(
+static
+size_t d_internal_include_end(
     const char* _bytes,
     size_t      _size
 )
@@ -472,12 +472,12 @@ d_internal_include_end(
  * @param[in]     _bytes  the line's content, the terminator excluded.
  * @param[in]     _size   its byte count.
  */
-static void
-d_internal_emit_include(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _bytes,
-    size_t              _size
+static
+void d_internal_emit_include(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _bytes,
+    size_t               _size
 )
 {
     const size_t end = d_internal_include_end(_bytes, _size);
@@ -487,7 +487,7 @@ d_internal_emit_include(
         return;
     }
 
-    struct d_internal_line_facts directive = { 0 };
+    struct dj_internal_line_facts directive = { 0 };
 
     d_internal_measure((const unsigned char*)_bytes, end, &directive);
     d_internal_number(_tree, _node, "directive-length", directive.length);
@@ -534,14 +534,14 @@ d_internal_emit_include(
  * @param[in]     _size    its byte count.
  * @return the node, or `D_DSS_NO_INDEX`.
  */
-static uint32_t
-d_internal_emit_line(
-    struct d_node_tree*                 _tree,
-    uint32_t                            _parent,
-    uint32_t                            _number,
-    const struct d_internal_line_facts* _facts,
-    const char*                         _bytes,
-    size_t                              _size
+static
+uint32_t d_internal_emit_line(
+    struct dj_node_tree*                 _tree,
+    uint32_t                             _parent,
+    uint32_t                             _number,
+    const struct dj_internal_line_facts* _facts,
+    const char*                          _bytes,
+    size_t                               _size
 )
 {
     static const char* const names[] =
@@ -576,7 +576,7 @@ d_internal_emit_line(
 
     d_internal_emit_include(_tree, node, _bytes, _size);
 
-    struct d_node* const line = d_node_at(_tree, node);
+    struct dj_node* const line = d_node_at(_tree, node);
 
     line->line         = _number;
     line->start_column = 1u;
@@ -596,12 +596,11 @@ d_line_build_text
 must be written before any child's, then the lines.  A byte-order mark is the
 text node's fact alone; line 1 is measured from after it, as the lexer reads.
 */
-uint32_t
-d_line_build_text(
-    struct d_node_tree* _tree,
-    uint32_t            _file,
-    const char*         _text,
-    size_t              _length
+uint32_t d_line_build_text(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _text,
+    size_t               _length
 )
 {
     // parameter validation first
@@ -634,7 +633,7 @@ d_line_build_text(
             ++end;
         }
 
-        struct d_internal_line_facts facts;
+        struct dj_internal_line_facts facts;
 
         memset(&facts, 0, sizeof(facts));
 
@@ -674,11 +673,10 @@ d_line_build
 split a long line in two and number every later line wrong, and long lines are
 exactly what this extension exists to measure.
 */
-uint32_t
-d_line_build(
-    struct d_node_tree* _tree,
-    uint32_t            _file,
-    const char*         _path
+uint32_t d_line_build(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path
 )
 {
     // parameter validation first

@@ -26,36 +26,76 @@
 #include "../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../inc/djinterp/c/functional/predicate.h"
 #include "./predicate_tests_sa_helpers.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // constructor function tests
-bool d_tests_sa_predicate_and_new(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_or_new(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_xor_new(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_not_new(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_constructor_all(struct d_test_counter* _counter);
+bool d_tests_sa_predicate_and_new(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_or_new(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_xor_new(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_not_new(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_constructor_all(
+    struct dj_test_counter* _counter
+);
 
 // evaulation function tests
-bool d_tests_sa_predicate_and_eval(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_or_eval(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_xor_eval(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_not_eval(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_eval_all(struct d_test_counter* _counter);
+bool d_tests_sa_predicate_and_eval(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_or_eval(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_xor_eval(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_not_eval(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_eval_all(
+    struct dj_test_counter* _counter
+);
 
 // macro tests
-bool d_tests_sa_predicate_macro_and(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_or(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_xor(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_not(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_and_simple(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_or_simple(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_xor_simple(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_not_simple(struct d_test_counter* _counter);
-bool d_tests_sa_predicate_macro_all(struct d_test_counter* _counter);
+bool d_tests_sa_predicate_macro_and(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_or(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_xor(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_not(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_and_simple(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_or_simple(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_xor_simple(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_not_simple(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_predicate_macro_all(
+    struct dj_test_counter* _counter
+);
 
 // module-level aggregation
-bool d_tests_sa_predicate_run_all(struct d_test_counter* _counter);
+bool d_tests_sa_predicate_run_all(
+    struct dj_test_counter* _counter
+);
 
 
 #endif  // DJINTERP_TESTS_PREDICATE_STANDALONE

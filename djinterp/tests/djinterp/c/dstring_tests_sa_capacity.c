@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                    dstring_tests_sa_capacity.c
 *
-*   Unit tests for d_string capacity management functions:
+*   Unit tests for dj_string capacity management functions:
 *     - d_string_reserve
 *     - d_string_shrink_to_fit
 *     - d_string_capacity
@@ -44,14 +44,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_reserve
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_reserve(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     size_t                original_capacity;
     size_t                original_size;
@@ -304,14 +300,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_shrink_to_fit
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_shrink_to_fit(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     size_t                original_size;
     bool                  result;
@@ -502,14 +494,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_capacity
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_capacity(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     size_t                cap;
 
@@ -681,14 +669,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_resize
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_resize(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     bool                  result;
 
@@ -919,16 +903,12 @@ Parameter(s):
 Return:
   Test object containing all capacity management test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_capacity_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_capacity_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Capacity Management", 4);
+    group     = d_test_object_new_interior("dj_string Capacity Management", 4);
     child_idx = 0;
 
     if (!group)

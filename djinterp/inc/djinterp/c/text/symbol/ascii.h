@@ -280,19 +280,41 @@
 
 
 // I.    character classification
-bool d_ascii_char_is_numeric(char _c);
-bool d_ascii_char_is_alphabetical(char _c);
-bool d_ascii_char_is_alphanumeric(char _c);
-bool d_ascii_char_is_whitespace(char _c);
-bool d_ascii_char_is_null(char _c);
-bool d_ascii_char_is_control(char _c);
-bool d_ascii_char_is_printable(char _c);
-bool d_ascii_char_is_punctuation(char _c);
-bool d_ascii_char_is_hex_digit(char _c);
+bool d_ascii_char_is_numeric(
+    char _c
+);
+bool d_ascii_char_is_alphabetical(
+    char _c
+);
+bool d_ascii_char_is_alphanumeric(
+    char _c
+);
+bool d_ascii_char_is_whitespace(
+    char _c
+);
+bool d_ascii_char_is_null(
+    char _c
+);
+bool d_ascii_char_is_control(
+    char _c
+);
+bool d_ascii_char_is_printable(
+    char _c
+);
+bool d_ascii_char_is_punctuation(
+    char _c
+);
+bool d_ascii_char_is_hex_digit(
+    char _c
+);
 
 // II.   character conversion
-char d_ascii_char_to_upper(char _c);
-char d_ascii_char_to_lower(char _c);
+char d_ascii_char_to_upper(
+    char _c
+);
+char d_ascii_char_to_lower(
+    char _c
+);
 
 
 #endif  // DJINTERP_C_TEXT_SYMBOL_ASCII_H

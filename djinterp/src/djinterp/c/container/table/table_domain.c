@@ -24,17 +24,15 @@ Parameter(s):
   _extents: array of `_rank` extents, one per coordinate.
   _rank:    the number of coordinates.
 Return:
-  A `d_table_domain` over the given extents; coordinates beyond `_rank` are
+  A `dj_table_domain` over the given extents; coordinates beyond `_rank` are
   zeroed.
 */
-D_NODISCARD D_INLINE_DEF struct d_table_domain
-d_table_domain_make
-(
+D_NODISCARD D_INLINE_DEF struct dj_table_domain d_table_domain_make(
     const size_t* _extents,
     uint32_t      _rank
 )
 {
-    struct d_table_domain result;
+    struct dj_table_domain result;
     uint32_t              r;
 
     result.rank = _rank;
@@ -60,11 +58,9 @@ Parameter(s):
   _rows: the leading extent.
   _cols: the trailing extent.
 Return:
-  A rank-2 `d_table_domain` over the two extents.
+  A rank-2 `dj_table_domain` over the two extents.
 */
-D_NODISCARD D_INLINE_DEF struct d_table_domain
-d_table_domain_make2
-(
+D_NODISCARD D_INLINE_DEF struct dj_table_domain d_table_domain_make2(
     size_t _rows,
     size_t _cols
 )
@@ -87,11 +83,9 @@ Parameter(s):
 Return:
   The linear offset, in positions, at which that slice begins.
 */
-D_NODISCARD size_t
-d_table_domain_slice_offset
-(
-    struct d_table_domain _domain,
-    size_t                _leading
+D_NODISCARD size_t d_table_domain_slice_offset(
+    struct dj_table_domain _domain,
+    size_t                 _leading
 )
 {
     return (_leading * d_table_domain_slice_extent(_domain));
@@ -109,11 +103,9 @@ Return:
   The length of the projection along `_r`, which over a box domain is that
   coordinate's extent.
 */
-D_NODISCARD D_INLINE_DEF size_t
-d_table_domain_projection_extent
-(
-    struct d_table_domain _domain,
-    uint32_t              _r
+D_NODISCARD D_INLINE_DEF size_t d_table_domain_projection_extent(
+    struct dj_table_domain _domain,
+    uint32_t               _r
 )
 {
     return (size_t)_domain.extent[_r];
@@ -133,14 +125,12 @@ Return:
   The finer domain obtained by multiplying each coordinate's extent by its
   factor.
 */
-D_NODISCARD D_INLINE_DEF struct d_table_domain
-d_table_domain_refine
-(
-    struct d_table_domain _domain,
-    const size_t*         _factors
+D_NODISCARD D_INLINE_DEF struct dj_table_domain d_table_domain_refine(
+    struct dj_table_domain _domain,
+    const size_t*          _factors
 )
 {
-    struct d_table_domain result;
+    struct dj_table_domain result;
     uint32_t              r;
 
     result = _domain;
@@ -167,14 +157,12 @@ Return:
   The corresponding index in the coarse domain, each coordinate divided by its
   factor.
 */
-D_NODISCARD struct d_table_index
-d_table_domain_project
-(
-    struct d_table_index _refined,
-    const size_t*        _factors
+D_NODISCARD struct dj_table_index d_table_domain_project(
+    struct dj_table_index _refined,
+    const size_t*         _factors
 )
 {
-    struct d_table_index result;
+    struct dj_table_index result;
     uint32_t             r;
 
     result = d_table_index_zero(_refined.rank);
@@ -199,17 +187,15 @@ Parameter(s):
   _coords: array of `_rank` coordinates.
   _rank:   the number of coordinates.
 Return:
-  A `d_table_index` holding those coordinates; positions beyond D_TABLE_MAX_RANK
+  A `dj_table_index` holding those coordinates; positions beyond D_TABLE_MAX_RANK
   are dropped.
 */
-D_NODISCARD struct d_table_index
-d_table_index_of
-(
+D_NODISCARD struct dj_table_index d_table_index_of(
     const size_t* _coords,
     uint32_t      _rank
 )
 {
-    struct d_table_index result;
+    struct dj_table_index result;
     uint32_t             r;
 
     result = d_table_index_zero(_rank);
@@ -235,9 +221,7 @@ Return:
   Nonzero when the coordinates fit the representable index space, 0 when the
   rank exceeds D_TABLE_MAX_RANK or a coordinate is out of range.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_index_storable
-(
+D_NODISCARD D_INLINE_DEF int d_table_index_storable(
     const size_t* _coords,
     uint32_t      _rank
 )

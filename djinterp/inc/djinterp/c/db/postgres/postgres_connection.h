@@ -36,7 +36,7 @@ TABLE OF CONTENTS
 1.  CONNECTIONS
     -----------
     1.  Options
-         1.  d_postgres_options
+         1.  dj_postgres_options
     2.  Connecting and closing
     3.  Liveness
     4.  Connecting without blocking
@@ -65,14 +65,14 @@ D_EXTERN_C_BEGIN
 // 1.1    Options
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_postgres_options
+// dj_postgres_options
 //   struct: where and as whom to connect. Every field may be left 0 or NULL
 // for libpq's default, which its environment variables can set; the order
 // suits a positional initializer, which is all C++ before C++20 has:
-//     struct d_postgres_options options = { "db.example", "app", secret };
+//     struct dj_postgres_options options = { "db.example", "app", secret };
 // GCC's and Clang's -Wextra warn of the members such a list leaves out;
 // listing them all, as NULL and 0, keeps it quiet.
-struct d_postgres_options
+struct dj_postgres_options
 {
     const char* host;      // a name, an address, or the directory of a Unix
                            // socket ("/var/run/postgresql"); NULL: PGHOST, or
@@ -105,9 +105,11 @@ struct d_postgres_options
  *         out; or D_DB_INVALID_ARGUMENT for a `NULL` `_db`.
  * @post On success the caller closes `*_db` with d_postgres_close.
  */
-int    d_postgres_connect(const struct d_postgres_options* _options,
-                          struct pg_conn**                 _db,
-                          char**                           _message) D_NOTHROW;
+int d_postgres_connect(
+    const struct dj_postgres_options* _options,
+    struct pg_conn**                  _db,
+    char**                            _message
+) D_NOTHROW;
 /**
  * @brief Connects as a connection string says, and sets the connection up
  *        with the layer's defaults, where the string does not name them.
@@ -123,9 +125,11 @@ int    d_postgres_connect(const struct d_postgres_options* _options,
  *         libpq cannot read.
  * @post On success the caller closes `*_db` with d_postgres_close.
  */
-int    d_postgres_connect_string(const char*      _conninfo,
-                                 struct pg_conn** _db,
-                                 char**           _message) D_NOTHROW;
+int d_postgres_connect_string(
+    const char*      _conninfo,
+    struct pg_conn** _db,
+    char**           _message
+) D_NOTHROW;
 /**
  * @brief Connects with libpq's keywords and values and a connection string
  *        beside them, and sets the connection up with the layer's defaults,
@@ -155,14 +159,18 @@ int    d_postgres_connect_string(const char*      _conninfo,
  *         keyword, or a keyword libpq does not know.
  * @post On success the caller closes `*_db` with d_postgres_close.
  */
-int    d_postgres_connect_with(const char*        _conninfo,
-                               const char* const* _keywords,
-                               const char* const* _values,
-                               size_t             _count,
-                               struct pg_conn**   _db,
-                               char**             _message) D_NOTHROW;
+int d_postgres_connect_with(
+    const char*        _conninfo,
+    const char* const* _keywords,
+    const char* const* _values,
+    size_t             _count,
+    struct pg_conn**   _db,
+    char**             _message
+) D_NOTHROW;
 // closes a connection, as PQfinish does; NULL is accepted. Returns 0.
-int    d_postgres_close(struct pg_conn* _db) D_NOTHROW;
+int d_postgres_close(
+    struct pg_conn* _db
+) D_NOTHROW;
 
 // 1.3    Liveness
 //------------------------------------------------------------------------------
@@ -171,11 +179,15 @@ int    d_postgres_close(struct pg_conn* _db) D_NOTHROW;
 // D_POSTGRES_SQLSTATE_CONNECTION_FAILURE (08006) for a connection that is
 // lost, which stays lost (PQreset makes it again); D_DB_INVALID_ARGUMENT for
 // NULL
-int    d_postgres_ping(struct pg_conn* _db) D_NOTHROW;
+int d_postgres_ping(
+    struct pg_conn* _db
+) D_NOTHROW;
 // the process id of the server's backend for the connection, as
 // pg_backend_pid() and pg_terminate_backend() see it; 0 for NULL or a lost
 // connection
-int    d_postgres_backend_pid(const struct pg_conn* _db) D_NOTHROW;
+int d_postgres_backend_pid(
+    const struct pg_conn* _db
+) D_NOTHROW;
 
 // 1.4    Connecting without blocking
 //------------------------------------------------------------------------------
@@ -208,11 +220,12 @@ int    d_postgres_backend_pid(const struct pg_conn* _db) D_NOTHROW;
  *       with d_postgres_connect_continue, or abandons it with
  *       d_postgres_close.
  */
-int    d_postgres_connect_start(const struct d_postgres_options* _options,
-                                struct pg_conn**                 _db,
-                                struct d_db_pending*             _pending,
-                                char**                           _message)
-                                D_NOTHROW;
+int d_postgres_connect_start(
+    const struct dj_postgres_options* _options,
+    struct pg_conn**                  _db,
+    struct dj_db_pending*             _pending,
+    char**                            _message
+) D_NOTHROW;
 /**
  * @brief Starts a connection as d_postgres_connect_string makes one, without
  *        waiting.
@@ -226,11 +239,12 @@ int    d_postgres_connect_start(const struct d_postgres_options* _options,
  *         string libpq cannot read.
  * @post As for d_postgres_connect_start.
  */
-int    d_postgres_connect_string_start(const char*          _conninfo,
-                                       struct pg_conn**     _db,
-                                       struct d_db_pending* _pending,
-                                       char**               _message)
-                                       D_NOTHROW;
+int d_postgres_connect_string_start(
+    const char*           _conninfo,
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
+) D_NOTHROW;
 /**
  * @brief Starts a connection as d_postgres_connect_with makes one, without
  *        waiting.
@@ -247,14 +261,15 @@ int    d_postgres_connect_string_start(const char*          _conninfo,
  *         d_postgres_connect_with gives it.
  * @post As for d_postgres_connect_start.
  */
-int    d_postgres_connect_with_start(const char*          _conninfo,
-                                     const char* const*   _keywords,
-                                     const char* const*   _values,
-                                     size_t               _count,
-                                     struct pg_conn**     _db,
-                                     struct d_db_pending* _pending,
-                                     char**               _message)
-                                     D_NOTHROW;
+int d_postgres_connect_with_start(
+    const char*           _conninfo,
+    const char* const*    _keywords,
+    const char* const*    _values,
+    size_t                _count,
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
+) D_NOTHROW;
 /**
  * @brief Continues a connection a start of 1.4 began.
  *
@@ -266,7 +281,7 @@ int    d_postgres_connect_with_start(const char*          _conninfo,
  *
  * @param[in,out] _db       the connection being made; `NULL`ed when it
  *                          fails, which finishes it.
- * @param[in]     _events   what came, as d_db_wait: the socket ready to read
+ * @param[in]     _events   what came, as dj_db_wait: the socket ready to read
  *                          or to write, or D_DB_WAIT_TIMEOUT when the
  *                          deadline passed first.
  * @param[in,out] _pending  what the start or the last continuation wrote;
@@ -279,10 +294,12 @@ int    d_postgres_connect_with_start(const char*          _conninfo,
  * @post On 0 the caller closes `*_db` with d_postgres_close; on a failure
  *       `*_db` is `NULL`.
  */
-int    d_postgres_connect_continue(struct pg_conn**     _db,
-                                   unsigned             _events,
-                                   struct d_db_pending* _pending,
-                                   char**               _message) D_NOTHROW;
+int d_postgres_connect_continue(
+    struct pg_conn**      _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
+) D_NOTHROW;
 
 // 1.5    Reconnecting
 //------------------------------------------------------------------------------
@@ -303,7 +320,9 @@ int    d_postgres_connect_continue(struct pg_conn**     _db,
  *         d_postgres_error_message then saying why; or
  *         D_DB_INVALID_ARGUMENT for `NULL`.
  */
-int    d_postgres_reconnect(struct pg_conn* _db) D_NOTHROW;
+int d_postgres_reconnect(
+    struct pg_conn* _db
+) D_NOTHROW;
 /**
  * @brief Closes the connection and starts making it again, without waiting.
  *
@@ -315,8 +334,10 @@ int    d_postgres_reconnect(struct pg_conn* _db) D_NOTHROW;
  * @post While the answer is D_DB_WAIT, the caller continues with
  *       d_postgres_reconnect_continue.
  */
-int    d_postgres_reconnect_start(struct pg_conn*      _db,
-                              struct d_db_pending* _pending) D_NOTHROW;
+int d_postgres_reconnect_start(
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 /**
  * @brief Continues a reconnect d_postgres_reconnect_start began.
  *
@@ -332,9 +353,11 @@ int    d_postgres_reconnect_start(struct pg_conn*      _db,
  *         d_postgres_error_message says nothing of it; or
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
  */
-int    d_postgres_reconnect_continue(struct pg_conn*      _db,
-                                 unsigned             _events,
-                                 struct d_db_pending* _pending) D_NOTHROW;
+int d_postgres_reconnect_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 
 // 1.6    Cancelling
 //------------------------------------------------------------------------------
@@ -362,8 +385,10 @@ int    d_postgres_reconnect_continue(struct pg_conn*      _db,
  *         connection that is lost; 53200 when memory ran out; or
  *         D_DB_INVALID_ARGUMENT for a `NULL` connection.
  */
-int    d_postgres_cancel(struct pg_conn* _db,
-                         char**          _message) D_NOTHROW;
+int d_postgres_cancel(
+    struct pg_conn* _db,
+    char**          _message
+) D_NOTHROW;
 /**
  * @brief Starts sending a cancel request, without waiting.
  *
@@ -379,10 +404,12 @@ int    d_postgres_cancel(struct pg_conn* _db,
  *       d_postgres_cancel_continue, or abandons the request with
  *       d_postgres_cancel_finish.
  */
-int    d_postgres_cancel_start(struct pg_conn*         _db,
-                               struct pg_cancel_conn** _cancel,
-                               struct d_db_pending*    _pending,
-                               char**                  _message) D_NOTHROW;
+int d_postgres_cancel_start(
+    struct pg_conn*         _db,
+    struct pg_cancel_conn** _cancel,
+    struct dj_db_pending*   _pending,
+    char**                  _message
+) D_NOTHROW;
 /**
  * @brief Continues a cancel request d_postgres_cancel_start began.
  *
@@ -400,14 +427,17 @@ int    d_postgres_cancel_start(struct pg_conn*         _db,
  *         D_DB_UNSUPPORTED with a libpq before 17; or D_DB_INVALID_ARGUMENT
  *         for a `NULL` argument.
  */
-int    d_postgres_cancel_continue(struct pg_cancel_conn** _cancel,
-                                  unsigned                _events,
-                                  struct d_db_pending*    _pending,
-                                  char**                  _message)
-                                  D_NOTHROW;
+int d_postgres_cancel_continue(
+    struct pg_cancel_conn** _cancel,
+    unsigned                _events,
+    struct dj_db_pending*   _pending,
+    char**                  _message
+) D_NOTHROW;
 // abandons a cancel request under way, finishing its connection; NULL is
 // accepted. Returns 0
-int    d_postgres_cancel_finish(struct pg_cancel_conn* _cancel) D_NOTHROW;
+int d_postgres_cancel_finish(
+    struct pg_cancel_conn* _cancel
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

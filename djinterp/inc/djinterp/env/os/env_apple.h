@@ -186,7 +186,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env.h"  // TARGET_OS_* (<TargetConditionals.h>), D_ENV_LANG_*
-#include "../../config/core/env/os/cfg_env_apple.h"  // D_CFG_ENV_APPLE_*
+#include "../../config/env/os/cfg_env_apple.h"  // D_CFG_ENV_APPLE_*
 // apple
 #if defined(__APPLE__)
     #include <Availability.h>  // __MAC_OS_X_VERSION_MIN_REQUIRED, _MAX_ALLOWED
@@ -1420,13 +1420,13 @@ const char* d_env_apple_get_darwin_version(void);
  *
  * @return `1` if Rosetta 2 is translating the process, `0` otherwise.
  */
-int         d_env_apple_is_rosetta(void);
+int d_env_apple_is_rosetta(void);
 /**
  * @brief Tests at runtime whether the hardware is Apple Silicon.
  *
  * @return `1` on Apple Silicon, including under Rosetta; `0` on Intel.
  */
-int         d_env_apple_is_apple_silicon(void);
+int d_env_apple_is_apple_silicon(void);
 /**
  * @brief Tests whether a framework can be loaded at runtime, via dlopen.
  *
@@ -1434,11 +1434,13 @@ int         d_env_apple_is_apple_silicon(void);
  *                             "Security".
  * @return `1` if the framework is loadable, `0` otherwise.
  */
-int         d_env_apple_has_framework(const char* _framework_name);
+int d_env_apple_has_framework(
+    const char* _framework_name
+);
 /**
  * @brief Prints detailed information about the detected Apple environment.
  */
-void        d_env_apple_print_info(void);
+void d_env_apple_print_info(void);
 
 #if D_ENV_LANG_USING_CPP
     }

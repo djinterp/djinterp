@@ -7,8 +7,8 @@
 * load that names none finds, and d_tests_sqlite_extension_init, which also
 * adds d_tests_named(), returning 7, for a load that names its own.
 *   Build: as a shared library, against the SQLite whose sqlite3ext.h it
-* includes; ci/check_db_sqlite.sh does, and hands its path to the harnesses
-* in DJINTERP_TEST_SQLITE_EXTENSION.
+* includes; scripts/ci/check_db_sqlite.sh does, and hands its path to the
+* harnesses in DJINTERP_TEST_SQLITE_EXTENSION.
 *
 *
 * path:      /tests/unintegrated/c/db/sqlite/t_sqlite_extension.c
@@ -40,8 +40,8 @@ SQLITE_EXTENSION_INIT1
 d_tests_answer
   The SQL function d_tests_answer(): 42.
 */
-static void
-d_tests_answer(
+static
+void d_tests_answer(
     sqlite3_context* _context,
     int              _argc,
     sqlite3_value**  _argv
@@ -59,8 +59,8 @@ d_tests_answer(
 d_tests_named
   The SQL function d_tests_named(): 7.
 */
-static void
-d_tests_named(
+static
+void d_tests_named(
     sqlite3_context* _context,
     int              _argc,
     sqlite3_value**  _argv
@@ -78,8 +78,7 @@ d_tests_named(
 sqlite3_extension_init
   SQLite's default entry point: d_tests_answer().
 */
-D_TESTS_SQLITE_EXTENSION_EXPORT int
-sqlite3_extension_init(
+D_TESTS_SQLITE_EXTENSION_EXPORT int sqlite3_extension_init(
     sqlite3*                    _db,
     char**                      _error,
     const sqlite3_api_routines* _api
@@ -103,8 +102,7 @@ sqlite3_extension_init(
 d_tests_sqlite_extension_init
   The entry point a load names: d_tests_answer() and d_tests_named().
 */
-D_TESTS_SQLITE_EXTENSION_EXPORT int
-d_tests_sqlite_extension_init(
+D_TESTS_SQLITE_EXTENSION_EXPORT int d_tests_sqlite_extension_init(
     sqlite3*                    _db,
     char**                      _error,
     const sqlite3_api_routines* _api

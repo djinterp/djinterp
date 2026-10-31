@@ -15,7 +15,7 @@
 // std
 #include <stdbool.h>  // bool
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, uint32_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
 
 /*
@@ -23,9 +23,8 @@ d_option_set_mark_pristine
   Lowers the flag in place on every cell in use; cells beyond `count` are not
 part of the set and are left alone.
 */
-void
-d_option_set_mark_pristine(
-    struct d_option_set* _set
+void d_option_set_mark_pristine(
+    struct dj_option_set* _set
 )
 {
     // nothing to mark
@@ -48,9 +47,8 @@ d_option_set_mark_pristine(
 d_option_set_is_pristine
   A missing or empty set has no assigned cell, so it is pristine.
 */
-bool
-d_option_set_is_pristine(
-    const struct d_option_set* _set
+bool d_option_set_is_pristine(
+    const struct dj_option_set* _set
 )
 {
     // no cells, nothing assigned
@@ -77,9 +75,8 @@ d_option_result_status_of
   The by-value spelling of d_option_result_status, whose reading of the two
 arms it reuses rather than repeats.
 */
-int32_t
-d_option_result_status_of(
-    struct d_option_result _result
+int32_t d_option_result_status_of(
+    struct dj_option_result _result
 )
 {
     return d_option_result_status(&_result);

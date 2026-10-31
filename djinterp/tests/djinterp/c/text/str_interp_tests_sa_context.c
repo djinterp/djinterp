@@ -24,15 +24,11 @@ d_tests_sa_str_interp_context_new
   - multiple contexts can be created independently
   - context is usable immediately after creation
 */
-struct d_test_object*
-d_tests_sa_str_interp_context_new
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_context_new(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx1;
-    struct d_str_interp_context* ctx2;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx1;
+    struct dj_str_interp_context* ctx2;
     bool                         test_not_null;
     bool                         test_count_zero;
     bool                         test_independent;
@@ -67,7 +63,7 @@ d_tests_sa_str_interp_context_new
     test_usable = false;
     if (ctx1)
     {
-        enum d_str_interp_error err;
+        enum dj_str_interp_error err;
         err = d_str_interp_add_specifier(ctx1, "test", "value");
         test_usable = (err == D_STR_INTERP_SUCCESS);
     }
@@ -117,14 +113,10 @@ d_tests_sa_str_interp_context_free
   - frees context with specifiers without leaking
   - frees context with many specifiers
 */
-struct d_test_object*
-d_tests_sa_str_interp_context_free
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_context_free(void)
 {
-    struct d_test_object*       group;
-    struct d_str_interp_context* ctx;
+    struct dj_test_object*       group;
+    struct dj_str_interp_context* ctx;
     bool                         test_null_safe;
     bool                         test_empty;
     bool                         test_with_specs;
@@ -215,14 +207,10 @@ d_tests_sa_str_interp_context_clear
   - does not crash on already-empty context
   - previously-added specifiers are gone after clear
 */
-struct d_test_object*
-d_tests_sa_str_interp_context_clear
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_context_clear(void)
 {
-    struct d_test_object*       group;
-    struct d_str_interp_context* ctx;
+    struct dj_test_object*       group;
+    struct dj_str_interp_context* ctx;
     bool                         test_clears;
     bool                         test_count_zero;
     bool                         test_reusable;
@@ -253,7 +241,7 @@ d_tests_sa_str_interp_context_clear
         test_count_zero = (ctx->specifier_count == 0);
 
         // test 3: context is reusable
-        enum d_str_interp_error err;
+        enum dj_str_interp_error err;
         err = d_str_interp_add_specifier(ctx, "delta", "four");
         test_reusable = ( (err == D_STR_INTERP_SUCCESS) &&
                           (ctx->specifier_count == 1) );
@@ -320,13 +308,9 @@ d_tests_sa_str_interp_context_all
   - d_str_interp_context_free
   - d_str_interp_context_clear
 */
-struct d_test_object*
-d_tests_sa_str_interp_context_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_context_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Context Management", 3);

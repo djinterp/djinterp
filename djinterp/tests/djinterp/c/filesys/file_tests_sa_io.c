@@ -18,13 +18,10 @@
 d_tests_file_read_write
   Tests d_file_read_fd / d_file_write_fd and their _full forms.
 */
-static struct d_test_object*
-d_tests_file_read_write
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_read_write(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     char                  write_buf[] = "Test data for read/write";
     char                  read_buf[64];
@@ -121,13 +118,10 @@ d_tests_file_fread_all
   - NUL-terminates when the build says it does
   - reads an UNSIZED source (the /proc case) rather than returning empty
 */
-static struct d_test_object*
-d_tests_file_fread_all
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fread_all(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     void*                 content;
     size_t                size;
@@ -176,13 +170,10 @@ d_tests_file_fread_all
 d_tests_file_fwrite_all
   Tests d_file_write_all and d_file_append_all.
 */
-static struct d_test_object*
-d_tests_file_fwrite_all
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fwrite_all(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     char*                 back;
     size_t                size;
@@ -265,13 +256,10 @@ d_tests_file_fwrite_all
 d_tests_file_fread_all_into
   Tests d_file_read_all_into -- the no-allocation form.
 */
-static struct d_test_object*
-d_tests_file_fread_all_into
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fread_all_into(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     char                  buf[128];
     char                  tiny[4];
@@ -317,13 +305,9 @@ d_tests_file_fread_all_into
 d_tests_file_io_all
   Runs every file_io test.
 */
-struct d_test_object*
-d_tests_file_io_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_io_all(void)
 {
-    struct d_test_object* items[8];
+    struct dj_test_object* items[8];
     size_t                idx;
 
     idx = 0;

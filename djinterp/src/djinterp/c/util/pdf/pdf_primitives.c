@@ -18,32 +18,29 @@
 #include <stddef.h>  // size_t, NULL
 #include <string.h>  // strstr
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t
 
 
-double
-d_pdf_inches(
+double d_pdf_inches(
     double _inches
 )
 {
     return _inches * D_PDF_POINTS_PER_INCH;
 }
 
-double
-d_pdf_millimetres(
+double d_pdf_millimetres(
     double _mm
 )
 {
     return _mm * D_PDF_POINTS_PER_MM;
 }
 
-struct d_pdf_point
-d_pdf_make_point(
+struct dj_pdf_point d_pdf_make_point(
     double _x,
     double _y
 )
 {
-    struct d_pdf_point point;
+    struct dj_pdf_point point;
 
     point.x = _x;
     point.y = _y;
@@ -51,13 +48,12 @@ d_pdf_make_point(
     return point;
 }
 
-struct d_pdf_size
-d_pdf_make_size(
+struct dj_pdf_size d_pdf_make_size(
     double _w,
     double _h
 )
 {
-    struct d_pdf_size size;
+    struct dj_pdf_size size;
 
     size.width  = _w;
     size.height = _h;
@@ -65,15 +61,14 @@ d_pdf_make_size(
     return size;
 }
 
-struct d_pdf_rect
-d_pdf_make_rect(
+struct dj_pdf_rect d_pdf_make_rect(
     double _x,
     double _y,
     double _w,
     double _h
 )
 {
-    struct d_pdf_rect rect;
+    struct dj_pdf_rect rect;
 
     rect.x      = _x;
     rect.y      = _y;
@@ -88,8 +83,7 @@ d_pdf_page_size
   The C++ presets, in enum order. An unknown preset gives Letter, the C++
 page size's default.
 */
-struct d_pdf_size
-d_pdf_page_size(
+struct dj_pdf_size d_pdf_page_size(
     int32_t _preset
 )
 {
@@ -115,9 +109,8 @@ d_pdf_landscape
   Swaps the extents, exactly as the C++ does: applied twice it gives the
 portrait size back.
 */
-struct d_pdf_size
-d_pdf_landscape(
-    struct d_pdf_size _size
+struct dj_pdf_size d_pdf_landscape(
+    struct dj_pdf_size _size
 )
 {
     return d_pdf_make_size(_size.height, _size.width);
@@ -128,12 +121,12 @@ d_internal_pdf_color
   A colour of the given space with every channel zero; the constructors set
 the channels that space carries.
 */
-static struct d_pdf_color
-d_internal_pdf_color(
+static
+struct dj_pdf_color d_internal_pdf_color(
     int32_t _space
 )
 {
-    struct d_pdf_color color;
+    struct dj_pdf_color color;
 
     color.space    = _space;
     color.reserved = 0;
@@ -148,14 +141,13 @@ d_internal_pdf_color(
     return color;
 }
 
-struct d_pdf_color
-d_pdf_color_rgb(
+struct dj_pdf_color d_pdf_color_rgb(
     double _r,
     double _g,
     double _b
 )
 {
-    struct d_pdf_color color = d_internal_pdf_color((int32_t)D_PDF_COLOR_RGB);
+    struct dj_pdf_color color = d_internal_pdf_color((int32_t)D_PDF_COLOR_RGB);
 
     color.r = _r;
     color.g = _g;
@@ -169,12 +161,11 @@ d_pdf_color_gray
   DeviceGray, with the rgb view set to the level on all three channels, as
 the C++ device_gray does.
 */
-struct d_pdf_color
-d_pdf_color_gray(
+struct dj_pdf_color d_pdf_color_gray(
     double _level
 )
 {
-    struct d_pdf_color color = d_internal_pdf_color((int32_t)D_PDF_COLOR_GRAY);
+    struct dj_pdf_color color = d_internal_pdf_color((int32_t)D_PDF_COLOR_GRAY);
 
     color.r = _level;
     color.g = _level;
@@ -191,15 +182,14 @@ rgb-only reader still has a colour to use. The formula is the C++ colour
 module's; it computes in that module's float channels and this in double, so
 the two views agree to float precision rather than bit for bit.
 */
-struct d_pdf_color
-d_pdf_color_cmyk(
+struct dj_pdf_color d_pdf_color_cmyk(
     double _c,
     double _m,
     double _y,
     double _k
 )
 {
-    struct d_pdf_color color = d_internal_pdf_color((int32_t)D_PDF_COLOR_CMYK);
+    struct dj_pdf_color color = d_internal_pdf_color((int32_t)D_PDF_COLOR_CMYK);
 
     color.c = _c;
     color.m = _m;
@@ -216,8 +206,7 @@ d_pdf_color_cmyk(
 d_pdf_color_channel_count
   0 for a space the header does not define.
 */
-int32_t
-d_pdf_color_channel_count(
+int32_t d_pdf_color_channel_count(
     int32_t _space
 )
 {
@@ -235,8 +224,7 @@ d_pdf_base_font_name
   The standard-14 PostScript names; an unknown face is named Courier, as the
 C++ default case does.
 */
-const char*
-d_pdf_base_font_name(
+const char* d_pdf_base_font_name(
     int32_t _font
 )
 {
@@ -262,8 +250,7 @@ d_pdf_font_is_monospaced
   The four Courier faces, named one by one as the C++ tests them rather than
 as a range that happens to be contiguous.
 */
-int32_t
-d_pdf_font_is_monospaced(
+int32_t d_pdf_font_is_monospaced(
     int32_t _font
 )
 {
@@ -278,8 +265,7 @@ d_pdf_average_advance_factor
   Per em: 0.6 for Courier, Symbol and ZapfDingbats, 0.5 for Times, and 0.52
 for everything else, which is Helvetica and any unknown face.
 */
-double
-d_pdf_average_advance_factor(
+double d_pdf_average_advance_factor(
     int32_t _font
 )
 {
@@ -311,8 +297,8 @@ d_internal_pdf_contains
   Case-insensitive substring test over ASCII, for family matching; the
 needle is given in lower case.
 */
-static int
-d_internal_pdf_contains(
+static
+int d_internal_pdf_contains(
     const char* _haystack,
     const char* _needle
 )
@@ -357,8 +343,7 @@ naming "sans" is Helvetica, which is checked before "serif" so that
 anything else, and a NULL family, is Helvetica. Bold and italic then pick
 the face.
 */
-int32_t
-d_pdf_base_font_from(
+int32_t d_pdf_base_font_from(
     const char* _family,
     int32_t     _bold,
     int32_t     _italic
@@ -395,19 +380,17 @@ d_pdf_base_font_from(
          :                    (int32_t)D_PDF_FONT_HELVETICA;
 }
 
-struct d_pdf_font
-d_pdf_font_init(void)
+struct dj_pdf_font d_pdf_font_init(void)
 {
     return d_pdf_make_font((int32_t)D_PDF_FONT_COURIER, 10.0);
 }
 
-struct d_pdf_font
-d_pdf_make_font(
+struct dj_pdf_font d_pdf_make_font(
     int32_t _family,
     double  _size
 )
 {
-    struct d_pdf_font font;
+    struct dj_pdf_font font;
 
     font.family   = _family;
     font.reserved = 0;
@@ -421,10 +404,9 @@ d_pdf_font_estimated_width
   count x size x the face's average advance: exact for Courier, an estimate
 for the proportional faces, whose true widths are pdf_metrics.h's.
 */
-double
-d_pdf_font_estimated_width(
-    const struct d_pdf_font* _font,
-    size_t                   _char_count
+double d_pdf_font_estimated_width(
+    const struct dj_pdf_font* _font,
+    size_t                    _char_count
 )
 {
     // no font, no width
@@ -443,10 +425,9 @@ d_pdf_paint_init
   Black stroke and fill, width 1, stroking on and filling off -- the C++
 defaults.
 */
-struct d_pdf_paint
-d_pdf_paint_init(void)
+struct dj_pdf_paint d_pdf_paint_init(void)
 {
-    struct d_pdf_paint paint;
+    struct dj_pdf_paint paint;
 
     paint.stroke     = d_pdf_color_rgb(0.0, 0.0, 0.0);
     paint.fill       = d_pdf_color_rgb(0.0, 0.0, 0.0);

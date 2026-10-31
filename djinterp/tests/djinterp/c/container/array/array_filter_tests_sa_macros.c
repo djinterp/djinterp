@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -23,15 +23,13 @@ d_tests_sa_array_filter_macro_where
   - Expands correctly and produces right result
   - Infers element_size from type parameter
 */
-bool
-d_tests_sa_array_filter_macro_where
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_where(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -65,15 +63,13 @@ d_tests_sa_array_filter_macro_where_ctx
   - Passes context through correctly
   - Produces correct filtered count
 */
-bool
-d_tests_sa_array_filter_macro_where_ctx
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_where_ctx(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int                          threshold;
 
     result    = true;
@@ -104,15 +100,13 @@ d_tests_sa_array_filter_macro_first_n
   - Expands to d_contiguous_filter_take_first with correct sizeof
   - Returns correct count
 */
-bool
-d_tests_sa_array_filter_macro_first_n
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_first_n(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -152,15 +146,13 @@ d_tests_sa_array_filter_macro_last_n
   - Expands to d_contiguous_filter_take_last with correct sizeof
   - Returns correct values
 */
-bool
-d_tests_sa_array_filter_macro_last_n
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_last_n(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -199,15 +191,13 @@ d_tests_sa_array_filter_macro_range
   Tests the following:
   - Expands correctly for half-open range
 */
-bool
-d_tests_sa_array_filter_macro_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -246,15 +236,13 @@ d_tests_sa_array_filter_macro_slice
   Tests the following:
   - Expands correctly for [start:end:step]
 */
-bool
-d_tests_sa_array_filter_macro_slice
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_slice(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -280,15 +268,13 @@ d_tests_sa_array_filter_macro_distinct
   Tests the following:
   - Expands correctly and removes duplicates
 */
-bool
-d_tests_sa_array_filter_macro_distinct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_distinct(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_with_duplicates(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -316,10 +302,8 @@ d_tests_sa_array_filter_macro_in_place
   - Expands correctly and filters in-place
   - Infers element_size and passes NULL context
 */
-bool
-d_tests_sa_array_filter_macro_in_place
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_in_place(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -354,10 +338,8 @@ d_tests_sa_array_filter_macro_in_place
 d_tests_sa_array_filter_macro_all
   Aggregation function that runs all convenience macro tests.
 */
-bool
-d_tests_sa_array_filter_macro_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_macro_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

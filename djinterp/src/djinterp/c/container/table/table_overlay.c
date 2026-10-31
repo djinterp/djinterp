@@ -34,7 +34,7 @@ Parameter(s):
   _row:     the cells of the candidate row.
   _width:   the number of cells in _row.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the row may be admitted, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if a required argument was null, or
   - D_TABLE_STATUS_SHAPE, if the row's width disagrees with the table's, or
@@ -42,11 +42,11 @@ Return:
   - D_TABLE_STATUS_DOMAIN, if a cell lies outside <I>, or the row would break
     sortedness or the multiplicity bound.
 */
-enum d_table_status
+enum dj_table_status
 d_table_overlay_admits_row
 (
-    const struct d_table*         _table,
-    const struct d_table_overlay* _overlay,
+    const struct dj_table*         _table,
+    const struct dj_table_overlay* _overlay,
     const void*                   _row,
     size_t                        _width
 )
@@ -156,18 +156,18 @@ Parameter(s):
   _table:   the table to inspect.
   _overlay: the bundle to check it against.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the table wears the bundle, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if a required argument was null, or
   - D_TABLE_STATUS_CAPACITY, if |c| exceeds kappa, or
   - D_TABLE_STATUS_DOMAIN, if a cell leaves <I>, or the rows are out of order,
     or a key recurs more often than the bound allows.
 */
-enum d_table_status
+enum dj_table_status
 d_table_overlay_holds
 (
-    const struct d_table*         _table,
-    const struct d_table_overlay* _overlay
+    const struct dj_table*         _table,
+    const struct dj_table_overlay* _overlay
 )
 {
     size_t r;
@@ -274,15 +274,13 @@ Parameter(s):
 Return:
   The composed bundle.
 */
-struct d_table_overlay
-d_table_overlay_meet
-(
-    const struct d_table_overlay* _a,
-    const struct d_table_overlay* _b
+struct dj_table_overlay d_table_overlay_meet(
+    const struct dj_table_overlay* _a,
+    const struct dj_table_overlay* _b
 )
 {
-    struct d_table_overlay empty;
-    struct d_table_overlay result;
+    struct dj_table_overlay empty;
+    struct dj_table_overlay result;
 
     empty = d_table_overlay_none();
 
@@ -378,20 +376,20 @@ Parameter(s):
   _width:   the number of cells in _row.
   _alloc:   the caller's storage strategy.
 Return:
-  A d_table_status value: the refusal from d_table_overlay_admits_row when the
+  A dj_table_status value: the refusal from d_table_overlay_admits_row when the
 bundle would break, otherwise the result of d_table_push_row.
 */
-enum d_table_status
+enum dj_table_status
 d_table_overlay_push_row
 (
-    struct d_table*               _table,
-    const struct d_table_overlay* _overlay,
+    struct dj_table*               _table,
+    const struct dj_table_overlay* _overlay,
     const void*                   _row,
     size_t                        _width,
-    const struct d_table_alloc*   _alloc
+    const struct dj_table_alloc*   _alloc
 )
 {
-    enum d_table_status status;
+    enum dj_table_status status;
 
     status = d_table_overlay_admits_row(_table, _overlay, _row, _width);
 
@@ -423,11 +421,9 @@ Return:
   - 1, if _a is at least as strong as _b, or
   - 0, otherwise.
 */
-int
-d_table_overlay_stronger_than
-(
-    const struct d_table_overlay* _a,
-    const struct d_table_overlay* _b
+int d_table_overlay_stronger_than(
+    const struct dj_table_overlay* _a,
+    const struct dj_table_overlay* _b
 )
 {
     if ( (!_a) ||
@@ -475,11 +471,9 @@ Parameter(s):
 Return:
   Nonzero when the bundle declares that restriction, 0 when it does not.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_overlay_wears
-(
-    const struct d_table_overlay* _overlay,
-    uint32_t                      _restriction
+D_NODISCARD D_INLINE_DEF int d_table_overlay_wears(
+    const struct dj_table_overlay* _overlay,
+    uint32_t                       _restriction
 )
 {
     return ((_overlay->present & _restriction) != 0);
@@ -496,10 +490,8 @@ Return:
   The declared capacity, or the largest representable extent when the bundle
   declares none -- an undeclared ceiling does not bind.
 */
-D_NODISCARD D_INLINE_DEF size_t
-d_table_overlay_capacity_of
-(
-    const struct d_table_overlay* _overlay
+D_NODISCARD D_INLINE_DEF size_t d_table_overlay_capacity_of(
+    const struct dj_table_overlay* _overlay
 )
 {
     if (!d_table_overlay_wears(_overlay, D_TABLE_RESTRICTION_CAPACITY))
@@ -523,11 +515,9 @@ Return:
   Nonzero when the value is admissible. An undeclared or uncheckable restriction
   admits every value.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_overlay_in_domain
-(
-    const struct d_table_overlay* _overlay,
-    const void*                   _cell
+D_NODISCARD D_INLINE_DEF int d_table_overlay_in_domain(
+    const struct dj_table_overlay* _overlay,
+    const void*                    _cell
 )
 {
     // an undeclared or uncheckable restriction admits every value
@@ -556,11 +546,9 @@ Return:
   The cell's key under the bundle's key function, or the cell itself when the
   bundle declares no keying.
 */
-D_NODISCARD D_INLINE_DEF const void*
-d_table_overlay_key
-(
-    const struct d_table_overlay* _overlay,
-    const void*                   _cell
+D_NODISCARD D_INLINE_DEF const void* d_table_overlay_key(
+    const struct dj_table_overlay* _overlay,
+    const void*                    _cell
 )
 {
     if ( (!d_table_overlay_wears(_overlay, D_TABLE_RESTRICTION_KEYED)) ||

@@ -19,7 +19,7 @@
 * and the name reader and the 64-bit twins must not.
 *   Build it with the feature-test macros the library was built with: the
 * creation time it expects follows D_FILE_STAT_HAS_BIRTHTIME, which reads
-* them. POSIX only, for utimes. ci/check_filesys.sh runs it in every
+* them. POSIX only, for utimes. scripts/ci/check_filesys.sh runs it in every
 * configuration; by hand, from the repo root:
 *     cc -std=c99 -D_XOPEN_SOURCE=700 -Wall -Wextra -Werror                  \
 *        src/djinterp/c/filesys/file_*.c                                       \
@@ -44,7 +44,7 @@
 // djinterp
 #include "../../../../inc/djinterp/c/filesys/dfile.h"  // unit under test
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, uint8_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, uint8_t,
                                                      // uint32_t, uint64_t
 
 
@@ -60,9 +60,9 @@ static const bool g_shim = true;
 static const bool g_shim = false;
 #endif  // T_FILE_SHIM
 
-// d_tests_file_paths
+// dj_tests_file_paths
 //   struct: the fixtures' paths, made once from the scratch directory.
-struct d_tests_file_paths
+struct dj_tests_file_paths
 {
     char root[512];    // the scratch directory
     char small[512];   // ten bytes
@@ -82,8 +82,8 @@ d_tests_file_expect
   Counts one check, and prints it when it fails, with errno as the check left
 it -- which is usually why.
 */
-static void
-d_tests_file_expect(
+static
+void d_tests_file_expect(
     bool        _ok,
     const char* _what
 )
@@ -106,8 +106,8 @@ d_tests_file_expect(
 d_tests_file_report
   Prints one group's verdict, so that a log names the group a failure sits in.
 */
-static void
-d_tests_file_report(
+static
+void d_tests_file_report(
     bool        _ok,
     const char* _group
 )
@@ -123,8 +123,8 @@ d_tests_file_report(
 d_tests_file_join
   Writes _dir/_name into _out, which the caller sizes for both.
 */
-static void
-d_tests_file_join(
+static
+void d_tests_file_join(
     char*       _out,
     const char* _dir,
     const char* _name
@@ -142,15 +142,15 @@ d_tests_file_join(
 d_tests_file_paths_make
   Names every fixture under the scratch directory; nothing is made yet.
 */
-static struct d_tests_file_paths
-d_tests_file_paths_make(
+static
+struct dj_tests_file_paths d_tests_file_paths_make(
     const char* _root
 )
 {
     const char* const names[] = { "small.txt", "big3.bin", "big5.bin", "link",
                                   "absent", "dir", "wdir", "fake5t",
                                   "copy_src.bin", "copy_dst.bin" };
-    struct d_tests_file_paths p = {0};
+    struct dj_tests_file_paths p = {0};
     char* const outs[] = { p.small, p.big3, p.big5, p.link, p.absent, p.dir,
                            p.wdir, p.fake, p.src, p.dst };
 
@@ -173,8 +173,8 @@ d_tests_file_paths_make(
 d_tests_file_touch
   Creates an empty file, or empties one, through the library's own stream.
 */
-static bool
-d_tests_file_touch(
+static
+bool d_tests_file_touch(
     const char* _path
 )
 {
@@ -196,8 +196,8 @@ d_tests_file_set_mtime
 double so that a count past 2038 can be written where time_t is 64 bits; the
 caller passes one only there.
 */
-static int
-d_tests_file_set_mtime(
+static
+int d_tests_file_set_mtime(
     const char* _path,
     double      _seconds
 )
@@ -216,9 +216,9 @@ d_tests_file_setup
   Makes the fixtures every group reads: the ten-byte file and a directory of
 two empty ones. The large files are made by the groups that test making them.
 */
-static bool
-d_tests_file_setup(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_setup(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int   before    = g_failures;
@@ -258,9 +258,9 @@ d_tests_file_extent_make
   - d_file_tell_stream32 fails with EOVERFLOW there, the position not
     fitting what it must hand back
 */
-static bool
-d_tests_file_extent_make(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_extent_make(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int before = g_failures;
@@ -315,13 +315,13 @@ d_tests_file_extent_read
   - d_file_pread_fd32 reads the hole as zeros, and d_file_pwrite_fd32 writes
     near 2 GiB where pread reads it back
 */
-static bool
-d_tests_file_extent_read(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_extent_read(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int         before = g_failures;
-    struct d_stat32_t s32    = {0};
+    struct dj_stat32_t s32    = {0};
     char              buf[8] = { 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x' };
     const int         fd     = d_file_open(_p->big3,
                                            O_RDWR);
@@ -364,17 +364,17 @@ d_tests_file_extent_read(
 d_tests_file_times
   Times at 32 bits, set through utimes.
   Tests the following:
-  - a 2030 time fits d_stat32_t, and reads back exactly
+  - a 2030 time fits dj_stat32_t, and reads back exactly
   - a 2040 time does not: d_file_stat32 fails with EOVERFLOW and zeroes its
     buffer -- checked only where this build's time_t can set 2040
 */
-static bool
-d_tests_file_times(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_times(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int         before = g_failures;
-    struct d_stat32_t s32    = {0};
+    struct dj_stat32_t s32    = {0};
 
     d_tests_file_expect( (d_tests_file_set_mtime(_p->small,
                                                  1893456000.0) == 0) &&
@@ -414,9 +414,9 @@ d_tests_file_times(
 d_tests_file_kinds_link
   The mode through a symbolic link, with and without following it.
 */
-static void
-d_tests_file_kinds_link(
-    const struct d_tests_file_paths* _p
+static
+void d_tests_file_kinds_link(
+    const struct dj_tests_file_paths* _p
 )
 {
     uint32_t mode = 0;
@@ -441,9 +441,9 @@ d_tests_file_kinds_link(
 d_tests_file_kinds_link
   Nothing to check: this platform has no symbolic links.
 */
-static void
-d_tests_file_kinds_link(
-    const struct d_tests_file_paths* _p
+static
+void d_tests_file_kinds_link(
+    const struct dj_tests_file_paths* _p
 )
 {
     (void)_p;
@@ -456,14 +456,14 @@ d_tests_file_kinds_link(
 d_tests_file_kinds
   What a path names, which has no width.
   Tests the following:
-  - the predicates answer for a file too large for d_stat32_t
+  - the predicates answer for a file too large for dj_stat32_t
   - d_file_mode and d_file_mode_nofollow, through a link where there are
     links
   - an absent path fails with ENOENT
 */
-static bool
-d_tests_file_kinds(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_kinds(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int before = g_failures;
@@ -492,10 +492,10 @@ d_tests_file_count32
 "." and "..", each with an inode number, and in *_over every entry the reader
 skipped because its inode number did not fit (EOVERFLOW).
 */
-static int
-d_tests_file_count32(
-    struct d_dir_t* _dir,
-    int*            _over
+static
+int d_tests_file_count32(
+    struct dj_dir_t* _dir,
+    int*             _over
 )
 {
     int count = 0;
@@ -507,7 +507,7 @@ d_tests_file_count32(
     {
         errno = 0;
 
-        const struct d_dirent32_t* const e = d_dir_read32(_dir);
+        const struct dj_dirent32_t* const e = d_dir_read32(_dir);
 
         // a NULL is the end, or an entry too wide, which the reader skips
         if (!e)
@@ -535,10 +535,10 @@ d_tests_file_count_names
 and "..", and in *_regular how many are regular files. The reader has no
 width, so no entry fails; errno is as the end left it.
 */
-static int
-d_tests_file_count_names(
-    struct d_dir_t* _dir,
-    int*            _regular
+static
+int d_tests_file_count_names(
+    struct dj_dir_t* _dir,
+    int*             _regular
 )
 {
     int         count = 0;
@@ -571,15 +571,15 @@ d_tests_file_directory
   - after d_dir_rewind, d_dir_read_name sees both again, as regular files,
     and ends with errno clear
 */
-static bool
-d_tests_file_directory(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_directory(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int             before  = g_failures;
     int                   over    = 0;
     int                   regular = 0;
-    struct d_dir_t* const d       = d_dir_open(_p->dir);
+    struct dj_dir_t* const d       = d_dir_open(_p->dir);
 
     // without the handle nothing below can run
     if (!d)
@@ -611,13 +611,13 @@ d_tests_file_capacity
   Capacity in KiB, the 32-bit twin's unit: present, and consistent -- or, on
 a filesystem of 4 TiB or more, refused with EOVERFLOW, as it must be.
 */
-static bool
-d_tests_file_capacity(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_capacity(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int          before = g_failures;
-    struct d_space32_t k      = {0};
+    struct dj_space32_t k      = {0};
 
     errno = 0;
 
@@ -646,29 +646,29 @@ d_tests_file_capacity(
 d_tests_file_defaults
   The unsuffixed names are the twins at D_FILE_WIDTH.
   Tests the following:
-  - d_off_t and d_stat_t's st_size have D_FILE_WIDTH bits
+  - dj_off_t and dj_stat_t's st_size have D_FILE_WIDTH bits
   - d_file_size reports 3 GiB + 1 at 64, and refuses it with EOVERFLOW at 32
-  - d_file_stat fills a d_stat_t
+  - d_file_stat fills a dj_stat_t
 */
-static bool
-d_tests_file_defaults(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_defaults(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int       before = g_failures;
-    struct d_stat_t st     = {0};
+    struct dj_stat_t st     = {0};
 
-    d_tests_file_expect( ((int)(sizeof(d_off_t) * 8) == D_FILE_WIDTH) &&
+    d_tests_file_expect( ((int)(sizeof(dj_off_t) * 8) == D_FILE_WIDTH) &&
                          ((int)(sizeof(st.st_size) * 8) == D_FILE_WIDTH),
                          "the unsuffixed types have D_FILE_WIDTH bits" );
     errno = 0;
 
-    const d_off_t size = d_file_size(_p->big3);
+    const dj_off_t size = d_file_size(_p->big3);
 
     // the one answer each width gives
     if (D_FILE_WIDTH == 64)
     {
-        d_tests_file_expect(size == (d_off_t)0xC0000001u,
+        d_tests_file_expect(size == (dj_off_t)0xC0000001u,
                             "d_file_size reports 3 GiB + 1 at 64");
     }
     else
@@ -696,15 +696,15 @@ d_tests_file_wide_make
   - d_file_stat64 and d_file_size64 report it; d_file_stat32 refuses it with
     EOVERFLOW and zeroes its buffer
 */
-static bool
-d_tests_file_wide_make(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_wide_make(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int         before = g_failures;
-    const d_off64_t   five   = (d_off64_t)5 * 1024 * 1024 * 1024 + 1;
-    struct d_stat64_t s64    = {0};
-    struct d_stat32_t s32    = {0};
+    const dj_off64_t   five   = (dj_off64_t)5 * 1024 * 1024 * 1024 + 1;
+    struct dj_stat64_t s64    = {0};
+    struct dj_stat32_t s32    = {0};
     char              buf[4] = {0};
     const int         fd     = d_file_open(_p->big5,
                                            O_RDWR | O_CREAT | O_TRUNC,
@@ -749,13 +749,13 @@ d_tests_file_wide_stream
   A stream's position and length past 4 GiB through the 64-bit twins, and a
 position the 32-bit tell can still report.
 */
-static bool
-d_tests_file_wide_stream(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_wide_stream(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int       before = g_failures;
-    const d_off64_t five   = (d_off64_t)5 * 1024 * 1024 * 1024 + 1;
+    const dj_off64_t five   = (dj_off64_t)5 * 1024 * 1024 * 1024 + 1;
     FILE* const     f      = d_file_open_stream(_p->big5,
                                                 "rb+");
 
@@ -795,13 +795,13 @@ d_tests_file_wide_before
 ext4 clamps it to 1901-12-13, which fits 32, so either answer is right as
 long as it agrees with what d_file_stat64 read.
 */
-static void
-d_tests_file_wide_before(
-    const struct d_tests_file_paths* _p
+static
+void d_tests_file_wide_before(
+    const struct dj_tests_file_paths* _p
 )
 {
-    struct d_stat64_t s64 = {0};
-    struct d_stat32_t s32 = {0};
+    struct dj_stat64_t s64 = {0};
+    struct dj_stat32_t s32 = {0};
 
     d_tests_file_set_mtime(_p->small,
                            -2208988800.0);
@@ -840,15 +840,15 @@ d_tests_file_wide_rest
   The other 64-bit twins: the directory, the capacity in bytes, and a time
 before 1901 where time_t can set one.
 */
-static bool
-d_tests_file_wide_rest(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_wide_rest(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int             before = g_failures;
-    struct d_space64_t    b      = {0};
-    struct d_space32_t    k      = {0};
-    struct d_dir_t* const d      = d_dir_open(_p->dir);
+    struct dj_space64_t    b      = {0};
+    struct dj_space32_t    k      = {0};
+    struct dj_dir_t* const d      = d_dir_open(_p->dir);
     int                   count  = 0;
 
     // every entry the 64-bit reader sees, the two dots included
@@ -887,9 +887,9 @@ d_tests_file_wide
   - the directory, capacity in bytes and a time before 1901
     (d_tests_file_wide_rest)
 */
-static bool
-d_tests_file_wide(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_wide(
+    const struct dj_tests_file_paths* _p
 )
 {
     const bool made   = d_tests_file_wide_make(_p);
@@ -905,9 +905,9 @@ d_tests_file_wide(
 d_tests_file_wide
   Nothing to check: below the 64-bit floor there are no 64-bit twins.
 */
-static bool
-d_tests_file_wide(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_wide(
+    const struct dj_tests_file_paths* _p
 )
 {
     (void)_p;
@@ -921,9 +921,9 @@ d_tests_file_shim_make
   Makes what the shim widens: a directory of five empty files, two named
 wide*, and a directory it reports a 5 TiB filesystem under.
 */
-static void
-d_tests_file_shim_make(
-    const struct d_tests_file_paths* _p
+static
+void d_tests_file_shim_make(
+    const struct dj_tests_file_paths* _p
 )
 {
     const char* const names[]   = { "a", "wide1", "b", "wide2", "c" };
@@ -955,16 +955,16 @@ d_tests_file_shim
   - d_dir_read_name reads all five, as regular files, to a clean end
   - d_file_space32 refuses a 5 TiB filesystem with EOVERFLOW, zeroed
 */
-static bool
-d_tests_file_shim(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_shim(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int             before  = g_failures;
     int                   over    = 0;
     int                   regular = 0;
-    struct d_space32_t    k       = {0};
-    struct d_dir_t* const d       = d_dir_open(_p->wdir);
+    struct dj_space32_t    k       = {0};
+    struct dj_dir_t* const d       = d_dir_open(_p->wdir);
 
     // without the handle the reads below have nothing to read
     if (!d)
@@ -1005,14 +1005,14 @@ d_tests_file_shim(
 d_tests_file_shim64
   The 64-bit twins over what the shim widens: every entry, and 5 TiB.
 */
-static bool
-d_tests_file_shim64(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_shim64(
+    const struct dj_tests_file_paths* _p
 )
 {
     const int             before = g_failures;
-    struct d_space64_t    b      = {0};
-    struct d_dir_t* const d      = d_dir_open(_p->wdir);
+    struct dj_space64_t    b      = {0};
+    struct dj_dir_t* const d      = d_dir_open(_p->wdir);
     int                   count  = 0;
 
     // every entry, the wide ones included
@@ -1037,9 +1037,9 @@ d_tests_file_shim64(
 d_tests_file_shim64
   Nothing to check: below the 64-bit floor there are no 64-bit twins.
 */
-static bool
-d_tests_file_shim64(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_shim64(
+    const struct dj_tests_file_paths* _p
 )
 {
     (void)_p;
@@ -1051,12 +1051,12 @@ d_tests_file_shim64(
 #if defined(STATX_BTIME)
 /*
 d_tests_file_birth
-  The creation time statx reports for a path, the reference d_stat_t's
+  The creation time statx reports for a path, the reference dj_stat_t's
 st_created must match: 0 where the filesystem keeps none, and -2 where statx
 itself fails, which no st_created matches.
 */
-static double
-d_tests_file_birth(
+static
+double d_tests_file_birth(
     const char* _path
 )
 {
@@ -1081,8 +1081,8 @@ d_tests_file_birth
   No reference: this build cannot ask the system itself, so -1, which lets
 any creation time but 0 pass.
 */
-static double
-d_tests_file_birth(
+static
+double d_tests_file_birth(
     const char* _path
 )
 {
@@ -1097,8 +1097,8 @@ d_tests_file_copy_make
   Writes 1 MiB of a pattern no off-by-one copy reproduces to _path, and keeps
 it in _out for the comparison.
 */
-static bool
-d_tests_file_copy_make(
+static
+bool d_tests_file_copy_make(
     const char* _path,
     char*       _out,
     size_t      _size
@@ -1125,20 +1125,20 @@ d_tests_file_copy_make(
 d_tests_file_copy
   A copy, by whichever engine the build compiled, and a creation time.
   Tests the following:
-  - d_file_copy of 1 MiB is exact (ci/check_filesys.sh counts, through the
+  - d_file_copy of 1 MiB is exact (scripts/ci/check_filesys.sh counts, through the
     shim, whether copy_file_range made it)
   - st_created is what statx reports where D_FILE_STAT_HAS_BIRTHTIME says
     there is one, and 0 where it says there is none
 */
-static bool
-d_tests_file_copy(
-    const struct d_tests_file_paths* _p
+static
+bool d_tests_file_copy(
+    const struct dj_tests_file_paths* _p
 )
 {
     static char     out[1 << 20]  = {0};
     static char     back[1 << 20] = {0};
     const int       before        = g_failures;
-    struct d_stat_t st            = {0};
+    struct dj_stat_t st            = {0};
 
     d_tests_file_expect( (d_tests_file_copy_make(_p->src,
                                                  out,
@@ -1195,9 +1195,9 @@ d_tests_file_copy(
 d_tests_file_teardown
   Removes every fixture, so that a scratch directory can be used again.
 */
-static void
-d_tests_file_teardown(
-    const struct d_tests_file_paths* _p
+static
+void d_tests_file_teardown(
+    const struct dj_tests_file_paths* _p
 )
 {
     const char* const files[]   = { "dir/a", "dir/b", "wdir/a", "wdir/wide1",
@@ -1227,9 +1227,9 @@ d_tests_file_run
   Runs every group this build can check, in order: the later ones read what
 the earlier ones made.
 */
-static void
-d_tests_file_run(
-    const struct d_tests_file_paths* _p
+static
+void d_tests_file_run(
+    const struct dj_tests_file_paths* _p
 )
 {
     d_tests_file_report(d_tests_file_setup(_p),
@@ -1283,8 +1283,7 @@ main
   Runs every group this build can check against the scratch directory its one
 argument names, and exits 0 only when every check passed.
 */
-int
-main(
+int main(
     int    _argc,
     char** _argv
 )
@@ -1297,7 +1296,7 @@ main(
         return 2;
     }
 
-    const struct d_tests_file_paths paths = d_tests_file_paths_make(_argv[1]);
+    const struct dj_tests_file_paths paths = d_tests_file_paths_make(_argv[1]);
 
     printf("t_file_width: D_FILE_WIDTH %d, D_FILE_64_IS_AVAILABLE %d,"
            " narrowed %d, shim %d\n",

@@ -28,7 +28,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_desc.h"    // d_file_descriptor_stream
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_seek.h"  // D_INTERNAL_FILE_SEEK_FLUSH
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // INT32_MAX
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // INT32_MAX
 
 
 // the large-file interface this source needs (file_common.h, 6.4.1)
@@ -44,11 +44,11 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 d_internal_seek_raw
   The CRT's _fseeki64, 64-bit on every Windows target.
 */
-static int
-d_internal_seek_raw(
-    FILE*     _stream,
-    d_off64_t _offset,
-    int       _whence
+static
+int d_internal_seek_raw(
+    FILE*      _stream,
+    dj_off64_t _offset,
+    int        _whence
 )
 {
     return _fseeki64(_stream,
@@ -60,12 +60,12 @@ d_internal_seek_raw(
 d_internal_tell_raw
   The CRT's _ftelli64, 64-bit on every Windows target.
 */
-static d_off64_t
-d_internal_tell_raw(
+static
+dj_off64_t d_internal_tell_raw(
     FILE* _stream
 )
 {
-    return (d_off64_t)_ftelli64(_stream);
+    return (dj_off64_t)_ftelli64(_stream);
 }
 
 #elif (D_INTERNAL_FILE_HAS_FSEEKO == 1)
@@ -74,11 +74,11 @@ d_internal_tell_raw(
 d_internal_seek_raw
   POSIX fseeko, whose off_t the large-file interface makes 64 bits wide.
 */
-static int
-d_internal_seek_raw(
-    FILE*     _stream,
-    d_off64_t _offset,
-    int       _whence
+static
+int d_internal_seek_raw(
+    FILE*      _stream,
+    dj_off64_t _offset,
+    int        _whence
 )
 {
     return fseeko(_stream,
@@ -90,12 +90,12 @@ d_internal_seek_raw(
 d_internal_tell_raw
   POSIX ftello.
 */
-static d_off64_t
-d_internal_tell_raw(
+static
+dj_off64_t d_internal_tell_raw(
     FILE* _stream
 )
 {
-    return (d_off64_t)ftello(_stream);
+    return (dj_off64_t)ftello(_stream);
 }
 
 #else
@@ -106,16 +106,16 @@ d_internal_seek_raw
 refused with EOVERFLOW rather than wrapped to a plausible wrong place that
 the caller finds out about later.
 */
-static int
-d_internal_seek_raw(
-    FILE*     _stream,
-    d_off64_t _offset,
-    int       _whence
+static
+int d_internal_seek_raw(
+    FILE*      _stream,
+    dj_off64_t _offset,
+    int        _whence
 )
 {
     // no 64-bit seek here: refuse an offset that would wrap
-    if ( (_offset > (d_off64_t)LONG_MAX) ||
-         (_offset < (d_off64_t)LONG_MIN) )
+    if ( (_offset > (dj_off64_t)LONG_MAX) ||
+         (_offset < (dj_off64_t)LONG_MIN) )
     {
         D_INTERNAL_FILE_SET_ERR(EOVERFLOW);
 
@@ -131,12 +131,12 @@ d_internal_seek_raw(
 d_internal_tell_raw
   ISO C's ftell, which fails rather than wraps past what a long holds.
 */
-static d_off64_t
-d_internal_tell_raw(
+static
+dj_off64_t d_internal_tell_raw(
     FILE* _stream
 )
 {
-    return (d_off64_t)ftell(_stream);
+    return (dj_off64_t)ftell(_stream);
 }
 
 #endif  // D_CFG_FILE_HAS_WIN32, D_INTERNAL_FILE_HAS_FSEEKO
@@ -150,10 +150,10 @@ d_internal_truncate_raw
   The CRT's _chsize_s, whose error is its return value; it is put in errno,
 where every other call here leaves its error.
 */
-static int
-d_internal_truncate_raw(
-    int       _fd,
-    d_off64_t _length
+static
+int d_internal_truncate_raw(
+    int        _fd,
+    dj_off64_t _length
 )
 {
     const int code = (int)_chsize_s(_fd,
@@ -176,10 +176,10 @@ d_internal_truncate_raw(
 d_internal_truncate_raw
   POSIX ftruncate, retried across interruptions like any other call.
 */
-static int
-d_internal_truncate_raw(
-    int       _fd,
-    d_off64_t _length
+static
+int d_internal_truncate_raw(
+    int        _fd,
+    dj_off64_t _length
 )
 {
     int result = -1;
@@ -207,11 +207,10 @@ This routes to _fseeki64 or fseeko, which do not, and a build with neither
 refuses an offset that does not fit a long instead of wrapping it
 (d_internal_seek_raw).
 */
-int
-d_file_seek_stream64(
-    FILE*     _stream,
-    d_off64_t _offset,
-    int       _whence
+int d_file_seek_stream64(
+    FILE*      _stream,
+    dj_off64_t _offset,
+    int        _whence
 )
 {
     // parameter validation
@@ -252,8 +251,7 @@ d_file_tell_stream64
   The same routing as d_file_seek_stream64, for the same reason: ftell's long
 wraps at 2 GiB on a 32-bit build and reports a plausible wrong answer.
 */
-d_off64_t
-d_file_tell_stream64(
+dj_off64_t d_file_tell_stream64(
     FILE* _stream
 )
 {
@@ -265,7 +263,7 @@ d_file_tell_stream64(
                             "stream is NULL",
                             -1);
 
-    const d_off64_t result = d_internal_tell_raw(_stream);
+    const dj_off64_t result = d_internal_tell_raw(_stream);
 
     // report the failure; errno is the platform's
     if (result < 0)
@@ -289,8 +287,7 @@ that refused -- and a stream that refused is usually a pipe, which is exactly
 the case worth knowing about. So this seeks, and clears the error flag only
 once the seek has succeeded.
 */
-int
-d_file_rewind_stream(
+int d_file_rewind_stream(
     FILE* _stream
 )
 {
@@ -322,10 +319,9 @@ d_file_truncate_fd64
   The ISO C backend has no descriptors and no truncation primitive, so this
 only reports ENOSYS.
 */
-int
-d_file_truncate_fd64(
-    int       _fd,
-    d_off64_t _length
+int d_file_truncate_fd64(
+    int        _fd,
+    dj_off64_t _length
 )
 {
     (void)_fd;
@@ -342,10 +338,9 @@ d_file_truncate_fd64(
 d_file_truncate_stream64
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_truncate_stream64(
-    FILE*     _stream,
-    d_off64_t _length
+int d_file_truncate_stream64(
+    FILE*      _stream,
+    dj_off64_t _length
 )
 {
     (void)_stream;
@@ -365,10 +360,9 @@ d_file_truncate_fd64
   One call to the platform (d_internal_truncate_raw), with its error in
 errno on every platform.
 */
-int
-d_file_truncate_fd64(
-    int       _fd,
-    d_off64_t _length
+int d_file_truncate_fd64(
+    int        _fd,
+    dj_off64_t _length
 )
 {
     // parameter validation
@@ -410,10 +404,9 @@ pending and stdio writes them out afterwards: the file ends up 200 bytes long,
 the truncation appears to have silently done nothing, and the bug reproduces
 only when the buffer happens to be dirty.
 */
-int
-d_file_truncate_stream64(
-    FILE*     _stream,
-    d_off64_t _length
+int d_file_truncate_stream64(
+    FILE*      _stream,
+    dj_off64_t _length
 )
 {
     // parameter validation
@@ -472,15 +465,14 @@ d_file_seek_stream32
 SEEK_CUR and SEEK_END may land past 2 GiB, where d_file_tell_stream32 will
 report EOVERFLOW but reading and writing carry on.
 */
-int
-d_file_seek_stream32(
-    FILE*     _stream,
-    d_off32_t _offset,
-    int       _whence
+int d_file_seek_stream32(
+    FILE*      _stream,
+    dj_off32_t _offset,
+    int        _whence
 )
 {
     return d_file_seek_stream64(_stream,
-                                (d_off64_t)_offset,
+                                (dj_off64_t)_offset,
                                 _whence);
 }
 
@@ -489,12 +481,11 @@ d_file_tell_stream32
   The one positioning call with something to narrow: a position past
 INT32_MAX fails with EOVERFLOW rather than wrap into a plausible wrong one.
 */
-d_off32_t
-d_file_tell_stream32(
+dj_off32_t d_file_tell_stream32(
     FILE* _stream
 )
 {
-    const d_off64_t position = d_file_tell_stream64(_stream);
+    const dj_off64_t position = d_file_tell_stream64(_stream);
 
     // d_file_tell_stream64 has already reported the failure
     if (position < 0)
@@ -503,42 +494,40 @@ d_file_tell_stream32(
     }
 
     // a position that does not fit is refused, not truncated
-    if (position > (d_off64_t)INT32_MAX)
+    if (position > (dj_off64_t)INT32_MAX)
     {
         D_INTERNAL_FILE_FAIL(EOVERFLOW,
                              "d_file_tell_stream32",
                              NULL,
-                             "position exceeds d_off32_t",
+                             "position exceeds dj_off32_t",
                              -1);
     }
 
-    return (d_off32_t)position;
+    return (dj_off32_t)position;
 }
 
 /*
 d_file_truncate_fd32
   Widens the length and truncates.
 */
-int
-d_file_truncate_fd32(
-    int       _fd,
-    d_off32_t _length
+int d_file_truncate_fd32(
+    int        _fd,
+    dj_off32_t _length
 )
 {
     return d_file_truncate_fd64(_fd,
-                                (d_off64_t)_length);
+                                (dj_off64_t)_length);
 }
 
 /*
 d_file_truncate_stream32
   Widens the length and truncates, flushing first as the 64-bit twin does.
 */
-int
-d_file_truncate_stream32(
-    FILE*     _stream,
-    d_off32_t _length
+int d_file_truncate_stream32(
+    FILE*      _stream,
+    dj_off32_t _length
 )
 {
     return d_file_truncate_stream64(_stream,
-                                    (d_off64_t)_length);
+                                    (dj_off64_t)_length);
 }

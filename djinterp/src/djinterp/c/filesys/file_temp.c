@@ -34,7 +34,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_stat.h"    // d_file_exists
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_temp.h"  // D_INTERNAL_FILE_TEMP_*
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint64_t, uintptr_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint64_t, uintptr_t,
                                                      // UINT64_C
 
 
@@ -56,10 +56,8 @@ d_internal_temp_entropy
   What the platform adds to a name's seed: the process, the thread, and the
 high-resolution counter, where the machine has one.
 */
-static uint64_t
-d_internal_temp_entropy(
-    void
-)
+static
+uint64_t d_internal_temp_entropy(void)
 {
     LARGE_INTEGER ticks;
     uint64_t      bits = ((uint64_t)GetCurrentProcessId() << 32) ^
@@ -80,10 +78,8 @@ d_internal_temp_entropy(
 d_internal_temp_entropy
   What the platform adds to a name's seed: the process.
 */
-static uint64_t
-d_internal_temp_entropy(
-    void
-)
+static
+uint64_t d_internal_temp_entropy(void)
 {
     return ((uint64_t)getpid() << 32);
 }
@@ -94,10 +90,8 @@ d_internal_temp_entropy(
 d_internal_temp_entropy
   What the platform adds to a name's seed: nothing, on ISO C alone.
 */
-static uint64_t
-d_internal_temp_entropy(
-    void
-)
+static
+uint64_t d_internal_temp_entropy(void)
 {
     return 0;
 }
@@ -110,10 +104,8 @@ d_internal_temp_entropy(
 d_internal_temp_clock
   What the processor clock adds to a name's seed.
 */
-static uint64_t
-d_internal_temp_clock(
-    void
-)
+static
+uint64_t d_internal_temp_clock(void)
 {
     return (uint64_t)clock();
 }
@@ -125,10 +117,8 @@ d_internal_temp_clock
   What the processor clock adds to a name's seed: nothing, where there is no
 processor clock to read (cfg_file_common.h, 1.9.19).
 */
-static uint64_t
-d_internal_temp_clock(
-    void
-)
+static
+uint64_t d_internal_temp_clock(void)
 {
     return 0;
 }
@@ -144,10 +134,8 @@ moved by address randomization. Nothing here is secret, and nothing needs to
 be: the exclusive create is what makes a temporary safe, and the seed only
 makes two callers unlikely to choose the same names.
 */
-static uint64_t
-d_internal_temp_seed(
-    void
-)
+static
+uint64_t d_internal_temp_seed(void)
 {
     uint64_t seed = (uint64_t)time(NULL);
 
@@ -165,8 +153,8 @@ _suffix, from a SplitMix64 step on _state. They are digits and lower-case
 letters only, so a filesystem that folds case cannot fold two names into one:
 36^6 names, from one 64-bit step.
 */
-static void
-d_internal_temp_fill(
+static
+void d_internal_temp_fill(
     char*     _suffix,
     uint64_t* _state
 )
@@ -203,8 +191,8 @@ something else, and the caller cannot tell which -- and finds the
 placeholder the names are written into. The result is NULL, reported, for a
 template that is not one.
 */
-static char*
-d_internal_temp_suffix(
+static
+char* d_internal_temp_suffix(
     char* _template
 )
 {
@@ -256,10 +244,8 @@ d_internal_temp_suffix(
 d_internal_temp_anonymous
   tmpfile; errno is the platform's.
 */
-static FILE*
-d_internal_temp_anonymous(
-    void
-)
+static
+FILE* d_internal_temp_anonymous(void)
 {
     return tmpfile();
 }
@@ -270,10 +256,8 @@ d_internal_temp_anonymous(
 d_internal_temp_anonymous
   No tmpfile here (cfg_file_common.h, 1.9.18): ENOSYS.
 */
-static FILE*
-d_internal_temp_anonymous(
-    void
-)
+static
+FILE* d_internal_temp_anonymous(void)
 {
     D_INTERNAL_FILE_SET_ERR(ENOSYS);
 
@@ -289,8 +273,8 @@ Windows file_path's root, since cfg_file_path insists on Windows syntax
 there, so "C:\\" keeps its separator and does not become "C:", drive C's
 current directory; on POSIX the leading slash.
 */
-static size_t
-d_internal_temp_root_len(
+static
+size_t d_internal_temp_root_len(
     const char* _dir
 )
 {
@@ -306,8 +290,8 @@ d_internal_temp_trim
 them on Windows -- but never into its root, and never to nothing, and reports
 the length left.
 */
-static size_t
-d_internal_temp_trim(
+static
+size_t d_internal_temp_trim(
     char*  _dir,
     size_t _length
 )
@@ -337,10 +321,7 @@ cleanup for anyone to forget, which is why this is the preferred form. The
 wrapper adds only the failure notice, and ENOSYS where there is no tmpfile
 (d_internal_temp_anonymous).
 */
-FILE*
-d_file_temp_stream(
-    void
-)
+FILE* d_file_temp_stream(void)
 {
     FILE* const result = d_internal_temp_anonymous();
 
@@ -363,8 +344,7 @@ d_file_temp_stream_s
 failure it holds NULL rather than an indeterminate pointer. A failure that
 left errno clear is reported as EIO rather than as success.
 */
-int
-d_file_temp_stream_s(
+int d_file_temp_stream_s(
     FILE** _stream
 )
 {
@@ -392,8 +372,7 @@ d_file_temp_create
   The search is d_internal_file_temp_create's, which d_file_write_all shares;
 this call gives it the mode this build makes temporaries with.
 */
-int
-d_file_temp_create(
+int d_file_temp_create(
     char* _template
 )
 {
@@ -412,8 +391,8 @@ temporary directory (d_dir_entry_path), and each is tested for existence --
 the answer already stale -- for a bounded number of tries. No state is shared
 between calls, so concurrent callers race only for names, never in memory.
 */
-static int
-d_internal_file_temp_name_in(
+static
+int d_internal_file_temp_name_in(
     char*  _s,
     size_t _maxsize,
     char*  _dir_room
@@ -482,15 +461,14 @@ d_internal_file_temp_name_in(
 /*
 d_file_temp_name
   d_file_temp_name's work is d_internal_file_temp_name_in; this keeps the room
-it builds a path in, on the heap where that is 32 KiB (d_internal_file_path).
+it builds a path in, on the heap where that is 32 KiB (dj_internal_file_path).
 */
-int
-d_file_temp_name(
+int d_file_temp_name(
     char*  _s,
     size_t _maxsize
 )
 {
-    struct d_internal_file_path dir_held = {0};
+    struct dj_internal_file_path dir_held = {0};
     char* const dir = d_internal_file_path_room(&dir_held);
 
     // d_internal_file_path_room has set errno, and reported the failure
@@ -529,8 +507,8 @@ d_file_temp_name(
  * user's own name -- the usual temp directory sits in the profile -- need not
  * fit, and which this build no longer reads as text.
  */
-static char*
-d_internal_temp_dir_find(
+static
+char* d_internal_temp_dir_find(
     char*  _buf,
     size_t _bufsize
 )
@@ -557,12 +535,12 @@ d_internal_temp_dir_find(
 
     // GetTempPathW's answer runs to MAX_PATH + 1 characters, which the room
     // has (D_INTERNAL_FILE_NATIVE_ROOM)
-    struct d_internal_file_native held = {0};
+    struct dj_internal_file_native held = {0};
 
     // with nothing from the environment, ask the platform
     if (!found)
     {
-        d_internal_file_nchar_t* const asked =
+        dj_internal_file_nchar_t* const asked =
             d_internal_file_native_room(&held);
 
         // d_internal_file_alloc has reported the failure
@@ -638,8 +616,8 @@ d_internal_temp_dir_find(
  * @return `_buf`, or `NULL` with errno set: ERANGE when the directory does
  *         not fit, EIO when GetTempPathA fails.
  */
-static char*
-d_internal_temp_dir_find(
+static
+char* d_internal_temp_dir_find(
     char*  _buf,
     size_t _bufsize
 )
@@ -742,8 +720,7 @@ d_dir_entry_path and exactly one separator. Where the build hands Windows
 UTF-16, every answer is asked for in UTF-16 and given back as UTF-8
 (d_internal_temp_dir_find).
 */
-char*
-d_dir_temp(
+char* d_dir_temp(
     char*  _buf,
     size_t _bufsize
 )
@@ -776,8 +753,7 @@ d_dir_temp(
 d_internal_file_temp_create
   The ISO C backend has no descriptors to return, so this only reports ENOSYS.
 */
-int
-d_internal_file_temp_create(
+int d_internal_file_temp_create(
     char* _template,
     int   _mode
 )
@@ -803,8 +779,7 @@ mode is _mode under the umask, which is never moved. A name another process
 holds already is passed over; any other failure ends the search. A template
 that found no file is put back as it was.
 */
-int
-d_internal_file_temp_create(
+int d_internal_file_temp_create(
     char* _template,
     int   _mode
 )

@@ -28,14 +28,10 @@ Parameter(s):
 Return:
   The root of the result tree, or NULL on failure.
 */
-struct d_test_object*
-d_tests_file_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_run_all(void)
 {
-    struct d_test_object* items[16];
-    struct d_test_object* root;
+    struct dj_test_object* items[16];
+    struct dj_test_object* root;
     size_t                idx;
 
     if (!d_tests_file_setup())

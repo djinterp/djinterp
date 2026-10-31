@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./pipeline_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,10 +19,8 @@ d_tests_sa_pipeline_all
   ii.  pipeline operations (map, filter, fold, for_each, take, skip, chaining)
   iii. pipeline finalization (end, free)
 */
-bool
-d_tests_sa_pipeline_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

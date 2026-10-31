@@ -9,17 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./djinterp_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * D_CLAMP_INDEX TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_clamp_index
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_clamp_index(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing D_CLAMP_INDEX macro ---\n");
@@ -156,10 +154,8 @@ d_tests_sa_macro_clamp_index
  * D_SAFE_ARR_IDX TESTS - CRITICAL SAFETY FEATURE
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_safe_arr_idx
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_safe_arr_idx(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing D_SAFE_ARR_IDX macro ---\n");
@@ -325,10 +321,8 @@ d_tests_sa_macro_safe_arr_idx
  * D_IS_VALID_INDEX TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_is_valid_index
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_is_valid_index(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing D_IS_VALID_INDEX macro ---\n");
@@ -417,10 +411,8 @@ d_tests_sa_macro_is_valid_index
  * D_INDEX_IN_BOUNDS TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_index_in_bounds
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_index_in_bounds(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing D_INDEX_IN_BOUNDS macro (alias consistency) ---\n");
@@ -475,10 +467,8 @@ d_tests_sa_macro_index_in_bounds
  * D_IS_VALID_INDEX_N TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_is_valid_index_n
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_is_valid_index_n(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing D_IS_VALID_INDEX_N macro ---\n");
@@ -555,10 +545,8 @@ d_tests_sa_macro_is_valid_index_n
  * D_NEG_IDX TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_neg_idx
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_neg_idx(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing D_NEG_IDX macro ---\n");
@@ -620,10 +608,8 @@ d_tests_sa_macro_neg_idx
  * D_ARR_IDX TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_arr_idx
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_arr_idx(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing D_ARR_IDX macro ---\n");
@@ -686,10 +672,8 @@ d_tests_sa_macro_arr_idx
  * CONSISTENCY TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_macro_function_consistency
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_function_consistency(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing macro-function consistency ---\n");
@@ -736,17 +720,15 @@ d_tests_sa_macro_function_consistency
  * COMPREHENSIVE INDEX MACRO TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_index_macros_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_macros_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n========================================\n");
     printf("  INDEX MANIPULATION MACRO TESTS\n");
     printf("========================================\n");
 
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     // Run all index macro tests
     d_tests_sa_macro_clamp_index(&module_counter);

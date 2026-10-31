@@ -36,16 +36,26 @@ namespace gui
 
 // styling -- ImGui's colours and metrics for a look and the scheme it was
 // made with
-void     apply_style(const look& _look,
-                     int         _scheme);
+void apply_style(
+    const look& _look,
+    int         _scheme
+);
 
 // colours -- a packed colour as ImGui takes one
-ImU32    to_u32(rgba _colour);
-ImVec4   to_vec4(rgba _colour);
-ImU32    mix(ImU32 _a,
-             ImU32 _b,
-             float _t);
-bool     is_light(const colour_settings& _colours);
+ImU32 to_u32(
+    rgba _colour
+);
+ImVec4 to_vec4(
+    rgba _colour
+);
+ImU32 mix(
+    ImU32 _a,
+    ImU32 _b,
+    float _t
+);
+bool is_light(
+    const colour_settings& _colours
+);
 
 // readable text -- composite() lays a colour over an opaque ground, and
 // contrast() is WCAG's ratio of two opaque colours' luminances, from 1 (none)
@@ -55,31 +65,41 @@ bool     is_light(const colour_settings& _colours);
 // ground: the colour, moved toward the ink until it contrasts at least 3:1;
 // a row with no colour is _text. faint() is an ink at an alpha, as muted
 // text is the theme's text faded.
-ImU32    composite(ImU32 _top,
-                   ImU32 _ground);
-float    contrast(ImU32 _a,
-                  ImU32 _b);
-ImU32    ink_on(ImU32 _ground,
-                ImU32 _text);
-ImU32    legible(rgba  _colour,
-                 ImU32 _ground,
-                 ImU32 _text);
-ImU32    faint(ImU32 _ink,
-               float _alpha);
+ImU32 composite(
+    ImU32 _top,
+    ImU32 _ground
+);
+float contrast(
+    ImU32 _a,
+    ImU32 _b
+);
+ImU32 ink_on(
+    ImU32 _ground,
+    ImU32 _text
+);
+ImU32 legible(
+    rgba  _colour,
+    ImU32 _ground,
+    ImU32 _text
+);
+ImU32 faint(
+    ImU32 _ink,
+    float _alpha
+);
 
 // fonts -- the monospace font, once loaded; nullptr until then; and the
 // size text is being drawn at, before ImGui's global factors -- a window's
 // zoom included -- which a smaller or larger text is a fraction of
 ImFont*& mono_font();
-float    font_base();
+float font_base();
 
 // scale -- the display's scale, which the host sets before the first frame:
 // 1 on a 96-dpi screen, 1.5 at 144; the zoom of the window being drawn,
 // which its dock window sets while it draws its content, and is 1 outside
 // any; and their product, which every metric is multiplied by
-float&   dpi_scale();
-float&   zoom_now();
-float    ui_scale();
+float& dpi_scale();
+float& zoom_now();
+float ui_scale();
 
 }  // namespace gui
 }  // namespace bitwisedom

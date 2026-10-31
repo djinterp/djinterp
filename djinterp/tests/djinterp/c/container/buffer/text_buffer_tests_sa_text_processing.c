@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_text_buffer_trim_whitespace
   - buffer of only whitespace becomes empty
   - mixed whitespace characters (spaces, tabs, newlines)
 */
-bool
-d_tests_sa_text_buffer_trim_whitespace
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_trim_whitespace(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -137,14 +135,12 @@ d_tests_sa_text_buffer_trim_front
   - trims only leading whitespace
   - trailing whitespace preserved
 */
-bool
-d_tests_sa_text_buffer_trim_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_trim_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -212,14 +208,12 @@ d_tests_sa_text_buffer_trim_back
   - trims only trailing whitespace
   - leading whitespace preserved
 */
-bool
-d_tests_sa_text_buffer_trim_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_trim_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -288,14 +282,12 @@ d_tests_sa_text_buffer_trim_chars
   - trims specified characters from both ends
   - characters in the middle preserved
 */
-bool
-d_tests_sa_text_buffer_trim_chars
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_trim_chars(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -378,14 +370,12 @@ d_tests_sa_text_buffer_to_upper
   - non-alpha characters unchanged
   - already uppercase unchanged
 */
-bool
-d_tests_sa_text_buffer_to_upper
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_to_upper(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -456,14 +446,12 @@ d_tests_sa_text_buffer_to_lower
   - non-alpha characters unchanged
   - already lowercase unchanged
 */
-bool
-d_tests_sa_text_buffer_to_lower
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_to_lower(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -531,14 +519,12 @@ d_tests_sa_text_buffer_reverse
   - empty buffer handled
   - palindrome unchanged
 */
-bool
-d_tests_sa_text_buffer_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_reverse(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -640,14 +626,12 @@ d_tests_sa_text_buffer_pad_left
   - no padding when already at or beyond width
   - correct resulting length
 */
-bool
-d_tests_sa_text_buffer_pad_left
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_pad_left(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -738,14 +722,12 @@ d_tests_sa_text_buffer_pad_right
   - no padding when already at or beyond width
   - correct resulting length
 */
-bool
-d_tests_sa_text_buffer_pad_right
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_pad_right(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -835,10 +817,8 @@ d_tests_sa_text_buffer_pad_right
 d_tests_sa_text_buffer_text_processing_all
   Aggregation function that runs all text processing tests.
 */
-bool
-d_tests_sa_text_buffer_text_processing_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_text_processing_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

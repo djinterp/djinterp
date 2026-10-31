@@ -9,13 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./event_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // d_tests_sa_event_cmp_dummy_cb
 //   helper: minimal callback for listener construction in comparison tests.
-static void
-d_tests_sa_event_cmp_dummy_cb(void* _args)
+static
+void d_tests_sa_event_cmp_dummy_cb(
+    void* _args
+)
 {
     (void)_args;
 
@@ -24,9 +26,8 @@ d_tests_sa_event_cmp_dummy_cb(void* _args)
 
 // d_tests_sa_event_cmp_int_comparator
 //   helper: fn_comparator that compares two int pointers.
-static int
-d_tests_sa_event_cmp_int_comparator
-(
+static
+int d_tests_sa_event_cmp_int_comparator(
     const void* _a,
     const void* _b
 )
@@ -62,14 +63,12 @@ d_tests_sa_event_compare_null
   - First NULL returns negative
   - Second NULL returns positive
 */
-bool
-d_tests_sa_event_compare_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_null(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
 
     result = true;
     ev     = d_event_new(1);
@@ -108,16 +107,14 @@ d_tests_sa_event_compare_ids
   - Larger id returns positive
   - Equal ids with same context returns 0
 */
-bool
-d_tests_sa_event_compare_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev_lo;
-    struct d_event* ev_hi;
-    struct d_event* ev_lo2;
+    struct dj_event* ev_lo;
+    struct dj_event* ev_hi;
+    struct dj_event* ev_lo2;
 
     result = true;
     ev_lo  = d_event_new(10);
@@ -170,15 +167,13 @@ d_tests_sa_event_compare_context
   - Same id, different context pointers produces non-zero result
   - Same id, same context pointer returns 0
 */
-bool
-d_tests_sa_event_compare_context
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_context(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev_a;
-    struct d_event* ev_b;
+    struct dj_event* ev_a;
+    struct dj_event* ev_b;
     int             val_a;
     int             val_b;
 
@@ -225,14 +220,12 @@ d_tests_sa_event_compare_self
   Tests the following:
   - Comparing an event to itself returns 0
 */
-bool
-d_tests_sa_event_compare_self
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_self(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
 
     result = true;
     ev     = d_event_new(42);
@@ -259,14 +252,12 @@ d_tests_sa_event_compare_deep_null
   - First NULL returns negative
   - Second NULL returns positive
 */
-bool
-d_tests_sa_event_compare_deep_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_deep_null(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
 
     result = true;
     ev     = d_event_new(1);
@@ -306,15 +297,13 @@ d_tests_sa_event_compare_deep_ids
   Tests the following:
   - Different IDs compare on ID regardless of comparator
 */
-bool
-d_tests_sa_event_compare_deep_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_deep_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev_lo;
-    struct d_event* ev_hi;
+    struct dj_event* ev_lo;
+    struct dj_event* ev_hi;
 
     result = true;
     ev_lo  = d_event_new(1);
@@ -351,15 +340,13 @@ d_tests_sa_event_compare_deep_context
   - Higher context value returns positive via comparator
   - Self-comparison returns 0
 */
-bool
-d_tests_sa_event_compare_deep_context
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_deep_context(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev_a;
-    struct d_event* ev_b;
+    struct dj_event* ev_a;
+    struct dj_event* ev_b;
     int             val_lo;
     int             val_hi;
 
@@ -413,15 +400,13 @@ d_tests_sa_event_compare_deep_no_comparator
   - NULL comparator with non-NULL context does not crash
   - Both NULL context with same id returns 0
 */
-bool
-d_tests_sa_event_compare_deep_no_comparator
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_deep_no_comparator(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev_a;
-    struct d_event* ev_b;
+    struct dj_event* ev_a;
+    struct dj_event* ev_b;
     int             val_a;
     int             val_b;
 
@@ -478,14 +463,12 @@ d_tests_sa_event_listener_compare_null
   - First NULL returns negative
   - Second NULL returns positive
 */
-bool
-d_tests_sa_event_listener_compare_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_compare_null(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new(
@@ -528,16 +511,14 @@ d_tests_sa_event_listener_compare_ids
   - Equal ids returns 0
   - Antisymmetric property holds
 */
-bool
-d_tests_sa_event_listener_compare_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_compare_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lo;
-    struct d_event_listener* hi;
-    struct d_event_listener* lo2;
+    struct dj_event_listener* lo;
+    struct dj_event_listener* hi;
+    struct dj_event_listener* lo2;
 
     result = true;
     lo     = d_event_listener_new(
@@ -605,14 +586,12 @@ d_tests_sa_event_listener_compare_self
   Tests the following:
   - Comparing a listener to itself returns 0
 */
-bool
-d_tests_sa_event_listener_compare_self
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_compare_self(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new(
@@ -640,15 +619,13 @@ d_tests_sa_event_listener_compare_ignores_enabled
   Tests the following:
   - Same ID but different enabled flags returns 0
 */
-bool
-d_tests_sa_event_listener_compare_ignores_enabled
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_compare_ignores_enabled(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* a;
-    struct d_event_listener* b;
+    struct dj_event_listener* a;
+    struct dj_event_listener* b;
 
     result = true;
     a      = d_event_listener_new(
@@ -686,10 +663,8 @@ d_tests_sa_event_listener_compare_ignores_enabled
 d_tests_sa_event_compare_all
   Runs all comparison function tests.
 */
-bool
-d_tests_sa_event_compare_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_compare_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

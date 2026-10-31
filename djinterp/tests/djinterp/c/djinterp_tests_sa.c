@@ -4,7 +4,7 @@
 * Master test suite implementation - aggregates all test modules.
 *
 * Test modules (each in separate .c file):
-*   - djinterp_tests_sa_index.c          (d_index functions)
+*   - djinterp_tests_sa_index.c          (dj_index functions)
 *   - djinterp_tests_sa_index_macros.c   (index manipulation macros)
 *   - djinterp_tests_sa_array.c          (array utility macros)
 *   - djinterp_tests_sa_boolean.c        (boolean constants/macros)
@@ -20,67 +20,55 @@
 
 // djinterp
 #include "djinterp_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * MODULE-LEVEL TEST RUNNERS
  *****************************************************************************/
 
-bool
-d_tests_sa_run_index_functions
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_index_functions(
+    struct dj_test_counter* _test_info
 )
 {
     // Calls master runner from djinterp_index_tests_sa.c
     return d_tests_sa_index_functions_all(_test_info);
 }
 
-bool
-d_tests_sa_run_index_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_index_macros(
+    struct dj_test_counter* _test_info
 )
 {
     // Calls master runner from djinterp_index_macros_tests_sa.c
     return d_tests_sa_index_macros_all(_test_info);
 }
 
-bool
-d_tests_sa_run_array_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_array_macros(
+    struct dj_test_counter* _test_info
 )
 {
     // Calls master runner from djinterp_array_tests_sa.c
     return d_tests_sa_array_macros_all(_test_info);
 }
 
-bool
-d_tests_sa_run_boolean
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_boolean(
+    struct dj_test_counter* _test_info
 )
 {
     // Calls master runner from djinterp_boolean_tests_sa.c
     return d_tests_sa_boolean_all(_test_info);
 }
 
-bool
-d_tests_sa_run_function_pointers
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_function_pointers(
+    struct dj_test_counter* _test_info
 )
 {
     // Calls master runner from djinterp_function_ptr_tests_sa.c
     return d_tests_sa_function_pointers_all(_test_info);
 }
 
-bool
-d_tests_sa_run_edge_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_edge_cases(
+    struct dj_test_counter* _test_info
 )
 {
     // Calls master runner from djinterp_edge_tests_sa.c
@@ -92,10 +80,8 @@ d_tests_sa_run_edge_cases
  * CATEGORY-LEVEL TEST RUNNERS
  *****************************************************************************/
 
-bool
-d_tests_sa_run_all_functions
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_all_functions(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n");
@@ -103,9 +89,9 @@ d_tests_sa_run_all_functions
     printf("                         FUNCTION TESTS\n");
     printf("================================================================================\n");
 
-    struct d_test_counter category_counter = {0, 0, 0, 0};
+    struct dj_test_counter category_counter = {0, 0, 0, 0};
 
-    // Run d_index functions only
+    // Run dj_index functions only
     d_tests_sa_run_index_functions(&category_counter);
 
     // Update totals
@@ -127,10 +113,8 @@ d_tests_sa_run_all_functions
     return all_passed;
 }
 
-bool
-d_tests_sa_run_all_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_all_macros(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n");
@@ -138,7 +122,7 @@ d_tests_sa_run_all_macros
     printf("                         MACRO TESTS\n");
     printf("================================================================================\n");
 
-    struct d_test_counter category_counter = {0, 0, 0, 0};
+    struct dj_test_counter category_counter = {0, 0, 0, 0};
 
     // Run all macro tests
     d_tests_sa_run_index_macros(&category_counter);
@@ -164,10 +148,8 @@ d_tests_sa_run_all_macros
     return all_passed;
 }
 
-bool
-d_tests_sa_run_all_types
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_all_types(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n");
@@ -175,7 +157,7 @@ d_tests_sa_run_all_types
     printf("                         TYPE TESTS\n");
     printf("================================================================================\n");
 
-    struct d_test_counter category_counter = {0, 0, 0, 0};
+    struct dj_test_counter category_counter = {0, 0, 0, 0};
 
     // Run type-related tests
     d_tests_sa_run_function_pointers(&category_counter);
@@ -204,10 +186,8 @@ d_tests_sa_run_all_types
  * MASTER TEST RUNNER
  *****************************************************************************/
 
-bool
-d_tests_sa_run_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_run_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n");
@@ -218,10 +198,10 @@ d_tests_sa_run_all
     printf("================================================================================\n");
     printf("================================================================================\n");
 
-    struct d_test_counter master_counter = {0, 0, 0, 0};
+    struct dj_test_counter master_counter = {0, 0, 0, 0};
 
     // Run all test modules
-    printf("\n[1/6] Running d_index Function Tests...\n");
+    printf("\n[1/6] Running dj_index Function Tests...\n");
     d_tests_sa_run_index_functions(&master_counter);
 
     printf("\n[2/6] Running Index Manipulation Macro Tests...\n");
@@ -256,12 +236,10 @@ d_tests_sa_run_all
  * UTILITY FUNCTIONS
  *****************************************************************************/
 
-void
-d_tests_sa_print_module_results
-(
-    const char*                  _module_name,
-    const struct d_test_counter* _counter,
-    bool                         _passed
+void d_tests_sa_print_module_results(
+    const char*                   _module_name,
+    const struct dj_test_counter* _counter,
+    bool                          _passed
 )
 {
     printf("\n--- %s Results ---\n", _module_name);
@@ -276,10 +254,8 @@ d_tests_sa_print_module_results
     printf("  Status: %s\n", _passed ? "[PASS]" : "[FAIL]");
 }
 
-void
-d_tests_sa_print_summary
-(
-    const struct d_test_counter* _counter
+void d_tests_sa_print_summary(
+    const struct dj_test_counter* _counter
 )
 {
     printf("\n");

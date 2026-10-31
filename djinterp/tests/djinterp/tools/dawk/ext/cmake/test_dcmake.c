@@ -40,8 +40,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -63,11 +63,11 @@ d_tests_check(
 d_tests_read
   Reads a text that must read; a failure is reported as the check named.
 */
-static bool
-d_tests_read(
-    struct d_cmake* _cmake,
-    const char*     _text,
-    const char*     _what
+static
+bool d_tests_read(
+    struct dj_cmake* _cmake,
+    const char*      _text,
+    const char*      _what
 )
 {
     char       why[256];
@@ -91,11 +91,11 @@ d_tests_read(
 d_tests_value_is
   Whether an argument's value is the text expected.
 */
-static bool
-d_tests_value_is(
-    const struct d_cmake* _cmake,
-    size_t                _argument,
-    const char*           _expected
+static
+bool d_tests_value_is(
+    const struct dj_cmake* _cmake,
+    size_t                 _argument,
+    const char*            _expected
 )
 {
     // an argument that is not there has no value
@@ -104,7 +104,7 @@ d_tests_value_is(
         return false;
     }
 
-    const struct d_cmake_argument* const argument =
+    const struct dj_cmake_argument* const argument =
         &_cmake->arguments[_argument];
     char* const  value  = malloc((argument->end - argument->start) + 1u);
     bool         same   = false;
@@ -127,11 +127,11 @@ d_tests_value_is(
 d_tests_raw_is
   Whether an argument is written as the text expected.
 */
-static bool
-d_tests_raw_is(
-    const struct d_cmake* _cmake,
-    size_t                _argument,
-    const char*           _expected
+static
+bool d_tests_raw_is(
+    const struct dj_cmake* _cmake,
+    size_t                 _argument,
+    const char*            _expected
 )
 {
     // an argument that is not there is written as nothing
@@ -140,7 +140,7 @@ d_tests_raw_is(
         return false;
     }
 
-    const struct d_cmake_argument* const argument =
+    const struct dj_cmake_argument* const argument =
         &_cmake->arguments[_argument];
     const size_t length = argument->end - argument->start;
 
@@ -158,16 +158,16 @@ d_tests_arguments
   - the legacy forms, kept as one argument with their quotes
   - every escape, and what a value keeps of each
 */
-static void
-d_tests_arguments(void)
+static
+void d_tests_arguments(void)
 {
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
 
     printf("arguments\n");
 
     if (d_tests_read(&cmake, "  Set (a \"b c\" [[d]])\n", "a command"))
     {
-        const struct d_cmake_command* const command = &cmake.commands[0];
+        const struct dj_cmake_command* const command = &cmake.commands[0];
 
         d_tests_check( (cmake.command_count == 1u) &&
                        (command->argument_count == 3u) &&
@@ -270,10 +270,10 @@ d_tests_comments
   - which comments trail something on their line
   - a `#` inside an unquoted argument ends it
 */
-static void
-d_tests_comments(void)
+static
+void d_tests_comments(void)
 {
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
 
     printf("comments\n");
 
@@ -332,10 +332,10 @@ d_tests_lines
   - the line count, with and without a last line ending
   - a byte-order mark is skipped, and columns count after it
 */
-static void
-d_tests_lines(void)
+static
+void d_tests_lines(void)
 {
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
 
     printf("lines\n");
 
@@ -387,10 +387,10 @@ d_tests_blocks
   - a closer passing over a block it does not close leaves that block open
   - a closer, or a branch, with nothing to pair with is unpaired
 */
-static void
-d_tests_blocks(void)
+static
+void d_tests_blocks(void)
 {
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
 
     printf("blocks\n");
 
@@ -407,7 +407,7 @@ d_tests_blocks(void)
                      "set(z)\n",             // 9
                      "nested blocks"))
     {
-        const struct d_cmake_command* const c = cmake.commands;
+        const struct dj_cmake_command* const c = cmake.commands;
 
         d_tests_check( (c[0].depth == 0u) && (c[1].depth == 1u) &&
                        (c[2].depth == 2u) && (c[3].depth == 3u) &&
@@ -450,7 +450,7 @@ d_tests_blocks(void)
                      "macro(m)\n",          // 5
                      "broken blocks"))
     {
-        const struct d_cmake_command* const c = cmake.commands;
+        const struct dj_cmake_command* const c = cmake.commands;
 
         d_tests_check( (c[0].unpaired) && (c[0].partner == D_CMAKE_NONE) &&
                        (c[1].unpaired),
@@ -475,12 +475,12 @@ d_tests_refusals
   - each refusal, with the line and column it is reported at
   - the commands before a refusal are kept, and the broken one is not
 */
-static void
-d_tests_refusals(void)
+static
+void d_tests_refusals(void)
 {
-    // d_tests_refusal
+    // dj_tests_refusal
     //   struct: a text the reader must refuse, where, and in what words.
-    struct d_tests_refusal
+    struct dj_tests_refusal
     {
         const char* text;
         size_t      line;
@@ -488,7 +488,7 @@ d_tests_refusals(void)
         const char* words;
     };
 
-    static const struct d_tests_refusal refusals[] =
+    static const struct dj_tests_refusal refusals[] =
     {
         { "set a\n",                 1u, 5u, "expected `(`"           },
         { "set\n(a)\n",              1u, 4u, "expected `(`"           },
@@ -507,7 +507,7 @@ d_tests_refusals(void)
 
     for (size_t at = 0; at < (sizeof(refusals) / sizeof(refusals[0])); ++at)
     {
-        struct d_cmake cmake;
+        struct dj_cmake cmake;
         char           why[256];
         char           what[320];
         const bool     read = d_cmake_read(&cmake, refusals[at].text,
@@ -535,7 +535,7 @@ d_tests_refusals(void)
         d_cmake_release(&cmake);
     }
 
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
 
     d_tests_check( (!d_cmake_read(&cmake, "a(x)\nb(y # z\n", 14u, NULL,
                                   0u)) &&
@@ -556,8 +556,8 @@ d_tests_generated
   - CMake's markers, on the first line only
   - the tree's marker, anywhere in the first 4 KiB
 */
-static void
-d_tests_generated(void)
+static
+void d_tests_generated(void)
 {
     static const char install[] = "# Install script for directory: D:/x\n";
     static const char testfile[] = "# CMake generated Testfile for \n";
@@ -585,15 +585,15 @@ d_tests_generated(void)
 d_tests_reads_back
   Whether a text written for a value reads as one argument of that value.
 */
-static bool
-d_tests_reads_back(
+static
+bool d_tests_reads_back(
     const char* _text,
     const char* _value
 )
 {
     const size_t   span    = strlen(_text);
     char* const    wrapped = malloc(span + 4u);
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
     bool           same    = false;
 
     // the text as a command's one argument
@@ -624,8 +624,8 @@ d_tests_writing
   - a command's name, and what is not one
   - lists divided as CMake divides them, empty items kept or dropped
 */
-static void
-d_tests_writing(void)
+static
+void d_tests_writing(void)
 {
     static const char* const values[] =
     {
@@ -646,7 +646,7 @@ d_tests_writing(void)
         for (int kind = 0; kind < 3; ++kind)
         {
             char* const text = d_cmake_write(values[at], length,
-                                             (enum d_cmake_argument_kind)kind,
+                                             (enum dj_cmake_argument_kind)kind,
                                              NULL);
 
             all       = (all) &&
@@ -719,7 +719,7 @@ d_tests_writing(void)
 
 // d_tests_corpus
 //   struct: what a corpus run counted.
-struct d_tests_corpus
+struct dj_tests_corpus
 {
     size_t files;
     size_t generated;
@@ -736,8 +736,8 @@ struct d_tests_corpus
 d_tests_slurp
   Reads a whole file; the caller frees it.
 */
-static char*
-d_tests_slurp(
+static
+char* d_tests_slurp(
     const char* _path,
     size_t*     _length
 )
@@ -792,8 +792,8 @@ d_tests_slurp(
 d_tests_place_holds
   Whether a record's line and column are the ones its offset gives.
 */
-static bool
-d_tests_place_holds(
+static
+bool d_tests_place_holds(
     const size_t* _line_starts,
     size_t        _line_count,
     size_t        _start,
@@ -822,10 +822,10 @@ ending, the records come in order, and each sits where its place says.
 Returns the first offset that breaks it, or the text's length.
   Long as each kind of record is proved in turn, and then the bytes between.
 */
-static size_t
-d_tests_whole(
-    const struct d_cmake* _cmake,
-    const char**          _why
+static
+size_t d_tests_whole(
+    const struct dj_cmake* _cmake,
+    const char**           _why
 )
 {
     const char* const text   = _cmake->text;
@@ -868,7 +868,7 @@ d_tests_whole(
     for (size_t which = 0; (!*_why) && (which < _cmake->command_count);
          ++which)
     {
-        const struct d_cmake_command* const command =
+        const struct dj_cmake_command* const command =
             &_cmake->commands[which];
 
         // a command starts past the one before it
@@ -909,7 +909,7 @@ d_tests_whole(
              (arg < (command->first_argument + command->argument_count));
              ++arg)
         {
-            const struct d_cmake_argument* const argument =
+            const struct dj_cmake_argument* const argument =
                 &_cmake->arguments[arg];
 
             // within the command, past the one before, and not empty
@@ -941,7 +941,7 @@ d_tests_whole(
     for (size_t which = 0; (!*_why) && (which < _cmake->comment_count);
          ++which)
     {
-        const struct d_cmake_comment* const comment =
+        const struct dj_cmake_comment* const comment =
             &_cmake->comments[which];
 
         // a comment opens with `#`, where its place says
@@ -1004,10 +1004,10 @@ d_tests_corpus_file
   Reads one file and proves the reading whole.
   Long as the counts and the notes of an unpaired block are each a step.
 */
-static void
-d_tests_corpus_file(
-    const char*            _path,
-    struct d_tests_corpus* _counts
+static
+void d_tests_corpus_file(
+    const char*             _path,
+    struct dj_tests_corpus* _counts
 )
 {
     size_t      length = 0;
@@ -1025,7 +1025,7 @@ d_tests_corpus_file(
         return;
     }
 
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
     const bool     read      = d_cmake_read(&cmake, text, length, why,
                                             sizeof(why));
     const bool     generated = d_cmake_generated(text, length) ||
@@ -1082,8 +1082,8 @@ d_tests_corpus_file(
 d_tests_is_cmake
   Whether a file name is CMake's: CMakeLists.txt, *.cmake or *.cmake.in.
 */
-static bool
-d_tests_is_cmake(
+static
+bool d_tests_is_cmake(
     const char* _name
 )
 {
@@ -1101,10 +1101,10 @@ d_tests_is_cmake(
 d_tests_corpus_walk
   Every CMake file under a directory, in name order.
 */
-static void
-d_tests_corpus_walk(
-    const char*            _directory,
-    struct d_tests_corpus* _counts
+static
+void d_tests_corpus_walk(
+    const char*             _directory,
+    struct dj_tests_corpus* _counts
 )
 {
     char** names = NULL;
@@ -1158,11 +1158,11 @@ d_tests_print_passed
 them, and counts them: a quoted or a bracket argument's value; an unquoted
 one's text divided as a list, its empty items dropped.
 */
-static size_t
-d_tests_print_passed(
-    const struct d_cmake*          _cmake,
-    const struct d_cmake_argument* _argument,
-    bool                           _print
+static
+size_t d_tests_print_passed(
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    bool                            _print
 )
 {
     const size_t span   = _argument->end - _argument->start;
@@ -1211,8 +1211,8 @@ each argument CMake passes, so the two outputs can be compared byte for
 byte.
   Long as the arguments are counted first and printed after, each a loop.
 */
-static int
-d_tests_values(
+static
+int d_tests_values(
     const char* _path
 )
 {
@@ -1228,14 +1228,14 @@ d_tests_values(
         return 1;
     }
 
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
     const bool     read = d_cmake_read(&cmake, text, length, why,
                                        sizeof(why));
 
     // each show(...) in turn
     for (size_t at = 0; (read) && (at < cmake.command_count); ++at)
     {
-        const struct d_cmake_command* const command = &cmake.commands[at];
+        const struct dj_cmake_command* const command = &cmake.commands[at];
         size_t                              count   = 0;
 
         // only `show` is the comparison's
@@ -1285,8 +1285,7 @@ main
   The unit checks; with --corpus every CMake file under the directories, and
 with --values the arguments of a file's `show(...)` commands.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
@@ -1295,7 +1294,7 @@ main(
     if ( (argc > 2) &&
          (strcmp(argv[1], "--corpus") == 0) )
     {
-        struct d_tests_corpus counts;
+        struct dj_tests_corpus counts;
 
         memset(&counts, 0, sizeof(counts));
 

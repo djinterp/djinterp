@@ -36,7 +36,7 @@
 // 1.1    Instruction program
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_op
+// dj_internal_op
 //   enum: opcode of one compiled instruction.  CHAR, ANY and CLASS consume a
 //   byte; BOL and EOL assert a position; SPLIT and JMP are control flow; SAVE
 //   marks a group boundary; MARK records the offset at which one iteration of
@@ -44,7 +44,7 @@
 //   PROGRESS either takes the back-edge, diverts to the loop exit in `x`, or
 //   fails, according to whether the iteration consumed and whether any earlier
 //   one did; MATCH reports the end of a candidate match.
-enum d_internal_op
+enum dj_internal_op
 {
     D_INTERNAL_OP_CHAR = 0,
     D_INTERNAL_OP_ANY,
@@ -61,15 +61,15 @@ enum d_internal_op
 };
 
 // 1.1.2
-// d_internal_inst
+// dj_internal_inst
 //   struct: one compiled instruction.  `x` and `y` are absolute program
 //   addresses, used by SPLIT and JMP; `value` holds the literal byte for CHAR,
 //   the class index for CLASS, the slot number for SAVE, where group `n`
 //   occupies slots `2n` and `2n + 1`, and the loop number for LOOP, MARK and
 //   PROGRESS, where loop `k` occupies marks `2k` and `2k + 1` past the slots.
-struct d_internal_inst
+struct dj_internal_inst
 {
-    enum d_internal_op op;
+    enum dj_internal_op op;
     int                value;
     int                x;
     int                y;
@@ -78,11 +78,11 @@ struct d_internal_inst
 // 1.2    Pattern tree
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_node_kind
+// dj_internal_node_kind
 //   enum: kind of one parse-tree node.  Repetition is uniform: `*`, `+`, `?`
 //   and `{n,m}` all become REP with a bound pair, where a negative maximum
 //   denotes an unbounded repetition.
-enum d_internal_node_kind
+enum dj_internal_node_kind
 {
     D_INTERNAL_NODE_EMPTY = 0,
     D_INTERNAL_NODE_CHAR,
@@ -101,9 +101,9 @@ enum d_internal_node_kind
 //   struct: one parse-tree node.  Children are indices into the node pool
 //   rather than pointers, so the whole tree is freed in one call and survives
 //   reallocation of the pool.
-struct d_internal_node
+struct dj_internal_node
 {
-    enum d_internal_node_kind kind;
+    enum dj_internal_node_kind kind;
     int                       value;  // byte, class index, or group number
     int                       left;
     int                       right;
@@ -114,10 +114,10 @@ struct d_internal_node
 // 1.3    Execution state
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_internal_list
+// dj_internal_list
 //   struct: one thread list.  Parallel arrays hold the program counter and the
 //   subject offset at which each thread began matching.
-struct d_internal_list
+struct dj_internal_list
 {
     int*   pc;
     size_t count;
@@ -125,20 +125,20 @@ struct d_internal_list
 };
 
 // 1.3.2
-// d_regex
+// dj_regex
 //   struct: a compiled pattern together with the scratch buffers its
 //   simulation needs.  The buffers are sized at compile time and reused, so
 //   matching performs no allocation.
-struct d_regex
+struct dj_regex
 {
-    struct d_internal_inst* program;
+    struct dj_internal_inst* program;
     size_t                  program_count;
     unsigned char*          classes;      // class_count blocks of 32 bytes
     size_t                  class_count;
     size_t                  group_count;
     size_t                  loop_count;
-    struct d_internal_list  list_a;
-    struct d_internal_list  list_b;
+    struct dj_internal_list  list_a;
+    struct dj_internal_list  list_b;
     unsigned*               seen;
     unsigned                generation;
     int*                    stack;
@@ -147,34 +147,34 @@ struct d_regex
 // 1.4    Parser state
 //------------------------------------------------------------------------------
 // 1.4.1
-// d_internal_parser
+// dj_internal_parser
 //   struct: cursor and output pools used while parsing a pattern.  `status`
 //   latches the first error, after which every production returns immediately.
-struct d_internal_parser
+struct dj_internal_parser
 {
     const char*             pattern;
     size_t                  position;
     size_t                  length;
-    struct d_internal_node* nodes;
+    struct dj_internal_node* nodes;
     size_t                  node_count;
     size_t                  node_capacity;
     unsigned char*          classes;
     size_t                  class_count;
     size_t                  class_capacity;
     int                     group_count;
-    enum d_regex_status     status;
+    enum dj_regex_status     status;
 };
 
 // 1.4.2
-// d_internal_emitter
+// dj_internal_emitter
 //   struct: growable instruction buffer used while lowering the parse tree.
-struct d_internal_emitter
+struct dj_internal_emitter
 {
-    struct d_internal_inst* program;
+    struct dj_internal_inst* program;
     size_t                  count;
     size_t                  capacity;
     int                     loop_count;
-    enum d_regex_status     status;
+    enum dj_regex_status     status;
 };
 
 
@@ -193,8 +193,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_class_set(
+static
+void d_internal_class_set(
     unsigned char* _bitmap,
     unsigned char  _byte
 )
@@ -217,8 +217,8 @@ Return:
   - true, if the byte is a member, or
   - false, otherwise.
 */
-static bool
-d_internal_class_test(
+static
+bool d_internal_class_test(
     const unsigned char* _bitmap,
     unsigned char        _byte
 )
@@ -243,8 +243,8 @@ Return:
   - true, if the name is a recognized class, or
   - false, otherwise.
 */
-static bool
-d_internal_class_add_named(
+static
+bool d_internal_class_add_named(
     unsigned char* _bitmap,
     const char*    _name,
     size_t         _length
@@ -324,7 +324,10 @@ d_internal_class_add_named(
 // status and every production unwinds without further consumption.
 
 
-static int d_internal_parse_alternation(struct d_internal_parser* _parser);
+static
+int d_internal_parse_alternation(
+    struct dj_internal_parser* _parser
+);
 
 
 /*
@@ -339,8 +342,8 @@ Return:
 */
 static int
 d_internal_node_new(
-    struct d_internal_parser*  _parser,
-    enum d_internal_node_kind  _kind
+    struct dj_internal_parser*  _parser,
+    enum dj_internal_node_kind  _kind
 )
 {
     // grow the pool when it is full
@@ -350,7 +353,7 @@ d_internal_node_new(
                               ? 16
                               : (_parser->node_capacity * 2);
 
-        struct d_internal_node* grown =
+        struct dj_internal_node* grown =
             realloc(_parser->nodes, capacity * sizeof(*grown));
 
         // abandon parsing when the pool cannot grow
@@ -364,7 +367,7 @@ d_internal_node_new(
         _parser->node_capacity = capacity;
     }
 
-    struct d_internal_node* node = &_parser->nodes[_parser->node_count];
+    struct dj_internal_node* node = &_parser->nodes[_parser->node_count];
 
     node->kind  = _kind;
     node->value = 0;
@@ -386,9 +389,9 @@ Parameter(s):
 Return:
   The index of the new bitmap, or -1 on failure.
 */
-static int
-d_internal_class_new(
-    struct d_internal_parser* _parser
+static
+int d_internal_class_new(
+    struct dj_internal_parser* _parser
 )
 {
     // grow the pool when it is full
@@ -426,9 +429,9 @@ Parameter(s):
 Return:
   The byte at the cursor, or -1 at end of pattern.
 */
-static int
-d_internal_peek(
-    const struct d_internal_parser* _parser
+static
+int d_internal_peek(
+    const struct dj_internal_parser* _parser
 )
 {
     // report end of input rather than reading past the pattern
@@ -454,9 +457,9 @@ Parameter(s):
 Return:
   The resolved byte value, or -1 when the pattern ends after the backslash.
 */
-static int
-d_internal_parse_escape_byte(
-    struct d_internal_parser* _parser
+static
+int d_internal_parse_escape_byte(
+    struct dj_internal_parser* _parser
 )
 {
     const int next = d_internal_peek(_parser);
@@ -518,9 +521,9 @@ Parameter(s):
 Return:
   The index of the new node, or -1 on failure.
 */
-static int
-d_internal_parse_bracket(
-    struct d_internal_parser* _parser
+static
+int d_internal_parse_bracket(
+    struct dj_internal_parser* _parser
 )
 {
     _parser->position++;  // consume '['
@@ -716,11 +719,11 @@ Return:
   - true, if a well-formed interval was read and consumed, or
   - false, otherwise, with the cursor unchanged.
 */
-static bool
-d_internal_parse_interval(
-    struct d_internal_parser* _parser,
-    int*                      _out_min,
-    int*                      _out_max
+static
+bool d_internal_parse_interval(
+    struct dj_internal_parser* _parser,
+    int*                       _out_min,
+    int*                       _out_max
 )
 {
     const size_t saved = _parser->position;
@@ -834,9 +837,9 @@ Parameter(s):
 Return:
   The index of the new node, or -1 on failure.
 */
-static int
-d_internal_parse_atom(
-    struct d_internal_parser* _parser
+static
+int d_internal_parse_atom(
+    struct dj_internal_parser* _parser
 )
 {
     const int current = d_internal_peek(_parser);
@@ -974,9 +977,9 @@ Parameter(s):
 Return:
   The index of the resulting node, or -1 on failure.
 */
-static int
-d_internal_parse_repeat(
-    struct d_internal_parser* _parser
+static
+int d_internal_parse_repeat(
+    struct dj_internal_parser* _parser
 )
 {
     int result = d_internal_parse_atom(_parser);
@@ -1054,9 +1057,9 @@ Parameter(s):
 Return:
   The index of the resulting node, or -1 on failure.
 */
-static int
-d_internal_parse_concat(
-    struct d_internal_parser* _parser
+static
+int d_internal_parse_concat(
+    struct dj_internal_parser* _parser
 )
 {
     int result = -1;
@@ -1120,9 +1123,9 @@ Parameter(s):
 Return:
   The index of the resulting node, or -1 on failure.
 */
-static int
-d_internal_parse_alternation(
-    struct d_internal_parser* _parser
+static
+int d_internal_parse_alternation(
+    struct dj_internal_parser* _parser
 )
 {
     int result = d_internal_parse_concat(_parser);
@@ -1183,8 +1186,8 @@ Return:
 */
 static int
 d_internal_emit(
-    struct d_internal_emitter* _emitter,
-    enum d_internal_op         _op
+    struct dj_internal_emitter* _emitter,
+    enum dj_internal_op         _op
 )
 {
     // grow the buffer when it is full
@@ -1194,7 +1197,7 @@ d_internal_emit(
                               ? 32
                               : (_emitter->capacity * 2);
 
-        struct d_internal_inst* grown =
+        struct dj_internal_inst* grown =
             realloc(_emitter->program, capacity * sizeof(*grown));
 
         // abandon compilation when the buffer cannot grow
@@ -1208,7 +1211,7 @@ d_internal_emit(
         _emitter->capacity = capacity;
     }
 
-    struct d_internal_inst* inst = &_emitter->program[_emitter->count];
+    struct dj_internal_inst* inst = &_emitter->program[_emitter->count];
 
     inst->op    = _op;
     inst->value = 0;
@@ -1219,9 +1222,12 @@ d_internal_emit(
 }
 
 
-static bool d_internal_compile_node(struct d_internal_emitter*    _emitter,
-                                    const struct d_internal_node* _nodes,
-                                    int                           _index);
+static
+bool d_internal_compile_node(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _index
+);
 
 
 /*
@@ -1241,14 +1247,14 @@ Return:
   - true, if the body lowered successfully, or
   - false, otherwise.
 */
-static bool
-d_internal_compile_repeat(
-    struct d_internal_emitter*    _emitter,
-    const struct d_internal_node* _nodes,
-    int                           _index
+static
+bool d_internal_compile_repeat(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _index
 )
 {
-    const struct d_internal_node* node = &_nodes[_index];
+    const struct dj_internal_node* node = &_nodes[_index];
     const int                     body = node->left;
     const int                     min  = node->min;
     const int                     max  = node->max;
@@ -1475,14 +1481,14 @@ Return:
   - true, if the node lowered successfully, or
   - false, otherwise.
 */
-static bool
-d_internal_compile_node(
-    struct d_internal_emitter*    _emitter,
-    const struct d_internal_node* _nodes,
-    int                           _index
+static
+bool d_internal_compile_node(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _index
 )
 {
-    const struct d_internal_node* node = &_nodes[_index];
+    const struct dj_internal_node* node = &_nodes[_index];
 
     switch (node->kind)
     {
@@ -1497,7 +1503,7 @@ d_internal_compile_node(
         case D_INTERNAL_NODE_BOL:
         case D_INTERNAL_NODE_EOL:
         {
-            enum d_internal_op op = D_INTERNAL_OP_ANY;
+            enum dj_internal_op op = D_INTERNAL_OP_ANY;
 
             // map the leaf kind onto its opcode
             if (node->kind == D_INTERNAL_NODE_CHAR)
@@ -1646,15 +1652,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_add_thread(
-    struct d_regex*         _regex,
-    struct d_internal_list* _list,
-    int                     _pc,
-    size_t                  _start,
-    size_t                  _position,
-    size_t                  _length,
-    unsigned                _generation
+static
+void d_internal_add_thread(
+    struct dj_regex*         _regex,
+    struct dj_internal_list* _list,
+    int                      _pc,
+    size_t                   _start,
+    size_t                   _position,
+    size_t                   _length,
+    unsigned                 _generation
 )
 {
     size_t top = 0;
@@ -1674,7 +1680,7 @@ d_internal_add_thread(
 
         _regex->seen[address] = _generation;
 
-        const struct d_internal_inst* inst = &_regex->program[address];
+        const struct dj_internal_inst* inst = &_regex->program[address];
 
         switch (inst->op)
         {
@@ -1764,19 +1770,19 @@ Return:
   - true, if a match was found, or
   - false, otherwise.
 */
-static bool
-d_internal_run(
-    struct d_regex* _regex,
-    const char*     _text,
-    size_t          _length,
-    size_t          _from,
-    bool            _anchored,
-    size_t*         _out_start,
-    size_t*         _out_length
+static
+bool d_internal_run(
+    struct dj_regex* _regex,
+    const char*      _text,
+    size_t           _length,
+    size_t           _from,
+    bool             _anchored,
+    size_t*          _out_start,
+    size_t*          _out_length
 )
 {
-    struct d_internal_list* current = &_regex->list_a;
-    struct d_internal_list* next    = &_regex->list_b;
+    struct dj_internal_list* current = &_regex->list_a;
+    struct dj_internal_list* next    = &_regex->list_b;
 
     current->count = 0;
     next->count    = 0;
@@ -1801,7 +1807,7 @@ d_internal_run(
         // record any thread that has reached the accepting instruction
         for (size_t index = 0; index < current->count; ++index)
         {
-            const struct d_internal_inst* inst =
+            const struct dj_internal_inst* inst =
                 &_regex->program[current->pc[index]];
 
             // only the accepting instruction reports a match
@@ -1838,7 +1844,7 @@ d_internal_run(
         for (size_t index = 0; index < current->count; ++index)
         {
             const int                     address = current->pc[index];
-            const struct d_internal_inst* inst    = &_regex->program[address];
+            const struct dj_internal_inst* inst    = &_regex->program[address];
             bool                          consume = false;
 
             // decide whether this instruction accepts the byte
@@ -1871,7 +1877,7 @@ d_internal_run(
             }
         }
 
-        struct d_internal_list* const swap = current;
+        struct dj_internal_list* const swap = current;
 
         current = next;
         next    = swap;
@@ -1926,21 +1932,21 @@ d_internal_run(
 // 6.1    Backtracking state
 //------------------------------------------------------------------------------
 // 6.1.1
-// d_internal_undo
+// dj_internal_undo
 //   struct: one entry of the trail that restores a mark on backtracking.  A
 //   mark is either a capture slot or a loop back-edge guard; the two share one
 //   array so that a single trail unwinds both.
-struct d_internal_undo
+struct dj_internal_undo
 {
     size_t index;
     size_t value;
 };
 
 // 6.1.2
-// d_internal_choice
+// dj_internal_choice
 //   struct: one deferred alternative, together with the trail mark to unwind
 //   to before it is taken.
-struct d_internal_choice
+struct dj_internal_choice
 {
     int    pc;
     size_t position;
@@ -1948,19 +1954,19 @@ struct d_internal_choice
 };
 
 // 6.1.3
-// d_internal_capture_state
+// dj_internal_capture_state
 //   struct: the buffers one capturing pass needs.  `marks` holds the capture
 //   slots followed by an entry offset and an iteration count per repetition.
 //   All are allocated per call rather than held on the pattern, since
 //   capturing is the slow path and the fast path must not carry its cost.
-struct d_internal_capture_state
+struct dj_internal_capture_state
 {
     size_t*                   marks;
     size_t*                   best;
-    struct d_internal_undo*   undo;
+    struct dj_internal_undo*   undo;
     size_t                    undo_count;
     size_t                    undo_capacity;
-    struct d_internal_choice* choice;
+    struct dj_internal_choice* choice;
     size_t                    choice_count;
     size_t                    choice_capacity;
 };
@@ -1995,10 +2001,10 @@ Return:
   D_REGEX_OK when a parse of the window was completed, and
   D_REGEX_ERR_BUDGET when the step budget ran out before any was.
 */
-static enum d_regex_status
+static enum dj_regex_status
 d_internal_capture(
-    struct d_regex*                  _regex,
-    struct d_internal_capture_state* _state,
+    struct dj_regex*                  _regex,
+    struct dj_internal_capture_state* _state,
     const char*                      _text,
     size_t                           _length,
     size_t                           _start,
@@ -2028,7 +2034,7 @@ d_internal_capture(
     {
         steps++;
 
-        const struct d_internal_inst* inst = &_regex->program[pc];
+        const struct dj_internal_inst* inst = &_regex->program[pc];
         bool                          fail = false;
 
         switch (inst->op)
@@ -2248,7 +2254,7 @@ d_internal_capture(
 
             _state->choice_count--;
 
-            const struct d_internal_choice* entry =
+            const struct dj_internal_choice* entry =
                 &_state->choice[_state->choice_count];
 
             // restore every mark written since the branch was deferred
@@ -2283,10 +2289,10 @@ Parameter(s):
 Return:
   The compiled pattern, or NULL on failure.
 */
-struct d_regex*
+struct dj_regex*
 d_regex_compile(
     const char*          _pattern,
-    enum d_regex_status* _out_status
+    enum dj_regex_status* _out_status
 )
 {
     // parameter validation first
@@ -2301,7 +2307,7 @@ d_regex_compile(
         return NULL;
     }
 
-    struct d_internal_parser parser;
+    struct dj_internal_parser parser;
 
     memset(&parser, 0, sizeof(parser));
     parser.pattern = _pattern;
@@ -2333,7 +2339,7 @@ d_regex_compile(
         return NULL;
     }
 
-    struct d_internal_emitter emitter;
+    struct dj_internal_emitter emitter;
 
     memset(&emitter, 0, sizeof(emitter));
     emitter.status = D_REGEX_OK;
@@ -2362,7 +2368,7 @@ d_regex_compile(
         return NULL;
     }
 
-    struct d_regex* regex = calloc(1, sizeof(*regex));
+    struct dj_regex* regex = calloc(1, sizeof(*regex));
 
     // abandon compilation when the handle cannot be held
     if (!regex)
@@ -2434,9 +2440,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_regex_free(
-    struct d_regex* _regex
+void d_regex_free(
+    struct dj_regex* _regex
 )
 {
     if (_regex)
@@ -2471,13 +2476,12 @@ Return:
   - true, if a match was found, or
   - false, otherwise.
 */
-bool
-d_regex_search(
-    struct d_regex*       _regex,
-    const char*           _text,
-    size_t                _length,
-    size_t                _from,
-    struct d_regex_match* _out_match
+bool d_regex_search(
+    struct dj_regex*       _regex,
+    const char*            _text,
+    size_t                 _length,
+    size_t                 _from,
+    struct dj_regex_match* _out_match
 )
 {
     // parameter validation first
@@ -2525,13 +2529,12 @@ Return:
   - true, if a match begins at the offset, or
   - false, otherwise.
 */
-bool
-d_regex_match_at(
-    struct d_regex* _regex,
-    const char*     _text,
-    size_t          _length,
-    size_t          _at,
-    size_t*         _out_length
+bool d_regex_match_at(
+    struct dj_regex* _regex,
+    const char*      _text,
+    size_t           _length,
+    size_t           _at,
+    size_t*          _out_length
 )
 {
     // parameter validation first
@@ -2576,11 +2579,10 @@ Return:
   - true, if the pattern matches, or
   - false, otherwise.
 */
-bool
-d_regex_test(
-    struct d_regex* _regex,
-    const char*     _text,
-    size_t          _length
+bool d_regex_test(
+    struct dj_regex* _regex,
+    const char*      _text,
+    size_t           _length
 )
 {
     return d_regex_search(_regex, _text, _length, 0, NULL);
@@ -2598,7 +2600,7 @@ Return:
 */
 const char*
 d_regex_status_text(
-    enum d_regex_status _status
+    enum dj_regex_status _status
 )
 {
     switch (_status)
@@ -2624,9 +2626,8 @@ Parameter(s):
 Return:
   The number of capturing groups, or zero when the pattern is NULL.
 */
-size_t
-d_regex_group_count(
-    const struct d_regex* _regex
+size_t d_regex_group_count(
+    const struct dj_regex* _regex
 )
 {
     // parameter validation first
@@ -2665,13 +2666,13 @@ Parameter(s):
 Return:
   D_REGEX_ERR_UNSUPPORTED in every case.
 */
-enum d_regex_status
+enum dj_regex_status
 d_regex_search_groups(
-    struct d_regex*       _regex,
+    struct dj_regex*       _regex,
     const char*           _text,
     size_t                _length,
     size_t                _from,
-    struct d_regex_match* _out_groups,
+    struct dj_regex_match* _out_groups,
     size_t                _count
 )
 {
@@ -2710,7 +2711,7 @@ d_regex_search_groups(
         return D_REGEX_OK;
     }
 
-    struct d_internal_capture_state state;
+    struct dj_internal_capture_state state;
 
     memset(&state, 0, sizeof(state));
 
@@ -2740,7 +2741,7 @@ d_regex_search_groups(
         return D_REGEX_ERR_MEMORY;
     }
 
-    const enum d_regex_status status = d_internal_capture(_regex,
+    const enum dj_regex_status status = d_internal_capture(_regex,
                                                           &state,
                                                           _text,
                                                           _length,
@@ -2789,9 +2790,8 @@ Parameter(s):
 Return:
   The number of instructions, or zero when the pattern is NULL.
 */
-size_t
-d_regex_program_size(
-    const struct d_regex* _regex
+size_t d_regex_program_size(
+    const struct dj_regex* _regex
 )
 {
     // parameter validation first

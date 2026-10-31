@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_LINK_H 1
 
 // djinterp
-#include "../../../config/core/env/util/compress/cfg_env_compress_link.h"
+#include "../../../config/env/util/compress/cfg_env_compress_link.h"
                 // D_CFG_ENV_AUTOLINK, its library names, its liblzma switch
 
 

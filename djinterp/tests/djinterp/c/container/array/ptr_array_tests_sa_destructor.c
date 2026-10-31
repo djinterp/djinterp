@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./ptr_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -20,9 +20,8 @@
 static size_t g_deep_free_call_count = 0;
 
 // helper free function that tracks calls
-static void
-tracking_free
-(
+static
+void tracking_free(
     void* _ptr
 )
 {
@@ -49,14 +48,12 @@ d_tests_sa_ptr_array_free
   - free array with elements
   - elements themselves are NOT freed (shallow free)
 */
-bool
-d_tests_sa_ptr_array_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[3];
 
     result = true;
@@ -121,14 +118,12 @@ d_tests_sa_ptr_array_deep_free
   - deep free with valid free function
   - all elements are freed
 */
-bool
-d_tests_sa_ptr_array_deep_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_deep_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int*                 heap_values[3];
 
     result = true;
@@ -272,10 +267,8 @@ d_tests_sa_ptr_array_deep_free
 d_tests_sa_ptr_array_destructor_all
   Aggregation function that runs all destructor tests.
 */
-bool
-d_tests_sa_ptr_array_destructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_destructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

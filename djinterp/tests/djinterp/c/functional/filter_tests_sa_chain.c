@@ -9,11 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // helper predicate for chain tests
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -29,7 +33,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -58,16 +66,14 @@ d_tests_sa_filter_chain_create
   - free on populated chain
   - free NULL safety
 */
-bool
-d_tests_sa_filter_chain_create
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_chain_create(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_chain*     clone;
-    struct d_filter_operation* op;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_chain*     clone;
+    struct dj_filter_operation* op;
 
     result = true;
 
@@ -238,15 +244,13 @@ d_tests_sa_filter_chain_add
   - NULL operation rejection
   - capacity growth (dynamic reallocation)
 */
-bool
-d_tests_sa_filter_chain_add
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_chain_add(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_operation* op;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_operation* op;
     size_t                     i;
     bool                       add_ok;
 
@@ -339,14 +343,12 @@ add_skip_first, add_skip_last, add_range, add_where, add_where_context.
   - each convenience function creates and adds the correct op type
   - NULL chain handling
 */
-bool
-d_tests_sa_filter_chain_convenience
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_chain_convenience(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_filter_chain* chain;
+    struct dj_filter_chain* chain;
     int                    threshold;
 
     result    = true;
@@ -452,17 +454,15 @@ d_tests_sa_filter_chain_combine
   - append adds all operations from source to dest
   - append with NULL returns false
 */
-bool
-d_tests_sa_filter_chain_combine
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_chain_combine(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain_a;
-    struct d_filter_chain*     chain_b;
-    struct d_filter_chain*     combined;
-    struct d_filter_operation* op;
+    struct dj_filter_chain*     chain_a;
+    struct dj_filter_chain*     chain_b;
+    struct dj_filter_chain*     combined;
+    struct dj_filter_operation* op;
 
     result = true;
 
@@ -594,15 +594,13 @@ d_tests_sa_filter_chain_manipulate
   - remove out of bounds rejected
   - clear removes all operations but keeps chain
 */
-bool
-d_tests_sa_filter_chain_manipulate
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_chain_manipulate(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_operation* op;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_operation* op;
 
     result = true;
 
@@ -765,15 +763,13 @@ d_tests_sa_filter_chain_properties
   - is_empty on populated chain
   - is_empty on NULL
 */
-bool
-d_tests_sa_filter_chain_properties
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_chain_properties(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_operation* op;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_operation* op;
 
     result = true;
 
@@ -840,10 +836,8 @@ d_tests_sa_filter_chain_properties
 d_tests_sa_filter_chain_all
   Aggregation function that runs all chain management tests.
 */
-bool
-d_tests_sa_filter_chain_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_chain_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

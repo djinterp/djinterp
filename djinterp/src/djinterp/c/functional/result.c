@@ -24,16 +24,14 @@ Parameter(s):
 Return:
   A view by value.
 */
-struct d_result
-d_result_view
-(
+struct dj_result d_result_view(
     bool*  _is_ok,
     void*  _payload,
     size_t _value_size,
     size_t _error_size
 )
 {
-    struct d_result result;
+    struct dj_result result;
 
     result.is_ok      = _is_ok;
     result.payload    = _payload;
@@ -55,10 +53,8 @@ Return:
   - true, if the view is usable, or
   - false, otherwise.
 */
-bool
-d_result_is_valid
-(
-    const struct d_result* _result
+bool d_result_is_valid(
+    const struct dj_result* _result
 )
 {
     // a NULL view is not valid
@@ -85,11 +81,9 @@ Return:
   - true, if the value was stored, or
   - false, if the parameters were unusable.
 */
-bool
-d_result_ok
-(
-    struct d_result* _result,
-    const void*      _value
+bool d_result_ok(
+    struct dj_result* _result,
+    const void*       _value
 )
 {
     // an unusable request stores nothing
@@ -119,11 +113,9 @@ Return:
   - true, if the error was stored, or
   - false, if the parameters were unusable.
 */
-bool
-d_result_err
-(
-    struct d_result* _result,
-    const void*      _error
+bool d_result_err(
+    struct dj_result* _result,
+    const void*       _error
 )
 {
     // an unusable request stores nothing
@@ -151,10 +143,8 @@ Return:
   - true, if the success arm is live, or
   - false, if the error arm is live or the view was unusable.
 */
-bool
-d_result_is_ok
-(
-    const struct d_result* _result
+bool d_result_is_ok(
+    const struct dj_result* _result
 )
 {
     // an unusable view does not hold a success
@@ -178,10 +168,8 @@ Return:
   - true, if the error arm is live or the view was unusable, or
   - false, if the success arm is live.
 */
-bool
-d_result_is_err
-(
-    const struct d_result* _result
+bool d_result_is_err(
+    const struct dj_result* _result
 )
 {
     // an unusable view reads as an error
@@ -206,12 +194,10 @@ Return:
   - true, if the success value was written, or
   - false, if the fallback was written or the parameters were unusable.
 */
-bool
-d_result_value_or
-(
-    const struct d_result* _result,
-    void*                  _out,
-    const void*            _fallback
+bool d_result_value_or(
+    const struct dj_result* _result,
+    void*                   _out,
+    const void*             _fallback
 )
 {
     // without a destination there is nothing to answer into
@@ -252,11 +238,9 @@ Return:
   - true, if the error was written, or
   - false, if the success arm was live or the parameters were unusable.
 */
-bool
-d_result_error
-(
-    const struct d_result* _result,
-    void*                  _out
+bool d_result_error(
+    const struct dj_result* _result,
+    void*                   _out
 )
 {
     // only a live error arm has an error to report
@@ -290,13 +274,11 @@ Return:
   - true, if the destination was left definite, or
   - false, if the parameters were unusable or the transform failed.
 */
-bool
-d_result_map
-(
-    const struct d_result* _in,
-    struct d_result*       _out,
-    fn_transformer         _transform,
-    void*                  _context
+bool d_result_map(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_transformer          _transform,
+    void*                   _context
 )
 {
     // an unusable request leaves the destination alone
@@ -344,13 +326,11 @@ Return:
   - true, if the destination was left definite, or
   - false, if the parameters were unusable or the transform failed.
 */
-bool
-d_result_map_err
-(
-    const struct d_result* _in,
-    struct d_result*       _out,
-    fn_transformer         _transform,
-    void*                  _context
+bool d_result_map_err(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_transformer          _transform,
+    void*                   _context
 )
 {
     // an unusable request leaves the destination alone
@@ -399,14 +379,12 @@ Return:
   - true, if the destination was left definite, or
   - false, if the parameters were unusable or the mapping failed.
 */
-bool
-d_result_bimap
-(
-    const struct d_result* _in,
-    struct d_result*       _out,
-    fn_transformer         _on_value,
-    fn_transformer         _on_error,
-    void*                  _context
+bool d_result_bimap(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_transformer          _on_value,
+    fn_transformer          _on_error,
+    void*                   _context
 )
 {
     // both mappings must exist, since either arm may be the live one
@@ -456,13 +434,11 @@ Return:
   - true, if the destination was left definite, or
   - false, if the parameters were unusable.
 */
-bool
-d_result_bind
-(
-    const struct d_result* _in,
-    struct d_result*       _out,
-    fn_kleisli             _arrow,
-    void*                  _context
+bool d_result_bind(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_kleisli              _arrow,
+    void*                   _context
 )
 {
     // an unusable request leaves the destination alone
@@ -503,11 +479,9 @@ Return:
   - true, if a success value was written, or
   - false, if the error arm was live or the parameters were unusable.
 */
-bool
-d_result_to_maybe
-(
-    const struct d_result* _result,
-    struct d_maybe*        _out
+bool d_result_to_maybe(
+    const struct dj_result* _result,
+    struct dj_maybe*        _out
 )
 {
     // an unusable request leaves the destination alone
@@ -546,12 +520,10 @@ Parameter(s):
 Return:
   The number of elements delivered: 1 for a success, 0 for an error.
 */
-size_t
-d_result_drive
-(
-    const struct d_result*   _result,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state
+size_t d_result_drive(
+    const struct dj_result*   _result,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
 )
 {
     // an error is an empty sequence, not a failure of the drive
@@ -583,13 +555,11 @@ Return:
   - true, if a success value was folded, or
   - false, if the error arm was live or the parameters were unusable.
 */
-bool
-d_result_fold
-(
-    const struct d_result* _result,
-    void*                  _accumulator,
-    fn_fold                _step,
-    void*                  _context
+bool d_result_fold(
+    const struct dj_result* _result,
+    void*                   _accumulator,
+    fn_fold                 _step,
+    void*                   _context
 )
 {
     // an error leaves the accumulator exactly as it was
@@ -616,11 +586,9 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the error arm is live.
 */
-struct d_producer
-d_result_producer
-(
-    struct d_producer_array_state* _state,
-    const struct d_result*         _result
+struct dj_producer d_result_producer(
+    struct dj_producer_array_state* _state,
+    const struct dj_result*         _result
 )
 {
     // an error presents as the empty producer

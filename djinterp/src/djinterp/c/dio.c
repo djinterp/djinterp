@@ -26,7 +26,7 @@
 #include <string.h>                         // memcpy, memset, strchr
 #include <wchar.h>                          // mbrtowc, mbstate_t
 // re_std
-#include "../../../inc/re_std/cstdint/dstdint.h"  // intmax_t, uintmax_t
+#include "../../../inc/re_std/c/cstdint/dstdint.h"  // intmax_t, uintmax_t
 
 
 // the checked scanf family's engine
@@ -38,9 +38,9 @@
 // walks the arguments, holds %c, %s and %[ to their buffer sizes, and counts
 // what each directive consumed.
 
-// d_dio_scan_step
+// dj_dio_scan_step
 //   enum: what one directive came to.
-enum d_dio_scan_step
+enum dj_dio_scan_step
 {
     D_DIO_SCAN_OK,        // matched; the next directive follows
     D_DIO_SCAN_INPUT,     // input failure: end of input, or an encoding error
@@ -48,9 +48,9 @@ enum d_dio_scan_step
     D_DIO_SCAN_VIOLATION  // runtime-constraint violation: the call returns EOF
 };
 
-// d_dio_scan_length
+// dj_dio_scan_length
 //   enum: a conversion specification's length modifier.
-enum d_dio_scan_length
+enum dj_dio_scan_length
 {
     D_DIO_SCAN_LEN_NONE,
     D_DIO_SCAN_LEN_HH,
@@ -63,10 +63,10 @@ enum d_dio_scan_length
     D_DIO_SCAN_LEN_BIG_L  // L: long double
 };
 
-// d_dio_scan_source
+// dj_dio_scan_source
 //   struct: what one call reads, a string or a stream, and how many characters
 // the call has consumed from it so far, which is what %n stores.
-struct d_dio_scan_source
+struct dj_dio_scan_source
 {
     const char* text;      // the string, or NULL for a stream
     size_t      pos;       // the string's first unread character
@@ -74,13 +74,13 @@ struct d_dio_scan_source
     size_t      consumed;  // characters this call has consumed
 };
 
-// d_dio_scan_spec
+// dj_dio_scan_spec
 //   struct: one parsed conversion specification.
-struct d_dio_scan_spec
+struct dj_dio_scan_spec
 {
     int                    suppress;  // '*' was given
     size_t                 width;     // the field width, 0 where none was given
-    enum d_dio_scan_length length;    // the length modifier
+    enum dj_dio_scan_length length;    // the length modifier
     const char*            mod;       // the modifier's text in the format
     size_t                 mod_n;     // its length: 0, 1 or 2
     char                   conv;      // the conversion character
@@ -88,10 +88,10 @@ struct d_dio_scan_spec
     size_t                 set_n;     // its length, through the closing ']'
 };
 
-// d_dio_scan_fmt
+// dj_dio_scan_fmt
 //   struct: a one-directive format, in a local buffer where it fits and on
 // the heap where a long scanset or literal does not.
-struct d_dio_scan_fmt
+struct dj_dio_scan_fmt
 {
     char  local[96];
     char* heap;
@@ -104,10 +104,10 @@ trailing %n; the variadic arguments are the directive's target, if it has
 one, then the %n counter. Passing the target through a variadic call takes it
 to the library's own va_arg with its own type.
 */
-static int
-d_dio_scan_call(
-    const struct d_dio_scan_source* _src,
-    const char*                     _format,
+static
+int d_dio_scan_call(
+    const struct dj_dio_scan_source* _src,
+    const char*                      _format,
     ...
 )
 {
@@ -136,9 +136,9 @@ source past what a matched directive consumed. %n runs only once everything
 before it in the directive has matched, so a count still at -1 means it did
 not; the library's EOF then says whether input ran out or failed to match.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_result(
-    struct d_dio_scan_source* _src,
+    struct dj_dio_scan_source* _src,
     int                       _returned,
     int                       _count
 )
@@ -165,9 +165,9 @@ d_dio_scan_peek
   The source's next character, left unread, or EOF at its end. A stream takes
 the character back with ungetc, which C guarantees for one character.
 */
-static int
-d_dio_scan_peek(
-    const struct d_dio_scan_source* _src
+static
+int d_dio_scan_peek(
+    const struct dj_dio_scan_source* _src
 )
 {
     if (!_src->stream)
@@ -193,10 +193,10 @@ d_dio_scan_peek(
 d_dio_scan_parse_length
   Reads the length modifier at _at into _spec, and returns what follows it.
 */
-static const char*
-d_dio_scan_parse_length(
-    const char*             _at,
-    struct d_dio_scan_spec* _spec
+static
+const char* d_dio_scan_parse_length(
+    const char*              _at,
+    struct dj_dio_scan_spec* _spec
 )
 {
     const char* p = _at;
@@ -248,7 +248,7 @@ and % take none.
 static int
 d_dio_scan_takes_length(
     char                   _conv,
-    enum d_dio_scan_length _length
+    enum dj_dio_scan_length _length
 )
 {
     const int integer  = (strchr("diouxXn", _conv) != NULL);
@@ -276,10 +276,10 @@ against what came before it; returns what follows the specification, or NULL
 for one the standard leaves undefined. A ']' right after the '[' or '[^' is a
 member of the set, not its end.
 */
-static const char*
-d_dio_scan_parse_conversion(
-    const char*             _at,
-    struct d_dio_scan_spec* _spec
+static
+const char* d_dio_scan_parse_conversion(
+    const char*              _at,
+    struct dj_dio_scan_spec* _spec
 )
 {
     const char* p = _at;
@@ -341,10 +341,10 @@ follows it, or NULL where the standard leaves the specification undefined or
 the engine does not take it: a width of 0, or past INT_MAX, which no library
 reads, besides the cases d_dio_scan_parse_conversion refuses.
 */
-static const char*
-d_dio_scan_parse(
-    const char*             _at,
-    struct d_dio_scan_spec* _spec
+static
+const char* d_dio_scan_parse(
+    const char*              _at,
+    struct dj_dio_scan_spec* _spec
 )
 {
     const char* p = _at + 1;
@@ -392,10 +392,10 @@ d_dio_scan_fmt_buffer
   A buffer of _n bytes for a one-directive format: _out's own where it fits,
 else the heap's, which d_dio_scan_fmt_free releases. NULL if that fails.
 */
-static char*
-d_dio_scan_fmt_buffer(
-    struct d_dio_scan_fmt* _out,
-    size_t                 _n
+static
+char* d_dio_scan_fmt_buffer(
+    struct dj_dio_scan_fmt* _out,
+    size_t                  _n
 )
 {
     _out->heap = NULL;
@@ -414,9 +414,9 @@ d_dio_scan_fmt_buffer(
 d_dio_scan_fmt_free
   Releases the heap buffer d_dio_scan_fmt_buffer took, if it took one.
 */
-static void
-d_dio_scan_fmt_free(
-    struct d_dio_scan_fmt* _out
+static
+void d_dio_scan_fmt_free(
+    struct dj_dio_scan_fmt* _out
 )
 {
     free(_out->heap);
@@ -433,12 +433,12 @@ when it is not 0, the length modifier, the conversion and its scanset, then
 engine stays clear of the printf family it sits beside. Returns the format,
 or NULL if a long scanset needed the heap and the heap said no.
 */
-static const char*
-d_dio_scan_format(
-    struct d_dio_scan_fmt*        _out,
-    const struct d_dio_scan_spec* _spec,
-    int                           _suppress,
-    size_t                        _width
+static
+const char* d_dio_scan_format(
+    struct dj_dio_scan_fmt*        _out,
+    const struct dj_dio_scan_spec* _spec,
+    int                            _suppress,
+    size_t                         _width
 )
 {
     char   digits[24];
@@ -489,9 +489,9 @@ d_dio_scan_run
   Runs a directive that stores nothing but its %n: white space, a literal,
 %%, or a suppressed conversion.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_run(
-    struct d_dio_scan_source* _src,
+    struct dj_dio_scan_source* _src,
     const char*               _format
 )
 {
@@ -535,10 +535,10 @@ for the signed type of size_t or the unsigned type of ptrdiff_t; ptrdiff_t
 and size_t stand in for them, as each is the other's counterpart on every
 ABI the framework targets.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_value(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec,
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec,
     const char*                   _format,
     va_list*                      _args
 )
@@ -617,10 +617,10 @@ d_dio_scan_count
   %n: stores the characters this call has consumed, through the next
 argument. It reads no input and assigns no item.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_count(
-    const struct d_dio_scan_source* _src,
-    const struct d_dio_scan_spec*   _spec,
+    const struct dj_dio_scan_source* _src,
+    const struct dj_dio_scan_spec*   _spec,
     va_list*                        _args
 )
 {
@@ -645,8 +645,8 @@ d_dio_scan_wide_count
 conversion counted them; (size_t)-1 if they do not convert, which cannot
 happen to a field the library has just converted.
 */
-static size_t
-d_dio_scan_wide_count(
+static
+size_t d_dio_scan_wide_count(
     const char* _text,
     size_t      _n
 )
@@ -685,9 +685,9 @@ white-space directive cannot fail (C11 7.21.6.2p5): where the library reports
 the end of input instead of running the %n, nothing was there to consume, and
 whatever comes next meets the end itself.
 */
-static void
-d_dio_scan_skip_space(
-    struct d_dio_scan_source* _src
+static
+void d_dio_scan_skip_space(
+    struct dj_dio_scan_source* _src
 )
 {
     (void)d_dio_scan_run(_src,
@@ -704,13 +704,13 @@ string nothing is consumed; on a stream a matching character is, which only
 ever happens on the way to a matching failure. Returns 1, 0, or EOF at the
 end of input.
 */
-static int
-d_dio_scan_in_set(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec
+static
+int d_dio_scan_in_set(
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec
 )
 {
-    struct d_dio_scan_fmt fmt;
+    struct dj_dio_scan_fmt fmt;
     const char*           format = d_dio_scan_format(&fmt, _spec, 1, 1);
 
     // only a scanset longer than the local buffer, with the heap refusing
@@ -746,15 +746,15 @@ d_dio_scan_target_text
   Runs a %c, %s or %[ directive into _target, a char* or a wchar_t* as the
 length modifier says, with width _width (0: none).
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_target_text(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec,
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec,
     void*                         _target,
     size_t                        _width
 )
 {
-    struct d_dio_scan_fmt fmt;
+    struct dj_dio_scan_fmt fmt;
     const char*           format = d_dio_scan_format(&fmt, _spec, 0, _width);
 
     // the heap refused a long scanset
@@ -788,10 +788,10 @@ failure, or an input failure if the input has already run out, as it would
 have for a buffer of any size. A string's buffer is left holding the empty
 string where it has room for one, so it is never left unterminated.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_too_small(
-    const struct d_dio_scan_source* _src,
-    const struct d_dio_scan_spec*   _spec,
+    const struct dj_dio_scan_source* _src,
+    const struct dj_dio_scan_spec*   _spec,
     void*                           _target,
     size_t                          _size
 )
@@ -821,15 +821,15 @@ measured first with the conversion suppressed, its bytes counted back into
 wide characters, and only a field that fits is converted, with the width the
 caller gave. Exact, whatever the library counts its widths in.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_text_measured(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec,
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec,
     void*                         _target,
     size_t                        _size
 )
 {
-    struct d_dio_scan_fmt fmt;
+    struct dj_dio_scan_fmt fmt;
     const char*           format = d_dio_scan_format(&fmt, _spec, 1,
                                                      _spec->width);
 
@@ -878,10 +878,10 @@ d_dio_scan_char_bounded
   %c and %lc, which need as many elements as their width (1 where none is
 given); a buffer that has them cannot overrun.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_char_bounded(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec,
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec,
     void*                         _target,
     size_t                        _size
 )
@@ -895,7 +895,7 @@ d_dio_scan_char_bounded(
         return d_dio_scan_too_small(_src, _spec, _target, _size);
     }
 
-    const enum d_dio_scan_step step =
+    const enum dj_dio_scan_step step =
         d_dio_scan_target_text(_src, _spec, _target, _spec->width);
 
     // %c matches any character, so it fails only at the end of input,
@@ -926,10 +926,10 @@ field goes on, the field was too long, and that is a matching failure, not a
 truncation. Exact for narrow conversions; for a wide one on a stream, exact
 where the library counts widths in characters, as glibc does.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_text_bounded(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec,
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec,
     void*                         _target,
     size_t                        _size
 )
@@ -959,7 +959,7 @@ d_dio_scan_text_bounded(
                                                          : (size_t)INT_MAX;
     const int    capped = ( (_spec->width == 0) ||
                             (_spec->width > cap) );
-    const enum d_dio_scan_step step =
+    const enum dj_dio_scan_step step =
         d_dio_scan_target_text(_src,
                                _spec,
                                _target,
@@ -988,17 +988,17 @@ d_dio_scan_text
   %c, %s or %[: each takes its buffer, then the buffer's size in elements, as
 a size_t (Annex K's rsize_t). A suppressed one takes neither.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_text(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec,
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec,
     va_list*                      _args
 )
 {
     // suppressed: no buffer, no size, nothing to hold to a size
     if (_spec->suppress)
     {
-        struct d_dio_scan_fmt fmt;
+        struct dj_dio_scan_fmt fmt;
         const char*           format = d_dio_scan_format(&fmt, _spec, 1,
                                                          _spec->width);
 
@@ -1008,7 +1008,7 @@ d_dio_scan_text(
             return D_DIO_SCAN_VIOLATION;
         }
 
-        const enum d_dio_scan_step step = d_dio_scan_run(_src,
+        const enum dj_dio_scan_step step = d_dio_scan_run(_src,
                                                          format);
 
         d_dio_scan_fmt_free(&fmt);
@@ -1037,14 +1037,14 @@ d_dio_scan_text(
 d_dio_scan_literal
   Runs a run of ordinary characters, which must match the input exactly.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_literal(
-    struct d_dio_scan_source* _src,
+    struct dj_dio_scan_source* _src,
     const char*               _text,
     size_t                    _n
 )
 {
-    struct d_dio_scan_fmt fmt;
+    struct dj_dio_scan_fmt fmt;
     char*                 format = d_dio_scan_fmt_buffer(&fmt, _n + 3);
 
     // the heap refused a long literal
@@ -1056,7 +1056,7 @@ d_dio_scan_literal(
     memcpy(format, _text, _n);
     memcpy(format + _n, "%n", 3);
 
-    const enum d_dio_scan_step step = d_dio_scan_run(_src,
+    const enum dj_dio_scan_step step = d_dio_scan_run(_src,
                                                      format);
 
     d_dio_scan_fmt_free(&fmt);
@@ -1070,10 +1070,10 @@ d_dio_scan_conversion
 item, and as converted where it consumed input, which is what decides between
 EOF and a count when input later runs out.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_conversion(
-    struct d_dio_scan_source*     _src,
-    const struct d_dio_scan_spec* _spec,
+    struct dj_dio_scan_source*     _src,
+    const struct dj_dio_scan_spec* _spec,
     va_list*                      _args,
     int*                          _assigned,
     int*                          _converted
@@ -1092,7 +1092,7 @@ d_dio_scan_conversion(
                                 _args);
     }
 
-    enum d_dio_scan_step step;
+    enum dj_dio_scan_step step;
 
     if (strchr("cs[", _spec->conv) != NULL)
     {
@@ -1100,7 +1100,7 @@ d_dio_scan_conversion(
     }
     else
     {
-        struct d_dio_scan_fmt fmt;
+        struct dj_dio_scan_fmt fmt;
         const char*           format = d_dio_scan_format(&fmt, _spec,
                                                          _spec->suppress,
                                                          _spec->width);
@@ -1126,9 +1126,9 @@ d_dio_scan_directive
   Runs the directive at *_f, white space, a run of ordinary characters, or a
 conversion specification, and moves *_f past it.
 */
-static enum d_dio_scan_step
+static enum dj_dio_scan_step
 d_dio_scan_directive(
-    struct d_dio_scan_source* _src,
+    struct dj_dio_scan_source* _src,
     const char**              _f,
     va_list*                  _args,
     int*                      _assigned,
@@ -1161,7 +1161,7 @@ d_dio_scan_directive(
             f++;
         }
 
-        const enum d_dio_scan_step step = d_dio_scan_literal(_src,
+        const enum dj_dio_scan_step step = d_dio_scan_literal(_src,
                                                              *_f,
                                                              (size_t)(f - *_f));
         *_f = f;
@@ -1169,7 +1169,7 @@ d_dio_scan_directive(
         return step;
     }
 
-    struct d_dio_scan_spec spec;
+    struct dj_dio_scan_spec spec;
     const char*            next = d_dio_scan_parse(f,
                                                    &spec);
 
@@ -1197,11 +1197,11 @@ items assigned. A suppressed conversion counts as a conversion, as the
 standard has it: "5" against "%*d%d" returns 0 here, where glibc's own sscanf
 returns EOF.
 */
-static int
-d_dio_scan_engine(
-    struct d_dio_scan_source* _src,
-    const char*               _format,
-    va_list                   _argptr
+static
+int d_dio_scan_engine(
+    struct dj_dio_scan_source* _src,
+    const char*                _format,
+    va_list                    _argptr
 )
 {
     va_list args;
@@ -1246,8 +1246,7 @@ d_dio_scan_engine(
 d_sscanf
   Collects the variadic arguments and defers to d_vsscanf.
 */
-int
-d_sscanf(
+int d_sscanf(
     const char* _buffer,
     const char* _format,
     ...
@@ -1269,8 +1268,7 @@ d_sscanf(
 d_sscanf_s
   Collects the variadic arguments and defers to d_vsscanf_s.
 */
-int
-d_sscanf_s(
+int d_sscanf_s(
     const char* _buffer,
     const char* _format,
     ...
@@ -1292,8 +1290,7 @@ d_sscanf_s(
 d_vsscanf
   Delegates to vsscanf.
 */
-int
-d_vsscanf(
+int d_vsscanf(
     const char* _buffer,
     const char* _format,
     va_list     _argptr
@@ -1309,8 +1306,7 @@ d_vsscanf_s
   The engine over a string. A null string or format is a runtime-constraint
 violation (K.3.5.3.14p2): EOF, before anything is read.
 */
-int
-d_vsscanf_s(
+int d_vsscanf_s(
     const char* _buffer,
     const char* _format,
     va_list     _argptr
@@ -1323,7 +1319,7 @@ d_vsscanf_s(
         return EOF;
     }
 
-    struct d_dio_scan_source src = { _buffer, 0, NULL, 0 };
+    struct dj_dio_scan_source src = { _buffer, 0, NULL, 0 };
 
     return d_dio_scan_engine(&src,
                              _format,
@@ -1334,8 +1330,7 @@ d_vsscanf_s(
 d_fscanf
   Collects the variadic arguments and calls vfscanf.
 */
-int
-d_fscanf(
+int d_fscanf(
     FILE*       _stream,
     const char* _format,
     ...
@@ -1360,8 +1355,7 @@ d_fscanf_s
   The engine over a stream; a null stream or format is refused as at
 d_vsscanf_s.
 */
-int
-d_fscanf_s(
+int d_fscanf_s(
     FILE*       _stream,
     const char* _format,
     ...
@@ -1379,7 +1373,7 @@ d_fscanf_s(
     va_start(args,
              _format);
 
-    struct d_dio_scan_source src    = { NULL, 0, _stream, 0 };
+    struct dj_dio_scan_source src    = { NULL, 0, _stream, 0 };
     const int                result = d_dio_scan_engine(&src,
                                                         _format,
                                                         args);
@@ -1394,8 +1388,7 @@ d_fscanf_s(
 d_sprintf_s
   Collects the variadic arguments and defers to d_vsprintf_s.
 */
-int
-d_sprintf_s(
+int d_sprintf_s(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -1422,8 +1415,7 @@ d_vsprintf_s
   vsprintf_s where D_ENV_C_HAS_SCANF_S is set; otherwise vsnprintf, which
 truncates where vsprintf_s would report the overflow.
 */
-int
-d_vsprintf_s(
+int d_vsprintf_s(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -1450,8 +1442,7 @@ d_vsprintf_s(
 d_snprintf
   Collects the variadic arguments and defers to d_vsnprintf.
 */
-int
-d_snprintf(
+int d_snprintf(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -1477,8 +1468,7 @@ d_vsnprintf
 one returns -1 and leaves the buffer unterminated when the output does not
 fit.
 */
-int
-d_vsnprintf(
+int d_vsnprintf(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -1508,8 +1498,7 @@ d_vsnprintf(
 d_gets_s
   gets_s, where D_ENV_C_HAS_SCANF_S is set.
 */
-char*
-d_gets_s(
+char* d_gets_s(
     char*  _buffer,
     size_t _size
 )
@@ -1535,8 +1524,7 @@ d_gets_s
 gets_s, a line longer than the buffer is not an error: its first part is
 returned and the rest stays in stdin. _size is narrowed to int for fgets.
 */
-char*
-d_gets_s(
+char* d_gets_s(
     char*  _buffer,
     size_t _size
 )
@@ -1574,8 +1562,7 @@ d_gets_s(
 d_fputs
   Delegates to fputs.
 */
-int
-d_fputs(
+int d_fputs(
     const char* _str,
     FILE*       _stream
 )
@@ -1588,8 +1575,7 @@ d_fputs(
 d_fgets
   Delegates to fgets.
 */
-char*
-d_fgets(
+char* d_fgets(
     char* _str,
     int   _num,
     FILE* _stream
@@ -1605,8 +1591,7 @@ d_fgets(
 d_perror
   Delegates to perror.
 */
-void
-d_perror(
+void d_perror(
     const char* _s
 )
 {
@@ -1619,8 +1604,7 @@ d_perror(
 d_feof
   Delegates to feof.
 */
-int
-d_feof(
+int d_feof(
     FILE* _stream
 )
 {
@@ -1631,8 +1615,7 @@ d_feof(
 d_ferror
   Delegates to ferror.
 */
-int
-d_ferror(
+int d_ferror(
     FILE* _stream
 )
 {
@@ -1643,8 +1626,7 @@ d_ferror(
 d_clearerr
   Delegates to clearerr.
 */
-void
-d_clearerr(
+void d_clearerr(
     FILE* _stream
 )
 {

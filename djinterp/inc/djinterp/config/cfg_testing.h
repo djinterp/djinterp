@@ -236,7 +236,7 @@ TABLE OF CONTENTS
 // test build gets it. Unlike the other entries this also defers to
 // D_CFG_PARSE_ALL: an aggregate the user set is an explicit choice, and "all of
 // parse off" must switch the trace off too. It changes the layout of struct
-// d_parse_machine (cfg_parse.h), so every unit of a program must agree on
+// dj_parse_machine (cfg_parse.h), so every unit of a program must agree on
 // testing mode.
 #if ( !defined(D_CFG_PARSE_MACHINE_TRACE) &&                                   \
       !defined(D_CFG_PARSE_ALL) )

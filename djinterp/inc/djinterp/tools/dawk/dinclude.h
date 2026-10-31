@@ -23,7 +23,7 @@
 // std
 #include <stdint.h>  // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
+#include "./dnode.h"  // dj_node_tree
 
 
 //==============================================================================
@@ -33,9 +33,11 @@
 
 // 1.1    Construction
 //------------------------------------------------------------------------------
-uint32_t d_include_build(struct d_node_tree* _tree,
-                         uint32_t            _file,
-                         const char*         _path);
+uint32_t d_include_build(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DINCLUDE_H

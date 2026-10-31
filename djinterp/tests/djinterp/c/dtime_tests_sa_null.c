@@ -44,13 +44,9 @@ d_tests_sa_dtime_null_params_all
   - d_timespec_to_ns with NULL returns 0
   - d_timespec_is_valid with NULL returns 0
 */
-struct d_test_object*
-d_tests_sa_dtime_null_params_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_null_params_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct tm*            tm_result;
     char*                 str_result;
     time_t                timer;

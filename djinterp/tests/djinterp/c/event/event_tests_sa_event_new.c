@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,14 +20,12 @@ d_tests_sa_event_new_basic
   - id is set correctly
   - context is NULL
 */
-bool
-d_tests_sa_event_new_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_new_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
 
     result = true;
     ev     = d_event_new(42);
@@ -60,14 +58,12 @@ d_tests_sa_event_new_ids
   - Negative id works
   - Large id works
 */
-bool
-d_tests_sa_event_new_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_new_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
 
     result = true;
 
@@ -120,15 +116,13 @@ d_tests_sa_event_new_distinct
   - Two events have different addresses
   - Two events have different ids
 */
-bool
-d_tests_sa_event_new_distinct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_new_distinct(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev_a;
-    struct d_event* ev_b;
+    struct dj_event* ev_a;
+    struct dj_event* ev_b;
 
     result = true;
     ev_a   = d_event_new(10);
@@ -170,14 +164,12 @@ d_tests_sa_event_new_ctx_null
   - Returns non-NULL
   - context is NULL
 */
-bool
-d_tests_sa_event_new_ctx_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_new_ctx_null(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
 
     result = true;
     ev     = d_event_new_ctx(5, NULL);
@@ -210,14 +202,12 @@ d_tests_sa_event_new_ctx_valid
   - context stores the pointer directly (no copy)
   - Context is accessible through the stored pointer
 */
-bool
-d_tests_sa_event_new_ctx_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_new_ctx_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
     int             val;
 
     result = true;
@@ -257,15 +247,13 @@ d_tests_sa_event_new_ctx_distinct
   - Two events are distinct pointers
   - Each stores its own context
 */
-bool
-d_tests_sa_event_new_ctx_distinct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_new_ctx_distinct(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev_a;
-    struct d_event* ev_b;
+    struct dj_event* ev_a;
+    struct dj_event* ev_b;
     int             val_a;
     int             val_b;
 
@@ -302,19 +290,17 @@ d_tests_sa_event_new_ctx_distinct
 
 /*
 d_tests_sa_event_constructor_all
-  Runs all d_event constructor tests.
+  Runs all dj_event constructor tests.
 */
-bool
-d_tests_sa_event_constructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_constructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
 
     result = true;
 
-    printf("\n  [SECTION] d_event Constructors\n");
+    printf("\n  [SECTION] dj_event Constructors\n");
     printf("  ---------------------------------\n");
 
     result = d_tests_sa_event_new_basic(_counter)        && result;

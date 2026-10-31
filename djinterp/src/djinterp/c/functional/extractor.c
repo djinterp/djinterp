@@ -23,14 +23,12 @@ Parameter(s):
 Return:
   An extractor by value.
 */
-struct d_extractor
-d_extractor_make
-(
+struct dj_extractor d_extractor_make(
     fn_transformer _project,
     void*          _context
 )
 {
-    struct d_extractor extractor;
+    struct dj_extractor extractor;
 
     extractor.project = _project;
     extractor.context = _context;
@@ -47,10 +45,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the projection is set.
 */
-bool
-d_extractor_is_valid
-(
-    const struct d_extractor* _extractor
+bool d_extractor_is_valid(
+    const struct dj_extractor* _extractor
 )
 {
     // a NULL extractor is not valid
@@ -75,12 +71,10 @@ Return:
   - true, if the projection produced a value, or
   - false, if it declined or the parameters were unusable.
 */
-bool
-d_extract
-(
-    const struct d_extractor* _extractor,
-    const void*               _source,
-    void*                     _target
+bool d_extract(
+    const struct dj_extractor* _extractor,
+    const void*                _source,
+    void*                      _target
 )
 {
     // an unusable request projects nothing
@@ -106,13 +100,11 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the chain was initialised.
 */
-bool
-d_extractor_chain_init
-(
-    struct d_extractor_chain* _chain,
-    struct d_extractor        _first,
-    struct d_extractor        _second,
-    void*                     _scratch
+bool d_extractor_chain_init(
+    struct dj_extractor_chain* _chain,
+    struct dj_extractor        _first,
+    struct dj_extractor        _second,
+    void*                      _scratch
 )
 {
     // an unusable request leaves the chain untouched
@@ -140,19 +132,17 @@ composition associative in practice rather than only on paper.
 Parameter(s):
   _source: the value to read from.
   _target: destination for the projected feature.
-  _chain:  the `d_extractor_chain` to run.
+  _chain:  the `dj_extractor_chain` to run.
 Return:
   A boolean value corresponding to whether both projections produced a value.
 */
-bool
-d_extractor_chain_apply
-(
+bool d_extractor_chain_apply(
     const void* _source,
     void*       _target,
     void*       _chain
 )
 {
-    struct d_extractor_chain* chain;
+    struct dj_extractor_chain* chain;
 
     // an unusable chain projects nothing
     if (!_chain)
@@ -160,7 +150,7 @@ d_extractor_chain_apply
         return false;
     }
 
-    chain = (struct d_extractor_chain*)_chain;
+    chain = (struct dj_extractor_chain*)_chain;
 
     // the first projection must land before the second can read it
     if (!d_extract(&chain->first, _source, chain->scratch))
@@ -185,14 +175,12 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the binding was initialised.
 */
-bool
-d_contramap_predicate_init
-(
-    struct d_contramap_predicate* _binding,
-    struct d_extractor            _extract,
-    fn_predicate                  _predicate,
-    void*                         _context,
-    void*                         _scratch
+bool d_contramap_predicate_init(
+    struct dj_contramap_predicate* _binding,
+    struct dj_extractor            _extract,
+    fn_predicate                   _predicate,
+    void*                          _context,
+    void*                          _scratch
 )
 {
     // an unusable request leaves the binding untouched
@@ -220,21 +208,19 @@ the binding travelling as the context, so it drops into `d_transducer_filter`,
 
 Parameter(s):
   _element: the `Source` value under test.
-  _binding: the `d_contramap_predicate` to run.
+  _binding: the `dj_contramap_predicate` to run.
 Return:
   A boolean value corresponding to either:
   - true, if the projection succeeded and the predicate admitted it, or
   - false, otherwise. A failed projection reads as a rejection, since there is
     no feature to test.
 */
-bool
-d_contramap_test
-(
+bool d_contramap_test(
     const void* _element,
     void*       _binding
 )
 {
-    struct d_contramap_predicate* binding;
+    struct dj_contramap_predicate* binding;
 
     // an unusable binding admits nothing
     if (!_binding)
@@ -242,7 +228,7 @@ d_contramap_test
         return false;
     }
 
-    binding = (struct d_contramap_predicate*)_binding;
+    binding = (struct dj_contramap_predicate*)_binding;
 
     // a value whose feature cannot be read cannot satisfy a test on it
     if (!d_extract(&binding->extract, _element, binding->scratch))
@@ -268,15 +254,13 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the binding was initialised.
 */
-bool
-d_contramap_comparator_init
-(
-    struct d_contramap_comparator* _binding,
-    struct d_extractor             _extract,
-    fn_binary_predicate            _precedes,
-    void*                          _context,
-    void*                          _left,
-    void*                          _right
+bool d_contramap_comparator_init(
+    struct dj_contramap_comparator* _binding,
+    struct dj_extractor             _extract,
+    fn_binary_predicate             _precedes,
+    void*                           _context,
+    void*                           _left,
+    void*                           _right
 )
 {
     // two distinct slots are required, since both operands are projected
@@ -307,22 +291,20 @@ so it drops straight into `d_sorted` and `d_is_sorted`.
 Parameter(s):
   _left:    the left `Source` value.
   _right:   the right `Source` value.
-  _binding: the `d_contramap_comparator` to run.
+  _binding: the `dj_contramap_comparator` to run.
 Return:
   A boolean value corresponding to either:
   - true, if the left value's feature strictly precedes the right's, or
   - false, otherwise. A failed projection on either side orders neither before
     the other, which keeps the ordering strict rather than inventing a rank.
 */
-bool
-d_contramap_precedes
-(
+bool d_contramap_precedes(
     const void* _left,
     const void* _right,
     void*       _binding
 )
 {
-    struct d_contramap_comparator* binding;
+    struct dj_contramap_comparator* binding;
 
     // an unusable binding orders nothing
     if (!_binding)
@@ -330,7 +312,7 @@ d_contramap_precedes
         return false;
     }
 
-    binding = (struct d_contramap_comparator*)_binding;
+    binding = (struct dj_contramap_comparator*)_binding;
 
     // both features must be readable for the comparison to mean anything
     if (!d_extract(&binding->extract, _left, binding->left))

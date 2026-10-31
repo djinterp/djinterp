@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,14 +21,12 @@ d_tests_sa_vector_new
   - zero initial capacity handling
   - struct initialization verification
 */
-bool
-d_tests_sa_vector_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_new(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -135,14 +133,12 @@ d_tests_sa_vector_new_default
   - successful creation with default capacity
   - default capacity value verification
 */
-bool
-d_tests_sa_vector_new_default
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_new_default(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -193,14 +189,12 @@ d_tests_sa_vector_new_from_array
   - successful creation from valid array
   - elements correctly copied
 */
-bool
-d_tests_sa_vector_new_from_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_new_from_array(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              source[5] = {10, 20, 30, 40, 50};
 
     result = true;
@@ -300,14 +294,12 @@ d_tests_sa_vector_new_from_args
   - zero arg_count handling
   - successful creation with variadic arguments
 */
-bool
-d_tests_sa_vector_new_from_args
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_new_from_args(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -381,15 +373,13 @@ d_tests_sa_vector_new_copy
   - all properties copied correctly
   - elements independently copied (not shared)
 */
-bool
-d_tests_sa_vector_new_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_new_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* original;
-    struct d_vector* copy;
+    struct dj_vector* original;
+    struct dj_vector* copy;
 
     result = true;
 
@@ -494,14 +484,12 @@ d_tests_sa_vector_new_fill
   - successful fill creation
   - all elements match fill value
 */
-bool
-d_tests_sa_vector_new_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_new_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              fill_value;
 
     result = true;
@@ -593,10 +581,8 @@ d_tests_sa_vector_new_fill
 d_tests_sa_vector_constructor_all
   Aggregation function that runs all constructor tests.
 */
-bool
-d_tests_sa_vector_constructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_constructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -30,13 +30,9 @@ d_tests_sa_dtime_nanosleep
   - sleep duration is within acceptable tolerance
   - handles large nanosecond values (normalized)
 */
-struct d_test_object*
-d_tests_sa_dtime_nanosleep
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_nanosleep(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       req;
     struct timespec       rem;
     struct timespec       start;
@@ -163,13 +159,9 @@ d_tests_sa_dtime_usleep
   - handles 1 microsecond sleep
   - handles exact millisecond boundaries
 */
-struct d_test_object*
-d_tests_sa_dtime_usleep
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_usleep(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       start;
     struct timespec       end;
     int                   result;
@@ -295,13 +287,9 @@ d_tests_sa_dtime_sleep_ms
   - handles 1 millisecond sleep
   - handles exact second boundaries
 */
-struct d_test_object*
-d_tests_sa_dtime_sleep_ms
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_sleep_ms(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       start;
     struct timespec       end;
     int                   result;
@@ -432,13 +420,9 @@ d_tests_sa_dtime_sleep_functions_all
   - d_usleep
   - d_sleep_ms
 */
-struct d_test_object*
-d_tests_sa_dtime_sleep_functions_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_sleep_functions_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("V. Sleep Functions", 3);

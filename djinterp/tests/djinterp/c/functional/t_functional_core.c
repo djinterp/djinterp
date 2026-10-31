@@ -41,8 +41,8 @@ static int g_checks   = 0;
 static int g_failures = 0;
 static int g_calls    = 0;
 
-static void
-d_tests_fn_expect(
+static
+void d_tests_fn_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -65,8 +65,8 @@ d_tests_fn_expect(
 #define D_TESTS_FN_CHECK(_cond)                                               \
     d_tests_fn_expect((_cond), #_cond, __LINE__)
 
-static bool
-d_tests_fn_even(
+static
+bool d_tests_fn_even(
     const void* _element,
     void*       _context
 )
@@ -77,8 +77,8 @@ d_tests_fn_even(
     return ((*(const int*)_element % 2) == 0);
 }
 
-static bool
-d_tests_fn_positive(
+static
+bool d_tests_fn_positive(
     const void* _element,
     void*       _context
 )
@@ -89,8 +89,8 @@ d_tests_fn_positive(
     return (*(const int*)_element > 0);
 }
 
-static bool
-d_tests_fn_times(
+static
+bool d_tests_fn_times(
     const void* _input,
     void*       _output,
     void*       _context
@@ -103,8 +103,8 @@ d_tests_fn_times(
     return true;
 }
 
-static bool
-d_tests_fn_plus_one(
+static
+bool d_tests_fn_plus_one(
     const void* _input,
     void*       _output,
     void*       _context
@@ -116,8 +116,8 @@ d_tests_fn_plus_one(
     return true;
 }
 
-static bool
-d_tests_fn_fail_on_three(
+static
+bool d_tests_fn_fail_on_three(
     const void* _input,
     void*       _output,
     void*       _context
@@ -129,8 +129,8 @@ d_tests_fn_fail_on_three(
     return (*(const int*)_input != 3);
 }
 
-static bool
-d_tests_fn_digits(
+static
+bool d_tests_fn_digits(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -142,8 +142,8 @@ d_tests_fn_digits(
     return true;
 }
 
-static void
-d_tests_fn_double_it(
+static
+void d_tests_fn_double_it(
     void* _element,
     void* _context
 )
@@ -154,8 +154,8 @@ d_tests_fn_double_it(
     return;
 }
 
-static void
-d_tests_fn_sum(
+static
+void d_tests_fn_sum(
     const void* _element,
     void*       _context
 )
@@ -165,8 +165,8 @@ d_tests_fn_sum(
     return;
 }
 
-static int
-d_tests_fn_by_value(
+static
+int d_tests_fn_by_value(
     const void* _a,
     const void* _b,
     void*       _context
@@ -175,8 +175,8 @@ d_tests_fn_by_value(
     return d_functional_compare_int(_a, _b, _context);
 }
 
-static void
-d_tests_fn_utilities(void)
+static
+void d_tests_fn_utilities(void)
 {
     const int    a = 3, b = 7;
     const size_t s1 = 5u, s2 = 5u;
@@ -217,8 +217,8 @@ d_tests_fn_utilities(void)
     return;
 }
 
-static void
-d_tests_fn_higher_order(void)
+static
+void d_tests_fn_higher_order(void)
 {
     const int values[5] = { 1, 2, 3, 4, 5 };
     int       out[5]    = { 0 };
@@ -303,23 +303,23 @@ d_tests_fn_higher_order(void)
     return;
 }
 
-static void
-d_tests_fn_combinators(void)
+static
+void d_tests_fn_combinators(void)
 {
     const int two = 2, three = 3, minus = -4;
-    struct d_predicate_and* both   = d_predicate_and_new(&d_tests_fn_even,
+    struct dj_predicate_and* both   = d_predicate_and_new(&d_tests_fn_even,
                                                          NULL,
                                                          &d_tests_fn_positive,
                                                          NULL);
-    struct d_predicate_or*  either = d_predicate_or_new(&d_tests_fn_even,
+    struct dj_predicate_or*  either = d_predicate_or_new(&d_tests_fn_even,
                                                         NULL,
                                                         &d_tests_fn_positive,
                                                         NULL);
-    struct d_predicate_xor* one_of = d_predicate_xor_new(&d_tests_fn_even,
+    struct dj_predicate_xor* one_of = d_predicate_xor_new(&d_tests_fn_even,
                                                          NULL,
                                                          &d_tests_fn_positive,
                                                          NULL);
-    struct d_predicate_not* odd    = d_predicate_not_new(&d_tests_fn_even,
+    struct dj_predicate_not* odd    = d_predicate_not_new(&d_tests_fn_even,
                                                          NULL);
 
     D_TESTS_FN_CHECK( (both != NULL) && (either != NULL) &&
@@ -355,10 +355,10 @@ d_tests_fn_combinators(void)
     {
         int                            factor = 3;
         int                            out    = 0;
-        struct d_composed_transformer* c      = d_functional_compose_new(
+        struct dj_composed_transformer* c      = d_functional_compose_new(
             &d_tests_fn_times, &factor, &d_tests_fn_plus_one, NULL,
             sizeof(int));
-        struct d_composed_transformer* f      = d_functional_compose_new(
+        struct dj_composed_transformer* f      = d_functional_compose_new(
             &d_tests_fn_fail_on_three, NULL, &d_tests_fn_plus_one, NULL,
             sizeof(int));
 
@@ -375,7 +375,7 @@ d_tests_fn_combinators(void)
     {
         int                        total   = 0;
         int                        element = 5;
-        struct d_partial_consumer* partial =
+        struct dj_partial_consumer* partial =
             d_functional_partial_consumer_new(
                 (fn_consumer)NULL, &total);
 
@@ -390,13 +390,13 @@ d_tests_fn_combinators(void)
     return;
 }
 
-static void
-d_tests_fn_builder(void)
+static
+void d_tests_fn_builder(void)
 {
     const int            input[6] = { 1, 2, 3, 4, 5, 6 };
     int                  output[6] = { 0 };
     size_t               written   = 99u;
-    struct d_fn_builder* builder   = d_fn_builder_new();
+    struct dj_fn_builder* builder   = d_fn_builder_new();
 
     // WHERE even, then x10, then +1
     D_TESTS_FN_CHECK(builder != NULL);
@@ -422,7 +422,7 @@ d_tests_fn_builder(void)
     // a failing transformer stops the run and reports how far it got
     {
         const int            ramp[4] = { 2, 3, 4, 5 };
-        struct d_fn_builder* failing = d_fn_builder_new();
+        struct dj_fn_builder* failing = d_fn_builder_new();
 
         (void)d_funtional_builder_map(failing, &d_tests_fn_fail_on_three);
         D_TESTS_FN_CHECK( !d_fn_builder_execute(failing, ramp, 4u,
@@ -438,15 +438,15 @@ d_tests_fn_builder(void)
     return;
 }
 
-static void
-d_tests_fn_pipeline(void)
+static
+void d_tests_fn_pipeline(void)
 {
     int                          input[6] = { 1, 2, 3, 4, 5, 6 };
     const int                    before[6] = { 1, 2, 3, 4, 5, 6 };
     int                          factor   = 2;
     int                          zero     = 0;
     size_t                       count    = 99u;
-    struct d_functional_pipeline pipe;
+    struct dj_functional_pipeline pipe;
     int*                         result;
 
     // filter, map and take over a view leave the caller's array alone
@@ -500,8 +500,7 @@ d_tests_fn_pipeline(void)
     return;
 }
 
-int
-main(void)
+int main(void)
 {
     d_tests_fn_utilities();
     d_tests_fn_higher_order();

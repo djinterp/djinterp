@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "dmutex_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,22 +17,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // helper struct for trylock-busy test
-struct d_test_trylock_busy_data
+struct dj_test_trylock_busy_data
 {
-    d_mutex_t* mtx;
+    dj_mutex_t* mtx;
     int        trylock_result;
 };
 
 // helper: worker that attempts trylock on an already-locked mutex
-static void*
-d_test_trylock_busy_worker
-(
+static
+void* d_test_trylock_busy_worker(
     void* _arg
 )
 {
-    struct d_test_trylock_busy_data* data;
+    struct dj_test_trylock_busy_data* data;
 
-    data = (struct d_test_trylock_busy_data*)_arg;
+    data = (struct dj_test_trylock_busy_data*)_arg;
     data->trylock_result = d_mutex_trylock(data->mtx);
 
     // if we somehow got it, release it
@@ -46,23 +45,22 @@ d_test_trylock_busy_worker
 
 
 // helper struct for timedlock test
-struct d_test_timedlock_data
+struct dj_test_timedlock_data
 {
-    d_mutex_t* mtx;
+    dj_mutex_t* mtx;
     int        timedlock_result;
 };
 
 // helper: worker that attempts timedlock with a short timeout
-static void*
-d_test_timedlock_worker
-(
+static
+void* d_test_timedlock_worker(
     void* _arg
 )
 {
-    struct d_test_timedlock_data* data;
+    struct dj_test_timedlock_data* data;
     struct timespec              ts;
 
-    data = (struct d_test_timedlock_data*)_arg;
+    data = (struct dj_test_timedlock_data*)_arg;
 
     // set a very short timeout (50ms in the future)
     d_clock_gettime(CLOCK_REALTIME, &ts);
@@ -94,14 +92,12 @@ d_tests_sa_mutex_init
   - initialized mutex is usable (can lock/unlock)
   - multiple mutexes can be initialized independently
 */
-bool
-d_tests_sa_mutex_init
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_init(
+    struct dj_test_counter* _counter
 )
 {
     bool      result;
-    d_mutex_t mtx;
+    dj_mutex_t mtx;
     int       rc;
 
     result = true;
@@ -136,8 +132,8 @@ d_tests_sa_mutex_init
 
     // test 3: multiple mutexes initialized independently
     {
-        d_mutex_t mtx_a;
-        d_mutex_t mtx_b;
+        dj_mutex_t mtx_a;
+        dj_mutex_t mtx_b;
         int       rc_a;
         int       rc_b;
 
@@ -173,14 +169,12 @@ d_tests_sa_mutex_destroy
   - destruction returns D_MUTEX_SUCCESS
   - destroy after init/lock/unlock cycle
 */
-bool
-d_tests_sa_mutex_destroy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_destroy(
+    struct dj_test_counter* _counter
 )
 {
     bool      result;
-    d_mutex_t mtx;
+    dj_mutex_t mtx;
     int       rc;
 
     result = true;
@@ -226,14 +220,12 @@ d_tests_sa_mutex_lock
   - lock returns D_MUTEX_SUCCESS
   - lock/unlock cycle repeated 100 times
 */
-bool
-d_tests_sa_mutex_lock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_lock(
+    struct dj_test_counter* _counter
 )
 {
     bool      result;
-    d_mutex_t mtx;
+    dj_mutex_t mtx;
     int       rc;
 
     result = true;
@@ -306,14 +298,12 @@ d_tests_sa_mutex_trylock
   - trylock on a locked mutex returns D_MUTEX_BUSY (from another thread)
   - trylock/unlock cycle works correctly
 */
-bool
-d_tests_sa_mutex_trylock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_trylock(
+    struct dj_test_counter* _counter
 )
 {
     bool      result;
-    d_mutex_t mtx;
+    dj_mutex_t mtx;
     int       rc;
 
     result = true;
@@ -340,9 +330,9 @@ d_tests_sa_mutex_trylock
 
     // test 2: trylock reports BUSY when locked by another thread
     {
-        d_mutex_t                       mtx2;
-        struct d_test_trylock_busy_data shared;
-        d_thread_t                      thd;
+        dj_mutex_t                       mtx2;
+        struct dj_test_trylock_busy_data shared;
+        dj_thread_t                      thd;
 
         rc = d_mutex_init(&mtx2);
 
@@ -355,7 +345,7 @@ d_tests_sa_mutex_trylock
             d_mutex_lock(&mtx2);
 
             rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_trylock_busy_worker,
+                                 (dj_thread_func_t)d_test_trylock_busy_worker,
                                  &shared);
 
             if (rc == D_MUTEX_SUCCESS)
@@ -387,14 +377,12 @@ d_tests_sa_mutex_unlock
   - unlock returns D_MUTEX_SUCCESS
   - mutex is reusable after unlock
 */
-bool
-d_tests_sa_mutex_unlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_unlock(
+    struct dj_test_counter* _counter
 )
 {
     bool      result;
-    d_mutex_t mtx;
+    dj_mutex_t mtx;
     int       rc;
 
     result = true;
@@ -441,14 +429,12 @@ d_tests_sa_mutex_timedlock
   - timedlock returns D_MUTEX_SUCCESS on immediate acquisition
   - timedlock with short timeout on locked mutex returns D_MUTEX_TIMEDOUT
 */
-bool
-d_tests_sa_mutex_timedlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_timedlock(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_mutex_t       mtx;
+    dj_mutex_t       mtx;
     int             rc;
     struct timespec timeout;
 
@@ -479,9 +465,9 @@ d_tests_sa_mutex_timedlock
 
     // test 2: timedlock times out on locked mutex (from another thread)
     {
-        d_mutex_t                    mtx2;
-        struct d_test_timedlock_data shared;
-        d_thread_t                   thd;
+        dj_mutex_t                    mtx2;
+        struct dj_test_timedlock_data shared;
+        dj_thread_t                   thd;
 
         rc = d_mutex_init(&mtx2);
 
@@ -494,7 +480,7 @@ d_tests_sa_mutex_timedlock
             d_mutex_lock(&mtx2);
 
             rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_timedlock_worker,
+                                 (dj_thread_func_t)d_test_timedlock_worker,
                                  &shared);
 
             if (rc == D_MUTEX_SUCCESS)
@@ -521,10 +507,8 @@ d_tests_sa_mutex_timedlock
 d_tests_sa_mutex_basic_all
   Aggregation function that runs all basic mutex tests.
 */
-bool
-d_tests_sa_mutex_basic_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_basic_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

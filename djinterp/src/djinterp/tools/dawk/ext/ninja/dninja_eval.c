@@ -35,9 +35,9 @@
 // 1.1    Text
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_buffer
+// dj_internal_buffer
 //   struct: text being made, in an array that grows; a failure is kept.
-struct d_internal_buffer
+struct dj_internal_buffer
 {
     char*  text;
     size_t length;
@@ -48,22 +48,22 @@ struct d_internal_buffer
 // 1.2    The build
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_binding
+// dj_internal_binding
 //   struct: a name bound to its value, evaluated.
-struct d_internal_binding
+struct dj_internal_binding
 {
     char* name;
     char* value;
 };
 
 // 1.2.2
-// d_internal_env
+// dj_internal_env
 //   struct: a scope: its parent, D_NINJA_NONE at the top, its bindings and
 //   the rules defined in it, by their index.
-struct d_internal_env
+struct dj_internal_env
 {
     size_t                     parent;
-    struct d_internal_binding* bindings;
+    struct dj_internal_binding* bindings;
     size_t                     binding_count;
     size_t                     binding_capacity;
     size_t*                    rules;
@@ -75,7 +75,7 @@ struct d_internal_env
 // d_internal_rule
 //   struct: a rule, by its name, and the statement that defines it in its
 //   file; phony has none.
-struct d_internal_rule
+struct dj_internal_rule
 {
     char*  name;
     size_t file;
@@ -86,16 +86,16 @@ struct d_internal_rule
 // 1.2.4
 // d_internal_pool
 //   struct: a pool, by its name, and its depth.
-struct d_internal_pool
+struct dj_internal_pool
 {
     char* name;
     int   depth;
 };
 
 // 1.2.5
-// d_internal_list
+// dj_internal_list
 //   struct: indices in an array that grows.
-struct d_internal_list
+struct dj_internal_list
 {
     size_t* items;
     size_t  count;
@@ -103,76 +103,76 @@ struct d_internal_list
 };
 
 // 1.2.6
-// d_internal_edge
+// dj_internal_edge
 //   struct: a build: its rule, its scope, its pool, where it was written,
 //   and its nodes; its inputs' sections are counted from their end, as
 //   ninja counts them.
-struct d_internal_edge
+struct dj_internal_edge
 {
     size_t                 rule;
     size_t                 env;
     size_t                 pool;
     size_t                 file;
     size_t                 statement;
-    struct d_internal_list outputs;
+    struct dj_internal_list outputs;
     size_t                 implicit_outputs;
-    struct d_internal_list inputs;
+    struct dj_internal_list inputs;
     size_t                 implicit;
     size_t                 order_only;
-    struct d_internal_list validations;
-    struct d_internal_list sections[6];
+    struct dj_internal_list validations;
+    struct dj_internal_list sections[6];
 };
 
 // 1.2.7
 // d_internal_node
 //   struct: a path of the build, and the edges about it.
-struct d_internal_node
+struct dj_internal_node
 {
     char*                  path;
     size_t                 in_edge;
-    struct d_internal_list out_edges;
-    struct d_internal_list validation_edges;
+    struct dj_internal_list out_edges;
+    struct dj_internal_list validation_edges;
 };
 
 // 1.2.8
 // d_internal_file
 //   struct: a file read, its text and its records.
-struct d_internal_file
+struct dj_internal_file
 {
     char*          path;
     char*          text;
     size_t         length;
-    struct d_ninja records;
+    struct dj_ninja records;
 };
 
 // 1.2.9
-// d_ninja_graph
+// dj_ninja_graph
 //   struct: the build.
-struct d_ninja_graph
+struct dj_ninja_graph
 {
-    struct d_internal_file* files;
+    struct dj_internal_file* files;
     size_t                  file_count;
     size_t                  file_capacity;
-    struct d_internal_env*  envs;
+    struct dj_internal_env*  envs;
     size_t                  env_count;
     size_t                  env_capacity;
-    struct d_internal_rule* rules;
+    struct dj_internal_rule* rules;
     size_t                  rule_count;
     size_t                  rule_capacity;
-    struct d_internal_pool* pools;
+    struct dj_internal_pool* pools;
     size_t                  pool_count;
     size_t                  pool_capacity;
-    struct d_internal_edge* edges;
+    struct dj_internal_edge* edges;
     size_t                  edge_count;
     size_t                  edge_capacity;
-    struct d_internal_node* nodes;
+    struct dj_internal_node* nodes;
     size_t                  node_count;
     size_t                  node_capacity;
     size_t*                 table;
     size_t                  table_size;
-    struct d_internal_list  defaults;
-    struct d_internal_list  roots;
-    struct d_internal_list  top_rules;
+    struct dj_internal_list  defaults;
+    struct dj_internal_list  roots;
+    struct dj_internal_list  top_rules;
     char**                  warnings;
     size_t                  warning_count;
     size_t                  warning_capacity;
@@ -186,13 +186,13 @@ struct d_ninja_graph
 };
 
 // 1.2.10
-// d_internal_edge_env
+// dj_internal_edge_env
 //   struct: an evaluation in an edge's sense: the edge, whether $in and $out
 //   are shell-escaped, the bindings being evaluated, for cycles, and what
 //   went wrong.
-struct d_internal_edge_env
+struct dj_internal_edge_env
 {
-    const struct d_ninja_graph* graph;
+    const struct dj_ninja_graph* graph;
     size_t                      edge;
     bool                        escape;
     bool                        recursive;
@@ -214,10 +214,10 @@ d_internal_reserve
   Room for `_more` bytes and a terminator; false, the buffer failed, when
 memory runs out.
 */
-static bool
-d_internal_reserve(
-    struct d_internal_buffer* _buffer,
-    size_t                    _more
+static
+bool d_internal_reserve(
+    struct dj_internal_buffer* _buffer,
+    size_t                     _more
 )
 {
     // a buffer that failed takes nothing more
@@ -261,11 +261,11 @@ d_internal_reserve(
 d_internal_add, d_internal_add_char
   Appends to a buffer.
 */
-static bool
-d_internal_add(
-    struct d_internal_buffer* _buffer,
-    const char*               _text,
-    size_t                    _length
+static
+bool d_internal_add(
+    struct dj_internal_buffer* _buffer,
+    const char*                _text,
+    size_t                     _length
 )
 {
     // room for it
@@ -287,10 +287,10 @@ d_internal_add(
 }
 
 
-static bool
-d_internal_add_char(
-    struct d_internal_buffer* _buffer,
-    char                      _c
+static
+bool d_internal_add_char(
+    struct dj_internal_buffer* _buffer,
+    char                       _c
 )
 {
     return d_internal_add(_buffer, &_c, 1u);
@@ -302,9 +302,9 @@ d_internal_take
   The buffer's text, for the caller to free, "" for an empty one; NULL,
 the text freed, for one that failed.
 */
-static char*
-d_internal_take(
-    struct d_internal_buffer* _buffer
+static
+char* d_internal_take(
+    struct dj_internal_buffer* _buffer
 )
 {
     // a buffer that failed gives nothing
@@ -332,8 +332,8 @@ d_internal_take(
 d_internal_copy
   A string of its own.
 */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _text,
     size_t      _length
 )
@@ -355,10 +355,10 @@ d_internal_copy(
 d_internal_push
   Adds an index to a list.
 */
-static bool
-d_internal_push(
-    struct d_internal_list* _list,
-    size_t                  _item
+static
+bool d_internal_push(
+    struct dj_internal_list* _list,
+    size_t                   _item
 )
 {
     // room for one more
@@ -389,8 +389,8 @@ d_internal_push(
 d_internal_grow
   Room for one more record in an array that doubles as it fills.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _array,
     size_t* _capacity,
     size_t  _count,
@@ -423,8 +423,8 @@ d_internal_grow(
 d_internal_same
   Whether two spans hold the same bytes.
 */
-static bool
-d_internal_same(
+static
+bool d_internal_same(
     const char* _left,
     size_t      _left_length,
     const char* _right,
@@ -446,10 +446,10 @@ d_internal_same(
 d_internal_fail
   Says why loading failed, and gives false; the first failure stands.
 */
-static bool
-d_internal_fail(
-    struct d_ninja_graph* _graph,
-    const char*           _message
+static
+bool d_internal_fail(
+    struct dj_ninja_graph* _graph,
+    const char*            _message
 )
 {
     // only the first failure is the build's
@@ -469,12 +469,12 @@ d_internal_fail_at
   Fails with ninja's own form of a parser's error: the file, the line, and
 the message.
 */
-static bool
-d_internal_fail_at(
-    struct d_ninja_graph* _graph,
-    size_t                _file,
-    size_t                _line,
-    const char*           _message
+static
+bool d_internal_fail_at(
+    struct dj_ninja_graph* _graph,
+    size_t                 _file,
+    size_t                 _line,
+    const char*            _message
 )
 {
     char text[768];
@@ -490,10 +490,10 @@ d_internal_fail_at(
 d_internal_warn
   Keeps a warning, as ninja would print it.
 */
-static bool
-d_internal_warn(
-    struct d_ninja_graph* _graph,
-    const char*           _message
+static
+bool d_internal_warn(
+    struct dj_ninja_graph* _graph,
+    const char*            _message
 )
 {
     // room for one more
@@ -522,10 +522,10 @@ d_internal_warn(
 d_internal_new_env
   A scope within another, or at the top; D_NINJA_NONE when memory runs out.
 */
-static size_t
-d_internal_new_env(
-    struct d_ninja_graph* _graph,
-    size_t                _parent
+static
+size_t d_internal_new_env(
+    struct dj_ninja_graph* _graph,
+    size_t                 _parent
 )
 {
     // room for one more
@@ -537,7 +537,7 @@ d_internal_new_env(
         return D_NINJA_NONE;
     }
 
-    struct d_internal_env* const env = &_graph->envs[_graph->env_count];
+    struct dj_internal_env* const env = &_graph->envs[_graph->env_count];
 
     memset(env, 0, sizeof(*env));
     env->parent = _parent;
@@ -550,15 +550,15 @@ d_internal_new_env(
 d_internal_find_binding
   A scope's own binding of a name, or NULL.
 */
-static const struct d_internal_binding*
-d_internal_find_binding(
-    const struct d_ninja_graph* _graph,
-    size_t                      _env,
-    const char*                 _name,
-    size_t                      _length
+static
+const struct dj_internal_binding* d_internal_find_binding(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _env,
+    const char*                  _name,
+    size_t                       _length
 )
 {
-    const struct d_internal_env* const env = &_graph->envs[_env];
+    const struct dj_internal_env* const env = &_graph->envs[_env];
 
     // each binding of the scope
     for (size_t at = 0; at < env->binding_count; ++at)
@@ -580,16 +580,16 @@ d_internal_bind
   Binds a name in a scope, over a binding it has already; the value is
 taken.
 */
-static bool
-d_internal_bind(
-    struct d_ninja_graph* _graph,
-    size_t                _env,
-    const char*           _name,
-    size_t                _length,
-    char*                 _value
+static
+bool d_internal_bind(
+    struct dj_ninja_graph* _graph,
+    size_t                 _env,
+    const char*            _name,
+    size_t                 _length,
+    char*                  _value
 )
 {
-    struct d_internal_env* const env = &_graph->envs[_env];
+    struct dj_internal_env* const env = &_graph->envs[_env];
 
     // a value that could not be made
     if (!_value)
@@ -637,12 +637,12 @@ d_internal_lookup
   A variable through a scope and those about it, as BindingEnv's
 LookupVariable finds it; "" for none.
 */
-static const char*
-d_internal_lookup(
-    const struct d_ninja_graph* _graph,
-    size_t                      _env,
-    const char*                 _name,
-    size_t                      _length
+static
+const char* d_internal_lookup(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _env,
+    const char*                  _name,
+    size_t                       _length
 )
 {
     size_t env = _env;
@@ -650,7 +650,7 @@ d_internal_lookup(
     // each scope out to the top
     while (env != D_NINJA_NONE)
     {
-        const struct d_internal_binding* const binding =
+        const struct dj_internal_binding* const binding =
             d_internal_find_binding(_graph, env, _name, _length);
 
         // the nearest binding
@@ -670,15 +670,15 @@ d_internal_lookup(
 d_internal_rule_in
   A rule a scope defines itself, by its name, or D_NINJA_NONE.
 */
-static size_t
-d_internal_rule_in(
-    const struct d_ninja_graph* _graph,
-    size_t                      _env,
-    const char*                 _name,
-    size_t                      _length
+static
+size_t d_internal_rule_in(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _env,
+    const char*                  _name,
+    size_t                       _length
 )
 {
-    const struct d_internal_env* const env = &_graph->envs[_env];
+    const struct dj_internal_env* const env = &_graph->envs[_env];
 
     // each rule the scope defines
     for (size_t at = 0; at < env->rule_count; ++at)
@@ -700,12 +700,12 @@ d_internal_rule_in(
 d_internal_find_rule
   A rule through a scope and those about it, as LookupRule finds it.
 */
-static size_t
-d_internal_find_rule(
-    const struct d_ninja_graph* _graph,
-    size_t                      _env,
-    const char*                 _name,
-    size_t                      _length
+static
+size_t d_internal_find_rule(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _env,
+    const char*                  _name,
+    size_t                       _length
 )
 {
     size_t env = _env;
@@ -732,17 +732,17 @@ d_internal_find_rule(
 d_internal_add_rule
   A rule defined in a scope.
 */
-static bool
-d_internal_add_rule(
-    struct d_ninja_graph* _graph,
-    size_t                _env,
-    const char*           _name,
-    size_t                _length,
-    size_t                _file,
-    size_t                _statement
+static
+bool d_internal_add_rule(
+    struct dj_ninja_graph* _graph,
+    size_t                 _env,
+    const char*            _name,
+    size_t                 _length,
+    size_t                 _file,
+    size_t                 _statement
 )
 {
-    struct d_internal_env* const env  = &_graph->envs[_env];
+    struct dj_internal_env* const env  = &_graph->envs[_env];
     char* const                  name = d_internal_copy(_name, _length);
 
     // room for it, in the build and in its scope
@@ -757,7 +757,7 @@ d_internal_add_rule(
         return d_internal_fail(_graph, "out of memory");
     }
 
-    struct d_internal_rule* const rule = &_graph->rules[_graph->rule_count];
+    struct dj_internal_rule* const rule = &_graph->rules[_graph->rule_count];
 
     rule->name                    = name;
     rule->file                    = _file;
@@ -773,11 +773,11 @@ d_internal_add_rule(
 d_internal_find_pool
   A pool by its name, or D_NINJA_NONE.
 */
-static size_t
-d_internal_find_pool(
-    const struct d_ninja_graph* _graph,
-    const char*                 _name,
-    size_t                      _length
+static
+size_t d_internal_find_pool(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _name,
+    size_t                       _length
 )
 {
     // each pool
@@ -799,12 +799,12 @@ d_internal_find_pool(
 d_internal_add_pool
   A pool of a depth.
 */
-static bool
-d_internal_add_pool(
-    struct d_ninja_graph* _graph,
-    const char*           _name,
-    size_t                _length,
-    int                   _depth
+static
+bool d_internal_add_pool(
+    struct dj_ninja_graph* _graph,
+    const char*            _name,
+    size_t                 _length,
+    int                    _depth
 )
 {
     char* const name = d_internal_copy(_name, _length);
@@ -836,8 +836,8 @@ d_internal_add_pool(
 d_internal_hash
   FNV-1a over a path's bytes.
 */
-static size_t
-d_internal_hash(
+static
+size_t d_internal_hash(
     const char* _text,
     size_t      _length
 )
@@ -859,11 +859,11 @@ d_internal_hash(
 d_internal_slot
   Where a path stands in the table, or the empty slot it would take.
 */
-static size_t
-d_internal_slot(
-    const struct d_ninja_graph* _graph,
-    const char*                 _path,
-    size_t                      _length
+static
+size_t d_internal_slot(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _path,
+    size_t                       _length
 )
 {
     const size_t mask = _graph->table_size - 1u;
@@ -891,9 +891,9 @@ d_internal_slot(
 d_internal_rehash
   A table twice the size, every node in it again.
 */
-static bool
-d_internal_rehash(
-    struct d_ninja_graph* _graph
+static
+bool d_internal_rehash(
+    struct dj_ninja_graph* _graph
 )
 {
     const size_t  size  = (_graph->table_size > 0u) ? (_graph->table_size * 2u)
@@ -932,11 +932,11 @@ d_internal_rehash(
 d_internal_lookup_node
   The node of a canonical path, or D_NINJA_NONE.
 */
-static size_t
-d_internal_lookup_node(
-    const struct d_ninja_graph* _graph,
-    const char*                 _path,
-    size_t                      _length
+static
+size_t d_internal_lookup_node(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _path,
+    size_t                       _length
 )
 {
     // an empty table holds nothing
@@ -954,11 +954,11 @@ d_internal_get_node
   The node of a canonical path, made when there is none, as GetNode makes
 it; D_NINJA_NONE when memory runs out.
 */
-static size_t
-d_internal_get_node(
-    struct d_ninja_graph* _graph,
-    const char*           _path,
-    size_t                _length
+static
+size_t d_internal_get_node(
+    struct dj_ninja_graph* _graph,
+    const char*            _path,
+    size_t                 _length
 )
 {
     const size_t found = d_internal_lookup_node(_graph, _path, _length);
@@ -980,7 +980,7 @@ d_internal_get_node(
         return D_NINJA_NONE;
     }
 
-    struct d_internal_node* const node = &_graph->nodes[_graph->node_count];
+    struct dj_internal_node* const node = &_graph->nodes[_graph->node_count];
 
     memset(node, 0, sizeof(*node));
     node->path    = d_internal_copy(_path, _length);
@@ -1010,11 +1010,11 @@ d_internal_get_node(
 d_internal_add_text_piece
   A text piece's text, decoded, appended.
 */
-static bool
-d_internal_add_text_piece(
-    const struct d_ninja*       _ninja,
-    const struct d_ninja_piece* _piece,
-    struct d_internal_buffer*   _out
+static
+bool d_internal_add_text_piece(
+    const struct dj_ninja*       _ninja,
+    const struct dj_ninja_piece* _piece,
+    struct dj_internal_buffer*   _out
 )
 {
     // room for the piece, which decoding never lengthens
@@ -1034,22 +1034,22 @@ d_internal_evaluate
   A value evaluated in a scope, as EvalString's Evaluate does with a
 BindingEnv; the caller frees it.
 */
-static char*
-d_internal_evaluate(
-    const struct d_ninja_graph* _graph,
-    size_t                      _file,
-    size_t                      _value,
-    size_t                      _env
+static
+char* d_internal_evaluate(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _file,
+    size_t                       _value,
+    size_t                       _env
 )
 {
-    const struct d_ninja* const       ninja = &_graph->files[_file].records;
-    const struct d_ninja_value* const value = &ninja->values[_value];
-    struct d_internal_buffer          out   = { NULL, 0u, 0u, false };
+    const struct dj_ninja* const       ninja = &_graph->files[_file].records;
+    const struct dj_ninja_value* const value = &ninja->values[_value];
+    struct dj_internal_buffer          out   = { NULL, 0u, 0u, false };
 
     // each piece: text, or a variable looked up
     for (size_t at = 0; at < value->piece_count; ++at)
     {
-        const struct d_ninja_piece* const piece =
+        const struct dj_ninja_piece* const piece =
             &ninja->pieces[value->first_piece + at];
 
         // a table of the two kinds
@@ -1077,16 +1077,16 @@ d_internal_rule_value
   The value a rule binds a name to, as the last binding of the name in its
 statement: its file and value, or false for none.
 */
-static bool
-d_internal_rule_value(
-    const struct d_ninja_graph* _graph,
-    size_t                      _rule,
-    const char*                 _name,
-    size_t                      _length,
-    size_t*                     _out_value
+static
+bool d_internal_rule_value(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _rule,
+    const char*                  _name,
+    size_t                       _length,
+    size_t*                      _out_value
 )
 {
-    const struct d_internal_rule* const rule  = &_graph->rules[_rule];
+    const struct dj_internal_rule* const rule  = &_graph->rules[_rule];
     bool                                found = false;
 
     // phony binds nothing
@@ -1095,15 +1095,15 @@ d_internal_rule_value(
         return false;
     }
 
-    const struct d_ninja* const           ninja     =
+    const struct dj_ninja* const           ninja     =
         &_graph->files[rule->file].records;
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         &ninja->statements[rule->statement];
 
     // each binding, the last of the name kept
     for (size_t at = 0; at < statement->binding_count; ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &ninja->bindings[statement->first_binding + at];
 
         // the name's
@@ -1125,17 +1125,17 @@ d_internal_path_list
   An edge's nodes from one index to another, a separator between, each
 shell-escaped when asked, as MakePathList writes them.
 */
-static bool
-d_internal_path_list(
-    const struct d_internal_edge_env* _env,
-    const struct d_internal_list*     _list,
-    size_t                            _from,
-    size_t                            _to,
-    char                              _separator,
-    struct d_internal_buffer*         _out
+static
+bool d_internal_path_list(
+    const struct dj_internal_edge_env* _env,
+    const struct dj_internal_list*     _list,
+    size_t                             _from,
+    size_t                             _to,
+    char                               _separator,
+    struct dj_internal_buffer*         _out
 )
 {
-    const struct d_ninja_graph* const graph = _env->graph;
+    const struct dj_ninja_graph* const graph = _env->graph;
 
     // each node of the span
     for (size_t at = _from; at < _to; ++at)
@@ -1170,10 +1170,13 @@ d_internal_path_list(
 }
 
 
-static bool d_internal_edge_lookup(struct d_internal_edge_env* _env,
-                                   const char*                 _name,
-                                   size_t                      _length,
-                                   struct d_internal_buffer*   _out);
+static
+bool d_internal_edge_lookup(
+    struct dj_internal_edge_env* _env,
+    const char*                  _name,
+    size_t                       _length,
+    struct dj_internal_buffer*   _out
+);
 
 
 /*
@@ -1181,22 +1184,22 @@ d_internal_edge_evaluate
   A value of a rule's evaluated in an edge's sense: each reference looked
 up as EdgeEnv looks one up.
 */
-static bool
-d_internal_edge_evaluate(
-    struct d_internal_edge_env* _env,
-    size_t                      _file,
-    size_t                      _value,
-    struct d_internal_buffer*   _out
+static
+bool d_internal_edge_evaluate(
+    struct dj_internal_edge_env* _env,
+    size_t                       _file,
+    size_t                       _value,
+    struct dj_internal_buffer*   _out
 )
 {
-    const struct d_ninja* const       ninja =
+    const struct dj_ninja* const       ninja =
         &_env->graph->files[_file].records;
-    const struct d_ninja_value* const value = &ninja->values[_value];
+    const struct dj_ninja_value* const value = &ninja->values[_value];
 
     // each piece: text, or a variable looked up in the edge's sense
     for (size_t at = 0; (!_env->failed) && (at < value->piece_count); ++at)
     {
-        const struct d_ninja_piece* const piece =
+        const struct dj_ninja_piece* const piece =
             &ninja->pieces[value->first_piece + at];
 
         // a table of the two kinds
@@ -1222,11 +1225,11 @@ d_internal_cycle
   Whether a name is among those being evaluated: the cycle, from it, is
 written as ninja writes one, and the evaluation fails.
 */
-static bool
-d_internal_cycle(
-    struct d_internal_edge_env* _env,
-    const char*                 _name,
-    size_t                      _length
+static
+bool d_internal_cycle(
+    struct dj_internal_edge_env* _env,
+    const char*                  _name,
+    size_t                       _length
 )
 {
     size_t from = _env->depth;
@@ -1280,19 +1283,19 @@ d_internal_fallback
 binding, else the rule's value evaluated in the edge's sense, else the
 scopes about it.
 */
-static bool
-d_internal_fallback(
-    struct d_internal_edge_env* _env,
-    const char*                 _name,
-    size_t                      _length,
-    bool                        _has_value,
-    size_t                      _value,
-    struct d_internal_buffer*   _out
+static
+bool d_internal_fallback(
+    struct dj_internal_edge_env* _env,
+    const char*                  _name,
+    size_t                       _length,
+    bool                         _has_value,
+    size_t                       _value,
+    struct dj_internal_buffer*   _out
 )
 {
-    const struct d_ninja_graph* const  graph = _env->graph;
-    const struct d_internal_edge* const edge = &graph->edges[_env->edge];
-    const struct d_internal_binding* const own =
+    const struct dj_ninja_graph* const  graph = _env->graph;
+    const struct dj_internal_edge* const edge = &graph->edges[_env->edge];
+    const struct dj_internal_binding* const own =
         d_internal_find_binding(graph, edge->env, _name, _length);
 
     // a table of where the value comes from: the scope, the rule, the
@@ -1327,16 +1330,16 @@ another, kept on the stack while its rule's value is evaluated, looked up
 with the fallback.
   Long as it is ninja's own order of lookups, each a step.
 */
-static bool
-d_internal_edge_lookup(
-    struct d_internal_edge_env* _env,
-    const char*                 _name,
-    size_t                      _length,
-    struct d_internal_buffer*   _out
+static
+bool d_internal_edge_lookup(
+    struct dj_internal_edge_env* _env,
+    const char*                  _name,
+    size_t                       _length,
+    struct dj_internal_buffer*   _out
 )
 {
-    const struct d_ninja_graph* const   graph = _env->graph;
-    const struct d_internal_edge* const edge  = &graph->edges[_env->edge];
+    const struct dj_ninja_graph* const   graph = _env->graph;
+    const struct dj_internal_edge* const edge  = &graph->edges[_env->edge];
     const size_t                        count = edge->inputs.count;
     const size_t                        taken = edge->implicit +
                                                 edge->order_only;
@@ -1409,18 +1412,18 @@ d_internal_edge_binding
   An edge's binding evaluated: the text, for the caller to free, or NULL
 with the reason in `_problem`.
 */
-static char*
-d_internal_edge_binding(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge,
-    const char*                 _name,
-    bool                        _escape,
-    char*                       _problem,
-    size_t                      _capacity
+static
+char* d_internal_edge_binding(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge,
+    const char*                  _name,
+    bool                         _escape,
+    char*                        _problem,
+    size_t                       _capacity
 )
 {
-    struct d_internal_edge_env env;
-    struct d_internal_buffer   out = { NULL, 0u, 0u, false };
+    struct dj_internal_edge_env env;
+    struct dj_internal_buffer   out = { NULL, 0u, 0u, false };
 
     memset(&env, 0, sizeof(env));
     env.graph  = _graph;
@@ -1451,8 +1454,8 @@ d_internal_parse_version
   Ninja's ParseVersion: the major number to the first `.`, and the minor to
 the next.
 */
-static void
-d_internal_parse_version(
+static
+void d_internal_parse_version(
     const char* _version,
     int*        _out_major,
     int*        _out_minor
@@ -1471,11 +1474,11 @@ d_internal_parse_version(
 d_internal_at_least
   Whether the ninja acted as is a version or later.
 */
-static bool
-d_internal_at_least(
-    const struct d_ninja_graph* _graph,
-    int                         _major,
-    int                         _minor
+static
+bool d_internal_at_least(
+    const struct dj_ninja_graph* _graph,
+    int                          _major,
+    int                          _minor
 )
 {
     return ( (_graph->major > _major) ||
@@ -1488,10 +1491,10 @@ d_internal_check_version
   Ninja's CheckNinjaVersion: a build that requires a later ninja is
 refused; one written for an older major version is warned of.
 */
-static bool
-d_internal_check_version(
-    struct d_ninja_graph* _graph,
-    const char*           _required
+static
+bool d_internal_check_version(
+    struct dj_ninja_graph* _graph,
+    const char*            _required
 )
 {
     int  major = 0;
@@ -1530,10 +1533,10 @@ d_internal_depth
   A pool's depth as the version reads it: atol's reading before 1.14, and
 from_chars's, the whole text a number, from 1.14; -1 for one refused.
 */
-static int
-d_internal_depth(
-    const struct d_ninja_graph* _graph,
-    const char*                 _text
+static
+int d_internal_depth(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _text
 )
 {
     // before 1.14, as atol reads it, narrowed to an int
@@ -1585,11 +1588,14 @@ d_internal_depth(
 //==============================================================================
 
 
-static bool d_internal_load_file(struct d_ninja_graph* _graph,
-                                 const char*           _path,
-                                 char*                 _text,
-                                 size_t                _length,
-                                 size_t                _env);
+static
+bool d_internal_load_file(
+    struct dj_ninja_graph* _graph,
+    const char*            _path,
+    char*                  _text,
+    size_t                 _length,
+    size_t                 _env
+);
 
 
 /*
@@ -1597,13 +1603,13 @@ d_internal_canonical
   A path evaluated and made canonical; NULL, the build failed, for one
 that comes to nothing or memory that ran out.
 */
-static char*
-d_internal_canonical(
-    struct d_ninja_graph* _graph,
-    size_t                _file,
-    size_t                _value,
-    size_t                _env,
-    size_t                _line
+static
+char* d_internal_canonical(
+    struct dj_ninja_graph* _graph,
+    size_t                 _file,
+    size_t                 _value,
+    size_t                 _env,
+    size_t                 _line
 )
 {
     char* const path = d_internal_evaluate(_graph, _file, _value, _env);
@@ -1648,15 +1654,15 @@ d_internal_canonical(
 d_internal_variable
   A variable bound where it stands, a required version checked first.
 */
-static bool
-d_internal_variable(
-    struct d_ninja_graph*           _graph,
-    size_t                          _file,
-    const struct d_ninja_statement* _statement,
-    size_t                          _env
+static
+bool d_internal_variable(
+    struct dj_ninja_graph*           _graph,
+    size_t                           _file,
+    const struct dj_ninja_statement* _statement,
+    size_t                           _env
 )
 {
-    const struct d_ninja* const ninja = &_graph->files[_file].records;
+    const struct dj_ninja* const ninja = &_graph->files[_file].records;
     const char* const           name  = &ninja->text[_statement->name_start];
     const size_t                span  = _statement->name_end -
                                         _statement->name_start;
@@ -1682,17 +1688,17 @@ d_internal_variable(
 d_internal_rule
   A rule, defined once in its scope.
 */
-static bool
-d_internal_rule(
-    struct d_ninja_graph*           _graph,
-    size_t                          _file,
-    size_t                          _index,
-    size_t                          _env
+static
+bool d_internal_rule(
+    struct dj_ninja_graph* _graph,
+    size_t                 _file,
+    size_t                 _index,
+    size_t                 _env
 )
 {
-    const struct d_ninja* const           ninja     =
+    const struct dj_ninja* const           ninja     =
         &_graph->files[_file].records;
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         &ninja->statements[_index];
     const char* const                     name      =
         &ninja->text[statement->name_start];
@@ -1720,15 +1726,15 @@ d_internal_rule(
 d_internal_pool
   A pool, defined once, its depth read from each binding as it comes.
 */
-static bool
-d_internal_pool(
-    struct d_ninja_graph*           _graph,
-    size_t                          _file,
-    const struct d_ninja_statement* _statement,
-    size_t                          _env
+static
+bool d_internal_pool(
+    struct dj_ninja_graph*           _graph,
+    size_t                           _file,
+    const struct dj_ninja_statement* _statement,
+    size_t                           _env
 )
 {
-    const struct d_ninja* const ninja = &_graph->files[_file].records;
+    const struct dj_ninja* const ninja = &_graph->files[_file].records;
     const char* const           name  = &ninja->text[_statement->name_start];
     const size_t                span  = _statement->name_end -
                                         _statement->name_start;
@@ -1750,7 +1756,7 @@ d_internal_pool(
     // each depth, as it is read
     for (size_t at = 0; at < _statement->binding_count; ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &ninja->bindings[_statement->first_binding + at];
         char* const text = d_internal_evaluate(_graph, _file, binding->value,
                                                _env);
@@ -1780,15 +1786,15 @@ d_internal_pool(
 d_internal_default
   Each target of a default, a node the build names already.
 */
-static bool
-d_internal_default(
-    struct d_ninja_graph*           _graph,
-    size_t                          _file,
-    const struct d_ninja_statement* _statement,
-    size_t                          _env
+static
+bool d_internal_default(
+    struct dj_ninja_graph*           _graph,
+    size_t                           _file,
+    const struct dj_ninja_statement* _statement,
+    size_t                           _env
 )
 {
-    const struct d_ninja* const ninja = &_graph->files[_file].records;
+    const struct dj_ninja* const ninja = &_graph->files[_file].records;
     char                        message[512];
 
     // each target, as it is read
@@ -1836,12 +1842,12 @@ d_internal_read_file
   A file's bytes, from the directory ninja runs in, terminated; NULL, the
 reason given as strerror gives it, when it cannot be read.
 */
-static char*
-d_internal_read_file(
-    const struct d_ninja_graph* _graph,
-    const char*                 _path,
-    size_t*                     _out_length,
-    const char**                _out_why
+static
+char* d_internal_read_file(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _path,
+    size_t*                      _out_length,
+    const char**                 _out_why
 )
 {
     const bool   relative = ( (_graph->directory) &&
@@ -1874,7 +1880,7 @@ d_internal_read_file(
         return NULL;
     }
 
-    struct d_internal_buffer text = { NULL, 0u, 0u, false };
+    struct dj_internal_buffer text = { NULL, 0u, 0u, false };
     char                     block[8192];
     size_t                   got  = 0;
 
@@ -1908,15 +1914,15 @@ d_internal_include
   An include, in the scope it stands in, or a subninja, in a scope of its
 own within it; a file that cannot be read is reported at the statement.
 */
-static bool
-d_internal_include(
-    struct d_ninja_graph*           _graph,
-    size_t                          _file,
-    const struct d_ninja_statement* _statement,
-    size_t                          _env
+static
+bool d_internal_include(
+    struct dj_ninja_graph*           _graph,
+    size_t                           _file,
+    const struct dj_ninja_statement* _statement,
+    size_t                           _env
 )
 {
-    const struct d_ninja* const ninja = &_graph->files[_file].records;
+    const struct dj_ninja* const ninja = &_graph->files[_file].records;
     const size_t                value = _statement->value;
     const size_t                line  = d_ninja_line_of(ninja,
                                                         ninja->values[value]
@@ -1963,18 +1969,18 @@ d_internal_new_edge
   An edge of a rule, in a scope: the build's own, when it has bindings,
 each evaluated in the file's scope as ninja evaluates them.
 */
-static size_t
-d_internal_new_edge(
-    struct d_ninja_graph*           _graph,
-    size_t                          _file,
-    size_t                          _index,
-    size_t                          _rule,
-    size_t                          _env
+static
+size_t d_internal_new_edge(
+    struct dj_ninja_graph* _graph,
+    size_t                 _file,
+    size_t                 _index,
+    size_t                 _rule,
+    size_t                 _env
 )
 {
-    const struct d_ninja* const           ninja     =
+    const struct dj_ninja* const           ninja     =
         &_graph->files[_file].records;
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         &ninja->statements[_index];
     size_t                                env       = _env;
 
@@ -1989,7 +1995,7 @@ d_internal_new_edge(
          (env != D_NINJA_NONE) && (at < statement->binding_count);
          ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &ninja->bindings[statement->first_binding + at];
 
         // the binding kept
@@ -2012,7 +2018,7 @@ d_internal_new_edge(
         return D_NINJA_NONE;
     }
 
-    struct d_internal_edge* const edge = &_graph->edges[_graph->edge_count];
+    struct dj_internal_edge* const edge = &_graph->edges[_graph->edge_count];
 
     memset(edge, 0, sizeof(*edge));
     edge->rule      = _rule;
@@ -2030,11 +2036,11 @@ d_internal_edge_pool
   An edge's pool, by the binding its rule or its scope gives, evaluated as
 ninja evaluates it, before the edge has a path.
 */
-static bool
-d_internal_edge_pool(
-    struct d_ninja_graph* _graph,
-    size_t                _edge,
-    size_t                _line
+static
+bool d_internal_edge_pool(
+    struct dj_ninja_graph* _graph,
+    size_t                 _edge,
+    size_t                 _line
 )
 {
     char        why[512];
@@ -2082,22 +2088,22 @@ its in-edge; as an input, a validation, the edge one of its out-edges.
 */
 static bool
 d_internal_edge_paths(
-    struct d_ninja_graph*           _graph,
+    struct dj_ninja_graph*           _graph,
     size_t                          _edge,
-    const struct d_ninja_statement* _statement,
-    enum d_ninja_section            _first,
-    enum d_ninja_section            _last,
+    const struct dj_ninja_statement* _statement,
+    enum dj_ninja_section            _first,
+    enum dj_ninja_section            _last,
     size_t                          _line
 )
 {
-    struct d_internal_edge* const edge  = &_graph->edges[_edge];
-    const struct d_ninja* const   ninja = &_graph->files[edge->file].records;
+    struct dj_internal_edge* const edge  = &_graph->edges[_edge];
+    const struct dj_ninja* const   ninja = &_graph->files[edge->file].records;
     char                          message[640];
 
     // each path of the sections, in order
     for (size_t at = 0; at < _statement->path_count; ++at)
     {
-        const struct d_ninja_path* const written =
+        const struct dj_ninja_path* const written =
             &ninja->paths[_statement->first_path + at];
 
         // one of another section
@@ -2127,7 +2133,7 @@ d_internal_edge_paths(
             return false;
         }
 
-        struct d_internal_node* const target = &_graph->nodes[node];
+        struct dj_internal_node* const target = &_graph->nodes[node];
 
         // a table of what the path is: an output, made once; an input; a
         // validation
@@ -2184,13 +2190,13 @@ CMakes wrote them: the self-reference dropped, with ninja's warning; from
 1.14 the node's out-edge goes too.  The sections' counts are left as they
 were, as ninja leaves them.
 */
-static bool
-d_internal_phony_cycle(
-    struct d_ninja_graph* _graph,
-    size_t                _edge
+static
+bool d_internal_phony_cycle(
+    struct dj_ninja_graph* _graph,
+    size_t                 _edge
 )
 {
-    struct d_internal_edge* const edge = &_graph->edges[_edge];
+    struct dj_internal_edge* const edge = &_graph->edges[_edge];
     char                          message[640];
 
     // only the form old CMakes wrote: from 1.14, with no order-only input
@@ -2225,7 +2231,7 @@ d_internal_phony_cycle(
 
     edge->inputs.count = kept;
 
-    struct d_internal_list* const outs = &_graph->nodes[output].out_edges;
+    struct dj_internal_list* const outs = &_graph->nodes[output].out_edges;
 
     // from 1.14, the output's out-edge goes with it
     for (size_t at = 0, left = 0;
@@ -2256,11 +2262,11 @@ d_internal_dyndep
   An edge's dyndep, evaluated unescaped, made canonical and made a node,
 which must be among its inputs.
 */
-static bool
-d_internal_dyndep(
-    struct d_ninja_graph* _graph,
-    size_t                _edge,
-    size_t                _line
+static
+bool d_internal_dyndep(
+    struct dj_ninja_graph* _graph,
+    size_t                 _edge,
+    size_t                 _line
 )
 {
     char        why[512];
@@ -2298,7 +2304,7 @@ d_internal_dyndep(
 
     const size_t                        node  =
         d_internal_get_node(_graph, canonical, strlen(canonical));
-    const struct d_internal_edge* const edge  = &_graph->edges[_edge];
+    const struct dj_internal_edge* const edge  = &_graph->edges[_edge];
     bool                                input = false;
 
     // among the inputs
@@ -2329,17 +2335,17 @@ d_internal_build
   A build, taken as ninja's ParseEdge takes one: its rule, its scope, its
 pool, its outputs, its inputs and validations, a phony cycle, its dyndep.
 */
-static bool
-d_internal_build(
-    struct d_ninja_graph*           _graph,
-    size_t                          _file,
-    size_t                          _index,
-    size_t                          _env
+static
+bool d_internal_build(
+    struct dj_ninja_graph* _graph,
+    size_t                 _file,
+    size_t                 _index,
+    size_t                 _env
 )
 {
-    const struct d_ninja* const           ninja     =
+    const struct dj_ninja* const           ninja     =
         &_graph->files[_file].records;
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         &ninja->statements[_index];
     const char* const                     name      =
         &ninja->text[statement->name_start];
@@ -2380,15 +2386,15 @@ d_internal_build(
 d_internal_statement
   One statement, by its kind.
 */
-static bool
-d_internal_statement(
-    struct d_ninja_graph* _graph,
-    size_t                _file,
-    size_t                _index,
-    size_t                _env
+static
+bool d_internal_statement(
+    struct dj_ninja_graph* _graph,
+    size_t                 _file,
+    size_t                 _index,
+    size_t                 _env
 )
 {
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         &_graph->files[_file].records.statements[_index];
 
     // a table of the kinds
@@ -2426,16 +2432,16 @@ it failed: a build's rule, once named; a default's targets, each as read; an
 include's file, once read; a rule's or a pool's name, once its line ended,
 and a pool's depths as read.  True when nothing it holds is refused.
 */
-static bool
-d_internal_partial(
-    struct d_ninja_graph* _graph,
-    size_t                _file,
-    size_t                _env
+static
+bool d_internal_partial(
+    struct dj_ninja_graph* _graph,
+    size_t                 _file,
+    size_t                 _env
 )
 {
-    struct d_ninja* const           ninja     = &_graph->files[_file].records;
+    struct dj_ninja* const           ninja     = &_graph->files[_file].records;
     const size_t                    index     = ninja->statement_count;
-    const struct d_ninja_statement* statement = &ninja->statements[index];
+    const struct dj_ninja_statement* statement = &ninja->statements[index];
     char                            message[256];
 
     // a table of what each kind does before it is whole
@@ -2487,13 +2493,13 @@ d_internal_load_file
 kept, its text and path taken.  A refusal dninja made is reported once
 what came before it has been taken.
 */
-static bool
-d_internal_load_file(
-    struct d_ninja_graph* _graph,
-    const char*           _path,
-    char*                 _text,
-    size_t                _length,
-    size_t                _env
+static
+bool d_internal_load_file(
+    struct dj_ninja_graph* _graph,
+    const char*            _path,
+    char*                  _text,
+    size_t                 _length,
+    size_t                 _env
 )
 {
     char* const path = d_internal_copy(_path, strlen(_path));
@@ -2510,7 +2516,7 @@ d_internal_load_file(
     }
 
     const size_t                  index = _graph->file_count++;
-    struct d_internal_file* const file  = &_graph->files[index];
+    struct dj_internal_file* const file  = &_graph->files[index];
 
     file->path   = path;
     file->text   = _text;
@@ -2543,7 +2549,7 @@ d_internal_load_file(
         return false;
     }
 
-    const struct d_ninja* const records = &_graph->files[index].records;
+    const struct dj_ninja* const records = &_graph->files[index].records;
     const bool                  newline =
         (strstr(records->error, "using $^ escape") != NULL);
 
@@ -2566,15 +2572,15 @@ d_internal_finish
   What a loaded build gives besides its records: its roots, and the top
 scope's rules in order.
 */
-static bool
-d_internal_finish(
-    struct d_ninja_graph* _graph
+static
+bool d_internal_finish(
+    struct dj_ninja_graph* _graph
 )
 {
     // each output that no edge takes as an input, in edge order
     for (size_t at = 0; at < _graph->edge_count; ++at)
     {
-        const struct d_internal_edge* const edge = &_graph->edges[at];
+        const struct dj_internal_edge* const edge = &_graph->edges[at];
 
         // each output
         for (size_t out = 0; out < edge->outputs.count; ++out)
@@ -2590,8 +2596,8 @@ d_internal_finish(
         }
     }
 
-    const struct d_internal_env* const top   = &_graph->envs[0];
-    struct d_internal_list* const      rules = &_graph->top_rules;
+    const struct dj_internal_env* const top   = &_graph->envs[0];
+    struct dj_internal_list* const      rules = &_graph->top_rules;
 
     // the top scope's rules, each put in order by its name's bytes, as a
     // std::map orders them
@@ -2627,12 +2633,12 @@ d_internal_begin
   A build with nothing loaded: the top scope, phony, and the two pools
 ninja defines.
 */
-static struct d_ninja_graph*
-d_internal_begin(
-    const struct d_ninja_options* _options
+static
+struct dj_ninja_graph* d_internal_begin(
+    const struct dj_ninja_options* _options
 )
 {
-    struct d_ninja_graph* const graph = calloc(1u, sizeof(*graph));
+    struct dj_ninja_graph* const graph = calloc(1u, sizeof(*graph));
 
     // a build needs room of its own
     if (!graph)
@@ -2671,12 +2677,12 @@ d_internal_begin(
 d_internal_loaded
   The build, once loaded whole, or NULL with ninja's reason.
 */
-static struct d_ninja_graph*
-d_internal_loaded(
-    struct d_ninja_graph* _graph,
-    bool                  _ok,
-    char*                 _problem,
-    size_t                _capacity
+static
+struct dj_ninja_graph* d_internal_loaded(
+    struct dj_ninja_graph* _graph,
+    bool                   _ok,
+    char*                  _problem,
+    size_t                 _capacity
 )
 {
     // a build ninja would not load
@@ -2693,17 +2699,16 @@ d_internal_loaded(
 }
 
 
-struct d_ninja_graph*
-d_ninja_load_text(
-    const char*                   _path,
-    const char*                   _text,
-    size_t                        _length,
-    const struct d_ninja_options* _options,
-    char*                         _problem,
-    size_t                        _capacity
+struct dj_ninja_graph* d_ninja_load_text(
+    const char*                    _path,
+    const char*                    _text,
+    size_t                         _length,
+    const struct dj_ninja_options* _options,
+    char*                          _problem,
+    size_t                         _capacity
 )
 {
-    struct d_ninja_graph* const graph = d_internal_begin(_options);
+    struct dj_ninja_graph* const graph = d_internal_begin(_options);
     char* const                 text  = d_internal_copy((_text) ? _text : "",
                                                         (_text) ? _length
                                                                 : 0u);
@@ -2729,15 +2734,14 @@ d_ninja_load_text(
 }
 
 
-struct d_ninja_graph*
-d_ninja_load(
-    const char*                   _path,
-    const struct d_ninja_options* _options,
-    char*                         _problem,
-    size_t                        _capacity
+struct dj_ninja_graph* d_ninja_load(
+    const char*                    _path,
+    const struct dj_ninja_options* _options,
+    char*                          _problem,
+    size_t                         _capacity
 )
 {
-    struct d_ninja_graph* const graph  = d_internal_begin(_options);
+    struct dj_ninja_graph* const graph  = d_internal_begin(_options);
     size_t                      length = 0;
     const char*                 why    = NULL;
 
@@ -2775,9 +2779,8 @@ d_ninja_graph_free
   Long as each of the build's arrays, and what each item of them owns, is
 freed in turn.
 */
-void
-d_ninja_graph_free(
-    struct d_ninja_graph* _graph
+void d_ninja_graph_free(
+    struct dj_ninja_graph* _graph
 )
 {
     // freeing nothing is allowed
@@ -2865,19 +2868,17 @@ d_ninja_graph_free(
 //==============================================================================
 
 
-size_t
-d_ninja_edge_count(
-    const struct d_ninja_graph* _graph
+size_t d_ninja_edge_count(
+    const struct dj_ninja_graph* _graph
 )
 {
     return (_graph) ? _graph->edge_count : 0u;
 }
 
 
-const char*
-d_ninja_edge_rule(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge
+const char* d_ninja_edge_rule(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
 )
 {
     return ( (_graph) && (_edge < _graph->edge_count) )
@@ -2885,10 +2886,9 @@ d_ninja_edge_rule(
 }
 
 
-bool
-d_ninja_edge_phony(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge
+bool d_ninja_edge_phony(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
 )
 {
     return ( (_graph) &&
@@ -2905,9 +2905,9 @@ and is_order_only count them; the outputs' two from their start.
 */
 size_t
 d_ninja_edge_nodes(
-    const struct d_ninja_graph* _graph,
+    const struct dj_ninja_graph* _graph,
     size_t                      _edge,
-    enum d_ninja_section        _section,
+    enum dj_ninja_section        _section,
     const size_t**              _out_nodes
 )
 {
@@ -2920,7 +2920,7 @@ d_ninja_edge_nodes(
         return 0u;
     }
 
-    const struct d_internal_edge* const edge   = &_graph->edges[_edge];
+    const struct dj_internal_edge* const edge   = &_graph->edges[_edge];
     const size_t                        count  = edge->inputs.count;
     const size_t                        order  = (edge->order_only < count)
                                                      ? edge->order_only
@@ -2980,10 +2980,9 @@ d_ninja_edge_nodes(
 }
 
 
-const char*
-d_ninja_edge_pool(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge
+const char* d_ninja_edge_pool(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
 )
 {
     return ( (_graph) && (_edge < _graph->edge_count) )
@@ -2991,10 +2990,9 @@ d_ninja_edge_pool(
 }
 
 
-const char*
-d_ninja_edge_file(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge
+const char* d_ninja_edge_file(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
 )
 {
     return ( (_graph) && (_edge < _graph->edge_count) )
@@ -3002,10 +3000,9 @@ d_ninja_edge_file(
 }
 
 
-size_t
-d_ninja_edge_line(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge
+size_t d_ninja_edge_line(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
 )
 {
     // an edge the build has
@@ -3015,20 +3012,19 @@ d_ninja_edge_line(
         return 0u;
     }
 
-    const struct d_internal_edge* const edge = &_graph->edges[_edge];
+    const struct dj_internal_edge* const edge = &_graph->edges[_edge];
 
     return _graph->files[edge->file].records.statements[edge->statement].line;
 }
 
 
-char*
-d_ninja_edge_binding(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge,
-    const char*                 _name,
-    bool                        _escape,
-    char*                       _problem,
-    size_t                      _capacity
+char* d_ninja_edge_binding(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge,
+    const char*                  _name,
+    bool                         _escape,
+    char*                        _problem,
+    size_t                       _capacity
 )
 {
     // an edge the build has, and a name
@@ -3046,19 +3042,17 @@ d_ninja_edge_binding(
 }
 
 
-size_t
-d_ninja_node_count(
-    const struct d_ninja_graph* _graph
+size_t d_ninja_node_count(
+    const struct dj_ninja_graph* _graph
 )
 {
     return (_graph) ? _graph->node_count : 0u;
 }
 
 
-const char*
-d_ninja_node_path(
-    const struct d_ninja_graph* _graph,
-    size_t                      _node
+const char* d_ninja_node_path(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node
 )
 {
     return ( (_graph) && (_node < _graph->node_count) )
@@ -3066,10 +3060,9 @@ d_ninja_node_path(
 }
 
 
-size_t
-d_ninja_node_in_edge(
-    const struct d_ninja_graph* _graph,
-    size_t                      _node
+size_t d_ninja_node_in_edge(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node
 )
 {
     return ( (_graph) && (_node < _graph->node_count) )
@@ -3077,11 +3070,10 @@ d_ninja_node_in_edge(
 }
 
 
-size_t
-d_ninja_node_out_edges(
-    const struct d_ninja_graph* _graph,
-    size_t                      _node,
-    const size_t**              _out_edges
+size_t d_ninja_node_out_edges(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node,
+    const size_t**               _out_edges
 )
 {
     // a node the build has
@@ -3099,11 +3091,10 @@ d_ninja_node_out_edges(
 }
 
 
-size_t
-d_ninja_node_validation_edges(
-    const struct d_ninja_graph* _graph,
-    size_t                      _node,
-    const size_t**              _out_edges
+size_t d_ninja_node_validation_edges(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node,
+    const size_t**               _out_edges
 )
 {
     // a node the build has
@@ -3121,11 +3112,10 @@ d_ninja_node_validation_edges(
 }
 
 
-size_t
-d_ninja_node_find(
-    const struct d_ninja_graph* _graph,
-    const char*                 _path,
-    size_t                      _length
+size_t d_ninja_node_find(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _path,
+    size_t                       _length
 )
 {
     // a build, and a path
@@ -3154,10 +3144,9 @@ d_ninja_node_find(
 }
 
 
-size_t
-d_ninja_defaults(
-    const struct d_ninja_graph* _graph,
-    const size_t**              _out_nodes
+size_t d_ninja_defaults(
+    const struct dj_ninja_graph* _graph,
+    const size_t**               _out_nodes
 )
 {
     *_out_nodes = (_graph) ? _graph->defaults.items : NULL;
@@ -3166,10 +3155,9 @@ d_ninja_defaults(
 }
 
 
-size_t
-d_ninja_roots(
-    const struct d_ninja_graph* _graph,
-    const size_t**              _out_nodes
+size_t d_ninja_roots(
+    const struct dj_ninja_graph* _graph,
+    const size_t**               _out_nodes
 )
 {
     *_out_nodes = (_graph) ? _graph->roots.items : NULL;
@@ -3178,19 +3166,17 @@ d_ninja_roots(
 }
 
 
-size_t
-d_ninja_rule_count(
-    const struct d_ninja_graph* _graph
+size_t d_ninja_rule_count(
+    const struct dj_ninja_graph* _graph
 )
 {
     return (_graph) ? _graph->top_rules.count : 0u;
 }
 
 
-const char*
-d_ninja_rule_name(
-    const struct d_ninja_graph* _graph,
-    size_t                      _rule
+const char* d_ninja_rule_name(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _rule
 )
 {
     return ( (_graph) && (_rule < _graph->top_rules.count) )
@@ -3198,11 +3184,10 @@ d_ninja_rule_name(
 }
 
 
-char*
-d_ninja_rule_binding(
-    const struct d_ninja_graph* _graph,
-    size_t                      _rule,
-    const char*                 _name
+char* d_ninja_rule_binding(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _rule,
+    const char*                  _name
 )
 {
     size_t value = 0;
@@ -3217,11 +3202,11 @@ d_ninja_rule_binding(
         return NULL;
     }
 
-    const struct d_internal_rule* const rule  =
+    const struct dj_internal_rule* const rule  =
         &_graph->rules[_graph->top_rules.items[_rule]];
-    const struct d_ninja* const         ninja =
+    const struct dj_ninja* const         ninja =
         &_graph->files[rule->file].records;
-    const struct d_ninja_value* const   eval  = &ninja->values[value];
+    const struct dj_ninja_value* const   eval  = &ninja->values[value];
     char* const                         out   =
         malloc(((eval->end - eval->start) * 2u) + 1u);
 
@@ -3235,19 +3220,17 @@ d_ninja_rule_binding(
 }
 
 
-size_t
-d_ninja_pool_count(
-    const struct d_ninja_graph* _graph
+size_t d_ninja_pool_count(
+    const struct dj_ninja_graph* _graph
 )
 {
     return (_graph) ? _graph->pool_count : 0u;
 }
 
 
-const char*
-d_ninja_pool_name(
-    const struct d_ninja_graph* _graph,
-    size_t                      _pool
+const char* d_ninja_pool_name(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _pool
 )
 {
     return ( (_graph) && (_pool < _graph->pool_count) )
@@ -3255,10 +3238,9 @@ d_ninja_pool_name(
 }
 
 
-int
-d_ninja_pool_depth(
-    const struct d_ninja_graph* _graph,
-    size_t                      _pool
+int d_ninja_pool_depth(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _pool
 )
 {
     return ( (_graph) && (_pool < _graph->pool_count) )
@@ -3266,10 +3248,9 @@ d_ninja_pool_depth(
 }
 
 
-char*
-d_ninja_variable(
-    const struct d_ninja_graph* _graph,
-    const char*                 _name
+char* d_ninja_variable(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _name
 )
 {
     const char* const value = ( (_graph) && (_name) )
@@ -3281,19 +3262,17 @@ d_ninja_variable(
 }
 
 
-size_t
-d_ninja_file_count(
-    const struct d_ninja_graph* _graph
+size_t d_ninja_file_count(
+    const struct dj_ninja_graph* _graph
 )
 {
     return (_graph) ? _graph->file_count : 0u;
 }
 
 
-const char*
-d_ninja_file_path(
-    const struct d_ninja_graph* _graph,
-    size_t                      _file
+const char* d_ninja_file_path(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _file
 )
 {
     return ( (_graph) && (_file < _graph->file_count) )
@@ -3301,19 +3280,17 @@ d_ninja_file_path(
 }
 
 
-size_t
-d_ninja_warning_count(
-    const struct d_ninja_graph* _graph
+size_t d_ninja_warning_count(
+    const struct dj_ninja_graph* _graph
 )
 {
     return (_graph) ? _graph->warning_count : 0u;
 }
 
 
-const char*
-d_ninja_warning(
-    const struct d_ninja_graph* _graph,
-    size_t                      _warning
+const char* d_ninja_warning(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _warning
 )
 {
     return ( (_graph) && (_warning < _graph->warning_count) )

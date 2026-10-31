@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,14 +23,12 @@ d_tests_sa_text_buffer_append_string
   - multiple consecutive appends
   - result is null-terminated with correct length
 */
-bool
-d_tests_sa_text_buffer_append_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -110,14 +108,12 @@ d_tests_sa_text_buffer_append_string_n
   - partial string append
   - length-limited append does not exceed specified count
 */
-bool
-d_tests_sa_text_buffer_append_string_n
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_string_n(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -184,14 +180,12 @@ d_tests_sa_text_buffer_append_buffer
   - zero length append succeeds
   - raw data append with specified length
 */
-bool
-d_tests_sa_text_buffer_append_buffer
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_buffer(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     char                  data[4];
     const char*           str;
 
@@ -257,14 +251,12 @@ d_tests_sa_text_buffer_append_char
   - append multiple characters sequentially
   - result is null-terminated
 */
-bool
-d_tests_sa_text_buffer_append_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -320,14 +312,12 @@ d_tests_sa_text_buffer_append_chars
   - appending multiple copies of a character
   - result has correct length and content
 */
-bool
-d_tests_sa_text_buffer_append_chars
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_chars(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     size_t                i;
     bool                  all_match;
@@ -403,14 +393,12 @@ d_tests_sa_text_buffer_append_formatted
   - formatted append with string
   - cumulative formatting
 */
-bool
-d_tests_sa_text_buffer_append_formatted
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_formatted(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -477,15 +465,13 @@ d_tests_sa_text_buffer_append_buffer_obj
   - successful append of one buffer to another
   - source buffer unmodified after append
 */
-bool
-d_tests_sa_text_buffer_append_buffer_obj
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_buffer_obj(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* dest;
-    struct d_text_buffer* src;
+    struct dj_text_buffer* dest;
+    struct dj_text_buffer* src;
     const char*           str;
 
     result = true;
@@ -557,14 +543,12 @@ d_tests_sa_text_buffer_prepend_string
   - prepend shifts existing content
   - result is null-terminated
 */
-bool
-d_tests_sa_text_buffer_prepend_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_prepend_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -630,14 +614,12 @@ d_tests_sa_text_buffer_prepend_buffer
   - zero length succeeds without change
   - raw data prepend shifts existing content
 */
-bool
-d_tests_sa_text_buffer_prepend_buffer
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_prepend_buffer(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     char                  prefix[3];
 
@@ -693,14 +675,12 @@ d_tests_sa_text_buffer_prepend_char
   - prepend char shifts existing content
   - multiple prepends build string in reverse
 */
-bool
-d_tests_sa_text_buffer_prepend_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_prepend_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -751,14 +731,12 @@ d_tests_sa_text_buffer_insert_string
   - insert at middle
   - insert at end (append position)
 */
-bool
-d_tests_sa_text_buffer_insert_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_insert_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -813,7 +791,7 @@ d_tests_sa_text_buffer_insert_string
         // test 5: insert at end
         result = d_assert_standalone(
             d_text_buffer_insert_string(
-                buffer, (d_index)d_text_buffer_length(buffer),
+                buffer, (dj_index)d_text_buffer_length(buffer),
                 "<<") == true,
             "insert_str_end",
             "Insert at end should succeed",
@@ -841,14 +819,12 @@ d_tests_sa_text_buffer_insert_buffer
   - zero length insert succeeds without change
   - raw data inserted at correct position
 */
-bool
-d_tests_sa_text_buffer_insert_buffer
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_insert_buffer(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     char                  data[3];
 
@@ -906,14 +882,12 @@ d_tests_sa_text_buffer_insert_char
   - insert at middle
   - insert at end
 */
-bool
-d_tests_sa_text_buffer_insert_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_insert_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -960,7 +934,7 @@ d_tests_sa_text_buffer_insert_char
         // test 4: insert at end
         result = d_assert_standalone(
             d_text_buffer_insert_char(
-                buffer, (d_index)d_text_buffer_length(buffer),
+                buffer, (dj_index)d_text_buffer_length(buffer),
                 '!') == true,
             "insert_char_end",
             "Insert at end should succeed",
@@ -983,10 +957,8 @@ d_tests_sa_text_buffer_insert_char
 d_tests_sa_text_buffer_string_ops_all
   Aggregation function that runs all string operation (resize mode) tests.
 */
-bool
-d_tests_sa_text_buffer_string_ops_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_string_ops_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

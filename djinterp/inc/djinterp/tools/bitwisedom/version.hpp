@@ -22,8 +22,8 @@ TABLE OF CONTENTS
     2.  BITWISEDOM_PROGRAM
 */
 
-#ifndef BITWISEDOM_VERSION_HPP
-#define BITWISEDOM_VERSION_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_VERSION_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_VERSION_HPP 1
 
 
 //==============================================================================
@@ -46,4 +46,4 @@ TABLE OF CONTENTS
 #define BITWISEDOM_PROGRAM "bitwisedom"
 
 
-#endif  // BITWISEDOM_VERSION_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_VERSION_HPP

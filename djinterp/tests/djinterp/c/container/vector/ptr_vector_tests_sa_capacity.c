@@ -12,19 +12,17 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_cap_test_values[] = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 
 
-bool
-d_tests_sa_ptr_vector_reserve
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_reserve(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     size_t               original_capacity;
 
     result = true;
@@ -90,14 +88,12 @@ d_tests_sa_ptr_vector_reserve
 }
 
 
-bool
-d_tests_sa_ptr_vector_shrink_to_fit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_shrink_to_fit(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -146,14 +142,12 @@ d_tests_sa_ptr_vector_shrink_to_fit
 }
 
 
-bool
-d_tests_sa_ptr_vector_ensure_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_ensure_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     size_t               original_capacity;
 
     result = true;
@@ -204,14 +198,12 @@ d_tests_sa_ptr_vector_ensure_capacity
 }
 
 
-bool
-d_tests_sa_ptr_vector_available
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_available(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -273,10 +265,8 @@ d_tests_sa_ptr_vector_available
 }
 
 
-bool
-d_tests_sa_ptr_vector_capacity_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_capacity_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

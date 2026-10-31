@@ -24,54 +24,100 @@
 // djinterp
 #include "../../../inc/djinterp/c/djinterp.h"
 #include "../../../inc/djinterp/c/dmemory.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
-// `d_index` function tests (in header order)
-bool d_tests_sa_index_convert_fast(struct d_test_counter* _test_info);
-bool d_tests_sa_index_convert_safe(struct d_test_counter* _test_info);
-bool d_tests_sa_index_is_valid(struct d_test_counter* _test_info);
+// `dj_index` function tests (in header order)
+bool d_tests_sa_index_convert_fast(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_index_convert_safe(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_index_is_valid(
+    struct dj_test_counter* _test_info
+);
 
 // `ssize64` creation and access tests
-bool d_tests_sa_ssize64_creation(struct d_test_counter* _test_info);
-bool d_tests_sa_ssize64_access(struct d_test_counter* _test_info);
+bool d_tests_sa_ssize64_creation(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_ssize64_access(
+    struct dj_test_counter* _test_info
+);
 
 // `ssize64` arithmetic operation tests
-bool d_tests_sa_ssize64_arithmetic_functions(struct d_test_counter* _test_info);
-bool d_tests_sa_ssize64_arithmetic_macros(struct d_test_counter* _test_info);
+bool d_tests_sa_ssize64_arithmetic_functions(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_ssize64_arithmetic_macros(
+    struct dj_test_counter* _test_info
+);
 
 // `ssize64` comparison tests
-bool d_tests_sa_ssize64_comparison_ssize64(struct d_test_counter* _test_info);
-bool d_tests_sa_ssize64_comparison_other_types(struct d_test_counter* _test_info);
+bool d_tests_sa_ssize64_comparison_ssize64(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_ssize64_comparison_other_types(
+    struct dj_test_counter* _test_info
+);
 
 // `ssize64` conversion and validation tests
-bool d_tests_sa_ssize64_conversion_functions(struct d_test_counter* _test_info);
-bool d_tests_sa_ssize64_validation_functions(struct d_test_counter* _test_info);
-bool d_tests_sa_ssize64_edge_cases(struct d_test_counter* _test_info);
+bool d_tests_sa_ssize64_conversion_functions(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_ssize64_validation_functions(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_ssize64_edge_cases(
+    struct dj_test_counter* _test_info
+);
 
 // macro utility tests (in logical order)
-bool d_tests_sa_macro_array_utilities(struct d_test_counter* _test_info);
-bool d_tests_sa_macro_index_validation(struct d_test_counter* _test_info);
-bool d_tests_sa_macro_negative_indexing(struct d_test_counter* _test_info);
+bool d_tests_sa_macro_array_utilities(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_macro_index_validation(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_macro_negative_indexing(
+    struct dj_test_counter* _test_info
+);
 
 // integration and consistency tests
-bool d_tests_sa_function_macro_consistency(struct d_test_counter* _test_info);
-bool d_tests_sa_extreme_edge_cases(struct d_test_counter* _test_info);
+bool d_tests_sa_function_macro_consistency(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_extreme_edge_cases(
+    struct dj_test_counter* _test_info
+);
 
 // comprehensive test suite runners
-bool d_tests_sa_index_core_all(struct d_test_counter* _test_info);
-bool d_tests_sa_ssize64_all(struct d_test_counter* _test_info);
-bool d_tests_sa_macro_all(struct d_test_counter* _test_info);
-bool d_tests_sa_integration_all(struct d_test_counter* _test_info);
-bool d_tests_sa_djinterp_core_all(struct d_test_counter* _test_info);
-bool d_tests_sa_djinterp_core_all_extended(struct d_test_counter* _test_info);
+bool d_tests_sa_index_core_all(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_ssize64_all(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_macro_all(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_integration_all(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_djinterp_core_all(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_djinterp_core_all_extended(
+    struct dj_test_counter* _test_info
+);
 
 
 #endif  // DJINTERP_TESTING_CORE_
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                    I. d_index CORE FUNCTION TESTS                       ///
+///                    I. dj_index CORE FUNCTION TESTS                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -84,10 +130,8 @@ d_tests_sa_index_convert_fast
   - edge cases including zero-sized arrays
   - large array sizes and extreme indices
 */
-bool
-d_tests_sa_index_convert_fast
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_fast(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing d_index_convert_fast ---\n");
@@ -205,10 +249,8 @@ d_tests_sa_index_convert_safe
   - boundary condition validation
   - error condition handling
 */
-bool
-d_tests_sa_index_convert_safe
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_safe(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing d_index_convert_safe ---\n");
@@ -367,10 +409,8 @@ d_tests_sa_index_is_valid
   - boundary conditions and edge cases
   - consistency with conversion function behavior
 */
-bool
-d_tests_sa_index_is_valid
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_is_valid(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing d_index_is_valid ---\n");
@@ -555,19 +595,17 @@ d_tests_sa_index_is_valid
 
 /*
 d_tests_sa_index_core_all
-  runs all core d_index function tests
+  runs all core dj_index function tests
   Tests the following:
-  - all d_index function family tests
+  - all dj_index function family tests
   - reports aggregate results
 */
-bool
-d_tests_sa_index_core_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_core_all(
+    struct dj_test_counter* _test_info
 )
 {
-    printf("\n--- Testing d_index Core Functions ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    printf("\n--- Testing dj_index Core Functions ---\n");
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     bool fast_result = d_tests_sa_index_convert_fast(&module_counter);
     bool safe_result = d_tests_sa_index_convert_safe(&module_counter);
@@ -583,13 +621,13 @@ d_tests_sa_index_core_all
 
     if (overall_result)
     {
-        printf("[PASS] d_index Core Functions: %zu/%zu assertions, %zu/%zu unit tests passed\n",
+        printf("[PASS] dj_index Core Functions: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
                module_counter.tests_passed, module_counter.tests_run);
     }
     else
     {
-        printf("[FAIL] d_index Core Functions: %zu/%zu assertions, %zu/%zu unit tests passed\n",
+        printf("[FAIL] dj_index Core Functions: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
                module_counter.tests_passed, module_counter.tests_run);
     }
@@ -610,10 +648,8 @@ d_tests_sa_macro_array_utilities
   - various data types and array sizes
   - edge cases with zero-sized elements
 */
-bool
-d_tests_sa_macro_array_utilities
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_array_utilities(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing Array Utility Macros ---\n");
@@ -707,10 +743,8 @@ d_tests_sa_macro_index_validation
   - positive and negative index validation
   - edge cases with various array sizes
 */
-bool
-d_tests_sa_macro_index_validation
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_index_validation(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing Index Validation Macros ---\n");
@@ -901,10 +935,8 @@ d_tests_sa_macro_negative_indexing
   - D_SAFE_ARR_IDX bounds-checked array access
   - edge cases and boundary conditions
 */
-bool
-d_tests_sa_macro_negative_indexing
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_negative_indexing(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing Negative Indexing Macros ---\n");
@@ -1103,14 +1135,12 @@ d_tests_sa_macro_all
   - negative indexing macros
   - reports aggregate results
 */
-bool
-d_tests_sa_macro_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing djinterp Macros ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     bool array_result = d_tests_sa_macro_array_utilities(&module_counter);
     bool validation_result = d_tests_sa_macro_index_validation(&module_counter);
@@ -1153,10 +1183,8 @@ d_tests_sa_function_macro_consistency
   - edge case handling consistency
   - performance vs safety trade-offs
 */
-bool
-d_tests_sa_function_macro_consistency
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_function_macro_consistency(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing Function-Macro Consistency ---\n");
@@ -1164,7 +1192,7 @@ d_tests_sa_function_macro_consistency
     bool   all_assertions_passed = true;
 
     // test consistency between d_index_is_valid and D_IS_VALID_INDEX_N
-    for (d_index idx = -10; idx <= 10; idx++)
+    for (dj_index idx = -10; idx <= 10; idx++)
     {
         for (size_t size = 0; size <= 10; size++)
         {
@@ -1191,14 +1219,14 @@ d_tests_sa_function_macro_consistency
 
     // test consistency between d_index_convert_fast and D_NEG_IDX
     size_t test_sizes[] = {1, 5, 10, 100};
-    d_index test_indices[] = {-5, -1, 0, 1, 4};
+    dj_index test_indices[] = {-5, -1, 0, 1, 4};
 
     for (size_t i = 0; i < sizeof(test_sizes) / sizeof(test_sizes[0]); i++)
     {
         size_t size = test_sizes[i];
         for (size_t j = 0; j < sizeof(test_indices) / sizeof(test_indices[0]); j++)
         {
-            d_index idx = test_indices[j];
+            dj_index idx = test_indices[j];
 
             // only test valid indices to ensure meaningful comparison
             if (d_index_is_valid(idx, size))
@@ -1221,7 +1249,7 @@ d_tests_sa_function_macro_consistency
     // test array access consistency
     int test_array[5] = {100, 200, 300, 400, 500};
 
-    for (d_index idx = -5; idx < 5; idx++)
+    for (dj_index idx = -5; idx < 5; idx++)
     {
         if (d_index_is_valid(idx, 5))
         {
@@ -1275,10 +1303,8 @@ d_tests_sa_extreme_edge_cases
   - maximum negative index handling
   - type conversion edge cases
 */
-bool
-d_tests_sa_extreme_edge_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_extreme_edge_cases(
+    struct dj_test_counter* _test_info
 )
 {
     printf("  --- Testing Extreme Edge Cases ---\n");
@@ -1423,14 +1449,12 @@ d_tests_sa_integration_all
   - extreme edge case tests
   - reports aggregate results
 */
-bool
-d_tests_sa_integration_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_integration_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing djinterp Integration ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     bool consistency_result = d_tests_sa_function_macro_consistency(&module_counter);
     bool edge_cases_result = d_tests_sa_extreme_edge_cases(&module_counter);
@@ -1467,19 +1491,17 @@ d_tests_sa_integration_all
 d_tests_sa_djinterp_core_all
   comprehensive test suite runner for all djinterp core functionality
   Tests the following:
-  - all d_index core function tests
+  - all dj_index core function tests
   - all macro validation tests
   - all integration tests
   - provides comprehensive test coverage summary
 */
-bool
-d_tests_sa_djinterp_core_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_djinterp_core_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing djinterp Core Module ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     // run all test modules
     bool core_result = d_tests_sa_index_core_all(&module_counter);
@@ -1518,14 +1540,12 @@ d_tests_sa_djinterp_core_all_extended
   - complete ssize64 extended signed integer system
   - comprehensive coverage of all components
 */
-bool
-d_tests_sa_djinterp_core_all_extended
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_djinterp_core_all_extended(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing djinterp Core Extended Module ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     // run all test modules including ssize64
     bool core_result = d_tests_sa_djinterp_core_all(&module_counter);

@@ -39,10 +39,10 @@
 D_STATIC_ASSERT( (INT_MAX >= 2147483647),
                  "a packed SQLSTATE needs an int of 32 bits" );
 
-// d_internal_postgres_class
+// dj_internal_postgres_class
 //   struct: an SQLSTATE class -- the code's first two characters -- and the
 // words the PostgreSQL manual's appendix A gives it.
-struct d_internal_postgres_class
+struct dj_internal_postgres_class
 {
     const char* code;   // the two characters
     const char* words;  // the manual's, lowercase
@@ -50,7 +50,7 @@ struct d_internal_postgres_class
 
 // d_internal_postgres_classes
 //   table: every class the server's errcodes.txt defines.
-static const struct d_internal_postgres_class d_internal_postgres_classes[] =
+static const struct dj_internal_postgres_class d_internal_postgres_classes[] =
 {
     { "00", "successful completion" },
     { "01", "warning" },
@@ -97,19 +97,19 @@ static const struct d_internal_postgres_class d_internal_postgres_classes[] =
     { "XX", "internal error" }
 };
 
-// d_internal_postgres_condition
+// dj_internal_postgres_condition
 //   struct: an SQLSTATE the layer's headers name, packed, and the words the
 // PostgreSQL manual's appendix A gives its condition.
-struct d_internal_postgres_condition
+struct dj_internal_postgres_condition
 {
     int         code;   // the SQLSTATE, packed
     const char* words;  // the condition's name, in words
 };
 
 // d_internal_postgres_conditions
-//   table: the conditions of postgres_common.h's enum d_postgres_sqlstate, the
+//   table: the conditions of postgres_common.h's enum dj_postgres_sqlstate, the
 // four the layer gives itself excepted, which it describes in its own words.
-static const struct d_internal_postgres_condition
+static const struct dj_internal_postgres_condition
 d_internal_postgres_conditions[] =
 {
     { D_POSTGRES_SQLSTATE_PROTOCOL_VIOLATION,      "protocol violation" },
@@ -156,8 +156,8 @@ d_internal_postgres_sqlstate_char
   A character an SQLSTATE may hold: a digit or a capital letter, tested by
 value, as the server writes them in ASCII.
 */
-static bool
-d_internal_postgres_sqlstate_char(
+static
+bool d_internal_postgres_sqlstate_char(
     char _character
 )
 {
@@ -170,8 +170,8 @@ d_internal_postgres_own_message
   The layer's words for the five SQLSTATEs it gives itself, the manual's for
 the other conditions its headers name, or NULL for any other result.
 */
-static const char*
-d_internal_postgres_own_message(
+static
+const char* d_internal_postgres_own_message(
     int _result
 )
 {
@@ -215,7 +215,7 @@ d_internal_postgres_own_message(
 
 // d_internal_postgres_feature_releases
 //   table: the server version, as PQserverVersion numbers it, that brought
-// each d_postgres_feature, in the enum's order, as postgres_common.h lists
+// each dj_postgres_feature, in the enum's order, as postgres_common.h lists
 // them.
 static const int d_internal_postgres_feature_releases[] =
 {
@@ -240,11 +240,11 @@ static const int d_internal_postgres_feature_releases[] =
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_feature_releases) /
                   sizeof(d_internal_postgres_feature_releases[0])) ==
                  ((size_t)D_POSTGRES_FEATURE_JSONPATH + 1u),
-                 "every d_postgres_feature has a release" );
+                 "every dj_postgres_feature has a release" );
 
 // d_internal_postgres_client_feature_releases
 //   table: the libpq version, as PQlibVersion numbers it, that brought each
-// d_postgres_client_feature, in the enum's order; 0 where the header the
+// dj_postgres_client_feature, in the enum's order; 0 where the header the
 // layer was compiled against does not declare it, which no library loaded
 // can mend.
 static const int d_internal_postgres_client_feature_releases[] =
@@ -274,7 +274,7 @@ static const int d_internal_postgres_client_feature_releases[] =
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_client_feature_releases) /
                   sizeof(d_internal_postgres_client_feature_releases[0])) ==
                  ((size_t)D_POSTGRES_CLIENT_ASYNC_CANCEL + 1u),
-                 "every d_postgres_client_feature has a release" );
+                 "every dj_postgres_client_feature has a release" );
 
 #endif  // D_INTERNAL_POSTGRES
 
@@ -291,8 +291,7 @@ d_postgres_result_sqlstate
 it; a value with bits above the thirtieth, or a character no SQLSTATE holds,
 was never packed from one.
 */
-bool
-d_postgres_result_sqlstate(
+bool d_postgres_result_sqlstate(
     int  _result,
     char _sqlstate[6]
 )
@@ -336,8 +335,7 @@ d_postgres_result_sqlstate(
 d_postgres_result_from_sqlstate
   Five digits or capital letters, and nothing after them.
 */
-int
-d_postgres_result_from_sqlstate(
+int d_postgres_result_from_sqlstate(
     const char* _sqlstate
 )
 {
@@ -370,8 +368,7 @@ without libpq, which the build explains -- the layer's for the five codes it
 gives itself, the manual's for the conditions the headers name and for any
 other code's class; a value that is none of these is "unknown result".
 */
-const char*
-d_postgres_result_message(
+const char* d_postgres_result_message(
     int _result
 )
 {
@@ -430,10 +427,7 @@ d_postgres_result_message(
 d_postgres_client_version_number
   The loaded library's own number.
 */
-int
-d_postgres_client_version_number(
-    void
-)
+int d_postgres_client_version_number(void)
 {
     return PQlibVersion();
 }
@@ -446,7 +440,7 @@ calls the layer makes.
 */
 bool
 d_postgres_client_supports(
-    enum d_postgres_client_feature _feature
+    enum dj_postgres_client_feature _feature
 )
 {
     const size_t count =
@@ -476,8 +470,7 @@ d_postgres_server_version
 made; libpq keeps it even after the connection is lost, so the connection's
 state is asked first.
 */
-const char*
-d_postgres_server_version(
+const char* d_postgres_server_version(
     const struct pg_conn* _db
 )
 {
@@ -491,8 +484,7 @@ d_postgres_server_version(
 d_postgres_server_version_number
   libpq's own number, 0 for a lost connection.
 */
-int
-d_postgres_server_version_number(
+int d_postgres_server_version_number(
     const struct pg_conn* _db
 )
 {
@@ -505,8 +497,7 @@ d_postgres_server_at_least
 however large, can overflow a number. Before 10 a version had three parts,
 the minor the middle one (9.6.24 is 90624).
 */
-bool
-d_postgres_server_at_least(
+bool d_postgres_server_at_least(
     const struct pg_conn* _db,
     unsigned              _major,
     unsigned              _minor
@@ -543,7 +534,7 @@ d_postgres_supports
 bool
 d_postgres_supports(
     const struct pg_conn*   _db,
-    enum d_postgres_feature _feature
+    enum dj_postgres_feature _feature
 )
 {
     const size_t count = sizeof(d_internal_postgres_feature_releases) /
@@ -567,8 +558,7 @@ d_postgres_supports(
 d_postgres_parameter_status
   libpq's copy of what the server last reported.
 */
-const char*
-d_postgres_parameter_status(
+const char* d_postgres_parameter_status(
     const struct pg_conn* _db,
     const char*           _name
 )
@@ -588,8 +578,7 @@ d_postgres_parameter_status(
 d_postgres_error_message
   libpq's record of the last failure on the connection.
 */
-const char*
-d_postgres_error_message(
+const char* d_postgres_error_message(
     const struct pg_conn* _db
 )
 {
@@ -603,8 +592,7 @@ result is; the other six codes are its own when the layer marked them so
 on this connection, on this thread, and libpq has not been heard since
 (d_internal_postgres_answered).
 */
-bool
-d_postgres_result_is_own(
+bool d_postgres_result_is_own(
     const struct pg_conn* _db,
     int                   _result
 )
@@ -627,10 +615,7 @@ d_postgres_result_is_own(
 d_postgres_client_version_number
   Without libpq there is no library: 0.
 */
-int
-d_postgres_client_version_number(
-    void
-)
+int d_postgres_client_version_number(void)
 {
     return 0;
 }
@@ -641,7 +626,7 @@ d_postgres_client_supports
 */
 bool
 d_postgres_client_supports(
-    enum d_postgres_client_feature _feature
+    enum dj_postgres_client_feature _feature
 )
 {
     (void)_feature;
@@ -653,8 +638,7 @@ d_postgres_client_supports(
 d_postgres_server_version
   Without libpq there is no server: NULL.
 */
-const char*
-d_postgres_server_version(
+const char* d_postgres_server_version(
     const struct pg_conn* _db
 )
 {
@@ -667,8 +651,7 @@ d_postgres_server_version(
 d_postgres_server_version_number
   Without libpq there is no server: 0.
 */
-int
-d_postgres_server_version_number(
+int d_postgres_server_version_number(
     const struct pg_conn* _db
 )
 {
@@ -681,8 +664,7 @@ d_postgres_server_version_number(
 d_postgres_server_at_least
   Without libpq there is no server: false.
 */
-bool
-d_postgres_server_at_least(
+bool d_postgres_server_at_least(
     const struct pg_conn* _db,
     unsigned              _major,
     unsigned              _minor
@@ -702,7 +684,7 @@ d_postgres_supports
 bool
 d_postgres_supports(
     const struct pg_conn*   _db,
-    enum d_postgres_feature _feature
+    enum dj_postgres_feature _feature
 )
 {
     (void)_db;
@@ -715,8 +697,7 @@ d_postgres_supports(
 d_postgres_parameter_status
   Without libpq there is no server: NULL.
 */
-const char*
-d_postgres_parameter_status(
+const char* d_postgres_parameter_status(
     const struct pg_conn* _db,
     const char*           _name
 )
@@ -731,8 +712,7 @@ d_postgres_parameter_status(
 d_postgres_error_message
   Without libpq there is no connection to have failed: "".
 */
-const char*
-d_postgres_error_message(
+const char* d_postgres_error_message(
     const struct pg_conn* _db
 )
 {
@@ -745,8 +725,7 @@ d_postgres_error_message(
 d_postgres_result_is_own
   Without libpq every result is the layer's own.
 */
-bool
-d_postgres_result_is_own(
+bool d_postgres_result_is_own(
     const struct pg_conn* _db,
     int                   _result
 )

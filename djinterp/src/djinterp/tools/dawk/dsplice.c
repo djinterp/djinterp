@@ -15,10 +15,10 @@
 #include <string.h>  // memcpy, memset, strlen
 
 
-// d_internal_splice
+// dj_internal_splice
 //   struct: one change: the bytes from `start` to `end` become `text`;
 //   `order` keeps changes at one place in the order they were made.
-struct d_internal_splice
+struct dj_internal_splice
 {
     size_t start;
     size_t end;
@@ -27,11 +27,11 @@ struct d_internal_splice
     size_t order;
 };
 
-// d_splices
+// dj_splices
 //   struct: the changes, and how many were ever made, for their order.
-struct d_splices
+struct dj_splices
 {
-    struct d_internal_splice* items;
+    struct dj_internal_splice* items;
     size_t                    count;
     size_t                    capacity;
     size_t                    made;
@@ -42,10 +42,9 @@ struct d_splices
 d_splices_new
   No changes yet.
 */
-struct d_splices*
-d_splices_new(void)
+struct dj_splices* d_splices_new(void)
 {
-    struct d_splices* const splices = malloc(sizeof(*splices));
+    struct dj_splices* const splices = malloc(sizeof(*splices));
 
     // a set that cannot be made is NULL
     if (splices)
@@ -61,9 +60,8 @@ d_splices_new(void)
 d_splices_clear
   Forgets every change.
 */
-void
-d_splices_clear(
-    struct d_splices* _splices
+void d_splices_clear(
+    struct dj_splices* _splices
 )
 {
     // clearing nothing is allowed
@@ -87,9 +85,8 @@ d_splices_clear(
 d_splices_free
   Forgets every change, and the set.
 */
-void
-d_splices_free(
-    struct d_splices* _splices
+void d_splices_free(
+    struct dj_splices* _splices
 )
 {
     // freeing nothing is allowed
@@ -110,9 +107,8 @@ d_splices_free(
 d_splices_count
   How many changes are waiting.
 */
-size_t
-d_splices_count(
-    const struct d_splices* _splices
+size_t d_splices_count(
+    const struct dj_splices* _splices
 )
 {
     return (_splices) ? _splices->count : 0u;
@@ -123,9 +119,9 @@ d_splices_count(
 d_splices_add
   Records a change, unless it overlaps one already made.
 */
-enum d_splice_result
+enum dj_splice_result
 d_splices_add(
-    struct d_splices* _splices,
+    struct dj_splices* _splices,
     size_t            _start,
     size_t            _end,
     const char*       _text,
@@ -143,7 +139,7 @@ d_splices_add(
 
     for (size_t at = 0; at < _splices->count; ++at)
     {
-        const struct d_internal_splice* const made = &_splices->items[at];
+        const struct dj_internal_splice* const made = &_splices->items[at];
         const bool made_replaces = (made->end > made->start);
         const bool overlap       =
             ( (replaces) && (made_replaces) &&
@@ -165,7 +161,7 @@ d_splices_add(
     {
         const size_t wanted = (_splices->capacity == 0u)
                             ? 8u : (_splices->capacity * 2u);
-        struct d_internal_splice* const grown =
+        struct dj_internal_splice* const grown =
             realloc(_splices->items, wanted * sizeof(*grown));
 
         if (!grown)
@@ -192,7 +188,7 @@ d_splices_add(
 
     copy[_length] = '\0';
 
-    struct d_internal_splice* const splice =
+    struct dj_internal_splice* const splice =
         &_splices->items[_splices->count++];
 
     splice->start  = _start;
@@ -210,14 +206,14 @@ d_internal_compare
   The order changes are applied in: by where they start; at one place, an
 insertion before a replacement; and otherwise in the order they were made.
 */
-static int
-d_internal_compare(
+static
+int d_internal_compare(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_internal_splice* const left  = _left;
-    const struct d_internal_splice* const right = _right;
+    const struct dj_internal_splice* const left  = _left;
+    const struct dj_internal_splice* const right = _right;
     const bool left_inserts  = (left->end == left->start);
     const bool right_inserts = (right->end == right->start);
 
@@ -244,14 +240,13 @@ d_splices_apply
   Copies the text, a change's text in place of each span it replaces; where
 a change's text meets the text beside it, the hook may put a byte between.
 */
-char*
-d_splices_apply(
-    struct d_splices*   _splices,
-    const char*         _text,
-    size_t              _length,
-    d_splice_fn_between _between,
-    void*               _user,
-    size_t*             _out_length
+char* d_splices_apply(
+    struct dj_splices*   _splices,
+    const char*          _text,
+    size_t               _length,
+    dj_splice_fn_between _between,
+    void*                _user,
+    size_t*              _out_length
 )
 {
     const size_t count  = (_splices) ? _splices->count : 0u;
@@ -282,7 +277,7 @@ d_splices_apply(
 
     for (size_t at = 0; at < count; ++at)
     {
-        const struct d_internal_splice* const splice = &_splices->items[at];
+        const struct dj_internal_splice* const splice = &_splices->items[at];
 
         memcpy(&out[used], &_text[from], splice->start - from);
         used += splice->start - from;
@@ -334,8 +329,7 @@ d_splices_apply(
 d_text_read
   Reads a whole file, terminated.
 */
-char*
-d_text_read(
+char* d_text_read(
     const char* _path,
     size_t*     _out_length
 )
@@ -393,8 +387,7 @@ d_text_read(
 d_text_write
   Writes a text beside its target and renames it into place.
 */
-bool
-d_text_write(
+bool d_text_write(
     const char* _path,
     const char* _text,
     size_t      _length,

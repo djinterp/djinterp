@@ -1,0 +1,1001 @@
+/*******************************************************************************
+* djinterp [cpp]                                              hazard_pointer.hpp
+*
+* Hazard pointer memory reclamation for lock-free data structures.
+*   Provides the foundational building blocks for safe memory reclamation
+* in lock-free containers. A hazard pointer "protects" a node pointer so
+* that concurrent threads know not to reclaim it.
+*
+* PROTOCOL:
+*   1. Reader loads a shared pointer (e.g. head of a list).
+*   2. Reader publishes it in a hazard record (protect).
+*   3. Reader re-reads the shared pointer to confirm it hasn't changed.
+*   4. If unchanged, the pointer is safe to dereference.
+*   5. On scope exit, the hazard record is cleared.
+*
+*   Writers retire (logically delete) nodes, then periodically scan all
+*   active hazard records. A retired node is reclaimed only when no
+*   hazard record protects it.
+*
+* TYPES:
+*   hazard_record          - single atomic slot for one protected pointer
+*   hazard_domain          - collection of records + retired node tracking
+*   scoped_hazard          - RAII protect / clear
+*   DTypedHazardPtr<T>    - type-safe scoped hazard with re-read validation
+*   DMultiHazardDomain    - domain with N slots per thread for multi-pointer
+*                            algorithms (e.g. lock-free lists need 2 hazards)
+*
+* VERSIONING:
+*   C++98/03:  unavailable (requires <atomic>)
+*   C++11:     all custom types available
+*   C++23:     thin wrappers around <hazard_pointer> when available
+*
+*
+* path:      /inc/djinterp/cpp/sync/hazard_pointer.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.02
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    STANDARD LIBRARY DELEGATION (C++23)
+      -----------------------------------
+
+II.   HAZARD RECORD
+      -------------
+
+III.  HAZARD DOMAIN
+      -------------
+
+IV.   SCOPED HAZARD
+      -------------
+
+V.    TYPED HAZARD POINTER
+      --------------------
+
+VI.   RETIRED LIST
+      ------------
+
+VII.  MULTI-SLOT HAZARD DOMAIN
+      ------------------------
+
+VIII. SCOPED MULTI-HAZARD
+      -------------------
+*/
+
+#ifndef DJINTERP_SYNC_HAZARD_POINTER_HPP
+#define DJINTERP_SYNC_HAZARD_POINTER_HPP 1
+
+// env.h first: the language checks below and the gates after them read
+// its D_ENV_* results (it used to be a precondition, an #error if absent)
+#include "../../env/env.h"  // D_ENV_LANG_*, D_ENV_CPP_FEATURE_*
+
+#ifndef __cplusplus
+    #error "hazard_pointer.hpp can only be used in C++ compilation mode"
+#endif
+
+// C++23 standard hazard pointers
+#if D_ENV_LANG_IS_CPP23_OR_HIGHER
+    #if __has_include(<hazard_pointer>)
+        // std
+        #include <hazard_pointer>
+        #ifndef D_HAS_STD_HAZARD_POINTER
+            #define D_HAS_STD_HAZARD_POINTER 1
+        #endif
+    #else
+        #ifndef D_HAS_STD_HAZARD_POINTER
+            #define D_HAS_STD_HAZARD_POINTER 0
+        #endif
+    #endif
+#else
+    #ifndef D_HAS_STD_HAZARD_POINTER
+        #define D_HAS_STD_HAZARD_POINTER 0
+    #endif
+#endif
+
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <atomic>
+#include <cstddef>
+#include <functional>
+#include <new>
+#include <vector>
+// djinterp
+#include "./concurrency_strategy_tags.hpp"
+#include "./reclamation_common.hpp"
+// re_std
+#include "../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint64_t
+
+
+#include "./sync_common.hpp"
+NS_DJINTERP
+
+// I.    Standard library delegation (C++23)
+#if D_HAS_STD_HAZARD_POINTER
+
+    // delegate to <hazard_pointer>
+    using hazard_pointer_domain =
+        std::hazard_pointer_default_domain;
+
+    template<typename Type>
+    using hazard_pointer = std::hazard_pointer<Type>;
+
+#else
+
+
+// II.   Hazard record
+// A single hazard pointer slot. Each active thread
+// claims one record from the domain and stores the
+// pointer it needs to protect.
+//
+// The record is marked active/inactive via an atomic
+// flag. The protected pointer is read by the scanning
+// routine to determine whether a retired node is safe
+// to reclaim.
+
+struct hazard_record
+{
+    std::atomic<void*> protected_ptr;
+    std::atomic<bool>  active;
+
+    hazard_record() noexcept
+        : protected_ptr(nullptr)
+        , active(false)
+    {}
+};
+
+
+// III.  Hazard domain
+// Collection of hazard records and retired-node tracking.
+// One domain per instance (or shared across
+// instances of the same type).
+//
+// The record array is allocated once at construction.
+// The fast path (acquire / protect / clear / release)
+// is allocation-free.
+
+class hazard_domain
+{
+public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(hazard_domain)
+
+    // --- type aliases ---
+
+    // hazard_domain_type
+    //   alias: self-marker so that
+    // `has_hazard_domain_type<hazard_domain>`
+    // reports true. Containers built on hazard_domain
+    // typically forward this alias to identify themselves
+    // as hazard-pointer-strategy.
+    using hazard_domain_type = hazard_domain;
+
+    // concurrency_strategy_tag
+    //   alias: declares this type as hazard-pointer
+    // strategy. Read by concurrency_strategy_traits.hpp
+    // tag-alias fast path.
+    using concurrency_strategy_tag = hazard_strategy_tag;
+
+    // max_threads
+    //   the maximum number of concurrent threads.
+    // Fixed at construction to avoid allocation on the
+    // fast path.
+    explicit hazard_domain(
+        std::size_t _max_threads = 64) noexcept
+        : m_records(nullptr)
+        , m_capacity(_max_threads)
+        , m_retired_count(0)
+    {
+        m_records = new (std::nothrow)
+            hazard_record[_max_threads];
+    }
+
+    ~hazard_domain()
+    {
+        delete[] m_records;
+    }
+
+
+    // --- record management ---
+
+    // acquire
+    //   claims a hazard record for the calling thread.
+    // Returns a pointer to the record, or nullptr if
+    // all records are in use.
+    hazard_record* acquire() noexcept
+    {
+        if (!m_records)
+        {
+            return nullptr;
+        }
+
+        for (std::size_t i = 0;
+             i < m_capacity; ++i)
+        {
+            bool expected = false;
+
+            if (m_records[i].active
+                    .compare_exchange_strong(
+                        expected, true,
+                        std::memory_order_acq_rel))
+            {
+                return &m_records[i];
+            }
+        }
+
+        return nullptr;
+    }
+
+    // release
+    //   returns a hazard record to the pool.
+    void release(
+        hazard_record* _rec
+    ) noexcept
+    {
+        if (_rec)
+        {
+            _rec->protected_ptr.store(
+                nullptr,
+                std::memory_order_release);
+
+            _rec->active.store(
+                false,
+                std::memory_order_release);
+        }
+    }
+
+    // --- scanning ---
+
+    // is_protected
+    //   returns true if any active hazard record
+    // currently protects _ptr.
+    bool is_protected(
+        void* _ptr
+    ) const noexcept
+    {
+        if ( (!m_records) ||
+             (!_ptr) )
+        {
+            return false;
+        }
+
+        for (std::size_t i = 0;
+             i < m_capacity; ++i)
+        {
+            if ( m_records[i].active.load(
+                     std::memory_order_acquire) &&
+                 m_records[i].protected_ptr.load(
+                     std::memory_order_acquire) ==
+                         _ptr )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // collect_protected
+    //   gathers all currently protected pointers into
+    // _out. Used by bulk scan routines that need to
+    // check many retired nodes at once (more efficient
+    // than calling is_protected per node).
+    void collect_protected(
+        std::vector<void*>& _out
+    ) const
+    {
+        _out.clear();
+
+        if (!m_records)
+        {
+            return;
+        }
+
+        for (std::size_t i = 0;
+             i < m_capacity; ++i)
+        {
+            if (m_records[i].active.load(
+                    std::memory_order_acquire))
+            {
+                void* p =
+                    m_records[i].protected_ptr.load(
+                        std::memory_order_acquire);
+
+                if (p)
+                {
+                    _out.push_back(p);
+                }
+            }
+        }
+    }
+
+    // --- retired count tracking ---
+
+    std::size_t retired_count() const noexcept
+    {
+        return m_retired_count.load(
+            std::memory_order_relaxed);
+    }
+
+    void increment_retired() noexcept
+    {
+        m_retired_count.fetch_add(
+            1, std::memory_order_relaxed);
+    }
+
+    void decrement_retired(
+        std::size_t _n = 1
+    ) noexcept
+    {
+        m_retired_count.fetch_sub(
+            _n, std::memory_order_relaxed);
+    }
+
+    // --- queries ---
+
+    std::size_t capacity() const noexcept
+    {
+        return m_capacity;
+    }
+
+    // should_scan
+    //   heuristic: returns true when the retired count
+    // exceeds a threshold proportional to the number
+    // of hazard slots. Typical threshold is 2× capacity.
+    bool should_scan() const noexcept
+    {
+        return (m_retired_count.load(
+            std::memory_order_relaxed) >=
+                (m_capacity * 2));
+    }
+
+private:
+    hazard_record*         m_records;
+    std::size_t            m_capacity;
+    std::atomic<std::size_t> m_retired_count;
+};
+
+
+// IV.   Scoped hazard
+// RAII hazard pointer protector. Acquires a record from
+// the domain on construction, releases on destruction.
+//
+// Usage:
+//   scoped_hazard guard(domain);
+//   Node* node = head.load();
+//   guard.protect(node);
+//   if (head.load() == node) {
+//       // node is safe to dereference
+//   }
+
+class scoped_hazard
+{
+public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(scoped_hazard)
+
+    explicit scoped_hazard(
+        hazard_domain& _domain) noexcept
+        : m_domain(_domain)
+        , m_record(_domain.acquire())
+    {}
+
+    ~scoped_hazard()
+    {
+        if (m_record)
+        {
+            m_domain.release(m_record);
+        }
+    }
+
+
+    // protect
+    //   marks _ptr as protected. Must be followed by
+    // a re-read of the source pointer to confirm it
+    // hasn't changed (standard hazard pointer protocol).
+    void protect(
+        void* _ptr
+    ) noexcept
+    {
+        if (m_record)
+        {
+            m_record->protected_ptr.store(
+                _ptr,
+                std::memory_order_release);
+        }
+    }
+
+    // clear
+    //   removes protection.
+    void clear() noexcept
+    {
+        if (m_record)
+        {
+            m_record->protected_ptr.store(
+                nullptr,
+                std::memory_order_release);
+        }
+    }
+
+    // valid
+    //   true if a hazard record was successfully
+    // acquired.
+    bool valid() const noexcept
+    {
+        return (m_record != nullptr);
+    }
+
+private:
+    hazard_domain& m_domain;
+    hazard_record* m_record;
+};
+
+
+// V.    Typed hazard pointer
+// Type-safe scoped hazard with built-in re-read
+// validation. Encapsulates the protect-then-verify
+// loop that every hazard pointer user must perform.
+//
+// Usage:
+//   DTypedHazardPtr<Node> hp(domain);
+//   Node* safe = hp.protect_and_validate(head);
+//   if (safe) {
+//       // safe to dereference 'safe'
+//   }
+
+template<typename Type>
+class DTypedHazardPtr
+{
+public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(DTypedHazardPtr)
+
+    explicit DTypedHazardPtr(
+        hazard_domain& _domain) noexcept
+        : m_guard(_domain)
+    {}
+
+
+    // protect_and_validate
+    //   loads the pointer from _source, protects it,
+    // then re-reads _source to confirm it hasn't changed.
+    // Retries up to _max_retries times.
+    // Returns the protected pointer, or nullptr if
+    // validation fails.
+    Type* protect_and_validate(
+        const std::atomic<Type*>& _source,
+        unsigned                  _max_retries = 4
+    ) noexcept
+    {
+        for (unsigned i = 0;
+             i < _max_retries; ++i)
+        {
+            Type* ptr = _source.load(
+                std::memory_order_acquire);
+
+            m_guard.protect(
+                static_cast<void*>(ptr));
+
+            // re-read and validate
+            Type* reread = _source.load(
+                std::memory_order_acquire);
+
+            if (reread == ptr)
+            {
+                return ptr;
+            }
+        }
+
+        // validation failed after all retries
+        m_guard.clear();
+
+        return nullptr;
+    }
+
+    // protect
+    //   directly protects a known pointer (caller is
+    // responsible for validation).
+    void protect(
+        Type* _ptr
+    ) noexcept
+    {
+        m_guard.protect(
+            static_cast<void*>(_ptr));
+    }
+
+    // clear
+    //   removes protection.
+    void clear() noexcept
+    {
+        m_guard.clear();
+    }
+
+    // valid
+    //   true if the underlying record was acquired.
+    bool valid() const noexcept
+    {
+        return m_guard.valid();
+    }
+
+private:
+    scoped_hazard m_guard;
+};
+
+
+// VI.   Retired list
+// Per-thread list of nodes awaiting reclamation. Each
+// entry records the node pointer, the deleter function,
+// and optionally the epoch at which it was retired.
+//
+// The scan routine checks all entries against the
+// domain's active hazard records and reclaims those
+// that are no longer protected.
+//
+//   The storage and the reclamation sweep now come from
+// DReclaimList<Type> (./reclamation_common.hpp) - the
+// shared engine that rcu.hpp also rides. The two schemes
+// only ever differed in the RULE for calling a node safe,
+// so this class contributes exactly that rule and keeps
+// the hazard vocabulary: scan() against a domain's active
+// records, and scan_by_epoch() for the epoch variant.
+//
+//   TWO NOTES ON THE REBASE:
+//     - entry is now an alias of DReclaimList's record.
+//       Its epoch field is spelled `tag` there, since the
+//       engine is scheme-neutral; retire()'s parameter is
+//       still named _epoch, and scan_by_epoch() reads the
+//       same value. Nothing else in this header touched
+//       the field by name.
+//     - the list is now MOVE-ONLY, where before it was
+//       implicitly copyable. That is deliberate: two
+//       copies would each own the same raw pointers and
+//       both would run the deleters, so a copy was always
+//       a latent double-free. Moving still works, so a
+//       list may be relocated or returned.
+
+template<typename Type>
+class DRetiredList
+{
+public:
+    // deleter_fn / entry
+    //   aliases: taken from the shared engine, so a
+    // caller can name them through either type.
+    using deleter_fn =
+        typename DReclaimList<Type>::deleter_fn;
+
+    using entry =
+        typename DReclaimList<Type>::entry;
+
+    DRetiredList() = default;
+
+    // retire
+    //   adds a node to the retired list.
+    void retire(
+        Type*            _ptr,
+        re_std::uint64_t _epoch = 0
+    )
+    {
+        m_entries.retire(_ptr, _epoch);
+    }
+
+    // retire (custom deleter)
+    //   adds a node with a custom deleter.
+    void retire(
+        Type*            _ptr,
+        deleter_fn       _deleter,
+        re_std::uint64_t _epoch = 0
+    )
+    {
+        m_entries.retire(
+            _ptr, std::move(_deleter), _epoch);
+    }
+
+    // scan
+    //   reclaims all entries that are not protected by
+    // any active hazard record in _domain.
+    // Returns the number of nodes reclaimed.
+    std::size_t scan(
+        const hazard_domain& _domain
+    )
+    {
+        std::vector<void*> protected_ptrs;
+        _domain.collect_protected(protected_ptrs);
+
+        return m_entries.reclaim_if(
+            [&protected_ptrs](const entry& _e)
+            {
+                void* raw = static_cast<void*>(_e.ptr);
+
+                for (std::size_t j = 0;
+                     j < protected_ptrs.size(); ++j)
+                {
+                    if (protected_ptrs[j] == raw)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+    }
+
+    // scan_by_epoch
+    //   reclaims all entries whose retire epoch is
+    // older than _safe_epoch (regardless of hazard
+    // records). Used with epoch-based reclamation.
+    // Returns the number of nodes reclaimed.
+    std::size_t scan_by_epoch(
+        re_std::uint64_t _safe_epoch
+    )
+    {
+        return m_entries.reclaim_if(
+            [_safe_epoch](const entry& _e)
+            {
+                return (_e.tag < _safe_epoch);
+            });
+    }
+
+    // --- queries ---
+
+    std::size_t pending() const noexcept
+    {
+        return m_entries.pending();
+    }
+
+    bool empty() const noexcept
+    {
+        return (m_entries.pending() == 0);
+    }
+
+    void clear()
+    {
+        m_entries.force_reclaim();
+    }
+
+private:
+    DReclaimList<Type> m_entries;
+};
+
+
+// VII.  Multi-slot hazard domain
+// Variant of hazard_domain where each thread can protect
+// up to SlotsPerThread pointers simultaneously.
+// Required for algorithms like lock-free linked lists
+// where a thread must protect both the current and next
+// node pointers during traversal.
+
+template<std::size_t SlotsPerThread = 2>
+class DMultiHazardDomain
+{
+public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(DMultiHazardDomain)
+
+    // --- type aliases ---
+
+    // hazard_domain_type
+    //   alias: self-marker so that
+    // `has_hazard_domain_type<DMultiHazardDomain<N>>`
+    // reports true.
+    using hazard_domain_type = DMultiHazardDomain;
+
+    // concurrency_strategy_tag
+    //   alias: declares this type as hazard-pointer
+    // strategy. Read by concurrency_strategy_traits.hpp
+    // tag-alias fast path.
+    using concurrency_strategy_tag = hazard_strategy_tag;
+
+    static constexpr std::size_t slots_per_thread =
+        SlotsPerThread;
+
+    explicit DMultiHazardDomain(
+        std::size_t _max_threads = 64) noexcept
+        : m_records(nullptr)
+        , m_capacity(_max_threads)
+        , m_total_slots(
+              _max_threads * SlotsPerThread)
+        , m_retired_count(0)
+    {
+        m_records = new (std::nothrow)
+            hazard_record[m_total_slots];
+    }
+
+    ~DMultiHazardDomain()
+    {
+        delete[] m_records;
+    }
+
+
+    // acquire_slot_group
+    //   claims SlotsPerThread consecutive records.
+    // Returns a pointer to the first record in the
+    // group, or nullptr if all groups are in use.
+    // The caller can then index [0..SlotsPerThread-1]
+    // from the returned pointer.
+    hazard_record* acquire_slot_group() noexcept
+    {
+        if (!m_records)
+        {
+            return nullptr;
+        }
+
+        for (std::size_t g = 0;
+             g < m_capacity; ++g)
+        {
+            std::size_t base = g * SlotsPerThread;
+
+            // try to claim the first slot in the group
+            bool expected = false;
+
+            if (m_records[base].active
+                    .compare_exchange_strong(
+                        expected, true,
+                        std::memory_order_acq_rel))
+            {
+                // mark remaining slots active
+                for (std::size_t s = 1;
+                     s < SlotsPerThread; ++s)
+                {
+                    m_records[base + s].active.store(
+                        true,
+                        std::memory_order_release);
+                }
+
+                return &m_records[base];
+            }
+        }
+
+        return nullptr;
+    }
+
+    // release_slot_group
+    //   returns a group of SlotsPerThread records.
+    void release_slot_group(
+        hazard_record* _group) noexcept
+    {
+        if (!_group)
+        {
+            return;
+        }
+
+        for (std::size_t s = 0;
+             s < SlotsPerThread; ++s)
+        {
+            _group[s].protected_ptr.store(
+                nullptr,
+                std::memory_order_release);
+
+            _group[s].active.store(
+                false,
+                std::memory_order_release);
+        }
+    }
+
+    // is_protected
+    //   checks all active slots across all groups.
+    bool is_protected(void* _ptr) const noexcept
+    {
+        if ( (!m_records) ||
+             (!_ptr) )
+        {
+            return false;
+        }
+
+        for (std::size_t i = 0;
+             i < m_total_slots; ++i)
+        {
+            if ( m_records[i].active.load(
+                     std::memory_order_acquire) &&
+                 m_records[i].protected_ptr.load(
+                     std::memory_order_acquire) ==
+                         _ptr )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // collect_protected
+    //   gathers all currently protected pointers.
+    void collect_protected(
+        std::vector<void*>& _out) const
+    {
+        _out.clear();
+
+        if (!m_records)
+        {
+            return;
+        }
+
+        for (std::size_t i = 0;
+             i < m_total_slots; ++i)
+        {
+            if (m_records[i].active.load(
+                    std::memory_order_acquire))
+            {
+                void* p =
+                    m_records[i].protected_ptr.load(
+                        std::memory_order_acquire);
+
+                if (p)
+                {
+                    _out.push_back(p);
+                }
+            }
+        }
+    }
+
+    // --- retired count ---
+
+    std::size_t retired_count() const noexcept
+    {
+        return m_retired_count.load(
+            std::memory_order_relaxed);
+    }
+
+    void increment_retired() noexcept
+    {
+        m_retired_count.fetch_add(
+            1, std::memory_order_relaxed);
+    }
+
+    void decrement_retired(
+        std::size_t _n = 1) noexcept
+    {
+        m_retired_count.fetch_sub(
+            _n, std::memory_order_relaxed);
+    }
+
+    // --- queries ---
+
+    std::size_t capacity() const noexcept
+    {
+        return m_capacity;
+    }
+
+    std::size_t total_slots() const noexcept
+    {
+        return m_total_slots;
+    }
+
+    bool should_scan() const noexcept
+    {
+        return (m_retired_count.load(
+            std::memory_order_relaxed) >=
+                (m_total_slots * 2));
+    }
+
+private:
+    hazard_record*           m_records;
+    std::size_t              m_capacity;
+    std::size_t              m_total_slots;
+    std::atomic<std::size_t> m_retired_count;
+};
+
+
+// VIII. Scoped multi-hazard
+// RAII guard for a multi-slot hazard group.
+
+template<std::size_t SlotsPerThread>
+class DScopedMultiHazard
+{
+public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(DScopedMultiHazard)
+
+    using domain_type =
+        DMultiHazardDomain<SlotsPerThread>;
+
+    explicit DScopedMultiHazard(
+        domain_type& _domain) noexcept
+        : m_domain(_domain)
+        , m_group(_domain.acquire_slot_group())
+    {}
+
+    ~DScopedMultiHazard()
+    {
+        if (m_group)
+        {
+            m_domain.release_slot_group(m_group);
+        }
+    }
+
+
+    // protect
+    //   marks _ptr as protected in slot _slot.
+    void protect(
+        std::size_t _slot,
+        void*       _ptr
+    ) noexcept
+    {
+        if ( (m_group) &&
+             (_slot < SlotsPerThread) )
+        {
+            m_group[_slot].protected_ptr.store(
+                _ptr,
+                std::memory_order_release);
+        }
+    }
+
+    // clear
+    //   removes protection from slot _slot.
+    void clear(
+        std::size_t _slot
+    ) noexcept
+    {
+        if ( (m_group) &&
+             (_slot < SlotsPerThread) )
+        {
+            m_group[_slot].protected_ptr.store(
+                nullptr,
+                std::memory_order_release);
+        }
+    }
+
+    // clear_all
+    //   removes protection from all slots.
+    void clear_all() noexcept
+    {
+        if (m_group)
+        {
+            for (std::size_t s = 0;
+                 s < SlotsPerThread; ++s)
+            {
+                m_group[s].protected_ptr.store(
+                    nullptr,
+                    std::memory_order_release);
+            }
+        }
+    }
+
+    bool valid() const noexcept
+    {
+        return (m_group != nullptr);
+    }
+
+private:
+    domain_type&   m_domain;
+    hazard_record* m_group;
+};
+
+
+#endif  // D_HAS_STD_HAZARD_POINTER
+
+
+NS_END  // djinterp
+
+#endif  // C++11
+
+
+#endif  // DJINTERP_SYNC_HAZARD_POINTER_HPP

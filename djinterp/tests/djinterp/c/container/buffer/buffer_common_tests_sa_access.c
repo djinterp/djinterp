@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,10 +21,8 @@ d_tests_sa_buffer_common_get_element
   - out-of-bounds index returns NULL
   - successful retrieval of first, middle, and last elements
 */
-bool
-d_tests_sa_buffer_common_get_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_get_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -111,10 +109,8 @@ d_tests_sa_buffer_common_set_element
   - out-of-bounds index rejection
   - successful set overwrites the correct element
 */
-bool
-d_tests_sa_buffer_common_set_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_set_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -206,10 +202,8 @@ d_tests_sa_buffer_common_peek_front
   - zero element_size returns NULL
   - successful peek returns pointer to first element
 */
-bool
-d_tests_sa_buffer_common_peek_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_peek_front(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -276,10 +270,8 @@ d_tests_sa_buffer_common_peek_back
   - zero element_size returns NULL
   - successful peek returns pointer to last element
 */
-bool
-d_tests_sa_buffer_common_peek_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_peek_back(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -341,10 +333,8 @@ d_tests_sa_buffer_common_peek_back
 d_tests_sa_buffer_common_access_all
   Aggregation function that runs all element access tests.
 */
-bool
-d_tests_sa_buffer_common_access_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_access_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -23,14 +23,12 @@ d_tests_sa_event_hash_stats_print_valid
   - Printing with valid stats and label does not crash
   - Printing with valid stats and NULL label does not crash
 */
-bool
-d_tests_sa_event_hash_stats_print_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_stats_print_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_hash_stats stats;
+    struct dj_event_hash_stats stats;
 
     result = true;
 
@@ -66,10 +64,8 @@ d_tests_sa_event_hash_stats_print_null
   Tests the following:
   - NULL stats pointer does not crash
 */
-bool
-d_tests_sa_event_hash_stats_print_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_stats_print_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -91,10 +87,8 @@ d_tests_sa_event_hash_stats_print_null
 d_tests_sa_event_hash_stats_all
   Runs all statistics tests.
 */
-bool
-d_tests_sa_event_hash_stats_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_stats_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

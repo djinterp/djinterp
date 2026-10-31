@@ -24,13 +24,10 @@
 d_tests_file_fsync
   Tests d_file_sync_fd and d_file_sync_stream.
 */
-static struct d_test_object*
-d_tests_file_fsync
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fsync(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     FILE*                 file;
     int                   fd;
@@ -82,13 +79,10 @@ d_tests_file_fsync
 d_tests_file_fflush
   Tests d_file_flush_stream.
 */
-static struct d_test_object*
-d_tests_file_fflush
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fflush(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     FILE*                 file;
     size_t                idx;
@@ -123,13 +117,9 @@ d_tests_file_fflush
 d_tests_file_sync_all
   Runs every file_sync test.
 */
-struct d_test_object*
-d_tests_file_sync_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_sync_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

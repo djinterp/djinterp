@@ -15,7 +15,7 @@
 * floor and before the container substrate exists.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   handler    h : S x A_e -> S x P  -- struct d_event_step (fn + state)
+*   handler    h : S x A_e -> S x P  -- struct dj_event_step (fn + state)
 *   sequencing h1 ; h2               -- d_event_step_seq
 *   unit       skip(s,a) = (s,pass)  -- d_event_step_skip
 *   left zero  consume               -- a step returning D_VERDICT_CONSUME
@@ -44,10 +44,10 @@
 #include <stddef.h>
 // djinterp
 #include "../djinterp.h"
-#include "../../config/core/event/cfg_event_handler.h"
+#include "../../config/c/event/cfg_event_handler.h"
 #include "./event_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -69,18 +69,18 @@ D_EXTERN_C_BEGIN
 // payload block A_e; `_state` is the ambient state S, borrowed and opaque to
 // the core.
 //   RETURNS the pinned verdict code (D_VERDICT_PASS or D_VERDICT_CONSUME) as
-// int32_t rather than as `enum d_verdict`, because C's `enum d_verdict` and
+// int32_t rather than as `enum dj_verdict`, because C's `enum dj_verdict` and
 // C++'s `enum class verdict` are distinct types: a shared function-pointer
 // type must name a type both languages can spell identically, and calling
 // through a converted function pointer is undefined behaviour.
 typedef int32_t (*fn_event_step)(void* _payload,
                                  void* _state);
 
-// d_event_step
+// dj_event_step
 //   struct: one handler -- the pair (function, ambient state). A step with a
 // NULL `fn` is the unit and always yields pass, which makes a zeroed step
 // valid rather than a trap.
-struct d_event_step
+struct dj_event_step
 {
     fn_event_step fn;
     void*         state;
@@ -88,11 +88,13 @@ struct d_event_step
 
 // d_event_step_make
 //   function: builds a step from a function and its borrowed state.
-D_STATIC_INLINE struct d_event_step
-d_event_step_make(fn_event_step _fn,
-                  void*         _state)
+D_STATIC_INLINE
+struct dj_event_step d_event_step_make(
+    fn_event_step _fn,
+    void*         _state
+)
 {
-    struct d_event_step step;
+    struct dj_event_step step;
 
     step.fn    = _fn;
     step.state = _state;
@@ -104,16 +106,18 @@ d_event_step_make(fn_event_step _fn,
 //   function: the monoid unit. Ignores the payload and always yields pass.
 // Folding a word is invariant under inserting or removing skip -- which is
 // the algebraic reason masking a handler is well defined.
-D_STATIC_INLINE struct d_event_step
-d_event_step_skip(void)
+D_STATIC_INLINE
+struct dj_event_step d_event_step_skip(void)
 {
     return d_event_step_make(NULL, NULL);
 }
 
 // d_event_step_is_skip
 //   function: true if the step is the unit.
-D_STATIC_INLINE bool
-d_event_step_is_skip(const struct d_event_step* _step)
+D_STATIC_INLINE
+bool d_event_step_is_skip(
+    const struct dj_event_step* _step
+)
 {
     return ( (!_step) ||
              (!_step->fn) );
@@ -124,9 +128,11 @@ d_event_step_is_skip(const struct d_event_step* _step)
 // pass. This is the ONE place the core calls a handler; dispatch, the fused
 // word, and seq all route through it, so instrumentation and the unit
 // convention have a single definition.
-D_STATIC_INLINE int32_t
-d_event_step_invoke(const struct d_event_step* _step,
-                    void*                      _payload)
+D_STATIC_INLINE
+int32_t d_event_step_invoke(
+    const struct dj_event_step* _step,
+    void*                       _payload
+)
 {
     if (d_event_step_is_skip(_step))
     {
@@ -143,37 +149,41 @@ d_event_step_invoke(const struct d_event_step* _step,
 // The C++ face accepts a void-returning callable as an always-pass handler,
 // because the monoid unit yields pass. The C equivalent is an adapter over
 // fn_callback -- which is also the migration path for every handler written
-// against the pre-core `struct d_event_listener`, whose callback was exactly
+// against the pre-core `struct dj_event_listener`, whose callback was exactly
 // `void (*)(void*)` with no verdict.
 
 #if (D_INTERNAL_EVENT_HANDLER_ADAPTER == 1)
 
-// d_event_callback_state
+// dj_event_callback_state
 //   struct: the state block for a step adapted from a plain callback. The
 // caller owns this object and must keep it alive for as long as the step is
 // bound; the table can be asked to free it on unbind (see the state_free
 // argument to d_event_table_bind).
-struct d_event_callback_state
+struct dj_event_callback_state
 {
     fn_callback fn;
     void*       context;
 };
 
 // d_event_callback_step_fn
-//   function: the fn_event_step that drives a d_event_callback_state. Invokes
+//   function: the fn_event_step that drives a dj_event_callback_state. Invokes
 // the callback with the state's own context -- NOT with the payload -- which
 // reproduces the pre-core dispatch exactly: `listener->fn(event->context)`.
 //   The payload is therefore ignored by this adapter. A handler that needs
 // the payload must be written against fn_event_step directly.
-int32_t d_event_callback_step_fn(void* _payload,
-                                 void* _state);
+int32_t d_event_callback_step_fn(
+    void* _payload,
+    void* _state
+);
 
 // d_event_callback_state_init
 //   function: initializes a callback state block in caller-provided storage.
-D_STATIC_INLINE void
-d_event_callback_state_init(struct d_event_callback_state* _state,
-                            fn_callback                    _fn,
-                            void*                          _context)
+D_STATIC_INLINE
+void d_event_callback_state_init(
+    struct dj_event_callback_state* _state,
+    fn_callback                     _fn,
+    void*                           _context
+)
 {
     if (!_state)
     {
@@ -188,8 +198,10 @@ d_event_callback_state_init(struct d_event_callback_state* _state,
 
 // d_event_step_from_callback
 //   function: builds an always-pass step over an initialized callback state.
-D_STATIC_INLINE struct d_event_step
-d_event_step_from_callback(struct d_event_callback_state* _state)
+D_STATIC_INLINE
+struct dj_event_step d_event_step_from_callback(
+    struct dj_event_callback_state* _state
+)
 {
     if ( (!_state) ||
          (!_state->fn) )
@@ -215,21 +227,23 @@ d_event_step_from_callback(struct d_event_callback_state* _state)
 
 #if (D_INTERNAL_EVENT_HANDLER_SEQ == 1)
 
-// d_event_seq_state
+// dj_event_seq_state
 //   struct: the state block for a sequenced pair. Composition in C is
 // explicit storage: the caller supplies one of these per seq node, so
 // building a word of n steps by repeated seq costs n-1 caller-owned nodes and
 // no allocation.
-struct d_event_seq_state
+struct dj_event_seq_state
 {
-    struct d_event_step first;
-    struct d_event_step second;
+    struct dj_event_step first;
+    struct dj_event_step second;
 };
 
 // d_event_seq_step_fn
-//   function: the fn_event_step that drives a d_event_seq_state.
-int32_t d_event_seq_step_fn(void* _payload,
-                            void* _state);
+//   function: the fn_event_step that drives a dj_event_seq_state.
+int32_t d_event_seq_step_fn(
+    void* _payload,
+    void* _state
+);
 
 // d_event_step_seq
 //   function: sequences two steps into one (h1 ; h2), realizing the monoid
@@ -237,10 +251,12 @@ int32_t d_event_seq_step_fn(void* _payload,
 // as left zero, repeated application folds a whole word into a single step.
 //   Returns the unit if `_node` is NULL, so a storage failure degrades to a
 // well-defined no-op rather than a trap.
-D_STATIC_INLINE struct d_event_step
-d_event_step_seq(struct d_event_seq_state* _node,
-                 struct d_event_step       _first,
-                 struct d_event_step       _second)
+D_STATIC_INLINE
+struct dj_event_step d_event_step_seq(
+    struct dj_event_seq_state* _node,
+    struct dj_event_step       _first,
+    struct dj_event_step       _second
+)
 {
     if (!_node)
     {
@@ -271,10 +287,12 @@ d_event_step_seq(struct d_event_seq_state* _node,
 //   `_invoked_out` may be NULL; when supplied it receives the number of steps
 // actually invoked -- the (N, +) component of the enriched dispatch.
 // returns: the pinned verdict code of the folded word.
-int32_t d_event_step_fold(const struct d_event_step* _steps,
-                          size_t                     _count,
-                          void*                      _payload,
-                          size_t*                    _invoked_out);
+int32_t d_event_step_fold(
+    const struct dj_event_step* _steps,
+    size_t                      _count,
+    void*                       _payload,
+    size_t*                     _invoked_out
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -289,26 +307,26 @@ int32_t d_event_step_fold(const struct d_event_step* _steps,
 
 #if (D_INTERNAL_EVENT_ASSERT_SIZES == 1)
 
-    D_STATIC_ASSERT(sizeof(struct d_event_step) == 16,
-                    "d_event_step layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_step) == 16,
+                    "dj_event_step layout drift");
 #if (D_INTERNAL_EVENT_HANDLER_SEQ == 1)
-    D_STATIC_ASSERT(sizeof(struct d_event_seq_state) == 32,
-                    "d_event_seq_state layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_seq_state) == 32,
+                    "dj_event_seq_state layout drift");
 #endif
 #if (D_INTERNAL_EVENT_HANDLER_ADAPTER == 1)
-    D_STATIC_ASSERT(sizeof(struct d_event_callback_state) == 16,
-                    "d_event_callback_state layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_callback_state) == 16,
+                    "dj_event_callback_state layout drift");
 #endif
 
 #endif  // D_INTERNAL_EVENT_ASSERT_SIZES
 
 #if (D_INTERNAL_EVENT_ASSERT_LAYOUT == 1)
 
-D_STATIC_ASSERT(offsetof(struct d_event_step, fn) == 0,
-                "d_event_step field drift");
+D_STATIC_ASSERT(offsetof(struct dj_event_step, fn) == 0,
+                "dj_event_step field drift");
 #if (D_INTERNAL_EVENT_HANDLER_SEQ == 1)
-D_STATIC_ASSERT(offsetof(struct d_event_seq_state, first) == 0,
-                "d_event_seq_state field drift");
+D_STATIC_ASSERT(offsetof(struct dj_event_seq_state, first) == 0,
+                "dj_event_seq_state field drift");
 #endif
 
 #endif  // D_INTERNAL_EVENT_ASSERT_LAYOUT

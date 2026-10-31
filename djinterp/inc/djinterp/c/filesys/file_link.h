@@ -67,8 +67,10 @@ D_EXTERN_C_BEGIN
  * @return 0, or -1 on failure with errno set -- EEXIST when `_linkpath` is
  *         taken, EPERM where the filesystem holds no links.
  */
-int     d_file_symlink(const char* _target,
-                       const char* _linkpath);
+int d_file_symlink(
+    const char* _target,
+    const char* _linkpath
+);
 /**
  * @brief Reads the text a symbolic link contains, without resolving it.
  *
@@ -84,9 +86,11 @@ int     d_file_symlink(const char* _target,
  * @return the number of bytes written, or -1 on failure with errno set --
  *         EINVAL when `_path` is not a symbolic link.
  */
-ssize_t d_file_readlink(const char* _path,
-                        char*       _buf,
-                        size_t      _bufsize);
+ssize_t d_file_readlink(
+    const char* _path,
+    char*       _buf,
+    size_t      _bufsize
+);
 /**
  * @brief Reports whether a path is itself a symbolic link, without following
  *        it -- on Windows a junction too.
@@ -95,7 +99,9 @@ ssize_t d_file_readlink(const char* _path,
  * @return non-zero for a symbolic link; 0 otherwise, for `NULL`, or when the
  *         path cannot be examined.
  */
-int     d_file_is_symlink(const char* _path);
+int d_file_is_symlink(
+    const char* _path
+);
 
 
 D_EXTERN_C_END

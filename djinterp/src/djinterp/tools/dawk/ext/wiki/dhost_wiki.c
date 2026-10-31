@@ -21,10 +21,10 @@
 #include <string.h>  // memcpy, memset, strcmp, strlen, strncmp
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                 // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"               // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"               // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"              // d_awk_value_text
-#include "../../../../../../inc/djinterp/tools/dawk/ext/wiki/dwiki.h"      // d_wiki
-#include "../../../../../../inc/djinterp/tools/dawk/ext/wiki/dwiki_doc.h"  // d_wiki_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/wiki/dwiki.h"      // dj_wiki
+#include "../../../../../../inc/djinterp/tools/dawk/ext/wiki/dwiki_doc.h"  // dj_wiki_doc
 
 
 //==============================================================================
@@ -35,20 +35,20 @@
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_wiki
+// dj_host_wiki
 //   struct: the pages, open or closed, and the last failure.
-struct d_host_wiki
+struct dj_host_wiki
 {
-    struct d_wiki_doc** pages;
+    struct dj_wiki_doc** pages;
     size_t              page_count;
     size_t              page_capacity;
     char                error[512];
 };
 
 // 1.1.2
-// d_internal_found
+// dj_internal_found
 //   struct: the paths a walk has found, in an array that grows.
-struct d_internal_found
+struct dj_internal_found
 {
     char** paths;
     size_t count;
@@ -67,18 +67,18 @@ d_internal_text, d_internal_index
   An argument's text, and an argument as an index from 1: a value below 1,
 or not a number, is 0.
 */
-static const char*
-d_internal_text(
-    struct d_awk_value* _value
+static
+const char* d_internal_text(
+    struct dj_awk_value* _value
 )
 {
     return d_awk_value_text(_value, NULL, NULL);
 }
 
 
-static size_t
-d_internal_index(
-    struct d_awk_value* _value
+static
+size_t d_internal_index(
+    struct dj_awk_value* _value
 )
 {
     const double number = d_awk_value_number(_value);
@@ -98,11 +98,11 @@ d_internal_fail
   Gives -1 for a failure a program can recover from, wiki_error() saying
 why.
 */
-static bool
-d_internal_fail(
-    struct d_host_wiki* _host,
-    struct d_awk_value* _out,
-    const char*         _why
+static
+bool d_internal_fail(
+    struct dj_host_wiki* _host,
+    struct dj_awk_value* _out,
+    const char*          _why
 )
 {
     // a reason already given stays; another is copied
@@ -126,10 +126,10 @@ d_internal_fail(
 d_internal_set_text, d_internal_set_span, d_internal_set_buffer
   Gives text: a string's, a span of a page's, a buffer's, which is freed.
 */
-static bool
-d_internal_set_text(
-    struct d_awk_value* _out,
-    const char*         _text
+static
+bool d_internal_set_text(
+    struct dj_awk_value* _out,
+    const char*          _text
 )
 {
     return d_awk_value_set_string(_out, (_text) ? _text : "",
@@ -137,12 +137,12 @@ d_internal_set_text(
 }
 
 
-static bool
-d_internal_set_span(
-    struct d_awk_value*      _out,
-    const struct d_wiki_doc* _doc,
-    size_t                   _start,
-    size_t                   _end
+static
+bool d_internal_set_span(
+    struct dj_awk_value*      _out,
+    const struct dj_wiki_doc* _doc,
+    size_t                    _start,
+    size_t                    _end
 )
 {
     size_t            length = 0;
@@ -160,12 +160,12 @@ d_internal_set_span(
 }
 
 
-static bool
-d_internal_set_buffer(
-    struct d_host_wiki*   _host,
-    struct d_awk_value*   _out,
-    struct d_wiki_buffer* _buffer,
-    bool                  _ok
+static
+bool d_internal_set_buffer(
+    struct dj_host_wiki*   _host,
+    struct dj_awk_value*   _out,
+    struct dj_wiki_buffer* _buffer,
+    bool                   _ok
 )
 {
     // a writer that could not write
@@ -192,10 +192,10 @@ d_internal_set_buffer(
 d_internal_page
   The page a handle names, or NULL, wiki_error() saying why.
 */
-static struct d_wiki_doc*
-d_internal_page(
-    struct d_host_wiki* _host,
-    struct d_awk_value* _handle
+static
+struct dj_wiki_doc* d_internal_page(
+    struct dj_host_wiki* _host,
+    struct dj_awk_value* _handle
 )
 {
     const size_t handle = d_internal_index(_handle);
@@ -219,14 +219,14 @@ d_internal_page(
 d_internal_dialect
   A dialect, by its name or by a page's handle; D_WIKI_OTHER for neither.
 */
-static enum d_wiki_dialect
+static enum dj_wiki_dialect
 d_internal_dialect(
-    struct d_host_wiki* _host,
-    struct d_awk_value* _value
+    struct dj_host_wiki* _host,
+    struct dj_awk_value* _value
 )
 {
     const char* const         name    = d_internal_text(_value);
-    const enum d_wiki_dialect dialect = d_wiki_dialect_named(name);
+    const enum dj_wiki_dialect dialect = d_wiki_dialect_named(name);
 
     // a name first, then a handle
     if (dialect != D_WIKI_OTHER)
@@ -255,9 +255,9 @@ d_internal_dialect(
 d_internal_copy_arg
   An argument's text, copied, as the next argument's may be read over it.
 */
-static char*
-d_internal_copy_arg(
-    struct d_awk_value* _value
+static
+char* d_internal_copy_arg(
+    struct dj_awk_value* _value
 )
 {
     size_t            length = 0;
@@ -271,8 +271,8 @@ d_internal_copy_arg(
 d_internal_same
   Whether a field's name is the one given.
 */
-static bool
-d_internal_same(
+static
+bool d_internal_same(
     const char* _field,
     const char* _name
 )
@@ -285,11 +285,11 @@ d_internal_same(
 d_internal_unknown_field
   Gives "" for a field not known, wiki_error() saying so.
 */
-static bool
-d_internal_unknown_field(
-    struct d_host_wiki* _host,
-    struct d_awk_value* _out,
-    const char*         _field
+static
+bool d_internal_unknown_field(
+    struct dj_host_wiki* _host,
+    struct dj_awk_value* _out,
+    const char*          _field
 )
 {
     (void)snprintf(_host->error, sizeof(_host->error), "no field %s",
@@ -304,12 +304,12 @@ d_internal_changed
   Gives 1 for a change kept, or -1 for one refused, the document saying
 why.
 */
-static bool
-d_internal_changed(
-    struct d_host_wiki*      _host,
-    struct d_awk_value*      _out,
-    const struct d_wiki_doc* _doc,
-    bool                     _ok
+static
+bool d_internal_changed(
+    struct dj_host_wiki*      _host,
+    struct dj_awk_value*      _out,
+    const struct dj_wiki_doc* _doc,
+    bool                      _ok
 )
 {
     // refused: the document says why
@@ -333,11 +333,11 @@ d_internal_changed(
 d_internal_add_page
   Keeps a page, and gives its handle.
 */
-static bool
-d_internal_add_page(
-    struct d_host_wiki* _host,
-    struct d_awk_value* _out,
-    struct d_wiki_doc*  _doc
+static
+bool d_internal_add_page(
+    struct dj_host_wiki* _host,
+    struct dj_awk_value* _out,
+    struct dj_wiki_doc*  _doc
 )
 {
     // room for one more
@@ -345,7 +345,7 @@ d_internal_add_page(
     {
         const size_t        wanted = (_host->page_capacity > 0u)
                                          ? (_host->page_capacity * 2u) : 8u;
-        struct d_wiki_doc** grown  = realloc(_host->pages,
+        struct dj_wiki_doc** grown  = realloc(_host->pages,
                                              wanted * sizeof(*grown));
 
         // a page that cannot be kept is freed, and the handle not given
@@ -371,19 +371,19 @@ d_internal_add_page(
 wiki_open(path[, dialect]), wiki_new(path[, dialect[, text]])
   A page from its file, or of a text.
 */
-static bool
-d_internal_wiki_open(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_open(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host = _user;
+    struct dj_host_wiki* const host = _user;
     char* const               path = d_internal_copy_arg(_args[0]);
-    enum d_wiki_dialect       dialect = D_WIKI_OTHER;
+    enum dj_wiki_dialect       dialect = D_WIKI_OTHER;
     char                      why[512];
 
     (void)_problem;
@@ -409,7 +409,7 @@ d_internal_wiki_open(
         }
     }
 
-    struct d_wiki_doc* const doc = d_wiki_doc_read(path, dialect, why,
+    struct dj_wiki_doc* const doc = d_wiki_doc_read(path, dialect, why,
                                                    sizeof(why));
 
     free(path);
@@ -424,19 +424,19 @@ d_internal_wiki_open(
 }
 
 
-static bool
-d_internal_wiki_new(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_new(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host    = _user;
+    struct dj_host_wiki* const host    = _user;
     char* const               path    = d_internal_copy_arg(_args[0]);
-    enum d_wiki_dialect       dialect = D_WIKI_OTHER;
+    enum dj_wiki_dialect       dialect = D_WIKI_OTHER;
     char*                     text    = NULL;
     char                      why[512];
 
@@ -464,7 +464,7 @@ d_internal_wiki_new(
         text = d_internal_copy_arg(_args[2]);
     }
 
-    struct d_wiki_doc* const doc = (path)
+    struct dj_wiki_doc* const doc = (path)
                                        ? d_wiki_doc_make(path, (text) ? text
                                                                       : "",
                                                          (text) ? strlen(text)
@@ -489,18 +489,18 @@ d_internal_wiki_new(
 /*
 wiki_save(p[, path]), wiki_close(p), wiki_error()
 */
-static bool
-d_internal_wiki_save(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_save(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host = _user;
-    struct d_wiki_doc* const  doc  = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const host = _user;
+    struct dj_wiki_doc* const  doc  = d_internal_page(host, _args[0]);
     char                      why[512];
 
     (void)_problem;
@@ -512,7 +512,7 @@ d_internal_wiki_save(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const enum d_wiki_saved saved = d_wiki_doc_save(
+    const enum dj_wiki_saved saved = d_wiki_doc_save(
                                         doc,
                                         (_count > 1u)
                                             ? d_internal_text(_args[1])
@@ -531,17 +531,17 @@ d_internal_wiki_save(
 }
 
 
-static bool
-d_internal_wiki_close(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_close(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host   = _user;
+    struct dj_host_wiki* const host   = _user;
     const size_t              handle = d_internal_index(_args[0]);
 
     (void)_count;
@@ -566,17 +566,17 @@ d_internal_wiki_close(
 }
 
 
-static bool
-d_internal_wiki_error(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_error(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host = _user;
+    struct dj_host_wiki* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -591,15 +591,15 @@ d_internal_wiki_error(
 wiki_path(p), wiki_dialect(p), wiki_text(p), wiki_changes(p), wiki_page(p)
   What a page is, by the field each names.
 */
-static bool
-d_internal_page_field(
-    struct d_host_wiki* _host,
-    struct d_awk_value* _handle,
-    struct d_awk_value* _out,
-    const char*         _field
+static
+bool d_internal_page_field(
+    struct dj_host_wiki* _host,
+    struct dj_awk_value* _handle,
+    struct dj_awk_value* _out,
+    const char*          _field
 )
 {
-    const struct d_wiki_doc* const doc = d_internal_page(_host, _handle);
+    const struct dj_wiki_doc* const doc = d_internal_page(_host, _handle);
 
     // a page open
     if (!doc)
@@ -616,7 +616,7 @@ d_internal_page_field(
     // its dialect's name
     if (d_internal_same(_field, "dialect"))
     {
-        const enum d_wiki_dialect dialect = d_wiki_doc_dialect(doc);
+        const enum dj_wiki_dialect dialect = d_wiki_doc_dialect(doc);
 
         return d_internal_set_text(_out, d_wiki_dialect_name(dialect));
     }
@@ -648,14 +648,14 @@ d_internal_page_field(
 }
 
 
-static bool
-d_internal_wiki_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -666,14 +666,14 @@ d_internal_wiki_path(
 }
 
 
-static bool
-d_internal_wiki_dialect(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_dialect(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -684,14 +684,14 @@ d_internal_wiki_dialect(
 }
 
 
-static bool
-d_internal_wiki_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -702,14 +702,14 @@ d_internal_wiki_text(
 }
 
 
-static bool
-d_internal_wiki_changes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_changes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -720,14 +720,14 @@ d_internal_wiki_changes(
 }
 
 
-static bool
-d_internal_wiki_page(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_page(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -743,9 +743,9 @@ d_internal_wiki_page(
 //==============================================================================
 
 
-// d_internal_counted
+// dj_internal_counted
 //   enum: what a page's records are counted by.
-enum d_internal_counted
+enum dj_internal_counted
 {
     D_INTERNAL_BLOCKS = 0,
     D_INTERNAL_SECTIONS,
@@ -764,8 +764,8 @@ not among them.
 */
 static size_t
 d_internal_count_of(
-    const struct d_wiki*    _wiki,
-    enum d_internal_counted _kind
+    const struct dj_wiki*    _wiki,
+    enum dj_internal_counted _kind
 )
 {
     // a table of the counts, by kind
@@ -784,13 +784,13 @@ d_internal_count_of(
 
 static bool
 d_internal_count(
-    struct d_host_wiki*     _host,
-    struct d_awk_value*     _handle,
-    struct d_awk_value*     _out,
-    enum d_internal_counted _kind
+    struct dj_host_wiki*     _host,
+    struct dj_awk_value*     _handle,
+    struct dj_awk_value*     _out,
+    enum dj_internal_counted _kind
 )
 {
-    const struct d_wiki_doc* const doc = d_internal_page(_host, _handle);
+    const struct dj_wiki_doc* const doc = d_internal_page(_host, _handle);
 
     // a page open
     if (!doc)
@@ -806,14 +806,14 @@ d_internal_count(
 }
 
 
-static bool
-d_internal_wiki_blocks(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_blocks(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -824,14 +824,14 @@ d_internal_wiki_blocks(
 }
 
 
-static bool
-d_internal_wiki_sections(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_sections(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -842,14 +842,14 @@ d_internal_wiki_sections(
 }
 
 
-static bool
-d_internal_wiki_headings(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_headings(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -860,14 +860,14 @@ d_internal_wiki_headings(
 }
 
 
-static bool
-d_internal_wiki_links(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_links(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -878,14 +878,14 @@ d_internal_wiki_links(
 }
 
 
-static bool
-d_internal_wiki_templates(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_templates(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -896,14 +896,14 @@ d_internal_wiki_templates(
 }
 
 
-static bool
-d_internal_wiki_regions(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_regions(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -914,14 +914,14 @@ d_internal_wiki_regions(
 }
 
 
-static bool
-d_internal_wiki_problems(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_problems(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -937,16 +937,16 @@ d_internal_record
   The page and the index of one of its records, from 1 -- from 0 for a
 section -- or NULL, wiki_error() saying why.
 */
-static const struct d_wiki_doc*
+static const struct dj_wiki_doc*
 d_internal_record(
-    struct d_host_wiki*     _host,
-    struct d_awk_value*     _handle,
-    struct d_awk_value*     _index,
-    enum d_internal_counted _kind,
+    struct dj_host_wiki*     _host,
+    struct dj_awk_value*     _handle,
+    struct dj_awk_value*     _index,
+    enum dj_internal_counted _kind,
     size_t*                 _out_index
 )
 {
-    const struct d_wiki_doc* const doc = d_internal_page(_host, _handle);
+    const struct dj_wiki_doc* const doc = d_internal_page(_host, _handle);
 
     // a page open, and a record it has
     if (!doc)
@@ -983,19 +983,19 @@ d_internal_record(
 /*
 wiki_problem(p, i, field)
 */
-static bool
-d_internal_wiki_problem(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_problem(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    const struct d_wiki_doc*  doc   = d_internal_record(host, _args[0],
+    const struct dj_wiki_doc*  doc   = d_internal_record(host, _args[0],
                                                         _args[1],
                                                         D_INTERNAL_PROBLEMS,
                                                         &index);
@@ -1010,7 +1010,7 @@ d_internal_wiki_problem(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki_problem* const problem =
+    const struct dj_wiki_problem* const problem =
         &d_wiki_doc_records(doc)->problems[index];
     const char* const                  field   = d_internal_text(_args[2]);
 
@@ -1039,7 +1039,7 @@ d_internal_template_kind_name
 */
 static const char*
 d_internal_block_kind_name(
-    enum d_wiki_block_kind _kind
+    enum dj_wiki_block_kind _kind
 )
 {
     static const char* const names[] =
@@ -1055,7 +1055,7 @@ d_internal_block_kind_name(
 
 static const char*
 d_internal_form_name(
-    enum d_wiki_form _form
+    enum dj_wiki_form _form
 )
 {
     static const char* const names[] =
@@ -1071,7 +1071,7 @@ d_internal_form_name(
 
 static const char*
 d_internal_target_name(
-    enum d_wiki_target _target
+    enum dj_wiki_target _target
 )
 {
     static const char* const names[] =
@@ -1086,7 +1086,7 @@ d_internal_target_name(
 
 static const char*
 d_internal_template_kind_name(
-    enum d_wiki_template_kind _kind
+    enum dj_wiki_template_kind _kind
 )
 {
     static const char* const names[] =
@@ -1103,10 +1103,10 @@ d_internal_template_kind_name(
 d_internal_number_or_none
   Gives a number from 1 for an index, 0 for none.
 */
-static bool
-d_internal_number_or_none(
-    struct d_awk_value* _out,
-    size_t              _index
+static
+bool d_internal_number_or_none(
+    struct dj_awk_value* _out,
+    size_t               _index
 )
 {
     d_awk_value_set_number(_out, (_index == D_WIKI_NONE)
@@ -1119,19 +1119,19 @@ d_internal_number_or_none(
 /*
 wiki_block(p, i, field)
 */
-static bool
-d_internal_wiki_block(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_block(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    const struct d_wiki_doc*  doc   = d_internal_record(host, _args[0],
+    const struct dj_wiki_doc*  doc   = d_internal_record(host, _args[0],
                                                         _args[1],
                                                         D_INTERNAL_BLOCKS,
                                                         &index);
@@ -1146,8 +1146,8 @@ d_internal_wiki_block(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki* const       wiki  = d_wiki_doc_records(doc);
-    const struct d_wiki_block* const block = &wiki->blocks[index];
+    const struct dj_wiki* const       wiki  = d_wiki_doc_records(doc);
+    const struct dj_wiki_block* const block = &wiki->blocks[index];
     const char* const                field = d_internal_text(_args[2]);
     char                             marker[2] = { block->marker, '\0' };
 
@@ -1218,7 +1218,7 @@ d_internal_wiki_block(
     // its content: its lines without their markers
     if (d_internal_same(field, "content"))
     {
-        struct d_wiki_buffer content = { NULL, 0u, 0u, false };
+        struct dj_wiki_buffer content = { NULL, 0u, 0u, false };
 
         return d_internal_set_buffer(host, _out, &content,
                                      d_wiki_content(wiki, index, &content));
@@ -1233,14 +1233,14 @@ d_internal_section_path
   A section's path: its title, after the titles of those that hold it,
 apart by `/`.
 */
-static bool
-d_internal_section_path(
-    const struct d_wiki*  _wiki,
-    size_t                _section,
-    struct d_wiki_buffer* _out
+static
+bool d_internal_section_path(
+    const struct dj_wiki*  _wiki,
+    size_t                 _section,
+    struct dj_wiki_buffer* _out
 )
 {
-    const struct d_wiki_section* const section = &_wiki->sections[_section];
+    const struct dj_wiki_section* const section = &_wiki->sections[_section];
 
     // the lead has no title
     if (section->heading == D_WIKI_NONE)
@@ -1263,19 +1263,19 @@ d_internal_section_path(
 /*
 wiki_section(p, i, field)
 */
-static bool
-d_internal_wiki_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    const struct d_wiki_doc*  doc   = d_internal_record(host, _args[0],
+    const struct dj_wiki_doc*  doc   = d_internal_record(host, _args[0],
                                                         _args[1],
                                                         D_INTERNAL_SECTIONS,
                                                         &index);
@@ -1290,9 +1290,9 @@ d_internal_wiki_section(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki* const         wiki    = d_wiki_doc_records(doc);
-    const struct d_wiki_section* const section = &wiki->sections[index];
-    const struct d_wiki_heading* const heading =
+    const struct dj_wiki* const         wiki    = d_wiki_doc_records(doc);
+    const struct dj_wiki_section* const section = &wiki->sections[index];
+    const struct dj_wiki_heading* const heading =
         (section->heading != D_WIKI_NONE) ? &wiki->headings[section->heading]
                                           : NULL;
     const char* const                  field   = d_internal_text(_args[2]);
@@ -1358,7 +1358,7 @@ d_internal_wiki_section(
     // its titles, from the page's top, apart by `/`
     if (d_internal_same(field, "path"))
     {
-        struct d_wiki_buffer path = { NULL, 0u, 0u, false };
+        struct dj_wiki_buffer path = { NULL, 0u, 0u, false };
 
         return d_internal_set_buffer(host, _out, &path,
                                      d_internal_section_path(wiki, index,
@@ -1391,18 +1391,18 @@ d_internal_wiki_section(
 /*
 wiki_find_section(p, name[, after])
 */
-static bool
-d_internal_wiki_find_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_find_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const      host = _user;
-    const struct d_wiki_doc* const doc  = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const      host = _user;
+    const struct dj_wiki_doc* const doc  = d_internal_page(host, _args[0]);
     char* const                    name = d_internal_copy_arg(_args[1]);
     const size_t                   after = (_count > 2u)
                                                ? d_internal_index(_args[2])
@@ -1421,16 +1421,16 @@ d_internal_wiki_find_section(
                                                  : host->error);
     }
 
-    const struct d_wiki* const wiki  = d_wiki_doc_records(doc);
+    const struct dj_wiki* const wiki  = d_wiki_doc_records(doc);
     size_t                     found = 0;
 
     // each section after the one given, by title, anchor or path
     for (size_t index = after + 1u; ( (found == 0u) &&
                                       (index < wiki->section_count) ); ++index)
     {
-        const struct d_wiki_heading* const heading =
+        const struct dj_wiki_heading* const heading =
             &wiki->headings[wiki->sections[index].heading];
-        struct d_wiki_buffer               path    = { NULL, 0u, 0u, false };
+        struct dj_wiki_buffer               path    = { NULL, 0u, 0u, false };
 
         // its title, its anchor, or its path
         if ( (strcmp(heading->title, name) == 0) ||
@@ -1455,19 +1455,19 @@ d_internal_wiki_find_section(
 /*
 wiki_heading(p, i, field)
 */
-static bool
-d_internal_wiki_heading(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_heading(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    const struct d_wiki_doc*  doc   = d_internal_record(host, _args[0],
+    const struct dj_wiki_doc*  doc   = d_internal_record(host, _args[0],
                                                         _args[1],
                                                         D_INTERNAL_HEADINGS,
                                                         &index);
@@ -1482,7 +1482,7 @@ d_internal_wiki_heading(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki_heading* const heading =
+    const struct dj_wiki_heading* const heading =
         &d_wiki_doc_records(doc)->headings[index];
     const char* const                  field   = d_internal_text(_args[2]);
 
@@ -1519,19 +1519,19 @@ d_internal_wiki_heading(
 /*
 wiki_link(p, i, field)
 */
-static bool
-d_internal_wiki_link(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_link(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    const struct d_wiki_doc*  doc   = d_internal_record(host, _args[0],
+    const struct dj_wiki_doc*  doc   = d_internal_record(host, _args[0],
                                                         _args[1],
                                                         D_INTERNAL_LINKS,
                                                         &index);
@@ -1546,7 +1546,7 @@ d_internal_wiki_link(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki_link* const link  =
+    const struct dj_wiki_link* const link  =
         &d_wiki_doc_records(doc)->links[index];
     const char* const               field = d_internal_text(_args[2]);
 
@@ -1625,18 +1625,18 @@ d_internal_wiki_link(
 /*
 wiki_find_link(p, name[, after])
 */
-static bool
-d_internal_wiki_find_link(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_find_link(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const      host  = _user;
-    const struct d_wiki_doc* const doc   = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const      host  = _user;
+    const struct dj_wiki_doc* const doc   = d_internal_page(host, _args[0]);
     char* const                    name  = d_internal_copy_arg(_args[1]);
     const size_t                   after = (_count > 2u)
                                                ? d_internal_index(_args[2])
@@ -1655,14 +1655,14 @@ d_internal_wiki_find_link(
                                                  : host->error);
     }
 
-    const struct d_wiki* const wiki  = d_wiki_doc_records(doc);
+    const struct dj_wiki* const wiki  = d_wiki_doc_records(doc);
     size_t                     found = 0;
 
     // each link after the one given, to the page, or of the target
     for (size_t index = after; ( (found == 0u) &&
                                  (index < wiki->link_count) ); ++index)
     {
-        const struct d_wiki_link* const link = &wiki->links[index];
+        const struct dj_wiki_link* const link = &wiki->links[index];
 
         // its destination as written, or the page it names
         if ( (strcmp(link->target, name) == 0) ||
@@ -1687,19 +1687,19 @@ d_internal_wiki_find_link(
 /*
 wiki_template(p, i, field)
 */
-static bool
-d_internal_wiki_template(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_template(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    const struct d_wiki_doc*  doc   = d_internal_record(host, _args[0],
+    const struct dj_wiki_doc*  doc   = d_internal_record(host, _args[0],
                                                         _args[1],
                                                         D_INTERNAL_TEMPLATES,
                                                         &index);
@@ -1714,7 +1714,7 @@ d_internal_wiki_template(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki_template* const tmpl  =
+    const struct dj_wiki_template* const tmpl  =
         &d_wiki_doc_records(doc)->templates[index];
     const char* const                   field = d_internal_text(_args[2]);
 
@@ -1764,18 +1764,18 @@ d_internal_wiki_template(
 /*
 wiki_find_template(p, name[, after])
 */
-static bool
-d_internal_wiki_find_template(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_find_template(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const      host  = _user;
-    const struct d_wiki_doc* const doc   = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const      host  = _user;
+    const struct dj_wiki_doc* const doc   = d_internal_page(host, _args[0]);
     char* const                    name  = d_internal_copy_arg(_args[1]);
     const size_t                   after = (_count > 2u)
                                                ? d_internal_index(_args[2])
@@ -1794,7 +1794,7 @@ d_internal_wiki_find_template(
                                                  : host->error);
     }
 
-    const struct d_wiki* const wiki  = d_wiki_doc_records(doc);
+    const struct dj_wiki* const wiki  = d_wiki_doc_records(doc);
     size_t                     found = 0;
 
     // each template after the one given, its name as MediaWiki compares it
@@ -1820,14 +1820,14 @@ d_internal_wiki_find_template(
 d_internal_argument
   The last argument of a template of a key, D_WIKI_NONE for none.
 */
-static size_t
-d_internal_argument(
-    const struct d_wiki* _wiki,
-    size_t               _template,
-    const char*          _key
+static
+size_t d_internal_argument(
+    const struct dj_wiki* _wiki,
+    size_t                _template,
+    const char*           _key
 )
 {
-    const struct d_wiki_template* const tmpl  = &_wiki->templates[_template];
+    const struct dj_wiki_template* const tmpl  = &_wiki->templates[_template];
     size_t                              found = D_WIKI_NONE;
 
     // the last of the key
@@ -1848,16 +1848,16 @@ d_internal_argument(
 /*
 wiki_arg(p, t, key), wiki_has_arg(p, t, key), wiki_arg_key(p, t, n)
 */
-static bool
-d_internal_arg_common(
-    struct d_host_wiki*  _host,
-    struct d_awk_value** _args,
-    struct d_awk_value*  _out,
-    int                  _which
+static
+bool d_internal_arg_common(
+    struct dj_host_wiki*  _host,
+    struct dj_awk_value** _args,
+    struct dj_awk_value*  _out,
+    int                   _which
 )
 {
     size_t                   index = 0;
-    const struct d_wiki_doc* doc   = d_internal_record(_host, _args[0],
+    const struct dj_wiki_doc* doc   = d_internal_record(_host, _args[0],
                                                        _args[1],
                                                        D_INTERNAL_TEMPLATES,
                                                        &index);
@@ -1868,7 +1868,7 @@ d_internal_arg_common(
         return d_internal_fail(_host, _out, _host->error);
     }
 
-    const struct d_wiki* const wiki = d_wiki_doc_records(doc);
+    const struct dj_wiki* const wiki = d_wiki_doc_records(doc);
 
     // the n-th argument's key
     if (_which == 2)
@@ -1905,7 +1905,7 @@ d_internal_arg_common(
         return d_awk_value_set_string(_out, "", 0u);
     }
 
-    const struct d_wiki_argument* const given = &wiki->arguments[argument];
+    const struct dj_wiki_argument* const given = &wiki->arguments[argument];
     size_t                              start = given->value_start;
     size_t                              end   = given->value_end;
     size_t                              length = 0;
@@ -1933,14 +1933,14 @@ d_internal_arg_common(
 }
 
 
-static bool
-d_internal_wiki_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1951,14 +1951,14 @@ d_internal_wiki_arg(
 }
 
 
-static bool
-d_internal_wiki_has_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_has_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1969,14 +1969,14 @@ d_internal_wiki_has_arg(
 }
 
 
-static bool
-d_internal_wiki_arg_key(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_arg_key(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1990,19 +1990,19 @@ d_internal_wiki_arg_key(
 /*
 wiki_region(p, i, field), wiki_find_region(p, name)
 */
-static bool
-d_internal_wiki_region(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_region(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    const struct d_wiki_doc*  doc   = d_internal_record(host, _args[0],
+    const struct dj_wiki_doc*  doc   = d_internal_record(host, _args[0],
                                                         _args[1],
                                                         D_INTERNAL_REGIONS,
                                                         &index);
@@ -2017,7 +2017,7 @@ d_internal_wiki_region(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki_region* const region =
+    const struct dj_wiki_region* const region =
         &d_wiki_doc_records(doc)->regions[index];
     const char* const                 field  = d_internal_text(_args[2]);
 
@@ -2045,18 +2045,18 @@ d_internal_wiki_region(
 }
 
 
-static bool
-d_internal_wiki_find_region(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_find_region(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const      host = _user;
-    const struct d_wiki_doc* const doc  = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const      host = _user;
+    const struct dj_wiki_doc* const doc  = d_internal_page(host, _args[0]);
 
     (void)_count;
     (void)_problem;
@@ -2085,22 +2085,22 @@ d_internal_changing
   The page a change is made to, and an index of it -- from 1, or from 0 for
 a section -- checked; NULL when there is none.
 */
-static struct d_wiki_doc*
+static struct dj_wiki_doc*
 d_internal_changing(
-    struct d_host_wiki*     _host,
-    struct d_awk_value*     _handle,
-    struct d_awk_value*     _index,
-    enum d_internal_counted _kind,
+    struct dj_host_wiki*     _host,
+    struct dj_awk_value*     _handle,
+    struct dj_awk_value*     _index,
+    enum dj_internal_counted _kind,
     size_t*                 _out_index
 )
 {
     size_t                   index = 0;
-    const struct d_wiki_doc* doc   = d_internal_record(_host, _handle, _index,
+    const struct dj_wiki_doc* doc   = d_internal_record(_host, _handle, _index,
                                                        _kind, &index);
 
     *_out_index = index;
 
-    return (struct d_wiki_doc*)doc;
+    return (struct dj_wiki_doc*)doc;
 }
 
 
@@ -2108,19 +2108,19 @@ d_internal_changing(
 wiki_set_link(p, i, target[, label]), wiki_set_label(p, i, label),
 wiki_unlink(p, i)
 */
-static bool
-d_internal_wiki_set_link(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_set_link(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host   = _user;
+    struct dj_host_wiki* const host   = _user;
     size_t                    index  = 0;
-    struct d_wiki_doc* const  doc    = d_internal_changing(host, _args[0],
+    struct dj_wiki_doc* const  doc    = d_internal_changing(host, _args[0],
                                                            _args[1],
                                                            D_INTERNAL_LINKS,
                                                            &index);
@@ -2153,19 +2153,19 @@ d_internal_wiki_set_link(
 }
 
 
-static bool
-d_internal_wiki_set_label(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_set_label(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    struct d_wiki_doc* const  doc   = d_internal_changing(host, _args[0],
+    struct dj_wiki_doc* const  doc   = d_internal_changing(host, _args[0],
                                                           _args[1],
                                                           D_INTERNAL_LINKS,
                                                           &index);
@@ -2193,19 +2193,19 @@ d_internal_wiki_set_label(
 }
 
 
-static bool
-d_internal_wiki_unlink(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_unlink(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    struct d_wiki_doc* const  doc   = d_internal_changing(host, _args[0],
+    struct dj_wiki_doc* const  doc   = d_internal_changing(host, _args[0],
                                                           _args[1],
                                                           D_INTERNAL_LINKS,
                                                           &index);
@@ -2229,16 +2229,16 @@ d_internal_wiki_unlink(
 wiki_set_body(p, i, text), wiki_set_section(p, i, text),
 wiki_rename_section(p, i, title), wiki_remove_section(p, i)
 */
-static bool
-d_internal_section_change(
-    struct d_host_wiki*  _host,
-    struct d_awk_value** _args,
-    struct d_awk_value*  _out,
-    int                  _which
+static
+bool d_internal_section_change(
+    struct dj_host_wiki*  _host,
+    struct dj_awk_value** _args,
+    struct dj_awk_value*  _out,
+    int                   _which
 )
 {
     size_t                   index = 0;
-    struct d_wiki_doc* const doc   = d_internal_changing(_host, _args[0],
+    struct dj_wiki_doc* const doc   = d_internal_changing(_host, _args[0],
                                                          _args[1],
                                                          D_INTERNAL_SECTIONS,
                                                          &index);
@@ -2272,14 +2272,14 @@ d_internal_section_change(
 }
 
 
-static bool
-d_internal_wiki_set_body(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_set_body(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2290,14 +2290,14 @@ d_internal_wiki_set_body(
 }
 
 
-static bool
-d_internal_wiki_set_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_set_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2308,14 +2308,14 @@ d_internal_wiki_set_section(
 }
 
 
-static bool
-d_internal_wiki_rename_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_rename_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2326,14 +2326,14 @@ d_internal_wiki_rename_section(
 }
 
 
-static bool
-d_internal_wiki_remove_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_remove_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2349,9 +2349,9 @@ d_internal_top_level
   The level a page's top sections are at: the shallowest there is, or the
 dialect's own, 1 for Markdown and 2 for MediaWiki.
 */
-static size_t
-d_internal_top_level(
-    const struct d_wiki* _wiki
+static
+size_t d_internal_top_level(
+    const struct dj_wiki* _wiki
 )
 {
     size_t level = D_WIKI_MOST_LEVEL + 1u;
@@ -2377,18 +2377,18 @@ d_internal_top_level(
 wiki_insert_section(p, before, level, title[, body]),
 wiki_add_section(p, parent, title[, body])
 */
-static bool
-d_internal_wiki_insert_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_insert_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host   = _user;
-    struct d_wiki_doc* const  doc    = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const host   = _user;
+    struct dj_wiki_doc* const  doc    = d_internal_page(host, _args[0]);
     const size_t              before = d_internal_index(_args[1]);
     const size_t              level  = d_internal_index(_args[2]);
     char* const               title  = d_internal_copy_arg(_args[3]);
@@ -2419,18 +2419,18 @@ d_internal_wiki_insert_section(
 }
 
 
-static bool
-d_internal_wiki_add_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_add_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host   = _user;
-    struct d_wiki_doc* const  doc    = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const host   = _user;
+    struct dj_wiki_doc* const  doc    = d_internal_page(host, _args[0]);
     const double              number = d_awk_value_number(_args[1]);
     char* const               title  = d_internal_copy_arg(_args[2]);
     char* const               body   = (_count > 3u)
@@ -2451,7 +2451,7 @@ d_internal_wiki_add_section(
                                                  : host->error);
     }
 
-    const struct d_wiki* const wiki   = d_wiki_doc_records(doc);
+    const struct dj_wiki* const wiki   = d_wiki_doc_records(doc);
     const size_t               parent = (number >= 1.0) ? (size_t)number : 0u;
 
     // a section there is, or the page
@@ -2512,18 +2512,18 @@ d_internal_wiki_add_section(
 wiki_set_region(p, name, text), wiki_add_region(p, name, text[, section]),
 wiki_remove_region(p, name[, keep])
 */
-static bool
-d_internal_wiki_set_region(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_set_region(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host = _user;
-    struct d_wiki_doc* const  doc  = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const host = _user;
+    struct dj_wiki_doc* const  doc  = d_internal_page(host, _args[0]);
     char* const               name = d_internal_copy_arg(_args[1]);
     char* const               text = d_internal_copy_arg(_args[2]);
 
@@ -2552,18 +2552,18 @@ d_internal_wiki_set_region(
 }
 
 
-static bool
-d_internal_wiki_add_region(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_add_region(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host    = _user;
-    struct d_wiki_doc* const  doc     = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const host    = _user;
+    struct dj_wiki_doc* const  doc     = d_internal_page(host, _args[0]);
     char* const               name    = d_internal_copy_arg(_args[1]);
     char* const               text    = d_internal_copy_arg(_args[2]);
     const double              section = (_count > 3u)
@@ -2597,18 +2597,18 @@ d_internal_wiki_add_region(
 }
 
 
-static bool
-d_internal_wiki_remove_region(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_remove_region(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host = _user;
-    struct d_wiki_doc* const  doc  = d_internal_page(host, _args[0]);
+    struct dj_host_wiki* const host = _user;
+    struct dj_wiki_doc* const  doc  = d_internal_page(host, _args[0]);
     char* const               name = d_internal_copy_arg(_args[1]);
     const bool                keep = (_count > 2u) &&
                                      (d_awk_value_is_true(_args[2]));
@@ -2637,19 +2637,19 @@ d_internal_wiki_remove_region(
 /*
 wiki_set_arg(p, t, key, value), wiki_remove_arg(p, t, key)
 */
-static bool
-d_internal_wiki_set_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_set_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host  = _user;
+    struct dj_host_wiki* const host  = _user;
     size_t                    index = 0;
-    struct d_wiki_doc* const  doc   = d_internal_changing(host, _args[0],
+    struct dj_wiki_doc* const  doc   = d_internal_changing(host, _args[0],
                                                           _args[1],
                                                           D_INTERNAL_TEMPLATES,
                                                           &index);
@@ -2696,10 +2696,10 @@ d_internal_writer
 */
 static bool
 d_internal_writer(
-    struct d_host_wiki*  _host,
-    struct d_awk_value** _args,
-    struct d_awk_value*  _out,
-    enum d_wiki_dialect* _out_dialect
+    struct dj_host_wiki*  _host,
+    struct dj_awk_value** _args,
+    struct dj_awk_value*  _out,
+    enum dj_wiki_dialect* _out_dialect
 )
 {
     *_out_dialect = d_internal_dialect(_host, _args[0]);
@@ -2719,19 +2719,19 @@ d_internal_writer(
 /*
 wiki_heading_text(d, level, title)
 */
-static bool
-d_internal_wiki_heading_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_heading_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host    = _user;
-    struct d_wiki_buffer      text    = { NULL, 0u, 0u, false };
-    enum d_wiki_dialect       dialect = D_WIKI_OTHER;
+    struct dj_host_wiki* const host    = _user;
+    struct dj_wiki_buffer      text    = { NULL, 0u, 0u, false };
+    enum dj_wiki_dialect       dialect = D_WIKI_OTHER;
 
     (void)_count;
     (void)_problem;
@@ -2757,19 +2757,19 @@ d_internal_wiki_heading_text(
 /*
 wiki_link_text(d, page[, label[, anchor]])
 */
-static bool
-d_internal_wiki_link_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_link_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host    = _user;
-    struct d_wiki_buffer      text    = { NULL, 0u, 0u, false };
-    enum d_wiki_dialect       dialect = D_WIKI_OTHER;
+    struct dj_host_wiki* const host    = _user;
+    struct dj_wiki_buffer      text    = { NULL, 0u, 0u, false };
+    enum dj_wiki_dialect       dialect = D_WIKI_OTHER;
 
     (void)_problem;
     (void)_capacity;
@@ -2800,17 +2800,17 @@ d_internal_two_writer
   A writer of one text and a second perhaps: url and label, source and
 text, code and language.
 */
-static bool
-d_internal_two_writer(
-    struct d_host_wiki*  _host,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    int                  _which
+static
+bool d_internal_two_writer(
+    struct dj_host_wiki*  _host,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    int                   _which
 )
 {
-    struct d_wiki_buffer text    = { NULL, 0u, 0u, false };
-    enum d_wiki_dialect  dialect = D_WIKI_OTHER;
+    struct dj_wiki_buffer text    = { NULL, 0u, 0u, false };
+    enum dj_wiki_dialect  dialect = D_WIKI_OTHER;
     bool                 ok      = false;
 
     // no dialect: wiki_error() says why
@@ -2871,14 +2871,14 @@ d_internal_two_writer(
 }
 
 
-static bool
-d_internal_wiki_url_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_url_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2888,14 +2888,14 @@ d_internal_wiki_url_text(
 }
 
 
-static bool
-d_internal_wiki_image_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_image_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2905,14 +2905,14 @@ d_internal_wiki_image_text(
 }
 
 
-static bool
-d_internal_wiki_code_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_code_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2922,14 +2922,14 @@ d_internal_wiki_code_text(
 }
 
 
-static bool
-d_internal_wiki_inline_code(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_inline_code(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2939,14 +2939,14 @@ d_internal_wiki_inline_code(
 }
 
 
-static bool
-d_internal_wiki_table_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_table_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2956,14 +2956,14 @@ d_internal_wiki_table_text(
 }
 
 
-static bool
-d_internal_wiki_escape(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_escape(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2973,14 +2973,14 @@ d_internal_wiki_escape(
 }
 
 
-static bool
-d_internal_wiki_comment_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_comment_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2990,14 +2990,14 @@ d_internal_wiki_comment_text(
 }
 
 
-static bool
-d_internal_wiki_region_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_region_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3010,19 +3010,19 @@ d_internal_wiki_region_text(
 /*
 wiki_item_text(d, text[, depth[, ordered]])
 */
-static bool
-d_internal_wiki_item_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_item_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host    = _user;
-    struct d_wiki_buffer      text    = { NULL, 0u, 0u, false };
-    enum d_wiki_dialect       dialect = D_WIKI_OTHER;
+    struct dj_host_wiki* const host    = _user;
+    struct dj_wiki_buffer      text    = { NULL, 0u, 0u, false };
+    enum dj_wiki_dialect       dialect = D_WIKI_OTHER;
 
     (void)_problem;
     (void)_capacity;
@@ -3050,19 +3050,19 @@ d_internal_wiki_item_text(
 /*
 wiki_toc(p[, least[, most]])
 */
-static bool
-d_internal_wiki_toc(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_toc(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const      host = _user;
-    const struct d_wiki_doc* const doc  = d_internal_page(host, _args[0]);
-    struct d_wiki_buffer           text = { NULL, 0u, 0u, false };
+    struct dj_host_wiki* const      host = _user;
+    const struct dj_wiki_doc* const doc  = d_internal_page(host, _args[0]);
+    struct dj_wiki_buffer           text = { NULL, 0u, 0u, false };
 
     (void)_problem;
     (void)_capacity;
@@ -3073,7 +3073,7 @@ d_internal_wiki_toc(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_wiki* const wiki  = d_wiki_doc_records(doc);
+    const struct dj_wiki* const wiki  = d_wiki_doc_records(doc);
     const size_t               least = (_count > 1u)
                                            ? d_internal_index(_args[1])
                                            : d_internal_top_level(wiki);
@@ -3100,18 +3100,18 @@ wiki_page_name(path[, d]), wiki_page_file(name[, d]),
 wiki_same_page(name, name[, d]), wiki_anchor(d, title),
 wiki_anchors(d, titles), wiki_dialect_of(path)
 */
-static bool
-d_internal_names(
-    struct d_host_wiki*  _host,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    int                  _which
+static
+bool d_internal_names(
+    struct dj_host_wiki*  _host,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    int                   _which
 )
 {
     const bool          led     = (_which == 3) || (_which == 6);
     const size_t        given   = (_which == 2) ? 2u : 1u;
-    enum d_wiki_dialect dialect = D_WIKI_MARKDOWN;
+    enum dj_wiki_dialect dialect = D_WIKI_MARKDOWN;
     char* const         first   = d_internal_copy_arg(_args[(led) ? 1u
                                                                   : 0u]);
 
@@ -3142,7 +3142,7 @@ d_internal_names(
                                                     : "out of memory");
     }
 
-    struct d_wiki_buffer text = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer text = { NULL, 0u, 0u, false };
     bool                 ok   = true;
 
     // a table of the names
@@ -3193,14 +3193,14 @@ d_internal_names(
 }
 
 
-static bool
-d_internal_wiki_page_name(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_page_name(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3210,14 +3210,14 @@ d_internal_wiki_page_name(
 }
 
 
-static bool
-d_internal_wiki_page_file(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_page_file(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3227,14 +3227,14 @@ d_internal_wiki_page_file(
 }
 
 
-static bool
-d_internal_wiki_same_page(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_same_page(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3244,14 +3244,14 @@ d_internal_wiki_same_page(
 }
 
 
-static bool
-d_internal_wiki_anchor(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_anchor(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3261,14 +3261,14 @@ d_internal_wiki_anchor(
 }
 
 
-static bool
-d_internal_wiki_anchors(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_anchors(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3278,14 +3278,14 @@ d_internal_wiki_anchors(
 }
 
 
-static bool
-d_internal_wiki_page_key(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_page_key(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3295,14 +3295,14 @@ d_internal_wiki_page_key(
 }
 
 
-static bool
-d_internal_wiki_dialect_of(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_dialect_of(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3317,8 +3317,8 @@ d_internal_match
   Whether a name matches a pattern: `*` any run, `?` any byte, [...] a set
 or range, `[!...]` its complement, anything else itself.
 */
-static bool
-d_internal_match(
+static
+bool d_internal_match(
     const char* _pattern,
     const char* _name
 )
@@ -3405,8 +3405,8 @@ d_internal_matches_any
   Whether a name matches any of a list of patterns, apart by spaces; a
 list of none, any wiki page's.
 */
-static bool
-d_internal_matches_any(
+static
+bool d_internal_matches_any(
     const char* _patterns,
     const char* _name
 )
@@ -3457,10 +3457,10 @@ d_internal_matches_any(
 d_internal_keep_path
   Keeps a path found.
 */
-static void
-d_internal_keep_path(
-    struct d_internal_found* _found,
-    char*                    _path
+static
+void d_internal_keep_path(
+    struct dj_internal_found* _found,
+    char*                     _path
 )
 {
     // room for one more
@@ -3497,13 +3497,13 @@ d_internal_walk
   The files of a directory that match, and, deep, of those within it;
 names that begin with `.` are passed over.
 */
-static void
-d_internal_walk(
-    const char*              _directory,
-    const char*              _patterns,
-    bool                     _deep,
-    size_t                   _depth,
-    struct d_internal_found* _found
+static
+void d_internal_walk(
+    const char*               _directory,
+    const char*               _patterns,
+    bool                      _deep,
+    size_t                    _depth,
+    struct dj_internal_found* _found
 )
 {
     char**       names = NULL;
@@ -3543,7 +3543,7 @@ d_internal_walk(
         (void)snprintf(path, length + 1u, "%s%s%s", _directory,
                        (slash || (span == 0u)) ? "" : "/", names[index]);
 
-        const enum d_fs_kind kind = d_fs_kind_of(path);
+        const enum dj_fs_kind kind = d_fs_kind_of(path);
 
         // a directory walked, when deep; a file kept when a pattern matches it
         if ( (kind == D_FS_KIND_DIRECTORY) &&
@@ -3569,8 +3569,8 @@ d_internal_walk(
 }
 
 
-static int
-d_internal_compare_paths(
+static
+int d_internal_compare_paths(
     const void* _left,
     const void* _right
 )
@@ -3582,17 +3582,17 @@ d_internal_compare_paths(
 /*
 wiki_pages(directory[, deep]), wiki_files(directory, patterns[, deep])
 */
-static bool
-d_internal_listing(
-    struct d_host_wiki*  _host,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    bool                 _patterned
+static
+bool d_internal_listing(
+    struct dj_host_wiki*  _host,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    bool                  _patterned
 )
 {
-    struct d_internal_found found     = { NULL, 0u, 0u, false };
-    struct d_wiki_buffer    joined    = { NULL, 0u, 0u, false };
+    struct dj_internal_found found     = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer    joined    = { NULL, 0u, 0u, false };
     char* const             directory = d_internal_copy_arg(_args[0]);
     char* const             patterns  = (_patterned)
                                             ? d_internal_copy_arg(_args[1])
@@ -3642,14 +3642,14 @@ d_internal_listing(
 }
 
 
-static bool
-d_internal_wiki_pages(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_pages(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3659,14 +3659,14 @@ d_internal_wiki_pages(
 }
 
 
-static bool
-d_internal_wiki_files(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_files(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -3679,17 +3679,17 @@ d_internal_wiki_files(
 /*
 wiki_exists(path), wiki_move(path, to)
 */
-static bool
-d_internal_wiki_exists(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_exists(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const enum d_fs_kind kind = d_fs_kind_of(d_internal_text(_args[0]));
+    const enum dj_fs_kind kind = d_fs_kind_of(d_internal_text(_args[0]));
 
     (void)_user;
     (void)_count;
@@ -3704,17 +3704,17 @@ d_internal_wiki_exists(
 }
 
 
-static bool
-d_internal_wiki_move(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_wiki_move(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_wiki* const host = _user;
+    struct dj_host_wiki* const host = _user;
     char* const               from = d_internal_copy_arg(_args[0]);
     char* const               to   = d_internal_copy_arg(_args[1]);
     bool                      ok   = false;
@@ -3773,12 +3773,12 @@ d_internal_wiki_move(
 d_internal_functions
   The extension's host functions, as a program calls them, and how many.
 */
-static const struct d_awk_host_function*
-d_internal_functions(
+static
+const struct dj_awk_host_function* d_internal_functions(
     size_t* _out_count
 )
 {
-    static const struct d_awk_host_function functions[] =
+    static const struct dj_awk_host_function functions[] =
     {
         { "wiki_open",           1u, 2u, d_internal_wiki_open           },
         { "wiki_new",            1u, 3u, d_internal_wiki_new            },
@@ -3856,16 +3856,14 @@ d_internal_functions(
 }
 
 
-struct d_host_wiki*
-d_host_wiki_new(void)
+struct dj_host_wiki* d_host_wiki_new(void)
 {
-    return calloc(1u, sizeof(struct d_host_wiki));
+    return calloc(1u, sizeof(struct dj_host_wiki));
 }
 
 
-void
-d_host_wiki_free(
-    struct d_host_wiki* _host
+void d_host_wiki_free(
+    struct dj_host_wiki* _host
 )
 {
     // freeing nothing is allowed
@@ -3887,14 +3885,13 @@ d_host_wiki_free(
 }
 
 
-bool
-d_host_wiki_install(
-    struct d_host_wiki*  _host,
-    struct d_awk_interp* _interp
+bool d_host_wiki_install(
+    struct dj_host_wiki*  _host,
+    struct dj_awk_interp* _interp
 )
 {
     size_t                                  count     = 0;
-    const struct d_awk_host_function* const functions = d_internal_functions(
+    const struct dj_awk_host_function* const functions = d_internal_functions(
                                                             &count);
 
     // parameter validation first

@@ -1639,25 +1639,27 @@ const char* d_env_bsd_get_variant_name(void);
  * @param[in] _feature_name  the sysctl MIB name, e.g. "kern.securelevel".
  * @return `1` if the sysctl exists and is readable, `0` otherwise.
  */
-int         d_env_bsd_has_feature(const char* _feature_name);
+int d_env_bsd_has_feature(
+    const char* _feature_name
+);
 /**
  * @brief Returns the current kern.securelevel value.
  *
  * @return the securelevel, or `-2` on failure.
  */
-int         d_env_bsd_get_securelevel(void);
+int d_env_bsd_get_securelevel(void);
 /**
  * @brief Tests at runtime that kqueue works, not merely that it compiles.
  *
  * @return `1` if kqueue() succeeds, `0` otherwise.
  */
-int         d_env_bsd_has_kqueue(void);
+int d_env_bsd_has_kqueue(void);
 /**
  * @brief Prints detailed information about the detected BSD environment:
  *        variant, version, security features, filesystem support, and
  *        available APIs.
  */
-void        d_env_bsd_print_info(void);
+void d_env_bsd_print_info(void);
 
 #if D_ENV_LANG_USING_CPP
     }

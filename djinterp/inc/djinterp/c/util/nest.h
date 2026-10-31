@@ -12,10 +12,10 @@
 * without an alignment, aliasing or endian fault. This header does the same
 * job one level up: it describes where a node's NEIGHBOURS sit and how to turn
 * the bytes at those offsets back into a node. The payload field is literally
-* a `d_kv_field`; a link is that field plus a kind.
+* a `dj_kv_field`; a link is that field plus a kind.
 *
-*   THE POINT IS THAT A TREE'S SHAPE IS DATA. `d_file_tree_node` keeps a
-* parent pointer, a `struct d_file_tree_node** children` and a `size_t count`.
+*   THE POINT IS THAT A TREE'S SHAPE IS DATA. `dj_file_tree_node` keeps a
+* parent pointer, a `struct dj_file_tree_node** children` and a `size_t count`.
 * A classic n-ary node keeps first-child and next-sibling. An arena-backed
 * node keeps two uint32_t indices. A memory-mapped node keeps two self-
 * relative offsets so a subtree may be written to disk and read back at a
@@ -53,7 +53,7 @@
 * both exist in the wild and neither can be inferred from a width.
 *
 *   THIS IS THE FOURTH RESERVED-ZERO CONVENTION in the tree, after
-* d_test_key_id, d_test_callable_id and d_option's interned key. It is spelled
+* dj_test_key_id, dj_test_callable_id and dj_option's interned key. It is spelled
 * explicitly here rather than assumed, but the right end state is the shared
 * interned-handle vocabulary, and this header should defer to it when that
 * lands.
@@ -96,7 +96,7 @@
 #include "../djinterp.h"
 #include "../meta/kv.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int64_t, uint16_t, uint32_t,
+#include "../../../re_std/c/cstdint/dstdint.h"  // int64_t, uint16_t, uint32_t,
                                               // uint64_t, UINT32_MAX
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -221,12 +221,12 @@ typedef const void* (*fn_nest_resolve)(
 
 // II.    the link descriptor
 
-// d_nest_link
+// dj_nest_link
 //   struct: one neighbour slot -- where it sits, how wide it is, and what the
 // bytes mean.
-struct d_nest_link
+struct dj_nest_link
 {
-    struct d_kv_field field;    // where the link sits within the node
+    struct dj_kv_field field;    // where the link sits within the node
     uint16_t          kind;     // D_NEST_KIND_*
     uint16_t          pad;      // reserved; written zero
 };
@@ -257,15 +257,14 @@ struct d_nest_link
 // d_nest_link_make
 //   function: a link from loose parts, for a node layout discovered at run
 // time rather than declared in a struct.
-D_NODISCARD D_INLINE struct d_nest_link
-d_nest_link_make(
+D_NODISCARD D_INLINE struct dj_nest_link d_nest_link_make(
     uint32_t _offset,
     uint32_t _size,
     uint16_t _kind,
     bool     _is_signed
 )
 {
-    struct d_nest_link link = D_NEST_LINK_INIT;
+    struct dj_nest_link link = D_NEST_LINK_INIT;
 
     // a kind this version does not define describes nothing
     if (_kind >= D_NEST_KIND_COUNT)
@@ -275,7 +274,7 @@ d_nest_link_make(
 
     link.field = d_kv_field_make(_offset,
                                  _size,
-                                 (d_type_info16)0,
+                                 (dj_type_info16)0,
                                  _is_signed ? D_KV_FLAG_SIGNED
                                             : D_KV_FLAG_NONE);
     link.kind  = _kind;
@@ -286,9 +285,8 @@ d_nest_link_make(
 // d_nest_link_is_present
 //   function: whether the slot exists on this node type at all. A RESOLVER
 // link with no field is still present, because the view supplies the function.
-D_NODISCARD D_INLINE bool
-d_nest_link_is_present(
-    const struct d_nest_link* _link
+D_NODISCARD D_INLINE bool d_nest_link_is_present(
+    const struct dj_nest_link* _link
 )
 {
     // an absent kind is absent whatever its field says
@@ -311,17 +309,17 @@ d_nest_link_is_present(
 
 // III.   the node descriptor
 
-// d_nest_children
+// dj_nest_children
 //   struct: the child-array shape -- an array of links and a count beside it.
-// This is `d_file_tree_node`'s { children, count } pair described rather than
+// This is `dj_file_tree_node`'s { children, count } pair described rather than
 // walked by hand.
 //   ZERO-WIDTH `array` MEANS THE NODE HAS NO CHILD ARRAY, which is how the
 // child/sibling shape is spelled: it reaches its children through
 // D_NEST_SLOT_FIRST_CHILD instead.
-struct d_nest_children
+struct dj_nest_children
 {
-    struct d_kv_field array;    // the array member, or the pointer to it
-    struct d_kv_field count;    // where the child count sits
+    struct dj_kv_field array;    // the array member, or the pointer to it
+    struct dj_kv_field count;    // where the child count sits
     uint32_t          stride;   // bytes between consecutive array slots
     uint16_t          kind;     // D_NEST_KIND_* for one array slot
     uint16_t          flags;    // D_NEST_FLAG_ARRAY_INDIRECT
@@ -334,21 +332,21 @@ struct d_nest_children
     D_KV_FIELD_INIT, D_KV_FIELD_INIT, 0u, D_NEST_KIND_NONE, D_NEST_FLAG_NONE   \
 }
 
-// d_nest_desc
+// dj_nest_desc
 //   struct: the complete shape of one node type. PURE LAYOUT -- it holds no
 // pointer, no arena and no runtime state, so it is a static const per node
 // type and the compiler folds every walk through it.
 //   `node_size` is the node's sizeof and doubles as the per-node capacity
 // handed to kv.h, so a link field that would read past the end of a node is
 // refused by the same bounds check that guards every other read.
-struct d_nest_desc
+struct dj_nest_desc
 {
     uint32_t               node_size;               // sizeof(node)
     uint16_t               flags;                   // D_NEST_FLAG_*
     uint16_t               pad;                     // reserved; written zero
-    struct d_kv_field      payload;                 // where the payload sits
-    struct d_nest_link     links[D_NEST_SLOT_COUNT];
-    struct d_nest_children children;
+    struct dj_kv_field      payload;                 // where the payload sits
+    struct dj_nest_link     links[D_NEST_SLOT_COUNT];
+    struct dj_nest_children children;
 };
 
 // D_NEST_DESC_INIT
@@ -382,7 +380,7 @@ struct d_nest_desc
 
 // D_NEST_DESC_CHILD_ARRAY
 //   macro: the array shape -- a contiguous run of child links and a count.
-// This is `d_file_tree_node`; `array_member` is the `struct node** children`
+// This is `dj_file_tree_node`; `array_member` is the `struct node** children`
 // and `count_member` is the `size_t count` beside it, so `node_flags` will
 // normally carry D_NEST_FLAG_ARRAY_INDIRECT.
 #define D_NEST_DESC_CHILD_ARRAY(record, payload_member, payload_info,          \
@@ -404,10 +402,9 @@ struct d_nest_desc
 // d_nest_desc_link
 //   function: the descriptor for one slot, or NULL when the slot number is
 // out of range.
-D_NODISCARD D_INLINE const struct d_nest_link*
-d_nest_desc_link(
-    const struct d_nest_desc* _desc,
-    uint32_t                  _slot
+D_NODISCARD D_INLINE const struct dj_nest_link* d_nest_desc_link(
+    const struct dj_nest_desc* _desc,
+    uint32_t                   _slot
 )
 {
     // a slot this version does not define describes nothing
@@ -423,9 +420,8 @@ d_nest_desc_link(
 // d_nest_desc_has_children_array
 //   function: whether the node reaches its children through an array rather
 // than through a sibling chain.
-D_NODISCARD D_INLINE bool
-d_nest_desc_has_children_array(
-    const struct d_nest_desc* _desc
+D_NODISCARD D_INLINE bool d_nest_desc_has_children_array(
+    const struct dj_nest_desc* _desc
 )
 {
     return ( (_desc != NULL) &&
@@ -440,13 +436,13 @@ d_nest_desc_has_children_array(
 // type and the second is runtime state, and merging them would make every
 // descriptor un-const.
 
-// d_nest_view
+// dj_nest_view
 //   struct: a descriptor bound to an arena and a resolver context. The arena
 // is BORROWED and is only consulted by INDEX and OFFSET links; a pointer-
 // linked tree leaves it NULL.
-struct d_nest_view
+struct dj_nest_view
 {
-    const struct d_nest_desc* desc;          // borrowed layout
+    const struct dj_nest_desc* desc;          // borrowed layout
     const void*               arena;         // base for INDEX / OFFSET links
     void*                     context;       // handed to a resolver
     fn_nest_resolve           resolve;       // view-level resolver, or NULL
@@ -469,16 +465,15 @@ struct d_nest_view
 // be NULL and zero for a pointer-linked structure, which consults neither.
 //   THE ARENA STRIDE DEFAULTS TO THE NODE SIZE, and differs only when the
 // nodes are embedded in something larger.
-D_NODISCARD D_INLINE struct d_nest_view
-d_nest_view_make(
-    const struct d_nest_desc* _desc,
-    const void*               _arena,
-    size_t                    _arena_count,
-    uint32_t                  _arena_stride,
-    size_t                    _walk_limit
+D_NODISCARD D_INLINE struct dj_nest_view d_nest_view_make(
+    const struct dj_nest_desc* _desc,
+    const void*                _arena,
+    size_t                     _arena_count,
+    uint32_t                   _arena_stride,
+    size_t                     _walk_limit
 )
 {
-    struct d_nest_view view = D_NEST_VIEW_INIT;
+    struct dj_nest_view view = D_NEST_VIEW_INIT;
 
     // a view without a layout describes nothing
     if ( (!_desc) ||
@@ -499,9 +494,8 @@ d_nest_view_make(
 
 // d_nest_view_is_valid
 //   function: whether the view carries a layout it can walk.
-D_NODISCARD D_INLINE bool
-d_nest_view_is_valid(
-    const struct d_nest_view* _view
+D_NODISCARD D_INLINE bool d_nest_view_is_valid(
+    const struct dj_nest_view* _view
 )
 {
     return ( (_view != NULL) &&
@@ -515,9 +509,8 @@ d_nest_view_is_valid(
 //   A CHAIN THAT LOOPS IS NOT DETECTED, only bounded. Acyclicity is the
 // structure's invariant, and a walker that verified it would cost a visited
 // set on every traversal.
-D_NODISCARD D_INLINE size_t
-d_nest_walk_limit(
-    const struct d_nest_view* _view
+D_NODISCARD D_INLINE size_t d_nest_walk_limit(
+    const struct dj_nest_view* _view
 )
 {
     // an unbound view walks nothing, so any budget serves
@@ -542,10 +535,9 @@ d_nest_walk_limit(
 //   function: the arena node at `_index`, bounded by `arena_count` when the
 // view knows one. NULL when the view has no arena, which is what a
 // pointer-linked structure gets if it is handed an index link by mistake.
-D_NODISCARD D_INLINE const void*
-d_nest_arena_at(
-    const struct d_nest_view* _view,
-    uint64_t                  _index
+D_NODISCARD D_INLINE const void* d_nest_arena_at(
+    const struct dj_nest_view* _view,
+    uint64_t                   _index
 )
 {
     // an index means nothing without an arena to subscript
@@ -574,8 +566,7 @@ d_nest_arena_at(
 // carrier's: a uint16_t slot is absent at 0xFFFF, and comparing it against
 // UINT64_MAX would never match. The eight-byte case is separate because
 // shifting by the full width of the carrier is undefined.
-D_NODISCARD D_INLINE uint64_t
-d_internal_nest_index_sentinel(
+D_NODISCARD D_INLINE uint64_t d_internal_nest_index_sentinel(
     uint32_t _size,
     uint16_t _flags
 )
@@ -602,13 +593,12 @@ d_internal_nest_index_sentinel(
 // ordinary slot and the child array for an array slot. Passing the node's size
 // for an array that lives elsewhere would refuse every child past the node's
 // own width.
-D_NODISCARD D_INLINE const void*
-d_internal_nest_resolve_kind(
-    const struct d_nest_view* _view,
-    const void*               _base,
-    uint32_t                  _capacity,
-    const struct d_nest_link* _link,
-    uint32_t                  _slot
+D_NODISCARD D_INLINE const void* d_internal_nest_resolve_kind(
+    const struct dj_nest_view* _view,
+    const void*                _base,
+    uint32_t                   _capacity,
+    const struct dj_nest_link* _link,
+    uint32_t                   _slot
 )
 {
     uint64_t        raw_unsigned;
@@ -700,14 +690,13 @@ d_internal_nest_resolve_kind(
 // d_nest_resolve
 //   function: the neighbour at `_slot` of `_node`, or NULL when there is none.
 // THE ONE ENTRY POINT every accessor below is written in terms of.
-D_NODISCARD D_INLINE const void*
-d_nest_resolve(
-    const struct d_nest_view* _view,
-    const void*               _node,
-    uint32_t                  _slot
+D_NODISCARD D_INLINE const void* d_nest_resolve(
+    const struct dj_nest_view* _view,
+    const void*                _node,
+    uint32_t                   _slot
 )
 {
-    const struct d_nest_link* link;
+    const struct dj_nest_link* link;
 
     // an unbound view or an absent node has no neighbours
     if ( (!d_nest_view_is_valid(_view)) ||
@@ -734,10 +723,9 @@ d_nest_resolve(
 // d_nest_parent
 //   function: the node's parent, or NULL for a root or a node type that keeps
 // no upward link.
-D_NODISCARD D_INLINE const void*
-d_nest_parent(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE const void* d_nest_parent(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     return d_nest_resolve(_view, _node, D_NEST_SLOT_PARENT);
@@ -745,10 +733,9 @@ d_nest_parent(
 
 // d_nest_first_child
 //   function: the node's first child in the sibling shape.
-D_NODISCARD D_INLINE const void*
-d_nest_first_child(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE const void* d_nest_first_child(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     return d_nest_resolve(_view, _node, D_NEST_SLOT_FIRST_CHILD);
@@ -756,10 +743,9 @@ d_nest_first_child(
 
 // d_nest_next_sibling
 //   function: the next node in the sibling chain.
-D_NODISCARD D_INLINE const void*
-d_nest_next_sibling(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE const void* d_nest_next_sibling(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     return d_nest_resolve(_view, _node, D_NEST_SLOT_NEXT_SIBLING);
@@ -767,10 +753,9 @@ d_nest_next_sibling(
 
 // d_nest_prev_sibling
 //   function: the previous node in the sibling chain, on a doubly linked one.
-D_NODISCARD D_INLINE const void*
-d_nest_prev_sibling(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE const void* d_nest_prev_sibling(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     return d_nest_resolve(_view, _node, D_NEST_SLOT_PREV_SIBLING);
@@ -779,10 +764,9 @@ d_nest_prev_sibling(
 // d_nest_is_root
 //   function: whether the node has no parent. A node type that keeps no
 // parent link reports every node as a root, which is accurate: it cannot tell.
-D_NODISCARD D_INLINE bool
-d_nest_is_root(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE bool d_nest_is_root(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     return (d_nest_parent(_view, _node) == NULL);
@@ -795,10 +779,9 @@ d_nest_is_root(
 //   function: the address of the node's payload, honouring
 // D_NEST_FLAG_PAYLOAD_INDIRECT. An inline payload is the bytes at the field;
 // an indirect one is what the pointer at the field leads to.
-D_NODISCARD D_INLINE const void*
-d_nest_payload(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE const void* d_nest_payload(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     // a node with no payload field is pure topology
@@ -825,9 +808,8 @@ d_nest_payload(
 //   function: the payload's declared width. For an indirect payload this is
 // the width of what the pointer leads to as the descriptor declares it, which
 // the descriptor cannot verify and the caller must have got right.
-D_NODISCARD D_INLINE uint32_t
-d_nest_payload_size(
-    const struct d_nest_view* _view
+D_NODISCARD D_INLINE uint32_t d_nest_payload_size(
+    const struct dj_nest_view* _view
 )
 {
     // an unbound view carries no payload width
@@ -843,12 +825,11 @@ d_nest_payload_size(
 //   function: copy an INLINE payload out. Refuses an indirect one, because
 // the node's capacity does not bound bytes that live somewhere else and
 // copying them under it would be a bounds check that checks nothing.
-D_NODISCARD D_INLINE bool
-d_nest_payload_read(
-    const struct d_nest_view* _view,
-    const void*               _node,
-    void*                     _out,
-    size_t                    _out_size
+D_NODISCARD D_INLINE bool d_nest_payload_read(
+    const struct dj_nest_view* _view,
+    const void*                _node,
+    void*                      _out,
+    size_t                     _out_size
 )
 {
     // refuse an unbound view, an absent node, or a payload with no width
@@ -881,10 +862,9 @@ d_nest_payload_read(
 //   function: how many children the node has. Read from the count member in
 // the array shape; walked in the sibling shape, bounded by the view's step
 // budget.
-D_NODISCARD D_INLINE size_t
-d_nest_child_count(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE size_t d_nest_child_count(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     const void* child;
@@ -933,14 +913,13 @@ d_nest_child_count(
 // linear in the sibling shape, which is the cost of the shape rather than of
 // this function -- a caller iterating every child uses D_NEST_FOR_EACH_CHILD
 // and pays it once.
-D_NODISCARD D_INLINE const void*
-d_nest_child_at(
-    const struct d_nest_view* _view,
-    const void*               _node,
-    size_t                    _index
+D_NODISCARD D_INLINE const void* d_nest_child_at(
+    const struct dj_nest_view* _view,
+    const void*                _node,
+    size_t                     _index
 )
 {
-    struct d_nest_link slot_link;
+    struct dj_nest_link slot_link;
     const void*        child;
     const void*        array;
     size_t             count;
@@ -1048,10 +1027,9 @@ d_nest_child_at(
 
 // d_nest_is_leaf
 //   function: whether the node has no children, in either shape.
-D_NODISCARD D_INLINE bool
-d_nest_is_leaf(
-    const struct d_nest_view* _view,
-    const void*               _node
+D_NODISCARD D_INLINE bool d_nest_is_leaf(
+    const struct dj_nest_view* _view,
+    const void*                _node
 )
 {
     return (d_nest_child_at(_view, _node, 0u) == NULL);
@@ -1093,64 +1071,64 @@ d_nest_is_leaf(
 
 
 // IX.    layout assertions
-//   d_nest_desc IS PURE LAYOUT and holds no pointer or size_t, so its exact
+//   dj_nest_desc IS PURE LAYOUT and holds no pointer or size_t, so its exact
 // size and offsets are the same on every target and are asserted literally.
-// d_nest_view holds four pointers and two size_t, so its offsets are not, and
+// dj_nest_view holds four pointers and two size_t, so its offsets are not, and
 // what is asserted there is member ordering and the absence of interior
 // padding -- a literal there would assert the host rather than the layout.
 
-D_STATIC_ASSERT(sizeof(struct d_nest_link) == 16,
-                "d_nest_link layout drift: expected 16 bytes");
-D_STATIC_ASSERT(offsetof(struct d_nest_link, field) == 0,
-                "d_nest_link layout drift: field must lead");
-D_STATIC_ASSERT(offsetof(struct d_nest_link, kind) == 12,
-                "d_nest_link layout drift: kind");
+D_STATIC_ASSERT(sizeof(struct dj_nest_link) == 16,
+                "dj_nest_link layout drift: expected 16 bytes");
+D_STATIC_ASSERT(offsetof(struct dj_nest_link, field) == 0,
+                "dj_nest_link layout drift: field must lead");
+D_STATIC_ASSERT(offsetof(struct dj_nest_link, kind) == 12,
+                "dj_nest_link layout drift: kind");
 
-D_STATIC_ASSERT(sizeof(struct d_nest_children) == 32,
-                "d_nest_children layout drift: expected 32 bytes");
-D_STATIC_ASSERT(offsetof(struct d_nest_children, array) == 0,
-                "d_nest_children layout drift: array must lead");
-D_STATIC_ASSERT(offsetof(struct d_nest_children, stride) == 24,
-                "d_nest_children layout drift: stride");
+D_STATIC_ASSERT(sizeof(struct dj_nest_children) == 32,
+                "dj_nest_children layout drift: expected 32 bytes");
+D_STATIC_ASSERT(offsetof(struct dj_nest_children, array) == 0,
+                "dj_nest_children layout drift: array must lead");
+D_STATIC_ASSERT(offsetof(struct dj_nest_children, stride) == 24,
+                "dj_nest_children layout drift: stride");
 
-D_STATIC_ASSERT(offsetof(struct d_nest_desc, node_size) == 0,
-                "d_nest_desc layout drift: node_size must lead");
-D_STATIC_ASSERT(sizeof(struct d_nest_desc) ==
+D_STATIC_ASSERT(offsetof(struct dj_nest_desc, node_size) == 0,
+                "dj_nest_desc layout drift: node_size must lead");
+D_STATIC_ASSERT(sizeof(struct dj_nest_desc) ==
                     ( sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) +
-                      sizeof(struct d_kv_field) +
-                      (D_NEST_SLOT_COUNT * sizeof(struct d_nest_link)) +
-                      sizeof(struct d_nest_children) ),
-                "d_nest_desc: a member width has introduced padding");
+                      sizeof(struct dj_kv_field) +
+                      (D_NEST_SLOT_COUNT * sizeof(struct dj_nest_link)) +
+                      sizeof(struct dj_nest_children) ),
+                "dj_nest_desc: a member width has introduced padding");
 
-D_STATIC_ASSERT(offsetof(struct d_nest_view, desc) == 0,
-                "d_nest_view layout drift: desc must lead");
-D_STATIC_ASSERT(offsetof(struct d_nest_view, arena) <
-                    offsetof(struct d_nest_view, context),
-                "d_nest_view layout drift: arena must precede context");
-D_STATIC_ASSERT(sizeof(struct d_nest_view) ==
-                    ( sizeof(const struct d_nest_desc*) + sizeof(const void*) +
+D_STATIC_ASSERT(offsetof(struct dj_nest_view, desc) == 0,
+                "dj_nest_view layout drift: desc must lead");
+D_STATIC_ASSERT(offsetof(struct dj_nest_view, arena) <
+                    offsetof(struct dj_nest_view, context),
+                "dj_nest_view layout drift: arena must precede context");
+D_STATIC_ASSERT(sizeof(struct dj_nest_view) ==
+                    ( sizeof(const struct dj_nest_desc*) + sizeof(const void*) +
                       sizeof(void*) + sizeof(fn_nest_resolve) +
                       sizeof(size_t) + sizeof(size_t) + sizeof(uint32_t) +
                       sizeof(uint16_t) + sizeof(uint16_t) ),
-                "d_nest_view: a member width has introduced padding");
+                "dj_nest_view: a member width has introduced padding");
 
 //   THE NODE SIZE MUST SERVE AS A kv CAPACITY. Every link read is bounded by
 // it, so a narrower type here would turn those bounds checks into decoration.
-D_STATIC_ASSERT(sizeof(((struct d_nest_desc*)0)->node_size) >=
+D_STATIC_ASSERT(sizeof(((struct dj_nest_desc*)0)->node_size) >=
                     sizeof(uint32_t),
-                "d_nest_desc: node_size cannot bound a node");
+                "dj_nest_desc: node_size cannot bound a node");
 
 //   THE SLOT NUMBERS INDEX THE ARRAY. d_nest_desc_link trusts the relation, so
 // it is stated rather than assumed.
 D_STATIC_ASSERT(D_NEST_SLOT_PREV_SIBLING < D_NEST_SLOT_COUNT,
-                "d_nest_desc: a slot number is outside the link array");
+                "dj_nest_desc: a slot number is outside the link array");
 
 //   THE FLAG SET IS CLOSED. The mask is only meaningful while every defined
 // flag sits inside it.
 D_STATIC_ASSERT(( D_NEST_FLAG_PAYLOAD_INDIRECT   |
                   D_NEST_FLAG_INDEX_SENTINEL_MAX |
                   D_NEST_FLAG_ARRAY_INDIRECT ) == D_NEST_FLAG_MASK,
-                "d_nest_desc: a flag has escaped D_NEST_FLAG_MASK");
+                "dj_nest_desc: a flag has escaped D_NEST_FLAG_MASK");
 
 
 D_EXTERN_C_END

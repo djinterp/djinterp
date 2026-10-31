@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "dmutex_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,22 +17,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // helper struct for reentrant release verification
-struct d_test_reentrant_data
+struct dj_test_reentrant_data
 {
-    d_recursive_mutex_t* mtx;
+    dj_recursive_mutex_t* mtx;
     bool                 acquired;
 };
 
 // helper: worker that tries to acquire a recursive mutex from another thread
-static void*
-d_test_reentrant_worker
-(
+static
+void* d_test_reentrant_worker(
     void* _arg
 )
 {
-    struct d_test_reentrant_data* data;
+    struct dj_test_reentrant_data* data;
 
-    data = (struct d_test_reentrant_data*)_arg;
+    data = (struct dj_test_reentrant_data*)_arg;
 
     if (d_recursive_mutex_trylock(data->mtx) == D_MUTEX_SUCCESS)
     {
@@ -56,14 +55,12 @@ d_tests_sa_recursive_mutex_init
   - successful initialization returns D_MUTEX_SUCCESS
   - initialized recursive mutex is usable
 */
-bool
-d_tests_sa_recursive_mutex_init
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_recursive_mutex_init(
+    struct dj_test_counter* _counter
 )
 {
     bool                result;
-    d_recursive_mutex_t rmtx;
+    dj_recursive_mutex_t rmtx;
     int                 rc;
 
     result = true;
@@ -107,14 +104,12 @@ d_tests_sa_recursive_mutex_destroy
   - successful destruction returns D_MUTEX_SUCCESS
   - destroy after lock/unlock cycle
 */
-bool
-d_tests_sa_recursive_mutex_destroy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_recursive_mutex_destroy(
+    struct dj_test_counter* _counter
 )
 {
     bool                result;
-    d_recursive_mutex_t rmtx;
+    dj_recursive_mutex_t rmtx;
     int                 rc;
 
     result = true;
@@ -159,14 +154,12 @@ d_tests_sa_recursive_mutex_lock
   - successful lock returns D_MUTEX_SUCCESS
   - lock/unlock cycle
 */
-bool
-d_tests_sa_recursive_mutex_lock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_recursive_mutex_lock(
+    struct dj_test_counter* _counter
 )
 {
     bool                result;
-    d_recursive_mutex_t rmtx;
+    dj_recursive_mutex_t rmtx;
     int                 rc;
 
     result = true;
@@ -201,14 +194,12 @@ d_tests_sa_recursive_mutex_trylock
   - trylock on unlocked recursive mutex succeeds
   - trylock on already-locked (by same thread) recursive mutex succeeds
 */
-bool
-d_tests_sa_recursive_mutex_trylock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_recursive_mutex_trylock(
+    struct dj_test_counter* _counter
 )
 {
     bool                result;
-    d_recursive_mutex_t rmtx;
+    dj_recursive_mutex_t rmtx;
     int                 rc;
 
     result = true;
@@ -259,14 +250,12 @@ d_tests_sa_recursive_mutex_unlock
   - successful unlock returns D_MUTEX_SUCCESS
   - mutex usable after unlock
 */
-bool
-d_tests_sa_recursive_mutex_unlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_recursive_mutex_unlock(
+    struct dj_test_counter* _counter
 )
 {
     bool                result;
-    d_recursive_mutex_t rmtx;
+    dj_recursive_mutex_t rmtx;
     int                 rc;
 
     result = true;
@@ -313,14 +302,12 @@ d_tests_sa_recursive_mutex_reentrant
   - must unlock the same number of times to fully release
   - another thread can acquire after all unlocks complete
 */
-bool
-d_tests_sa_recursive_mutex_reentrant
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_recursive_mutex_reentrant(
+    struct dj_test_counter* _counter
 )
 {
     bool                result;
-    d_recursive_mutex_t rmtx;
+    dj_recursive_mutex_t rmtx;
     int                 rc;
 
     result = true;
@@ -373,14 +360,14 @@ d_tests_sa_recursive_mutex_reentrant
 
         // test 3: verify fully released by acquiring from another thread
         {
-            struct d_test_reentrant_data shared;
-            d_thread_t                   thd;
+            struct dj_test_reentrant_data shared;
+            dj_thread_t                   thd;
 
             shared.mtx      = &rmtx;
             shared.acquired = false;
 
             rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_reentrant_worker,
+                                 (dj_thread_func_t)d_test_reentrant_worker,
                                  &shared);
 
             if (rc == D_MUTEX_SUCCESS)
@@ -407,10 +394,8 @@ d_tests_sa_recursive_mutex_reentrant
 d_tests_sa_mutex_recursive_all
   Aggregation function that runs all recursive mutex tests.
 */
-bool
-d_tests_sa_mutex_recursive_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_mutex_recursive_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

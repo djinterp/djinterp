@@ -16,7 +16,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -32,10 +32,8 @@ expansion which is incompatible with MSVC traditional preprocessor.
   - Data-passing iteration concept
   - Comma-separated output generation concept
 */
-bool
-d_tests_sa_dmacro_for_each_data_comma
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_data_comma(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -142,10 +140,8 @@ custom function names through macro expansion (MSVC incompatible).
   - Struct array initialization from tuples concept
   - Compound literal array initialization
 */
-bool
-d_tests_sa_dmacro_struct_array_init
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_struct_array_init(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -165,14 +161,14 @@ d_tests_sa_dmacro_struct_array_init
     // would generate: { {1, 2}, {3, 4}, {5, 6} }
     // concept: convert tuple list to brace-enclosed initializers
 
-    struct d_test_point
+    struct dj_test_point
     {
         int x;
         int y;
     };
 
     // manual equivalent of D_STRUCT_ARRAY_INIT((10, 20), (30, 40), (50, 60))
-    struct d_test_point points[] = {
+    struct dj_test_point points[] = {
         {10, 20},
         {30, 40},
         {50, 60}
@@ -218,7 +214,7 @@ d_tests_sa_dmacro_struct_array_init
     }
 
     // test with different struct type
-    struct d_test_rgb
+    struct dj_test_rgb
     {
         int r;
         int g;
@@ -226,7 +222,7 @@ d_tests_sa_dmacro_struct_array_init
     };
 
     // manual equivalent of D_STRUCT_ARRAY_INIT((255, 0, 0), (0, 255, 0))
-    struct d_test_rgb colors[] = {
+    struct dj_test_rgb colors[] = {
         {255, 0, 0},
         {0, 255, 0}
     };
@@ -274,13 +270,11 @@ d_tests_sa_dmacro_ptr_array_all
   - D_FOR_EACH_DATA_COMMA concept
   - D_STRUCT_ARRAY_INIT concept
 */
-bool
-d_tests_sa_dmacro_ptr_array_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_ptr_array_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  data_comma_result;
     bool                  struct_init_result;
     bool                  overall_result;
@@ -290,7 +284,7 @@ d_tests_sa_dmacro_ptr_array_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

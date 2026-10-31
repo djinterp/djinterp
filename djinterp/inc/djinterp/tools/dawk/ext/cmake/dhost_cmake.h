@@ -30,7 +30,7 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Extension
-         1.  d_host_cmake
+         1.  dj_host_cmake
 2.  OPERATIONS
     ----------
     1.  The extension
@@ -42,7 +42,7 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>        // bool
 // djinterp
-#include "../../dinterp.h"  // d_awk_interp
+#include "../../dinterp.h"  // dj_awk_interp
 
 
 //==============================================================================
@@ -53,10 +53,10 @@ TABLE OF CONTENTS
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_cmake
+// dj_host_cmake
 //   struct: the files open, and the last failure of the cmake_* functions.
 //   Layout is private.
-struct d_host_cmake;
+struct dj_host_cmake;
 
 
 //==============================================================================
@@ -132,10 +132,14 @@ struct d_host_cmake;
 //                                  or -1
 //   cmake_split(list[, keep])      the items of a list as CMake divides it,
 //                                  a line each; empty ones only when kept
-struct d_host_cmake* d_host_cmake_new(void);
-void                 d_host_cmake_free(struct d_host_cmake* _host);
-bool                 d_host_cmake_install(struct d_host_cmake* _host,
-                                          struct d_awk_interp* _interp);
+struct dj_host_cmake* d_host_cmake_new(void);
+void d_host_cmake_free(
+    struct dj_host_cmake* _host
+);
+bool d_host_cmake_install(
+    struct dj_host_cmake* _host,
+    struct dj_awk_interp* _interp
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_CMAKE_DHOST_CMAKE_H

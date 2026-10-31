@@ -59,7 +59,7 @@ TABLE OF CONTENTS
 // d_zip
 //   struct: an archive opened for reading, or made empty, with the changes
 //   made to it since.  Layout is private.
-struct d_zip;
+struct dj_zip;
 
 // 1.2    Constants
 //------------------------------------------------------------------------------
@@ -91,16 +91,18 @@ struct d_zip;
  * @return the archive, or `NULL` when the file cannot be read, is not a ZIP
  *         archive, or uses a feature that is not read.
  */
-struct d_zip* d_zip_open(const char* _path,
-                         char*       _problem,
-                         size_t      _capacity);
+struct dj_zip* d_zip_open(
+    const char* _path,
+    char*       _problem,
+    size_t      _capacity
+);
 /**
  * @brief Makes an archive with no entries, to be filled with `d_zip_add`.
  *
  * @post   The caller releases the archive with `d_zip_free`.
  * @return the archive, or `NULL` when memory ran out.
  */
-struct d_zip* d_zip_new(void);
+struct dj_zip* d_zip_new(void);
 /**
  * @brief Releases an archive, closing its file and discarding unsaved
  *        changes.
@@ -108,17 +110,25 @@ struct d_zip* d_zip_new(void);
  * @param[in] _zip  the archive; may be `NULL`.
  * @post Every name and index obtained from it is invalid.
  */
-void          d_zip_free(struct d_zip* _zip);
+void d_zip_free(
+    struct dj_zip* _zip
+);
 
 // 2.2    Entries
 //------------------------------------------------------------------------------
 // The entries keep the order the archive's directory gives them, with added
 // ones after; a name is the archive's own, `/` between its parts.
-size_t        d_zip_count(const struct d_zip* _zip);
-const char*   d_zip_name(const struct d_zip* _zip,
-                         size_t              _index);
-size_t        d_zip_find(const struct d_zip* _zip,
-                         const char*         _name);
+size_t d_zip_count(
+    const struct dj_zip* _zip
+);
+const char* d_zip_name(
+    const struct dj_zip* _zip,
+    size_t               _index
+);
+size_t d_zip_find(
+    const struct dj_zip* _zip,
+    const char*          _name
+);
 /**
  * @brief Reads one entry, as its replacement if it has one.
  *
@@ -134,12 +144,14 @@ size_t        d_zip_find(const struct d_zip* _zip,
  * @return `true` when the entry was read and its checksum agreed; `false`
  *         otherwise, with `*_out_bytes` `NULL`.
  */
-bool          d_zip_read(struct d_zip*   _zip,
-                         size_t          _index,
-                         unsigned char** _out_bytes,
-                         size_t*         _out_length,
-                         char*           _problem,
-                         size_t          _capacity);
+bool d_zip_read(
+    struct dj_zip*  _zip,
+    size_t          _index,
+    unsigned char** _out_bytes,
+    size_t*         _out_length,
+    char*           _problem,
+    size_t          _capacity
+);
 
 // 2.3    Changes
 //------------------------------------------------------------------------------
@@ -153,10 +165,12 @@ bool          d_zip_read(struct d_zip*   _zip,
  * @return `true` if the entry will be saved with these bytes; `false` if the
  *         index names no entry or memory ran out.
  */
-bool          d_zip_replace(struct d_zip*        _zip,
-                            size_t               _index,
-                            const unsigned char* _bytes,
-                            size_t               _length);
+bool d_zip_replace(
+    struct dj_zip*       _zip,
+    size_t               _index,
+    const unsigned char* _bytes,
+    size_t               _length
+);
 /**
  * @brief Adds an entry after the others; the archive keeps a copy.
  *
@@ -167,10 +181,12 @@ bool          d_zip_replace(struct d_zip*        _zip,
  * @return `true` if the entry was added; `false` if an entry has the name
  *         already, the name is empty, or memory ran out.
  */
-bool          d_zip_add(struct d_zip*        _zip,
-                        const char*          _name,
-                        const unsigned char* _bytes,
-                        size_t               _length);
+bool d_zip_add(
+    struct dj_zip*       _zip,
+    const char*          _name,
+    const unsigned char* _bytes,
+    size_t               _length
+);
 /**
  * @brief Writes the archive, its changes included, to a file.
  *
@@ -187,18 +203,22 @@ bool          d_zip_add(struct d_zip*        _zip,
  * @param[in]     _capacity  the size of `_problem`.
  * @return `true` if the archive was written; `false` otherwise.
  */
-bool          d_zip_save(struct d_zip* _zip,
-                         const char*   _path,
-                         char*         _problem,
-                         size_t        _capacity);
+bool d_zip_save(
+    struct dj_zip* _zip,
+    const char*    _path,
+    char*          _problem,
+    size_t         _capacity
+);
 
 // 2.4    Checksums
 //------------------------------------------------------------------------------
 // The IEEE 802.3 CRC-32 a ZIP entry carries: d_zip_crc32(0, ...) starts one,
 // and passing a result back as `_crc` continues it over more bytes.
-unsigned long d_zip_crc32(unsigned long        _crc,
-                          const unsigned char* _bytes,
-                          size_t               _length);
+unsigned long d_zip_crc32(
+    unsigned long        _crc,
+    const unsigned char* _bytes,
+    size_t               _length
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DZIP_H

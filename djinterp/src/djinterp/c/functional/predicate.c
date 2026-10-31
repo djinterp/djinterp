@@ -19,8 +19,7 @@
 #include <stdlib.h>   // malloc
 
 
-struct d_predicate_and*
-d_predicate_and_new(
+struct dj_predicate_and* d_predicate_and_new(
     fn_predicate _predicate1,
     void*        _context1,
     fn_predicate _predicate2,
@@ -34,7 +33,7 @@ d_predicate_and_new(
         return NULL;
     }
 
-    struct d_predicate_and* const combo = malloc(sizeof(*combo));
+    struct dj_predicate_and* const combo = malloc(sizeof(*combo));
 
     if (combo)
     {
@@ -47,10 +46,9 @@ d_predicate_and_new(
     return combo;
 }
 
-bool
-d_predicate_and_eval(
-    const struct d_predicate_and* _combo,
-    const void*                   _element
+bool d_predicate_and_eval(
+    const struct dj_predicate_and* _combo,
+    const void*                    _element
 )
 {
     return ( (_combo != NULL)                                      &&
@@ -58,8 +56,7 @@ d_predicate_and_eval(
              (_combo->predicate2(_element, _combo->context2)) );
 }
 
-struct d_predicate_or*
-d_predicate_or_new(
+struct dj_predicate_or* d_predicate_or_new(
     fn_predicate _predicate1,
     void*        _context1,
     fn_predicate _predicate2,
@@ -73,7 +70,7 @@ d_predicate_or_new(
         return NULL;
     }
 
-    struct d_predicate_or* const combo = malloc(sizeof(*combo));
+    struct dj_predicate_or* const combo = malloc(sizeof(*combo));
 
     if (combo)
     {
@@ -86,10 +83,9 @@ d_predicate_or_new(
     return combo;
 }
 
-bool
-d_predicate_or_eval(
-    const struct d_predicate_or* _combo,
-    const void*                  _element
+bool d_predicate_or_eval(
+    const struct dj_predicate_or* _combo,
+    const void*                   _element
 )
 {
     return ( (_combo != NULL) &&
@@ -97,8 +93,7 @@ d_predicate_or_eval(
                (_combo->predicate2(_element, _combo->context2)) ) );
 }
 
-struct d_predicate_xor*
-d_predicate_xor_new(
+struct dj_predicate_xor* d_predicate_xor_new(
     fn_predicate _predicate1,
     void*        _context1,
     fn_predicate _predicate2,
@@ -112,7 +107,7 @@ d_predicate_xor_new(
         return NULL;
     }
 
-    struct d_predicate_xor* const combo = malloc(sizeof(*combo));
+    struct dj_predicate_xor* const combo = malloc(sizeof(*combo));
 
     if (combo)
     {
@@ -129,10 +124,9 @@ d_predicate_xor_new(
 d_predicate_xor_eval
   Exclusive or has nothing to short-circuit: both operands always run.
 */
-bool
-d_predicate_xor_eval(
-    const struct d_predicate_xor* _combo,
-    const void*                   _element
+bool d_predicate_xor_eval(
+    const struct dj_predicate_xor* _combo,
+    const void*                    _element
 )
 {
     // no combinator: false
@@ -147,8 +141,7 @@ d_predicate_xor_eval(
     return (first != second);
 }
 
-struct d_predicate_not*
-d_predicate_not_new(
+struct dj_predicate_not* d_predicate_not_new(
     fn_predicate _predicate,
     void*        _context
 )
@@ -159,7 +152,7 @@ d_predicate_not_new(
         return NULL;
     }
 
-    struct d_predicate_not* const combo = malloc(sizeof(*combo));
+    struct dj_predicate_not* const combo = malloc(sizeof(*combo));
 
     if (combo)
     {
@@ -170,10 +163,9 @@ d_predicate_not_new(
     return combo;
 }
 
-bool
-d_predicate_not_eval(
-    const struct d_predicate_not* _combo,
-    const void*                   _element
+bool d_predicate_not_eval(
+    const struct dj_predicate_not* _combo,
+    const void*                    _element
 )
 {
     return ( (_combo != NULL) &&

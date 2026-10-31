@@ -1,0 +1,141 @@
+/*******************************************************************************
+* djinterp [test]                                   pipeline_tests_aggregate.cpp
+*
+* Aggregating-operation tests (section ii / iii):
+*   test_fold      -- left fold with an explicit init (incl. empty).
+*   test_reduce    -- reduce over a non-empty pipeline.
+*   test_group_by  -- group elements into a map keyed by a function.
+*   test_partition -- split into (passing, failing) pipelines.
+*   test_zip_with  -- elementwise binary combine of two pipelines.
+*
+*
+* path:      /tests/djinterp/cpp/functional/pipeline_tests_aggregate.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+// std
+#include <map>
+#include <utility>
+#include <vector>
+// djinterp
+#include "./pipeline_tests.hpp"
+
+
+NS_DJINTERP
+NS_TESTING
+
+
+using pi = DFunctionPipeline<int>;
+
+
+void test_fold(
+    test::test_handler& _h
+)
+{
+    pi p = pi::from({ 1, 2, 3, 4 });
+
+    // sum from 0
+    test::record_assertion(_h, p.fold(0, DFnAdd{}) == 10,
+        "fold: accumulates from the initial value");
+
+    // init contributes
+    test::record_assertion(_h, p.fold(100, DFnAdd{}) == 110,
+        "fold: the initial value participates");
+
+    // empty pipeline -> init unchanged
+    test::record_assertion(_h,
+        pi::from(std::vector<int>()).fold(7, DFnAdd{}) == 7,
+        "fold: empty pipeline returns the initial value");
+
+    return;
+}
+
+
+void test_reduce(
+    test::test_handler& _h
+)
+{
+    // reduce requires a non-empty pipeline
+    pi p = pi::from({ 1, 2, 3, 4 });
+    test::record_assertion(_h, p.reduce(DFnAdd{}) == 10,
+        "reduce: folds using the first element as the seed");
+
+    // single element reduces to itself
+    pi one = pi::from({ 42 });
+    test::record_assertion(_h, one.reduce(DFnAdd{}) == 42,
+        "reduce: a single element reduces to itself");
+
+    return;
+}
+
+
+void test_group_by(
+    test::test_handler& _h
+)
+{
+    pi p = pi::from({ 1, 2, 3, 4, 5 });
+
+    std::map<int, std::vector<int>> groups = p.group_by(DFnParity{});
+
+    bool ok = groups.size() == 2
+           && groups[0] == std::vector<int>({ 2, 4 })
+           && groups[1] == std::vector<int>({ 1, 3, 5 });
+    test::record_assertion(_h, ok,
+        "group_by: buckets elements by key, preserving order within a bucket");
+
+    // group_by over empty -> empty map
+    std::map<int, std::vector<int>> empty_groups =
+        pi::from(std::vector<int>()).group_by(DFnParity{});
+    test::record_assertion(_h, empty_groups.empty(),
+        "group_by: empty pipeline yields an empty map");
+
+    return;
+}
+
+
+void test_partition(
+    test::test_handler& _h
+)
+{
+    pi p = pi::from({ 1, 2, 3, 4, 5, 6 });
+
+    std::pair<pi, pi> parts = p.partition_pipe(fn_is_even{});
+
+    test::record_assertion(_h,
+        parts.first.to_vector() == std::vector<int>({ 2, 4, 6 }),
+        "partition_pipe: first holds the passing elements");
+    test::record_assertion(_h,
+        parts.second.to_vector() == std::vector<int>({ 1, 3, 5 }),
+        "partition_pipe: second holds the failing elements");
+
+    return;
+}
+
+
+void test_zip_with(
+    test::test_handler& _h
+)
+{
+    pi a = pi::from({ 1, 2, 3 });
+    pi b = pi::from({ 10, 20, 30, 40 });   // deliberately longer
+
+    // elementwise multiply, truncated to the shorter length
+    DFunctionPipeline<int> z = a.zip_with(b, DFnMul{});
+    test::record_assertion(_h,
+        z.to_vector() == std::vector<int>({ 10, 40, 90 }),
+        "zip_with: combines elementwise and truncates to the shorter");
+
+    // zipping with an empty pipeline -> empty
+    DFunctionPipeline<int> z_empty =
+        a.zip_with(pi::from(std::vector<int>()), DFnMul{});
+    test::record_assertion(_h, z_empty.empty(),
+        "zip_with: an empty operand yields an empty result");
+
+    return;
+}
+
+
+NS_END  // testing
+NS_END  // djinterp

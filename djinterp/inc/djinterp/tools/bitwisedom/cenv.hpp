@@ -55,8 +55,8 @@ TABLE OF CONTENTS
     1.  Suggestions
 */
 
-#ifndef BITWISEDOM_CENV_HPP
-#define BITWISEDOM_CENV_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_CENV_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_CENV_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -72,7 +72,7 @@ TABLE OF CONTENTS
 #include <utility>      // std::pair
 #include <vector>       // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./bits.hpp"   // u64, i64
 #include "./clex.hpp"   // c_token
@@ -104,7 +104,9 @@ struct c_type
     int         bits      = 32;
     std::string name      = "int";
 
-    D_NODISCARD bool same(const c_type& _other) const
+    D_NODISCARD bool same(
+        const c_type& _other
+    ) const
     {
         return ( (rank == _other.rank) &&
                  (is_signed == _other.is_signed) );
@@ -205,7 +207,9 @@ struct c_result
 
     // first
     //   the first diagnostic of a level or above, or nullptr.
-    D_NODISCARD const c_diagnostic* first(c_level _level) const;
+    D_NODISCARD const c_diagnostic* first(
+        c_level _level
+    ) const;
 };
 
 
@@ -238,10 +242,14 @@ struct c_macro
 
 // parameters -- a parameter list's text ("_bits, _value", "fmt, ...") read
 // into a macro; false and why when it is not one
-D_NODISCARD bool  read_params(const std::string& _text,
-                              c_macro&           _macro,
-                              std::string&       _error);
-D_NODISCARD std::string  params_text(const c_macro& _macro);
+D_NODISCARD bool read_params(
+    const std::string& _text,
+    c_macro&           _macro,
+    std::string&       _error
+);
+D_NODISCARD std::string params_text(
+    const c_macro& _macro
+);
 
 // 2.2    c_settings and c_scope
 //------------------------------------------------------------------------------
@@ -297,8 +305,11 @@ public:
      *                       <stdbool.h> (before C23), <stddef.h>'s NULL,
      *                       and __STDC_VERSION__ or __cplusplus.
      */
-    explicit c_env(const c_settings& _settings,
-                   bool              _standard = true);
+    explicit
+    c_env(
+        const c_settings& _settings,
+        bool              _standard = true
+    );
 
     D_NODISCARD const c_settings& settings() const;
 
@@ -311,13 +322,21 @@ public:
      *                     named twice.
      * @return `true` if it was defined; an ill-formed definition is not.
      */
-    bool define(c_macro      _macro,
-                std::string& _error);
-    bool undefine(const std::string& _name);
+    bool define(
+        c_macro      _macro,
+        std::string& _error
+    );
+    bool undefine(
+        const std::string& _name
+    );
 
-    D_NODISCARD const c_macro*  find(const std::string& _name) const;
-    D_NODISCARD bool            is_standard(const std::string& _name) const;
-    D_NODISCARD std::vector<std::string>  names() const;
+    D_NODISCARD const c_macro* find(
+        const std::string& _name
+    ) const;
+    D_NODISCARD bool is_standard(
+        const std::string& _name
+    ) const;
+    D_NODISCARD std::vector<std::string> names() const;
 
     /**
      * @brief Evaluates a text as an integer constant expression.
@@ -326,8 +345,10 @@ public:
      * @param[in] _scope  the names beyond the macros.
      * @return the value and its type, or why there is none.
      */
-    D_NODISCARD c_result evaluate(std::string_view _text,
-                                  const c_scope&   _scope) const;
+    D_NODISCARD c_result evaluate(
+        std::string_view _text,
+        const c_scope&   _scope
+    ) const;
 
     /**
      * @brief Evaluates a text as an #if condition.
@@ -340,10 +361,14 @@ public:
      * @param[in] _text  the condition.
      * @return the value, or why there is none.
      */
-    D_NODISCARD c_result condition(std::string_view _text) const;
+    D_NODISCARD c_result condition(
+        std::string_view _text
+    ) const;
 
     // expansion alone -- the text with every macro replaced, for display
-    D_NODISCARD std::string expand(std::string_view _text) const;
+    D_NODISCARD std::string expand(
+        std::string_view _text
+    ) const;
 
     /**
      * @brief Checks a definition without invoking it.
@@ -358,8 +383,10 @@ public:
      * @param[in] _scope  the names beyond the macros.
      * @return the diagnostics, warnings and notes.
      */
-    D_NODISCARD std::vector<c_diagnostic> lint(const c_macro& _macro,
-                                               const c_scope& _scope) const;
+    D_NODISCARD std::vector<c_diagnostic> lint(
+        const c_macro& _macro,
+        const c_scope& _scope
+    ) const;
 
 private:
     c_settings                    m_settings;
@@ -380,7 +407,10 @@ private:
 class c_branches
 {
 public:
-    explicit c_branches(const c_env& _env);
+    explicit
+    c_branches(
+        const c_env& _env
+    );
 
     /**
      * @brief Follows one directive, if it is a conditional.
@@ -392,12 +422,14 @@ public:
      * @return `true` if it was #if, #ifdef, #ifndef, #elif, #elifdef,
      *         #elifndef, #else or #endif.
      */
-    bool feed(const std::vector<c_token>& _line,
-              int                         _number,
-              std::vector<std::string>&   _notes);
+    bool feed(
+        const std::vector<c_token>& _line,
+        int                         _number,
+        std::vector<std::string>&   _notes
+    );
 
-    D_NODISCARD bool         live() const;
-    D_NODISCARD std::size_t  depth() const;
+    D_NODISCARD bool live() const;
+    D_NODISCARD std::size_t depth() const;
 
 private:
     struct frame
@@ -410,19 +442,24 @@ private:
     const c_env&       m_env;
     std::vector<frame> m_stack;
 
-    bool decide(const std::vector<c_token>& _line,
-                int                         _number,
-                std::vector<std::string>&   _notes) const;
+    bool decide(
+        const std::vector<c_token>& _line,
+        int                         _number,
+        std::vector<std::string>&   _notes
+    ) const;
 };
 
 // directives -- a text's directive lines (the line, and the tokens after
 // the `#`), and a #define's read into a macro, with where its body begins
-D_NODISCARD std::vector<std::pair<int, std::vector<c_token>>>
-        directive_lines(const std::vector<c_token>& _tokens);
-D_NODISCARD bool read_define(const std::vector<c_token>& _line,
-                             c_macro&                    _macro,
-                             std::size_t&                _body,
-                             std::string&                _error);
+D_NODISCARD std::vector<std::pair<int, std::vector<c_token>>> directive_lines(
+    const std::vector<c_token>& _tokens
+);
+D_NODISCARD bool read_define(
+    const std::vector<c_token>& _line,
+    c_macro&                    _macro,
+    std::size_t&                _body,
+    std::string&                _error
+);
 
 /**
  * @brief Runs a text's directives into an environment.
@@ -439,9 +476,11 @@ D_NODISCARD bool read_define(const std::vector<c_token>& _line,
  *                        each with its line.
  * @return how many definitions were made.
  */
-int  run_directives(c_env&                    _env,
-                    std::string_view          _text,
-                    std::vector<std::string>& _notes);
+int run_directives(
+    c_env&                    _env,
+    std::string_view          _text,
+    std::vector<std::string>& _notes
+);
 
 
 //==============================================================================
@@ -465,10 +504,13 @@ int  run_directives(c_env&                    _env,
  */
 D_NODISCARD std::vector<std::string> suggest(
     const std::string&              _name,
-    const std::vector<std::string>& _candidates);
+    const std::vector<std::string>& _candidates
+);
 
 // type names -- a C type as written, and the standard types' names
-D_NODISCARD std::string  type_text(const c_type& _type);
+D_NODISCARD std::string type_text(
+    const c_type& _type
+);
 
 /**
  * @brief The typed value of an integer literal written a given way.
@@ -482,11 +524,13 @@ D_NODISCARD std::string  type_text(const c_type& _type);
  * @param[in] _settings  the language, level and data model.
  * @return the value, with the type C gives it.
  */
-D_NODISCARD c_value  constant_value(u64               _value,
-                                    bool              _negative,
-                                    bool              _decimal,
-                                    int_suffix        _suffix,
-                                    const c_settings& _settings);
+D_NODISCARD c_value constant_value(
+    u64               _value,
+    bool              _negative,
+    bool              _decimal,
+    int_suffix        _suffix,
+    const c_settings& _settings
+);
 
 
 }  // namespace bitwisedom
@@ -494,4 +538,4 @@ D_NODISCARD c_value  constant_value(u64               _value,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_CENV_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_CENV_HPP

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,10 +24,8 @@ d_tests_sa_vector_common_push_back
   - automatic capacity growth when full
   - count correctly incremented
 */
-bool
-d_tests_sa_vector_common_push_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_push_back(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -181,10 +179,8 @@ d_tests_sa_vector_common_push_front
   - successful push to empty vector
   - successful push to non-empty vector (shifts existing)
 */
-bool
-d_tests_sa_vector_common_push_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_push_front(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -273,10 +269,8 @@ d_tests_sa_vector_common_pop_back
   - successful pop with output parameter
   - successful pop without output parameter
 */
-bool
-d_tests_sa_vector_common_pop_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_pop_back(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -370,10 +364,8 @@ d_tests_sa_vector_common_pop_front
   - successful pop with output parameter
   - remaining elements correctly shifted
 */
-bool
-d_tests_sa_vector_common_pop_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_pop_front(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -468,10 +460,8 @@ d_tests_sa_vector_common_insert_element
   - successful insert at beginning, middle, and end
   - negative index support
 */
-bool
-d_tests_sa_vector_common_insert_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_insert_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -564,7 +554,7 @@ d_tests_sa_vector_common_insert_element
                                &count,
                                &capacity,
                                sizeof(int),
-                               (d_index)count,
+                               (dj_index)count,
                                &value) == D_SUCCESS,
         "insert_end_success",
         "Insert at end should succeed",
@@ -607,10 +597,8 @@ d_tests_sa_vector_common_insert_elements
   - NULL source handling
   - successful range insert
 */
-bool
-d_tests_sa_vector_common_insert_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_insert_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -724,10 +712,8 @@ d_tests_sa_vector_common_erase
   - successful erase at various positions
   - negative index support
 */
-bool
-d_tests_sa_vector_common_erase
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_erase(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -840,10 +826,8 @@ d_tests_sa_vector_common_erase_range
   - invalid range handling
   - successful range erase
 */
-bool
-d_tests_sa_vector_common_erase_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_erase_range(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -935,7 +919,7 @@ d_tests_sa_vector_common_erase_range
                                     &count,
                                     sizeof(int),
                                     0,
-                                    (d_index)(count - 1)) == D_SUCCESS,
+                                    (dj_index)(count - 1)) == D_SUCCESS,
         "erase_range_all_success",
         "Erase all elements should succeed",
         _counter) && result;
@@ -959,10 +943,8 @@ d_tests_sa_vector_common_erase_range
 d_tests_sa_vector_common_element_all
   Aggregation function that runs all element manipulation tests.
 */
-bool
-d_tests_sa_vector_common_element_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_element_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

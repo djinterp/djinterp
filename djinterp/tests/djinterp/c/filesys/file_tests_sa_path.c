@@ -38,13 +38,10 @@ d_tests_file_dirname
   - a root is its own parent
   - NULL is rejected
 */
-static struct d_test_object*
-d_tests_file_dirname
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_dirname(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  buf[D_TEST_FILE_PATH_BUF];
     size_t                idx;
 
@@ -111,13 +108,10 @@ d_tests_file_basename
   - a root names itself
   - NULL is rejected
 */
-static struct d_test_object*
-d_tests_file_basename
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_basename(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  buf[D_TEST_FILE_PATH_BUF];
     size_t                idx;
 
@@ -158,13 +152,10 @@ d_tests_file_extension
   - only the final component is examined
   - stem and extension agree by construction
 */
-static struct d_test_object*
-d_tests_file_extension
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_extension(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  buf[D_TEST_FILE_PATH_BUF];
     const char*           ext;
     size_t                idx;
@@ -232,13 +223,10 @@ d_tests_file_path_join
   - an absolute second component replaces the first
   - truncation is an error
 */
-static struct d_test_object*
-d_tests_file_path_join
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_path_join(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  buf[D_TEST_FILE_PATH_BUF];
     size_t                idx;
 
@@ -310,13 +298,10 @@ d_tests_file_path_absolute
   - Windows roots, when this build parses that grammar
   - "C:x" is drive-RELATIVE, which string comparison gets wrong
 */
-static struct d_test_object*
-d_tests_file_path_absolute
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_path_absolute(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     size_t                idx;
 
     idx = 0;
@@ -393,13 +378,10 @@ d_tests_file_path_normalize
   - the root has no parent
   - the result is lexical, and says so
 */
-static struct d_test_object*
-d_tests_file_path_normalize
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_path_normalize(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  buf[D_TEST_FILE_PATH_BUF];
     size_t                idx;
 
@@ -472,13 +454,9 @@ d_tests_file_path_normalize
 d_tests_file_path_all
   Runs every file_path test.
 */
-struct d_test_object*
-d_tests_file_path_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_path_all(void)
 {
-    struct d_test_object* items[8];
+    struct dj_test_object* items[8];
     size_t                idx;
 
     idx = 0;

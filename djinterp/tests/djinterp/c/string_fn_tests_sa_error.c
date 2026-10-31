@@ -28,13 +28,9 @@ d_tests_sa_string_fn_strerror_r
   - handles NULL buffer
   - handles zero buffer size
 */
-struct d_test_object*
-d_tests_sa_string_fn_strerror_r
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strerror_r(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  buffer[256];
     char                  small_buffer[10];
     int                   result;
@@ -112,13 +108,9 @@ d_tests_sa_string_fn_error_handling_all
   Tests the following:
   - d_strerror_r
 */
-struct d_test_object*
-d_tests_sa_string_fn_error_handling_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_error_handling_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Error Handling", 1);
@@ -147,13 +139,9 @@ d_tests_sa_string_fn_null_params_all
   - appropriate error codes returned
   - no crashes or undefined behavior
 */
-struct d_test_object*
-d_tests_sa_string_fn_null_params_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_null_params_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  buffer[256];
     int                   result;
     bool                  test_strcpy_s;
@@ -350,13 +338,9 @@ d_tests_sa_string_fn_boundary_conditions_all
   - empty string operations for new functions
   - single-char search and containment edge cases
 */
-struct d_test_object*
-d_tests_sa_string_fn_boundary_conditions_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_boundary_conditions_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  one_char[2];
     char                  zero_buf[1];
     char                  exact_fit[6];
@@ -415,8 +399,8 @@ d_tests_sa_string_fn_boundary_conditions_all
     }
 
     // test 7: single-character search edge cases
-    d_index ci = d_strchr_index("X", 1, 'X');
-    d_index ri = d_strrchr_index("X", 1, 'X');
+    dj_index ci = d_strchr_index("X", 1, 'X');
+    dj_index ri = d_strrchr_index("X", 1, 'X');
     test_single_char_search = (ci == 0) && (ri == 0);
 
     // test 8: single-character prefix/suffix

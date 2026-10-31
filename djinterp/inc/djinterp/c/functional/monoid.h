@@ -8,7 +8,7 @@
 * *empty* fold answerable: `d_semigroup_reduce` fails on an empty array because
 * there is nothing to return, while `d_mconcat` answers `mempty`.
 *   The relation "a monoid is a semigroup plus an identity" is expressed here as
-* layout, not as documentation: `d_monoid` *contains* a `d_semigroup` as its
+* layout, not as documentation: `dj_monoid` *contains* a `dj_semigroup` as its
 * first and only decorated member, at offset 0, so the forgetful map down to the
 * semigroup is a cast and costs nothing. `d_monoid_semigroup` performs it, and
 * the assertions at the foot of this header pin the cost: containment adds
@@ -23,7 +23,7 @@
 *
 * NOT PROVIDED, AND WHY. `std::string` and `std::vector<T>` concatenation are
 * monoid instances in the C++ face and are absent here: the C fork has no
-* `d_string` and no `d_vector`, and inventing one for this header would be the
+* `dj_string` and no `dj_vector`, and inventing one for this header would be the
 * wrong place to introduce it. Concatenation instances are blocked on the
 * container substrate, not overlooked. `d_semigroup_first`/`_last` in
 * semigroup.h are the deliberate counterexamples: associative, size-generic, and
@@ -49,7 +49,7 @@
 #include "./producer.h"
 #include "./semigroup.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // fixed-width types, for users
+#include "../../../re_std/c/cstdint/dstdint.h"  // fixed-width types, for users
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -59,83 +59,99 @@
 #if RE_STD_HAS_INT64
 
 
-// d_monoid
+// dj_monoid
 //   struct: forward declaration.
 // The identity typedef below names this type, and a struct first named inside a
 // parameter list would be a distinct, file-local type.
-struct d_monoid;
+struct dj_monoid;
 
 // fn_mempty
 //   function pointer: writes the identity element of a monoid.
 // Fills `_identity` with `value_size` bytes, reading any instance
 // configuration from `_monoid`.
-typedef void (*fn_mempty)(const struct d_monoid* _monoid,
+typedef void (*fn_mempty)(const struct dj_monoid* _monoid,
                           void*                  _identity);
 
-// d_monoid
+// dj_monoid
 //   struct: a semigroup decorated with a two-sided identity.
 // The contained semigroup is the first member, so the forgetful map to it is a
 // cast at offset 0 and a monoid may be passed wherever a semigroup is wanted.
-struct d_monoid
+struct dj_monoid
 {
-    struct d_semigroup semigroup;  // the underlying combine, at offset 0
+    struct dj_semigroup semigroup;  // the underlying combine, at offset 0
     fn_mempty          mempty;     // writes the identity element
 };
 
 // I.     construction
-struct d_monoid d_monoid_make(struct d_semigroup _semigroup,
-                              fn_mempty          _mempty);
-bool            d_monoid_is_valid(const struct d_monoid* _monoid);
+struct dj_monoid d_monoid_make(
+    struct dj_semigroup _semigroup,
+    fn_mempty           _mempty
+);
+bool d_monoid_is_valid(
+    const struct dj_monoid* _monoid
+);
 
 // II.    forgetful map
-const struct d_semigroup* d_monoid_semigroup(const struct d_monoid* _monoid);
+const struct dj_semigroup* d_monoid_semigroup(
+    const struct dj_monoid* _monoid
+);
 
 // III.   operations
-bool     d_mempty(const struct d_monoid* _monoid,
-                  void*                  _identity);
-bool     d_mconcat(const struct d_monoid* _monoid,
-                   const void*            _elements,
-                   size_t                 _count,
-                   void*                  _out);
-bool     d_mconcat_producer(const struct d_monoid* _monoid,
-                            struct d_producer*     _producer,
-                            void*                  _out,
-                            void*                  _scratch);
-bool     d_fold_monoid(const struct d_monoid* _monoid,
-                       const void*            _elements,
-                       size_t                 _count,
-                       size_t                 _element_size,
-                       fn_transformer         _to_monoid,
-                       void*                  _context,
-                       void*                  _out,
-                       void*                  _scratch);
+bool d_mempty(
+    const struct dj_monoid* _monoid,
+    void*                   _identity
+);
+bool d_mconcat(
+    const struct dj_monoid* _monoid,
+    const void*             _elements,
+    size_t                  _count,
+    void*                   _out
+);
+bool d_mconcat_producer(
+    const struct dj_monoid* _monoid,
+    struct dj_producer*     _producer,
+    void*                   _out,
+    void*                   _scratch
+);
+bool d_fold_monoid(
+    const struct dj_monoid* _monoid,
+    const void*             _elements,
+    size_t                  _count,
+    size_t                  _element_size,
+    fn_transformer          _to_monoid,
+    void*                   _context,
+    void*                   _out,
+    void*                   _scratch
+);
 
 // IV.    reducer conversion
-struct d_reducer d_monoid_reducer(const struct d_monoid* _monoid);
+struct dj_reducer d_monoid_reducer(
+    const struct dj_monoid* _monoid
+);
 
 // V.     integer instances (intmax_t)
-struct d_monoid d_monoid_sum_intmax(void);
-struct d_monoid d_monoid_product_intmax(void);
-struct d_monoid d_monoid_min_intmax(void);
-struct d_monoid d_monoid_max_intmax(void);
+struct dj_monoid d_monoid_sum_intmax(void);
+struct dj_monoid d_monoid_product_intmax(void);
+struct dj_monoid d_monoid_min_intmax(void);
+struct dj_monoid d_monoid_max_intmax(void);
 
 // VI.    floating-point instances (double)
-struct d_monoid d_monoid_sum_double(void);
-struct d_monoid d_monoid_product_double(void);
-struct d_monoid d_monoid_min_double(void);
-struct d_monoid d_monoid_max_double(void);
+struct dj_monoid d_monoid_sum_double(void);
+struct dj_monoid d_monoid_product_double(void);
+struct dj_monoid d_monoid_min_double(void);
+struct dj_monoid d_monoid_max_double(void);
 
 // VII.   boolean instances
-struct d_monoid d_monoid_all(void);
-struct d_monoid d_monoid_any(void);
+struct dj_monoid d_monoid_all(void);
+struct dj_monoid d_monoid_any(void);
 
 // VIII.  layout and cost assertions (Layout law and Cost law)
-D_STATIC_ASSERT(offsetof(struct d_monoid, semigroup) == 0,
+D_STATIC_ASSERT(offsetof(struct dj_monoid, semigroup) == 0,
                 "a monoid must forget to its semigroup at offset 0");
-D_STATIC_ASSERT(offsetof(struct d_monoid, mempty) == sizeof(struct d_semigroup),
-                "d_monoid layout drift");
-D_STATIC_ASSERT(sizeof(struct d_monoid) ==
-                    (sizeof(struct d_semigroup) + sizeof(fn_mempty)),
+D_STATIC_ASSERT(offsetof(struct dj_monoid, mempty) == sizeof(struct dj_semigroup),
+                "dj_monoid layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_monoid) ==
+                    (sizeof(struct dj_semigroup) + sizeof(fn_mempty)),
                 "decorating a semigroup must cost exactly one pointer");
 
 

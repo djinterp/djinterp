@@ -21,11 +21,11 @@
 #include <string.h>  // memcpy, memset, strcmp, strlen, strpbrk
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                     // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"                   // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"                   // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs.h"          // d_msvs_guid
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"                  // d_awk_value_text
-#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_sln.h"      // d_host_sln
-#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_vcxproj.h"  // d_host_vcxproj
+#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_sln.h"      // dj_host_sln
+#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_vcxproj.h"  // dj_host_vcxproj
 
 
 //==============================================================================
@@ -36,18 +36,18 @@
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_msvs
+// dj_host_msvs
 //   struct: the two parts.
-struct d_host_msvs
+struct dj_host_msvs
 {
-    struct d_host_sln*     sln;
-    struct d_host_vcxproj* vcxproj;
+    struct dj_host_sln*     sln;
+    struct dj_host_vcxproj* vcxproj;
 };
 
 // 1.1.2
-// d_internal_found
+// dj_internal_found
 //   struct: the paths a glob has found, in an array that grows.
-struct d_internal_found
+struct dj_internal_found
 {
     char** paths;
     size_t count;
@@ -56,9 +56,9 @@ struct d_internal_found
 };
 
 // 1.1.3
-// d_internal_which
+// dj_internal_which
 //   enum: what a glob gives.
-enum d_internal_which
+enum dj_internal_which
 {
     D_INTERNAL_FILES = 0,
     D_INTERNAL_DIRECTORIES,
@@ -76,8 +76,8 @@ d_internal_match
   Whether a name matches a pattern part: `*` any run, `?` any byte, [...] a
 set or range, `[!...]` its complement, anything else itself.
 */
-static bool
-d_internal_match(
+static
+bool d_internal_match(
     const char* _pattern,
     const char* _name
 )
@@ -162,10 +162,10 @@ d_internal_match(
 d_internal_keep
   Adds a path found.
 */
-static void
-d_internal_keep(
-    struct d_internal_found* _found,
-    const char*              _path
+static
+void d_internal_keep(
+    struct dj_internal_found* _found,
+    const char*               _path
 )
 {
     // a glob that has failed stays failed
@@ -214,8 +214,8 @@ d_internal_join
   A directory and a name, `/` between unless the directory is "" or ends
 in one.
 */
-static char*
-d_internal_join(
+static
+char* d_internal_join(
     const char* _directory,
     const char* _name,
     size_t      _name_length
@@ -247,8 +247,8 @@ static void
 d_internal_glob(
     const char*              _directory,
     const char*              _rest,
-    enum d_internal_which    _which,
-    struct d_internal_found* _found
+    enum dj_internal_which    _which,
+    struct dj_internal_found* _found
 )
 {
     const char* const slash  = strchr(_rest, '/');
@@ -311,7 +311,7 @@ d_internal_glob(
             break;
         }
 
-        const enum d_fs_kind kind = d_fs_kind_of(path);
+        const enum dj_fs_kind kind = d_fs_kind_of(path);
 
         // the last part names what is kept; another, where to go on
         if ( (next) &&
@@ -351,8 +351,8 @@ d_internal_glob(
 d_internal_compare_paths
   Byte order, for qsort over an array of paths.
 */
-static int
-d_internal_compare_paths(
+static
+int d_internal_compare_paths(
     const void* _left,
     const void* _right
 )
@@ -370,14 +370,14 @@ d_internal_compare_paths(
 msvs_guid(name)
   A version 5 GUID of the name.
 */
-static bool
-d_internal_msvs_guid(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_msvs_guid(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     size_t            length = 0;
@@ -399,14 +399,14 @@ d_internal_msvs_guid(
 msvs_relative(directory, path[, separator])
   The path from the directory.
 */
-static bool
-d_internal_msvs_relative(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_msvs_relative(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     const size_t length    = strlen(d_awk_value_text(_args[0], NULL, NULL));
@@ -458,19 +458,19 @@ d_internal_msvs_relative(
 msvs_glob(pattern[, which])
   The paths, sorted, one to a line.
 */
-static bool
-d_internal_msvs_glob(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_msvs_glob(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_internal_found found   = { NULL, 0u, 0u, false };
+    struct dj_internal_found found   = { NULL, 0u, 0u, false };
     const char* const       pattern = d_awk_value_text(_args[0], NULL, NULL);
-    enum d_internal_which   which   = D_INTERNAL_FILES;
+    enum dj_internal_which   which   = D_INTERNAL_FILES;
     char*                   copy    = malloc(strlen(pattern) + 1u);
 
     (void)_user;
@@ -559,17 +559,17 @@ d_internal_msvs_glob(
 msvs_exists(path), msvs_kind(path)
   What a path names, and what its name says.
 */
-static bool
-d_internal_msvs_exists(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_msvs_exists(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const enum d_fs_kind kind = d_fs_kind_of(d_awk_value_text(_args[0], NULL,
+    const enum dj_fs_kind kind = d_fs_kind_of(d_awk_value_text(_args[0], NULL,
                                                               NULL));
 
     (void)_user;
@@ -585,14 +585,14 @@ d_internal_msvs_exists(
 }
 
 
-static bool
-d_internal_msvs_kind(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_msvs_kind(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const names[] =
@@ -626,10 +626,10 @@ d_internal_msvs_kind(
 d_internal_functions
   The umbrella's own host functions, as a program calls them.
 */
-static const struct d_awk_host_function*
-d_internal_functions(void)
+static
+const struct dj_awk_host_function* d_internal_functions(void)
 {
-    static const struct d_awk_host_function functions[
+    static const struct dj_awk_host_function functions[
         D_INTERNAL_MSVS_FUNCTIONS] =
     {
         { "msvs_guid",     1u, 1u, d_internal_msvs_guid     },
@@ -647,10 +647,9 @@ d_internal_functions(void)
 d_host_msvs_new
   Both parts, or nothing.
 */
-struct d_host_msvs*
-d_host_msvs_new(void)
+struct dj_host_msvs* d_host_msvs_new(void)
 {
-    struct d_host_msvs* const host = malloc(sizeof(*host));
+    struct dj_host_msvs* const host = malloc(sizeof(*host));
 
     // an umbrella that cannot be made is NULL
     if (!host)
@@ -678,9 +677,8 @@ d_host_msvs_new(void)
 d_host_msvs_free
   Both parts, and the umbrella.
 */
-void
-d_host_msvs_free(
-    struct d_host_msvs* _host
+void d_host_msvs_free(
+    struct dj_host_msvs* _host
 )
 {
     // freeing nothing is allowed
@@ -701,10 +699,9 @@ d_host_msvs_free(
 d_host_msvs_install
   Both parts' functions, then the umbrella's own.
 */
-bool
-d_host_msvs_install(
-    struct d_host_msvs*  _host,
-    struct d_awk_interp* _interp
+bool d_host_msvs_install(
+    struct dj_host_msvs*  _host,
+    struct dj_awk_interp* _interp
 )
 {
     // parameter validation first

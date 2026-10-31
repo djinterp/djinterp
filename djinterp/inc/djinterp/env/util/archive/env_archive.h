@@ -118,7 +118,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../c/djinterp.h"       // D_EXTERN_C_BEGIN, D_EXTERN_C_END
 #include "../../env.h"                 // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
-#include "../../../config/core/env/util/archive/cfg_env_archive.h"  // switch
+#include "../../../config/env/util/archive/cfg_env_archive.h"  // switch
 #include "../compress/env_compress.h"  // D_ENV_HAS_INCLUDE,
                                        // D_ENV_COMPRESSION_HAVE_*
 
@@ -732,7 +732,9 @@ D_EXTERN_C_BEGIN
  * @param[in] _backend  one of the D_ENV_ARCHIVE_BACKEND_* constants.
  * @return a static, null-terminated backend name, or "none".
  */
-const char* d_env_archive_backend_name(int _backend);
+const char* d_env_archive_backend_name(
+    int _backend
+);
 /**
  * @brief Returns the version of the libarchive linked at runtime.
  *
@@ -749,12 +751,14 @@ const char* d_env_archive_libarchive_runtime_version(void);
  *                        "7z").
  * @return `1` if the tool is found and executable, `0` otherwise.
  */
-int         d_env_archive_has_tool(const char* _tool_name);
+int d_env_archive_has_tool(
+    const char* _tool_name
+);
 /**
  * @brief Prints the detected archive backends, their versions, and the
  *        resulting per-format capability matrix to stdout.
  */
-void        d_env_archive_print_info(void);
+void d_env_archive_print_info(void);
 
 D_EXTERN_C_END
 

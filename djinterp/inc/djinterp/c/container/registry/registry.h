@@ -29,7 +29,7 @@
 #include "../../memory/dmemory.h"
 #include "../container.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // uint8_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // uint8_t
 
 
 /******************************************************************************
@@ -144,36 +144,36 @@ typedef bool (*fn_registry_row_predicate)(const void* _row, const void* _context
  * CORE STRUCTURES
  *****************************************************************************/
 
-// d_registry_lookup_entry
+// dj_registry_lookup_entry
 //   struct: internal entry in the lookup array mapping a key or alias string
 // to a row index.
-struct d_registry_lookup_entry
+struct dj_registry_lookup_entry
 {
     const char* key;        // key or alias string
     size_t      row_index;  // index into the rows array
 };
 
-// d_registry
+// dj_registry
 //   struct: the main registry container. Stores user-defined rows in a simple
 // array with a separate sorted lookup array for binary search by key/alias.
-struct d_registry
+struct dj_registry
 {
     void*                           rows;           // array of user row structs
     size_t                          row_size;       // sizeof(user row struct)
     size_t                          count;          // number of rows
     size_t                          capacity;       // allocated row capacity
-    struct d_registry_lookup_entry* lookup;         // sorted key/alias array
+    struct dj_registry_lookup_entry* lookup;         // sorted key/alias array
     size_t                          lookup_count;   // entries in lookup
     size_t                          lookup_capacity;// allocated lookup capacity
     uint8_t                         flags;          // registry-wide flags
     fn_registry_row_free            row_free;       // optional row destructor
 };
 
-// d_registry_iterator
+// dj_registry_iterator
 //   struct: iterator for traversing registry entries with optional filtering.
-struct d_registry_iterator
+struct dj_registry_iterator
 {
-    struct d_registry*        registry;     // registry being iterated
+    struct dj_registry*        registry;     // registry being iterated
     size_t                    current;      // current row index
     fn_registry_row_predicate filter;       // optional filter predicate
     const void*               filter_ctx;   // filter context
@@ -218,7 +218,7 @@ struct d_registry_iterator
 //       D_REGISTRY_LOOKUP_ENTRY("key1", 0),
 //       D_REGISTRY_LOOKUP_ENTRY("key2", 1) );
 #define D_REGISTRY_LOOKUP_TABLE(name, ...) \
-    static struct d_registry_lookup_entry name[] = { __VA_ARGS__ }
+    static struct dj_registry_lookup_entry name[] = { __VA_ARGS__ }
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // D_REGISTRY_LOOKUP_COUNT
@@ -227,8 +227,8 @@ struct d_registry_iterator
     (sizeof(lookup) / sizeof((lookup)[0]))
 
 // D_REGISTRY_STATIC_INIT
-//   macro: initializes a d_registry struct from static tables. Usage: struct
-// d_registry reg = D_REGISTRY_STATIC_INIT(
+//   macro: initializes a dj_registry struct from static tables. Usage: struct
+// dj_registry reg = D_REGISTRY_STATIC_INIT(
 //       my_rows, sizeof(struct my_row), my_lookup );
 #define D_REGISTRY_STATIC_INIT(rows_table, row_sz, lookup_table)  \
     {                                                             \
@@ -295,7 +295,7 @@ struct d_registry_iterator
 //   macro: generates an unsorted lookup table from a rows table. Note: the
 // generated lookup is NOT sorted; call d_registry_sort_lookup() or use
 // D_REGISTRY_DEFINE for automatic sorting at init. Usage: struct
-// d_registry_lookup_entry my_lookup[] = {
+// dj_registry_lookup_entry my_lookup[] = {
 //       D_REGISTRY_AUTO_LOOKUP(my_rows, 5) };
 #define D_REGISTRY_AUTO_LOOKUP(rows_table, n) \
     D_CONCAT(D_REGISTRY_GEN_LOOKUP_, n)(rows_table)
@@ -316,9 +316,9 @@ struct d_registry_iterator
 // d_registry_rebuild_lookup(&my_registry);
 #define D_REGISTRY_DEFINE(name, row_type, ...)                            \
     static row_type D_CONCAT(name, _rows)[] = { __VA_ARGS__ };            \
-    static struct d_registry_lookup_entry D_CONCAT(name, _lookup)[        \
+    static struct dj_registry_lookup_entry D_CONCAT(name, _lookup)[        \
         D_REGISTRY_TABLE_COUNT(D_CONCAT(name, _rows))];                   \
-    static struct d_registry name = {                                     \
+    static struct dj_registry name = {                                     \
         .rows            = (void*)D_CONCAT(name, _rows),                  \
         .row_size        = sizeof(row_type),                              \
         .count           = D_REGISTRY_TABLE_COUNT(D_CONCAT(name, _rows)), \
@@ -334,9 +334,9 @@ struct d_registry_iterator
 //   macro: defines a registry with extra capacity for aliases in lookup.
 #define D_REGISTRY_DEFINE_WITH_ALIASES(name, row_type, alias_extra, ...)  \
     static row_type D_CONCAT(name, _rows)[] = { __VA_ARGS__ };            \
-    static struct d_registry_lookup_entry D_CONCAT(name, _lookup)[        \
+    static struct dj_registry_lookup_entry D_CONCAT(name, _lookup)[        \
         D_REGISTRY_TABLE_COUNT(D_CONCAT(name, _rows)) + (alias_extra)];   \
-    static struct d_registry name = {                                     \
+    static struct dj_registry name = {                                     \
         .rows            = (void*)D_CONCAT(name, _rows),                  \
         .row_size        = sizeof(row_type),                              \
         .count           = D_REGISTRY_TABLE_COUNT(D_CONCAT(name, _rows)), \
@@ -417,13 +417,21 @@ struct d_registry_iterator
  *****************************************************************************/
 
 // II.   creation and initialization
-struct d_registry* d_registry_new(size_t _row_size);
-struct d_registry* d_registry_new_with_capacity(size_t _row_size,
-                                                size_t _capacity);
-struct d_registry* d_registry_new_copy(const struct d_registry* _other);
-struct d_registry* d_registry_new_from_array(const void* _rows,
-                                             size_t      _row_size,
-                                             size_t      _count);
+struct dj_registry* d_registry_new(
+    size_t _row_size
+);
+struct dj_registry* d_registry_new_with_capacity(
+    size_t _row_size,
+    size_t _capacity
+);
+struct dj_registry* d_registry_new_copy(
+    const struct dj_registry* _other
+);
+struct dj_registry* d_registry_new_from_array(
+    const void* _rows,
+    size_t      _row_size,
+    size_t      _count
+);
 
 
 /******************************************************************************
@@ -433,8 +441,10 @@ struct d_registry* d_registry_new_from_array(const void* _rows,
 // d_registry_get
 //   function: binary searches the lookup array for the key and returns the
 // matching row, or NULL if not found. This is the primary access method.
-void* d_registry_get(const struct d_registry* _registry,
-                     const char*              _key);
+void* d_registry_get(
+    const struct dj_registry* _registry,
+    const char*               _key
+);
 
 
 /******************************************************************************
@@ -442,21 +452,33 @@ void* d_registry_get(const struct d_registry* _registry,
  *****************************************************************************/
 
 // adding rows
-bool d_registry_add(struct d_registry* _registry,
-                    const void*        _row);
-bool d_registry_add_rows(struct d_registry* _registry,
-                         const void*        _rows,
-                         size_t             _count);
-bool d_registry_set(struct d_registry* _registry,
-                    const char*        _key,
-                    const void*        _row);
+bool d_registry_add(
+    struct dj_registry* _registry,
+    const void*         _row
+);
+bool d_registry_add_rows(
+    struct dj_registry* _registry,
+    const void*         _rows,
+    size_t              _count
+);
+bool d_registry_set(
+    struct dj_registry* _registry,
+    const char*         _key,
+    const void*         _row
+);
 
 // removing rows
-bool d_registry_remove(struct d_registry* _registry,
-                       const char*        _key);
-bool d_registry_remove_at(struct d_registry* _registry,
-                          size_t             _index);
-void d_registry_clear(struct d_registry* _registry);
+bool d_registry_remove(
+    struct dj_registry* _registry,
+    const char*         _key
+);
+bool d_registry_remove_at(
+    struct dj_registry* _registry,
+    size_t              _index
+);
+void d_registry_clear(
+    struct dj_registry* _registry
+);
 
 
 /******************************************************************************
@@ -464,17 +486,27 @@ void d_registry_clear(struct d_registry* _registry);
  *****************************************************************************/
 
 // III.  insertion and removal
-bool   d_registry_add_alias(struct d_registry* _registry,
-                            const char*        _key,
-                            const char*        _alias);
-bool   d_registry_add_aliases(struct d_registry* _registry,
-                              const char*        _key,
-                              const char**       _aliases,
-                              size_t             _count);
-bool   d_registry_remove_alias(struct d_registry* _registry,
-                               const char*        _alias);
-void   d_registry_clear_aliases(struct d_registry* _registry);
-size_t d_registry_alias_count(const struct d_registry* _registry);
+bool d_registry_add_alias(
+    struct dj_registry* _registry,
+    const char*         _key,
+    const char*         _alias
+);
+bool d_registry_add_aliases(
+    struct dj_registry* _registry,
+    const char*         _key,
+    const char**        _aliases,
+    size_t              _count
+);
+bool d_registry_remove_alias(
+    struct dj_registry* _registry,
+    const char*         _alias
+);
+void d_registry_clear_aliases(
+    struct dj_registry* _registry
+);
+size_t d_registry_alias_count(
+    const struct dj_registry* _registry
+);
 
 
 /******************************************************************************
@@ -482,15 +514,27 @@ size_t d_registry_alias_count(const struct d_registry* _registry);
  *****************************************************************************/
 
 // IV.   capacity and state queries
-bool    d_registry_contains(const struct d_registry* _registry,
-                            const char*              _key);
-ssize_t d_registry_index_of(const struct d_registry* _registry,
-                            const char*              _key);
-void*   d_registry_at(const struct d_registry* _registry,
-                      size_t                   _index);
-size_t  d_registry_count(const struct d_registry* _registry);
-size_t  d_registry_capacity(const struct d_registry* _registry);
-bool    d_registry_is_empty(const struct d_registry* _registry);
+bool d_registry_contains(
+    const struct dj_registry* _registry,
+    const char*               _key
+);
+ssize_t d_registry_index_of(
+    const struct dj_registry* _registry,
+    const char*               _key
+);
+void* d_registry_at(
+    const struct dj_registry* _registry,
+    size_t                    _index
+);
+size_t d_registry_count(
+    const struct dj_registry* _registry
+);
+size_t d_registry_capacity(
+    const struct dj_registry* _registry
+);
+bool d_registry_is_empty(
+    const struct dj_registry* _registry
+);
 
 
 /******************************************************************************
@@ -500,12 +544,16 @@ bool    d_registry_is_empty(const struct d_registry* _registry);
 // d_registry_rebuild_lookup
 //   function: clears and rebuilds the lookup table from all row keys. Call
 // after bulk modifications or on static registries after definition.
-void d_registry_rebuild_lookup(struct d_registry* _registry);
+void d_registry_rebuild_lookup(
+    struct dj_registry* _registry
+);
 
 // d_registry_sort_lookup
 //   function: sorts the lookup table for binary search. Called automatically
 // by rebuild_lookup and after add operations.
-void d_registry_sort_lookup(struct d_registry* _registry);
+void d_registry_sort_lookup(
+    struct dj_registry* _registry
+);
 
 
 /******************************************************************************
@@ -513,27 +561,39 @@ void d_registry_sort_lookup(struct d_registry* _registry);
  *****************************************************************************/
 
 // V.    creation and initialization (cont.)
-struct d_registry_iterator d_registry_iterator_new(
-    struct d_registry* _registry);
-struct d_registry_iterator d_registry_iterator_filtered(
-    struct d_registry*        _registry,
+struct dj_registry_iterator d_registry_iterator_new(
+    struct dj_registry* _registry
+);
+struct dj_registry_iterator d_registry_iterator_filtered(
+    struct dj_registry*       _registry,
     fn_registry_row_predicate _filter,
-    const void*               _context);
+    const void*               _context
+);
 
 // VI.   capacity and state queries (cont.)
-bool  d_registry_iterator_has_next(const struct d_registry_iterator* _iter);
-void* d_registry_iterator_next(struct d_registry_iterator* _iter);
-void  d_registry_iterator_reset(struct d_registry_iterator* _iter);
+bool d_registry_iterator_has_next(
+    const struct dj_registry_iterator* _iter
+);
+void* d_registry_iterator_next(
+    struct dj_registry_iterator* _iter
+);
+void d_registry_iterator_reset(
+    struct dj_registry_iterator* _iter
+);
 
 // callback-based iteration
-void d_registry_foreach(struct d_registry*      _registry,
-                        fn_registry_row_visitor _visitor,
-                        void*                   _context);
-void d_registry_foreach_if(struct d_registry*        _registry,
-                           fn_registry_row_predicate _predicate,
-                           const void*               _pred_ctx,
-                           fn_registry_row_visitor   _visitor,
-                           void*                     _visit_ctx);
+void d_registry_foreach(
+    struct dj_registry*     _registry,
+    fn_registry_row_visitor _visitor,
+    void*                   _context
+);
+void d_registry_foreach_if(
+    struct dj_registry*       _registry,
+    fn_registry_row_predicate _predicate,
+    const void*               _pred_ctx,
+    fn_registry_row_visitor   _visitor,
+    void*                     _visit_ctx
+);
 
 
 /******************************************************************************
@@ -541,17 +601,29 @@ void d_registry_foreach_if(struct d_registry*        _registry,
  *****************************************************************************/
 
 // VII.  operations (cont.)
-bool d_registry_reserve(struct d_registry* _registry,
-                        size_t             _capacity);
-bool d_registry_reserve_lookup(struct d_registry* _registry,
-                               size_t             _capacity);
-bool d_registry_shrink_to_fit(struct d_registry* _registry);
-bool d_registry_freeze(struct d_registry* _registry);
-bool d_registry_thaw(struct d_registry* _registry);
+bool d_registry_reserve(
+    struct dj_registry* _registry,
+    size_t              _capacity
+);
+bool d_registry_reserve_lookup(
+    struct dj_registry* _registry,
+    size_t              _capacity
+);
+bool d_registry_shrink_to_fit(
+    struct dj_registry* _registry
+);
+bool d_registry_freeze(
+    struct dj_registry* _registry
+);
+bool d_registry_thaw(
+    struct dj_registry* _registry
+);
 
 // get all keys (including aliases)
-const char** d_registry_get_all_keys(const struct d_registry* _registry,
-                                     size_t*                  _out_count);
+const char** d_registry_get_all_keys(
+    const struct dj_registry* _registry,
+    size_t*                   _out_count
+);
 
 
 /******************************************************************************
@@ -559,17 +631,23 @@ const char** d_registry_get_all_keys(const struct d_registry* _registry,
  *****************************************************************************/
 
 // VIII. destruction
-void d_registry_free(struct d_registry* _registry);
+void d_registry_free(
+    struct dj_registry* _registry
+);
 
 
 // IX.   search
 /******************************************************************************
  * INTERNAL COMPARISON FUNCTION
  *****************************************************************************/
-int d_registry_lookup_compare(const void* _a,
-                              const void* _b);
-int d_registry_lookup_compare_nocase(const void* _a,
-                                     const void* _b);
+int d_registry_lookup_compare(
+    const void* _a,
+    const void* _b
+);
+int d_registry_lookup_compare_nocase(
+    const void* _a,
+    const void* _b
+);
 
 
 #endif  // DJINTERP_C_CONTAINER_REGISTRY_REGISTRY_H

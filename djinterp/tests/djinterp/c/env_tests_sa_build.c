@@ -14,7 +14,7 @@
 
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -29,10 +29,8 @@ d_tests_sa_env_build_config_defined
   - D_ENV_BUILD_TYPE is defined
   - build configuration is consistent
 */
-bool
-d_tests_sa_env_build_config_defined
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_config_defined(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -118,10 +116,8 @@ d_tests_sa_env_build_config_values
   - D_ENV_BUILD_RELEASE equals 1 when defined
   - D_ENV_BUILD_TYPE matches detected build configuration
 */
-bool
-d_tests_sa_env_build_config_values
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_config_values(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -218,10 +214,8 @@ d_tests_sa_env_build_config_consistency
   - if NDEBUG defined, should be release build
   - build configuration is logically consistent
 */
-bool
-d_tests_sa_env_build_config_consistency
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_config_consistency(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -344,10 +338,8 @@ d_tests_sa_env_build_detection_logic
   - absence of debug indicators results in release build
   - multiple debug indicators are handled correctly
 */
-bool
-d_tests_sa_env_build_detection_logic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_detection_logic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -458,10 +450,8 @@ d_tests_sa_env_build_type_string
   - string is null-terminated
   - string length is correct
 */
-bool
-d_tests_sa_env_build_type_string
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_type_string(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -575,10 +565,8 @@ d_tests_sa_env_build_conditional_compilation
   - code can conditionally compile based on D_ENV_BUILD_RELEASE
   - mutually exclusive compilation works correctly
 */
-bool
-d_tests_sa_env_build_conditional_compilation
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_conditional_compilation(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -690,10 +678,8 @@ d_tests_sa_env_build_usage_examples
   - build type string can be used in runtime code
   - macros integrate well with existing code patterns
 */
-bool
-d_tests_sa_env_build_usage_examples
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_usage_examples(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -825,13 +811,11 @@ d_tests_sa_env_build_all
   - conditional compilation
   - build configuration usage
 */
-bool
-d_tests_sa_env_build_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_build_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool defined_result;
     bool values_result;
     bool consistency_result;
@@ -846,7 +830,7 @@ d_tests_sa_env_build_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing Build Configuration\n");
     printf("========================================="

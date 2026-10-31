@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -21,9 +21,8 @@
 pred_value_positive
   Predicate: returns true if the row's value field is > 0.
 */
-static bool
-pred_value_positive
-(
+static
+bool pred_value_positive(
     const void* _row,
     const void* _context
 )
@@ -46,9 +45,8 @@ pred_value_positive
 pred_value_even
   Predicate: returns true if the row's value field is even.
 */
-static bool
-pred_value_even
-(
+static
+bool pred_value_even(
     const void* _row,
     const void* _context
 )
@@ -72,9 +70,8 @@ visitor_sum_values
   Visitor: adds each row's value to an int accumulator.
   Context is an int*.  Always returns true (full traversal).
 */
-static bool
-visitor_sum_values
-(
+static
+bool visitor_sum_values(
     void* _row,
     void* _context
 )
@@ -100,9 +97,8 @@ visitor_stop_at_three
   Visitor: counts visits via context (int*).  Returns false after 3 visits
   to test early termination.
 */
-static bool
-visitor_stop_at_three
-(
+static
+bool visitor_stop_at_three(
     void* _row,
     void* _context
 )
@@ -136,15 +132,13 @@ d_tests_sa_registry_iterator_new
   - filter is NULL
   - filter_ctx is NULL
 */
-bool
-d_tests_sa_registry_iterator_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_iterator_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_registry*         reg;
-    struct d_registry_iterator it;
+    struct dj_registry*         reg;
+    struct dj_registry_iterator it;
 
     result = true;
 
@@ -191,15 +185,13 @@ d_tests_sa_registry_iterator_filtered
   - registry, filter, and context are stored
   - current starts at 0
 */
-bool
-d_tests_sa_registry_iterator_filtered
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_iterator_filtered(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_registry*         reg;
-    struct d_registry_iterator it;
+    struct dj_registry*         reg;
+    struct dj_registry_iterator it;
     int                        ctx;
 
     result = true;
@@ -252,15 +244,13 @@ d_tests_sa_registry_iterator_has_next
   - returns false when exhausted
   - filtered iterator skips non-matching rows
 */
-bool
-d_tests_sa_registry_iterator_has_next
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_iterator_has_next(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_registry*         reg;
-    struct d_registry_iterator it;
+    struct dj_registry*         reg;
+    struct dj_registry_iterator it;
     struct test_row            row;
 
     result = true;
@@ -352,15 +342,13 @@ d_tests_sa_registry_iterator_next
   - returns NULL when exhausted
   - filtered iterator skips non-matching rows
 */
-bool
-d_tests_sa_registry_iterator_next
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_iterator_next(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_registry*         reg;
-    struct d_registry_iterator it;
+    struct dj_registry*         reg;
+    struct dj_registry_iterator it;
     struct test_row            row;
     struct test_row*           r;
     int                        visit_count;
@@ -447,15 +435,13 @@ d_tests_sa_registry_iterator_reset
   - resets current back to 0
   - can iterate again after reset
 */
-bool
-d_tests_sa_registry_iterator_reset
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_iterator_reset(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_registry*         reg;
-    struct d_registry_iterator it;
+    struct dj_registry*         reg;
+    struct dj_registry_iterator it;
     struct test_row            row;
     int                        count1;
     int                        count2;
@@ -527,14 +513,12 @@ d_tests_sa_registry_foreach
   - context pointer is passed through
   - returning false from visitor stops iteration early
 */
-bool
-d_tests_sa_registry_foreach
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_foreach(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     int                sum;
     int                visit_count;
@@ -607,14 +591,12 @@ d_tests_sa_registry_foreach_if
   - with predicate, only matching rows are visited
   - early termination works with predicate
 */
-bool
-d_tests_sa_registry_foreach_if
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_foreach_if(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     int                sum;
 
@@ -682,10 +664,8 @@ d_tests_sa_registry_foreach_if
 d_tests_sa_registry_iterators_all
   Aggregation function that runs all iterator tests.
 */
-bool
-d_tests_sa_registry_iterators_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_iterators_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

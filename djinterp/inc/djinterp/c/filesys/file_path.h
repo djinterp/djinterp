@@ -67,9 +67,11 @@ D_EXTERN_C_BEGIN
  * @param[in]  _bufsize  size of `_buf`, in bytes.
  * @return `_buf`, or `NULL` on failure with errno set.
  */
-char*       d_path_dirname(const char* _path,
-                           char*       _buf,
-                           size_t      _bufsize);
+char* d_path_dirname(
+    const char* _path,
+    char*       _buf,
+    size_t      _bufsize
+);
 /**
  * @brief Extracts the final component of a path.
  *
@@ -81,9 +83,11 @@ char*       d_path_dirname(const char* _path,
  * @param[in]  _bufsize  size of `_buf`, in bytes.
  * @return `_buf`, or `NULL` on failure with errno set.
  */
-char*       d_path_basename(const char* _path,
-                            char*       _buf,
-                            size_t      _bufsize);
+char* d_path_basename(
+    const char* _path,
+    char*       _buf,
+    size_t      _bufsize
+);
 /**
  * @brief Finds the extension of a path's final component, dot included.
  *
@@ -99,7 +103,9 @@ char*       d_path_basename(const char* _path,
  * @return a pointer INTO `_path` at the dot, living exactly as long as `_path`
  *         does, or `NULL` when there is no extension.
  */
-const char* d_path_extension(const char* _path);
+const char* d_path_extension(
+    const char* _path
+);
 /**
  * @brief Extracts the final component of a path with its extension removed.
  *
@@ -113,9 +119,11 @@ const char* d_path_extension(const char* _path);
  * @param[in]  _bufsize  size of `_buf`, in bytes.
  * @return `_buf`, or `NULL` on failure with errno set.
  */
-char*       d_path_stem(const char* _path,
-                        char*       _buf,
-                        size_t      _bufsize);
+char* d_path_stem(
+    const char* _path,
+    char*       _buf,
+    size_t      _bufsize
+);
 
 // 1.2    Composition
 //------------------------------------------------------------------------------
@@ -147,10 +155,12 @@ char*       d_path_stem(const char* _path,
  *      not overlap `_path2`.
  * @return `_buf`, or `NULL` on failure with errno set.
  */
-char*       d_path_join(char*       _buf,
-                        size_t      _bufsize,
-                        const char* _path1,
-                        const char* _path2);
+char* d_path_join(
+    char*       _buf,
+    size_t      _bufsize,
+    const char* _path1,
+    const char* _path2
+);
 
 // 1.3    Inspection
 //------------------------------------------------------------------------------
@@ -163,8 +173,12 @@ char*       d_path_join(char*       _buf,
 // and "C:", 3 for "C:\\", the whole of "\\\\server\\share". Behind the
 // long-path prefix the root is the prefix and what it opens: 7 for
 // "\\\\?\\C:\\", the whole of "\\\\?\\UNC\\server\\share".
-int         d_path_is_absolute(const char* _path);
-size_t      d_path_root_length(const char* _path);
+int d_path_is_absolute(
+    const char* _path
+);
+size_t d_path_root_length(
+    const char* _path
+);
 
 // 1.4    Canonicalization
 //------------------------------------------------------------------------------
@@ -198,9 +212,11 @@ size_t      d_path_root_length(const char* _path);
  *                       refused with ERANGE.
  * @return `_buf`, or `NULL` on failure with errno set.
  */
-char*       d_path_normalize(const char* _path,
-                             char*       _buf,
-                             size_t      _bufsize);
+char* d_path_normalize(
+    const char* _path,
+    char*       _buf,
+    size_t      _bufsize
+);
 
 
 D_EXTERN_C_END

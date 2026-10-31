@@ -1585,7 +1585,7 @@ XVII. Guarded execution macros
 
 // D_DEFINE_ACC_MEAN_STATE
 //   struct: intermediate state for computing a running mean.
-struct d_acc_mean_state
+struct dj_acc_mean_state
 {
     double sum;
     size_t count;
@@ -1593,7 +1593,7 @@ struct d_acc_mean_state
 
 // D_DEFINE_ACC_MEAN
 //   macro: generates an accumulator that computes a running mean.
-// _accumulated must point to a struct d_acc_mean_state, and
+// _accumulated must point to a struct dj_acc_mean_state, and
 // _element must point to a TYPE value.  The mean can be read
 // from state.sum / state.count after the fold completes.
 #define D_DEFINE_ACC_MEAN(name,                       \
@@ -1606,13 +1606,13 @@ struct d_acc_mean_state
         void*       _context                          \
     )                                                 \
     {                                                 \
-        struct d_acc_mean_state* _st;                 \
+        struct dj_acc_mean_state* _st;                 \
         (void)_context;                               \
         if ( (!_accumulated) || (!_element) )         \
         {                                             \
             return false;                             \
         }                                             \
-        _st = (struct d_acc_mean_state*)_accumulated; \
+        _st = (struct dj_acc_mean_state*)_accumulated; \
         _st->sum += (double)(*(const type*)_element); \
         _st->count++;                                 \
         return true;                                  \
@@ -2007,10 +2007,30 @@ struct d_acc_mean_state
 
 
 
-bool   d_functional_is_sorted(const void* _input, size_t _count, size_t _element_size, fn_function_comparator _function_comparator);
-size_t d_functional_index_of(const void* _input, size_t _count, size_t _element_size, fn_predicate _test);
-void*  d_functional_find_last(const void* _input, size_t _count, size_t _element_size, fn_predicate _test);
-size_t d_functional_last_index_of(const void* _input, size_t _count, size_t _element_size, fn_predicate _test);
+bool d_functional_is_sorted(
+    const void*            _input,
+    size_t                 _count,
+    size_t                 _element_size,
+    fn_function_comparator _function_comparator
+);
+size_t d_functional_index_of(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test
+);
+void* d_functional_find_last(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test
+);
+size_t d_functional_last_index_of(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////

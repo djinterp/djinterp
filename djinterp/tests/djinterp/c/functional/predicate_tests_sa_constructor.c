@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./predicate_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_predicate_and_new
   - context pointer verification
   - NULL predicate handling (passed through, validated in eval)
 */
-bool
-d_tests_sa_predicate_and_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_and_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                        result;
-    struct d_predicate_and*     combo;
+    struct dj_predicate_and*     combo;
     int                         context_val;
 
     result      = true;
@@ -135,14 +133,12 @@ d_tests_sa_predicate_or_new
   - successful creation with context
   - context pointer verification
 */
-bool
-d_tests_sa_predicate_or_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_or_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_predicate_or*  combo;
+    struct dj_predicate_or*  combo;
     int                     threshold;
 
     result    = true;
@@ -213,14 +209,12 @@ d_tests_sa_predicate_xor_new
   - predicate and context field initialization
   - creation with mixed predicate types
 */
-bool
-d_tests_sa_predicate_xor_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_xor_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_predicate_xor*  combo;
+    struct dj_predicate_xor*  combo;
 
     result = true;
 
@@ -299,14 +293,12 @@ d_tests_sa_predicate_not_new
   - successful creation with context
   - creation with always_false predicate
 */
-bool
-d_tests_sa_predicate_not_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_not_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_predicate_not*  combo;
+    struct dj_predicate_not*  combo;
     int                      context_val;
 
     result      = true;
@@ -389,10 +381,8 @@ d_tests_sa_predicate_not_new
 d_tests_sa_predicate_constructor_all
   Aggregation function that runs all constructor tests.
 */
-bool
-d_tests_sa_predicate_constructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_constructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

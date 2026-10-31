@@ -46,7 +46,9 @@ struct shell_view
  * @param[in] _view  the window's state; read, never written.
  * @return the template the app realizes on the ImGui platform.
  */
-uxoxo::element_template build_ui(const shell_view& _view);
+uxoxo::element_template build_ui(
+    const shell_view& _view
+);
 
 }  // namespace gui
 }  // namespace bitwisedom

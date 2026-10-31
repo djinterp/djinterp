@@ -691,7 +691,7 @@ TABLE OF CONTENTS
 // 7.1.1
 // D_ENV_IMAP_BACKEND_*
 //   constant: identifiers for D_ENV_IMAP_BACKEND, for switch-style dispatch.
-// The values are pinned: net/imap/imap.h mirrors them as enum d_imap_backend.
+// The values are pinned: net/imap/imap.h mirrors them as enum dj_imap_backend.
 
 // 7.1.1.1
 // D_ENV_IMAP_BACKEND_NONE

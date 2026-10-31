@@ -24,13 +24,13 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Grammar
-         1.  d_path_anchor_fn
-         2.  d_path_grammar
+         1.  dj_path_anchor_fn
+         2.  dj_path_grammar
          3.  D_PATH_GRAMMAR_FOLD_CASE
          4.  D_PATH_GRAMMAR_DOT_LABELS
     2.  Spans and labels
-         1.  d_path_label
-         2.  d_path_span
+         1.  dj_path_label
+         2.  dj_path_span
          3.  D_PATH_SPAN_TERMINATED
          4.  D_PATH_SPAN_NO_MEET
 2.  OPERATIONS
@@ -61,25 +61,25 @@ D_EXTERN_C_BEGIN
 // 1.1    Grammar
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_path_anchor_fn
+// dj_path_anchor_fn
 //   type: measures the anchor a path's text begins with -- "/" for a
 // filesystem, "https://host/" for a URL -- and returns its length in bytes,
 // 0 for a relative path. _length bytes of _text are the path proper.
-struct d_path_grammar;
-typedef size_t (*d_path_anchor_fn)(const char*                  _text,
+struct dj_path_grammar;
+typedef size_t (*dj_path_anchor_fn)(const char*                  _text,
                                    size_t                       _length,
-                                   const struct d_path_grammar* _grammar);
+                                   const struct dj_path_grammar* _grammar);
 
 // 1.1.2
-// d_path_grammar
+// dj_path_grammar
 //   struct: how a path is rendered as text. A caller writes one per kind of
 // path; none ships with the type.
-struct d_path_grammar
+struct dj_path_grammar
 {
     const char*      separators;   // every character that frames labels
     char             separator;    // the one a rendering writes
     const char*      terminators;  // ends of the path proper, or NULL
-    d_path_anchor_fn anchor;       // or NULL: the leading separators
+    dj_path_anchor_fn anchor;       // or NULL: the leading separators
     unsigned int     flags;        // D_PATH_GRAMMAR_*
 };
 
@@ -98,25 +98,25 @@ struct d_path_grammar
 // 1.2    Spans and labels
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_path_label
+// dj_path_label
 //   struct: a run of a path's text: a label, separators excluded, or another
 // run a span hands back -- its anchor, the rest after its path proper.
-struct d_path_label
+struct dj_path_label
 {
     const char* text;    // not NUL-terminated; NULL for none
     size_t      length;  // in bytes
 };
 
 // 1.2.2
-// d_path_span
+// dj_path_span
 //   struct: a path read from text it does not own.
-struct d_path_span
+struct dj_path_span
 {
     const char*                  text;     // the rendering
     size_t                       length;   // bytes of the path proper
     size_t                       extent;   // bytes read, the rest included
     size_t                       anchor;   // bytes of the anchor; 0: relative
-    const struct d_path_grammar* grammar;  // how the text is read
+    const struct dj_path_grammar* grammar;  // how the text is read
 };
 
 // 1.2.3
@@ -148,9 +148,11 @@ struct d_path_span
  * @return the span, its path proper ending at the first terminator; every
  *         field zero for a NULL `_text` or `_grammar`.
  */
-struct d_path_span  d_path_span_of(const char*                  _text,
-                                   size_t                       _length,
-                                   const struct d_path_grammar* _grammar);
+struct dj_path_span d_path_span_of(
+    const char*                   _text,
+    size_t                        _length,
+    const struct dj_path_grammar* _grammar
+);
 /**
  * @brief Steps to a path's next label: none is empty, and the anchor is none.
  *
@@ -159,9 +161,11 @@ struct d_path_span  d_path_span_of(const char*                  _text,
  * @param[out]    _label   receives the label; may be NULL.
  * @return true for a label, false past the last.
  */
-bool                d_path_span_next(const struct d_path_span* _span,
-                                     size_t*                   _cursor,
-                                     struct d_path_label*      _label);
+bool d_path_span_next(
+    const struct dj_path_span* _span,
+    size_t*                    _cursor,
+    struct dj_path_label*      _label
+);
 
 // 2.2    Parts
 //------------------------------------------------------------------------------
@@ -169,12 +173,24 @@ bool                d_path_span_next(const struct d_path_span* _span,
 // anchor: that anchor's text; last: its last label, empty at level 0; rest:
 // the text after its path proper (a URL's "?q#f"); parent: the path less its
 // last label, anchor kept, rest dropped -- itself at level 0
-size_t              d_path_span_level(const struct d_path_span* _span);
-bool                d_path_span_is_anchored(const struct d_path_span* _span);
-struct d_path_label d_path_span_anchor(const struct d_path_span* _span);
-struct d_path_label d_path_span_last(const struct d_path_span* _span);
-struct d_path_label d_path_span_rest(const struct d_path_span* _span);
-struct d_path_span  d_path_span_parent(const struct d_path_span* _span);
+size_t d_path_span_level(
+    const struct dj_path_span* _span
+);
+bool d_path_span_is_anchored(
+    const struct dj_path_span* _span
+);
+struct dj_path_label d_path_span_anchor(
+    const struct dj_path_span* _span
+);
+struct dj_path_label d_path_span_last(
+    const struct dj_path_span* _span
+);
+struct dj_path_label d_path_span_rest(
+    const struct dj_path_span* _span
+);
+struct dj_path_span d_path_span_parent(
+    const struct dj_path_span* _span
+);
 
 // 2.3    Order
 //------------------------------------------------------------------------------
@@ -182,9 +198,11 @@ struct d_path_span  d_path_span_parent(const struct d_path_span* _span);
 // D_PATH_GRAMMAR_FOLD_CASE, and anchors alike, any separator matching any
 // other; the first path's grammar decides. A path is in the prefix order:
 // starts_with says whether _prefix is _span or an ancestor of it.
-bool                d_path_label_equal(struct d_path_label          _a,
-                                       struct d_path_label          _b,
-                                       const struct d_path_grammar* _grammar);
+bool d_path_label_equal(
+    struct dj_path_label          _a,
+    struct dj_path_label          _b,
+    const struct dj_path_grammar* _grammar
+);
 /**
  * @brief The level of two paths' meet: the labels they share from the anchor.
  *
@@ -193,10 +211,14 @@ bool                d_path_label_equal(struct d_path_label          _a,
  * @return the labels in common, or D_PATH_SPAN_NO_MEET for paths in
  *         different anchors -- one anchored and one not, among them.
  */
-size_t              d_path_span_meet(const struct d_path_span* _a,
-                                     const struct d_path_span* _b);
-bool                d_path_span_starts_with(const struct d_path_span* _span,
-                                            const struct d_path_span* _prefix);
+size_t d_path_span_meet(
+    const struct dj_path_span* _a,
+    const struct dj_path_span* _b
+);
+bool d_path_span_starts_with(
+    const struct dj_path_span* _span,
+    const struct dj_path_span* _prefix
+);
 
 // 2.4    Rendering
 //------------------------------------------------------------------------------
@@ -217,9 +239,11 @@ bool                d_path_span_starts_with(const struct d_path_span* _span,
  * @return the bytes the whole rendering takes, its terminator aside: more
  *         than `_size - 1` says it was cut short, as snprintf's answer does.
  */
-size_t              d_path_span_render(const struct d_path_span* _span,
-                                       char*                     _buf,
-                                       size_t                    _size);
+size_t d_path_span_render(
+    const struct dj_path_span* _span,
+    char*                      _buf,
+    size_t                     _size
+);
 /**
  * @brief Writes `_more` taken from `_base`: `_more` alone where it is
  *        anchored, and otherwise `_base`'s labels then `_more`'s, rendered as
@@ -232,10 +256,12 @@ size_t              d_path_span_render(const struct d_path_span* _span,
  * @param[in]  _size  capacity of `_buf`, in bytes.
  * @return the bytes the whole rendering takes, as d_path_span_render's.
  */
-size_t              d_path_span_render_join(const struct d_path_span* _base,
-                                            const struct d_path_span* _more,
-                                            char*                     _buf,
-                                            size_t                    _size);
+size_t d_path_span_render_join(
+    const struct dj_path_span* _base,
+    const struct dj_path_span* _more,
+    char*                      _buf,
+    size_t                     _size
+);
 
 D_EXTERN_C_END
 

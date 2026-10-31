@@ -12,19 +12,17 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_access_test_values[] = {100, 200, 300, 400, 500};
 
 
-bool
-d_tests_sa_ptr_vector_at
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_at(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -105,14 +103,12 @@ d_tests_sa_ptr_vector_at
 }
 
 
-bool
-d_tests_sa_ptr_vector_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -156,14 +152,12 @@ d_tests_sa_ptr_vector_front
 }
 
 
-bool
-d_tests_sa_ptr_vector_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -207,14 +201,12 @@ d_tests_sa_ptr_vector_back
 }
 
 
-bool
-d_tests_sa_ptr_vector_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_data(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void**               data;
 
     result = true;
@@ -248,14 +240,12 @@ d_tests_sa_ptr_vector_data
 }
 
 
-bool
-d_tests_sa_ptr_vector_get
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_get(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -287,14 +277,12 @@ d_tests_sa_ptr_vector_get
 }
 
 
-bool
-d_tests_sa_ptr_vector_set
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_set(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -389,10 +377,8 @@ d_tests_sa_ptr_vector_set
 }
 
 
-bool
-d_tests_sa_ptr_vector_access_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_access_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

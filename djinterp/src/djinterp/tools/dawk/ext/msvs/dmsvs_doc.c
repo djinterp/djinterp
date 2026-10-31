@@ -24,16 +24,16 @@
 #include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"  // d_text_read, d_text_write
 
 
-// d_msvs_doc
+// dj_msvs_doc
 //   struct: the text, owned; its records; for each element its handle, and
 //   for each handle ever given its element or D_MSVS_NONE.
-struct d_msvs_doc
+struct dj_msvs_doc
 {
     char*            path;
     char*            text;
     size_t           length;
-    enum d_msvs_kind kind;
-    struct d_msvs    records;
+    enum dj_msvs_kind kind;
+    struct dj_msvs    records;
     size_t*          handles;
     size_t*          places;
     size_t           place_count;
@@ -45,7 +45,7 @@ struct d_msvs_doc
 // d_internal_attribute
 //   struct: one attribute of a tag: the bytes from the space before its name
 //   to past its closing quote, its name, its value raw, and its quote.
-struct d_internal_attribute
+struct dj_internal_attribute
 {
     size_t start;
     size_t end;
@@ -66,10 +66,10 @@ struct d_internal_attribute
 d_internal_say
   Records why a change failed.
 */
-static bool
-d_internal_say(
-    struct d_msvs_doc* _doc,
-    const char*        _why
+static
+bool d_internal_say(
+    struct dj_msvs_doc* _doc,
+    const char*         _why
 )
 {
     (void)snprintf(_doc->problem, sizeof(_doc->problem), "%s", _why);
@@ -82,8 +82,8 @@ d_internal_say(
 d_internal_copy
   A string of its own.
 */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _text,
     size_t      _length
 )
@@ -109,8 +109,8 @@ d_internal_copy(
 d_internal_is_space
   XML's white space.
 */
-static bool
-d_internal_is_space(
+static
+bool d_internal_is_space(
     char _byte
 )
 {
@@ -125,12 +125,12 @@ d_internal_is_space(
 d_internal_give_handles
   Gives each element from `_from` to `_to` a handle never given before.
 */
-static bool
-d_internal_give_handles(
-    struct d_msvs_doc* _doc,
-    size_t*            _handles,
-    size_t             _from,
-    size_t             _to
+static
+bool d_internal_give_handles(
+    struct dj_msvs_doc* _doc,
+    size_t*             _handles,
+    size_t              _from,
+    size_t              _to
 )
 {
     // each element from `_from` a handle of its own
@@ -166,8 +166,8 @@ d_internal_give_handles(
 d_internal_new
   A document owning a text, read as the kind its path names.
 */
-static struct d_msvs_doc*
-d_internal_new(
+static
+struct dj_msvs_doc* d_internal_new(
     const char* _path,
     char*       _text,
     size_t      _length,
@@ -175,7 +175,7 @@ d_internal_new(
     size_t      _capacity
 )
 {
-    struct d_msvs_doc* const doc = malloc(sizeof(*doc));
+    struct dj_msvs_doc* const doc = malloc(sizeof(*doc));
 
     // the document needs room, and its path
     if (!doc)
@@ -243,8 +243,7 @@ d_internal_new(
 d_msvs_doc_read
   The file's text, read whole.
 */
-struct d_msvs_doc*
-d_msvs_doc_read(
+struct dj_msvs_doc* d_msvs_doc_read(
     const char* _path,
     char*       _problem,
     size_t      _capacity
@@ -270,8 +269,7 @@ d_msvs_doc_read(
 d_msvs_doc_make
   A copy of the text, read as if from the path.
 */
-struct d_msvs_doc*
-d_msvs_doc_make(
+struct dj_msvs_doc* d_msvs_doc_make(
     const char* _path,
     const char* _text,
     size_t      _length,
@@ -305,9 +303,8 @@ d_msvs_doc_make(
 d_msvs_doc_free
   The records, the text, and the document.
 */
-void
-d_msvs_doc_free(
-    struct d_msvs_doc* _doc
+void d_msvs_doc_free(
+    struct dj_msvs_doc* _doc
 )
 {
     // freeing nothing is allowed
@@ -332,45 +329,41 @@ d_msvs_doc_records, d_msvs_doc_path, d_msvs_doc_kind, d_msvs_doc_changes,
 d_msvs_doc_problem
   What the document holds.
 */
-const struct d_msvs*
-d_msvs_doc_records(
-    const struct d_msvs_doc* _doc
+const struct dj_msvs* d_msvs_doc_records(
+    const struct dj_msvs_doc* _doc
 )
 {
     return (_doc) ? &_doc->records : NULL;
 }
 
 
-const char*
-d_msvs_doc_path(
-    const struct d_msvs_doc* _doc
+const char* d_msvs_doc_path(
+    const struct dj_msvs_doc* _doc
 )
 {
     return (_doc) ? _doc->path : NULL;
 }
 
 
-enum d_msvs_kind
+enum dj_msvs_kind
 d_msvs_doc_kind(
-    const struct d_msvs_doc* _doc
+    const struct dj_msvs_doc* _doc
 )
 {
     return (_doc) ? _doc->records.kind : D_MSVS_OTHER;
 }
 
 
-size_t
-d_msvs_doc_changes(
-    const struct d_msvs_doc* _doc
+size_t d_msvs_doc_changes(
+    const struct dj_msvs_doc* _doc
 )
 {
     return (_doc) ? _doc->changes : 0u;
 }
 
 
-const char*
-d_msvs_doc_problem(
-    const struct d_msvs_doc* _doc
+const char* d_msvs_doc_problem(
+    const struct dj_msvs_doc* _doc
 )
 {
     return (_doc) ? _doc->problem : "";
@@ -386,10 +379,9 @@ d_msvs_doc_problem(
 d_msvs_doc_handle
   The handle kept for the index.
 */
-size_t
-d_msvs_doc_handle(
-    const struct d_msvs_doc* _doc,
-    size_t                   _element
+size_t d_msvs_doc_handle(
+    const struct dj_msvs_doc* _doc,
+    size_t                    _element
 )
 {
     // an index past the last has no handle
@@ -407,10 +399,9 @@ d_msvs_doc_handle(
 d_msvs_doc_element
   The index kept for the handle.
 */
-size_t
-d_msvs_doc_element(
-    const struct d_msvs_doc* _doc,
-    size_t                   _handle
+size_t d_msvs_doc_element(
+    const struct dj_msvs_doc* _doc,
+    size_t                    _handle
 )
 {
     // a handle never given names nothing
@@ -429,16 +420,16 @@ d_msvs_doc_element(
 d_internal_same_name
   Whether two elements, one of each reading, have one name.
 */
-static bool
-d_internal_same_name(
-    const struct d_msvs* _old,
-    size_t               _old_element,
-    const struct d_msvs* _new,
-    size_t               _new_element
+static
+bool d_internal_same_name(
+    const struct dj_msvs* _old,
+    size_t                _old_element,
+    const struct dj_msvs* _new,
+    size_t                _new_element
 )
 {
-    const struct d_msvs_element* const old = &_old->elements[_old_element];
-    const struct d_msvs_element* const now = &_new->elements[_new_element];
+    const struct dj_msvs_element* const old = &_old->elements[_old_element];
+    const struct dj_msvs_element* const now = &_new->elements[_new_element];
 
     return ( (old->name_length == now->name_length) &&
              (memcmp(&_old->text[old->name], &_new->text[now->name],
@@ -452,13 +443,13 @@ d_internal_follow
 bytes from `_start` to `_end`: before it, an element keeps its index; in it,
 it is gone; after it, it moves by what the splice added less what it took.
 */
-static bool
-d_internal_follow(
-    struct d_msvs_doc*   _doc,
-    const struct d_msvs* _old,
-    const struct d_msvs* _new,
-    size_t               _start,
-    size_t               _end
+static
+bool d_internal_follow(
+    struct dj_msvs_doc*   _doc,
+    const struct dj_msvs* _old,
+    const struct dj_msvs* _new,
+    size_t                _start,
+    size_t                _end
 )
 {
     size_t* const handles = malloc((_new->element_count + 1u) *
@@ -556,13 +547,12 @@ d_internal_follow(
 d_msvs_doc_splice
   Builds the new text, reads it, and keeps it only if it reads whole.
 */
-bool
-d_msvs_doc_splice(
-    struct d_msvs_doc* _doc,
-    size_t             _start,
-    size_t             _end,
-    const char*        _text,
-    size_t             _length
+bool d_msvs_doc_splice(
+    struct dj_msvs_doc* _doc,
+    size_t              _start,
+    size_t              _end,
+    const char*         _text,
+    size_t              _length
 )
 {
     // parameter validation first
@@ -598,7 +588,7 @@ d_msvs_doc_splice(
     memcpy(&text[_start + _length], &_doc->text[_end], _doc->length - _end);
     text[length] = '\0';
 
-    struct d_msvs records;
+    struct dj_msvs records;
     char          why[256];
 
     // the new text must read whole, as the kind the file is
@@ -638,10 +628,10 @@ d_msvs_doc_splice(
 d_internal_element_of
   An element of the document by its index, or NULL with the failure said.
 */
-static const struct d_msvs_element*
-d_internal_element_of(
-    struct d_msvs_doc* _doc,
-    size_t             _element
+static
+const struct dj_msvs_element* d_internal_element_of(
+    struct dj_msvs_doc* _doc,
+    size_t              _element
 )
 {
     // the index must name an element of an XML file
@@ -662,12 +652,12 @@ d_internal_find_attribute
   Walks a tag's attributes, which the reading has found sound, for one by
 its name.
 */
-static bool
-d_internal_find_attribute(
-    const struct d_msvs_doc*     _doc,
-    const struct d_msvs_element* _element,
-    const char*                  _name,
-    struct d_internal_attribute* _out
+static
+bool d_internal_find_attribute(
+    const struct dj_msvs_doc*     _doc,
+    const struct dj_msvs_element* _element,
+    const char*                   _name,
+    struct dj_internal_attribute* _out
 )
 {
     const char* const text = _doc->text;
@@ -752,8 +742,8 @@ d_internal_escaped
   A text escaped, allocated: an element's text for no quote, an attribute's
 value for the quote around it.
 */
-static char*
-d_internal_escaped(
+static
+char* d_internal_escaped(
     const char* _text,
     char        _quote,
     size_t*     _out_length
@@ -777,10 +767,10 @@ d_internal_tag_end
   Where the bytes after a tag's last attribute begin: past its name and the
 last byte of its attributes that is not space.
 */
-static size_t
-d_internal_tag_end(
-    const struct d_msvs_doc*     _doc,
-    const struct d_msvs_element* _element
+static
+size_t d_internal_tag_end(
+    const struct dj_msvs_doc*     _doc,
+    const struct dj_msvs_element* _element
 )
 {
     size_t at = _element->attributes + _element->attributes_length;
@@ -802,8 +792,8 @@ d_internal_local_name
 prefix needs a namespace bound to it, which MSBuild, reading namespaces,
 requires, and no file Visual Studio writes uses one.
 */
-static bool
-d_internal_local_name(
+static
+bool d_internal_local_name(
     const char* _name
 )
 {
@@ -817,12 +807,11 @@ d_internal_local_name(
 d_msvs_doc_set_attribute
   In place of the value it has, or after the last attribute.
 */
-bool
-d_msvs_doc_set_attribute(
-    struct d_msvs_doc* _doc,
-    size_t             _element,
-    const char*        _name,
-    const char*        _value
+bool d_msvs_doc_set_attribute(
+    struct dj_msvs_doc* _doc,
+    size_t              _element,
+    const char*         _name,
+    const char*         _value
 )
 {
     // parameter validation first
@@ -833,7 +822,7 @@ d_msvs_doc_set_attribute(
         return false;
     }
 
-    const struct d_msvs_element* const element =
+    const struct dj_msvs_element* const element =
         d_internal_element_of(_doc, _element);
 
     if (!element)
@@ -848,7 +837,7 @@ d_msvs_doc_set_attribute(
                                     "name without a prefix");
     }
 
-    struct d_internal_attribute attribute;
+    struct dj_internal_attribute attribute;
     const bool                  held   = d_internal_find_attribute(_doc,
                                                                   element,
                                                                   _name,
@@ -901,11 +890,10 @@ d_msvs_doc_set_attribute(
 d_msvs_doc_remove_attribute
   With the space before it.
 */
-bool
-d_msvs_doc_remove_attribute(
-    struct d_msvs_doc* _doc,
-    size_t             _element,
-    const char*        _name
+bool d_msvs_doc_remove_attribute(
+    struct dj_msvs_doc* _doc,
+    size_t              _element,
+    const char*         _name
 )
 {
     // parameter validation first
@@ -915,9 +903,9 @@ d_msvs_doc_remove_attribute(
         return false;
     }
 
-    const struct d_msvs_element* const element =
+    const struct dj_msvs_element* const element =
         d_internal_element_of(_doc, _element);
-    struct d_internal_attribute        attribute;
+    struct dj_internal_attribute        attribute;
 
     if (!element)
     {
@@ -938,11 +926,10 @@ d_msvs_doc_remove_attribute(
 d_msvs_doc_set_text
   An empty element opens to hold it; any other has its content replaced.
 */
-bool
-d_msvs_doc_set_text(
-    struct d_msvs_doc* _doc,
-    size_t             _element,
-    const char*        _text
+bool d_msvs_doc_set_text(
+    struct dj_msvs_doc* _doc,
+    size_t              _element,
+    const char*         _text
 )
 {
     // parameter validation first
@@ -952,7 +939,7 @@ d_msvs_doc_set_text(
         return false;
     }
 
-    const struct d_msvs_element* const element =
+    const struct dj_msvs_element* const element =
         d_internal_element_of(_doc, _element);
 
     if (!element)
@@ -1020,10 +1007,10 @@ d_msvs_doc_set_text(
 d_internal_line_start
   Where the line holding a byte begins.
 */
-static size_t
-d_internal_line_start(
-    const struct d_msvs_doc* _doc,
-    size_t                   _at
+static
+size_t d_internal_line_start(
+    const struct dj_msvs_doc* _doc,
+    size_t                    _at
 )
 {
     size_t at = _at;
@@ -1044,11 +1031,11 @@ d_internal_indent
   The space an element is indented by: what stands before it on its line,
 when that is all space; `NULL` when it shares its line.
 */
-static const char*
-d_internal_indent(
-    const struct d_msvs_doc*     _doc,
-    const struct d_msvs_element* _element,
-    size_t*                      _out_length
+static
+const char* d_internal_indent(
+    const struct dj_msvs_doc*     _doc,
+    const struct dj_msvs_element* _element,
+    size_t*                       _out_length
 )
 {
     const size_t line = d_internal_line_start(_doc, _element->start);
@@ -1082,14 +1069,14 @@ d_internal_step
   The space the file indents a level by: the first element on a line of its
 own beneath the root, less the root's own; two spaces when there is none.
 */
-static void
-d_internal_step(
-    const struct d_msvs_doc* _doc,
-    const char**             _out,
-    size_t*                  _out_length
+static
+void d_internal_step(
+    const struct dj_msvs_doc* _doc,
+    const char**              _out,
+    size_t*                   _out_length
 )
 {
-    const struct d_msvs* const records = &_doc->records;
+    const struct dj_msvs* const records = &_doc->records;
     size_t                     root    = 0;
     const char* const          base    =
         d_internal_indent(_doc, &records->elements[0], &root);
@@ -1122,7 +1109,7 @@ d_internal_step(
 
 // d_internal_writer
 //   struct: a text being built, which grows.
-struct d_internal_writer
+struct dj_internal_writer
 {
     char*  text;
     size_t length;
@@ -1135,11 +1122,11 @@ struct d_internal_writer
 d_internal_write
   Adds bytes to a text being built.
 */
-static void
-d_internal_write(
-    struct d_internal_writer* _writer,
-    const char*               _text,
-    size_t                    _length
+static
+void d_internal_write(
+    struct dj_internal_writer* _writer,
+    const char*                _text,
+    size_t                     _length
 )
 {
     // a text that has failed stays failed
@@ -1178,10 +1165,10 @@ d_internal_write_element
   An element's tags: <name a="v" /> with no text, <name a="v">text</name>
 with one.
 */
-static void
-d_internal_write_element(
-    struct d_internal_writer*        _writer,
-    const struct d_msvs_new_element* _element
+static
+void d_internal_write_element(
+    struct dj_internal_writer*        _writer,
+    const struct dj_msvs_new_element* _element
 )
 {
     const size_t name = strlen(_element->name);
@@ -1247,9 +1234,9 @@ d_internal_write_element(
 d_internal_new_element_sound
   Whether an element to add has names it can have.
 */
-static bool
-d_internal_new_element_sound(
-    const struct d_msvs_new_element* _element
+static
+bool d_internal_new_element_sound(
+    const struct dj_msvs_new_element* _element
 )
 {
     bool sound = d_internal_local_name(_element->name);
@@ -1272,14 +1259,14 @@ d_internal_child_indent
   The space a new child of `_parent` is indented by: its siblings', when one
 stands on a line of its own; else its parent's and one step more.
 */
-static void
-d_internal_child_indent(
-    const struct d_msvs_doc*  _doc,
-    size_t                    _parent,
-    struct d_internal_writer* _out
+static
+void d_internal_child_indent(
+    const struct dj_msvs_doc*  _doc,
+    size_t                     _parent,
+    struct dj_internal_writer* _out
 )
 {
-    const struct d_msvs* const records = &_doc->records;
+    const struct dj_msvs* const records = &_doc->records;
 
     // the indenting of the first sibling on a line of its own
     for (size_t at = records->elements[_parent].first_child;
@@ -1332,14 +1319,14 @@ d_internal_child_indent(
 d_internal_parent_indent
   The space a parent's end tag is indented by, on a line of its own.
 */
-static void
-d_internal_parent_indent(
-    const struct d_msvs_doc*  _doc,
-    size_t                    _parent,
-    struct d_internal_writer* _out
+static
+void d_internal_parent_indent(
+    const struct dj_msvs_doc*  _doc,
+    size_t                     _parent,
+    struct dj_internal_writer* _out
 )
 {
-    const struct d_msvs* const records = &_doc->records;
+    const struct dj_msvs* const records = &_doc->records;
     size_t                     length  = 0;
     const char* const          indent  =
         d_internal_indent(_doc, &records->elements[_parent], &length);
@@ -1373,12 +1360,11 @@ d_msvs_doc_insert
 after the last child; in place of a content that is only space; or in an
 empty element, which opens to hold it.
 */
-size_t
-d_msvs_doc_insert(
-    struct d_msvs_doc*               _doc,
-    size_t                           _parent,
-    size_t                           _before,
-    const struct d_msvs_new_element* _element
+size_t d_msvs_doc_insert(
+    struct dj_msvs_doc*               _doc,
+    size_t                            _parent,
+    size_t                            _before,
+    const struct dj_msvs_new_element* _element
 )
 {
     // parameter validation first
@@ -1388,7 +1374,7 @@ d_msvs_doc_insert(
         return D_MSVS_NONE;
     }
 
-    const struct d_msvs_element* const parent =
+    const struct dj_msvs_element* const parent =
         d_internal_element_of(_doc, _parent);
 
     if (!parent)
@@ -1417,7 +1403,7 @@ d_msvs_doc_insert(
 
     const char* const        eol     = (_doc->records.crlf) ? "\r\n" : "\n";
     const size_t             eols    = strlen(eol);
-    struct d_internal_writer writer  = { NULL, 0u, 0u, false };
+    struct dj_internal_writer writer  = { NULL, 0u, 0u, false };
     size_t                   start   = 0;
     size_t                   end     = 0;
     size_t                   offset  = 0;
@@ -1433,7 +1419,7 @@ d_msvs_doc_insert(
     // before a sibling, after the last child, or into a parent with none
     if (_before != D_MSVS_NONE)
     {
-        const struct d_msvs_element* const sibling =
+        const struct dj_msvs_element* const sibling =
             &_doc->records.elements[_before];
         size_t                             length  = 0;
 
@@ -1545,10 +1531,9 @@ d_msvs_doc_remove
   The element's line, when it stands alone on it; else its bytes.  A parent
 that held only it, and space, is closed up into an empty element instead.
 */
-bool
-d_msvs_doc_remove(
-    struct d_msvs_doc* _doc,
-    size_t             _element
+bool d_msvs_doc_remove(
+    struct dj_msvs_doc* _doc,
+    size_t              _element
 )
 {
     // parameter validation first
@@ -1557,7 +1542,7 @@ d_msvs_doc_remove(
         return false;
     }
 
-    const struct d_msvs_element* const element =
+    const struct dj_msvs_element* const element =
         d_internal_element_of(_doc, _element);
 
     if (!element)
@@ -1600,7 +1585,7 @@ d_msvs_doc_remove(
         end   = after + 1u;
     }
 
-    const struct d_msvs_element* const parent =
+    const struct dj_msvs_element* const parent =
         &_doc->records.elements[element->parent];
     bool                               only   = (parent->child_count == 1u);
 
@@ -1634,9 +1619,9 @@ d_msvs_doc_save
   Read as the path's kind, compared with the file there, and written only
 where it differs.
 */
-enum d_msvs_saved
+enum dj_msvs_saved
 d_msvs_doc_save(
-    struct d_msvs_doc* _doc,
+    struct dj_msvs_doc* _doc,
     const char*        _path
 )
 {
@@ -1647,7 +1632,7 @@ d_msvs_doc_save(
     }
 
     const char* const target = (_path) ? _path : _doc->path;
-    struct d_msvs     records;
+    struct dj_msvs     records;
     char              why[256];
 
     _doc->problem[0] = '\0';

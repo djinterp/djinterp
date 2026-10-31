@@ -26,7 +26,7 @@
 #include "../../../../../inc/djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // D_INTERNAL_SQLITE
 #include "./sqlite_internal.h"  // sqlite3.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, int64_t
 
 
 #if (D_INTERNAL_SQLITE == 1)
@@ -45,8 +45,8 @@
  * @return SQLITE_OK, D_DB_NOT_FOUND when it reports nothing, or the SQLite
  *         result code of the failure.
  */
-static int
-d_internal_sqlite_pragma_int64(
+static
+int d_internal_sqlite_pragma_int64(
     sqlite3*    _db,
     int64_t*    _value,
     const char* _format,
@@ -82,7 +82,7 @@ d_internal_sqlite_pragma_int64(
  */
 static const char*
 d_internal_sqlite_journal_keyword(
-    enum d_sqlite_journal_mode _mode
+    enum dj_sqlite_journal_mode _mode
 )
 {
     switch (_mode)
@@ -110,8 +110,8 @@ d_internal_sqlite_journal_keyword(
  * one safe. ASCII is compared directly, never through <ctype.h>, whose
  * answers follow the C locale.
  */
-static bool
-d_internal_sqlite_pragma_name_ok(
+static
+bool d_internal_sqlite_pragma_name_ok(
     const char* _name
 )
 {
@@ -151,8 +151,7 @@ d_sqlite_set_foreign_keys
   SQLite ignores the PRAGMA inside a transaction, silently; the read-back is
 how that is noticed.
 */
-int
-d_sqlite_set_foreign_keys(
+int d_sqlite_set_foreign_keys(
     sqlite3* _db,
     bool     _enabled
 )
@@ -199,8 +198,7 @@ d_sqlite_set_foreign_keys(
 d_sqlite_get_foreign_keys
   0 or 1, or nothing in a library built without foreign keys.
 */
-int
-d_sqlite_get_foreign_keys(
+int d_sqlite_get_foreign_keys(
     sqlite3* _db,
     bool*    _enabled
 )
@@ -238,8 +236,7 @@ d_sqlite_get_foreign_keys(
 d_sqlite_set_busy_timeout
   sqlite3_busy_timeout itself; a timeout of 0 removes the handler.
 */
-int
-d_sqlite_set_busy_timeout(
+int d_sqlite_set_busy_timeout(
     sqlite3* _db,
     int      _milliseconds
 )
@@ -258,8 +255,7 @@ d_sqlite_set_busy_timeout(
 d_sqlite_get_busy_timeout
   PRAGMA busy_timeout reads it back (3.7.15).
 */
-int
-d_sqlite_get_busy_timeout(
+int d_sqlite_get_busy_timeout(
     sqlite3* _db,
     int*     _milliseconds
 )
@@ -300,7 +296,7 @@ int
 d_sqlite_set_journal_mode(
     sqlite3*                   _db,
     const char*                _schema,
-    enum d_sqlite_journal_mode _mode
+    enum dj_sqlite_journal_mode _mode
 )
 {
     // parameter validation
@@ -348,7 +344,7 @@ int
 d_sqlite_get_journal_mode(
     sqlite3*                    _db,
     const char*                 _schema,
-    enum d_sqlite_journal_mode* _mode
+    enum dj_sqlite_journal_mode* _mode
 )
 {
     // parameter validation
@@ -380,8 +376,8 @@ d_sqlite_get_journal_mode(
 
         for (int i = D_SQLITE_JOURNAL_DELETE; i <= D_SQLITE_JOURNAL_OFF; ++i)
         {
-            const enum d_sqlite_journal_mode mode =
-                (enum d_sqlite_journal_mode)i;
+            const enum dj_sqlite_journal_mode mode =
+                (enum dj_sqlite_journal_mode)i;
 
             if ( (now) &&
                  (sqlite3_stricmp(now,
@@ -413,7 +409,7 @@ int
 d_sqlite_set_synchronous(
     sqlite3*                  _db,
     const char*               _schema,
-    enum d_sqlite_synchronous _value
+    enum dj_sqlite_synchronous _value
 )
 {
     // parameter validation
@@ -469,7 +465,7 @@ int
 d_sqlite_get_synchronous(
     sqlite3*                   _db,
     const char*                _schema,
-    enum d_sqlite_synchronous* _value
+    enum dj_sqlite_synchronous* _value
 )
 {
     // parameter validation
@@ -499,7 +495,7 @@ d_sqlite_get_synchronous(
     // a value only on success
     if (result == SQLITE_OK)
     {
-        *_value = (enum d_sqlite_synchronous)now;
+        *_value = (enum dj_sqlite_synchronous)now;
     }
 
     return result;
@@ -511,8 +507,7 @@ d_sqlite_get_synchronous(
 d_sqlite_set_user_version
   A signed 32-bit integer in the header, written with %d.
 */
-int
-d_sqlite_set_user_version(
+int d_sqlite_set_user_version(
     sqlite3*    _db,
     const char* _schema,
     int32_t     _version
@@ -536,8 +531,7 @@ d_sqlite_get_user_version
   Read as 64 bits, as every PRAGMA value is, and narrowed: it was written as
 32.
 */
-int
-d_sqlite_get_user_version(
+int d_sqlite_get_user_version(
     sqlite3*    _db,
     const char* _schema,
     int32_t*    _version
@@ -571,8 +565,7 @@ d_sqlite_get_user_version(
 d_sqlite_set_application_id
   As d_sqlite_set_user_version, at its own offset in the header.
 */
-int
-d_sqlite_set_application_id(
+int d_sqlite_set_application_id(
     sqlite3*    _db,
     const char* _schema,
     int32_t     _id
@@ -595,8 +588,7 @@ d_sqlite_set_application_id(
 d_sqlite_get_application_id
   As d_sqlite_get_user_version.
 */
-int
-d_sqlite_get_application_id(
+int d_sqlite_get_application_id(
     sqlite3*    _db,
     const char* _schema,
     int32_t*    _id
@@ -637,8 +629,7 @@ d_sqlite_set_pragma
   The name is checked to be one and written as is; the value goes in as a
 string literal, which SQLite converts for every PRAGMA taking a value.
 */
-int
-d_sqlite_set_pragma(
+int d_sqlite_set_pragma(
     sqlite3*    _db,
     const char* _schema,
     const char* _pragma,
@@ -675,8 +666,7 @@ d_sqlite_get_pragma
   The first column of the first row, as text; an unknown PRAGMA produces no
 row at all, which reads as D_DB_NOT_FOUND.
 */
-int
-d_sqlite_get_pragma(
+int d_sqlite_get_pragma(
     sqlite3*    _db,
     const char* _schema,
     const char* _pragma,
@@ -726,8 +716,7 @@ d_sqlite_get_pragma(
 d_sqlite_set_foreign_keys
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_set_foreign_keys(
+int d_sqlite_set_foreign_keys(
     struct sqlite3* _db,
     bool            _enabled
 )
@@ -742,8 +731,7 @@ d_sqlite_set_foreign_keys(
 d_sqlite_get_foreign_keys
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_get_foreign_keys(
+int d_sqlite_get_foreign_keys(
     struct sqlite3* _db,
     bool*           _enabled
 )
@@ -758,8 +746,7 @@ d_sqlite_get_foreign_keys(
 d_sqlite_set_busy_timeout
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_set_busy_timeout(
+int d_sqlite_set_busy_timeout(
     struct sqlite3* _db,
     int             _milliseconds
 )
@@ -774,8 +761,7 @@ d_sqlite_set_busy_timeout(
 d_sqlite_get_busy_timeout
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_get_busy_timeout(
+int d_sqlite_get_busy_timeout(
     struct sqlite3* _db,
     int*            _milliseconds
 )
@@ -794,7 +780,7 @@ int
 d_sqlite_set_journal_mode(
     struct sqlite3*            _db,
     const char*                _schema,
-    enum d_sqlite_journal_mode _mode
+    enum dj_sqlite_journal_mode _mode
 )
 {
     (void)_db;
@@ -812,7 +798,7 @@ int
 d_sqlite_get_journal_mode(
     struct sqlite3*             _db,
     const char*                 _schema,
-    enum d_sqlite_journal_mode* _mode
+    enum dj_sqlite_journal_mode* _mode
 )
 {
     (void)_db;
@@ -830,7 +816,7 @@ int
 d_sqlite_set_synchronous(
     struct sqlite3*           _db,
     const char*               _schema,
-    enum d_sqlite_synchronous _value
+    enum dj_sqlite_synchronous _value
 )
 {
     (void)_db;
@@ -848,7 +834,7 @@ int
 d_sqlite_get_synchronous(
     struct sqlite3*            _db,
     const char*                _schema,
-    enum d_sqlite_synchronous* _value
+    enum dj_sqlite_synchronous* _value
 )
 {
     (void)_db;
@@ -862,8 +848,7 @@ d_sqlite_get_synchronous(
 d_sqlite_set_user_version
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_set_user_version(
+int d_sqlite_set_user_version(
     struct sqlite3* _db,
     const char*     _schema,
     int32_t         _version
@@ -880,8 +865,7 @@ d_sqlite_set_user_version(
 d_sqlite_get_user_version
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_get_user_version(
+int d_sqlite_get_user_version(
     struct sqlite3* _db,
     const char*     _schema,
     int32_t*        _version
@@ -898,8 +882,7 @@ d_sqlite_get_user_version(
 d_sqlite_set_application_id
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_set_application_id(
+int d_sqlite_set_application_id(
     struct sqlite3* _db,
     const char*     _schema,
     int32_t         _id
@@ -916,8 +899,7 @@ d_sqlite_set_application_id(
 d_sqlite_get_application_id
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_get_application_id(
+int d_sqlite_get_application_id(
     struct sqlite3* _db,
     const char*     _schema,
     int32_t*        _id
@@ -934,8 +916,7 @@ d_sqlite_get_application_id(
 d_sqlite_set_pragma
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_set_pragma(
+int d_sqlite_set_pragma(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _pragma,
@@ -954,8 +935,7 @@ d_sqlite_set_pragma(
 d_sqlite_get_pragma
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_get_pragma(
+int d_sqlite_get_pragma(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _pragma,

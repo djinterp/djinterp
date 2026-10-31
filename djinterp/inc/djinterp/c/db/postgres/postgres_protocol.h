@@ -84,7 +84,7 @@ TABLE OF CONTENTS
 4.  PIPELINES
     ---------
     1.  The mode
-         1.  d_postgres_pipeline
+         1.  dj_postgres_pipeline
     2.  Entering and leaving
     3.  Synchronizing and flushing
 5.  LARGE OBJECTS
@@ -101,7 +101,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.h"     // framework root
 #include "./postgres_common.h"  // pg_conn, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -137,8 +137,10 @@ D_EXTERN_C_BEGIN
  * @post On success the connection runs nothing but d_postgres_copy_in_data
  *       and d_postgres_copy_in_end until the second ends the COPY.
  */
-int    d_postgres_copy_in_start(struct pg_conn* _db,
-                                const char*     _sql) D_NOTHROW;
+int d_postgres_copy_in_start(
+    struct pg_conn* _db,
+    const char*     _sql
+) D_NOTHROW;
 /**
  * @brief Sends rows to the COPY in progress.
  *
@@ -151,9 +153,11 @@ int    d_postgres_copy_in_start(struct pg_conn* _db,
  *         data with a nonzero size. A row the server cannot read is reported
  *         by d_postgres_copy_in_end, which the server's refusal reaches.
  */
-int    d_postgres_copy_in_data(struct pg_conn* _db,
-                               const void*     _data,
-                               size_t          _size) D_NOTHROW;
+int d_postgres_copy_in_data(
+    struct pg_conn* _db,
+    const void*     _data,
+    size_t          _size
+) D_NOTHROW;
 /**
  * @brief Ends the COPY in progress, or abandons it.
  *
@@ -168,9 +172,11 @@ int    d_postgres_copy_in_data(struct pg_conn* _db,
  *         D_DB_INVALID_ARGUMENT for a `NULL` connection.
  * @post No COPY is in progress, and the connection is ready.
  */
-int    d_postgres_copy_in_end(struct pg_conn* _db,
-                              const char*     _error,
-                              int64_t*        _changes) D_NOTHROW;
+int d_postgres_copy_in_end(
+    struct pg_conn* _db,
+    const char*     _error,
+    int64_t*        _changes
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -188,13 +194,19 @@ int    d_postgres_copy_in_end(struct pg_conn* _db,
 // gets it, the sender's own included. Each returns 0, the SQLSTATE of the
 // failure (22023 for a payload too long), or D_DB_INVALID_ARGUMENT for a
 // `NULL` connection or an empty or `NULL` channel.
-int    d_postgres_listen(struct pg_conn* _db,
-                         const char*     _channel) D_NOTHROW;
-int    d_postgres_unlisten(struct pg_conn* _db,
-                           const char*     _channel) D_NOTHROW;
-int    d_postgres_notify(struct pg_conn* _db,
-                         const char*     _channel,
-                         const char*     _payload) D_NOTHROW;
+int d_postgres_listen(
+    struct pg_conn* _db,
+    const char*     _channel
+) D_NOTHROW;
+int d_postgres_unlisten(
+    struct pg_conn* _db,
+    const char*     _channel
+) D_NOTHROW;
+int d_postgres_notify(
+    struct pg_conn* _db,
+    const char*     _channel,
+    const char*     _payload
+) D_NOTHROW;
 
 // 2.2    Arrivals
 //------------------------------------------------------------------------------
@@ -215,10 +227,12 @@ int    d_postgres_notify(struct pg_conn* _db,
  *         lost with it; D_DB_INVALID_ARGUMENT for a `NULL` connection or
  *         channel.
  */
-int    d_postgres_next_notification(struct pg_conn* _db,
-                                    char**          _channel,
-                                    char**          _payload,
-                                    int*            _pid) D_NOTHROW;
+int d_postgres_next_notification(
+    struct pg_conn* _db,
+    char**          _channel,
+    char**          _payload,
+    int*            _pid
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -243,8 +257,10 @@ int    d_postgres_next_notification(struct pg_conn* _db,
  *       d_postgres_next_result answers D_DB_NOT_FOUND; a call that runs SQL
  *       first waits for the results still to come, and discards them.
  */
-int    d_postgres_send_query(struct pg_conn* _db,
-                             const char*     _sql) D_NOTHROW;
+int d_postgres_send_query(
+    struct pg_conn* _db,
+    const char*     _sql
+) D_NOTHROW;
 
 // 3.2    Results
 //------------------------------------------------------------------------------
@@ -275,9 +291,11 @@ int    d_postgres_send_query(struct pg_conn* _db,
  *         D_DB_INVALID_ARGUMENT for a `NULL` connection or rows.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_postgres_next_result(struct pg_conn*   _db,
-                              struct d_db_rows* _rows,
-                              int64_t*          _changes) D_NOTHROW;
+int d_postgres_next_result(
+    struct pg_conn*    _db,
+    struct dj_db_rows* _rows,
+    int64_t*           _changes
+) D_NOTHROW;
 // waiting -- _consume_input reads what the server has sent, without waiting:
 // 0, 08006 when the connection is lost, or D_DB_INVALID_ARGUMENT for NULL.
 // _is_busy says whether the next result has yet to arrive, d_postgres_
@@ -288,8 +306,12 @@ int    d_postgres_next_result(struct pg_conn*   _db,
 // _is_busy is false even while the next synchronization point's own result
 // -- the next result, when no statement was skipped -- is still on its way,
 // which d_postgres_next_result then waits for
-bool   d_postgres_is_busy(struct pg_conn* _db) D_NOTHROW;
-int    d_postgres_consume_input(struct pg_conn* _db) D_NOTHROW;
+bool d_postgres_is_busy(
+    struct pg_conn* _db
+) D_NOTHROW;
+int d_postgres_consume_input(
+    struct pg_conn* _db
+) D_NOTHROW;
 
 // 3.3    Rows a few at a time
 //------------------------------------------------------------------------------
@@ -314,8 +336,10 @@ int    d_postgres_consume_input(struct pg_conn* _db) D_NOTHROW;
  *         than one row with a libpq before 17; D_DB_INVALID_ARGUMENT for a
  *         `NULL` connection, or fewer than one row.
  */
-int    d_postgres_set_chunked_rows(struct pg_conn* _db,
-                                   int             _rows) D_NOTHROW;
+int d_postgres_set_chunked_rows(
+    struct pg_conn* _db,
+    int             _rows
+) D_NOTHROW;
 
 // 3.4    Without blocking
 //------------------------------------------------------------------------------
@@ -350,23 +374,26 @@ int    d_postgres_set_chunked_rows(struct pg_conn* _db,
  *       subsection reads them -- once everything is written, for the
  *       latter.
  */
-int    d_postgres_send_query_start(struct pg_conn*      _db,
-                                   const char*          _sql,
-                                   struct d_db_pending* _pending) D_NOTHROW;
+int d_postgres_send_query_start(
+    struct pg_conn*       _db,
+    const char*           _sql,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 /**
  * @brief Writes more of the SQL d_postgres_send_query_start began to send.
  *
  * @param[in]     _db       the connection.
- * @param[in]     _events   what came, as d_db_wait.
+ * @param[in]     _events   what came, as dj_db_wait.
  * @param[in,out] _pending  what the start or the last continuation wrote;
  *                          receives what to wait for next.
  * @return as d_postgres_send_query_start; D_DB_INVALID_ARGUMENT for a
  *         `NULL` argument.
  */
-int    d_postgres_send_query_continue(struct pg_conn*      _db,
-                                      unsigned             _events,
-                                      struct d_db_pending* _pending)
-                                      D_NOTHROW;
+int d_postgres_send_query_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 /**
  * @brief Gives the next result of the SQL sent once it has arrived,
  *        without waiting for it.
@@ -381,16 +408,18 @@ int    d_postgres_send_query_continue(struct pg_conn*      _db,
  *         `NULL` connection, pending call or rows.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_postgres_next_result_start(struct pg_conn*      _db,
-                                    struct d_db_pending* _pending,
-                                    struct d_db_rows*    _rows,
-                                    int64_t*             _changes) D_NOTHROW;
+int d_postgres_next_result_start(
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
+) D_NOTHROW;
 /**
  * @brief Reads more of what d_postgres_next_result_start waited for, and
  *        gives the result once it has arrived.
  *
  * @param[in]     _db       the connection.
- * @param[in]     _events   what came, as d_db_wait.
+ * @param[in]     _events   what came, as dj_db_wait.
  * @param[in,out] _pending  what the start or the last continuation wrote;
  *                          receives what to wait for next.
  * @param[out]    _rows     as for d_postgres_next_result.
@@ -398,12 +427,13 @@ int    d_postgres_next_result_start(struct pg_conn*      _db,
  * @return as d_postgres_next_result_start.
  * @post As for d_postgres_next_result_start.
  */
-int    d_postgres_next_result_continue(struct pg_conn*      _db,
-                                       unsigned             _events,
-                                       struct d_db_pending* _pending,
-                                       struct d_db_rows*    _rows,
-                                       int64_t*             _changes)
-                                       D_NOTHROW;
+int d_postgres_next_result_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -417,10 +447,10 @@ int    d_postgres_next_result_continue(struct pg_conn*      _db,
 // 4.1    The mode
 //------------------------------------------------------------------------------
 // 4.1.1
-// d_postgres_pipeline
+// dj_postgres_pipeline
 //   enum: whether a connection is in pipeline mode, as libpq's
 // PQpipelineStatus says.
-enum d_postgres_pipeline
+enum dj_postgres_pipeline
 {
     D_POSTGRES_PIPELINE_OFF = 0,  // statements run one at a time, each
                                   // call waiting for its result
@@ -433,8 +463,9 @@ enum d_postgres_pipeline
 
 // the connection's mode; D_POSTGRES_PIPELINE_OFF for NULL, or a libpq without
 // pipelines
-enum d_postgres_pipeline
-       d_postgres_pipeline_status(const struct pg_conn* _db) D_NOTHROW;
+enum dj_postgres_pipeline d_postgres_pipeline_status(
+    const struct pg_conn* _db
+) D_NOTHROW;
 
 // 4.2    Entering and leaving
 //------------------------------------------------------------------------------
@@ -446,8 +477,12 @@ enum d_postgres_pipeline
 // where it is out already. Each returns 0; 08000 when the connection is not
 // as that needs; D_DB_UNSUPPORTED with a libpq before 14;
 // D_DB_INVALID_ARGUMENT for NULL
-int    d_postgres_enter_pipeline(struct pg_conn* _db) D_NOTHROW;
-int    d_postgres_exit_pipeline(struct pg_conn* _db) D_NOTHROW;
+int d_postgres_enter_pipeline(
+    struct pg_conn* _db
+) D_NOTHROW;
+int d_postgres_exit_pipeline(
+    struct pg_conn* _db
+) D_NOTHROW;
 
 // 4.3    Synchronizing and flushing
 //------------------------------------------------------------------------------
@@ -465,7 +500,9 @@ int    d_postgres_exit_pipeline(struct pg_conn* _db) D_NOTHROW;
  *         D_DB_UNSUPPORTED with a libpq before 14; D_DB_INVALID_ARGUMENT for
  *         a `NULL` connection.
  */
-int    d_postgres_pipeline_sync(struct pg_conn* _db) D_NOTHROW;
+int d_postgres_pipeline_sync(
+    struct pg_conn* _db
+) D_NOTHROW;
 /**
  * @brief Asks the server to send the results it has, without a
  *        synchronization point, and sends every statement queued.
@@ -481,7 +518,9 @@ int    d_postgres_pipeline_sync(struct pg_conn* _db) D_NOTHROW;
  *         D_DB_UNSUPPORTED with a libpq before 14; D_DB_INVALID_ARGUMENT for
  *         a `NULL` connection.
  */
-int    d_postgres_pipeline_flush(struct pg_conn* _db) D_NOTHROW;
+int d_postgres_pipeline_flush(
+    struct pg_conn* _db
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -516,9 +555,11 @@ int    d_postgres_pipeline_flush(struct pg_conn* _db) D_NOTHROW;
  *         server's SQLSTATE, packed; D_DB_INVALID_ARGUMENT for a `NULL`
  *         argument.
  */
-int    d_postgres_lo_import(struct pg_conn* _db,
-                            const char*     _path,
-                            unsigned int*   _oid) D_NOTHROW;
+int d_postgres_lo_import(
+    struct pg_conn* _db,
+    const char*     _path,
+    unsigned int*   _oid
+) D_NOTHROW;
 /**
  * @brief Copies a large object into a file of the client's, made or
  *        emptied first.
@@ -533,9 +574,11 @@ int    d_postgres_lo_import(struct pg_conn* _db,
  *         cannot be made or written; D_DB_NOT_FOUND for a directory that is
  *         not there; otherwise as d_postgres_lo_import.
  */
-int    d_postgres_lo_export(struct pg_conn* _db,
-                            unsigned int    _oid,
-                            const char*     _path) D_NOTHROW;
+int d_postgres_lo_export(
+    struct pg_conn* _db,
+    unsigned int    _oid,
+    const char*     _path
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

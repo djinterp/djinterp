@@ -21,9 +21,9 @@ TABLE OF CONTENTS
 =================
 I.    TYPE DEFINITIONS
       ----------------
-      1.    d_file_node_type    (file, directory, symlink)
-      2.    d_file_tree_node    (node in the file tree)
-      3.    d_file_tree         (the tree itself)
+      1.    dj_file_node_type    (file, directory, symlink)
+      2.    dj_file_tree_node    (node in the file tree)
+      3.    dj_file_tree         (the tree itself)
       4.    fn_file_tree_visitor (visitor callback)
 
 II.   NODE CREATION AND DESTRUCTION
@@ -94,7 +94,7 @@ VIII. UTILITY
 #include "../../../dstring.h"
 #include "../../../filesys/dfile.h"
 // re_std
-#include "../../../../../re_std/cstdint/dstdint.h"  // int64_t, uint32_t,
+#include "../../../../../re_std/c/cstdint/dstdint.h"  // int64_t, uint32_t,
                                                     // uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -105,46 +105,46 @@ VIII. UTILITY
 #if RE_STD_HAS_INT64
 
 
-// d_file_node_type
+// dj_file_node_type
 //   enum: classifies a file tree node as a regular file, directory, or
 // symbolic link.
-enum d_file_node_type
+enum dj_file_node_type
 {
     D_FILE_NODE_TYPE_FILE    = 0x00,
     D_FILE_NODE_TYPE_DIR,
     D_FILE_NODE_TYPE_SYMLINK
 };
 
-// d_file_tree_node
+// dj_file_tree_node
 //   struct: a single node in a file tree. Every node stores its name, type,
 // and optional metadata. Directory nodes additionally maintain an array of
 // child pointers.
-struct d_file_tree_node
+struct dj_file_tree_node
 {
-    struct d_string*           name;       // filename component
-    enum d_file_node_type      type;       // file, dir, or symlink
-    struct d_file_tree_node*   parent;     // NULL for root
+    struct dj_string*           name;       // filename component
+    enum dj_file_node_type      type;       // file, dir, or symlink
+    struct dj_file_tree_node*   parent;     // NULL for root
     uint64_t                   file_size;  // size in bytes (files)
     uint32_t                   mode;       // permissions
     int64_t                    mtime;      // modification time (Unix seconds)
     void*                      user_data;  // arbitrary payload
 
     // directory-only fields
-    struct d_file_tree_node**  children;   // child node array
+    struct dj_file_tree_node**  children;   // child node array
     size_t                     count;      // number of children
     size_t                     capacity;   // allocated slots
 
     // symlink-only field
-    struct d_string*           link_target;
+    struct dj_string*           link_target;
 };
 
-// d_file_tree
+// dj_file_tree
 //   struct: a file-system tree rooted at a single directory node. Tracks total
 // node count and the separator character used when parsing or formatting
 // string paths.
-struct d_file_tree
+struct dj_file_tree
 {
-    struct d_file_tree_node* root;
+    struct dj_file_tree_node* root;
     size_t                   size;       // total node count
     char                     separator;  // path separator ('/' or '\\')
 };
@@ -152,7 +152,7 @@ struct d_file_tree
 // fn_file_tree_visitor
 //   typedef: callback invoked during traversal. Receives the current node, its
 // depth in the tree, and an opaque context pointer.
-typedef void (*fn_file_tree_visitor)(struct d_file_tree_node* _node,
+typedef void (*fn_file_tree_visitor)(struct dj_file_tree_node* _node,
                                      size_t                   _depth,
                                      void*                    _context);
 
@@ -162,86 +162,150 @@ typedef void (*fn_file_tree_visitor)(struct d_file_tree_node* _node,
 *******************************************************************************/
 
 // II.   node creation and destruction
-struct d_file_tree_node* d_file_tree_node_new_file(const char* _name);
-struct d_file_tree_node* d_file_tree_node_new_dir(const char* _name);
-struct d_file_tree_node* d_file_tree_node_new_dir_with_capacity(
+struct dj_file_tree_node* d_file_tree_node_new_file(
+    const char* _name
+);
+struct dj_file_tree_node* d_file_tree_node_new_dir(
+    const char* _name
+);
+struct dj_file_tree_node* d_file_tree_node_new_dir_with_capacity(
     const char* _name,
-    size_t      _capacity);
-struct d_file_tree_node* d_file_tree_node_new_symlink(const char* _name,
-                                                      const char* _target);
-void                     d_file_tree_node_free(struct d_file_tree_node* _node);
+    size_t      _capacity
+);
+struct dj_file_tree_node* d_file_tree_node_new_symlink(
+    const char* _name,
+    const char* _target
+);
+void d_file_tree_node_free(
+    struct dj_file_tree_node* _node
+);
 
 // III.  tree creation and destruction
-struct d_file_tree* d_file_tree_new(const char* _root_name);
-struct d_file_tree* d_file_tree_new_with_separator(const char* _root_name,
-                                                   char        _separator);
-struct d_file_tree* d_file_tree_new_from_path(const char* _filesystem_path,
-                                              bool        _recursive);
-struct d_file_tree* d_file_tree_new_copy(const struct d_file_tree* _other);
-void                d_file_tree_free(struct d_file_tree* _tree);
+struct dj_file_tree* d_file_tree_new(
+    const char* _root_name
+);
+struct dj_file_tree* d_file_tree_new_with_separator(
+    const char* _root_name,
+    char        _separator
+);
+struct dj_file_tree* d_file_tree_new_from_path(
+    const char* _filesystem_path,
+    bool        _recursive
+);
+struct dj_file_tree* d_file_tree_new_copy(
+    const struct dj_file_tree* _other
+);
+void d_file_tree_free(
+    struct dj_file_tree* _tree
+);
 
 // IV.   navigation
-struct d_file_tree_node* d_file_tree_get_root(const struct d_file_tree* _tree);
-struct d_file_tree_node* d_file_tree_get_node(const struct d_file_tree* _tree,
-                                              const char*               _path);
-struct d_file_tree_node* d_file_tree_get_parent(
-    const struct d_file_tree_node* _node);
-struct d_file_tree_node* d_file_tree_get_child(
-    const struct d_file_tree_node* _node,
-    size_t                         _index);
-struct d_file_tree_node* d_file_tree_get_child_by_name(
-    const struct d_file_tree_node* _node,
-    const char*                    _name);
+struct dj_file_tree_node* d_file_tree_get_root(
+    const struct dj_file_tree* _tree
+);
+struct dj_file_tree_node* d_file_tree_get_node(
+    const struct dj_file_tree* _tree,
+    const char*                _path
+);
+struct dj_file_tree_node* d_file_tree_get_parent(
+    const struct dj_file_tree_node* _node
+);
+struct dj_file_tree_node* d_file_tree_get_child(
+    const struct dj_file_tree_node* _node,
+    size_t                          _index
+);
+struct dj_file_tree_node* d_file_tree_get_child_by_name(
+    const struct dj_file_tree_node* _node,
+    const char*                     _name
+);
 
 // V.    modification
-int  d_file_tree_add_file(struct d_file_tree* _tree,
-                          const char*         _path);
-int  d_file_tree_add_dir(struct d_file_tree* _tree,
-                         const char*         _path);
-int  d_file_tree_add_symlink(struct d_file_tree* _tree,
-                             const char*         _path,
-                             const char*         _target);
-int  d_file_tree_mkdir_p(struct d_file_tree* _tree,
-                         const char*         _path);
-int  d_file_tree_remove(struct d_file_tree* _tree,
-                        const char*         _path);
-int  d_file_tree_move(struct d_file_tree* _tree,
-                      const char*         _old_path,
-                      const char*         _new_path);
-void d_file_tree_clear(struct d_file_tree* _tree);
+int d_file_tree_add_file(
+    struct dj_file_tree* _tree,
+    const char*          _path
+);
+int d_file_tree_add_dir(
+    struct dj_file_tree* _tree,
+    const char*          _path
+);
+int d_file_tree_add_symlink(
+    struct dj_file_tree* _tree,
+    const char*          _path,
+    const char*          _target
+);
+int d_file_tree_mkdir_p(
+    struct dj_file_tree* _tree,
+    const char*          _path
+);
+int d_file_tree_remove(
+    struct dj_file_tree* _tree,
+    const char*          _path
+);
+int d_file_tree_move(
+    struct dj_file_tree* _tree,
+    const char*          _old_path,
+    const char*          _new_path
+);
+void d_file_tree_clear(
+    struct dj_file_tree* _tree
+);
 
 // VI.   query
-bool   d_file_tree_is_empty(const struct d_file_tree* _tree);
-size_t d_file_tree_size(const struct d_file_tree* _tree);
-bool   d_file_tree_contains(const struct d_file_tree* _tree,
-                            const char*               _path);
-bool   d_file_tree_is_file(const struct d_file_tree* _tree,
-                           const char*               _path);
-bool   d_file_tree_is_dir(const struct d_file_tree* _tree,
-                          const char*               _path);
-size_t d_file_tree_child_count(const struct d_file_tree* _tree,
-                               const char*               _path);
-size_t d_file_tree_depth(const struct d_file_tree_node* _node);
+bool d_file_tree_is_empty(
+    const struct dj_file_tree* _tree
+);
+size_t d_file_tree_size(
+    const struct dj_file_tree* _tree
+);
+bool d_file_tree_contains(
+    const struct dj_file_tree* _tree,
+    const char*                _path
+);
+bool d_file_tree_is_file(
+    const struct dj_file_tree* _tree,
+    const char*                _path
+);
+bool d_file_tree_is_dir(
+    const struct dj_file_tree* _tree,
+    const char*                _path
+);
+size_t d_file_tree_child_count(
+    const struct dj_file_tree* _tree,
+    const char*                _path
+);
+size_t d_file_tree_depth(
+    const struct dj_file_tree_node* _node
+);
 
 // VII.  traversal
-void d_file_tree_traverse_preorder(const struct d_file_tree* _tree,
-                                   fn_file_tree_visitor      _visitor,
-                                   void*                     _context);
-void d_file_tree_traverse_postorder(const struct d_file_tree* _tree,
-                                    fn_file_tree_visitor      _visitor,
-                                    void*                     _context);
-void d_file_tree_traverse_breadth_first(const struct d_file_tree* _tree,
-                                        fn_file_tree_visitor      _visitor,
-                                        void*                     _context);
+void d_file_tree_traverse_preorder(
+    const struct dj_file_tree* _tree,
+    fn_file_tree_visitor       _visitor,
+    void*                      _context
+);
+void d_file_tree_traverse_postorder(
+    const struct dj_file_tree* _tree,
+    fn_file_tree_visitor       _visitor,
+    void*                      _context
+);
+void d_file_tree_traverse_breadth_first(
+    const struct dj_file_tree* _tree,
+    fn_file_tree_visitor       _visitor,
+    void*                      _context
+);
 
 // VIII. utility
-struct d_string*       d_file_tree_node_path(
-    const struct d_file_tree*      _tree,
-    const struct d_file_tree_node* _node);
-const struct d_string* d_file_tree_node_name(
-    const struct d_file_tree_node* _node);
-void                   d_file_tree_print(const struct d_file_tree* _tree,
-                                         FILE*                     _stream);
+struct dj_string* d_file_tree_node_path(
+    const struct dj_file_tree*      _tree,
+    const struct dj_file_tree_node* _node
+);
+const struct dj_string* d_file_tree_node_name(
+    const struct dj_file_tree_node* _node
+);
+void d_file_tree_print(
+    const struct dj_file_tree* _tree,
+    FILE*                      _stream
+);
 
 
 #endif  // RE_STD_HAS_INT64

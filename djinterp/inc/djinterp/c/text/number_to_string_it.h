@@ -15,7 +15,7 @@
 // std
 #include <stddef.h>
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -54,10 +54,10 @@ enum
  * terminating '\0'. Pass dst = NULL and/or dst_cap = 0 to query length.
  */
 size_t nts_it_cardinal_i64(
-    char*       dst,
-    size_t      dst_cap,
-    int64_t     value,
-    unsigned    flags
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
 );
 
 /*
@@ -65,10 +65,10 @@ size_t nts_it_cardinal_i64(
  * Masculine singular forms are used: primo, ventunesimo, duemillesimo, etc.
  */
 size_t nts_it_ordinal_i64(
-    char*       dst,
-    size_t      dst_cap,
-    int64_t     value,
-    unsigned    flags
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
 );
 
 /*
@@ -77,10 +77,10 @@ size_t nts_it_ordinal_i64(
  * NTS_IT_FLAG_GROUP_DOTS controls grouping in the numeric portion.
  */
 size_t nts_it_ordinal_abbrev_i64(
-    char*       dst,
-    size_t      dst_cap,
-    int64_t     value,
-    unsigned    flags
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
 );
 
 #ifdef __cplusplus

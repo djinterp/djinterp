@@ -25,9 +25,9 @@
 #include <stdlib.h>  // malloc, realloc, free, qsort
 #include <string.h>  // memcpy, memset, strcmp, strlen, strchr, strrchr
 // djinterp
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"               // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"               // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs.h"      // d_msvs_guid
-#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h"  // d_msvs_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h"  // dj_msvs_doc
 #include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"             // d_text_read
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"              // d_awk_value_text
 
@@ -49,21 +49,21 @@
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_sln
+// dj_host_sln
 //   struct: the solutions open, each NULL once closed, and the last
 //   failure.
-struct d_host_sln
+struct dj_host_sln
 {
-    struct d_msvs_doc** solutions;
+    struct dj_msvs_doc** solutions;
     size_t              count;
     size_t              capacity;
     char                error[512];
 };
 
 // 1.1.2
-// d_internal_span
+// dj_internal_span
 //   struct: a span of a .sln's lines to remove.
-struct d_internal_span
+struct dj_internal_span
 {
     size_t start;
     size_t end;
@@ -80,18 +80,18 @@ d_internal_text, d_internal_number
   An argument's text, and an argument as a number from 1: a value below 1
 is 0, which names nothing.
 */
-static const char*
-d_internal_text(
-    struct d_awk_value* _value
+static
+const char* d_internal_text(
+    struct dj_awk_value* _value
 )
 {
     return d_awk_value_text(_value, NULL, NULL);
 }
 
 
-static size_t
-d_internal_number(
-    struct d_awk_value* _value
+static
+size_t d_internal_number(
+    struct dj_awk_value* _value
 )
 {
     const double number = d_awk_value_number(_value);
@@ -110,11 +110,11 @@ d_internal_number(
 d_internal_copy_arg
   An argument's text into a buffer of the caller's, cut to fit.
 */
-static void
-d_internal_copy_arg(
-    struct d_awk_value* _value,
-    char*               _out,
-    size_t              _capacity
+static
+void d_internal_copy_arg(
+    struct dj_awk_value* _value,
+    char*                _out,
+    size_t               _capacity
 )
 {
     (void)snprintf(_out, _capacity, "%s", d_internal_text(_value));
@@ -128,11 +128,11 @@ d_internal_fail
   Gives -1 for a failure the program can recover from, sln_error() saying
 why.
 */
-static bool
-d_internal_fail(
-    struct d_host_sln*  _host,
-    struct d_awk_value* _out,
-    const char*         _why
+static
+bool d_internal_fail(
+    struct dj_host_sln*  _host,
+    struct dj_awk_value* _out,
+    const char*          _why
 )
 {
     (void)snprintf(_host->error, sizeof(_host->error), "%s",
@@ -147,10 +147,10 @@ d_internal_fail(
 d_internal_solution
   The solution a number names, or NULL.
 */
-static struct d_msvs_doc*
-d_internal_solution(
-    const struct d_host_sln* _host,
-    struct d_awk_value*      _value
+static
+struct dj_msvs_doc* d_internal_solution(
+    const struct dj_host_sln* _host,
+    struct dj_awk_value*      _value
 )
 {
     const size_t number = d_internal_number(_value);
@@ -172,8 +172,8 @@ d_internal_folder_of
 it: `\` or `/` between its names, with or without one at either end; ""
 for the top.
 */
-static void
-d_internal_folder_of(
+static
+void d_internal_folder_of(
     const char* _folder,
     char*       _out,
     size_t      _capacity
@@ -228,10 +228,10 @@ d_internal_folder_of(
 d_internal_project_at
   The index of the project with a path, or D_MSVS_NONE.
 */
-static size_t
-d_internal_project_at(
-    const struct d_msvs* _records,
-    const char*          _path
+static
+size_t d_internal_project_at(
+    const struct dj_msvs* _records,
+    const char*           _path
 )
 {
     // the first project whose path is the one asked for
@@ -253,10 +253,10 @@ d_internal_folder_at
   The index of the folder with a path, as the records write one, or
 D_MSVS_NONE.
 */
-static size_t
-d_internal_folder_at(
-    const struct d_msvs* _records,
-    const char*          _folder
+static
+size_t d_internal_folder_at(
+    const struct dj_msvs* _records,
+    const char*           _folder
 )
 {
     // the first folder whose path is the one asked for
@@ -277,8 +277,8 @@ d_internal_folder_at(
 d_internal_upper
   A GUID as a .sln writes one: upper case, in braces.
 */
-static void
-d_internal_upper(
+static
+void d_internal_upper(
     const char* _guid,
     char*       _out,
     size_t      _capacity
@@ -305,9 +305,9 @@ d_internal_upper(
 d_internal_eol
   The line ending the solution uses.
 */
-static const char*
-d_internal_eol(
-    const struct d_msvs_doc* _doc
+static
+const char* d_internal_eol(
+    const struct dj_msvs_doc* _doc
 )
 {
     return (d_msvs_doc_records(_doc)->crlf) ? "\r\n" : "\n";
@@ -318,10 +318,10 @@ d_internal_eol(
 d_internal_line_start, d_internal_line_end
   Where the line holding a byte begins, and where the next begins.
 */
-static size_t
-d_internal_line_start(
-    const struct d_msvs* _records,
-    size_t               _at
+static
+size_t d_internal_line_start(
+    const struct dj_msvs* _records,
+    size_t                _at
 )
 {
     size_t at = _at;
@@ -337,10 +337,10 @@ d_internal_line_start(
 }
 
 
-static size_t
-d_internal_line_end(
-    const struct d_msvs* _records,
-    size_t               _at
+static
+size_t d_internal_line_end(
+    const struct dj_msvs* _records,
+    size_t                _at
 )
 {
     size_t at = _at;
@@ -360,13 +360,13 @@ d_internal_line_end(
 d_internal_trimmed
   A line's bytes from `_start` to `_end`, without the space around them.
 */
-static void
-d_internal_trimmed(
-    const struct d_msvs* _records,
-    size_t               _start,
-    size_t               _end,
-    size_t*              _out_start,
-    size_t*              _out_end
+static
+void d_internal_trimmed(
+    const struct dj_msvs* _records,
+    size_t                _start,
+    size_t                _end,
+    size_t*               _out_start,
+    size_t*               _out_end
 )
 {
     size_t from = _start;
@@ -400,12 +400,12 @@ d_internal_left_is
   Whether a line's text before its `=`, trimmed, is a text, compared without
 case: a GUID, or a configuration.
 */
-static bool
-d_internal_left_is(
-    const struct d_msvs* _records,
-    size_t               _line,
-    size_t               _end,
-    const char*          _left
+static
+bool d_internal_left_is(
+    const struct dj_msvs* _records,
+    size_t                _line,
+    size_t                _end,
+    const char*           _left
 )
 {
     size_t from = 0;
@@ -446,20 +446,20 @@ d_internal_left_is(
 d_internal_type_of
   The project type a .sln names a project by, from its file's ending.
 */
-static const char*
-d_internal_type_of(
+static
+const char* d_internal_type_of(
     const char* _path
 )
 {
     // d_internal_kind
     //   struct: an ending, and the type it marks.
-    struct d_internal_kind
+    struct dj_internal_kind
     {
         const char* ending;
         const char* type;
     };
 
-    static const struct d_internal_kind kinds[] =
+    static const struct dj_internal_kind kinds[] =
     {
         { ".csproj", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC" },
         { ".vbproj", "F184B08F-C81C-45F6-A57F-5ABD9991F28F" },
@@ -490,8 +490,8 @@ d_internal_type_of(
 d_internal_is_cpp
   Whether a project is one that names x86 Win32: a C++ project's.
 */
-static bool
-d_internal_is_cpp(
+static
+bool d_internal_is_cpp(
     const char* _path
 )
 {
@@ -512,12 +512,12 @@ d_internal_project_id
 file's ProjectGuid, read from beside the solution; else one made from its
 path.  Lower case, without braces.
 */
-static void
-d_internal_project_id(
-    const struct d_msvs_doc* _doc,
-    const char*              _path,
-    const char*              _asked,
-    char*                    _out
+static
+void d_internal_project_id(
+    const struct dj_msvs_doc* _doc,
+    const char*               _path,
+    const char*               _asked,
+    char*                     _out
 )
 {
     // an id asked for, in braces or not
@@ -565,7 +565,7 @@ d_internal_project_id(
     // the project's own GUID, when its file can be read
     if (text)
     {
-        struct d_msvs records;
+        struct dj_msvs records;
 
         // the project's own GUID, from the first ProjectGuid it has
         if (d_msvs_read(&records, text, length, D_MSVS_PROJECT, NULL, 0u))
@@ -573,7 +573,7 @@ d_internal_project_id(
             for (size_t at = 0; (!found) && (at < records.element_count);
                  ++at)
             {
-                const struct d_msvs_element* const element =
+                const struct dj_msvs_element* const element =
                     &records.elements[at];
                 char guid[64];
 
@@ -621,8 +621,8 @@ d_internal_project_id(
 d_internal_stem
   A path's file name without its extension.
 */
-static void
-d_internal_stem(
+static
+void d_internal_stem(
     const char* _path,
     char*       _out,
     size_t      _capacity
@@ -656,11 +656,11 @@ d_internal_stem(
 d_internal_splice_text
   Splices a terminated text in at an offset.
 */
-static bool
-d_internal_splice_text(
-    struct d_msvs_doc* _doc,
-    size_t             _at,
-    const char*        _text
+static
+bool d_internal_splice_text(
+    struct dj_msvs_doc* _doc,
+    size_t              _at,
+    const char*         _text
 )
 {
     return d_msvs_doc_splice(_doc, _at, _at, _text, strlen(_text));
@@ -679,14 +679,14 @@ element: before the first such child whose attribute sorts after
 `_value`; else after the last such child; else before the first child
 named `_after_none` -- what such children stand before -- or last.
 */
-static size_t
-d_internal_slnx_place(
-    const struct d_msvs* _records,
-    size_t               _parent,
-    const char*          _name,
-    const char*          _attribute,
-    const char*          _value,
-    const char*          _after_none
+static
+size_t d_internal_slnx_place(
+    const struct dj_msvs* _records,
+    size_t                _parent,
+    const char*           _name,
+    const char*           _attribute,
+    const char*           _value,
+    const char*           _after_none
 )
 {
     size_t last  = D_MSVS_NONE;
@@ -696,7 +696,7 @@ d_internal_slnx_place(
     for (size_t at = _records->elements[_parent].first_child;
          at != D_MSVS_NONE; at = _records->elements[at].next_sibling)
     {
-        const struct d_msvs_element* const element = &_records->elements[at];
+        const struct dj_msvs_element* const element = &_records->elements[at];
 
         // what children of the name stand before, when there are none
         if ( (ahead == D_MSVS_NONE) &&
@@ -741,13 +741,13 @@ d_internal_slnx_named
   The child of an element named `_name` whose `_attribute` is `_value`, or
 D_MSVS_NONE.
 */
-static size_t
-d_internal_slnx_named(
-    const struct d_msvs* _records,
-    size_t               _parent,
-    const char*          _name,
-    const char*          _attribute,
-    const char*          _value
+static
+size_t d_internal_slnx_named(
+    const struct dj_msvs* _records,
+    size_t                _parent,
+    const char*           _name,
+    const char*           _attribute,
+    const char*           _value
 )
 {
     // each child of the name, until one has the value
@@ -783,10 +783,10 @@ d_internal_slnx_add_folder
 folders, ahead of the projects at the top.  The folder's element, or
 D_MSVS_NONE.
 */
-static size_t
-d_internal_slnx_add_folder(
-    struct d_msvs_doc* _doc,
-    const char*        _folder
+static
+size_t d_internal_slnx_add_folder(
+    struct dj_msvs_doc* _doc,
+    const char*         _folder
 )
 {
     const size_t length = strlen(_folder);
@@ -805,7 +805,7 @@ d_internal_slnx_add_folder(
         (void)snprintf(level, sizeof(level), "%.*s", (int)(end + 1u),
                        _folder);
 
-        const struct d_msvs* const records = d_msvs_doc_records(_doc);
+        const struct dj_msvs* const records = d_msvs_doc_records(_doc);
 
         folder = d_internal_slnx_named(records, 0u, "Folder", "Name", level);
 
@@ -816,7 +816,7 @@ d_internal_slnx_add_folder(
         }
 
         const char* const               name[] = { "Name", level };
-        const struct d_msvs_new_element made   = { "Folder", NULL, name, 1u };
+        const struct dj_msvs_new_element made   = { "Folder", NULL, name, 1u };
 
         folder = d_msvs_doc_insert(_doc, 0u,
                                    d_internal_slnx_place(records, 0u,
@@ -839,12 +839,12 @@ d_internal_slnx_add_folder(
 d_internal_slnx_add_project
   A <Project> in order beneath its folder, or the solution.
 */
-static bool
-d_internal_slnx_add_project(
-    struct d_msvs_doc* _doc,
-    const char*        _path,
-    const char*        _folder,
-    const char*        _id
+static
+bool d_internal_slnx_add_project(
+    struct dj_msvs_doc* _doc,
+    const char*         _path,
+    const char*         _folder,
+    const char*         _id
 )
 {
     const size_t parent = (_folder[0] != '\0')
@@ -857,11 +857,11 @@ d_internal_slnx_add_project(
     }
 
     const char* const pairs[] = { "Path", _path, "Id", _id };
-    const struct d_msvs_new_element made =
+    const struct dj_msvs_new_element made =
     {
         "Project", NULL, pairs, ( (_id) && (_id[0] != '\0') ) ? 2u : 1u
     };
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
 
     return (d_msvs_doc_insert(_doc, parent,
                               d_internal_slnx_place(records, parent,
@@ -875,11 +875,11 @@ d_internal_slnx_add_project(
 d_internal_slnx_remove_dependencies
   Removes every <BuildDependency> on a project, beneath any project.
 */
-static bool
-d_internal_slnx_remove_dependencies(
-    struct d_msvs_doc* _doc,
-    const char*        _path,
-    size_t             _within
+static
+bool d_internal_slnx_remove_dependencies(
+    struct dj_msvs_doc* _doc,
+    const char*         _path,
+    size_t              _within
 )
 {
     bool ok = true;
@@ -887,7 +887,7 @@ d_internal_slnx_remove_dependencies(
     // until no dependency on the project is left
     for (;;)
     {
-        const struct d_msvs* const records = d_msvs_doc_records(_doc);
+        const struct dj_msvs* const records = d_msvs_doc_records(_doc);
         size_t                     found   = D_MSVS_NONE;
 
         // the first, within the one project or any
@@ -931,19 +931,19 @@ none, with the build types Visual Studio builds when none is named made
 explicit, so that one named does not take their place.  D_MSVS_NONE when
 it cannot be made.
 */
-static size_t
-d_internal_slnx_configurations(
-    struct d_msvs_doc* _doc
+static
+size_t d_internal_slnx_configurations(
+    struct dj_msvs_doc* _doc
 )
 {
-    const struct d_msvs* records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* records = d_msvs_doc_records(_doc);
     size_t               held    = d_msvs_child(records, 0u,
                                                 "Configurations");
 
     // made, first
     if (held == D_MSVS_NONE)
     {
-        const struct d_msvs_new_element made = { "Configurations", NULL,
+        const struct dj_msvs_new_element made = { "Configurations", NULL,
                                                  NULL, 0u };
 
         return d_msvs_doc_insert(_doc, 0u, records->elements[0].first_child,
@@ -956,7 +956,7 @@ d_internal_slnx_configurations(
     {
         static const char* const debug[]   = { "Name", "Debug" };
         static const char* const release[] = { "Name", "Release" };
-        const struct d_msvs_new_element types[] =
+        const struct dj_msvs_new_element types[] =
         {
             { "BuildType", NULL, debug,   1u },
             { "BuildType", NULL, release, 1u }
@@ -984,11 +984,11 @@ d_internal_slnx_configurations(
 d_internal_slnx_add_config
   A <BuildType> and a <Platform>, each unless named already.
 */
-static bool
-d_internal_slnx_add_config(
-    struct d_msvs_doc* _doc,
-    const char*        _type,
-    const char*        _platform
+static
+bool d_internal_slnx_add_config(
+    struct dj_msvs_doc* _doc,
+    const char*         _type,
+    const char*         _platform
 )
 {
     const size_t held = d_internal_slnx_configurations(_doc);
@@ -1005,7 +1005,7 @@ d_internal_slnx_add_config(
     // the build type, then the platform
     for (size_t which = 0; which < 2u; ++which)
     {
-        const struct d_msvs* const records = d_msvs_doc_records(_doc);
+        const struct dj_msvs* const records = d_msvs_doc_records(_doc);
 
         // one named already needs nothing
         if (d_internal_slnx_named(records, held, names[which], "Name",
@@ -1027,7 +1027,7 @@ d_internal_slnx_add_config(
         }
 
         const char* const               pair[] = { "Name", values[which] };
-        const struct d_msvs_new_element made   = { names[which], NULL, pair,
+        const struct dj_msvs_new_element made   = { names[which], NULL, pair,
                                                    1u };
         const size_t before =
             (last != D_MSVS_NONE) ? records->elements[last].next_sibling
@@ -1053,10 +1053,10 @@ d_internal_slnx_add_config(
 d_internal_sln_section
   The index of a global section by its name, or D_MSVS_NONE.
 */
-static size_t
-d_internal_sln_section(
-    const struct d_msvs* _records,
-    const char*          _name
+static
+size_t d_internal_sln_section(
+    const struct dj_msvs* _records,
+    const char*           _name
 )
 {
     // the section of that name
@@ -1076,12 +1076,12 @@ d_internal_sln_section(
 d_internal_sln_global
   Global ... EndGlobal, made at the end of a .sln that has none.
 */
-static bool
-d_internal_sln_global(
-    struct d_msvs_doc* _doc
+static
+bool d_internal_sln_global(
+    struct dj_msvs_doc* _doc
 )
 {
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
     const char* const          eol     = d_internal_eol(_doc);
     char                       text[64];
 
@@ -1107,10 +1107,10 @@ d_internal_sln_ensure
 SolutionConfigurationPlatforms first; ProjectConfigurationPlatforms after
 it; NestedProjects before ExtensibilityGlobals, or last.
 */
-static size_t
-d_internal_sln_ensure(
-    struct d_msvs_doc* _doc,
-    const char*        _name
+static
+size_t d_internal_sln_ensure(
+    struct dj_msvs_doc* _doc,
+    const char*         _name
 )
 {
     // the section there is the one
@@ -1119,7 +1119,7 @@ d_internal_sln_ensure(
         return D_MSVS_NONE;
     }
 
-    const struct d_msvs* records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* records = d_msvs_doc_records(_doc);
     const size_t         held    = d_internal_sln_section(records, _name);
 
     // a section there already is the one
@@ -1175,11 +1175,11 @@ d_internal_sln_ensure(
 d_internal_sln_add_line
   A line, indented twice, at the end of a global section.
 */
-static bool
-d_internal_sln_add_line(
-    struct d_msvs_doc* _doc,
-    const char*        _section,
-    const char*        _line
+static
+bool d_internal_sln_add_line(
+    struct dj_msvs_doc* _doc,
+    const char*         _section,
+    const char*         _line
 )
 {
     const size_t section = d_internal_sln_ensure(_doc, _section);
@@ -1190,7 +1190,7 @@ d_internal_sln_add_line(
         return false;
     }
 
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
     char                       text[D_INTERNAL_PATH + 16u];
 
     (void)snprintf(text, sizeof(text), "\t\t%s%s", _line,
@@ -1206,13 +1206,13 @@ d_internal_sln_project_lines
   The lines of a project of the folder type, or of any other, before
 Global.
 */
-static bool
-d_internal_sln_project_lines(
-    struct d_msvs_doc* _doc,
-    const char*        _type,
-    const char*        _name,
-    const char*        _path,
-    const char*        _id
+static
+bool d_internal_sln_project_lines(
+    struct dj_msvs_doc* _doc,
+    const char*         _type,
+    const char*         _name,
+    const char*         _path,
+    const char*         _id
 )
 {
     // the projects stand before Global
@@ -1221,7 +1221,7 @@ d_internal_sln_project_lines(
         return false;
     }
 
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
     const char* const          eol     = d_internal_eol(_doc);
     char                       type[48];
     char                       id[48];
@@ -1241,11 +1241,11 @@ d_internal_sln_project_lines(
 d_internal_sln_nest
   Nests one thing in a folder: a line of NestedProjects.
 */
-static bool
-d_internal_sln_nest(
-    struct d_msvs_doc* _doc,
-    const char*        _child,
-    const char*        _parent
+static
+bool d_internal_sln_nest(
+    struct dj_msvs_doc* _doc,
+    const char*         _child,
+    const char*         _parent
 )
 {
     char child[48];
@@ -1265,11 +1265,11 @@ d_internal_sln_add_folder
   A folder project for the folder and each holding it, each nested in the
 one before; the folder's id, lower case, to `_out`, or "" for the top.
 */
-static bool
-d_internal_sln_add_folder(
-    struct d_msvs_doc* _doc,
-    const char*        _folder,
-    char*              _out
+static
+bool d_internal_sln_add_folder(
+    struct dj_msvs_doc* _doc,
+    const char*         _folder,
+    char*               _out
 )
 {
     const size_t length = strlen(_folder);
@@ -1290,7 +1290,7 @@ d_internal_sln_add_folder(
         (void)snprintf(level, sizeof(level), "%.*s", (int)(end + 1u),
                        _folder);
 
-        const struct d_msvs* const records = d_msvs_doc_records(_doc);
+        const struct dj_msvs* const records = d_msvs_doc_records(_doc);
         const size_t               held    = d_internal_folder_at(records,
                                                                   level);
 
@@ -1343,8 +1343,8 @@ d_internal_sln_platform
   The platform a project builds for a solution's: Win32 for a C++ project's
 x86, and the solution's own otherwise.
 */
-static const char*
-d_internal_sln_platform(
+static
+const char* d_internal_sln_platform(
     const char* _path,
     const char* _platform
 )
@@ -1360,12 +1360,12 @@ d_internal_sln_build_lines
   A project's two lines for a configuration, in
 ProjectConfigurationPlatforms: what it builds, and that it builds.
 */
-static bool
-d_internal_sln_build_lines(
-    struct d_msvs_doc* _doc,
-    const char*        _id,
-    const char*        _path,
-    const char*        _config
+static
+bool d_internal_sln_build_lines(
+    struct dj_msvs_doc* _doc,
+    const char*         _id,
+    const char*         _path,
+    const char*         _config
 )
 {
     const char* const bar = strchr(_config, '|');
@@ -1406,12 +1406,12 @@ d_internal_sln_build_lines(
 d_internal_lines_add_project
   A project's lines, its configurations', and its nesting.
 */
-static bool
-d_internal_lines_add_project(
-    struct d_msvs_doc* _doc,
-    const char*        _path,
-    const char*        _folder,
-    const char*        _id
+static
+bool d_internal_lines_add_project(
+    struct dj_msvs_doc* _doc,
+    const char*         _path,
+    const char*         _folder,
+    const char*         _id
 )
 {
     char folder[37] = "";
@@ -1459,14 +1459,14 @@ d_internal_lines_add_project(
 d_internal_compare_spans
   Spans by where they start, the last first.
 */
-static int
-d_internal_compare_spans(
+static
+int d_internal_compare_spans(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_internal_span* const left  = _left;
-    const struct d_internal_span* const right = _right;
+    const struct dj_internal_span* const left  = _left;
+    const struct dj_internal_span* const right = _right;
 
     return (left->start > right->start) ? -1
          : (left->start < right->start) ?  1
@@ -1479,11 +1479,11 @@ d_internal_sln_remove_spans
   Removes spans of lines, the last first, so each offset is still good when
 its turn comes.
 */
-static bool
-d_internal_sln_remove_spans(
-    struct d_msvs_doc*      _doc,
-    struct d_internal_span* _spans,
-    size_t                  _count
+static
+bool d_internal_sln_remove_spans(
+    struct dj_msvs_doc*      _doc,
+    struct dj_internal_span* _spans,
+    size_t                   _count
 )
 {
     // with nothing to remove there is nothing to order
@@ -1515,16 +1515,16 @@ of a project's dependencies -- whose left side is `_left`, or, for a
 prefix, that begins with `_left` and a `.`: a project's configurations.
 Gives how many spans there are then.
 */
-static size_t
-d_internal_sln_pick(
-    const struct d_msvs*    _records,
-    size_t                  _start,
-    size_t                  _close,
-    const char*             _left,
-    bool                    _prefix,
-    struct d_internal_span* _spans,
-    size_t                  _count,
-    size_t                  _capacity
+static
+size_t d_internal_sln_pick(
+    const struct dj_msvs*    _records,
+    size_t                   _start,
+    size_t                   _close,
+    const char*              _left,
+    bool                     _prefix,
+    struct dj_internal_span* _spans,
+    size_t                   _count,
+    size_t                   _capacity
 )
 {
     size_t count = _count;
@@ -1565,16 +1565,16 @@ d_internal_lines_tidy
   Removes what removals left empty, as Visual Studio would not write it: a
 project's ProjectDependencies with no line, and NestedProjects with none.
 */
-static bool
-d_internal_lines_tidy(
-    struct d_msvs_doc* _doc
+static
+bool d_internal_lines_tidy(
+    struct dj_msvs_doc* _doc
 )
 {
     // until nothing empty is left
     for (;;)
     {
-        const struct d_msvs* const records = d_msvs_doc_records(_doc);
-        struct d_internal_span     span    = { 0u, 0u };
+        const struct dj_msvs* const records = d_msvs_doc_records(_doc);
+        struct dj_internal_span     span    = { 0u, 0u };
         const size_t               nests   = d_internal_sln_section(
                                                  records, "NestedProjects");
 
@@ -1582,7 +1582,7 @@ d_internal_lines_tidy(
         for (size_t at = 0; (span.end == 0u) &&
                             (at < records->project_count); ++at)
         {
-            const struct d_msvs_project* const project =
+            const struct dj_msvs_project* const project =
                 &records->projects[at];
 
             // a section of dependencies with none left in it
@@ -1624,15 +1624,15 @@ d_internal_lines_remove_project
   A project's lines, its configurations' lines, its nesting, and every
 dependency on it.
 */
-static bool
-d_internal_lines_remove_project(
-    struct d_msvs_doc* _doc,
-    size_t             _project
+static
+bool d_internal_lines_remove_project(
+    struct dj_msvs_doc* _doc,
+    size_t              _project
 )
 {
-    const struct d_msvs* const records  = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records  = d_msvs_doc_records(_doc);
     const size_t               capacity = (records->length / 2u) + 2u;
-    struct d_internal_span*    spans    = malloc(capacity * sizeof(*spans));
+    struct dj_internal_span*    spans    = malloc(capacity * sizeof(*spans));
     char                       id[48];
 
     // the spans need room of their own
@@ -1671,7 +1671,7 @@ d_internal_lines_remove_project(
     // and every project's dependency on it
     for (size_t at = 0; at < records->project_count; ++at)
     {
-        const struct d_msvs_project* const project = &records->projects[at];
+        const struct dj_msvs_project* const project = &records->projects[at];
 
         // every other project's dependency on it
         if ( (at != _project) &&
@@ -1699,15 +1699,15 @@ d_internal_sln_add_dependency
   A line in the project's ProjectDependencies, which is made before its
 EndProject when it has none.
 */
-static bool
-d_internal_sln_add_dependency(
-    struct d_msvs_doc* _doc,
-    size_t             _project,
-    size_t             _on
+static
+bool d_internal_sln_add_dependency(
+    struct dj_msvs_doc* _doc,
+    size_t              _project,
+    size_t              _on
 )
 {
-    const struct d_msvs* const         records = d_msvs_doc_records(_doc);
-    const struct d_msvs_project* const project =
+    const struct dj_msvs* const         records = d_msvs_doc_records(_doc);
+    const struct dj_msvs_project* const project =
         &records->projects[_project];
     const char* const                  eol     = d_internal_eol(_doc);
     char                               on[48];
@@ -1718,7 +1718,7 @@ d_internal_sln_add_dependency(
     // a section there takes the line, unless it has it
     if (project->depends != D_MSVS_NONE)
     {
-        struct d_internal_span span;
+        struct dj_internal_span span;
 
         if (d_internal_sln_pick(records,
                                 d_internal_line_end(records,
@@ -1751,13 +1751,13 @@ d_internal_sln_config_of
   The configuration a ProjectConfigurationPlatforms line names, between
 "}." and the `.` after its `|`, into `_out`; false for a line naming none.
 */
-static bool
-d_internal_sln_config_of(
-    const struct d_msvs* _records,
-    size_t               _line,
-    size_t               _end,
-    char*                _out,
-    size_t               _capacity
+static
+bool d_internal_sln_config_of(
+    const struct dj_msvs* _records,
+    size_t                _line,
+    size_t                _end,
+    char*                 _out,
+    size_t                _capacity
 )
 {
     size_t from = 0;
@@ -1800,16 +1800,16 @@ d_internal_sln_remove_config
   The lines of each configuration a pattern matches: the solution's, and
 every project's.  How many of the solution's went to `_removed`.
 */
-static bool
-d_internal_sln_remove_config(
-    struct d_msvs_doc* _doc,
-    const char*        _pattern,
-    size_t*            _removed
+static
+bool d_internal_sln_remove_config(
+    struct dj_msvs_doc* _doc,
+    const char*         _pattern,
+    size_t*             _removed
 )
 {
-    const struct d_msvs* const records  = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records  = d_msvs_doc_records(_doc);
     const size_t               capacity = (records->length / 2u) + 2u;
-    struct d_internal_span*    spans    = malloc(capacity * sizeof(*spans));
+    struct dj_internal_span*    spans    = malloc(capacity * sizeof(*spans));
     size_t                     count    = 0;
     const size_t               solution = d_internal_sln_section(
                                    records, "SolutionConfigurationPlatforms");
@@ -1876,11 +1876,11 @@ d_internal_sln_remove_config(
 d_internal_take
   Makes a document a solution open, and gives its number.
 */
-static bool
-d_internal_take(
-    struct d_host_sln*  _host,
-    struct d_msvs_doc*  _doc,
-    struct d_awk_value* _out
+static
+bool d_internal_take(
+    struct dj_host_sln*  _host,
+    struct dj_msvs_doc*  _doc,
+    struct dj_awk_value* _out
 )
 {
     // only a solution is the extension's
@@ -1898,7 +1898,7 @@ d_internal_take(
     {
         const size_t wanted = (_host->capacity == 0u)
                             ? 8u : (_host->capacity * 2u);
-        struct d_msvs_doc** const grown =
+        struct dj_msvs_doc** const grown =
             realloc(_host->solutions, wanted * sizeof(*grown));
 
         if (!grown)
@@ -1923,14 +1923,14 @@ d_internal_take(
 sln_open(path)
   The solution's number, or -1.
 */
-static bool
-d_internal_sln_open(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_open(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     char why[384];
@@ -1939,7 +1939,7 @@ d_internal_sln_open(
     (void)_problem;
     (void)_capacity;
 
-    struct d_msvs_doc* const doc = d_msvs_doc_read(d_internal_text(_args[0]),
+    struct dj_msvs_doc* const doc = d_msvs_doc_read(d_internal_text(_args[0]),
                                                    why, sizeof(why));
 
     // a file that cannot be read, or does not read whole, is not opened
@@ -1956,14 +1956,14 @@ d_internal_sln_open(
 sln_new(path)
   A .slnx with no projects, or a .sln as Visual Studio 2022 begins one.
 */
-static bool
-d_internal_sln_new(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_new(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     char       path[D_INTERNAL_PATH];
@@ -2026,7 +2026,7 @@ d_internal_sln_new(
                        "EndGlobal\r\n", upper);
     }
 
-    struct d_msvs_doc* const doc = d_msvs_doc_make(path, text, strlen(text),
+    struct dj_msvs_doc* const doc = d_msvs_doc_make(path, text, strlen(text),
                                                    why, sizeof(why));
 
     if (!doc)
@@ -2042,17 +2042,17 @@ d_internal_sln_new(
 sln_save(s[, path])
   1 written, 2 the file held it already, or -1.
 */
-static bool
-d_internal_sln_save(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_save(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
+    struct dj_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
 
     (void)_problem;
     (void)_capacity;
@@ -2063,7 +2063,7 @@ d_internal_sln_save(
         return d_internal_fail(_user, _out, "no such solution");
     }
 
-    const enum d_msvs_saved saved =
+    const enum dj_msvs_saved saved =
         d_msvs_doc_save(doc, (_count > 1u) ? d_internal_text(_args[1])
                                            : NULL);
 
@@ -2082,18 +2082,18 @@ d_internal_sln_save(
 sln_close(s)
   1, or 0 for a number naming nothing.
 */
-static bool
-d_internal_sln_close(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_close(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_sln* const host = _user;
-    struct d_msvs_doc* const doc  = d_internal_solution(host, _args[0]);
+    struct dj_host_sln* const host = _user;
+    struct dj_msvs_doc* const doc  = d_internal_solution(host, _args[0]);
 
     (void)_count;
     (void)_problem;
@@ -2116,17 +2116,17 @@ d_internal_sln_close(
 sln_error(), sln_path(s), sln_form(s), sln_changes(s)
   The last failure, and what a solution is.
 */
-static bool
-d_internal_sln_error(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_error(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_host_sln* const host = _user;
+    const struct dj_host_sln* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -2137,17 +2137,17 @@ d_internal_sln_error(
 }
 
 
-static bool
-d_internal_sln_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const doc  = d_internal_solution(_user,
+    const struct dj_msvs_doc* const doc  = d_internal_solution(_user,
                                                               _args[0]);
     const char* const              path = (doc) ? d_msvs_doc_path(doc) : "";
 
@@ -2159,17 +2159,17 @@ d_internal_sln_path(
 }
 
 
-static bool
-d_internal_sln_form(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_form(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const doc  = d_internal_solution(_user,
+    const struct dj_msvs_doc* const doc  = d_internal_solution(_user,
                                                               _args[0]);
     const char* const              form =
         (!doc)                         ? ""
@@ -2184,17 +2184,17 @@ d_internal_sln_form(
 }
 
 
-static bool
-d_internal_sln_changes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_changes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const doc = d_internal_solution(_user,
+    const struct dj_msvs_doc* const doc = d_internal_solution(_user,
                                                              _args[0]);
 
     (void)_count;
@@ -2217,16 +2217,16 @@ d_internal_sln_changes(
 sln_projects(s), sln_folders(s), sln_configs(s)
   How many of each the solution has.
 */
-static bool
-d_internal_sln_count(
-    struct d_host_sln*  _host,
-    struct d_awk_value* _value,
-    struct d_awk_value* _out,
-    int                 _which
+static
+bool d_internal_sln_count(
+    struct dj_host_sln*  _host,
+    struct dj_awk_value* _value,
+    struct dj_awk_value* _out,
+    int                  _which
 )
 {
-    const struct d_msvs_doc* const doc = d_internal_solution(_host, _value);
-    const struct d_msvs* const     records =
+    const struct dj_msvs_doc* const doc = d_internal_solution(_host, _value);
+    const struct dj_msvs* const     records =
         (doc) ? d_msvs_doc_records(doc) : NULL;
     const size_t count = (!records)     ? 0u
                        : (_which == 0)  ? records->project_count
@@ -2239,14 +2239,14 @@ d_internal_sln_count(
 }
 
 
-static bool
-d_internal_sln_projects(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_projects(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2257,14 +2257,14 @@ d_internal_sln_projects(
 }
 
 
-static bool
-d_internal_sln_folders(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_folders(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2275,14 +2275,14 @@ d_internal_sln_folders(
 }
 
 
-static bool
-d_internal_sln_configs(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_configs(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2297,10 +2297,10 @@ d_internal_sln_configs(
 d_internal_project_of
   Project `_value`, from 1, of a solution, or NULL.
 */
-static const struct d_msvs_project*
-d_internal_project_of(
-    const struct d_msvs_doc* _doc,
-    struct d_awk_value*      _value
+static
+const struct dj_msvs_project* d_internal_project_of(
+    const struct dj_msvs_doc* _doc,
+    struct dj_awk_value*      _value
 )
 {
     const size_t number = d_internal_number(_value);
@@ -2321,19 +2321,19 @@ d_internal_project_of(
 sln_project(s, i, field)
   name, path, type, id, folder or line; "" for anything else.
 */
-static bool
-d_internal_sln_project(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_project(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const     doc     = d_internal_solution(
+    const struct dj_msvs_doc* const     doc     = d_internal_solution(
                                                      _user, _args[0]);
-    const struct d_msvs_project* const project = d_internal_project_of(
+    const struct dj_msvs_project* const project = d_internal_project_of(
                                                      doc, _args[1]);
     char                               field[16];
 
@@ -2372,17 +2372,17 @@ d_internal_sln_project(
 sln_find(s, path)
   The project's number, or 0.
 */
-static bool
-d_internal_sln_find(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_find(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const doc = d_internal_solution(_user,
+    const struct dj_msvs_doc* const doc = d_internal_solution(_user,
                                                              _args[0]);
     const size_t at = (doc) ? d_internal_project_at(d_msvs_doc_records(doc),
                                                     d_internal_text(_args[1]))
@@ -2403,17 +2403,17 @@ d_internal_sln_find(
 sln_dependencies(s, i), sln_dependency(s, i, k)
   How many projects project i builds after, and the path of the k-th.
 */
-static bool
-d_internal_sln_dependencies(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_dependencies(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_project* const project =
+    const struct dj_msvs_project* const project =
         d_internal_project_of(d_internal_solution(_user, _args[0]),
                               _args[1]);
 
@@ -2429,19 +2429,19 @@ d_internal_sln_dependencies(
 }
 
 
-static bool
-d_internal_sln_dependency(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_dependency(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const     doc     = d_internal_solution(
+    const struct dj_msvs_doc* const     doc     = d_internal_solution(
                                                      _user, _args[0]);
-    const struct d_msvs_project* const project = d_internal_project_of(
+    const struct dj_msvs_project* const project = d_internal_project_of(
                                                      doc, _args[1]);
     const size_t                       which   = d_internal_number(_args[2]);
 
@@ -2468,17 +2468,17 @@ d_internal_sln_dependency(
 sln_folder(s, i), sln_config(s, i)
   A folder's path, and a configuration.
 */
-static bool
-d_internal_sln_folder(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_folder(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const doc   = d_internal_solution(_user,
+    const struct dj_msvs_doc* const doc   = d_internal_solution(_user,
                                                                _args[0]);
     const size_t                   which = d_internal_number(_args[1]);
 
@@ -2501,17 +2501,17 @@ d_internal_sln_folder(
 }
 
 
-static bool
-d_internal_sln_config(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_config(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_msvs_doc* const doc   = d_internal_solution(_user,
+    const struct dj_msvs_doc* const doc   = d_internal_solution(_user,
                                                                _args[0]);
     const size_t                   which = d_internal_number(_args[1]);
 
@@ -2543,12 +2543,12 @@ d_internal_sln_config(
 d_internal_changed
   1 for a change kept, or -1 with the document's reason.
 */
-static bool
-d_internal_changed(
-    struct d_host_sln*       _host,
-    struct d_awk_value*      _out,
-    const struct d_msvs_doc* _doc,
-    bool                     _kept
+static
+bool d_internal_changed(
+    struct dj_host_sln*       _host,
+    struct dj_awk_value*      _out,
+    const struct dj_msvs_doc* _doc,
+    bool                      _kept
 )
 {
     // a change refused says why
@@ -2567,17 +2567,17 @@ d_internal_changed(
 sln_add_project(s, path[, folder[, id]])
   The project's number, or -1; one listed already is its own number.
 */
-static bool
-d_internal_sln_add_project(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_add_project(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
+    struct dj_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
     char                     path[D_INTERNAL_PATH];
     char                     folder[D_INTERNAL_PATH];
     char                     id[64] = "";
@@ -2635,17 +2635,17 @@ d_internal_sln_add_project(
 sln_remove_project(s, path)
   1, 0 for none, or -1.
 */
-static bool
-d_internal_sln_remove_project(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_remove_project(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
+    struct dj_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
     char                     path[D_INTERNAL_PATH];
 
     (void)_count;
@@ -2659,7 +2659,7 @@ d_internal_sln_remove_project(
 
     d_internal_copy_arg(_args[1], path, sizeof(path));
 
-    const struct d_msvs* const records = d_msvs_doc_records(doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(doc);
     const size_t               at      = d_internal_project_at(records, path);
 
     // a project not listed is not removed, and that is no failure
@@ -2690,17 +2690,17 @@ d_internal_sln_remove_project(
 sln_add_folder(s, folder)
   The folder, and each holding it.
 */
-static bool
-d_internal_sln_add_folder_fn(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_add_folder_fn(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
+    struct dj_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
     char                     folder[D_INTERNAL_PATH];
     char                     id[37];
 
@@ -2736,14 +2736,14 @@ d_internal_both
   The two projects a dependency joins, each listed; false with the failure
 given when either is not.
 */
-static bool
-d_internal_both(
-    struct d_host_sln*   _host,
-    struct d_awk_value** _args,
-    struct d_awk_value*  _out,
-    struct d_msvs_doc**  _doc,
-    size_t*              _project,
-    size_t*              _on
+static
+bool d_internal_both(
+    struct dj_host_sln*   _host,
+    struct dj_awk_value** _args,
+    struct dj_awk_value*  _out,
+    struct dj_msvs_doc**  _doc,
+    size_t*               _project,
+    size_t*               _on
 )
 {
     char path[D_INTERNAL_PATH];
@@ -2777,17 +2777,17 @@ d_internal_both(
 sln_add_dependency(s, path, on)
   1, or -1.
 */
-static bool
-d_internal_sln_add_dependency_fn(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_add_dependency_fn(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* doc     = NULL;
+    struct dj_msvs_doc* doc     = NULL;
     size_t             project = 0;
     size_t             on      = 0;
 
@@ -2801,7 +2801,7 @@ d_internal_sln_add_dependency_fn(
         return true;
     }
 
-    const struct d_msvs* const records = d_msvs_doc_records(doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(doc);
 
     // a .sln's dependency is a line; a .slnx's an element
     if (!records->xml)
@@ -2827,7 +2827,7 @@ d_internal_sln_add_dependency_fn(
     }
 
     const char* const               pair[] = { "Project", path };
-    const struct d_msvs_new_element made   = { "BuildDependency", NULL, pair,
+    const struct dj_msvs_new_element made   = { "BuildDependency", NULL, pair,
                                                1u };
 
     return d_internal_changed(_user, _out, doc,
@@ -2840,17 +2840,17 @@ d_internal_sln_add_dependency_fn(
 sln_remove_dependency(s, path, on)
   1, 0 for none, or -1.
 */
-static bool
-d_internal_sln_remove_dependency_fn(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_remove_dependency_fn(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* doc     = NULL;
+    struct dj_msvs_doc* doc     = NULL;
     size_t             project = 0;
     size_t             on      = 0;
 
@@ -2864,8 +2864,8 @@ d_internal_sln_remove_dependency_fn(
         return true;
     }
 
-    const struct d_msvs* const         records = d_msvs_doc_records(doc);
-    const struct d_msvs_project* const holder  = &records->projects[project];
+    const struct dj_msvs* const         records = d_msvs_doc_records(doc);
+    const struct dj_msvs_project* const holder  = &records->projects[project];
     const size_t                       before  = holder->dependency_count;
     char                               path[D_INTERNAL_PATH];
     bool                               kept    = true;
@@ -2878,7 +2878,7 @@ d_internal_sln_remove_dependency_fn(
     }
     else if (holder->depends != D_MSVS_NONE)
     {
-        struct d_internal_span spans[64];
+        struct dj_internal_span spans[64];
         char                   id[48];
 
         d_internal_upper(records->projects[on].id, id, sizeof(id));
@@ -2910,17 +2910,17 @@ d_internal_sln_remove_dependency_fn(
 sln_add_config(s, config)
   A configuration, for the solution and every project.
 */
-static bool
-d_internal_sln_add_config_fn(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_add_config_fn(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
+    struct dj_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
     char                     config[D_INTERNAL_PATH];
 
     (void)_count;
@@ -2946,7 +2946,7 @@ d_internal_sln_add_config_fn(
                                             "\"Debug|x64\"");
     }
 
-    const struct d_msvs* const records = d_msvs_doc_records(doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(doc);
 
     // each configuration already built is enough
     for (size_t at = 0; at < records->configuration_count; ++at)
@@ -3000,17 +3000,17 @@ d_internal_sln_add_config_fn(
 sln_remove_config(s, config)
   1, 0 for none, or -1.
 */
-static bool
-d_internal_sln_remove_config_fn(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_sln_remove_config_fn(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
+    struct dj_msvs_doc* const doc = d_internal_solution(_user, _args[0]);
     char                     config[D_INTERNAL_PATH];
 
     (void)_count;
@@ -3100,10 +3100,10 @@ d_internal_sln_remove_config_fn(
 d_internal_functions
   The extension's host functions, as a program calls them.
 */
-static const struct d_awk_host_function*
-d_internal_functions(void)
+static
+const struct dj_awk_host_function* d_internal_functions(void)
 {
-    static const struct d_awk_host_function functions[
+    static const struct dj_awk_host_function functions[
         D_INTERNAL_SLN_FUNCTIONS] =
     {
         { "sln_open",              1u, 1u, d_internal_sln_open           },
@@ -3143,10 +3143,9 @@ d_internal_functions(void)
 d_host_sln_new
   An extension with no solution open.
 */
-struct d_host_sln*
-d_host_sln_new(void)
+struct dj_host_sln* d_host_sln_new(void)
 {
-    struct d_host_sln* const host = malloc(sizeof(*host));
+    struct dj_host_sln* const host = malloc(sizeof(*host));
 
     // an extension that cannot be made is NULL
     if (host)
@@ -3162,9 +3161,8 @@ d_host_sln_new(void)
 d_host_sln_free
   Closes every solution open, dropping unsaved changes.
 */
-void
-d_host_sln_free(
-    struct d_host_sln* _host
+void d_host_sln_free(
+    struct dj_host_sln* _host
 )
 {
     // freeing nothing is allowed
@@ -3189,10 +3187,9 @@ d_host_sln_free(
 d_host_sln_install
   The functions are added with the extension as their user pointer.
 */
-bool
-d_host_sln_install(
-    struct d_host_sln*   _host,
-    struct d_awk_interp* _interp
+bool d_host_sln_install(
+    struct dj_host_sln*   _host,
+    struct dj_awk_interp* _interp
 )
 {
     // parameter validation first

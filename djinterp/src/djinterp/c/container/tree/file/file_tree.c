@@ -30,22 +30,19 @@
 
 /*
 d_file_tree_internal_node_alloc
-  Allocates and zero-initializes a d_file_tree_node.
+  Allocates and zero-initializes a dj_file_tree_node.
 
 Parameter(s):
   none.
 Return:
   A pointer to the newly allocated node, or NULL on allocation failure.
 */
-static struct d_file_tree_node*
-d_file_tree_internal_node_alloc
-(
-    void
-)
+static
+struct dj_file_tree_node* d_file_tree_internal_node_alloc(void)
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
 
-    node = (struct d_file_tree_node*)calloc(1, sizeof(struct d_file_tree_node));
+    node = (struct dj_file_tree_node*)calloc(1, sizeof(struct dj_file_tree_node));
 
     return node;
 }
@@ -61,11 +58,10 @@ Parameter(s):
 Return:
   0 on success, -1 on allocation failure.
 */
-static int
-d_file_tree_internal_dir_init_children
-(
-    struct d_file_tree_node* _node,
-    size_t                   _capacity
+static
+int d_file_tree_internal_dir_init_children(
+    struct dj_file_tree_node* _node,
+    size_t                    _capacity
 )
 {
     if (!_node)
@@ -78,9 +74,9 @@ d_file_tree_internal_dir_init_children
         _capacity = D_FILE_TREE_DEFAULT_CHILD_CAPACITY;
     }
 
-    _node->children = (struct d_file_tree_node**)calloc(
+    _node->children = (struct dj_file_tree_node**)calloc(
                           _capacity,
-                          sizeof(struct d_file_tree_node*));
+                          sizeof(struct dj_file_tree_node*));
 
     if (!_node->children)
     {
@@ -103,13 +99,12 @@ Parameter(s):
 Return:
   0 on success, -1 on failure.
 */
-static int
-d_file_tree_internal_dir_grow
-(
-    struct d_file_tree_node* _node
+static
+int d_file_tree_internal_dir_grow(
+    struct dj_file_tree_node* _node
 )
 {
-    struct d_file_tree_node** new_children;
+    struct dj_file_tree_node** new_children;
     size_t                    new_capacity;
 
     if (!_node)
@@ -123,9 +118,9 @@ d_file_tree_internal_dir_grow
         new_capacity = D_FILE_TREE_DEFAULT_CHILD_CAPACITY;
     }
 
-    new_children = (struct d_file_tree_node**)realloc(
+    new_children = (struct dj_file_tree_node**)realloc(
                        _node->children,
-                       new_capacity * sizeof(struct d_file_tree_node*));
+                       new_capacity * sizeof(struct dj_file_tree_node*));
 
     if (!new_children)
     {
@@ -150,11 +145,10 @@ Parameter(s):
 Return:
   0 on success, -1 on failure.
 */
-static int
-d_file_tree_internal_dir_add_child
-(
-    struct d_file_tree_node* _parent,
-    struct d_file_tree_node* _child
+static
+int d_file_tree_internal_dir_add_child(
+    struct dj_file_tree_node* _parent,
+    struct dj_file_tree_node* _child
 )
 {
     if ( (!_parent) ||
@@ -192,11 +186,10 @@ Parameter(s):
 Return:
   0 on success, -1 if the child was not found.
 */
-static int
-d_file_tree_internal_dir_remove_child
-(
-    struct d_file_tree_node* _parent,
-    struct d_file_tree_node* _child
+static
+int d_file_tree_internal_dir_remove_child(
+    struct dj_file_tree_node* _parent,
+    struct dj_file_tree_node* _child
 )
 {
     size_t i;
@@ -246,14 +239,13 @@ Parameter(s):
 Return:
   A pointer to the resolved node, or NULL if the path does not exist.
 */
-static struct d_file_tree_node*
-d_file_tree_internal_resolve_path
-(
-    const struct d_file_tree* _tree,
-    const char*               _path
+static
+struct dj_file_tree_node* d_file_tree_internal_resolve_path(
+    const struct dj_file_tree* _tree,
+    const char*                _path
 )
 {
-    struct d_file_tree_node* current;
+    struct dj_file_tree_node* current;
     char*                    buf;
     char*                    saveptr;
     char*                    token;
@@ -343,9 +335,8 @@ Parameter(s):
 Return:
   0 on success, -1 on failure.
 */
-static int
-d_file_tree_internal_split_parent_child
-(
+static
+int d_file_tree_internal_split_parent_child(
     const char* _path,
     char        _separator,
     char**      _parent_out,
@@ -416,10 +407,9 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_file_tree_internal_node_free_recursive
-(
-    struct d_file_tree_node* _node
+static
+void d_file_tree_internal_node_free_recursive(
+    struct dj_file_tree_node* _node
 )
 {
     size_t i;
@@ -465,14 +455,13 @@ Parameter(s):
 Return:
   A pointer to the newly allocated copy, or NULL on failure.
 */
-static struct d_file_tree_node*
-d_file_tree_internal_copy_node
-(
-    const struct d_file_tree_node* _node
+static
+struct dj_file_tree_node* d_file_tree_internal_copy_node(
+    const struct dj_file_tree_node* _node
 )
 {
-    struct d_file_tree_node* copy;
-    struct d_file_tree_node* child_copy;
+    struct dj_file_tree_node* copy;
+    struct dj_file_tree_node* child_copy;
     size_t                   i;
 
     if (!_node)
@@ -559,10 +548,9 @@ Parameter(s):
 Return:
   The total number of nodes in the subtree (including the root).
 */
-static size_t
-d_file_tree_internal_count_nodes
-(
-    const struct d_file_tree_node* _node
+static
+size_t d_file_tree_internal_count_nodes(
+    const struct dj_file_tree_node* _node
 )
 {
     size_t total;
@@ -599,13 +587,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_file_tree_internal_traverse_preorder
-(
-    struct d_file_tree_node* _node,
-    size_t                   _depth,
-    fn_file_tree_visitor     _visitor,
-    void*                    _context
+static
+void d_file_tree_internal_traverse_preorder(
+    struct dj_file_tree_node* _node,
+    size_t                    _depth,
+    fn_file_tree_visitor      _visitor,
+    void*                     _context
 )
 {
     size_t i;
@@ -644,13 +631,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_file_tree_internal_traverse_postorder
-(
-    struct d_file_tree_node* _node,
-    size_t                   _depth,
-    fn_file_tree_visitor     _visitor,
-    void*                    _context
+static
+void d_file_tree_internal_traverse_postorder(
+    struct dj_file_tree_node* _node,
+    size_t                    _depth,
+    fn_file_tree_visitor      _visitor,
+    void*                     _context
 )
 {
     size_t i;
@@ -689,12 +675,11 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_file_tree_internal_print_node
-(
-    const struct d_file_tree_node* _node,
-    size_t                         _depth,
-    FILE*                          _stream
+static
+void d_file_tree_internal_print_node(
+    const struct dj_file_tree_node* _node,
+    size_t                          _depth,
+    FILE*                           _stream
 )
 {
     size_t i;
@@ -767,13 +752,11 @@ Parameter(s):
 Return:
   A pointer to the newly allocated file node, or NULL on failure.
 */
-struct d_file_tree_node*
-d_file_tree_node_new_file
-(
+struct dj_file_tree_node* d_file_tree_node_new_file(
     const char* _name
 )
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
 
     if (!_name)
     {
@@ -810,9 +793,7 @@ Parameter(s):
 Return:
   A pointer to the newly allocated directory node, or NULL on failure.
 */
-struct d_file_tree_node*
-d_file_tree_node_new_dir
-(
+struct dj_file_tree_node* d_file_tree_node_new_dir(
     const char* _name
 )
 {
@@ -833,14 +814,12 @@ Parameter(s):
 Return:
   A pointer to the newly allocated directory node, or NULL on failure.
 */
-struct d_file_tree_node*
-d_file_tree_node_new_dir_with_capacity
-(
+struct dj_file_tree_node* d_file_tree_node_new_dir_with_capacity(
     const char* _name,
     size_t      _capacity
 )
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
 
     if (!_name)
     {
@@ -885,14 +864,12 @@ Parameter(s):
 Return:
   A pointer to the newly allocated symlink node, or NULL on failure.
 */
-struct d_file_tree_node*
-d_file_tree_node_new_symlink
-(
+struct dj_file_tree_node* d_file_tree_node_new_symlink(
     const char* _name,
     const char* _target
 )
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
 
     if ( (!_name) ||
          (!_target) )
@@ -939,10 +916,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_file_tree_node_free
-(
-    struct d_file_tree_node* _node
+void d_file_tree_node_free(
+    struct dj_file_tree_node* _node
 )
 {
     if (!_node)
@@ -986,9 +961,7 @@ Parameter(s):
 Return:
   A pointer to the newly allocated file tree, or NULL on failure.
 */
-struct d_file_tree*
-d_file_tree_new
-(
+struct dj_file_tree* d_file_tree_new(
     const char* _root_name
 )
 {
@@ -1008,21 +981,19 @@ Parameter(s):
 Return:
   A pointer to the newly allocated file tree, or NULL on failure.
 */
-struct d_file_tree*
-d_file_tree_new_with_separator
-(
+struct dj_file_tree* d_file_tree_new_with_separator(
     const char* _root_name,
     char        _separator
 )
 {
-    struct d_file_tree* tree;
+    struct dj_file_tree* tree;
 
     if (!_root_name)
     {
         return NULL;
     }
 
-    tree = (struct d_file_tree*)calloc(1, sizeof(struct d_file_tree));
+    tree = (struct dj_file_tree*)calloc(1, sizeof(struct dj_file_tree));
     if (!tree)
     {
         return NULL;
@@ -1054,21 +1025,19 @@ Parameter(s):
 Return:
   A pointer to the newly allocated file tree, or NULL on failure.
 */
-struct d_file_tree*
-d_file_tree_new_from_path
-(
+struct dj_file_tree* d_file_tree_new_from_path(
     const char* _filesystem_path,
     bool        _recursive
 )
 {
-    struct d_file_tree*      tree;
-    struct d_dir_t*          dir;
-    struct d_dirent64_t*     entry;
+    struct dj_file_tree*      tree;
+    struct dj_dir_t*          dir;
+    struct dj_dirent64_t*     entry;
     char                     child_path[D_FILE_PATH_MAX];
     char                     name_buf[D_FILE_NAME_MAX];
     const char*              root_name;
-    struct d_file_tree_node* child_node;
-    struct d_file_tree*      subtree;
+    struct dj_file_tree_node* child_node;
+    struct dj_file_tree*      subtree;
 
     if (!_filesystem_path)
     {
@@ -1198,7 +1167,7 @@ d_file_tree_new_from_path
             if (child_node)
             {
                 // populate file metadata
-                struct d_stat64_t st;
+                struct dj_stat64_t st;
                 if (d_file_stat64(child_path, &st) == 0)
                 {
                     child_node->file_size = st.st_size;
@@ -1230,20 +1199,18 @@ Parameter(s):
 Return:
   A pointer to the newly allocated copy, or NULL on failure.
 */
-struct d_file_tree*
-d_file_tree_new_copy
-(
-    const struct d_file_tree* _other
+struct dj_file_tree* d_file_tree_new_copy(
+    const struct dj_file_tree* _other
 )
 {
-    struct d_file_tree* copy;
+    struct dj_file_tree* copy;
 
     if (!_other)
     {
         return NULL;
     }
 
-    copy = (struct d_file_tree*)calloc(1, sizeof(struct d_file_tree));
+    copy = (struct dj_file_tree*)calloc(1, sizeof(struct dj_file_tree));
     if (!copy)
     {
         return NULL;
@@ -1277,10 +1244,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_file_tree_free
-(
-    struct d_file_tree* _tree
+void d_file_tree_free(
+    struct dj_file_tree* _tree
 )
 {
     if (!_tree)
@@ -1312,10 +1277,8 @@ Parameter(s):
 Return:
   A pointer to the root node, or NULL if the tree is NULL.
 */
-struct d_file_tree_node*
-d_file_tree_get_root
-(
-    const struct d_file_tree* _tree
+struct dj_file_tree_node* d_file_tree_get_root(
+    const struct dj_file_tree* _tree
 )
 {
     if (!_tree)
@@ -1337,11 +1300,9 @@ Parameter(s):
 Return:
   A pointer to the node at the given path, or NULL if not found.
 */
-struct d_file_tree_node*
-d_file_tree_get_node
-(
-    const struct d_file_tree* _tree,
-    const char*               _path
+struct dj_file_tree_node* d_file_tree_get_node(
+    const struct dj_file_tree* _tree,
+    const char*                _path
 )
 {
     if ( (!_tree) ||
@@ -1363,10 +1324,8 @@ Parameter(s):
 Return:
   A pointer to the parent node, or NULL if the node is the root or NULL.
 */
-struct d_file_tree_node*
-d_file_tree_get_parent
-(
-    const struct d_file_tree_node* _node
+struct dj_file_tree_node* d_file_tree_get_parent(
+    const struct dj_file_tree_node* _node
 )
 {
     if (!_node)
@@ -1389,11 +1348,9 @@ Return:
   A pointer to the child node, or NULL if out of bounds or not a
 directory.
 */
-struct d_file_tree_node*
-d_file_tree_get_child
-(
-    const struct d_file_tree_node* _node,
-    size_t                         _index
+struct dj_file_tree_node* d_file_tree_get_child(
+    const struct dj_file_tree_node* _node,
+    size_t                          _index
 )
 {
     if ( (!_node) ||
@@ -1418,11 +1375,9 @@ Parameter(s):
 Return:
   A pointer to the matching child, or NULL if not found.
 */
-struct d_file_tree_node*
-d_file_tree_get_child_by_name
-(
-    const struct d_file_tree_node* _node,
-    const char*                    _name
+struct dj_file_tree_node* d_file_tree_get_child_by_name(
+    const struct dj_file_tree_node* _node,
+    const char*                     _name
 )
 {
     size_t i;
@@ -1463,17 +1418,15 @@ Parameter(s):
 Return:
   0 on success, -1 on failure (missing parent, duplicate, etc.).
 */
-int
-d_file_tree_add_file
-(
-    struct d_file_tree* _tree,
-    const char*         _path
+int d_file_tree_add_file(
+    struct dj_file_tree* _tree,
+    const char*          _path
 )
 {
     char*                    parent_path;
     char*                    child_name;
-    struct d_file_tree_node* parent_node;
-    struct d_file_tree_node* new_node;
+    struct dj_file_tree_node* parent_node;
+    struct dj_file_tree_node* new_node;
 
     if ( (!_tree) ||
          (!_path) )
@@ -1547,17 +1500,15 @@ Parameter(s):
 Return:
   0 on success, -1 on failure.
 */
-int
-d_file_tree_add_dir
-(
-    struct d_file_tree* _tree,
-    const char*         _path
+int d_file_tree_add_dir(
+    struct dj_file_tree* _tree,
+    const char*          _path
 )
 {
     char*                    parent_path;
     char*                    child_name;
-    struct d_file_tree_node* parent_node;
-    struct d_file_tree_node* new_node;
+    struct dj_file_tree_node* parent_node;
+    struct dj_file_tree_node* new_node;
 
     if ( (!_tree) ||
          (!_path) )
@@ -1629,18 +1580,16 @@ Parameter(s):
 Return:
   0 on success, -1 on failure.
 */
-int
-d_file_tree_add_symlink
-(
-    struct d_file_tree* _tree,
-    const char*         _path,
-    const char*         _target
+int d_file_tree_add_symlink(
+    struct dj_file_tree* _tree,
+    const char*          _path,
+    const char*          _target
 )
 {
     char*                    parent_path;
     char*                    child_name;
-    struct d_file_tree_node* parent_node;
-    struct d_file_tree_node* new_node;
+    struct dj_file_tree_node* parent_node;
+    struct dj_file_tree_node* new_node;
 
     if ( (!_tree)   ||
          (!_path)   ||
@@ -1714,20 +1663,18 @@ Parameter(s):
 Return:
   0 on success, -1 on failure (a non-directory component blocks the path).
 */
-int
-d_file_tree_mkdir_p
-(
-    struct d_file_tree* _tree,
-    const char*         _path
+int d_file_tree_mkdir_p(
+    struct dj_file_tree* _tree,
+    const char*          _path
 )
 {
     char*                    buf;
     char*                    saveptr;
     char*                    token;
     char                     sep[2];
-    struct d_file_tree_node* current;
-    struct d_file_tree_node* child;
-    struct d_file_tree_node* new_dir;
+    struct dj_file_tree_node* current;
+    struct dj_file_tree_node* child;
+    struct dj_file_tree_node* new_dir;
 
     if ( (!_tree) ||
          (!_path) )
@@ -1814,14 +1761,12 @@ Parameter(s):
 Return:
   0 on success, -1 on failure.
 */
-int
-d_file_tree_remove
-(
-    struct d_file_tree* _tree,
-    const char*         _path
+int d_file_tree_remove(
+    struct dj_file_tree* _tree,
+    const char*          _path
 )
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
     size_t                   removed_count;
 
     if ( (!_tree) ||
@@ -1869,19 +1814,17 @@ Parameter(s):
 Return:
   0 on success, -1 on failure.
 */
-int
-d_file_tree_move
-(
-    struct d_file_tree* _tree,
-    const char*         _old_path,
-    const char*         _new_path
+int d_file_tree_move(
+    struct dj_file_tree* _tree,
+    const char*          _old_path,
+    const char*          _new_path
 )
 {
-    struct d_file_tree_node* node;
-    struct d_file_tree_node* new_parent;
+    struct dj_file_tree_node* node;
+    struct dj_file_tree_node* new_parent;
     char*                    parent_path;
     char*                    child_name;
-    struct d_string*         new_name;
+    struct dj_string*         new_name;
 
     if ( (!_tree)     ||
          (!_old_path) ||
@@ -1964,10 +1907,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_file_tree_clear
-(
-    struct d_file_tree* _tree
+void d_file_tree_clear(
+    struct dj_file_tree* _tree
 )
 {
     size_t i;
@@ -2009,10 +1950,8 @@ Parameter(s):
 Return:
   true if the tree has no children under the root, false otherwise.
 */
-bool
-d_file_tree_is_empty
-(
-    const struct d_file_tree* _tree
+bool d_file_tree_is_empty(
+    const struct dj_file_tree* _tree
 )
 {
     if (!_tree)
@@ -2033,10 +1972,8 @@ Parameter(s):
 Return:
   The total node count, or 0 if the tree is NULL.
 */
-size_t
-d_file_tree_size
-(
-    const struct d_file_tree* _tree
+size_t d_file_tree_size(
+    const struct dj_file_tree* _tree
 )
 {
     if (!_tree)
@@ -2058,11 +1995,9 @@ Parameter(s):
 Return:
   true if the path resolves to a node, false otherwise.
 */
-bool
-d_file_tree_contains
-(
-    const struct d_file_tree* _tree,
-    const char*               _path
+bool d_file_tree_contains(
+    const struct dj_file_tree* _tree,
+    const char*                _path
 )
 {
     if ( (!_tree) ||
@@ -2085,14 +2020,12 @@ Parameter(s):
 Return:
   true if the node exists and is a file, false otherwise.
 */
-bool
-d_file_tree_is_file
-(
-    const struct d_file_tree* _tree,
-    const char*               _path
+bool d_file_tree_is_file(
+    const struct dj_file_tree* _tree,
+    const char*                _path
 )
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
 
     if ( (!_tree) ||
          (!_path) )
@@ -2116,14 +2049,12 @@ Parameter(s):
 Return:
   true if the node exists and is a directory, false otherwise.
 */
-bool
-d_file_tree_is_dir
-(
-    const struct d_file_tree* _tree,
-    const char*               _path
+bool d_file_tree_is_dir(
+    const struct dj_file_tree* _tree,
+    const char*                _path
 )
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
 
     if ( (!_tree) ||
          (!_path) )
@@ -2147,14 +2078,12 @@ Parameter(s):
 Return:
   The number of children, or 0 if the path is invalid or not a directory.
 */
-size_t
-d_file_tree_child_count
-(
-    const struct d_file_tree* _tree,
-    const char*               _path
+size_t d_file_tree_child_count(
+    const struct dj_file_tree* _tree,
+    const char*                _path
 )
 {
-    struct d_file_tree_node* node;
+    struct dj_file_tree_node* node;
 
     if ( (!_tree) ||
          (!_path) )
@@ -2182,14 +2111,12 @@ Parameter(s):
 Return:
   The depth of the node, or 0 if the node is NULL.
 */
-size_t
-d_file_tree_depth
-(
-    const struct d_file_tree_node* _node
+size_t d_file_tree_depth(
+    const struct dj_file_tree_node* _node
 )
 {
     size_t                         depth;
-    const struct d_file_tree_node* current;
+    const struct dj_file_tree_node* current;
 
     if (!_node)
     {
@@ -2224,12 +2151,10 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_file_tree_traverse_preorder
-(
-    const struct d_file_tree* _tree,
-    fn_file_tree_visitor      _visitor,
-    void*                     _context
+void d_file_tree_traverse_preorder(
+    const struct dj_file_tree* _tree,
+    fn_file_tree_visitor       _visitor,
+    void*                      _context
 )
 {
     if ( (!_tree) ||
@@ -2258,12 +2183,10 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_file_tree_traverse_postorder
-(
-    const struct d_file_tree* _tree,
-    fn_file_tree_visitor      _visitor,
-    void*                     _context
+void d_file_tree_traverse_postorder(
+    const struct dj_file_tree* _tree,
+    fn_file_tree_visitor       _visitor,
+    void*                      _context
 )
 {
     if ( (!_tree) ||
@@ -2293,23 +2216,21 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_file_tree_traverse_breadth_first
-(
-    const struct d_file_tree* _tree,
-    fn_file_tree_visitor      _visitor,
-    void*                     _context
+void d_file_tree_traverse_breadth_first(
+    const struct dj_file_tree* _tree,
+    fn_file_tree_visitor       _visitor,
+    void*                      _context
 )
 {
-    struct d_file_tree_node** queue;
+    struct dj_file_tree_node** queue;
     size_t*                   depths;
     size_t                    queue_capacity;
     size_t                    head;
     size_t                    tail;
-    struct d_file_tree_node*  current;
+    struct dj_file_tree_node*  current;
     size_t                    current_depth;
     size_t                    i;
-    struct d_file_tree_node** new_queue;
+    struct dj_file_tree_node** new_queue;
     size_t*                   new_depths;
 
     if ( (!_tree)       ||
@@ -2320,8 +2241,8 @@ d_file_tree_traverse_breadth_first
     }
 
     queue_capacity = 16;
-    queue  = (struct d_file_tree_node**)malloc(
-                 queue_capacity * sizeof(struct d_file_tree_node*));
+    queue  = (struct dj_file_tree_node**)malloc(
+                 queue_capacity * sizeof(struct dj_file_tree_node*));
     depths = (size_t*)malloc(queue_capacity * sizeof(size_t));
 
     if ( (!queue) ||
@@ -2358,10 +2279,10 @@ d_file_tree_traverse_breadth_first
                 if (tail >= queue_capacity)
                 {
                     queue_capacity *= 2;
-                    new_queue = (struct d_file_tree_node**)realloc(
+                    new_queue = (struct dj_file_tree_node**)realloc(
                                     queue,
                                     queue_capacity *
-                                        sizeof(struct d_file_tree_node*));
+                                        sizeof(struct dj_file_tree_node*));
                     new_depths = (size_t*)realloc(
                                      depths,
                                      queue_capacity * sizeof(size_t));
@@ -2406,21 +2327,19 @@ Parameter(s):
   _tree: the file tree (used for the separator character).
   _node: the node whose path to construct.
 Return:
-  A newly allocated d_string containing the full path, or NULL on failure.
+  A newly allocated dj_string containing the full path, or NULL on failure.
 The caller is responsible for freeing the returned string.
 */
-struct d_string*
-d_file_tree_node_path
-(
-    const struct d_file_tree*      _tree,
-    const struct d_file_tree_node* _node
+struct dj_string* d_file_tree_node_path(
+    const struct dj_file_tree*      _tree,
+    const struct dj_file_tree_node* _node
 )
 {
-    const struct d_file_tree_node** stack;
+    const struct dj_file_tree_node** stack;
     size_t                          stack_size;
     size_t                          stack_capacity;
-    const struct d_file_tree_node*  current;
-    struct d_string*                result;
+    const struct dj_file_tree_node*  current;
+    struct dj_string*                result;
     char                            sep[2];
     size_t                          i;
 
@@ -2433,8 +2352,8 @@ d_file_tree_node_path
     // collect ancestors into a stack
     stack_capacity = 16;
     stack_size     = 0;
-    stack = (const struct d_file_tree_node**)malloc(
-                stack_capacity * sizeof(const struct d_file_tree_node*));
+    stack = (const struct dj_file_tree_node**)malloc(
+                stack_capacity * sizeof(const struct dj_file_tree_node*));
 
     if (!stack)
     {
@@ -2447,10 +2366,10 @@ d_file_tree_node_path
         if (stack_size >= stack_capacity)
         {
             stack_capacity *= 2;
-            stack = (const struct d_file_tree_node**)realloc(
+            stack = (const struct dj_file_tree_node**)realloc(
                         (void*)stack,
                         stack_capacity *
-                            sizeof(const struct d_file_tree_node*));
+                            sizeof(const struct dj_file_tree_node*));
 
             if (!stack)
             {
@@ -2509,10 +2428,8 @@ Parameter(s):
 Return:
   A pointer to the node's name string, or NULL if the node is NULL.
 */
-const struct d_string*
-d_file_tree_node_name
-(
-    const struct d_file_tree_node* _node
+const struct dj_string* d_file_tree_node_name(
+    const struct dj_file_tree_node* _node
 )
 {
     if (!_node)
@@ -2535,11 +2452,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_file_tree_print
-(
-    const struct d_file_tree* _tree,
-    FILE*                     _stream
+void d_file_tree_print(
+    const struct dj_file_tree* _tree,
+    FILE*                      _stream
 )
 {
     if ( (!_tree) ||

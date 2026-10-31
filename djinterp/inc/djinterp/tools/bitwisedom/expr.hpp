@@ -43,8 +43,8 @@ TABLE OF CONTENTS
     3.  Printing
 */
 
-#ifndef BITWISEDOM_EXPR_HPP
-#define BITWISEDOM_EXPR_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_EXPR_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_EXPR_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -57,7 +57,7 @@ TABLE OF CONTENTS
 #include <string_view>  // std::string_view
 #include <vector>       // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./bits.hpp"  // u64
 
@@ -145,11 +145,14 @@ struct expression
  * @return the tree, or `ok() == false` with the error and its position. An
  *         empty text is an error: there is nothing to evaluate.
  */
-D_NODISCARD expression parse_expression(std::string_view _text);
+D_NODISCARD expression parse_expression(
+    std::string_view _text
+);
 
 // names -- every name an expression refers to, in order of appearance
 D_NODISCARD std::vector<std::string> referenced_names(
-    const expression& _expression);
+    const expression& _expression
+);
 
 // 2.2    Evaluation
 //------------------------------------------------------------------------------
@@ -182,8 +185,10 @@ struct evaluation
  *         division by zero, or the parse error. `overshift` reports a shift
  *         by 64 or more, which gave zero.
  */
-D_NODISCARD evaluation evaluate(const expression&  _expression,
-                                const name_lookup& _lookup);
+D_NODISCARD evaluation evaluate(
+    const expression&  _expression,
+    const name_lookup& _lookup
+);
 
 // 2.2.3
 // wide_lookup / wide_evaluation
@@ -212,9 +217,11 @@ struct wide_evaluation
  *         wider than an integer, a quotient of any, BIT or GENMASK past
  *         the width. `overshift` reports a shift past the width.
  */
-D_NODISCARD wide_evaluation evaluate_wide(const expression&  _expression,
-                                          const wide_lookup& _lookup,
-                                          int                _width);
+D_NODISCARD wide_evaluation evaluate_wide(
+    const expression&  _expression,
+    const wide_lookup& _lookup,
+    int                _width
+);
 
 // 2.3    Printing
 //------------------------------------------------------------------------------
@@ -242,10 +249,12 @@ using name_printer = std::function<std::string(const std::string& _name)>;
  * @return the C text, or the empty string for an expression that did not
  *         parse.
  */
-D_NODISCARD std::string print_c(const expression&      _expression,
-                                const name_printer&    _names,
-                                const literal_printer& _literals,
-                                const name_lookup&     _lookup);
+D_NODISCARD std::string print_c(
+    const expression&      _expression,
+    const name_printer&    _names,
+    const literal_printer& _literals,
+    const name_lookup&     _lookup
+);
 
 
 }  // namespace bitwisedom
@@ -253,4 +262,4 @@ D_NODISCARD std::string print_c(const expression&      _expression,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_EXPR_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_EXPR_HPP

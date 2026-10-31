@@ -9,7 +9,9 @@
 * own rules (window_sheet_of); its options are the window's size and the
 * display's scale, and, for building and testing, the events posted before
 * the first frame and what the host linked can do besides: a screenshot on
-* GLFW's, WARP on Win32's (window_features).
+* GLFW's, WARP on Win32's (window_features). Its `--version --verbose` says,
+* after how the module was built, the host linked (window_host) and the Dear
+* ImGui it draws with.
 *   Each sheet named is posted to the window as the Examples menu or File >
 * Open posts one, then each --do in order, before the first frame; and the
 * window opens where it was left, its session kept, unless it is taking a
@@ -24,7 +26,7 @@
 * path:      /src/ui/bitwisedom/plugin.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 // std
 #include <cstddef>    // std::size_t
@@ -46,19 +48,22 @@
     #include <windows.h>  // GetConsoleProcessList, FreeConsole
 #endif  // _WIN32
 // djinterp
-#include <djinterp/parse/cli/cli.hpp>  // program, command, D_CLI_PLUGIN
+#include <djinterp/tools/cli/cli.hpp>  // program, command, D_CLI_PLUGIN
 // bitwisedom
 #include <djinterp/tools/bitwisedom/cli.hpp>      // window_sheet_of
 #include <djinterp/tools/bitwisedom/version.hpp>  // BITWISEDOM_PROGRAM,
                                                   // BITWISEDOM_VERSION
 #include "../../../inc/ui/bitwisedom/host.hpp"    // run_window,
-                                                  // window_options
+                                                  // window_options,
+                                                  // window_host
+// imgui
+#include <imgui.h>  // IMGUI_VERSION, IMGUI_HAS_DOCK
 
 
 namespace
 {
 
-namespace kit = ::djinterp::parse::cli;
+namespace kit = ::djinterp::cli;
 
 using bitwisedom::gui::window_options;
 
@@ -98,8 +103,7 @@ value_of
   A --do field as the payload value it means: true or false; a whole
 number; a real one; else the text.
 */
-::djinterp::option_value
-value_of(
+::djinterp::option_value value_of(
     const std::string& _text
 )
 {
@@ -138,8 +142,7 @@ event_of
   A --do argument as the event it posts: KIND, then VALUE and TARGET where
 the colons give them.
 */
-uxoxo::event
-event_of(
+uxoxo::event event_of(
     const std::string& _text
 )
 {
@@ -172,8 +175,7 @@ side_of
   One side of WxH: digits alone, from 1 to SIZE_LARGEST; -1 otherwise.
 `_end` is where it stopped.
 */
-long
-side_of(
+long side_of(
     const char*  _text,
     const char*& _end
 )
@@ -202,8 +204,7 @@ size_of
   WxH as two sides, `x` between them and nothing after: false, the sizes
 untouched, for anything else.
 */
-bool
-size_of(
+bool size_of(
     const std::string& _text,
     int&               _width,
     int&               _height
@@ -236,8 +237,7 @@ size_of(
 size_problem
   --size's check: nothing for a size, else what one is.
 */
-std::string
-size_problem(
+std::string size_problem(
     const std::string& _text
 )
 {
@@ -256,8 +256,7 @@ scale_problem
   --scale's check: nothing for a number from SCALE_LEAST to SCALE_MOST,
 else what a scale is.
 */
-std::string
-scale_problem(
+std::string scale_problem(
     const std::string& _text
 )
 {
@@ -286,8 +285,7 @@ scale_problem(
 event_problem
   --do's check: nothing for an event with a kind, else that it needs one.
 */
-std::string
-event_problem(
+std::string event_problem(
     const std::string& _text
 )
 {
@@ -302,8 +300,7 @@ add_options
   The operands and the options every host acts on; then the testing options
 the host linked acts on, under their heading.
 */
-void
-add_options(
+void add_options(
     kit::command    _root,
     window_request& _request
 )
@@ -373,8 +370,7 @@ an example as the Examples menu posts one, by its place; a file as File >
 Open posts one, by its path. False, having said why, at the first the
 window could not open.
 */
-bool
-post_sheets(
+bool post_sheets(
     kit::program&                   _program,
     const std::vector<std::string>& _sheets,
     window_options&                 _options
@@ -409,8 +405,7 @@ starts a console program -- let go, so that no empty console stands behind
 the window; one shared with the terminal that started the run is kept, to
 be heard. Nothing elsewhere.
 */
-void
-leave_console()
+void leave_console()
 {
 #if defined(_WIN32)
     DWORD holders[2] = { 0, 0 };
@@ -429,8 +424,7 @@ open_window
   The module's work: the sheets named, then each --do, as the events the
 window posts first; the size asked; and the window, run.
 */
-int
-open_window(
+int open_window(
     kit::program&   _program,
     window_request& _request
 )
@@ -462,16 +456,40 @@ open_window(
 }
 
 /*
+add_window_build
+  The host as it names itself, and Dear ImGui -- its docking branch, where
+it is that -- each a line; a want of memory is kept in the program, which
+its run says.
+*/
+void add_window_build(
+    kit::program& _window
+)
+{
+#if defined(IMGUI_HAS_DOCK)
+    const char* const branch = ", docking";
+#else
+    const char* const branch = "";
+#endif
+
+    (void)_window.add_build("window",
+                            bitwisedom::gui::window_host());
+    (void)_window.add_build("imgui",
+                            std::string(IMGUI_VERSION) + branch);
+
+    return;
+}
+
+/*
 run_gui
   The module's run function: its program, made from the host; the operands
-and options, and the work, the window. What making them throws is said, and
-the run is trouble: nothing crosses into the program that loaded it.
+and options, the window's lines in its version, and the work, the window.
+What making them throws is said, and the run is trouble: nothing crosses
+into the program that loaded it.
 */
-int
-run_gui(
-    const d_cli_plugin_host* _host,
-    int                      _argc,
-    const char* const*       _argv
+int run_gui(
+    const dj_cli_plugin_host* _host,
+    int                       _argc,
+    const char* const*        _argv
 )
 {
     kit::program window(*_host,
@@ -485,6 +503,7 @@ run_gui(
 
         add_options(root,
                     *request);
+        add_window_build(window);
         window.set_main(
             [request](kit::program& _program, kit::command)
             {

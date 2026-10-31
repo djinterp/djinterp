@@ -42,8 +42,9 @@
 
 // d_env_archive_backend_name
 //   function: human-readable name for a backend identifier.
-const char*
-d_env_archive_backend_name(int backend)
+const char* d_env_archive_backend_name(
+    int backend
+)
 {
     switch (backend)
     {
@@ -65,8 +66,7 @@ d_env_archive_backend_name(int backend)
 
 // d_env_archive_libarchive_runtime_version
 //   function: libarchive runtime version string, or "unavailable".
-const char*
-d_env_archive_libarchive_runtime_version(void)
+const char* d_env_archive_libarchive_runtime_version(void)
 {
 #if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
     return archive_version_string();
@@ -78,11 +78,13 @@ d_env_archive_libarchive_runtime_version(void)
 // internal_tool_exists_at
 //   function: test whether joining `dir` and `tool` (optionally with a
 // Windows executable suffix) names an accessible file.
-static int
-internal_tool_exists_at(const char* dir,
-                        size_t      dir_len,
-                        const char* tool,
-                        const char* suffix)
+static
+int internal_tool_exists_at(
+    const char* dir,
+    size_t      dir_len,
+    const char* tool,
+    const char* suffix
+)
 {
     char        path[2048];
     size_t      tool_len = strlen(tool);
@@ -112,8 +114,9 @@ internal_tool_exists_at(const char* dir,
 //   function: probe PATH for an executable named `tool_name`. returns 1 if
 // found and executable, 0 otherwise. on Windows, common executable suffixes
 // are tried when the name carries no extension.
-int
-d_env_archive_has_tool(const char* tool_name)
+int d_env_archive_has_tool(
+    const char* tool_name
+)
 {
     const char* path_env;
     const char* cursor;
@@ -174,8 +177,7 @@ d_env_archive_has_tool(const char* tool_name)
 
 // d_env_archive_print_info
 //   function: print detected backends, versions, and the capability matrix.
-void
-d_env_archive_print_info(void)
+void d_env_archive_print_info(void)
 {
     printf("djinterp archive backends:\n");
 

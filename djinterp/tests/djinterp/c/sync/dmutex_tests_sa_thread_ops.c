@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "dmutex_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,9 +17,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // helper: simple thread function that sets a flag
-static void*
-d_test_thread_set_flag
-(
+static
+void* d_test_thread_set_flag(
     void* _arg
 )
 {
@@ -32,9 +31,8 @@ d_test_thread_set_flag
 }
 
 // helper: thread function that returns a known value
-static void*
-d_test_thread_return_value
-(
+static
+void* d_test_thread_return_value(
     void* _arg
 )
 {
@@ -44,24 +42,23 @@ d_test_thread_return_value
 }
 
 // helper struct for mutex-protected counter increment
-struct d_test_thread_increment_data
+struct dj_test_thread_increment_data
 {
-    d_mutex_t* mtx;
+    dj_mutex_t* mtx;
     int*       counter;
     int        iterations;
 };
 
 // helper: thread that increments a counter under mutex
-static void*
-d_test_thread_increment
-(
+static
+void* d_test_thread_increment(
     void* _arg
 )
 {
-    struct d_test_thread_increment_data* data;
+    struct dj_test_thread_increment_data* data;
     int                                  i;
 
-    data = (struct d_test_thread_increment_data*)_arg;
+    data = (struct dj_test_thread_increment_data*)_arg;
 
     for (i = 0; i < data->iterations; i++)
     {
@@ -74,21 +71,20 @@ d_test_thread_increment
 }
 
 // helper struct for thread identity test
-struct d_test_thread_id_data
+struct dj_test_thread_id_data
 {
-    d_thread_t child_id;
+    dj_thread_t child_id;
 };
 
 // helper: thread that stores its own thread ID
-static void*
-d_test_thread_get_id
-(
+static
+void* d_test_thread_get_id(
     void* _arg
 )
 {
-    struct d_test_thread_id_data* data;
+    struct dj_test_thread_id_data* data;
 
-    data           = (struct d_test_thread_id_data*)_arg;
+    data           = (struct dj_test_thread_id_data*)_arg;
     data->child_id = d_thread_current();
 
     return D_THREAD_SUCCESS;
@@ -110,14 +106,12 @@ d_tests_sa_thread_create_join
   - thread join retrieves result
   - multiple threads with shared mutex-protected counter
 */
-bool
-d_tests_sa_thread_create_join
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_thread_create_join(
+    struct dj_test_counter* _counter
 )
 {
     bool       result;
-    d_thread_t thd;
+    dj_thread_t thd;
     int        rc;
     int        flag;
 
@@ -125,7 +119,7 @@ d_tests_sa_thread_create_join
 
     // test 1: create and join a simple thread
     flag = 0;
-    rc   = d_thread_create(&thd, (d_thread_func_t)d_test_thread_set_flag, (void*)&flag);
+    rc   = d_thread_create(&thd, (dj_thread_func_t)d_test_thread_set_flag, (void*)&flag);
 
     result = d_assert_standalone(
         rc == D_MUTEX_SUCCESS,
@@ -152,11 +146,11 @@ d_tests_sa_thread_create_join
     }
 
     // test 3: join retrieves result value
-    rc = d_thread_create(&thd, (d_thread_func_t)d_test_thread_return_value, NULL);
+    rc = d_thread_create(&thd, (dj_thread_func_t)d_test_thread_return_value, NULL);
 
     if (rc == D_MUTEX_SUCCESS)
     {
-        d_thread_result_t thread_result;
+        dj_thread_result_t thread_result;
 
         thread_result = D_THREAD_ERROR;
         rc            = d_thread_join(thd, &thread_result);
@@ -176,12 +170,12 @@ d_tests_sa_thread_create_join
 
     // test 4: multiple threads incrementing shared counter
     {
-        d_mutex_t                           mtx;
+        dj_mutex_t                           mtx;
         int                                 shared_counter;
-        struct d_test_thread_increment_data data_a;
-        struct d_test_thread_increment_data data_b;
-        d_thread_t                          thd_a;
-        d_thread_t                          thd_b;
+        struct dj_test_thread_increment_data data_a;
+        struct dj_test_thread_increment_data data_b;
+        dj_thread_t                          thd_a;
+        dj_thread_t                          thd_b;
 
         shared_counter = 0;
         rc             = d_mutex_init(&mtx);
@@ -197,13 +191,13 @@ d_tests_sa_thread_create_join
             data_b.iterations = 1000;
 
             rc = d_thread_create(&thd_a,
-                                 (d_thread_func_t)d_test_thread_increment,
+                                 (dj_thread_func_t)d_test_thread_increment,
                                  &data_a);
 
             if (rc == D_MUTEX_SUCCESS)
             {
                 rc = d_thread_create(&thd_b,
-                                 (d_thread_func_t)d_test_thread_increment,
+                                 (dj_thread_func_t)d_test_thread_increment,
                                      &data_b);
 
                 if (rc == D_MUTEX_SUCCESS)
@@ -238,14 +232,12 @@ d_tests_sa_thread_detach
   - detach returns D_MUTEX_SUCCESS
   - detached thread still executes to completion
 */
-bool
-d_tests_sa_thread_detach
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_thread_detach(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_thread_t      thd;
+    dj_thread_t      thd;
     int             rc;
     volatile int    detach_flag;
     struct timespec sleep_dur;
@@ -254,7 +246,7 @@ d_tests_sa_thread_detach
     detach_flag = 0;
 
     rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_thread_set_flag,
+                                 (dj_thread_func_t)d_test_thread_set_flag,
                          (void*)&detach_flag);
 
     if (rc == D_MUTEX_SUCCESS)
@@ -289,15 +281,13 @@ d_tests_sa_thread_current
   - returns a valid thread identifier
   - calling twice on the same thread gives equal results
 */
-bool
-d_tests_sa_thread_current
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_thread_current(
+    struct dj_test_counter* _counter
 )
 {
     bool       result;
-    d_thread_t self1;
-    d_thread_t self2;
+    dj_thread_t self1;
+    dj_thread_t self2;
 
     result = true;
 
@@ -321,14 +311,12 @@ d_tests_sa_thread_equal
   - same thread compares equal
   - different threads compare not equal
 */
-bool
-d_tests_sa_thread_equal
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_thread_equal(
+    struct dj_test_counter* _counter
 )
 {
     bool       result;
-    d_thread_t self;
+    dj_thread_t self;
 
     result = true;
 
@@ -342,12 +330,12 @@ d_tests_sa_thread_equal
 
     // test 2: main thread vs child thread are not equal
     {
-        struct d_test_thread_id_data shared;
-        d_thread_t                   thd;
+        struct dj_test_thread_id_data shared;
+        dj_thread_t                   thd;
         int                          rc;
 
         rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_thread_get_id,
+                                 (dj_thread_func_t)d_test_thread_get_id,
                              &shared);
 
         if (rc == D_MUTEX_SUCCESS)
@@ -373,10 +361,8 @@ d_tests_sa_thread_yield
   - yield does not crash
   - yield returns (does not hang)
 */
-bool
-d_tests_sa_thread_yield
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_thread_yield(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -416,10 +402,8 @@ d_tests_sa_thread_sleep
   - sleep returns D_MUTEX_SUCCESS
   - sleep for a short duration actually sleeps (elapsed time check)
 */
-bool
-d_tests_sa_thread_sleep
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_thread_sleep(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
@@ -471,10 +455,8 @@ d_tests_sa_thread_sleep
 d_tests_sa_thread_ops_all
   Aggregation function that runs all thread operation tests.
 */
-bool
-d_tests_sa_thread_ops_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_thread_ops_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

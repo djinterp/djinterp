@@ -12,12 +12,15 @@
 *   printf and strtod write and read a number's point as the C locale has it,
 * which a program's setlocale can make a comma; SQL's is always a `.`. Each
 * asks printf which point the locale uses, and translates.
+*   A format is read in a dialect -- what a NULL value writes, whether a
+* qualified name can be written -- which every writer it reaches is given;
+* d_internal_db_vformat reads SQL's.
 *
 *
 * path:      /src/djinterp/c/db/db_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.10.28
 *******************************************************************************/
 #include "./db_internal.h"  // corresponding header
 // std
@@ -29,17 +32,17 @@
 #include <stdlib.h>  // malloc, realloc, free, strtod
 #include <string.h>  // memcpy, memmove, strchr, strcmp, strlen, strstr
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, *_MAX
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, *_MAX
 
 
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
 //==============================================================================
 
-// d_internal_db_column_record
+// dj_internal_db_column_record
 //   struct: a column while it is being built, its strings held as offsets into
 // the builder's text.
-struct d_internal_db_column_record
+struct dj_internal_db_column_record
 {
     size_t name;         // offset of the name
     size_t type;         // offset of the declared type
@@ -60,17 +63,17 @@ struct d_internal_db_column_record
  * Records are read with memcpy, for the reason d_internal_db_names_finish
  * reads offsets that way.
  */
-static void
-d_internal_db_columns_resolve(
-    struct d_db_column_info* _block,
-    char*                    _text,
-    const char*              _records,
-    size_t                   _count
+static
+void d_internal_db_columns_resolve(
+    struct dj_db_column_info* _block,
+    char*                     _text,
+    const char*               _records,
+    size_t                    _count
 )
 {
     for (size_t i = 0u; i < _count; ++i)
     {
-        struct d_internal_db_column_record record = { 0u, 0u, 0u, 0, false,
+        struct dj_internal_db_column_record record = { 0u, 0u, 0u, 0, false,
                                                       false };
 
         memcpy(&record, _records + (i * sizeof(record)), sizeof(record));
@@ -88,35 +91,35 @@ d_internal_db_columns_resolve(
     return;
 }
 
-// d_internal_db_field_record
+// dj_internal_db_field_record
 //   struct: a column of rows while they are being built, its strings held as
 // offsets into the builder's text.
-struct d_internal_db_field_record
+struct dj_internal_db_field_record
 {
     size_t         name;       // offset of the name
     size_t         type_name;  // offset of the vendor's type name
-    enum d_db_type type;       // the column's type
+    enum dj_db_type type;       // the column's type
 };
 
-// d_internal_db_value_record
+// dj_internal_db_value_record
 //   struct: a value while rows are being built; text and bytes held as an
 // offset into the builder's text.
-struct d_internal_db_value_record
+struct dj_internal_db_value_record
 {
-    enum d_db_value_type type;     // what the value is
+    enum dj_db_value_type type;     // what the value is
     size_t               size;     // the bytes of text or a BLOB
     size_t               offset;   // where they start in the builder's text
     int64_t              integer;  // an INTEGER's value
     double               real;     // a REAL's value
 };
 
-// d_internal_db_value_alignment
+// dj_internal_db_value_alignment
 //   struct: a value after one byte, so that the value's offset in it is the
 // alignment a value needs, which C99 has no operator to ask for.
-struct d_internal_db_value_alignment
+struct dj_internal_db_value_alignment
 {
     char              pad;    // one byte, which the value must follow
-    struct d_db_value value;  // placed as its alignment requires
+    struct dj_db_value value;  // placed as its alignment requires
 };
 
 /**
@@ -126,10 +129,10 @@ struct d_internal_db_value_alignment
  * @param[in]     _record  the record.
  * @return `true`, or `false` when memory ran out, the builder unchanged.
  */
-static bool
-d_internal_db_rows_add(
-    struct d_internal_db_rows*               _rows,
-    const struct d_internal_db_value_record* _record
+static
+bool d_internal_db_rows_add(
+    struct dj_internal_db_rows*               _rows,
+    const struct dj_internal_db_value_record* _record
 )
 {
     // a value with no column to belong to
@@ -165,15 +168,15 @@ d_internal_db_rows_add(
  */
 static bool
 d_internal_db_rows_bytes(
-    struct d_internal_db_rows* _rows,
-    enum d_db_value_type       _type,
+    struct dj_internal_db_rows* _rows,
+    enum dj_db_value_type       _type,
     const void*                _bytes,
     size_t                     _size
 )
 {
     const size_t                      length_before = _rows->text.length;
     const char                        terminator    = '\0';
-    struct d_internal_db_value_record record        =
+    struct dj_internal_db_value_record record        =
     {
         _type, _size, length_before, 0, 0.0
     };
@@ -202,18 +205,18 @@ d_internal_db_rows_bytes(
  * Records are read with memcpy, for the reason d_internal_db_names_finish
  * reads offsets that way.
  */
-static void
-d_internal_db_rows_resolve(
-    struct d_db_field*               _columns,
-    struct d_db_value*               _values,
-    const char*                      _text,
-    const struct d_internal_db_rows* _rows
+static
+void d_internal_db_rows_resolve(
+    struct dj_db_field*               _columns,
+    struct dj_db_value*               _values,
+    const char*                       _text,
+    const struct dj_internal_db_rows* _rows
 )
 {
     // the columns, each pointed at its two strings
     for (size_t i = 0u; i < _rows->column_count; ++i)
     {
-        struct d_internal_db_field_record record = { 0u, 0u, D_DB_TYPE_NONE };
+        struct dj_internal_db_field_record record = { 0u, 0u, D_DB_TYPE_NONE };
 
         memcpy(&record,
                _rows->columns.data + (i * sizeof(record)),
@@ -227,7 +230,7 @@ d_internal_db_rows_resolve(
     // the values, text and bytes pointed at their copies
     for (size_t i = 0u; i < _rows->value_count; ++i)
     {
-        struct d_internal_db_value_record record =
+        struct dj_internal_db_value_record record =
         {
             D_DB_VALUE_NULL, 0u, 0u, 0, 0.0
         };
@@ -273,9 +276,9 @@ d_internal_db_rows_resolve(
     return;
 }
 
-// d_internal_db_length
+// dj_internal_db_length
 //   enum: the length modifier a conversion carries.
-enum d_internal_db_length
+enum dj_internal_db_length
 {
     D_INTERNAL_DB_LENGTH_NONE = 0,   // int, unsigned
     D_INTERNAL_DB_LENGTH_LONG,       // l: long, unsigned long
@@ -298,10 +301,10 @@ enum d_internal_db_length
 d_internal_db_append_text
   A NUL-terminated string, terminator not included.
 */
-static bool
-d_internal_db_append_text(
-    struct d_internal_db_buffer* _out,
-    const char*                  _text
+static
+bool d_internal_db_append_text(
+    struct dj_internal_db_buffer* _out,
+    const char*                   _text
 )
 {
     return d_internal_db_buffer_append(_out, _text, strlen(_text));
@@ -313,11 +316,11 @@ d_internal_db_append_integer
 of 2^64 - 1 and a sign, so no printf dialect -- MinGW's msvcrt knows no %lld
 -- is involved.
 */
-static bool
-d_internal_db_append_integer(
-    struct d_internal_db_buffer* _out,
-    unsigned long long           _magnitude,
-    bool                         _negative
+static
+bool d_internal_db_append_integer(
+    struct dj_internal_db_buffer* _out,
+    unsigned long long            _magnitude,
+    bool                          _negative
 )
 {
     char   digits[24] = "";
@@ -352,8 +355,8 @@ d_internal_db_append_integer(
  * is the point. Unlike localeconv, this is safe to call from any thread. A
  * point that would not fit, which no locale has, reads as `.`.
  */
-static size_t
-d_internal_db_locale_point(
+static
+size_t d_internal_db_locale_point(
     char* _point
 )
 {
@@ -388,11 +391,11 @@ d_internal_db_locale_point(
  * @param[in]     _length  its length.
  * @return `true`, or `false` when memory ran out.
  */
-static bool
-d_internal_db_append_number(
-    struct d_internal_db_buffer* _out,
-    const char*                  _text,
-    size_t                       _length
+static
+bool d_internal_db_append_number(
+    struct dj_internal_db_buffer* _out,
+    const char*                   _text,
+    size_t                        _length
 )
 {
     char              point[D_INTERNAL_DB_POINT_ROOM] = "";
@@ -422,7 +425,7 @@ d_internal_db_read_unsigned
 */
 static unsigned long long
 d_internal_db_read_unsigned(
-    enum d_internal_db_length _length,
+    enum dj_internal_db_length _length,
     va_list*                  _args
 )
 {
@@ -450,7 +453,7 @@ d_internal_db_read_signed
 */
 static long long
 d_internal_db_read_signed(
-    enum d_internal_db_length _length,
+    enum dj_internal_db_length _length,
     va_list*                  _args
 )
 {
@@ -475,10 +478,10 @@ d_internal_db_format_integer
 shares. A negative value's magnitude is taken in unsigned arithmetic, which
 the most negative value survives.
 */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_db_format_integer(
-    struct d_internal_db_buffer* _out,
-    enum d_internal_db_length    _length,
+    struct dj_internal_db_buffer* _out,
+    enum dj_internal_db_length    _length,
     char                         _conversion,
     va_list*                     _args
 )
@@ -519,9 +522,9 @@ locale's, which d_internal_db_append_number writes as SQL's. %g keeps 17
 significant digits, so that the value read back is the value written. NaN
 and the infinities have no SQL spelling, and are refused.
 */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_db_format_real(
-    struct d_internal_db_buffer* _out,
+    struct dj_internal_db_buffer* _out,
     char                         _conversion,
     va_list*                     _args
 )
@@ -553,14 +556,16 @@ d_internal_db_format_real(
 
 /*
 d_internal_db_format_text
-  %%, %c and %s, written as they are. A NUL character would end the
-statement early wherever the statement is read as a string, and is refused.
+  %%, %c and %s, written as they are, a NULL %s as the dialect writes NULL.
+A NUL character would end the statement early wherever the statement is read
+as a string, and is refused.
 */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_db_format_text(
-    struct d_internal_db_buffer* _out,
-    char                         _conversion,
-    va_list*                     _args
+    struct dj_internal_db_buffer*        _out,
+    const struct dj_internal_db_dialect* _dialect,
+    char                                _conversion,
+    va_list*                            _args
 )
 {
     // a percent sign, which reads no argument
@@ -589,7 +594,8 @@ d_internal_db_format_text(
 
     const char* const text = va_arg(*_args, const char*);
 
-    return (d_internal_db_append_text(_out, (text) ? text : "NULL"))
+    return (d_internal_db_append_text(_out,
+                                      (text) ? text : _dialect->null_text))
                ? D_INTERNAL_DB_FORMAT_OK
                : D_INTERNAL_DB_FORMAT_NO_MEMORY;
 }
@@ -597,25 +603,29 @@ d_internal_db_format_text(
 /*
 d_internal_db_format_quoted
   %Q, %I and %T, each through the vendor's quoting. A NULL value is the
-keyword NULL; a NULL name cannot be quoted, and is refused. The vendor
-leaves the buffer as it was when it fails, so failure here reads as either
-memory or a refusal, and memory is the likelier.
+dialect's NULL; a NULL name cannot be quoted, and is refused, as is a
+qualified name in a dialect without them, its two arguments read so that
+the list stays in step. The vendor leaves the buffer as it was when it
+fails, so failure here reads as either memory or a refusal, and memory is
+the likelier.
 */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_db_format_quoted(
-    struct d_internal_db_buffer*        _out,
-    const struct d_internal_db_quoting* _quoting,
+    struct dj_internal_db_buffer*        _out,
+    const struct dj_internal_db_quoting* _quoting,
+    const struct dj_internal_db_dialect* _dialect,
     char                                _conversion,
     va_list*                            _args
 )
 {
     const char* const first = va_arg(*_args, const char*);
 
-    // a value: NULL is the keyword
+    // a value: NULL is the dialect's
     if (_conversion == 'Q')
     {
         return ( (first) ? _quoting->literal(_quoting->context, _out, first)
-                         : d_internal_db_append_text(_out, "NULL") )
+                         : d_internal_db_append_text(_out,
+                                                     _dialect->null_text) )
                    ? D_INTERNAL_DB_FORMAT_OK
                    : D_INTERNAL_DB_FORMAT_REFUSED;
     }
@@ -625,8 +635,11 @@ d_internal_db_format_quoted(
                                  : first;
     const char* const qualifier = (_conversion == 'T') ? first : NULL;
 
-    // a name must be there to be quoted
-    if (!name)
+    // a name must be there to be quoted, and a qualified one in a dialect
+    // that has them
+    if ( (!name) ||
+         ( (_conversion == 'T') &&
+           (!_dialect->qualified) ) )
     {
         return D_INTERNAL_DB_FORMAT_REFUSED;
     }
@@ -649,7 +662,7 @@ d_internal_db_read_length
   The length modifier at the cursor, if there is one; the cursor moves past
 it.
 */
-static enum d_internal_db_length
+static enum dj_internal_db_length
 d_internal_db_read_length(
     const char** _cursor
 )
@@ -684,15 +697,16 @@ d_internal_db_format_conversion
 writer. The cursor moves past whatever was read, so the caller resumes
 copying there.
 */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_db_format_conversion(
-    struct d_internal_db_buffer*        _out,
-    const struct d_internal_db_quoting* _quoting,
+    struct dj_internal_db_buffer*        _out,
+    const struct dj_internal_db_quoting* _quoting,
+    const struct dj_internal_db_dialect* _dialect,
     const char**                        _cursor,
     va_list*                            _args
 )
 {
-    const enum d_internal_db_length length = d_internal_db_read_length(_cursor);
+    const enum dj_internal_db_length length = d_internal_db_read_length(_cursor);
     const char                      conversion = **_cursor;
 
     // past the letter, unless the format ended first
@@ -727,13 +741,17 @@ d_internal_db_format_conversion(
         case '%':
         case 'c':
         case 's':
-            return d_internal_db_format_text(_out, conversion, _args);
+            return d_internal_db_format_text(_out,
+                                             _dialect,
+                                             conversion,
+                                             _args);
 
         case 'Q':
         case 'I':
         case 'T':
             return d_internal_db_format_quoted(_out,
                                                _quoting,
+                                               _dialect,
                                                conversion,
                                                _args);
 
@@ -750,6 +768,7 @@ d_internal_db_format_conversion(
  *
  * @param[in,out] _out      the buffer.
  * @param[in]     _quoting  the vendor's quoting.
+ * @param[in]     _dialect  the format's dialect.
  * @param[in]     _format   the format.
  * @param[in,out] _args     the arguments, advanced past each one read.
  * @return D_INTERNAL_DB_FORMAT_OK, or why not; the buffer is the caller's to
@@ -758,17 +777,18 @@ d_internal_db_format_conversion(
  * The text between conversions is copied a run at a time, and the
  * terminator after the last run.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_db_format_runs(
-    struct d_internal_db_buffer*        _out,
-    const struct d_internal_db_quoting* _quoting,
+    struct dj_internal_db_buffer*        _out,
+    const struct dj_internal_db_quoting* _quoting,
+    const struct dj_internal_db_dialect* _dialect,
     const char*                         _format,
     va_list*                            _args
 )
 {
     const char*                      run    = _format;
     const char*                      cursor = _format;
-    enum d_internal_db_format_status status = D_INTERNAL_DB_FORMAT_OK;
+    enum dj_internal_db_format_status status = D_INTERNAL_DB_FORMAT_OK;
 
     // each run of text, then the conversion that ends it
     while ( (status == D_INTERNAL_DB_FORMAT_OK) &&
@@ -794,6 +814,7 @@ d_internal_db_format_runs(
         {
             status = d_internal_db_format_conversion(_out,
                                                      _quoting,
+                                                     _dialect,
                                                      &cursor,
                                                      _args);
         }
@@ -819,8 +840,8 @@ d_internal_db_digits
   The run of digits a text starts with, tested by value, which isdigit is
 not guaranteed to do in every locale.
 */
-static size_t
-d_internal_db_digits(
+static
+size_t d_internal_db_digits(
     const char* _text
 )
 {
@@ -847,8 +868,8 @@ d_internal_db_digits(
  * `.` and more digits after it, one digit at least; and, for a real number,
  * an optional exponent: `e` or `E`, an optional sign, digits.
  */
-static bool
-d_internal_db_is_number(
+static
+bool d_internal_db_is_number(
     const char* _text,
     bool        _real
 )
@@ -893,8 +914,8 @@ overflow is then the only failure, and strtod reports it with an infinity,
 which no checked text spells. An underflow rounds toward zero, as a server's
 own reading would. errno, which strtod may set, is left as it was.
 */
-static bool
-d_internal_db_read_real(
+static
+bool d_internal_db_read_real(
     const char* _text,
     double*     _value
 )
@@ -931,8 +952,8 @@ d_internal_db_read_real(
  * The copy is on the stack up to D_INTERNAL_DB_REAL_ROOM bytes, which no
  * server's number reaches, and on the heap past it.
  */
-static bool
-d_internal_db_read_localized(
+static
+bool d_internal_db_read_localized(
     const char* _text,
     size_t      _dot,
     const char* _point,
@@ -982,10 +1003,9 @@ d_internal_db_buffer_reserve
 reallocations. The arithmetic is checked before anything is allocated: a
 request that cannot be represented fails rather than wrapping.
 */
-bool
-d_internal_db_buffer_reserve(
-    struct d_internal_db_buffer* _buffer,
-    size_t                       _count
+bool d_internal_db_buffer_reserve(
+    struct dj_internal_db_buffer* _buffer,
+    size_t                        _count
 )
 {
     // refuse a length the arithmetic below could not represent
@@ -1035,11 +1055,10 @@ d_internal_db_buffer_reserve(
 d_internal_db_buffer_append
   Room first, then the copy, so a failure leaves the buffer as it was.
 */
-bool
-d_internal_db_buffer_append(
-    struct d_internal_db_buffer* _buffer,
-    const void*                  _bytes,
-    size_t                       _count
+bool d_internal_db_buffer_append(
+    struct dj_internal_db_buffer* _buffer,
+    const void*                   _bytes,
+    size_t                        _count
 )
 {
     // nothing to append is a success that touches nothing
@@ -1065,11 +1084,10 @@ d_internal_db_buffer_add_text
   The offset is taken before the append, so it names the string's first byte
 wherever the buffer later moves.
 */
-bool
-d_internal_db_buffer_add_text(
-    struct d_internal_db_buffer* _buffer,
-    const char*                  _text,
-    size_t*                      _offset
+bool d_internal_db_buffer_add_text(
+    struct dj_internal_db_buffer* _buffer,
+    const char*                   _text,
+    size_t*                       _offset
 )
 {
     // a NULL string is recorded, not stored
@@ -1097,9 +1115,8 @@ d_internal_db_buffer_add_text(
 d_internal_db_buffer_release
   Leaves the buffer all zero, which is the empty state, so it can be reused.
 */
-void
-d_internal_db_buffer_release(
-    struct d_internal_db_buffer* _buffer
+void d_internal_db_buffer_release(
+    struct dj_internal_db_buffer* _buffer
 )
 {
     // accept NULL, as free does
@@ -1126,10 +1143,9 @@ d_internal_db_names_add
   The text goes in before the offset. If the offset then cannot be stored, the
 text is trimmed back off, so a failure leaves the builder exactly as it was.
 */
-bool
-d_internal_db_names_add(
-    struct d_internal_db_names* _names,
-    const char*                 _name
+bool d_internal_db_names_add(
+    struct dj_internal_db_names* _names,
+    const char*                  _name
 )
 {
     const size_t length_before = _names->text.length;
@@ -1163,10 +1179,9 @@ list -- followed by the text. Offsets are read with memcpy rather than through
 a cast pointer, which says nothing about the buffer's alignment and so cannot
 trip a strict-alignment target.
 */
-bool
-d_internal_db_names_finish(
-    struct d_internal_db_names* _names,
-    struct d_db_name_list*      _list
+bool d_internal_db_names_finish(
+    struct dj_internal_db_names* _names,
+    struct dj_db_name_list*      _list
 )
 {
     const size_t count = _names->count;
@@ -1225,9 +1240,8 @@ d_internal_db_names_finish(
 d_internal_db_names_release
   Both buffers go, and the count with them, so the builder is empty again.
 */
-void
-d_internal_db_names_release(
-    struct d_internal_db_names* _names
+void d_internal_db_names_release(
+    struct dj_internal_db_names* _names
 )
 {
     // accept NULL, as free does
@@ -1249,14 +1263,13 @@ d_internal_db_columns_add
   Three strings and a record: any of the four can fail, so the text length is
 remembered first and restored on failure, leaving the builder unchanged.
 */
-bool
-d_internal_db_columns_add(
-    struct d_internal_db_columns*  _columns,
-    const struct d_db_column_info* _column
+bool d_internal_db_columns_add(
+    struct dj_internal_db_columns*  _columns,
+    const struct dj_db_column_info* _column
 )
 {
     const size_t                       length_before = _columns->text.length;
-    struct d_internal_db_column_record record        =
+    struct dj_internal_db_column_record record        =
     {
         0u, 0u, D_INTERNAL_DB_NO_TEXT, _column->primary_key, _column->not_null,
         _column->generated
@@ -1292,10 +1305,9 @@ d_internal_db_columns_finish
   As d_internal_db_names_finish, with column descriptions in place of names
 and no terminating entry. An empty list allocates nothing.
 */
-bool
-d_internal_db_columns_finish(
-    struct d_internal_db_columns* _columns,
-    struct d_db_column_list*      _list
+bool d_internal_db_columns_finish(
+    struct dj_internal_db_columns* _columns,
+    struct dj_db_column_list*      _list
 )
 {
     const size_t count = _columns->count;
@@ -1312,9 +1324,9 @@ d_internal_db_columns_finish(
     }
 
     // refuse a list the size arithmetic could not represent
-    if ( (count > (SIZE_MAX / sizeof(struct d_db_column_info))) ||
+    if ( (count > (SIZE_MAX / sizeof(struct dj_db_column_info))) ||
          (_columns->text.length >
-          (SIZE_MAX - (count * sizeof(struct d_db_column_info)))) )
+          (SIZE_MAX - (count * sizeof(struct dj_db_column_info)))) )
     {
         d_internal_db_columns_release(_columns);
 
@@ -1322,9 +1334,9 @@ d_internal_db_columns_finish(
     }
 
     const size_t                   head  = count *
-                                           sizeof(struct d_db_column_info);
-    struct d_db_column_info* const block =
-        (struct d_db_column_info*)malloc(head + _columns->text.length);
+                                           sizeof(struct dj_db_column_info);
+    struct dj_db_column_info* const block =
+        (struct dj_db_column_info*)malloc(head + _columns->text.length);
 
     // the builder's memory goes either way
     if (!block)
@@ -1351,9 +1363,8 @@ d_internal_db_columns_finish(
 d_internal_db_columns_release
   Both buffers go, and the count with them, so the builder is empty again.
 */
-void
-d_internal_db_columns_release(
-    struct d_internal_db_columns* _columns
+void d_internal_db_columns_release(
+    struct dj_internal_db_columns* _columns
 )
 {
     // accept NULL, as free does
@@ -1378,14 +1389,14 @@ would shift every row, so it is refused.
 */
 bool
 d_internal_db_rows_column(
-    struct d_internal_db_rows* _rows,
+    struct dj_internal_db_rows* _rows,
     const char*                _name,
-    enum d_db_type             _type,
+    enum dj_db_type             _type,
     const char*                _type_name
 )
 {
     const size_t                      length_before = _rows->text.length;
-    struct d_internal_db_field_record record        = { 0u, 0u, _type };
+    struct dj_internal_db_field_record record        = { 0u, 0u, _type };
 
     // the columns come first, all of them
     if (_rows->value_count != 0u)
@@ -1418,12 +1429,11 @@ d_internal_db_rows_column(
 d_internal_db_rows_null
   A record and nothing else.
 */
-bool
-d_internal_db_rows_null(
-    struct d_internal_db_rows* _rows
+bool d_internal_db_rows_null(
+    struct dj_internal_db_rows* _rows
 )
 {
-    const struct d_internal_db_value_record record =
+    const struct dj_internal_db_value_record record =
     {
         D_DB_VALUE_NULL, 0u, 0u, 0, 0.0
     };
@@ -1435,13 +1445,12 @@ d_internal_db_rows_null(
 d_internal_db_rows_integer
   A record holding the value.
 */
-bool
-d_internal_db_rows_integer(
-    struct d_internal_db_rows* _rows,
-    int64_t                    _value
+bool d_internal_db_rows_integer(
+    struct dj_internal_db_rows* _rows,
+    int64_t                     _value
 )
 {
-    const struct d_internal_db_value_record record =
+    const struct dj_internal_db_value_record record =
     {
         D_DB_VALUE_INTEGER, 0u, 0u, _value, 0.0
     };
@@ -1453,13 +1462,12 @@ d_internal_db_rows_integer(
 d_internal_db_rows_real
   A record holding the value.
 */
-bool
-d_internal_db_rows_real(
-    struct d_internal_db_rows* _rows,
-    double                     _value
+bool d_internal_db_rows_real(
+    struct dj_internal_db_rows* _rows,
+    double                      _value
 )
 {
-    const struct d_internal_db_value_record record =
+    const struct dj_internal_db_value_record record =
     {
         D_DB_VALUE_REAL, 0u, 0u, 0, _value
     };
@@ -1471,11 +1479,10 @@ d_internal_db_rows_real(
 d_internal_db_rows_text
   The text's bytes and a terminator, which the size does not count.
 */
-bool
-d_internal_db_rows_text(
-    struct d_internal_db_rows* _rows,
-    const char*                _text,
-    size_t                     _size
+bool d_internal_db_rows_text(
+    struct dj_internal_db_rows* _rows,
+    const char*                 _text,
+    size_t                      _size
 )
 {
     return d_internal_db_rows_bytes(_rows, D_DB_VALUE_TEXT, _text, _size);
@@ -1486,11 +1493,10 @@ d_internal_db_rows_blob
   As d_internal_db_rows_text: the terminator costs one byte and lets bytes
 that happen to be text read as a C string.
 */
-bool
-d_internal_db_rows_blob(
-    struct d_internal_db_rows* _rows,
-    const void*                _bytes,
-    size_t                     _size
+bool d_internal_db_rows_blob(
+    struct dj_internal_db_rows* _rows,
+    const void*                 _bytes,
+    size_t                      _size
 )
 {
     return d_internal_db_rows_bytes(_rows, D_DB_VALUE_BLOB, _bytes, _size);
@@ -1503,15 +1509,14 @@ requires -- which on a 32-bit target need not follow the columns directly --
 and then the text. It starts with the columns, so d_db_rows_free releases it
 through `columns`. Rows without columns allocate nothing.
 */
-bool
-d_internal_db_rows_finish(
-    struct d_internal_db_rows* _rows,
-    struct d_db_rows*          _out
+bool d_internal_db_rows_finish(
+    struct dj_internal_db_rows* _rows,
+    struct dj_db_rows*          _out
 )
 {
     const size_t columns   = _rows->column_count;
     const size_t values    = _rows->value_count;
-    const size_t alignment = offsetof(struct d_internal_db_value_alignment,
+    const size_t alignment = offsetof(struct dj_internal_db_value_alignment,
                                       value);
 
     // a last row cut short
@@ -1537,18 +1542,18 @@ d_internal_db_rows_finish(
     }
 
     // refuse rows the size arithmetic could not represent
-    if ( (columns > ((SIZE_MAX / sizeof(struct d_db_field)) - alignment)) ||
-         (values > (SIZE_MAX / sizeof(struct d_db_value))) )
+    if ( (columns > ((SIZE_MAX / sizeof(struct dj_db_field)) - alignment)) ||
+         (values > (SIZE_MAX / sizeof(struct dj_db_value))) )
     {
         d_internal_db_rows_release(_rows);
 
         return false;
     }
 
-    const size_t field_bytes = columns * sizeof(struct d_db_field);
+    const size_t field_bytes = columns * sizeof(struct dj_db_field);
     const size_t value_at    = ((field_bytes + alignment - 1u) / alignment) *
                                alignment;
-    const size_t value_bytes = values * sizeof(struct d_db_value);
+    const size_t value_bytes = values * sizeof(struct dj_db_value);
 
     // and the sum of the three parts
     if ( (value_bytes > (SIZE_MAX - value_at)) ||
@@ -1570,9 +1575,9 @@ d_internal_db_rows_finish(
         return false;
     }
 
-    struct d_db_field* const field_block = (struct d_db_field*)block;
-    struct d_db_value* const value_block =
-        (values) ? (struct d_db_value*)(block + value_at) : NULL;
+    struct dj_db_field* const field_block = (struct dj_db_field*)block;
+    struct dj_db_value* const value_block =
+        (values) ? (struct dj_db_value*)(block + value_at) : NULL;
     char* const              text        = block + value_at + value_bytes;
 
     memcpy(text, _rows->text.data, _rows->text.length);
@@ -1593,9 +1598,8 @@ d_internal_db_rows_release
   The three buffers go, and the counts with them, so the builder is empty
 again.
 */
-void
-d_internal_db_rows_release(
-    struct d_internal_db_rows* _rows
+void d_internal_db_rows_release(
+    struct dj_internal_db_rows* _rows
 )
 {
     // accept NULL, as free does
@@ -1620,14 +1624,36 @@ d_internal_db_rows_release(
 //------------------------------------------------------------------------------
 /*
 d_internal_db_vformat
+  SQL's dialect, through d_internal_db_vformat_dialect.
+*/
+enum dj_internal_db_format_status
+d_internal_db_vformat(
+    struct dj_internal_db_buffer*        _out,
+    const struct dj_internal_db_quoting* _quoting,
+    const char*                         _format,
+    va_list                             _args
+)
+{
+    const struct dj_internal_db_dialect sql = D_INTERNAL_DB_SQL_DIALECT;
+
+    return d_internal_db_vformat_dialect(_out,
+                                         _quoting,
+                                         &sql,
+                                         _format,
+                                         _args);
+}
+
+/*
+d_internal_db_vformat_dialect
   The arguments are copied first, since a va_list parameter's address is not
 portably a va_list*, and the writers need one to advance it. The terminator
 is written, then left out of the length.
 */
-enum d_internal_db_format_status
-d_internal_db_vformat(
-    struct d_internal_db_buffer*        _out,
-    const struct d_internal_db_quoting* _quoting,
+enum dj_internal_db_format_status
+d_internal_db_vformat_dialect(
+    struct dj_internal_db_buffer*        _out,
+    const struct dj_internal_db_quoting* _quoting,
+    const struct dj_internal_db_dialect* _dialect,
     const char*                         _format,
     va_list                             _args
 )
@@ -1636,8 +1662,8 @@ d_internal_db_vformat(
 
     va_copy(args, _args);
 
-    const enum d_internal_db_format_status status =
-        d_internal_db_format_runs(_out, _quoting, _format, &args);
+    const enum dj_internal_db_format_status status =
+        d_internal_db_format_runs(_out, _quoting, _dialect, _format, &args);
 
     va_end(args);
 
@@ -1658,10 +1684,10 @@ d_internal_db_vformat(
 d_internal_db_format
   The variadic face of d_internal_db_vformat.
 */
-enum d_internal_db_format_status
+enum dj_internal_db_format_status
 d_internal_db_format(
-    struct d_internal_db_buffer*        _out,
-    const struct d_internal_db_quoting* _quoting,
+    struct dj_internal_db_buffer*        _out,
+    const struct dj_internal_db_quoting* _quoting,
     const char*                         _format,
     ...
 )
@@ -1670,7 +1696,7 @@ d_internal_db_format(
 
     va_start(args, _format);
 
-    const enum d_internal_db_format_status status =
+    const enum dj_internal_db_format_status status =
         d_internal_db_vformat(_out, _quoting, _format, args);
 
     va_end(args);
@@ -1690,8 +1716,7 @@ d_internal_db_parse_integer
 the limit the sign allows, and a digit that would carry past it fails before
 anything wraps.
 */
-bool
-d_internal_db_parse_integer(
+bool d_internal_db_parse_integer(
     const char* _text,
     int64_t*    _value
 )
@@ -1743,8 +1768,7 @@ d_internal_db_parse_real
 spaces, "inf" and C99's hexadecimal. strtod reads the C locale's point, so
 under a locale whose point is not `.` a copy is read in which it is.
 */
-bool
-d_internal_db_parse_real(
+bool d_internal_db_parse_real(
     const char* _text,
     double*     _value
 )
@@ -1787,10 +1811,9 @@ places as key columns, none beyond the count and none repeated, the places
 are 1 to the count. A repeat is found by comparing each place with those
 before it, which a column set's size keeps cheap.
 */
-bool
-d_internal_db_key_places_ok(
-    const struct d_db_column* _columns,
-    size_t                    _count
+bool d_internal_db_key_places_ok(
+    const struct dj_db_column* _columns,
+    size_t                     _count
 )
 {
     size_t keys   = 0u;
@@ -1851,11 +1874,10 @@ d_internal_db_key_column
   Whether the set numbers its key is asked first: then the place is the
 number, and otherwise the count of key columns met so far.
 */
-size_t
-d_internal_db_key_column(
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    size_t                    _place
+size_t d_internal_db_key_column(
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    size_t                     _place
 )
 {
     size_t seen   = 0u;

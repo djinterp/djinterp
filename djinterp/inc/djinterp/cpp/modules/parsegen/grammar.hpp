@@ -1,0 +1,620 @@
+/*******************************************************************************
+* djinterp [cpp/parsegen]                                            grammar.hpp
+*
+*   The C++ face of the neutral grammar declared in grammar.h.
+*   `node` and `rule` are ALIASES rather than derived types, because a grammar
+* is an array of each.  `grammar` derives, adds no data member, and is asserted
+* layout-identical, so a C stage reads a C++-built grammar by taking its
+* address.
+*
+*   The builder is where the C++ side earns its place.  Sequences and choices
+* take an initializer list rather than a pointer and a count, `at()` returns a
+* scope guard that restores the previous origin, and the three classic
+* repetition forms have names -- so a frontend reads as the notation it is
+* reading rather than as arena bookkeeping.
+*
+*   ONE OMISSION IS DELIBERATE: there is no `choice()`.  `ordered()` and
+* `unordered()` are the only spellings, because the difference is the language
+* the grammar denotes and a default would let a frontend get it wrong silently.
+*
+*
+* path:      /inc/djinterp/cpp/modules/parsegen/grammar.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
+
+#ifndef DJINTERP_PARSEGEN_GRAMMAR_HPP
+#define DJINTERP_PARSEGEN_GRAMMAR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <cstddef>                  // std::size_t
+#include <initializer_list>         // std::initializer_list
+#include <type_traits>              // std::is_standard_layout
+// djinterp
+#include "../parse/charset.hpp"     // parse::charset
+#include "../parse/diagnostic.hpp"  // parse::diagnostics
+#include "../../../c/modules/parsegen/grammar.h"            // the C grammar this layer faces
+#include "./registry.hpp"           // parsegen::DFeatureSet, NS_PARSEGEN
+// re_std
+#include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint16_t, uint32_t,
+                                             // int32_t, uint64_t
+
+
+NS_DJINTERP
+NS_PARSEGEN
+
+
+// node
+//   type: one expression node, unchanged.  An alias, because a grammar is an
+// array of them and forming a pointer to a derived type over an array of its
+// base is the one thing this layer must not do.
+using node = ::dj_parsegen_node;
+
+// rule
+//   type: one named production, unchanged, for the same reason.
+using rule = ::dj_parsegen_rule;
+
+// DNodeKind
+//   enum: what an expression node is.  Ordered and unordered choice are
+// separate kinds, so there is no neutral spelling to reach for by accident.
+enum class DNodeKind : re_std::uint16_t
+{
+    empty            = D_PARSEGEN_NODE_EMPTY,
+    any              = D_PARSEGEN_NODE_ANY,
+    klass            = D_PARSEGEN_NODE_CLASS,
+    literal          = D_PARSEGEN_NODE_LITERAL,
+    ref              = D_PARSEGEN_NODE_REF,
+    sequence         = D_PARSEGEN_NODE_SEQUENCE,
+    ordered_choice   = D_PARSEGEN_NODE_ORDERED_CHOICE,
+    unordered_choice = D_PARSEGEN_NODE_UNORDERED_CHOICE,
+    repeat           = D_PARSEGEN_NODE_REPEAT,
+    capture          = D_PARSEGEN_NODE_CAPTURE,
+    and_predicate    = D_PARSEGEN_NODE_AND_PREDICATE,
+    not_predicate    = D_PARSEGEN_NODE_NOT_PREDICATE,
+    action           = D_PARSEGEN_NODE_ACTION
+};
+
+// unbounded
+//   constant: the repetition maximum meaning no limit.
+constexpr re_std::uint32_t unbounded = D_PARSEGEN_UNBOUNDED;
+
+// no_node
+//   constant: the node index meaning none.
+constexpr re_std::int32_t no_node = D_PARSEGEN_NO_NODE;
+
+
+// grammar
+//   class: the nodes, the rules, their pool, and the capability set the whole
+// thing uses -- with lifetime.  Move-only, as every owning container here is.
+class grammar : public dj_parsegen_grammar
+{
+public:
+    using const_iterator = const rule*;
+
+    // DOriginScope
+    //   class: restores the grammar's attribution cursor when it goes out of
+    // scope, so a frontend can attribute a subtree without having to remember
+    // what the cursor was before it.
+    class DOriginScope
+    {
+    public:
+        // DOriginScope
+        //   constructor: aims the cursor at a source range, remembering the
+        // previous one.
+        DOriginScope(
+            dj_parsegen_grammar& _grammar,
+            re_std::uint32_t       _offset,
+            re_std::uint32_t       _length
+        ) noexcept
+            : m_grammar(&_grammar),
+              m_offset(_grammar.origin_offset),
+              m_length(_grammar.origin_length)
+        {
+            d_parsegen_grammar_at(m_grammar, _offset, _length);
+        }
+
+        DOriginScope(
+            const DOriginScope&
+        ) = delete;
+        DOriginScope& operator=(
+            const DOriginScope&
+        ) = delete;
+
+        // DOriginScope (move)
+        //   constructor: hands the restore over; the moved-from guard
+        // restores nothing. at() returns a guard by value, which before
+        // C++17 needs this constructor even where the move is elided.
+        DOriginScope(
+            DOriginScope&& _other
+        ) noexcept
+            : m_grammar(_other.m_grammar),
+              m_offset(_other.m_offset),
+              m_length(_other.m_length)
+        {
+            _other.m_grammar = D_NULLPTR;
+        }
+
+        // ~DOriginScope
+        //   destructor: restores the previous cursor, unless moved from.
+        ~DOriginScope() noexcept
+        {
+            // a moved-from guard has nothing to restore
+            if (m_grammar)
+            {
+                d_parsegen_grammar_at(m_grammar, m_offset, m_length);
+            }
+        }
+
+    private:
+        dj_parsegen_grammar* m_grammar;
+        re_std::uint32_t       m_offset;
+        re_std::uint32_t       m_length;
+    };
+
+    // grammar
+    //   constructor: an empty grammar owning nothing.
+    grammar() noexcept
+    {
+        d_parsegen_grammar_init(this);
+    }
+
+    grammar(
+        const grammar&
+    ) = delete;
+    grammar& operator=(
+        const grammar&
+    ) = delete;
+
+    // grammar
+    //   constructor: takes over another grammar's storage and ownership.
+    grammar(
+        grammar&& _other
+    ) noexcept
+        : dj_parsegen_grammar(_other)
+    {
+        d_parsegen_grammar_init(&_other);
+    }
+
+    // operator=
+    //   function: releases this grammar, then takes over another's.
+    grammar&
+    operator=(
+        grammar&& _other
+    ) noexcept
+    {
+        // guard against self-move, which would release the storage being taken
+        if (this != &_other)
+        {
+            d_parsegen_grammar_release(this);
+
+            static_cast<dj_parsegen_grammar&>(*this) = _other;
+
+            d_parsegen_grammar_init(&_other);
+        }
+
+        return *this;
+    }
+
+    // ~grammar
+    //   destructor: releases any storage this grammar owns, pool included.
+    ~grammar() noexcept
+    {
+        d_parsegen_grammar_release(this);
+    }
+
+#if (D_INTERNAL_PARSEGEN_GRAMMAR_HEAP == 1)
+    // reserve
+    //   function: replaces this grammar's storage with storage it allocates
+    // and owns, which then grows on demand.
+    D_NODISCARD bool reserve(
+        re_std::uint32_t _nodes = 0u,
+        re_std::uint32_t _rules = 0u
+    ) noexcept
+    {
+        d_parsegen_grammar_release(this);
+
+        return (d_parsegen_grammar_init_heap(this, _nodes, _rules) == 0);
+    }
+#endif  // D_INTERNAL_PARSEGEN_GRAMMAR_HEAP
+
+    // at
+    //   function: aims the attribution cursor at a source range for as long as
+    // the returned guard lives.
+    D_NODISCARD DOriginScope at(
+        re_std::uint32_t _offset,
+        re_std::uint32_t _length
+    ) noexcept
+    {
+        return DOriginScope(*this, _offset, _length);
+    }
+
+    // from
+    //   function: records which notation this grammar was read from.
+    void from(
+        const char* _notation
+    ) noexcept
+    {
+        d_parsegen_grammar_notation(this, _notation);
+    }
+
+    // empty_expr
+    //   function: the expression matching nothing at all.
+    re_std::int32_t empty_expr() noexcept
+    {
+        return d_parsegen_empty(this);
+    }
+
+    // any
+    //   function: the expression matching any one symbol.
+    re_std::int32_t any() noexcept
+    {
+        return d_parsegen_any(this);
+    }
+
+    // klass
+    //   function: the expression matching one symbol from a set.
+    re_std::int32_t klass(
+        const dj_parse_charset& _set
+    ) noexcept
+    {
+        return d_parsegen_class(this, &_set);
+    }
+
+    // literal
+    //   function: the expression matching an exact sequence of symbols.
+    re_std::int32_t literal(
+        const char* _text
+    ) noexcept
+    {
+        return d_parsegen_literal(this, _text);
+    }
+
+    // ref
+    //   function: a reference to a rule by name, bound later by resolve().
+    re_std::int32_t ref(
+        const char* _name
+    ) noexcept
+    {
+        return d_parsegen_ref(this, _name);
+    }
+
+    // sequence
+    //   function: the expression matching each child in order.
+    re_std::int32_t sequence(
+        std::initializer_list<re_std::int32_t> _children
+    ) noexcept
+    {
+        return d_parsegen_sequence(this,
+                                   _children.begin(),
+                                   static_cast<re_std::uint32_t>(
+                                       _children.size()));
+    }
+
+    // ordered
+    //   function: PEG's `/` -- the FIRST child that matches wins and commits.
+    re_std::int32_t ordered(
+        std::initializer_list<re_std::int32_t> _children
+    ) noexcept
+    {
+        return d_parsegen_ordered(this,
+                                  _children.begin(),
+                                  static_cast<re_std::uint32_t>(
+                                      _children.size()));
+    }
+
+    // unordered
+    //   function: BNF's `|` -- ANY child may match and the order carries no
+    // meaning.  A grammar using this may be ambiguous.
+    re_std::int32_t unordered(
+        std::initializer_list<re_std::int32_t> _children
+    ) noexcept
+    {
+        return d_parsegen_unordered(this,
+                                    _children.begin(),
+                                    static_cast<re_std::uint32_t>(
+                                        _children.size()));
+    }
+
+    // repeat
+    //   function: the expression matching its child between two bounds.
+    re_std::int32_t repeat(
+        re_std::int32_t  _child,
+        re_std::uint32_t _minimum,
+        re_std::uint32_t _maximum
+    ) noexcept
+    {
+        return d_parsegen_repeat(this, _child, _minimum, _maximum);
+    }
+
+    // optional
+    //   function: `?` -- {0, 1}.
+    re_std::int32_t optional(
+        re_std::int32_t _child
+    ) noexcept
+    {
+        return repeat(_child, 0u, 1u);
+    }
+
+    // star
+    //   function: `*` -- {0, unbounded}.
+    re_std::int32_t star(
+        re_std::int32_t _child
+    ) noexcept
+    {
+        return repeat(_child, 0u, unbounded);
+    }
+
+    // plus
+    //   function: `+` -- {1, unbounded}.
+    re_std::int32_t plus(
+        re_std::int32_t _child
+    ) noexcept
+    {
+        return repeat(_child, 1u, unbounded);
+    }
+
+    // capture
+    //   function: tags a subexpression so what it matched can be recovered.
+    re_std::int32_t capture(
+        re_std::int32_t _child,
+        re_std::int32_t _tag,
+        const char*     _name = nullptr
+    ) noexcept
+    {
+        return d_parsegen_capture(this, _child, _tag, _name);
+    }
+
+    // require
+    //   function: `&` -- asserts the child matches here, consuming nothing.
+    re_std::int32_t require(
+        re_std::int32_t _child
+    ) noexcept
+    {
+        return d_parsegen_predicate(this, _child, 0);
+    }
+
+    // forbid
+    //   function: `!` -- asserts the child does NOT match here, consuming
+    // nothing.
+    re_std::int32_t forbid(
+        re_std::int32_t _child
+    ) noexcept
+    {
+        return d_parsegen_predicate(this, _child, 1);
+    }
+
+    // action
+    //   function: attaches host-language code to a subexpression.
+    re_std::int32_t action(
+        re_std::int32_t _child,
+        const char*     _code
+    ) noexcept
+    {
+        return d_parsegen_action(this, _child, _code);
+    }
+
+    // define
+    //   function: declares a named production.  The first one declared is the
+    // start symbol unless the grammar says otherwise.
+    D_NODISCARD bool define(
+        const char*      _name,
+        re_std::int32_t  _body,
+        re_std::uint16_t _flags = 0u
+    ) noexcept
+    {
+        return (d_parsegen_rule_add(this, _name, _body, _flags) == 0);
+    }
+
+    // node_at
+    //   accessor: the node at an index, or null.
+    const node* node_at(
+        re_std::int32_t _index
+    ) const noexcept
+    {
+        return d_parsegen_node_at(this, _index);
+    }
+
+    // rule_at
+    //   accessor: the rule at an index, or null.
+    const rule* rule_at(
+        re_std::uint32_t _index
+    ) const noexcept
+    {
+        return d_parsegen_rule_at(this, _index);
+    }
+
+    // name_of
+    //   accessor: the name of a rule, or "".  Never null.
+    const char* name_of(
+        re_std::uint32_t _index
+    ) const noexcept
+    {
+        return d_parsegen_rule_name(this, _index);
+    }
+
+    // index_of
+    //   accessor: the index of a rule by name, or -1.
+    re_std::int32_t index_of(
+        const char* _name
+    ) const noexcept
+    {
+        return d_parsegen_rule_index(this, _name);
+    }
+
+    // resolve
+    //   function: binds every reference to the rule it names, reporting every
+    // unbound one.  Does not compute LEFT_RECURSION -- that is analysis's.
+    D_NODISCARD bool resolve(
+        dj_parse_diag_sink* _diag = nullptr
+    ) noexcept
+    {
+        return (d_parsegen_grammar_resolve(this, _diag) == 0);
+    }
+
+    // verify
+    //   function: checks that the arena is well formed, reporting every
+    // problem rather than the first.
+    D_NODISCARD bool verify(
+        dj_parse_diag_sink* _diag = nullptr
+    ) noexcept
+    {
+        return (d_parsegen_grammar_verify(this, _diag) == 0);
+    }
+
+    // resolved
+    //   accessor: whether every reference has been bound since the last edit.
+    D_CONSTEXPR_CPP14
+    bool resolved() const noexcept
+    {
+        return ((flags & D_PARSEGEN_GRAMMAR_RESOLVED) != 0u);
+    }
+
+    // verified
+    //   accessor: whether structure has been checked since the last edit.
+    D_CONSTEXPR_CPP14
+    bool verified() const noexcept
+    {
+        return ((flags & D_PARSEGEN_GRAMMAR_VERIFIED) != 0u);
+    }
+
+    // uses
+    //   accessor: the capabilities this grammar actually uses, accumulated as
+    // it was built.  What a registry query matches a family against.
+    DFeatureSet uses() const noexcept
+    {
+        return DFeatureSet(features);
+    }
+
+    // digest
+    //   accessor: a 64-bit key over the structure, the rules, and the pool --
+    // not over source positions, so two spellings of one grammar agree.
+    re_std::uint64_t digest() const noexcept
+    {
+        return d_parsegen_grammar_hash(this);
+    }
+
+    // render
+    //   function: writes the whole grammar in the canonical notation, `/` for
+    // ordered choice and `|` for unordered.
+    std::size_t render(
+        char*       _out,
+        std::size_t _size
+    ) const noexcept
+    {
+        return d_parsegen_grammar_render(this, _out, _size);
+    }
+
+    // render_expr
+    //   function: writes one expression in the canonical notation.
+    std::size_t render_expr(
+        re_std::int32_t _node,
+        char*           _out,
+        std::size_t     _size
+    ) const noexcept
+    {
+        return d_parsegen_expr_render(this, _node, _out, _size);
+    }
+
+    // size
+    //   accessor: how many rules the grammar declares.
+    D_CONSTEXPR_CPP14
+    re_std::uint32_t size() const noexcept
+    {
+        return rule_count;
+    }
+
+    // nodes_used
+    //   accessor: how many expression nodes the grammar holds.
+    D_CONSTEXPR_CPP14
+    re_std::uint32_t nodes_used() const noexcept
+    {
+        return node_count;
+    }
+
+    // begin
+    //   accessor: a pointer to the first rule.
+    D_CONSTEXPR_CPP14
+    const_iterator begin() const noexcept
+    {
+        return rules;
+    }
+
+    // end
+    //   accessor: a pointer one past the last rule.
+    D_CONSTEXPR_CPP14
+    const_iterator end() const noexcept
+    {
+        return (rules != nullptr) ? (rules + rule_count) : nullptr;
+    }
+};
+
+
+// DFixedGrammar
+//   class: a grammar carrying its own node arena, rule table, and pool, for a
+// frontend that must not allocate -- a build with no allocator, or one that
+// caps how large a grammar it will accept.  The same shape every other
+// container here offers.
+template<re_std::uint32_t Nodes,
+         re_std::uint32_t Rules,
+         re_std::uint32_t PoolBytes    = 1024u,
+         re_std::uint32_t PoolEntries = 64u>
+class DFixedGrammar : public grammar
+{
+public:
+    // DFixedGrammar
+    //   constructor: binds the embedded storage as this grammar's.
+    DFixedGrammar() noexcept
+    {
+        d_parsegen_grammar_init(this);
+
+        this->nodes         = m_nodes;
+        this->node_capacity = Nodes;
+        this->rules         = m_rules;
+        this->rule_capacity = Rules;
+
+        d_parse_pool_init(&this->pool,
+                          m_bytes,
+                          PoolBytes,
+                          m_entries,
+                          PoolEntries);
+    }
+
+private:
+    node               m_nodes[Nodes];
+    rule               m_rules[Rules];
+    char               m_bytes[PoolBytes];
+    dj_parse_pool_entry m_entries[PoolEntries];
+};
+
+
+//   The claim this type costs nothing over the C one, checked.
+static_assert(sizeof(node) == 28u,
+              "an expression node is twenty-eight bytes: kind, flags, two "
+              "links, two operands, and a source range");
+static_assert(std::is_trivial<node>::value,
+              "an expression node must remain trivial, or a grammar stops "
+              "being memcpy-able");
+static_assert(std::is_standard_layout<node>::value,
+              "an expression node must remain standard-layout");
+static_assert(sizeof(grammar) == sizeof(dj_parsegen_grammar),
+              "parsegen::grammar must add no data member");
+static_assert(alignof(grammar) == alignof(dj_parsegen_grammar),
+              "parsegen::grammar must add no data member");
+static_assert(std::is_standard_layout<grammar>::value,
+              "parsegen::grammar must remain standard-layout");
+
+
+NS_END  // parsegen
+NS_END  // djinterp
+
+#endif  // floor, for now
+
+
+#endif  // DJINTERP_PARSEGEN_GRAMMAR_HPP

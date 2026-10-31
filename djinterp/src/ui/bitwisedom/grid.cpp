@@ -185,7 +185,7 @@ struct header_drag
 //   the grid's state between frames, of the document whose grid is being
 // drawn: each document's grid has its own, so a drag in one never reaches
 // another drawn after it in the same frame.
-header_drag&  the_header_drag();
+header_drag& the_header_drag();
 
 // widening
 //   struct: a drag of a boundary in the ruler, which sizes every bit's cell
@@ -383,11 +383,11 @@ struct layout
     std::map<int, tally> subtotals;
 };
 
-stroke&       the_stroke();
-resize&       the_resize();
-widening&     the_widening();
-band_click&   the_band_click();
-draft&        the_draft();
+stroke& the_stroke();
+resize& the_resize();
+widening& the_widening();
+band_click& the_band_click();
+draft& the_draft();
 
 // rest
 //   struct: what the mouse rests on in the grid's pinned columns or its
@@ -399,13 +399,12 @@ struct rest
     double since = 0.0;
 };
 
-rest&         the_rest();
+rest& the_rest();
 
 // rested
 //   whether the mouse has rested on what _key names long enough for its
 // tooltip; -1 is nothing, and starts the wait again.
-bool
-rested(
+bool rested(
     long _key
 )
 {
@@ -499,92 +498,78 @@ struct grid_state
 // states / drawing / drawn_last
 //   every document's grid state, by the document's id; the document whose
 // grid is being drawn; and the one drawn last, which grid_spot reads.
-std::map<int, grid_state>&
-states()
+std::map<int, grid_state>& states()
 {
     static std::map<int, grid_state> held;
 
     return held;
 }
 
-int&
-drawing()
+int& drawing()
 {
     static int id = 0;
 
     return id;
 }
 
-int&
-drawn_last()
+int& drawn_last()
 {
     static int id = 0;
 
     return id;
 }
 
-header_drag&
-the_header_drag()
+header_drag& the_header_drag()
 {
     return states()[drawing()].headings;
 }
 
-stroke&
-the_stroke()
+stroke& the_stroke()
 {
     return states()[drawing()].drag;
 }
 
-resize&
-the_resize()
+resize& the_resize()
 {
     return states()[drawing()].sizing;
 }
 
-widening&
-the_widening()
+widening& the_widening()
 {
     return states()[drawing()].widen;
 }
 
-band_click&
-the_band_click()
+band_click& the_band_click()
 {
     return states()[drawing()].band;
 }
 
-draft&
-the_draft()
+draft& the_draft()
 {
     return states()[drawing()].typed;
 }
 
-rest&
-the_rest()
+rest& the_rest()
 {
     return states()[drawing()].resting;
 }
 
-sighting&
-the_sighting()
+sighting& the_sighting()
 {
     return states()[drawing()].seen;
 }
 
-int&
-the_named()
+int& the_named()
 {
     return states()[drawing()].named;
 }
 
-int&
-the_special()
+int& the_special()
 {
     return states()[drawing()].special;
 }
 
-reveal&
-the_reveal()
+reveal& the_reveal()
 {
     return states()[drawing()].shown;
 }
@@ -592,8 +577,7 @@ the_reveal()
 // keyboard_frame
 //   the last frame a grid had the keyboard: the window's own shortcuts
 // leave it the keys it takes.
-int&
-keyboard_frame()
+int& keyboard_frame()
 {
     static int frame = -1;
 
@@ -620,13 +604,17 @@ struct nav_cell
     int row    = 0;
     int column = 0;
 
-    bool operator==(const nav_cell& _other) const
+    bool operator==(
+        const nav_cell& _other
+    ) const
     {
         return ( (row == _other.row) &&
                  (column == _other.column) );
     }
 
-    bool operator!=(const nav_cell& _other) const
+    bool operator!=(
+        const nav_cell& _other
+    ) const
     {
         return !(*this == _other);
     }
@@ -640,8 +628,7 @@ that run; otherwise the next cell with something in it; and with none, the
 line's end. At the line's end already, nowhere.
 */
 template <typename FILLED>
-int
-edge_along(
+int edge_along(
     int    _from,
     int    _step,
     int    _count,
@@ -690,8 +677,7 @@ count_within
 among the group's rows, at any depth -- the rows after it in the
 resolution's depth-first order, until one no deeper than it.
 */
-tally
-count_within(
+tally count_within(
     const resolution& _res,
     int               _scope,
     int               _width
@@ -746,8 +732,7 @@ count_within(
 // any_in / count_in
 //   whether a value has a bit set in [_lsb, _msb], and how many: what a
 // column shows of a row, in a sheet of any width.
-bool
-any_in(
+bool any_in(
     const wide& _value,
     int         _lsb,
     int         _msb
@@ -759,8 +744,7 @@ any_in(
              (first <= _msb) );
 }
 
-int
-count_in(
+int count_in(
     const wide& _value,
     int         _lsb,
     int         _msb
@@ -780,8 +764,7 @@ count_in(
 
 // bit_label
 //   a bit's number as the sheet's numbering names it.
-int
-bit_label(
+int bit_label(
     const sheet& _sheet,
     int          _bit
 )
@@ -792,8 +775,7 @@ bit_label(
 
 // byte_label
 //   the byte a bit is in, as the sheet's byte numbering names it.
-int
-byte_label(
+int byte_label(
     const sheet& _sheet,
     int          _bit
 )
@@ -805,8 +787,7 @@ byte_label(
 
 // kind_colour
 //   the colour a definition kind is drawn in, in the "kind" colour mode.
-rgba
-kind_colour(
+rgba kind_colour(
     def_kind _kind
 )
 {
@@ -825,8 +806,7 @@ kind_colour(
 
 // set_colour
 //   the colour a row's set bits are drawn in.
-rgba
-set_colour(
+rgba set_colour(
     const model&        _model,
     const resolved_row& _row
 )
@@ -862,8 +842,7 @@ set_colour(
 
 // initials
 //   the first letter of each underscore-separated part: PARITY_EVEN, PE.
-std::string
-initials(
+std::string initials(
     const std::string& _name
 )
 {
@@ -894,8 +873,7 @@ initials(
 // form, its initials, or as much of it as fits with ".." after. A wide
 // sheet's values run to thousands of digits, so the cut is found by
 // halving: a longer start is never the narrower.
-std::string
-fit(
+std::string fit(
     const std::string& _name,
     const std::string& _short,
     float              _width
@@ -958,8 +936,7 @@ fit(
 // fit_tail
 //   as much of a value's end as fits a width, with ".." before it: a value
 // lined up at the right keeps its low digits, where values differ most.
-std::string
-fit_tail(
+std::string fit_tail(
     const std::string& _value,
     float              _width
 )
@@ -1005,8 +982,7 @@ fit_tail(
 // shown_value
 //   a value as the value column writes it: in its row's radix, with the
 // radix's C prefix.
-std::string
-shown_value(
+std::string shown_value(
     u64   _value,
     radix _radix,
     int   _width
@@ -1036,8 +1012,7 @@ shown_value(
 //   a value as the value column writes it in a sheet of any width: as the
 // narrow form where it fits an integer, else as its runs -- a wide sheet's
 // hex is mostly zeros, and says less than where its bits are.
-std::string
-shown_wide(
+std::string shown_wide(
     const wide& _value,
     radix       _radix,
     int         _width
@@ -1055,8 +1030,7 @@ shown_wide(
 //   whether a sheet _width bits wide writes values in _form: decimal and
 // binary only within an integer's width -- a wider sheet writes them in
 // hex.
-bool
-form_fits(
+bool form_fits(
     value_form _form,
     int        _width
 )
@@ -1070,8 +1044,7 @@ form_fits(
 //   the form a press on the value button takes after _form: the next one,
 // round again after the last, past any a sheet _width bits wide does not
 // write.
-value_form
-next_form(
+value_form next_form(
     value_form _form,
     int        _width
 )
@@ -1096,8 +1069,7 @@ next_form(
 // clip rectangle shows: a line across a sheet of thousands of bits runs a
 // million pixels past the window, and a GPU given such a line may draw
 // stray pixels where it should draw none.
-void
-draw_line(
+void draw_line(
     ImDrawList*      _list,
     ImVec2           _a,
     ImVec2           _b,
@@ -1204,8 +1176,7 @@ struct band_index
 // band_for
 //   the band a bit lies in: the first of the sheet's segments that holds
 // it, else the automatic one, else none (-1).
-int
-band_for(
+int band_for(
     const sheet&       _sheet,
     std::vector<band>& _bands,
     band_index&        _index,
@@ -1292,8 +1263,7 @@ into: the row selected first, when it holds rows and is open; else the
 group or range it is in -- not the sheet's root, whose rows the add row
 adds to. 0 when nothing is selected.
 */
-int
-adding_into(
+int adding_into(
     const model& _model
 )
 {
@@ -1322,8 +1292,7 @@ adding_into(
 
 // lay_out
 //   the frame's columns and rows, filling _room as the sheet says.
-layout
-lay_out(
+layout lay_out(
     const model& _model,
     float        _room
 )
@@ -1810,8 +1779,7 @@ lay_out(
 
 // column_at
 //   the column under an x measured from the cells' left edge, or -1.
-int
-column_at(
+int column_at(
     const layout& _layout,
     float         _x
 )
@@ -1842,8 +1810,7 @@ column_at(
 
 // cell_text
 //   what a collapsed column shows of a value.
-std::string
-cell_text(
+std::string cell_text(
     const model&  _model,
     const column& _column,
     const wide&   _value
@@ -1883,8 +1850,7 @@ cell_text(
 
 // preview_after
 //   a row's value after the previewed operation, if it is a target.
-bool
-preview_after(
+bool preview_after(
     const model& _model,
     int          _id,
     wide&        _after
@@ -1989,7 +1955,9 @@ private:
         return view_min.x + (l.values_first ? 0.0f : l.name_w);
     }
 
-    float cells_x(float _x) const
+    float cells_x(
+        float _x
+    ) const
     {
         return origin.x + l.name_w + l.value_w + _x;
     }
@@ -1997,7 +1965,9 @@ private:
     // row_y
     //   a row's top. The special rows pinned at the bottom are at the
     // grid's foot while the rows above leave room, and after them when not.
-    float row_y(std::size_t _index) const
+    float row_y(
+        std::size_t _index
+    ) const
     {
         float y = origin.y + l.header_h + static_cast<float>(_index) * l.row_h;
 
@@ -2016,7 +1986,9 @@ private:
 
     // usage_of
     //   what a usage row counts: its scope's, or the sheet's.
-    const std::vector<int>& usage_of(const grid_row& _row) const
+    const std::vector<int>& usage_of(
+        const grid_row& _row
+    ) const
     {
         const auto found = l.subtotals.find(_row.scope);
 
@@ -2025,7 +1997,9 @@ private:
                                                 : m.res.usage;
     }
 
-    int allocated_of(const grid_row& _row) const
+    int allocated_of(
+        const grid_row& _row
+    ) const
     {
         const auto found = l.subtotals.find(_row.scope);
 
@@ -2038,7 +2012,9 @@ private:
     // special_label
     //   what a special row's name column says: "probe", "allocated", or a
     // usage row in a group, "allocated in" the group.
-    std::string special_label(const grid_row& _row) const
+    std::string special_label(
+        const grid_row& _row
+    ) const
     {
         if (_row.kind == shown::probe)
         {
@@ -2056,7 +2032,9 @@ private:
 
     // special_left
     //   where a special row's name begins: as deep as the rows it is among.
-    float special_left(const grid_row& _row) const
+    float special_left(
+        const grid_row& _row
+    ) const
     {
         return name_x() + 6.0f +
                static_cast<float>(_row.depth) * ui_scale() * grid.indent;
@@ -2102,71 +2080,145 @@ private:
     }
 
     // where things are, and what they say
-    spot        at(ImVec2 _point) const;
-    float       name_left(const resolved_row& _row) const;
-    float       child_left(const resolved_row& _holder) const;
-    std::string shown_name(const resolved_row& _row) const;
-    std::string value_text(const resolved_row& _row) const;
-    int         names_by() const;
-    bool        by_value(const resolved_row& _row) const;
-    value_form  shown_form() const;
-    std::string listed_value(const resolved_row& _row) const;
-    std::string set_bits(const wide& _bits) const;
-    std::string listed(const resolved_row& _row) const;
-    float       label_width(const resolved_row& _row) const;
+    spot at(
+        ImVec2 _point
+    ) const;
+    float name_left(
+        const resolved_row& _row
+    ) const;
+    float child_left(
+        const resolved_row& _holder
+    ) const;
+    std::string shown_name(
+        const resolved_row& _row
+    ) const;
+    std::string value_text(
+        const resolved_row& _row
+    ) const;
+    int names_by() const;
+    bool by_value(
+        const resolved_row& _row
+    ) const;
+    value_form shown_form() const;
+    std::string listed_value(
+        const resolved_row& _row
+    ) const;
+    std::string set_bits(
+        const wide& _bits
+    ) const;
+    std::string listed(
+        const resolved_row& _row
+    ) const;
+    float label_width(
+        const resolved_row& _row
+    ) const;
     std::string value_tip() const;
     std::string probe_text() const;
-    float       fit_names() const;
-    float       fit_values() const;
-    int         cells_before(int _boundary) const;
-    bool        renaming_here() const;
-    bool        text_row(const grid_row& _row) const;
-    ImU32       row_ground(const grid_row& _row) const;
-    std::vector<const display_rule*> rules_for(const grid_row& _row) const;
-    float       add_width() const;
-    float       add_end() const;
+    float fit_names() const;
+    float fit_values() const;
+    int cells_before(
+        int _boundary
+    ) const;
+    bool renaming_here() const;
+    bool text_row(
+        const grid_row& _row
+    ) const;
+    ImU32 row_ground(
+        const grid_row& _row
+    ) const;
+    std::vector<const display_rule*> rules_for(
+        const grid_row& _row
+    ) const;
+    float add_width() const;
+    float add_end() const;
 
     void rows_background();
-    void row_cells(std::size_t _index, const grid_row& _row);
-    void row_note(std::size_t _index, const grid_row& _row);
-    void row_label(std::size_t _index, const grid_row& _row);
+    void row_cells(
+        std::size_t     _index,
+        const grid_row& _row
+    );
+    void row_note(
+        std::size_t     _index,
+        const grid_row& _row
+    );
+    void row_label(
+        std::size_t     _index,
+        const grid_row& _row
+    );
     void lines();
     void place_buttons();
     void name_buttons();
     void header();
     void interact();
     void respond();
-    void open_menu(const spot& _under);
-    bool field_place(const draft& _typed, ImVec2& _min, ImVec2& _max);
+    void open_menu(
+        const spot& _under
+    );
+    bool field_place(
+        const draft& _typed,
+        ImVec2&      _min,
+        ImVec2&      _max
+    );
     void rename_field();
     void child_field();
     void row_drag();
-    void drop_special(long _id, const spot& _under, bool _delivered);
-    void tooltip(const grid_row& _row, const column& _column);
-    void pinned_tooltip(const grid_row& _row, const spot& _under);
-    void heading_tooltip(const spot& _under, ImVec2 _mouse);
-    std::string definition(const resolved_row& _row) const;
+    void drop_special(
+        long        _id,
+        const spot& _under,
+        bool        _delivered
+    );
+    void tooltip(
+        const grid_row& _row,
+        const column&   _column
+    );
+    void pinned_tooltip(
+        const grid_row& _row,
+        const spot&     _under
+    );
+    void heading_tooltip(
+        const spot& _under,
+        ImVec2      _mouse
+    );
+    std::string definition(
+        const resolved_row& _row
+    ) const;
     void remember() const;
 
     // the cursor: the rows and columns it stops on, what a cell holds, and
     // the keys that move it, as Excel's do
     std::vector<std::size_t> nav_rows() const;
-    std::vector<nav_column>  nav_columns() const;
-    int  row_key(std::size_t _index) const;
-    int  row_index(int _key) const;
-    int  column_index(int _id) const;
-    bool filled(const grid_row& _row, const nav_column& _column) const;
+    std::vector<nav_column> nav_columns() const;
+    int row_key(
+        std::size_t _index
+    ) const;
+    int row_index(
+        int _key
+    ) const;
+    int column_index(
+        int _id
+    ) const;
+    bool filled(
+        const grid_row&   _row,
+        const nav_column& _column
+    ) const;
     bool has_keyboard() const;
     void keys();
-    void go(const std::vector<std::size_t>& _rows,
-            const std::vector<nav_column>&  _columns,
-            const nav_cell&                 _cursor,
-            const nav_cell&                 _from,
-            const nav_cell&                 _to,
-            bool                            _shown_to,
-            int                             _tab);
-    void next_sheet(int _step);
-    void scroll_to(int _row, int _column);
+    void go(
+        const std::vector<std::size_t>& _rows,
+        const std::vector<nav_column>&  _columns,
+        const nav_cell&                 _cursor,
+        const nav_cell&                 _from,
+        const nav_cell&                 _to,
+        bool                            _shown_to,
+        int                             _tab
+    );
+    void next_sheet(
+        int _step
+    );
+    void scroll_to(
+        int _row,
+        int _column
+    );
     void cursor_mark();
 };
 
@@ -2176,8 +2228,7 @@ painter::at
 down the grid, the nearer one when the two are close; a ruler boundary
 only in the ruler, at a column's right edge with a cell left of it.
 */
-spot
-painter::at(
+spot painter::at(
     ImVec2 _point
 ) const
 {
@@ -2277,8 +2328,7 @@ painter::at(
 // painter::name_left
 //   where a row's name begins: past its indent, a group's arrow, and its
 // colour chip.
-float
-painter::name_left(
+float painter::name_left(
     const resolved_row& _row
 ) const
 {
@@ -2299,8 +2349,7 @@ painter::name_left(
 // painter::child_left
 //   where the "Add child..." field under a group's or a range's rows
 // begins: where a symbol's name one level deeper does.
-float
-painter::child_left(
+float painter::child_left(
     const resolved_row& _holder
 ) const
 {
@@ -2313,8 +2362,7 @@ painter::child_left(
 
 // painter::shown_name
 //   a row's name as the name column writes it, before it is fitted.
-std::string
-painter::shown_name(
+std::string painter::shown_name(
     const resolved_row& _row
 ) const
 {
@@ -2328,8 +2376,7 @@ painter::shown_name(
 
 // painter::value_text
 //   a row's value as the value column writes it, before it is fitted.
-std::string
-painter::value_text(
+std::string painter::value_text(
     const resolved_row& _row
 ) const
 {
@@ -2360,8 +2407,7 @@ painter::value_text(
 // painter::names_by
 //   what the name column lists each row by, as its buttons number it: 0
 // its symbol name, 1 its own name, 2 its value.
-int
-painter::names_by() const
+int painter::names_by() const
 {
     if (grid.names_by_value)
     {
@@ -2375,8 +2421,7 @@ painter::names_by() const
 //   whether the name column writes a row's value where its name would be:
 // by value, a symbol's that has one. A group is no symbol, and keeps its
 // name, as it does by symbol name.
-bool
-painter::by_value(
+bool painter::by_value(
     const resolved_row& _row
 ) const
 {
@@ -2388,8 +2433,7 @@ painter::by_value(
 // painter::shown_form
 //   the form the name column writes values in: the sheet's, or hex for a
 // form a sheet as wide as this one does not write.
-value_form
-painter::shown_form() const
+value_form painter::shown_form() const
 {
     return form_fits(grid.names_value_form, doc.width)
                ? grid.names_value_form
@@ -2406,8 +2450,7 @@ set bit -- or, for a value in a field, the number the field holds shifted
 to the field's lowest bit -- the way the header writes masks; or as the
 bits it sets.
 */
-std::string
-painter::listed_value(
+std::string painter::listed_value(
     const resolved_row& _row
 ) const
 {
@@ -2471,8 +2514,7 @@ painter::set_bits
 numbering as the ruler names a run: "bit 4", "bits 5:4", "bits 31:28, 7";
 past RUNS_MOST runs, how many more there are; "no bits" for none.
 */
-std::string
-painter::set_bits(
+std::string painter::set_bits(
     const wide& _bits
 ) const
 {
@@ -2531,8 +2573,7 @@ painter::set_bits(
 // painter::listed
 //   what the name column writes for a row of the sheet's, before it is
 // fitted: its value, by value, else its name.
-std::string
-painter::listed(
+std::string painter::listed(
     const resolved_row& _row
 ) const
 {
@@ -2543,8 +2584,7 @@ painter::listed(
 // painter::label_width
 //   how wide the name column writes a row, past where its name begins: its
 // value in the monospace font, by value, else its name.
-float
-painter::label_width(
+float painter::label_width(
     const resolved_row& _row
 ) const
 {
@@ -2566,8 +2606,7 @@ painter::label_width(
 //   the value button's tooltip: before the column lists rows by value,
 // what a press does, and that a press again writes the values another way;
 // after, how they are written, and how the next press writes them.
-std::string
-painter::value_tip() const
+std::string painter::value_tip() const
 {
     const value_form form = shown_form();
     const std::string way =
@@ -2586,8 +2625,7 @@ painter::value_tip() const
 
 // painter::probe_text
 //   the probe's value as the value column writes it.
-std::string
-painter::probe_text() const
+std::string painter::probe_text() const
 {
     wide probe = doc.probe;
 
@@ -2604,8 +2642,7 @@ painter::fit_names
   The name column's width for its longest name, as the rows are now: indent,
 arrow and chip included -- or, by value, for its longest value.
 */
-float
-painter::fit_names() const
+float painter::fit_names() const
 {
     float widest = ImGui::CalcTextSize("symbol").x + 12.0f;
 
@@ -2645,8 +2682,7 @@ painter::fit_names() const
 
 // painter::fit_values
 //   the value column's width for its longest value.
-float
-painter::fit_values() const
+float painter::fit_values() const
 {
     float widest = ImGui::CalcTextSize("value").x + 12.0f;
 
@@ -2686,8 +2722,7 @@ painter::fit_values() const
 
 // painter::cells_before
 //   how many cells -- whole bits, not runs -- lie left of a boundary.
-int
-painter::cells_before(
+int painter::cells_before(
     int _boundary
 ) const
 {
@@ -2712,8 +2747,7 @@ painter::cells_before(
 
 // painter::renaming_here
 //   whether a rename is being typed in the grid, rather than the tree.
-bool
-painter::renaming_here() const
+bool painter::renaming_here() const
 {
     return ( (m.ui.rename_where == "grid") &&
              ( (m.ui.renaming != 0) ||
@@ -2723,8 +2757,7 @@ painter::renaming_here() const
 // painter::text_row
 //   whether a row writes text across its cells instead of bits: a macro
 // that takes arguments, one with no value, or a row with an error.
-bool
-painter::text_row(
+bool painter::text_row(
     const grid_row& _row
 ) const
 {
@@ -2753,8 +2786,7 @@ grid's panel, under the selection, the hover or a group's tint, as
 rows_background lays them. Text over a row reads by it, so a selected row,
 or a sheet's own selection colour, never hides its name.
 */
-ImU32
-painter::row_ground(
+ImU32 painter::row_ground(
     const grid_row& _row
 ) const
 {
@@ -2793,23 +2825,20 @@ painter::row_ground(
 //   how wide the add row's "+ Add new..." is, from the name column's left
 // edge; and where it ends in the column, as cut by the column: as far as
 // a press there adds.
-float
-painter::add_width() const
+float painter::add_width() const
 {
     return ( 6.0f + ImGui::CalcTextSize("+").x +
              ADD_NEW_GAP * ui_scale() +
              ImGui::CalcTextSize(ADD_NEW_LABEL).x + 4.0f );
 }
 
-float
-painter::add_end() const
+float painter::add_end() const
 {
     return std::min(name_x() + l.name_w,
                     name_x() + add_width());
 }
 
-void
-painter::rows_background()
+void painter::rows_background()
 {
     // the rows end where the columns do
     const float right = std::min(view_max.x,
@@ -2860,8 +2889,7 @@ painter::rules_for
   The display rules over a row of the sheet's, in order -- those over its
 groups too: what its cells are each asked of. None for any other row.
 */
-std::vector<const display_rule*>
-painter::rules_for(
+std::vector<const display_rule*> painter::rules_for(
     const grid_row& _row
 ) const
 {
@@ -2897,8 +2925,7 @@ previewed operation's result is outlined over the present value. A row
 with no bits has its cells drawn empty and writes no digits; row_note
 writes what it is over them.
 */
-void
-painter::row_cells(
+void painter::row_cells(
     std::size_t     _index,
     const grid_row& _row
 )
@@ -3249,8 +3276,7 @@ placeholder a macro name -- in the monospace font; a row in error, why.
 It is centred in the cells in view, on a chip of the row's own ground that
 covers the lines beneath it, in the ink that reads there.
 */
-void
-painter::row_note(
+void painter::row_note(
     std::size_t     _index,
     const grid_row& _row
 )
@@ -3321,8 +3347,7 @@ painter::row_note(
     return;
 }
 
-void
-painter::row_label(
+void painter::row_label(
     std::size_t     _index,
     const grid_row& _row
 )
@@ -3540,8 +3565,7 @@ those stand -- unless the sheet has its lines run down the room between,
 the add row's and the room's below. Then the horizontal lines between
 rows, heavier above groups, and the border last, around each run of rows.
 */
-void
-painter::lines()
+void painter::lines()
 {
     if (!grid.lines)
     {
@@ -3693,8 +3717,7 @@ one. In the two longer sets the value button names the form values are
 written in while the column lists them, and is as wide as the widest
 form's name, so it stays under the mouse from one press to the next.
 */
-void
-painter::place_buttons()
+void painter::place_buttons()
 {
     buttons.clear();
 
@@ -3777,8 +3800,7 @@ painter::name_buttons
 The one chosen is filled with the accent and written in the ink that reads
 on it; the others are fields, their words faded until the mouse is on one.
 */
-void
-painter::name_buttons()
+void painter::name_buttons()
 {
     if (buttons.empty())
     {
@@ -3820,8 +3842,7 @@ painter::name_buttons()
     return;
 }
 
-void
-painter::header()
+void painter::header()
 {
     const ImU32 background = ImGui::GetColorU32(ImGuiCol_ChildBg);
     const float top        = view_min.y;
@@ -4077,8 +4098,7 @@ painter::header()
     return;
 }
 
-void
-painter::tooltip(
+void painter::tooltip(
     const grid_row& _row,
     const column&   _column
 )
@@ -4160,8 +4180,7 @@ painter::definition
   What a row is, in a line: a bit's number, a range's bits, a value's number
 and field, a literal, an expression or a macro.
 */
-std::string
-painter::definition(
+std::string painter::definition(
     const resolved_row& _row
 ) const
 {
@@ -4233,8 +4252,7 @@ in full, what the row is, and its brief; the value column's, the value in
 every base, in the monospace font. The probe and the usage rows say what
 they are.
 */
-void
-painter::pinned_tooltip(
+void painter::pinned_tooltip(
     const grid_row& _row,
     const spot&     _under
 )
@@ -4387,8 +4405,7 @@ place in the ruler, the bit or the run of bits below it -- whose number
 the ruler may have had no room to write -- and how the cells are sized; a
 button over the name column, what it lists the rows by.
 */
-void
-painter::heading_tooltip(
+void painter::heading_tooltip(
     const spot& _under,
     ImVec2      _mouse
 )
@@ -4517,8 +4534,7 @@ collapsed from under the mouse, still lands on the grid. What the button
 reports is read once, before anything else is drawn. While a rename is
 typed in the grid, the button lets the field drawn after it lie over it.
 */
-void
-painter::interact()
+void painter::interact()
 {
     ImGui::SetCursorScreenPos(origin);
 
@@ -4587,8 +4603,7 @@ it is; on the add row, after the sheet's rows; on the "Add child..." row,
 at the end of its group's; and in the room below the rows, pinned at the
 bottom.
 */
-void
-painter::row_drag()
+void painter::row_drag()
 {
     const ImVec2 mouse   = ImGui::GetMousePos();
     int&         named   = the_named();
@@ -4752,8 +4767,7 @@ at the foot of the rows for at their end -- and, dropped, put there: one
 in and the row it comes before, and the special row it is put ahead of in
 their order.
 */
-void
-painter::drop_special(
+void painter::drop_special(
     long        _id,
     const spot& _under,
     bool        _delivered
@@ -4884,8 +4898,7 @@ deeper begin, to the name column's edge -- drawn only while the whole row
 is in view. Enter adds a bit of the name typed to the group or range; the
 window gives the field the keyboard back, for the next.
 */
-void
-painter::child_field()
+void painter::child_field()
 {
     for (std::size_t i = 0; i < l.rows.size(); ++i)
     {
@@ -4954,8 +4967,7 @@ double-click on a name renames it; a cell starts a stroke, which a release
 turns into one event. A right-click anywhere opens the menu for what it is
 on.
 */
-void
-painter::respond()
+void painter::respond()
 {
     const ImVec2 mouse  = ImGui::GetMousePos();
     const spot   under  = at(mouse);
@@ -5500,8 +5512,7 @@ a probe or usage row, about where it is and how many there are; on a row
 of the sheet's, about the row; anywhere else -- the add row, the empty
 space below -- about the sheet.
 */
-void
-painter::open_menu(
+void painter::open_menu(
     const spot& _under
 )
 {
@@ -5576,8 +5587,7 @@ painter::field_place
 band. A row or a band out of view is scrolled to, and the field waits for
 the frame it shows in; one that is no longer there gives the rename up.
 */
-bool
-painter::field_place(
+bool painter::field_place(
     const draft& _typed,
     ImVec2&      _min,
     ImVec2&      _max
@@ -5705,8 +5715,7 @@ or a click elsewhere after an edit, posts the new name; Escape, or a click
 elsewhere with nothing typed, gives the rename up. The draft is kept here
 between frames, and starts from the name each time a rename begins.
 */
-void
-painter::rename_field()
+void painter::rename_field()
 {
     draft& typed = the_draft();
 
@@ -5819,8 +5828,7 @@ nor the "Add child..." field -- by their places among the layout's rows;
 and the columns, left to right: the name and value columns, as they are
 shown, then the bits'.
 */
-std::vector<std::size_t>
-painter::nav_rows() const
+std::vector<std::size_t> painter::nav_rows() const
 {
     std::vector<std::size_t> out;
 
@@ -5839,8 +5847,7 @@ painter::nav_rows() const
     return out;
 }
 
-std::vector<nav_column>
-painter::nav_columns() const
+std::vector<nav_column> painter::nav_columns() const
 {
     std::vector<nav_column> out;
     const bool              names  = (l.name_w > 0.0f);
@@ -5876,8 +5883,7 @@ painter::nav_columns() const
 // or usage row by special_cursor, 0 for any other -- and back to its place
 // among the layout's rows; and the layout's column a bit is shown in: -1
 // for none, or for the name and value columns.
-int
-painter::row_key(
+int painter::row_key(
     std::size_t _index
 ) const
 {
@@ -5896,8 +5902,7 @@ painter::row_key(
     return 0;
 }
 
-int
-painter::row_index(
+int painter::row_index(
     int _key
 ) const
 {
@@ -5917,8 +5922,7 @@ painter::row_index(
     return -1;
 }
 
-int
-painter::column_index(
+int painter::column_index(
     int _id
 ) const
 {
@@ -5946,8 +5950,7 @@ of a row's value, of the probe's, or one a usage row counts any symbol
 using -- any of a column's bits, for a column of several. A row's name and
 value always say something.
 */
-bool
-painter::filled(
+bool painter::filled(
     const grid_row&   _row,
     const nav_column& _column
 ) const
@@ -5996,8 +5999,7 @@ painter::has_keyboard
 the one in front, and no field is being typed in, no rename is open and no
 menu or dialog is.
 */
-bool
-painter::has_keyboard() const
+bool painter::has_keyboard() const
 {
     const ImGuiIO& io = ImGui::GetIO();
 
@@ -6033,8 +6035,7 @@ Extend mode, in which the arrows extend as with Shift; Esc ends either
 mode. F2 renames the cursor's row in place, its name being the one text a
 row has; Space flips the cursor's bit, as a click does.
 */
-void
-painter::keys()
+void painter::keys()
 {
     if ( (!keyboard) ||
          (held)      ||
@@ -6695,8 +6696,7 @@ painter::next_sheet
 its tab row -- no further than its ends, as Excel's sheets go -- or, for a
 sheet alone in its row, in its workspace.
 */
-void
-painter::next_sheet(
+void painter::next_sheet(
     int _step
 )
 {
@@ -6783,8 +6783,7 @@ covers, so the window selects them as the grid shows them; and the column a
 run of Tabs began in. The cell the key moved -- the rightmost corner, when Shift
 moved it -- is scrolled into view once the event has been applied.
 */
-void
-painter::go(
+void painter::go(
     const std::vector<std::size_t>& _rows,
     const std::vector<nav_column>&  _columns,
     const nav_cell&                 _cursor,
@@ -6894,8 +6893,7 @@ painter::scroll_to
   A cell scrolled into view, as little as it takes: below the heading, and
 right of the name and value columns -- which are always in view.
 */
-void
-painter::scroll_to(
+void painter::scroll_to(
     int _row,
     int _column
 )
@@ -6959,8 +6957,7 @@ painter::cursor_mark
   The cursor's cell, outlined as Excel outlines its active cell: in the
 accent, faded while the grid does not have the keyboard.
 */
-void
-painter::cursor_mark()
+void painter::cursor_mark()
 {
     const int active = active_row(m);
     const int index  = row_index(active);
@@ -7039,8 +7036,7 @@ painter::cursor_mark()
 
 // painter::remember
 //   where this frame drew the grid's parts, for grid_spot.
-void
-painter::remember() const
+void painter::remember() const
 {
     sighting& seen = the_sighting();
 
@@ -7120,8 +7116,7 @@ painter::remember() const
     return;
 }
 
-void
-painter::run()
+void painter::run()
 {
     origin   = ImGui::GetCursorScreenPos();
     view_min = ImGui::GetWindowPos();
@@ -7345,8 +7340,7 @@ draw_grid
   The grid fills what is left of its panel, in a child window of its own so
 it scrolls by itself.
 */
-void
-draw_grid(
+void draw_grid(
     model&       _model,
     imgui_frame& _frame
 )
@@ -7387,8 +7381,7 @@ grid_keyboard
   Whether a grid has the keyboard this frame, and takes its keys: the
 window's own shortcuts leave it F2.
 */
-bool
-grid_keyboard()
+bool grid_keyboard()
 {
     return (keyboard_frame() == ImGui::GetFrameCount());
 }
@@ -7402,8 +7395,7 @@ holds, the pinned columns' edges and the buttons over the name column by
 name; and "below", the room below the rows of the tree, where there is
 any.
 */
-grid_point
-grid_spot(
+grid_point grid_spot(
     const std::string& _part,
     int                _row,
     int                _bit
@@ -7412,8 +7404,7 @@ grid_spot(
     return grid_spot(drawn_last(), _part, _row, _bit);
 }
 
-grid_point
-grid_spot(
+grid_point grid_spot(
     int                _document,
     const std::string& _part,
     int                _row,
@@ -7588,16 +7579,14 @@ grid_written
 the rows it drew: the name column's text before it was fitted, and where
 the fitted text ended; and what a row with no bits wrote over its cells.
 */
-grid_text
-grid_written(
+grid_text grid_written(
     int _row
 )
 {
     return grid_written(drawn_last(), _row);
 }
 
-grid_columns_seen
-grid_columns(
+grid_columns_seen grid_columns(
     int _document
 )
 {
@@ -7632,8 +7621,7 @@ special rows: its name -- "probe", "allocated", "allocated in" a group --
 and its value: the probe's, or how many bits it counts allocated, "N of
 W".
 */
-grid_text
-grid_special(
+grid_text grid_special(
     int _special
 )
 {
@@ -7658,8 +7646,7 @@ grid_special(
     return out;
 }
 
-grid_text
-grid_written(
+grid_text grid_written(
     int _document,
     int _row
 )

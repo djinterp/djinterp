@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,15 +19,13 @@ d_tests_sa_text_buffer_get_char
   - NULL buffer returns '\0'
   - out-of-bounds index returns '\0'
   - correct character at first, middle, and last positions
-  - negative indexing (if supported by d_index)
+  - negative indexing (if supported by dj_index)
 */
-bool
-d_tests_sa_text_buffer_get_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_get_char(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
 
@@ -92,13 +90,11 @@ d_tests_sa_text_buffer_set_char
   - successful set at beginning, middle, and end
   - neighbouring characters unchanged
 */
-bool
-d_tests_sa_text_buffer_set_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_set_char(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     bool                  result = true;
 
@@ -164,13 +160,11 @@ d_tests_sa_text_buffer_get_string
   - non-empty buffer returns pointer to data
   - returned string is null-terminated
 */
-bool
-d_tests_sa_text_buffer_get_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_get_string(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     bool                  result = true;
 
@@ -225,13 +219,11 @@ d_tests_sa_text_buffer_get_range_string
   - valid range returns correct substring
   - returned string is independently allocated and null-terminated
 */
-bool
-d_tests_sa_text_buffer_get_range_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_get_range_string(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     char*                 substr;
     bool                  result = true;
 
@@ -298,10 +290,8 @@ d_tests_sa_text_buffer_get_range_string
 d_tests_sa_text_buffer_access_all
   Aggregation function that runs all access operation tests.
 */
-bool
-d_tests_sa_text_buffer_access_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_access_all(
+    struct dj_test_counter* _counter
 )
 {
     printf("\n  [SECTION] Access Operations\n");

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,15 +23,13 @@ d_tests_sa_registry_lookup_compare
   - both NULL returns 0
   - case-sensitive: "Apple" < "apple" (uppercase < lowercase in ASCII)
 */
-bool
-d_tests_sa_registry_lookup_compare
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_lookup_compare(
+    struct dj_test_counter* _counter
 )
 {
     bool                              result;
-    struct d_registry_lookup_entry    a;
-    struct d_registry_lookup_entry    b;
+    struct dj_registry_lookup_entry    a;
+    struct dj_registry_lookup_entry    b;
     int                               cmp;
 
     result = true;
@@ -119,15 +117,13 @@ d_tests_sa_registry_lookup_compare_nocase
   - NULL handling same as case-sensitive
   - mixed-case ordering is correct
 */
-bool
-d_tests_sa_registry_lookup_compare_nocase
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_lookup_compare_nocase(
+    struct dj_test_counter* _counter
 )
 {
     bool                              result;
-    struct d_registry_lookup_entry    a;
-    struct d_registry_lookup_entry    b;
+    struct dj_registry_lookup_entry    a;
+    struct dj_registry_lookup_entry    b;
     int                               cmp;
 
     result = true;
@@ -199,10 +195,8 @@ d_tests_sa_registry_lookup_compare_nocase
 d_tests_sa_registry_comparison_all
   Aggregation function that runs all internal comparison tests.
 */
-bool
-d_tests_sa_registry_comparison_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_comparison_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

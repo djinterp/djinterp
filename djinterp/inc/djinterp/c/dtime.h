@@ -78,7 +78,7 @@ TABLE OF CONTENTS
 #include "./djinterp.h"      // framework root
 #include "../env/env.h"      // D_ENV_PLATFORM_*, D_ENV_POSIX_*, D_ENV_LANG_*
 // re_std
-#include "../../re_std/cstdint/dstdint.h"  // int64_t
+#include "../../re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 //==============================================================================
@@ -312,8 +312,10 @@ D_EXTERN_C_BEGIN
  * @return `_result` on success, or `NULL` if either argument is `NULL` or the
  *         conversion fails.
  */
-struct tm*       d_localtime(const time_t* _timer,
-                             struct tm*    _result);
+struct tm* d_localtime(
+    const time_t* _timer,
+    struct tm*    _result
+);
 /**
  * @brief Converts a time to broken-down UTC, thread-safely (POSIX gmtime_r /
  *        C11 gmtime_s equivalent).
@@ -325,8 +327,10 @@ struct tm*       d_localtime(const time_t* _timer,
  * @return `_result` on success, or `NULL` if either argument is `NULL` or the
  *         conversion fails.
  */
-struct tm*       d_gmtime(const time_t* _timer,
-                          struct tm*    _result);
+struct tm* d_gmtime(
+    const time_t* _timer,
+    struct tm*    _result
+);
 /**
  * @brief Formats a time in the ctime layout, thread-safely (POSIX ctime_r / C11
  *        ctime_s equivalent).
@@ -338,8 +342,10 @@ struct tm*       d_gmtime(const time_t* _timer,
  * @return `_buf` on success, or `NULL` if either argument is `NULL` or the
  *         conversion fails.
  */
-char*            d_ctime(const time_t* _timer,
-                         char*         _buf);
+char* d_ctime(
+    const time_t* _timer,
+    char*         _buf
+);
 /**
  * @brief Formats a time in the ctime layout, thread-safely (POSIX asctime_r /
  *        C11 asctime_s equivalent).
@@ -351,8 +357,10 @@ char*            d_ctime(const time_t* _timer,
  * @return `_buf` on success, or `NULL` if either argument is `NULL` or the
  *         conversion fails.
  */
-char*            d_asctime(const struct tm* _tm,
-                           char*            _buf);
+char* d_asctime(
+    const struct tm* _tm,
+    char*            _buf
+);
 
 
 //==============================================================================
@@ -374,8 +382,10 @@ char*            d_asctime(const struct tm* _tm,
  * @return `0` on success, or `-1` with errno set: EINVAL for a `NULL` `_tp` or
  *         an unsupported clock.
  */
-int              d_clock_gettime(clockid_t        _clock_id,
-                                 struct timespec* _tp);
+int d_clock_gettime(
+    clockid_t        _clock_id,
+    struct timespec* _tp
+);
 /**
  * @brief Reads a clock's resolution (POSIX clock_getres equivalent).
  *
@@ -384,8 +394,10 @@ int              d_clock_gettime(clockid_t        _clock_id,
  * @return `0` on success, or `-1` with errno set: EINVAL for a `NULL` `_res` or
  *         an unsupported clock.
  */
-int              d_clock_getres(clockid_t        _clock_id,
-                                struct timespec* _res);
+int d_clock_getres(
+    clockid_t        _clock_id,
+    struct timespec* _res
+);
 /**
  * @brief Reads the current calendar time (C11 timespec_get equivalent).
  *
@@ -393,8 +405,10 @@ int              d_clock_getres(clockid_t        _clock_id,
  * @param[in]  _base  the time base; TIME_UTC is the only one required.
  * @return `_base` on success, or `0` on failure, including a `NULL` `_ts`.
  */
-int              d_timespec_get(struct timespec* _ts,
-                                int              _base);
+int d_timespec_get(
+    struct timespec* _ts,
+    int              _base
+);
 
 
 //==============================================================================
@@ -420,22 +434,28 @@ int              d_timespec_get(struct timespec* _ts,
  *         of-range `_req`; EINTR when interrupted (nanosleep, thrd_sleep);
  *         ENOSYS where the platform cannot sleep.
  */
-int              d_nanosleep(const struct timespec* _req,
-                             struct timespec*       _rem);
+int d_nanosleep(
+    const struct timespec* _req,
+    struct timespec*       _rem
+);
 /**
  * @brief Sleeps for a number of microseconds (POSIX usleep equivalent).
  *
  * @param[in] _usec  the interval in microseconds.
  * @return d_nanosleep()'s result.
  */
-int              d_usleep(unsigned int _usec);
+int d_usleep(
+    unsigned int _usec
+);
 /**
  * @brief Sleeps for a number of milliseconds.
  *
  * @param[in] _milliseconds  the interval in milliseconds.
  * @return d_nanosleep()'s result.
  */
-int              d_sleep_ms(unsigned long _milliseconds);
+int d_sleep_ms(
+    unsigned long _milliseconds
+);
 
 
 //==============================================================================
@@ -453,12 +473,14 @@ int              d_sleep_ms(unsigned long _milliseconds);
  *                     does: the portable fallback normalizes them too.
  * @return the time, or `(time_t)-1` on failure, including a `NULL` `_tm`.
  */
-time_t           d_timegm(struct tm* _tm);
+time_t d_timegm(
+    struct tm* _tm
+);
 /**
  * @brief Initializes time-zone information from the environment (POSIX tzset /
  *        Windows _tzset equivalent).
  */
-void             d_tzset(void);
+void d_tzset(void);
 
 
 //==============================================================================
@@ -510,9 +532,11 @@ void             d_tzset(void);
  * @return a pointer to the first character of `_s` not parsed, or `NULL` on a
  *         mismatch or a `NULL` argument.
  */
-char*            d_strptime(const char* _s,
-                            const char* _format,
-                            struct tm*  _tm);
+char* d_strptime(
+    const char* _s,
+    const char* _format,
+    struct tm*  _tm
+);
 /**
  * @brief Formats a time with strftime, rejecting invalid arguments.
  *
@@ -525,10 +549,12 @@ char*            d_strptime(const char* _s,
  *         terminator) or the result does not fit (then its contents are
  *         unspecified).
  */
-int              d_strftime_s(char*            _s,
-                              size_t           _maxsize,
-                              const char*      _format,
-                              const struct tm* _tm);
+int d_strftime_s(
+    char*            _s,
+    size_t           _maxsize,
+    const char*      _format,
+    const struct tm* _tm
+);
 
 
 //==============================================================================
@@ -548,9 +574,11 @@ int              d_strftime_s(char*            _s,
  *         tv_nsec values in [0, 999999999].
  * @post   nothing is written if any argument is `NULL`.
  */
-void             d_timespec_add(const struct timespec* _a,
-                                const struct timespec* _b,
-                                struct timespec*       _result);
+void d_timespec_add(
+    const struct timespec* _a,
+    const struct timespec* _b,
+    struct timespec*       _result
+);
 /**
  * @brief Subtracts two timespec values (`_a` - `_b`).
  *
@@ -561,9 +589,11 @@ void             d_timespec_add(const struct timespec* _a,
  *         tv_nsec values in [0, 999999999].
  * @post   nothing is written if any argument is `NULL`.
  */
-void             d_timespec_sub(const struct timespec* _a,
-                                const struct timespec* _b,
-                                struct timespec*       _result);
+void d_timespec_sub(
+    const struct timespec* _a,
+    const struct timespec* _b,
+    struct timespec*       _result
+);
 /**
  * @brief Compares two timespec values.
  *
@@ -574,8 +604,10 @@ void             d_timespec_sub(const struct timespec* _a,
  *         value: `0` if both are `NULL`, `-1` if `_a` alone is, `1` if `_b`
  *         alone is.
  */
-int              d_timespec_cmp(const struct timespec* _a,
-                                const struct timespec* _b);
+int d_timespec_cmp(
+    const struct timespec* _a,
+    const struct timespec* _b
+);
 
 // 8.2    Unit conversion
 //------------------------------------------------------------------------------
@@ -586,7 +618,9 @@ int              d_timespec_cmp(const struct timespec* _a,
  * @return the total in milliseconds, truncated toward zero; `0` for a `NULL`
  *         `_ts`.
  */
-int64_t          d_timespec_to_ms(const struct timespec* _ts);
+int64_t d_timespec_to_ms(
+    const struct timespec* _ts
+);
 /**
  * @brief Converts a timespec to microseconds.
  *
@@ -594,7 +628,9 @@ int64_t          d_timespec_to_ms(const struct timespec* _ts);
  * @return the total in microseconds, truncated toward zero; `0` for a `NULL`
  *         `_ts`.
  */
-int64_t          d_timespec_to_us(const struct timespec* _ts);
+int64_t d_timespec_to_us(
+    const struct timespec* _ts
+);
 /**
  * @brief Converts a timespec to nanoseconds.
  *
@@ -604,7 +640,9 @@ int64_t          d_timespec_to_us(const struct timespec* _ts);
  *         it; with NDEBUG nothing checks.
  * @return the total in nanoseconds; `0` for a `NULL` `_ts`.
  */
-int64_t          d_timespec_to_ns(const struct timespec* _ts);
+int64_t d_timespec_to_ns(
+    const struct timespec* _ts
+);
 /**
  * @brief Converts milliseconds to a timespec.
  *
@@ -615,8 +653,10 @@ int64_t          d_timespec_to_ns(const struct timespec* _ts);
  * @param[out] _ts            receives the timespec; nothing is written if it is
  *                            `NULL`.
  */
-void             d_ms_to_timespec(int64_t          _milliseconds,
-                                  struct timespec* _ts);
+void d_ms_to_timespec(
+    int64_t          _milliseconds,
+    struct timespec* _ts
+);
 /**
  * @brief Converts microseconds to a timespec.
  *
@@ -627,8 +667,10 @@ void             d_ms_to_timespec(int64_t          _milliseconds,
  * @param[out] _ts            receives the timespec; nothing is written if it is
  *                            `NULL`.
  */
-void             d_us_to_timespec(int64_t          _microseconds,
-                                  struct timespec* _ts);
+void d_us_to_timespec(
+    int64_t          _microseconds,
+    struct timespec* _ts
+);
 /**
  * @brief Converts nanoseconds to a timespec.
  *
@@ -639,8 +681,10 @@ void             d_us_to_timespec(int64_t          _microseconds,
  * @param[out] _ts           receives the timespec; nothing is written if it is
  *                           `NULL`.
  */
-void             d_ns_to_timespec(int64_t          _nanoseconds,
-                                  struct timespec* _ts);
+void d_ns_to_timespec(
+    int64_t          _nanoseconds,
+    struct timespec* _ts
+);
 
 // 8.3    Normalization and validation
 //------------------------------------------------------------------------------
@@ -651,7 +695,9 @@ void             d_ns_to_timespec(int64_t          _nanoseconds,
  * @param[in,out] _ts  the value to normalize; may be `NULL`, which does
  *                     nothing.
  */
-void             d_timespec_normalize(struct timespec* _ts);
+void d_timespec_normalize(
+    struct timespec* _ts
+);
 /**
  * @brief Tests whether a timespec's tv_nsec lies in [0, 999999999].
  *
@@ -660,7 +706,9 @@ void             d_timespec_normalize(struct timespec* _ts);
  * @param[in] _ts  the value to check.
  * @return `1` if valid, `0` otherwise or for a `NULL` `_ts`.
  */
-int              d_timespec_is_valid(const struct timespec* _ts);
+int d_timespec_is_valid(
+    const struct timespec* _ts
+);
 
 
 //==============================================================================
@@ -678,7 +726,7 @@ int              d_timespec_is_valid(const struct timespec* _ts);
  *
  * @return the time in milliseconds, or `0` if no clock can be read.
  */
-int64_t          d_monotonic_time_ms(void);
+int64_t d_monotonic_time_ms(void);
 /**
  * @brief Reads monotonic time in microseconds.
  *
@@ -687,7 +735,7 @@ int64_t          d_monotonic_time_ms(void);
  *
  * @return the time in microseconds, or `0` if no clock can be read.
  */
-int64_t          d_monotonic_time_us(void);
+int64_t d_monotonic_time_us(void);
 /**
  * @brief Reads monotonic time in nanoseconds.
  *
@@ -696,7 +744,7 @@ int64_t          d_monotonic_time_us(void);
  *
  * @return the time in nanoseconds, or `0` if no clock can be read.
  */
-int64_t          d_monotonic_time_ns(void);
+int64_t d_monotonic_time_ns(void);
 
 
 D_EXTERN_C_END

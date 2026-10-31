@@ -39,15 +39,15 @@
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_cmake_doc
+// dj_cmake_doc
 //   struct: the file: its path, text and records, the changes it has taken,
 //   where the last was, and why the last failed.
-struct d_cmake_doc
+struct dj_cmake_doc
 {
     char*          path;
     char*          text;
     size_t         length;
-    struct d_cmake records;
+    struct dj_cmake records;
     size_t         changes;
     size_t         start;
     size_t         old_end;
@@ -56,16 +56,16 @@ struct d_cmake_doc
 };
 
 // 1.1.2
-// d_internal_candidate
+// dj_internal_candidate
 //   struct: a change not yet kept: the new text and its records, where the
 //   splice stands in the old text and the new, and how the commands fall
 //   about it -- `before` whole before it in both, the old's from
 //   `old_after` and the new's from `new_after` whole after it.
-struct d_internal_candidate
+struct dj_internal_candidate
 {
     char*          text;
     size_t         length;
-    struct d_cmake records;
+    struct dj_cmake records;
     size_t         start;
     size_t         old_end;
     size_t         new_end;
@@ -77,9 +77,9 @@ struct d_internal_candidate
 };
 
 // 1.1.3
-// d_internal_buffer
+// dj_internal_buffer
 //   struct: text being written, in an array that grows.
-struct d_internal_buffer
+struct dj_internal_buffer
 {
     char*  text;
     size_t length;
@@ -103,11 +103,11 @@ struct d_internal_buffer
 d_internal_add, d_internal_add_char
   Appends to a buffer, which remembers a failure and takes nothing more.
 */
-static bool
-d_internal_add(
-    struct d_internal_buffer* _buffer,
-    const char*               _text,
-    size_t                    _length
+static
+bool d_internal_add(
+    struct dj_internal_buffer* _buffer,
+    const char*                _text,
+    size_t                     _length
 )
 {
     // a buffer that failed takes nothing more
@@ -154,19 +154,19 @@ d_internal_add(
 }
 
 
-static bool
-d_internal_add_char(
-    struct d_internal_buffer* _buffer,
-    char                      _c
+static
+bool d_internal_add_char(
+    struct dj_internal_buffer* _buffer,
+    char                       _c
 )
 {
     return d_internal_add(_buffer, &_c, 1u);
 }
 
 
-static void
-d_internal_buffer_free(
-    struct d_internal_buffer* _buffer
+static
+void d_internal_buffer_free(
+    struct dj_internal_buffer* _buffer
 )
 {
     free(_buffer->text);
@@ -180,8 +180,8 @@ d_internal_buffer_free(
 d_internal_copy
   A string of its own.
 */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _text,
     size_t      _length
 )
@@ -209,8 +209,8 @@ d_internal_new
   A document of a text it takes, read; NULL, the text freed, when it does
 not read as CMake.
 */
-static struct d_cmake_doc*
-d_internal_new(
+static
+struct dj_cmake_doc* d_internal_new(
     const char* _path,
     char*       _text,
     size_t      _length,
@@ -218,7 +218,7 @@ d_internal_new(
     size_t      _capacity
 )
 {
-    struct d_cmake_doc* const doc  = calloc(1u, sizeof(*doc));
+    struct dj_cmake_doc* const doc  = calloc(1u, sizeof(*doc));
     char* const               path = d_internal_copy(_path, strlen(_path));
     char                      why[256];
 
@@ -252,8 +252,7 @@ d_internal_new(
 }
 
 
-struct d_cmake_doc*
-d_cmake_doc_read(
+struct dj_cmake_doc* d_cmake_doc_read(
     const char* _path,
     char*       _problem,
     size_t      _capacity
@@ -283,8 +282,7 @@ d_cmake_doc_read(
 }
 
 
-struct d_cmake_doc*
-d_cmake_doc_make(
+struct dj_cmake_doc* d_cmake_doc_make(
     const char* _path,
     const char* _text,
     size_t      _length,
@@ -309,9 +307,8 @@ d_cmake_doc_make(
 }
 
 
-void
-d_cmake_doc_free(
-    struct d_cmake_doc* _doc
+void d_cmake_doc_free(
+    struct dj_cmake_doc* _doc
 )
 {
     // freeing nothing is allowed
@@ -329,39 +326,35 @@ d_cmake_doc_free(
 }
 
 
-const struct d_cmake*
-d_cmake_doc_records(
-    const struct d_cmake_doc* _doc
+const struct dj_cmake* d_cmake_doc_records(
+    const struct dj_cmake_doc* _doc
 )
 {
     return (_doc) ? &_doc->records : NULL;
 }
 
 
-const char*
-d_cmake_doc_path(
-    const struct d_cmake_doc* _doc
+const char* d_cmake_doc_path(
+    const struct dj_cmake_doc* _doc
 )
 {
     return (_doc) ? _doc->path : "";
 }
 
 
-size_t
-d_cmake_doc_changes(
-    const struct d_cmake_doc* _doc
+size_t d_cmake_doc_changes(
+    const struct dj_cmake_doc* _doc
 )
 {
     return (_doc) ? _doc->changes : 0u;
 }
 
 
-bool
-d_cmake_doc_changed(
-    const struct d_cmake_doc* _doc,
-    size_t*                   _out_start,
-    size_t*                   _out_old_end,
-    size_t*                   _out_new_end
+bool d_cmake_doc_changed(
+    const struct dj_cmake_doc* _doc,
+    size_t*                    _out_start,
+    size_t*                    _out_old_end,
+    size_t*                    _out_new_end
 )
 {
     // a change, to say where it was
@@ -393,19 +386,17 @@ d_cmake_doc_changed(
 }
 
 
-const char*
-d_cmake_doc_problem(
-    const struct d_cmake_doc* _doc
+const char* d_cmake_doc_problem(
+    const struct dj_cmake_doc* _doc
 )
 {
     return (_doc) ? _doc->problem : "";
 }
 
 
-const char*
-d_cmake_doc_text(
-    const struct d_cmake_doc* _doc,
-    size_t*                   _out_length
+const char* d_cmake_doc_text(
+    const struct dj_cmake_doc* _doc,
+    size_t*                    _out_length
 )
 {
     // the length, when it is asked for
@@ -422,10 +413,10 @@ d_cmake_doc_text(
 d_internal_fail
   Says why a change failed, and gives false.
 */
-static bool
-d_internal_fail(
-    struct d_cmake_doc* _doc,
-    const char*         _why
+static
+bool d_internal_fail(
+    struct dj_cmake_doc* _doc,
+    const char*          _why
 )
 {
     (void)snprintf(_doc->problem, sizeof(_doc->problem), "%s", _why);
@@ -444,8 +435,8 @@ d_internal_moved, d_internal_moved_line
   A place, or a line, of the old text as it is in the new: moved when it is
 after the splice.
 */
-static size_t
-d_internal_moved(
+static
+size_t d_internal_moved(
     size_t    _at,
     ptrdiff_t _shift
 )
@@ -460,10 +451,10 @@ d_internal_mapped
 before the splice, moved after it, and among those it cut the same only
 when the new has as many of them; D_INTERNAL_BETWEEN otherwise.
 */
-static size_t
-d_internal_mapped(
-    const struct d_internal_candidate* _candidate,
-    size_t                             _index
+static
+size_t d_internal_mapped(
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _index
 )
 {
     // a table of where the command stood: nowhere, before, after, between
@@ -491,11 +482,11 @@ d_internal_same_index
   Whether an index the old records hold -- a partner, a comment's command
 -- is the one the new hold.
 */
-static bool
-d_internal_same_index(
-    const struct d_internal_candidate* _candidate,
-    size_t                             _old,
-    size_t                             _new
+static
+bool d_internal_same_index(
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _old,
+    size_t                              _new
 )
 {
     const size_t mapped = d_internal_mapped(_candidate, _old);
@@ -516,12 +507,12 @@ d_internal_same_index(
 d_internal_same_argument
   Whether an argument of the old records is one of the new, moved.
 */
-static bool
-d_internal_same_argument(
-    const struct d_cmake_argument* _a,
-    const struct d_cmake_argument* _b,
-    ptrdiff_t                      _shift,
-    ptrdiff_t                      _lines
+static
+bool d_internal_same_argument(
+    const struct dj_cmake_argument* _a,
+    const struct dj_cmake_argument* _b,
+    ptrdiff_t                       _shift,
+    ptrdiff_t                       _lines
 )
 {
     return ( (_a->kind == _b->kind)                             &&
@@ -541,17 +532,17 @@ d_internal_same_command
   Whether a command of the old records is one of the new, moved: where it
 is, its arguments, and the part it takes in its block.
 */
-static bool
-d_internal_same_command(
-    const struct d_cmake_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t                             _left,
-    size_t                             _right,
-    bool                               _after
+static
+bool d_internal_same_command(
+    const struct dj_cmake_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _left,
+    size_t                              _right,
+    bool                                _after
 )
 {
-    const struct d_cmake_command* const a = &_doc->records.commands[_left];
-    const struct d_cmake_command* const b =
+    const struct dj_cmake_command* const a = &_doc->records.commands[_left];
+    const struct dj_cmake_command* const b =
         &_candidate->records.commands[_right];
     const ptrdiff_t shift = (_after) ? _candidate->shift : 0;
     const ptrdiff_t lines = (_after) ? _candidate->lines : 0;
@@ -594,17 +585,17 @@ d_internal_same_command(
 d_internal_same_comment
   Whether a comment of the old records is one of the new, moved.
 */
-static bool
-d_internal_same_comment(
-    const struct d_cmake_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t                             _left,
-    size_t                             _right,
-    bool                               _after
+static
+bool d_internal_same_comment(
+    const struct dj_cmake_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _left,
+    size_t                              _right,
+    bool                                _after
 )
 {
-    const struct d_cmake_comment* const a = &_doc->records.comments[_left];
-    const struct d_cmake_comment* const b =
+    const struct dj_cmake_comment* const a = &_doc->records.comments[_left];
+    const struct dj_cmake_comment* const b =
         &_candidate->records.comments[_right];
     const ptrdiff_t shift = (_after) ? _candidate->shift : 0;
     const ptrdiff_t lines = (_after) ? _candidate->lines : 0;
@@ -624,14 +615,14 @@ d_internal_place_commands
   How the commands of both texts fall about the splice; false when as many
 do not lie whole before it, or after it, in both.
 */
-static bool
-d_internal_place_commands(
-    const struct d_cmake_doc*    _doc,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_place_commands(
+    const struct dj_cmake_doc*    _doc,
+    struct dj_internal_candidate* _candidate
 )
 {
-    const struct d_cmake* const old   = &_doc->records;
-    const struct d_cmake* const fresh = &_candidate->records;
+    const struct dj_cmake* const old   = &_doc->records;
+    const struct dj_cmake* const fresh = &_candidate->records;
     size_t                      left  = 0;
     size_t                      right = 0;
 
@@ -681,11 +672,11 @@ d_internal_outside_commands
   Whether every command outside the splice is the file's own; gives the
 line of the first that is not.
 */
-static bool
-d_internal_outside_commands(
-    const struct d_cmake_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t*                            _out_line
+static
+bool d_internal_outside_commands(
+    const struct dj_cmake_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t*                             _out_line
 )
 {
     const size_t after = _doc->records.command_count - _candidate->old_after;
@@ -727,11 +718,11 @@ d_internal_comment_place
   Where a comment lies: -1 wholly before the splice, 1 wholly after it, 0
 cut by it.
 */
-static int
-d_internal_comment_place(
-    const struct d_cmake_comment* _comment,
-    size_t                        _start,
-    size_t                        _end
+static
+int d_internal_comment_place(
+    const struct dj_cmake_comment* _comment,
+    size_t                         _start,
+    size_t                         _end
 )
 {
     // a table of the three places
@@ -756,15 +747,15 @@ those after a suffix, as the comments are in the text's order.
   Long as the two lists are walked side by side through the three places,
 each a loop.
 */
-static bool
-d_internal_outside_comments(
-    const struct d_cmake_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t*                            _out_line
+static
+bool d_internal_outside_comments(
+    const struct dj_cmake_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t*                             _out_line
 )
 {
-    const struct d_cmake* const old   = &_doc->records;
-    const struct d_cmake* const fresh = &_candidate->records;
+    const struct dj_cmake* const old   = &_doc->records;
+    const struct dj_cmake* const fresh = &_candidate->records;
     size_t                      left  = 0;
     size_t                      right = 0;
 
@@ -857,12 +848,12 @@ d_internal_outside_comments(
 d_internal_with_endings
   Text with each lone line feed written as the file ends its lines.
 */
-static bool
-d_internal_with_endings(
-    const struct d_cmake_doc* _doc,
-    const char*               _text,
-    size_t                    _length,
-    struct d_internal_buffer* _out
+static
+bool d_internal_with_endings(
+    const struct dj_cmake_doc* _doc,
+    const char*                _text,
+    size_t                     _length,
+    struct dj_internal_buffer* _out
 )
 {
     // each byte, a CR before a lone line feed in a CR LF file
@@ -889,8 +880,8 @@ d_internal_with_endings(
 d_internal_count_lines
   How many line feeds a span holds.
 */
-static ptrdiff_t
-d_internal_count_lines(
+static
+ptrdiff_t d_internal_count_lines(
     const char* _text,
     size_t      _length
 )
@@ -907,9 +898,9 @@ d_internal_count_lines(
 }
 
 
-static void
-d_internal_discard(
-    struct d_internal_candidate* _candidate
+static
+void d_internal_discard(
+    struct dj_internal_candidate* _candidate
 )
 {
     d_cmake_release(&_candidate->records);
@@ -925,17 +916,17 @@ d_internal_build
   The candidate's text: the file before the splice, the text written with
 the file's endings, and the file after.
 */
-static bool
-d_internal_build(
-    struct d_cmake_doc*          _doc,
-    size_t                       _start,
-    size_t                       _end,
-    const char*                  _text,
-    size_t                       _length,
-    struct d_internal_candidate* _out
+static
+bool d_internal_build(
+    struct dj_cmake_doc*          _doc,
+    size_t                        _start,
+    size_t                        _end,
+    const char*                   _text,
+    size_t                        _length,
+    struct dj_internal_candidate* _out
 )
 {
-    struct d_internal_buffer insert = { NULL, 0u, 0u, false };
+    struct dj_internal_buffer insert = { NULL, 0u, 0u, false };
 
     // the text, its line endings the file's
     if (!d_internal_with_endings(_doc, _text, _length, &insert))
@@ -984,9 +975,9 @@ d_internal_build(
 d_internal_unpaired
   How many commands of a reading are unpaired.
 */
-static size_t
-d_internal_unpaired(
-    const struct d_cmake* _cmake
+static
+size_t d_internal_unpaired(
+    const struct dj_cmake* _cmake
 )
 {
     size_t count = 0;
@@ -1007,14 +998,14 @@ d_internal_try
 reads as it did, and it leaves no block unpaired that was not.
   Long as each of the checks a candidate passes is a step.
 */
-static bool
-d_internal_try(
-    struct d_cmake_doc*          _doc,
-    size_t                       _start,
-    size_t                       _end,
-    const char*                  _text,
-    size_t                       _length,
-    struct d_internal_candidate* _out
+static
+bool d_internal_try(
+    struct dj_cmake_doc*          _doc,
+    size_t                        _start,
+    size_t                        _end,
+    const char*                   _text,
+    size_t                        _length,
+    struct dj_internal_candidate* _out
 )
 {
     char   why[256];
@@ -1089,10 +1080,10 @@ d_internal_try(
 d_internal_commit
   Keeps a candidate: the file is its text and records now.
 */
-static bool
-d_internal_commit(
-    struct d_cmake_doc*          _doc,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_commit(
+    struct dj_cmake_doc*          _doc,
+    struct dj_internal_candidate* _candidate
 )
 {
     d_cmake_release(&_doc->records);
@@ -1111,16 +1102,15 @@ d_internal_commit(
 }
 
 
-bool
-d_cmake_doc_splice(
-    struct d_cmake_doc* _doc,
-    size_t              _start,
-    size_t              _end,
-    const char*         _text,
-    size_t              _length
+bool d_cmake_doc_splice(
+    struct dj_cmake_doc* _doc,
+    size_t               _start,
+    size_t               _end,
+    const char*          _text,
+    size_t               _length
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1151,24 +1141,24 @@ d_cmake_doc_splice(
 d_internal_command, d_internal_argument
   Command `_n`, and argument `_k` of it, both from 0; NULL for none.
 */
-static const struct d_cmake_command*
-d_internal_command(
-    const struct d_cmake* _cmake,
-    size_t                _n
+static
+const struct dj_cmake_command* d_internal_command(
+    const struct dj_cmake* _cmake,
+    size_t                 _n
 )
 {
     return (_n < _cmake->command_count) ? &_cmake->commands[_n] : NULL;
 }
 
 
-static const struct d_cmake_argument*
-d_internal_argument(
-    const struct d_cmake* _cmake,
-    size_t                _n,
-    size_t                _k
+static
+const struct dj_cmake_argument* d_internal_argument(
+    const struct dj_cmake* _cmake,
+    size_t                 _n,
+    size_t                 _k
 )
 {
-    const struct d_cmake_command* const command =
+    const struct dj_cmake_command* const command =
         d_internal_command(_cmake, _n);
 
     // an argument the command does not have is none
@@ -1186,10 +1176,10 @@ d_internal_argument(
 d_internal_line_start
   The offset of the first byte of the line holding `_at`.
 */
-static size_t
-d_internal_line_start(
-    const struct d_cmake_doc* _doc,
-    size_t                    _at
+static
+size_t d_internal_line_start(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _at
 )
 {
     size_t at = _at;
@@ -1209,8 +1199,8 @@ d_internal_line_start(
 d_internal_is_blank
   Whether a byte is a blank: a space or a tab.
 */
-static bool
-d_internal_is_blank(
+static
+bool d_internal_is_blank(
     char _c
 )
 {
@@ -1223,11 +1213,11 @@ d_internal_is_blank(
 d_internal_blank_between
   Whether only blanks stand from `_from` to `_to`.
 */
-static bool
-d_internal_blank_between(
-    const struct d_cmake_doc* _doc,
-    size_t                    _from,
-    size_t                    _to
+static
+bool d_internal_blank_between(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _from,
+    size_t                     _to
 )
 {
     // each byte, a blank
@@ -1248,10 +1238,10 @@ d_internal_blank_between(
 d_internal_starts_line
   Whether nothing but blanks stands before a place on its line.
 */
-static bool
-d_internal_starts_line(
-    const struct d_cmake_doc* _doc,
-    size_t                    _at
+static
+bool d_internal_starts_line(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _at
 )
 {
     return d_internal_blank_between(_doc, d_internal_line_start(_doc, _at),
@@ -1263,10 +1253,10 @@ d_internal_starts_line(
 d_internal_skip_blanks
   The first place from `_at` that holds no blank.
 */
-static size_t
-d_internal_skip_blanks(
-    const struct d_cmake_doc* _doc,
-    size_t                    _at
+static
+size_t d_internal_skip_blanks(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _at
 )
 {
     size_t at = _at;
@@ -1286,10 +1276,10 @@ d_internal_skip_blanks(
 d_internal_at_line_end
   Whether a place is the end of its line: a line ending, or the file's end.
 */
-static bool
-d_internal_at_line_end(
-    const struct d_cmake_doc* _doc,
-    size_t                    _at
+static
+bool d_internal_at_line_end(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _at
 )
 {
     return ( (_at >= _doc->length)       ||
@@ -1304,10 +1294,10 @@ d_internal_at_line_end(
 d_internal_past_line_end
   Past the line ending at a place, when one is there.
 */
-static size_t
-d_internal_past_line_end(
-    const struct d_cmake_doc* _doc,
-    size_t                    _at
+static
+size_t d_internal_past_line_end(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _at
 )
 {
     size_t at = _at;
@@ -1336,12 +1326,12 @@ d_internal_comment_after
 -- that starts on line `_line` at or after `_from`; `_from` when there is
 none.
 */
-static size_t
-d_internal_comment_after(
-    const struct d_cmake_doc* _doc,
-    size_t                    _n,
-    size_t                    _line,
-    size_t                    _from
+static
+size_t d_internal_comment_after(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _n,
+    size_t                     _line,
+    size_t                     _from
 )
 {
     size_t end = _from;
@@ -1349,7 +1339,7 @@ d_internal_comment_after(
     // each comment, the last on that line after the place
     for (size_t at = 0; at < _doc->records.comment_count; ++at)
     {
-        const struct d_cmake_comment* const comment =
+        const struct dj_cmake_comment* const comment =
             &_doc->records.comments[at];
 
         // within the command, on that line, after the place
@@ -1370,8 +1360,8 @@ d_internal_separates
   Whether a byte keeps an argument from running into its neighbour: space,
 a line ending, or a parenthesis.
 */
-static bool
-d_internal_separates(
+static
+bool d_internal_separates(
     char _byte
 )
 {
@@ -1390,10 +1380,10 @@ d_internal_space_before, d_internal_space_after
 running into it otherwise, or after it, running into the byte after; a
 comment's `#` after it ends an unquoted argument on its own.
 */
-static bool
-d_internal_space_before(
-    const struct d_cmake_doc* _doc,
-    size_t                    _at
+static
+bool d_internal_space_before(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _at
 )
 {
     return ( (_at > 0u) &&
@@ -1401,10 +1391,10 @@ d_internal_space_before(
 }
 
 
-static bool
-d_internal_space_after(
-    const struct d_cmake_doc* _doc,
-    size_t                    _at
+static
+bool d_internal_space_after(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _at
 )
 {
     return ( (_at < _doc->length)                      &&
@@ -1418,10 +1408,10 @@ d_internal_one_argument
   Whether a text reads as exactly one argument, and nothing else: it is
 read as the sole argument of a command.
 */
-static bool
-d_internal_one_argument(
-    struct d_cmake_doc* _doc,
-    const char*         _text
+static
+bool d_internal_one_argument(
+    struct dj_cmake_doc* _doc,
+    const char*          _text
 )
 {
     const size_t span    = strlen(_text);
@@ -1431,7 +1421,7 @@ d_internal_one_argument(
     // the text, wrapped as `x(...)`
     if (wrapped)
     {
-        struct d_cmake cmake;
+        struct dj_cmake cmake;
 
         // released whether or not it is read: an empty text is not
         memset(&cmake, 0, sizeof(cmake));
@@ -1470,14 +1460,14 @@ d_internal_changeable
 there and is no nested parenthesis, which pairs with another.  NULL, the
 document saying why, otherwise.
 */
-static const struct d_cmake_argument*
-d_internal_changeable(
-    struct d_cmake_doc* _doc,
-    size_t              _n,
-    size_t              _k
+static
+const struct dj_cmake_argument* d_internal_changeable(
+    struct dj_cmake_doc* _doc,
+    size_t               _n,
+    size_t               _k
 )
 {
-    const struct d_cmake_argument* const argument =
+    const struct dj_cmake_argument* const argument =
         d_internal_argument(&_doc->records, _n, _k);
 
     // an argument the command does not have
@@ -1505,9 +1495,9 @@ d_internal_changeable(
 
 // 6.2    Reading back
 //------------------------------------------------------------------------------
-// d_internal_reread
+// dj_internal_reread
 //   enum: what an argument's change did to its command's arguments.
-enum d_internal_reread
+enum dj_internal_reread
 {
     D_INTERNAL_SET = 0,
     D_INTERNAL_INSERTED,
@@ -1519,8 +1509,8 @@ enum d_internal_reread
 d_internal_same_text
   Whether two spans of two texts hold the same bytes.
 */
-static bool
-d_internal_same_text(
+static
+bool d_internal_same_text(
     const char* _left,
     size_t      _left_length,
     const char* _right,
@@ -1543,17 +1533,17 @@ the file's endings.
 */
 static bool
 d_internal_arguments_read_back(
-    struct d_cmake_doc*                _doc,
-    const struct d_internal_candidate* _candidate,
+    struct dj_cmake_doc*                _doc,
+    const struct dj_internal_candidate* _candidate,
     size_t                             _n,
     size_t                             _slot,
-    enum d_internal_reread             _what,
-    const struct d_internal_buffer*    _text
+    enum dj_internal_reread             _what,
+    const struct dj_internal_buffer*    _text
 )
 {
-    const struct d_cmake* const         old   = &_doc->records;
-    const struct d_cmake* const         fresh = &_candidate->records;
-    const struct d_cmake_command* const a     = &old->commands[_n];
+    const struct dj_cmake* const         old   = &_doc->records;
+    const struct dj_cmake* const         fresh = &_candidate->records;
+    const struct dj_cmake_command* const a     = &old->commands[_n];
     const size_t                        count =
         (_what == D_INTERNAL_INSERTED) ? (a->argument_count + 1u)
       : (_what == D_INTERNAL_REMOVED)  ? (a->argument_count - 1u)
@@ -1567,7 +1557,7 @@ d_internal_arguments_read_back(
         return d_internal_fail(_doc, "the change would cut another command");
     }
 
-    const struct d_cmake_command* const b = &fresh->commands[_n];
+    const struct dj_cmake_command* const b = &fresh->commands[_n];
 
     // the command as it was, but for its arguments
     if ( (!d_internal_same_text(&old->text[a->start], a->name_length,
@@ -1583,7 +1573,7 @@ d_internal_arguments_read_back(
     // each argument now, matched with what it was
     for (size_t k = 0; k < count; ++k)
     {
-        const struct d_cmake_argument* const y =
+        const struct dj_cmake_argument* const y =
             &fresh->arguments[b->first_argument + k];
 
         // the one written holds what was asked
@@ -1606,7 +1596,7 @@ d_internal_arguments_read_back(
             ( (_what == D_INTERNAL_INSERTED) && (k > _slot) ) ? (k - 1u)
           : ( (_what == D_INTERNAL_REMOVED) && (k >= _slot) ) ? (k + 1u)
           :                                                     k;
-        const struct d_cmake_argument* const x =
+        const struct dj_cmake_argument* const x =
             &old->arguments[a->first_argument + from];
 
         // the rest, as they were
@@ -1632,18 +1622,18 @@ reads back as it was to.
 */
 static bool
 d_internal_argument_change(
-    struct d_cmake_doc*    _doc,
+    struct dj_cmake_doc*    _doc,
     size_t                 _n,
     size_t                 _slot,
-    enum d_internal_reread _what,
+    enum dj_internal_reread _what,
     const char*            _argument,
     size_t                 _start,
     size_t                 _end,
     const char*            _splice
 )
 {
-    struct d_internal_buffer    text      = { NULL, 0u, 0u, false };
-    struct d_internal_candidate candidate;
+    struct dj_internal_buffer    text      = { NULL, 0u, 0u, false };
+    struct dj_internal_candidate candidate;
 
     // the argument as the file will hold it, its endings the file's
     if (!d_internal_with_endings(_doc, _argument, strlen(_argument), &text))
@@ -1680,15 +1670,14 @@ d_internal_argument_change(
 
 // 6.3    Changes
 //------------------------------------------------------------------------------
-bool
-d_cmake_doc_set_argument(
-    struct d_cmake_doc* _doc,
-    size_t              _command,
-    size_t              _argument,
-    const char*         _text
+bool d_cmake_doc_set_argument(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    size_t               _argument,
+    const char*          _text
 )
 {
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1697,7 +1686,7 @@ d_cmake_doc_set_argument(
         return false;
     }
 
-    const struct d_cmake_argument* const argument =
+    const struct dj_cmake_argument* const argument =
         d_internal_changeable(_doc, _command, _argument);
 
     // the argument, changeable, and the text one argument
@@ -1747,12 +1736,12 @@ d_internal_separator
 ending and the neighbour's indentation, when the neighbour stands on a line
 of its own, or a space.
 */
-static void
-d_internal_separator(
-    const struct d_cmake_doc*      _doc,
-    const struct d_cmake_argument* _near,
-    bool                           _own_line,
-    struct d_internal_buffer*      _out
+static
+void d_internal_separator(
+    const struct dj_cmake_doc*      _doc,
+    const struct dj_cmake_argument* _near,
+    bool                            _own_line,
+    struct dj_internal_buffer*      _out
 )
 {
     // a line of its own, indented as its neighbour
@@ -1779,18 +1768,18 @@ its own: before an argument that begins its line, or after one that does
 when nothing more of the command follows it there, past the comment ending
 that line.
 */
-static size_t
-d_internal_insert_place(
-    const struct d_cmake_doc*      _doc,
-    size_t                         _n,
-    size_t                         _k,
-    bool                           _after,
-    bool*                          _out_own_line
+static
+size_t d_internal_insert_place(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _n,
+    size_t                     _k,
+    bool                       _after,
+    bool*                      _out_own_line
 )
 {
-    const struct d_cmake_argument* const near =
+    const struct dj_cmake_argument* const near =
         d_internal_argument(&_doc->records, _n, _k);
-    const struct d_cmake_argument* const next =
+    const struct dj_cmake_argument* const next =
         d_internal_argument(&_doc->records, _n, _k + 1u);
     const bool                           own  =
         (d_internal_starts_line(_doc, near->start)) &&
@@ -1823,16 +1812,15 @@ space apart otherwise; into an empty list as it stands.
   Long as the text and its separator are put in either order, by which side
 of the neighbour it goes.
 */
-bool
-d_cmake_doc_insert_argument(
-    struct d_cmake_doc* _doc,
-    size_t              _command,
-    size_t              _argument,
-    const char*         _text,
-    bool                _after
+bool d_cmake_doc_insert_argument(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    size_t               _argument,
+    const char*          _text,
+    bool                 _after
 )
 {
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1841,7 +1829,7 @@ d_cmake_doc_insert_argument(
         return false;
     }
 
-    const struct d_cmake_command* const command =
+    const struct dj_cmake_command* const command =
         d_internal_command(&_doc->records, _command);
     const size_t count = (command) ? command->argument_count : 0u;
 
@@ -1873,7 +1861,7 @@ d_cmake_doc_insert_argument(
     // beside an argument, in its layout; into an empty list as it stands
     if (count > 0u)
     {
-        const struct d_cmake_argument* const beside =
+        const struct dj_cmake_argument* const beside =
             d_internal_argument(&_doc->records, _command, near);
 
         at = d_internal_insert_place(_doc, _command, near, after, &own);
@@ -1931,16 +1919,16 @@ there only by its command's `)` starts, so that the `)` closes up to what
 came before it: the end of the argument before, or the `(`; `_from` when a
 comment stands between, which the `)` must not follow.
 */
-static size_t
-d_internal_closes_up(
-    const struct d_cmake_doc*      _doc,
-    size_t                         _n,
-    const struct d_cmake_argument* _argument,
-    size_t                         _after
+static
+size_t d_internal_closes_up(
+    const struct dj_cmake_doc*      _doc,
+    size_t                          _n,
+    const struct dj_cmake_argument* _argument,
+    size_t                          _after
 )
 {
-    const struct d_cmake_command* const command = &_doc->records.commands[_n];
-    const struct d_cmake_argument* const first  =
+    const struct dj_cmake_command* const command = &_doc->records.commands[_n];
+    const struct dj_cmake_argument* const first  =
         &_doc->records.arguments[command->first_argument];
     const size_t from = (_argument > first) ? _argument[-1].end
                                             : (command->open + 1u);
@@ -1955,7 +1943,7 @@ d_internal_closes_up(
     // and no comment between
     for (size_t at = 0; at < _doc->records.comment_count; ++at)
     {
-        const struct d_cmake_comment* const comment =
+        const struct dj_cmake_comment* const comment =
             &_doc->records.comments[at];
 
         // one the `)` would close up to, or follow into
@@ -1978,13 +1966,13 @@ it included, when it stood alone there; up to the argument before, or the
 it apart from the argument before it on its line, or after it when nothing
 comes before, but never the last blank between it and a `(`.
 */
-static void
-d_internal_removal(
-    const struct d_cmake_doc*      _doc,
-    size_t                         _n,
-    const struct d_cmake_argument* _argument,
-    size_t*                        _out_start,
-    size_t*                        _out_end
+static
+void d_internal_removal(
+    const struct dj_cmake_doc*      _doc,
+    size_t                          _n,
+    const struct dj_cmake_argument* _argument,
+    size_t*                         _out_start,
+    size_t*                         _out_end
 )
 {
     const size_t line_start = d_internal_line_start(_doc, _argument->start);
@@ -2041,11 +2029,10 @@ d_internal_removal(
 }
 
 
-bool
-d_cmake_doc_remove_argument(
-    struct d_cmake_doc* _doc,
-    size_t              _command,
-    size_t              _argument
+bool d_cmake_doc_remove_argument(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    size_t               _argument
 )
 {
     size_t start = 0;
@@ -2057,7 +2044,7 @@ d_cmake_doc_remove_argument(
         return false;
     }
 
-    const struct d_cmake_argument* const argument =
+    const struct dj_cmake_argument* const argument =
         d_internal_changeable(_doc, _command, _argument);
 
     // the argument, changeable
@@ -2089,11 +2076,11 @@ d_cmake_doc_remove_argument(
 d_internal_indentation
   The blanks a command's line begins with: where it starts and how long.
 */
-static size_t
-d_internal_indentation(
-    const struct d_cmake_doc*     _doc,
-    const struct d_cmake_command* _command,
-    size_t*                       _out_start
+static
+size_t d_internal_indentation(
+    const struct dj_cmake_doc*     _doc,
+    const struct dj_cmake_command* _command,
+    size_t*                        _out_start
 )
 {
     const size_t line = d_internal_line_start(_doc, _command->start);
@@ -2109,9 +2096,9 @@ d_internal_opens
   Whether a command opens a block, or a branch of one, that holds the
 commands after it.
 */
-static bool
-d_internal_opens(
-    const struct d_cmake_command* _command
+static
+bool d_internal_opens(
+    const struct dj_cmake_command* _command
 )
 {
     return ( (_command->role == D_CMAKE_ROLE_OPEN) ||
@@ -2125,14 +2112,14 @@ d_internal_unit
   The file's own step of indentation: the first that a command inside a
 block stands past its opener by; four spaces when the file has none.
 */
-static void
-d_internal_unit(
-    const struct d_cmake_doc* _doc,
-    const char**              _out_text,
-    size_t*                   _out_length
+static
+void d_internal_unit(
+    const struct dj_cmake_doc* _doc,
+    const char**               _out_text,
+    size_t*                    _out_length
 )
 {
-    const struct d_cmake* const cmake = &_doc->records;
+    const struct dj_cmake* const cmake = &_doc->records;
 
     *_out_text   = "    ";
     *_out_length = 4u;
@@ -2140,8 +2127,8 @@ d_internal_unit(
     // each command that follows an opener, inside it
     for (size_t at = 1u; at < cmake->command_count; ++at)
     {
-        const struct d_cmake_command* const outer = &cmake->commands[at - 1u];
-        const struct d_cmake_command* const inner = &cmake->commands[at];
+        const struct dj_cmake_command* const outer = &cmake->commands[at - 1u];
+        const struct dj_cmake_command* const inner = &cmake->commands[at];
         size_t                              from  = 0;
         size_t                              to    = 0;
 
@@ -2178,12 +2165,11 @@ an empty block its opener's and a step more.
   Long as each of the neighbours a slot may take its indentation from is
 looked at in turn.
 */
-size_t
-d_cmake_doc_indent(
-    const struct d_cmake_doc* _doc,
-    size_t                    _before,
-    char*                     _out,
-    size_t                    _capacity
+size_t d_cmake_doc_indent(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _before,
+    char*                      _out,
+    size_t                     _capacity
 )
 {
     const char* text   = "";
@@ -2198,12 +2184,12 @@ d_cmake_doc_indent(
         return 0u;
     }
 
-    const struct d_cmake* const         cmake = &_doc->records;
+    const struct dj_cmake* const         cmake = &_doc->records;
     const size_t                        at    =
         (_before < cmake->command_count) ? _before : cmake->command_count;
-    const struct d_cmake_command* const prior =
+    const struct dj_cmake_command* const prior =
         (at > 0u) ? &cmake->commands[at - 1u] : NULL;
-    const struct d_cmake_command* const next  =
+    const struct dj_cmake_command* const next  =
         (at < cmake->command_count) ? &cmake->commands[at] : NULL;
     const size_t                        depth =
         (prior) ? (prior->depth + (d_internal_opens(prior) ? 1u : 0u)) : 0u;
@@ -2257,13 +2243,13 @@ d_internal_lead
 a line of its own directly above it, and above that, with no blank line
 between; the command's own line when there is none.
 */
-static size_t
-d_internal_lead(
-    const struct d_cmake_doc*     _doc,
-    const struct d_cmake_command* _command
+static
+size_t d_internal_lead(
+    const struct dj_cmake_doc*     _doc,
+    const struct dj_cmake_command* _command
 )
 {
-    const struct d_cmake* const cmake = &_doc->records;
+    const struct dj_cmake* const cmake = &_doc->records;
     size_t                      top   = _command->line;
     size_t                      start = d_internal_line_start(_doc,
                                                               _command->start);
@@ -2271,7 +2257,7 @@ d_internal_lead(
     // the comments before the command, from the nearest up
     for (size_t at = cmake->comment_count; at > 0u; --at)
     {
-        const struct d_cmake_comment* const comment = &cmake->comments[at - 1u];
+        const struct dj_cmake_comment* const comment = &cmake->comments[at - 1u];
 
         // one after the command's line, or on it, leads into nothing
         if (comment->start >= start)
@@ -2306,12 +2292,12 @@ d_internal_same_values
   Whether a command of one reading has the name and the arguments, by kind
 and value, of a command of another.
 */
-static bool
-d_internal_same_values(
-    const struct d_cmake*         _left,
-    const struct d_cmake_command* _a,
-    const struct d_cmake*         _right,
-    const struct d_cmake_command* _b
+static
+bool d_internal_same_values(
+    const struct dj_cmake*         _left,
+    const struct dj_cmake_command* _a,
+    const struct dj_cmake*         _right,
+    const struct dj_cmake_command* _b
 )
 {
     // the name and the count
@@ -2325,9 +2311,9 @@ d_internal_same_values(
     // each argument, by its kind and its value
     for (size_t at = 0; at < _a->argument_count; ++at)
     {
-        const struct d_cmake_argument* const x =
+        const struct dj_cmake_argument* const x =
             &_left->arguments[_a->first_argument + at];
-        const struct d_cmake_argument* const y =
+        const struct dj_cmake_argument* const y =
             &_right->arguments[_b->first_argument + at];
         char* const one   = malloc((x->end - x->start) + 1u);
         char* const other = malloc((y->end - y->start) + 1u);
@@ -2361,11 +2347,11 @@ d_internal_read_commands
   Reads a text of commands alone: false, the document saying why, when it
 does not read, or holds no command.
 */
-static bool
-d_internal_read_commands(
-    struct d_cmake_doc* _doc,
-    const char*         _text,
-    struct d_cmake*     _out
+static
+bool d_internal_read_commands(
+    struct dj_cmake_doc* _doc,
+    const char*          _text,
+    struct dj_cmake*     _out
 )
 {
     char why[256];
@@ -2398,13 +2384,13 @@ d_internal_misfit
 one does not read as written, or one replaced takes another part in its
 block than it took; NULL when they fit.
 */
-static const char*
-d_internal_misfit(
-    const struct d_cmake_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t                             _first,
-    const struct d_cmake*              _written,
-    bool                               _same_role
+static
+const char* d_internal_misfit(
+    const struct dj_cmake_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _first,
+    const struct dj_cmake*              _written,
+    bool                                _same_role
 )
 {
     const size_t made = (_written) ? _written->command_count : 0u;
@@ -2412,9 +2398,9 @@ d_internal_misfit(
     // each made, against what was written and what it replaced
     for (size_t at = 0; at < made; ++at)
     {
-        const struct d_cmake_command* const a =
+        const struct dj_cmake_command* const a =
             &_doc->records.commands[_first + at];
-        const struct d_cmake_command* const b =
+        const struct dj_cmake_command* const b =
             &_candidate->records.commands[_first + at];
 
         // a table of the misfits: read otherwise, or another part
@@ -2441,20 +2427,20 @@ d_internal_command_change
 and keeps it if the new commands there are `_written`'s and fit; a command
 replaced, `_same_role`, keeps the part it took in its block.
 */
-static bool
-d_internal_command_change(
-    struct d_cmake_doc*   _doc,
-    size_t                _first,
-    size_t                _cut,
-    const struct d_cmake* _written,
-    bool                  _same_role,
-    size_t                _start,
-    size_t                _end,
-    const char*           _splice,
-    size_t                _length
+static
+bool d_internal_command_change(
+    struct dj_cmake_doc*   _doc,
+    size_t                 _first,
+    size_t                 _cut,
+    const struct dj_cmake* _written,
+    bool                   _same_role,
+    size_t                 _start,
+    size_t                 _end,
+    const char*            _splice,
+    size_t                 _length
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
     const size_t                made = (_written) ? _written->command_count
                                                   : 0u;
 
@@ -2492,11 +2478,10 @@ d_internal_command_change(
 
 // 7.3    Changes
 //------------------------------------------------------------------------------
-bool
-d_cmake_doc_set_name(
-    struct d_cmake_doc* _doc,
-    size_t              _command,
-    const char*         _name
+bool d_cmake_doc_set_name(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    const char*          _name
 )
 {
     // parameter validation first
@@ -2506,7 +2491,7 @@ d_cmake_doc_set_name(
         return false;
     }
 
-    const struct d_cmake_command* const command =
+    const struct dj_cmake_command* const command =
         d_internal_command(&_doc->records, _command);
 
     // a command the file has
@@ -2530,8 +2515,8 @@ d_cmake_doc_set_name(
     // the command as it will read, to compare with
     const size_t             tail    = command->end - command->open;
     const size_t             span    = strlen(_name);
-    struct d_internal_buffer written = { NULL, 0u, 0u, false };
-    struct d_cmake           cmake;
+    struct dj_internal_buffer written = { NULL, 0u, 0u, false };
+    struct dj_cmake           cmake;
 
     (void)d_internal_add(&written, _name, span);
     (void)d_internal_add(&written, &_doc->text[command->open], tail);
@@ -2559,14 +2544,13 @@ d_cmake_doc_set_name(
 }
 
 
-bool
-d_cmake_doc_set_command(
-    struct d_cmake_doc* _doc,
-    size_t              _command,
-    const char*         _text
+bool d_cmake_doc_set_command(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    const char*          _text
 )
 {
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -2575,7 +2559,7 @@ d_cmake_doc_set_command(
         return false;
     }
 
-    const struct d_cmake_command* const command =
+    const struct dj_cmake_command* const command =
         d_internal_command(&_doc->records, _command);
 
     // a command the file has
@@ -2629,10 +2613,10 @@ d_internal_inside
   Whether a place of a text read is within one of its arguments or bracket
 comments that spans lines, where an indentation would change it.
 */
-static bool
-d_internal_inside(
-    const struct d_cmake* _cmake,
-    size_t                _at
+static
+bool d_internal_inside(
+    const struct dj_cmake* _cmake,
+    size_t                 _at
 )
 {
     // each argument that holds the place within it
@@ -2667,11 +2651,11 @@ d_internal_margin
 be indented and hold something: the indentation the text has of its own,
 which the file's takes the place of.
 */
-static size_t
-d_internal_margin(
-    const struct d_cmake* _cmake,
-    const char*           _text,
-    size_t                _length
+static
+size_t d_internal_margin(
+    const struct dj_cmake* _cmake,
+    const char*            _text,
+    size_t                 _length
 )
 {
     size_t margin = (size_t)-1;
@@ -2719,13 +2703,13 @@ taken off its own margin and given the file's indentation, a line ending
 after the last, and one before the first when the file's last line has
 none.
 */
-static bool
-d_internal_lay_out(
-    const struct d_cmake* _cmake,
-    const char*           _text,
-    const char*           _indent,
-    bool                  _ending_first,
-    struct d_internal_buffer* _out
+static
+bool d_internal_lay_out(
+    const struct dj_cmake*     _cmake,
+    const char*                _text,
+    const char*                _indent,
+    bool                       _ending_first,
+    struct dj_internal_buffer* _out
 )
 {
     const size_t length = strlen(_text);
@@ -2776,15 +2760,14 @@ lines inside an argument are left as they are; the place, the indentation
 and the line endings are then the file's.
   Long as the place is one of three, each found here.
 */
-bool
-d_cmake_doc_insert_commands(
-    struct d_cmake_doc* _doc,
-    size_t              _before,
-    const char*         _text
+bool d_cmake_doc_insert_commands(
+    struct dj_cmake_doc* _doc,
+    size_t               _before,
+    const char*          _text
 )
 {
-    struct d_cmake           cmake;
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_cmake           cmake;
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
     char                     indent[256];
 
     // parameter validation first
@@ -2821,7 +2804,7 @@ d_cmake_doc_insert_commands(
     }
     else if (count > 0u)
     {
-        const struct d_cmake_command* const last =
+        const struct dj_cmake_command* const last =
             &_doc->records.commands[count - 1u];
         const size_t                        after =
             d_internal_skip_blanks(_doc,
@@ -2859,11 +2842,10 @@ d_cmake_doc_insert_commands(
 }
 
 
-bool
-d_cmake_doc_remove_commands(
-    struct d_cmake_doc* _doc,
-    size_t              _first,
-    size_t              _last
+bool d_cmake_doc_remove_commands(
+    struct dj_cmake_doc* _doc,
+    size_t               _first,
+    size_t               _last
 )
 {
     // parameter validation first
@@ -2883,9 +2865,9 @@ d_cmake_doc_remove_commands(
         return false;
     }
 
-    const struct d_cmake_command* const first =
+    const struct dj_cmake_command* const first =
         &_doc->records.commands[_first];
-    const struct d_cmake_command* const last  =
+    const struct dj_cmake_command* const last  =
         &_doc->records.commands[_last];
     const size_t                        after =
         d_internal_skip_blanks(_doc,
@@ -2910,9 +2892,9 @@ d_cmake_doc_remove_commands(
 //==============================================================================
 
 
-enum d_cmake_saved
+enum dj_cmake_saved
 d_cmake_doc_save(
-    struct d_cmake_doc* _doc,
+    struct dj_cmake_doc* _doc,
     const char*         _path,
     char*               _problem,
     size_t              _capacity

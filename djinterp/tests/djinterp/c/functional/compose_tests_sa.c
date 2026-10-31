@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./compose_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,10 +20,8 @@ d_tests_sa_compose_run_all
   - Partial application functions
   - Convenience and template macros
 */
-bool
-d_tests_sa_compose_run_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_run_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -23,15 +23,15 @@
 #include <string.h>  // memcpy, memcmp, strlen
 
 
-// d_node_tree
+// dj_node_tree
 //   struct: the arrays and the intern table behind them.
-struct d_node_tree
+struct dj_node_tree
 {
-    struct d_node*            nodes;
+    struct dj_node*            nodes;
     size_t                    node_count;
     size_t                    node_capacity;
 
-    struct d_node_attribute*  attributes;
+    struct dj_node_attribute*  attributes;
     size_t                    attribute_count;
     size_t                    attribute_capacity;
 
@@ -48,7 +48,7 @@ struct d_node_tree
 
     uint32_t                  next_origin;
 
-    struct d_symbol_table*    symbols;      // types and attribute names
+    struct dj_symbol_table*    symbols;      // types and attribute names
     bool                      owns_symbols;
 };
 
@@ -57,8 +57,8 @@ struct d_node_tree
 d_internal_node_hash
   FNV-1a over a counted string.
 */
-static uint32_t
-d_internal_node_hash(
+static
+uint32_t d_internal_node_hash(
     const char* _text,
     size_t      _length
 )
@@ -79,9 +79,9 @@ d_internal_node_hash(
 d_internal_node_rehash
   Doubles the bucket array and refiles every identifier.
 */
-static bool
-d_internal_node_rehash(
-    struct d_node_tree* _tree
+static
+bool d_internal_node_rehash(
+    struct dj_node_tree* _tree
 )
 {
     const size_t grown = (_tree->bucket_mask == 0)
@@ -128,11 +128,10 @@ d_internal_node_rehash(
 d_node_intern
   Returns the identifier for a counted string, adding it when new.
 */
-uint32_t
-d_node_intern(
-    struct d_node_tree* _tree,
-    const char*         _text,
-    size_t              _length
+uint32_t d_node_intern(
+    struct dj_node_tree* _tree,
+    const char*          _text,
+    size_t               _length
 )
 {
     if ((!_tree) || (!_text))
@@ -229,19 +228,16 @@ d_node_intern(
 d_node_tree_new
   Allocates an empty tree.
 */
-struct d_node_tree*
-d_node_tree_new(
-    void
-)
+struct dj_node_tree* d_node_tree_new(void)
 {
-    struct d_symbol_table* const symbols = d_symbol_table_new();
+    struct dj_symbol_table* const symbols = d_symbol_table_new();
 
     if (!symbols)
     {
         return NULL;
     }
 
-    struct d_node_tree* const tree = d_node_tree_new_shared(symbols);
+    struct dj_node_tree* const tree = d_node_tree_new_shared(symbols);
 
     if (!tree)
     {
@@ -260,9 +256,8 @@ d_node_tree_new(
 d_node_tree_new_shared
   The table outlives every clear: names are per run, texts per file.
 */
-struct d_node_tree*
-d_node_tree_new_shared(
-    struct d_symbol_table* _symbols
+struct dj_node_tree* d_node_tree_new_shared(
+    struct dj_symbol_table* _symbols
 )
 {
     if (!_symbols)
@@ -270,7 +265,7 @@ d_node_tree_new_shared(
         return NULL;
     }
 
-    struct d_node_tree* const tree = calloc(1u, sizeof(struct d_node_tree));
+    struct dj_node_tree* const tree = calloc(1u, sizeof(struct dj_node_tree));
 
     if (tree)
     {
@@ -286,9 +281,8 @@ d_node_tree_new_shared(
 d_node_tree_free
   Releases the tree and everything it owns.
 */
-void
-d_node_tree_free(
-    struct d_node_tree* _tree
+void d_node_tree_free(
+    struct dj_node_tree* _tree
 )
 {
     if (_tree)
@@ -317,9 +311,8 @@ d_node_tree_clear
 files reuses one set of buffers.  The origin counter is not reset: identity
 stays unique across every file in a run.
 */
-void
-d_node_tree_clear(
-    struct d_node_tree* _tree
+void d_node_tree_clear(
+    struct dj_node_tree* _tree
 )
 {
     if (_tree)
@@ -345,11 +338,10 @@ d_node_add
   Appends a node beneath a parent and links it as the parent's last child.
 Passing D_DSS_NO_INDEX as the parent creates a root.
 */
-uint32_t
-d_node_add(
-    struct d_node_tree* _tree,
-    uint32_t            _parent,
-    const char*         _type
+uint32_t d_node_add(
+    struct dj_node_tree* _tree,
+    uint32_t             _parent,
+    const char*          _type
 )
 {
     if ((!_tree) || (!_type))
@@ -363,8 +355,8 @@ d_node_add(
                            ? 64u
                            : (_tree->node_capacity * 2u);
 
-        struct d_node* const nodes = realloc(_tree->nodes,
-                                             grown * sizeof(struct d_node));
+        struct dj_node* const nodes = realloc(_tree->nodes,
+                                             grown * sizeof(struct dj_node));
 
         if (!nodes)
         {
@@ -377,7 +369,7 @@ d_node_add(
 
     const uint32_t at = (uint32_t)_tree->node_count;
 
-    struct d_node* const node = &_tree->nodes[at];
+    struct dj_node* const node = &_tree->nodes[at];
 
     memset(node, 0, sizeof(*node));
 
@@ -401,7 +393,7 @@ d_node_add(
     // holds every token of a large header took minutes
     if (_parent != D_DSS_NO_INDEX)
     {
-        struct d_node* const parent = &_tree->nodes[_parent];
+        struct dj_node* const parent = &_tree->nodes[_parent];
 
         if (parent->first_child == D_DSS_NO_INDEX)
         {
@@ -430,12 +422,11 @@ d_node_set_attribute
 number is kept as one too, so a numeric attribute comparison needs no second
 conversion at match time.
 */
-bool
-d_node_set_attribute(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _name,
-    const char*         _value
+bool d_node_set_attribute(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _name,
+    const char*          _value
 )
 {
     if ((!_tree) || (_node >= _tree->node_count) || (!_name))
@@ -449,9 +440,9 @@ d_node_set_attribute(
                            ? 64u
                            : (_tree->attribute_capacity * 2u);
 
-        struct d_node_attribute* const grown_data =
+        struct dj_node_attribute* const grown_data =
             realloc(_tree->attributes,
-                    grown * sizeof(struct d_node_attribute));
+                    grown * sizeof(struct dj_node_attribute));
 
         if (!grown_data)
         {
@@ -464,7 +455,7 @@ d_node_set_attribute(
 
     const uint32_t at = (uint32_t)_tree->attribute_count;
 
-    struct d_node_attribute* const attribute = &_tree->attributes[at];
+    struct dj_node_attribute* const attribute = &_tree->attributes[at];
 
     attribute->name    = d_symbol_intern(_tree->symbols, _name,
                                          strlen(_name));
@@ -486,7 +477,7 @@ d_node_set_attribute(
         }
     }
 
-    struct d_node* const node = &_tree->nodes[_node];
+    struct dj_node* const node = &_tree->nodes[_node];
 
     // A node's attributes are one contiguous run, so an attribute added to a
     // node that is no longer the last to have one would land beyond its
@@ -508,9 +499,9 @@ d_node_set_attribute(
                 grown *= 2u;
             }
 
-            struct d_node_attribute* const moved =
+            struct dj_node_attribute* const moved =
                 realloc(_tree->attributes,
-                        grown * sizeof(struct d_node_attribute));
+                        grown * sizeof(struct dj_node_attribute));
 
             if (!moved)
             {
@@ -524,13 +515,13 @@ d_node_set_attribute(
         // the new attribute was written at the end, where the run now goes,
         // so it is held aside and follows the run: the run then starts where
         // it stood, and ends with it
-        const struct d_node_attribute pending =
+        const struct dj_node_attribute pending =
             _tree->attributes[_tree->attribute_count];
 
         (void)memmove(&_tree->attributes[_tree->attribute_count],
                       &_tree->attributes[node->first_attribute],
                       node->attribute_count
-                      * sizeof(struct d_node_attribute));
+                      * sizeof(struct dj_node_attribute));
 
         _tree->attributes[_tree->attribute_count + node->attribute_count]
             = pending;
@@ -561,12 +552,11 @@ d_node_set_attribute(
 d_node_set_text
   Interns a node's own source text.
 */
-bool
-d_node_set_text(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _text,
-    size_t              _length
+bool d_node_set_text(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _text,
+    size_t               _length
 )
 {
     if ((!_tree) || (_node >= _tree->node_count) || (!_text))
@@ -580,14 +570,17 @@ d_node_set_text(
 }
 
 
-size_t
-d_node_count(const struct d_node_tree* _tree)
+size_t d_node_count(
+    const struct dj_node_tree* _tree
+)
 {
     return _tree ? _tree->node_count : 0u;
 }
 
-struct d_node*
-d_node_at(struct d_node_tree* _tree, uint32_t _at)
+struct dj_node* d_node_at(
+    struct dj_node_tree* _tree,
+    uint32_t             _at
+)
 {
     if ((!_tree) || (_at >= _tree->node_count))
     {
@@ -597,8 +590,10 @@ d_node_at(struct d_node_tree* _tree, uint32_t _at)
     return &_tree->nodes[_at];
 }
 
-const struct d_node_attribute*
-d_node_attribute_at(const struct d_node_tree* _tree, uint32_t _at)
+const struct dj_node_attribute* d_node_attribute_at(
+    const struct dj_node_tree* _tree,
+    uint32_t                   _at
+)
 {
     if ((!_tree) || (_at >= _tree->attribute_count))
     {
@@ -608,8 +603,10 @@ d_node_attribute_at(const struct d_node_tree* _tree, uint32_t _at)
     return &_tree->attributes[_at];
 }
 
-const char*
-d_node_text(const struct d_node_tree* _tree, uint32_t _id)
+const char* d_node_text(
+    const struct dj_node_tree* _tree,
+    uint32_t                   _id
+)
 {
     if ((!_tree) || (!_tree->offsets) || (_id >= _tree->id_count))
     {
@@ -619,8 +616,10 @@ d_node_text(const struct d_node_tree* _tree, uint32_t _id)
     return _tree->text + _tree->offsets[_id];
 }
 
-uint32_t
-d_node_find_id(const struct d_node_tree* _tree, const char* _text)
+uint32_t d_node_find_id(
+    const struct dj_node_tree* _tree,
+    const char*                _text
+)
 {
     if ((!_tree) || (!_text))
     {
@@ -630,8 +629,10 @@ d_node_find_id(const struct d_node_tree* _tree, const char* _text)
     return d_symbol_find(_tree->symbols, _text, strlen(_text));
 }
 
-uint32_t
-d_node_find_text(const struct d_node_tree* _tree, const char* _text)
+uint32_t d_node_find_text(
+    const struct dj_node_tree* _tree,
+    const char*                _text
+)
 {
     if ((!_tree) || (!_text) || (_tree->bucket_mask == 0))
     {
@@ -658,14 +659,17 @@ d_node_find_text(const struct d_node_tree* _tree, const char* _text)
     return D_DSS_NO_INDEX;
 }
 
-const char*
-d_node_name(const struct d_node_tree* _tree, uint32_t _symbol)
+const char* d_node_name(
+    const struct dj_node_tree* _tree,
+    uint32_t                   _symbol
+)
 {
     return _tree ? d_symbol_text(_tree->symbols, _symbol) : "";
 }
 
-struct d_symbol_table*
-d_node_tree_symbols(const struct d_node_tree* _tree)
+struct dj_symbol_table* d_node_tree_symbols(
+    const struct dj_node_tree* _tree
+)
 {
     return _tree ? _tree->symbols : NULL;
 }

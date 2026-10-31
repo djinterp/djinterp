@@ -16,17 +16,16 @@
 // std
 #include <stddef.h>  // NULL
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 /*
 d_pdf_capabilities_init
   Text only, the C++ constructor's defaults.
 */
-struct d_pdf_capabilities
-d_pdf_capabilities_init(void)
+struct dj_pdf_capabilities d_pdf_capabilities_init(void)
 {
-    struct d_pdf_capabilities caps;
+    struct dj_pdf_capabilities caps;
 
     caps.text            = 1;
     caps.vector_graphics = 0;
@@ -46,10 +45,9 @@ d_pdf_capabilities_builtin
   What the C++ builtin backend reports: text, vector graphics, metadata and
 images.
 */
-struct d_pdf_capabilities
-d_pdf_capabilities_builtin(void)
+struct dj_pdf_capabilities d_pdf_capabilities_builtin(void)
 {
-    struct d_pdf_capabilities caps = d_pdf_capabilities_init();
+    struct dj_pdf_capabilities caps = d_pdf_capabilities_init();
 
     caps.vector_graphics = 1;
     caps.metadata        = 1;
@@ -63,10 +61,9 @@ d_pdf_capabilities_supports_all
   1 when every capability `_need` asks for is one `_have` offers. Nothing
 needed is always supported; a missing `_have` supports nothing.
 */
-int32_t
-d_pdf_capabilities_supports_all(
-    const struct d_pdf_capabilities* _have,
-    const struct d_pdf_capabilities* _need
+int32_t d_pdf_capabilities_supports_all(
+    const struct dj_pdf_capabilities* _have,
+    const struct dj_pdf_capabilities* _need
 )
 {
     // no requirement: trivially met
@@ -114,8 +111,7 @@ d_pdf_backend_name
   The display names env_pdf.h defines, and the builtin's own. An unknown kind
 has no name and gets "unknown" rather than NULL.
 */
-const char*
-d_pdf_backend_name(
+const char* d_pdf_backend_name(
     int32_t _kind
 )
 {
@@ -130,8 +126,7 @@ d_pdf_backend_name(
     }
 }
 
-int32_t
-d_pdf_backend_is_available(
+int32_t d_pdf_backend_is_available(
     int32_t _kind
 )
 {
@@ -146,8 +141,7 @@ d_pdf_backend_is_available(
     }
 }
 
-int32_t
-d_pdf_backend_preferred(void)
+int32_t d_pdf_backend_preferred(void)
 {
     return (int32_t)D_ENV_PDF_PREFERRED_BACKEND;
 }

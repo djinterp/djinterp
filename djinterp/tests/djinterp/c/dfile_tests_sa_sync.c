@@ -24,13 +24,9 @@ d_tests_dfile_fsync
   - returns 0 for valid fd
   - returns -1 for invalid fd
 */
-struct d_test_object*
-d_tests_dfile_fsync
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fsync(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     int                   result;
@@ -89,13 +85,9 @@ d_tests_dfile_fsync_stream
   - returns 0 for valid stream
   - returns -1 for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_fsync_stream
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fsync_stream(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     int                   result;
@@ -154,13 +146,9 @@ d_tests_dfile_fflush
   - returns 0 for valid stream
   - handles NULL stream (flushes all)
 */
-struct d_test_object*
-d_tests_dfile_fflush
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fflush(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     int                   result;
@@ -220,13 +208,9 @@ d_tests_dfile_synchronization_all
   - d_file_sync_stream
   - d_file_flush_stream
 */
-struct d_test_object*
-d_tests_dfile_synchronization_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_synchronization_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("VI. File Synchronization", 3);

@@ -178,7 +178,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_REDIS_ENV_REDIS_H 1
 
 // djinterp
-#include "../../../config/core/env/db/redis/cfg_env_redis.h"  // D_CFG_ENV_*
+#include "../../../config/env/db/redis/cfg_env_redis.h"  // D_CFG_ENV_*
 #include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 

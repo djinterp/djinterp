@@ -27,11 +27,11 @@
 // d_internal_build
 //   struct: one build's tree, the records it reads, and a scratch buffer
 //   for values.
-struct d_internal_build
+struct dj_internal_build
 {
-    struct d_node_tree*       tree;
-    const struct d_cmake*     cmake;
-    struct d_ext_cmake_stats* stats;
+    struct dj_node_tree*       tree;
+    const struct dj_cmake*     cmake;
+    struct dj_ext_cmake_stats* stats;
     char*                     scratch;
     size_t                    scratch_capacity;
 };
@@ -41,12 +41,12 @@ struct d_internal_build
 d_internal_number
   Writes a count as an attribute's text, which the tree keeps as a number.
 */
-static void
-d_internal_number(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _name,
-    size_t              _value
+static
+void d_internal_number(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _name,
+    size_t               _value
 )
 {
     char text[32];
@@ -63,17 +63,17 @@ d_internal_place
   Gives a node the geometry of a record's first line: where it starts, and
 how far along that line it reaches.
 */
-static void
-d_internal_place(
-    const struct d_internal_build* _build,
-    uint32_t                       _node,
-    size_t                         _start,
-    size_t                         _end,
-    size_t                         _line,
-    size_t                         _column
+static
+void d_internal_place(
+    const struct dj_internal_build* _build,
+    uint32_t                        _node,
+    size_t                          _start,
+    size_t                          _end,
+    size_t                          _line,
+    size_t                          _column
 )
 {
-    struct d_node* const node = d_node_at(_build->tree, _node);
+    struct dj_node* const node = d_node_at(_build->tree, _node);
     const char* const    text = _build->cmake->text;
     size_t               last = _start;
 
@@ -98,11 +98,11 @@ d_internal_place(
 d_internal_comment
   Adds one comment beneath a parent.
 */
-static void
-d_internal_comment(
-    struct d_internal_build*      _build,
-    uint32_t                      _parent,
-    const struct d_cmake_comment* _comment
+static
+void d_internal_comment(
+    struct dj_internal_build*      _build,
+    uint32_t                       _parent,
+    const struct dj_cmake_comment* _comment
 )
 {
     const uint32_t node = d_node_add(_build->tree, _parent, "comment");
@@ -136,10 +136,10 @@ d_internal_comment(
 d_internal_value
   The argument's value, in the build's scratch buffer.
 */
-static const char*
-d_internal_value(
-    struct d_internal_build*       _build,
-    const struct d_cmake_argument* _argument
+static
+const char* d_internal_value(
+    struct dj_internal_build*       _build,
+    const struct dj_cmake_argument* _argument
 )
 {
     const size_t wanted = (_argument->end - _argument->start) + 1u;
@@ -168,11 +168,11 @@ d_internal_value(
 d_internal_argument
   Adds one argument beneath its command.
 */
-static void
-d_internal_argument(
-    struct d_internal_build*       _build,
-    uint32_t                       _command,
-    const struct d_cmake_argument* _argument
+static
+void d_internal_argument(
+    struct dj_internal_build*       _build,
+    uint32_t                        _command,
+    const struct dj_cmake_argument* _argument
 )
 {
     static const char* const kinds[] = { "unquoted", "quoted", "bracket" };
@@ -222,8 +222,8 @@ d_internal_argument(
 d_internal_case
   Whether a name is written in lower case, upper case, or both.
 */
-static const char*
-d_internal_case(
+static
+const char* d_internal_case(
     const char* _name,
     size_t      _length
 )
@@ -248,18 +248,18 @@ d_internal_command
   Adds one command beneath a parent, its arguments and the comments among
 them in the order the file has them, and the comment cursor past them.
 */
-static uint32_t
-d_internal_command(
-    struct d_internal_build* _build,
-    uint32_t                 _parent,
-    size_t                   _which,
-    size_t*                  _comment
+static
+uint32_t d_internal_command(
+    struct dj_internal_build* _build,
+    uint32_t                  _parent,
+    size_t                    _which,
+    size_t*                   _comment
 )
 {
     static const char* const roles[] = { "", "open", "branch", "close" };
 
-    const struct d_cmake* const         cmake   = _build->cmake;
-    const struct d_cmake_command* const command = &cmake->commands[_which];
+    const struct dj_cmake* const         cmake   = _build->cmake;
+    const struct dj_cmake_command* const command = &cmake->commands[_which];
     const uint32_t node = d_node_add(_build->tree, _parent, "command");
 
     // a node that cannot be added leaves the rest of the tree as it is
@@ -347,15 +347,15 @@ d_internal_command(
 d_internal_block
   Opens a block node for an opener, beneath a parent.
 */
-static uint32_t
-d_internal_block(
-    struct d_internal_build* _build,
-    uint32_t                 _parent,
-    size_t                   _which
+static
+uint32_t d_internal_block(
+    struct dj_internal_build* _build,
+    uint32_t                  _parent,
+    size_t                    _which
 )
 {
-    const struct d_cmake* const         cmake   = _build->cmake;
-    const struct d_cmake_command* const command = &cmake->commands[_which];
+    const struct dj_cmake* const         cmake   = _build->cmake;
+    const struct dj_cmake_command* const command = &cmake->commands[_which];
     const uint32_t node = d_node_add(_build->tree, _parent, "block");
 
     // a node that cannot be added leaves the rest of the tree as it is
@@ -402,13 +402,13 @@ d_internal_tree
   Walks the commands and the comments outside them together, nesting each
 block's commands beneath it.
 */
-static void
-d_internal_tree(
-    struct d_internal_build* _build,
-    uint32_t                 _file
+static
+void d_internal_tree(
+    struct dj_internal_build* _build,
+    uint32_t                  _file
 )
 {
-    const struct d_cmake* const cmake = _build->cmake;
+    const struct dj_cmake* const cmake = _build->cmake;
     uint32_t* const nodes  = malloc((cmake->command_count + 1u)
                                     * sizeof(uint32_t));
     size_t* const   owners = malloc((cmake->command_count + 1u)
@@ -443,7 +443,7 @@ d_internal_tree(
             continue;
         }
 
-        const struct d_cmake_command* const record =
+        const struct dj_cmake_command* const record =
             &cmake->commands[command];
 
         // an opener holds itself and what follows, until its closer
@@ -510,8 +510,7 @@ d_internal_tree(
 d_ext_cmake_accepts
   The base name decides: CMakeLists.txt, *.cmake, *.cmake.in.
 */
-bool
-d_ext_cmake_accepts(
+bool d_ext_cmake_accepts(
     const char* _path
 )
 {
@@ -553,18 +552,17 @@ d_ext_cmake_build
   The file node is marked before anything is read, so a sheet can key on the
 language even for a file that is generated or refused.
 */
-uint32_t
-d_ext_cmake_build(
-    struct d_node_tree*       _tree,
-    uint32_t                  _parent,
-    const char*               _text,
-    size_t                    _length,
-    const char*               _path,
-    struct d_ext_cmake_stats* _out_stats
+uint32_t d_ext_cmake_build(
+    struct dj_node_tree*       _tree,
+    uint32_t                   _parent,
+    const char*                _text,
+    size_t                     _length,
+    const char*                _path,
+    struct dj_ext_cmake_stats* _out_stats
 )
 {
-    struct d_ext_cmake_stats        scratch;
-    struct d_ext_cmake_stats* const stats = _out_stats ? _out_stats
+    struct dj_ext_cmake_stats        scratch;
+    struct dj_ext_cmake_stats* const stats = _out_stats ? _out_stats
                                                        : &scratch;
 
     memset(stats, 0, sizeof(*stats));
@@ -600,13 +598,13 @@ d_ext_cmake_build(
         return file;
     }
 
-    struct d_cmake cmake;
+    struct dj_cmake cmake;
     char           why[256];
 
     stats->refused = !d_cmake_read(&cmake, _text, _text ? _length : 0u, why,
                                    sizeof(why));
 
-    struct d_internal_build build;
+    struct dj_internal_build build;
 
     memset(&build, 0, sizeof(build));
     build.tree  = _tree;
@@ -622,7 +620,7 @@ d_ext_cmake_build(
 
         if (refusal != D_DSS_NO_INDEX)
         {
-            struct d_node* const node = d_node_at(_tree, refusal);
+            struct dj_node* const node = d_node_at(_tree, refusal);
 
             node->line         = (uint32_t)cmake.error_line;
             node->start_column = (uint32_t)cmake.error_column;
@@ -644,8 +642,8 @@ d_ext_cmake_build(
 d_internal_slurp
   Reads a whole file; the caller frees it.
 */
-static char*
-d_internal_slurp(
+static
+char* d_internal_slurp(
     const char* _path,
     size_t*     _length
 )
@@ -696,12 +694,11 @@ d_internal_slurp(
 d_ext_cmake_build_path
   The driver's adapter: read the file, then build beneath its node.
 */
-uint32_t
-d_ext_cmake_build_path(
-    struct d_node_tree*       _tree,
-    uint32_t                  _file,
-    const char*               _path,
-    struct d_ext_cmake_stats* _out_stats
+uint32_t d_ext_cmake_build_path(
+    struct dj_node_tree*       _tree,
+    uint32_t                   _file,
+    const char*                _path,
+    struct dj_ext_cmake_stats* _out_stats
 )
 {
     // parameter validation first

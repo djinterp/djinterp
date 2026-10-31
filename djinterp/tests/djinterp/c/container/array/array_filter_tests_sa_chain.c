@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -27,16 +27,14 @@ d_tests_sa_array_filter_apply_chain
   - NULL elements is handled safely
   - Chain with where produces correct filtered subset
 */
-bool
-d_tests_sa_array_filter_apply_chain
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_apply_chain(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
-    struct d_filter_chain*       chain;
+    struct dj_contiguous_filter_result res;
+    struct dj_filter_chain*       chain;
     int*                         out;
 
     result = true;
@@ -185,18 +183,16 @@ d_tests_sa_array_filter_apply_union
   - Union with empty filter equals the other filter
   - NULL combinator is handled safely
 */
-bool
-d_tests_sa_array_filter_apply_union
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_apply_union(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
-    struct d_filter_union*       combo;
-    struct d_filter_chain*       chain_even;
-    struct d_filter_chain*       chain_gt7;
+    struct dj_contiguous_filter_result res;
+    struct dj_filter_union*       combo;
+    struct dj_filter_chain*       chain_even;
+    struct dj_filter_chain*       chain_gt7;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -261,18 +257,16 @@ d_tests_sa_array_filter_apply_intersection
   - Intersection with disjoint filters produces empty result
   - NULL combinator is handled safely
 */
-bool
-d_tests_sa_array_filter_apply_intersection
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_apply_intersection(
+    struct dj_test_counter* _counter
 )
 {
     bool                             result;
     int                              data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result     res;
-    struct d_filter_intersection*    combo;
-    struct d_filter_chain*           chain_even;
-    struct d_filter_chain*           chain_gt3;
+    struct dj_contiguous_filter_result     res;
+    struct dj_filter_intersection*    combo;
+    struct dj_filter_chain*           chain_even;
+    struct dj_filter_chain*           chain_gt3;
     int                              threshold;
 
     result    = true;
@@ -334,18 +328,16 @@ d_tests_sa_array_filter_apply_difference
   - Difference with empty B equals A
   - NULL combinator is handled safely
 */
-bool
-d_tests_sa_array_filter_apply_difference
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_apply_difference(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
-    struct d_filter_difference*  diff;
-    struct d_filter_chain*       chain_all;
-    struct d_filter_chain*       chain_even;
+    struct dj_contiguous_filter_result res;
+    struct dj_filter_difference*  diff;
+    struct dj_filter_chain*       chain_all;
+    struct dj_filter_chain*       chain_even;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -397,10 +389,8 @@ d_tests_sa_array_filter_apply_difference
 d_tests_sa_array_filter_chain_all
   Aggregation function that runs all chain and combinator tests.
 */
-bool
-d_tests_sa_array_filter_chain_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_chain_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

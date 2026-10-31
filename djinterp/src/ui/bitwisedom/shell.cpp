@@ -62,8 +62,7 @@ const tool_info TOOLS[TOOL_COUNT] = {
 
 // info
 //   a tool's row, held to the table.
-const tool_info&
-info(
+const tool_info& info(
     tool _tool
 )
 {
@@ -75,40 +74,35 @@ info(
 }  // anonymous namespace
 
 
-const char*
-tool_title(
+const char* tool_title(
     tool _tool
 )
 {
     return info(_tool).title;
 }
 
-const char*
-tool_key(
+const char* tool_key(
     tool _tool
 )
 {
     return info(_tool).key;
 }
 
-dock_slot
-tool_slot(
+dock_slot tool_slot(
     tool _tool
 )
 {
     return info(_tool).slot;
 }
 
-bool
-tool_open(
+bool tool_open(
     tool _tool
 )
 {
     return info(_tool).open;
 }
 
-tool
-tool_for_page(
+tool tool_for_page(
     int _page
 )
 {
@@ -123,16 +117,14 @@ tool_for_page(
     return PAGES[std::clamp(_page, 0, count - 1)];
 }
 
-std::string
-document_key(
+std::string document_key(
     int _document
 )
 {
     return "doc" + std::to_string(_document);
 }
 
-std::string
-tool_window_key(
+std::string tool_window_key(
     int  _workspace,
     tool _tool
 )
@@ -140,8 +132,7 @@ tool_window_key(
     return "w" + std::to_string(_workspace) + "." + tool_key(_tool);
 }
 
-unsigned int
-dock_id(
+unsigned int dock_id(
     int _workspace
 )
 {
@@ -150,8 +141,7 @@ dock_id(
     return static_cast<unsigned int>(ImHashStr(name.c_str()));
 }
 
-float
-zoom_of(
+float zoom_of(
     const shell_state& _shell,
     const std::string& _key
 )

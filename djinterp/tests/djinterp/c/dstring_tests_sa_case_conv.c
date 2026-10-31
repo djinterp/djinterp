@@ -26,14 +26,10 @@ d_tests_sa_dstring_to_lower
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_to_lower
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_to_lower(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -172,14 +168,10 @@ d_tests_sa_dstring_to_upper
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_to_upper
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_to_upper(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -318,15 +310,11 @@ d_tests_sa_dstring_lower
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_lower
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_lower(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      result_str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      result_str;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_lower", 6);
@@ -469,15 +457,11 @@ d_tests_sa_dstring_upper
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_upper
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_upper(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      result_str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      result_str;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_upper", 6);
@@ -621,13 +605,9 @@ d_tests_sa_dstring_case_all
   - in-place conversion functions (to_lower, to_upper)
   - non-modifying functions (lower, upper)
 */
-struct d_test_object*
-d_tests_sa_dstring_case_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_case_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Case Conversion Functions", 4);

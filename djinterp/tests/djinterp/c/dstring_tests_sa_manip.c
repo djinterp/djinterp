@@ -30,13 +30,9 @@ d_tests_dstring_strtok_r
   - preserves state between calls
   - handles single character delimiters
 */
-struct d_test_object*
-d_tests_dstring_strtok_r
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_strtok_r(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  str1[] = "one,two,three,four";
     char                  str2[] = "  hello   world  ";
     char                  str3[] = "a::b::c::";
@@ -155,13 +151,9 @@ d_tests_dstring_tokenization_all
   Tests the following:
   - d_strtok_r
 */
-struct d_test_object*
-d_tests_dstring_tokenization_all
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_tokenization_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("String Tokenization", 1);
@@ -193,13 +185,9 @@ d_tests_dstring_strnlen
   - handles empty string
   - handles exact length match
 */
-struct d_test_object*
-d_tests_dstring_strnlen
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_strnlen(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                result;
     bool                  test_less_than_max;
     bool                  test_greater_than_max;
@@ -271,13 +259,9 @@ d_tests_dstring_length_all
   Tests the following:
   - d_strnlen
 */
-struct d_test_object*
-d_tests_dstring_length_all
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_length_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("String Length", 1);
@@ -310,13 +294,9 @@ d_tests_dstring_strcasestr
   - finds at end
   - handles empty needle
 */
-struct d_test_object*
-d_tests_dstring_strcasestr
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_strcasestr(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char*                 result;
     bool                  test_same_case;
     bool                  test_diff_case;
@@ -403,13 +383,9 @@ d_tests_dstring_strchrnul
   - finds null terminator
   - handles empty string
 */
-struct d_test_object*
-d_tests_dstring_strchrnul
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_strchrnul(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  test_str[] = "Hello World";
     char*                 result;
     bool                  test_found;
@@ -486,13 +462,9 @@ d_tests_dstring_search_all
   - d_strcasestr
   - d_strchrnul
 */
-struct d_test_object*
-d_tests_dstring_search_all
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_search_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("String Search", 2);
@@ -526,13 +498,9 @@ d_tests_dstring_strlwr
   - returns original pointer
   - modifies in place
 */
-struct d_test_object*
-d_tests_dstring_strlwr
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_strlwr(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  str1[] = "HELLO WORLD";
     char                  str2[] = "MiXeD CaSe 123!";
     char                  str3[] = "already lowercase";
@@ -624,13 +592,9 @@ d_tests_dstring_strupr
   - returns original pointer
   - modifies in place
 */
-struct d_test_object*
-d_tests_dstring_strupr
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_strupr(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  str1[] = "hello world";
     char                  str2[] = "MiXeD CaSe 123!";
     char                  str3[] = "ALREADY UPPERCASE";
@@ -717,13 +681,9 @@ d_tests_dstring_case_conversion_all
   - d_strlwr
   - d_strupr
 */
-struct d_test_object*
-d_tests_dstring_case_conversion_all
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_case_conversion_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Case Conversion", 2);
@@ -757,13 +717,9 @@ d_tests_dstring_strrev
   - handles palindrome
   - modifies in place
 */
-struct d_test_object*
-d_tests_dstring_strrev
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_strrev(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  str1[] = "Hello";
     char                  str2[] = "A";
     char                  str3[] = "";
@@ -850,13 +806,9 @@ d_tests_dstring_manipulation_all
   Tests the following:
   - d_strrev
 */
-struct d_test_object*
-d_tests_dstring_manipulation_all
-(
-    void
-)
+struct dj_test_object* d_tests_dstring_manipulation_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("String Manipulation", 1);

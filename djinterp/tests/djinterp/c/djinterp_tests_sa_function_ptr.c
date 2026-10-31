@@ -9,76 +9,90 @@
 *******************************************************************************/
 // djinterp
 #include "./djinterp_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
-bool d_tests_sa_fn_apply(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_apply(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_apply\n");
     return true;
 }
 
-bool d_tests_sa_fn_apply_ctx(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_apply_ctx(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_apply_ctx\n");
     return true;
 }
 
-bool d_tests_sa_fn_callback(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_callback(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_callback\n");
     return true;
 }
 
-bool d_tests_sa_fn_comparator(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_comparator(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_comparator\n");
     return true;
 }
 
-bool d_tests_sa_fn_free(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_free(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_free\n");
     return true;
 }
 
-bool d_tests_sa_fn_print(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_print(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_print\n");
     return true;
 }
 
-bool d_tests_sa_fn_to_string(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_to_string(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_to_string\n");
     return true;
 }
 
-bool d_tests_sa_fn_write(struct d_test_counter* _test_info)
+bool d_tests_sa_fn_write(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement
     printf("  TODO: d_tests_sa_fn_write\n");
     return true;
 }
 
-bool
-d_tests_sa_function_pointers_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_function_pointers_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n========================================\n");
     printf("  FUNCTION POINTER TESTS\n");
     printf("========================================\n");
 
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     d_tests_sa_fn_apply(&module_counter);
     d_tests_sa_fn_apply_ctx(&module_counter);

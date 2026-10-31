@@ -19,7 +19,7 @@
 d_test_internal_lifecycle_fn
   Dummy callback for function binding free tests.
 */
-static enum d_text_template_error
+static enum dj_text_template_error
 d_test_internal_lifecycle_fn
 (
     void*  _context,
@@ -42,13 +42,12 @@ d_test_internal_lifecycle_fn
 d_test_internal_lifecycle_list_fn
   Dummy per-item callback for list binding free tests.
 */
-static bool
-d_test_internal_lifecycle_list_fn
-(
-    size_t                  _index,
-    size_t                  _count,
-    struct d_text_template* _item_template,
-    void*                   _context
+static
+bool d_test_internal_lifecycle_list_fn(
+    size_t                   _index,
+    size_t                   _count,
+    struct dj_text_template* _item_template,
+    void*                    _context
 )
 {
     (void)_index;
@@ -78,15 +77,11 @@ d_tests_sa_text_template_new
   - template is usable immediately after creation
   - multiple templates are independent
 */
-struct d_test_object*
-d_tests_sa_text_template_new
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_new(void)
 {
-    struct d_test_object*   group;
-    struct d_text_template* tmpl;
-    struct d_text_template* tmpl2;
+    struct dj_test_object*   group;
+    struct dj_text_template* tmpl;
+    struct dj_text_template* tmpl2;
     const char*             pfx;
     const char*             sfx;
     bool                    test_not_null;
@@ -163,7 +158,7 @@ d_tests_sa_text_template_new
     test_usable = false;
     if (tmpl)
     {
-        enum d_text_template_error err;
+        enum dj_text_template_error err;
         err = d_text_template_bind_string(tmpl, "key", "val");
         test_usable = (err == D_TEXT_TEMPLATE_SUCCESS);
     }
@@ -255,14 +250,10 @@ d_tests_sa_text_template_new_with_markers
   - returns NULL for empty prefix
   - returns NULL for empty suffix
 */
-struct d_test_object*
-d_tests_sa_text_template_new_with_markers
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_new_with_markers(void)
 {
-    struct d_test_object*   group;
-    struct d_text_template* tmpl;
+    struct dj_test_object*   group;
+    struct dj_text_template* tmpl;
     const char*             pfx;
     const char*             sfx;
     bool                    test_not_null;
@@ -400,17 +391,13 @@ d_tests_sa_text_template_free
   - frees template with function bindings (context survives)
   - frees template with list bindings (item_template survives)
 */
-struct d_test_object*
-d_tests_sa_text_template_free
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_free(void)
 {
-    struct d_test_object*                group;
-    struct d_text_template*              tmpl;
-    struct d_text_template*              nested;
-    struct d_text_template*              item_tmpl;
-    struct d_text_template_list_options   opts;
+    struct dj_test_object*                group;
+    struct dj_text_template*              tmpl;
+    struct dj_text_template*              nested;
+    struct dj_text_template*              item_tmpl;
+    struct dj_text_template_list_options   opts;
     bool                                 test_null_safe;
     bool                                 test_empty;
     bool                                 test_with_strings;
@@ -580,14 +567,10 @@ d_tests_sa_text_template_clear
   - max_nesting_depth is preserved after clear
   - binding_capacity is preserved after clear
 */
-struct d_test_object*
-d_tests_sa_text_template_clear
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_clear(void)
 {
-    struct d_test_object*   group;
-    struct d_text_template* tmpl;
+    struct dj_test_object*   group;
+    struct dj_text_template* tmpl;
     const char*             pfx;
     bool                    test_clears;
     bool                    test_count_zero;
@@ -630,7 +613,7 @@ d_tests_sa_text_template_clear
         test_count_zero = (tmpl->binding_count == 0);
 
         // test 3: reusable
-        enum d_text_template_error err;
+        enum dj_text_template_error err;
         err = d_text_template_bind_string(tmpl, "w", "4");
         test_reusable = ( (err == D_TEXT_TEMPLATE_SUCCESS) &&
                           (tmpl->binding_count == 1) );
@@ -725,13 +708,9 @@ d_tests_sa_text_template_lifecycle_all
   - d_text_template_free
   - d_text_template_clear
 */
-struct d_test_object*
-d_tests_sa_text_template_lifecycle_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_lifecycle_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Template Lifecycle", 4);

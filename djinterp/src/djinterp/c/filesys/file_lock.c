@@ -40,8 +40,8 @@ arbitrary rather than complain. Defined only where D_INTERNAL_FILE_REQUIRE
 expands to a check and d_file_lock_fd is not the ISO C stub -- the only
 builds that call it; anywhere else it would be an unused static function.
 */
-static int
-d_internal_lock_check_op(
+static
+int d_internal_lock_check_op(
     int _operation
 )
 {
@@ -81,8 +81,8 @@ other call reads it as EACCES; a filesystem that cannot lock is ENOLCK, where
 the table says ENOTSUP; anything else -- a handle that is not one, EBADF,
 among them -- reads as it does everywhere in c/filesys.
 */
-static int
-d_internal_lock_errno(
+static
+int d_internal_lock_errno(
     DWORD _error
 )
 {
@@ -104,10 +104,8 @@ d_internal_lock_errno(
 d_internal_lock_refuse
   Fails a lock call with GetLastError's reason (d_internal_lock_errno).
 */
-static int
-d_internal_lock_refuse(
-    void
-)
+static
+int d_internal_lock_refuse(void)
 {
     const int code = d_internal_lock_errno(GetLastError());
 
@@ -125,8 +123,8 @@ error: POSIX unlocks an unlocked file without complaint, and ERROR_NOT_LOCKED
 -- ERROR_LOCK_VIOLATION under Wine, for the same case -- says only that there
 was nothing to do.
 */
-static int
-d_internal_lock_release(
+static
+int d_internal_lock_release(
     HANDLE _handle
 )
 {
@@ -162,8 +160,8 @@ forever. So the held lock is released first, which is how flock documents a
 conversion: not atomic, and a non-blocking request that loses the race in
 between ends holding nothing.
 */
-static int
-d_internal_lock_raw(
+static
+int d_internal_lock_raw(
     int _fd,
     int _operation
 )
@@ -217,8 +215,8 @@ d_internal_lock_raw
 LOCK_*: Windows has no such constants and Solaris numbers them differently, so
 they are translated here rather than assumed to match.
 */
-static int
-d_internal_lock_raw(
+static
+int d_internal_lock_raw(
     int _fd,
     int _operation
 )
@@ -256,8 +254,8 @@ d_internal_lock_raw
   A whole-file fcntl record lock, retried across interruptions: l_len 0 means
 "to end of file, however it grows".
 */
-static int
-d_internal_lock_raw(
+static
+int d_internal_lock_raw(
     int _fd,
     int _operation
 )
@@ -299,8 +297,8 @@ d_internal_lock_held
   Whether an errno says the lock is held elsewhere: EWOULDBLOCK -- here one
 number with EAGAIN -- or EACCES, which fcntl may use instead.
 */
-static int
-d_internal_lock_held(
+static
+int d_internal_lock_held(
     int _code
 )
 {
@@ -315,8 +313,8 @@ d_internal_lock_held
   Whether an errno says the lock is held elsewhere: EWOULDBLOCK, or EAGAIN or
 EACCES, which fcntl may use instead.
 */
-static int
-d_internal_lock_held(
+static
+int d_internal_lock_held(
     int _code
 )
 {
@@ -333,8 +331,8 @@ d_internal_lock_report
 non-blocking request is an ANSWER, not a malfunction, and is reported at info
 severity.
 */
-static int
-d_internal_lock_report(
+static
+int d_internal_lock_report(
     int _operation
 )
 {
@@ -373,8 +371,7 @@ d_internal_lock_report(
 d_file_lock_fd
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_lock_fd(
+int d_file_lock_fd(
     int _fd,
     int _operation
 )
@@ -393,8 +390,7 @@ d_file_lock_fd(
 d_file_lock_stream
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_lock_stream(
+int d_file_lock_stream(
     FILE* _stream,
     int   _operation
 )
@@ -417,8 +413,7 @@ d_file_lock_fd
 replaces the lock the descriptor holds -- which flock and fcntl do natively
 and Windows is made to.
 */
-int
-d_file_lock_fd(
+int d_file_lock_fd(
     int _fd,
     int _operation
 )
@@ -453,8 +448,7 @@ d_file_lock_stream
 about coordination, not about the bytes, and flushing here would make taking a
 lock perform I/O the caller did not ask for.
 */
-int
-d_file_lock_stream(
+int d_file_lock_stream(
     FILE* _stream,
     int   _operation
 )

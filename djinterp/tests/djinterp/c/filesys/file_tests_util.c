@@ -45,19 +45,13 @@ static int g_fs_test_ready = 0;
  * TEST ENVIRONMENT HELPERS
  *****************************************************************************/
 
-const char*
-d_fs_test_root
-(
-    void
-)
+const char* d_fs_test_root(void)
 {
     return g_fs_test_root;
 }
 
 
-char*
-d_fs_test_path
-(
+char* d_fs_test_path(
     char*       _buf,
     size_t      _bufsize,
     const char* _name
@@ -102,9 +96,7 @@ d_fs_test_path
 }
 
 
-bool
-d_fs_test_write
-(
+bool d_fs_test_write(
     const char* _path,
     const void* _data,
     size_t      _size
@@ -140,11 +132,7 @@ d_fs_test_write
 }
 
 
-bool
-d_fs_test_setup
-(
-    void
-)
+bool d_fs_test_setup(void)
 {
     char cwd[D_FS_TEST_PATH_BUF];
     char file_path[D_FS_TEST_PATH_BUF];
@@ -196,14 +184,10 @@ d_fs_test_setup
 }
 
 
-bool
-d_fs_test_teardown
-(
-    void
-)
+bool d_fs_test_teardown(void)
 {
-    struct d_dir_t*    dir;
-    struct d_dirent_t* entry;
+    struct dj_dir_t*    dir;
+    struct dj_dirent_t* entry;
     char               path_buf[D_FS_TEST_PATH_BUF];
 
     if (!g_fs_test_ready)

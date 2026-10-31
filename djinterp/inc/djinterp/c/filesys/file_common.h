@@ -6,14 +6,14 @@
 * filesys tree, so a program that wants only one capability -- reading a file,
 * say -- compiles and links exactly this plus that one module.
 *   It owns what genuinely crosses module boundaries: the platform includes,
-* the portable types (offsets, file status, directory entries, d_dir_t), the
+* the portable types (offsets, file status, directory entries, dj_dir_t), the
 * POSIX constants that a non-POSIX target lacks, and the notification hook. It
 * contains no configuration logic -- every D_CFG_FILE_* knob is resolved in
 * cfg_file_common.h and only read here.
 *   TWO WIDTHS. Whatever holds an offset, a size, a timestamp, an inode number
 * or a capacity is declared twice, each with a fixed layout: a 32-bit twin
-* (d_stat32_t, d_file_stat32) and a 64-bit one (d_stat64_t, d_file_stat64).
-* The unsuffixed name (d_stat_t, d_file_stat) is an alias of the twin at
+* (dj_stat32_t, d_file_stat32) and a 64-bit one (dj_stat64_t, d_file_stat64).
+* The unsuffixed name (dj_stat_t, d_file_stat) is an alias of the twin at
 * D_FILE_WIDTH: 64 on a 64-bit target or with _FILE_OFFSET_BITS at 64, 32
 * otherwise (D_CFG_FILE_WIDTH). Every module follows the same rules:
 *     - The 64-bit twins need a 64-bit integer type, and are absent below the
@@ -63,14 +63,14 @@ TABLE OF CONTENTS
 3.  TYPES
     -----
     1.  Portable types
-         1.  d_off32_t / d_off64_t
-         2.  d_stat64_t / d_stat32_t
-         3.  d_dirent64_t / d_dirent32_t
-         4.  d_dir_t
+         1.  dj_off32_t / dj_off64_t
+         2.  dj_stat64_t / dj_stat32_t
+         3.  dj_dirent64_t / dj_dirent32_t
+         4.  dj_dir_t
     2.  Default width
-         1.  d_off_t
-         2.  d_stat_t
-         3.  d_dirent_t
+         1.  dj_off_t
+         2.  dj_stat_t
+         3.  dj_dirent_t
 4.  CONSTANTS
     ---------
     1.  Path limits and separators
@@ -91,8 +91,8 @@ TABLE OF CONTENTS
 5.  NOTIFICATIONS
     -------------
     1.  Notification types
-         1.  d_file_notify_level
-         2.  d_file_notice
+         1.  dj_file_notify_level
+         2.  dj_file_notice
          3.  fn_file_notify
     2.  Handler management
     3.  Diagnostic names
@@ -111,7 +111,7 @@ TABLE OF CONTENTS
          1.  D_INTERNAL_FILE_ASSERT_LARGE_FILES
     5.  Windows support
     6.  Path encoding
-         1.  d_internal_file_nchar_t
+         1.  dj_internal_file_nchar_t
          2.  D_INTERNAL_FILE_NATIVE_MAX
 */
 
@@ -130,7 +130,7 @@ TABLE OF CONTENTS
 #include "../memory/dmemory.h"                       // unused by filesys
 #include "../../config/c/filesys/cfg_file_common.h"  // knobs, D_INTERNAL_FILE_*
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t, uint8_t,
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint8_t,
                                               // uint32_t, uint64_t
 
 
@@ -270,18 +270,18 @@ D_EXTERN_C_BEGIN
 // 3.1    Portable types
 //------------------------------------------------------------------------------
 // 3.1.1
-// d_off32_t / d_off64_t
+// dj_off32_t / dj_off64_t
 //   type: a file offset -- signed, since a seek may count back from the end --
 // at a fixed width whatever the platform's off_t is.
-typedef int32_t d_off32_t;
+typedef int32_t dj_off32_t;
 #if D_FILE_64_IS_AVAILABLE
-    typedef int64_t d_off64_t;
+    typedef int64_t dj_off64_t;
 #endif  // D_FILE_64_IS_AVAILABLE
 
 // 3.1.2
-// d_stat64_t / d_stat32_t
-//   struct: portable file status, in two fixed layouts. d_stat64_t holds every
-// field at full width; d_stat32_t is the same structure with each 64-bit
+// dj_stat64_t / dj_stat32_t
+//   struct: portable file status, in two fixed layouts. dj_stat64_t holds every
+// field at full width; dj_stat32_t is the same structure with each 64-bit
 // field narrowed to 32 bits of the same signedness -- a size to 4 GiB, a time
 // to 2038 -- and is filled only when every value fits.
 //   The timestamps are deliberately NOT called st_mtime / st_atime /
@@ -300,7 +300,7 @@ typedef int32_t d_off32_t;
 // the two never substitute for each other -- a fabricated timestamp is a lie
 // the caller cannot detect. Where a platform lacks one, it reports 0.
 #if D_FILE_64_IS_AVAILABLE
-struct d_stat64_t
+struct dj_stat64_t
 {
     uint64_t st_size;           // file size in bytes
     int64_t  st_modified;       // last content modification (Unix seconds)
@@ -322,14 +322,14 @@ struct d_stat64_t
 };
 #endif  // D_FILE_64_IS_AVAILABLE
 
-struct d_stat32_t
+struct dj_stat32_t
 {
     uint32_t st_size;           // file size in bytes, to 4 GiB
     int32_t  st_modified;       // last content modification, to 2038
     int32_t  st_accessed;       // last access, to 2038
     int32_t  st_changed;        // last metadata change; 0 on Windows
     int32_t  st_created;        // true creation; 0 where unavailable
-    uint32_t st_modified_nsec;  // the sub-second parts, as in d_stat64_t
+    uint32_t st_modified_nsec;  // the sub-second parts, as in dj_stat64_t
     uint32_t st_accessed_nsec;
     uint32_t st_changed_nsec;
     uint32_t st_mode;           // file mode and permissions
@@ -341,13 +341,13 @@ struct d_stat32_t
 };
 
 // 3.1.3
-// d_dirent64_t / d_dirent32_t
+// dj_dirent64_t / dj_dirent32_t
 //   struct: portable directory entry, in two fixed layouts that differ only in
 // the inode number's width. d_name is sized from the resolved
 // D_CFG_FILE_NAME_MAX, so a target with longer names is a rebuild rather
 // than a patch -- but note it is an ABI break for anything that embeds one.
 #if D_FILE_64_IS_AVAILABLE
-struct d_dirent64_t
+struct dj_dirent64_t
 {
     char     d_name[D_INTERNAL_FILE_NAME_MAX + 1];  // filename, NUL-terminated
     uint64_t d_ino;                                 // inode (0 on Windows)
@@ -355,7 +355,7 @@ struct d_dirent64_t
 };
 #endif  // D_FILE_64_IS_AVAILABLE
 
-struct d_dirent32_t
+struct dj_dirent32_t
 {
     char     d_name[D_INTERNAL_FILE_NAME_MAX + 1];  // filename, NUL-terminated
     uint32_t d_ino;                                 // inode (0 on Windows)
@@ -363,50 +363,50 @@ struct d_dirent32_t
 };
 
 // 3.1.4
-// d_dir_t
+// dj_dir_t
 //   struct: opaque directory handle, read at either width; defined by
 // file_dir.c.
-struct d_dir_t;
+struct dj_dir_t;
 
 // 3.2    Default width
 //------------------------------------------------------------------------------
 //   The unsuffixed names, each the twin at D_FILE_WIDTH. A struct tag can be
 // renamed only by a macro, and a typedef would hide that the type is a struct,
-// so d_stat_t and d_dirent_t are macros; each module's calls follow suit, in
+// so dj_stat_t and dj_dirent_t are macros; each module's calls follow suit, in
 // its own section 2, because a forwarding function would be a second symbol
 // with an address of its own where the alias IS the twin. These are the one
 // place the subframework spells a macro in lower case: an alias must read
-// exactly like the name it stands for (`struct d_stat_t st;`), as zlib's
+// exactly like the name it stands for (`struct dj_stat_t st;`), as zlib's
 // gzseek does for gzseek64 and Win32's CreateFile for CreateFileW. The offset
 // is a scalar and gets a typedef.
 
 // 3.2.1
-// d_off_t
-//   type: d_off64_t where D_FILE_WIDTH is 64, else d_off32_t.
+// dj_off_t
+//   type: dj_off64_t where D_FILE_WIDTH is 64, else dj_off32_t.
 #if (D_FILE_WIDTH == 64)
-    typedef d_off64_t d_off_t;
+    typedef dj_off64_t dj_off_t;
 #else
-    typedef d_off32_t d_off_t;
+    typedef dj_off32_t dj_off_t;
 #endif  // D_FILE_WIDTH == 64
 
 // 3.2.2
-// d_stat_t
+// dj_stat_t
 //   alias: the struct tag of the status twin at D_FILE_WIDTH, so that
-// `struct d_stat_t` is `struct d_stat64_t` or `struct d_stat32_t`.
+// `struct dj_stat_t` is `struct dj_stat64_t` or `struct dj_stat32_t`.
 #if (D_FILE_WIDTH == 64)
-    #define d_stat_t d_stat64_t
+    #define dj_stat_t dj_stat64_t
 #else
-    #define d_stat_t d_stat32_t
+    #define dj_stat_t dj_stat32_t
 #endif  // D_FILE_WIDTH == 64
 
 // 3.2.3
-// d_dirent_t
+// dj_dirent_t
 //   alias: the struct tag of the directory-entry twin at D_FILE_WIDTH, so
-// that `struct d_dirent_t` is `struct d_dirent64_t` or `struct d_dirent32_t`.
+// that `struct dj_dirent_t` is `struct dj_dirent64_t` or `struct dj_dirent32_t`.
 #if (D_FILE_WIDTH == 64)
-    #define d_dirent_t d_dirent64_t
+    #define dj_dirent_t dj_dirent64_t
 #else
-    #define d_dirent_t d_dirent32_t
+    #define dj_dirent_t dj_dirent32_t
 #endif  // D_FILE_WIDTH == 64
 
 
@@ -449,7 +449,7 @@ struct d_dir_t;
 //------------------------------------------------------------------------------
 // 4.2.1
 // DT_UNKNOWN .. DT_SOCK
-//   constant: d_dirent_t.d_type values, matching the POSIX numbering so a
+//   constant: dj_dirent_t.d_type values, matching the POSIX numbering so a
 // POSIX build can hand the kernel's value straight through.
 #ifndef DT_UNKNOWN
     #define DT_UNKNOWN  0
@@ -545,7 +545,7 @@ struct d_dir_t;
 
 // 4.2.5
 // S_ISREG .. S_ISSOCK
-//   macro: file type tests against a d_stat_t.st_mode value.
+//   macro: file type tests against a dj_stat_t.st_mode value.
 #ifndef S_ISREG
     #define S_ISREG(m)  (((m) & 0170000) == 0100000)
 #endif  // S_ISREG
@@ -614,11 +614,11 @@ struct d_dir_t;
 // 5.1    Notification types
 //------------------------------------------------------------------------------
 // 5.1.1
-// d_file_notify_level
+// dj_file_notify_level
 //   enum: severity of a notification. The values match
 // D_CFG_FILE_NOTIFY_LEVEL, so the compile-time ceiling and the runtime
 // record speak the same language.
-enum d_file_notify_level
+enum dj_file_notify_level
 {
     D_FILE_NOTIFY_NONE  = 0,
     D_FILE_NOTIFY_ERROR = 1,    // the call failed
@@ -628,13 +628,13 @@ enum d_file_notify_level
 };
 
 // 5.1.2
-// d_file_notice
+// dj_file_notice
 //   struct: one notification record. Every string it carries is a literal
 // with static storage duration -- the handler may read them but must copy
 // anything it intends to keep past the callback.
-struct d_file_notice
+struct dj_file_notice
 {
-    int         level;      // one of enum d_file_notify_level
+    int         level;      // one of enum dj_file_notify_level
     int         error;      // errno-style code; 0 when not applicable
     const char* function;   // originating djinterp function
     const char* path;       // path involved; NULL unless NOTIFY_PATHS is on
@@ -646,7 +646,7 @@ struct d_file_notice
 //   type: notification handler. Called on the thread that raised the notice,
 // possibly with errno live, so a handler must not clobber errno and must not
 // call back into the filesys module that raised it.
-typedef void (*fn_file_notify)(const struct d_file_notice* _notice,
+typedef void (*fn_file_notify)(const struct dj_file_notice* _notice,
                                void*                       _context);
 
 // 5.2    Handler management
@@ -665,8 +665,10 @@ typedef void (*fn_file_notify)(const struct d_file_notice* _notice,
  *                      notice; stored, not copied, so it must outlive the
  *                      handler.
  */
-void           d_file_notify_set_handler(fn_file_notify _handler,
-                                         void*          _context);
+void d_file_notify_set_handler(
+    fn_file_notify _handler,
+    void*          _context
+);
 /**
  * @brief Retrieves the active notification handler, so a caller can chain
  *        onto it rather than displace it.
@@ -676,7 +678,9 @@ void           d_file_notify_set_handler(fn_file_notify _handler,
  * @return the active handler, or `NULL` when none is installed or this build
  *         compiled notifications out.
  */
-fn_file_notify d_file_notify_get_handler(void** _context);
+fn_file_notify d_file_notify_get_handler(
+    void** _context
+);
 /**
  * @brief djinterp's built-in handler: writes one line per notice to the
  *        stream named by D_CFG_FILE_NOTIFY_STREAM, preserving errno.
@@ -691,16 +695,19 @@ fn_file_notify d_file_notify_get_handler(void** _context);
  * @param[in] _notice   the record to report; `NULL` is ignored.
  * @param[in] _context  unused.
  */
-void           d_file_notify_default_handler(
-                   const struct d_file_notice* _notice,
-                   void*                       _context);
+void d_file_notify_default_handler(
+    const struct dj_file_notice* _notice,
+    void*                        _context
+);
 
 // 5.3    Diagnostic names
 //------------------------------------------------------------------------------
 // display names -- static, NUL-terminated and never NULL: "unknown" for a
-// level outside enum d_file_notify_level, and "native", "posix" or "stdc" for
+// level outside enum dj_file_notify_level, and "native", "posix" or "stdc" for
 // the backend this build resolved to
-const char* d_file_notify_level_name(int _level);
+const char* d_file_notify_level_name(
+    int _level
+);
 const char* d_file_backend_name(void);
 
 
@@ -723,7 +730,9 @@ const char* d_file_backend_name(void);
  *         ENOMEM when this build reports through errno.
  * @post A non-`NULL` result is released with d_internal_file_free.
  */
-void* d_internal_file_alloc(size_t _size);
+void* d_internal_file_alloc(
+    size_t _size
+);
 /**
  * @brief Resizes a block through the configured allocator, under the same
  *        ceiling as d_internal_file_alloc.
@@ -737,8 +746,10 @@ void* d_internal_file_alloc(size_t _size);
  * @return the resized block, or `NULL` on failure or refusal with the
  *         original block untouched.
  */
-void* d_internal_file_realloc(void*  _ptr,
-                              size_t _size);
+void* d_internal_file_realloc(
+    void*  _ptr,
+    size_t _size
+);
 /**
  * @brief Releases a block obtained from d_internal_file_alloc or
  *        d_internal_file_realloc.
@@ -746,23 +757,27 @@ void* d_internal_file_realloc(void*  _ptr,
  * @param[in] _ptr  the block to release; may be `NULL`.
  * @post `_ptr` is invalid.
  */
-void  d_internal_file_free(void* _ptr);
+void d_internal_file_free(
+    void* _ptr
+);
 /**
  * @brief Dispatches one notice to the active handler: the out-of-line half of
  *        D_INTERNAL_FILE_NOTIFY, declared here so the macro has something to
  *        call.
  *
- * @param[in] _level     one of enum d_file_notify_level.
+ * @param[in] _level     one of enum dj_file_notify_level.
  * @param[in] _error     errno-style code, or 0 when not applicable.
  * @param[in] _function  originating function name; a static literal.
  * @param[in] _path      path involved, or `NULL`.
  * @param[in] _message   short description; a static literal.
  */
-void  d_internal_file_notify_emit(int         _level,
-                                  int         _error,
-                                  const char* _function,
-                                  const char* _path,
-                                  const char* _message);
+void d_internal_file_notify_emit(
+    int         _level,
+    int         _error,
+    const char* _function,
+    const char* _path,
+    const char* _message
+);
 
 // 6.2    Failure reporting
 //------------------------------------------------------------------------------
@@ -924,7 +939,9 @@ void  d_internal_file_notify_emit(int         _level,
  * @param[in] _error  a GetLastError() value.
  * @return the matching errno code; EIO for a reason POSIX has no name for.
  */
-int   d_internal_file_errno_win32(DWORD _error);
+int d_internal_file_errno_win32(
+    DWORD _error
+);
 /**
  * @brief Reports whether a reparse tag makes a link: a symbolic link or a
  *        junction, the two kinds that name another path.
@@ -937,7 +954,9 @@ int   d_internal_file_errno_win32(DWORD _error);
  *                  record's dwReserved0 reports it.
  * @return non-zero for a link's tag.
  */
-int   d_internal_file_tag_is_link_win32(DWORD _tag);
+int d_internal_file_tag_is_link_win32(
+    DWORD _tag
+);
 /**
  * @brief Reports whether a path is itself a link (a symbolic link or a
  *        junction), without following it.
@@ -951,8 +970,10 @@ int   d_internal_file_tag_is_link_win32(DWORD _tag);
  * @return non-zero for a link; 0 for anything else, and when the path cannot
  *         be opened.
  */
-int   d_internal_file_is_link_win32(const char*                 _path,
-                                    BY_HANDLE_FILE_INFORMATION* _info);
+int d_internal_file_is_link_win32(
+    const char*                 _path,
+    BY_HANDLE_FILE_INFORMATION* _info
+);
 #endif  // D_CFG_FILE_HAS_WIN32
 
 // 6.6    Path encoding
@@ -967,13 +988,13 @@ int   d_internal_file_is_link_win32(const char*                 _path,
 // D_INTERNAL_FILE_WIDE.
 
 // 6.6.1
-// d_internal_file_nchar_t
+// dj_internal_file_nchar_t
 //   type: the character the platform's path calls take -- wchar_t where this
 // build hands Windows UTF-16, char everywhere else.
 #if (D_INTERNAL_FILE_WIDE == 1)
-    typedef wchar_t d_internal_file_nchar_t;
+    typedef wchar_t dj_internal_file_nchar_t;
 #else
-    typedef char    d_internal_file_nchar_t;
+    typedef char    dj_internal_file_nchar_t;
 #endif
 
 // 6.6.2
@@ -1001,10 +1022,11 @@ int   d_internal_file_is_link_win32(const char*                 _path,
  *         for text that is not UTF-8, ENAMETOOLONG for text that does not
  *         fit `_count` characters with its terminator.
  */
-const d_internal_file_nchar_t*
-      d_internal_file_to_native_text(const char*              _text,
-                                     d_internal_file_nchar_t* _buf,
-                                     size_t                   _count);
+const dj_internal_file_nchar_t* d_internal_file_to_native_text(
+    const char*               _text,
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
+);
 /**
  * @brief Gives a path the form the platform's calls take: the text as
  *        d_internal_file_to_native_text gives it, and where the build takes
@@ -1021,10 +1043,11 @@ const d_internal_file_nchar_t*
  *         fit `_count` characters with its terminator and any prefix, ENOMEM,
  *         or the reason Windows gives for a path it cannot make absolute.
  */
-const d_internal_file_nchar_t*
-      d_internal_file_to_native(const char*              _text,
-                                d_internal_file_nchar_t* _buf,
-                                size_t                   _count);
+const dj_internal_file_nchar_t* d_internal_file_to_native(
+    const char*               _text,
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
+);
 // D_INTERNAL_FILE_NATIVE_ON_HEAP
 //   constant: 1 where a path's room in the platform's text is on the heap --
 // a build that hands Windows UTF-16 with long paths, where the room is 32767
@@ -1046,18 +1069,18 @@ const d_internal_file_nchar_t*
     #define D_INTERNAL_FILE_NATIVE_ROOM 1
 #endif  // D_INTERNAL_FILE_WIDE == 1
 
-// d_internal_file_native
+// dj_internal_file_native
 //   struct: room for a path in the platform's text. It is an array in the
 // struct where that is small; in a long-path build it is a block on the
 // heap, allocated when first asked for and returned by
 // d_internal_file_native_release -- 64 KiB a path is no stack's to give.
 // Zero-initialize it.
-struct d_internal_file_native
+struct dj_internal_file_native
 {
 #if (D_INTERNAL_FILE_NATIVE_ON_HEAP == 1)
-    d_internal_file_nchar_t* room;
+    dj_internal_file_nchar_t* room;
 #else
-    d_internal_file_nchar_t  room[D_INTERNAL_FILE_NATIVE_ROOM];
+    dj_internal_file_nchar_t  room[D_INTERNAL_FILE_NATIVE_ROOM];
 #endif  // D_INTERNAL_FILE_NATIVE_ON_HEAP == 1
 };
 
@@ -1069,8 +1092,9 @@ struct d_internal_file_native
  *         its block could not be allocated, the failure reported.
  * @post In a long-path build the room is the holder's to release.
  */
-d_internal_file_nchar_t*
-      d_internal_file_native_room(struct d_internal_file_native* _native);
+dj_internal_file_nchar_t* d_internal_file_native_room(
+    struct dj_internal_file_native* _native
+);
 /**
  * @brief A path in the platform's text (d_internal_file_to_native), written
  *        into a holder's room.
@@ -1081,9 +1105,10 @@ d_internal_file_nchar_t*
  *         d_internal_file_to_native sets it, or ENOMEM.
  * @post On success the holder has room to release; on failure it has none.
  */
-const d_internal_file_nchar_t*
-      d_internal_file_native_of(struct d_internal_file_native* _native,
-                                const char*                    _path);
+const dj_internal_file_nchar_t* d_internal_file_native_of(
+    struct dj_internal_file_native* _native,
+    const char*                     _path
+);
 /**
  * @brief Returns a holder's room, where it was allocated. errno, and on
  *        Windows the last error, are what they were: a call made with the
@@ -1091,7 +1116,9 @@ const d_internal_file_nchar_t*
  *
  * @param[in,out] _native  the holder; releasing it twice is releasing it once.
  */
-void  d_internal_file_native_release(struct d_internal_file_native* _native);
+void d_internal_file_native_release(
+    struct dj_internal_file_native* _native
+);
 // D_INTERNAL_FILE_PATH_ON_HEAP
 //   constant: 1 where a buffer that builds a path in UTF-8 is kept on the
 // heap -- a long-path Windows build, where D_FILE_PATH_MAX is 32767 -- and 0
@@ -1107,12 +1134,12 @@ void  d_internal_file_native_release(struct d_internal_file_native* _native);
 //   constant: the bytes such a buffer holds: a path and its terminator.
 #define D_INTERNAL_FILE_PATH_ROOM (D_FILE_PATH_MAX + 1)
 
-// d_internal_file_path
+// dj_internal_file_path
 //   struct: room to build a path in UTF-8: an array in the struct, or in a
 // long-path build a block on the heap, allocated when first asked for and
 // returned by d_internal_file_path_release. Either way it starts empty,
 // every byte zero. Zero-initialize it.
-struct d_internal_file_path
+struct dj_internal_file_path
 {
 #if (D_INTERNAL_FILE_PATH_ON_HEAP == 1)
     char* room;
@@ -1129,22 +1156,26 @@ struct d_internal_file_path
  *         where the block could not be allocated, the failure reported.
  * @post In a long-path build the room is the holder's to release.
  */
-char* d_internal_file_path_room(struct d_internal_file_path* _path);
+char* d_internal_file_path_room(
+    struct dj_internal_file_path* _path
+);
 /**
  * @brief Returns a holder's room, where it was allocated, leaving errno -- and
  *        on Windows the last error -- as they were.
  *
  * @param[in,out] _path  the holder; releasing it twice is releasing it once.
  */
-void  d_internal_file_path_release(struct d_internal_file_path* _path);
-// d_internal_file_u16_t
+void d_internal_file_path_release(
+    struct dj_internal_file_path* _path
+);
+// dj_internal_file_u16_t
 //   type (internal): a UTF-16 code unit: wchar_t on Windows, where it is one
 // and the wide API takes it, uint16_t elsewhere, where the converters below
 // are compiled for their tests alone.
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    typedef wchar_t d_internal_file_u16_t;
+    typedef wchar_t dj_internal_file_u16_t;
 #else
-    typedef uint16_t d_internal_file_u16_t;
+    typedef uint16_t dj_internal_file_u16_t;
 #endif
 
 // D_INTERNAL_FILE_TERMINATED
@@ -1172,11 +1203,13 @@ void  d_internal_file_path_release(struct d_internal_file_path* _path);
  *         form longer than needed, a code point past U+10FFFF, or a pair
  *         written as two three-byte forms.
  */
-int d_internal_file_wtf8_to_utf16(const char*            _in,
-                                  size_t                 _in_size,
-                                  d_internal_file_u16_t* _out,
-                                  size_t                 _count,
-                                  size_t*                _made);
+int d_internal_file_wtf8_to_utf16(
+    const char*             _in,
+    size_t                  _in_size,
+    dj_internal_file_u16_t* _out,
+    size_t                  _count,
+    size_t*                 _made
+);
 
 /**
  * @brief Converts UTF-16 to WTF-8: every sequence of units has a spelling,
@@ -1191,11 +1224,13 @@ int d_internal_file_wtf8_to_utf16(const char*            _in,
  *                        aside; may be `NULL`.
  * @return 0, or 1 when `_out` has no room for the text and its terminator.
  */
-int d_internal_file_utf16_to_wtf8(const d_internal_file_u16_t* _in,
-                                  size_t                       _in_count,
-                                  char*                        _out,
-                                  size_t                       _size,
-                                  size_t*                      _made);
+int d_internal_file_utf16_to_wtf8(
+    const dj_internal_file_u16_t* _in,
+    size_t                        _in_count,
+    char*                         _out,
+    size_t                        _size,
+    size_t*                       _made
+);
 
 /**
  * @brief The reverse of d_internal_file_to_native: text the platform handed
@@ -1211,9 +1246,11 @@ int d_internal_file_utf16_to_wtf8(const d_internal_file_u16_t* _in,
  * @return 0, or -1 with errno set: ERANGE when the text does not fit `_size`
  *         bytes.
  */
-int   d_internal_file_from_native(const d_internal_file_nchar_t* _native,
-                                  char*                          _out,
-                                  size_t                         _size);
+int d_internal_file_from_native(
+    const dj_internal_file_nchar_t* _native,
+    char*                           _out,
+    size_t                          _size
+);
 
 D_EXTERN_C_END
 

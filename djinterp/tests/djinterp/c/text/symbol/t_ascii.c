@@ -31,8 +31,8 @@ static int g_failures = 0;
 d_tests_ascii_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_ascii_expect(
+static
+void d_tests_ascii_expect(
     bool        _ok,
     const char* _what
 )
@@ -49,27 +49,26 @@ d_tests_ascii_expect(
     return;
 }
 
-// d_tests_ascii_class
+// dj_tests_ascii_class
 //   struct: one predicate and the <ctype.h> class it must agree with.
-struct d_tests_ascii_class
+struct dj_tests_ascii_class
 {
     const char* name;
     bool        (*mine)(char);
     int         (*reference)(int);
 };
 
-static int
-d_tests_ascii_is_null(
+static
+int d_tests_ascii_is_null(
     int _c
 )
 {
     return (_c == 0);
 }
 
-int
-main(void)
+int main(void)
 {
-    const struct d_tests_ascii_class classes[] =
+    const struct dj_tests_ascii_class classes[] =
     {
         { "numeric",      &d_ascii_char_is_numeric,      &isdigit  },
         { "alphabetical", &d_ascii_char_is_alphabetical, &isalpha  },

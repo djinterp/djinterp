@@ -9,22 +9,20 @@
 *******************************************************************************/
 // djinterp
 #include "./fn_builder_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
 d_tests_sa_fn_builder_all
-  Runs all fn_builder unit tests across all sections:
+  Runs all DFnBuilder unit tests across all sections:
   i.   builder creation (new)
   ii.  fluent operations (map, filter, and_then, where, chaining, grow)
   iii. builder execution (validation, passthrough, transforms, predicates,
        combined, failure, ping-pong)
   iv.  builder cleanup (free)
 */
-bool
-d_tests_sa_fn_builder_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

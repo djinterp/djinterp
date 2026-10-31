@@ -41,15 +41,15 @@
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_ninja_doc
+// dj_ninja_doc
 //   struct: the file: its path, text and records, the changes it has taken,
 //   where the last was, and why the last failed.
-struct d_ninja_doc
+struct dj_ninja_doc
 {
     char*          path;
     char*          text;
     size_t         length;
-    struct d_ninja records;
+    struct dj_ninja records;
     size_t         changes;
     size_t         start;
     size_t         old_end;
@@ -58,16 +58,16 @@ struct d_ninja_doc
 };
 
 // 1.1.2
-// d_internal_candidate
+// dj_internal_candidate
 //   struct: a change not yet kept: the new text and its records, where the
 //   splice stands in the old text and the new, and how the statements fall
 //   about it -- `before` whole before it in both, the old's from
 //   `old_after` and the new's from `new_after` whole after it.
-struct d_internal_candidate
+struct dj_internal_candidate
 {
     char*          text;
     size_t         length;
-    struct d_ninja records;
+    struct dj_ninja records;
     size_t         start;
     size_t         old_end;
     size_t         new_end;
@@ -79,9 +79,9 @@ struct d_internal_candidate
 };
 
 // 1.1.3
-// d_internal_buffer
+// dj_internal_buffer
 //   struct: text being written, in an array that grows.
-struct d_internal_buffer
+struct dj_internal_buffer
 {
     char*  text;
     size_t length;
@@ -90,9 +90,9 @@ struct d_internal_buffer
 };
 
 // 1.1.4
-// d_internal_indices
+// dj_internal_indices
 //   struct: indices, borrowed.
-struct d_internal_indices
+struct dj_internal_indices
 {
     const size_t* items;
     size_t        count;
@@ -103,17 +103,17 @@ struct d_internal_indices
 //   struct: what a change to one statement is to leave of it: a binding
 //   changed or added, or some gone, a path changed, added or gone, or a
 //   value or a name changed; D_NINJA_NONE for none of a kind.
-struct d_internal_expect
+struct dj_internal_expect
 {
     const char*               text;
     size_t                    binding;
     bool                      binding_added;
     const char*               binding_name;
-    struct d_internal_indices removed_bindings;
+    struct dj_internal_indices removed_bindings;
     size_t                    path;
     bool                      path_added;
     bool                      path_removed;
-    enum d_ninja_section      section;
+    enum dj_ninja_section      section;
     bool                      value;
     const char*               name;
 };
@@ -128,11 +128,11 @@ struct d_internal_expect
 d_internal_add, d_internal_add_char
   Appends to a buffer, which remembers a failure and takes nothing more.
 */
-static bool
-d_internal_add(
-    struct d_internal_buffer* _buffer,
-    const char*               _text,
-    size_t                    _length
+static
+bool d_internal_add(
+    struct dj_internal_buffer* _buffer,
+    const char*                _text,
+    size_t                     _length
 )
 {
     // a buffer that failed takes nothing more
@@ -179,19 +179,19 @@ d_internal_add(
 }
 
 
-static bool
-d_internal_add_char(
-    struct d_internal_buffer* _buffer,
-    char                      _c
+static
+bool d_internal_add_char(
+    struct dj_internal_buffer* _buffer,
+    char                       _c
 )
 {
     return d_internal_add(_buffer, &_c, 1u);
 }
 
 
-static void
-d_internal_buffer_free(
-    struct d_internal_buffer* _buffer
+static
+void d_internal_buffer_free(
+    struct dj_internal_buffer* _buffer
 )
 {
     free(_buffer->text);
@@ -205,8 +205,8 @@ d_internal_buffer_free(
 d_internal_copy
   A string of its own.
 */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _text,
     size_t      _length
 )
@@ -228,8 +228,8 @@ d_internal_copy(
 d_internal_same_text
   Whether two spans hold the same bytes.
 */
-static bool
-d_internal_same_text(
+static
+bool d_internal_same_text(
     const char* _left,
     size_t      _left_length,
     const char* _right,
@@ -252,8 +252,8 @@ d_internal_new
   A document of a text it takes, read; NULL, the text freed, when it does
 not read as Ninja.
 */
-static struct d_ninja_doc*
-d_internal_new(
+static
+struct dj_ninja_doc* d_internal_new(
     const char* _path,
     char*       _text,
     size_t      _length,
@@ -261,7 +261,7 @@ d_internal_new(
     size_t      _capacity
 )
 {
-    struct d_ninja_doc* const doc  = calloc(1u, sizeof(*doc));
+    struct dj_ninja_doc* const doc  = calloc(1u, sizeof(*doc));
     char* const               path = d_internal_copy(_path, strlen(_path));
     char                      why[256];
 
@@ -295,8 +295,7 @@ d_internal_new(
 }
 
 
-struct d_ninja_doc*
-d_ninja_doc_read(
+struct dj_ninja_doc* d_ninja_doc_read(
     const char* _path,
     char*       _problem,
     size_t      _capacity
@@ -326,8 +325,7 @@ d_ninja_doc_read(
 }
 
 
-struct d_ninja_doc*
-d_ninja_doc_make(
+struct dj_ninja_doc* d_ninja_doc_make(
     const char* _path,
     const char* _text,
     size_t      _length,
@@ -352,9 +350,8 @@ d_ninja_doc_make(
 }
 
 
-void
-d_ninja_doc_free(
-    struct d_ninja_doc* _doc
+void d_ninja_doc_free(
+    struct dj_ninja_doc* _doc
 )
 {
     // freeing nothing is allowed
@@ -372,39 +369,35 @@ d_ninja_doc_free(
 }
 
 
-const struct d_ninja*
-d_ninja_doc_records(
-    const struct d_ninja_doc* _doc
+const struct dj_ninja* d_ninja_doc_records(
+    const struct dj_ninja_doc* _doc
 )
 {
     return (_doc) ? &_doc->records : NULL;
 }
 
 
-const char*
-d_ninja_doc_path(
-    const struct d_ninja_doc* _doc
+const char* d_ninja_doc_path(
+    const struct dj_ninja_doc* _doc
 )
 {
     return (_doc) ? _doc->path : "";
 }
 
 
-size_t
-d_ninja_doc_changes(
-    const struct d_ninja_doc* _doc
+size_t d_ninja_doc_changes(
+    const struct dj_ninja_doc* _doc
 )
 {
     return (_doc) ? _doc->changes : 0u;
 }
 
 
-bool
-d_ninja_doc_changed(
-    const struct d_ninja_doc* _doc,
-    size_t*                   _out_start,
-    size_t*                   _out_old_end,
-    size_t*                   _out_new_end
+bool d_ninja_doc_changed(
+    const struct dj_ninja_doc* _doc,
+    size_t*                    _out_start,
+    size_t*                    _out_old_end,
+    size_t*                    _out_new_end
 )
 {
     // a change, to say where it was
@@ -436,19 +429,17 @@ d_ninja_doc_changed(
 }
 
 
-const char*
-d_ninja_doc_problem(
-    const struct d_ninja_doc* _doc
+const char* d_ninja_doc_problem(
+    const struct dj_ninja_doc* _doc
 )
 {
     return (_doc) ? _doc->problem : "";
 }
 
 
-const char*
-d_ninja_doc_text(
-    const struct d_ninja_doc* _doc,
-    size_t*                   _out_length
+const char* d_ninja_doc_text(
+    const struct dj_ninja_doc* _doc,
+    size_t*                    _out_length
 )
 {
     // the length, when it is asked for
@@ -465,10 +456,10 @@ d_ninja_doc_text(
 d_internal_fail
   Says why a change failed, and gives false.
 */
-static bool
-d_internal_fail(
-    struct d_ninja_doc* _doc,
-    const char*         _why
+static
+bool d_internal_fail(
+    struct dj_ninja_doc* _doc,
+    const char*          _why
 )
 {
     (void)snprintf(_doc->problem, sizeof(_doc->problem), "%s", _why);
@@ -487,8 +478,8 @@ d_internal_moved
   A place, or a line, of the old text as it is in the new: moved when it is
 after the splice.
 */
-static size_t
-d_internal_moved(
+static
+size_t d_internal_moved(
     size_t    _at,
     ptrdiff_t _shift
 )
@@ -501,13 +492,13 @@ d_internal_moved(
 d_internal_same_value
   Whether a value of the old records is one of the new, moved.
 */
-static bool
-d_internal_same_value(
-    const struct d_ninja* _old,
-    size_t                _left,
-    const struct d_ninja* _new,
-    size_t                _right,
-    ptrdiff_t             _shift
+static
+bool d_internal_same_value(
+    const struct dj_ninja* _old,
+    size_t                 _left,
+    const struct dj_ninja* _new,
+    size_t                 _right,
+    ptrdiff_t              _shift
 )
 {
     // none is none
@@ -517,8 +508,8 @@ d_internal_same_value(
         return (_left == _right);
     }
 
-    const struct d_ninja_value* const a = &_old->values[_left];
-    const struct d_ninja_value* const b = &_new->values[_right];
+    const struct dj_ninja_value* const a = &_old->values[_left];
+    const struct dj_ninja_value* const b = &_new->values[_right];
 
     return ( (d_internal_moved(a->start, _shift) == b->start) &&
              (d_internal_moved(a->end, _shift) == b->end) &&
@@ -532,19 +523,19 @@ d_internal_same_statement
 is, its name, its paths in their sections, and its bindings.
   Long as each part of a statement is compared in turn.
 */
-static bool
-d_internal_same_statement(
-    const struct d_ninja_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t                             _left,
-    size_t                             _right,
-    bool                               _after
+static
+bool d_internal_same_statement(
+    const struct dj_ninja_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _left,
+    size_t                              _right,
+    bool                                _after
 )
 {
-    const struct d_ninja* const           old   = &_doc->records;
-    const struct d_ninja* const           fresh = &_candidate->records;
-    const struct d_ninja_statement* const a     = &old->statements[_left];
-    const struct d_ninja_statement* const b     = &fresh->statements[_right];
+    const struct dj_ninja* const           old   = &_doc->records;
+    const struct dj_ninja* const           fresh = &_candidate->records;
+    const struct dj_ninja_statement* const a     = &old->statements[_left];
+    const struct dj_ninja_statement* const b     = &fresh->statements[_right];
     const ptrdiff_t                       shift = (_after) ? _candidate->shift
                                                            : 0;
     const ptrdiff_t                       lines = (_after) ? _candidate->lines
@@ -569,8 +560,8 @@ d_internal_same_statement(
     // each path, in its section
     for (size_t at = 0; at < a->path_count; ++at)
     {
-        const struct d_ninja_path* const x = &old->paths[a->first_path + at];
-        const struct d_ninja_path* const y =
+        const struct dj_ninja_path* const x = &old->paths[a->first_path + at];
+        const struct dj_ninja_path* const y =
             &fresh->paths[b->first_path + at];
 
         // the same section, the same value
@@ -584,9 +575,9 @@ d_internal_same_statement(
     // each binding
     for (size_t at = 0; at < a->binding_count; ++at)
     {
-        const struct d_ninja_binding* const x =
+        const struct dj_ninja_binding* const x =
             &old->bindings[a->first_binding + at];
-        const struct d_ninja_binding* const y =
+        const struct dj_ninja_binding* const y =
             &fresh->bindings[b->first_binding + at];
 
         // the same line, name and value
@@ -609,11 +600,11 @@ d_internal_mapped_within
   Whether a comment's statement in the old records is its statement in the
 new: before the splice the same, after it moved, between it any between.
 */
-static bool
-d_internal_mapped_within(
-    const struct d_internal_candidate* _candidate,
-    size_t                             _old,
-    size_t                             _new
+static
+bool d_internal_mapped_within(
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _old,
+    size_t                              _new
 )
 {
     // a table of where the statement stood: nowhere, before, after, between
@@ -645,14 +636,14 @@ the splice cut may end where it starts now, and is not among them -- and
 those wholly after it in each; false when the new has too few, or as many
 do not lie after it in both.
 */
-static bool
-d_internal_place_statements(
-    const struct d_ninja_doc*    _doc,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_place_statements(
+    const struct dj_ninja_doc*    _doc,
+    struct dj_internal_candidate* _candidate
 )
 {
-    const struct d_ninja* const old   = &_doc->records;
-    const struct d_ninja* const fresh = &_candidate->records;
+    const struct dj_ninja* const old   = &_doc->records;
+    const struct dj_ninja* const fresh = &_candidate->records;
     size_t                      left  = 0;
 
     // those wholly before the splice, in the old
@@ -695,11 +686,11 @@ d_internal_outside_statements
   Whether every statement outside the splice is the file's own; gives the
 line of the first that is not.
 */
-static bool
-d_internal_outside_statements(
-    const struct d_ninja_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t*                            _out_line
+static
+bool d_internal_outside_statements(
+    const struct dj_ninja_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t*                             _out_line
 )
 {
     const size_t after = _doc->records.statement_count -
@@ -743,15 +734,15 @@ it the same, those after it moved, as many of each.
   Long as the two lists are walked side by side through the three places,
 each a loop.
 */
-static bool
-d_internal_outside_comments(
-    const struct d_ninja_doc*          _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t*                            _out_line
+static
+bool d_internal_outside_comments(
+    const struct dj_ninja_doc*          _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t*                             _out_line
 )
 {
-    const struct d_ninja* const old   = &_doc->records;
-    const struct d_ninja* const fresh = &_candidate->records;
+    const struct dj_ninja* const old   = &_doc->records;
+    const struct dj_ninja* const fresh = &_candidate->records;
     size_t                      left  = 0;
     size_t                      old_after = 0;
     size_t                      new_after = 0;
@@ -799,7 +790,7 @@ d_internal_outside_comments(
                                                         ? (at - old_after +
                                                            new_after)
                                                         : at;
-        const struct d_ninja_comment* const a     = &old->comments[at];
+        const struct dj_ninja_comment* const a     = &old->comments[at];
         const ptrdiff_t                     shift = (after) ? _candidate->shift
                                                             : 0;
         const ptrdiff_t                     lines = (after) ? _candidate->lines
@@ -812,7 +803,7 @@ d_internal_outside_comments(
             continue;
         }
 
-        const struct d_ninja_comment* const b = &fresh->comments[other];
+        const struct dj_ninja_comment* const b = &fresh->comments[other];
 
         // the same place and line, and its statement
         if ( (d_internal_moved(a->start, shift) != b->start) ||
@@ -839,12 +830,12 @@ d_internal_outside_comments(
 d_internal_with_endings
   Text with each lone line feed written as the file ends its lines.
 */
-static bool
-d_internal_with_endings(
-    const struct d_ninja_doc* _doc,
-    const char*               _text,
-    size_t                    _length,
-    struct d_internal_buffer* _out
+static
+bool d_internal_with_endings(
+    const struct dj_ninja_doc* _doc,
+    const char*                _text,
+    size_t                     _length,
+    struct dj_internal_buffer* _out
 )
 {
     // each byte, a CR before a lone line feed in a CR LF file
@@ -871,8 +862,8 @@ d_internal_with_endings(
 d_internal_count_lines
   How many line feeds a span holds.
 */
-static ptrdiff_t
-d_internal_count_lines(
+static
+ptrdiff_t d_internal_count_lines(
     const char* _text,
     size_t      _length
 )
@@ -889,9 +880,9 @@ d_internal_count_lines(
 }
 
 
-static void
-d_internal_discard(
-    struct d_internal_candidate* _candidate
+static
+void d_internal_discard(
+    struct dj_internal_candidate* _candidate
 )
 {
     d_ninja_release(&_candidate->records);
@@ -907,17 +898,17 @@ d_internal_build
   The candidate's text: the file before the splice, the text written with
 the file's endings, and the file after.
 */
-static bool
-d_internal_build(
-    struct d_ninja_doc*          _doc,
-    size_t                       _start,
-    size_t                       _end,
-    const char*                  _text,
-    size_t                       _length,
-    struct d_internal_candidate* _out
+static
+bool d_internal_build(
+    struct dj_ninja_doc*          _doc,
+    size_t                        _start,
+    size_t                        _end,
+    const char*                   _text,
+    size_t                        _length,
+    struct dj_internal_candidate* _out
 )
 {
-    struct d_internal_buffer insert = { NULL, 0u, 0u, false };
+    struct dj_internal_buffer insert = { NULL, 0u, 0u, false };
 
     // the text, its line endings the file's
     if (!d_internal_with_endings(_doc, _text, _length, &insert))
@@ -967,14 +958,14 @@ d_internal_try
   Makes a candidate of a splice, and keeps it only if the file outside it
 reads as it did.
 */
-static bool
-d_internal_try(
-    struct d_ninja_doc*          _doc,
-    size_t                       _start,
-    size_t                       _end,
-    const char*                  _text,
-    size_t                       _length,
-    struct d_internal_candidate* _out
+static
+bool d_internal_try(
+    struct dj_ninja_doc*          _doc,
+    size_t                        _start,
+    size_t                        _end,
+    const char*                   _text,
+    size_t                        _length,
+    struct dj_internal_candidate* _out
 )
 {
     char   why[256];
@@ -1039,10 +1030,10 @@ d_internal_try(
 d_internal_commit
   Keeps a candidate: the file is its text and records now.
 */
-static bool
-d_internal_commit(
-    struct d_ninja_doc*          _doc,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_commit(
+    struct dj_ninja_doc*          _doc,
+    struct dj_internal_candidate* _candidate
 )
 {
     d_ninja_release(&_doc->records);
@@ -1061,16 +1052,15 @@ d_internal_commit(
 }
 
 
-bool
-d_ninja_doc_splice(
-    struct d_ninja_doc* _doc,
-    size_t              _start,
-    size_t              _end,
-    const char*         _text,
-    size_t              _length
+bool d_ninja_doc_splice(
+    struct dj_ninja_doc* _doc,
+    size_t               _start,
+    size_t               _end,
+    const char*          _text,
+    size_t               _length
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1100,10 +1090,10 @@ d_internal_unparsed
   A value of a reading, unparsed, for the caller to free; NULL when memory
 runs out.
 */
-static char*
-d_internal_unparsed(
-    const struct d_ninja* _ninja,
-    size_t                _value
+static
+char* d_internal_unparsed(
+    const struct dj_ninja* _ninja,
+    size_t                 _value
 )
 {
     // no value is ""
@@ -1112,7 +1102,7 @@ d_internal_unparsed(
         return d_internal_copy("", 0u);
     }
 
-    const struct d_ninja_value* const value = &_ninja->values[_value];
+    const struct dj_ninja_value* const value = &_ninja->values[_value];
     char* const out = malloc(((value->end - value->start) * 2u) + 1u);
 
     // the value, unparsed
@@ -1129,12 +1119,12 @@ d_internal_unparsed(
 d_internal_same_unparsed
   Whether two values, each of its own reading, unparse alike.
 */
-static bool
-d_internal_same_unparsed(
-    const struct d_ninja* _left,
-    size_t                _a,
-    const struct d_ninja* _right,
-    size_t                _b
+static
+bool d_internal_same_unparsed(
+    const struct dj_ninja* _left,
+    size_t                 _a,
+    const struct dj_ninja* _right,
+    size_t                 _b
 )
 {
     char* const one   = d_internal_unparsed(_left, _a);
@@ -1155,15 +1145,15 @@ d_internal_raw_is
   Whether a value of a reading is written as a text, the file's line
 endings aside.
 */
-static bool
-d_internal_raw_is(
-    const struct d_ninja_doc* _doc,
-    const struct d_ninja*     _ninja,
-    size_t                    _value,
-    const char*               _text
+static
+bool d_internal_raw_is(
+    const struct dj_ninja_doc* _doc,
+    const struct dj_ninja*     _ninja,
+    size_t                     _value,
+    const char*                _text
 )
 {
-    struct d_internal_buffer text = { NULL, 0u, 0u, false };
+    struct dj_internal_buffer text = { NULL, 0u, 0u, false };
 
     // the text as the file would hold it
     if (!d_internal_with_endings(_doc, _text, strlen(_text), &text))
@@ -1173,7 +1163,7 @@ d_internal_raw_is(
         return false;
     }
 
-    const struct d_ninja_value* const value = &_ninja->values[_value];
+    const struct dj_ninja_value* const value = &_ninja->values[_value];
     const bool same = d_internal_same_text(&_ninja->text[value->start],
                                            value->end - value->start,
                                            text.text, text.length);
@@ -1188,12 +1178,12 @@ d_internal_raw_is(
 d_internal_name_is
   Whether a span of a reading's text is a name.
 */
-static bool
-d_internal_name_is(
-    const struct d_ninja* _ninja,
-    size_t                _start,
-    size_t                _end,
-    const char*           _name
+static
+bool d_internal_name_is(
+    const struct dj_ninja* _ninja,
+    size_t                 _start,
+    size_t                 _end,
+    const char*            _name
 )
 {
     return d_internal_same_text(&_ninja->text[_start], _end - _start, _name,
@@ -1207,16 +1197,16 @@ d_internal_alike
 name, value, paths in their sections, and bindings, each value unparsed.
   Long as each part is compared in turn.
 */
-static bool
-d_internal_alike(
-    const struct d_ninja* _left,
-    size_t                _a,
-    const struct d_ninja* _right,
-    size_t                _b
+static
+bool d_internal_alike(
+    const struct dj_ninja* _left,
+    size_t                 _a,
+    const struct dj_ninja* _right,
+    size_t                 _b
 )
 {
-    const struct d_ninja_statement* const a = &_left->statements[_a];
-    const struct d_ninja_statement* const b = &_right->statements[_b];
+    const struct dj_ninja_statement* const a = &_left->statements[_a];
+    const struct dj_ninja_statement* const b = &_right->statements[_b];
 
     // the statement itself
     if ( (a->kind != b->kind) ||
@@ -1234,8 +1224,8 @@ d_internal_alike(
     // each path
     for (size_t at = 0; at < a->path_count; ++at)
     {
-        const struct d_ninja_path* const x = &_left->paths[a->first_path + at];
-        const struct d_ninja_path* const y =
+        const struct dj_ninja_path* const x = &_left->paths[a->first_path + at];
+        const struct dj_ninja_path* const y =
             &_right->paths[b->first_path + at];
 
         // its section and its value
@@ -1249,9 +1239,9 @@ d_internal_alike(
     // each binding
     for (size_t at = 0; at < a->binding_count; ++at)
     {
-        const struct d_ninja_binding* const x =
+        const struct dj_ninja_binding* const x =
             &_left->bindings[a->first_binding + at];
-        const struct d_ninja_binding* const y =
+        const struct dj_ninja_binding* const y =
             &_right->bindings[b->first_binding + at];
 
         // its name and its value
@@ -1274,16 +1264,16 @@ d_internal_paths_back
   Whether the new statement's paths are the old's, but for the one the
 change set, added or took away, which holds the text in its section.
 */
-static bool
-d_internal_paths_back(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja*           _fresh,
-    const struct d_ninja_statement* _a,
-    const struct d_ninja_statement* _b,
-    const struct d_internal_expect* _expect
+static
+bool d_internal_paths_back(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja*           _fresh,
+    const struct dj_ninja_statement* _a,
+    const struct dj_ninja_statement* _b,
+    const struct dj_internal_expect* _expect
 )
 {
-    const struct d_ninja* const old   = &_doc->records;
+    const struct dj_ninja* const old   = &_doc->records;
     const size_t                count = (_expect->path_added)
                                             ? (_a->path_count + 1u)
                                       : (_expect->path_removed)
@@ -1299,7 +1289,7 @@ d_internal_paths_back(
     // each path now, against the one it was
     for (size_t k = 0; k < count; ++k)
     {
-        const struct d_ninja_path* const y = &_fresh->paths[_b->first_path +
+        const struct dj_ninja_path* const y = &_fresh->paths[_b->first_path +
                                                             k];
 
         // the one written holds the text, in its section
@@ -1321,7 +1311,7 @@ d_internal_paths_back(
             ( (_expect->path_added) && (k > _expect->path) ) ? (k - 1u)
           : ( (_expect->path_removed) && (k >= _expect->path) ) ? (k + 1u)
           :                                                       k;
-        const struct d_ninja_path* const x = &old->paths[_a->first_path +
+        const struct dj_ninja_path* const x = &old->paths[_a->first_path +
                                                          from];
 
         // the rest, as they were
@@ -1340,10 +1330,10 @@ d_internal_paths_back(
 d_internal_removed
   Whether an old binding is among those the change removes.
 */
-static bool
-d_internal_removed(
-    const struct d_internal_expect* _expect,
-    size_t                          _binding
+static
+bool d_internal_removed(
+    const struct dj_internal_expect* _expect,
+    size_t                           _binding
 )
 {
     // each removed
@@ -1367,16 +1357,16 @@ change set, added or took away: one set or added holds its name and the
 text.
   Long as the old bindings are walked beside the new, past those removed.
 */
-static bool
-d_internal_bindings_back(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja*           _fresh,
-    const struct d_ninja_statement* _a,
-    const struct d_ninja_statement* _b,
-    const struct d_internal_expect* _expect
+static
+bool d_internal_bindings_back(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja*           _fresh,
+    const struct dj_ninja_statement* _a,
+    const struct dj_ninja_statement* _b,
+    const struct dj_internal_expect* _expect
 )
 {
-    const struct d_ninja* const old  = &_doc->records;
+    const struct dj_ninja* const old  = &_doc->records;
     const size_t                gone = _expect->removed_bindings.count;
     size_t                      from = 0;
 
@@ -1390,7 +1380,7 @@ d_internal_bindings_back(
     // each binding now, against the one it was
     for (size_t k = 0; k < _b->binding_count; ++k)
     {
-        const struct d_ninja_binding* const y =
+        const struct dj_ninja_binding* const y =
             &_fresh->bindings[_b->first_binding + k];
 
         // past those removed
@@ -1420,7 +1410,7 @@ d_internal_bindings_back(
             continue;
         }
 
-        const struct d_ninja_binding* const x =
+        const struct dj_ninja_binding* const x =
             &old->bindings[_a->first_binding + from];
 
         // the rest, as they were
@@ -1447,17 +1437,17 @@ back as the change was to leave it: the one statement cut, its kind, its
 name, its value, its paths and its bindings each as expected.
   Long as each part of the expectation is checked in turn.
 */
-static bool
-d_internal_statement_change(
-    struct d_ninja_doc*             _doc,
-    size_t                          _n,
-    const struct d_internal_expect* _expect,
-    size_t                          _start,
-    size_t                          _end,
-    const char*                     _splice
+static
+bool d_internal_statement_change(
+    struct dj_ninja_doc*             _doc,
+    size_t                           _n,
+    const struct dj_internal_expect* _expect,
+    size_t                           _start,
+    size_t                           _end,
+    const char*                      _splice
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // the splice
     if (!d_internal_try(_doc, _start, _end, _splice, strlen(_splice),
@@ -1466,10 +1456,10 @@ d_internal_statement_change(
         return false;
     }
 
-    const struct d_ninja* const           fresh = &candidate.records;
-    const struct d_ninja_statement* const a     =
+    const struct dj_ninja* const           fresh = &candidate.records;
+    const struct dj_ninja_statement* const a     =
         &_doc->records.statements[_n];
-    const struct d_ninja_statement* const b     =
+    const struct dj_ninja_statement* const b     =
         ( (candidate.before == _n) &&
           (candidate.old_after == (_n + 1u)) &&
           (candidate.new_after == (_n + 1u)) ) ? &fresh->statements[_n]
@@ -1521,10 +1511,10 @@ d_internal_statement_change(
 d_internal_expect_none
   An expectation that the statement is left as it was.
 */
-static void
-d_internal_expect_none(
-    struct d_internal_expect* _expect,
-    const char*               _text
+static
+void d_internal_expect_none(
+    struct dj_internal_expect* _expect,
+    const char*                _text
 )
 {
     memset(_expect, 0, sizeof(*_expect));
@@ -1540,10 +1530,10 @@ d_internal_expect_none(
 d_internal_statement_at
   Statement `_n`, or NULL, the document saying why.
 */
-static const struct d_ninja_statement*
-d_internal_statement_at(
-    struct d_ninja_doc* _doc,
-    size_t              _n
+static
+const struct dj_ninja_statement* d_internal_statement_at(
+    struct dj_ninja_doc* _doc,
+    size_t               _n
 )
 {
     // one the file has
@@ -1569,12 +1559,12 @@ d_internal_after_equals
   The text a value is spliced in as: a space before it where the value
 stands against its `=`, so it does not run into it.
 */
-static bool
-d_internal_after_equals(
-    const struct d_ninja_doc* _doc,
-    size_t                    _start,
-    const char*               _text,
-    struct d_internal_buffer* _out
+static
+bool d_internal_after_equals(
+    const struct dj_ninja_doc* _doc,
+    size_t                     _start,
+    const char*                _text,
+    struct dj_internal_buffer* _out
 )
 {
     // a space after a bare `=`, for a value that has text
@@ -1591,15 +1581,14 @@ d_internal_after_equals(
 }
 
 
-bool
-d_ninja_doc_set_value(
-    struct d_ninja_doc* _doc,
-    size_t              _statement,
-    const char*         _text
+bool d_ninja_doc_set_value(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _text
 )
 {
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
-    struct d_internal_expect expect;
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_internal_expect expect;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1608,7 +1597,7 @@ d_ninja_doc_set_value(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
 
     // a variable the file has
@@ -1620,7 +1609,7 @@ d_ninja_doc_set_value(
                            : false;
     }
 
-    const struct d_ninja_value* const value =
+    const struct dj_ninja_value* const value =
         &_doc->records.values[statement->value];
     const size_t                      start = value->start;
     const size_t                      end   = value->end;
@@ -1638,14 +1627,13 @@ d_ninja_doc_set_value(
 }
 
 
-bool
-d_ninja_doc_set_name(
-    struct d_ninja_doc* _doc,
-    size_t              _statement,
-    const char*         _name
+bool d_ninja_doc_set_name(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _name
 )
 {
-    struct d_internal_expect expect;
+    struct dj_internal_expect expect;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1654,7 +1642,7 @@ d_ninja_doc_set_name(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
 
     // a statement with a name
@@ -1689,11 +1677,11 @@ d_internal_last_binding
   The last binding of a name of a statement, from 0 among its bindings, or
 D_NINJA_NONE.
 */
-static size_t
-d_internal_last_binding(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement,
-    const char*                     _name
+static
+size_t d_internal_last_binding(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement,
+    const char*                      _name
 )
 {
     size_t found = D_NINJA_NONE;
@@ -1701,7 +1689,7 @@ d_internal_last_binding(
     // each binding, the last of the name kept
     for (size_t at = 0; at < _statement->binding_count; ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &_doc->records.bindings[_statement->first_binding + at];
 
         // the name's
@@ -1721,10 +1709,10 @@ d_internal_line_ending
   Where the line ending a statement's last line stands: the CR of a CR LF,
 or the LF; the statement's end for a last line the file does not end.
 */
-static size_t
-d_internal_line_ending(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement
+static
+size_t d_internal_line_ending(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement
 )
 {
     const size_t end = _statement->end;
@@ -1747,13 +1735,13 @@ d_internal_new_binding
 line ending, the indentation of its first binding or two spaces, the name,
 ` = ` and the text.
 */
-static bool
-d_internal_new_binding(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement,
-    const char*                     _name,
-    const char*                     _text,
-    struct d_internal_buffer*       _out
+static
+bool d_internal_new_binding(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement,
+    const char*                      _name,
+    const char*                      _text,
+    struct dj_internal_buffer*       _out
 )
 {
     (void)d_internal_add_char(_out, '\n');
@@ -1761,7 +1749,7 @@ d_internal_new_binding(
     // the indentation of its bindings, or two spaces
     if (_statement->binding_count > 0u)
     {
-        const struct d_ninja_binding* const first =
+        const struct dj_ninja_binding* const first =
             &_doc->records.bindings[_statement->first_binding];
 
         (void)d_internal_add(_out, &_doc->text[first->start],
@@ -1785,16 +1773,15 @@ d_ninja_doc_set_binding
   Long as it is a table of the two changes, a binding set or one added,
 each laid out before the change is tried.
 */
-bool
-d_ninja_doc_set_binding(
-    struct d_ninja_doc* _doc,
-    size_t              _statement,
-    const char*         _name,
-    const char*         _text
+bool d_ninja_doc_set_binding(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _name,
+    const char*          _text
 )
 {
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
-    struct d_internal_expect expect;
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_internal_expect expect;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1804,7 +1791,7 @@ d_ninja_doc_set_binding(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
 
     // a statement that takes bindings, and a name
@@ -1833,9 +1820,9 @@ d_ninja_doc_set_binding(
     // a table of the two: the last of the name set, or one added
     if (last != D_NINJA_NONE)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &_doc->records.bindings[statement->first_binding + last];
-        const struct d_ninja_value* const   value   =
+        const struct dj_ninja_value* const   value   =
             &_doc->records.values[binding->value];
 
         start = value->start;
@@ -1862,15 +1849,14 @@ d_ninja_doc_remove_binding
   Long as each binding of the name is found, and the text between them
 kept, in one splice.
 */
-bool
-d_ninja_doc_remove_binding(
-    struct d_ninja_doc* _doc,
-    size_t              _statement,
-    const char*         _name
+bool d_ninja_doc_remove_binding(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _name
 )
 {
-    struct d_internal_buffer splice  = { NULL, 0u, 0u, false };
-    struct d_internal_expect expect;
+    struct dj_internal_buffer splice  = { NULL, 0u, 0u, false };
+    struct dj_internal_expect expect;
     size_t                   gone[64];
     size_t                   count   = 0;
 
@@ -1881,7 +1867,7 @@ d_ninja_doc_remove_binding(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
 
     // a statement the file has
@@ -1897,7 +1883,7 @@ d_ninja_doc_remove_binding(
     // each binding of the name, its line left out of the splice's text
     for (size_t at = 0; at < statement->binding_count; ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &_doc->records.bindings[statement->first_binding + at];
 
         // one of another name, or one past what can be counted
@@ -1956,11 +1942,11 @@ d_ninja_doc_remove_binding(
 d_internal_path_value
   The value of a statement's path `_k`.
 */
-static const struct d_ninja_value*
-d_internal_path_value(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement,
-    size_t                          _k
+static
+const struct dj_ninja_value* d_internal_path_value(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement,
+    size_t                           _k
 )
 {
     const size_t value = _doc->records.paths[_statement->first_path + _k].value;
@@ -1969,15 +1955,14 @@ d_internal_path_value(
 }
 
 
-bool
-d_ninja_doc_set_path(
-    struct d_ninja_doc* _doc,
-    size_t              _statement,
-    size_t              _path,
-    const char*         _text
+bool d_ninja_doc_set_path(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    size_t               _path,
+    const char*          _text
 )
 {
-    struct d_internal_expect expect;
+    struct dj_internal_expect expect;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1986,7 +1971,7 @@ d_ninja_doc_set_path(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
 
     // a path the statement has
@@ -1998,7 +1983,7 @@ d_ninja_doc_set_path(
                            : false;
     }
 
-    const struct d_ninja_value* const value =
+    const struct dj_ninja_value* const value =
         d_internal_path_value(_doc, statement, _path);
 
     d_internal_expect_none(&expect, _text);
@@ -2021,9 +2006,9 @@ index the path takes among the statement's is given.
 */
 static bool
 d_internal_section_place(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement,
-    enum d_ninja_section            _section,
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement,
+    enum dj_ninja_section            _section,
     size_t                          _place,
     size_t*                         _out_at,
     const char**                    _out_lead,
@@ -2041,7 +2026,7 @@ d_internal_section_place(
     // the section's paths, and the last path of a section before it
     for (size_t k = 0; k < _statement->path_count; ++k)
     {
-        const enum d_ninja_section section =
+        const enum dj_ninja_section section =
             _doc->records.paths[_statement->first_path + k].section;
 
         // a table of where the path stands: before the place, in the
@@ -2104,15 +2089,15 @@ d_internal_section_place(
 
 bool
 d_ninja_doc_insert_path(
-    struct d_ninja_doc*  _doc,
+    struct dj_ninja_doc*  _doc,
     size_t               _statement,
-    enum d_ninja_section _section,
+    enum dj_ninja_section _section,
     size_t               _place,
     const char*          _text
 )
 {
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
-    struct d_internal_expect expect;
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_internal_expect expect;
     size_t                   at     = 0;
     const char*              lead   = NULL;
     size_t                   index  = 0;
@@ -2124,7 +2109,7 @@ d_ninja_doc_insert_path(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
     const bool                            fits      =
         (statement) &&
@@ -2176,11 +2161,11 @@ d_internal_back_over_blanks
 continued with `$` that the blanks stand on, and the blanks before that;
 never before the statement's first byte.
 */
-static size_t
-d_internal_back_over_blanks(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement,
-    size_t                          _at
+static
+size_t d_internal_back_over_blanks(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement,
+    size_t                           _at
 )
 {
     size_t at   = _at;
@@ -2230,18 +2215,18 @@ d_internal_path_span
   The span a path takes with it: the blanks before it, and its section's
 pipe and the blanks before that when it was the section's only path.
 */
-static void
-d_internal_path_span(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement,
-    size_t                          _k,
-    size_t*                         _out_start,
-    size_t*                         _out_end
+static
+void d_internal_path_span(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement,
+    size_t                           _k,
+    size_t*                          _out_start,
+    size_t*                          _out_end
 )
 {
-    const enum d_ninja_section section =
+    const enum dj_ninja_section section =
         _doc->records.paths[_statement->first_path + _k].section;
-    const struct d_ninja_value* const value =
+    const struct dj_ninja_value* const value =
         d_internal_path_value(_doc, _statement, _k);
     size_t                            alone = 0;
     size_t                            start =
@@ -2279,14 +2264,13 @@ d_internal_path_span(
 }
 
 
-bool
-d_ninja_doc_remove_path(
-    struct d_ninja_doc* _doc,
-    size_t              _statement,
-    size_t              _path
+bool d_ninja_doc_remove_path(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    size_t               _path
 )
 {
-    struct d_internal_expect expect;
+    struct dj_internal_expect expect;
     size_t                   start = 0;
     size_t                   end   = 0;
 
@@ -2296,7 +2280,7 @@ d_ninja_doc_remove_path(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
 
     // a path the statement has, and not an include's file
@@ -2330,11 +2314,11 @@ d_internal_read_alone
   Reads a text of statements alone: false, the document saying why, when it
 does not read, or holds none.
 */
-static bool
-d_internal_read_alone(
-    struct d_ninja_doc* _doc,
-    const char*         _text,
-    struct d_ninja*     _out
+static
+bool d_internal_read_alone(
+    struct dj_ninja_doc* _doc,
+    const char*          _text,
+    struct dj_ninja*     _out
 )
 {
     char why[256];
@@ -2365,11 +2349,11 @@ d_internal_read_alone(
 d_internal_with_ending
   A text, a line ending added when its last line has none.
 */
-static bool
-d_internal_with_ending(
-    const char*               _text,
-    bool                      _first,
-    struct d_internal_buffer* _out
+static
+bool d_internal_with_ending(
+    const char*                _text,
+    bool                       _first,
+    struct dj_internal_buffer* _out
 )
 {
     const size_t length = strlen(_text);
@@ -2398,19 +2382,19 @@ d_internal_statements_change
   Tries a splice that replaces statements `_first` to `_first + _cut`, and
 keeps it if the statements there read as `_written`'s do.
 */
-static bool
-d_internal_statements_change(
-    struct d_ninja_doc*   _doc,
-    size_t                _first,
-    size_t                _cut,
-    const struct d_ninja* _written,
-    size_t                _start,
-    size_t                _end,
-    const char*           _splice,
-    size_t                _length
+static
+bool d_internal_statements_change(
+    struct dj_ninja_doc*   _doc,
+    size_t                 _first,
+    size_t                 _cut,
+    const struct dj_ninja* _written,
+    size_t                 _start,
+    size_t                 _end,
+    const char*            _splice,
+    size_t                 _length
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
     const size_t                made = (_written) ? _written->statement_count
                                                   : 0u;
 
@@ -2451,20 +2435,20 @@ d_internal_lead
 line directly above it, and above that, that no statement holds; the
 statement's own line when there is none.
 */
-static size_t
-d_internal_lead(
-    const struct d_ninja_doc*       _doc,
-    const struct d_ninja_statement* _statement
+static
+size_t d_internal_lead(
+    const struct dj_ninja_doc*       _doc,
+    const struct dj_ninja_statement* _statement
 )
 {
-    const struct d_ninja* const ninja = &_doc->records;
+    const struct dj_ninja* const ninja = &_doc->records;
     size_t                      top   = _statement->line;
     size_t                      start = _statement->start;
 
     // the comments before the statement, from the nearest up
     for (size_t at = ninja->comment_count; at > 0u; --at)
     {
-        const struct d_ninja_comment* const comment = &ninja->comments[at - 1u];
+        const struct dj_ninja_comment* const comment = &ninja->comments[at - 1u];
 
         // one on the statement's line or after it leads into nothing
         if (comment->start >= start)
@@ -2487,15 +2471,14 @@ d_internal_lead(
 }
 
 
-bool
-d_ninja_doc_insert_statements(
-    struct d_ninja_doc* _doc,
-    size_t              _before,
-    const char*         _text
+bool d_ninja_doc_insert_statements(
+    struct dj_ninja_doc* _doc,
+    size_t               _before,
+    const char*          _text
 )
 {
-    struct d_ninja           written;
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_ninja           written;
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -2545,15 +2528,14 @@ d_ninja_doc_insert_statements(
 }
 
 
-bool
-d_ninja_doc_set_statement(
-    struct d_ninja_doc* _doc,
-    size_t              _statement,
-    const char*         _text
+bool d_ninja_doc_set_statement(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _text
 )
 {
-    struct d_ninja           written;
-    struct d_internal_buffer splice = { NULL, 0u, 0u, false };
+    struct dj_ninja           written;
+    struct dj_internal_buffer splice = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -2562,7 +2544,7 @@ d_ninja_doc_set_statement(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(_doc, _statement);
 
     // a statement the file has, and the text, its line ended, read alone
@@ -2602,11 +2584,10 @@ d_ninja_doc_set_statement(
 }
 
 
-bool
-d_ninja_doc_remove_statements(
-    struct d_ninja_doc* _doc,
-    size_t              _first,
-    size_t              _last
+bool d_ninja_doc_remove_statements(
+    struct dj_ninja_doc* _doc,
+    size_t               _first,
+    size_t               _last
 )
 {
     // parameter validation first
@@ -2638,9 +2619,9 @@ d_ninja_doc_remove_statements(
 //==============================================================================
 
 
-enum d_ninja_saved
+enum dj_ninja_saved
 d_ninja_doc_save(
-    struct d_ninja_doc* _doc,
+    struct dj_ninja_doc* _doc,
     const char*         _path,
     char*               _problem,
     size_t              _capacity

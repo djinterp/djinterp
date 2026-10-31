@@ -63,11 +63,11 @@
 // default.
 #define D_INTERNAL_POSTGRES_DIGITS "-c extra_float_digits=3"
 
-// d_internal_postgres_params
+// dj_internal_postgres_params
 //   struct: the layer's defaults as keyword and value arrays, with the text
 // the layer made for them; for a connect from the options struct, its fields
 // too.
-struct d_internal_postgres_params
+struct dj_internal_postgres_params
 {
     const char* keywords[D_INTERNAL_POSTGRES_KEYWORDS];  // the keywords
     const char* values[D_INTERNAL_POSTGRES_KEYWORDS];    // their values
@@ -79,13 +79,13 @@ struct d_internal_postgres_params
                                                          // value, allocated
 };
 
-// d_internal_postgres_plan
+// dj_internal_postgres_plan
 //   struct: everything a connect hands libpq -- the keyword and value arrays,
 // NULL-terminated, libpq's own copies of what it parsed, and the text the
 // layer made -- whichever form the connect took.
-struct d_internal_postgres_plan
+struct dj_internal_postgres_plan
 {
-    struct d_internal_postgres_params defaults;  // the layer's defaults, and
+    struct dj_internal_postgres_params defaults;  // the layer's defaults, and
                                                  // the options struct's
                                                  // fields
     PQconninfoOption*                 parsed;    // a connection string's
@@ -105,11 +105,11 @@ d_internal_postgres_add
   One keyword and value; a NULL or empty value is left out, as libpq would
 ignore it anyway.
 */
-static void
-d_internal_postgres_add(
-    struct d_internal_postgres_params* _params,
-    const char*                        _keyword,
-    const char*                        _value
+static
+void d_internal_postgres_add(
+    struct dj_internal_postgres_params* _params,
+    const char*                         _keyword,
+    const char*                         _value
 )
 {
     // only a value there is, and room for it beside the terminator
@@ -130,8 +130,8 @@ d_internal_postgres_unset
   Whether an environment variable is unset or empty, which is how libpq
 reads it.
 */
-static bool
-d_internal_postgres_unset(
+static
+bool d_internal_postgres_unset(
     const char* _name
 )
 {
@@ -147,8 +147,8 @@ d_internal_postgres_startup
 a level; and PGOPTIONS after them, whose own -c settings then win. 53200 when
 memory ran out.
 */
-static int
-d_internal_postgres_startup(
+static
+int d_internal_postgres_startup(
     char** _startup
 )
 {
@@ -201,9 +201,9 @@ d_internal_postgres_defaults
   The layer's three defaults, each where the build asks for it and libpq's
 environment does not already say.
 */
-static int
-d_internal_postgres_defaults(
-    struct d_internal_postgres_params* _params
+static
+int d_internal_postgres_defaults(
+    struct dj_internal_postgres_params* _params
 )
 {
     const char* const encoding = D_INTERNAL_POSTGRES_CLIENT_ENCODING;
@@ -240,10 +240,10 @@ d_internal_postgres_add_options
   Each field the options give, the port written out as text first; a port
 of 0 is libpq's to choose.
 */
-static void
-d_internal_postgres_add_options(
-    struct d_internal_postgres_params* _params,
-    const struct d_postgres_options*   _options
+static
+void d_internal_postgres_add_options(
+    struct dj_internal_postgres_params* _params,
+    const struct dj_postgres_options*   _options
 )
 {
     d_internal_postgres_add(_params, "host", _options->host);
@@ -269,8 +269,8 @@ d_internal_postgres_copy_message
   libpq's message, without the newline it ends with, in memory the caller
 releases with d_db_free; NULL when memory ran out.
 */
-static char*
-d_internal_postgres_copy_message(
+static
+char* d_internal_postgres_copy_message(
     const char* _message
 )
 {
@@ -298,8 +298,8 @@ d_internal_postgres_copy_message(
 d_internal_postgres_tell
   A reason, copied out where the caller wants one.
 */
-static void
-d_internal_postgres_tell(
+static
+void d_internal_postgres_tell(
     char**      _message,
     const char* _reason
 )
@@ -317,8 +317,8 @@ d_internal_postgres_is_conninfo
   Whether libpq reads a string as a connection string rather than a database
 name: a URI, or keywords, which an equals sign marks.
 */
-static bool
-d_internal_postgres_is_conninfo(
+static
+bool d_internal_postgres_is_conninfo(
     const char* _text
 )
 {
@@ -334,8 +334,8 @@ letters, digits and underscores, so anything else is refused here, in
 libpq's own words; the rest are read by PQconninfoParse, as a string that
 gives each an empty value, which names the first libpq does not know.
 */
-static int
-d_internal_postgres_check_keywords(
+static
+int d_internal_postgres_check_keywords(
     const char* const* _keywords,
     size_t             _count,
     char**             _message
@@ -437,8 +437,8 @@ d_internal_postgres_parse
 the caller's argument, its reason copied out where the caller wants it.
 libpq answers no reason at all only when memory ran out.
 */
-static int
-d_internal_postgres_parse(
+static
+int d_internal_postgres_parse(
     const char*        _conninfo,
     PQconninfoOption** _parsed,
     char**             _message
@@ -469,9 +469,9 @@ d_internal_postgres_parse(
 d_internal_postgres_plan_free
   Whatever a plan holds; a plan never filled holds nothing.
 */
-static void
-d_internal_postgres_plan_free(
-    struct d_internal_postgres_plan* _plan
+static
+void d_internal_postgres_plan_free(
+    struct dj_internal_postgres_plan* _plan
 )
 {
     // the arrays, where they were allocated rather than the defaults' own
@@ -498,10 +498,10 @@ d_internal_postgres_plan_options
 -- in the defaults' own arrays, which have room for them all. No field is
 options, so the layer's own startup option stands.
 */
-static int
-d_internal_postgres_plan_options(
-    struct d_internal_postgres_plan* _plan,
-    const struct d_postgres_options* _options
+static
+int d_internal_postgres_plan_options(
+    struct dj_internal_postgres_plan* _plan,
+    const struct dj_postgres_options* _options
 )
 {
     const int result = d_internal_postgres_defaults(&_plan->defaults);
@@ -536,10 +536,10 @@ is then needed, by a connect or by a reconnect, which sends the same
 packet.
 53200 when memory ran out.
 */
-static int
-d_internal_postgres_digits_ahead(
-    struct d_internal_postgres_plan* _plan,
-    size_t                           _count
+static
+int d_internal_postgres_digits_ahead(
+    struct dj_internal_postgres_plan* _plan,
+    size_t                            _count
 )
 {
     static const char digits[] = D_INTERNAL_POSTGRES_DIGITS " ";
@@ -587,13 +587,13 @@ keywords -- a NULL or empty value left out -- then the connection string's
 parts, or the database its single word names, so that the string overrides
 the keywords and both the defaults.
 */
-static int
-d_internal_postgres_plan_fill(
-    struct d_internal_postgres_plan* _plan,
-    const char*                      _conninfo,
-    const char* const*               _keywords,
-    const char* const*               _values,
-    size_t                           _count
+static
+int d_internal_postgres_plan_fill(
+    struct dj_internal_postgres_plan* _plan,
+    const char*                       _conninfo,
+    const char* const*                _keywords,
+    const char* const*                _values,
+    size_t                            _count
 )
 {
     size_t                  room   = _plan->defaults.count + _count + 2u;
@@ -676,14 +676,14 @@ stays a name; reading it here also shows the options it gives. A keyword or
 a string libpq cannot read is checked first, so that its reason is the
 caller's, not a failed connection's.
 */
-static int
-d_internal_postgres_plan_with(
-    struct d_internal_postgres_plan* _plan,
-    const char*                      _conninfo,
-    const char* const*               _keywords,
-    const char* const*               _values,
-    size_t                           _count,
-    char**                           _message
+static
+int d_internal_postgres_plan_with(
+    struct dj_internal_postgres_plan* _plan,
+    const char*                       _conninfo,
+    const char* const*                _keywords,
+    const char* const*                _values,
+    size_t                            _count,
+    char**                            _message
 )
 {
     const bool given  = ( (_conninfo) &&
@@ -722,8 +722,8 @@ d_internal_postgres_failed
 where the caller wants it, then finished. 08001, libpq giving none of its
 own numbers for the reasons a connection cannot be made.
 */
-static int
-d_internal_postgres_failed(
+static
+int d_internal_postgres_failed(
     PGconn*          _native,
     struct pg_conn** _db,
     char**           _message
@@ -742,8 +742,8 @@ d_internal_postgres_connected
 not. Nothing follows the handshake: the plan put the layer's settings in the
 startup packet.
 */
-static int
-d_internal_postgres_connected(
+static
+int d_internal_postgres_connected(
     PGconn*          _native,
     struct pg_conn** _db,
     char**           _message
@@ -775,11 +775,11 @@ for none; and, counted in whole seconds before libpq 17, at least two, since
 the seconds round. Text that is no integer is refused, as libpq 12 and later
 refuse it, with their words. 53200 when memory ran out.
 */
-static int
-d_internal_postgres_deadline(
-    PGconn*              _native,
-    struct d_db_pending* _pending,
-    char**               _message
+static
+int d_internal_postgres_deadline(
+    PGconn*               _native,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     PQconninfoOption* const options = PQconninfo(_native);
@@ -861,10 +861,10 @@ d_internal_postgres_deadline(
 
 /*
 d_internal_postgres_polled
-  What libpq's polling asked for, as d_db_wait.
+  What libpq's polling asked for, as dj_db_wait.
 */
-static unsigned
-d_internal_postgres_polled(
+static
+unsigned d_internal_postgres_polled(
     PostgresPollingStatusType _polling
 )
 {
@@ -879,11 +879,11 @@ polling a connection still being made before then reads it as made. A
 continuation without a ready socket is the deadline's: past it, the call has
 timed out; before it, it waits again for what it waited for.
 */
-static bool
-d_internal_postgres_held_back(
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    bool*                _expired
+static
+bool d_internal_postgres_held_back(
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    bool*                 _expired
 )
 {
     const unsigned ready = (unsigned)D_DB_WAIT_READ |
@@ -909,12 +909,12 @@ d_internal_postgres_begin
 so the plan can be freed at once. Started, it waits to write, as libpq's
 start leaves it.
 */
-static int
-d_internal_postgres_begin(
-    struct d_internal_postgres_plan* _plan,
-    struct pg_conn**                 _db,
-    struct d_db_pending*             _pending,
-    char**                           _message
+static
+int d_internal_postgres_begin(
+    struct dj_internal_postgres_plan* _plan,
+    struct pg_conn**                  _db,
+    struct dj_db_pending*             _pending,
+    char**                            _message
 )
 {
     PGconn* const native = PQconnectStartParams(_plan->keywords,
@@ -956,11 +956,11 @@ d_internal_postgres_starting
   What every start checks first: somewhere to put the connection and what it
 waits for, both cleared, and the message.
 */
-static bool
-d_internal_postgres_starting(
-    struct pg_conn**     _db,
-    struct d_db_pending* _pending,
-    char**               _message
+static
+bool d_internal_postgres_starting(
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     // nothing yet, whatever follows
@@ -988,8 +988,8 @@ d_internal_postgres_cancel_failed
   A reason for a cancel request that could not be delivered, copied out
 where the caller wants it. 08001.
 */
-static int
-d_internal_postgres_cancel_failed(
+static
+int d_internal_postgres_cancel_failed(
     const char* _reason,
     char**      _message
 )
@@ -1010,14 +1010,13 @@ d_postgres_connect
   The defaults, then each field the struct gives; libpq takes the rest from
 its environment.
 */
-int
-d_postgres_connect(
-    const struct d_postgres_options* _options,
-    struct pg_conn**                 _db,
-    char**                           _message
+int d_postgres_connect(
+    const struct dj_postgres_options* _options,
+    struct pg_conn**                  _db,
+    char**                            _message
 )
 {
-    struct d_internal_postgres_plan plan;
+    struct dj_internal_postgres_plan plan;
 
     // nothing yet, whatever follows
     if (_message)
@@ -1055,8 +1054,7 @@ d_postgres_connect_string
   d_postgres_connect_with with the string alone: its parts, read here,
 override the defaults, and a single word is a database's name.
 */
-int
-d_postgres_connect_string(
+int d_postgres_connect_string(
     const char*      _conninfo,
     struct pg_conn** _db,
     char**           _message
@@ -1069,8 +1067,7 @@ d_postgres_connect_string(
 d_postgres_connect_with
   The plan (d_internal_postgres_plan_with), then the connection.
 */
-int
-d_postgres_connect_with(
+int d_postgres_connect_with(
     const char*        _conninfo,
     const char* const* _keywords,
     const char* const* _values,
@@ -1079,7 +1076,7 @@ d_postgres_connect_with(
     char**             _message
 )
 {
-    struct d_internal_postgres_plan plan;
+    struct dj_internal_postgres_plan plan;
 
     // nothing yet, whatever follows
     if (_message)
@@ -1129,8 +1126,7 @@ d_postgres_connect_with(
 d_postgres_close
   PQfinish, which also frees the connection.
 */
-int
-d_postgres_close(
+int d_postgres_close(
     struct pg_conn* _db
 )
 {
@@ -1151,8 +1147,7 @@ d_postgres_ping
 even inside a failed transaction. A connection libpq already knows is lost
 needs no trip.
 */
-int
-d_postgres_ping(
+int d_postgres_ping(
     struct pg_conn* _db
 )
 {
@@ -1174,8 +1169,7 @@ d_postgres_ping(
 d_postgres_backend_pid
   libpq's copy, which it reads as 0 for a lost connection.
 */
-int
-d_postgres_backend_pid(
+int d_postgres_backend_pid(
     const struct pg_conn* _db
 )
 {
@@ -1188,15 +1182,14 @@ d_postgres_backend_pid(
 d_postgres_connect_start
   The plan d_postgres_connect makes, then libpq's start.
 */
-int
-d_postgres_connect_start(
-    const struct d_postgres_options* _options,
-    struct pg_conn**                 _db,
-    struct d_db_pending*             _pending,
-    char**                           _message
+int d_postgres_connect_start(
+    const struct dj_postgres_options* _options,
+    struct pg_conn**                  _db,
+    struct dj_db_pending*             _pending,
+    char**                            _message
 )
 {
-    struct d_internal_postgres_plan plan;
+    struct dj_internal_postgres_plan plan;
 
     // parameter validation
     if (!d_internal_postgres_starting(_db, _pending, _message))
@@ -1223,12 +1216,11 @@ d_postgres_connect_start(
 d_postgres_connect_string_start
   d_postgres_connect_with_start with the string alone.
 */
-int
-d_postgres_connect_string_start(
-    const char*          _conninfo,
-    struct pg_conn**     _db,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_postgres_connect_string_start(
+    const char*           _conninfo,
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     return d_postgres_connect_with_start(_conninfo,
@@ -1244,18 +1236,17 @@ d_postgres_connect_string_start(
 d_postgres_connect_with_start
   The plan d_postgres_connect_with makes, then libpq's start.
 */
-int
-d_postgres_connect_with_start(
-    const char*          _conninfo,
-    const char* const*   _keywords,
-    const char* const*   _values,
-    size_t               _count,
-    struct pg_conn**     _db,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_postgres_connect_with_start(
+    const char*           _conninfo,
+    const char* const*    _keywords,
+    const char* const*    _values,
+    size_t                _count,
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
-    struct d_internal_postgres_plan plan;
+    struct dj_internal_postgres_plan plan;
 
     // parameter validation
     if ( (!d_internal_postgres_starting(_db, _pending, _message)) ||
@@ -1291,12 +1282,11 @@ d_postgres_connect_continue
   PQconnectPoll, once the socket is ready; a connection libpq already made
 is done, and one it gave up on is finished.
 */
-int
-d_postgres_connect_continue(
-    struct pg_conn**     _db,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_postgres_connect_continue(
+    struct pg_conn**      _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     bool expired = false;
@@ -1381,8 +1371,7 @@ d_postgres_reconnect
   PQreset, which closes the connection and makes it again with what it was
 made with, its startup packet the layer's settings among them.
 */
-int
-d_postgres_reconnect(
+int d_postgres_reconnect(
     struct pg_conn* _db
 )
 {
@@ -1404,10 +1393,9 @@ d_postgres_reconnect_start
   PQresetStart closes the connection and starts it again, waiting to write,
 as libpq's start leaves it; the deadline as a connect's.
 */
-int
-d_postgres_reconnect_start(
-    struct pg_conn*      _db,
-    struct d_db_pending* _pending
+int d_postgres_reconnect_start(
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending
 )
 {
     // parameter validation
@@ -1449,11 +1437,10 @@ d_postgres_reconnect_continue
   PQresetPoll, once the socket is ready, as d_postgres_connect_continue polls;
 a connection that cannot be made again is left as libpq leaves it, lost.
 */
-int
-d_postgres_reconnect_continue(
-    struct pg_conn*      _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_postgres_reconnect_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     bool expired = false;
@@ -1528,8 +1515,7 @@ its settings -- encryption, connect_timeout -- and PQcancelBlocking; before
 it, PQcancel, which writes its reason into a buffer of the caller's. A lost
 connection has no backend to reach.
 */
-int
-d_postgres_cancel(
+int d_postgres_cancel(
     struct pg_conn* _db,
     char**          _message
 )
@@ -1598,11 +1584,10 @@ d_postgres_cancel_start
 start leaves it; the deadline from the connection's connect_timeout, which
 the cancel connection carries.
 */
-int
-d_postgres_cancel_start(
+int d_postgres_cancel_start(
     struct pg_conn*         _db,
     struct pg_cancel_conn** _cancel,
-    struct d_db_pending*    _pending,
+    struct dj_db_pending*   _pending,
     char**                  _message
 )
 {
@@ -1689,11 +1674,10 @@ d_postgres_cancel_continue
 polls; the cancel connection is finished once the request is delivered or
 fails.
 */
-int
-d_postgres_cancel_continue(
+int d_postgres_cancel_continue(
     struct pg_cancel_conn** _cancel,
     unsigned                _events,
-    struct d_db_pending*    _pending,
+    struct dj_db_pending*   _pending,
     char**                  _message
 )
 {
@@ -1767,8 +1751,7 @@ d_postgres_cancel_continue(
 d_postgres_cancel_finish
   PQcancelFinish, which closes the request's connection and frees it.
 */
-int
-d_postgres_cancel_finish(
+int d_postgres_cancel_finish(
     struct pg_cancel_conn* _cancel
 )
 {
@@ -1799,11 +1782,10 @@ d_postgres_connect
   Without libpq there is no connection to make: D_DB_UNSUPPORTED, and the
 connection and the message NULL, as a failure leaves them.
 */
-int
-d_postgres_connect(
-    const struct d_postgres_options* _options,
-    struct pg_conn**                 _db,
-    char**                           _message
+int d_postgres_connect(
+    const struct dj_postgres_options* _options,
+    struct pg_conn**                  _db,
+    char**                            _message
 )
 {
     (void)_options;
@@ -1827,8 +1809,7 @@ d_postgres_connect_string
   Without libpq there is no connection to make: D_DB_UNSUPPORTED, and the
 connection and the message NULL, as a failure leaves them.
 */
-int
-d_postgres_connect_string(
+int d_postgres_connect_string(
     const char*      _conninfo,
     struct pg_conn** _db,
     char**           _message
@@ -1855,8 +1836,7 @@ d_postgres_connect_with
   Without libpq there is no connection to make: D_DB_UNSUPPORTED, and the
 connection and the message NULL, as a failure leaves them.
 */
-int
-d_postgres_connect_with(
+int d_postgres_connect_with(
     const char*        _conninfo,
     const char* const* _keywords,
     const char* const* _values,
@@ -1889,8 +1869,7 @@ d_postgres_close
   Without libpq no connection exists: NULL closes as it always does, and
 anything else is no connection.
 */
-int
-d_postgres_close(
+int d_postgres_close(
     struct pg_conn* _db
 )
 {
@@ -1901,8 +1880,7 @@ d_postgres_close(
 d_postgres_ping
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_ping(
+int d_postgres_ping(
     struct pg_conn* _db
 )
 {
@@ -1915,8 +1893,7 @@ d_postgres_ping(
 d_postgres_backend_pid
   Without libpq there is no backend: 0.
 */
-int
-d_postgres_backend_pid(
+int d_postgres_backend_pid(
     const struct pg_conn* _db
 )
 {
@@ -1930,11 +1907,11 @@ d_internal_postgres_unsupported
   What every start and continuation leaves behind without libpq: no
 connection, nothing pending, no message. D_DB_UNSUPPORTED.
 */
-static int
-d_internal_postgres_unsupported(
-    struct pg_conn**     _db,
-    struct d_db_pending* _pending,
-    char**               _message
+static
+int d_internal_postgres_unsupported(
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     if (_db)
@@ -1963,12 +1940,11 @@ d_internal_postgres_unsupported(
 d_postgres_connect_start
   Without libpq there is no connection to start: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_connect_start(
-    const struct d_postgres_options* _options,
-    struct pg_conn**                 _db,
-    struct d_db_pending*             _pending,
-    char**                           _message
+int d_postgres_connect_start(
+    const struct dj_postgres_options* _options,
+    struct pg_conn**                  _db,
+    struct dj_db_pending*             _pending,
+    char**                            _message
 )
 {
     (void)_options;
@@ -1980,12 +1956,11 @@ d_postgres_connect_start(
 d_postgres_connect_string_start
   Without libpq there is no connection to start: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_connect_string_start(
-    const char*          _conninfo,
-    struct pg_conn**     _db,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_postgres_connect_string_start(
+    const char*           _conninfo,
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     (void)_conninfo;
@@ -1997,15 +1972,14 @@ d_postgres_connect_string_start(
 d_postgres_connect_with_start
   Without libpq there is no connection to start: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_connect_with_start(
-    const char*          _conninfo,
-    const char* const*   _keywords,
-    const char* const*   _values,
-    size_t               _count,
-    struct pg_conn**     _db,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_postgres_connect_with_start(
+    const char*           _conninfo,
+    const char* const*    _keywords,
+    const char* const*    _values,
+    size_t                _count,
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     (void)_conninfo;
@@ -2021,12 +1995,11 @@ d_postgres_connect_continue
   Without libpq no connection was started: D_DB_UNSUPPORTED, the handle
 left as it is, since nothing here made it.
 */
-int
-d_postgres_connect_continue(
-    struct pg_conn**     _db,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_postgres_connect_continue(
+    struct pg_conn**      _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     (void)_db;
@@ -2039,8 +2012,7 @@ d_postgres_connect_continue(
 d_postgres_reconnect
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_reconnect(
+int d_postgres_reconnect(
     struct pg_conn* _db
 )
 {
@@ -2053,10 +2025,9 @@ d_postgres_reconnect(
 d_postgres_reconnect_start
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_reconnect_start(
-    struct pg_conn*      _db,
-    struct d_db_pending* _pending
+int d_postgres_reconnect_start(
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -2068,11 +2039,10 @@ d_postgres_reconnect_start(
 d_postgres_reconnect_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_reconnect_continue(
-    struct pg_conn*      _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_postgres_reconnect_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -2085,8 +2055,7 @@ d_postgres_reconnect_continue(
 d_postgres_cancel
   Without libpq there is nothing to cancel: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_cancel(
+int d_postgres_cancel(
     struct pg_conn* _db,
     char**          _message
 )
@@ -2100,11 +2069,10 @@ d_postgres_cancel(
 d_postgres_cancel_start
   Without libpq there is nothing to cancel: D_DB_UNSUPPORTED, no request.
 */
-int
-d_postgres_cancel_start(
+int d_postgres_cancel_start(
     struct pg_conn*         _db,
     struct pg_cancel_conn** _cancel,
-    struct d_db_pending*    _pending,
+    struct dj_db_pending*   _pending,
     char**                  _message
 )
 {
@@ -2122,11 +2090,10 @@ d_postgres_cancel_start(
 d_postgres_cancel_continue
   Without libpq no request was started: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_cancel_continue(
+int d_postgres_cancel_continue(
     struct pg_cancel_conn** _cancel,
     unsigned                _events,
-    struct d_db_pending*    _pending,
+    struct dj_db_pending*   _pending,
     char**                  _message
 )
 {
@@ -2141,8 +2108,7 @@ d_postgres_cancel_finish
   Without libpq no request exists: NULL finishes as it always does, and
 anything else is no request.
 */
-int
-d_postgres_cancel_finish(
+int d_postgres_cancel_finish(
     struct pg_cancel_conn* _cancel
 )
 {

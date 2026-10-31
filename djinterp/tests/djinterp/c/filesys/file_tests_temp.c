@@ -29,9 +29,8 @@
  * XII.a  d_file_temp_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_temp_tmpfile
-(
+static
+void d_fs_tests_temp_tmpfile(
     dtest_suite* _suite
 )
 {
@@ -66,9 +65,8 @@ d_fs_tests_temp_tmpfile
  * XII.b  d_file_temp_stream_s
  *****************************************************************************/
 
-static void
-d_fs_tests_temp_tmpfile_s
-(
+static
+void d_fs_tests_temp_tmpfile_s(
     dtest_suite* _suite
 )
 {
@@ -100,9 +98,8 @@ d_fs_tests_temp_tmpfile_s
  * XII.c  d_file_temp_create
  *****************************************************************************/
 
-static void
-d_fs_tests_temp_mkstemp
-(
+static
+void d_fs_tests_temp_mkstemp(
     dtest_suite* _suite
 )
 {
@@ -170,9 +167,8 @@ d_fs_tests_temp_mkstemp
  * XII.d  d_file_temp_name
  *****************************************************************************/
 
-static void
-d_fs_tests_temp_tmpnam_s
-(
+static
+void d_fs_tests_temp_tmpnam_s(
     dtest_suite* _suite
 )
 {
@@ -211,9 +207,8 @@ d_fs_tests_temp_tmpnam_s
  * XII.e  d_dir_temp
  *****************************************************************************/
 
-static void
-d_fs_tests_temp_tempdir
-(
+static
+void d_fs_tests_temp_tempdir(
     dtest_suite* _suite
 )
 {
@@ -246,9 +241,7 @@ d_fs_tests_temp_tempdir
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_temp
-(
+void d_fs_tests_temp(
     dtest_suite* _suite
 )
 {

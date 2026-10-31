@@ -34,9 +34,8 @@ Parameter(s):
 Return:
   none.
 */
-D_STATIC_INLINE void
-d_internal_insertion_shift
-(
+D_STATIC_INLINE
+void d_internal_insertion_shift(
     void*  _base,
     size_t _position,
     size_t _index,
@@ -114,8 +113,8 @@ d_insertion_place
     size_t                          _lower,
     size_t                          _index,
     size_t                          _elem_size,
-    const struct d_sort_comparator* _comparator,
-    enum d_sort_order               _order
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
 )
 {
     size_t position;
@@ -187,8 +186,8 @@ d_insertion_pass
     size_t                          _begin,
     size_t                          _end,
     size_t                          _elem_size,
-    const struct d_sort_comparator* _comparator,
-    enum d_sort_order               _order
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
 )
 {
     size_t index;

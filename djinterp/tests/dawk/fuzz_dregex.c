@@ -12,7 +12,7 @@
 * is free to differ there and a difference would not be a finding.
 *
 *
-* path:      /tests/djinterp/c/dawk/fuzz_dregex.c
+* path:      /tests/dawk/fuzz_dregex.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
 *                                                          revised: 2026.09.19
@@ -360,8 +360,8 @@ main(
         regex_t   oracle;
         const int oracle_status = regcomp(&oracle, pattern, REG_EXTENDED);
 
-        enum d_regex_status status = D_REGEX_OK;
-        struct d_regex*     regex  = d_regex_compile(pattern, &status);
+        enum dj_regex_status status = D_REGEX_OK;
+        struct dj_regex*     regex  = d_regex_compile(pattern, &status);
 
         // both must accept the pattern before the results can be compared
         if ((oracle_status != 0) || (!regex))
@@ -391,13 +391,13 @@ main(
         const bool oracle_found =
             (regexec(&oracle, subject, slots, oracle_groups, 0) == 0);
 
-        struct d_regex_match groups[D_REGEX_GROUP_MAX + 1];
+        struct dj_regex_match groups[D_REGEX_GROUP_MAX + 1];
         bool found = false;
 
         // FASTONLY builds compare only the overall extent, which is what the
         // interpreter uses everywhere except gensub
 #ifdef FASTONLY
-        struct d_regex_match overall = { 0, 0 };
+        struct dj_regex_match overall = { 0, 0 };
 
         found = d_regex_search(regex, subject, subject_length, 0, &overall);
         groups[0].start  = found ? overall.start : D_REGEX_NO_MATCH;
@@ -405,7 +405,7 @@ main(
 
         const size_t compare_slots = 1u;
 #else
-        const enum d_regex_status pass = d_regex_search_groups(regex,
+        const enum dj_regex_status pass = d_regex_search_groups(regex,
                                                                subject,
                                                                subject_length,
                                                                0,

@@ -18,13 +18,10 @@
 d_tests_file_tmpfile
   Tests d_file_temp_stream / d_file_temp_stream_s.
 */
-static struct d_test_object*
-d_tests_file_tmpfile
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_tmpfile(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     FILE*                 tmp;
     FILE*                 stream;
     size_t                idx;
@@ -67,14 +64,11 @@ d_tests_file_tmpfile
 d_tests_file_mkstemp
   Tests d_file_temp_create -- the only SAFE named form.
 */
-static struct d_test_object*
-d_tests_file_mkstemp
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_mkstemp(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
-    struct d_stat_t       st;
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_stat_t       st;
     char                  tpl[D_TEST_FILE_PATH_BUF];
     char                  original[D_TEST_FILE_PATH_BUF];
     char                  bad[D_TEST_FILE_PATH_BUF];
@@ -127,13 +121,10 @@ d_tests_file_mkstemp
 d_tests_file_tempdir
   Tests d_dir_temp, and d_file_temp_name where the build still has it.
 */
-static struct d_test_object*
-d_tests_file_tempdir
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_tempdir(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  buf[D_FILE_PATH_MAX];
     size_t                length;
     size_t                idx;
@@ -183,13 +174,9 @@ d_tests_file_tempdir
 d_tests_file_temp_all
   Runs every file_temp test.
 */
-struct d_test_object*
-d_tests_file_temp_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_temp_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

@@ -33,61 +33,107 @@
 // djinterp
 #include "../../../../../inc/djinterp/c/container/array/byte_array.h"
 #include "../../../../../inc/djinterp/c/string_fn.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * I. BYTE EXTRACTION MACRO TESTS
  *****************************************************************************/
-bool d_tests_sa_byte_array_byte_0_of_1(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_bytes_of_2(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_bytes_of_4(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_bytes_of_8(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_byte_0_of_1(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_bytes_of_2(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_bytes_of_4(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_bytes_of_8(
+    struct dj_test_counter* _counter
+);
 
 // I.   aggregation function
-bool d_tests_sa_byte_array_extraction_all(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_extraction_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * II. BYTE EXPANSION MACRO TESTS
  *****************************************************************************/
-bool d_tests_sa_byte_array_bytes_1(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_bytes_2(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_bytes_4(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_bytes_8(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_bytes_n(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_bytes_1(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_bytes_2(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_bytes_4(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_bytes_8(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_bytes_n(
+    struct dj_test_counter* _counter
+);
 
 // II.  aggregation function
-bool d_tests_sa_byte_array_expansion_all(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_expansion_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * III. 1D ARRAY BUILDER TESTS
  *****************************************************************************/
-bool d_tests_sa_byte_array_default(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_init(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_1_x(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_2_x(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_4_x(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_default(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_init(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_1_x(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_2_x(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_4_x(
+    struct dj_test_counter* _counter
+);
 #if !defined(_MSC_VER)
-bool d_tests_sa_byte_array_8_x(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_8_x(
+    struct dj_test_counter* _counter
+);
 #endif
-bool d_tests_sa_byte_array_custom(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_custom(
+    struct dj_test_counter* _counter
+);
 
 // III. aggregation function
-bool d_tests_sa_byte_array_1d_all(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_1d_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IV. 2D ARRAY BUILDER TESTS (GCC/Clang only)
  *****************************************************************************/
 #if !defined(_MSC_VER)
-bool d_tests_sa_byte_array_2d_basic(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_2d_layout(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_2d_ex(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_2d_basic(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_2d_layout(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_2d_ex(
+    struct dj_test_counter* _counter
+);
 
 // IV.  aggregation function
-bool d_tests_sa_byte_array_2d_all(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_2d_all(
+    struct dj_test_counter* _counter
+);
 #endif
 
 
@@ -95,19 +141,29 @@ bool d_tests_sa_byte_array_2d_all(struct d_test_counter* _counter);
  * V. JAGGED ARRAY BUILDER TESTS (GCC/Clang only)
  *****************************************************************************/
 #if !defined(_MSC_VER)
-bool d_tests_sa_byte_array_jagged_basic(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_jagged_layout(struct d_test_counter* _counter);
-bool d_tests_sa_byte_array_jagged_ex(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_jagged_basic(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_jagged_layout(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_byte_array_jagged_ex(
+    struct dj_test_counter* _counter
+);
 
 // V.   aggregation function
-bool d_tests_sa_byte_array_jagged_all(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_jagged_all(
+    struct dj_test_counter* _counter
+);
 #endif
 
 
 /******************************************************************************
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
-bool d_tests_sa_byte_array_run_all(struct d_test_counter* _counter);
+bool d_tests_sa_byte_array_run_all(
+    struct dj_test_counter* _counter
+);
 
 
 #endif  // DJINTERP_TESTS_BYTE_ARRAY_SA_

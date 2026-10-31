@@ -7,10 +7,8 @@ d_tests_sa_datomic_thread_fence
   Tests the following:
   - thread fences do not crash for any memory order
 */
-bool
-d_tests_sa_datomic_thread_fence
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_thread_fence(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -39,10 +37,8 @@ d_tests_sa_datomic_signal_fence
   Tests the following:
   - signal fences do not crash for any memory order
 */
-bool
-d_tests_sa_datomic_signal_fence
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_signal_fence(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -74,10 +70,8 @@ d_tests_sa_datomic_is_lock_free
   - is_lock_free_4 returns a valid boolean
   - is_lock_free_8 returns a valid boolean
 */
-bool
-d_tests_sa_datomic_is_lock_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_is_lock_free(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -127,10 +121,8 @@ d_tests_sa_datomic_fence_all
   Tests the following:
   - thread fences, signal fences, lock-free queries
 */
-bool
-d_tests_sa_datomic_fence_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fence_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

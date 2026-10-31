@@ -1,0 +1,207 @@
+﻿D:\sam\code\projects\frameworks\uxoxo\uxoxo-project\inc\uxoxo\
+├── 📁 core
+│   ├── 📁 registry
+│   │   ├── 📄 component_descriptor.hpp
+│   │   ├── 📄 component_registry.hpp
+│   │   ├── 📄 component_registry_concepts.hpp
+│   │   └── 📄 component_registry_traits.hpp
+│   ├── 📁 tree
+│   │   ├── 📄 arena_uxoxo_tree.hpp
+│   │   ├── 📄 arena_uxoxo_tree_concepts.hpp
+│   │   ├── 📄 arena_uxoxo_tree_traits.hpp
+│   │   ├── 📄 pmr_ui_payload.hpp
+│   │   ├── 📄 pool_pmr.hpp
+│   │   ├── 📄 tag_intern_pool.hpp
+│   │   ├── 📄 uxoxo_tree.hpp
+│   │   ├── 📄 uxoxo_tree_concepts.hpp
+│   │   └── 📄 uxoxo_tree_traits.hpp
+│   └── 📁 wysiwyg
+│       └── 📄 wysiwyg_editor.hpp
+├── 📁 platform
+│   ├── 📁 glfw
+│   │   ├── 📄 glfw_app_window.hpp
+│   │   └── 📄 glfw_ui_tree.hpp
+│   ├── 📁 imgui
+│   │   ├── 📁 checkbox
+│   │   │   └── 📄 imgui_checkbox.hpp
+│   │   ├── 📁 combo
+│   │   │   └── 📄 combo_box_imgui.hpp
+│   │   ├── 📁 container
+│   │   │   ├── 📁 frame
+│   │   │   │   └── 📄 imgui_frame_draw.hpp
+│   │   │   ├── 📁 split
+│   │   │   │   └── 📄 imgui_split_view_draw.hpp
+│   │   │   ├── 📁 stacked
+│   │   │   │   └── 📄 imgui_stacked_view_draw.hpp
+│   │   │   ├── 📁 tab
+│   │   │   │   └── 📄 imgui_tab_control_draw.hpp
+│   │   │   └── 📄 imgui_collapsible_panel.hpp
+│   │   ├── 📁 database
+│   │   │   ├── 📁 mariadb
+│   │   │   │   ├── 📄 imgui_mariadb_table_draw.hpp
+│   │   │   │   └── 📄 mariadb_login_imgui.hpp
+│   │   │   ├── 📁 mysql
+│   │   │   │   ├── 📄 imgui_mysql_table_draw.hpp
+│   │   │   │   └── 📄 mysql_login_imgui.hpp
+│   │   │   ├── 📄 database_login_imgui.hpp
+│   │   │   └── 📄 imgui_database_table_draw.hpp
+│   │   ├── 📁 input
+│   │   │   ├── 📁 console
+│   │   │   │   └── 📄 imgui_dev_console_draw.hpp
+│   │   │   └── 📁 prompt
+│   │   │       └── 📄 message_box_imgui.hpp
+│   │   ├── 📁 label
+│   │   │   └── 📄 imgui_label.hpp
+│   │   ├── 📁 magnify
+│   │   │   └── 📄 magnification_control_imgui.hpp
+│   │   ├── 📁 menu
+│   │   │   └── 📄 imgui_menu_bar_draw.hpp
+│   │   ├── 📁 popover
+│   │   │   └── 📄 popover_imgui.hpp
+│   │   ├── 📁 style
+│   │   │   └── 📄 imgui_style.hpp
+│   │   ├── 📁 table
+│   │   │   └── 📄 imgui_table_draw.hpp
+│   │   ├── 📁 toolbar
+│   │   │   └── 📄 imgui_toolbar_draw.hpp
+│   │   ├── 📁 tree
+│   │   │   ├── 📄 imgui_tree_draw.hpp
+│   │   │   └── 📄 imgui_ui_tree.hpp
+│   │   ├── 📁 wysiwyg
+│   │   │   └── 📄 imgui_wysiwyg.hpp
+│   │   └── 📄 imgui_renderer.hpp
+├── 📁 templates
+│   ├── 📁 adapter
+│   │   ├── 📄 component_binding.hpp
+│   │   ├── 📄 component_binding_group.hpp
+│   │   ├── 📄 gradient_binding.hpp
+│   │   ├── 📄 palette_binding.hpp
+│   │   ├── 📄 slider_binding.hpp
+│   │   └── 📄 suggest_adapter.hpp
+│   ├── 📁 component
+│   │   ├── 📁 button
+│   │   │   └── 📄 button.hpp
+│   │   ├── 📁 checkbox
+│   │   │   └── 📄 checkbox.hpp
+│   │   ├── 📁 color
+│   │   │   ├── 📄 color_fill.hpp
+│   │   │   ├── 📄 color_palette_selector.hpp
+│   │   │   ├── 📄 color_sample.hpp
+│   │   │   ├── 📄 color_slider.hpp
+│   │   │   └── 📄 gradient_selector.hpp
+│   │   ├── 📁 combo
+│   │   │   └── 📄 combo_box.hpp
+│   │   ├── 📁 container
+│   │   │   ├── 📁 frame
+│   │   │   │   └── 📄 frame.hpp
+│   │   │   ├── 📁 split
+│   │   │   │   └── 📄 split_view.hpp
+│   │   │   ├── 📁 stacked
+│   │   │   │   └── 📄 stacked_view.hpp
+│   │   │   ├── 📁 tab
+│   │   │   │   └── 📄 tab_control.hpp
+│   │   │   ├── 📄 collapsible_panel.hpp
+│   │   │   └── 📄 drop_container.hpp
+│   │   ├── 📁 database
+│   │   │   ├── 📁 mariadb
+│   │   │   │   ├── 📄 mariadb_login.hpp
+│   │   │   │   └── 📄 mariadb_table_view.hpp
+│   │   │   ├── 📁 mysql
+│   │   │   │   ├── 📄 mysql_login.hpp
+│   │   │   │   └── 📄 mysql_table_view.hpp
+│   │   │   ├── 📁 oracle
+│   │   │   │   └── 📄 oracle_login_form.hpp
+│   │   │   ├── 📁 postgres
+│   │   │   │   └── 📄 postgres_login_form.hpp
+│   │   │   ├── 📁 sqlite
+│   │   │   │   ├── 📄 sqlite_login_form.hpp
+│   │   │   │   └── 📄 sqlite_table_view.hpp
+│   │   │   ├── 📄 database_login.hpp
+│   │   │   ├── 📄 database_login_presets.hpp
+│   │   │   └── 📄 database_table_view.hpp
+│   │   ├── 📁 dialog
+│   │   │   ├── 📁 color
+│   │   │   │   └── 📄 color_picker.hpp
+│   │   │   ├── 📁 file
+│   │   │   │   ├── 📄 file_dialog.hpp
+│   │   │   │   └── 📄 file_open_save_dialog.hpp
+│   │   │   ├── 📁 font
+│   │   │   │   └── 📄 font_dialog.hpp
+│   │   │   └── 📄 dialog.hpp
+│   │   ├── 📁 history
+│   │   │   ├── 📄 history.hpp
+│   │   │   ├── 📄 history_concepts.hpp
+│   │   │   ├── 📄 history_traits.hpp
+│   │   │   └── 📄 history_view.hpp
+│   │   ├── 📁 input
+│   │   │   ├── 📁 console
+│   │   │   │   └── 📄 dev_console.hpp
+│   │   │   ├── 📁 prompt
+│   │   │   │   ├── 📄 login_form.hpp
+│   │   │   │   └── 📄 message_box.hpp
+│   │   │   ├── 📄 input_control.hpp
+│   │   │   └── 📄 text_input.hpp
+│   │   ├── 📁 label
+│   │   │   └── 📄 label.hpp
+│   │   ├── 📁 magnify
+│   │   │   └── 📄 magnification_control.hpp
+│   │   ├── 📁 menu
+│   │   │   ├── 📄 menu.hpp
+│   │   │   ├── 📄 menu_bar.hpp
+│   │   │   ├── 📄 menu_concepts.hpp
+│   │   │   └── 📄 menu_traits.hpp
+│   │   ├── 📁 output
+│   │   │   ├── 📄 output_control.hpp
+│   │   │   └── 📄 text_output.hpp
+│   │   ├── 📁 popover
+│   │   │   └── 📄 popover.hpp
+│   │   ├── 📁 radio
+│   │   │   └── 📄 radio_group.hpp
+│   │   ├── 📁 style
+│   │   │   ├── 📄 style.hpp
+│   │   │   ├── 📄 style_concepts.hpp
+│   │   │   └── 📄 style_traits.hpp
+│   │   ├── 📁 switch
+│   │   │   └── 📄 toggleable_common.hpp
+│   │   ├── 📁 tab
+│   │   │   └── 📄 tab_control.hpp
+│   │   ├── 📁 table
+│   │   │   └── 📄 table_view.hpp
+│   │   ├── 📁 toggleable
+│   │   │   ├── 📁 checkbox
+│   │   │   │   └── 📄 checkbox.hpp
+│   │   │   └── 📄 toggleable_common.hpp
+│   │   ├── 📁 toolbar
+│   │   │   └── 📄 toolbar.hpp
+│   │   ├── 📁 tree
+│   │   │   ├── 📄 tree_node.hpp
+│   │   │   └── 📄 tree_view.hpp
+│   │   ├── 📁 window
+│   │   │   ├── 📄 app_window.hpp
+│   │   │   └── 📄 window_panel.hpp
+│   │   ├── 📄 autocomplete.hpp
+│   │   ├── 📄 autosuggest.hpp
+│   │   ├── 📄 bounded_range_common.hpp
+│   │   ├── 📄 component_common.hpp
+│   │   ├── 📄 component_concepts.hpp
+│   │   ├── 📄 component_mixin.hpp
+│   │   ├── 📄 component_traits.hpp
+│   │   ├── 📄 component_types.hpp
+│   │   ├── 📄 dom_tree_view.hpp
+│   │   ├── 📄 form_builder.hpp
+│   │   ├── 📄 list_view.hpp
+│   │   ├── 📄 template_component.hpp
+│   │   └── 📄 view_common.hpp
+│   ├── 📁 dom
+│   │   └── 📄 dom_tree_view.hpp
+│   ├── 📁 layout
+│   │   ├── 📁 connection
+│   │   │   ├── 📄 connection_manager_template.hpp
+│   │   │   └── 📄 database_connection_manager_template.hpp
+│   │   ├── 📄 layout_template.hpp
+│   │   └── 📄 layout_template_traits.hpp
+│   ├── 📄 render_context.hpp
+│   ├── 📄 renderer.hpp
+│   ├── 📄 ui_template.hpp
+│   └── 📄 ui_template_traits.hpp
+├── 📄 uxoxo.hpp

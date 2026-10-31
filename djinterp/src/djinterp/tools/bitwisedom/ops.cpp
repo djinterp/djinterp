@@ -33,8 +33,7 @@ namespace
 // collect_symbols
 //   the symbols a set of rows stands for: a symbol itself, a group every
 // symbol in it; each once, in the order first met.
-std::vector<int>
-collect_symbols(
+std::vector<int> collect_symbols(
     const sheet&            _sheet,
     const std::vector<int>& _targets
 )
@@ -78,8 +77,7 @@ collect_symbols(
 
 // operable
 //   whether an operation can act on a resolved row: a symbol with a value.
-bool
-operable(
+bool operable(
     const resolved_row* _row
 )
 {
@@ -91,8 +89,7 @@ operable(
 
 // hex
 //   a value as 0x-prefixed hexadecimal, for messages and expressions.
-std::string
-hex(
+std::string hex(
     const wide& _value
 )
 {
@@ -102,8 +99,7 @@ hex(
 // count_of
 //   an operand as a count, held to the width: a count past it -- or past
 // any integer -- is the width.
-int
-count_of(
+int count_of(
     const wide& _operand,
     int         _width
 )
@@ -120,8 +116,7 @@ count_of(
 
 // turn_of
 //   an operand as a rotation: its integer, round the width.
-int
-turn_of(
+int turn_of(
     const wide& _operand,
     int         _width
 )
@@ -133,8 +128,7 @@ turn_of(
 
 // span
 //   "bit n" or "bits a..b".
-std::string
-span(
+std::string span(
     int _lsb,
     int _width
 )
@@ -151,8 +145,7 @@ span(
 // wrapped
 //   an expression with the operation applied in C, or the empty string
 // for an operation C has no operator for.
-std::string
-wrapped(
+std::string wrapped(
     const std::string& _expr,
     op_kind            _op,
     const wide&        _operand
@@ -197,8 +190,7 @@ wrapped(
 
 // field_mask
 //   the bits a resolved field_value's field covers.
-wide
-field_mask(
+wide field_mask(
     const resolved_row& _row
 )
 {
@@ -208,8 +200,7 @@ field_mask(
 // describe_change
 //   in words, what applying the operation made of one definition: _before
 // is the row as it was, _after as the operation left it.
-std::string
-describe_change(
+std::string describe_change(
     const row&          _before,
     const row&          _after,
     const resolved_row& _resolved,
@@ -258,8 +249,7 @@ describe_change(
 
 // to_literal
 //   turns a symbol into a literal of the given bits.
-void
-to_literal(
+void to_literal(
     row&        _row,
     const wide& _bits
 )
@@ -274,8 +264,7 @@ to_literal(
 // rewrite
 //   applies the operation to one definition, keeping its kind where the
 // result still fits it.
-void
-rewrite(
+void rewrite(
     row&                _row,
     const resolved_row& _resolved,
     op_kind             _op,
@@ -365,8 +354,7 @@ rewrite(
 // count_usage
 //   how many of the sheet's allocations claim each bit, with some values
 // replaced; and which bits collide within an exclusive group.
-void
-count_usage(
+void count_usage(
     const sheet&             _sheet,
     const resolution&        _resolution,
     const std::vector<int>&  _ids,
@@ -447,8 +435,7 @@ count_usage(
 }  // anonymous namespace
 
 
-op_info
-describe(
+op_info describe(
     op_kind _op
 )
 {
@@ -490,8 +477,7 @@ apply_op
 C's unsigned arithmetic does masked to the width; the u64 form below is
 this one, so the two cannot disagree.
 */
-wide
-apply_op(
+wide apply_op(
     op_kind     _op,
     const wide& _value,
     const wide& _operand,
@@ -609,8 +595,7 @@ apply_op(
     return out;
 }
 
-u64
-apply_op(
+u64 apply_op(
     op_kind _op,
     u64     _value,
     u64     _operand,
@@ -622,8 +607,7 @@ apply_op(
     return apply_op(_op, wide(_value), wide(_operand), width).low();
 }
 
-std::vector<int>
-bit_flow(
+std::vector<int> bit_flow(
     op_kind _op,
     u64     _operand,
     int     _width
@@ -691,8 +675,7 @@ bit_flow(
     return flow;
 }
 
-op_preview
-preview_op(
+op_preview preview_op(
     const sheet&            _sheet,
     const resolution&       _resolution,
     const std::vector<int>& _targets,
@@ -818,8 +801,7 @@ the operation, if C has an operator for it and the wrapped form evaluates to
 that value; failing both, it becomes the literal. Either way every target
 ends with exactly the value its preview showed.
 */
-int
-apply_op_to(
+int apply_op_to(
     sheet&                  _sheet,
     const resolution&       _resolution,
     const std::vector<int>& _targets,

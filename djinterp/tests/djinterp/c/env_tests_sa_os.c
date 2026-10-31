@@ -14,7 +14,7 @@
 
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -29,10 +29,8 @@ d_tests_sa_env_os_flag_constants_apple
   - D_ENV_OS_FLAG_MACOS equals 0x01
   - D_ENV_OS_FLAG_IOS equals 0x90
 */
-bool
-d_tests_sa_env_os_flag_constants_apple
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_flag_constants_apple(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -102,10 +100,8 @@ d_tests_sa_env_os_flag_constants_unix
   - D_ENV_OS_FLAG_LINUX equals 0x11
   - D_ENV_OS_FLAG_SOLARIS equals 0x50
 */
-bool
-d_tests_sa_env_os_flag_constants_unix
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_flag_constants_unix(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -178,10 +174,8 @@ d_tests_sa_env_os_flag_constants_bsd
   - D_ENV_OS_FLAG_BSD_OS equals 0x44
   - all BSD flags are in block 0x4
 */
-bool
-d_tests_sa_env_os_flag_constants_bsd
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_flag_constants_bsd(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -280,10 +274,8 @@ d_tests_sa_env_os_flag_constants_windows
   - Windows Embedded/Mobile flags (0x80-0x81)
   - all Windows flags are in correct blocks
 */
-bool
-d_tests_sa_env_os_flag_constants_windows
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_flag_constants_windows(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -401,10 +393,8 @@ d_tests_sa_env_os_flag_constants_mobile
   - D_ENV_OS_FLAG_BADA equals 0xA1
   - D_ENV_OS_FLAG_TIZEN equals 0xB0
 */
-bool
-d_tests_sa_env_os_flag_constants_mobile
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_flag_constants_mobile(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -477,10 +467,8 @@ d_tests_sa_env_os_flag_constants_legacy
   - D_ENV_OS_FLAG_VMS equals 0xF7
   - D_ENV_OS_FLAG_UNKNOWN equals 0xFF
 */
-bool
-d_tests_sa_env_os_flag_constants_legacy
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_flag_constants_legacy(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -583,13 +571,11 @@ d_tests_sa_env_os_flag_constants_all
   - Mobile OS flags
   - Legacy OS flags
 */
-bool
-d_tests_sa_env_os_flag_constants_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_flag_constants_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool apple_result;
     bool unix_result;
     bool bsd_result;
@@ -603,7 +589,7 @@ d_tests_sa_env_os_flag_constants_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing OS Flag Constants\n");
     printf("----------------------------------------"
@@ -663,10 +649,8 @@ d_tests_sa_env_os_utility_constants
   - D_ENV_OS_FLAG_WIN_LAST is correct
   - range constants are consistent
 */
-bool
-d_tests_sa_env_os_utility_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -805,10 +789,8 @@ d_tests_sa_env_os_utility_macro_block
   - block detection works for all major OS categories
   - macro returns boolean values
 */
-bool
-d_tests_sa_env_os_utility_macro_block
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_macro_block(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -917,10 +899,8 @@ d_tests_sa_env_os_utility_macro_unix
   - macro correctly identifies Unix flags (block 0x1)
   - macro returns false for non-Unix OS flags
 */
-bool
-d_tests_sa_env_os_utility_macro_unix
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_macro_unix(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -998,10 +978,8 @@ d_tests_sa_env_os_utility_macro_mobile
   - macro correctly identifies mobile OS flags
   - macro returns false for non-mobile OS flags
 */
-bool
-d_tests_sa_env_os_utility_macro_mobile
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_macro_mobile(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1096,10 +1074,8 @@ d_tests_sa_env_os_utility_macro_windows
   - D_ENV_IS_OS_MSDOS correctly identifies MS-DOS
   - macros return false for non-Windows OS flags
 */
-bool
-d_tests_sa_env_os_utility_macro_windows
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_macro_windows(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1209,10 +1185,8 @@ d_tests_sa_env_os_utility_macro_discontinued
   - D_ENV_IS_OS_UNSUPPORTED correctly identifies unsupported OS flags
   - macros return false for modern/supported OS flags
 */
-bool
-d_tests_sa_env_os_utility_macro_discontinued
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_macro_discontinued(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1316,10 +1290,8 @@ d_tests_sa_env_os_utility_macro_posix
   - macOS and Android are POSIX-compliant
   - Windows is not POSIX-compliant
 */
-bool
-d_tests_sa_env_os_utility_macro_posix
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_macro_posix(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1436,13 +1408,11 @@ d_tests_sa_env_os_utility_macros_all
   - discontinued/unsupported macros
   - POSIX compliance macro
 */
-bool
-d_tests_sa_env_os_utility_macros_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_utility_macros_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool block_result;
     bool unix_result;
     bool mobile_result;
@@ -1456,7 +1426,7 @@ d_tests_sa_env_os_utility_macros_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing OS Utility Macros\n");
     printf("----------------------------------------"
@@ -1511,10 +1481,8 @@ d_tests_sa_env_os_detection_macros
   - D_ENV_OS_NAME is defined
   - D_ENV_OS_ID has a valid value
 */
-bool
-d_tests_sa_env_os_detection_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_detection_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1594,10 +1562,8 @@ d_tests_sa_env_os_platform_macros
   - exactly one D_ENV_PLATFORM_* macro is defined
   - platform macro matches OS detection
 */
-bool
-d_tests_sa_env_os_platform_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_platform_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1695,13 +1661,11 @@ d_tests_sa_env_os_all
   - OS detection
   - platform detection
 */
-bool
-d_tests_sa_env_os_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_os_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool flag_constants_result;
     bool utility_constants_result;
     bool utility_macros_result;
@@ -1714,7 +1678,7 @@ d_tests_sa_env_os_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing Operating System Detection\n");
     printf("========================================="

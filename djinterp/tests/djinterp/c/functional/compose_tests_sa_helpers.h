@@ -24,9 +24,8 @@
 // transform_double
 //   helper: doubles an integer value.
 // Returns false if _input or _output is NULL.
-static inline bool
-transform_double
-(
+static inline
+bool transform_double(
     const void* _input,
     void*       _output,
     void*       _context
@@ -54,9 +53,8 @@ transform_double
 // transform_add_10
 //   helper: adds 10 to an integer value.
 // Returns false if _input or _output is NULL.
-static inline bool
-transform_add_10
-(
+static inline
+bool transform_add_10(
     const void* _input,
     void*       _output,
     void*       _context
@@ -84,9 +82,8 @@ transform_add_10
 // transform_negate
 //   helper: negates an integer value.
 // Returns false if _input or _output is NULL.
-static inline bool
-transform_negate
-(
+static inline
+bool transform_negate(
     const void* _input,
     void*       _output,
     void*       _context
@@ -114,9 +111,8 @@ transform_negate
 // transform_multiply_by_context
 //   helper: multiplies an integer by the int value provided through
 // _context. Returns false if any pointer is NULL.
-static inline bool
-transform_multiply_by_context
-(
+static inline
+bool transform_multiply_by_context(
     const void* _input,
     void*       _output,
     void*       _context
@@ -145,9 +141,8 @@ transform_multiply_by_context
 // transform_add_context
 //   helper: adds the int value provided through _context to an integer.
 // Returns false if any pointer is NULL.
-static inline bool
-transform_add_context
-(
+static inline
+bool transform_add_context(
     const void* _input,
     void*       _output,
     void*       _context
@@ -175,9 +170,8 @@ transform_add_context
 
 // transform_always_fails
 //   helper: transformer that always returns false regardless of input.
-static inline bool
-transform_always_fails
-(
+static inline
+bool transform_always_fails(
     const void* _input,
     void*       _output,
     void*       _context
@@ -193,9 +187,8 @@ transform_always_fails
 // transform_identity
 //   helper: copies the input int directly to output (identity transform).
 // Returns false if _input or _output is NULL.
-static inline bool
-transform_identity
-(
+static inline
+bool transform_identity(
     const void* _input,
     void*       _output,
     void*       _context
@@ -223,9 +216,8 @@ transform_identity
 // transform_square
 //   helper: squares an integer value.
 // Returns false if _input or _output is NULL.
-static inline bool
-transform_square
-(
+static inline
+bool transform_square(
     const void* _input,
     void*       _output,
     void*       _context
@@ -266,9 +258,8 @@ struct consumer_context
 // consumer_accumulate
 //   helper: adds integer element value to the context's running sum and
 // increments the context's count. Does nothing if either pointer is NULL.
-static inline void
-consumer_accumulate
-(
+static inline
+void consumer_accumulate(
     void* _element,
     void* _context
 )
@@ -294,9 +285,8 @@ consumer_accumulate
 // consumer_double_in_place
 //   helper: doubles the integer element value in place. Does nothing if
 // _element is NULL.
-static inline void
-consumer_double_in_place
-(
+static inline
+void consumer_double_in_place(
     void* _element,
     void* _context
 )
@@ -319,9 +309,8 @@ consumer_double_in_place
 // consumer_add_context
 //   helper: adds the int value from _context to the element in place.
 // Does nothing if either pointer is NULL.
-static inline void
-consumer_add_context
-(
+static inline
+void consumer_add_context(
     void* _element,
     void* _context
 )
@@ -345,9 +334,8 @@ consumer_add_context
 
 // consumer_noop
 //   helper: no-op consumer that does nothing.
-static inline void
-consumer_noop
-(
+static inline
+void consumer_noop(
     void* _element,
     void* _context
 )

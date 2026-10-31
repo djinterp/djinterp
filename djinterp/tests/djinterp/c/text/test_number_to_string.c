@@ -11,7 +11,11 @@
 #include <stdio.h>
 // djinterp
 
-static void show(int64_t value, unsigned flags)
+static
+void show(
+    int64_t  value,
+    unsigned flags
+)
 {
     char buf[NTS_I64_BUFFER_SIZE];
 

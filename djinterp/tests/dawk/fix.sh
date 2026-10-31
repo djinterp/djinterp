@@ -19,7 +19,7 @@
 #
 #   sh tests/dawk/fix.sh [build/dcheck]
 DCHECK=${1:-build/dcheck}
-SHEETS="sheets/c_style.dss sheets/cpp_style.dss"
+SHEETS="res/sheets/c_style.dss res/sheets/cpp_style.dss"
 dir=tests/dawk/fix
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT

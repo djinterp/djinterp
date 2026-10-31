@@ -15,7 +15,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    d_color_hsl          (POD)
+I.    dj_color_hsl          (POD)
       --------------------------
 
 II.   d_color_hsl_make
@@ -46,9 +46,9 @@ IV.   d_color_hsl_clamp
 D_COLOR_NS_OPEN
 
 
-// d_color_hsl
+// dj_color_hsl
 //   POD: HSL color; h in [0, 360), s and l in [0, 1].
-struct d_color_hsl
+struct dj_color_hsl
 {
     float h;
     float s;
@@ -64,16 +64,16 @@ Parameter(s):
   _s: saturation in [0, 1].
   _l: lightness  in [0, 1].
 Return:
-  A d_color_hsl with the given channels.
+  A dj_color_hsl with the given channels.
 */
-D_COLOR_FN struct d_color_hsl
-d_color_hsl_make(
+D_COLOR_FN
+struct dj_color_hsl d_color_hsl_make(
     float _h,
     float _s,
     float _l
 )
 {
-    return D_COLOR_LITERAL(d_color_hsl, _h, _s, _l);
+    return D_COLOR_LITERAL(dj_color_hsl, _h, _s, _l);
 }
 
 /*
@@ -85,9 +85,9 @@ Parameter(s):
 Return:
   true if h in [0, 360) and s, l in [0, 1], false otherwise.
 */
-D_COLOR_FN bool
-d_color_hsl_is_valid(
-    struct d_color_hsl _hsl
+D_COLOR_FN
+bool d_color_hsl_is_valid(
+    struct dj_color_hsl _hsl
 )
 {
     return ( (_hsl.h >= 0.0f) && (_hsl.h < 360.0f) &&
@@ -102,11 +102,11 @@ d_color_hsl_clamp
 Parameter(s):
   _hsl: color to clamp.
 Return:
-  A canonicalized d_color_hsl.
+  A canonicalized dj_color_hsl.
 */
-D_COLOR_FN struct d_color_hsl
-d_color_hsl_clamp(
-    struct d_color_hsl _hsl
+D_COLOR_FN
+struct dj_color_hsl d_color_hsl_clamp(
+    struct dj_color_hsl _hsl
 )
 {
     float h = d_color_fmodf(_hsl.h, 360.0f);

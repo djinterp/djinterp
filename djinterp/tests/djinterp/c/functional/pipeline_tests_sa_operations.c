@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./pipeline_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -20,9 +20,8 @@
 test_helper_double_int
   Transformer: multiplies each int by 2.
 */
-static bool
-test_helper_double_int
-(
+static
+bool test_helper_double_int(
     const void* _input,
     void*       _output,
     void*       _context
@@ -40,9 +39,8 @@ test_helper_double_int
 test_helper_add_context_int
   Transformer: adds the int pointed to by _context to the input.
 */
-static bool
-test_helper_add_context_int
-(
+static
+bool test_helper_add_context_int(
     const void* _input,
     void*       _output,
     void*       _context
@@ -61,9 +59,8 @@ test_helper_add_context_int
 test_helper_fail_transformer
   Transformer: always fails (returns false).
 */
-static bool
-test_helper_fail_transformer
-(
+static
+bool test_helper_fail_transformer(
     const void* _input,
     void*       _output,
     void*       _context
@@ -81,9 +78,8 @@ test_helper_fail_transformer
 test_helper_fail_on_third
   Transformer: fails on the third invocation.
 */
-static bool
-test_helper_fail_on_third
-(
+static
+bool test_helper_fail_on_third(
     const void* _input,
     void*       _output,
     void*       _context
@@ -109,9 +105,8 @@ test_helper_fail_on_third
 test_helper_is_even
   Predicate: returns true if the int is even.
 */
-static bool
-test_helper_is_even
-(
+static
+bool test_helper_is_even(
     const void* _element,
     void*       _context
 )
@@ -126,9 +121,8 @@ test_helper_is_even
 test_helper_greater_than_context
   Predicate: returns true if the int is greater than *_context.
 */
-static bool
-test_helper_greater_than_context
-(
+static
+bool test_helper_greater_than_context(
     const void* _element,
     void*       _context
 )
@@ -145,9 +139,8 @@ test_helper_greater_than_context
 test_helper_always_true
   Predicate: always returns true.
 */
-static bool
-test_helper_always_true
-(
+static
+bool test_helper_always_true(
     const void* _element,
     void*       _context
 )
@@ -163,9 +156,8 @@ test_helper_always_true
 test_helper_always_false
   Predicate: always returns false.
 */
-static bool
-test_helper_always_false
-(
+static
+bool test_helper_always_false(
     const void* _element,
     void*       _context
 )
@@ -181,9 +173,8 @@ test_helper_always_false
 test_helper_sum_accumulator
   Accumulator: adds each int element to the int accumulator.
 */
-static bool
-test_helper_sum_accumulator
-(
+static
+bool test_helper_sum_accumulator(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -201,9 +192,8 @@ test_helper_sum_accumulator
 test_helper_fail_accumulator
   Accumulator: always fails.
 */
-static bool
-test_helper_fail_accumulator
-(
+static
+bool test_helper_fail_accumulator(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -221,9 +211,8 @@ test_helper_fail_accumulator
 test_helper_product_accumulator
   Accumulator: multiplies accumulator by each int element.
 */
-static bool
-test_helper_product_accumulator
-(
+static
+bool test_helper_product_accumulator(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -241,9 +230,8 @@ test_helper_product_accumulator
 test_helper_count_consumer
   Consumer: increments a counter pointed to by _context.
 */
-static void
-test_helper_count_consumer
-(
+static
+void test_helper_count_consumer(
     void* _element,
     void* _context
 )
@@ -260,9 +248,8 @@ test_helper_count_consumer
 test_helper_sum_consumer
   Consumer: adds each element to an int pointed to by _context.
 */
-static void
-test_helper_sum_consumer
-(
+static
+void test_helper_sum_consumer(
     void* _element,
     void* _context
 )
@@ -277,9 +264,8 @@ test_helper_sum_consumer
 test_helper_negate_consumer
   Consumer: negates each int in-place.
 */
-static void
-test_helper_negate_consumer
-(
+static
+void test_helper_negate_consumer(
     void* _element,
     void* _context
 )
@@ -305,14 +291,12 @@ d_tests_sa_pipeline_map
   - transformer failure mid-stream produces error and frees new buffer
   - mapping a begin_copy pipeline frees the old owned buffer
 */
-bool
-d_tests_sa_pipeline_map
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_map(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
-    struct d_functional_pipeline mapped;
+    struct dj_functional_pipeline pipe;
+    struct dj_functional_pipeline mapped;
     int                          data[] = { 1, 2, 3, 4, 5 };
     int*                         result;
     size_t                       count;
@@ -399,7 +383,7 @@ d_tests_sa_pipeline_map
 
     // ---- propagate prior error ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -433,8 +417,8 @@ d_tests_sa_pipeline_map
 
     // ---- map on owned data (begin_copy): old buffer freed ----
     {
-        struct d_functional_pipeline copy_pipe;
-        struct d_functional_pipeline mapped2;
+        struct dj_functional_pipeline copy_pipe;
+        struct dj_functional_pipeline mapped2;
         int                          src[] = { 7, 8, 9 };
 
         copy_pipe = d_functional_pipeline_begin_copy(src,
@@ -486,14 +470,12 @@ d_tests_sa_pipeline_filter
   - context parameter forwarded to predicate
   - filter on owned data frees old buffer
 */
-bool
-d_tests_sa_pipeline_filter
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_filter(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
-    struct d_functional_pipeline filtered;
+    struct dj_functional_pipeline pipe;
+    struct dj_functional_pipeline filtered;
     int                          data[] = { 1, 2, 3, 4, 5, 6 };
     int*                         result;
     bool                         all_passed;
@@ -605,7 +587,7 @@ d_tests_sa_pipeline_filter
 
     // ---- propagate prior error ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -626,7 +608,7 @@ d_tests_sa_pipeline_filter
 
     // ---- filter on owned data (begin_copy) ----
     {
-        struct d_functional_pipeline copy_pipe;
+        struct dj_functional_pipeline copy_pipe;
         int                          src[] = { 10, 15, 20, 25, 30 };
 
         copy_pipe = d_functional_pipeline_begin_copy(src,
@@ -673,14 +655,12 @@ d_tests_sa_pipeline_fold
   - accumulator failure mid-stream returns error
   - product fold works correctly
 */
-bool
-d_tests_sa_pipeline_fold
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_fold(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
-    struct d_functional_pipeline folded;
+    struct dj_functional_pipeline pipe;
+    struct dj_functional_pipeline folded;
     int                          data[] = { 1, 2, 3, 4, 5 };
     int                          sum;
     int                          product;
@@ -750,7 +730,7 @@ d_tests_sa_pipeline_fold
 
     // ---- fold frees owned data ----
     {
-        struct d_functional_pipeline copy_pipe;
+        struct dj_functional_pipeline copy_pipe;
         int                          src[] = { 10, 20, 30 };
         int                          total;
 
@@ -817,7 +797,7 @@ d_tests_sa_pipeline_fold
 
     // ---- propagate prior error ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -895,14 +875,12 @@ d_tests_sa_pipeline_for_each
   - NULL consumer returns error
   - propagates prior error
 */
-bool
-d_tests_sa_pipeline_for_each
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_for_each(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
-    struct d_functional_pipeline result;
+    struct dj_functional_pipeline pipe;
+    struct dj_functional_pipeline result;
     int                          data[] = { 1, 2, 3, 4, 5 };
     size_t                       visit_count;
     int                          running_sum;
@@ -991,7 +969,7 @@ d_tests_sa_pipeline_for_each
 
     // ---- propagate prior error ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -1048,14 +1026,12 @@ d_tests_sa_pipeline_take
   - data pointer unchanged (no reallocation)
   - propagates prior error
 */
-bool
-d_tests_sa_pipeline_take
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_take(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
-    struct d_functional_pipeline taken;
+    struct dj_functional_pipeline pipe;
+    struct dj_functional_pipeline taken;
     int                          data[] = { 10, 20, 30, 40, 50 };
     bool                         all_passed;
 
@@ -1131,7 +1107,7 @@ d_tests_sa_pipeline_take
 
     // ---- propagate prior error ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -1162,14 +1138,12 @@ d_tests_sa_pipeline_skip
   - data pointer moves forward by n * element_size
   - propagates prior error
 */
-bool
-d_tests_sa_pipeline_skip
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_skip(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
-    struct d_functional_pipeline skipped;
+    struct dj_functional_pipeline pipe;
+    struct dj_functional_pipeline skipped;
     int                          data[] = { 10, 20, 30, 40, 50 };
     bool                         all_passed;
 
@@ -1257,7 +1231,7 @@ d_tests_sa_pipeline_skip
 
     // ---- propagate prior error ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -1292,13 +1266,11 @@ d_tests_sa_pipeline_chaining
   - complex multi-stage chain: copy -> map -> filter -> fold
   - D_FUNCTIONAL_PIPELINE and D_FUNCTIONAL_PIPE macros work
 */
-bool
-d_tests_sa_pipeline_chaining
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_chaining(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
+    struct dj_functional_pipeline pipe;
     int                          data[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     int*                         result;
     size_t                       out_count;
@@ -1438,7 +1410,7 @@ d_tests_sa_pipeline_chaining
 
     // ---- D_FUNCTIONAL_PIPELINE macro ----
     {
-        struct d_functional_pipeline macro_pipe;
+        struct dj_functional_pipeline macro_pipe;
 
         macro_pipe = D_FUNCTIONAL_PIPELINE(data, 8, sizeof(int));
 
@@ -1487,10 +1459,8 @@ d_tests_sa_pipeline_operations_all
   - d_functional_pipeline_skip
   - chaining multiple operations
 */
-bool
-d_tests_sa_pipeline_operations_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_operations_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

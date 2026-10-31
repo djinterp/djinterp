@@ -19,7 +19,7 @@
 
 // djinterp
 #include "./array_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -43,9 +43,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed.
 */
-bool
-d_test_init_from_args_wrapper
-(
+bool d_test_init_from_args_wrapper(
     void**  _elements,
     size_t* _count,
     size_t  _element_size,
@@ -81,9 +79,7 @@ Return:
   - zero if *_a == *_b
   - positive value if *_a > *_b
 */
-int
-d_test_int_comparator
-(
+int d_test_int_comparator(
     const void* _a,
     const void* _b
 )
@@ -119,9 +115,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_test_free_int_ptr
-(
+void d_test_free_int_ptr(
     void* _ptr
 )
 {
@@ -147,9 +141,7 @@ Return:
   - true, if all elements match, or
   - false, if any element differs or parameters are invalid.
 */
-bool
-d_test_verify_array_contents
-(
+bool d_test_verify_array_contents(
     const int* _array,
     size_t     _count,
     const int* _expected
@@ -191,9 +183,7 @@ Return:
   - true, if array is correctly reversed, or
   - false, if reversal is incorrect or parameters are invalid.
 */
-bool
-d_test_verify_array_reversed
-(
+bool d_test_verify_array_reversed(
     const int* _array,
     size_t     _count,
     const int* _original
@@ -238,14 +228,12 @@ Return:
   - true, if all tests passed, or
   - false, if any test failed.
 */
-bool
-d_tests_sa_array_common_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool                   overall_result;
-    struct d_test_counter  local_counter;
+    struct dj_test_counter  local_counter;
 
     // validate parameters
     if (!_test_info)
@@ -333,14 +321,12 @@ Return:
   - true, if all tests passed, or
   - false, if any test failed.
 */
-bool
-d_tests_sa_array_common_all_extended
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_all_extended(
+    struct dj_test_counter* _test_info
 )
 {
     bool                  overall_result;
-    struct d_test_counter local_counter;
+    struct dj_test_counter local_counter;
 
     // validate parameters
     if (!_test_info)
@@ -379,7 +365,7 @@ d_tests_sa_array_common_all_extended
     printf("%s- 14 manipulation functions\n",             D_INDENT);
     printf("%s- 2 cleanup functions\n",                   D_INDENT);
     printf("Enhanced features tested:\n");
-    printf("%s- d_index support with negative indexing\n", D_INDENT);
+    printf("%s- dj_index support with negative indexing\n", D_INDENT);
     printf("%s- Proper validation via d_index_is_valid\n", D_INDENT);
     printf("%s- Safe conversion via d_index_convert_safe\n", D_INDENT);
     printf("%s- Boundary condition handling\n",            D_INDENT);
@@ -420,10 +406,9 @@ Return:
   - true, if all tests passed, or
   - false, if any test failed.
 */
-D_INLINE bool
-d_tests_sa_array_common_run_all
-(
-    struct d_test_counter* _test_info
+D_INLINE
+bool d_tests_sa_array_common_run_all(
+    struct dj_test_counter* _test_info
 )
 {
     return d_tests_sa_array_common_all(_test_info);

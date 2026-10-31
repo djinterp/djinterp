@@ -41,10 +41,9 @@
 d_mariadb_has_database
   The _s form, with every failure read as "no".
 */
-bool
-d_mariadb_has_database(
-    struct d_mariadb* _db,
-    const char*       _name
+bool d_mariadb_has_database(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     bool exists = false;
@@ -57,14 +56,13 @@ d_mariadb_has_database(
 d_mariadb_has_database_s
   A row of SCHEMATA, which lists the databases the user can see.
 */
-int
-d_mariadb_has_database_s(
-    struct d_mariadb* _db,
-    const char*       _name,
-    bool*             _exists
+int d_mariadb_has_database_s(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    bool*              _exists
 )
 {
-    const struct d_internal_mariadb_path path = { NULL, NULL, _name };
+    const struct dj_internal_mariadb_path path = { NULL, NULL, _name };
 
     return d_internal_mariadb_has(_db,
                                   D_INTERNAL_MARIADB_DATABASE,
@@ -79,11 +77,10 @@ d_mariadb_create_database
   The layer's character set, unless the build left it to the server, is the
 new database's default, which its tables then inherit.
 */
-int
-d_mariadb_create_database(
-    struct d_mariadb* _db,
-    const char*       _name,
-    unsigned          _flags
+int d_mariadb_create_database(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    unsigned           _flags
 )
 {
     // parameter validation
@@ -118,11 +115,10 @@ d_mariadb_create_database(
 d_mariadb_drop_database
   The servers' own DROP DATABASE [IF EXISTS].
 */
-int
-d_mariadb_drop_database(
-    struct d_mariadb* _db,
-    const char*       _name,
-    unsigned          _flags
+int d_mariadb_drop_database(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    unsigned           _flags
 )
 {
     // parameter validation
@@ -148,13 +144,12 @@ d_mariadb_drop_database(
 d_mariadb_list_databases
   Every row of SCHEMATA, in byte order.
 */
-int
-d_mariadb_list_databases(
-    struct d_mariadb*      _db,
-    struct d_db_name_list* _names
+int d_mariadb_list_databases(
+    struct dj_mariadb*      _db,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_mariadb_path path = { NULL, NULL, NULL };
+    const struct dj_internal_mariadb_path path = { NULL, NULL, NULL };
 
     return d_internal_mariadb_list(_db,
                                    D_INTERNAL_MARIADB_DATABASE,
@@ -174,10 +169,9 @@ d_mariadb_use_database
 connection was; the server's reply reports the change, where the client
 reads it (D_INTERNAL_MARIADB_READS_SIMPLE_OK).
 */
-int
-d_mariadb_use_database(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_use_database(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     // parameter validation
@@ -212,10 +206,9 @@ d_mariadb_current_database
   DATABASE() is NULL when no database is current, which is D_DB_NOT_FOUND
 here.
 */
-int
-d_mariadb_current_database(
-    struct d_mariadb* _db,
-    char**            _name
+int d_mariadb_current_database(
+    struct dj_mariadb* _db,
+    char**             _name
 )
 {
     char* name = NULL;
@@ -260,10 +253,9 @@ d_mariadb_current_database(
 d_mariadb_has_database
   Without a client, false.
 */
-bool
-d_mariadb_has_database(
-    struct d_mariadb* _db,
-    const char*       _name
+bool d_mariadb_has_database(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     (void)_db;
@@ -277,11 +269,10 @@ d_mariadb_has_database_s
   Without a client there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_mariadb_has_database_s(
-    struct d_mariadb* _db,
-    const char*       _name,
-    bool*             _exists
+int d_mariadb_has_database_s(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    bool*              _exists
 )
 {
     (void)_db;
@@ -300,11 +291,10 @@ d_mariadb_has_database_s(
 d_mariadb_create_database
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_create_database(
-    struct d_mariadb* _db,
-    const char*       _name,
-    unsigned          _flags
+int d_mariadb_create_database(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -318,11 +308,10 @@ d_mariadb_create_database(
 d_mariadb_drop_database
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_drop_database(
-    struct d_mariadb* _db,
-    const char*       _name,
-    unsigned          _flags
+int d_mariadb_drop_database(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -336,10 +325,9 @@ d_mariadb_drop_database(
 d_mariadb_list_databases
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_list_databases(
-    struct d_mariadb*      _db,
-    struct d_db_name_list* _names
+int d_mariadb_list_databases(
+    struct dj_mariadb*      _db,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -352,10 +340,9 @@ d_mariadb_list_databases(
 d_mariadb_use_database
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_use_database(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_use_database(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     (void)_db;
@@ -368,10 +355,9 @@ d_mariadb_use_database(
 d_mariadb_current_database
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_current_database(
-    struct d_mariadb* _db,
-    char**            _name
+int d_mariadb_current_database(
+    struct dj_mariadb* _db,
+    char**             _name
 )
 {
     (void)_db;

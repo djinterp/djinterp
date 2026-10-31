@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,10 +25,8 @@ Return:
   - true, if all tests in all sections passed, or
   - false, if any test in any section failed, or _counter was NULL.
 */
-bool
-d_tests_sa_functional_common_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_common_all(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;

@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 4.  NEGATIVE INDEXING
     -----------------
     1.  Index type
-         1.  d_index
+         1.  dj_index
     2.  Conversion and validation
          1.  d_index_convert_fast / d_index_convert_safe
          2.  d_index_is_valid
@@ -99,8 +99,8 @@ TABLE OF CONTENTS
          3.  D_ARR_IDX
 */
 
-#ifndef DJINTERP_C_DJINTERP_H
-#define DJINTERP_C_DJINTERP_H 1
+#ifndef DJINTERP
+#define DJINTERP 1
 
 // std
 #include <limits.h>                    // LONG_MAX, LLONG_MAX, SSIZE_MAX
@@ -439,7 +439,7 @@ TABLE OF CONTENTS
         #else
             #define D_STATIC_ASSERT(cond, msg)                                \
                 D_MAYBE_UNUSED extern char                                    \
-                    d_internal_static_assertion_failed[(cond)                 \
+                    dj_internal_static_assertion_failed[(cond)                 \
                                                            ? 1                \
                                                            : -1]
         #endif
@@ -803,13 +803,13 @@ typedef size_t (*fn_write)(char* const _buffer,
 // 4.1    Index type
 //------------------------------------------------------------------------------
 // 4.1.1
-// d_index
+// dj_index
 //   type: a type corresponding to a vector index that may be negative (in
 // addition to the traditional positive or zero vector indices).
-//   A negative `d_index` counts from the last element back toward 0, rather
+//   A negative `dj_index` counts from the last element back toward 0, rather
 // than forward as a positive index does. An index of -1 is the last element;
 // an index of -n, for a count of n, is element 0.
-typedef ssize_t d_index;
+typedef ssize_t dj_index;
 
 // 4.2    Conversion and validation
 //------------------------------------------------------------------------------
@@ -826,8 +826,10 @@ D_EXTERN_C_BEGIN
  * @return the zero-based offset that `_index` addresses; not meaningful when
  *         the precondition does not hold.
  */
-size_t d_index_convert_fast(d_index _index,
-                            size_t  _count);
+size_t d_index_convert_fast(
+    dj_index _index,
+    size_t   _count
+);
 /**
  * @brief Converts a signed index to a zero-based offset after validating it.
  *
@@ -838,9 +840,11 @@ size_t d_index_convert_fast(d_index _index,
  * @return `true` on success; `false` if `_destination` is `NULL` or `_index`
  *         is not valid for `_count`.
  */
-bool   d_index_convert_safe(d_index _index,
-                            size_t  _count,
-                            size_t* _destination);
+bool d_index_convert_safe(
+    dj_index _index,
+    size_t   _count,
+    size_t*  _destination
+);
 
 // 4.2.2
 // d_index_is_valid
@@ -856,8 +860,10 @@ bool   d_index_convert_safe(d_index _index,
  * @param[in] _count  the number of elements available.
  * @return `true` if `_index` addresses an element; `false` otherwise.
  */
-bool   d_index_is_valid(d_index _index,
-                        size_t  _count);
+bool d_index_is_valid(
+    dj_index _index,
+    size_t   _count
+);
 
 D_EXTERN_C_END
 
@@ -916,7 +922,7 @@ D_EXTERN_C_END
 // so the most negative index gets an answer, not undefined behavior
 // (decision 21 of the register).
 #define D_IS_VALID_INDEX(_index, _count)                                      \
-    d_index_is_valid((d_index)(_index),                                       \
+    d_index_is_valid((dj_index)(_index),                                       \
                      (size_t)(_count))
 
 // 5.2.4
@@ -924,7 +930,7 @@ D_EXTERN_C_END
 //   macro: the same test as D_IS_VALID_INDEX: d_index_is_valid's range, -
 // `_count` to `_count` - 1, is the symmetric negative-index range this named.
 #define D_IS_VALID_INDEX_N(_index, _count)                                    \
-    d_index_is_valid((d_index)(_index),                                       \
+    d_index_is_valid((dj_index)(_index),                                       \
                      (size_t)(_count))
 
 // 5.3    Negative-index access macros
@@ -968,4 +974,4 @@ D_EXTERN_C_END
         : (_index)] )
 
 
-#endif  // DJINTERP_C_DJINTERP_H
+#endif  // DJINTERP

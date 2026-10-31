@@ -50,7 +50,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../djinterp.h"     // framework root
-#include "../db_common.h"       // d_db_name_list, D_DB_IF_*
+#include "../db_common.h"       // dj_db_name_list, D_DB_IF_*
 #include "./postgres_common.h"  // pg_conn, the layer's results
 
 
@@ -67,11 +67,15 @@ D_EXTERN_C_BEGIN
 // existence -- whether the server has a database of that name. The plain form
 // answers false for a failure or a bad argument; the _s form returns 0 and
 // writes the answer, or the failure, the answer then false.
-bool         d_postgres_has_database(struct pg_conn* _db,
-                                     const char*     _name) D_NOTHROW;
-int          d_postgres_has_database_s(struct pg_conn* _db,
-                                       const char*     _name,
-                                       bool*           _exists) D_NOTHROW;
+bool d_postgres_has_database(
+    struct pg_conn* _db,
+    const char*     _name
+) D_NOTHROW;
+int d_postgres_has_database_s(
+    struct pg_conn* _db,
+    const char*     _name,
+    bool*           _exists
+) D_NOTHROW;
 
 // 1.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -88,9 +92,11 @@ int          d_postgres_has_database_s(struct pg_conn* _db,
  *         privilege; 25001, inside a transaction); or D_DB_INVALID_ARGUMENT
  *         for a `NULL` argument, an empty name or another flag.
  */
-int          d_postgres_create_database(struct pg_conn* _db,
-                                        const char*     _name,
-                                        unsigned        _flags) D_NOTHROW;
+int d_postgres_create_database(
+    struct pg_conn* _db,
+    const char*     _name,
+    unsigned        _flags
+) D_NOTHROW;
 /**
  * @brief Drops a database and everything in it.
  *
@@ -104,9 +110,11 @@ int          d_postgres_create_database(struct pg_conn* _db,
  *         before PostgreSQL 13; or D_DB_INVALID_ARGUMENT for a `NULL`
  *         argument, an empty name or another flag.
  */
-int          d_postgres_drop_database(struct pg_conn* _db,
-                                      const char*     _name,
-                                      unsigned        _flags) D_NOTHROW;
+int d_postgres_drop_database(
+    struct pg_conn* _db,
+    const char*     _name,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 1.3    Listing
 //------------------------------------------------------------------------------
@@ -121,15 +129,19 @@ int          d_postgres_drop_database(struct pg_conn* _db,
  *         built, or D_DB_INVALID_ARGUMENT for a `NULL` argument.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int          d_postgres_list_databases(struct pg_conn*        _db,
-                                       struct d_db_name_list* _names) D_NOTHROW;
+int d_postgres_list_databases(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 // 1.4    The current database
 //------------------------------------------------------------------------------
 // the current database -- the one the connection was made to, libpq's copy
 // of its name, valid while the connection is; NULL for NULL. It cannot
 // change: connect again to work in another.
-const char*  d_postgres_current_database(const struct pg_conn* _db) D_NOTHROW;
+const char* d_postgres_current_database(
+    const struct pg_conn* _db
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -142,11 +154,15 @@ const char*  d_postgres_current_database(const struct pg_conn* _db) D_NOTHROW;
 // existence -- whether the database has a schema of that name, the system's
 // own included; "pg_temp" asks whether the session has a temporary schema
 // yet. As for databases, the _s form reports a failure.
-bool         d_postgres_has_schema(struct pg_conn* _db,
-                                   const char*     _name) D_NOTHROW;
-int          d_postgres_has_schema_s(struct pg_conn* _db,
-                                     const char*     _name,
-                                     bool*           _exists) D_NOTHROW;
+bool d_postgres_has_schema(
+    struct pg_conn* _db,
+    const char*     _name
+) D_NOTHROW;
+int d_postgres_has_schema_s(
+    struct pg_conn* _db,
+    const char*     _name,
+    bool*           _exists
+) D_NOTHROW;
 
 // 2.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -154,16 +170,20 @@ int          d_postgres_has_schema_s(struct pg_conn* _db,
 // success. 0, the SQLSTATE of a failure (42P06, it exists; 42939, a name
 // beginning pg_, which is the system's), or D_DB_INVALID_ARGUMENT for a NULL
 // argument, an empty name or another flag.
-int          d_postgres_create_schema(struct pg_conn* _db,
-                                      const char*     _name,
-                                      unsigned        _flags) D_NOTHROW;
+int d_postgres_create_schema(
+    struct pg_conn* _db,
+    const char*     _name,
+    unsigned        _flags
+) D_NOTHROW;
 // dropping -- DROP SCHEMA; D_DB_IF_EXISTS makes a missing one a success, and
 // D_POSTGRES_CASCADE drops what it holds with it, where without it a schema
 // that holds anything is refused (2BP01). 0, the SQLSTATE of a failure
 // (3F000, no such schema), or D_DB_INVALID_ARGUMENT.
-int          d_postgres_drop_schema(struct pg_conn* _db,
-                                    const char*     _name,
-                                    unsigned        _flags) D_NOTHROW;
+int d_postgres_drop_schema(
+    struct pg_conn* _db,
+    const char*     _name,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 2.3    Listing
 //------------------------------------------------------------------------------
@@ -178,8 +198,10 @@ int          d_postgres_drop_schema(struct pg_conn* _db,
  *         `NULL` argument.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int          d_postgres_list_schemas(struct pg_conn*        _db,
-                                     struct d_db_name_list* _names) D_NOTHROW;
+int d_postgres_list_schemas(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 // 2.4    The current schema
 //------------------------------------------------------------------------------
@@ -188,8 +210,10 @@ int          d_postgres_list_schemas(struct pg_conn*        _db,
 // and what every NULL schema the layer is given means. Written into _name, a
 // string the caller releases with d_db_free: 0, D_DB_NOT_FOUND when no schema
 // of the search path exists, or a failure as for the queries.
-int          d_postgres_current_schema(struct pg_conn* _db,
-                                       char**          _name) D_NOTHROW;
+int d_postgres_current_schema(
+    struct pg_conn* _db,
+    char**          _name
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -201,11 +225,15 @@ int          d_postgres_current_schema(struct pg_conn* _db,
 //------------------------------------------------------------------------------
 // existence -- whether the database has the extension installed (not merely
 // available to install). As for databases, the _s form reports a failure.
-bool         d_postgres_has_extension(struct pg_conn* _db,
-                                      const char*     _name) D_NOTHROW;
-int          d_postgres_has_extension_s(struct pg_conn* _db,
-                                        const char*     _name,
-                                        bool*           _exists) D_NOTHROW;
+bool d_postgres_has_extension(
+    struct pg_conn* _db,
+    const char*     _name
+) D_NOTHROW;
+int d_postgres_has_extension_s(
+    struct pg_conn* _db,
+    const char*     _name,
+    bool*           _exists
+) D_NOTHROW;
 
 // 3.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -225,25 +253,30 @@ int          d_postgres_has_extension_s(struct pg_conn* _db,
  *         trusted do); or D_DB_INVALID_ARGUMENT for a `NULL` argument, an
  *         empty name or another flag.
  */
-int          d_postgres_create_extension(struct pg_conn* _db,
-                                         const char*     _name,
-                                         const char*     _schema,
-                                         unsigned        _flags) D_NOTHROW;
+int d_postgres_create_extension(
+    struct pg_conn* _db,
+    const char*     _name,
+    const char*     _schema,
+    unsigned        _flags
+) D_NOTHROW;
 // dropping -- DROP EXTENSION; D_DB_IF_EXISTS makes a missing one a success,
 // and D_POSTGRES_CASCADE drops what depends on it, such as a column of its
 // type. 0, the SQLSTATE of a failure (42704, not installed), or
 // D_DB_INVALID_ARGUMENT.
-int          d_postgres_drop_extension(struct pg_conn* _db,
-                                       const char*     _name,
-                                       unsigned        _flags) D_NOTHROW;
+int d_postgres_drop_extension(
+    struct pg_conn* _db,
+    const char*     _name,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 3.3    Listing
 //------------------------------------------------------------------------------
 // lists the extensions installed in the database, plpgsql among them, sorted
 // by name; as d_postgres_list_schemas.
-int          d_postgres_list_extensions(struct pg_conn*        _db,
-                                        struct d_db_name_list* _names)
-                                        D_NOTHROW;
+int d_postgres_list_extensions(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

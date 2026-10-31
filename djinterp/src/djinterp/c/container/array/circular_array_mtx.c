@@ -18,31 +18,30 @@
 
 /*
 d_circular_array_mtx_internal_wrap
-  Wraps an existing d_circular_array in a new d_circular_array_mtx, initializing
+  Wraps an existing dj_circular_array in a new dj_circular_array_mtx, initializing
 the mutex. On failure, the provided buffer is freed.
 
 Parameter(s):
-  _buffer: pointer to an already-constructed d_circular_array. Must not be NULL.
+  _buffer: pointer to an already-constructed dj_circular_array. Must not be NULL.
            Ownership is transferred to the returned wrapper; on failure the
            buffer is freed by this function.
 Return:
-  - Pointer to new d_circular_array_mtx on success
+  - Pointer to new dj_circular_array_mtx on success
   - NULL if _buffer is NULL, wrapper allocation fails, or mutex init fails
 */
-D_STATIC struct d_circular_array_mtx*
-d_circular_array_mtx_internal_wrap
-(
-    struct d_circular_array* _buffer
+D_STATIC
+struct dj_circular_array_mtx* d_circular_array_mtx_internal_wrap(
+    struct dj_circular_array* _buffer
 )
 {
-    struct d_circular_array_mtx* result;
+    struct dj_circular_array_mtx* result;
 
     if (!_buffer)
     {
         return NULL;
     }
 
-    result = malloc(sizeof(struct d_circular_array_mtx));
+    result = malloc(sizeof(struct dj_circular_array_mtx));
 
     // ensure that memory allocation was successful
     if (!result)
@@ -81,17 +80,15 @@ Parameter(s):
                  greater than 0.
   _element_size: size in bytes of each element. Must be > 0.
 Return:
-  - Pointer to new d_circular_array_mtx on success
+  - Pointer to new dj_circular_array_mtx on success
   - NULL if either parameter is 0, memory allocation fails, or mutex init fails
 */
-struct d_circular_array_mtx*
-d_circular_array_mtx_new
-(
+struct dj_circular_array_mtx* d_circular_array_mtx_new(
     size_t _capacity,
     size_t _element_size
 )
 {
-    struct d_circular_array* buffer;
+    struct dj_circular_array* buffer;
 
     buffer = d_circular_array_new(_capacity, _element_size);
 
@@ -110,12 +107,10 @@ d_circular_array_mtx_new_default_capacity
 Parameter(s):
   _element_size: size in bytes of each element. Must be > 0.
 Return:
-  - Pointer to new d_circular_array_mtx on success
+  - Pointer to new dj_circular_array_mtx on success
   - NULL if _element_size is 0, memory allocation fails, or mutex init fails
 */
-struct d_circular_array_mtx*
-d_circular_array_mtx_new_default_capacity
-(
+struct dj_circular_array_mtx* d_circular_array_mtx_new_default_capacity(
     size_t _element_size
 )
 {
@@ -134,20 +129,18 @@ Parameter(s):
   _source:       source array to copy elements from. Must not be NULL.
   _source_count: number of elements in the source array.
 Return:
-  - Pointer to new d_circular_array_mtx pre-populated with array data on success
+  - Pointer to new dj_circular_array_mtx pre-populated with array data on success
   - NULL if any parameter is invalid, memory allocation fails, or mutex init
     fails
 */
-struct d_circular_array_mtx*
-d_circular_array_mtx_new_from_arr
-(
+struct dj_circular_array_mtx* d_circular_array_mtx_new_from_arr(
     size_t      _capacity,
     size_t      _element_size,
     const void* _source,
     size_t      _source_count
 )
 {
-    struct d_circular_array* buffer;
+    struct dj_circular_array* buffer;
 
     buffer = d_circular_array_new_from_arr(_capacity,
                                            _element_size,
@@ -175,19 +168,17 @@ Parameter(s):
   _arg_count:    number of variadic arguments to process. ...: variadic
                  arguments containing the element data.
 Return:
-  - Pointer to new d_circular_array_mtx on success
+  - Pointer to new dj_circular_array_mtx on success
   - NULL if allocation fails or parameters are invalid
 */
-struct d_circular_array_mtx*
-d_circular_array_mtx_new_from_args
-(
+struct dj_circular_array_mtx* d_circular_array_mtx_new_from_args(
     size_t _capacity,
     size_t _element_size,
     size_t _arg_count,
     ...
 )
 {
-    struct d_circular_array* buffer;
+    struct dj_circular_array* buffer;
     va_list                  args;
     void*                    temp_arr;
     char*                    dest;
@@ -268,30 +259,28 @@ d_circular_array_mtx_new_from_args
 
 /*
 d_circular_array_mtx_new_copy
-  Creates a complete thread-safe copy of an existing d_circular_array_mtx.
+  Creates a complete thread-safe copy of an existing dj_circular_array_mtx.
 Note: acquires the source mutex for the duration of the copy.
 
 Parameter(s):
-  _other: pointer to the d_circular_array_mtx to copy. Must not be NULL.
+  _other: pointer to the dj_circular_array_mtx to copy. Must not be NULL.
 Return:
-  - Pointer to new d_circular_array_mtx that is a copy of the source
+  - Pointer to new dj_circular_array_mtx that is a copy of the source
   - NULL if _other is NULL, memory allocation fails, or mutex init fails
 */
-struct d_circular_array_mtx*
-d_circular_array_mtx_new_copy
-(
-    const struct d_circular_array_mtx* _other
+struct dj_circular_array_mtx* d_circular_array_mtx_new_copy(
+    const struct dj_circular_array_mtx* _other
 )
 {
-    struct d_circular_array_mtx* mtx;
-    struct d_circular_array*     buffer;
+    struct dj_circular_array_mtx* mtx;
+    struct dj_circular_array*     buffer;
 
     if (!_other)
     {
         return NULL;
     }
 
-    mtx = (struct d_circular_array_mtx*)_other;
+    mtx = (struct dj_circular_array_mtx*)_other;
 
     d_mutex_lock(&mtx->mutex);
 
@@ -309,32 +298,30 @@ d_circular_array_mtx_new_copy
 
 /*
 d_circular_array_mtx_new_copy_resized
-  Creates a thread-safe copy of an existing d_circular_array_mtx with a
+  Creates a thread-safe copy of an existing dj_circular_array_mtx with a
 different capacity. Acquires the source mutex for the duration of the copy.
 
 Parameter(s):
-  _other:        pointer to the d_circular_array_mtx to copy. Must not be NULL.
+  _other:        pointer to the dj_circular_array_mtx to copy. Must not be NULL.
   _new_capacity: new capacity for the copy. Must be >= current count.
 Return:
-  - Pointer to new d_circular_array_mtx with the new capacity
+  - Pointer to new dj_circular_array_mtx with the new capacity
   - NULL if parameters are invalid, memory allocation fails, or mutex init fails
 */
-struct d_circular_array_mtx*
-d_circular_array_mtx_new_copy_resized
-(
-    const struct d_circular_array_mtx* _other,
-    size_t                             _new_capacity
+struct dj_circular_array_mtx* d_circular_array_mtx_new_copy_resized(
+    const struct dj_circular_array_mtx* _other,
+    size_t                              _new_capacity
 )
 {
-    struct d_circular_array_mtx* mt;
-    struct d_circular_array*    buffer;
+    struct dj_circular_array_mtx* mt;
+    struct dj_circular_array*    buffer;
 
     if (!_other)
     {
         return NULL;
     }
 
-    mt = (struct d_circular_array_mtx*)_other;
+    mt = (struct dj_circular_array_mtx*)_other;
 
     d_mutex_lock(&mt->mutex);
 
@@ -359,18 +346,16 @@ Parameter(s):
   _element_size: size of each element
   _fill_value:   pointer to the value to fill with
 Return:
-  - Pointer to new d_circular_array_mtx filled with the value
+  - Pointer to new dj_circular_array_mtx filled with the value
   - NULL if parameters are invalid, memory allocation fails, or mutex init fails
 */
-struct d_circular_array_mtx*
-d_circular_array_mtx_new_fill
-(
+struct dj_circular_array_mtx* d_circular_array_mtx_new_fill(
     size_t      _capacity,
     size_t      _element_size,
     const void* _fill_value
 )
 {
-    struct d_circular_array* buffer;
+    struct dj_circular_array* buffer;
 
     buffer = d_circular_array_new_fill(_capacity,
                                        _element_size,
@@ -401,12 +386,10 @@ Return:
   - true if element was copied successfully
   - false if parameters are invalid or index is out of bounds
 */
-bool
-d_circular_array_mtx_get
-(
-    struct d_circular_array_mtx* _mtx,
-    d_index                      _index,
-    void*                        _out_value
+bool d_circular_array_mtx_get(
+    struct dj_circular_array_mtx* _mtx,
+    dj_index                      _index,
+    void*                         _out_value
 )
 {
     void* elem;
@@ -447,12 +430,10 @@ Return:
   - true if value was successfully set
   - false if parameters are invalid or index is out of bounds
 */
-bool
-d_circular_array_mtx_set
-(
-    struct d_circular_array_mtx* _mtx,
-    d_index                      _index,
-    const void*                  _value
+bool d_circular_array_mtx_set(
+    struct dj_circular_array_mtx* _mtx,
+    dj_index                      _index,
+    const void*                   _value
 )
 {
     bool result;
@@ -482,11 +463,9 @@ Return:
   - true if element was copied successfully
   - false if circular array is NULL, empty, or _out_value is NULL
 */
-bool
-d_circular_array_mtx_front
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _out_value
+bool d_circular_array_mtx_front(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _out_value
 )
 {
     void* elem;
@@ -526,11 +505,9 @@ Return:
   - true if element was copied successfully
   - false if circular array is NULL, empty, or _out_value is NULL
 */
-bool
-d_circular_array_mtx_back
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _out_value
+bool d_circular_array_mtx_back(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _out_value
 )
 {
     void* elem;
@@ -571,11 +548,9 @@ Return:
   - true if element was copied successfully
   - false if circular array is NULL, empty, or _out_value is NULL
 */
-bool
-d_circular_array_mtx_peek
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _out_value
+bool d_circular_array_mtx_peek(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _out_value
 )
 {
     return d_circular_array_mtx_front(_mtx, _out_value);
@@ -593,11 +568,9 @@ Return:
   - true if element was copied successfully
   - false if circular array is NULL, empty, or _out_value is NULL
 */
-bool
-d_circular_array_mtx_peek_back
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _out_value
+bool d_circular_array_mtx_peek_back(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _out_value
 )
 {
     return d_circular_array_mtx_back(_mtx, _out_value);
@@ -620,11 +593,9 @@ Return:
   - true if element was added successfully
   - false if buffer is full or parameters are invalid
 */
-bool
-d_circular_array_mtx_push
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _element
+bool d_circular_array_mtx_push(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _element
 )
 {
     return d_circular_array_mtx_push_back(_mtx, _element);
@@ -641,11 +612,9 @@ Return:
   - true if element was added successfully
   - false if buffer is full or parameters are invalid
 */
-bool
-d_circular_array_mtx_push_front
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _element
+bool d_circular_array_mtx_push_front(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _element
 )
 {
     bool result;
@@ -675,11 +644,9 @@ Return:
   - true if element was added successfully
   - false if buffer is full or parameters are invalid
 */
-bool
-d_circular_array_mtx_push_back
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _element
+bool d_circular_array_mtx_push_back(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _element
 )
 {
     bool result;
@@ -711,12 +678,10 @@ Return:
   - true if all elements were added successfully
   - false if insufficient space or parameters are invalid
 */
-bool
-d_circular_array_mtx_push_all
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _elements,
-    size_t                       _count
+bool d_circular_array_mtx_push_all(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _elements,
+    size_t                        _count
 )
 {
     bool result;
@@ -749,12 +714,10 @@ Return:
   - true if all elements were added successfully
   - false if insufficient space or parameters are invalid
 */
-bool
-d_circular_array_mtx_push_all_front
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _elements,
-    size_t                       _count
+bool d_circular_array_mtx_push_all_front(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _elements,
+    size_t                        _count
 )
 {
     bool result;
@@ -785,11 +748,9 @@ Return:
   - true if element was removed and copied
   - false if buffer is empty or parameters are invalid
 */
-bool
-d_circular_array_mtx_pop_to
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _out_value
+bool d_circular_array_mtx_pop_to(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _out_value
 )
 {
     return d_circular_array_mtx_pop_front_to(_mtx, _out_value);
@@ -806,11 +767,9 @@ Return:
   - true if element was removed and copied
   - false if buffer is empty or parameters are invalid
 */
-bool
-d_circular_array_mtx_pop_front_to
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _out_value
+bool d_circular_array_mtx_pop_front_to(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _out_value
 )
 {
     bool result;
@@ -840,11 +799,9 @@ Return:
   - true if element was removed and copied
   - false if buffer is empty or parameters are invalid
 */
-bool
-d_circular_array_mtx_pop_back_to
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _out_value
+bool d_circular_array_mtx_pop_back_to(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _out_value
 )
 {
     bool result;
@@ -879,11 +836,9 @@ Return:
   - true if element was added
   - false if parameters are invalid
 */
-bool
-d_circular_array_mtx_push_overwrite
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _element
+bool d_circular_array_mtx_push_overwrite(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _element
 )
 {
     bool result;
@@ -913,11 +868,9 @@ Return:
   - true if element was added
   - false if parameters are invalid
 */
-bool
-d_circular_array_mtx_push_front_overwrite
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _element
+bool d_circular_array_mtx_push_front_overwrite(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _element
 )
 {
     bool result;
@@ -948,12 +901,10 @@ Return:
   - true if elements were added
   - false if parameters are invalid
 */
-bool
-d_circular_array_mtx_push_all_overwrite
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _elements,
-    size_t                       _count
+bool d_circular_array_mtx_push_all_overwrite(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _elements,
+    size_t                        _count
 )
 {
     bool result;
@@ -989,10 +940,8 @@ Return:
   - true if cleared successfully
   - false if _mtx is NULL
 */
-bool
-d_circular_array_mtx_clear
-(
-    struct d_circular_array_mtx* _mtx
+bool d_circular_array_mtx_clear(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     bool result;
@@ -1022,11 +971,9 @@ Return:
   - true if filled successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_mtx_fill
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _fill_value
+bool d_circular_array_mtx_fill(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _fill_value
 )
 {
     bool result;
@@ -1056,11 +1003,9 @@ Return:
   - true if rotated successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_mtx_rotate_left
-(
-    struct d_circular_array_mtx* _mtx,
-    size_t                       _amount
+bool d_circular_array_mtx_rotate_left(
+    struct dj_circular_array_mtx* _mtx,
+    size_t                        _amount
 )
 {
     bool result;
@@ -1090,11 +1035,9 @@ Return:
   - true if rotated successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_mtx_rotate_right
-(
-    struct d_circular_array_mtx* _mtx,
-    size_t                       _amount
+bool d_circular_array_mtx_rotate_right(
+    struct dj_circular_array_mtx* _mtx,
+    size_t                        _amount
 )
 {
     bool result;
@@ -1123,10 +1066,8 @@ Return:
   - true if reversed successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_mtx_reverse
-(
-    struct d_circular_array_mtx* _mtx
+bool d_circular_array_mtx_reverse(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     bool result;
@@ -1157,12 +1098,10 @@ Return:
   - true if swapped successfully
   - false if parameters are invalid or indices out of bounds
 */
-bool
-d_circular_array_mtx_swap
-(
-    struct d_circular_array_mtx* _mtx,
-    d_index                      _index_a,
-    d_index                      _index_b
+bool d_circular_array_mtx_swap(
+    struct dj_circular_array_mtx* _mtx,
+    dj_index                      _index_a,
+    dj_index                      _index_b
 )
 {
     bool result;
@@ -1196,10 +1135,8 @@ Return:
   - true if empty
   - false if not empty or NULL
 */
-bool
-d_circular_array_mtx_is_empty
-(
-    struct d_circular_array_mtx* _mtx
+bool d_circular_array_mtx_is_empty(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     bool result;
@@ -1228,10 +1165,8 @@ Return:
   - true if full
   - false if not full or NULL
 */
-bool
-d_circular_array_mtx_is_full
-(
-    struct d_circular_array_mtx* _mtx
+bool d_circular_array_mtx_is_full(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     bool result;
@@ -1259,10 +1194,8 @@ Parameter(s):
 Return:
   Number of elements, or 0 if NULL
 */
-size_t
-d_circular_array_mtx_count
-(
-    struct d_circular_array_mtx* _mtx
+size_t d_circular_array_mtx_count(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     size_t result;
@@ -1290,10 +1223,8 @@ Parameter(s):
 Return:
   Capacity, or 0 if NULL
 */
-size_t
-d_circular_array_mtx_capacity
-(
-    struct d_circular_array_mtx* _mtx
+size_t d_circular_array_mtx_capacity(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     size_t result;
@@ -1321,10 +1252,8 @@ Parameter(s):
 Return:
   Available slots, or 0 if NULL
 */
-size_t
-d_circular_array_mtx_available_space
-(
-    struct d_circular_array_mtx* _mtx
+size_t d_circular_array_mtx_available_space(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     size_t result;
@@ -1352,10 +1281,8 @@ Parameter(s):
 Return:
   Element size in bytes, or 0 if NULL
 */
-size_t
-d_circular_array_mtx_element_size
-(
-    struct d_circular_array_mtx* _mtx
+size_t d_circular_array_mtx_element_size(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     size_t result;
@@ -1391,12 +1318,10 @@ Return:
   - true if value is found
   - false if not found or parameters are invalid
 */
-bool
-d_circular_array_mtx_contains
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _value,
-    fn_comparator                _comparator
+bool d_circular_array_mtx_contains(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _value,
+    fn_comparator                 _comparator
 )
 {
     bool result;
@@ -1427,12 +1352,10 @@ Return:
   - Logical index of first occurrence (>= 0)
   - -1 if not found or parameters are invalid
 */
-ssize_t
-d_circular_array_mtx_find
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _value,
-    fn_comparator                _comparator
+ssize_t d_circular_array_mtx_find(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _value,
+    fn_comparator                 _comparator
 )
 {
     ssize_t result;
@@ -1463,12 +1386,10 @@ Return:
   - Logical index of last occurrence (>= 0)
   - -1 if not found or parameters are invalid
 */
-ssize_t
-d_circular_array_mtx_find_last
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _value,
-    fn_comparator                _comparator
+ssize_t d_circular_array_mtx_find_last(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _value,
+    fn_comparator                 _comparator
 )
 {
     ssize_t result;
@@ -1498,12 +1419,10 @@ Parameter(s):
 Return:
   Number of occurrences, or 0 if not found or parameters invalid
 */
-size_t
-d_circular_array_mtx_count_value
-(
-    struct d_circular_array_mtx* _mtx,
-    const void*                  _value,
-    fn_comparator                _comparator
+size_t d_circular_array_mtx_count_value(
+    struct dj_circular_array_mtx* _mtx,
+    const void*                   _value,
+    fn_comparator                 _comparator
 )
 {
     size_t result;
@@ -1539,10 +1458,8 @@ Return:
 Notes:
   Caller is responsible for freeing the returned array.
 */
-void*
-d_circular_array_mtx_to_linear_array
-(
-    struct d_circular_array_mtx* _mtx
+void* d_circular_array_mtx_to_linear_array(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     void* result;
@@ -1573,12 +1490,10 @@ Return:
   - true if copied successfully
   - false if destination too small or parameters invalid
 */
-bool
-d_circular_array_mtx_copy_to
-(
-    struct d_circular_array_mtx* _mtx,
-    void*                        _destination,
-    size_t                       _dest_capacity
+bool d_circular_array_mtx_copy_to(
+    struct dj_circular_array_mtx* _mtx,
+    void*                         _destination,
+    size_t                        _dest_capacity
 )
 {
     bool result;
@@ -1608,7 +1523,7 @@ d_circular_array_mtx_copy_to
 d_circular_array_mtx_foreach
   Applies a function to each element in order (front to back).
 Note: the callback executes while the mutex is held. The callback must not
-call any d_circular_array_mtx functions on the same instance, as this will
+call any dj_circular_array_mtx functions on the same instance, as this will
 deadlock.
 
 Parameter(s):
@@ -1617,11 +1532,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_mtx_foreach
-(
-    struct d_circular_array_mtx* _mtx,
-    fn_apply                     _apply_fn
+void d_circular_array_mtx_foreach(
+    struct dj_circular_array_mtx* _mtx,
+    fn_apply                      _apply_fn
 )
 {
     if (!_mtx)
@@ -1642,7 +1555,7 @@ d_circular_array_mtx_foreach
 d_circular_array_mtx_foreach_reverse
   Applies a function to each element in reverse order (back to front).
 Note: the callback executes while the mutex is held. The callback must not
-call any d_circular_array_mtx functions on the same instance, as this will
+call any dj_circular_array_mtx functions on the same instance, as this will
 deadlock.
 
 Parameter(s):
@@ -1651,11 +1564,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_mtx_foreach_reverse
-(
-    struct d_circular_array_mtx* _mtx,
-    fn_apply                     _apply_fn
+void d_circular_array_mtx_foreach_reverse(
+    struct dj_circular_array_mtx* _mtx,
+    fn_apply                      _apply_fn
 )
 {
     if (!_mtx)
@@ -1688,11 +1599,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_mtx_sort
-(
-    struct d_circular_array_mtx* _mtx,
-    fn_comparator                _comparator
+void d_circular_array_mtx_sort(
+    struct dj_circular_array_mtx* _mtx,
+    fn_comparator                 _comparator
 )
 {
     if (!_mtx)
@@ -1719,10 +1628,8 @@ Return:
   - true if linearized successfully
   - false if allocation fails or parameter invalid
 */
-bool
-d_circular_array_mtx_linearize
-(
-    struct d_circular_array_mtx* _mtx
+bool d_circular_array_mtx_linearize(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     bool result;
@@ -1757,10 +1664,8 @@ Parameter(s):
 Return:
   D_MUTEX_SUCCESS on success, or a negative error code on failure
 */
-int
-d_circular_array_mtx_lock
-(
-    struct d_circular_array_mtx* _mtx
+int d_circular_array_mtx_lock(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     if (!_mtx)
@@ -1781,10 +1686,8 @@ Return:
   D_MUTEX_SUCCESS if the lock was acquired, D_MUTEX_BUSY if the lock is
   already held by another thread, or D_MUTEX_ERROR on failure
 */
-int
-d_circular_array_mtx_trylock
-(
-    struct d_circular_array_mtx* _mtx
+int d_circular_array_mtx_trylock(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     if (!_mtx)
@@ -1805,10 +1708,8 @@ Parameter(s):
 Return:
   D_MUTEX_SUCCESS on success, or a negative error code on failure
 */
-int
-d_circular_array_mtx_unlock
-(
-    struct d_circular_array_mtx* _mtx
+int d_circular_array_mtx_unlock(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     if (!_mtx)
@@ -1834,10 +1735,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_mtx_free
-(
-    struct d_circular_array_mtx* _mtx
+void d_circular_array_mtx_free(
+    struct dj_circular_array_mtx* _mtx
 )
 {
     if (_mtx)
@@ -1866,11 +1765,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_mtx_free_deep
-(
-    struct d_circular_array_mtx* _mtx,
-    fn_free                      _free_fn
+void d_circular_array_mtx_free_deep(
+    struct dj_circular_array_mtx* _mtx,
+    fn_free                       _free_fn
 )
 {
     if (_mtx)

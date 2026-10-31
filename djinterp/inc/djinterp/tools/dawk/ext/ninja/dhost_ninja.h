@@ -31,7 +31,7 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Extension
-         1.  d_host_ninja
+         1.  dj_host_ninja
 2.  OPERATIONS
     ----------
     1.  The extension
@@ -43,7 +43,7 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>        // bool
 // djinterp
-#include "../../dinterp.h"  // d_awk_interp
+#include "../../dinterp.h"  // dj_awk_interp
 
 
 //==============================================================================
@@ -54,10 +54,10 @@ TABLE OF CONTENTS
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_ninja
+// dj_host_ninja
 //   struct: the files open, the builds loaded, and the last failure of the
 //   ninja_* functions.  Layout is private.
-struct d_host_ninja;
+struct dj_host_ninja;
 
 
 //==============================================================================
@@ -151,10 +151,14 @@ struct d_host_ninja;
 //                                   the names it binds, one to a line
 //   ninja_pool(g, name)             its depth; -1 for none
 //   ninja_variable(g, name)         the top scope's
-struct d_host_ninja* d_host_ninja_new(void);
-void                 d_host_ninja_free(struct d_host_ninja* _host);
-bool                 d_host_ninja_install(struct d_host_ninja* _host,
-                                          struct d_awk_interp* _interp);
+struct dj_host_ninja* d_host_ninja_new(void);
+void d_host_ninja_free(
+    struct dj_host_ninja* _host
+);
+bool d_host_ninja_install(
+    struct dj_host_ninja* _host,
+    struct dj_awk_interp* _interp
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_NINJA_DHOST_NINJA_H

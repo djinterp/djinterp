@@ -30,8 +30,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -157,8 +157,8 @@ static const unsigned char ARCHIVE[] =
 d_tests_write
   Writes bytes to a file.
 */
-static bool
-d_tests_write(
+static
+bool d_tests_write(
     const char*          _path,
     const unsigned char* _bytes,
     size_t               _length
@@ -184,9 +184,9 @@ d_tests_write(
 d_tests_entry_is
   Whether an entry reads as the bytes expected.
 */
-static bool
-d_tests_entry_is(
-    struct d_zip*        _zip,
+static
+bool d_tests_entry_is(
+    struct dj_zip*       _zip,
     const char*          _name,
     const unsigned char* _bytes,
     size_t               _length
@@ -216,8 +216,8 @@ d_tests_reading
   - a damaged stream is refused, not misread
   - a file that is no archive is refused with a reason
 */
-static void
-d_tests_reading(
+static
+void d_tests_reading(
     const char* _work
 )
 {
@@ -247,7 +247,7 @@ d_tests_reading(
     d_tests_check(d_tests_write(path, ARCHIVE, sizeof(ARCHIVE)),
                   "the archive is written");
 
-    struct d_zip* const zip = d_zip_open(path, why, sizeof(why));
+    struct dj_zip* const zip = d_zip_open(path, why, sizeof(why));
 
     d_tests_check(zip != NULL, "it opens");
     d_tests_check(d_zip_count(zip) == 5u, "five entries");
@@ -287,7 +287,7 @@ d_tests_reading(
 
     (void)snprintf(path, sizeof(path), "%s/damaged.zip", _work);
 
-    struct d_zip* const bad = (d_tests_write(path, damaged, sizeof(damaged)))
+    struct dj_zip* const bad = (d_tests_write(path, damaged, sizeof(damaged)))
                             ? d_zip_open(path, why, sizeof(why))
                             : NULL;
     unsigned char*      got    = NULL;
@@ -322,8 +322,8 @@ d_tests_saving
   - the archive's own file is not saved over
   - a new archive refuses a duplicate or empty name
 */
-static void
-d_tests_saving(
+static
+void d_tests_saving(
     const char* _work
 )
 {
@@ -336,7 +336,7 @@ d_tests_saving(
     (void)snprintf(path, sizeof(path), "%s/python.zip", _work);
     (void)snprintf(saved, sizeof(saved), "%s/saved.zip", _work);
 
-    struct d_zip* const zip = d_zip_open(path, why, sizeof(why));
+    struct dj_zip* const zip = d_zip_open(path, why, sizeof(why));
 
     d_tests_check((zip) &&
                   (d_zip_replace(zip, d_zip_find(zip, "fixed.xml"),
@@ -356,8 +356,8 @@ d_tests_saving(
                   "the archive is saved elsewhere");
     d_zip_free(zip);
 
-    struct d_zip* const back = d_zip_open(saved, why, sizeof(why));
-    struct d_zip* const was  = d_zip_open(path, why, sizeof(why));
+    struct dj_zip* const back = d_zip_open(saved, why, sizeof(why));
+    struct dj_zip* const was  = d_zip_open(path, why, sizeof(why));
 
     d_tests_check((back) && (d_zip_count(back) == 6u), "six entries");
     d_tests_check(d_tests_entry_is(back, "fixed.xml",
@@ -388,7 +388,7 @@ d_tests_saving(
     d_zip_free(back);
     d_zip_free(was);
 
-    struct d_zip* const made = d_zip_new();
+    struct dj_zip* const made = d_zip_new();
 
     d_tests_check((made) &&
                   (!d_zip_add(made, "", (const unsigned char*)"x", 1u)),
@@ -400,7 +400,7 @@ d_tests_saving(
                   "a new archive is saved");
     d_zip_free(made);
 
-    struct d_zip* const reread = d_zip_open(saved, why, sizeof(why));
+    struct dj_zip* const reread = d_zip_open(saved, why, sizeof(why));
 
     d_tests_check(d_tests_entry_is(reread, "a/b.txt", NULL, 0),
                   "...and reads back");
@@ -414,8 +414,7 @@ d_tests_saving(
 main
   Runs the checks, writing into the directory given or the current one.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )

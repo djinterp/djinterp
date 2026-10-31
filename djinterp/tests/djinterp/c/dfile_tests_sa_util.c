@@ -29,11 +29,7 @@ test files.
 Return:
   true if setup succeeded, false otherwise.
 */
-bool
-d_tests_dfile_setup
-(
-    void
-)
+bool d_tests_dfile_setup(void)
 {
     char   path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*  test_file;
@@ -85,14 +81,10 @@ d_tests_dfile_teardown
 Return:
   true if teardown succeeded, false otherwise.
 */
-bool
-d_tests_dfile_teardown
-(
-    void
-)
+bool d_tests_dfile_teardown(void)
 {
-    struct d_dir_t*    dir;
-    struct d_dirent_t* entry;
+    struct dj_dir_t*    dir;
+    struct dj_dirent_t* entry;
     char               path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
 
     // remove all files in test directory
@@ -139,9 +131,7 @@ Parameter(s):
 Return:
   _buf on success, NULL on failure.
 */
-char*
-d_tests_dfile_get_test_path
-(
+char* d_tests_dfile_get_test_path(
     char*       _buf,
     size_t      _bufsize,
     const char* _filename

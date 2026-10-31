@@ -1,0 +1,115 @@
+/*******************************************************************************
+* djinterp [re_std]                                                   memory.hpp
+*
+* memory support header:
+* umbrella header for re_std::memory. Includes every granular module in
+* the memory group. Users may include this file to mirror the
+* `#include <memory>` ergonomic of the standard library, or include
+* the granular files directly for finer dependency control.
+*
+* current contents (Phase 1 + Phase 2 + Phase 3 + Phase 4a + Phase 4b + Phase 5):
+*   Phase 1 (foundations):
+*     addressof, pointer_traits, construct_at, destroy_at, destroy,
+*     default_delete, allocator_arg, uses_allocator, bad_weak_ptr.
+*   Phase 2 (allocator core):
+*     allocator, allocator_traits.
+*   Phase 3 (unique_ptr):
+*     unique_ptr, unique_ptr_swap, make_unique
+*     (incl. make_unique_for_overwrite C++20+).
+*   Phase 4a (shared_ptr core):
+*     shared_ptr, weak_ptr, enable_shared_from_this,
+*     make_shared, allocate_shared.
+*   Phase 4b (shared_ptr extras):
+*     static_pointer_cast, dynamic_pointer_cast, const_pointer_cast,
+*     reinterpret_pointer_cast, owner_less, get_deleter,
+*     shared_ptr_swap, weak_ptr_swap, plus shared_ptr(p, d, alloc).
+*   Phase 5 (uninitialized memory algorithms):
+*     uninitialized_copy, uninitialized_copy_n, uninitialized_fill,
+*     uninitialized_fill_n, uninitialized_default_construct(_n),
+*     uninitialized_value_construct(_n), uninitialized_move(_n).
+*   Phase 6b (shared_ptr array forms + for_overwrite):
+*     shared_ptr<T[]> + weak_ptr<T[]> partial specializations,
+*     make_shared<T[]>(n), allocate_shared<T[]>(alloc, n),
+*     make_shared_for_overwrite (single + array),
+*     allocate_shared_for_overwrite (single + array).
+*   Phase 6c (bounded arrays + prototype-fill + small utilities):
+*     shared_ptr<T[N]> + weak_ptr<T[N]> bounded-array specializations,
+*     make_shared<T[]>(n, u), allocate_shared<T[]>(alloc, n, u),
+*     make_shared<T[N]>() and make_shared<T[N]>(u) and
+*     allocate_shared<T[N]>(alloc) and allocate_shared<T[N]>(alloc, u),
+*     make_shared_for_overwrite<T[N]>() and
+*     allocate_shared_for_overwrite<T[N]>(alloc),
+*     align, to_address, assume_aligned.
+*
+* not yet implemented (later phases):
+*   atomic shared_ptr ops (atomic_load/store/exchange/CAS for shared_ptr,
+*   std::atomic<shared_ptr<T>>),
+*   over-aligned types in make_shared<T[]> (needs operator new with
+*   align_val_t),
+*   hash<shared_ptr>, hash<unique_ptr>,
+*   shared_ptr<T[N]> <-> shared_ptr<U[N]> qualification-only conversions.
+*
+*
+* path:      /inc/re_std/cpp/memory/memory.hpp
+* link(s):   TBA
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+
+#ifndef RE_STD_MEMORY_MEMORY_HPP
+#define RE_STD_MEMORY_MEMORY_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
+#include "re_std/cpp/memory/addressof.hpp"
+#include "re_std/cpp/memory/pointer_traits.hpp"
+#include "re_std/cpp/memory/construct_at.hpp"
+#include "re_std/cpp/memory/destroy_at.hpp"
+#include "re_std/cpp/memory/destroy.hpp"
+#include "re_std/cpp/memory/default_delete.hpp"
+#include "re_std/cpp/memory/allocator_arg.hpp"
+#include "re_std/cpp/memory/uses_allocator.hpp"
+#include "re_std/cpp/memory/bad_weak_ptr.hpp"
+#include "re_std/cpp/memory/allocator.hpp"
+#include "re_std/cpp/memory/allocator_traits.hpp"
+#include "re_std/cpp/memory/unique_ptr.hpp"
+#include "re_std/cpp/memory/unique_ptr_swap.hpp"
+#include "re_std/cpp/memory/make_unique.hpp"
+#include "re_std/cpp/memory/shared_ptr.hpp"
+#include "re_std/cpp/memory/weak_ptr.hpp"
+#include "re_std/cpp/memory/enable_shared_from_this.hpp"
+#include "re_std/cpp/memory/make_shared.hpp"
+#include "re_std/cpp/memory/allocate_shared.hpp"
+#include "re_std/cpp/memory/static_pointer_cast.hpp"
+#include "re_std/cpp/memory/dynamic_pointer_cast.hpp"
+#include "re_std/cpp/memory/const_pointer_cast.hpp"
+#include "re_std/cpp/memory/reinterpret_pointer_cast.hpp"
+#include "re_std/cpp/memory/owner_less.hpp"
+#include "re_std/cpp/memory/get_deleter.hpp"
+#include "re_std/cpp/memory/shared_ptr_swap.hpp"
+#include "re_std/cpp/memory/weak_ptr_swap.hpp"
+#include "re_std/cpp/memory/uninitialized_copy.hpp"
+#include "re_std/cpp/memory/uninitialized_copy_n.hpp"
+#include "re_std/cpp/memory/uninitialized_fill.hpp"
+#include "re_std/cpp/memory/uninitialized_fill_n.hpp"
+#include "re_std/cpp/memory/uninitialized_default_construct.hpp"
+#include "re_std/cpp/memory/uninitialized_default_construct_n.hpp"
+#include "re_std/cpp/memory/uninitialized_value_construct.hpp"
+#include "re_std/cpp/memory/uninitialized_value_construct_n.hpp"
+#include "re_std/cpp/memory/uninitialized_move.hpp"
+#include "re_std/cpp/memory/uninitialized_move_n.hpp"
+#include "re_std/cpp/memory/make_shared_for_overwrite.hpp"
+#include "re_std/cpp/memory/allocate_shared_for_overwrite.hpp"
+#include "re_std/cpp/memory/align.hpp"
+#include "re_std/cpp/memory/to_address.hpp"
+#include "re_std/cpp/memory/assume_aligned.hpp"
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_MEMORY_MEMORY_HPP

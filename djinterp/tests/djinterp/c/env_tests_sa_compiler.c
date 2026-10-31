@@ -17,7 +17,7 @@
 #include <string.h>
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -32,10 +32,8 @@ d_tests_sa_env_compiler_detection_flags
   - compiler flags are mutually exclusive
   - D_ENV_COMPILER_APPLE_CLANG implies D_ENV_COMPILER_CLANG
 */
-bool
-d_tests_sa_env_compiler_detection_flags
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_detection_flags(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -148,10 +146,8 @@ d_tests_sa_env_compiler_name_macros
   - D_ENV_COMPILER_FULL_NAME is defined and non-empty
   - names are consistent with detected compiler flag
 */
-bool
-d_tests_sa_env_compiler_name_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_name_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -314,10 +310,8 @@ d_tests_sa_env_compiler_version_macros
   - D_ENV_COMPILER_PATCHLEVEL is defined and non-negative
   - D_ENV_COMPILER_VERSION_STRING is defined
 */
-bool
-d_tests_sa_env_compiler_version_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_version_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -484,10 +478,8 @@ d_tests_sa_env_compiler_version_at_least
   - macro correctly compares patch levels when major and minor equal
   - boundary conditions work correctly
 */
-bool
-d_tests_sa_env_compiler_version_at_least
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_version_at_least(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -624,10 +616,8 @@ d_tests_sa_env_compiler_version_at_most
   - macro correctly compares patch levels when major and minor equal
   - boundary conditions work correctly
 */
-bool
-d_tests_sa_env_compiler_version_at_most
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_version_at_most(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -757,10 +747,8 @@ d_tests_sa_env_compiler_va_opt_detection
   - values are boolean (0 or 1)
   - values are consistent with each other
 */
-bool
-d_tests_sa_env_compiler_va_opt_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_va_opt_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -877,10 +865,8 @@ d_tests_sa_env_compiler_pp_limit_constants
   - C++ limit constants are defined with correct values
   - limits are in ascending order (C89 < C99 < C++)
 */
-bool
-d_tests_sa_env_compiler_pp_limit_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_pp_limit_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1019,10 +1005,8 @@ d_tests_sa_env_compiler_pp_min_limits
   - D_ENV_PP_MIN_STRING_LENGTH is defined
   - values are appropriate for detected language
 */
-bool
-d_tests_sa_env_compiler_pp_min_limits
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_pp_min_limits(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1196,10 +1180,8 @@ d_tests_sa_env_compiler_pp_max_limits
   - D_ENV_PP_LIMIT_SOURCE is defined
   - max limits are >= min limits (unless unlimited)
 */
-bool
-d_tests_sa_env_compiler_pp_max_limits
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_pp_max_limits(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1359,10 +1341,8 @@ d_tests_sa_env_compiler_pp_limit_utility_macros
   - D_ENV_PP_IS_UNLIMITED evaluates correctly
   - D_ENV_PP_EFFECTIVE_LIMIT evaluates correctly
 */
-bool
-d_tests_sa_env_compiler_pp_limit_utility_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_pp_limit_utility_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1486,10 +1466,8 @@ d_tests_sa_env_compiler_manual_detection
   - detection variables are mutually exclusive
   - correct mapping when manual mode is active
 */
-bool
-d_tests_sa_env_compiler_manual_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_manual_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1637,10 +1615,8 @@ d_tests_sa_env_compiler_consistency_check
   - version info is consistent
   - preprocessor limits are consistent with compiler
 */
-bool
-d_tests_sa_env_compiler_consistency_check
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_consistency_check(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1771,13 +1747,11 @@ d_tests_sa_env_compiler_all
   - manual detection
   - consistency
 */
-bool
-d_tests_sa_env_compiler_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_compiler_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool detection_flags_result;
     bool name_macros_result;
     bool version_macros_result;
@@ -1797,7 +1771,7 @@ d_tests_sa_env_compiler_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing Compiler Detection\n");
     printf("========================================="

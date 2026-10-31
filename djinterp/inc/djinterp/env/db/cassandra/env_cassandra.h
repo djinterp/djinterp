@@ -184,7 +184,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_CASSANDRA_ENV_CASSANDRA_H 1
 
 // djinterp
-#include "../../../config/core/env/db/cassandra/cfg_env_cassandra.h"  // D_CFG_ENV_*
+#include "../../../config/env/db/cassandra/cfg_env_cassandra.h"  // D_CFG_ENV_*
 #include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 

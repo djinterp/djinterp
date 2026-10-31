@@ -54,22 +54,34 @@ typedef struct dtest_summary
  * @post The suite belongs to the caller, who releases it with dtest_destroy.
  */
 dtest_suite* dtest_create(void);
-void         dtest_destroy(dtest_suite* _suite);
-void         dtest_use_console(dtest_suite* _suite,
-                               int          _show);
+void dtest_destroy(
+    dtest_suite* _suite
+);
+void dtest_use_console(
+    dtest_suite* _suite,
+    int          _show
+);
 // the open module, block and test: each opens beneath the one before it, and
 // a check counts towards the test open when it is made
-void         dtest_module(dtest_suite* _suite,
-                          const char*  _name);
-void         dtest_block(dtest_suite* _suite,
-                         const char*  _name);
-void         dtest_test(dtest_suite* _suite,
-                        const char*  _name);
-void         dtest_assert_expr(dtest_suite* _suite,
-                               bool         _result,
-                               const char*  _expr,
-                               const char*  _file,
-                               int          _line);
+void dtest_module(
+    dtest_suite* _suite,
+    const char*  _name
+);
+void dtest_block(
+    dtest_suite* _suite,
+    const char*  _name
+);
+void dtest_test(
+    dtest_suite* _suite,
+    const char*  _name
+);
+void dtest_assert_expr(
+    dtest_suite* _suite,
+    bool         _result,
+    const char*  _expr,
+    const char*  _file,
+    int          _line
+);
 /**
  * @brief Reports the suite's tests on the console, as dtest_use_console set.
  *
@@ -78,8 +90,10 @@ void         dtest_assert_expr(dtest_suite* _suite,
  * @return 0 when every test passed, 1 when one failed or made no check, 2
  *         when the suite could not record a test or check.
  */
-int          dtest_run(dtest_suite*   _suite,
-                       dtest_summary* _summary);
+int dtest_run(
+    dtest_suite*   _suite,
+    dtest_summary* _summary
+);
 
 #if defined(__cplusplus)
 }

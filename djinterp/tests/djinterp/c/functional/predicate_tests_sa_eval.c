@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./predicate_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -29,14 +29,12 @@ d_tests_sa_predicate_and_eval
   - NULL element handling
   - zero boundary value
 */
-bool
-d_tests_sa_predicate_and_eval
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_and_eval(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_predicate_and* combo;
+    struct dj_predicate_and* combo;
     int                     value;
     int                     threshold;
 
@@ -282,14 +280,12 @@ d_tests_sa_predicate_or_eval
   - NULL element handling
   - zero boundary value
 */
-bool
-d_tests_sa_predicate_or_eval
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_or_eval(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_predicate_or* combo;
+    struct dj_predicate_or* combo;
     int                    value;
     int                    threshold;
 
@@ -540,14 +536,12 @@ d_tests_sa_predicate_xor_eval
   - context passing (greater_than_threshold XOR is_even)
   - NULL element handling
 */
-bool
-d_tests_sa_predicate_xor_eval
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_xor_eval(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_predicate_xor* combo;
+    struct dj_predicate_xor* combo;
     int                     value;
     int                     threshold;
 
@@ -813,14 +807,12 @@ d_tests_sa_predicate_not_eval
   - context passing (NOT greater_than_threshold)
   - NULL element handling
 */
-bool
-d_tests_sa_predicate_not_eval
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_not_eval(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_predicate_not* combo;
+    struct dj_predicate_not* combo;
     int                     value;
     int                     threshold;
 
@@ -989,10 +981,8 @@ d_tests_sa_predicate_not_eval
 d_tests_sa_predicate_eval_all
   Aggregation function that runs all evaluation tests.
 */
-bool
-d_tests_sa_predicate_eval_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_eval_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

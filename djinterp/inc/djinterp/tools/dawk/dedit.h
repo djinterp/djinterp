@@ -34,22 +34,33 @@
 
 // 1.1    Reading
 //------------------------------------------------------------------------------
-size_t d_edit_trim_end(char* _text, size_t _length);
-bool   d_edit_read_line(const char* _path,
-                        uint32_t    _line,
-                        char*       _out,
-                        size_t      _out_size);
+size_t d_edit_trim_end(
+    char*  _text,
+    size_t _length
+);
+bool d_edit_read_line(
+    const char* _path,
+    uint32_t    _line,
+    char*       _out,
+    size_t      _out_size
+);
 
 // 1.2    Writing
 //------------------------------------------------------------------------------
-bool   d_edit_rewrite_line(const char* _path,
-                           uint32_t    _line,
-                           const char* _replacement);
-bool   d_edit_delete_line(const char* _path,
-                          uint32_t    _line);
-bool   d_edit_insert_line(const char* _path,
-                          uint32_t    _line,
-                          const char* _text);
+bool d_edit_rewrite_line(
+    const char* _path,
+    uint32_t    _line,
+    const char* _replacement
+);
+bool d_edit_delete_line(
+    const char* _path,
+    uint32_t    _line
+);
+bool d_edit_insert_line(
+    const char* _path,
+    uint32_t    _line,
+    const char* _text
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DEDIT_H

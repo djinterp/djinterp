@@ -1,0 +1,97 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\build\cmake\config\testing\djinterp\core\container\
+├── 📁 container_metadata
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 container_metadata_tests_runner.cpp
+├── 📁 ordered_container
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 ordered_container_tests_runner.cpp
+├── 📁 read_only_container
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 read_only_container_tests_runner.cpp
+├── 📁 read_write_container
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 read_write_container_tests_runner.cpp
+├── 📁 sequential_container
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 sequential_container_tests_runner.cpp
+├── 📁 sorted_container
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 sorted_container_tests_runner.cpp
+├── 📁 traits
+│   ├── 📁 bounded_container_traits
+│   │   ├── 📄 bounded_container_traits_tests_runner.cpp
+│   │   └── 📄 CMakeLists.txt
+│   ├── 📁 constexpr_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 constexpr_container_traits_tests_runner.cpp
+│   ├── 📁 container_comparison_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_comparison_traits_tests_runner.cpp
+│   ├── 📁 container_conversion_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_conversion_traits_tests_runner.cpp
+│   ├── 📁 container_copy_merge_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_copy_merge_traits_tests_runner.cpp
+│   ├── 📁 container_filter_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_filter_traits_tests_runner.cpp
+│   ├── 📁 container_memory_strategy
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_memory_strategy_tests_runner.cpp
+│   ├── 📁 container_multiplicity_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_multiplicity_traits_tests_runner.cpp
+│   ├── 📁 container_overlay_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_overlay_traits_tests_runner.cpp
+│   ├── 📁 container_storage_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_storage_traits_tests_runner.cpp
+│   ├── 📁 container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_traits_tests_runner.cpp
+│   ├── 📁 container_transform_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 container_transform_traits_tests_runner.cpp
+│   ├── 📁 element_relation_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 element_relation_traits_tests_runner.cpp
+│   ├── 📁 flat_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 flat_container_traits_tests_runner.cpp
+│   ├── 📁 hierarchical_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 hierarchical_container_traits_tests_runner.cpp
+│   ├── 📁 iterable_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 iterable_container_traits_tests_runner.cpp
+│   ├── 📁 mutable_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 mutable_container_traits_tests_runner.cpp
+│   ├── 📁 node_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 node_container_traits_tests_runner.cpp
+│   ├── 📁 observational_comparison_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 observational_comparison_traits_tests_runner.cpp
+│   ├── 📁 ordered_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 ordered_container_traits_tests_runner.cpp
+│   ├── 📁 read_only_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 read_only_container_traits_tests_runner.cpp
+│   ├── 📁 read_write_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 read_write_container_traits_tests_runner.cpp
+│   ├── 📁 runtime_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 runtime_container_traits_tests_runner.cpp
+│   ├── 📁 sorted_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 sorted_container_traits_tests_runner.cpp
+│   ├── 📁 write_only_container_traits
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 write_only_container_traits_tests_runner.cpp
+│   └── 📄 CMakeLists.txt
+└── 📄 CMakeLists.txt

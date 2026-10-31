@@ -17,16 +17,15 @@
 #include <string.h>   // strlen, strrchr, strcmp
 
 // djinterp
-#include "../../../../../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../../../../../inc/djinterp/parse/source/source_reader.h"
+#include "../../../../../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../../../../../inc/djinterp/c/modules/parse/source/source_reader.h"
 
 
 /*
 d_ext_c_accepts
   Reports whether a path names C source by its extension.
 */
-bool
-d_ext_c_accepts(
+bool d_ext_c_accepts(
     const char* _path
 )
 {
@@ -66,13 +65,12 @@ d_ext_c_accepts(
 d_ext_c_build
   Builds the node tree for C source.
 */
-uint32_t
-d_ext_c_build(
-    struct d_node_tree*              _tree,
-    uint32_t                         _parent,
-    unsigned                         _level,
-    const struct d_token_node_input* _input,
-    struct d_token_node_stats*       _out_stats
+uint32_t d_ext_c_build(
+    struct dj_node_tree*              _tree,
+    uint32_t                          _parent,
+    unsigned                          _level,
+    const struct dj_token_node_input* _input,
+    struct dj_token_node_stats*       _out_stats
 )
 {
     // parameter validation first

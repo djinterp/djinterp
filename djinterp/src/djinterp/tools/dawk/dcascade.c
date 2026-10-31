@@ -20,12 +20,12 @@
 #include <stdlib.h>  // malloc, realloc, calloc, free
 
 
-// d_cascade
+// dj_cascade
 //   struct: recorded matches, then the per-node ranked runs.
-struct d_cascade
+struct dj_cascade
 {
-    const struct d_dss_sheet*  sheet;
-    uint8_t                    policy;       // d_cascade_policy
+    const struct dj_dss_sheet*  sheet;
+    uint8_t                    policy;       // dj_cascade_policy
 
     uint32_t*                  match_node;   // the recorded triples
     uint32_t*                  match_rule;
@@ -51,13 +51,13 @@ struct d_cascade
  * @param[in] _spec_b   its specificity.
  * @return `true` if the first is the better-ranked.
  */
-static bool
-d_internal_outranks(
-    const struct d_cascade* _cascade,
-    uint32_t                _rule_a,
-    uint32_t                _spec_a,
-    uint32_t                _rule_b,
-    uint32_t                _spec_b
+static
+bool d_internal_outranks(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _rule_a,
+    uint32_t                 _spec_a,
+    uint32_t                 _rule_b,
+    uint32_t                 _spec_b
 )
 {
     if (_cascade->policy != D_CASCADE_CSS)
@@ -92,14 +92,14 @@ d_internal_outranks(
  * @return the declaration's index -- the first under FIRST and ALL, the last
  *         under CSS -- or `D_DSS_NO_INDEX` when the rule declares none.
  */
-static uint32_t
-d_internal_declaration_in(
-    const struct d_cascade* _cascade,
-    uint32_t                _rule,
-    uint32_t                _property
+static
+uint32_t d_internal_declaration_in(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _rule,
+    uint32_t                 _property
 )
 {
-    const struct d_dss_rule* const rule = d_dss_rule_at(_cascade->sheet,
+    const struct dj_dss_rule* const rule = d_dss_rule_at(_cascade->sheet,
                                                         _rule);
     uint32_t found = D_DSS_NO_INDEX;
 
@@ -127,10 +127,10 @@ d_internal_declaration_in(
 d_cascade_new
   Nothing is sized until the first reset names a node count.
 */
-struct d_cascade*
+struct dj_cascade*
 d_cascade_new(
-    const struct d_dss_sheet* _sheet,
-    enum d_cascade_policy     _policy
+    const struct dj_dss_sheet* _sheet,
+    enum dj_cascade_policy     _policy
 )
 {
     if (!_sheet)
@@ -138,7 +138,7 @@ d_cascade_new(
         return NULL;
     }
 
-    struct d_cascade* const cascade = calloc(1u, sizeof(*cascade));
+    struct dj_cascade* const cascade = calloc(1u, sizeof(*cascade));
 
     if (cascade)
     {
@@ -154,9 +154,8 @@ d_cascade_new(
 d_cascade_free
   Accepts NULL, as free does.
 */
-void
-d_cascade_free(
-    struct d_cascade* _cascade
+void d_cascade_free(
+    struct dj_cascade* _cascade
 )
 {
     if (_cascade)
@@ -178,10 +177,9 @@ d_cascade_free(
 d_cascade_reset
   Buffers are kept between trees and only ever grow, as the tree's are.
 */
-bool
-d_cascade_reset(
-    struct d_cascade* _cascade,
-    size_t            _node_count
+bool d_cascade_reset(
+    struct dj_cascade* _cascade,
+    size_t             _node_count
 )
 {
     if (!_cascade)
@@ -221,12 +219,11 @@ d_cascade_add
   Three parallel arrays rather than an array of structs, so ranking can hand
 the rule and specificity columns out without copying.
 */
-bool
-d_cascade_add(
-    struct d_cascade* _cascade,
-    uint32_t          _node,
-    uint32_t          _rule,
-    uint32_t          _specificity
+bool d_cascade_add(
+    struct dj_cascade* _cascade,
+    uint32_t           _node,
+    uint32_t           _rule,
+    uint32_t           _specificity
 )
 {
     if ( (!_cascade) || (_node >= _cascade->node_count) )
@@ -283,9 +280,8 @@ d_cascade_rank
   Prefix-sums the per-node counts into offsets, places each match in its
 node's run in the order recorded, then insertion-sorts each run.
 */
-bool
-d_cascade_rank(
-    struct d_cascade* _cascade
+bool d_cascade_rank(
+    struct dj_cascade* _cascade
 )
 {
     if (!_cascade)
@@ -357,11 +353,10 @@ d_cascade_rank(
 }
 
 
-size_t
-d_cascade_matched(
-    const struct d_cascade* _cascade,
-    uint32_t                _node,
-    const uint32_t**        _out_rules
+size_t d_cascade_matched(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _node,
+    const uint32_t**         _out_rules
 )
 {
     if ( (!_cascade) || (!_cascade->ranked) ||
@@ -384,11 +379,10 @@ d_cascade_winning_rule
   The runs are best first, so the first rule declaring the property is the
 one every other must yield to.
 */
-uint32_t
-d_cascade_winning_rule(
-    const struct d_cascade* _cascade,
-    uint32_t                _node,
-    uint32_t                _property
+uint32_t d_cascade_winning_rule(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _node,
+    uint32_t                 _property
 )
 {
     const uint32_t* rules = NULL;
@@ -407,12 +401,11 @@ d_cascade_winning_rule(
 }
 
 
-bool
-d_cascade_wins(
-    const struct d_cascade* _cascade,
-    uint32_t                _node,
-    uint32_t                _rule,
-    uint32_t                _property
+bool d_cascade_wins(
+    const struct dj_cascade* _cascade,
+    uint32_t                 _node,
+    uint32_t                 _rule,
+    uint32_t                 _property
 )
 {
     if ( (_cascade) && (_cascade->policy == D_CASCADE_ALL) )
@@ -429,13 +422,12 @@ d_cascade_computed
   CSS inheritance: an inherited property no rule declares at a node takes
 its parent's value, up to the root, where it takes its initial value.
 */
-uint32_t
-d_cascade_computed(
-    const struct d_cascade* _cascade,
-    struct d_node_tree*     _tree,
-    uint32_t                _node,
-    uint32_t                _property,
-    bool                    _inherited
+uint32_t d_cascade_computed(
+    const struct dj_cascade* _cascade,
+    struct dj_node_tree*     _tree,
+    uint32_t                 _node,
+    uint32_t                 _property,
+    bool                     _inherited
 )
 {
     uint32_t node = _node;

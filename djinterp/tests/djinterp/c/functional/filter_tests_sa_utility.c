@@ -9,14 +9,18 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPER PREDICATES
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -32,7 +36,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -48,7 +56,12 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static int cmp_int(const void* _a, const void* _b, void* _context)
+static
+int cmp_int(
+    const void* _a,
+    const void* _b,
+    void*       _context
+)
 {
     const int* a;
     const int* b;
@@ -80,15 +93,13 @@ d_tests_sa_filter_validation
   - chain with an invalid operation is invalid
   - NULL chain pointer returns false
 */
-bool
-d_tests_sa_filter_validation
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_validation(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_filter_operation* op;
-    struct d_filter_chain*    chain;
+    struct dj_filter_operation* op;
+    struct dj_filter_chain*    chain;
 
     result = true;
 
@@ -143,7 +154,7 @@ d_tests_sa_filter_validation
         _counter) && result;
 
     // test 7: operation with type NONE is valid (no-op)
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
     d_memset(op, 0, sizeof(*op));
     op->type = D_FILTER_OP_NONE;
     result  = d_assert_standalone(
@@ -153,7 +164,7 @@ d_tests_sa_filter_validation
         _counter) && result;
 
     // test 8: where with NULL predicate is invalid
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
     d_memset(op, 0, sizeof(*op));
     op->type       = D_FILTER_OP_WHERE;
     op->params.test = NULL;
@@ -164,7 +175,7 @@ d_tests_sa_filter_validation
         _counter) && result;
 
     // test 9: distinct with NULL comparator is invalid
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
     d_memset(op, 0, sizeof(*op));
     op->type             = D_FILTER_OP_DISTINCT;
     op->params.comparator = NULL;
@@ -223,7 +234,7 @@ d_tests_sa_filter_validation
         d_filter_chain_add_take_first(chain, 2);
 
         // manually inject an invalid operation
-        op = malloc(sizeof(struct d_filter_operation));
+        op = malloc(sizeof(struct dj_filter_operation));
 
         if (op)
         {
@@ -274,15 +285,13 @@ d_tests_sa_filter_to_string
   - NULL chain returns NULL
   - caller must free returned string
 */
-bool
-d_tests_sa_filter_to_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_to_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_filter_operation* op;
-    struct d_filter_chain*    chain;
+    struct dj_filter_operation* op;
+    struct dj_filter_chain*    chain;
     char*                     str;
 
     result = true;
@@ -452,17 +461,15 @@ d_tests_sa_filter_from_string
   - from_string with garbage returns NULL
   - caller must free returned structures
 */
-bool
-d_tests_sa_filter_from_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_from_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                        result;
-    struct d_filter_operation*  original_op;
-    struct d_filter_operation*  parsed_op;
-    struct d_filter_chain*      original_chain;
-    struct d_filter_chain*      parsed_chain;
+    struct dj_filter_operation*  original_op;
+    struct dj_filter_operation*  parsed_op;
+    struct dj_filter_chain*      original_chain;
+    struct dj_filter_chain*      parsed_chain;
     char*                       str;
 
     result = true;
@@ -666,17 +673,15 @@ d_tests_sa_filter_optimize
   - optimizing NULL chain returns NULL
   - original chain is not modified
 */
-bool
-d_tests_sa_filter_optimize
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_optimize(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_filter_chain*  chain;
-    struct d_filter_chain*  optimized;
-    struct d_filter_result* res_orig;
-    struct d_filter_result* res_opt;
+    struct dj_filter_chain*  chain;
+    struct dj_filter_chain*  optimized;
+    struct dj_filter_result* res_orig;
+    struct dj_filter_result* res_opt;
     int                     input[6];
     int*                    orig_elems;
     int*                    opt_elems;
@@ -896,14 +901,12 @@ d_tests_sa_filter_estimate
   - estimate for NULL chain returns 0
   - estimate for zero input returns 0
 */
-bool
-d_tests_sa_filter_estimate
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_estimate(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_filter_chain*  chain;
+    struct dj_filter_chain*  chain;
     size_t                  estimate;
 
     result = true;
@@ -1071,10 +1074,8 @@ d_tests_sa_filter_estimate
 d_tests_sa_filter_utility_all
   Aggregation function that runs all utility function tests.
 */
-bool
-d_tests_sa_filter_utility_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_utility_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -27,14 +27,12 @@ d_tests_sa_registry_add_alias
   - multiple aliases can point to the same row
   - lookup grows as aliases are added
 */
-bool
-d_tests_sa_registry_add_alias
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_add_alias(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     struct test_row*   found;
 
@@ -146,14 +144,12 @@ d_tests_sa_registry_add_aliases
   - successful batch add of multiple aliases
   - partial failure if one alias is a duplicate
 */
-bool
-d_tests_sa_registry_add_aliases
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_add_aliases(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     const char*        aliases[3];
 
@@ -244,14 +240,12 @@ d_tests_sa_registry_remove_alias
   - successful removal makes alias unfindable
   - canonical key still works after alias removal
 */
-bool
-d_tests_sa_registry_remove_alias
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_remove_alias(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -345,14 +339,12 @@ d_tests_sa_registry_clear_aliases
   - canonical keys still work after clear
   - alias count becomes zero
 */
-bool
-d_tests_sa_registry_clear_aliases
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_clear_aliases(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -426,14 +418,12 @@ d_tests_sa_registry_alias_count
   - counts only non-canonical entries
   - count updates after adding and removing aliases
 */
-bool
-d_tests_sa_registry_alias_count
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_alias_count(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -499,10 +489,8 @@ d_tests_sa_registry_alias_count
 d_tests_sa_registry_aliases_all
   Aggregation function that runs all alias tests.
 */
-bool
-d_tests_sa_registry_aliases_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_aliases_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

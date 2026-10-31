@@ -34,7 +34,7 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Extension
-         1.  d_host_vcxproj
+         1.  dj_host_vcxproj
 2.  OPERATIONS
     ----------
     1.  The extension
@@ -46,7 +46,7 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>     // bool
 // djinterp
-#include "../../dinterp.h"  // d_awk_interp
+#include "../../dinterp.h"  // dj_awk_interp
 
 
 //==============================================================================
@@ -57,10 +57,10 @@ TABLE OF CONTENTS
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_vcxproj
+// dj_host_vcxproj
 //   struct: the extension's state behind the vcxproj_* functions: the files
 //   open, the handles given, the last failure.  Layout is private.
-struct d_host_vcxproj;
+struct dj_host_vcxproj;
 
 
 //==============================================================================
@@ -140,10 +140,14 @@ struct d_host_vcxproj;
 // Files are compared by name as MSBuild compares them: in any case, with
 // `/` and `\` alike.  A handle that names nothing reads as "" or 0, and
 // changes nothing, giving -1.
-struct d_host_vcxproj* d_host_vcxproj_new(void);
-void                   d_host_vcxproj_free(struct d_host_vcxproj* _host);
-bool                   d_host_vcxproj_install(struct d_host_vcxproj* _host,
-                                              struct d_awk_interp*   _interp);
+struct dj_host_vcxproj* d_host_vcxproj_new(void);
+void d_host_vcxproj_free(
+    struct dj_host_vcxproj* _host
+);
+bool d_host_vcxproj_install(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_interp*   _interp
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_MSVS_DHOST_VCXPROJ_H

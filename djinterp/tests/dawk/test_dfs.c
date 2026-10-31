@@ -291,7 +291,7 @@ d_internal_walk(void)
         "tests/dawk/fs/root/z.txt"
     };
 
-    struct d_awk_source source = { NULL, NULL, NULL };
+    struct dj_awk_source source = { NULL, NULL, NULL };
 
     if (!d_awk_source_tree_init(&source, ROOT))
     {

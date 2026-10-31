@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -27,10 +27,8 @@ d_tests_sa_functional_compare_int
   - both NULL returns 0
   - context parameter is ignored
 */
-bool
-d_tests_sa_functional_compare_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_compare_int(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -182,10 +180,8 @@ d_tests_sa_functional_compare_size_t
   - NULL second pointer returns 0
   - both NULL returns 0
 */
-bool
-d_tests_sa_functional_compare_size_t
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_compare_size_t(
+    struct dj_test_counter* _counter
 )
 {
     bool   all_passed;
@@ -315,10 +311,8 @@ d_tests_sa_functional_compare_double
   - NULL second pointer returns 0
   - both NULL returns 0
 */
-bool
-d_tests_sa_functional_compare_double
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_compare_double(
+    struct dj_test_counter* _counter
 )
 {
     bool   all_passed;
@@ -457,10 +451,8 @@ d_tests_sa_functional_equal_int
   - both NULL returns false
   - context is ignored
 */
-bool
-d_tests_sa_functional_equal_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_equal_int(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -589,10 +581,8 @@ d_tests_sa_functional_equal_size_t
   - NULL second pointer returns false
   - both NULL returns false
 */
-bool
-d_tests_sa_functional_equal_size_t
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_equal_size_t(
+    struct dj_test_counter* _counter
 )
 {
     bool   all_passed;

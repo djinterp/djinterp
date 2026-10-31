@@ -26,9 +26,8 @@
  * VII.a  d_file_lock_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_lock_flock
-(
+static
+void d_fs_tests_lock_flock(
     dtest_suite* _suite
 )
 {
@@ -114,9 +113,8 @@ d_fs_tests_lock_flock
  * VII.b  d_file_lock_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_lock_flock_stream
-(
+static
+void d_fs_tests_lock_flock_stream(
     dtest_suite* _suite
 )
 {
@@ -163,9 +161,7 @@ d_fs_tests_lock_flock_stream
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_lock
-(
+void d_fs_tests_lock(
     dtest_suite* _suite
 )
 {

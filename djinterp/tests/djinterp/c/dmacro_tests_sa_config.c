@@ -15,7 +15,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -32,10 +32,8 @@ d_tests_sa_dmacro_cfg_constants
   - variant constants are defined with correct values
   - constants are in ascending order
 */
-bool
-d_tests_sa_dmacro_cfg_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -194,10 +192,8 @@ d_tests_sa_dmacro_cfg_user_options
   - MSVC compat has valid value (0 or 1)
   - VARG_MAX is within valid range
 */
-bool
-d_tests_sa_dmacro_cfg_user_options
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_user_options(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -296,10 +292,8 @@ d_tests_sa_dmacro_cfg_effective_values
   - variant matches a supported value (64, 127, 128, 256, 512, 1024)
   - VARG_MAX is within configured limits
 */
-bool
-d_tests_sa_dmacro_cfg_effective_values
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_effective_values(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -417,10 +411,8 @@ d_tests_sa_dmacro_cfg_public_aliases
   - D_FOR_EACH_PAIR_MAX equals D_DMACRO_PAIR_MAX
   - D_MACRO_VARIANT equals D_DMACRO_VARIANT
 */
-bool
-d_tests_sa_dmacro_cfg_public_aliases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_public_aliases(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -516,10 +508,8 @@ d_tests_sa_dmacro_cfg_query_macros
   - D_DMACRO_CHECK_VARG_LIMIT works correctly
   - D_DMACRO_CHECK_PAIR_LIMIT works correctly
 */
-bool
-d_tests_sa_dmacro_cfg_query_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_query_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -662,10 +652,8 @@ d_tests_sa_dmacro_cfg_env_integration
   - effective values respect user limits when overridden
   - MSVC compatibility is detected correctly
 */
-bool
-d_tests_sa_dmacro_cfg_env_integration
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_env_integration(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -787,10 +775,8 @@ d_tests_sa_dmacro_cfg_variant_consistency
   - D_HAS_ARGS should be available
   - D_FOR_EACH should be available (indirectly tested)
 */
-bool
-d_tests_sa_dmacro_cfg_variant_consistency
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_variant_consistency(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -904,13 +890,11 @@ d_tests_sa_dmacro_cfg_all
   - environment integration
   - variant consistency
 */
-bool
-d_tests_sa_dmacro_cfg_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_cfg_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  constants_result;
     bool                  user_options_result;
     bool                  effective_values_result;
@@ -925,7 +909,7 @@ d_tests_sa_dmacro_cfg_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

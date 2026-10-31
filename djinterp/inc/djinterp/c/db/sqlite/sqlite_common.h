@@ -50,7 +50,7 @@ TABLE OF CONTENTS
          1.  sqlite3
          2.  sqlite3_stmt
     2.  Features
-         1.  d_sqlite_feature
+         1.  dj_sqlite_feature
 2.  LIBRARY
     -------
     1.  Versions
@@ -97,11 +97,11 @@ struct sqlite3_stmt;
 // 1.2    Features
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_sqlite_feature
+// dj_sqlite_feature
 //   enum: capabilities that depend on the SQLite library in use, by its
 // version or by how it was built. Each names, in brackets, the release that
 // introduced it or the build option that provides it.
-enum d_sqlite_feature
+enum dj_sqlite_feature
 {
     D_SQLITE_FEATURE_PARTIAL_INDEX = 0,  // CREATE INDEX ... WHERE  [3.8.0]
     D_SQLITE_FEATURE_WITHOUT_ROWID,      // WITHOUT ROWID tables    [3.8.2]
@@ -149,29 +149,35 @@ enum d_sqlite_feature
 // one the layer was compiled against; numbers are MAJOR*1000000 + MINOR*1000
 // + PATCH, as SQLITE_VERSION_NUMBER encodes them
 const char* d_sqlite_library_version(void) D_NOTHROW;
-int         d_sqlite_library_version_number(void) D_NOTHROW;
-int         d_sqlite_header_version_number(void) D_NOTHROW;
-bool        d_sqlite_library_at_least(int _major,
-                                      int _minor,
-                                      int _patch) D_NOTHROW;
+int d_sqlite_library_version_number(void) D_NOTHROW;
+int d_sqlite_header_version_number(void) D_NOTHROW;
+bool d_sqlite_library_at_least(
+    int _major,
+    int _minor,
+    int _patch
+) D_NOTHROW;
 
 // 2.2    Features
 //------------------------------------------------------------------------------
 // features -- whether the library loaded now can do it, and, for an API
 // beyond the floor's (serialization, extensions), the layer's build calls it
-// too; `false` for a value outside enum d_sqlite_feature. _threadsafe says
+// too; `false` for a value outside enum dj_sqlite_feature. _threadsafe says
 // how the loaded library was built to be shared between threads, as
 // sqlite3_threadsafe does: 0 not at all; 1 serialized, any connection on any
 // thread; 2 multi-thread, each connection on one thread at a time. A mode a
 // program chooses with sqlite3_config is not seen
-bool        d_sqlite_supports(enum d_sqlite_feature _feature) D_NOTHROW;
-int         d_sqlite_library_threadsafe(void) D_NOTHROW;
+bool d_sqlite_supports(
+    enum dj_sqlite_feature _feature
+) D_NOTHROW;
+int d_sqlite_library_threadsafe(void) D_NOTHROW;
 
 // 2.3    Result messages
 //------------------------------------------------------------------------------
 // result messages -- an English description of any result this layer
 // returns, SQLite's own included; never NULL, and never to be freed
-const char* d_sqlite_result_message(int _result) D_NOTHROW;
+const char* d_sqlite_result_message(
+    int _result
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -187,7 +193,9 @@ const char* d_sqlite_result_message(int _result) D_NOTHROW;
 // the latest call succeeded. NULL for a NULL connection, or in a build
 // without SQLite. Valid until the next call on the connection; never to be
 // freed.
-const char* d_sqlite_error_message(struct sqlite3* _db) D_NOTHROW;
+const char* d_sqlite_error_message(
+    struct sqlite3* _db
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

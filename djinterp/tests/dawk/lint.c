@@ -24,18 +24,18 @@
 #include <string.h>
 
 // the extensions take a source; this makes one from text, as a host would
-static const struct d_source* source_of(const char* _text, size_t _length, const char* _path)
+static const struct dj_source* source_of(const char* _text, size_t _length, const char* _path)
 {
-    static struct d_source s;
+    static struct dj_source s;
     d_source_init(&s, _text, _length, _path);
     (void)d_source_skip_bom(&s);
     return &s;
 }
 
 // and the input a build reads: that source, and no sink
-static const struct d_token_node_input* input_of(const char* _text, size_t _length, const char* _path)
+static const struct dj_token_node_input* input_of(const char* _text, size_t _length, const char* _path)
 {
-    static struct d_token_node_input in;
+    static struct dj_token_node_input in;
     in.source = source_of(_text, _length, _path);
     in.sink   = NULL;
     return &in;
@@ -62,9 +62,9 @@ int main(int argc, char** argv)
 {
     if (argc < 3) { fprintf(stderr, "usage: lint <sheet> <files...>\n"); return 2; }
     size_t sn = 0; char* st = slurp(argv[1], &sn);
-    struct d_dss_error err;
-    struct d_dss_sheet* sheet = d_dss_parse(st, sn, &err);
-    struct d_symbol_table* symbols = d_symbol_table_new();
+    struct dj_dss_error err;
+    struct dj_dss_sheet* sheet = d_dss_parse(st, sn, &err);
+    struct dj_symbol_table* symbols = d_symbol_table_new();
     if (sheet) (void)d_dss_bind(sheet, symbols);
     if (!sheet) { fprintf(stderr, "sheet did not parse\n"); return 2; }
 
@@ -82,8 +82,8 @@ int main(int argc, char** argv)
           int gen = strstr(text, "Auto-generated. Do not edit by hand.") != NULL;
           text[head] = c;
           if (gen) { ++generated; free(text); continue; } }
-        struct d_node_tree* tree = d_node_tree_new_shared(symbols);
-        struct d_token_node_stats stats;
+        struct dj_node_tree* tree = d_node_tree_new_shared(symbols);
+        struct dj_token_node_stats stats;
         uint32_t root = d_ext_cpp_accepts(argv[a])
             ? d_ext_cpp_build(tree, D_DSS_NO_INDEX, 0, input_of(text, n, argv[a]), &stats)
             : d_ext_c_build(tree, D_DSS_NO_INDEX, 0, input_of(text, n, argv[a]), &stats);
@@ -92,14 +92,14 @@ int main(int argc, char** argv)
 
         for (uint32_t node = 0; node < (uint32_t)d_node_count(tree); ++node) {
             for (size_t r = 0; r < rules; ++r) {
-                const struct d_dss_rule* rule = d_dss_rule_at(sheet, (uint32_t)r);
+                const struct dj_dss_rule* rule = d_dss_rule_at(sheet, (uint32_t)r);
                 if (!d_match_rule(sheet, tree, node, rule)) continue;
                 for (uint32_t d = 0; d < rule->declaration_count; ++d) {
-                    const struct d_dss_declaration* decl =
+                    const struct dj_dss_declaration* decl =
                         d_dss_declaration_at(sheet, rule->first_declaration + d);
                     const char* prop = d_dss_text(sheet, decl->property);
-                    const struct d_dss_value* v = d_dss_value_at(sheet, decl->first_value);
-                    struct d_node* nd = d_node_at(tree, node);
+                    const struct dj_dss_value* v = d_dss_value_at(sheet, decl->first_value);
+                    struct dj_node* nd = d_node_at(tree, node);
                     int finding = 0; char why[96] = "";
                     // the engine's evaluator decides, as it does for dcheck:
                     // a finding is a declaration that evaluated and failed

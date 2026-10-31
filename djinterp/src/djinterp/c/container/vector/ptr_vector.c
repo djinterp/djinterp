@@ -24,21 +24,19 @@ Parameter(s):
   _initial_capacity: the initial capacity in number of pointer elements
 Return:
   A pointer to either:
-  - a newly allocated `d_ptr_vector` structure, or
+  - a newly allocated `dj_ptr_vector` structure, or
   - NULL, if memory allocation failed.
 */
-struct d_ptr_vector*
-d_ptr_vector_new
-(
+struct dj_ptr_vector* d_ptr_vector_new(
     size_t _initial_capacity
 )
 {
-    struct d_ptr_vector* result;
+    struct dj_ptr_vector* result;
     void*                elements;
     size_t               count;
     size_t               capacity;
 
-    result = (struct d_ptr_vector*)malloc(sizeof(struct d_ptr_vector));
+    result = (struct dj_ptr_vector*)malloc(sizeof(struct dj_ptr_vector));
 
     if (!result)
     {
@@ -71,14 +69,10 @@ Parameter(s):
   none
 Return:
   A pointer to either:
-  - a newly allocated `d_ptr_vector` structure, or
+  - a newly allocated `dj_ptr_vector` structure, or
   - NULL, if memory allocation failed.
 */
-struct d_ptr_vector*
-d_ptr_vector_new_default
-(
-    void
-)
+struct dj_ptr_vector* d_ptr_vector_new_default(void)
 {
     return d_ptr_vector_new(D_VECTOR_DEFAULT_CAPACITY);
 }
@@ -92,18 +86,16 @@ Parameter(s):
   _count:  number of pointers in the source array
 Return:
   A pointer to either:
-  - a newly allocated `d_ptr_vector` structure containing copies of the source
+  - a newly allocated `dj_ptr_vector` structure containing copies of the source
     pointers, or
   - NULL, if memory allocation failed or parameters are invalid.
 */
-struct d_ptr_vector*
-d_ptr_vector_new_from_array
-(
+struct dj_ptr_vector* d_ptr_vector_new_from_array(
     const void** _source,
     size_t       _count
 )
 {
-    struct d_ptr_vector* result;
+    struct dj_ptr_vector* result;
     void*                elements;
     size_t               count;
     size_t               capacity;
@@ -114,7 +106,7 @@ d_ptr_vector_new_from_array
         return NULL;
     }
 
-    result = (struct d_ptr_vector*)malloc(sizeof(struct d_ptr_vector));
+    result = (struct dj_ptr_vector*)malloc(sizeof(struct dj_ptr_vector));
 
     if (!result)
     {
@@ -149,23 +141,21 @@ Parameter(s):
               arguments to initialize the vector with
 Return:
   A pointer to either:
-  - a newly allocated `d_ptr_vector` structure, or
+  - a newly allocated `dj_ptr_vector` structure, or
   - NULL, if memory allocation failed.
 */
-struct d_ptr_vector*
-d_ptr_vector_new_from_args
-(
+struct dj_ptr_vector* d_ptr_vector_new_from_args(
     size_t _arg_count,
     ...
 )
 {
-    struct d_ptr_vector* result;
+    struct dj_ptr_vector* result;
     void*                elements;
     size_t               count;
     size_t               capacity;
     va_list              args;
 
-    result = (struct d_ptr_vector*)malloc(sizeof(struct d_ptr_vector));
+    result = (struct dj_ptr_vector*)malloc(sizeof(struct dj_ptr_vector));
 
     if (!result)
     {
@@ -201,20 +191,18 @@ d_ptr_vector_new_copy
   Creates a new pointer vector as a shallow copy of an existing pointer vector.
 
 Parameter(s):
-  _other: pointer to the source `d_ptr_vector` to copy from
+  _other: pointer to the source `dj_ptr_vector` to copy from
 Return:
   A pointer to either:
-  - a newly allocated `d_ptr_vector` structure containing copies of the source
+  - a newly allocated `dj_ptr_vector` structure containing copies of the source
     pointers, or
   - NULL, if memory allocation failed or _other is NULL.
 */
-struct d_ptr_vector*
-d_ptr_vector_new_copy
-(
-    const struct d_ptr_vector* _other
+struct dj_ptr_vector* d_ptr_vector_new_copy(
+    const struct dj_ptr_vector* _other
 )
 {
-    struct d_ptr_vector* result;
+    struct dj_ptr_vector* result;
     void*                elements;
     size_t               count;
     size_t               capacity;
@@ -224,7 +212,7 @@ d_ptr_vector_new_copy
         return NULL;
     }
 
-    result = (struct d_ptr_vector*)malloc(sizeof(struct d_ptr_vector));
+    result = (struct dj_ptr_vector*)malloc(sizeof(struct dj_ptr_vector));
 
     if (!result)
     {
@@ -260,22 +248,20 @@ Parameter(s):
   _value: pointer value to fill the vector with
 Return:
   A pointer to either:
-  - a newly allocated `d_ptr_vector` structure, or
+  - a newly allocated `dj_ptr_vector` structure, or
   - NULL, if memory allocation failed.
 */
-struct d_ptr_vector*
-d_ptr_vector_new_fill
-(
+struct dj_ptr_vector* d_ptr_vector_new_fill(
     size_t _count,
     void*  _value
 )
 {
-    struct d_ptr_vector* result;
+    struct dj_ptr_vector* result;
     void*                elements;
     size_t               count;
     size_t               capacity;
 
-    result = (struct d_ptr_vector*)malloc(sizeof(struct d_ptr_vector));
+    result = (struct dj_ptr_vector*)malloc(sizeof(struct dj_ptr_vector));
 
     if (!result)
     {
@@ -306,23 +292,21 @@ d_ptr_vector_new_merge
   Creates a new pointer vector by merging multiple pointer vectors.
 
 Parameter(s):
-  _count: number of `d_ptr_vector` arguments that follow ...: variadic
-          `d_ptr_vector*` arguments to merge together
+  _count: number of `dj_ptr_vector` arguments that follow ...: variadic
+          `dj_ptr_vector*` arguments to merge together
 Return:
   A pointer to either:
-  - a newly allocated `d_ptr_vector` structure containing all pointers from all
+  - a newly allocated `dj_ptr_vector` structure containing all pointers from all
     input vectors in order, or
   - NULL, if memory allocation failed.
 */
-struct d_ptr_vector*
-d_ptr_vector_new_merge
-(
+struct dj_ptr_vector* d_ptr_vector_new_merge(
     size_t _count,
     ...
 )
 {
-    struct d_ptr_vector* result;
-    struct d_ptr_vector* current;
+    struct dj_ptr_vector* result;
+    struct dj_ptr_vector* current;
     va_list              args;
     size_t               total_count;
     size_t               i;
@@ -339,7 +323,7 @@ d_ptr_vector_new_merge
 
     for (i = 0; i < _count; i++)
     {
-        current = va_arg(args, struct d_ptr_vector*);
+        current = va_arg(args, struct dj_ptr_vector*);
 
         if (current)
         {
@@ -361,7 +345,7 @@ d_ptr_vector_new_merge
 
     for (i = 0; i < _count; i++)
     {
-        current = va_arg(args, struct d_ptr_vector*);
+        current = va_arg(args, struct dj_ptr_vector*);
 
         if ( (current)              &&
              (current->count > 0)   &&
@@ -394,18 +378,16 @@ d_ptr_vector_reserve
   Reserves storage for at least the specified number of pointers.
 
 Parameter(s):
-  _ptr_vector:   pointer to the `d_ptr_vector` to modify
+  _ptr_vector:   pointer to the `dj_ptr_vector` to modify
   _new_capacity: minimum capacity to reserve
 Return:
   A boolean value corresponding to either:
   - true, if reservation was successful, or
   - false, if reallocation failed or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_reserve
-(
-    struct d_ptr_vector* _ptr_vector,
-    size_t               _new_capacity
+bool d_ptr_vector_reserve(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _new_capacity
 )
 {
     void* elements;
@@ -436,16 +418,14 @@ d_ptr_vector_shrink_to_fit
   Reduces capacity to match the current count.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to shrink
+  _ptr_vector: pointer to the `dj_ptr_vector` to shrink
 Return:
   A boolean value corresponding to either:
   - true, if shrink was successful, or
   - false, if reallocation failed or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_shrink_to_fit
-(
-    struct d_ptr_vector* _ptr_vector
+bool d_ptr_vector_shrink_to_fit(
+    struct dj_ptr_vector* _ptr_vector
 )
 {
     void* elements;
@@ -475,18 +455,16 @@ d_ptr_vector_ensure_capacity
   Ensures the vector has at least the required capacity.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _required:   minimum capacity required
 Return:
   A boolean value corresponding to either:
   - true, if sufficient capacity exists or was allocated, or
   - false, if reallocation failed or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_ensure_capacity
-(
-    struct d_ptr_vector* _ptr_vector,
-    size_t               _required
+bool d_ptr_vector_ensure_capacity(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _required
 )
 {
     void* elements;
@@ -517,14 +495,12 @@ d_ptr_vector_available
   Returns the number of pointers that can be added without reallocation.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to query
+  _ptr_vector: pointer to the `dj_ptr_vector` to query
 Return:
   The number of available slots, or 0 if _ptr_vector is NULL.
 */
-size_t
-d_ptr_vector_available
-(
-    const struct d_ptr_vector* _ptr_vector
+size_t d_ptr_vector_available(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     if (!_ptr_vector)
@@ -545,18 +521,16 @@ d_ptr_vector_push_back
   Appends a pointer to the end of the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _value:      pointer value to append
 Return:
   A boolean value corresponding to either:
   - true, if the pointer was successfully appended, or
   - false, if reallocation failed or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_push_back
-(
-    struct d_ptr_vector* _ptr_vector,
-    void*                _value
+bool d_ptr_vector_push_back(
+    struct dj_ptr_vector* _ptr_vector,
+    void*                 _value
 )
 {
     void* elements;
@@ -587,18 +561,16 @@ d_ptr_vector_push_front
   Prepends a pointer to the beginning of the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _value:      pointer value to prepend
 Return:
   A boolean value corresponding to either:
   - true, if the pointer was successfully prepended, or
   - false, if reallocation failed or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_push_front
-(
-    struct d_ptr_vector* _ptr_vector,
-    void*                _value
+bool d_ptr_vector_push_front(
+    struct dj_ptr_vector* _ptr_vector,
+    void*                 _value
 )
 {
     void* elements;
@@ -629,14 +601,12 @@ d_ptr_vector_pop_back
   Removes and returns the last pointer from the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
 Return:
   The removed pointer value, or NULL if the vector is empty or NULL.
 */
-void*
-d_ptr_vector_pop_back
-(
-    struct d_ptr_vector* _ptr_vector
+void* d_ptr_vector_pop_back(
+    struct dj_ptr_vector* _ptr_vector
 )
 {
     void* result;
@@ -665,14 +635,12 @@ d_ptr_vector_pop_front
   Removes and returns the first pointer from the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
 Return:
   The removed pointer value, or NULL if the vector is empty or NULL.
 */
-void*
-d_ptr_vector_pop_front
-(
-    struct d_ptr_vector* _ptr_vector
+void* d_ptr_vector_pop_front(
+    struct dj_ptr_vector* _ptr_vector
 )
 {
     void* result;
@@ -701,7 +669,7 @@ d_ptr_vector_insert
   Inserts a pointer at the specified index.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _index:      index where to insert (supports negative indexing)
   _value:      pointer value to insert
 Return:
@@ -709,12 +677,10 @@ Return:
   - true, if the pointer was successfully inserted, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_ptr_vector_insert
-(
-    struct d_ptr_vector* _ptr_vector,
-    d_index              _index,
-    void*                _value
+bool d_ptr_vector_insert(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index,
+    void*                 _value
 )
 {
     void* elements;
@@ -746,7 +712,7 @@ d_ptr_vector_insert_range
   Inserts multiple pointers at the specified index.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _index:      index where to insert (supports negative indexing)
   _source:     pointer to array of pointers to insert
   _count:      number of pointers to insert
@@ -755,13 +721,11 @@ Return:
   - true, if the pointers were successfully inserted, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_ptr_vector_insert_range
-(
-    struct d_ptr_vector* _ptr_vector,
-    d_index              _index,
-    const void**         _source,
-    size_t               _count
+bool d_ptr_vector_insert_range(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index,
+    const void**          _source,
+    size_t                _count
 )
 {
     void* elements;
@@ -794,18 +758,16 @@ d_ptr_vector_erase
   Removes the pointer at the specified index without returning it.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _index:      index of pointer to remove (supports negative indexing)
 Return:
   A boolean value corresponding to either:
   - true, if the pointer was successfully removed, or
   - false, if index is invalid or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_erase
-(
-    struct d_ptr_vector* _ptr_vector,
-    d_index              _index
+bool d_ptr_vector_erase(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index
 )
 {
     if (!_ptr_vector)
@@ -824,7 +786,7 @@ d_ptr_vector_erase_range
   Removes pointers in the specified index range [_start, _end].
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _start:      starting index (supports negative indexing)
   _end:        ending index, inclusive (supports negative indexing)
 Return:
@@ -832,12 +794,10 @@ Return:
   - true, if the pointers were successfully removed, or
   - false, if indices are invalid or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_erase_range
-(
-    struct d_ptr_vector* _ptr_vector,
-    d_index              _start,
-    d_index              _end
+bool d_ptr_vector_erase_range(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _start,
+    dj_index              _end
 )
 {
     if (!_ptr_vector)
@@ -857,16 +817,14 @@ d_ptr_vector_remove
   Removes and returns the pointer at the specified index.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _index:      index of pointer to remove (supports negative indexing)
 Return:
   The removed pointer value, or NULL if index is invalid or _ptr_vector is NULL.
 */
-void*
-d_ptr_vector_remove
-(
-    struct d_ptr_vector* _ptr_vector,
-    d_index              _index
+void* d_ptr_vector_remove(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index
 )
 {
     size_t actual_idx;
@@ -891,7 +849,7 @@ d_ptr_vector_remove
     if (!d_vector_common_erase(_ptr_vector->elements,
                                &_ptr_vector->count,
                                sizeof(void*),
-                               (d_index)actual_idx))
+                               (dj_index)actual_idx))
     {
         return NULL;
     }
@@ -904,14 +862,12 @@ d_ptr_vector_clear
   Removes all pointers from the vector without deallocating storage.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to clear
+  _ptr_vector: pointer to the `dj_ptr_vector` to clear
 Return:
   none.
 */
-void
-d_ptr_vector_clear
-(
-    struct d_ptr_vector* _ptr_vector
+void d_ptr_vector_clear(
+    struct dj_ptr_vector* _ptr_vector
 )
 {
     if (_ptr_vector)
@@ -932,7 +888,7 @@ d_ptr_vector_append
   Appends multiple pointers to the end of the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _source:     pointer to array of pointers to append
   _count:      number of pointers to append
 Return:
@@ -940,12 +896,10 @@ Return:
   - true, if the pointers were successfully appended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_ptr_vector_append
-(
-    struct d_ptr_vector* _ptr_vector,
-    const void**         _source,
-    size_t               _count
+bool d_ptr_vector_append(
+    struct dj_ptr_vector* _ptr_vector,
+    const void**          _source,
+    size_t                _count
 )
 {
     void* elements;
@@ -977,18 +931,16 @@ d_ptr_vector_append_vector
   Appends all pointers from a source vector to the destination vector.
 
 Parameter(s):
-  _destination: pointer to the destination `d_ptr_vector`
-  _source:      pointer to the source `d_ptr_vector` to append from
+  _destination: pointer to the destination `dj_ptr_vector`
+  _source:      pointer to the source `dj_ptr_vector` to append from
 Return:
   A boolean value corresponding to either:
   - true, if all pointers were successfully appended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_ptr_vector_append_vector
-(
-    struct d_ptr_vector*       _destination,
-    const struct d_ptr_vector* _source
+bool d_ptr_vector_append_vector(
+    struct dj_ptr_vector*       _destination,
+    const struct dj_ptr_vector* _source
 )
 {
     if ( (!_destination) ||
@@ -1007,7 +959,7 @@ d_ptr_vector_prepend
   Prepends multiple pointers to the beginning of the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _source:     pointer to array of pointers to prepend
   _count:      number of pointers to prepend
 Return:
@@ -1015,12 +967,10 @@ Return:
   - true, if the pointers were successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_ptr_vector_prepend
-(
-    struct d_ptr_vector* _ptr_vector,
-    const void**         _source,
-    size_t               _count
+bool d_ptr_vector_prepend(
+    struct dj_ptr_vector* _ptr_vector,
+    const void**          _source,
+    size_t                _count
 )
 {
     void* elements;
@@ -1052,18 +1002,16 @@ d_ptr_vector_prepend_vector
   Prepends all pointers from a source vector to the destination vector.
 
 Parameter(s):
-  _destination: pointer to the destination `d_ptr_vector`
-  _source:      pointer to the source `d_ptr_vector` to prepend from
+  _destination: pointer to the destination `dj_ptr_vector`
+  _source:      pointer to the source `dj_ptr_vector` to prepend from
 Return:
   A boolean value corresponding to either:
   - true, if all pointers were successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_ptr_vector_prepend_vector
-(
-    struct d_ptr_vector*       _destination,
-    const struct d_ptr_vector* _source
+bool d_ptr_vector_prepend_vector(
+    struct dj_ptr_vector*       _destination,
+    const struct dj_ptr_vector* _source
 )
 {
     if ( (!_destination) ||
@@ -1088,18 +1036,16 @@ d_ptr_vector_resize
 initialized to NULL.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to resize
+  _ptr_vector: pointer to the `dj_ptr_vector` to resize
   _new_count:  new number of pointers
 Return:
   A boolean value corresponding to either:
   - true, if resize was successful, or
   - false, if reallocation failed or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_resize
-(
-    struct d_ptr_vector* _ptr_vector,
-    size_t               _new_count
+bool d_ptr_vector_resize(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _new_count
 )
 {
     void* elements;
@@ -1131,7 +1077,7 @@ d_ptr_vector_resize_fill
 initialized to the specified fill value.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to resize
+  _ptr_vector: pointer to the `dj_ptr_vector` to resize
   _new_count:  new number of pointers
   _fill_value: pointer value to fill new slots with
 Return:
@@ -1139,12 +1085,10 @@ Return:
   - true, if resize was successful, or
   - false, if reallocation failed or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_resize_fill
-(
-    struct d_ptr_vector* _ptr_vector,
-    size_t               _new_count,
-    void*                _fill_value
+bool d_ptr_vector_resize_fill(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _new_count,
+    void*                 _fill_value
 )
 {
     void* elements;
@@ -1181,16 +1125,14 @@ d_ptr_vector_at
   Returns the pointer at the specified index.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to access
+  _ptr_vector: pointer to the `dj_ptr_vector` to access
   _index:      index of pointer to retrieve (supports negative indexing)
 Return:
   The pointer at the specified index, or NULL if index is invalid.
 */
-void*
-d_ptr_vector_at
-(
-    const struct d_ptr_vector* _ptr_vector,
-    d_index                    _index
+void* d_ptr_vector_at(
+    const struct dj_ptr_vector* _ptr_vector,
+    dj_index                    _index
 )
 {
     size_t actual_idx;
@@ -1214,14 +1156,12 @@ d_ptr_vector_front
   Returns the first pointer in the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to access
+  _ptr_vector: pointer to the `dj_ptr_vector` to access
 Return:
   The first pointer, or NULL if the vector is empty or NULL.
 */
-void*
-d_ptr_vector_front
-(
-    const struct d_ptr_vector* _ptr_vector
+void* d_ptr_vector_front(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     if ( (!_ptr_vector) ||
@@ -1238,14 +1178,12 @@ d_ptr_vector_back
   Returns the last pointer in the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to access
+  _ptr_vector: pointer to the `dj_ptr_vector` to access
 Return:
   The last pointer, or NULL if the vector is empty or NULL.
 */
-void*
-d_ptr_vector_back
-(
-    const struct d_ptr_vector* _ptr_vector
+void* d_ptr_vector_back(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     if ( (!_ptr_vector) ||
@@ -1262,14 +1200,12 @@ d_ptr_vector_data
   Returns a pointer to the underlying array of pointers.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to access
+  _ptr_vector: pointer to the `dj_ptr_vector` to access
 Return:
   Pointer to the underlying void** array, or NULL if _ptr_vector is NULL.
 */
-void**
-d_ptr_vector_data
-(
-    const struct d_ptr_vector* _ptr_vector
+void** d_ptr_vector_data(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     return _ptr_vector ? _ptr_vector->elements :
@@ -1281,16 +1217,14 @@ d_ptr_vector_get
   Returns the pointer at the specified index (alias for d_ptr_vector_at).
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to access
+  _ptr_vector: pointer to the `dj_ptr_vector` to access
   _index:      index of pointer to retrieve (supports negative indexing)
 Return:
   The pointer at the specified index, or NULL if index is invalid.
 */
-void*
-d_ptr_vector_get
-(
-    const struct d_ptr_vector* _ptr_vector,
-    d_index                    _index
+void* d_ptr_vector_get(
+    const struct dj_ptr_vector* _ptr_vector,
+    dj_index                    _index
 )
 {
     return d_ptr_vector_at(_ptr_vector, _index);
@@ -1301,7 +1235,7 @@ d_ptr_vector_set
   Sets the pointer at the specified index to a new value.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _index:      index of pointer to set (supports negative indexing)
   _value:      new pointer value to assign
 Return:
@@ -1309,12 +1243,10 @@ Return:
   - true, if the pointer was successfully set, or
   - false, if index is invalid or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_set
-(
-    struct d_ptr_vector* _ptr_vector,
-    d_index              _index,
-    void*                _value
+bool d_ptr_vector_set(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index,
+    void*                 _value
 )
 {
     size_t actual_idx;
@@ -1345,16 +1277,14 @@ d_ptr_vector_is_empty
   Checks if the vector contains no pointers.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to query
+  _ptr_vector: pointer to the `dj_ptr_vector` to query
 Return:
   A boolean value corresponding to either:
   - true, if the vector is empty or NULL, or
   - false, if the vector contains pointers.
 */
-bool
-d_ptr_vector_is_empty
-(
-    const struct d_ptr_vector* _ptr_vector
+bool d_ptr_vector_is_empty(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     return (!_ptr_vector) || (_ptr_vector->count == 0);
@@ -1365,16 +1295,14 @@ d_ptr_vector_is_full
   Checks if the vector's count equals its capacity.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to query
+  _ptr_vector: pointer to the `dj_ptr_vector` to query
 Return:
   A boolean value corresponding to either:
   - true, if count equals capacity, or
   - false, if there is available capacity or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_is_full
-(
-    const struct d_ptr_vector* _ptr_vector
+bool d_ptr_vector_is_full(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     if (!_ptr_vector)
@@ -1390,14 +1318,12 @@ d_ptr_vector_size
   Returns the number of pointers in the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to query
+  _ptr_vector: pointer to the `dj_ptr_vector` to query
 Return:
   The number of pointers, or 0 if _ptr_vector is NULL.
 */
-size_t
-d_ptr_vector_size
-(
-    const struct d_ptr_vector* _ptr_vector
+size_t d_ptr_vector_size(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     return _ptr_vector ? _ptr_vector->count : 0;
@@ -1408,14 +1334,12 @@ d_ptr_vector_capacity
   Returns the current capacity of the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to query
+  _ptr_vector: pointer to the `dj_ptr_vector` to query
 Return:
   The current capacity, or 0 if _ptr_vector is NULL.
 */
-size_t
-d_ptr_vector_capacity
-(
-    const struct d_ptr_vector* _ptr_vector
+size_t d_ptr_vector_capacity(
+    const struct dj_ptr_vector* _ptr_vector
 )
 {
     return _ptr_vector ? _ptr_vector->capacity : 0;
@@ -1431,18 +1355,16 @@ d_ptr_vector_find
   Finds the first occurrence of a value using a comparator function.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to search
+  _ptr_vector: pointer to the `dj_ptr_vector` to search
   _value:      pointer to value to search for
   _comparator: function to compare pointed-to values
 Return:
   Index of first occurrence, or -1 if not found or parameters are invalid.
 */
-ssize_t
-d_ptr_vector_find
-(
-    const struct d_ptr_vector* _ptr_vector,
-    const void*                _value,
-    fn_comparator              _comparator
+ssize_t d_ptr_vector_find(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
 )
 {
     size_t i;
@@ -1469,18 +1391,16 @@ d_ptr_vector_find_last
   Finds the last occurrence of a value using a comparator function.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to search
+  _ptr_vector: pointer to the `dj_ptr_vector` to search
   _value:      pointer to value to search for
   _comparator: function to compare pointed-to values
 Return:
   Index of last occurrence, or -1 if not found or parameters are invalid.
 */
-ssize_t
-d_ptr_vector_find_last
-(
-    const struct d_ptr_vector* _ptr_vector,
-    const void*                _value,
-    fn_comparator              _comparator
+ssize_t d_ptr_vector_find_last(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
 )
 {
     size_t i;
@@ -1508,16 +1428,14 @@ d_ptr_vector_find_ptr
   Finds the first occurrence of a specific pointer by identity (address).
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to search
+  _ptr_vector: pointer to the `dj_ptr_vector` to search
   _ptr:        pointer to search for (by identity)
 Return:
   Index of first occurrence, or -1 if not found or _ptr_vector is NULL.
 */
-ssize_t
-d_ptr_vector_find_ptr
-(
-    const struct d_ptr_vector* _ptr_vector,
-    const void*                _ptr
+ssize_t d_ptr_vector_find_ptr(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _ptr
 )
 {
     size_t i;
@@ -1543,7 +1461,7 @@ d_ptr_vector_contains
   Checks if the vector contains a value using a comparator function.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to search
+  _ptr_vector: pointer to the `dj_ptr_vector` to search
   _value:      pointer to value to search for
   _comparator: function to compare pointed-to values
 Return:
@@ -1551,12 +1469,10 @@ Return:
   - true, if the value was found, or
   - false, if the value was not found or parameters are invalid.
 */
-bool
-d_ptr_vector_contains
-(
-    const struct d_ptr_vector* _ptr_vector,
-    const void*                _value,
-    fn_comparator              _comparator
+bool d_ptr_vector_contains(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
 )
 {
     return (d_ptr_vector_find(_ptr_vector, _value, _comparator) != -1);
@@ -1567,18 +1483,16 @@ d_ptr_vector_contains_ptr
   Checks if the vector contains a specific pointer by identity (address).
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to search
+  _ptr_vector: pointer to the `dj_ptr_vector` to search
   _ptr:        pointer to search for (by identity)
 Return:
   A boolean value corresponding to either:
   - true, if the pointer was found, or
   - false, if the pointer was not found or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_contains_ptr
-(
-    const struct d_ptr_vector* _ptr_vector,
-    const void*                _ptr
+bool d_ptr_vector_contains_ptr(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _ptr
 )
 {
     return (d_ptr_vector_find_ptr(_ptr_vector, _ptr) != -1);
@@ -1589,18 +1503,16 @@ d_ptr_vector_count_value
   Counts occurrences of a value using a comparator function.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to search
+  _ptr_vector: pointer to the `dj_ptr_vector` to search
   _value:      pointer to value to count
   _comparator: function to compare pointed-to values
 Return:
   Number of occurrences, or 0 if not found or parameters are invalid.
 */
-size_t
-d_ptr_vector_count_value
-(
-    const struct d_ptr_vector* _ptr_vector,
-    const void*                _value,
-    fn_comparator              _comparator
+size_t d_ptr_vector_count_value(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
 )
 {
     size_t i;
@@ -1635,7 +1547,7 @@ d_ptr_vector_swap
   Swaps two pointers in the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to modify
+  _ptr_vector: pointer to the `dj_ptr_vector` to modify
   _index_a:    index of first pointer (supports negative indexing)
   _index_b:    index of second pointer (supports negative indexing)
 Return:
@@ -1643,12 +1555,10 @@ Return:
   - true, if swap was successful, or
   - false, if indices are invalid or _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_swap
-(
-    struct d_ptr_vector* _ptr_vector,
-    d_index              _index_a,
-    d_index              _index_b
+bool d_ptr_vector_swap(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index_a,
+    dj_index              _index_b
 )
 {
     size_t idx_a;
@@ -1685,16 +1595,14 @@ d_ptr_vector_reverse
   Reverses the order of pointers in the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to reverse
+  _ptr_vector: pointer to the `dj_ptr_vector` to reverse
 Return:
   A boolean value corresponding to either:
   - true, if reverse was successful, or
   - false, if _ptr_vector is NULL.
 */
-bool
-d_ptr_vector_reverse
-(
-    struct d_ptr_vector* _ptr_vector
+bool d_ptr_vector_reverse(
+    struct dj_ptr_vector* _ptr_vector
 )
 {
     if (!_ptr_vector)
@@ -1712,16 +1620,14 @@ d_ptr_vector_sort
   Sorts the pointers in the vector using the provided comparator.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to sort
+  _ptr_vector: pointer to the `dj_ptr_vector` to sort
   _comparator: function to compare pointed-to values
 Return:
   none.
 */
-void
-d_ptr_vector_sort
-(
-    struct d_ptr_vector* _ptr_vector,
-    fn_comparator        _comparator
+void d_ptr_vector_sort(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_comparator         _comparator
 )
 {
     if ( (!_ptr_vector) ||
@@ -1743,7 +1649,7 @@ d_ptr_vector_copy_to
   Copies the vector's pointers to a destination buffer.
 
 Parameter(s):
-  _ptr_vector:    pointer to the source `d_ptr_vector`
+  _ptr_vector:    pointer to the source `dj_ptr_vector`
   _destination:   pointer to destination buffer
   _dest_capacity: capacity of destination buffer (in pointers)
 Return:
@@ -1751,12 +1657,10 @@ Return:
   - true, if copy was successful, or
   - false, if destination is too small or parameters are invalid.
 */
-bool
-d_ptr_vector_copy_to
-(
-    const struct d_ptr_vector* _ptr_vector,
-    void**                     _destination,
-    size_t                     _dest_capacity
+bool d_ptr_vector_copy_to(
+    const struct dj_ptr_vector* _ptr_vector,
+    void**                      _destination,
+    size_t                      _dest_capacity
 )
 {
     if ( (!_ptr_vector)  ||
@@ -1782,16 +1686,14 @@ d_ptr_vector_foreach
   Applies a function to each pointer in the vector.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to iterate
+  _ptr_vector: pointer to the `dj_ptr_vector` to iterate
   _apply_fn:   function to apply to each pointer
 Return:
   none.
 */
-void
-d_ptr_vector_foreach
-(
-    struct d_ptr_vector* _ptr_vector,
-    fn_apply             _apply_fn
+void d_ptr_vector_foreach(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_apply              _apply_fn
 )
 {
     size_t i;
@@ -1821,14 +1723,12 @@ d_ptr_vector_free
 pointed-to objects.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to deallocate
+  _ptr_vector: pointer to the `dj_ptr_vector` to deallocate
 Return:
   none.
 */
-void
-d_ptr_vector_free
-(
-    struct d_ptr_vector* _ptr_vector
+void d_ptr_vector_free(
+    struct dj_ptr_vector* _ptr_vector
 )
 {
     if (_ptr_vector)
@@ -1850,16 +1750,14 @@ d_ptr_vector_free_deep
 objects using the provided free function.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to deallocate
+  _ptr_vector: pointer to the `dj_ptr_vector` to deallocate
   _free_fn:    function to use for freeing each pointed-to object
 Return:
   none.
 */
-void
-d_ptr_vector_free_deep
-(
-    struct d_ptr_vector* _ptr_vector,
-    fn_free              _free_fn
+void d_ptr_vector_free_deep(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_free               _free_fn
 )
 {
     size_t i;
@@ -1892,16 +1790,14 @@ d_ptr_vector_clear_deep
 function. The vector itself remains valid and can be reused.
 
 Parameter(s):
-  _ptr_vector: pointer to the `d_ptr_vector` to clear
+  _ptr_vector: pointer to the `dj_ptr_vector` to clear
   _free_fn:    function to use for freeing each pointed-to object
 Return:
   none.
 */
-void
-d_ptr_vector_clear_deep
-(
-    struct d_ptr_vector* _ptr_vector,
-    fn_free              _free_fn
+void d_ptr_vector_clear_deep(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_free               _free_fn
 )
 {
     size_t i;

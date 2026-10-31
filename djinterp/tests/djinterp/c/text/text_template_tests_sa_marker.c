@@ -33,15 +33,11 @@ d_tests_sa_text_template_set_markers
   - repeated set_markers replaces old markers
   - existing bindings survive marker change
 */
-struct d_test_object*
-d_tests_sa_text_template_set_markers
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_set_markers(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     const char*                 pfx;
     const char*                 sfx;
     bool                        test_success;
@@ -277,14 +273,10 @@ d_tests_sa_text_template_get_prefix
   - returns updated prefix after set_markers
   - returns NULL for NULL template
 */
-struct d_test_object*
-d_tests_sa_text_template_get_prefix
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_get_prefix(void)
 {
-    struct d_test_object*   group;
-    struct d_text_template* tmpl;
+    struct dj_test_object*   group;
+    struct dj_text_template* tmpl;
     const char*             pfx;
     bool                    test_default;
     bool                    test_after_set;
@@ -353,14 +345,10 @@ d_tests_sa_text_template_get_suffix
   - returns updated suffix after set_markers
   - returns NULL for NULL template
 */
-struct d_test_object*
-d_tests_sa_text_template_get_suffix
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_get_suffix(void)
 {
-    struct d_test_object*   group;
-    struct d_text_template* tmpl;
+    struct dj_test_object*   group;
+    struct dj_text_template* tmpl;
     const char*             sfx;
     bool                    test_default;
     bool                    test_after_set;
@@ -429,13 +417,9 @@ d_tests_sa_text_template_marker_all
   - d_text_template_get_prefix
   - d_text_template_get_suffix
 */
-struct d_test_object*
-d_tests_sa_text_template_marker_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_marker_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Marker Configuration", 3);

@@ -624,7 +624,7 @@ TABLE OF CONTENTS
 // 5.1.1.1
 // D_ENV_PDF_BACKEND_NONE
 //   constant: identifies no third-party generation library, meaning the
-// framework's built-in backend (builtin_pdf_backend).
+// framework's built-in backend (DBuiltinPdfBackend).
 #define D_ENV_PDF_BACKEND_NONE      0
 
 // 5.1.1.2

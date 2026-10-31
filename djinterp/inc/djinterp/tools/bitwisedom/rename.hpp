@@ -27,8 +27,8 @@ TABLE OF CONTENTS
     2.  rename_row
 */
 
-#ifndef BITWISEDOM_RENAME_HPP
-#define BITWISEDOM_RENAME_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_RENAME_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_RENAME_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -38,7 +38,7 @@ TABLE OF CONTENTS
 #include <string>  // std::string
 #include <vector>  // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./sheet.hpp"  // sheet
 
@@ -80,9 +80,11 @@ struct renamed
  * @param[in]     _name   its new name, its own: without the affixes.
  * @return what was done, or why nothing was.
  */
-renamed rename_row(sheet&             _sheet,
-                   int                _id,
-                   const std::string& _name);
+renamed rename_row(
+    sheet&             _sheet,
+    int                _id,
+    const std::string& _name
+);
 
 
 }  // namespace bitwisedom
@@ -90,4 +92,4 @@ renamed rename_row(sheet&             _sheet,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_RENAME_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_RENAME_HPP

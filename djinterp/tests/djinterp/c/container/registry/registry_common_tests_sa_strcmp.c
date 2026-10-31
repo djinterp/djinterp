@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,10 +19,8 @@ d_tests_sa_registry_strcmp_equal_strings
   - case-sensitive comparison of identical strings returns 0
   - case-insensitive comparison of identical strings returns 0
 */
-bool
-d_tests_sa_registry_strcmp_equal_strings
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_equal_strings(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -58,10 +56,8 @@ d_tests_sa_registry_strcmp_less_than
   - case-sensitive: "abc" < "abcd" returns negative
   - case-insensitive: "abc" < "abd" returns negative
 */
-bool
-d_tests_sa_registry_strcmp_less_than
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_less_than(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -105,10 +101,8 @@ d_tests_sa_registry_strcmp_greater_than
   - case-sensitive: "abcd" > "abc" returns positive
   - case-insensitive: "ABD" > "abc" returns positive
 */
-bool
-d_tests_sa_registry_strcmp_greater_than
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_greater_than(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -151,10 +145,8 @@ d_tests_sa_registry_strcmp_both_null
   - NULL == NULL should return 0 (case-sensitive)
   - NULL == NULL should return 0 (case-insensitive)
 */
-bool
-d_tests_sa_registry_strcmp_both_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_both_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -189,10 +181,8 @@ d_tests_sa_registry_strcmp_first_null
   - NULL < non-NULL should return negative (case-sensitive)
   - NULL < non-NULL should return negative (case-insensitive)
 */
-bool
-d_tests_sa_registry_strcmp_first_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_first_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -227,10 +217,8 @@ d_tests_sa_registry_strcmp_second_null
   - non-NULL > NULL should return positive (case-sensitive)
   - non-NULL > NULL should return positive (case-insensitive)
 */
-bool
-d_tests_sa_registry_strcmp_second_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_second_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -266,10 +254,8 @@ d_tests_sa_registry_strcmp_case_sensitive_diff
   - "ABC" != "abc" in case-sensitive mode
   - uppercase < lowercase in ASCII ordering
 */
-bool
-d_tests_sa_registry_strcmp_case_sensitive_diff
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_case_sensitive_diff(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -312,10 +298,8 @@ d_tests_sa_registry_strcmp_case_insensitive_equal
   - "ABC" == "abc" in case-insensitive mode
   - "HeLLo WoRLd" == "hello world" in case-insensitive mode
 */
-bool
-d_tests_sa_registry_strcmp_case_insensitive_equal
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_case_insensitive_equal(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -366,10 +350,8 @@ d_tests_sa_registry_strcmp_case_insensitive_diff
   - "Hello" != "World" in case-insensitive mode
   - "APPLE" < "BANANA" in case-insensitive mode
 */
-bool
-d_tests_sa_registry_strcmp_case_insensitive_diff
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_case_insensitive_diff(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -412,10 +394,8 @@ d_tests_sa_registry_strcmp_empty_strings
   - "" == "" returns 0 (case-sensitive)
   - "" == "" returns 0 (case-insensitive)
 */
-bool
-d_tests_sa_registry_strcmp_empty_strings
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_empty_strings(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -450,10 +430,8 @@ d_tests_sa_registry_strcmp_empty_vs_nonempty
   - "" < "hello" returns negative
   - "hello" > "" returns positive
 */
-bool
-d_tests_sa_registry_strcmp_empty_vs_nonempty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_empty_vs_nonempty(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -505,10 +483,8 @@ d_tests_sa_registry_strcmp_prefix_strings
   - "testing" > "test" (longer is greater)
   - case-insensitive prefix comparison
 */
-bool
-d_tests_sa_registry_strcmp_prefix_strings
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_prefix_strings(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -561,10 +537,8 @@ d_tests_sa_registry_strcmp_special_chars
   - strings with dots
   - strings with mixed special characters
 */
-bool
-d_tests_sa_registry_strcmp_special_chars
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_special_chars(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -624,10 +598,8 @@ d_tests_sa_registry_strcmp_numeric_chars
   - numeric ordering
   - mixed alphanumeric strings
 */
-bool
-d_tests_sa_registry_strcmp_numeric_chars
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_numeric_chars(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -683,10 +655,8 @@ d_tests_sa_registry_strcmp_numeric_chars
 d_tests_sa_registry_strcmp_all
   Aggregation function that runs all d_registry_strcmp tests.
 */
-bool
-d_tests_sa_registry_strcmp_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

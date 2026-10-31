@@ -28,14 +28,10 @@ d_tests_sa_dstring_tokenize
   - NULL string handling
   - NULL delimiters handling
 */
-struct d_test_object*
-d_tests_sa_dstring_tokenize
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_tokenize(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char*                 token;
     char*                 saveptr;
     size_t                idx;
@@ -223,7 +219,7 @@ d_tests_sa_dstring_tokenize
 /*
 d_tests_sa_dstring_split
   Tests d_string_split function (returns count, outputs array via pointer).
-  Signature: size_t d_string_split(const d_string* _str, const char* _delim, d_string*** _tokens)
+  Signature: size_t d_string_split(const dj_string* _str, const char* _delim, dj_string*** _tokens)
   Tests the following:
   - splitting string by single character delimiter
   - splitting string by multi-character delimiter
@@ -233,15 +229,11 @@ d_tests_sa_dstring_split
   - NULL string handling
   - NULL delimiter handling
 */
-struct d_test_object*
-d_tests_sa_dstring_split
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_split(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string**     parts;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string**     parts;
     size_t                count;
     size_t                idx;
 
@@ -427,15 +419,11 @@ d_tests_sa_dstring_split_free
   - NULL array handling with non-zero count
   - NULL array handling with zero count
 */
-struct d_test_object*
-d_tests_sa_dstring_split_free
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_split_free(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string**     parts;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string**     parts;
     size_t                count;
     size_t                idx;
 
@@ -546,13 +534,9 @@ d_tests_sa_dstring_token_all
   - split function (returns array)
   - split_free function (cleanup)
 */
-struct d_test_object*
-d_tests_sa_dstring_token_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_token_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Tokenization Functions", 3);

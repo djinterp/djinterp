@@ -52,7 +52,9 @@ D_EXTERN_C_BEGIN
  * @param[in] _path  the path to remove.
  * @return 0, or -1 on failure with errno set.
  */
-int d_file_remove(const char* _path);
+int d_file_remove(
+    const char* _path
+);
 /**
  * @brief Removes a name from the filesystem, refusing directories.
  *
@@ -67,7 +69,9 @@ int d_file_remove(const char* _path);
  * @param[in] _path  the path to unlink.
  * @return 0, or -1 on failure with errno set.
  */
-int d_file_unlink(const char* _path);
+int d_file_unlink(
+    const char* _path
+);
 
 // 1.2    Movement
 //------------------------------------------------------------------------------
@@ -92,9 +96,11 @@ int d_file_unlink(const char* _path);
  *                        does, so every caller must say which it wants.
  * @return 0, or -1 on failure with errno set.
  */
-int d_file_rename(const char* _old,
-                  const char* _new,
-                  int         _overwrite);
+int d_file_rename(
+    const char* _old,
+    const char* _new,
+    int         _overwrite
+);
 
 // 1.3    Duplication
 //------------------------------------------------------------------------------
@@ -122,8 +128,10 @@ int d_file_rename(const char* _old,
  *         a regular file or is the destination itself under another name,
  *         which is left untouched; ENOSYS on the ISO C backend.
  */
-int d_file_copy(const char* _src,
-                const char* _dst);
+int d_file_copy(
+    const char* _src,
+    const char* _dst
+);
 
 
 D_EXTERN_C_END

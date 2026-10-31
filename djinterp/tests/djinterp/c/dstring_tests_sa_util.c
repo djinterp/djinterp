@@ -27,14 +27,10 @@ d_tests_sa_dstring_is_valid
   - empty string is valid
   - NULL string returns false
 */
-struct d_test_object*
-d_tests_sa_dstring_is_valid
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_is_valid(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -108,14 +104,10 @@ d_tests_sa_dstring_is_ascii
   - empty string returns true
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_is_ascii
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_is_ascii(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -211,14 +203,10 @@ d_tests_sa_dstring_is_numeric
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_is_numeric
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_is_numeric(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -336,14 +324,10 @@ d_tests_sa_dstring_is_alpha
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_is_alpha
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_is_alpha(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -482,14 +466,10 @@ d_tests_sa_dstring_is_alnum
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_is_alnum
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_is_alnum(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -628,14 +608,10 @@ d_tests_sa_dstring_is_whitespace
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_is_whitespace
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_is_whitespace(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -778,14 +754,10 @@ d_tests_sa_dstring_count_char
   - counting in empty string
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_count_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_count_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                result;
     size_t                idx;
 
@@ -904,14 +876,10 @@ d_tests_sa_dstring_count_substr
   - NULL string handling
   - NULL substring handling
 */
-struct d_test_object*
-d_tests_sa_dstring_count_substr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_count_substr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                result;
     size_t                idx;
 
@@ -1063,15 +1031,11 @@ d_tests_sa_dstring_hash
   - empty string produces valid hash
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_hash
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_hash(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str1;
-    struct d_string*      str2;
+    struct dj_test_object* group;
+    struct dj_string*      str1;
+    struct dj_string*      str2;
     size_t                hash1;
     size_t                hash2;
     size_t                idx;
@@ -1184,13 +1148,9 @@ d_tests_sa_dstring_util_all
   - counting functions (count_char, count_substr)
   - hashing function (hash)
 */
-struct d_test_object*
-d_tests_sa_dstring_util_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_util_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Utility Functions", 9);

@@ -165,7 +165,7 @@ TABLE OF CONTENTS
 #endif
 
 // djinterp
-#include "../../../core/env/db/mariadb/cfg_env_mariadb.h"  // env's knobs
+#include "../../../env/db/mariadb/cfg_env_mariadb.h"  // env's knobs
 
 
 //==============================================================================

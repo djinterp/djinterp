@@ -28,9 +28,9 @@
 #include <stddef.h>   // size_t
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
-#include "./dschema.h"  // d_schema
-#include "./dss.h"    // d_dss_sheet, d_dss_declaration
+#include "./dnode.h"  // dj_node_tree
+#include "./dschema.h"  // dj_schema
+#include "./dss.h"    // dj_dss_sheet, dj_dss_declaration
 
 
 //==============================================================================
@@ -40,39 +40,49 @@
 
 // 1.1    Evaluation
 //------------------------------------------------------------------------------
-bool d_property_evaluate(const struct d_dss_sheet*       _sheet,
-                         struct d_node_tree*             _tree,
-                         uint32_t                        _node,
-                         const struct d_dss_declaration* _declaration,
-                         bool*                           _out_evaluated);
+bool d_property_evaluate(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    bool*                            _out_evaluated
+);
 
 // 1.2    Derivation
 //------------------------------------------------------------------------------
-bool d_property_derive(const struct d_dss_sheet*       _sheet,
-                       struct d_node_tree*             _tree,
-                       uint32_t                        _node,
-                       const struct d_dss_declaration* _declaration,
-                       char*                           _out,
-                       size_t                          _out_size);
-bool   d_property_format_extract(const struct d_dss_sheet*       _sheet,
-                                 struct d_node_tree*             _tree,
-                                 uint32_t                        _node,
-                                 const struct d_dss_declaration* _declaration,
-                                 char*                           _out,
-                                 size_t                          _out_size);
-double d_property_number(const struct d_dss_sheet*       _sheet,
-                         const struct d_dss_declaration* _declaration);
+bool d_property_derive(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    char*                            _out,
+    size_t                           _out_size
+);
+bool d_property_format_extract(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    char*                            _out,
+    size_t                           _out_size
+);
+double d_property_number(
+    const struct dj_dss_sheet*       _sheet,
+    const struct dj_dss_declaration* _declaration
+);
 
 // 1.3    Repair
 //------------------------------------------------------------------------------
-bool d_property_repair(struct d_node_tree* _tree,
-                       uint32_t            _node,
-                       const char*         _property,
-                       double              _want,
-                       const char*         _line_text,
-                       const char*         _derived,
-                       char*               _out,
-                       size_t              _out_size);
+bool d_property_repair(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _property,
+    double               _want,
+    const char*          _line_text,
+    const char*          _derived,
+    char*                _out,
+    size_t               _out_size
+);
 
 
 // D_PROPERTY_TEXT_MAX
@@ -80,6 +90,6 @@ bool d_property_repair(struct d_node_tree* _tree,
 #define D_PROPERTY_TEXT_MAX 512
 
 // the linter's properties, as a registry the engine validates sheets against
-const struct d_schema* d_property_schema(void);
+const struct dj_schema* d_property_schema(void);
 
 #endif  // DJINTERP_TOOLS_DAWK_DPROPERTY_H

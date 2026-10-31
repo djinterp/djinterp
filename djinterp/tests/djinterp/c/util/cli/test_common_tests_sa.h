@@ -8,7 +8,7 @@
 * option infrastructure.
 *
 *
-* path:      /tests/test/test_common_tests_sa.h
+* path:      /tests/djinterp/c/util/cli/test_common_tests_sa.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.03
 ******************************************************************************/
@@ -28,69 +28,125 @@
 /******************************************************************************
  * I. MACRO DEFINITION TESTS
  *****************************************************************************/
-bool d_tests_sa_test_common_keyword_macros(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_pass_fail_macros(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_symbol_macros(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_macro_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_common_keyword_macros(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_pass_fail_macros(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_symbol_macros(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_macro_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * II. TYPE DEFINITION TESTS
  *****************************************************************************/
-bool d_tests_sa_test_common_test_id_type(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_fn_test_type(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_fn_stage_type(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_type_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_common_test_id_type(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_fn_test_type(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_fn_stage_type(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_type_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * III. ARGUMENT STRUCTURE TESTS
  *****************************************************************************/
-bool d_tests_sa_test_common_test_arg(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_test_arg_list(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_arg_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_common_test_arg(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_test_arg_list(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_arg_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IV. TEST FUNCTION WRAPPER TESTS
  *****************************************************************************/
-bool d_tests_sa_test_common_test_fn(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_fn_wrapper_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_common_test_fn(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_fn_wrapper_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * V. LIFECYCLE STAGE TESTS
  *****************************************************************************/
-bool d_tests_sa_test_common_test_stage_enum(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_test_stage_values(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_lifecycle_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_common_test_stage_enum(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_test_stage_values(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_lifecycle_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * VI. TYPE DISCRIMINATOR TESTS
  *****************************************************************************/
-bool d_tests_sa_test_common_type_flag_enum(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_type_flag_values(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_type_flag_uniqueness(struct d_test_counter* _counter);
-bool d_tests_sa_test_common_discriminator_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_common_type_flag_enum(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_type_flag_values(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_type_flag_uniqueness(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_common_discriminator_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * VII. CLI OPTION TESTS
  *****************************************************************************/
-bool d_tests_sa_test_cli_string_entry(struct d_test_counter* _counter);
-bool d_tests_sa_test_cli_find_by_field(struct d_test_counter* _counter);
-bool d_tests_sa_test_cli_find_macro(struct d_test_counter* _counter);
-bool d_tests_sa_test_cli_find_with(struct d_test_counter* _counter);
-bool d_tests_sa_test_cli_parse(struct d_test_counter* _counter);
-bool d_tests_sa_test_cli_table_macros(struct d_test_counter* _counter);
-bool d_tests_sa_test_cli_option_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_cli_string_entry(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_cli_find_by_field(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_cli_find_macro(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_cli_find_with(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_cli_parse(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_cli_table_macros(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_test_cli_option_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
-bool d_tests_sa_test_common_run_all(struct d_test_counter* _counter);
+bool d_tests_sa_test_common_run_all(
+    struct dj_test_counter* _counter
+);
 
 
 #endif  // DJINTERP_TESTS_TEST_COMMON_SA_

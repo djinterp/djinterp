@@ -34,41 +34,62 @@
 // 1.1    State
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_parser
+// dj_internal_parser
 //   struct: the scanner, one token of lookahead, and the program under
 //   construction.  `no_gt` suppresses `>` as a comparison while a print
 //   argument list is being read.  The saved slot is one token of extra
 //   lookahead, needed in exactly one place: `for (` followed by a name is
 //   the membership loop only when `in` comes next, and by then the name has
 //   already been consumed.
-struct d_internal_parser
+struct dj_internal_parser
 {
-    struct d_awk_lexer*   lexer;
-    struct d_awk_token    token;
+    struct dj_awk_lexer*   lexer;
+    struct dj_awk_token    token;
     char*                 token_text;
     size_t                token_length;
-    struct d_awk_token    saved;
+    struct dj_awk_token    saved;
     char*                 saved_text;
     size_t                saved_length;
     bool                  has_saved;
-    enum d_awk_token_kind previous;
+    enum dj_awk_token_kind previous;
     bool                  at_end;
     bool                  no_gt;
     bool                  failed;
     const char*           origin;
-    struct d_awk_program* program;
+    struct dj_awk_program* program;
 };
 
 static char g_error[256];
 
 
-static struct d_awk_node* d_internal_expr(struct d_internal_parser* _p);
-static struct d_awk_node* d_internal_power(struct d_internal_parser* _p);
-static struct d_awk_node* d_internal_unary(struct d_internal_parser* _p);
-static struct d_awk_node* d_internal_postfix(struct d_internal_parser* _p);
-static struct d_awk_node* d_internal_concat(struct d_internal_parser* _p);
-static struct d_awk_node* d_internal_statement(struct d_internal_parser* _p);
-static struct d_awk_node* d_internal_block(struct d_internal_parser* _p);
+static
+struct dj_awk_node* d_internal_expr(
+    struct dj_internal_parser* _p
+);
+static
+struct dj_awk_node* d_internal_power(
+    struct dj_internal_parser* _p
+);
+static
+struct dj_awk_node* d_internal_unary(
+    struct dj_internal_parser* _p
+);
+static
+struct dj_awk_node* d_internal_postfix(
+    struct dj_internal_parser* _p
+);
+static
+struct dj_awk_node* d_internal_concat(
+    struct dj_internal_parser* _p
+);
+static
+struct dj_awk_node* d_internal_statement(
+    struct dj_internal_parser* _p
+);
+static
+struct dj_awk_node* d_internal_block(
+    struct dj_internal_parser* _p
+);
 
 
 /*
@@ -81,12 +102,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_error_at(
-    struct d_internal_parser* _p,
-    size_t                    _line,
-    size_t                    _column,
-    const char*               _message
+static
+void d_internal_error_at(
+    struct dj_internal_parser* _p,
+    size_t                     _line,
+    size_t                     _column,
+    const char*                _message
 )
 {
     // Every diagnostic reads `file:line:col: syntax error: what`.  The
@@ -119,10 +140,10 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_error(
-    struct d_internal_parser* _p,
-    const char*               _message
+static
+void d_internal_error(
+    struct dj_internal_parser* _p,
+    const char*                _message
 )
 {
     d_internal_error_at(_p, _p->token.line, _p->token.column, _message);
@@ -140,15 +161,15 @@ Parameter(s):
 Return:
   none.
 */
-static bool
-d_internal_take(
-    struct d_internal_parser* _p,
-    struct d_awk_token*       _out,
-    char**                    _buffer,
-    size_t*                   _capacity
+static
+bool d_internal_take(
+    struct dj_internal_parser* _p,
+    struct dj_awk_token*       _out,
+    char**                     _buffer,
+    size_t*                    _capacity
 )
 {
-    struct d_awk_token next;
+    struct dj_awk_token next;
 
     // a scanner that is finished produces nothing further
     if (!d_awk_lexer_next(_p->lexer, &next))
@@ -195,9 +216,9 @@ Parameter(s):
 Return:
   The kind, or D_AWK_TOK_EOF at end of input.
 */
-static enum d_awk_token_kind
+static enum dj_awk_token_kind
 d_internal_peek_kind(
-    struct d_internal_parser* _p
+    struct dj_internal_parser* _p
 )
 {
     // the second token is read once and then held
@@ -219,12 +240,12 @@ d_internal_peek_kind(
 }
 
 
-static void
-d_internal_advance(
-    struct d_internal_parser* _p
+static
+void d_internal_advance(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_token next;
+    struct dj_awk_token next;
 
     _p->previous = _p->token.kind;
 
@@ -328,8 +349,8 @@ Return:
 */
 static bool
 d_internal_check(
-    struct d_internal_parser* _p,
-    enum d_awk_token_kind     _kind
+    struct dj_internal_parser* _p,
+    enum dj_awk_token_kind     _kind
 )
 {
     return ((!_p->at_end) && (_p->token.kind == _kind));
@@ -350,8 +371,8 @@ Return:
 */
 static bool
 d_internal_accept(
-    struct d_internal_parser* _p,
-    enum d_awk_token_kind     _kind
+    struct dj_internal_parser* _p,
+    enum dj_awk_token_kind     _kind
 )
 {
     // only a matching lookahead is consumed
@@ -380,8 +401,8 @@ Return:
 */
 static bool
 d_internal_expect(
-    struct d_internal_parser* _p,
-    enum d_awk_token_kind     _kind
+    struct dj_internal_parser* _p,
+    enum dj_awk_token_kind     _kind
 )
 {
     // a matching lookahead is simply consumed
@@ -412,9 +433,9 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_skip_terminators(
-    struct d_internal_parser* _p
+static
+void d_internal_skip_terminators(
+    struct dj_internal_parser* _p
 )
 {
     while ( (d_internal_check(_p, D_AWK_TOK_NEWLINE)) ||
@@ -442,13 +463,13 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
+static struct dj_awk_node*
 d_internal_node(
-    struct d_internal_parser* _p,
-    enum d_awk_node_kind      _kind
+    struct dj_internal_parser* _p,
+    enum dj_awk_node_kind      _kind
 )
 {
-    struct d_awk_node* node = calloc(1, sizeof(*node));
+    struct dj_awk_node* node = calloc(1, sizeof(*node));
 
     // report the failure rather than returning a null child silently
     if (!node)
@@ -477,11 +498,11 @@ Return:
   - true, if the child was appended, or
   - false, otherwise.
 */
-static bool
-d_internal_push(
-    struct d_internal_parser* _p,
-    struct d_awk_node*        _node,
-    struct d_awk_node*        _child
+static
+bool d_internal_push(
+    struct dj_internal_parser* _p,
+    struct dj_awk_node*        _node,
+    struct dj_awk_node*        _child
 )
 {
     // a failed child never reaches the list
@@ -497,7 +518,7 @@ d_internal_push(
                               ? 4u
                               : (_node->capacity * 2u);
 
-        struct d_awk_node** grown =
+        struct dj_awk_node** grown =
             realloc(_node->list, capacity * sizeof(*grown));
 
         // report the failure rather than dropping the child
@@ -529,10 +550,10 @@ Return:
   - true, if the text was copied, or
   - false, otherwise.
 */
-static bool
-d_internal_set_text(
-    struct d_internal_parser* _p,
-    struct d_awk_node*        _node
+static
+bool d_internal_set_text(
+    struct dj_internal_parser* _p,
+    struct dj_awk_node*        _node
 )
 {
     char* copy = malloc(_p->token.length + 1u);
@@ -567,9 +588,9 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_node_free(
-    struct d_awk_node* _node
+static
+void d_internal_node_free(
+    struct dj_awk_node* _node
 )
 {
     if (_node)
@@ -620,7 +641,7 @@ Return:
 */
 static bool
 d_internal_starts_expr(
-    enum d_awk_token_kind _kind
+    enum dj_awk_token_kind _kind
 )
 {
     switch (_kind)
@@ -655,9 +676,9 @@ Return:
   - true, if the node is a variable, field or subscript, or
   - false, otherwise.
 */
-static bool
-d_internal_is_lvalue(
-    const struct d_awk_node* _node
+static
+bool d_internal_is_lvalue(
+    const struct dj_awk_node* _node
 )
 {
     // parameter validation first
@@ -692,24 +713,24 @@ Return:
   - true, if the call is well formed, or
   - false, otherwise, with the error recorded.
 */
-static bool
-d_internal_check_builtin(
-    struct d_internal_parser* _p,
-    const struct d_awk_node*  _node,
-    size_t                    _column
+static
+bool d_internal_check_builtin(
+    struct dj_internal_parser* _p,
+    const struct dj_awk_node*  _node,
+    size_t                     _column
 )
 {
-    // d_internal_arity
+    // dj_internal_arity
     //   struct: the fewest and most arguments a builtin takes; SIZE_MAX is no
     //   upper limit.
-    struct d_internal_arity
+    struct dj_internal_arity
     {
         const char* name;
         size_t      least;
         size_t      most;
     };
 
-    static const struct d_internal_arity arities[] =
+    static const struct dj_internal_arity arities[] =
     {
         { "length",  0u, 1u       }, { "substr",  2u, 3u },
         { "index",   2u, 2u       }, { "split",   2u, 3u },
@@ -793,15 +814,15 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_primary(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_primary(
+    struct dj_internal_parser* _p
 )
 {
     // a numeric literal
     if (d_internal_check(_p, D_AWK_TOK_NUMBER))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_NUMBER);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_NUMBER);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -818,7 +839,7 @@ d_internal_primary(
     // a string literal
     if (d_internal_check(_p, D_AWK_TOK_STRING))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_STRING);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_STRING);
 
         // abandon the parse when the node could not be held
         if ((!node) || (!d_internal_set_text(_p, node)))
@@ -835,7 +856,7 @@ d_internal_primary(
     // a regular-expression literal, compiled once here
     if (d_internal_check(_p, D_AWK_TOK_ERE))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_REGEX);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_REGEX);
 
         // abandon the parse when the node could not be held
         if ((!node) || (!d_internal_set_text(_p, node)))
@@ -844,7 +865,7 @@ d_internal_primary(
             return NULL;
         }
 
-        enum d_regex_status status = D_REGEX_OK;
+        enum dj_regex_status status = D_REGEX_OK;
 
         node->regex = d_regex_compile(node->text, &status);
 
@@ -864,7 +885,7 @@ d_internal_primary(
     // a field reference binds tighter than anything but grouping
     if (d_internal_accept(_p, D_AWK_TOK_DOLLAR))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_FIELD);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_FIELD);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -888,7 +909,7 @@ d_internal_primary(
     if ( (d_internal_check(_p, D_AWK_TOK_INCR)) ||
          (d_internal_check(_p, D_AWK_TOK_DECR)) )
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_PREINCR);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_PREINCR);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -922,7 +943,7 @@ d_internal_primary(
 
         _p->no_gt = false;
 
-        struct d_awk_node* first = d_internal_expr(_p);
+        struct dj_awk_node* first = d_internal_expr(_p);
 
         // abandon the parse when the group failed
         if (!first)
@@ -934,7 +955,7 @@ d_internal_primary(
         if (d_internal_check(_p, D_AWK_TOK_COMMA))
         {
             _p->no_gt = outer_no_gt;
-            struct d_awk_node* node = d_internal_node(_p, D_AWK_N_IN);
+            struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_IN);
 
             // abandon the parse when the node could not be held
             if ((!node) || (!d_internal_push(_p, node, first)))
@@ -1007,7 +1028,7 @@ d_internal_primary(
     // a builtin call, held to its arity once its arguments are read
     if (d_internal_check(_p, D_AWK_TOK_BUILTIN))
     {
-        struct d_awk_node* node   = d_internal_node(_p, D_AWK_N_BUILTIN);
+        struct dj_awk_node* node   = d_internal_node(_p, D_AWK_N_BUILTIN);
         const size_t       column = _p->token.column;
 
         // abandon the parse when the node could not be held
@@ -1070,7 +1091,7 @@ d_internal_primary(
     // a user-defined function call
     if (d_internal_check(_p, D_AWK_TOK_FUNC_NAME))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_CALL);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_CALL);
 
         // abandon the parse when the node could not be held
         if ((!node) || (!d_internal_set_text(_p, node)))
@@ -1122,7 +1143,7 @@ d_internal_primary(
     // a plain name, possibly subscripted
     if (d_internal_check(_p, D_AWK_TOK_NAME))
     {
-        struct d_awk_node* name = d_internal_node(_p, D_AWK_N_VAR);
+        struct dj_awk_node* name = d_internal_node(_p, D_AWK_N_VAR);
 
         // abandon the parse when the node could not be held
         if ((!name) || (!d_internal_set_text(_p, name)))
@@ -1136,7 +1157,7 @@ d_internal_primary(
         // a bracket makes it a subscript rather than a scalar
         if (d_internal_accept(_p, D_AWK_TOK_LBRACKET))
         {
-            struct d_awk_node* node = d_internal_node(_p, D_AWK_N_INDEX);
+            struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_INDEX);
 
             // abandon the parse when the node could not be held
             if (!node)
@@ -1182,7 +1203,7 @@ d_internal_primary(
     // still parses and the grammar can be exercised against real corpora.
     if (d_internal_check(_p, D_AWK_TOK_GETLINE))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_GETLINE);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_GETLINE);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -1239,12 +1260,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_postfix(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_postfix(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* node = d_internal_primary(_p);
+    struct dj_awk_node* node = d_internal_primary(_p);
 
     // abandon the parse when the operand failed
     if (!node)
@@ -1257,7 +1278,7 @@ d_internal_postfix(
             ((d_internal_check(_p, D_AWK_TOK_INCR)) ||
              (d_internal_check(_p, D_AWK_TOK_DECR))) )
     {
-        struct d_awk_node* wrapper = d_internal_node(_p, D_AWK_N_POSTINCR);
+        struct dj_awk_node* wrapper = d_internal_node(_p, D_AWK_N_POSTINCR);
 
         // abandon the parse when the node could not be held
         if (!wrapper)
@@ -1287,12 +1308,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_power(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_power(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* left = d_internal_postfix(_p);
+    struct dj_awk_node* left = d_internal_postfix(_p);
 
     // abandon the parse when the base failed
     if (!left)
@@ -1303,7 +1324,7 @@ d_internal_power(
     // right association is expressed by recursing rather than looping
     if (d_internal_check(_p, D_AWK_TOK_CARET))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_BINARY);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_BINARY);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -1343,15 +1364,15 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
+static struct dj_awk_node*
 d_internal_binary_left(
-    struct d_internal_parser*    _p,
-    struct d_awk_node*         (*_next)(struct d_internal_parser*),
-    const enum d_awk_token_kind* _kinds,
+    struct dj_internal_parser*    _p,
+    struct dj_awk_node*         (*_next)(struct dj_internal_parser*),
+    const enum dj_awk_token_kind* _kinds,
     size_t                       _count
 )
 {
-    struct d_awk_node* left = _next(_p);
+    struct dj_awk_node* left = _next(_p);
 
     // abandon the parse when the first operand failed
     if (!left)
@@ -1387,7 +1408,7 @@ d_internal_binary_left(
             break;
         }
 
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_BINARY);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_BINARY);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -1428,9 +1449,9 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_unary(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_unary(
+    struct dj_internal_parser* _p
 )
 {
     // a sign or negation wraps whatever the rung below produces
@@ -1438,7 +1459,7 @@ d_internal_unary(
          (d_internal_check(_p, D_AWK_TOK_MINUS)) ||
          (d_internal_check(_p, D_AWK_TOK_PLUS)) )
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_UNARY);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_UNARY);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -1473,12 +1494,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_multiplicative(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_multiplicative(
+    struct dj_internal_parser* _p
 )
 {
-    static const enum d_awk_token_kind kinds[] =
+    static const enum dj_awk_token_kind kinds[] =
     {
         D_AWK_TOK_STAR, D_AWK_TOK_SLASH, D_AWK_TOK_PERCENT
     };
@@ -1496,12 +1517,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_additive(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_additive(
+    struct dj_internal_parser* _p
 )
 {
-    static const enum d_awk_token_kind kinds[] =
+    static const enum dj_awk_token_kind kinds[] =
     {
         D_AWK_TOK_PLUS, D_AWK_TOK_MINUS
     };
@@ -1519,12 +1540,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_concat(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_concat(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* left = d_internal_additive(_p);
+    struct dj_awk_node* left = d_internal_additive(_p);
 
     // abandon the parse when the first operand failed
     if (!left)
@@ -1541,7 +1562,7 @@ d_internal_concat(
             break;
         }
 
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_CONCAT);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_CONCAT);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -1585,12 +1606,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_getline_pipe(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_getline_pipe(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* left = d_internal_concat(_p);
+    struct dj_awk_node* left = d_internal_concat(_p);
 
     // abandon the parse when the command failed
     if (!left)
@@ -1602,7 +1623,7 @@ d_internal_getline_pipe(
     while ( (d_internal_check(_p, D_AWK_TOK_PIPE)) &&
             (d_internal_peek_kind(_p) == D_AWK_TOK_GETLINE) )
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_GETLINE);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_GETLINE);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -1652,12 +1673,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_relational(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_relational(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* left = d_internal_getline_pipe(_p);
+    struct dj_awk_node* left = d_internal_getline_pipe(_p);
 
     // abandon the parse when the first operand failed
     if (!left)
@@ -1665,7 +1686,7 @@ d_internal_relational(
         return NULL;
     }
 
-    const enum d_awk_token_kind kind = _p->token.kind;
+    const enum dj_awk_token_kind kind = _p->token.kind;
     const bool                  is_relational =
         ( (kind == D_AWK_TOK_LT) || (kind == D_AWK_TOK_LE) ||
           (kind == D_AWK_TOK_NE) || (kind == D_AWK_TOK_EQ) ||
@@ -1678,7 +1699,7 @@ d_internal_relational(
         return left;
     }
 
-    struct d_awk_node* node = d_internal_node(_p, D_AWK_N_BINARY);
+    struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_BINARY);
 
     // abandon the parse when the node could not be held
     if (!node)
@@ -1712,12 +1733,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_match(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_match(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* left = d_internal_relational(_p);
+    struct dj_awk_node* left = d_internal_relational(_p);
 
     // abandon the parse when the subject failed
     if (!left)
@@ -1728,7 +1749,7 @@ d_internal_match(
     while ( (d_internal_check(_p, D_AWK_TOK_MATCH)) ||
             (d_internal_check(_p, D_AWK_TOK_NOMATCH)) )
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_MATCH);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_MATCH);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -1765,12 +1786,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_in(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_in(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* left = d_internal_match(_p);
+    struct dj_awk_node* left = d_internal_match(_p);
 
     // abandon the parse when the subscript failed
     if (!left)
@@ -1780,7 +1801,7 @@ d_internal_in(
 
     while (d_internal_accept(_p, D_AWK_TOK_IN))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_IN);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_IN);
 
         // abandon the parse when the node could not be held
         if ((!node) || (!d_internal_push(_p, node, left)))
@@ -1822,12 +1843,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_and(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_and(
+    struct dj_internal_parser* _p
 )
 {
-    static const enum d_awk_token_kind kinds[] = { D_AWK_TOK_AND };
+    static const enum dj_awk_token_kind kinds[] = { D_AWK_TOK_AND };
 
     return d_internal_binary_left(_p, d_internal_in, kinds, 1u);
 }
@@ -1842,12 +1863,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_or(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_or(
+    struct dj_internal_parser* _p
 )
 {
-    static const enum d_awk_token_kind kinds[] = { D_AWK_TOK_OR };
+    static const enum dj_awk_token_kind kinds[] = { D_AWK_TOK_OR };
 
     return d_internal_binary_left(_p, d_internal_and, kinds, 1u);
 }
@@ -1862,12 +1883,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_ternary(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_ternary(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* condition = d_internal_or(_p);
+    struct dj_awk_node* condition = d_internal_or(_p);
 
     // abandon the parse when the condition failed
     if (!condition)
@@ -1881,7 +1902,7 @@ d_internal_ternary(
         return condition;
     }
 
-    struct d_awk_node* node = d_internal_node(_p, D_AWK_N_TERNARY);
+    struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_TERNARY);
 
     // abandon the parse when the node could not be held
     if (!node)
@@ -1922,12 +1943,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_expr(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_expr(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* left = d_internal_ternary(_p);
+    struct dj_awk_node* left = d_internal_ternary(_p);
 
     // abandon the parse when the left side failed
     if (!left)
@@ -1935,7 +1956,7 @@ d_internal_expr(
         return NULL;
     }
 
-    const enum d_awk_token_kind kind = _p->token.kind;
+    const enum dj_awk_token_kind kind = _p->token.kind;
     const bool                  is_assign =
         ( (kind == D_AWK_TOK_ASSIGN)     || (kind == D_AWK_TOK_ADD_ASSIGN) ||
           (kind == D_AWK_TOK_SUB_ASSIGN) || (kind == D_AWK_TOK_MUL_ASSIGN) ||
@@ -1956,7 +1977,7 @@ d_internal_expr(
         return NULL;
     }
 
-    struct d_awk_node* node = d_internal_node(_p, D_AWK_N_ASSIGN);
+    struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_ASSIGN);
 
     // abandon the parse when the node could not be held
     if (!node)
@@ -1999,9 +2020,9 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_simple_or_block(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_simple_or_block(
+    struct dj_internal_parser* _p
 )
 {
     // a body may start on a later line, but a semicolon is a body itself
@@ -2024,13 +2045,13 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_print(
-    struct d_internal_parser* _p,
-    bool                      _is_printf
+static
+struct dj_awk_node* d_internal_print(
+    struct dj_internal_parser* _p,
+    bool                       _is_printf
 )
 {
-    struct d_awk_node* node = d_internal_node(_p,
+    struct dj_awk_node* node = d_internal_node(_p,
                                               _is_printf ? D_AWK_N_PRINTF
                                                          : D_AWK_N_PRINT);
 
@@ -2093,7 +2114,7 @@ d_internal_print(
     if ( (node->count == 1u) &&
          (node->list[0]->kind == D_AWK_N_GROUPLIST) )
     {
-        struct d_awk_node* const group = node->list[0];
+        struct dj_awk_node* const group = node->list[0];
 
         free(node->list);
         node->list     = group->list;
@@ -2118,9 +2139,9 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_statement(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_statement(
+    struct dj_internal_parser* _p
 )
 {
     // a brace opens a nested block
@@ -2133,7 +2154,7 @@ d_internal_statement(
     if ( (d_internal_check(_p, D_AWK_TOK_SEMI)) ||
          (d_internal_check(_p, D_AWK_TOK_NEWLINE)) )
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_BLOCK);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_BLOCK);
 
         d_internal_advance(_p);
 
@@ -2153,7 +2174,7 @@ d_internal_statement(
     // if, with an optional else arm
     if (d_internal_accept(_p, D_AWK_TOK_IF))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_IF);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_IF);
 
         // abandon the parse when the node could not be held
         if ((!node) || (!d_internal_expect(_p, D_AWK_TOK_LPAREN)))
@@ -2204,7 +2225,7 @@ d_internal_statement(
     // while
     if (d_internal_accept(_p, D_AWK_TOK_WHILE))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_WHILE);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_WHILE);
 
         // abandon the parse when the node could not be held
         if ((!node) || (!d_internal_expect(_p, D_AWK_TOK_LPAREN)))
@@ -2237,7 +2258,7 @@ d_internal_statement(
     // do ... while
     if (d_internal_accept(_p, D_AWK_TOK_DO))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_DO);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_DO);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -2290,7 +2311,7 @@ d_internal_statement(
         if ( (d_internal_check(_p, D_AWK_TOK_NAME)) &&
              (d_internal_peek_kind(_p) == D_AWK_TOK_IN) )
         {
-            struct d_awk_node* name = d_internal_node(_p, D_AWK_N_VAR);
+            struct dj_awk_node* name = d_internal_node(_p, D_AWK_N_VAR);
 
             // abandon the parse when the node could not be held
             if ((!name) || (!d_internal_set_text(_p, name)))
@@ -2304,7 +2325,7 @@ d_internal_statement(
             // the membership form is taken only when `in` actually follows
             if (d_internal_accept(_p, D_AWK_TOK_IN))
             {
-                struct d_awk_node* node = d_internal_node(_p, D_AWK_N_FORIN);
+                struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_FORIN);
 
                 // abandon the parse when the node could not be held
                 if (!node)
@@ -2349,7 +2370,7 @@ d_internal_statement(
             return NULL;
         }
 
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_FOR);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_FOR);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -2435,7 +2456,7 @@ d_internal_statement(
          (d_internal_check(_p, D_AWK_TOK_EXIT))     ||
          (d_internal_check(_p, D_AWK_TOK_RETURN)) )
     {
-        enum d_awk_node_kind kind = D_AWK_N_NEXT;
+        enum dj_awk_node_kind kind = D_AWK_N_NEXT;
 
         switch (_p->token.kind)
         {
@@ -2447,7 +2468,7 @@ d_internal_statement(
             default:                 kind = D_AWK_N_NEXT;     break;
         }
 
-        struct d_awk_node* node = d_internal_node(_p, kind);
+        struct dj_awk_node* node = d_internal_node(_p, kind);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -2481,7 +2502,7 @@ d_internal_statement(
     // delete, of one element or of a whole array
     if (d_internal_accept(_p, D_AWK_TOK_DELETE))
     {
-        struct d_awk_node* name = d_internal_node(_p, D_AWK_N_VAR);
+        struct dj_awk_node* name = d_internal_node(_p, D_AWK_N_VAR);
 
         // abandon the parse when the node could not be held
         if ((!name) || (!d_internal_set_text(_p, name)))
@@ -2500,7 +2521,7 @@ d_internal_statement(
         // a subscript makes it an element deletion rather than a clear
         if (d_internal_accept(_p, D_AWK_TOK_LBRACKET))
         {
-            struct d_awk_node* node = d_internal_node(_p, D_AWK_N_DELETE);
+            struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_DELETE);
 
             // abandon the parse when the node could not be held
             if (!node)
@@ -2532,7 +2553,7 @@ d_internal_statement(
             return node;
         }
 
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_DELETE_ALL);
+        struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_DELETE_ALL);
 
         // abandon the parse when the node could not be held
         if (!node)
@@ -2546,7 +2567,7 @@ d_internal_statement(
         return node;
     }
 
-    struct d_awk_node* node = d_internal_node(_p, D_AWK_N_EXPR_STMT);
+    struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_EXPR_STMT);
 
     // abandon the parse when the node could not be held
     if (!node)
@@ -2576,12 +2597,12 @@ Parameter(s):
 Return:
   The node, or NULL on failure.
 */
-static struct d_awk_node*
-d_internal_block(
-    struct d_internal_parser* _p
+static
+struct dj_awk_node* d_internal_block(
+    struct dj_internal_parser* _p
 )
 {
-    struct d_awk_node* node = d_internal_node(_p, D_AWK_N_BLOCK);
+    struct dj_awk_node* node = d_internal_node(_p, D_AWK_N_BLOCK);
 
     // abandon the parse when the node could not be held
     if ((!node) || (!d_internal_expect(_p, D_AWK_TOK_LBRACE)))
@@ -2655,13 +2676,13 @@ Return:
   - true, if the rule was appended, or
   - false, otherwise.
 */
-static bool
-d_internal_add_rule(
-    struct d_internal_parser* _p,
-    const struct d_awk_rule*  _rule
+static
+bool d_internal_add_rule(
+    struct dj_internal_parser* _p,
+    const struct dj_awk_rule*  _rule
 )
 {
-    struct d_awk_program* program = _p->program;
+    struct dj_awk_program* program = _p->program;
 
     // grow the rule vector when it is full
     if (program->rule_count == program->rule_capacity)
@@ -2670,7 +2691,7 @@ d_internal_add_rule(
                               ? 8u
                               : (program->rule_capacity * 2u);
 
-        struct d_awk_rule* grown =
+        struct dj_awk_rule* grown =
             realloc(program->rules, capacity * sizeof(*grown));
 
         // report the failure rather than dropping the rule
@@ -2701,9 +2722,9 @@ Return:
   - true, if the definition was parsed, or
   - false, otherwise.
 */
-static bool
-d_internal_function(
-    struct d_internal_parser* _p
+static
+bool d_internal_function(
+    struct dj_internal_parser* _p
 )
 {
     d_internal_advance(_p);  // consume `function`
@@ -2716,7 +2737,7 @@ d_internal_function(
         return false;
     }
 
-    struct d_awk_function entry;
+    struct dj_awk_function entry;
 
     memset(&entry, 0, sizeof(entry));
 
@@ -2815,7 +2836,7 @@ d_internal_function(
         return false;
     }
 
-    struct d_awk_program* program = _p->program;
+    struct dj_awk_program* program = _p->program;
 
     // grow the function vector when it is full
     if (program->function_count == program->function_capacity)
@@ -2824,7 +2845,7 @@ d_internal_function(
                               ? 4u
                               : (program->function_capacity * 2u);
 
-        struct d_awk_function* grown =
+        struct dj_awk_function* grown =
             realloc(program->functions, capacity * sizeof(*grown));
 
         // report the failure rather than dropping the definition
@@ -2855,8 +2876,7 @@ Parameter(s):
 Return:
   The program, or NULL on failure, with the diagnostic in d_awk_parse_error.
 */
-struct d_awk_program*
-d_awk_parse(
+struct dj_awk_program* d_awk_parse(
     const char* _source,
     size_t      _length,
     const char* _origin
@@ -2864,7 +2884,7 @@ d_awk_parse(
 {
     g_error[0] = '\0';
 
-    struct d_internal_parser parser;
+    struct dj_internal_parser parser;
 
     memset(&parser, 0, sizeof(parser));
 
@@ -2896,7 +2916,7 @@ d_awk_parse(
             continue;
         }
 
-        struct d_awk_rule rule;
+        struct dj_awk_rule rule;
 
         memset(&rule, 0, sizeof(rule));
         rule.kind = D_AWK_RULE_MAIN;
@@ -2992,9 +3012,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_program_free(
-    struct d_awk_program* _program
+void d_awk_program_free(
+    struct dj_awk_program* _program
 )
 {
     if (_program)
@@ -3036,8 +3055,7 @@ Parameter(s):
 Return:
   The diagnostic, or NULL when the last parse succeeded.
 */
-const char*
-d_awk_parse_error(void)
+const char* d_awk_parse_error(void)
 {
     return (g_error[0] == '\0') ? NULL : g_error;
 }

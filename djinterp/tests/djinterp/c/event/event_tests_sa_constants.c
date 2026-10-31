@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,10 +20,8 @@ d_tests_sa_event_default_size
   - Value equals 64
   - Value is a power of two
 */
-bool
-d_tests_sa_event_default_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_default_size(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -54,19 +52,17 @@ d_tests_sa_event_default_size
 
 /*
 d_tests_sa_event_id_type
-  Tests the D_EVENT_ID_TYPE macro and d_event_id typedef.
+  Tests the D_EVENT_ID_TYPE macro and dj_event_id typedef.
   Tests the following:
-  - d_event_id can hold zero, positive, and negative values
+  - dj_event_id can hold zero, positive, and negative values
   - sizeof matches D_EVENT_ID_TYPE and int
 */
-bool
-d_tests_sa_event_id_type
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_id_type(
+    struct dj_test_counter* _counter
 )
 {
     bool       result;
-    d_event_id id;
+    dj_event_id id;
 
     result = true;
 
@@ -75,7 +71,7 @@ d_tests_sa_event_id_type
     result = d_assert_standalone(
         id == 0,
         "event_id_zero",
-        "d_event_id should hold zero",
+        "dj_event_id should hold zero",
         _counter) && result;
 
     id = 42;
@@ -83,7 +79,7 @@ d_tests_sa_event_id_type
     result = d_assert_standalone(
         id == 42,
         "event_id_positive",
-        "d_event_id should hold positive values",
+        "dj_event_id should hold positive values",
         _counter) && result;
 
     id = -1;
@@ -91,19 +87,19 @@ d_tests_sa_event_id_type
     result = d_assert_standalone(
         id == -1,
         "event_id_negative",
-        "d_event_id should hold negative values",
+        "dj_event_id should hold negative values",
         _counter) && result;
 
     result = d_assert_standalone(
-        sizeof(d_event_id) == sizeof(D_EVENT_ID_TYPE),
+        sizeof(dj_event_id) == sizeof(D_EVENT_ID_TYPE),
         "event_id_sizeof_macro",
-        "sizeof(d_event_id) should equal sizeof(D_EVENT_ID_TYPE)",
+        "sizeof(dj_event_id) should equal sizeof(D_EVENT_ID_TYPE)",
         _counter) && result;
 
     result = d_assert_standalone(
-        sizeof(d_event_id) == sizeof(int),
+        sizeof(dj_event_id) == sizeof(int),
         "event_id_sizeof_int",
-        "Default d_event_id should be sizeof(int)",
+        "Default dj_event_id should be sizeof(int)",
         _counter) && result;
 
     return result;
@@ -111,20 +107,18 @@ d_tests_sa_event_id_type
 
 /*
 d_tests_sa_event_struct
-  Tests the d_event structure layout.
+  Tests the dj_event structure layout.
   Tests the following:
   - id and context members are accessible and assignable
   - context accepts NULL
-  - sizeof(struct d_event) is non-zero
+  - sizeof(struct dj_event) is non-zero
 */
-bool
-d_tests_sa_event_struct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_struct(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    struct d_event ev;
+    struct dj_event ev;
     int            dummy;
 
     result = true;
@@ -136,7 +130,7 @@ d_tests_sa_event_struct
     result = d_assert_standalone(
         ev.id == 100 && ev.context == &dummy,
         "event_struct_members",
-        "d_event id and context should be accessible",
+        "dj_event id and context should be accessible",
         _counter) && result;
 
     ev.context = NULL;
@@ -144,13 +138,13 @@ d_tests_sa_event_struct
     result = d_assert_standalone(
         ev.context == NULL,
         "event_struct_null_context",
-        "d_event should accept NULL context",
+        "dj_event should accept NULL context",
         _counter) && result;
 
     result = d_assert_standalone(
-        sizeof(struct d_event) > 0,
+        sizeof(struct dj_event) > 0,
         "event_struct_sizeof",
-        "sizeof(struct d_event) should be non-zero",
+        "sizeof(struct dj_event) should be non-zero",
         _counter) && result;
 
     return result;
@@ -158,19 +152,17 @@ d_tests_sa_event_struct
 
 /*
 d_tests_sa_event_listener_struct
-  Tests the d_event_listener structure layout.
+  Tests the dj_event_listener structure layout.
   Tests the following:
   - id, fn, enabled members are accessible and assignable
-  - sizeof(struct d_event_listener) is non-zero
+  - sizeof(struct dj_event_listener) is non-zero
 */
-bool
-d_tests_sa_event_listener_struct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_struct(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_event_listener lis;
+    struct dj_event_listener lis;
 
     result = true;
 
@@ -181,7 +173,7 @@ d_tests_sa_event_listener_struct
     result = d_assert_standalone(
         lis.id == 200 && lis.fn == NULL && lis.enabled == true,
         "listener_struct_members",
-        "All d_event_listener members should be accessible",
+        "All dj_event_listener members should be accessible",
         _counter) && result;
 
     lis.enabled = false;
@@ -193,9 +185,9 @@ d_tests_sa_event_listener_struct
         _counter) && result;
 
     result = d_assert_standalone(
-        sizeof(struct d_event_listener) > 0,
+        sizeof(struct dj_event_listener) > 0,
         "listener_struct_sizeof",
-        "sizeof(struct d_event_listener) should be non-zero",
+        "sizeof(struct dj_event_listener) should be non-zero",
         _counter) && result;
 
     return result;
@@ -205,10 +197,8 @@ d_tests_sa_event_listener_struct
 d_tests_sa_event_constant_all
   Runs all constant and type tests.
 */
-bool
-d_tests_sa_event_constant_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_constant_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

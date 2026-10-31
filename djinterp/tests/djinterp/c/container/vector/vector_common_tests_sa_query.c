@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,10 +19,8 @@ d_tests_sa_vector_common_is_empty
   - zero count returns true
   - non-zero count returns false
 */
-bool
-d_tests_sa_vector_common_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -61,10 +59,8 @@ d_tests_sa_vector_common_is_full
   - count == capacity returns true
   - count > capacity returns true (edge case)
 */
-bool
-d_tests_sa_vector_common_is_full
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_is_full(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -116,10 +112,8 @@ d_tests_sa_vector_common_size
   Tests the following:
   - returns count value as-is
 */
-bool
-d_tests_sa_vector_common_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_size(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -157,10 +151,8 @@ d_tests_sa_vector_common_capacity_query
   Tests the following:
   - returns capacity value as-is
 */
-bool
-d_tests_sa_vector_common_capacity_query
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_capacity_query(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -196,10 +188,8 @@ d_tests_sa_vector_common_capacity_query
 d_tests_sa_vector_common_query_all
   Aggregation function that runs all query tests.
 */
-bool
-d_tests_sa_vector_common_query_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_query_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

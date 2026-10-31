@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [container]                                 array_tests_sa_creation.c
 *
-* Unit tests for `array.h` d_array creation functions.
+* Unit tests for `array.h` dj_array creation functions.
 * Part of the array standalone test suite.
 *
 *
@@ -13,7 +13,7 @@
 
 // djinterp
 #include "./array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,14 +24,12 @@ d_tests_sa_array_new
   - zero element size rejection
   - zero initial size acceptance
 */
-bool
-d_tests_sa_array_new
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
 
     printf("Testing `d_array_new`...\n");
 
@@ -105,14 +103,12 @@ d_tests_sa_array_new_default_size
   - normal allocation with valid element size
   - zero element size rejection
 */
-bool
-d_tests_sa_array_new_default_size
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_default_size(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
 
     printf("Testing `d_array_new_default_size`...\n");
 
@@ -167,14 +163,12 @@ d_tests_sa_array_new_from_arr
   - zero element size rejection
   - zero count acceptance
 */
-bool
-d_tests_sa_array_new_from_arr
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_from_arr(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int*            test_data;
     const size_t    test_count = 5;
 
@@ -287,14 +281,12 @@ d_tests_sa_array_new_from_args
   - zero element size rejection
   - zero argument count acceptance
 */
-bool
-d_tests_sa_array_new_from_args
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_from_args(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             expected[] = { 1, 2, 3, 4, 5 };
     const size_t    expected_count = 5;
 
@@ -380,15 +372,13 @@ d_tests_sa_array_new_copy
   - NULL source rejection
   - zero element size rejection
 */
-bool
-d_tests_sa_array_new_copy
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_copy(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* copy;
+    struct dj_array* original;
+    struct dj_array* copy;
     int*            test_data;
     const size_t    test_count = 5;
 
@@ -505,15 +495,13 @@ d_tests_sa_array_new_copy_reverse
   - NULL source rejection
   - invalid range rejection
 */
-bool
-d_tests_sa_array_new_copy_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_copy_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* copy;
+    struct dj_array* original;
+    struct dj_array* copy;
     int             test_data[] = { 1, 2, 3, 4, 5 };
     int*            int_elements;
 
@@ -598,15 +586,13 @@ d_tests_sa_array_new_copy_range
   - creating copy of range with negative indices
   - NULL source rejection
 */
-bool
-d_tests_sa_array_new_copy_range
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_copy_range(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* copy;
+    struct dj_array* original;
+    struct dj_array* copy;
     int             test_data[] = { 1, 2, 3, 4, 5 };
     int*            int_elements;
 
@@ -691,15 +677,13 @@ d_tests_sa_array_new_copy_range_reverse
   - handling negative indices
   - NULL source rejection
 */
-bool
-d_tests_sa_array_new_copy_range_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_copy_range_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* copy;
+    struct dj_array* original;
+    struct dj_array* copy;
     int             test_data[] = { 1, 2, 3, 4, 5 };
     int*            int_elements;
 
@@ -768,14 +752,12 @@ d_tests_sa_array_new_fill
   - NULL value rejection for non-zero size
   - zero initial size acceptance
 */
-bool
-d_tests_sa_array_new_fill
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_fill(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             fill_value = 42;
     int*            int_elements;
 
@@ -853,16 +835,14 @@ d_tests_sa_array_new_merge
   - zero element size rejection
   - zero count rejection
 */
-bool
-d_tests_sa_array_new_merge
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_merge(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* merged;
-    struct d_array  arr1 = { 3, NULL };
-    struct d_array  arr2 = { 2, NULL };
+    struct dj_array* merged;
+    struct dj_array  arr1 = { 3, NULL };
+    struct dj_array  arr2 = { 2, NULL };
     int             data1[] = { 1, 2, 3 };
     int             data2[] = { 4, 5 };
     int             expected[] = { 1, 2, 3, 4, 5 };
@@ -939,15 +919,13 @@ d_tests_sa_array_new_slice
   - creating slice from negative index
   - NULL source rejection
 */
-bool
-d_tests_sa_array_new_slice
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_slice(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* slice;
+    struct dj_array* original;
+    struct dj_array* slice;
     int             test_data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_new_slice`...\n");
@@ -1011,15 +989,13 @@ d_tests_sa_array_new_slice_reverse
   - creating reversed slice
   - NULL source rejection
 */
-bool
-d_tests_sa_array_new_slice_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_slice_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* slice;
+    struct dj_array* original;
+    struct dj_array* slice;
     int             test_data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_new_slice_reverse`...\n");
@@ -1083,15 +1059,13 @@ d_tests_sa_array_new_slice_range
   - creating range slice
   - NULL source rejection
 */
-bool
-d_tests_sa_array_new_slice_range
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_slice_range(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* slice;
+    struct dj_array* original;
+    struct dj_array* slice;
     int             test_data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_new_slice_range`...\n");
@@ -1155,15 +1129,13 @@ d_tests_sa_array_new_slice_range_reverse
   - creating reversed range slice
   - NULL source rejection
 */
-bool
-d_tests_sa_array_new_slice_range_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_new_slice_range_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* original;
-    struct d_array* slice;
+    struct dj_array* original;
+    struct dj_array* slice;
     int             test_data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_new_slice_range_reverse`...\n");
@@ -1229,18 +1201,16 @@ d_tests_sa_array_new_slice_range_reverse
 
 /*
 d_tests_sa_array_run_creation_tests
-  Runs all d_array creation function tests.
+  Runs all dj_array creation function tests.
 */
-bool
-d_tests_sa_array_run_creation_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_run_creation_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result = true;
 
     printf("\n----------------------------------------\n");
-    printf("Running d_array Creation Function Tests\n");
+    printf("Running dj_array Creation Function Tests\n");
     printf("----------------------------------------\n");
 
     overall_result &= d_tests_sa_array_new(_test_info);

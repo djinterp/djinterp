@@ -4,7 +4,7 @@
 * Cross-platform variants of certain `string.h` functions.
 *   Provides fundamental string operations on raw `const char*` buffers with
 * explicit lengths, suitable for use both standalone and as the underlying
-* implementation layer for higher-level string types such as `d_string`.
+* implementation layer for higher-level string types such as `dj_string`.
 *   Character classes and case folding are ASCII only, the same in every
 * locale: the case-insensitive comparisons and searches, the case
 * conversions and the class tests leave a byte above 0x7F as it is.
@@ -76,9 +76,9 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_STRING_NPOS
 //   constant: the "not found" result of the index-returning searches. It is
-// (d_index)-1, that is -1, since d_index is signed.
+// (dj_index)-1, that is -1, since dj_index is signed.
 #ifndef D_STRING_NPOS
-    #define D_STRING_NPOS ((d_index)-1)
+    #define D_STRING_NPOS ((dj_index)-1)
 #endif  // D_STRING_NPOS
 
 
@@ -109,9 +109,11 @@ D_EXTERN_C_BEGIN
  * @retval ERANGE  `_dest_size` is `0`, or the result does not fit; in the
  *                 latter case `_destination` is emptied rather than truncated.
  */
-int              d_strcpy_s(char* D_RESTRICT       _destination,
-                            size_t                 _dest_size,
-                            const char* D_RESTRICT _source);
+int d_strcpy_s(
+    char* D_RESTRICT       _destination,
+    size_t                 _dest_size,
+    const char* D_RESTRICT _source
+);
 /**
  * @brief Copies at most `_count` characters of a string into a bounded buffer
  *        (C11 strncpy_s equivalent).
@@ -130,10 +132,12 @@ int              d_strcpy_s(char* D_RESTRICT       _destination,
  * @retval ERANGE  `_dest_size` is `0`, or the result does not fit; in the
  *                 latter case `_destination` is emptied rather than truncated.
  */
-int              d_strncpy_s(char* D_RESTRICT       _destination,
-                             size_t                 _dest_size,
-                             const char* D_RESTRICT _source,
-                             size_t                 _count);
+int d_strncpy_s(
+    char* D_RESTRICT       _destination,
+    size_t                 _dest_size,
+    const char* D_RESTRICT _source,
+    size_t                 _count
+);
 /**
  * @brief Appends a string within a bounded buffer (C11 strcat_s equivalent).
  *
@@ -149,9 +153,11 @@ int              d_strncpy_s(char* D_RESTRICT       _destination,
  *                 within `_dest_size`, or the result does not fit; in the
  *                 latter two cases `_destination` is emptied.
  */
-int              d_strcat_s(char* D_RESTRICT       _destination,
-                            size_t                 _dest_size,
-                            const char* D_RESTRICT _source);
+int d_strcat_s(
+    char* D_RESTRICT       _destination,
+    size_t                 _dest_size,
+    const char* D_RESTRICT _source
+);
 /**
  * @brief Appends at most `_count` characters of a string within a bounded
  *        buffer (C11 strncat_s equivalent).
@@ -170,10 +176,12 @@ int              d_strcat_s(char* D_RESTRICT       _destination,
  *                 within `_dest_size`, or the result does not fit; in the
  *                 latter two cases `_destination` is emptied.
  */
-int              d_strncat_s(char* D_RESTRICT       _destination,
-                             size_t                 _dest_size,
-                             const char* D_RESTRICT _source,
-                             size_t                 _count);
+int d_strncat_s(
+    char* D_RESTRICT       _destination,
+    size_t                 _dest_size,
+    const char* D_RESTRICT _source,
+    size_t                 _count
+);
 
 // 2.2    Duplication
 //------------------------------------------------------------------------------
@@ -184,7 +192,9 @@ int              d_strncat_s(char* D_RESTRICT       _destination,
  * @post   on success the caller owns the result and releases it with free().
  * @return the copy, or `NULL` if `_str` is `NULL` or allocation failed.
  */
-char*            d_strdup(const char* _str);
+char* d_strdup(
+    const char* _str
+);
 /**
  * @brief Duplicates at most `_n` characters of a string (POSIX strndup
  *        equivalent).
@@ -196,8 +206,10 @@ char*            d_strdup(const char* _str);
  * @return the terminated copy, or `NULL` if `_str` is `NULL` or allocation
  *         failed.
  */
-char*            d_strndup(const char* _str,
-                           size_t      _n);
+char* d_strndup(
+    const char* _str,
+    size_t      _n
+);
 
 
 //==============================================================================
@@ -216,8 +228,10 @@ char*            d_strndup(const char* _str,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal.
  */
-int              d_strcasecmp(const char* _s1,
-                              const char* _s2);
+int d_strcasecmp(
+    const char* _s1,
+    const char* _s2
+);
 /**
  * @brief Compares at most `_n` characters of two strings, ignoring case (POSIX
  *        strncasecmp equivalent).
@@ -229,9 +243,11 @@ int              d_strcasecmp(const char* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal; always `0` when `_n` is `0`.
  */
-int              d_strncasecmp(const char* _s1,
-                               const char* _s2,
-                               size_t      _n);
+int d_strncasecmp(
+    const char* _s1,
+    const char* _s2,
+    size_t      _n
+);
 
 // 3.2    Length-aware comparison
 //------------------------------------------------------------------------------
@@ -248,10 +264,12 @@ int              d_strncasecmp(const char* _s1,
  *         other, and two `NULL`s compare equal. A string that is a prefix of
  *         the other orders first.
  */
-int              d_strcmp_n(const char* _s1,
-                            size_t      _s1_len,
-                            const char* _s2,
-                            size_t      _s2_len);
+int d_strcmp_n(
+    const char* _s1,
+    size_t      _s1_len,
+    const char* _s2,
+    size_t      _s2_len
+);
 /**
  * @brief Compares at most `_n` characters of two strings of known length.
  *
@@ -264,11 +282,13 @@ int              d_strcmp_n(const char* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal; always `0` when `_n` is `0`.
  */
-int              d_strncmp_n(const char* _s1,
-                             size_t      _s1_len,
-                             const char* _s2,
-                             size_t      _s2_len,
-                             size_t      _n);
+int d_strncmp_n(
+    const char* _s1,
+    size_t      _s1_len,
+    const char* _s2,
+    size_t      _s2_len,
+    size_t      _n
+);
 /**
  * @brief Compares two strings of known length, ignoring case.
  *
@@ -280,10 +300,12 @@ int              d_strncmp_n(const char* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal.
  */
-int              d_strcasecmp_n(const char* _s1,
-                                size_t      _s1_len,
-                                const char* _s2,
-                                size_t      _s2_len);
+int d_strcasecmp_n(
+    const char* _s1,
+    size_t      _s1_len,
+    const char* _s2,
+    size_t      _s2_len
+);
 /**
  * @brief Compares at most `_n` characters of two strings of known length,
  *        ignoring case.
@@ -297,11 +319,13 @@ int              d_strcasecmp_n(const char* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal; always `0` when `_n` is `0`.
  */
-int              d_strncasecmp_n(const char* _s1,
-                                 size_t      _s1_len,
-                                 const char* _s2,
-                                 size_t      _s2_len,
-                                 size_t      _n);
+int d_strncasecmp_n(
+    const char* _s1,
+    size_t      _s1_len,
+    const char* _s2,
+    size_t      _s2_len,
+    size_t      _n
+);
 
 // 3.3    Equality
 //------------------------------------------------------------------------------
@@ -315,10 +339,12 @@ int              d_strncasecmp_n(const char* _s1,
  * @return `true` if both are `NULL`, or both are non-`NULL` with equal lengths
  *         and contents; `false` otherwise.
  */
-bool             d_strequals(const char* _s1,
-                             size_t      _s1_len,
-                             const char* _s2,
-                             size_t      _s2_len);
+bool d_strequals(
+    const char* _s1,
+    size_t      _s1_len,
+    const char* _s2,
+    size_t      _s2_len
+);
 /**
  * @brief Tests two strings of known length for equality, ignoring case.
  *
@@ -329,10 +355,12 @@ bool             d_strequals(const char* _s1,
  * @return `true` if both are `NULL`, or both are non-`NULL` with equal lengths
  *         and case-insensitively equal contents; `false` otherwise.
  */
-bool             d_strequals_nocase(const char* _s1,
-                                    size_t      _s1_len,
-                                    const char* _s2,
-                                    size_t      _s2_len);
+bool d_strequals_nocase(
+    const char* _s1,
+    size_t      _s1_len,
+    const char* _s2,
+    size_t      _s2_len
+);
 
 
 //==============================================================================
@@ -350,8 +378,10 @@ bool             d_strequals_nocase(const char* _s1,
  * @return a pointer to the first occurrence, `_haystack` itself for an empty
  *         needle, or `NULL` if there is none or either argument is `NULL`.
  */
-char*            d_strcasestr(const char* _haystack,
-                              const char* _needle);
+char* d_strcasestr(
+    const char* _haystack,
+    const char* _needle
+);
 /**
  * @brief Finds a character, or the terminator if it is absent (GNU strchrnul
  *        equivalent).
@@ -361,8 +391,10 @@ char*            d_strcasestr(const char* _haystack,
  * @return a pointer to the first occurrence or to the terminator; `NULL` only
  *         if `_str` is `NULL`.
  */
-char*            d_strchrnul(const char* _str,
-                             int         _c);
+char* d_strchrnul(
+    const char* _str,
+    int         _c
+);
 
 // 4.2    Prefix, suffix, and containment
 //------------------------------------------------------------------------------
@@ -376,10 +408,12 @@ char*            d_strchrnul(const char* _str,
  * @return `true` if `_str` begins with `_prefix`; `false` otherwise or if
  *         either pointer is `NULL`.
  */
-bool             d_strstartswith(const char* _str,
-                                 size_t      _str_len,
-                                 const char* _prefix,
-                                 size_t      _prefix_len);
+bool d_strstartswith(
+    const char* _str,
+    size_t      _str_len,
+    const char* _prefix,
+    size_t      _prefix_len
+);
 /**
  * @brief Tests whether a string of known length ends with a suffix.
  *
@@ -390,10 +424,12 @@ bool             d_strstartswith(const char* _str,
  * @return `true` if `_str` ends with `_suffix`; `false` otherwise or if either
  *         pointer is `NULL`.
  */
-bool             d_strendswith(const char* _str,
-                               size_t      _str_len,
-                               const char* _suffix,
-                               size_t      _suffix_len);
+bool d_strendswith(
+    const char* _str,
+    size_t      _str_len,
+    const char* _suffix,
+    size_t      _suffix_len
+);
 /**
  * @brief Tests whether a string of known length contains a C string.
  *
@@ -403,9 +439,11 @@ bool             d_strendswith(const char* _str,
  * @return `true` if `_substr` occurs in `_str`, including when it is empty;
  *         `false` otherwise or if either pointer is `NULL`.
  */
-bool             d_strcontains(const char* _str,
-                               size_t      _str_len,
-                               const char* _substr);
+bool d_strcontains(
+    const char* _str,
+    size_t      _str_len,
+    const char* _substr
+);
 /**
  * @brief Tests whether a string of known length contains a character.
  *
@@ -415,9 +453,11 @@ bool             d_strcontains(const char* _str,
  * @return `true` if `_c` occurs in `_str`; `false` otherwise or if `_str` is
  *         `NULL`.
  */
-bool             d_strcontains_char(const char* _str,
-                                    size_t      _str_len,
-                                    char        _c);
+bool d_strcontains_char(
+    const char* _str,
+    size_t      _str_len,
+    char        _c
+);
 
 // 4.3    Index-returning search
 //------------------------------------------------------------------------------
@@ -430,9 +470,11 @@ bool             d_strcontains_char(const char* _str,
  * @return the index of the first occurrence, or D_STRING_NPOS if there is none
  *         or `_str` is `NULL`.
  */
-d_index          d_strchr_index(const char* _str,
-                                size_t      _len,
-                                char        _c);
+dj_index d_strchr_index(
+    const char* _str,
+    size_t      _len,
+    char        _c
+);
 /**
  * @brief Finds the first occurrence of a character at or after an index.
  *
@@ -443,10 +485,12 @@ d_index          d_strchr_index(const char* _str,
  * @return the index of the first occurrence, or D_STRING_NPOS if there is none,
  *         `_start` is not below `_len`, or `_str` is `NULL`.
  */
-d_index          d_strchr_index_from(const char* _str,
-                                     size_t      _len,
-                                     char        _c,
-                                     size_t      _start);
+dj_index d_strchr_index_from(
+    const char* _str,
+    size_t      _len,
+    char        _c,
+    size_t      _start
+);
 /**
  * @brief Finds the last occurrence of a character in a buffer.
  *
@@ -456,9 +500,11 @@ d_index          d_strchr_index_from(const char* _str,
  * @return the index of the last occurrence, or D_STRING_NPOS if there is none,
  *         `_len` is `0`, or `_str` is `NULL`.
  */
-d_index          d_strrchr_index(const char* _str,
-                                 size_t      _len,
-                                 char        _c);
+dj_index d_strrchr_index(
+    const char* _str,
+    size_t      _len,
+    char        _c
+);
 /**
  * @brief Finds the first occurrence of a substring in a buffer; embedded null
  *        characters take part.
@@ -470,10 +516,12 @@ d_index          d_strrchr_index(const char* _str,
  * @return the index of the first occurrence, `0` for an empty substring, or
  *         D_STRING_NPOS if there is none or either pointer is `NULL`.
  */
-d_index          d_strstr_index(const char* _str,
-                                size_t      _str_len,
-                                const char* _substr,
-                                size_t      _substr_len);
+dj_index d_strstr_index(
+    const char* _str,
+    size_t      _str_len,
+    const char* _substr,
+    size_t      _substr_len
+);
 /**
  * @brief Finds the first occurrence of a substring at or after an index.
  *
@@ -486,11 +534,13 @@ d_index          d_strstr_index(const char* _str,
  *         substring when `_start` is at most `_str_len`; otherwise
  *         D_STRING_NPOS, as also when either pointer is `NULL`.
  */
-d_index          d_strstr_index_from(const char* _str,
-                                     size_t      _str_len,
-                                     const char* _substr,
-                                     size_t      _substr_len,
-                                     size_t      _start);
+dj_index d_strstr_index_from(
+    const char* _str,
+    size_t      _str_len,
+    const char* _substr,
+    size_t      _substr_len,
+    size_t      _start
+);
 /**
  * @brief Finds the last occurrence of a substring in a buffer.
  *
@@ -501,10 +551,12 @@ d_index          d_strstr_index_from(const char* _str,
  * @return the index of the last occurrence, `_str_len` for an empty substring,
  *         or D_STRING_NPOS if there is none or either pointer is `NULL`.
  */
-d_index          d_strrstr_index(const char* _str,
-                                 size_t      _str_len,
-                                 const char* _substr,
-                                 size_t      _substr_len);
+dj_index d_strrstr_index(
+    const char* _str,
+    size_t      _str_len,
+    const char* _substr,
+    size_t      _substr_len
+);
 /**
  * @brief Finds the first occurrence of a substring in a buffer, ignoring case.
  *
@@ -518,10 +570,12 @@ d_index          d_strrstr_index(const char* _str,
  * @return the index of the first occurrence, `0` for an empty substring, or
  *         D_STRING_NPOS if there is none or either pointer is `NULL`.
  */
-d_index          d_strcasestr_index(const char* _str,
-                                    size_t      _str_len,
-                                    const char* _substr,
-                                    size_t      _substr_len);
+dj_index d_strcasestr_index(
+    const char* _str,
+    size_t      _str_len,
+    const char* _substr,
+    size_t      _substr_len
+);
 
 
 //==============================================================================
@@ -544,9 +598,11 @@ d_index          d_strcasestr_index(const char* _str,
  * @return the next token, or `NULL` when there are no more tokens or `_delim`
  *         or `_saveptr` is `NULL`.
  */
-char*            d_strtok_r(char* D_RESTRICT       _str,
-                            const char* D_RESTRICT _delim,
-                            char** D_RESTRICT      _saveptr);
+char* d_strtok_r(
+    char* D_RESTRICT       _str,
+    const char* D_RESTRICT _delim,
+    char** D_RESTRICT      _saveptr
+);
 
 // 5.2    Bounded length
 //------------------------------------------------------------------------------
@@ -558,8 +614,10 @@ char*            d_strtok_r(char* D_RESTRICT       _str,
  * @param[in] _maxlen  the most characters to examine.
  * @return the length, at most `_maxlen`; `0` if `_str` is `NULL`.
  */
-size_t           d_strnlen(const char* _str,
-                           size_t      _maxlen);
+size_t d_strnlen(
+    const char* _str,
+    size_t      _maxlen
+);
 
 
 //==============================================================================
@@ -575,14 +633,18 @@ size_t           d_strnlen(const char* _str,
  * @param[in,out] _str  the string to convert.
  * @return `_str`, or `NULL` if it is `NULL`.
  */
-char*            d_strlwr(char* _str);
+char* d_strlwr(
+    char* _str
+);
 /**
  * @brief Converts a string to uppercase in place (Windows _strupr equivalent).
  *
  * @param[in,out] _str  the string to convert.
  * @return `_str`, or `NULL` if it is `NULL`.
  */
-char*            d_strupr(char* _str);
+char* d_strupr(
+    char* _str
+);
 
 // 6.2    Reversal
 //------------------------------------------------------------------------------
@@ -592,7 +654,9 @@ char*            d_strupr(char* _str);
  * @param[in,out] _str  the string to reverse.
  * @return `_str`, or `NULL` if it is `NULL`.
  */
-char*            d_strrev(char* _str);
+char* d_strrev(
+    char* _str
+);
 
 // 6.3    Character replacement
 //------------------------------------------------------------------------------
@@ -606,10 +670,12 @@ char*            d_strrev(char* _str);
  * @param[in]     _new  the character to substitute.
  * @return the number of replacements, or `0` if `_str` is `NULL`.
  */
-size_t           d_strreplace_char(char*  _str,
-                                   size_t _len,
-                                   char   _old,
-                                   char   _new);
+size_t d_strreplace_char(
+    char*  _str,
+    size_t _len,
+    char   _old,
+    char   _new
+);
 
 
 //==============================================================================
@@ -630,8 +696,10 @@ size_t           d_strreplace_char(char*  _str,
  * @return `true` if `_text` is non-`NULL` and none of its first `_length` bytes
  *         is '\0'; `false` otherwise.
  */
-bool             d_str_is_valid(const char* _text,
-                                size_t      _length);
+bool d_str_is_valid(
+    const char* _text,
+    size_t      _length
+);
 /**
  * @brief Tests whether every character is 7-bit ASCII.
  *
@@ -640,8 +708,10 @@ bool             d_str_is_valid(const char* _text,
  * @return `true` if every character is below 0x80, including for an empty
  *         buffer; `false` otherwise or if `_text` is `NULL`.
  */
-bool             d_str_is_ascii(const char* _text,
-                                size_t      _length);
+bool d_str_is_ascii(
+    const char* _text,
+    size_t      _length
+);
 /**
  * @brief Tests whether every character is a decimal digit.
  *
@@ -650,8 +720,10 @@ bool             d_str_is_ascii(const char* _text,
  * @return `true` if the buffer is non-empty and every character is a decimal
  *         digit; `false` otherwise or if `_text` is `NULL`.
  */
-bool             d_str_is_numeric(const char* _text,
-                                  size_t      _length);
+bool d_str_is_numeric(
+    const char* _text,
+    size_t      _length
+);
 /**
  * @brief Tests whether every character is alphabetic.
  *
@@ -663,8 +735,10 @@ bool             d_str_is_numeric(const char* _text,
  * @return `true` if the buffer is non-empty and every character is alphabetic;
  *         `false` otherwise or if `_text` is `NULL`.
  */
-bool             d_str_is_alpha(const char* _text,
-                                size_t      _length);
+bool d_str_is_alpha(
+    const char* _text,
+    size_t      _length
+);
 /**
  * @brief Tests whether every character is alphanumeric.
  *
@@ -676,8 +750,10 @@ bool             d_str_is_alpha(const char* _text,
  * @return `true` if the buffer is non-empty and every character is
  *         alphanumeric; `false` otherwise or if `_text` is `NULL`.
  */
-bool             d_str_is_alnum(const char* _text,
-                                size_t      _length);
+bool d_str_is_alnum(
+    const char* _text,
+    size_t      _length
+);
 /**
  * @brief Tests whether every character is whitespace.
  *
@@ -689,8 +765,10 @@ bool             d_str_is_alnum(const char* _text,
  * @return `true` if the buffer is non-empty and every character is whitespace;
  *         `false` otherwise or if `_text` is `NULL`.
  */
-bool             d_str_is_whitespace(const char* _text,
-                                     size_t      _length);
+bool d_str_is_whitespace(
+    const char* _text,
+    size_t      _length
+);
 
 // 7.2    Counting
 //------------------------------------------------------------------------------
@@ -702,9 +780,11 @@ bool             d_str_is_whitespace(const char* _text,
  * @param[in] _c    the character to count.
  * @return the number of occurrences, or `0` if `_str` is `NULL`.
  */
-size_t           d_strcount_char(const char* _str,
-                                 size_t      _len,
-                                 char        _c);
+size_t d_strcount_char(
+    const char* _str,
+    size_t      _len,
+    char        _c
+);
 /**
  * @brief Counts the non-overlapping occurrences of a C string in a buffer.
  *
@@ -714,9 +794,11 @@ size_t           d_strcount_char(const char* _str,
  * @return the number of occurrences, or `0` if either pointer is `NULL` or
  *         `_substr` is empty.
  */
-size_t           d_strcount_substr(const char* _str,
-                                   size_t      _len,
-                                   const char* _substr);
+size_t d_strcount_substr(
+    const char* _str,
+    size_t      _len,
+    const char* _substr
+);
 
 // 7.3    Hashing
 //------------------------------------------------------------------------------
@@ -727,8 +809,10 @@ size_t           d_strcount_substr(const char* _str,
  * @param[in] _len  the length of `_str`.
  * @return the hash, or `0` if `_str` is `NULL`.
  */
-size_t           d_strhash(const char* _str,
-                           size_t      _len);
+size_t d_strhash(
+    const char* _str,
+    size_t      _len
+);
 
 
 //==============================================================================
@@ -755,9 +839,11 @@ size_t           d_strhash(const char* _str,
  * @retval EINVAL  `_buf` is `NULL` or `_buflen` is `0`.
  * @retval ERANGE  the description does not fit; `_buf` is left untouched.
  */
-int              d_strerror_r(int    _errnum,
-                              char*  _buf,
-                              size_t _buflen);
+int d_strerror_r(
+    int    _errnum,
+    char*  _buf,
+    size_t _buflen
+);
 
 
 D_EXTERN_C_END

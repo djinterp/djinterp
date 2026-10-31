@@ -27,9 +27,8 @@ Return:
   Negative if _a < _b, 0 if equal, positive if _a > _b. NULL is ordered
   before any non-NULL string.
 */
-D_STATIC int
-d_registry_keycmp_case_sensitive
-(
+D_STATIC
+int d_registry_keycmp_case_sensitive(
     const char* _a,
     const char* _b
 )
@@ -63,9 +62,8 @@ Return:
   Negative if _a < _b, 0 if equal, positive if _a > _b (ignoring case).
   NULL is ordered before any non-NULL string.
 */
-D_STATIC int
-d_registry_keycmp_nocase
-(
+D_STATIC
+int d_registry_keycmp_nocase(
     const char* _a,
     const char* _b
 )
@@ -123,10 +121,9 @@ Return:
   true if the registry is non-NULL and has the FROZEN flag set, false
   otherwise.
 */
-D_STATIC_INLINE bool
-d_registry_is_frozen
-(
-    const struct d_registry* registry
+D_STATIC_INLINE
+bool d_registry_is_frozen(
+    const struct dj_registry* registry
 )
 {
     return registry && ((registry->flags & D_REGISTRY_FLAG_FROZEN) != 0);
@@ -142,10 +139,9 @@ Return:
   true if the registry is non-NULL and has the STATIC_ROWS flag set, false
   otherwise.
 */
-D_STATIC_INLINE bool
-d_registry_is_static
-(
-    const struct d_registry* registry
+D_STATIC_INLINE
+bool d_registry_is_static(
+    const struct dj_registry* registry
 )
 {
     return registry && ((registry->flags & D_REGISTRY_FLAG_STATIC_ROWS) != 0);
@@ -164,12 +160,11 @@ Parameter(s):
 Return:
   Negative if _a < _b, 0 if equal, positive if _a > _b.
 */
-D_STATIC_INLINE int
-d_registry_lookup_entry_cmp_for_reg
-(
-    const struct d_registry*              _registry,
-    const struct d_registry_lookup_entry* _a,
-    const struct d_registry_lookup_entry* _b
+D_STATIC_INLINE
+int d_registry_lookup_entry_cmp_for_reg(
+    const struct dj_registry*              _registry,
+    const struct dj_registry_lookup_entry* _a,
+    const struct dj_registry_lookup_entry* _b
 )
 {
     return ( (!_registry) ||
@@ -189,14 +184,13 @@ Return:
   A pointer to the matching lookup entry, or NULL if the registry is
   invalid, the key is NULL, or no match is found.
 */
-D_STATIC struct d_registry_lookup_entry*
-d_registry_find_lookup_entry
-(
-    const struct d_registry* _registry,
-    const char*              _key
+D_STATIC
+struct dj_registry_lookup_entry* d_registry_find_lookup_entry(
+    const struct dj_registry* _registry,
+    const char*               _key
 )
 {
-    struct d_registry_lookup_entry probe;
+    struct dj_registry_lookup_entry probe;
     fn_comparator comparator = NULL;
 
     if ( (!_registry)         ||
@@ -214,11 +208,11 @@ d_registry_find_lookup_entry
                      ? d_registry_lookup_compare
                      : d_registry_lookup_compare_nocase;
 
-    return (struct d_registry_lookup_entry*)bsearch(
+    return (struct dj_registry_lookup_entry*)bsearch(
         &probe,
         _registry->lookup,
         _registry->lookup_count,
-        sizeof(struct d_registry_lookup_entry),
+        sizeof(struct dj_registry_lookup_entry),
         comparator);
 }
 
@@ -234,11 +228,10 @@ Return:
   - true, if capacity was already sufficient or growth succeeded, or
   - false, if registry is NULL, overflow was detected, or realloc failed.
 */
-D_STATIC bool
-d_registry_ensure_row_capacity
-(
-    struct d_registry* registry,
-    size_t _needed
+D_STATIC
+bool d_registry_ensure_row_capacity(
+    struct dj_registry* registry,
+    size_t              _needed
 )
 {
     void*  new_rows;
@@ -295,14 +288,13 @@ Return:
   - true, if capacity was already sufficient or growth succeeded, or
   - false, if _registry is NULL, overflow was detected, or realloc failed.
 */
-D_STATIC bool
-d_registry_ensure_lookup_capacity
-(
-    struct d_registry* _registry,
-    size_t             _needed
+D_STATIC
+bool d_registry_ensure_lookup_capacity(
+    struct dj_registry* _registry,
+    size_t              _needed
 )
 {
-    struct d_registry_lookup_entry* new_lookup;
+    struct dj_registry_lookup_entry* new_lookup;
     size_t new_cap;
 
     if (!_registry)
@@ -331,7 +323,7 @@ d_registry_ensure_lookup_capacity
     }
 
     new_lookup = realloc(_registry->lookup,
-        (new_cap * sizeof(struct d_registry_lookup_entry)) );
+        (new_cap * sizeof(struct dj_registry_lookup_entry)) );
 
     if (!new_lookup)
     {
@@ -355,11 +347,10 @@ Return:
   A void pointer to the row, or NULL if the registry or its rows pointer
   is NULL.
 */
-D_STATIC_INLINE void*
-d_registry_row_ptr
-(
-    const struct d_registry* _registry,
-    size_t                   _index
+D_STATIC_INLINE
+void* d_registry_row_ptr(
+    const struct dj_registry* _registry,
+    size_t                    _index
 )
 {
     return ( (_registry) &&
@@ -379,11 +370,10 @@ Return:
   true if the entry's key matches the row's key (under the registry's
   comparison mode), false otherwise.
 */
-D_STATIC bool
-d_registry_lookup_entry_is_canonical
-(
-    const struct d_registry* registry,
-    const struct d_registry_lookup_entry* _e
+D_STATIC
+bool d_registry_lookup_entry_is_canonical(
+    const struct dj_registry*              registry,
+    const struct dj_registry_lookup_entry* _e
 )
 {
     const char* row_key;
@@ -422,9 +412,7 @@ Return:
   A pointer to the newly allocated registry, or NULL if _row_size is zero
   or allocation fails.
 */
-struct d_registry*
-d_registry_new
-(
+struct dj_registry* d_registry_new(
     size_t _row_size
 )
 {
@@ -446,21 +434,19 @@ Return:
   A pointer to the newly allocated registry, or NULL if _row_size is zero
   or allocation fails.
 */
-struct d_registry*
-d_registry_new_with_capacity
-(
+struct dj_registry* d_registry_new_with_capacity(
     size_t _row_size,
     size_t _capacity
 )
 {
-    struct d_registry* new_registry;
+    struct dj_registry* new_registry;
 
     if (_row_size == 0)
     {
         return NULL;
     }
 
-    new_registry = malloc(sizeof(struct d_registry));
+    new_registry = malloc(sizeof(struct dj_registry));
 
     if (!new_registry)
     {
@@ -470,7 +456,7 @@ d_registry_new_with_capacity
     // zero-initialize all fields before setting known values; this
     // ensures rows/lookup are NULL (safe for realloc and free) and
     // count/capacity fields are 0 on all paths including early errors.
-    memset(new_registry, 0, sizeof(struct d_registry));
+    memset(new_registry, 0, sizeof(struct dj_registry));
 
     new_registry->row_size = _row_size;
     new_registry->flags    = (uint8_t)D_REGISTRY_FLAG_DEFAULT;
@@ -509,13 +495,11 @@ Return:
   A pointer to the newly allocated copy, or NULL if _other is NULL or
   allocation fails.
 */
-struct d_registry*
-d_registry_new_copy
-(
-    const struct d_registry* _other
+struct dj_registry* d_registry_new_copy(
+    const struct dj_registry* _other
 )
 {
-    struct d_registry* new_registry;
+    struct dj_registry* new_registry;
 
     if (!_other)
     {
@@ -558,7 +542,7 @@ d_registry_new_copy
         memcpy(new_registry->lookup,
                _other->lookup,
                _other->lookup_count
-                   * sizeof(struct d_registry_lookup_entry));
+                   * sizeof(struct dj_registry_lookup_entry));
 
         new_registry->lookup_count = _other->lookup_count;
     }
@@ -580,15 +564,13 @@ Return:
   A pointer to the newly allocated and populated registry, or NULL if
   _rows is NULL, _row_size is zero, or allocation fails.
 */
-struct d_registry*
-d_registry_new_from_array
-(
+struct dj_registry* d_registry_new_from_array(
     const void* _rows,
     size_t      _row_size,
     size_t      _count
 )
 {
-    struct d_registry* new_registry;
+    struct dj_registry* new_registry;
 
     if ( (!_rows) ||
          (_row_size == 0) )
@@ -628,22 +610,20 @@ d_registry_lookup_compare
   comparison.
 
 Parameter(s):
-  _a: pointer to the first d_registry_lookup_entry.
-  _b: pointer to the second d_registry_lookup_entry.
+  _a: pointer to the first dj_registry_lookup_entry.
+  _b: pointer to the second dj_registry_lookup_entry.
 Return:
   Negative if _a < _b, 0 if equal, positive if _a > _b.
 */
-int
-d_registry_lookup_compare
-(
+int d_registry_lookup_compare(
     const void* _a,
     const void* _b
 )
 {
-    const struct d_registry_lookup_entry* a =
-        (const struct d_registry_lookup_entry*)_a;
-    const struct d_registry_lookup_entry* b =
-        (const struct d_registry_lookup_entry*)_b;
+    const struct dj_registry_lookup_entry* a =
+        (const struct dj_registry_lookup_entry*)_a;
+    const struct dj_registry_lookup_entry* b =
+        (const struct dj_registry_lookup_entry*)_b;
 
     return d_registry_keycmp_case_sensitive(a->key, b->key);
 }
@@ -654,22 +634,20 @@ d_registry_lookup_compare_nocase
   (ASCII) key comparison.
 
 Parameter(s):
-  _a: pointer to the first d_registry_lookup_entry.
-  _b: pointer to the second d_registry_lookup_entry.
+  _a: pointer to the first dj_registry_lookup_entry.
+  _b: pointer to the second dj_registry_lookup_entry.
 Return:
   Negative if _a < _b, 0 if equal, positive if _a > _b (ignoring case).
 */
-int
-d_registry_lookup_compare_nocase
-(
+int d_registry_lookup_compare_nocase(
     const void* _a,
     const void* _b
 )
 {
-    const struct d_registry_lookup_entry* a =
-        (const struct d_registry_lookup_entry*)_a;
-    const struct d_registry_lookup_entry* b =
-        (const struct d_registry_lookup_entry*)_b;
+    const struct dj_registry_lookup_entry* a =
+        (const struct dj_registry_lookup_entry*)_a;
+    const struct dj_registry_lookup_entry* b =
+        (const struct dj_registry_lookup_entry*)_b;
 
     return d_registry_keycmp_nocase(a->key, b->key);
 }
@@ -685,10 +663,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_sort_lookup
-(
-    struct d_registry* _registry
+void d_registry_sort_lookup(
+    struct dj_registry* _registry
 )
 {
     if ( (!_registry)         ||
@@ -700,7 +676,7 @@ d_registry_sort_lookup
 
     qsort(_registry->lookup,
           _registry->lookup_count,
-          sizeof(struct d_registry_lookup_entry),
+          sizeof(struct dj_registry_lookup_entry),
           ((_registry->flags & D_REGISTRY_FLAG_CASE_INSENSITIVE) == 0)
               ? d_registry_lookup_compare
               : d_registry_lookup_compare_nocase);
@@ -719,10 +695,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_rebuild_lookup
-(
-    struct d_registry* _registry
+void d_registry_rebuild_lookup(
+    struct dj_registry* _registry
 )
 {
     size_t i;
@@ -776,14 +750,12 @@ Return:
   A void pointer to the matching row, or NULL if _registry is NULL, _key
   is NULL, or no matching entry is found.
 */
-void*
-d_registry_get
-(
-    const struct d_registry* _registry,
-    const char*              _key
+void* d_registry_get(
+    const struct dj_registry* _registry,
+    const char*               _key
 )
 {
-    struct d_registry_lookup_entry* e;
+    struct dj_registry_lookup_entry* e;
 
     if ( (!_registry) ||
          (!_key) )
@@ -825,11 +797,9 @@ Return:
     - the row's key is NULL or already exists,
     - memory allocation failed.
 */
-bool
-d_registry_add
-(
-    struct d_registry* _registry,
-    const void*        _row
+bool d_registry_add(
+    struct dj_registry* _registry,
+    const void*         _row
 )
 {
     const char* key;
@@ -954,12 +924,10 @@ Return:
   - true, if all rows were successfully added, or
   - false, if any row failed to add, or parameters are invalid.
 */
-bool
-d_registry_add_rows
-(
-    struct d_registry* _registry,
-    const void*        _rows,
-    size_t             _count
+bool d_registry_add_rows(
+    struct dj_registry* _registry,
+    const void*         _rows,
+    size_t              _count
 )
 {
     size_t i;
@@ -1001,15 +969,13 @@ Return:
   - false, if any parameter is NULL, the registry is frozen/static, or
     the key was not found.
 */
-bool
-d_registry_set
-(
-    struct d_registry* _registry,
-    const char*        _key,
-    const void*        _row
+bool d_registry_set(
+    struct dj_registry* _registry,
+    const char*         _key,
+    const void*         _row
 )
 {
-    struct d_registry_lookup_entry* e;
+    struct dj_registry_lookup_entry* e;
     void*                          dst;
     const char*                    existing_key;
 
@@ -1060,11 +1026,9 @@ Return:
   - false, if _registry is NULL, the registry is frozen/static, or
     _index is out of range.
 */
-bool
-d_registry_remove_at
-(
-    struct d_registry* _registry,
-    size_t             _index
+bool d_registry_remove_at(
+    struct dj_registry* _registry,
+    size_t              _index
 )
 {
     size_t i;
@@ -1112,7 +1076,7 @@ d_registry_remove_at
 
     for (i = 0; i < _registry->lookup_count; ++i)
     {
-        struct d_registry_lookup_entry e = _registry->lookup[i];
+        struct dj_registry_lookup_entry e = _registry->lookup[i];
 
         // drop canonical + alias entries for the removed row
         if (e.row_index == _index)
@@ -1149,14 +1113,12 @@ Return:
   - true, if the row was found and removed, or
   - false, if _registry or _key is NULL, or the key was not found.
 */
-bool
-d_registry_remove
-(
-    struct d_registry* _registry,
-    const char*        _key
+bool d_registry_remove(
+    struct dj_registry* _registry,
+    const char*         _key
 )
 {
-    struct d_registry_lookup_entry* e;
+    struct dj_registry_lookup_entry* e;
 
     if ( (!_registry) ||
          (!_key) )
@@ -1185,10 +1147,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_clear
-(
-    struct d_registry* _registry
+void d_registry_clear(
+    struct dj_registry* _registry
 )
 {
     size_t i;
@@ -1243,15 +1203,13 @@ Return:
   - false, if any parameter is NULL, the registry is frozen, the key was
     not found, the alias already exists, or allocation failed.
 */
-bool
-d_registry_add_alias
-(
-    struct d_registry* _registry,
-    const char*        _key,
-    const char*        _alias
+bool d_registry_add_alias(
+    struct dj_registry* _registry,
+    const char*         _key,
+    const char*         _alias
 )
 {
-    struct d_registry_lookup_entry* e;
+    struct dj_registry_lookup_entry* e;
     size_t row_index;
 
     if ( (!_registry) ||
@@ -1316,13 +1274,11 @@ Return:
   - true, if all aliases were successfully added, or
   - false, if any alias failed to add, or parameters are invalid.
 */
-bool
-d_registry_add_aliases
-(
-    struct d_registry* _registry,
-    const char*        _key,
-    const char**       _aliases,
-    size_t             _count
+bool d_registry_add_aliases(
+    struct dj_registry* _registry,
+    const char*         _key,
+    const char**        _aliases,
+    size_t              _count
 )
 {
     size_t i;
@@ -1360,14 +1316,12 @@ Return:
   - false, if any parameter is NULL, the registry is frozen, the alias
     was not found, or the alias is actually a canonical key.
 */
-bool
-d_registry_remove_alias
-(
-    struct d_registry* _registry,
-    const char*        _alias
+bool d_registry_remove_alias(
+    struct dj_registry* _registry,
+    const char*         _alias
 )
 {
-    struct d_registry_lookup_entry* e;
+    struct dj_registry_lookup_entry* e;
     size_t i;
     size_t idx;
 
@@ -1418,10 +1372,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_clear_aliases
-(
-    struct d_registry* _registry
+void d_registry_clear_aliases(
+    struct dj_registry* _registry
 )
 {
     size_t i;
@@ -1465,10 +1417,8 @@ Parameter(s):
 Return:
   The number of alias entries, or 0 if _registry is NULL.
 */
-size_t
-d_registry_alias_count
-(
-    const struct d_registry* _registry
+size_t d_registry_alias_count(
+    const struct dj_registry* _registry
 )
 {
     size_t i;
@@ -1508,11 +1458,9 @@ Parameter(s):
 Return:
   true if the key is found, false otherwise.
 */
-bool
-d_registry_contains
-(
-    const struct d_registry* _registry,
-    const char*              _key
+bool d_registry_contains(
+    const struct dj_registry* _registry,
+    const char*               _key
 )
 {
     return (d_registry_index_of(_registry, _key) >= 0);
@@ -1529,14 +1477,12 @@ Return:
   The zero-based row index if found, or (ssize_t)-1 if the registry is
   NULL, the key is NULL, or the key was not found.
 */
-ssize_t
-d_registry_index_of
-(
-    const struct d_registry* _registry,
-    const char*              _key
+ssize_t d_registry_index_of(
+    const struct dj_registry* _registry,
+    const char*               _key
 )
 {
-    struct d_registry_lookup_entry* e;
+    struct dj_registry_lookup_entry* e;
 
     if ( (!_registry) ||
          (!_key) )
@@ -1565,11 +1511,9 @@ Return:
   A void pointer to the row, or NULL if _registry is NULL or _index is
   out of range.
 */
-void*
-d_registry_at
-(
-    const struct d_registry* _registry,
-    size_t                   _index
+void* d_registry_at(
+    const struct dj_registry* _registry,
+    size_t                    _index
 )
 {
     if ( (!_registry) ||
@@ -1590,10 +1534,8 @@ Parameter(s):
 Return:
   The row count, or 0 if _registry is NULL.
 */
-size_t
-d_registry_count
-(
-    const struct d_registry* _registry
+size_t d_registry_count(
+    const struct dj_registry* _registry
 )
 {
     return _registry ? _registry->count : 0;
@@ -1608,10 +1550,8 @@ Parameter(s):
 Return:
   The row capacity, or 0 if _registry is NULL.
 */
-size_t
-d_registry_capacity
-(
-    const struct d_registry* _registry
+size_t d_registry_capacity(
+    const struct dj_registry* _registry
 )
 {
     return _registry ? _registry->capacity : 0;
@@ -1626,10 +1566,8 @@ Parameter(s):
 Return:
   true if _registry is NULL or has zero rows, false otherwise.
 */
-bool
-d_registry_is_empty
-(
-    const struct d_registry* _registry
+bool d_registry_is_empty(
+    const struct dj_registry* _registry
 )
 {
     return !_registry || _registry->count == 0;
@@ -1647,15 +1585,13 @@ d_registry_iterator_new
 Parameter(s):
   _registry: the registry to iterate over; may be NULL.
 Return:
-  A d_registry_iterator value with current set to 0 and no filter.
+  A dj_registry_iterator value with current set to 0 and no filter.
 */
-struct d_registry_iterator
-d_registry_iterator_new
-(
-    struct d_registry* _registry
+struct dj_registry_iterator d_registry_iterator_new(
+    struct dj_registry* _registry
 )
 {
-    struct d_registry_iterator it;
+    struct dj_registry_iterator it;
 
     it.registry   = _registry;
     it.current    = 0;
@@ -1676,17 +1612,15 @@ Parameter(s):
              may be NULL (equivalent to no filter).
   _context:  opaque context pointer passed to _filter; may be NULL.
 Return:
-  A d_registry_iterator value with the filter and context stored.
+  A dj_registry_iterator value with the filter and context stored.
 */
-struct d_registry_iterator
-d_registry_iterator_filtered
-(
-    struct d_registry*        _registry,
+struct dj_registry_iterator d_registry_iterator_filtered(
+    struct dj_registry*       _registry,
     fn_registry_row_predicate _filter,
     const void*               _context
 )
 {
-    struct d_registry_iterator it;
+    struct dj_registry_iterator it;
 
     it.registry   = _registry;
     it.current    = 0;
@@ -1706,10 +1640,8 @@ Parameter(s):
 Return:
   true if at least one more row can be yielded, false otherwise.
 */
-bool
-d_registry_iterator_has_next
-(
-    const struct d_registry_iterator* _iter
+bool d_registry_iterator_has_next(
+    const struct dj_registry_iterator* _iter
 )
 {
     size_t i;
@@ -1751,10 +1683,8 @@ Return:
   A void pointer to the next row, or NULL if the iterator is exhausted
   or invalid.
 */
-void*
-d_registry_iterator_next
-(
-    struct d_registry_iterator* _iter
+void* d_registry_iterator_next(
+    struct dj_registry_iterator* _iter
 )
 {
     if ( (!_iter) ||
@@ -1789,10 +1719,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_iterator_reset
-(
-    struct d_registry_iterator* _iter
+void d_registry_iterator_reset(
+    struct dj_registry_iterator* _iter
 )
 {
     if (_iter)
@@ -1815,10 +1743,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_foreach
-(
-    struct d_registry*      _registry,
+void d_registry_foreach(
+    struct dj_registry*     _registry,
     fn_registry_row_visitor _visitor,
     void*                   _context
 )
@@ -1860,10 +1786,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_foreach_if
-(
-    struct d_registry*        _registry,
+void d_registry_foreach_if(
+    struct dj_registry*       _registry,
     fn_registry_row_predicate _predicate,
     const void*               _pred_ctx,
     fn_registry_row_visitor   _visitor,
@@ -1917,11 +1841,9 @@ Return:
   - false, if _registry is NULL, the registry is frozen/static, or
     allocation failed.
 */
-bool
-d_registry_reserve
-(
-    struct d_registry* _registry,
-    size_t             _capacity
+bool d_registry_reserve(
+    struct dj_registry* _registry,
+    size_t              _capacity
 )
 {
     if (!_registry)
@@ -1956,11 +1878,9 @@ Return:
   - false, if _registry is NULL, the registry is frozen/static, or
     allocation failed.
 */
-bool
-d_registry_reserve_lookup
-(
-    struct d_registry* _registry,
-    size_t             _capacity
+bool d_registry_reserve_lookup(
+    struct dj_registry* _registry,
+    size_t              _capacity
 )
 {
     if (!_registry)
@@ -1995,14 +1915,12 @@ Return:
   - false, if _registry is NULL, the registry is frozen/static, or
     realloc failed.
 */
-bool
-d_registry_shrink_to_fit
-(
-    struct d_registry* _registry
+bool d_registry_shrink_to_fit(
+    struct dj_registry* _registry
 )
 {
     void*                           rows_new;
-    struct d_registry_lookup_entry* lookup_new;
+    struct dj_registry_lookup_entry* lookup_new;
 
     if (!_registry)
     {
@@ -2033,10 +1951,10 @@ d_registry_shrink_to_fit
     // shrink lookup array
     if (_registry->lookup_capacity > _registry->lookup_count)
     {
-        lookup_new = (struct d_registry_lookup_entry*)realloc(
+        lookup_new = (struct dj_registry_lookup_entry*)realloc(
             _registry->lookup,
             _registry->lookup_count
-                * sizeof(struct d_registry_lookup_entry)
+                * sizeof(struct dj_registry_lookup_entry)
         );
 
         if (_registry->lookup_count != 0 && !lookup_new)
@@ -2062,10 +1980,8 @@ Return:
   - true, if the flag was set (or was already set), or
   - false, if _registry is NULL.
 */
-bool
-d_registry_freeze
-(
-    struct d_registry* _registry
+bool d_registry_freeze(
+    struct dj_registry* _registry
 )
 {
     if (!_registry)
@@ -2089,10 +2005,8 @@ Return:
   - true, if the flag was cleared (or was already clear), or
   - false, if _registry is NULL.
 */
-bool
-d_registry_thaw
-(
-    struct d_registry* _registry
+bool d_registry_thaw(
+    struct dj_registry* _registry
 )
 {
     if (!_registry)
@@ -2119,11 +2033,9 @@ Return:
   is NULL, is empty, or allocation fails. Sets *_out_count to the number
   of keys returned.
 */
-const char**
-d_registry_get_all_keys
-(
-    const struct d_registry* _registry,
-    size_t*                  _out_count
+const char** d_registry_get_all_keys(
+    const struct dj_registry* _registry,
+    size_t*                   _out_count
 )
 {
     const char** out;
@@ -2169,7 +2081,7 @@ d_registry_get_all_keys
 d_registry_free
   Frees a registry and all associated memory. If the OWNS_ROWS flag is
   set, row_free is called for each row via d_registry_clear. Static
-  registries only free the d_registry struct itself, not the row or
+  registries only free the dj_registry struct itself, not the row or
   lookup arrays.
 
 Parameter(s):
@@ -2177,10 +2089,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_registry_free
-(
-    struct d_registry* _registry
+void d_registry_free(
+    struct dj_registry* _registry
 )
 {
     if (!_registry)

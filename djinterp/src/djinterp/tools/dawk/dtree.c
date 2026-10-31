@@ -30,7 +30,7 @@
 //   struct: the walk state.  `pending` is an explicit stack of directories
 // still to expand, so depth costs heap rather than C stack and a deep tree
 // cannot overflow.  `path` is the buffer handed back as the record.
-struct d_internal_tree
+struct dj_internal_tree
 {
     char**  pending;
     size_t  pending_count;
@@ -45,8 +45,8 @@ struct d_internal_tree
 d_internal_tree_compare
   Orders two directory entries by name so document order is deterministic.
 */
-static int
-d_internal_tree_compare(
+static
+int d_internal_tree_compare(
     const void* _left,
     const void* _right
 )
@@ -62,10 +62,10 @@ d_internal_tree_compare(
 d_internal_tree_push
   Pushes one path onto the pending stack, taking ownership of it.
 */
-static bool
-d_internal_tree_push(
-    struct d_internal_tree* _tree,
-    char*                   _path
+static
+bool d_internal_tree_push(
+    struct dj_internal_tree* _tree,
+    char*                    _path
 )
 {
     if (_tree->pending_count == _tree->pending_capacity)
@@ -99,8 +99,8 @@ d_internal_tree_join
   Builds "<dir>/<name>" into a fresh allocation, collapsing the case where the
 directory already ends in a separator so a root of "/" does not produce "//".
 */
-static char*
-d_internal_tree_join(
+static
+char* d_internal_tree_join(
     const char* _dir,
     const char* _name
 )
@@ -143,10 +143,10 @@ by name is popped first, and reports whether the read succeeded.  A directory
 that cannot be opened is skipped rather than fatal: an unreadable corner of a
 tree should not end a run over the rest of it.
 */
-static void
-d_internal_tree_expand(
-    struct d_internal_tree* _tree,
-    const char*             _dir
+static
+void d_internal_tree_expand(
+    struct dj_internal_tree* _tree,
+    const char*              _dir
 )
 {
     DIR* const handle = opendir(_dir);
@@ -228,14 +228,14 @@ d_internal_tree_next
 yields no record of its own in this source; only files do.  The loop therefore
 continues past directories rather than returning for them.
 */
-static bool
-d_internal_tree_next(
+static
+bool d_internal_tree_next(
     void*        _user,
     const char** _out_text,
     size_t*      _out_length
 )
 {
-    struct d_internal_tree* const tree = (struct d_internal_tree*)_user;
+    struct dj_internal_tree* const tree = (struct dj_internal_tree*)_user;
 
     while (tree->pending_count > 0)
     {
@@ -293,12 +293,12 @@ d_internal_tree_next(
 d_internal_tree_release
   Frees the walk state and every path still pending.
 */
-static void
-d_internal_tree_release(
+static
+void d_internal_tree_release(
     void* _user
 )
 {
-    struct d_internal_tree* const tree = (struct d_internal_tree*)_user;
+    struct dj_internal_tree* const tree = (struct dj_internal_tree*)_user;
 
     if (tree)
     {
@@ -322,10 +322,9 @@ d_awk_source_tree_init
 caller-owned so that a host may keep it on the stack; only the walk state
 behind it is allocated, and the interpreter's teardown releases that.
 */
-bool
-d_awk_source_tree_init(
-    struct d_awk_source* _source,
-    const char*          _root
+bool d_awk_source_tree_init(
+    struct dj_awk_source* _source,
+    const char*           _root
 )
 {
     // parameter validation first
@@ -334,7 +333,7 @@ d_awk_source_tree_init(
         return false;
     }
 
-    struct d_internal_tree* const tree = calloc(1u, sizeof(*tree));
+    struct dj_internal_tree* const tree = calloc(1u, sizeof(*tree));
 
     if (!tree)
     {

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_et_iter_cb
 //   helper: minimal callback for listener construction.
-static void
-d_tests_sa_et_iter_cb(size_t _count, void** _args)
+static
+void d_tests_sa_et_iter_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -36,16 +39,14 @@ d_tests_sa_et_iter_traversal
   - Iterator visits all inserted elements
   - Iterator properly advances through buckets
 */
-bool
-d_tests_sa_et_iter_traversal
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_iter_traversal(
+    struct dj_test_counter* _counter
 )
 {
     bool                          result;
-    struct d_event_hash_table*    table;
-    struct d_event_listener*      listeners[3];
-    struct d_event_hash_iterator* iter;
+    struct dj_event_hash_table*    table;
+    struct dj_event_listener*      listeners[3];
+    struct dj_event_hash_iterator* iter;
     int                           count;
     int                           i;
 
@@ -75,8 +76,8 @@ d_tests_sa_et_iter_traversal
 
             while (d_event_hash_table_iterator_has_next(iter))
             {
-                d_event_id               key;
-                struct d_event_listener*  lis;
+                dj_event_id               key;
+                struct dj_event_listener*  lis;
 
                 lis = d_event_hash_table_iterator_next(iter, &key);
 
@@ -116,15 +117,13 @@ d_tests_sa_et_iter_empty
   - Iterator is created successfully
   - has_next returns false immediately
 */
-bool
-d_tests_sa_et_iter_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_iter_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool                          result;
-    struct d_event_hash_table*    table;
-    struct d_event_hash_iterator* iter;
+    struct dj_event_hash_table*    table;
+    struct dj_event_hash_iterator* iter;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -167,10 +166,8 @@ d_tests_sa_et_iter_null
   - iterator_begin returns NULL for NULL table
   - iterator_free(NULL) does not crash
 */
-bool
-d_tests_sa_et_iter_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_iter_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -198,10 +195,8 @@ d_tests_sa_et_iter_null
 d_tests_sa_et_iterator_all
   Runs all iterator tests.
 */
-bool
-d_tests_sa_et_iterator_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_iterator_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

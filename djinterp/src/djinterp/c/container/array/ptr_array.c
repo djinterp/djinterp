@@ -18,23 +18,21 @@
 
 /*
 d_ptr_array_new
-  Allocate and initialize a new `d_ptr_array` with specified initial capacity.
+  Allocate and initialize a new `dj_ptr_array` with specified initial capacity.
 
 Parameter(s):
   _initial_size: initial capacity to allocate for the array.
 Return:
-  A pointer to the newly created `d_ptr_array`, or NULL if allocation failed.
+  A pointer to the newly created `dj_ptr_array`, or NULL if allocation failed.
 */
-struct d_ptr_array*
-d_ptr_array_new
-(
+struct dj_ptr_array* d_ptr_array_new(
     size_t _initial_size
 )
 {
-    struct d_ptr_array* arr;
+    struct dj_ptr_array* arr;
     void*               elements;
 
-    arr = d_array_common_alloc(sizeof(struct d_ptr_array));
+    arr = d_array_common_alloc(sizeof(struct dj_ptr_array));
 
     // ensure that memory allocation was successful
     if (!arr)
@@ -63,18 +61,14 @@ d_ptr_array_new
 
 /*
 d_ptr_array_new_default_size
-  Allocate and initialize a new `d_ptr_array` with default capacity.
+  Allocate and initialize a new `dj_ptr_array` with default capacity.
 
 Parameter(s):
   none
 Return:
-  A pointer to the newly created `d_ptr_array`, or NULL if allocation failed.
+  A pointer to the newly created `dj_ptr_array`, or NULL if allocation failed.
 */
-struct d_ptr_array*
-d_ptr_array_new_default_size
-(
-    void
-)
+struct dj_ptr_array* d_ptr_array_new_default_size(void)
 {
     return d_ptr_array_new(D_PTR_ARRAY_DEFAULT_CAPACITY);
 }
@@ -82,23 +76,21 @@ d_ptr_array_new_default_size
 
 /*
 d_ptr_array_new_from_arr
-  Allocate and initialize a new `d_ptr_array` by copying pointers from an
+  Allocate and initialize a new `dj_ptr_array` by copying pointers from an
 existing array.
 
 Parameter(s):
   _source: pointer to the source array of pointers to copy from.
   _count:  number of pointers in the source array.
 Return:
-  A pointer to the newly created `d_ptr_array`, or NULL if allocation failed.
+  A pointer to the newly created `dj_ptr_array`, or NULL if allocation failed.
 */
-struct d_ptr_array*
-d_ptr_array_new_from_arr
-(
+struct dj_ptr_array* d_ptr_array_new_from_arr(
     const void** _source,
     size_t       _count
 )
 {
-    struct d_ptr_array* arr;
+    struct dj_ptr_array* arr;
     void*               elements;
 
     if ( (!_source) &&
@@ -107,7 +99,7 @@ d_ptr_array_new_from_arr
         return NULL;
     }
 
-    arr = d_array_common_alloc(sizeof(struct d_ptr_array));
+    arr = d_array_common_alloc(sizeof(struct dj_ptr_array));
 
     // ensure that memory allocation was successful
     if (!arr)
@@ -135,27 +127,25 @@ d_ptr_array_new_from_arr
 
 /*
 d_ptr_array_new_from_args
-  Allocate and initialize a new `d_ptr_array` from variadic pointer arguments.
+  Allocate and initialize a new `dj_ptr_array` from variadic pointer arguments.
 
 Parameter(s):
   _arg_count: number of variadic pointer arguments to process. ...: variadic
               arguments containing pointers.
 Return:
-  A pointer to the newly created `d_ptr_array`, or NULL if allocation failed.
+  A pointer to the newly created `dj_ptr_array`, or NULL if allocation failed.
 */
-struct d_ptr_array*
-d_ptr_array_new_from_args
-(
+struct dj_ptr_array* d_ptr_array_new_from_args(
     size_t _arg_count,
     ...
 )
 {
     bool                success;
     va_list             args;
-    struct d_ptr_array* arr;
+    struct dj_ptr_array* arr;
     void*               elements;
 
-    arr = d_array_common_alloc(sizeof(struct d_ptr_array));
+    arr = d_array_common_alloc(sizeof(struct dj_ptr_array));
 
     if (!arr)
     {
@@ -187,22 +177,20 @@ d_ptr_array_new_from_args
 
 /*
 d_ptr_array_new_copy
-  Allocate and initialize a new `d_ptr_array` by copying another `d_ptr_array`.
+  Allocate and initialize a new `dj_ptr_array` by copying another `dj_ptr_array`.
   This is a shallow copy - the pointers are copied, not the pointed-to data.
 
 Parameter(s):
-  _other: pointer to the `d_ptr_array` to copy from.
+  _other: pointer to the `dj_ptr_array` to copy from.
 Return:
-  A pointer to the newly created `d_ptr_array` copy, or NULL if allocation
+  A pointer to the newly created `dj_ptr_array` copy, or NULL if allocation
   failed.
 */
-struct d_ptr_array*
-d_ptr_array_new_copy
-(
-    const struct d_ptr_array* _other
+struct dj_ptr_array* d_ptr_array_new_copy(
+    const struct dj_ptr_array* _other
 )
 {
-    struct d_ptr_array* arr;
+    struct dj_ptr_array* arr;
     void*               elements;
 
     if (!_other)
@@ -210,7 +198,7 @@ d_ptr_array_new_copy
         return NULL;
     }
 
-    arr = d_array_common_alloc(sizeof(struct d_ptr_array));
+    arr = d_array_common_alloc(sizeof(struct dj_ptr_array));
 
     if (!arr)
     {
@@ -237,25 +225,23 @@ d_ptr_array_new_copy
 
 /*
 d_ptr_array_new_merge
-  Allocate and initialize a new `d_ptr_array` by merging multiple pointer
+  Allocate and initialize a new `dj_ptr_array` by merging multiple pointer
 arrays.
 
 Parameter(s):
   _count: number of arrays to merge. ...: variadic arguments containing pointers
-          to `d_ptr_array` structures.
+          to `dj_ptr_array` structures.
 Return:
-  A pointer to the newly created merged `d_ptr_array`, or NULL if allocation
+  A pointer to the newly created merged `dj_ptr_array`, or NULL if allocation
   failed.
 */
-struct d_ptr_array*
-d_ptr_array_new_merge
-(
+struct dj_ptr_array* d_ptr_array_new_merge(
     size_t _count,
     ...
 )
 {
-    struct d_ptr_array* result;
-    struct d_ptr_array* current;
+    struct dj_ptr_array* result;
+    struct dj_ptr_array* current;
     va_list             args;
     size_t              total_size;
     size_t              current_offset;
@@ -273,7 +259,7 @@ d_ptr_array_new_merge
 
     for (i = 0; i < _count; i++)
     {
-        current = va_arg(args, struct d_ptr_array*);
+        current = va_arg(args, struct dj_ptr_array*);
 
         if (current)
         {
@@ -298,7 +284,7 @@ d_ptr_array_new_merge
 
     for (i = 0; i < _count; i++)
     {
-        current = va_arg(args, struct d_ptr_array*);
+        current = va_arg(args, struct dj_ptr_array*);
 
         if ( (current) &&
              (current->count > 0) )
@@ -321,24 +307,22 @@ d_ptr_array_new_merge
 
 /*
 d_ptr_array_new_slice
-  Allocate and initialize a new `d_ptr_array` as a slice starting from the
+  Allocate and initialize a new `dj_ptr_array` as a slice starting from the
 specified index.
 
 Parameter(s):
-  _ptr_array: pointer to the source `d_ptr_array`.
+  _ptr_array: pointer to the source `dj_ptr_array`.
   _start:     starting index for the slice (supports negative indexing).
 Return:
-  A pointer to the newly created `d_ptr_array` slice, or NULL if allocation
+  A pointer to the newly created `dj_ptr_array` slice, or NULL if allocation
   failed.
 */
-struct d_ptr_array*
-d_ptr_array_new_slice
-(
-    const struct d_ptr_array* _ptr_array,
-    d_index                   _start
+struct dj_ptr_array* d_ptr_array_new_slice(
+    const struct dj_ptr_array* _ptr_array,
+    dj_index                   _start
 )
 {
-    struct d_ptr_array* arr;
+    struct dj_ptr_array* arr;
     void*               elements;
     size_t              start_idx;
     size_t              slice_count;
@@ -357,7 +341,7 @@ d_ptr_array_new_slice
     // calculate slice length
     slice_count = (_ptr_array->count - start_idx);
 
-    arr = d_array_common_alloc(sizeof(struct d_ptr_array));
+    arr = d_array_common_alloc(sizeof(struct dj_ptr_array));
 
     // ensure that memory allocation was successful
     if (!arr)
@@ -385,27 +369,25 @@ d_ptr_array_new_slice
 
 /*
 d_ptr_array_new_slice_range
-  Allocate and initialize a new `d_ptr_array` as a slice within the specified
+  Allocate and initialize a new `dj_ptr_array` as a slice within the specified
 range.
 
 Parameter(s):
-  _ptr_array: pointer to the source `d_ptr_array`.
+  _ptr_array: pointer to the source `dj_ptr_array`.
   _start:     starting index for the range (supports negative indexing).
   _end:       ending index for the range, inclusive (supports negative
               indexing).
 Return:
-  A pointer to the newly created `d_ptr_array` slice, or NULL if allocation
+  A pointer to the newly created `dj_ptr_array` slice, or NULL if allocation
   failed.
 */
-struct d_ptr_array*
-d_ptr_array_new_slice_range
-(
-    const struct d_ptr_array* _ptr_array,
-    d_index                   _start,
-    d_index                   _end
+struct dj_ptr_array* d_ptr_array_new_slice_range(
+    const struct dj_ptr_array* _ptr_array,
+    dj_index                   _start,
+    dj_index                   _end
 )
 {
-    struct d_ptr_array* arr;
+    struct dj_ptr_array* arr;
     void*               elements;
     size_t              start_idx;
     size_t              end_idx;
@@ -432,7 +414,7 @@ d_ptr_array_new_slice_range
     // calculate slice length (inclusive of end)
     slice_count = (end_idx - start_idx + 1);
 
-    arr = d_array_common_alloc(sizeof(struct d_ptr_array));
+    arr = d_array_common_alloc(sizeof(struct dj_ptr_array));
 
     // ensure that memory allocation was successful
     if (!arr)
@@ -467,18 +449,16 @@ d_ptr_array_append_element
   Append a single pointer to the end of the array.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to modify.
+  _ptr_array: pointer to the `dj_ptr_array` to modify.
   _element:   pointer to append.
 Return:
   A boolean value corresponding to either:
   - true, if the pointer was successfully appended, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_append_element
-(
-    struct d_ptr_array* _ptr_array,
-    const void*         _element
+bool d_ptr_array_append_element(
+    struct dj_ptr_array* _ptr_array,
+    const void*          _element
 )
 {
     void* elements;
@@ -508,7 +488,7 @@ d_ptr_array_append_elements
   Append multiple pointers to the end of the array.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to modify.
+  _ptr_array: pointer to the `dj_ptr_array` to modify.
   _elements:  pointer to the array of pointers to append.
   _count:     number of pointers to append.
 Return:
@@ -516,12 +496,10 @@ Return:
   - true, if the pointers were successfully appended, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_append_elements
-(
-    struct d_ptr_array* _ptr_array,
-    const void**        _elements,
-    size_t              _count
+bool d_ptr_array_append_elements(
+    struct dj_ptr_array* _ptr_array,
+    const void**         _elements,
+    size_t               _count
 )
 {
     void* elements;
@@ -550,21 +528,19 @@ d_ptr_array_append_elements
 
 /*
 d_ptr_array_append_array
-  Append all pointers from another `d_ptr_array`.
+  Append all pointers from another `dj_ptr_array`.
 
 Parameter(s):
-  _ptr_array: pointer to the destination `d_ptr_array`.
-  _source:    pointer to the source `d_ptr_array` to append from.
+  _ptr_array: pointer to the destination `dj_ptr_array`.
+  _source:    pointer to the source `dj_ptr_array` to append from.
 Return:
   A boolean value corresponding to either:
   - true, if the pointers were successfully appended, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_append_array
-(
-    struct d_ptr_array*       _ptr_array,
-    const struct d_ptr_array* _source
+bool d_ptr_array_append_array(
+    struct dj_ptr_array*       _ptr_array,
+    const struct dj_ptr_array* _source
 )
 {
     return ( (!_ptr_array) ||
@@ -578,21 +554,19 @@ d_ptr_array_append_array
 
 /*
 d_ptr_array_contains
-  Check if the `d_ptr_array` contains a specific pointer (by identity).
+  Check if the `dj_ptr_array` contains a specific pointer (by identity).
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to search.
+  _ptr_array: pointer to the `dj_ptr_array` to search.
   _value:     pointer value to search for.
 Return:
   A boolean value corresponding to either:
   - true, if the pointer was found in the array, or
   - false, if the pointer was not found or parameters are invalid.
 */
-bool
-d_ptr_array_contains
-(
-    const struct d_ptr_array* _ptr_array,
-    const void*               _value
+bool d_ptr_array_contains(
+    const struct dj_ptr_array* _ptr_array,
+    const void*                _value
 )
 {
     size_t i;
@@ -617,21 +591,19 @@ d_ptr_array_contains
 
 /*
 d_ptr_array_fill
-  Fill the entire `d_ptr_array` with the specified pointer value.
+  Fill the entire `dj_ptr_array` with the specified pointer value.
 
 Parameter(s):
-  _ptr_array:    pointer to the `d_ptr_array` to fill.
+  _ptr_array:    pointer to the `dj_ptr_array` to fill.
   _fill_element: pointer value to fill the array with.
 Return:
   A boolean value corresponding to either:
   - true, if the array was successfully filled, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_fill
-(
-    struct d_ptr_array* _ptr_array,
-    const void*         _fill_element
+bool d_ptr_array_fill(
+    struct dj_ptr_array* _ptr_array,
+    const void*          _fill_element
 )
 {
     size_t i;
@@ -655,17 +627,15 @@ d_ptr_array_find
   Find the index of the first occurrence of a pointer (by identity).
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to search.
+  _ptr_array: pointer to the `dj_ptr_array` to search.
   _value:     pointer value to search for.
 Return:
   The index of the first occurrence, or -1 if not found or parameters are
   invalid.
 */
-ssize_t
-d_ptr_array_find
-(
-    struct d_ptr_array* _ptr_array,
-    const void*         _value
+ssize_t d_ptr_array_find(
+    struct dj_ptr_array* _ptr_array,
+    const void*          _value
 )
 {
     size_t i;
@@ -693,7 +663,7 @@ d_ptr_array_insert_element
   Insert a single pointer at the specified index.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to modify.
+  _ptr_array: pointer to the `dj_ptr_array` to modify.
   _element:   pointer to insert.
   _index:     index where to insert (supports negative indexing).
 Return:
@@ -701,12 +671,10 @@ Return:
   - true, if the pointer was successfully inserted, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_insert_element
-(
-    struct d_ptr_array* _ptr_array,
-    const void*         _element,
-    d_index             _index
+bool d_ptr_array_insert_element(
+    struct dj_ptr_array* _ptr_array,
+    const void*          _element,
+    dj_index             _index
 )
 {
     void* elements;
@@ -736,7 +704,7 @@ d_ptr_array_insert_elements
   Insert multiple pointers at the specified index.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to modify.
+  _ptr_array: pointer to the `dj_ptr_array` to modify.
   _elements:  pointer to the array of pointers to insert.
   _count:     number of pointers to insert.
   _index:     index where to insert (supports negative indexing).
@@ -745,13 +713,11 @@ Return:
   - true, if the pointers were successfully inserted, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_insert_elements
-(
-    struct d_ptr_array* _ptr_array,
-    const void**        _elements,
-    size_t              _count,
-    d_index             _index
+bool d_ptr_array_insert_elements(
+    struct dj_ptr_array* _ptr_array,
+    const void**         _elements,
+    size_t               _count,
+    dj_index             _index
 )
 {
     void* elements;
@@ -781,23 +747,21 @@ d_ptr_array_insert_elements
 
 /*
 d_ptr_array_insert_array
-  Insert all pointers from another `d_ptr_array` at the specified index.
+  Insert all pointers from another `dj_ptr_array` at the specified index.
 
 Parameter(s):
-  _destination: pointer to the destination `d_ptr_array`.
-  _source:      pointer to the source `d_ptr_array` to insert from.
+  _destination: pointer to the destination `dj_ptr_array`.
+  _source:      pointer to the source `dj_ptr_array` to insert from.
   _index:       index where to insert (supports negative indexing).
 Return:
   A boolean value corresponding to either:
   - true, if the pointers were successfully inserted, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_insert_array
-(
-    struct d_ptr_array*       _destination,
-    const struct d_ptr_array* _source,
-    d_index                   _index
+bool d_ptr_array_insert_array(
+    struct dj_ptr_array*       _destination,
+    const struct dj_ptr_array* _source,
+    dj_index                   _index
 )
 {
     return ( (!_destination) ||
@@ -812,19 +776,17 @@ d_ptr_array_insert_array
 
 /*
 d_ptr_array_is_empty
-  Check if the `d_ptr_array` is empty.
+  Check if the `dj_ptr_array` is empty.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to check.
+  _ptr_array: pointer to the `dj_ptr_array` to check.
 Return:
   A boolean value corresponding to either:
   - true, if the array is empty or NULL, or
   - false, if the array contains elements.
 */
-bool
-d_ptr_array_is_empty
-(
-    const struct d_ptr_array* _ptr_array
+bool d_ptr_array_is_empty(
+    const struct dj_ptr_array* _ptr_array
 )
 {
     return ( (!_ptr_array) ||
@@ -837,18 +799,16 @@ d_ptr_array_prepend_element
   Prepend a single pointer to the beginning of the array.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to modify.
+  _ptr_array: pointer to the `dj_ptr_array` to modify.
   _element:   pointer to prepend.
 Return:
   A boolean value corresponding to either:
   - true, if the pointer was successfully prepended, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_prepend_element
-(
-    struct d_ptr_array* _ptr_array,
-    const void*         _element
+bool d_ptr_array_prepend_element(
+    struct dj_ptr_array* _ptr_array,
+    const void*          _element
 )
 {
     void** new_elements;
@@ -893,7 +853,7 @@ d_ptr_array_prepend_elements
   Prepend multiple pointers to the beginning of the array.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to modify.
+  _ptr_array: pointer to the `dj_ptr_array` to modify.
   _elements:  pointer to the array of pointers to prepend.
   _count:     number of pointers to prepend.
 Return:
@@ -901,12 +861,10 @@ Return:
   - true, if the pointers were successfully prepended, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_prepend_elements
-(
-    struct d_ptr_array* _ptr_array,
-    const void**        _elements,
-    size_t              _count
+bool d_ptr_array_prepend_elements(
+    struct dj_ptr_array* _ptr_array,
+    const void**         _elements,
+    size_t               _count
 )
 {
     void** new_elements;
@@ -962,21 +920,19 @@ d_ptr_array_prepend_elements
 
 /*
 d_ptr_array_prepend_array
-  Prepend all pointers from another `d_ptr_array`.
+  Prepend all pointers from another `dj_ptr_array`.
 
 Parameter(s):
-  _destination: pointer to the destination `d_ptr_array`.
-  _source:      pointer to the source `d_ptr_array` to prepend from.
+  _destination: pointer to the destination `dj_ptr_array`.
+  _source:      pointer to the source `dj_ptr_array` to prepend from.
 Return:
   A boolean value corresponding to either:
   - true, if the pointers were successfully prepended, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_prepend_array
-(
-    struct d_ptr_array*       _destination,
-    const struct d_ptr_array* _source
+bool d_ptr_array_prepend_array(
+    struct dj_ptr_array*       _destination,
+    const struct dj_ptr_array* _source
 )
 {
     return ( (!_destination) ||
@@ -993,16 +949,14 @@ d_ptr_array_reverse
   Reverse the order of pointers in the array.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to reverse.
+  _ptr_array: pointer to the `dj_ptr_array` to reverse.
 Return:
   A boolean value corresponding to either:
   - true, if the array was successfully reversed, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_reverse
-(
-    struct d_ptr_array* _ptr_array
+bool d_ptr_array_reverse(
+    struct dj_ptr_array* _ptr_array
 )
 {
     return (!_ptr_array)
@@ -1018,7 +972,7 @@ d_ptr_array_resize_amount
   Resize the array by a specified amount.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to resize.
+  _ptr_array: pointer to the `dj_ptr_array` to resize.
   _amount:    amount to change the size by (positive to grow, negative to
               shrink).
 Return:
@@ -1026,11 +980,9 @@ Return:
   - true, if the array was successfully resized, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_resize_amount
-(
-    struct d_ptr_array* _ptr_array,
-    ssize_t             _amount
+bool d_ptr_array_resize_amount(
+    struct dj_ptr_array* _ptr_array,
+    ssize_t              _amount
 )
 {
     size_t new_count;
@@ -1076,18 +1028,16 @@ d_ptr_array_resize_factor
   Resize the array by a multiplication factor.
 
 Parameter(s):
-  _ptr_array: pointer to the `d_ptr_array` to resize.
+  _ptr_array: pointer to the `dj_ptr_array` to resize.
   _factor:    multiplication factor (> 1.0 to grow, < 1.0 to shrink).
 Return:
   A boolean value corresponding to either:
   - true, if the array was successfully resized, or
   - false, if the operation failed.
 */
-bool
-d_ptr_array_resize_factor
-(
-    struct d_ptr_array* _ptr_array,
-    double              _factor
+bool d_ptr_array_resize_factor(
+    struct dj_ptr_array* _ptr_array,
+    double               _factor
 )
 {
     double new_count_d;
@@ -1139,16 +1089,14 @@ d_ptr_array_sort
   The comparator receives pointers to the array elements (i.e., void**).
 
 Parameter(s):
-  _ptr_array:  pointer to the `d_ptr_array` to sort.
+  _ptr_array:  pointer to the `dj_ptr_array` to sort.
   _comparator: function to compare two elements.
 Return:
   none
 */
-void
-d_ptr_array_sort
-(
-    struct d_ptr_array* _ptr_array,
-    fn_comparator       _comparator
+void d_ptr_array_sort(
+    struct dj_ptr_array* _ptr_array,
+    fn_comparator        _comparator
 )
 {
     if ( (!_ptr_array) ||
@@ -1172,19 +1120,17 @@ d_ptr_array_sort
 
 /*
 d_ptr_array_free
-  Free the memory associated with this `d_ptr_array`.
+  Free the memory associated with this `dj_ptr_array`.
   Note: This performs a shallow free - the pointed-to objects are NOT freed.
   The caller is responsible for freeing those if necessary.
 
 Parameter(s):
-  _ptr_array: the `d_ptr_array` being freed.
+  _ptr_array: the `dj_ptr_array` being freed.
 Return:
   none.
 */
-void
-d_ptr_array_free
-(
-    struct d_ptr_array* _ptr_array
+void d_ptr_array_free(
+    struct dj_ptr_array* _ptr_array
 )
 {
     if (_ptr_array)
@@ -1200,21 +1146,19 @@ d_ptr_array_free
 
 /*
 d_ptr_array_deep_free
-  Free the memory associated with this `d_ptr_array` and all pointed-to
+  Free the memory associated with this `dj_ptr_array` and all pointed-to
 objects.
   Uses the provided free function to free each element.
 
 Parameter(s):
-  _ptr_array: the `d_ptr_array` being freed.
+  _ptr_array: the `dj_ptr_array` being freed.
   _free_fn:   function to use for freeing each pointed-to object.
 Return:
   none.
 */
-void
-d_ptr_array_deep_free
-(
-    struct d_ptr_array* _ptr_array,
-    fn_free             _free_fn
+void d_ptr_array_deep_free(
+    struct dj_ptr_array* _ptr_array,
+    fn_free              _free_fn
 )
 {
     if ( (_ptr_array) &&

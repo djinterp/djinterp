@@ -91,7 +91,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_ENV_COMPILER_H 1
 
 // djinterp
-#include "../config/core/env/cfg_env_compiler.h"  // D_CFG_ENV_COMPILER_ENABLED
+#include "../config/env/cfg_env_compiler.h"  // D_CFG_ENV_COMPILER_ENABLED
 #include "./env_lang.h"                           // D_ENV_LANG_*
 #include "./env_os.h"                             // D_ENV_PLATFORM_WINDOWS
 

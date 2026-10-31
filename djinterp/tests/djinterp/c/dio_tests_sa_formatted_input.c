@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dio_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,10 +25,8 @@ d_tests_sa_dio_sscanf
 
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_sscanf
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_sscanf(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -142,10 +140,8 @@ d_tests_sa_dio_sscanf_s
 
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_sscanf_s
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_sscanf_s(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -216,9 +212,8 @@ d_tests_sa_dio_vsscanf
   - correct argument passing through va_list
   - multiple value parsing
 */
-static int
-vsscanf_test_wrapper
-(
+static
+int vsscanf_test_wrapper(
     const char* _buffer,
     const char* _format,
     ...
@@ -234,10 +229,8 @@ vsscanf_test_wrapper
     return result;
 }
 
-bool
-d_tests_sa_dio_vsscanf
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_vsscanf(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -299,9 +292,8 @@ d_tests_sa_dio_vsscanf_s
   - correct argument passing
   - format validation
 */
-static int
-vsscanf_s_test_wrapper
-(
+static
+int vsscanf_s_test_wrapper(
     const char* _buffer,
     const char* _format,
     ...
@@ -317,10 +309,8 @@ vsscanf_s_test_wrapper
     return result;
 }
 
-bool
-d_tests_sa_dio_vsscanf_s
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_vsscanf_s(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -368,10 +358,8 @@ d_tests_sa_dio_fscanf
 
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_fscanf
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_fscanf(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -485,10 +473,8 @@ d_tests_sa_dio_fscanf_s
 
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_fscanf_s
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_fscanf_s(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -573,10 +559,8 @@ d_tests_sa_dio_fscanf_s
 d_tests_sa_dio_formatted_input_all
   Aggregation function that runs all formatted input tests.
 */
-bool
-d_tests_sa_dio_formatted_input_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_formatted_input_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

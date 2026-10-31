@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -28,10 +28,8 @@ d_tests_sa_array_filter_in_place
   - NULL input is handled safely
   - NULL predicate is handled safely
 */
-bool
-d_tests_sa_array_filter_in_place
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_in_place(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -134,10 +132,8 @@ d_tests_sa_array_filter_in_place_not
   - Returns correct new count
   - Surviving elements compacted correctly
 */
-bool
-d_tests_sa_array_filter_in_place_not
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_in_place_not(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -199,10 +195,8 @@ d_tests_sa_array_filter_in_place_take_first
   - n=0 returns 0
   - n >= count returns original count
 */
-bool
-d_tests_sa_array_filter_in_place_take_first
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_in_place_take_first(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -269,10 +263,8 @@ d_tests_sa_array_filter_in_place_skip_first
   - n=0 returns original count
   - n >= count returns 0
 */
-bool
-d_tests_sa_array_filter_in_place_skip_first
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_in_place_skip_first(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -339,10 +331,8 @@ d_tests_sa_array_filter_in_place_distinct
   - Returns new count of unique elements
   - Already-unique array returns original count
 */
-bool
-d_tests_sa_array_filter_in_place_distinct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_in_place_distinct(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -387,10 +377,8 @@ d_tests_sa_array_filter_in_place_distinct
 d_tests_sa_array_filter_in_place_all
   Aggregation function that runs all in-place filter tests.
 */
-bool
-d_tests_sa_array_filter_in_place_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_in_place_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -8,7 +8,7 @@
 *
 *   THE PROTOCOL IS A TABLE OF FUNCTION POINTERS PLUS A CONTEXT, which is the
 * decision three earlier modules deferred to this one. C++ spells it as an
-* abstract class with nine pure virtuals; C spells it as `d_pdf_backend`. The
+* abstract class with nine pure virtuals; C spells it as `dj_pdf_backend`. The
 * answers to the questions that made it a decision rather than a translation:
 *
 *     WHO OWNS THE CONTEXT -- the caller, always. The facade never frees it and
@@ -32,7 +32,7 @@
 *   of every existing caller's struct. `size` is checked, never trusted to
 *   match sizeof.
 *
-*   THE FACADE IS A VALUE, NOT A HANDLE. `d_pdf_document` is a struct the
+*   THE FACADE IS A VALUE, NOT A HANDLE. `dj_pdf_document` is a struct the
 * caller owns and may put on the stack; there is no create/destroy pair,
 * because the facade holds no memory of its own -- only a borrowed backend and
 * four bits of page state.
@@ -59,23 +59,23 @@
 #include "./pdf_primitives.h"
 #include "./pdf_backend.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
 
-// d_pdf_backend
+// dj_pdf_backend
 //   type: the backend protocol. Every slot takes the context as its first
 // argument and returns int32_t -- 1 on success, 0 on failure -- including the
 // slots whose C++ counterparts return void, because a C caller has no
 // exception to catch and a write that failed must be reportable.
 //
-//   `size` MUST be set to sizeof(struct d_pdf_backend) by the caller. It is
+//   `size` MUST be set to sizeof(struct dj_pdf_backend) by the caller. It is
 // the version field; the facade refuses a table whose size is smaller than the
 // slots it needs to read.
-struct d_pdf_backend
+struct dj_pdf_backend
 {
-    size_t  size;                   // sizeof(struct d_pdf_backend); required
+    size_t  size;                   // sizeof(struct dj_pdf_backend); required
     void*   context;                // borrowed by the facade, never freed
     int32_t owns_context;           // non-zero: facade may call destroy
     int32_t reserved;               // pad; must be 0
@@ -85,25 +85,25 @@ struct d_pdf_backend
     int32_t (*end_document)(void* _context);
 
     // page lifecycle
-    int32_t (*begin_page)(void* _context, struct d_pdf_size _size);
+    int32_t (*begin_page)(void* _context, struct dj_pdf_size _size);
     int32_t (*end_page)(void* _context);
 
     // text
     int32_t (*draw_text)(void*                     _context,
-                         struct d_pdf_point        _at,
+                         struct dj_pdf_point        _at,
                          const char*               _text,
                          size_t                    _length,
-                         const struct d_pdf_font*  _font,
-                         const struct d_pdf_color* _color);
+                         const struct dj_pdf_font*  _font,
+                         const struct dj_pdf_color* _color);
 
     // vector graphics
     int32_t (*draw_line)(void*                     _context,
-                         struct d_pdf_point        _from,
-                         struct d_pdf_point        _to,
-                         const struct d_pdf_paint* _paint);
+                         struct dj_pdf_point        _from,
+                         struct dj_pdf_point        _to,
+                         const struct dj_pdf_paint* _paint);
     int32_t (*draw_rect)(void*                     _context,
-                         struct d_pdf_rect         _rect,
-                         const struct d_pdf_paint* _paint);
+                         struct dj_pdf_rect         _rect,
+                         const struct dj_pdf_paint* _paint);
 
     // metadata
     int32_t (*set_metadata)(void* _context, const char* _key,
@@ -111,7 +111,7 @@ struct d_pdf_backend
 
     // capabilities and output
     int32_t (*capabilities)(void* _context,
-                            struct d_pdf_capabilities* _out);
+                            struct dj_pdf_capabilities* _out);
     int32_t (*save)(void* _context, const char* _path);
 
     // optional: graphics state nesting. NULL means unsupported, and the facade
@@ -123,14 +123,14 @@ struct d_pdf_backend
     void    (*destroy)(void* _context);
 };
 
-// d_pdf_document
+// dj_pdf_document
 //   type: the document facade. A value the caller owns; no create/destroy.
-struct d_pdf_document
+struct dj_pdf_document
 {
-    struct d_pdf_backend* backend;  // borrowed
+    struct dj_pdf_backend* backend;  // borrowed
     int32_t               is_open;
     int32_t               has_page;
-    int32_t               last_status;   // enum d_pdf_document_status
+    int32_t               last_status;   // enum dj_pdf_document_status
     int32_t               reserved;      // pad; must be 0
 };
 
@@ -138,7 +138,7 @@ struct d_pdf_document
 //   type: why a facade call failed. Distinguishing "no backend" from "the
 // backend refused" matters: one is a caller error and one is an output error,
 // and a single 0 return conflates them.
-enum d_pdf_document_status
+enum dj_pdf_document_status
 {
     D_PDF_DOC_OK              = 0,
     D_PDF_DOC_NO_BACKEND      = 1,  // null table, or size too small
@@ -150,52 +150,80 @@ enum d_pdf_document_status
 };
 
 // I.   protocol validation
-int32_t d_pdf_backend_is_valid(const struct d_pdf_backend* _backend);
+int32_t d_pdf_backend_is_valid(
+    const struct dj_pdf_backend* _backend
+);
 
 // II.  facade lifecycle
-int32_t d_pdf_document_init(struct d_pdf_document* _doc,
-                            struct d_pdf_backend*  _backend);
-int32_t d_pdf_document_open(struct d_pdf_document* _doc);
-int32_t d_pdf_document_close(struct d_pdf_document* _doc);
-void    d_pdf_document_dispose(struct d_pdf_document* _doc);
+int32_t d_pdf_document_init(
+    struct dj_pdf_document* _doc,
+    struct dj_pdf_backend*  _backend
+);
+int32_t d_pdf_document_open(
+    struct dj_pdf_document* _doc
+);
+int32_t d_pdf_document_close(
+    struct dj_pdf_document* _doc
+);
+void d_pdf_document_dispose(
+    struct dj_pdf_document* _doc
+);
 
 // III. pages
-int32_t d_pdf_document_add_page(struct d_pdf_document* _doc,
-                                struct d_pdf_size      _size);
+int32_t d_pdf_document_add_page(
+    struct dj_pdf_document* _doc,
+    struct dj_pdf_size      _size
+);
 
 // IV.  drawing
-int32_t d_pdf_document_text(struct d_pdf_document*    _doc,
-                            struct d_pdf_point        _at,
-                            const char*               _text,
-                            size_t                    _length,
-                            const struct d_pdf_font*  _font,
-                            const struct d_pdf_color* _color);
-int32_t d_pdf_document_line(struct d_pdf_document*    _doc,
-                            struct d_pdf_point        _from,
-                            struct d_pdf_point        _to,
-                            const struct d_pdf_paint* _paint);
-int32_t d_pdf_document_rect(struct d_pdf_document*    _doc,
-                            struct d_pdf_rect         _rect,
-                            const struct d_pdf_paint* _paint);
+int32_t d_pdf_document_text(
+    struct dj_pdf_document*    _doc,
+    struct dj_pdf_point        _at,
+    const char*                _text,
+    size_t                     _length,
+    const struct dj_pdf_font*  _font,
+    const struct dj_pdf_color* _color
+);
+int32_t d_pdf_document_line(
+    struct dj_pdf_document*    _doc,
+    struct dj_pdf_point        _from,
+    struct dj_pdf_point        _to,
+    const struct dj_pdf_paint* _paint
+);
+int32_t d_pdf_document_rect(
+    struct dj_pdf_document*    _doc,
+    struct dj_pdf_rect         _rect,
+    const struct dj_pdf_paint* _paint
+);
 
 // V.   metadata, capabilities, output
-int32_t d_pdf_document_set_metadata(struct d_pdf_document* _doc,
-                                    const char*            _key,
-                                    const char*            _value);
-int32_t d_pdf_document_capabilities(struct d_pdf_document*     _doc,
-                                    struct d_pdf_capabilities* _out);
-int32_t d_pdf_document_save(struct d_pdf_document* _doc,
-                            const char*            _path);
+int32_t d_pdf_document_set_metadata(
+    struct dj_pdf_document* _doc,
+    const char*             _key,
+    const char*             _value
+);
+int32_t d_pdf_document_capabilities(
+    struct dj_pdf_document*     _doc,
+    struct dj_pdf_capabilities* _out
+);
+int32_t d_pdf_document_save(
+    struct dj_pdf_document* _doc,
+    const char*             _path
+);
 
 // VI.  status
-const char* d_pdf_document_status_name(int32_t _status);
-int32_t     d_pdf_document_last_status(const struct d_pdf_document* _doc);
+const char* d_pdf_document_status_name(
+    int32_t _status
+);
+int32_t d_pdf_document_last_status(
+    const struct dj_pdf_document* _doc
+);
 
 // VII. layout assertions
 D_STATIC_ASSERT(D_PDF_DOC_OK == 0,
                 "success must be the zero status -- a zeroed status field "
                 "means nothing has gone wrong yet");
-D_STATIC_ASSERT(offsetof(struct d_pdf_backend, size) == 0,
+D_STATIC_ASSERT(offsetof(struct dj_pdf_backend, size) == 0,
                 "size must be the FIRST member -- it is the version field, and "
                 "reading it must not depend on the rest of the layout");
 

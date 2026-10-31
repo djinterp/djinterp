@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                         dstring_tests_sa_dup.c
 *
-*   Unit tests for d_string duplication functions:
+*   Unit tests for dj_string duplication functions:
 *     - d_string_dup
 *     - d_string_ndup
 *     - d_string_substr
@@ -23,7 +23,7 @@
 
 /*
 d_tests_sa_dstring_dup
-  Tests d_string_dup() which creates a duplicate (deep copy) of a d_string.
+  Tests d_string_dup() which creates a duplicate (deep copy) of a dj_string.
 
 Test cases:
   1.  NULL string returns NULL
@@ -40,15 +40,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_dup
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_dup(void)
 {
-    struct d_test_object* group;
-    struct d_string*      original;
-    struct d_string*      duplicate;
+    struct dj_test_object* group;
+    struct dj_string*      original;
+    struct dj_string*      duplicate;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_dup", 10);
@@ -264,15 +260,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ndup
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ndup(void)
 {
-    struct d_test_object* group;
-    struct d_string*      original;
-    struct d_string*      duplicate;
+    struct dj_test_object* group;
+    struct dj_string*      original;
+    struct dj_string*      duplicate;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_ndup", 10);
@@ -465,7 +457,7 @@ d_tests_sa_dstring_ndup
 
 /*
 d_tests_sa_dstring_substr
-  Tests d_string_substr() which extracts a substring from a d_string.
+  Tests d_string_substr() which extracts a substring from a dj_string.
 
 Test cases:
   1.  NULL string returns NULL
@@ -483,15 +475,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_substr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_substr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      original;
-    struct d_string*      substring;
+    struct dj_test_object* group;
+    struct dj_string*      original;
+    struct dj_string*      substring;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_substr", 12);
@@ -803,16 +791,12 @@ Parameter(s):
 Return:
   Test object containing all duplication test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_dup_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_dup_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Duplication Functions", 3);
+    group     = d_test_object_new_interior("dj_string Duplication Functions", 3);
     child_idx = 0;
 
     if (!group)

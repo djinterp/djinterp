@@ -223,7 +223,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_ARANGODB_ENV_ARANGODB_H 1
 
 // djinterp
-#include "../../../config/core/env/db/arangodb/cfg_env_arangodb.h"  // config
+#include "../../../config/env/db/arangodb/cfg_env_arangodb.h"  // config
 #include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,10 @@
 
 // d_tests_sa_etc_adv_dummy_cb
 //   helper: minimal callback for listener construction in advanced tests.
-static void
-d_tests_sa_etc_adv_dummy_cb(void* _args)
+static
+void d_tests_sa_etc_adv_dummy_cb(
+    void* _args
+)
 {
     (void)_args;
 
@@ -34,16 +36,14 @@ d_tests_sa_event_hash_integration
   - All inserted nodes are reachable via bucket traversal
   - Lookup by hash + key finds inserted node
 */
-bool
-d_tests_sa_event_hash_integration
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_integration(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
     const size_t              table_size = 10;
-    struct d_event_hash_node* buckets[10];
-    struct d_event_listener*  listeners[20];
+    struct dj_event_hash_node* buckets[10];
+    struct dj_event_listener*  listeners[20];
     int                       created_count;
     int                       inserted_count;
     int                       total_nodes;
@@ -78,7 +78,7 @@ d_tests_sa_event_hash_integration
         if (listeners[k])
         {
             size_t                    hash;
-            struct d_event_hash_node* new_node;
+            struct dj_event_hash_node* new_node;
 
             hash     = d_event_hash_function(listeners[k]->id, table_size);
             new_node = d_event_hash_node_new(listeners[k]->id, listeners[k]);
@@ -97,7 +97,7 @@ d_tests_sa_event_hash_integration
 
     for (i = 0; i < table_size; i++)
     {
-        struct d_event_hash_node* cur;
+        struct dj_event_hash_node* cur;
 
         cur = buckets[i];
 
@@ -116,9 +116,9 @@ d_tests_sa_event_hash_integration
 
     // verify lookup for id 1010
     {
-        d_event_id                search_id;
+        dj_event_id                search_id;
         size_t                    search_hash;
-        struct d_event_hash_node* cur;
+        struct dj_event_hash_node* cur;
         bool                      found;
         bool                      should_exist;
 
@@ -149,13 +149,13 @@ d_tests_sa_event_hash_integration
     // cleanup nodes
     for (i = 0; i < table_size; i++)
     {
-        struct d_event_hash_node* cur;
+        struct dj_event_hash_node* cur;
 
         cur = buckets[i];
 
         while (cur)
         {
-            struct d_event_hash_node* next;
+            struct dj_event_hash_node* next;
 
             next = cur->next;
             d_event_hash_node_free(cur);
@@ -181,10 +181,8 @@ d_tests_sa_event_hash_stress_prime
   Tests the following:
   - 100 consecutive primes scale correctly (last > first)
 */
-bool
-d_tests_sa_event_hash_stress_prime
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_stress_prime(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -216,10 +214,8 @@ d_tests_sa_event_hash_stress_hash
   Tests the following:
   - 10000 IDs all hash within bounds
 */
-bool
-d_tests_sa_event_hash_stress_hash
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_stress_hash(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -255,10 +251,8 @@ d_tests_sa_event_hash_edge_cases
   - Large prime is actually prime and >= 10000
   - Node with max event ID is created correctly
 */
-bool
-d_tests_sa_event_hash_edge_cases
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_edge_cases(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
@@ -266,8 +260,8 @@ d_tests_sa_event_hash_edge_cases
     size_t                    large_prime;
     bool                      is_prime;
     size_t                    i;
-    d_event_id                max_id;
-    struct d_event_hash_node* node;
+    dj_event_id                max_id;
+    struct dj_event_hash_node* node;
 
     result = true;
 
@@ -300,7 +294,7 @@ d_tests_sa_event_hash_edge_cases
         _counter) && result;
 
     // node with max ID
-    max_id = (d_event_id)(-1);
+    max_id = (dj_event_id)(-1);
     node   = d_event_hash_node_new(max_id, NULL);
 
     result = d_assert_standalone(
@@ -321,10 +315,8 @@ d_tests_sa_event_hash_edge_cases
 d_tests_sa_event_hash_advanced_all
   Runs all integration, stress, and edge case tests.
 */
-bool
-d_tests_sa_event_hash_advanced_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_advanced_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -24,13 +24,11 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the arena was initialised.
 */
-bool
-d_value_arena_init
-(
-    struct d_value_arena* _arena,
-    void*                 _bytes,
-    size_t                _value_size,
-    size_t                _capacity
+bool d_value_arena_init(
+    struct dj_value_arena* _arena,
+    void*                  _bytes,
+    size_t                 _value_size,
+    size_t                 _capacity
 )
 {
     // an unusable request leaves the arena untouched
@@ -58,10 +56,8 @@ Parameter(s):
 Return:
   A pointer to the slot, or NULL when the arena is exhausted.
 */
-void*
-d_value_arena_take
-(
-    struct d_value_arena* _arena
+void* d_value_arena_take(
+    struct dj_value_arena* _arena
 )
 {
     unsigned char* slot;
@@ -92,12 +88,10 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the arena was initialised.
 */
-bool
-d_free_arena_init
-(
-    struct d_free_arena* _arena,
-    struct d_free*       _nodes,
-    size_t               _capacity
+bool d_free_arena_init(
+    struct dj_free_arena* _arena,
+    struct dj_free*       _nodes,
+    size_t                _capacity
 )
 {
     // an unusable request leaves the arena untouched
@@ -124,10 +118,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_free_arena_rewind
-(
-    struct d_free_arena* _arena
+void d_free_arena_rewind(
+    struct dj_free_arena* _arena
 )
 {
     // a NULL arena has nothing to rewind
@@ -150,13 +142,12 @@ Parameter(s):
 Return:
   A pointer to the node, or NULL when the arena is exhausted.
 */
-static struct d_free*
-d_internal_free_take
-(
-    struct d_free_arena* _arena
+static
+struct dj_free* d_internal_free_take(
+    struct dj_free_arena* _arena
 )
 {
-    struct d_free* node;
+    struct dj_free* node;
 
     // an exhausted or unusable arena yields nothing
     if ( (!_arena)                          ||
@@ -183,14 +174,12 @@ Parameter(s):
 Return:
   The new node, or NULL when the arena is exhausted.
 */
-struct d_free*
-d_free_hole
-(
-    struct d_free_arena* _arena,
-    const void*          _value
+struct dj_free* d_free_hole(
+    struct dj_free_arena* _arena,
+    const void*           _value
 )
 {
-    struct d_free* node;
+    struct dj_free* node;
 
     node = d_internal_free_take(_arena);
 
@@ -222,16 +211,14 @@ Parameter(s):
 Return:
   The new node, or NULL when the arena is exhausted.
 */
-struct d_free*
-d_free_node
-(
-    struct d_free_arena* _arena,
-    const void*          _label,
-    struct d_free*       _children,
-    size_t               _child_count
+struct dj_free* d_free_node(
+    struct dj_free_arena* _arena,
+    const void*           _label,
+    struct dj_free*       _children,
+    size_t                _child_count
 )
 {
-    struct d_free* node;
+    struct dj_free* node;
 
     // a node claiming children must have them
     if ( (!_children) && (_child_count > 0) )
@@ -267,10 +254,8 @@ Return:
   - true, if the node is a hole, or
   - false, if it is a node or the pointer was NULL.
 */
-bool
-d_free_is_hole
-(
-    const struct d_free* _tree
+bool d_free_is_hole(
+    const struct dj_free* _tree
 )
 {
     // a NULL tree is not a hole
@@ -291,10 +276,8 @@ Parameter(s):
 Return:
   The number of nodes, or 0 for a NULL tree.
 */
-size_t
-d_free_size
-(
-    const struct d_free* _tree
+size_t d_free_size(
+    const struct dj_free* _tree
 )
 {
     size_t total;
@@ -332,10 +315,8 @@ Parameter(s):
 Return:
   The depth, counting the root as 1, or 0 for a NULL tree.
 */
-size_t
-d_free_depth
-(
-    const struct d_free* _tree
+size_t d_free_depth(
+    const struct dj_free* _tree
 )
 {
     size_t deepest;
@@ -378,10 +359,8 @@ Parameter(s):
 Return:
   The number of holes.
 */
-size_t
-d_free_hole_count
-(
-    const struct d_free* _tree
+size_t d_free_hole_count(
+    const struct dj_free* _tree
 )
 {
     size_t total;
@@ -428,18 +407,17 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the subtree folded.
 */
-static bool
-d_internal_free_fold
-(
-    const struct d_free* _tree,
-    fn_transformer       _on_hole,
-    fn_free_on_node      _on_node,
-    void*                _context,
-    void*                _out,
-    size_t               _result_size,
-    unsigned char*       _scratch,
-    size_t*              _used,
-    size_t               _capacity
+static
+bool d_internal_free_fold(
+    const struct dj_free* _tree,
+    fn_transformer        _on_hole,
+    fn_free_on_node       _on_node,
+    void*                 _context,
+    void*                 _out,
+    size_t                _result_size,
+    unsigned char*        _scratch,
+    size_t*               _used,
+    size_t                _capacity
 )
 {
     size_t base;
@@ -524,17 +502,15 @@ Return:
   - true, if the tree folded, or
   - false, if an arm declined or the scratch was too small.
 */
-bool
-d_free_fold
-(
-    const struct d_free* _tree,
-    fn_transformer       _on_hole,
-    fn_free_on_node      _on_node,
-    void*                _context,
-    void*                _out,
-    size_t               _result_size,
-    void*                _scratch,
-    size_t               _scratch_size
+bool d_free_fold(
+    const struct dj_free* _tree,
+    fn_transformer        _on_hole,
+    fn_free_on_node       _on_node,
+    void*                 _context,
+    void*                 _out,
+    size_t                _result_size,
+    void*                 _scratch,
+    size_t                _scratch_size
 )
 {
     size_t used;
@@ -576,13 +552,11 @@ Parameter(s):
 Return:
   The number of hole values delivered.
 */
-size_t
-d_free_drive_holes
-(
-    const struct d_free*     _tree,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state,
-    size_t                   _value_size
+size_t d_free_drive_holes(
+    const struct dj_free*     _tree,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state,
+    size_t                    _value_size
 )
 {
     size_t delivered;
@@ -636,18 +610,17 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the subtree was rebuilt.
 */
-static bool
-d_internal_free_map
-(
-    const struct d_free*  _tree,
-    struct d_free_arena*  _arena,
-    fn_transformer        _transform,
-    void*                 _context,
-    struct d_value_arena* _values,
-    struct d_free*        _out
+static
+bool d_internal_free_map(
+    const struct dj_free*  _tree,
+    struct dj_free_arena*  _arena,
+    fn_transformer         _transform,
+    void*                  _context,
+    struct dj_value_arena* _values,
+    struct dj_free*        _out
 )
 {
-    struct d_free* children;
+    struct dj_free* children;
     void*          slot;
     size_t         index;
 
@@ -733,17 +706,15 @@ Parameter(s):
 Return:
   The root of the new tree, or NULL if an arena ran out or the mapping declined.
 */
-struct d_free*
-d_free_map
-(
-    const struct d_free*  _tree,
-    struct d_free_arena*  _arena,
-    fn_transformer        _transform,
-    void*                 _context,
-    struct d_value_arena* _values
+struct dj_free* d_free_map(
+    const struct dj_free*  _tree,
+    struct dj_free_arena*  _arena,
+    fn_transformer         _transform,
+    void*                  _context,
+    struct dj_value_arena* _values
 )
 {
-    struct d_free* root;
+    struct dj_free* root;
 
     // an unusable request rebuilds nothing
     if ( (!_tree)      ||
@@ -785,18 +756,17 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the subtree was rebuilt.
 */
-static bool
-d_internal_free_bind
-(
-    const struct d_free* _tree,
-    struct d_free_arena* _arena,
-    fn_free_graft        _graft,
-    void*                _context,
-    struct d_free*       _out
+static
+bool d_internal_free_bind(
+    const struct dj_free* _tree,
+    struct dj_free_arena* _arena,
+    fn_free_graft         _graft,
+    void*                 _context,
+    struct dj_free*       _out
 )
 {
-    struct d_free* replacement;
-    struct d_free* children;
+    struct dj_free* replacement;
+    struct dj_free* children;
     size_t         index;
 
     // a NULL subtree cannot be rebuilt
@@ -878,16 +848,14 @@ Parameter(s):
 Return:
   The root of the new tree, or NULL if the arena ran out.
 */
-struct d_free*
-d_free_bind
-(
-    const struct d_free* _tree,
-    struct d_free_arena* _arena,
-    fn_free_graft        _graft,
-    void*                _context
+struct dj_free* d_free_bind(
+    const struct dj_free* _tree,
+    struct dj_free_arena* _arena,
+    fn_free_graft         _graft,
+    void*                 _context
 )
 {
-    struct d_free* root;
+    struct dj_free* root;
 
     // an unusable request rebuilds nothing
     if ( (!_tree)  ||
@@ -936,18 +904,16 @@ Return:
   - true, if every hole was visited successfully, or
   - false, if any visit declined or an arena ran out.
 */
-bool
-d_free_traverse
-(
-    const struct d_free*  _tree,
-    fn_transformer        _visit,
-    void*                 _context,
-    struct d_free_arena*  _arena,
-    struct d_value_arena* _values,
-    struct d_free**       _out_tree
+bool d_free_traverse(
+    const struct dj_free*  _tree,
+    fn_transformer         _visit,
+    void*                  _context,
+    struct dj_free_arena*  _arena,
+    struct dj_value_arena* _values,
+    struct dj_free**       _out_tree
 )
 {
-    struct d_free* root;
+    struct dj_free* root;
 
     // an unusable request traverses nothing
     if ( (!_tree)  ||
@@ -986,12 +952,10 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the arena was initialised.
 */
-bool
-d_cofree_arena_init
-(
-    struct d_cofree_arena* _arena,
-    struct d_cofree*       _nodes,
-    size_t                 _capacity
+bool d_cofree_arena_init(
+    struct dj_cofree_arena* _arena,
+    struct dj_cofree*       _nodes,
+    size_t                  _capacity
 )
 {
     // an unusable request leaves the arena untouched
@@ -1017,10 +981,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_cofree_arena_rewind
-(
-    struct d_cofree_arena* _arena
+void d_cofree_arena_rewind(
+    struct dj_cofree_arena* _arena
 )
 {
     // a NULL arena has nothing to rewind
@@ -1047,17 +1009,15 @@ Parameter(s):
 Return:
   The new node, or NULL when the arena is exhausted.
 */
-struct d_cofree*
-d_cofree_node
-(
-    struct d_cofree_arena* _arena,
-    const void*            _annotation,
-    const void*            _label,
-    struct d_cofree*       _children,
-    size_t                 _child_count
+struct dj_cofree* d_cofree_node(
+    struct dj_cofree_arena* _arena,
+    const void*             _annotation,
+    const void*             _label,
+    struct dj_cofree*       _children,
+    size_t                  _child_count
 )
 {
-    struct d_cofree* node;
+    struct dj_cofree* node;
 
     // a node claiming children must have them
     if ( (!_arena)                          ||
@@ -1091,10 +1051,8 @@ Parameter(s):
 Return:
   The root's annotation, or NULL for a NULL tree.
 */
-const void*
-d_cofree_extract
-(
-    const struct d_cofree* _tree
+const void* d_cofree_extract(
+    const struct dj_cofree* _tree
 )
 {
     // a NULL tree has no annotation
@@ -1115,10 +1073,8 @@ Parameter(s):
 Return:
   The number of nodes.
 */
-size_t
-d_cofree_size
-(
-    const struct d_cofree* _tree
+size_t d_cofree_size(
+    const struct dj_cofree* _tree
 )
 {
     size_t total;
@@ -1149,10 +1105,8 @@ Parameter(s):
 Return:
   The depth, counting the root as 1.
 */
-size_t
-d_cofree_depth
-(
-    const struct d_cofree* _tree
+size_t d_cofree_depth(
+    const struct dj_cofree* _tree
 )
 {
     size_t deepest;
@@ -1193,13 +1147,11 @@ Parameter(s):
 Return:
   The number of annotations delivered.
 */
-size_t
-d_cofree_drive
-(
-    const struct d_cofree*   _tree,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state,
-    size_t                   _annotation_size
+size_t d_cofree_drive(
+    const struct dj_cofree*   _tree,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state,
+    size_t                    _annotation_size
 )
 {
     size_t delivered;

@@ -144,18 +144,22 @@ const char* d_fs_test_root(void);
 // d_fs_test_path
 //   function: join _name onto the scratch directory into _buf.
 // returns _buf on success, or NULL on failure.
-char* d_fs_test_path(char*       _buf,
-                     size_t      _bufsize,
-                     const char* _name);
+char* d_fs_test_path(
+    char*       _buf,
+    size_t      _bufsize,
+    const char* _name
+);
 
 // d_fs_test_write
 //   function: create or replace the file at _path with exactly _size bytes of
 // _data, using raw stdio rather than the code under test. This is how a test
 // stages a fixture without depending on d_file_write_all.
 // returns true on success, false otherwise.
-bool d_fs_test_write(const char* _path,
-                     const void* _data,
-                     size_t      _size);
+bool d_fs_test_write(
+    const char* _path,
+    const void* _data,
+    size_t      _size
+);
 
 
 /******************************************************************************
@@ -163,62 +167,92 @@ bool d_fs_test_write(const char* _path,
  *****************************************************************************/
 
 // I.    Foundation      -- notifications, backend/level naming (file_common)
-void d_fs_tests_common(dtest_suite* _suite);
+void d_fs_tests_common(
+    dtest_suite* _suite
+);
 
 // II.   Streams         -- fopen / fopen_s / freopen / freopen_s / fdopen /
 //                          fclose (file_open)
-void d_fs_tests_open(dtest_suite* _suite);
+void d_fs_tests_open(
+    dtest_suite* _suite
+);
 
 // III.  Descriptors     -- open / fileno / dup / dup2 / close (file_desc)
-void d_fs_tests_desc(dtest_suite* _suite);
+void d_fs_tests_desc(
+    dtest_suite* _suite
+);
 
 // IV.   Transfer        -- read / read_full / pread / write / write_full /
 //                          pwrite / fread_all* / fwrite_all / fappend_all
 //                          (file_io)
-void d_fs_tests_io(dtest_suite* _suite);
+void d_fs_tests_io(
+    dtest_suite* _suite
+);
 
 // V.    Position        -- fseeko / ftello / rewind / ftruncate /
 //                          ftruncate_stream (file_seek)
-void d_fs_tests_seek(dtest_suite* _suite);
+void d_fs_tests_seek(
+    dtest_suite* _suite
+);
 
 // VI.   Durability      -- fsync / fsync_stream / fflush (file_sync)
-void d_fs_tests_sync(dtest_suite* _suite);
+void d_fs_tests_sync(
+    dtest_suite* _suite
+);
 
 // VII.  Locking         -- flock / flock_stream (file_lock)
-void d_fs_tests_lock(dtest_suite* _suite);
+void d_fs_tests_lock(
+    dtest_suite* _suite
+);
 
 // VIII. Metadata        -- stat / lstat / fstat / access / chmod / file_size /
 //                          file_size_stream / exists / is_file / is_dir
 //                          (file_stat)
-void d_fs_tests_stat(dtest_suite* _suite);
+void d_fs_tests_stat(
+    dtest_suite* _suite
+);
 
 // IX.   Paths           -- dirname / basename / get_extension / path_stem /
 //                          path_join / path_is_absolute / path_root_length /
 //                          path_normalize (file_path)
-void d_fs_tests_path(dtest_suite* _suite);
+void d_fs_tests_path(
+    dtest_suite* _suite
+);
 
 // X.    Directories     -- mkdir / mkdir_p / rmdir / opendir / readdir /
 //                          rewinddir / closedir / getcwd / chdir / realpath
 //                          (file_dir)
-void d_fs_tests_dir(dtest_suite* _suite);
+void d_fs_tests_dir(
+    dtest_suite* _suite
+);
 
 // XI.   Operations      -- remove / unlink / rename / copy_file (file_ops)
-void d_fs_tests_ops(dtest_suite* _suite);
+void d_fs_tests_ops(
+    dtest_suite* _suite
+);
 
 // XII.  Temporaries     -- tmpfile / tmpfile_s / mkstemp / tmpnam_s / tempdir
 //                          (file_temp)
-void d_fs_tests_temp(dtest_suite* _suite);
+void d_fs_tests_temp(
+    dtest_suite* _suite
+);
 
 // XIII. Links           -- symlink / readlink / is_symlink (file_link).
 //   Always declared; the definition is compiled out when the platform has no
 // symbolic links, and the runner splices it in only when they are available.
-void d_fs_tests_link(dtest_suite* _suite);
+void d_fs_tests_link(
+    dtest_suite* _suite
+);
 
 // XIV.  Pipes           -- popen / pclose (file_pipe). As links above.
-void d_fs_tests_pipe(dtest_suite* _suite);
+void d_fs_tests_pipe(
+    dtest_suite* _suite
+);
 
 // XV.   Capacity        -- space (file_space)
-void d_fs_tests_space(dtest_suite* _suite);
+void d_fs_tests_space(
+    dtest_suite* _suite
+);
 
 
 #if defined(__cplusplus)

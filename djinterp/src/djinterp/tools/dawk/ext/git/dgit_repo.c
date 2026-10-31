@@ -36,10 +36,10 @@
                      // strcmp, strlen, strncmp, strrchr
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_text.h"  // d_git_text
-#include "./dgit_internal.h"                                              // d_git_repo layout, d_git_file_*
+#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_text.h"  // dj_git_text
+#include "./dgit_internal.h"                                              // dj_git_repo layout, d_git_file_*
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t,
+#include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t,
                                                      // int64_t
 
 
@@ -56,11 +56,10 @@
 //==============================================================================
 
 
-bool
-d_git_repo_fail(
-    struct d_git_repo* _repo,
-    const char*        _what,
-    const char*        _detail
+bool d_git_repo_fail(
+    struct dj_git_repo* _repo,
+    const char*         _what,
+    const char*         _detail
 )
 {
     // a repository to say it of
@@ -82,8 +81,8 @@ d_git_repo_fail(
 d_internal_dup
   `_length` bytes, allocated and terminated.
 */
-static char*
-d_internal_dup(
+static
+char* d_internal_dup(
     const char* _text,
     size_t      _length
 )
@@ -112,8 +111,8 @@ d_internal_dup(
 d_internal_dup_text
   A string, allocated; NULL for NULL.
 */
-static char*
-d_internal_dup_text(
+static
+char* d_internal_dup_text(
     const char* _text
 )
 {
@@ -121,11 +120,10 @@ d_internal_dup_text(
 }
 
 
-const char*
-d_git_repo_keep(
-    struct d_git_repo* _repo,
-    const char*        _text,
-    size_t             _length
+const char* d_git_repo_keep(
+    struct dj_git_repo* _repo,
+    const char*         _text,
+    size_t              _length
 )
 {
     // room for one more
@@ -160,8 +158,7 @@ d_git_repo_keep(
 }
 
 
-char*
-d_git_path_join(
+char* d_git_path_join(
     const char* _directory,
     const char* _name
 )
@@ -201,8 +198,8 @@ d_internal_separator, d_internal_root_length
 path's root is: a separator, a drive's `C:` and a separator, a drive's
 `C:` alone, or none.
 */
-static bool
-d_internal_separator(
+static
+bool d_internal_separator(
     char _c
 )
 {
@@ -211,8 +208,8 @@ d_internal_separator(
 }
 
 
-static size_t
-d_internal_root_length(
+static
+size_t d_internal_root_length(
     const char* _path
 )
 {
@@ -237,8 +234,8 @@ d_internal_separator, d_internal_root_length
   Whether a byte separates a path's names -- `/` alone, as a backslash is
 a name's own on POSIX -- and how long a path's root is: `/`, or none.
 */
-static bool
-d_internal_separator(
+static
+bool d_internal_separator(
     char _c
 )
 {
@@ -246,8 +243,8 @@ d_internal_separator(
 }
 
 
-static size_t
-d_internal_root_length(
+static
+size_t d_internal_root_length(
     const char* _path
 )
 {
@@ -261,8 +258,8 @@ d_internal_root_length(
 d_internal_is_absolute
   Whether a path has a root.
 */
-static bool
-d_internal_is_absolute(
+static
+bool d_internal_is_absolute(
     const char* _path
 )
 {
@@ -276,8 +273,8 @@ d_internal_absolute
 written, links not followed, its separators `/`; allocated.
   Long as a path's root and its parts are worked out on both systems' terms.
 */
-static char*
-d_internal_absolute(
+static
+char* d_internal_absolute(
     const char* _base,
     const char* _path
 )
@@ -363,8 +360,8 @@ d_internal_absolute(
 d_internal_parent
   The directory a path is in, allocated; NULL at the root.
 */
-static char*
-d_internal_parent(
+static
+char* d_internal_parent(
     const char* _path
 )
 {
@@ -386,12 +383,12 @@ d_internal_parent(
 d_internal_kind
   What a path names, a link not followed.
 */
-static enum d_git_file_kind
+static enum dj_git_file_kind
 d_internal_kind(
     const char* _path
 )
 {
-    struct d_git_file_info info;
+    struct dj_git_file_info info;
 
     return (d_git_file_info(_path, &info)) ? info.kind : D_GIT_FILE_NONE;
 }
@@ -401,12 +398,12 @@ d_internal_kind(
 d_internal_is_dir
   Whether a path is a directory, or a link to one.
 */
-static bool
-d_internal_is_dir(
+static
+bool d_internal_is_dir(
     const char* _path
 )
 {
-    const enum d_git_file_kind kind = d_internal_kind(_path);
+    const enum dj_git_file_kind kind = d_internal_kind(_path);
 
     // a link is what it leads to
     if (kind == D_GIT_FILE_LINK)
@@ -429,8 +426,8 @@ d_internal_read_in
   A file in a directory, read whole and terminated; NULL when it is not
 there.
 */
-static char*
-d_internal_read_in(
+static
+char* d_internal_read_in(
     const char* _directory,
     const char* _name,
     size_t*     _out_length
@@ -449,8 +446,8 @@ d_internal_read_in(
 d_internal_trim_end
   Takes white space off a text's end.
 */
-static void
-d_internal_trim_end(
+static
+void d_internal_trim_end(
     char* _text
 )
 {
@@ -479,8 +476,8 @@ d_internal_trim_end(
 d_internal_hex_digit
   A hex digit's worth, in either case, or -1.
 */
-static int
-d_internal_hex_digit(
+static
+int d_internal_hex_digit(
     char _c
 )
 {
@@ -495,11 +492,11 @@ d_internal_hex_digit(
 d_internal_parse_hex_of
   A name in hex, `_size` bytes of it.
 */
-static bool
-d_internal_parse_hex_of(
-    const char*       _hex,
-    size_t            _size,
-    struct d_git_oid* _out
+static
+bool d_internal_parse_hex_of(
+    const char*        _hex,
+    size_t             _size,
+    struct dj_git_oid* _out
 )
 {
     memset(_out, 0, sizeof(*_out));
@@ -525,20 +522,18 @@ d_internal_parse_hex_of(
 }
 
 
-size_t
-d_git_repo_hash_size(
-    const struct d_git_repo* _repo
+size_t d_git_repo_hash_size(
+    const struct dj_git_repo* _repo
 )
 {
     return (_repo) ? d_git_hash_size(_repo->hash) : 20u;
 }
 
 
-void
-d_git_repo_hex(
-    const struct d_git_repo* _repo,
-    const struct d_git_oid*  _oid,
-    char*                    _out
+void d_git_repo_hex(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _oid,
+    char*                     _out
 )
 {
     static const char digits[] = "0123456789abcdef";
@@ -557,11 +552,10 @@ d_git_repo_hex(
 }
 
 
-bool
-d_git_repo_parse_hex(
-    const struct d_git_repo* _repo,
-    const char*              _hex,
-    struct d_git_oid*        _out
+bool d_git_repo_parse_hex(
+    const struct dj_git_repo* _repo,
+    const char*               _hex,
+    struct dj_git_oid*        _out
 )
 {
     const size_t size = d_git_repo_hash_size(_repo);
@@ -572,11 +566,10 @@ d_git_repo_parse_hex(
 }
 
 
-bool
-d_git_repo_same_oid(
-    const struct d_git_repo* _repo,
-    const struct d_git_oid*  _left,
-    const struct d_git_oid*  _right
+bool d_git_repo_same_oid(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _left,
+    const struct dj_git_oid*  _right
 )
 {
     return (memcmp(_left->bytes,
@@ -585,9 +578,8 @@ d_git_repo_same_oid(
 }
 
 
-void
-d_git_oids_release(
-    struct d_git_oids* _oids
+void d_git_oids_release(
+    struct dj_git_oids* _oids
 )
 {
     // nothing to release
@@ -607,10 +599,10 @@ d_git_oids_release(
 d_internal_oids_add
   One more name at the end.
 */
-static bool
-d_internal_oids_add(
-    struct d_git_oids*      _oids,
-    const struct d_git_oid* _oid
+static
+bool d_internal_oids_add(
+    struct dj_git_oids*      _oids,
+    const struct dj_git_oid* _oid
 )
 {
     // room for one more
@@ -619,7 +611,7 @@ d_internal_oids_add(
         const size_t            wanted = (_oids->capacity > 0u)
                                          ? (_oids->capacity * 2u)
                                          : 16u;
-        struct d_git_oid* const grown  = realloc(_oids->items,
+        struct dj_git_oid* const grown  = realloc(_oids->items,
                                                  wanted * sizeof(*grown));
 
         // memory that ran out
@@ -650,8 +642,8 @@ d_internal_headref
 refs/, "ref:" and a ref in refs/, or a name in hex -- forty digits, as git
 reads a HEAD before it knows the repository's hash.
 */
-static bool
-d_internal_headref(
+static
+bool d_internal_headref(
     const char* _path
 )
 {
@@ -691,7 +683,7 @@ d_internal_headref(
     }
     else if (text)
     {
-        struct d_git_oid oid;
+        struct dj_git_oid oid;
 
         head = ( (length >= 40u) &&
                  (d_internal_parse_hex_of(text, 20u, &oid)) );
@@ -708,8 +700,8 @@ d_internal_common_of
   The common directory of a repository's directory: what its commondir
 file names, relative to it, or itself.
 */
-static char*
-d_internal_common_of(
+static
+char* d_internal_common_of(
     const char* _git_dir
 )
 {
@@ -738,8 +730,8 @@ d_internal_is_git_dir
 one: a HEAD that reads as one, and objects -- or GIT_OBJECT_DIRECTORY --
 and refs in its common directory.
 */
-static bool
-d_internal_is_git_dir(
+static
+bool d_internal_is_git_dir(
     const char* _directory
 )
 {
@@ -777,11 +769,11 @@ d_internal_gitfile
   The repository a .git file names, `gitdir: path`, the path relative to
 the file's directory; NULL, said, for a file that names none.
 */
-static char*
-d_internal_gitfile(
-    struct d_git_repo* _repo,
-    const char*        _directory,
-    const char*        _file
+static
+char* d_internal_gitfile(
+    struct dj_git_repo* _repo,
+    const char*         _directory,
+    const char*         _file
 )
 {
     size_t      length = 0u;
@@ -822,8 +814,8 @@ d_internal_is_ceiling
   Whether a directory is one of GIT_CEILING_DIRECTORIES, which the walk up
 does not go into.
 */
-static bool
-d_internal_is_ceiling(
+static
+bool d_internal_is_ceiling(
     const char* _directory
 )
 {
@@ -857,10 +849,10 @@ d_internal_is_ceiling(
 }
 
 
-// d_internal_found
+// dj_internal_found
 //   struct: where a repository was found: its directory, and its work
 //   tree, NULL for a bare one.
-struct d_internal_found
+struct dj_internal_found
 {
     char* git_dir;
     char* work_tree;
@@ -873,16 +865,16 @@ d_internal_discover_at
 repository's, or the directory itself a repository's. False with nothing
 found to go on; false, said, for a .git file that names none.
 */
-static bool
-d_internal_discover_at(
-    struct d_git_repo*       _repo,
-    const char*              _directory,
-    struct d_internal_found* _out,
-    bool*                    _out_broken
+static
+bool d_internal_discover_at(
+    struct dj_git_repo*       _repo,
+    const char*               _directory,
+    struct dj_internal_found* _out,
+    bool*                     _out_broken
 )
 {
     char* const                dot  = d_git_path_join(_directory, ".git");
-    const enum d_git_file_kind kind = (dot) ? d_internal_kind(dot)
+    const enum dj_git_file_kind kind = (dot) ? d_internal_kind(dot)
                                             : D_GIT_FILE_NONE;
 
     *_out_broken = false;
@@ -931,11 +923,11 @@ d_internal_discover
   The walk up from a directory, as git's setup does it, to the root or a
 ceiling.
 */
-static bool
-d_internal_discover(
-    struct d_git_repo*       _repo,
-    const char*              _start,
-    struct d_internal_found* _out
+static
+bool d_internal_discover(
+    struct dj_git_repo*       _repo,
+    const char*               _start,
+    struct dj_internal_found* _out
 )
 {
     char* directory = d_internal_dup_text(_start);
@@ -978,7 +970,7 @@ d_internal_discover(
 
 // d_internal_format
 //   struct: what a repository's own configuration says of its format.
-struct d_internal_format
+struct dj_internal_format
 {
     int64_t version;
     bool    sha256;
@@ -994,8 +986,8 @@ d_internal_known_extension
   Whether a repository of format 1 may name an extension: those git 2.43
 knows, which change nothing this reads.
 */
-static bool
-d_internal_known_extension(
+static
+bool d_internal_known_extension(
     const char* _name
 )
 {
@@ -1024,12 +1016,12 @@ d_internal_format_entry
 read_repository_format reads it: the format's version, its extensions --
 objectformat sha256, refstorage refused -- core.bare and core.worktree.
 */
-static bool
-d_internal_format_entry(
-    struct d_git_repo*        _repo,
-    const char*               _key,
-    const char*               _value,
-    struct d_internal_format* _out
+static
+bool d_internal_format_entry(
+    struct dj_git_repo*        _repo,
+    const char*                _key,
+    const char*                _value,
+    struct dj_internal_format* _out
 )
 {
     // the version, its extensions, and the work tree
@@ -1081,17 +1073,17 @@ d_internal_read_format
 1, and of 1 only extensions git knows.
   Long as each extension git knows is checked in turn.
 */
-static bool
-d_internal_read_format(
-    struct d_git_repo*        _repo,
-    struct d_internal_format* _out
+static
+bool d_internal_read_format(
+    struct dj_git_repo*        _repo,
+    struct dj_internal_format* _out
 )
 {
     size_t      length = 0u;
     char* const text   = d_internal_read_in(_repo->common_dir,
                                             "config",
                                             &length);
-    struct d_git_text records;
+    struct dj_git_text records;
     char              problem[64];
     bool              read = true;
 
@@ -1157,17 +1149,17 @@ d_internal_read_format(
 //==============================================================================
 
 
-// d_internal_loader
+// dj_internal_loader
 //   struct: settings being read: the repository they are for, where they
 //   go, how deep the includes are, whether the work tree has a file of its
 //   own, and the remote URLs hasconfig asks of
 //   -- read, the first time one asks, by a pass that follows every such
 //   include, `unconditional`; within one of its includes, a URL is
 //   refused.
-struct d_internal_loader
+struct dj_internal_loader
 {
-    struct d_git_repo*    repo;
-    struct d_git_setting* settings;
+    struct dj_git_repo*    repo;
+    struct dj_git_setting* settings;
     size_t                count;
     size_t                capacity;
     unsigned              depth;
@@ -1182,30 +1174,33 @@ struct d_internal_loader
 // d_internal_source
 //   struct: a file being read: its path, kept, its scope, and whether it
 //   was included.
-struct d_internal_source
+struct dj_internal_source
 {
     const char*      file;
-    enum d_git_scope scope;
+    enum dj_git_scope scope;
     bool             included;
 };
 
-static bool d_internal_load_text(struct d_internal_loader*       _loader,
-                                 const struct d_internal_source* _source,
-                                 const char*                     _text,
-                                 size_t                          _length);
+static
+bool d_internal_load_text(
+    struct dj_internal_loader*       _loader,
+    const struct dj_internal_source* _source,
+    const char*                      _text,
+    size_t                           _length
+);
 
 
 /*
 d_internal_add_setting
   One setting more, its strings kept by the repository.
 */
-static bool
-d_internal_add_setting(
-    struct d_internal_loader*       _loader,
-    const struct d_internal_source* _source,
-    const char*                     _key,
-    const char*                     _value,
-    size_t                          _line
+static
+bool d_internal_add_setting(
+    struct dj_internal_loader*       _loader,
+    const struct dj_internal_source* _source,
+    const char*                      _key,
+    const char*                      _value,
+    size_t                           _line
 )
 {
     // room for one more
@@ -1214,7 +1209,7 @@ d_internal_add_setting(
         const size_t                wanted = (_loader->capacity > 0u)
                                              ? (_loader->capacity * 2u)
                                              : 64u;
-        struct d_git_setting* const grown  = realloc(_loader->settings,
+        struct dj_git_setting* const grown  = realloc(_loader->settings,
                                                      wanted * sizeof(*grown));
 
         // memory that ran out
@@ -1227,7 +1222,7 @@ d_internal_add_setting(
         _loader->capacity = wanted;
     }
 
-    struct d_git_setting* const setting = &_loader->settings[_loader->count];
+    struct dj_git_setting* const setting = &_loader->settings[_loader->count];
 
     setting->key      = d_git_repo_keep(_loader->repo, _key, strlen(_key));
     setting->value    = (_value) ? d_git_repo_keep(_loader->repo,
@@ -1256,8 +1251,8 @@ d_internal_add_setting(
 d_internal_home
   The user's home directory: HOME, or USERPROFILE where there is no HOME.
 */
-static const char*
-d_internal_home(void)
+static
+const char* d_internal_home(void)
 {
     const char* const home = getenv("HOME");
 
@@ -1271,8 +1266,8 @@ d_internal_interpolate
 home directory; NULL for `~user`, which this does not expand, or when
 there is no home.
 */
-static char*
-d_internal_interpolate(
+static
+char* d_internal_interpolate(
     const char* _path
 )
 {
@@ -1299,10 +1294,10 @@ d_internal_interpolate(
 d_internal_load_file
   A file's settings, if it is there: git reads past a file that is not.
 */
-static bool
-d_internal_load_file(
-    struct d_internal_loader*       _loader,
-    const struct d_internal_source* _source
+static
+bool d_internal_load_file(
+    struct dj_internal_loader*       _loader,
+    const struct dj_internal_source* _source
 )
 {
     size_t      length = 0u;
@@ -1328,11 +1323,11 @@ d_internal_include
 directory when it is not absolute, and read in the including file's scope
 -- not past the depth git allows.
 */
-static bool
-d_internal_include(
-    struct d_internal_loader*       _loader,
-    const struct d_internal_source* _source,
-    const char*                     _path
+static
+bool d_internal_include(
+    struct dj_internal_loader*       _loader,
+    const struct dj_internal_source* _source,
+    const char*                      _path
 )
 {
     char* const expanded = (_path) ? d_internal_interpolate(_path) : NULL;
@@ -1377,7 +1372,7 @@ d_internal_include(
                                NULL);
     }
 
-    struct d_internal_source source = { d_git_repo_keep(_loader->repo,
+    struct dj_internal_source source = { d_git_repo_keep(_loader->repo,
                                                         path,
                                                         strlen(path)),
                                         _source->scope,
@@ -1400,8 +1395,8 @@ d_internal_gitdir_try
   One try of a gitdir: pattern against a repository's path: the literal
 part a `./` pattern begins with compared first, the rest by wildmatch.
 */
-static bool
-d_internal_gitdir_try(
+static
+bool d_internal_gitdir_try(
     const char* _pattern,
     size_t      _prefix,
     const char* _text,
@@ -1457,8 +1452,8 @@ makes it: expanded; `./` made the including file's directory, its real
 name, which `_out_prefix` counts; another that is not absolute put below
 `**` and a slash; one that ends in `/` given `**` after it.
 */
-static char*
-d_internal_gitdir_pattern(
+static
+char* d_internal_gitdir_pattern(
     const char* _condition,
     size_t      _length,
     const char* _file,
@@ -1468,7 +1463,7 @@ d_internal_gitdir_pattern(
     char* const written  = d_internal_dup(_condition, _length);
     char* const expanded = (written) ? d_internal_interpolate(written) : NULL;
     char*       real     = NULL;
-    struct d_git_buffer pattern;
+    struct dj_git_buffer pattern;
 
     memset(&pattern, 0, sizeof(pattern));
     *_out_prefix = 0u;
@@ -1517,13 +1512,13 @@ d_internal_by_gitdir
   Whether a gitdir: condition holds: its pattern against the repository's
 directory's real name, then against its name as written.
 */
-static bool
-d_internal_by_gitdir(
-    const struct d_internal_loader* _loader,
-    const char*                     _condition,
-    size_t                          _length,
-    const char*                     _file,
-    bool                            _icase
+static
+bool d_internal_by_gitdir(
+    const struct dj_internal_loader* _loader,
+    const char*                      _condition,
+    size_t                           _length,
+    const char*                      _file,
+    bool                             _icase
 )
 {
     size_t      prefix  = 0u;
@@ -1555,9 +1550,9 @@ d_internal_branch
   The branch HEAD names, past refs/heads/, allocated; NULL for a HEAD that
 names none.
 */
-static char*
-d_internal_branch(
-    const struct d_git_repo* _repo
+static
+char* d_internal_branch(
+    const struct dj_git_repo* _repo
 )
 {
     size_t      length = 0u;
@@ -1594,15 +1589,15 @@ d_internal_by_branch
   Whether an onbranch: condition holds: its pattern, `**` after a trailing
 `/`, against the branch HEAD names.
 */
-static bool
-d_internal_by_branch(
-    const struct d_internal_loader* _loader,
-    const char*                     _condition,
-    size_t                          _length
+static
+bool d_internal_by_branch(
+    const struct dj_internal_loader* _loader,
+    const char*                      _condition,
+    size_t                           _length
 )
 {
     char* const         branch  = d_internal_branch(_loader->repo);
-    struct d_git_buffer pattern;
+    struct dj_git_buffer pattern;
 
     memset(&pattern, 0, sizeof(pattern));
     (void)d_git_buffer_add(&pattern, _condition, _length);
@@ -1629,7 +1624,10 @@ d_internal_by_branch(
 }
 
 
-static bool d_internal_load_all(struct d_internal_loader* _loader);
+static
+bool d_internal_load_all(
+    struct dj_internal_loader* _loader
+);
 
 
 /*
@@ -1637,12 +1635,12 @@ d_internal_read_urls
   Every remote's URL, read by a pass of its own that follows every
 hasconfig include, as git's populate_remote_urls reads them.
 */
-static bool
-d_internal_read_urls(
-    struct d_internal_loader* _loader
+static
+bool d_internal_read_urls(
+    struct dj_internal_loader* _loader
 )
 {
-    struct d_internal_loader pass;
+    struct dj_internal_loader pass;
 
     memset(&pass, 0, sizeof(pass));
     pass.repo            = _loader->repo;
@@ -1690,12 +1688,12 @@ d_internal_by_url
   Whether a hasconfig:remote.*.url: condition holds: always, in the pass
 that reads the URLs; otherwise when a URL matches its glob.
 */
-static bool
-d_internal_by_url(
-    struct d_internal_loader* _loader,
-    const char*               _glob,
-    size_t                    _length,
-    bool*                     _out_holds
+static
+bool d_internal_by_url(
+    struct dj_internal_loader* _loader,
+    const char*                _glob,
+    size_t                     _length,
+    bool*                      _out_holds
 )
 {
     *_out_holds = _loader->unconditional;
@@ -1729,13 +1727,13 @@ d_internal_condition
   Whether an includeIf's condition holds, as git's include_condition_is_true
 decides it; one it does not know never does.
 */
-static bool
-d_internal_condition(
-    struct d_internal_loader*       _loader,
-    const struct d_internal_source* _source,
-    const char*                     _condition,
-    size_t                          _length,
-    bool*                           _out_holds
+static
+bool d_internal_condition(
+    struct dj_internal_loader*       _loader,
+    const struct dj_internal_source* _source,
+    const char*                      _condition,
+    size_t                           _length,
+    bool*                            _out_holds
 )
 {
     static const char url[] = "hasconfig:remote.*.url:";
@@ -1782,12 +1780,12 @@ d_internal_setting_includes
 includeIf.<condition>.path its path when the condition holds -- read, in
 the pass that reads URLs, with a URL in it refused.
 */
-static bool
-d_internal_setting_includes(
-    struct d_internal_loader*       _loader,
-    const struct d_internal_source* _source,
-    const char*                     _key,
-    const char*                     _value
+static
+bool d_internal_setting_includes(
+    struct dj_internal_loader*       _loader,
+    const struct dj_internal_source* _source,
+    const char*                      _key,
+    const char*                      _value
 )
 {
     const char* const last = strrchr(_key, '.');
@@ -1851,15 +1849,15 @@ d_internal_load_text
 followed in its place. A file git cannot read to its end git refuses, and
 so does this.
 */
-static bool
-d_internal_load_text(
-    struct d_internal_loader*       _loader,
-    const struct d_internal_source* _source,
-    const char*                     _text,
-    size_t                          _length
+static
+bool d_internal_load_text(
+    struct dj_internal_loader*       _loader,
+    const struct dj_internal_source* _source,
+    const char*                      _text,
+    size_t                           _length
 )
 {
-    struct d_git_text records;
+    struct dj_git_text records;
     char              problem[64];
 
     // the records
@@ -1892,7 +1890,7 @@ d_internal_load_text(
     // each setting, then what it includes
     for (size_t at = 0u; ( (loaded) && (at < records.entry_count) ); ++at)
     {
-        const struct d_git_text_entry* const entry = &records.entries[at];
+        const struct dj_git_text_entry* const entry = &records.entries[at];
         const char* const key   = d_git_text_string(&records, entry->key);
         const char* const value = d_git_text_string(&records, entry->value);
 
@@ -1919,9 +1917,9 @@ d_internal_load_scope
 */
 static bool
 d_internal_load_scope(
-    struct d_internal_loader* _loader,
+    struct dj_internal_loader* _loader,
     const char*               _path,
-    enum d_git_scope          _scope
+    enum dj_git_scope          _scope
 )
 {
     // no file, no settings
@@ -1931,7 +1929,7 @@ d_internal_load_scope(
         return true;
     }
 
-    struct d_internal_source source = { d_git_repo_keep(_loader->repo,
+    struct dj_internal_source source = { d_git_repo_keep(_loader->repo,
                                                         _path,
                                                         strlen(_path)),
                                         _scope,
@@ -1948,9 +1946,9 @@ d_internal_load_global
   The user's files: GIT_CONFIG_GLOBAL alone when it is set; otherwise git's
 own directory under XDG_CONFIG_HOME, or ~/.config, then ~/.gitconfig.
 */
-static bool
-d_internal_load_global(
-    struct d_internal_loader* _loader
+static
+bool d_internal_load_global(
+    struct dj_internal_loader* _loader
 )
 {
     const char* const named = getenv("GIT_CONFIG_GLOBAL");
@@ -1991,17 +1989,17 @@ d_internal_command_pair
   One setting of the command's: its key made canonical, as git's
 config_parse_pair makes it.
 */
-static bool
-d_internal_command_pair(
-    struct d_internal_loader* _loader,
-    const char*               _key,
-    const char*               _value
+static
+bool d_internal_command_pair(
+    struct dj_internal_loader* _loader,
+    const char*                _key,
+    const char*                _value
 )
 {
-    static const struct d_internal_source command = { "",
+    static const struct dj_internal_source command = { "",
                                                       D_GIT_SCOPE_COMMAND,
                                                       false };
-    struct d_git_buffer key;
+    struct dj_git_buffer key;
 
     memset(&key, 0, sizeof(key));
 
@@ -2036,9 +2034,9 @@ d_internal_load_count
   GIT_CONFIG_COUNT's settings: GIT_CONFIG_KEY_n and GIT_CONFIG_VALUE_n for
 each n below the count.
 */
-static bool
-d_internal_load_count(
-    struct d_internal_loader* _loader
+static
+bool d_internal_load_count(
+    struct dj_internal_loader* _loader
 )
 {
     const char* const count = getenv("GIT_CONFIG_COUNT");
@@ -2095,10 +2093,10 @@ d_internal_sq_step
 sq_dequote_step reads it: within quotes as it is, and between quotes `\'`
 or `\!` as themselves. `*_at` is left past it.
 */
-static bool
-d_internal_sq_step(
-    const char**         _at,
-    struct d_git_buffer* _out
+static
+bool d_internal_sq_step(
+    const char**          _at,
+    struct dj_git_buffer* _out
 )
 {
     const char* at = *_at;
@@ -2150,14 +2148,14 @@ d_internal_parameter
 `=` -- a key with none is a name alone -- or 'key'='value' and 'key'= of
 new.
 */
-static bool
-d_internal_parameter(
-    struct d_internal_loader* _loader,
-    const char**              _at
+static
+bool d_internal_parameter(
+    struct dj_internal_loader* _loader,
+    const char**               _at
 )
 {
-    struct d_git_buffer key;
-    struct d_git_buffer value;
+    struct dj_git_buffer key;
+    struct dj_git_buffer value;
     bool                done = false;
 
     memset(&key, 0, sizeof(key));
@@ -2208,9 +2206,9 @@ d_internal_parameter(
 d_internal_load_parameters
   GIT_CONFIG_PARAMETERS's settings, its words apart by spaces.
 */
-static bool
-d_internal_load_parameters(
-    struct d_internal_loader* _loader
+static
+bool d_internal_load_parameters(
+    struct dj_internal_loader* _loader
 )
 {
     const char* at = getenv("GIT_CONFIG_PARAMETERS");
@@ -2249,12 +2247,12 @@ d_internal_load_all
 GIT_CONFIG_NOSYSTEM -- the user's, the repository's, the work tree's when
 extensions.worktreeConfig is set, and the command's.
 */
-static bool
-d_internal_load_all(
-    struct d_internal_loader* _loader
+static
+bool d_internal_load_all(
+    struct dj_internal_loader* _loader
 )
 {
-    struct d_git_repo* const repo     = _loader->repo;
+    struct dj_git_repo* const repo     = _loader->repo;
     const char* const        nosystem = getenv("GIT_CONFIG_NOSYSTEM");
     const char* const        system   = getenv("GIT_CONFIG_SYSTEM");
     char* const              local    = d_git_path_join(repo->common_dir,
@@ -2298,13 +2296,13 @@ d_internal_repo_dirs
 from `_start` finds; and its common directory, GIT_COMMON_DIR's when that
 is set. `_out_explicit` says GIT_DIR named it.
 */
-static bool
-d_internal_repo_dirs(
-    struct d_git_repo*       _repo,
-    const char*              _cwd,
-    const char*              _start,
-    struct d_internal_found* _out,
-    bool*                    _out_explicit
+static
+bool d_internal_repo_dirs(
+    struct dj_git_repo*       _repo,
+    const char*               _cwd,
+    const char*               _start,
+    struct dj_internal_found* _out,
+    bool*                     _out_explicit
 )
 {
     const char* const named  = getenv("GIT_DIR");
@@ -2354,13 +2352,13 @@ the working directory when GIT_DIR named the repository; else where the
 walk found its .git. A linked work tree's common configuration decides
 neither core.bare nor core.worktree.
 */
-static char*
-d_internal_work_tree(
-    const struct d_git_repo*        _repo,
-    const char*                     _cwd,
-    struct d_internal_found*        _found,
-    const struct d_internal_format* _format,
-    bool                            _explicit
+static
+char* d_internal_work_tree(
+    const struct dj_git_repo*        _repo,
+    const char*                      _cwd,
+    struct dj_internal_found*        _found,
+    const struct dj_internal_format* _format,
+    bool                             _explicit
 )
 {
     const char* const named  = getenv("GIT_WORK_TREE");
@@ -2408,15 +2406,15 @@ d_internal_open
   The steps of opening, once the repository has somewhere to say why one
 failed: where it is, its format, its work tree, its configuration.
 */
-static bool
-d_internal_open(
-    struct d_git_repo* _repo,
-    const char*        _cwd,
-    const char*        _start
+static
+bool d_internal_open(
+    struct dj_git_repo* _repo,
+    const char*         _cwd,
+    const char*         _start
 )
 {
-    struct d_internal_found  found;
-    struct d_internal_format format;
+    struct dj_internal_found  found;
+    struct dj_internal_format format;
     bool                     explicit_dir = false;
 
     memset(&format, 0, sizeof(format));
@@ -2438,7 +2436,7 @@ d_internal_open(
                                             &format,
                                             explicit_dir);
 
-    struct d_internal_loader loader;
+    struct dj_internal_loader loader;
 
     memset(&loader, 0, sizeof(loader));
     loader.repo            = _repo;
@@ -2456,14 +2454,13 @@ d_internal_open(
 }
 
 
-struct d_git_repo*
-d_git_repo_open(
+struct dj_git_repo* d_git_repo_open(
     const char* _path,
     char*       _problem,
     size_t      _capacity
 )
 {
-    struct d_git_repo* const repo = calloc(1u, sizeof(*repo));
+    struct dj_git_repo* const repo = calloc(1u, sizeof(*repo));
     char* const              cwd  = d_git_file_cwd();
     char*                    start = (cwd) ? d_internal_absolute(cwd,
                                                                  (_path)
@@ -2515,9 +2512,8 @@ d_git_repo_open(
 }
 
 
-void
-d_git_repo_free(
-    struct d_git_repo* _repo
+void d_git_repo_free(
+    struct dj_git_repo* _repo
 )
 {
     // nothing to free
@@ -2553,36 +2549,32 @@ d_git_repo_free(
 }
 
 
-const char*
-d_git_repo_git_dir(
-    const struct d_git_repo* _repo
+const char* d_git_repo_git_dir(
+    const struct dj_git_repo* _repo
 )
 {
     return (_repo) ? _repo->git_dir : NULL;
 }
 
 
-const char*
-d_git_repo_common_dir(
-    const struct d_git_repo* _repo
+const char* d_git_repo_common_dir(
+    const struct dj_git_repo* _repo
 )
 {
     return (_repo) ? _repo->common_dir : NULL;
 }
 
 
-const char*
-d_git_repo_work_tree(
-    const struct d_git_repo* _repo
+const char* d_git_repo_work_tree(
+    const struct dj_git_repo* _repo
 )
 {
     return (_repo) ? _repo->work_tree : NULL;
 }
 
 
-const char*
-d_git_repo_problem(
-    const struct d_git_repo* _repo
+const char* d_git_repo_problem(
+    const struct dj_git_repo* _repo
 )
 {
     return (_repo) ? _repo->problem : "";
@@ -2594,19 +2586,17 @@ d_git_repo_problem(
 //==============================================================================
 
 
-size_t
-d_git_repo_settings(
-    const struct d_git_repo* _repo
+size_t d_git_repo_settings(
+    const struct dj_git_repo* _repo
 )
 {
     return (_repo) ? _repo->setting_count : 0u;
 }
 
 
-const struct d_git_setting*
-d_git_repo_setting(
-    const struct d_git_repo* _repo,
-    size_t                   _index
+const struct dj_git_setting* d_git_repo_setting(
+    const struct dj_git_repo* _repo,
+    size_t                    _index
 )
 {
     return ( (_repo) && (_index < _repo->setting_count) )
@@ -2615,14 +2605,13 @@ d_git_repo_setting(
 }
 
 
-size_t
-d_git_repo_find_setting(
-    const struct d_git_repo* _repo,
-    const char*              _key,
-    size_t                   _after
+size_t d_git_repo_find_setting(
+    const struct dj_git_repo* _repo,
+    const char*               _key,
+    size_t                    _after
 )
 {
-    struct d_git_buffer key;
+    struct dj_git_buffer key;
 
     memset(&key, 0, sizeof(key));
 
@@ -2657,11 +2646,10 @@ d_git_repo_find_setting(
 }
 
 
-const char*
-d_git_repo_config(
-    const struct d_git_repo* _repo,
-    const char*              _key,
-    bool*                    _out_set
+const char* d_git_repo_config(
+    const struct dj_git_repo* _repo,
+    const char*               _key,
+    bool*                     _out_set
 )
 {
     size_t last = D_GIT_REPO_NONE;
@@ -2684,11 +2672,10 @@ d_git_repo_config(
 }
 
 
-bool
-d_git_repo_flag(
-    const struct d_git_repo* _repo,
-    const char*              _key,
-    bool                     _default
+bool d_git_repo_flag(
+    const struct dj_git_repo* _repo,
+    const char*               _key,
+    bool                      _default
 )
 {
     bool              set   = false;
@@ -2711,9 +2698,9 @@ d_git_repo_flag(
 //==============================================================================
 
 
-// d_internal_raw
+// dj_internal_raw
 //   enum: what reading one ref, not followed, finds.
-enum d_internal_raw
+enum dj_internal_raw
 {
     D_INTERNAL_RAW_MISSING = 0,
     D_INTERNAL_RAW_BROKEN,
@@ -2729,8 +2716,8 @@ allowed: no name of it begins with `.` or ends with ".lock", none is
 empty, and none holds "..", "@{", a control byte or any of ` ~^:?*[\`;
 nor is the whole "@", or ends with `.`.
 */
-static bool
-d_internal_refname_ok(
+static
+bool d_internal_refname_ok(
     const char* _name
 )
 {
@@ -2791,8 +2778,8 @@ d_internal_worktree_ref
 the other pseudorefs -- names of capitals and `_` -- and those under
 refs/worktree/, refs/bisect/ and refs/rewritten/.
 */
-static bool
-d_internal_worktree_ref(
+static
+bool d_internal_worktree_ref(
     const char* _name
 )
 {
@@ -2828,11 +2815,11 @@ name; anything else broken.
   Long as a loose ref is read as git's files backend reads one: a symbolic
 ref, a name, or neither.
 */
-static enum d_internal_raw
+static enum dj_internal_raw
 d_internal_read_loose(
-    const struct d_git_repo* _repo,
+    const struct dj_git_repo* _repo,
     const char*              _name,
-    struct d_git_oid*        _out,
+    struct dj_git_oid*        _out,
     char**                   _out_target
 )
 {
@@ -2840,7 +2827,7 @@ d_internal_read_loose(
                                       ? _repo->git_dir
                                       : _repo->common_dir;
     char* const                path = d_git_path_join(base, _name);
-    const enum d_git_file_kind kind = (path) ? d_internal_kind(path)
+    const enum dj_git_file_kind kind = (path) ? d_internal_kind(path)
                                              : D_GIT_FILE_NONE;
     size_t                     length = 0u;
 
@@ -2878,7 +2865,7 @@ d_internal_read_loose(
     d_internal_trim_end(text);
 
     const size_t        size = d_git_repo_hash_size(_repo);
-    enum d_internal_raw raw  = D_INTERNAL_RAW_BROKEN;
+    enum dj_internal_raw raw  = D_INTERNAL_RAW_BROKEN;
 
     // a symbolic ref, or a name and white space
     if (strncmp(text, "ref:", 4u) == 0)
@@ -2917,14 +2904,14 @@ d_internal_read_loose(
 d_internal_compare_packed
   Orders packed refs by name.
 */
-static int
-d_internal_compare_packed(
+static
+int d_internal_compare_packed(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_git_packed_ref* const left  = _left;
-    const struct d_git_packed_ref* const right = _right;
+    const struct dj_git_packed_ref* const left  = _left;
+    const struct dj_git_packed_ref* const right = _right;
 
     return strcmp(left->name, right->name);
 }
@@ -2937,12 +2924,12 @@ name the ref before it peels to. A comment is passed over.
   Long as packed-refs' lines -- its header, a ref, a peeled line -- are told
 apart and read here.
 */
-static bool
-d_internal_packed_line(
-    struct d_git_repo* _repo,
-    const char*        _line,
-    size_t             _length,
-    size_t*            _capacity
+static
+bool d_internal_packed_line(
+    struct dj_git_repo* _repo,
+    const char*         _line,
+    size_t              _length,
+    size_t*             _capacity
 )
 {
     const size_t size = d_git_repo_hash_size(_repo);
@@ -2971,7 +2958,7 @@ d_internal_packed_line(
         return true;
     }
 
-    struct d_git_packed_ref ref;
+    struct dj_git_packed_ref ref;
 
     memset(&ref, 0, sizeof(ref));
 
@@ -2989,7 +2976,7 @@ d_internal_packed_line(
         const size_t                   wanted = (*_capacity > 0u)
                                                 ? (*_capacity * 2u)
                                                 : 64u;
-        struct d_git_packed_ref* const grown  =
+        struct dj_git_packed_ref* const grown  =
             realloc(_repo->packed, wanted * sizeof(*grown));
 
         // memory that ran out
@@ -3022,9 +3009,9 @@ d_internal_packed_line(
 d_internal_packed_read
   packed-refs, read the first time it is wanted, its refs ordered by name.
 */
-static bool
-d_internal_packed_read(
-    struct d_git_repo* _repo
+static
+bool d_internal_packed_read(
+    struct dj_git_repo* _repo
 )
 {
     // read once
@@ -3079,10 +3066,10 @@ d_internal_packed_read(
 d_internal_packed_find
   The packed ref of a name, by binary search; D_GIT_REPO_NONE for none.
 */
-static size_t
-d_internal_packed_find(
-    struct d_git_repo* _repo,
-    const char*        _name
+static
+size_t d_internal_packed_find(
+    struct dj_git_repo* _repo,
+    const char*         _name
 )
 {
     // packed-refs read
@@ -3124,15 +3111,15 @@ d_internal_read_raw
   One ref, not followed: loose, or else packed. A loose ref that is broken
 does not fall back to a packed one, as git's does not.
 */
-static enum d_internal_raw
+static enum dj_internal_raw
 d_internal_read_raw(
-    struct d_git_repo* _repo,
+    struct dj_git_repo* _repo,
     const char*        _name,
-    struct d_git_oid*  _out,
+    struct dj_git_oid*  _out,
     char**             _out_target
 )
 {
-    const enum d_internal_raw loose = d_internal_read_loose(_repo,
+    const enum dj_internal_raw loose = d_internal_read_loose(_repo,
                                                             _name,
                                                             _out,
                                                             _out_target);
@@ -3157,12 +3144,11 @@ d_internal_read_raw(
 }
 
 
-bool
-d_git_repo_resolve(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    struct d_git_oid*  _out,
-    char**             _out_target
+bool d_git_repo_resolve(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    struct dj_git_oid*  _out,
+    char**              _out_target
 )
 {
     char* current = d_internal_dup_text(_name);
@@ -3186,7 +3172,7 @@ d_git_repo_resolve(
             break;
         }
 
-        const enum d_internal_raw raw = d_internal_read_raw(_repo,
+        const enum dj_internal_raw raw = d_internal_read_raw(_repo,
                                                             current,
                                                             _out,
                                                             &target);
@@ -3227,13 +3213,12 @@ d_git_repo_resolve(
 }
 
 
-char*
-d_git_repo_symbolic(
-    struct d_git_repo* _repo,
-    const char*        _name
+char* d_git_repo_symbolic(
+    struct dj_git_repo* _repo,
+    const char*         _name
 )
 {
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
     char*            target = NULL;
 
     // a ref git allows, read but not followed
@@ -3257,10 +3242,10 @@ d_internal_refs_add
   One ref more for a listing, its name copied; not one already there,
 which a loose ref was read before.
 */
-static bool
-d_internal_refs_add(
-    struct d_git_refs* _refs,
-    const char*        _name
+static
+bool d_internal_refs_add(
+    struct dj_git_refs* _refs,
+    const char*         _name
 )
 {
     // room for one more
@@ -3269,7 +3254,7 @@ d_internal_refs_add(
         const size_t            wanted = (_refs->capacity > 0u)
                                          ? (_refs->capacity * 2u)
                                          : 64u;
-        struct d_git_ref* const grown  = realloc(_refs->items,
+        struct dj_git_ref* const grown  = realloc(_refs->items,
                                                  wanted * sizeof(*grown));
 
         // memory that ran out
@@ -3282,7 +3267,7 @@ d_internal_refs_add(
         _refs->capacity = wanted;
     }
 
-    struct d_git_ref* const ref = &_refs->items[_refs->count];
+    struct dj_git_ref* const ref = &_refs->items[_refs->count];
 
     memset(ref, 0, sizeof(*ref));
     ref->name = d_internal_dup_text(_name);
@@ -3303,10 +3288,10 @@ d_internal_refs_add(
 //   struct: a walk of loose refs: where they are kept, the names to list,
 //   and the subtrees of a work tree's own refs, which a linked work
 //   tree's common directory does not hold for it.
-struct d_internal_walk
+struct dj_internal_walk
 {
     const char*        base;
-    struct d_git_refs* refs;
+    struct dj_git_refs* refs;
     bool               skip_own;
 };
 
@@ -3316,10 +3301,10 @@ d_internal_walk_refs
   Every loose ref below a directory of refs, by name: a directory walked,
 a file listed if its name is one git allows.
 */
-static bool
-d_internal_walk_refs(
-    const struct d_internal_walk* _walk,
-    const char*                   _name
+static
+bool d_internal_walk_refs(
+    const struct dj_internal_walk* _walk,
+    const char*                    _name
 )
 {
     char* const path  = d_git_path_join(_walk->base, _name);
@@ -3343,7 +3328,7 @@ d_internal_walk_refs(
         char* const name  = d_git_path_join(_name, names[at]);
         char* const there = (name) ? d_git_path_join(_walk->base, name)
                                    : NULL;
-        const enum d_git_file_kind kind = (there) ? d_internal_kind(there)
+        const enum dj_git_file_kind kind = (there) ? d_internal_kind(there)
                                                   : D_GIT_FILE_NONE;
 
         // a directory walked, a ref listed, a work tree's own passed
@@ -3381,14 +3366,14 @@ d_internal_walk_refs(
 d_internal_compare_refs
   Orders refs by name.
 */
-static int
-d_internal_compare_refs(
+static
+int d_internal_compare_refs(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_git_ref* const left  = _left;
-    const struct d_git_ref* const right = _right;
+    const struct dj_git_ref* const left  = _left;
+    const struct dj_git_ref* const right = _right;
 
     return strcmp(left->name, right->name);
 }
@@ -3399,9 +3384,9 @@ d_internal_refs_unique
   Orders refs by name and leaves one of each: a loose ref and a packed
 one of a name are one ref.
 */
-static void
-d_internal_refs_unique(
-    struct d_git_refs* _refs
+static
+void d_internal_refs_unique(
+    struct dj_git_refs* _refs
 )
 {
     size_t kept = 0u;
@@ -3443,10 +3428,10 @@ d_internal_ref_peel
   What a listed ref names: followed, and, when it names a tag, peeled --
 packed-refs's peeled line for a packed ref, else the tag read.
 */
-static bool
-d_internal_ref_peel(
-    struct d_git_repo* _repo,
-    struct d_git_ref*  _ref
+static
+bool d_internal_ref_peel(
+    struct dj_git_repo* _repo,
+    struct dj_git_ref*  _ref
 )
 {
     char*        target = NULL;
@@ -3461,7 +3446,7 @@ d_internal_ref_peel(
         return false;
     }
 
-    struct d_git_oid at = _ref->oid;
+    struct dj_git_oid at = _ref->oid;
 
     // packed-refs's peeled line, for a ref packed and not loose
     if ( (packed != D_GIT_REPO_NONE) &&
@@ -3477,8 +3462,8 @@ d_internal_ref_peel(
     // a tag peeled, as many deep as there are
     for (unsigned depth = 0u; depth < 32u; ++depth)
     {
-        struct d_git_object object;
-        struct d_git_tag    tag;
+        struct dj_git_object object;
+        struct dj_git_tag    tag;
         const bool          read = d_git_repo_read(_repo, &at, &object);
         const bool          is   = ( (read) &&
                                      (object.type == D_GIT_OBJECT_TAG) &&
@@ -3506,11 +3491,10 @@ d_internal_ref_peel(
 }
 
 
-bool
-d_git_repo_refs(
-    struct d_git_repo* _repo,
-    const char*        _prefix,
-    struct d_git_refs* _out
+bool d_git_repo_refs(
+    struct dj_git_repo* _repo,
+    const char*         _prefix,
+    struct dj_git_refs* _out
 )
 {
     const char* const prefix = ( (_prefix) && (_prefix[0] != '\0') )
@@ -3529,8 +3513,8 @@ d_git_repo_refs(
         return false;
     }
 
-    struct d_internal_walk common = { _repo->common_dir, _out, linked };
-    struct d_internal_walk own    = { _repo->git_dir, _out, false };
+    struct dj_internal_walk common = { _repo->common_dir, _out, linked };
+    struct dj_internal_walk own    = { _repo->git_dir, _out, false };
     bool                   listed = ( (d_internal_walk_refs(&common, "refs")) &&
                                       ( (!linked) ||
                                         ( (d_internal_walk_refs(&own,
@@ -3553,7 +3537,7 @@ d_git_repo_refs(
     // those of the prefix that lead somewhere, peeled
     for (size_t at = 0u; ( (listed) && (at < _out->count) ); ++at)
     {
-        struct d_git_ref ref = _out->items[at];
+        struct dj_git_ref ref = _out->items[at];
 
         // of the prefix and leading somewhere, or let go
         if ( (strncmp(ref.name, prefix, strlen(prefix)) == 0) &&
@@ -3574,9 +3558,8 @@ d_git_repo_refs(
 }
 
 
-void
-d_git_refs_release(
-    struct d_git_refs* _refs
+void d_git_refs_release(
+    struct dj_git_refs* _refs
 )
 {
     // nothing to release
@@ -3623,18 +3606,18 @@ d_internal_dwim
   A ref's name completed by the first of rev-parse's rules that names a
 ref that leads somewhere.
 */
-static bool
-d_internal_dwim(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length,
-    struct d_git_oid*  _out
+static
+bool d_internal_dwim(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out
 )
 {
     // each rule in order
     for (size_t rule = 0u; rule < 6u; ++rule)
     {
-        struct d_git_buffer full;
+        struct dj_git_buffer full;
 
         memset(&full, 0, sizeof(full));
         (void)d_git_buffer_add_text(&full, d_internal_rules[rule][0]);
@@ -3668,8 +3651,8 @@ d_internal_ambiguous_path
   Whether a name is one git's ambiguous_path refuses as a ref: a name whose
 last part, or any part but the last, is empty or only dots.
 */
-static bool
-d_internal_ambiguous_path(
+static
+bool d_internal_ambiguous_path(
     const char* _name,
     size_t      _length
 )
@@ -3699,8 +3682,8 @@ d_internal_ambiguous_path(
 d_internal_all_hex
   Whether bytes are all hex digits.
 */
-static bool
-d_internal_all_hex(
+static
+bool d_internal_all_hex(
     const char* _text,
     size_t      _length
 )
@@ -3723,12 +3706,12 @@ d_internal_all_hex(
 d_internal_short
   A prefix in hex of four digits or more, naming one object alone.
 */
-static bool
-d_internal_short(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length,
-    struct d_git_oid*  _out
+static
+bool d_internal_short(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out
 )
 {
     // a prefix of a length git reads, all hex
@@ -3743,34 +3726,43 @@ d_internal_short(
 }
 
 
-static bool d_internal_rev_part(struct d_git_repo* _repo,
-                                const char*        _name,
-                                size_t             _length,
-                                struct d_git_oid*  _out);
-static char* d_internal_prior_checkout(const struct d_git_repo* _repo,
-                                      unsigned long            _nth);
-static bool  d_internal_digits(const char*    _text,
-                               size_t         _length,
-                               unsigned long* _out);
+static
+bool d_internal_rev_part(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out
+);
+static
+char* d_internal_prior_checkout(
+    const struct dj_git_repo* _repo,
+    unsigned long             _nth
+);
+static
+bool d_internal_digits(
+    const char*    _text,
+    size_t         _length,
+    unsigned long* _out
+);
 
 
-// d_internal_reflog_entry
+// dj_internal_reflog_entry
 //   struct: one line of a reflog: the name a ref had, the one it took, and
 //   the message, borrowed from the log's text.
-struct d_internal_reflog_entry
+struct dj_internal_reflog_entry
 {
-    struct d_git_oid old_oid;
-    struct d_git_oid new_oid;
+    struct dj_git_oid old_oid;
+    struct dj_git_oid new_oid;
     const char*      message;
     size_t           message_length;
 };
 
-// d_internal_reflog
+// dj_internal_reflog
 //   struct: a reflog read whole: its text and its lines, oldest first.
-struct d_internal_reflog
+struct dj_internal_reflog
 {
     char*                           text;
-    struct d_internal_reflog_entry* entries;
+    struct dj_internal_reflog_entry* entries;
     size_t                          count;
 };
 
@@ -3781,11 +3773,11 @@ d_internal_reflog_read
 each line two names in hex, an identity, a tab and a message. False when
 there is none.
 */
-static bool
-d_internal_reflog_read(
-    const struct d_git_repo*  _repo,
-    const char*               _ref,
-    struct d_internal_reflog* _out
+static
+bool d_internal_reflog_read(
+    const struct dj_git_repo*  _repo,
+    const char*                _ref,
+    struct dj_internal_reflog* _out
 )
 {
     const size_t hash   = d_git_repo_hash_size(_repo);
@@ -3823,7 +3815,7 @@ d_internal_reflog_read(
     {
         char* const end = strchr(line, '\n');
         char* const tab = strchr(line, '\t');
-        struct d_internal_reflog_entry* const entry =
+        struct dj_internal_reflog_entry* const entry =
             &_out->entries[_out->count];
 
         // the line alone
@@ -3855,9 +3847,9 @@ d_internal_reflog_read(
 d_internal_reflog_free
   Lets go of a reflog read.
 */
-static void
-d_internal_reflog_free(
-    struct d_internal_reflog* _log
+static
+void d_internal_reflog_free(
+    struct dj_internal_reflog* _log
 )
 {
     free(_log->text);
@@ -3872,10 +3864,10 @@ d_internal_reflog_free(
 d_internal_is_null
   Whether a name is all zeros, as a reflog writes for a ref that was not.
 */
-static bool
-d_internal_is_null(
-    const struct d_git_repo* _repo,
-    const struct d_git_oid*  _oid
+static
+bool d_internal_is_null(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _oid
 )
 {
     const size_t size = d_git_repo_hash_size(_repo);
@@ -3900,15 +3892,15 @@ d_internal_reflog_nth
 newest line's new name; @{n} the old name of the nth newest -- or of the
 first older with one, past a line that made the ref.
 */
-static bool
-d_internal_reflog_nth(
-    struct d_git_repo* _repo,
-    const char*        _ref,
-    unsigned long      _nth,
-    struct d_git_oid*  _out
+static
+bool d_internal_reflog_nth(
+    struct dj_git_repo* _repo,
+    const char*         _ref,
+    unsigned long       _nth,
+    struct dj_git_oid*  _out
 )
 {
-    struct d_internal_reflog log;
+    struct dj_internal_reflog log;
 
     // a log, with lines
     if ( (!d_internal_reflog_read(_repo, _ref, &log)) ||
@@ -3956,13 +3948,13 @@ d_internal_reflog_nth(
 d_internal_has_log
   Whether a ref has a reflog to read.
 */
-static bool
-d_internal_has_log(
-    const struct d_git_repo* _repo,
-    const char*              _ref
+static
+bool d_internal_has_log(
+    const struct dj_git_repo* _repo,
+    const char*               _ref
 )
 {
-    struct d_internal_reflog log;
+    struct dj_internal_reflog log;
     const bool               found = d_internal_reflog_read(_repo, _ref,
                                                             &log);
 
@@ -3979,11 +3971,11 @@ of rev-parse's rules naming a ref that leads somewhere and has a log, or
 whose symbolic target has one; for no name, the branch HEAD is on, or HEAD
 itself.
 */
-static char*
-d_internal_log_of(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length
+static
+char* d_internal_log_of(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length
 )
 {
     // none: HEAD's branch, or HEAD
@@ -3999,8 +3991,8 @@ d_internal_log_of(
     // each rule in order, until one has a log
     for (size_t rule = 0u; ( (!found) && (rule < 6u) ); ++rule)
     {
-        struct d_git_buffer full;
-        struct d_git_oid    oid;
+        struct dj_git_buffer full;
+        struct dj_git_oid    oid;
         char*               target = NULL;
 
         memset(&full, 0, sizeof(full));
@@ -4035,11 +4027,11 @@ d_internal_branch_named
   A branch's name as a mark's base gives it: @{-n} the nth prior checkout's,
 anything else itself; allocated.
 */
-static char*
-d_internal_branch_named(
-    const struct d_git_repo* _repo,
-    const char*              _name,
-    size_t                   _length
+static
+char* d_internal_branch_named(
+    const struct dj_git_repo* _repo,
+    const char*               _name,
+    size_t                    _length
 )
 {
     unsigned long nth = 0u;
@@ -4063,14 +4055,14 @@ d_internal_prior_checkout
 interpret_nth_prior_checkout reads HEAD's reflog for it: each "checkout:
 moving from A to B", newest first, the nth A.
 */
-static char*
-d_internal_prior_checkout(
-    const struct d_git_repo* _repo,
-    unsigned long            _nth
+static
+char* d_internal_prior_checkout(
+    const struct dj_git_repo* _repo,
+    unsigned long             _nth
 )
 {
     static const char        prefix[] = "checkout: moving from ";
-    struct d_internal_reflog log;
+    struct dj_internal_reflog log;
     char*                    branch = NULL;
     unsigned long            seen   = 0u;
 
@@ -4109,8 +4101,8 @@ d_internal_map_refspec
   A ref mapped by a fetch refspec, +src:dst, a `*` in each taking the same
 text; NULL when the refspec does not take it.
 */
-static char*
-d_internal_map_refspec(
+static
+char* d_internal_map_refspec(
     const char* _refspec,
     const char* _ref
 )
@@ -4126,7 +4118,7 @@ d_internal_map_refspec(
 
     const size_t      source = (size_t)(colon - spec);
     const char* const star   = memchr(spec, '*', source);
-    struct d_git_buffer out;
+    struct dj_git_buffer out;
 
     memset(&out, 0, sizeof(out));
 
@@ -4175,12 +4167,12 @@ that maps it, or itself for a remote of ".".
   Long as git's branch_get is, which it follows: the branch, its merge, its
 remote, and the remote's refspecs.
 */
-static bool
-d_internal_upstream(
-    struct d_git_repo* _repo,
-    const char*        _branch,
-    size_t             _length,
-    struct d_git_oid*  _out
+static
+bool d_internal_upstream(
+    struct dj_git_repo* _repo,
+    const char*         _branch,
+    size_t              _length,
+    struct dj_git_oid*  _out
 )
 {
     char* const branch = (_length > 0u) ? d_internal_dup(_branch, _length)
@@ -4189,7 +4181,7 @@ d_internal_upstream(
                                (strncmp(branch, "refs/heads/", 11u) == 0) )
                              ? &branch[11]
                              : branch;
-    struct d_git_buffer key;
+    struct dj_git_buffer key;
     bool                set = false;
 
     memset(&key, 0, sizeof(key));
@@ -4257,8 +4249,8 @@ d_internal_upstream(
 d_internal_digits
   Whether text is all decimal digits, and their number.
 */
-static bool
-d_internal_digits(
+static
+bool d_internal_digits(
     const char*    _text,
     size_t         _length,
     unsigned long* _out
@@ -4292,13 +4284,13 @@ nth; @{push} and dates are not read. `_out_marked` says there was one.
   Long as get_oid_basic's reading of a mark is, which it follows: the mark
 found, then each of its kinds.
 */
-static bool
-d_internal_at_mark(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length,
-    struct d_git_oid*  _out,
-    bool*              _out_marked
+static
+bool d_internal_at_mark(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out,
+    bool*               _out_marked
 )
 {
     size_t at = _length;
@@ -4411,12 +4403,12 @@ d_internal_basic
 rev-parse's rules complete -- not one ambiguous_path refuses. The reflog's
 @{...} is not read.
 */
-static bool
-d_internal_basic(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length,
-    struct d_git_oid*  _out
+static
+bool d_internal_basic(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out
 )
 {
     // whole in hex
@@ -4457,12 +4449,12 @@ d_internal_describe
   A describe's name, SOMETHING-gHEX, by the hex after its last -g, as git's
 get_describe_name reads it.
 */
-static bool
-d_internal_describe(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length,
-    struct d_git_oid*  _out
+static
+bool d_internal_describe(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out
 )
 {
     // from the end, past the hex, to a `g` after a `-`
@@ -4490,15 +4482,15 @@ for anything at all, which must be there.
 */
 static bool
 d_internal_peel_to(
-    struct d_git_repo*     _repo,
-    struct d_git_oid*      _oid,
-    enum d_git_object_type _type
+    struct dj_git_repo*     _repo,
+    struct dj_git_oid*      _oid,
+    enum dj_git_object_type _type
 )
 {
     // a step at a time, as deep as tags go
     for (unsigned depth = 0u; depth < 64u; ++depth)
     {
-        struct d_git_object object;
+        struct dj_git_object object;
 
         // the object there
         if (!d_git_repo_read(_repo, _oid, &object))
@@ -4508,7 +4500,7 @@ d_internal_peel_to(
             return false;
         }
 
-        const enum d_git_object_type type = object.type;
+        const enum dj_git_object_type type = object.type;
         bool                         on   = false;
 
         // a tag goes on to what it names; a commit to its tree
@@ -4521,7 +4513,7 @@ d_internal_peel_to(
         }
         else if (type == D_GIT_OBJECT_TAG)
         {
-            struct d_git_tag tag;
+            struct dj_git_tag tag;
 
             on   = d_git_repo_parse_tag(_repo, &object, &tag);
             *_oid = (on) ? tag.object : *_oid;
@@ -4529,7 +4521,7 @@ d_internal_peel_to(
         else if ( (type == D_GIT_OBJECT_COMMIT) &&
                   (_type == D_GIT_OBJECT_TREE) )
         {
-            struct d_git_commit commit;
+            struct dj_git_commit commit;
 
             on   = d_git_repo_parse_commit(_repo, &object, &commit);
             *_oid = (on) ? commit.tree : *_oid;
@@ -4554,17 +4546,17 @@ d_internal_peel_to(
 d_internal_peel_tags
   An object peeled of its tags, to the first that is not one: ^{}.
 */
-static bool
-d_internal_peel_tags(
-    struct d_git_repo* _repo,
-    struct d_git_oid*  _oid
+static
+bool d_internal_peel_tags(
+    struct dj_git_repo* _repo,
+    struct dj_git_oid*  _oid
 )
 {
     // a tag at a time
     for (unsigned depth = 0u; depth < 64u; ++depth)
     {
-        struct d_git_object object;
-        struct d_git_tag    tag;
+        struct dj_git_object object;
+        struct dj_git_tag    tag;
 
         // the object there
         if (!d_git_repo_read(_repo, _oid, &object))
@@ -4592,25 +4584,28 @@ d_internal_peel_tags(
 }
 
 
-static bool d_internal_rev_part(struct d_git_repo* _repo,
-                                const char*        _name,
-                                size_t             _length,
-                                struct d_git_oid*  _out);
+static
+bool d_internal_rev_part(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out
+);
 
 
 /*
 d_internal_parent_of
   A commit's parent: ^0 the commit itself, ^n its nth parent.
 */
-static bool
-d_internal_parent_of(
-    struct d_git_repo* _repo,
-    struct d_git_oid*  _oid,
-    unsigned           _nth
+static
+bool d_internal_parent_of(
+    struct dj_git_repo* _repo,
+    struct dj_git_oid*  _oid,
+    unsigned            _nth
 )
 {
-    struct d_git_object object;
-    struct d_git_commit commit;
+    struct dj_git_object object;
+    struct dj_git_commit commit;
 
     // the commit, peeled to one
     if (!d_internal_peel_to(_repo, _oid, D_GIT_OBJECT_COMMIT))
@@ -4649,8 +4644,8 @@ d_internal_suffix
   A trailing ~n or ^n: its kind, the length before it, and n -- 1 when no
 digits follow, as git counts it.
 */
-static char
-d_internal_suffix(
+static
+char d_internal_suffix(
     const char* _name,
     size_t      _length,
     size_t*     _out_base,
@@ -4694,13 +4689,13 @@ d_internal_onion
   A trailing ^{type}: what is before it, peeled -- ^{} of its tags, ^{object}
 not at all, ^{commit}, ^{tree}, ^{blob}, ^{tag} to the type.
 */
-static bool
-d_internal_onion(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length,
-    struct d_git_oid*  _out,
-    bool*              _out_was
+static
+bool d_internal_onion(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out,
+    bool*               _out_was
 )
 {
     size_t open = _length;
@@ -4748,7 +4743,7 @@ d_internal_onion(
     memcpy(named, type, typlen);
     named[typlen] = '\0';
 
-    const enum d_git_object_type wanted = d_git_object_type_named(named);
+    const enum dj_git_object_type wanted = d_git_object_type_named(named);
 
     // a type, or object for any
     if ( (wanted == D_GIT_OBJECT_NONE) &&
@@ -4766,12 +4761,12 @@ d_internal_rev_part
   A revision without a path, as git's get_oid_1 reads one: ~n and ^n off
 its end, then ^{...}, then a name, a describe's, a prefix in hex.
 */
-static bool
-d_internal_rev_part(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    size_t             _length,
-    struct d_git_oid*  _out
+static
+bool d_internal_rev_part(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    size_t              _length,
+    struct dj_git_oid*  _out
 )
 {
     size_t     base  = 0u;
@@ -4826,8 +4821,8 @@ d_internal_colon
   Where a revision's `:` before its path is: the first not within braces,
 as git finds it; D_GIT_REPO_NONE for none.
 */
-static size_t
-d_internal_colon(
+static
+size_t d_internal_colon(
     const char* _name
 )
 {
@@ -4861,11 +4856,11 @@ d_internal_colon(
 d_internal_index_rev
   :path and :n:path: the index's entry of the path at stage 0, or n.
 */
-static bool
-d_internal_index_rev(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    struct d_git_oid*  _out
+static
+bool d_internal_index_rev(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    struct dj_git_oid*  _out
 )
 {
     const bool        staged = ( (_name[1] >= '0') &&
@@ -4899,11 +4894,10 @@ d_internal_index_rev(
 }
 
 
-bool
-d_git_repo_rev(
-    struct d_git_repo* _repo,
-    const char*        _name,
-    struct d_git_oid*  _out
+bool d_git_repo_rev(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    struct dj_git_oid*  _out
 )
 {
     // a repository, and a revision
@@ -4990,11 +4984,11 @@ d_git_repo_rev(
 //   its parents -- which simplifying may cut -- its marks, what its tree
 //   holds at the walk's path, once asked, and the last walk of ancestors
 //   that visited it.
-struct d_internal_node
+struct dj_internal_node
 {
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
     int64_t          date;
-    struct d_git_oid tree;
+    struct dj_git_oid tree;
     size_t*          parents;
     size_t           parent_count;
     unsigned         flags;
@@ -5002,36 +4996,36 @@ struct d_internal_node
     bool             path_asked;
     bool             path_present;
     uint32_t         path_mode;
-    struct d_git_oid path_oid;
+    struct dj_git_oid path_oid;
     unsigned         visit;
 };
 
 // d_internal_slot
 //   struct: a commit waiting in the walk's queue, and when it came.
-struct d_internal_slot
+struct dj_internal_slot
 {
     size_t   node;
     uint64_t order;
 };
 
-// d_internal_walker
+// dj_internal_walker
 //   struct: a walk: its commits and the table that finds them by name,
 //   the queue -- latest date first, ties first in first out -- the
 //   shallow commits, whose parents git does not see, and what the walk is
 //   limited by, and how many walks of ancestors there have been.
-struct d_internal_walker
+struct dj_internal_walker
 {
-    struct d_git_repo*      repo;
-    struct d_internal_node* nodes;
+    struct dj_git_repo*      repo;
+    struct dj_internal_node* nodes;
     size_t                  count;
     size_t                  capacity;
     size_t*                 table;
     size_t                  table_size;
-    struct d_internal_slot* heap;
+    struct dj_internal_slot* heap;
     size_t                  heap_count;
     size_t                  heap_capacity;
     uint64_t                order;
-    struct d_git_oids       shallow;
+    struct dj_git_oids       shallow;
     const char*             path;
     bool                    first_parent;
     bool                    failed;
@@ -5043,10 +5037,10 @@ struct d_internal_walker
 d_internal_hash_of
   Where a name begins its search in the walk's table.
 */
-static size_t
-d_internal_hash_of(
-    const struct d_git_oid* _oid,
-    size_t                  _size
+static
+size_t d_internal_hash_of(
+    const struct dj_git_oid* _oid,
+    size_t                   _size
 )
 {
     const size_t hash = ((size_t)_oid->bytes[0] << 24) |
@@ -5062,9 +5056,9 @@ d_internal_hash_of(
 d_internal_rehash
   The table, doubled, every commit put in it again.
 */
-static bool
-d_internal_rehash(
-    struct d_internal_walker* _walker
+static
+bool d_internal_rehash(
+    struct dj_internal_walker* _walker
 )
 {
     const size_t  size  = (_walker->table_size > 0u)
@@ -5105,10 +5099,10 @@ d_internal_node_of
   The commit of a name, made when the walk has not met it;
 D_GIT_REPO_NONE when memory runs out.
 */
-static size_t
-d_internal_node_of(
-    struct d_internal_walker* _walker,
-    const struct d_git_oid*   _oid
+static
+size_t d_internal_node_of(
+    struct dj_internal_walker* _walker,
+    const struct dj_git_oid*   _oid
 )
 {
     // a table half full at most
@@ -5146,7 +5140,7 @@ d_internal_node_of(
         const size_t                  wanted = (_walker->capacity > 0u)
                                                ? (_walker->capacity * 2u)
                                                : 256u;
-        struct d_internal_node* const grown  =
+        struct dj_internal_node* const grown  =
             realloc(_walker->nodes, wanted * sizeof(*grown));
 
         // memory that ran out
@@ -5161,7 +5155,7 @@ d_internal_node_of(
         _walker->capacity = wanted;
     }
 
-    struct d_internal_node* const node = &_walker->nodes[_walker->count];
+    struct dj_internal_node* const node = &_walker->nodes[_walker->count];
 
     memset(node, 0, sizeof(*node));
     node->oid            = *_oid;
@@ -5176,10 +5170,10 @@ d_internal_is_shallow
   Whether a commit is one the repository's shallow file names, whose
 parents git does not see.
 */
-static bool
-d_internal_is_shallow(
-    const struct d_internal_walker* _walker,
-    const struct d_git_oid*         _oid
+static
+bool d_internal_is_shallow(
+    const struct dj_internal_walker* _walker,
+    const struct dj_git_oid*         _oid
 )
 {
     // each named
@@ -5203,10 +5197,10 @@ d_internal_parse_node
   A commit read and parsed, once: its date the committer's, its parents
 met -- none for a shallow commit.
 */
-static bool
-d_internal_parse_node(
-    struct d_internal_walker* _walker,
-    size_t                    _node
+static
+bool d_internal_parse_node(
+    struct dj_internal_walker* _walker,
+    size_t                     _node
 )
 {
     // parsed already
@@ -5215,8 +5209,8 @@ d_internal_parse_node(
         return true;
     }
 
-    struct d_git_object object;
-    struct d_git_commit commit;
+    struct dj_git_object object;
+    struct dj_git_commit commit;
     const bool          read = ( (d_git_repo_read(_walker->repo,
                                                   &_walker->nodes[_node].oid,
                                                   &object)) &&
@@ -5247,7 +5241,7 @@ d_internal_parse_node(
         met         = (parents[at] != D_GIT_REPO_NONE);
     }
 
-    struct d_internal_node* const node = &_walker->nodes[_node];
+    struct dj_internal_node* const node = &_walker->nodes[_node];
 
     node->date         = commit.committer.time;
     node->tree         = commit.tree;
@@ -5267,11 +5261,11 @@ d_internal_before_slot
   Whether a queued commit comes off before another: a later date first, of
 the same date the one that came first.
 */
-static bool
-d_internal_before_slot(
-    const struct d_internal_walker* _walker,
-    const struct d_internal_slot*   _left,
-    const struct d_internal_slot*   _right
+static
+bool d_internal_before_slot(
+    const struct dj_internal_walker* _walker,
+    const struct dj_internal_slot*   _left,
+    const struct dj_internal_slot*   _right
 )
 {
     const int64_t left  = _walker->nodes[_left->node].date;
@@ -5286,10 +5280,10 @@ d_internal_before_slot(
 d_internal_push
   A commit onto the queue, in its place.
 */
-static bool
-d_internal_push(
-    struct d_internal_walker* _walker,
-    size_t                    _node
+static
+bool d_internal_push(
+    struct dj_internal_walker* _walker,
+    size_t                     _node
 )
 {
     // room for one more
@@ -5298,7 +5292,7 @@ d_internal_push(
         const size_t                  wanted = (_walker->heap_capacity > 0u)
                                                ? (_walker->heap_capacity * 2u)
                                                : 256u;
-        struct d_internal_slot* const grown  =
+        struct dj_internal_slot* const grown  =
             realloc(_walker->heap, wanted * sizeof(*grown));
 
         // memory that ran out
@@ -5331,7 +5325,7 @@ d_internal_push(
             break;
         }
 
-        const struct d_internal_slot swap = _walker->heap[at];
+        const struct dj_internal_slot swap = _walker->heap[at];
 
         _walker->heap[at] = _walker->heap[up];
         _walker->heap[up] = swap;
@@ -5346,9 +5340,9 @@ d_internal_push(
 d_internal_pop
   The commit that comes off the queue next.
 */
-static size_t
-d_internal_pop(
-    struct d_internal_walker* _walker
+static
+size_t d_internal_pop(
+    struct dj_internal_walker* _walker
 )
 {
     const size_t node = _walker->heap[0].node;
@@ -5388,7 +5382,7 @@ d_internal_pop(
             break;
         }
 
-        const struct d_internal_slot swap = _walker->heap[at];
+        const struct dj_internal_slot swap = _walker->heap[at];
 
         _walker->heap[at]    = _walker->heap[first];
         _walker->heap[first] = swap;
@@ -5399,9 +5393,9 @@ d_internal_pop(
 }
 
 
-// d_internal_stack
+// dj_internal_stack
 //   struct: commits waiting to be marked, by index.
-struct d_internal_stack
+struct dj_internal_stack
 {
     size_t* items;
     size_t  count;
@@ -5413,10 +5407,10 @@ struct d_internal_stack
 d_internal_stack_add
   One commit onto the stack.
 */
-static bool
-d_internal_stack_add(
-    struct d_internal_stack* _stack,
-    size_t                   _node
+static
+bool d_internal_stack_add(
+    struct dj_internal_stack* _stack,
+    size_t                    _node
 )
 {
     // room for one more
@@ -5447,10 +5441,10 @@ d_internal_stack_add(
 d_internal_stack_push
   A commit's parents onto the stack.
 */
-static bool
-d_internal_stack_push(
-    struct d_internal_stack*      _stack,
-    const struct d_internal_node* _node
+static
+bool d_internal_stack_push(
+    struct dj_internal_stack*      _stack,
+    const struct dj_internal_node* _node
 )
 {
     // each parent
@@ -5472,13 +5466,13 @@ d_internal_mark_parents
   Marks the parents of a commit uninteresting, and theirs, as far as
 commits have been parsed, as git's mark_parents_uninteresting does.
 */
-static bool
-d_internal_mark_parents(
-    struct d_internal_walker* _walker,
-    size_t                    _node
+static
+bool d_internal_mark_parents(
+    struct dj_internal_walker* _walker,
+    size_t                     _node
 )
 {
-    struct d_internal_stack pending;
+    struct dj_internal_stack pending;
     bool                    marked = true;
 
     memset(&pending, 0, sizeof(pending));
@@ -5488,7 +5482,7 @@ d_internal_mark_parents(
     while ( (marked) &&
             (pending.count > 0u) )
     {
-        struct d_internal_node* const record =
+        struct dj_internal_node* const record =
             &_walker->nodes[pending.items[--pending.count]];
 
         // marked already
@@ -5512,13 +5506,13 @@ d_internal_mark_parents(
 d_internal_path_of
   What a commit's tree holds at the walk's path, asked once.
 */
-static void
-d_internal_path_of(
-    struct d_internal_walker* _walker,
-    size_t                    _node
+static
+void d_internal_path_of(
+    struct dj_internal_walker* _walker,
+    size_t                     _node
 )
 {
-    struct d_internal_node* const node = &_walker->nodes[_node];
+    struct dj_internal_node* const node = &_walker->nodes[_node];
 
     // asked already
     if (node->path_asked)
@@ -5526,7 +5520,7 @@ d_internal_path_of(
         return;
     }
 
-    struct d_git_oid found;
+    struct dj_git_oid found;
     uint32_t         mode = 0u;
 
     node->path_present = d_git_tree_find(_walker->repo,
@@ -5548,18 +5542,18 @@ d_internal_same_path
   Whether two commits' trees hold the same at the walk's path: nothing in
 both, or the same object of the same mode.
 */
-static bool
-d_internal_same_path(
-    struct d_internal_walker* _walker,
-    size_t                    _left,
-    size_t                    _right
+static
+bool d_internal_same_path(
+    struct dj_internal_walker* _walker,
+    size_t                     _left,
+    size_t                     _right
 )
 {
     d_internal_path_of(_walker, _left);
     d_internal_path_of(_walker, _right);
 
-    const struct d_internal_node* const left  = &_walker->nodes[_left];
-    const struct d_internal_node* const right = &_walker->nodes[_right];
+    const struct dj_internal_node* const left  = &_walker->nodes[_left];
+    const struct dj_internal_node* const right = &_walker->nodes[_right];
 
     // nothing in both, or the same in both
     if ( (!left->path_present) ||
@@ -5584,10 +5578,10 @@ and is TREESAME; otherwise it is TREESAME only when no parent that counts
 differs -- the interesting ones, if any are, else all.
   Long as try_to_simplify_commit is, which it follows step by step.
 */
-static bool
-d_internal_simplify(
-    struct d_internal_walker* _walker,
-    size_t                    _node
+static
+bool d_internal_simplify(
+    struct dj_internal_walker* _walker,
+    size_t                     _node
 )
 {
     bool   relevant_change   = false;
@@ -5665,10 +5659,10 @@ d_internal_simplify(
 d_internal_put_parent
   A parent onto the queue, once: marked seen when it goes on.
 */
-static bool
-d_internal_put_parent(
-    struct d_internal_walker* _walker,
-    size_t                    _parent
+static
+bool d_internal_put_parent(
+    struct dj_internal_walker* _walker,
+    size_t                     _parent
 )
 {
     // seen already
@@ -5691,10 +5685,10 @@ marked as far as they are parsed; an interesting one's, simplified for a
 path, the first alone for first parents.
   Long as process_parents is, which it follows.
 */
-static bool
-d_internal_process_parents(
-    struct d_internal_walker* _walker,
-    size_t                    _node
+static
+bool d_internal_process_parents(
+    struct dj_internal_walker* _walker,
+    size_t                     _node
 )
 {
     // once a commit
@@ -5769,9 +5763,9 @@ d_internal_process_parents(
 d_internal_read_shallow
   The shallow file's commits, a name in hex to a line.
 */
-static bool
-d_internal_read_shallow(
-    struct d_internal_walker* _walker
+static
+bool d_internal_read_shallow(
+    struct dj_internal_walker* _walker
 )
 {
     size_t      length = 0u;
@@ -5793,7 +5787,7 @@ d_internal_read_shallow(
 
         d_internal_trim_end(line);
 
-        struct d_git_oid oid;
+        struct dj_git_oid oid;
 
         // a name, kept
         if (d_git_repo_parse_hex(_walker->repo, line, &oid))
@@ -5814,9 +5808,9 @@ d_internal_read_shallow(
 d_internal_walker_free
   Lets go of what a walk made.
 */
-static void
-d_internal_walker_free(
-    struct d_internal_walker* _walker
+static
+void d_internal_walker_free(
+    struct dj_internal_walker* _walker
 )
 {
     // each commit's parents
@@ -5839,8 +5833,8 @@ d_internal_compare_starts
   Orders a walk's first commits by date, the latest first; qsort is not
 stable, so the order they were given breaks ties.
 */
-static int
-d_internal_compare_starts(
+static
+int d_internal_compare_starts(
     const void* _left,
     const void* _right
 )
@@ -5864,16 +5858,16 @@ d_internal_start
 uninteresting, its parents too, when it is excluded -- and kept to be
 queued, once.
 */
-static bool
-d_internal_start(
-    struct d_internal_walker* _walker,
-    const char*               _revision,
-    struct d_internal_stack*  _starts,
-    bool*                     _out_limited
+static
+bool d_internal_start(
+    struct dj_internal_walker* _walker,
+    const char*                _revision,
+    struct dj_internal_stack*  _starts,
+    bool*                      _out_limited
 )
 {
     const bool       excluded = (_revision[0] == '^');
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
 
     // the revision's commit
     if ( (!d_git_repo_rev(_walker->repo, &_revision[(excluded) ? 1 : 0],
@@ -5922,10 +5916,10 @@ d_internal_queue_starts
   The first commits onto the queue, by date, ties in the order given, as
 prepare_revision_walk sorts them.
 */
-static bool
-d_internal_queue_starts(
-    struct d_internal_walker*      _walker,
-    const struct d_internal_stack* _starts
+static
+bool d_internal_queue_starts(
+    struct dj_internal_walker*      _walker,
+    const struct dj_internal_stack* _starts
 )
 {
     int64_t* const keys = malloc((_starts->count + 1u) * 2u * sizeof(*keys));
@@ -5966,11 +5960,11 @@ d_internal_still_interesting
 still_interesting decides: while the queue holds a commit as late as the
 last kept, or any interesting one, and for a few commits more.
 */
-static int
-d_internal_still_interesting(
-    const struct d_internal_walker* _walker,
-    int64_t                         _date,
-    int                             _slop
+static
+int d_internal_still_interesting(
+    const struct dj_internal_walker* _walker,
+    int64_t                          _date,
+    int                              _slop
 )
 {
     // nothing left
@@ -6005,10 +5999,10 @@ d_internal_wanted
   Whether a commit comes out of a walk: not uninteresting, nor TREESAME to
 the path the walk is limited to.
 */
-static bool
-d_internal_wanted(
-    const struct d_internal_walker* _walker,
-    size_t                          _node
+static
+bool d_internal_wanted(
+    const struct dj_internal_walker* _walker,
+    size_t                           _node
 )
 {
     const unsigned flags = _walker->nodes[_node].flags;
@@ -6025,14 +6019,14 @@ d_internal_limit
 first, interesting commits kept in the order they came off, until only
 uninteresting ones remain; then the kept that are still interesting.
 */
-static bool
-d_internal_limit(
-    struct d_internal_walker*       _walker,
-    const struct d_git_log_options* _options,
-    struct d_git_oids*              _out
+static
+bool d_internal_limit(
+    struct dj_internal_walker*       _walker,
+    const struct dj_git_log_options* _options,
+    struct dj_git_oids*              _out
 )
 {
-    struct d_internal_stack kept;
+    struct dj_internal_stack kept;
     int64_t                 date = INT64_MAX;
     int                     slop = D_INTERNAL_SLOP;
     bool                    went = true;
@@ -6095,11 +6089,11 @@ d_internal_stream
   A walk with nothing excluded, as git's get_revision_1 makes one: each
 commit off the queue, its parents on, given unless simplified away.
 */
-static bool
-d_internal_stream(
-    struct d_internal_walker*       _walker,
-    const struct d_git_log_options* _options,
-    struct d_git_oids*              _out
+static
+bool d_internal_stream(
+    struct dj_internal_walker*       _walker,
+    const struct dj_git_log_options* _options,
+    struct dj_git_oids*              _out
 )
 {
     // until the queue is empty, or enough have come
@@ -6126,8 +6120,8 @@ d_internal_walk_path
   The walk's path as a pathspec names one: no trailing slash; NULL for
 none, or for the top.
 */
-static char*
-d_internal_walk_path(
+static
+char* d_internal_walk_path(
     const char* _path
 )
 {
@@ -6155,15 +6149,14 @@ d_internal_walk_path(
 }
 
 
-bool
-d_git_repo_log(
-    struct d_git_repo*              _repo,
-    const struct d_git_log_options* _options,
-    struct d_git_oids*              _out
+bool d_git_repo_log(
+    struct dj_git_repo*              _repo,
+    const struct dj_git_log_options* _options,
+    struct dj_git_oids*              _out
 )
 {
-    struct d_internal_walker walker;
-    struct d_internal_stack  starts;
+    struct dj_internal_walker walker;
+    struct dj_internal_stack  starts;
     bool                     limited = false;
 
     memset(_out, 0, sizeof(*_out));
@@ -6214,9 +6207,9 @@ d_git_repo_log(
 d_internal_has_fresh
   Whether the queue holds a commit not yet marked stale.
 */
-static bool
-d_internal_has_fresh(
-    const struct d_internal_walker* _walker
+static
+bool d_internal_has_fresh(
+    const struct dj_internal_walker* _walker
 )
 {
     // each queued
@@ -6241,12 +6234,12 @@ paint_down_to_common does: each commit off the queue takes the marks of
 the commits it was reached from to its parents; one reached from both is
 a result, and its parents are stale.
 */
-static bool
-d_internal_paint(
-    struct d_internal_walker* _walker,
-    size_t                    _one,
-    size_t                    _two,
-    struct d_internal_stack*  _out
+static
+bool d_internal_paint(
+    struct dj_internal_walker* _walker,
+    size_t                     _one,
+    size_t                     _two,
+    struct dj_internal_stack*  _out
 )
 {
     _walker->nodes[_one].flags |= D_INTERNAL_PARENT1;
@@ -6308,15 +6301,15 @@ d_internal_reaches
   Whether one commit reaches another by its parents: a walk of every
 ancestor, each visited once by this walk's generation.
 */
-static bool
-d_internal_reaches(
-    struct d_internal_walker* _walker,
-    size_t                    _from,
-    size_t                    _to,
-    bool*                     _out_reaches
+static
+bool d_internal_reaches(
+    struct dj_internal_walker* _walker,
+    size_t                     _from,
+    size_t                     _to,
+    bool*                      _out_reaches
 )
 {
-    struct d_internal_stack pending;
+    struct dj_internal_stack pending;
 
     memset(&pending, 0, sizeof(pending));
     *_out_reaches = false;
@@ -6358,10 +6351,10 @@ d_internal_remove_redundant
   Leaves among merge bases only those no other reaches, as git's
 remove_redundant does.
 */
-static bool
-d_internal_remove_redundant(
-    struct d_internal_walker* _walker,
-    struct d_internal_stack*  _bases
+static
+bool d_internal_remove_redundant(
+    struct dj_internal_walker* _walker,
+    struct dj_internal_stack*  _bases
 )
 {
     size_t kept = 0u;
@@ -6405,16 +6398,15 @@ d_git_repo_merge_base
   Long as paint_down_to_common and remove_redundant are each run here in
 turn.
 */
-bool
-d_git_repo_merge_base(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _left,
-    const struct d_git_oid* _right,
-    struct d_git_oids*      _out
+bool d_git_repo_merge_base(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _left,
+    const struct dj_git_oid* _right,
+    struct dj_git_oids*      _out
 )
 {
-    struct d_internal_walker walker;
-    struct d_internal_stack  bases;
+    struct dj_internal_walker walker;
+    struct dj_internal_stack  bases;
 
     memset(_out, 0, sizeof(*_out));
 
@@ -6426,8 +6418,8 @@ d_git_repo_merge_base(
         return false;
     }
 
-    struct d_git_oid left  = *_left;
-    struct d_git_oid right = *_right;
+    struct dj_git_oid left  = *_left;
+    struct dj_git_oid right = *_right;
 
     memset(&walker, 0, sizeof(walker));
     memset(&bases, 0, sizeof(bases));

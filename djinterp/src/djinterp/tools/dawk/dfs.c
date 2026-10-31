@@ -34,7 +34,7 @@
 
 // d_internal_names
 //   struct: the names read so far, in an array that grows by doubling.
-struct d_internal_names
+struct dj_internal_names
 {
     char** items;
     size_t count;
@@ -46,10 +46,10 @@ d_internal_names_add
   Copies one name onto the list, unless it is one of the two every directory
 holds for itself and its parent: a walk that took those would never end.
 */
-static bool
-d_internal_names_add(
-    struct d_internal_names* _names,
-    const char*              _name
+static
+bool d_internal_names_add(
+    struct dj_internal_names* _names,
+    const char*               _name
 )
 {
     // the two navigation entries are not contents
@@ -100,8 +100,7 @@ d_fs_names_free
   Releases each name and then the array, which is the order they were made in
 reversed.
 */
-void
-d_fs_names_free(
+void d_fs_names_free(
     char** _names,
     size_t _count
 )
@@ -126,7 +125,7 @@ d_fs_kind_of
   Windows: the attributes of the path, which the system gives for a path with
 a separator at its end and for one with `/` in it alike.
 */
-enum d_fs_kind
+enum dj_fs_kind
 d_fs_kind_of(
     const char* _path
 )
@@ -155,8 +154,8 @@ d_internal_search_pattern
 separator, and `*`. The separator is added only where the directory's own
 spelling does not end in one. The caller has seen that the path is not empty.
 */
-static char*
-d_internal_search_pattern(
+static
+char* d_internal_search_pattern(
     const char* _directory
 )
 {
@@ -184,8 +183,7 @@ rest one call at a time. A drive's root may hold nothing at all, not even
 `.`, and the search then fails with "file not found": that is a directory
 read, holding nothing.
 */
-bool
-d_fs_names(
+bool d_fs_names(
     const char* _directory,
     char***     _names,
     size_t*     _count
@@ -220,7 +218,7 @@ d_fs_names(
         return (GetLastError() == ERROR_FILE_NOT_FOUND);
     }
 
-    struct d_internal_names names = { NULL, 0u, 0u };
+    struct dj_internal_names names = { NULL, 0u, 0u };
     bool                    ok    = true;
 
     // the first entry came with the search itself
@@ -251,8 +249,7 @@ d_fs_full_path
 system writes into a buffer the caller sizes. The system makes the name from
 the spelling and the current directory, and does not look the path up.
 */
-char*
-d_fs_full_path(
+char* d_fs_full_path(
     const char* _path
 )
 {
@@ -297,8 +294,7 @@ d_fs_path_normalize
   Windows: `\` and `/` both separate, and the tools split on `/` alone, so
 every `\` is rewritten. No name on Windows can hold either.
 */
-void
-d_fs_path_normalize(
+void d_fs_path_normalize(
     char* _path
 )
 {
@@ -324,8 +320,8 @@ static const bool d_internal_backslash = true;
 d_internal_make_one
   Windows: CreateDirectoryA. A directory there already is as good as one made.
 */
-static bool
-d_internal_make_one(
+static
+bool d_internal_make_one(
     const char* _path
 )
 {
@@ -341,7 +337,7 @@ d_fs_kind_of
   POSIX: stat, which follows a link to what it names and fails on one that
 leads nowhere.
 */
-enum d_fs_kind
+enum dj_fs_kind
 d_fs_kind_of(
     const char* _path
 )
@@ -368,8 +364,7 @@ d_fs_names
   POSIX: readdir until it has no more. A name is copied as it is read, since
 the entry it is read from is the stream's and is overwritten by the next.
 */
-bool
-d_fs_names(
+bool d_fs_names(
     const char* _directory,
     char***     _names,
     size_t*     _count
@@ -393,7 +388,7 @@ d_fs_names(
         return false;
     }
 
-    struct d_internal_names names = { NULL, 0u, 0u };
+    struct dj_internal_names names = { NULL, 0u, 0u };
     bool                    ok    = true;
 
     for (const struct dirent* entry = readdir(stream);
@@ -423,8 +418,7 @@ d_fs_full_path
   POSIX: realpath with no buffer, which allocates what the name needs, so no
 limit on a path's length is assumed here.
 */
-char*
-d_fs_full_path(
+char* d_fs_full_path(
     const char* _path
 )
 {
@@ -442,8 +436,7 @@ d_fs_path_normalize
   POSIX: nothing to do. `/` is the one separator, and `\` is a character a
 name may hold.
 */
-void
-d_fs_path_normalize(
+void d_fs_path_normalize(
     char* _path
 )
 {
@@ -461,8 +454,8 @@ d_internal_make_one
   POSIX: mkdir, open to all as the umask allows. A directory there already is
 as good as one made.
 */
-static bool
-d_internal_make_one(
+static
+bool d_internal_make_one(
     const char* _path
 )
 {
@@ -478,8 +471,7 @@ d_fs_make_directory
   Makes each directory on the way down, from the first that holds a name: a
 root, `/` or a drive's `C:/`, is there to begin with.
 */
-bool
-d_fs_make_directory(
+bool d_fs_make_directory(
     const char* _path
 )
 {
@@ -542,8 +534,7 @@ d_fs_make_parent
   The path up to its last separator, made a directory; a name with no
 separator before it is in the directory the process is in, which is there.
 */
-bool
-d_fs_make_parent(
+bool d_fs_make_parent(
     const char* _path
 )
 {

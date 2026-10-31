@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dio_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,16 +22,14 @@ d_tests_sa_dio_fgetpos
 
   Note: NULL stream and NULL pointer tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_fgetpos
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_fgetpos(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
     FILE*   temp_file;
-    d_off_t pos;
-    d_off_t pos2;
+    dj_off_t pos;
+    dj_off_t pos2;
     int     get_result;
     char    temp_filename[256];
 
@@ -157,15 +155,13 @@ d_tests_sa_dio_fsetpos
 
   Note: NULL stream and NULL pointer tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_fsetpos
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_fsetpos(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
     FILE*   temp_file;
-    d_off_t pos;
+    dj_off_t pos;
     int     set_result;
     char    buffer[16];
     char    temp_filename[256];
@@ -283,10 +279,8 @@ d_tests_sa_dio_rewind
 
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_rewind
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_rewind(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -405,10 +399,8 @@ d_tests_sa_dio_rewind
 d_tests_sa_dio_file_positioning_all
   Aggregation function that runs all file positioning tests.
 */
-bool
-d_tests_sa_dio_file_positioning_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_file_positioning_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

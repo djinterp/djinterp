@@ -2,7 +2,7 @@
 * djinterp [c]                                                         dstring.c
 *
 * Definitions for the declarations in `dstring.h`.
-*   Implements the `d_string` safe string type and its operations, building on
+*   Implements the `dj_string` safe string type and its operations, building on
 * the raw-buffer primitives in `string_fn.h`.
 *
 *
@@ -25,7 +25,7 @@
 #include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy, d_memset
 #include "../../../inc/djinterp/c/string_fn.h"       // d_str* primitives
 // re_std
-#include "../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX, uintptr_t
+#include "../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX, uintptr_t
 
 
 // internal helpers
@@ -38,10 +38,10 @@ doubles from its current value (or from 16 when it is 0) until the request
 fits, which keeps a run of appends amortized O(1). The old buffer is freed
 only after the new one is filled.
 */
-D_STATIC bool
-d_string_internal_grow(
-    struct d_string* _string,
-    size_t           _required
+D_STATIC
+bool d_string_internal_grow(
+    struct dj_string* _string,
+    size_t            _required
 )
 {
     if (!_string)
@@ -117,13 +117,13 @@ d_string_internal_grow(
  * with memmove(), since they may overlap the gap; those in the tail are
  * copied from where the shift put them, which the gap does not reach.
  */
-D_STATIC bool
-d_string_internal_splice(
-    struct d_string* _string,
-    size_t           _pos,
-    size_t           _count,
-    const char*      _bytes,
-    size_t           _length
+D_STATIC
+bool d_string_internal_splice(
+    struct dj_string* _string,
+    size_t            _pos,
+    size_t            _count,
+    const char*       _bytes,
+    size_t            _length
 )
 {
     const size_t    size  = _string->size;
@@ -194,10 +194,7 @@ d_string_internal_splice(
 d_string_new
   Delegates to d_string_new_with_capacity() with a default capacity of 16.
 */
-struct d_string*
-d_string_new(
-    void
-)
+struct dj_string* d_string_new(void)
 {
     return d_string_new_with_capacity(16);
 }
@@ -208,8 +205,7 @@ d_string_new_with_capacity
 leaks nothing; the terminator is written at index 0 so the empty string is
 valid at once.
 */
-struct d_string*
-d_string_new_with_capacity(
+struct dj_string* d_string_new_with_capacity(
     size_t _capacity
 )
 {
@@ -219,7 +215,7 @@ d_string_new_with_capacity(
         _capacity = 1;
     }
 
-    struct d_string* new_string = malloc(sizeof(struct d_string));
+    struct dj_string* new_string = malloc(sizeof(struct dj_string));
 
     // ensure that memory allocation was successful
     if (!new_string)
@@ -249,8 +245,7 @@ d_string_new_from_cstr
   Measures `_cstr` once and copies the terminator along with the text, so the
 buffer is filled exactly to its capacity.
 */
-struct d_string*
-d_string_new_from_cstr(
+struct dj_string* d_string_new_from_cstr(
     const char* _cstr
 )
 {
@@ -262,7 +257,7 @@ d_string_new_from_cstr(
     const size_t len      = strlen(_cstr);
     const size_t capacity = len + 1;
 
-    struct d_string* new_string = d_string_new_with_capacity(capacity);
+    struct dj_string* new_string = d_string_new_with_capacity(capacity);
 
     // ensure that memory allocation was successful
     if (!new_string)
@@ -283,8 +278,7 @@ d_string_new_from_cstr_n
   d_strnlen() bounds the scan at `_length`, so `_cstr` need not be terminated
 within that range; the terminator is written explicitly after the copy.
 */
-struct d_string*
-d_string_new_from_cstr_n(
+struct dj_string* d_string_new_from_cstr_n(
     const char* _cstr,
     size_t      _length
 )
@@ -298,7 +292,7 @@ d_string_new_from_cstr_n(
                                         _length);
     const size_t capacity   = actual_len + 1;
 
-    struct d_string* new_string = d_string_new_with_capacity(capacity);
+    struct dj_string* new_string = d_string_new_with_capacity(capacity);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -320,8 +314,7 @@ d_string_new_from_buffer
   Copies exactly `_length` bytes, embedded NULs included, and terminates the
 copy itself because the source need not be terminated.
 */
-struct d_string*
-d_string_new_from_buffer(
+struct dj_string* d_string_new_from_buffer(
     const char* _buffer,
     size_t      _length
 )
@@ -332,7 +325,7 @@ d_string_new_from_buffer(
     }
 
     const size_t     capacity   = _length + 1;
-    struct d_string* new_string = d_string_new_with_capacity(capacity);
+    struct dj_string* new_string = d_string_new_with_capacity(capacity);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -355,9 +348,8 @@ d_string_new_copy
 NULs survive and the copy's capacity fits its content rather than the source's
 capacity.
 */
-struct d_string*
-d_string_new_copy(
-    const struct d_string* _other
+struct dj_string* d_string_new_copy(
+    const struct dj_string* _other
 )
 {
     return (_other)
@@ -370,13 +362,12 @@ d_string_new_copy(
 d_string_new_fill
   Fills with d_memset() and writes the terminator separately.
 */
-struct d_string*
-d_string_new_fill(
+struct dj_string* d_string_new_fill(
     size_t _length,
     char   _fill_char
 )
 {
-    struct d_string* new_string = d_string_new_with_capacity(_length + 1);
+    struct dj_string* new_string = d_string_new_with_capacity(_length + 1);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -399,8 +390,7 @@ d_string_new_formatted
 of the arguments writes it into a buffer of exactly that size. Every early
 return ends both lists.
 */
-struct d_string*
-d_string_new_formatted(
+struct dj_string* d_string_new_formatted(
     const char* _format,
     ...
 )
@@ -432,7 +422,7 @@ d_string_new_formatted(
         return NULL;
     }
 
-    struct d_string* new_string = d_string_new_with_capacity((size_t)len + 1);
+    struct dj_string* new_string = d_string_new_with_capacity((size_t)len + 1);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -458,10 +448,9 @@ d_string_new_formatted(
 d_string_reserve
   Delegates to d_string_internal_grow(), which never shrinks.
 */
-bool
-d_string_reserve(
-    struct d_string* _string,
-    size_t           _capacity
+bool d_string_reserve(
+    struct dj_string* _string,
+    size_t            _capacity
 )
 {
     return (_string)
@@ -475,9 +464,8 @@ d_string_shrink_to_fit
   Copies into a fresh buffer rather than calling realloc(), so an allocation
 failure leaves the original buffer in place.
 */
-bool
-d_string_shrink_to_fit(
-    struct d_string* _string
+bool d_string_shrink_to_fit(
+    struct dj_string* _string
 )
 {
     if (!_string)
@@ -516,9 +504,8 @@ d_string_shrink_to_fit(
 d_string_capacity
   Reads the field directly.
 */
-size_t
-d_string_capacity(
-    const struct d_string* _string
+size_t d_string_capacity(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -532,10 +519,9 @@ d_string_resize
 leaves the string unchanged; the terminator is rewritten at the new size in
 every case, which is what truncates when shrinking.
 */
-bool
-d_string_resize(
-    struct d_string* _string,
-    size_t           _new_size
+bool d_string_resize(
+    struct dj_string* _string,
+    size_t            _new_size
 )
 {
     // must be non-NULL, and grown first if the new size needs room
@@ -565,9 +551,8 @@ d_string_resize(
 d_string_length
   Reads the size field directly.
 */
-size_t
-d_string_length(
-    const struct d_string* _string
+size_t d_string_length(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -579,9 +564,8 @@ d_string_length(
 d_string_size
   Delegates to d_string_length().
 */
-size_t
-d_string_size(
-    const struct d_string* _string
+size_t d_string_size(
+    const struct dj_string* _string
 )
 {
     return d_string_length(_string);
@@ -591,9 +575,8 @@ d_string_size(
 d_string_cstr
   Returns the internal buffer; no copy is made.
 */
-const char*
-d_string_cstr(
-    const struct d_string* _string
+const char* d_string_cstr(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -605,9 +588,8 @@ d_string_cstr(
 d_string_data
   Returns the internal buffer; no copy is made.
 */
-char*
-d_string_data(
-    struct d_string* _string
+char* d_string_data(
+    struct dj_string* _string
 )
 {
     return (_string)
@@ -619,9 +601,8 @@ d_string_data(
 d_string_is_empty
   Treats NULL as empty, so callers can test an optional string in one call.
 */
-bool
-d_string_is_empty(
-    const struct d_string* _string
+bool d_string_is_empty(
+    const struct dj_string* _string
 )
 {
     return ( (!_string) ||
@@ -633,10 +614,9 @@ d_string_char_at
   d_index_convert_safe() both validates the index and resolves a negative one,
 so `pos` is only read after the conversion has succeeded.
 */
-char
-d_string_char_at(
-    const struct d_string* _string,
-    d_index                _index
+char d_string_char_at(
+    const struct dj_string* _string,
+    dj_index                _index
 )
 {
     size_t pos = 0;
@@ -654,11 +634,10 @@ d_string_set_char
   d_index_convert_safe() accepts only indices below the size, so the
 terminator can never be overwritten.
 */
-bool
-d_string_set_char(
-    struct d_string* _string,
-    d_index          _index,
-    char             _c
+bool d_string_set_char(
+    struct dj_string* _string,
+    dj_index          _index,
+    char              _c
 )
 {
     size_t pos = 0;
@@ -681,9 +660,8 @@ d_string_front
   d_string_is_empty() covers both NULL and empty, so index 0 is only read when
 it holds a character.
 */
-char
-d_string_front(
-    const struct d_string* _string
+char d_string_front(
+    const struct dj_string* _string
 )
 {
     return d_string_is_empty(_string)
@@ -696,9 +674,8 @@ d_string_back
   d_string_is_empty() covers both NULL and empty, so `size - 1` cannot
 underflow.
 */
-char
-d_string_back(
-    const struct d_string* _string
+char d_string_back(
+    const struct dj_string* _string
 )
 {
     return d_string_is_empty(_string)
@@ -712,10 +689,9 @@ d_string_copy_s
   Grows the destination before touching its text, so a failed copy leaves it
 unchanged; the terminator is copied along with the text.
 */
-int
-d_string_copy_s(
-    struct d_string*       _destination,
-    const struct d_string* _source
+int d_string_copy_s(
+    struct dj_string*       _destination,
+    const struct dj_string* _source
 )
 {
     if ( (!_destination) ||
@@ -741,10 +717,9 @@ d_string_copy_s(
 d_string_copy_cstr_s
   Measures the source once, grows, then copies text and terminator together.
 */
-int
-d_string_copy_cstr_s(
-    struct d_string* _destination,
-    const char*      _source
+int d_string_copy_cstr_s(
+    struct dj_string* _destination,
+    const char*       _source
 )
 {
     if ( (!_destination) ||
@@ -775,10 +750,9 @@ d_string_ncopy_s
   Clamps `_count` to the source's size before growing, and terminates
 explicitly because the copied range may stop short of the source's terminator.
 */
-int
-d_string_ncopy_s(
-    struct d_string*        _destination,
-    const struct d_string*  _source,
+int d_string_ncopy_s(
+    struct dj_string*       _destination,
+    const struct dj_string* _source,
     size_t                  _count
 )
 {
@@ -810,11 +784,10 @@ d_string_ncopy_cstr_s
   d_strnlen() clamps the length without scanning past `_count` bytes; the
 terminator is written explicitly.
 */
-int
-d_string_ncopy_cstr_s(
-    struct d_string* _destination,
-    const char*      _source,
-    size_t           _count
+int d_string_ncopy_cstr_s(
+    struct dj_string* _destination,
+    const char*       _source,
+    size_t            _count
 )
 {
     if ( (!_destination) ||
@@ -847,11 +820,10 @@ d_string_to_buffer_s
 destination that is too small is cleared to an empty string, so a caller that
 ignores ERANGE still holds a terminated buffer.
 */
-int
-d_string_to_buffer_s(
-    char* restrict         _destination,
-    size_t                 _destination_size,
-    const struct d_string* _source
+int d_string_to_buffer_s(
+    char* restrict          _destination,
+    size_t                  _destination_size,
+    const struct dj_string* _source
 )
 {
     if ( (!_destination) ||
@@ -886,10 +858,9 @@ d_string_cat_s
 d_memcpy(). That copy is why the parameters are restrict: appending a string
 to itself would overlap by the terminator.
 */
-int
-d_string_cat_s(
-    struct d_string* restrict       _destination,
-    const struct d_string* restrict _source
+int d_string_cat_s(
+    struct dj_string* restrict       _destination,
+    const struct dj_string* restrict _source
 )
 {
     if ( (!_destination) ||
@@ -918,10 +889,9 @@ d_string_cat_s(
 d_string_cat_cstr_s
   Measures the source once, grows, then copies text and terminator together.
 */
-int
-d_string_cat_cstr_s(
-    struct d_string* restrict _destination,
-    const char* restrict      _source
+int d_string_cat_cstr_s(
+    struct dj_string* restrict _destination,
+    const char* restrict       _source
 )
 {
     if ( (!_destination) ||
@@ -952,11 +922,10 @@ d_string_ncat_s
   Clamps `_count` to the source's size, grows, copies, and terminates
 explicitly because the copied range may end before the source's terminator.
 */
-int
-d_string_ncat_s(
-    struct d_string* restrict       _destination,
-    const struct d_string* restrict _source,
-    size_t                          _count
+int d_string_ncat_s(
+    struct dj_string* restrict       _destination,
+    const struct dj_string* restrict _source,
+    size_t                           _count
 )
 {
     if ( (!_destination) ||
@@ -990,11 +959,10 @@ d_string_ncat_cstr_s
   d_strnlen() clamps the length without scanning past `_count` bytes; the
 terminator is written explicitly after the copy.
 */
-int
-d_string_ncat_cstr_s(
-    struct d_string* restrict _destination,
-    const char* restrict      _source,
-    size_t                    _count
+int d_string_ncat_cstr_s(
+    struct dj_string* restrict _destination,
+    const char* restrict       _source,
+    size_t                     _count
 )
 {
     if ( (_destination == NULL) ||
@@ -1027,9 +995,8 @@ d_string_ncat_cstr_s(
 d_string_dup
   Delegates to d_string_new_copy().
 */
-struct d_string*
-d_string_dup(
-    const struct d_string* _string
+struct dj_string* d_string_dup(
+    const struct dj_string* _string
 )
 {
     return d_string_new_copy(_string);
@@ -1039,10 +1006,9 @@ d_string_dup(
 d_string_ndup
   Clamps `_n` to the size and delegates to d_string_new_from_buffer().
 */
-struct d_string*
-d_string_ndup(
-    const struct d_string* _string,
-    size_t                 _n
+struct dj_string* d_string_ndup(
+    const struct dj_string* _string,
+    size_t                  _n
 )
 {
     return ( (_string)
@@ -1058,11 +1024,10 @@ d_string_substr
   Resolves `_start` with d_index_convert_safe(), clamps the length to the
 characters that remain, and delegates to d_string_new_from_buffer().
 */
-struct d_string*
-d_string_substr(
-    const struct d_string* _string,
-    d_index                _start,
-    size_t                 _length
+struct dj_string* d_string_substr(
+    const struct dj_string* _string,
+    dj_index                _start,
+    size_t                  _length
 )
 {
     size_t start_pos = 0;
@@ -1094,10 +1059,9 @@ d_string_compare
   Settles the NULL cases first, then defers to d_strcmp_n(), which compares
 lengths as well as content, so embedded NULs take part.
 */
-int
-d_string_compare(
-    const struct d_string* _s1,
-    const struct d_string* _s2
+int d_string_compare(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
 )
 {
     if ( (!_s1) &&
@@ -1127,10 +1091,9 @@ d_string_compare_cstr
   Settles the NULL cases first, measures the C string, and defers to
 d_strcmp_n().
 */
-int
-d_string_compare_cstr(
-    const struct d_string* _s1,
-    const char*            _s2
+int d_string_compare_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2
 )
 {
     if ( (!_s1) &&
@@ -1160,11 +1123,10 @@ d_string_ncmp
   Clamps each side to `_n`, compares the common prefix with memcmp(), and
 breaks a tie on length, so embedded NULs take part.
 */
-int
-d_string_ncmp(
-    const struct d_string* _s1,
-    const struct d_string* _s2,
-    size_t                 _n
+int d_string_ncmp(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2,
+    size_t                  _n
 )
 {
     if (!_n)
@@ -1223,11 +1185,10 @@ d_string_ncmp_cstr
   Settles the NULL cases, then defers to strncmp(), which stops at the first
 NUL.
 */
-int
-d_string_ncmp_cstr(
-    const struct d_string* _s1,
-    const char*            _s2,
-    size_t                 _n
+int d_string_ncmp_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2,
+    size_t                  _n
 )
 {
     if (_n == 0)
@@ -1260,10 +1221,9 @@ d_string_ncmp_cstr(
 d_string_casecmp
   Settles the NULL cases, then defers to d_strcasecmp().
 */
-int
-d_string_casecmp(
-    const struct d_string* _s1,
-    const struct d_string* _s2
+int d_string_casecmp(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
 )
 {
     if ( (!_s1) &&
@@ -1290,10 +1250,9 @@ d_string_casecmp(
 d_string_casecmp_cstr
   Settles the NULL cases, then defers to d_strcasecmp().
 */
-int
-d_string_casecmp_cstr(
-    const struct d_string* _s1,
-    const char*            _s2
+int d_string_casecmp_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2
 )
 {
     if ( (!_s1) &&
@@ -1320,11 +1279,10 @@ d_string_casecmp_cstr(
 d_string_ncasecmp
   Settles the NULL cases, then defers to d_strncasecmp().
 */
-int
-d_string_ncasecmp(
-    const struct d_string* _s1,
-    const struct d_string* _s2,
-    size_t                 _n
+int d_string_ncasecmp(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2,
+    size_t                  _n
 )
 {
     if (_n == 0)
@@ -1357,11 +1315,10 @@ d_string_ncasecmp(
 d_string_ncasecmp_cstr
   Settles the NULL cases, then defers to d_strncasecmp().
 */
-int
-d_string_ncasecmp_cstr(
-    const struct d_string* _s1,
-    const char*            _s2,
-    size_t                 _n
+int d_string_ncasecmp_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2,
+    size_t                  _n
 )
 {
     if (_n == 0)
@@ -1394,10 +1351,9 @@ d_string_ncasecmp_cstr(
 d_string_equals
   Delegates to d_string_compare().
 */
-bool
-d_string_equals(
-    const struct d_string* _s1,
-    const struct d_string* _s2
+bool d_string_equals(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
 )
 {
     return (d_string_compare(_s1,
@@ -1408,10 +1364,9 @@ d_string_equals(
 d_string_equals_cstr
   Delegates to d_string_compare_cstr().
 */
-bool
-d_string_equals_cstr(
-    const struct d_string* _s1,
-    const char*            _s2
+bool d_string_equals_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2
 )
 {
     return (d_string_compare_cstr(_s1,
@@ -1422,10 +1377,9 @@ d_string_equals_cstr(
 d_string_equals_ignore_case
   Delegates to d_string_casecmp().
 */
-bool
-d_string_equals_ignore_case(
-    const struct d_string* _s1,
-    const struct d_string* _s2
+bool d_string_equals_ignore_case(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
 )
 {
     return (d_string_casecmp(_s1,
@@ -1436,10 +1390,9 @@ d_string_equals_ignore_case(
 d_string_equals_cstr_ignore_case
   Delegates to d_string_casecmp_cstr().
 */
-bool
-d_string_equals_cstr_ignore_case(
-    const struct d_string* _s1,
-    const char*            _s2
+bool d_string_equals_cstr_ignore_case(
+    const struct dj_string* _s1,
+    const char*             _s2
 )
 {
     return (d_string_casecmp_cstr(_s1,
@@ -1452,10 +1405,9 @@ d_string_find_char
   Searches with strchr() and converts the hit to an index. Searching for '\0'
 therefore finds the terminator rather than failing.
 */
-d_index
-d_string_find_char(
-    const struct d_string* _string,
-    char                   _c
+dj_index d_string_find_char(
+    const struct dj_string* _string,
+    char                    _c
 )
 {
     if ( (!_string) ||
@@ -1468,7 +1420,7 @@ d_string_find_char(
                            _c);
 
     return (p)
-        ? (d_index)(p - _string->text)
+        ? (dj_index)(p - _string->text)
         : -1;
 }
 
@@ -1478,11 +1430,10 @@ d_string_find_char_from
 strchr(); the index is measured from the start of the string, not from
 `_start`.
 */
-d_index
-d_string_find_char_from(
-    const struct d_string* _string,
-    char                   _c,
-    d_index                _start
+dj_index d_string_find_char_from(
+    const struct dj_string* _string,
+    char                    _c,
+    dj_index                _start
 )
 {
     size_t start_pos = 0;
@@ -1500,7 +1451,7 @@ d_string_find_char_from(
                            _c);
 
     return (p)
-        ? (d_index)(p - _string->text)
+        ? (dj_index)(p - _string->text)
         : -1;
 }
 
@@ -1508,10 +1459,9 @@ d_string_find_char_from(
 d_string_rfind_char
   Searches with strrchr() and converts the hit to an index.
 */
-d_index
-d_string_rfind_char(
-    const struct d_string* _string,
-    char                   _c
+dj_index d_string_rfind_char(
+    const struct dj_string* _string,
+    char                    _c
 )
 {
     if ( (!_string) ||
@@ -1524,7 +1474,7 @@ d_string_rfind_char(
                             _c);
 
     return (p)
-        ? (d_index)(p - _string->text)
+        ? (dj_index)(p - _string->text)
         : -1;
 }
 
@@ -1532,10 +1482,9 @@ d_string_rfind_char(
 d_string_chr
   Wraps strchr().
 */
-char*
-d_string_chr(
-    const struct d_string* _string,
-    int                    _c
+char* d_string_chr(
+    const struct dj_string* _string,
+    int                     _c
 )
 {
     return ( (_string) &&
@@ -1549,10 +1498,9 @@ d_string_chr(
 d_string_rchr
   Wraps strrchr().
 */
-char*
-d_string_rchr(
-    const struct d_string* _string,
-    int                    _c
+char* d_string_rchr(
+    const struct dj_string* _string,
+    int                     _c
 )
 {
     return ( (_string) &&
@@ -1566,10 +1514,9 @@ d_string_rchr(
 d_string_chrnul
   Wraps d_strchrnul().
 */
-char*
-d_string_chrnul(
-    const struct d_string* _string,
-    int                    _c
+char* d_string_chrnul(
+    const struct dj_string* _string,
+    int                     _c
 )
 {
     return ( (_string) &&
@@ -1585,10 +1532,9 @@ d_string_find
   An empty needle matches at index 0 without searching; otherwise strstr()
 does the work, so matching stops at the first NUL of either string.
 */
-d_index
-d_string_find(
-    const struct d_string* _haystack,
-    const struct d_string* _needle
+dj_index d_string_find(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle
 )
 {
     if ( (!_haystack) ||
@@ -1610,7 +1556,7 @@ d_string_find(
         return -1;
     }
 
-    return (d_index)(p - _haystack->text);
+    return (dj_index)(p - _haystack->text);
 }
 
 /*
@@ -1618,10 +1564,9 @@ d_string_find_cstr
   An empty needle matches at index 0 without searching; otherwise strstr()
 does the work.
 */
-d_index
-d_string_find_cstr(
-    const struct d_string* _haystack,
-    const char*            _needle
+dj_index d_string_find_cstr(
+    const struct dj_string* _haystack,
+    const char*             _needle
 )
 {
     if ( (!_haystack) ||
@@ -1643,7 +1588,7 @@ d_string_find_cstr(
         return -1;
     }
 
-    return (d_index)(p - _haystack->text);
+    return (dj_index)(p - _haystack->text);
 }
 
 /*
@@ -1651,11 +1596,10 @@ d_string_find_from
   Resolves `_start` with d_index_convert_safe() and searches from there with
 strstr(); the index is measured from the start of the string.
 */
-d_index
-d_string_find_from(
-    const struct d_string* _haystack,
-    const struct d_string* _needle,
-    d_index                _start
+dj_index d_string_find_from(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle,
+    dj_index                _start
 )
 {
     if ( (!_haystack) ||
@@ -1681,7 +1625,7 @@ d_string_find_from(
         return -1;
     }
 
-    return (d_index)(p - _haystack->text);
+    return (dj_index)(p - _haystack->text);
 }
 
 /*
@@ -1689,11 +1633,10 @@ d_string_find_cstr_from
   Resolves `_start` with d_index_convert_safe() and searches from there with
 strstr(); the index is measured from the start of the string.
 */
-d_index
-d_string_find_cstr_from(
-    const struct d_string* _haystack,
-    const char*            _needle,
-    d_index                _start
+dj_index d_string_find_cstr_from(
+    const struct dj_string* _haystack,
+    const char*             _needle,
+    dj_index                _start
 )
 {
     if ( (!_haystack) ||
@@ -1719,7 +1662,7 @@ d_string_find_cstr_from(
         return -1;
     }
 
-    return (d_index)(p - _haystack->text);
+    return (dj_index)(p - _haystack->text);
 }
 
 /*
@@ -1728,10 +1671,9 @@ d_string_rfind
 overlapping occurrences are found. An empty needle short-circuits to the
 length.
 */
-d_index
-d_string_rfind(
-    const struct d_string* _haystack,
-    const struct d_string* _needle
+dj_index d_string_rfind(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle
 )
 {
     if ( (!_haystack) ||
@@ -1742,7 +1684,7 @@ d_string_rfind(
 
     if (_needle->size == 0)
     {
-        return (d_index)_haystack->size;
+        return (dj_index)_haystack->size;
     }
 
     if (_needle->size > _haystack->size)
@@ -1750,14 +1692,14 @@ d_string_rfind(
         return -1;
     }
 
-    d_index     last_pos     = -1;
+    dj_index     last_pos     = -1;
     const char* search_start = _haystack->text;
     const char* p            = NULL;
 
     while ((p = strstr(search_start,
                        _needle->text)) != NULL)
     {
-        last_pos     = (d_index)(p - _haystack->text);
+        last_pos     = (dj_index)(p - _haystack->text);
         search_start = p + 1;
     }
 
@@ -1770,10 +1712,9 @@ d_string_rfind_cstr
 overlapping occurrences are found. An empty needle short-circuits to the
 length.
 */
-d_index
-d_string_rfind_cstr(
-    const struct d_string* _haystack,
-    const char*            _needle
+dj_index d_string_rfind_cstr(
+    const struct dj_string* _haystack,
+    const char*             _needle
 )
 {
     if ( (!_haystack) ||
@@ -1784,17 +1725,17 @@ d_string_rfind_cstr(
 
     if (*_needle == '\0')
     {
-        return (d_index)_haystack->size;
+        return (dj_index)_haystack->size;
     }
 
-    d_index     last_pos     = -1;
+    dj_index     last_pos     = -1;
     const char* search_start = _haystack->text;
     const char* p            = NULL;
 
     while ((p = strstr(search_start,
                        _needle)) != NULL)
     {
-        last_pos     = (d_index)(p - _haystack->text);
+        last_pos     = (dj_index)(p - _haystack->text);
         search_start = p + 1;
     }
 
@@ -1805,10 +1746,9 @@ d_string_rfind_cstr(
 d_string_str
   Wraps strstr().
 */
-char*
-d_string_str(
-    const struct d_string* _haystack,
-    const char*            _needle
+char* d_string_str(
+    const struct dj_string* _haystack,
+    const char*             _needle
 )
 {
     return ( (_haystack) &&
@@ -1823,10 +1763,9 @@ d_string_str(
 d_string_casefind
   Wraps d_strcasestr() and converts the hit to an index.
 */
-d_index
-d_string_casefind(
-    const struct d_string* _haystack,
-    const struct d_string* _needle
+dj_index d_string_casefind(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle
 )
 {
     if ( (!_haystack) ||
@@ -1843,17 +1782,16 @@ d_string_casefind(
         return -1;
     }
 
-    return (d_index)(p - _haystack->text);
+    return (dj_index)(p - _haystack->text);
 }
 
 /*
 d_string_casefind_cstr
   Wraps d_strcasestr() and converts the hit to an index.
 */
-d_index
-d_string_casefind_cstr(
-    const struct d_string* _haystack,
-    const char*            _needle
+dj_index d_string_casefind_cstr(
+    const struct dj_string* _haystack,
+    const char*             _needle
 )
 {
     if ( (!_haystack) ||
@@ -1870,17 +1808,16 @@ d_string_casefind_cstr(
         return -1;
     }
 
-    return (d_index)(p - _haystack->text);
+    return (dj_index)(p - _haystack->text);
 }
 
 /*
 d_string_casestr
   Wraps d_strcasestr().
 */
-char*
-d_string_casestr(
-    const struct d_string* _haystack,
-    const char*            _needle
+char* d_string_casestr(
+    const struct dj_string* _haystack,
+    const char*             _needle
 )
 {
     return ( (_haystack) &&
@@ -1895,10 +1832,9 @@ d_string_casestr(
 d_string_contains
   Delegates to d_string_find().
 */
-bool
-d_string_contains(
-    const struct d_string* _string,
-    const struct d_string* _substr
+bool d_string_contains(
+    const struct dj_string* _string,
+    const struct dj_string* _substr
 )
 {
     return (d_string_find(_string,
@@ -1909,10 +1845,9 @@ d_string_contains(
 d_string_contains_cstr
   Delegates to d_string_find_cstr().
 */
-bool
-d_string_contains_cstr(
-    const struct d_string* _string,
-    const char*            _substr
+bool d_string_contains_cstr(
+    const struct dj_string* _string,
+    const char*             _substr
 )
 {
     return (d_string_find_cstr(_string,
@@ -1923,10 +1858,9 @@ d_string_contains_cstr(
 d_string_contains_char
   Delegates to d_string_find_char().
 */
-bool
-d_string_contains_char(
-    const struct d_string* _string,
-    char                   _c
+bool d_string_contains_char(
+    const struct dj_string* _string,
+    char                    _c
 )
 {
     return (d_string_find_char(_string,
@@ -1938,10 +1872,9 @@ d_string_starts_with
   Checks the prefix fits before comparing, then compares with memcmp() over
 the prefix's full size, so embedded NULs take part.
 */
-bool
-d_string_starts_with(
-    const struct d_string* _string,
-    const struct d_string* _prefix
+bool d_string_starts_with(
+    const struct dj_string* _string,
+    const struct dj_string* _prefix
 )
 {
     return ( (_string) &&
@@ -1958,10 +1891,9 @@ d_string_starts_with_cstr
   Measures the prefix, rejects one longer than the string, and compares with
 memcmp().
 */
-bool
-d_string_starts_with_cstr(
-    const struct d_string* _string,
-    const char*            _prefix
+bool d_string_starts_with_cstr(
+    const struct dj_string* _string,
+    const char*             _prefix
 )
 {
     if ( (!_string) ||
@@ -1987,10 +1919,9 @@ d_string_ends_with
   Rejects a suffix longer than the string first, which keeps the offset from
 underflowing, then compares the tail with memcmp().
 */
-bool
-d_string_ends_with(
-    const struct d_string* _string,
-    const struct d_string* _suffix
+bool d_string_ends_with(
+    const struct dj_string* _string,
+    const struct dj_string* _suffix
 )
 {
     if ( (_string == NULL) ||
@@ -2016,10 +1947,9 @@ d_string_ends_with_cstr
   Measures the suffix and rejects one longer than the string, which keeps the
 offset from underflowing, then compares the tail with memcmp().
 */
-bool
-d_string_ends_with_cstr(
-    const struct d_string* _string,
-    const char*            _suffix
+bool d_string_ends_with_cstr(
+    const struct dj_string* _string,
+    const char*             _suffix
 )
 {
     if ( (!_string) ||
@@ -2046,10 +1976,9 @@ d_string_ends_with_cstr(
 d_string_spn
   Wraps strspn().
 */
-size_t
-d_string_spn(
-    const struct d_string* _string,
-    const char*            _accept
+size_t d_string_spn(
+    const struct dj_string* _string,
+    const char*             _accept
 )
 {
     return ( (_string) &&
@@ -2063,10 +1992,9 @@ d_string_spn(
 d_string_cspn
   Wraps strcspn().
 */
-size_t
-d_string_cspn(
-    const struct d_string* _string,
-    const char*            _reject
+size_t d_string_cspn(
+    const struct dj_string* _string,
+    const char*             _reject
 )
 {
     if ( (_string == NULL) ||
@@ -2083,10 +2011,9 @@ d_string_cspn(
 d_string_pbrk
   Wraps strpbrk().
 */
-char*
-d_string_pbrk(
-    const struct d_string* _string,
-    const char*            _accept
+char* d_string_pbrk(
+    const struct dj_string* _string,
+    const char*             _accept
 )
 {
     if ( (_string == NULL) ||
@@ -2104,10 +2031,9 @@ d_string_pbrk(
 d_string_assign
   Delegates to d_string_copy_s() and folds its error code into a bool.
 */
-bool
-d_string_assign(
-    struct d_string*       _string,
-    const struct d_string* _other
+bool d_string_assign(
+    struct dj_string*       _string,
+    const struct dj_string* _other
 )
 {
     if ( (!_string) ||
@@ -2130,10 +2056,9 @@ d_string_assign(
 d_string_assign_cstr
   Delegates to d_string_copy_cstr_s() and folds its error code into a bool.
 */
-bool
-d_string_assign_cstr(
-    struct d_string* _string,
-    const char*      _cstr
+bool d_string_assign_cstr(
+    struct dj_string* _string,
+    const char*       _cstr
 )
 {
     if ( (_string == NULL) ||
@@ -2152,11 +2077,10 @@ d_string_assign_buffer
 string unchanged; the terminator is written explicitly because `_buffer` need
 not have one.
 */
-bool
-d_string_assign_buffer(
-    struct d_string* _string,
-    const char*      _buffer,
-    size_t           _length
+bool d_string_assign_buffer(
+    struct dj_string* _string,
+    const char*       _buffer,
+    size_t            _length
 )
 {
     if ( (_string == NULL) ||
@@ -2184,11 +2108,10 @@ d_string_assign_buffer(
 d_string_assign_char
   Grows first, fills with d_memset(), and writes the terminator separately.
 */
-bool
-d_string_assign_char(
-    struct d_string* _string,
-    size_t           _count,
-    char             _c
+bool d_string_assign_char(
+    struct dj_string* _string,
+    size_t            _count,
+    char              _c
 )
 {
     if (_string == NULL)
@@ -2216,10 +2139,9 @@ d_string_assign_char(
 d_string_append
   Delegates to d_string_cat_s() and folds its error code into a bool.
 */
-bool
-d_string_append(
-    struct d_string*       _string,
-    const struct d_string* _other
+bool d_string_append(
+    struct dj_string*       _string,
+    const struct dj_string* _other
 )
 {
     if ( (_string == NULL) ||
@@ -2258,10 +2180,9 @@ d_string_append(
 d_string_append_cstr
   Delegates to d_string_cat_cstr_s() and folds its error code into a bool.
 */
-bool
-d_string_append_cstr(
-    struct d_string* _string,
-    const char*      _cstr
+bool d_string_append_cstr(
+    struct dj_string* _string,
+    const char*       _cstr
 )
 {
     if ( (_string == NULL) ||
@@ -2279,11 +2200,10 @@ d_string_append_buffer
   Grows first, copies exactly `_length` bytes, and terminates explicitly
 because `_buffer` need not have a terminator.
 */
-bool
-d_string_append_buffer(
-    struct d_string* _string,
-    const char*      _buffer,
-    size_t           _length
+bool d_string_append_buffer(
+    struct dj_string* _string,
+    const char*       _buffer,
+    size_t            _length
 )
 {
     if ( (_string == NULL) ||
@@ -2313,10 +2233,9 @@ d_string_append_buffer(
 d_string_append_char
   Grows for the character and the terminator, then writes both.
 */
-bool
-d_string_append_char(
-    struct d_string* _string,
-    char             _c
+bool d_string_append_char(
+    struct dj_string* _string,
+    char              _c
 )
 {
     if (_string == NULL)
@@ -2345,10 +2264,9 @@ d_string_append_formatted
 of the arguments writes it straight after the existing text, terminator
 included. Every early return ends both lists.
 */
-bool
-d_string_append_formatted(
-    struct d_string* _string,
-    const char*      _format,
+bool d_string_append_formatted(
+    struct dj_string* _string,
+    const char*       _format,
     ...
 )
 {
@@ -2406,10 +2324,9 @@ d_string_prepend
   A splice of nothing at index 0: d_string_internal_splice() takes the string
 itself, as append and insert do (decision 121).
 */
-bool
-d_string_prepend(
-    struct d_string*       _string,
-    const struct d_string* _other
+bool d_string_prepend(
+    struct dj_string*       _string,
+    const struct dj_string* _other
 )
 {
     if ( (_string == NULL) ||
@@ -2430,10 +2347,9 @@ d_string_prepend_cstr
   Grows, shifts the existing text and terminator right with memmove(), then
 copies the C string into the gap.
 */
-bool
-d_string_prepend_cstr(
-    struct d_string* _string,
-    const char*      _cstr
+bool d_string_prepend_cstr(
+    struct dj_string* _string,
+    const char*       _cstr
 )
 {
     if ( (_string == NULL) ||
@@ -2467,10 +2383,9 @@ d_string_prepend_char
   Grows, shifts the existing text and terminator right by one, then writes the
 character at index 0.
 */
-bool
-d_string_prepend_char(
-    struct d_string* _string,
-    char             _c
+bool d_string_prepend_char(
+    struct dj_string* _string,
+    char              _c
 )
 {
     if (_string == NULL)
@@ -2503,11 +2418,10 @@ d_index_convert_safe() would reject it. Otherwise the tail from the insertion
 point, terminator included, is shifted with memmove() and the new text copied
 into the gap.
 */
-bool
-d_string_insert(
-    struct d_string*       _string,
-    d_index                _index,
-    const struct d_string* _other
+bool d_string_insert(
+    struct dj_string*       _string,
+    dj_index                _index,
+    const struct dj_string* _other
 )
 {
     if ( (_string == NULL) ||
@@ -2517,7 +2431,7 @@ d_string_insert(
     }
 
     // special case: insert at end
-    if (_index == (d_index)_string->size)
+    if (_index == (dj_index)_string->size)
     {
         return d_string_append(_string,
                                _other);
@@ -2578,11 +2492,10 @@ d_index_convert_safe() would reject it. Otherwise the tail from the insertion
 point, terminator included, is shifted with memmove() and the C string copied
 into the gap.
 */
-bool
-d_string_insert_cstr(
-    struct d_string* _string,
-    d_index          _index,
-    const char*      _cstr
+bool d_string_insert_cstr(
+    struct dj_string* _string,
+    dj_index          _index,
+    const char*       _cstr
 )
 {
     if ( (_string == NULL) ||
@@ -2592,7 +2505,7 @@ d_string_insert_cstr(
     }
 
     // special case: insert at end
-    if (_index == (d_index)_string->size)
+    if (_index == (dj_index)_string->size)
     {
         return d_string_append_cstr(_string,
                                     _cstr);
@@ -2635,11 +2548,10 @@ d_index_convert_safe() would reject it. Otherwise the tail from the insertion
 point, terminator included, is shifted right by one before the character is
 written.
 */
-bool
-d_string_insert_char(
-    struct d_string* _string,
-    d_index          _index,
-    char             _c
+bool d_string_insert_char(
+    struct dj_string* _string,
+    dj_index          _index,
+    char              _c
 )
 {
     if (_string == NULL)
@@ -2648,7 +2560,7 @@ d_string_insert_char(
     }
 
     // special case: insert at end
-    if (_index == (d_index)_string->size)
+    if (_index == (dj_index)_string->size)
     {
         return d_string_append_char(_string,
                                     _c);
@@ -2687,11 +2599,10 @@ d_string_erase
   Clamps the count to the characters that remain, then closes the gap with a
 memmove() that carries the terminator along.
 */
-bool
-d_string_erase(
-    struct d_string* _string,
-    d_index          _index,
-    size_t           _count
+bool d_string_erase(
+    struct dj_string* _string,
+    dj_index          _index,
+    size_t            _count
 )
 {
     if (_string == NULL)
@@ -2731,10 +2642,9 @@ d_string_erase(
 d_string_erase_char
   Delegates to d_string_erase() with a count of 1.
 */
-bool
-d_string_erase_char(
-    struct d_string* _string,
-    d_index          _index
+bool d_string_erase_char(
+    struct dj_string* _string,
+    dj_index          _index
 )
 {
     return d_string_erase(_string,
@@ -2747,9 +2657,8 @@ d_string_clear
   Keeps the buffer and writes the terminator at index 0; a string whose buffer
 was freed by d_string_free_contents() only has its size reset.
 */
-void
-d_string_clear(
-    struct d_string* _string
+void d_string_clear(
+    struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -2773,12 +2682,11 @@ d_string_replace
   Clamps the count and leaves the rest to d_string_internal_splice(), which
 takes the string itself as its own replacement (decision 121).
 */
-bool
-d_string_replace(
-    struct d_string*       _string,
-    d_index                _index,
-    size_t                 _count,
-    const struct d_string* _replacement
+bool d_string_replace(
+    struct dj_string*       _string,
+    dj_index                _index,
+    size_t                  _count,
+    const struct dj_string* _replacement
 )
 {
     if ( (_string == NULL) ||
@@ -2816,12 +2724,11 @@ d_string_replace_cstr
   Clamps the count and leaves the rest to d_string_internal_splice(), which
 takes a replacement inside the string's own text (decision 121).
 */
-bool
-d_string_replace_cstr(
-    struct d_string* _string,
-    d_index          _index,
-    size_t           _count,
-    const char*      _replacement
+bool d_string_replace_cstr(
+    struct dj_string* _string,
+    dj_index          _index,
+    size_t            _count,
+    const char*       _replacement
 )
 {
     if ( (_string == NULL) ||
@@ -2859,11 +2766,10 @@ d_string_replace_all
   Rejects an empty `_old` here, then delegates to d_string_replace_all_cstr()
 with the two texts.
 */
-bool
-d_string_replace_all(
-    struct d_string*       _string,
-    const struct d_string* _old,
-    const struct d_string* _new
+bool d_string_replace_all(
+    struct dj_string*       _string,
+    const struct dj_string* _old,
+    const struct dj_string* _new
 )
 {
     if ( (_string == NULL)  ||
@@ -2887,11 +2793,10 @@ The temporary's buffer is then adopted and only its struct freed, so the
 result is never copied a second time. Matches are found left to right and do
 not overlap.
 */
-bool
-d_string_replace_all_cstr(
-    struct d_string* _string,
-    const char*      _old,
-    const char*      _new
+bool d_string_replace_all_cstr(
+    struct dj_string* _string,
+    const char*       _old,
+    const char*       _new
 )
 {
     if ( (_string == NULL) ||
@@ -2933,7 +2838,7 @@ d_string_replace_all_cstr(
                             (count * old_len);
 
     // create temporary result (+1 for '\0')
-    struct d_string* result = d_string_new_with_capacity(new_size + 1);
+    struct dj_string* result = d_string_new_with_capacity(new_size + 1);
 
     if (result == NULL)
     {
@@ -2979,7 +2884,7 @@ d_string_replace_all_cstr(
 
     // optional sanity: ensure we produced exactly new_size chars
     // (write_ptr now points at the '\0' position)
-    // d_assert((size_t)(write_ptr - result->text) == new_size);
+    // dj_assert((size_t)(write_ptr - result->text) == new_size);
 
     // swap contents
     free(_string->text);
@@ -2997,11 +2902,10 @@ d_string_replace_all_cstr(
 d_string_replace_char
   Walks the text once, rewriting matches in place; the size never changes.
 */
-bool
-d_string_replace_char(
-    struct d_string* _string,
-    char             _old_char,
-    char             _new_char
+bool d_string_replace_char(
+    struct dj_string* _string,
+    char              _old_char,
+    char              _new_char
 )
 {
     if (_string == NULL)
@@ -3025,9 +2929,8 @@ d_string_replace_char(
 d_string_to_lower
   Delegates to d_strlwr() on the buffer in place.
 */
-bool
-d_string_to_lower(
-    struct d_string* _string
+bool d_string_to_lower(
+    struct dj_string* _string
 )
 {
     if ( (_string == NULL) ||
@@ -3045,9 +2948,8 @@ d_string_to_lower(
 d_string_to_upper
   Delegates to d_strupr() on the buffer in place.
 */
-bool
-d_string_to_upper(
-    struct d_string* _string
+bool d_string_to_upper(
+    struct dj_string* _string
 )
 {
     if ( (_string == NULL) ||
@@ -3066,9 +2968,8 @@ d_string_lower
   Copies with d_string_new_copy() and converts the copy with
 d_string_to_lower().
 */
-struct d_string*
-d_string_lower(
-    const struct d_string* _string
+struct dj_string* d_string_lower(
+    const struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3076,7 +2977,7 @@ d_string_lower(
         return NULL;
     }
 
-    struct d_string* result = d_string_new_copy(_string);
+    struct dj_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3093,9 +2994,8 @@ d_string_upper
   Copies with d_string_new_copy() and converts the copy with
 d_string_to_upper().
 */
-struct d_string*
-d_string_upper(
-    const struct d_string* _string
+struct dj_string* d_string_upper(
+    const struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3103,7 +3003,7 @@ d_string_upper(
         return NULL;
     }
 
-    struct d_string* result = d_string_new_copy(_string);
+    struct dj_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3120,9 +3020,8 @@ d_string_upper(
 d_string_reverse
   Delegates to d_strrev() on the buffer in place.
 */
-bool
-d_string_reverse(
-    struct d_string* _string
+bool d_string_reverse(
+    struct dj_string* _string
 )
 {
     if ( (_string == NULL) ||
@@ -3141,9 +3040,8 @@ d_string_reversed
   Copies with d_string_new_copy() and reverses the copy with
 d_string_reverse().
 */
-struct d_string*
-d_string_reversed(
-    const struct d_string* _string
+struct dj_string* d_string_reversed(
+    const struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3151,7 +3049,7 @@ d_string_reversed(
         return NULL;
     }
 
-    struct d_string* result = d_string_new_copy(_string);
+    struct dj_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3171,9 +3069,8 @@ d_string_trim
 character is examined twice. The surviving run is moved to the front with one
 memmove(), and only when leading whitespace was found.
 */
-bool
-d_string_trim(
-    struct d_string* _string
+bool d_string_trim(
+    struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3236,9 +3133,8 @@ d_string_trim_left
   Scans forward past the whitespace, then moves the rest of the text,
 terminator included, to the front with one memmove().
 */
-bool
-d_string_trim_left(
-    struct d_string* _string
+bool d_string_trim_left(
+    struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3285,9 +3181,8 @@ d_string_trim_right
   Scans backward past the whitespace and writes the terminator there; nothing
 is moved.
 */
-bool
-d_string_trim_right(
-    struct d_string* _string
+bool d_string_trim_right(
+    struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3320,10 +3215,9 @@ d_string_trim_chars
   Same shape as d_string_trim(), testing membership with strchr() on `_chars`
 in place of the white-space class.
 */
-bool
-d_string_trim_chars(
-    struct d_string* _string,
-    const char*      _chars
+bool d_string_trim_chars(
+    struct dj_string* _string,
+    const char*       _chars
 )
 {
     if ( (_string == NULL) ||
@@ -3384,9 +3278,8 @@ d_string_trim_chars(
 d_string_trimmed
   Copies with d_string_new_copy() and trims the copy with d_string_trim().
 */
-struct d_string*
-d_string_trimmed(
-    const struct d_string* _string
+struct dj_string* d_string_trimmed(
+    const struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3394,7 +3287,7 @@ d_string_trimmed(
         return NULL;
     }
 
-    struct d_string* result = d_string_new_copy(_string);
+    struct dj_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3411,9 +3304,8 @@ d_string_trimmed_left
   Copies with d_string_new_copy() and trims the copy with
 d_string_trim_left().
 */
-struct d_string*
-d_string_trimmed_left(
-    const struct d_string* _string
+struct dj_string* d_string_trimmed_left(
+    const struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3421,7 +3313,7 @@ d_string_trimmed_left(
         return NULL;
     }
 
-    struct d_string* result = d_string_new_copy(_string);
+    struct dj_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3438,9 +3330,8 @@ d_string_trimmed_right
   Copies with d_string_new_copy() and trims the copy with
 d_string_trim_right().
 */
-struct d_string*
-d_string_trimmed_right(
-    const struct d_string* _string
+struct dj_string* d_string_trimmed_right(
+    const struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -3448,7 +3339,7 @@ d_string_trimmed_right(
         return NULL;
     }
 
-    struct d_string* result = d_string_new_copy(_string);
+    struct dj_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3466,11 +3357,10 @@ d_string_tokenize
   Passes the buffer (or NULL, to continue) straight to d_strtok_r(), which
 writes NULs into it; the size field is not updated.
 */
-char*
-d_string_tokenize(
-    struct d_string* _string,
-    const char*      _delim,
-    char**           _saveptr
+char* d_string_tokenize(
+    struct dj_string* _string,
+    const char*       _delim,
+    char**            _saveptr
 )
 {
     if ( (_delim == NULL) ||
@@ -3502,11 +3392,10 @@ d_string_split
 result array by doubling. On any allocation failure every token made so far is
 freed, leaving nothing for the caller to release.
 */
-size_t
-d_string_split(
-    const struct d_string*  _string,
+size_t d_string_split(
+    const struct dj_string* _string,
     const char*             _delim,
-    struct d_string***      _tokens
+    struct dj_string***     _tokens
 )
 {
     if ( (_string == NULL) ||
@@ -3521,7 +3410,7 @@ d_string_split(
     // handle empty string: return single empty token
     if (_string->size == 0)
     {
-        struct d_string** result = malloc(sizeof(struct d_string*));
+        struct dj_string** result = malloc(sizeof(struct dj_string*));
 
         if (result == NULL)
         {
@@ -3552,7 +3441,7 @@ d_string_split(
 
     // initial allocation
     size_t            capacity = 8;
-    struct d_string** result   = malloc(capacity * sizeof(struct d_string*));
+    struct dj_string** result   = malloc(capacity * sizeof(struct dj_string*));
 
     if (result == NULL)
     {
@@ -3574,8 +3463,8 @@ d_string_split(
         {
             capacity *= 2;
 
-            const size_t      new_bytes  = capacity * sizeof(struct d_string*);
-            struct d_string** new_result = realloc(result,
+            const size_t      new_bytes  = capacity * sizeof(struct dj_string*);
+            struct dj_string** new_result = realloc(result,
                                                    new_bytes);
 
             if (new_result == NULL)
@@ -3595,7 +3484,7 @@ d_string_split(
             result = new_result;
         }
 
-        // create d_string for token
+        // create dj_string for token
         result[count] = d_string_new_from_cstr(token);
 
         if (result[count] == NULL)
@@ -3635,10 +3524,9 @@ d_string_split(
 d_string_split_free
   Frees each token, then the array.
 */
-void
-d_string_split_free(
-    struct d_string** _tokens,
-    size_t            _count
+void d_string_split_free(
+    struct dj_string** _tokens,
+    size_t             _count
 )
 {
     if (_tokens == NULL)
@@ -3662,11 +3550,10 @@ d_string_join
   Two passes: the first sums the lengths so the result is allocated once at
 its final size, which is why the appends in the second pass cannot fail.
 */
-struct d_string*
-d_string_join(
-    const struct d_string* const* _strings,
-    size_t                        _count,
-    const char*                   _delimiter
+struct dj_string* d_string_join(
+    const struct dj_string* const* _strings,
+    size_t                         _count,
+    const char*                    _delimiter
 )
 {
     if (_count == 0)
@@ -3698,7 +3585,7 @@ d_string_join(
         }
     }
 
-    struct d_string* result = d_string_new_with_capacity(total_len + 1);
+    struct dj_string* result = d_string_new_with_capacity(total_len + 1);
 
     if (result == NULL)
     {
@@ -3730,8 +3617,7 @@ d_string_join_cstr
   Two passes: the first sums the lengths so the result is allocated once at
 its final size, which is why the appends in the second pass cannot fail.
 */
-struct d_string*
-d_string_join_cstr(
+struct dj_string* d_string_join_cstr(
     const char* const* _strings,
     size_t             _count,
     const char*        _delimiter
@@ -3766,7 +3652,7 @@ d_string_join_cstr(
         }
     }
 
-    struct d_string* result = d_string_new_with_capacity(total_len + 1);
+    struct dj_string* result = d_string_new_with_capacity(total_len + 1);
 
     if (result == NULL)
     {
@@ -3798,8 +3684,7 @@ d_string_concat
 pass sums the sizes and rejects NULLs before anything is allocated, so the
 appends in the second pass cannot fail.
 */
-struct d_string*
-d_string_concat(
+struct dj_string* d_string_concat(
     size_t _count,
     ...
 )
@@ -3818,8 +3703,8 @@ d_string_concat(
 
     for (size_t i = 0; i < _count; i++)
     {
-        const struct d_string* str = va_arg(args,
-                                            const struct d_string*);
+        const struct dj_string* str = va_arg(args,
+                                            const struct dj_string*);
 
         if (str == NULL)
         {
@@ -3833,7 +3718,7 @@ d_string_concat(
 
     va_end(args);
 
-    struct d_string* result = d_string_new_with_capacity(total_len + 1);
+    struct dj_string* result = d_string_new_with_capacity(total_len + 1);
 
     if (result == NULL)
     {
@@ -3846,8 +3731,8 @@ d_string_concat(
 
     for (size_t i = 0; i < _count; i++)
     {
-        const struct d_string* str = va_arg(args,
-                                            const struct d_string*);
+        const struct dj_string* str = va_arg(args,
+                                            const struct dj_string*);
 
         d_string_append(result,
                         str);
@@ -3864,9 +3749,8 @@ d_string_is_valid
   d_str_is_valid() checks the buffer and rejects NULs before `size`; the
 terminator is checked separately at `size` itself.
 */
-bool
-d_string_is_valid(
-    const struct d_string* _string
+bool d_string_is_valid(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -3880,9 +3764,8 @@ d_string_is_valid(
 d_string_is_ascii
   Delegates to d_str_is_ascii() over the stored size.
 */
-bool
-d_string_is_ascii(
-    const struct d_string* _string
+bool d_string_is_ascii(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -3895,9 +3778,8 @@ d_string_is_ascii(
 d_string_is_numeric
   Delegates to d_str_is_numeric() over the stored size.
 */
-bool
-d_string_is_numeric(
-    const struct d_string* _string
+bool d_string_is_numeric(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -3910,9 +3792,8 @@ d_string_is_numeric(
 d_string_is_alpha
   Delegates to d_str_is_alpha() over the stored size.
 */
-bool
-d_string_is_alpha(
-    const struct d_string* _string
+bool d_string_is_alpha(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -3925,9 +3806,8 @@ d_string_is_alpha(
 d_string_is_alnum
   Delegates to d_str_is_alnum() over the stored size.
 */
-bool
-d_string_is_alnum(
-    const struct d_string* _string
+bool d_string_is_alnum(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -3940,9 +3820,8 @@ d_string_is_alnum(
 d_string_is_whitespace
   Delegates to d_str_is_whitespace() over the stored size.
 */
-bool
-d_string_is_whitespace(
-    const struct d_string* _string
+bool d_string_is_whitespace(
+    const struct dj_string* _string
 )
 {
     return (_string)
@@ -3957,10 +3836,9 @@ d_string_count_char
   Walks the stored size rather than stopping at a NUL, so embedded NULs can be
 counted.
 */
-size_t
-d_string_count_char(
-    const struct d_string* _string,
-    char                   _c
+size_t d_string_count_char(
+    const struct dj_string* _string,
+    char                    _c
 )
 {
     if ( (!_string) ||
@@ -3987,10 +3865,9 @@ d_string_count_substr
   Restarts strstr() just past each match, so occurrences are counted without
 overlap.
 */
-size_t
-d_string_count_substr(
-    const struct d_string* _string,
-    const char*            _substr
+size_t d_string_count_substr(
+    const struct dj_string* _string,
+    const char*             _substr
 )
 {
     if ( (_string == NULL) ||
@@ -4026,9 +3903,8 @@ d_string_hash
 characters as unsigned char so the result is the same whatever the signedness
 of char.
 */
-size_t
-d_string_hash(
-    const struct d_string* _string
+size_t d_string_hash(
+    const struct dj_string* _string
 )
 {
     if ( (_string == NULL) ||
@@ -4053,8 +3929,7 @@ d_string_error
   Formats into a 256-byte stack buffer with d_strerror_r(), falling back to a
 fixed "Unknown error" when that fails.
 */
-struct d_string*
-d_string_error(
+struct dj_string* d_string_error(
     int _errnum
 )
 {
@@ -4075,10 +3950,9 @@ d_string_error_r
   Formats into a 256-byte stack buffer with d_strerror_r(), then assigns it;
 an error from d_strerror_r() is passed through unchanged.
 */
-int
-d_string_error_r(
-    int              _errnum,
-    struct d_string* _string
+int d_string_error_r(
+    int               _errnum,
+    struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -4110,8 +3984,7 @@ d_string_error_r(
 d_string_printf
   Collects the arguments and delegates to d_string_vprintf().
 */
-struct d_string*
-d_string_printf(
+struct dj_string* d_string_printf(
     const char* _format,
     ...
 )
@@ -4121,7 +3994,7 @@ d_string_printf(
     va_start(args,
              _format);
 
-    struct d_string* result = d_string_vprintf(_format,
+    struct dj_string* result = d_string_vprintf(_format,
                                                args);
     va_end(args);
 
@@ -4133,8 +4006,7 @@ d_string_vprintf
   Formats twice: a dry run over `_args` measures the output, then a va_copy()
 made beforehand writes it into a buffer of exactly that size.
 */
-struct d_string*
-d_string_vprintf(
+struct dj_string* d_string_vprintf(
     const char* _format,
     va_list     _args
 )
@@ -4161,7 +4033,7 @@ d_string_vprintf(
         return NULL;
     }
 
-    struct d_string* result = d_string_new_with_capacity((size_t)len + 1);
+    struct dj_string* result = d_string_new_with_capacity((size_t)len + 1);
 
     if (result == NULL)
     {
@@ -4187,10 +4059,9 @@ d_string_sprintf
 of the arguments writes it over the existing text from index 0. The buffer is
 only grown, never shrunk.
 */
-int
-d_string_sprintf(
-    struct d_string* _string,
-    const char*      _format,
+int d_string_sprintf(
+    struct dj_string* _string,
+    const char*       _format,
     ...
 )
 {
@@ -4245,9 +4116,8 @@ d_string_sprintf(
 d_string_free
   Frees the text before the struct that points to it.
 */
-void
-d_string_free(
-    struct d_string* _string
+void d_string_free(
+    struct dj_string* _string
 )
 {
     if (_string == NULL)
@@ -4270,9 +4140,8 @@ d_string_free_contents
   Frees the text and resets the fields, leaving an empty string with no buffer
 that the growing functions can reuse.
 */
-void
-d_string_free_contents(
-    struct d_string* _string
+void d_string_free_contents(
+    struct dj_string* _string
 )
 {
     if (_string == NULL)

@@ -33,9 +33,8 @@
  * X.a  d_dir_create
  *****************************************************************************/
 
-static void
-d_fs_tests_dir_mkdir
-(
+static
+void d_fs_tests_dir_mkdir(
     dtest_suite* _suite
 )
 {
@@ -69,9 +68,8 @@ d_fs_tests_dir_mkdir
  * X.b  d_dir_create_parents
  *****************************************************************************/
 
-static void
-d_fs_tests_dir_mkdir_p
-(
+static
+void d_fs_tests_dir_mkdir_p(
     dtest_suite* _suite
 )
 {
@@ -123,9 +121,8 @@ d_fs_tests_dir_mkdir_p
  * X.c  d_dir_remove
  *****************************************************************************/
 
-static void
-d_fs_tests_dir_rmdir
-(
+static
+void d_fs_tests_dir_rmdir(
     dtest_suite* _suite
 )
 {
@@ -155,14 +152,13 @@ d_fs_tests_dir_rmdir
  * X.d  d_dir_open / d_dir_read / d_dir_rewind / d_dir_close
  *****************************************************************************/
 
-static void
-d_fs_tests_dir_traversal
-(
+static
+void d_fs_tests_dir_traversal(
     dtest_suite* _suite
 )
 {
-    struct d_dir_t*    dir;
-    struct d_dirent_t* entry;
+    struct dj_dir_t*    dir;
+    struct dj_dirent_t* entry;
     bool               found_fixture;
     bool               found_dot;
     bool               found_dotdot;
@@ -243,9 +239,8 @@ d_fs_tests_dir_traversal
  * X.e  d_dir_get_current
  *****************************************************************************/
 
-static void
-d_fs_tests_dir_getcwd
-(
+static
+void d_fs_tests_dir_getcwd(
     dtest_suite* _suite
 )
 {
@@ -275,9 +270,8 @@ d_fs_tests_dir_getcwd
  * X.f  d_dir_set_current  (saves and restores the working directory)
  *****************************************************************************/
 
-static void
-d_fs_tests_dir_chdir
-(
+static
+void d_fs_tests_dir_chdir(
     dtest_suite* _suite
 )
 {
@@ -328,9 +322,8 @@ d_fs_tests_dir_chdir
  * X.g  d_path_resolve
  *****************************************************************************/
 
-static void
-d_fs_tests_dir_realpath
-(
+static
+void d_fs_tests_dir_realpath(
     dtest_suite* _suite
 )
 {
@@ -382,9 +375,7 @@ d_fs_tests_dir_realpath
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_dir
-(
+void d_fs_tests_dir(
     dtest_suite* _suite
 )
 {

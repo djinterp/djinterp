@@ -41,8 +41,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -64,13 +64,13 @@ d_tests_check(
 d_tests_text_is
   Whether a document's text is a text, showing it when it is not.
 */
-static bool
-d_tests_text_is(
-    const struct d_msvs_doc* _doc,
-    const char*              _expected
+static
+bool d_tests_text_is(
+    const struct dj_msvs_doc* _doc,
+    const char*               _expected
 )
 {
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
     const bool                 same    =
         (records->length == strlen(_expected)) &&
         (memcmp(records->text, _expected, records->length) == 0);
@@ -89,14 +89,14 @@ d_tests_text_is(
 d_tests_make
   A document that must be made.
 */
-static struct d_msvs_doc*
-d_tests_make(
+static
+struct dj_msvs_doc* d_tests_make(
     const char* _path,
     const char* _text
 )
 {
     char                     why[256];
-    struct d_msvs_doc* const doc = d_msvs_doc_make(_path, _text,
+    struct dj_msvs_doc* const doc = d_msvs_doc_make(_path, _text,
                                                    strlen(_text), why,
                                                    sizeof(why));
 
@@ -116,15 +116,15 @@ d_tests_make(
 d_tests_value
   An element's attribute, decoded, into a buffer; "" when absent.
 */
-static const char*
-d_tests_value(
-    const struct d_msvs_doc* _doc,
-    size_t                   _element,
-    const char*              _name,
-    char*                    _out
+static
+const char* d_tests_value(
+    const struct dj_msvs_doc* _doc,
+    size_t                    _element,
+    const char*               _name,
+    char*                     _out
 )
 {
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
     size_t                     start   = 0;
     size_t                     length  = 0;
 
@@ -149,8 +149,8 @@ d_tests_building
   - attributes and text, escaped, read back as given
   - a byte-order mark and CRLF kept, and the file's step of indenting used
 */
-static void
-d_tests_building(void)
+static
+void d_tests_building(void)
 {
     static const char skeleton[] =
         "\xEF\xBB\xBF<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
@@ -174,7 +174,7 @@ d_tests_building(void)
 
     printf("building\n");
 
-    struct d_msvs_doc* const doc = d_tests_make("x.vcxproj", skeleton);
+    struct dj_msvs_doc* const doc = d_tests_make("x.vcxproj", skeleton);
 
     // the checks below need the document made
     if (!doc)
@@ -182,15 +182,15 @@ d_tests_building(void)
         return;
     }
 
-    const struct d_msvs_new_element group   = { "ItemGroup", NULL, label,
+    const struct dj_msvs_new_element group   = { "ItemGroup", NULL, label,
                                                 1u };
-    const struct d_msvs_new_element compile = { "ClCompile", NULL, include,
+    const struct dj_msvs_new_element compile = { "ClCompile", NULL, include,
                                                 1u };
-    const struct d_msvs_new_element filter  = { "Filter", "Source Files",
+    const struct dj_msvs_new_element filter  = { "Filter", "Source Files",
                                                 NULL, 0u };
-    const struct d_msvs_new_element first   = { "ClInclude", NULL, header,
+    const struct dj_msvs_new_element first   = { "ClInclude", NULL, header,
                                                 1u };
-    const struct d_msvs_new_element text    = { "Text", "1 < 2 && 3 > 2",
+    const struct dj_msvs_new_element text    = { "Text", "1 < 2 && 3 > 2",
                                                 NULL, 0u };
 
     const size_t items = d_msvs_doc_insert(doc, 0u, D_MSVS_NONE, &group);
@@ -211,7 +211,7 @@ d_tests_building(void)
                            "A & B") == 0),
                    "the values read back as given");
 
-    const struct d_msvs* const records = d_msvs_doc_records(doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(doc);
     char                       content[64];
 
     (void)d_msvs_text(records, &records->elements[5], content);
@@ -239,12 +239,12 @@ d_tests_building(void)
         "</Solution>\n";
     const char* const path[]    = { "Path", "a.vcxproj" };
     const char* const depends[] = { "Project", "b.vcxproj" };
-    const struct d_msvs_new_element project    = { "Project", NULL, path,
+    const struct dj_msvs_new_element project    = { "Project", NULL, path,
                                                    1u };
-    const struct d_msvs_new_element dependency = { "BuildDependency", NULL,
+    const struct dj_msvs_new_element dependency = { "BuildDependency", NULL,
                                                    depends, 1u };
 
-    struct d_msvs_doc* const solution = d_tests_make("x.slnx", tabbed);
+    struct dj_msvs_doc* const solution = d_tests_make("x.slnx", tabbed);
 
     if (!solution)
     {
@@ -273,8 +273,8 @@ d_tests_changing
   - an element's text replaced, and an empty element given one
   - an element removed with its line, and one sharing its line without it
 */
-static void
-d_tests_changing(void)
+static
+void d_tests_changing(void)
 {
     static const char before[] =
         "<Project>\n"
@@ -296,7 +296,7 @@ d_tests_changing(void)
 
     printf("changing\n");
 
-    struct d_msvs_doc* const doc = d_tests_make("x.vcxproj", before);
+    struct dj_msvs_doc* const doc = d_tests_make("x.vcxproj", before);
 
     if (!doc)
     {
@@ -330,8 +330,8 @@ d_tests_handles
   - a handle names its element after a change before it, after it and in it
   - the handle of an element removed names nothing, and is not given again
 */
-static void
-d_tests_handles(void)
+static
+void d_tests_handles(void)
 {
     static const char text[] =
         "<Project>\n"
@@ -341,11 +341,11 @@ d_tests_handles(void)
         "  </B>\n"
         "  <D />\n"
         "</Project>\n";
-    const struct d_msvs_new_element e = { "E", "e", NULL, 0u };
+    const struct dj_msvs_new_element e = { "E", "e", NULL, 0u };
 
     printf("handles\n");
 
-    struct d_msvs_doc* const doc = d_tests_make("x.props", text);
+    struct dj_msvs_doc* const doc = d_tests_make("x.props", text);
 
     if (!doc)
     {
@@ -400,22 +400,22 @@ d_tests_refusals
     was
   - names that are not XML's, text where an element is to go, the root
 */
-static void
-d_tests_refusals(void)
+static
+void d_tests_refusals(void)
 {
     static const char text[] =
         "<Project>\n"
         "  <A>text</A>\n"
         "  <B><C/></B>\n"
         "</Project>\n";
-    const struct d_msvs_new_element bad   = { "1x", NULL, NULL, 0u };
+    const struct dj_msvs_new_element bad   = { "1x", NULL, NULL, 0u };
     const char* const               odd[] = { "a b", "v" };
-    const struct d_msvs_new_element worse = { "X", NULL, odd, 1u };
-    const struct d_msvs_new_element fine  = { "X", NULL, NULL, 0u };
+    const struct dj_msvs_new_element worse = { "X", NULL, odd, 1u };
+    const struct dj_msvs_new_element fine  = { "X", NULL, NULL, 0u };
 
     printf("refusals\n");
 
-    struct d_msvs_doc* const doc = d_tests_make("x.vcxproj", text);
+    struct dj_msvs_doc* const doc = d_tests_make("x.vcxproj", text);
 
     if (!doc)
     {
@@ -462,8 +462,8 @@ d_tests_saving
   - a text refused for a path of another kind
   - a .sln, which is text, spliced and saved
 */
-static void
-d_tests_saving(
+static
+void d_tests_saving(
     const char* _directory
 )
 {
@@ -483,7 +483,7 @@ d_tests_saving(
 
     (void)remove(path);
 
-    struct d_msvs_doc* const doc = d_tests_make(path, text);
+    struct dj_msvs_doc* const doc = d_tests_make(path, text);
 
     if (!doc)
     {
@@ -508,7 +508,7 @@ d_tests_saving(
     free(read);
     d_msvs_doc_free(doc);
 
-    struct d_msvs_doc* const solution = d_tests_make("s.sln", sln);
+    struct dj_msvs_doc* const solution = d_tests_make("s.sln", sln);
 
     if (!solution)
     {
@@ -533,11 +533,11 @@ d_tests_saving(
 }
 
 
-// d_tests_shape
+// dj_tests_shape
 //   struct: what a fuzzing run expects of each element it did not touch:
 //   its handle, and its name, attributes and text, decoded; and where it
 //   was, to know what a removal held.
-struct d_tests_shape
+struct dj_tests_shape
 {
     size_t handle;
     size_t start;
@@ -552,15 +552,15 @@ struct d_tests_shape
 d_tests_shape_of
   An element's name, its attributes raw, and its text decoded, as strings.
 */
-static void
-d_tests_shape_of(
-    const struct d_msvs_doc* _doc,
-    size_t                   _element,
-    struct d_tests_shape*    _out
+static
+void d_tests_shape_of(
+    const struct dj_msvs_doc* _doc,
+    size_t                    _element,
+    struct dj_tests_shape*    _out
 )
 {
-    const struct d_msvs* const         records = d_msvs_doc_records(_doc);
-    const struct d_msvs_element* const element =
+    const struct dj_msvs* const         records = d_msvs_doc_records(_doc);
+    const struct dj_msvs_element* const element =
         &records->elements[_element];
     const size_t content = element->content_end - element->content_start;
 
@@ -586,10 +586,10 @@ d_tests_shape_of(
 d_tests_shapes_free
   Frees the shapes of a reading.
 */
-static void
-d_tests_shapes_free(
-    struct d_tests_shape* _shapes,
-    size_t                _count
+static
+void d_tests_shapes_free(
+    struct dj_tests_shape* _shapes,
+    size_t                 _count
 )
 {
     // each shape's strings
@@ -611,8 +611,8 @@ d_tests_random
   A 64-bit linear congruential step: random enough to choose changes, and
 the same every run for a seed.
 */
-static size_t
-d_tests_random(
+static
+size_t d_tests_random(
     unsigned long long* _state,
     size_t              _below
 )
@@ -623,10 +623,10 @@ d_tests_random(
 }
 
 
-// d_tests_fuzzed
+// dj_tests_fuzzed
 //   struct: what a fuzzing run counted, and the directory it saves each
 //   file it changed into, or NULL.
-struct d_tests_fuzzed
+struct dj_tests_fuzzed
 {
     size_t      files;
     size_t      changes;
@@ -642,9 +642,9 @@ d_tests_fuzz_change
 to `_touched`, and the element it adds a child to, to `_parent`, each
 D_MSVS_NONE when there is none.  Returns whether the change was kept.
 */
-static bool
-d_tests_fuzz_change(
-    struct d_msvs_doc*  _doc,
+static
+bool d_tests_fuzz_change(
+    struct dj_msvs_doc* _doc,
     unsigned long long* _state,
     size_t*             _touched,
     size_t*             _parent
@@ -653,7 +653,7 @@ d_tests_fuzz_change(
     static const char* const names[]  = { "ClCompile", "Filter", "X", "a:b" };
     static const char* const values[] = { "", "a&b", "<x>", "q\"'t", "\t\n",
                                           "$(Dir)\\a.c", "\xC3\xA9" };
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
     const size_t               element =
         d_tests_random(_state, records->element_count);
     const size_t               which   = d_tests_random(_state, 6u);
@@ -684,7 +684,7 @@ d_tests_fuzz_change(
         return d_msvs_doc_set_text(_doc, element, value);
     }
 
-    const struct d_msvs_new_element added = { name,
+    const struct dj_msvs_new_element added = { name,
                                               (d_tests_random(_state, 2u)
                                                == 0u) ? NULL : value,
                                               pair, 1u };
@@ -723,15 +723,15 @@ d_tests_fuzz_file
   Random changes to one file, each proved to have touched only what it
 said.
 */
-static void
-d_tests_fuzz_file(
-    const char*            _path,
-    unsigned long long*    _state,
-    struct d_tests_fuzzed* _counts
+static
+void d_tests_fuzz_file(
+    const char*             _path,
+    unsigned long long*     _state,
+    struct dj_tests_fuzzed* _counts
 )
 {
     char                     why[256];
-    struct d_msvs_doc* const doc = d_msvs_doc_read(_path, why, sizeof(why));
+    struct dj_msvs_doc* const doc = d_msvs_doc_read(_path, why, sizeof(why));
 
     // only XML files have elements to change
     if ( (!doc) ||
@@ -747,9 +747,9 @@ d_tests_fuzz_file(
     // two hundred changes to the file
     for (size_t round = 0; round < 200u; ++round)
     {
-        const struct d_msvs* records = d_msvs_doc_records(doc);
+        const struct dj_msvs* records = d_msvs_doc_records(doc);
         const size_t         count   = records->element_count;
-        struct d_tests_shape* const shapes = malloc(count * sizeof(*shapes));
+        struct dj_tests_shape* const shapes = malloc(count * sizeof(*shapes));
 
         // every element's shape, before the change
         for (size_t at = 0; at < count; ++at)
@@ -781,7 +781,7 @@ d_tests_fuzz_file(
                 continue;
             }
 
-            struct d_tests_shape shape;
+            struct dj_tests_shape shape;
 
             if (now == D_MSVS_NONE)
             {
@@ -846,11 +846,11 @@ d_tests_fuzz_file(
 d_tests_fuzz_walk
   Every Visual Studio file under a directory, in the order it is read.
 */
-static void
-d_tests_fuzz_walk(
-    const char*            _path,
-    unsigned long long*    _state,
-    struct d_tests_fuzzed* _counts
+static
+void d_tests_fuzz_walk(
+    const char*             _path,
+    unsigned long long*     _state,
+    struct dj_tests_fuzzed* _counts
 )
 {
     char** names = NULL;
@@ -890,8 +890,7 @@ d_tests_fuzz_walk(
 }
 
 
-int
-main(
+int main(
     int    argc,
     char** argv
 )
@@ -904,7 +903,7 @@ main(
         const bool            into   = (strcmp(argv[1], "--fuzz-into") == 0);
         unsigned long long    state  = strtoul(argv[(into) ? 3 : 2], NULL,
                                                10);
-        struct d_tests_fuzzed counts = { 0u, 0u, 0u, 0u,
+        struct dj_tests_fuzzed counts = { 0u, 0u, 0u, 0u,
                                          (into) ? argv[2] : NULL };
 
         // every file or directory named

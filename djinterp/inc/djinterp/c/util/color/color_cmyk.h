@@ -15,7 +15,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    d_color_cmyk          (POD)
+I.    dj_color_cmyk          (POD)
       ---------------------------
 
 II.   d_color_cmyk_make
@@ -46,9 +46,9 @@ IV.   d_color_cmyk_clamp
 D_COLOR_NS_OPEN
 
 
-// d_color_cmyk
+// dj_color_cmyk
 //   POD: CMYK color, channels in [0, 1].
-struct d_color_cmyk
+struct dj_color_cmyk
 {
     float c;
     float m;
@@ -66,17 +66,17 @@ Parameter(s):
   _y: yellow  channel.
   _k: key (black) channel.
 Return:
-  A d_color_cmyk with the given channels.
+  A dj_color_cmyk with the given channels.
 */
-D_COLOR_FN struct d_color_cmyk
-d_color_cmyk_make(
+D_COLOR_FN
+struct dj_color_cmyk d_color_cmyk_make(
     float _c,
     float _m,
     float _y,
     float _k
 )
 {
-    return D_COLOR_LITERAL(d_color_cmyk, _c, _m, _y, _k);
+    return D_COLOR_LITERAL(dj_color_cmyk, _c, _m, _y, _k);
 }
 
 /*
@@ -88,9 +88,9 @@ Parameter(s):
 Return:
   true if every channel is in range, false otherwise.
 */
-D_COLOR_FN bool
-d_color_cmyk_is_valid(
-    struct d_color_cmyk _cmyk
+D_COLOR_FN
+bool d_color_cmyk_is_valid(
+    struct dj_color_cmyk _cmyk
 )
 {
     return ( (_cmyk.c >= 0.0f) && (_cmyk.c <= 1.0f) &&
@@ -106,11 +106,11 @@ d_color_cmyk_clamp
 Parameter(s):
   _cmyk: color to clamp.
 Return:
-  A d_color_cmyk with channels constrained to [0, 1].
+  A dj_color_cmyk with channels constrained to [0, 1].
 */
-D_COLOR_FN struct d_color_cmyk
-d_color_cmyk_clamp(
-    struct d_color_cmyk _cmyk
+D_COLOR_FN
+struct dj_color_cmyk d_color_cmyk_clamp(
+    struct dj_color_cmyk _cmyk
 )
 {
     return d_color_cmyk_make(

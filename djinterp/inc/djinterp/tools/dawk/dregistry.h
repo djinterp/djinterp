@@ -27,8 +27,8 @@
 #include <stddef.h>   // size_t
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
-#include "./dss.h"    // d_dss_sheet, d_dss_declaration
+#include "./dnode.h"  // dj_node_tree
+#include "./dss.h"    // dj_dss_sheet, dj_dss_declaration
 
 
 //==============================================================================
@@ -38,33 +38,41 @@
 
 // 1.1    Evaluation
 //------------------------------------------------------------------------------
-bool d_registry_evaluate(const struct d_dss_sheet*       _sheet,
-                         struct d_node_tree*             _tree,
-                         uint32_t                        _node,
-                         const struct d_dss_declaration* _declaration,
-                         bool*                           _out_evaluated);
+bool d_registry_evaluate(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    bool*                            _out_evaluated
+);
 
 // 1.2    Derivation
 //------------------------------------------------------------------------------
-bool d_registry_derive(const struct d_dss_sheet*       _sheet,
-                       struct d_node_tree*             _tree,
-                       uint32_t                        _node,
-                       const struct d_dss_declaration* _declaration,
-                       char*                           _out,
-                       size_t                          _out_size);
-double d_registry_number(const struct d_dss_sheet*       _sheet,
-                         const struct d_dss_declaration* _declaration);
+bool d_registry_derive(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    char*                            _out,
+    size_t                           _out_size
+);
+double d_registry_number(
+    const struct dj_dss_sheet*       _sheet,
+    const struct dj_dss_declaration* _declaration
+);
 
 // 1.3    Repair
 //------------------------------------------------------------------------------
-bool d_registry_repair(struct d_node_tree* _tree,
-                       uint32_t            _node,
-                       const char*         _property,
-                       double              _want,
-                       const char*         _line_text,
-                       const char*         _derived,
-                       char*               _out,
-                       size_t              _out_size);
+bool d_registry_repair(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _property,
+    double               _want,
+    const char*          _line_text,
+    const char*          _derived,
+    char*                _out,
+    size_t               _out_size
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DREGISTRY_H

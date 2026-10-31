@@ -9,7 +9,7 @@
 * proves the stubs need neither libpq-fe.h nor a library.
 *
 *   Build (from the repo root), at any language level from C99, without libpq
-* -- or let ci/check_db_postgres.sh do it, given `stubs`:
+* -- or let scripts/ci/check_db_postgres.sh do it, given `stubs`:
 *     cc -std=c99 -Wall -Wextra -Werror -Iinc -DD_CFG_POSTGRES=0             \
 *        src/djinterp/c/db/db_*.c src/djinterp/c/db/postgres/postgres_*.c     \
 *        tests/unintegrated/c/db/postgres/t_postgres_stubs.c -o t_postgres_stubs
@@ -26,7 +26,7 @@
 // djinterp
 #include "../../../../../inc/djinterp/c/db/postgres/postgres.h"  // under test
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 //==============================================================================
@@ -47,8 +47,8 @@ static int g_marker = 0;
 d_tests_postgres_stubs_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_postgres_stubs_expect(
+static
+void d_tests_postgres_stubs_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -93,10 +93,8 @@ d_tests_postgres_stubs_common
   - results read as in any build: SQLSTATEs packed and spelled, the
     manual's words for them; D_DB_UNSUPPORTED says the build is why
 */
-static void
-d_tests_postgres_stubs_common(
-    void
-)
+static
+void d_tests_postgres_stubs_common(void)
 {
     struct pg_conn* const db          = (struct pg_conn*)(void*)&g_marker;
     char                  sqlstate[6] = "";
@@ -115,7 +113,7 @@ d_tests_postgres_stubs_common(
          ++f)
     {
         D_TESTS_POSTGRES_STUBS_CHECK(
-            !d_postgres_supports(db, (enum d_postgres_feature)f));
+            !d_postgres_supports(db, (enum dj_postgres_feature)f));
     }
 
     D_TESTS_POSTGRES_STUBS_CHECK(strcmp(d_postgres_error_message(db), "") ==
@@ -155,15 +153,13 @@ d_tests_postgres_stubs_connection
   - close takes NULL as always; anything else is no connection
   - ping is D_DB_UNSUPPORTED; there is no backend
 */
-static void
-d_tests_postgres_stubs_connection(
-    void
-)
+static
+void d_tests_postgres_stubs_connection(void)
 {
     struct pg_conn* const     marker  = (struct pg_conn*)(void*)&g_marker;
     struct pg_conn*           db      = marker;
     char*                     reason  = (char*)(void*)&g_marker;
-    struct d_postgres_options options =
+    struct dj_postgres_options options =
     {
         "localhost", "user", NULL, NULL, 0u, NULL
     };
@@ -203,9 +199,9 @@ d_tests_postgres_stubs_connection(
 d_tests_postgres_stubs_pending
   Whether a pending call was left as a finished one leaves it.
 */
-static bool
-d_tests_postgres_stubs_pending(
-    const struct d_db_pending* _pending
+static
+bool d_tests_postgres_stubs_pending(
+    const struct dj_db_pending* _pending
 )
 {
     return ( (_pending->socket == D_DB_SOCKET_NONE) &&
@@ -225,10 +221,8 @@ reset and cancel.
   - reset and cancel are D_DB_UNSUPPORTED; a cancel finishes NULL as always,
     and anything else is no request
 */
-static void
-d_tests_postgres_stubs_nonblocking(
-    void
-)
+static
+void d_tests_postgres_stubs_nonblocking(void)
 {
     struct pg_conn* const        marker  = (struct pg_conn*)(void*)&g_marker;
     struct pg_cancel_conn* const request =
@@ -236,7 +230,7 @@ d_tests_postgres_stubs_nonblocking(
     struct pg_conn*              db      = marker;
     struct pg_cancel_conn*       cancel  = request;
     char*                        reason  = (char*)(void*)&g_marker;
-    struct d_db_pending          pending;
+    struct dj_db_pending          pending;
     const char* const            keywords[1] = { "application_name" };
     const char* const            values[1]   = { "d_tests" };
 
@@ -309,18 +303,16 @@ d_tests_postgres_stubs_sent_and_statements
   - every start and continuation is D_DB_UNSUPPORTED, nothing pending, and
     the statement a prepare's start would make NULL
 */
-static void
-d_tests_postgres_stubs_sent_and_statements(
-    void
-)
+static
+void d_tests_postgres_stubs_sent_and_statements(void)
 {
     struct pg_conn* const              marker    =
         (struct pg_conn*)(void*)&g_marker;
-    struct d_postgres_statement* const fake      =
-        (struct d_postgres_statement*)(void*)&g_marker;
-    struct d_postgres_statement*       statement = fake;
-    struct d_db_rows                   rows      = { 0u, 0u, NULL, NULL };
-    struct d_db_pending                pending;
+    struct dj_postgres_statement* const fake      =
+        (struct dj_postgres_statement*)(void*)&g_marker;
+    struct dj_postgres_statement*       statement = fake;
+    struct dj_db_rows                   rows      = { 0u, 0u, NULL, NULL };
+    struct dj_db_pending                pending;
     int64_t                            changes   = 7;
 
     printf("postgres_protocol, postgres_statement: without blocking\n");
@@ -393,17 +385,15 @@ d_tests_postgres_stubs_query
     output untouched
   - quoting answers NULL
 */
-static void
-d_tests_postgres_stubs_query(
-    void
-)
+static
+void d_tests_postgres_stubs_query(void)
 {
     struct pg_conn* const db    = (struct pg_conn*)(void*)&g_marker;
     int64_t               i     = 7;
     double                d     = 7.0;
     char*                 text  = (char*)(void*)&g_marker;
     bool                  b     = true;
-    struct d_db_rows      rows  = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows      rows  = { 7u, 7u, NULL, NULL };
 
     printf("postgres_query\n");
 
@@ -456,31 +446,29 @@ d_tests_postgres_stubs_statement
   - every bind, clear and run is D_DB_UNSUPPORTED, the count and the rows
     untouched
 */
-static void
-d_tests_postgres_stubs_statement(
-    void
-)
+static
+void d_tests_postgres_stubs_statement(void)
 {
     struct pg_conn* const        db        =
         (struct pg_conn*)(void*)&g_marker;
-    struct d_postgres_statement* statement =
-        (struct d_postgres_statement*)(void*)&g_marker;
+    struct dj_postgres_statement* statement =
+        (struct dj_postgres_statement*)(void*)&g_marker;
     int64_t                      changes   = 7;
-    struct d_db_rows             rows      = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows             rows      = { 7u, 7u, NULL, NULL };
 
     printf("postgres_statement\n");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_prepare(db, &statement, "SELECT 1"));
     D_TESTS_POSTGRES_STUBS_CHECK(statement == NULL);
-    statement = (struct d_postgres_statement*)(void*)&g_marker;
+    statement = (struct dj_postgres_statement*)(void*)&g_marker;
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_preparef(db, &statement, "SELECT %d", 1));
     D_TESTS_POSTGRES_STUBS_CHECK(statement == NULL);
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_prepare(db, NULL, "SELECT 1"));
 
-    statement = (struct d_postgres_statement*)(void*)&g_marker;
+    statement = (struct dj_postgres_statement*)(void*)&g_marker;
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_finalize(NULL) == 0);
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_close_prepared(db, "p"));
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_parameter_count(statement) == 0u);
@@ -521,13 +509,11 @@ d_tests_postgres_stubs_database
   - every create, drop, list and current is D_DB_UNSUPPORTED or NULL, a
     list untouched
 */
-static void
-d_tests_postgres_stubs_database(
-    void
-)
+static
+void d_tests_postgres_stubs_database(void)
 {
     struct pg_conn* const db     = (struct pg_conn*)(void*)&g_marker;
-    struct d_db_name_list names  = { 7u, NULL };
+    struct dj_db_name_list names  = { 7u, NULL };
     bool                  exists = true;
     char*                 name   = NULL;
 
@@ -571,17 +557,15 @@ d_tests_postgres_stubs_tables
   - each has is false, each _s D_DB_UNSUPPORTED with its answer false
   - every other function is D_DB_UNSUPPORTED, its outputs untouched
 */
-static void
-d_tests_postgres_stubs_tables(
-    void
-)
+static
+void d_tests_postgres_stubs_tables(void)
 {
     struct pg_conn* const    db      = (struct pg_conn*)(void*)&g_marker;
-    struct d_db_name_list    names   = { 7u, NULL };
-    struct d_db_column_list  columns = { 7u, NULL };
+    struct dj_db_name_list    names   = { 7u, NULL };
+    struct dj_db_column_list  columns = { 7u, NULL };
     bool                     exists  = true;
     int64_t                  count   = 7;
-    const struct d_db_column column  =
+    const struct dj_db_column column  =
     {
         "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
@@ -637,13 +621,11 @@ d_tests_postgres_stubs_objects
   - each has is false, each _s D_DB_UNSUPPORTED with its answer false
   - every other function is D_DB_UNSUPPORTED, its outputs untouched
 */
-static void
-d_tests_postgres_stubs_objects(
-    void
-)
+static
+void d_tests_postgres_stubs_objects(void)
 {
     struct pg_conn* const db     = (struct pg_conn*)(void*)&g_marker;
-    struct d_db_name_list names  = { 7u, NULL };
+    struct dj_db_name_list names  = { 7u, NULL };
     bool                  exists = true;
     int64_t               value  = 7;
 
@@ -701,10 +683,8 @@ d_tests_postgres_stubs_transaction
   - beginning, ending and every savepoint function are D_DB_UNSUPPORTED
   - no transaction is open, failed or not, and no state is known
 */
-static void
-d_tests_postgres_stubs_transaction(
-    void
-)
+static
+void d_tests_postgres_stubs_transaction(void)
 {
     struct pg_conn* const db = (struct pg_conn*)(void*)&g_marker;
 
@@ -735,15 +715,13 @@ d_tests_postgres_stubs_settings
   Tests the following:
   - every set_ and get_ is D_DB_UNSUPPORTED, a get_'s output untouched
 */
-static void
-d_tests_postgres_stubs_settings(
-    void
-)
+static
+void d_tests_postgres_stubs_settings(void)
 {
     struct pg_conn* const     db    = (struct pg_conn*)(void*)&g_marker;
     char*                     text  = NULL;
     unsigned                  ms    = 7u;
-    enum d_postgres_isolation level = D_POSTGRES_ISOLATION_SERIALIZABLE;
+    enum dj_postgres_isolation level = D_POSTGRES_ISOLATION_SERIALIZABLE;
 
     printf("postgres_settings\n");
 
@@ -782,10 +760,8 @@ d_tests_postgres_stubs_maintenance
   Tests the following:
   - every function is D_DB_UNSUPPORTED, a size untouched
 */
-static void
-d_tests_postgres_stubs_maintenance(
-    void
-)
+static
+void d_tests_postgres_stubs_maintenance(void)
 {
     struct pg_conn* const db    = (struct pg_conn*)(void*)&g_marker;
     int64_t               bytes = 7;
@@ -813,10 +789,8 @@ pipelines.
   - every function is D_DB_UNSUPPORTED, writing nothing; nothing is busy,
     and no pipeline on
 */
-static void
-d_tests_postgres_stubs_protocol(
-    void
-)
+static
+void d_tests_postgres_stubs_protocol(void)
 {
     struct pg_conn* const db      = (struct pg_conn*)(void*)&g_marker;
     char*                 channel = (char*)(void*)&g_marker;
@@ -824,7 +798,7 @@ d_tests_postgres_stubs_protocol(
     int                   pid     = 7;
     int64_t               changes = 7;
     unsigned int          oid     = 7u;
-    struct d_db_rows      rows    = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows      rows    = { 7u, 7u, NULL, NULL };
 
     printf("postgres_protocol\n");
 
@@ -870,10 +844,7 @@ main
   Runs every test and reports; the exit status is 0 only if every check
 passed.
 */
-int
-main(
-    void
-)
+int main(void)
 {
     d_tests_postgres_stubs_common();
     d_tests_postgres_stubs_connection();

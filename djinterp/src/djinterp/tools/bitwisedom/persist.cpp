@@ -72,8 +72,7 @@ const words PLACES     = { { "bottom", "top", "tree" }, 0 };
 // word
 //   an enumeration's value as its word.
 template<typename Enum>
-json_value
-word(
+json_value word(
     const words& _table,
     Enum         _value
 )
@@ -92,8 +91,7 @@ word(
 // read_word
 //   a word as an enumeration's value; the fallback for anything else.
 template<typename Enum>
-Enum
-read_word(
+Enum read_word(
     const json_value* _value,
     const words&      _table,
     Enum              _fallback
@@ -117,8 +115,7 @@ read_word(
     return _fallback;
 }
 
-json_value
-hex_value(
+json_value hex_value(
     const wide& _value
 )
 {
@@ -131,8 +128,7 @@ read_hex
 reads. A negative number is its 64-bit two's complement, as a literal's
 bits were always written.
 */
-wide
-read_hex(
+wide read_hex(
     const json_value* _value,
     const wide&       _fallback
 )
@@ -148,16 +144,14 @@ read_hex(
                      : _fallback;
 }
 
-json_value
-colour_value(
+json_value colour_value(
     rgba _colour
 )
 {
     return json_value::string(rgba_text(_colour));
 }
 
-rgba
-read_colour(
+rgba read_colour(
     const json_value* _value,
     rgba              _fallback
 )
@@ -174,8 +168,7 @@ read_colour(
 }
 
 // field readers -- each takes a member of an object, with a fallback
-bool
-get_bool(
+bool get_bool(
     const json_value&  _object,
     const std::string& _key,
     bool               _fallback
@@ -187,8 +180,7 @@ get_bool(
                               : _fallback;
 }
 
-i64
-get_int(
+i64 get_int(
     const json_value&  _object,
     const std::string& _key,
     i64                _fallback
@@ -200,8 +192,7 @@ get_int(
                               : _fallback;
 }
 
-int
-get_small(
+int get_small(
     const json_value&  _object,
     const std::string& _key,
     int                _fallback
@@ -219,8 +210,7 @@ get_small(
     return static_cast<int>(value);
 }
 
-float
-get_float(
+float get_float(
     const json_value&  _object,
     const std::string& _key,
     float              _fallback
@@ -233,8 +223,7 @@ get_float(
                : _fallback;
 }
 
-std::string
-get_text(
+std::string get_text(
     const json_value&  _object,
     const std::string& _key,
     const std::string& _fallback
@@ -248,8 +237,7 @@ get_text(
 
 // --------------------------------------------------------------------- rows
 
-json_value
-save_row(
+json_value save_row(
     const row& _row
 )
 {
@@ -310,8 +298,7 @@ save_row(
     return out;
 }
 
-row
-load_row(
+row load_row(
     const json_value& _value,
     int&              _top
 )
@@ -373,8 +360,7 @@ load_row(
 
 // ---------------------------------------------------------------- settings
 
-json_value
-save_line(
+json_value save_line(
     const line_spec& _line
 )
 {
@@ -394,8 +380,7 @@ save_line(
     return out;
 }
 
-line_spec
-load_line(
+line_spec load_line(
     const json_value* _value,
     const line_spec&  _fallback
 )
@@ -415,8 +400,7 @@ load_line(
     return made;
 }
 
-json_value
-save_grid(
+json_value save_grid(
     const grid_settings& _grid
 )
 {
@@ -527,8 +511,7 @@ save_grid(
     return out;
 }
 
-void
-load_grid(
+void load_grid(
     const json_value* _value,
     grid_settings&    _grid
 )
@@ -664,8 +647,7 @@ save_colours
 brightness is left out, and is automatic again when read. The theme is the
 window's, and is never written.
 */
-json_value
-save_colours(
+json_value save_colours(
     const colour_settings& _colours
 )
 {
@@ -721,8 +703,7 @@ rest. A colour that is one of those defaults, any old theme's, was never
 chosen: it becomes automatic, so the sheet follows the window's theme and
 scheme. So do the palette, saturation and brightness the old themes gave.
 */
-void
-forget_old_defaults(
+void forget_old_defaults(
     sheet& _sheet
 )
 {
@@ -783,8 +764,7 @@ forget_old_defaults(
     return;
 }
 
-void
-load_colours(
+void load_colours(
     const json_value* _value,
     colour_settings&  _colours
 )
@@ -816,8 +796,7 @@ load_colours(
     return;
 }
 
-json_value
-save_gen(
+json_value save_gen(
     const gen_settings& _gen
 )
 {
@@ -871,8 +850,7 @@ save_gen(
     return out;
 }
 
-void
-load_gen(
+void load_gen(
     const json_value* _value,
     gen_settings&     _gen
 )
@@ -949,8 +927,7 @@ as UTF-8 -- typed into ImGui, or dropped on the window -- and a stream
 opened by a narrow string would read one in the system's code page on
 Windows; a path made from UTF-8 says which.
 */
-std::filesystem::path
-file_path(
+std::filesystem::path file_path(
     const std::string& _utf8
 )
 {
@@ -964,8 +941,7 @@ file_path(
 }  // anonymous namespace
 
 
-json_value
-sheet_object(
+json_value sheet_object(
     const sheet& _sheet
 )
 {
@@ -1027,16 +1003,14 @@ sheet_object(
     return out;
 }
 
-std::string
-save_sheet(
+std::string save_sheet(
     const sheet& _sheet
 )
 {
     return write_json(sheet_object(_sheet));
 }
 
-bool
-load_sheet(
+bool load_sheet(
     std::string_view _text,
     sheet&           _sheet,
     std::string&     _error
@@ -1052,8 +1026,7 @@ load_sheet(
     return sheet_from_object(in, _sheet, _error);
 }
 
-bool
-sheet_from_object(
+bool sheet_from_object(
     const json_value& _object,
     sheet&            _sheet,
     std::string&      _error
@@ -1160,16 +1133,14 @@ sheet_from_object(
     return true;
 }
 
-json_value
-generator_object(
+json_value generator_object(
     const gen_settings& _gen
 )
 {
     return save_gen(_gen);
 }
 
-void
-read_generator(
+void read_generator(
     const json_value* _object,
     gen_settings&     _gen
 )
@@ -1181,48 +1152,42 @@ read_generator(
 
 // enum_word
 //   each enumeration a file names, as the word it writes.
-std::string
-enum_word(
+std::string enum_word(
     encoding _value
 )
 {
     return word(ENCODINGS, _value).text;
 }
 
-std::string
-enum_word(
+std::string enum_word(
     radix _value
 )
 {
     return word(RADIXES, _value).text;
 }
 
-std::string
-enum_word(
+std::string enum_word(
     int_suffix _value
 )
 {
     return word(SUFFIXES, _value).text;
 }
 
-std::string
-enum_word(
+std::string enum_word(
     numbering _value
 )
 {
     return word(NUMBERINGS, _value).text;
 }
 
-std::string
-enum_word(
+std::string enum_word(
     byte_order _value
 )
 {
     return word(ORDERS, _value).text;
 }
 
-std::string
-enum_word(
+std::string enum_word(
     def_kind _value
 )
 {
@@ -1235,8 +1200,7 @@ namespace
 // read_any
 //   a word as one enumeration's value, when the table has it.
 template<typename Enum>
-bool
-read_any(
+bool read_any(
     const std::string& _word,
     const words&       _table,
     Enum&              _value
@@ -1260,8 +1224,7 @@ read_any(
 // read_enum
 //   a word as each enumeration a file names; false, leaving the value, for
 // a word the enumeration has not.
-bool
-read_enum(
+bool read_enum(
     const std::string& _word,
     encoding&          _value
 )
@@ -1269,8 +1232,7 @@ read_enum(
     return read_any(_word, ENCODINGS, _value);
 }
 
-bool
-read_enum(
+bool read_enum(
     const std::string& _word,
     radix&             _value
 )
@@ -1278,8 +1240,7 @@ read_enum(
     return read_any(_word, RADIXES, _value);
 }
 
-bool
-read_enum(
+bool read_enum(
     const std::string& _word,
     int_suffix&        _value
 )
@@ -1287,8 +1248,7 @@ read_enum(
     return read_any(_word, SUFFIXES, _value);
 }
 
-bool
-read_enum(
+bool read_enum(
     const std::string& _word,
     numbering&         _value
 )
@@ -1296,8 +1256,7 @@ read_enum(
     return read_any(_word, NUMBERINGS, _value);
 }
 
-bool
-read_enum(
+bool read_enum(
     const std::string& _word,
     byte_order&        _value
 )
@@ -1305,8 +1264,7 @@ read_enum(
     return read_any(_word, ORDERS, _value);
 }
 
-bool
-read_enum(
+bool read_enum(
     const std::string& _word,
     def_kind&          _value
 )
@@ -1314,8 +1272,7 @@ read_enum(
     return read_any(_word, DEF_KINDS, _value);
 }
 
-bool
-read_file(
+bool read_file(
     const std::string& _path,
     std::string&       _text,
     std::string&       _error
@@ -1336,8 +1293,7 @@ read_file(
     return true;
 }
 
-bool
-write_file(
+bool write_file(
     const std::string& _path,
     const std::string& _text,
     std::string&       _error

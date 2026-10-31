@@ -7,7 +7,7 @@
 * d_sqlite_query_* functions run one statement and return the first column of
 * its first row, which covers the common single-value case -- a count, a
 * version, a setting -- in one call; d_sqlite_query_rows returns all of its
-* rows, as db_common.h's d_db_rows.
+* rows, as db_common.h's dj_db_rows.
 *   Each comes in a plain form, which takes SQL as written, and an `f` form,
 * which takes a printf-like format in one of two dialects. A format is
 * sqlite3_mprintf's -- %q doubles single quotes, %Q also surrounds the value
@@ -75,7 +75,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.h"   // framework root
 #include "./sqlite_common.h"  // sqlite3, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -104,8 +104,10 @@ D_EXTERN_C_BEGIN
  * @return SQLITE_OK, or the SQLite result code of the first statement that
  *         failed, after which none runs; SQLITE_MISUSE for a `NULL` argument.
  */
-int   d_sqlite_exec(struct sqlite3* _db,
-                    const char*     _sql) D_NOTHROW;
+int d_sqlite_exec(
+    struct sqlite3* _db,
+    const char*     _sql
+) D_NOTHROW;
 /**
  * @brief Formats SQL and runs it, as d_sqlite_exec.
  *
@@ -117,9 +119,11 @@ int   d_sqlite_exec(struct sqlite3* _db,
  *         SQLITE_MISUSE for a shared-dialect format it refuses; or as
  *         d_sqlite_exec.
  */
-int   d_sqlite_execf(struct sqlite3* _db,
-                     const char*     _format,
-                     ...) D_NOTHROW;
+int d_sqlite_execf(
+    struct sqlite3* _db,
+    const char*     _format,
+    ...
+) D_NOTHROW;
 
 // 1.2    Rows changed
 //------------------------------------------------------------------------------
@@ -128,13 +132,17 @@ int   d_sqlite_execf(struct sqlite3* _db,
 // rows it returned, for one that changes none and returns rows, a SELECT
 // say; and 0 for any other, CREATE TABLE among them. Written only on success.
 // The `f` form fails as d_sqlite_execf does.
-int   d_sqlite_exec_changes(struct sqlite3* _db,
-                            int64_t*        _changes,
-                            const char*     _sql) D_NOTHROW;
-int   d_sqlite_execf_changes(struct sqlite3* _db,
-                             int64_t*        _changes,
-                             const char*     _format,
-                             ...) D_NOTHROW;
+int d_sqlite_exec_changes(
+    struct sqlite3* _db,
+    int64_t*        _changes,
+    const char*     _sql
+) D_NOTHROW;
+int d_sqlite_execf_changes(
+    struct sqlite3* _db,
+    int64_t*        _changes,
+    const char*     _format,
+    ...
+) D_NOTHROW;
 
 // 1.3    Single values
 //------------------------------------------------------------------------------
@@ -145,27 +153,39 @@ int   d_sqlite_execf_changes(struct sqlite3* _db,
 // forms, formatting that ran out of memory, SQLITE_NOMEM, and a format or an
 // argument the shared dialect refuses, SQLITE_MISUSE. The text forms
 // allocate: release the string with d_db_free.
-int   d_sqlite_query_int64(struct sqlite3* _db,
-                           int64_t*        _value,
-                           const char*     _sql) D_NOTHROW;
-int   d_sqlite_query_int64f(struct sqlite3* _db,
-                            int64_t*        _value,
-                            const char*     _format,
-                            ...) D_NOTHROW;
-int   d_sqlite_query_double(struct sqlite3* _db,
-                            double*         _value,
-                            const char*     _sql) D_NOTHROW;
-int   d_sqlite_query_doublef(struct sqlite3* _db,
-                             double*         _value,
-                             const char*     _format,
-                             ...) D_NOTHROW;
-int   d_sqlite_query_text(struct sqlite3* _db,
-                          char**          _value,
-                          const char*     _sql) D_NOTHROW;
-int   d_sqlite_query_textf(struct sqlite3* _db,
-                           char**          _value,
-                           const char*     _format,
-                           ...) D_NOTHROW;
+int d_sqlite_query_int64(
+    struct sqlite3* _db,
+    int64_t*        _value,
+    const char*     _sql
+) D_NOTHROW;
+int d_sqlite_query_int64f(
+    struct sqlite3* _db,
+    int64_t*        _value,
+    const char*     _format,
+    ...
+) D_NOTHROW;
+int d_sqlite_query_double(
+    struct sqlite3* _db,
+    double*         _value,
+    const char*     _sql
+) D_NOTHROW;
+int d_sqlite_query_doublef(
+    struct sqlite3* _db,
+    double*         _value,
+    const char*     _format,
+    ...
+) D_NOTHROW;
+int d_sqlite_query_text(
+    struct sqlite3* _db,
+    char**          _value,
+    const char*     _sql
+) D_NOTHROW;
+int d_sqlite_query_textf(
+    struct sqlite3* _db,
+    char**          _value,
+    const char*     _format,
+    ...
+) D_NOTHROW;
 
 // 1.4    Rows
 //------------------------------------------------------------------------------
@@ -184,9 +204,11 @@ int   d_sqlite_query_textf(struct sqlite3* _db,
  *       statement that returns no rows -- an INSERT, say -- gives rows with
  *       its columns, if any, and none of them.
  */
-int   d_sqlite_query_rows(struct sqlite3*   _db,
-                          struct d_db_rows* _rows,
-                          const char*       _sql) D_NOTHROW;
+int d_sqlite_query_rows(
+    struct sqlite3*    _db,
+    struct dj_db_rows* _rows,
+    const char*        _sql
+) D_NOTHROW;
 /**
  * @brief Formats a statement, runs it, and returns every row it produced, as
  *        d_sqlite_query_rows.
@@ -199,10 +221,12 @@ int   d_sqlite_query_rows(struct sqlite3*   _db,
  *         memory; SQLITE_MISUSE for a shared-dialect format it refuses.
  * @post As for d_sqlite_query_rows.
  */
-int   d_sqlite_query_rowsf(struct sqlite3*   _db,
-                           struct d_db_rows* _rows,
-                           const char*       _format,
-                           ...) D_NOTHROW;
+int d_sqlite_query_rowsf(
+    struct sqlite3*    _db,
+    struct dj_db_rows* _rows,
+    const char*        _format,
+    ...
+) D_NOTHROW;
 
 // 1.5    Quoting
 //------------------------------------------------------------------------------
@@ -214,7 +238,9 @@ int   d_sqlite_query_rowsf(struct sqlite3*   _db,
  * @return the quoted name, released with d_db_free; `NULL` for a `NULL` name
  *         or when memory ran out.
  */
-char* d_sqlite_quote_identifier(const char* _name) D_NOTHROW;
+char* d_sqlite_quote_identifier(
+    const char* _name
+) D_NOTHROW;
 /**
  * @brief Quotes text as an SQL string literal: 'text', with any single quote
  *        in it doubled.
@@ -222,7 +248,9 @@ char* d_sqlite_quote_identifier(const char* _name) D_NOTHROW;
  * @param[in] _text  the text; `NULL` quotes as the keyword NULL.
  * @return the literal, released with d_db_free; `NULL` when memory ran out.
  */
-char* d_sqlite_quote_literal(const char* _text) D_NOTHROW;
+char* d_sqlite_quote_literal(
+    const char* _text
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

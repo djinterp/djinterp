@@ -30,7 +30,7 @@
 // common definitions — always included
 #include "type_info_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -41,7 +41,7 @@
 
 #if D_ENV_LANG_USING_CPP
     // C++ modifier bits (32-47), feature-gated SET macros
-    #include "../../core/meta/type_info_cpp.hpp"
+    // C++ callers include type_info_cpp.hpp themselves (no C header includes C++)
 #else
     // C storage-class bits (24-31) and C11 _Generic support
     #include "type_info_c.h"

@@ -24,9 +24,9 @@
 #include <stdlib.h>  // malloc, realloc, free
 #include <string.h>  // memcpy, memset, strcmp, strlen
 // djinterp
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"               // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"               // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs.h"      // d_msvs_compare_paths
-#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h"  // d_msvs_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h"  // dj_msvs_doc
 #include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"             // d_text_read
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"              // d_awk_value_text
 
@@ -51,32 +51,32 @@
 // d_internal_file
 //   struct: one file open, or none once closed, and the extension's handle
 //   for each of the document's, 0 until given.
-struct d_internal_file
+struct dj_internal_file
 {
-    struct d_msvs_doc* doc;
+    struct dj_msvs_doc* doc;
     size_t*            globals;
     size_t             global_capacity;
 };
 
 // 1.1.2
-// d_internal_handle
+// dj_internal_handle
 //   struct: what a handle names: a file, and the document's handle there.
-struct d_internal_handle
+struct dj_internal_handle
 {
     size_t file;
     size_t local;
 };
 
 // 1.1.3
-// d_host_vcxproj
+// dj_host_vcxproj
 //   struct: the files, the handles, room for a decoded text, and the last
 //   failure.
-struct d_host_vcxproj
+struct dj_host_vcxproj
 {
-    struct d_internal_file*   files;
+    struct dj_internal_file*   files;
     size_t                    file_count;
     size_t                    file_capacity;
-    struct d_internal_handle* handles;
+    struct dj_internal_handle* handles;
     size_t                    handle_count;
     size_t                    handle_capacity;
     char*                     scratch;
@@ -88,11 +88,11 @@ struct d_host_vcxproj
 // d_internal_at
 //   struct: an element a handle names: its file, the file's records, and
 //   its index there.
-struct d_internal_at
+struct dj_internal_at
 {
     size_t                  file;
-    struct d_msvs_doc*      doc;
-    const struct d_msvs*    records;
+    struct dj_msvs_doc*      doc;
+    const struct dj_msvs*    records;
     size_t                  element;
 };
 
@@ -107,18 +107,18 @@ d_internal_text, d_internal_number
   An argument's text, and an argument as a handle: a value below 1 is 0,
 which names nothing.
 */
-static const char*
-d_internal_text(
-    struct d_awk_value* _value
+static
+const char* d_internal_text(
+    struct dj_awk_value* _value
 )
 {
     return d_awk_value_text(_value, NULL, NULL);
 }
 
 
-static size_t
-d_internal_number(
-    struct d_awk_value* _value
+static
+size_t d_internal_number(
+    struct dj_awk_value* _value
 )
 {
     const double number = d_awk_value_number(_value);
@@ -138,11 +138,11 @@ d_internal_fail
   Gives -1 for a failure the program can recover from, vcxproj_error()
 saying why.
 */
-static bool
-d_internal_fail(
-    struct d_host_vcxproj* _host,
-    struct d_awk_value*    _out,
-    const char*            _why
+static
+bool d_internal_fail(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_value*    _out,
+    const char*             _why
 )
 {
     (void)snprintf(_host->error, sizeof(_host->error), "%s",
@@ -157,10 +157,10 @@ d_internal_fail(
 d_internal_scratch
   Room for a decoded text of up to `_length` bytes.
 */
-static char*
-d_internal_scratch(
-    struct d_host_vcxproj* _host,
-    size_t                 _length
+static
+char* d_internal_scratch(
+    struct dj_host_vcxproj* _host,
+    size_t                  _length
 )
 {
     // the room grows, and is kept
@@ -186,12 +186,12 @@ d_internal_scratch(
 d_internal_attribute
   An attribute's value, decoded into the scratch room; NULL when absent.
 */
-static const char*
-d_internal_attribute(
-    struct d_host_vcxproj* _host,
-    const struct d_msvs*   _records,
-    size_t                 _element,
-    const char*            _name
+static
+const char* d_internal_attribute(
+    struct dj_host_vcxproj* _host,
+    const struct dj_msvs*   _records,
+    size_t                  _element,
+    const char*             _name
 )
 {
     size_t start  = 0;
@@ -219,14 +219,14 @@ d_internal_attribute(
 d_internal_element_text
   An element's text, decoded into the scratch room.
 */
-static const char*
-d_internal_element_text(
-    struct d_host_vcxproj* _host,
-    const struct d_msvs*   _records,
-    size_t                 _element
+static
+const char* d_internal_element_text(
+    struct dj_host_vcxproj* _host,
+    const struct dj_msvs*   _records,
+    size_t                  _element
 )
 {
-    const struct d_msvs_element* const element =
+    const struct dj_msvs_element* const element =
         &_records->elements[_element];
     char* const out = d_internal_scratch(_host, element->content_end -
                                                 element->content_start);
@@ -250,14 +250,14 @@ d_internal_give
   The extension's handle for an element of a file, given the first time it
 is asked for; 0 when memory runs out.
 */
-static size_t
-d_internal_give(
-    struct d_host_vcxproj* _host,
-    size_t                 _file,
-    size_t                 _element
+static
+size_t d_internal_give(
+    struct dj_host_vcxproj* _host,
+    size_t                  _file,
+    size_t                  _element
 )
 {
-    struct d_internal_file* const file  = &_host->files[_file];
+    struct dj_internal_file* const file  = &_host->files[_file];
     const size_t                  local = d_msvs_doc_handle(file->doc,
                                                             _element);
 
@@ -296,7 +296,7 @@ d_internal_give(
     {
         const size_t wanted = (_host->handle_capacity == 0u)
                             ? 256u : (_host->handle_capacity * 2u);
-        struct d_internal_handle* const grown =
+        struct dj_internal_handle* const grown =
             realloc(_host->handles, wanted * sizeof(*grown));
 
         if (!grown)
@@ -330,12 +330,12 @@ d_internal_give(
 d_internal_give_out
   Gives the program an element's handle, 0 for none.
 */
-static bool
-d_internal_give_out(
-    struct d_host_vcxproj* _host,
-    struct d_awk_value*    _out,
-    size_t                 _file,
-    size_t                 _element
+static
+bool d_internal_give_out(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_value*    _out,
+    size_t                  _file,
+    size_t                  _element
 )
 {
     const size_t handle = (_element == D_MSVS_NONE)
@@ -351,11 +351,11 @@ d_internal_give_out(
 d_internal_find
   The element a program's handle names, in a file open; false for none.
 */
-static bool
-d_internal_find(
-    struct d_host_vcxproj* _host,
-    struct d_awk_value*    _value,
-    struct d_internal_at*  _out
+static
+bool d_internal_find(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_value*    _value,
+    struct dj_internal_at*  _out
 )
 {
     const size_t global = d_internal_number(_value);
@@ -368,7 +368,7 @@ d_internal_find(
         return false;
     }
 
-    const struct d_internal_handle* const handle = &_host->handles[global];
+    const struct dj_internal_handle* const handle = &_host->handles[global];
 
     _out->file    = handle->file;
     _out->doc     = _host->files[handle->file].doc;
@@ -384,11 +384,11 @@ d_internal_take
   Makes a document a file open, and gives its root's handle; -1 when memory
 runs out.
 */
-static bool
-d_internal_take(
-    struct d_host_vcxproj* _host,
-    struct d_msvs_doc*     _doc,
-    struct d_awk_value*    _out
+static
+bool d_internal_take(
+    struct dj_host_vcxproj* _host,
+    struct dj_msvs_doc*     _doc,
+    struct dj_awk_value*    _out
 )
 {
     // only an XML file has elements to name
@@ -405,7 +405,7 @@ d_internal_take(
     {
         const size_t wanted = (_host->file_capacity == 0u)
                             ? 8u : (_host->file_capacity * 2u);
-        struct d_internal_file* const grown =
+        struct dj_internal_file* const grown =
             realloc(_host->files, wanted * sizeof(*grown));
 
         if (!grown)
@@ -419,7 +419,7 @@ d_internal_take(
         _host->file_capacity = wanted;
     }
 
-    struct d_internal_file* const file = &_host->files[_host->file_count++];
+    struct dj_internal_file* const file = &_host->files[_host->file_count++];
 
     file->doc             = _doc;
     file->globals         = NULL;
@@ -445,7 +445,7 @@ Studio writes it for that kind, with nothing in it.
 */
 static const char*
 d_internal_skeleton(
-    enum d_msvs_kind _kind
+    enum dj_msvs_kind _kind
 )
 {
     static const char project[] =
@@ -480,24 +480,24 @@ d_internal_skeleton(
 vcxproj_open(path)
   The root's handle, or -1.
 */
-static bool
-d_internal_vcxproj_open(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_open(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
+    struct dj_host_vcxproj* const host = _user;
     char                         why[384];
 
     (void)_count;
     (void)_problem;
     (void)_capacity;
 
-    struct d_msvs_doc* const doc = d_msvs_doc_read(d_internal_text(_args[0]),
+    struct dj_msvs_doc* const doc = d_msvs_doc_read(d_internal_text(_args[0]),
                                                    why, sizeof(why));
 
     // a file that cannot be read, or does not read whole, is not opened
@@ -514,17 +514,17 @@ d_internal_vcxproj_open(
 vcxproj_new(path[, template])
   The root's handle of a file not yet saved, or -1.
 */
-static bool
-d_internal_vcxproj_new(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_new(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
+    struct dj_host_vcxproj* const host = _user;
     char                         why[384];
     char* const                  path = malloc(strlen(d_internal_text(
                                                    _args[0])) + 1u);
@@ -541,7 +541,7 @@ d_internal_vcxproj_new(
     memcpy(path, d_internal_text(_args[0]),
            strlen(d_internal_text(_args[0])) + 1u);
 
-    const enum d_msvs_kind kind = d_msvs_kind_of(path);
+    const enum dj_msvs_kind kind = d_msvs_kind_of(path);
 
     // a solution is the sln extension's to make
     if (kind == D_MSVS_SOLUTION)
@@ -567,7 +567,7 @@ d_internal_vcxproj_new(
     }
 
     const char* const        skeleton = d_internal_skeleton(kind);
-    struct d_msvs_doc* const doc      =
+    struct dj_msvs_doc* const doc      =
         d_msvs_doc_make(path, (text) ? text : skeleton,
                         (text) ? length : strlen(skeleton), why, sizeof(why));
 
@@ -587,18 +587,18 @@ d_internal_vcxproj_new(
 vcxproj_save(e[, path])
   1 written, 2 the file held it already, or -1.
 */
-static bool
-d_internal_vcxproj_save(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_save(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
 
     (void)_problem;
     (void)_capacity;
@@ -609,7 +609,7 @@ d_internal_vcxproj_save(
         return d_internal_fail(host, _out, "no such element");
     }
 
-    const enum d_msvs_saved saved =
+    const enum dj_msvs_saved saved =
         d_msvs_doc_save(at.doc, (_count > 1u) ? d_internal_text(_args[1])
                                               : NULL);
 
@@ -629,18 +629,18 @@ d_internal_vcxproj_save(
 vcxproj_close(e)
   1, or 0 when `e` names nothing; the file's place is kept, empty.
 */
-static bool
-d_internal_vcxproj_close(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_close(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
 
     (void)_count;
     (void)_problem;
@@ -654,7 +654,7 @@ d_internal_vcxproj_close(
         return true;
     }
 
-    struct d_internal_file* const file = &host->files[at.file];
+    struct dj_internal_file* const file = &host->files[at.file];
 
     d_msvs_doc_free(file->doc);
     free(file->globals);
@@ -671,17 +671,17 @@ d_internal_vcxproj_close(
 vcxproj_error()
   Why the last -1 was given.
 */
-static bool
-d_internal_vcxproj_error(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_error(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_host_vcxproj* const host = _user;
+    const struct dj_host_vcxproj* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -696,17 +696,17 @@ d_internal_vcxproj_error(
 vcxproj_path(e), vcxproj_kind(e), vcxproj_changes(e)
   The file's path, its kind, and the changes it has had.
 */
-static bool
-d_internal_vcxproj_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
     const char*          path = "";
 
     (void)_count;
@@ -723,21 +723,21 @@ d_internal_vcxproj_path(
 }
 
 
-static bool
-d_internal_vcxproj_kind(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_kind(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const names[] =
     {
         "other", "solution", "project", "filters", "user", "props"
     };
-    struct d_internal_at at;
+    struct dj_internal_at at;
     const char*          kind = "";
 
     (void)_count;
@@ -754,17 +754,17 @@ d_internal_vcxproj_kind(
 }
 
 
-static bool
-d_internal_vcxproj_changes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_changes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
 
     (void)_count;
     (void)_problem;
@@ -787,15 +787,15 @@ d_internal_vcxproj_changes(
 vcxproj_root(e), vcxproj_parent(e), vcxproj_first(e), vcxproj_next(e)
   An element's relations, each 0 for none.
 */
-static bool
-d_internal_relation(
-    struct d_host_vcxproj* _host,
-    struct d_awk_value*    _value,
-    struct d_awk_value*    _out,
-    int                    _which
+static
+bool d_internal_relation(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_value*    _value,
+    struct dj_awk_value*    _out,
+    int                     _which
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
 
     // a handle naming nothing is related to nothing
     if (!d_internal_find(_host, _value, &at))
@@ -805,7 +805,7 @@ d_internal_relation(
         return true;
     }
 
-    const struct d_msvs_element* const element =
+    const struct dj_msvs_element* const element =
         &at.records->elements[at.element];
     const size_t related = (_which == 0) ? 0u
                          : (_which == 1) ? element->parent
@@ -816,14 +816,14 @@ d_internal_relation(
 }
 
 
-static bool
-d_internal_vcxproj_root(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_root(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -834,14 +834,14 @@ d_internal_vcxproj_root(
 }
 
 
-static bool
-d_internal_vcxproj_parent(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_parent(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -852,14 +852,14 @@ d_internal_vcxproj_parent(
 }
 
 
-static bool
-d_internal_vcxproj_first(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_first(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -870,14 +870,14 @@ d_internal_vcxproj_first(
 }
 
 
-static bool
-d_internal_vcxproj_next(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_next(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -892,21 +892,21 @@ d_internal_vcxproj_next(
 vcxproj_children(e), vcxproj_line(e), vcxproj_depth(e)
   Counts and places, each 0 for an element not there.
 */
-static bool
-d_internal_measure(
-    struct d_host_vcxproj* _host,
-    struct d_awk_value*    _value,
-    struct d_awk_value*    _out,
-    int                    _which
+static
+bool d_internal_measure(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_value*    _value,
+    struct dj_awk_value*    _out,
+    int                     _which
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
     double               measure = 0.0;
 
     // a handle naming nothing measures nothing
     if (d_internal_find(_host, _value, &at))
     {
-        const struct d_msvs_element* const element =
+        const struct dj_msvs_element* const element =
             &at.records->elements[at.element];
 
         measure = (_which == 0) ? (double)element->child_count
@@ -920,14 +920,14 @@ d_internal_measure(
 }
 
 
-static bool
-d_internal_vcxproj_children(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_children(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -938,14 +938,14 @@ d_internal_vcxproj_children(
 }
 
 
-static bool
-d_internal_vcxproj_line(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_line(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -956,14 +956,14 @@ d_internal_vcxproj_line(
 }
 
 
-static bool
-d_internal_vcxproj_depth(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_depth(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -979,19 +979,19 @@ vcxproj_find(e, name[, after])
   Within an element, its descendants follow it in order up to the first
 element that starts past its end.
 */
-static bool
-d_internal_vcxproj_find(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_find(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         within;
-    struct d_internal_at         after;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         within;
+    struct dj_internal_at         after;
     const char* const            name = d_internal_text(_args[1]);
 
     (void)_problem;
@@ -1005,7 +1005,7 @@ d_internal_vcxproj_find(
         return true;
     }
 
-    const struct d_msvs* const records = within.records;
+    const struct dj_msvs* const records = within.records;
     const size_t               end     = records->elements[within.element].end;
     size_t                     from    = within.element + 1u;
 
@@ -1040,17 +1040,17 @@ d_internal_vcxproj_find(
 vcxproj_name(e), vcxproj_text(e)
   An element's name, as written, and its text, decoded.
 */
-static bool
-d_internal_vcxproj_name(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_name(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
 
     (void)_count;
     (void)_problem;
@@ -1062,7 +1062,7 @@ d_internal_vcxproj_name(
         return d_awk_value_set_string(_out, "", 0u);
     }
 
-    const struct d_msvs_element* const element =
+    const struct dj_msvs_element* const element =
         &at.records->elements[at.element];
 
     return d_awk_value_set_string(_out, &at.records->text[element->name],
@@ -1070,18 +1070,18 @@ d_internal_vcxproj_name(
 }
 
 
-static bool
-d_internal_vcxproj_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
 
     (void)_count;
     (void)_capacity;
@@ -1110,18 +1110,18 @@ d_internal_vcxproj_text(
 vcxproj_attr(e, name), vcxproj_has(e, name)
   An attribute's value, decoded, and whether it is there.
 */
-static bool
-d_internal_vcxproj_attr(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_attr(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
 
     (void)_count;
     (void)_problem;
@@ -1142,17 +1142,17 @@ d_internal_vcxproj_attr(
 }
 
 
-static bool
-d_internal_vcxproj_has(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_has(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
     size_t               start  = 0;
     size_t               length = 0;
 
@@ -1183,10 +1183,10 @@ d_internal_condition
   What an element's own Condition tests, with the configuration it tests in
 `_tested`.
 */
-static enum d_msvs_condition
+static enum dj_msvs_condition
 d_internal_condition(
-    struct d_host_vcxproj* _host,
-    const struct d_msvs*   _records,
+    struct dj_host_vcxproj* _host,
+    const struct dj_msvs*   _records,
     size_t                 _element,
     char*                  _tested,
     size_t                 _capacity
@@ -1207,12 +1207,12 @@ a configuration, 2 when nothing says so but something is not understood,
 and 0 when something says so.  With no configuration, only an element no
 Condition on configurations holds applies.
 */
-static int
-d_internal_applies(
-    struct d_host_vcxproj* _host,
-    const struct d_msvs*   _records,
-    size_t                 _element,
-    const char*            _config
+static
+int d_internal_applies(
+    struct dj_host_vcxproj* _host,
+    const struct dj_msvs*   _records,
+    size_t                  _element,
+    const char*             _config
 )
 {
     int applies = 1;
@@ -1222,7 +1222,7 @@ d_internal_applies(
          at = _records->elements[at].parent)
     {
         char                        tested[256];
-        const enum d_msvs_condition condition =
+        const enum dj_msvs_condition condition =
             d_internal_condition(_host, _records, at, tested,
                                  sizeof(tested));
 
@@ -1248,17 +1248,17 @@ d_internal_applies(
 vcxproj_condition(e)
   "", the configuration tested, or "?".
 */
-static bool
-d_internal_vcxproj_condition(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_condition(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
     char                 tested[256] = "";
 
     (void)_count;
@@ -1271,7 +1271,7 @@ d_internal_vcxproj_condition(
         return d_awk_value_set_string(_out, "", 0u);
     }
 
-    const enum d_msvs_condition condition =
+    const enum dj_msvs_condition condition =
         d_internal_condition(_user, at.records, at.element, tested,
                              sizeof(tested));
     const char* const said = (condition == D_MSVS_ALWAYS)        ? ""
@@ -1286,17 +1286,17 @@ d_internal_vcxproj_condition(
 vcxproj_applies(e, config)
   1, 0 or 2.
 */
-static bool
-d_internal_vcxproj_applies(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_applies(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
     char                 config[256];
 
     (void)_count;
@@ -1327,18 +1327,18 @@ vcxproj_property(e, name[, config])
   Every property group's child so named, in order, the last that applies
 winning, as MSBuild's evaluation would leave it if nothing were expanded.
 */
-static bool
-d_internal_vcxproj_property(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_property(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
     char                         name[256];
     char                         config[256];
     size_t                       found = D_MSVS_NONE;
@@ -1356,7 +1356,7 @@ d_internal_vcxproj_property(
         return d_awk_value_set_string(_out, "", 0u);
     }
 
-    const struct d_msvs* const records = at.records;
+    const struct dj_msvs* const records = at.records;
 
     // every property group of the file, in order
     for (size_t group = records->elements[0].first_child;
@@ -1402,18 +1402,18 @@ d_internal_item
   The item of a type naming a file, among a file's item groups; D_MSVS_NONE
 for none.
 */
-static size_t
-d_internal_item(
-    struct d_host_vcxproj* _host,
-    const struct d_msvs*   _records,
-    const char*            _type,
-    const char*            _include
+static
+size_t d_internal_item(
+    struct dj_host_vcxproj* _host,
+    const struct dj_msvs*   _records,
+    const char*             _type,
+    const char*             _include
 )
 {
     // every item of the file, in order
     for (size_t at = 0; at < _records->element_count; ++at)
     {
-        const struct d_msvs_element* const element = &_records->elements[at];
+        const struct dj_msvs_element* const element = &_records->elements[at];
 
         // an item of the type, in an item group
         if ( (element->parent == D_MSVS_NONE) ||
@@ -1443,18 +1443,18 @@ d_internal_item(
 vcxproj_item(e, type, include)
   The item's handle, or 0.
 */
-static bool
-d_internal_vcxproj_item(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_item(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
     char                         type[256];
 
     (void)_count;
@@ -1484,14 +1484,14 @@ type, or a new one -- in a project, before the import of the C++ targets,
 where Visual Studio keeps its items; elsewhere, after the last child.
 D_MSVS_NONE when one cannot be made.
 */
-static size_t
-d_internal_group_for(
-    struct d_host_vcxproj* _host,
-    struct d_msvs_doc*     _doc,
-    const char*            _type
+static
+size_t d_internal_group_for(
+    struct dj_host_vcxproj* _host,
+    struct dj_msvs_doc*     _doc,
+    const char*             _type
 )
 {
-    const struct d_msvs* records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* records = d_msvs_doc_records(_doc);
     size_t               group   = D_MSVS_NONE;
     size_t               before  = D_MSVS_NONE;
 
@@ -1499,7 +1499,7 @@ d_internal_group_for(
     for (size_t at = records->elements[0].first_child; at != D_MSVS_NONE;
          at = records->elements[at].next_sibling)
     {
-        const struct d_msvs_element* const element = &records->elements[at];
+        const struct dj_msvs_element* const element = &records->elements[at];
 
         // the import an item group goes before, in a project
         if ( (before == D_MSVS_NONE) &&
@@ -1529,7 +1529,7 @@ d_internal_group_for(
     // a new group, where Visual Studio would put it
     if (group == D_MSVS_NONE)
     {
-        const struct d_msvs_new_element made = { "ItemGroup", NULL, NULL,
+        const struct dj_msvs_new_element made = { "ItemGroup", NULL, NULL,
                                                  0u };
 
         group = d_msvs_doc_insert(_doc, 0u, before, &made);
@@ -1545,13 +1545,13 @@ d_internal_place_in
 order of their files: the first of its type naming a file after it, or
 the sibling after the last of its type; D_MSVS_NONE to go last.
 */
-static size_t
-d_internal_place_in(
-    struct d_host_vcxproj* _host,
-    const struct d_msvs*   _records,
-    size_t                 _group,
-    const char*            _type,
-    const char*            _include
+static
+size_t d_internal_place_in(
+    struct dj_host_vcxproj* _host,
+    const struct dj_msvs*   _records,
+    size_t                  _group,
+    const char*             _type,
+    const char*             _include
 )
 {
     size_t last = D_MSVS_NONE;
@@ -1590,11 +1590,11 @@ d_internal_add_filter
 with a UniqueIdentifier made from its name.  The filters' group is the one
 holding filters, or a new one first in the file.
 */
-static bool
-d_internal_add_filter(
-    struct d_host_vcxproj* _host,
-    struct d_msvs_doc*     _doc,
-    const char*            _filter
+static
+bool d_internal_add_filter(
+    struct dj_host_vcxproj* _host,
+    struct dj_msvs_doc*     _doc,
+    const char*             _filter
 )
 {
     const size_t length = strlen(_filter);
@@ -1620,7 +1620,7 @@ d_internal_add_filter(
         memcpy(name, _filter, end);
         name[end] = '\0';
 
-        const struct d_msvs* records = d_msvs_doc_records(_doc);
+        const struct dj_msvs* records = d_msvs_doc_records(_doc);
 
         // a filter there already is left as it is
         if (d_internal_item(_host, records, "Filter", name) != D_MSVS_NONE)
@@ -1645,7 +1645,7 @@ d_internal_add_filter(
         // a file with no filters yet holds them first
         if (group == D_MSVS_NONE)
         {
-            const struct d_msvs_new_element made = { "ItemGroup", NULL, NULL,
+            const struct dj_msvs_new_element made = { "ItemGroup", NULL, NULL,
                                                      0u };
 
             group = d_msvs_doc_insert(_doc, 0u, records->elements[0]
@@ -1656,14 +1656,14 @@ d_internal_add_filter(
         char              guid[37];
         char              braced[40];
         const char* const include[] = { "Include", name };
-        const struct d_msvs_new_element filter = { "Filter", NULL, include,
+        const struct dj_msvs_new_element filter = { "Filter", NULL, include,
                                                    1u };
 
         (void)snprintf(seed, sizeof(seed), "filter:%s", name);
         d_msvs_guid(seed, strlen(seed), guid);
         (void)snprintf(braced, sizeof(braced), "{%s}", guid);
 
-        const struct d_msvs_new_element unique = { "UniqueIdentifier",
+        const struct dj_msvs_new_element unique = { "UniqueIdentifier",
                                                    braced, NULL, 0u };
         const size_t made =
             (group == D_MSVS_NONE) ? D_MSVS_NONE
@@ -1690,14 +1690,14 @@ d_internal_add_filter(
 d_internal_set_filter
   Gives an item of a filters file its <Filter>, in place of the one it has.
 */
-static bool
-d_internal_set_filter(
-    struct d_msvs_doc* _doc,
-    size_t             _item,
-    const char*        _filter
+static
+bool d_internal_set_filter(
+    struct dj_msvs_doc* _doc,
+    size_t              _item,
+    const char*         _filter
 )
 {
-    const struct d_msvs* const records = d_msvs_doc_records(_doc);
+    const struct dj_msvs* const records = d_msvs_doc_records(_doc);
     const size_t               held    = d_msvs_child(records, _item,
                                                       "Filter");
 
@@ -1707,7 +1707,7 @@ d_internal_set_filter(
         return d_msvs_doc_set_text(_doc, held, _filter);
     }
 
-    const struct d_msvs_new_element filter = { "Filter", _filter, NULL, 0u };
+    const struct dj_msvs_new_element filter = { "Filter", _filter, NULL, 0u };
 
     return (d_msvs_doc_insert(_doc, _item, D_MSVS_NONE, &filter)
             != D_MSVS_NONE);
@@ -1719,18 +1719,18 @@ vcxproj_add_item(e, type, include[, filter])
   The item, beside its kind and in order; one already there is the item,
 given the filter when one is named.
 */
-static bool
-d_internal_vcxproj_add_item(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_add_item(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
     char                         type[256];
     char                         filter[512];
 
@@ -1770,7 +1770,7 @@ d_internal_vcxproj_add_item(
          (item == D_MSVS_NONE) )
     {
         const char* const               pair[] = { "Include", include };
-        const struct d_msvs_new_element made   = { type, NULL, pair, 1u };
+        const struct dj_msvs_new_element made   = { type, NULL, pair, 1u };
         const size_t group = d_internal_group_for(host, at.doc, type);
 
         item = (group == D_MSVS_NONE)
@@ -1808,18 +1808,18 @@ d_internal_vcxproj_add_item(
 vcxproj_remove_item(e, type, include)
   1, 0 for none, or -1.
 */
-static bool
-d_internal_vcxproj_remove_item(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_remove_item(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
     char                         type[256];
 
     (void)_count;
@@ -1866,16 +1866,16 @@ d_internal_add_element
 the handle -- its name, its text, and attributes in pairs -- beneath a
 parent, before a sibling or last.
 */
-static bool
-d_internal_add_element(
-    struct d_host_vcxproj* _host,
-    struct d_awk_value**   _args,
-    size_t                 _count,
-    struct d_awk_value*    _out,
-    bool                   _before
+static
+bool d_internal_add_element(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_value**   _args,
+    size_t                  _count,
+    struct dj_awk_value*    _out,
+    bool                    _before
 )
 {
-    struct d_internal_at at;
+    struct dj_internal_at at;
     char*                texts[3u + (2u * D_INTERNAL_MOST_ATTRIBUTES)];
     bool                 ok = true;
 
@@ -1914,7 +1914,7 @@ d_internal_add_element(
         }
     }
 
-    const struct d_msvs_new_element element =
+    const struct dj_msvs_new_element element =
     {
         (_count > 1u) ? texts[1] : "",
         ( (_count > 2u) && (texts[2]) && (texts[2][0] != '\0') ) ? texts[2]
@@ -1953,14 +1953,14 @@ vcxproj_add(e, name[, text[, attr, value]...]),
 vcxproj_insert(e, name[, text[, attr, value]...])
   A last child, and a sibling before.
 */
-static bool
-d_internal_vcxproj_add(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_add(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1970,14 +1970,14 @@ d_internal_vcxproj_add(
 }
 
 
-static bool
-d_internal_vcxproj_insert(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_insert(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1991,12 +1991,12 @@ d_internal_vcxproj_insert(
 d_internal_changed
   1 for a change kept, or -1 with the document's reason.
 */
-static bool
-d_internal_changed(
-    struct d_host_vcxproj*   _host,
-    struct d_awk_value*      _out,
-    const struct d_msvs_doc* _doc,
-    bool                     _kept
+static
+bool d_internal_changed(
+    struct dj_host_vcxproj*   _host,
+    struct dj_awk_value*      _out,
+    const struct dj_msvs_doc* _doc,
+    bool                      _kept
 )
 {
     // a change refused says why
@@ -2016,18 +2016,18 @@ vcxproj_set_attr(e, name, value), vcxproj_remove_attr(e, name),
 vcxproj_set_text(e, text), vcxproj_remove(e)
   The document's own changes.
 */
-static bool
-d_internal_vcxproj_set_attr(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_set_attr(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
     char                         name[256];
 
     (void)_count;
@@ -2048,18 +2048,18 @@ d_internal_vcxproj_set_attr(
 }
 
 
-static bool
-d_internal_vcxproj_remove_attr(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_remove_attr(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
     size_t                       start  = 0;
     size_t                       length = 0;
 
@@ -2088,18 +2088,18 @@ d_internal_vcxproj_remove_attr(
 }
 
 
-static bool
-d_internal_vcxproj_set_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_set_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
 
     (void)_count;
     (void)_problem;
@@ -2116,18 +2116,18 @@ d_internal_vcxproj_set_text(
 }
 
 
-static bool
-d_internal_vcxproj_remove(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_vcxproj_remove(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_vcxproj* const host = _user;
-    struct d_internal_at         at;
+    struct dj_host_vcxproj* const host = _user;
+    struct dj_internal_at         at;
 
     (void)_count;
     (void)_problem;
@@ -2157,10 +2157,10 @@ d_internal_vcxproj_remove(
 d_internal_functions
   The extension's host functions, as a program calls them.
 */
-static const struct d_awk_host_function*
-d_internal_functions(void)
+static
+const struct dj_awk_host_function* d_internal_functions(void)
 {
-    static const struct d_awk_host_function functions[
+    static const struct dj_awk_host_function functions[
         D_INTERNAL_VCXPROJ_FUNCTIONS] =
     {
         { "vcxproj_open",        1u, 1u, d_internal_vcxproj_open        },
@@ -2207,10 +2207,9 @@ d_internal_functions(void)
 d_host_vcxproj_new
   An extension with no file open.
 */
-struct d_host_vcxproj*
-d_host_vcxproj_new(void)
+struct dj_host_vcxproj* d_host_vcxproj_new(void)
 {
-    struct d_host_vcxproj* const host = malloc(sizeof(*host));
+    struct dj_host_vcxproj* const host = malloc(sizeof(*host));
 
     // an extension that cannot be made is NULL
     if (host)
@@ -2226,9 +2225,8 @@ d_host_vcxproj_new(void)
 d_host_vcxproj_free
   Closes every file open, dropping unsaved changes.
 */
-void
-d_host_vcxproj_free(
-    struct d_host_vcxproj* _host
+void d_host_vcxproj_free(
+    struct dj_host_vcxproj* _host
 )
 {
     // freeing nothing is allowed
@@ -2256,10 +2254,9 @@ d_host_vcxproj_free(
 d_host_vcxproj_install
   The functions are added with the extension as their user pointer.
 */
-bool
-d_host_vcxproj_install(
-    struct d_host_vcxproj* _host,
-    struct d_awk_interp*   _interp
+bool d_host_vcxproj_install(
+    struct dj_host_vcxproj* _host,
+    struct dj_awk_interp*   _interp
 )
 {
     // parameter validation first

@@ -35,7 +35,7 @@
                                                                 // d_file_exists, d_dir_exists
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_ops.h"  // D_INTERNAL_FILE_OPS_*
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 // apple
 #if ( (D_INTERNAL_FILE_OPS_COPY_NATIVE == 1) &&                                \
       (D_CFG_IS_ON(D_CFG_FILE_HAS_FCOPYFILE)) )
@@ -60,8 +60,8 @@ stack, since D_CFG_FILE_OPS_COPY_BUF_SIZE is the caller's to choose and a
 thread's stack may be smaller. Only the non-ISO backends define it, because
 only they have a d_file_copy that calls it.
 */
-static int
-d_internal_ops_copy_portable(
+static
+int d_internal_ops_copy_portable(
     int _in,
     int _out
 )
@@ -133,8 +133,8 @@ first call that moves nothing, since a file whose size the kernel cannot see
 reads as empty here and not to read(). The fallback resumes where the kernel
 stopped, from the descriptors' shared offsets. EINTR is retried.
 */
-static int
-d_internal_ops_copy_native(
+static
+int d_internal_ops_copy_native(
     int _in,
     int _out
 )
@@ -202,8 +202,8 @@ d_internal_ops_copy_native
 resource forks along -- metadata the portable path silently drops. It never
 declines; any failure is a real one.
 */
-static int
-d_internal_ops_copy_native(
+static
+int d_internal_ops_copy_native(
     int _in,
     int _out
 )
@@ -228,8 +228,8 @@ d_internal_ops_copy_native
 platform has none here, as Windows has not -- so this always declines and the
 portable loop does the copy.
 */
-static int
-d_internal_ops_copy_native(
+static
+int d_internal_ops_copy_native(
     int _in,
     int _out
 )
@@ -258,11 +258,11 @@ d_internal_ops_same_file
 so the handles are asked for their volume and file index instead. A file
 that cannot be described is taken to be a different one.
 */
-static int
-d_internal_ops_same_file(
-    int                      _in,
-    const struct d_stat64_t* _in_stat,
-    int                      _out
+static
+int d_internal_ops_same_file(
+    int                       _in,
+    const struct dj_stat64_t* _in_stat,
+    int                       _out
 )
 {
     BY_HANDLE_FILE_INFORMATION a;
@@ -292,8 +292,8 @@ Its one bit is read-only, which keeps nothing private -- who may read the file
 is its ACL's business -- and set early it would keep a failed copy from
 removing what it wrote. d_internal_ops_finish sets it once the data is in.
 */
-static void
-d_internal_ops_restrict(
+static
+void d_internal_ops_restrict(
     int      _out,
     uint32_t _mode
 )
@@ -309,8 +309,8 @@ d_internal_ops_restore
   The source's bits, once the data is in: the read-only attribute, by path,
 since the CRT has no fchmod.
 */
-static void
-d_internal_ops_restore(
+static
+void d_internal_ops_restore(
     const char* _dst,
     uint32_t    _mode
 )
@@ -342,14 +342,14 @@ d_internal_ops_same_file
   Whether two open descriptors are one file: the same device and inode
 number. A destination that cannot be described is taken to be another file.
 */
-static int
-d_internal_ops_same_file(
-    int                      _in,
-    const struct d_stat64_t* _in_stat,
-    int                      _out
+static
+int d_internal_ops_same_file(
+    int                       _in,
+    const struct dj_stat64_t* _in_stat,
+    int                       _out
 )
 {
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // the source is already described
     (void)_in;
@@ -372,8 +372,8 @@ existing destination keeps its own bits through open, so without this a 0600
 private key would be written into a 0644 file and only then made private --
 readable by anyone for as long as the copy took.
 */
-static void
-d_internal_ops_restrict(
+static
+void d_internal_ops_restrict(
     int      _out,
     uint32_t _mode
 )
@@ -398,8 +398,8 @@ d_internal_ops_restore
   Nothing left to do on POSIX: d_internal_ops_restrict set the bits before
 the data.
 */
-static void
-d_internal_ops_restore(
+static
+void d_internal_ops_restore(
     const char* _dst,
     uint32_t    _mode
 )
@@ -424,12 +424,12 @@ it was read -- and only then given the source's bits and truncated. Nothing
 on any failure path here has touched an existing file's data, so none of
 them removes the destination.
 */
-static int
-d_internal_ops_open_dst(
-    const char*              _dst,
-    int                      _in,
-    const struct d_stat64_t* _in_stat,
-    int                      _overwrite
+static
+int d_internal_ops_open_dst(
+    const char*               _dst,
+    int                       _in,
+    const struct dj_stat64_t* _in_stat,
+    int                       _overwrite
 )
 {
     const int flags = O_WRONLY | O_CREAT | (_overwrite ? 0 : O_EXCL);
@@ -487,11 +487,11 @@ is already open, so this cannot describe something other than what is about
 to be copied -- and refuses anything but a regular file, whose contents are
 all a copy can carry.
 */
-static int
-d_internal_ops_check_src(
-    int                _in,
-    struct d_stat64_t* _st,
-    const char*        _src
+static
+int d_internal_ops_check_src(
+    int                 _in,
+    struct dj_stat64_t* _st,
+    const char*         _src
 )
 {
     // named only in the notices, which a build may compile out
@@ -525,8 +525,8 @@ descriptors closed -- a failed close of the destination fails the copy, since
 buffered data never reached the file -- and on failure the partial
 destination removed, keeping the errno that caused it.
 */
-static int
-d_internal_ops_finish(
+static
+int d_internal_ops_finish(
     const char* _dst,
     int         _in,
     int         _out,
@@ -584,8 +584,8 @@ destination readied (d_internal_ops_open_dst); the native engine is tried
 where configured, and its decline (1) hands over to the portable loop, which
 finishes from wherever the engine stopped.
 */
-static int
-d_internal_ops_copy(
+static
+int d_internal_ops_copy(
     const char* _src,
     const char* _dst,
     int         _overwrite
@@ -610,7 +610,7 @@ d_internal_ops_copy(
         return -1;
     }
 
-    struct d_stat64_t st  = {0};
+    struct dj_stat64_t st  = {0};
     const int         out = (d_internal_ops_check_src(in,
                                                       &st,
                                                       _src) == 0)
@@ -703,19 +703,19 @@ do -- and with no MOVEFILE_COPY_ALLOWED it refuses another volume with EXDEV,
 where the CRT's rename would copy behind the caller's back. Its error is
 GetLastError's, translated.
 */
-static int
-d_internal_ops_move(
+static
+int d_internal_ops_move(
     const char* _old,
     const char* _new,
     int         _overwrite
 )
 {
-    struct d_internal_file_native        from_held = {0};
-    struct d_internal_file_native        to_held   = {0};
-    const d_internal_file_nchar_t* const from =
+    struct dj_internal_file_native        from_held = {0};
+    struct dj_internal_file_native        to_held   = {0};
+    const dj_internal_file_nchar_t* const from =
         d_internal_file_native_of(&from_held,
                                   _old);
-    const d_internal_file_nchar_t* const to =
+    const dj_internal_file_nchar_t* const to =
         (from) ? d_internal_file_native_of(&to_held,
                                            _new)
                : NULL;
@@ -754,13 +754,13 @@ d_internal_ops_rmdir
   RemoveDirectory, with its error translated. On a symbolic link or a
 junction it removes the link itself and leaves the target alone.
 */
-static int
-d_internal_ops_rmdir(
+static
+int d_internal_ops_rmdir(
     const char* _path
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -792,13 +792,13 @@ d_internal_ops_rmdir(
 d_internal_ops_names_dir
   Whether a path names a directory, or a link to one, by its attributes.
 */
-static int
-d_internal_ops_names_dir(
+static
+int d_internal_ops_names_dir(
     const char* _path
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -822,8 +822,8 @@ d_internal_ops_remove
 directory -- or a link to one, which goes without its target -- is removed as
 rmdir removes one, as POSIX remove() would.
 */
-static int
-d_internal_ops_remove(
+static
+int d_internal_ops_remove(
     const char* _path
 )
 {
@@ -833,8 +833,8 @@ d_internal_ops_remove(
         return d_internal_ops_rmdir(_path);
     }
 
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -857,8 +857,8 @@ d_internal_ops_unlink
 symbolic link or a junction to one, which _unlink refuses too but unlink(2)
 would remove as it removes any link: the link goes, and its target stays.
 */
-static int
-d_internal_ops_unlink(
+static
+int d_internal_ops_unlink(
     const char* _path
 )
 {
@@ -870,8 +870,8 @@ d_internal_ops_unlink(
         return d_internal_ops_rmdir(_path);
     }
 
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -899,8 +899,8 @@ case and no failure worth a notice. The check is NOT atomic with the rename:
 another process can create _new in between, and there is no portable
 rename-if-absent.
 */
-static int
-d_internal_ops_move(
+static
+int d_internal_ops_move(
     const char* _old,
     const char* _new,
     int         _overwrite
@@ -930,8 +930,8 @@ d_internal_ops_remove
   ISO C remove(), which POSIX makes take both kinds: rmdir() for a directory,
 unlink() otherwise.
 */
-static int
-d_internal_ops_remove(
+static
+int d_internal_ops_remove(
     const char* _path
 )
 {
@@ -942,8 +942,8 @@ d_internal_ops_remove(
 d_internal_ops_unlink
   unlink(2), which refuses a directory and removes a link itself.
 */
-static int
-d_internal_ops_unlink(
+static
+int d_internal_ops_unlink(
     const char* _path
 )
 {
@@ -958,8 +958,8 @@ d_internal_ops_move
 refusing is done here with the only existence test ISO C has -- not atomic
 with the rename, as on POSIX.
 */
-static int
-d_internal_ops_move(
+static
+int d_internal_ops_move(
     const char* _old,
     const char* _new,
     int         _overwrite
@@ -985,8 +985,8 @@ d_internal_ops_move(
 d_internal_ops_remove
   ISO C remove(), which leaves directories to the implementation.
 */
-static int
-d_internal_ops_remove(
+static
+int d_internal_ops_remove(
     const char* _path
 )
 {
@@ -998,8 +998,8 @@ d_internal_ops_unlink
   ISO C has only remove(), which also takes directories -- so on this backend
 d_file_unlink cannot keep its promise to refuse them.
 */
-static int
-d_internal_ops_unlink(
+static
+int d_internal_ops_unlink(
     const char* _path
 )
 {
@@ -1018,13 +1018,13 @@ d_internal_ops_is_plain
   Whether a path names a regular file in itself: not a directory, and not a
 reparse point -- the CRT's stat follows those, so the attribute is asked.
 */
-static int
-d_internal_ops_is_plain(
+static
+int d_internal_ops_is_plain(
     const char* _path
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -1049,8 +1049,8 @@ d_internal_ops_is_plain(
 d_internal_ops_is_plain
   Whether a path names a regular file in itself, not through a link.
 */
-static int
-d_internal_ops_is_plain(
+static
+int d_internal_ops_is_plain(
     const char* _path
 )
 {
@@ -1074,8 +1074,8 @@ brought them here, and everything stays where it was. The copy honours the
 caller's _overwrite, and goes first, so a failure leaves the original in
 place.
 */
-static int
-d_internal_ops_move_across(
+static
+int d_internal_ops_move_across(
     const char* _old,
     const char* _new,
     int         _overwrite
@@ -1117,8 +1117,8 @@ d_internal_ops_move_across
 none -- D_CFG_FILE_OPS_RENAME_CROSS_DEVICE is off, or the ISO C backend has no
 copy to fall back on -- so the EXDEV that brought the call here stands.
 */
-static int
-d_internal_ops_move_across(
+static
+int d_internal_ops_move_across(
     const char* _old,
     const char* _new,
     int         _overwrite
@@ -1143,8 +1143,7 @@ d_file_remove
 calls rmdir() for a directory and unlink() otherwise, and on Windows, whose
 remove() takes files only, d_internal_ops_remove does the same.
 */
-int
-d_file_remove(
+int d_file_remove(
     const char* _path
 )
 {
@@ -1180,8 +1179,7 @@ file is a legitimate way to make a temporary that disappears on exit even if
 the process is killed. The ISO C fallback is remove(), which cannot refuse a
 directory.
 */
-int
-d_file_unlink(
+int d_file_unlink(
     const char* _path
 )
 {
@@ -1218,8 +1216,7 @@ POSIX by an existence check that is not. A cross-device failure is reported
 as EXDEV on both, unless the build has explicitly accepted a non-atomic copy
 and delete in its place (d_internal_ops_move_across).
 */
-int
-d_file_rename(
+int d_file_rename(
     const char* _old,
     const char* _new,
     int         _overwrite
@@ -1275,8 +1272,7 @@ d_file_copy
   The copy is built on descriptors, which the ISO C backend does not have, so
 this only reports ENOSYS.
 */
-int
-d_file_copy(
+int d_file_copy(
     const char* _src,
     const char* _dst
 )
@@ -1298,8 +1294,7 @@ d_file_copy
   d_internal_ops_copy, replacing an existing destination as
 D_CFG_FILE_OPS_COPY_OVERWRITE says.
 */
-int
-d_file_copy(
+int d_file_copy(
     const char* _src,
     const char* _dst
 )

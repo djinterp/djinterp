@@ -28,7 +28,7 @@
 #include <stdlib.h>  // malloc, realloc, free
 #include <string.h>  // memcpy, memset, strchr, strlen, strncmp
 // djinterp
-#include "./dwiki_driver.h"  // d_wiki_driver, d_wiki_add_block
+#include "./dwiki_driver.h"  // dj_wiki_driver, d_wiki_add_block
 
 
 // D_INTERNAL_TAB
@@ -52,9 +52,9 @@
 // 1.1    Blocks
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_type
+// dj_internal_type
 //   enum: what a node of the block tree is.
-enum d_internal_type
+enum dj_internal_type
 {
     D_INTERNAL_DOCUMENT = 0,
     D_INTERNAL_QUOTE,
@@ -72,9 +72,9 @@ enum d_internal_type
 // d_internal_node
 //   struct: one node of the block tree: its record among the blocks, and
 //   what its kind needs to go on matching lines.
-struct d_internal_node
+struct dj_internal_node
 {
-    enum d_internal_type type;
+    enum dj_internal_type type;
     size_t               parent;
     size_t               last_child;
     size_t               block;
@@ -101,17 +101,17 @@ struct d_internal_node
 // 1.1.3
 // d_internal_reference
 //   struct: a definition, by its label as labels compare.
-struct d_internal_reference
+struct dj_internal_reference
 {
     char*  key;
     size_t link;
 };
 
 // 1.1.4
-// d_internal_job
+// dj_internal_job
 //   struct: a leaf whose inline content is read once every block is: its
 //   record, and its heading's when it is one.
-struct d_internal_job
+struct dj_internal_job
 {
     size_t block;
     size_t heading;
@@ -119,14 +119,14 @@ struct d_internal_job
 };
 
 // 1.1.5
-// d_internal_md
+// dj_internal_md
 //   struct: the reader: the page, the block tree, the line being read and
 //   where in it, the definitions, and the leaves left to read inline.
-struct d_internal_md
+struct dj_internal_md
 {
-    struct d_wiki*               wiki;
+    struct dj_wiki*               wiki;
     const char*                  text;
-    struct d_internal_node*      nodes;
+    struct dj_internal_node*      nodes;
     size_t                       node_count;
     size_t                       node_capacity;
     size_t                       tip;
@@ -144,10 +144,10 @@ struct d_internal_md
     size_t                       indent;
     bool                         indented;
     bool                         blank;
-    struct d_internal_reference* references;
+    struct dj_internal_reference* references;
     size_t                       reference_count;
     size_t                       reference_capacity;
-    struct d_internal_job*       jobs;
+    struct dj_internal_job*       jobs;
     size_t                       job_count;
     size_t                       job_capacity;
     bool                         failed;
@@ -156,9 +156,9 @@ struct d_internal_md
 // 1.2    Inline content
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_piece
+// dj_internal_piece
 //   struct: a run of the joined text and where on the page it stands.
-struct d_internal_piece
+struct dj_internal_piece
 {
     size_t joined;
     size_t source;
@@ -166,9 +166,9 @@ struct d_internal_piece
 };
 
 // 1.2.2
-// d_internal_inline_kind
+// dj_internal_inline_kind
 //   enum: what a node of inline content is.
-enum d_internal_inline_kind
+enum dj_internal_inline_kind
 {
     D_INTERNAL_TEXT = 0,    // text, decoded
     D_INTERNAL_BREAK,       // a line's end
@@ -180,14 +180,14 @@ enum d_internal_inline_kind
 };
 
 // 1.2.3
-// d_internal_inline
+// dj_internal_inline
 //   struct: one node of inline content.  A text's decoded bytes are
 //   `length` from `decoded`; a delimiter run's are `count` of `c`, of
 //   `original` read, linked to the runs before and after it while it may
 //   still match; a link's content is the nodes up to `content_end`.
-struct d_internal_inline
+struct dj_internal_inline
 {
-    enum d_internal_inline_kind kind;
+    enum dj_internal_inline_kind kind;
     size_t                      decoded;
     size_t                      length;
     char                        c;
@@ -202,11 +202,11 @@ struct d_internal_inline
 };
 
 // 1.2.4
-// d_internal_bracket
+// dj_internal_bracket
 //   struct: a `[` or `![` open: its node, where it is in the joined text,
 //   whether it may still begin a link, whether a bracket was opened after
 //   it, and the delimiter run on top when it was.
-struct d_internal_bracket
+struct dj_internal_bracket
 {
     size_t node;
     size_t at;
@@ -217,10 +217,10 @@ struct d_internal_bracket
 };
 
 // 1.2.5
-// d_internal_waiting
+// dj_internal_waiting
 //   struct: a link whose label is read once emphasis is: the link, and the
 //   nodes of its content.
-struct d_internal_waiting
+struct dj_internal_waiting
 {
     size_t link;
     size_t first;
@@ -228,14 +228,14 @@ struct d_internal_waiting
 };
 
 // 1.2.6
-// d_internal_link_parts
+// dj_internal_link_parts
 //   struct: what follows a link's `]`, in the joined text: where the link
 //   ends; for an inline link, its destination as written, `raw` to
 //   `raw_end`, its bytes from `start` to `stop`, and its title, `title` to
 //   `title_end`, D_WIKI_NONE for none; for a reference, the definition it
 //   names, and its label, `label_from` to `label_to`, D_WIKI_NONE for a
 //   label not written after it.
-struct d_internal_link_parts
+struct dj_internal_link_parts
 {
     size_t end;
     bool   inline_form;
@@ -257,7 +257,7 @@ struct d_internal_link_parts
 //   `name` to `name_end` and its value `from` to `to`, D_WIKI_NONE for
 //   none; and the values wanted -- href or src, `value` to `stop`, and an
 //   image's alt, `alt` to `alt_end` -- D_WIKI_NONE for none.
-struct d_internal_html_tag
+struct dj_internal_html_tag
 {
     size_t at;
     size_t close;
@@ -277,23 +277,23 @@ struct d_internal_html_tag
 //   struct: a leaf's inline content being read: the joined text and its
 //   pieces, the nodes and their decoded text, the brackets and delimiter
 //   runs open, and the links whose labels wait.
-struct d_internal_line
+struct dj_internal_line
 {
-    struct d_internal_md*      md;
+    struct dj_internal_md*      md;
     size_t                     block;
-    struct d_wiki_buffer       joined;
-    struct d_internal_piece*   pieces;
+    struct dj_wiki_buffer       joined;
+    struct dj_internal_piece*   pieces;
     size_t                     piece_count;
     size_t                     piece_capacity;
-    struct d_internal_inline*  nodes;
+    struct dj_internal_inline*  nodes;
     size_t                     node_count;
     size_t                     node_capacity;
-    struct d_wiki_buffer       decoded;
-    struct d_internal_bracket* brackets;
+    struct dj_wiki_buffer       decoded;
+    struct dj_internal_bracket* brackets;
     size_t                     bracket_count;
     size_t                     bracket_capacity;
     size_t                     top;
-    struct d_internal_waiting* waiting;
+    struct dj_internal_waiting* waiting;
     size_t                     waiting_count;
     size_t                     waiting_capacity;
     bool                       failed;
@@ -309,8 +309,8 @@ struct d_internal_line
 d_internal_grow
   Room in an array for one more item.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _items,
     size_t* _capacity,
     size_t  _count,
@@ -344,8 +344,8 @@ d_internal_is_space_or_tab, d_internal_is_alpha, d_internal_is_digit,
 d_internal_is_alnum, d_internal_lower
   ASCII's classes, without the locale's say.
 */
-static bool
-d_internal_is_space_or_tab(
+static
+bool d_internal_is_space_or_tab(
     char _c
 )
 {
@@ -353,8 +353,8 @@ d_internal_is_space_or_tab(
 }
 
 
-static bool
-d_internal_is_alpha(
+static
+bool d_internal_is_alpha(
     char _c
 )
 {
@@ -363,8 +363,8 @@ d_internal_is_alpha(
 }
 
 
-static bool
-d_internal_is_digit(
+static
+bool d_internal_is_digit(
     char _c
 )
 {
@@ -372,8 +372,8 @@ d_internal_is_digit(
 }
 
 
-static bool
-d_internal_is_alnum(
+static
+bool d_internal_is_alnum(
     char _c
 )
 {
@@ -381,8 +381,8 @@ d_internal_is_alnum(
 }
 
 
-static char
-d_internal_lower(
+static
+char d_internal_lower(
     char _c
 )
 {
@@ -394,8 +394,8 @@ d_internal_lower(
 d_internal_is_ascii_punctuation
   Whether a byte is one a backslash escapes.
 */
-static bool
-d_internal_is_ascii_punctuation(
+static
+bool d_internal_is_ascii_punctuation(
     char _c
 )
 {
@@ -408,8 +408,8 @@ d_internal_is_ascii_punctuation(
 d_internal_starts_with
   Whether text of a length begins with a word, in any case.
 */
-static bool
-d_internal_starts_with(
+static
+bool d_internal_starts_with(
     const char* _text,
     size_t      _length,
     const char* _word
@@ -441,11 +441,11 @@ d_internal_starts_with(
 d_internal_unescape
   Writes text with its backslash escapes and character references read.
 */
-static bool
-d_internal_unescape(
-    struct d_wiki_buffer* _out,
-    const char*           _text,
-    size_t                _length
+static
+bool d_internal_unescape(
+    struct dj_wiki_buffer* _out,
+    const char*            _text,
+    size_t                 _length
 )
 {
     size_t at = 0;
@@ -492,8 +492,8 @@ d_internal_unescape(
 d_internal_percent_decode
   Writes a path with its %hh read as the bytes they stand for.
 */
-static int
-d_internal_hex(
+static
+int d_internal_hex(
     char _c
 )
 {
@@ -514,11 +514,11 @@ d_internal_hex(
 }
 
 
-static bool
-d_internal_percent_decode(
-    struct d_wiki_buffer* _out,
-    const char*           _text,
-    size_t                _length
+static
+bool d_internal_percent_decode(
+    struct dj_wiki_buffer* _out,
+    const char*            _text,
+    size_t                 _length
 )
 {
     size_t at = 0;
@@ -561,8 +561,8 @@ d_internal_percent_decode(
 d_internal_set_text
   Replaces a link's text field with a copy of text of a length.
 */
-static bool
-d_internal_set_text(
+static
+bool d_internal_set_text(
     char**      _field,
     const char* _text,
     size_t      _length
@@ -589,10 +589,10 @@ d_internal_classify
 address, an image, a file of the wiki, or a page of it -- a relative path
 whose last part has no extension, or a page's -- named by that part.
 */
-static bool
-d_internal_classify(
-    struct d_wiki_link* _link,
-    bool                _image
+static
+bool d_internal_classify(
+    struct dj_wiki_link* _link,
+    bool                 _image
 )
 {
     const char* const target = (_link->target) ? _link->target : "";
@@ -667,7 +667,7 @@ d_internal_classify(
 
     size_t                     stem   = path - last;
     const char* const          part   = &target[last];
-    struct d_wiki_buffer       name   = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer       name   = { NULL, 0u, 0u, false };
     static const char* const   pages[] = { ".md", ".markdown", ".mediawiki" };
 
     // a page's extension is not its name's
@@ -716,10 +716,10 @@ d_internal_classify(
 d_internal_peek
   The byte at an offset of the line, or '\0' past its end.
 */
-static char
-d_internal_peek(
-    const struct d_internal_md* _md,
-    size_t                      _at
+static
+char d_internal_peek(
+    const struct dj_internal_md* _md,
+    size_t                       _at
 )
 {
     return (_at < _md->line_end) ? _md->text[_at] : '\0';
@@ -731,9 +731,9 @@ d_internal_find_next_nonspace
   Where the line's next byte that is not a space or tab is, the column it
 is at, and the indent before it.
 */
-static void
-d_internal_find_next_nonspace(
-    struct d_internal_md* _md
+static
+void d_internal_find_next_nonspace(
+    struct dj_internal_md* _md
 )
 {
     size_t at      = _md->offset;
@@ -774,11 +774,11 @@ d_internal_advance
   Moves past `_count` bytes of the line, or past `_count` columns, a tab
 perhaps taken in part.
 */
-static void
-d_internal_advance(
-    struct d_internal_md* _md,
-    size_t                _count,
-    bool                  _columns
+static
+void d_internal_advance(
+    struct dj_internal_md* _md,
+    size_t                 _count,
+    bool                   _columns
 )
 {
     // a byte, or a column, at a time
@@ -822,9 +822,9 @@ d_internal_advance(
 }
 
 
-static void
-d_internal_advance_nonspace(
-    struct d_internal_md* _md
+static
+void d_internal_advance_nonspace(
+    struct dj_internal_md* _md
 )
 {
     _md->offset  = _md->next_nonspace;
@@ -839,10 +839,10 @@ d_internal_advance_nonspace(
 d_internal_line_after
   Where the line after a line begins, from the line's index.
 */
-static size_t
-d_internal_line_after(
-    const struct d_internal_md* _md,
-    size_t                      _line
+static
+size_t d_internal_line_after(
+    const struct dj_internal_md* _md,
+    size_t                       _line
 )
 {
     return ((_line + 1u) < _md->wiki->line_count)
@@ -862,8 +862,8 @@ d_internal_can_contain
 */
 static bool
 d_internal_can_contain(
-    enum d_internal_type _parent,
-    enum d_internal_type _child
+    enum dj_internal_type _parent,
+    enum dj_internal_type _child
 )
 {
     // a table of who holds whom
@@ -887,10 +887,10 @@ d_internal_can_contain(
 d_internal_mark
   Says that a node, and every node holding it, reached the line read.
 */
-static void
-d_internal_mark(
-    struct d_internal_md* _md,
-    size_t                _node
+static
+void d_internal_mark(
+    struct dj_internal_md* _md,
+    size_t                 _node
 )
 {
     // the node and those above it
@@ -907,17 +907,17 @@ d_internal_mark(
 d_internal_add_job
   Keeps a leaf to read inline once the blocks are read.
 */
-static void
-d_internal_add_job(
-    struct d_internal_md* _md,
-    size_t                _block,
-    size_t                _heading,
-    size_t                _columns
+static
+void d_internal_add_job(
+    struct dj_internal_md* _md,
+    size_t                 _block,
+    size_t                 _heading,
+    size_t                 _columns
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_md->jobs, &_md->job_capacity,
-                         _md->job_count, sizeof(struct d_internal_job)))
+                         _md->job_count, sizeof(struct dj_internal_job)))
     {
         _md->failed = true;
 
@@ -935,10 +935,16 @@ d_internal_add_job(
 
 // the definitions of a paragraph, and the leaves that hold inline content,
 // are read by what follows, as it is declared
-static void d_internal_take_definitions(struct d_internal_md* _md,
-                                        size_t                _node);
-static void d_internal_finalize(struct d_internal_md* _md,
-                                size_t                _node);
+static
+void d_internal_take_definitions(
+    struct dj_internal_md* _md,
+    size_t                 _node
+);
+static
+void d_internal_finalize(
+    struct dj_internal_md* _md,
+    size_t                 _node
+);
 
 
 /*
@@ -948,8 +954,8 @@ makes it the tip, with its record among the blocks when it has one.
 */
 static size_t
 d_internal_add_node(
-    struct d_internal_md* _md,
-    enum d_internal_type  _type,
+    struct dj_internal_md* _md,
+    enum dj_internal_type  _type,
     size_t                _start
 )
 {
@@ -967,7 +973,7 @@ d_internal_add_node(
 
     // room for one more
     if (!d_internal_grow((void**)&_md->nodes, &_md->node_capacity,
-                         _md->node_count, sizeof(struct d_internal_node)))
+                         _md->node_count, sizeof(struct dj_internal_node)))
     {
         _md->failed = true;
 
@@ -975,8 +981,8 @@ d_internal_add_node(
     }
 
     const size_t                  index  = _md->node_count++;
-    struct d_internal_node* const node   = &_md->nodes[index];
-    struct d_internal_node* const parent = &_md->nodes[_md->tip];
+    struct dj_internal_node* const node   = &_md->nodes[index];
+    struct dj_internal_node* const parent = &_md->nodes[_md->tip];
 
     memset(node, 0, sizeof(*node));
     node->type       = _type;
@@ -1002,7 +1008,7 @@ d_internal_add_node(
         size_t holder = node->parent;
 
         node->block = d_wiki_add_block(_md->wiki,
-                                       (enum d_wiki_block_kind)kinds[_type],
+                                       (enum dj_wiki_block_kind)kinds[_type],
                                        _start);
 
         // memory that ran out
@@ -1034,9 +1040,9 @@ d_internal_add_line
   Adds the rest of the line to the tip's content, the columns a tab left
 as spaces before it.
 */
-static void
-d_internal_add_line(
-    struct d_internal_md* _md
+static
+void d_internal_add_line(
+    struct dj_internal_md* _md
 )
 {
     size_t pad = 0;
@@ -1066,18 +1072,18 @@ d_internal_add_line(
 d_internal_trim_code
   Drops an indented code block's blank lines at its end.
 */
-static void
-d_internal_trim_code(
-    struct d_internal_md*   _md,
-    struct d_internal_node* _node
+static
+void d_internal_trim_code(
+    struct dj_internal_md*   _md,
+    struct dj_internal_node* _node
 )
 {
-    struct d_wiki_block* const block = &_md->wiki->blocks[_node->block];
+    struct dj_wiki_block* const block = &_md->wiki->blocks[_node->block];
 
     // the last lines, while they hold only space
     while (block->segment_count > 0u)
     {
-        const struct d_wiki_segment* const segment =
+        const struct dj_wiki_segment* const segment =
             &_md->wiki->segments[block->first_segment +
                                  block->segment_count - 1u];
         size_t at = segment->start;
@@ -1102,7 +1108,7 @@ d_internal_trim_code(
     // the block ends with its last line
     if (block->segment_count > 0u)
     {
-        const struct d_wiki_segment* const last =
+        const struct dj_wiki_segment* const last =
             &_md->wiki->segments[block->first_segment +
                                  block->segment_count - 1u];
 
@@ -1118,13 +1124,13 @@ d_internal_finalize
   Closes a node: a paragraph gives up its definitions, a leaf with inline
 content is kept to read, and the node's record ends with its last line.
 */
-static void
-d_internal_finalize(
-    struct d_internal_md* _md,
-    size_t                _node
+static
+void d_internal_finalize(
+    struct dj_internal_md* _md,
+    size_t                 _node
 )
 {
-    struct d_internal_node* node = &_md->nodes[_node];
+    struct dj_internal_node* node = &_md->nodes[_node];
 
     node->open = false;
     _md->tip   = node->parent;
@@ -1149,7 +1155,7 @@ d_internal_finalize(
         return;
     }
 
-    struct d_wiki_block* const block = &_md->wiki->blocks[node->block];
+    struct dj_wiki_block* const block = &_md->wiki->blocks[node->block];
 
     block->end = d_internal_line_after(_md, node->last_line);
 
@@ -1180,9 +1186,9 @@ d_internal_finalize(
 d_internal_close_unmatched
   Finalizes the nodes the line did not match, up to the last it did.
 */
-static void
-d_internal_close_unmatched(
-    struct d_internal_md* _md
+static
+void d_internal_close_unmatched(
+    struct dj_internal_md* _md
 )
 {
     // nothing is open that the line did not match
@@ -1215,16 +1221,16 @@ d_internal_close_unmatched(
 d_internal_join_add
   Adds a run of the page to the joined text.
 */
-static bool
-d_internal_join_add(
-    struct d_internal_line* _line,
-    size_t                  _source,
-    size_t                  _length
+static
+bool d_internal_join_add(
+    struct dj_internal_line* _line,
+    size_t                   _source,
+    size_t                   _length
 )
 {
     // room for one more piece
     if (!d_internal_grow((void**)&_line->pieces, &_line->piece_capacity,
-                         _line->piece_count, sizeof(struct d_internal_piece)))
+                         _line->piece_count, sizeof(struct dj_internal_piece)))
     {
         _line->failed = true;
 
@@ -1246,10 +1252,10 @@ d_internal_source
   Where a place in the joined text stands on the page: a line feed joining
 two lines stands where the first line ends.
 */
-static size_t
-d_internal_source(
-    const struct d_internal_line* _line,
-    size_t                        _at
+static
+size_t d_internal_source(
+    const struct dj_internal_line* _line,
+    size_t                         _at
 )
 {
     size_t low  = 0;
@@ -1277,7 +1283,7 @@ d_internal_source(
         }
     }
 
-    const struct d_internal_piece* const piece = &_line->pieces[low];
+    const struct dj_internal_piece* const piece = &_line->pieces[low];
     const size_t                         into  = _at - piece->joined;
 
     return piece->source + ((into > piece->length) ? piece->length : into);
@@ -1289,19 +1295,19 @@ d_internal_join_block
   Joins a leaf's lines, a line feed between each, trimmed of space at
 either end.
 */
-static bool
-d_internal_join_block(
-    struct d_internal_line* _line,
-    size_t                  _first,
-    size_t                  _count
+static
+bool d_internal_join_block(
+    struct dj_internal_line* _line,
+    size_t                   _first,
+    size_t                   _count
 )
 {
-    const struct d_wiki* const wiki = _line->md->wiki;
+    const struct dj_wiki* const wiki = _line->md->wiki;
 
     // each line, and a line feed after each but the last
     for (size_t index = 0; index < _count; ++index)
     {
-        const struct d_wiki_segment* const segment =
+        const struct dj_wiki_segment* const segment =
             &wiki->segments[_first + index];
         size_t start = segment->start;
         size_t end   = segment->end;
@@ -1358,8 +1364,8 @@ d_internal_join_block(
 d_internal_skip_spaces
   Past spaces and tabs, a line ending among them at most once.
 */
-static size_t
-d_internal_skip_spaces(
+static
+size_t d_internal_skip_spaces(
     const char* _text,
     size_t      _length,
     size_t      _at,
@@ -1403,8 +1409,8 @@ d_internal_label_length
   The length of a link's label at `_at`, its brackets included: at most 999
 bytes inside, no bracket unescaped; 0 for none.
 */
-static size_t
-d_internal_label_length(
+static
+size_t d_internal_label_length(
     const char* _text,
     size_t      _length,
     size_t      _at
@@ -1457,8 +1463,8 @@ d_internal_destination
   Reads a link's destination at `_at`: in <...>, or bytes with no space
 and balanced parentheses.  Gives where it ends, and where its text is.
 */
-static bool
-d_internal_destination(
+static
+bool d_internal_destination(
     const char* _text,
     size_t      _length,
     size_t      _at,
@@ -1562,8 +1568,8 @@ d_internal_destination(
 d_internal_title
   Reads a link's title at `_at`: "...", '...' or (...). Gives where it ends.
 */
-static bool
-d_internal_title(
+static
+bool d_internal_title(
     const char* _text,
     size_t      _length,
     size_t      _at,
@@ -1624,14 +1630,14 @@ d_internal_title(
 d_internal_find_reference
   The definition a label names, D_WIKI_NONE for none.
 */
-static size_t
-d_internal_find_reference(
-    const struct d_internal_md* _md,
-    const char*                 _label,
-    size_t                      _length
+static
+size_t d_internal_find_reference(
+    const struct dj_internal_md* _md,
+    const char*                  _label,
+    size_t                       _length
 )
 {
-    struct d_wiki_buffer key   = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer key   = { NULL, 0u, 0u, false };
     size_t               found = D_WIKI_NONE;
 
     // the label as labels compare; an empty one names nothing
@@ -1668,11 +1674,11 @@ and destination are, and its title, a title with more after it on its line
 leaving the definition without it.  Gives where its line ends, or 0 for no
 definition.
 */
-static size_t
-d_internal_definition_parse(
-    const struct d_internal_line* _line,
-    size_t                        _at,
-    struct d_internal_link_parts* _parts
+static
+size_t d_internal_definition_parse(
+    const struct dj_internal_line* _line,
+    size_t                         _at,
+    struct dj_internal_link_parts* _parts
 )
 {
     const char* const text   = _line->joined.text;
@@ -1764,21 +1770,21 @@ d_internal_definition_keep
   A definition read kept: its link, and its label among the definitions
 when it is the label's first.  Gives whether memory held.
 */
-static bool
-d_internal_definition_keep(
-    struct d_internal_line*             _line,
-    size_t                              _at,
-    size_t                              _block,
-    const struct d_internal_link_parts* _parts,
-    struct d_wiki_buffer*               _key
+static
+bool d_internal_definition_keep(
+    struct dj_internal_line*             _line,
+    size_t                               _at,
+    size_t                               _block,
+    const struct dj_internal_link_parts* _parts,
+    struct dj_wiki_buffer*               _key
 )
 {
-    struct d_internal_md* const md     = _line->md;
+    struct dj_internal_md* const md     = _line->md;
     const char* const           text   = _line->joined.text;
     const size_t                length = _parts->label_to - _parts->label_from;
-    struct d_wiki_link          link;
-    struct d_wiki_buffer        target = { NULL, 0u, 0u, false };
-    struct d_wiki_buffer        shown  = { NULL, 0u, 0u, false };
+    struct dj_wiki_link          link;
+    struct dj_wiki_buffer        target = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer        shown  = { NULL, 0u, 0u, false };
 
     d_wiki_new_link(&link, D_WIKI_FORM_DEFINITION,
                     d_internal_source(_line, _at),
@@ -1831,7 +1837,7 @@ d_internal_definition_keep(
               == D_WIKI_NONE) &&
          (d_internal_grow((void**)&md->references, &md->reference_capacity,
                           md->reference_count,
-                          sizeof(struct d_internal_reference))) )
+                          sizeof(struct dj_internal_reference))) )
     {
         md->references[md->reference_count].key  = d_wiki_buffer_take(_key);
         md->references[md->reference_count].link = index;
@@ -1848,15 +1854,15 @@ d_internal_definition
 joined text, kept for the block `_block`: gives how many bytes it takes,
 its line ending with it, or 0 for none.
 */
-static size_t
-d_internal_definition(
-    struct d_internal_line* _line,
-    size_t                  _at,
-    size_t                  _block
+static
+size_t d_internal_definition(
+    struct dj_internal_line* _line,
+    size_t                   _at,
+    size_t                   _block
 )
 {
-    struct d_internal_link_parts parts;
-    struct d_wiki_buffer         key = { NULL, 0u, 0u, false };
+    struct dj_internal_link_parts parts;
+    struct dj_wiki_buffer         key = { NULL, 0u, 0u, false };
     const size_t                 end = d_internal_definition_parse(_line, _at,
                                                                    &parts);
 
@@ -1892,15 +1898,15 @@ d_internal_take_definitions
 block of its own, and what is left of the paragraph a block after them.
   Long as the paragraph's text is joined, read and cut up in one pass.
 */
-static void
-d_internal_take_definitions(
-    struct d_internal_md* _md,
-    size_t                _node
+static
+void d_internal_take_definitions(
+    struct dj_internal_md* _md,
+    size_t                 _node
 )
 {
-    struct d_internal_node* const node  = &_md->nodes[_node];
-    struct d_internal_line        line;
-    struct d_wiki*                wiki  = _md->wiki;
+    struct dj_internal_node* const node  = &_md->nodes[_node];
+    struct dj_internal_line        line;
+    struct dj_wiki*                wiki  = _md->wiki;
     size_t                        at    = 0;
     size_t                        taken = 0;
 
@@ -1910,7 +1916,7 @@ d_internal_take_definitions(
         return;
     }
 
-    const struct d_wiki_block paragraph = wiki->blocks[node->block];
+    const struct dj_wiki_block paragraph = wiki->blocks[node->block];
 
     // a paragraph that does not begin with `[` begins no definition
     if ( (paragraph.segment_count == 0u) ||
@@ -1925,7 +1931,7 @@ d_internal_take_definitions(
     // its lines joined, untrimmed at the end, so each ends a line
     for (size_t index = 0; index < paragraph.segment_count; ++index)
     {
-        const struct d_wiki_segment* const segment =
+        const struct dj_wiki_segment* const segment =
             &wiki->segments[paragraph.first_segment + index];
 
         (void)d_internal_join_add(&line, segment->start,
@@ -2051,8 +2057,8 @@ d_internal_is_tag_name_end
   Whether a byte ends an HTML block's tag name: space, `>`, `/>`, the
 line's end.
 */
-static bool
-d_internal_is_tag_name_end(
+static
+bool d_internal_is_tag_name_end(
     const char* _text,
     size_t      _length,
     size_t      _at
@@ -2072,8 +2078,8 @@ d_internal_tag_space
   Past the space at `_at` within a tag: spaces and tabs, and line feeds when
 `_lines` allows them.
 */
-static size_t
-d_internal_tag_space(
+static
+size_t d_internal_tag_space(
     const char* _text,
     size_t      _length,
     size_t      _at,
@@ -2098,8 +2104,8 @@ d_internal_tag_value
 bare, to the space or the byte that ends it.  Gives where it ends, 0 for
 none.
 */
-static size_t
-d_internal_tag_value(
+static
+size_t d_internal_tag_value(
     const char* _text,
     size_t      _length,
     size_t      _at
@@ -2136,8 +2142,8 @@ d_internal_tag
 gives where it ends, 0 for none.  `_lines` allows line feeds in its
 space.
 */
-static size_t
-d_internal_tag(
+static
+size_t d_internal_tag(
     const char* _text,
     size_t      _length,
     size_t      _at,
@@ -2251,8 +2257,8 @@ d_internal_tag(
 d_internal_html_start
   Which kind of HTML block, 1 to 7, the line begins at `_at`; 0 for none.
 */
-static int
-d_internal_html_start(
+static
+int d_internal_html_start(
     const char* _text,
     size_t      _length,
     size_t      _at
@@ -2382,8 +2388,8 @@ d_internal_html_start(
 d_internal_html_closes
   Whether a line holds what ends an HTML block of a kind, 1 to 5.
 */
-static bool
-d_internal_html_closes(
+static
+bool d_internal_html_closes(
     const char* _text,
     size_t      _start,
     size_t      _end,
@@ -2440,13 +2446,13 @@ d_internal_run
 allowed or not; `_out_end` receives where the run, and any space after
 it, ends.
 */
-static size_t
-d_internal_run(
-    const struct d_internal_md* _md,
-    size_t                      _at,
-    char                        _c,
-    bool                        _spaced,
-    size_t*                     _out_end
+static
+size_t d_internal_run(
+    const struct dj_internal_md* _md,
+    size_t                       _at,
+    char                         _c,
+    bool                         _spaced,
+    size_t*                      _out_end
 )
 {
     size_t count = 0;
@@ -2483,10 +2489,10 @@ d_internal_run(
 d_internal_rest_is_blank
   Whether nothing but space is on the line from `_at`.
 */
-static bool
-d_internal_rest_is_blank(
-    const struct d_internal_md* _md,
-    size_t                      _at
+static
+bool d_internal_rest_is_blank(
+    const struct dj_internal_md* _md,
+    size_t                       _at
 )
 {
     // each byte left must be space
@@ -2507,9 +2513,9 @@ d_internal_rest_is_blank(
 d_internal_start_atx
   # Heading: its level, its title trimmed of the closing #s.
 */
-static int
-d_internal_start_atx(
-    struct d_internal_md* _md
+static
+int d_internal_start_atx(
+    struct dj_internal_md* _md
 )
 {
     const size_t at    = _md->next_nonspace;
@@ -2578,7 +2584,7 @@ d_internal_start_atx(
         }
     }
 
-    struct d_wiki_heading heading;
+    struct dj_wiki_heading heading;
 
     memset(&heading, 0, sizeof(heading));
     heading.block       = _md->nodes[node].block;
@@ -2610,9 +2616,9 @@ d_internal_start_atx(
 d_internal_start_fence
   ``` or ~~~: three or more, a backtick fence's info with no backtick.
 */
-static int
-d_internal_start_fence(
-    struct d_internal_md* _md
+static
+int d_internal_start_fence(
+    struct dj_internal_md* _md
 )
 {
     const size_t at     = _md->next_nonspace;
@@ -2651,8 +2657,8 @@ d_internal_start_fence(
         return 2;
     }
 
-    struct d_internal_node* const code  = &_md->nodes[node];
-    struct d_wiki_block* const    block = &_md->wiki->blocks[code->block];
+    struct dj_internal_node* const code  = &_md->nodes[node];
+    struct dj_wiki_block* const    block = &_md->wiki->blocks[code->block];
     size_t                        start = at + length;
     size_t                        end   = _md->line_end;
 
@@ -2696,10 +2702,10 @@ d_internal_start_html
   An HTML block, of the kind the line begins; the seventh may not
 interrupt a paragraph.
 */
-static int
-d_internal_start_html(
-    struct d_internal_md* _md,
-    size_t                _container
+static
+int d_internal_start_html(
+    struct dj_internal_md* _md,
+    size_t                 _container
 )
 {
     // `<`, not indented as code
@@ -2743,10 +2749,10 @@ d_internal_start_setext
   A paragraph underlined with = or -: its definitions taken, what is left
 a heading.
 */
-static int
-d_internal_start_setext(
-    struct d_internal_md* _md,
-    size_t                _container
+static
+int d_internal_start_setext(
+    struct dj_internal_md* _md,
+    size_t                 _container
 )
 {
     const size_t at  = _md->next_nonspace;
@@ -2772,8 +2778,8 @@ d_internal_start_setext(
     d_internal_close_unmatched(_md);
     d_internal_take_definitions(_md, _container);
 
-    struct d_internal_node* const node  = &_md->nodes[_container];
-    struct d_wiki_block* const    block = &_md->wiki->blocks[node->block];
+    struct dj_internal_node* const node  = &_md->nodes[_container];
+    struct dj_wiki_block* const    block = &_md->wiki->blocks[node->block];
 
     // a paragraph all definitions is not a heading
     if (block->segment_count == 0u)
@@ -2781,7 +2787,7 @@ d_internal_start_setext(
         return 0;
     }
 
-    struct d_wiki_heading heading;
+    struct dj_wiki_heading heading;
     const size_t          last  = block->first_segment +
                                   block->segment_count - 1u;
     size_t                title = _md->wiki->segments[last].end;
@@ -2827,9 +2833,9 @@ d_internal_start_setext(
 d_internal_start_rule
   ***, ---, ___: three or more of one, with space between.
 */
-static int
-d_internal_start_rule(
-    struct d_internal_md* _md
+static
+int d_internal_start_rule(
+    struct dj_internal_md* _md
 )
 {
     const size_t at  = _md->next_nonspace;
@@ -2859,10 +2865,10 @@ d_internal_start_item
   Long as commonmark.js's parseListMarker and its list item start are, which
 it follows.
 */
-static int
-d_internal_start_item(
-    struct d_internal_md* _md,
-    size_t                _container
+static
+int d_internal_start_item(
+    struct dj_internal_md* _md,
+    size_t                 _container
 )
 {
     const size_t at      = _md->next_nonspace;
@@ -2973,7 +2979,7 @@ d_internal_start_item(
 
     d_internal_close_unmatched(_md);
 
-    const struct d_internal_node* const tip = &_md->nodes[_md->tip];
+    const struct dj_internal_node* const tip = &_md->nodes[_md->tip];
 
     // a new list, unless the tip is one of this kind
     if ( (tip->type != D_INTERNAL_LIST) ||
@@ -3017,8 +3023,8 @@ d_internal_cells
 not escaped, a `|` at either end not one between.  `_out_cells`, when
 given, receives each cell's span, trimmed, two to a cell.
 */
-static size_t
-d_internal_cells(
+static
+size_t d_internal_cells(
     const char* _text,
     size_t      _start,
     size_t      _end,
@@ -3130,13 +3136,13 @@ d_internal_start_table
 that line becomes a table's header, and the paragraph's lines before it
 stay a paragraph.
 */
-static int
-d_internal_start_table(
-    struct d_internal_md* _md,
-    size_t                _container
+static
+int d_internal_start_table(
+    struct dj_internal_md* _md,
+    size_t                 _container
 )
 {
-    struct d_internal_node* node = &_md->nodes[_container];
+    struct dj_internal_node* node = &_md->nodes[_container];
 
     // under a paragraph the line matched
     if ( (_md->indented) ||
@@ -3191,9 +3197,9 @@ d_internal_start_table(
         }
     }
 
-    struct d_wiki_block* const          block  = &_md->wiki->blocks[
+    struct dj_wiki_block* const          block  = &_md->wiki->blocks[
                                                      node->block];
-    const struct d_wiki_segment* const  header = &_md->wiki->segments[
+    const struct dj_wiki_segment* const  header = &_md->wiki->segments[
                                                      block->first_segment +
                                                      block->segment_count -
                                                      1u];
@@ -3257,9 +3263,9 @@ d_internal_start_table(
 d_internal_start_quote
   >, and one space after it.
 */
-static int
-d_internal_start_quote(
-    struct d_internal_md* _md
+static
+int d_internal_start_quote(
+    struct dj_internal_md* _md
 )
 {
     const size_t at = _md->next_nonspace;
@@ -3291,9 +3297,9 @@ d_internal_start_quote(
 d_internal_start_code
   Four columns of indent, where a paragraph is not open.
 */
-static int
-d_internal_start_code(
-    struct d_internal_md* _md
+static
+int d_internal_start_code(
+    struct dj_internal_md* _md
 )
 {
     // indented, not blank, with no paragraph to continue
@@ -3317,10 +3323,10 @@ d_internal_try_starts
   Each kind of block, in CommonMark's order, then GitHub's tables: 1 for a
 container begun, 2 for a leaf, 0 for none.
 */
-static int
-d_internal_try_starts(
-    struct d_internal_md* _md,
-    size_t                _container
+static
+int d_internal_try_starts(
+    struct dj_internal_md* _md,
+    size_t                 _container
 )
 {
     int result = d_internal_start_quote(_md);
@@ -3388,13 +3394,13 @@ d_internal_continue
 it closes the node and is done.
   Long as a dispatch on the node's type is.
 */
-static int
-d_internal_continue(
-    struct d_internal_md* _md,
-    size_t                _node
+static
+int d_internal_continue(
+    struct dj_internal_md* _md,
+    size_t                 _node
 )
 {
-    struct d_internal_node* const node = &_md->nodes[_node];
+    struct dj_internal_node* const node = &_md->nodes[_node];
 
     // a table of what goes on, by type
     switch (node->type)
@@ -3517,8 +3523,8 @@ d_internal_continue(
 d_internal_maybe_special
   Whether a byte may begin a block, which spares the rest a look.
 */
-static bool
-d_internal_maybe_special(
+static
+bool d_internal_maybe_special(
     char _c
 )
 {
@@ -3536,9 +3542,9 @@ the leaf its rest goes to.
 containers matched, the starts tried, then the leaf; split, the state each
 step leaves for the next would be passed about by pointer.
 */
-static void
-d_internal_incorporate(
-    struct d_internal_md* _md
+static
+void d_internal_incorporate(
+    struct dj_internal_md* _md
 )
 {
     size_t container   = 0;
@@ -3632,7 +3638,7 @@ d_internal_incorporate(
         }
     }
 
-    const enum d_internal_type tip_type = _md->nodes[_md->tip].type;
+    const enum dj_internal_type tip_type = _md->nodes[_md->tip].type;
 
     // a paragraph's lazy line, which matched not all it is in
     if ( (!_md->all_closed) &&
@@ -3646,7 +3652,7 @@ d_internal_incorporate(
 
     d_internal_close_unmatched(_md);
 
-    struct d_internal_node* const node = &_md->nodes[container];
+    struct dj_internal_node* const node = &_md->nodes[container];
 
     // a leaf takes the line, unless the line opened it and is done
     if ( (node->type == D_INTERNAL_PARAGRAPH) ||
@@ -3717,22 +3723,22 @@ d_internal_add_inline
 */
 static size_t
 d_internal_add_inline(
-    struct d_internal_line*     _line,
-    enum d_internal_inline_kind _kind,
+    struct dj_internal_line*     _line,
+    enum dj_internal_inline_kind _kind,
     const char*                 _text,
     size_t                      _length
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_line->nodes, &_line->node_capacity,
-                         _line->node_count, sizeof(struct d_internal_inline)))
+                         _line->node_count, sizeof(struct dj_internal_inline)))
     {
         _line->failed = true;
 
         return D_WIKI_NONE;
     }
 
-    struct d_internal_inline* const node = &_line->nodes[_line->node_count];
+    struct dj_internal_inline* const node = &_line->nodes[_line->node_count];
 
     memset(node, 0, sizeof(*node));
     node->kind        = _kind;
@@ -3759,11 +3765,11 @@ d_internal_add_inline(
 d_internal_flush
   Adds the text read since `*_from`, up to `_to`, as a text node.
 */
-static void
-d_internal_flush(
-    struct d_internal_line* _line,
-    size_t*                 _from,
-    size_t                  _to
+static
+void d_internal_flush(
+    struct dj_internal_line* _line,
+    size_t*                  _from,
+    size_t                   _to
 )
 {
     // nothing read adds nothing
@@ -3785,10 +3791,10 @@ d_internal_previous_character, d_internal_next_character
   The character before a place in the joined text, and at one; a line
 feed at either end.
 */
-static uint32_t
-d_internal_previous_character(
-    const struct d_internal_line* _line,
-    size_t                        _at
+static
+uint32_t d_internal_previous_character(
+    const struct dj_internal_line* _line,
+    size_t                         _at
 )
 {
     size_t start = _at;
@@ -3815,10 +3821,10 @@ d_internal_previous_character(
 }
 
 
-static uint32_t
-d_internal_next_character(
-    const struct d_internal_line* _line,
-    size_t                        _at
+static
+uint32_t d_internal_next_character(
+    const struct dj_internal_line* _line,
+    size_t                         _at
 )
 {
     size_t bytes = 0;
@@ -3838,10 +3844,10 @@ d_internal_next_character(
 d_internal_push_delimiter
   Puts a delimiter run on top of the stack.
 */
-static void
-d_internal_push_delimiter(
-    struct d_internal_line* _line,
-    size_t                  _node
+static
+void d_internal_push_delimiter(
+    struct dj_internal_line* _line,
+    size_t                   _node
 )
 {
     _line->nodes[_node].previous = _line->top;
@@ -3859,13 +3865,13 @@ d_internal_push_delimiter(
 }
 
 
-static void
-d_internal_remove_delimiter(
-    struct d_internal_line* _line,
-    size_t                  _node
+static
+void d_internal_remove_delimiter(
+    struct dj_internal_line* _line,
+    size_t                   _node
 )
 {
-    struct d_internal_inline* const node = &_line->nodes[_node];
+    struct dj_internal_inline* const node = &_line->nodes[_node];
 
     // the runs either side meet
     if (node->previous != D_WIKI_NONE)
@@ -3895,10 +3901,10 @@ d_internal_delimiter_run
   A run of `*`, `_` or `~`: whether it can open, or close, by what is on
 either side of it.  Tildes of three or more are text.
 */
-static size_t
-d_internal_delimiter_run(
-    struct d_internal_line* _line,
-    size_t                  _at
+static
+size_t d_internal_delimiter_run(
+    struct dj_internal_line* _line,
+    size_t                   _at
 )
 {
     const char* const text  = _line->joined.text;
@@ -3946,7 +3952,7 @@ d_internal_delimiter_run(
         return end;
     }
 
-    struct d_internal_inline* const run = &_line->nodes[node];
+    struct dj_internal_inline* const run = &_line->nodes[node];
 
     run->c        = c;
     run->count    = count;
@@ -3981,10 +3987,10 @@ d_internal_emphasis
 from each run what a match uses; what is left is text.
   Long as CommonMark's process emphasis is, which it follows step by step.
 */
-static void
-d_internal_emphasis(
-    struct d_internal_line* _line,
-    size_t                  _bottom
+static
+void d_internal_emphasis(
+    struct dj_internal_line* _line,
+    size_t                   _bottom
 )
 {
     size_t openers_bottom[3][6];
@@ -4017,7 +4023,7 @@ d_internal_emphasis(
     // each closer, up the stack
     while (closer != D_WIKI_NONE)
     {
-        struct d_internal_inline* const end = &_line->nodes[closer];
+        struct dj_internal_inline* const end = &_line->nodes[closer];
 
         // a run that cannot close: the next
         if (!end->can_close)
@@ -4037,7 +4043,7 @@ d_internal_emphasis(
                 (opener != _bottom) &&
                 (opener != openers_bottom[kind][which]) )
         {
-            const struct d_internal_inline* const begin =
+            const struct dj_internal_inline* const begin =
                 &_line->nodes[opener];
             const bool odd = ( (end->can_open) || (begin->can_close) ) &&
                              ((end->original % 3u) != 0u) &&
@@ -4075,7 +4081,7 @@ d_internal_emphasis(
             continue;
         }
 
-        struct d_internal_inline* const begin = &_line->nodes[opener];
+        struct dj_internal_inline* const begin = &_line->nodes[opener];
         const size_t                    used  = (kind == 2u) ? end->count
                                               : ( (end->count >= 2u) &&
                                                   (begin->count >= 2u) )
@@ -4122,13 +4128,13 @@ d_internal_render
   Writes inline content as the text it shows, from node `_from` to `_to`:
 an image shows its text only within another's, `_alt`.
 */
-static void
-d_internal_render(
-    const struct d_internal_line* _line,
-    size_t                        _from,
-    size_t                        _to,
-    bool                          _alt,
-    struct d_wiki_buffer*         _out
+static
+void d_internal_render(
+    const struct dj_internal_line* _line,
+    size_t                         _from,
+    size_t                         _to,
+    bool                           _alt,
+    struct dj_wiki_buffer*         _out
 )
 {
     size_t at = _from;
@@ -4136,7 +4142,7 @@ d_internal_render(
     // each node, an image's content skipped unless in an image
     while (at < _to)
     {
-        const struct d_internal_inline* const node = &_line->nodes[at];
+        const struct dj_internal_inline* const node = &_line->nodes[at];
 
         // what each node shows
         switch (node->kind)
@@ -4200,11 +4206,11 @@ d_internal_keep_link
   Adds a link found inline, its destination decoded already and its place
 on the page from places in the joined text.
 */
-static size_t
-d_internal_keep_link(
-    struct d_internal_line* _line,
-    struct d_wiki_link*     _link,
-    bool                    _image
+static
+size_t d_internal_keep_link(
+    struct dj_internal_line* _line,
+    struct dj_wiki_link*     _link,
+    bool                     _image
 )
 {
     _link->block = _line->block;
@@ -4237,12 +4243,12 @@ d_internal_attribute_value
   An attribute's value from `_at`: quoted, to its close, or to the space,
 the `>` or the `/>` after it.  Gives where the attribute ends.
 */
-static size_t
-d_internal_attribute_value(
-    const char*                 _text,
-    size_t                      _close,
-    size_t                      _at,
-    struct d_internal_html_tag* _out
+static
+size_t d_internal_attribute_value(
+    const char*                  _text,
+    size_t                       _close,
+    size_t                       _at,
+    struct dj_internal_html_tag* _out
 )
 {
     size_t to = _at;
@@ -4295,12 +4301,12 @@ d_internal_attribute
 attribute with none.  Moves `*_scan` past it; gives false when the tag's
 attributes are done.
 */
-static bool
-d_internal_attribute(
-    const char*                 _text,
-    size_t                      _close,
-    size_t*                     _scan,
-    struct d_internal_html_tag* _out
+static
+bool d_internal_attribute(
+    const char*                  _text,
+    size_t                       _close,
+    size_t*                      _scan,
+    struct dj_internal_html_tag* _out
 )
 {
     size_t scan = *_scan;
@@ -4369,17 +4375,17 @@ d_internal_html_link
   The link an <a href> or an <img src> makes, kept within a leaf: where it
 leads, and, for an image, its alt as its label.
 */
-static void
-d_internal_html_link(
-    struct d_internal_line*           _line,
-    const char*                       _text,
-    size_t                            _base,
-    const struct d_internal_html_tag* _tag
+static
+void d_internal_html_link(
+    struct dj_internal_line*           _line,
+    const char*                        _text,
+    size_t                             _base,
+    const struct dj_internal_html_tag* _tag
 )
 {
-    struct d_wiki_link   kept;
-    struct d_wiki_buffer target = { NULL, 0u, 0u, false };
-    struct d_wiki_buffer label  = { NULL, 0u, 0u, false };
+    struct dj_wiki_link   kept;
+    struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer label  = { NULL, 0u, 0u, false };
 
     d_wiki_new_link(&kept, D_WIKI_FORM_HTML,
                     (_line) ? d_internal_source(_line, _tag->at)
@@ -4431,13 +4437,13 @@ d_internal_html_links
 <img src>, an image's alt its label.  Within a leaf, `_line` places them on
 the page; else the text is the page's from `_base`.
 */
-static void
-d_internal_html_links(
-    struct d_internal_line* _line,
-    const char*             _text,
-    size_t                  _start,
-    size_t                  _end,
-    size_t                  _base
+static
+void d_internal_html_links(
+    struct dj_internal_line* _line,
+    const char*              _text,
+    size_t                   _start,
+    size_t                   _end,
+    size_t                   _base
 )
 {
     size_t at = _start;
@@ -4446,7 +4452,7 @@ d_internal_html_links(
     while (at < _end)
     {
         const char* const          found = memchr(&_text[at], '<', _end - at);
-        struct d_internal_html_tag tag;
+        struct dj_internal_html_tag tag;
 
         // the next `<`
         if (!found)
@@ -4527,8 +4533,8 @@ d_internal_html_links(
 d_internal_autolink
   <scheme:...> or <address>: gives where it ends, 0 for neither.
 */
-static size_t
-d_internal_autolink(
+static
+size_t d_internal_autolink(
     const char* _text,
     size_t      _length,
     size_t      _at,
@@ -4653,8 +4659,8 @@ d_internal_raw_html
   Inline HTML at `_at`: a tag, a comment, an instruction, a declaration,
 CDATA.  Gives where it ends, 0 for none.
 */
-static size_t
-d_internal_raw_html(
+static
+size_t d_internal_raw_html(
     const char* _text,
     size_t      _length,
     size_t      _at
@@ -4744,8 +4750,8 @@ d_internal_check_domain
   The length of a domain at `_text`: letters, digits, `-`, `_` and `.`, no
 `_` in its last two parts, and, unless short is allowed, a `.`.
 */
-static size_t
-d_internal_check_domain(
+static
+size_t d_internal_check_domain(
     const char* _text,
     size_t      _length,
     bool        _short
@@ -4807,8 +4813,8 @@ d_internal_link_end
   Where a bare link ends: before `<`, and before what trails it --
 punctuation, a `)` with no `(` to match, a reference's `;`.
 */
-static size_t
-d_internal_link_end(
+static
+size_t d_internal_link_end(
     const char* _text,
     size_t      _end
 )
@@ -4884,16 +4890,16 @@ d_internal_bare_link
   Keeps a bare link from `_at` to `_end` of the joined text, its target
 the text with a scheme before it.
 */
-static void
-d_internal_bare_link(
-    struct d_internal_line* _line,
-    size_t                  _at,
-    size_t                  _end,
-    const char*             _scheme
+static
+void d_internal_bare_link(
+    struct dj_internal_line* _line,
+    size_t                   _at,
+    size_t                   _end,
+    const char*              _scheme
 )
 {
-    struct d_wiki_link   link;
-    struct d_wiki_buffer target = { NULL, 0u, 0u, false };
+    struct dj_wiki_link   link;
+    struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
     const char* const    text   = &_line->joined.text[_at];
     const size_t         length = _end - _at;
 
@@ -4930,10 +4936,10 @@ d_internal_www
   www.domain, after a space, the start, or *, _, ~, (; gives where it
 ends, or 0.
 */
-static size_t
-d_internal_www(
-    const struct d_internal_line* _line,
-    size_t                        _at
+static
+size_t d_internal_www(
+    const struct dj_internal_line* _line,
+    size_t                         _at
 )
 {
     const char* const text   = _line->joined.text;
@@ -4984,12 +4990,12 @@ d_internal_url
   http://, https:// or ftp://, its scheme the letters before `:` at
 `_at`, and a domain: gives where it ends, or 0, and where it begins.
 */
-static size_t
-d_internal_url(
-    const struct d_internal_line* _line,
-    size_t                        _from,
-    size_t                        _at,
-    size_t*                       _out_start
+static
+size_t d_internal_url(
+    const struct dj_internal_line* _line,
+    size_t                         _from,
+    size_t                         _at,
+    size_t*                        _out_start
 )
 {
     static const char* const schemes[] = { "http://", "https://", "ftp://" };
@@ -5075,12 +5081,12 @@ d_internal_email
   An address around the `@` at `_at`, from the text read: gives where it
 ends, or 0, and where it begins.
 */
-static size_t
-d_internal_email(
-    const struct d_internal_line* _line,
-    size_t                        _from,
-    size_t                        _at,
-    size_t*                       _out_start
+static
+size_t d_internal_email(
+    const struct dj_internal_line* _line,
+    size_t                         _from,
+    size_t                         _at,
+    size_t*                        _out_start
 )
 {
     const char* const text   = _line->joined.text;
@@ -5163,10 +5169,10 @@ d_internal_gollum_close
 something between, not escaped by a `'` before it, and with no `][`
 within it.  Gives 0 for none.
 */
-static size_t
-d_internal_gollum_close(
-    const struct d_internal_line* _line,
-    size_t                        _at
+static
+size_t d_internal_gollum_close(
+    const struct dj_internal_line* _line,
+    size_t                         _at
 )
 {
     const char* const text   = _line->joined.text;
@@ -5217,8 +5223,8 @@ d_internal_gollum_parts
   The parts of [[...]] between `_inner` and its `]]` at `_close`, apart by
 `|` and trimmed, four at most.  Gives how many.
 */
-static size_t
-d_internal_gollum_parts(
+static
+size_t d_internal_gollum_parts(
     const char* _text,
     size_t      _inner,
     size_t      _close,
@@ -5276,17 +5282,17 @@ d_internal_gollum_label
 part, before the page, of [[Label|Page]], written where it is; or the page
 of [[Page]].
 */
-static void
-d_internal_gollum_label(
-    const struct d_internal_line* _line,
-    size_t                        _parts[4][2],
-    size_t                        _count,
-    bool                          _image,
-    struct d_wiki_link*           _link
+static
+void d_internal_gollum_label(
+    const struct dj_internal_line* _line,
+    size_t                         _parts[4][2],
+    size_t                         _count,
+    bool                           _image,
+    struct dj_wiki_link*           _link
 )
 {
     const char* const    text  = _line->joined.text;
-    struct d_wiki_buffer label = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer label = { NULL, 0u, 0u, false };
 
     // an image's text is its option alt=
     for (size_t index = 1u; ( (_image) && (index < _count) ); ++index)
@@ -5328,15 +5334,15 @@ d_internal_gollum_kept
   What a Gollum link kept leads to: [[_TOC_]] is a tag, and a page's name
 keeps its spaces and `/`s, perhaps with an anchor; then the text it shows.
 */
-static void
-d_internal_gollum_kept(
-    struct d_internal_line* _line,
-    size_t                  _index,
-    bool                    _image,
-    bool                    _include
+static
+void d_internal_gollum_kept(
+    struct dj_internal_line* _line,
+    size_t                   _index,
+    bool                     _image,
+    bool                     _include
 )
 {
-    struct d_wiki_link* const kept = &_line->md->wiki->links[_index];
+    struct dj_wiki_link* const kept = &_line->md->wiki->links[_index];
     const char* const         hash = strchr(kept->target, '#');
 
     kept->embedded = _image;
@@ -5380,16 +5386,16 @@ d_internal_gollum
 [[Page]], [[Label|Page]], an image's [[file.png|alt=Text]], [[_TOC_]] and
 [[include:Page]].  Gives where it ends, and keeps it, or 0.
 */
-static size_t
-d_internal_gollum(
-    struct d_internal_line* _line,
-    size_t                  _at
+static
+size_t d_internal_gollum(
+    struct dj_internal_line* _line,
+    size_t                   _at
 )
 {
     const char* const text  = _line->joined.text;
     const size_t      close = d_internal_gollum_close(_line, _at);
     size_t            parts[4][2];
-    struct d_wiki_link link;
+    struct dj_wiki_link link;
 
     // no close: not Gollum's
     if (close == 0u)
@@ -5444,11 +5450,11 @@ d_internal_gollum(
 d_internal_push_bracket
   Opens a bracket: `[`, or `![`.
 */
-static void
-d_internal_push_bracket(
-    struct d_internal_line* _line,
-    size_t                  _at,
-    bool                    _image
+static
+void d_internal_push_bracket(
+    struct dj_internal_line* _line,
+    size_t                   _at,
+    bool                     _image
 )
 {
     const size_t node = d_internal_add_inline(_line, D_INTERNAL_OPENER,
@@ -5458,7 +5464,7 @@ d_internal_push_bracket(
     if ( (node == D_WIKI_NONE) ||
          (!d_internal_grow((void**)&_line->brackets,
                            &_line->bracket_capacity, _line->bracket_count,
-                           sizeof(struct d_internal_bracket))) )
+                           sizeof(struct dj_internal_bracket))) )
     {
         _line->failed = true;
 
@@ -5473,7 +5479,7 @@ d_internal_push_bracket(
         _line->brackets[_line->bracket_count - 1u].after = true;
     }
 
-    struct d_internal_bracket* const bracket =
+    struct dj_internal_bracket* const bracket =
         &_line->brackets[_line->bracket_count++];
 
     bracket->node      = node;
@@ -5492,11 +5498,11 @@ d_internal_inline_link
   ](destination "title") after the bracket at `_close`: gives where it ends,
 or 0, and where its destination and title are.
 */
-static size_t
-d_internal_inline_link(
-    const struct d_internal_line* _line,
-    size_t                        _close,
-    struct d_internal_link_parts* _parts
+static
+size_t d_internal_inline_link(
+    const struct dj_internal_line* _line,
+    size_t                         _close,
+    struct dj_internal_link_parts* _parts
 )
 {
     const char* const text   = _line->joined.text;
@@ -5547,12 +5553,12 @@ d_internal_link_after
 or a reference's label -- full, collapsed, or the bracket's own text for a
 shortcut -- that names a definition.  Gives whether either makes a link.
 */
-static bool
-d_internal_link_after(
-    struct d_internal_line*          _line,
-    size_t                           _at,
-    const struct d_internal_bracket* _opener,
-    struct d_internal_link_parts*    _parts
+static
+bool d_internal_link_after(
+    struct dj_internal_line*          _line,
+    size_t                            _at,
+    const struct dj_internal_bracket* _opener,
+    struct dj_internal_link_parts*    _parts
 )
 {
     const char* const text   = _line->joined.text;
@@ -5604,13 +5610,13 @@ page, where it leads -- as written, or as its definition says -- and an
 empty label, which its content gives once emphasis is read.  Gives whether
 memory held.
 */
-static bool
-d_internal_link_of(
-    struct d_internal_line*             _line,
-    size_t                              _at,
-    const struct d_internal_bracket*    _opener,
-    const struct d_internal_link_parts* _parts,
-    struct d_wiki_link*                 _out
+static
+bool d_internal_link_of(
+    struct dj_internal_line*             _line,
+    size_t                               _at,
+    const struct dj_internal_bracket*    _opener,
+    const struct dj_internal_link_parts* _parts,
+    struct dj_wiki_link*                 _out
 )
 {
     const char* const text = _line->joined.text;
@@ -5626,7 +5632,7 @@ d_internal_link_of(
     // where it leads: written, or its definition's
     if (_parts->inline_form)
     {
-        struct d_wiki_buffer target = { NULL, 0u, 0u, false };
+        struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
 
         _out->target_start = d_internal_source(_line, _parts->raw);
         _out->target_end   = d_internal_source(_line, _parts->raw_end);
@@ -5644,7 +5650,7 @@ d_internal_link_of(
     }
     else
     {
-        const struct d_wiki_link* const definition =
+        const struct dj_wiki_link* const definition =
             &_line->md->wiki->links[_parts->reference];
 
         // a label written after it is where its destination is named
@@ -5681,11 +5687,11 @@ d_internal_link_made
 emphasis, its label left to wait for the text it shows, and, for a link,
 every `[` before it unable to open another.
 */
-static void
-d_internal_link_made(
-    struct d_internal_line*          _line,
-    const struct d_internal_bracket* _opener,
-    size_t                           _index
+static
+void d_internal_link_made(
+    struct dj_internal_line*          _line,
+    const struct dj_internal_bracket* _opener,
+    size_t                            _index
 )
 {
     // the opener is the link now; its content is read for emphasis
@@ -5698,7 +5704,7 @@ d_internal_link_made(
     if ( (_index != D_WIKI_NONE) &&
          (d_internal_grow((void**)&_line->waiting, &_line->waiting_capacity,
                           _line->waiting_count,
-                          sizeof(struct d_internal_waiting))) )
+                          sizeof(struct dj_internal_waiting))) )
     {
         _line->waiting[_line->waiting_count].link  = _index;
         _line->waiting[_line->waiting_count].first = _opener->node + 1u;
@@ -5727,14 +5733,14 @@ d_internal_close_bracket
   A `]` at `_at`: closes the top bracket as a link or an image if what
 follows makes one, or as text.  Gives where reading goes on.
 */
-static size_t
-d_internal_close_bracket(
-    struct d_internal_line* _line,
-    size_t                  _at
+static
+size_t d_internal_close_bracket(
+    struct dj_internal_line* _line,
+    size_t                   _at
 )
 {
-    struct d_internal_link_parts parts;
-    struct d_wiki_link           link;
+    struct dj_internal_link_parts parts;
+    struct dj_wiki_link           link;
 
     // no bracket open: `]` is text
     if (_line->bracket_count == 0u)
@@ -5744,7 +5750,7 @@ d_internal_close_bracket(
         return _at + 1u;
     }
 
-    const struct d_internal_bracket opener =
+    const struct dj_internal_bracket opener =
         _line->brackets[_line->bracket_count - 1u];
 
     // an opener that may not begin a link, or nothing after the `]` that
@@ -5778,10 +5784,10 @@ d_internal_code_span
   A run of backticks at `_at`: a code span to a run of as many, or text.
 Gives where reading goes on.
 */
-static size_t
-d_internal_code_span(
-    struct d_internal_line* _line,
-    size_t                  _at
+static
+size_t d_internal_code_span(
+    struct dj_internal_line* _line,
+    size_t                   _at
 )
 {
     const char* const text   = _line->joined.text;
@@ -5821,7 +5827,7 @@ d_internal_code_span(
         // a run as long closes the span
         if ((run - scan) == count)
         {
-            struct d_wiki_buffer content = { NULL, 0u, 0u, false };
+            struct dj_wiki_buffer content = { NULL, 0u, 0u, false };
             size_t               from    = end;
             size_t               to      = scan;
             bool                 spaces  = true;
@@ -5871,10 +5877,10 @@ d_internal_code_span(
 d_internal_angle
   A `<` at `_at`: an autolink, HTML, or text.  Gives where reading goes on.
 */
-static size_t
-d_internal_angle(
-    struct d_internal_line* _line,
-    size_t                  _at
+static
+size_t d_internal_angle(
+    struct dj_internal_line* _line,
+    size_t                   _at
 )
 {
     const char* const text   = _line->joined.text;
@@ -5886,8 +5892,8 @@ d_internal_angle(
     // an autolink
     if (auto_end > 0u)
     {
-        struct d_wiki_link   link;
-        struct d_wiki_buffer target = { NULL, 0u, 0u, false };
+        struct dj_wiki_link   link;
+        struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
 
         d_wiki_new_link(&link, D_WIKI_FORM_AUTO,
                         d_internal_source(_line, _at),
@@ -5941,11 +5947,11 @@ d_internal_line_feed
   A line feed at `_at`: a hard break after two spaces, else soft; the
 spaces before it, and after it, go.
 */
-static size_t
-d_internal_line_feed(
-    struct d_internal_line* _line,
-    size_t*                 _from,
-    size_t                  _at
+static
+size_t d_internal_line_feed(
+    struct dj_internal_line* _line,
+    size_t*                  _from,
+    size_t                   _at
 )
 {
     const char* const text   = _line->joined.text;
@@ -5981,17 +5987,17 @@ d_internal_emoji
   :name: at `_at`, of a name GitHub has an emoji for: gives where it ends,
 or 0, and adds its text to `_add`, when given, in place of the name.
 */
-static size_t
-d_internal_emoji(
-    const struct d_internal_line* _line,
-    size_t                        _at,
-    struct d_internal_line*       _add
+static
+size_t d_internal_emoji(
+    const struct dj_internal_line* _line,
+    size_t                         _at,
+    struct dj_internal_line*       _add
 )
 {
     const char* const    text   = _line->joined.text;
     const size_t         length = _line->joined.length;
     size_t               close  = _at + 1u;
-    struct d_wiki_buffer emoji  = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer emoji  = { NULL, 0u, 0u, false };
 
     // a word's bytes, `+` and `-`, to the next `:`
     while ( (close < length) &&
@@ -6032,9 +6038,9 @@ d_internal_scan
   Long as a dispatch on the byte read is: each case is a few lines, and apart
 they would be read in no order.
 */
-static void
-d_internal_scan(
-    struct d_internal_line* _line
+static
+void d_internal_scan(
+    struct dj_internal_line* _line
 )
 {
     const char* const text   = _line->joined.text;
@@ -6166,7 +6172,7 @@ d_internal_scan(
 
             case '&':
             {
-                struct d_wiki_buffer decoded = { NULL, 0u, 0u, false };
+                struct dj_wiki_buffer decoded = { NULL, 0u, 0u, false };
                 const size_t         span    = d_wiki_entity(&text[at],
                                                              length - at,
                                                              &decoded);
@@ -6285,16 +6291,16 @@ d_internal_scan(
 d_internal_read_inline
   Reads one leaf's inline content: its links kept, and a heading's title.
 */
-static void
-d_internal_read_inline(
-    struct d_internal_md*        _md,
-    const struct d_internal_job* _job,
-    size_t                       _first,
-    size_t                       _count,
-    bool                         _cell
+static
+void d_internal_read_inline(
+    struct dj_internal_md*        _md,
+    const struct dj_internal_job* _job,
+    size_t                        _first,
+    size_t                        _count,
+    bool                          _cell
 )
 {
-    struct d_internal_line line;
+    struct dj_internal_line line;
 
     memset(&line, 0, sizeof(line));
     line.md    = _md;
@@ -6338,8 +6344,8 @@ d_internal_read_inline(
     // each link's label, now emphasis is read
     for (size_t index = 0; index < line.waiting_count; ++index)
     {
-        struct d_wiki_buffer label = { NULL, 0u, 0u, false };
-        struct d_wiki_link*  link  = &_md->wiki->links[line.waiting[index]
+        struct dj_wiki_buffer label = { NULL, 0u, 0u, false };
+        struct dj_wiki_link*  link  = &_md->wiki->links[line.waiting[index]
                                                            .link];
 
         d_internal_render(&line, line.waiting[index].first,
@@ -6363,7 +6369,7 @@ d_internal_read_inline(
     // a heading's title is the text it shows
     if (_job->heading != D_WIKI_NONE)
     {
-        struct d_wiki_buffer title = { NULL, 0u, 0u, false };
+        struct dj_wiki_buffer title = { NULL, 0u, 0u, false };
 
         d_internal_render(&line, 0u, line.node_count, false, &title);
         (void)d_wiki_buffer_add(&title, "", 0u);
@@ -6391,13 +6397,13 @@ d_internal_read_job
 table's rows, each cell on its own, the line of dashes not among them, and
 no more cells than the header has.
 */
-static void
-d_internal_read_job(
-    struct d_internal_md*        _md,
-    const struct d_internal_job* _job
+static
+void d_internal_read_job(
+    struct dj_internal_md*        _md,
+    const struct dj_internal_job* _job
 )
 {
-    const struct d_wiki_block* const block = &_md->wiki->blocks[_job->block];
+    const struct dj_wiki_block* const block = &_md->wiki->blocks[_job->block];
 
     // a paragraph's or a heading's lines, together
     if (block->kind != D_WIKI_TABLE)
@@ -6411,7 +6417,7 @@ d_internal_read_job(
     // a table's rows, a cell at a time
     for (size_t row = 0; row < block->segment_count; ++row)
     {
-        const struct d_wiki_segment* const segment =
+        const struct dj_wiki_segment* const segment =
             &_md->wiki->segments[block->first_segment + row];
         size_t                             cells[2u * 64u];
 
@@ -6442,20 +6448,20 @@ d_internal_read_job(
 d_internal_html_block_links
   The links in an HTML block's tags, a line at a time.
 */
-static void
-d_internal_html_block_links(
-    struct d_internal_md* _md,
-    size_t                _block
+static
+void d_internal_html_block_links(
+    struct dj_internal_md* _md,
+    size_t                 _block
 )
 {
-    const struct d_wiki_block block = _md->wiki->blocks[_block];
+    const struct dj_wiki_block block = _md->wiki->blocks[_block];
 
     // each line of the block
     for (size_t index = 0; index < block.segment_count; ++index)
     {
-        const struct d_wiki_segment segment =
+        const struct dj_wiki_segment segment =
             _md->wiki->segments[block.first_segment + index];
-        struct d_internal_line      line;
+        struct dj_internal_line      line;
 
         memset(&line, 0, sizeof(line));
         line.md    = _md;
@@ -6485,10 +6491,10 @@ d_internal_html_block_links(
 d_internal_is_comment
   Whether an HTML block is a comment alone on its lines.
 */
-static bool
-d_internal_is_comment(
-    const struct d_internal_md* _md,
-    const struct d_wiki_block*  _block
+static
+bool d_internal_is_comment(
+    const struct dj_internal_md* _md,
+    const struct dj_wiki_block*  _block
 )
 {
     const char* const text = _md->text;
@@ -6535,14 +6541,14 @@ d_internal_is_fence_line
   Whether a line is a metadata block's fence: `---`, or `...` to close,
 with nothing after it but space.
 */
-static bool
-d_internal_is_fence_line(
-    const struct d_internal_md* _md,
-    size_t                      _line,
-    bool                        _closing
+static
+bool d_internal_is_fence_line(
+    const struct dj_internal_md* _md,
+    size_t                       _line,
+    bool                         _closing
 )
 {
-    const struct d_wiki* const wiki  = _md->wiki;
+    const struct dj_wiki* const wiki  = _md->wiki;
     size_t                     at    = wiki->line_starts[_line] +
                                        ( ( (_line == 0u) && (wiki->bom) )
                                              ? 3u : 0u);
@@ -6580,12 +6586,12 @@ d_internal_metadata
 `...`, as Gollum and pandoc read it: a block of its own, its lines between
 the fences.  Gives the line the page's blocks begin on.
 */
-static size_t
-d_internal_metadata(
-    struct d_internal_md* _md
+static
+size_t d_internal_metadata(
+    struct dj_internal_md* _md
 )
 {
-    struct d_wiki* const wiki  = _md->wiki;
+    struct dj_wiki* const wiki  = _md->wiki;
     size_t               close = 1u;
 
     // `---` on the first line, with a line after it
@@ -6655,19 +6661,19 @@ inline content, and the links of HTML blocks.
   Long as the reader's passes are many, each a few lines, in the order they
 must run.
 */
-static bool
-d_internal_read(
-    struct d_wiki* _wiki
+static
+bool d_internal_read(
+    struct dj_wiki* _wiki
 )
 {
-    struct d_internal_md md;
+    struct dj_internal_md md;
 
     memset(&md, 0, sizeof(md));
     md.wiki = _wiki;
     md.text = _wiki->text;
 
     // the document, the tree's root
-    md.nodes = malloc(16u * sizeof(struct d_internal_node));
+    md.nodes = malloc(16u * sizeof(struct dj_internal_node));
 
     // memory that ran out
     if (!md.nodes)
@@ -6800,10 +6806,10 @@ d_internal_anchor
   GitHub's anchor of a title: in lower case, every character not a word's,
 a dash or a space dropped, each space a dash.
 */
-static bool
-d_internal_anchor(
-    struct d_wiki_buffer* _out,
-    const char*           _title
+static
+bool d_internal_anchor(
+    struct dj_wiki_buffer* _out,
+    const char*            _title
 )
 {
     const size_t length = strlen(_title);
@@ -6846,11 +6852,11 @@ d_internal_add_lines
   Writes text with every line ending a line feed and each line after the
 first indented.
 */
-static void
-d_internal_add_lines(
-    struct d_wiki_buffer* _out,
-    const char*           _text,
-    size_t                _indent
+static
+void d_internal_add_lines(
+    struct dj_wiki_buffer* _out,
+    const char*            _text,
+    size_t                 _indent
 )
 {
     // each byte, a line feed followed by the indent
@@ -6880,11 +6886,11 @@ d_internal_add_lines(
 }
 
 
-static bool
-d_internal_write_heading(
-    struct d_wiki_buffer* _out,
-    size_t                _level,
-    const char*           _title
+static
+bool d_internal_write_heading(
+    struct dj_wiki_buffer* _out,
+    size_t                 _level,
+    const char*            _title
 )
 {
     const size_t length = strlen(_title);
@@ -6924,10 +6930,10 @@ d_internal_write_destination
   Writes a destination: bare when it can be, else in <...>, its brackets
 escaped.
 */
-static void
-d_internal_write_destination(
-    struct d_wiki_buffer* _out,
-    const char*           _url
+static
+void d_internal_write_destination(
+    struct dj_wiki_buffer* _out,
+    const char*            _url
 )
 {
     bool   angle  = (_url[0] == '\0') || (_url[0] == '<');
@@ -6986,10 +6992,10 @@ d_internal_write_destination(
 d_internal_write_label
   Writes a link's label: its brackets escaped, unless balanced already.
 */
-static void
-d_internal_write_label(
-    struct d_wiki_buffer* _out,
-    const char*           _label
+static
+void d_internal_write_label(
+    struct dj_wiki_buffer* _out,
+    const char*            _label
 )
 {
     long depth    = 0;
@@ -7040,15 +7046,15 @@ d_internal_write_label(
 }
 
 
-static bool
-d_internal_write_page_link(
-    struct d_wiki_buffer* _out,
-    const char*           _page,
-    const char*           _anchor,
-    const char*           _label
+static
+bool d_internal_write_page_link(
+    struct dj_wiki_buffer* _out,
+    const char*            _page,
+    const char*            _anchor,
+    const char*            _label
 )
 {
-    struct d_wiki_buffer target = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
     const bool           gollum = (_page[0] != '\0') &&
                                   (strpbrk(_page, "|[]#\n") == NULL) &&
                                   ( (!_label) ||
@@ -7109,11 +7115,11 @@ d_internal_write_page_link(
 }
 
 
-static bool
-d_internal_write_url_link(
-    struct d_wiki_buffer* _out,
-    const char*           _url,
-    const char*           _label
+static
+bool d_internal_write_url_link(
+    struct dj_wiki_buffer* _out,
+    const char*            _url,
+    const char*            _label
 )
 {
     bool   autolink = (_label == NULL) && (d_wiki_has_scheme(_url));
@@ -7146,11 +7152,11 @@ d_internal_write_url_link(
 }
 
 
-static bool
-d_internal_write_image(
-    struct d_wiki_buffer* _out,
-    const char*           _source,
-    const char*           _text
+static
+bool d_internal_write_image(
+    struct dj_wiki_buffer* _out,
+    const char*            _source,
+    const char*            _text
 )
 {
     (void)d_wiki_buffer_add_text(_out, "![");
@@ -7167,8 +7173,8 @@ d_internal_write_image(
 d_internal_longest_run
   The longest run of a byte in text.
 */
-static size_t
-d_internal_longest_run(
+static
+size_t d_internal_longest_run(
     const char* _text,
     char        _c
 )
@@ -7187,11 +7193,11 @@ d_internal_longest_run(
 }
 
 
-static bool
-d_internal_write_code(
-    struct d_wiki_buffer* _out,
-    const char*           _code,
-    const char*           _language
+static
+bool d_internal_write_code(
+    struct dj_wiki_buffer* _out,
+    const char*            _code,
+    const char*            _language
 )
 {
     const bool   tildes = (_language) && (strchr(_language, '`') != NULL);
@@ -7234,10 +7240,10 @@ d_internal_write_code(
 }
 
 
-static bool
-d_internal_write_inline_code(
-    struct d_wiki_buffer* _out,
-    const char*           _code
+static
+bool d_internal_write_inline_code(
+    struct dj_wiki_buffer* _out,
+    const char*            _code
 )
 {
     const size_t length = strlen(_code);
@@ -7288,12 +7294,12 @@ d_internal_write_inline_code(
 }
 
 
-static bool
-d_internal_write_item(
-    struct d_wiki_buffer* _out,
-    const char*           _text,
-    size_t                _depth,
-    bool                  _ordered
+static
+bool d_internal_write_item(
+    struct dj_wiki_buffer* _out,
+    const char*            _text,
+    size_t                 _depth,
+    bool                   _ordered
 )
 {
     const size_t indent = (_depth - 1u) * 4u;
@@ -7322,11 +7328,11 @@ d_internal_write_item(
 d_internal_write_cell
   Writes a cell, its `|`s escaped.
 */
-static void
-d_internal_write_cell(
-    struct d_wiki_buffer* _out,
-    const char*           _cell,
-    size_t                _length
+static
+void d_internal_write_cell(
+    struct dj_wiki_buffer* _out,
+    const char*            _cell,
+    size_t                 _length
 )
 {
     size_t gollum = 0;
@@ -7369,10 +7375,10 @@ d_internal_write_cell(
 }
 
 
-static bool
-d_internal_write_table(
-    struct d_wiki_buffer* _out,
-    const char*           _rows
+static
+bool d_internal_write_table(
+    struct dj_wiki_buffer* _out,
+    const char*            _rows
 )
 {
     size_t      columns = 0;
@@ -7442,10 +7448,10 @@ d_internal_write_table(
 }
 
 
-static bool
-d_internal_write_escape(
-    struct d_wiki_buffer* _out,
-    const char*           _text
+static
+bool d_internal_write_escape(
+    struct dj_wiki_buffer* _out,
+    const char*            _text
 )
 {
     bool line_start = true;
@@ -7528,11 +7534,11 @@ d_internal_write_target
   What stands in a link's destination, in its form: Gollum's page as it
 is, Markdown's as a destination, an autolink's bare.
 */
-static bool
-d_internal_write_target(
-    struct d_wiki_buffer*     _out,
-    const struct d_wiki_link* _link,
-    const char*               _target
+static
+bool d_internal_write_target(
+    struct dj_wiki_buffer*     _out,
+    const struct dj_wiki_link* _link,
+    const char*                _target
 )
 {
     // a table of how each form writes it
@@ -7610,11 +7616,11 @@ d_internal_write_target(
 d_internal_write_link_label
   What stands in a link's label, in its form.
 */
-static bool
-d_internal_write_link_label(
-    struct d_wiki_buffer*     _out,
-    const struct d_wiki_link* _link,
-    const char*               _label
+static
+bool d_internal_write_link_label(
+    struct dj_wiki_buffer*     _out,
+    const struct dj_wiki_link* _link,
+    const char*                _label
 )
 {
     // Gollum's label has no `|` or `]]`; Markdown's brackets balance
@@ -7644,10 +7650,9 @@ d_internal_write_link_label(
 d_wiki_markdown_driver
   The driver's table.
 */
-const struct d_wiki_driver*
-d_wiki_markdown_driver(void)
+const struct dj_wiki_driver* d_wiki_markdown_driver(void)
 {
-    static const struct d_wiki_driver driver =
+    static const struct dj_wiki_driver driver =
     {
         D_WIKI_MARKDOWN,
         d_internal_read,

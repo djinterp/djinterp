@@ -32,45 +32,45 @@
 //==============================================================================
 
 
-// d_git_doc
+// dj_git_doc
 //   struct: a file's text, owned, and its records; the text it was made
 //   from, to tell whether it changed; the changes kept; and why the last
 //   was refused.
-struct d_git_doc
+struct dj_git_doc
 {
     char*                path;
-    enum d_git_text_kind kind;
+    enum dj_git_text_kind kind;
     char*                text;
     size_t               length;
     char*                original;
     size_t               original_length;
-    struct d_git_text    records;
+    struct dj_git_text    records;
     size_t               changes;
     char                 problem[256];
 };
 
-// d_internal_candidate
+// dj_internal_candidate
 //   struct: a text a splice would make, and its records.
-struct d_internal_candidate
+struct dj_internal_candidate
 {
     char*             text;
     size_t            length;
-    struct d_git_text records;
+    struct dj_git_text records;
 };
 
-// d_internal_splice
+// dj_internal_splice
 //   struct: one splice: the text from `start` to `end` replaced by
 //   `length` bytes.
-struct d_internal_splice
+struct dj_internal_splice
 {
     size_t start;
     size_t end;
     size_t length;
 };
 
-// d_internal_span
+// dj_internal_span
 //   struct: text a change takes away, from `start` to `end`.
-struct d_internal_span
+struct dj_internal_span
 {
     size_t start;
     size_t end;
@@ -86,8 +86,8 @@ struct d_internal_span
 d_internal_copy
   `_length` bytes, allocated and terminated; NULL when memory runs out.
 */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _bytes,
     size_t      _length
 )
@@ -116,10 +116,10 @@ d_internal_copy(
 d_internal_fail
   Says why a change was refused, and refuses it.
 */
-static bool
-d_internal_fail(
-    struct d_git_doc* _doc,
-    const char*       _why
+static
+bool d_internal_fail(
+    struct dj_git_doc* _doc,
+    const char*        _why
 )
 {
     (void)snprintf(_doc->problem, sizeof(_doc->problem), "%s", _why);
@@ -133,20 +133,20 @@ d_internal_new_doc
   A document of a text it takes, read; NULL, the text freed, when reading
 fails.
 */
-static struct d_git_doc*
+static struct dj_git_doc*
 d_internal_new_doc(
     const char*          _path,
-    enum d_git_text_kind _kind,
+    enum dj_git_text_kind _kind,
     char*                _text,
     size_t               _length,
     char*                _problem,
     size_t               _capacity
 )
 {
-    const enum d_git_text_kind kind     = (_kind != D_GIT_TEXT_OTHER)
+    const enum dj_git_text_kind kind     = (_kind != D_GIT_TEXT_OTHER)
                                           ? _kind
                                           : d_git_text_kind_of(_path);
-    struct d_git_doc* const    doc      = calloc(1u, sizeof(*doc));
+    struct dj_git_doc* const    doc      = calloc(1u, sizeof(*doc));
     char* const                path     = d_internal_copy(_path,
                                                           strlen(_path));
     char* const                original = d_internal_copy(_text, _length);
@@ -190,10 +190,10 @@ d_internal_new_doc(
 }
 
 
-struct d_git_doc*
+struct dj_git_doc*
 d_git_doc_read(
     const char*          _path,
-    enum d_git_text_kind _kind,
+    enum dj_git_text_kind _kind,
     char*                _problem,
     size_t               _capacity
 )
@@ -216,10 +216,10 @@ d_git_doc_read(
 }
 
 
-struct d_git_doc*
+struct dj_git_doc*
 d_git_doc_make(
     const char*          _path,
-    enum d_git_text_kind _kind,
+    enum dj_git_text_kind _kind,
     const char*          _text,
     size_t               _length,
     char*                _problem,
@@ -246,9 +246,8 @@ d_git_doc_make(
 }
 
 
-void
-d_git_doc_free(
-    struct d_git_doc* _doc
+void d_git_doc_free(
+    struct dj_git_doc* _doc
 )
 {
     // nothing to free
@@ -267,45 +266,41 @@ d_git_doc_free(
 }
 
 
-const struct d_git_text*
-d_git_doc_records(
-    const struct d_git_doc* _doc
+const struct dj_git_text* d_git_doc_records(
+    const struct dj_git_doc* _doc
 )
 {
     return (_doc) ? &_doc->records : NULL;
 }
 
 
-const char*
-d_git_doc_path(
-    const struct d_git_doc* _doc
+const char* d_git_doc_path(
+    const struct dj_git_doc* _doc
 )
 {
     return (_doc) ? _doc->path : NULL;
 }
 
 
-enum d_git_text_kind
+enum dj_git_text_kind
 d_git_doc_kind(
-    const struct d_git_doc* _doc
+    const struct dj_git_doc* _doc
 )
 {
     return (_doc) ? _doc->kind : D_GIT_TEXT_OTHER;
 }
 
 
-size_t
-d_git_doc_changes(
-    const struct d_git_doc* _doc
+size_t d_git_doc_changes(
+    const struct dj_git_doc* _doc
 )
 {
     return (_doc) ? _doc->changes : 0u;
 }
 
 
-bool
-d_git_doc_changed(
-    const struct d_git_doc* _doc
+bool d_git_doc_changed(
+    const struct dj_git_doc* _doc
 )
 {
     return ( (_doc) &&
@@ -315,19 +310,17 @@ d_git_doc_changed(
 }
 
 
-const char*
-d_git_doc_problem(
-    const struct d_git_doc* _doc
+const char* d_git_doc_problem(
+    const struct dj_git_doc* _doc
 )
 {
     return (_doc) ? _doc->problem : "";
 }
 
 
-const char*
-d_git_doc_text(
-    const struct d_git_doc* _doc,
-    size_t*                 _out_length
+const char* d_git_doc_text(
+    const struct dj_git_doc* _doc,
+    size_t*                  _out_length
 )
 {
     // the length, if it is asked for
@@ -350,11 +343,11 @@ d_git_doc_text(
 //   records before and after, the splice, and the sections it changed --
 //   from `old_first` up to `old_end` of the old, `new_first` up to
 //   `new_end` of the new.
-struct d_internal_compare
+struct dj_internal_compare
 {
-    const struct d_git_text* old;
-    const struct d_git_text* now;
-    struct d_internal_splice splice;
+    const struct dj_git_text* old;
+    const struct dj_git_text* now;
+    struct dj_internal_splice splice;
     size_t                   old_first;
     size_t                   old_end;
     size_t                   new_first;
@@ -366,14 +359,14 @@ struct d_internal_compare
 d_internal_moved
   Whether an offset after the splice is where the splice moved it.
 */
-static bool
-d_internal_moved(
-    const struct d_internal_compare* _compare,
-    size_t                           _old,
-    size_t                           _new
+static
+bool d_internal_moved(
+    const struct dj_internal_compare* _compare,
+    size_t                            _old,
+    size_t                            _new
 )
 {
-    const struct d_internal_splice* const splice = &_compare->splice;
+    const struct dj_internal_splice* const splice = &_compare->splice;
 
     return ((_new + (splice->end - splice->start)) == (_old + splice->length));
 }
@@ -384,12 +377,12 @@ d_internal_same_string
   Whether two offsets into two files' strings hold the same string, or
 both none.
 */
-static bool
-d_internal_same_string(
-    const struct d_git_text* _left,
-    size_t                   _left_offset,
-    const struct d_git_text* _right,
-    size_t                   _right_offset
+static
+bool d_internal_same_string(
+    const struct dj_git_text* _left,
+    size_t                    _left_offset,
+    const struct dj_git_text* _right,
+    size_t                    _right_offset
 )
 {
     const char* const left  = d_git_text_string(_left, _left_offset);
@@ -412,20 +405,20 @@ d_internal_before, d_internal_after
 before its start -- or wholly after it, their first beginning at or past
 its end.
 */
-static bool
-d_internal_before(
-    const struct d_internal_compare* _compare,
-    size_t                           _last_line
+static
+bool d_internal_before(
+    const struct dj_internal_compare* _compare,
+    size_t                            _last_line
 )
 {
     return (_compare->old->lines[_last_line].next <= _compare->splice.start);
 }
 
 
-static bool
-d_internal_after(
-    const struct d_internal_compare* _compare,
-    size_t                           _first_line
+static
+bool d_internal_after(
+    const struct dj_internal_compare* _compare,
+    size_t                            _first_line
 )
 {
     return ( (_compare->old->lines[_first_line].start
@@ -439,16 +432,16 @@ d_internal_same_line
   Whether a line before or after the splice reads as it did: its kind,
 and its place, moved by the splice when it is after.
 */
-static bool
-d_internal_same_line(
-    const struct d_internal_compare* _compare,
-    size_t                           _old,
-    size_t                           _new,
-    bool                             _after
+static
+bool d_internal_same_line(
+    const struct dj_internal_compare* _compare,
+    size_t                            _old,
+    size_t                            _new,
+    bool                              _after
 )
 {
-    const struct d_git_text_line* const old = &_compare->old->lines[_old];
-    const struct d_git_text_line* const now = &_compare->now->lines[_new];
+    const struct dj_git_text_line* const old = &_compare->old->lines[_old];
+    const struct dj_git_text_line* const now = &_compare->now->lines[_new];
 
     // the same kind, and the same place
     if (old->kind != now->kind)
@@ -472,14 +465,14 @@ d_internal_same_line(
 d_internal_same_place
   Whether a record's span is where it was, or where the splice moved it.
 */
-static bool
-d_internal_same_place(
-    const struct d_internal_compare* _compare,
-    size_t                           _old_start,
-    size_t                           _old_end,
-    size_t                           _new_start,
-    size_t                           _new_end,
-    bool                             _after
+static
+bool d_internal_same_place(
+    const struct dj_internal_compare* _compare,
+    size_t                            _old_start,
+    size_t                            _old_end,
+    size_t                            _new_start,
+    size_t                            _new_end,
+    bool                              _after
 )
 {
     // after the splice, moved by it
@@ -499,18 +492,18 @@ d_internal_same_pattern
   Whether a pattern before or after the splice reads as it did: its place,
 its text and marks, and its states, each name, state and value.
 */
-static bool
-d_internal_same_pattern(
-    const struct d_internal_compare* _compare,
-    size_t                           _old,
-    size_t                           _new,
-    bool                             _after
+static
+bool d_internal_same_pattern(
+    const struct dj_internal_compare* _compare,
+    size_t                            _old,
+    size_t                            _new,
+    bool                              _after
 )
 {
-    const struct d_git_text* const         ot = _compare->old;
-    const struct d_git_text* const         nt = _compare->now;
-    const struct d_git_text_pattern* const o  = &ot->patterns[_old];
-    const struct d_git_text_pattern* const n  = &nt->patterns[_new];
+    const struct dj_git_text* const         ot = _compare->old;
+    const struct dj_git_text* const         nt = _compare->now;
+    const struct dj_git_text_pattern* const o  = &ot->patterns[_old];
+    const struct dj_git_text_pattern* const n  = &nt->patterns[_new];
 
     // the place, the marks, the text, and as many states
     if ( (!d_internal_same_place(_compare,
@@ -531,9 +524,9 @@ d_internal_same_pattern(
     // each state, alike
     for (size_t at = 0u; at < o->attribute_count; ++at)
     {
-        const struct d_git_text_attribute* const os =
+        const struct dj_git_text_attribute* const os =
             &ot->attributes[o->first_attribute + at];
-        const struct d_git_text_attribute* const ns =
+        const struct dj_git_text_attribute* const ns =
             &nt->attributes[n->first_attribute + at];
 
         // the same state of the same name, the same value, in its place
@@ -561,16 +554,16 @@ d_internal_same_pattern(
 d_internal_same_section
   Whether a section before or after the splice reads as it did.
 */
-static bool
-d_internal_same_section(
-    const struct d_internal_compare* _compare,
-    size_t                           _old,
-    size_t                           _new,
-    bool                             _after
+static
+bool d_internal_same_section(
+    const struct dj_internal_compare* _compare,
+    size_t                            _old,
+    size_t                            _new,
+    bool                              _after
 )
 {
-    const struct d_git_text_section* const o = &_compare->old->sections[_old];
-    const struct d_git_text_section* const n = &_compare->now->sections[_new];
+    const struct dj_git_text_section* const o = &_compare->old->sections[_old];
+    const struct dj_git_text_section* const n = &_compare->now->sections[_new];
 
     return ( (d_internal_same_place(_compare,
                                     o->start,
@@ -590,10 +583,10 @@ d_internal_same_section(
 d_internal_name_of
   An entry's name, in lower case: its key past the last dot.
 */
-static const char*
-d_internal_name_of(
-    const struct d_git_text* _text,
-    size_t                   _entry
+static
+const char* d_internal_name_of(
+    const struct dj_git_text* _text,
+    size_t                    _entry
 )
 {
     const char* const key = d_git_text_string(_text,
@@ -610,11 +603,11 @@ d_internal_same_membership
 was in none; the same section moved, if that section is outside the
 splice; one the splice changed, if its was changed.
 */
-static bool
-d_internal_same_membership(
-    const struct d_internal_compare* _compare,
-    size_t                           _old,
-    size_t                           _new
+static
+bool d_internal_same_membership(
+    const struct dj_internal_compare* _compare,
+    size_t                            _old,
+    size_t                            _new
 )
 {
     const size_t old = _old;
@@ -652,16 +645,16 @@ d_internal_same_entry
   Whether an entry before or after the splice reads as it did: its place,
 its name and value, and its section.
 */
-static bool
-d_internal_same_entry(
-    const struct d_internal_compare* _compare,
-    size_t                           _old,
-    size_t                           _new,
-    bool                             _after
+static
+bool d_internal_same_entry(
+    const struct dj_internal_compare* _compare,
+    size_t                            _old,
+    size_t                            _new,
+    bool                              _after
 )
 {
-    const struct d_git_text_entry* const o = &_compare->old->entries[_old];
-    const struct d_git_text_entry* const n = &_compare->now->entries[_new];
+    const struct dj_git_text_entry* const o = &_compare->old->entries[_old];
+    const struct dj_git_text_entry* const n = &_compare->now->entries[_new];
 
     // before the splice, exactly as it was
     if (!_after)
@@ -699,19 +692,19 @@ d_internal_same_entry(
 }
 
 
-// d_internal_records
+// dj_internal_records
 //   struct: one kind of record, as the comparison walks it: how many the
 //   old and new have, the old one's first and last lines, and whether two
 //   are alike.
-struct d_internal_records
+struct dj_internal_records
 {
     size_t old_count;
     size_t new_count;
-    void   (*lines)(const struct d_git_text* _text,
+    void   (*lines)(const struct dj_git_text* _text,
                     size_t                   _record,
                     size_t*                  _first,
                     size_t*                  _last);
-    bool   (*same)(const struct d_internal_compare* _compare,
+    bool   (*same)(const struct dj_internal_compare* _compare,
                    size_t                           _old,
                    size_t                           _new,
                    bool                             _after);
@@ -723,12 +716,12 @@ d_internal_pattern_lines, d_internal_section_lines, d_internal_entry_lines,
 d_internal_line_lines
   The lines a record spans.
 */
-static void
-d_internal_pattern_lines(
-    const struct d_git_text* _text,
-    size_t                   _record,
-    size_t*                  _first,
-    size_t*                  _last
+static
+void d_internal_pattern_lines(
+    const struct dj_git_text* _text,
+    size_t                    _record,
+    size_t*                   _first,
+    size_t*                   _last
 )
 {
     *_first = _text->patterns[_record].line;
@@ -738,12 +731,12 @@ d_internal_pattern_lines(
 }
 
 
-static void
-d_internal_section_lines(
-    const struct d_git_text* _text,
-    size_t                   _record,
-    size_t*                  _first,
-    size_t*                  _last
+static
+void d_internal_section_lines(
+    const struct dj_git_text* _text,
+    size_t                    _record,
+    size_t*                   _first,
+    size_t*                   _last
 )
 {
     *_first = _text->sections[_record].line;
@@ -753,12 +746,12 @@ d_internal_section_lines(
 }
 
 
-static void
-d_internal_entry_lines(
-    const struct d_git_text* _text,
-    size_t                   _record,
-    size_t*                  _first,
-    size_t*                  _last
+static
+void d_internal_entry_lines(
+    const struct dj_git_text* _text,
+    size_t                    _record,
+    size_t*                   _first,
+    size_t*                   _last
 )
 {
     *_first = _text->entries[_record].line;
@@ -768,12 +761,12 @@ d_internal_entry_lines(
 }
 
 
-static void
-d_internal_line_lines(
-    const struct d_git_text* _text,
-    size_t                   _record,
-    size_t*                  _first,
-    size_t*                  _last
+static
+void d_internal_line_lines(
+    const struct dj_git_text* _text,
+    size_t                    _record,
+    size_t*                   _first,
+    size_t*                   _last
 )
 {
     (void)_text;
@@ -792,10 +785,10 @@ ones' last, alike but moved. The old records are in the text's order, so
 those before are a prefix and those after a suffix.
   Long as the four kinds of record are compared in turn, each a few lines.
 */
-static bool
-d_internal_records_same(
-    const struct d_internal_compare* _compare,
-    const struct d_internal_records* _records
+static
+bool d_internal_records_same(
+    const struct dj_internal_compare* _compare,
+    const struct dj_internal_records* _records
 )
 {
     size_t before = 0u;
@@ -872,9 +865,9 @@ d_internal_changed_sections
   The sections a splice changed, of the old and of the new: those neither
 wholly before it nor wholly after it.
 */
-static void
-d_internal_changed_sections(
-    struct d_internal_compare* _compare
+static
+void d_internal_changed_sections(
+    struct dj_internal_compare* _compare
 )
 {
     const size_t old_count = _compare->old->section_count;
@@ -916,21 +909,21 @@ d_internal_outside_same
 records of its kind. A configuration git read whole must still be read
 whole.
 */
-static bool
-d_internal_outside_same(
-    const struct d_git_text*        _old,
-    const struct d_git_text*        _now,
-    const struct d_internal_splice* _splice
+static
+bool d_internal_outside_same(
+    const struct dj_git_text*        _old,
+    const struct dj_git_text*        _now,
+    const struct dj_internal_splice* _splice
 )
 {
-    struct d_internal_compare compare;
+    struct dj_internal_compare compare;
 
     memset(&compare, 0, sizeof(compare));
     compare.old    = _old;
     compare.now    = _now;
     compare.splice = *_splice;
 
-    struct d_internal_records lines = { _old->line_count,
+    struct dj_internal_records lines = { _old->line_count,
                                         _now->line_count,
                                         d_internal_line_lines,
                                         d_internal_same_line };
@@ -951,11 +944,11 @@ d_internal_outside_same(
     // a configuration's sections and entries; another file's patterns
     if (_old->kind == D_GIT_TEXT_CONFIG)
     {
-        struct d_internal_records sections = { _old->section_count,
+        struct dj_internal_records sections = { _old->section_count,
                                                _now->section_count,
                                                d_internal_section_lines,
                                                d_internal_same_section };
-        struct d_internal_records entries  = { _old->entry_count,
+        struct dj_internal_records entries  = { _old->entry_count,
                                                _now->entry_count,
                                                d_internal_entry_lines,
                                                d_internal_same_entry };
@@ -966,7 +959,7 @@ d_internal_outside_same(
                  (d_internal_records_same(&compare, &entries)) );
     }
 
-    struct d_internal_records patterns = { _old->pattern_count,
+    struct dj_internal_records patterns = { _old->pattern_count,
                                            _now->pattern_count,
                                            d_internal_pattern_lines,
                                            d_internal_same_pattern };
@@ -984,12 +977,12 @@ d_internal_outside_same(
 d_internal_make_candidate
   The text a splice makes, and its records.
 */
-static bool
-d_internal_make_candidate(
-    struct d_git_doc*               _doc,
-    const struct d_internal_splice* _splice,
-    const char*                     _text,
-    struct d_internal_candidate*    _out
+static
+bool d_internal_make_candidate(
+    struct dj_git_doc*               _doc,
+    const struct dj_internal_splice* _splice,
+    const char*                      _text,
+    struct dj_internal_candidate*    _out
 )
 {
     const size_t length = _doc->length - (_splice->end - _splice->start)
@@ -1042,10 +1035,10 @@ d_internal_make_candidate(
 d_internal_keep
   Keeps a candidate as the document's text, and counts the change.
 */
-static void
-d_internal_keep(
-    struct d_git_doc*            _doc,
-    struct d_internal_candidate* _candidate
+static
+void d_internal_keep(
+    struct dj_git_doc*            _doc,
+    struct dj_internal_candidate* _candidate
 )
 {
     d_git_text_release(&_doc->records);
@@ -1064,17 +1057,17 @@ d_internal_keep(
 d_internal_splice_text
   One splice, kept if everything outside it reads as it did.
 */
-static bool
-d_internal_splice_text(
-    struct d_git_doc* _doc,
-    size_t            _start,
-    size_t            _end,
-    const char*       _text,
-    size_t            _length
+static
+bool d_internal_splice_text(
+    struct dj_git_doc* _doc,
+    size_t             _start,
+    size_t             _end,
+    const char*        _text,
+    size_t             _length
 )
 {
-    const struct d_internal_splice splice = { _start, _end, _length };
-    struct d_internal_candidate    candidate;
+    const struct dj_internal_splice splice = { _start, _end, _length };
+    struct dj_internal_candidate    candidate;
 
     // a splice within the text
     if ( (_start > _end) ||
@@ -1106,13 +1099,12 @@ d_internal_splice_text(
 }
 
 
-bool
-d_git_doc_splice(
-    struct d_git_doc* _doc,
-    size_t            _start,
-    size_t            _end,
-    const char*       _text,
-    size_t            _length
+bool d_git_doc_splice(
+    struct dj_git_doc* _doc,
+    size_t             _start,
+    size_t             _end,
+    const char*        _text,
+    size_t             _length
 )
 {
     // a document to change
@@ -1129,10 +1121,10 @@ d_git_doc_splice(
 }
 
 
-// d_internal_saved
+// dj_internal_saved
 //   struct: a document's text as a change of several splices began, to go
 //   back to.
-struct d_internal_saved
+struct dj_internal_saved
 {
     char*  text;
     size_t length;
@@ -1144,10 +1136,10 @@ struct d_internal_saved
 d_internal_begin
   Keeps the text a change begins from.
 */
-static bool
-d_internal_begin(
-    struct d_git_doc*        _doc,
-    struct d_internal_saved* _saved
+static
+bool d_internal_begin(
+    struct dj_git_doc*        _doc,
+    struct dj_internal_saved* _saved
 )
 {
     _saved->text    = d_internal_copy(_doc->text, _doc->length);
@@ -1163,11 +1155,11 @@ d_internal_finish
   Ends a change: kept, it counts as one; refused, the document goes back
 to the text it began from, and the reason stays.
 */
-static bool
-d_internal_finish(
-    struct d_git_doc*        _doc,
-    struct d_internal_saved* _saved,
-    bool                     _kept
+static
+bool d_internal_finish(
+    struct dj_git_doc*        _doc,
+    struct dj_internal_saved* _saved,
+    bool                      _kept
 )
 {
     // kept: one change, however many splices
@@ -1181,7 +1173,7 @@ d_internal_finish(
         return true;
     }
 
-    struct d_git_text records;
+    struct dj_git_text records;
     char              problem[64];
 
     // a change that never began has nothing to go back to
@@ -1224,9 +1216,9 @@ d_internal_finish(
 d_internal_eol
   The line ending a change writes: the file's first.
 */
-static const char*
-d_internal_eol(
-    const struct d_git_doc* _doc
+static
+const char* d_internal_eol(
+    const struct dj_git_doc* _doc
 )
 {
     return (_doc->records.crlf) ? "\r\n" : "\n";
@@ -1237,9 +1229,9 @@ d_internal_eol(
 d_internal_ends_open
   Whether the text's last line has no ending, so text after it needs one.
 */
-static bool
-d_internal_ends_open(
-    const struct d_git_doc* _doc
+static
+bool d_internal_ends_open(
+    const struct dj_git_doc* _doc
 )
 {
     return ( (_doc->length > 0u) &&
@@ -1251,10 +1243,10 @@ d_internal_ends_open(
 d_internal_line_text_start
   Where a line's text begins, past a byte-order mark on the first.
 */
-static size_t
-d_internal_line_text_start(
-    const struct d_git_doc* _doc,
-    size_t                  _line
+static
+size_t d_internal_line_text_start(
+    const struct dj_git_doc* _doc,
+    size_t                   _line
 )
 {
     const size_t start = _doc->records.lines[_line].start;
@@ -1267,8 +1259,8 @@ d_internal_line_text_start(
 d_internal_one_line
   Whether text is one line: no `\n` in it.
 */
-static bool
-d_internal_one_line(
+static
+bool d_internal_one_line(
     const char* _text
 )
 {
@@ -1281,11 +1273,11 @@ d_internal_one_line(
 d_internal_line_reads
   Whether a line's text is exactly `_text`.
 */
-static bool
-d_internal_line_reads(
-    const struct d_git_doc* _doc,
-    size_t                  _line,
-    const char*             _text
+static
+bool d_internal_line_reads(
+    const struct dj_git_doc* _doc,
+    size_t                   _line,
+    const char*              _text
 )
 {
     // a line there
@@ -1308,8 +1300,8 @@ d_internal_valid_name
   Whether a name is one git allows an attribute: letters, digits, `-`, `.`
 and `_`, not beginning with `-`.
 */
-static bool
-d_internal_valid_name(
+static
+bool d_internal_valid_name(
     const char* _name
 )
 {
@@ -1344,8 +1336,8 @@ d_internal_valid_name(
 d_internal_has_blank
   Whether text holds a byte attribute lines are apart by.
 */
-static bool
-d_internal_has_blank(
+static
+bool d_internal_has_blank(
     const char* _text
 )
 {
@@ -1363,11 +1355,10 @@ d_git_doc_insert_line
   Long as the line's place, its ending, and the check that it reads back as
 given are each a step.
 */
-size_t
-d_git_doc_insert_line(
-    struct d_git_doc* _doc,
-    size_t            _before,
-    const char*       _text
+size_t d_git_doc_insert_line(
+    struct dj_git_doc* _doc,
+    size_t             _before,
+    const char*        _text
 )
 {
     // a document, a line of text, and a place among its lines
@@ -1393,8 +1384,8 @@ d_git_doc_insert_line(
     const size_t        at    = (last)
                                 ? _doc->length
                                 : d_internal_line_text_start(_doc, _before);
-    struct d_git_buffer text;
-    struct d_internal_saved saved;
+    struct dj_git_buffer text;
+    struct dj_internal_saved saved;
 
     memset(&text, 0, sizeof(text));
 
@@ -1439,11 +1430,10 @@ d_git_doc_insert_line(
 }
 
 
-size_t
-d_git_doc_set_line(
-    struct d_git_doc* _doc,
-    size_t            _line,
-    const char*       _text
+size_t d_git_doc_set_line(
+    struct dj_git_doc* _doc,
+    size_t             _line,
+    const char*        _text
 )
 {
     // a document, a line of text, and a line to replace
@@ -1465,7 +1455,7 @@ d_git_doc_set_line(
     }
 
     const size_t            count = _doc->records.line_count;
-    struct d_internal_saved saved;
+    struct dj_internal_saved saved;
 
     // the change begun
     if (!d_internal_begin(_doc, &saved))
@@ -1492,10 +1482,9 @@ d_git_doc_set_line(
 }
 
 
-bool
-d_git_doc_remove_line(
-    struct d_git_doc* _doc,
-    size_t            _line
+bool d_git_doc_remove_line(
+    struct dj_git_doc* _doc,
+    size_t             _line
 )
 {
     // a document, and a line to remove
@@ -1509,7 +1498,7 @@ d_git_doc_remove_line(
     }
 
     const size_t            count = _doc->records.line_count;
-    struct d_internal_saved saved;
+    struct dj_internal_saved saved;
 
     // the change begun
     if (!d_internal_begin(_doc, &saved))
@@ -1541,21 +1530,21 @@ d_git_doc_remove_line(
 d_internal_last_state
   The last state of a name on a pattern's line, D_GIT_TEXT_NONE for none.
 */
-static size_t
-d_internal_last_state(
-    const struct d_git_text* _text,
-    size_t                   _pattern,
-    const char*              _name
+static
+size_t d_internal_last_state(
+    const struct dj_git_text* _text,
+    size_t                    _pattern,
+    const char*               _name
 )
 {
-    const struct d_git_text_pattern* const pattern =
+    const struct dj_git_text_pattern* const pattern =
         &_text->patterns[_pattern];
     const size_t length = strlen(_name);
 
     // its states, the last first
     for (size_t at = pattern->attribute_count; at-- > 0u;)
     {
-        const struct d_git_text_attribute* const state =
+        const struct dj_git_text_attribute* const state =
             &_text->attributes[pattern->first_attribute + at];
 
         // the name, whole
@@ -1576,9 +1565,9 @@ d_internal_state_token
 */
 static bool
 d_internal_state_token(
-    struct d_git_buffer*  _out,
+    struct dj_git_buffer*  _out,
     const char*           _name,
-    enum d_git_text_state _state,
+    enum dj_git_text_state _state,
     const char*           _value
 )
 {
@@ -1611,14 +1600,14 @@ d_internal_state_reads
 */
 static bool
 d_internal_state_reads(
-    const struct d_git_doc* _doc,
+    const struct dj_git_doc* _doc,
     size_t                  _pattern,
     const char*             _name,
-    enum d_git_text_state   _state,
+    enum dj_git_text_state   _state,
     const char*             _value
 )
 {
-    const struct d_git_text* const text = &_doc->records;
+    const struct dj_git_text* const text = &_doc->records;
 
     // the pattern is still there
     if (_pattern >= text->pattern_count)
@@ -1639,7 +1628,7 @@ d_internal_state_reads(
         return true;
     }
 
-    const struct d_git_text_attribute* const state = &text->attributes[at];
+    const struct dj_git_text_attribute* const state = &text->attributes[at];
     const size_t length = strlen(_value);
 
     return ( ((state->value_end - state->value_start) == length) &&
@@ -1654,10 +1643,10 @@ after the last -- and its text are each worked out here.
 */
 bool
 d_git_doc_set_state(
-    struct d_git_doc*     _doc,
+    struct dj_git_doc*     _doc,
     size_t                _pattern,
     const char*           _name,
-    enum d_git_text_state _state,
+    enum dj_git_text_state _state,
     const char*           _value
 )
 {
@@ -1681,8 +1670,8 @@ d_git_doc_set_state(
         return d_internal_fail(_doc, "a value cannot hold a blank");
     }
 
-    const struct d_git_text* const         text    = &_doc->records;
-    const struct d_git_text_pattern* const pattern = &text->patterns[_pattern];
+    const struct dj_git_text* const         text    = &_doc->records;
+    const struct dj_git_text_pattern* const pattern = &text->patterns[_pattern];
     const size_t                           state   =
         d_internal_last_state(text, _pattern, _name);
     const size_t at  = (state != D_GIT_TEXT_NONE)
@@ -1695,8 +1684,8 @@ d_git_doc_set_state(
     const size_t end = (state != D_GIT_TEXT_NONE)
                        ? text->attributes[state].end
                        : at;
-    struct d_git_buffer     token;
-    struct d_internal_saved saved;
+    struct dj_git_buffer     token;
+    struct dj_internal_saved saved;
 
     memset(&token, 0, sizeof(token));
 
@@ -1735,11 +1724,10 @@ d_git_doc_set_state(
 }
 
 
-bool
-d_git_doc_remove_state(
-    struct d_git_doc* _doc,
-    size_t            _pattern,
-    const char*       _name
+bool d_git_doc_remove_state(
+    struct dj_git_doc* _doc,
+    size_t             _pattern,
+    const char*        _name
 )
 {
     // a document of attributes, a pattern of it, and a name
@@ -1759,7 +1747,7 @@ d_git_doc_remove_state(
         return d_internal_fail(_doc, "the line has no state of that name");
     }
 
-    struct d_internal_saved saved;
+    struct dj_internal_saved saved;
     bool                    kept = d_internal_begin(_doc, &saved);
 
     // each state of the name, the last first, with the blank before it
@@ -1767,8 +1755,8 @@ d_git_doc_remove_state(
          ( (kept) && (at != D_GIT_TEXT_NONE) );
          at = d_internal_last_state(&_doc->records, _pattern, _name))
     {
-        const struct d_git_text* const         text    = &_doc->records;
-        const struct d_git_text_pattern* const pattern =
+        const struct dj_git_text* const         text    = &_doc->records;
+        const struct dj_git_text_pattern* const pattern =
             &text->patterns[_pattern];
         const size_t previous = (at > pattern->first_attribute)
                                 ? text->attributes[at - 1u].end
@@ -1802,10 +1790,10 @@ d_git_doc_remove_state(
 //   section's prefix it begins with, and the parts as given -- the
 //   section's name, its subsection, D_GIT_TEXT_NONE long without one, and
 //   the entry's name.
-struct d_internal_key
+struct dj_internal_key
 {
-    struct d_git_buffer canonical;
-    struct d_git_buffer prefix;
+    struct dj_git_buffer canonical;
+    struct dj_git_buffer prefix;
     const char*         section;
     size_t              section_length;
     const char*         subsection;
@@ -1818,11 +1806,11 @@ struct d_internal_key
 d_internal_key_read
   Reads a key git config would take; false, said, for one it refuses.
 */
-static bool
-d_internal_key_read(
-    struct d_git_doc*      _doc,
-    const char*            _key,
-    struct d_internal_key* _out
+static
+bool d_internal_key_read(
+    struct dj_git_doc*      _doc,
+    const char*             _key,
+    struct dj_internal_key* _out
 )
 {
     memset(_out, 0, sizeof(*_out));
@@ -1867,9 +1855,9 @@ d_internal_key_read(
 d_internal_key_free
   Lets go of a key's buffers.
 */
-static void
-d_internal_key_free(
-    struct d_internal_key* _key
+static
+void d_internal_key_free(
+    struct dj_internal_key* _key
 )
 {
     d_git_buffer_free(&_key->canonical);
@@ -1883,11 +1871,11 @@ d_internal_key_free(
 d_internal_count_key
   How many entries have a key, and the last of them.
 */
-static size_t
-d_internal_count_key(
-    const struct d_git_text* _text,
-    const char*              _key,
-    size_t*                  _out_last
+static
+size_t d_internal_count_key(
+    const struct dj_git_text* _text,
+    const char*               _key,
+    size_t*                   _out_last
 )
 {
     size_t count = 0u;
@@ -1912,11 +1900,11 @@ d_internal_value_reads
   Whether an entry's value is what it was given: the same text, or none
 for none.
 */
-static bool
-d_internal_value_reads(
-    const struct d_git_text* _text,
-    size_t                   _entry,
-    const char*              _value
+static
+bool d_internal_value_reads(
+    const struct dj_git_text* _text,
+    size_t                    _entry,
+    const char*               _value
 )
 {
     const char* const value = d_git_text_string(_text,
@@ -1939,12 +1927,12 @@ d_internal_entry_text
 quoted as git writes it -- or the name alone for no value -- and the line's
 ending.
 */
-static bool
-d_internal_entry_text(
-    const struct d_git_doc* _doc,
-    const char*             _name,
-    const char*             _value,
-    struct d_git_buffer*    _out
+static
+bool d_internal_entry_text(
+    const struct dj_git_doc* _doc,
+    const char*              _name,
+    const char*              _value,
+    struct dj_git_buffer*    _out
 )
 {
     (void)d_git_buffer_add_char(_out, '\t');
@@ -1968,13 +1956,13 @@ d_internal_header_text
   A section's header as git config writes one: the name, and a subsection
 in quotes, as given.
 */
-static bool
-d_internal_header_text(
-    const char*          _section,
-    size_t               _section_length,
-    const char*          _subsection,
-    size_t               _subsection_length,
-    struct d_git_buffer* _out
+static
+bool d_internal_header_text(
+    const char*           _section,
+    size_t                _section_length,
+    const char*           _subsection,
+    size_t                _subsection_length,
+    struct dj_git_buffer* _out
 )
 {
     (void)d_git_buffer_add_char(_out, '[');
@@ -1983,7 +1971,7 @@ d_internal_header_text(
     // a subsection, quoted
     if (_subsection)
     {
-        struct d_git_buffer subsection;
+        struct dj_git_buffer subsection;
 
         memset(&subsection, 0, sizeof(subsection));
         (void)d_git_buffer_add(&subsection, _subsection, _subsection_length);
@@ -2004,10 +1992,10 @@ d_internal_header_text(
 d_internal_last_section
   The last section of a prefix, D_GIT_TEXT_NONE for none.
 */
-static size_t
-d_internal_last_section(
-    const struct d_git_text* _text,
-    const char*              _prefix
+static
+size_t d_internal_last_section(
+    const struct dj_git_text* _text,
+    const char*               _prefix
 )
 {
     size_t last = D_GIT_TEXT_NONE;
@@ -2031,16 +2019,16 @@ the last entry of the last section the key belongs in -- after its header,
 for one with none -- or, when there is no such section, a new one at the
 file's end. A line with no ending is given one first.
 */
-static bool
-d_internal_add_place(
-    const struct d_git_doc*      _doc,
-    const struct d_internal_key* _key,
-    const char*                  _value,
-    size_t*                      _out_at,
-    struct d_git_buffer*         _out
+static
+bool d_internal_add_place(
+    const struct dj_git_doc*      _doc,
+    const struct dj_internal_key* _key,
+    const char*                   _value,
+    size_t*                       _out_at,
+    struct dj_git_buffer*         _out
 )
 {
-    const struct d_git_text* const text    = &_doc->records;
+    const struct dj_git_text* const text    = &_doc->records;
     const size_t                   section = d_internal_last_section(
                                                  text,
                                                  _key->prefix.text);
@@ -2052,7 +2040,7 @@ d_internal_add_place(
     }
     else
     {
-        const struct d_git_text_section* const record =
+        const struct dj_git_text_section* const record =
             &text->sections[section];
         const size_t last = (record->entry_count > 0u)
                             ? text->entries[record->first_entry
@@ -2091,11 +2079,11 @@ d_internal_add_place(
 d_internal_add
   Adds an entry of a key, read: one more of the key, the last its value.
 */
-static bool
-d_internal_add(
-    struct d_git_doc*            _doc,
-    const struct d_internal_key* _key,
-    const char*                  _value
+static
+bool d_internal_add(
+    struct dj_git_doc*            _doc,
+    const struct dj_internal_key* _key,
+    const char*                   _value
 )
 {
     size_t              last   = D_GIT_TEXT_NONE;
@@ -2103,7 +2091,7 @@ d_internal_add(
                                                       _key->canonical.text,
                                                       &last);
     size_t              at     = 0u;
-    struct d_git_buffer text;
+    struct dj_git_buffer text;
 
     memset(&text, 0, sizeof(text));
 
@@ -2140,15 +2128,14 @@ d_internal_add(
 }
 
 
-bool
-d_git_doc_add(
-    struct d_git_doc* _doc,
-    const char*       _key,
-    const char*       _value
+bool d_git_doc_add(
+    struct dj_git_doc* _doc,
+    const char*        _key,
+    const char*        _value
 )
 {
-    struct d_internal_key   key;
-    struct d_internal_saved saved;
+    struct dj_internal_key   key;
+    struct dj_internal_saved saved;
 
     // a configuration, and a key git takes
     if (!_doc)
@@ -2179,13 +2166,13 @@ d_internal_after_value
   Whether anything but blanks follows an entry on its last line: a
 comment, which a name alone cannot have after it.
 */
-static bool
-d_internal_after_value(
-    const struct d_git_text* _text,
-    size_t                   _entry
+static
+bool d_internal_after_value(
+    const struct dj_git_text* _text,
+    size_t                    _entry
 )
 {
-    const struct d_git_text_entry* const entry = &_text->entries[_entry];
+    const struct dj_git_text_entry* const entry = &_text->entries[_entry];
     const size_t end = _text->lines[entry->last_line].end;
 
     // blanks only, to the line's end
@@ -2209,13 +2196,13 @@ d_internal_continued
   Whether an entry's value runs past its first line's end, a `\` joining
 the next line to it.
 */
-static bool
-d_internal_continued(
-    const struct d_git_text* _text,
-    size_t                   _entry
+static
+bool d_internal_continued(
+    const struct dj_git_text* _text,
+    size_t                    _entry
 )
 {
-    const struct d_git_text_entry* const entry = &_text->entries[_entry];
+    const struct dj_git_text_entry* const entry = &_text->entries[_entry];
 
     return ( (entry->last_line > entry->line) ||
              (entry->end > _text->lines[entry->line].end) );
@@ -2230,16 +2217,16 @@ value, nothing in place of the `=` and all after it. A value continued
 past its line is replaced to its last line's end, all it joined with it,
 as git config replaces one.
 */
-static bool
-d_internal_value_text(
-    const struct d_git_text* _text,
-    size_t                   _entry,
-    const char*              _value,
-    struct d_internal_span*  _out_span,
-    struct d_git_buffer*     _out
+static
+bool d_internal_value_text(
+    const struct dj_git_text* _text,
+    size_t                    _entry,
+    const char*               _value,
+    struct dj_internal_span*  _out_span,
+    struct dj_git_buffer*     _out
 )
 {
-    const struct d_git_text_entry* const entry     = &_text->entries[_entry];
+    const struct dj_git_text_entry* const entry     = &_text->entries[_entry];
     const bool                           continued =
         d_internal_continued(_text, _entry);
     const size_t                         last      =
@@ -2281,20 +2268,20 @@ d_internal_set_entry
   Gives an entry a value, read: the same entry, of the same key, with the
 value.
 */
-static bool
-d_internal_set_entry(
-    struct d_git_doc* _doc,
-    size_t            _entry,
-    const char*       _value
+static
+bool d_internal_set_entry(
+    struct dj_git_doc* _doc,
+    size_t             _entry,
+    const char*        _value
 )
 {
-    const struct d_git_text* const text  = &_doc->records;
+    const struct dj_git_text* const text  = &_doc->records;
     const size_t                   count = text->entry_count;
     const char* const              was   =
         d_git_text_string(text, text->entries[_entry].key);
     char* const                    key   = d_internal_copy(was, strlen(was));
-    struct d_internal_span         span  = { 0u, 0u };
-    struct d_git_buffer            value;
+    struct dj_internal_span         span  = { 0u, 0u };
+    struct dj_git_buffer            value;
 
     memset(&value, 0, sizeof(value));
 
@@ -2350,14 +2337,13 @@ d_internal_set_entry(
 }
 
 
-bool
-d_git_doc_set_entry(
-    struct d_git_doc* _doc,
-    size_t            _entry,
-    const char*       _value
+bool d_git_doc_set_entry(
+    struct dj_git_doc* _doc,
+    size_t             _entry,
+    const char*        _value
 )
 {
-    struct d_internal_saved saved;
+    struct dj_internal_saved saved;
 
     // a configuration, and an entry of it
     if (!_doc)
@@ -2380,15 +2366,14 @@ d_git_doc_set_entry(
 }
 
 
-bool
-d_git_doc_set(
-    struct d_git_doc* _doc,
-    const char*       _key,
-    const char*       _value
+bool d_git_doc_set(
+    struct dj_git_doc* _doc,
+    const char*        _key,
+    const char*        _value
 )
 {
-    struct d_internal_key   key;
-    struct d_internal_saved saved;
+    struct dj_internal_key   key;
+    struct dj_internal_saved saved;
     size_t                  last = D_GIT_TEXT_NONE;
 
     // a configuration, and a key git takes
@@ -2435,10 +2420,10 @@ d_git_doc_set(
 d_internal_first_on_line
   Whether nothing but blanks is before an offset on its line.
 */
-static bool
-d_internal_first_on_line(
-    const struct d_git_doc* _doc,
-    size_t                  _offset
+static
+bool d_internal_first_on_line(
+    const struct dj_git_doc* _doc,
+    size_t                   _offset
 )
 {
     const size_t line = d_git_text_line_of(&_doc->records, _offset);
@@ -2467,15 +2452,15 @@ d_internal_entry_span
 line -- a comment after it with them -- and otherwise the entry and the
 blanks before it, after the header it shares its line with.
 */
-static struct d_internal_span
-d_internal_entry_span(
-    const struct d_git_doc* _doc,
-    size_t                  _entry
+static
+struct dj_internal_span d_internal_entry_span(
+    const struct dj_git_doc* _doc,
+    size_t                   _entry
 )
 {
-    const struct d_git_text* const       text  = &_doc->records;
-    const struct d_git_text_entry* const entry = &text->entries[_entry];
-    struct d_internal_span               span  = { entry->start, entry->end };
+    const struct dj_git_text* const       text  = &_doc->records;
+    const struct dj_git_text_entry* const entry = &text->entries[_entry];
+    struct dj_internal_span               span  = { entry->start, entry->end };
 
     // its lines, whole
     if (d_internal_first_on_line(_doc, entry->start))
@@ -2504,11 +2489,11 @@ d_internal_entry_span(
 d_internal_same_prefix
   Whether a section's prefix is the one given.
 */
-static bool
-d_internal_same_prefix(
-    const struct d_git_text* _text,
-    size_t                   _section,
-    const char*              _prefix
+static
+bool d_internal_same_prefix(
+    const struct dj_git_text* _text,
+    size_t                    _section,
+    const char*               _prefix
 )
 {
     return (strcmp(d_git_text_string(_text, _text->sections[_section].prefix),
@@ -2523,16 +2508,16 @@ does: past blanks and headers of the entry's own section, to an entry or
 another section's header, after which the section's text begins. A comment
 on the way, or an entry before any header of its own, keeps the section.
 */
-static bool
-d_internal_emptied_begin(
-    const struct d_git_doc* _doc,
-    size_t                  _entry,
-    const char*             _prefix,
-    size_t*                 _out_begin
+static
+bool d_internal_emptied_begin(
+    const struct dj_git_doc* _doc,
+    size_t                   _entry,
+    const char*              _prefix,
+    size_t*                  _out_begin
 )
 {
-    const struct d_git_text* const       text  = &_doc->records;
-    const struct d_git_text_entry* const entry = &text->entries[_entry];
+    const struct dj_git_text* const       text  = &_doc->records;
+    const struct dj_git_text_entry* const entry = &text->entries[_entry];
     bool seen = (text->lines[entry->line].kind == D_GIT_TEXT_SECTION);
 
     *_out_begin = d_internal_line_text_start(_doc, 0u);
@@ -2540,7 +2525,7 @@ d_internal_emptied_begin(
     // each line before the entry's, back to what stops the walk
     for (size_t back = entry->line; back-- > 0u;)
     {
-        const struct d_git_text_line* const line = &text->lines[back];
+        const struct dj_git_text_line* const line = &text->lines[back];
 
         // a comment keeps the section
         if (line->kind == D_GIT_TEXT_COMMENT)
@@ -2583,16 +2568,16 @@ section and entries also being taken away, to another section's header,
 where the section's text ends, or the file's end. A comment on the way, or
 an entry that stays, keeps the section.
 */
-static bool
-d_internal_emptied_end(
-    const struct d_git_doc* _doc,
-    size_t                  _entry,
-    const char*             _prefix,
-    const bool*             _removing,
-    size_t*                 _out_end
+static
+bool d_internal_emptied_end(
+    const struct dj_git_doc* _doc,
+    size_t                   _entry,
+    const char*              _prefix,
+    const bool*              _removing,
+    size_t*                  _out_end
 )
 {
-    const struct d_git_text* const text = &_doc->records;
+    const struct dj_git_text* const text = &_doc->records;
 
     *_out_end = _doc->length;
 
@@ -2601,7 +2586,7 @@ d_internal_emptied_end(
          on < text->line_count;
          ++on)
     {
-        const struct d_git_text_line* const line = &text->lines[on];
+        const struct dj_git_text_line* const line = &text->lines[on];
 
         // a comment keeps the section
         if (line->kind == D_GIT_TEXT_COMMENT)
@@ -2641,16 +2626,16 @@ d_internal_removal_span
 of the section's to go and no comment is within or about the section, as
 git config removes a section it empties; otherwise its own.
 */
-static struct d_internal_span
-d_internal_removal_span(
-    const struct d_git_doc* _doc,
-    size_t                  _entry,
-    const bool*             _removing
+static
+struct dj_internal_span d_internal_removal_span(
+    const struct dj_git_doc* _doc,
+    size_t                   _entry,
+    const bool*              _removing
 )
 {
-    const struct d_git_text* const text    = &_doc->records;
+    const struct dj_git_text* const text    = &_doc->records;
     const size_t                   section = text->entries[_entry].section;
-    struct d_internal_span         span    = { 0u, 0u };
+    struct dj_internal_span         span    = { 0u, 0u };
 
     // an entry in a section that goes with it
     if ( (section != D_GIT_TEXT_NONE) &&
@@ -2677,14 +2662,14 @@ d_internal_removal_span(
 d_internal_compare_spans
   Orders spans by where they begin.
 */
-static int
-d_internal_compare_spans(
+static
+int d_internal_compare_spans(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_internal_span* const left  = _left;
-    const struct d_internal_span* const right = _right;
+    const struct dj_internal_span* const left  = _left;
+    const struct dj_internal_span* const right = _right;
 
     return (left->start < right->start) ? -1
          : ( (left->start > right->start) ? 1 : 0 );
@@ -2696,11 +2681,11 @@ d_internal_take_spans
   Takes spans of text away, the last first, so each one's place holds
 until it goes; spans that overlap are taken as one.
 */
-static bool
-d_internal_take_spans(
-    struct d_git_doc*       _doc,
-    struct d_internal_span* _spans,
-    size_t                  _count
+static
+bool d_internal_take_spans(
+    struct dj_git_doc*       _doc,
+    struct dj_internal_span* _spans,
+    size_t                   _count
 )
 {
     size_t kept = 0u;
@@ -2747,14 +2732,14 @@ d_internal_take_spans(
 d_internal_remove_entries
   Takes away the entries marked, each with its section when it empties it.
 */
-static bool
-d_internal_remove_entries(
-    struct d_git_doc* _doc,
-    const bool*       _removing
+static
+bool d_internal_remove_entries(
+    struct dj_git_doc* _doc,
+    const bool*        _removing
 )
 {
     const size_t                  count = _doc->records.entry_count;
-    struct d_internal_span* const spans = malloc((count + 1u)
+    struct dj_internal_span* const spans = malloc((count + 1u)
                                                  * sizeof(*spans));
     size_t                        used  = 0u;
 
@@ -2788,15 +2773,15 @@ d_internal_unset
   Takes away the entries of a key, or the one given; one of several only
 when told to take them all.
 */
-static bool
-d_internal_unset(
-    struct d_git_doc* _doc,
-    const char*       _key,
-    size_t            _entry,
-    bool              _all
+static
+bool d_internal_unset(
+    struct dj_git_doc* _doc,
+    const char*        _key,
+    size_t             _entry,
+    bool               _all
 )
 {
-    const struct d_git_text* const text     = &_doc->records;
+    const struct dj_git_text* const text     = &_doc->records;
     size_t                         last     = D_GIT_TEXT_NONE;
     const size_t                   count    = d_internal_count_key(text,
                                                                    _key,
@@ -2836,15 +2821,14 @@ d_internal_unset(
 }
 
 
-bool
-d_git_doc_unset(
-    struct d_git_doc* _doc,
-    const char*       _key,
-    bool              _all
+bool d_git_doc_unset(
+    struct dj_git_doc* _doc,
+    const char*        _key,
+    bool               _all
 )
 {
-    struct d_internal_key   key;
-    struct d_internal_saved saved;
+    struct dj_internal_key   key;
+    struct dj_internal_saved saved;
     size_t                  last = D_GIT_TEXT_NONE;
 
     // a configuration, and a key git takes
@@ -2888,13 +2872,12 @@ d_git_doc_unset(
 }
 
 
-bool
-d_git_doc_remove_entry(
-    struct d_git_doc* _doc,
-    size_t            _entry
+bool d_git_doc_remove_entry(
+    struct dj_git_doc* _doc,
+    size_t             _entry
 )
 {
-    struct d_internal_saved saved;
+    struct dj_internal_saved saved;
 
     // a configuration, and an entry of it
     if (!_doc)
@@ -2934,12 +2917,12 @@ d_internal_section_name
 "section.subsection": the prefix its keys begin with, and the parts as
 given. False, said, for a name git refuses.
 */
-static bool
-d_internal_section_name(
-    struct d_git_doc*      _doc,
-    const char*            _name,
-    struct d_internal_key* _out,
-    struct d_git_buffer*   _key
+static
+bool d_internal_section_name(
+    struct dj_git_doc*      _doc,
+    const char*             _name,
+    struct dj_internal_key* _out,
+    struct dj_git_buffer*   _key
 )
 {
     memset(_key, 0, sizeof(*_key));
@@ -2975,14 +2958,14 @@ d_internal_section_name(
 d_internal_rename
   Gives every header of a prefix the header of another, the last first.
 */
-static bool
-d_internal_rename(
-    struct d_git_doc*            _doc,
-    const struct d_internal_key* _from,
-    const struct d_internal_key* _to
+static
+bool d_internal_rename(
+    struct dj_git_doc*            _doc,
+    const struct dj_internal_key* _from,
+    const struct dj_internal_key* _to
 )
 {
-    struct d_git_buffer header;
+    struct dj_git_buffer header;
     const size_t        entries = _doc->records.entry_count;
 
     memset(&header, 0, sizeof(header));
@@ -3008,7 +2991,7 @@ d_internal_rename(
          ( (kept) && (at != D_GIT_TEXT_NONE) );
          at = d_internal_last_section(&_doc->records, _from->prefix.text))
     {
-        const struct d_git_text_section* const section =
+        const struct dj_git_text_section* const section =
             &_doc->records.sections[at];
 
         kept = d_internal_splice_text(_doc,
@@ -3033,18 +3016,17 @@ d_internal_rename(
 }
 
 
-bool
-d_git_doc_rename_section(
-    struct d_git_doc* _doc,
-    const char*       _name,
-    const char*       _to
+bool d_git_doc_rename_section(
+    struct dj_git_doc* _doc,
+    const char*        _name,
+    const char*        _to
 )
 {
-    struct d_internal_key   from;
-    struct d_internal_key   to;
-    struct d_git_buffer     from_key;
-    struct d_git_buffer     to_key;
-    struct d_internal_saved saved;
+    struct dj_internal_key   from;
+    struct dj_internal_key   to;
+    struct dj_git_buffer     from_key;
+    struct dj_git_buffer     to_key;
+    struct dj_internal_saved saved;
 
     // a configuration, and two names git takes
     if (!_doc)
@@ -3094,15 +3076,15 @@ d_internal_section_span
   The text a section's removal takes: from its header -- its line, when
 the header begins it -- to the next section's header, or the file's end.
 */
-static struct d_internal_span
-d_internal_section_span(
-    const struct d_git_doc* _doc,
-    size_t                  _section
+static
+struct dj_internal_span d_internal_section_span(
+    const struct dj_git_doc* _doc,
+    size_t                   _section
 )
 {
-    const struct d_git_text* const text = &_doc->records;
+    const struct dj_git_text* const text = &_doc->records;
     const size_t                   start = text->sections[_section].start;
-    struct d_internal_span         span  = { start, _doc->length };
+    struct dj_internal_span         span  = { start, _doc->length };
 
     // its line, when the header begins it
     if (d_internal_first_on_line(_doc, start))
@@ -3125,15 +3107,14 @@ d_internal_section_span(
 }
 
 
-bool
-d_git_doc_remove_section(
-    struct d_git_doc* _doc,
-    const char*       _name
+bool d_git_doc_remove_section(
+    struct dj_git_doc* _doc,
+    const char*        _name
 )
 {
-    struct d_internal_key   name;
-    struct d_git_buffer     key;
-    struct d_internal_saved saved;
+    struct dj_internal_key   name;
+    struct dj_git_buffer     key;
+    struct dj_internal_saved saved;
 
     // a configuration, and a name git takes
     if (!_doc)
@@ -3169,7 +3150,7 @@ d_git_doc_remove_section(
          ( (kept) && (at != D_GIT_TEXT_NONE) );
          at = d_internal_last_section(&_doc->records, name.prefix.text))
     {
-        const struct d_internal_span span = d_internal_section_span(_doc, at);
+        const struct dj_internal_span span = d_internal_section_span(_doc, at);
 
         kept = d_internal_splice_text(_doc, span.start, span.end, "", 0u);
     }
@@ -3186,9 +3167,9 @@ d_git_doc_remove_section(
 //==============================================================================
 
 
-enum d_git_saved
+enum dj_git_saved
 d_git_doc_save(
-    const struct d_git_doc* _doc,
+    const struct dj_git_doc* _doc,
     const char*             _path,
     char*                   _problem,
     size_t                  _capacity

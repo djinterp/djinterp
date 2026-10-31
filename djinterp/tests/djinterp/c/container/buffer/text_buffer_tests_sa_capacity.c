@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,13 +22,11 @@ d_tests_sa_text_buffer_ensure_capacity
   - data integrity preserved after growth
   - capacity is at least the requested amount
 */
-bool
-d_tests_sa_text_buffer_ensure_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_ensure_capacity(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     size_t                old_cap;
     bool                  result = true;
 
@@ -95,13 +93,11 @@ d_tests_sa_text_buffer_resize_to_fit
   - capacity after shrink is approximately count + 1
   - data integrity preserved after shrink
 */
-bool
-d_tests_sa_text_buffer_resize_to_fit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_resize_to_fit(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -163,13 +159,11 @@ d_tests_sa_text_buffer_reserve
   - reserving additional space grows capacity
   - data integrity preserved
 */
-bool
-d_tests_sa_text_buffer_reserve
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_reserve(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     size_t                old_cap;
     bool                  result = true;
 
@@ -226,10 +220,8 @@ d_tests_sa_text_buffer_reserve
 d_tests_sa_text_buffer_capacity_all
   Aggregation function that runs all capacity management tests.
 */
-bool
-d_tests_sa_text_buffer_capacity_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_capacity_all(
+    struct dj_test_counter* _counter
 )
 {
     printf("\n  [SECTION] Capacity Management Functions\n");

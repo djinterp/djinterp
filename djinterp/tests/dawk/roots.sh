@@ -16,7 +16,7 @@
 #   sh tests/dawk/roots.sh [build/dcheck]
 DCHECK=${1:-build/dcheck}
 SHEETS="banner guard include section text c_style cpp_style"
-DIRS="inc/djinterp/config/core/env
+DIRS="inc/djinterp/config/env
 inc/djinterp/c/util/macro
 src/djinterp/c/container"
 work=$(mktemp -d)
@@ -27,7 +27,7 @@ compared=0
 findings() {
     # $1 a sheet, $2 a root: the run's findings, sorted
     "$DCHECK" --source.files=all --report.findings=10000000 \
-              "sheets/$1.dss" "$2" 2>/dev/null \
+              "res/sheets/$1.dss" "$2" 2>/dev/null \
         | grep -E '^[^ ]+:[0-9]+:[0-9]+: (error|warn|advise): ' \
         | sort
 }

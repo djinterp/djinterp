@@ -27,11 +27,8 @@ d_tests_dfile_symlinks_available
 Return:
   true if symlinks can be created, false otherwise.
 */
-static bool
-d_tests_dfile_symlinks_available
-(
-    void
-)
+static
+bool d_tests_dfile_symlinks_available(void)
 {
     char   target_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char   link_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
@@ -79,13 +76,9 @@ d_tests_dfile_symlink
   - returns -1 for NULL target
   - returns -1 for NULL linkpath
 */
-struct d_test_object*
-d_tests_dfile_symlink
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_symlink(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  target_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  link_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
@@ -187,13 +180,9 @@ d_tests_dfile_readlink
   - returns -1 for NULL path
   - returns -1 for non-symlink
 */
-struct d_test_object*
-d_tests_dfile_readlink
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_readlink(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  target_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  link_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  read_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
@@ -300,13 +289,9 @@ d_tests_dfile_is_symlink
   - returns 0 for directory
   - returns 0 for NULL path
 */
-struct d_test_object*
-d_tests_dfile_is_symlink
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_is_symlink(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  target_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  link_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
@@ -403,13 +388,9 @@ d_tests_dfile_symbolic_links_all
   - d_file_readlink
   - d_file_is_symlink
 */
-struct d_test_object*
-d_tests_dfile_symbolic_links_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_symbolic_links_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("XIII. Symbolic Links", 3);

@@ -146,7 +146,7 @@ TABLE OF CONTENTS
 #include "../../cfg_common.h"  // D_CFG_IS_ON, D_CFG_NORM, D_CFG_TESTING
 #include "../../../env/env.h"  // D_ENV_* platform detection
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: the 64-bit floor
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: the 64-bit floor
 
 
 //==============================================================================
@@ -357,7 +357,7 @@ TABLE OF CONTENTS
 // 1.5.2
 // D_CFG_FILE_NAME_MAX
 //   knob: maximum single filename length (value model). Sizes
-// d_dirent_t.d_name; see the ABI note above.
+// dj_dirent_t.d_name; see the ABI note above.
 
 // 1.5.3
 // D_CFG_FILE_LONG_PATHS
@@ -373,7 +373,7 @@ TABLE OF CONTENTS
 // whether it opens is the platform's answer. Off by default: every path
 // buffer grows from 260 characters to 32767, and is kept on the heap rather
 // than the stack -- a path's UTF-16 copy, 64 KiB, and a path built in UTF-8,
-// 32 KiB (d_internal_file_native and d_internal_file_path, file_common.h);
+// 32 KiB (dj_internal_file_native and dj_internal_file_path, file_common.h);
 // a default build keeps its 260-character ones on the stack. No effect on
 // POSIX.
 #ifndef D_CFG_FILE_LONG_PATHS
@@ -821,9 +821,9 @@ TABLE OF CONTENTS
 // without _DARWIN_C_SOURCE, spells it st_mtimensec, a long beside the
 // seconds; older hosts have none and report whole seconds only.
 //   This is what env CAN do about the timestamp problem: it cannot make a
-// field named st_mtime reachable (see the note on d_stat_t in file_common.h),
+// field named st_mtime reachable (see the note on dj_stat_t in file_common.h),
 // but it can tell file_stat.c which member to READ when filling
-// d_stat_t.st_modified. Detection here, spelling in the module.
+// dj_stat_t.st_modified. Detection here, spelling in the module.
 #ifndef D_CFG_FILE_HAS_STAT_NSEC
     #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)) &&                               \
           (D_INTERNAL_FILE_OS_DARWIN == 1) &&                                  \
@@ -856,7 +856,7 @@ TABLE OF CONTENTS
 // POSIX's ctime (which is the metadata-change time and is not it).
 // Windows has always had it; the BSDs and macOS expose st_birthtime; Linux
 // only through statx(2), and only on filesystems that store it.
-//   d_stat_t.st_changed carries ctime everywhere; a creation timestamp, where
+//   dj_stat_t.st_changed carries ctime everywhere; a creation timestamp, where
 // one exists, is a separate concern and does not get silently substituted --
 // that conflation is exactly what the old st_ctime field name encouraged.
 //   st_birthtime is <sys/stat.h>'s, so the Apple and BSD terms need the POSIX
@@ -908,8 +908,8 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 //   Selection model. Every declaration that holds a file offset, a size, a
 // timestamp, an inode number or a capacity comes in two widths, each with a
-// fixed layout: a 32-bit twin (d_stat32_t, d_file_stat32) and a 64-bit one
-// (d_stat64_t, d_file_stat64). The unsuffixed name -- d_stat_t, d_file_stat --
+// fixed layout: a 32-bit twin (dj_stat32_t, d_file_stat32) and a 64-bit one
+// (dj_stat64_t, d_file_stat64). The unsuffixed name -- dj_stat_t, d_file_stat --
 // is an alias of one of them, and this chooses which. Both twins are declared
 // whatever it says, so code that needs one width names that twin.
 
@@ -1379,16 +1379,16 @@ TABLE OF CONTENTS
 
 // 4.1.4
 // D_FILE_WIDTH
-//   query: the width of the unsuffixed names, 32 or 64: which twin d_off_t,
-// d_stat_t, d_dirent_t and d_space_t name, and which every unsuffixed call
+//   query: the width of the unsuffixed names, 32 or 64: which twin dj_off_t,
+// dj_stat_t, dj_dirent_t and dj_space_t name, and which every unsuffixed call
 // that takes or fills one -- d_file_seek_stream, d_file_stat, d_dir_read,
 // d_file_space, ... -- forwards to. Safe in #if.
 #define D_FILE_WIDTH D_INTERNAL_FILE_WIDTH
 
 // 4.1.5
 // D_FILE_64_IS_AVAILABLE
-//   query: 1 when this build declares the 64-bit twins -- d_off64_t,
-// d_stat64_t, d_dirent64_t, d_space64_t and every call suffixed 64 -- and 0
+//   query: 1 when this build declares the 64-bit twins -- dj_off64_t,
+// dj_stat64_t, dj_dirent64_t, dj_space64_t and every call suffixed 64 -- and 0
 // below the 64-bit floor, where only the 32-bit twins exist; those are
 // declared on every build. Safe in #if.
 #define D_FILE_64_IS_AVAILABLE D_INTERNAL_FILE_HAS_INT64

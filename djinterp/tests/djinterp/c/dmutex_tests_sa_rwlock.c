@@ -5,17 +5,19 @@
 // file-scope helper structs and worker functions
 ///////////////////////////////////////////////////////////////////////////////
 
-struct d_test_tryrd_data
+struct dj_test_tryrd_data
 {
-    struct d_rwlock_t* rw;
+    struct dj_rwlock_t* rw;
     int                result_code;
 };
 
-static void*
-d_test_tryrd_worker(void* _arg)
+static
+void* d_test_tryrd_worker(
+    void* _arg
+)
 {
-    struct d_test_tryrd_data* data;
-    data              = (struct d_test_tryrd_data*)_arg;
+    struct dj_test_tryrd_data* data;
+    data              = (struct dj_test_tryrd_data*)_arg;
     data->result_code = d_rwlock_tryrdlock(data->rw);
     if (data->result_code == D_MUTEX_SUCCESS)
     {
@@ -24,17 +26,19 @@ d_test_tryrd_worker(void* _arg)
     return D_THREAD_SUCCESS;
 }
 
-struct d_test_trywr_data
+struct dj_test_trywr_data
 {
-    struct d_rwlock_t* rw;
+    struct dj_rwlock_t* rw;
     int                result_code;
 };
 
-static void*
-d_test_trywr_worker(void* _arg)
+static
+void* d_test_trywr_worker(
+    void* _arg
+)
 {
-    struct d_test_trywr_data* data;
-    data              = (struct d_test_trywr_data*)_arg;
+    struct dj_test_trywr_data* data;
+    data              = (struct dj_test_trywr_data*)_arg;
     data->result_code = d_rwlock_trywrlock(data->rw);
     if (data->result_code == D_MUTEX_SUCCESS)
     {
@@ -43,20 +47,22 @@ d_test_trywr_worker(void* _arg)
     return D_THREAD_SUCCESS;
 }
 
-struct d_test_reader_data
+struct dj_test_reader_data
 {
-    struct d_rwlock_t* rw;
+    struct dj_rwlock_t* rw;
     const int*         shared_value;
     int                read_value;
     bool               acquired;
 };
 
-static void*
-d_test_reader_thread(void* _arg)
+static
+void* d_test_reader_thread(
+    void* _arg
+)
 {
-    struct d_test_reader_data* data;
+    struct dj_test_reader_data* data;
     struct timespec            dur;
-    data = (struct d_test_reader_data*)_arg;
+    data = (struct dj_test_reader_data*)_arg;
     if (d_rwlock_rdlock(data->rw) == D_MUTEX_SUCCESS)
     {
         data->read_value = *(data->shared_value);
@@ -83,14 +89,12 @@ d_tests_sa_rwlock_init_destroy
   - successful destroy returns D_MUTEX_SUCCESS
   - multiple rwlocks can be initialized
 */
-bool
-d_tests_sa_rwlock_init_destroy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_init_destroy(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
 
     result = true;
@@ -113,8 +117,8 @@ d_tests_sa_rwlock_init_destroy
     }
 
     {
-        struct d_rwlock_t rw_a;
-        struct d_rwlock_t rw_b;
+        struct dj_rwlock_t rw_a;
+        struct dj_rwlock_t rw_b;
         int               rc_a;
         int               rc_b;
 
@@ -142,14 +146,12 @@ d_tests_sa_rwlock_rdlock
   - read lock succeeds on unlocked rwlock
   - unlock after rdlock succeeds
 */
-bool
-d_tests_sa_rwlock_rdlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_rdlock(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
 
     result = true;
@@ -189,14 +191,12 @@ d_tests_sa_rwlock_wrlock
   - write lock succeeds on unlocked rwlock
   - unlock after wrlock succeeds
 */
-bool
-d_tests_sa_rwlock_wrlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_wrlock(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
 
     result = true;
@@ -237,14 +237,12 @@ d_tests_sa_rwlock_tryrdlock
   - tryrdlock with existing reader succeeds (multiple readers)
   - tryrdlock on write-locked rwlock returns D_MUTEX_BUSY
 */
-bool
-d_tests_sa_rwlock_tryrdlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_tryrdlock(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
 
     result = true;
@@ -286,9 +284,9 @@ d_tests_sa_rwlock_tryrdlock
 
     // test 3: tryrdlock on write-locked (from another thread)
     {
-        struct d_rwlock_t    rwlock2;
-        struct d_test_tryrd_data shared;
-        d_thread_t           thd;
+        struct dj_rwlock_t    rwlock2;
+        struct dj_test_tryrd_data shared;
+        dj_thread_t           thd;
 
         rc = d_rwlock_init(&rwlock2);
 
@@ -300,7 +298,7 @@ d_tests_sa_rwlock_tryrdlock
             shared.result_code = D_MUTEX_SUCCESS;
 
             rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_tryrd_worker,
+                                 (dj_thread_func_t)d_test_tryrd_worker,
                                  &shared);
 
             if (rc == D_MUTEX_SUCCESS)
@@ -330,14 +328,12 @@ d_tests_sa_rwlock_trywrlock
   - trywrlock on unlocked rwlock succeeds
   - trywrlock on read-locked rwlock returns D_MUTEX_BUSY
 */
-bool
-d_tests_sa_rwlock_trywrlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_trywrlock(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
 
     result = true;
@@ -363,14 +359,14 @@ d_tests_sa_rwlock_trywrlock
         d_rwlock_rdlock(&rwlock);
 
         {
-            struct d_test_trywr_data shared;
-            d_thread_t               thd;
+            struct dj_test_trywr_data shared;
+            dj_thread_t               thd;
 
             shared.rw          = &rwlock;
             shared.result_code = D_MUTEX_SUCCESS;
 
             rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_trywr_worker,
+                                 (dj_thread_func_t)d_test_trywr_worker,
                                  &shared);
 
             if (rc == D_MUTEX_SUCCESS)
@@ -401,14 +397,12 @@ d_tests_sa_rwlock_unlock
   - unlock after wrlock returns D_MUTEX_SUCCESS
   - rwlock is reusable after unlock
 */
-bool
-d_tests_sa_rwlock_unlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_unlock(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
 
     result = true;
@@ -461,14 +455,12 @@ d_tests_sa_rwlock_timedrdlock
   Tests the following:
   - timedrdlock on unlocked rwlock succeeds immediately
 */
-bool
-d_tests_sa_rwlock_timedrdlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_timedrdlock(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
     struct timespec   timeout;
 
@@ -506,14 +498,12 @@ d_tests_sa_rwlock_timedwrlock
   Tests the following:
   - timedwrlock on unlocked rwlock succeeds immediately
 */
-bool
-d_tests_sa_rwlock_timedwrlock
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_timedwrlock(
+    struct dj_test_counter* _counter
 )
 {
     bool              result;
-    struct d_rwlock_t rwlock;
+    struct dj_rwlock_t rwlock;
     int               rc;
     struct timespec   timeout;
 
@@ -552,17 +542,15 @@ d_tests_sa_rwlock_concurrent_readers
   - multiple threads can hold read locks simultaneously
   - all readers see consistent data
 */
-bool
-d_tests_sa_rwlock_concurrent_readers
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_concurrent_readers(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_rwlock_t         rwlock;
+    struct dj_rwlock_t         rwlock;
     int                       shared_value;
-    struct d_test_reader_data rdata[4];
-    d_thread_t                threads[4];
+    struct dj_test_reader_data rdata[4];
+    dj_thread_t                threads[4];
     int                       rc;
     int                       i;
     int                       created;
@@ -590,7 +578,7 @@ d_tests_sa_rwlock_concurrent_readers
     for (i = 0; i < 4; i++)
     {
         rc = d_thread_create(&threads[i],
-                                 (d_thread_func_t)d_test_reader_thread,
+                                 (dj_thread_func_t)d_test_reader_thread,
                              &rdata[i]);
 
         if (rc == D_MUTEX_SUCCESS)
@@ -640,10 +628,8 @@ d_tests_sa_rwlock_concurrent_readers
 d_tests_sa_rwlock_all
   Aggregation function that runs all read-write lock tests.
 */
-bool
-d_tests_sa_rwlock_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_rwlock_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

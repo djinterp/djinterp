@@ -9,11 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // helper predicates for combinator tests
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -29,7 +33,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -45,7 +53,11 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static bool pred_greater_than_context(const void* _element, void* _context)
+static
+bool pred_greater_than_context(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
     const int* threshold;
@@ -74,17 +86,15 @@ d_tests_sa_filter_union
   - free with and without chains
   - free NULL safety
 */
-bool
-d_tests_sa_filter_union
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_union(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_filter_union*  u;
-    struct d_filter_chain*  chain_a;
-    struct d_filter_chain*  chain_b;
-    struct d_filter_chain*  chain_c;
+    struct dj_filter_union*  u;
+    struct dj_filter_chain*  chain_a;
+    struct dj_filter_chain*  chain_b;
+    struct dj_filter_chain*  chain_c;
 
     result = true;
 
@@ -239,16 +249,14 @@ free.
   - NULL handling
   - free safety
 */
-bool
-d_tests_sa_filter_intersection
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_intersection(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_filter_intersection*  inter;
-    struct d_filter_chain*         chain_a;
-    struct d_filter_chain*         chain_b;
+    struct dj_filter_intersection*  inter;
+    struct dj_filter_chain*         chain_a;
+    struct dj_filter_chain*         chain_b;
 
     result = true;
 
@@ -375,16 +383,14 @@ d_tests_sa_filter_difference
   - field assignment verification
   - free safety
 */
-bool
-d_tests_sa_filter_difference
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_difference(
+    struct dj_test_counter* _counter
 )
 {
     bool                          result;
-    struct d_filter_difference*   diff;
-    struct d_filter_chain*        chain_inc;
-    struct d_filter_chain*        chain_exc;
+    struct dj_filter_difference*   diff;
+    struct dj_filter_chain*        chain_inc;
+    struct dj_filter_chain*        chain_exc;
     int                           threshold;
 
     result    = true;
@@ -465,10 +471,8 @@ d_tests_sa_filter_difference
 d_tests_sa_filter_combinators_all
   Aggregation function that runs all combinator tests.
 */
-bool
-d_tests_sa_filter_combinators_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_combinators_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

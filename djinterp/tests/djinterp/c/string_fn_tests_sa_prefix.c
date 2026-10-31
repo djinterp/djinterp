@@ -26,13 +26,9 @@ d_tests_sa_string_fn_strstartswith
   - handles NULL inputs
   - returns true when prefix equals string
 */
-struct d_test_object*
-d_tests_sa_string_fn_strstartswith
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strstartswith(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_match;
     bool                  test_no_match;
     bool                  test_empty_prefix;
@@ -91,13 +87,9 @@ d_tests_sa_string_fn_strendswith
   - handles NULL inputs
   - returns true when suffix equals string
 */
-struct d_test_object*
-d_tests_sa_string_fn_strendswith
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strendswith(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_match;
     bool                  test_no_match;
     bool                  test_empty_suffix;
@@ -156,13 +148,9 @@ d_tests_sa_string_fn_strcontains
   - handles NULL inputs
   - handles empty substring
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcontains
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcontains(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_middle;
     bool                  test_begin;
     bool                  test_end;
@@ -219,13 +207,9 @@ d_tests_sa_string_fn_strcontains_char
   - handles NULL
   - handles empty string
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcontains_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcontains_char(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_found;
     bool                  test_not_found;
     bool                  test_null;
@@ -271,13 +255,9 @@ d_tests_sa_string_fn_prefix_suffix_all
   - d_strcontains
   - d_strcontains_char
 */
-struct d_test_object*
-d_tests_sa_string_fn_prefix_suffix_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_prefix_suffix_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Prefix, Suffix, Containment", 4);

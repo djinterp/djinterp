@@ -34,7 +34,7 @@
 // djinterp
 #include "../../../../inc/djinterp/c/event/event_dispatcher_common.h"  // unit under test
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, uint32_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t,
                                                      // SIZE_MAX
 
 
@@ -45,8 +45,8 @@ static int g_failures = 0;
 d_tests_event_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_event_expect(
+static
+void d_tests_event_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -78,8 +78,8 @@ d_tests_event_expect(
 static char   g_log[256];
 static size_t g_log_length = 0u;
 
-static void
-d_tests_event_log_reset(void)
+static
+void d_tests_event_log_reset(void)
 {
     g_log_length = 0u;
     g_log[0]     = '\0';
@@ -87,8 +87,8 @@ d_tests_event_log_reset(void)
     return;
 }
 
-static void
-d_tests_event_log(
+static
+void d_tests_event_log(
     char _c
 )
 {
@@ -103,8 +103,8 @@ d_tests_event_log(
     return;
 }
 
-static bool
-d_tests_event_logged(
+static
+bool d_tests_event_logged(
     const char* _expected
 )
 {
@@ -115,8 +115,8 @@ d_tests_event_logged(
 static int   g_freed      = 0;
 static void* g_freed_last = NULL;
 
-static void
-d_tests_event_free(
+static
+void d_tests_event_free(
     void* _state
 )
 {
@@ -126,23 +126,23 @@ d_tests_event_free(
     return;
 }
 
-// d_tests_event_tag
+// dj_tests_event_tag
 //   struct: a step that logs its tag, counts its calls, and returns a fixed
 // verdict.
-struct d_tests_event_tag
+struct dj_tests_event_tag
 {
     char    tag;
     int32_t verdict;
     int     calls;
 };
 
-static int32_t
-d_tests_event_step_tag(
+static
+int32_t d_tests_event_step_tag(
     void* _payload,
     void* _state
 )
 {
-    struct d_tests_event_tag* const tag = _state;
+    struct dj_tests_event_tag* const tag = _state;
 
     (void)_payload;
     ++tag->calls;
@@ -151,11 +151,11 @@ d_tests_event_step_tag(
     return tag->verdict;
 }
 
-static void
-d_tests_event_tag_init(
-    struct d_tests_event_tag* _tag,
-    char                      _c,
-    int32_t                   _verdict
+static
+void d_tests_event_tag_init(
+    struct dj_tests_event_tag* _tag,
+    char                       _c,
+    int32_t                    _verdict
 )
 {
     _tag->tag     = _c;
@@ -165,32 +165,32 @@ d_tests_event_tag_init(
     return;
 }
 
-static struct d_event_step
-d_tests_event_tagged(
-    struct d_tests_event_tag* _tag
+static
+struct dj_event_step d_tests_event_tagged(
+    struct dj_tests_event_tag* _tag
 )
 {
     return d_event_step_make(&d_tests_event_step_tag, _tag);
 }
 
-// d_tests_event_num
+// dj_tests_event_num
 //   struct: a step over an int payload: logs its tag and the value's last
 // digit ('-' for no payload), adds `add`, and consumes when asked to and the
 // result is odd.
-struct d_tests_event_num
+struct dj_tests_event_num
 {
     char tag;
     int  add;
     bool consume_odd;
 };
 
-static int32_t
-d_tests_event_step_num(
+static
+int32_t d_tests_event_step_num(
     void* _payload,
     void* _state
 )
 {
-    const struct d_tests_event_num* const num   = _state;
+    const struct dj_tests_event_num* const num   = _state;
     int* const                            value = _payload;
 
     d_tests_event_log(num->tag);
@@ -212,25 +212,25 @@ d_tests_event_step_num(
         : (int32_t)D_VERDICT_PASS;
 }
 
-static struct d_event_step
-d_tests_event_numbered(
-    struct d_tests_event_num* _num
+static
+struct dj_event_step d_tests_event_numbered(
+    struct dj_tests_event_num* _num
 )
 {
     return d_event_step_make(&d_tests_event_step_num, _num);
 }
 
-// d_tests_event_actor
+// dj_tests_event_actor
 //   struct: a step that edits the registry it runs from, to probe dispatch's
 // snapshot semantics. It records what it could observe at the moment it ran.
-struct d_tests_event_actor
+struct dj_tests_event_actor
 {
     char                     tag;
     int                      action;       // D_TESTS_EVENT_ACT_*
-    struct d_event_registry* registry;
-    d_event_key              key;          // what BIND binds to, FIRE fires
-    d_handler_id             target;       // what UNBIND unbinds
-    struct d_event_step      bind_step;    // what BIND binds
+    struct dj_event_registry* registry;
+    dj_event_key              key;          // what BIND binds to, FIRE fires
+    dj_handler_id             target;       // what UNBIND unbinds
+    struct dj_event_step      bind_step;    // what BIND binds
     bool                     target_gone;  // contains(target) failed after
     int                      freed_seen;   // g_freed when this step ran
 };
@@ -245,13 +245,13 @@ enum
     D_TESTS_EVENT_ACT_FIRE    = 5
 };
 
-static int32_t
-d_tests_event_step_actor(
+static
+int32_t d_tests_event_step_actor(
     void* _payload,
     void* _state
 )
 {
-    struct d_tests_event_actor* const actor = _state;
+    struct dj_tests_event_actor* const actor = _state;
 
     d_tests_event_log(actor->tag);
     actor->freed_seen = g_freed;
@@ -295,12 +295,12 @@ d_tests_event_step_actor(
     return (int32_t)D_VERDICT_PASS;
 }
 
-static void
-d_tests_event_actor_init(
-    struct d_tests_event_actor* _actor,
-    char                        _c,
-    int                         _action,
-    struct d_event_registry*    _registry
+static
+void d_tests_event_actor_init(
+    struct dj_tests_event_actor* _actor,
+    char                         _c,
+    int                          _action,
+    struct dj_event_registry*    _registry
 )
 {
     memset(_actor, 0, sizeof(*_actor));
@@ -311,30 +311,30 @@ d_tests_event_actor_init(
     return;
 }
 
-static struct d_event_step
-d_tests_event_acting(
-    struct d_tests_event_actor* _actor
+static
+struct dj_event_step d_tests_event_acting(
+    struct dj_tests_event_actor* _actor
 )
 {
     return d_event_step_make(&d_tests_event_step_actor, _actor);
 }
 
-// d_tests_event_ids
+// dj_tests_event_ids
 //   struct: collects the ids a visitor sees, optionally stopping early.
-struct d_tests_event_ids
+struct dj_tests_event_ids
 {
-    d_handler_id ids[16];
+    dj_handler_id ids[16];
     size_t       count;
     size_t       stop_after;   // 0: never stop
 };
 
-static bool
-d_tests_event_collect(
-    const struct d_event_entry* _entry,
-    void*                       _context
+static
+bool d_tests_event_collect(
+    const struct dj_event_entry* _entry,
+    void*                        _context
 )
 {
-    struct d_tests_event_ids* const ids = _context;
+    struct dj_tests_event_ids* const ids = _context;
 
     if (ids->count < 16u)
     {
@@ -352,12 +352,12 @@ d_tests_event_word_is
   True when the word for _key, walked with first/next, holds exactly the ids
 given, in that order.
 */
-static bool
-d_tests_event_word_is(
-    const struct d_event_table* _table,
-    d_event_key                 _key,
-    const d_handler_id*         _ids,
-    size_t                      _count
+static
+bool d_tests_event_word_is(
+    const struct dj_event_table* _table,
+    dj_event_key                 _key,
+    const dj_handler_id*         _ids,
+    size_t                       _count
 )
 {
     size_t   seen  = 0u;
@@ -386,15 +386,15 @@ d_tests_event_word_ordered
   True when the word for _key has _expected letters in strictly ascending id
 order: bind order, whatever slots and buckets they occupy.
 */
-static bool
-d_tests_event_word_ordered(
-    const struct d_event_table* _table,
-    d_event_key                 _key,
-    size_t                      _expected
+static
+bool d_tests_event_word_ordered(
+    const struct dj_event_table* _table,
+    dj_event_key                 _key,
+    size_t                       _expected
 )
 {
     size_t       seen  = 0u;
-    d_handler_id last  = D_HANDLER_ID_NULL;
+    dj_handler_id last  = D_HANDLER_ID_NULL;
     uint32_t     index = d_event_table_first(_table, _key);
 
     // every letter must follow the one before it in bind order
@@ -418,14 +418,14 @@ d_tests_event_word_ordered(
 
 #if (D_INTERNAL_EVENT_TABLE_MERGE == 1)
 
-static bool
-d_tests_event_log_entry(
-    const struct d_event_entry* _entry,
-    void*                       _context
+static
+bool d_tests_event_log_entry(
+    const struct dj_event_entry* _entry,
+    void*                        _context
 )
 {
     (void)_context;
-    const struct d_tests_event_tag* const tag = _entry->step.state;
+    const struct dj_tests_event_tag* const tag = _entry->step.state;
 
     d_tests_event_log(tag->tag);
 
@@ -440,8 +440,8 @@ d_tests_event_log_entry(
 ///        I.    FOUNDATIONS AND THE HANDLER MONOID                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-static void
-d_tests_event_prime(void)
+static
+void d_tests_event_prime(void)
 {
     D_TESTS_EVENT_CHECK(d_event_next_prime(0u) == 2u);
     D_TESTS_EVENT_CHECK(d_event_next_prime(1u) == 2u);
@@ -464,8 +464,8 @@ d_tests_event_prime(void)
 static int   g_callback_calls   = 0;
 static void* g_callback_context = NULL;
 
-static void
-d_tests_event_callback(
+static
+void d_tests_event_callback(
     void* _context
 )
 {
@@ -478,13 +478,13 @@ d_tests_event_callback(
 
 #endif  // D_INTERNAL_EVENT_HANDLER_ADAPTER
 
-static void
-d_tests_event_monoid(void)
+static
+void d_tests_event_monoid(void)
 {
-    struct d_tests_event_tag  a;
-    struct d_tests_event_tag  b;
-    struct d_tests_event_tag  c;
-    const struct d_event_step skip = d_event_step_skip();
+    struct dj_tests_event_tag  a;
+    struct dj_tests_event_tag  b;
+    struct dj_tests_event_tag  c;
+    const struct dj_event_step skip = d_event_step_skip();
 
     // the unit passes without a call, and a NULL step is the unit
     D_TESTS_EVENT_CHECK(d_event_step_is_skip(&skip));
@@ -494,11 +494,11 @@ d_tests_event_monoid(void)
 
 #if (D_INTERNAL_EVENT_HANDLER_SEQ == 1)
     {
-        struct d_event_seq_state n1;
-        struct d_event_seq_state n2;
-        struct d_event_seq_state n3;
-        struct d_event_seq_state n4;
-        struct d_event_step      s;
+        struct dj_event_seq_state n1;
+        struct dj_event_seq_state n2;
+        struct dj_event_seq_state n3;
+        struct dj_event_seq_state n4;
+        struct dj_event_step      s;
         char                     alone[8];
 
         // left zero: seq(consume, b) is consume and b is NOT invoked
@@ -525,7 +525,7 @@ d_tests_event_monoid(void)
         // skip is a unit on both sides, for either verdict
         for (int32_t v = 0; v <= 1; ++v)
         {
-            const struct d_event_step ta = d_event_step_make(
+            const struct dj_event_step ta = d_event_step_make(
                 &d_tests_event_step_tag, &a);
             int32_t                   verdict;
 
@@ -549,8 +549,8 @@ d_tests_event_monoid(void)
         // associativity, over all eight verdict combinations
         for (int m = 0; m < 8; ++m)
         {
-            struct d_event_step left;
-            struct d_event_step right;
+            struct dj_event_step left;
+            struct dj_event_step right;
             char                left_log[8];
             int32_t             left_verdict;
             int32_t             right_verdict;
@@ -589,9 +589,9 @@ d_tests_event_monoid(void)
 
     // fold: stops at the first consume; the unit is neither called nor counted
     {
-        struct d_event_step word[4];
-        struct d_event_step plain[2];
-        struct d_event_step padded[5];
+        struct dj_event_step word[4];
+        struct dj_event_step plain[2];
+        struct dj_event_step padded[5];
         size_t              invoked        = 99u;
         size_t              invoked_plain  = 0u;
         size_t              invoked_padded = 0u;
@@ -635,8 +635,8 @@ d_tests_event_monoid(void)
 #if (D_INTERNAL_EVENT_HANDLER_ADAPTER == 1)
     // the adapter calls back with its own context, never the payload
     {
-        struct d_event_callback_state cb;
-        struct d_event_step           cs;
+        struct dj_event_callback_state cb;
+        struct dj_event_step           cs;
         int                           target  = 0;
         int                           payload = 7;
 
@@ -668,19 +668,19 @@ d_tests_event_monoid(void)
 ///        II.   THE TABLE                                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-static void
-d_tests_event_table_fixed(void)
+static
+void d_tests_event_table_fixed(void)
 {
-    struct d_event_entry     entries[5];
+    struct dj_event_entry     entries[5];
     uint32_t                 head[1];
     uint32_t                 tail[1];
-    struct d_event_table     table;
-    struct d_event_table     zero;
-    struct d_tests_event_tag t[6];
-    struct d_tests_event_ids ids;
-    d_handler_id             id    = D_HANDLER_ID_NULL;
-    const d_event_key        k1    = d_event_key_of_name("k1");
-    const d_event_key        k2    = d_event_key_of_name("k2");
+    struct dj_event_table     table;
+    struct dj_event_table     zero;
+    struct dj_tests_event_tag t[6];
+    struct dj_tests_event_ids ids;
+    dj_handler_id             id    = D_HANDLER_ID_NULL;
+    const dj_event_key        k1    = d_event_key_of_name("k1");
+    const dj_event_key        k2    = d_event_key_of_name("k2");
 
     // every piece of storage is required
     D_TESTS_EVENT_CHECK(d_event_table_init_fixed(NULL, entries, 5u, head,
@@ -738,7 +738,7 @@ d_tests_event_table_fixed(void)
 
     // word access skips the other key sharing the bucket
     {
-        const d_handler_id word[3] = { 1u, 3u, 5u };
+        const dj_handler_id word[3] = { 1u, 3u, 5u };
 
         D_TESTS_EVENT_CHECK(d_tests_event_word_is(&table, k1, word, 3u));
     }
@@ -761,7 +761,7 @@ d_tests_event_table_fixed(void)
                                              NULL, &id) == D_EVENT_OK) &&
                          (id == 6u) );
     {
-        const d_handler_id word[3] = { 1u, 5u, 6u };
+        const dj_handler_id word[3] = { 1u, 5u, 6u };
 
         D_TESTS_EVENT_CHECK(d_tests_event_word_is(&table, k1, word, 3u));
     }
@@ -814,7 +814,7 @@ d_tests_event_table_fixed(void)
 
     D_TESTS_EVENT_CHECK(d_event_table_load_factor(&table) == 5.0);
     D_TESTS_EVENT_CHECK(d_event_table_footprint(&table) ==
-                        sizeof(struct d_event_table));
+                        sizeof(struct dj_event_table));
 
     // clear_key drops one word, running its hooks
     g_freed = 0;
@@ -856,17 +856,17 @@ d_tests_event_table_fixed(void)
 
 #if (D_INTERNAL_EVENT_TABLE_ALLOC == 1)
 
-static void
-d_tests_event_table_alloc(void)
+static
+void d_tests_event_table_alloc(void)
 {
-    struct d_event_table     table;
-    struct d_event_table     other;
-    struct d_event_entry     fixed_entries[2];
+    struct dj_event_table     table;
+    struct dj_event_table     other;
+    struct dj_event_entry     fixed_entries[2];
     uint32_t                 fixed_head[1];
     uint32_t                 fixed_tail[1];
-    struct d_tests_event_tag t;
+    struct dj_tests_event_tag t;
     bool                     ok     = true;
-    const d_event_key        base   = (d_event_key)1000u;
+    const dj_event_key        base   = (dj_event_key)1000u;
 
     d_tests_event_tag_init(&t, 'x', (int32_t)D_VERDICT_PASS);
     D_TESTS_EVENT_CHECK(d_event_table_init(NULL, 0u, 0u) == D_EVENT_ERR_NULL);
@@ -885,7 +885,7 @@ d_tests_event_table_alloc(void)
 
     for (unsigned i = 0u; i < 200u; ++i)
     {
-        ok = ok && (d_event_table_bind(&table, base + (d_event_key)(i % 7u),
+        ok = ok && (d_event_table_bind(&table, base + (dj_event_key)(i % 7u),
                                        d_tests_event_tagged(&t), NULL,
                                        NULL) == D_EVENT_OK);
     }
@@ -904,18 +904,18 @@ d_tests_event_table_alloc(void)
     for (unsigned k = 0u; k < 7u; ++k)
     {
         D_TESTS_EVENT_CHECK(d_tests_event_word_ordered(
-            &table, base + (d_event_key)k, (k < 4u) ? 29u : 28u));
+            &table, base + (dj_event_key)k, (k < 4u) ? 29u : 28u));
     }
 
     // churn: free every third letter, bind as many again, order holds
-    for (d_handler_id i = 1u; i <= 200u; i += 3u)
+    for (dj_handler_id i = 1u; i <= 200u; i += 3u)
     {
         ok = ok && (d_event_table_unbind(&table, i) == D_EVENT_OK);
     }
 
     for (unsigned i = 0u; i < 67u; ++i)
     {
-        ok = ok && (d_event_table_bind(&table, base + (d_event_key)(i % 7u),
+        ok = ok && (d_event_table_bind(&table, base + (dj_event_key)(i % 7u),
                                        d_tests_event_tagged(&t), NULL,
                                        NULL) == D_EVENT_OK);
     }
@@ -930,8 +930,8 @@ d_tests_event_table_alloc(void)
     for (unsigned k = 0u; k < 7u; ++k)
     {
         D_TESTS_EVENT_CHECK(d_tests_event_word_ordered(
-            &table, base + (d_event_key)k,
-            d_event_table_count_for(&table, base + (d_event_key)k)));
+            &table, base + (dj_event_key)k,
+            d_event_table_count_for(&table, base + (dj_event_key)k)));
     }
 
     // reserve grows and never shrinks
@@ -941,21 +941,21 @@ d_tests_event_table_alloc(void)
                           D_EVENT_OK) &&
                          (table.capacity == 1000u) );
     D_TESTS_EVENT_CHECK(d_event_table_footprint(&table) ==
-                        ( sizeof(struct d_event_table) +
-                          (1000u * sizeof(struct d_event_entry)) +
+                        ( sizeof(struct dj_event_table) +
+                          (1000u * sizeof(struct dj_event_entry)) +
                           (2u * 53u * sizeof(uint32_t)) ));
 
 #if (D_INTERNAL_EVENT_TABLE_STATS == 1)
     {
-        const struct d_event_table_stats stats =
+        const struct dj_event_table_stats stats =
             d_event_table_get_stats(&table);
         size_t                           longest = 0u;
-        struct d_event_table_stats       none;
+        struct dj_event_table_stats       none;
 
         for (unsigned k = 0u; k < 7u; ++k)
         {
             const size_t length = d_event_table_count_for(
-                &table, base + (d_event_key)k);
+                &table, base + (dj_event_key)k);
 
             longest = (length > longest) ? length : longest;
         }
@@ -998,23 +998,23 @@ d_tests_event_table_alloc(void)
 
 #if (D_INTERNAL_EVENT_TABLE_MERGE == 1)
 
-static void
-d_tests_event_merge(void)
+static
+void d_tests_event_merge(void)
 {
-    struct d_event_entry     ea[8];
-    struct d_event_entry     eb[8];
-    struct d_event_entry     ec[8];
-    struct d_event_entry     ed[2];
+    struct dj_event_entry     ea[8];
+    struct dj_event_entry     eb[8];
+    struct dj_event_entry     ec[8];
+    struct dj_event_entry     ed[2];
     uint32_t                 ha[3], ta[3], hb[3], tb[3], hc[3], tc[3];
     uint32_t                 hd[1], td[1];
-    struct d_event_table     a;
-    struct d_event_table     b;
-    struct d_event_table     c;
-    struct d_event_table     d;
-    struct d_tests_event_tag p, q, r, s;
+    struct dj_event_table     a;
+    struct dj_event_table     b;
+    struct dj_event_table     c;
+    struct dj_event_table     d;
+    struct dj_tests_event_tag p, q, r, s;
     size_t                   merged = 99u;
-    const d_event_key        k1     = d_event_key_of_name("m1");
-    const d_event_key        k2     = d_event_key_of_name("m2");
+    const dj_event_key        k1     = d_event_key_of_name("m1");
+    const dj_event_key        k2     = d_event_key_of_name("m2");
 
     (void)d_event_table_init_fixed(&a, ea, 8u, ha, ta, 3u);
     (void)d_event_table_init_fixed(&b, eb, 8u, hb, tb, 3u);
@@ -1101,24 +1101,24 @@ d_tests_event_merge(void)
 ///        III.  DISPATCH, SNAPSHOTS, RUN, AND THE FUSED WORD               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-static void
-d_tests_event_dispatch(void)
+static
+void d_tests_event_dispatch(void)
 {
-    struct d_event_entry      entries[16];
+    struct dj_event_entry      entries[16];
     uint32_t                  head[5];
     uint32_t                  tail[5];
-    struct d_event_registry   r;
-    struct d_tests_event_tag  a, b, c, x, y, z;
-    struct d_tests_event_num  n1 = { 'a', 1, false };
-    struct d_tests_event_num  n2 = { 'b', 10, false };
-    struct d_dispatch_result  result;
-    struct d_dispatch_result  again;
-    struct d_event_occurrence occurrence;
-    d_handler_id              middle = D_HANDLER_ID_NULL;
+    struct dj_event_registry   r;
+    struct dj_tests_event_tag  a, b, c, x, y, z;
+    struct dj_tests_event_num  n1 = { 'a', 1, false };
+    struct dj_tests_event_num  n2 = { 'b', 10, false };
+    struct dj_dispatch_result  result;
+    struct dj_dispatch_result  again;
+    struct dj_event_occurrence occurrence;
+    dj_handler_id              middle = D_HANDLER_ID_NULL;
     int                       value  = 5;
-    const d_event_key         k      = d_event_key_of_name("on_tick");
-    const d_event_key         kmask  = d_event_key_of_name("on_mask");
-    const d_event_key         knum   = d_event_key_of_name("on_num");
+    const dj_event_key         k      = d_event_key_of_name("on_tick");
+    const dj_event_key         kmask  = d_event_key_of_name("on_mask");
+    const dj_event_key         knum   = d_event_key_of_name("on_num");
 
     D_TESTS_EVENT_CHECK(d_event_registry_init_fixed(&r, entries, 16u, head,
                                                     tail, 5u) == D_EVENT_OK);
@@ -1200,19 +1200,19 @@ d_tests_event_snapshot
   "A handler that binds or unbinds during its own dispatch does not change
 the word being folded; the edit is visible to the next occurrence."
 */
-static void
-d_tests_event_snapshot(void)
+static
+void d_tests_event_snapshot(void)
 {
-    struct d_event_entry       entries[16];
+    struct dj_event_entry       entries[16];
     uint32_t                   head[5];
     uint32_t                   tail[5];
-    struct d_event_registry    r;
-    struct d_tests_event_actor u, l, o, f, g, h, w;
-    struct d_tests_event_tag   n, p, e;
-    d_handler_id               id  = D_HANDLER_ID_NULL;
-    const d_event_key          k   = d_event_key_of_name("snap");
-    const d_event_key          kk  = d_event_key_of_name("outer");
-    const d_event_key          kj  = d_event_key_of_name("inner");
+    struct dj_event_registry    r;
+    struct dj_tests_event_actor u, l, o, f, g, h, w;
+    struct dj_tests_event_tag   n, p, e;
+    dj_handler_id               id  = D_HANDLER_ID_NULL;
+    const dj_event_key          k   = d_event_key_of_name("snap");
+    const dj_event_key          kk  = d_event_key_of_name("outer");
+    const dj_event_key          kj  = d_event_key_of_name("inner");
 
     // a letter bound mid-dispatch joins the NEXT occurrence
     (void)d_event_registry_init_fixed(&r, entries, 16u, head, tail, 5u);
@@ -1353,20 +1353,20 @@ d_tests_event_snapshot(void)
 
 #if (D_INTERNAL_EVENT_REGISTRY_RUN == 1)
 
-static void
-d_tests_event_run(void)
+static
+void d_tests_event_run(void)
 {
-    struct d_event_entry     entries[8];
+    struct dj_event_entry     entries[8];
     uint32_t                 head[3];
     uint32_t                 tail[3];
-    struct d_event_registry  r;
-    struct d_tests_event_num p     = { 'p', 1, true };
-    struct d_tests_event_num q     = { 'q', 100, false };
-    struct d_tests_event_num z     = { 'z', 0, false };
+    struct dj_event_registry  r;
+    struct dj_tests_event_num p     = { 'p', 1, true };
+    struct dj_tests_event_num q     = { 'q', 100, false };
+    struct dj_tests_event_num z     = { 'z', 0, false };
     int                      v[3]  = { 0, 1, 2 };
-    struct d_run_result      run;
-    const d_event_key        k     = d_event_key_of_name("trace");
-    const d_event_key        k0    = d_event_key_of_name("empty");
+    struct dj_run_result      run;
+    const dj_event_key        k     = d_event_key_of_name("trace");
+    const dj_event_key        k0    = d_event_key_of_name("empty");
 
     (void)d_event_registry_init_fixed(&r, entries, 8u, head, tail, 3u);
     (void)d_event_registry_bind(&r, k, d_tests_event_numbered(&p), NULL,
@@ -1402,25 +1402,25 @@ d_tests_event_run(void)
 
 #if (D_INTERNAL_EVENT_REGISTRY_STAGING == 1)
 
-static void
-d_tests_event_staging(void)
+static
+void d_tests_event_staging(void)
 {
-    struct d_event_entry     entries[8];
+    struct dj_event_entry     entries[8];
     uint32_t                 head[3];
     uint32_t                 tail[3];
-    struct d_event_registry  r;
-    struct d_tests_event_num p = { 'p', 1, true };
-    struct d_tests_event_num q = { 'q', 100, false };
-    struct d_tests_event_tag m;
-    struct d_tests_event_tag extra;
-    struct d_event_step      steps[4];
-    struct d_event_word      word;
-    struct d_event_word      cut;
-    d_handler_id             masked  = D_HANDLER_ID_NULL;
-    d_handler_id             q_id    = D_HANDLER_ID_NULL;
+    struct dj_event_registry  r;
+    struct dj_tests_event_num p = { 'p', 1, true };
+    struct dj_tests_event_num q = { 'q', 100, false };
+    struct dj_tests_event_tag m;
+    struct dj_tests_event_tag extra;
+    struct dj_event_step      steps[4];
+    struct dj_event_word      word;
+    struct dj_event_word      cut;
+    dj_handler_id             masked  = D_HANDLER_ID_NULL;
+    dj_handler_id             q_id    = D_HANDLER_ID_NULL;
     size_t                   invoked = 0u;
     int                      x       = 1;
-    const d_event_key        k       = d_event_key_of_name("fused");
+    const dj_event_key        k       = d_event_key_of_name("fused");
 
     (void)d_event_registry_init_fixed(&r, entries, 8u, head, tail, 3u);
     d_tests_event_tag_init(&m, 'm', (int32_t)D_VERDICT_PASS);
@@ -1464,8 +1464,8 @@ d_tests_event_staging(void)
         int                   first[4]  = { 0, 1, 2, 3 };
         int                   second[4] = { 0, 1, 2, 3 };
         char                  run_log[64];
-        struct d_run_result   run;
-        struct d_drive_result drive;
+        struct dj_run_result   run;
+        struct dj_drive_result drive;
 
         d_tests_event_log_reset();
         run = d_event_registry_run(&r, k, first, sizeof(int), 4u);
@@ -1497,8 +1497,8 @@ d_tests_event_staging(void)
 
 #if (D_INTERNAL_EVENT_REGISTRY_STAGING_ALLOC == 1)
     {
-        struct d_event_word owned;
-        struct d_event_word empty;
+        struct dj_event_word owned;
+        struct dj_event_word empty;
 
         // the allocating form owns its steps: p and the new letter now
         D_TESTS_EVENT_CHECK( (d_event_registry_compile(&r, k, &owned) ==
@@ -1542,8 +1542,8 @@ static int      g_wrap_seen = 0;
 static int      g_wrap_bad  = 0;
 static uint32_t g_wrap_next = 0u;
 
-static int32_t
-d_tests_event_step_wrap(
+static
+int32_t d_tests_event_step_wrap(
     void* _payload,
     void* _state
 )
@@ -1577,22 +1577,22 @@ d_tests_event_step_wrap(
     return (int32_t)D_VERDICT_PASS;
 }
 
-// d_tests_event_reenter
+// dj_tests_event_reenter
 //   struct: a step that enqueues a follow-up and tries a nested process.
-struct d_tests_event_reenter
+struct dj_tests_event_reenter
 {
-    struct d_event_dispatcher* dispatcher;
-    d_event_key                then;
+    struct dj_event_dispatcher* dispatcher;
+    dj_event_key                then;
     size_t                     nested;
 };
 
-static int32_t
-d_tests_event_step_reenter(
+static
+int32_t d_tests_event_step_reenter(
     void* _payload,
     void* _state
 )
 {
-    struct d_tests_event_reenter* const reenter = _state;
+    struct dj_tests_event_reenter* const reenter = _state;
     int                                 value   = 7;
 
     (void)_payload;
@@ -1608,13 +1608,13 @@ d_tests_event_step_reenter(
     return (int32_t)D_VERDICT_PASS;
 }
 
-static int32_t
-d_tests_event_step_clear_queue(
+static
+int32_t d_tests_event_step_clear_queue(
     void* _payload,
     void* _state
 )
 {
-    struct d_event_dispatcher* const dispatcher = _state;
+    struct dj_event_dispatcher* const dispatcher = _state;
 
     (void)_payload;
     d_tests_event_log('c');
@@ -1626,13 +1626,13 @@ d_tests_event_step_clear_queue(
     return (int32_t)D_VERDICT_PASS;
 }
 
-static void
-d_tests_event_queue(void)
+static
+void d_tests_event_queue(void)
 {
-    struct d_event_entry         entries[8];
+    struct dj_event_entry         entries[8];
     uint32_t                     head[3];
     uint32_t                     tail[3];
-    struct d_event_slot          slots[4];
+    struct dj_event_slot          slots[4];
     union
     {
         unsigned char b[64];
@@ -1640,19 +1640,19 @@ d_tests_event_queue(void)
         void*         p;
         long long     ll;
     }                            arena;
-    struct d_event_dispatcher    d;
-    struct d_tests_event_num     p      = { 'p', 1, true };
-    struct d_tests_event_num     q      = { 'q', 100, false };
-    struct d_tests_event_tag     then;
-    struct d_tests_event_reenter reenter;
-    struct d_run_result          run;
-    struct d_event_payload       view;
-    const struct d_event_slot*   slot   = NULL;
-    const d_event_key            k      = d_event_key_of_name("on_value");
-    const d_event_key            kw     = d_event_key_of_name("on_wrap");
-    const d_event_key            kr     = d_event_key_of_name("on_reenter");
-    const d_event_key            kt     = d_event_key_of_name("on_then");
-    const d_event_key            kc     = d_event_key_of_name("on_clear");
+    struct dj_event_dispatcher    d;
+    struct dj_tests_event_num     p      = { 'p', 1, true };
+    struct dj_tests_event_num     q      = { 'q', 100, false };
+    struct dj_tests_event_tag     then;
+    struct dj_tests_event_reenter reenter;
+    struct dj_run_result          run;
+    struct dj_event_payload       view;
+    const struct dj_event_slot*   slot   = NULL;
+    const dj_event_key            k      = d_event_key_of_name("on_value");
+    const dj_event_key            kw     = d_event_key_of_name("on_wrap");
+    const dj_event_key            kr     = d_event_key_of_name("on_reenter");
+    const dj_event_key            kt     = d_event_key_of_name("on_then");
+    const dj_event_key            kc     = d_event_key_of_name("on_clear");
     int                          v      = 5;
     int                          w      = 42;
     unsigned char                big[100];
@@ -1672,7 +1672,7 @@ d_tests_event_queue(void)
         int                      x = start;
         int                      y = start;
         char                     fire_log[16];
-        struct d_dispatch_result fired;
+        struct dj_dispatch_result fired;
 
         d_tests_event_log_reset();
         fired = d_event_dispatcher_fire(&d, k, &x);
@@ -1702,7 +1702,7 @@ d_tests_event_queue(void)
 
     // an empty payload reaches handlers as NULL
     {
-        const struct d_event_payload empty = D_EVENT_PAYLOAD_EMPTY;
+        const struct dj_event_payload empty = D_EVENT_PAYLOAD_EMPTY;
 
         (void)d_event_dispatcher_queue(&d, k, empty);
         d_tests_event_log_reset();
@@ -1857,21 +1857,21 @@ d_tests_event_queue(void)
                          (d_event_dispatcher_handler_count_for(&d, k) ==
                           2u)                                             &&
                          (d_event_dispatcher_footprint(&d) ==
-                          sizeof(struct d_event_dispatcher)) );
+                          sizeof(struct dj_event_dispatcher)) );
 
 #if (D_INTERNAL_EVENT_DISPATCHER_MERGE == 1)
     // merge takes the other's registry, never its queue
     {
-        struct d_event_entry      oentries[4];
+        struct dj_event_entry      oentries[4];
         uint32_t                  ohead[1];
         uint32_t                  otail[1];
-        struct d_event_slot       oslots[2];
+        struct dj_event_slot       oslots[2];
         union
         {
             unsigned char b[32];
             long double   ld;
         }                         oarena;
-        struct d_event_dispatcher other;
+        struct dj_event_dispatcher other;
         size_t                    merged = 0u;
 
         (void)d_event_dispatcher_init_fixed(&other, oentries, 4u, ohead,
@@ -1924,12 +1924,12 @@ d_tests_event_queue(void)
       (D_INTERNAL_EVENT_QUEUE_ALLOC == 1) )
     // the allocating dispatcher owns its storage end to end
     {
-        struct d_event_dispatcher owning;
+        struct dj_event_dispatcher owning;
 
         D_TESTS_EVENT_CHECK(d_event_dispatcher_init(&owning, 0u, 0u, 0u,
                                                     0u) == D_EVENT_OK);
         D_TESTS_EVENT_CHECK(d_event_dispatcher_footprint(&owning) >
-                            sizeof(struct d_event_dispatcher));
+                            sizeof(struct dj_event_dispatcher));
         (void)d_event_dispatcher_bind(&owning, k, d_tests_event_numbered(&q),
                                       NULL, NULL);
         (void)d_event_dispatcher_queue(&owning, k,
@@ -1943,7 +1943,7 @@ d_tests_event_queue(void)
 #if ( (D_INTERNAL_EVENT_REGISTRY_STAGING == 1) &&                             \
       (D_INTERNAL_EVENT_REGISTRY_STAGING_ALLOC == 1) )
         {
-            struct d_event_word word;
+            struct dj_event_word word;
 
             D_TESTS_EVENT_CHECK( (d_event_dispatcher_compile(&owning, k,
                                                              &word) ==
@@ -1964,8 +1964,7 @@ d_tests_event_queue(void)
 #endif  // D_INTERNAL_EVENT_QUEUE
 
 
-int
-main(void)
+int main(void)
 {
     d_tests_event_prime();
     d_tests_event_monoid();

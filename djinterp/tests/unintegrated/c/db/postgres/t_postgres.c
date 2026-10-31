@@ -24,7 +24,7 @@
 * connect.
 *
 *   Build (from the repo root), at any language level from C99, against libpq
-* -- or let ci/check_db_postgres.sh, which runs it across compilers,
+* -- or let scripts/ci/check_db_postgres.sh, which runs it across compilers,
 * standards, libpq builds and servers:
 *     cc -std=c99 -Wall -Wextra -Werror -Iinc                                 \
 *        -I"$(pg_config --includedir)"                                        \
@@ -88,7 +88,7 @@
 #include "../../../../../inc/djinterp/c/db/postgres/postgres.h"  // under test
 #include "../../../../../inc/djinterp/env/db/postgres/env_postgres.h"  // libpq
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, INT64_MAX
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, INT64_MAX
 
 
 //==============================================================================
@@ -102,7 +102,7 @@ static int g_failures = 0;
 
 // g_options
 //   setting: where the server is, from the environment.
-static struct d_postgres_options g_options =
+static struct dj_postgres_options g_options =
 {
     "127.0.0.1", "postgres", NULL, "postgres", 5432u, NULL
 };
@@ -115,16 +115,16 @@ static char g_run[48] = "";
 
 #if defined(_WIN32)
 
-// d_tests_postgres_socket
+// dj_tests_postgres_socket
 //   type: a socket, as the platform's poll takes it.
-typedef SOCKET d_tests_postgres_socket;
+typedef SOCKET dj_tests_postgres_socket;
 
 /*
 d_tests_postgres_poll
   WSAPoll, Windows' poll.
 */
-static int
-d_tests_postgres_poll(
+static
+int d_tests_postgres_poll(
     struct pollfd* _fds,
     unsigned       _count,
     int            _timeout
@@ -135,16 +135,16 @@ d_tests_postgres_poll(
 
 #else
 
-// d_tests_postgres_socket
+// dj_tests_postgres_socket
 //   type: a socket, as the platform's poll takes it.
-typedef int d_tests_postgres_socket;
+typedef int dj_tests_postgres_socket;
 
 /*
 d_tests_postgres_poll
   poll(2).
 */
-static int
-d_tests_postgres_poll(
+static
+int d_tests_postgres_poll(
     struct pollfd* _fds,
     unsigned       _count,
     int            _timeout
@@ -159,8 +159,8 @@ d_tests_postgres_poll(
 d_tests_postgres_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_postgres_expect(
+static
+void d_tests_postgres_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -189,8 +189,8 @@ d_tests_postgres_expect_result
   Counts one check of a result, and prints the server's words when the result
 is not the one expected.
 */
-static void
-d_tests_postgres_expect_result(
+static
+void d_tests_postgres_expect_result(
     struct pg_conn* _db,
     int             _result,
     int             _expected,
@@ -240,17 +240,17 @@ d_tests_postgres_expect_result(
 // FIXTURES
 //==============================================================================
 
-// d_tests_postgres_condition
+// dj_tests_postgres_condition
 //   struct: a constant postgres_common.h names, and the SQLSTATE it packs.
-struct d_tests_postgres_condition
+struct dj_tests_postgres_condition
 {
     int         code;      // the constant
     const char* sqlstate;  // its five characters
 };
 
 // d_tests_postgres_conditions
-//   table: every condition of enum d_postgres_sqlstate, spelled out.
-static const struct d_tests_postgres_condition
+//   table: every condition of enum dj_postgres_sqlstate, spelled out.
+static const struct dj_tests_postgres_condition
 d_tests_postgres_conditions[] =
 {
     { D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION,           "08000" },
@@ -288,12 +288,12 @@ d_tests_postgres_conditions[] =
     { D_POSTGRES_SQLSTATE_INTERNAL_ERROR,                 "XX000" }
 };
 
-// d_tests_postgres_feature_probe
+// dj_tests_postgres_feature_probe
 //   struct: a feature, and SQL that runs only where the server has it, run
 // inside a transaction that is rolled back.
-struct d_tests_postgres_feature_probe
+struct dj_tests_postgres_feature_probe
 {
-    enum d_postgres_feature feature;  // the feature
+    enum dj_postgres_feature feature;  // the feature
     const char*             sql;      // SQL that needs it
 };
 
@@ -301,7 +301,7 @@ struct d_tests_postgres_feature_probe
 //   table: SQL for every feature that can be tried inside a transaction;
 // REINDEX CONCURRENTLY and DROP DATABASE ... WITH (FORCE), which cannot, are
 // tried in d_tests_postgres_feature_statements.
-static const struct d_tests_postgres_feature_probe
+static const struct dj_tests_postgres_feature_probe
 d_tests_postgres_probes[] =
 {
     { D_POSTGRES_FEATURE_PROCEDURES,
@@ -345,9 +345,9 @@ d_tests_postgres_probes[] =
 };
 
 // d_tests_postgres_every_type
-//   table: one column of every d_db_type NONE excepted, which the server
+//   table: one column of every dj_db_type NONE excepted, which the server
 // refuses, the first the key.
-static const struct d_db_column
+static const struct dj_db_column
 d_tests_postgres_every_type[] =
 {
     { "id",       D_DB_TYPE_BIG_INTEGER,
@@ -398,7 +398,7 @@ d_tests_postgres_every_type_sql[] =
 
 // d_tests_postgres_composite
 //   table: a two-column key, the second column listed first.
-static const struct d_db_column
+static const struct dj_db_column
 d_tests_postgres_composite[] =
 {
     { "label",  D_DB_TYPE_STRING,  0u,                      NULL, 0u, 0u,
@@ -412,7 +412,7 @@ d_tests_postgres_composite[] =
 // d_tests_postgres_ordered
 //   table: a composite key whose places order it b, a: otherwise than the
 // table.
-static const struct d_db_column
+static const struct dj_db_column
 d_tests_postgres_ordered[] =
 {
     { "a", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 2u },
@@ -425,11 +425,11 @@ d_tests_postgres_ordered[] =
 // with its length: NONE without type_sql, a type outside the enumeration, an
 // unknown flag, an empty name, a numeric scale without a size,
 // AUTO_INCREMENT off the key, and on a composite key.
-static const struct d_db_column
+static const struct dj_db_column
 d_tests_postgres_refused[][2] =
 {
     { { "a", D_DB_TYPE_NONE,     0u,    NULL, 0u, 0u, NULL, 0u } },
-    { { "a", (enum d_db_type)99, 0u,    NULL, 0u, 0u, NULL, 0u } },
+    { { "a", (enum dj_db_type)99, 0u,    NULL, 0u, 0u, NULL, 0u } },
     { { "a", D_DB_TYPE_INTEGER,  0x80u, NULL, 0u, 0u, NULL, 0u } },
     { { "",  D_DB_TYPE_INTEGER,  0u,    NULL, 0u, 0u, NULL, 0u } },
     { { "a", D_DB_TYPE_DECIMAL,  0u,    NULL, 0u, 2u, NULL, 0u } },
@@ -483,8 +483,8 @@ d_tests_postgres_default_reads[][3] =
 d_tests_postgres_setting
   An environment variable, or a default when it is unset or empty.
 */
-static const char*
-d_tests_postgres_setting(
+static
+const char* d_tests_postgres_setting(
     const char* _name,
     const char* _default
 )
@@ -498,10 +498,8 @@ d_tests_postgres_setting(
 d_tests_postgres_configure
   g_options from the environment.
 */
-static void
-d_tests_postgres_configure(
-    void
-)
+static
+void d_tests_postgres_configure(void)
 {
     g_options.host     = d_tests_postgres_setting(
                              "DJINTERP_TEST_POSTGRES_HOST", "127.0.0.1");
@@ -523,14 +521,14 @@ d_tests_postgres_configure(
 d_tests_postgres_connect
   A connection as the run's settings say, to the run's database or another.
 */
-static struct pg_conn*
-d_tests_postgres_connect(
+static
+struct pg_conn* d_tests_postgres_connect(
     const char* _database
 )
 {
     struct pg_conn*           db      = NULL;
     char*                     reason  = NULL;
-    struct d_postgres_options options = g_options;
+    struct dj_postgres_options options = g_options;
 
     if (_database)
     {
@@ -557,8 +555,8 @@ d_tests_postgres_schema_name
   The schema, or database, a test works in: the run's prefix and the test's
 word.
 */
-static void
-d_tests_postgres_schema_name(
+static
+void d_tests_postgres_schema_name(
     char*       _out,
     size_t      _size,
     const char* _word
@@ -574,8 +572,8 @@ d_tests_postgres_begin
   A fresh schema for one test, and a connection with it alone on the search
 path, so that it is the current schema.
 */
-static struct pg_conn*
-d_tests_postgres_begin(
+static
+struct pg_conn* d_tests_postgres_begin(
     const char* _word,
     char*       _schema,
     size_t      _size
@@ -617,8 +615,8 @@ d_tests_postgres_begin(
 d_tests_postgres_end
   Closes the test's connection and drops its schema.
 */
-static void
-d_tests_postgres_end(
+static
+void d_tests_postgres_end(
     struct pg_conn* _db,
     const char*     _schema
 )
@@ -646,8 +644,8 @@ d_tests_postgres_end(
 d_tests_postgres_int
   A single integer from SQL, or INT64_MIN when there is none.
 */
-static int64_t
-d_tests_postgres_int(
+static
+int64_t d_tests_postgres_int(
     struct pg_conn* _db,
     const char*     _sql
 )
@@ -667,8 +665,8 @@ d_tests_postgres_int(
 d_tests_postgres_text_is
   Whether a query's single value is the text expected, NULL for NULL.
 */
-static bool
-d_tests_postgres_text_is(
+static
+bool d_tests_postgres_text_is(
     struct pg_conn* _db,
     const char*     _sql,
     const char*     _expected
@@ -700,10 +698,10 @@ d_tests_postgres_text_is(
 d_tests_postgres_has_name
   Whether a name list holds a name, exactly.
 */
-static bool
-d_tests_postgres_has_name(
-    const struct d_db_name_list* _names,
-    const char*                  _name
+static
+bool d_tests_postgres_has_name(
+    const struct dj_db_name_list* _names,
+    const char*                   _name
 )
 {
     for (size_t i = 0u; i < _names->count; ++i)
@@ -721,10 +719,10 @@ d_tests_postgres_has_name(
 d_tests_postgres_count_name
   How many times a name list holds a name.
 */
-static size_t
-d_tests_postgres_count_name(
-    const struct d_db_name_list* _names,
-    const char*                  _name
+static
+size_t d_tests_postgres_count_name(
+    const struct dj_db_name_list* _names,
+    const char*                   _name
 )
 {
     size_t count = 0u;
@@ -742,9 +740,9 @@ d_tests_postgres_sorted
   Whether a name list is in byte order, as the layer promises, repeats
 allowed, and ends with its NULL.
 */
-static bool
-d_tests_postgres_sorted(
-    const struct d_db_name_list* _names
+static
+bool d_tests_postgres_sorted(
+    const struct dj_db_name_list* _names
 )
 {
     for (size_t i = 1u; i < _names->count; ++i)
@@ -762,10 +760,10 @@ d_tests_postgres_sorted(
 d_tests_postgres_find_column
   A column of a list by name, or NULL.
 */
-static const struct d_db_column_info*
-d_tests_postgres_find_column(
-    const struct d_db_column_list* _columns,
-    const char*                    _name
+static
+const struct dj_db_column_info* d_tests_postgres_find_column(
+    const struct dj_db_column_list* _columns,
+    const char*                     _name
 )
 {
     for (size_t i = 0u; i < _columns->count; ++i)
@@ -784,12 +782,12 @@ d_tests_postgres_same_page
   Whether a page of rows read a few at a time holds the columns of the rows
 read all at once, and `_count` of their rows from `_first`, value for value.
 */
-static bool
-d_tests_postgres_same_page(
-    const struct d_db_rows* _page,
-    const struct d_db_rows* _all,
-    size_t                  _first,
-    size_t                  _count
+static
+bool d_tests_postgres_same_page(
+    const struct dj_db_rows* _page,
+    const struct dj_db_rows* _all,
+    size_t                   _first,
+    size_t                   _count
 )
 {
     // the same columns, and as many rows as expected
@@ -815,8 +813,8 @@ d_tests_postgres_same_page(
     // the same values, row by row
     for (size_t i = 0u; i < (_count * _all->column_count); ++i)
     {
-        const struct d_db_value* const got  = &_page->values[i];
-        const struct d_db_value* const want =
+        const struct dj_db_value* const got  = &_page->values[i];
+        const struct dj_db_value* const want =
             &_all->values[(_first * _all->column_count) + i];
         bool                           same = ( (got->type == want->type) &&
                                                 (got->size == want->size) );
@@ -865,8 +863,8 @@ d_tests_postgres_same_page(
 d_tests_postgres_at_least
   Whether the server is that major version or later.
 */
-static bool
-d_tests_postgres_at_least(
+static
+bool d_tests_postgres_at_least(
     const struct pg_conn* _db,
     int                   _major
 )
@@ -879,8 +877,8 @@ d_tests_postgres_works
   Whether SQL runs inside a transaction that is then rolled back, so that a
 probe leaves nothing behind, and its failure touches nothing else.
 */
-static bool
-d_tests_postgres_works(
+static
+bool d_tests_postgres_works(
     struct pg_conn* _db,
     const char*     _sql
 )
@@ -901,8 +899,8 @@ d_tests_postgres_works(
 d_tests_postgres_function
   The trigger function the trigger tests attach, in the current schema.
 */
-static int
-d_tests_postgres_function(
+static
+int d_tests_postgres_function(
     struct pg_conn* _db
 )
 {
@@ -923,13 +921,11 @@ d_tests_postgres_db_common
     each with a message, and any other value without one
   - the release functions accept NULL and empty lists
 */
-static void
-d_tests_postgres_db_common(
-    void
-)
+static
+void d_tests_postgres_db_common(void)
 {
-    struct d_db_name_list   names   = { 0u, NULL };
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_name_list   names   = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
 
     printf("db_common\n");
 
@@ -974,10 +970,8 @@ d_tests_postgres_sqlstates
   - a negative result, one past 30 bits, or one holding a character no
     SQLSTATE holds, spells "" and false; so does a NULL buffer
 */
-static void
-d_tests_postgres_sqlstates(
-    void
-)
+static
+void d_tests_postgres_sqlstates(void)
 {
     const size_t count      = sizeof(d_tests_postgres_conditions) /
                               sizeof(d_tests_postgres_conditions[0]);
@@ -987,7 +981,7 @@ d_tests_postgres_sqlstates(
 
     for (size_t i = 0u; i < count; ++i)
     {
-        const struct d_tests_postgres_condition* const condition =
+        const struct dj_tests_postgres_condition* const condition =
             &d_tests_postgres_conditions[i];
 
         D_TESTS_POSTGRES_CHECK(
@@ -1035,10 +1029,8 @@ d_tests_postgres_messages
     and a code of no known class as such
   - a value no result can be is "unknown result"
 */
-static void
-d_tests_postgres_messages(
-    void
-)
+static
+void d_tests_postgres_messages(void)
 {
     printf("postgres_common: messages\n");
 
@@ -1105,10 +1097,8 @@ d_tests_postgres_client
     release: pipelines (14), chunked rows and closing a statement (17); a
     value outside the enumeration is no feature
 */
-static void
-d_tests_postgres_client(
-    void
-)
+static
+void d_tests_postgres_client(void)
 {
     const int library = PQlibVersion();
 
@@ -1151,9 +1141,9 @@ d_tests_postgres_client(
                                D_POSTGRES_CLIENT_ASYNC_CANCEL));
 #endif
     D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
-                               (enum d_postgres_client_feature)99));
+                               (enum dj_postgres_client_feature)99));
     D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
-                               (enum d_postgres_client_feature)-1));
+                               (enum dj_postgres_client_feature)-1));
 
     return;
 }
@@ -1167,10 +1157,8 @@ d_tests_postgres_versions
   - server_at_least, below, at and above the version, by both parts
   - NULL answers NULL, 0 and false
 */
-static void
-d_tests_postgres_versions(
-    void
-)
+static
+void d_tests_postgres_versions(void)
 {
     struct pg_conn* const db = d_tests_postgres_connect(NULL);
 
@@ -1222,10 +1210,8 @@ d_tests_postgres_features
     when the server runs SQL that needs it
   - a value outside the enumeration, and a NULL connection, support nothing
 */
-static void
-d_tests_postgres_features(
-    void
-)
+static
+void d_tests_postgres_features(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("features",
@@ -1246,7 +1232,7 @@ d_tests_postgres_features(
 
     for (size_t i = 0u; i < count; ++i)
     {
-        const struct d_tests_postgres_feature_probe* const probe =
+        const struct dj_tests_postgres_feature_probe* const probe =
             &d_tests_postgres_probes[i];
         const bool works    = d_tests_postgres_works(db, probe->sql);
         const bool supports = d_postgres_supports(db, probe->feature);
@@ -1263,7 +1249,7 @@ d_tests_postgres_features(
     }
 
     D_TESTS_POSTGRES_CHECK(!d_postgres_supports(db,
-                                                (enum d_postgres_feature)99));
+                                                (enum dj_postgres_feature)99));
     D_TESTS_POSTGRES_CHECK(!d_postgres_supports(NULL,
                                                 D_POSTGRES_FEATURE_MERGE));
 
@@ -1280,10 +1266,8 @@ d_tests_postgres_feature_statements
   - DROP DATABASE ... WITH (FORCE) parses exactly where DROP_DATABASE_FORCE
     says, run on a database that is not there
 */
-static void
-d_tests_postgres_feature_statements(
-    void
-)
+static
+void d_tests_postgres_feature_statements(void)
 {
     char            schema[96] = "";
     char            absent[96] = "";
@@ -1326,10 +1310,8 @@ d_tests_postgres_reported_parameters
   - a setting the server reports follows a SET, with no round trip
   - an unreported name, and NULL arguments, answer NULL
 */
-static void
-d_tests_postgres_reported_parameters(
-    void
-)
+static
+void d_tests_postgres_reported_parameters(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
@@ -1377,10 +1359,8 @@ d_tests_postgres_errors
   - a result of the layer's own leaves the message as it was
   - NULL answers ""
 */
-static void
-d_tests_postgres_errors(
-    void
-)
+static
+void d_tests_postgres_errors(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("errors",
@@ -1428,17 +1408,15 @@ d_tests_postgres_own_results
   - libpq's answer since forgets the layer's own
   - negative results, memory and NULL are always the layer's own
 */
-static void
-d_tests_postgres_own_results(
-    void
-)
+static
+void d_tests_postgres_own_results(void)
 {
     char                         schema[96] = "";
     struct pg_conn*              db         = d_tests_postgres_begin(
                                                   "own_results",
                                                   schema,
                                                   sizeof(schema));
-    struct d_postgres_statement* statement  = NULL;
+    struct dj_postgres_statement* statement  = NULL;
 
     printf("postgres_common: own results\n");
 
@@ -1539,8 +1517,8 @@ d_tests_postgres_own_results(
 d_tests_postgres_conninfo_is
   Whether libpq holds a value for one of a connection's keywords.
 */
-static bool
-d_tests_postgres_conninfo_is(
+static
+bool d_tests_postgres_conninfo_is(
     struct pg_conn* _db,
     const char*     _keyword,
     const char*     _expected
@@ -1576,10 +1554,8 @@ d_tests_postgres_float_digits
     set on the connection
   - the caller's own value where its options name one
 */
-static void
-d_tests_postgres_float_digits(
-    void
-)
+static
+void d_tests_postgres_float_digits(void)
 {
     struct pg_conn* db         = d_tests_postgres_connect(NULL);
     char            port[16]   = "";
@@ -1645,10 +1621,8 @@ d_tests_postgres_connecting
   - a NULL handle to fill is D_DB_INVALID_ARGUMENT
   - close takes NULL and a connection alike, and returns 0
 */
-static void
-d_tests_postgres_connecting(
-    void
-)
+static
+void d_tests_postgres_connecting(void)
 {
     struct pg_conn* db     = NULL;
     char*           reason = NULL;
@@ -1686,14 +1660,12 @@ d_tests_postgres_connect_failures
     and the reason libpq's words, without their final newline
   - a NULL reason is accepted
 */
-static void
-d_tests_postgres_connect_failures(
-    void
-)
+static
+void d_tests_postgres_connect_failures(void)
 {
     struct pg_conn*           db      = NULL;
     char*                     reason  = NULL;
-    struct d_postgres_options options = g_options;
+    struct dj_postgres_options options = g_options;
 
     printf("postgres_connection: failures\n");
 
@@ -1734,10 +1706,8 @@ d_tests_postgres_environment_wins
 next to the layer's startup option, and PGCLIENTENCODING wins over the
 layer's encoding. Both are set for one connection, and unset after it.
 */
-static void
-d_tests_postgres_environment_wins(
-    void
-)
+static
+void d_tests_postgres_environment_wins(void)
 {
     (void)setenv("PGOPTIONS", "-c work_mem=7MB", 1);
     (void)setenv("PGCLIENTENCODING", "LATIN1", 1);
@@ -1766,10 +1736,8 @@ d_tests_postgres_environment_wins
   Nothing on Windows, where libpq's C runtime may keep an environment of its
 own, which the harness's cannot reach.
 */
-static void
-d_tests_postgres_environment_wins(
-    void
-)
+static
+void d_tests_postgres_environment_wins(void)
 {
     return;
 }
@@ -1786,10 +1754,8 @@ d_tests_postgres_connect_defaults
     PGCLIENTENCODING wins over the layer's encoding (POSIX only, where the
     harness can set the environment)
 */
-static void
-d_tests_postgres_connect_defaults(
-    void
-)
+static
+void d_tests_postgres_connect_defaults(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
@@ -1822,8 +1788,8 @@ d_tests_postgres_connect_defaults(
 d_tests_postgres_conninfo
   A keyword connection string for the run's settings, with more after it.
 */
-static void
-d_tests_postgres_conninfo(
+static
+void d_tests_postgres_conninfo(
     char*       _out,
     size_t      _size,
     const char* _more
@@ -1853,10 +1819,8 @@ d_tests_postgres_connect_strings
   - a string libpq cannot read is D_DB_INVALID_ARGUMENT, with its reason
   - a NULL handle to fill is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_connect_strings(
-    void
-)
+static
+void d_tests_postgres_connect_strings(void)
 {
     struct pg_conn* db        = NULL;
     char*           reason    = NULL;
@@ -1929,10 +1893,8 @@ d_tests_postgres_connect_with
   - a string libpq cannot read is D_DB_INVALID_ARGUMENT, with its reason,
     and with no keywords the arrays may be NULL
 */
-static void
-d_tests_postgres_connect_with(
-    void
-)
+static
+void d_tests_postgres_connect_with(void)
 {
     struct pg_conn* db           = NULL;
     char*           reason       = NULL;
@@ -2144,10 +2106,8 @@ d_tests_postgres_liveness
   - the backend's process id is pg_backend_pid()'s
   - NULL is D_DB_INVALID_ARGUMENT, and process id 0
 */
-static void
-d_tests_postgres_liveness(
-    void
-)
+static
+void d_tests_postgres_liveness(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
@@ -2187,8 +2147,8 @@ d_tests_postgres_lose
   Ends a connection's backend from another session, and waits until the
 connection knows it.
 */
-static void
-d_tests_postgres_lose(
+static
+void d_tests_postgres_lose(
     struct pg_conn* _db
 )
 {
@@ -2221,10 +2181,8 @@ d_tests_postgres_lost_connections
     saying why
   - the server's version and the backend's process id read as gone
 */
-static void
-d_tests_postgres_lost_connections(
-    void
-)
+static
+void d_tests_postgres_lost_connections(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
@@ -2271,13 +2229,13 @@ d_tests_postgres_lost_connections(
 /*
 d_tests_postgres_wait
   Waits as a pending call says, as a program's loop would -- poll(2), or
-WSAPoll on Windows -- and answers what came, as d_db_wait: D_DB_WAIT_TIMEOUT
+WSAPoll on Windows -- and answers what came, as dj_db_wait: D_DB_WAIT_TIMEOUT
 when the deadline passed first. An error or a hang-up on the socket reads as
 ready for whatever was asked, so that the call finds out for itself.
 */
-static unsigned
-d_tests_postgres_wait(
-    const struct d_db_pending* _pending
+static
+unsigned d_tests_postgres_wait(
+    const struct dj_db_pending* _pending
 )
 {
     const unsigned ready   = (unsigned)D_DB_WAIT_READ |
@@ -2290,7 +2248,7 @@ d_tests_postgres_wait(
     struct pollfd  fd;
 
     memset(&fd, 0, sizeof(fd));
-    fd.fd     = (d_tests_postgres_socket)_pending->socket;
+    fd.fd     = (dj_tests_postgres_socket)_pending->socket;
     fd.events = (short)( ( ((_pending->events & D_DB_WAIT_READ) != 0u)
                                ? POLLIN
                                : 0 ) |
@@ -2328,13 +2286,13 @@ d_tests_postgres_drive_connect
   Continues a connection a start began until it is done, counting the waits;
 the answer is the last continuation's.
 */
-static int
-d_tests_postgres_drive_connect(
-    int                  _started,
-    struct pg_conn**     _db,
-    struct d_db_pending* _pending,
-    char**               _message,
-    int*                 _waits
+static
+int d_tests_postgres_drive_connect(
+    int                   _started,
+    struct pg_conn**      _db,
+    struct dj_db_pending* _pending,
+    char**                _message,
+    int*                  _waits
 )
 {
     int result = _started;
@@ -2362,9 +2320,9 @@ d_tests_postgres_drive_connect(
 d_tests_postgres_settled
   Whether a pending call was left as a finished one leaves it.
 */
-static bool
-d_tests_postgres_settled(
-    const struct d_db_pending* _pending
+static
+bool d_tests_postgres_settled(
+    const struct dj_db_pending* _pending
 )
 {
     return ( (_pending->socket == D_DB_SOCKET_NONE) &&
@@ -2379,8 +2337,8 @@ d_tests_postgres_digits_from_startup
   Whether extra_float_digits is 3 and came in the startup packet, which the
 server records as the client's -- not a session's SET.
 */
-static bool
-d_tests_postgres_digits_from_startup(
+static
+bool d_tests_postgres_digits_from_startup(
     struct pg_conn* _db
 )
 {
@@ -2410,15 +2368,13 @@ d_tests_postgres_connect_nonblocking
   - a connection being made is abandoned with d_postgres_close
   - NULL handles, pending calls and keywords are D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_connect_nonblocking(
-    void
-)
+static
+void d_tests_postgres_connect_nonblocking(void)
 {
     struct pg_conn*           db         = NULL;
     char*                     reason     = NULL;
-    struct d_db_pending       pending;
-    struct d_postgres_options options    = g_options;
+    struct dj_db_pending       pending;
+    struct dj_postgres_options options    = g_options;
     char                      port[16]   = "";
     char                      text[512]  = "";
     int                       waits      = 0;
@@ -2667,16 +2623,14 @@ libpq sends its startup packet, and nothing comes back.
   - a connect_timeout that is not an integer is 08001, naming it
   - 0 is no deadline: no D_DB_WAIT_TIMEOUT asked for
 */
-static void
-d_tests_postgres_connect_timeouts(
-    void
-)
+static
+void d_tests_postgres_connect_timeouts(void)
 {
     struct sockaddr_in  address;
     socklen_t           length     = (socklen_t)sizeof(address);
     struct pg_conn*     db         = NULL;
     char*               reason     = NULL;
-    struct d_db_pending pending;
+    struct dj_db_pending pending;
     char                port[16]   = "";
     const char*         keywords[] = { "host", "port", "connect_timeout",
                                        "sslmode" };
@@ -2775,11 +2729,11 @@ d_tests_postgres_connect_timeouts(
 d_tests_postgres_drive_reconnect
   Continues a reset until it is done; the answer is the last continuation's.
 */
-static int
-d_tests_postgres_drive_reconnect(
-    int                  _started,
-    struct pg_conn*      _db,
-    struct d_db_pending* _pending
+static
+int d_tests_postgres_drive_reconnect(
+    int                   _started,
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending
 )
 {
     int result = _started;
@@ -2807,13 +2761,11 @@ d_tests_postgres_reconnects
   - a lost connection is made again, by either form
   - NULL is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_reconnects(
-    void
-)
+static
+void d_tests_postgres_reconnects(void)
 {
     struct pg_conn*     db         = NULL;
-    struct d_db_pending pending;
+    struct dj_db_pending pending;
     char                port[16]   = "";
     const char*         keywords[] = { "host", "port", "user", "password",
                                        "dbname", "options" };
@@ -2906,8 +2858,8 @@ d_tests_postgres_sleeping
   Sends a long sleep on a connection, and waits, from another, until the
 server is running it, so that a cancel request finds it running.
 */
-static bool
-d_tests_postgres_sleeping(
+static
+bool d_tests_postgres_sleeping(
     struct pg_conn* _db,
     struct pg_conn* _watcher
 )
@@ -2944,12 +2896,12 @@ d_tests_postgres_canceled
   Reads a connection's results after a cancel request: 57014, then nothing,
 the connection ready again.
 */
-static void
-d_tests_postgres_canceled(
+static
+void d_tests_postgres_canceled(
     struct pg_conn* _db
 )
 {
-    struct d_db_rows rows;
+    struct dj_db_rows rows;
 
     D_TESTS_POSTGRES_RESULT(_db,
                             d_postgres_next_result(_db, &rows, NULL),
@@ -2976,16 +2928,14 @@ d_tests_postgres_cancels
     nothing
   - a lost connection is 08006; NULL arguments are D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_cancels(
-    void
-)
+static
+void d_tests_postgres_cancels(void)
 {
     struct pg_conn*        db      = d_tests_postgres_connect(NULL);
     struct pg_conn*        watcher = d_tests_postgres_connect(NULL);
     struct pg_cancel_conn* cancel  = NULL;
     char*                  reason  = NULL;
-    struct d_db_pending    pending;
+    struct dj_db_pending    pending;
 
     printf("postgres_connection: cancelling\n");
 
@@ -3116,10 +3066,8 @@ d_tests_postgres_statements
   - a statement the server refuses is its SQLSTATE
   - a format the layer cannot read, and a NaN, are D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_statements(
-    void
-)
+static
+void d_tests_postgres_statements(void)
 {
     char                  schema[96] = "";
     struct pg_conn*       db         = d_tests_postgres_begin("statements",
@@ -3182,10 +3130,8 @@ d_tests_postgres_scripts
     which ran as one transaction
   - a script's own COMMIT keeps what it committed, whatever follows
 */
-static void
-d_tests_postgres_scripts(
-    void
-)
+static
+void d_tests_postgres_scripts(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("scripts",
@@ -3237,10 +3183,8 @@ d_tests_postgres_copies
     inside a script, and the connection takes the next statement at once,
     outside any transaction
 */
-static void
-d_tests_postgres_copies(
-    void
-)
+static
+void d_tests_postgres_copies(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("copies",
@@ -3289,8 +3233,8 @@ d_tests_postgres_changes_refused
   A failure writes no count; a NULL connection, count or SQL is
 D_DB_INVALID_ARGUMENT.
 */
-static void
-d_tests_postgres_changes_refused(
+static
+void d_tests_postgres_changes_refused(
     struct pg_conn* _db
 )
 {
@@ -3323,10 +3267,8 @@ d_tests_postgres_changes
   - a failure writes nothing
   - a NULL connection, count or SQL is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_changes(
-    void
-)
+static
+void d_tests_postgres_changes(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("changes",
@@ -3383,10 +3325,8 @@ d_tests_postgres_integers
   - no row is D_DB_NOT_FOUND, a word or a number past int64_t
     D_DB_INVALID_ARGUMENT, each writing nothing
 */
-static void
-d_tests_postgres_integers(
-    void
-)
+static
+void d_tests_postgres_integers(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
     int64_t         v  = 0;
@@ -3448,10 +3388,8 @@ d_tests_postgres_doubles
   - %g writes a double that reads back the same
   - both directions keep `.` for the point under a decimal-comma locale
 */
-static void
-d_tests_postgres_doubles(
-    void
-)
+static
+void d_tests_postgres_doubles(void)
 {
     struct pg_conn*   db       = d_tests_postgres_connect(NULL);
     double            v        = 0.0;
@@ -3514,10 +3452,8 @@ d_tests_postgres_text
     server through %Q and comes back the same
   - no row is D_DB_NOT_FOUND, writing nothing
 */
-static void
-d_tests_postgres_text(
-    void
-)
+static
+void d_tests_postgres_text(void)
 {
     struct pg_conn*   db           = d_tests_postgres_connect(NULL);
     char*             text         = NULL;
@@ -3564,10 +3500,8 @@ d_tests_postgres_bools
   - true and false as the server writes them, NULL as false
   - a value that is not a boolean is D_DB_INVALID_ARGUMENT, writing nothing
 */
-static void
-d_tests_postgres_bools(
-    void
-)
+static
+void d_tests_postgres_bools(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
     bool            b  = false;
@@ -3620,17 +3554,15 @@ d_tests_postgres_rows_values
     failure leaves the rows alone
   - values read the same under a locale whose point is a comma
 */
-static void
-d_tests_postgres_rows_values(
-    void
-)
+static
+void d_tests_postgres_rows_values(void)
 {
     char             schema[96] = "";
     struct pg_conn*  db         = d_tests_postgres_begin("rows",
                                                          schema,
                                                          sizeof(schema));
-    struct d_db_rows rows       = { 0u, 0u, NULL, NULL };
-    struct d_db_rows marker     = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows rows       = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows marker     = { 7u, 7u, NULL, NULL };
 
     printf("postgres_query: rows\n");
 
@@ -3667,8 +3599,8 @@ d_tests_postgres_rows_values(
     if ( (rows.column_count == 8u) &&
          (rows.row_count == 2u) )
     {
-        const struct d_db_value* const one = &rows.values[0];
-        const struct d_db_value* const two = &rows.values[8];
+        const struct dj_db_value* const one = &rows.values[0];
+        const struct dj_db_value* const two = &rows.values[8];
 
         D_TESTS_POSTGRES_CHECK( (one[1].type == D_DB_VALUE_INTEGER) &&
                                 (one[1].as.integer == 1)            &&
@@ -3834,15 +3766,13 @@ d_tests_postgres_rows_types
     writes it
   - a type it does not tabulate is NONE, named ""; void is named
 */
-static void
-d_tests_postgres_rows_types(
-    void
-)
+static
+void d_tests_postgres_rows_types(void)
 {
     static const struct
     {
         const char*    declared;  // the type, as a cast names it
-        enum d_db_type type;      // what it reads as
+        enum dj_db_type type;      // what it reads as
         const char*    name;      // and its name
     } expected[] =
     {
@@ -3884,7 +3814,7 @@ d_tests_postgres_rows_types(
     };
     const size_t     count = sizeof(expected) / sizeof(expected[0]);
     struct pg_conn*  db    = d_tests_postgres_connect(NULL);
-    struct d_db_rows rows  = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows  = { 0u, 0u, NULL, NULL };
 
     printf("postgres_query: column types\n");
 
@@ -3955,13 +3885,11 @@ d_tests_postgres_rows_params
   - NULL arguments, NULL values with a count, and a count past 65535 are
     D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_rows_params(
-    void
-)
+static
+void d_tests_postgres_rows_params(void)
 {
     struct pg_conn*    db       = d_tests_postgres_connect(NULL);
-    struct d_db_rows   rows     = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows   rows     = { 0u, 0u, NULL, NULL };
     const char* const  values[] = { "41", "it's; DROP TABLE x", NULL,
                                     "\\x0102" };
     const char* const  word[]   = { "x" };
@@ -4068,10 +3996,8 @@ d_tests_postgres_quoting_names
   - a quoted name with every awkward character names a table the server
     keeps under exactly that name
 */
-static void
-d_tests_postgres_quoting_names(
-    void
-)
+static
+void d_tests_postgres_quoting_names(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("qnames",
@@ -4113,8 +4039,8 @@ d_tests_postgres_quoted_backslash
   A quoted backslash reads back as one, with standard_conforming_strings off
 and then on; from 19 the server refuses off, and only on is tried.
 */
-static void
-d_tests_postgres_quoted_backslash(
+static
+void d_tests_postgres_quoted_backslash(
     struct pg_conn* _db
 )
 {
@@ -4157,10 +4083,8 @@ d_tests_postgres_quoting_values
     encoding, NULL from libpq's releases of February 2025 on, and before
     them a value the server refuses, 22021
 */
-static void
-d_tests_postgres_quoting_values(
-    void
-)
+static
+void d_tests_postgres_quoting_values(void)
 {
     struct pg_conn* db      = d_tests_postgres_connect(NULL);
     char*           quoted  = NULL;
@@ -4209,17 +4133,15 @@ d_tests_postgres_query_arguments
   - a NULL connection, value, count, rows or SQL is D_DB_INVALID_ARGUMENT,
     for every function and form
 */
-static void
-d_tests_postgres_query_arguments(
-    void
-)
+static
+void d_tests_postgres_query_arguments(void)
 {
     struct pg_conn*  db   = d_tests_postgres_connect(NULL);
     int64_t          i    = 0;
     double           d    = 0.0;
     char*            text = NULL;
     bool             b    = false;
-    struct d_db_rows rows = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows = { 0u, 0u, NULL, NULL };
 
     printf("postgres_query: arguments\n");
 
@@ -4298,17 +4220,15 @@ d_tests_postgres_preparing
     in: a statement finalized in a failed transaction, whose record's
     address the next prepare reuses
 */
-static void
-d_tests_postgres_preparing(
-    void
-)
+static
+void d_tests_postgres_preparing(void)
 {
     char                         schema[96] = "";
     struct pg_conn*              db         = d_tests_postgres_begin("prepare",
                                                                      schema,
                                                                      sizeof(
                                                                        schema));
-    struct d_postgres_statement* statement  = NULL;
+    struct dj_postgres_statement* statement  = NULL;
     char*                        name       = NULL;
 
     printf("postgres_statement: preparing\n");
@@ -4354,7 +4274,7 @@ d_tests_postgres_preparing(
     D_TESTS_POSTGRES_OK(db, d_postgres_finalize(statement));
 
     // refusals
-    statement = (struct d_postgres_statement*)&g_options;
+    statement = (struct dj_postgres_statement*)&g_options;
     D_TESTS_POSTGRES_RESULT(db,
                             d_postgres_prepare(db, &statement, "SELEC bad"),
                             D_POSTGRES_SQLSTATE_SYNTAX_ERROR);
@@ -4449,18 +4369,16 @@ d_tests_postgres_binding
     own; clearing makes every parameter NULL again
   - the server infers each parameter's type from the statement
 */
-static void
-d_tests_postgres_binding(
-    void
-)
+static
+void d_tests_postgres_binding(void)
 {
     char                         schema[96] = "";
     struct pg_conn*              db         = d_tests_postgres_begin("binding",
                                                                      schema,
                                                                      sizeof(
                                                                        schema));
-    struct d_postgres_statement* statement  = NULL;
-    struct d_db_rows             rows       = { 0u, 0u, NULL, NULL };
+    struct dj_postgres_statement* statement  = NULL;
+    struct dj_db_rows             rows       = { 0u, 0u, NULL, NULL };
     char                         text[]     = "it's";
     unsigned char                bytes[]    = { 0x00, 0x01, 0x00 };
     int64_t                      changes    = 0;
@@ -4533,7 +4451,7 @@ d_tests_postgres_binding(
     if ( (rows.column_count == 9u) &&
          (rows.row_count == 5u) )
     {
-        const struct d_db_value* const v = rows.values;
+        const struct dj_db_value* const v = rows.values;
 
         D_TESTS_POSTGRES_CHECK(v[0].type == D_DB_VALUE_NULL);
         D_TESTS_POSTGRES_CHECK( (v[1].as.integer == 1) &&
@@ -4627,19 +4545,17 @@ d_tests_postgres_running
     run is refused, and finalizing drops the server's copy where libpq can
     close it there (17), and otherwise leaves it to the session
 */
-static void
-d_tests_postgres_running(
-    void
-)
+static
+void d_tests_postgres_running(void)
 {
     char                         schema[96] = "";
     struct pg_conn*              db         = d_tests_postgres_begin("running",
                                                                      schema,
                                                                      sizeof(
                                                                        schema));
-    struct d_postgres_statement* insert     = NULL;
-    struct d_postgres_statement* select     = NULL;
-    struct d_db_rows             rows       = { 0u, 0u, NULL, NULL };
+    struct dj_postgres_statement* insert     = NULL;
+    struct dj_postgres_statement* select     = NULL;
+    struct dj_db_rows             rows       = { 0u, 0u, NULL, NULL };
     int64_t                      changes    = -1;
     static char                  longest[70001] = "";
 #if defined(LIBPQ_HAS_CLOSE_PREPARED)
@@ -4787,19 +4703,17 @@ d_tests_postgres_statement_arguments
   - every bind, clear and run refuses a NULL statement, as execute_query
     refuses NULL rows; the describers answer 0 or NULL
 */
-static void
-d_tests_postgres_statement_arguments(
-    void
-)
+static
+void d_tests_postgres_statement_arguments(void)
 {
     struct pg_conn*              db        = d_tests_postgres_connect(NULL);
-    struct d_postgres_statement* statement = NULL;
-    struct d_db_rows             rows      = { 0u, 0u, NULL, NULL };
+    struct dj_postgres_statement* statement = NULL;
+    struct dj_db_rows             rows      = { 0u, 0u, NULL, NULL };
     int64_t                      changes   = 0;
 
     printf("postgres_statement: arguments\n");
 
-    statement = (struct d_postgres_statement*)&g_options;
+    statement = (struct dj_postgres_statement*)&g_options;
     D_TESTS_POSTGRES_RESULT(db, d_postgres_prepare(NULL, &statement,
                                                    "SELECT 1"),
                             D_DB_INVALID_ARGUMENT);
@@ -4808,7 +4722,7 @@ d_tests_postgres_statement_arguments(
                             D_DB_INVALID_ARGUMENT);
     D_TESTS_POSTGRES_RESULT(db, d_postgres_prepare(db, &statement, NULL),
                             D_DB_INVALID_ARGUMENT);
-    statement = (struct d_postgres_statement*)&g_options;
+    statement = (struct dj_postgres_statement*)&g_options;
     D_TESTS_POSTGRES_RESULT(db, d_postgres_preparef(NULL, &statement,
                                                     "SELECT 1"),
                             D_DB_INVALID_ARGUMENT);
@@ -4866,10 +4780,8 @@ d_tests_postgres_closing_by_name
     and 25P02 where it has not
   - NULL arguments and an empty name
 */
-static void
-d_tests_postgres_closing_by_name(
-    void
-)
+static
+void d_tests_postgres_closing_by_name(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("closing",
@@ -4961,22 +4873,20 @@ d_tests_postgres_cursors
   - pipeline mode refuses a run; NULL arguments, no rows asked for, and no
     run open are D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_cursors(
-    void
-)
+static
+void d_tests_postgres_cursors(void)
 {
     char                         schema[96] = "";
     struct pg_conn*              db         = d_tests_postgres_begin("cursors",
                                                                      schema,
                                                                      sizeof(
                                                                        schema));
-    struct d_postgres_statement* select     = NULL;
-    struct d_postgres_statement* other      = NULL;
-    struct d_postgres_statement* insert     = NULL;
-    struct d_db_rows             all        = { 0u, 0u, NULL, NULL };
-    struct d_db_rows             rows       = { 0u, 0u, NULL, NULL };
-    struct d_db_rows             marker     = { 7u, 7u, NULL, NULL };
+    struct dj_postgres_statement* select     = NULL;
+    struct dj_postgres_statement* other      = NULL;
+    struct dj_postgres_statement* insert     = NULL;
+    struct dj_db_rows             all        = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows             rows       = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows             marker     = { 7u, 7u, NULL, NULL };
     int64_t                      changes    = -1;
     const char* const            values[1]  = { "1" };
     const char*                  held       = "SELECT count(*) FROM "
@@ -5078,7 +4988,7 @@ d_tests_postgres_cursors(
     D_TESTS_POSTGRES_RESULT(db, d_postgres_close_prepared(db, "p_none"),
                             busy);
     D_TESTS_POSTGRES_RESULT(db, d_postgres_send_query(db, "SELECT 1"), busy);
-    insert = (struct d_postgres_statement*)&g_options;
+    insert = (struct dj_postgres_statement*)&g_options;
     D_TESTS_POSTGRES_RESULT(db, d_postgres_prepare(db, &insert, "SELECT 1"),
                             busy);
     D_TESTS_POSTGRES_CHECK(insert == NULL);
@@ -5264,10 +5174,8 @@ d_tests_postgres_large_objects
     08000, each the layer's own
   - NULL arguments are D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_large_objects(
-    void
-)
+static
+void d_tests_postgres_large_objects(void)
 {
     char                         schema[96] = "";
     struct pg_conn*              db         = d_tests_postgres_begin(
@@ -5281,8 +5189,8 @@ d_tests_postgres_large_objects(
     unsigned char*               back       = (unsigned char*)malloc(size);
     unsigned int                 oid        = 0u;
     unsigned int                 empty      = 0u;
-    struct d_postgres_statement* select     = NULL;
-    struct d_db_rows             rows       = { 0u, 0u, NULL, NULL };
+    struct dj_postgres_statement* select     = NULL;
+    struct dj_db_rows             rows       = { 0u, 0u, NULL, NULL };
     const int                    undefined  =
         d_postgres_result_from_sqlstate("42704");
 
@@ -5423,13 +5331,11 @@ d_tests_postgres_databases
     dropping one that is not is 3D000, a success under D_DB_IF_EXISTS
   - the current database is the one connected to
 */
-static void
-d_tests_postgres_databases(
-    void
-)
+static
+void d_tests_postgres_databases(void)
 {
     struct pg_conn*       db       = d_tests_postgres_connect(NULL);
-    struct d_db_name_list names    = { 0u, NULL };
+    struct dj_db_name_list names    = { 0u, NULL };
     char                  name[96] = "";
 
     printf("postgres_database: databases\n");
@@ -5484,10 +5390,8 @@ d_tests_postgres_database_transactions
     with D_DB_IF_NOT_EXISTS too, and the database is not made
   - dropping the database connected to is 55006
 */
-static void
-d_tests_postgres_database_transactions(
-    void
-)
+static
+void d_tests_postgres_database_transactions(void)
 {
     struct pg_conn* db       = d_tests_postgres_connect(NULL);
     char            name[96] = "";
@@ -5537,10 +5441,8 @@ d_tests_postgres_drop_force
   - with it, from 13, the sessions are ended and the database dropped;
     before 13 it is D_DB_UNSUPPORTED, sending nothing
 */
-static void
-d_tests_postgres_drop_force(
-    void
-)
+static
+void d_tests_postgres_drop_force(void)
 {
     struct pg_conn* db       = d_tests_postgres_connect(NULL);
     struct pg_conn* other    = NULL;
@@ -5603,13 +5505,11 @@ d_tests_postgres_schemas
     D_POSTGRES_CASCADE; one that is not there is 3F000, a success under
     D_DB_IF_EXISTS
 */
-static void
-d_tests_postgres_schemas(
-    void
-)
+static
+void d_tests_postgres_schemas(void)
 {
     struct pg_conn*       db       = d_tests_postgres_connect(NULL);
-    struct d_db_name_list names    = { 0u, NULL };
+    struct dj_db_name_list names    = { 0u, NULL };
     char                  name[96] = "";
 
     printf("postgres_database: schemas\n");
@@ -5665,10 +5565,8 @@ d_tests_postgres_temporary_schema
   - a table created in it is temporary, and found only there, not in the
     current schema
 */
-static void
-d_tests_postgres_temporary_schema(
-    void
-)
+static
+void d_tests_postgres_temporary_schema(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("tmp",
@@ -5710,10 +5608,8 @@ d_tests_postgres_current_schema
   - none at all is D_DB_NOT_FOUND, and a create in no schema the server's
     3F000, as the layer gives it itself
 */
-static void
-d_tests_postgres_current_schema(
-    void
-)
+static
+void d_tests_postgres_current_schema(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("current",
@@ -5760,8 +5656,8 @@ d_tests_postgres_extension_available
   Whether the server can install an extension, as pg_available_extensions
 lists it.
 */
-static bool
-d_tests_postgres_extension_available(
+static
+bool d_tests_postgres_extension_available(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -5784,8 +5680,8 @@ a success under D_DB_IF_NOT_EXISTS; refused while a column has its type,
 2BP01, and dropped with it under D_POSTGRES_CASCADE; 42704 when it is gone,
 and a success under D_DB_IF_EXISTS.
 */
-static void
-d_tests_postgres_citext(
+static
+void d_tests_postgres_citext(
     struct pg_conn* _db,
     const char*     _schema
 )
@@ -5831,16 +5727,14 @@ d_tests_postgres_extensions
     when it is not there, a success under D_DB_IF_EXISTS
   - an extension the server cannot install is refused
 */
-static void
-d_tests_postgres_extensions(
-    void
-)
+static
+void d_tests_postgres_extensions(void)
 {
     char                  schema[96] = "";
     struct pg_conn*       db         = d_tests_postgres_begin("ext",
                                                               schema,
                                                               sizeof(schema));
-    struct d_db_name_list names      = { 0u, NULL };
+    struct dj_db_name_list names      = { 0u, NULL };
 
     printf("postgres_database: extensions\n");
 
@@ -5882,10 +5776,8 @@ d_tests_postgres_extension_cascade
   - earthdistance, where the server has it, installs cube with it, and
     dropping it with D_POSTGRES_CASCADE leaves cube, which nothing needs
 */
-static void
-d_tests_postgres_extension_cascade(
-    void
-)
+static
+void d_tests_postgres_extension_cascade(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
@@ -5927,13 +5819,11 @@ d_tests_postgres_database_arguments
     flag are D_DB_INVALID_ARGUMENT, and a _s answer then false
   - D_POSTGRES_FORCE before 13 is D_DB_UNSUPPORTED (see drop_force)
 */
-static void
-d_tests_postgres_database_arguments(
-    void
-)
+static
+void d_tests_postgres_database_arguments(void)
 {
     struct pg_conn*       db     = d_tests_postgres_connect(NULL);
-    struct d_db_name_list names  = { 0u, NULL };
+    struct dj_db_name_list names  = { 0u, NULL };
     bool                  exists = true;
 
     printf("postgres_database: arguments\n");
@@ -5993,10 +5883,8 @@ d_tests_postgres_table_existence
     and an index are not
   - another schema is asked by name; one that does not exist has none
 */
-static void
-d_tests_postgres_table_existence(
-    void
-)
+static
+void d_tests_postgres_table_existence(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("tables",
@@ -6048,10 +5936,8 @@ d_tests_postgres_table_creation
     too, as the server's own clause counts it
   - a schema that does not exist is 3F000
 */
-static void
-d_tests_postgres_table_creation(
-    void
-)
+static
+void d_tests_postgres_table_creation(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("tcreate",
@@ -6108,10 +5994,8 @@ d_tests_postgres_table_drops
   - a table a view depends on is 2BP01, and dropped with the view under
     D_POSTGRES_CASCADE
 */
-static void
-d_tests_postgres_table_drops(
-    void
-)
+static
+void d_tests_postgres_table_drops(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("tdrop",
@@ -6159,10 +6043,8 @@ d_tests_postgres_table_renames
   - a renamed table is there under its new name, and not its old
   - a table that is not there is 42P01; a new name taken, 42P07
 */
-static void
-d_tests_postgres_table_renames(
-    void
-)
+static
+void d_tests_postgres_table_renames(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("trename",
@@ -6205,10 +6087,8 @@ d_tests_postgres_table_rows
   - a table another's foreign key references is refused, 0A000
   - a table that is not there is 42P01, writing no count
 */
-static void
-d_tests_postgres_table_rows(
-    void
-)
+static
+void d_tests_postgres_table_rows(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("trows",
@@ -6264,16 +6144,14 @@ d_tests_postgres_table_listing
   - the temporary ones under "pg_temp"
   - a schema that does not exist lists none
 */
-static void
-d_tests_postgres_table_listing(
-    void
-)
+static
+void d_tests_postgres_table_listing(void)
 {
     char                  schema[96] = "";
     struct pg_conn*       db         = d_tests_postgres_begin("tlist",
                                                               schema,
                                                               sizeof(schema));
-    struct d_db_name_list names      = { 0u, NULL };
+    struct dj_db_name_list names      = { 0u, NULL };
 
     printf("postgres_schema: table listing\n");
 
@@ -6322,10 +6200,8 @@ d_tests_postgres_null_schema
     acted on through NULL, which reaches the current schema's
   - a table only further along the search path is not the current schema's
 */
-static void
-d_tests_postgres_null_schema(
-    void
-)
+static
+void d_tests_postgres_null_schema(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("nullschema",
@@ -6375,13 +6251,11 @@ d_tests_postgres_table_arguments
     argument and an unknown flag are D_DB_INVALID_ARGUMENT, and a _s answer
     then false
 */
-static void
-d_tests_postgres_table_arguments(
-    void
-)
+static
+void d_tests_postgres_table_arguments(void)
 {
     struct pg_conn*       db     = d_tests_postgres_connect(NULL);
-    struct d_db_name_list names  = { 0u, NULL };
+    struct dj_db_name_list names  = { 0u, NULL };
     bool                  exists = true;
     int64_t               count  = 0;
 
@@ -6433,10 +6307,8 @@ d_tests_postgres_creation_arguments
   - no columns, a NULL array, an unknown flag, a NULL connection and an
     empty name are D_DB_INVALID_ARGUMENT, and nothing is created
 */
-static void
-d_tests_postgres_creation_arguments(
-    void
-)
+static
+void d_tests_postgres_creation_arguments(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("cargs",
@@ -6484,19 +6356,17 @@ d_tests_postgres_creation_arguments(
 d_tests_postgres_described_types
   d_postgres_create_table, column by column.
   Tests the following:
-  - every d_db_type, and a type_sql, declared as postgres_schema.h
+  - every dj_db_type, and a type_sql, declared as postgres_schema.h
     tabulates, as format_type reports it
 */
-static void
-d_tests_postgres_described_types(
-    void
-)
+static
+void d_tests_postgres_described_types(void)
 {
     char                    schema[96] = "";
     struct pg_conn*         db         = d_tests_postgres_begin("dtypes",
                                                                 schema,
                                                                 sizeof(schema));
-    struct d_db_column_list columns    = { 0u, NULL };
+    struct dj_db_column_list columns    = { 0u, NULL };
     const size_t            count      =
         sizeof(d_tests_postgres_every_type) /
         sizeof(d_tests_postgres_every_type[0]);
@@ -6549,16 +6419,16 @@ d_tests_postgres_check_attributes
   The described attributes of d_tests_postgres_every_type's id, flag and
 name: an identity key with no default, a default as given, and NOT NULL.
 */
-static void
-d_tests_postgres_check_attributes(
-    const struct d_db_column_list* _columns
+static
+void d_tests_postgres_check_attributes(
+    const struct dj_db_column_list* _columns
 )
 {
-    const struct d_db_column_info* const id   =
+    const struct dj_db_column_info* const id   =
         d_tests_postgres_find_column(_columns, "id");
-    const struct d_db_column_info* const flag =
+    const struct dj_db_column_info* const flag =
         d_tests_postgres_find_column(_columns, "flag");
-    const struct d_db_column_info* const name =
+    const struct dj_db_column_info* const name =
         d_tests_postgres_find_column(_columns, "name");
 
     D_TESTS_POSTGRES_CHECK( (id) && (id->not_null) && (!id->default_sql) &&
@@ -6581,17 +6451,15 @@ d_tests_postgres_described_attributes
     which still takes a value given by hand
   - UNIQUE, through an index the server names and the listing leaves out
 */
-static void
-d_tests_postgres_described_attributes(
-    void
-)
+static
+void d_tests_postgres_described_attributes(void)
 {
     char                    schema[96] = "";
     struct pg_conn*         db         = d_tests_postgres_begin("dattrs",
                                                                 schema,
                                                                 sizeof(schema));
-    struct d_db_column_list columns    = { 0u, NULL };
-    struct d_db_name_list   names      = { 0u, NULL };
+    struct dj_db_column_list columns    = { 0u, NULL };
+    struct dj_db_name_list   names      = { 0u, NULL };
     const size_t            count      =
         sizeof(d_tests_postgres_every_type) /
         sizeof(d_tests_postgres_every_type[0]);
@@ -6640,16 +6508,14 @@ d_tests_postgres_described_keys
     skip, number a column off the key, or leave a key column out are
     D_DB_INVALID_ARGUMENT, and make nothing
 */
-static void
-d_tests_postgres_described_keys(
-    void
-)
+static
+void d_tests_postgres_described_keys(void)
 {
     char                    schema[96] = "";
     struct pg_conn*         db         = d_tests_postgres_begin("dkeys",
                                                                 schema,
                                                                 sizeof(schema));
-    struct d_db_column_list columns    = { 0u, NULL };
+    struct dj_db_column_list columns    = { 0u, NULL };
 
     printf("postgres_schema: described keys\n");
 
@@ -6667,11 +6533,11 @@ d_tests_postgres_described_keys(
     D_TESTS_POSTGRES_OK(db, d_postgres_list_columns(db, NULL, "c", &columns));
     D_TESTS_POSTGRES_CHECK(columns.count == 3u);
 
-    const struct d_db_column_info* const label  =
+    const struct dj_db_column_info* const label  =
         d_tests_postgres_find_column(&columns, "label");
-    const struct d_db_column_info* const code   =
+    const struct dj_db_column_info* const code   =
         d_tests_postgres_find_column(&columns, "code");
-    const struct d_db_column_info* const region =
+    const struct dj_db_column_info* const region =
         d_tests_postgres_find_column(&columns, "region");
 
     D_TESTS_POSTGRES_CHECK( (label) && (label->primary_key == 0) );
@@ -6683,7 +6549,7 @@ d_tests_postgres_described_keys(
 
 
     // a key in the order its places give, not the table's
-    struct d_db_column bad[3] =
+    struct dj_db_column bad[3] =
     {
         d_tests_postgres_ordered[0],
         d_tests_postgres_ordered[1],
@@ -6703,9 +6569,9 @@ d_tests_postgres_described_keys(
                                                 "ordered",
                                                 &columns));
 
-    const struct d_db_column_info* const first  =
+    const struct dj_db_column_info* const first  =
         d_tests_postgres_find_column(&columns, "a");
-    const struct d_db_column_info* const second =
+    const struct dj_db_column_info* const second =
         d_tests_postgres_find_column(&columns, "b");
 
     D_TESTS_POSTGRES_CHECK( (first) && (first->primary_key == 2) );
@@ -6765,10 +6631,8 @@ d_tests_postgres_described_refusals
   - each of d_tests_postgres_refused is D_DB_INVALID_ARGUMENT, through
     create_table and, for a single column, add_column, and no table is made
 */
-static void
-d_tests_postgres_described_refusals(
-    void
-)
+static
+void d_tests_postgres_described_refusals(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("drefuse",
@@ -6822,20 +6686,20 @@ d_tests_postgres_check_defaults
 the server keeps it, a function call, and none for no default, a default of
 NULL, and an identity column, the last two NOT NULL.
 */
-static void
-d_tests_postgres_check_defaults(
-    const struct d_db_column_list* _columns
+static
+void d_tests_postgres_check_defaults(
+    const struct dj_db_column_list* _columns
 )
 {
-    const struct d_db_column_info* const a = d_tests_postgres_find_column(
+    const struct dj_db_column_info* const a = d_tests_postgres_find_column(
                                                  _columns, "a");
-    const struct d_db_column_info* const c = d_tests_postgres_find_column(
+    const struct dj_db_column_info* const c = d_tests_postgres_find_column(
                                                  _columns, "c");
-    const struct d_db_column_info* const f = d_tests_postgres_find_column(
+    const struct dj_db_column_info* const f = d_tests_postgres_find_column(
                                                  _columns, "f");
-    const struct d_db_column_info* const g = d_tests_postgres_find_column(
+    const struct dj_db_column_info* const g = d_tests_postgres_find_column(
                                                  _columns, "g");
-    const struct d_db_column_info* const t = d_tests_postgres_find_column(
+    const struct dj_db_column_info* const t = d_tests_postgres_find_column(
                                                  _columns, "t");
 
     D_TESTS_POSTGRES_CHECK( (a) && (a->default_sql) &&
@@ -6859,16 +6723,14 @@ d_tests_postgres_defaults
   - a generated column, from 12, reports NULL: its expression is not a
     default
 */
-static void
-d_tests_postgres_defaults(
-    void
-)
+static
+void d_tests_postgres_defaults(void)
 {
     char                    schema[96] = "";
     struct pg_conn*         db         = d_tests_postgres_begin("defaults",
                                                                 schema,
                                                                 sizeof(schema));
-    struct d_db_column_list columns    = { 0u, NULL };
+    struct dj_db_column_list columns    = { 0u, NULL };
 
     printf("postgres_schema: defaults\n");
 
@@ -6916,16 +6778,14 @@ d_tests_postgres_default_values
   - each default of d_tests_postgres_defaults_sql, run as SQL, reads as the
     value it was declared with: quotes, backslashes, bytes and all
 */
-static void
-d_tests_postgres_default_values(
-    void
-)
+static
+void d_tests_postgres_default_values(void)
 {
     char                    schema[96] = "";
     struct pg_conn*         db         = d_tests_postgres_begin("dreads",
                                                                 schema,
                                                                 sizeof(schema));
-    struct d_db_column_list columns    = { 0u, NULL };
+    struct dj_db_column_list columns    = { 0u, NULL };
     const size_t            count      =
         sizeof(d_tests_postgres_default_reads) /
         sizeof(d_tests_postgres_default_reads[0]);
@@ -6950,7 +6810,7 @@ d_tests_postgres_default_values(
     {
         const char* const* const       read   =
             d_tests_postgres_default_reads[i];
-        const struct d_db_column_info* column =
+        const struct dj_db_column_info* column =
             d_tests_postgres_find_column(&columns, read[0]);
 
         D_TESTS_POSTGRES_CHECK( (column) && (column->default_sql) );
@@ -6983,10 +6843,8 @@ d_tests_postgres_column_existence
   - a table's columns and a view's are there, by exact name
   - the system's own columns are not, nor any of a table that is not there
 */
-static void
-d_tests_postgres_column_existence(
-    void
-)
+static
+void d_tests_postgres_column_existence(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("cexist",
@@ -7033,21 +6891,19 @@ d_tests_postgres_column_additions
   - an identity primary key can be added to a table without a key
   - a name taken is 42701; a table that is not there, 42P01
 */
-static void
-d_tests_postgres_column_additions(
-    void
-)
+static
+void d_tests_postgres_column_additions(void)
 {
     char                     schema[96] = "";
     struct pg_conn*          db         = d_tests_postgres_begin(
                                               "cadd",
                                               schema,
                                               sizeof(schema));
-    const struct d_db_column note       =
+    const struct dj_db_column note       =
     {
         "note", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL, "''", 40u, 0u, NULL, 0u
     };
-    const struct d_db_column key        =
+    const struct dj_db_column key        =
     {
         "id", D_DB_TYPE_BIG_INTEGER,
         D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT, NULL, 0u, 0u,
@@ -7095,10 +6951,8 @@ d_tests_postgres_column_removals
   - a dropped column is gone; one a view uses is 2BP01; a table's last
     column can go, leaving a table without columns
 */
-static void
-d_tests_postgres_column_removals(
-    void
-)
+static
+void d_tests_postgres_column_removals(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("cremove",
@@ -7153,16 +7007,14 @@ d_tests_postgres_column_listing
   - a table without columns lists none, NULL; one that is not there is
     D_DB_NOT_FOUND, writing nothing
 */
-static void
-d_tests_postgres_column_listing(
-    void
-)
+static
+void d_tests_postgres_column_listing(void)
 {
     char                    schema[96] = "";
     struct pg_conn*         db         = d_tests_postgres_begin("clist",
                                                                 schema,
                                                                 sizeof(schema));
-    struct d_db_column_list columns    = { 0u, NULL };
+    struct dj_db_column_list columns    = { 0u, NULL };
 
     printf("postgres_schema: column listing\n");
 
@@ -7213,15 +7065,13 @@ d_tests_postgres_column_arguments
   - a NULL connection, a NULL or empty name, an empty schema and a NULL
     column or list are D_DB_INVALID_ARGUMENT, and a _s answer then false
 */
-static void
-d_tests_postgres_column_arguments(
-    void
-)
+static
+void d_tests_postgres_column_arguments(void)
 {
     struct pg_conn*          db      = d_tests_postgres_connect(NULL);
-    struct d_db_column_list  columns = { 0u, NULL };
+    struct dj_db_column_list  columns = { 0u, NULL };
     bool                     exists  = true;
-    const struct d_db_column column  =
+    const struct dj_db_column column  =
     {
         "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
@@ -7273,16 +7123,14 @@ d_tests_postgres_indexes
   - a name taken is 42P07, a success under D_DB_IF_NOT_EXISTS
   - D_DB_UNIQUE over duplicates is 23505
 */
-static void
-d_tests_postgres_indexes(
-    void
-)
+static
+void d_tests_postgres_indexes(void)
 {
     char                  schema[96] = "";
     struct pg_conn*       db         = d_tests_postgres_begin("indexes",
                                                               schema,
                                                               sizeof(schema));
-    struct d_db_name_list names      = { 0u, NULL };
+    struct dj_db_name_list names      = { 0u, NULL };
 
     printf("postgres_schema: indexes\n");
 
@@ -7336,8 +7184,8 @@ d_tests_postgres_index_concurrently
   D_POSTGRES_CONCURRENTLY on table t: an index built outside a transaction,
 and 25001 inside one.
 */
-static void
-d_tests_postgres_index_concurrently(
+static
+void d_tests_postgres_index_concurrently(
     struct pg_conn* _db
 )
 {
@@ -7364,10 +7212,8 @@ d_tests_postgres_index_forms
     INCLUDE where the server has it
   - D_POSTGRES_CONCURRENTLY outside a transaction, and 25001 inside one
 */
-static void
-d_tests_postgres_index_forms(
-    void
-)
+static
+void d_tests_postgres_index_forms(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("iforms",
@@ -7430,10 +7276,8 @@ d_tests_postgres_index_changes
   - D_POSTGRES_CONCURRENTLY drops one without blocking its table
   - an index a constraint owns is refused, 2BP01
 */
-static void
-d_tests_postgres_index_changes(
-    void
-)
+static
+void d_tests_postgres_index_changes(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("ichanges",
@@ -7486,16 +7330,14 @@ d_tests_postgres_views
   - a name taken is 42P07; a success under D_DB_IF_NOT_EXISTS, by a table's
     name too, which is left as it was
 */
-static void
-d_tests_postgres_views(
-    void
-)
+static
+void d_tests_postgres_views(void)
 {
     char                  schema[96] = "";
     struct pg_conn*       db         = d_tests_postgres_begin("views",
                                                               schema,
                                                               sizeof(schema));
-    struct d_db_name_list names      = { 0u, NULL };
+    struct dj_db_name_list names      = { 0u, NULL };
 
     printf("postgres_schema: views\n");
 
@@ -7547,10 +7389,8 @@ under a savepoint.
     back with it
   - any other failure leaves the transaction failed, as a failure does
 */
-static void
-d_tests_postgres_view_settling(
-    void
-)
+static
+void d_tests_postgres_view_settling(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("vsettle",
@@ -7608,10 +7448,8 @@ d_tests_postgres_view_changes
     D_DB_IF_EXISTS; one another view uses is 2BP01, dropped with it under
     D_POSTGRES_CASCADE
 */
-static void
-d_tests_postgres_view_changes(
-    void
-)
+static
+void d_tests_postgres_view_changes(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("vchanges",
@@ -7671,16 +7509,14 @@ d_tests_postgres_triggers
     foreign keys left out
   - a name taken on the table is 42710
 */
-static void
-d_tests_postgres_triggers(
-    void
-)
+static
+void d_tests_postgres_triggers(void)
 {
     char                  schema[96] = "";
     struct pg_conn*       db         = d_tests_postgres_begin("triggers",
                                                               schema,
                                                               sizeof(schema));
-    struct d_db_name_list names      = { 0u, NULL };
+    struct dj_db_name_list names      = { 0u, NULL };
     char                  on_t[200]  = "";
     char                  on_u[200]  = "";
 
@@ -7739,10 +7575,8 @@ d_tests_postgres_trigger_changes
   - a dropped trigger is gone; one that is not there is 42704, a success
     under D_DB_IF_EXISTS, as is one on a table that is not there
 */
-static void
-d_tests_postgres_trigger_changes(
-    void
-)
+static
+void d_tests_postgres_trigger_changes(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("tchanges",
@@ -7809,16 +7643,14 @@ d_tests_postgres_sequences
   - a dropped one is gone; one that is not there is 42P01, a success under
     D_DB_IF_EXISTS; one an identity column owns is refused, 2BP01
 */
-static void
-d_tests_postgres_sequences(
-    void
-)
+static
+void d_tests_postgres_sequences(void)
 {
     char                  schema[96] = "";
     struct pg_conn*       db         = d_tests_postgres_begin("sequences",
                                                               schema,
                                                               sizeof(schema));
-    struct d_db_name_list names      = { 0u, NULL };
+    struct dj_db_name_list names      = { 0u, NULL };
 
     printf("postgres_schema: sequences\n");
 
@@ -7870,10 +7702,8 @@ d_tests_postgres_sequence_values
   - a sequence that is not there is D_DB_NOT_FOUND, writing nothing, and
     leaves a transaction usable
 */
-static void
-d_tests_postgres_sequence_values(
-    void
-)
+static
+void d_tests_postgres_sequence_values(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("seqvalues",
@@ -7923,10 +7753,8 @@ d_tests_postgres_last_values
   - in a failed transaction it is 25P02
   - NULL arguments
 */
-static void
-d_tests_postgres_last_values(
-    void
-)
+static
+void d_tests_postgres_last_values(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("lastvalues",
@@ -8001,13 +7829,11 @@ d_tests_postgres_object_arguments
     table, a NULL out argument and an unknown flag are
     D_DB_INVALID_ARGUMENT, and a _s answer then false
 */
-static void
-d_tests_postgres_object_arguments(
-    void
-)
+static
+void d_tests_postgres_object_arguments(void)
 {
     struct pg_conn*       db     = d_tests_postgres_connect(NULL);
-    struct d_db_name_list names  = { 0u, NULL };
+    struct dj_db_name_list names  = { 0u, NULL };
     bool                  exists = true;
 
     printf("postgres_schema: index, view, trigger and sequence arguments\n");
@@ -8072,10 +7898,8 @@ d_tests_postgres_transactions
   - transaction_status follows: idle, in a transaction, active while SQL
     sent has results to read or a COPY runs, and unknown for NULL
 */
-static void
-d_tests_postgres_transactions(
-    void
-)
+static
+void d_tests_postgres_transactions(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("txn",
@@ -8110,7 +7934,7 @@ d_tests_postgres_transactions(
 
     // SQL sent, until its last result is read; a COPY, until it ends
     {
-        struct d_db_rows rows    = { 0u, 0u, NULL, NULL };
+        struct dj_db_rows rows    = { 0u, 0u, NULL, NULL };
         int64_t          changes = 0;
 
         D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 1"));
@@ -8162,10 +7986,8 @@ d_tests_postgres_failed_transactions
   - commit rolls it back and says 25P02, nothing kept; rollback ends one as
     a success
 */
-static void
-d_tests_postgres_failed_transactions(
-    void
-)
+static
+void d_tests_postgres_failed_transactions(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("failed",
@@ -8218,7 +8040,7 @@ rolled back after.
 static void
 d_tests_postgres_mode_level(
     struct pg_conn*                  _db,
-    enum d_postgres_transaction_mode _mode,
+    enum dj_postgres_transaction_mode _mode,
     const char*                      _level
 )
 {
@@ -8241,10 +8063,8 @@ d_tests_postgres_transaction_modes
     whatever the session's level
   - a mode outside the enumeration is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_transaction_modes(
-    void
-)
+static
+void d_tests_postgres_transaction_modes(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("modes",
@@ -8301,11 +8121,11 @@ d_tests_postgres_transaction_modes(
                                         "RESET default_transaction_isolation"));
     D_TESTS_POSTGRES_RESULT(db, d_postgres_begin_transaction(
                                     db,
-                                    (enum d_postgres_transaction_mode)9),
+                                    (enum dj_postgres_transaction_mode)9),
                             D_DB_INVALID_ARGUMENT);
     D_TESTS_POSTGRES_RESULT(db, d_postgres_begin_transaction(
                                     db,
-                                    (enum d_postgres_transaction_mode)6),
+                                    (enum dj_postgres_transaction_mode)6),
                             D_DB_INVALID_ARGUMENT);
     D_TESTS_POSTGRES_RESULT(db, d_postgres_begin_transaction(
                                     NULL, D_POSTGRES_TRANSACTION_DEFAULT),
@@ -8325,10 +8145,8 @@ d_tests_postgres_savepoints
   - outside a transaction, 25P01; one that is not there, 3B001
   - a NULL connection or an empty name is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_savepoints(
-    void
-)
+static
+void d_tests_postgres_savepoints(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("savepoints",
@@ -8390,10 +8208,8 @@ d_tests_postgres_transactional_ddl
   - a table created and an index dropped inside a transaction are undone by
     its rollback
 */
-static void
-d_tests_postgres_transactional_ddl(
-    void
-)
+static
+void d_tests_postgres_transactional_ddl(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("ddl",
@@ -8439,10 +8255,8 @@ d_tests_postgres_search_path
   - a setting made in a transaction that rolls back is undone
   - NULL is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_search_path(
-    void
-)
+static
+void d_tests_postgres_search_path(void)
 {
     char            schema[96]    = "";
     struct pg_conn* db            = d_tests_postgres_begin("searchpath",
@@ -8497,10 +8311,8 @@ d_tests_postgres_timeouts
   - a statement that runs too long is cancelled, 57014; a lock waited on
     too long, 55P03
 */
-static void
-d_tests_postgres_timeouts(
-    void
-)
+static
+void d_tests_postgres_timeouts(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("timeouts",
@@ -8560,13 +8372,11 @@ d_tests_postgres_isolation
   - each level set and read back, and the next transaction begun in it
   - a level outside the enumeration is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_isolation(
-    void
-)
+static
+void d_tests_postgres_isolation(void)
 {
     struct pg_conn*           db    = d_tests_postgres_connect(NULL);
-    enum d_postgres_isolation level = D_POSTGRES_ISOLATION_READ_UNCOMMITTED;
+    enum dj_postgres_isolation level = D_POSTGRES_ISOLATION_READ_UNCOMMITTED;
 
     printf("postgres_settings: isolation\n");
 
@@ -8581,9 +8391,9 @@ d_tests_postgres_isolation(
     for (int i = (int)D_POSTGRES_ISOLATION_SERIALIZABLE; i >= 0; --i)
     {
         D_TESTS_POSTGRES_OK(db, d_postgres_set_isolation_level(
-                                    db, (enum d_postgres_isolation)i));
+                                    db, (enum dj_postgres_isolation)i));
         D_TESTS_POSTGRES_OK(db, d_postgres_get_isolation_level(db, &level));
-        D_TESTS_POSTGRES_CHECK(level == (enum d_postgres_isolation)i);
+        D_TESTS_POSTGRES_CHECK(level == (enum dj_postgres_isolation)i);
     }
 
     D_TESTS_POSTGRES_OK(db, d_postgres_set_isolation_level(
@@ -8595,7 +8405,7 @@ d_tests_postgres_isolation(
                                "repeatable read"));
     D_TESTS_POSTGRES_OK(db, d_postgres_rollback(db));
     D_TESTS_POSTGRES_RESULT(db, d_postgres_set_isolation_level(
-                                    db, (enum d_postgres_isolation)7),
+                                    db, (enum dj_postgres_isolation)7),
                             D_DB_INVALID_ARGUMENT);
     D_TESTS_POSTGRES_RESULT(db, d_postgres_get_isolation_level(db, NULL),
                             D_DB_INVALID_ARGUMENT);
@@ -8613,10 +8423,8 @@ d_tests_postgres_encoding_and_zone
   - values quoted under another encoding still reach the server whole
   - a value the server does not know is 22023, and changes nothing
 */
-static void
-d_tests_postgres_encoding_and_zone(
-    void
-)
+static
+void d_tests_postgres_encoding_and_zone(void)
 {
     struct pg_conn* db   = d_tests_postgres_connect(NULL);
     char*           text = NULL;
@@ -8673,10 +8481,8 @@ d_tests_postgres_parameters
   - a name holding a quote is quoted, never SQL
   - a NULL argument or an empty name is D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_parameters(
-    void
-)
+static
+void d_tests_postgres_parameters(void)
 {
     struct pg_conn* db    = d_tests_postgres_connect(NULL);
     char*           value = NULL;
@@ -8739,10 +8545,8 @@ d_tests_postgres_upkeep
   - VACUUM inside a transaction is the server's 25001; a table that is not
     there, 42P01
 */
-static void
-d_tests_postgres_upkeep(
-    void
-)
+static
+void d_tests_postgres_upkeep(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("upkeep",
@@ -8800,10 +8604,8 @@ d_tests_postgres_reindex_checkpoint
   - a table that is not there is 42P01
   - a checkpoint, as the superuser the harness runs as
 */
-static void
-d_tests_postgres_reindex_checkpoint(
-    void
-)
+static
+void d_tests_postgres_reindex_checkpoint(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("reindex",
@@ -8850,10 +8652,8 @@ d_tests_postgres_sizes
   - a table or database that is not there is D_DB_NOT_FOUND, writing
     nothing
 */
-static void
-d_tests_postgres_sizes(
-    void
-)
+static
+void d_tests_postgres_sizes(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("sizes",
@@ -8907,10 +8707,8 @@ d_tests_postgres_upkeep_arguments
   - a schema without a table, an empty name, an unknown flag, a NULL
     connection and a NULL size are D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_upkeep_arguments(
-    void
-)
+static
+void d_tests_postgres_upkeep_arguments(void)
 {
     struct pg_conn* db   = d_tests_postgres_connect(NULL);
     int64_t         size = 0;
@@ -8965,10 +8763,8 @@ d_tests_postgres_copy_in
   - data or an end with no COPY in progress is 08000
   - NULL arguments
 */
-static void
-d_tests_postgres_copy_in(
-    void
-)
+static
+void d_tests_postgres_copy_in(void)
 {
     char            schema[96] = "";
     struct pg_conn* db         = d_tests_postgres_begin("copyin",
@@ -9073,8 +8869,8 @@ d_tests_postgres_arrival
 so that one sent before it has reached the socket; D_DB_NOT_FOUND when
 none had. The texts are the caller's.
 */
-static int
-d_tests_postgres_arrival(
+static
+int d_tests_postgres_arrival(
     struct pg_conn* _db,
     char**          _channel,
     char**          _payload,
@@ -9098,10 +8894,8 @@ d_tests_postgres_notifications
   - a payload too long is 22023
   - NULL and empty arguments
 */
-static void
-d_tests_postgres_notifications(
-    void
-)
+static
+void d_tests_postgres_notifications(void)
 {
     struct pg_conn* listener   = d_tests_postgres_connect(NULL);
     struct pg_conn* sender     = d_tests_postgres_connect(NULL);
@@ -9238,16 +9032,14 @@ d_tests_postgres_sent_statements
   - a failure ends the results; a COPY is ended
   - NULL arguments
 */
-static void
-d_tests_postgres_sent_statements(
-    void
-)
+static
+void d_tests_postgres_sent_statements(void)
 {
     char             schema[96] = "";
     struct pg_conn*  db         = d_tests_postgres_begin("sent",
                                                          schema,
                                                          sizeof(schema));
-    struct d_db_rows rows       = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows       = { 0u, 0u, NULL, NULL };
     int64_t          changes    = -1;
     int64_t          number     = 0;
     long             waits      = 0;
@@ -9379,15 +9171,15 @@ d_tests_postgres_rows_read
 rows one after another, and the largest count any of them gave. Returns how
 many results came, or -1 for a failure.
 */
-static int
-d_tests_postgres_rows_read(
+static
+int d_tests_postgres_rows_read(
     struct pg_conn* _db,
     size_t*         _rows,
     size_t*         _last,
     int64_t*        _count
 )
 {
-    struct d_db_rows rows    = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows    = { 0u, 0u, NULL, NULL };
     int64_t          changes = 0;
     int              results = 0;
     int              result  = 0;
@@ -9423,16 +9215,14 @@ d_tests_postgres_chunked_rows
     08000, the rows then coming as they were
   - fewer than one row; a NULL connection
 */
-static void
-d_tests_postgres_chunked_rows(
-    void
-)
+static
+void d_tests_postgres_chunked_rows(void)
 {
     char             schema[96] = "";
     struct pg_conn*  db         = d_tests_postgres_begin("chunks",
                                                          schema,
                                                          sizeof(schema));
-    struct d_db_rows rows       = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows       = { 0u, 0u, NULL, NULL };
     int64_t          count      = 0;
     size_t           total      = 0u;
     size_t           last       = 0u;
@@ -9560,16 +9350,14 @@ d_tests_postgres_pipelines
   - where libpq has no pipelines: D_DB_UNSUPPORTED, the mode off
   - NULL arguments
 */
-static void
-d_tests_postgres_pipelines(
-    void
-)
+static
+void d_tests_postgres_pipelines(void)
 {
     char             schema[96] = "";
     struct pg_conn*  db         = d_tests_postgres_begin("pipelines",
                                                          schema,
                                                          sizeof(schema));
-    struct d_db_rows rows       = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows       = { 0u, 0u, NULL, NULL };
     int64_t          changes    = -1;
     int64_t          number     = 0;
     size_t           total      = 0u;
@@ -9841,13 +9629,13 @@ d_tests_postgres_drive_next
   Continues a result's read until it is done; the answer is the last
 continuation's.
 */
-static int
-d_tests_postgres_drive_next(
-    int                  _started,
-    struct pg_conn*      _db,
-    struct d_db_pending* _pending,
-    struct d_db_rows*    _rows,
-    int64_t*             _changes
+static
+int d_tests_postgres_drive_next(
+    int                   _started,
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
 )
 {
     int result = _started;
@@ -9872,12 +9660,12 @@ d_tests_postgres_drive_send
   Continues a send until it is written, counting the waits; the answer is
 the last continuation's.
 */
-static int
-d_tests_postgres_drive_send(
-    int                  _started,
-    struct pg_conn*      _db,
-    struct d_db_pending* _pending,
-    int*                 _waits
+static
+int d_tests_postgres_drive_send(
+    int                   _started,
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending,
+    int*                  _waits
 )
 {
     int result = _started;
@@ -9919,17 +9707,15 @@ _continue.
   - pipeline mode is 08000; a lost connection 08006; NULL arguments
     D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_postgres_sent_without_blocking(
-    void
-)
+static
+void d_tests_postgres_sent_without_blocking(void)
 {
     char                schema[96] = "";
     struct pg_conn*     db         = d_tests_postgres_begin("sentnb",
                                                             schema,
                                                             sizeof(schema));
-    struct d_db_rows    rows;
-    struct d_db_pending pending;
+    struct dj_db_rows    rows;
+    struct dj_db_pending pending;
     int64_t             changes    = -1;
     int64_t             number     = 0;
     int                 waits      = 0;
@@ -10281,11 +10067,11 @@ d_tests_postgres_drive_prepare
 continuation's. The statement is read through its address, after the start
 that fills it, whose argument the call may evaluate last.
 */
-static int
-d_tests_postgres_drive_prepare(
-    int                                 _started,
-    struct d_postgres_statement* const* _statement,
-    struct d_db_pending*                _pending
+static
+int d_tests_postgres_drive_prepare(
+    int                                  _started,
+    struct dj_postgres_statement* const* _statement,
+    struct dj_db_pending*                _pending
 )
 {
     int result = _started;
@@ -10306,12 +10092,12 @@ d_tests_postgres_drive_prepare(
 d_tests_postgres_drive_query
   Continues a run's read, as rows, until it is done.
 */
-static int
-d_tests_postgres_drive_query(
-    int                          _started,
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+static
+int d_tests_postgres_drive_query(
+    int                           _started,
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     int result = _started;
@@ -10334,12 +10120,12 @@ d_tests_postgres_drive_query(
 d_tests_postgres_drive_update
   Continues a run's read, as a count, until it is done.
 */
-static int
-d_tests_postgres_drive_update(
-    int                          _started,
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending,
-    int64_t*                     _changes
+static
+int d_tests_postgres_drive_update(
+    int                           _started,
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending,
+    int64_t*                      _changes
 )
 {
     int result = _started;
@@ -10362,12 +10148,12 @@ d_tests_postgres_drive_update(
 d_tests_postgres_drive_page
   Opens nothing: continues a page's read until it is given.
 */
-static int
-d_tests_postgres_drive_page(
-    int                          _started,
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+static
+int d_tests_postgres_drive_page(
+    int                           _started,
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     int result = _started;
@@ -10390,11 +10176,11 @@ d_tests_postgres_drive_page(
 d_tests_postgres_drive_open
   Continues a run's opening until it is open.
 */
-static int
-d_tests_postgres_drive_open(
-    int                          _started,
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending
+static
+int d_tests_postgres_drive_open(
+    int                           _started,
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending
 )
 {
     int result = _started;
@@ -10416,10 +10202,10 @@ d_tests_postgres_drive_open(
 d_tests_postgres_first_int
   The first value of rows as an integer, or INT64_MIN.
 */
-static int64_t
-d_tests_postgres_first_int(
-    const struct d_db_rows* _rows,
-    size_t                  _row
+static
+int64_t d_tests_postgres_first_int(
+    const struct dj_db_rows* _rows,
+    size_t                   _row
 )
 {
     int64_t value = INT64_MIN;
@@ -10459,23 +10245,21 @@ start and _continue; d_postgres_fetch_rows_start and _continue.
   - a continuation with no call under way, and NULL arguments, are
     D_DB_INVALID_ARGUMENT; pipeline mode is 08000
 */
-static void
-d_tests_postgres_statements_without_blocking(
-    void
-)
+static
+void d_tests_postgres_statements_without_blocking(void)
 {
     char                         schema[96] = "";
     struct pg_conn*              db         = d_tests_postgres_begin(
                                                   "stmtnb",
                                                   schema,
                                                   sizeof(schema));
-    struct d_postgres_statement* add        = NULL;
-    struct d_postgres_statement* insert     = NULL;
-    struct d_postgres_statement* series     = NULL;
-    struct d_postgres_statement* broken     = NULL;
-    struct d_db_rows             rows;
-    struct d_db_pending          pending;
-    struct d_db_pending          refused;
+    struct dj_postgres_statement* add        = NULL;
+    struct dj_postgres_statement* insert     = NULL;
+    struct dj_postgres_statement* series     = NULL;
+    struct dj_postgres_statement* broken     = NULL;
+    struct dj_db_rows             rows;
+    struct dj_db_pending          pending;
+    struct dj_db_pending          refused;
     int64_t                      changes    = -1;
     const int                    busy       =
         D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
@@ -10602,8 +10386,8 @@ d_tests_postgres_statements_without_blocking(
 
     // a stale name where the next statement's is: dropped, and once more
     {
-        struct d_postgres_statement* first  = NULL;
-        struct d_postgres_statement* second = NULL;
+        struct dj_postgres_statement* first  = NULL;
+        struct dj_postgres_statement* second = NULL;
         char*                        name   = NULL;
         char                         sql[160] = "";
 
@@ -10921,10 +10705,7 @@ main
 status is 0 only if every check passed. Without a server to reach, it says
 how to name one, and fails.
 */
-int
-main(
-    void
-)
+int main(void)
 {
     const size_t    count = sizeof(d_tests_postgres_all) /
                             sizeof(d_tests_postgres_all[0]);

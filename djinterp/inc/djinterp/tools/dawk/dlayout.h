@@ -29,8 +29,8 @@
 #include <stdbool.h>  // bool
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
-#include "./dss.h"    // d_dss_sheet
+#include "./dnode.h"  // dj_node_tree
+#include "./dss.h"    // dj_dss_sheet
 
 
 //==============================================================================
@@ -40,27 +40,35 @@
 
 // 1.1    Computed values
 //------------------------------------------------------------------------------
-const char* d_layout_computed(const struct d_dss_sheet* _sheet,
-                              struct d_node_tree*       _tree,
-                              uint32_t                  _node,
-                              const char*               _property);
-double      d_layout_computed_number(const struct d_dss_sheet* _sheet,
-                                     struct d_node_tree*       _tree,
-                                     uint32_t                  _node,
-                                     const char*               _property,
-                                     double                    _default);
+const char* d_layout_computed(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const char*                _property
+);
+double d_layout_computed_number(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const char*                _property,
+    double                     _default
+);
 
 // 1.2    Table layout
 //------------------------------------------------------------------------------
-bool        d_layout_table_holds(const struct d_dss_sheet* _sheet,
-                                 struct d_node_tree*       _tree,
-                                 uint32_t                  _table,
-                                 bool*                     _out_evaluated);
-bool        d_layout_table_repair(const struct d_dss_sheet* _sheet,
-                                  struct d_node_tree*       _tree,
-                                  uint32_t                  _table,
-                                  const char*               _path,
-                                  const char**              _out_refusal);
+bool d_layout_table_holds(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _table,
+    bool*                      _out_evaluated
+);
+bool d_layout_table_repair(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _table,
+    const char*                _path,
+    const char**               _out_refusal
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DLAYOUT_H

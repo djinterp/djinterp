@@ -30,8 +30,8 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Capacity
-         1.  d_space64_t
-         2.  d_space32_t
+         1.  dj_space64_t
+         2.  dj_space32_t
 2.  QUERY
     -----
     1.  Filesystem capacity
@@ -47,7 +47,7 @@ TABLE OF CONTENTS
 #include "./file_common.h"                          // foundation, D_EXTERN_C_*
 #include "../../config/c/filesys/cfg_file_space.h"  // module configuration
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 
 D_EXTERN_C_BEGIN
@@ -61,13 +61,13 @@ D_EXTERN_C_BEGIN
 // 1.1    Capacity
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_space64_t
+// dj_space64_t
 //   struct: the capacity of the filesystem holding some path. Byte counts,
 // not blocks -- a caller should not have to know what f_frsize is to use
 // this. The field order and meaning match std::filesystem::space_info
 // deliberately, so the C++ layer is a copy rather than a translation.
 #if D_FILE_64_IS_AVAILABLE
-struct d_space64_t
+struct dj_space64_t
 {
     uint64_t capacity;   // total bytes on the filesystem
     uint64_t free;       // unallocated bytes, INCLUDING any root reserve
@@ -76,10 +76,10 @@ struct d_space64_t
 #endif  // D_FILE_64_IS_AVAILABLE
 
 // 1.1.2
-// d_space32_t
+// dj_space32_t
 //   struct: the same three numbers in KiB (1024 bytes), rounded down, so each
 // reaches 4 TiB. Rounding down never claims room that is not there.
-struct d_space32_t
+struct dj_space32_t
 {
     uint32_t capacity_kib;   // total KiB on the filesystem
     uint32_t free_kib;       // unallocated KiB, INCLUDING any root reserve
@@ -111,8 +111,10 @@ struct d_space32_t
  * @return 0, or -1 on failure with errno set; ENOSYS where the platform
  *         reports no capacity, which is never emulated.
  */
-int d_file_space64(const char*         _path,
-                   struct d_space64_t* _out);
+int d_file_space64(
+    const char*          _path,
+    struct dj_space64_t* _out
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief d_file_space64, in KiB.
@@ -122,8 +124,10 @@ int d_file_space64(const char*         _path,
  * @return 0, or -1 on failure with errno set; EOVERFLOW for a filesystem of
  *         4 TiB or more, ENOSYS where the platform reports no capacity.
  */
-int d_file_space32(const char*         _path,
-                   struct d_space32_t* _out);
+int d_file_space32(
+    const char*          _path,
+    struct dj_space32_t* _out
+);
 
 
 //==============================================================================
@@ -133,15 +137,15 @@ int d_file_space32(const char*         _path,
 
 // 3.1    Unsuffixed names
 //------------------------------------------------------------------------------
-// d_space_t
+// dj_space_t
 //   alias: the struct tag of the capacity twin at D_FILE_WIDTH (file_common.h,
 // 3.2) -- bytes at 64, KiB at 32, under the field names that say which;
 // d_file_space after it is the same alias for the call.
 #if (D_FILE_WIDTH == 64)
-    #define d_space_t    d_space64_t
+    #define dj_space_t    dj_space64_t
     #define d_file_space d_file_space64
 #else
-    #define d_space_t    d_space32_t
+    #define dj_space_t    dj_space32_t
     #define d_file_space d_file_space32
 #endif  // D_FILE_WIDTH == 64
 

@@ -33,8 +33,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_tests_report(
+static
+void d_tests_report(
     bool        _passed,
     const char* _label
 )
@@ -61,8 +61,8 @@ d_tests_numeric_strings
   - a partial numeric prefix converts but does not make a numeric string
   - the empty string and blanks alone are not numeric
 */
-static void
-d_tests_numeric_strings(void)
+static
+void d_tests_numeric_strings(void)
 {
     printf("numeric strings\n");
 
@@ -134,8 +134,8 @@ d_tests_conversion
   - a fractional value honours the supplied format
   - the exceptional values have fixed spellings
 */
-static void
-d_tests_conversion(void)
+static
+void d_tests_conversion(void)
 {
     printf("number rendering\n");
 
@@ -186,21 +186,21 @@ d_tests_comparison_matrix
   - an extern value behaves as a field, so a node whose text is numeric
     compares numerically
 */
-static void
-d_tests_comparison_matrix(void)
+static
+void d_tests_comparison_matrix(void)
 {
     printf("comparison matrix\n");
 
-    struct d_awk_value* uninit = d_awk_value_new();
-    struct d_awk_value* num10  = d_awk_value_new();
-    struct d_awk_value* num9   = d_awk_value_new();
-    struct d_awk_value* num0   = d_awk_value_new();
-    struct d_awk_value* str10  = d_awk_value_new();
-    struct d_awk_value* str9   = d_awk_value_new();
-    struct d_awk_value* strmt  = d_awk_value_new();
-    struct d_awk_value* snum10 = d_awk_value_new();
-    struct d_awk_value* snum9  = d_awk_value_new();
-    struct d_awk_value* sinp   = d_awk_value_new();
+    struct dj_awk_value* uninit = d_awk_value_new();
+    struct dj_awk_value* num10  = d_awk_value_new();
+    struct dj_awk_value* num9   = d_awk_value_new();
+    struct dj_awk_value* num0   = d_awk_value_new();
+    struct dj_awk_value* str10  = d_awk_value_new();
+    struct dj_awk_value* str9   = d_awk_value_new();
+    struct dj_awk_value* strmt  = d_awk_value_new();
+    struct dj_awk_value* snum10 = d_awk_value_new();
+    struct dj_awk_value* snum9  = d_awk_value_new();
+    struct dj_awk_value* sinp   = d_awk_value_new();
 
     d_awk_value_set_number(num10, 10.0);
     d_awk_value_set_number(num9, 9.0);
@@ -225,7 +225,7 @@ d_tests_comparison_matrix(void)
         "str10", "str9", "strmt", "snum10", "snum9"
     };
 
-    struct d_awk_value* values[] =
+    struct dj_awk_value* values[] =
     {
         NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     };
@@ -309,15 +309,15 @@ d_tests_truth
   - an uninitialised value is false
   - a non-empty non-numeric string is true
 */
-static void
-d_tests_truth(void)
+static
+void d_tests_truth(void)
 {
     printf("truth\n");
 
-    struct d_awk_value* field  = d_awk_value_new();
-    struct d_awk_value* text   = d_awk_value_new();
-    struct d_awk_value* blank  = d_awk_value_new();
-    struct d_awk_value* uninit = d_awk_value_new();
+    struct dj_awk_value* field  = d_awk_value_new();
+    struct dj_awk_value* text   = d_awk_value_new();
+    struct dj_awk_value* blank  = d_awk_value_new();
+    struct dj_awk_value* uninit = d_awk_value_new();
 
     (void)d_awk_value_set_input(field, "0", 1);
     (void)d_awk_value_set_string(text, "0", 1);
@@ -337,8 +337,8 @@ d_tests_truth(void)
 }
 
 
-static const char*
-d_tests_node_text(
+static
+const char* d_tests_node_text(
     void*   _object,
     void*   _user,
     size_t* _out_length
@@ -362,13 +362,13 @@ d_tests_extern
   - an extern value whose text is numeric compares numerically, so the same
     expression behaves alike over a flat record and over a tree node
 */
-static void
-d_tests_extern(void)
+static
+void d_tests_extern(void)
 {
     printf("extern values\n");
 
-    struct d_awk_value* node   = d_awk_value_new();
-    struct d_awk_value* number = d_awk_value_new();
+    struct dj_awk_value* node   = d_awk_value_new();
+    struct dj_awk_value* number = d_awk_value_new();
     char                body[] = "10";
 
     d_awk_value_set_extern(node, body, d_tests_node_text, NULL);
@@ -400,19 +400,19 @@ d_tests_arrays
   - iteration reaches every live element exactly once
   - a subscript joins its parts with SUBSEP
 */
-static void
-d_tests_arrays(void)
+static
+void d_tests_arrays(void)
 {
     printf("associative arrays\n");
 
-    struct d_awk_array* array = d_awk_array_new();
+    struct dj_awk_array* array = d_awk_array_new();
 
     d_tests_report((d_awk_array_find(array, "a", 1) == NULL),
                    "find does not create");
     d_tests_report((d_awk_array_count(array) == 0),
                    "find left the array empty");
 
-    struct d_awk_value* cell = d_awk_array_lookup(array, "a", 1);
+    struct dj_awk_value* cell = d_awk_array_lookup(array, "a", 1);
 
     d_tests_report((cell != NULL), "lookup creates");
     d_tests_report((d_awk_array_count(array) == 1), "lookup grew the array");
@@ -427,7 +427,7 @@ d_tests_arrays(void)
         char key[16];
         const int written = snprintf(key, sizeof(key), "k%d", at);
 
-        struct d_awk_value* slot = d_awk_array_lookup(array,
+        struct dj_awk_value* slot = d_awk_array_lookup(array,
                                                       key,
                                                       (size_t)written);
 
@@ -437,7 +437,7 @@ d_tests_arrays(void)
     d_tests_report((d_awk_array_count(array) == 65u),
                    "65 elements after growth");
 
-    struct d_awk_value* probe = d_awk_array_find(array, "k40", 3);
+    struct dj_awk_value* probe = d_awk_array_find(array, "k40", 3);
 
     d_tests_report(((probe) && (d_awk_value_number(probe) == 40.0)),
                    "values survive rehashing");
@@ -493,8 +493,7 @@ Parameter(s):
 Return:
   Zero when every check passed, and one otherwise.
 */
-int
-main(void)
+int main(void)
 {
     d_tests_numeric_strings();
     d_tests_conversion();

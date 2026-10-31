@@ -50,8 +50,8 @@ TABLE OF CONTENTS
     4.  sort_rows
 */
 
-#ifndef BITWISEDOM_EDIT_HPP
-#define BITWISEDOM_EDIT_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_EDIT_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_EDIT_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 #include <string>  // std::string
 #include <vector>  // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./resolve.hpp"  // resolution, issue
 #include "./sheet.hpp"    // sheet, row
@@ -82,17 +82,21 @@ namespace bitwisedom
 // unique_name
 //   function: `_base`, or `_base` with _2, _3 and on after it: the first that
 // no row of the sheet has as its own name.
-D_NODISCARD std::string  unique_name(const sheet&       _sheet,
-                                     const std::string& _base);
+D_NODISCARD std::string unique_name(
+    const sheet&       _sheet,
+    const std::string& _base
+);
 
 // 1.1.2
 // fresh_name
 //   function: the name a new row takes when it is given none: Group for a
 // group; FLAG, FIELD, VALUE, VALUE, COMBINED or MACRO for a symbol of each
 // definition, in def_kind's order; made unique.
-D_NODISCARD std::string  fresh_name(const sheet& _sheet,
-                                    row_kind     _kind,
-                                    def_kind     _def);
+D_NODISCARD std::string fresh_name(
+    const sheet& _sheet,
+    row_kind     _kind,
+    def_kind     _def
+);
 
 // 1.2    Places
 //------------------------------------------------------------------------------
@@ -100,21 +104,27 @@ D_NODISCARD std::string  fresh_name(const sheet& _sheet,
 // range_choices
 //   function: every range of the sheet, by id, in the tree's order: what a
 // value may be placed in.
-D_NODISCARD std::vector<int>  range_choices(const sheet& _sheet);
+D_NODISCARD std::vector<int> range_choices(
+    const sheet& _sheet
+);
 
 // 1.2.2
 // container_choices
 //   function: everything a row may be put into, by id: the sheet's own
 // rows, 0, then every group and range, in the tree's order.
-D_NODISCARD std::vector<int>  container_choices(const sheet& _sheet);
+D_NODISCARD std::vector<int> container_choices(
+    const sheet& _sheet
+);
 
 // 1.2.3
 // place_bit
 //   function: the bit a new bit or range starts at in a group or range: the
 // lowest it leaves free; with none free, a range's own lowest bit, and 0
 // in a group.
-D_NODISCARD int  place_bit(const sheet& _sheet,
-                           int          _parent);
+D_NODISCARD int place_bit(
+    const sheet& _sheet,
+    int          _parent
+);
 
 
 //==============================================================================
@@ -157,10 +167,12 @@ struct trial
  * @return the copy, the row's id in it, the copy's resolution and the
  *         row's issues, and why it is refused.
  */
-D_NODISCARD trial  try_insert(const sheet& _sheet,
-                              int          _parent,
-                              int          _index,
-                              const row&   _row);
+D_NODISCARD trial try_insert(
+    const sheet& _sheet,
+    int          _parent,
+    int          _index,
+    const row&   _row
+);
 
 /**
  * @brief Tries a row in a copy of a sheet, resolved with the colours a
@@ -173,11 +185,13 @@ D_NODISCARD trial  try_insert(const sheet& _sheet,
  * @param[in] _look    the colours, as resolve(_sheet, _look) takes them.
  * @return as try_insert.
  */
-D_NODISCARD trial  try_insert(const sheet&           _sheet,
-                              int                    _parent,
-                              int                    _index,
-                              const row&             _row,
-                              const colour_settings& _look);
+D_NODISCARD trial try_insert(
+    const sheet&           _sheet,
+    int                    _parent,
+    int                    _index,
+    const row&             _row,
+    const colour_settings& _look
+);
 
 // 2.1.3
 // try_change
@@ -199,9 +213,11 @@ D_NODISCARD trial  try_insert(const sheet&           _sheet,
  *         such row -- the copy's resolution and the row's issues, and why
  *         the change is refused.
  */
-D_NODISCARD trial  try_change(const sheet& _sheet,
-                              int          _id,
-                              const row&   _row);
+D_NODISCARD trial try_change(
+    const sheet& _sheet,
+    int          _id,
+    const row&   _row
+);
 
 
 //==============================================================================
@@ -220,8 +236,10 @@ D_NODISCARD trial  try_change(const sheet& _sheet,
  * @post   Pointers and references into _sheet's rows are invalid.
  * @return the copies' ids, in `_ids`' order.
  */
-std::vector<int>  duplicate_rows(sheet&                  _sheet,
-                                 const std::vector<int>& _ids);
+std::vector<int> duplicate_rows(
+    sheet&                  _sheet,
+    const std::vector<int>& _ids
+);
 
 // 3.1.2
 // remove_rows
@@ -235,8 +253,10 @@ std::vector<int>  duplicate_rows(sheet&                  _sheet,
  * @post   Pointers and references into _sheet's rows are invalid.
  * @return how many of them were removed.
  */
-int               remove_rows(sheet&                  _sheet,
-                              const std::vector<int>& _ids);
+int remove_rows(
+    sheet&                  _sheet,
+    const std::vector<int>& _ids
+);
 
 // 3.1.3
 // move_by
@@ -250,9 +270,11 @@ int               remove_rows(sheet&                  _sheet,
  * @return `true` if it moved; `false` at the end it was moving past, or for
  *         a row the sheet does not have.
  */
-bool              move_by(sheet& _sheet,
-                          int    _id,
-                          int    _step);
+bool move_by(
+    sheet& _sheet,
+    int    _id,
+    int    _step
+);
 
 // 3.1.4
 // sort_rows
@@ -273,9 +295,11 @@ bool              move_by(sheet& _sheet,
  * @return how many groups' rows changed their order: 0 when they were
  *         already in it.
  */
-int               sort_rows(sheet&   _sheet,
-                            sort_key _key,
-                            bool     _descending);
+int sort_rows(
+    sheet&   _sheet,
+    sort_key _key,
+    bool     _descending
+);
 
 
 }  // namespace bitwisedom
@@ -283,4 +307,4 @@ int               sort_rows(sheet&   _sheet,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_EDIT_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_EDIT_HPP

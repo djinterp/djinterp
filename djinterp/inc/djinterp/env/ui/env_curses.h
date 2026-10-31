@@ -361,7 +361,7 @@ TABLE OF CONTENTS
  *
  * @return the D_ENV_CURSES_TYPE_* flags found, or `0` if none.
  */
-int         d_env_curses_detect(void);
+int d_env_curses_detect(void);
 /**
  * @brief Returns the detected curses library's name.
  *
@@ -380,30 +380,32 @@ const char* d_env_curses_get_version(void);
  * @param[in] _feature  the D_ENV_CURSES_FEAT_* flag to test.
  * @return `1` if the feature is available, `0` otherwise.
  */
-int         d_env_curses_has_feature(int _feature);
+int d_env_curses_has_feature(
+    int _feature
+);
 /**
  * @brief Tests whether the curses library supports colors.
  *
  * @return `1` if color is supported, `0` otherwise.
  */
-int         d_env_curses_supports_color(void);
+int d_env_curses_supports_color(void);
 /**
  * @brief Tests whether the curses library supports wide characters.
  *
  * @return `1` if wide characters are supported, `0` otherwise.
  */
-int         d_env_curses_supports_wide(void);
+int d_env_curses_supports_wide(void);
 /**
  * @brief Tests whether the curses library supports mouse events.
  *
  * @return `1` if mouse events are supported, `0` otherwise.
  */
-int         d_env_curses_supports_mouse(void);
+int d_env_curses_supports_mouse(void);
 /**
  * @brief Prints detailed information about the detected curses library, for
  *        debugging and capability reporting.
  */
-void        d_env_curses_print_info(void);
+void d_env_curses_print_info(void);
 
 #if D_ENV_LANG_USING_CPP
     }

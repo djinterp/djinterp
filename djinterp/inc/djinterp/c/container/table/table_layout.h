@@ -23,32 +23,32 @@
 D_EXTERN_C_BEGIN
 
 
-// d_table_region
+// dj_table_region
 //   struct: the region R_C of a layout cell -- a non-empty k-box of atomic
 // positions,
 //     R_C = ( prod_{r=0..k-1} [origin_r, origin_r + span_r) ) intersect I_T.
 // Its extent |R_C| is the product of the spans; it is a MERGE when that exceeds
 // one, and merged ALONG coordinate r when span_r exceeds one.  shape(C) is the
 // span tuple.
-struct d_table_region
+struct dj_table_region
 {
     D_INTERNAL_TABLE_EXTENT origin[D_TABLE_MAX_RANK];
     D_INTERNAL_TABLE_EXTENT span[D_TABLE_MAX_RANK];
     uint32_t                rank;
 };
 
-// d_table_layout
+// dj_table_layout
 //   struct: the cover Gamma over a table's atomic positions, given by its
 // MERGES alone. Every position no declared merge covers is its own singleton
 // cell -- the trivial cover Gamma_0 on the rest -- so a partition of I_T is
 // recovered from the merge list exactly when the merges are in bounds and
 // pairwise disjoint, and a layout with no merges IS Gamma_0. The struct owns
-// nothing: `merges` is caller-owned, exactly as d_table's cells are, so a
+// nothing: `merges` is caller-owned, exactly as dj_table's cells are, so a
 // compile-time cover in C++ and a parser-accumulated one in C present the same
 // object.
-struct d_table_layout
+struct dj_table_layout
 {
-    const struct d_table_region* merges;    // the declared merged cells
+    const struct dj_table_region* merges;    // the declared merged cells
     D_INTERNAL_TABLE_EXTENT      count;     // how many
 };
 
@@ -57,28 +57,33 @@ struct d_table_layout
 // d_table_region_make
 //   function: the region spanning _spans from _origins, over _rank
 // coordinates.
-struct d_table_region d_table_region_make(const size_t* _origins,
-                                          const size_t* _spans,
-                                          uint32_t      _rank);
+struct dj_table_region d_table_region_make(
+    const size_t* _origins,
+    const size_t* _spans,
+    uint32_t      _rank
+);
 
 // d_table_region_make2
 //   function: the rank-2 region spanning _rows x _cols from (_row0, _col0).
-struct d_table_region d_table_region_make2(size_t _row0,
-                                           size_t _col0,
-                                           size_t _rows,
-                                           size_t _cols);
+struct dj_table_region d_table_region_make2(
+    size_t _row0,
+    size_t _col0,
+    size_t _rows,
+    size_t _cols
+);
 
 // d_table_region_singleton
 //   function: the singleton region at _index -- the layout cell the trivial
 // cover Gamma_0 gives every atomic position.
-struct d_table_region d_table_region_singleton(struct d_table_index _index);
+struct dj_table_region d_table_region_singleton(
+    struct dj_table_index _index
+);
 
 // d_table_region_origin
 //   function: the region's origin along coordinate _r.
-D_NODISCARD D_INLINE size_t
-d_table_region_origin(
-    struct d_table_region _region,
-    uint32_t              _r
+D_NODISCARD D_INLINE size_t d_table_region_origin(
+    struct dj_table_region _region,
+    uint32_t               _r
 )
 {
     return (size_t)_region.origin[_r];
@@ -86,10 +91,9 @@ d_table_region_origin(
 
 // d_table_region_span
 //   function: shape(C) along coordinate _r -- the region's span there.
-D_NODISCARD D_INLINE size_t
-d_table_region_span(
-    struct d_table_region _region,
-    uint32_t              _r
+D_NODISCARD D_INLINE size_t d_table_region_span(
+    struct dj_table_region _region,
+    uint32_t               _r
 )
 {
     return (size_t)_region.span[_r];
@@ -98,9 +102,8 @@ d_table_region_span(
 // d_table_region_extent
 //   function: |R_C|, the number of atomic positions the region holds -- the
 // product of its spans.
-D_NODISCARD D_INLINE size_t
-d_table_region_extent(
-    struct d_table_region _region
+D_NODISCARD D_INLINE size_t d_table_region_extent(
+    struct dj_table_region _region
 )
 {
     size_t   total;
@@ -118,19 +121,22 @@ d_table_region_extent(
 
 // d_table_region_is_merge
 //   function: whether the region spans more than one atomic position.
-int d_table_region_is_merge(struct d_table_region _region);
+int d_table_region_is_merge(
+    struct dj_table_region _region
+);
 
 // d_table_region_is_merged_along
 //   function: whether the region is merged along coordinate _r.
-int d_table_region_is_merged_along(struct d_table_region _region,
-                                   uint32_t              _r);
+int d_table_region_is_merged_along(
+    struct dj_table_region _region,
+    uint32_t               _r
+);
 
 // d_table_region_contains
 //   function: whether the region covers the atomic position _index.
-D_NODISCARD D_INLINE int
-d_table_region_contains(
-    struct d_table_region _region,
-    struct d_table_index  _index
+D_NODISCARD D_INLINE int d_table_region_contains(
+    struct dj_table_region _region,
+    struct dj_table_index  _index
 )
 {
     uint32_t r;
@@ -157,12 +163,11 @@ d_table_region_contains(
 // d_table_region_anchor
 //   function: anchor(C) = min_lex R_C -- the canonical representative that
 // names a merged cell once. For a box that is its origin.
-D_NODISCARD D_INLINE struct d_table_index
-d_table_region_anchor(
-    struct d_table_region _region
+D_NODISCARD D_INLINE struct dj_table_index d_table_region_anchor(
+    struct dj_table_region _region
 )
 {
-    struct d_table_index result;
+    struct dj_table_index result;
     uint32_t             r;
 
     result.rank = _region.rank;
@@ -178,23 +183,26 @@ d_table_region_anchor(
 // d_table_region_within
 //   function: whether the region lies wholly inside a domain. A cover's
 // regions must, since a layout cell is a region of ATOMIC positions.
-int d_table_region_within(struct d_table_region _region,
-                          struct d_table_domain _domain);
+int d_table_region_within(
+    struct dj_table_region _region,
+    struct dj_table_domain _domain
+);
 
 // d_table_regions_overlap
 //   function: whether two regions share any atomic position. A cover's regions
 // must not: every atomic position lies in exactly one cell. Two boxes overlap
 // exactly when they overlap on EVERY coordinate.
-int d_table_regions_overlap(struct d_table_region _a,
-                            struct d_table_region _b);
+int d_table_regions_overlap(
+    struct dj_table_region _a,
+    struct dj_table_region _b
+);
 
 // d_table_layout_none
 //   function: the trivial cover Gamma_0 -- no merges, so every atomic position
 // is its own layout cell. This is the ordinary table.
-D_NODISCARD D_INLINE struct d_table_layout
-d_table_layout_none(void)
+D_NODISCARD D_INLINE struct dj_table_layout d_table_layout_none(void)
 {
-    struct d_table_layout result;
+    struct dj_table_layout result;
 
     result.merges = NULL;
     result.count  = 0;
@@ -204,21 +212,24 @@ d_table_layout_none(void)
 
 // d_table_layout_over
 //   function: the cover given by _count declared merges at _merges.
-struct d_table_layout d_table_layout_over(const struct d_table_region* _merges,
-                                          size_t                       _count);
+struct dj_table_layout d_table_layout_over(
+    const struct dj_table_region* _merges,
+    size_t                        _count
+);
 
 // d_table_layout_wears_no_merges
 //   function: whether every region is a singleton -- the Gamma_0 case.
-int d_table_layout_wears_no_merges(const struct d_table_layout* _layout);
+int d_table_layout_wears_no_merges(
+    const struct dj_table_layout* _layout
+);
 
 // d_table_layout_owner
 //   function: cell_T(i) -- the layout cell owning the atomic position _index.
 // A declared merge that covers it, or the singleton cell there. Total on I_T
 // by construction, which is what makes Gamma a cover.
-D_NODISCARD D_INLINE struct d_table_region
-d_table_layout_owner(
-    const struct d_table_layout* _layout,
-    struct d_table_index         _index
+D_NODISCARD D_INLINE struct dj_table_region d_table_layout_owner(
+    const struct dj_table_layout* _layout,
+    struct dj_table_index         _index
 )
 {
     size_t i;
@@ -238,10 +249,9 @@ d_table_layout_owner(
 
 // d_table_layout_span
 //   function: span_T(i) = R_{cell_T(i)} -- the region of the position's owner.
-D_NODISCARD D_INLINE struct d_table_region
-d_table_layout_span(
-    const struct d_table_layout* _layout,
-    struct d_table_index         _index
+D_NODISCARD D_INLINE struct dj_table_region d_table_layout_span(
+    const struct dj_table_layout* _layout,
+    struct dj_table_index         _index
 )
 {
     return d_table_layout_owner(_layout, _index);
@@ -250,10 +260,9 @@ d_table_layout_span(
 // d_table_layout_anchor_of
 //   function: anchor(cell_T(i)) -- the position every index in a merged region
 // reads as. Off the merges it is the index itself.
-D_NODISCARD D_INLINE struct d_table_index
-d_table_layout_anchor_of(
-    const struct d_table_layout* _layout,
-    struct d_table_index         _index
+D_NODISCARD D_INLINE struct dj_table_index d_table_layout_anchor_of(
+    const struct dj_table_layout* _layout,
+    struct dj_table_index         _index
 )
 {
     return d_table_region_anchor(d_table_layout_owner(_layout, _index));
@@ -263,8 +272,10 @@ d_table_layout_anchor_of(
 //   function: whether the position names its own cell -- i in A_T. A covered
 // non-anchor position remains a valid index and defers to the cell anchored
 // elsewhere.
-int d_table_layout_is_anchor(const struct d_table_layout* _layout,
-                             struct d_table_index         _index);
+int d_table_layout_is_anchor(
+    const struct dj_table_layout* _layout,
+    struct dj_table_index         _index
+);
 
 // d_table_resolve_index
 //   function: LAYOUT-AWARE access at a rank-k index -- a pointer to the value
@@ -272,11 +283,10 @@ int d_table_layout_is_anchor(const struct d_table_layout* _layout,
 //     T[i] = T[anchor(cell_T(i))]. The two accesses agree off the merges, so
 // passing Gamma_0 gives exactly d_table_cell_at_const. NULL when the index is
 // outside I_T.
-D_NODISCARD D_INLINE const void*
-d_table_resolve_index(
-    const struct d_table*        _table,
-    const struct d_table_layout* _layout,
-    struct d_table_index         _index
+D_NODISCARD D_INLINE const void* d_table_resolve_index(
+    const struct dj_table*        _table,
+    const struct dj_table_layout* _layout,
+    struct dj_table_index         _index
 )
 {
     // an out-of-domain index is undefined under either access
@@ -302,12 +312,11 @@ d_table_resolve_index(
 
 // d_table_resolve
 //   function: the rank-2 d_table_resolve_index.
-D_NODISCARD D_INLINE const void*
-d_table_resolve(
-    const struct d_table*        _table,
-    const struct d_table_layout* _layout,
-    size_t                       _row,
-    size_t                       _col
+D_NODISCARD D_INLINE const void* d_table_resolve(
+    const struct dj_table*        _table,
+    const struct dj_table_layout* _layout,
+    size_t                        _row,
+    size_t                        _col
 )
 {
     // the same trivial-cover shortcut as d_table_resolve_index, taken before
@@ -325,11 +334,10 @@ d_table_resolve(
 
 // d_table_region_contains2
 //   function: the rank-2 d_table_region_contains, taking loose coordinates.
-D_NODISCARD D_INLINE int
-d_table_region_contains2(
-    struct d_table_region _region,
-    size_t                _row,
-    size_t                _col
+D_NODISCARD D_INLINE int d_table_region_contains2(
+    struct dj_table_region _region,
+    size_t                 _row,
+    size_t                 _col
 )
 {
     return d_table_region_contains(_region, d_table_index_make2(_row, _col));
@@ -337,11 +345,10 @@ d_table_region_contains2(
 
 // d_table_layout_owner2
 //   function: the rank-2 d_table_layout_owner.
-D_NODISCARD D_INLINE struct d_table_region
-d_table_layout_owner2(
-    const struct d_table_layout* _layout,
-    size_t                       _row,
-    size_t                       _col
+D_NODISCARD D_INLINE struct dj_table_region d_table_layout_owner2(
+    const struct dj_table_layout* _layout,
+    size_t                        _row,
+    size_t                        _col
 )
 {
     return d_table_layout_owner(_layout, d_table_index_make2(_row, _col));
@@ -349,11 +356,10 @@ d_table_layout_owner2(
 
 // d_table_layout_anchor_of2
 //   function: the rank-2 d_table_layout_anchor_of.
-D_NODISCARD D_INLINE struct d_table_index
-d_table_layout_anchor_of2(
-    const struct d_table_layout* _layout,
-    size_t                       _row,
-    size_t                       _col
+D_NODISCARD D_INLINE struct dj_table_index d_table_layout_anchor_of2(
+    const struct dj_table_layout* _layout,
+    size_t                        _row,
+    size_t                        _col
 )
 {
     return d_table_layout_anchor_of(_layout, d_table_index_make2(_row, _col));
@@ -361,11 +367,10 @@ d_table_layout_anchor_of2(
 
 // d_table_layout_is_anchor2
 //   function: the rank-2 d_table_layout_is_anchor.
-D_NODISCARD D_INLINE int
-d_table_layout_is_anchor2(
-    const struct d_table_layout* _layout,
-    size_t                       _row,
-    size_t                       _col
+D_NODISCARD D_INLINE int d_table_layout_is_anchor2(
+    const struct dj_table_layout* _layout,
+    size_t                        _row,
+    size_t                        _col
 )
 {
     return d_table_layout_is_anchor(_layout, d_table_index_make2(_row, _col));
@@ -390,42 +395,49 @@ d_table_layout_is_anchor2(
 // the index space beneath it.
 
 // II.   mutation and reordering
-enum d_table_status d_table_region_partitions(
-    const struct d_table_region* _pieces,
-    size_t                       _count,
-    struct d_table_region        _whole);
-enum d_table_status d_table_layout_split(
-    struct d_table_region*       _merges,
-    size_t*                      _count,
-    size_t                       _capacity,
-    size_t                       _which,
-    const struct d_table_region* _pieces,
-    size_t                       _piece_count);
-enum d_table_status d_table_layout_merge(struct d_table_region* _merges,
-                                         size_t*                _count,
-                                         size_t                 _capacity,
-                                         struct d_table_region  _region,
-                                         struct d_table_domain  _domain);
-size_t              d_table_index_fibre(struct d_table_index  _coarse,
-                                        const size_t*         _factors,
-                                        struct d_table_index* _out,
-                                        size_t                _out_capacity);
+enum dj_table_status d_table_region_partitions(
+    const struct dj_table_region* _pieces,
+    size_t                        _count,
+    struct dj_table_region        _whole
+);
+enum dj_table_status d_table_layout_split(
+    struct dj_table_region*       _merges,
+    size_t*                       _count,
+    size_t                        _capacity,
+    size_t                        _which,
+    const struct dj_table_region* _pieces,
+    size_t                        _piece_count
+);
+enum dj_table_status d_table_layout_merge(
+    struct dj_table_region* _merges,
+    size_t*                 _count,
+    size_t                  _capacity,
+    struct dj_table_region  _region,
+    struct dj_table_domain  _domain
+);
+size_t d_table_index_fibre(
+    struct dj_table_index  _coarse,
+    const size_t*          _factors,
+    struct dj_table_index* _out,
+    size_t                 _out_capacity
+);
 
 
 // III.  operations (cont.)
-enum d_table_status d_table_layout_validate(
-    const struct d_table_layout* _layout,
-    struct d_table_domain        _domain);
+enum dj_table_status d_table_layout_validate(
+    const struct dj_table_layout* _layout,
+    struct dj_table_domain        _domain
+);
 
 
 // layout assertions -- drift becomes a compile error rather than a wire-format
 // bug, and both dialects compile them
-D_STATIC_ASSERT(offsetof(struct d_table_region, origin) == 0,
-                "d_table_region field drift: the origin must lead");
+D_STATIC_ASSERT(offsetof(struct dj_table_region, origin) == 0,
+                "dj_table_region field drift: the origin must lead");
 
-D_STATIC_ASSERT(offsetof(struct d_table_region, span) ==
+D_STATIC_ASSERT(offsetof(struct dj_table_region, span) ==
                     (D_TABLE_MAX_RANK * sizeof(D_INTERNAL_TABLE_EXTENT)),
-                "d_table_region field drift: the spans must follow the origin");
+                "dj_table_region field drift: the spans must follow the origin");
 
 D_EXTERN_C_END
 

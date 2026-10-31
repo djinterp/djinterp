@@ -36,9 +36,9 @@ TABLE OF CONTENTS
          3.  D_REGEX_NO_MATCH
          4.  D_REGEX_BACKTRACK_MAX
     2.  Types
-         1.  d_regex
-         2.  d_regex_status
-         3.  d_regex_match
+         1.  dj_regex
+         2.  dj_regex_status
+         3.  dj_regex_match
 2.  OPERATIONS
     ----------
     1.  Compilation
@@ -97,15 +97,15 @@ TABLE OF CONTENTS
 // 1.2    Types
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_regex
+// dj_regex
 //   struct: a compiled pattern.  Carries the execution scratch buffers, so a
 //   single instance must not be used from two threads at once.
-struct d_regex;
+struct dj_regex;
 
 // 1.2.2
-// d_regex_status
+// dj_regex_status
 //   enum: outcome of compilation.
-enum d_regex_status
+enum dj_regex_status
 {
     D_REGEX_OK = 0,
     D_REGEX_ERR_SYNTAX,
@@ -115,10 +115,10 @@ enum d_regex_status
 };
 
 // 1.2.3
-// d_regex_match
+// dj_regex_match
 //   struct: the extent of a located match, as a byte offset and byte count
 //   into the subject.  A zero length denotes a valid empty match.
-struct d_regex_match
+struct dj_regex_match
 {
     size_t start;   // offset of the first byte of the match
     size_t length;  // number of bytes matched; may be zero
@@ -135,25 +135,35 @@ struct d_regex_match
 
 // 2.1    Compilation
 //------------------------------------------------------------------------------
-struct d_regex*     d_regex_compile(const char*          _pattern,
-                                    enum d_regex_status* _out_status);
-void                d_regex_free(struct d_regex* _regex);
+struct dj_regex* d_regex_compile(
+    const char*           _pattern,
+    enum dj_regex_status* _out_status
+);
+void d_regex_free(
+    struct dj_regex* _regex
+);
 
 // 2.2    Matching
 //------------------------------------------------------------------------------
-bool                d_regex_search(struct d_regex*       _regex,
-                                   const char*           _text,
-                                   size_t                _length,
-                                   size_t                _from,
-                                   struct d_regex_match* _out_match);
-bool                d_regex_match_at(struct d_regex* _regex,
-                                     const char*     _text,
-                                     size_t          _length,
-                                     size_t          _at,
-                                     size_t*         _out_length);
-bool                d_regex_test(struct d_regex* _regex,
-                                 const char*     _text,
-                                 size_t          _length);
+bool d_regex_search(
+    struct dj_regex*       _regex,
+    const char*            _text,
+    size_t                 _length,
+    size_t                 _from,
+    struct dj_regex_match* _out_match
+);
+bool d_regex_match_at(
+    struct dj_regex* _regex,
+    const char*      _text,
+    size_t           _length,
+    size_t           _at,
+    size_t*          _out_length
+);
+bool d_regex_test(
+    struct dj_regex* _regex,
+    const char*      _text,
+    size_t           _length
+);
 
 // 2.3    Capture groups
 //------------------------------------------------------------------------------
@@ -163,18 +173,26 @@ bool                d_regex_test(struct d_regex* _regex,
 // a start of D_REGEX_NO_MATCH.  D_REGEX_OK with a group-zero start of
 // D_REGEX_NO_MATCH means the pattern did not match at all, which is distinct
 // from the error statuses.
-size_t              d_regex_group_count(const struct d_regex* _regex);
-enum d_regex_status d_regex_search_groups(struct d_regex*       _regex,
-                                          const char*           _text,
-                                          size_t                _length,
-                                          size_t                _from,
-                                          struct d_regex_match* _out_groups,
-                                          size_t                _count);
+size_t d_regex_group_count(
+    const struct dj_regex* _regex
+);
+enum dj_regex_status d_regex_search_groups(
+    struct dj_regex*       _regex,
+    const char*            _text,
+    size_t                 _length,
+    size_t                 _from,
+    struct dj_regex_match* _out_groups,
+    size_t                 _count
+);
 
 // 2.4    Diagnostics
 //------------------------------------------------------------------------------
-const char*         d_regex_status_text(enum d_regex_status _status);
-size_t              d_regex_program_size(const struct d_regex* _regex);
+const char* d_regex_status_text(
+    enum dj_regex_status _status
+);
+size_t d_regex_program_size(
+    const struct dj_regex* _regex
+);
 
 
 #endif  // DJINTERP_C_UTIL_DREGEX_H

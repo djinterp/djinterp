@@ -18,9 +18,14 @@
 
 static int failures = 0;
 
-static void
-check(const char* name, const char* before, const char* after,
-      struct d_audit_claim claim, int want_ok)
+static
+void check(
+    const char*           name,
+    const char*           before,
+    const char*           after,
+    struct dj_audit_claim claim,
+    int                   want_ok
+)
 {
     const char* why = NULL;
     const int   ok  = d_audit_verify(before, after, &claim, &why);
@@ -30,10 +35,9 @@ check(const char* name, const char* before, const char* after,
            ok ? "accepted" : "refused", ok ? "" : ": ", ok ? "" : why);
 }
 
-int
-main(void)
+int main(void)
 {
-    struct d_audit_claim c;
+    struct dj_audit_claim c;
 
     printf("-- repairs that were right --\n");
     memset(&c, 0, sizeof c); c.kind = D_AUDIT_GEOMETRY;

@@ -31,13 +31,9 @@ d_tests_sa_dtime_timespec_add
   - handles multiple carries
   - works with same source and destination
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_add
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_add(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       a;
     struct timespec       b;
     struct timespec       result;
@@ -190,13 +186,9 @@ d_tests_sa_dtime_timespec_sub
   - handles b > a (negative result)
   - subtracting zero yields original value
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_sub
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_sub(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       a;
     struct timespec       b;
     struct timespec       result;
@@ -346,13 +338,9 @@ d_tests_sa_dtime_timespec_cmp
   - handles large values
   - symmetric comparison
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_cmp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_cmp(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       a;
     struct timespec       b;
     int                   cmp_result;
@@ -490,13 +478,9 @@ d_tests_sa_dtime_timespec_to_ms
   - handles edge case at millisecond boundary
   - round-trip with d_ms_to_timespec
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_to_ms
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_to_ms(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     int64_t               ms;
     bool                  test_simple_conversion;
@@ -620,13 +604,9 @@ d_tests_sa_dtime_timespec_to_us
   - handles edge case at microsecond boundary
   - round-trip with d_us_to_timespec
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_to_us
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_to_us(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     int64_t               us;
     bool                  test_simple_conversion;
@@ -750,13 +730,9 @@ d_tests_sa_dtime_timespec_to_ns
   - handles edge cases
   - round-trip with d_ns_to_timespec
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_to_ns
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_to_ns(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     int64_t               ns;
     bool                  test_simple_conversion;
@@ -880,13 +856,9 @@ d_tests_sa_dtime_ms_to_timespec
   - handles negative values (if supported)
   - consistency with d_timespec_to_ms
 */
-struct d_test_object*
-d_tests_sa_dtime_ms_to_timespec
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_ms_to_timespec(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     int64_t               ms;
     bool                  test_simple_conversion;
@@ -999,13 +971,9 @@ d_tests_sa_dtime_us_to_timespec
   - handles microsecond boundaries
   - consistency with d_timespec_to_us
 */
-struct d_test_object*
-d_tests_sa_dtime_us_to_timespec
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_us_to_timespec(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     int64_t               us;
     bool                  test_simple_conversion;
@@ -1115,13 +1083,9 @@ d_tests_sa_dtime_ns_to_timespec
   - preserves nanosecond precision
   - consistency with d_timespec_to_ns
 */
-struct d_test_object*
-d_tests_sa_dtime_ns_to_timespec
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_ns_to_timespec(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     int64_t               ns;
     bool                  test_simple_conversion;
@@ -1232,13 +1196,9 @@ d_tests_sa_dtime_time_arithmetic_all
   - d_us_to_timespec
   - d_ns_to_timespec
 */
-struct d_test_object*
-d_tests_sa_dtime_time_arithmetic_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_time_arithmetic_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("VIII. Time Arithmetic", 9);

@@ -45,8 +45,8 @@ TABLE OF CONTENTS
     2.  merge_rows
 */
 
-#ifndef BITWISEDOM_CIMPORT_HPP
-#define BITWISEDOM_CIMPORT_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_CIMPORT_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_CIMPORT_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -57,7 +57,7 @@ TABLE OF CONTENTS
 #include <string_view>  // std::string_view
 #include <vector>       // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./sheet.hpp"  // sheet, standard, data_model
 
@@ -115,12 +115,16 @@ struct imported
  * @return the sheet -- 32 bits wide, or 64 when a value needs more -- and
  *         the report.
  */
-D_NODISCARD imported import_code(std::string_view      _text,
-                                 const import_options& _options);
+D_NODISCARD imported import_code(
+    std::string_view      _text,
+    const import_options& _options
+);
 
 // sheets or code -- whether a file's text is a saved sheet (JSON) rather
 // than code to import
-D_NODISCARD bool looks_like_sheet(std::string_view _text);
+D_NODISCARD bool looks_like_sheet(
+    std::string_view _text
+);
 
 
 //==============================================================================
@@ -160,9 +164,11 @@ struct merged
  * @post   Pointers and references into _into's rows are invalid.
  * @return what was added and replaced.
  */
-merged merge_rows(sheet&       _into,
-                  int          _parent,
-                  const sheet& _from);
+merged merge_rows(
+    sheet&       _into,
+    int          _parent,
+    const sheet& _from
+);
 
 
 }  // namespace bitwisedom
@@ -170,4 +176,4 @@ merged merge_rows(sheet&       _into,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_CIMPORT_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_CIMPORT_HPP

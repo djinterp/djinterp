@@ -9,13 +9,16 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // int_comparator
 //   internal: comparison function for int elements used in search tests.
-static int
-int_comparator(const void* _a, const void* _b)
+static
+int int_comparator(
+    const void* _a,
+    const void* _b
+)
 {
     int a_val = *(const int*)_a;
     int b_val = *(const int*)_b;
@@ -43,10 +46,8 @@ d_tests_sa_buffer_common_contains
   - value present returns true
   - value absent returns false
 */
-bool
-d_tests_sa_buffer_common_contains
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_contains(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -130,10 +131,8 @@ d_tests_sa_buffer_common_find
   - value absent returns -1
   - finds first occurrence when duplicates exist
 */
-bool
-d_tests_sa_buffer_common_find
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_find(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -225,10 +224,8 @@ d_tests_sa_buffer_common_find_last
   - value present returns last occurrence index
   - value absent returns -1
 */
-bool
-d_tests_sa_buffer_common_find_last
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_find_last(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -317,10 +314,8 @@ d_tests_sa_buffer_common_find_last
 d_tests_sa_buffer_common_search_all
   Aggregation function that runs all search tests.
 */
-bool
-d_tests_sa_buffer_common_search_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_search_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

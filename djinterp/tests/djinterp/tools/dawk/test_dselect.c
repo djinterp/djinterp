@@ -21,7 +21,11 @@
 
 static int failures = 0;
 
-static void check(int ok, const char* what)
+static
+void check(
+    int         ok,
+    const char* what
+)
 {
     if (!ok) { printf("  FAIL %s\n", what); ++failures; }
 }
@@ -31,10 +35,11 @@ static void check(int ok, const char* what)
 //                 fn(name=b)  > param(n=1) body
 //                 fn(name=c)  > body
 //                 decl(name=d)
-static struct d_node_tree* tree;
+static struct dj_node_tree* tree;
 static uint32_t file_n, fa, fb, fc, dd, pa[3], pb, ba, bb, bc, ret;
 
-static void build(void)
+static
+void build(void)
 {
     tree   = d_node_tree_new();
     file_n = d_node_add(tree, D_DSS_NO_INDEX, "file");
@@ -60,13 +65,18 @@ static void build(void)
 }
 
 // matches: the nodes, in index order, that the sheet's first rule selects
-static void matches(const char* sheet_text, char* out, size_t size)
+static
+void matches(
+    const char* sheet_text,
+    char*       out,
+    size_t      size
+)
 {
-    struct d_dss_error error;
-    struct d_dss_sheet* sheet = d_dss_parse(sheet_text, strlen(sheet_text), &error);
+    struct dj_dss_error error;
+    struct dj_dss_sheet* sheet = d_dss_parse(sheet_text, strlen(sheet_text), &error);
     out[0] = 0;
     if (!sheet) { snprintf(out, size, "PARSE: %s", error.message ? error.message : "?"); return; }
-    const struct d_dss_rule* rule = d_dss_rule_at(sheet, 0);
+    const struct dj_dss_rule* rule = d_dss_rule_at(sheet, 0);
     for (uint32_t n = 0; n < (uint32_t)d_node_count(tree); ++n) {
         if (!d_match_rule(sheet, tree, n, rule)) continue;
         char item[16];
@@ -76,7 +86,11 @@ static void matches(const char* sheet_text, char* out, size_t size)
     d_dss_free(sheet);
 }
 
-static void expect(const char* sheet_text, const char* want)
+static
+void expect(
+    const char* sheet_text,
+    const char* want
+)
 {
     char got[256];
     matches(sheet_text, got, sizeof got);
@@ -86,7 +100,12 @@ static void expect(const char* sheet_text, const char* want)
     }
 }
 
-static const char* ids(uint32_t a, uint32_t b, uint32_t c)
+static
+const char* ids(
+    uint32_t a,
+    uint32_t b,
+    uint32_t c
+)
 {
     static char buf[64];
     if (c != 999) snprintf(buf, sizeof buf, "%u %u %u", a, b, c);
@@ -133,25 +152,25 @@ int main(void)
       expect("fn:not(:has(param), :is([name=a])), decl:not(:has(x)) { x: 1; }", w2); }
 
     // unknown pseudo-classes are refused, nested ones too
-    { struct d_dss_error e; const char* t = "fn:not(:frist-child) { x: 1; }";
-      struct d_dss_sheet* sh = d_dss_parse(t, strlen(t), &e);
+    { struct dj_dss_error e; const char* t = "fn:not(:frist-child) { x: 1; }";
+      struct dj_dss_sheet* sh = d_dss_parse(t, strlen(t), &e);
       uint32_t line = 0; const char* name = NULL;
       check(sh && d_match_unsupported(sh, &line, &name) && name && !strcmp(name, "frist-child"),
             "a misspelt pseudo-class inside :not is reported");
       d_dss_free(sh); }
-    { struct d_dss_error e; const char* t = "fn:first-child(2) { x: 1; }";
+    { struct dj_dss_error e; const char* t = "fn:first-child(2) { x: 1; }";
       check(d_dss_parse(t, strlen(t), &e) == NULL, "a structural pseudo-class takes no argument"); }
-    { struct d_dss_error e; const char* t = "fn:nth-child(x) { x: 1; }";
+    { struct dj_dss_error e; const char* t = "fn:nth-child(x) { x: 1; }";
       check(d_dss_parse(t, strlen(t), &e) == NULL, "An+B is checked"); }
 
     // C2: whitespace before `[` warns; `*[` silences it
-    { struct d_dss_error e; const char* t = "fn[name=a]\n    [n=1] { x: 1; }";
-      struct d_dss_sheet* sh = d_dss_parse(t, strlen(t), &e);
+    { struct dj_dss_error e; const char* t = "fn[name=a]\n    [n=1] { x: 1; }";
+      struct dj_dss_sheet* sh = d_dss_parse(t, strlen(t), &e);
       check(sh && d_dss_warning_count(sh) == 1 && d_dss_warning_at(sh, 0)->line == 2,
             "a compound broken across a line warns, on the line of the `[`");
       d_dss_free(sh); }
-    { struct d_dss_error e; const char* t = "fn[name=a] *[n=1] { x: 1; }";
-      struct d_dss_sheet* sh = d_dss_parse(t, strlen(t), &e);
+    { struct dj_dss_error e; const char* t = "fn[name=a] *[n=1] { x: 1; }";
+      struct dj_dss_sheet* sh = d_dss_parse(t, strlen(t), &e);
       check(sh && d_dss_warning_count(sh) == 0, "an explicit `*[` does not warn");
       d_dss_free(sh); }
 

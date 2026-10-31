@@ -23,10 +23,10 @@
 #include <stdlib.h>  // malloc, realloc, free, getenv
 #include <string.h>  // memcpy, memset, strchr, strcmp, strlen, strncmp, strstr
 // djinterp
-#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_doc.h"   // d_git_doc
-#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_repo.h"  // d_git_repo
-#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_text.h"  // d_git_text
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"              // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_doc.h"   // dj_git_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_repo.h"  // dj_git_repo
+#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_text.h"  // dj_git_text
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"              // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"             // d_awk_value_text
 
 
@@ -41,34 +41,34 @@
 // d_internal_slot
 //   struct: what a handle names: a file, a repository, or -- closed --
 //   neither.
-struct d_internal_slot
+struct dj_internal_slot
 {
-    struct d_git_doc*  doc;
-    struct d_git_repo* repo;
+    struct dj_git_doc*  doc;
+    struct dj_git_repo* repo;
 };
 
 // 1.1.2
-// d_host_git
+// dj_host_git
 //   struct: the files and repositories, open or closed, and the last
 //   failure.
-struct d_host_git
+struct dj_host_git
 {
-    struct d_internal_slot* slots;
+    struct dj_internal_slot* slots;
     size_t                  slot_count;
     size_t                  slot_capacity;
     char                    error[512];
 };
 
 // 1.1.3
-// d_internal_fn_count
+// dj_internal_fn_count
 //   type: how many records of a kind a file's records hold.
-typedef size_t (*d_internal_fn_count)(const struct d_git_text* _text);
+typedef size_t (*dj_internal_fn_count)(const struct dj_git_text* _text);
 
 // 1.1.4
-// d_internal_values
+// dj_internal_values
 //   struct: the values a key has, lowest first, each borrowed -- NULL for
 //   a name alone.
-struct d_internal_values
+struct dj_internal_values
 {
     const char** items;
     size_t       count;
@@ -87,18 +87,18 @@ d_internal_text, d_internal_index
   An argument's text, and an argument as an index from 1: a value below 1,
 or not a number, is 0.
 */
-static const char*
-d_internal_text(
-    struct d_awk_value* _value
+static
+const char* d_internal_text(
+    struct dj_awk_value* _value
 )
 {
     return d_awk_value_text(_value, NULL, NULL);
 }
 
 
-static size_t
-d_internal_index(
-    struct d_awk_value* _value
+static
+size_t d_internal_index(
+    struct dj_awk_value* _value
 )
 {
     const double number = d_awk_value_number(_value);
@@ -118,10 +118,10 @@ d_internal_copy
   An argument's text, copied and terminated, as another argument read may
 be converted over it; its length, when asked.
 */
-static char*
-d_internal_copy(
-    struct d_awk_value* _value,
-    size_t*             _out_length
+static
+char* d_internal_copy(
+    struct dj_awk_value* _value,
+    size_t*              _out_length
 )
 {
     size_t            length = 0u;
@@ -150,11 +150,11 @@ d_internal_fail
   Gives -1 for a failure a program can recover from, git_error() saying
 why.
 */
-static bool
-d_internal_fail(
-    struct d_host_git*  _host,
-    struct d_awk_value* _out,
-    const char*         _why
+static
+bool d_internal_fail(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _out,
+    const char*          _why
 )
 {
     // a reason already given stays; another is copied
@@ -180,10 +180,10 @@ d_internal_set_flag, d_internal_set_index
   Gives text, bytes of a length, a number, 1 or 0, or an index from 0 as
 one from 1 -- 0 for none.
 */
-static bool
-d_internal_set_text(
-    struct d_awk_value* _out,
-    const char*         _text
+static
+bool d_internal_set_text(
+    struct dj_awk_value* _out,
+    const char*          _text
 )
 {
     return d_awk_value_set_string(_out, (_text) ? _text : "",
@@ -191,11 +191,11 @@ d_internal_set_text(
 }
 
 
-static bool
-d_internal_set_bytes(
-    struct d_awk_value* _out,
-    const void*         _bytes,
-    size_t              _length
+static
+bool d_internal_set_bytes(
+    struct dj_awk_value* _out,
+    const void*          _bytes,
+    size_t               _length
 )
 {
     return d_awk_value_set_string(_out, (_bytes) ? _bytes : "",
@@ -203,10 +203,10 @@ d_internal_set_bytes(
 }
 
 
-static bool
-d_internal_set_number(
-    struct d_awk_value* _out,
-    double              _number
+static
+bool d_internal_set_number(
+    struct dj_awk_value* _out,
+    double               _number
 )
 {
     d_awk_value_set_number(_out, _number);
@@ -215,20 +215,20 @@ d_internal_set_number(
 }
 
 
-static bool
-d_internal_set_flag(
-    struct d_awk_value* _out,
-    bool                _flag
+static
+bool d_internal_set_flag(
+    struct dj_awk_value* _out,
+    bool                 _flag
 )
 {
     return d_internal_set_number(_out, (_flag) ? 1.0 : 0.0);
 }
 
 
-static bool
-d_internal_set_index(
-    struct d_awk_value* _out,
-    size_t              _index
+static
+bool d_internal_set_index(
+    struct dj_awk_value* _out,
+    size_t               _index
 )
 {
     return d_internal_set_number(_out, (_index == D_GIT_TEXT_NONE)
@@ -241,12 +241,12 @@ d_internal_set_index(
 d_internal_set_span
   Gives a span of a file's text, "" for one not there.
 */
-static bool
-d_internal_set_span(
-    struct d_awk_value*     _out,
-    const struct d_git_doc* _doc,
-    size_t                  _start,
-    size_t                  _end
+static
+bool d_internal_set_span(
+    struct dj_awk_value*     _out,
+    const struct dj_git_doc* _doc,
+    size_t                   _start,
+    size_t                   _end
 )
 {
     size_t            length = 0u;
@@ -268,11 +268,11 @@ d_internal_set_span(
 d_internal_set_buffer
   Gives a buffer's text, which is freed; -1 for one memory ran out of.
 */
-static bool
-d_internal_set_buffer(
-    struct d_host_git*   _host,
-    struct d_awk_value*  _out,
-    struct d_git_buffer* _buffer
+static
+bool d_internal_set_buffer(
+    struct dj_host_git*   _host,
+    struct dj_awk_value*  _out,
+    struct dj_git_buffer* _buffer
 )
 {
     // a buffer memory ran out of
@@ -298,11 +298,11 @@ d_internal_set_buffer(
 d_internal_set_hex
   Gives an object's name in hex.
 */
-static bool
-d_internal_set_hex(
-    struct d_awk_value*      _out,
-    const struct d_git_repo* _repo,
-    const struct d_git_oid*  _oid
+static
+bool d_internal_set_hex(
+    struct dj_awk_value*      _out,
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _oid
 )
 {
     char hex[(2u * D_GIT_OID_MOST) + 1u];
@@ -317,8 +317,8 @@ d_internal_set_hex(
 d_internal_field
   A field's place among a table of names; `_count` for none.
 */
-static size_t
-d_internal_field(
+static
+size_t d_internal_field(
     const char*        _field,
     const char* const* _names,
     size_t             _count
@@ -342,11 +342,11 @@ d_internal_field(
 d_internal_unknown_field
   Gives "" for a field not known, git_error() saying so.
 */
-static bool
-d_internal_unknown_field(
-    struct d_host_git*  _host,
-    struct d_awk_value* _out,
-    const char*         _field
+static
+bool d_internal_unknown_field(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _out,
+    const char*          _field
 )
 {
     (void)snprintf(_host->error, sizeof(_host->error), "no field %s",
@@ -361,11 +361,11 @@ d_internal_add_path
   A path added to a list, as it is, or in git's quotes when it holds a
 control byte, a quote or a backslash.
 */
-static void
-d_internal_add_path(
-    struct d_git_buffer* _list,
-    const char*          _path,
-    size_t               _length
+static
+void d_internal_add_path(
+    struct dj_git_buffer* _list,
+    const char*           _path,
+    size_t                _length
 )
 {
     bool plain = true;
@@ -399,8 +399,8 @@ d_internal_add_path(
 d_internal_dup
   A string, allocated.
 */
-static char*
-d_internal_dup(
+static
+char* d_internal_dup(
     const char* _text
 )
 {
@@ -421,13 +421,13 @@ d_internal_dup(
 d_internal_join
   Two paths with a `/` between, allocated.
 */
-static char*
-d_internal_join(
+static
+char* d_internal_join(
     const char* _left,
     const char* _right
 )
 {
-    struct d_git_buffer joined;
+    struct dj_git_buffer joined;
 
     memset(&joined, 0, sizeof(joined));
     (void)d_git_buffer_add_text(&joined, _left);
@@ -447,10 +447,10 @@ d_internal_join(
 d_internal_slot_of
   What a handle names, or NULL, git_error() saying why.
 */
-static struct d_internal_slot*
-d_internal_slot_of(
-    struct d_host_git*  _host,
-    struct d_awk_value* _handle
+static
+struct dj_internal_slot* d_internal_slot_of(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _handle
 )
 {
     const size_t handle = d_internal_index(_handle);
@@ -476,13 +476,13 @@ d_internal_doc, d_internal_repo
   The file, or the repository, a handle names, or NULL, git_error() saying
 why.
 */
-static struct d_git_doc*
-d_internal_doc(
-    struct d_host_git*  _host,
-    struct d_awk_value* _handle
+static
+struct dj_git_doc* d_internal_doc(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _handle
 )
 {
-    const struct d_internal_slot* const slot = d_internal_slot_of(_host,
+    const struct dj_internal_slot* const slot = d_internal_slot_of(_host,
                                                                   _handle);
 
     // a repository's handle
@@ -498,13 +498,13 @@ d_internal_doc(
 }
 
 
-static struct d_git_repo*
-d_internal_repo(
-    struct d_host_git*  _host,
-    struct d_awk_value* _handle
+static
+struct dj_git_repo* d_internal_repo(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _handle
 )
 {
-    const struct d_internal_slot* const slot = d_internal_slot_of(_host,
+    const struct dj_internal_slot* const slot = d_internal_slot_of(_host,
                                                                   _handle);
 
     // a file's handle
@@ -524,12 +524,12 @@ d_internal_repo(
 d_internal_add_slot
   Keeps a file or a repository, and gives its handle.
 */
-static bool
-d_internal_add_slot(
-    struct d_host_git*  _host,
-    struct d_awk_value* _out,
-    struct d_git_doc*   _doc,
-    struct d_git_repo*  _repo
+static
+bool d_internal_add_slot(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _out,
+    struct dj_git_doc*   _doc,
+    struct dj_git_repo*  _repo
 )
 {
     // room for one more
@@ -538,7 +538,7 @@ d_internal_add_slot(
         const size_t                  wanted = (_host->slot_capacity > 0u)
                                                ? (_host->slot_capacity * 2u)
                                                : 8u;
-        struct d_internal_slot* const grown  =
+        struct dj_internal_slot* const grown  =
             realloc(_host->slots, wanted * sizeof(*grown));
 
         // what cannot be kept is freed, and no handle given
@@ -566,12 +566,12 @@ d_internal_add_slot(
 d_internal_changed
   Gives 1 for a change kept, or -1 for one refused, the file saying why.
 */
-static bool
-d_internal_changed(
-    struct d_host_git*      _host,
-    struct d_awk_value*     _out,
-    const struct d_git_doc* _doc,
-    bool                    _ok
+static
+bool d_internal_changed(
+    struct dj_host_git*      _host,
+    struct dj_awk_value*     _out,
+    const struct dj_git_doc* _doc,
+    bool                     _ok
 )
 {
     // refused: the file says why
@@ -590,16 +590,16 @@ d_internal_record
 `_count` of them -- an argument names from 1; NULL, git_error() saying
 why, for no file or no such record.
 */
-static struct d_git_doc*
-d_internal_record(
-    struct d_host_git*  _host,
-    struct d_awk_value* _handle,
-    struct d_awk_value* _index,
-    d_internal_fn_count _count,
-    size_t*             _out_index
+static
+struct dj_git_doc* d_internal_record(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _handle,
+    struct dj_awk_value* _index,
+    dj_internal_fn_count _count,
+    size_t*              _out_index
 )
 {
-    struct d_git_doc* const doc   = d_internal_doc(_host, _handle);
+    struct dj_git_doc* const doc   = d_internal_doc(_host, _handle);
     const size_t            index = d_internal_index(_index);
 
     // a file, and a record of it
@@ -628,45 +628,45 @@ d_internal_lines_of, d_internal_patterns_of, d_internal_sections_of,
 d_internal_entries_of, d_internal_problems_of
   How many records of a kind a file has.
 */
-static size_t
-d_internal_lines_of(
-    const struct d_git_text* _text
+static
+size_t d_internal_lines_of(
+    const struct dj_git_text* _text
 )
 {
     return _text->line_count;
 }
 
 
-static size_t
-d_internal_patterns_of(
-    const struct d_git_text* _text
+static
+size_t d_internal_patterns_of(
+    const struct dj_git_text* _text
 )
 {
     return _text->pattern_count;
 }
 
 
-static size_t
-d_internal_sections_of(
-    const struct d_git_text* _text
+static
+size_t d_internal_sections_of(
+    const struct dj_git_text* _text
 )
 {
     return _text->section_count;
 }
 
 
-static size_t
-d_internal_entries_of(
-    const struct d_git_text* _text
+static
+size_t d_internal_entries_of(
+    const struct dj_git_text* _text
 )
 {
     return _text->entry_count;
 }
 
 
-static size_t
-d_internal_problems_of(
-    const struct d_git_text* _text
+static
+size_t d_internal_problems_of(
+    const struct dj_git_text* _text
 )
 {
     return _text->problem_count;
@@ -677,15 +677,15 @@ d_internal_problems_of(
 d_internal_count
   Gives how many records of a kind a file has.
 */
-static bool
-d_internal_count(
-    struct d_host_git*  _host,
-    struct d_awk_value* _handle,
-    struct d_awk_value* _out,
-    d_internal_fn_count _count
+static
+bool d_internal_count(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _handle,
+    struct dj_awk_value* _out,
+    dj_internal_fn_count _count
 )
 {
-    const struct d_git_doc* const doc = d_internal_doc(_host, _handle);
+    const struct dj_git_doc* const doc = d_internal_doc(_host, _handle);
 
     // a file open
     if (!doc)
@@ -702,11 +702,11 @@ d_internal_count(
 d_internal_repo_fail
   Gives -1, git_error() saying why the repository refused.
 */
-static bool
-d_internal_repo_fail(
-    struct d_host_git*       _host,
-    struct d_awk_value*      _out,
-    const struct d_git_repo* _repo
+static
+bool d_internal_repo_fail(
+    struct dj_host_git*       _host,
+    struct dj_awk_value*      _out,
+    const struct dj_git_repo* _repo
 )
 {
     return d_internal_fail(_host, _out, d_git_repo_problem(_repo));
@@ -722,14 +722,14 @@ d_internal_repo_fail(
 d_internal_kind_arg
   The kind an argument names, or D_GIT_TEXT_OTHER, git_error() saying so.
 */
-static enum d_git_text_kind
+static enum dj_git_text_kind
 d_internal_kind_arg(
-    struct d_host_git*  _host,
-    struct d_awk_value* _value
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _value
 )
 {
     const char* const          name = d_internal_text(_value);
-    const enum d_git_text_kind kind = d_git_text_kind_named(name);
+    const enum dj_git_text_kind kind = d_git_text_kind_named(name);
 
     // a name none is
     if (kind == D_GIT_TEXT_OTHER)
@@ -746,18 +746,18 @@ d_internal_kind_arg(
 git_open(path[, kind]), git_new(path[, kind[, text]])
   A file from disk, or of a text.
 */
-static bool
-d_internal_git_open(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_open(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const   host = _user;
-    const enum d_git_text_kind kind = (_count > 1u)
+    struct dj_host_git* const   host = _user;
+    const enum dj_git_text_kind kind = (_count > 1u)
                                       ? d_internal_kind_arg(host, _args[1])
                                       : D_GIT_TEXT_OTHER;
     char                       why[512];
@@ -780,7 +780,7 @@ d_internal_git_open(
         return d_internal_fail(host, _out, "out of memory");
     }
 
-    struct d_git_doc* const doc = d_git_doc_read(path, kind, why,
+    struct dj_git_doc* const doc = d_git_doc_read(path, kind, why,
                                                  sizeof(why));
 
     free(path);
@@ -790,21 +790,21 @@ d_internal_git_open(
 }
 
 
-static bool
-d_internal_git_new(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_new(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const   host   = _user;
+    struct dj_host_git* const   host   = _user;
     const bool                 named  = ( (_count > 1u) &&
                                           (d_internal_text(_args[1])[0]
                                                != '\0') );
-    const enum d_git_text_kind kind   = (named)
+    const enum dj_git_text_kind kind   = (named)
                                         ? d_internal_kind_arg(host, _args[1])
                                         : D_GIT_TEXT_OTHER;
     size_t                     length = 0u;
@@ -834,7 +834,7 @@ d_internal_git_new(
         return d_internal_fail(host, _out, "out of memory");
     }
 
-    struct d_git_doc* const doc = d_git_doc_make(path, kind, text, length,
+    struct dj_git_doc* const doc = d_git_doc_make(path, kind, text, length,
                                                  why, sizeof(why));
 
     free(path);
@@ -850,18 +850,18 @@ git_save(f[, path])
   1 written, 0 unchanged -- the file there holds the text already -- or
 -1.
 */
-static bool
-d_internal_git_save(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_save(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const      host = _user;
-    const struct d_git_doc* const doc  = d_internal_doc(host, _args[0]);
+    struct dj_host_git* const      host = _user;
+    const struct dj_git_doc* const doc  = d_internal_doc(host, _args[0]);
     char                          why[512];
 
     (void)_problem;
@@ -883,7 +883,7 @@ d_internal_git_save(
         return d_internal_fail(host, _out, "out of memory");
     }
 
-    const enum d_git_saved saved = d_git_doc_save(doc, path, why,
+    const enum dj_git_saved saved = d_git_doc_save(doc, path, why,
                                                   sizeof(why));
 
     free(path);
@@ -902,18 +902,18 @@ d_internal_git_save(
 git_close(h)
   1, the file or repository let go of; 0 for nothing open.
 */
-static bool
-d_internal_git_close(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_close(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const      host = _user;
-    struct d_internal_slot* const slot = d_internal_slot_of(host, _args[0]);
+    struct dj_host_git* const      host = _user;
+    struct dj_internal_slot* const slot = d_internal_slot_of(host, _args[0]);
 
     (void)_count;
     (void)_problem;
@@ -936,17 +936,17 @@ d_internal_git_close(
 git_error()
   Why the last failure failed.
 */
-static bool
-d_internal_git_error(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_error(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    const struct d_host_git* const host = _user;
+    const struct dj_host_git* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -957,9 +957,9 @@ d_internal_git_error(
 }
 
 
-// d_internal_about
+// dj_internal_about
 //   enum: what of a file git_path and its kin give.
-enum d_internal_about
+enum dj_internal_about
 {
     D_INTERNAL_ABOUT_PATH = 0,
     D_INTERNAL_ABOUT_KIND,
@@ -974,13 +974,13 @@ d_internal_about_doc
 */
 static bool
 d_internal_about_doc(
-    struct d_host_git*    _host,
-    struct d_awk_value*   _handle,
-    struct d_awk_value*   _out,
-    enum d_internal_about _about
+    struct dj_host_git*    _host,
+    struct dj_awk_value*   _handle,
+    struct dj_awk_value*   _out,
+    enum dj_internal_about _about
 )
 {
-    const struct d_git_doc* const doc    = d_internal_doc(_host, _handle);
+    const struct dj_git_doc* const doc    = d_internal_doc(_host, _handle);
     size_t                        length = 0u;
 
     // a file open
@@ -1013,14 +1013,14 @@ d_internal_about_doc(
 /*
 git_path(f), git_kind(f), git_text(f), git_changes(f)
 */
-static bool
-d_internal_git_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1031,14 +1031,14 @@ d_internal_git_path(
 }
 
 
-static bool
-d_internal_git_kind(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_kind(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1049,14 +1049,14 @@ d_internal_git_kind(
 }
 
 
-static bool
-d_internal_git_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1067,14 +1067,14 @@ d_internal_git_text(
 }
 
 
-static bool
-d_internal_git_changes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_changes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1090,14 +1090,14 @@ d_internal_git_changes(
 git_kind_of(path)
   The kind a file's name says: ignore, attributes, config, or other.
 */
-static bool
-d_internal_git_kind_of(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_kind_of(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_user;
@@ -1115,14 +1115,14 @@ d_internal_git_kind_of(
 git_problems(f), git_problem(f, i, field)
   What git refuses in a file: line, what.
 */
-static bool
-d_internal_git_problems(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_problems(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1133,20 +1133,20 @@ d_internal_git_problems(
 }
 
 
-static bool
-d_internal_git_problem(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_problem(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "line", "what" };
-    struct d_host_git* const host     = _user;
+    struct dj_host_git* const host     = _user;
     size_t                   index    = 0u;
-    const struct d_git_doc*  doc      = d_internal_record(
+    const struct dj_git_doc*  doc      = d_internal_record(
                                             host, _args[0], _args[1],
                                             d_internal_problems_of, &index);
 
@@ -1160,8 +1160,8 @@ d_internal_git_problem(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_git_text* const         text    = d_git_doc_records(doc);
-    const struct d_git_text_problem* const problem = &text->problems[index];
+    const struct dj_git_text* const         text    = d_git_doc_records(doc);
+    const struct dj_git_text_problem* const problem = &text->problems[index];
     const char* const                      field   = d_internal_text(_args[2]);
 
     // a table of the fields
@@ -1187,7 +1187,7 @@ d_internal_line_kind_name
 */
 static const char*
 d_internal_line_kind_name(
-    enum d_git_text_line_kind _kind
+    enum dj_git_text_line_kind _kind
 )
 {
     // a table of the kinds
@@ -1209,14 +1209,14 @@ git_lines(f), git_line(f, i, field)
   A file's lines: kind, text -- the first's past a byte-order mark, as a
 line is set -- pattern, section, entry.
 */
-static bool
-d_internal_git_lines(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_lines(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1227,21 +1227,21 @@ d_internal_git_lines(
 }
 
 
-static bool
-d_internal_git_line(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_line(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "kind", "text", "pattern",
                                           "section", "entry" };
-    struct d_host_git* const host     = _user;
+    struct dj_host_git* const host     = _user;
     size_t                   index    = 0u;
-    const struct d_git_doc*  doc      = d_internal_record(
+    const struct dj_git_doc*  doc      = d_internal_record(
                                             host, _args[0], _args[1],
                                             d_internal_lines_of, &index);
 
@@ -1255,7 +1255,7 @@ d_internal_git_line(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_git_text_line* const line =
+    const struct dj_git_text_line* const line =
         &d_git_doc_records(doc)->lines[index];
     const char* const                   field = d_internal_text(_args[2]);
 
@@ -1277,9 +1277,9 @@ d_internal_git_line(
 }
 
 
-// d_internal_line_change
+// dj_internal_line_change
 //   enum: what git_insert_line and its kin do to a line.
-enum d_internal_line_change
+enum dj_internal_line_change
 {
     D_INTERNAL_LINE_INSERT = 0,
     D_INTERNAL_LINE_ADD,
@@ -1295,13 +1295,13 @@ made -- 1 for one removed -- or -1, the file saying why.
 */
 static bool
 d_internal_change_line(
-    struct d_host_git*          _host,
-    struct d_awk_value**        _args,
-    struct d_awk_value*         _out,
-    enum d_internal_line_change _change
+    struct dj_host_git*          _host,
+    struct dj_awk_value**        _args,
+    struct dj_awk_value*         _out,
+    enum dj_internal_line_change _change
 )
 {
-    struct d_git_doc* const doc   = d_internal_doc(_host, _args[0]);
+    struct dj_git_doc* const doc   = d_internal_doc(_host, _args[0]);
     const size_t            lines = (doc) ? d_git_doc_records(doc)->line_count
                                           : 0u;
     const size_t            index = (_change == D_INTERNAL_LINE_ADD)
@@ -1358,14 +1358,14 @@ d_internal_change_line(
 git_insert_line(f, before, text), git_add_line(f, text),
 git_set_line(f, i, text), git_remove_line(f, i)
 */
-static bool
-d_internal_git_insert_line(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_insert_line(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1377,14 +1377,14 @@ d_internal_git_insert_line(
 }
 
 
-static bool
-d_internal_git_add_line(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_add_line(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1395,14 +1395,14 @@ d_internal_git_add_line(
 }
 
 
-static bool
-d_internal_git_set_line(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_set_line(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1413,14 +1413,14 @@ d_internal_git_set_line(
 }
 
 
-static bool
-d_internal_git_remove_line(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_remove_line(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1442,14 +1442,14 @@ git_patterns(f), git_pattern(f, i, field)
   An ignore or attribute file's patterns: line, text, pattern, negated,
 directory, anywhere, quoted, macro, states.
 */
-static bool
-d_internal_git_patterns(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_patterns(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1460,23 +1460,23 @@ d_internal_git_patterns(
 }
 
 
-static bool
-d_internal_git_pattern(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_pattern(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "line", "text", "pattern",
                                           "negated", "directory",
                                           "anywhere", "quoted", "macro",
                                           "states" };
-    struct d_host_git* const host     = _user;
+    struct dj_host_git* const host     = _user;
     size_t                   index    = 0u;
-    const struct d_git_doc*  doc      = d_internal_record(
+    const struct dj_git_doc*  doc      = d_internal_record(
                                             host, _args[0], _args[1],
                                             d_internal_patterns_of, &index);
 
@@ -1490,8 +1490,8 @@ d_internal_git_pattern(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_git_text* const         text    = d_git_doc_records(doc);
-    const struct d_git_text_pattern* const pattern = &text->patterns[index];
+    const struct dj_git_text* const         text    = d_git_doc_records(doc);
+    const struct dj_git_text_pattern* const pattern = &text->patterns[index];
     const char* const                      field   = d_internal_text(_args[2]);
 
     // a table of the fields
@@ -1522,7 +1522,7 @@ d_internal_state_name
 */
 static const char*
 d_internal_state_name(
-    enum d_git_text_state _state
+    enum dj_git_text_state _state
 )
 {
     // a table of the states
@@ -1540,20 +1540,20 @@ d_internal_state_name(
 git_state(f, i, n, field)
   The nth state of a pattern's line: name, state, value, text.
 */
-static bool
-d_internal_git_state(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_state(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "name", "state", "value", "text" };
-    struct d_host_git* const host     = _user;
+    struct dj_host_git* const host     = _user;
     size_t                   index    = 0u;
-    const struct d_git_doc*  doc      = d_internal_record(
+    const struct dj_git_doc*  doc      = d_internal_record(
                                             host, _args[0], _args[1],
                                             d_internal_patterns_of, &index);
     const size_t             nth      = d_internal_index(_args[2]);
@@ -1562,7 +1562,7 @@ d_internal_git_state(
     (void)_problem;
     (void)_capacity;
 
-    const struct d_git_text* const text = (doc) ? d_git_doc_records(doc)
+    const struct dj_git_text* const text = (doc) ? d_git_doc_records(doc)
                                                 : NULL;
 
     // a file, a pattern of it, and a state of the pattern
@@ -1574,7 +1574,7 @@ d_internal_git_state(
                                                  : host->error);
     }
 
-    const struct d_git_text_attribute* const state =
+    const struct dj_git_text_attribute* const state =
         &text->attributes[text->patterns[index].first_attribute + nth - 1u];
     const char* const                        field = d_internal_text(_args[3]);
 
@@ -1599,19 +1599,19 @@ git_set_state(f, i, state), git_remove_state(f, i, name)
   A state, as written -- text, -text, !text, eol=lf -- put on a pattern's
 line, or every state of a name taken off it.
 */
-static bool
-d_internal_git_set_state(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_set_state(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host  = _user;
+    struct dj_host_git* const host  = _user;
     size_t                   index = 0u;
-    struct d_git_doc* const  doc   = d_internal_record(host, _args[0],
+    struct dj_git_doc* const  doc   = d_internal_record(host, _args[0],
                                                        _args[1],
                                                        d_internal_patterns_of,
                                                        &index);
@@ -1630,7 +1630,7 @@ d_internal_git_set_state(
     }
 
     char* const                 equals = strchr(text, '=');
-    const enum d_git_text_state state  = (equals) ? D_GIT_TEXT_VALUE
+    const enum dj_git_text_state state  = (equals) ? D_GIT_TEXT_VALUE
                                          : (text[0] == '-') ? D_GIT_TEXT_UNSET
                                          : (text[0] == '!')
                                            ? D_GIT_TEXT_UNSPECIFIED
@@ -1655,19 +1655,19 @@ d_internal_git_set_state(
 }
 
 
-static bool
-d_internal_git_remove_state(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_remove_state(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host  = _user;
+    struct dj_host_git* const host  = _user;
     size_t                   index = 0u;
-    struct d_git_doc* const  doc   = d_internal_record(host, _args[0],
+    struct dj_git_doc* const  doc   = d_internal_record(host, _args[0],
                                                        _args[1],
                                                        d_internal_patterns_of,
                                                        &index);
@@ -1698,12 +1698,12 @@ d_internal_query_of
   A path as a lookup asks of it: a directory's when it ends with `/`, the
 slashes off.
 */
-static struct d_git_text_query
-d_internal_query_of(
+static
+struct dj_git_text_query d_internal_query_of(
     const char* _path
 )
 {
-    struct d_git_text_query query;
+    struct dj_git_text_query query;
     size_t                  length = strlen(_path);
 
     memset(&query, 0, sizeof(query));
@@ -1728,12 +1728,12 @@ d_internal_file_scope
   A file as the one scope of a lookup, from the top of the work tree, its
 macros counting.
 */
-static struct d_git_text_scope
-d_internal_file_scope(
-    const struct d_git_doc* _doc
+static
+struct dj_git_text_scope d_internal_file_scope(
+    const struct dj_git_doc* _doc
 )
 {
-    struct d_git_text_scope scope;
+    struct dj_git_text_scope scope;
 
     scope.text   = d_git_doc_records(_doc);
     scope.base   = "";
@@ -1749,16 +1749,16 @@ d_internal_file_match
 git decides, a directory above the path first; an attribute file's the
 last that matches it; D_GIT_TEXT_NONE for none.
 */
-static size_t
-d_internal_file_match(
-    const struct d_git_doc* _doc,
-    const char*             _path,
-    bool*                   _out_ignored
+static
+size_t d_internal_file_match(
+    const struct dj_git_doc* _doc,
+    const char*              _path,
+    bool*                    _out_ignored
 )
 {
-    const struct d_git_text_scope scope = d_internal_file_scope(_doc);
-    const struct d_git_text_query query = d_internal_query_of(_path);
-    struct d_git_text_match       match;
+    const struct dj_git_text_scope scope = d_internal_file_scope(_doc);
+    const struct dj_git_text_query query = d_internal_query_of(_path);
+    struct dj_git_text_match       match;
 
     *_out_ignored = false;
 
@@ -1790,18 +1790,18 @@ d_internal_file_match(
 git_match(f, path)
   The pattern that decides a path, from 1; 0 for none.
 */
-static bool
-d_internal_git_match(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_match(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const      host    = _user;
-    const struct d_git_doc* const doc     = d_internal_doc(host, _args[0]);
+    struct dj_host_git* const      host    = _user;
+    const struct dj_git_doc* const doc     = d_internal_doc(host, _args[0]);
     bool                          ignored = false;
 
     (void)_count;
@@ -1830,14 +1830,14 @@ git_sections(f), git_section(f, i, field)
   A configuration's sections: name, subsection, prefix, line, legacy,
 entries, first.
 */
-static bool
-d_internal_git_sections(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_sections(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1848,22 +1848,22 @@ d_internal_git_sections(
 }
 
 
-static bool
-d_internal_git_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "name", "subsection", "prefix",
                                           "line", "legacy", "entries",
                                           "first" };
-    struct d_host_git* const host     = _user;
+    struct dj_host_git* const host     = _user;
     size_t                   index    = 0u;
-    const struct d_git_doc*  doc      = d_internal_record(
+    const struct dj_git_doc*  doc      = d_internal_record(
                                             host, _args[0], _args[1],
                                             d_internal_sections_of, &index);
 
@@ -1877,8 +1877,8 @@ d_internal_git_section(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_git_text* const         text    = d_git_doc_records(doc);
-    const struct d_git_text_section* const section = &text->sections[index];
+    const struct dj_git_text* const         text    = d_git_doc_records(doc);
+    const struct dj_git_text_section* const section = &text->sections[index];
     const char* const                      prefix  =
         d_git_text_string(text, section->prefix);
     const char* const                      dot     = strchr(prefix, '.');
@@ -1909,14 +1909,14 @@ git_entries(f), git_entry(f, i, field)
   A configuration's entries: key, name, value, has_value, raw, line,
 last_line, section, text.
 */
-static bool
-d_internal_git_entries(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_entries(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1927,22 +1927,22 @@ d_internal_git_entries(
 }
 
 
-static bool
-d_internal_git_entry(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_entry(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "key", "name", "value",
                                           "has_value", "raw", "line",
                                           "last_line", "section", "text" };
-    struct d_host_git* const host     = _user;
+    struct dj_host_git* const host     = _user;
     size_t                   index    = 0u;
-    const struct d_git_doc*  doc      = d_internal_record(
+    const struct dj_git_doc*  doc      = d_internal_record(
                                             host, _args[0], _args[1],
                                             d_internal_entries_of, &index);
 
@@ -1956,8 +1956,8 @@ d_internal_git_entry(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const struct d_git_text* const       text  = d_git_doc_records(doc);
-    const struct d_git_text_entry* const entry = &text->entries[index];
+    const struct dj_git_text* const       text  = d_git_doc_records(doc);
+    const struct dj_git_text_entry* const entry = &text->entries[index];
     const char* const                    field = d_internal_text(_args[2]);
 
     // a table of the fields
@@ -1991,13 +1991,13 @@ d_internal_canonical
 "section" or "section.subsection", its section in lower case; allocated,
 NULL for one git refuses.
 */
-static char*
-d_internal_canonical(
+static
+char* d_internal_canonical(
     const char* _name,
     bool        _section
 )
 {
-    struct d_git_buffer canonical;
+    struct dj_git_buffer canonical;
 
     memset(&canonical, 0, sizeof(canonical));
 
@@ -2040,16 +2040,16 @@ git_find_entry(f, key[, after]), git_find_section(f, name[, after])
   The first entry of a key, or section of a name, after `after`; 0 for
 none.
 */
-static bool
-d_internal_find(
-    struct d_host_git*   _host,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    bool                 _section
+static
+bool d_internal_find(
+    struct dj_host_git*   _host,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    bool                  _section
 )
 {
-    const struct d_git_doc* const doc   = d_internal_doc(_host, _args[0]);
+    const struct dj_git_doc* const doc   = d_internal_doc(_host, _args[0]);
     const size_t                  after = (_count > 2u)
                                           ? d_internal_index(_args[2])
                                           : 0u;
@@ -2076,14 +2076,14 @@ d_internal_find(
 }
 
 
-static bool
-d_internal_git_find_entry(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_find_entry(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2093,14 +2093,14 @@ d_internal_git_find_entry(
 }
 
 
-static bool
-d_internal_git_find_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_find_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2110,9 +2110,9 @@ d_internal_git_find_section(
 }
 
 
-// d_internal_config_change
+// dj_internal_config_change
 //   enum: what git_set and its kin do to a configuration.
-enum d_internal_config_change
+enum dj_internal_config_change
 {
     D_INTERNAL_CONFIG_SET = 0,
     D_INTERNAL_CONFIG_ADD,
@@ -2129,14 +2129,14 @@ config does: 1, or -1, the file saying why.
 */
 static bool
 d_internal_change_config(
-    struct d_host_git*            _host,
-    struct d_awk_value**          _args,
+    struct dj_host_git*            _host,
+    struct dj_awk_value**          _args,
     size_t                        _count,
-    struct d_awk_value*           _out,
-    enum d_internal_config_change _change
+    struct dj_awk_value*           _out,
+    enum dj_internal_config_change _change
 )
 {
-    struct d_git_doc* const doc   = d_internal_doc(_host, _args[0]);
+    struct dj_git_doc* const doc   = d_internal_doc(_host, _args[0]);
     char* const             name  = (doc) ? d_internal_copy(_args[1], NULL)
                                           : NULL;
     const bool              other = ( (_change != D_INTERNAL_CONFIG_UNSET) &&
@@ -2189,14 +2189,14 @@ d_internal_change_config(
 git_set(f, key, value), git_add(f, key, value), git_unset(f, key[, all]),
 git_rename_section(f, name, to), git_remove_section(f, name)
 */
-static bool
-d_internal_git_set(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_set(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2207,14 +2207,14 @@ d_internal_git_set(
 }
 
 
-static bool
-d_internal_git_add(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_add(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2225,14 +2225,14 @@ d_internal_git_add(
 }
 
 
-static bool
-d_internal_git_unset(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_unset(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2243,14 +2243,14 @@ d_internal_git_unset(
 }
 
 
-static bool
-d_internal_git_rename_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_rename_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2261,14 +2261,14 @@ d_internal_git_rename_section(
 }
 
 
-static bool
-d_internal_git_remove_section(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_remove_section(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2283,17 +2283,17 @@ d_internal_git_remove_section(
 git_set_entry(f, i[, value]), git_remove_entry(f, i)
   One entry given a value -- its name alone without one -- or taken away.
 */
-static bool
-d_internal_change_entry(
-    struct d_host_git*   _host,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    bool                 _remove
+static
+bool d_internal_change_entry(
+    struct dj_host_git*   _host,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    bool                  _remove
 )
 {
     size_t                  index = 0u;
-    struct d_git_doc* const doc   = d_internal_record(_host, _args[0],
+    struct dj_git_doc* const doc   = d_internal_record(_host, _args[0],
                                                       _args[1],
                                                       d_internal_entries_of,
                                                       &index);
@@ -2318,14 +2318,14 @@ d_internal_change_entry(
 }
 
 
-static bool
-d_internal_git_set_entry(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_set_entry(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2335,14 +2335,14 @@ d_internal_git_set_entry(
 }
 
 
-static bool
-d_internal_git_remove_entry(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_remove_entry(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2361,10 +2361,10 @@ d_internal_git_remove_entry(
 d_internal_values_add
   A value kept among a key's.
 */
-static void
-d_internal_values_add(
-    struct d_internal_values* _values,
-    const char*               _value
+static
+void d_internal_values_add(
+    struct dj_internal_values* _values,
+    const char*                _value
 )
 {
     // room for one more
@@ -2401,15 +2401,15 @@ that ran out.
   Long as a file's entries and a repository's settings are each gathered
 here.
 */
-static bool
-d_internal_values_of(
-    struct d_host_git*        _host,
-    struct d_awk_value*       _handle,
-    const char*               _key,
-    struct d_internal_values* _out
+static
+bool d_internal_values_of(
+    struct dj_host_git*        _host,
+    struct dj_awk_value*       _handle,
+    const char*                _key,
+    struct dj_internal_values* _out
 )
 {
-    const struct d_internal_slot* const slot = d_internal_slot_of(_host,
+    const struct dj_internal_slot* const slot = d_internal_slot_of(_host,
                                                                   _handle);
     char* const                         key  = d_internal_canonical(_key,
                                                                     false);
@@ -2432,7 +2432,7 @@ d_internal_values_of(
         return false;
     }
 
-    const struct d_git_text* const text = (slot->doc)
+    const struct dj_git_text* const text = (slot->doc)
                                           ? d_git_doc_records(slot->doc)
                                           : NULL;
 
@@ -2473,9 +2473,9 @@ d_internal_values_of(
 }
 
 
-// d_internal_config_read
+// dj_internal_config_read
 //   enum: what git_config and its kin give of a key's values.
-enum d_internal_config_read
+enum dj_internal_config_read
 {
     D_INTERNAL_READ_LAST = 0,
     D_INTERNAL_READ_ALL,
@@ -2491,13 +2491,13 @@ d_internal_read_typed
 default -- 0 unless given -- for a key with none; -1 for a value git would
 refuse, a name alone among them for a number.
 */
-static bool
-d_internal_read_typed(
-    struct d_host_git*              _host,
-    struct d_awk_value*             _out,
-    const struct d_internal_values* _values,
-    struct d_awk_value*             _default,
-    bool                            _boolean
+static
+bool d_internal_read_typed(
+    struct dj_host_git*              _host,
+    struct dj_awk_value*             _out,
+    const struct dj_internal_values* _values,
+    struct dj_awk_value*             _default,
+    bool                             _boolean
 )
 {
     const char* const last   = (_values->count > 0u)
@@ -2536,16 +2536,16 @@ as a boolean or a number.
 */
 static bool
 d_internal_read_config(
-    struct d_host_git*          _host,
-    struct d_awk_value**        _args,
+    struct dj_host_git*          _host,
+    struct dj_awk_value**        _args,
     size_t                      _count,
-    struct d_awk_value*         _out,
-    enum d_internal_config_read _read
+    struct dj_awk_value*         _out,
+    enum dj_internal_config_read _read
 )
 {
     char* const              key = d_internal_copy(_args[1], NULL);
-    struct d_internal_values values;
-    struct d_git_buffer      all;
+    struct dj_internal_values values;
+    struct dj_git_buffer      all;
     bool                     set = false;
 
     // the key copied, and its values
@@ -2600,14 +2600,14 @@ d_internal_read_config(
 git_config(h, key), git_config_all(h, key), git_config_count(h, key),
 git_config_bool(h, key[, default]), git_config_int(h, key[, default])
 */
-static bool
-d_internal_git_config(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_config(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2618,14 +2618,14 @@ d_internal_git_config(
 }
 
 
-static bool
-d_internal_git_config_all(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_config_all(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2636,14 +2636,14 @@ d_internal_git_config_all(
 }
 
 
-static bool
-d_internal_git_config_count(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_config_count(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2654,14 +2654,14 @@ d_internal_git_config_count(
 }
 
 
-static bool
-d_internal_git_config_bool(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_config_bool(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2672,14 +2672,14 @@ d_internal_git_config_bool(
 }
 
 
-static bool
-d_internal_git_config_int(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_config_int(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -2700,17 +2700,17 @@ git_wildmatch(pattern, text[, flags])
   1 when git's wildmatch matches the whole text; flags among pathname and
 casefold.
 */
-static bool
-d_internal_git_wildmatch(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_wildmatch(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host    = _user;
+    struct dj_host_git* const host    = _user;
     size_t                   length  = 0u;
     char* const              pattern = d_internal_copy(_args[0], &length);
     const char* const        flags   = (_count > 2u)
@@ -2746,14 +2746,14 @@ d_internal_git_wildmatch(
 git_key(key)
   A key as git compares keys; "" for one git refuses.
 */
-static bool
-d_internal_git_key(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_key(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     char* const key = d_internal_canonical(d_internal_text(_args[0]), false);
@@ -2770,9 +2770,9 @@ d_internal_git_key(
 }
 
 
-// d_internal_quoting
+// dj_internal_quoting
 //   enum: how git_quote_value and its kin quote text.
-enum d_internal_quoting
+enum dj_internal_quoting
 {
     D_INTERNAL_QUOTE_VALUE = 0,
     D_INTERNAL_QUOTE_SUBSECTION,
@@ -2789,15 +2789,15 @@ badly.
 */
 static bool
 d_internal_quote(
-    struct d_host_git*      _host,
-    struct d_awk_value*     _in,
-    struct d_awk_value*     _out,
-    enum d_internal_quoting _quoting
+    struct dj_host_git*      _host,
+    struct dj_awk_value*     _in,
+    struct dj_awk_value*     _out,
+    enum dj_internal_quoting _quoting
 )
 {
     size_t              length = 0u;
     char* const         text   = d_internal_copy(_in, &length);
-    struct d_git_buffer quoted;
+    struct dj_git_buffer quoted;
     size_t              used   = 0u;
     bool                ok     = false;
 
@@ -2842,14 +2842,14 @@ d_internal_quote(
 git_quote_value(value), git_quote_subsection(name), git_quote_path(path),
 git_unquote(text)
 */
-static bool
-d_internal_git_quote_value(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_quote_value(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2860,14 +2860,14 @@ d_internal_git_quote_value(
 }
 
 
-static bool
-d_internal_git_quote_subsection(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_quote_subsection(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2879,14 +2879,14 @@ d_internal_git_quote_subsection(
 }
 
 
-static bool
-d_internal_git_quote_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_quote_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2897,14 +2897,14 @@ d_internal_git_quote_path(
 }
 
 
-static bool
-d_internal_git_unquote(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_unquote(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -2924,17 +2924,17 @@ d_internal_git_unquote(
 git_repo([path])
   The repository a path -- the working directory's, without one -- is in.
 */
-static bool
-d_internal_git_repo(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_repo(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host = _user;
+    struct dj_host_git* const host = _user;
     char* const              path = (_count > 0u)
                                     ? d_internal_copy(_args[0], NULL)
                                     : NULL;
@@ -2950,7 +2950,7 @@ d_internal_git_repo(
         return d_internal_fail(host, _out, "out of memory");
     }
 
-    struct d_git_repo* const repo = d_git_repo_open(
+    struct dj_git_repo* const repo = d_git_repo_open(
                                         ( (path) && (path[0] != '\0') )
                                         ? path
                                         : ".",
@@ -2965,7 +2965,7 @@ d_internal_git_repo(
 
 // d_internal_place
 //   enum: which of a repository's places git_dir and its kin give.
-enum d_internal_place
+enum dj_internal_place
 {
     D_INTERNAL_PLACE_GIT_DIR = 0,
     D_INTERNAL_PLACE_COMMON_DIR,
@@ -2981,13 +2981,13 @@ bare one -- or its hash's name.
 */
 static bool
 d_internal_place_of(
-    struct d_host_git*    _host,
-    struct d_awk_value*   _handle,
-    struct d_awk_value*   _out,
-    enum d_internal_place _place
+    struct dj_host_git*    _host,
+    struct dj_awk_value*   _handle,
+    struct dj_awk_value*   _out,
+    enum dj_internal_place _place
 )
 {
-    const struct d_git_repo* const repo = d_internal_repo(_host, _handle);
+    const struct dj_git_repo* const repo = d_internal_repo(_host, _handle);
 
     // a repository open
     if (!repo)
@@ -3014,14 +3014,14 @@ d_internal_place_of(
 /*
 git_dir(r), git_common_dir(r), git_work_tree(r), git_hash(r)
 */
-static bool
-d_internal_git_dir(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_dir(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -3033,14 +3033,14 @@ d_internal_git_dir(
 }
 
 
-static bool
-d_internal_git_common_dir(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_common_dir(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -3052,14 +3052,14 @@ d_internal_git_common_dir(
 }
 
 
-static bool
-d_internal_git_work_tree(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_work_tree(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -3071,14 +3071,14 @@ d_internal_git_work_tree(
 }
 
 
-static bool
-d_internal_git_hash(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_hash(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -3093,8 +3093,8 @@ d_internal_git_hash(
 d_internal_readable
   Whether a file can be opened to read.
 */
-static bool
-d_internal_readable(
+static
+bool d_internal_readable(
     const char* _path
 )
 {
@@ -3116,8 +3116,8 @@ d_internal_global_file
 ~/.gitconfig, unless only git/config under XDG_CONFIG_HOME -- or
 ~/.config -- can be read; allocated.
 */
-static char*
-d_internal_global_file(void)
+static
+char* d_internal_global_file(void)
 {
     const char* const named = getenv("GIT_CONFIG_GLOBAL");
     const char* const home  = getenv("HOME");
@@ -3160,10 +3160,10 @@ worktree its config.worktree, when extensions.worktreeConfig is set, else
 local's; global d_internal_global_file's; system GIT_CONFIG_SYSTEM's or
 /etc/gitconfig. Allocated; NULL for a scope none is.
 */
-static char*
-d_internal_config_path(
-    const struct d_git_repo* _repo,
-    const char*              _scope
+static
+char* d_internal_config_path(
+    const struct dj_git_repo* _repo,
+    const char*               _scope
 )
 {
     bool              set      = false;
@@ -3203,18 +3203,18 @@ git_config_file(r[, scope])
   The file git config --scope writes -- local, worktree, global, system --
 to open and change.
 */
-static bool
-d_internal_git_config_file(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_config_file(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const       host = _user;
-    const struct d_git_repo* const repo = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const       host = _user;
+    const struct dj_git_repo* const repo = d_internal_repo(host, _args[0]);
 
     (void)_problem;
     (void)_capacity;
@@ -3242,18 +3242,18 @@ git_settings(r), git_setting(r, i, field)
   A repository's settings, in git's order: key, value, has_value, file,
 line, scope, included.
 */
-static bool
-d_internal_git_settings(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_settings(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const       host = _user;
-    const struct d_git_repo* const repo = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const       host = _user;
+    const struct dj_git_repo* const repo = d_internal_repo(host, _args[0]);
 
     (void)_count;
     (void)_problem;
@@ -3269,14 +3269,14 @@ d_internal_git_settings(
 }
 
 
-static bool
-d_internal_git_setting(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_setting(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "key", "value", "has_value",
@@ -3284,10 +3284,10 @@ d_internal_git_setting(
                                           "included" };
     static const char* const scopes[] = { "system", "global", "local",
                                           "worktree", "command" };
-    struct d_host_git* const       host    = _user;
-    const struct d_git_repo* const repo    = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const       host    = _user;
+    const struct dj_git_repo* const repo    = d_internal_repo(host, _args[0]);
     const size_t                   index   = d_internal_index(_args[1]);
-    const struct d_git_setting*    setting = ( (repo) && (index > 0u) )
+    const struct dj_git_setting*    setting = ( (repo) && (index > 0u) )
                                              ? d_git_repo_setting(repo,
                                                                   index - 1u)
                                              : NULL;
@@ -3330,12 +3330,12 @@ d_internal_rev
   What a revision names, as git rev-parse names it; false, git_error()
 saying why, for nothing.
 */
-static bool
-d_internal_rev(
-    struct d_host_git*  _host,
-    struct d_git_repo*  _repo,
-    struct d_awk_value* _name,
-    struct d_git_oid*   _out
+static
+bool d_internal_rev(
+    struct dj_host_git*  _host,
+    struct dj_git_repo*  _repo,
+    struct dj_awk_value* _name,
+    struct dj_git_oid*   _out
 )
 {
     char* const name  = d_internal_copy(_name, NULL);
@@ -3363,11 +3363,11 @@ not peel to it.
 */
 static bool
 d_internal_peel(
-    struct d_host_git*     _host,
-    struct d_git_repo*     _repo,
-    struct d_git_oid*      _oid,
-    enum d_git_object_type _type,
-    struct d_git_object*   _out
+    struct dj_host_git*     _host,
+    struct dj_git_repo*     _repo,
+    struct dj_git_oid*      _oid,
+    enum dj_git_object_type _type,
+    struct dj_git_object*   _out
 )
 {
     char       name[(2u * D_GIT_OID_MOST) + 16u];
@@ -3405,19 +3405,19 @@ git_rev(r, name), git_short(r, name[, least]), git_exists(r, name)
   A revision's object in hex, whole or as short as git rev-parse --short
 makes it; or whether the repository holds it.
 */
-static bool
-d_internal_git_rev(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_rev(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host = _user;
-    struct d_git_repo* const repo = d_internal_repo(host, _args[0]);
-    struct d_git_oid         oid;
+    struct dj_host_git* const host = _user;
+    struct dj_git_repo* const repo = d_internal_repo(host, _args[0]);
+    struct dj_git_oid         oid;
 
     (void)_count;
     (void)_problem;
@@ -3434,22 +3434,22 @@ d_internal_git_rev(
 }
 
 
-static bool
-d_internal_git_short(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_short(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host  = _user;
-    struct d_git_repo* const repo  = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host  = _user;
+    struct dj_git_repo* const repo  = d_internal_repo(host, _args[0]);
     const size_t             least = (_count > 2u)
                                      ? d_internal_index(_args[2])
                                      : 0u;
-    struct d_git_oid         oid;
+    struct dj_git_oid         oid;
     char                     hex[(2u * D_GIT_OID_MOST) + 1u];
 
     (void)_problem;
@@ -3472,19 +3472,19 @@ d_internal_git_short(
 }
 
 
-static bool
-d_internal_git_exists(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_exists(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host = _user;
-    struct d_git_repo* const repo = d_internal_repo(host, _args[0]);
-    struct d_git_oid         oid;
+    struct dj_host_git* const host = _user;
+    struct dj_git_repo* const repo = d_internal_repo(host, _args[0]);
+    struct dj_git_oid         oid;
 
     (void)_count;
     (void)_problem;
@@ -3503,9 +3503,9 @@ d_internal_git_exists(
 }
 
 
-// d_internal_object_part
+// dj_internal_object_part
 //   enum: what of an object git_type and its kin give.
-enum d_internal_object_part
+enum dj_internal_object_part
 {
     D_INTERNAL_PART_TYPE = 0,
     D_INTERNAL_PART_SIZE,
@@ -3519,15 +3519,15 @@ d_internal_object_part_of
 */
 static bool
 d_internal_object_part_of(
-    struct d_host_git*          _host,
-    struct d_awk_value**        _args,
-    struct d_awk_value*         _out,
-    enum d_internal_object_part _part
+    struct dj_host_git*          _host,
+    struct dj_awk_value**        _args,
+    struct dj_awk_value*         _out,
+    enum dj_internal_object_part _part
 )
 {
-    struct d_git_repo* const repo = d_internal_repo(_host, _args[0]);
-    struct d_git_oid         oid;
-    struct d_git_object      object;
+    struct dj_git_repo* const repo = d_internal_repo(_host, _args[0]);
+    struct dj_git_oid         oid;
+    struct dj_git_object      object;
     bool                     set  = false;
 
     memset(&object, 0, sizeof(object));
@@ -3573,14 +3573,14 @@ git_type(r, name), git_size(r, name), git_cat(r, name)
   An object's type, its size, and its content, as git cat-file gives
 them.
 */
-static bool
-d_internal_git_type(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_type(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -3592,14 +3592,14 @@ d_internal_git_type(
 }
 
 
-static bool
-d_internal_git_size(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_size(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -3611,14 +3611,14 @@ d_internal_git_size(
 }
 
 
-static bool
-d_internal_git_cat(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_cat(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -3636,16 +3636,16 @@ d_internal_paragraphs
 paragraph, blank lines before it passed over, its lines joined by a
 blank; and what follows it, the blank lines between passed over.
 */
-static bool
-d_internal_paragraphs(
-    struct d_host_git*  _host,
-    struct d_awk_value* _out,
-    const char*         _message,
-    size_t              _length,
-    bool                _body
+static
+bool d_internal_paragraphs(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _out,
+    const char*          _message,
+    size_t               _length,
+    bool                 _body
 )
 {
-    struct d_git_buffer subject;
+    struct dj_git_buffer subject;
     size_t              at = 0u;
     bool                blank = true;
 
@@ -3707,11 +3707,11 @@ d_internal_person_field
   Gives a person's name, address, time or zone, by the field's place past
 the person's own: 0 the name, 1 the address, 2 the time, 3 the zone.
 */
-static bool
-d_internal_person_field(
-    struct d_awk_value*        _out,
-    const struct d_git_person* _person,
-    size_t                     _which
+static
+bool d_internal_person_field(
+    struct dj_awk_value*        _out,
+    const struct dj_git_person* _person,
+    size_t                      _which
 )
 {
     // a table of a person's fields
@@ -3731,15 +3731,15 @@ d_internal_person_field(
 d_internal_parents
   Gives a commit's parents in hex, apart by blanks.
 */
-static bool
-d_internal_parents(
-    struct d_host_git*         _host,
-    struct d_awk_value*        _out,
-    const struct d_git_repo*   _repo,
-    const struct d_git_commit* _commit
+static
+bool d_internal_parents(
+    struct dj_host_git*         _host,
+    struct dj_awk_value*        _out,
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_commit* _commit
 )
 {
-    struct d_git_buffer parents;
+    struct dj_git_buffer parents;
     char                hex[(2u * D_GIT_OID_MOST) + 1u];
 
     memset(&parents, 0, sizeof(parents));
@@ -3760,13 +3760,13 @@ d_internal_parents(
 d_internal_commit_field
   Gives a field of a commit parsed.
 */
-static bool
-d_internal_commit_field(
-    struct d_host_git*         _host,
-    struct d_awk_value*        _out,
-    const struct d_git_repo*   _repo,
-    const struct d_git_commit* _commit,
-    size_t                     _field
+static
+bool d_internal_commit_field(
+    struct dj_host_git*         _host,
+    struct dj_awk_value*        _out,
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_commit* _commit,
+    size_t                      _field
 )
 {
     // a table of the fields: the person's from 4, the message's from 12
@@ -3800,14 +3800,14 @@ git_commit(r, name, field)
 author_email, author_time, author_zone, committer and its kin, encoding,
 message, subject, body.
 */
-static bool
-d_internal_git_commit(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_commit(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = {
@@ -3815,13 +3815,13 @@ d_internal_git_commit(
         "author_time", "author_zone", "committer", "committer_email",
         "committer_time", "committer_zone", "encoding", "message", "subject",
         "body" };
-    struct d_host_git* const host  = _user;
-    struct d_git_repo* const repo  = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host  = _user;
+    struct dj_git_repo* const repo  = d_internal_repo(host, _args[0]);
     const char* const        field = d_internal_text(_args[2]);
     const size_t             which = d_internal_field(field, fields, 16u);
-    struct d_git_oid         oid;
-    struct d_git_object      object;
-    struct d_git_commit      commit;
+    struct dj_git_oid         oid;
+    struct dj_git_object      object;
+    struct dj_git_commit      commit;
 
     (void)_count;
     (void)_problem;
@@ -3862,26 +3862,26 @@ git_tag(r, name, field)
   An annotated tag: oid, object, type, tag, tagger, tagger_email,
 tagger_time, tagger_zone, message.
 */
-static bool
-d_internal_git_tag(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_tag(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = {
         "oid", "object", "type", "tag", "tagger", "tagger_email",
         "tagger_time", "tagger_zone", "message" };
-    struct d_host_git* const host  = _user;
-    struct d_git_repo* const repo  = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host  = _user;
+    struct dj_git_repo* const repo  = d_internal_repo(host, _args[0]);
     const char* const        field = d_internal_text(_args[2]);
     const size_t             which = d_internal_field(field, fields, 9u);
-    struct d_git_oid         oid;
-    struct d_git_object      object;
-    struct d_git_tag         tag;
+    struct dj_git_oid         oid;
+    struct dj_git_object      object;
+    struct dj_git_tag         tag;
 
     (void)_count;
     (void)_problem;
@@ -3935,17 +3935,17 @@ type, name, a tab, path -- each path below `_prefix`; with `_deep`, a
 subtree's entries in place of its own, as ls-tree -r has it. False when a
 tree cannot be read.
 */
-static bool
-d_internal_list_tree(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _tree,
-    struct d_git_buffer*    _prefix,
-    bool                    _deep,
-    struct d_git_buffer*    _list
+static
+bool d_internal_list_tree(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _tree,
+    struct dj_git_buffer*    _prefix,
+    bool                     _deep,
+    struct dj_git_buffer*    _list
 )
 {
-    struct d_git_object     tree;
-    struct d_git_tree_entry entry;
+    struct dj_git_object     tree;
+    struct dj_git_tree_entry entry;
     size_t                  at    = 0u;
     bool                    ok    = d_git_repo_read(_repo, _tree, &tree);
     const size_t            stem  = _prefix->length;
@@ -3997,24 +3997,24 @@ git_tree(r, name[, deep])
   A tree's entries -- a commit's or tag's tree -- as git ls-tree, or
 ls-tree -r, writes them.
 */
-static bool
-d_internal_git_tree(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_tree(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host = _user;
-    struct d_git_repo* const repo = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host = _user;
+    struct dj_git_repo* const repo = d_internal_repo(host, _args[0]);
     const bool               deep = ( (_count > 2u) &&
                                       (d_awk_value_is_true(_args[2])) );
-    struct d_git_oid         oid;
-    struct d_git_object      tree;
-    struct d_git_buffer      prefix;
-    struct d_git_buffer      list;
+    struct dj_git_oid         oid;
+    struct dj_git_object      tree;
+    struct dj_git_buffer      prefix;
+    struct dj_git_buffer      list;
 
     (void)_problem;
     (void)_capacity;
@@ -4056,24 +4056,24 @@ git_hash_object(r, content[, type])
   The name git gives content of a type -- a blob's, without one -- as git
 hash-object does, writing nothing.
 */
-static bool
-d_internal_git_hash_object(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_hash_object(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const     host = _user;
-    struct d_git_repo* const     repo = d_internal_repo(host, _args[0]);
-    const enum d_git_object_type type = (_count > 2u)
+    struct dj_host_git* const     host = _user;
+    struct dj_git_repo* const     repo = d_internal_repo(host, _args[0]);
+    const enum dj_git_object_type type = (_count > 2u)
                                         ? d_git_object_type_named(
                                               d_internal_text(_args[2]))
                                         : D_GIT_OBJECT_BLOB;
     size_t                       length = 0u;
-    struct d_git_oid             oid;
+    struct dj_git_oid             oid;
 
     (void)_problem;
     (void)_capacity;
@@ -4104,23 +4104,23 @@ git_refs(r[, prefix])
   Every ref whose name begins with a prefix -- all under refs/ without one
 -- by full name, sorted.
 */
-static bool
-d_internal_git_refs(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_refs(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host   = _user;
-    struct d_git_repo* const repo   = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host   = _user;
+    struct dj_git_repo* const repo   = d_internal_repo(host, _args[0]);
     char* const              prefix = (_count > 1u)
                                       ? d_internal_copy(_args[1], NULL)
                                       : NULL;
-    struct d_git_refs        refs;
-    struct d_git_buffer      list;
+    struct dj_git_refs        refs;
+    struct dj_git_buffer      list;
 
     (void)_problem;
     (void)_capacity;
@@ -4160,23 +4160,23 @@ git_ref(r, ref, field)
 one names first, else ""; peeled, what a tag it names peels to, else its
 oid.
 */
-static bool
-d_internal_git_ref(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_ref(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = { "oid", "target", "peeled" };
-    struct d_host_git* const host   = _user;
-    struct d_git_repo* const repo   = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host   = _user;
+    struct dj_git_repo* const repo   = d_internal_repo(host, _args[0]);
     char* const              name   = (repo) ? d_internal_copy(_args[1], NULL)
                                              : NULL;
     char*                    target = NULL;
-    struct d_git_oid         oid;
+    struct dj_git_oid         oid;
     char                     peel[(2u * D_GIT_OID_MOST) + 4u];
 
     (void)_count;
@@ -4222,15 +4222,15 @@ git_symbolic(r, ref), git_branch(r)
   The ref a symbolic ref names, "" for one that is not; HEAD's branch
 without refs/heads/, "" when HEAD is detached.
 */
-static bool
-d_internal_symbolic(
-    struct d_host_git*  _host,
-    struct d_awk_value* _handle,
-    struct d_awk_value* _ref,
-    struct d_awk_value* _out
+static
+bool d_internal_symbolic(
+    struct dj_host_git*  _host,
+    struct dj_awk_value* _handle,
+    struct dj_awk_value* _ref,
+    struct dj_awk_value* _out
 )
 {
-    struct d_git_repo* const repo = d_internal_repo(_host, _handle);
+    struct dj_git_repo* const repo = d_internal_repo(_host, _handle);
     char* const              name = ( (repo) && (_ref) )
                                     ? d_internal_copy(_ref, NULL)
                                     : NULL;
@@ -4259,14 +4259,14 @@ d_internal_symbolic(
 }
 
 
-static bool
-d_internal_git_symbolic(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_symbolic(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -4277,14 +4277,14 @@ d_internal_git_symbolic(
 }
 
 
-static bool
-d_internal_git_branch(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_branch(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -4299,15 +4299,15 @@ d_internal_git_branch(
 d_internal_set_oids
   Gives names in hex, a line each, and lets go of them.
 */
-static bool
-d_internal_set_oids(
-    struct d_host_git*       _host,
-    struct d_awk_value*      _out,
-    const struct d_git_repo* _repo,
-    struct d_git_oids*       _oids
+static
+bool d_internal_set_oids(
+    struct dj_host_git*       _host,
+    struct dj_awk_value*      _out,
+    const struct dj_git_repo* _repo,
+    struct dj_git_oids*       _oids
 )
 {
-    struct d_git_buffer list;
+    struct dj_git_buffer list;
     char                hex[(2u * D_GIT_OID_MOST) + 1u];
 
     memset(&list, 0, sizeof(list));
@@ -4331,8 +4331,8 @@ d_internal_words
   Text split at blanks into words, in place, the words' places kept; false
 when memory runs out.
 */
-static bool
-d_internal_words(
+static
+bool d_internal_words(
     char*         _text,
     const char*** _out,
     size_t*       _out_count
@@ -4376,26 +4376,26 @@ d_internal_words(
 git_log(r, revisions[, most[, path[, first_parent]]])
   The commits the revisions reach, as git rev-list gives them.
 */
-static bool
-d_internal_git_log(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_log(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host  = _user;
-    struct d_git_repo* const repo  = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host  = _user;
+    struct dj_git_repo* const repo  = d_internal_repo(host, _args[0]);
     char* const              text  = (repo) ? d_internal_copy(_args[1], NULL)
                                             : NULL;
     char* const              path  = ( (text) && (_count > 3u) )
                                      ? d_internal_copy(_args[3], NULL)
                                      : NULL;
     const char**             words = NULL;
-    struct d_git_log_options options;
-    struct d_git_oids        oids;
+    struct dj_git_log_options options;
+    struct dj_git_oids        oids;
 
     (void)_problem;
     (void)_capacity;
@@ -4444,21 +4444,21 @@ git_merge_base(r, a, b)
   The best common ancestors of two commits, as git merge-base --all gives
 them.
 */
-static bool
-d_internal_git_merge_base(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_merge_base(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host = _user;
-    struct d_git_repo* const repo = d_internal_repo(host, _args[0]);
-    struct d_git_oid         left;
-    struct d_git_oid         right;
-    struct d_git_oids        oids;
+    struct dj_host_git* const host = _user;
+    struct dj_git_repo* const repo = d_internal_repo(host, _args[0]);
+    struct dj_git_oid         left;
+    struct dj_git_oid         right;
+    struct dj_git_oids        oids;
 
     (void)_count;
     (void)_problem;
@@ -4496,18 +4496,18 @@ git_index(r), git_index_entry(r, i, field)
   The index's entries, by path and stage: path, mode, oid, stage, size,
 mtime, ctime, assume_valid, skip_worktree, intent_to_add.
 */
-static bool
-d_internal_git_index(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_index(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host  = _user;
-    struct d_git_repo* const repo  = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host  = _user;
+    struct dj_git_repo* const repo  = d_internal_repo(host, _args[0]);
     const size_t             count = (repo) ? d_git_repo_index_count(repo)
                                             : D_GIT_REPO_NONE;
 
@@ -4526,21 +4526,21 @@ d_internal_git_index(
 }
 
 
-static bool
-d_internal_git_index_entry(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_index_entry(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] = {
         "path", "mode", "oid", "stage", "size", "mtime", "ctime",
         "assume_valid", "skip_worktree", "intent_to_add" };
-    struct d_host_git* const host  = _user;
-    struct d_git_repo* const repo  = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host  = _user;
+    struct dj_git_repo* const repo  = d_internal_repo(host, _args[0]);
     const size_t             index = d_internal_index(_args[1]);
     const size_t             count = (repo) ? d_git_repo_index_count(repo)
                                             : D_GIT_REPO_NONE;
@@ -4561,7 +4561,7 @@ d_internal_git_index_entry(
                                              : "no such entry");
     }
 
-    const struct d_git_index_entry* const entry =
+    const struct dj_git_index_entry* const entry =
         d_git_repo_index_entry(repo, index - 1u);
     const char* const                     field = d_internal_text(_args[2]);
 
@@ -4591,18 +4591,18 @@ git_index_find(r, path[, stage])
   The index's entry of a path, at a stage -- 0 without one -- from 1; 0
 for none.
 */
-static bool
-d_internal_git_index_find(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_index_find(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host  = _user;
-    struct d_git_repo* const repo  = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const host  = _user;
+    struct dj_git_repo* const repo  = d_internal_repo(host, _args[0]);
     const double             stage = (_count > 2u)
                                      ? d_awk_value_number(_args[2])
                                      : 0.0;
@@ -4637,18 +4637,18 @@ ignore file's: whether it is, and the rule -- file:line:pattern -- into a
 buffer. False, git_error() saying why, for no such handle, or a file that
 is not an ignore file.
 */
-static bool
-d_internal_ignore_of(
-    struct d_host_git*   _host,
-    struct d_awk_value*  _handle,
-    const char*          _path,
-    bool*                _out_ignored,
-    struct d_git_buffer* _out_rule
+static
+bool d_internal_ignore_of(
+    struct dj_host_git*   _host,
+    struct dj_awk_value*  _handle,
+    const char*           _path,
+    bool*                 _out_ignored,
+    struct dj_git_buffer* _out_rule
 )
 {
-    const struct d_internal_slot* const slot = d_internal_slot_of(_host,
+    const struct dj_internal_slot* const slot = d_internal_slot_of(_host,
                                                                   _handle);
-    struct d_git_ignore_match           match;
+    struct dj_git_ignore_match           match;
     char                                line[32];
 
     *_out_ignored = false;
@@ -4685,9 +4685,9 @@ d_internal_ignore_of(
     // a file's pattern
     if (pattern != D_GIT_TEXT_NONE)
     {
-        const struct d_git_text* const         text =
+        const struct dj_git_text* const         text =
             d_git_doc_records(slot->doc);
-        const struct d_git_text_pattern* const found =
+        const struct dj_git_text_pattern* const found =
             &text->patterns[pattern];
 
         (void)snprintf(line, sizeof(line), ":%u:",
@@ -4707,17 +4707,17 @@ git_ignored(h, path), git_ignore_rule(h, path)
   1 when a repository's rules, or one ignore file, ignore a path, else 0;
 and what decided, as git check-ignore -v writes it, "" for nothing.
 */
-static bool
-d_internal_ignore(
-    struct d_host_git*   _host,
-    struct d_awk_value** _args,
-    struct d_awk_value*  _out,
-    bool                 _rule
+static
+bool d_internal_ignore(
+    struct dj_host_git*   _host,
+    struct dj_awk_value** _args,
+    struct dj_awk_value*  _out,
+    bool                  _rule
 )
 {
     char* const         path    = d_internal_copy(_args[1], NULL);
     bool                ignored = false;
-    struct d_git_buffer rule;
+    struct dj_git_buffer rule;
 
     memset(&rule, 0, sizeof(rule));
 
@@ -4746,14 +4746,14 @@ d_internal_ignore(
 }
 
 
-static bool
-d_internal_git_ignored(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_ignored(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -4764,14 +4764,14 @@ d_internal_git_ignored(
 }
 
 
-static bool
-d_internal_git_ignore_rule(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_ignore_rule(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -4788,15 +4788,15 @@ d_internal_attributes_of
 false, git_error() saying why, for no such handle, or a file that is not
 an attribute file.
 */
-static bool
-d_internal_attributes_of(
-    struct d_host_git*        _host,
-    struct d_awk_value*       _handle,
-    const char*               _path,
-    struct d_git_text_values* _out
+static
+bool d_internal_attributes_of(
+    struct dj_host_git*        _host,
+    struct dj_awk_value*       _handle,
+    const char*                _path,
+    struct dj_git_text_values* _out
 )
 {
-    const struct d_internal_slot* const slot = d_internal_slot_of(_host,
+    const struct dj_internal_slot* const slot = d_internal_slot_of(_host,
                                                                   _handle);
 
     memset(_out, 0, sizeof(*_out));
@@ -4832,8 +4832,8 @@ d_internal_attributes_of(
         return false;
     }
 
-    const struct d_git_text_scope scope = d_internal_file_scope(slot->doc);
-    const struct d_git_text_query query = d_internal_query_of(_path);
+    const struct dj_git_text_scope scope = d_internal_file_scope(slot->doc);
+    const struct dj_git_text_query query = d_internal_query_of(_path);
 
     return d_git_text_attributes(&scope, 1u, &query, _out);
 }
@@ -4843,10 +4843,10 @@ d_internal_attributes_of(
 d_internal_add_state
   An attribute's state added to text: set, unset, or its value.
 */
-static void
-d_internal_add_state(
-    struct d_git_buffer*           _text,
-    const struct d_git_text_value* _value
+static
+void d_internal_add_state(
+    struct dj_git_buffer*           _text,
+    const struct dj_git_text_value* _value
 )
 {
     // a value, or a state's name
@@ -4869,23 +4869,23 @@ git_attr(h, path[, name])
   An attribute's state for a path -- set, unset, unspecified, or its value
 -- or every attribute's, "name: state" a line, as git check-attr -a.
 */
-static bool
-d_internal_git_attr(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_attr(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const host = _user;
+    struct dj_host_git* const host = _user;
     char* const              path = d_internal_copy(_args[1], NULL);
     char* const              name = ( (path) && (_count > 2u) )
                                     ? d_internal_copy(_args[2], NULL)
                                     : NULL;
-    struct d_git_text_values values;
-    struct d_git_buffer      text;
+    struct dj_git_text_values values;
+    struct dj_git_buffer      text;
 
     (void)_problem;
     (void)_capacity;
@@ -4906,7 +4906,7 @@ d_internal_git_attr(
                                                   : "out of memory");
     }
 
-    const struct d_git_text_value* const one =
+    const struct dj_git_text_value* const one =
         (name) ? d_git_text_value_of(&values, name) : NULL;
 
     // one, by name -- unspecified when none says it
@@ -4942,10 +4942,10 @@ d_internal_status_options
   Status's options from their words, as git status takes them: -uno,
 -unormal, -uall, --untracked-files=..., --ignored; false for another.
 */
-static bool
-d_internal_status_options(
-    char*                        _text,
-    struct d_git_status_options* _out
+static
+bool d_internal_status_options(
+    char*                         _text,
+    struct dj_git_status_options* _out
 )
 {
     static const char* const untracked[] = { "normal", "no", "all" };
@@ -4970,7 +4970,7 @@ d_internal_status_options(
 
         _out->ignored   = ( (_out->ignored) ||
                             (strcmp(word, "--ignored") == 0) );
-        _out->untracked = (kind < 3u) ? (enum d_git_untracked)kind
+        _out->untracked = (kind < 3u) ? (enum dj_git_untracked)kind
                                       : _out->untracked;
         ok              = ( (kind < 3u) ||
                             (strcmp(word, "--ignored") == 0) );
@@ -4987,24 +4987,24 @@ git_status(r[, options])
   The work tree's status, as git status --porcelain --no-renames gives
 it: "XY path" a line.
 */
-static bool
-d_internal_git_status(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_git_status(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_git* const    host = _user;
-    struct d_git_repo* const    repo = d_internal_repo(host, _args[0]);
+    struct dj_host_git* const    host = _user;
+    struct dj_git_repo* const    repo = d_internal_repo(host, _args[0]);
     char* const                 text = (_count > 1u)
                                        ? d_internal_copy(_args[1], NULL)
                                        : d_internal_dup("");
-    struct d_git_status_options options;
-    struct d_git_status         status;
-    struct d_git_buffer         list;
+    struct dj_git_status_options options;
+    struct dj_git_status         status;
+    struct dj_git_buffer         list;
 
     (void)_problem;
     (void)_capacity;
@@ -5061,12 +5061,12 @@ d_internal_functions
   The extension's host functions, as a program calls them, and how many.
   Long as the table of the extension's functions is.
 */
-static const struct d_awk_host_function*
-d_internal_functions(
+static
+const struct dj_awk_host_function* d_internal_functions(
     size_t* _out_count
 )
 {
-    static const struct d_awk_host_function functions[] =
+    static const struct dj_awk_host_function functions[] =
     {
         { "git_open",             1u, 2u, d_internal_git_open             },
         { "git_new",              1u, 3u, d_internal_git_new              },
@@ -5155,16 +5155,14 @@ d_internal_functions(
 }
 
 
-struct d_host_git*
-d_host_git_new(void)
+struct dj_host_git* d_host_git_new(void)
 {
-    return calloc(1u, sizeof(struct d_host_git));
+    return calloc(1u, sizeof(struct dj_host_git));
 }
 
 
-void
-d_host_git_free(
-    struct d_host_git* _host
+void d_host_git_free(
+    struct dj_host_git* _host
 )
 {
     // nothing to free
@@ -5187,14 +5185,13 @@ d_host_git_free(
 }
 
 
-bool
-d_host_git_install(
-    struct d_host_git*   _host,
-    struct d_awk_interp* _interp
+bool d_host_git_install(
+    struct dj_host_git*   _host,
+    struct dj_awk_interp* _interp
 )
 {
     size_t                                  count     = 0;
-    const struct d_awk_host_function* const functions = d_internal_functions(
+    const struct dj_awk_host_function* const functions = d_internal_functions(
                                                             &count);
 
     // parameter validation first

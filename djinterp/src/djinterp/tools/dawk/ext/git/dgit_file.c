@@ -39,8 +39,7 @@ d_git_file_read
   Long as a file is read a block at a time, its size not known until its
 end.
 */
-char*
-d_git_file_read(
+char* d_git_file_read(
     const char* _path,
     size_t*     _out_length
 )
@@ -121,8 +120,8 @@ d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
   Whether a byte separates a path's parts -- `/` and `\` -- a directory
 made, 0 when it is, and whether a path is a directory.
 */
-static bool
-d_internal_is_separator(
+static
+bool d_internal_is_separator(
     char _c
 )
 {
@@ -130,8 +129,8 @@ d_internal_is_separator(
 }
 
 
-static int
-d_internal_make_directory(
+static
+int d_internal_make_directory(
     const char* _path
 )
 {
@@ -139,8 +138,8 @@ d_internal_make_directory(
 }
 
 
-static bool
-d_internal_is_directory(
+static
+bool d_internal_is_directory(
     const char* _path
 )
 {
@@ -157,8 +156,8 @@ d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
   Whether a byte separates a path's parts -- `/` -- a directory made, 0
 when it is, and whether a path is a directory.
 */
-static bool
-d_internal_is_separator(
+static
+bool d_internal_is_separator(
     char _c
 )
 {
@@ -166,8 +165,8 @@ d_internal_is_separator(
 }
 
 
-static int
-d_internal_make_directory(
+static
+int d_internal_make_directory(
     const char* _path
 )
 {
@@ -175,8 +174,8 @@ d_internal_make_directory(
 }
 
 
-static bool
-d_internal_is_directory(
+static
+bool d_internal_is_directory(
     const char* _path
 )
 {
@@ -193,8 +192,8 @@ d_internal_is_directory(
 d_internal_make_parents
   Every directory a file's path names that is missing.
 */
-static bool
-d_internal_make_parents(
+static
+bool d_internal_make_parents(
     const char* _path
 )
 {
@@ -249,8 +248,7 @@ will not, is tried again once the target is gone.
   Long as the directories, the part file and the rename are each a step,
 each with its failure.
 */
-bool
-d_git_file_write(
+bool d_git_file_write(
     const char* _path,
     const char* _text,
     size_t      _length,
@@ -331,10 +329,9 @@ d_git_file_info
   Windows' stat follows nothing that git would make a link of, so a path is
 a directory, a file, or something else; it has no inode and no owner.
 */
-bool
-d_git_file_info(
-    const char*             _path,
-    struct d_git_file_info* _out
+bool d_git_file_info(
+    const char*              _path,
+    struct dj_git_file_info* _out
 )
 {
     struct _stat64 info;
@@ -362,8 +359,7 @@ d_git_file_info(
 }
 
 
-char*
-d_git_file_link(
+char* d_git_file_link(
     const char* _path,
     size_t*     _out_length
 )
@@ -375,12 +371,11 @@ d_git_file_link(
 }
 
 
-char*
-d_git_file_real(
+char* d_git_file_real(
     const char* _path
 )
 {
-    struct d_git_file_info info;
+    struct dj_git_file_info info;
 
     // a path that names nothing has no real name
     if ( (!_path) ||
@@ -393,8 +388,7 @@ d_git_file_real(
 }
 
 
-char*
-d_git_file_cwd(void)
+char* d_git_file_cwd(void)
 {
     return _getcwd(NULL, 0);
 }
@@ -404,8 +398,7 @@ d_git_file_cwd(void)
 d_git_file_open, d_git_file_read_at
   Windows' 64-bit places, _fseeki64 and _ftelli64.
 */
-void*
-d_git_file_open(
+void* d_git_file_open(
     const char* _path,
     uint64_t*   _out_size
 )
@@ -435,8 +428,7 @@ d_git_file_open(
 }
 
 
-bool
-d_git_file_read_at(
+bool d_git_file_read_at(
     void*    _file,
     uint64_t _offset,
     void*    _buffer,
@@ -457,10 +449,9 @@ d_git_file_info
   lstat's answer, a link not followed: a link is a link, as git's index
 keeps it.
 */
-bool
-d_git_file_info(
-    const char*             _path,
-    struct d_git_file_info* _out
+bool d_git_file_info(
+    const char*              _path,
+    struct dj_git_file_info* _out
 )
 {
     struct stat info;
@@ -499,8 +490,7 @@ d_git_file_link
   readlink, into a buffer that doubles until the link fits with room to
 spare: readlink says nothing of a link it cut short.
 */
-char*
-d_git_file_link(
+char* d_git_file_link(
     const char* _path,
     size_t*     _out_length
 )
@@ -548,8 +538,7 @@ d_git_file_link(
 }
 
 
-char*
-d_git_file_real(
+char* d_git_file_real(
     const char* _path
 )
 {
@@ -561,8 +550,7 @@ d_git_file_real(
 d_git_file_cwd
   getcwd into a buffer that doubles until the directory's name fits.
 */
-char*
-d_git_file_cwd(void)
+char* d_git_file_cwd(void)
 {
     size_t capacity = 256u;
 
@@ -601,8 +589,7 @@ d_git_file_open, d_git_file_read_at
   POSIX's 64-bit places, fseeko and ftello, with off_t as wide as the
 build makes it.
 */
-void*
-d_git_file_open(
+void* d_git_file_open(
     const char* _path,
     uint64_t*   _out_size
 )
@@ -632,8 +619,7 @@ d_git_file_open(
 }
 
 
-bool
-d_git_file_read_at(
+bool d_git_file_read_at(
     void*    _file,
     uint64_t _offset,
     void*    _buffer,
@@ -650,8 +636,7 @@ d_git_file_read_at(
 #endif  // _WIN32
 
 
-void
-d_git_file_close(
+void d_git_file_close(
     void* _file
 )
 {

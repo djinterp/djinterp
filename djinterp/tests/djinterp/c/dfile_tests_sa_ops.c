@@ -25,13 +25,9 @@ d_tests_dfile_remove
   - returns error for nonexistent file
   - returns error for NULL path
 */
-struct d_test_object*
-d_tests_dfile_remove
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_remove(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_remove;
@@ -87,13 +83,9 @@ d_tests_dfile_unlink
   - unlinks existing file
   - returns error for nonexistent file
 */
-struct d_test_object*
-d_tests_dfile_unlink
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_unlink(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_unlink;
@@ -142,13 +134,9 @@ d_tests_dfile_rename
   - overwrites existing with overwrite flag
   - fails to overwrite without flag
 */
-struct d_test_object*
-d_tests_dfile_rename
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_rename(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  src_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  dst_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
@@ -227,13 +215,9 @@ d_tests_dfile_copy_file
   - copied content matches original
   - returns error for nonexistent source
 */
-struct d_test_object*
-d_tests_dfile_copy_file
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_copy_file(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  src_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  dst_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char*                 content;
@@ -309,13 +293,9 @@ d_tests_dfile_file_operations_all
   - d_file_rename
   - d_file_copy
 */
-struct d_test_object*
-d_tests_dfile_file_operations_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_file_operations_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("XI. File Operations", 4);

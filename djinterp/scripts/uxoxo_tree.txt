@@ -1,0 +1,83 @@
+﻿D:\sam\code\projects\frameworks\uxoxo\uxoxo-project\inc\uxoxo
+├── 📁 core
+│   ├── 📁 tree
+│   │   └── 📄 ui_tree.hpp
+│   └── 📁 wysiwyg
+│       └── 📄 wysiwyg_editor.hpp
+├── 📁 templates
+│   ├── 📁 adapter
+│   │   └── 📄 suggest_adapter.hpp
+│   ├── 📁 component
+│   │   ├── 📁 database
+│   │   │   ├── 📁 mariadb
+│   │   │   │   └── 📄 mariadb_login_form.hpp
+│   │   │   ├── 📁 mysql
+│   │   │   │   └── 📄 mysql_login_form.hpp
+│   │   │   ├── 📁 oracle
+│   │   │   │   └── 📄 oracle_login_form.hpp
+│   │   │   ├── 📁 postgres
+│   │   │   │   └── 📄 postgres_login_form.hpp
+│   │   │   ├── 📁 sqlite
+│   │   │   │   └── 📄 sqlite_login_form.hpp
+│   │   │   ├── 📄 database_login.hpp
+│   │   │   └── 📄 database_table_view.hpp
+│   │   ├── 📁 history
+│   │   │   ├── 📄 history.hpp
+│   │   │   ├── 📄 history_concepts.hpp
+│   │   │   └── 📄 history_traits.hpp
+│   │   ├── 📁 login
+│   │   │   └── 📄 login_form.hpp
+│   │   ├── 📁 menu
+│   │   │   ├── 📄 menu.hpp
+│   │   │   ├── 📄 menu_bar.hpp
+│   │   │   └── 📄 menu_traits.hpp
+│   │   ├── 📁 style
+│   │   │   ├── 📄 style.hpp
+│   │   │   ├── 📄 style_concepts.hpp
+│   │   │   └── 📄 style_traits.hpp
+│   │   ├── 📁 table
+│   │   │   └── 📄 table_view.hpp
+│   │   ├── 📁 tree
+│   │   │   ├── 📄 tree_node.hpp
+│   │   │   └── 📄 tree_view.hpp
+│   │   ├── 📁 window
+│   │   │   └── 📄 app_window.hpp
+│   │   ├── 📄 autocomplete.hpp
+│   │   ├── 📄 autosuggest.hpp
+│   │   ├── 📄 component_traits.hpp
+│   │   ├── 📄 components.hpp
+│   │   ├── 📄 dev_console.hpp
+│   │   ├── 📄 history_view.hpp
+│   │   ├── 📄 input_control.hpp
+│   │   ├── 📄 list_view.hpp
+│   │   ├── 📄 radio_group.hpp
+│   │   ├── 📄 text_input.hpp
+│   │   ├── 📄 view_common.hpp
+│   │   └── 📄 window_panel.hpp
+│   ├── 📁 dom
+│   │   └── 📄 dom_tree_view.hpp
+│   ├── 📄 render_context.hpp
+│   ├── 📄 renderer.hpp
+│   ├── 📄 ui_template.hpp
+│   └── 📄 ui_template_traits.hpp
+├── 📁 ui
+│   ├── 📁 imgui
+│   │   ├── 📄 imgui_database_table_draw.hpp
+│   │   ├── 📄 imgui_dev_console_draw.hpp
+│   │   ├── 📄 imgui_menu_bar_draw.hpp
+│   │   ├── 📄 imgui_renderer.hpp
+│   │   ├── 📄 imgui_table_draw.hpp
+│   │   ├── 📄 imgui_tree_draw.hpp
+│   │   └── 📄 imgui_wysiwyg.hpp
+│   ├── 📁 qt
+│   │   ├── 📄 qt_adapter.hpp
+│   │   ├── 📄 qt_database_table.hpp
+│   │   ├── 📄 qt_dev_console.hpp
+│   │   ├── 📄 qt_dom_tree.hpp
+│   │   ├── 📄 qt_menu_bar.hpp
+│   │   └── 📄 qt_tree_view.hpp
+│   └── 📄 glfw_app_window.hpp
+├── 📄 materializer.hpp
+├── 📄 materializer_examples.hpp
+├── 📄 signal.hpp
+└── 📄 uxoxo.hpp

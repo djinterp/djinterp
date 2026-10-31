@@ -58,16 +58,12 @@ d_tests_sa_text_lineup_null_inputs
   - template with zero-count token array → false
   - valid minimal call succeeds → true
 */
-struct d_test_object*
-d_tests_sa_text_lineup_null_inputs
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_null_inputs(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf;
+    struct dj_string_array* tokens;
     bool                   result;
     bool                   test_null_template;
     bool                   test_null_buffer;
@@ -205,16 +201,12 @@ d_tests_sa_text_lineup_no_wrap
   - separator_after places separator after last token
   - single token produces no inter-token separator
 */
-struct d_test_object*
-d_tests_sa_text_lineup_no_wrap
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_no_wrap(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf;
+    struct dj_string_array* tokens;
     bool                   result;
     bool                   test_tokens_present;
     bool                   test_separator;
@@ -453,16 +445,12 @@ d_tests_sa_text_lineup_wrapping
   - a very wide line_width keeps all tokens on one line
   - a very narrow line_width forces one token per line
 */
-struct d_test_object*
-d_tests_sa_text_lineup_wrapping
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_wrapping(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf;
+    struct dj_string_array* tokens;
     bool                   result;
     bool                   test_newline;
     bool                   test_all_tokens;
@@ -659,16 +647,12 @@ d_tests_sa_text_lineup_prefix_suffix
   - prefix larger than line_width is rejected unless flag is set
   - flag ALLOW_OVERSIZE_PREFIX permits an oversize prefix
 */
-struct d_test_object*
-d_tests_sa_text_lineup_prefix_suffix
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_prefix_suffix(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf;
+    struct dj_string_array* tokens;
     bool                   result;
     bool                   test_prefix;
     bool                   test_suffix;
@@ -820,16 +804,12 @@ d_tests_sa_text_lineup_line_prefix_suffix
   - line_suffix on every line with LINE_SUFFIX_ALL_LINES flag
   - line_suffix after the global suffix with LINE_SUFFIX_AFTER_SUFFIX flag
 */
-struct d_test_object*
-d_tests_sa_text_lineup_line_prefix_suffix
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_line_prefix_suffix(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf;
+    struct dj_string_array* tokens;
     bool                   result;
     bool                   test_line_prefix;
     bool                   test_line_suffix;
@@ -985,16 +965,12 @@ d_tests_sa_text_lineup_separators
   - separator_after only (no separator_before)
   - separator appears correctly on wrapped lines
 */
-struct d_test_object*
-d_tests_sa_text_lineup_separators
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_separators(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf;
+    struct dj_string_array* tokens;
     bool                   result;
     bool                   test_no_sep;
     bool                   test_between;
@@ -1170,18 +1146,14 @@ d_tests_sa_text_lineup_token_alignment
   - all three modes produce the same total column width
   - mixed-length tokens are correctly padded under each mode
 */
-struct d_test_object*
-d_tests_sa_text_lineup_token_alignment
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_token_alignment(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf_right;
-    struct d_text_buffer*  buf_left;
-    struct d_text_buffer*  buf_center;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf_right;
+    struct dj_text_buffer*  buf_left;
+    struct dj_text_buffer*  buf_center;
+    struct dj_string_array* tokens;
     bool                   result_r;
     bool                   result_l;
     bool                   result_c;
@@ -1319,16 +1291,12 @@ d_tests_sa_text_lineup_flags
   - ALIGN_FIRST_ROW_TO_SLOTS aligns first-row tokens to slot boundaries
   - ALLOW_OVERSIZE_SUFFIX permits suffix longer than line_width
 */
-struct d_test_object*
-d_tests_sa_text_lineup_flags
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_flags(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf;
+    struct dj_string_array* tokens;
     bool                   result;
     bool                   test_right_align_suffix;
     bool                   test_pad_after_sep;
@@ -1509,17 +1477,13 @@ d_tests_sa_text_lineup_min_token_width
   - min_token_width of 0 uses natural token width
   - all tokens still present with min_token_width set
 */
-struct d_test_object*
-d_tests_sa_text_lineup_min_token_width
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_min_token_width(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf_narrow;
-    struct d_text_buffer*  buf_wide;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf_narrow;
+    struct dj_text_buffer*  buf_wide;
+    struct dj_string_array* tokens;
     bool                   result_n;
     bool                   result_w;
     bool                   test_wider;
@@ -1654,17 +1618,13 @@ d_tests_sa_text_lineup_indent_outdent
   - both flags false produces correct output without crashes
   - both flags true produces correct output without crashes
 */
-struct d_test_object*
-d_tests_sa_text_lineup_indent_outdent
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_indent_outdent(void)
 {
-    struct d_test_object*  group;
-    struct d_text_template tmpl;
-    struct d_text_buffer*  buf_a;
-    struct d_text_buffer*  buf_b;
-    struct d_string_array* tokens;
+    struct dj_test_object*  group;
+    struct dj_text_template tmpl;
+    struct dj_text_buffer*  buf_a;
+    struct dj_text_buffer*  buf_b;
+    struct dj_string_array* tokens;
     bool                   result_a;
     bool                   result_b;
     bool                   test_indent_true;
@@ -1838,13 +1798,9 @@ d_tests_sa_text_lineup_lineup_all
   - min_token_width enforcement
   - indent_prefix / outdent_suffix parameters
 */
-struct d_test_object*
-d_tests_sa_text_lineup_lineup_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_lineup_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("d_text_lineup", 10);

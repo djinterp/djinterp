@@ -13,8 +13,8 @@
 
 // D_INTERNAL_INDEX_NOT_FOUND
 //   macro: sentinel value for "not found" in search functions.
-// Using (d_index)-1 which is the maximum value for the unsigned type.
-#define D_INTERNAL_INDEX_NOT_FOUND ((d_index)-1)
+// Using (dj_index)-1 which is the maximum value for the unsigned type.
+#define D_INTERNAL_INDEX_NOT_FOUND ((dj_index)-1)
 
 
 /******************************************************************************
@@ -37,15 +37,11 @@ d_tests_sa_dstring_find_char
   - NULL string handling
   - empty string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_find_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_find_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_find_char", 7);
@@ -203,15 +199,11 @@ d_tests_sa_dstring_find_char_from
   - start index beyond string length
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_find_char_from
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_find_char_from(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_find_char_from", 5);
@@ -327,15 +319,11 @@ d_tests_sa_dstring_rfind_char
   - NULL string handling
   - empty string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_rfind_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_rfind_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_rfind_char", 5);
@@ -450,14 +438,10 @@ d_tests_sa_dstring_chr
   - character not found returns NULL
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_chr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_chr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char*                 result;
     size_t                idx;
 
@@ -552,14 +536,10 @@ d_tests_sa_dstring_rchr
   - character not found returns NULL
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_rchr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_rchr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char*                 result;
     size_t                idx;
 
@@ -653,14 +633,10 @@ d_tests_sa_dstring_chrnul
   - character not found returns pointer to null terminator
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_chrnul
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_chrnul(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char*                 result;
     size_t                idx;
 
@@ -743,16 +719,12 @@ d_tests_sa_dstring_find
   - NULL substring handling
   - empty substring handling
 */
-struct d_test_object*
-d_tests_sa_dstring_find
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_find(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      substr;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      substr;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_find", 8);
@@ -936,15 +908,11 @@ d_tests_sa_dstring_find_cstr
   - NULL string handling
   - NULL C string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_find_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_find_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_find_cstr", 6);
@@ -1070,16 +1038,12 @@ d_tests_sa_dstring_find_from
   - start index beyond string length
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_find_from
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_find_from(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      substr;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      substr;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_find_from", 5);
@@ -1205,15 +1169,11 @@ d_tests_sa_dstring_find_cstr_from
   - start index beyond string length
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_find_cstr_from
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_find_cstr_from(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_find_cstr_from", 4);
@@ -1308,16 +1268,12 @@ d_tests_sa_dstring_rfind
   - NULL string handling
   - NULL substring handling
 */
-struct d_test_object*
-d_tests_sa_dstring_rfind
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_rfind(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      substr;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      substr;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_rfind", 5);
@@ -1430,15 +1386,11 @@ d_tests_sa_dstring_rfind_cstr
   - C string not found returns not-found sentinel
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_rfind_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_rfind_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_rfind_cstr", 4);
@@ -1531,14 +1483,10 @@ d_tests_sa_dstring_str
   - substring not found returns NULL
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_str
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_str(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char*                 result;
     size_t                idx;
 
@@ -1618,16 +1566,12 @@ d_tests_sa_dstring_casefind
   - substring not found returns not-found sentinel
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_casefind
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_casefind(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      substr;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      substr;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_casefind", 5);
@@ -1753,15 +1697,11 @@ d_tests_sa_dstring_casefind_cstr
   - C string not found returns not-found sentinel
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_casefind_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_casefind_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    d_index               result;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    dj_index               result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_casefind_cstr", 4);
@@ -1854,14 +1794,10 @@ d_tests_sa_dstring_casestr
   - substring not found returns NULL
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_casestr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_casestr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char*                 result;
     size_t                idx;
 
@@ -1941,15 +1877,11 @@ d_tests_sa_dstring_contains
   - NULL substring handling
   - empty substring handling
 */
-struct d_test_object*
-d_tests_sa_dstring_contains
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_contains(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      substr;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      substr;
     bool                  result;
     size_t                idx;
 
@@ -2063,14 +1995,10 @@ d_tests_sa_dstring_contains_cstr
   - NULL string handling
   - NULL C string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_contains_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_contains_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2153,14 +2081,10 @@ d_tests_sa_dstring_contains_char
   - string does not contain character returns false
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_contains_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_contains_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2235,15 +2159,11 @@ d_tests_sa_dstring_starts_with
   - empty prefix returns true
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_starts_with
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_starts_with(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      prefix;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      prefix;
     bool                  result;
     size_t                idx;
 
@@ -2369,14 +2289,10 @@ d_tests_sa_dstring_starts_with_cstr
   - string does not start with C string prefix returns false
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_starts_with_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_starts_with_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2451,15 +2367,11 @@ d_tests_sa_dstring_ends_with
   - empty suffix returns true
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_ends_with
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ends_with(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      suffix;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      suffix;
     bool                  result;
     size_t                idx;
 
@@ -2589,14 +2501,10 @@ d_tests_sa_dstring_ends_with_cstr
   - string does not end with C string suffix returns false
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_ends_with_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ends_with_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2675,14 +2583,10 @@ d_tests_sa_dstring_spn
   - all characters match
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_spn
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_spn(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                result;
     size_t                idx;
 
@@ -2777,14 +2681,10 @@ d_tests_sa_dstring_cspn
   - no matching characters returns full length
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_cspn
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_cspn(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                result;
     size_t                idx;
 
@@ -2878,14 +2778,10 @@ d_tests_sa_dstring_pbrk
   - no matching character returns NULL
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_pbrk
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_pbrk(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char*                 result;
     size_t                idx;
 
@@ -2968,13 +2864,9 @@ d_tests_sa_dstring_search_all
     starts_with, starts_with_cstr, ends_with, ends_with_cstr)
   - span functions (spn, cspn, pbrk)
 */
-struct d_test_object*
-d_tests_sa_dstring_search_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_search_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Search Functions", 26);

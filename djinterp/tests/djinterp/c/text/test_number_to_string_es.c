@@ -12,21 +12,31 @@
 // djinterp
 #include "../../../../inc/djinterp/c/text/number_to_string_es.h"
 
-static void test_cardinal(long long value)
+static
+void test_cardinal(
+    long long value
+)
 {
     char buf[NTS_ES_I64_BUFFER_SIZE];
     nts_es_cardinal_i64(buf, sizeof(buf), (int64_t)value, NTS_ES_FLAGS_DEFAULT);
     printf("cardinal(%lld) = %s\n", value, buf);
 }
 
-static void test_ordinal(long long value)
+static
+void test_ordinal(
+    long long value
+)
 {
     char buf[NTS_ES_I64_BUFFER_SIZE];
     nts_es_ordinal_i64(buf, sizeof(buf), (int64_t)value, NTS_ES_FLAGS_DEFAULT);
     printf("ordinal(%lld) = %s\n", value, buf);
 }
 
-static void test_ordinal_abbrev(long long value, unsigned flags)
+static
+void test_ordinal_abbrev(
+    long long value,
+    unsigned  flags
+)
 {
     char buf[NTS_ES_I64_BUFFER_SIZE];
     nts_es_ordinal_abbrev_i64(buf, sizeof(buf), (int64_t)value, flags);

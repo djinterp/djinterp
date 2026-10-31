@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                        dstring_tests_sa_copy.c
 *
-*   Unit tests for d_string safe copy functions:
+*   Unit tests for dj_string safe copy functions:
 *     - d_string_copy_s
 *     - d_string_copy_cstr_s
 *     - d_string_ncopy_s
@@ -25,7 +25,7 @@
 
 /*
 d_tests_sa_dstring_copy_s
-  Tests d_string_copy_s() which safely copies the content of one d_string to
+  Tests d_string_copy_s() which safely copies the content of one dj_string to
   another, ensuring no buffer overflow.
 
 Test cases:
@@ -45,15 +45,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_copy_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_copy_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     size_t                child_idx;
     int                   result;
 
@@ -338,7 +334,7 @@ d_tests_sa_dstring_copy_s
 
 /*
 d_tests_sa_dstring_copy_cstr_s
-  Tests d_string_copy_cstr_s() which safely copies a C string to a d_string.
+  Tests d_string_copy_cstr_s() which safely copies a C string to a dj_string.
 
 Test cases:
   1.  NULL destination returns error
@@ -353,14 +349,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_copy_cstr_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_copy_cstr_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     size_t                child_idx;
     int                   result;
 
@@ -505,7 +497,7 @@ d_tests_sa_dstring_copy_cstr_s
 /*
 d_tests_sa_dstring_ncopy_s
   Tests d_string_ncopy_s() which safely copies at most n characters from one
-  d_string to another.
+  dj_string to another.
 
 Test cases:
   1.  NULL destination returns error
@@ -521,15 +513,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncopy_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncopy_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     size_t                child_idx;
     int                   result;
 
@@ -741,7 +729,7 @@ d_tests_sa_dstring_ncopy_s
 /*
 d_tests_sa_dstring_ncopy_cstr_s
   Tests d_string_ncopy_cstr_s() which safely copies at most n characters from
-  a C string to a d_string.
+  a C string to a dj_string.
 
 Test cases:
   1.  NULL destination returns error
@@ -755,14 +743,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncopy_cstr_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncopy_cstr_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     size_t                child_idx;
     int                   result;
 
@@ -892,7 +876,7 @@ d_tests_sa_dstring_ncopy_cstr_s
 
 /*
 d_tests_sa_dstring_to_buffer_s
-  Tests d_string_to_buffer_s() which safely copies a d_string's content to a
+  Tests d_string_to_buffer_s() which safely copies a dj_string's content to a
   raw character buffer with size limit.
 
 Test cases:
@@ -910,14 +894,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_to_buffer_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_to_buffer_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     char                  buffer[256];
     char                  small_buffer[6];
     size_t                child_idx;
@@ -1118,16 +1098,12 @@ Parameter(s):
 Return:
   Test object containing all safe copy test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_copy_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_copy_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Safe Copy Functions", 5);
+    group     = d_test_object_new_interior("dj_string Safe Copy Functions", 5);
     child_idx = 0;
 
     if (!group)

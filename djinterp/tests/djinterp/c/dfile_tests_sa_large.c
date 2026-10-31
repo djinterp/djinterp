@@ -26,13 +26,9 @@ d_tests_dfile_fseeko
   - seeks from end (SEEK_END)
   - returns -1 for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_fseeko
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fseeko(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     int                   result;
@@ -107,16 +103,12 @@ d_tests_dfile_ftello
   - reports 0 at file beginning
   - returns -1 for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_ftello
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_ftello(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
-    d_off_t               pos;
+    dj_off_t               pos;
     bool                  test_after_seek;
     bool                  test_beginning;
     bool                  test_null_stream;
@@ -180,13 +172,9 @@ d_tests_dfile_ftruncate
   - extends file with truncate
   - returns -1 for invalid fd
 */
-struct d_test_object*
-d_tests_dfile_ftruncate
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_ftruncate(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     int                   result;
@@ -269,13 +257,9 @@ d_tests_dfile_ftruncate_stream
   - truncates file via stream
   - returns -1 for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_ftruncate_stream
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_ftruncate_stream(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     int                   result;
@@ -340,13 +324,9 @@ d_tests_dfile_large_file_support_all
   - d_file_truncate_fd
   - d_file_truncate_stream
 */
-struct d_test_object*
-d_tests_dfile_large_file_support_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_large_file_support_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("IV. Large File Support", 4);

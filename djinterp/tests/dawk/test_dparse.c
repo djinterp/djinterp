@@ -8,7 +8,7 @@
 * way POSIX says, not whether it evaluates, which nothing here can yet do.
 *
 *
-* path:      /tests/djinterp/c/dawk/test_dparse.c
+* path:      /tests/dawk/test_dparse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
 *                                                          revised: 2026.09.19
@@ -70,7 +70,7 @@ d_tests_emit(
 }
 
 
-static void d_tests_show(struct d_awk_node* _node);
+static void d_tests_show(struct dj_awk_node* _node);
 
 
 /*
@@ -85,7 +85,7 @@ Return:
 */
 static void
 d_tests_show_list(
-    struct d_awk_node* _node,
+    struct dj_awk_node* _node,
     const char*        _separator
 )
 {
@@ -115,7 +115,7 @@ Return:
 */
 static void
 d_tests_show(
-    struct d_awk_node* _node
+    struct dj_awk_node* _node
 )
 {
     // an absent child renders as a placeholder rather than vanishing
@@ -364,7 +364,7 @@ d_tests_expect(
     g_out[0]  = '\0';
     g_checks++;
 
-    struct d_awk_program* program = d_awk_parse(_source,
+    struct dj_awk_program* program = d_awk_parse(_source,
                                                 strlen(_source),
                                                 "-");
 
@@ -406,7 +406,7 @@ d_tests_expect(
 
     for (size_t at = 0; at < program->rule_count; ++at)
     {
-        struct d_awk_rule* const rule = &program->rules[at];
+        struct dj_awk_rule* const rule = &program->rules[at];
 
         // the pattern renders as its kind, its expression, or a wildcard
         if (rule->kind == D_AWK_RULE_BEGIN)

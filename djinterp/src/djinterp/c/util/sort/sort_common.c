@@ -11,7 +11,7 @@
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/sort/sort_common.h"
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*
@@ -27,14 +27,12 @@ Parameter(s):
 Return:
   the ordering, by value.
 */
-struct d_sort_comparator
-d_sort_comparator_make
-(
-    d_sort_compare_fn _compare,
-    void*             _context
+struct dj_sort_comparator d_sort_comparator_make(
+    dj_sort_compare_fn _compare,
+    void*              _context
 )
 {
-    struct d_sort_comparator comparator;
+    struct dj_sort_comparator comparator;
 
     comparator.compare = _compare;
     comparator.context = _context;
@@ -63,13 +61,13 @@ Return:
   D_SORT_STATUS_OK when the request is well formed, otherwise the formal status
 describing what is wrong with it.
 */
-enum d_sort_status
+enum dj_sort_status
 d_sort_verify
 (
     const void*                     _base,
     size_t                          _count,
     size_t                          _elem_size,
-    const struct d_sort_comparator* _comparator
+    const struct dj_sort_comparator* _comparator
 )
 {
     // an ordering is the whole operation; there is nothing to fall back to,
@@ -126,8 +124,8 @@ d_sort_is_sorted
     const void*                     _base,
     size_t                          _count,
     size_t                          _elem_size,
-    const struct d_sort_comparator* _comparator,
-    enum d_sort_order               _order
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
 )
 {
     size_t      index;

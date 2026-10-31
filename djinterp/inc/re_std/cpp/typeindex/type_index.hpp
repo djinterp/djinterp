@@ -1,0 +1,136 @@
+/*******************************************************************************
+* djinterp [re_std]                                               type_index.hpp
+*
+* class type_index:
+*   Copyable, assignable wrapper around a std::type_info reference, so a
+* type's identity can be used as a key in associative and unordered
+* containers. Mirrors std::type_index (C++11). Holds a const type_info*
+* (never null — there is no default ctor, matching std), so the type is
+* copyable and assignable where a bare type_info is not.
+*
+*   re_std has no <typeinfo> re-export module; type_index uses std::type_info
+* directly behind RE_STD_HAS_RTTI (the same RTTI gate
+* any/bad_any_cast uses). The whole class is unavailable when RTTI /
+* <typeinfo> is absent — type_index is meaningless without it.
+*
+*   Tiered surface: the six relational operators ship as explicit members
+* on C++11–C++17; on C++20 they are replaced by operator== plus
+* operator<=> (returning re_std::strong_ordering, from the shipped
+* re_std::compare), with the compiler synthesising !=, <, <=, >, >= — the
+* explicit legacy four are gated out there to avoid redundant/ambiguous
+* candidates. Not constexpr on any tier: type_info::before / hash_code /
+* name are not constant expressions (true of std::type_index too).
+*
+*
+* path:      /inc/re_std/cpp/typeindex/type_index.hpp
+* link(s):   TBA
+* author(s): re_std contributors                             created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+
+#ifndef RE_STD_TYPEINDEX_TYPE_INDEX_HPP
+#define RE_STD_TYPEINDEX_TYPE_INDEX_HPP 1
+
+// re_std
+#include "../../config.hpp"  // RE_STD_* configuration
+
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_HAS_RTTI
+
+// std
+#include <cstddef>   // size_t
+#include <typeinfo>  // std::type_info
+
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+#include "re_std/cpp/compare/strong_ordering.hpp"           // strong_ordering (C++20 op<=>)
+#endif
+
+namespace re_std
+{
+
+    // type_index
+    //   class: lightweight, copyable handle to a type's std::type_info.
+    class type_index
+    {
+    public:
+
+        // type_index(const type_info&)
+        //   function: implicit ctor (matches std — allows
+        //   `type_index ti = typeid(T);`). Stores the address of the
+        //   referenced type_info, which has static storage duration.
+        type_index(const std::type_info& _tinfo) noexcept
+            : m_target(&_tinfo)
+        {}
+
+        // operator==
+        //   function: equal iff the two type_infos denote the same type.
+        bool
+        operator==(const type_index& _rhs) const noexcept
+        { return *m_target == *_rhs.m_target; }
+
+#if !RE_STD_LANG_IS_CPP20_OR_HIGHER
+        // legacy relational operators (C++11–C++17). On C++20 these are
+        // synthesised from operator<=> / operator==, so they are gated out
+        // to avoid redundant explicit candidates.
+        bool
+        operator!=(const type_index& _rhs) const noexcept
+        { return *m_target != *_rhs.m_target; }
+
+        bool
+        operator<(const type_index& _rhs) const noexcept
+        { return m_target->before(*_rhs.m_target) != 0; }
+
+        bool
+        operator>(const type_index& _rhs) const noexcept
+        { return _rhs.m_target->before(*m_target) != 0; }
+
+        bool
+        operator<=(const type_index& _rhs) const noexcept
+        { return _rhs.m_target->before(*m_target) == 0; }
+
+        bool
+        operator>=(const type_index& _rhs) const noexcept
+        { return m_target->before(*_rhs.m_target) == 0; }
+#endif  // !C++20
+
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+        // operator<=>
+        //   function: three-way comparison (C++20). Returns
+        //   re_std::strong_ordering, built from type_info::before. The
+        //   compiler rewrites <, <=, >, >= from this and != from ==.
+        re_std::strong_ordering
+        operator<=>(const type_index& _rhs) const noexcept
+        {
+            if (*m_target == *_rhs.m_target)
+                return re_std::strong_ordering::equal;
+            if (m_target->before(*_rhs.m_target) != 0)
+                return re_std::strong_ordering::less;
+            return re_std::strong_ordering::greater;
+        }
+#endif  // C++20
+
+        // hash_code
+        //   function: forwards to type_info::hash_code() (C++11). Equal for
+        //   type_indexes denoting the same type; the key used by
+        //   hash<type_index>.
+        std::size_t
+        hash_code() const noexcept
+        { return m_target->hash_code(); }
+
+        // name
+        //   function: implementation-defined type name (forwards to
+        //   type_info::name()).
+        const char*
+        name() const noexcept
+        { return m_target->name(); }
+
+    private:
+
+        const std::type_info* m_target;
+    };
+
+}  // re_std
+#endif  // RE_STD_HAS_RTTI
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+#endif  // RE_STD_TYPEINDEX_TYPE_INDEX_HPP

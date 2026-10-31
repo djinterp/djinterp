@@ -20,13 +20,13 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Nodes
-         1.  d_awk_node_kind
-         2.  d_awk_node
+         1.  dj_awk_node_kind
+         2.  dj_awk_node
     2.  Program
-         1.  d_awk_rule_kind
-         2.  d_awk_rule
-         3.  d_awk_function
-         4.  d_awk_program
+         1.  dj_awk_rule_kind
+         2.  dj_awk_rule
+         3.  dj_awk_function
+         4.  dj_awk_program
 2.  OPERATIONS
     ----------
     1.  Parsing
@@ -40,7 +40,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 // djinterp
-#include "./dlex.h"   // d_awk_token_kind, used as the operator tag
+#include "./dlex.h"   // dj_awk_token_kind, used as the operator tag
 
 
 //==============================================================================
@@ -51,10 +51,10 @@ TABLE OF CONTENTS
 // 1.1    Nodes
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_awk_node_kind
+// dj_awk_node_kind
 //   enum: the constructs of the language.  Expressions and statements share
 //   one enumeration because awk lets an expression stand as a statement.
-enum d_awk_node_kind
+enum dj_awk_node_kind
 {
     // expressions
     D_AWK_N_NUMBER = 0,
@@ -97,23 +97,23 @@ enum d_awk_node_kind
 };
 
 // 1.1.2
-// d_awk_node
+// dj_awk_node
 //   struct: one syntax node.  `op` holds a token kind for the operator nodes;
 //   `regex` holds the compiled pattern for a REGEX node so compilation happens
 //   once rather than per record.
-struct d_awk_node
+struct dj_awk_node
 {
-    enum d_awk_node_kind kind;
-    enum d_awk_token_kind op;
+    enum dj_awk_node_kind kind;
+    enum dj_awk_token_kind op;
     double                number;
     char*                 text;
     size_t                length;
-    struct d_regex*       regex;
-    struct d_awk_node*    a;
-    struct d_awk_node*    b;
-    struct d_awk_node*    c;
-    struct d_awk_node*    d;
-    struct d_awk_node**   list;
+    struct dj_regex*       regex;
+    struct dj_awk_node*    a;
+    struct dj_awk_node*    b;
+    struct dj_awk_node*    c;
+    struct dj_awk_node*    d;
+    struct dj_awk_node**   list;
     size_t                count;
     size_t                capacity;
     size_t                line;
@@ -122,9 +122,9 @@ struct d_awk_node
 // 1.2    Program
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_awk_rule_kind
+// dj_awk_rule_kind
 //   enum: which part of the main loop a rule belongs to.
-enum d_awk_rule_kind
+enum dj_awk_rule_kind
 {
     D_AWK_RULE_BEGIN = 0,
     D_AWK_RULE_END,
@@ -132,39 +132,39 @@ enum d_awk_rule_kind
 };
 
 // 1.2.2
-// d_awk_rule
+// dj_awk_rule
 //   struct: one pattern and its action.  A NULL pattern matches every record;
 //   a non-NULL `pattern_end` makes it a range, whose state lives in `active`.
-struct d_awk_rule
+struct dj_awk_rule
 {
-    enum d_awk_rule_kind kind;
-    struct d_awk_node*   pattern;
-    struct d_awk_node*   pattern_end;
-    struct d_awk_node*   action;
+    enum dj_awk_rule_kind kind;
+    struct dj_awk_node*   pattern;
+    struct dj_awk_node*   pattern_end;
+    struct dj_awk_node*   action;
     bool                 active;
 };
 
 // 1.2.3
-// d_awk_function
+// dj_awk_function
 //   struct: one user-defined function.  Parameters past those supplied at the
 //   call are awk's way of declaring locals.
-struct d_awk_function
+struct dj_awk_function
 {
     char*              name;
     char**             params;
     size_t             param_count;
-    struct d_awk_node* body;
+    struct dj_awk_node* body;
 };
 
 // 1.2.4
-// d_awk_program
+// dj_awk_program
 //   struct: a parsed program.
-struct d_awk_program
+struct dj_awk_program
 {
-    struct d_awk_rule*     rules;
+    struct dj_awk_rule*     rules;
     size_t                 rule_count;
     size_t                 rule_capacity;
-    struct d_awk_function* functions;
+    struct dj_awk_function* functions;
     size_t                 function_count;
     size_t                 function_capacity;
 };
@@ -177,14 +177,18 @@ struct d_awk_program
 
 // 2.1    Parsing
 //------------------------------------------------------------------------------
-struct d_awk_program* d_awk_parse(const char* _source,
-                                  size_t      _length,
-                                  const char* _origin);
-void                  d_awk_program_free(struct d_awk_program* _program);
+struct dj_awk_program* d_awk_parse(
+    const char* _source,
+    size_t      _length,
+    const char* _origin
+);
+void d_awk_program_free(
+    struct dj_awk_program* _program
+);
 
 // 2.2    Diagnostics
 //------------------------------------------------------------------------------
-const char*           d_awk_parse_error(void);
+const char* d_awk_parse_error(void);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DPARSE_H

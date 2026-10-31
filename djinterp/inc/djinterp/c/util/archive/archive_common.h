@@ -15,19 +15,19 @@
 *   LAYERED ON COMPRESSION, AS THE ENV HEADERS ALREADY ARE:
 *   env_archive.h includes env_compress.h because a container is a directory
 * plus a codec.  This header follows the same direction: it includes
-* compress_common.h and reuses d_pack_status, d_pack_sink, and
-* d_compress_options wholesale rather than restating any of them.  A container
+* compress_common.h and reuses dj_pack_status, dj_pack_sink, and
+* dj_compress_options wholesale rather than restating any of them.  A container
 * option set EMBEDS a codec option set; it does not parallel one.
 *
 *   AN ENTRY BORROWS:
-*   struct d_archive_entry holds a name and a payload it does not own.  This is
+*   struct dj_archive_entry holds a name and a payload it does not own.  This is
 * the transient-value case the decision log carves out -- payload bytes use
 * offsets rather than pointers where a record must be relocatable, and an entry
 * handed to a writer is not such a record: it lives for the duration of one
 * call.  So an entry is a pointer pair, it allocates nothing, and building an
 * entry list is filling a stack array.
 *
-*   Every string is a struct d_pack_text -- pointer plus length, never a bare
+*   Every string is a struct dj_pack_text -- pointer plus length, never a bare
 * const char*.  A ZIP comment may contain a NUL, and test_compress.hpp already
 * records the round-trip requirement that the payload path never treat a buffer
 * as a C string; a length-carrying text type is the same discipline applied to
@@ -73,13 +73,13 @@ TABLE OF CONTENTS
 
       (section I is in compress_common.h -- the shared pack vocabulary)
 
-II.   FORMAT IDENTITY           (enum d_format_id, names, suffixes)
+II.   FORMAT IDENTITY           (enum dj_format_id, names, suffixes)
       -------------------------------------------------------------
 
 III.  KNOB CONSTANT SETS        (zip methods, encryption, tar flavours)
       -----------------------------------------------------------------
 
-IV.   OPTION LAYOUT             (the five blocks + d_archive_options)
+IV.   OPTION LAYOUT             (the five blocks + dj_archive_options)
       ---------------------------------------------------------------
 
 V.    THE ENTRY
@@ -109,9 +109,9 @@ X.    TRANSFORM LEAVES          (create / measure / extract)
 #include <stddef.h>
 // djinterp
 #include "../../djinterp.h"                  // D_STATIC_ASSERT, D_EXTERN_C_*
-#include "../compress/compress_common.h"  // status, sink, d_compress_options
+#include "../compress/compress_common.h"  // status, sink, dj_compress_options
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 
 
 //   cfg_qualifiers.h lets a project take ownership of the D_EXTERN_C family by
@@ -137,12 +137,12 @@ D_EXTERN_C_BEGIN
 // between the two produces the wrong container silently; the bridge is three
 // switches for that reason and must stay so.
 
-// d_format_id
+// dj_format_id
 //   enum: the container formats this framework names.  `gz` is a single
 // compressed stream rather than a directory of members, and `tar_gz` is a tar
 // container inside one, which is why both appear here alongside the true
 // multi-member containers.
-enum d_format_id
+enum dj_format_id
 {
     D_FORMAT_ID_ZIP         = 0,
     D_FORMAT_ID_TAR         = 1,
@@ -153,7 +153,7 @@ enum d_format_id
 };
 
 // D_FORMAT_ID_COUNT
-//   constant: the number of enumerators in d_format_id.
+//   constant: the number of enumerators in dj_format_id.
 #define D_FORMAT_ID_COUNT   6
 
 // D_FORMAT_ID_IS_VALID
@@ -170,13 +170,23 @@ enum d_format_id
     ( (int)(_f) == (int)D_FORMAT_ID_GZ )
 
 
-const char*        d_format_id_name(enum d_format_id _format);
-const char*        d_format_suffix(enum d_format_id _format);
-int                d_format_id_from_name(const char*       _name,
-                                         enum d_format_id* _out_format);
-int                d_format_id_from_suffix(const char*       _path,
-                                           enum d_format_id* _out_format);
-enum d_codec_id    d_format_default_codec(enum d_format_id _format);
+const char* d_format_id_name(
+    enum dj_format_id _format
+);
+const char* d_format_suffix(
+    enum dj_format_id _format
+);
+int d_format_id_from_name(
+    const char*        _name,
+    enum dj_format_id* _out_format
+);
+int d_format_id_from_suffix(
+    const char*        _path,
+    enum dj_format_id* _out_format
+);
+enum dj_codec_id d_format_default_codec(
+    enum dj_format_id _format
+);
 
 
 // =============================================================================
@@ -187,11 +197,11 @@ enum d_codec_id    d_format_default_codec(enum d_format_id _format);
 // member declared with an enum type has an implementation-defined size that C
 // and C++ may resolve differently for one declaration.
 
-// d_zip_method
+// dj_zip_method
 //   enum: the per-entry ZIP compression method; values are the method codes
 // the ZIP specification puts in the local header, so the mapping to the wire
 // is the identity.
-enum d_zip_method
+enum dj_zip_method
 {
     D_ZIP_METHOD_STORE   = 0,
     D_ZIP_METHOD_DEFLATE = 8,
@@ -201,11 +211,11 @@ enum d_zip_method
     D_ZIP_METHOD_XZ      = 95
 };
 
-// d_zip_encryption
+// dj_zip_encryption
 //   enum: the ZIP encryption scheme.  `legacy` is PKWARE ZipCrypto, which is
 // broken and is offered only for reading compatibility; a writer should
 // prefer aes_256.
-enum d_zip_encryption
+enum dj_zip_encryption
 {
     D_ZIP_ENCRYPTION_NONE    = 0,
     D_ZIP_ENCRYPTION_LEGACY  = 1,
@@ -214,11 +224,11 @@ enum d_zip_encryption
     D_ZIP_ENCRYPTION_AES_256 = 4
 };
 
-// d_tar_format
+// dj_tar_format
 //   enum: the tar flavour a writer emits.  `ustar` is the dependency-free
 // built-in and the portability floor; `pax` is required for a path longer than
 // 255 bytes or a timestamp outside the ustar octal range.
-enum d_tar_format
+enum dj_tar_format
 {
     D_TAR_FORMAT_USTAR = 0,
     D_TAR_FORMAT_GNU   = 1,
@@ -226,9 +236,9 @@ enum d_tar_format
     D_TAR_FORMAT_V7    = 3
 };
 
-// d_sevenzip_method
+// dj_sevenzip_method
 //   enum: the 7z stream method.
-enum d_sevenzip_method
+enum dj_sevenzip_method
 {
     D_SEVENZIP_METHOD_LZMA2   = 0,
     D_SEVENZIP_METHOD_LZMA    = 1,
@@ -256,69 +266,69 @@ enum d_sevenzip_method
 // knobs come first has its numeric prefix densely packed regardless of pointer
 // width, which keeps the numeric offset table simple on every data model.
 
-// d_zip_options
-//   struct: the ZIP container block.  `method` takes a d_zip_method value and
-// `encryption` a d_zip_encryption; `zip64` and `utf8_names` are flags.
-struct d_zip_options
+// dj_zip_options
+//   struct: the ZIP container block.  `method` takes a dj_zip_method value and
+// `encryption` a dj_zip_encryption; `zip64` and `utf8_names` are flags.
+struct dj_zip_options
 {
     int32_t             method;
     int32_t             encryption;
     int32_t             zip64;
     int32_t             utf8_names;
-    struct d_pack_text  password;
+    struct dj_pack_text  password;
 };
 
-// d_tar_options
-//   struct: the tar container block.  `format` takes a d_tar_format value;
+// dj_tar_options
+//   struct: the tar container block.  `format` takes a dj_tar_format value;
 // `numeric_owner` is a flag that suppresses owner names in favour of ids,
 // which is what makes a tar reproducible across machines.
-struct d_tar_options
+struct dj_tar_options
 {
     int32_t     format;
     int32_t     numeric_owner;
 };
 
-// d_gz_options
+// dj_gz_options
 //   struct: the gzip header block.  `store_name` and `store_mtime` are flags;
 // clearing both is what produces a byte-reproducible .gz, since the RFC 1952
 // header otherwise records the source filename and the current time.
-struct d_gz_options
+struct dj_gz_options
 {
     int32_t             store_name;
     int32_t             store_mtime;
-    struct d_pack_text  original_name;
+    struct dj_pack_text  original_name;
 };
 
-// d_sevenzip_options
-//   struct: the 7z container block.  `method` takes a d_sevenzip_method value;
+// dj_sevenzip_options
+//   struct: the 7z container block.  `method` takes a dj_sevenzip_method value;
 // `solid`, `header_compression` and `header_encryption` are flags.
-struct d_sevenzip_options
+struct dj_sevenzip_options
 {
     int32_t             method;
     int32_t             solid;
     int32_t             header_compression;
     int32_t             header_encryption;
     int32_t             threads;
-    struct d_pack_text  password;
+    struct dj_pack_text  password;
 };
 
-// d_rar_options
+// dj_rar_options
 //   struct: the RAR creation block.  Present for completeness of the option
 // vocabulary; no library can create RAR, so a create call naming this format
 // resolves to D_PACK_STATUS_UNAVAILABLE unless the proprietary tool backend is
 // present.  `solid` and `recovery_record` are flags.
-struct d_rar_options
+struct dj_rar_options
 {
     int32_t             level;
     int32_t             solid;
     int32_t             recovery_record;
-    struct d_pack_text  password;
+    struct dj_pack_text  password;
 };
 
-// d_archive_options
+// dj_archive_options
 //   struct: the whole container surface -- the archive-level knobs, the
 // embedded codec tuning, and one block per format.  `codec` is a full
-// d_compress_options: a container's stream tuning IS codec tuning, and
+// dj_compress_options: a container's stream tuning IS codec tuning, and
 // embedding it rather than restating it is what keeps one definition of the
 // fifty codec knobs.
 //
@@ -326,19 +336,19 @@ struct d_rar_options
 // value is the container's effort; the codec-level value tunes the stream
 // inside it.  A call site that consults one and not the other is testable
 // precisely because they are separate knobs.
-struct d_archive_options
+struct dj_archive_options
 {
     int32_t                     level;
     int32_t                     store_only;
     int32_t                     preserve_permissions;
     int32_t                     preserve_mtime;
-    struct d_pack_text          comment;
-    struct d_compress_options   codec;
-    struct d_zip_options        zip;
-    struct d_tar_options        tar;
-    struct d_gz_options         gz;
-    struct d_sevenzip_options   sevenzip;
-    struct d_rar_options        rar;
+    struct dj_pack_text          comment;
+    struct dj_compress_options   codec;
+    struct dj_zip_options        zip;
+    struct dj_tar_options        tar;
+    struct dj_gz_options         gz;
+    struct dj_sevenzip_options   sevenzip;
+    struct dj_rar_options        rar;
 };
 
 // D_ARCHIVE_OPTIONS_INIT
@@ -376,15 +386,15 @@ struct d_archive_options
 // the arena the caller supplied.  One type, two directions -- a second
 // "extracted entry" type would be a second definition of one object.
 
-// d_archive_entry
+// dj_archive_entry
 //   struct: a container member -- its path, its bytes, and the metadata a
 // writer records.  A directory member carries an empty payload; `mode` and
 // `mtime` of 0 mean "let the writer choose", which is how a reproducible
 // archive is requested.
-struct d_archive_entry
+struct dj_archive_entry
 {
-    struct d_pack_text      name;
-    struct d_pack_bytes     data;
+    struct dj_pack_text      name;
+    struct dj_pack_bytes     data;
     int32_t                 is_directory;
     uint32_t                mode;
     int64_t                 mtime;
@@ -413,11 +423,11 @@ struct d_archive_entry
 // is 0 -- 0755.  Pinned for the same reason.
 #define D_ARCHIVE_MODE_DIR_DEFAULT      0755u
 
-// d_archive_layout
+// dj_archive_layout
 //   struct: the two region sizes an extraction needs -- how many entries the
 // container holds, and how many bytes their names and payloads occupy in
 // total.  Returned by d_archive_measure and, filled in, by d_archive_extract.
-struct d_archive_layout
+struct dj_archive_layout
 {
     size_t  entry_count;
     size_t  arena_size;
@@ -430,10 +440,10 @@ struct d_archive_layout
 //   The Layout law, with one difference from compress_common.h that is worth
 // stating because getting it wrong is the obvious mistake here.
 //
-//   d_archive_options CANNOT be densely packed and must not be asserted as
+//   dj_archive_options CANNOT be densely packed and must not be asserted as
 // though it were.  It mixes int32_t knobs with pointer-bearing text spans, and
 // a span's alignment is the pointer's: a block of five int32_t followed by a
-// d_pack_text puts the span at offset 24 on LP64, not 20, because four bytes of
+// dj_pack_text puts the span at offset 24 on LP64, not 20, because four bytes of
 // padding are inserted to align it.  An assertion that pinned the span to 20
 // would hold on no data model at all, and one that pinned it to 24 would hold
 // on LP64 and fail on ILP32 -- a per-tier assertion is not an invariant.
@@ -447,99 +457,99 @@ struct d_archive_layout
 // asserted because nothing reads it: knob access goes through an offset table
 // and memcpy, which is indifferent to it.
 
-D_STATIC_ASSERT(sizeof(struct d_pack_text) == sizeof(struct d_pack_bytes),
-                "d_pack_text / d_pack_bytes: spans must share a shape");
-D_STATIC_ASSERT(offsetof(struct d_pack_text, data) == 0,
-                "d_pack_text: field drift at data");
-D_STATIC_ASSERT(offsetof(struct d_pack_bytes, data) == 0,
-                "d_pack_bytes: field drift at data");
+D_STATIC_ASSERT(sizeof(struct dj_pack_text) == sizeof(struct dj_pack_bytes),
+                "dj_pack_text / dj_pack_bytes: spans must share a shape");
+D_STATIC_ASSERT(offsetof(struct dj_pack_text, data) == 0,
+                "dj_pack_text: field drift at data");
+D_STATIC_ASSERT(offsetof(struct dj_pack_bytes, data) == 0,
+                "dj_pack_bytes: field drift at data");
 
 // -- zip: 4 dense numeric knobs, then password --------------------------------
-D_STATIC_ASSERT(offsetof(struct d_zip_options, method) == 0,
-                "d_zip_options: field drift at method");
-D_STATIC_ASSERT(offsetof(struct d_zip_options, encryption) ==
+D_STATIC_ASSERT(offsetof(struct dj_zip_options, method) == 0,
+                "dj_zip_options: field drift at method");
+D_STATIC_ASSERT(offsetof(struct dj_zip_options, encryption) ==
                 (1 * sizeof(int32_t)),
-                "d_zip_options: field drift at encryption");
-D_STATIC_ASSERT(offsetof(struct d_zip_options, zip64) ==
+                "dj_zip_options: field drift at encryption");
+D_STATIC_ASSERT(offsetof(struct dj_zip_options, zip64) ==
                 (2 * sizeof(int32_t)),
-                "d_zip_options: field drift at zip64");
-D_STATIC_ASSERT(offsetof(struct d_zip_options, utf8_names) ==
+                "dj_zip_options: field drift at zip64");
+D_STATIC_ASSERT(offsetof(struct dj_zip_options, utf8_names) ==
                 (3 * sizeof(int32_t)),
-                "d_zip_options: field drift at utf8_names");
-D_STATIC_ASSERT(offsetof(struct d_zip_options, password) >=
+                "dj_zip_options: field drift at utf8_names");
+D_STATIC_ASSERT(offsetof(struct dj_zip_options, password) >=
                 (4 * sizeof(int32_t)),
-                "d_zip_options: password must follow the numeric prefix");
+                "dj_zip_options: password must follow the numeric prefix");
 
 // -- tar: 2 dense numeric knobs, no text -------------------------------------
-D_STATIC_ASSERT(sizeof(struct d_tar_options) == (2 * sizeof(int32_t)),
-                "d_tar_options: layout drift");
-D_STATIC_ASSERT(offsetof(struct d_tar_options, numeric_owner) ==
+D_STATIC_ASSERT(sizeof(struct dj_tar_options) == (2 * sizeof(int32_t)),
+                "dj_tar_options: layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_tar_options, numeric_owner) ==
                 (1 * sizeof(int32_t)),
-                "d_tar_options: field drift at numeric_owner");
+                "dj_tar_options: field drift at numeric_owner");
 
 // -- gz: 2 dense numeric knobs, then original_name ---------------------------
-D_STATIC_ASSERT(offsetof(struct d_gz_options, store_mtime) ==
+D_STATIC_ASSERT(offsetof(struct dj_gz_options, store_mtime) ==
                 (1 * sizeof(int32_t)),
-                "d_gz_options: field drift at store_mtime");
-D_STATIC_ASSERT(offsetof(struct d_gz_options, original_name) >=
+                "dj_gz_options: field drift at store_mtime");
+D_STATIC_ASSERT(offsetof(struct dj_gz_options, original_name) >=
                 (2 * sizeof(int32_t)),
-                "d_gz_options: original_name must follow the numeric prefix");
+                "dj_gz_options: original_name must follow the numeric prefix");
 
 // -- 7z: 5 dense numeric knobs, then password --------------------------------
-D_STATIC_ASSERT(offsetof(struct d_sevenzip_options, solid) ==
+D_STATIC_ASSERT(offsetof(struct dj_sevenzip_options, solid) ==
                 (1 * sizeof(int32_t)),
-                "d_sevenzip_options: field drift at solid");
-D_STATIC_ASSERT(offsetof(struct d_sevenzip_options, header_compression) ==
+                "dj_sevenzip_options: field drift at solid");
+D_STATIC_ASSERT(offsetof(struct dj_sevenzip_options, header_compression) ==
                 (2 * sizeof(int32_t)),
-                "d_sevenzip_options: field drift at header_compression");
-D_STATIC_ASSERT(offsetof(struct d_sevenzip_options, header_encryption) ==
+                "dj_sevenzip_options: field drift at header_compression");
+D_STATIC_ASSERT(offsetof(struct dj_sevenzip_options, header_encryption) ==
                 (3 * sizeof(int32_t)),
-                "d_sevenzip_options: field drift at header_encryption");
-D_STATIC_ASSERT(offsetof(struct d_sevenzip_options, threads) ==
+                "dj_sevenzip_options: field drift at header_encryption");
+D_STATIC_ASSERT(offsetof(struct dj_sevenzip_options, threads) ==
                 (4 * sizeof(int32_t)),
-                "d_sevenzip_options: field drift at threads");
-D_STATIC_ASSERT(offsetof(struct d_sevenzip_options, password) >=
+                "dj_sevenzip_options: field drift at threads");
+D_STATIC_ASSERT(offsetof(struct dj_sevenzip_options, password) >=
                 (5 * sizeof(int32_t)),
-                "d_sevenzip_options: password must follow the numeric prefix");
+                "dj_sevenzip_options: password must follow the numeric prefix");
 
 // -- rar: 3 dense numeric knobs, then password -------------------------------
-D_STATIC_ASSERT(offsetof(struct d_rar_options, solid) ==
+D_STATIC_ASSERT(offsetof(struct dj_rar_options, solid) ==
                 (1 * sizeof(int32_t)),
-                "d_rar_options: field drift at solid");
-D_STATIC_ASSERT(offsetof(struct d_rar_options, recovery_record) ==
+                "dj_rar_options: field drift at solid");
+D_STATIC_ASSERT(offsetof(struct dj_rar_options, recovery_record) ==
                 (2 * sizeof(int32_t)),
-                "d_rar_options: field drift at recovery_record");
-D_STATIC_ASSERT(offsetof(struct d_rar_options, password) >=
+                "dj_rar_options: field drift at recovery_record");
+D_STATIC_ASSERT(offsetof(struct dj_rar_options, password) >=
                 (3 * sizeof(int32_t)),
-                "d_rar_options: password must follow the numeric prefix");
+                "dj_rar_options: password must follow the numeric prefix");
 
 // -- the aggregate: 4 dense archive-level knobs, then comment, then codec ----
-D_STATIC_ASSERT(offsetof(struct d_archive_options, level) == 0,
-                "d_archive_options: field drift at level");
-D_STATIC_ASSERT(offsetof(struct d_archive_options, store_only) ==
+D_STATIC_ASSERT(offsetof(struct dj_archive_options, level) == 0,
+                "dj_archive_options: field drift at level");
+D_STATIC_ASSERT(offsetof(struct dj_archive_options, store_only) ==
                 (1 * sizeof(int32_t)),
-                "d_archive_options: field drift at store_only");
-D_STATIC_ASSERT(offsetof(struct d_archive_options, preserve_permissions) ==
+                "dj_archive_options: field drift at store_only");
+D_STATIC_ASSERT(offsetof(struct dj_archive_options, preserve_permissions) ==
                 (2 * sizeof(int32_t)),
-                "d_archive_options: field drift at preserve_permissions");
-D_STATIC_ASSERT(offsetof(struct d_archive_options, preserve_mtime) ==
+                "dj_archive_options: field drift at preserve_permissions");
+D_STATIC_ASSERT(offsetof(struct dj_archive_options, preserve_mtime) ==
                 (3 * sizeof(int32_t)),
-                "d_archive_options: field drift at preserve_mtime");
-D_STATIC_ASSERT(offsetof(struct d_archive_options, comment) >=
+                "dj_archive_options: field drift at preserve_mtime");
+D_STATIC_ASSERT(offsetof(struct dj_archive_options, comment) >=
                 (4 * sizeof(int32_t)),
-                "d_archive_options: comment must follow the numeric prefix");
-D_STATIC_ASSERT(offsetof(struct d_archive_options, codec) >
-                offsetof(struct d_archive_options, comment),
-                "d_archive_options: codec must follow comment");
+                "dj_archive_options: comment must follow the numeric prefix");
+D_STATIC_ASSERT(offsetof(struct dj_archive_options, codec) >
+                offsetof(struct dj_archive_options, comment),
+                "dj_archive_options: codec must follow comment");
 
 // -- the entry ---------------------------------------------------------------
-D_STATIC_ASSERT(offsetof(struct d_archive_entry, name) == 0,
-                "d_archive_entry: field drift at name");
-D_STATIC_ASSERT(offsetof(struct d_archive_entry, data) ==
-                sizeof(struct d_pack_text),
-                "d_archive_entry: field drift at data");
-D_STATIC_ASSERT(sizeof(struct d_archive_layout) == (2 * sizeof(size_t)),
-                "d_archive_layout: layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_archive_entry, name) == 0,
+                "dj_archive_entry: field drift at name");
+D_STATIC_ASSERT(offsetof(struct dj_archive_entry, data) ==
+                sizeof(struct dj_pack_text),
+                "dj_archive_entry: field drift at data");
+D_STATIC_ASSERT(sizeof(struct dj_archive_layout) == (2 * sizeof(size_t)),
+                "dj_archive_layout: layout drift");
 
 
 // =============================================================================
@@ -556,11 +566,11 @@ D_STATIC_ASSERT(sizeof(struct d_archive_layout) == (2 * sizeof(size_t)),
 // d_compress_options_diff directly.  Two granularities, one for each question,
 // neither reimplementing the other.
 
-// d_archive_knob
+// dj_archive_knob
 //   enum: a dense index over the numeric and text knobs of a
-// d_archive_options.  The embedded codec occupies one index; the per-format
+// dj_archive_options.  The embedded codec occupies one index; the per-format
 // blocks follow in declaration order.
-enum d_archive_knob
+enum dj_archive_knob
 {
     D_ARCHIVE_KNOB_LEVEL                    = 0,
     D_ARCHIVE_KNOB_STORE_ONLY               = 1,
@@ -596,36 +606,49 @@ enum d_archive_knob
 };
 
 // D_ARCHIVE_KNOB_COUNT
-//   constant: the number of knobs in a d_archive_options, counting the
+//   constant: the number of knobs in a dj_archive_options, counting the
 // embedded codec as one.
 #define D_ARCHIVE_KNOB_COUNT    26
 
 D_STATIC_ASSERT((D_ARCHIVE_KNOB_RAR_PASSWORD + 1) == D_ARCHIVE_KNOB_COUNT,
-                "d_archive_knob: index set is not dense");
+                "dj_archive_knob: index set is not dense");
 
 
-const char*        d_archive_knob_name(enum d_archive_knob _knob);
-int                d_archive_knob_is_text(enum d_archive_knob _knob);
-void               d_archive_options_init(struct d_archive_options* _options);
-int                d_archive_options_equal(const struct d_archive_options* _a,
-                                           const struct d_archive_options* _b);
-int                d_archive_options_are_default(
-                    const struct d_archive_options* _options);
-int                d_archive_options_codec_is_default(
-                    const struct d_archive_options* _options);
-size_t             d_archive_options_diff(
-                    const struct d_archive_options* _a,
-                    const struct d_archive_options* _b,
-                    enum d_archive_knob*            _out_knobs,
-                    size_t                          _out_capacity);
-enum d_pack_status d_archive_options_resolve(
-                    enum d_format_id                _format,
-                    const struct d_archive_options* _in,
-                    struct d_archive_options*       _out);
-enum d_pack_status d_archive_options_validate(
-                    enum d_format_id                _format,
-                    const struct d_archive_options* _options,
-                    enum d_archive_knob*            _out_offender);
+const char* d_archive_knob_name(
+    enum dj_archive_knob _knob
+);
+int d_archive_knob_is_text(
+    enum dj_archive_knob _knob
+);
+void d_archive_options_init(
+    struct dj_archive_options* _options
+);
+int d_archive_options_equal(
+    const struct dj_archive_options* _a,
+    const struct dj_archive_options* _b
+);
+int d_archive_options_are_default(
+    const struct dj_archive_options* _options
+);
+int d_archive_options_codec_is_default(
+    const struct dj_archive_options* _options
+);
+size_t d_archive_options_diff(
+    const struct dj_archive_options* _a,
+    const struct dj_archive_options* _b,
+    enum dj_archive_knob*            _out_knobs,
+    size_t                           _out_capacity
+);
+enum dj_pack_status d_archive_options_resolve(
+    enum dj_format_id                _format,
+    const struct dj_archive_options* _in,
+    struct dj_archive_options*       _out
+);
+enum dj_pack_status d_archive_options_validate(
+    enum dj_format_id                _format,
+    const struct dj_archive_options* _options,
+    enum dj_archive_knob*            _out_offender
+);
 
 
 // =============================================================================
@@ -644,18 +667,35 @@ enum d_pack_status d_archive_options_validate(
 // the same answer as the writer would, which is what lets a test assert the
 // rule without invoking a backend.
 
-int                d_format_is_readable(enum d_format_id _format);
-int                d_format_is_writable(enum d_format_id _format);
-int                d_format_supports_codec(enum d_format_id _format,
-                                           enum d_codec_id  _codec);
-int                d_format_supports_encryption(enum d_format_id _format);
-int                d_format_backend_id(enum d_format_id _format);
-const char*        d_format_backend_name(enum d_format_id _format);
-size_t             d_format_writable_list(enum d_format_id* _out_formats,
-                                          size_t            _out_capacity);
-int                d_archive_entry_name_is_valid(struct d_pack_text _name);
-int                d_archive_entry_is_valid(
-                    const struct d_archive_entry* _entry);
+int d_format_is_readable(
+    enum dj_format_id _format
+);
+int d_format_is_writable(
+    enum dj_format_id _format
+);
+int d_format_supports_codec(
+    enum dj_format_id _format,
+    enum dj_codec_id  _codec
+);
+int d_format_supports_encryption(
+    enum dj_format_id _format
+);
+int d_format_backend_id(
+    enum dj_format_id _format
+);
+const char* d_format_backend_name(
+    enum dj_format_id _format
+);
+size_t d_format_writable_list(
+    enum dj_format_id* _out_formats,
+    size_t             _out_capacity
+);
+int d_archive_entry_name_is_valid(
+    struct dj_pack_text _name
+);
+int d_archive_entry_is_valid(
+    const struct dj_archive_entry* _entry
+);
 
 
 // =============================================================================
@@ -670,13 +710,19 @@ int                d_archive_entry_is_valid(
 // a tar requires at least a full 512-byte record, and d_format_signature_length
 // reports that rather than a nominal small number.
 
-int                d_format_signature_matches(enum d_format_id _format,
-                                              const void*      _data,
-                                              size_t           _size);
-int                d_format_signature_length(enum d_format_id _format);
-int                d_format_detect(const void*       _data,
-                                   size_t            _size,
-                                   enum d_format_id* _out_format);
+int d_format_signature_matches(
+    enum dj_format_id _format,
+    const void*       _data,
+    size_t            _size
+);
+int d_format_signature_length(
+    enum dj_format_id _format
+);
+int d_format_detect(
+    const void*        _data,
+    size_t             _size,
+    enum dj_format_id* _out_format
+);
 
 
 // =============================================================================
@@ -707,51 +753,58 @@ int                d_format_detect(const void*       _data,
 //   d_archive_extract_entry pulls a single member by name without materialising
 // the rest, for the common case of reading one file out of a container.
 
-enum d_pack_status d_archive_bound(enum d_format_id                _format,
-                                   const struct d_archive_entry*   _entries,
-                                   size_t                          _entry_count,
-                                   const struct d_archive_options* _options,
-                                   size_t*                         _out_bound);
-enum d_pack_status d_archive_create(
-                    enum d_format_id                _format,
-                    const struct d_archive_entry*   _entries,
-                    size_t                          _entry_count,
-                    const struct d_archive_options* _options,
-                    void*                           _out,
-                    size_t                          _out_capacity,
-                    size_t*                         _out_size);
-enum d_pack_status d_archive_create_to_sink(
-                    enum d_format_id                _format,
-                    const struct d_archive_entry*   _entries,
-                    size_t                          _entry_count,
-                    const struct d_archive_options* _options,
-                    struct d_pack_sink              _sink,
-                    size_t*                         _out_size);
-enum d_pack_status d_archive_measure(
-                    enum d_format_id                _format,
-                    const void*                     _in,
-                    size_t                          _in_size,
-                    const struct d_archive_options* _options,
-                    struct d_archive_layout*        _out_layout);
-enum d_pack_status d_archive_extract(
-                    enum d_format_id                _format,
-                    const void*                     _in,
-                    size_t                          _in_size,
-                    const struct d_archive_options* _options,
-                    struct d_archive_entry*         _entries,
-                    size_t                          _entry_cap,
-                    void*                           _arena,
-                    size_t                          _arena_size,
-                    struct d_archive_layout*        _out_used);
-enum d_pack_status d_archive_extract_entry(
-                    enum d_format_id                _format,
-                    const void*                     _in,
-                    size_t                          _in_size,
-                    struct d_pack_text              _name,
-                    const struct d_archive_options* _options,
-                    void*                           _out,
-                    size_t                          _out_capacity,
-                    size_t*                         _out_size);
+enum dj_pack_status d_archive_bound(
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
+    size_t                           _entry_count,
+    const struct dj_archive_options* _options,
+    size_t*                          _out_bound
+);
+enum dj_pack_status d_archive_create(
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
+    size_t                           _entry_count,
+    const struct dj_archive_options* _options,
+    void*                            _out,
+    size_t                           _out_capacity,
+    size_t*                          _out_size
+);
+enum dj_pack_status d_archive_create_to_sink(
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
+    size_t                           _entry_count,
+    const struct dj_archive_options* _options,
+    struct dj_pack_sink              _sink,
+    size_t*                          _out_size
+);
+enum dj_pack_status d_archive_measure(
+    enum dj_format_id                _format,
+    const void*                      _in,
+    size_t                           _in_size,
+    const struct dj_archive_options* _options,
+    struct dj_archive_layout*        _out_layout
+);
+enum dj_pack_status d_archive_extract(
+    enum dj_format_id                _format,
+    const void*                      _in,
+    size_t                           _in_size,
+    const struct dj_archive_options* _options,
+    struct dj_archive_entry*         _entries,
+    size_t                           _entry_cap,
+    void*                            _arena,
+    size_t                           _arena_size,
+    struct dj_archive_layout*        _out_used
+);
+enum dj_pack_status d_archive_extract_entry(
+    enum dj_format_id                _format,
+    const void*                      _in,
+    size_t                           _in_size,
+    struct dj_pack_text              _name,
+    const struct dj_archive_options* _options,
+    void*                            _out,
+    size_t                           _out_capacity,
+    size_t*                          _out_size
+);
 
 
 D_EXTERN_C_END

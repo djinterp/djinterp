@@ -1,0 +1,64 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\build\cmake\config\
+├── 📁 testing
+│   ├── 📁 djinterp
+│   │   ├── 📁 core
+│   │   │   ├── 📁 container
+│   │   │   │   ├── 📁 array
+│   │   │   │   │   └── 📄 array_tests_runner.cpp
+│   │   │   │   └── 📄 CMakeLists.txt
+│   │   │   ├── 📁 functional
+│   │   │   │   ├── 📄 accumulator_test_runner.cpp
+│   │   │   │   ├── 📄 comparator_test_runner.cpp
+│   │   │   │   ├── 📄 compose_test_runner.cpp
+│   │   │   │   ├── 📄 consumer_test_runner.cpp
+│   │   │   │   ├── 📄 curry_test_runner.cpp
+│   │   │   │   ├── 📄 extractor_test_runner.cpp
+│   │   │   │   ├── 📄 filter_test_runner.cpp
+│   │   │   │   ├── 📄 fn_builder_runner.cpp
+│   │   │   │   ├── 📄 maybe_test_runner.cpp
+│   │   │   │   ├── 📄 monad_test_runner.cpp
+│   │   │   │   ├── 📄 pipeline_test_runner.cpp
+│   │   │   │   ├── 📄 predicate_test_runner.cpp
+│   │   │   │   ├── 📄 producer_test_runner.cpp
+│   │   │   │   ├── 📄 result_test_runner.cpp
+│   │   │   │   ├── 📄 transducer_test_runner.cpp
+│   │   │   │   └── 📄 view_test_runner.cpp
+│   │   │   ├── 📁 meta
+│   │   │   │   ├── 📁 carrier
+│   │   │   │   │   └── 📄 carrier_tests_runner.cpp
+│   │   │   │   ├── 📁 concepts
+│   │   │   │   │   └── 📄 concepts_tests_runner.cpp
+│   │   │   │   ├── 📁 dtuple
+│   │   │   │   │   └── 📄 dtuple_tests_runner.cpp
+│   │   │   │   └── 📁 type_traits
+│   │   │   │       └── 📄 type_traits_tests_runner.cpp
+│   │   │   ├── 📁 option
+│   │   │   │   └── 📄 option_tests.cpp
+│   │   │   ├── 📁 text
+│   │   │   │   └── 📄 text_template_tests.cpp
+│   │   │   ├── 📁 util
+│   │   │   │   ├── 📁 counter
+│   │   │   │   │   └── 📁 counter
+│   │   │   │   │       └── 📄 counter_tests_runner.cpp
+│   │   │   │   └── 📁 timer
+│   │   │   │       └── 📁 timer
+│   │   │   │           └── 📄 timer_tests_runner.cpp
+│   │   │   ├── 📄 CMakeLists.txt
+│   │   │   └── 📄 djinterp_header_tests_runner.cpp
+│   │   ├── 📁 test
+│   │   │   ├── 📁 test_common
+│   │   │   │   ├── 📄 CMakeLists.txt
+│   │   │   │   └── 📄 test_common_tests_runner.cpp
+│   │   │   ├── 📁 test_kind
+│   │   │   │   ├── 📄 CMakeLists.txt
+│   │   │   │   └── 📄 test_kind_tests_runner.cpp
+│   │   │   ├── 📁 test_object
+│   │   │   │   ├── 📄 CMakeLists.txt
+│   │   │   │   └── 📄 test_object_tests_runner.cpp
+│   │   │   ├── 📁 test_tree
+│   │   │   │   └── 📄 test_tree_tests_runner.cpp
+│   │   │   └── 📄 CMakeLists.txt
+│   │   └── 📄 CMakeLists.txt
+│   └── 📄 CMakeLists.txt
+├── 📄 CMakeLists.txt
+└── 📄 djinterp_module.cmake

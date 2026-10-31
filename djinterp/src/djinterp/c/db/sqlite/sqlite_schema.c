@@ -27,12 +27,12 @@
 #include <stddef.h>  // size_t, NULL
 #include <string.h>  // strlen
 // djinterp
-#include "../../../../../inc/djinterp/c/db/db_common.h"  // d_db_column, flags
-#include "../db_internal.h"     // d_internal_db_buffer, the builders
+#include "../../../../../inc/djinterp/c/db/db_common.h"  // dj_db_column, flags
+#include "../db_internal.h"     // dj_internal_db_buffer, the builders
 #include "../../../../../inc/djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // D_INTERNAL_SQLITE
 #include "./sqlite_internal.h"  // sqlite3.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_SQLITE == 1)
@@ -47,7 +47,7 @@
     (D_DB_IF_NOT_EXISTS | D_SQLITE_STRICT | D_SQLITE_WITHOUT_ROWID)
 
 // D_INTERNAL_SQLITE_COLUMN_FLAGS
-//   constant: every flag a struct d_db_column may carry.
+//   constant: every flag a struct dj_db_column may carry.
 #define D_INTERNAL_SQLITE_COLUMN_FLAGS                                         \
     (D_DB_COLUMN_PRIMARY_KEY    |                                              \
      D_DB_COLUMN_AUTO_INCREMENT |                                              \
@@ -68,8 +68,8 @@
  * The comparison is COLLATE NOCASE because SQLite resolves names that way:
  * a table created as "Users" is the one "users" names.
  */
-static int
-d_internal_sqlite_has_object(
+static
+int d_internal_sqlite_has_object(
     sqlite3*    _db,
     const char* _schema,
     const char* _type,
@@ -141,13 +141,13 @@ d_internal_sqlite_has_object(
  * objects; lower(substr(...)) filters them where LIKE could not be trusted,
  * since PRAGMA case_sensitive_like changes what LIKE matches.
  */
-static int
-d_internal_sqlite_list_objects(
-    sqlite3*               _db,
-    const char*            _schema,
-    const char*            _type,
-    const char*            _table,
-    struct d_db_name_list* _names
+static
+int d_internal_sqlite_list_objects(
+    sqlite3*                _db,
+    const char*             _schema,
+    const char*             _type,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     // parameter validation
@@ -204,8 +204,8 @@ d_internal_sqlite_list_objects(
  * @param[in] _flags    D_DB_IF_EXISTS, or 0.
  * @return SQLITE_OK, the SQLite result code of the failure, or SQLITE_MISUSE.
  */
-static int
-d_internal_sqlite_drop_object(
+static
+int d_internal_sqlite_drop_object(
     sqlite3*    _db,
     const char* _schema,
     const char* _keyword,
@@ -240,10 +240,10 @@ d_internal_sqlite_drop_object(
  * @param[in]     ...      the format's arguments.
  * @return SQLITE_OK, or SQLITE_NOMEM.
  */
-static int
-d_internal_sqlite_append(
-    struct d_internal_db_buffer* _sql,
-    const char*                  _format,
+static
+int d_internal_sqlite_append(
+    struct dj_internal_db_buffer* _sql,
+    const char*                   _format,
     ...
 )
 {
@@ -276,9 +276,9 @@ d_internal_sqlite_append(
  * @param[in,out] _sql  the statement.
  * @return SQLITE_OK, or SQLITE_NOMEM.
  */
-static int
-d_internal_sqlite_terminate(
-    struct d_internal_db_buffer* _sql
+static
+int d_internal_sqlite_terminate(
+    struct dj_internal_db_buffer* _sql
 )
 {
     return (d_internal_db_buffer_append(_sql, "", 1u))
@@ -292,12 +292,12 @@ d_internal_sqlite_terminate(
  * @param[in] _column  the column.
  * @param[in] _strict  whether its table is STRICT.
  * @return the declared type, "" for none, or `NULL` for a type that is not a
- *         d_db_type.
+ *         dj_db_type.
  */
-static const char*
-d_internal_sqlite_type_sql(
-    const struct d_db_column* _column,
-    bool                      _strict
+static
+const char* d_internal_sqlite_type_sql(
+    const struct dj_db_column* _column,
+    bool                       _strict
 )
 {
     // the caller's own spelling wins
@@ -356,12 +356,12 @@ d_internal_sqlite_type_sql(
  * A DEFAULT is parenthesized, which SQLite requires of any expression that is
  * not a literal and accepts around one that is.
  */
-static int
-d_internal_sqlite_append_column(
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _column,
-    bool                         _strict,
-    bool                         _key
+static
+int d_internal_sqlite_append_column(
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _column,
+    bool                          _strict,
+    bool                          _key
 )
 {
     const char* const type = d_internal_sqlite_type_sql(_column, _strict);
@@ -407,11 +407,11 @@ d_internal_sqlite_append_column(
  *         not the sole primary key, or key places that are not sound
  *         (d_internal_db_key_places_ok).
  */
-static int
-d_internal_sqlite_count_keys(
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    size_t*                   _keys
+static
+int d_internal_sqlite_count_keys(
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    size_t*                    _keys
 )
 {
     size_t keys           = 0u;
@@ -460,12 +460,12 @@ d_internal_sqlite_count_keys(
  * A sole key is written on its column, which is the only place AUTOINCREMENT
  * can go; a composite one as a table constraint after the columns.
  */
-static int
-d_internal_sqlite_build_definition(
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _columns,
-    size_t                       _count,
-    bool                         _strict
+static
+int d_internal_sqlite_build_definition(
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _columns,
+    size_t                        _count,
+    bool                          _strict
 )
 {
     size_t keys   = 0u;
@@ -526,8 +526,8 @@ d_internal_sqlite_build_definition(
  *
  * Table options follow the parenthesis, comma-separated when there are two.
  */
-static int
-d_internal_sqlite_create_table(
+static
+int d_internal_sqlite_create_table(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -571,8 +571,8 @@ d_internal_sqlite_create_table(
  *                      before 3.37.0, which has no STRICT tables.
  * @return SQLITE_OK, or the SQLite result code of the failure.
  */
-static int
-d_internal_sqlite_table_is_strict(
+static
+int d_internal_sqlite_table_is_strict(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -642,8 +642,8 @@ d_internal_sqlite_table_is_strict(
  * an older library has no generated columns to miss. Before 3.26.0 an
  * unknown PRAGMA is silently empty, so the version is checked, not guessed.
  */
-static int
-d_internal_sqlite_prepare_columns(
+static
+int d_internal_sqlite_prepare_columns(
     sqlite3*       _db,
     const char*    _schema,
     const char*    _table,
@@ -681,11 +681,11 @@ d_internal_sqlite_prepare_columns(
  * stored, which table_info leaves out and table_xinfo lists. The strings are
  * copied before the next step, which would free them.
  */
-static int
-d_internal_sqlite_collect_columns(
-    sqlite3_stmt*                 _statement,
-    bool                          _hidden,
-    struct d_internal_db_columns* _builder
+static
+int d_internal_sqlite_collect_columns(
+    sqlite3_stmt*                  _statement,
+    bool                           _hidden,
+    struct dj_internal_db_columns* _builder
 )
 {
     int result = sqlite3_step(_statement);
@@ -695,7 +695,7 @@ d_internal_sqlite_collect_columns(
     {
         const int               hidden =
             (_hidden) ? sqlite3_column_int(_statement, 6) : 0;
-        struct d_db_column_info column =
+        struct dj_db_column_info column =
         {
             (const char*)sqlite3_column_text(_statement, 1),
             (const char*)sqlite3_column_text(_statement, 2),
@@ -736,8 +736,8 @@ d_internal_sqlite_collect_columns(
  * so nothing is left half done or held open; the code returned is the
  * failure's, though sqlite3_errmsg then describes the rollback.
  */
-static int
-d_internal_sqlite_truncate_sequenced(
+static
+int d_internal_sqlite_truncate_sequenced(
     sqlite3*    _db,
     const char* _schema,
     const char* _table
@@ -786,8 +786,7 @@ d_internal_sqlite_truncate_sequenced(
 d_sqlite_has_table
   The _s form, with every failure read as "no".
 */
-bool
-d_sqlite_has_table(
+bool d_sqlite_has_table(
     sqlite3*    _db,
     const char* _schema,
     const char* _table
@@ -804,8 +803,7 @@ d_sqlite_has_table(
 d_sqlite_has_table_s
   A catalogue row of type 'table', which virtual tables are too.
 */
-int
-d_sqlite_has_table_s(
+int d_sqlite_has_table_s(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -828,14 +826,13 @@ same path as a definition written by hand. Six parameters, one past the
 guide's tripwire: the columns and their count are one argument, split in two
 as C passes an array.
 */
-int
-d_sqlite_create_table(
-    sqlite3*                  _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    unsigned                  _flags
+int d_sqlite_create_table(
+    sqlite3*                   _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
 )
 {
     // parameter validation
@@ -849,7 +846,7 @@ d_sqlite_create_table(
         return SQLITE_MISUSE;
     }
 
-    struct d_internal_db_buffer definition = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer definition = { NULL, 0u, 0u };
     int                         result     =
         d_internal_sqlite_build_definition(
             &definition,
@@ -876,8 +873,7 @@ d_sqlite_create_table(
 d_sqlite_create_table_sql
   The definition is the caller's SQL, placed between the parentheses as is.
 */
-int
-d_sqlite_create_table_sql(
+int d_sqlite_create_table_sql(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -906,8 +902,7 @@ d_sqlite_create_table_sql(
 d_sqlite_drop_table
   DROP TABLE takes the table's indexes and triggers with it.
 */
-int
-d_sqlite_drop_table(
+int d_sqlite_drop_table(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -923,8 +918,7 @@ d_sqlite_drop_table(
 d_sqlite_rename_table
   RENAME TO takes an unqualified name: a table cannot move between schemas.
 */
-int
-d_sqlite_rename_table(
+int d_sqlite_rename_table(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -954,8 +948,7 @@ d_sqlite_truncate_table
 table's row in sqlite_sequence, which exists only once some table in the
 schema uses AUTOINCREMENT; without it, the DELETE alone.
 */
-int
-d_sqlite_truncate_table(
+int d_sqlite_truncate_table(
     sqlite3*    _db,
     const char* _schema,
     const char* _table
@@ -1003,8 +996,7 @@ d_sqlite_count_rows
   count(*) over the whole table, which SQLite answers from the table's b-tree
 without reading the rows.
 */
-int
-d_sqlite_count_rows(
+int d_sqlite_count_rows(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -1043,11 +1035,10 @@ d_sqlite_count_rows(
 d_sqlite_list_tables
   The catalogue's 'table' rows, SQLite's own left out.
 */
-int
-d_sqlite_list_tables(
-    sqlite3*               _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_sqlite_list_tables(
+    sqlite3*                _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     return d_internal_sqlite_list_objects(_db, _schema, "table", NULL, _names);
@@ -1063,8 +1054,7 @@ d_sqlite_list_tables(
 d_sqlite_has_column
   The _s form, with every failure read as "no".
 */
-bool
-d_sqlite_has_column(
+bool d_sqlite_has_column(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -1087,8 +1077,7 @@ d_sqlite_has_column_s
 has none. Hidden columns (1) belong to virtual tables' machinery and are
 skipped, as list_columns skips them, so the two always agree.
 */
-int
-d_sqlite_has_column_s(
+int d_sqlite_has_column_s(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -1154,12 +1143,11 @@ d_sqlite_has_column_s(
 d_sqlite_add_column
   The table's STRICT-ness is asked first, since it decides the declared type.
 */
-int
-d_sqlite_add_column(
-    sqlite3*                  _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_sqlite_add_column(
+    sqlite3*                   _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
     // parameter validation
@@ -1171,7 +1159,7 @@ d_sqlite_add_column(
         return SQLITE_MISUSE;
     }
 
-    struct d_internal_db_buffer definition = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer definition = { NULL, 0u, 0u };
     bool                        strict     = false;
     int                         result     =
         d_internal_sqlite_table_is_strict(_db, _schema, _table, &strict);
@@ -1207,8 +1195,7 @@ d_sqlite_add_column(
 d_sqlite_add_column_sql
   ADD COLUMN, with the caller's definition as written.
 */
-int
-d_sqlite_add_column_sql(
+int d_sqlite_add_column_sql(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -1236,8 +1223,7 @@ d_sqlite_rename_column
   Checked against the library in use: before 3.25.0 the statement is a syntax
 error whose message names neither the feature nor the version.
 */
-int
-d_sqlite_rename_column(
+int d_sqlite_rename_column(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -1275,8 +1261,7 @@ d_sqlite_drop_column
   Checked against the library in use, as d_sqlite_rename_column; DROP COLUMN
 arrived in 3.35.0.
 */
-int
-d_sqlite_drop_column(
+int d_sqlite_drop_column(
     sqlite3*    _db,
     const char* _schema,
     const char* _table,
@@ -1314,12 +1299,11 @@ d_sqlite_list_columns
 default's SQL text (4), and the place in the primary key (5). Every table has
 a column, so no rows means no table.
 */
-int
-d_sqlite_list_columns(
-    sqlite3*                 _db,
-    const char*              _schema,
-    const char*              _table,
-    struct d_db_column_list* _columns
+int d_sqlite_list_columns(
+    sqlite3*                  _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
 )
 {
     // parameter validation
@@ -1331,7 +1315,7 @@ d_sqlite_list_columns(
         return SQLITE_MISUSE;
     }
 
-    struct d_internal_db_columns builder   =
+    struct dj_internal_db_columns builder   =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u
     };
@@ -1378,8 +1362,7 @@ d_sqlite_list_columns(
 d_sqlite_has_index
   The _s form, with every failure read as "no".
 */
-bool
-d_sqlite_has_index(
+bool d_sqlite_has_index(
     sqlite3*    _db,
     const char* _schema,
     const char* _index
@@ -1396,8 +1379,7 @@ d_sqlite_has_index(
 d_sqlite_has_index_s
   A catalogue row of type 'index'; SQLite's automatic indexes have rows too.
 */
-int
-d_sqlite_has_index_s(
+int d_sqlite_has_index_s(
     sqlite3*    _db,
     const char* _schema,
     const char* _index,
@@ -1420,8 +1402,7 @@ table's schema, and CREATE INDEX says which with the index's name. Six
 parameters, one past the guide's tripwire: each is a separate part of the
 statement, and a struct would only rename them.
 */
-int
-d_sqlite_create_index(
+int d_sqlite_create_index(
     sqlite3*    _db,
     const char* _schema,
     const char* _index,
@@ -1456,8 +1437,7 @@ d_sqlite_create_index(
 d_sqlite_drop_index
   SQLite refuses to drop the index behind a PRIMARY KEY or UNIQUE constraint.
 */
-int
-d_sqlite_drop_index(
+int d_sqlite_drop_index(
     sqlite3*    _db,
     const char* _schema,
     const char* _index,
@@ -1474,12 +1454,11 @@ d_sqlite_list_indexes
   The catalogue's 'index' rows, by tbl_name when a table is given; the
 automatic indexes' "sqlite_autoindex_" names keep them out.
 */
-int
-d_sqlite_list_indexes(
-    sqlite3*               _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_sqlite_list_indexes(
+    sqlite3*                _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     return d_internal_sqlite_list_objects(_db,
@@ -1499,8 +1478,7 @@ d_sqlite_list_indexes(
 d_sqlite_has_view
   The _s form, with every failure read as "no".
 */
-bool
-d_sqlite_has_view(
+bool d_sqlite_has_view(
     sqlite3*    _db,
     const char* _schema,
     const char* _view
@@ -1517,8 +1495,7 @@ d_sqlite_has_view(
 d_sqlite_has_view_s
   A catalogue row of type 'view'.
 */
-int
-d_sqlite_has_view_s(
+int d_sqlite_has_view_s(
     sqlite3*    _db,
     const char* _schema,
     const char* _view,
@@ -1534,8 +1511,7 @@ d_sqlite_has_view_s(
 d_sqlite_create_view
   CREATE VIEW ... AS, with the caller's SELECT as written.
 */
-int
-d_sqlite_create_view(
+int d_sqlite_create_view(
     sqlite3*    _db,
     const char* _schema,
     const char* _view,
@@ -1566,8 +1542,7 @@ d_sqlite_create_view(
 d_sqlite_drop_view
   DROP VIEW; the tables it reads are untouched.
 */
-int
-d_sqlite_drop_view(
+int d_sqlite_drop_view(
     sqlite3*    _db,
     const char* _schema,
     const char* _view,
@@ -1583,11 +1558,10 @@ d_sqlite_drop_view(
 d_sqlite_list_views
   The catalogue's 'view' rows.
 */
-int
-d_sqlite_list_views(
-    sqlite3*               _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_sqlite_list_views(
+    sqlite3*                _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     return d_internal_sqlite_list_objects(_db, _schema, "view", NULL, _names);
@@ -1603,8 +1577,7 @@ d_sqlite_list_views(
 d_sqlite_has_trigger
   The _s form, with every failure read as "no".
 */
-bool
-d_sqlite_has_trigger(
+bool d_sqlite_has_trigger(
     sqlite3*    _db,
     const char* _schema,
     const char* _trigger
@@ -1621,8 +1594,7 @@ d_sqlite_has_trigger(
 d_sqlite_has_trigger_s
   A catalogue row of type 'trigger'.
 */
-int
-d_sqlite_has_trigger_s(
+int d_sqlite_has_trigger_s(
     sqlite3*    _db,
     const char* _schema,
     const char* _trigger,
@@ -1642,8 +1614,7 @@ d_sqlite_has_trigger_s(
 d_sqlite_create_trigger
   CREATE TRIGGER and the name; everything after is the caller's SQL.
 */
-int
-d_sqlite_create_trigger(
+int d_sqlite_create_trigger(
     sqlite3*    _db,
     const char* _schema,
     const char* _trigger,
@@ -1674,8 +1645,7 @@ d_sqlite_create_trigger(
 d_sqlite_drop_trigger
   DROP TRIGGER; its table is untouched.
 */
-int
-d_sqlite_drop_trigger(
+int d_sqlite_drop_trigger(
     sqlite3*    _db,
     const char* _schema,
     const char* _trigger,
@@ -1695,12 +1665,11 @@ d_sqlite_drop_trigger(
 d_sqlite_list_triggers
   The catalogue's 'trigger' rows, by tbl_name when a table is given.
 */
-int
-d_sqlite_list_triggers(
-    sqlite3*               _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_sqlite_list_triggers(
+    sqlite3*                _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     return d_internal_sqlite_list_objects(_db,
@@ -1723,8 +1692,7 @@ d_sqlite_list_triggers(
 d_sqlite_has_table
   Without SQLite, false.
 */
-bool
-d_sqlite_has_table(
+bool d_sqlite_has_table(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table
@@ -1742,8 +1710,7 @@ d_sqlite_has_table_s
   Without SQLite there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_sqlite_has_table_s(
+int d_sqlite_has_table_s(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1767,14 +1734,13 @@ d_sqlite_has_table_s(
 d_sqlite_create_table
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_create_table(
-    struct sqlite3*           _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    unsigned                  _flags
+int d_sqlite_create_table(
+    struct sqlite3*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
 )
 {
     (void)_db;
@@ -1791,8 +1757,7 @@ d_sqlite_create_table(
 d_sqlite_create_table_sql
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_create_table_sql(
+int d_sqlite_create_table_sql(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1813,8 +1778,7 @@ d_sqlite_create_table_sql(
 d_sqlite_drop_table
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_drop_table(
+int d_sqlite_drop_table(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1833,8 +1797,7 @@ d_sqlite_drop_table(
 d_sqlite_rename_table
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_rename_table(
+int d_sqlite_rename_table(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1853,8 +1816,7 @@ d_sqlite_rename_table(
 d_sqlite_truncate_table
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_truncate_table(
+int d_sqlite_truncate_table(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table
@@ -1871,8 +1833,7 @@ d_sqlite_truncate_table(
 d_sqlite_count_rows
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_count_rows(
+int d_sqlite_count_rows(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1891,11 +1852,10 @@ d_sqlite_count_rows(
 d_sqlite_list_tables
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_list_tables(
-    struct sqlite3*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_sqlite_list_tables(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -1909,8 +1869,7 @@ d_sqlite_list_tables(
 d_sqlite_has_column
   Without SQLite, false.
 */
-bool
-d_sqlite_has_column(
+bool d_sqlite_has_column(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1930,8 +1889,7 @@ d_sqlite_has_column_s
   Without SQLite there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_sqlite_has_column_s(
+int d_sqlite_has_column_s(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1957,12 +1915,11 @@ d_sqlite_has_column_s(
 d_sqlite_add_column
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_add_column(
-    struct sqlite3*           _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_sqlite_add_column(
+    struct sqlite3*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
     (void)_db;
@@ -1977,8 +1934,7 @@ d_sqlite_add_column(
 d_sqlite_add_column_sql
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_add_column_sql(
+int d_sqlite_add_column_sql(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -1997,8 +1953,7 @@ d_sqlite_add_column_sql(
 d_sqlite_rename_column
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_rename_column(
+int d_sqlite_rename_column(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -2019,8 +1974,7 @@ d_sqlite_rename_column(
 d_sqlite_drop_column
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_drop_column(
+int d_sqlite_drop_column(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _table,
@@ -2039,12 +1993,11 @@ d_sqlite_drop_column(
 d_sqlite_list_columns
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_list_columns(
-    struct sqlite3*          _db,
-    const char*              _schema,
-    const char*              _table,
-    struct d_db_column_list* _columns
+int d_sqlite_list_columns(
+    struct sqlite3*           _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
 )
 {
     (void)_db;
@@ -2059,8 +2012,7 @@ d_sqlite_list_columns(
 d_sqlite_has_index
   Without SQLite, false.
 */
-bool
-d_sqlite_has_index(
+bool d_sqlite_has_index(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _index
@@ -2078,8 +2030,7 @@ d_sqlite_has_index_s
   Without SQLite there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_sqlite_has_index_s(
+int d_sqlite_has_index_s(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _index,
@@ -2103,8 +2054,7 @@ d_sqlite_has_index_s(
 d_sqlite_create_index
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_create_index(
+int d_sqlite_create_index(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _index,
@@ -2127,8 +2077,7 @@ d_sqlite_create_index(
 d_sqlite_drop_index
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_drop_index(
+int d_sqlite_drop_index(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _index,
@@ -2147,12 +2096,11 @@ d_sqlite_drop_index(
 d_sqlite_list_indexes
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_list_indexes(
-    struct sqlite3*        _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_sqlite_list_indexes(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2167,8 +2115,7 @@ d_sqlite_list_indexes(
 d_sqlite_has_view
   Without SQLite, false.
 */
-bool
-d_sqlite_has_view(
+bool d_sqlite_has_view(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _view
@@ -2186,8 +2133,7 @@ d_sqlite_has_view_s
   Without SQLite there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_sqlite_has_view_s(
+int d_sqlite_has_view_s(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _view,
@@ -2211,8 +2157,7 @@ d_sqlite_has_view_s(
 d_sqlite_create_view
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_create_view(
+int d_sqlite_create_view(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _view,
@@ -2233,8 +2178,7 @@ d_sqlite_create_view(
 d_sqlite_drop_view
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_drop_view(
+int d_sqlite_drop_view(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _view,
@@ -2253,11 +2197,10 @@ d_sqlite_drop_view(
 d_sqlite_list_views
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_list_views(
-    struct sqlite3*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_sqlite_list_views(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2271,8 +2214,7 @@ d_sqlite_list_views(
 d_sqlite_has_trigger
   Without SQLite, false.
 */
-bool
-d_sqlite_has_trigger(
+bool d_sqlite_has_trigger(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _trigger
@@ -2290,8 +2232,7 @@ d_sqlite_has_trigger_s
   Without SQLite there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_sqlite_has_trigger_s(
+int d_sqlite_has_trigger_s(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -2315,8 +2256,7 @@ d_sqlite_has_trigger_s(
 d_sqlite_create_trigger
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_create_trigger(
+int d_sqlite_create_trigger(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -2337,8 +2277,7 @@ d_sqlite_create_trigger(
 d_sqlite_drop_trigger
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_drop_trigger(
+int d_sqlite_drop_trigger(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -2357,12 +2296,11 @@ d_sqlite_drop_trigger(
 d_sqlite_list_triggers
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_list_triggers(
-    struct sqlite3*        _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_sqlite_list_triggers(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;

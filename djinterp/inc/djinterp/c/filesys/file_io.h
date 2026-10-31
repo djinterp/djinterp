@@ -46,7 +46,7 @@ TABLE OF CONTENTS
 #include <stdio.h>   // FILE
 // djinterp
 #include "./file_common.h"                       // foundation, ssize_t,
-                                                 // d_off32_t, d_off64_t
+                                                 // dj_off32_t, dj_off64_t
 #include "./file_open.h"                         // streams: the whole-file
                                                  // helpers are built on them
 #include "../../config/c/filesys/cfg_file_io.h"  // module configuration
@@ -80,9 +80,11 @@ D_EXTERN_C_BEGIN
  * @return the number of bytes read, 0 at end of file, or -1 on failure with
  *         errno set.
  */
-ssize_t d_file_read_fd(int    _fd,
-                       void*  _buf,
-                       size_t _count);
+ssize_t d_file_read_fd(
+    int    _fd,
+    void*  _buf,
+    size_t _count
+);
 /**
  * @brief Reads until `_count` bytes have arrived or the source ends.
  *
@@ -96,9 +98,11 @@ ssize_t d_file_read_fd(int    _fd,
  * @return `_count`, fewer if end of file came first, or -1 on failure with
  *         errno set.
  */
-ssize_t d_file_read_full_fd(int    _fd,
-                            void*  _buf,
-                            size_t _count);
+ssize_t d_file_read_full_fd(
+    int    _fd,
+    void*  _buf,
+    size_t _count
+);
 #if D_FILE_64_IS_AVAILABLE
 /**
  * @brief Reads from a fixed offset without moving the descriptor's position.
@@ -116,10 +120,12 @@ ssize_t d_file_read_full_fd(int    _fd,
  * @return the number of bytes read, 0 at end of file, or -1 on failure with
  *         errno set.
  */
-ssize_t d_file_pread_fd64(int       _fd,
-                          void*     _buf,
-                          size_t    _count,
-                          d_off64_t _offset);
+ssize_t d_file_pread_fd64(
+    int        _fd,
+    void*      _buf,
+    size_t     _count,
+    dj_off64_t _offset
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief d_file_pread_fd64 with a 32-bit offset.
@@ -131,10 +137,12 @@ ssize_t d_file_pread_fd64(int       _fd,
  * @return the number of bytes read, 0 at end of file, or -1 on failure with
  *         errno set.
  */
-ssize_t d_file_pread_fd32(int       _fd,
-                          void*     _buf,
-                          size_t    _count,
-                          d_off32_t _offset);
+ssize_t d_file_pread_fd32(
+    int        _fd,
+    void*      _buf,
+    size_t     _count,
+    dj_off32_t _offset
+);
 
 // 1.2    Descriptor writes
 //------------------------------------------------------------------------------
@@ -150,9 +158,11 @@ ssize_t d_file_pread_fd32(int       _fd,
  * @param[in] _count  the number of bytes to offer.
  * @return the number of bytes written, or -1 on failure with errno set.
  */
-ssize_t d_file_write_fd(int         _fd,
-                        const void* _buf,
-                        size_t      _count);
+ssize_t d_file_write_fd(
+    int         _fd,
+    const void* _buf,
+    size_t      _count
+);
 /**
  * @brief Writes until every byte has been accepted.
  *
@@ -166,9 +176,11 @@ ssize_t d_file_write_fd(int         _fd,
  * @param[in] _count  the number of bytes to write.
  * @return `_count`, or -1 on failure with errno set.
  */
-ssize_t d_file_write_full_fd(int         _fd,
-                             const void* _buf,
-                             size_t      _count);
+ssize_t d_file_write_full_fd(
+    int         _fd,
+    const void* _buf,
+    size_t      _count
+);
 #if D_FILE_64_IS_AVAILABLE
 /**
  * @brief Writes at a fixed offset without moving the descriptor's position.
@@ -185,10 +197,12 @@ ssize_t d_file_write_full_fd(int         _fd,
  * @param[in] _offset  the absolute offset to write at; not negative.
  * @return the number of bytes written, or -1 on failure with errno set.
  */
-ssize_t d_file_pwrite_fd64(int         _fd,
-                           const void* _buf,
-                           size_t      _count,
-                           d_off64_t   _offset);
+ssize_t d_file_pwrite_fd64(
+    int         _fd,
+    const void* _buf,
+    size_t      _count,
+    dj_off64_t  _offset
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief d_file_pwrite_fd64 with a 32-bit offset.
@@ -199,10 +213,12 @@ ssize_t d_file_pwrite_fd64(int         _fd,
  * @param[in] _offset  the absolute offset to write at; not negative.
  * @return the number of bytes written, or -1 on failure with errno set.
  */
-ssize_t d_file_pwrite_fd32(int         _fd,
-                           const void* _buf,
-                           size_t      _count,
-                           d_off32_t   _offset);
+ssize_t d_file_pwrite_fd32(
+    int         _fd,
+    const void* _buf,
+    size_t      _count,
+    dj_off32_t  _offset
+);
 
 // 1.3    Whole-file reads
 //------------------------------------------------------------------------------
@@ -223,8 +239,10 @@ ssize_t d_file_pwrite_fd32(int         _fd,
  * @post The caller owns the buffer and releases it with the configured
  *       deallocator (D_CFG_FILE_FREE).
  */
-void*   d_file_read_all(const char* _path,
-                        size_t*     _size);
+void* d_file_read_all(
+    const char* _path,
+    size_t*     _size
+);
 /**
  * @brief Reads an open stream from its current position to its end, into one
  *        fresh allocation.
@@ -245,8 +263,10 @@ void*   d_file_read_all(const char* _path,
  * @post The caller owns the buffer and releases it with the configured
  *       deallocator (D_CFG_FILE_FREE).
  */
-void*   d_file_read_all_stream(FILE*   _stream,
-                               size_t* _size);
+void* d_file_read_all_stream(
+    FILE*   _stream,
+    size_t* _size
+);
 /**
  * @brief Reads an entire file into a buffer the caller already owns, without
  *        allocating.
@@ -264,10 +284,12 @@ void*   d_file_read_all_stream(FILE*   _stream,
  * @return 0, or a non-zero errno-style code -- ERANGE when the file does not
  *         fit.
  */
-int     d_file_read_all_into(const char* _path,
-                             void*       _buf,
-                             size_t      _bufsize,
-                             size_t*     _size);
+int d_file_read_all_into(
+    const char* _path,
+    void*       _buf,
+    size_t      _bufsize,
+    size_t*     _size
+);
 
 // 1.4    Whole-file writes
 //------------------------------------------------------------------------------
@@ -292,9 +314,11 @@ int     d_file_read_all_into(const char* _path,
  * @param[in] _size  the number of bytes to write.
  * @return 0, or -1 on failure with errno set.
  */
-int     d_file_write_all(const char* _path,
-                         const void* _data,
-                         size_t      _size);
+int d_file_write_all(
+    const char* _path,
+    const void* _data,
+    size_t      _size
+);
 /**
  * @brief Appends a buffer to a file, creating it if it does not exist.
  *
@@ -310,9 +334,11 @@ int     d_file_write_all(const char* _path,
  * @param[in] _size  the number of bytes to append.
  * @return 0, or -1 on failure with errno set.
  */
-int     d_file_append_all(const char* _path,
-                          const void* _data,
-                          size_t      _size);
+int d_file_append_all(
+    const char* _path,
+    const void* _data,
+    size_t      _size
+);
 
 
 //==============================================================================
@@ -323,7 +349,7 @@ int     d_file_append_all(const char* _path,
 // 2.1    Unsuffixed names
 //------------------------------------------------------------------------------
 // d_file_pread_fd
-//   alias: the call's twin at D_FILE_WIDTH, so it takes a d_off_t
+//   alias: the call's twin at D_FILE_WIDTH, so it takes a dj_off_t
 // (file_common.h, 3.2); d_file_pwrite_fd after it is the same alias for its
 // call.
 #if (D_FILE_WIDTH == 64)

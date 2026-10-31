@@ -26,9 +26,8 @@
  * V.a  d_file_seek_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_seek_fseeko
-(
+static
+void d_fs_tests_seek_fseeko(
     dtest_suite* _suite
 )
 {
@@ -84,9 +83,8 @@ d_fs_tests_seek_fseeko
  * V.b  d_file_tell_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_seek_ftello
-(
+static
+void d_fs_tests_seek_ftello(
     dtest_suite* _suite
 )
 {
@@ -128,9 +126,8 @@ d_fs_tests_seek_ftello
  * V.c  d_file_rewind_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_seek_rewind
-(
+static
+void d_fs_tests_seek_rewind(
     dtest_suite* _suite
 )
 {
@@ -168,9 +165,8 @@ d_fs_tests_seek_rewind
  * V.d  d_file_truncate_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_seek_ftruncate
-(
+static
+void d_fs_tests_seek_ftruncate(
     dtest_suite* _suite
 )
 {
@@ -246,9 +242,8 @@ d_fs_tests_seek_ftruncate
  * V.e  d_file_truncate_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_seek_ftruncate_stream
-(
+static
+void d_fs_tests_seek_ftruncate_stream(
     dtest_suite* _suite
 )
 {
@@ -312,9 +307,7 @@ d_fs_tests_seek_ftruncate_stream
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_seek
-(
+void d_fs_tests_seek(
     dtest_suite* _suite
 )
 {

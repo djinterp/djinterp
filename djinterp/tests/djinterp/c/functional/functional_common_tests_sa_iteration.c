@@ -9,13 +9,12 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // --- local helper: consumer that increments each int element by 1 ---
-static void
-test_helper_increment_int
-(
+static
+void test_helper_increment_int(
     void* _element,
     void* _context
 )
@@ -32,9 +31,8 @@ test_helper_increment_int
 
 
 // --- local helper: const consumer that sums into context ---
-static void
-test_helper_sum_to_context
-(
+static
+void test_helper_sum_to_context(
     const void* _element,
     void*       _context
 )
@@ -50,9 +48,8 @@ test_helper_sum_to_context
 
 
 // --- local helper: predicate that tests if an int is positive ---
-static bool
-test_helper_is_positive
-(
+static
+bool test_helper_is_positive(
     const void* _element,
     void*       _context
 )
@@ -69,9 +66,8 @@ test_helper_is_positive
 
 
 // --- local helper: predicate that tests if an int is even ---
-static bool
-test_helper_is_even
-(
+static
+bool test_helper_is_even(
     const void* _element,
     void*       _context
 )
@@ -88,9 +84,8 @@ test_helper_is_even
 
 
 // --- local helper: predicate that tests if int > 100 ---
-static bool
-test_helper_gt_100
-(
+static
+bool test_helper_gt_100(
     const void* _element,
     void*       _context
 )
@@ -117,10 +112,8 @@ d_tests_sa_functional_for_each
   - zero count silently returns
   - zero element_size silently returns
 */
-bool
-d_tests_sa_functional_for_each
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_for_each(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -237,10 +230,8 @@ d_tests_sa_functional_for_each_const
   - zero count silently returns
   - zero element_size silently returns
 */
-bool
-d_tests_sa_functional_for_each_const
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_for_each_const(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -361,10 +352,8 @@ d_tests_sa_functional_any
   - zero count returns false
   - zero element_size returns false
 */
-bool
-d_tests_sa_functional_any
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_any(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -529,10 +518,8 @@ d_tests_sa_functional_all
   - zero count returns false
   - zero element_size returns false
 */
-bool
-d_tests_sa_functional_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_all(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -697,10 +684,8 @@ d_tests_sa_functional_none
   - zero count returns false
   - zero element_size returns false
 */
-bool
-d_tests_sa_functional_none
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_none(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -863,10 +848,8 @@ d_tests_sa_functional_count_if
   - zero count returns 0
   - zero element_size returns 0
 */
-bool
-d_tests_sa_functional_count_if
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_count_if(
+    struct dj_test_counter* _counter
 )
 {
     bool   all_passed;
@@ -1020,10 +1003,8 @@ d_tests_sa_functional_find_if
   - zero count returns NULL
   - zero element_size returns NULL
 */
-bool
-d_tests_sa_functional_find_if
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_find_if(
+    struct dj_test_counter* _counter
 )
 {
     bool  all_passed;

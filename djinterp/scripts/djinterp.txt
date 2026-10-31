@@ -1,0 +1,314 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\inc\djinterp\core\
+├── 📁 binary
+│   └── 📄 binary.hpp
+├── 📁 cli
+│   ├── 📄 cli.hpp
+│   ├── 📄 cli_parser.hpp
+│   ├── 📄 cli_traits.hpp
+│   ├── 📄 options_parser.hpp
+│   └── 📄 options_parser_traits.hpp
+├── 📁 container
+│   ├── 📁 arena
+│   │   ├── 📁 tree
+│   │   │   ├── 📄 arena_tree.hpp
+│   │   │   ├── 📄 arena_tree_concepts.hpp
+│   │   │   └── 📄 arena_tree_traits.hpp
+│   │   ├── 📄 arena.hpp
+│   │   ├── 📄 arena_concepts.hpp
+│   │   └── 📄 arena_traits.hpp
+│   ├── 📁 array
+│   │   ├── 📄 array_binary.hpp
+│   │   ├── 📄 array_cli_options.hpp
+│   │   ├── 📄 array_container.hpp
+│   │   ├── 📄 array_container_concepts.hpp
+│   │   ├── 📄 array_container_traits.hpp
+│   │   ├── 📄 array_filter.hpp
+│   │   ├── 📄 array_iterator.hpp
+│   │   ├── 📄 array_options.hpp
+│   │   └── 📄 threadsafe_array.hpp
+│   ├── 📁 buffer
+│   │   ├── 📄 buffer.hpp
+│   │   └── 📄 text_buffer.hpp
+│   ├── 📁 graph
+│   │   └── 📄 graph.hpp
+│   ├── 📁 iterator
+│   │   ├── 📄 constexpr_iterator.hpp
+│   │   ├── 📄 container_iterator.hpp
+│   │   ├── 📄 flat_iterator.hpp
+│   │   ├── 📄 flat_iterator_traits.hpp
+│   │   ├── 📄 hierarchical_iterator.hpp
+│   │   ├── 📄 hierarchical_iterator_traits.hpp
+│   │   └── 📄 iterator_traits.hpp
+│   ├── 📁 list
+│   │   ├── 📄 doubly_linked_list.hpp
+│   │   ├── 📄 linked_list.hpp
+│   │   └── 📄 list.hpp
+│   ├── 📁 map
+│   │   ├── 📄 enum_map.hpp
+│   │   ├── 📄 enum_map_traits.hpp
+│   │   ├── 📄 map.hpp
+│   │   ├── 📄 map_concepts.hpp
+│   │   ├── 📄 map_traits.hpp
+│   │   └── 📄 multimap.hpp
+│   ├── 📁 matrix
+│   │   ├── 📄 matrix.hpp
+│   │   └── 📄 matrix_iterator.hpp
+│   ├── 📁 meta
+│   │   ├── 📄 container_binary_traits.hpp
+│   │   ├── 📄 container_cli_traits.hpp
+│   │   ├── 📄 container_compare_traits.hpp
+│   │   ├── 📄 container_constructive_traits.hpp
+│   │   ├── 📄 container_conversion_traits.hpp
+│   │   ├── 📄 container_database_traits.hpp
+│   │   ├── 📄 container_filter_traits.hpp
+│   │   ├── 📄 container_option_traits.hpp
+│   │   ├── 📄 container_text_traits.hpp
+│   │   ├── 📄 container_traits.hpp
+│   │   ├── 📄 container_view_traits.hpp
+│   │   ├── 📄 node_container_traits.hpp
+│   │   ├── 📄 sequential_container_traits.hpp
+│   │   └── 📄 threadsafe_container_traits.hpp
+│   ├── 📁 node
+│   │   ├── 📄 linked_node.hpp
+│   │   ├── 📄 node.hpp
+│   │   ├── 📄 node_iterator.hpp
+│   │   ├── 📄 node_traits.hpp
+│   │   └── 📄 poly_tree.hpp
+│   ├── 📁 set
+│   │   ├── 📄 multiset.hpp
+│   │   ├── 📄 set.hpp
+│   │   ├── 📄 set_concepts.hpp
+│   │   └── 📄 set_traits.hpp
+│   ├── 📁 stack
+│   │   └── 📄 stack.hpp
+│   ├── 📁 table
+│   │   ├── 📁 lookup
+│   │   │   ├── 📄 lookup_table.hpp
+│   │   │   └── 📄 lookup_table_traits.hpp
+│   │   ├── 📁 registry
+│   │   │   ├── 📄 registry_table.hpp
+│   │   │   └── 📄 registry_table_traits.hpp
+│   │   ├── 📄 table.hpp
+│   │   ├── 📄 table_layout.hpp
+│   │   └── 📄 table_traits.hpp
+│   ├── 📁 tree
+│   │   ├── 📁 avl
+│   │   │   └── 📄 AVLtree.hpp
+│   │   ├── 📁 file
+│   │   │   ├── 📄 file_attributes.hpp
+│   │   │   ├── 📄 file_tree.hpp
+│   │   │   ├── 📄 file_tree_filter.hpp
+│   │   │   └── 📄 file_tree_path.hpp
+│   │   ├── 📄 nary_tree.hpp
+│   │   ├── 📄 nary_tree_concepts.hpp
+│   │   ├── 📄 nary_tree_traits.hpp
+│   │   ├── 📄 tree_container.hpp
+│   │   ├── 📄 tree_container_concepts.hpp
+│   │   ├── 📄 tree_container_traits.hpp
+│   │   ├── 📄 tree_iterator.hpp
+│   │   ├── 📄 tree_path.hpp
+│   │   └── 📄 tree_visitor.hpp
+│   ├── 📁 vector
+│   │   └── 📄 vector.hpp
+│   ├── 📄 container.hpp
+│   ├── 📄 container_binary.hpp
+│   ├── 📄 container_options.hpp
+│   ├── 📄 container_path.hpp
+│   ├── 📄 container_path_traits.hpp
+│   ├── 📄 flat_store.hpp
+│   ├── 📄 nary_tree.hpp
+│   ├── 📄 nary_tree_options.hpp
+│   ├── 📄 node_container.hpp
+│   ├── 📄 sequential_container.hpp
+│   ├── 📄 stl_array_structural_traits.hpp
+│   ├── 📄 stl_container_concepts.hpp
+│   ├── 📄 stl_container_traits.hpp
+│   ├── 📄 stl_traits.hpp
+│   └── 📄 threadsafe_container.hpp
+├── 📁 db
+│   ├── 📁 arangodb
+│   │   ├── 📄 arango_concepts.hpp
+│   │   ├── 📄 arango_table.hpp
+│   │   ├── 📄 arango_traits.hpp
+│   │   └── 📄 arangodb.hpp
+│   ├── 📁 mariadb
+│   │   ├── 📄 mariadb.hpp
+│   │   ├── 📄 mariadb_concepts.hpp
+│   │   ├── 📄 mariadb_table.hpp
+│   │   └── 📄 mariadb_traits.hpp
+│   ├── 📁 mongodb
+│   │   ├── 📄 mongo_concepts.hpp
+│   │   ├── 📄 mongo_table.hpp
+│   │   ├── 📄 mongo_traits.hpp
+│   │   └── 📄 mongodb.hpp
+│   ├── 📁 mysql
+│   │   ├── 📄 mysql.hpp
+│   │   ├── 📄 mysql_common.hpp
+│   │   ├── 📄 mysql_common_concepts.hpp
+│   │   ├── 📄 mysql_common_table.hpp
+│   │   ├── 📄 mysql_common_traits.hpp
+│   │   ├── 📄 mysql_concepts.hpp
+│   │   ├── 📄 mysql_table.hpp
+│   │   └── 📄 mysql_traits.hpp
+│   ├── 📁 oracle
+│   │   ├── 📄 oracle.hpp
+│   │   ├── 📄 oracle_concepts.hpp
+│   │   ├── 📄 oracle_table.hpp
+│   │   └── 📄 oracle_traits.hpp
+│   ├── 📁 postgres
+│   │   ├── 📄 postgres.hpp
+│   │   ├── 📄 postgres_concepts.hpp
+│   │   ├── 📄 postgres_table.hpp
+│   │   └── 📄 postgres_traits.hpp
+│   ├── 📁 sqlite
+│   │   ├── 📄 sqlite.hpp
+│   │   ├── 📄 sqlite_concepts.hpp
+│   │   ├── 📄 sqlite_table.hpp
+│   │   └── 📄 sqlite_traits.hpp
+│   ├── 📄 database_common.hpp
+│   ├── 📄 database_concepts.hpp
+│   ├── 📄 database_connection.hpp
+│   ├── 📄 database_connection_template.hpp
+│   ├── 📄 database_table.hpp
+│   └── 📄 database_traits.hpp
+├── 📁 env
+│   └── 📄 print_env.hpp
+├── 📁 event
+│   ├── 📄 event.hpp
+│   ├── 📄 event_concepts.hpp
+│   ├── 📄 event_handler.hpp
+│   ├── 📄 event_handler_concepts.hpp
+│   ├── 📄 event_handler_traits.hpp
+│   ├── 📄 event_listener.hpp
+│   ├── 📄 event_listener_concepts.hpp
+│   ├── 📄 event_listener_traits.hpp
+│   ├── 📄 event_table.hpp
+│   ├── 📄 event_table_concepts.hpp
+│   ├── 📄 event_table_traits.hpp
+│   └── 📄 event_traits.hpp
+├── 📁 functional
+│   ├── 📄 compose.hpp
+│   ├── 📄 filter.hpp
+│   ├── 📄 filterable_traits.hpp
+│   ├── 📄 fn_builder.hpp
+│   ├── 📄 functional.hpp
+│   ├── 📄 pipeline.hpp
+│   └── 📄 predicate.hpp
+├── 📁 math
+│   ├── 📁 coordinate
+│   │   ├── 📄 cartesian.hpp
+│   │   ├── 📄 coordinate.hpp
+│   │   ├── 📄 cylindrical.hpp
+│   │   ├── 📄 polar.hpp
+│   │   └── 📄 spherical.hpp
+│   ├── 📁 function
+│   │   ├── 📄 function.hpp
+│   │   └── 📄 function_traits.hpp
+│   ├── 📁 interval
+│   │   ├── 📄 closed_interval.hpp
+│   │   ├── 📄 discrete_interval.hpp
+│   │   ├── 📄 interval.hpp
+│   │   ├── 📄 interval_traits.hpp
+│   │   └── 📄 open_interval.hpp
+│   ├── 📄 constant.hpp
+│   ├── 📄 expression.hpp
+│   ├── 📄 math.hpp
+│   ├── 📄 math_common.hpp
+│   ├── 📄 math_traits.hpp
+│   ├── 📄 numeric_compare.hpp
+│   └── 📄 value.hpp
+├── 📁 memory
+│   ├── 📄 pool.hpp
+│   ├── 📄 pool_allocator.hpp
+│   ├── 📄 pool_concepts.hpp
+│   └── 📄 pool_traits.hpp
+├── 📁 meta
+│   ├── 📁 stl
+│   │   ├── 📄 cpp_named03.hpp
+│   │   ├── 📄 cpp_named11.hpp
+│   │   ├── 📄 cpp_named14.hpp
+│   │   ├── 📄 cpp_named17.hpp
+│   │   ├── 📄 cpp_named20.hpp
+│   │   ├── 📄 cpp_named23.hpp
+│   │   ├── 📄 cpp_named26.hpp
+│   │   └── 📄 cpp_named98.hpp
+│   ├── 📄 concepts.hpp
+│   ├── 📄 dtuple.hpp
+│   ├── 📄 jagged.hpp
+│   ├── 📄 path.hpp
+│   ├── 📄 sequence.hpp
+│   ├── 📄 std_concepts.hpp
+│   └── 📄 type_traits.hpp
+├── 📁 options
+│   ├── 📄 option_diff.hpp
+│   ├── 📄 option_layer.hpp
+│   ├── 📄 option_override_policy.hpp
+│   ├── 📄 option_pair.hpp
+│   ├── 📄 option_pair_traits.hpp
+│   ├── 📄 option_set.hpp
+│   ├── 📄 option_set_traits.hpp
+│   └── 📄 options.hpp
+├── 📁 paradigm
+│   ├── 📁 adapter
+│   │   └── 📄 adapter.hpp
+│   ├── 📁 mediator
+│   │   └── 📄 mediator.hpp
+│   ├── 📁 momento
+│   │   └── 📄 memento.hpp
+│   ├── 📁 observer
+│   │   └── 📄 observer.hpp
+│   ├── 📁 sequence
+│   │   └── 📄 sequence.hpp
+│   └── 📁 visitor
+│       └── 📄 visitor.hpp
+├── 📁 sync
+│   ├── 📄 atomic.hpp
+│   ├── 📄 condvar.hpp
+│   ├── 📄 cow.hpp
+│   ├── 📄 hazard_pointer.hpp
+│   ├── 📄 lock_guard.hpp
+│   ├── 📄 lock_policy.hpp
+│   ├── 📄 lock_policy_c.hpp
+│   ├── 📄 rcu.hpp
+│   └── 📄 threadsafe.hpp
+├── 📁 text
+│   ├── 📄 font.hpp
+│   ├── 📄 font_traits.hpp
+│   ├── 📄 print.hpp
+│   ├── 📄 printer_traits.hpp
+│   ├── 📄 text_align.hpp
+│   ├── 📄 text_function.hpp
+│   ├── 📄 text_function_traits.hpp
+│   ├── 📄 text_template.hpp
+│   └── 📄 text_template_traits.hpp
+├── 📁 util
+│   ├── 📁 color
+│   │   ├── 📄 color.hpp
+│   │   ├── 📄 color_cie_lab.hpp
+│   │   ├── 📄 color_cmyk.hpp
+│   │   ├── 📄 color_convert.hpp
+│   │   ├── 📄 color_hsl.hpp
+│   │   ├── 📄 color_hsv.hpp
+│   │   ├── 📄 color_rgb.hpp
+│   │   └── 📄 color_ycbcr.hpp
+│   ├── 📁 counter
+│   │   ├── 📄 atomic_counter.hpp
+│   │   ├── 📄 counter.hpp
+│   │   └── 📄 mutex_counter.hpp
+│   ├── 📁 path
+│   │   └── 📄 path.hpp
+│   ├── 📁 sort
+│   │   ├── 📄 bubble_sort.hpp
+│   │   ├── 📄 heap_sort.hpp
+│   │   ├── 📄 insertion_sort.hpp
+│   │   ├── 📄 merge_sort.hpp
+│   │   ├── 📄 quick_sort.hpp
+│   │   ├── 📄 selection_sort.hpp
+│   │   └── 📄 sort.hpp
+│   ├── 📁 timer
+│   │   ├── 📄 mutex_timer.hpp
+│   │   └── 📄 timer.hpp
+│   ├── 📄 interval.hpp
+│   ├── 📄 kv_pair.hpp
+│   └── 📄 tuple_map.hpp
+└── 📄 djinterp.hpp

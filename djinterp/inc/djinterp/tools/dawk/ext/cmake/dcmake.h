@@ -35,14 +35,14 @@ TABLE OF CONTENTS
     1.  Constants
          1.  D_CMAKE_NONE
     2.  Kinds
-         1.  d_cmake_argument_kind
-         2.  d_cmake_block
-         3.  d_cmake_role
+         1.  dj_cmake_argument_kind
+         2.  dj_cmake_block
+         3.  dj_cmake_role
     3.  Records
-         1.  d_cmake_argument
-         2.  d_cmake_command
-         3.  d_cmake_comment
-         4.  d_cmake
+         1.  dj_cmake_argument
+         2.  dj_cmake_command
+         3.  dj_cmake_comment
+         4.  dj_cmake
 2.  OPERATIONS
     ----------
     1.  Reading
@@ -76,10 +76,10 @@ TABLE OF CONTENTS
 // 1.2    Kinds
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_cmake_argument_kind
+// dj_cmake_argument_kind
 //   enum: how an argument is written.  A parenthesis nested in an argument
 //   list is an unquoted argument of its own, as CMake passes it.
-enum d_cmake_argument_kind
+enum dj_cmake_argument_kind
 {
     D_CMAKE_UNQUOTED = 0,  // a, ${x}, -Da="b c", (
     D_CMAKE_QUOTED,        // "a b"
@@ -87,9 +87,9 @@ enum d_cmake_argument_kind
 };
 
 // 1.2.2
-// d_cmake_block
+// dj_cmake_block
 //   enum: the blocks commands open and close.
-enum d_cmake_block
+enum dj_cmake_block
 {
     D_CMAKE_BLOCK_NONE = 0,
     D_CMAKE_BLOCK_IF,        // if, elseif, else, endif
@@ -101,9 +101,9 @@ enum d_cmake_block
 };
 
 // 1.2.3
-// d_cmake_role
+// dj_cmake_role
 //   enum: what a command does to the block it belongs to.
-enum d_cmake_role
+enum dj_cmake_role
 {
     D_CMAKE_ROLE_NONE = 0,  // an ordinary command
     D_CMAKE_ROLE_OPEN,      // if, foreach, ...
@@ -118,15 +118,15 @@ enum d_cmake_role
 // `end_line` is the line its last byte is on.
 
 // 1.3.1
-// d_cmake_argument
+// dj_cmake_argument
 //   struct: one argument, as written: an unquoted argument's text, a quoted
 //   one's quotes and all, a bracket one's brackets and all.  `paren` is `(`
 //   or `)` for a nested parenthesis and `\0` otherwise; `legacy` marks an
 //   unquoted argument holding a quoted run or a make variable, `$(X)`;
 //   `equals` is a bracket argument's count of `=`.
-struct d_cmake_argument
+struct dj_cmake_argument
 {
-    enum d_cmake_argument_kind kind;
+    enum dj_cmake_argument_kind kind;
     size_t                     start;
     size_t                     end;
     size_t                     line;
@@ -138,7 +138,7 @@ struct d_cmake_argument
 };
 
 // 1.3.2
-// d_cmake_command
+// dj_cmake_command
 //   struct: one command invocation.  The name is `name_length` bytes from
 //   `start`, `open` is its `(` and `end` is one past its `)`.  Its arguments
 //   are `argument_count` records of the arguments array from
@@ -147,7 +147,7 @@ struct d_cmake_argument
 //   opener's closer, and a branch's or a closer's opener; `unpaired` marks
 //   an opener never closed and a branch or closer with no opener, whose
 //   partner is D_CMAKE_NONE.
-struct d_cmake_command
+struct dj_cmake_command
 {
     size_t             start;
     size_t             name_length;
@@ -159,18 +159,18 @@ struct d_cmake_command
     size_t             first_argument;
     size_t             argument_count;
     size_t             depth;
-    enum d_cmake_block block;
-    enum d_cmake_role  role;
+    enum dj_cmake_block block;
+    enum dj_cmake_role  role;
     size_t             partner;
     bool               unpaired;
 };
 
 // 1.3.3
-// d_cmake_comment
+// dj_cmake_comment
 //   struct: one comment, its `#` included.  `within` is the command whose
 //   argument list holds it, and `trailing` marks a comment that follows
 //   something else on its line.
-struct d_cmake_comment
+struct dj_cmake_comment
 {
     size_t start;
     size_t end;
@@ -183,22 +183,22 @@ struct d_cmake_comment
 };
 
 // 1.3.4
-// d_cmake
+// dj_cmake
 //   struct: one file read.  The text is the caller's, borrowed while the
 //   records are used; the arrays are the reader's, in source order, and are
 //   released with d_cmake_release.  `line_count` counts the last line even
 //   when no newline ends it; `crlf` is whether the first line ending is
 //   CR LF.  When reading fails, `error_line` and `error_column` say where,
 //   and the records hold what came before.
-struct d_cmake
+struct dj_cmake
 {
     const char*              text;
     size_t                   length;
-    struct d_cmake_command*  commands;
+    struct dj_cmake_command*  commands;
     size_t                   command_count;
-    struct d_cmake_argument* arguments;
+    struct dj_cmake_argument* arguments;
     size_t                   argument_count;
-    struct d_cmake_comment*  comments;
+    struct dj_cmake_comment*  comments;
     size_t                   comment_count;
     size_t                   line_count;
     bool                     crlf;
@@ -234,28 +234,38 @@ struct d_cmake
  * @param[in]  _capacity  the size of `_problem`.
  * @return `true` if the whole text was read; `false` otherwise.
  */
-bool        d_cmake_read(struct d_cmake* _out,
-                         const char*     _text,
-                         size_t          _length,
-                         char*           _problem,
-                         size_t          _capacity);
-void        d_cmake_release(struct d_cmake* _cmake);
+bool d_cmake_read(
+    struct dj_cmake* _out,
+    const char*      _text,
+    size_t           _length,
+    char*            _problem,
+    size_t           _capacity
+);
+void d_cmake_release(
+    struct dj_cmake* _cmake
+);
 // d_cmake_generated reports whether CMake wrote the text -- an install
 // script, a CTest file, a cache -- by the marker its first line carries, or
 // whether its first 4 KiB carry the tree's own `Auto-generated. Do not edit
 // by hand.`
-bool        d_cmake_generated(const char* _text,
-                              size_t      _length);
+bool d_cmake_generated(
+    const char* _text,
+    size_t      _length
+);
 
 // 2.2    Names
 //------------------------------------------------------------------------------
 // d_cmake_is compares a command's name without regard to case, as CMake
 // does.  d_cmake_block_name names a block as its opener is spelled, "if" to
 // "block", and "" for D_CMAKE_BLOCK_NONE.
-bool        d_cmake_is(const struct d_cmake*         _cmake,
-                       const struct d_cmake_command* _command,
-                       const char*                   _name);
-const char* d_cmake_block_name(enum d_cmake_block _block);
+bool d_cmake_is(
+    const struct dj_cmake*         _cmake,
+    const struct dj_cmake_command* _command,
+    const char*                    _name
+);
+const char* d_cmake_block_name(
+    enum dj_cmake_block _block
+);
 
 // 2.3    Values
 //------------------------------------------------------------------------------
@@ -278,17 +288,21 @@ const char* d_cmake_block_name(enum d_cmake_block _block);
  *                        argument's length in bytes and one more.
  * @return the value's length.
  */
-size_t      d_cmake_value(const struct d_cmake*          _cmake,
-                          const struct d_cmake_argument* _argument,
-                          char*                          _out);
+size_t d_cmake_value(
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    char*                           _out
+);
 // d_cmake_passed writes what CMake makes the arguments it passes of an
 // argument: an unquoted one's text, its escapes decoded but `\;`, for
 // d_cmake_list_items to divide, empty items dropped; a quoted or a bracket
 // one's value, which CMake passes whole.  `_out` holds the argument's
 // length and one more; the length written is returned.
-size_t      d_cmake_passed(const struct d_cmake*          _cmake,
-                           const struct d_cmake_argument* _argument,
-                           char*                          _out);
+size_t d_cmake_passed(
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    char*                           _out
+);
 
 // 2.4    Lists
 //------------------------------------------------------------------------------
@@ -310,18 +324,22 @@ size_t      d_cmake_passed(const struct d_cmake*          _cmake,
  *                           `NULL`.
  * @return how many items there are.
  */
-size_t      d_cmake_list_items(const char* _list,
-                               size_t      _length,
-                               bool        _keep_empty,
-                               char*       _out,
-                               size_t*     _out_length);
+size_t d_cmake_list_items(
+    const char* _list,
+    size_t      _length,
+    bool        _keep_empty,
+    char*       _out,
+    size_t*     _out_length
+);
 
 // 2.5    Writing
 //------------------------------------------------------------------------------
 // d_cmake_is_name reports whether a text is a command's name, a letter or
 // `_` and then letters, digits and `_`.
-bool        d_cmake_is_name(const char* _text,
-                            size_t      _length);
+bool d_cmake_is_name(
+    const char* _text,
+    size_t      _length
+);
 /**
  * @brief Writes a value as an argument that reads back as the value.
  *
@@ -339,16 +357,20 @@ bool        d_cmake_is_name(const char* _text,
  * @return the text, terminated, or `NULL` when the value cannot be written
  *         so, or memory runs out.
  */
-char*       d_cmake_write(const char*                _value,
-                          size_t                     _length,
-                          enum d_cmake_argument_kind _kind,
-                          size_t*                    _out_length);
+char* d_cmake_write(
+    const char*                 _value,
+    size_t                      _length,
+    enum dj_cmake_argument_kind _kind,
+    size_t*                     _out_length
+);
 // d_cmake_write_any writes a value unquoted when it can be, and quoted
 // otherwise; the caller frees it, and it is `NULL` only when memory runs
 // out.
-char*       d_cmake_write_any(const char* _value,
-                              size_t      _length,
-                              size_t*     _out_length);
+char* d_cmake_write_any(
+    const char* _value,
+    size_t      _length,
+    size_t*     _out_length
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_CMAKE_DCMAKE_H

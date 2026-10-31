@@ -49,10 +49,10 @@ static int skipped = 0;
  *   Reports whether this configuration's default source can vend anything at
  * all. Asked once, by allocating and releasing a block.
  */
-static int
-heap_available(void)
+static
+int heap_available(void)
 {
-    struct d_mem_source s;
+    struct dj_mem_source s;
     void*               p;
 
     s = d_mem_source_default();
@@ -75,10 +75,10 @@ heap_available(void)
  * checks run over a heap-backed arena, a buffer-backed one, and an
  * arena-backed one.
  */
-static void
-exercise(
-    struct d_arena* _a,
-    int             _can_grow
+static
+void exercise(
+    struct dj_arena* _a,
+    int              _can_grow
 )
 {
     void*               p1;
@@ -86,19 +86,19 @@ exercise(
     int                 i;
     char*               s;
 #if (D_INTERNAL_ARENA_MARKS == 1)
-    struct d_arena_mark m;
+    struct dj_arena_mark m;
 #endif
 
     /* alignment is honoured for every power of two the module admits */
     for (i = 1; i <= 64; i <<= 1)
     {
-        void* q = d_arena_allocate(_a, (d_mem_size)i + 1, (d_mem_size)i);
+        void* q = d_arena_allocate(_a, (dj_mem_size)i + 1, (dj_mem_size)i);
 
         CHECK(q != NULL);
 
         if (q)
         {
-            CHECK(d_mem_is_aligned(q, (d_mem_size)i));
+            CHECK(d_mem_is_aligned(q, (dj_mem_size)i));
             memset(q, 0xEE, (size_t)i + 1);
 #if (D_INTERNAL_ARENA_OWNS == 1)
             CHECK(d_arena_owns(_a, q));
@@ -144,10 +144,10 @@ exercise(
     /* a foreign mark is refused where validation is compiled */
 #   if (D_INTERNAL_ARENA_VALIDATE_MARKS == 1)
     {
-        struct d_arena_mark bogus;
+        struct dj_arena_mark bogus;
         char                elsewhere[64];
 
-        bogus.region = (struct d_arena_region*)(void*)elsewhere;
+        bogus.region = (struct dj_arena_region*)(void*)elsewhere;
         bogus.used   = 0;
 
         CHECK(d_arena_rewind(_a, bogus) == D_MEM_ERR_FOREIGN);
@@ -173,13 +173,12 @@ exercise(
 }
 
 
-int
-main(void)
+int main(void)
 {
-    struct d_arena        a;
-    struct d_arena        b;
-    struct d_arena_config cfg;
-    struct d_mem_stats    st;
+    struct dj_arena        a;
+    struct dj_arena        b;
+    struct dj_arena_config cfg;
+    struct dj_mem_stats    st;
     static char           buffer[65536];
     int                   heap;
 
@@ -194,10 +193,10 @@ main(void)
            (int)D_INTERNAL_MEM_SIZE_BITS);
 
     /* 1. an arena over the caller's own buffer -- works in every build */
-    CHECK(d_arena_init_buffer(&b, buffer, (d_mem_size)sizeof(buffer)) ==
+    CHECK(d_arena_init_buffer(&b, buffer, (dj_mem_size)sizeof(buffer)) ==
           D_MEM_OK);
     CHECK(d_arena_capacity(&b) > 0);
-    CHECK(d_arena_capacity(&b) < (d_mem_size)sizeof(buffer));
+    CHECK(d_arena_capacity(&b) < (dj_mem_size)sizeof(buffer));
     exercise(&b, 0);
 
     /* the buffer arena must never hand the caller's memory to a source */
@@ -207,11 +206,11 @@ main(void)
     /* 2. a buffer arena reports exhaustion rather than corrupting */
     {
         static char        small[512];
-        struct d_mem_block blk;
-        enum d_mem_status  status;
-        d_mem_size         handed;
+        struct dj_mem_block blk;
+        enum dj_mem_status  status;
+        dj_mem_size         handed;
 
-        CHECK(d_arena_init_buffer(&a, small, (d_mem_size)sizeof(small)) ==
+        CHECK(d_arena_init_buffer(&a, small, (dj_mem_size)sizeof(small)) ==
               D_MEM_OK);
 
         handed = 0;
@@ -227,8 +226,8 @@ main(void)
             }
 
             memset(blk.ptr, 0x5A, 32);
-            handed = (d_mem_size)(handed + 32);
-            CHECK(handed <= (d_mem_size)sizeof(small));
+            handed = (dj_mem_size)(handed + 32);
+            CHECK(handed <= (dj_mem_size)sizeof(small));
         }
 
         CHECK(handed > 0);
@@ -310,7 +309,7 @@ main(void)
     CHECK(d_arena_allocate(&a, 900, 8) != NULL);
 
     {
-        struct d_mem_block blk;
+        struct dj_mem_block blk;
 
         /* larger than the whole budget: refused, and refused for the right
            reason rather than by an upstream failure */
@@ -348,8 +347,8 @@ main(void)
     /* 8. the counting source measures what an arena costs its upstream */
 #if (D_INTERNAL_MEM_SOURCE_COUNTER == 1)
     {
-        struct d_mem_counting_source counter;
-        struct d_mem_stats           cs;
+        struct dj_mem_counting_source counter;
+        struct dj_mem_stats           cs;
 
         CHECK(d_mem_counting_source_init(&counter, d_mem_source_default()) ==
               D_MEM_OK);

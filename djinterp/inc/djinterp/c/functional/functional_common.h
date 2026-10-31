@@ -73,9 +73,9 @@ typedef bool (*fn_transformer)(const void* _input,
                                void*       _output,
                                void*       _context);
 
-// d_mapper
+// dj_mapper
 //   type alias: alias for fn_transformer (common terminology).
-typedef fn_transformer d_mapper;
+typedef fn_transformer dj_mapper;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -389,45 +389,147 @@ typedef bool (*fn_cloner)(const void* _source,
 ///////////////////////////////////////////////////////////////////////////////
 
 // i.    identity functions
-bool     d_functional_identity_transformer(const void* _input, void* _output, void* _context);
-bool     d_functional_identity_predicate(const void* _element, void* _context);
+bool d_functional_identity_transformer(
+    const void* _input,
+    void*       _output,
+    void*       _context
+);
+bool d_functional_identity_predicate(
+    const void* _element,
+    void*       _context
+);
 
 // ii.   constant functions
-bool     d_functional_constant_true(const void* _element, void* _context);
-bool     d_functional_constant_false(const void* _element, void* _context);
+bool d_functional_constant_true(
+    const void* _element,
+    void*       _context
+);
+bool d_functional_constant_false(
+    const void* _element,
+    void*       _context
+);
 
 // iii.  comparison utilities
-int      d_functional_compare_int(const void* _a, const void* _b, void* _context);
-int      d_functional_compare_size_t(const void* _a, const void* _b, void* _context);
-int      d_functional_compare_double(const void* _a, const void* _b, void* _context);
-bool     d_functional_equal_int(const void* _a, const void* _b, void* _context);
-bool     d_functional_equal_size_t(const void* _a, const void* _b, void* _context);
+int d_functional_compare_int(
+    const void* _a,
+    const void* _b,
+    void*       _context
+);
+int d_functional_compare_size_t(
+    const void* _a,
+    const void* _b,
+    void*       _context
+);
+int d_functional_compare_double(
+    const void* _a,
+    const void* _b,
+    void*       _context
+);
+bool d_functional_equal_int(
+    const void* _a,
+    const void* _b,
+    void*       _context
+);
+bool d_functional_equal_size_t(
+    const void* _a,
+    const void* _b,
+    void*       _context
+);
 
 // iv.   predicate utilities
-bool     d_functional_is_null(const void* _element, void* _context);
-bool     d_functional_is_not_null(const void* _element, void* _context);
+bool d_functional_is_null(
+    const void* _element,
+    void*       _context
+);
+bool d_functional_is_not_null(
+    const void* _element,
+    void*       _context
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             X.    HIGHER-ORDER FUNCTIONS                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // i.    map
-bool     d_functional_map(const void* _input, void* _output, size_t _count, size_t _element_size, fn_transformer _transform, void* _context);
+bool d_functional_map(
+    const void*    _input,
+    void*          _output,
+    size_t         _count,
+    size_t         _element_size,
+    fn_transformer _transform,
+    void*          _context
+);
 
 // ii.     fold
-bool     d_functional_fold_left(const void* _input, size_t _count, size_t _element_size, void* _accumulator, fn_accumulator _combine, void* _context);
-bool     d_functional_fold_right(const void* _input, size_t _count, size_t _element_size, void* _accumulator, fn_accumulator _combine, void* _context);
+bool d_functional_fold_left(
+    const void*    _input,
+    size_t         _count,
+    size_t         _element_size,
+    void*          _accumulator,
+    fn_accumulator _combine,
+    void*          _context
+);
+bool d_functional_fold_right(
+    const void*    _input,
+    size_t         _count,
+    size_t         _element_size,
+    void*          _accumulator,
+    fn_accumulator _combine,
+    void*          _context
+);
 
 // iii.    iteration
-void     d_functional_for_each(void* _input, size_t _count, size_t _element_size, fn_consumer _apply, void* _context);
-void     d_functional_for_each_const(const void* _input, size_t _count, size_t _element_size, fn_consumer_const _apply, void* _context);
+void d_functional_for_each(
+    void*       _input,
+    size_t      _count,
+    size_t      _element_size,
+    fn_consumer _apply,
+    void*       _context
+);
+void d_functional_for_each_const(
+    const void*       _input,
+    size_t            _count,
+    size_t            _element_size,
+    fn_consumer_const _apply,
+    void*             _context
+);
 
 // iv.     quantifiers
-bool     d_functional_any(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
-bool     d_functional_all(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
-bool     d_functional_none(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
-size_t   d_functional_count_if(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
-void*    d_functional_find_if(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
+bool d_functional_any(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context
+);
+bool d_functional_all(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context
+);
+bool d_functional_none(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context
+);
+size_t d_functional_count_if(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context
+);
+void* d_functional_find_if(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context
+);
 
 
 #endif  // DJINTERP_C_FUNCTIONAL_FUNCTIONAL_COMMON_H

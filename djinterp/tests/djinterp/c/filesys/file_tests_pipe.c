@@ -25,9 +25,7 @@
 
 #if D_FILE_PIPE_IS_AVAILABLE
 
-void
-d_fs_tests_pipe
-(
+void d_fs_tests_pipe(
     dtest_suite* _suite
 )
 {

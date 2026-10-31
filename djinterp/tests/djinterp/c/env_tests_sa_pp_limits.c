@@ -14,7 +14,7 @@
 
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -31,10 +31,8 @@ d_tests_sa_env_pp_limit_constants_c89
   - D_ENV_PP_LIMIT_C89_PARAMS equals 31
   - D_ENV_PP_LIMIT_C89_STRING_LENGTH equals 509
 */
-bool
-d_tests_sa_env_pp_limit_constants_c89
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_limit_constants_c89(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -128,10 +126,8 @@ d_tests_sa_env_pp_limit_constants_c99
   - D_ENV_PP_LIMIT_C99_PARAMS equals 127
   - D_ENV_PP_LIMIT_C99_STRING_LENGTH equals 4095
 */
-bool
-d_tests_sa_env_pp_limit_constants_c99
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_limit_constants_c99(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -225,10 +221,8 @@ d_tests_sa_env_pp_limit_constants_cpp
   - D_ENV_PP_LIMIT_CPP_PARAMS equals 256
   - D_ENV_PP_LIMIT_CPP_STRING_LENGTH equals 65536
 */
-bool
-d_tests_sa_env_pp_limit_constants_cpp
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_limit_constants_cpp(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -320,13 +314,11 @@ d_tests_sa_env_pp_limit_constants_all
   - C99 standard limits
   - C++ standard limits
 */
-bool
-d_tests_sa_env_pp_limit_constants_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_limit_constants_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool c89_result;
     bool c99_result;
     bool cpp_result;
@@ -337,7 +329,7 @@ d_tests_sa_env_pp_limit_constants_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing Standard Limit Constants\n");
     printf("----------------------------------------"
@@ -386,10 +378,8 @@ d_tests_sa_env_pp_min_limits_definition
   - D_ENV_PP_MIN_PARAMS is defined
   - D_ENV_PP_MIN_STRING_LENGTH is defined
 */
-bool
-d_tests_sa_env_pp_min_limits_definition
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_min_limits_definition(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -520,10 +510,8 @@ d_tests_sa_env_pp_min_limits_values
   - minimum limits match C89 limits when compiling as C89/C95
   - minimum limits are positive values
 */
-bool
-d_tests_sa_env_pp_min_limits_values
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_min_limits_values(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -742,13 +730,11 @@ d_tests_sa_env_pp_min_limits_all
   - minimum limits are defined
   - minimum limits have correct values for detected language standard
 */
-bool
-d_tests_sa_env_pp_min_limits_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_min_limits_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool definition_result;
     bool values_result;
     bool overall_result;
@@ -758,7 +744,7 @@ d_tests_sa_env_pp_min_limits_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing Standard-Based Minimum Limits\n");
     printf("----------------------------------------"
@@ -806,10 +792,8 @@ d_tests_sa_env_pp_max_limits_definition
   - D_ENV_PP_MAX_STRING_LENGTH is defined
   - D_ENV_PP_LIMIT_SOURCE is defined
 */
-bool
-d_tests_sa_env_pp_max_limits_definition
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_max_limits_definition(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -940,10 +924,8 @@ d_tests_sa_env_pp_max_limits_values
   - known compiler limits match expected values
   - limit source string is appropriate
 */
-bool
-d_tests_sa_env_pp_max_limits_values
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_max_limits_values(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1216,13 +1198,11 @@ d_tests_sa_env_pp_max_limits_all
   - maximum limits have reasonable values
   - compiler-specific limits match expected values
 */
-bool
-d_tests_sa_env_pp_max_limits_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_max_limits_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool definition_result;
     bool values_result;
     bool overall_result;
@@ -1232,7 +1212,7 @@ d_tests_sa_env_pp_max_limits_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing Compiler-Specific Maximum Limits\n");
     printf("----------------------------------------"
@@ -1279,10 +1259,8 @@ d_tests_sa_env_pp_utility_macros_definition
   - D_ENV_PP_IS_UNLIMITED is defined
   - D_ENV_PP_EFFECTIVE_LIMIT is defined
 */
-bool
-d_tests_sa_env_pp_utility_macros_definition
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_utility_macros_definition(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1395,10 +1373,8 @@ d_tests_sa_env_pp_utility_macros_functionality
   - D_ENV_PP_IS_UNLIMITED correctly identifies unlimited (0) values
   - D_ENV_PP_EFFECTIVE_LIMIT returns correct effective limits
 */
-bool
-d_tests_sa_env_pp_utility_macros_functionality
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_utility_macros_functionality(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1555,13 +1531,11 @@ d_tests_sa_env_pp_utility_macros_all
   - utility macros are defined
   - utility macros function correctly
 */
-bool
-d_tests_sa_env_pp_utility_macros_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_utility_macros_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool definition_result;
     bool functionality_result;
     bool overall_result;
@@ -1571,7 +1545,7 @@ d_tests_sa_env_pp_utility_macros_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing Preprocessor Utility Macros\n");
     printf("----------------------------------------"
@@ -1617,10 +1591,8 @@ d_tests_sa_env_pp_va_opt_detection
   - D_ENV_PP_HAS_VA_OPT_ENABLED is defined
   - detection is consistent with language standard
 */
-bool
-d_tests_sa_env_pp_va_opt_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_va_opt_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1742,13 +1714,11 @@ d_tests_sa_env_pp_limits_all
   - utility macros
   - __VA_OPT__ detection
 */
-bool
-d_tests_sa_env_pp_limits_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_pp_limits_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool constants_result;
     bool min_limits_result;
     bool max_limits_result;
@@ -1761,7 +1731,7 @@ d_tests_sa_env_pp_limits_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing Preprocessor Limits\n");
     printf("========================================="

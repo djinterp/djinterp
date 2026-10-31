@@ -128,7 +128,7 @@ TABLE OF CONTENTS
 #include "../env_net.h"        // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
 #include "../tls/env_tls.h"    // D_ENV_TLS_AVAILABLE
 #include "../curl/env_curl.h"  // D_ENV_CURL_AVAILABLE, D_ENV_CURL_VERSION_AT_LEAST
-#include "../../../config/core/env/net/imap/cfg_env_imap.h"  // D_CFG_ENV_IMAP_*
+#include "../../../config/env/net/imap/cfg_env_imap.h"  // D_CFG_ENV_IMAP_*
 
 
 //==============================================================================
@@ -679,7 +679,7 @@ TABLE OF CONTENTS
 // 7.1.1
 // D_ENV_IMAP_BACKEND_*
 //   constant: identifiers for D_ENV_IMAP_BACKEND, for switch-style dispatch.
-// The values are pinned: net/imap/imap.h mirrors them as enum d_imap_backend.
+// The values are pinned: net/imap/imap.h mirrors them as enum dj_imap_backend.
 
 // 7.1.1.1
 // D_ENV_IMAP_BACKEND_NONE

@@ -30,8 +30,8 @@ d_internal_symbol
   Copies the identifier that follows a directive, stopping at whitespace or a
 comment.  Returns its length.
 */
-static size_t
-d_internal_symbol(
+static
+size_t d_internal_symbol(
     const char* _text,
     char*       _out,
     size_t      _out_size
@@ -68,14 +68,14 @@ d_internal_part
   Adds one guard part -- ifndef, define or endif -- with the symbol it names
 as its text and the geometry a layout rule would need.
 */
-static void
-d_internal_part(
-    struct d_node_tree* _tree,
-    uint32_t            _guard,
-    const char*         _type,
-    const char*         _symbol,
-    uint32_t            _line,
-    uint32_t            _column
+static
+void d_internal_part(
+    struct dj_node_tree* _tree,
+    uint32_t             _guard,
+    const char*          _type,
+    const char*          _symbol,
+    uint32_t             _line,
+    uint32_t             _column
 )
 {
     const uint32_t part = d_node_add(_tree, _guard, _type);
@@ -85,7 +85,7 @@ d_internal_part(
         return;
     }
 
-    struct d_node* const node = d_node_at(_tree, part);
+    struct dj_node* const node = d_node_at(_tree, part);
 
     node->line         = _line;
     node->start_column = _column;
@@ -108,11 +108,10 @@ d_guard_build
 matched loosely -- the symbol may follow `//` or be absent entirely -- because
 the rule that governs its spelling is the sheet's business, not the scanner's.
 */
-uint32_t
-d_guard_build(
-    struct d_node_tree* _tree,
-    uint32_t            _file,
-    const char*         _path
+uint32_t d_guard_build(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path
 )
 {
     // parameter validation first
@@ -279,7 +278,7 @@ d_guard_build(
     // and the sheet's derivation owns the value.
     if ((endif_line != 0) && (endif_symbol[0] == '\0'))
     {
-        struct d_node* const guard_node = d_node_at(_tree, guard);
+        struct dj_node* const guard_node = d_node_at(_tree, guard);
 
         uint32_t endif = guard_node->first_child;
 

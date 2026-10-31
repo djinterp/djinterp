@@ -224,7 +224,12 @@ static const nts_la_word g_adverb_hundreds[] =
     NTS_LA_WORD("nongenties")
 };
 
-static void nts_la_term(char* dst, size_t dst_cap, size_t total)
+static
+void nts_la_term(
+    char*  dst,
+    size_t dst_cap,
+    size_t total
+)
 {
     if (dst_cap == 0u) {
         return;
@@ -237,7 +242,14 @@ static void nts_la_term(char* dst, size_t dst_cap, size_t total)
     }
 }
 
-static void nts_la_put_mem(char* dst, size_t dst_cap, size_t* total, const char* s, size_t n)
+static
+void nts_la_put_mem(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    const char* s,
+    size_t      n
+)
 {
     size_t off = *total;
 
@@ -252,12 +264,24 @@ static void nts_la_put_mem(char* dst, size_t dst_cap, size_t* total, const char*
     *total = off + n;
 }
 
-static void nts_la_put_word(char* dst, size_t dst_cap, size_t* total, nts_la_word w)
+static
+void nts_la_put_word(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    nts_la_word w
+)
 {
     nts_la_put_mem(dst, dst_cap, total, w.s, w.len);
 }
 
-static void nts_la_put_char(char* dst, size_t dst_cap, size_t* total, char c)
+static
+void nts_la_put_char(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total,
+    char    c
+)
 {
     size_t off = *total;
 
@@ -268,12 +292,23 @@ static void nts_la_put_char(char* dst, size_t dst_cap, size_t* total, char c)
     *total = off + 1u;
 }
 
-static void nts_la_put_space(char* dst, size_t dst_cap, size_t* total)
+static
+void nts_la_put_space(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total
+)
 {
     nts_la_put_char(dst, dst_cap, total, ' ');
 }
 
-static void nts_la_put_connector(char* dst, size_t dst_cap, size_t* total, unsigned flags)
+static
+void nts_la_put_connector(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned flags
+)
 {
     if (flags & NTS_LA_FLAG_COMMAS) {
         nts_la_put_mem(dst, dst_cap, total, ", ", 2u);
@@ -282,29 +317,42 @@ static void nts_la_put_connector(char* dst, size_t dst_cap, size_t* total, unsig
     }
 }
 
-static uint64_t nts_la_abs_i64(int64_t value)
+static
+uint64_t nts_la_abs_i64(
+    int64_t value
+)
 {
     uint64_t u = (uint64_t)value;
     return (value < 0) ? (UINT64_C(0) - u) : u;
 }
 
-static nts_la_word nts_la_unit_cardinal(unsigned value, unsigned gender)
+static
+nts_la_word nts_la_unit_cardinal(
+    unsigned value,
+    unsigned gender
+)
 {
     return (gender == NTS_LA_GENDER_NEUTER) ? g_units_neuter[value] : g_units_masc[value];
 }
 
-static nts_la_word nts_la_hundred_cardinal(unsigned value, unsigned gender)
+static
+nts_la_word nts_la_hundred_cardinal(
+    unsigned value,
+    unsigned gender
+)
 {
     return (gender == NTS_LA_GENDER_NEUTER) ? g_hundreds_neuter[value] : g_hundreds_masc[value];
 }
 
-static void nts_la_format_cardinal_lt1000(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value,
-    unsigned    gender,
-    unsigned    flags)
+static
+void nts_la_format_cardinal_lt1000(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value,
+    unsigned gender,
+    unsigned flags
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -356,13 +404,15 @@ static void nts_la_format_cardinal_lt1000(
     }
 }
 
-static void nts_la_format_cardinal_recursive(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    uint64_t    value,
-    unsigned    gender,
-    unsigned    flags)
+static
+void nts_la_format_cardinal_recursive(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    uint64_t value,
+    unsigned gender,
+    unsigned flags
+)
 {
     uint64_t high;
     unsigned low;
@@ -392,11 +442,13 @@ static void nts_la_format_cardinal_recursive(
     }
 }
 
-static void nts_la_format_adverb_lt1000(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_la_format_adverb_lt1000(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -439,11 +491,13 @@ static void nts_la_format_adverb_lt1000(
     }
 }
 
-static void nts_la_format_adverb_recursive(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    uint64_t    value)
+static
+void nts_la_format_adverb_recursive(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    uint64_t value
+)
 {
     uint64_t high;
     unsigned low;
@@ -473,11 +527,13 @@ static void nts_la_format_adverb_recursive(
     }
 }
 
-static void nts_la_format_ordinal_lt1000(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_la_format_ordinal_lt1000(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -521,11 +577,13 @@ static void nts_la_format_ordinal_lt1000(
     }
 }
 
-static void nts_la_format_ordinal_recursive(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    uint64_t    value)
+static
+void nts_la_format_ordinal_recursive(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    uint64_t value
+)
 {
     uint64_t thousands;
     unsigned rem;
@@ -551,7 +609,12 @@ static void nts_la_format_ordinal_recursive(
     }
 }
 
-size_t nts_la_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_la_cardinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     size_t total = 0u;
     uint64_t mag = nts_la_abs_i64(value);
@@ -565,7 +628,12 @@ size_t nts_la_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fl
     return total;
 }
 
-size_t nts_la_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_la_ordinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     size_t total = 0u;
     uint64_t mag = nts_la_abs_i64(value);
@@ -580,7 +648,12 @@ size_t nts_la_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fla
     return total;
 }
 
-size_t nts_la_ordinal_abbrev_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_la_ordinal_abbrev_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     static const struct
     {

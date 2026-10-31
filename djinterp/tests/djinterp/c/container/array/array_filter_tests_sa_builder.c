@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -24,16 +24,14 @@ d_tests_sa_array_filter_builder_begin_end
   - END with no operations returns all elements
   - END properly frees the builder
 */
-bool
-d_tests_sa_array_filter_builder_begin_end
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_builder_begin_end(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_filter_builder*     builder;
-    struct d_contiguous_filter_result res;
+    struct dj_filter_builder*     builder;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -77,16 +75,14 @@ d_tests_sa_array_filter_apply_builder
   - NULL builder is handled safely
   - NULL elements is handled safely
 */
-bool
-d_tests_sa_array_filter_apply_builder
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_apply_builder(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_filter_builder*     builder;
-    struct d_contiguous_filter_result res;
+    struct dj_filter_builder*     builder;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -179,16 +175,14 @@ d_tests_sa_array_filter_builder_multi_step
   - Combined filter + take produces correct result
   - Order of operations is respected
 */
-bool
-d_tests_sa_array_filter_builder_multi_step
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_builder_multi_step(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_filter_builder*     b;
-    struct d_contiguous_filter_result res;
+    struct dj_filter_builder*     b;
+    struct dj_contiguous_filter_result res;
     int*                         out;
     int                          threshold;
 
@@ -300,10 +294,8 @@ d_tests_sa_array_filter_builder_multi_step
 d_tests_sa_array_filter_builder_all
   Aggregation function that runs all fluent builder tests.
 */
-bool
-d_tests_sa_array_filter_builder_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_builder_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

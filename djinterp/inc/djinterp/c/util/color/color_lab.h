@@ -22,8 +22,8 @@ TABLE OF CONTENTS
 =================
 I.    POD TYPES
       ---------
-      a. d_color_xyz
-      b. d_color_lab
+      a. dj_color_xyz
+      b. dj_color_lab
 
 II.   CONSTRUCTION
       ------------
@@ -68,18 +68,18 @@ D_COLOR_NS_OPEN
 ///                       I.   POD TYPES                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_color_xyz
+// dj_color_xyz
 //   POD: CIE 1931 XYZ tristimulus color (D65, sRGB primaries).
-struct d_color_xyz
+struct dj_color_xyz
 {
     float x;
     float y;
     float z;
 };
 
-// d_color_lab
+// dj_color_lab
 //   POD: CIE L*a*b* color; L* in [0, 100], a*/b* ~ [-128, 127].
-struct d_color_lab
+struct dj_color_lab
 {
     float l;
     float a;
@@ -100,16 +100,16 @@ Parameter(s):
   _y: Y tristimulus value.
   _z: Z tristimulus value.
 Return:
-  A d_color_xyz with the given values.
+  A dj_color_xyz with the given values.
 */
-D_COLOR_FN struct d_color_xyz
-d_color_xyz_make(
+D_COLOR_FN
+struct dj_color_xyz d_color_xyz_make(
     float _x,
     float _y,
     float _z
 )
 {
-    return D_COLOR_LITERAL(d_color_xyz, _x, _y, _z);
+    return D_COLOR_LITERAL(dj_color_xyz, _x, _y, _z);
 }
 
 /*
@@ -121,16 +121,16 @@ Parameter(s):
   _a: green-red a*.
   _b: blue-yellow b*.
 Return:
-  A d_color_lab with the given channels.
+  A dj_color_lab with the given channels.
 */
-D_COLOR_FN struct d_color_lab
-d_color_lab_make(
+D_COLOR_FN
+struct dj_color_lab d_color_lab_make(
     float _l,
     float _a,
     float _b
 )
 {
-    return D_COLOR_LITERAL(d_color_lab, _l, _a, _b);
+    return D_COLOR_LITERAL(dj_color_lab, _l, _a, _b);
 }
 
 
@@ -157,8 +157,8 @@ Parameter(s):
 Return:
   f(_t) per the CIE L*a*b* definition.
 */
-D_COLOR_FN_RT float
-d_color_lab_f(
+D_COLOR_FN_RT
+float d_color_lab_f(
     float _t
 )
 {
@@ -182,8 +182,8 @@ Parameter(s):
 Return:
   f^-1(_t) per the CIE L*a*b* definition.
 */
-D_COLOR_FN_RT float
-d_color_lab_f_inv(
+D_COLOR_FN_RT
+float d_color_lab_f_inv(
     float _t
 )
 {
@@ -211,9 +211,9 @@ Parameter(s):
 Return:
   true if x, y, z are all >= 0, false otherwise.
 */
-D_COLOR_FN bool
-d_color_xyz_is_valid(
-    struct d_color_xyz _xyz
+D_COLOR_FN
+bool d_color_xyz_is_valid(
+    struct dj_color_xyz _xyz
 )
 {
     return ( (_xyz.x >= 0.0f) &&
@@ -230,9 +230,9 @@ Parameter(s):
 Return:
   true if L* is in range, false otherwise.
 */
-D_COLOR_FN bool
-d_color_lab_is_valid(
-    struct d_color_lab _lab
+D_COLOR_FN
+bool d_color_lab_is_valid(
+    struct dj_color_lab _lab
 )
 {
     return ( (_lab.l >= 0.0f) && (_lab.l <= 100.0f) );
@@ -245,11 +245,11 @@ d_color_xyz_clamp
 Parameter(s):
   _xyz: color to clamp.
 Return:
-  A d_color_xyz with non-negative values.
+  A dj_color_xyz with non-negative values.
 */
-D_COLOR_FN struct d_color_xyz
-d_color_xyz_clamp(
-    struct d_color_xyz _xyz
+D_COLOR_FN
+struct dj_color_xyz d_color_xyz_clamp(
+    struct dj_color_xyz _xyz
 )
 {
     return d_color_xyz_make(
@@ -266,11 +266,11 @@ d_color_lab_clamp
 Parameter(s):
   _lab: color to clamp.
 Return:
-  A d_color_lab with channels constrained to canonical ranges.
+  A dj_color_lab with channels constrained to canonical ranges.
 */
-D_COLOR_FN struct d_color_lab
-d_color_lab_clamp(
-    struct d_color_lab _lab
+D_COLOR_FN
+struct dj_color_lab d_color_lab_clamp(
+    struct dj_color_lab _lab
 )
 {
     return d_color_lab_make(

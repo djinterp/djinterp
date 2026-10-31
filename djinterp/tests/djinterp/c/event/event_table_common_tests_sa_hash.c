@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -25,10 +25,8 @@ d_tests_sa_event_hash_fnv_bounds
   - Hash of negative ID is within bounds
   - Hash of max ID is within bounds
 */
-bool
-d_tests_sa_event_hash_fnv_bounds
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_fnv_bounds(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -60,7 +58,7 @@ d_tests_sa_event_hash_fnv_bounds
         "FNV hash of negative ID should be within bounds",
         _counter) && result;
 
-    hash = d_event_hash_function((d_event_id)(-1), 101);
+    hash = d_event_hash_function((dj_event_id)(-1), 101);
 
     result = d_assert_standalone(
         hash < 101,
@@ -77,10 +75,8 @@ d_tests_sa_event_hash_fnv_consistency
   Tests the following:
   - Same input produces same output on repeated calls
 */
-bool
-d_tests_sa_event_hash_fnv_consistency
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_fnv_consistency(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -106,10 +102,8 @@ d_tests_sa_event_hash_fnv_differentiation
   Tests the following:
   - Adjacent IDs produce different hashes
 */
-bool
-d_tests_sa_event_hash_fnv_differentiation
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_fnv_differentiation(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -137,10 +131,8 @@ d_tests_sa_event_hash_fnv_edge_ids
   - Negative event ID produces valid hash
   - Max event ID produces valid hash
 */
-bool
-d_tests_sa_event_hash_fnv_edge_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_fnv_edge_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -151,7 +143,7 @@ d_tests_sa_event_hash_fnv_edge_ids
     result = true;
     h_zero = d_event_hash_function(0, 101);
     h_neg  = d_event_hash_function(-1, 101);
-    h_max  = d_event_hash_function((d_event_id)(-1), 101);
+    h_max  = d_event_hash_function((dj_event_id)(-1), 101);
 
     result = d_assert_standalone(
         h_zero < 101 && h_neg < 101 && h_max < 101,
@@ -170,10 +162,8 @@ d_tests_sa_event_hash_fnv_table_sizes
   - Large table size produces hash within range
   - Table size 1 always returns 0
 */
-bool
-d_tests_sa_event_hash_fnv_table_sizes
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_fnv_table_sizes(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -208,10 +198,8 @@ d_tests_sa_event_hash_simple_bounds
   - Hash of typical ID is less than table size
   - Hash with power-of-2 table size is within bounds
 */
-bool
-d_tests_sa_event_hash_simple_bounds
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_simple_bounds(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -243,10 +231,8 @@ d_tests_sa_event_hash_simple_consistency
   Tests the following:
   - Same input produces same output
 */
-bool
-d_tests_sa_event_hash_simple_consistency
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_simple_consistency(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -273,10 +259,8 @@ d_tests_sa_event_hash_simple_edge_ids
   - Zero event ID produces valid hash
   - Negative event ID produces valid hash
 */
-bool
-d_tests_sa_event_hash_simple_edge_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_simple_edge_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -303,15 +287,13 @@ d_tests_sa_event_hash_collision
   - Small table produces collisions
   - Large table minimizes collisions
 */
-bool
-d_tests_sa_event_hash_collision
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_collision(
+    struct dj_test_counter* _counter
 )
 {
     bool       result;
     size_t     collision_count;
-    d_event_id ids[100];
+    dj_event_id ids[100];
     size_t     hashes[100];
     int        i;
     int        j;
@@ -381,10 +363,8 @@ d_tests_sa_event_hash_distribution
   - Few empty buckets with many inputs (good spread)
   - No severely overloaded bucket (no clustering)
 */
-bool
-d_tests_sa_event_hash_distribution
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_distribution(
+    struct dj_test_counter* _counter
 )
 {
     bool       result;
@@ -392,7 +372,7 @@ d_tests_sa_event_hash_distribution
     size_t     empty_buckets;
     size_t     max_count;
     size_t     expected_avg;
-    d_event_id i;
+    dj_event_id i;
     size_t     b;
 
     result = true;
@@ -451,10 +431,8 @@ d_tests_sa_event_hash_distribution
 d_tests_sa_event_hash_all
   Runs all hash function tests.
 */
-bool
-d_tests_sa_event_hash_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

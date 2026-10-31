@@ -48,8 +48,8 @@ struct attr_value
 
 // attrs
 //   an attribute record from a list of names and values.
-inline uxoxo::option_set
-attrs(
+inline
+uxoxo::option_set attrs(
     std::initializer_list<std::pair<const char*, attr_value>> _entries
 )
 {

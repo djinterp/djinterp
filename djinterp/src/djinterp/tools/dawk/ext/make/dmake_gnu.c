@@ -38,24 +38,24 @@
 // d_internal_open
 //   struct: a conditional open: its last branch read, and whether a bare
 //   `else` was among them.
-struct d_internal_open
+struct dj_internal_open
 {
     size_t branch;
     bool   seen_else;
 };
 
 // 1.1.2
-// d_internal_gnu
+// dj_internal_gnu
 //   struct: where make's eval stands: the recipe prefix, whether a rule is
 //   above, the conditionals open, and the `define` being read -- its
 //   statement, how many defines deep its body is, where its body starts.
-struct d_internal_gnu
+struct dj_internal_gnu
 {
-    struct d_make_reader*   reader;
+    struct dj_make_reader*   reader;
     const char*             text;
     char                    prefix;
     bool                    in_rule;
-    struct d_internal_open* opens;
+    struct dj_internal_open* opens;
     size_t                  open_count;
     size_t                  open_capacity;
     size_t                  define;
@@ -64,9 +64,9 @@ struct d_internal_gnu
 };
 
 // 1.1.3
-// d_internal_found
+// dj_internal_found
 //   enum: what a line was tried as.
-enum d_internal_found
+enum dj_internal_found
 {
     D_INTERNAL_NOTHING = 0,
     D_INTERNAL_ASSIGNED,
@@ -75,15 +75,15 @@ enum d_internal_found
 };
 
 // 1.1.4
-// d_internal_parts
+// dj_internal_parts
 //   struct: the parts of an assignment, a define or an undefine found.
-struct d_internal_parts
+struct dj_internal_parts
 {
-    struct d_make_span modifiers;
-    struct d_make_span word;
-    struct d_make_span name;
-    struct d_make_span separator;
-    struct d_make_span value;
+    struct dj_make_span modifiers;
+    struct dj_make_span word;
+    struct dj_make_span name;
+    struct dj_make_span separator;
+    struct dj_make_span value;
 };
 
 
@@ -112,13 +112,13 @@ struct d_internal_parts
  * Long as parse_variable_definition's one loop, its cases kept in its order,
  * as each decides what the next may be.
  */
-static bool
-d_internal_operator(
-    const char*         _text,
-    size_t              _at,
-    size_t              _end,
-    size_t*             _name_end,
-    struct d_make_span* _operator
+static
+bool d_internal_operator(
+    const char*          _text,
+    size_t               _at,
+    size_t               _end,
+    size_t*              _name_end,
+    struct dj_make_span* _operator
 )
 {
     size_t at       = _at;
@@ -218,13 +218,13 @@ d_internal_operator(
  * GNU make 4.3's modifiers are override, export and private; `unexport` is
  * a directive of its own there, and no modifier.
  */
-static enum d_internal_found
+static enum dj_internal_found
 d_internal_assignment(
     const char*              _text,
     size_t                   _at,
     size_t                   _end,
     bool                     _for_rule,
-    struct d_internal_parts* _out
+    struct dj_internal_parts* _out
 )
 {
     size_t at = _at;
@@ -298,11 +298,11 @@ d_internal_assignment(
  * `.RECIPEPREFIX` set to a text with no reference sets the prefix as make
  * sets it: the text's first byte, or a tab for an empty text.
  */
-static size_t
-d_internal_assigned(
-    struct d_internal_gnu*         _gnu,
-    const struct d_make_line*      _line,
-    const struct d_internal_parts* _parts
+static
+size_t d_internal_assigned(
+    struct dj_internal_gnu*         _gnu,
+    const struct dj_make_line*      _line,
+    const struct dj_internal_parts* _parts
 )
 {
     const size_t index = d_make_reader_statement(_gnu->reader,
@@ -315,7 +315,7 @@ d_internal_assigned(
         return index;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[index];
 
     statement->modifiers = _parts->modifiers;
@@ -323,7 +323,7 @@ d_internal_assigned(
     statement->separator = _parts->separator;
     statement->text      = _parts->value;
 
-    const struct d_make_span value = _parts->value;
+    const struct dj_make_span value = _parts->value;
     const size_t             op    = _parts->separator.end -
                                      _parts->separator.start;
 
@@ -365,11 +365,11 @@ d_internal_assigned(
  * do_define reads them; text after the operator is make's error to report,
  * and dmake_eval's.
  */
-static size_t
-d_internal_define(
-    struct d_internal_gnu*         _gnu,
-    const struct d_make_line*      _line,
-    const struct d_internal_parts* _parts
+static
+size_t d_internal_define(
+    struct dj_internal_gnu*         _gnu,
+    const struct dj_make_line*      _line,
+    const struct dj_internal_parts* _parts
 )
 {
     const size_t index = d_make_reader_statement(_gnu->reader,
@@ -382,9 +382,9 @@ d_internal_define(
         return index;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[index];
-    const struct d_make_span       rest      = _parts->value;
+    const struct dj_make_span       rest      = _parts->value;
     size_t                         name_end  = rest.end;
 
     statement->modifiers = _parts->modifiers;
@@ -431,10 +431,10 @@ d_internal_define(
  * line's end follows it, and closes one so for `endef`. A comment after the
  * last `endef` is its own.
  */
-static bool
-d_internal_define_line(
-    struct d_internal_gnu*    _gnu,
-    const struct d_make_line* _line
+static
+bool d_internal_define_line(
+    struct dj_internal_gnu*    _gnu,
+    const struct dj_make_line* _line
 )
 {
     const char* const text = _gnu->text;
@@ -465,7 +465,7 @@ d_internal_define_line(
         return true;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[_gnu->define];
     const size_t                   define    = _gnu->define;
 
@@ -501,9 +501,9 @@ d_internal_define_line(
  * @param[in,out] _gnu  the reader.
  * @return `true` if there is room; `false` when memory runs out.
  */
-static bool
-d_internal_open_room(
-    struct d_internal_gnu* _gnu
+static
+bool d_internal_open_room(
+    struct dj_internal_gnu* _gnu
 )
 {
     // room already
@@ -538,8 +538,8 @@ d_internal_open_room(
  * @param[in] _end    its end.
  * @return `true` for ifdef, ifndef, ifeq and ifneq.
  */
-static bool
-d_internal_is_if(
+static
+bool d_internal_is_if(
     const char* _text,
     size_t      _start,
     size_t      _end
@@ -569,15 +569,15 @@ d_internal_is_if(
  * Long as counting's two halves, opening one and continuing one, kept
  * together as conditional_line keeps them.
  */
-static bool
-d_internal_conditional(
-    struct d_internal_gnu* _gnu,
-    size_t                 _index
+static
+bool d_internal_conditional(
+    struct dj_internal_gnu* _gnu,
+    size_t                  _index
 )
 {
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[_index];
-    const struct d_make_span       word      = statement->word;
+    const struct dj_make_span       word      = statement->word;
     const char* const              text      = _gnu->text;
 
     // an if opens one
@@ -610,7 +610,7 @@ d_internal_conditional(
                                           : "extraneous 'endif'");
     }
 
-    struct d_internal_open* const open = &_gnu->opens[_gnu->open_count - 1u];
+    struct dj_internal_open* const open = &_gnu->opens[_gnu->open_count - 1u];
 
     // an else after a bare else
     if ( (is_else) &&
@@ -657,11 +657,11 @@ d_internal_conditional(
  * as the line's flags; the rest is its command, comments and all, which are
  * the shell's.
  */
-static bool
-d_internal_recipe(
-    struct d_internal_gnu*    _gnu,
-    const struct d_make_line* _line,
-    bool                      _orphan
+static
+bool d_internal_recipe(
+    struct dj_internal_gnu*    _gnu,
+    const struct dj_make_line* _line,
+    bool                       _orphan
 )
 {
     const size_t index = d_make_reader_statement(_gnu->reader,
@@ -688,7 +688,7 @@ d_internal_recipe(
         flags++;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[index];
 
     statement->word.start = _line->start;
@@ -715,12 +715,12 @@ d_internal_recipe(
  * order-only prerequisites; a `;` first leaves the rest of the line to the
  * recipe.
  */
-static void
-d_internal_rule_parts(
-    struct d_make_statement*  _statement,
-    const char*               _text,
-    size_t                    _stop,
-    const struct d_make_line* _line
+static
+void d_internal_rule_parts(
+    struct dj_make_statement*  _statement,
+    const char*                _text,
+    size_t                     _stop,
+    const struct dj_make_line* _line
 )
 {
     const size_t after = _statement->colon.end;
@@ -792,12 +792,12 @@ d_internal_rule_parts(
  * @param[in]     _index  the statement the line holds.
  * @return `true`; `false` when memory runs out.
  */
-static bool
-d_internal_rule_comment(
-    struct d_internal_gnu*    _gnu,
-    const struct d_make_line* _line,
-    size_t                    _stop,
-    size_t                    _index
+static
+bool d_internal_rule_comment(
+    struct dj_internal_gnu*    _gnu,
+    const struct dj_make_line* _line,
+    size_t                     _stop,
+    size_t                     _index
 )
 {
     // no comment, or a `;` first, after which a `#` is the recipe's
@@ -827,11 +827,11 @@ d_internal_rule_comment(
  * kind, then the assignment for targets or the rule's parts, each place
  * a step of the one before.
  */
-static bool
-d_internal_rule(
-    struct d_internal_gnu*    _gnu,
-    const struct d_make_line* _line,
-    size_t                    _at
+static
+bool d_internal_rule(
+    struct dj_internal_gnu*    _gnu,
+    const struct dj_make_line* _line,
+    size_t                     _at
 )
 {
     const char* const text  = _gnu->text;
@@ -868,7 +868,7 @@ d_internal_rule(
                              (text[colon + 1u] == ':') ) ? (colon + 2u)
                                                          : (colon + 1u);
 
-    struct d_internal_parts parts;
+    struct dj_internal_parts parts;
     const bool              assigns =
         (d_internal_assignment(text,
                                d_make_skip_blanks(text, last, stop),
@@ -893,7 +893,7 @@ d_internal_rule(
         return false;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[index];
 
     statement->targets.start = _at;
@@ -937,10 +937,10 @@ d_internal_rule(
  */
 static size_t
 d_internal_directive(
-    struct d_internal_gnu*    _gnu,
-    const struct d_make_line* _line,
-    enum d_make_kind          _kind,
-    struct d_make_span        _word,
+    struct dj_internal_gnu*    _gnu,
+    const struct dj_make_line* _line,
+    enum dj_make_kind          _kind,
+    struct dj_make_span        _word,
     size_t                    _code
 )
 {
@@ -954,7 +954,7 @@ d_internal_directive(
         return index;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[index];
     const size_t                   argument  = d_make_skip_blanks(_gnu->text,
                                                                   _word.end,
@@ -981,8 +981,8 @@ d_internal_directive(
 static bool
 d_internal_directive_kind(
     const char*        _text,
-    struct d_make_span _word,
-    enum d_make_kind*  _out
+    struct dj_make_span _word,
+    enum dj_make_kind*  _out
 )
 {
     const size_t start = _word.start;
@@ -1030,10 +1030,10 @@ d_internal_directive_kind(
  */
 static size_t
 d_internal_found_assignment(
-    struct d_internal_gnu*         _gnu,
-    const struct d_make_line*      _line,
-    enum d_internal_found          _found,
-    const struct d_internal_parts* _parts
+    struct dj_internal_gnu*         _gnu,
+    const struct dj_make_line*      _line,
+    enum dj_internal_found          _found,
+    const struct dj_internal_parts* _parts
 )
 {
     // a table of the three
@@ -1056,7 +1056,7 @@ d_internal_found_assignment(
         return index;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_gnu->reader->make->statements[index];
 
     statement->modifiers  = _parts->modifiers;
@@ -1083,10 +1083,10 @@ d_internal_found_assignment(
  * an assignment, a conditional, the other directives, and a rule, an
  * expansion, or a recipe's line with no rule above.
  */
-static bool
-d_internal_line(
-    struct d_internal_gnu*    _gnu,
-    const struct d_make_line* _line
+static
+bool d_internal_line(
+    struct dj_internal_gnu*    _gnu,
+    const struct dj_make_line* _line
 )
 {
     const char* const text    = _gnu->text;
@@ -1109,15 +1109,15 @@ d_internal_line(
                                         D_MAKE_NONE)) );
     }
 
-    struct d_internal_parts     parts;
-    const enum d_internal_found found = d_internal_assignment(text,
+    struct dj_internal_parts     parts;
+    const enum dj_internal_found found = d_internal_assignment(text,
                                                               at,
                                                               comment,
                                                               false,
                                                               &parts);
-    const struct d_make_span    word  = { at,
+    const struct dj_make_span    word  = { at,
                                           d_make_word_end(text, at, comment) };
-    enum d_make_kind            kind  = D_MAKE_DIRECTIVE;
+    enum dj_make_kind            kind  = D_MAKE_DIRECTIVE;
 
     // a table of eval's trials, in its order
     if (found != D_INTERNAL_NOTHING)
@@ -1168,12 +1168,11 @@ d_make_read_gnu
 end, a define still open is refused at its line, and a conditional still
 open one line past the file's last, where make names it.
 */
-bool
-d_make_read_gnu(
-    struct d_make_reader* _reader
+bool d_make_read_gnu(
+    struct dj_make_reader* _reader
 )
 {
-    struct d_internal_gnu gnu;
+    struct dj_internal_gnu gnu;
 
     memset(&gnu, 0, sizeof(gnu));
     gnu.reader = _reader;
@@ -1181,13 +1180,13 @@ d_make_read_gnu(
     gnu.prefix = '\t';
     gnu.define = D_MAKE_NONE;
 
-    const struct d_make_lines* const lines = &_reader->make->lines;
+    const struct dj_make_lines* const lines = &_reader->make->lines;
     bool                             read  = true;
 
     // each logical line, while reading goes on
     for (size_t index = 0; (read) && (index < lines->count); index++)
     {
-        const struct d_make_line* const line = &lines->lines[index];
+        const struct dj_make_line* const line = &lines->lines[index];
 
         // a table of the readings: a define's body, a recipe's line, the rest
         if (gnu.define != D_MAKE_NONE)

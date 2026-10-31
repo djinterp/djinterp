@@ -28,10 +28,10 @@ TABLE OF CONTENTS
          2.  D_AWK_OFMT_DEFAULT
          3.  D_AWK_SUBSEP_DEFAULT
     2.  Types
-         1.  d_awk_value_tag
-         2.  d_awk_value
-         3.  d_awk_array
-         4.  d_awk_fn_extern_text
+         1.  dj_awk_value_tag
+         2.  dj_awk_value
+         3.  dj_awk_array
+         4.  dj_awk_fn_extern_text
 2.  SCALARS
     -------
     1.  Lifecycle
@@ -85,12 +85,12 @@ TABLE OF CONTENTS
 // 1.2    Types
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_awk_value_tag
+// dj_awk_value_tag
 //   enum: discriminates the scalar model.  STRNUM is the tag that carries
 //   awk's comparison subtlety: it is text that came from input and has the
 //   shape of a number, so it compares numerically where an identical STRING
 //   would compare as text.  EXTERN is the host seam.
-enum d_awk_value_tag
+enum dj_awk_value_tag
 {
     D_AWK_VAL_UNINIT = 0,
     D_AWK_VAL_STRING,
@@ -101,23 +101,23 @@ enum d_awk_value_tag
 };
 
 // 1.2.2
-// d_awk_value
+// dj_awk_value
 //   struct: one scalar or array cell.  Layout is private; use the accessors
 //   in sections 2 and 3.
-struct d_awk_value;
+struct dj_awk_value;
 
 // 1.2.3
-// d_awk_array
+// dj_awk_array
 //   struct: an associative array.  Keys are byte strings and may contain any
 //   byte, including the subscript separator.
-struct d_awk_array;
+struct dj_awk_array;
 
 // 1.2.4
-// d_awk_fn_extern_text
+// dj_awk_fn_extern_text
 //   type: yields the text of an extern value.  The returned buffer must stay
 //   valid until the value is reassigned or released.
 typedef const char*
-(*d_awk_fn_extern_text)(void*   _object,
+(*dj_awk_fn_extern_text)(void*   _object,
                         void*   _user,
                         size_t* _out_length);
 
@@ -133,64 +133,98 @@ typedef const char*
 
 // 2.1    Lifecycle
 //------------------------------------------------------------------------------
-struct d_awk_value* d_awk_value_new(void);
-void                d_awk_value_free(struct d_awk_value* _value);
+struct dj_awk_value* d_awk_value_new(void);
+void d_awk_value_free(
+    struct dj_awk_value* _value
+);
 
 // 2.2    Assignment
 //------------------------------------------------------------------------------
 // Input-derived text -- a field, a getline result, an ARGV or ENVIRON element,
 // a split() result, FILENAME -- goes through d_awk_value_set_input.  A string
 // constant in the program text never does.
-void                d_awk_value_set_uninit(struct d_awk_value* _value);
-void                d_awk_value_set_number(struct d_awk_value* _value,
-                                           double              _number);
-bool                d_awk_value_set_string(struct d_awk_value* _value,
-                                           const char*         _text,
-                                           size_t              _length);
-bool                d_awk_value_set_input(struct d_awk_value* _value,
-                                          const char*         _text,
-                                          size_t              _length);
-void                d_awk_value_set_extern(struct d_awk_value*  _value,
-                                           void*                _object,
-                                           d_awk_fn_extern_text _text,
-                                           void*                _user);
-bool                d_awk_value_set_array(struct d_awk_value* _value,
-                                          struct d_awk_array* _array);
-bool                d_awk_value_copy(struct d_awk_value*       _target,
-                                     const struct d_awk_value* _source);
+void d_awk_value_set_uninit(
+    struct dj_awk_value* _value
+);
+void d_awk_value_set_number(
+    struct dj_awk_value* _value,
+    double               _number
+);
+bool d_awk_value_set_string(
+    struct dj_awk_value* _value,
+    const char*          _text,
+    size_t               _length
+);
+bool d_awk_value_set_input(
+    struct dj_awk_value* _value,
+    const char*          _text,
+    size_t               _length
+);
+void d_awk_value_set_extern(
+    struct dj_awk_value*  _value,
+    void*                 _object,
+    dj_awk_fn_extern_text _text,
+    void*                 _user
+);
+bool d_awk_value_set_array(
+    struct dj_awk_value* _value,
+    struct dj_awk_array* _array
+);
+bool d_awk_value_copy(
+    struct dj_awk_value*       _target,
+    const struct dj_awk_value* _source
+);
 
 // 2.3    Inspection
 //------------------------------------------------------------------------------
-enum d_awk_value_tag d_awk_value_tag_of(const struct d_awk_value* _value);
-struct d_awk_array*  d_awk_value_array_of(const struct d_awk_value* _value);
-bool                 d_awk_value_is_true(struct d_awk_value* _value);
+enum dj_awk_value_tag d_awk_value_tag_of(
+    const struct dj_awk_value* _value
+);
+struct dj_awk_array* d_awk_value_array_of(
+    const struct dj_awk_value* _value
+);
+bool d_awk_value_is_true(
+    struct dj_awk_value* _value
+);
 
 // 2.4    Conversion
 //------------------------------------------------------------------------------
 // d_awk_value_text caches its result on the value, so the returned buffer is
 // invalidated by the next assignment to that value.  An integral number
 // converts as an integer whatever the format says, as POSIX requires.
-const char*         d_awk_value_text(struct d_awk_value* _value,
-                                     const char*         _format,
-                                     size_t*             _out_length);
-double              d_awk_value_number(struct d_awk_value* _value);
-bool                d_awk_looks_numeric(const char* _text,
-                                        size_t      _length,
-                                        double*     _out_number);
-double              d_awk_text_to_number(const char* _text,
-                                         size_t      _length);
-size_t              d_awk_number_to_text(double      _number,
-                                         const char* _format,
-                                         char*       _buffer,
-                                         size_t      _capacity);
+const char* d_awk_value_text(
+    struct dj_awk_value* _value,
+    const char*          _format,
+    size_t*              _out_length
+);
+double d_awk_value_number(
+    struct dj_awk_value* _value
+);
+bool d_awk_looks_numeric(
+    const char* _text,
+    size_t      _length,
+    double*     _out_number
+);
+double d_awk_text_to_number(
+    const char* _text,
+    size_t      _length
+);
+size_t d_awk_number_to_text(
+    double      _number,
+    const char* _format,
+    char*       _buffer,
+    size_t      _capacity
+);
 
 // 2.5    Comparison
 //------------------------------------------------------------------------------
 // Numeric when both operands are numeric, a numeric string, or uninitialised;
 // otherwise textual, with any number converted through `_format`.
-int                 d_awk_value_compare(struct d_awk_value* _left,
-                                        struct d_awk_value* _right,
-                                        const char*         _format);
+int d_awk_value_compare(
+    struct dj_awk_value* _left,
+    struct dj_awk_value* _right,
+    const char*          _format
+);
 
 
 //==============================================================================
@@ -203,41 +237,57 @@ int                 d_awk_value_compare(struct d_awk_value* _left,
 
 // 3.1    Lifecycle
 //------------------------------------------------------------------------------
-struct d_awk_array* d_awk_array_new(void);
-void                d_awk_array_free(struct d_awk_array* _array);
-void                d_awk_array_clear(struct d_awk_array* _array);
-size_t              d_awk_array_count(const struct d_awk_array* _array);
+struct dj_awk_array* d_awk_array_new(void);
+void d_awk_array_free(
+    struct dj_awk_array* _array
+);
+void d_awk_array_clear(
+    struct dj_awk_array* _array
+);
+size_t d_awk_array_count(
+    const struct dj_awk_array* _array
+);
 
 // 3.2    Element access
 //------------------------------------------------------------------------------
-struct d_awk_value* d_awk_array_lookup(struct d_awk_array* _array,
-                                       const char*         _key,
-                                       size_t              _length);
-struct d_awk_value* d_awk_array_find(const struct d_awk_array* _array,
-                                     const char*               _key,
-                                     size_t                    _length);
-bool                d_awk_array_delete(struct d_awk_array* _array,
-                                       const char*         _key,
-                                       size_t              _length);
+struct dj_awk_value* d_awk_array_lookup(
+    struct dj_awk_array* _array,
+    const char*          _key,
+    size_t               _length
+);
+struct dj_awk_value* d_awk_array_find(
+    const struct dj_awk_array* _array,
+    const char*                _key,
+    size_t                     _length
+);
+bool d_awk_array_delete(
+    struct dj_awk_array* _array,
+    const char*          _key,
+    size_t               _length
+);
 
 // 3.3    Iteration
 //------------------------------------------------------------------------------
 // `_cursor` starts at zero and is advanced by each call.  Deleting during a
 // walk is permitted; inserting during a walk is not.
-bool                d_awk_array_next(const struct d_awk_array* _array,
-                                     size_t*                   _cursor,
-                                     const char**              _out_key,
-                                     size_t*                   _out_length,
-                                     struct d_awk_value**      _out_value);
+bool d_awk_array_next(
+    const struct dj_awk_array* _array,
+    size_t*                    _cursor,
+    const char**               _out_key,
+    size_t*                    _out_length,
+    struct dj_awk_value**      _out_value
+);
 
 // 3.4    Subscripts
 //------------------------------------------------------------------------------
-size_t              d_awk_subscript_join(char*              _buffer,
-                                         size_t             _capacity,
-                                         const char* const* _parts,
-                                         const size_t*      _lengths,
-                                         size_t             _count,
-                                         const char*        _subsep);
+size_t d_awk_subscript_join(
+    char*              _buffer,
+    size_t             _capacity,
+    const char* const* _parts,
+    const size_t*      _lengths,
+    size_t             _count,
+    const char*        _subsep
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DVALUE_H

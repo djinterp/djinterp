@@ -1,7 +1,7 @@
 /******************************************************************************
 * djinterp [test]                                          test_standalone_min.c
 *
-*   The d_test_object model from test_standalone.h, plus a driver, so the
+*   The dj_test_object model from test_standalone.h, plus a driver, so the
 * standalone fs suite can be RUN.
 *
 *   RECONSTRUCTED, AND DELIBERATELY MINIMAL. test_standalone.h declares a much
@@ -44,7 +44,7 @@
 #include <stdlib.h>
 #include <string.h>
 // djinterp
-#include "../../../inc/djinterp/test/c/test_standalone.h"
+#include "../../../inc/djinterp/c/modules/test/test_standalone.h"
 #include "./filesys/file_tests_sa.h"   // d_tests_file_run_all
 
 
@@ -64,9 +64,8 @@ Parameter(s):
 Return:
   An owned copy, or NULL.
 */
-static char*
-d_internal_test_strdup
-(
+static
+char* d_internal_test_strdup(
     const char* _text
 )
 {
@@ -110,17 +109,15 @@ Parameter(s):
 Return:
   A new leaf, or NULL on allocation failure.
 */
-struct d_test_object*
-d_test_object_new_leaf
-(
+struct dj_test_object* d_test_object_new_leaf(
     const char* _name,
     const char* _message,
     bool        _result
 )
 {
-    struct d_test_object* obj;
+    struct dj_test_object* obj;
 
-    obj = (struct d_test_object*)malloc(sizeof(struct d_test_object));
+    obj = (struct dj_test_object*)malloc(sizeof(struct dj_test_object));
 
     if (!obj)
     {
@@ -153,16 +150,14 @@ Return:
   A new interior node, or NULL on allocation failure. A count of 0 is legal
 and yields a group with no child array.
 */
-struct d_test_object*
-d_test_object_new_interior
-(
+struct dj_test_object* d_test_object_new_interior(
     const char* _name,
     size_t      _child_count
 )
 {
-    struct d_test_object* obj;
+    struct dj_test_object* obj;
 
-    obj = (struct d_test_object*)malloc(sizeof(struct d_test_object));
+    obj = (struct dj_test_object*)malloc(sizeof(struct dj_test_object));
 
     if (!obj)
     {
@@ -179,8 +174,8 @@ d_test_object_new_interior
 
     if (_child_count > 0)
     {
-        obj->elements = (struct d_test_object**)calloc(
-            _child_count, sizeof(struct d_test_object*));
+        obj->elements = (struct dj_test_object**)calloc(
+            _child_count, sizeof(struct dj_test_object*));
 
         if (!obj->elements)
         {
@@ -207,12 +202,10 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_test_object_add_child
-(
-    struct d_test_object* _parent,
-    struct d_test_object* _child,
-    size_t                _index
+void d_test_object_add_child(
+    struct dj_test_object* _parent,
+    struct dj_test_object* _child,
+    size_t                 _index
 )
 {
     if ( (!_parent) || (!_parent->elements) || (_index >= _parent->count) )
@@ -236,10 +229,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_test_object_free
-(
-    struct d_test_object* _obj
+void d_test_object_free(
+    struct dj_test_object* _obj
 )
 {
     size_t i;
@@ -270,7 +261,7 @@ d_test_object_free
 ///             III.  WALK                                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-struct d_internal_tally
+struct dj_internal_tally
 {
     size_t passed;
     size_t failed;
@@ -289,11 +280,10 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_test_tally
-(
-    const struct d_test_object* _obj,
-    struct d_internal_tally*    _tally
+static
+void d_internal_test_tally(
+    const struct dj_test_object* _obj,
+    struct dj_internal_tally*    _tally
 )
 {
     size_t i;
@@ -340,14 +330,13 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_test_render
-(
-    const struct d_test_object* _obj,
-    size_t                      _depth
+static
+void d_internal_test_render(
+    const struct dj_test_object* _obj,
+    size_t                       _depth
 )
 {
-    struct d_internal_tally tally;
+    struct dj_internal_tally tally;
     size_t                  i;
 
     if (!_obj)
@@ -396,15 +385,13 @@ d_internal_test_render
 ///             IV.  DRIVER                                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-int
-main
-(
+int main(
     int    _argc,
     char** _argv
 )
 {
-    struct d_test_object*   root;
-    struct d_internal_tally tally;
+    struct dj_test_object*   root;
+    struct dj_internal_tally tally;
 
     (void)_argc;
     (void)_argv;

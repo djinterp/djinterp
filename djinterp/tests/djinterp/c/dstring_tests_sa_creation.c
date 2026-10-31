@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                    dstring_tests_sa_creation.c
 *
-*   Unit tests for d_string creation and destruction functions:
+*   Unit tests for dj_string creation and destruction functions:
 *     - d_string_new
 *     - d_string_new_with_capacity
 *     - d_string_new_from_cstr
@@ -44,14 +44,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_new", 5);
@@ -144,14 +140,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new_with_capacity
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new_with_capacity(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_new_with_capacity", 12);
@@ -316,14 +308,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new_from_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new_from_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_new_from_cstr", 12);
@@ -347,7 +335,7 @@ d_tests_sa_dstring_new_from_cstr
     group->elements[child_idx++] = D_ASSERT_NOT_NULL(
         "empty_string_returns_non_null",
         str,
-        "empty string should return valid d_string"
+        "empty string should return valid dj_string"
     );
 
     if (str)
@@ -371,7 +359,7 @@ d_tests_sa_dstring_new_from_cstr
     group->elements[child_idx++] = D_ASSERT_NOT_NULL(
         "single_char_returns_non_null",
         str,
-        "single char should return valid d_string"
+        "single char should return valid dj_string"
     );
 
     if (str)
@@ -395,7 +383,7 @@ d_tests_sa_dstring_new_from_cstr
     group->elements[child_idx++] = D_ASSERT_NOT_NULL(
         "short_string_returns_non_null",
         str,
-        "short string should return valid d_string"
+        "short string should return valid dj_string"
     );
 
     if (str)
@@ -489,14 +477,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new_from_cstr_n
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new_from_cstr_n(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     const char*           test_str;
 
@@ -647,14 +631,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new_from_buffer
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new_from_buffer(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     char                  buffer_with_nulls[10];
     char                  binary_buffer[8];
@@ -803,7 +783,7 @@ d_tests_sa_dstring_new_from_buffer
 
 /*
 d_tests_sa_dstring_new_copy
-  Tests d_string_new_copy() which creates a deep copy of an existing d_string.
+  Tests d_string_new_copy() which creates a deep copy of an existing dj_string.
 
 Test cases:
   1. NULL input returns NULL
@@ -818,15 +798,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new_copy
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new_copy(void)
 {
-    struct d_test_object* group;
-    struct d_string*      original;
-    struct d_string*      copy;
+    struct dj_test_object* group;
+    struct dj_string*      original;
+    struct dj_string*      copy;
     size_t                child_idx;
     bool                  deep_copy_test;
 
@@ -989,14 +965,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new_fill
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new_fill(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     size_t                i;
     bool                  all_match;
@@ -1168,14 +1140,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_new_formatted
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_new_formatted(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_new_formatted", 12);
@@ -1324,7 +1292,7 @@ d_tests_sa_dstring_new_formatted
 
 /*
 d_tests_sa_dstring_free
-  Tests d_string_free() which frees a d_string and its contents.
+  Tests d_string_free() which frees a dj_string and its contents.
 
 Test cases:
   1. NULL input doesn't crash (no-op)
@@ -1339,14 +1307,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_free
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_free(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_free", 4);
@@ -1433,7 +1397,7 @@ d_tests_sa_dstring_free
 /*
 d_tests_sa_dstring_free_contents
   Tests d_string_free_contents() which frees the string contents but not the
-  d_string structure itself. Useful for stack-allocated d_string structs.
+  dj_string structure itself. Useful for stack-allocated dj_string structs.
 
 Test cases:
   1. NULL input doesn't crash (no-op)
@@ -1446,14 +1410,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_free_contents
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_free_contents(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_free_contents", 5);
@@ -1542,16 +1502,12 @@ Parameter(s):
 Return:
   Test object containing all creation/destruction test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_creation_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_creation_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Creation & Destruction", 10);
+    group     = d_test_object_new_interior("dj_string Creation & Destruction", 10);
     child_idx = 0;
 
     if (!group)

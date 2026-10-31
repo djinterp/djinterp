@@ -1,0 +1,172 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\inc\djinterp\
+├── 📁 core
+│   ├── 📁 functional
+│   │   ├── 📄 accumulator.hpp
+│   │   ├── 📄 comparator.hpp
+│   │   ├── 📄 compose.hpp
+│   │   ├── 📄 consumer.hpp
+│   │   ├── 📄 curry.hpp
+│   │   ├── 📄 filter.hpp
+│   │   ├── 📄 filterable_traits.hpp
+│   │   ├── 📄 fn_builder.hpp
+│   │   ├── 📄 function_traits.hpp
+│   │   ├── 📄 functional.hpp
+│   │   ├── 📄 maybe.hpp
+│   │   ├── 📄 monad.hpp
+│   │   ├── 📄 pipeline.hpp
+│   │   ├── 📄 predicate.hpp
+│   │   ├── 📄 producer.hpp
+│   │   ├── 📄 result.hpp
+│   │   ├── 📄 transducer.hpp
+│   │   └── 📄 view.hpp
+│   ├── 📁 meta
+│   │   ├── 📄 concepts.hpp
+│   │   ├── 📄 dtuple.hpp
+│   │   └── 📄 type_traits.hpp
+│   ├── 📁 options
+│   │   ├── 📄 option_concepts.hpp
+│   │   ├── 📄 option_diff.hpp
+│   │   ├── 📄 option_layer.hpp
+│   │   ├── 📄 option_override_policy.hpp
+│   │   ├── 📄 option_pair.hpp
+│   │   ├── 📄 option_pair_concepts.hpp
+│   │   ├── 📄 option_pair_traits.hpp
+│   │   ├── 📄 option_set.hpp
+│   │   ├── 📄 option_set_concepts.hpp
+│   │   ├── 📄 option_set_traits.hpp
+│   │   ├── 📄 option_traits.hpp
+│   │   ├── 📄 options.hpp
+│   │   └── 📄 with_options.hpp
+│   ├── 📁 sync
+│   │   ├── 📄 atomic.hpp
+│   │   ├── 📄 concurrency_strategy_tags.hpp
+│   │   ├── 📄 condvar.hpp
+│   │   ├── 📄 cow.hpp
+│   │   ├── 📄 hazard_pointer.hpp
+│   │   ├── 📄 lock_guard.hpp
+│   │   ├── 📄 lock_policy.hpp
+│   │   ├── 📄 lock_policy_c.hpp
+│   │   ├── 📄 rcu.hpp
+│   │   └── 📄 threadsafe.hpp
+│   ├── 📁 text
+│   │   ├── 📁 css
+│   │   │   ├── 📁 less
+│   │   │   │   ├── 📄 less.hpp
+│   │   │   │   ├── 📄 less_template.hpp
+│   │   │   │   ├── 📄 less_template_concepts.hpp
+│   │   │   │   └── 📄 less_template_traits.hpp
+│   │   │   ├── 📁 sass
+│   │   │   │   ├── 📄 sass.hpp
+│   │   │   │   ├── 📄 sass_template.hpp
+│   │   │   │   ├── 📄 sass_template_concepts.hpp
+│   │   │   │   └── 📄 sass_template_traits.hpp
+│   │   │   ├── 📄 css.hpp
+│   │   │   ├── 📄 css_template.hpp
+│   │   │   ├── 📄 css_template_concepts.hpp
+│   │   │   └── 📄 css_template_traits.hpp
+│   │   ├── 📁 html
+│   │   │   ├── 📄 html.hpp
+│   │   │   ├── 📄 html_dialect.hpp
+│   │   │   ├── 📄 html_string_template.hpp
+│   │   │   ├── 📄 html_template.hpp
+│   │   │   ├── 📄 html_template_concepts.hpp
+│   │   │   └── 📄 html_template_traits.hpp
+│   │   ├── 📁 markdown
+│   │   │   ├── 📄 markdown.hpp
+│   │   │   ├── 📄 markdown_template.hpp
+│   │   │   ├── 📄 markdown_template_concepts.hpp
+│   │   │   └── 📄 markdown_template_traits.hpp
+│   │   ├── 📁 xml
+│   │   │   ├── 📄 xml.hpp
+│   │   │   ├── 📄 xml_dialect.hpp
+│   │   │   ├── 📄 xml_string_template.hpp
+│   │   │   ├── 📄 xml_template.hpp
+│   │   │   ├── 📄 xml_template_concepts.hpp
+│   │   │   └── 📄 xml_template_traits.hpp
+│   │   ├── 📄 font.hpp
+│   │   ├── 📄 font_concepts.hpp
+│   │   ├── 📄 font_traits.hpp
+│   │   ├── 📄 markup_string_template.hpp
+│   │   ├── 📄 print.hpp
+│   │   ├── 📄 printer_concepts.hpp
+│   │   ├── 📄 printer_traits.hpp
+│   │   ├── 📄 text_align.hpp
+│   │   ├── 📄 text_function.hpp
+│   │   ├── 📄 text_function_concepts.hpp
+│   │   ├── 📄 text_function_traits.hpp
+│   │   ├── 📄 text_pattern.hpp
+│   │   ├── 📄 text_template.hpp
+│   │   ├── 📄 text_template_concepts.hpp
+│   │   └── 📄 text_template_traits.hpp
+│   ├── 📁 util
+│   │   ├── 📁 color
+│   │   │   ├── 📄 color.hpp
+│   │   │   ├── 📄 color_cie_lab.hpp
+│   │   │   ├── 📄 color_cmyk.hpp
+│   │   │   ├── 📄 color_convert.hpp
+│   │   │   ├── 📄 color_hsl.hpp
+│   │   │   ├── 📄 color_hsv.hpp
+│   │   │   ├── 📄 color_rgb.hpp
+│   │   │   └── 📄 color_ycbcr.hpp
+│   │   ├── 📁 counter
+│   │   │   ├── 📄 atomic_counter.hpp
+│   │   │   ├── 📄 counter.hpp
+│   │   │   └── 📄 mutex_counter.hpp
+│   │   ├── 📁 path
+│   │   │   └── 📄 path.hpp
+│   │   ├── 📁 sort
+│   │   │   ├── 📄 bubble_sort.hpp
+│   │   │   ├── 📄 heap_sort.hpp
+│   │   │   ├── 📄 insertion_sort.hpp
+│   │   │   ├── 📄 merge_sort.hpp
+│   │   │   ├── 📄 quick_sort.hpp
+│   │   │   ├── 📄 selection_sort.hpp
+│   │   │   └── 📄 sort.hpp
+│   │   ├── 📁 timer
+│   │   │   ├── 📄 mutex_timer.hpp
+│   │   │   └── 📄 timer.hpp
+│   │   ├── 📄 interval.hpp
+│   │   ├── 📄 kv_pair.hpp
+│   │   ├── 📄 lookup.hpp
+│   │   └── 📄 tuple_map.hpp
+│   └── 📄 djinterp.hpp
+├── 📁 restd
+│   ├── 📁 any
+│   │   ├── 📄 any.hpp
+│   │   ├── 📄 any_cast.hpp
+│   │   ├── 📄 any_swap.hpp
+│   │   ├── 📄 bad_any_cast.hpp
+│   │   └── 📄 make_any.hpp
+└── 📁 test
+    ├── 📁 sync
+    │   ├── 📄 test_concurrent.hpp
+    │   ├── 📄 test_deadlock.hpp
+    │   ├── 📄 test_invariant.hpp
+    │   ├── 📄 test_race.hpp
+    │   ├── 📄 test_stress.hpp
+    │   ├── 📄 test_sync.hpp
+    │   ├── 📄 test_thread.hpp
+    │   ├── 📄 test_thread_concepts.hpp
+    │   ├── 📄 test_thread_traits.hpp
+    │   └── 📄 test_threadsafe.hpp
+    ├── 📄 test_callable_table.hpp
+    ├── 📄 test_cli.hpp
+    ├── 📄 test_common.hpp
+    ├── 📄 test_concepts.hpp
+    ├── 📄 test_counter.hpp
+    ├── 📄 test_defaults.hpp
+    ├── 📄 test_event.hpp
+    ├── 📄 test_handler.hpp
+    ├── 📄 test_object.hpp
+    ├── 📄 test_object_concepts.hpp
+    ├── 📄 test_object_traits.hpp
+    ├── 📄 test_options.hpp
+    ├── 📄 test_printer.hpp
+    ├── 📄 test_printer_concepts.hpp
+    ├── 📄 test_printer_traits.hpp
+    ├── 📄 test_session.hpp
+    ├── 📄 test_suite_printer.hpp
+    ├── 📄 test_timer.hpp
+    ├── 📄 test_trait.hpp
+    ├── 📄 test_tree.hpp
+    └── 📄 test_type.hpp

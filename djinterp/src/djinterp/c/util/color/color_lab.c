@@ -18,13 +18,33 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-struct d_color_xyz d_color_xyz_make(float _x, float _y, float _z);
-struct d_color_lab d_color_lab_make(float _l, float _a, float _b);
-float d_color_lab_f(float _t);
-float d_color_lab_f_inv(float _t);
-bool d_color_xyz_is_valid(struct d_color_xyz _xyz);
-bool d_color_lab_is_valid(struct d_color_lab _lab);
-struct d_color_xyz d_color_xyz_clamp(struct d_color_xyz _xyz);
-struct d_color_lab d_color_lab_clamp(struct d_color_lab _lab);
+struct dj_color_xyz d_color_xyz_make(
+    float _x,
+    float _y,
+    float _z
+);
+struct dj_color_lab d_color_lab_make(
+    float _l,
+    float _a,
+    float _b
+);
+float d_color_lab_f(
+    float _t
+);
+float d_color_lab_f_inv(
+    float _t
+);
+bool d_color_xyz_is_valid(
+    struct dj_color_xyz _xyz
+);
+bool d_color_lab_is_valid(
+    struct dj_color_lab _lab
+);
+struct dj_color_xyz d_color_xyz_clamp(
+    struct dj_color_xyz _xyz
+);
+struct dj_color_lab d_color_lab_clamp(
+    struct dj_color_lab _lab
+);
 
 #endif  // D_COLOR_HEADER_ONLY

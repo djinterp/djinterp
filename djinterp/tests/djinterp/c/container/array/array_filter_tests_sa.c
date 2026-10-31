@@ -9,14 +9,14 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
 d_tests_sa_array_filter_run_all
   Module-level aggregation function that runs all contiguous_filter tests.
   Executes tests for all categories:
-  - Result structure (d_contiguous_filter_result struct, d_filter_result_type enum)
+  - Result structure (dj_contiguous_filter_result struct, dj_filter_result_type enum)
   - Single-operation filters (take, skip, range, slice, predicate, index,
     transformation)
   - In-place filter operations (predicate, positional, distinct)
@@ -28,10 +28,8 @@ d_tests_sa_array_filter_run_all
     DISTINCT, IN_PLACE)
   - Fluent builder helpers (BEGIN/END, apply_builder, multi-step chains)
 */
-bool
-d_tests_sa_array_filter_run_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_run_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

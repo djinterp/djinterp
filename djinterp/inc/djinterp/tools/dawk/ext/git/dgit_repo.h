@@ -37,28 +37,28 @@ TABLE OF CONTENTS
          1.  D_GIT_REPO_NONE
          2.  D_GIT_OID_MOST
     2.  Kinds
-         1.  d_git_object_type
-         2.  d_git_scope
-         3.  d_git_untracked
+         1.  dj_git_object_type
+         2.  dj_git_scope
+         3.  dj_git_untracked
     3.  Names and objects
-         1.  d_git_oid
-         2.  d_git_oids
-         3.  d_git_object
-         4.  d_git_person
-         5.  d_git_commit
-         6.  d_git_tag
-         7.  d_git_tree_entry
+         1.  dj_git_oid
+         2.  dj_git_oids
+         3.  dj_git_object
+         4.  dj_git_person
+         5.  dj_git_commit
+         6.  dj_git_tag
+         7.  dj_git_tree_entry
     4.  Repository
-         1.  d_git_repo
-         2.  d_git_setting
-         3.  d_git_ref
-         4.  d_git_refs
-         5.  d_git_index_entry
-         6.  d_git_log_options
-         7.  d_git_status_options
-         8.  d_git_status_entry
-         9.  d_git_status
-        10.  d_git_ignore_match
+         1.  dj_git_repo
+         2.  dj_git_setting
+         3.  dj_git_ref
+         4.  dj_git_refs
+         5.  dj_git_index_entry
+         6.  dj_git_log_options
+         7.  dj_git_status_options
+         8.  dj_git_status_entry
+         9.  dj_git_status
+        10.  dj_git_ignore_match
 2.  OPERATIONS
     ----------
     1.  Repositories
@@ -79,9 +79,9 @@ TABLE OF CONTENTS
 #include <stdbool.h>      // bool
 #include <stddef.h>       // size_t
 // djinterp
-#include "./dgit_text.h"  // d_git_text_values, d_git_buffer
+#include "./dgit_text.h"  // dj_git_text_values, dj_git_buffer
 // re_std
-#include "../../../../../re_std/cstdint/dstdint.h"  // uint8_t, uint32_t, int64_t
+#include "../../../../../re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t, int64_t
 
 
 //==============================================================================
@@ -104,9 +104,9 @@ TABLE OF CONTENTS
 // 1.2    Kinds
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_git_object_type
+// dj_git_object_type
 //   enum: what an object is, numbered as git numbers them.
-enum d_git_object_type
+enum dj_git_object_type
 {
     D_GIT_OBJECT_NONE = 0,
     D_GIT_OBJECT_COMMIT,
@@ -116,9 +116,9 @@ enum d_git_object_type
 };
 
 // 1.2.2
-// d_git_scope
+// dj_git_scope
 //   enum: where a setting comes from, lowest first.
-enum d_git_scope
+enum dj_git_scope
 {
     D_GIT_SCOPE_SYSTEM = 0,  // /etc/gitconfig, GIT_CONFIG_SYSTEM
     D_GIT_SCOPE_GLOBAL,      // ~/.gitconfig, git/config, GIT_CONFIG_GLOBAL
@@ -128,10 +128,10 @@ enum d_git_scope
 };
 
 // 1.2.3
-// d_git_untracked
+// dj_git_untracked
 //   enum: how status shows files git does not track, as
 //   status.showUntrackedFiles says it.
-enum d_git_untracked
+enum dj_git_untracked
 {
     D_GIT_UNTRACKED_NORMAL = 0,  // a directory of them as the directory
     D_GIT_UNTRACKED_NO,          // none
@@ -141,42 +141,42 @@ enum d_git_untracked
 // 1.3    Names and objects
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_git_oid
+// dj_git_oid
 //   struct: an object's name: as many bytes as the repository's hash has,
 //   the rest 0.
-struct d_git_oid
+struct dj_git_oid
 {
     uint8_t bytes[D_GIT_OID_MOST];
 };
 
 // 1.3.2
-// d_git_oids
+// dj_git_oids
 //   struct: names, `count` of them, in an order the giver says.
-struct d_git_oids
+struct dj_git_oids
 {
-    struct d_git_oid* items;
+    struct dj_git_oid* items;
     size_t            count;
     size_t            capacity;
 };
 
 // 1.3.3
-// d_git_object
+// dj_git_object
 //   struct: an object's type and content, `size` bytes, allocated and
 //   terminated.
-struct d_git_object
+struct dj_git_object
 {
-    enum d_git_object_type type;
+    enum dj_git_object_type type;
     uint8_t*               data;
     size_t                 size;
 };
 
 // 1.3.4
-// d_git_person
+// dj_git_person
 //   struct: an author, committer or tagger, as a commit or tag writes one:
 //   the name and the address, each borrowed from the object's content,
 //   the time in seconds since 1970, and the zone, `offset` minutes from
 //   UTC, as written -- "+0100" -- in `zone`.
-struct d_git_person
+struct dj_git_person
 {
     const char* name;
     size_t      name_length;
@@ -188,18 +188,18 @@ struct d_git_person
 };
 
 // 1.3.5
-// d_git_commit
+// dj_git_commit
 //   struct: a commit, parsed: its tree, its parents in order, allocated,
 //   its author and committer, the encoding a header names -- NULL for
 //   none -- and its message, after the headers' blank line, each borrowed
 //   from the object's content.
-struct d_git_commit
+struct dj_git_commit
 {
-    struct d_git_oid    tree;
-    struct d_git_oid*   parents;
+    struct dj_git_oid    tree;
+    struct dj_git_oid*   parents;
     size_t              parent_count;
-    struct d_git_person author;
-    struct d_git_person committer;
+    struct dj_git_person author;
+    struct dj_git_person committer;
     const char*         encoding;
     size_t              encoding_length;
     const char*         message;
@@ -207,94 +207,94 @@ struct d_git_commit
 };
 
 // 1.3.6
-// d_git_tag
+// dj_git_tag
 //   struct: an annotated tag, parsed: what it names, of what type, its
 //   name, its tagger, if it has one, and its message, borrowed.
-struct d_git_tag
+struct dj_git_tag
 {
-    struct d_git_oid       object;
-    enum d_git_object_type type;
+    struct dj_git_oid       object;
+    enum dj_git_object_type type;
     const char*            name;
     size_t                 name_length;
     bool                   has_tagger;
-    struct d_git_person    tagger;
+    struct dj_git_person    tagger;
     const char*            message;
     size_t                 message_length;
 };
 
 // 1.3.7
-// d_git_tree_entry
+// dj_git_tree_entry
 //   struct: one entry of a tree: its mode, octal as git writes it --
 //   100644, 100755, 120000, 040000, 160000 -- its name, borrowed, and
 //   its object.
-struct d_git_tree_entry
+struct dj_git_tree_entry
 {
     uint32_t         mode;
     const char*      name;
     size_t           name_length;
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
 };
 
 // 1.4    Repository
 //------------------------------------------------------------------------------
 // 1.4.1
-// d_git_repo
+// dj_git_repo
 //   struct: an open repository: its paths, format, configuration, and what
 //   has been read of its refs, objects and index. Layout is private.
-struct d_git_repo;
+struct dj_git_repo;
 
 // 1.4.2
-// d_git_setting
+// dj_git_setting
 //   struct: one setting, as git config --list --show-origin gives it: its
 //   canonical key, its value -- NULL for a name alone -- the file it is
 //   in, its line from 1, its scope, and whether it was included.
-struct d_git_setting
+struct dj_git_setting
 {
     const char*      key;
     const char*      value;
     const char*      file;
     size_t           line;
-    enum d_git_scope scope;
+    enum dj_git_scope scope;
     bool             included;
 };
 
 // 1.4.3
-// d_git_ref
+// dj_git_ref
 //   struct: one ref: its full name, the object it names -- `resolved`
 //   false for a symbolic ref that leads nowhere -- the ref a symbolic one
 //   names, NULL for another, and, for one that names a tag, what peeling
 //   the tag gives.
-struct d_git_ref
+struct dj_git_ref
 {
     char*            name;
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
     bool             resolved;
     char*            target;
-    struct d_git_oid peeled;
+    struct dj_git_oid peeled;
     bool             has_peeled;
 };
 
 // 1.4.4
-// d_git_refs
+// dj_git_refs
 //   struct: refs, `count` of them, ordered by name.
-struct d_git_refs
+struct dj_git_refs
 {
-    struct d_git_ref* items;
+    struct dj_git_ref* items;
     size_t            count;
     size_t            capacity;
 };
 
 // 1.4.5
-// d_git_index_entry
+// dj_git_index_entry
 //   struct: one entry of the index: its path, its mode and object, its
 //   stage -- 0, or 1 to 3 for a conflict -- its flags, and the stat data
 //   git keeps of its file.
-struct d_git_index_entry
+struct dj_git_index_entry
 {
     const char*      path;
     size_t           path_length;
     uint32_t         mode;
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
     unsigned         stage;
     bool             assume_valid;
     bool             skip_worktree;
@@ -311,12 +311,12 @@ struct d_git_index_entry
 };
 
 // 1.4.6
-// d_git_log_options
+// dj_git_log_options
 //   struct: what to walk: revisions to start from -- one written ^rev
 //   excluding all it reaches -- the most commits to give, 0 for all,
 //   whether to follow first parents only, and a path that limits the walk
 //   to commits that change it, NULL for none.
-struct d_git_log_options
+struct dj_git_log_options
 {
     const char* const* revisions;
     size_t             revision_count;
@@ -326,20 +326,20 @@ struct d_git_log_options
 };
 
 // 1.4.7
-// d_git_status_options
+// dj_git_status_options
 //   struct: what status shows: untracked files, how, and ignored files.
-struct d_git_status_options
+struct dj_git_status_options
 {
-    enum d_git_untracked untracked;
+    enum dj_git_untracked untracked;
     bool                 ignored;
 };
 
 // 1.4.8
-// d_git_status_entry
+// dj_git_status_entry
 //   struct: one line of git status --porcelain: the index's state and
 //   the work tree's -- ' ', 'M', 'A', 'D', 'T', 'U', '?', '!' -- and the
 //   path, allocated, a directory's with its trailing `/`.
-struct d_git_status_entry
+struct dj_git_status_entry
 {
     char  index;
     char  work;
@@ -347,23 +347,23 @@ struct d_git_status_entry
 };
 
 // 1.4.9
-// d_git_status
+// dj_git_status
 //   struct: status's lines, `count` of them, in git's order: the tracked
 //   by path, then the untracked, then the ignored.
-struct d_git_status
+struct dj_git_status
 {
-    struct d_git_status_entry* items;
+    struct dj_git_status_entry* items;
     size_t                     count;
     size_t                     capacity;
 };
 
 // 1.4.10
-// d_git_ignore_match
+// dj_git_ignore_match
 //   struct: what decided whether a path is ignored, as git check-ignore
 //   -v gives it: the file, from the top of the work tree or as it was
 //   named, its line from 1, and the pattern as written; `ignored` is
 //   false for a negated pattern.
-struct d_git_ignore_match
+struct dj_git_ignore_match
 {
     const char* file;
     size_t      line;
@@ -397,19 +397,33 @@ struct d_git_ignore_match
  *         this does not read, its configuration cannot be read, or memory
  *         ran out.
  */
-struct d_git_repo* d_git_repo_open(const char* _path,
-                                   char*       _problem,
-                                   size_t      _capacity);
-void               d_git_repo_free(struct d_git_repo* _repo);
+struct dj_git_repo* d_git_repo_open(
+    const char* _path,
+    char*       _problem,
+    size_t      _capacity
+);
+void d_git_repo_free(
+    struct dj_git_repo* _repo
+);
 // the repository's directory, its common directory -- a linked work
 // tree's main repository's, else the same -- its work tree, NULL for a
 // bare one, the length of its names in bytes, and why the last thing
 // asked of it failed, "" when nothing has.
-const char*        d_git_repo_git_dir(const struct d_git_repo* _repo);
-const char*        d_git_repo_common_dir(const struct d_git_repo* _repo);
-const char*        d_git_repo_work_tree(const struct d_git_repo* _repo);
-size_t             d_git_repo_hash_size(const struct d_git_repo* _repo);
-const char*        d_git_repo_problem(const struct d_git_repo* _repo);
+const char* d_git_repo_git_dir(
+    const struct dj_git_repo* _repo
+);
+const char* d_git_repo_common_dir(
+    const struct dj_git_repo* _repo
+);
+const char* d_git_repo_work_tree(
+    const struct dj_git_repo* _repo
+);
+size_t d_git_repo_hash_size(
+    const struct dj_git_repo* _repo
+);
+const char* d_git_repo_problem(
+    const struct dj_git_repo* _repo
+);
 
 // 2.2    Configuration
 //------------------------------------------------------------------------------
@@ -421,39 +435,56 @@ const char*        d_git_repo_problem(const struct d_git_repo* _repo);
 // first for D_GIT_REPO_NONE -- of a key, in any case git takes;
 // d_git_repo_config the value git config key gives, the last setting's,
 // and whether there is one: a name alone has the value NULL, and is set.
-size_t             d_git_repo_settings(const struct d_git_repo* _repo);
-const struct d_git_setting*
-                   d_git_repo_setting(const struct d_git_repo* _repo,
-                                      size_t                   _index);
-size_t             d_git_repo_find_setting(const struct d_git_repo* _repo,
-                                           const char*              _key,
-                                           size_t                   _after);
-const char*        d_git_repo_config(const struct d_git_repo* _repo,
-                                     const char*              _key,
-                                     bool*                    _out_set);
+size_t d_git_repo_settings(
+    const struct dj_git_repo* _repo
+);
+const struct dj_git_setting* d_git_repo_setting(
+    const struct dj_git_repo* _repo,
+    size_t                    _index
+);
+size_t d_git_repo_find_setting(
+    const struct dj_git_repo* _repo,
+    const char*               _key,
+    size_t                    _after
+);
+const char* d_git_repo_config(
+    const struct dj_git_repo* _repo,
+    const char*               _key,
+    bool*                     _out_set
+);
 
 // 2.3    Names
 //------------------------------------------------------------------------------
 // d_git_repo_hex writes a name in hex, terminated, into at least
 // 2 * D_GIT_OID_MOST + 1 bytes; d_git_repo_parse_hex reads a name of the
 // repository's length in hex, in either case, false for anything else.
-void               d_git_repo_hex(const struct d_git_repo* _repo,
-                                  const struct d_git_oid*  _oid,
-                                  char*                    _out);
-bool               d_git_repo_parse_hex(const struct d_git_repo* _repo,
-                                        const char*              _hex,
-                                        struct d_git_oid*        _out);
-bool               d_git_repo_same_oid(const struct d_git_repo* _repo,
-                                       const struct d_git_oid*  _left,
-                                       const struct d_git_oid*  _right);
+void d_git_repo_hex(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _oid,
+    char*                     _out
+);
+bool d_git_repo_parse_hex(
+    const struct dj_git_repo* _repo,
+    const char*               _hex,
+    struct dj_git_oid*        _out
+);
+bool d_git_repo_same_oid(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _left,
+    const struct dj_git_oid*  _right
+);
 // d_git_repo_abbreviate writes the shortest prefix of a name, of at least
 // `_least` hex digits -- core.abbrev's, 7, for 0 -- that names no other
 // object, as git rev-parse --short does.
-bool               d_git_repo_abbreviate(struct d_git_repo*      _repo,
-                                         const struct d_git_oid* _oid,
-                                         size_t                  _least,
-                                         char*                   _out);
-void               d_git_oids_release(struct d_git_oids* _oids);
+bool d_git_repo_abbreviate(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _oid,
+    size_t                   _least,
+    char*                    _out
+);
+void d_git_oids_release(
+    struct dj_git_oids* _oids
+);
 
 // 2.4    Objects
 //------------------------------------------------------------------------------
@@ -469,25 +500,36 @@ void               d_git_oids_release(struct d_git_oids* _oids);
  *         when there is no such object, it is damaged, or memory ran out,
  *         d_git_repo_problem saying which.
  */
-bool               d_git_repo_read(struct d_git_repo*      _repo,
-                                   const struct d_git_oid* _oid,
-                                   struct d_git_object*    _out);
-void               d_git_object_release(struct d_git_object* _object);
+bool d_git_repo_read(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _oid,
+    struct dj_git_object*    _out
+);
+void d_git_object_release(
+    struct dj_git_object* _object
+);
 // d_git_repo_has is whether the repository holds an object;
 // d_git_repo_hash_object the name git would give content of a type, as
 // git hash-object does, writing nothing.
-bool               d_git_repo_has(struct d_git_repo*      _repo,
-                                  const struct d_git_oid* _oid);
-void               d_git_repo_hash_object(const struct d_git_repo* _repo,
-                                          enum d_git_object_type   _type,
-                                          const void*              _data,
-                                          size_t                   _size,
-                                          struct d_git_oid*        _out);
+bool d_git_repo_has(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _oid
+);
+void d_git_repo_hash_object(
+    const struct dj_git_repo* _repo,
+    enum dj_git_object_type   _type,
+    const void*               _data,
+    size_t                    _size,
+    struct dj_git_oid*        _out
+);
 // d_git_object_type_name is a type's name, "commit", "tree", "blob" or
 // "tag", and d_git_object_type_named the type of a name.
-const char*        d_git_object_type_name(enum d_git_object_type _type);
-enum d_git_object_type
-                   d_git_object_type_named(const char* _name);
+const char* d_git_object_type_name(
+    enum dj_git_object_type _type
+);
+enum dj_git_object_type d_git_object_type_named(
+    const char* _name
+);
 /**
  * @brief Parses a commit's content.
  *
@@ -497,22 +539,30 @@ enum d_git_object_type
  *                      d_git_commit_release, whatever is returned.
  * @return `true` if it is a commit git would read; `false` otherwise.
  */
-bool               d_git_repo_parse_commit(const struct d_git_repo*   _repo,
-                                           const struct d_git_object* _object,
-                                           struct d_git_commit*       _out);
-void               d_git_commit_release(struct d_git_commit* _commit);
+bool d_git_repo_parse_commit(
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_object* _object,
+    struct dj_git_commit*       _out
+);
+void d_git_commit_release(
+    struct dj_git_commit* _commit
+);
 // d_git_repo_parse_tag parses an annotated tag's content, borrowing from
 // it; false for one git would not read.
-bool               d_git_repo_parse_tag(const struct d_git_repo*   _repo,
-                                        const struct d_git_object* _object,
-                                        struct d_git_tag*          _out);
+bool d_git_repo_parse_tag(
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_object* _object,
+    struct dj_git_tag*          _out
+);
 // d_git_repo_tree_next reads a tree's entry at `*_at`, from 0, and moves
 // `*_at` past it, borrowing from the tree; false at its end, or for an
 // entry git would not read.
-bool               d_git_repo_tree_next(const struct d_git_repo*   _repo,
-                                        const struct d_git_object* _tree,
-                                        size_t*                    _at,
-                                        struct d_git_tree_entry*   _out);
+bool d_git_repo_tree_next(
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_object* _tree,
+    size_t*                     _at,
+    struct dj_git_tree_entry*   _out
+);
 
 // 2.5    Refs
 //------------------------------------------------------------------------------
@@ -523,19 +573,27 @@ bool               d_git_repo_tree_next(const struct d_git_repo*   _repo,
 // d_git_repo_refs gives every ref whose name begins with a prefix -- ""
 // for all under refs/ -- loose and packed, ordered by name; release it
 // with d_git_refs_release, whatever is returned.
-bool               d_git_repo_resolve(struct d_git_repo* _repo,
-                                      const char*        _name,
-                                      struct d_git_oid*  _out,
-                                      char**             _out_target);
-bool               d_git_repo_refs(struct d_git_repo* _repo,
-                                   const char*        _prefix,
-                                   struct d_git_refs* _out);
-void               d_git_refs_release(struct d_git_refs* _refs);
+bool d_git_repo_resolve(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    struct dj_git_oid*  _out,
+    char**              _out_target
+);
+bool d_git_repo_refs(
+    struct dj_git_repo* _repo,
+    const char*         _prefix,
+    struct dj_git_refs* _out
+);
+void d_git_refs_release(
+    struct dj_git_refs* _refs
+);
 // d_git_repo_symbolic gives the ref a symbolic ref names, not followed --
 // HEAD's branch, even one with no commit yet -- allocated; NULL for a ref
 // that is not symbolic.
-char*              d_git_repo_symbolic(struct d_git_repo* _repo,
-                                       const char*        _name);
+char* d_git_repo_symbolic(
+    struct dj_git_repo* _repo,
+    const char*         _name
+);
 
 // 2.6    Revisions
 //------------------------------------------------------------------------------
@@ -559,9 +617,11 @@ char*              d_git_repo_symbolic(struct d_git_repo* _repo,
  * @return `true` if the revision names an object; `false` otherwise,
  *         d_git_repo_problem saying why.
  */
-bool               d_git_repo_rev(struct d_git_repo* _repo,
-                                  const char*        _name,
-                                  struct d_git_oid*  _out);
+bool d_git_repo_rev(
+    struct dj_git_repo* _repo,
+    const char*         _name,
+    struct dj_git_oid*  _out
+);
 
 // 2.7    History
 //------------------------------------------------------------------------------
@@ -582,15 +642,19 @@ bool               d_git_repo_rev(struct d_git_repo* _repo,
  * @return `true` if the walk finished; `false` when a revision names no
  *         commit, a commit cannot be read, or memory ran out.
  */
-bool               d_git_repo_log(struct d_git_repo*              _repo,
-                                  const struct d_git_log_options* _options,
-                                  struct d_git_oids*              _out);
+bool d_git_repo_log(
+    struct dj_git_repo*              _repo,
+    const struct dj_git_log_options* _options,
+    struct dj_git_oids*              _out
+);
 // d_git_repo_merge_base gives the best common ancestors of two commits,
 // as git merge-base --all does; false when either is not a commit.
-bool               d_git_repo_merge_base(struct d_git_repo*      _repo,
-                                         const struct d_git_oid* _left,
-                                         const struct d_git_oid* _right,
-                                         struct d_git_oids*      _out);
+bool d_git_repo_merge_base(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _left,
+    const struct dj_git_oid* _right,
+    struct dj_git_oids*      _out
+);
 
 // 2.8    Index
 //------------------------------------------------------------------------------
@@ -598,13 +662,18 @@ bool               d_git_repo_merge_base(struct d_git_repo*      _repo,
 // first time it is asked, D_GIT_REPO_NONE when it cannot be -- and
 // d_git_repo_index_entry one of them, from 0, ordered by path then stage.
 // d_git_repo_index_find is the entry of a path at a stage.
-size_t             d_git_repo_index_count(struct d_git_repo* _repo);
-const struct d_git_index_entry*
-                   d_git_repo_index_entry(struct d_git_repo* _repo,
-                                          size_t             _index);
-size_t             d_git_repo_index_find(struct d_git_repo* _repo,
-                                         const char*        _path,
-                                         unsigned           _stage);
+size_t d_git_repo_index_count(
+    struct dj_git_repo* _repo
+);
+const struct dj_git_index_entry* d_git_repo_index_entry(
+    struct dj_git_repo* _repo,
+    size_t              _index
+);
+size_t d_git_repo_index_find(
+    struct dj_git_repo* _repo,
+    const char*         _path,
+    unsigned            _stage
+);
 
 // 2.9    Work tree
 //------------------------------------------------------------------------------
@@ -620,12 +689,16 @@ size_t             d_git_repo_index_find(struct d_git_repo* _repo,
 // .gitattributes is the work tree's -- the index's when it is missing
 // there, or is a link -- or, for GIT_ATTR_SOURCE, attr.tree or a bare
 // repository's HEAD, that tree's, as git 2.43 reads them.
-bool               d_git_repo_ignored(struct d_git_repo*         _repo,
-                                      const char*                _path,
-                                      struct d_git_ignore_match* _out);
-bool               d_git_repo_attributes(struct d_git_repo*        _repo,
-                                         const char*               _path,
-                                         struct d_git_text_values* _out);
+bool d_git_repo_ignored(
+    struct dj_git_repo*         _repo,
+    const char*                 _path,
+    struct dj_git_ignore_match* _out
+);
+bool d_git_repo_attributes(
+    struct dj_git_repo*        _repo,
+    const char*                _path,
+    struct dj_git_text_values* _out
+);
 /**
  * @brief Gives the work tree's status, as git status --porcelain
  *        --no-renames gives it.
@@ -637,11 +710,14 @@ bool               d_git_repo_attributes(struct d_git_repo*        _repo,
  * @return `true` if status was read; `false` for a bare repository, an
  *         index or tree that cannot be read, or memory that ran out.
  */
-bool               d_git_repo_status(
-                       struct d_git_repo*                 _repo,
-                       const struct d_git_status_options* _options,
-                       struct d_git_status*               _out);
-void               d_git_status_release(struct d_git_status* _status);
+bool d_git_repo_status(
+    struct dj_git_repo*                 _repo,
+    const struct dj_git_status_options* _options,
+    struct dj_git_status*               _out
+);
+void d_git_status_release(
+    struct dj_git_status* _status
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_GIT_DGIT_REPO_H

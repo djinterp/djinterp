@@ -3,12 +3,12 @@
 *
 *   Test runner for cli_option module unit tests.
 *   Executes comprehensive standalone tests for convention-agnostic
-* string-to-void* lookup and CLI argument parsing including d_string_cli_entry
+* string-to-void* lookup and CLI argument parsing including dj_string_cli_entry
 * lookup, generic field-based search, custom lookup delegation, argv parsing,
 * and table macros.
 *
 *
-* path:      /tests/util/cli_option/main.c
+* path:      /tests/djinterp/c/util/cli/main_cli_option.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.26
 ******************************************************************************/
@@ -28,14 +28,12 @@ Parameter(s):
 Return:
   0 on success, 1 on failure.
 */
-int
-main
-(
+int main(
     int   _argc,
     char* _argv[]
 )
 {
-    struct d_test_sa_runner runner;
+    struct dj_test_sa_runner runner;
     int                     exit_code;
 
     (void)_argc;
@@ -50,7 +48,7 @@ main
     d_test_sa_runner_add_module_counter(
         &runner,
         "String-to-Void* Lookup & CLI Parsing",
-        "Tests for d_string_cli_entry lookup, field search, and argv parsing",
+        "Tests for dj_string_cli_entry lookup, field search, and argv parsing",
         d_tests_sa_test_cli_option_all,
         0,
         NULL);

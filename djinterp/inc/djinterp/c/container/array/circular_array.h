@@ -30,7 +30,7 @@
 #ifndef D_CIRCULAR_ARRAY_DEFAULT_CAPACITY
     // D_CIRCULAR_ARRAY_DEFAULT_CAPACITY
     //   constant: the default capacity, in number of elements, that a new
-    // `d_circular_array` has by default.
+    // `dj_circular_array` has by default.
     #define D_CIRCULAR_ARRAY_DEFAULT_CAPACITY 32
 #endif  // D_CIRCULAR_ARRAY_DEFAULT_CAPACITY
 
@@ -47,8 +47,8 @@
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_CIRCULAR_ARRAY_INIT
-//   macro: macro-based initializer; assigns a `d_circular_array` with the
-// elements specified. Example: struct d_circular_array arr =
+//   macro: macro-based initializer; assigns a `dj_circular_array` with the
+// elements specified. Example: struct dj_circular_array arr =
 // D_CIRCULAR_ARRAY_INIT(int, 8, 1, 2, 3, 4, 5); Note: first parameter after
 // type is capacity
 #define D_CIRCULAR_ARRAY_INIT(element_type, capacity, ...)                   \
@@ -63,10 +63,10 @@
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 
-// d_circular_array
+// dj_circular_array
 //   struct: a circular buffer data structure with fixed capacity. Supports
 // wrap-around element access and efficient FIFO/LIFO operations.
-struct d_circular_array
+struct dj_circular_array
 {
     size_t count;
     void*  elements;
@@ -82,133 +82,220 @@ struct d_circular_array
 // =============================================================================
 // I.    creation and initialization
 // I.    creation and initialization
-struct d_circular_array* d_circular_array_new(size_t _capacity,
-                                              size_t _element_size);
-struct d_circular_array* d_circular_array_new_default_capacity(
-    size_t _element_size);
-struct d_circular_array* d_circular_array_new_from_arr(
+struct dj_circular_array* d_circular_array_new(
+    size_t _capacity,
+    size_t _element_size
+);
+struct dj_circular_array* d_circular_array_new_default_capacity(
+    size_t _element_size
+);
+struct dj_circular_array* d_circular_array_new_from_arr(
     size_t      _capacity,
     size_t      _element_size,
     const void* _source,
-    size_t      _source_count);
-struct d_circular_array* d_circular_array_new_from_args(size_t _capacity,
-                                                        size_t _element_size,
-                                                        size_t _arg_count,
-                                                        ...);
-struct d_circular_array* d_circular_array_new_copy(
-    const struct d_circular_array* _other);
-struct d_circular_array* d_circular_array_new_copy_resized(
-    const struct d_circular_array* _other,
-    size_t                         _new_capacity);
-struct d_circular_array* d_circular_array_new_fill(size_t      _capacity,
-                                                   size_t      _element_size,
-                                                   const void* _fill_value);
+    size_t      _source_count
+);
+struct dj_circular_array* d_circular_array_new_from_args(
+    size_t _capacity,
+    size_t _element_size,
+    size_t _arg_count,
+    ...
+);
+struct dj_circular_array* d_circular_array_new_copy(
+    const struct dj_circular_array* _other
+);
+struct dj_circular_array* d_circular_array_new_copy_resized(
+    const struct dj_circular_array* _other,
+    size_t                          _new_capacity
+);
+struct dj_circular_array* d_circular_array_new_fill(
+    size_t      _capacity,
+    size_t      _element_size,
+    const void* _fill_value
+);
 
 // II.   element access
-void* d_circular_array_get(const struct d_circular_array* _circular_array,
-                           d_index                        _index);
-bool  d_circular_array_set(struct d_circular_array* _circular_array,
-                           d_index                  _index,
-                           const void*              _value);
-void* d_circular_array_front(const struct d_circular_array* _circular_array);
-void* d_circular_array_back(const struct d_circular_array* _circular_array);
-void* d_circular_array_peek(const struct d_circular_array* _circular_array);
+void* d_circular_array_get(
+    const struct dj_circular_array* _circular_array,
+    dj_index                        _index
+);
+bool d_circular_array_set(
+    struct dj_circular_array* _circular_array,
+    dj_index                  _index,
+    const void*               _value
+);
+void* d_circular_array_front(
+    const struct dj_circular_array* _circular_array
+);
+void* d_circular_array_back(
+    const struct dj_circular_array* _circular_array
+);
+void* d_circular_array_peek(
+    const struct dj_circular_array* _circular_array
+);
 void* d_circular_array_peek_back(
-    const struct d_circular_array* _circular_array);
-bool  d_circular_array_push_front(struct d_circular_array* _circular_array,
-                                  const void*              _element);
-bool  d_circular_array_push_back(struct d_circular_array* _circular_array,
-                                 const void*              _element);
-bool  d_circular_array_push_all_front(struct d_circular_array* _circular_array,
-                                      const void*              _elements,
-                                      size_t                   _count);
-void* d_circular_array_pop_front(struct d_circular_array* _circular_array);
-void* d_circular_array_pop_back(struct d_circular_array* _circular_array);
-bool  d_circular_array_pop_front_to(struct d_circular_array* _circular_array,
-                                    void*                    _out_value);
-bool  d_circular_array_pop_back_to(struct d_circular_array* _circular_array,
-                                   void*                    _out_value);
-bool  d_circular_array_push_front_overwrite(
-     struct d_circular_array* _circular_array,
-     const void*              _element);
+    const struct dj_circular_array* _circular_array
+);
+bool d_circular_array_push_front(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
+);
+bool d_circular_array_push_back(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
+);
+bool d_circular_array_push_all_front(
+    struct dj_circular_array* _circular_array,
+    const void*               _elements,
+    size_t                    _count
+);
+void* d_circular_array_pop_front(
+    struct dj_circular_array* _circular_array
+);
+void* d_circular_array_pop_back(
+    struct dj_circular_array* _circular_array
+);
+bool d_circular_array_pop_front_to(
+    struct dj_circular_array* _circular_array,
+    void*                     _out_value
+);
+bool d_circular_array_pop_back_to(
+    struct dj_circular_array* _circular_array,
+    void*                     _out_value
+);
+bool d_circular_array_push_front_overwrite(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
+);
 
 // III.  insertion and removal
-bool  d_circular_array_push(struct d_circular_array* _circular_array,
-                            const void*              _element);
-bool  d_circular_array_push_all(struct d_circular_array* _circular_array,
-                                const void*              _elements,
-                                size_t                   _count);
-void* d_circular_array_pop(struct d_circular_array* _circular_array);
-bool  d_circular_array_pop_to(struct d_circular_array* _circular_array,
-                              void*                    _out_value);
-bool  d_circular_array_push_overwrite(struct d_circular_array* _circular_array,
-                                      const void*              _element);
-bool  d_circular_array_push_all_overwrite(
-     struct d_circular_array* _circular_array,
-     const void*              _elements,
-     size_t                   _count);
+bool d_circular_array_push(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
+);
+bool d_circular_array_push_all(
+    struct dj_circular_array* _circular_array,
+    const void*               _elements,
+    size_t                    _count
+);
+void* d_circular_array_pop(
+    struct dj_circular_array* _circular_array
+);
+bool d_circular_array_pop_to(
+    struct dj_circular_array* _circular_array,
+    void*                     _out_value
+);
+bool d_circular_array_push_overwrite(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
+);
+bool d_circular_array_push_all_overwrite(
+    struct dj_circular_array* _circular_array,
+    const void*               _elements,
+    size_t                    _count
+);
 
 // IV.   search
-bool    d_circular_array_contains(
-    const struct d_circular_array* _circular_array,
-    const void*                    _value,
-    fn_comparator                  _comparator);
-ssize_t d_circular_array_find(const struct d_circular_array* _circular_array,
-                              const void*                    _value,
-                              fn_comparator                  _comparator);
+bool d_circular_array_contains(
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
+);
+ssize_t d_circular_array_find(
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
+);
 ssize_t d_circular_array_find_last(
-    const struct d_circular_array* _circular_array,
-    const void*                    _value,
-    fn_comparator                  _comparator);
-size_t  d_circular_array_count_value(
-    const struct d_circular_array* _circular_array,
-    const void*                    _value,
-    fn_comparator                  _comparator);
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
+);
+size_t d_circular_array_count_value(
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
+);
 
 // V.    capacity and state queries
-bool   d_circular_array_is_empty(
-    const struct d_circular_array* _circular_array);
-bool   d_circular_array_is_full(const struct d_circular_array* _circular_array);
-size_t d_circular_array_count(const struct d_circular_array* _circular_array);
+bool d_circular_array_is_empty(
+    const struct dj_circular_array* _circular_array
+);
+bool d_circular_array_is_full(
+    const struct dj_circular_array* _circular_array
+);
+size_t d_circular_array_count(
+    const struct dj_circular_array* _circular_array
+);
 size_t d_circular_array_capacity(
-    const struct d_circular_array* _circular_array);
+    const struct dj_circular_array* _circular_array
+);
 size_t d_circular_array_available_space(
-    const struct d_circular_array* _circular_array);
+    const struct dj_circular_array* _circular_array
+);
 size_t d_circular_array_element_size(
-    const struct d_circular_array* _circular_array);
+    const struct dj_circular_array* _circular_array
+);
 
 // VI.   iteration
-void d_circular_array_foreach(struct d_circular_array* _circular_array,
-                              fn_apply                 _apply_fn);
-void d_circular_array_foreach_reverse(struct d_circular_array* _circular_array,
-                                      fn_apply                 _apply_fn);
+void d_circular_array_foreach(
+    struct dj_circular_array* _circular_array,
+    fn_apply                  _apply_fn
+);
+void d_circular_array_foreach_reverse(
+    struct dj_circular_array* _circular_array,
+    fn_apply                  _apply_fn
+);
 
 // VII.  mutation and reordering
-bool d_circular_array_clear(struct d_circular_array* _circular_array);
-bool d_circular_array_fill(struct d_circular_array* _circular_array,
-                           const void*              _fill_value);
-bool d_circular_array_rotate_left(struct d_circular_array* _circular_array,
-                                  size_t                   _amount);
-bool d_circular_array_rotate_right(struct d_circular_array* _circular_array,
-                                   size_t                   _amount);
-bool d_circular_array_reverse(struct d_circular_array* _circular_array);
-bool d_circular_array_swap(struct d_circular_array* _circular_array,
-                           d_index                  _index_a,
-                           d_index                  _index_b);
-void d_circular_array_sort(struct d_circular_array* _circular_array,
-                           fn_comparator            _comparator);
-bool d_circular_array_linearize(struct d_circular_array* _circular_array);
+bool d_circular_array_clear(
+    struct dj_circular_array* _circular_array
+);
+bool d_circular_array_fill(
+    struct dj_circular_array* _circular_array,
+    const void*               _fill_value
+);
+bool d_circular_array_rotate_left(
+    struct dj_circular_array* _circular_array,
+    size_t                    _amount
+);
+bool d_circular_array_rotate_right(
+    struct dj_circular_array* _circular_array,
+    size_t                    _amount
+);
+bool d_circular_array_reverse(
+    struct dj_circular_array* _circular_array
+);
+bool d_circular_array_swap(
+    struct dj_circular_array* _circular_array,
+    dj_index                  _index_a,
+    dj_index                  _index_b
+);
+void d_circular_array_sort(
+    struct dj_circular_array* _circular_array,
+    fn_comparator             _comparator
+);
+bool d_circular_array_linearize(
+    struct dj_circular_array* _circular_array
+);
 
 // VIII. conversion and reporting
 void* d_circular_array_to_linear_array(
-    const struct d_circular_array* _circular_array);
-bool  d_circular_array_copy_to(const struct d_circular_array* _circular_array,
-                               void*                          _destination,
-                               size_t                         _dest_capacity);
+    const struct dj_circular_array* _circular_array
+);
+bool d_circular_array_copy_to(
+    const struct dj_circular_array* _circular_array,
+    void*                           _destination,
+    size_t                          _dest_capacity
+);
 
 // IX.   destruction
-void d_circular_array_free(struct d_circular_array* _circular_array);
-void d_circular_array_free_deep(struct d_circular_array* _circular_array,
-                                fn_free                  _free_fn);
+void d_circular_array_free(
+    struct dj_circular_array* _circular_array
+);
+void d_circular_array_free_deep(
+    struct dj_circular_array* _circular_array,
+    fn_free                   _free_fn
+);
 
 #endif  // DJINTERP_C_CONTAINER_ARRAY_CIRCULAR_ARRAY_H

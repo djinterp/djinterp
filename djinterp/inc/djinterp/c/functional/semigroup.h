@@ -20,7 +20,7 @@
 *      solves the same problem, and it lets `first` and `last` be genuinely
 *      size-generic. The rejected alternative was a file-static width, which
 *      two widths in one program would clobber.
-*   2. `d_semigroup` carries `value_size`, for the same reason. This is the
+*   2. `dj_semigroup` carries `value_size`, for the same reason. This is the
 *      framework's byte-level determinacy requirement, not a convenience.
 *   3. `_result` is permitted to alias `_left`. That is what makes a semigroup
 *      step *be* a fold step: `mappend(sg, acc, acc, x)` is exactly
@@ -52,30 +52,30 @@
 #include "./reducer.h"
 
 
-// d_semigroup
+// dj_semigroup
 //   struct: forward declaration.
 // The combine typedef below names this type, and a struct first named inside a
 // parameter list would be a distinct, file-local type.
-struct d_semigroup;
+struct dj_semigroup;
 
 // fn_mappend
 //   function pointer: the associative combine of a semigroup.
 // Writes the combination of `_left` and `_right` into `_result`, reading the
 // width and any instance configuration from `_semigroup`. `_result` is
 // permitted to alias `_left`, and every implementation must support that.
-typedef void (*fn_mappend)(const struct d_semigroup* _semigroup,
+typedef void (*fn_mappend)(const struct dj_semigroup* _semigroup,
                            void*                     _result,
                            const void*               _left,
                            const void*               _right);
 
-// d_semigroup
+// dj_semigroup
 //   struct: an associative combine, its configuration, and its width.
-// A semigroup makes no claim about an identity element; see `d_monoid`.
+// A semigroup makes no claim about an identity element; see `dj_monoid`.
 // `context` is for instances needing configuration beyond the width; an
 // instance wanting a callable should point it at a caller-owned struct holding
 // that callable, since C does not guarantee a function pointer survives a round
 // trip through `void*`.
-struct d_semigroup
+struct dj_semigroup
 {
     fn_mappend mappend;     // the associative combine
     void*      context;     // instance configuration; may be NULL
@@ -83,34 +83,48 @@ struct d_semigroup
 };
 
 // I.     construction
-struct d_semigroup d_semigroup_make(fn_mappend _mappend,
-                                    void*      _context,
-                                    size_t     _value_size);
-bool               d_semigroup_is_valid(const struct d_semigroup* _semigroup);
+struct dj_semigroup d_semigroup_make(
+    fn_mappend _mappend,
+    void*      _context,
+    size_t     _value_size
+);
+bool d_semigroup_is_valid(
+    const struct dj_semigroup* _semigroup
+);
 
 // II.    operations
-bool     d_mappend(const struct d_semigroup* _semigroup,
-                   void*                     _result,
-                   const void*               _left,
-                   const void*               _right);
-bool     d_semigroup_reduce(const struct d_semigroup* _semigroup,
-                            const void*               _elements,
-                            size_t                    _count,
-                            void*                     _accumulator);
+bool d_mappend(
+    const struct dj_semigroup* _semigroup,
+    void*                      _result,
+    const void*                _left,
+    const void*                _right
+);
+bool d_semigroup_reduce(
+    const struct dj_semigroup* _semigroup,
+    const void*                _elements,
+    size_t                     _count,
+    void*                      _accumulator
+);
 
 // III.   reducer conversion
-struct d_reducer d_semigroup_reducer(const struct d_semigroup* _semigroup);
+struct dj_reducer d_semigroup_reducer(
+    const struct dj_semigroup* _semigroup
+);
 
 // IV.    size-generic instances having no identity
-struct d_semigroup d_semigroup_first(size_t _value_size);
-struct d_semigroup d_semigroup_last(size_t _value_size);
+struct dj_semigroup d_semigroup_first(
+    size_t _value_size
+);
+struct dj_semigroup d_semigroup_last(
+    size_t _value_size
+);
 
 // V.     layout assertions (Layout law: one declaration, asserted in both)
-D_STATIC_ASSERT(offsetof(struct d_semigroup, context) == sizeof(fn_mappend),
-                "d_semigroup layout drift");
-D_STATIC_ASSERT(offsetof(struct d_semigroup, value_size) ==
+D_STATIC_ASSERT(offsetof(struct dj_semigroup, context) == sizeof(fn_mappend),
+                "dj_semigroup layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_semigroup, value_size) ==
                     (sizeof(fn_mappend) + sizeof(void*)),
-                "d_semigroup layout drift");
+                "dj_semigroup layout drift");
 
 
 #endif  // DJINTERP_C_FUNCTIONAL_SEMIGROUP_H

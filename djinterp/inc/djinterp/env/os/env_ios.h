@@ -1089,26 +1089,26 @@ const char* d_env_ios_get_device_model(void);
  *
  * @return `1` on an iPad, `0` otherwise.
  */
-int         d_env_ios_is_ipad(void);
+int d_env_ios_is_ipad(void);
 /**
  * @brief Tests at runtime whether the device has a notch or Dynamic Island,
  *        judged from its safe-area insets.
  *
  * @return `1` if it has either, `0` otherwise.
  */
-int         d_env_ios_has_notch_or_island(void);
+int d_env_ios_has_notch_or_island(void);
 /**
  * @brief Tests at runtime whether the device supports ARKit, via
  *        ARWorldTrackingConfiguration.isSupported.
  *
  * @return `1` if AR is supported, `0` otherwise.
  */
-int         d_env_ios_supports_ar(void);
+int d_env_ios_supports_ar(void);
 /**
  * @brief Prints detailed information about the detected iOS environment: OS
  *        version, device model, SDK, and available frameworks.
  */
-void        d_env_ios_print_info(void);
+void d_env_ios_print_info(void);
 
 #if D_ENV_LANG_USING_CPP
     }

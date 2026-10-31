@@ -12,12 +12,14 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_free_count = 0;
 
-static void
-mock_free_fn(void* _ptr)
+static
+void mock_free_fn(
+    void* _ptr
+)
 {
     if (_ptr)
     {
@@ -27,14 +29,12 @@ mock_free_fn(void* _ptr)
 }
 
 
-bool
-d_tests_sa_ptr_vector_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     static int           test_values[] = {10, 20, 30};
 
     result = true;
@@ -73,14 +73,12 @@ d_tests_sa_ptr_vector_free
 }
 
 
-bool
-d_tests_sa_ptr_vector_free_deep
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_free_deep(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int*                 ptr1;
     int*                 ptr2;
     int*                 ptr3;
@@ -143,14 +141,12 @@ d_tests_sa_ptr_vector_free_deep
 }
 
 
-bool
-d_tests_sa_ptr_vector_clear_deep
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_clear_deep(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int*                 ptr1;
     int*                 ptr2;
 
@@ -203,10 +199,8 @@ d_tests_sa_ptr_vector_clear_deep
 }
 
 
-bool
-d_tests_sa_ptr_vector_destructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_destructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

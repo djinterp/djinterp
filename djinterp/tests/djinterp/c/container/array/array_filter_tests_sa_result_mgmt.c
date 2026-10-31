@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -24,15 +24,13 @@ d_tests_sa_array_filter_result_data
   - Returns NULL for result with no data
   - Returns NULL for NULL result pointer
 */
-bool
-d_tests_sa_array_filter_result_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_data(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     void*                        ptr;
 
     result = true;
@@ -90,15 +88,13 @@ d_tests_sa_array_filter_result_count_fn
   - Returns 0 for empty result
   - Returns 0 for NULL result pointer
 */
-bool
-d_tests_sa_array_filter_result_count_fn
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_count_fn(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     size_t                       cnt;
 
     result = true;
@@ -156,15 +152,13 @@ d_tests_sa_array_filter_result_ok
   - Returns false for error statuses
   - Returns false for NULL result pointer
 */
-bool
-d_tests_sa_array_filter_result_ok
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_ok(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -233,15 +227,13 @@ d_tests_sa_array_filter_result_release
   - NULL result returns NULL
   - NULL out_count is tolerated
 */
-bool
-d_tests_sa_array_filter_result_release
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_release(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     void*                        released;
     size_t                       out_count;
     int*                         out;
@@ -333,15 +325,13 @@ d_tests_sa_array_filter_result_free
   - NULL pointer is handled safely
   - Double-free is safe (data set to NULL after free)
 */
-bool
-d_tests_sa_array_filter_result_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -392,10 +382,8 @@ d_tests_sa_array_filter_result_free
 d_tests_sa_array_filter_result_mgmt_all
   Aggregation function that runs all result management tests.
 */
-bool
-d_tests_sa_array_filter_result_mgmt_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_mgmt_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

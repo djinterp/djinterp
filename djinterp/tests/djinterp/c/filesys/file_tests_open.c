@@ -26,9 +26,8 @@
  * II.a  d_file_open_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_open_fopen
-(
+static
+void d_fs_tests_open_fopen(
     dtest_suite* _suite
 )
 {
@@ -96,9 +95,8 @@ d_fs_tests_open_fopen
  * II.b  d_file_open_stream_s
  *****************************************************************************/
 
-static void
-d_fs_tests_open_fopen_s
-(
+static
+void d_fs_tests_open_fopen_s(
     dtest_suite* _suite
 )
 {
@@ -155,9 +153,8 @@ d_fs_tests_open_fopen_s
  * II.c  d_file_reopen_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_open_freopen
-(
+static
+void d_fs_tests_open_freopen(
     dtest_suite* _suite
 )
 {
@@ -235,9 +232,8 @@ d_fs_tests_open_freopen
  * II.d  d_file_reopen_stream_s
  *****************************************************************************/
 
-static void
-d_fs_tests_open_freopen_s
-(
+static
+void d_fs_tests_open_freopen_s(
     dtest_suite* _suite
 )
 {
@@ -310,9 +306,8 @@ d_fs_tests_open_freopen_s
  * II.e  d_file_open_stream_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_open_fdopen
-(
+static
+void d_fs_tests_open_fdopen(
     dtest_suite* _suite
 )
 {
@@ -375,9 +370,8 @@ d_fs_tests_open_fdopen
  * II.f  d_file_close_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_open_fclose
-(
+static
+void d_fs_tests_open_fclose(
     dtest_suite* _suite
 )
 {
@@ -407,9 +401,7 @@ d_fs_tests_open_fclose
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_open
-(
+void d_fs_tests_open(
     dtest_suite* _suite
 )
 {

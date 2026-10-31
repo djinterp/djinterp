@@ -42,20 +42,20 @@
 #include "../../../../inc/djinterp/tools/dawk/dline.h"                  // d_line_build
 #include "../../../../inc/djinterp/tools/dawk/dcascade.h"               // d_cascade_wins
 #include "../../../../inc/djinterp/tools/dawk/dschema.h"                // d_schema_validate
-#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"                // d_symbol_table
+#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"                // dj_symbol_table
 #include "../../../../inc/djinterp/tools/dawk/dsection.h"               // d_section_build
-#include "../../../../inc/djinterp/tools/dawk/dsettings.h"              // d_settings
-#include "../../../../inc/djinterp/tools/dawk/dnode.h"                  // d_node_tree
+#include "../../../../inc/djinterp/tools/dawk/dsettings.h"              // dj_settings
+#include "../../../../inc/djinterp/tools/dawk/dnode.h"                  // dj_node_tree
 #include "../../../../inc/djinterp/tools/dawk/dproperty.h"              // d_property_evaluate
-#include "../../../../inc/djinterp/tools/dawk/dsource.h"                // d_awk_source
-#include "../../../../inc/djinterp/tools/dawk/dss.h"                    // d_dss_sheet
+#include "../../../../inc/djinterp/tools/dawk/dsource.h"                // dj_awk_source
+#include "../../../../inc/djinterp/tools/dawk/dss.h"                    // dj_dss_sheet
 #include "../../../../inc/djinterp/tools/dawk/dtree.h"                  // d_awk_source_tree_init
 
 
-// d_check_tally
+// dj_check_tally
 //   struct: one row of the report.  Counting per property per rule is what
 // distinguishes a rule that matched nothing from one that matched and held.
-struct d_check_tally
+struct dj_check_tally
 {
     const char*  property;
     uint32_t     line;
@@ -88,14 +88,14 @@ already `_derived`.  When one exists, a content repair is a swap, not a
 replacement: replacing would write the value a second time and destroy the
 one it overwrote, where exchanging the two keeps both.
 */
-static uint32_t
-d_internal_swap_holder(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _derived
+static
+uint32_t d_internal_swap_holder(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _derived
 )
 {
-    const struct d_node* const node = d_node_at(_tree, _node);
+    const struct dj_node* const node = d_node_at(_tree, _node);
 
     if ((!node) || (node->parent == D_DSS_NO_INDEX))
     {
@@ -106,7 +106,7 @@ d_internal_swap_holder(
          at != D_DSS_NO_INDEX;
          at = d_node_at(_tree, at)->next_sibling)
     {
-        const struct d_node* const other = d_node_at(_tree, at);
+        const struct dj_node* const other = d_node_at(_tree, at);
 
         if ( (other->present) && (other->type == node->type) &&
              (other->line == node->line) &&
@@ -126,18 +126,18 @@ d_internal_swap_runs
 line first, so a node whose recorded geometry has drifted from the file is
 refused rather than spliced.
 */
-static bool
-d_internal_swap_runs(
-    struct d_node_tree* _tree,
-    uint32_t            _left,
-    uint32_t            _right,
-    const char*         _line,
-    char*               _out,
-    size_t              _out_size
+static
+bool d_internal_swap_runs(
+    struct dj_node_tree* _tree,
+    uint32_t             _left,
+    uint32_t             _right,
+    const char*          _line,
+    char*                _out,
+    size_t               _out_size
 )
 {
-    const struct d_node* const a = d_node_at(_tree, _left);
-    const struct d_node* const b = d_node_at(_tree, _right);
+    const struct dj_node* const a = d_node_at(_tree, _left);
+    const struct dj_node* const b = d_node_at(_tree, _right);
 
     const size_t length = strlen(_line);
     const size_t a0     = a->start_column - 1u;
@@ -167,13 +167,13 @@ d_internal_swap_runs(
 }
 
 
-static bool
-d_internal_redundant(
-    struct d_node_tree* _tree,
-    uint32_t            _node
+static
+bool d_internal_redundant(
+    struct dj_node_tree* _tree,
+    uint32_t             _node
 )
 {
-    const struct d_node* const node = d_node_at(_tree, _node);
+    const struct dj_node* const node = d_node_at(_tree, _node);
 
     if ((!node) || (node->parent == D_DSS_NO_INDEX) ||
         (node->first_child == D_DSS_NO_INDEX))
@@ -186,7 +186,7 @@ d_internal_redundant(
 
     for (uint32_t at = 0; at < node->attribute_count; ++at)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, node->first_attribute + at);
 
         if ((attribute) && (attribute->name == name_id))
@@ -202,7 +202,7 @@ d_internal_redundant(
          (sibling != D_DSS_NO_INDEX) && (sibling != _node);
          sibling = d_node_at(_tree, sibling)->next_sibling)
     {
-        const struct d_node* const other = d_node_at(_tree, sibling);
+        const struct dj_node* const other = d_node_at(_tree, sibling);
 
         if ((!other->present) || (other->type != node->type) ||
             (other->first_child == D_DSS_NO_INDEX))
@@ -214,7 +214,7 @@ d_internal_redundant(
 
         for (uint32_t at = 0; at < other->attribute_count; ++at)
         {
-            const struct d_node_attribute* const attribute =
+            const struct dj_node_attribute* const attribute =
                 d_node_attribute_at(_tree, other->first_attribute + at);
 
             if ((attribute) && (attribute->name == name_id) &&
@@ -237,16 +237,16 @@ d_internal_redundant(
 }
 
 
-static bool
-d_internal_meaning_holds_at(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node
+static
+bool d_internal_meaning_holds_at(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node
 )
 {
     for (size_t at = 0; at < d_dss_rule_count(_sheet); ++at)
     {
-        const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(_sheet, at);
 
         if (!d_match_rule(_sheet, _tree, _node, rule))
         {
@@ -255,7 +255,7 @@ d_internal_meaning_holds_at(
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const declaration =
+            const struct dj_dss_declaration* const declaration =
                 d_dss_declaration_at(_sheet, rule->first_declaration + which);
 
             const char* const property = d_dss_text(_sheet,
@@ -289,11 +289,11 @@ d_internal_meaning_holds
 and so do those of every node beneath it.  Anchoring a unit moves its parts,
 so the unit is only as sound as the least sound of them.
 */
-static bool
-d_internal_meaning_holds(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node
+static
+bool d_internal_meaning_holds(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node
 )
 {
     if (!d_internal_meaning_holds_at(_sheet, _tree, _node))
@@ -316,11 +316,11 @@ d_internal_meaning_holds(
 
 
 
-// d_check_severity
+// dj_check_severity
 //   enum: what a failed declaration costs.  `off` removes it from the run
 // entirely; `advise` reports and never repairs; `warn` and `error` report and
 // repair, and only an `error` left standing fails the run.
-enum d_check_severity
+enum dj_check_severity
 {
     D_CHECK_SEVERITY_OFF = 0,
     D_CHECK_SEVERITY_ADVISE,
@@ -337,13 +337,13 @@ not one.
 static bool
 d_internal_level(
     const char*            _word,
-    enum d_check_severity* _out
+    enum dj_check_severity* _out
 )
 {
     static const struct
     {
         const char*           word;
-        enum d_check_severity level;
+        enum dj_check_severity level;
     }
     levels[] =
     {
@@ -373,15 +373,15 @@ d_internal_claims
 is making claims, and a severity beside them is theirs; a rule that does not
 is an exemption, whose severity covers whatever it matches.
 */
-static bool
-d_internal_claims(
-    const struct d_dss_sheet* _sheet,
-    const struct d_dss_rule*  _rule
+static
+bool d_internal_claims(
+    const struct dj_dss_sheet* _sheet,
+    const struct dj_dss_rule*  _rule
 )
 {
     for (uint32_t which = 0; which < _rule->declaration_count; ++which)
     {
-        const struct d_dss_declaration* const declaration =
+        const struct dj_dss_declaration* const declaration =
             d_dss_declaration_at(_sheet, _rule->first_declaration + which);
 
         if (strcmp(d_dss_text(_sheet, declaration->property),
@@ -410,15 +410,15 @@ otherwise report the later one's finding at the earlier one's level.  An
 exemption -- a rule holding nothing but a severity -- still outranks every
 rule below it, which is how a sheet turns a subtree off.
 */
-static enum d_check_severity
+static enum dj_check_severity
 d_internal_severity(
-    const struct d_dss_sheet* _sheet,
-    const struct d_cascade*   _cascade,
+    const struct dj_dss_sheet* _sheet,
+    const struct dj_cascade*   _cascade,
     uint32_t                  _node,
     size_t                    _rule,
     const char*               _property,
     bool                      _honour,
-    enum d_check_severity     _fallback
+    enum dj_check_severity     _fallback
 )
 {
     // severity.mode=ignore: declarations say nothing; everything is the
@@ -430,7 +430,7 @@ d_internal_severity(
     }
 
     size_t                best       = SIZE_MAX;
-    enum d_check_severity best_level = _fallback;
+    enum dj_check_severity best_level = _fallback;
     const uint32_t*       ranked     = NULL;
     const size_t          matched    = d_cascade_matched(_cascade, _node,
                                                          &ranked);
@@ -446,7 +446,7 @@ d_internal_severity(
             break;
         }
 
-        const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(_sheet, at);
 
         // another rule's severity, declared beside its own claims, is that
         // rule's and not this claim's
@@ -457,7 +457,7 @@ d_internal_severity(
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const declaration =
+            const struct dj_dss_declaration* const declaration =
                 d_dss_declaration_at(_sheet, rule->first_declaration + which);
 
             if (strcmp(d_dss_text(_sheet, declaration->property),
@@ -466,10 +466,10 @@ d_internal_severity(
                 continue;
             }
 
-            const struct d_dss_value* const level =
+            const struct dj_dss_value* const level =
                 d_dss_value_at(_sheet, declaration->first_value);
 
-            enum d_check_severity result = D_CHECK_SEVERITY_ERROR;
+            enum dj_check_severity result = D_CHECK_SEVERITY_ERROR;
 
             if ((!level) ||
                 (!d_internal_level(d_dss_text(_sheet, level->text), &result)))
@@ -482,7 +482,7 @@ d_internal_severity(
 
             for (uint32_t term = 1; term < declaration->value_count; ++term)
             {
-                const struct d_dss_value* const named =
+                const struct dj_dss_value* const named =
                     d_dss_value_at(_sheet, declaration->first_value + term);
 
                 if ( (named) && (named->kind == D_DSS_VALUE_IDENT) &&
@@ -514,20 +514,20 @@ goes and the sheet can derive what it holds.  `required` is a human's job
 only when the missing thing's content cannot be derived; an #endif comment
 is `// <guard name>`, and nothing about that needs asking.
 */
-static bool
-d_internal_insertion(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    const bool*               _hit,
-    size_t                    _node_count,
-    uint32_t                  _node,
-    const char*               _line,
-    char*                     _out,
-    size_t                    _out_size,
-    bool*                     _out_whole_line
+static
+bool d_internal_insertion(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    const bool*                _hit,
+    size_t                     _node_count,
+    uint32_t                   _node,
+    const char*                _line,
+    char*                      _out,
+    size_t                     _out_size,
+    bool*                      _out_whole_line
 )
 {
-    const struct d_node* const node = d_node_at(_tree, _node);
+    const struct dj_node* const node = d_node_at(_tree, _node);
 
     *_out_whole_line = false;
 
@@ -541,7 +541,7 @@ d_internal_insertion(
 
     for (uint32_t at = 0; at < node->attribute_count; ++at)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, node->first_attribute + at);
 
         if ((attribute) && (attribute->name == insert_id))
@@ -561,7 +561,7 @@ d_internal_insertion(
 
     for (uint32_t at = 0; at < node->attribute_count; ++at)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, node->first_attribute + at);
 
         if ((attribute) && (attribute->name == syntax_id))
@@ -577,14 +577,14 @@ d_internal_insertion(
 
     // The content of a whole line is stated about the value it will hold, so
     // the lookup runs on the node's value when it has one.
-    const struct d_node* const holder = d_node_at(_tree, _node);
+    const struct dj_node* const holder = d_node_at(_tree, _node);
 
     const uint32_t subject = ((*_out_whole_line) &&
                               (holder->first_child != D_DSS_NO_INDEX))
                            ? holder->first_child : _node;
 
     // the node's content, by the best-ranked rule that declares one
-    const struct d_dss_declaration* content = NULL;
+    const struct dj_dss_declaration* content = NULL;
     size_t                          owner   = 0;
 
     for (size_t at = 0; at < d_dss_rule_count(_sheet); ++at)
@@ -595,11 +595,11 @@ d_internal_insertion(
             continue;
         }
 
-        const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(_sheet, at);
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const declaration =
+            const struct dj_dss_declaration* const declaration =
                 d_dss_declaration_at(_sheet, rule->first_declaration + which);
 
             if (strcmp(d_dss_text(_sheet, declaration->property),
@@ -651,7 +651,7 @@ d_internal_insertion(
 
     for (uint32_t at = 0; at < node->attribute_count; ++at)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, node->first_attribute + at);
 
         if ((attribute) && (attribute->name == replaces_id))
@@ -683,8 +683,8 @@ d_internal_insertion(
 d_internal_refuse
   Records a repair the audit would not let through, naming the first few.
 */
-static void
-d_internal_refuse(
+static
+void d_internal_refuse(
     size_t*     _refused,
     size_t      _shown,
     const char* _path,
@@ -712,16 +712,16 @@ targeted and the property it served.  The claim is built from the node's
 recorded geometry, which is exactly what goes stale -- so checking it against
 the line on disk is what exposes a stale repair.
 */
-static void
-d_internal_claim_for(
-    struct d_node_tree*   _tree,
-    uint32_t              _node,
-    const char*           _property,
-    const char*           _derived,
-    struct d_audit_claim* _out
+static
+void d_internal_claim_for(
+    struct dj_node_tree*   _tree,
+    uint32_t               _node,
+    const char*            _property,
+    const char*            _derived,
+    struct dj_audit_claim* _out
 )
 {
-    const struct d_node* const node = d_node_at(_tree, _node);
+    const struct dj_node* const node = d_node_at(_tree, _node);
 
     memset(_out, 0, sizeof(*_out));
 
@@ -764,7 +764,7 @@ static const char* const d_internal_level_choices[]   = { "off", "advise",
 static const char* const d_internal_files_choices[]   = { "headers", "all",
                                                           "cmake", NULL };
 
-static const struct d_setting_def d_check_settings[] =
+static const struct dj_setting_def d_check_settings[] =
 {
     { "fix", D_SETTING_BOOL, "false", NULL, NULL, 0, 0, NULL,
       "apply repairs, rather than only report what fails" },
@@ -815,11 +815,11 @@ static const struct d_setting_def d_check_settings[] =
 // the system hands back is never copied into room of this size.
 #define D_CHECK_PATH_MAX 4096
 
-// d_internal_segment
+// dj_internal_segment
 //   struct: a run of consecutive combined lines copied from one place in one
 // file.  The provenance table is a list of these, so any line of the
 // combined sheet can be traced back to the file and line it came from.
-struct d_internal_segment
+struct dj_internal_segment
 {
     uint32_t     combined_first;
     uint32_t     count;
@@ -828,16 +828,16 @@ struct d_internal_segment
     const char*  layer;       // NULL: unlayered
 };
 
-// d_internal_expansion
+// dj_internal_expansion
 //   struct: the combined sheet being built, and where every line came from.
-struct d_internal_expansion
+struct dj_internal_expansion
 {
     char*                       text;
     size_t                      used;
     size_t                      capacity;
     uint32_t                    lines;
 
-    struct d_internal_segment*  segments;
+    struct dj_internal_segment*  segments;
     size_t                      segment_count;
     size_t                      segment_capacity;
 
@@ -851,11 +851,11 @@ struct d_internal_expansion
 };
 
 
-static const char*
-d_internal_own(
-    struct d_internal_expansion* _x,
-    const char*                  _text,
-    size_t                       _length
+static
+const char* d_internal_own(
+    struct dj_internal_expansion* _x,
+    const char*                   _text,
+    size_t                        _length
 )
 {
     if (_x->owned_count == (sizeof(_x->owned) / sizeof(_x->owned[0])))
@@ -885,14 +885,14 @@ d_internal_append_line
   Appends one line to the combined sheet and records where it came from,
 extending the last segment when the line continues it.
 */
-static bool
-d_internal_append_line(
-    struct d_internal_expansion* _x,
-    const char*                  _line,
-    size_t                       _length,
-    const char*                  _file,
-    uint32_t                     _source_line,
-    const char*                  _layer
+static
+bool d_internal_append_line(
+    struct dj_internal_expansion* _x,
+    const char*                   _line,
+    size_t                        _length,
+    const char*                   _file,
+    uint32_t                      _source_line,
+    const char*                   _layer
 )
 {
     if ((_x->used + _length + 2u) > _x->capacity)
@@ -923,7 +923,7 @@ d_internal_append_line(
 
     ++_x->lines;
 
-    struct d_internal_segment* const last =
+    struct dj_internal_segment* const last =
         (_x->segment_count > 0) ? &_x->segments[_x->segment_count - 1u]
                                 : NULL;
 
@@ -941,7 +941,7 @@ d_internal_append_line(
         const size_t grown = (_x->segment_capacity == 0)
                            ? 32u : (_x->segment_capacity * 2u);
 
-        struct d_internal_segment* const segments =
+        struct dj_internal_segment* const segments =
             realloc(_x->segments, grown * sizeof(*segments));
 
         if (!segments)
@@ -953,7 +953,7 @@ d_internal_append_line(
         _x->segment_capacity = grown;
     }
 
-    struct d_internal_segment* const next = &_x->segments[_x->segment_count++];
+    struct dj_internal_segment* const next = &_x->segments[_x->segment_count++];
 
     next->combined_first = _x->lines;
     next->count          = 1u;
@@ -969,13 +969,13 @@ d_internal_append_line(
 d_internal_origin
   Maps a line of the combined sheet back to the file and line it came from.
 */
-static void
-d_internal_origin(
-    const struct d_internal_expansion* _x,
-    uint32_t                           _line,
-    const char**                       _out_file,
-    uint32_t*                          _out_line,
-    const char**                       _out_layer
+static
+void d_internal_origin(
+    const struct dj_internal_expansion* _x,
+    uint32_t                            _line,
+    const char**                        _out_file,
+    uint32_t*                           _out_line,
+    const char**                        _out_layer
 )
 {
     *_out_file  = "?";
@@ -984,7 +984,7 @@ d_internal_origin(
 
     for (size_t at = 0; at < _x->segment_count; ++at)
     {
-        const struct d_internal_segment* const segment = &_x->segments[at];
+        const struct dj_internal_segment* const segment = &_x->segments[at];
 
         if ((_line >= segment->combined_first) &&
             (_line < (segment->combined_first + segment->count)))
@@ -1011,11 +1011,11 @@ the importing sheet's layer; the root sheet is unlayered, and so outranks
 every layer, as in CSS.  Cycles are refused by real path, so two spellings of
 one file are still one file.
 */
-static bool
-d_internal_expand(
-    struct d_internal_expansion* _x,
-    const char*                  _path,
-    const char*                  _layer
+static
+bool d_internal_expand(
+    struct dj_internal_expansion* _x,
+    const char*                   _path,
+    const char*                   _layer
 )
 {
     char* const full = d_fs_full_path(_path);
@@ -1093,8 +1093,8 @@ d_internal_expand(
 
     // parse this sheet alone, to find its imports and to fail early and
     // precisely if it does not parse
-    struct d_dss_error        error;
-    struct d_dss_sheet* const sheet = d_dss_parse(source, read, &error);
+    struct dj_dss_error        error;
+    struct dj_dss_sheet* const sheet = d_dss_parse(source, read, &error);
 
     if (!sheet)
     {
@@ -1133,11 +1133,11 @@ d_internal_expand(
         }
 
         // is this line an @import?
-        const struct d_dss_at_rule* import = NULL;
+        const struct dj_dss_at_rule* import = NULL;
 
         for (size_t which = 0; which < d_dss_at_rule_count(sheet); ++which)
         {
-            const struct d_dss_at_rule* const candidate =
+            const struct dj_dss_at_rule* const candidate =
                 d_dss_at_rule_at(sheet, which);
 
             if ( (candidate->line == line) &&
@@ -1225,9 +1225,9 @@ d_internal_expand(
 /*
 d_internal_expansion_free
 */
-static void
-d_internal_expansion_free(
-    struct d_internal_expansion* _x
+static
+void d_internal_expansion_free(
+    struct dj_internal_expansion* _x
 )
 {
     free(_x->text);
@@ -1250,10 +1250,10 @@ layers outrank earlier ones.  Unlayered rules outrank every layer, as in CSS.
 Only called when layers are in force: otherwise every rank stays zero and
 ranking reduces to first match.
 */
-static void
-d_internal_assign_layers(
-    struct d_dss_sheet*                _sheet,
-    const struct d_internal_expansion* _x
+static
+void d_internal_assign_layers(
+    struct dj_dss_sheet*                _sheet,
+    const struct dj_internal_expansion* _x
 )
 {
     // layer names in precedence order, each copied out whole: a pointer into
@@ -1285,7 +1285,7 @@ d_internal_assign_layers(
     // declared order first: every @layer statement, in sheet order
     for (size_t at = 0; at < d_dss_at_rule_count(_sheet); ++at)
     {
-        const struct d_dss_at_rule* const rule = d_dss_at_rule_at(_sheet, at);
+        const struct dj_dss_at_rule* const rule = d_dss_at_rule_at(_sheet, at);
 
         if ( (strcmp(d_dss_text(_sheet, rule->name), "layer") != 0) ||
              (rule->prelude == D_DSS_NO_INDEX) )
@@ -1359,13 +1359,12 @@ row per declaration.  First match wins is not yet exercised because no two
 rules in the sheet carry the same property for the same node; when they do,
 this is the loop that has to stop at the first.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
 {
-    struct d_settings* const settings = d_settings_new();
+    struct dj_settings* const settings = d_settings_new();
 
     if ( (!settings) ||
          (!d_settings_register(settings, d_check_settings,
@@ -1462,7 +1461,7 @@ main(
 
     // The root sheet and everything it imports, as one combined sheet.
     // Each line of it can be traced back to the file it came from.
-    struct d_internal_expansion expansion;
+    struct dj_internal_expansion expansion;
 
     memset(&expansion, 0, sizeof(expansion));
 
@@ -1491,8 +1490,8 @@ main(
             (void)snprintf(where, sizeof(where), "%s:%u", file_, at_);       \
         } while (0)
 
-    struct d_dss_error  error;
-    struct d_dss_sheet* const sheet = d_dss_parse(source, read, &error);
+    struct dj_dss_error  error;
+    struct dj_dss_sheet* const sheet = d_dss_parse(source, read, &error);
 
     if (!sheet)
     {
@@ -1511,7 +1510,7 @@ main(
     // something different and would otherwise say nothing.
     for (size_t at = 0; at < d_dss_at_rule_count(sheet); ++at)
     {
-        const struct d_dss_at_rule* const at_rule =
+        const struct dj_dss_at_rule* const at_rule =
             d_dss_at_rule_at(sheet, at);
 
         const char* const kind = d_dss_text(sheet, at_rule->name);
@@ -1571,7 +1570,7 @@ main(
 
     const bool        fixing      = d_settings_bool(settings, "fix");
     const bool        stated_only = d_settings_bool(settings, "fix.stated");
-    struct d_repair_plan plan     = { NULL, 0u, 0u };
+    struct dj_repair_plan plan     = { NULL, 0u, 0u };
     const bool        sourcing    = d_settings_bool(settings, "source.tree");
     const bool        lining      = d_settings_bool(settings, "source.lines");
     const size_t      list_limit  =
@@ -1599,7 +1598,7 @@ main(
         d_internal_assign_layers(sheet, &expansion);
     }
 
-    enum d_check_severity fallback = D_CHECK_SEVERITY_ERROR;
+    enum dj_check_severity fallback = D_CHECK_SEVERITY_ERROR;
 
     (void)d_internal_level(d_settings_text(settings, "severity.default"),
                            &fallback);
@@ -1640,14 +1639,14 @@ main(
     // every severity level must be a word the engine knows
     for (size_t at = 0; at < d_dss_rule_count(sheet); ++at)
     {
-        const struct d_dss_rule* const rule = d_dss_rule_at(sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(sheet, at);
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const declaration =
+            const struct dj_dss_declaration* const declaration =
                 d_dss_declaration_at(sheet, rule->first_declaration + which);
 
-            enum d_check_severity unused;
+            enum dj_check_severity unused;
 
             if ( (strcmp(d_dss_text(sheet, declaration->property),
                          "severity") == 0) &&
@@ -1666,7 +1665,7 @@ main(
         }
     }
 
-    struct d_awk_source walk;
+    struct dj_awk_source walk;
 
     if (!d_awk_source_tree_init(&walk, root_path))
     {
@@ -1679,9 +1678,9 @@ main(
 
     const size_t rule_count = d_dss_rule_count(sheet);
 
-    struct d_check_tally* const tally =
+    struct dj_check_tally* const tally =
         calloc(d_dss_rule_count(sheet) * 8u + 8u,
-               sizeof(struct d_check_tally));
+               sizeof(struct dj_check_tally));
 
     if (!tally)
     {
@@ -1695,11 +1694,11 @@ main(
 
     for (size_t at = 0; at < rule_count; ++at)
     {
-        const struct d_dss_rule* const rule = d_dss_rule_at(sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(sheet, at);
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const declaration =
+            const struct dj_dss_declaration* const declaration =
                 d_dss_declaration_at(sheet,
                                      rule->first_declaration + which);
 
@@ -1712,20 +1711,20 @@ main(
     }
 
     // history for the whole tree, read once
-    struct d_git_history* const history = d_git_read(root_path);
+    struct dj_git_history* const history = d_git_read(root_path);
 
     // one symbol table for the sheet and the tree: names compare as integers
-    struct d_symbol_table* const symbols = d_symbol_table_new();
-    struct d_node_tree* const    tree    = symbols
+    struct dj_symbol_table* const symbols = d_symbol_table_new();
+    struct dj_node_tree* const    tree    = symbols
                                            ? d_node_tree_new_shared(symbols)
                                            : NULL;
     const bool bound = ( (tree) && (d_dss_bind(sheet, symbols)) );
-    struct d_match_index* const     index      = bound
+    struct dj_match_index* const     index      = bound
                                                  ? d_match_index_new(sheet)
                                                  : NULL;
-    struct d_cascade* const         cascade    =
+    struct dj_cascade* const         cascade    =
         d_cascade_new(sheet, first_match ? D_CASCADE_FIRST : D_CASCADE_ALL);
-    struct d_schema_binding* const  schema     =
+    struct dj_schema_binding* const  schema     =
         d_schema_bind(d_property_schema(), symbols);
     uint32_t* const                 candidates =
         malloc((d_dss_rule_count(sheet) + 1u) * sizeof(uint32_t));
@@ -1794,7 +1793,7 @@ main(
 
             // the second extension contributes into the same tree, beneath
             // the same file node; neither knows the other is there
-            struct d_node* const banner_node = d_node_at(tree, banner);
+            struct dj_node* const banner_node = d_node_at(tree, banner);
 
             file_node = banner_node ? banner_node->parent : D_DSS_NO_INDEX;
         }
@@ -1840,14 +1839,14 @@ main(
         if ( (sourcing) &&
              (cmake) )
         {
-            struct d_ext_cmake_stats built;
+            struct dj_ext_cmake_stats built;
 
             (void)d_ext_cmake_build_path(tree, file_node, record, &built);
             refusals += built.refused ? 1u : 0u;
         }
         else if (sourcing)
         {
-            struct d_token_node_stats built;
+            struct dj_token_node_stats built;
 
             (void)d_ext_source_build(tree, file_node, record, &built);
             lexical += built.lex_errors;
@@ -1910,7 +1909,7 @@ main(
 
         for (size_t at = 0; at < rule_count; ++at)
         {
-            const struct d_dss_rule* const rule = d_dss_rule_at(sheet, at);
+            const struct dj_dss_rule* const rule = d_dss_rule_at(sheet, at);
 
             for (uint32_t node = 0;
                  node < (uint32_t)d_node_count(tree);
@@ -1925,7 +1924,7 @@ main(
                      which < rule->declaration_count;
                      ++which)
                 {
-                    const struct d_dss_declaration* const declaration =
+                    const struct dj_dss_declaration* const declaration =
                         d_dss_declaration_at(sheet,
                                              rule->first_declaration + which);
 
@@ -1944,7 +1943,7 @@ main(
                         continue;
                     }
 
-                    const enum d_check_severity severity =
+                    const enum dj_check_severity severity =
                         d_internal_severity(sheet, cascade, node, at,
                                             claim, honour, fallback);
 
@@ -1985,9 +1984,9 @@ main(
                         // the finding itself, where it is and what it says
                         if (listed < list_limit)
                         {
-                            const struct d_node* const failed_node =
+                            const struct dj_node* const failed_node =
                                 d_node_at(tree, node);
-                            const struct d_dss_value* const said =
+                            const struct dj_dss_value* const said =
                                 d_dss_value_at(sheet,
                                                declaration->first_value);
                             const bool worded =
@@ -2056,7 +2055,7 @@ main(
                         if (strcmp(d_dss_text(sheet, declaration->property),
                                    "display") == 0)
                         {
-                            const struct d_dss_value* const display_value =
+                            const struct dj_dss_value* const display_value =
                                 d_dss_value_at(sheet,
                                                declaration->first_value);
 
@@ -2071,7 +2070,7 @@ main(
                             // survives elsewhere, and for nothing else
                             if (none)
                             {
-                                struct d_node* const gone =
+                                struct dj_node* const gone =
                                     d_node_at(tree, node);
 
                                 if ( (gone) && (gone->line != 0) &&
@@ -2109,7 +2108,7 @@ main(
                             continue;
                         }
 
-                        struct d_node* const target = d_node_at(tree, node);
+                        struct dj_node* const target = d_node_at(tree, node);
 
                         if ((!target) || (target->line == 0))
                         {
@@ -2165,7 +2164,7 @@ main(
                             // structural and takes the file's pass to itself
                             if (whole_line)
                             {
-                                struct d_audit_claim added;
+                                struct dj_audit_claim added;
                                 const char*          why = NULL;
 
                                 memset(&added, 0, sizeof(added));
@@ -2198,9 +2197,9 @@ main(
                             // the text before the point survives and that
                             // anything discarded after it is only blanks or a
                             // verified one-word block comment.
-                            struct d_audit_claim audit;
+                            struct dj_audit_claim audit;
                             const char*          why = NULL;
-                            const struct d_node* const gone =
+                            const struct dj_node* const gone =
                                 d_node_at(tree, node);
 
                             memset(&audit, 0, sizeof(audit));
@@ -2218,7 +2217,7 @@ main(
                                  which_attribute < gone->attribute_count;
                                  ++which_attribute)
                             {
-                                const struct d_node_attribute* const attr =
+                                const struct dj_node_attribute* const attr =
                                     d_node_attribute_at(tree,
                                         gone->first_attribute
                                         + which_attribute);
@@ -2298,11 +2297,11 @@ main(
 
                             if (holder != D_DSS_NO_INDEX)
                             {
-                                struct d_audit_claim audit;
+                                struct dj_audit_claim audit;
                                 const char*          why = NULL;
-                                const struct d_node* const a =
+                                const struct dj_node* const a =
                                     d_node_at(tree, node);
-                                const struct d_node* const b =
+                                const struct dj_node* const b =
                                     d_node_at(tree, holder);
 
                                 memset(&audit, 0, sizeof(audit));
@@ -2357,7 +2356,7 @@ main(
                             continue;
                         }
 
-                        struct d_audit_claim audit;
+                        struct dj_audit_claim audit;
                         const char*          why = NULL;
 
                         d_internal_claim_for(tree, node, property,

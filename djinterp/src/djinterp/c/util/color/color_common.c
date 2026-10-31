@@ -17,11 +17,30 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-float d_color_max3(float _a, float _b, float _c);
-float d_color_min3(float _a, float _b, float _c);
-float d_color_clamp_01(float _value);
-float d_color_clamp_range(float _value, float _min, float _max);
-float d_color_fmodf(float _x, float _y);
-float d_color_fabsf(float _x);
+float d_color_max3(
+    float _a,
+    float _b,
+    float _c
+);
+float d_color_min3(
+    float _a,
+    float _b,
+    float _c
+);
+float d_color_clamp_01(
+    float _value
+);
+float d_color_clamp_range(
+    float _value,
+    float _min,
+    float _max
+);
+float d_color_fmodf(
+    float _x,
+    float _y
+);
+float d_color_fabsf(
+    float _x
+);
 
 #endif  // D_COLOR_HEADER_ONLY

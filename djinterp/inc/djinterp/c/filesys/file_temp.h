@@ -71,7 +71,9 @@ FILE* d_file_temp_stream(void);
  *                      before anything else happens.
  * @return 0, or a non-zero error code -- EINVAL for a `NULL` out-parameter.
  */
-int   d_file_temp_stream_s(FILE** _stream);
+int d_file_temp_stream_s(
+    FILE** _stream
+);
 /**
  * @brief Creates and opens a uniquely named temporary file from a template,
  *        in one step, so no other process can claim the name first.
@@ -94,7 +96,9 @@ int   d_file_temp_stream_s(FILE** _stream);
  *         backend.
  * @post The caller owns the descriptor and the file.
  */
-int   d_file_temp_create(char* _template);
+int d_file_temp_create(
+    char* _template
+);
 
 // 1.2    Name generation
 //------------------------------------------------------------------------------
@@ -113,8 +117,10 @@ int   d_file_temp_create(char* _template);
  *         the name does not fit, EEXIST when no free name was found, and EIO
  *         when the temporary directory is unavailable.
  */
-int   d_file_temp_name(char*  _s,
-                       size_t _maxsize);
+int d_file_temp_name(
+    char*  _s,
+    size_t _maxsize
+);
 #endif
 
 // 1.3    Location
@@ -133,8 +139,10 @@ int   d_file_temp_name(char*  _s,
  * @return `_buf`, or `NULL` on failure with errno set: ERANGE when the path
  *         does not fit.
  */
-char* d_dir_temp(char*  _buf,
-                 size_t _bufsize);
+char* d_dir_temp(
+    char*  _buf,
+    size_t _bufsize
+);
 
 
 //==============================================================================
@@ -157,8 +165,10 @@ char* d_dir_temp(char*  _buf,
  * @return as for d_file_temp_create.
  * @post The caller owns the descriptor and the file.
  */
-int   d_internal_file_temp_create(char* _template,
-                                  int   _mode);
+int d_internal_file_temp_create(
+    char* _template,
+    int   _mode
+);
 
 
 D_EXTERN_C_END

@@ -31,11 +31,10 @@
 d_section_build
   C's delimiters, which open with `//`.
 */
-uint32_t
-d_section_build(
-    struct d_node_tree* _tree,
-    uint32_t            _file,
-    const char*         _path
+uint32_t d_section_build(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path
 )
 {
     return d_section_build_marked(_tree, _file, _path, "//");
@@ -47,12 +46,11 @@ d_section_build_marked
   Every line that is the comment opening, an optional space, and a run of
 fill; the opening is `//` for C and `#` for CMake.
 */
-uint32_t
-d_section_build_marked(
-    struct d_node_tree* _tree,
-    uint32_t            _file,
-    const char*         _path,
-    const char*         _comment
+uint32_t d_section_build_marked(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path,
+    const char*          _comment
 )
 {
     // parameter validation first
@@ -124,7 +122,7 @@ d_section_build_marked(
             break;
         }
 
-        struct d_node* const node = d_node_at(_tree, delimiter);
+        struct dj_node* const node = d_node_at(_tree, delimiter);
 
         node->line         = line;
         node->start_column = 1u;

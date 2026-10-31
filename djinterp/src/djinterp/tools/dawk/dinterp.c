@@ -18,8 +18,8 @@
 *                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dinterp.h"  // corresponding header
-#include "../../../../inc/djinterp/tools/dawk/dhost.h"    // d_awk_host_function
-#include "../../../../inc/djinterp/tools/dawk/dsource.h"  // d_awk_source
+#include "../../../../inc/djinterp/tools/dawk/dhost.h"    // dj_awk_host_function
+#include "../../../../inc/djinterp/tools/dawk/dsource.h"  // dj_awk_source
 // std
 #include <limits.h>   // INT_MAX
 #include <math.h>     // sin, cos, atan2, exp, log, sqrt, floor, fmod
@@ -31,7 +31,7 @@
 // djinterp
 #include "../../../../inc/djinterp/tools/dawk/dlex.h"    // d_awk_unescape
 #include "../../../../inc/djinterp/tools/dawk/dregex.h"  // d_regex_search
-#include "../../../../inc/djinterp/tools/dawk/dvalue.h"  // d_awk_value
+#include "../../../../inc/djinterp/tools/dawk/dvalue.h"  // dj_awk_value
 
 
 //==============================================================================
@@ -42,11 +42,11 @@
 // 1.1    Control flow
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_flow
+// dj_internal_flow
 //   enum: the pending non-local transfer, if any.  Every statement checks it
 //   after each child, which is cheaper than unwinding with setjmp and keeps
 //   the interpreter reentrant.
-enum d_internal_flow
+enum dj_internal_flow
 {
     D_INTERNAL_FLOW_NONE = 0,
     D_INTERNAL_FLOW_BREAK,
@@ -60,27 +60,27 @@ enum d_internal_flow
 // 1.2    Frames
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_frame
+// dj_internal_frame
 //   struct: one call's parameters and locals.  A parameter bound to an array
 //   holds a borrowed pointer, since arrays pass by reference; a scalar holds
 //   a cell the frame owns.
-struct d_internal_frame
+struct dj_internal_frame
 {
     char* const*         names;
     size_t               count;
-    struct d_awk_value** cells;
-    struct d_awk_array** arrays;
+    struct dj_awk_value** cells;
+    struct dj_awk_array** arrays;
     bool*                owns_array;
 };
 
 // 1.3    Streams
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_internal_stream_kind
+// dj_internal_stream_kind
 //   enum: what a named stream is.  The direction is part of the identity: a
 //   program may hold "f" open for reading and for writing at once, and close()
 //   shuts both.
-enum d_internal_stream_kind
+enum dj_internal_stream_kind
 {
     D_INTERNAL_STREAM_IN_FILE = 0,
     D_INTERNAL_STREAM_IN_PIPE,
@@ -93,34 +93,34 @@ enum d_internal_stream_kind
 // d_internal_stream
 //   struct: one stream the program opened by name.  `eof` is remembered so a
 //   getline past the end keeps reporting zero rather than reopening.
-struct d_internal_stream
+struct dj_internal_stream
 {
     char*                          name;
     FILE*                          handle;
-    enum d_internal_stream_kind    kind;
+    enum dj_internal_stream_kind    kind;
     bool                           eof;
 };
 
 // 1.4    Interpreter
 //------------------------------------------------------------------------------
 // 1.4.1
-// d_internal_host
+// dj_internal_host
 //   struct: one host function an extension added.  The descriptor is the
 //   extension's and outlives the interpreter; only the table is ours.
-struct d_internal_host
+struct dj_internal_host
 {
-    const struct d_awk_host_function* function;
+    const struct dj_awk_host_function* function;
     void*                             user;
 };
 
 // 1.4.2
-// d_awk_interp
+// dj_awk_interp
 //   struct: program, globals, record state and the temporary free list.
-struct d_awk_interp
+struct dj_awk_interp
 {
-    struct d_awk_program* program;
-    struct d_awk_array*   globals;
-    struct d_awk_array**  owned;
+    struct dj_awk_program* program;
+    struct dj_awk_array*   globals;
+    struct dj_awk_array**  owned;
     size_t                owned_count;
     size_t                owned_capacity;
 
@@ -134,7 +134,7 @@ struct d_awk_interp
     size_t                split_fs_capacity;
     char*                 rebuild_ofs;
     size_t                rebuild_ofs_capacity;
-    struct d_awk_value**  fields;
+    struct dj_awk_value**  fields;
     size_t                field_count;
     size_t                field_capacity;
 
@@ -150,10 +150,10 @@ struct d_awk_interp
     size_t                read_capacity;
 
     // host record source; NULL keeps POSIX RS splitting
-    struct d_awk_source*  source;
+    struct dj_awk_source*  source;
 
     // host functions, each with the user pointer its extension gave
-    struct d_internal_host* hosts;
+    struct dj_internal_host* hosts;
     size_t                  host_count;
     size_t                  host_capacity;
 
@@ -163,22 +163,22 @@ struct d_awk_interp
     uintptr_t             stack_base;
 
     // streams the program opened by name
-    struct d_internal_stream* streams;
+    struct dj_internal_stream* streams;
     size_t                    stream_count;
     size_t                    stream_capacity;
 
     // frames
-    struct d_internal_frame* frames;
+    struct dj_internal_frame* frames;
     size_t                   frame_count;
     size_t                   frame_capacity;
 
     // temporaries
-    struct d_awk_value**  pool;
+    struct dj_awk_value**  pool;
     size_t                pool_count;
     size_t                pool_capacity;
 
-    enum d_internal_flow  flow;
-    struct d_awk_value*   retval;
+    enum dj_internal_flow  flow;
+    struct dj_awk_value*   retval;
     int                   exit_status;
     bool                  exiting;
     unsigned              seed;
@@ -195,34 +195,58 @@ struct d_awk_interp
 //   through one resolution evaluates a subscript or a field number once, as
 //   `x[++n] += 1` needs.  `cell` is the variable or the element; it is NULL
 //   for NF and for a field, which `field` then numbers, 0 being the record.
-struct d_internal_place
+struct dj_internal_place
 {
-    struct d_awk_value* cell;
+    struct dj_awk_value* cell;
     bool                is_nf;
     size_t              field;
 };
 
 
-static bool d_internal_eval(struct d_awk_interp* _in,
-                            struct d_awk_node*   _node,
-                            struct d_awk_value*  _out);
-static bool d_internal_exec(struct d_awk_interp* _in,
-                            struct d_awk_node*   _node);
-static bool d_internal_read_one(struct d_awk_interp* _in,
-                                FILE*                _stream,
-                                size_t*              _out_length);
-static bool d_internal_next_main_record(struct d_awk_interp* _in,
-                                        size_t*              _out_length);
-static bool d_internal_getline(struct d_awk_interp* _in,
-                               struct d_awk_node*   _node,
-                               struct d_awk_value*  _out);
-static FILE* d_internal_stream_open(struct d_awk_interp*        _in,
-                                    const char*                 _name,
-                                    enum d_internal_stream_kind _kind);
-static int   d_internal_stream_close(struct d_awk_interp* _in,
-                                     const char*          _name);
-static int   d_internal_stream_flush(struct d_awk_interp* _in,
-                                     const char*          _name);
+static
+bool d_internal_eval(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
+);
+static
+bool d_internal_exec(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node
+);
+static
+bool d_internal_read_one(
+    struct dj_awk_interp* _in,
+    FILE*                 _stream,
+    size_t*               _out_length
+);
+static
+bool d_internal_next_main_record(
+    struct dj_awk_interp* _in,
+    size_t*               _out_length
+);
+static
+bool d_internal_getline(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
+);
+static
+FILE* d_internal_stream_open(
+    struct dj_awk_interp*        _in,
+    const char*                  _name,
+    enum dj_internal_stream_kind _kind
+);
+static
+int d_internal_stream_close(
+    struct dj_awk_interp* _in,
+    const char*           _name
+);
+static
+int d_internal_stream_flush(
+    struct dj_awk_interp* _in,
+    const char*           _name
+);
 
 
 /*
@@ -235,10 +259,10 @@ Parameter(s):
 Return:
   Always false, so callers can `return d_internal_fail(...)`.
 */
-static bool
-d_internal_fail(
-    struct d_awk_interp* _in,
-    const char*          _message
+static
+bool d_internal_fail(
+    struct dj_awk_interp* _in,
+    const char*           _message
 )
 {
     // keep the first diagnostic rather than the last
@@ -259,11 +283,11 @@ d_internal_fail_about
 would not open, the function that does not exist -- since a message that
 names neither leaves the reader to guess which of several it was.
 */
-static bool
-d_internal_fail_about(
-    struct d_awk_interp* _in,
-    const char*          _message,
-    const char*          _subject
+static
+bool d_internal_fail_about(
+    struct dj_awk_interp* _in,
+    const char*           _message,
+    const char*           _subject
 )
 {
     // room for what follows the "dawk: " d_internal_fail puts first; a
@@ -290,15 +314,15 @@ Parameter(s):
 Return:
   The cell, or NULL on failure.
 */
-static struct d_awk_value*
-d_internal_acquire(
-    struct d_awk_interp* _in
+static
+struct dj_awk_value* d_internal_acquire(
+    struct dj_awk_interp* _in
 )
 {
     // a cell already on the list is reused rather than reallocated
     if (_in->pool_count > 0)
     {
-        struct d_awk_value* cell = _in->pool[--_in->pool_count];
+        struct dj_awk_value* cell = _in->pool[--_in->pool_count];
 
         d_awk_value_set_uninit(cell);
 
@@ -319,10 +343,10 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_release(
-    struct d_awk_interp* _in,
-    struct d_awk_value*  _cell
+static
+void d_internal_release(
+    struct dj_awk_interp* _in,
+    struct dj_awk_value*  _cell
 )
 {
     // a cell that cannot be held is simply freed
@@ -338,7 +362,7 @@ d_internal_release(
                               ? 32u
                               : (_in->pool_capacity * 2u);
 
-        struct d_awk_value** grown =
+        struct dj_awk_value** grown =
             realloc(_in->pool, capacity * sizeof(*grown));
 
         // free the cell rather than losing track of it
@@ -370,11 +394,11 @@ Parameter(s):
 Return:
   The frame holding it, or NULL when the name is not local.
 */
-static struct d_internal_frame*
-d_internal_local(
-    struct d_awk_interp* _in,
-    const char*          _name,
-    size_t*              _out_at
+static
+struct dj_internal_frame* d_internal_local(
+    struct dj_awk_interp* _in,
+    const char*           _name,
+    size_t*               _out_at
 )
 {
     // only the innermost frame is visible; awk has no nested scopes
@@ -383,7 +407,7 @@ d_internal_local(
         return NULL;
     }
 
-    struct d_internal_frame* frame = &_in->frames[_in->frame_count - 1u];
+    struct dj_internal_frame* frame = &_in->frames[_in->frame_count - 1u];
 
     for (size_t at = 0; at < frame->count; ++at)
     {
@@ -413,14 +437,14 @@ Parameter(s):
 Return:
   The cell, or NULL on failure.
 */
-static struct d_awk_value*
-d_internal_cell(
-    struct d_awk_interp* _in,
-    const char*          _name
+static
+struct dj_awk_value* d_internal_cell(
+    struct dj_awk_interp* _in,
+    const char*           _name
 )
 {
     size_t                         at    = 0;
-    struct d_internal_frame* const frame = d_internal_local(_in, _name, &at);
+    struct dj_internal_frame* const frame = d_internal_local(_in, _name, &at);
 
     // a local shadows a global of the same name
     if (frame)
@@ -448,14 +472,14 @@ Parameter(s):
 Return:
   The array, or NULL on failure.
 */
-static struct d_awk_array*
-d_internal_array(
-    struct d_awk_interp* _in,
-    const char*          _name
+static
+struct dj_awk_array* d_internal_array(
+    struct dj_awk_interp* _in,
+    const char*           _name
 )
 {
     size_t                         at    = 0;
-    struct d_internal_frame* const frame = d_internal_local(_in, _name, &at);
+    struct dj_internal_frame* const frame = d_internal_local(_in, _name, &at);
 
     // a local slot may already hold a borrowed or an owned array
     if (frame)
@@ -470,7 +494,7 @@ d_internal_array(
         return frame->arrays[at];
     }
 
-    struct d_awk_value* const cell = d_awk_array_lookup(_in->globals,
+    struct dj_awk_value* const cell = d_awk_array_lookup(_in->globals,
                                                         _name,
                                                         strlen(_name));
 
@@ -483,7 +507,7 @@ d_internal_array(
     // a global first used as an array acquires one, owned by the interpreter
     if (d_awk_value_tag_of(cell) != D_AWK_VAL_ARRAY)
     {
-        struct d_awk_array* const array = d_awk_array_new();
+        struct dj_awk_array* const array = d_awk_array_new();
 
         // abandon the lookup when the array could not be held
         if (!array)
@@ -498,7 +522,7 @@ d_internal_array(
                                   ? 8u
                                   : (_in->owned_capacity * 2u);
 
-            struct d_awk_array** grown =
+            struct dj_awk_array** grown =
                 realloc(_in->owned, capacity * sizeof(*grown));
 
             // free the array rather than losing track of it
@@ -536,14 +560,14 @@ Parameter(s):
 Return:
   The text, owned by the variable's cell.
 */
-static const char*
-d_internal_special(
-    struct d_awk_interp* _in,
-    const char*          _name,
-    const char*          _fallback
+static
+const char* d_internal_special(
+    struct dj_awk_interp* _in,
+    const char*           _name,
+    const char*           _fallback
 )
 {
-    struct d_awk_value* const cell = d_internal_cell(_in, _name);
+    struct dj_awk_value* const cell = d_internal_cell(_in, _name);
 
     // an unset or empty special falls back to its documented default
     if (!cell)
@@ -582,11 +606,11 @@ Return:
   - true, if the record was stored, or
   - false, otherwise.
 */
-static bool
-d_internal_set_record(
-    struct d_awk_interp* _in,
-    const char*          _text,
-    size_t               _length
+static
+bool d_internal_set_record(
+    struct dj_awk_interp* _in,
+    const char*           _text,
+    size_t                _length
 )
 {
     // grow the buffer when the record and its terminator do not fit
@@ -686,11 +710,11 @@ Return:
   - true, if the field was appended, or
   - false, otherwise.
 */
-static bool
-d_internal_push_field(
-    struct d_awk_interp* _in,
-    const char*          _text,
-    size_t               _length
+static
+bool d_internal_push_field(
+    struct dj_awk_interp* _in,
+    const char*           _text,
+    size_t                _length
 )
 {
     // grow the vector when it is full
@@ -700,7 +724,7 @@ d_internal_push_field(
                               ? 16u
                               : (_in->field_capacity * 2u);
 
-        struct d_awk_value** grown =
+        struct dj_awk_value** grown =
             realloc(_in->fields, capacity * sizeof(*grown));
 
         // report the failure rather than dropping the field
@@ -766,17 +790,14 @@ Return:
   - true, if the text was divided, or
   - false, otherwise.
 */
-static bool
-d_internal_split_into(
-    struct d_awk_interp* _in,
-    const char*          _text,
-    size_t               _length,
-    const char*          _separator,
-    bool               (*_append)(struct d_awk_interp*,
-                                  void*,
-                                  const char*,
-                                  size_t),
-    void*                _user
+static
+bool d_internal_split_into(
+    struct dj_awk_interp* _in,
+    const char*           _text,
+    size_t                _length,
+    const char*           _separator,
+    bool (*_append)(struct dj_awk_interp*, void*, const char*, size_t),
+    void*                 _user
 )
 {
     const size_t span = strlen(_separator);
@@ -868,8 +889,8 @@ d_internal_split_into(
         return true;
     }
 
-    enum d_regex_status status = D_REGEX_OK;
-    struct d_regex*     regex  = d_regex_compile(_separator, &status);
+    enum dj_regex_status status = D_REGEX_OK;
+    struct dj_regex*     regex  = d_regex_compile(_separator, &status);
 
     // a separator that will not compile is a runtime error, naming it
     if (!regex)
@@ -885,7 +906,7 @@ d_internal_split_into(
     // each match of the separator closes the field before it
     while (from <= _length)
     {
-        struct d_regex_match match = { 0, 0 };
+        struct dj_regex_match match = { 0, 0 };
 
         // no further separator leaves the remainder as the last field
         if (!d_regex_search(regex, _text, _length, from, &match))
@@ -932,12 +953,12 @@ Return:
   - true, if the field was appended, or
   - false, otherwise.
 */
-static bool
-d_internal_field_sink(
-    struct d_awk_interp* _in,
-    void*                _user,
-    const char*          _text,
-    size_t               _length
+static
+bool d_internal_field_sink(
+    struct dj_awk_interp* _in,
+    void*                 _user,
+    const char*           _text,
+    size_t                _length
 )
 {
     (void)_user;
@@ -957,9 +978,9 @@ Return:
   - true, if the fields are available, or
   - false, otherwise.
 */
-static bool
-d_internal_ensure_fields(
-    struct d_awk_interp* _in
+static
+bool d_internal_ensure_fields(
+    struct dj_awk_interp* _in
 )
 {
     // the split is performed once per record, on first demand
@@ -996,9 +1017,9 @@ Return:
   - true, if $0 is current, or
   - false, otherwise.
 */
-static bool
-d_internal_ensure_record(
-    struct d_awk_interp* _in
+static
+bool d_internal_ensure_record(
+    struct dj_awk_interp* _in
 )
 {
     // the rebuild happens once, on first demand after a field assignment
@@ -1072,9 +1093,9 @@ Parameter(s):
 Return:
   The number of fields.
 */
-static size_t
-d_internal_field_count(
-    struct d_awk_interp* _in
+static
+size_t d_internal_field_count(
+    struct dj_awk_interp* _in
 )
 {
     (void)d_internal_ensure_fields(_in);
@@ -1094,9 +1115,9 @@ a record arrives:  OFS = ":"; $3 = "x"; OFS = "-"; print  ->  a:b:x.  Each
 assignment captures it again, since each one conceptually rebuilds the whole
 record.
 */
-static void
-d_internal_invalidate_record(
-    struct d_awk_interp* _in
+static
+void d_internal_invalidate_record(
+    struct dj_awk_interp* _in
 )
 {
     const char* const ofs  = d_internal_special(_in, "OFS", " ");
@@ -1146,11 +1167,11 @@ Return:
   - true, if the assignment succeeded, or
   - false, otherwise.
 */
-static bool
-d_internal_set_field(
-    struct d_awk_interp* _in,
-    size_t               _index,
-    struct d_awk_value*  _value
+static
+bool d_internal_set_field(
+    struct dj_awk_interp* _in,
+    size_t                _index,
+    struct dj_awk_value*  _value
 )
 {
     size_t            length = 0;
@@ -1213,11 +1234,11 @@ Parameter(s):
 Return:
   The pattern, or NULL on failure.
 */
-static struct d_regex*
-d_internal_regex_of(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    bool*                _out_owned
+static
+struct dj_regex* d_internal_regex_of(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    bool*                 _out_owned
 )
 {
     *_out_owned = false;
@@ -1228,7 +1249,7 @@ d_internal_regex_of(
         return _node->regex;
     }
 
-    struct d_awk_value* const scratch = d_internal_acquire(_in);
+    struct dj_awk_value* const scratch = d_internal_acquire(_in);
 
     // abandon the match when the scratch cell could not be held
     if (!scratch)
@@ -1247,8 +1268,8 @@ d_internal_regex_of(
     size_t            length = 0;
     const char* const text   = d_awk_value_text(scratch, NULL, &length);
 
-    enum d_regex_status status = D_REGEX_OK;
-    struct d_regex*     regex  = d_regex_compile(text, &status);
+    enum dj_regex_status status = D_REGEX_OK;
+    struct dj_regex*     regex  = d_regex_compile(text, &status);
 
     // a dynamic pattern that will not compile is a runtime error, naming it
     if (!regex)
@@ -1282,13 +1303,13 @@ Return:
   - true, if the value is true in awk's sense, or
   - false, otherwise or on failure.
 */
-static bool
-d_internal_truth(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node
+static
+bool d_internal_truth(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node
 )
 {
-    struct d_awk_value* const scratch = d_internal_acquire(_in);
+    struct dj_awk_value* const scratch = d_internal_acquire(_in);
 
     // abandon the test when the scratch cell could not be held
     if (!scratch)
@@ -1319,17 +1340,17 @@ Return:
   - true, if the key was built, or
   - false, otherwise.
 */
-static bool
-d_internal_subscript(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    char**               _buffer,
-    size_t*              _out_length
+static
+bool d_internal_subscript(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    char**                _buffer,
+    size_t*               _out_length
 )
 {
     const char*         parts[16];
     size_t              lengths[16];
-    struct d_awk_value* cells[16];
+    struct dj_awk_value* cells[16];
     const size_t        count = _node->count;
 
     // a subscript of more parts than are held here is refused, not cut short
@@ -1414,14 +1435,14 @@ Return:
   - true, if the number names a field, or
   - false, otherwise, with the error raised.
 */
-static bool
-d_internal_field_number(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _index,
-    size_t*              _out_at
+static
+bool d_internal_field_number(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _index,
+    size_t*               _out_at
 )
 {
-    struct d_awk_value* const index = d_internal_acquire(_in);
+    struct dj_awk_value* const index = d_internal_acquire(_in);
 
     // abandon the reference when the number could not be evaluated
     if ( (!index) ||
@@ -1470,11 +1491,11 @@ Return:
   - true, if the field was read, or
   - false, otherwise.
 */
-static bool
-d_internal_field_value(
-    struct d_awk_interp* _in,
-    size_t               _at,
-    struct d_awk_value*  _out
+static
+bool d_internal_field_value(
+    struct dj_awk_interp* _in,
+    size_t                _at,
+    struct dj_awk_value*  _out
 )
 {
     // the whole record is rebuilt on demand rather than eagerly
@@ -1517,10 +1538,10 @@ d_internal_set_nf
 fields, growing it appends empty ones, and either way $0 is rebuilt from what
 is left.
 */
-static bool
-d_internal_set_nf(
-    struct d_awk_interp* _in,
-    struct d_awk_value*  _value
+static
+bool d_internal_set_nf(
+    struct dj_awk_interp* _in,
+    struct dj_awk_value*  _value
 )
 {
     // abandon the assignment when the record could not be divided
@@ -1586,11 +1607,11 @@ Return:
   - true, if the target was resolved, or
   - false, otherwise, with the error raised.
 */
-static bool
-d_internal_place_of(
-    struct d_awk_interp*     _in,
-    struct d_awk_node*       _target,
-    struct d_internal_place* _out_place
+static
+bool d_internal_place_of(
+    struct dj_awk_interp*     _in,
+    struct dj_awk_node*       _target,
+    struct dj_internal_place* _out_place
 )
 {
     _out_place->cell  = NULL;
@@ -1639,7 +1660,7 @@ d_internal_place_of(
         return false;
     }
 
-    struct d_awk_array* const array = d_internal_array(_in, _target->a->text);
+    struct dj_awk_array* const array = d_internal_array(_in, _target->a->text);
 
     // referencing a subscript creates the element, as awk specifies
     _out_place->cell = (array) ? d_awk_array_lookup(array, key, length)
@@ -1657,11 +1678,11 @@ d_internal_place_of(
 d_internal_place_read
   Reads the value at a place.
 */
-static bool
-d_internal_place_read(
-    struct d_awk_interp*           _in,
-    const struct d_internal_place* _place,
-    struct d_awk_value*            _out
+static
+bool d_internal_place_read(
+    struct dj_awk_interp*           _in,
+    const struct dj_internal_place* _place,
+    struct dj_awk_value*            _out
 )
 {
     // NF counts the fields, dividing the record if it must
@@ -1689,11 +1710,11 @@ d_internal_place_write
   Stores a value at a place.  The container owns the cell, so assignment
 copies into it; a field and NF assign through the record machinery.
 */
-static bool
-d_internal_place_write(
-    struct d_awk_interp*           _in,
-    const struct d_internal_place* _place,
-    struct d_awk_value*            _value
+static
+bool d_internal_place_write(
+    struct dj_awk_interp*           _in,
+    const struct dj_internal_place* _place,
+    struct dj_awk_value*            _value
 )
 {
     // writing NF resizes the record
@@ -1727,14 +1748,14 @@ Return:
   - true, if the assignment succeeded, or
   - false, otherwise.
 */
-static bool
-d_internal_assign_to(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _target,
-    struct d_awk_value*  _value
+static
+bool d_internal_assign_to(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _target,
+    struct dj_awk_value*  _value
 )
 {
-    struct d_internal_place place;
+    struct dj_internal_place place;
 
     // abandon the assignment when the target could not be resolved
     if (!d_internal_place_of(_in, _target, &place))
@@ -1766,12 +1787,12 @@ Return:
   - true, if the buffer holds `_needed` bytes, or
   - false, otherwise, with the error raised.
 */
-static bool
-d_internal_grow(
-    struct d_awk_interp* _in,
-    char**               _buffer,
-    size_t*              _capacity,
-    size_t               _needed
+static
+bool d_internal_grow(
+    struct dj_awk_interp* _in,
+    char**                _buffer,
+    size_t*               _capacity,
+    size_t                _needed
 )
 {
     // a buffer already large enough is left where it is
@@ -1831,13 +1852,13 @@ Return:
   - true, if the conversion was appended, or
   - false, otherwise, with the error raised.
 */
-static bool
-d_internal_append_formatted(
-    struct d_awk_interp* _in,
-    char**               _buffer,
-    size_t*              _used,
-    size_t*              _capacity,
-    const char*          _spec,
+static
+bool d_internal_append_formatted(
+    struct dj_awk_interp* _in,
+    char**                _buffer,
+    size_t*               _used,
+    size_t*               _capacity,
+    const char*           _spec,
     ...
 )
 {
@@ -1916,16 +1937,16 @@ Return:
   - true, if the conversion was appended, or
   - false, otherwise.
 */
-static bool
-d_internal_format_integer(
-    struct d_awk_interp* _in,
-    char**               _buffer,
-    size_t*              _used,
-    size_t*              _capacity,
-    char*                _spec,
-    size_t               _spec_length,
-    char                 _conversion,
-    double               _number
+static
+bool d_internal_format_integer(
+    struct dj_awk_interp* _in,
+    char**                _buffer,
+    size_t*               _used,
+    size_t*               _capacity,
+    char*                 _spec,
+    size_t                _spec_length,
+    char                  _conversion,
+    double                _number
 )
 {
     const bool is_signed = ( (_conversion == 'd') ||
@@ -1993,8 +2014,8 @@ d_internal_star
 int cannot hold, NaN included, is clamped rather than converted, which would
 be undefined.
 */
-static int
-d_internal_star(
+static
+int d_internal_star(
     double _number
 )
 {
@@ -2039,11 +2060,11 @@ Return:
   - true, if the text was rendered, or
   - false, otherwise.
 */
-static bool
-d_internal_format(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    struct d_awk_value*  _out
+static
+bool d_internal_format(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
 )
 {
     // a format is required
@@ -2052,7 +2073,7 @@ d_internal_format(
         return d_internal_fail(_in, "printf: no format supplied");
     }
 
-    struct d_awk_value* const fmt_cell = d_internal_acquire(_in);
+    struct dj_awk_value* const fmt_cell = d_internal_acquire(_in);
 
     // abandon the rendering when the format could not be evaluated
     if ((!fmt_cell) || (!d_internal_eval(_in, _node->list[0], fmt_cell)))
@@ -2109,7 +2130,7 @@ d_internal_format(
             // a star consumes an argument as its numeric value
             if (format[at] == '*')
             {
-                struct d_awk_value* const cell = d_internal_acquire(_in);
+                struct dj_awk_value* const cell = d_internal_acquire(_in);
 
                 // abandon the rendering when the width failed
                 if ( (!cell)                                  ||
@@ -2154,7 +2175,7 @@ d_internal_format(
 
         const char conversion = format[at];
 
-        struct d_awk_value* const cell = d_internal_acquire(_in);
+        struct dj_awk_value* const cell = d_internal_acquire(_in);
 
         // abandon the rendering when no cell could be held for the argument
         if (!cell)
@@ -2220,7 +2241,7 @@ d_internal_format(
                 const char* const text   = d_awk_value_text(cell,
                                                             NULL,
                                                             &length);
-                const enum d_awk_value_tag tag = d_awk_value_tag_of(cell);
+                const enum dj_awk_value_tag tag = d_awk_value_tag_of(cell);
                 const bool numeric = ( (tag == D_AWK_VAL_NUMBER) ||
                                        (tag == D_AWK_VAL_STRNUM) );
 
@@ -2285,7 +2306,7 @@ d_internal_format(
     while ( (ok) &&
             (argument < _node->count) )
     {
-        struct d_awk_value* const cell = d_internal_acquire(_in);
+        struct dj_awk_value* const cell = d_internal_acquire(_in);
 
         ok = (cell) &&
              d_internal_eval(_in, _node->list[argument++], cell);
@@ -2336,12 +2357,12 @@ Return:
   - true, if the substitution ran, or
   - false, otherwise.
 */
-static bool
-d_internal_substitute(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    bool                 _all,
-    struct d_awk_value*  _out
+static
+bool d_internal_substitute(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    bool                  _all,
+    struct dj_awk_value*  _out
 )
 {
     // the pattern and the replacement are both required
@@ -2351,7 +2372,7 @@ d_internal_substitute(
     }
 
     bool                  owned = false;
-    struct d_regex* const regex = d_internal_regex_of(_in,
+    struct dj_regex* const regex = d_internal_regex_of(_in,
                                                       _node->list[0],
                                                       &owned);
 
@@ -2361,8 +2382,8 @@ d_internal_substitute(
         return false;
     }
 
-    struct d_awk_value* const repl_cell = d_internal_acquire(_in);
-    struct d_awk_value* const subject   = d_internal_acquire(_in);
+    struct dj_awk_value* const repl_cell = d_internal_acquire(_in);
+    struct dj_awk_value* const subject   = d_internal_acquire(_in);
     bool                      ok        = ((repl_cell) && (subject));
 
     if (ok)
@@ -2371,7 +2392,7 @@ d_internal_substitute(
     }
 
     // the subject defaults to the whole record, which is field 0
-    struct d_internal_place place = { NULL, false, 0 };
+    struct dj_internal_place place = { NULL, false, 0 };
 
     if ( (ok) &&
          (_node->count > 2u) )
@@ -2435,7 +2456,7 @@ d_internal_substitute(
     // each match is replaced, with `&` standing for the matched text
     while (ok)
     {
-        struct d_regex_match match = { 0, 0 };
+        struct dj_regex_match match = { 0, 0 };
 
         // no further match leaves the remainder to be copied
         if (!d_regex_search(regex, text, text_length, from, &match))
@@ -2550,7 +2571,7 @@ d_internal_substitute(
             memcpy(&out[used], &text[from], tail);
             used += tail;
 
-            struct d_awk_value* const result = d_internal_acquire(_in);
+            struct dj_awk_value* const result = d_internal_acquire(_in);
 
             ok = (result) &&
                  d_awk_value_set_string(result, out, used);
@@ -2595,21 +2616,21 @@ Return:
   - true, if the element was stored, or
   - false, otherwise.
 */
-struct d_internal_split_target
+struct dj_internal_split_target
 {
-    struct d_awk_array* array;
+    struct dj_awk_array* array;
     size_t              index;
 };
 
-static bool
-d_internal_split_sink(
-    struct d_awk_interp* _in,
-    void*                _user,
-    const char*          _text,
-    size_t               _length
+static
+bool d_internal_split_sink(
+    struct dj_awk_interp* _in,
+    void*                 _user,
+    const char*           _text,
+    size_t                _length
 )
 {
-    struct d_internal_split_target* const target = _user;
+    struct dj_internal_split_target* const target = _user;
 
     char   key[32];
     const int written = snprintf(key,
@@ -2617,7 +2638,7 @@ d_internal_split_sink(
                                  "%zu",
                                  ++target->index);
 
-    struct d_awk_value* const cell = d_awk_array_lookup(target->array,
+    struct dj_awk_value* const cell = d_awk_array_lookup(target->array,
                                                         key,
                                                         (size_t)written);
 
@@ -2647,11 +2668,11 @@ Return:
   - true, if the call succeeded, or
   - false, otherwise.
 */
-static bool
-d_internal_builtin(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    struct d_awk_value*  _out
+static
+bool d_internal_builtin(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
 )
 {
     const char* const name = _node->text;
@@ -2674,8 +2695,8 @@ d_internal_builtin(
             return d_internal_fail(_in, "split: too few arguments");
         }
 
-        struct d_awk_value* const text_cell = d_internal_acquire(_in);
-        struct d_awk_value* const sep_cell  = d_internal_acquire(_in);
+        struct dj_awk_value* const text_cell = d_internal_acquire(_in);
+        struct dj_awk_value* const sep_cell  = d_internal_acquire(_in);
         bool                      ok        = ((text_cell) && (sep_cell));
 
         if (ok)
@@ -2716,7 +2737,7 @@ d_internal_builtin(
             }
         }
 
-        struct d_internal_split_target target = { NULL, 0 };
+        struct dj_internal_split_target target = { NULL, 0 };
 
         if (ok)
         {
@@ -2756,7 +2777,7 @@ d_internal_builtin(
             return d_internal_fail(_in, "match: too few arguments");
         }
 
-        struct d_awk_value* const subject = d_internal_acquire(_in);
+        struct dj_awk_value* const subject = d_internal_acquire(_in);
         bool                      ok      = (subject != NULL);
 
         if (ok)
@@ -2765,7 +2786,7 @@ d_internal_builtin(
         }
 
         bool                  owned = false;
-        struct d_regex* const regex = ok
+        struct dj_regex* const regex = ok
                                     ? d_internal_regex_of(_in,
                                                           _node->list[1],
                                                           &owned)
@@ -2777,7 +2798,7 @@ d_internal_builtin(
             const char* const    text   = d_awk_value_text(subject,
                                                            NULL,
                                                            &length);
-            struct d_regex_match match  = { 0, 0 };
+            struct dj_regex_match match  = { 0, 0 };
             const bool           found  = d_regex_search(regex,
                                                          text,
                                                          length,
@@ -2833,10 +2854,10 @@ d_internal_builtin(
          (_node->list[0]->kind == D_AWK_N_VAR) )
     {
         size_t                   at    = 0;
-        struct d_internal_frame* frame = d_internal_local(_in,
+        struct dj_internal_frame* frame = d_internal_local(_in,
                                                           _node->list[0]->text,
                                                           &at);
-        struct d_awk_value* cell = frame
+        struct dj_awk_value* cell = frame
                                  ? NULL
                                  : d_awk_array_find(_in->globals,
                                                     _node->list[0]->text,
@@ -2862,7 +2883,7 @@ d_internal_builtin(
     }
 
     // every remaining builtin takes ordinary values
-    struct d_awk_value* args[4] = { NULL, NULL, NULL, NULL };
+    struct dj_awk_value* args[4] = { NULL, NULL, NULL, NULL };
     const size_t        count   = (_node->count < 4u) ? _node->count : 4u;
     bool                ok      = true;
 
@@ -3115,14 +3136,14 @@ Return:
   - true, if the call completed, or
   - false, otherwise, with the error raised.
 */
-static bool
-d_internal_call_host(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    struct d_awk_value*  _out
+static
+bool d_internal_call_host(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
 )
 {
-    const struct d_awk_host_function* function = NULL;
+    const struct dj_awk_host_function* function = NULL;
     void*                             user     = NULL;
 
     for (size_t at = 0; at < _in->host_count; ++at)
@@ -3160,7 +3181,7 @@ d_internal_call_host(
         return d_internal_fail(_in, message);
     }
 
-    struct d_awk_value* args[16];
+    struct dj_awk_value* args[16];
     bool                ok    = (_node->count <= 16u);
     size_t              taken = 0;
 
@@ -3232,14 +3253,14 @@ Return:
   - true, if the call completed, or
   - false, otherwise.
 */
-static bool
-d_internal_call(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    struct d_awk_value*  _out
+static
+bool d_internal_call(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
 )
 {
-    struct d_awk_function* target = NULL;
+    struct dj_awk_function* target = NULL;
 
     for (size_t at = 0; at < _in->program->function_count; ++at)
     {
@@ -3290,7 +3311,7 @@ d_internal_call(
                               ? 16u
                               : (_in->frame_capacity * 2u);
 
-        struct d_internal_frame* grown =
+        struct dj_internal_frame* grown =
             realloc(_in->frames, capacity * sizeof(*grown));
 
         // abandon the call when the stack could not grow
@@ -3305,7 +3326,7 @@ d_internal_call(
 
     const size_t count = target->param_count;
 
-    struct d_internal_frame frame;
+    struct dj_internal_frame frame;
 
     memset(&frame, 0, sizeof(frame));
     frame.names      = target->params;
@@ -3335,7 +3356,7 @@ d_internal_call(
             continue;
         }
 
-        struct d_awk_node* const argument = _node->list[at];
+        struct dj_awk_node* const argument = _node->list[at];
 
         // A bare name may be an array, and awk does not say which until the
         // callee uses it.  A name already holding an array binds by
@@ -3345,7 +3366,7 @@ d_internal_call(
         if (argument->kind == D_AWK_N_VAR)
         {
             size_t                   outer_at = 0;
-            struct d_internal_frame* outer    = d_internal_local(
+            struct dj_internal_frame* outer    = d_internal_local(
                                                     _in,
                                                     argument->text,
                                                     &outer_at);
@@ -3356,7 +3377,7 @@ d_internal_call(
                 continue;
             }
 
-            struct d_awk_value* const existing =
+            struct dj_awk_value* const existing =
                 outer ? outer->cells[outer_at]
                       : d_awk_array_find(_in->globals,
                                          argument->text,
@@ -3442,11 +3463,11 @@ d_internal_call(
 //==============================================================================
 
 
-static bool
-d_internal_eval(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    struct d_awk_value*  _out
+static
+bool d_internal_eval(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
 )
 {
     // an error already raised stops further evaluation
@@ -3498,7 +3519,7 @@ d_internal_eval(
                 return true;
             }
 
-            struct d_awk_value* const cell = d_internal_cell(_in,
+            struct dj_awk_value* const cell = d_internal_cell(_in,
                                                              _node->text);
 
             // an unset variable reads as uninitialised, not as an error
@@ -3537,11 +3558,11 @@ d_internal_eval(
                 return false;
             }
 
-            struct d_awk_array* const array = d_internal_array(_in,
+            struct dj_awk_array* const array = d_internal_array(_in,
                                                                _node->a->text);
 
             // referencing a subscript CREATES the element, as awk specifies
-            struct d_awk_value* const cell = array
+            struct dj_awk_value* const cell = array
                                            ? d_awk_array_lookup(array,
                                                                 key,
                                                                 length)
@@ -3571,7 +3592,7 @@ d_internal_eval(
                 return false;
             }
 
-            struct d_awk_array* const array = d_internal_array(_in,
+            struct dj_awk_array* const array = d_internal_array(_in,
                                                                _node->b->text);
 
             // membership must NOT create the element, unlike a reference
@@ -3586,8 +3607,8 @@ d_internal_eval(
 
         case D_AWK_N_ASSIGN:
         {
-            struct d_awk_value* const value = d_internal_acquire(_in);
-            struct d_internal_place   place;
+            struct dj_awk_value* const value = d_internal_acquire(_in);
+            struct dj_internal_place   place;
 
             // abandon the assignment when the value could not be evaluated or
             // the target resolved; the target is resolved once, after the
@@ -3603,7 +3624,7 @@ d_internal_eval(
             // a compound assignment folds the old value into the new one
             if (_node->op != D_AWK_TOK_ASSIGN)
             {
-                struct d_awk_value* const old = d_internal_acquire(_in);
+                struct dj_awk_value* const old = d_internal_acquire(_in);
 
                 // abandon the assignment when the target could not be read
                 if ((!old) || (!d_internal_place_read(_in, &place, old)))
@@ -3675,8 +3696,8 @@ d_internal_eval(
 
         case D_AWK_N_CONCAT:
         {
-            struct d_awk_value* const left  = d_internal_acquire(_in);
-            struct d_awk_value* const right = d_internal_acquire(_in);
+            struct dj_awk_value* const left  = d_internal_acquire(_in);
+            struct dj_awk_value* const right = d_internal_acquire(_in);
             bool                      ok    = ((left) && (right));
 
             if (ok)
@@ -3737,7 +3758,7 @@ d_internal_eval(
 
         case D_AWK_N_MATCH:
         {
-            struct d_awk_value* const subject = d_internal_acquire(_in);
+            struct dj_awk_value* const subject = d_internal_acquire(_in);
             bool                      ok      = (subject != NULL);
 
             if (ok)
@@ -3746,7 +3767,7 @@ d_internal_eval(
             }
 
             bool                  owned = false;
-            struct d_regex* const regex = ok
+            struct dj_regex* const regex = ok
                                         ? d_internal_regex_of(_in,
                                                               _node->b,
                                                               &owned)
@@ -3785,7 +3806,7 @@ d_internal_eval(
 
         case D_AWK_N_UNARY:
         {
-            struct d_awk_value* const cell = d_internal_acquire(_in);
+            struct dj_awk_value* const cell = d_internal_acquire(_in);
 
             // abandon the evaluation when the operand failed
             if ((!cell) || (!d_internal_eval(_in, _node->a, cell)))
@@ -3818,8 +3839,8 @@ d_internal_eval(
         case D_AWK_N_PREINCR:
         case D_AWK_N_POSTINCR:
         {
-            struct d_awk_value* const cell = d_internal_acquire(_in);
-            struct d_internal_place   place;
+            struct dj_awk_value* const cell = d_internal_acquire(_in);
+            struct dj_internal_place   place;
 
             // abandon the evaluation when the target could not be resolved
             // or read; it is resolved once, so `a[i++]++` moves i once
@@ -3875,8 +3896,8 @@ d_internal_eval(
                 return (_in->flow != D_INTERNAL_FLOW_ERROR);
             }
 
-            struct d_awk_value* const left  = d_internal_acquire(_in);
-            struct d_awk_value* const right = d_internal_acquire(_in);
+            struct dj_awk_value* const left  = d_internal_acquire(_in);
+            struct dj_awk_value* const right = d_internal_acquire(_in);
             bool                      ok    = ((left) && (right));
 
             if (ok)
@@ -4035,9 +4056,9 @@ Return:
 */
 static FILE*
 d_internal_stream_open(
-    struct d_awk_interp*        _in,
+    struct dj_awk_interp*        _in,
     const char*                 _name,
-    enum d_internal_stream_kind _kind
+    enum dj_internal_stream_kind _kind
 )
 {
     const bool input = ( (_kind == D_INTERNAL_STREAM_IN_FILE) ||
@@ -4108,7 +4129,7 @@ d_internal_stream_open(
                               ? 8u
                               : (_in->stream_capacity * 2u);
 
-        struct d_internal_stream* grown =
+        struct dj_internal_stream* grown =
             realloc(_in->streams, capacity * sizeof(*grown));
 
         // report the failure rather than losing track of the handle
@@ -4153,10 +4174,10 @@ Parameter(s):
 Return:
   The status of the last close, or -1 when nothing was open.
 */
-static int
-d_internal_stream_close(
-    struct d_awk_interp* _in,
-    const char*          _name
+static
+int d_internal_stream_close(
+    struct dj_awk_interp* _in,
+    const char*           _name
 )
 {
     int  status = -1;
@@ -4171,7 +4192,7 @@ d_internal_stream_close(
             continue;
         }
 
-        struct d_internal_stream* const stream = &_in->streams[at];
+        struct dj_internal_stream* const stream = &_in->streams[at];
         const bool                      pipe   =
             ( (stream->kind == D_INTERNAL_STREAM_IN_PIPE) ||
               (stream->kind == D_INTERNAL_STREAM_OUT_PIPE) );
@@ -4216,10 +4237,10 @@ Return:
   0 when what was named was flushed, or -1 when a flush failed or nothing
   is open for output under the name.
 */
-static int
-d_internal_stream_flush(
-    struct d_awk_interp* _in,
-    const char*          _name
+static
+int d_internal_stream_flush(
+    struct dj_awk_interp* _in,
+    const char*           _name
 )
 {
     int  status = 0;
@@ -4244,7 +4265,7 @@ d_internal_stream_flush(
     // each output stream, of the name or of any
     for (size_t at = 0; at < _in->stream_count; ++at)
     {
-        const struct d_internal_stream* const stream = &_in->streams[at];
+        const struct dj_internal_stream* const stream = &_in->streams[at];
 
         // an input stream, or one of another name, is not flushed
         if ( (stream->kind == D_INTERNAL_STREAM_IN_FILE) ||
@@ -4279,10 +4300,10 @@ Return:
   - true, if the statement was written, or
   - false, otherwise.
 */
-static bool
-d_internal_output(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node
+static
+bool d_internal_output(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node
 )
 {
     FILE* sink = stdout;
@@ -4290,7 +4311,7 @@ d_internal_output(
     // a redirection names a file or a command to write through
     if (_node->b)
     {
-        struct d_awk_value* const name = d_internal_acquire(_in);
+        struct dj_awk_value* const name = d_internal_acquire(_in);
 
         // abandon the write when the destination could not be evaluated
         if ((!name) || (!d_internal_eval(_in, _node->b, name)))
@@ -4299,7 +4320,7 @@ d_internal_output(
             return false;
         }
 
-        const enum d_internal_stream_kind kind =
+        const enum dj_internal_stream_kind kind =
             (_node->op == D_AWK_TOK_PIPE)   ? D_INTERNAL_STREAM_OUT_PIPE
           : ((_node->op == D_AWK_TOK_APPEND) ? D_INTERNAL_STREAM_OUT_APPEND
                                              : D_INTERNAL_STREAM_OUT_FILE);
@@ -4319,7 +4340,7 @@ d_internal_output(
     // printf renders its whole output through the format
     if (_node->kind == D_AWK_N_PRINTF)
     {
-        struct d_awk_value* const text = d_internal_acquire(_in);
+        struct dj_awk_value* const text = d_internal_acquire(_in);
         bool                      ok   = (text != NULL);
 
         if (ok)
@@ -4363,7 +4384,7 @@ d_internal_output(
 
     for (size_t at = 0; at < _node->count; ++at)
     {
-        struct d_awk_value* const cell = d_internal_acquire(_in);
+        struct dj_awk_value* const cell = d_internal_acquire(_in);
 
         // abandon the write when an argument could not be evaluated
         if ((!cell) || (!d_internal_eval(_in, _node->list[at], cell)))
@@ -4391,10 +4412,10 @@ d_internal_output(
 }
 
 
-static bool
-d_internal_exec(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node
+static
+bool d_internal_exec(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node
 )
 {
     // a pending transfer suspends execution until it is handled
@@ -4427,7 +4448,7 @@ d_internal_exec(
 
         case D_AWK_N_EXPR_STMT:
         {
-            struct d_awk_value* const cell = d_internal_acquire(_in);
+            struct dj_awk_value* const cell = d_internal_acquire(_in);
             const bool                ok   = (cell) &&
                                              d_internal_eval(_in,
                                                              _node->a,
@@ -4522,7 +4543,7 @@ d_internal_exec(
             // the initialiser runs once, before the first test
             if (_node->a)
             {
-                struct d_awk_value* const cell = d_internal_acquire(_in);
+                struct dj_awk_value* const cell = d_internal_acquire(_in);
                 const bool                ok   = (cell) &&
                                                  d_internal_eval(_in,
                                                                  _node->a,
@@ -4567,7 +4588,7 @@ d_internal_exec(
                 // the step runs after the body and before the next test
                 if (_node->c)
                 {
-                    struct d_awk_value* const cell = d_internal_acquire(_in);
+                    struct dj_awk_value* const cell = d_internal_acquire(_in);
                     const bool                ok   = (cell) &&
                                                      d_internal_eval(_in,
                                                                      _node->c,
@@ -4588,7 +4609,7 @@ d_internal_exec(
 
         case D_AWK_N_FORIN:
         {
-            struct d_awk_array* const array = d_internal_array(_in,
+            struct dj_awk_array* const array = d_internal_array(_in,
                                                                _node->b->text);
 
             // abandon the loop when the array could not be resolved
@@ -4600,7 +4621,7 @@ d_internal_exec(
             size_t              cursor = 0;
             const char*         key    = NULL;
             size_t              length = 0;
-            struct d_awk_value* cell   = d_internal_acquire(_in);
+            struct dj_awk_value* cell   = d_internal_acquire(_in);
 
             // abandon the loop when the scratch cell could not be held
             if (!cell)
@@ -4694,7 +4715,7 @@ d_internal_exec(
             // an exit value is optional and defaults to the current status
             if (_node->a)
             {
-                struct d_awk_value* const cell = d_internal_acquire(_in);
+                struct dj_awk_value* const cell = d_internal_acquire(_in);
                 const bool                ok   = (cell) &&
                                                  d_internal_eval(_in,
                                                                  _node->a,
@@ -4724,7 +4745,7 @@ d_internal_exec(
             // a return value is optional and defaults to uninitialised
             if (_node->a)
             {
-                struct d_awk_value* const cell = d_internal_acquire(_in);
+                struct dj_awk_value* const cell = d_internal_acquire(_in);
                 const bool                ok   = (cell) &&
                                                  d_internal_eval(_in,
                                                                  _node->a,
@@ -4757,7 +4778,7 @@ d_internal_exec(
                 return false;
             }
 
-            struct d_awk_array* const array = d_internal_array(_in,
+            struct dj_awk_array* const array = d_internal_array(_in,
                                                                _node->a->text);
 
             // a deletion of an absent element is not an error
@@ -4773,7 +4794,7 @@ d_internal_exec(
 
         case D_AWK_N_DELETE_ALL:
         {
-            struct d_awk_array* const array = d_internal_array(_in,
+            struct dj_awk_array* const array = d_internal_array(_in,
                                                                _node->a->text);
 
             // clearing an array that does not exist is not an error
@@ -4787,7 +4808,7 @@ d_internal_exec(
 
         default:
         {
-            struct d_awk_value* const cell = d_internal_acquire(_in);
+            struct dj_awk_value* const cell = d_internal_acquire(_in);
             const bool                ok   = (cell) &&
                                              d_internal_eval(_in,
                                                              _node,
@@ -4822,9 +4843,9 @@ Return:
   - true, if a stream is open, or
   - false, when the operands are exhausted.
 */
-static bool
-d_internal_next_stream(
-    struct d_awk_interp* _in
+static
+bool d_internal_next_stream(
+    struct dj_awk_interp* _in
 )
 {
     // close whatever the previous operand left open
@@ -4836,7 +4857,7 @@ d_internal_next_stream(
     _in->stream       = NULL;
     _in->stream_owned = false;
 
-    struct d_awk_array* const argv = d_internal_array(_in, "ARGV");
+    struct dj_awk_array* const argv = d_internal_array(_in, "ARGV");
     const double              argc = d_awk_value_number(
                                          d_internal_cell(_in, "ARGC"));
 
@@ -4845,7 +4866,7 @@ d_internal_next_stream(
         char   key[32];
         const int written = snprintf(key, sizeof(key), "%zu", _in->argv_at++);
 
-        struct d_awk_value* const slot = d_awk_array_find(argv,
+        struct dj_awk_value* const slot = d_awk_array_find(argv,
                                                           key,
                                                           (size_t)written);
 
@@ -4913,11 +4934,11 @@ Return:
   - true, if a record was read, or
   - false, at end of stream.
 */
-static bool
-d_internal_read_one(
-    struct d_awk_interp* _in,
-    FILE*                _stream,
-    size_t*              _out_length
+static
+bool d_internal_read_one(
+    struct dj_awk_interp* _in,
+    FILE*                 _stream,
+    size_t*               _out_length
 )
 {
     const char* const rs        = d_internal_special(_in, "RS", "\n");
@@ -5033,10 +5054,10 @@ are copied into the interpreter's read buffer before the loop sees them; that
 keeps the lifetime rule for a source as weak as possible -- valid until the
 next call -- and leaves every downstream invariant identical in both modes.
 */
-static bool
-d_internal_next_record(
-    struct d_awk_interp* _in,
-    size_t*              _out_length
+static
+bool d_internal_next_record(
+    struct dj_awk_interp* _in,
+    size_t*               _out_length
 )
 {
     // no host source means the POSIX path, unchanged
@@ -5102,10 +5123,10 @@ Return:
   - true, if a record was read, or
   - false, when every input is exhausted.
 */
-static bool
-d_internal_next_main_record(
-    struct d_awk_interp* _in,
-    size_t*              _out_length
+static
+bool d_internal_next_main_record(
+    struct dj_awk_interp* _in,
+    size_t*               _out_length
 )
 {
     while (true)
@@ -5158,11 +5179,11 @@ Return:
   - true, if the form was evaluated, or
   - false, on a fatal error.
 */
-static bool
-d_internal_getline(
-    struct d_awk_interp* _in,
-    struct d_awk_node*   _node,
-    struct d_awk_value*  _out
+static
+bool d_internal_getline(
+    struct dj_awk_interp* _in,
+    struct dj_awk_node*   _node,
+    struct dj_awk_value*  _out
 )
 {
     FILE* stream    = NULL;
@@ -5171,7 +5192,7 @@ d_internal_getline(
     // the source is a file, a command, or the main input
     if ((_node->op == D_AWK_TOK_LT) || (_node->op == D_AWK_TOK_PIPE))
     {
-        struct d_awk_value* const name = d_internal_acquire(_in);
+        struct dj_awk_value* const name = d_internal_acquire(_in);
 
         // abandon the read when the source name could not be evaluated
         if ((!name) || (!d_internal_eval(_in, _node->b, name)))
@@ -5224,7 +5245,7 @@ d_internal_getline(
     // a target takes the record; without one it becomes $0 and resplits
     if (_node->a)
     {
-        struct d_awk_value* const cell = d_internal_acquire(_in);
+        struct dj_awk_value* const cell = d_internal_acquire(_in);
         bool                      ok   = (cell != NULL);
 
         if (ok)
@@ -5249,14 +5270,14 @@ d_internal_getline(
     // the main input advances both counters; a command advances only NR
     if ((main_input) || (_node->op == D_AWK_TOK_PIPE))
     {
-        struct d_awk_value* const nr = d_internal_cell(_in, "NR");
+        struct dj_awk_value* const nr = d_internal_cell(_in, "NR");
 
         d_awk_value_set_number(nr, d_awk_value_number(nr) + 1.0);
     }
 
     if (main_input)
     {
-        struct d_awk_value* const fnr = d_internal_cell(_in, "FNR");
+        struct dj_awk_value* const fnr = d_internal_cell(_in, "FNR");
 
         d_awk_value_set_number(fnr, d_awk_value_number(fnr) + 1.0);
     }
@@ -5278,14 +5299,14 @@ Return:
   - true, if the record was processed, or
   - false, otherwise.
 */
-static bool
-d_internal_run_rules(
-    struct d_awk_interp* _in
+static
+bool d_internal_run_rules(
+    struct dj_awk_interp* _in
 )
 {
     for (size_t at = 0; at < _in->program->rule_count; ++at)
     {
-        struct d_awk_rule* const rule = &_in->program->rules[at];
+        struct dj_awk_rule* const rule = &_in->program->rules[at];
 
         // only the main rules see records
         if (rule->kind != D_AWK_RULE_MAIN)
@@ -5391,9 +5412,8 @@ Parameter(s):
 Return:
   The interpreter, or NULL on failure.
 */
-struct d_awk_interp*
-d_awk_interp_new(
-    struct d_awk_program* _program
+struct dj_awk_interp* d_awk_interp_new(
+    struct dj_awk_program* _program
 )
 {
     // parameter validation first
@@ -5402,7 +5422,7 @@ d_awk_interp_new(
         return NULL;
     }
 
-    struct d_awk_interp* interp = calloc(1, sizeof(*interp));
+    struct dj_awk_interp* interp = calloc(1, sizeof(*interp));
 
     // abandon the allocation when the handle could not be held
     if (!interp)
@@ -5440,7 +5460,7 @@ d_awk_interp_new(
     d_awk_value_set_number(d_internal_cell(interp, "RLENGTH"), -1.0);
 
     // ARGV[0] names the interpreter, as POSIX specifies; the operands follow
-    struct d_awk_array* const argv = d_internal_array(interp, "ARGV");
+    struct dj_awk_array* const argv = d_internal_array(interp, "ARGV");
 
     // abandon the allocation when ARGV could not be created
     if (!argv)
@@ -5468,9 +5488,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_interp_free(
-    struct d_awk_interp* _interp
+void d_awk_interp_free(
+    struct dj_awk_interp* _interp
 )
 {
     if (_interp)
@@ -5510,7 +5529,7 @@ d_awk_interp_free(
         // a stream the program left open is closed at teardown
         while (_interp->stream_count > 0)
         {
-            struct d_internal_stream* const stream =
+            struct dj_internal_stream* const stream =
                 &_interp->streams[--_interp->stream_count];
             const bool pipe =
                 ( (stream->kind == D_INTERNAL_STREAM_IN_PIPE) ||
@@ -5561,8 +5580,8 @@ character set or an underscore anywhere, a digit anywhere but first.  The
 ranges are spelled out, so the answer does not follow the C locale as isalpha
 would.
 */
-static bool
-d_internal_is_name_byte(
+static
+bool d_internal_is_name_byte(
     char _byte,
     bool _first
 )
@@ -5581,10 +5600,9 @@ d_awk_interp_assign
 as POSIX says; `dir/x=y.txt` is a file.  The value is decoded by the scanner's
 own decoder before the numeric string test sees it.
 */
-bool
-d_awk_interp_assign(
-    struct d_awk_interp* _interp,
-    const char*          _text
+bool d_awk_interp_assign(
+    struct dj_awk_interp* _interp,
+    const char*           _text
 )
 {
     // parameter validation first
@@ -5625,7 +5643,7 @@ d_awk_interp_assign(
                                                      value_length,
                                                      decoded);
 
-        struct d_awk_value* const cell = d_internal_cell(_interp, name);
+        struct dj_awk_value* const cell = d_internal_cell(_interp, name);
 
         ok = (cell) &&
              d_awk_value_set_input(cell, decoded, decoded_length);
@@ -5650,10 +5668,9 @@ Return:
   - true, if the path was appended, or
   - false, otherwise.
 */
-bool
-d_awk_interp_add_input(
-    struct d_awk_interp* _interp,
-    const char*          _path
+bool d_awk_interp_add_input(
+    struct dj_awk_interp* _interp,
+    const char*           _path
 )
 {
     // parameter validation first
@@ -5662,8 +5679,8 @@ d_awk_interp_add_input(
         return false;
     }
 
-    struct d_awk_array* const argv = d_internal_array(_interp, "ARGV");
-    struct d_awk_value* const argc = d_internal_cell(_interp, "ARGC");
+    struct dj_awk_array* const argv = d_internal_array(_interp, "ARGV");
+    struct dj_awk_value* const argc = d_internal_cell(_interp, "ARGC");
 
     // report the failure rather than dropping the operand
     if ((!argv) || (!argc))
@@ -5677,7 +5694,7 @@ d_awk_interp_add_input(
                                  "%d",
                                  (int)d_awk_value_number(argc));
 
-    struct d_awk_value* const slot = d_awk_array_lookup(argv,
+    struct dj_awk_value* const slot = d_awk_array_lookup(argv,
                                                         key,
                                                         (size_t)written);
 
@@ -5704,11 +5721,10 @@ d_awk_interp_set_limits
   Sets the call limits.  Zero for either means "keep the current value", so
 a host can change one without knowing the other.
 */
-bool
-d_awk_interp_set_limits(
-    struct d_awk_interp* _interp,
-    size_t               _call_depth,
-    size_t               _stack_budget
+bool d_awk_interp_set_limits(
+    struct dj_awk_interp* _interp,
+    size_t                _call_depth,
+    size_t                _stack_budget
 )
 {
     // parameter validation first
@@ -5739,10 +5755,9 @@ called at teardown.  Refusing a NULL `next_record` matters because an empty
 input and an unwired source are indistinguishable once the loop starts, and
 only one of them is a bug worth reporting.
 */
-bool
-d_awk_interp_set_source(
-    struct d_awk_interp* _interp,
-    struct d_awk_source* _source
+bool d_awk_interp_set_source(
+    struct dj_awk_interp* _interp,
+    struct dj_awk_source* _source
 )
 {
     // parameter validation first
@@ -5779,12 +5794,11 @@ d_awk_interp_add_functions
   The table grows by the extension's count at once, and every name is checked
 before any is added, so a refused extension leaves nothing of itself behind.
 */
-bool
-d_awk_interp_add_functions(
-    struct d_awk_interp*              _interp,
-    const struct d_awk_host_function* _functions,
-    size_t                            _count,
-    void*                             _user
+bool d_awk_interp_add_functions(
+    struct dj_awk_interp*              _interp,
+    const struct dj_awk_host_function* _functions,
+    size_t                             _count,
+    void*                              _user
 )
 {
     // parameter validation first
@@ -5833,7 +5847,7 @@ d_awk_interp_add_functions(
     {
         const size_t capacity = _interp->host_count + _count;
 
-        struct d_internal_host* const grown =
+        struct dj_internal_host* const grown =
             realloc(_interp->hosts, capacity * sizeof(*grown));
 
         // report the failure rather than adding half an extension
@@ -5871,10 +5885,9 @@ Return:
   - true, if ENVIRON was filled, or
   - false, otherwise.
 */
-bool
-d_awk_interp_set_environ(
-    struct d_awk_interp* _interp,
-    char* const*         _environ
+bool d_awk_interp_set_environ(
+    struct dj_awk_interp* _interp,
+    char* const*          _environ
 )
 {
     // parameter validation first
@@ -5883,7 +5896,7 @@ d_awk_interp_set_environ(
         return false;
     }
 
-    struct d_awk_array* const array = d_internal_array(_interp, "ENVIRON");
+    struct dj_awk_array* const array = d_internal_array(_interp, "ENVIRON");
 
     // abandon the fill when ENVIRON could not be created
     if (!array)
@@ -5901,7 +5914,7 @@ d_awk_interp_set_environ(
             continue;
         }
 
-        struct d_awk_value* const slot = d_awk_array_lookup(
+        struct dj_awk_value* const slot = d_awk_array_lookup(
                                              array,
                                              _environ[at],
                                              (size_t)(split - _environ[at]));
@@ -5930,9 +5943,8 @@ Parameter(s):
 Return:
   The exit status the program requested, or 2 on a runtime error.
 */
-int
-d_awk_interp_run(
-    struct d_awk_interp* _interp
+int d_awk_interp_run(
+    struct dj_awk_interp* _interp
 )
 {
     // parameter validation first
@@ -5969,7 +5981,7 @@ d_awk_interp_run(
 
     for (size_t at = 0; at < _interp->program->rule_count; ++at)
     {
-        const enum d_awk_rule_kind kind = _interp->program->rules[at].kind;
+        const enum dj_awk_rule_kind kind = _interp->program->rules[at].kind;
 
         // a main or END rule is a reason to read the input
         if (kind != D_AWK_RULE_BEGIN)
@@ -5996,8 +6008,8 @@ d_awk_interp_run(
                 break;
             }
 
-            struct d_awk_value* const nr  = d_internal_cell(_interp, "NR");
-            struct d_awk_value* const fnr = d_internal_cell(_interp, "FNR");
+            struct dj_awk_value* const nr  = d_internal_cell(_interp, "NR");
+            struct dj_awk_value* const fnr = d_internal_cell(_interp, "FNR");
 
             d_awk_value_set_number(nr, d_awk_value_number(nr) + 1.0);
             d_awk_value_set_number(fnr, d_awk_value_number(fnr) + 1.0);
@@ -6073,9 +6085,8 @@ Parameter(s):
 Return:
   The diagnostic, or NULL when none was recorded.
 */
-const char*
-d_awk_interp_error(
-    const struct d_awk_interp* _interp
+const char* d_awk_interp_error(
+    const struct dj_awk_interp* _interp
 )
 {
     // parameter validation first

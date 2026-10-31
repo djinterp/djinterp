@@ -38,8 +38,8 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
-#include "./dss.h"    // d_dss_sheet, d_dss_declaration
+#include "./dnode.h"  // dj_node_tree
+#include "./dss.h"    // dj_dss_sheet, dj_dss_declaration
 
 
 //==============================================================================
@@ -50,51 +50,51 @@ TABLE OF CONTENTS
 // 1.1    Callbacks
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_schema_evaluate_fn
+// dj_schema_evaluate_fn
 //   type: evaluates one declaration at one node; sets *_out_evaluated false
 // when the declaration says nothing there.
-typedef bool (*d_schema_evaluate_fn)(const struct d_dss_sheet*       _sheet,
-                                     struct d_node_tree*             _tree,
+typedef bool (*dj_schema_evaluate_fn)(const struct dj_dss_sheet*       _sheet,
+                                     struct dj_node_tree*             _tree,
                                      uint32_t                        _node,
-                                     const struct d_dss_declaration* _decl,
+                                     const struct dj_dss_declaration* _decl,
                                      bool*                           _out_evaluated);
 // 1.1.2
-// d_schema_check_fn
+// dj_schema_check_fn
 //   type: checks a declaration's value at load; sets *_out_why on refusal.
-typedef bool (*d_schema_check_fn)(const struct d_dss_sheet*       _sheet,
-                                  const struct d_dss_declaration* _decl,
+typedef bool (*dj_schema_check_fn)(const struct dj_dss_sheet*       _sheet,
+                                  const struct dj_dss_declaration* _decl,
                                   const char**                    _out_why);
 
 // 1.2    Records
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_schema_property
+// dj_schema_property
 //   struct: one property a host understands.  `evaluate` NULL means the host
 // reads the declaration itself (a modifier such as a severity); `host` is
 // the host's own, for anything the engine has no word for, such as repair.
-struct d_schema_property
+struct dj_schema_property
 {
     const char*           name;
     bool                  inherited;
     const char*           initial;    // NULL: no initial value
-    d_schema_check_fn     check;      // NULL: any value
-    d_schema_evaluate_fn  evaluate;
+    dj_schema_check_fn     check;      // NULL: any value
+    dj_schema_evaluate_fn  evaluate;
     const void*           host;
 };
 
 // 1.2.2
-// d_schema
+// dj_schema
 //   struct: a host's properties.
-struct d_schema
+struct dj_schema
 {
-    const struct d_schema_property*  properties;
+    const struct dj_schema_property*  properties;
     size_t                           count;
 };
 
 // 1.2.3
-// d_schema_binding
+// dj_schema_binding
 //   struct: a schema indexed by the symbols of one table.
-struct d_schema_binding;
+struct dj_schema_binding;
 
 
 //==============================================================================
@@ -104,9 +104,10 @@ struct d_schema_binding;
 
 // 2.1    Validation
 //------------------------------------------------------------------------------
-const struct d_schema_property*
-     d_schema_find(const struct d_schema* _schema,
-                   const char*            _name);
+const struct dj_schema_property* d_schema_find(
+    const struct dj_schema* _schema,
+    const char*             _name
+);
 /**
  * @brief Refuses a sheet whose rules name a property the schema lacks or give
  *        one a value its check refuses.
@@ -120,11 +121,13 @@ const struct d_schema_property*
  * @param[out] _out_why   receives the refusal; may be `NULL`.
  * @return `true` if every rule declaration is known and valid.
  */
-bool d_schema_validate(const struct d_schema*    _schema,
-                       const struct d_dss_sheet* _sheet,
-                       uint32_t*                 _out_line,
-                       const char**              _out_name,
-                       const char**              _out_why);
+bool d_schema_validate(
+    const struct dj_schema*    _schema,
+    const struct dj_dss_sheet* _sheet,
+    uint32_t*                  _out_line,
+    const char**               _out_name,
+    const char**               _out_why
+);
 
 // 2.2    Binding and dispatch
 //------------------------------------------------------------------------------
@@ -135,14 +138,18 @@ bool d_schema_validate(const struct d_schema*    _schema,
  * @param[in,out] _symbols  the table the sheet and trees share.
  * @return the binding, or `NULL` if allocation failed.
  */
-struct d_schema_binding*
-     d_schema_bind(const struct d_schema* _schema,
-                   struct d_symbol_table* _symbols);
-void d_schema_binding_free(struct d_schema_binding* _binding);
+struct dj_schema_binding* d_schema_bind(
+    const struct dj_schema* _schema,
+    struct dj_symbol_table* _symbols
+);
+void d_schema_binding_free(
+    struct dj_schema_binding* _binding
+);
 // the entry for a property symbol, or NULL
-const struct d_schema_property*
-     d_schema_lookup(const struct d_schema_binding* _binding,
-                     uint32_t                       _symbol);
+const struct dj_schema_property* d_schema_lookup(
+    const struct dj_schema_binding* _binding,
+    uint32_t                        _symbol
+);
 /**
  * @brief Evaluates a declaration through its property's registered callback.
  *
@@ -154,12 +161,14 @@ const struct d_schema_property*
  * @param[out] _out_evaluated  false when nothing was evaluated.
  * @return whether the declaration holds; meaningful only when evaluated.
  */
-bool d_schema_evaluate(const struct d_schema_binding*  _binding,
-                       const struct d_dss_sheet*       _sheet,
-                       struct d_node_tree*             _tree,
-                       uint32_t                        _node,
-                       const struct d_dss_declaration* _declaration,
-                       bool*                           _out_evaluated);
+bool d_schema_evaluate(
+    const struct dj_schema_binding*  _binding,
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    bool*                            _out_evaluated
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DSCHEMA_H

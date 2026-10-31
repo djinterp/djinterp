@@ -31,15 +31,11 @@ d_tests_sa_text_template_wrap_keys
   - returns ERROR_NULL_PARAM for NULL buffer
   - returns ERROR_BUFFER_TOO_SMALL when buffer insufficient
 */
-struct d_test_object*
-d_tests_sa_text_template_wrap_keys
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_wrap_keys(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     char                        buf[D_TEST_TMPL_BUFFER_SIZE];
     bool                        test_single;
     bool                        test_multiple;
@@ -277,15 +273,11 @@ d_tests_sa_text_template_wrap_keys_alloc
   - returns ERROR_NULL_PARAM for NULL inputs
   - handles empty input
 */
-struct d_test_object*
-d_tests_sa_text_template_wrap_keys_alloc
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_wrap_keys_alloc(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     char*                       result;
     bool                        test_correct;
     bool                        test_null_term;
@@ -415,13 +407,9 @@ d_tests_sa_text_template_wrap_all
   - d_text_template_wrap_keys
   - d_text_template_wrap_keys_alloc
 */
-struct d_test_object*
-d_tests_sa_text_template_wrap_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_wrap_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Key Wrapping", 2);

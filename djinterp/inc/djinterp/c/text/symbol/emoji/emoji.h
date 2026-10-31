@@ -47,7 +47,7 @@
 #include "./emoji_flags.h"
 #include "../../../../env/c/env_vendor_attributes.h"  // D_THREAD_LOCAL_*
 // re_std
-#include "../../../../../re_std/cstdint/dstdint.h"  // uint32_t
+#include "../../../../../re_std/c/cstdint/dstdint.h"  // uint32_t
 
 
 // ============================================================================
@@ -1360,8 +1360,10 @@ D_EXTERN_C_BEGIN
  * @return the number of bytes written, 1 to 4, or 0, with nothing written,
  *         when `_cp` is not a scalar value or `_out` is `NULL`.
  */
-size_t      d_text_emoji_utf8_encode(uint32_t _cp,
-                                     char*    _out);
+size_t d_text_emoji_utf8_encode(
+    uint32_t _cp,
+    char*    _out
+);
 
 #if D_THREAD_LOCAL_AVAILABLE
 
@@ -1381,7 +1383,9 @@ size_t      d_text_emoji_utf8_encode(uint32_t _cp,
  * @post The string stays valid until this thread's next call to
  *       d_text_emoji_utf8(); a call that returns `NULL` leaves it as it was.
  */
-const char* d_text_emoji_utf8(uint32_t _cp);
+const char* d_text_emoji_utf8(
+    uint32_t _cp
+);
 
 /**
  * @brief Returns the UTF-8 encoding of a sequence of code points, such as a
@@ -1399,8 +1403,10 @@ const char* d_text_emoji_utf8(uint32_t _cp);
  *       d_text_emoji_utf8_seq(); a call that returns `NULL` leaves it as it
  *       was.
  */
-const char* d_text_emoji_utf8_seq(const uint32_t* _cps,
-                                  size_t          _length);
+const char* d_text_emoji_utf8_seq(
+    const uint32_t* _cps,
+    size_t          _length
+);
 
 #endif  // D_THREAD_LOCAL_AVAILABLE
 

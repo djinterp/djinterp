@@ -21,7 +21,7 @@
 #include <stdlib.h>  // malloc, realloc, free
 #include <string.h>  // memset
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint16_t,
+#include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint8_t, uint16_t,
                                                      // uint32_t, uint64_t
 
 
@@ -33,23 +33,23 @@
 //   constant: the most symbols a code has: the literals and lengths' 288.
 #define D_INTERNAL_SYMBOLS 288u
 
-// d_internal_huffman
+// dj_internal_huffman
 //   struct: a canonical code: how many codes of each length, its symbols
 //   in the code's order, and the table of codes no longer than
 //   D_INTERNAL_FAST bits -- each entry the code's length times 512 plus
 //   its symbol, 0 where no short code begins.
-struct d_internal_huffman
+struct dj_internal_huffman
 {
     uint16_t count[16];
     uint16_t symbol[D_INTERNAL_SYMBOLS];
     uint16_t fast[1u << D_INTERNAL_FAST];
 };
 
-// d_internal_inflate
+// dj_internal_inflate
 //   struct: a stream being inflated: its bytes, the next to read, the bits
 //   read and not yet used, how many bytes of zeros were read past its end
 //   to fill them, and the output so far.
-struct d_internal_inflate
+struct dj_internal_inflate
 {
     const uint8_t* in;
     size_t         length;
@@ -96,10 +96,10 @@ d_internal_fill
 zeros, counted, so a peek near the end still reads, and a use of them is
 caught.
 */
-static void
-d_internal_fill(
-    struct d_internal_inflate* _inflate,
-    unsigned                   _need
+static
+void d_internal_fill(
+    struct dj_internal_inflate* _inflate,
+    unsigned                    _need
 )
 {
     // a byte at a time, until there are enough bits
@@ -128,10 +128,10 @@ d_internal_fill(
 d_internal_take
   The next `_need` bits, least significant first, used.
 */
-static uint32_t
-d_internal_take(
-    struct d_internal_inflate* _inflate,
-    unsigned                   _need
+static
+uint32_t d_internal_take(
+    struct dj_internal_inflate* _inflate,
+    unsigned                    _need
 )
 {
     // nothing to take
@@ -156,9 +156,9 @@ d_internal_take(
 d_internal_overrun
   Whether more bits were used than the stream holds.
 */
-static bool
-d_internal_overrun(
-    const struct d_internal_inflate* _inflate
+static
+bool d_internal_overrun(
+    const struct dj_internal_inflate* _inflate
 )
 {
     return ((_inflate->past * 8u) > _inflate->count);
@@ -169,8 +169,8 @@ d_internal_overrun(
 d_internal_reverse
   A code's `_length` bits in the other order, as the stream holds them.
 */
-static unsigned
-d_internal_reverse(
+static
+unsigned d_internal_reverse(
     unsigned _code,
     unsigned _length
 )
@@ -195,11 +195,11 @@ which deflate may give a block.
   Long as the codes are counted, numbered and tabled in one pass, as RFC
 1951's 3.2.2 has it.
 */
-static bool
-d_internal_build(
-    struct d_internal_huffman* _code,
-    const uint8_t*             _lengths,
-    unsigned                   _count
+static
+bool d_internal_build(
+    struct dj_internal_huffman* _code,
+    const uint8_t*              _lengths,
+    unsigned                    _count
 )
 {
     uint16_t offsets[16];
@@ -281,10 +281,10 @@ d_internal_slow
 order lets it be read: at each length, the codes of that length are the
 next in order. -1 for bits that are no code.
 */
-static int
-d_internal_slow(
-    struct d_internal_inflate*       _inflate,
-    const struct d_internal_huffman* _code
+static
+int d_internal_slow(
+    struct dj_internal_inflate*       _inflate,
+    const struct dj_internal_huffman* _code
 )
 {
     int code  = 0;
@@ -319,10 +319,10 @@ d_internal_decode
   The next symbol of a code: from the table when its code is short, bit by
 bit when not.
 */
-static int
-d_internal_decode(
-    struct d_internal_inflate*       _inflate,
-    const struct d_internal_huffman* _code
+static
+int d_internal_decode(
+    struct dj_internal_inflate*       _inflate,
+    const struct dj_internal_huffman* _code
 )
 {
     d_internal_fill(_inflate, D_INTERNAL_FAST);
@@ -349,10 +349,10 @@ d_internal_decode(
 d_internal_room
   Room for `_more` bytes of output, but not past a length that is known.
 */
-static bool
-d_internal_room(
-    struct d_internal_inflate* _inflate,
-    size_t                     _more
+static
+bool d_internal_room(
+    struct dj_internal_inflate* _inflate,
+    size_t                      _more
 )
 {
     const size_t wanted = _inflate->out_length + _more;
@@ -400,9 +400,9 @@ d_internal_stored
   A stored block: to a byte's boundary, its length and that length's
 complement, then that many bytes as they are.
 */
-static bool
-d_internal_stored(
-    struct d_internal_inflate* _inflate
+static
+bool d_internal_stored(
+    struct dj_internal_inflate* _inflate
 )
 {
     // to a byte's boundary
@@ -436,11 +436,11 @@ d_internal_copy_back
   A length and distance: bytes copied from that far back in the output,
 the copy reaching into what it writes when the distance is the shorter.
 */
-static bool
-d_internal_copy_back(
-    struct d_internal_inflate* _inflate,
-    size_t                     _length,
-    size_t                     _distance
+static
+bool d_internal_copy_back(
+    struct dj_internal_inflate* _inflate,
+    size_t                      _length,
+    size_t                      _distance
 )
 {
     // a distance within the output, and room for the copy
@@ -470,11 +470,11 @@ d_internal_copy_back(
 d_internal_codes
   A block's literals, lengths and distances, until its end symbol.
 */
-static bool
-d_internal_codes(
-    struct d_internal_inflate*       _inflate,
-    const struct d_internal_huffman* _literals,
-    const struct d_internal_huffman* _distances
+static
+bool d_internal_codes(
+    struct dj_internal_inflate*       _inflate,
+    const struct dj_internal_huffman* _literals,
+    const struct dj_internal_huffman* _distances
 )
 {
     // each symbol, until the block's end
@@ -540,13 +540,13 @@ d_internal_codes(
 d_internal_fixed
   A block of the fixed codes RFC 1951's 3.2.6 gives.
 */
-static bool
-d_internal_fixed(
-    struct d_internal_inflate* _inflate
+static
+bool d_internal_fixed(
+    struct dj_internal_inflate* _inflate
 )
 {
-    static struct d_internal_huffman literals;
-    static struct d_internal_huffman distances;
+    static struct dj_internal_huffman literals;
+    static struct dj_internal_huffman distances;
     static bool                      built = false;
 
     // the codes, built once
@@ -578,12 +578,12 @@ d_internal_dynamic_lengths
   The lengths a dynamic block gives its codes, read by the code of code
 lengths: 0 to 15 a length, 16 the last repeated, 17 and 18 runs of zeros.
 */
-static bool
-d_internal_dynamic_lengths(
-    struct d_internal_inflate*       _inflate,
-    const struct d_internal_huffman* _lengths_code,
-    uint8_t*                         _lengths,
-    unsigned                         _count
+static
+bool d_internal_dynamic_lengths(
+    struct dj_internal_inflate*       _inflate,
+    const struct dj_internal_huffman* _lengths_code,
+    uint8_t*                          _lengths,
+    unsigned                          _count
 )
 {
     unsigned at = 0u;
@@ -640,16 +640,16 @@ d_internal_dynamic
   A block of the codes it gives: their counts, the code of code lengths in
 its odd order, the lengths, and then the block.
 */
-static bool
-d_internal_dynamic(
-    struct d_internal_inflate* _inflate
+static
+bool d_internal_dynamic(
+    struct dj_internal_inflate* _inflate
 )
 {
     static const uint8_t order[19] = { 16u, 17u, 18u, 0u, 8u, 7u, 9u, 6u, 10u,
                                        5u, 11u, 4u, 12u, 3u, 13u, 2u, 14u, 1u,
                                        15u };
-    struct d_internal_huffman literals;
-    struct d_internal_huffman distances;
+    struct dj_internal_huffman literals;
+    struct dj_internal_huffman distances;
     uint8_t                   lengths[D_INTERNAL_SYMBOLS + 32u];
     const unsigned            nlen  = d_internal_take(_inflate, 5u) + 257u;
     const unsigned            ndist = d_internal_take(_inflate, 5u) + 1u;
@@ -696,8 +696,8 @@ d_internal_dynamic(
 d_internal_adler
   The Adler-32 of bytes, as zlib's trailer holds it.
 */
-static uint32_t
-d_internal_adler(
+static
+uint32_t d_internal_adler(
     const uint8_t* _bytes,
     size_t         _length
 )
@@ -731,9 +731,9 @@ d_internal_adler(
 d_internal_blocks
   Every block, to the one marked last.
 */
-static bool
-d_internal_blocks(
-    struct d_internal_inflate* _inflate
+static
+bool d_internal_blocks(
+    struct dj_internal_inflate* _inflate
 )
 {
     bool last = false;
@@ -768,15 +768,14 @@ no preset dictionary, and a check that holds. After the last block, to a
 byte's boundary, the trailer is the output's Adler-32, big-endian; the
 bytes used are those the reader took less those it holds unused.
 */
-bool
-d_git_inflate(
-    const uint8_t*         _stream,
-    size_t                 _length,
-    size_t                 _expected,
-    struct d_git_inflated* _out
+bool d_git_inflate(
+    const uint8_t*          _stream,
+    size_t                  _length,
+    size_t                  _expected,
+    struct dj_git_inflated* _out
 )
 {
-    struct d_internal_inflate inflate;
+    struct dj_internal_inflate inflate;
 
     memset(_out, 0, sizeof(*_out));
     memset(&inflate, 0, sizeof(inflate));

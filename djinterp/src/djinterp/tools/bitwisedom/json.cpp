@@ -97,7 +97,9 @@ private:
         return "line " + format_dec(line) + ", column " + format_dec(column);
     }
 
-    bool fail(const std::string& _message)
+    bool fail(
+        const std::string& _message
+    )
     {
         m_error = _message;
 
@@ -118,7 +120,9 @@ private:
         return;
     }
 
-    bool literal_word(const char* _word)
+    bool literal_word(
+        const char* _word
+    )
     {
         const std::string_view word(_word);
 
@@ -170,7 +174,9 @@ private:
         }
     }
 
-    bool number(json_value& _out)
+    bool number(
+        json_value& _out
+    )
     {
         const std::size_t start = m_at;
 
@@ -197,7 +203,8 @@ private:
         return true;
     }
 
-    static void append_utf8(
+    static
+    void append_utf8(
         std::string&     _out,
         re_std::uint32_t _code
     )
@@ -221,7 +228,9 @@ private:
         return;
     }
 
-    bool string(std::string& _out)
+    bool string(
+        std::string& _out
+    )
     {
         ++m_at;  // the opening quote
         _out.clear();
@@ -425,8 +434,7 @@ private:
 
 // quoted
 //   a string as a JSON string literal.
-std::string
-quoted(
+std::string quoted(
     const std::string& _text
 )
 {
@@ -470,8 +478,7 @@ const std::size_t LINE = 100;
 
 // scalar
 //   whether a value prints on one line.
-bool
-scalar(
+bool scalar(
     const json_value& _value
 )
 {
@@ -482,8 +489,7 @@ scalar(
 // flat_array
 //   whether a value is an array of scalars, which prints on one line
 // however long it is.
-bool
-flat_array(
+bool flat_array(
     const json_value& _value
 )
 {
@@ -507,8 +513,7 @@ flat_array(
 //   appends a value, written on one line, to _out; false, and _out left
 // part-written, once _out is longer than _room -- which stops it early in
 // a value a thousand lines long.
-bool
-one_line(
+bool one_line(
     const json_value& _value,
     std::size_t       _room,
     std::string&      _out
@@ -576,8 +581,7 @@ one_line(
 // scalars, on one line; any other array or object on one line where the
 // line has room for it, with the comma that may follow; and where not, an
 // item or a member to a line.
-void
-write_value(
+void write_value(
     const json_value& _value,
     int               _indent,
     std::size_t       _column,
@@ -644,8 +648,7 @@ write_value(
 }  // anonymous namespace
 
 
-json_value
-json_value::boolean(
+json_value json_value::boolean(
     bool _flag
 )
 {
@@ -656,8 +659,7 @@ json_value::boolean(
     return made;
 }
 
-json_value
-json_value::number(
+json_value json_value::number(
     i64 _number
 )
 {
@@ -668,8 +670,7 @@ json_value::number(
     return made;
 }
 
-json_value
-json_value::real(
+json_value json_value::real(
     double _number
 )
 {
@@ -684,8 +685,7 @@ json_value::real(
     return made;
 }
 
-json_value
-json_value::string(
+json_value json_value::string(
     const std::string& _text
 )
 {
@@ -696,8 +696,7 @@ json_value::string(
     return made;
 }
 
-json_value
-json_value::array()
+json_value json_value::array()
 {
     json_value made;
     made.type = json_type::array;
@@ -705,8 +704,7 @@ json_value::array()
     return made;
 }
 
-json_value
-json_value::object()
+json_value json_value::object()
 {
     json_value made;
     made.type = json_type::object;
@@ -714,8 +712,7 @@ json_value::object()
     return made;
 }
 
-const json_value*
-json_value::find(
+const json_value* json_value::find(
     const std::string& _key
 ) const
 {
@@ -735,8 +732,7 @@ json_value::find(
     return nullptr;
 }
 
-void
-json_value::set(
+void json_value::set(
     const std::string& _key,
     json_value         _value
 )
@@ -758,8 +754,7 @@ json_value::set(
     return;
 }
 
-void
-json_value::push(
+void json_value::push(
     json_value _value
 )
 {
@@ -769,8 +764,7 @@ json_value::push(
     return;
 }
 
-bool
-json_value::as_bool(
+bool json_value::as_bool(
     bool _fallback
 ) const
 {
@@ -778,8 +772,7 @@ json_value::as_bool(
                                         : _fallback;
 }
 
-i64
-json_value::as_int(
+i64 json_value::as_int(
     i64 _fallback
 ) const
 {
@@ -794,8 +787,7 @@ json_value::as_int(
                      : _fallback;
 }
 
-double
-json_value::as_real(
+double json_value::as_real(
     double _fallback
 ) const
 {
@@ -811,8 +803,7 @@ json_value::as_real(
                                  : _fallback;
 }
 
-std::string
-json_value::as_string(
+std::string json_value::as_string(
     const std::string& _fallback
 ) const
 {
@@ -820,8 +811,7 @@ json_value::as_string(
                                        : _fallback;
 }
 
-bool
-parse_json(
+bool parse_json(
     std::string_view _text,
     json_value&      _value,
     std::string&     _error
@@ -832,8 +822,7 @@ parse_json(
     return parse.run(_value, _error);
 }
 
-std::string
-write_json(
+std::string write_json(
     const json_value& _value
 )
 {

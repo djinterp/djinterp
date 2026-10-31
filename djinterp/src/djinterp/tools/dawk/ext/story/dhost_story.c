@@ -23,7 +23,7 @@
 #include <string.h>  // memcpy, memset, strchr, strcmp, strlen, strrchr
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"     // d_fs_full_path
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"   // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"   // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/dregex.h"  // d_regex_search_groups
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"  // d_awk_value_text
 
@@ -36,19 +36,19 @@
 // 1.1    Model
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_media
+// dj_internal_media
 //   struct: one media file, and how many slide references it has.
-struct d_internal_media
+struct dj_internal_media
 {
     char*                   name;
-    enum d_story_media_kind kind;
+    enum dj_story_media_kind kind;
     size_t                  uses;
 };
 
 // 1.1.2
 // d_internal_slide
 //   struct: one slide, and the media it holds as indices into the story's.
-struct d_internal_slide
+struct dj_internal_slide
 {
     char*   name;
     size_t  scene;
@@ -59,17 +59,17 @@ struct d_internal_slide
 };
 
 // 1.1.3
-// d_story
+// dj_story
 //   struct: the model, the driver that read it, and the driver's state.
-struct d_story
+struct dj_story
 {
-    const struct d_story_driver* driver;
+    const struct dj_story_driver* driver;
     void*                        state;
     char*                        path;
-    struct d_internal_slide*     slides;
+    struct dj_internal_slide*     slides;
     size_t                       slide_count;
     size_t                       slide_capacity;
-    struct d_internal_media*     media;
+    struct dj_internal_media*     media;
     size_t                       media_count;
     size_t                       media_capacity;
     size_t                       changes;
@@ -79,17 +79,17 @@ struct d_story
 // 1.2    Extension
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_host_story
+// dj_host_story
 //   struct: the drivers, the story open, the last failure, and the rule last
 //   compiled, kept because a program applies one rule to every file.
-struct d_host_story
+struct dj_host_story
 {
-    const struct d_story_driver** drivers;
+    const struct dj_story_driver** drivers;
     size_t                        driver_count;
-    struct d_story*               story;
+    struct dj_story*               story;
     char                          error[256];
     char*                         expression;
-    struct d_regex*               regex;
+    struct dj_regex*               regex;
 };
 
 
@@ -102,8 +102,8 @@ struct d_host_story
 d_internal_problem
   Writes a reason into a caller's buffer, which may be NULL; always false.
 */
-static bool
-d_internal_problem(
+static
+bool d_internal_problem(
     char*       _problem,
     size_t      _capacity,
     const char* _message,
@@ -129,8 +129,8 @@ d_internal_problem(
 d_internal_copy
   Copies a string; NULL copies as "".
 */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _text
 )
 {
@@ -153,8 +153,8 @@ d_internal_base_name
   The last part of a path, after any `/` or `\`: either separator, since a
 path from Windows may hold both.
 */
-static const char*
-d_internal_base_name(
+static
+const char* d_internal_base_name(
     const char* _path
 )
 {
@@ -178,8 +178,8 @@ d_internal_base_name(
 d_internal_extension
   The extension of a path's last part, without its dot; "" when it has none.
 */
-static const char*
-d_internal_extension(
+static
+const char* d_internal_extension(
     const char* _path
 )
 {
@@ -195,8 +195,8 @@ d_internal_extension(
 d_internal_same_text
   Compares two strings ignoring ASCII case, as extensions are compared.
 */
-static bool
-d_internal_same_text(
+static
+bool d_internal_same_text(
     const char* _left,
     const char* _right
 )
@@ -223,7 +223,7 @@ d_internal_same_text(
 d_internal_kind_of
   A media file's kind, from its extension.
 */
-static enum d_story_media_kind
+static enum dj_story_media_kind
 d_internal_kind_of(
     const char* _name
 )
@@ -276,8 +276,8 @@ d_internal_kind_of(
 d_internal_slurp
   Reads a whole file into memory.
 */
-static unsigned char*
-d_internal_slurp(
+static
+unsigned char* d_internal_slurp(
     const char* _path,
     size_t*     _out_length
 )
@@ -342,12 +342,11 @@ d_internal_slurp(
 d_story_add_slide
   The slide takes the next ordinal; the driver adds them in story order.
 */
-size_t
-d_story_add_slide(
-    struct d_story* _story,
-    const char*     _name,
-    size_t          _scene,
-    size_t          _number
+size_t d_story_add_slide(
+    struct dj_story* _story,
+    const char*      _name,
+    size_t           _scene,
+    size_t           _number
 )
 {
     // parameter validation first
@@ -363,7 +362,7 @@ d_story_add_slide(
                               ? 32u
                               : (_story->slide_capacity * 2u);
 
-        struct d_internal_slide* const grown =
+        struct dj_internal_slide* const grown =
             realloc(_story->slides, capacity * sizeof(*grown));
 
         // report the failure rather than losing a slide
@@ -376,7 +375,7 @@ d_story_add_slide(
         _story->slide_capacity = capacity;
     }
 
-    struct d_internal_slide* const slide = &_story->slides[_story->slide_count];
+    struct dj_internal_slide* const slide = &_story->slides[_story->slide_count];
 
     memset(slide, 0, sizeof(*slide));
     slide->name   = d_internal_copy(_name);
@@ -397,10 +396,10 @@ d_story_add_slide(
 d_internal_find_media
   The index of a media file by name, or D_STORY_NONE.
 */
-static size_t
-d_internal_find_media(
-    const struct d_story* _story,
-    const char*           _name
+static
+size_t d_internal_find_media(
+    const struct dj_story* _story,
+    const char*            _name
 )
 {
     for (size_t at = 0; at < _story->media_count; ++at)
@@ -419,10 +418,10 @@ d_internal_find_media(
 d_internal_new_media
   Adds a media file the story has not seen.
 */
-static size_t
-d_internal_new_media(
-    struct d_story* _story,
-    const char*     _name
+static
+size_t d_internal_new_media(
+    struct dj_story* _story,
+    const char*      _name
 )
 {
     // grow the media when they are full
@@ -432,7 +431,7 @@ d_internal_new_media(
                               ? 32u
                               : (_story->media_capacity * 2u);
 
-        struct d_internal_media* const grown =
+        struct dj_internal_media* const grown =
             realloc(_story->media, capacity * sizeof(*grown));
 
         // report the failure rather than losing a file
@@ -445,7 +444,7 @@ d_internal_new_media(
         _story->media_capacity = capacity;
     }
 
-    struct d_internal_media* const media = &_story->media[_story->media_count];
+    struct dj_internal_media* const media = &_story->media[_story->media_count];
 
     media->name = d_internal_copy(_name);
     media->kind = d_internal_kind_of(_name);
@@ -466,11 +465,10 @@ d_story_add_media
   A file a second slide names is the same file, used again: that count is
 what stops a replacement through one slide from changing another.
 */
-size_t
-d_story_add_media(
-    struct d_story* _story,
-    size_t          _slide,
-    const char*     _media
+size_t d_story_add_media(
+    struct dj_story* _story,
+    size_t           _slide,
+    const char*      _media
 )
 {
     // parameter validation first
@@ -495,7 +493,7 @@ d_story_add_media(
         }
     }
 
-    struct d_internal_slide* const slide = &_story->slides[_slide];
+    struct dj_internal_slide* const slide = &_story->slides[_slide];
 
     // a slide naming one file twice still uses it once
     for (size_t at = 0; at < slide->media_count; ++at)
@@ -537,10 +535,9 @@ d_story_note
   Appends a line to the notes; a note that cannot be held is dropped, since a
 note is never what a run depends on.
 */
-bool
-d_story_note(
-    struct d_story* _story,
-    const char*     _note
+bool d_story_note(
+    struct dj_story* _story,
+    const char*      _note
 )
 {
     // parameter validation first
@@ -580,13 +577,12 @@ d_story_open
 cannot read it is the answer, and no other is asked, since a file that is
 plainly one format's and damaged is not another format's.
 */
-struct d_story*
-d_story_open(
-    const char*                         _path,
-    const struct d_story_driver* const* _drivers,
-    size_t                              _count,
-    char*                               _problem,
-    size_t                              _capacity
+struct dj_story* d_story_open(
+    const char*                          _path,
+    const struct dj_story_driver* const* _drivers,
+    size_t                               _count,
+    char*                                _problem,
+    size_t                               _capacity
 )
 {
     // parameter validation first
@@ -597,7 +593,7 @@ d_story_open(
         return NULL;
     }
 
-    const struct d_story_driver* driver = NULL;
+    const struct dj_story_driver* driver = NULL;
 
     for (size_t at = 0; (at < _count) && (!driver); ++at)
     {
@@ -618,7 +614,7 @@ d_story_open(
         return NULL;
     }
 
-    struct d_story* const story = calloc(1u, sizeof(*story));
+    struct dj_story* const story = calloc(1u, sizeof(*story));
     char* const           path  = d_internal_copy(_path);
 
     // report the failure rather than opening half a story
@@ -651,9 +647,8 @@ d_story_open(
 d_story_free
   The driver's state goes first, then the model it filled.
 */
-void
-d_story_free(
-    struct d_story* _story
+void d_story_free(
+    struct dj_story* _story
 )
 {
     if (_story)
@@ -692,8 +687,8 @@ d_internal_same_file
   Whether two paths name one file: by spelling, and by full name where both
 have one.  A path that names nothing yet cannot be a file that exists.
 */
-static bool
-d_internal_same_file(
+static
+bool d_internal_same_file(
     const char* _left,
     const char* _right
 )
@@ -722,12 +717,11 @@ d_story_save
   The path is compared with the story's own, by full name, before the driver
 is asked: on Windows names differ in case only, so the comparison ignores it.
 */
-bool
-d_story_save(
-    struct d_story* _story,
-    const char*     _path,
-    char*           _problem,
-    size_t          _capacity
+bool d_story_save(
+    struct dj_story* _story,
+    const char*      _path,
+    char*            _problem,
+    size_t           _capacity
 )
 {
     // parameter validation first
@@ -755,9 +749,8 @@ d_story_save(
 d_story_changes
   Replacements made since the story was opened.
 */
-size_t
-d_story_changes(
-    const struct d_story* _story
+size_t d_story_changes(
+    const struct dj_story* _story
 )
 {
     return (_story) ? _story->changes : 0u;
@@ -768,9 +761,8 @@ d_story_changes(
 d_story_notes
   Every note so far, one per line; "" when there are none.
 */
-const char*
-d_story_notes(
-    const struct d_story* _story
+const char* d_story_notes(
+    const struct dj_story* _story
 )
 {
     return ( (_story) &&
@@ -782,9 +774,8 @@ d_story_notes(
 d_story_driver_name
   The name of the driver that read the story.
 */
-const char*
-d_story_driver_name(
-    const struct d_story* _story
+const char* d_story_driver_name(
+    const struct dj_story* _story
 )
 {
     return (_story) ? _story->driver->name : "";
@@ -800,9 +791,8 @@ d_story_driver_name(
 d_story_slide_count
   Every slide, in story order.
 */
-size_t
-d_story_slide_count(
-    const struct d_story* _story
+size_t d_story_slide_count(
+    const struct dj_story* _story
 )
 {
     return (_story) ? _story->slide_count : 0u;
@@ -814,8 +804,8 @@ d_internal_number
   Reads a run of decimal digits as a number, refusing an empty run, any other
 byte, and a value past what an index holds.
 */
-static bool
-d_internal_number(
+static
+bool d_internal_number(
     const char* _text,
     size_t      _length,
     size_t*     _out
@@ -853,10 +843,9 @@ d_story_resolve
   Digits first, since a slide named "8" is rarer than a rule saying 8; then
 scene and slide; then a name.
 */
-size_t
-d_story_resolve(
-    const struct d_story* _story,
-    const char*           _key
+size_t d_story_resolve(
+    const struct dj_story* _story,
+    const char*            _key
 )
 {
     // parameter validation first
@@ -913,10 +902,10 @@ d_story_resolve(
 d_internal_slide
   The slide an ordinal names, or NULL.
 */
-static const struct d_internal_slide*
-d_internal_slide(
-    const struct d_story* _story,
-    size_t                _slide
+static
+const struct dj_internal_slide* d_internal_slide(
+    const struct dj_story* _story,
+    size_t                 _slide
 )
 {
     return ( (_story)                        &&
@@ -930,39 +919,36 @@ d_internal_slide(
 d_story_slide_name, d_story_slide_scene, d_story_slide_number
   What the driver recorded for a slide.
 */
-const char*
-d_story_slide_name(
-    const struct d_story* _story,
-    size_t                _slide
+const char* d_story_slide_name(
+    const struct dj_story* _story,
+    size_t                 _slide
 )
 {
-    const struct d_internal_slide* const slide = d_internal_slide(_story,
+    const struct dj_internal_slide* const slide = d_internal_slide(_story,
                                                                   _slide);
 
     return (slide) ? slide->name : "";
 }
 
 
-size_t
-d_story_slide_scene(
-    const struct d_story* _story,
-    size_t                _slide
+size_t d_story_slide_scene(
+    const struct dj_story* _story,
+    size_t                 _slide
 )
 {
-    const struct d_internal_slide* const slide = d_internal_slide(_story,
+    const struct dj_internal_slide* const slide = d_internal_slide(_story,
                                                                   _slide);
 
     return (slide) ? slide->scene : 0u;
 }
 
 
-size_t
-d_story_slide_number(
-    const struct d_story* _story,
-    size_t                _slide
+size_t d_story_slide_number(
+    const struct dj_story* _story,
+    size_t                 _slide
 )
 {
-    const struct d_internal_slide* const slide = d_internal_slide(_story,
+    const struct dj_internal_slide* const slide = d_internal_slide(_story,
                                                                   _slide);
 
     return (slide) ? slide->number : 0u;
@@ -979,14 +965,14 @@ d_internal_audio
   The index into the story's media of a slide's k-th audio file, or
 D_STORY_NONE.
 */
-static size_t
-d_internal_audio(
-    const struct d_story* _story,
-    size_t                _slide,
-    size_t                _audio
+static
+size_t d_internal_audio(
+    const struct dj_story* _story,
+    size_t                 _slide,
+    size_t                 _audio
 )
 {
-    const struct d_internal_slide* const slide = d_internal_slide(_story,
+    const struct dj_internal_slide* const slide = d_internal_slide(_story,
                                                                   _slide);
     size_t                               seen  = 0;
 
@@ -1010,13 +996,12 @@ d_internal_audio(
 d_story_audio_count
   A slide's audio files.
 */
-size_t
-d_story_audio_count(
-    const struct d_story* _story,
-    size_t                _slide
+size_t d_story_audio_count(
+    const struct dj_story* _story,
+    size_t                 _slide
 )
 {
-    const struct d_internal_slide* const slide = d_internal_slide(_story,
+    const struct dj_internal_slide* const slide = d_internal_slide(_story,
                                                                   _slide);
     size_t                               count = 0;
 
@@ -1035,11 +1020,10 @@ d_story_audio_count(
 d_story_audio_name
   The name the format gives a slide's k-th audio file.
 */
-const char*
-d_story_audio_name(
-    const struct d_story* _story,
-    size_t                _slide,
-    size_t                _audio
+const char* d_story_audio_name(
+    const struct dj_story* _story,
+    size_t                 _slide,
+    size_t                 _audio
 )
 {
     const size_t index = d_internal_audio(_story, _slide, _audio);
@@ -1053,9 +1037,9 @@ d_story_replace_audio
   Every check is made before the file is read: a refusal costs nothing, and a
 rule that matches a thousand files is refused a thousand times quickly.
 */
-enum d_story_result
+enum dj_story_result
 d_story_replace_audio(
-    struct d_story* _story,
+    struct dj_story* _story,
     size_t          _slide,
     size_t          _audio,
     const char*     _source,
@@ -1081,7 +1065,7 @@ d_story_replace_audio(
         return D_STORY_ABSENT;
     }
 
-    const struct d_internal_media* const media = &_story->media[index];
+    const struct dj_internal_media* const media = &_story->media[index];
 
     // a file two slides use cannot be replaced through one of them
     if (media->uses > 1u)
@@ -1154,13 +1138,13 @@ d_internal_key
 part, or else the last run of digits within the match, short of the name's
 extension: the 3 of .mp3 is no slide number.
 */
-static void
-d_internal_key(
-    const char*                 _name,
-    const struct d_regex_match* _groups,
-    size_t                      _group,
-    char*                       _key,
-    size_t                      _key_size
+static
+void d_internal_key(
+    const char*                  _name,
+    const struct dj_regex_match* _groups,
+    size_t                       _group,
+    char*                        _key,
+    size_t                       _key_size
 )
 {
     size_t start  = 0;
@@ -1225,19 +1209,19 @@ d_internal_key(
 d_internal_match_with
   Matches a compiled rule against a name and takes the key out.
 */
-static bool
-d_internal_match_with(
-    struct d_regex* _regex,
-    const char*     _path,
-    size_t          _group,
-    char*           _key,
-    size_t          _key_size,
-    char*           _problem,
-    size_t          _capacity
+static
+bool d_internal_match_with(
+    struct dj_regex* _regex,
+    const char*      _path,
+    size_t           _group,
+    char*            _key,
+    size_t           _key_size,
+    char*            _problem,
+    size_t           _capacity
 )
 {
     const char* const    name  = d_internal_base_name(_path);
-    struct d_regex_match groups[D_REGEX_GROUP_MAX + 1];
+    struct dj_regex_match groups[D_REGEX_GROUP_MAX + 1];
 
     _key[0] = '\0';
 
@@ -1248,7 +1232,7 @@ d_internal_match_with(
                                   "the rule has no such group", NULL);
     }
 
-    const enum d_regex_status status = d_regex_search_groups(_regex,
+    const enum dj_regex_status status = d_regex_search_groups(_regex,
                                                              name,
                                                              strlen(name),
                                                              0,
@@ -1276,8 +1260,7 @@ d_internal_match_with(
 d_story_match
   Compiled for one call; the extension keeps its compiled rule between calls.
 */
-bool
-d_story_match(
+bool d_story_match(
     const char* _expression,
     const char* _path,
     size_t      _group,
@@ -1297,8 +1280,8 @@ d_story_match(
                                   NULL);
     }
 
-    enum d_regex_status   status = D_REGEX_OK;
-    struct d_regex* const regex  = d_regex_compile(_expression, &status);
+    enum dj_regex_status   status = D_REGEX_OK;
+    struct dj_regex* const regex  = d_regex_compile(_expression, &status);
 
     // a rule that does not compile is a mistake in the rule
     if (!regex)
@@ -1328,18 +1311,18 @@ d_internal_text, d_internal_index
   An argument's text, and an argument as a 1-based index: a value below 1,
 or none at all, is 0, which names nothing.
 */
-static const char*
-d_internal_text(
-    struct d_awk_value* _value
+static
+const char* d_internal_text(
+    struct dj_awk_value* _value
 )
 {
     return d_awk_value_text(_value, NULL, NULL);
 }
 
 
-static size_t
-d_internal_index(
-    struct d_awk_value* _value
+static
+size_t d_internal_index(
+    struct dj_awk_value* _value
 )
 {
     const double number = d_awk_value_number(_value);
@@ -1360,12 +1343,12 @@ d_internal_needs_story
   The functions that read or change a story need one open; calling them
 without one is a mistake in the program, and stops it.
 */
-static bool
-d_internal_needs_story(
-    const struct d_host_story* _host,
-    const char*                _function,
-    char*                      _problem,
-    size_t                     _capacity
+static
+bool d_internal_needs_story(
+    const struct dj_host_story* _host,
+    const char*                 _function,
+    char*                       _problem,
+    size_t                      _capacity
 )
 {
     // a story open is all it takes
@@ -1385,10 +1368,10 @@ d_internal_needs_story(
 d_internal_fail_soft
   Records a failure the program can recover from, and gives -1.
 */
-static bool
-d_internal_fail_soft(
-    struct d_host_story* _host,
-    struct d_awk_value*  _out
+static
+bool d_internal_fail_soft(
+    struct dj_host_story* _host,
+    struct dj_awk_value*  _out
 )
 {
     // an empty reason is still a failure, said as one
@@ -1408,17 +1391,17 @@ story_open(path)
   The slide count, or -1; a story already open is closed first, unsaved
 changes and all, as a program that opens a second has finished the first.
 */
-static bool
-d_internal_story_open(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_open(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_count;
     (void)_problem;
@@ -1448,17 +1431,17 @@ d_internal_story_open(
 story_close()
   Always 1; closing nothing is not a mistake.
 */
-static bool
-d_internal_story_close(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_close(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -1477,17 +1460,17 @@ d_internal_story_close(
 story_error()
   Why the last open, replacement or save failed; "" after one that worked.
 */
-static bool
-d_internal_story_error(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_error(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -1502,17 +1485,17 @@ d_internal_story_error(
 story_notes()
   What the driver noted of the story open, one note per line; "" with none.
 */
-static bool
-d_internal_story_notes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_notes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -1533,17 +1516,17 @@ d_internal_story_notes(
 story_slides(), story_changes()
   The slide count, and the replacements not yet saved.
 */
-static bool
-d_internal_story_slides(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_slides(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -1560,17 +1543,17 @@ d_internal_story_slides(
 }
 
 
-static bool
-d_internal_story_changes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_changes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -1591,17 +1574,17 @@ d_internal_story_changes(
 story_slide(key)
   The slide a key names, from 1, or 0.
 */
-static bool
-d_internal_story_slide(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_slide(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_count;
 
@@ -1623,17 +1606,17 @@ d_internal_story_slide(
 story_slide_name(n), story_slide_scene(n), story_slide_number(n)
   What the story says of a slide; "" or 0 for one that is not there.
 */
-static bool
-d_internal_story_slide_name(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_slide_name(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_count;
 
@@ -1650,17 +1633,17 @@ d_internal_story_slide_name(
 }
 
 
-static bool
-d_internal_story_slide_scene(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_slide_scene(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_count;
 
@@ -1679,17 +1662,17 @@ d_internal_story_slide_scene(
 }
 
 
-static bool
-d_internal_story_slide_number(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_slide_number(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_count;
 
@@ -1712,17 +1695,17 @@ d_internal_story_slide_number(
 story_audio(n), story_audio_name(n [, k])
   How many audio files a slide holds, and the name of its k-th, 1 by default.
 */
-static bool
-d_internal_story_audio(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_audio(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_count;
 
@@ -1740,17 +1723,17 @@ d_internal_story_audio(
 }
 
 
-static bool
-d_internal_story_audio_name(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_audio_name(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     // a slide's audio needs a story
     if (!d_internal_needs_story(host, "story_audio_name", _problem,
@@ -1773,17 +1756,17 @@ story_replace_audio(n, file [, k])
   1 when replaced, 0 when the slide or its k-th audio is not there, -1 when
 refused or failed, with story_error() saying why.
 */
-static bool
-d_internal_story_replace_audio(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_replace_audio(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     // replacing audio needs a story to replace it in
     if (!d_internal_needs_story(host, "story_replace_audio", _problem,
@@ -1796,7 +1779,7 @@ d_internal_story_replace_audio(
 
     host->error[0] = '\0';
 
-    const enum d_story_result result =
+    const enum dj_story_result result =
         d_story_replace_audio(host->story,
                               d_internal_index(_args[0]),
                               audio,
@@ -1820,17 +1803,17 @@ d_internal_story_replace_audio(
 story_save(path)
   1 when written, -1 otherwise.
 */
-static bool
-d_internal_story_save(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_save(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host = _user;
+    struct dj_host_story* const host = _user;
 
     (void)_count;
 
@@ -1863,17 +1846,17 @@ story_match(expression, name [, group])
 The key is input-derived text, so "08" compares equal to 8.  A rule that does
 not compile is a mistake in the program, and stops it.
 */
-static bool
-d_internal_story_match(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_story_match(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_story* const host       = _user;
+    struct dj_host_story* const host       = _user;
     const char* const          expression = d_internal_text(_args[0]);
     const size_t               group      = (_count > 2u)
                                           ? d_internal_index(_args[2])
@@ -1883,8 +1866,8 @@ d_internal_story_match(
     if ( (!host->expression) ||
          (strcmp(host->expression, expression) != 0) )
     {
-        enum d_regex_status   status = D_REGEX_OK;
-        struct d_regex* const regex  = d_regex_compile(expression, &status);
+        enum dj_regex_status   status = D_REGEX_OK;
+        struct dj_regex* const regex  = d_regex_compile(expression, &status);
         char* const           copy   = d_internal_copy(expression);
 
         // a rule that does not compile, or cannot be kept, stops the program
@@ -1932,10 +1915,10 @@ d_internal_story_match(
 d_internal_functions
   The extension's host functions, as a program calls them.
 */
-static const struct d_awk_host_function*
-d_internal_functions(void)
+static
+const struct dj_awk_host_function* d_internal_functions(void)
 {
-    static const struct d_awk_host_function functions[
+    static const struct dj_awk_host_function functions[
         D_INTERNAL_STORY_FUNCTIONS] =
     {
         { "story_open",          1u, 1u, d_internal_story_open          },
@@ -1968,10 +1951,9 @@ d_internal_functions(void)
 d_host_story_new
   An extension with no drivers, which can open nothing until one is added.
 */
-struct d_host_story*
-d_host_story_new(void)
+struct dj_host_story* d_host_story_new(void)
 {
-    return calloc(1u, sizeof(struct d_host_story));
+    return calloc(1u, sizeof(struct dj_host_story));
 }
 
 
@@ -1979,9 +1961,8 @@ d_host_story_new(void)
 d_host_story_free
   Closes the story open, unsaved changes and all.
 */
-void
-d_host_story_free(
-    struct d_host_story* _host
+void d_host_story_free(
+    struct dj_host_story* _host
 )
 {
     if (_host)
@@ -2002,10 +1983,9 @@ d_host_story_add_driver
   A driver missing any of its operations is refused, so a call through one is
 never a call through NULL.
 */
-bool
-d_host_story_add_driver(
-    struct d_host_story*         _host,
-    const struct d_story_driver* _driver
+bool d_host_story_add_driver(
+    struct dj_host_story*         _host,
+    const struct dj_story_driver* _driver
 )
 {
     // parameter validation first
@@ -2019,7 +1999,7 @@ d_host_story_add_driver(
         return false;
     }
 
-    const struct d_story_driver** const grown =
+    const struct dj_story_driver** const grown =
         realloc(_host->drivers,
                 (_host->driver_count + 1u) * sizeof(*grown));
 
@@ -2040,10 +2020,9 @@ d_host_story_add_driver(
 d_host_story_install
   The functions are added with the extension as their user pointer.
 */
-bool
-d_host_story_install(
-    struct d_host_story* _host,
-    struct d_awk_interp* _interp
+bool d_host_story_install(
+    struct dj_host_story* _host,
+    struct dj_awk_interp* _interp
 )
 {
     // parameter validation first

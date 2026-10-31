@@ -22,13 +22,13 @@
 #include "../container.h"
 #include "./map.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t, intptr_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, intptr_t
 
 
-// d_enum_map_entry
+// dj_enum_map_entry
 //   struct: a single key-value pair mapping an integer (representing an enum)
 // to an arbitrary pointer value.
-struct d_enum_map_entry
+struct dj_enum_map_entry
 {
     int32_t key;       // integer representing enum values
     void*   value;     // associated value

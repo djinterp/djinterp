@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,10 +23,8 @@ d_tests_sa_vector_common_reserve
   - capacity correctly updated after reservation
   - existing elements preserved after reallocation
 */
-bool
-d_tests_sa_vector_common_reserve
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_reserve(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -165,10 +163,8 @@ d_tests_sa_vector_common_shrink_to_fit
   - successful shrink for non-empty vector
   - elements preserved after shrink
 */
-bool
-d_tests_sa_vector_common_shrink_to_fit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_shrink_to_fit(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -324,10 +320,8 @@ d_tests_sa_vector_common_ensure_capacity
   - growth with proper growth factor
   - capacity never less than required
 */
-bool
-d_tests_sa_vector_common_ensure_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_ensure_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -477,10 +471,8 @@ d_tests_sa_vector_common_grow
   - growth with growth factor applied
   - existing elements preserved
 */
-bool
-d_tests_sa_vector_common_grow
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_grow(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -616,10 +608,8 @@ d_tests_sa_vector_common_maybe_shrink
   - successful shrink when usage below threshold
   - elements preserved after shrink
 */
-bool
-d_tests_sa_vector_common_maybe_shrink
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_maybe_shrink(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -775,10 +765,8 @@ d_tests_sa_vector_common_available
   - full vector (no available slots)
   - count exceeds capacity edge case
 */
-bool
-d_tests_sa_vector_common_available
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_available(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -841,10 +829,8 @@ d_tests_sa_vector_common_capacity_all
   - d_vector_common_maybe_shrink
   - d_vector_common_available
 */
-bool
-d_tests_sa_vector_common_capacity_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_capacity_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

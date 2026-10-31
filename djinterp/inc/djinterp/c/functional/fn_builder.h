@@ -28,9 +28,9 @@
 #define D_FN_BUILDER_INITIAL_CAPACITY 8
 
 
-// struct d_fn_builder
+// struct dj_fn_builder
 //   struct: fluent builder for constructing function chains.
-struct d_fn_builder
+struct dj_fn_builder
 {
     fn_transformer* transforms;      // array of transformers
     fn_predicate*   predicates;      // array of predicates
@@ -40,19 +40,40 @@ struct d_fn_builder
 };
 
 // i.    builder creation
-struct d_fn_builder* d_fn_builder_new(void);
+struct dj_fn_builder* d_fn_builder_new(void);
 
 // ii.   fluent operations (return builder for chaining)
-struct d_fn_builder* d_funtional_builder_map(struct d_fn_builder* _builder, fn_transformer _transform);
-struct d_fn_builder* d_funtional_builder_filter(struct d_fn_builder* _builder, fn_predicate _test);
-struct d_fn_builder* d_funtional_builder_and_then(struct d_fn_builder* _builder, fn_transformer _transform);
-struct d_fn_builder* d_funtional_builder_where(struct d_fn_builder* _builder, fn_predicate _test);
+struct dj_fn_builder* d_funtional_builder_map(
+    struct dj_fn_builder* _builder,
+    fn_transformer        _transform
+);
+struct dj_fn_builder* d_funtional_builder_filter(
+    struct dj_fn_builder* _builder,
+    fn_predicate          _test
+);
+struct dj_fn_builder* d_funtional_builder_and_then(
+    struct dj_fn_builder* _builder,
+    fn_transformer        _transform
+);
+struct dj_fn_builder* d_funtional_builder_where(
+    struct dj_fn_builder* _builder,
+    fn_predicate          _test
+);
 
 // iii.  builder execution
-bool d_fn_builder_execute(const struct d_fn_builder* _builder, const void* _input, size_t _count, size_t _element_size, void* _output, size_t* _out_count);
+bool d_fn_builder_execute(
+    const struct dj_fn_builder* _builder,
+    const void*                 _input,
+    size_t                      _count,
+    size_t                      _element_size,
+    void*                       _output,
+    size_t*                     _out_count
+);
 
 // iv.   builder cleanup
-void d_fn_builder_free(struct d_fn_builder* _builder);
+void d_fn_builder_free(
+    struct dj_fn_builder* _builder
+);
 
 
 #endif  // DJINTERP_C_FUNCTIONAL_FN_BUILDER_H

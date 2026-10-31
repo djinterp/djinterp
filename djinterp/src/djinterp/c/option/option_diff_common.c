@@ -8,7 +8,7 @@
 * uses, so `changed` is empty exactly when the sets agree.
 *   THE TWO-CALL PROTOCOL, AS THE CARRIER ALLOWS IT. option_diff_common.h asks
 * a short buffer to fail with D_OPTION_STATUS_BUFFER_TOO_SMALL AND the count,
-* but `struct d_option_result` holds a status or a count, never both. So:
+* but `struct dj_option_result` holds a status or a count, never both. So:
 * `_out == NULL` returns the count; a short buffer returns BUFFER_TOO_SMALL
 * alone, leaving the buffer's contents unspecified; and the count for a retry
 * comes from a NULL-buffer call. This is option (a) of the question put to
@@ -25,29 +25,29 @@
 #include <stdbool.h>  // bool
 #include <stddef.h>   // NULL
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, uint32_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t,
                                                      // uint64_t, UINT32_MAX
 
 
 /*
-d_internal_option_diff_sink
+dj_internal_option_diff_sink
   Where an enumeration writes: keys or verdict entries, the capacity, and
 how many have been produced so far -- counted past the capacity, so one walk
 both measures and produces.
 */
-struct d_internal_option_diff_sink
+struct dj_internal_option_diff_sink
 {
     uint64_t*                   keys;
-    struct d_option_diff_entry* entries;
+    struct dj_option_diff_entry* entries;
     uint32_t                    capacity;
     uint64_t                    produced;
 };
 
-static void
-d_internal_option_diff_emit(
-    struct d_internal_option_diff_sink* _sink,
-    uint64_t                            _key,
-    int32_t                             _verdict
+static
+void d_internal_option_diff_emit(
+    struct dj_internal_option_diff_sink* _sink,
+    uint64_t                             _key,
+    int32_t                              _verdict
 )
 {
     // write while there is room; count regardless
@@ -77,10 +77,10 @@ d_internal_option_diff_finish
 everything fit, BUFFER_TOO_SMALL when it did not, and CAPACITY for a count a
 uint32_t cannot carry.
 */
-static struct d_option_result
-d_internal_option_diff_finish(
-    const struct d_internal_option_diff_sink* _sink,
-    bool                                      _measuring
+static
+struct dj_option_result d_internal_option_diff_finish(
+    const struct dj_internal_option_diff_sink* _sink,
+    bool                                       _measuring
 )
 {
     if (_sink->produced > (uint64_t)UINT32_MAX)
@@ -97,13 +97,13 @@ d_internal_option_diff_finish(
     return d_option_ok((uint32_t)_sink->produced);
 }
 
-static struct d_internal_option_diff_sink
-d_internal_option_diff_keys_sink(
+static
+struct dj_internal_option_diff_sink d_internal_option_diff_keys_sink(
     uint64_t* _out,
     uint32_t  _capacity
 )
 {
-    struct d_internal_option_diff_sink sink;
+    struct dj_internal_option_diff_sink sink;
 
     sink.keys     = _out;
     sink.entries  = NULL;
@@ -118,12 +118,12 @@ d_internal_option_diff_only_in
   Emits the keys of `_from` absent from `_other`, in `_from`'s order: added
 when `_from` is the delta, removed when it is the base.
 */
-static void
-d_internal_option_diff_only_in(
-    const struct d_option_set*          _from,
-    const struct d_option_set*          _other,
-    struct d_internal_option_diff_sink* _sink,
-    int32_t                             _verdict
+static
+void d_internal_option_diff_only_in(
+    const struct dj_option_set*          _from,
+    const struct dj_option_set*          _other,
+    struct dj_internal_option_diff_sink* _sink,
+    int32_t                              _verdict
 )
 {
     uint32_t at = 0u;
@@ -141,11 +141,10 @@ d_internal_option_diff_only_in(
     return;
 }
 
-struct d_option_result
-d_option_set_keys(
-    const struct d_option_set* _set,
-    uint64_t*                  _out,
-    uint32_t                   _capacity
+struct dj_option_result d_option_set_keys(
+    const struct dj_option_set* _set,
+    uint64_t*                   _out,
+    uint32_t                    _capacity
 )
 {
     // a set is required
@@ -154,7 +153,7 @@ d_option_set_keys(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    struct d_internal_option_diff_sink sink =
+    struct dj_internal_option_diff_sink sink =
         d_internal_option_diff_keys_sink(_out, _capacity);
 
     for (uint32_t i = 0u; i < _set->count; ++i)
@@ -167,12 +166,11 @@ d_option_set_keys(
     return d_internal_option_diff_finish(&sink, (_out == NULL));
 }
 
-struct d_option_result
-d_option_set_added_keys(
-    const struct d_option_set* _base,
-    const struct d_option_set* _delta,
-    uint64_t*                  _out,
-    uint32_t                   _capacity
+struct dj_option_result d_option_set_added_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity
 )
 {
     // both sets are required
@@ -182,7 +180,7 @@ d_option_set_added_keys(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    struct d_internal_option_diff_sink sink =
+    struct dj_internal_option_diff_sink sink =
         d_internal_option_diff_keys_sink(_out, _capacity);
 
     d_internal_option_diff_only_in(_delta, _base, &sink, D_OPTION_DIFF_ADDED);
@@ -190,12 +188,11 @@ d_option_set_added_keys(
     return d_internal_option_diff_finish(&sink, (_out == NULL));
 }
 
-struct d_option_result
-d_option_set_removed_keys(
-    const struct d_option_set* _base,
-    const struct d_option_set* _delta,
-    uint64_t*                  _out,
-    uint32_t                   _capacity
+struct dj_option_result d_option_set_removed_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity
 )
 {
     // both sets are required
@@ -205,7 +202,7 @@ d_option_set_removed_keys(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    struct d_internal_option_diff_sink sink =
+    struct dj_internal_option_diff_sink sink =
         d_internal_option_diff_keys_sink(_out, _capacity);
 
     d_internal_option_diff_only_in(_base,
@@ -225,16 +222,16 @@ lacks is ADDED. A verdict reaches the sink only if `_report` holds it and
 `_exempt` (when given) does not omit the key -- so exemption filters the
 result and never touches the comparison.
 */
-static void
-d_internal_option_diff_walk(
-    const struct d_option_set*          _base,
-    const struct d_option_set*          _delta,
-    fn_option_project                   _project,
-    fn_binary_predicate                 _compare,
-    fn_option_exempt                    _exempt,
-    void*                               _context,
-    const bool                          _report[4],
-    struct d_internal_option_diff_sink* _sink
+static
+void d_internal_option_diff_walk(
+    const struct dj_option_set*          _base,
+    const struct dj_option_set*          _delta,
+    fn_option_project                    _project,
+    fn_binary_predicate                  _compare,
+    fn_option_exempt                     _exempt,
+    void*                                _context,
+    const bool                           _report[4],
+    struct dj_internal_option_diff_sink* _sink
 )
 {
     uint32_t at = 0u;
@@ -242,8 +239,8 @@ d_internal_option_diff_walk(
     // removed, changed and unchanged, in the base's order
     for (uint32_t i = 0u; i < _base->count; ++i)
     {
-        const struct d_option* const base_option = &_base->options[i];
-        const struct d_option*       delta_option = NULL;
+        const struct dj_option* const base_option = &_base->options[i];
+        const struct dj_option*       delta_option = NULL;
         int32_t                      verdict      = D_OPTION_DIFF_REMOVED;
 
         if (d_option_set_find(_delta, base_option->key, &at))
@@ -269,7 +266,7 @@ d_internal_option_diff_walk(
     for (uint32_t i = 0u; (_report[D_OPTION_DIFF_ADDED]) &&
                           (i < _delta->count); ++i)
     {
-        const struct d_option* const delta_option = &_delta->options[i];
+        const struct dj_option* const delta_option = &_delta->options[i];
 
         if ( (!d_option_set_find(_base, delta_option->key, &at)) &&
              ( (!_exempt) ||
@@ -285,15 +282,14 @@ d_internal_option_diff_walk(
     return;
 }
 
-struct d_option_result
-d_option_set_changed_keys(
-    const struct d_option_set* _base,
-    const struct d_option_set* _delta,
-    uint64_t*                  _out,
-    uint32_t                   _capacity,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+struct dj_option_result d_option_set_changed_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     static const bool report[4] = { false, true, false, false };
@@ -305,7 +301,7 @@ d_option_set_changed_keys(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    struct d_internal_option_diff_sink sink =
+    struct dj_internal_option_diff_sink sink =
         d_internal_option_diff_keys_sink(_out, _capacity);
 
     d_internal_option_diff_walk(_base, _delta, _project, _compare, NULL,
@@ -314,15 +310,14 @@ d_option_set_changed_keys(
     return d_internal_option_diff_finish(&sink, (_out == NULL));
 }
 
-struct d_option_result
-d_option_set_unchanged_keys(
-    const struct d_option_set* _base,
-    const struct d_option_set* _delta,
-    uint64_t*                  _out,
-    uint32_t                   _capacity,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+struct dj_option_result d_option_set_unchanged_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     static const bool report[4] = { true, false, false, false };
@@ -334,7 +329,7 @@ d_option_set_unchanged_keys(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    struct d_internal_option_diff_sink sink =
+    struct dj_internal_option_diff_sink sink =
         d_internal_option_diff_keys_sink(_out, _capacity);
 
     d_internal_option_diff_walk(_base, _delta, _project, _compare, NULL,
@@ -348,16 +343,15 @@ d_option_set_diff_keys_exempt
   added, changed and removed, filtered by `_exempt`; the order the header
 states falls out of the walk.
 */
-struct d_option_result
-d_option_set_diff_keys_exempt(
-    const struct d_option_set* _base,
-    const struct d_option_set* _delta,
-    uint64_t*                  _out,
-    uint32_t                   _capacity,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    fn_option_exempt           _exempt,
-    void*                      _context
+struct dj_option_result d_option_set_diff_keys_exempt(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    fn_option_exempt            _exempt,
+    void*                       _context
 )
 {
     static const bool report[4] = { false, true, true, true };
@@ -369,7 +363,7 @@ d_option_set_diff_keys_exempt(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    struct d_internal_option_diff_sink sink =
+    struct dj_internal_option_diff_sink sink =
         d_internal_option_diff_keys_sink(_out, _capacity);
 
     d_internal_option_diff_walk(_base, _delta, _project, _compare, _exempt,
@@ -378,43 +372,40 @@ d_option_set_diff_keys_exempt(
     return d_internal_option_diff_finish(&sink, (_out == NULL));
 }
 
-struct d_option_result
-d_option_set_diff_keys(
-    const struct d_option_set* _base,
-    const struct d_option_set* _delta,
-    uint64_t*                  _out,
-    uint32_t                   _capacity,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+struct dj_option_result d_option_set_diff_keys(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    uint64_t*                   _out,
+    uint32_t                    _capacity,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     return d_option_set_diff_keys_exempt(_base, _delta, _out, _capacity,
                                          _project, _compare, NULL, _context);
 }
 
-struct d_option_result
-d_option_set_diff_count(
-    const struct d_option_set* _base,
-    const struct d_option_set* _delta,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+struct dj_option_result d_option_set_diff_count(
+    const struct dj_option_set* _base,
+    const struct dj_option_set* _delta,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     return d_option_set_diff_keys(_base, _delta, NULL, 0u, _project,
                                   _compare, _context);
 }
 
-struct d_option_result
-d_option_set_diff(
-    const struct d_option_set*  _base,
-    const struct d_option_set*  _delta,
-    struct d_option_diff_entry* _out,
-    uint32_t                    _capacity,
-    fn_option_project           _project,
-    fn_binary_predicate         _compare,
-    void*                       _context
+struct dj_option_result d_option_set_diff(
+    const struct dj_option_set*  _base,
+    const struct dj_option_set*  _delta,
+    struct dj_option_diff_entry* _out,
+    uint32_t                     _capacity,
+    fn_option_project            _project,
+    fn_binary_predicate          _compare,
+    void*                        _context
 )
 {
     static const bool report[4] = { true, true, true, true };
@@ -426,7 +417,7 @@ d_option_set_diff(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    struct d_internal_option_diff_sink sink;
+    struct dj_internal_option_diff_sink sink;
 
     sink.keys     = NULL;
     sink.entries  = _out;
@@ -439,8 +430,7 @@ d_option_set_diff(
     return d_internal_option_diff_finish(&sink, (_out == NULL));
 }
 
-const char*
-d_option_diff_verdict_name(
+const char* d_option_diff_verdict_name(
     int32_t _verdict
 )
 {

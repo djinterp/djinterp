@@ -32,13 +32,9 @@ d_tests_sa_dtime_strptime
   - parses month names correctly
   - parses weekday names correctly
 */
-struct d_test_object*
-d_tests_sa_dtime_strptime
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_strptime(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct tm             result;
     char*                 ret_ptr;
     const char*           date_str;
@@ -203,13 +199,9 @@ d_tests_sa_dtime_strftime_s
   - formats locale-specific elements
   - handles maximum buffer size edge case
 */
-struct d_test_object*
-d_tests_sa_dtime_strftime_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_strftime_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct tm             tm_test;
     char                  buf[D_TEST_DTIME_STRFTIME_BUF_SIZE];
     char                  small_buf[8];
@@ -364,13 +356,9 @@ d_tests_sa_dtime_string_parsing_formatting_all
   - d_strptime
   - d_strftime_s
 */
-struct d_test_object*
-d_tests_sa_dtime_string_parsing_formatting_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_string_parsing_formatting_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("VII. String Parsing and Formatting", 2);

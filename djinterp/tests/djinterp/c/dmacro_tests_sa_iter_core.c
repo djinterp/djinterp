@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -29,10 +29,8 @@ d_tests_sa_dmacro_map_end_detection
   - D_INTERNAL_MAP_NEXT correctly detects end vs continuation
   - Map termination works with empty parentheses sentinel
 */
-bool
-d_tests_sa_dmacro_map_end_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_map_end_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -120,10 +118,8 @@ Note: D_FOR_EACH with statement arguments may not work correctly.
   - D_FOR_EACH_COMMA works correctly
   - Iteration produces expected results
 */
-bool
-d_tests_sa_dmacro_map_internals
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_map_internals(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -200,13 +196,11 @@ d_tests_sa_dmacro_iteration_core_all
   - Map termination detection
   - Core mapping mechanisms
 */
-bool
-d_tests_sa_dmacro_iteration_core_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_iteration_core_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  map_end_result;
     bool                  map_internals_result;
     bool                  overall_result;
@@ -216,7 +210,7 @@ d_tests_sa_dmacro_iteration_core_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

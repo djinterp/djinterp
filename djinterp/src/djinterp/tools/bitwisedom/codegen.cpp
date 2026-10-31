@@ -205,7 +205,9 @@ private:
 
     // ---------------------------------------------------------- basics
 
-    void line(const std::string& _text)
+    void line(
+        const std::string& _text
+    )
     {
         m_lines.push_back(_text);
 
@@ -214,7 +216,10 @@ private:
 
     // continued
     //   a line with its continuation backslash in the last column.
-    static std::string continued(const std::string& _text)
+    static
+    std::string continued(
+        const std::string& _text
+    )
     {
         const std::size_t pad = (_text.size() + 2 <= LINE)
                                     ? (LINE - 1 - _text.size())
@@ -230,7 +235,8 @@ private:
     // runs as far as it can; of the places that keep it within the room,
     // the one nearest the outside is taken, so "(A | B | C)" becomes "(A |
     // B |" and " C)", and an initializer breaks between its words.
-    static std::vector<std::string> split_body(
+    static
+    std::vector<std::string> split_body(
         const std::string& _body,
         std::size_t        _room
     )
@@ -461,7 +467,8 @@ private:
     //   "#define NAME(a, b)" on one line, or -- when that and its backslash
     // would pass the 80th column -- its parameters one to a line, aligned
     // after the parenthesis, as the style guide spreads them.
-    static std::vector<std::string> macro_head(
+    static
+    std::vector<std::string> macro_head(
         const std::string& _name,
         const std::string& _params
     )
@@ -561,7 +568,9 @@ private:
         return;
     }
 
-    void note(const std::string& _text)
+    void note(
+        const std::string& _text
+    )
     {
         // each note once
         for (const std::string& each : m_noted)
@@ -665,7 +674,9 @@ private:
 
     // ----------------------------------------------------------- literals
 
-    radix level_radix(radix _wanted)
+    radix level_radix(
+        radix _wanted
+    )
     {
         if ( (_wanted == radix::bin) &&
              (!has_binary_literals(m_gen.level)) )
@@ -679,7 +690,9 @@ private:
         return _wanted;
     }
 
-    int_suffix level_suffix(int_suffix _wanted)
+    int_suffix level_suffix(
+        int_suffix _wanted
+    )
     {
         if ( (_wanted == int_suffix::ull) &&
              (!has_long_long(m_gen.level)) )
@@ -826,7 +839,9 @@ private:
 
     // initializer
     //   a set of bits as the words of an array, lowest first.
-    std::string initializer(const wide& _bits)
+    std::string initializer(
+        const wide& _bits
+    )
     {
         const int   words = words_of();
         std::string out   = "{ ";
@@ -1128,7 +1143,8 @@ private:
 
     // uses
     //   whether a template's name, parameters or body has a placeholder.
-    static bool uses(
+    static
+    bool uses(
         const macro_template& _made,
         const std::string&    _key
     )
@@ -1282,7 +1298,9 @@ private:
                format_dec(static_cast<u64>(bits)) + "_t";
     }
 
-    std::string type_for(bool _signed) const
+    std::string type_for(
+        bool _signed
+    ) const
     {
         return type_of(m_sheet.width, _signed);
     }
@@ -1495,7 +1513,9 @@ private:
 
     // column_for
     //   the column a group's values align to: past its longest name.
-    std::size_t column_for(const row& _group) const
+    std::size_t column_for(
+        const row& _group
+    ) const
     {
         std::size_t longest = 0;
 
@@ -1721,7 +1741,9 @@ private:
         return;
     }
 
-    bool has_symbols(const row& _group) const
+    bool has_symbols(
+        const row& _group
+    ) const
     {
         for (const row& child : _group.children)
         {
@@ -1734,7 +1756,9 @@ private:
         return false;
     }
 
-    bool has_groups(const row& _group) const
+    bool has_groups(
+        const row& _group
+    ) const
     {
         for (const row& child : _group.children)
         {
@@ -1747,7 +1771,10 @@ private:
         return false;
     }
 
-    static std::string upper(const std::string& _text)
+    static
+    std::string upper(
+        const std::string& _text
+    )
     {
         std::string out = _text;
 
@@ -1760,13 +1787,18 @@ private:
         return out;
     }
 
-    static std::string display(const row& _group)
+    static
+    std::string display(
+        const row& _group
+    )
     {
         return _group.name.empty() ? std::string("group")
                                    : _group.name;
     }
 
-    const heading* heading_for(int _id) const
+    const heading* heading_for(
+        int _id
+    ) const
     {
         for (const heading& each : m_headings)
         {
@@ -1779,7 +1811,9 @@ private:
         return nullptr;
     }
 
-    void write_heading(const heading& _heading)
+    void write_heading(
+        const heading& _heading
+    )
     {
         if (_heading.depth == 0)
         {
@@ -2218,8 +2252,7 @@ private:
 }  // anonymous namespace
 
 
-const char*
-standard_name(
+const char* standard_name(
     standard _level
 )
 {
@@ -2240,16 +2273,14 @@ standard_name(
     return "C99";
 }
 
-bool
-is_cpp(
+bool is_cpp(
     standard _level
 )
 {
     return (_level >= standard::cpp98);
 }
 
-bool
-has_binary_literals(
+bool has_binary_literals(
     standard _level
 )
 {
@@ -2257,16 +2288,14 @@ has_binary_literals(
              (_level >= standard::cpp14) );
 }
 
-bool
-has_long_long(
+bool has_long_long(
     standard _level
 )
 {
     return (_level != standard::cpp98);
 }
 
-std::string
-format_literal(
+std::string format_literal(
     u64          _value,
     int          _width,
     radix        _radix,
@@ -2332,8 +2361,7 @@ format_literal(
     }
 }
 
-std::string
-derive_guard(
+std::string derive_guard(
     const std::string& _file_name
 )
 {
@@ -2369,8 +2397,7 @@ derive_guard(
     return guard;
 }
 
-std::string
-bitset_prefix(
+std::string bitset_prefix(
     const sheet& _sheet
 )
 {
@@ -2386,8 +2413,7 @@ bitset_prefix(
     return prefix;
 }
 
-generated
-generate(
+generated generate(
     const sheet&       _sheet,
     const resolution&  _resolution,
     const std::string& _date
@@ -2401,8 +2427,7 @@ generate(
     return out;
 }
 
-generated
-generate_code(
+generated generate_code(
     const sheet&            _sheet,
     const resolution&       _resolution,
     const std::vector<int>& _rows
@@ -2417,8 +2442,10 @@ generate_code(
 }
 
 
-std::string
-generate_simple_defines(const sheet& sheet, const resolution& res)
+std::string generate_simple_defines(
+    const sheet&      sheet,
+    const resolution& res
+)
 {
     std::string output;
 

@@ -19,7 +19,7 @@
 #include <string.h>
 // djinterp
 #include "dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -36,10 +36,8 @@ d_tests_sa_dmacro_inc_basic
   - D_INC(9) returns 10
   - D_INC(10) returns 11
 */
-bool
-d_tests_sa_dmacro_inc_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_inc_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -140,10 +138,8 @@ d_tests_sa_dmacro_inc_medium
   - D_INC works correctly in the twenties
   - D_INC works at power-of-2 boundaries (15->16, 31->32)
 */
-bool
-d_tests_sa_dmacro_inc_medium
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_inc_medium(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -244,10 +240,8 @@ d_tests_sa_dmacro_inc_large
   - D_INC works at variant boundary (63->64)
   - D_INC is consistent across the full range
 */
-bool
-d_tests_sa_dmacro_inc_large
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_inc_large(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -337,10 +331,8 @@ d_tests_sa_dmacro_inc_chained
   - Multiple increments produce correct accumulated result
   - D_INC result usable in expressions
 */
-bool
-d_tests_sa_dmacro_inc_chained
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_inc_chained(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -457,10 +449,8 @@ d_tests_sa_dmacro_eval_basic
   - D_EVAL forces expansion of macro arguments
   - D_EVAL works with expressions
 */
-bool
-d_tests_sa_dmacro_eval_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_eval_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -562,10 +552,8 @@ d_tests_sa_dmacro_eval_nested
   - Multiple evaluation passes don't change stable results
   - D_EVAL can force expansion of deferred macros
 */
-bool
-d_tests_sa_dmacro_eval_nested
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_eval_nested(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -656,10 +644,8 @@ d_tests_sa_dmacro_for_each_stringify
   This tests iteration functionality using only built-in dmacro operators
   to avoid MSVC traditional preprocessor issues with custom operators.
 */
-bool
-d_tests_sa_dmacro_for_each_stringify
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_stringify(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -751,10 +737,8 @@ d_tests_sa_dmacro_eval_practical
   - Using D_EVAL for deferred expansion
   - Combining D_INC with D_VARG_COUNT
 */
-bool
-d_tests_sa_dmacro_eval_practical
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_eval_practical(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -875,10 +859,8 @@ d_tests_sa_dmacro_eval_all
   - Iteration macros (D_FOR_EACH_COMMA with D_STRINGIFY)
   - Practical patterns
 */
-bool
-d_tests_sa_dmacro_eval_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_eval_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool                  inc_basic_result;
@@ -890,14 +872,14 @@ d_tests_sa_dmacro_eval_all
     bool                  for_each_stringify_result;
     bool                  practical_result;
     bool                  overall_result;
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
 
     if (!_test_info)
     {
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

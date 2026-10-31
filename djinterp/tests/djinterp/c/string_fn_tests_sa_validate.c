@@ -24,13 +24,9 @@ d_tests_sa_string_fn_str_is_valid
   - returns false for embedded null
   - handles empty string (length 0)
 */
-struct d_test_object*
-d_tests_sa_string_fn_str_is_valid
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_str_is_valid(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_normal;
     bool                  test_null;
     bool                  test_embedded_null;
@@ -84,13 +80,9 @@ d_tests_sa_string_fn_str_is_ascii
   - returns false for NULL
   - handles empty string
 */
-struct d_test_object*
-d_tests_sa_string_fn_str_is_ascii
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_str_is_ascii(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_ascii;
     bool                  test_non_ascii;
     bool                  test_null;
@@ -145,13 +137,9 @@ d_tests_sa_string_fn_str_is_numeric
   - returns false for empty
   - returns false for NULL
 */
-struct d_test_object*
-d_tests_sa_string_fn_str_is_numeric
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_str_is_numeric(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_digits;
     bool                  test_letters;
     bool                  test_mixed;
@@ -203,13 +191,9 @@ d_tests_sa_string_fn_str_is_alpha
   - returns false for empty
   - handles both cases
 */
-struct d_test_object*
-d_tests_sa_string_fn_str_is_alpha
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_str_is_alpha(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_alpha;
     bool                  test_digits;
     bool                  test_mixed;
@@ -261,13 +245,9 @@ d_tests_sa_string_fn_str_is_alnum
   - handles pure digits
   - handles pure letters
 */
-struct d_test_object*
-d_tests_sa_string_fn_str_is_alnum
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_str_is_alnum(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_alnum;
     bool                  test_special;
     bool                  test_empty;
@@ -318,13 +298,9 @@ d_tests_sa_string_fn_str_is_whitespace
   - returns false for empty
   - handles mixed whitespace types
 */
-struct d_test_object*
-d_tests_sa_string_fn_str_is_whitespace
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_str_is_whitespace(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_whitespace;
     bool                  test_non_ws;
     bool                  test_empty;
@@ -372,13 +348,9 @@ d_tests_sa_string_fn_validation_all
   - d_str_is_alnum
   - d_str_is_whitespace
 */
-struct d_test_object*
-d_tests_sa_string_fn_validation_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_validation_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Validation", 6);

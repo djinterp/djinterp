@@ -28,9 +28,8 @@
  * ISO C BACKEND: every descriptor call is ENOSYS
  *****************************************************************************/
 
-static void
-d_fs_tests_desc_stdc
-(
+static
+void d_fs_tests_desc_stdc(
     dtest_suite* _suite
 )
 {
@@ -68,9 +67,8 @@ d_fs_tests_desc_stdc
  * III.a  d_file_open
  *****************************************************************************/
 
-static void
-d_fs_tests_desc_open
-(
+static
+void d_fs_tests_desc_open(
     dtest_suite* _suite
 )
 {
@@ -131,9 +129,8 @@ d_fs_tests_desc_open
  * III.b  d_file_descriptor_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_desc_fileno
-(
+static
+void d_fs_tests_desc_fileno(
     dtest_suite* _suite
 )
 {
@@ -167,9 +164,8 @@ d_fs_tests_desc_fileno
  * III.c  d_file_dup_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_desc_dup
-(
+static
+void d_fs_tests_desc_dup(
     dtest_suite* _suite
 )
 {
@@ -207,9 +203,8 @@ d_fs_tests_desc_dup
  * III.d  d_file_dup2_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_desc_dup2
-(
+static
+void d_fs_tests_desc_dup2(
     dtest_suite* _suite
 )
 {
@@ -271,9 +266,8 @@ d_fs_tests_desc_dup2
  * III.e  d_file_close_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_desc_close
-(
+static
+void d_fs_tests_desc_close(
     dtest_suite* _suite
 )
 {
@@ -300,9 +294,7 @@ d_fs_tests_desc_close
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_desc
-(
+void d_fs_tests_desc(
     dtest_suite* _suite
 )
 {

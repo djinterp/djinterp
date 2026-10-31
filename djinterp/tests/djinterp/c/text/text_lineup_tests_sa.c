@@ -21,11 +21,7 @@ d_tests_sa_text_lineup_setup
 Return:
   true (no setup actions currently required; present for extensibility).
 */
-bool
-d_tests_sa_text_lineup_setup
-(
-    void
-)
+bool d_tests_sa_text_lineup_setup(void)
 {
     // no specific setup required for text_lineup tests;
     // function retained for consistency and future use.
@@ -39,11 +35,7 @@ d_tests_sa_text_lineup_teardown
 Return:
   true (no teardown actions currently required).
 */
-bool
-d_tests_sa_text_lineup_teardown
-(
-    void
-)
+bool d_tests_sa_text_lineup_teardown(void)
 {
     // no specific teardown required;
     // retained for consistency and future use.
@@ -53,16 +45,14 @@ d_tests_sa_text_lineup_teardown
 
 /*
 d_tests_sa_text_lineup_make_buffer
-  Creates a d_text_buffer for use in tests, wrapping d_text_buffer_new.
+  Creates a dj_text_buffer for use in tests, wrapping d_text_buffer_new.
 
 Parameter(s):
   _capacity: initial byte capacity to request.
 Return:
   A pointer to the newly allocated buffer, or NULL on allocation failure.
 */
-struct d_text_buffer*
-d_tests_sa_text_lineup_make_buffer
-(
+struct dj_text_buffer* d_tests_sa_text_lineup_make_buffer(
     size_t _capacity
 )
 {
@@ -71,7 +61,7 @@ d_tests_sa_text_lineup_make_buffer
 
 /*
 d_tests_sa_text_lineup_make_token_array
-  Allocates a d_string_array and appends the given variable-argument
+  Allocates a dj_string_array and appends the given variable-argument
 strings to it.
 
 Parameter(s):
@@ -80,14 +70,12 @@ Parameter(s):
 Return:
   A pointer to the populated string array, or NULL on failure.
 */
-struct d_string_array*
-d_tests_sa_text_lineup_make_token_array
-(
+struct dj_string_array* d_tests_sa_text_lineup_make_token_array(
     size_t _count,
     ...
 )
 {
-    struct d_string_array* array;
+    struct dj_string_array* array;
     va_list                args;
     const char*            str;
     size_t                 i;
@@ -121,7 +109,7 @@ d_tests_sa_text_lineup_make_token_array
 
 /*
 d_tests_sa_text_lineup_make_template
-  Populates and returns a d_text_template value from individual fields.
+  Populates and returns a dj_text_template value from individual fields.
 All pointer fields are assigned directly (no copies); callers retain
 ownership of the pointed-to data.
 
@@ -135,22 +123,20 @@ Parameter(s):
   _min_token_width: minimum column width applied to every token slot.
   _flags:           bitmask of DBehaviorFlag values.
 Return:
-  A fully initialised d_text_template value.
+  A fully initialised dj_text_template value.
 */
-struct d_text_template
-d_tests_sa_text_lineup_make_template
-(
-    struct d_string_array* _tokens,
-    const char*            _separator,
-    bool                   _sep_before,
-    bool                   _sep_after,
-    const char*            _line_prefix,
-    const char*            _line_suffix,
-    size_t                 _min_token_width,
-    uint32_t               _flags
+struct dj_text_template d_tests_sa_text_lineup_make_template(
+    struct dj_string_array* _tokens,
+    const char*             _separator,
+    bool                    _sep_before,
+    bool                    _sep_after,
+    const char*             _line_prefix,
+    const char*             _line_suffix,
+    size_t                  _min_token_width,
+    uint32_t                _flags
 )
 {
-    struct d_text_template tmpl;
+    struct dj_text_template tmpl;
 
     tmpl.tokens           = _tokens;
     tmpl.separator        = (char*)_separator;
@@ -173,17 +159,13 @@ d_tests_sa_text_lineup_make_template
 d_tests_sa_text_lineup_run_all
   Master test runner for all text_lineup module tests.
   Tests the following:
-  - d_text_buffer operations (Section I)
-  - d_string_array operations (Section II)
+  - dj_text_buffer operations (Section I)
+  - dj_string_array operations (Section II)
   - d_text_lineup formatting (Section III)
 */
-struct d_test_object*
-d_tests_sa_text_lineup_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_run_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  setup_ok;
     size_t                idx;
 

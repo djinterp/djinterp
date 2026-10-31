@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,10 +24,8 @@ d_tests_sa_buffer_common_remove_element
   - successful removal at last element
   - count decremented after removal
 */
-bool
-d_tests_sa_buffer_common_remove_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_remove_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -104,7 +102,7 @@ d_tests_sa_buffer_common_remove_element
         result = d_assert_standalone(
             d_buffer_common_remove_element(elements, &count,
                                            sizeof(int),
-                                           (d_index)(count - 1)) == true,
+                                           (dj_index)(count - 1)) == true,
             "remove_elem_last_success",
             "Remove last should succeed",
             _counter) && result;
@@ -133,10 +131,8 @@ d_tests_sa_buffer_common_remove_range
   - successful range removal
   - remaining elements shifted correctly
 */
-bool
-d_tests_sa_buffer_common_remove_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_remove_range(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -235,10 +231,8 @@ d_tests_sa_buffer_common_consume_front
   - zero amount is a no-op
   - successful consume shifts remaining elements
 */
-bool
-d_tests_sa_buffer_common_consume_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_consume_front(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -323,10 +317,8 @@ d_tests_sa_buffer_common_consume_back
   - successful consume from back
   - front elements preserved
 */
-bool
-d_tests_sa_buffer_common_consume_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_consume_back(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -398,10 +390,8 @@ d_tests_sa_buffer_common_consume_back
 d_tests_sa_buffer_common_removal_all
   Aggregation function that runs all removal tests.
 */
-bool
-d_tests_sa_buffer_common_removal_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_removal_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

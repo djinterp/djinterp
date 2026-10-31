@@ -32,7 +32,7 @@
 #include "../../../../../inc/djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // D_INTERNAL_MARIADB
 #include "./mariadb_internal.h"  // mysql.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, uint64_t
 
 
 #if (D_INTERNAL_MARIADB == 1)
@@ -46,8 +46,8 @@ d_internal_mariadb_is_type
   A Msg_type, compared without regard to ASCII case: the servers write
 "status" and "note" in lower case and "Error" capitalized.
 */
-static bool
-d_internal_mariadb_is_type(
+static
+bool d_internal_mariadb_is_type(
     const char* _text,
     const char* _type
 )
@@ -83,14 +83,14 @@ d_internal_mariadb_is_type(
  * @return 0 when it is, D_DB_NOT_FOUND when it is not, the client's error
  *         number for a failure to ask, or D_DB_INVALID_ARGUMENT.
  */
-static int
-d_internal_mariadb_find_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+static
+int d_internal_mariadb_find_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
-    const struct d_internal_mariadb_path path   = { _schema, NULL, _table };
+    const struct dj_internal_mariadb_path path   = { _schema, NULL, _table };
     bool                                 exists = false;
 
     // parameter validation
@@ -122,8 +122,8 @@ d_internal_mariadb_find_table(
  * A stored result's rows stay valid until it is freed, so the last status
  * is read where it lies; the caller frees the result after.
  */
-static int
-d_internal_mariadb_verdict(
+static
+int d_internal_mariadb_verdict(
     MYSQL_RES* _rows,
     bool*      _sound
 )
@@ -172,13 +172,13 @@ d_internal_mariadb_maintain
   ANALYZE, OPTIMIZE or CHECK TABLE on a table that is there, its rows read
 by d_internal_mariadb_verdict.
 */
-static int
-d_internal_mariadb_maintain(
-    struct d_mariadb* _db,
-    const char*       _keyword,
-    const char*       _schema,
-    const char*       _table,
-    bool*             _sound
+static
+int d_internal_mariadb_maintain(
+    struct dj_mariadb* _db,
+    const char*        _keyword,
+    const char*        _schema,
+    const char*        _table,
+    bool*              _sound
 )
 {
     MYSQL_RES* rows   = NULL;
@@ -208,8 +208,8 @@ d_internal_mariadb_read_checksum
 non-negative integer, or NULL for a table it cannot find -- here, one gone
 since it was found.
 */
-static int
-d_internal_mariadb_read_checksum(
+static
+int d_internal_mariadb_read_checksum(
     MYSQL_RES* _rows,
     uint64_t*  _checksum
 )
@@ -243,13 +243,13 @@ d_internal_mariadb_read_checksum(
 d_internal_mariadb_maintenance
   The table is found first, then the statement run.
 */
-static int
-d_internal_mariadb_maintenance(
-    struct d_mariadb* _db,
-    const char*       _keyword,
-    const char*       _schema,
-    const char*       _table,
-    bool*             _sound
+static
+int d_internal_mariadb_maintenance(
+    struct dj_mariadb* _db,
+    const char*        _keyword,
+    const char*        _schema,
+    const char*        _table,
+    bool*              _sound
 )
 {
     const int result = d_internal_mariadb_find_table(_db, _schema, _table);
@@ -277,11 +277,10 @@ d_internal_mariadb_maintenance(
 d_mariadb_analyze_table
   ANALYZE TABLE, read by its rows.
 */
-int
-d_mariadb_analyze_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+int d_mariadb_analyze_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     return d_internal_mariadb_maintenance(_db,
@@ -296,11 +295,10 @@ d_mariadb_optimize_table
   OPTIMIZE TABLE, read by its rows; InnoDB adds a note that it recreates the
 table instead, which the status after it outweighs.
 */
-int
-d_mariadb_optimize_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+int d_mariadb_optimize_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     return d_internal_mariadb_maintenance(_db,
@@ -317,12 +315,11 @@ d_mariadb_check_table
   CHECK TABLE, whose last status says whether the table is sound: "OK", or
 "Corrupt".
 */
-int
-d_mariadb_check_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    bool*             _ok
+int d_mariadb_check_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    bool*              _ok
 )
 {
     bool sound = false;
@@ -352,12 +349,11 @@ d_mariadb_check_table(
 d_mariadb_checksum_table
   The table is found first, then CHECKSUM TABLE run and its row read.
 */
-int
-d_mariadb_checksum_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    uint64_t*         _checksum
+int d_mariadb_checksum_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    uint64_t*          _checksum
 )
 {
     MYSQL_RES* rows = NULL;
@@ -402,11 +398,10 @@ d_mariadb_checksum_table(
 d_mariadb_analyze_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_analyze_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+int d_mariadb_analyze_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     (void)_db;
@@ -420,11 +415,10 @@ d_mariadb_analyze_table(
 d_mariadb_optimize_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_optimize_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+int d_mariadb_optimize_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     (void)_db;
@@ -438,12 +432,11 @@ d_mariadb_optimize_table(
 d_mariadb_check_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_check_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    bool*             _ok
+int d_mariadb_check_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    bool*              _ok
 )
 {
     (void)_db;
@@ -458,12 +451,11 @@ d_mariadb_check_table(
 d_mariadb_checksum_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_checksum_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    uint64_t*         _checksum
+int d_mariadb_checksum_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    uint64_t*          _checksum
 )
 {
     (void)_db;

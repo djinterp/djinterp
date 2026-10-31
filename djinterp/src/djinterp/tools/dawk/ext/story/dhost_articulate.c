@@ -38,19 +38,19 @@
 // 1.1    State
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_use
+// dj_internal_use
 //   struct: a media part, and how many relationships, in any part, use it.
-struct d_internal_use
+struct dj_internal_use
 {
     char*  part;
     size_t count;
 };
 
 // 1.1.2
-// d_internal_change
+// dj_internal_change
 //   struct: a media part replaced, with the MD5 the XML records for it and
 //   the MD5 it must record.  `applied` is set once a save has rewritten them.
-struct d_internal_change
+struct dj_internal_change
 {
     char*         part;
     unsigned char before[16];
@@ -59,22 +59,22 @@ struct d_internal_change
 };
 
 // 1.1.3
-// d_internal_articulate
+// dj_internal_articulate
 //   struct: the package, and what replacing and saving need of it.
-struct d_internal_articulate
+struct dj_internal_articulate
 {
-    struct d_zip*             zip;
-    struct d_story*           story;
-    struct d_internal_use*    uses;
+    struct dj_zip*             zip;
+    struct dj_story*           story;
+    struct dj_internal_use*    uses;
     size_t                    use_count;
-    struct d_internal_change* changes;
+    struct dj_internal_change* changes;
     size_t                    change_count;
 };
 
 // 1.1.4
-// d_internal_slide_part
+// dj_internal_slide_part
 //   struct: a slide part found by the scene list, or by its name.
-struct d_internal_slide_part
+struct dj_internal_slide_part
 {
     char*  part;
     size_t scene;
@@ -91,8 +91,8 @@ struct d_internal_slide_part
 d_internal_problem
   Writes a reason into a caller's buffer, which may be NULL; always false.
 */
-static bool
-d_internal_problem(
+static
+bool d_internal_problem(
     char*       _problem,
     size_t      _capacity,
     const char* _message,
@@ -118,8 +118,8 @@ d_internal_problem(
 d_internal_ends_with
   Whether a string ends with another, ignoring ASCII case.
 */
-static bool
-d_internal_ends_with(
+static
+bool d_internal_ends_with(
     const char* _text,
     const char* _end
 )
@@ -155,10 +155,10 @@ d_internal_attribute
   An attribute's value, decoded, as an allocated string; NULL when the tag
 has no such attribute or memory ran out.
 */
-static char*
-d_internal_attribute(
-    const struct d_xml_token* _token,
-    const char*               _name
+static
+char* d_internal_attribute(
+    const struct dj_xml_token* _token,
+    const char*                _name
 )
 {
     const char* raw    = NULL;
@@ -186,13 +186,13 @@ d_internal_attribute(
 d_internal_read_part
   Reads a part as text; NULL when the package does not hold it.
 */
-static char*
-d_internal_read_part(
-    struct d_zip* _zip,
-    const char*   _part,
-    size_t*       _out_length,
-    char*         _problem,
-    size_t        _capacity
+static
+char* d_internal_read_part(
+    struct dj_zip* _zip,
+    const char*    _part,
+    size_t*        _out_length,
+    char*          _problem,
+    size_t         _capacity
 )
 {
     const size_t   index  = d_zip_find(_zip, _part);
@@ -228,8 +228,8 @@ part's name without its leading `/`; a relative one is joined to the
 directory of the part the relationship belongs to, with `..` and `.` taken
 out.
 */
-static char*
-d_internal_resolve(
+static
+char* d_internal_resolve(
     const char* _base_directory,
     const char* _target
 )
@@ -303,8 +303,8 @@ d_internal_rels_of
 receives the part's directory, with its `/`, which its relative targets are
 read against.
 */
-static char*
-d_internal_rels_of(
+static
+char* d_internal_rels_of(
     const char* _part,
     char**      _out_directory
 )
@@ -344,8 +344,8 @@ d_internal_md5
   RFC 1321.  The checksum the XML records for each media part; it is no
 safeguard here, only a value to keep in step.
 */
-static void
-d_internal_md5(
+static
+void d_internal_md5(
     const unsigned char* _bytes,
     size_t               _length,
     unsigned char*       _out
@@ -483,8 +483,8 @@ d_internal_spell
 upper-case hex, and base64 without its padding, which a padded value still
 begins with.
 */
-static void
-d_internal_spell(
+static
+void d_internal_spell(
     const unsigned char* _digest,
     char                 _lower[33],
     char                 _upper[33],
@@ -541,13 +541,13 @@ d_internal_each_media
 part, with the part it targets.  A type is "media" itself or a URI ending in
 "/media"; an external target is not a part of the package and is skipped.
 */
-static bool
-d_internal_each_media(
-    struct d_zip* _zip,
-    const char*   _rels,
-    const char*   _directory,
-    bool          (*_visit)(void*, const char*),
-    void*         _user
+static
+bool d_internal_each_media(
+    struct dj_zip* _zip,
+    const char*    _rels,
+    const char*    _directory,
+    bool (*_visit)(void*, const char*),
+    void*          _user
 )
 {
     size_t      length = 0;
@@ -560,8 +560,8 @@ d_internal_each_media(
         return true;
     }
 
-    struct d_xml       xml;
-    struct d_xml_token token;
+    struct dj_xml       xml;
+    struct dj_xml_token token;
 
     d_xml_begin(&xml, text, length);
 
@@ -608,13 +608,13 @@ d_internal_each_media(
 d_internal_count_use
   Counts one use of a media part, as d_internal_each_media visits it.
 */
-static bool
-d_internal_count_use(
+static
+bool d_internal_count_use(
     void*       _user,
     const char* _part
 )
 {
-    struct d_internal_articulate* const state = _user;
+    struct dj_internal_articulate* const state = _user;
 
     for (size_t at = 0; at < state->use_count; ++at)
     {
@@ -627,7 +627,7 @@ d_internal_count_use(
         }
     }
 
-    struct d_internal_use* const grown =
+    struct dj_internal_use* const grown =
         realloc(state->uses, (state->use_count + 1u) * sizeof(*grown));
     char* const part = malloc(strlen(_part) + 1u);
 
@@ -657,9 +657,9 @@ d_internal_count_uses
 layout's, a master's, the story's own.  What the count is for is refusing to
 replace a part through one slide that something else also shows.
 */
-static bool
-d_internal_count_uses(
-    struct d_internal_articulate* _state
+static
+bool d_internal_count_uses(
+    struct dj_internal_articulate* _state
 )
 {
     for (size_t at = 0; at < d_zip_count(_state->zip); ++at)
@@ -706,16 +706,16 @@ d_internal_count_uses(
 d_internal_add_part
   Appends a slide part to the list being built.
 */
-static bool
-d_internal_add_part(
-    struct d_internal_slide_part** _parts,
-    size_t*                        _count,
-    char*                          _part,
-    size_t                         _scene,
-    size_t                         _order
+static
+bool d_internal_add_part(
+    struct dj_internal_slide_part** _parts,
+    size_t*                         _count,
+    char*                           _part,
+    size_t                          _scene,
+    size_t                          _order
 )
 {
-    struct d_internal_slide_part* const grown =
+    struct dj_internal_slide_part* const grown =
         realloc(*_parts, (*_count + 1u) * sizeof(*grown));
 
     // report the failure rather than losing a slide
@@ -741,10 +741,10 @@ d_internal_relationship_target
   The target the story's relationship part gives an id; NULL for an id it
 does not have.
 */
-static char*
-d_internal_relationship_target(
-    struct d_zip* _zip,
-    const char*   _id
+static
+char* d_internal_relationship_target(
+    struct dj_zip* _zip,
+    const char*    _id
 )
 {
     size_t      length = 0;
@@ -752,8 +752,8 @@ d_internal_relationship_target(
                                               &length, NULL, 0);
     char*       found  = NULL;
 
-    struct d_xml       xml;
-    struct d_xml_token token;
+    struct dj_xml       xml;
+    struct dj_xml_token token;
 
     d_xml_begin(&xml, text, (text) ? length : 0u);
 
@@ -793,10 +793,10 @@ d_internal_slide_id
   The relationship id an <sldId> holds: as an r:id or id attribute, or as its
 text.
 */
-static char*
-d_internal_slide_id(
-    struct d_xml*             _xml,
-    const struct d_xml_token* _token
+static
+char* d_internal_slide_id(
+    struct dj_xml*             _xml,
+    const struct dj_xml_token* _token
 )
 {
     char* id = d_internal_attribute(_token, "r:id");
@@ -810,8 +810,8 @@ d_internal_slide_id(
     if ( (!id) &&
          (_token->kind == D_XML_START) )
     {
-        struct d_xml_token text;
-        struct d_xml       peek = *_xml;
+        struct dj_xml_token text;
+        struct dj_xml       peek = *_xml;
 
         // text directly inside the element is the id
         if ( (d_xml_next(&peek, &text)) &&
@@ -837,13 +837,13 @@ checking against a real .story.  Scenes are the <scene> elements inside
 <sceneLst>, so the question banks' scenes, which are elsewhere, are not slides
 of the story.
 */
-static bool
-d_internal_scene_slides(
-    struct d_zip*                  _zip,
-    struct d_internal_slide_part** _parts,
-    size_t*                        _count,
-    char*                          _problem,
-    size_t                         _capacity
+static
+bool d_internal_scene_slides(
+    struct dj_zip*                  _zip,
+    struct dj_internal_slide_part** _parts,
+    size_t*                         _count,
+    char*                           _problem,
+    size_t                          _capacity
 )
 {
     size_t      length = 0;
@@ -858,8 +858,8 @@ d_internal_scene_slides(
                                   D_INTERNAL_STORY_PART);
     }
 
-    struct d_xml       xml;
-    struct d_xml_token token;
+    struct dj_xml       xml;
+    struct dj_xml_token token;
     size_t             depth      = 0;
     size_t             list_depth = 0;
     size_t             scene      = 0;
@@ -935,14 +935,14 @@ d_internal_scene_slides(
 d_internal_compare_parts
   Orders slide parts by the number in their names, slide2 before slide10.
 */
-static int
-d_internal_compare_parts(
+static
+int d_internal_compare_parts(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_internal_slide_part* const left  = _left;
-    const struct d_internal_slide_part* const right = _right;
+    const struct dj_internal_slide_part* const left  = _left;
+    const struct dj_internal_slide_part* const right = _right;
 
     return (left->order < right->order) ? -1
          : (left->order > right->order) ?  1
@@ -954,11 +954,11 @@ d_internal_compare_parts(
 d_internal_named_slides
   The fallback order: every story/slides/slideN.xml, by N.
 */
-static bool
-d_internal_named_slides(
-    struct d_zip*                  _zip,
-    struct d_internal_slide_part** _parts,
-    size_t*                        _count
+static
+bool d_internal_named_slides(
+    struct dj_zip*                  _zip,
+    struct dj_internal_slide_part** _parts,
+    size_t*                         _count
 )
 {
     static const char prefix[] = "story/slides/slide";
@@ -1008,18 +1008,18 @@ d_internal_named_slides(
 d_internal_slide_name
   The name the root <sld> of a slide part gives it; "" when it gives none.
 */
-static char*
-d_internal_slide_name(
-    struct d_zip* _zip,
-    const char*   _part
+static
+char* d_internal_slide_name(
+    struct dj_zip* _zip,
+    const char*    _part
 )
 {
     size_t      length = 0;
     char* const text   = d_internal_read_part(_zip, _part, &length, NULL, 0);
     char*       name   = NULL;
 
-    struct d_xml       xml;
-    struct d_xml_token token;
+    struct dj_xml       xml;
+    struct dj_xml_token token;
 
     d_xml_begin(&xml, text, (text) ? length : 0u);
 
@@ -1042,12 +1042,12 @@ d_internal_slide_name(
 }
 
 
-// d_internal_slide_media
+// dj_internal_slide_media
 //   struct: the slide whose media are being added, as the visitor below is
 //   handed it.
-struct d_internal_slide_media
+struct dj_internal_slide_media
 {
-    struct d_story* story;
+    struct dj_story* story;
     size_t          slide;
 };
 
@@ -1057,13 +1057,13 @@ d_internal_add_slide_media
   Adds one media part to the slide being built, as d_internal_each_media
 visits it.
 */
-static bool
-d_internal_add_slide_media(
+static
+bool d_internal_add_slide_media(
     void*       _user,
     const char* _part
 )
 {
-    struct d_internal_slide_media* const target = _user;
+    struct dj_internal_slide_media* const target = _user;
 
     return (d_story_add_media(target->story, target->slide, _part) !=
             D_STORY_NONE);
@@ -1074,11 +1074,11 @@ d_internal_add_slide_media(
 d_internal_build
   Adds every slide, with its name and its media, to the story.
 */
-static bool
-d_internal_build(
-    struct d_internal_articulate*       _state,
-    const struct d_internal_slide_part* _parts,
-    size_t                              _count
+static
+bool d_internal_build(
+    struct dj_internal_articulate*       _state,
+    const struct dj_internal_slide_part* _parts,
+    size_t                               _count
 )
 {
     size_t scene  = 0;
@@ -1103,7 +1103,7 @@ d_internal_build(
         char* const rels      = d_internal_rels_of(_parts[at].part,
                                                    &directory);
 
-        struct d_internal_slide_media target = { _state->story, slide };
+        struct dj_internal_slide_media target = { _state->story, slide };
 
         const bool ok = (slide != D_STORY_NONE) &&
                         (rels) &&
@@ -1134,8 +1134,8 @@ d_internal_build(
 d_internal_claims
   A .story file, in any case.
 */
-static bool
-d_internal_claims(
+static
+bool d_internal_claims(
     const char* _path
 )
 {
@@ -1147,12 +1147,12 @@ d_internal_claims(
 d_internal_close
   Releases the package and the bookkeeping.
 */
-static void
-d_internal_close(
+static
+void d_internal_close(
     void* _state
 )
 {
-    struct d_internal_articulate* const state = _state;
+    struct dj_internal_articulate* const state = _state;
 
     if (state)
     {
@@ -1181,16 +1181,16 @@ d_internal_open
   Opens the package, counts every media use, finds the slides -- by the scene
 list, or else by name, saying so -- and builds the story from them.
 */
-static bool
-d_internal_open(
-    struct d_story* _story,
-    const char*     _path,
-    void**          _out_state,
-    char*           _problem,
-    size_t          _capacity
+static
+bool d_internal_open(
+    struct dj_story* _story,
+    const char*      _path,
+    void**           _out_state,
+    char*            _problem,
+    size_t           _capacity
 )
 {
-    struct d_internal_articulate* const state = calloc(1u, sizeof(*state));
+    struct dj_internal_articulate* const state = calloc(1u, sizeof(*state));
 
     // report the failure rather than opening half a package
     if (!state)
@@ -1201,7 +1201,7 @@ d_internal_open(
     state->story = _story;
     state->zip   = d_zip_open(_path, _problem, _capacity);
 
-    struct d_internal_slide_part* parts = NULL;
+    struct dj_internal_slide_part* parts = NULL;
     size_t                        count = 0;
 
     bool ok = (state->zip)                                         &&
@@ -1257,13 +1257,13 @@ d_internal_open(
 d_internal_change_of
   The record of a part's replacement, made when the part is first replaced.
 */
-static struct d_internal_change*
-d_internal_change_of(
-    struct d_internal_articulate* _state,
-    const char*                   _part,
-    size_t                        _index,
-    char*                         _problem,
-    size_t                        _capacity
+static
+struct dj_internal_change* d_internal_change_of(
+    struct dj_internal_articulate* _state,
+    const char*                    _part,
+    size_t                         _index,
+    char*                          _problem,
+    size_t                         _capacity
 )
 {
     for (size_t at = 0; at < _state->change_count; ++at)
@@ -1271,7 +1271,7 @@ d_internal_change_of(
         // a part replaced before keeps the checksum the XML still holds
         if (strcmp(_state->changes[at].part, _part) == 0)
         {
-            struct d_internal_change* const change = &_state->changes[at];
+            struct dj_internal_change* const change = &_state->changes[at];
 
             // after a save the XML holds the last new checksum instead
             if (change->applied)
@@ -1294,7 +1294,7 @@ d_internal_change_of(
         return NULL;
     }
 
-    struct d_internal_change* const grown =
+    struct dj_internal_change* const grown =
         realloc(_state->changes,
                 (_state->change_count + 1u) * sizeof(*grown));
     char* const part = malloc(strlen(_part) + 1u);
@@ -1311,7 +1311,7 @@ d_internal_change_of(
         return NULL;
     }
 
-    struct d_internal_change* const change = &grown[_state->change_count];
+    struct dj_internal_change* const change = &grown[_state->change_count];
 
     memset(change, 0, sizeof(*change));
     memcpy(part, _part, strlen(_part) + 1u);
@@ -1333,8 +1333,8 @@ d_internal_change_of(
 d_internal_replace
   Refuses a part another part also uses, then overwrites the part's bytes.
 */
-static bool
-d_internal_replace(
+static
+bool d_internal_replace(
     void*                _state,
     const char*          _media,
     const unsigned char* _bytes,
@@ -1343,7 +1343,7 @@ d_internal_replace(
     size_t               _capacity
 )
 {
-    struct d_internal_articulate* const state = _state;
+    struct dj_internal_articulate* const state = _state;
     const size_t index = d_zip_find(state->zip, _media);
 
     // a media part the package does not hold cannot be replaced
@@ -1369,7 +1369,7 @@ d_internal_replace(
         }
     }
 
-    struct d_internal_change* const change =
+    struct dj_internal_change* const change =
         d_internal_change_of(state, _media, index, _problem, _capacity);
 
     // a replacement whose checksum cannot be tracked is not made
@@ -1393,11 +1393,11 @@ d_internal_rewrite
 spelling of the new checksum is as long as the old one's.  Returns how many
 were rewritten.
 */
-static size_t
-d_internal_rewrite(
-    char*                           _text,
-    size_t                          _length,
-    const struct d_internal_change* _change
+static
+size_t d_internal_rewrite(
+    char*                            _text,
+    size_t                           _length,
+    const struct dj_internal_change* _change
 )
 {
     char before[3][33];
@@ -1437,11 +1437,11 @@ d_internal_apply_checksums
   Rewrites the checksums of every change not yet applied, in every XML part,
 and notes a change whose checksum no part holds.
 */
-static bool
-d_internal_apply_checksums(
-    struct d_internal_articulate* _state,
-    char*                         _problem,
-    size_t                        _capacity
+static
+bool d_internal_apply_checksums(
+    struct dj_internal_articulate* _state,
+    char*                          _problem,
+    size_t                         _capacity
 )
 {
     size_t* const found = calloc(_state->change_count + 1u, sizeof(*found));
@@ -1497,7 +1497,7 @@ d_internal_apply_checksums(
 
     for (size_t which = 0; (ok) && (which < _state->change_count); ++which)
     {
-        struct d_internal_change* const change = &_state->changes[which];
+        struct dj_internal_change* const change = &_state->changes[which];
 
         // a checksum no part held is worth knowing about
         if ( (!change->applied) &&
@@ -1525,15 +1525,15 @@ d_internal_apply_checksums(
 d_internal_save
   The checksums, then the package.
 */
-static bool
-d_internal_save(
+static
+bool d_internal_save(
     void*       _state,
     const char* _path,
     char*       _problem,
     size_t      _capacity
 )
 {
-    struct d_internal_articulate* const state = _state;
+    struct dj_internal_articulate* const state = _state;
 
     return (d_internal_apply_checksums(state, _problem, _capacity)) &&
            (d_zip_save(state->zip, _path, _problem, _capacity));
@@ -1544,10 +1544,9 @@ d_internal_save(
 d_articulate_driver
   The descriptor, built once.
 */
-const struct d_story_driver*
-d_articulate_driver(void)
+const struct dj_story_driver* d_articulate_driver(void)
 {
-    static const struct d_story_driver driver =
+    static const struct dj_story_driver driver =
     {
         "articulate",
         d_internal_claims,

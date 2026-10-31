@@ -13,7 +13,7 @@
 *   - `D_MAYBE_DECLARE(name, type)` emits a struct holding the tag and the value
 *     BY VALUE, so a maybe cell is byte-determinate and has a known `sizeof`,
 *     as goal 4 requires.
-*   - `struct d_maybe` is a type-erased VIEW onto such a cell: three words
+*   - `struct dj_maybe` is a type-erased VIEW onto such a cell: three words
 *     pointing at the tag, the value slot, and the slot's width. Every generic
 *     operation takes a view, so there is exactly one implementation of `map`
 *     rather than one per element type.
@@ -25,7 +25,7 @@
 * CARRIER. Over a KNOWN carrier the operations are ordinary: `d_maybe_map` takes
 * two views whose widths differ and a transform between them, and nothing
 * higher-kinded is required. So the instances here are concrete instances, not a
-* Functor protocol -- a `struct d_functor` that any carrier could implement is
+* Functor protocol -- a `struct dj_functor` that any carrier could implement is
 * the tier-3 work and is not attempted here.
 *   `traverse` is absent for the reason the parity assessment gives: it composes
 * two constructors, and the corpus needs only a narrow slice of it. That slice
@@ -34,8 +34,8 @@
 *
 * FOLDABLE IS THE TIER 1 SPINE. A maybe is a sequence of 0 or 1 elements, so
 * its Foldable instance is not new machinery: `d_maybe_drive` pushes the cell
-* through an ordinary `d_reducer`, and `d_maybe_producer` presents it as an
-* ordinary `d_producer`. Any fold, quantifier or transducer chain already
+* through an ordinary `dj_reducer`, and `d_maybe_producer` presents it as an
+* ordinary `dj_producer`. Any fold, quantifier or transducer chain already
 * written against those works on a maybe unchanged.
 *
 *
@@ -57,7 +57,7 @@
 #include "./reducer.h"
 #include "./producer.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -67,11 +67,11 @@
 #if RE_STD_HAS_INT64
 
 
-// d_maybe
+// dj_maybe
 //   struct: a borrowed, type-erased view onto a maybe cell.
 // `has_value` and `value` point into a cell declared with D_MAYBE_DECLARE (or
 // any equivalent caller-owned storage). The view owns nothing.
-struct d_maybe
+struct dj_maybe
 {
     bool*  has_value;   // the cell's tag
     void*  value;       // the cell's value slot
@@ -109,59 +109,89 @@ struct d_maybe
                  sizeof((cell).value))
 
 // I.     construction
-struct d_maybe d_maybe_view(bool*  _has_value,
-                            void*  _value,
-                            size_t _value_size);
-bool           d_maybe_is_valid(const struct d_maybe* _maybe);
+struct dj_maybe d_maybe_view(
+    bool*  _has_value,
+    void*  _value,
+    size_t _value_size
+);
+bool d_maybe_is_valid(
+    const struct dj_maybe* _maybe
+);
 
 // II.    introduction (the `unit` of Table 7.2)
-bool     d_maybe_just(struct d_maybe* _maybe,
-                      const void*     _value);
-bool     d_maybe_nothing(struct d_maybe* _maybe);
+bool d_maybe_just(
+    struct dj_maybe* _maybe,
+    const void*      _value
+);
+bool d_maybe_nothing(
+    struct dj_maybe* _maybe
+);
 
 // III.   inspection
-bool     d_maybe_is_just(const struct d_maybe* _maybe);
-bool     d_maybe_is_nothing(const struct d_maybe* _maybe);
-bool     d_maybe_value_or(const struct d_maybe* _maybe,
-                          void*                 _out,
-                          const void*           _fallback);
+bool d_maybe_is_just(
+    const struct dj_maybe* _maybe
+);
+bool d_maybe_is_nothing(
+    const struct dj_maybe* _maybe
+);
+bool d_maybe_value_or(
+    const struct dj_maybe* _maybe,
+    void*                  _out,
+    const void*            _fallback
+);
 
 // IV.    Functor and Monad, over this carrier
-bool     d_maybe_map(const struct d_maybe* _in,
-                     struct d_maybe*       _out,
-                     fn_transformer        _transform,
-                     void*                 _context);
-bool     d_maybe_bind(const struct d_maybe* _in,
-                      struct d_maybe*       _out,
-                      fn_kleisli            _arrow,
-                      void*                 _context);
-bool     d_maybe_filter(struct d_maybe* _maybe,
-                        fn_predicate    _predicate,
-                        void*           _context);
+bool d_maybe_map(
+    const struct dj_maybe* _in,
+    struct dj_maybe*       _out,
+    fn_transformer         _transform,
+    void*                  _context
+);
+bool d_maybe_bind(
+    const struct dj_maybe* _in,
+    struct dj_maybe*       _out,
+    fn_kleisli             _arrow,
+    void*                  _context
+);
+bool d_maybe_filter(
+    struct dj_maybe* _maybe,
+    fn_predicate     _predicate,
+    void*            _context
+);
 
 // V.     Alternative
-bool     d_maybe_alt(const struct d_maybe* _first,
-                     const struct d_maybe* _second,
-                     struct d_maybe*       _out);
-bool     d_maybe_aempty(struct d_maybe* _out);
+bool d_maybe_alt(
+    const struct dj_maybe* _first,
+    const struct dj_maybe* _second,
+    struct dj_maybe*       _out
+);
+bool d_maybe_aempty(
+    struct dj_maybe* _out
+);
 
 // VI.    Foldable, via the tier 1 spine
-size_t   d_maybe_drive(const struct d_maybe*    _maybe,
-                       const struct d_reducer*  _reducer,
-                       struct d_reducing_state* _state);
-bool     d_maybe_fold(const struct d_maybe* _maybe,
-                      void*                 _accumulator,
-                      fn_fold               _step,
-                      void*                 _context);
-struct d_producer d_maybe_producer(struct d_producer_array_state* _state,
-                                   const struct d_maybe*          _maybe);
+size_t d_maybe_drive(
+    const struct dj_maybe*    _maybe,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
+);
+bool d_maybe_fold(
+    const struct dj_maybe* _maybe,
+    void*                  _accumulator,
+    fn_fold                _step,
+    void*                  _context
+);
+struct dj_producer d_maybe_producer(
+    struct dj_producer_array_state* _state,
+    const struct dj_maybe*          _maybe
+);
 
 // VII.   layout assertions (Layout law: one declaration, asserted in both)
-D_STATIC_ASSERT(offsetof(struct d_maybe, value) == sizeof(bool*),
-                "d_maybe layout drift");
-D_STATIC_ASSERT(offsetof(struct d_maybe, value_size) ==
+D_STATIC_ASSERT(offsetof(struct dj_maybe, value) == sizeof(bool*),
+                "dj_maybe layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_maybe, value_size) ==
                     (sizeof(bool*) + sizeof(void*)),
-                "d_maybe layout drift");
+                "dj_maybe layout drift");
 
 
 #endif  // RE_STD_HAS_INT64

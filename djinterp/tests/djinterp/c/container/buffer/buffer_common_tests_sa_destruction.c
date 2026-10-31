@@ -9,13 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // test_free_fn
 //   internal: custom free function for deep free tests.
-static void
-test_free_fn(void* _ptr)
+static
+void test_free_fn(
+    void* _ptr
+)
 {
     free(_ptr);
 
@@ -30,10 +32,8 @@ d_tests_sa_buffer_common_free_data
   - NULL elements does not crash
   - valid allocation is freed without error
 */
-bool
-d_tests_sa_buffer_common_free_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_free_data(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -75,10 +75,8 @@ d_tests_sa_buffer_common_free_data_deep
   - valid pointer array with elements is freed
   - NULL elements within array are skipped
 */
-bool
-d_tests_sa_buffer_common_free_data_deep
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_free_data_deep(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -140,10 +138,8 @@ d_tests_sa_buffer_common_free_data_deep
 d_tests_sa_buffer_common_destruction_all
   Aggregation function that runs all destruction tests.
 */
-bool
-d_tests_sa_buffer_common_destruction_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_destruction_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

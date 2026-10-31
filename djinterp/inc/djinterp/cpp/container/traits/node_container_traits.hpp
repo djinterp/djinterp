@@ -1,0 +1,585 @@
+/*******************************************************************************
+* djinterp [cpp]                                       node_container_traits.hpp
+*
+* Node Container Traits:
+*   Compile-time SFINAE-based structural detection for node-based
+* containers.  Detects ownership model, entry point form, node type
+* extraction, and classifies the container's ownership strategy and
+* graph shape.
+*
+*   Following the monograph, a node container is a set of nodes together
+* with a SET OF ROOTS rho (entry references); its carrier is reach(rho),
+* the nodes reachable by following edges from the roots.  The shape of a
+* container is read from how it exposes those roots:
+*
+*     tree   single root, acyclic, unique walk (no sharing) ... root()
+*     list   a degenerate path                              ... head()/tail()
+*     graph  an entry SET rho (sharing: DAG or general graph)... entries()
+*
+*   These traits operate on any type that structurally resembles a
+* DNodeContainer - no base class check is performed.  A type is
+* recognized as a node container if it exposes the structural
+* minimum: a node_type alias AND at least one entry reference --
+* entry_point(), root(), head(), or the entry set entries().
+*
+*
+* path:      /inc/djinterp/cpp/container/traits/node_container_traits.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.11
+*                                                            revised: 2026.10.02
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    Ownership Policy Detection
+      --------------------------
+
+II.   Entry Point Detection
+      ---------------------
+
+III.  Node Type Extraction
+      --------------------
+
+IV.   Ownership Model Classification
+      ------------------------------
+
+V.    Node Container Identity
+      -----------------------
+
+VI.   Combined Classification
+      -----------------------
+
+VII.  C++20 Concepts (feature-gated)
+      ------------------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_TRAITS_NODE_CONTAINER_TRAITS_HPP
+#define DJINTERP_CONTAINER_TRAITS_NODE_CONTAINER_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+
+// std
+#include <cstddef>
+#include <memory>
+#include <type_traits>
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/trait_detect.hpp"
+#include "../../meta/type_traits.hpp"
+// re_std
+#include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
+
+
+NS_DJINTERP
+
+
+// ===========================================================================
+// I.   Ownership Policy Detection
+// ===========================================================================
+
+// has_ownership_policy
+//   trait: true if Type exposes an `ownership_policy` alias.
+D_TYPE_TRAIT_TRUE(has_ownership_policy,
+                  typename clean_t<Type>::ownership_policy)
+
+// has_entry_storage_type
+//   trait: true if Type exposes an `entry_storage` alias.
+D_TYPE_TRAIT_TRUE(has_entry_storage_type,
+                  typename clean_t<Type>::entry_storage)
+
+// has_entry_owns_constant
+//   trait: true if Type exposes `entry_owns` as a static bool.
+template<typename Type,
+         typename = void>
+struct has_entry_owns_constant : std::false_type
+{};
+
+// has_entry_owns_constant<Type, std::enable_if_t<std::is_same<
+// decltype(clean_t<Type>
+//   trait: the `std::enable_if_t<std::is_same< decltype(clean_t<Type` case;
+// it reports true.
+template<typename Type>
+struct has_entry_owns_constant<Type,
+    std::enable_if_t<std::is_same<
+        decltype(clean_t<Type>::entry_owns),
+        const bool>::value>>
+    : std::true_type
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool has_entry_owns_constant_v =
+        has_entry_owns_constant<Type>::value;
+#endif
+
+
+// ===========================================================================
+// II.  Entry Point Detection
+// ===========================================================================
+//   Detects what kind of entry reference(s) -- the roots rho -- a node
+// container exposes.  A container may have root() (trees), head()/tail()
+// (lists), an entries() SET (graphs), or the generic entry_point() from
+// DNodeContainer.  The set-valued entries()/entry_count() form is the
+// direct realisation of the monograph's set of roots rho, which trees and
+// lists specialise to a single distinguished entry.
+
+// has_entry_point_method
+//   trait: true if Type has an entry_point() method.
+D_TYPE_TRAIT_TRUE(has_entry_point_method,
+    decltype(std::declval<const Type&>().entry_point()))
+
+// has_root_method
+//   trait: true if Type has a root() method.
+D_TYPE_TRAIT_TRUE(has_root_method,
+    decltype(std::declval<const Type&>().root()))
+
+// has_root_member_method
+//   trait: true if Type has a has_root() method.
+D_TYPE_TRAIT_TRUE(has_root_member_method,
+    decltype(std::declval<const Type&>().has_root()))
+
+// has_head_method
+//   trait: true if Type has a head() method.
+D_TYPE_TRAIT_TRUE(has_head_method,
+    decltype(std::declval<const Type&>().head()))
+
+// has_tail_method
+//   trait: true if Type has a tail() method.
+D_TYPE_TRAIT_TRUE(has_tail_method,
+    decltype(std::declval<const Type&>().tail()))
+
+// has_entries_method
+//   trait: true if Type has an entries() method -- the entry SET rho of a
+// graph-shaped container (the graph_container interface).
+D_TYPE_TRAIT_TRUE(has_entries_method,
+    decltype(std::declval<const Type&>().entries()))
+
+// has_entry_count_method
+//   trait: true if Type has an entry_count() method -- the cardinality of the
+// entry set rho.
+D_TYPE_TRAIT_TRUE(has_entry_count_method,
+    decltype(std::declval<const Type&>().entry_count()))
+
+// has_has_entry_method
+//   trait: true if Type has a has_entry() method.
+D_TYPE_TRAIT_TRUE(has_has_entry_method,
+    decltype(std::declval<const Type&>().has_entry()))
+
+// has_release_entry_method
+//   trait: true if Type has a release_entry() method.
+D_TYPE_TRAIT_TRUE(has_release_entry_method,
+    decltype(std::declval<Type&>().release_entry()))
+
+// has_any_entry_point
+//   trait: true if Type exposes any kind of entry reference -- a single
+// distinguished entry (entry_point/root/head) or an entry set (entries).
+template<typename Type>
+struct has_any_entry_point
+{
+    static constexpr bool value =
+        ( has_entry_point_method<Type>::value  ||
+          has_root_method<Type>::value         ||
+          has_head_method<Type>::value         ||
+          has_entries_method<Type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool has_any_entry_point_v =
+        has_any_entry_point<Type>::value;
+#endif
+
+
+// ===========================================================================
+// III. Node Type Extraction
+// ===========================================================================
+
+// has_node_type
+//   trait: true if Type has a nested `node_type` alias.
+D_TYPE_TRAIT_TRUE(has_node_type,
+    typename clean_t<Type>::node_type)
+
+NS_INTERNAL
+    // node_type_helper
+    //   trait: safely extracts `node_type` or falls back to nonesuch.
+    template<typename Type,
+             bool Has = has_node_type<Type>::value>
+    struct node_type_helper
+    {
+        using type = nonesuch;
+    };
+
+    // node_type_helper<Type, true>
+    //   helper: the case where `has_node_type<Type>::value` is true; it maps
+    // to `typename clean_t<Type>::node_type`.
+    template<typename Type>
+    struct node_type_helper<Type, true>
+    {
+        using type = typename clean_t<Type>::node_type;
+    };
+
+NS_END  // internal
+
+// node_type_of_t
+//   type: the extracted node_type of Type, or nonesuch.
+template<typename Type>
+using node_type_of_t = typename internal::node_type_helper<Type>::type;
+
+
+// ===========================================================================
+// IV.  Ownership Model Classification
+// ===========================================================================
+
+// DOwnershipModel
+//   enum: classifies the ownership strategy of a node container.
+enum class DOwnershipModel : re_std::uint8_t
+{
+    non_owning = 0,     // raw pointer entry, no destruction
+    unique     = 1,     // unique_ptr entry, exclusive ownership
+    shared     = 2,     // shared_ptr entry, reference-counted
+    unknown    = 3      // has ownership_policy but unrecognized
+};
+
+
+// ownership policy tags
+//   Forward declarations of the policy types used by the ownership identity
+// checks below. Their definitions live in node_container.hpp; they are
+// forward-declared here so this header stays standalone (no include dependency
+// on the container itself). std::is_same needs only the names, not the
+// complete types. These MUST name the same djinterp-scope types defined in
+// node_container.hpp.
+struct unique_owning_policy;
+struct shared_owning_policy;
+struct non_owning_policy;
+
+
+NS_INTERNAL
+
+    // ownership_model_impl
+    //   trait: classifies the ownership model by matching the ownership_policy
+    // alias against known policy types.
+    template<typename Type,
+             bool Has = has_ownership_policy<Type>::value>
+    struct ownership_model_impl
+    {
+        static constexpr DOwnershipModel value =
+            DOwnershipModel::non_owning;
+    };
+
+    // ownership_model_impl<Type, true>
+    //   helper: the case where `has_ownership_policy<Type>::value` is true.
+    template<typename Type>
+    struct ownership_model_impl<Type, true>
+    {
+        using policy = typename clean_t<Type>::ownership_policy;
+
+        static constexpr DOwnershipModel value =
+            std::is_same<policy,
+                         unique_owning_policy
+            >::value
+                ? DOwnershipModel::unique
+
+            : std::is_same<policy,
+                           shared_owning_policy
+              >::value
+                ? DOwnershipModel::shared
+
+            : std::is_same<policy,
+                           non_owning_policy
+              >::value
+                ? DOwnershipModel::non_owning
+
+            : DOwnershipModel::unknown;
+    };
+
+NS_END  // internal
+
+// ownership_model_of
+//   trait: classifies the ownership model of a node container.
+template<typename Type>
+struct ownership_model_of
+    : std::integral_constant<DOwnershipModel,
+                              internal::ownership_model_impl<Type>::value>
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr DOwnershipModel ownership_model_of_v =
+        ownership_model_of<Type>::value;
+#endif
+
+// is_owning_container
+//   trait: true if Type has an ownership policy where owns == true.
+template<typename Type,
+         typename = void>
+struct is_owning_container : std::false_type
+{};
+
+// is_owning_container<Type, std::enable_if_t< has_ownership_policy<Type>
+//   trait: the `std::enable_if_t< has_ownership_policy<Type` case; it reports
+// true.
+template<typename Type>
+struct is_owning_container<Type,
+    std::enable_if_t<
+        has_ownership_policy<Type>::value &&
+        clean_t<Type>::ownership_policy::owns
+    >>
+    : std::true_type
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_owning_container_v =
+        is_owning_container<Type>::value;
+#endif
+
+// is_unique_owning_container
+//   trait: true if Type uses unique_owning_policy.
+template<typename Type>
+struct is_unique_owning_container
+{
+    static constexpr bool value =
+        ( ownership_model_of<Type>::value ==
+          DOwnershipModel::unique );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_unique_owning_container_v =
+        is_unique_owning_container<Type>::value;
+#endif
+
+// is_shared_owning_container
+//   trait: true if Type uses shared_owning_policy. A shared entry set is what
+// admits sharing in the monograph's sense (a node reached by several
+// references), i.e. a DAG or general graph rather than a tree.
+template<typename Type>
+struct is_shared_owning_container
+{
+    static constexpr bool value =
+        ( ownership_model_of<Type>::value ==
+          DOwnershipModel::shared );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_shared_owning_container_v =
+        is_shared_owning_container<Type>::value;
+#endif
+
+
+// ===========================================================================
+// V.   Node Container Identity
+// ===========================================================================
+
+// is_node_container
+//   trait: true if Type structurally resembles a node-based container.
+// Requires: node_type alias AND at least one entry reference (a single entry
+// or an entry set).
+template<typename Type>
+struct is_node_container
+{
+    static constexpr bool value =
+        ( has_node_type<Type>::value &&
+          has_any_entry_point<Type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_node_container_v =
+        is_node_container<Type>::value;
+#endif
+
+// is_tree_shaped_container
+//   trait: true if Type is a node container with a single root entry.
+// Structural proxy for the monograph's tree (single root, acyclic, unique walk
+// -- hence unshared).
+template<typename Type>
+struct is_tree_shaped_container
+{
+    static constexpr bool value =
+        ( is_node_container<Type>::value &&
+          has_root_method<Type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_tree_shaped_container_v =
+        is_tree_shaped_container<Type>::value;
+#endif
+
+// is_list_shaped_container
+//   trait: true if Type is a node container with a head entry point.
+template<typename Type>
+struct is_list_shaped_container
+{
+    static constexpr bool value =
+        ( is_node_container<Type>::value &&
+          has_head_method<Type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_list_shaped_container_v =
+        is_list_shaped_container<Type>::value;
+#endif
+
+// is_doubly_linked_container
+//   trait: true if Type is list-shaped with both head() and tail().
+template<typename Type>
+struct is_doubly_linked_container
+{
+    static constexpr bool value =
+        ( is_list_shaped_container<Type>::value &&
+          has_tail_method<Type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_doubly_linked_container_v =
+        is_doubly_linked_container<Type>::value;
+#endif
+
+// is_graph_shaped_container
+//   trait: true if Type is a node container exposing an entry SET via
+// entries(). Structural proxy for the monograph's shared cases (DAG or general
+// graph), where the roots rho form a set rather than a single distinguished
+// entry.
+template<typename Type>
+struct is_graph_shaped_container
+{
+    static constexpr bool value =
+        ( is_node_container<Type>::value &&
+          has_entries_method<Type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_graph_shaped_container_v =
+        is_graph_shaped_container<Type>::value;
+#endif
+
+
+// ===========================================================================
+// VI.  Combined Classification
+// ===========================================================================
+
+// DNodeContainerShape
+//   enum: topology classification for strategy dispatch.
+enum class DNodeContainerShape : re_std::uint8_t
+{
+    unknown   = 0,
+    tree      = 1,      // single root entry
+    list      = 2,      // head (+ optional tail) entry
+    graph     = 3,      // entry set rho
+    generic   = 4       // has entry_point() but no specific shape
+};
+
+NS_INTERNAL
+
+    // shape_impl
+    //   helper: resolves a node container's shape by asking the three shape
+    // predicates in order -- tree, then list, then graph -- and reporting the
+    // first that answers. The order matters: a tree satisfies the weaker graph
+    // predicate too, so the most specific shape has to be tested first.
+    template<typename Type>
+    struct shape_impl
+    {
+        static constexpr DNodeContainerShape value =
+            is_tree_shaped_container<Type>::value
+                ? DNodeContainerShape::tree
+
+            : is_list_shaped_container<Type>::value
+                ? DNodeContainerShape::list
+
+            : is_graph_shaped_container<Type>::value
+                ? DNodeContainerShape::graph
+
+            : is_node_container<Type>::value
+                ? DNodeContainerShape::generic
+
+            : DNodeContainerShape::unknown;
+    };
+
+NS_END  // internal
+
+// node_container_shape_of
+//   trait: classifies the topology of a node container.
+template<typename Type>
+struct node_container_shape_of
+    : std::integral_constant<DNodeContainerShape,
+                              internal::shape_impl<Type>::value>
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr DNodeContainerShape node_container_shape_of_v =
+        node_container_shape_of<Type>::value;
+#endif
+
+// DNodeContainerClass
+//   struct: comprehensive classification of a node container.
+template<typename Type>
+struct DNodeContainerClass
+{
+    // identity
+    static constexpr bool is_node_container =
+        ::djinterp::is_node_container<Type>::value;
+
+    // shape
+    static constexpr DNodeContainerShape shape =
+        node_container_shape_of<Type>::value;
+    static constexpr bool is_tree_shaped =
+        is_tree_shaped_container<Type>::value;
+    static constexpr bool is_list_shaped =
+        is_list_shaped_container<Type>::value;
+    static constexpr bool is_doubly_linked =
+        is_doubly_linked_container<Type>::value;
+    static constexpr bool is_graph_shaped =
+        is_graph_shaped_container<Type>::value;
+
+    // ownership
+    static constexpr bool has_ownership =
+        has_ownership_policy<Type>::value;
+    static constexpr DOwnershipModel ownership =
+        ownership_model_of<Type>::value;
+    static constexpr bool is_owning =
+        is_owning_container<Type>::value;
+    static constexpr bool is_unique_owning =
+        is_unique_owning_container<Type>::value;
+    static constexpr bool is_shared_owning =
+        is_shared_owning_container<Type>::value;
+
+    // entry point
+    static constexpr bool has_entry =
+        has_any_entry_point<Type>::value;
+    static constexpr bool has_root =
+        has_root_method<Type>::value;
+    static constexpr bool has_head =
+        has_head_method<Type>::value;
+    static constexpr bool has_tail =
+        has_tail_method<Type>::value;
+    static constexpr bool has_entries =
+        has_entries_method<Type>::value;
+    static constexpr bool has_entry_count =
+        has_entry_count_method<Type>::value;
+    static constexpr bool has_release =
+        has_release_entry_method<Type>::value;
+
+    // node type
+    static constexpr bool has_node =
+        has_node_type<Type>::value;
+    using node = node_type_of_t<Type>;
+};
+
+
+NS_END  // djinterp
+
+#endif  // floor, for now
+
+#endif  // DJINTERP_CONTAINER_TRAITS_NODE_CONTAINER_TRAITS_HPP

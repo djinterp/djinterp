@@ -15,7 +15,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -42,13 +42,11 @@ d_tests_sa_dmacro_all
   - XIII. Utility Operators
   - XIV. Compile-Time Assertions
 */
-bool
-d_tests_sa_dmacro_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter master_counter;
+    struct dj_test_counter master_counter;
     bool                  cfg_result;
     bool                  token_result;
     bool                  array_result;
@@ -71,7 +69,7 @@ d_tests_sa_dmacro_all
         return false;
     }
 
-    master_counter = (struct d_test_counter){0, 0, 0, 0};
+    master_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("###########################################################################\n");
@@ -185,19 +183,15 @@ d_tests_dmacro_run_all
   Runs all dmacro tests and returns a test object with results.
   This is the primary entry point for running the dmacro test suite.
 */
-struct d_test_object*
-d_tests_dmacro_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_dmacro_run_all(void)
 {
-    struct d_test_object*  root;
-    struct d_test_counter  counter;
+    struct dj_test_object*  root;
+    struct dj_test_counter  counter;
     bool                   success;
     static char            message_buf[256];
 
     // initialize counter
-    counter = (struct d_test_counter){0, 0, 0, 0};
+    counter = (struct dj_test_counter){0, 0, 0, 0};
 
     // run all tests
     success = d_tests_sa_dmacro_all(&counter);

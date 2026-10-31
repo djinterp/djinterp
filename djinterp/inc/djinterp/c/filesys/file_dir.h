@@ -6,14 +6,14 @@
 *   The split from file_path is by cost, not by name: d_path_dirname is
 * lexical and free, d_path_resolve is a syscall that resolves symlinks and can
 * fail. Both are "path" work; only one of them needs a disk.
-*   struct d_dir_t is opaque and owns the entry d_dir_read returns, so that
+*   struct dj_dir_t is opaque and owns the entry d_dir_read returns, so that
 * pointer stays valid until the next read on the same handle -- and dies with
 * d_dir_close.
 *   A build with neither POSIX nor Windows has no directory API -- ISO C has
 * none -- so there every call that needs one fails with ENOSYS; only
 * d_dir_entry_path, which is text, still works.
-*   One handle reads at either width: d_dir_read64 returns a d_dirent64_t,
-* d_dir_read32 a d_dirent32_t, and the unsuffixed d_dir_read follows
+*   One handle reads at either width: d_dir_read64 returns a dj_dirent64_t,
+* d_dir_read32 a dj_dirent32_t, and the unsuffixed d_dir_read follows
 * D_FILE_WIDTH (file_common.h has the rules). Only the inode number differs,
 * so the one way d_dir_read32 can fail where d_dir_read64 would not is an
 * entry whose inode number needs more than 32 bits: that entry fails with
@@ -55,12 +55,12 @@ TABLE OF CONTENTS
 // std
 #include <stddef.h>  // size_t
 // djinterp
-#include "./file_common.h"                        // foundation, d_dir_t,
-                                                  // d_dirent32_t, d_dirent64_t
+#include "./file_common.h"                        // foundation, dj_dir_t,
+                                                  // dj_dirent32_t, dj_dirent64_t
 #include "./file_path.h"                          // the lexical path operations
 #include "../../config/c/filesys/cfg_file_dir.h"  // module configuration
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // uint8_t, uint32_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t
 
 
 D_EXTERN_C_BEGIN
@@ -82,8 +82,10 @@ D_EXTERN_C_BEGIN
  * @return 0, or -1 on failure with errno set: ENOENT for a missing parent,
  *         EEXIST for an existing target.
  */
-int                  d_dir_create(const char* _path,
-                                  uint32_t    _mode);
+int d_dir_create(
+    const char* _path,
+    uint32_t    _mode
+);
 /**
  * @brief Creates a directory and any missing parents (mkdir -p).
  *
@@ -100,8 +102,10 @@ int                  d_dir_create(const char* _path,
  * @return 0, or -1 on failure with errno set; ENOTDIR when a component exists
  *         and is not a directory.
  */
-int                  d_dir_create_parents(const char* _path,
-                                          uint32_t    _mode);
+int d_dir_create_parents(
+    const char* _path,
+    uint32_t    _mode
+);
 
 // 1.2    Removal
 //------------------------------------------------------------------------------
@@ -116,7 +120,9 @@ int                  d_dir_create_parents(const char* _path,
  * @return 0, or -1 on failure with errno set; ENOTEMPTY (EEXIST on some
  *         platforms) for a directory that is not empty.
  */
-int                  d_dir_remove(const char* _path);
+int d_dir_remove(
+    const char* _path
+);
 
 // 1.3    Traversal
 //------------------------------------------------------------------------------
@@ -129,7 +135,9 @@ int                  d_dir_remove(const char* _path);
  *         directory.
  * @post The caller owns the handle and releases it with d_dir_close.
  */
-struct d_dir_t*      d_dir_open(const char* _path);
+struct dj_dir_t* d_dir_open(
+    const char* _path
+);
 #if D_FILE_64_IS_AVAILABLE
 /**
  * @brief Reads the next entry from a directory.
@@ -145,7 +153,9 @@ struct d_dir_t*      d_dir_open(const char* _path);
  * @post The entry belongs to `_dir`: it stays valid until the next read on
  *       the same handle, at either width, and dies with d_dir_close.
  */
-struct d_dirent64_t* d_dir_read64(struct d_dir_t* _dir);
+struct dj_dirent64_t* d_dir_read64(
+    struct dj_dir_t* _dir
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief d_dir_read64, into the 32-bit layout.
@@ -157,7 +167,9 @@ struct d_dirent64_t* d_dir_read64(struct d_dir_t* _dir);
  * @return the next entry, or `NULL` at the end or on failure.
  * @post The entry belongs to `_dir`, as d_dir_read64's does.
  */
-struct d_dirent32_t* d_dir_read32(struct d_dir_t* _dir);
+struct dj_dirent32_t* d_dir_read32(
+    struct dj_dir_t* _dir
+);
 /**
  * @brief Reads the next entry's name and type, at no width: with no inode
  *        number in the answer there is nothing that can fail to fit.
@@ -170,8 +182,10 @@ struct d_dirent32_t* d_dir_read32(struct d_dir_t* _dir);
  * @return the entry's name, or `NULL` at the end or on failure.
  * @post The name belongs to `_dir`, as an entry d_dir_read64 returns does.
  */
-const char*          d_dir_read_name(struct d_dir_t* _dir,
-                                     uint8_t*        _type);
+const char* d_dir_read_name(
+    struct dj_dir_t* _dir,
+    uint8_t*         _type
+);
 /**
  * @brief Builds the path of an entry read from a directory, for the running
  *        platform to open: the directory, D_FILE_PATH_SEP, then the name.
@@ -191,10 +205,12 @@ const char*          d_dir_read_name(struct d_dir_t* _dir,
  * @return `_buf`, or `NULL` on failure with errno set: EINVAL for a bad
  *         argument, ERANGE when the path does not fit.
  */
-char*                d_dir_entry_path(char*       _buf,
-                                      size_t      _bufsize,
-                                      const char* _dir,
-                                      const char* _name);
+char* d_dir_entry_path(
+    char*       _buf,
+    size_t      _bufsize,
+    const char* _dir,
+    const char* _name
+);
 /**
  * @brief Returns a directory handle to its first entry.
  *
@@ -204,7 +220,9 @@ char*                d_dir_entry_path(char*       _buf,
  * @param[in] _dir  an open handle.
  * @return 0, or -1 on failure with errno set.
  */
-int                  d_dir_rewind(struct d_dir_t* _dir);
+int d_dir_rewind(
+    struct dj_dir_t* _dir
+);
 /**
  * @brief Closes a directory handle and releases it.
  *
@@ -213,7 +231,9 @@ int                  d_dir_rewind(struct d_dir_t* _dir);
  * @post `_dir`, and the entry last read from it, are invalid whatever the
  *       result.
  */
-int                  d_dir_close(struct d_dir_t* _dir);
+int d_dir_close(
+    struct dj_dir_t* _dir
+);
 
 // 1.4    Working directory and resolution
 //------------------------------------------------------------------------------
@@ -229,8 +249,10 @@ int                  d_dir_close(struct d_dir_t* _dir);
  * @return `_buf`, or `NULL` on failure with errno set; ERANGE when the path
  *         does not fit.
  */
-char*                d_dir_get_current(char*  _buf,
-                                       size_t _size);
+char* d_dir_get_current(
+    char*  _buf,
+    size_t _size
+);
 /**
  * @brief Changes the current working directory.
  *
@@ -241,7 +263,9 @@ char*                d_dir_get_current(char*  _buf,
  * @param[in] _path  the directory to move to.
  * @return 0, or -1 on failure with errno set.
  */
-int                  d_dir_set_current(const char* _path);
+int d_dir_set_current(
+    const char* _path
+);
 /**
  * @brief Resolves a path to its canonical absolute form, following every
  *        symbolic link on the way.
@@ -262,9 +286,11 @@ int                  d_dir_set_current(const char* _path);
  * @post An allocated result belongs to the caller, who releases it with the
  *       configured deallocator (D_CFG_FILE_FREE).
  */
-char*                d_path_resolve(const char* _path,
-                                    char*       _resolved,
-                                    size_t      _size);
+char* d_path_resolve(
+    const char* _path,
+    char*       _resolved,
+    size_t      _size
+);
 
 
 // 1.5    Directory-relative operations
@@ -292,8 +318,10 @@ char*                d_path_resolve(const char* _path,
  *         ISO C backend.
  * @post The parent may be closed first; the handle stands on its own.
  */
-struct d_dir_t*      d_dir_open_at(struct d_dir_t* _parent,
-                                   const char*     _name);
+struct dj_dir_t* d_dir_open_at(
+    struct dj_dir_t* _parent,
+    const char*      _name
+);
 /**
  * @brief Removes an entry of an open directory: an empty directory with
  *        D_DIR_REMOVE_DIRECTORY, anything else -- a link to a directory
@@ -305,9 +333,11 @@ struct d_dir_t*      d_dir_open_at(struct d_dir_t* _parent,
  * @return 0, or -1 with errno set as unlinkat sets it, EINVAL for a name that
  *         is a path, and ENOSYS on the ISO C backend.
  */
-int                  d_dir_remove_at(struct d_dir_t* _dir,
-                                     const char*     _name,
-                                     int             _flags);
+int d_dir_remove_at(
+    struct dj_dir_t* _dir,
+    const char*      _name,
+    int              _flags
+);
 /**
  * @brief Removes a path and everything beneath it, following no link: a link
  *        is removed as itself, wherever in the tree it is.
@@ -323,7 +353,9 @@ int                  d_dir_remove_at(struct d_dir_t* _dir,
  *         failure, which stops the removal with what it removed already gone.
  *         ENOSYS on the ISO C backend.
  */
-int                  d_dir_remove_all(const char* _path);
+int d_dir_remove_all(
+    const char* _path
+);
 
 //==============================================================================
 // 2.  DEFAULT WIDTH
@@ -333,7 +365,7 @@ int                  d_dir_remove_all(const char* _path);
 // 2.1    Unsuffixed names
 //------------------------------------------------------------------------------
 // d_dir_read
-//   alias: the reader's twin at D_FILE_WIDTH, so it returns a d_dirent_t
+//   alias: the reader's twin at D_FILE_WIDTH, so it returns a dj_dirent_t
 // (file_common.h, 3.2). Opening, rewinding and closing have one width.
 #if (D_FILE_WIDTH == 64)
     #define d_dir_read d_dir_read64

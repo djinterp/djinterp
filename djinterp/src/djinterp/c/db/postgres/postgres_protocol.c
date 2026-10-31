@@ -36,11 +36,11 @@
 #include <stdlib.h>  // malloc, free
 #include <string.h>  // strlen
 // djinterp
-#include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, d_db_rows
+#include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, dj_db_rows
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
 #include "./postgres_internal.h"  // libpq-fe.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_POSTGRES == 1)
@@ -59,8 +59,8 @@ d_internal_postgres_trouble
   A failure libpq reports by a return value alone: the connection's state
 says which of the layer's two codes it is.
 */
-static int
-d_internal_postgres_trouble(
+static
+int d_internal_postgres_trouble(
     const PGconn* _db
 )
 {
@@ -74,12 +74,12 @@ d_internal_postgres_copy_text
   Text libpq holds, copied into memory of the layer's, so that d_db_free
 releases it on every C runtime; NULL when memory ran out.
 */
-static char*
-d_internal_postgres_copy_text(
+static
+char* d_internal_postgres_copy_text(
     const char* _text
 )
 {
-    struct d_internal_db_buffer copy = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer copy = { NULL, 0u, 0u };
     const char* const           text = (_text) ? _text : "";
 
     // the text, terminated
@@ -102,8 +102,8 @@ so that a statement queued after the last synchronization point has its
 results sent all the same. Returns 0, or the trouble that kept the request
 from being made.
 */
-static int
-d_internal_postgres_ask(
+static
+int d_internal_postgres_ask(
     PGconn* _db,
     bool    _pipelined
 )
@@ -129,8 +129,8 @@ d_internal_postgres_await
   The next result, waiting for it, after asking for it where that is needed;
 NULL when libpq has none.
 */
-static int
-d_internal_postgres_await(
+static
+int d_internal_postgres_await(
     PGconn*    _db,
     bool       _pipelined,
     PGresult** _next
@@ -148,8 +148,8 @@ d_internal_postgres_count
   How many rows a result's command tag counts -- INSERT 0 3, COPY 5 -- or 0
 for one that counts none.
 */
-static int64_t
-d_internal_postgres_count(
+static
+int64_t d_internal_postgres_count(
     PGresult* _result
 )
 {
@@ -178,8 +178,7 @@ d_postgres_copy_in_start
 was no COPY FROM STDIN, and a COPY to the client is ended as the layer ends
 one everywhere.
 */
-int
-d_postgres_copy_in_start(
+int d_postgres_copy_in_start(
     struct pg_conn* _db,
     const char*     _sql
 )
@@ -220,8 +219,7 @@ d_postgres_copy_in_data
   PQputCopyData counts its bytes in an int, so a larger buffer goes in
 pieces; in blocking mode it answers 1 or -1, and -1 for no COPY at all.
 */
-int
-d_postgres_copy_in_data(
+int d_postgres_copy_in_data(
     struct pg_conn* _db,
     const void*     _data,
     size_t          _size
@@ -263,8 +261,7 @@ which counts its rows, and every result after it, to the last: a second
 COPY the SQL started is ended, and reported as D_DB_UNSUPPORTED, as the
 first failure of any statement after the COPY is.
 */
-int
-d_postgres_copy_in_end(
+int d_postgres_copy_in_end(
     struct pg_conn* _db,
     const char*     _error,
     int64_t*        _changes
@@ -333,8 +330,7 @@ d_postgres_copy_in_end(
 d_postgres_listen
   The channel quoted as a name, so that its case is kept.
 */
-int
-d_postgres_listen(
+int d_postgres_listen(
     struct pg_conn* _db,
     const char*     _channel
 )
@@ -353,8 +349,7 @@ d_postgres_listen(
 d_postgres_unlisten
   UNLISTEN *, for every channel, when none is named.
 */
-int
-d_postgres_unlisten(
+int d_postgres_unlisten(
     struct pg_conn* _db,
     const char*     _channel
 )
@@ -377,8 +372,7 @@ d_postgres_notify
   pg_notify, its channel and payload passed apart from the SQL; a NULL
 payload is "", since pg_notify ignores a call with a NULL argument.
 */
-int
-d_postgres_notify(
+int d_postgres_notify(
     struct pg_conn* _db,
     const char*     _channel,
     const char*     _payload
@@ -421,8 +415,7 @@ d_postgres_next_notification
   What the server has sent is read first, without waiting, so that a
 notification already on the socket is found.
 */
-int
-d_postgres_next_notification(
+int d_postgres_next_notification(
     struct pg_conn* _db,
     char**          _channel,
     char**          _payload,
@@ -495,8 +488,7 @@ d_postgres_send_query
 refuses while SQL sent before is unfinished. A pipeline takes only the
 extended protocol, which PQsendQueryParams speaks, with no parameters.
 */
-int
-d_postgres_send_query(
+int d_postgres_send_query(
     struct pg_conn* _db,
     const char*     _sql
 )
@@ -534,13 +526,13 @@ the statement's last success -- libpq answers it without waiting -- so that
 the next statement's rows can be asked for a few at a time. A result's count
 is read before its rows are built, which frees it.
 */
-static int
-d_internal_postgres_give(
-    PGconn*           _db,
-    PGresult*         _next,
-    bool              _pipelined,
-    struct d_db_rows* _rows,
-    int64_t*          _changes
+static
+int d_internal_postgres_give(
+    PGconn*            _db,
+    PGresult*          _next,
+    bool               _pipelined,
+    struct dj_db_rows* _rows,
+    int64_t*           _changes
 )
 {
     PGresult* taken = NULL;
@@ -617,11 +609,10 @@ server's failure, the end of the failed statement's results is read only
 when the next result is asked for, since reading it clears the connection's
 message, which must describe the failure until then.
 */
-int
-d_postgres_next_result(
-    struct pg_conn*   _db,
-    struct d_db_rows* _rows,
-    int64_t*          _changes
+int d_postgres_next_result(
+    struct pg_conn*    _db,
+    struct dj_db_rows* _rows,
+    int64_t*           _changes
 )
 {
     PGresult* next = NULL;
@@ -657,8 +648,7 @@ d_postgres_next_result(
 d_postgres_is_busy
   PQisBusy reads nothing from the socket; d_postgres_consume_input does.
 */
-bool
-d_postgres_is_busy(
+bool d_postgres_is_busy(
     struct pg_conn* _db
 )
 {
@@ -670,8 +660,7 @@ d_postgres_is_busy(
 d_postgres_consume_input
   PQconsumeInput answers 0 only for trouble on the connection.
 */
-int
-d_postgres_consume_input(
+int d_postgres_consume_input(
     struct pg_conn* _db
 )
 {
@@ -695,8 +684,7 @@ send, or after a statement's last result -- in a pipeline, once the end of
 its results is read too, which d_postgres_next_result reads at once after a
 success.
 */
-int
-d_postgres_set_chunked_rows(
+int d_postgres_set_chunked_rows(
     struct pg_conn* _db,
     int             _rows
 )
@@ -737,11 +725,11 @@ d_internal_postgres_sending
   What is left of a send, written as far as the socket takes it; a send
 that finishes, or fails, leaves nothing pending.
 */
-static int
-d_internal_postgres_sending(
-    PGconn*              _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+static
+int d_internal_postgres_sending(
+    PGconn*               _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     const int result = d_internal_postgres_flush(
@@ -765,12 +753,12 @@ d_internal_postgres_next_arrived
   The next result once it has arrived (d_internal_postgres_give), outside
 pipeline mode; until then, a wait for the socket to be readable.
 */
-static int
-d_internal_postgres_next_arrived(
-    PGconn*              _db,
-    struct d_db_pending* _pending,
-    struct d_db_rows*    _rows,
-    int64_t*             _changes
+static
+int d_internal_postgres_next_arrived(
+    PGconn*               _db,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
 )
 {
     const int arrived = d_internal_postgres_arrived(_db, _pending);
@@ -801,11 +789,10 @@ d_postgres_send_query_start
 once, and PQflush writes the rest as the socket takes it; the mode is turned
 on only where it is off, so that a program's own choice of it stands.
 */
-int
-d_postgres_send_query_start(
-    struct pg_conn*      _db,
-    const char*          _sql,
-    struct d_db_pending* _pending
+int d_postgres_send_query_start(
+    struct pg_conn*       _db,
+    const char*           _sql,
+    struct dj_db_pending* _pending
 )
 {
     // nothing pending yet, whatever follows
@@ -856,11 +843,10 @@ d_postgres_send_query_start(
 d_postgres_send_query_continue
   The rest of the send (d_internal_postgres_sending).
 */
-int
-d_postgres_send_query_continue(
-    struct pg_conn*      _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_postgres_send_query_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     // parameter validation
@@ -877,12 +863,11 @@ d_postgres_send_query_continue(
 d_postgres_next_result_start
   The next result, once it has arrived (d_internal_postgres_next_arrived).
 */
-int
-d_postgres_next_result_start(
-    struct pg_conn*      _db,
-    struct d_db_pending* _pending,
-    struct d_db_rows*    _rows,
-    int64_t*             _changes
+int d_postgres_next_result_start(
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
 )
 {
     // nothing pending yet, whatever follows
@@ -915,13 +900,12 @@ d_postgres_next_result_continue
   What came is read whatever the program says came: PQconsumeInput never
 waits, and finds nothing when nothing came.
 */
-int
-d_postgres_next_result_continue(
-    struct pg_conn*      _db,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    struct d_db_rows*    _rows,
-    int64_t*             _changes
+int d_postgres_next_result_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
 )
 {
     (void)_events;
@@ -957,7 +941,7 @@ d_postgres_next_result_continue(
 d_postgres_pipeline_status
   libpq's three states, one for one.
 */
-enum d_postgres_pipeline
+enum dj_postgres_pipeline
 d_postgres_pipeline_status(
     const struct pg_conn* _db
 )
@@ -992,8 +976,7 @@ a NULL statement, whose refusal is the connection's message until the
 pipeline's first send clears it. A connection that is not idle is left to
 PQenterPipelineMode's refusal alone.
 */
-int
-d_postgres_enter_pipeline(
+int d_postgres_enter_pipeline(
     struct pg_conn* _db
 )
 {
@@ -1031,8 +1014,7 @@ d_postgres_exit_pipeline
   PQexitPipelineMode answers 0 only while results are still to be read, its
 message saying so; one not in pipeline mode leaves it again, harmlessly.
 */
-int
-d_postgres_exit_pipeline(
+int d_postgres_exit_pipeline(
     struct pg_conn* _db
 )
 {
@@ -1064,8 +1046,7 @@ d_postgres_pipeline_sync
   PQpipelineSync refuses outside pipeline mode, and fails when what is queued
 cannot be sent, which the connection's state tells apart.
 */
-int
-d_postgres_pipeline_sync(
+int d_postgres_pipeline_sync(
     struct pg_conn* _db
 )
 {
@@ -1094,8 +1075,7 @@ d_postgres_pipeline_flush
 whatever else is queued; outside pipeline mode the server sends every result
 unasked, and the request is refused, as PQpipelineSync is.
 */
-int
-d_postgres_pipeline_flush(
+int d_postgres_pipeline_flush(
     struct pg_conn* _db
 )
 {
@@ -1143,8 +1123,8 @@ d_postgres_pipeline_flush(
  * @param[in] _error  errno, as the failure left it.
  * @return D_DB_NOT_FOUND for ENOENT; 58030, as the layer's own, otherwise.
  */
-static int
-d_internal_postgres_file_failure(
+static
+int d_internal_postgres_file_failure(
     const PGconn* _db,
     int           _error
 )
@@ -1162,8 +1142,8 @@ d_internal_postgres_file_failure(
  * @return 0; 08000 while a run holds the connection or in pipeline mode;
  *         25P02 in a failed transaction; or BEGIN's failure.
  */
-static int
-d_internal_postgres_lo_begin(
+static
+int d_internal_postgres_lo_begin(
     PGconn* _db,
     bool*   _own
 )
@@ -1218,8 +1198,8 @@ d_internal_postgres_lo_begin(
  * @param[in] _result  the copy's result.
  * @return the copy's failure, or COMMIT's.
  */
-static int
-d_internal_postgres_lo_end(
+static
+int d_internal_postgres_lo_end(
     PGconn* _db,
     bool    _own,
     int     _result
@@ -1258,8 +1238,8 @@ d_internal_postgres_lo_end(
  * @param[out] _result   the statement's rows, in bytes.
  * @return 0, or as d_internal_postgres_take.
  */
-static int
-d_internal_postgres_lo_run(
+static
+int d_internal_postgres_lo_run(
     PGconn*            _db,
     const char*        _sql,
     int                _count,
@@ -1285,8 +1265,8 @@ d_internal_postgres_lo_run(
  * @param[out] _oid   the large object made.
  * @return 0, or the first failure.
  */
-static int
-d_internal_postgres_lo_put_file(
+static
+int d_internal_postgres_lo_put_file(
     PGconn*       _db,
     FILE*         _file,
     unsigned int* _oid
@@ -1371,8 +1351,7 @@ d_postgres_lo_import
   The file is opened before anything reaches the server, so that a file that
 cannot be had leaves the session as it was.
 */
-int
-d_postgres_lo_import(
+int d_postgres_lo_import(
     PGconn*       _db,
     const char*   _path,
     unsigned int* _oid
@@ -1424,8 +1403,8 @@ d_postgres_lo_import(
  * @param[in] _file  the file, open for writing.
  * @return 0, or the first failure.
  */
-static int
-d_internal_postgres_lo_get_file(
+static
+int d_internal_postgres_lo_get_file(
     PGconn*      _db,
     unsigned int _oid,
     FILE*        _file
@@ -1483,8 +1462,7 @@ d_postgres_lo_export
   The file is made before anything reaches the server, as lo_import opens its
 own first; the object's absence is the server's 42704.
 */
-int
-d_postgres_lo_export(
+int d_postgres_lo_export(
     PGconn*      _db,
     unsigned int _oid,
     const char*  _path
@@ -1537,8 +1515,7 @@ d_postgres_lo_export(
 d_postgres_copy_in_start
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_copy_in_start(
+int d_postgres_copy_in_start(
     struct pg_conn* _db,
     const char*     _sql
 )
@@ -1553,8 +1530,7 @@ d_postgres_copy_in_start(
 d_postgres_copy_in_data
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_copy_in_data(
+int d_postgres_copy_in_data(
     struct pg_conn* _db,
     const void*     _data,
     size_t          _size
@@ -1571,8 +1547,7 @@ d_postgres_copy_in_data(
 d_postgres_copy_in_end
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_copy_in_end(
+int d_postgres_copy_in_end(
     struct pg_conn* _db,
     const char*     _error,
     int64_t*        _changes
@@ -1589,8 +1564,7 @@ d_postgres_copy_in_end(
 d_postgres_listen
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_listen(
+int d_postgres_listen(
     struct pg_conn* _db,
     const char*     _channel
 )
@@ -1605,8 +1579,7 @@ d_postgres_listen(
 d_postgres_unlisten
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_unlisten(
+int d_postgres_unlisten(
     struct pg_conn* _db,
     const char*     _channel
 )
@@ -1621,8 +1594,7 @@ d_postgres_unlisten(
 d_postgres_notify
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_notify(
+int d_postgres_notify(
     struct pg_conn* _db,
     const char*     _channel,
     const char*     _payload
@@ -1639,8 +1611,7 @@ d_postgres_notify(
 d_postgres_next_notification
   Without libpq, D_DB_UNSUPPORTED, and nothing written.
 */
-int
-d_postgres_next_notification(
+int d_postgres_next_notification(
     struct pg_conn* _db,
     char**          _channel,
     char**          _payload,
@@ -1659,8 +1630,7 @@ d_postgres_next_notification(
 d_postgres_send_query
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_send_query(
+int d_postgres_send_query(
     struct pg_conn* _db,
     const char*     _sql
 )
@@ -1675,11 +1645,10 @@ d_postgres_send_query(
 d_postgres_next_result
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_next_result(
-    struct pg_conn*   _db,
-    struct d_db_rows* _rows,
-    int64_t*          _changes
+int d_postgres_next_result(
+    struct pg_conn*    _db,
+    struct dj_db_rows* _rows,
+    int64_t*           _changes
 )
 {
     (void)_db;
@@ -1693,8 +1662,7 @@ d_postgres_next_result(
 d_postgres_is_busy
   Without libpq, false.
 */
-bool
-d_postgres_is_busy(
+bool d_postgres_is_busy(
     struct pg_conn* _db
 )
 {
@@ -1707,8 +1675,7 @@ d_postgres_is_busy(
 d_postgres_consume_input
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_consume_input(
+int d_postgres_consume_input(
     struct pg_conn* _db
 )
 {
@@ -1721,8 +1688,7 @@ d_postgres_consume_input(
 d_postgres_set_chunked_rows
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_set_chunked_rows(
+int d_postgres_set_chunked_rows(
     struct pg_conn* _db,
     int             _rows
 )
@@ -1738,9 +1704,9 @@ d_internal_postgres_nothing_pending
   What a start or continuation leaves without libpq: nothing pending.
 D_DB_UNSUPPORTED.
 */
-static int
-d_internal_postgres_nothing_pending(
-    struct d_db_pending* _pending
+static
+int d_internal_postgres_nothing_pending(
+    struct dj_db_pending* _pending
 )
 {
     if (_pending)
@@ -1759,11 +1725,10 @@ d_internal_postgres_nothing_pending(
 d_postgres_send_query_start
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_send_query_start(
-    struct pg_conn*      _db,
-    const char*          _sql,
-    struct d_db_pending* _pending
+int d_postgres_send_query_start(
+    struct pg_conn*       _db,
+    const char*           _sql,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -1776,11 +1741,10 @@ d_postgres_send_query_start(
 d_postgres_send_query_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_send_query_continue(
-    struct pg_conn*      _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_postgres_send_query_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -1793,12 +1757,11 @@ d_postgres_send_query_continue(
 d_postgres_next_result_start
   Without libpq, D_DB_UNSUPPORTED, nothing pending, and no rows.
 */
-int
-d_postgres_next_result_start(
-    struct pg_conn*      _db,
-    struct d_db_pending* _pending,
-    struct d_db_rows*    _rows,
-    int64_t*             _changes
+int d_postgres_next_result_start(
+    struct pg_conn*       _db,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
 )
 {
     (void)_db;
@@ -1812,13 +1775,12 @@ d_postgres_next_result_start(
 d_postgres_next_result_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending, and no rows.
 */
-int
-d_postgres_next_result_continue(
-    struct pg_conn*      _db,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    struct d_db_rows*    _rows,
-    int64_t*             _changes
+int d_postgres_next_result_continue(
+    struct pg_conn*       _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
 )
 {
     (void)_db;
@@ -1833,7 +1795,7 @@ d_postgres_next_result_continue(
 d_postgres_pipeline_status
   Without libpq there is no pipeline.
 */
-enum d_postgres_pipeline
+enum dj_postgres_pipeline
 d_postgres_pipeline_status(
     const struct pg_conn* _db
 )
@@ -1847,8 +1809,7 @@ d_postgres_pipeline_status(
 d_postgres_enter_pipeline
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_enter_pipeline(
+int d_postgres_enter_pipeline(
     struct pg_conn* _db
 )
 {
@@ -1861,8 +1822,7 @@ d_postgres_enter_pipeline(
 d_postgres_exit_pipeline
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_exit_pipeline(
+int d_postgres_exit_pipeline(
     struct pg_conn* _db
 )
 {
@@ -1875,8 +1835,7 @@ d_postgres_exit_pipeline(
 d_postgres_pipeline_sync
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_pipeline_sync(
+int d_postgres_pipeline_sync(
     struct pg_conn* _db
 )
 {
@@ -1889,8 +1848,7 @@ d_postgres_pipeline_sync(
 d_postgres_pipeline_flush
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_pipeline_flush(
+int d_postgres_pipeline_flush(
     struct pg_conn* _db
 )
 {
@@ -1903,8 +1861,7 @@ d_postgres_pipeline_flush(
 d_postgres_lo_import
   Without libpq there is no server: D_DB_UNSUPPORTED, and nothing written.
 */
-int
-d_postgres_lo_import(
+int d_postgres_lo_import(
     struct pg_conn* _db,
     const char*     _path,
     unsigned int*   _oid
@@ -1921,8 +1878,7 @@ d_postgres_lo_import(
 d_postgres_lo_export
   Without libpq there is no server: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_lo_export(
+int d_postgres_lo_export(
     struct pg_conn* _db,
     unsigned int    _oid,
     const char*     _path

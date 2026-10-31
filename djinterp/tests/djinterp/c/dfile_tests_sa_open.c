@@ -28,13 +28,9 @@ d_tests_dfile_fopen
   - returns NULL for NULL filename
   - returns NULL for nonexistent file in read mode
 */
-struct d_test_object*
-d_tests_dfile_fopen
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fopen(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  new_file_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
@@ -139,13 +135,9 @@ d_tests_dfile_fopen_s
   - returns EINVAL for NULL mode
   - returns non-zero for nonexistent file in read mode
 */
-struct d_test_object*
-d_tests_dfile_fopen_s
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fopen_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  new_file_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 stream;
@@ -248,13 +240,9 @@ d_tests_dfile_freopen
   - returns NULL for NULL mode
   - returns NULL for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_freopen
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_freopen(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     FILE*                 reopened;
@@ -343,13 +331,9 @@ d_tests_dfile_freopen_s
   - returns EINVAL for NULL mode
   - returns EINVAL for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_freopen_s
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_freopen_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     FILE*                 newstream;
@@ -443,13 +427,9 @@ d_tests_dfile_fdopen
   - returns NULL for invalid file descriptor
   - returns NULL for NULL mode
 */
-struct d_test_object*
-d_tests_dfile_fdopen
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fdopen(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     FILE*                 stream;
@@ -531,13 +511,9 @@ d_tests_dfile_secure_file_opening_all
   - d_file_reopen_stream_s
   - d_file_open_stream_fd
 */
-struct d_test_object*
-d_tests_dfile_secure_file_opening_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_secure_file_opening_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("III. Secure File Opening", 5);

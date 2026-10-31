@@ -19,21 +19,20 @@
 static int failures = 0, checks = 0;
 #define CHECK(c, what) do { ++checks; if (!(c)) { ++failures; printf("  FAIL  %s\n", what); } } while (0)
 
-int
-main(void)
+int main(void)
 {
     static const char* const modes[]   = { "first", "all", NULL };
     static const char* const unbuilt[] = { "layers", NULL };
-    static const struct d_setting_def defs[] = {
+    static const struct dj_setting_def defs[] = {
         { "fix", D_SETTING_BOOL, "false", NULL, NULL, 0, 0, NULL, "" },
         { "cascade.resolve", D_SETTING_ENUM, "first", modes, unbuilt, 0, 0, "resolve", "" },
         { "report.refusals", D_SETTING_INT, "8", NULL, NULL, 0, 100, NULL, "" } };
-    static const struct d_setting_def dup[]   = { { "fix", D_SETTING_BOOL, "true", NULL, NULL, 0, 0, NULL, "" } };
-    static const struct d_setting_def clash[] = { { "x", D_SETTING_BOOL, "true", NULL, NULL, 0, 0, "resolve", "" } };
-    static const struct d_setting_def bad[]   = { { "y", D_SETTING_INT, "999", NULL, NULL, 0, 10, NULL, "" } };
+    static const struct dj_setting_def dup[]   = { { "fix", D_SETTING_BOOL, "true", NULL, NULL, 0, 0, NULL, "" } };
+    static const struct dj_setting_def clash[] = { { "x", D_SETTING_BOOL, "true", NULL, NULL, 0, 0, "resolve", "" } };
+    static const struct dj_setting_def bad[]   = { { "y", D_SETTING_INT, "999", NULL, NULL, 0, 10, NULL, "" } };
     char e[256];
 
-    struct d_settings* s = d_settings_new();
+    struct dj_settings* s = d_settings_new();
     CHECK(d_settings_register(s, defs, 3), "registers");
     CHECK(!d_settings_register(s, dup, 1), "a taken name is refused");
     CHECK(!d_settings_register(s, clash, 1), "a taken alias is refused");

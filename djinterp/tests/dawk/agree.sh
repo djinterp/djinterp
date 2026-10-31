@@ -1,7 +1,7 @@
 #!/bin/sh
 # agree.sh -- the driver lists, of every fixture, what its golden holds.
 #
-#   tests/dawk/fixtures/<sheet>/   the fixtures of sheets/<sheet>.dss, each
+#   tests/dawk/fixtures/<sheet>/   the fixtures of res/sheets/<sheet>.dss, each
 #                                  with its findings in <fixture>.expected
 #
 # rules.sh reads a fixture through the harness, which builds the tokens of
@@ -26,7 +26,7 @@ for dir in tests/dawk/fixtures/*/; do
     root="tests/dawk/fixtures/$sheet"
 
     "$DCHECK" --source.files=all --report.findings=1000000 \
-              "sheets/$sheet.dss" "$root" 2>/dev/null \
+              "res/sheets/$sheet.dss" "$root" 2>/dev/null \
         | tr -d '\r' \
         | grep "^$root/" \
         | sed -E 's/^([^:]+:[0-9]+:[0-9]+): (error|warn|advise): /\1: /' \
@@ -38,7 +38,7 @@ for dir in tests/dawk/fixtures/*/; do
     total=$((total + $(wc -l < "$work/goldens")))
 
     if ! cmp -s "$work/goldens" "$work/driver"; then
-        echo "FAIL sheets/$sheet.dss: the driver and the goldens differ" \
+        echo "FAIL res/sheets/$sheet.dss: the driver and the goldens differ" \
              "(< the goldens, > the driver)"
         diff "$work/goldens" "$work/driver" | grep '^[<>]' | sed 's/^/    /'
         fail=1

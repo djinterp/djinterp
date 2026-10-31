@@ -14,24 +14,22 @@
 
 /*
 d_linked_node_new
-  Allocates and initializes a new `d_linked_node`, a node with a value and a
+  Allocates and initializes a new `dj_linked_node`, a node with a value and a
 pointer to the next node.
 
 Parameter(s):
   _value:     the value held by this node
-  _next_node: the next node in this sequence of `d_linked_node`s.
+  _next_node: the next node in this sequence of `dj_linked_node`s.
 Return:
-  Either: a pointer to the newly-created `d_linked_node` (if successful);
+  Either: a pointer to the newly-created `dj_linked_node` (if successful);
 otherwise NULL if not.
 */
-struct d_linked_node*
-d_linked_node_new
-(
-    void*                 _value,
-    struct d_linked_node* _next_node
+struct dj_linked_node* d_linked_node_new(
+    void*                  _value,
+    struct dj_linked_node* _next_node
 )
 {
-    struct d_linked_node* new_node = malloc(sizeof(struct d_linked_node));
+    struct dj_linked_node* new_node = malloc(sizeof(struct dj_linked_node));
 
     if (new_node)
     {
@@ -44,17 +42,15 @@ d_linked_node_new
 
 /*
 d_linked_node_free
-  Frees the memory allocated this d_linked_node.
+  Frees the memory allocated this dj_linked_node.
 
 Parameter(s):
-  _node: the d_linked_node being freed.
+  _node: the dj_linked_node being freed.
 Return:
   none.
 */
-void
-d_linked_node_free
-(
-    struct d_linked_node* _node
+void d_linked_node_free(
+    struct dj_linked_node* _node
 )
 {
     if (_node)

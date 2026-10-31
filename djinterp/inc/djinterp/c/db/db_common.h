@@ -10,7 +10,7 @@
 *                 has no code for are the negative D_DB_* values below
 *     flags       D_DB_IF_NOT_EXISTS / D_DB_IF_EXISTS make a create or a drop
 *                 idempotent; a vendor's own flags start at 0x0100
-*     columns     struct d_db_column describes a column once, for every vendor
+*     columns     struct dj_db_column describes a column once, for every vendor
 *     lists       names and column descriptions come back in one allocation
 *                 each, released by the layer that made them
 *     rows        what a query returns comes back the same way, whatever the
@@ -41,12 +41,12 @@ TABLE OF CONTENTS
 1.  RESULT CODES
     ------------
     1.  Status codes
-         1.  d_db_status
+         1.  dj_db_status
     2.  Status messages
     3.  Waiting
-         1.  d_db_socket
-         2.  d_db_wait
-         3.  d_db_pending
+         1.  dj_db_socket
+         2.  dj_db_wait
+         3.  dj_db_pending
 2.  FLAGS
     -----
     1.  Definition flags
@@ -62,24 +62,24 @@ TABLE OF CONTENTS
 3.  COLUMN DEFINITIONS
     ------------------
     1.  Types
-         1.  d_db_type
-         2.  d_db_column
+         1.  dj_db_type
+         2.  dj_db_column
     2.  Type names
 4.  RESULTS
     -------
     1.  Result types
-         1.  d_db_name_list
-         2.  d_db_column_info
-         3.  d_db_column_list
+         1.  dj_db_name_list
+         2.  dj_db_column_info
+         3.  dj_db_column_list
     2.  Release
 5.  ROWS
     ----
     1.  Values
-         1.  d_db_value_type
-         2.  d_db_value
+         1.  dj_db_value_type
+         2.  dj_db_value
     2.  Rows
-         1.  d_db_field
-         2.  d_db_rows
+         1.  dj_db_field
+         2.  dj_db_rows
     3.  Reading
     4.  Conversions
     5.  Release
@@ -93,7 +93,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../djinterp.h"  // framework root
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // INT64_MAX: section 5's floor;
+#include "../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: section 5's floor;
                                               // int64_t
 
 
@@ -113,9 +113,9 @@ D_EXTERN_C_BEGIN
 // 1.1    Status codes
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_db_status
+// dj_db_status
 //   enum: the outcomes every database layer reports in the same way.
-enum d_db_status
+enum dj_db_status
 {
     D_DB_OK               =  0,  // success
     D_DB_UNSUPPORTED      = -1,  // the library or server in use cannot do
@@ -130,16 +130,18 @@ enum d_db_status
     D_DB_MISMATCH         = -5,  // a value read as a type it neither is nor
                                  // converts to exactly
     D_DB_WAIT             = -6   // a call made without blocking has not
-                                 // finished: wait as its d_db_pending says,
+                                 // finished: wait as its dj_db_pending says,
                                  // then continue it (1.3)
 };
 
 // 1.2    Status messages
 //------------------------------------------------------------------------------
-// status messages -- an English description of a d_db_status value, or NULL
+// status messages -- an English description of a dj_db_status value, or NULL
 // for any other value, which a vendor layer then describes itself; never to
 // be freed
-const char* d_db_status_message(int _status) D_NOTHROW;
+const char* d_db_status_message(
+    int _status
+) D_NOTHROW;
 
 // 1.3    Waiting
 //------------------------------------------------------------------------------
@@ -147,24 +149,24 @@ const char* d_db_status_message(int _status) D_NOTHROW;
 // returns D_DB_WAIT until it is done, each time saying what it waits for: a
 // socket to become readable or writable, a deadline, or both. The program
 // waits so, in whatever loop it has, and continues the call with what came,
-// passing the same d_db_pending back each time: besides what to wait for, it
+// passing the same dj_db_pending back each time: besides what to wait for, it
 // carries what the call keeps between its continuations, which the program
 // leaves as the layer wrote it.
 
 // 1.3.1
-// d_db_socket
+// dj_db_socket
 //   type: a client's socket, wide enough for POSIX's int and Windows' SOCKET
 // alike; D_DB_SOCKET_NONE for none.
-typedef size_t d_db_socket;
+typedef size_t dj_db_socket;
 
 // D_DB_SOCKET_NONE
 //   constant: no socket.
-#define D_DB_SOCKET_NONE ((d_db_socket)-1)
+#define D_DB_SOCKET_NONE ((dj_db_socket)-1)
 
 // 1.3.2
-// d_db_wait
+// dj_db_wait
 //   enum: what a call waits for, as a mask; and, given back, what came.
-enum d_db_wait
+enum dj_db_wait
 {
     D_DB_WAIT_READ    = 1,  // the socket readable
     D_DB_WAIT_WRITE   = 2,  // the socket writable
@@ -174,14 +176,14 @@ enum d_db_wait
 };
 
 // 1.3.3
-// d_db_pending
+// dj_db_pending
 //   struct: what a call that has not finished waits for, and what it keeps
 // until it is continued. A call that finishes leaves it all 0 and
 // D_DB_SOCKET_NONE; a program need not initialize it before a call starts.
-struct d_db_pending
+struct dj_db_pending
 {
-    d_db_socket socket;      // the socket to wait on
-    unsigned    events;      // d_db_wait, ORed
+    dj_db_socket socket;      // the socket to wait on
+    unsigned    events;      // dj_db_wait, ORed
     unsigned    timeout_ms;  // with D_DB_WAIT_TIMEOUT: the deadline, from now
     // the call's own, between continuations: the program leaves them alone
     double      deadline;    // when a deadline the layer keeps passes, for
@@ -252,17 +254,17 @@ struct d_db_pending
 // 3.  COLUMN DEFINITIONS
 //==============================================================================
 // A column described once creates the same table on every vendor: each layer
-// maps d_db_type to its own spelling, and documents the mapping. Where a
+// maps dj_db_type to its own spelling, and documents the mapping. Where a
 // vendor's own type is wanted, `type_sql` names it and the mapping is skipped.
 
 
 // 3.1    Types
 //------------------------------------------------------------------------------
 // 3.1.1
-// d_db_type
+// dj_db_type
 //   enum: what a column holds, independent of any vendor. It mirrors the C++
 // layer's field_type, member for member, from BOOLEAN to UUID.
-enum d_db_type
+enum dj_db_type
 {
     D_DB_TYPE_NONE = 0,        // no declared type (SQLite only), or type_sql
     D_DB_TYPE_BOOLEAN,         // true or false
@@ -282,7 +284,7 @@ enum d_db_type
 };
 
 // 3.1.2
-// d_db_column
+// dj_db_column
 //   struct: one column of a table to create or extend. Members are in the order
 // a positional initializer fills them, so C99, C++98 and later all write
 //     { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY }
@@ -292,10 +294,10 @@ enum d_db_type
 // numbers them, 1 to the key's count, each once; where every key_place is 0,
 // in the columns' order. A key_place on a column outside the key, or places
 // that skip or repeat a number, are the caller's error.
-struct d_db_column
+struct dj_db_column
 {
     const char*    name;         // the column's name; the layer quotes it
-    enum d_db_type type;         // what it holds
+    enum dj_db_type type;         // what it holds
     unsigned       flags;        // D_DB_COLUMN_* bits
     const char*    default_sql;  // the DEFAULT expression, as SQL; NULL: none
     unsigned       size;         // length, or DECIMAL precision; 0: default
@@ -308,8 +310,10 @@ struct d_db_column
 // 3.2    Type names
 //------------------------------------------------------------------------------
 // type names -- never NULL, never allocate; "unknown" for a value outside
-// enum d_db_type
-const char* d_db_type_name(enum d_db_type _type) D_NOTHROW;
+// enum dj_db_type
+const char* d_db_type_name(
+    enum dj_db_type _type
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -324,22 +328,22 @@ const char* d_db_type_name(enum d_db_type _type) D_NOTHROW;
 // 4.1    Result types
 //------------------------------------------------------------------------------
 // 4.1.1
-// d_db_name_list
+// dj_db_name_list
 //   struct: names, in the order the layer documents. On success `names` is
 // never NULL, and `names[count]` is NULL, so either bound ends a loop.
-struct d_db_name_list
+struct dj_db_name_list
 {
     size_t count;  // the number of names
     char** names;  // the names, then a NULL
 };
 
 // 4.1.2
-// d_db_column_info
+// dj_db_column_info
 //   struct: one column of an existing table, as the database describes it. A
 // generated column is one the database computes from the row's others
 // (GENERATED ALWAYS AS, a virtual or stored column): it takes no value an
 // INSERT or an UPDATE gives it.
-struct d_db_column_info
+struct dj_db_column_info
 {
     const char* name;         // the column's name
     const char* type;         // its declared type as written; "" for none
@@ -350,13 +354,13 @@ struct d_db_column_info
 };
 
 // 4.1.3
-// d_db_column_list
+// dj_db_column_list
 //   struct: the columns of a table, in the table's order. `columns` is NULL
 // when `count` is 0.
-struct d_db_column_list
+struct dj_db_column_list
 {
     size_t                   count;    // the number of columns
-    struct d_db_column_info* columns;  // the columns
+    struct dj_db_column_info* columns;  // the columns
 };
 
 // 4.2    Release
@@ -368,14 +372,18 @@ struct d_db_column_list
  * @post `_list` is empty -- `count` 0 and `names` `NULL` -- and every string
  *       it held is invalid.
  */
-void d_db_name_list_free(struct d_db_name_list* _list) D_NOTHROW;
+void d_db_name_list_free(
+    struct dj_db_name_list* _list
+) D_NOTHROW;
 /**
  * @brief Releases a column list a database layer filled in.
  *
  * @param[in,out] _list  the list; may be `NULL`, or empty.
  * @post `_list` is empty, and every string it held is invalid.
  */
-void d_db_column_list_free(struct d_db_column_list* _list) D_NOTHROW;
+void d_db_column_list_free(
+    struct dj_db_column_list* _list
+) D_NOTHROW;
 /**
  * @brief Releases a string or block a database layer returned on its own,
  *        such as a quoted identifier or a query's text result.
@@ -383,7 +391,9 @@ void d_db_column_list_free(struct d_db_column_list* _list) D_NOTHROW;
  * @param[in] _block  the block; may be `NULL`.
  * @post `_block` is invalid.
  */
-void d_db_free(void* _block) D_NOTHROW;
+void d_db_free(
+    void* _block
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -407,9 +417,9 @@ void d_db_free(void* _block) D_NOTHROW;
 // 5.1    Values
 //------------------------------------------------------------------------------
 // 5.1.1
-// d_db_value_type
+// dj_db_value_type
 //   enum: what a value is, whatever the vendor.
-enum d_db_value_type
+enum dj_db_value_type
 {
     D_DB_VALUE_NULL = 0,  // SQL NULL
     D_DB_VALUE_INTEGER,   // a 64-bit signed integer; a boolean is 0 or 1
@@ -419,13 +429,13 @@ enum d_db_value_type
 };
 
 // 5.1.2
-// d_db_value
+// dj_db_value
 //   struct: one value of one row. Text and bytes are followed by a NUL that
 // `size` does not count, so text reads as a C string; bytes may hold NULs of
 // their own. An empty text or BLOB points at its terminator, never NULL.
-struct d_db_value
+struct dj_db_value
 {
-    enum d_db_value_type type;  // which member of `as` holds the value
+    enum dj_db_value_type type;  // which member of `as` holds the value
     size_t               size;  // the bytes of a TEXT or BLOB; 0 otherwise
     union
     {
@@ -439,13 +449,13 @@ struct d_db_value
 // 5.2    Rows
 //------------------------------------------------------------------------------
 // 5.2.1
-// d_db_field
+// dj_db_field
 //   struct: one column of a query's rows.
-struct d_db_field
+struct dj_db_field
 {
     const char*    name;       // as the query names it: the column's name,
                                // an alias, or the expression as written
-    enum d_db_type type;       // its type in section 3's vocabulary;
+    enum dj_db_type type;       // its type in section 3's vocabulary;
                                // D_DB_TYPE_NONE where the vendor gives none
                                // or one that maps to none
     const char*    type_name;  // the vendor's own name for its type, as each
@@ -453,16 +463,16 @@ struct d_db_field
 };
 
 // 5.2.2
-// d_db_rows
+// dj_db_rows
 //   struct: the rows a query returned. `values` holds `row_count` rows of
 // `column_count` values each, row by row. `columns` is NULL when there are no
 // columns, and `values` when there are no values. All zero is empty.
-struct d_db_rows
+struct dj_db_rows
 {
     size_t             column_count;  // the values in each row
     size_t             row_count;     // the rows
-    struct d_db_field* columns;       // column_count descriptions
-    struct d_db_value* values;        // row_count * column_count values
+    struct dj_db_field* columns;       // column_count descriptions
+    struct dj_db_value* values;        // row_count * column_count values
 };
 
 // 5.3    Reading
@@ -476,10 +486,11 @@ struct d_db_rows
  * @return the value, valid until the rows are released; `NULL` when `_rows`
  *         is `NULL` or either index is out of range.
  */
-const struct d_db_value*
-    d_db_rows_value(const struct d_db_rows* _rows,
-                    size_t                  _row,
-                    size_t                  _column) D_NOTHROW;
+const struct dj_db_value* d_db_rows_value(
+    const struct dj_db_rows* _rows,
+    size_t                   _row,
+    size_t                   _column
+) D_NOTHROW;
 /**
  * @brief Finds a column by its name: the first named exactly so, or failing
  *        that the first whose name matches ignoring ASCII case, as SQL
@@ -492,9 +503,11 @@ const struct d_db_value*
  * @return 0; D_DB_NOT_FOUND when no column matches; D_DB_INVALID_ARGUMENT
  *         for a `NULL` argument.
  */
-int d_db_rows_column_index(const struct d_db_rows* _rows,
-                           const char*             _name,
-                           size_t*                 _index) D_NOTHROW;
+int d_db_rows_column_index(
+    const struct dj_db_rows* _rows,
+    const char*              _name,
+    size_t*                  _index
+) D_NOTHROW;
 
 // 5.4    Conversions
 //------------------------------------------------------------------------------
@@ -511,12 +524,18 @@ int d_db_rows_column_index(const struct d_db_rows* _rows,
 //              or f, false, n, no, off and 0
 // Anything else -- NULL among it -- is D_DB_MISMATCH, and writes nothing. A
 // `NULL` argument is D_DB_INVALID_ARGUMENT.
-int d_db_value_int64(const struct d_db_value* _value,
-                     int64_t*                 _out) D_NOTHROW;
-int d_db_value_double(const struct d_db_value* _value,
-                      double*                  _out) D_NOTHROW;
-int d_db_value_bool(const struct d_db_value* _value,
-                    bool*                    _out) D_NOTHROW;
+int d_db_value_int64(
+    const struct dj_db_value* _value,
+    int64_t*                  _out
+) D_NOTHROW;
+int d_db_value_double(
+    const struct dj_db_value* _value,
+    double*                   _out
+) D_NOTHROW;
+int d_db_value_bool(
+    const struct dj_db_value* _value,
+    bool*                     _out
+) D_NOTHROW;
 
 // 5.5    Release
 //------------------------------------------------------------------------------
@@ -527,7 +546,9 @@ int d_db_value_bool(const struct d_db_value* _value,
  * @post `_rows` is empty -- all zero -- and every value, name and string it
  *       held is invalid.
  */
-void d_db_rows_free(struct d_db_rows* _rows) D_NOTHROW;
+void d_db_rows_free(
+    struct dj_db_rows* _rows
+) D_NOTHROW;
 
 
 #endif  // defined(INT64_MAX)

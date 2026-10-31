@@ -15,7 +15,7 @@
 * algorithm needs a second code path for descending.
 *
 *   THREE-WAY, NOT A PREDICATE.
-* d_sort_compare_fn is identical in signature to the framework's
+* dj_sort_compare_fn is identical in signature to the framework's
 * fn_function_comparator (functional/functional_common.h), so a comparator
 * written for either is accepted by the other.  When the functional layer is in
 * the build this typedef should become an alias for it; it is spelled out here
@@ -43,7 +43,7 @@
 #include "../../djinterp.h"
 #include "../swap.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // fixed-width types, for users
+#include "../../../../re_std/c/cstdint/dstdint.h"  // fixed-width types, for users
 
 
 D_EXTERN_C_BEGIN
@@ -51,13 +51,13 @@ D_EXTERN_C_BEGIN
 
 // I.     status
 
-// d_sort_status
+// dj_sort_status
 //   enum: the outcome of a sort call. Values are pinned and must not be
 // reordered. The set is split: a FORMAL status says the operation was not
 // defined and no amount of storage would help, a MECHANICAL status says it
 // was defined and the machinery ran short. The first is a bug, the second a
 // resource decision.
-enum d_sort_status
+enum dj_sort_status
 {
     D_SORT_STATUS_OK               = 0,
 
@@ -86,53 +86,59 @@ enum d_sort_status
 
 // II.    ordering
 
-// d_sort_order
+// dj_sort_order
 //   enum: the direction a sort arranges its range in. NONE is treated as
 // ascending everywhere; it exists so a zero-initialised request is usable
 // rather than meaningless.
-enum d_sort_order
+enum dj_sort_order
 {
     D_SORT_ORDER_NONE       = 0,
     D_SORT_ORDER_ASCENDING  = 1,
     D_SORT_ORDER_DESCENDING = 2
 };
 
-// d_sort_compare_fn
+// dj_sort_compare_fn
 //   type: a three-way comparison returning negative when the first operand
 // precedes the second, zero when neither precedes the other, and positive
 // otherwise. The context may be NULL.
-typedef int (*d_sort_compare_fn)(const void* _first,
+typedef int (*dj_sort_compare_fn)(const void* _first,
                                  const void* _second,
                                  void*       _context);
 
-// d_sort_comparator
+// dj_sort_comparator
 //   struct: an ordering -- a three-way comparison and the context it reads.
 // A comparison that is not a strict weak ordering is a caller error that no
 // algorithm detects; the consequence is an arbitrary arrangement, not an
 // out-of-range access, since every loop is bounded by the element count.
-struct d_sort_comparator
+struct dj_sort_comparator
 {
-    d_sort_compare_fn compare;   // three-way ordering; never NULL
+    dj_sort_compare_fn compare;   // three-way ordering; never NULL
     void*             context;   // instance configuration; may be NULL
 };
 
 
 // III.   ordering construction
-struct d_sort_comparator d_sort_comparator_make(d_sort_compare_fn _compare,
-                                                void*             _context);
+struct dj_sort_comparator d_sort_comparator_make(
+    dj_sort_compare_fn _compare,
+    void*              _context
+);
 
 // IV.    request validation
-enum d_sort_status d_sort_verify(const void*                     _base,
-                                 size_t                          _count,
-                                 size_t                          _elem_size,
-                                 const struct d_sort_comparator* _comparator);
+enum dj_sort_status d_sort_verify(
+    const void*                      _base,
+    size_t                           _count,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator
+);
 
 // V.     range predicates
-bool d_sort_is_sorted(const void*                     _base,
-                      size_t                          _count,
-                      size_t                          _elem_size,
-                      const struct d_sort_comparator* _comparator,
-                      enum d_sort_order               _order);
+bool d_sort_is_sorted(
+    const void*                      _base,
+    size_t                           _count,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
 
 
 // VI.    element access
@@ -149,9 +155,8 @@ Parameter(s):
 Return:
   the address of the element.
 */
-D_STATIC_INLINE void*
-d_sort_at
-(
+D_STATIC_INLINE
+void* d_sort_at(
     void*  _base,
     size_t _index,
     size_t _elem_size
@@ -171,9 +176,8 @@ Parameter(s):
 Return:
   the address of the element.
 */
-D_STATIC_INLINE const void*
-d_sort_at_const
-(
+D_STATIC_INLINE
+const void* d_sort_at_const(
     const void* _base,
     size_t      _index,
     size_t      _elem_size
@@ -203,8 +207,8 @@ Return:
 D_STATIC_INLINE bool
 d_sort_precedes
 (
-    const struct d_sort_comparator* _comparator,
-    enum d_sort_order               _order,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order,
     const void*                     _first,
     const void*                     _second
 )

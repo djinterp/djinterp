@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_vector_at
   - valid negative index
   - out-of-bounds returns NULL
 */
-bool
-d_tests_sa_vector_at
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_at(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     void*            ptr;
 
     result = true;
@@ -100,14 +98,12 @@ d_tests_sa_vector_front
   - empty vector returns NULL
   - valid front access
 */
-bool
-d_tests_sa_vector_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_front(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     void*            ptr;
 
     result = true;
@@ -162,14 +158,12 @@ d_tests_sa_vector_back
   - empty vector returns NULL
   - valid back access
 */
-bool
-d_tests_sa_vector_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_back(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     void*            ptr;
 
     result = true;
@@ -223,14 +217,12 @@ d_tests_sa_vector_data
   - NULL vector returns NULL
   - valid data access
 */
-bool
-d_tests_sa_vector_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_data(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     void*            ptr;
 
     result = true;
@@ -271,14 +263,12 @@ d_tests_sa_vector_get
   - empty vector rejection
   - successful get
 */
-bool
-d_tests_sa_vector_get
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_get(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              out_value;
 
     result = true;
@@ -339,14 +329,12 @@ d_tests_sa_vector_set
   - empty vector rejection
   - successful set
 */
-bool
-d_tests_sa_vector_set
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_set(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              value;
 
     result = true;
@@ -409,10 +397,8 @@ d_tests_sa_vector_set
 d_tests_sa_vector_access_all
   Aggregation function that runs all access tests.
 */
-bool
-d_tests_sa_vector_access_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_access_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

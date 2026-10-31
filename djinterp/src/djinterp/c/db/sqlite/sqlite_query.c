@@ -30,7 +30,7 @@
 #include "../../../../../inc/djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // D_INTERNAL_SQLITE
 #include "./sqlite_internal.h"  // sqlite3.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, SIZE_MAX
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, SIZE_MAX
 
 
 #if (D_INTERNAL_SQLITE == 1)
@@ -50,8 +50,8 @@
  * Only the first statement in `_sql` is prepared; the rest is ignored, as a
  * single-value query has one statement to read from.
  */
-static int
-d_internal_sqlite_prepare_sql(
+static
+int d_internal_sqlite_prepare_sql(
     sqlite3*       _db,
     sqlite3_stmt** _statement,
     const char*    _sql
@@ -73,8 +73,8 @@ d_internal_sqlite_prepare_sql(
  * The length is computed exactly before allocating, so one allocation
  * suffices and nothing is reallocated.
  */
-static char*
-d_internal_sqlite_quote(
+static
+char* d_internal_sqlite_quote(
     const char* _text,
     char        _quote
 )
@@ -136,8 +136,7 @@ d_internal_sqlite_quote(
 d_sqlite_exec
   sqlite3_exec with no callback: rows are stepped through and discarded.
 */
-int
-d_sqlite_exec(
+int d_sqlite_exec(
     sqlite3*    _db,
     const char* _sql
 )
@@ -157,8 +156,7 @@ d_sqlite_execf
   The format is checked before va_start, so a misuse returns without touching
 the arguments.
 */
-int
-d_sqlite_execf(
+int d_sqlite_execf(
     sqlite3*    _db,
     const char* _format,
     ...
@@ -188,8 +186,7 @@ d_sqlite_execf(
 d_sqlite_exec_changes
   The statements run one at a time, counted as each finishes.
 */
-int
-d_sqlite_exec_changes(
+int d_sqlite_exec_changes(
     sqlite3*    _db,
     int64_t*    _changes,
     const char* _sql
@@ -210,8 +207,7 @@ d_sqlite_exec_changes(
 d_sqlite_execf_changes
   As d_sqlite_exec_changes, with the SQL formatted first.
 */
-int
-d_sqlite_execf_changes(
+int d_sqlite_execf_changes(
     sqlite3*    _db,
     int64_t*    _changes,
     const char* _format,
@@ -246,8 +242,7 @@ d_sqlite_execf_changes(
 d_sqlite_query_int64
   Prepare, then one step through sqlite_common.c's reader, which finalizes.
 */
-int
-d_sqlite_query_int64(
+int d_sqlite_query_int64(
     sqlite3*    _db,
     int64_t*    _value,
     const char* _sql
@@ -279,8 +274,7 @@ d_sqlite_query_int64(
 d_sqlite_query_int64f
   As d_sqlite_query_int64, with the SQL formatted first.
 */
-int
-d_sqlite_query_int64f(
+int d_sqlite_query_int64f(
     sqlite3*    _db,
     int64_t*    _value,
     const char* _format,
@@ -320,8 +314,7 @@ d_sqlite_query_int64f(
 d_sqlite_query_double
   As d_sqlite_query_int64, reading a double.
 */
-int
-d_sqlite_query_double(
+int d_sqlite_query_double(
     sqlite3*    _db,
     double*     _value,
     const char* _sql
@@ -353,8 +346,7 @@ d_sqlite_query_double(
 d_sqlite_query_doublef
   As d_sqlite_query_double, with the SQL formatted first.
 */
-int
-d_sqlite_query_doublef(
+int d_sqlite_query_doublef(
     sqlite3*    _db,
     double*     _value,
     const char* _format,
@@ -394,8 +386,7 @@ d_sqlite_query_doublef(
 d_sqlite_query_text
   As d_sqlite_query_int64, copying the text out before the statement goes.
 */
-int
-d_sqlite_query_text(
+int d_sqlite_query_text(
     sqlite3*    _db,
     char**      _value,
     const char* _sql
@@ -427,8 +418,7 @@ d_sqlite_query_text(
 d_sqlite_query_textf
   As d_sqlite_query_text, with the SQL formatted first.
 */
-int
-d_sqlite_query_textf(
+int d_sqlite_query_textf(
     sqlite3*    _db,
     char**      _value,
     const char* _format,
@@ -471,11 +461,10 @@ d_sqlite_query_rows
   Exactly one statement, collected as sqlite_statement.c collects one, and
 finalized whatever happened.
 */
-int
-d_sqlite_query_rows(
-    sqlite3*          _db,
-    struct d_db_rows* _rows,
-    const char*       _sql
+int d_sqlite_query_rows(
+    sqlite3*           _db,
+    struct dj_db_rows* _rows,
+    const char*        _sql
 )
 {
     // parameter validation
@@ -508,11 +497,10 @@ d_sqlite_query_rows(
 d_sqlite_query_rowsf
   As d_sqlite_query_rows, with the statement formatted first.
 */
-int
-d_sqlite_query_rowsf(
-    sqlite3*          _db,
-    struct d_db_rows* _rows,
-    const char*       _format,
+int d_sqlite_query_rowsf(
+    sqlite3*           _db,
+    struct dj_db_rows* _rows,
+    const char*        _format,
     ...
 )
 {
@@ -554,8 +542,7 @@ d_sqlite_quote_identifier
   Double quotes are SQL's identifier quotes and SQLite's preferred ones; a
 quoted name is never taken for a keyword or a string.
 */
-char*
-d_sqlite_quote_identifier(
+char* d_sqlite_quote_identifier(
     const char* _name
 )
 {
@@ -573,8 +560,7 @@ d_sqlite_quote_literal
   A NULL pointer becomes the keyword, as sqlite3_mprintf's %Q makes it, so the
 result can stand anywhere a value can.
 */
-char*
-d_sqlite_quote_literal(
+char* d_sqlite_quote_literal(
     const char* _text
 )
 {
@@ -608,8 +594,7 @@ d_sqlite_quote_literal(
 d_sqlite_exec
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_exec(
+int d_sqlite_exec(
     struct sqlite3* _db,
     const char*     _sql
 )
@@ -624,8 +609,7 @@ d_sqlite_exec(
 d_sqlite_execf
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_execf(
+int d_sqlite_execf(
     struct sqlite3* _db,
     const char*     _format,
     ...
@@ -641,8 +625,7 @@ d_sqlite_execf(
 d_sqlite_exec_changes
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_exec_changes(
+int d_sqlite_exec_changes(
     struct sqlite3* _db,
     int64_t*        _changes,
     const char*     _sql
@@ -659,8 +642,7 @@ d_sqlite_exec_changes(
 d_sqlite_execf_changes
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_execf_changes(
+int d_sqlite_execf_changes(
     struct sqlite3* _db,
     int64_t*        _changes,
     const char*     _format,
@@ -678,8 +660,7 @@ d_sqlite_execf_changes(
 d_sqlite_query_int64
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_int64(
+int d_sqlite_query_int64(
     struct sqlite3* _db,
     int64_t*        _value,
     const char*     _sql
@@ -696,8 +677,7 @@ d_sqlite_query_int64(
 d_sqlite_query_int64f
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_int64f(
+int d_sqlite_query_int64f(
     struct sqlite3* _db,
     int64_t*        _value,
     const char*     _format,
@@ -715,8 +695,7 @@ d_sqlite_query_int64f(
 d_sqlite_query_double
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_double(
+int d_sqlite_query_double(
     struct sqlite3* _db,
     double*         _value,
     const char*     _sql
@@ -733,8 +712,7 @@ d_sqlite_query_double(
 d_sqlite_query_doublef
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_doublef(
+int d_sqlite_query_doublef(
     struct sqlite3* _db,
     double*         _value,
     const char*     _format,
@@ -752,8 +730,7 @@ d_sqlite_query_doublef(
 d_sqlite_query_text
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_text(
+int d_sqlite_query_text(
     struct sqlite3* _db,
     char**          _value,
     const char*     _sql
@@ -770,8 +747,7 @@ d_sqlite_query_text(
 d_sqlite_query_textf
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_textf(
+int d_sqlite_query_textf(
     struct sqlite3* _db,
     char**          _value,
     const char*     _format,
@@ -789,11 +765,10 @@ d_sqlite_query_textf(
 d_sqlite_query_rows
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_rows(
-    struct sqlite3*   _db,
-    struct d_db_rows* _rows,
-    const char*       _sql
+int d_sqlite_query_rows(
+    struct sqlite3*    _db,
+    struct dj_db_rows* _rows,
+    const char*        _sql
 )
 {
     (void)_db;
@@ -807,11 +782,10 @@ d_sqlite_query_rows(
 d_sqlite_query_rowsf
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_query_rowsf(
-    struct sqlite3*   _db,
-    struct d_db_rows* _rows,
-    const char*       _format,
+int d_sqlite_query_rowsf(
+    struct sqlite3*    _db,
+    struct dj_db_rows* _rows,
+    const char*        _format,
     ...
 )
 {
@@ -826,8 +800,7 @@ d_sqlite_query_rowsf(
 d_sqlite_quote_identifier
   Without SQLite, NULL.
 */
-char*
-d_sqlite_quote_identifier(
+char* d_sqlite_quote_identifier(
     const char* _name
 )
 {
@@ -840,8 +813,7 @@ d_sqlite_quote_identifier(
 d_sqlite_quote_literal
   Without SQLite, NULL.
 */
-char*
-d_sqlite_quote_literal(
+char* d_sqlite_quote_literal(
     const char* _text
 )
 {

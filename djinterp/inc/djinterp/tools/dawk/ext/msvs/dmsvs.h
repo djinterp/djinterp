@@ -43,14 +43,14 @@ TABLE OF CONTENTS
     1.  Constants
          1.  D_MSVS_NONE
     2.  Kinds
-         1.  d_msvs_kind
-         2.  d_msvs_condition
+         1.  dj_msvs_kind
+         2.  dj_msvs_condition
     3.  Records
-         1.  d_msvs_element
-         2.  d_msvs_project
-         3.  d_msvs_folder
-         4.  d_msvs_section
-         5.  d_msvs
+         1.  dj_msvs_element
+         2.  dj_msvs_project
+         3.  dj_msvs_folder
+         4.  dj_msvs_section
+         5.  dj_msvs
 2.  OPERATIONS
     ----------
     1.  Reading
@@ -83,9 +83,9 @@ TABLE OF CONTENTS
 // 1.2    Kinds
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_msvs_kind
+// dj_msvs_kind
 //   enum: what a file is, by its name.
-enum d_msvs_kind
+enum dj_msvs_kind
 {
     D_MSVS_OTHER = 0,
     D_MSVS_SOLUTION,  // .slnx, or .sln
@@ -96,9 +96,9 @@ enum d_msvs_kind
 };
 
 // 1.2.2
-// d_msvs_condition
+// dj_msvs_condition
 //   enum: what a Condition tests.
-enum d_msvs_condition
+enum dj_msvs_condition
 {
     D_MSVS_ALWAYS = 0,     // there is none, or it is empty
     D_MSVS_CONFIGURATION,  // the configuration, the platform, or both
@@ -108,7 +108,7 @@ enum d_msvs_condition
 // 1.3    Records
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_msvs_element
+// dj_msvs_element
 //   struct: one XML element.  `start` is its `<` and `end` one past the `>`
 //   ending it; `content_start` and `content_end` bound what stands between
 //   its tags, and are equal for an empty element.  Its name, as written, is
@@ -116,7 +116,7 @@ enum d_msvs_condition
 //   `attributes_length` bytes from `attributes`.  `line` and `column` are
 //   where it starts, from 1, and `end_line` the line of its last byte.  The
 //   links are indices into the elements, in document order.
-struct d_msvs_element
+struct dj_msvs_element
 {
     size_t start;
     size_t end;
@@ -138,7 +138,7 @@ struct d_msvs_element
 };
 
 // 1.3.2
-// d_msvs_project
+// dj_msvs_project
 //   struct: one project a solution lists.  `path` is as the solution writes
 //   it; `name` is its display name, or the path's file name without its
 //   extension; `type` and `id` are GUIDs in lower case without braces, ""
@@ -150,7 +150,7 @@ struct d_msvs_element
 //   EndProject and the line ending after, with `depends` the start of its
 //   ProjectSection(ProjectDependencies) line and `depends_close` of that
 //   section's EndProjectSection line, D_MSVS_NONE when it has none.
-struct d_msvs_project
+struct dj_msvs_project
 {
     char*  name;
     char*  path;
@@ -168,12 +168,12 @@ struct d_msvs_project
 };
 
 // 1.3.3
-// d_msvs_folder
+// dj_msvs_folder
 //   struct: one solution folder, by its path, "/tools/dawk/".  A .slnx
 //   writes each as a <Folder> of that name, which is `element`; a .sln as a
 //   project of the folder type, nested in its parent, whose id is `id`.
 //   `start` and `end` bound its record as a project's do.
-struct d_msvs_folder
+struct dj_msvs_folder
 {
     char*  path;
     char*  id;
@@ -184,12 +184,12 @@ struct d_msvs_folder
 };
 
 // 1.3.4
-// d_msvs_section
+// dj_msvs_section
 //   struct: one GlobalSection of a .sln: its name, as in
 //   GlobalSection(NestedProjects), and its lines -- `start` its first,
 //   `content` the one after, `close` its EndGlobalSection line, and `end`
 //   past that line's ending.
-struct d_msvs_section
+struct dj_msvs_section
 {
     char*  name;
     size_t line;
@@ -200,7 +200,7 @@ struct d_msvs_section
 };
 
 // 1.3.5
-// d_msvs
+// dj_msvs
 //   struct: one file read.  The text is the caller's, borrowed while the
 //   records are used.  An XML file has `elements`, the root first; a
 //   solution, of either form, has `projects`, `folders`, `dependencies` and
@@ -211,21 +211,21 @@ struct d_msvs_section
 //   bound, D_MSVS_NONE when it has none.  `bom` and `crlf` say how the text
 //   begins and ends its lines.  When reading fails, `error_line` and
 //   `error_column` say where.
-struct d_msvs
+struct dj_msvs
 {
     const char*             text;
     size_t                  length;
-    enum d_msvs_kind        kind;
+    enum dj_msvs_kind        kind;
     bool                    xml;
     bool                    bom;
     bool                    crlf;
-    struct d_msvs_element*  elements;
+    struct dj_msvs_element*  elements;
     size_t                  element_count;
-    struct d_msvs_project*  projects;
+    struct dj_msvs_project*  projects;
     size_t                  project_count;
-    struct d_msvs_folder*   folders;
+    struct dj_msvs_folder*   folders;
     size_t                  folder_count;
-    struct d_msvs_section*  sections;
+    struct dj_msvs_section*  sections;
     size_t                  section_count;
     size_t                  global_start;
     size_t                  global_close;
@@ -247,7 +247,9 @@ struct d_msvs
 // 2.1    Reading
 //------------------------------------------------------------------------------
 // d_msvs_kind_of names a file's kind by its name, in any case.
-enum d_msvs_kind d_msvs_kind_of(const char* _path);
+enum dj_msvs_kind d_msvs_kind_of(
+    const char* _path
+);
 /**
  * @brief Reads a Visual Studio file's text into records.
  *
@@ -268,13 +270,17 @@ enum d_msvs_kind d_msvs_kind_of(const char* _path);
  * @param[in]  _capacity  the size of `_problem`.
  * @return `true` if the text was read whole; `false` otherwise.
  */
-bool             d_msvs_read(struct d_msvs*   _out,
-                             const char*      _text,
-                             size_t           _length,
-                             enum d_msvs_kind _kind,
-                             char*            _problem,
-                             size_t           _capacity);
-void             d_msvs_release(struct d_msvs* _msvs);
+bool d_msvs_read(
+    struct dj_msvs*   _out,
+    const char*       _text,
+    size_t            _length,
+    enum dj_msvs_kind _kind,
+    char*             _problem,
+    size_t            _capacity
+);
+void d_msvs_release(
+    struct dj_msvs* _msvs
+);
 
 // 2.2    Elements
 //------------------------------------------------------------------------------
@@ -286,28 +292,40 @@ void             d_msvs_release(struct d_msvs* _msvs);
 // more, returning the length written.  Decoding is XML's: line endings are
 // LF, and a value's tabs and line endings spaces, before references are
 // read, so a reference to either is kept.
-bool             d_msvs_is(const struct d_msvs*         _msvs,
-                           const struct d_msvs_element* _element,
-                           const char*                  _name);
-bool             d_msvs_attribute(const struct d_msvs*         _msvs,
-                                  const struct d_msvs_element* _element,
-                                  const char*                  _name,
-                                  size_t*                      _out_start,
-                                  size_t*                      _out_length);
-size_t           d_msvs_value(const struct d_msvs* _msvs,
-                              size_t               _start,
-                              size_t               _length,
-                              char*                _out);
-size_t           d_msvs_text(const struct d_msvs*         _msvs,
-                             const struct d_msvs_element* _element,
-                             char*                        _out);
+bool d_msvs_is(
+    const struct dj_msvs*         _msvs,
+    const struct dj_msvs_element* _element,
+    const char*                   _name
+);
+bool d_msvs_attribute(
+    const struct dj_msvs*         _msvs,
+    const struct dj_msvs_element* _element,
+    const char*                   _name,
+    size_t*                       _out_start,
+    size_t*                       _out_length
+);
+size_t d_msvs_value(
+    const struct dj_msvs* _msvs,
+    size_t                _start,
+    size_t                _length,
+    char*                 _out
+);
+size_t d_msvs_text(
+    const struct dj_msvs*         _msvs,
+    const struct dj_msvs_element* _element,
+    char*                         _out
+);
 // d_msvs_child is the first child of `_element` named `_name`, or
 // D_MSVS_NONE; d_msvs_is_name is whether a text is an XML name.
-size_t           d_msvs_child(const struct d_msvs* _msvs,
-                              size_t               _element,
-                              const char*          _name);
-bool             d_msvs_is_name(const char* _text,
-                                size_t      _length);
+size_t d_msvs_child(
+    const struct dj_msvs* _msvs,
+    size_t                _element,
+    const char*           _name
+);
+bool d_msvs_is_name(
+    const char* _text,
+    size_t      _length
+);
 
 // 2.3    Conditions
 //------------------------------------------------------------------------------
@@ -326,19 +344,25 @@ bool             d_msvs_is_name(const char* _text,
  * @param[in]  _capacity   the size of `_out_tested`.
  * @return what the condition tests.
  */
-enum d_msvs_condition d_msvs_condition_of(const char* _condition,
-                                          char*       _out_tested,
-                                          size_t      _capacity);
+enum dj_msvs_condition d_msvs_condition_of(
+    const char* _condition,
+    char*       _out_tested,
+    size_t      _capacity
+);
 // d_msvs_config_matches is whether a configuration a condition tests --
 // "Debug|x64", "Debug|*", "*|x64" -- holds for one a caller names,
 // "Debug|x64", comparing without case, as MSBuild does.
-bool             d_msvs_config_matches(const char* _tested,
-                                       const char* _config);
+bool d_msvs_config_matches(
+    const char* _tested,
+    const char* _config
+);
 // d_msvs_compare_paths orders two files' names as Visual Studio and MSBuild
 // compare them -- in any case, with `/` and `\` alike -- below 0, 0 or
 // above, as strcmp does.
-int              d_msvs_compare_paths(const char* _left,
-                                      const char* _right);
+int d_msvs_compare_paths(
+    const char* _left,
+    const char* _right
+);
 
 // 2.4    Writing
 //------------------------------------------------------------------------------
@@ -357,9 +381,11 @@ int              d_msvs_compare_paths(const char* _left,
  *                      "xxxxxxxx-xxxx-5xxx-yxxx-xxxxxxxxxxxx", terminated:
  *                      37 bytes.
  */
-void             d_msvs_guid(const char* _seed,
-                             size_t      _length,
-                             char*       _out);
+void d_msvs_guid(
+    const char* _seed,
+    size_t      _length,
+    char*       _out
+);
 /**
  * @brief Writes a path relative to a directory, as Visual Studio writes
  *        one: ..\..\inc\x.h.
@@ -377,9 +403,11 @@ void             d_msvs_guid(const char* _seed,
  * @return the relative path, allocated; `NULL` when memory runs out, or
  *         when the path climbs above where the two begin.
  */
-char*            d_msvs_relative(const char* _directory,
-                                 const char* _path,
-                                 char        _separator);
+char* d_msvs_relative(
+    const char* _directory,
+    const char* _path,
+    char        _separator
+);
 /**
  * @brief Escapes text for XML: `&`, `<` and `>` everywhere, a carriage
  *        return everywhere, and in an attribute's value the quote around
@@ -393,10 +421,12 @@ char*            d_msvs_relative(const char* _directory,
  *                      bytes for each of the text's, and one more.
  * @return the length written.
  */
-size_t           d_msvs_escape(const char* _text,
-                               size_t      _length,
-                               char        _quote,
-                               char*       _out);
+size_t d_msvs_escape(
+    const char* _text,
+    size_t      _length,
+    char        _quote,
+    char*       _out
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_MSVS_DMSVS_H

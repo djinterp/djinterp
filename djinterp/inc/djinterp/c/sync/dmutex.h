@@ -30,13 +30,13 @@ I.    PLATFORM DETECTION AND INCLUDES
 
 II.   TYPE DEFINITIONS
       ----------------
-      1.    Mutex types            (d_mutex_t, d_recursive_mutex_t)
-      2.    Thread types           (d_thread_t, d_thread_func_t)
-      3.    Condition variable     (d_cond_t)
-      4.    Thread-local storage   (d_tss_t, d_tss_dtor_t)
-      5.    Once flag              (d_once_flag_t, D_ONCE_FLAG_INIT)
-      6.    Read-write lock        (d_rwlock_t)
-      7.    Result types           (d_mutex_result_t, d_thread_result_t)
+      1.    Mutex types            (dj_mutex_t, dj_recursive_mutex_t)
+      2.    Thread types           (dj_thread_t, dj_thread_func_t)
+      3.    Condition variable     (dj_cond_t)
+      4.    Thread-local storage   (dj_tss_t, dj_tss_dtor_t)
+      5.    Once flag              (dj_once_flag_t, D_ONCE_FLAG_INIT)
+      6.    Read-write lock        (dj_rwlock_t)
+      7.    Result types           (dj_mutex_result_t, dj_thread_result_t)
 
 III.  MUTEX OPERATIONS
       ----------------
@@ -158,154 +158,154 @@ D_EXTERN_C_BEGIN
 
 // II.   Type definitions
 
-// d_mutex_t
+// dj_mutex_t
 //   type: basic mutex type
 #if D_MUTEX_HAS_C11_THREADS
-    typedef mtx_t d_mutex_t;
+    typedef mtx_t dj_mutex_t;
 #elif D_MUTEX_HAS_PTHREAD
-    typedef pthread_mutex_t d_mutex_t;
+    typedef pthread_mutex_t dj_mutex_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    typedef struct d_mutex_t
+    typedef struct dj_mutex_t
     {
         HANDLE handle;
         bool   is_recursive;
-    } d_mutex_t;
+    } dj_mutex_t;
 #else
     #error "No mutex implementation available for this platform"
 #endif
 
-// d_recursive_mutex_t
+// dj_recursive_mutex_t
 //   type: recursive mutex type (can be locked multiple times by same thread)
 #if D_MUTEX_HAS_C11_THREADS
-    typedef mtx_t d_recursive_mutex_t;
+    typedef mtx_t dj_recursive_mutex_t;
 #elif D_MUTEX_HAS_PTHREAD
-    typedef pthread_mutex_t d_recursive_mutex_t;
+    typedef pthread_mutex_t dj_recursive_mutex_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    typedef CRITICAL_SECTION d_recursive_mutex_t;
+    typedef CRITICAL_SECTION dj_recursive_mutex_t;
 #else
-    typedef d_mutex_t d_recursive_mutex_t;
+    typedef dj_mutex_t dj_recursive_mutex_t;
 #endif
 
-// d_thread_t
+// dj_thread_t
 //   type: thread identifier
 #if D_MUTEX_HAS_C11_THREADS
-    typedef thrd_t d_thread_t;
+    typedef thrd_t dj_thread_t;
 #elif D_MUTEX_HAS_PTHREAD
-    typedef pthread_t d_thread_t;
+    typedef pthread_t dj_thread_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    typedef struct d_thread_t
+    typedef struct dj_thread_t
     {
         HANDLE handle;
         DWORD  id;
-    } d_thread_t;
+    } dj_thread_t;
 #else
-    typedef unsigned long d_thread_t;
+    typedef unsigned long dj_thread_t;
 #endif
 
-// d_thread_func_t
+// dj_thread_func_t
 //   type: thread start function signature
 #if D_MUTEX_HAS_C11_THREADS
-    typedef int (*d_thread_func_t)(void*);
+    typedef int (*dj_thread_func_t)(void*);
 #else
-    typedef void* (*d_thread_func_t)(void*);
+    typedef void* (*dj_thread_func_t)(void*);
 #endif
 
-// d_cond_t
+// dj_cond_t
 //   type: condition variable
 #if D_MUTEX_HAS_C11_THREADS
-    typedef cnd_t d_cond_t;
+    typedef cnd_t dj_cond_t;
 #elif D_MUTEX_HAS_PTHREAD
-    typedef pthread_cond_t d_cond_t;
+    typedef pthread_cond_t dj_cond_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS && D_MUTEX_HAS_WINDOWS_CONDITION_VARIABLE
-    typedef CONDITION_VARIABLE d_cond_t;
+    typedef CONDITION_VARIABLE dj_cond_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    typedef struct d_cond_t
+    typedef struct dj_cond_t
     {
         HANDLE event;
         int    waiters_count;
         CRITICAL_SECTION waiters_count_lock;
-    } d_cond_t;
+    } dj_cond_t;
 #else
-    typedef struct d_cond_t
+    typedef struct dj_cond_t
     {
         int dummy;
-    } d_cond_t;
+    } dj_cond_t;
 #endif
 
-// d_tss_t
+// dj_tss_t
 //   type: thread-specific storage key
 #if D_MUTEX_HAS_C11_THREADS
-    typedef tss_t d_tss_t;
+    typedef tss_t dj_tss_t;
 #elif D_MUTEX_HAS_PTHREAD
-    typedef pthread_key_t d_tss_t;
+    typedef pthread_key_t dj_tss_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    typedef DWORD d_tss_t;
+    typedef DWORD dj_tss_t;
 #else
-    typedef int d_tss_t;
+    typedef int dj_tss_t;
 #endif
 
-// d_tss_dtor_t
+// dj_tss_dtor_t
 //   type: thread-specific storage destructor function
-typedef void (*d_tss_dtor_t)(void*);
+typedef void (*dj_tss_dtor_t)(void*);
 
-// d_once_flag_t
+// dj_once_flag_t
 //   type: one-time initialization flag
 #if D_MUTEX_HAS_C11_THREADS
-    typedef once_flag d_once_flag_t;
+    typedef once_flag dj_once_flag_t;
 
     #define D_ONCE_FLAG_INIT ONCE_FLAG_INIT
 #elif D_MUTEX_HAS_PTHREAD
-    typedef pthread_once_t d_once_flag_t;
+    typedef pthread_once_t dj_once_flag_t;
 
     #define D_ONCE_FLAG_INIT PTHREAD_ONCE_INIT
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    typedef INIT_ONCE d_once_flag_t;
+    typedef INIT_ONCE dj_once_flag_t;
 
     #define D_ONCE_FLAG_INIT INIT_ONCE_STATIC_INIT
 #else
-    typedef struct d_once_flag_t
+    typedef struct dj_once_flag_t
     {
         volatile int done;
-    } d_once_flag_t;
+    } dj_once_flag_t;
 
     #define D_ONCE_FLAG_INIT {0}
 #endif
 
-// d_rwlock_t
+// dj_rwlock_t
 //   type: read-write lock. Many readers or one writer.
-//   Note: the operations below take `struct d_rwlock_t*` rather than the
+//   Note: the operations below take `struct dj_rwlock_t*` rather than the
 // typedef, so the tag name is part of the public surface here.
 // D_RWLOCK_INIT
-//   macro: static initializer for a d_rwlock_t.
+//   macro: static initializer for a dj_rwlock_t.
 //   Note: only the Windows SRWLOCK backend can be statically initialized.
 // On the other two, d_rwlock_init must be called, so D_RWLOCK_INIT is
 // deliberately NOT defined there -- a portable caller uses d_rwlock_init.
 #if D_MUTEX_HAS_PTHREAD
-    typedef struct d_rwlock_t
+    typedef struct dj_rwlock_t
     {
         pthread_rwlock_t rwlock;
-    } d_rwlock_t;
+    } dj_rwlock_t;
 
 #elif D_MUTEX_HAS_WINDOWS_THREADS && D_MUTEX_HAS_WINDOWS_SRWLOCK
-    typedef struct d_rwlock_t
+    typedef struct dj_rwlock_t
     {
         SRWLOCK srwlock;
-    } d_rwlock_t;
+    } dj_rwlock_t;
 
     #define D_RWLOCK_INIT { SRWLOCK_INIT }
 #else
-    typedef struct d_rwlock_t
+    typedef struct dj_rwlock_t
     {
-        d_mutex_t mutex;
-        d_cond_t  readers_cond;
-        d_cond_t  writers_cond;
+        dj_mutex_t mutex;
+        dj_cond_t  readers_cond;
+        dj_cond_t  writers_cond;
         int       readers;
         int       writers;
         int       waiting_writers;
-    } d_rwlock_t;
+    } dj_rwlock_t;
 #endif
 
-// d_mutex_result_t
+// dj_mutex_result_t
 //   type: the return code shared by the mutex, rwlock and spinlock calls.
 // 0 is success; every failure is negative, so `< 0` is a valid error test.
 typedef enum {
@@ -314,23 +314,23 @@ typedef enum {
     D_MUTEX_BUSY         = -2,
     D_MUTEX_TIMEDOUT     = -3,
     D_MUTEX_NOMEM        = -4
-} d_mutex_result_t;
+} dj_mutex_result_t;
 
-// d_thread_result_t
+// dj_thread_result_t
 //   type: what a thread function returns and what d_thread_join writes back.
 // C11 threads use int; pthreads and the Windows shim use void*, so this is
 // one of the few places where the backend is visible in a signature.
 
 // D_THREAD_SUCCESS / D_THREAD_ERROR
-//   constant: the two portable values for a d_thread_result_t, spelled so a
+//   constant: the two portable values for a dj_thread_result_t, spelled so a
 // caller never has to know which backend is in play.
 #if D_MUTEX_HAS_C11_THREADS
-    typedef int d_thread_result_t;
+    typedef int dj_thread_result_t;
 
     #define D_THREAD_SUCCESS 0
     #define D_THREAD_ERROR   -1
 #else
-    typedef void* d_thread_result_t;
+    typedef void* dj_thread_result_t;
 
     #define D_THREAD_SUCCESS ((void*)0)
     #define D_THREAD_ERROR   ((void*)-1)
@@ -338,66 +338,141 @@ typedef enum {
 
 
 // III.  Mutex operations
-int        d_mutex_init(d_mutex_t* _mutex);
-int        d_mutex_destroy(d_mutex_t* _mutex);
-int        d_mutex_lock(d_mutex_t* _mutex);
-int        d_mutex_trylock(d_mutex_t* _mutex);
-int        d_mutex_unlock(d_mutex_t* _mutex);
-int        d_mutex_timedlock(d_mutex_t*             _mutex,
-                             const struct timespec* _timeout);
-int        d_recursive_mutex_init(d_recursive_mutex_t* _mutex);
-int        d_recursive_mutex_destroy(d_recursive_mutex_t* _mutex);
-int        d_recursive_mutex_lock(d_recursive_mutex_t* _mutex);
-int        d_recursive_mutex_trylock(d_recursive_mutex_t* _mutex);
-int        d_recursive_mutex_unlock(d_recursive_mutex_t* _mutex);
+int d_mutex_init(
+    dj_mutex_t* _mutex
+);
+int d_mutex_destroy(
+    dj_mutex_t* _mutex
+);
+int d_mutex_lock(
+    dj_mutex_t* _mutex
+);
+int d_mutex_trylock(
+    dj_mutex_t* _mutex
+);
+int d_mutex_unlock(
+    dj_mutex_t* _mutex
+);
+int d_mutex_timedlock(
+    dj_mutex_t*            _mutex,
+    const struct timespec* _timeout
+);
+int d_recursive_mutex_init(
+    dj_recursive_mutex_t* _mutex
+);
+int d_recursive_mutex_destroy(
+    dj_recursive_mutex_t* _mutex
+);
+int d_recursive_mutex_lock(
+    dj_recursive_mutex_t* _mutex
+);
+int d_recursive_mutex_trylock(
+    dj_recursive_mutex_t* _mutex
+);
+int d_recursive_mutex_unlock(
+    dj_recursive_mutex_t* _mutex
+);
 
 // IV.   Thread operations
-int        d_thread_create(d_thread_t*     _thread,
-                           d_thread_func_t _func,
-                           void*           _arg);
-int        d_thread_join(d_thread_t         _thread,
-                         d_thread_result_t* _result);
-int        d_thread_detach(d_thread_t _thread);
-void       d_thread_exit(d_thread_result_t _result);
-void       d_thread_yield(void);
-int        d_thread_sleep(const struct timespec* _duration,
-                          struct timespec*       _remaining);
-d_thread_t d_thread_current(void);
-int        d_thread_equal(d_thread_t _t1,
-                          d_thread_t _t2);
-int        d_tss_create(d_tss_t*     _key,
-                        d_tss_dtor_t _dtor);
-int        d_tss_delete(d_tss_t _key);
-void*      d_tss_get(d_tss_t _key);
-int        d_tss_set(d_tss_t _key,
-                     void*   _value);
+int d_thread_create(
+    dj_thread_t*     _thread,
+    dj_thread_func_t _func,
+    void*            _arg
+);
+int d_thread_join(
+    dj_thread_t         _thread,
+    dj_thread_result_t* _result
+);
+int d_thread_detach(
+    dj_thread_t _thread
+);
+void d_thread_exit(
+    dj_thread_result_t _result
+);
+void d_thread_yield(void);
+int d_thread_sleep(
+    const struct timespec* _duration,
+    struct timespec*       _remaining
+);
+dj_thread_t d_thread_current(void);
+int d_thread_equal(
+    dj_thread_t _t1,
+    dj_thread_t _t2
+);
+int d_tss_create(
+    dj_tss_t*     _key,
+    dj_tss_dtor_t _dtor
+);
+int d_tss_delete(
+    dj_tss_t _key
+);
+void* d_tss_get(
+    dj_tss_t _key
+);
+int d_tss_set(
+    dj_tss_t _key,
+    void*    _value
+);
 // V.    Condition variables
-int        d_cond_init(d_cond_t* _cond);
-int        d_cond_destroy(d_cond_t* _cond);
-int        d_cond_signal(d_cond_t* _cond);
-int        d_cond_broadcast(d_cond_t* _cond);
-int        d_cond_wait(d_cond_t*  _cond,
-                       d_mutex_t* _mutex);
-int        d_cond_timedwait(d_cond_t*              _cond,
-                            d_mutex_t*             _mutex,
-                            const struct timespec* _timeout);
+int d_cond_init(
+    dj_cond_t* _cond
+);
+int d_cond_destroy(
+    dj_cond_t* _cond
+);
+int d_cond_signal(
+    dj_cond_t* _cond
+);
+int d_cond_broadcast(
+    dj_cond_t* _cond
+);
+int d_cond_wait(
+    dj_cond_t*  _cond,
+    dj_mutex_t* _mutex
+);
+int d_cond_timedwait(
+    dj_cond_t*             _cond,
+    dj_mutex_t*            _mutex,
+    const struct timespec* _timeout
+);
 // VI.   Read-write locks
-int        d_rwlock_init(struct d_rwlock_t* _rwlock);
-int        d_rwlock_destroy(struct d_rwlock_t* _rwlock);
-int        d_rwlock_rdlock(struct d_rwlock_t* _rwlock);
-int        d_rwlock_tryrdlock(struct d_rwlock_t* _rwlock);
-int        d_rwlock_wrlock(struct d_rwlock_t* _rwlock);
-int        d_rwlock_trywrlock(struct d_rwlock_t* _rwlock);
-int        d_rwlock_unlock(struct d_rwlock_t* _rwlock);
-int        d_rwlock_timedrdlock(struct d_rwlock_t*     _rwlock,
-                                const struct timespec* _timeout);
-int        d_rwlock_timedwrlock(struct d_rwlock_t*     _rwlock,
-                                const struct timespec* _timeout);
+int d_rwlock_init(
+    struct dj_rwlock_t* _rwlock
+);
+int d_rwlock_destroy(
+    struct dj_rwlock_t* _rwlock
+);
+int d_rwlock_rdlock(
+    struct dj_rwlock_t* _rwlock
+);
+int d_rwlock_tryrdlock(
+    struct dj_rwlock_t* _rwlock
+);
+int d_rwlock_wrlock(
+    struct dj_rwlock_t* _rwlock
+);
+int d_rwlock_trywrlock(
+    struct dj_rwlock_t* _rwlock
+);
+int d_rwlock_unlock(
+    struct dj_rwlock_t* _rwlock
+);
+int d_rwlock_timedrdlock(
+    struct dj_rwlock_t*    _rwlock,
+    const struct timespec* _timeout
+);
+int d_rwlock_timedwrlock(
+    struct dj_rwlock_t*    _rwlock,
+    const struct timespec* _timeout
+);
 // VII.  Synchronization primitives
-void       d_call_once(d_once_flag_t* _flag, void (*_func)(void));
+void d_call_once(
+    dj_once_flag_t* _flag,
+    void (*_func)(void)
+);
 
 // VIII. Utility functions
-int        d_thread_hardware_concurrency(void);
+int d_thread_hardware_concurrency(void);
 
 D_EXTERN_C_END
 

@@ -11,15 +11,15 @@
 * answer "which record". Four places in this tree answer that separately:
 *
 *     d_option_set_find    linear scan, uint64_t key compared inline
-*     d_registry           sorted index + binary search, const char* key,
+*     dj_registry           sorted index + binary search, const char* key,
 *                          reached through a macro that hard-codes offset 0
-*     d_test_registry_row  the same, through the registry
-*     d_test_metadata      linear scan, interned key compared inline
-*     basic_metadata<>     linear scan, keys compared with operator==
+*     dj_test_registry_row  the same, through the registry
+*     dj_test_metadata      linear scan, interned key compared inline
+*     DBasicMetadata<>     linear scan, keys compared with operator==
 *
 * They disagree on where the key sits, on how it is compared, on whether the
 * array is ordered, and on what a miss returns. This module is the one answer,
-* parameterised on a `d_kv_field` so the disagreements become arguments.
+* parameterised on a `dj_kv_field` so the disagreements become arguments.
 *
 *
 * THREE THINGS THAT ARE EASY TO GET WRONG AND ARE FIXED ONCE HERE
@@ -55,8 +55,8 @@
 *
 * WHAT THIS MODULE IS NOT
 * =======================
-*   IT DOES NOT OWN A SORTED INDEX. d_registry keeps a permutation array --
-* `struct d_registry_lookup_entry { const char* key; size_t row_index; }` --
+*   IT DOES NOT OWN A SORTED INDEX. dj_registry keeps a permutation array --
+* `struct dj_registry_lookup_entry { const char* key; size_t row_index; }` --
 * so that the rows themselves may stay in insertion order while lookup stays
 * logarithmic. That is a second container with its own invariants, and it
 * lands with the registry rather than being guessed at here. A view over the
@@ -67,13 +67,13 @@
 * address it got back.
 *
 *
-* path:      /inc/djinterp/c/meta/lookup.h
+* path:      /inc/djinterp/c/util/lookup.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.05
 ******************************************************************************/
 
-#ifndef DJINTERP_C_LOOKUP_
-#define DJINTERP_C_LOOKUP_ 1
+#ifndef DJINTERP_C_UTIL_LOOKUP_H
+#define DJINTERP_C_UTIL_LOOKUP_H 1
 
 // std
 #include <stddef.h>
@@ -89,28 +89,28 @@ D_EXTERN_C_BEGIN
 
 // I.     the lookup view
 
-// d_lookup_view
+// dj_lookup_view
 //   struct: a contiguous array of records and where the key sits in each. The
 // records are BORROWED; this struct owns nothing and outlives nothing.
 //   `stride` is the distance between consecutive records, which is the record
 // type's sizeof and not the key's width. It doubles as the per-record capacity
 // handed to kv.h, so a key field that would read past the end of one record is
 // refused by the same bounds check that guards every other read.
-struct d_lookup_view
+struct dj_lookup_view
 {
     const void*       records;  // borrowed; the first record, or NULL
     size_t            stride;   // bytes between consecutive records
     size_t            count;    // number of records
-    struct d_kv_field key;      // where the key sits within one record
+    struct dj_kv_field key;      // where the key sits within one record
     uint16_t          flags;    // D_LOOKUP_FLAG_*
     uint16_t          pad;      // reserved; written zero
 };
 
-// d_lookup_result
+// dj_lookup_result
 //   struct: the outcome of a search. On a miss `index` is the INSERTION POINT
 // rather than a sentinel, so a caller that failed to find a key already knows
 // where to put it.
-struct d_lookup_result
+struct dj_lookup_result
 {
     const void* record;     // borrowed; NULL when not found
     size_t      index;      // position when found; insertion point when not
@@ -131,14 +131,14 @@ struct d_lookup_result
 // D_LOOKUP_FLAG_KEY_IS_POINTER
 //   constant: the key field holds a POINTER TO the key rather than the key
 // itself -- a `const char*` member, not a `char[32]` member. This is what
-// d_registry's key macro encoded by casting a row to `const char* const*`, and
+// dj_registry's key macro encoded by casting a row to `const char* const*`, and
 // it is a property of the record rather than of the search, so it lives on the
 // view.
 #define D_LOOKUP_FLAG_KEY_IS_POINTER        ((uint16_t)(1u << 1))
 
 // D_LOOKUP_FLAG_CASE_INSENSITIVE
 //   constant: string keys are compared with an ASCII case fold. This is
-// d_registry's D_REGISTRY_FLAG_CASE_INSENSITIVE, become a comparator choice
+// dj_registry's D_REGISTRY_FLAG_CASE_INSENSITIVE, become a comparator choice
 // now that the key's type is described rather than assumed.
 #define D_LOOKUP_FLAG_CASE_INSENSITIVE      ((uint16_t)(1u << 2))
 
@@ -191,16 +191,15 @@ struct d_lookup_result
 // truncated one. The stride is handed to kv.h as a per-record capacity, which
 // is 32-bit, and a silent narrowing there would turn the bounds check into
 // decoration.
-D_NODISCARD D_INLINE struct d_lookup_view
-d_lookup_view_make(
-    const void*              _records,
-    size_t                   _stride,
-    size_t                   _count,
-    const struct d_kv_field* _key,
-    uint16_t                 _flags
+D_NODISCARD D_INLINE struct dj_lookup_view d_lookup_view_make(
+    const void*               _records,
+    size_t                    _stride,
+    size_t                    _count,
+    const struct dj_kv_field* _key,
+    uint16_t                  _flags
 )
 {
-    struct d_lookup_view view = D_LOOKUP_VIEW_INIT;
+    struct dj_lookup_view view = D_LOOKUP_VIEW_INIT;
 
     // reject a view that cannot describe a record, or a key it cannot reach
     if ( (!_records)                          ||
@@ -224,9 +223,8 @@ d_lookup_view_make(
 // d_lookup_view_is_empty
 //   function: whether a view can be searched at all. An invalid view and an
 // array of zero records answer the same, because both find nothing.
-D_NODISCARD D_INLINE bool
-d_lookup_view_is_empty(
-    const struct d_lookup_view* _view
+D_NODISCARD D_INLINE bool d_lookup_view_is_empty(
+    const struct dj_lookup_view* _view
 )
 {
     return ( (!_view)             ||
@@ -239,9 +237,8 @@ d_lookup_view_is_empty(
 //   function: whether the view claims ascending key order. A CLAIM, not a
 // check: verifying it costs a full scan, which is the thing bisecting was
 // meant to avoid.
-D_NODISCARD D_INLINE bool
-d_lookup_view_is_sorted(
-    const struct d_lookup_view* _view
+D_NODISCARD D_INLINE bool d_lookup_view_is_sorted(
+    const struct dj_lookup_view* _view
 )
 {
     return ( (_view != NULL) &&
@@ -250,10 +247,9 @@ d_lookup_view_is_sorted(
 
 // d_lookup_at
 //   function: the record at `_index`, or NULL when the index is past the end.
-D_NODISCARD D_INLINE const void*
-d_lookup_at(
-    const struct d_lookup_view* _view,
-    size_t                      _index
+D_NODISCARD D_INLINE const void* d_lookup_at(
+    const struct dj_lookup_view* _view,
+    size_t                       _index
 )
 {
     // an empty view has no record at any index
@@ -280,8 +276,7 @@ d_lookup_at(
 // keys far apart and truncates for keys more than INT_MAX apart, and both
 // failures produce a comparator that is not a strict weak ordering -- which a
 // binary search reads as a permanently missing key.
-D_NODISCARD D_INLINE int
-d_lookup_compare_unsigned(
+D_NODISCARD D_INLINE int d_lookup_compare_unsigned(
     uint64_t _lhs,
     uint64_t _rhs
 )
@@ -303,8 +298,7 @@ d_lookup_compare_unsigned(
 
 // d_lookup_compare_signed
 //   function: order two signed keys.
-D_NODISCARD D_INLINE int
-d_lookup_compare_signed(
+D_NODISCARD D_INLINE int d_lookup_compare_signed(
     int64_t _lhs,
     int64_t _rhs
 )
@@ -333,8 +327,7 @@ d_lookup_compare_signed(
 // undefined behaviour rather than a wrong answer. Folding beyond ASCII would
 // require a Unicode table this framework does not have and must not pretend
 // to.
-D_NODISCARD D_INLINE unsigned char
-d_lookup_fold_ascii(
+D_NODISCARD D_INLINE unsigned char d_lookup_fold_ascii(
     unsigned char _character
 )
 {
@@ -353,8 +346,7 @@ d_lookup_fold_ascii(
 //   function: order two NUL-terminated strings, optionally case-folded. A
 // NULL string orders before every non-NULL one, and two NULLs are equal, so
 // that a row with no key sorts to one end instead of faulting.
-D_NODISCARD D_INLINE int
-d_lookup_compare_string(
+D_NODISCARD D_INLINE int d_lookup_compare_string(
     const char* _lhs,
     const char* _rhs,
     bool        _fold_case
@@ -408,8 +400,7 @@ d_lookup_compare_string(
 // unspecified beyond its direction, so the result is normalised to -1, 0 or 1
 // -- a caller storing a comparison result should get the same value from every
 // implementation.
-D_NODISCARD D_INLINE int
-d_lookup_compare_bytes(
+D_NODISCARD D_INLINE int d_lookup_compare_bytes(
     const void* _lhs,
     const void* _rhs,
     size_t      _size
@@ -456,10 +447,9 @@ d_lookup_compare_bytes(
 //   function: the unsigned key of the record at `_index`, widened. Zero for
 // an absent record, which is why a caller distinguishing "key is zero" from
 // "no such record" tests the index first.
-D_NODISCARD D_INLINE uint64_t
-d_lookup_key_unsigned(
-    const struct d_lookup_view* _view,
-    size_t                      _index
+D_NODISCARD D_INLINE uint64_t d_lookup_key_unsigned(
+    const struct dj_lookup_view* _view,
+    size_t                       _index
 )
 {
     const void* record;
@@ -480,10 +470,9 @@ d_lookup_key_unsigned(
 
 // d_lookup_key_signed
 //   function: the signed key of the record at `_index`, sign-extended.
-D_NODISCARD D_INLINE int64_t
-d_lookup_key_signed(
-    const struct d_lookup_view* _view,
-    size_t                      _index
+D_NODISCARD D_INLINE int64_t d_lookup_key_signed(
+    const struct dj_lookup_view* _view,
+    size_t                       _index
 )
 {
     const void* record;
@@ -506,10 +495,9 @@ d_lookup_key_signed(
 //   function: the string key of the record at `_index`. With
 // D_LOOKUP_FLAG_KEY_IS_POINTER the field holds a `const char*` and is
 // dereferenced; without it the field IS the characters, as a `char[]` member.
-D_NODISCARD D_INLINE const char*
-d_lookup_key_string(
-    const struct d_lookup_view* _view,
-    size_t                      _index
+D_NODISCARD D_INLINE const char* d_lookup_key_string(
+    const struct dj_lookup_view* _view,
+    size_t                       _index
 )
 {
     const void* record;
@@ -536,10 +524,9 @@ d_lookup_key_string(
 // d_lookup_key_bytes
 //   function: the address of the opaque key of the record at `_index`, under
 // the same indirection rule as d_lookup_key_string.
-D_NODISCARD D_INLINE const void*
-d_lookup_key_bytes(
-    const struct d_lookup_view* _view,
-    size_t                      _index
+D_NODISCARD D_INLINE const void* d_lookup_key_bytes(
+    const struct dj_lookup_view* _view,
+    size_t                       _index
 )
 {
     const void* record;
@@ -578,13 +565,13 @@ d_lookup_key_bytes(
 // counts near SIZE_MAX; no array in this framework is close, and the day one
 // is, nothing would report it.
 #define D_INTERNAL_LOOKUP_DEFINE_FIND(name, key_param, compare_expr)           \
-    D_NODISCARD D_INLINE struct d_lookup_result                                \
+    D_NODISCARD D_INLINE struct dj_lookup_result                                \
     d_lookup_find_##name(                                                      \
-        const struct d_lookup_view* _view,                                     \
+        const struct dj_lookup_view* _view,                                     \
         key_param                                                              \
     )                                                                          \
     {                                                                          \
-        struct d_lookup_result result = D_LOOKUP_RESULT_MISS;                  \
+        struct dj_lookup_result result = D_LOOKUP_RESULT_MISS;                  \
         size_t                 low;                                            \
         size_t                 high;                                           \
         size_t                 mid;                                            \
@@ -688,13 +675,13 @@ D_INTERNAL_LOOKUP_DEFINE_FIND(
 // and silently treating a pointer-valued key as an integer is the class of
 // mistake this module exists to remove -- so those go through the named entry
 // points above.
-D_NODISCARD D_INLINE struct d_lookup_result
+D_NODISCARD D_INLINE struct dj_lookup_result
 d_lookup_find_field(
-    const struct d_lookup_view* _view,
+    const struct dj_lookup_view* _view,
     int64_t                     _key
 )
 {
-    struct d_lookup_result result = D_LOOKUP_RESULT_MISS;
+    struct dj_lookup_result result = D_LOOKUP_RESULT_MISS;
 
     // an empty view misses at insertion point zero
     if (d_lookup_view_is_empty(_view))
@@ -714,10 +701,9 @@ d_lookup_find_field(
 // d_lookup_contains
 //   function: whether the key is present, for a caller that wants the verdict
 // and not the record.
-D_NODISCARD D_INLINE bool
-d_lookup_contains(
-    const struct d_lookup_view* _view,
-    int64_t                     _key
+D_NODISCARD D_INLINE bool d_lookup_contains(
+    const struct dj_lookup_view* _view,
+    int64_t                      _key
 )
 {
     return d_lookup_find_field(_view, _key).found;
@@ -744,45 +730,45 @@ d_lookup_contains(
 // host rather than the layout. What is asserted instead is what actually
 // matters: the ordering of the members and the absence of interior padding.
 
-D_STATIC_ASSERT(offsetof(struct d_lookup_view, records) == 0,
-                "d_lookup_view layout drift: records must lead");
-D_STATIC_ASSERT(offsetof(struct d_lookup_view, stride) <
-                    offsetof(struct d_lookup_view, count),
-                "d_lookup_view layout drift: stride must precede count");
-D_STATIC_ASSERT(offsetof(struct d_lookup_view, count) <
-                    offsetof(struct d_lookup_view, key),
-                "d_lookup_view layout drift: count must precede key");
-D_STATIC_ASSERT(sizeof(struct d_lookup_view) ==
+D_STATIC_ASSERT(offsetof(struct dj_lookup_view, records) == 0,
+                "dj_lookup_view layout drift: records must lead");
+D_STATIC_ASSERT(offsetof(struct dj_lookup_view, stride) <
+                    offsetof(struct dj_lookup_view, count),
+                "dj_lookup_view layout drift: stride must precede count");
+D_STATIC_ASSERT(offsetof(struct dj_lookup_view, count) <
+                    offsetof(struct dj_lookup_view, key),
+                "dj_lookup_view layout drift: count must precede key");
+D_STATIC_ASSERT(sizeof(struct dj_lookup_view) ==
                     ( sizeof(const void*) + sizeof(size_t) + sizeof(size_t) +
-                      sizeof(struct d_kv_field) + sizeof(uint16_t) +
+                      sizeof(struct dj_kv_field) + sizeof(uint16_t) +
                       sizeof(uint16_t) ),
-                "d_lookup_view: a member width has introduced padding");
+                "dj_lookup_view: a member width has introduced padding");
 
-D_STATIC_ASSERT(offsetof(struct d_lookup_result, record) == 0,
-                "d_lookup_result layout drift: record must lead");
-D_STATIC_ASSERT(offsetof(struct d_lookup_result, record) <
-                    offsetof(struct d_lookup_result, index),
-                "d_lookup_result layout drift: record must precede index");
-D_STATIC_ASSERT(offsetof(struct d_lookup_result, index) <
-                    offsetof(struct d_lookup_result, found),
-                "d_lookup_result layout drift: index must precede found");
+D_STATIC_ASSERT(offsetof(struct dj_lookup_result, record) == 0,
+                "dj_lookup_result layout drift: record must lead");
+D_STATIC_ASSERT(offsetof(struct dj_lookup_result, record) <
+                    offsetof(struct dj_lookup_result, index),
+                "dj_lookup_result layout drift: record must precede index");
+D_STATIC_ASSERT(offsetof(struct dj_lookup_result, index) <
+                    offsetof(struct dj_lookup_result, found),
+                "dj_lookup_result layout drift: index must precede found");
 
 //   THE STRIDE MUST BE ABLE TO SERVE AS A kv CAPACITY. d_lookup_view_make
 // refuses a stride wider than UINT32_MAX for this reason; the assertion states
 // the relation the refusal is protecting.
-D_STATIC_ASSERT(sizeof(((struct d_lookup_view*)0)->stride) >=
+D_STATIC_ASSERT(sizeof(((struct dj_lookup_view*)0)->stride) >=
                     sizeof(uint32_t),
-                "d_lookup_view: stride cannot address a record");
+                "dj_lookup_view: stride cannot address a record");
 
 //   THE FLAG SET IS CLOSED. The mask is only meaningful while every defined
 // flag sits inside it.
 D_STATIC_ASSERT(( D_LOOKUP_FLAG_SORTED           |
                   D_LOOKUP_FLAG_KEY_IS_POINTER   |
                   D_LOOKUP_FLAG_CASE_INSENSITIVE ) == D_LOOKUP_FLAG_MASK,
-                "d_lookup_view: a flag has escaped D_LOOKUP_FLAG_MASK");
+                "dj_lookup_view: a flag has escaped D_LOOKUP_FLAG_MASK");
 
 
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_LOOKUP_
+#endif  // DJINTERP_C_UTIL_LOOKUP_H

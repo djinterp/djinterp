@@ -23,7 +23,7 @@
 // djinterp
 #include "../../../../../inc/djinterp/c/container/registry/registry_common.h"
 #include "../../../../../inc/djinterp/c/string_fn.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -31,29 +31,59 @@
  *****************************************************************************/
 
 // basic comparison tests
-bool d_tests_sa_registry_strcmp_equal_strings(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_less_than(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_greater_than(struct d_test_counter* _counter);
+bool d_tests_sa_registry_strcmp_equal_strings(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_less_than(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_greater_than(
+    struct dj_test_counter* _counter
+);
 
 // null handling tests
-bool d_tests_sa_registry_strcmp_both_null(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_first_null(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_second_null(struct d_test_counter* _counter);
+bool d_tests_sa_registry_strcmp_both_null(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_first_null(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_second_null(
+    struct dj_test_counter* _counter
+);
 
 // case sensitivity tests
-bool d_tests_sa_registry_strcmp_case_sensitive_diff(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_case_insensitive_equal(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_case_insensitive_diff(struct d_test_counter* _counter);
+bool d_tests_sa_registry_strcmp_case_sensitive_diff(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_case_insensitive_equal(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_case_insensitive_diff(
+    struct dj_test_counter* _counter
+);
 
 // edge case tests
-bool d_tests_sa_registry_strcmp_empty_strings(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_empty_vs_nonempty(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_prefix_strings(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_special_chars(struct d_test_counter* _counter);
-bool d_tests_sa_registry_strcmp_numeric_chars(struct d_test_counter* _counter);
+bool d_tests_sa_registry_strcmp_empty_strings(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_empty_vs_nonempty(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_prefix_strings(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_special_chars(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_strcmp_numeric_chars(
+    struct dj_test_counter* _counter
+);
 
 // I.   aggregation function
-bool d_tests_sa_registry_strcmp_all(struct d_test_counter* _counter);
+bool d_tests_sa_registry_strcmp_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
@@ -61,30 +91,56 @@ bool d_tests_sa_registry_strcmp_all(struct d_test_counter* _counter);
  *****************************************************************************/
 
 // basic functionality tests
-bool d_tests_sa_registry_schema_max_enum_key_single(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_multiple(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_first_is_max(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_last_is_max(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_middle_is_max(struct d_test_counter* _counter);
+bool d_tests_sa_registry_schema_max_enum_key_single(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_multiple(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_first_is_max(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_last_is_max(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_middle_is_max(
+    struct dj_test_counter* _counter
+);
 
 // null and empty handling tests
-bool d_tests_sa_registry_schema_max_enum_key_null_schema(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_zero_count(struct d_test_counter* _counter);
+bool d_tests_sa_registry_schema_max_enum_key_null_schema(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_zero_count(
+    struct dj_test_counter* _counter
+);
 
 // edge case tests
-bool d_tests_sa_registry_schema_max_enum_key_all_same(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_max_uint16(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_zero_keys(struct d_test_counter* _counter);
-bool d_tests_sa_registry_schema_max_enum_key_sparse(struct d_test_counter* _counter);
+bool d_tests_sa_registry_schema_max_enum_key_all_same(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_max_uint16(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_zero_keys(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_registry_schema_max_enum_key_sparse(
+    struct dj_test_counter* _counter
+);
 
 // II.  aggregation function
-bool d_tests_sa_registry_schema_max_enum_key_all(struct d_test_counter* _counter);
+bool d_tests_sa_registry_schema_max_enum_key_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
-bool d_tests_sa_registry_common_run_all(struct d_test_counter* _counter);
+bool d_tests_sa_registry_common_run_all(
+    struct dj_test_counter* _counter
+);
 
 
 #endif  // DJINTERP_TESTS_REGISTRY_COMMON_SA_

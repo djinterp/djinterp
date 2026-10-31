@@ -1,0 +1,727 @@
+/*******************************************************************************
+* djinterp [cpp]                                                 sqlite_face.hpp
+*
+* The C++ face of djinterp's SQLite layer.
+*   face::sqlite owns a connection, sqlite3*, and closes it when it goes;
+* every function of the layer (sqlite.h) is a member of the same name, the
+* connection argument dropped, each with its C function's contract:
+*     face::sqlite db;
+*     if (db.open("app.db") == SQLITE_OK)
+*     {
+*         face::transaction<face::sqlite> work(db);
+*
+*         db.create_table_sql(0, "notes", "id INTEGER PRIMARY KEY, body",
+*                             D_DB_IF_NOT_EXISTS);
+*         work.commit();
+*     }
+* Results are the layer's: SQLITE_OK (0), SQLite's result code, or a
+* negative D_DB_*. Functions that need no connection -- versions, features,
+* database files, quoting -- are static. db_face.hpp describes what the
+* face adds, how strings, lists and text cross it, and what each language
+* level adds beside the exact forms: from C++17 std::optional text, from
+* C++20 formats checked at compile time and std::span columns, from C++23
+* std::expected results.
+*   open, open_readonly, open_memory and open_with replace the connection
+* only when they succeed; a failure leaves the face as it was. A member
+* called on a face with no connection passes NULL to the layer, which
+* answers SQLITE_MISUSE, or false, 0 or NULL.
+*   face::sqlite_statement owns a prepared statement, SQLite's own
+* sqlite3_stmt, and finalizes it when it goes; prepare and preparef fill one,
+* and every function of sqlite_statement.h that takes a statement is its
+* member, the statement argument dropped:
+*     face::sqlite_statement insert;
+*     if (db.prepare(insert, "INSERT INTO notes (body) VALUES (?)") == 0)
+*     {
+*         re_std::int64_t changes = 0;
+*
+*         insert.bind_text(1, "first");
+*         insert.execute_update(changes);
+*     }
+* face::rows (db_face.hpp) holds the rows a query or a statement returned.
+*   The members that forward are generated, by scripts/gen_db_face.py from the
+* layer's prototypes and scripts/db_face/sqlite_face.hpp.in, and keep the C
+* functions' contracts, in the headers each part names; those written by
+* hand in the template -- the ones that open, close or hand over the
+* connection or the statement -- carry their own. Edit the template, not
+* this file.
+*
+*
+* path:      /inc/djinterp/cpp/db/sqlite/sqlite_face.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
+*                                                            revised: 2026.10.15
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  FACE
+    ----
+    1.  The statement
+         1.  sqlite_statement
+              1.  Ownership
+              2.  Describing, binding and running
+    2.  The connection
+         1.  sqlite
+              1.  Ownership
+              2.  Library
+              3.  Connections
+              4.  Queries
+              5.  Statements
+              6.  Databases
+              7.  Schema
+              8.  Transactions
+              9.  Settings
+              10. Maintenance
+    3.  Swapping
+2.  COST
+    ----
+    1.  Sizes and moves
+*/
+
+#ifndef DJINTERP_DB_SQLITE_SQLITE_FACE_HPP
+#define DJINTERP_DB_SQLITE_SQLITE_FACE_HPP 1
+
+// std
+#include <cstddef>  // std::size_t
+#include <string>   // std::string
+#include <vector>   // std::vector
+// djinterp
+#include "../db_face.hpp"  // string_arg, text, the lists, the levels
+#include "../../../c/db/sqlite/sqlite.h"      // the layer
+// re_std
+#include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t, INT64_MAX
+
+// std, by level: what the forms each level adds take and return
+// (db_face.hpp, 1)
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #include <type_traits>  // std::is_nothrow_move_constructible
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if D_INTERNAL_DB_FACE_OPTIONAL
+    #include <optional>  // std::optional
+#endif  // D_INTERNAL_DB_FACE_OPTIONAL
+#if D_INTERNAL_DB_FACE_SPAN
+    #include <span>  // std::span
+#endif  // D_INTERNAL_DB_FACE_SPAN
+#if D_INTERNAL_DB_FACE_EXPECTED
+    #include <expected>  // std::expected, std::unexpected
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+// 64-bit floor: the layer needs a 64-bit integer type, and below it the face
+// compiles to nothing, as db_face.hpp does.
+#if defined(INT64_MAX)
+
+
+namespace djinterp
+{
+namespace face
+{
+
+
+//==============================================================================
+// 1.  FACE
+//==============================================================================
+
+
+// 1.1    The statement
+//------------------------------------------------------------------------------
+// 1.1.1
+// sqlite_statement
+//   class: a prepared statement, SQLite's own sqlite3_stmt, owned: finalized
+// when the object goes. Made empty, and filled by face::sqlite's prepare and
+// preparef; every function of sqlite_statement.h that takes a statement is a
+// member of the same name, whose contract it keeps. Not copyable; movable
+// from C++11.
+class sqlite_statement
+{
+public:
+    // 1.1.1.1
+    // Ownership
+    //   a statement made empty holds none; whatever a statement holds, it
+    // finalizes when it goes.
+    D_CONSTEXPR sqlite_statement() D_NOEXCEPT
+        : m_statement(D_NULLPTR)
+    {}
+
+    /**
+     * @brief Makes a statement that owns one prepared elsewhere.
+     *
+     * @param[in] _owned  the statement, or `NULL` for none.
+     * @post The object finalizes `_owned`; the caller no longer does.
+     */
+    explicit D_CONSTEXPR sqlite_statement(
+        struct sqlite3_stmt* _owned
+    ) D_NOEXCEPT
+        : m_statement(_owned)
+    {}
+
+    ~sqlite_statement()
+    {
+        // a statement, when there is one; an empty object calls nothing
+        if (m_statement)
+        {
+            (void)d_sqlite_finalize(m_statement);
+        }
+    }
+
+#if D_MOVE_ENABLED
+    // moving -- the statement passes to the object moved to, which
+    // finalizes what it held; the object moved from holds none
+    sqlite_statement(
+        sqlite_statement&& _other
+    ) D_NOEXCEPT
+        : m_statement(_other.release())
+    {}
+
+    sqlite_statement&
+    operator=(
+        sqlite_statement&& _other
+    ) D_NOEXCEPT
+    {
+        reset(_other.release());
+
+        return *this;
+    }
+#endif  // D_MOVE_ENABLED
+
+    // the handle -- the statement, for the layer's or SQLite's own calls,
+    // NULL when there is none; and whether there is one
+    D_NODISCARD struct sqlite3_stmt*
+    handle() const D_NOEXCEPT
+    {
+        return m_statement;
+    }
+
+    D_NODISCARD bool
+    is_prepared() const D_NOEXCEPT
+    {
+        return (m_statement != D_NULLPTR);
+    }
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    D_EXPLICIT_BOOL operator bool() const D_NOEXCEPT
+    {
+        return is_prepared();
+    }
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+    /**
+     * @brief Gives up the statement without finalizing it.
+     *
+     * @return the statement, which the caller then finalizes with
+     *         d_sqlite_finalize; `NULL` when there is none.
+     * @post The object holds no statement.
+     */
+    D_NODISCARD struct sqlite3_stmt*
+    release() D_NOEXCEPT
+    {
+        struct sqlite3_stmt* const held = m_statement;
+
+        m_statement = D_NULLPTR;
+
+        return held;
+    }
+
+    /**
+     * @brief Finalizes the statement held, if any, and takes another.
+     *
+     * @param[in] _owned  the statement to own, or `NULL` for none; the one
+     *                    already held is kept, not finalized.
+     * @post The statement that was held, if another, is finalized.
+     */
+    void
+    reset(
+        struct sqlite3_stmt* _owned = D_NULLPTR
+    ) D_NOEXCEPT
+    {
+        // what is held is finalized, unless it is what comes
+        if (_owned != m_statement)
+        {
+            // a statement, when there is one
+            if (m_statement)
+            {
+                (void)d_sqlite_finalize(m_statement);
+            }
+
+            m_statement = _owned;
+        }
+
+        return;
+    }
+
+    /**
+     * @brief Finalizes the statement, as d_sqlite_finalize does.
+     *
+     * @return d_sqlite_finalize's result, SQLITE_OK.
+     * @post The object holds no statement.
+     */
+    int
+    finalize() D_NOEXCEPT
+    {
+        return d_sqlite_finalize(release());
+    }
+
+    /**
+     * @brief Finalizes the statement held, if any, and hands its slot to a
+     *        layer's prepare to fill.
+     *
+     * @return where the layer writes the statement it prepares; the object
+     *         owns what is written there.
+     * @post The object holds no statement until the prepare fills the slot,
+     *       and holds none when the prepare fails.
+     */
+    struct sqlite3_stmt**
+    out() D_NOEXCEPT
+    {
+        reset();
+
+        return &m_statement;
+    }
+
+    // swap -- the two objects trade statements
+    void
+    swap(
+        sqlite_statement& _other
+    ) D_NOEXCEPT
+    {
+        struct sqlite3_stmt* const held = m_statement;
+
+        m_statement        = _other.m_statement;
+        _other.m_statement = held;
+
+        return;
+    }
+
+    // 1.1.1.2
+    // Describing, binding and running
+    //   sqlite_statement.h's functions that take a statement.
+    @@MEMBERS sqlite_statement.h statement@@
+
+private:
+    D_DELETED_FN_MSG(sqlite_statement(const sqlite_statement&),
+                     "a statement owns what SQLite prepared; move it")
+    D_DELETED_FN_MSG(sqlite_statement& operator=(const sqlite_statement&),
+                     "a statement owns what SQLite prepared; move it")
+
+    struct sqlite3_stmt* m_statement;
+};
+
+// 1.2    The connection
+//------------------------------------------------------------------------------
+// 1.2.1
+// sqlite
+//   class: a SQLite connection, owned: closed when the object goes. Every
+// member forwards to the layer's function of the same name, whose contract
+// it keeps. Not copyable; movable from C++11.
+class sqlite
+{
+public:
+    // transaction_mode
+    //   type: how a transaction begins, for face::transaction.
+    typedef enum dj_sqlite_transaction_mode transaction_mode;
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // format
+    //   type: an f form's format, for the arguments that follow it: a
+    // literal in the layer's dialect, read at compile time from C++20, or a
+    // format runtime_format marked (db_face.hpp, 2.3).
+    template<typename... Args>
+    using format = format_arg<internal::sqlite_dialect, Args...>;
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+    // 1.2.1.1
+    // Ownership
+    //   a face made empty holds no connection; whatever a face holds, it
+    // closes when it goes.
+    D_CONSTEXPR sqlite() D_NOEXCEPT
+        : m_db(D_NULLPTR)
+    {}
+
+    /**
+     * @brief Makes a face that owns a connection opened elsewhere.
+     *
+     * @param[in] _owned  the connection, or `NULL` for none.
+     * @post The face closes `_owned`; the caller no longer does.
+     */
+    explicit D_CONSTEXPR sqlite(
+        struct sqlite3* _owned
+    ) D_NOEXCEPT
+        : m_db(_owned)
+    {}
+
+    ~sqlite()
+    {
+        // a connection, when there is one; an empty face calls nothing
+        if (m_db)
+        {
+            (void)d_sqlite_close(m_db);
+        }
+    }
+
+#if D_MOVE_ENABLED
+    // moving -- the connection passes to the face moved to, which closes
+    // what it held; the face moved from holds none
+    sqlite(
+        sqlite&& _other
+    ) D_NOEXCEPT
+        : m_db(_other.release())
+    {}
+
+    sqlite&
+    operator=(
+        sqlite&& _other
+    ) D_NOEXCEPT
+    {
+        reset(_other.release());
+
+        return *this;
+    }
+#endif  // D_MOVE_ENABLED
+
+    // the handle -- the connection, for the layer's or SQLite's own calls,
+    // NULL when there is none; and whether there is one
+    D_NODISCARD struct sqlite3*
+    handle() const D_NOEXCEPT
+    {
+        return m_db;
+    }
+
+    D_NODISCARD bool
+    is_open() const D_NOEXCEPT
+    {
+        return (m_db != D_NULLPTR);
+    }
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    D_EXPLICIT_BOOL operator bool() const D_NOEXCEPT
+    {
+        return is_open();
+    }
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+    /**
+     * @brief Gives up the connection without closing it.
+     *
+     * @return the connection, which the caller then closes with
+     *         d_sqlite_close; `NULL` when there is none.
+     * @post The face holds no connection.
+     */
+    D_NODISCARD struct sqlite3*
+    release() D_NOEXCEPT
+    {
+        struct sqlite3* const held = m_db;
+
+        m_db = D_NULLPTR;
+
+        return held;
+    }
+
+    /**
+     * @brief Closes the connection held, if any, and takes another.
+     *
+     * @param[in] _owned  the connection to own, or `NULL` for none; the one
+     *                    already held is kept, not closed.
+     * @post The connection that was held, if another, is closed, and every
+     *       pointer obtained through it is invalid.
+     */
+    void
+    reset(
+        struct sqlite3* _owned = D_NULLPTR
+    ) D_NOEXCEPT
+    {
+        // what is held closes, unless it is what comes
+        if (_owned != m_db)
+        {
+            // a connection, when there is one
+            if (m_db)
+            {
+                (void)d_sqlite_close(m_db);
+            }
+
+            m_db = _owned;
+        }
+
+        return;
+    }
+
+    // swap -- the two faces trade connections
+    void
+    swap(
+        sqlite& _other
+    ) D_NOEXCEPT
+    {
+        struct sqlite3* const held = m_db;
+
+        m_db        = _other.m_db;
+        _other.m_db = held;
+
+        return;
+    }
+
+    // default_transaction_mode -- how face::transaction begins when told
+    // nothing: DEFERRED
+    D_NODISCARD static D_CONSTEXPR transaction_mode
+    default_transaction_mode() D_NOEXCEPT
+    {
+        return D_SQLITE_TRANSACTION_DEFERRED;
+    }
+
+    // 1.2.1.2
+    // Library
+    //   sqlite_common.h's versions, features and result messages: static,
+    // since they need no connection.
+    @@MEMBERS sqlite_common.h static@@
+
+    // 1.2.1.3
+    // Connections
+    //   sqlite_connection.h, and sqlite_common.h's error message.
+
+    /**
+     * @brief Opens a database file, as d_sqlite_open does, in place of the
+     *        connection held.
+     *
+     * @param[in] _path  the file, in UTF-8; ":memory:" opens a private
+     *                   in-memory database.
+     * @return d_sqlite_open's result.
+     * @post On success the face holds the new connection, and the one it
+     *       held is closed; on failure the face is as it was.
+     */
+    int
+    open(
+        string_arg _path
+    ) D_NOEXCEPT
+    {
+        struct sqlite3* opened = D_NULLPTR;
+        const int       result = d_sqlite_open(_path.c_str(), &opened);
+
+        return m_take(result, opened);
+    }
+
+    /**
+     * @brief Opens an existing database file for reading only, as
+     *        d_sqlite_open_readonly does, in place of the connection held.
+     *
+     * @param[in] _path  the file, in UTF-8.
+     * @return d_sqlite_open_readonly's result.
+     * @post As for open.
+     */
+    int
+    open_readonly(
+        string_arg _path
+    ) D_NOEXCEPT
+    {
+        struct sqlite3* opened = D_NULLPTR;
+        const int       result = d_sqlite_open_readonly(_path.c_str(),
+                                                        &opened);
+
+        return m_take(result, opened);
+    }
+
+    /**
+     * @brief Opens a private in-memory database, as d_sqlite_open_memory
+     *        does, in place of the connection held.
+     *
+     * @return d_sqlite_open_memory's result.
+     * @post As for open.
+     */
+    int
+    open_memory() D_NOEXCEPT
+    {
+        struct sqlite3* opened = D_NULLPTR;
+        const int       result = d_sqlite_open_memory(&opened);
+
+        return m_take(result, opened);
+    }
+
+    /**
+     * @brief Opens a database file as SQLite's open flags say, through the
+     *        VFS named, as d_sqlite_open_with does, in place of the
+     *        connection held.
+     *
+     * @param[in] _path   the file, in UTF-8, or a URI with
+     *                    D_SQLITE_OPEN_URI.
+     * @param[in] _flags  D_SQLITE_OPEN_* flags (sqlite_connection.h).
+     * @param[in] _vfs    the VFS's name; none, or `NULL`, for the default.
+     * @return d_sqlite_open_with's result.
+     * @post As for open.
+     */
+    int
+    open_with(
+        string_arg _path,
+        unsigned   _flags,
+        string_arg _vfs = string_arg()
+    ) D_NOEXCEPT
+    {
+        struct sqlite3* opened = D_NULLPTR;
+        const int       result = d_sqlite_open_with(_path.c_str(), _flags,
+                                                    _vfs.c_str(), &opened);
+
+        return m_take(result, opened);
+    }
+
+    /**
+     * @brief Closes the connection, as d_sqlite_close does.
+     *
+     * @return d_sqlite_close's result; SQLITE_OK when there is no
+     *         connection.
+     * @post The face holds no connection, whatever the result.
+     */
+    int
+    close() D_NOEXCEPT
+    {
+        return d_sqlite_close(release());
+    }
+
+    @@MEMBERS sqlite_connection.h all@@
+
+    @@MEMBERS sqlite_common.h instance@@
+
+    // 1.2.1.4
+    // Queries
+    //   sqlite_query.h; the f forms from C++11, their formats checked from
+    // C++20 (db_face.hpp, 2.2 to 2.5).
+    @@MEMBERS sqlite_query.h all@@
+
+    // 1.2.1.5
+    // Statements
+    //   sqlite_statement.h's preparing, into a face::sqlite_statement, whose
+    // members its other functions are.
+    @@MEMBERS sqlite_statement.h instance@@
+
+    // 1.2.1.6
+    // Databases
+    //   sqlite_database.h.
+    @@MEMBERS sqlite_database.h all@@
+
+    // 1.2.1.7
+    // Schema
+    //   sqlite_schema.h.
+    @@MEMBERS sqlite_schema.h all@@
+
+    // 1.2.1.8
+    // Transactions
+    //   sqlite_transaction.h; face::transaction and face::savepoint guard
+    // them.
+    @@MEMBERS sqlite_transaction.h all@@
+
+    // 1.2.1.9
+    // Settings
+    //   sqlite_settings.h.
+    @@MEMBERS sqlite_settings.h all@@
+
+    // 1.2.1.10
+    // Maintenance
+    //   sqlite_maintenance.h, and copying a database from face to face.
+    @@MEMBERS sqlite_maintenance.h all@@
+
+    /**
+     * @brief Copies one face's database over another's, as
+     *        d_sqlite_copy_database does.
+     *
+     * @param[in] _source              the face to copy from.
+     * @param[in] _source_schema       its database; `NULL` for "main".
+     * @param[in] _destination         the face to copy to; another one.
+     * @param[in] _destination_schema  its database; `NULL` for "main".
+     * @return d_sqlite_copy_database's result.
+     * @post On success the destination database is a copy of the source.
+     */
+    static int
+    copy_database(
+        sqlite&    _source,
+        string_arg _source_schema,
+        sqlite&    _destination,
+        string_arg _destination_schema
+    ) D_NOEXCEPT
+    {
+        return d_sqlite_copy_database(_source.m_db,
+                                      _source_schema.c_str(),
+                                      _destination.m_db,
+                                      _destination_schema.c_str());
+    }
+
+private:
+    D_DELETED_FN_MSG(sqlite(const sqlite&),
+                     "a face owns its connection; move it")
+    D_DELETED_FN_MSG(sqlite& operator=(const sqlite&),
+                     "a face owns its connection; move it")
+
+    // m_take -- an open's result; the connection it made replaces the
+    // face's when it succeeded. Each open calls the layer first, in a
+    // statement of its own, since the order a call's arguments are
+    // evaluated in is the compiler's.
+    int
+    m_take(
+        int             _result,
+        struct sqlite3* _opened
+    ) D_NOEXCEPT
+    {
+        // a failed open made nothing to keep
+        if (_result == 0)
+        {
+            reset(_opened);
+        }
+
+        return _result;
+    }
+
+    struct sqlite3* m_db;
+};
+
+// 1.3    Swapping
+//------------------------------------------------------------------------------
+// swapping -- the two connections, or statements, trade places, as std::swap
+// would have them, for code that swaps unqualified
+inline void
+swap(
+    sqlite_statement& _left,
+    sqlite_statement& _right
+) D_NOEXCEPT
+{
+    _left.swap(_right);
+
+    return;
+}
+
+inline void
+swap(
+    sqlite& _left,
+    sqlite& _right
+) D_NOEXCEPT
+{
+    _left.swap(_right);
+
+    return;
+}
+
+
+//==============================================================================
+// 2.  COST
+//==============================================================================
+
+
+// 2.1    Sizes and moves
+//------------------------------------------------------------------------------
+// the face is its connection, and a statement its handle, and from C++11
+// each moves without throwing (db_face.hpp, 6)
+D_STATIC_ASSERT(sizeof(sqlite_statement) == sizeof(struct sqlite3_stmt*),
+                "face::sqlite_statement is its statement, and no more");
+D_STATIC_ASSERT(sizeof(sqlite) == sizeof(struct sqlite3*),
+                "face::sqlite is its connection, and no more");
+#if D_MOVE_ENABLED
+D_STATIC_ASSERT(
+    ( (std::is_nothrow_move_constructible<sqlite_statement>::value) &&
+      (std::is_nothrow_move_assignable<sqlite_statement>::value) ),
+    "face::sqlite_statement moves without throwing");
+D_STATIC_ASSERT( ( (std::is_nothrow_move_constructible<sqlite>::value) &&
+                   (std::is_nothrow_move_assignable<sqlite>::value) ),
+                 "face::sqlite moves without throwing");
+#endif  // D_MOVE_ENABLED
+
+
+}  // namespace face
+}  // namespace djinterp
+
+
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_DB_SQLITE_SQLITE_FACE_HPP

@@ -21,7 +21,7 @@ TABLE OF CONTENTS
 =================
 1.  TYPES
     -----
-    1.  d_awk_interp
+    1.  dj_awk_interp
 2.  OPERATIONS
     ----------
     1.  Lifecycle
@@ -37,7 +37,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>   // bool
 #include <stddef.h>    // size_t
 // djinterp
-#include "./dparse.h"  // d_awk_program
+#include "./dparse.h"  // dj_awk_program
 
 
 //==============================================================================
@@ -48,9 +48,9 @@ TABLE OF CONTENTS
 // 1.1    Interpreter
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_awk_interp
+// dj_awk_interp
 //   struct: one interpreter over one parsed program.  Layout is private.
-struct d_awk_interp;
+struct dj_awk_interp;
 
 // D_AWK_CALL_DEPTH_DEFAULT
 //   constant: the default cap on nested user-function calls.  A deterministic
@@ -70,8 +70,8 @@ struct d_awk_interp;
     #define D_AWK_STACK_BUDGET_DEFAULT 6291456u
 #endif
 
-struct d_awk_source;
-struct d_awk_host_function;
+struct dj_awk_source;
+struct dj_awk_host_function;
 
 
 //==============================================================================
@@ -81,8 +81,12 @@ struct d_awk_host_function;
 
 // 2.1    Lifecycle
 //------------------------------------------------------------------------------
-struct d_awk_interp* d_awk_interp_new(struct d_awk_program* _program);
-void                 d_awk_interp_free(struct d_awk_interp* _interp);
+struct dj_awk_interp* d_awk_interp_new(
+    struct dj_awk_program* _program
+);
+void d_awk_interp_free(
+    struct dj_awk_interp* _interp
+);
 
 // 2.2    Configuration
 //------------------------------------------------------------------------------
@@ -101,18 +105,28 @@ void                 d_awk_interp_free(struct d_awk_interp* _interp);
  *         assignment, which makes an operand a file name, or if memory ran
  *         out.
  */
-bool                 d_awk_interp_assign(struct d_awk_interp* _interp,
-                                         const char*          _text);
-bool                 d_awk_interp_add_input(struct d_awk_interp* _interp,
-                                            const char*          _path);
-bool                 d_awk_interp_set_environ(struct d_awk_interp* _interp,
-                                              char* const*         _environ);
+bool d_awk_interp_assign(
+    struct dj_awk_interp* _interp,
+    const char*           _text
+);
+bool d_awk_interp_add_input(
+    struct dj_awk_interp* _interp,
+    const char*           _path
+);
+bool d_awk_interp_set_environ(
+    struct dj_awk_interp* _interp,
+    char* const*          _environ
+);
 
-bool                 d_awk_interp_set_source(struct d_awk_interp* _interp,
-                                             struct d_awk_source* _source);
-bool                 d_awk_interp_set_limits(struct d_awk_interp* _interp,
-                                             size_t               _call_depth,
-                                             size_t               _stack_budget);
+bool d_awk_interp_set_source(
+    struct dj_awk_interp* _interp,
+    struct dj_awk_source* _source
+);
+bool d_awk_interp_set_limits(
+    struct dj_awk_interp* _interp,
+    size_t                _call_depth,
+    size_t                _stack_budget
+);
 /**
  * @brief Adds an extension's host functions, which a program then calls by
  *        name as it calls its own.
@@ -129,19 +143,24 @@ bool                 d_awk_interp_set_limits(struct d_awk_interp* _interp,
  *         already, a descriptor is incomplete, or memory ran out, with none
  *         of them added and the error recorded.
  */
-bool                 d_awk_interp_add_functions(
-                         struct d_awk_interp*              _interp,
-                         const struct d_awk_host_function* _functions,
-                         size_t                            _count,
-                         void*                             _user);
+bool d_awk_interp_add_functions(
+    struct dj_awk_interp*              _interp,
+    const struct dj_awk_host_function* _functions,
+    size_t                             _count,
+    void*                              _user
+);
 
 // 2.3    Execution
 //------------------------------------------------------------------------------
-int                  d_awk_interp_run(struct d_awk_interp* _interp);
+int d_awk_interp_run(
+    struct dj_awk_interp* _interp
+);
 
 // 2.4    Diagnostics
 //------------------------------------------------------------------------------
-const char*          d_awk_interp_error(const struct d_awk_interp* _interp);
+const char* d_awk_interp_error(
+    const struct dj_awk_interp* _interp
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DINTERP_H

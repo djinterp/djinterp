@@ -16,7 +16,7 @@
 #include <string.h>
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -35,10 +35,8 @@ d_tests_sa_env_lang_c_standard_constants
   - constants are in strictly ascending chronological order
   - no gaps or overlaps between adjacent standards
 */
-bool
-d_tests_sa_env_lang_c_standard_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_c_standard_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -172,10 +170,8 @@ d_tests_sa_env_lang_cpp_standard_constants
   - D_ENV_LANG_CPP_STANDARD_CPP23 equals official ISO value 202302L
   - constants are in strictly ascending chronological order
 */
-bool
-d_tests_sa_env_lang_cpp_standard_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_cpp_standard_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -322,10 +318,8 @@ d_tests_sa_env_lang_standard_constant_ranges
   - no ambiguous values between C and C++ standards
   - version format YYYYMM is consistent across all constants
 */
-bool
-d_tests_sa_env_lang_standard_constant_ranges
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_standard_constant_ranges(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -444,10 +438,8 @@ d_tests_sa_env_lang_c_standard_detection
   - standard name matches standard value
   - D_ENV_LANG_USING_C is correctly set
 */
-bool
-d_tests_sa_env_lang_c_standard_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_c_standard_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -636,10 +628,8 @@ d_tests_sa_env_lang_c_standard_fallback
   - fallback name is exactly "C90"
   - fallback occurs when __STDC_VERSION__ is undefined (pre-C95 compilers)
 */
-bool
-d_tests_sa_env_lang_c_standard_fallback
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_c_standard_fallback(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -737,10 +727,8 @@ d_tests_sa_env_lang_cpp_standard_detection
   - D_ENV_LANG_DETECTED_CPP is set in C++ mode
   - D_ENV_LANG_USING_CPP reflects compilation mode
 */
-bool
-d_tests_sa_env_lang_cpp_standard_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_cpp_standard_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -980,10 +968,8 @@ d_tests_sa_env_lang_c_version_comparison_macros
   - comparison macros are monotonically decreasing (higher always implies lower)
   - boundary conditions at exact standard values
 */
-bool
-d_tests_sa_env_lang_c_version_comparison_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_c_version_comparison_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1140,10 +1126,8 @@ d_tests_sa_env_lang_cpp_version_comparison_macros
   - macros are only defined when compiling as C++
   - monotonic property holds
 */
-bool
-d_tests_sa_env_lang_cpp_version_comparison_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_cpp_version_comparison_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1342,10 +1326,8 @@ d_tests_sa_env_lang_version_comparison_boundary_cases
   - just below: standard == boundary-1 returns false for that comparison
   - comparison operators are >= not >
 */
-bool
-d_tests_sa_env_lang_version_comparison_boundary_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_version_comparison_boundary_cases(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1494,10 +1476,8 @@ d_tests_sa_env_lang_using_macros
   - USING_CPP should be 1 only in C++ mode
   - mutual exclusivity considerations
 */
-bool
-d_tests_sa_env_lang_using_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_using_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1647,10 +1627,8 @@ d_tests_sa_env_lang_detected_vars_c
   - only one C standard detection variable should be defined at a time
   - fallback to C90 when no detection variable is defined
 */
-bool
-d_tests_sa_env_lang_detected_vars_c
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_detected_vars_c(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1800,10 +1778,8 @@ d_tests_sa_env_lang_detected_vars_cpp
   - D_ENV_DETECTED_CPP98/11/14/17/20/23 correctly set corresponding standard
   - only one C++ standard detection variable should be defined at a time
 */
-bool
-d_tests_sa_env_lang_detected_vars_cpp
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_detected_vars_cpp(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1973,10 +1949,8 @@ d_tests_sa_env_lang_consistency_check
   - no contradictory states (e.g., C++ detected but USING_CPP == 0)
   - comparison macros are consistent with detected standard
 */
-bool
-d_tests_sa_env_lang_consistency_check
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_consistency_check(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -2145,10 +2119,8 @@ d_tests_sa_env_lang_feature_test_macros
   - macros produce correct results for common feature gates
   - practical patterns work (e.g., "if C99 or higher, use inline")
 */
-bool
-d_tests_sa_env_lang_feature_test_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_feature_test_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -2262,13 +2234,11 @@ d_tests_sa_env_lang_all
   - manual detection variables
   - consistency and edge cases
 */
-bool
-d_tests_sa_env_lang_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_lang_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool c_constants_result;
     bool cpp_constants_result;
     bool constant_ranges_result;
@@ -2290,7 +2260,7 @@ d_tests_sa_env_lang_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing Language Environment Detection\n");
     printf("========================================="

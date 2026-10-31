@@ -39,7 +39,7 @@
                      // strstr
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"            // d_text_read
-#include "../../../../../../inc/djinterp/tools/dawk/ext/make/dmake_doc.h"  // d_make_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/make/dmake_doc.h"  // dj_make_doc
 
 
 static int g_checks = 0;
@@ -57,8 +57,8 @@ static int g_failed = 0;
  * @param[in] _condition  whether the check held.
  * @param[in] _what       what it checked.
  */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -89,13 +89,13 @@ d_tests_check(
 static void
 d_tests_lines(
     const char*         _text,
-    enum d_make_dialect _dialect,
+    enum dj_make_dialect _dialect,
     const size_t*       _places,
     size_t              _count,
     const char*         _what
 )
 {
-    struct d_make_lines lines;
+    struct dj_make_lines lines;
     const bool          read = d_make_lines_read(&lines,
                                                  _text,
                                                  strlen(_text),
@@ -106,7 +106,7 @@ d_tests_lines(
     // each line's places, while they agree
     for (size_t index = 0; (same) && (index < _count); index++)
     {
-        const struct d_make_line* const line  = &lines.lines[index];
+        const struct dj_make_line* const line  = &lines.lines[index];
         const size_t* const             place = _places + (index * 5u);
 
         same = ( (line->start == place[0]) &&
@@ -137,8 +137,8 @@ d_tests_lines_endings
   - a lone CR is a byte of its line
   - the last line counts though no newline ends it
 */
-static void
-d_tests_lines_endings(void)
+static
+void d_tests_lines_endings(void)
 {
     static const size_t two[]  = { 0, 1, 2, 1, 1,   2, 3, 3, 2, 2 };
     static const size_t crlf[] = { 0, 1, 3, 1, 1,   3, 4, 6, 2, 2 };
@@ -149,7 +149,7 @@ d_tests_lines_endings(void)
     d_tests_lines("a\r\nb\r\n", D_MAKE_GNU, crlf, 2, "CR LF");
     d_tests_lines("a\rb\n", D_MAKE_GNU, cr, 1, "a lone CR is a byte");
 
-    struct d_make_lines lines;
+    struct dj_make_lines lines;
 
     (void)d_make_lines_read(&lines, "a\r\nb\n", 5u, D_MAKE_GNU);
     d_tests_check(lines.crlf, "crlf from the first line ending");
@@ -171,8 +171,8 @@ d_tests_lines_continued
   - NMake joins unless an odd run of carets escapes the backslash
   - a continuation over CR LF, and one the text's end cuts off
 */
-static void
-d_tests_lines_continued(void)
+static
+void d_tests_lines_continued(void)
 {
     static const size_t even[]   = { 0, 3, 4, 1, 1,   4, 5, 6, 2, 2 };
     static const size_t joined[] = { 0, 5, 6, 1, 2 };
@@ -215,10 +215,10 @@ d_tests_lines_continued(void)
 static void
 d_tests_guess(
     const char*         _text,
-    enum d_make_dialect _expected
+    enum dj_make_dialect _expected
 )
 {
-    const enum d_make_dialect got = d_make_guess(_text, strlen(_text));
+    const enum dj_make_dialect got = d_make_guess(_text, strlen(_text));
     char                      what[96];
 
     (void)snprintf(what,
@@ -244,10 +244,10 @@ d_tests_dialects
   - `:=` and a pattern rule suggest GNU where no line decides
   - a file with none of these is POSIX's
 */
-static void
-d_tests_dialects(void)
+static
+void d_tests_dialects(void)
 {
-    enum d_make_dialect found = D_MAKE_GNU;
+    enum dj_make_dialect found = D_MAKE_GNU;
 
     d_tests_check(strcmp(d_make_dialect_name(D_MAKE_BSD), "bsd") == 0,
                   "the name of BSD's make");
@@ -294,8 +294,8 @@ d_tests_dialects(void)
  * @param[in]     _text    the bytes.
  * @param[in]     _length  how many.
  */
-static void
-d_tests_put(
+static
+void d_tests_put(
     char*       _out,
     size_t      _room,
     const char* _text,
@@ -342,13 +342,13 @@ d_tests_put(
  * @param[in]     _name   the part's name.
  * @param[in]     _span   the part.
  */
-static void
-d_tests_part(
-    char*              _out,
-    size_t             _room,
-    const char*        _text,
-    const char*        _name,
-    struct d_make_span _span
+static
+void d_tests_part(
+    char*               _out,
+    size_t              _room,
+    const char*         _text,
+    const char*         _name,
+    struct dj_make_span _span
 )
 {
     // an empty part is not written
@@ -383,11 +383,11 @@ d_tests_part(
  * Long as the description's parts, each a line or two, written in one order
  * so every case reads alike.
  */
-static void
-d_tests_describe(
-    const struct d_make* _make,
-    char*                _out,
-    size_t               _room
+static
+void d_tests_describe(
+    const struct dj_make* _make,
+    char*                 _out,
+    size_t                _room
 )
 {
     char number[48];
@@ -397,7 +397,7 @@ d_tests_describe(
     // each statement
     for (size_t index = 0; index < _make->statement_count; index++)
     {
-        const struct d_make_statement* const s = &_make->statements[index];
+        const struct dj_make_statement* const s = &_make->statements[index];
         const char* const                    t = _make->text;
         const char* const                    kind = d_make_kind_name(s->kind);
 
@@ -449,7 +449,7 @@ d_tests_describe(
     // each comment
     for (size_t index = 0; index < _make->comment_count; index++)
     {
-        const struct d_make_comment* const c = &_make->comments[index];
+        const struct dj_make_comment* const c = &_make->comments[index];
 
         (void)snprintf(number, sizeof(number), "%s#@%lu:%ld=[",
                        (index > 0u) ? " " : " || ",
@@ -475,13 +475,13 @@ d_tests_describe(
  */
 static void
 d_tests_as(
-    enum d_make_dialect _dialect,
+    enum dj_make_dialect _dialect,
     const char*         _text,
     const char*         _expected
 )
 {
-    struct d_make         make;
-    struct d_make_problem problem;
+    struct dj_make         make;
+    struct dj_make_problem problem;
     char                  got[2048];
     const bool            read = d_make_read(&make,
                                              _text,
@@ -521,8 +521,8 @@ d_tests_as(
  * @param[in] _text      the text.
  * @param[in] _expected  the description, or the problem.
  */
-static void
-d_tests_gnu(
+static
+void d_tests_gnu(
     const char* _text,
     const char* _expected
 )
@@ -545,8 +545,8 @@ d_tests_gnu_assignments
   - `define` with and without an operator, nested, an `endef` led by a
     tab no end, a comment after `endef`; `undefine`
 */
-static void
-d_tests_gnu_assignments(void)
+static
+void d_tests_gnu_assignments(void)
 {
     d_tests_gnu("X := a\\#b # c\n",
                 "assignment@1 name=[X] op=[:=] text=[a\\#b]"
@@ -601,8 +601,8 @@ d_tests_gnu_rules
     orphan; an assignment ends a rule
   - `.RECIPEPREFIX`, an escaped colon, an expansion, `ifeq(` no directive
 */
-static void
-d_tests_gnu_rules(void)
+static
+void d_tests_gnu_rules(void)
 {
     d_tests_gnu("a b &: c | d ; @echo $@ # x\n",
                 "rule@1 targets=[a b] colon=[&:] text=[c] order=[d]"
@@ -662,8 +662,8 @@ d_tests_gnu_directives
     an extraneous endif or else; a second bare else; an unterminated define
   - an else with text sets no bare else
 */
-static void
-d_tests_gnu_directives(void)
+static
+void d_tests_gnu_directives(void)
 {
     d_tests_gnu("ifdef A\nelse ifdef B\nelse\nendif\n",
                 "conditional@1 word=[ifdef] text=[A] d0 n1"
@@ -716,10 +716,10 @@ d_tests_posix
   - an include, an expansion
   - what pdpmake refuses whatever the macros hold, in its words
 */
-static void
-d_tests_posix(void)
+static
+void d_tests_posix(void)
 {
-    const enum d_make_dialect p = D_MAKE_POSIX;
+    const enum dj_make_dialect p = D_MAKE_POSIX;
 
     d_tests_as(p, "X = a\\#b # c\n",
                "assignment@1 name=[X] op=[=] text=[a\\] || #@1:0=[#b # c]");
@@ -767,10 +767,10 @@ d_tests_bsd
   - a tab-led line with no rule an orphan; an indented command in a rule
   - what bmake refuses whatever the variables hold, in its words
 */
-static void
-d_tests_bsd(void)
+static
+void d_tests_bsd(void)
 {
-    const enum d_make_dialect b = D_MAKE_BSD;
+    const enum dj_make_dialect b = D_MAKE_BSD;
 
     d_tests_as(b, "X = a\\#b # c\nX:Y = 1\nall: X=b\nX ::= a\n",
                "assignment@1 name=[X] op=[=] text=[a\\#b]"
@@ -844,10 +844,10 @@ d_tests_nmake
     commands does not
   - what NMake refuses whatever its macros hold
 */
-static void
-d_tests_nmake(void)
+static
+void d_tests_nmake(void)
 {
-    const enum d_make_dialect n = D_MAKE_NMAKE;
+    const enum dj_make_dialect n = D_MAKE_NMAKE;
 
     d_tests_as(n, "# Comment\nOPTIONS = /MAP  # on a macro\n\n"
                "all.exe : one.obj two.obj  # on a dependency\n"
@@ -917,11 +917,11 @@ d_tests_nmake(void)
  * @param[in] _expected  the text it must hold.
  * @param[in] _what      what is checked.
  */
-static void
-d_tests_doc_is(
-    const struct d_make_doc* _doc,
-    const char*              _expected,
-    const char*              _what
+static
+void d_tests_doc_is(
+    const struct dj_make_doc* _doc,
+    const char*               _expected,
+    const char*               _what
 )
 {
     size_t            length = 0;
@@ -951,13 +951,13 @@ d_tests_doc_is(
  * @param[in] _why     a part of the reason it must give.
  * @param[in] _what    what is checked.
  */
-static void
-d_tests_doc_refused(
-    const struct d_make_doc* _doc,
-    bool                     _kept,
-    const char*              _before,
-    const char*              _why,
-    const char*              _what
+static
+void d_tests_doc_refused(
+    const struct dj_make_doc* _doc,
+    bool                      _kept,
+    const char*               _before,
+    const char*               _why,
+    const char*               _what
 )
 {
     const bool reason = (strstr(d_make_doc_problem(_doc), _why) != NULL);
@@ -987,11 +987,11 @@ d_tests_doc_parts
     statement, a part a statement has not
   - a raw splice; where the last change was
 */
-static void
-d_tests_doc_parts(void)
+static
+void d_tests_doc_parts(void)
 {
-    struct d_make_problem problem;
-    struct d_make_doc*    doc = d_make_doc_make("", "X = 1 # c\nall:\n",
+    struct dj_make_problem problem;
+    struct dj_make_doc*    doc = d_make_doc_make("", "X = 1 # c\nall:\n",
                                                 15u, D_MAKE_GNU, &problem);
     size_t                start = 0;
     size_t                old_end = 0;
@@ -1045,12 +1045,12 @@ d_tests_doc_words
   - a target inserted and removed; the last one kept
   - order-only words refused in a make that has none
 */
-static void
-d_tests_doc_words(void)
+static
+void d_tests_doc_words(void)
 {
-    struct d_make_problem problem;
+    struct dj_make_problem problem;
     const char* const     text = "all: a b\n\t@echo\n";
-    struct d_make_doc*    doc  = d_make_doc_make("", text, strlen(text),
+    struct dj_make_doc*    doc  = d_make_doc_make("", text, strlen(text),
                                                  D_MAKE_GNU, &problem);
 
     (void)d_make_doc_insert_word(doc, 0u, D_MAKE_PART_TEXT, 2u, "c");
@@ -1103,12 +1103,12 @@ d_tests_doc_statements
     the file unreadable
   - BSD: a value within a conditional; a command added
 */
-static void
-d_tests_doc_statements(void)
+static
+void d_tests_doc_statements(void)
 {
-    struct d_make_problem problem;
+    struct dj_make_problem problem;
     const char* const     text = "X = 1\n# the rule\nall:\n\t@echo\n";
-    struct d_make_doc*    doc  = d_make_doc_make("", text, strlen(text),
+    struct dj_make_doc*    doc  = d_make_doc_make("", text, strlen(text),
                                                  D_MAKE_GNU, &problem);
 
     (void)d_make_doc_add_command(doc, 1u, 1u, "echo two");
@@ -1166,16 +1166,16 @@ d_tests_doc_save
   - written, then unchanged; written elsewhere, its directories made
   - a failure, under a file, and a document read back
 */
-static void
-d_tests_doc_save(
+static
+void d_tests_doc_save(
     const char* _work
 )
 {
-    struct d_make_problem problem;
+    struct dj_make_problem problem;
     char                  path[512];
     char                  other[512];
     char                  bad[512];
-    struct d_make_doc*    doc = d_make_doc_make("", "X = 1\n", 6u,
+    struct dj_make_doc*    doc = d_make_doc_make("", "X = 1\n", 6u,
                                                 D_MAKE_GNU, &problem);
 
     (void)snprintf(path, sizeof(path), "%s/dmake_save.mk", _work);
@@ -1218,19 +1218,19 @@ d_tests_doc_save(
  *
  * Long as a list of proofs, each a loop of a few lines over the records.
  */
-static const char*
-d_tests_sound(
-    const struct d_make* _make
+static
+const char* d_tests_sound(
+    const struct dj_make* _make
 )
 {
-    const struct d_make_lines* const lines   = &_make->lines;
+    const struct dj_make_lines* const lines   = &_make->lines;
     size_t                           covered = 0;
 
     // each statement: in order, apart, over whole lines, its parts in it
     for (size_t index = 0; index < _make->statement_count; index++)
     {
-        const struct d_make_statement* const s = &_make->statements[index];
-        const struct d_make_span             parts[] =
+        const struct dj_make_statement* const s = &_make->statements[index];
+        const struct dj_make_span             parts[] =
         {
             s->modifiers, s->word, s->targets, s->colon, s->pattern,
             s->name, s->separator, s->text, s->order_only, s->recipe,
@@ -1262,7 +1262,7 @@ d_tests_sound(
         while ( (covered < lines->count) &&
                 (lines->lines[covered].start < s->start) )
         {
-            const struct d_make_line* const line = &lines->lines[covered];
+            const struct dj_make_line* const line = &lines->lines[covered];
             size_t                          at   = line->start;
 
             // its blanks
@@ -1294,7 +1294,7 @@ d_tests_sound(
     // each comment: in order, within the text
     for (size_t index = 0; index < _make->comment_count; index++)
     {
-        const struct d_make_comment* const c = &_make->comments[index];
+        const struct dj_make_comment* const c = &_make->comments[index];
 
         // in order, and a `#` that begins it
         if ( (c->end > _make->length) ||
@@ -1316,8 +1316,8 @@ d_tests_sound(
  * @param[in] _dialect  the make named, or `NULL` to guess each file's.
  * @return 0 when every file read was sound; 1 otherwise.
  */
-static int
-d_tests_corpus(
+static
+int d_tests_corpus(
     const char* _dialect
 )
 {
@@ -1340,9 +1340,9 @@ d_tests_corpus(
             continue;
         }
 
-        enum d_make_dialect   dialect = d_make_guess(text, length);
-        struct d_make         make;
-        struct d_make_problem problem;
+        enum dj_make_dialect   dialect = d_make_guess(text, length);
+        struct dj_make         make;
+        struct dj_make_problem problem;
 
         // the make named wins over the guess
         if (_dialect)
@@ -1404,8 +1404,8 @@ static const char* const g_pieces[] =
  * @param[in]     _below  the bound.
  * @return a number below the bound, or 0 for none.
  */
-static size_t
-d_tests_random(
+static
+size_t d_tests_random(
     unsigned long* _state,
     size_t         _below
 )
@@ -1422,8 +1422,8 @@ d_tests_random(
  * @param[in,out] _state  the random run.
  * @param[out]    _out    receives the text; room for 128 bytes.
  */
-static void
-d_tests_random_text(
+static
+void d_tests_random_text(
     unsigned long* _state,
     char*          _out
 )
@@ -1452,23 +1452,23 @@ d_tests_random_text(
  *
  * Long as a table of the changes, each a line or two.
  */
-static bool
-d_tests_random_change(
-    struct d_make_doc* _doc,
-    unsigned long*     _state
+static
+bool d_tests_random_change(
+    struct dj_make_doc* _doc,
+    unsigned long*      _state
 )
 {
-    const struct d_make* const make  = d_make_doc_records(_doc);
+    const struct dj_make* const make  = d_make_doc_records(_doc);
     const size_t               count = make->statement_count;
     const size_t               n     = d_tests_random(_state, count + 1u);
     const size_t               k     = d_tests_random(_state, 4u);
-    const enum d_make_part     part  = (enum d_make_part)d_tests_random(
+    const enum dj_make_part     part  = (enum dj_make_part)d_tests_random(
                                            _state, 6u);
-    static const enum d_make_part lists[] =
+    static const enum dj_make_part lists[] =
     {
         D_MAKE_PART_TEXT, D_MAKE_PART_TARGETS, D_MAKE_PART_ORDER_ONLY
     };
-    const enum d_make_part     words = lists[d_tests_random(_state, 3u)];
+    const enum dj_make_part     words = lists[d_tests_random(_state, 3u)];
     size_t                     length = 0;
     char                       text[128];
 
@@ -1521,11 +1521,11 @@ d_tests_random_change(
  * Long as each record outside the change is compared, a loop for the
  * statements and one for the comments.
  */
-static const char*
-d_tests_kept_sound(
-    const struct d_make* _old,
-    const struct d_make* _new,
-    const size_t*        _splice
+static
+const char* d_tests_kept_sound(
+    const struct dj_make* _old,
+    const struct dj_make* _new,
+    const size_t*         _splice
 )
 {
     const ptrdiff_t shift = (ptrdiff_t)_splice[2] - (ptrdiff_t)_splice[1];
@@ -1546,8 +1546,8 @@ d_tests_kept_sound(
     while ( (before < _old->statement_count) &&
             (_old->statements[before].end <= _splice[0]) )
     {
-        const struct d_make_statement* const a = &_old->statements[before];
-        const struct d_make_statement* const b = &_new->statements[before];
+        const struct dj_make_statement* const a = &_old->statements[before];
+        const struct dj_make_statement* const b = &_new->statements[before];
 
         // the same kind, place and parts
         if ( (before >= _new->statement_count) ||
@@ -1571,9 +1571,9 @@ d_tests_kept_sound(
             (_old->statements[_old->statement_count - 1u - after].start >=
              _splice[1]) )
     {
-        const struct d_make_statement* const a =
+        const struct dj_make_statement* const a =
             &_old->statements[_old->statement_count - 1u - after];
-        const struct d_make_statement* const b =
+        const struct dj_make_statement* const b =
             &_new->statements[_new->statement_count - 1u - after];
 
         // the same kind, place and parts, moved
@@ -1613,8 +1613,8 @@ d_tests_kept_sound(
  *
  * Long as the run over files and over changes, each step a few lines.
  */
-static int
-d_tests_fuzz(
+static
+int d_tests_fuzz(
     unsigned long _seed,
     size_t        _count
 )
@@ -1639,7 +1639,7 @@ d_tests_fuzz(
             continue;
         }
 
-        struct d_make_doc* const doc = d_make_doc_make(
+        struct dj_make_doc* const doc = d_make_doc_make(
                                            path, text, length,
                                            d_make_guess(text, length), NULL);
 
@@ -1652,8 +1652,8 @@ d_tests_fuzz(
             const char* const now           = d_make_doc_text(doc,
                                                               &before_length);
             char* const       before        = malloc(before_length + 1u);
-            struct d_make     old;
-            struct d_make     fresh;
+            struct dj_make     old;
+            struct dj_make     fresh;
             size_t            splice[3]     = { 0u, 0u, 0u };
             const char*       why           = NULL;
 
@@ -1715,8 +1715,7 @@ d_tests_fuzz(
 //==============================================================================
 
 
-int
-main(
+int main(
     int    _argc,
     char** _argv
 )

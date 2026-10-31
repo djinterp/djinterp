@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dio_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,10 +25,8 @@ d_tests_sa_dio_gets_s
   Note: Since gets_s reads from stdin, these tests use d_file_reopen_stream_s to redirect
   stdin to a temporary file for automated testing.
 */
-bool
-d_tests_sa_dio_gets_s
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_gets_s(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -144,10 +142,8 @@ d_tests_sa_dio_fputs
 
   Note: NULL stream and NULL string tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_fputs
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_fputs(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -252,10 +248,8 @@ d_tests_sa_dio_fgets
 
   Note: NULL buffer and NULL stream tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_fgets
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_fgets(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -394,10 +388,8 @@ d_tests_sa_dio_fgets
 d_tests_sa_dio_char_string_io_all
   Aggregation function that runs all character and string I/O tests.
 */
-bool
-d_tests_sa_dio_char_string_io_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_char_string_io_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

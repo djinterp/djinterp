@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -26,14 +26,12 @@ d_tests_sa_registry_get
   - case-sensitive mode does not match wrong case
   - returns pointer into the rows array (mutable access)
 */
-bool
-d_tests_sa_registry_get
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_get(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     struct test_row*   found;
 
@@ -147,10 +145,8 @@ d_tests_sa_registry_get
 d_tests_sa_registry_lookup_all
   Aggregation function that runs all primary lookup tests.
 */
-bool
-d_tests_sa_registry_lookup_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_lookup_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

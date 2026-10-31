@@ -26,9 +26,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed.
 */
-bool
-d_array_common_init_sized
-(
+bool d_array_common_init_sized(
     void**  _destination,
     size_t* _count,
     size_t  _element_size,
@@ -70,9 +68,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or _source is NULL.
 */
-bool
-d_array_common_init_from_array
-(
+bool d_array_common_init_from_array(
     void**      _destination,
     size_t*     _count,
     size_t      _element_size,
@@ -119,9 +115,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed.
 */
-bool
-d_array_common_init_from_args
-(
+bool d_array_common_init_from_args(
     void**  _destination,
     size_t* _count,
     size_t  _element_size,
@@ -202,9 +196,7 @@ Return:
   - true, if copy initialization was successful, or
   - false, if memory allocation failed.
 */
-bool
-d_array_common_init_copy
-(
+bool d_array_common_init_copy(
     void**      _destination,
     size_t*     _count,
     size_t      _element_size,
@@ -236,16 +228,14 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_array_common_init_copy_reverse
-(
+bool d_array_common_init_copy_reverse(
     void**      _destination,
     size_t*     _count,
     size_t      _element_size,
     const void* _source,
     size_t      _source_count,
-    d_index     _start,
-    d_index     _end
+    dj_index    _start,
+    dj_index    _end
 )
 {
     size_t start_idx, end_idx, copy_count, i;
@@ -330,16 +320,14 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_array_common_init_copy_range
-(
+bool d_array_common_init_copy_range(
     void**      _destination,
     size_t*     _count,
     size_t      _element_size,
     const void* _source,
     size_t      _source_count,
-    d_index     _start,
-    d_index     _end
+    dj_index    _start,
+    dj_index    _end
 )
 {
     size_t start_idx,
@@ -419,16 +407,14 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_array_common_init_copy_range_reverse
-(
+bool d_array_common_init_copy_range_reverse(
     void**      _destination,
     size_t*     _count,
     size_t      _element_size,
     const void* _source,
     size_t      _source_count,
-    d_index     _start,
-    d_index     _end
+    dj_index    _start,
+    dj_index    _end
 )
 {
     return d_array_common_init_copy_reverse(_destination,
@@ -455,9 +441,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed.
 */
-bool
-d_array_common_init_fill
-(
+bool d_array_common_init_fill(
     void**      _destination,
     size_t*     _count,
     size_t      _element_size,
@@ -520,15 +504,13 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_array_common_init_slice
-(
+bool d_array_common_init_slice(
     void**       _destination,
     size_t*      _count,
     size_t       _element_size,
     const void** _source,
     size_t       _source_count,
-    d_index      _start
+    dj_index     _start
 )
 {
     size_t start_idx,
@@ -596,9 +578,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_array_common_init_slice_reverse
-(
+bool d_array_common_init_slice_reverse(
     void**       _destination,
     size_t*      _count,
     size_t       _element_size,
@@ -632,16 +612,14 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_array_common_init_slice_range
-(
+bool d_array_common_init_slice_range(
     void**       _destination,
     size_t*      _count,
     size_t       _element_size,
     const void** _source,
     size_t       _source_count,
-    d_index      _start,
-    d_index      _end
+    dj_index     _start,
+    dj_index     _end
 )
 {
     return d_array_common_init_copy_range(_destination,
@@ -670,16 +648,14 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_array_common_init_slice_range_reverse
-(
+bool d_array_common_init_slice_range_reverse(
     void**       _destination,
     size_t*      _count,
     size_t       _element_size,
     const void** _source,
     size_t       _source_count,
-    d_index      _start,
-    d_index      _end
+    dj_index     _start,
+    dj_index     _end
 )
 {
     return d_array_common_init_copy_range_reverse(_destination,
@@ -701,9 +677,7 @@ Parameter(s):
 Return:
   Pointer to allocated memory, or NULL if allocation failed.
 */
-void*
-d_array_common_alloc
-(
+void* d_array_common_alloc(
     size_t _element_size
 )
 {
@@ -729,9 +703,7 @@ Return:
   - true, if element was successfully appended, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_append_element
-(
+bool d_array_common_append_element(
     void**      _elements,
     size_t*     _count,
     size_t      _element_size,
@@ -785,9 +757,7 @@ Return:
   - true, if elements were successfully appended, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_append_elements
-(
+bool d_array_common_append_elements(
     void**      _elements,
     size_t*     _count,
     size_t      _element_size,
@@ -836,9 +806,7 @@ Parameter(s):
 Return:
   Calculated capacity (typically larger than requested size for efficiency).
 */
-size_t
-d_array_common_calc_capacity
-(
+size_t d_array_common_calc_capacity(
     size_t _requested_size
 )
 {
@@ -878,9 +846,7 @@ Return:
   - true, if the value was found in the array, or
   - false, if the value was not found or parameters are invalid.
 */
-bool
-d_array_common_contains
-(
+bool d_array_common_contains(
     void*         _elements,
     size_t        _count,
     size_t        _element_size,
@@ -903,9 +869,7 @@ Parameter(s):
 Return:
   Number of elements filled, or -1 if parameters are invalid.
 */
-int
-d_array_common_fill
-(
+int d_array_common_fill(
     void*       _elements,
     size_t      _count,
     size_t      _element_size,
@@ -945,9 +909,7 @@ Parameter(s):
 Return:
   Index of first occurrence, or -1 if not found or parameters are invalid.
 */
-ssize_t
-d_array_common_find
-(
+ssize_t d_array_common_find(
     const void*   _elements,
     size_t        _count,
     size_t        _element_size,
@@ -992,9 +954,7 @@ Parameter(s):
 Return:
   Index of closest match, or -1 if parameters are invalid.
 */
-ssize_t
-d_array_common_find_closest
-(
+ssize_t d_array_common_find_closest(
     const void*   _elements,
     size_t        _count,
     size_t        _element_size,
@@ -1062,14 +1022,12 @@ Return:
   - true, if element was successfully inserted, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_insert_element
-(
+bool d_array_common_insert_element(
     void**      _elements,
     size_t*     _count,
     size_t      _element_size,
     const void* _value,
-    d_index     _index
+    dj_index    _index
 )
 {
     size_t insert_idx;
@@ -1131,15 +1089,13 @@ Return:
   - true, if elements were successfully inserted, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_insert_elements
-(
+bool d_array_common_insert_elements(
     void**      _elements,
     size_t*     _count,
     size_t      _element_size,
     const void* _value,
     size_t      _source_count,
-    d_index     _index
+    dj_index    _index
 )
 {
     size_t insert_idx;
@@ -1205,9 +1161,7 @@ Return:
   - true, if the resize amount is valid, or
   - false, if the resize would result in overflow/underflow.
 */
-bool
-d_array_common_is_valid_resize_amount
-(
+bool d_array_common_is_valid_resize_amount(
     size_t  _count,
     ssize_t _amount,
     size_t* _result
@@ -1262,9 +1216,7 @@ Return:
   - true, if the resize factor is valid, or
   - false, if the resize would result in overflow or invalid factor.
 */
-bool
-d_array_common_is_valid_resize_factor
-(
+bool d_array_common_is_valid_resize_factor(
     size_t  _count,
     double  _factor,
     double* _result,
@@ -1311,9 +1263,7 @@ Return:
   - true, if element was successfully prepended, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_prepend_element
-(
+bool d_array_common_prepend_element(
     void**      _elements,
     size_t*     _count,
     size_t      _element_size,
@@ -1342,9 +1292,7 @@ Return:
   - true, if elements were successfully prepended, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_prepend_elements
-(
+bool d_array_common_prepend_elements(
     void**      _elements,
     size_t*     _count,
     size_t      _element_size,
@@ -1372,9 +1320,7 @@ Parameter(s):
 Return:
   New size if successful, or -1 if failed.
 */
-ssize_t
-d_array_common_resize_amount
-(
+ssize_t d_array_common_resize_amount(
     void*   _elements,
     size_t  _count,
     size_t  _element_size,
@@ -1409,9 +1355,7 @@ Parameter(s):
 Return:
   New size if successful, or -1 if failed.
 */
-ssize_t
-d_array_common_resize_factor
-(
+ssize_t d_array_common_resize_factor(
     void*  _elements,
     size_t _count,
     size_t _element_size,
@@ -1451,9 +1395,7 @@ Return:
   - true, if reverse was successful, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_reverse
-(
+bool d_array_common_reverse(
     void*  _elements,
     size_t _count,
     size_t _element_size
@@ -1518,9 +1460,7 @@ Return:
   - true, if shift was successful, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_shift_left
-(
+bool d_array_common_shift_left(
     void*  _elements,
     size_t _count,
     size_t _element_size,
@@ -1561,9 +1501,7 @@ Return:
   - true, if shift was successful, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_shift_left_circular
-(
+bool d_array_common_shift_left_circular(
     void*  _elements,
     size_t _count,
     size_t _element_size,
@@ -1637,9 +1575,7 @@ Return:
   - true, if shift was successful, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_shift_right
-(
+bool d_array_common_shift_right(
     void*  _elements,
     size_t _count,
     size_t _element_size,
@@ -1681,9 +1617,7 @@ Return:
   - true, if shift was successful, or
   - false, if parameters are invalid.
 */
-bool
-d_array_common_shift_right_circular
-(
+bool d_array_common_shift_right_circular(
     void*  _elements,
     size_t _count,
     size_t _element_size,
@@ -1753,9 +1687,7 @@ Parameter(s):
 Return:
   none
 */
-void
-d_array_common_sort
-(
+void d_array_common_sort(
     void*         _elements,
     size_t        _count,
     size_t        _element_size,
@@ -1784,9 +1716,7 @@ Parameter(s):
 Return:
   none
 */
-void
-d_array_common_free_elements_arr
-(
+void d_array_common_free_elements_arr(
     void* _elements
 )
 {
@@ -1811,9 +1741,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_array_common_free_elements_deep
-(
+void d_array_common_free_elements_deep(
     size_t  _count,
     void**  _elements,
     fn_free _free_fn

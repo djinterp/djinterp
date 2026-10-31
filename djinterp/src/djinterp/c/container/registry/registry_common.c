@@ -29,9 +29,8 @@ Return:
   The lower-case form of `_c` when it is an ASCII upper-case letter, otherwise
   `_c` unchanged. Locale-independent by construction.
 */
-static unsigned char
-d_internal_ascii_tolower
-(
+static
+unsigned char d_internal_ascii_tolower(
     unsigned char _c
 )
 {
@@ -56,9 +55,7 @@ Return:
   An integer less than, equal to, or greater than zero as `_a` sorts before,
   with, or after `_b`. A NULL key sorts before any non-NULL one.
 */
-int
-d_registry_strcmp
-(
+int d_registry_strcmp(
     const char* _a,
     const char* _b,
     bool        _case_sensitive
@@ -124,11 +121,9 @@ Return:
   The largest `enum_key` in the schema, or 0 when the schema is empty or NULL.
   The dense value array must hold this many slots plus one.
 */
-uint16_t
-d_registry_schema_max_enum_key
-(
-    const struct d_registry_schema_row* _schema,
-    size_t                              _schema_count
+uint16_t d_registry_schema_max_enum_key(
+    const struct dj_registry_schema_row* _schema,
+    size_t                               _schema_count
 )
 {
     size_t   i;

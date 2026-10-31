@@ -17,8 +17,8 @@
 *                                                            revised: 2026.10.11
 *******************************************************************************/
 
-#ifndef BITWISEDOM_EXAMPLES_HPP
-#define BITWISEDOM_EXAMPLES_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_EXAMPLES_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_EXAMPLES_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -28,7 +28,7 @@
 #include <string>  // std::string
 #include <vector>  // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./sheet.hpp"  // sheet
 
@@ -49,14 +49,15 @@ struct example_info
 
 // examples -- every one, in order; the names alone; and a sheet by name
 // (an unknown name gives the first)
-D_NODISCARD const std::vector<example_info>&  example_list();
-D_NODISCARD std::vector<std::string>          example_names();
-D_NODISCARD sheet                             make_example(
-                                                  const std::string& _name);
+D_NODISCARD const std::vector<example_info>& example_list();
+D_NODISCARD std::vector<std::string> example_names();
+D_NODISCARD sheet make_example(
+    const std::string& _name
+);
 
 }  // namespace bitwisedom
 
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_EXAMPLES_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_EXAMPLES_HPP

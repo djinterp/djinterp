@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c]                                                    min_enum_map.c
 *
-*   Implementation of the d_min_enum_map container - a minimal associative
+*   Implementation of the dj_min_enum_map container - a minimal associative
 * array mapping integer enum keys to arbitrary pointer values.
 *
 *
@@ -28,11 +28,10 @@ Parameter(s):
 Return:
   The index of the entry if found, or -1 if not found.
 */
-D_STATIC ssize_t
-d_internal_min_enum_map_find_index
-(
-    const struct d_min_enum_map* _map,
-    int                          _key
+D_STATIC
+ssize_t d_internal_min_enum_map_find_index(
+    const struct dj_min_enum_map* _map,
+    int                           _key
 )
 {
     ssize_t low;
@@ -82,11 +81,10 @@ Parameter(s):
 Return:
   The index where the key should be inserted.
 */
-D_STATIC size_t
-d_internal_min_enum_map_find_insert_pos
-(
-    const struct d_min_enum_map* _map,
-    int                          _key
+D_STATIC
+size_t d_internal_min_enum_map_find_insert_pos(
+    const struct dj_min_enum_map* _map,
+    int                           _key
 )
 {
     size_t low;
@@ -129,14 +127,13 @@ Parameter(s):
 Return:
   true if successful, false if allocation failed.
 */
-D_STATIC bool
-d_internal_min_enum_map_grow
-(
-    struct d_min_enum_map* _map
+D_STATIC
+bool d_internal_min_enum_map_grow(
+    struct dj_min_enum_map* _map
 )
 {
     size_t                       new_capacity;
-    struct d_enum_map_entry* new_entries;
+    struct dj_enum_map_entry* new_entries;
 
     if (!_map)
     {
@@ -148,7 +145,7 @@ d_internal_min_enum_map_grow
         : (_map->capacity * 2);
 
     new_entries = realloc(_map->entries,
-                          new_capacity * sizeof(struct d_enum_map_entry));
+                          new_capacity * sizeof(struct dj_enum_map_entry));
 
     if (!new_entries)
     {
@@ -168,21 +165,17 @@ d_internal_min_enum_map_grow
 
 /*
 d_min_enum_map_new
-  Allocates and initializes a new (empty) d_min_enum_map.
+  Allocates and initializes a new (empty) dj_min_enum_map.
 
 Parameter(s):
   none
 Return:
-  Either a pointer to a new, empty d_min_enum_map, or NULL if allocation failed.
+  Either a pointer to a new, empty dj_min_enum_map, or NULL if allocation failed.
 */
-struct d_min_enum_map*
-d_min_enum_map_new
-(
-    void
-)
+struct dj_min_enum_map* d_min_enum_map_new(void)
 {
-    struct d_min_enum_map* new_min_enum_map =
-        malloc(sizeof(struct d_min_enum_map));
+    struct dj_min_enum_map* new_min_enum_map =
+        malloc(sizeof(struct dj_min_enum_map));
 
     // ensure that memory allocation was successful
     if (!new_min_enum_map)
@@ -199,7 +192,7 @@ d_min_enum_map_new
 
 /*
 d_min_enum_map_new_arr
-  A newly allocated `d_min_enum_map` holding the given entries, or the result of
+  A newly allocated `dj_min_enum_map` holding the given entries, or the result of
   the default creation function when the arguments are invalid; NULL if
   allocation failed.
 
@@ -207,19 +200,17 @@ Parameter(s):
   _enum_map_entries: array of entry pointers to seed the map with.
   _count:            the number of entries at `_enum_map_entries`.
 Return:
-  A newly allocated `d_min_enum_map` holding the given entries, or the result of
+  A newly allocated `dj_min_enum_map` holding the given entries, or the result of
   the default creation function when the arguments are invalid; NULL if
   allocation failed.
 */
-struct d_min_enum_map*
-d_min_enum_map_new_arr
-(
-    struct d_enum_map_entry** _enum_map_entries,
-    size_t                    _count
+struct dj_min_enum_map* d_min_enum_map_new_arr(
+    struct dj_enum_map_entry** _enum_map_entries,
+    size_t                     _count
 )
 {
     size_t entries_size;
-    struct d_min_enum_map* new_min_enum_map;
+    struct dj_min_enum_map* new_min_enum_map;
 
     // ensure that parameters are valid; if not use default creation function
     if ( (!_enum_map_entries) ||
@@ -228,16 +219,16 @@ d_min_enum_map_new_arr
         return d_min_enum_map_new();
     }
 
-    new_min_enum_map = malloc(sizeof(struct d_min_enum_map));
+    new_min_enum_map = malloc(sizeof(struct dj_min_enum_map));
 
-    // ensure that memory allocation of `struct d_min_enum_map` was successful
+    // ensure that memory allocation of `struct dj_min_enum_map` was successful
     if (!new_min_enum_map)
     {
         return NULL;
     }
 
     // calculate size of entries array
-    entries_size = (_count * sizeof(struct d_enum_map_entry*));
+    entries_size = (_count * sizeof(struct dj_enum_map_entry*));
     new_min_enum_map->entries = malloc(entries_size);
 
     // ensure that memory allocation of entries array was successful
@@ -260,43 +251,41 @@ d_min_enum_map_new_arr
 
 /*
 d_min_enum_map_new_copy
-  A newly allocated `d_min_enum_map` holding a copy of the source's entries, or
+  A newly allocated `dj_min_enum_map` holding a copy of the source's entries, or
   NULL if `_source` was NULL or allocation failed.
 
 Parameter(s):
   _source: the map to copy; must not be NULL.
 Return:
-  A newly allocated `d_min_enum_map` holding a copy of the source's entries, or
+  A newly allocated `dj_min_enum_map` holding a copy of the source's entries, or
   NULL if `_source` was NULL or allocation failed.
 */
-struct d_min_enum_map*
-d_min_enum_map_new_copy
-(
-    const struct d_min_enum_map* _source
+struct dj_min_enum_map* d_min_enum_map_new_copy(
+    const struct dj_min_enum_map* _source
 )
 {
     size_t entries_size;
-    struct d_min_enum_map* new_min_enum_map;
+    struct dj_min_enum_map* new_min_enum_map;
 
-    // cannot copy a `d_min_enum_map` that points to NULL
+    // cannot copy a `dj_min_enum_map` that points to NULL
     if (!_source)
     {
         return NULL;
     }
 
-    new_min_enum_map = malloc(sizeof(struct d_min_enum_map));
+    new_min_enum_map = malloc(sizeof(struct dj_min_enum_map));
 
-    // ensure that memory allocation of `d_min_enum_map` was successful
+    // ensure that memory allocation of `dj_min_enum_map` was successful
     if (!new_min_enum_map)
     {
         return NULL;
     }
 
     // calculate size of entries array
-    entries_size = (sizeof(struct d_enum_map_entry) * _source->count);
+    entries_size = (sizeof(struct dj_enum_map_entry) * _source->count);
     new_min_enum_map->entries = malloc(entries_size);
 
-    //   ensure that memory allocation for `d_enum_map_entry` array was
+    //   ensure that memory allocation for `dj_enum_map_entry` array was
     // successful.
     if ( (!new_min_enum_map->entries) ||
          (d_memcpy_s(new_min_enum_map->entries,
@@ -325,10 +314,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_min_enum_map_clear
-(
-    struct d_min_enum_map* _map
+void d_min_enum_map_clear(
+    struct dj_min_enum_map* _map
 )
 {
     if (_map)
@@ -358,15 +345,13 @@ Parameter(s):
 Return:
   true if successful, false on allocation failure or invalid state.
 */
-bool
-d_min_enum_map_merge
-(
-    struct d_min_enum_map*       _destination,
-    const struct d_min_enum_map* _source,
-    bool                         _overwrite
+bool d_min_enum_map_merge(
+    struct dj_min_enum_map*       _destination,
+    const struct dj_min_enum_map* _source,
+    bool                          _overwrite
 )
 {
-    struct d_enum_map_entry* new_entries;
+    struct dj_enum_map_entry* new_entries;
     size_t dst_i;
     size_t src_i;
     size_t out_i;
@@ -374,7 +359,7 @@ d_min_enum_map_merge
 
     // if either of the following conditions is true: nothing to merge = done:
     // 1. both `_destination` and `_source` must point to different
-    //    `d_min_enum_map` addresses in memory,
+    //    `dj_min_enum_map` addresses in memory,
     // 2. `_source` cannot NULL,
     // 3. `_source` cannot be non-NULL and empty.
     if ( (_destination == _source) ||
@@ -399,7 +384,7 @@ d_min_enum_map_merge
 
     max_count = (_destination->count + _source->count);
 
-    new_entries = malloc(max_count * sizeof(struct d_enum_map_entry));
+    new_entries = malloc(max_count * sizeof(struct dj_enum_map_entry));
 
     if (!new_entries)
     {
@@ -473,12 +458,10 @@ Parameter(s):
 Return:
   true if successful, false otherwise.
 */
-bool
-d_min_enum_map_put
-(
-    struct d_min_enum_map* _map,
-    int                    _key,
-    void*                  _value
+bool d_min_enum_map_put(
+    struct dj_min_enum_map* _map,
+    int                     _key,
+    void*                   _value
 )
 {
     ssize_t index;
@@ -518,7 +501,7 @@ d_min_enum_map_put
         memmove(
             &_map->entries[insert_pos + 1],
             &_map->entries[insert_pos],
-            (_map->count - insert_pos) * sizeof(struct d_enum_map_entry)
+            (_map->count - insert_pos) * sizeof(struct dj_enum_map_entry)
         );
     }
 
@@ -539,11 +522,9 @@ Parameter(s):
 Return:
   The value associated with the key, or NULL if not found.
 */
-void*
-d_min_enum_map_get
-(
-    const struct d_min_enum_map* _map,
-    int                          _key
+void* d_min_enum_map_get(
+    const struct dj_min_enum_map* _map,
+    int                           _key
 )
 {
     ssize_t index;
@@ -568,11 +549,9 @@ Parameter(s):
 Return:
   true if the entry was removed, false if not found or error.
 */
-bool
-d_min_enum_map_remove
-(
-    struct d_min_enum_map* _map,
-    int                    _key
+bool d_min_enum_map_remove(
+    struct dj_min_enum_map* _map,
+    int                     _key
 )
 {
     ssize_t index;
@@ -595,7 +574,7 @@ d_min_enum_map_remove
         memmove(
             &_map->entries[index],
             &_map->entries[index + 1],
-            (_map->count - (size_t)index - 1) * sizeof(struct d_enum_map_entry)
+            (_map->count - (size_t)index - 1) * sizeof(struct dj_enum_map_entry)
         );
     }
 
@@ -614,11 +593,9 @@ Parameter(s):
 Return:
   true if the key exists in the map, false otherwise.
 */
-bool
-d_min_enum_map_contains
-(
-    const struct d_min_enum_map* _map,
-    int                          _key
+bool d_min_enum_map_contains(
+    const struct dj_min_enum_map* _map,
+    int                           _key
 )
 {
     return (d_internal_min_enum_map_find_index(_map, _key) >= 0);
@@ -633,10 +610,8 @@ Parameter(s):
 Return:
   The number of entries, or 0 if map is NULL.
 */
-size_t
-d_min_enum_map_count
-(
-    const struct d_min_enum_map* _map
+size_t d_min_enum_map_count(
+    const struct dj_min_enum_map* _map
 )
 {
     return (_map) ? _map->count : 0;
@@ -644,17 +619,15 @@ d_min_enum_map_count
 
 /*
 d_min_enum_map_free
-  Frees the space allocated to the d_min_enum_map and its entries array.
+  Frees the space allocated to the dj_min_enum_map and its entries array.
 
 Parameter(s):
-  _map: the d_min_enum_map being freed
+  _map: the dj_min_enum_map being freed
 Return:
   none.
 */
-void
-d_min_enum_map_free
-(
-    struct d_min_enum_map* _map
+void d_min_enum_map_free(
+    struct dj_min_enum_map* _map
 )
 {
     if (_map)

@@ -79,12 +79,19 @@ public:
      *                          user's window; empty keeps no session, and
      *                          the window opens on an example.
      */
-    explicit app(std::string _preferences = std::string(),
-                 std::string _session     = std::string());
+    explicit
+    app(
+        std::string _preferences = std::string(),
+        std::string _session = std::string()
+    );
     ~app();
 
-    app(const app&)            = delete;
-    app& operator=(const app&) = delete;
+    app(
+        const app&
+    ) = delete;
+    app& operator=(
+        const app&
+    ) = delete;
 
     /**
      * @brief Draws one frame and applies what it posted.
@@ -96,21 +103,28 @@ public:
     void frame();
 
     // queueing -- an event applied before the next frame, as if posted
-    void post(const uxoxo::event& _event);
+    void post(
+        const uxoxo::event& _event
+    );
 
     // the document in front, and the window around the documents
-    D_NODISCARD bool                quitting() const;
-    D_NODISCARD const model&        state() const;
-    D_NODISCARD const shell_state&  shell() const;
+    D_NODISCARD bool quitting() const;
+    D_NODISCARD const model& state() const;
+    D_NODISCARD const shell_state& shell() const;
 
     // documents -- every one open, in every workspace, in the order opened;
     // one by its id, or nullptr
-    D_NODISCARD std::vector<const model*>  documents() const;
-    D_NODISCARD const model*               document(int _id) const;
+    D_NODISCARD std::vector<const model*> documents() const;
+    D_NODISCARD const model* document(
+        int _id
+    ) const;
 
     // fonts -- loads the interface and monospace fonts into ImGui's atlas;
     // call once, after the context is created and before the first frame
-    static void load_fonts(float _size);
+    static
+    void load_fonts(
+        float _size
+    );
 
 private:
     std::vector<std::unique_ptr<model>> m_docs;
@@ -146,126 +160,236 @@ private:
     std::vector<std::string>         m_forget;      // windows' settings
 
     void keep_preferences();
-    void keep_session(bool _now);
+    void keep_session(
+        bool _now
+    );
     bool restore_session();
 
     // the documents and workspaces
-    model&       doc();
+    model& doc();
     const model& doc() const;
-    model&      open_document();
-    model&      fresh_document();
-    model*      find_document(int _id);
-    void        activate(int  _id,
-                         bool _raise = true);
-    void        close_document(int  _id,
-                               bool _discard);
-    void        close_dialog();
-    void        naming_dialog();
-    workspace&  current();
-    workspace*  holding(int _document);
-    workspace&  add_workspace();
-    void        to_workspace(std::size_t _index);
-    void        close_workspace(std::size_t _index);
-    void        move_document(int         _document,
-                              std::size_t _index);
-    void        tool_to(tool _tool,
-                        bool _open,
-                        bool _focus);
-    void        shell_changed();
-    void        restyle();
+    model& open_document();
+    model& fresh_document();
+    model* find_document(
+        int _id
+    );
+    void activate(
+        int  _id,
+        bool _raise = true
+    );
+    void close_document(
+        int  _id,
+        bool _discard
+    );
+    void close_dialog();
+    void naming_dialog();
+    workspace& current();
+    workspace* holding(
+        int _document
+    );
+    workspace& add_workspace();
+    void to_workspace(
+        std::size_t _index
+    );
+    void close_workspace(
+        std::size_t _index
+    );
+    void move_document(
+        int         _document,
+        std::size_t _index
+    );
+    void tool_to(
+        tool _tool,
+        bool _open,
+        bool _focus
+    );
+    void shell_changed();
+    void restyle();
     std::string zoom_key() const;
-    void        zoom(const std::string& _key,
-                     float              _step);
-    void        set_environment(const uxoxo::option_set& _payload);
-    void        settings_file(const std::string& _kind,
-                              const uxoxo::option_set& _payload);
+    void zoom(
+        const std::string& _key,
+        float              _step
+    );
+    void set_environment(
+        const uxoxo::option_set& _payload
+    );
+    void settings_file(
+        const std::string&       _kind,
+        const uxoxo::option_set& _payload
+    );
 
-    void apply(const uxoxo::event& _event);
-    bool apply_shell(const uxoxo::event& _event);
+    void apply(
+        const uxoxo::event& _event
+    );
+    bool apply_shell(
+        const uxoxo::event& _event
+    );
     void changed();
-    void status(const std::string& _text,
-                bool               _error);
+    void status(
+        const std::string& _text,
+        bool               _error
+    );
 
     template<typename Change>
-    void edit(const std::string& _key,
-              Change             _change);
+    void edit(
+        const std::string& _key,
+        Change             _change
+    );
 
     template<typename Change>
-    void quietly(Change _change);
+    void quietly(
+        Change _change
+    );
 
-    void shortcuts(uxoxo::platform::imgui_frame& _frame);
+    void shortcuts(
+        uxoxo::platform::imgui_frame& _frame
+    );
 
     // actions
-    void select(int _id,
-                int _column);
-    void place_cursor(int _row,
-                      int _column,
-                      int _to_row,
-                      int _to_column);
-    void cursor_to(const uxoxo::option_set& _payload);
-    void open_all(int  _group,
-                  bool _open);
-    void add_row(int _kind);
-    void add_child(int                _parent,
-                   const std::string& _text);
+    void select(
+        int _id,
+        int _column
+    );
+    void place_cursor(
+        int _row,
+        int _column,
+        int _to_row,
+        int _to_column
+    );
+    void cursor_to(
+        const uxoxo::option_set& _payload
+    );
+    void open_all(
+        int  _group,
+        bool _open
+    );
+    void add_row(
+        int _kind
+    );
+    void add_child(
+        int                _parent,
+        const std::string& _text
+    );
     void delete_rows();
     void duplicate_rows();
-    void move_row_by(int _step);
+    void move_row_by(
+        int _step
+    );
     void sorted_note();
-    void drop_row(int _dragged,
-                  int _onto);
-    void grid_toggle(int _id,
-                     int _bit);
-    void grid_span(int _id,
-                   int _low,
-                   int _high,
-                   bool _set);
-    void collapse_segment(const uxoxo::option_set& _payload);
-    void row_edit(const uxoxo::event& _event);
-    void segment_edit(const uxoxo::event& _event);
-    void display_edit(const uxoxo::event& _event);
-    void special_edit(const uxoxo::event& _event);
-    void node_edit(const uxoxo::event& _event);
-    void note_action(const uxoxo::event& _event);
-    void open_node(int _parent);
+    void drop_row(
+        int _dragged,
+        int _onto
+    );
+    void grid_toggle(
+        int _id,
+        int _bit
+    );
+    void grid_span(
+        int  _id,
+        int  _low,
+        int  _high,
+        bool _set
+    );
+    void collapse_segment(
+        const uxoxo::option_set& _payload
+    );
+    void row_edit(
+        const uxoxo::event& _event
+    );
+    void segment_edit(
+        const uxoxo::event& _event
+    );
+    void display_edit(
+        const uxoxo::event& _event
+    );
+    void special_edit(
+        const uxoxo::event& _event
+    );
+    void node_edit(
+        const uxoxo::event& _event
+    );
+    void note_action(
+        const uxoxo::event& _event
+    );
+    void open_node(
+        int _parent
+    );
     void refresh_node();
-    void add_node(bool _close);
+    void add_node(
+        bool _close
+    );
     void keep_sorted();
-    void template_edit(const uxoxo::event& _event);
-    void open_file(const std::string& _path);
-    void save_file(int _extension = -1);
+    void template_edit(
+        const uxoxo::event& _event
+    );
+    void open_file(
+        const std::string& _path
+    );
+    void save_file(
+        int _extension = -1
+    );
     void save_as_dialog();
     void open_dialog();
-    void rename_file(const std::string& _text);
-    void close_tabs(const std::string& _which);
-    bool close_tab(const std::string& _key,
-                   bool               _asked);
+    void rename_file(
+        const std::string& _text
+    );
+    void close_tabs(
+        const std::string& _which
+    );
+    bool close_tab(
+        const std::string& _key,
+        bool               _asked
+    );
     void import_definitions_dialog();
     void help_dialog();
     std::string macro_header() const;
     void export_header();
-    void export_json(bool _everything);
-    void import_json_text(const std::string& _path,
-                          const std::string& _text);
-    void load_sheet_into(sheet _sheet,
-                         const std::string& _path);
+    void export_json(
+        bool _everything
+    );
+    void import_json_text(
+        const std::string& _path,
+        const std::string& _text
+    );
+    void load_sheet_into(
+        sheet              _sheet,
+        const std::string& _path
+    );
     void apply_operation();
 
     // the context menu, renames, and code in and out
-    void open_menu(const std::string&       _kind,
-                   const std::string&       _where,
-                   const uxoxo::option_set& _payload);
-    void begin_rename(int                _id,
-                      const std::string& _where);
-    void finish_rename(int                _id,
-                       const std::string& _text);
-    void begin_segment_rename(const uxoxo::option_set& _payload);
-    void finish_segment_rename(const std::string& _text);
-    void copy_code(int _id);
-    void paste_code(int _id);
-    void import_code_text(const std::string& _path,
-                          const std::string& _text);
-    void grid_width(const uxoxo::option_set& _payload);
+    void open_menu(
+        const std::string&       _kind,
+        const std::string&       _where,
+        const uxoxo::option_set& _payload
+    );
+    void begin_rename(
+        int                _id,
+        const std::string& _where
+    );
+    void finish_rename(
+        int                _id,
+        const std::string& _text
+    );
+    void begin_segment_rename(
+        const uxoxo::option_set& _payload
+    );
+    void finish_segment_rename(
+        const std::string& _text
+    );
+    void copy_code(
+        int _id
+    );
+    void paste_code(
+        int _id
+    );
+    void import_code_text(
+        const std::string& _path,
+        const std::string& _text
+    );
+    void grid_width(
+        const uxoxo::option_set& _payload
+    );
 };
 
 /**
@@ -299,7 +423,9 @@ const int NODE_KIND_COUNT = 7;
 
 // op_targets
 //   what an operation acts on: the selected rows.
-std::vector<int> op_targets(const model& _model);
+std::vector<int> op_targets(
+    const model& _model
+);
 
 }  // namespace gui
 }  // namespace bitwisedom

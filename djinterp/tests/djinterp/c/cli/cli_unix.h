@@ -12,7 +12,7 @@
 *
 *   The entry table uses bare keys (no operators):
 *
-*   struct d_string_cli_entry opts[] = {
+*   struct dj_string_cli_entry opts[] = {
 *       { "v",       1, &verbose },
 *       { "verbose", 7, &verbose },
 *       { "o",       1, &output  },
@@ -71,7 +71,7 @@ typedef int (*fn_cli_unix_match)(const char* _key,
  *****************************************************************************/
 
 // d_cli_unix_parse
-//   parses argc/argv using Unix conventions against a d_string_cli_entry
+//   parses argc/argv using Unix conventions against a dj_string_cli_entry
 // table. processes argv elements starting from index 1:
 //
 //   "--"         bare stop token; all subsequent args are skipped
@@ -83,13 +83,14 @@ typedef int (*fn_cli_unix_match)(const char* _key,
 //   anything else is skipped (positional argument)
 //
 // returns true if parsing completed, false if a handler stopped it.
-bool
-d_cli_unix_parse(const struct d_string_cli_entry* _entries,
-                 size_t                            _count,
-                 int                               _argc,
-                 char*                             _argv[],
-                 fn_cli_unix_match                 _on_match,
-                 void*                             _context);
+bool d_cli_unix_parse(
+    const struct dj_string_cli_entry* _entries,
+    size_t                            _count,
+    int                               _argc,
+    char*                             _argv[],
+    fn_cli_unix_match                 _on_match,
+    void*                             _context
+);
 
 // D_CLI_UNIX_PARSE
 //   macro: convenience on a static array.

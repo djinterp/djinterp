@@ -24,11 +24,7 @@ Parameter(s):
 Return:
   true on success, false otherwise.
 */
-bool
-d_tests_file_setup
-(
-    void
-)
+bool d_tests_file_setup(void)
 {
     char   path[D_TEST_FILE_PATH_BUF];
     size_t length;
@@ -72,14 +68,10 @@ Parameter(s):
 Return:
   true on success, false otherwise.
 */
-bool
-d_tests_file_teardown
-(
-    void
-)
+bool d_tests_file_teardown(void)
 {
-    struct d_dir_t*    dir;
-    struct d_dirent_t* entry;
+    struct dj_dir_t*    dir;
+    struct dj_dirent_t* entry;
     char               path[D_TEST_FILE_PATH_BUF];
 
     dir = d_dir_open(D_TEST_FILE_TEMP_DIR);
@@ -141,9 +133,7 @@ Parameter(s):
 Return:
   _buf on success, or NULL if anything was missing or it would not fit.
 */
-char*
-d_tests_file_child
-(
+char* d_tests_file_child(
     char*       _buf,
     size_t      _bufsize,
     const char* _parent,
@@ -175,9 +165,7 @@ d_tests_file_child
 }
 
 
-char*
-d_tests_file_path
-(
+char* d_tests_file_path(
     char*       _buf,
     size_t      _bufsize,
     const char* _filename
@@ -224,15 +212,13 @@ Parameter(s):
 Return:
   The group on success, or NULL on failure.
 */
-struct d_test_object*
-d_tests_file_group
-(
-    const char*            _name,
-    struct d_test_object** _items,
-    size_t                 _count
+struct dj_test_object* d_tests_file_group(
+    const char*             _name,
+    struct dj_test_object** _items,
+    size_t                  _count
 )
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior(_name, _count);

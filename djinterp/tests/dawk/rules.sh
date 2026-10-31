@@ -4,7 +4,7 @@
 #   tests/dawk/fixtures/<sheet>/<name>.<c|h>           a fixture
 #   tests/dawk/fixtures/<sheet>/<name>.<c|h>.expected  its exact findings
 #
-# The sheet is sheets/<sheet>.dss.  A fixture with an empty .expected is a
+# The sheet is res/sheets/<sheet>.dss.  A fixture with an empty .expected is a
 # negative case: the rules must stay silent on it.  Exit 1 on any mismatch,
 # naming the fixture, so a green run names what it checked (I-13).
 #
@@ -18,7 +18,7 @@ count=0
 for fixture in $(find tests/dawk/fixtures -name "*.c" -o -name "*.h" | sort); do
     [ -f "$fixture" ] || continue
     sheet=$(echo "$fixture" | cut -d/ -f4)
-    actual=$("$RULES" "sheets/$sheet.dss" "$fixture")
+    actual=$("$RULES" "res/sheets/$sheet.dss" "$fixture")
     count=$((count + 1))
     if [ "$BLESS" = "--bless" ]; then
         printf '%s' "$actual" > "$fixture.expected"

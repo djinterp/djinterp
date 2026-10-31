@@ -338,7 +338,7 @@ refused -1 -1 -1 a configuration is \"Debug|x64\"
 $work/s.sln: sln, 2 projects, 3 folders, 3 configs
   1 p p.vcxproj [] {aaaaaaaa-0000-0000-0000-000000000001} line 6 after a\\a.vcxproj
   2 a a\\a.vcxproj [/tools/dawk/] {11111111-2222-3333-4444-555555555555} line 15
-  folder /tools/
+  folder /scripts/
   folder /tools/dawk/
   folder /empty/
   config Debug|x64
@@ -349,7 +349,7 @@ remove 1 1 1 0
 whole 1 a configuration is \"Debug|x64\"
 $work/t.sln: sln, 1 projects, 3 folders, 1 configs
   1 p p.vcxproj [] {aaaaaaaa-0000-0000-0000-000000000001} line 6
-  folder /tools/
+  folder /scripts/
   folder /tools/dawk/
   folder /empty/
   config Release|x64
@@ -404,7 +404,7 @@ $work/s.slnx: slnx, 2 projects, 3 folders, 4 configs
   1 a a/a.vcxproj [/tools/dawk/] {} line 9
   2 p p.vcxproj [] {aaaaaaaa-0000-0000-0000-000000000001} line 11 after a/a.vcxproj
   folder /empty/
-  folder /tools/
+  folder /scripts/
   folder /tools/dawk/
   config Debug|x64
   config Debug|x86
@@ -416,7 +416,7 @@ whole -1 a .slnx builds every build type on every platform: remove \"Debug|*\" o
 $work/t.slnx: slnx, 1 projects, 3 folders, 2 configs
   1 p p.vcxproj [] {aaaaaaaa-0000-0000-0000-000000000001} line 10
   folder /empty/
-  folder /tools/
+  folder /scripts/
   folder /tools/dawk/
   config Debug|x64
   config Release|x64
@@ -432,7 +432,7 @@ cat > "$work/u.slnx.want" <<'EOF'
     <Platform Name="x64" />
   </Configurations>
   <Folder Name="/empty/" />
-  <Folder Name="/tools/" />
+  <Folder Name="/scripts/" />
   <Folder Name="/tools/dawk/" />
   <Project Path="p.vcxproj" Id="aaaaaaaa-0000-0000-0000-000000000001" />
 </Solution>

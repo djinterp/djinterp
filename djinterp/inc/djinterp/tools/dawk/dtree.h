@@ -2,7 +2,7 @@
 * djinterp [djinterp]                                                    dtree.h
 *
 * Filesystem tree record source:
-*   Declares the one entry point that fills a d_awk_source with a walk over a
+*   Declares the one entry point that fills a dj_awk_source with a walk over a
 * directory tree.  Files are yielded in document order and the record text is
 * the file's path.
 *   POSIX directory reading lives behind this seam, so the conforming core
@@ -21,7 +21,7 @@
 // std
 #include <stdbool.h>  // bool
 // djinterp
-#include "./dsource.h"  // d_awk_source
+#include "./dsource.h"  // dj_awk_source
 
 
 //==============================================================================
@@ -31,8 +31,10 @@
 
 // 1.1    Construction
 //------------------------------------------------------------------------------
-bool d_awk_source_tree_init(struct d_awk_source* _source,
-                            const char*          _root);
+bool d_awk_source_tree_init(
+    struct dj_awk_source* _source,
+    const char*           _root
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DTREE_H

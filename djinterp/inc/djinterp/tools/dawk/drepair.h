@@ -53,10 +53,10 @@ TABLE OF CONTENTS
          1.  D_REPAIR_TEXT_MAX
          2.  D_REPAIR_PARAM_MAX
     2.  Enumerations
-         1.  d_repair_kind
+         1.  dj_repair_kind
     3.  Records
-         1.  d_repair_edit
-         2.  d_repair_plan
+         1.  dj_repair_edit
+         2.  dj_repair_plan
 2.  OPERATIONS
     ----------
     1.  Lifetime
@@ -71,10 +71,10 @@ TABLE OF CONTENTS
 #include <stdbool.h>                          // bool
 #include <stddef.h>                           // size_t
 // djinterp
-#include "./dnode.h"                          // struct d_node_tree
-#include "./dss.h"                            // struct d_dss_sheet, d_dss_rule
+#include "./dnode.h"                          // struct dj_node_tree
+#include "./dss.h"                            // struct dj_dss_sheet, dj_dss_rule
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // uint32_t, uint8_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint8_t
 
 
 //==============================================================================
@@ -98,10 +98,10 @@ TABLE OF CONTENTS
 // 1.2    Enumerations
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_repair_kind
+// dj_repair_kind
 //   enum: what an edit does. The order is the order two edits of one line
 // are made in: what rewrites the line first, what moves it last.
-enum d_repair_kind
+enum dj_repair_kind
 {
     D_REPAIR_COMMENT = 0,  // a comment added at the line's end
     D_REPAIR_SPLIT,        // a closing-position brace moved to its own line
@@ -115,7 +115,7 @@ enum d_repair_kind
 // 1.3    Records
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_repair_edit
+// dj_repair_edit
 //   struct: one repair, noted against the file as it was read. For a
 // shift, the lines `open_line` to `close_line` move by `delta` -- the
 // item's, with the comments beside it that are its -- and `group` is the
@@ -124,10 +124,10 @@ enum d_repair_kind
 // `close_column` its `)`, and `indent` the spaces before the function; each
 // parameter is where its first token stands, and its name where its declared
 // name stands, or line 0 when the name is not the parameter's own last word.
-struct d_repair_edit
+struct dj_repair_edit
 {
     uint32_t  line;                     // 1-based
-    uint8_t   kind;                     // d_repair_kind
+    uint8_t   kind;                     // dj_repair_kind
     uint32_t  count;                    // BLANKS: empty lines wanted above;
                                         // COMMENT: 1 when unmeasured
     uint32_t  column;                   // 1-based: the node's
@@ -151,11 +151,11 @@ struct d_repair_edit
 };
 
 // 1.3.2
-// d_repair_plan
+// dj_repair_plan
 //   struct: the repairs noted for one file.
-struct d_repair_plan
+struct dj_repair_plan
 {
-    struct d_repair_edit* edits;
+    struct dj_repair_edit* edits;
     size_t                count;
     size_t                capacity;
 };
@@ -170,9 +170,15 @@ struct d_repair_plan
 //------------------------------------------------------------------------------
 // a plan starts empty, is cleared between files and keeps its storage until
 // freed; none of the three can fail
-void   d_repair_plan_init(struct d_repair_plan* _plan);
-void   d_repair_plan_clear(struct d_repair_plan* _plan);
-void   d_repair_plan_free(struct d_repair_plan* _plan);
+void d_repair_plan_init(
+    struct dj_repair_plan* _plan
+);
+void d_repair_plan_clear(
+    struct dj_repair_plan* _plan
+);
+void d_repair_plan_free(
+    struct dj_repair_plan* _plan
+);
 
 // 2.2    Planning
 //------------------------------------------------------------------------------
@@ -187,11 +193,13 @@ void   d_repair_plan_free(struct d_repair_plan* _plan);
  * @return `true` if an edit was noted; `false` if the rule states no repair,
  *         the repair does not apply to this node, or memory ran out.
  */
-bool   d_repair_plan_note(struct d_repair_plan*     _plan,
-                          const struct d_dss_sheet* _sheet,
-                          struct d_node_tree*       _tree,
-                          uint32_t                  _node,
-                          const struct d_dss_rule*  _rule);
+bool d_repair_plan_note(
+    struct dj_repair_plan*     _plan,
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const struct dj_dss_rule*  _rule
+);
 /**
  * @brief Reports whether a rule says how its findings are repaired.
  *
@@ -205,8 +213,10 @@ bool   d_repair_plan_note(struct d_repair_plan*     _plan,
  * @return `true` if the rule carries a `repair` declaration with a value,
  *         `false` otherwise.
  */
-bool   d_repair_stated(const struct d_dss_sheet* _sheet,
-                       const struct d_dss_rule*  _rule);
+bool d_repair_stated(
+    const struct dj_dss_sheet* _sheet,
+    const struct dj_dss_rule*  _rule
+);
 
 // 2.3    Applying
 //------------------------------------------------------------------------------
@@ -227,11 +237,13 @@ bool   d_repair_stated(const struct d_dss_sheet* _sheet,
  * @return the number of lines added, removed or rewritten.
  * @post Every node measured from `_path` before the call is stale.
  */
-size_t d_repair_plan_apply(struct d_repair_plan* _plan,
-                           const char*           _path,
-                           const uint32_t*       _touched,
-                           size_t                _touched_count,
-                           size_t*               _refused);
+size_t d_repair_plan_apply(
+    struct dj_repair_plan* _plan,
+    const char*            _path,
+    const uint32_t*        _touched,
+    size_t                 _touched_count,
+    size_t*                _refused
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DREPAIR_H

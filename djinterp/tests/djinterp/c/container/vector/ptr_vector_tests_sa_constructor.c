@@ -12,7 +12,7 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -27,14 +27,12 @@ d_tests_sa_ptr_vector_new
   Tests the d_ptr_vector_new function for creating vectors with specified
   initial capacity.
 */
-bool
-d_tests_sa_ptr_vector_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -97,14 +95,12 @@ d_tests_sa_ptr_vector_new
 d_tests_sa_ptr_vector_new_default
   Tests the d_ptr_vector_new_default function.
 */
-bool
-d_tests_sa_ptr_vector_new_default
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_new_default(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -146,14 +142,12 @@ d_tests_sa_ptr_vector_new_default
 d_tests_sa_ptr_vector_new_from_array
   Tests the d_ptr_vector_new_from_array function.
 */
-bool
-d_tests_sa_ptr_vector_new_from_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_new_from_array(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                source[3];
 
     result = true;
@@ -237,14 +231,12 @@ d_tests_sa_ptr_vector_new_from_array
 d_tests_sa_ptr_vector_new_from_args
   Tests the d_ptr_vector_new_from_args function.
 */
-bool
-d_tests_sa_ptr_vector_new_from_args
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_new_from_args(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -306,15 +298,13 @@ d_tests_sa_ptr_vector_new_from_args
 d_tests_sa_ptr_vector_new_copy
   Tests the d_ptr_vector_new_copy function.
 */
-bool
-d_tests_sa_ptr_vector_new_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_new_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* original;
-    struct d_ptr_vector* copy;
+    struct dj_ptr_vector* original;
+    struct dj_ptr_vector* copy;
 
     result = true;
 
@@ -391,14 +381,12 @@ d_tests_sa_ptr_vector_new_copy
 d_tests_sa_ptr_vector_new_fill
   Tests the d_ptr_vector_new_fill function.
 */
-bool
-d_tests_sa_ptr_vector_new_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_new_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                fill_ptr;
     size_t               i;
     bool                 all_match;
@@ -491,17 +479,15 @@ d_tests_sa_ptr_vector_new_fill
 d_tests_sa_ptr_vector_new_merge
   Tests the d_ptr_vector_new_merge function.
 */
-bool
-d_tests_sa_ptr_vector_new_merge
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_new_merge(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec1;
-    struct d_ptr_vector* vec2;
-    struct d_ptr_vector* vec3;
-    struct d_ptr_vector* merged;
+    struct dj_ptr_vector* vec1;
+    struct dj_ptr_vector* vec2;
+    struct dj_ptr_vector* vec3;
+    struct dj_ptr_vector* merged;
 
     result = true;
 
@@ -574,10 +560,8 @@ d_tests_sa_ptr_vector_new_merge
 d_tests_sa_ptr_vector_constructor_all
   Aggregation function that runs all constructor tests.
 */
-bool
-d_tests_sa_ptr_vector_constructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_constructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

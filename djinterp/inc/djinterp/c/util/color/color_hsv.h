@@ -15,7 +15,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    d_color_hsv          (POD)
+I.    dj_color_hsv          (POD)
       --------------------------
 
 II.   d_color_hsv_make
@@ -46,9 +46,9 @@ IV.   d_color_hsv_clamp
 D_COLOR_NS_OPEN
 
 
-// d_color_hsv
+// dj_color_hsv
 //   POD: HSV color; h in [0, 360), s and v in [0, 1].
-struct d_color_hsv
+struct dj_color_hsv
 {
     float h;
     float s;
@@ -64,16 +64,16 @@ Parameter(s):
   _s: saturation in [0, 1].
   _v: value      in [0, 1].
 Return:
-  A d_color_hsv with the given channels.
+  A dj_color_hsv with the given channels.
 */
-D_COLOR_FN struct d_color_hsv
-d_color_hsv_make(
+D_COLOR_FN
+struct dj_color_hsv d_color_hsv_make(
     float _h,
     float _s,
     float _v
 )
 {
-    return D_COLOR_LITERAL(d_color_hsv, _h, _s, _v);
+    return D_COLOR_LITERAL(dj_color_hsv, _h, _s, _v);
 }
 
 /*
@@ -85,9 +85,9 @@ Parameter(s):
 Return:
   true if h in [0, 360) and s, v in [0, 1], false otherwise.
 */
-D_COLOR_FN bool
-d_color_hsv_is_valid(
-    struct d_color_hsv _hsv
+D_COLOR_FN
+bool d_color_hsv_is_valid(
+    struct dj_color_hsv _hsv
 )
 {
     return ( (_hsv.h >= 0.0f) && (_hsv.h < 360.0f) &&
@@ -102,11 +102,11 @@ d_color_hsv_clamp
 Parameter(s):
   _hsv: color to clamp.
 Return:
-  A canonicalized d_color_hsv.
+  A canonicalized dj_color_hsv.
 */
-D_COLOR_FN struct d_color_hsv
-d_color_hsv_clamp(
-    struct d_color_hsv _hsv
+D_COLOR_FN
+struct dj_color_hsv d_color_hsv_clamp(
+    struct dj_color_hsv _hsv
 )
 {
     float h = d_color_fmodf(_hsv.h, 360.0f);

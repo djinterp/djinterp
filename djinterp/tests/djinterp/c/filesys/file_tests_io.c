@@ -35,9 +35,8 @@
  * ISO C BACKEND: descriptor transfer is ENOSYS
  *****************************************************************************/
 
-static void
-d_fs_tests_io_desc_stdc
-(
+static
+void d_fs_tests_io_desc_stdc(
     dtest_suite* _suite
 )
 {
@@ -72,9 +71,8 @@ d_fs_tests_io_desc_stdc
  * IV.a  d_file_read_fd / d_file_write_fd round-trip
  *****************************************************************************/
 
-static void
-d_fs_tests_io_read_write
-(
+static
+void d_fs_tests_io_read_write(
     dtest_suite* _suite
 )
 {
@@ -183,9 +181,8 @@ d_fs_tests_io_read_write
  * IV.b  d_file_read_full_fd / d_file_write_full_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_io_full
-(
+static
+void d_fs_tests_io_full(
     dtest_suite* _suite
 )
 {
@@ -257,9 +254,8 @@ d_fs_tests_io_full
  * IV.c  d_file_pread_fd / d_file_pwrite_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_io_positional
-(
+static
+void d_fs_tests_io_positional(
     dtest_suite* _suite
 )
 {
@@ -384,9 +380,8 @@ d_fs_tests_io_positional
  * IV.d  d_file_read_all  (whole-file, any backend)
  *****************************************************************************/
 
-static void
-d_fs_tests_io_fread_all
-(
+static
+void d_fs_tests_io_fread_all(
     dtest_suite* _suite
 )
 {
@@ -451,9 +446,8 @@ d_fs_tests_io_fread_all
  * IV.e  d_file_read_all_stream  (whole-file, any backend)
  *****************************************************************************/
 
-static void
-d_fs_tests_io_fread_all_stream
-(
+static
+void d_fs_tests_io_fread_all_stream(
     dtest_suite* _suite
 )
 {
@@ -526,9 +520,8 @@ d_fs_tests_io_fread_all_stream
  * IV.f  d_file_read_all_into  (whole-file, any backend)
  *****************************************************************************/
 
-static void
-d_fs_tests_io_fread_all_into
-(
+static
+void d_fs_tests_io_fread_all_into(
     dtest_suite* _suite
 )
 {
@@ -582,9 +575,8 @@ d_fs_tests_io_fread_all_into
  * IV.g  d_file_write_all  (whole-file, any backend)
  *****************************************************************************/
 
-static void
-d_fs_tests_io_fwrite_all
-(
+static
+void d_fs_tests_io_fwrite_all(
     dtest_suite* _suite
 )
 {
@@ -676,9 +668,8 @@ d_fs_tests_io_fwrite_all
  * IV.h  d_file_append_all  (whole-file, any backend)
  *****************************************************************************/
 
-static void
-d_fs_tests_io_fappend_all
-(
+static
+void d_fs_tests_io_fappend_all(
     dtest_suite* _suite
 )
 {
@@ -737,9 +728,7 @@ d_fs_tests_io_fappend_all
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_io
-(
+void d_fs_tests_io(
     dtest_suite* _suite
 )
 {

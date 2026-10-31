@@ -1,0 +1,10 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\tests\djinterp\core\util\metadata\
+├── 📄 metadata_concepts_tests.hpp
+├── 📄 metadata_concepts_tests_agreement.cpp
+├── 📄 metadata_concepts_tests_constraints.cpp
+├── 📄 metadata_concepts_tests_detection.cpp
+├── 📄 metadata_traits_tests.hpp
+├── 📄 metadata_traits_tests_detection.cpp
+├── 📄 metadata_traits_tests_extraction.cpp
+├── 📄 metadata_traits_tests_mirrors.cpp
+└── 📄 metadata_traits_tests_protocol.cpp

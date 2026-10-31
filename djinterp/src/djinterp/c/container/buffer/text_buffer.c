@@ -25,15 +25,13 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new
-(
+struct dj_text_buffer* d_text_buffer_new(
     size_t _initial_capacity
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
-    buffer = malloc(sizeof(struct d_text_buffer));
+    buffer = malloc(sizeof(struct dj_text_buffer));
 
     if (!buffer)
     {
@@ -71,11 +69,7 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_default_capacity
-(
-    void
-)
+struct dj_text_buffer* d_text_buffer_new_default_capacity(void)
 {
     return d_text_buffer_new(D_BUFFER_DEFAULT_CAPACITY);
 }
@@ -89,13 +83,11 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_from_string
-(
+struct dj_text_buffer* d_text_buffer_new_from_string(
     const char* _string
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     size_t                len;
 
     if (!_string)
@@ -125,9 +117,7 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_from_string_n
-(
+struct dj_text_buffer* d_text_buffer_new_from_string_n(
     const char* _string,
     size_t      _length
 )
@@ -151,14 +141,12 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_from_strings
-(
+struct dj_text_buffer* d_text_buffer_new_from_strings(
     size_t _count,
     ...
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     va_list               args;
     size_t                total_length;
     const char*           cur;
@@ -218,14 +206,12 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_from_buffer
-(
+struct dj_text_buffer* d_text_buffer_new_from_buffer(
     const char* _buffer,
     size_t      _length
 )
 {
-    struct d_text_buffer* text_buffer;
+    struct dj_text_buffer* text_buffer;
 
     if ( (!_buffer) ||
          (_length == 0) )
@@ -254,13 +240,11 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_copy
-(
-    const struct d_text_buffer* _other
+struct dj_text_buffer* d_text_buffer_new_copy(
+    const struct dj_text_buffer* _other
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     if (!_other)
     {
@@ -295,15 +279,13 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_copy_range
-(
-    const struct d_text_buffer* _other,
-    d_index                     _start,
-    d_index                     _end
+struct dj_text_buffer* d_text_buffer_new_copy_range(
+    const struct dj_text_buffer* _other,
+    dj_index                     _start,
+    dj_index                     _end
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     size_t                start_pos;
     size_t                end_pos;
     size_t                range_length;
@@ -344,14 +326,12 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_fill
-(
+struct dj_text_buffer* d_text_buffer_new_fill(
     size_t _length,
     char   _fill_char
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     if (_length == 0)
     {
@@ -380,14 +360,12 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_new_formatted
-(
+struct dj_text_buffer* d_text_buffer_new_formatted(
     const char* _format,
     ...
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     va_list               args;
     va_list               args_copy;
     int                   required_size;
@@ -435,11 +413,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_ensure_capacity
-(
-    struct d_text_buffer* _buffer,
-    size_t                _required_capacity
+bool d_text_buffer_ensure_capacity(
+    struct dj_text_buffer* _buffer,
+    size_t                 _required_capacity
 )
 {
     char*  new_data;
@@ -487,10 +463,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_resize_to_fit
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_resize_to_fit(
+    struct dj_text_buffer* _buffer
 )
 {
     char*  new_data;
@@ -539,11 +513,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_reserve
-(
-    struct d_text_buffer* _buffer,
-    size_t                _additional_capacity
+bool d_text_buffer_reserve(
+    struct dj_text_buffer* _buffer,
+    size_t                 _additional_capacity
 )
 {
     if (!_buffer)
@@ -574,11 +546,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_string
-(
-    struct d_text_buffer* _buffer,
-    const char*           _string
+bool d_text_buffer_append_string(
+    struct dj_text_buffer* _buffer,
+    const char*            _string
 )
 {
     size_t len;
@@ -619,12 +589,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_string_n
-(
-    struct d_text_buffer* _buffer,
-    const char*           _string,
-    size_t                _length
+bool d_text_buffer_append_string_n(
+    struct dj_text_buffer* _buffer,
+    const char*            _string,
+    size_t                 _length
 )
 {
     if ( (!_buffer)     ||
@@ -655,12 +623,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_buffer
-(
-    struct d_text_buffer* _buffer,
-    const char*           _data,
-    size_t                _length
+bool d_text_buffer_append_buffer(
+    struct dj_text_buffer* _buffer,
+    const char*            _data,
+    size_t                 _length
 )
 {
     if ( (!_buffer)     ||
@@ -689,11 +655,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_char
-(
-    struct d_text_buffer* _buffer,
-    char                  _character
+bool d_text_buffer_append_char(
+    struct dj_text_buffer* _buffer,
+    char                   _character
 )
 {
     if ( (!_buffer) ||
@@ -719,12 +683,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_chars
-(
-    struct d_text_buffer* _buffer,
-    char                  _character,
-    size_t                _count
+bool d_text_buffer_append_chars(
+    struct dj_text_buffer* _buffer,
+    char                   _character,
+    size_t                 _count
 )
 {
     if ( (!_buffer)    ||
@@ -752,11 +714,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_formatted
-(
-    struct d_text_buffer* _buffer,
-    const char*           _format,
+bool d_text_buffer_append_formatted(
+    struct dj_text_buffer* _buffer,
+    const char*            _format,
     ...
 )
 {
@@ -809,11 +769,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_buffer_obj
-(
-    struct d_text_buffer*       _destination,
-    const struct d_text_buffer* _source
+bool d_text_buffer_append_buffer_obj(
+    struct dj_text_buffer*       _destination,
+    const struct dj_text_buffer* _source
 )
 {
     if ( (!_destination) ||
@@ -838,11 +796,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_prepend_string
-(
-    struct d_text_buffer* _buffer,
-    const char*           _string
+bool d_text_buffer_prepend_string(
+    struct dj_text_buffer* _buffer,
+    const char*            _string
 )
 {
     size_t len;
@@ -886,12 +842,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_prepend_buffer
-(
-    struct d_text_buffer* _buffer,
-    const char*           _data,
-    size_t                _length
+bool d_text_buffer_prepend_buffer(
+    struct dj_text_buffer* _buffer,
+    const char*            _data,
+    size_t                 _length
 )
 {
     if ( (!_buffer)     ||
@@ -926,11 +880,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_prepend_char
-(
-    struct d_text_buffer* _buffer,
-    char                  _character
+bool d_text_buffer_prepend_char(
+    struct dj_text_buffer* _buffer,
+    char                   _character
 )
 {
     if ( (!_buffer) ||
@@ -961,12 +913,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_insert_string
-(
-    struct d_text_buffer* _buffer,
-    d_index               _index,
-    const char*           _string
+bool d_text_buffer_insert_string(
+    struct dj_text_buffer* _buffer,
+    dj_index               _index,
+    const char*            _string
 )
 {
     size_t insert_pos;
@@ -1020,13 +970,11 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_insert_buffer
-(
-    struct d_text_buffer* _buffer,
-    d_index               _index,
-    const char*           _data,
-    size_t                _length
+bool d_text_buffer_insert_buffer(
+    struct dj_text_buffer* _buffer,
+    dj_index               _index,
+    const char*            _data,
+    size_t                 _length
 )
 {
     size_t insert_pos;
@@ -1073,12 +1021,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_insert_char
-(
-    struct d_text_buffer* _buffer,
-    d_index               _index,
-    char                  _character
+bool d_text_buffer_insert_char(
+    struct dj_text_buffer* _buffer,
+    dj_index               _index,
+    char                   _character
 )
 {
     size_t insert_pos;
@@ -1127,12 +1073,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_string_chunked
-(
-    struct d_text_buffer* _buffer,
-    const char*           _string,
-    size_t                _chunk_capacity
+bool d_text_buffer_append_string_chunked(
+    struct dj_text_buffer* _buffer,
+    const char*            _string,
+    size_t                 _chunk_capacity
 )
 {
     size_t len;
@@ -1168,13 +1112,11 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_buffer_chunked
-(
-    struct d_text_buffer* _buffer,
-    const char*           _data,
-    size_t                _length,
-    size_t                _chunk_capacity
+bool d_text_buffer_append_buffer_chunked(
+    struct dj_text_buffer* _buffer,
+    const char*            _data,
+    size_t                 _length,
+    size_t                 _chunk_capacity
 )
 {
     if ( (!_buffer) ||
@@ -1202,12 +1144,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_char_chunked
-(
-    struct d_text_buffer* _buffer,
-    char                  _character,
-    size_t                _chunk_capacity
+bool d_text_buffer_append_char_chunked(
+    struct dj_text_buffer* _buffer,
+    char                   _character,
+    size_t                 _chunk_capacity
 )
 {
     return (_buffer)
@@ -1230,12 +1170,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_append_formatted_chunked
-(
-    struct d_text_buffer* _buffer,
-    size_t                _chunk_capacity,
-    const char*           _format,
+bool d_text_buffer_append_formatted_chunked(
+    struct dj_text_buffer* _buffer,
+    size_t                 _chunk_capacity,
+    const char*            _format,
     ...
 )
 {
@@ -1292,15 +1230,13 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_consolidate
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_consolidate(
+    struct dj_text_buffer* _buffer
 )
 {
     size_t total;
     char* dst;
-    struct d_buffer_chunk* cur;
+    struct dj_buffer_chunk* cur;
 
     if (!_buffer)
     {
@@ -1351,10 +1287,8 @@ Parameter(s):
 Return:
   The number of characters in the text buffer.
 */
-size_t
-d_text_buffer_total_length
-(
-    const struct d_text_buffer* _buffer
+size_t d_text_buffer_total_length(
+    const struct dj_text_buffer* _buffer
 )
 {
     return (_buffer)
@@ -1371,10 +1305,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_has_chunks
-(
-    const struct d_text_buffer* _buffer
+bool d_text_buffer_has_chunks(
+    const struct dj_text_buffer* _buffer
 )
 {
     return (_buffer)
@@ -1396,11 +1328,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_set_string
-(
-    struct d_text_buffer* _buffer,
-    const char*           _string
+bool d_text_buffer_set_string(
+    struct dj_text_buffer* _buffer,
+    const char*            _string
 )
 {
     size_t len;
@@ -1435,12 +1365,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_set_buffer
-(
-    struct d_text_buffer* _buffer,
-    const char*           _data,
-    size_t                _length
+bool d_text_buffer_set_buffer(
+    struct dj_text_buffer* _buffer,
+    const char*            _data,
+    size_t                 _length
 )
 {
     if ( (!_buffer)     ||
@@ -1468,11 +1396,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_set_formatted
-(
-    struct d_text_buffer* _buffer,
-    const char*           _format,
+bool d_text_buffer_set_formatted(
+    struct dj_text_buffer* _buffer,
+    const char*            _format,
     ...
 )
 {
@@ -1522,12 +1448,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_replace_char
-(
-    struct d_text_buffer* _buffer,
-    char                  _old_char,
-    char                  _new_char
+bool d_text_buffer_replace_char(
+    struct dj_text_buffer* _buffer,
+    char                   _old_char,
+    char                   _new_char
 )
 {
     char*       p;
@@ -1566,12 +1490,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_replace_string
-(
-    struct d_text_buffer* _buffer,
-    const char*           _old_string,
-    const char*           _new_string
+bool d_text_buffer_replace_string(
+    struct dj_text_buffer* _buffer,
+    const char*            _old_string,
+    const char*            _new_string
 )
 {
     char*  temp;
@@ -1671,13 +1593,11 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_replace_range
-(
-    struct d_text_buffer* _buffer,
-    d_index               _start,
-    d_index               _end,
-    const char*           _replacement
+bool d_text_buffer_replace_range(
+    struct dj_text_buffer* _buffer,
+    dj_index               _start,
+    dj_index               _end,
+    const char*            _replacement
 )
 {
     size_t start_pos;
@@ -1734,11 +1654,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_remove_char
-(
-    struct d_text_buffer* _buffer,
-    d_index               _index
+bool d_text_buffer_remove_char(
+    struct dj_text_buffer* _buffer,
+    dj_index               _index
 )
 {
     size_t pos;
@@ -1781,12 +1699,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_remove_range
-(
-    struct d_text_buffer* _buffer,
-    d_index               _start,
-    d_index               _end
+bool d_text_buffer_remove_range(
+    struct dj_text_buffer* _buffer,
+    dj_index               _start,
+    dj_index               _end
 )
 {
     size_t start_pos;
@@ -1834,11 +1750,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_consume_front
-(
-    struct d_text_buffer* _buffer,
-    size_t                _amount
+bool d_text_buffer_consume_front(
+    struct dj_text_buffer* _buffer,
+    size_t                 _amount
 )
 {
     if ( (!_buffer) ||
@@ -1877,11 +1791,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_consume_back
-(
-    struct d_text_buffer* _buffer,
-    size_t                _amount
+bool d_text_buffer_consume_back(
+    struct dj_text_buffer* _buffer,
+    size_t                 _amount
 )
 {
     if ( (!_buffer) ||
@@ -1920,11 +1832,9 @@ Parameter(s):
 Return:
   The character at the requested index, or '\0' on failure.
 */
-char
-d_text_buffer_get_char
-(
-    const struct d_text_buffer* _buffer,
-    d_index                     _index
+char d_text_buffer_get_char(
+    const struct dj_text_buffer* _buffer,
+    dj_index                     _index
 )
 {
     size_t pos;
@@ -1957,12 +1867,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_set_char
-(
-    struct d_text_buffer* _buffer,
-    d_index               _index,
-    char                  _character
+bool d_text_buffer_set_char(
+    struct dj_text_buffer* _buffer,
+    dj_index               _index,
+    char                   _character
 )
 {
     size_t pos;
@@ -1995,10 +1903,8 @@ Parameter(s):
 Return:
   A pointer to the internal null-terminated string, or NULL on failure.
 */
-char*
-d_text_buffer_get_string
-(
-    const struct d_text_buffer* _buffer
+char* d_text_buffer_get_string(
+    const struct dj_text_buffer* _buffer
 )
 {
     return ( (_buffer) &&
@@ -2019,12 +1925,10 @@ Return:
   A newly allocated null-terminated string for the requested range, or NULL on
   failure.
 */
-char*
-d_text_buffer_get_range_string
-(
-    const struct d_text_buffer* _buffer,
-    d_index                     _start,
-    d_index                     _end
+char* d_text_buffer_get_range_string(
+    const struct dj_text_buffer* _buffer,
+    dj_index                     _start,
+    dj_index                     _end
 )
 {
     size_t start_pos;
@@ -2077,11 +1981,9 @@ Parameter(s):
 Return:
   The zero-based index of the match, or -1 if not found.
 */
-ssize_t
-d_text_buffer_find_char
-(
-    const struct d_text_buffer* _buffer,
-    char                        _character
+ssize_t d_text_buffer_find_char(
+    const struct dj_text_buffer* _buffer,
+    char                         _character
 )
 {
     if ( (!_buffer) ||
@@ -2114,12 +2016,10 @@ Parameter(s):
 Return:
   The zero-based index of the match, or -1 if not found.
 */
-ssize_t
-d_text_buffer_find_char_from
-(
-    const struct d_text_buffer* _buffer,
-    char                        _character,
-    d_index                     _start
+ssize_t d_text_buffer_find_char_from(
+    const struct dj_text_buffer* _buffer,
+    char                         _character,
+    dj_index                     _start
 )
 {
     size_t start_pos;
@@ -2159,11 +2059,9 @@ Parameter(s):
 Return:
   The zero-based index of the match, or -1 if not found.
 */
-ssize_t
-d_text_buffer_find_string
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _string
+ssize_t d_text_buffer_find_string(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _string
 )
 {
     char* fp;
@@ -2196,12 +2094,10 @@ Parameter(s):
 Return:
   The zero-based index of the match, or -1 if not found.
 */
-ssize_t
-d_text_buffer_find_string_from
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _string,
-    d_index                     _start
+ssize_t d_text_buffer_find_string_from(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _string,
+    dj_index                     _start
 )
 {
     size_t start_pos;
@@ -2241,11 +2137,9 @@ Parameter(s):
 Return:
   The zero-based index of the match, or -1 if not found.
 */
-ssize_t
-d_text_buffer_find_last_char
-(
-    const struct d_text_buffer* _buffer,
-    char                        _character
+ssize_t d_text_buffer_find_last_char(
+    const struct dj_text_buffer* _buffer,
+    char                         _character
 )
 {
     if ( (!_buffer)       ||
@@ -2279,11 +2173,9 @@ Parameter(s):
 Return:
   The zero-based index of the match, or -1 if not found.
 */
-ssize_t
-d_text_buffer_find_last_string
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _string
+ssize_t d_text_buffer_find_last_string(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _string
 )
 {
     char*  fp;
@@ -2331,11 +2223,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_contains_char
-(
-    const struct d_text_buffer* _buffer,
-    char                        _character
+bool d_text_buffer_contains_char(
+    const struct dj_text_buffer* _buffer,
+    char                         _character
 )
 {
     return d_text_buffer_find_char(_buffer, _character) != -1;
@@ -2351,11 +2241,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_contains_string
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _string
+bool d_text_buffer_contains_string(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _string
 )
 {
     return d_text_buffer_find_string(_buffer, _string) != -1;
@@ -2371,11 +2259,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_starts_with
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _prefix
+bool d_text_buffer_starts_with(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _prefix
 )
 {
     size_t plen;
@@ -2407,11 +2293,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_ends_with
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _suffix
+bool d_text_buffer_ends_with(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _suffix
 )
 {
     size_t slen;
@@ -2443,11 +2327,9 @@ Parameter(s):
 Return:
   A size value result.
 */
-size_t
-d_text_buffer_count_char
-(
-    const struct d_text_buffer* _buffer,
-    char                        _character
+size_t d_text_buffer_count_char(
+    const struct dj_text_buffer* _buffer,
+    char                         _character
 )
 {
     size_t      count;
@@ -2489,11 +2371,9 @@ Parameter(s):
 Return:
   A size value result.
 */
-size_t
-d_text_buffer_count_string
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _string
+size_t d_text_buffer_count_string(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _string
 )
 {
     size_t slen;
@@ -2541,11 +2421,9 @@ Parameter(s):
 Return:
   A comparison result: negative, zero, or positive.
 */
-int
-d_text_buffer_compare
-(
-    const struct d_text_buffer* _buffer1,
-    const struct d_text_buffer* _buffer2
+int d_text_buffer_compare(
+    const struct dj_text_buffer* _buffer1,
+    const struct dj_text_buffer* _buffer2
 )
 {
     if ( (!_buffer1) &&
@@ -2593,11 +2471,9 @@ Parameter(s):
 Return:
   A comparison result: negative, zero, or positive.
 */
-int
-d_text_buffer_compare_string
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _string
+int d_text_buffer_compare_string(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _string
 )
 {
     if ( (!_buffer) &&
@@ -2635,12 +2511,10 @@ Parameter(s):
 Return:
   A comparison result: negative, zero, or positive.
 */
-int
-d_text_buffer_compare_n
-(
-    const struct d_text_buffer* _buffer1,
-    const struct d_text_buffer* _buffer2,
-    size_t                      _n
+int d_text_buffer_compare_n(
+    const struct dj_text_buffer* _buffer1,
+    const struct dj_text_buffer* _buffer2,
+    size_t                       _n
 )
 {
     if ( (!_buffer1) &&
@@ -2688,11 +2562,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_equals
-(
-    const struct d_text_buffer* _buffer1,
-    const struct d_text_buffer* _buffer2
+bool d_text_buffer_equals(
+    const struct dj_text_buffer* _buffer1,
+    const struct dj_text_buffer* _buffer2
 )
 {
     // fast path: length mismatch
@@ -2716,11 +2588,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_equals_string
-(
-    const struct d_text_buffer* _buffer,
-    const char*                 _string
+bool d_text_buffer_equals_string(
+    const struct dj_text_buffer* _buffer,
+    const char*                  _string
 )
 {
     return (d_text_buffer_compare_string(_buffer, _string) == 0);
@@ -2739,10 +2609,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_trim_whitespace
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_trim_whitespace(
+    struct dj_text_buffer* _buffer
 )
 {
     size_t start;
@@ -2806,10 +2674,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_trim_front
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_trim_front(
+    struct dj_text_buffer* _buffer
 )
 {
     size_t start;
@@ -2861,10 +2727,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_trim_back
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_trim_back(
+    struct dj_text_buffer* _buffer
 )
 {
     size_t end;
@@ -2903,11 +2767,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_trim_chars
-(
-    struct d_text_buffer* _buffer,
-    const char*           _chars
+bool d_text_buffer_trim_chars(
+    struct dj_text_buffer* _buffer,
+    const char*            _chars
 )
 {
     size_t start;
@@ -2970,10 +2832,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_to_upper
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_to_upper(
+    struct dj_text_buffer* _buffer
 )
 {
     char*       p;
@@ -3005,10 +2865,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_to_lower
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_to_lower(
+    struct dj_text_buffer* _buffer
 )
 {
     char*       p;
@@ -3040,10 +2898,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_reverse
-(
-    struct d_text_buffer* _buffer
+bool d_text_buffer_reverse(
+    struct dj_text_buffer* _buffer
 )
 {
     char* lo;
@@ -3084,12 +2940,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_pad_left
-(
-    struct d_text_buffer* _buffer,
-    size_t                _width,
-    char                  _pad_char
+bool d_text_buffer_pad_left(
+    struct dj_text_buffer* _buffer,
+    size_t                 _width,
+    char                   _pad_char
 )
 {
     size_t pad;
@@ -3128,12 +2982,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_pad_right
-(
-    struct d_text_buffer* _buffer,
-    size_t                _width,
-    char                  _pad_char
+bool d_text_buffer_pad_right(
+    struct dj_text_buffer* _buffer,
+    size_t                 _width,
+    char                   _pad_char
 )
 {
     size_t pad;
@@ -3175,17 +3027,15 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_filter
-(
-    const struct d_text_buffer*  _buffer,
-    const struct d_filter_chain* _chain
+struct dj_text_buffer* d_text_buffer_filter(
+    const struct dj_text_buffer*  _buffer,
+    const struct dj_filter_chain* _chain
 )
 {
     void*  out_data  = NULL;
     size_t out_count = 0;
 
-    struct d_text_buffer* result;
+    struct dj_text_buffer* result;
 
     if ( (!_buffer)       ||
          (!_buffer->data) ||
@@ -3233,11 +3083,9 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_filter_in_place
-(
-    struct d_text_buffer*        _buffer,
-    const struct d_filter_chain* _chain
+bool d_text_buffer_filter_in_place(
+    struct dj_text_buffer*        _buffer,
+    const struct dj_filter_chain* _chain
 )
 {
     if ( (!_buffer)       ||
@@ -3269,13 +3117,11 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_filter_indices
-(
-    const struct d_text_buffer*  _buffer,
-    const struct d_filter_chain* _chain,
-    d_index**                    _out_indices,
-    size_t*                      _out_count
+bool d_text_buffer_filter_indices(
+    const struct dj_text_buffer*  _buffer,
+    const struct dj_filter_chain* _chain,
+    dj_index**                    _out_indices,
+    size_t*                       _out_count
 )
 {
     return ( (_buffer)       &&
@@ -3300,11 +3146,9 @@ Parameter(s):
 Return:
   A size value result.
 */
-size_t
-d_text_buffer_count_matching
-(
-    const struct d_text_buffer*  _buffer,
-    const struct d_filter_chain* _chain
+size_t d_text_buffer_count_matching(
+    const struct dj_text_buffer*  _buffer,
+    const struct dj_filter_chain* _chain
 )
 {
     return ( (_buffer)       &&
@@ -3328,17 +3172,15 @@ Parameter(s):
 Return:
   A newly allocated text buffer, or NULL on failure.
 */
-struct d_text_buffer*
-d_text_buffer_filter_chunked
-(
-    const struct d_text_buffer*  _buffer,
-    const struct d_filter_chain* _chain
+struct dj_text_buffer* d_text_buffer_filter_chunked(
+    const struct dj_text_buffer*  _buffer,
+    const struct dj_filter_chain* _chain
 )
 {
     void*  out_data  = NULL;
     size_t out_count = 0;
 
-    struct d_text_buffer* result;
+    struct dj_text_buffer* result;
 
     if ( (!_buffer) ||
          (!_chain)  ||
@@ -3388,10 +3230,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_text_buffer_clear
-(
-    struct d_text_buffer* _buffer
+void d_text_buffer_clear(
+    struct dj_text_buffer* _buffer
 )
 {
     if ( (_buffer) &&
@@ -3413,10 +3253,8 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_is_empty
-(
-    const struct d_text_buffer* _buffer
+bool d_text_buffer_is_empty(
+    const struct dj_text_buffer* _buffer
 )
 {
     if ( (!_buffer)       ||
@@ -3438,10 +3276,8 @@ Parameter(s):
 Return:
   The number of characters in the text buffer.
 */
-size_t
-d_text_buffer_length
-(
-    const struct d_text_buffer* _buffer
+size_t d_text_buffer_length(
+    const struct dj_text_buffer* _buffer
 )
 {
     return _buffer
@@ -3458,10 +3294,8 @@ Parameter(s):
 Return:
   The capacity of the text buffer in characters.
 */
-size_t
-d_text_buffer_capacity
-(
-    const struct d_text_buffer* _buffer
+size_t d_text_buffer_capacity(
+    const struct dj_text_buffer* _buffer
 )
 {
     return _buffer
@@ -3478,10 +3312,8 @@ Parameter(s):
 Return:
   The utilization ratio (count divided by capacity).
 */
-double
-d_text_buffer_utilization
-(
-    const struct d_text_buffer* _buffer
+double d_text_buffer_utilization(
+    const struct dj_text_buffer* _buffer
 )
 {
     return ( (_buffer) &&
@@ -3499,10 +3331,8 @@ Parameter(s):
 Return:
   A hash value for the buffer contents.
 */
-size_t
-d_text_buffer_hash
-(
-    const struct d_text_buffer* _buffer
+size_t d_text_buffer_hash(
+    const struct dj_text_buffer* _buffer
 )
 {
     size_t hash;
@@ -3540,10 +3370,8 @@ Parameter(s):
 Return:
   A newly allocated null-terminated string, or NULL on failure.
 */
-char*
-d_text_buffer_to_cstring
-(
-    const struct d_text_buffer* _buffer
+char* d_text_buffer_to_cstring(
+    const struct dj_text_buffer* _buffer
 )
 {
     char* result;
@@ -3580,12 +3408,10 @@ Parameter(s):
 Return:
   A boolean value indicating success.
 */
-bool
-d_text_buffer_copy_to_buffer
-(
-    const struct d_text_buffer* _source,
-    char*                       _destination,
-    size_t                      _destination_size
+bool d_text_buffer_copy_to_buffer(
+    const struct dj_text_buffer* _source,
+    char*                        _destination,
+    size_t                       _destination_size
 )
 {
     if ( (!_source)               ||
@@ -3615,13 +3441,11 @@ Parameter(s):
 Return:
   The number of characters copied.
 */
-size_t
-d_text_buffer_copy_to_buffer_n
-(
-    const struct d_text_buffer* _source,
-    char*                       _destination,
-    size_t                      _destination_size,
-    size_t                      _max_chars
+size_t d_text_buffer_copy_to_buffer_n(
+    const struct dj_text_buffer* _source,
+    char*                        _destination,
+    size_t                       _destination_size,
+    size_t                       _max_chars
 )
 {
     size_t copy_count;
@@ -3653,17 +3477,15 @@ d_text_buffer_copy_to_buffer_n
 
 /*
 d_text_buffer_to_d_string
-  Creates a newly allocated d_string from a text buffer.
+  Creates a newly allocated dj_string from a text buffer.
 
 Parameter(s):
   _buffer: the text buffer to operate on; must not be NULL.
 Return:
-  A newly allocated d_string, or NULL on failure.
+  A newly allocated dj_string, or NULL on failure.
 */
-struct d_string*
-d_text_buffer_to_d_string
-(
-    const struct d_text_buffer* _buffer
+struct dj_string* d_text_buffer_to_d_string(
+    const struct dj_text_buffer* _buffer
 )
 {
     return ( (_buffer) &&
@@ -3685,10 +3507,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_text_buffer_free
-(
-    struct d_text_buffer* _buffer
+void d_text_buffer_free(
+    struct dj_text_buffer* _buffer
 )
 {
     if (!_buffer)

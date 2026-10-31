@@ -16,7 +16,7 @@
 #include <string.h>
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -37,10 +37,8 @@ d_tests_sa_env_posix_version_constants
   - D_ENV_POSIX_VERSION_2024 equals official value 202405L
   - constants are in strictly ascending chronological order
 */
-bool
-d_tests_sa_env_posix_version_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_version_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -225,10 +223,8 @@ d_tests_sa_env_posix_c_source_constants
   - D_ENV_POSIX_C_SOURCE_200809L equals 200809L (POSIX.1-2008)
   - constants are in ascending order
 */
-bool
-d_tests_sa_env_posix_c_source_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_c_source_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -341,10 +337,8 @@ d_tests_sa_env_posix_xsi_version_constants
   - D_ENV_POSIX_XSI_VERSION_700 equals 700L (SUSv4/Unix 08)
   - constants are in ascending order
 */
-bool
-d_tests_sa_env_posix_xsi_version_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_xsi_version_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -449,10 +443,8 @@ d_tests_sa_env_posix_version_detection
   - exactly one version flag is defined (2024, 2017, 2008, etc. or NONE/LIKELY)
   - version and name are consistent
 */
-bool
-d_tests_sa_env_posix_version_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_version_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -632,10 +624,8 @@ d_tests_sa_env_posix_version_name_consistency
   - D_ENV_POSIX_NAME matches the detected version
   - edge cases like NONE and LIKELY have version 0
 */
-bool
-d_tests_sa_env_posix_version_name_consistency
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_version_name_consistency(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -773,10 +763,8 @@ d_tests_sa_env_posix_xsi_detection
   - exactly one XSI flag is defined (700, 600, 500, etc. or NONE)
   - version and name are consistent
 */
-bool
-d_tests_sa_env_posix_xsi_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_xsi_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -947,10 +935,8 @@ d_tests_sa_env_posix_feature_macros
   - D_ENV_POSIX_FEATURE_MEMORY_MAPPING is defined as 0 or 1
   - all feature macros are boolean (exactly 0 or 1)
 */
-bool
-d_tests_sa_env_posix_feature_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_feature_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1173,10 +1159,8 @@ d_tests_sa_env_posix_utility_is_available
   - D_ENV_XSI_IS_AVAILABLE is defined
   - evaluates to 0 when XSI_NONE, 1 otherwise
 */
-bool
-d_tests_sa_env_posix_utility_is_available
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_utility_is_available(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1324,10 +1308,8 @@ d_tests_sa_env_posix_utility_is_modern
   - evaluates to 1 when version >= 2001, 0 otherwise
   - correctly identifies pre-2001 vs modern POSIX
 */
-bool
-d_tests_sa_env_posix_utility_is_modern
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_utility_is_modern(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1436,10 +1418,8 @@ d_tests_sa_env_posix_utility_version_at_least
   - boundary conditions work correctly
   - macros are usable in #if directives
 */
-bool
-d_tests_sa_env_posix_utility_version_at_least
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_utility_version_at_least(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1588,10 +1568,8 @@ d_tests_sa_env_posix_utility_has_feature
   - can be used with all feature macros
   - usable in boolean context
 */
-bool
-d_tests_sa_env_posix_utility_has_feature
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_utility_has_feature(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1682,10 +1660,8 @@ d_tests_sa_env_posix_manual_detection
   - correct mapping when manual mode is active
   - feature detection variables work in manual mode
 */
-bool
-d_tests_sa_env_posix_manual_detection
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_manual_detection(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1848,10 +1824,8 @@ d_tests_sa_env_posix_consistency_check
   - XSI detection is consistent with POSIX detection
   - no contradictory states
 */
-bool
-d_tests_sa_env_posix_consistency_check
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_consistency_check(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1984,10 +1958,8 @@ d_tests_sa_env_posix_feature_test_patterns
   - common POSIX feature gate patterns work
   - combination of version and feature checks
 */
-bool
-d_tests_sa_env_posix_feature_test_patterns
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_feature_test_patterns(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -2096,13 +2068,11 @@ d_tests_sa_env_posix_all
   - manual detection
   - consistency and patterns
 */
-bool
-d_tests_sa_env_posix_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_posix_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool version_constants_result;
     bool c_source_constants_result;
     bool xsi_constants_result;
@@ -2124,7 +2094,7 @@ d_tests_sa_env_posix_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing POSIX Standards Detection\n");
     printf("========================================="

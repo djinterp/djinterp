@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./predicate_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,10 +21,8 @@ d_tests_sa_predicate_run_all
   - Utility predicates (is_null, is_not_null)
   - Compound literal macros (D_PREDICATE_* variants)
 */
-bool
-d_tests_sa_predicate_run_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_predicate_run_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

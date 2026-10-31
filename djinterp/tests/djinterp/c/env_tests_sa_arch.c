@@ -14,7 +14,7 @@
 
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -39,10 +39,8 @@ d_tests_sa_env_arch_type_constants
   - D_ENV_ARCH_TYPE_UNKNOWN equals 11
   - all constants are unique
 */
-bool
-d_tests_sa_env_arch_type_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_type_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -239,10 +237,8 @@ d_tests_sa_env_arch_endian_constants
   - D_ENV_ARCH_ENDIAN_BIG equals 2
   - all constants are unique
 */
-bool
-d_tests_sa_env_arch_endian_constants
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_endian_constants(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -330,10 +326,8 @@ d_tests_sa_env_arch_detection_macros
   - D_ENV_ARCH_BITS is defined
   - D_ENV_ARCH_ENDIAN is defined
 */
-bool
-d_tests_sa_env_arch_detection_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_detection_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -533,10 +527,8 @@ d_tests_sa_env_arch_property_values
   - D_ENV_ARCH_ENDIAN is within valid range (0-2)
   - architecture type matches detected architecture
 */
-bool
-d_tests_sa_env_arch_property_values
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_property_values(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -732,13 +724,11 @@ d_tests_sa_env_arch_detection_all
   - architecture detection macros are defined
   - architecture property values are valid
 */
-bool
-d_tests_sa_env_arch_detection_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_detection_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool macros_result;
     bool properties_result;
     bool overall_result;
@@ -748,7 +738,7 @@ d_tests_sa_env_arch_detection_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing Architecture Detection\n");
     printf("----------------------------------------"
@@ -796,10 +786,8 @@ d_tests_sa_env_arch_family_macros
   - x86 and x64 are correctly classified as x86 family
   - ARM and ARM64 are correctly classified as ARM family
 */
-bool
-d_tests_sa_env_arch_family_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_family_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -951,10 +939,8 @@ d_tests_sa_env_arch_bitwidth_macros
   - macros correctly reflect D_ENV_ARCH_BITS value
   - at most one bit width is active
 */
-bool
-d_tests_sa_env_arch_bitwidth_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_bitwidth_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1125,10 +1111,8 @@ d_tests_sa_env_arch_endianness_macros
   - macros correctly reflect D_ENV_ARCH_ENDIAN value
   - at most one endianness is active
 */
-bool
-d_tests_sa_env_arch_endianness_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_endianness_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1292,13 +1276,11 @@ d_tests_sa_env_arch_utility_macros_all
   - bit width macros
   - endianness macros
 */
-bool
-d_tests_sa_env_arch_utility_macros_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_utility_macros_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter subsection_counter;
+    struct dj_test_counter subsection_counter;
     bool family_result;
     bool bitwidth_result;
     bool endianness_result;
@@ -1309,7 +1291,7 @@ d_tests_sa_env_arch_utility_macros_all
         return false;
     }
 
-    subsection_counter = (struct d_test_counter){0, 0, 0, 0};
+    subsection_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[SUBSECTION] Testing Architecture Utility Macros\n");
     printf("----------------------------------------"
@@ -1358,10 +1340,8 @@ d_tests_sa_env_arch_consistency_check
   - 32-bit variants have correct bit width
   - 64-bit variants have correct bit width
 */
-bool
-d_tests_sa_env_arch_consistency_check
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_consistency_check(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1583,13 +1563,11 @@ d_tests_sa_env_arch_all
   - architecture utility macros
   - architecture consistency
 */
-bool
-d_tests_sa_env_arch_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_arch_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool type_constants_result;
     bool endian_constants_result;
     bool detection_result;
@@ -1602,7 +1580,7 @@ d_tests_sa_env_arch_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing Architecture Detection\n");
     printf("========================================="

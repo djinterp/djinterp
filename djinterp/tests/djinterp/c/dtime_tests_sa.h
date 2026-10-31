@@ -78,11 +78,11 @@ bool d_tests_sa_dtime_teardown(void);
  *****************************************************************************/
 
 // III. thread-safe time conversion tests
-struct d_test_object* d_tests_sa_dtime_localtime(void);
-struct d_test_object* d_tests_sa_dtime_gmtime(void);
-struct d_test_object* d_tests_sa_dtime_ctime(void);
-struct d_test_object* d_tests_sa_dtime_asctime(void);
-struct d_test_object* d_tests_sa_dtime_thread_safe_conversion_all(void);
+struct dj_test_object* d_tests_sa_dtime_localtime(void);
+struct dj_test_object* d_tests_sa_dtime_gmtime(void);
+struct dj_test_object* d_tests_sa_dtime_ctime(void);
+struct dj_test_object* d_tests_sa_dtime_asctime(void);
+struct dj_test_object* d_tests_sa_dtime_thread_safe_conversion_all(void);
 
 
 /******************************************************************************
@@ -90,10 +90,10 @@ struct d_test_object* d_tests_sa_dtime_thread_safe_conversion_all(void);
  *****************************************************************************/
 
 // IV. high-resolution time tests
-struct d_test_object* d_tests_sa_dtime_clock_gettime(void);
-struct d_test_object* d_tests_sa_dtime_clock_getres(void);
-struct d_test_object* d_tests_sa_dtime_timespec_get(void);
-struct d_test_object* d_tests_sa_dtime_high_resolution_time_all(void);
+struct dj_test_object* d_tests_sa_dtime_clock_gettime(void);
+struct dj_test_object* d_tests_sa_dtime_clock_getres(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_get(void);
+struct dj_test_object* d_tests_sa_dtime_high_resolution_time_all(void);
 
 
 /******************************************************************************
@@ -101,10 +101,10 @@ struct d_test_object* d_tests_sa_dtime_high_resolution_time_all(void);
  *****************************************************************************/
 
 // V. sleep functions tests
-struct d_test_object* d_tests_sa_dtime_nanosleep(void);
-struct d_test_object* d_tests_sa_dtime_usleep(void);
-struct d_test_object* d_tests_sa_dtime_sleep_ms(void);
-struct d_test_object* d_tests_sa_dtime_sleep_functions_all(void);
+struct dj_test_object* d_tests_sa_dtime_nanosleep(void);
+struct dj_test_object* d_tests_sa_dtime_usleep(void);
+struct dj_test_object* d_tests_sa_dtime_sleep_ms(void);
+struct dj_test_object* d_tests_sa_dtime_sleep_functions_all(void);
 
 
 /******************************************************************************
@@ -112,9 +112,9 @@ struct d_test_object* d_tests_sa_dtime_sleep_functions_all(void);
  *****************************************************************************/
 
 // VI. timezone utilities tests
-struct d_test_object* d_tests_sa_dtime_timegm(void);
-struct d_test_object* d_tests_sa_dtime_tzset(void);
-struct d_test_object* d_tests_sa_dtime_timezone_utilities_all(void);
+struct dj_test_object* d_tests_sa_dtime_timegm(void);
+struct dj_test_object* d_tests_sa_dtime_tzset(void);
+struct dj_test_object* d_tests_sa_dtime_timezone_utilities_all(void);
 
 
 /******************************************************************************
@@ -122,9 +122,9 @@ struct d_test_object* d_tests_sa_dtime_timezone_utilities_all(void);
  *****************************************************************************/
 
 // VII. string parsing and formatting tests
-struct d_test_object* d_tests_sa_dtime_strptime(void);
-struct d_test_object* d_tests_sa_dtime_strftime_s(void);
-struct d_test_object* d_tests_sa_dtime_string_parsing_formatting_all(void);
+struct dj_test_object* d_tests_sa_dtime_strptime(void);
+struct dj_test_object* d_tests_sa_dtime_strftime_s(void);
+struct dj_test_object* d_tests_sa_dtime_string_parsing_formatting_all(void);
 
 
 /******************************************************************************
@@ -132,16 +132,16 @@ struct d_test_object* d_tests_sa_dtime_string_parsing_formatting_all(void);
  *****************************************************************************/
 
 // VIII. time arithmetic tests
-struct d_test_object* d_tests_sa_dtime_timespec_add(void);
-struct d_test_object* d_tests_sa_dtime_timespec_sub(void);
-struct d_test_object* d_tests_sa_dtime_timespec_cmp(void);
-struct d_test_object* d_tests_sa_dtime_timespec_to_ms(void);
-struct d_test_object* d_tests_sa_dtime_timespec_to_us(void);
-struct d_test_object* d_tests_sa_dtime_timespec_to_ns(void);
-struct d_test_object* d_tests_sa_dtime_ms_to_timespec(void);
-struct d_test_object* d_tests_sa_dtime_us_to_timespec(void);
-struct d_test_object* d_tests_sa_dtime_ns_to_timespec(void);
-struct d_test_object* d_tests_sa_dtime_time_arithmetic_all(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_add(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_sub(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_cmp(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_to_ms(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_to_us(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_to_ns(void);
+struct dj_test_object* d_tests_sa_dtime_ms_to_timespec(void);
+struct dj_test_object* d_tests_sa_dtime_us_to_timespec(void);
+struct dj_test_object* d_tests_sa_dtime_ns_to_timespec(void);
+struct dj_test_object* d_tests_sa_dtime_time_arithmetic_all(void);
 
 
 /******************************************************************************
@@ -149,10 +149,10 @@ struct d_test_object* d_tests_sa_dtime_time_arithmetic_all(void);
  *****************************************************************************/
 
 // IX. monotonic time utilities tests
-struct d_test_object* d_tests_sa_dtime_monotonic_time_ms(void);
-struct d_test_object* d_tests_sa_dtime_monotonic_time_us(void);
-struct d_test_object* d_tests_sa_dtime_monotonic_time_ns(void);
-struct d_test_object* d_tests_sa_dtime_monotonic_time_all(void);
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_ms(void);
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_us(void);
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_ns(void);
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_all(void);
 
 
 /******************************************************************************
@@ -160,9 +160,9 @@ struct d_test_object* d_tests_sa_dtime_monotonic_time_all(void);
  *****************************************************************************/
 
 // X. timespec normalization tests
-struct d_test_object* d_tests_sa_dtime_timespec_normalize(void);
-struct d_test_object* d_tests_sa_dtime_timespec_is_valid(void);
-struct d_test_object* d_tests_sa_dtime_timespec_normalization_all(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_normalize(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_is_valid(void);
+struct dj_test_object* d_tests_sa_dtime_timespec_normalization_all(void);
 
 
 /******************************************************************************
@@ -170,7 +170,7 @@ struct d_test_object* d_tests_sa_dtime_timespec_normalization_all(void);
  *****************************************************************************/
 
 // XI. null parameter tests
-struct d_test_object* d_tests_sa_dtime_null_params_all(void);
+struct dj_test_object* d_tests_sa_dtime_null_params_all(void);
 
 
 /******************************************************************************
@@ -181,7 +181,7 @@ struct d_test_object* d_tests_sa_dtime_null_params_all(void);
 //   function: runs all dtime tests and returns the root test object tree.
 // returns pointer to root test object containing all test results, or NULL
 // on failure.
-struct d_test_object* d_tests_sa_dtime_run_all(void);
+struct dj_test_object* d_tests_sa_dtime_run_all(void);
 
 
 #endif  // DJINTERP_DTIME_TESTS_SA_

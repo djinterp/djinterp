@@ -24,7 +24,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_path.h"    // d_path_dirname
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_space.h"  // D_CFG_FILE_HAS_STATVFS
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, uint64_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t,
                                                      // UINT32_MAX
 // posix
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_STATVFS)
@@ -49,10 +49,10 @@ I/O size, a different number that happens to be equal often enough to hide
 the bug for years. An implementation that reports no fragment size means
 f_bsize.
 */
-static int
-d_internal_space_query(
-    const char*         _path,
-    struct d_space64_t* _out
+static
+int d_internal_space_query(
+    const char*          _path,
+    struct dj_space64_t* _out
 )
 {
     struct statvfs vfs    = {0};
@@ -97,14 +97,14 @@ ANALOGUE OF f_bavail, not of f_bfree -- the argument order invites getting
 that backwards. 1 for an answer; 0 for a failure left in GetLastError; -1 for
 a path the platform's text cannot carry, with errno set by the conversion.
 */
-static int
-d_internal_space_ask(
-    const char*         _dir,
-    struct d_space64_t* _out
+static
+int d_internal_space_ask(
+    const char*          _dir,
+    struct dj_space64_t* _out
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const dir =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const dir =
         d_internal_file_native_of(&held,
                                   _dir);
 
@@ -142,8 +142,8 @@ d_internal_space_ask(
 d_internal_space_refuse
   A Win32 reason, as the errno statvfs would have set for it.
 */
-static int
-d_internal_space_refuse(
+static
+int d_internal_space_refuse(
     DWORD _error
 )
 {
@@ -163,11 +163,11 @@ refuses a file with ERROR_DIRECTORY; a file is measured by its directory,
 which on Windows is on the same volume. Nothing broader is tried -- the
 volume's root, say -- since that answers for a path that does not exist.
 */
-static int
-d_internal_space_query_in(
-    const char*         _path,
-    struct d_space64_t* _out,
-    char*               _dir_room
+static
+int d_internal_space_query_in(
+    const char*          _path,
+    struct dj_space64_t* _out,
+    char*                _dir_room
 )
 {
     char* const dir = _dir_room;
@@ -213,15 +213,15 @@ d_internal_space_query_in(
 d_internal_space_query
   d_internal_space_query's work is d_internal_space_query_in; this keeps the
 room it builds a path in, on the heap where that is 32 KiB
-(d_internal_file_path).
+(dj_internal_file_path).
 */
-static int
-d_internal_space_query(
-    const char*         _path,
-    struct d_space64_t* _out
+static
+int d_internal_space_query(
+    const char*          _path,
+    struct dj_space64_t* _out
 )
 {
-    struct d_internal_file_path dir_held = {0};
+    struct dj_internal_file_path dir_held = {0};
     char* const dir = d_internal_file_path_room(&dir_held);
 
     // d_internal_file_path_room has set errno, and reported the failure
@@ -255,10 +255,9 @@ d_file_space64
 zeroed before anything can fail, so a caller who ignores the return code
 never reads a plausible stale number.
 */
-int
-d_file_space64(
-    const char*         _path,
-    struct d_space64_t* _out
+int d_file_space64(
+    const char*          _path,
+    struct dj_space64_t* _out
 )
 {
     // parameter validation
@@ -305,10 +304,9 @@ d_file_space64
 available: capacity cannot be derived from anything else here, and a
 fabricated number would be acted upon. The output is still zeroed.
 */
-int
-d_file_space64(
-    const char*         _path,
-    struct d_space64_t* _out
+int d_file_space64(
+    const char*          _path,
+    struct dj_space64_t* _out
 )
 {
     // parameter validation
@@ -346,10 +344,9 @@ KiB reach 4 TiB. Rounding down never claims room that is not there. A
 filesystem too large even for that fails whole, with EOVERFLOW, rather than
 report a capacity that is wrong by a multiple of 4 TiB.
 */
-int
-d_file_space32(
-    const char*         _path,
-    struct d_space32_t* _out
+int d_file_space32(
+    const char*          _path,
+    struct dj_space32_t* _out
 )
 {
     // parameter validation
@@ -366,7 +363,7 @@ d_file_space32(
                             "output buffer is NULL",
                             -1);
 
-    struct d_space64_t bytes = {0};
+    struct dj_space64_t bytes = {0};
 
     // zero first, as the 64-bit twin does
     memset(_out,
@@ -392,7 +389,7 @@ d_file_space32(
         D_INTERNAL_FILE_FAIL(EOVERFLOW,
                              "d_file_space32",
                              _path,
-                             "capacity exceeds 4 TiB, which d_space32_t "
+                             "capacity exceeds 4 TiB, which dj_space32_t "
                              "cannot count",
                              -1);
     }

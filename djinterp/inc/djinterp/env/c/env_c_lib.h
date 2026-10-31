@@ -119,7 +119,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_C_ENV_C_LIB_H 1
 
 // djinterp
-#include "../../config/core/env/cfg_env.h"  // D_CFG_ENV_ISO_STRICT
+#include "../../config/env/cfg_env.h"  // D_CFG_ENV_ISO_STRICT
 #include "../env_lang.h"                    // D_ENV_LANG_IS_*_OR_HIGHER
 #include "../env_arch.h"                    // D_ENV_ARCH_TYPE
 #include "../env_os.h"                      // D_ENV_OS_ID, D_ENV_IS_OS_*

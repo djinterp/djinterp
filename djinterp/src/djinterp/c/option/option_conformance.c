@@ -33,8 +33,8 @@
 static int g_pass = 0;
 static int g_fail = 0;
 
-static void
-check(
+static
+void check(
     const char* _id,
     const char* _claim,
     bool        _held
@@ -67,12 +67,12 @@ enum k { k_foo = 1, k_bar = 2, k_baz = 3 };
 struct fixture
 {
     uint64_t            block[VBYTES / 8];
-    struct d_option     cells[CAP];
-    struct d_option_set set;
+    struct dj_option     cells[CAP];
+    struct dj_option_set set;
 };
 
-static void
-fx_init(
+static
+void fx_init(
     struct fixture* _f
 )
 {
@@ -82,31 +82,30 @@ fx_init(
     return;
 }
 
-static void
-fx_put(
+static
+void fx_put(
     struct fixture* _f,
     uint64_t        _key,
     int32_t         _value
 )
 {
-    (void)d_option_set_add(&_f->set, _key, (d_type_info16)7,
-                           (d_type_info16)9, (uint32_t)sizeof(int32_t), 4u);
+    (void)d_option_set_add(&_f->set, _key, (dj_type_info16)7,
+                           (dj_type_info16)9, (uint32_t)sizeof(int32_t), 4u);
     (void)d_option_set_set(&_f->set, _key, &_value, sizeof(int32_t));
     return;
 }
 
-static bool
-same(
-    const struct d_option_set* _a,
-    const struct d_option_set* _b
+static
+bool same(
+    const struct dj_option_set* _a,
+    const struct dj_option_set* _b
 )
 {
     return d_option_set_equal(_a, _b, NULL, NULL, NULL);
 }
 
 
-int
-main(void)
+int main(void)
 {
     struct fixture a;
     struct fixture b;
@@ -125,9 +124,9 @@ main(void)
     fx_init(&a);
     fx_put(&a, k_foo, 1);
     {
-        struct d_option_result dup =
-            d_option_set_add(&a.set, k_foo, (d_type_info16)7,
-                             (d_type_info16)9, 4u, 4u);
+        struct dj_option_result dup =
+            d_option_set_add(&a.set, k_foo, (dj_type_info16)7,
+                             (dj_type_info16)9, 4u, 4u);
         check("C01", "k(.) is injective -- duplicate yields KEY_DUPLICATE",
               (!dup.is_ok) &&
               (dup.payload.error == (int32_t)D_OPTION_STATUS_KEY_DUPLICATE));
@@ -136,7 +135,7 @@ main(void)
     check("C02", "the set's own invariant predicate holds",
           d_option_set_is_valid(&a.set));
 
-    // identity is key AND value -- the relation kv_pair::operator== gets wrong
+    // identity is key AND value -- the relation DKvPair::operator== gets wrong
     fx_init(&b);
     fx_put(&b, k_foo, 99);
     check("C03", "identity is key AND value: same key, different value "
@@ -194,7 +193,7 @@ main(void)
           (!d_option_set_union(&c.set, &o1.set, &o3.set,
                                NULL, NULL, NULL).is_ok));
     {
-        struct d_option_result u =
+        struct dj_option_result u =
             d_option_set_union(&c.set, &o1.set, &o3.set, NULL, NULL, NULL);
 
         check("C09b", "and that status is FORMAL, not mechanical",
@@ -217,7 +216,7 @@ main(void)
     (void)d_option_set_intersection(&c.set, &o1.set, &o3.set,
                                     NULL, NULL, NULL);
     {
-        struct d_option_result ki =
+        struct dj_option_result ki =
             d_option_set_key_intersection(&o1.set, &o3.set, NULL, 0u);
 
         check("C11", "intersection is identity-filtered: a shared key with "
@@ -232,7 +231,7 @@ main(void)
     printf("\nPrecedence\n");
 
     {
-        struct d_option_policy replace = d_option_policy_replace();
+        struct dj_option_policy replace = d_option_policy_replace();
         int32_t                v       = 0;
 
         fx_init(&c);
@@ -314,9 +313,9 @@ main(void)
     printf("\nCarriers\n");
 
     {
-        struct d_option_carrier absent = D_OPTION_CARRIER_ABSENT;
+        struct dj_option_carrier absent = D_OPTION_CARRIER_ABSENT;
         int32_t                 datum  = 5;
-        struct d_option_carrier present;
+        struct dj_option_carrier present;
 
         present.data      = &datum;
         present.size      = (uint32_t)sizeof(datum);

@@ -22,7 +22,7 @@
 *     - Normal operation with valid inputs
 *     - Edge cases (zero size, empty arrays, boundary indices)
 *     - Invalid input handling (NULL pointers, invalid sizes)
-*     - Negative index support (d_index validation)
+*     - Negative index support (dj_index validation)
 *     - Memory allocation failure handling where applicable
 *
 *
@@ -44,7 +44,7 @@
 #include "../../../../../inc/djinterp/c/djinterp.h"
 #include "../../../../../inc/djinterp/c/dmemory.h"
 #include "../../../../../inc/djinterp/c/container/array/array_common.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -73,36 +73,46 @@
 //   helper: wrapper for d_array_common_init_from_args that handles va_list.
 //   This function converts variadic arguments to a va_list for testing the
 //   underlying init_from_args function.
-bool d_test_init_from_args_wrapper(void**  _elements,
-                                   size_t* _count,
-                                   size_t  _element_size,
-                                   size_t  _arg_count,
-                                   ...);
+bool d_test_init_from_args_wrapper(
+    void**  _elements,
+    size_t* _count,
+    size_t  _element_size,
+    size_t  _arg_count,
+    ...
+);
 
 // d_test_int_comparator
 //   helper: comparator function for integer values.
 //   Returns: <0 if *_a < *_b, 0 if equal, >0 if *_a > *_b
-int d_test_int_comparator(const void* _a,
-                          const void* _b);
+int d_test_int_comparator(
+    const void* _a,
+    const void* _b
+);
 
 // d_test_free_int_ptr
 //   helper: free function for integer pointers.
 //   Safely frees a dynamically allocated integer pointer.
-void d_test_free_int_ptr(void* _ptr);
+void d_test_free_int_ptr(
+    void* _ptr
+);
 
 // d_test_verify_array_contents
 //   helper: verifies that an integer array contains expected values.
 //   Returns true if all elements match, false otherwise.
-bool d_test_verify_array_contents(const int* _array,
-                                  size_t     _count,
-                                  const int* _expected);
+bool d_test_verify_array_contents(
+    const int* _array,
+    size_t     _count,
+    const int* _expected
+);
 
 // d_test_verify_array_reversed
 //   helper: verifies that an array is the reverse of expected values.
 //   Returns true if array is correctly reversed, false otherwise.
-bool d_test_verify_array_reversed(const int* _array,
-                                  size_t     _count,
-                                  const int* _original);
+bool d_test_verify_array_reversed(
+    const int* _array,
+    size_t     _count,
+    const int* _original
+);
 
 
 /******************************************************************************
@@ -125,27 +135,53 @@ bool d_test_verify_array_reversed(const int* _array,
  *****************************************************************************/
 
 // basic initialization functions
-bool d_tests_sa_array_common_init_sized(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_from_array(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_from_args(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_copy(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_init_sized(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_from_array(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_from_args(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_copy(
+    struct dj_test_counter* _test_info
+);
 
 // reverse and range copy functions
-bool d_tests_sa_array_common_init_copy_reverse(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_copy_range(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_copy_range_reverse(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_init_copy_reverse(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_copy_range(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_copy_range_reverse(
+    struct dj_test_counter* _test_info
+);
 
 // fill initialization
-bool d_tests_sa_array_common_init_fill(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_init_fill(
+    struct dj_test_counter* _test_info
+);
 
 // slice functions (operate on pointer arrays)
-bool d_tests_sa_array_common_init_slice(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_slice_reverse(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_slice_range(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_init_slice_range_reverse(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_init_slice(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_slice_reverse(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_slice_range(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_init_slice_range_reverse(
+    struct dj_test_counter* _test_info
+);
 
 // initialization test group runner
-bool d_tests_sa_array_common_run_init_tests(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_run_init_tests(
+    struct dj_test_counter* _test_info
+);
 
 
 /******************************************************************************
@@ -164,21 +200,39 @@ bool d_tests_sa_array_common_run_init_tests(struct d_test_counter* _test_info);
  *****************************************************************************/
 
 // allocation and append functions
-bool d_tests_sa_array_common_alloc(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_append_element(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_append_elements(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_alloc(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_append_element(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_append_elements(
+    struct dj_test_counter* _test_info
+);
 
 // capacity calculation
-bool d_tests_sa_array_common_calc_capacity(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_calc_capacity(
+    struct dj_test_counter* _test_info
+);
 
 // search and query functions
-bool d_tests_sa_array_common_contains(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_fill(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_find(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_find_closest(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_contains(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_fill(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_find(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_find_closest(
+    struct dj_test_counter* _test_info
+);
 
 // utility test group runner
-bool d_tests_sa_array_common_run_util_tests(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_run_util_tests(
+    struct dj_test_counter* _test_info
+);
 
 
 /******************************************************************************
@@ -203,27 +257,57 @@ bool d_tests_sa_array_common_run_util_tests(struct d_test_counter* _test_info);
  *****************************************************************************/
 
 // insert and prepend functions
-bool d_tests_sa_array_common_insert_element(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_insert_elements(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_prepend_element(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_prepend_elements(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_insert_element(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_insert_elements(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_prepend_element(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_prepend_elements(
+    struct dj_test_counter* _test_info
+);
 
 // resize validation functions
-bool d_tests_sa_array_common_is_valid_resize_amount(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_is_valid_resize_factor(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_resize_amount(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_resize_factor(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_is_valid_resize_amount(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_is_valid_resize_factor(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_resize_amount(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_resize_factor(
+    struct dj_test_counter* _test_info
+);
 
 // array transformation functions
-bool d_tests_sa_array_common_reverse(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_shift_left(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_shift_left_circular(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_shift_right(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_shift_right_circular(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_sort(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_reverse(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_shift_left(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_shift_left_circular(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_shift_right(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_shift_right_circular(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_sort(
+    struct dj_test_counter* _test_info
+);
 
 // manipulation test group runner
-bool d_tests_sa_array_common_run_manip_tests(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_run_manip_tests(
+    struct dj_test_counter* _test_info
+);
 
 
 /******************************************************************************
@@ -236,11 +320,17 @@ bool d_tests_sa_array_common_run_manip_tests(struct d_test_counter* _test_info);
  *****************************************************************************/
 
 // cleanup functions
-bool d_tests_sa_array_common_free_elements_arr(struct d_test_counter* _test_info);
-bool d_tests_sa_array_common_free_elements_deep(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_free_elements_arr(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_array_common_free_elements_deep(
+    struct dj_test_counter* _test_info
+);
 
 // cleanup test group runner
-bool d_tests_sa_array_common_run_free_tests(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_run_free_tests(
+    struct dj_test_counter* _test_info
+);
 
 
 /******************************************************************************
@@ -252,17 +342,23 @@ bool d_tests_sa_array_common_run_free_tests(struct d_test_counter* _test_info);
 //   function: runs all basic array_common test functions.
 //   Executes the complete test suite including initialization, utility,
 //   manipulation, and cleanup tests.
-bool d_tests_sa_array_common_all(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_all(
+    struct dj_test_counter* _test_info
+);
 
 // d_tests_sa_array_common_all_extended
 //   function: runs ALL array_common test functions including all available
 //   functionality and provides detailed reporting.
-bool d_tests_sa_array_common_all_extended(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_all_extended(
+    struct dj_test_counter* _test_info
+);
 
 // d_tests_sa_array_common_run_all
 //   function: main entry point for the test module runner. Returns pass/fail
 //   status for use with the unified test runner.
-bool d_tests_sa_array_common_run_all(struct d_test_counter* _test_info);
+bool d_tests_sa_array_common_run_all(
+    struct dj_test_counter* _test_info
+);
 
 
 #endif  // DJINTERP_TESTING_CONTAINER_ARRAY_COMMON_

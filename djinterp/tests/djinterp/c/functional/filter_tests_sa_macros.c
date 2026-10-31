@@ -9,14 +9,18 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPER PREDICATES
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -32,7 +36,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -48,7 +56,12 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static int cmp_int(const void* _a, const void* _b, void* _context)
+static
+int cmp_int(
+    const void* _a,
+    const void* _b,
+    void*       _context
+)
 {
     const int* a;
     const int* b;
@@ -76,16 +89,14 @@ d_tests_sa_filter_macros_single
   - D_FILTER_WHERE with no matches returns empty result
   - D_FILTER_CHAIN_BEGIN/ADD/END constructs and returns a chain
 */
-bool
-d_tests_sa_filter_macros_single
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_macros_single(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_filter_operation* op;
-    struct d_filter_result*   res;
-    struct d_filter_chain*    chain;
+    struct dj_filter_operation* op;
+    struct dj_filter_result*   res;
+    struct dj_filter_chain*    chain;
     int                       input[6];
     int*                      elems;
 
@@ -316,15 +327,13 @@ d_tests_sa_filter_macros_fluent
   - full fluent pipeline produces correct values
   - multiple fluent pipelines can coexist
 */
-bool
-d_tests_sa_filter_macros_fluent
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_macros_fluent(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_filter_builder* builder;
-    struct d_filter_result*  res;
+    struct dj_filter_builder* builder;
+    struct dj_filter_result*  res;
     int                      input[8];
     int*                     elems;
 
@@ -637,10 +646,10 @@ d_tests_sa_filter_macros_fluent
 
     // test 9: two independent fluent pipelines coexist
     {
-        struct d_filter_builder* builder_a;
-        struct d_filter_builder* builder_b;
-        struct d_filter_result*  res_a;
-        struct d_filter_result*  res_b;
+        struct dj_filter_builder* builder_a;
+        struct dj_filter_builder* builder_b;
+        struct dj_filter_result*  res_a;
+        struct dj_filter_result*  res_b;
 
         builder_a = D_FILTER_BEGIN();
         builder_b = D_FILTER_BEGIN();
@@ -711,10 +720,8 @@ d_tests_sa_filter_macros_fluent
 d_tests_sa_filter_macros_all
   Aggregation function that runs all convenience macro tests.
 */
-bool
-d_tests_sa_filter_macros_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_macros_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

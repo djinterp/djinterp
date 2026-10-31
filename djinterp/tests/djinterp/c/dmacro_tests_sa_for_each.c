@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // helper macros for FOR_EACH testing
@@ -35,10 +35,8 @@ d_tests_sa_dmacro_for_each_basic
   - D_FOR_EACH works with many elements
   - D_FOR_EACH produces concatenated output (no separator)
 */
-bool
-d_tests_sa_dmacro_for_each_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -123,10 +121,8 @@ d_tests_sa_dmacro_for_each_sep
   - D_FOR_EACH_SEP works with various separator types
   - Separator is not added after last element
 */
-bool
-d_tests_sa_dmacro_for_each_sep
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_sep(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -215,10 +211,8 @@ d_tests_sa_dmacro_for_each_comma
   - Can be used to build array initializers
   - Can be used in function calls
 */
-bool
-d_tests_sa_dmacro_for_each_comma
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_comma(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -305,10 +299,8 @@ macros that pass through complex expressions.
   - Semicolon-separated statement concept
   - Manual verification of pattern
 */
-bool
-d_tests_sa_dmacro_for_each_semicolon
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_semicolon(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -384,10 +376,8 @@ This test verifies the concept can be achieved with other macros.
   - Data-passing iteration concept works
   - Context can be threaded through iteration manually
 */
-bool
-d_tests_sa_dmacro_for_each_data
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_data(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -477,13 +467,11 @@ d_tests_sa_dmacro_for_each_all
   - D_FOR_EACH_SEMICOLON for statements
   - D_FOR_EACH_DATA with context
 */
-bool
-d_tests_sa_dmacro_for_each_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  basic_result;
     bool                  sep_result;
     bool                  comma_result;
@@ -496,7 +484,7 @@ d_tests_sa_dmacro_for_each_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

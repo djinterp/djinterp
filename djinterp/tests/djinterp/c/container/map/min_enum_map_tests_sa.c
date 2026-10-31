@@ -26,13 +26,9 @@ d_tests_min_enum_map_run_all
   This function aggregates all test categories and returns a complete
   test tree for execution by the test framework.
 */
-struct d_test_object*
-d_tests_min_enum_map_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_run_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     // create master test group

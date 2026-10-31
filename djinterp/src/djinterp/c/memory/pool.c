@@ -24,8 +24,8 @@
 // An index link is D_CFG_POOL_INDEX_BITS wide; a pointer link is a pointer.
 // This IS the pool's minimum slot size, which is why the choice is a knob.
 #if (D_INTERNAL_POOL_INDEXED_LINKS == 1)
-#   define D_INTERNAL_POOL_LINK_SIZE   ((d_mem_size)sizeof(d_pool_index))
-#   define D_INTERNAL_POOL_LINK_ALIGN  ((d_mem_size)sizeof(d_pool_index))
+#   define D_INTERNAL_POOL_LINK_SIZE   ((dj_mem_size)sizeof(dj_pool_index))
+#   define D_INTERNAL_POOL_LINK_ALIGN  ((dj_mem_size)sizeof(dj_pool_index))
 #else
 #   define D_INTERNAL_POOL_LINK_SIZE   D_MEM_LINK_SIZE
 #   define D_INTERNAL_POOL_LINK_ALIGN  D_MEM_LINK_ALIGN
@@ -34,7 +34,7 @@
 // D_INTERNAL_POOL_GEN_ALIGN
 //   macro (internal): the alignment the generation counter needs.
 #define D_INTERNAL_POOL_GEN_ALIGN                                             \
-    ((d_mem_size)sizeof(d_pool_generation))
+    ((dj_mem_size)sizeof(dj_pool_generation))
 
 // D_INTERNAL_POOL_LEAD
 //   macro (internal): the bytes between a slot's first byte and the byte the
@@ -72,19 +72,19 @@ Return:
   The slot alignment, or 0 when the request is inadmissible. Never weaker than
 requested; stricter only where the free list's link demands it.
 */
-d_mem_size
+dj_mem_size
 d_pool_align_for(
-    d_mem_size          _slot_align,
-    enum d_pool_policy _policy
+    dj_mem_size          _slot_align,
+    enum dj_pool_policy _policy
 )
 {
-    d_mem_size link_align;
+    dj_mem_size link_align;
 
     // a monotonic pool never stores a link, so its slots answer only to the
     // caller's alignment -- which is how it reaches the smallest slot of the
     // three policies
     link_align = (_policy == D_POOL_POLICY_MONOTONIC)
-        ? (d_mem_size)0
+        ? (dj_mem_size)0
         : D_INTERNAL_POOL_LINK_ALIGN;
 
     return d_mem_slot_align(_slot_align, link_align);
@@ -107,17 +107,17 @@ Return:
   The stride in bytes, or 0 when the arguments are inadmissible or the
 computation would overflow.
 */
-d_mem_size
+dj_mem_size
 d_pool_stride_for(
-    d_mem_size          _slot_size,
-    d_mem_size          _slot_align,
-    enum d_pool_policy _policy
+    dj_mem_size          _slot_size,
+    dj_mem_size          _slot_align,
+    enum dj_pool_policy _policy
 )
 {
-    d_mem_size align;
-    d_mem_size link_size;
-    d_mem_size stride;
-    d_mem_size gen_offset;
+    dj_mem_size align;
+    dj_mem_size link_size;
+    dj_mem_size stride;
+    dj_mem_size gen_offset;
 
     align = d_pool_align_for(_slot_align, _policy);
 
@@ -127,7 +127,7 @@ d_pool_stride_for(
     }
 
     link_size = (_policy == D_POOL_POLICY_MONOTONIC)
-        ? (d_mem_size)0
+        ? (dj_mem_size)0
         : D_INTERNAL_POOL_LINK_SIZE;
 
     stride = d_mem_slot_size(_slot_size, align, link_size);
@@ -149,12 +149,12 @@ d_pool_stride_for(
         gen_offset = d_mem_align_up(stride, D_INTERNAL_POOL_GEN_ALIGN);
 
         if (d_mem_add_would_overflow(gen_offset,
-                                     (d_mem_size)sizeof(d_pool_generation)))
+                                     (dj_mem_size)sizeof(dj_pool_generation)))
         {
             return 0;
         }
 
-        stride = (d_mem_size)(gen_offset + sizeof(d_pool_generation));
+        stride = (dj_mem_size)(gen_offset + sizeof(dj_pool_generation));
 
         if (d_mem_align_would_overflow(stride, align))
         {
@@ -183,9 +183,9 @@ Parameter(s):
 Return:
   The offset of the counter from the start of the slot.
 */
-static d_mem_size
-d_internal_pool_generation_offset(
-    d_mem_size _payload_stride
+static
+dj_mem_size d_internal_pool_generation_offset(
+    dj_mem_size _payload_stride
 )
 {
     return d_mem_align_up(_payload_stride, D_INTERNAL_POOL_GEN_ALIGN);
@@ -202,13 +202,13 @@ Parameter(s):
 Return:
   A pointer to the slot's counter.
 */
-static d_pool_generation*
-d_internal_pool_generation_at(
-    const struct d_pool* _pool,
-    void*                _slot
+static
+dj_pool_generation* d_internal_pool_generation_at(
+    const struct dj_pool* _pool,
+    void*                 _slot
 )
 {
-    return (d_pool_generation*)(void*)
+    return (dj_pool_generation*)(void*)
            ((char*)_slot + (size_t)_pool->generation_offset);
 }
 
@@ -226,31 +226,31 @@ Parameter(s):
 Return:
   The block size in bytes, or 0 if the computation would overflow.
 */
-static d_mem_size
-d_internal_pool_block_bytes(
-    d_pool_index _slots,
-    d_mem_size   _stride,
-    d_mem_size   _align
+static
+dj_mem_size d_internal_pool_block_bytes(
+    dj_pool_index _slots,
+    dj_mem_size   _stride,
+    dj_mem_size   _align
 )
 {
-    d_mem_size header;
-    d_mem_size body;
+    dj_mem_size header;
+    dj_mem_size body;
 
-    header = d_mem_align_up((d_mem_size)sizeof(struct d_pool_block), _align);
+    header = d_mem_align_up((dj_mem_size)sizeof(struct dj_pool_block), _align);
 
-    if (d_mem_mul_would_overflow((d_mem_size)_slots, _stride))
+    if (d_mem_mul_would_overflow((dj_mem_size)_slots, _stride))
     {
         return 0;
     }
 
-    body = (d_mem_size)((d_mem_size)_slots * _stride);
+    body = (dj_mem_size)((dj_mem_size)_slots * _stride);
 
     if (d_mem_add_would_overflow(header, body))
     {
         return 0;
     }
 
-    return (d_mem_size)(header + body);
+    return (dj_mem_size)(header + body);
 }
 
 
@@ -264,14 +264,14 @@ Parameter(s):
 Return:
   A pointer to the first slot.
 */
-static char*
-d_internal_pool_block_slots(
-    struct d_pool_block* _block,
-    d_mem_size           _align
+static
+char* d_internal_pool_block_slots(
+    struct dj_pool_block* _block,
+    dj_mem_size           _align
 )
 {
     return ( (char*)_block +
-             (size_t)d_mem_align_up((d_mem_size)sizeof(struct d_pool_block),
+             (size_t)d_mem_align_up((dj_mem_size)sizeof(struct dj_pool_block),
                                     _align) );
 }
 
@@ -295,15 +295,15 @@ Parameter(s):
 Return:
   D_MEM_OK on success, or D_MEM_ERR_EXHAUSTED when the source refused.
 */
-static enum d_mem_status
+static enum dj_mem_status
 d_internal_pool_table_grow(
-    struct d_pool* _pool
+    struct dj_pool* _pool
 )
 {
-    d_mem_size            wanted;
-    d_mem_size            old_bytes;
-    d_mem_size            new_bytes;
-    struct d_pool_block** table;
+    dj_mem_size            wanted;
+    dj_mem_size            old_bytes;
+    dj_mem_size            new_bytes;
+    struct dj_pool_block** table;
 
     if (_pool->block_count < _pool->block_capacity)
     {
@@ -311,25 +311,25 @@ d_internal_pool_table_grow(
     }
 
     wanted = (_pool->block_capacity == 0)
-        ? (d_mem_size)8
-        : (d_mem_size)(_pool->block_capacity * 2);
+        ? (dj_mem_size)8
+        : (dj_mem_size)(_pool->block_capacity * 2);
 
     if (d_mem_mul_would_overflow(wanted,
-                                 (d_mem_size)sizeof(struct d_pool_block*)))
+                                 (dj_mem_size)sizeof(struct dj_pool_block*)))
     {
         return D_MEM_ERR_OVERFLOW;
     }
 
-    old_bytes = (d_mem_size)(_pool->block_capacity *
-                             sizeof(struct d_pool_block*));
-    new_bytes = (d_mem_size)(wanted * sizeof(struct d_pool_block*));
+    old_bytes = (dj_mem_size)(_pool->block_capacity *
+                             sizeof(struct dj_pool_block*));
+    new_bytes = (dj_mem_size)(wanted * sizeof(struct dj_pool_block*));
 
-    table = (struct d_pool_block**)d_mem_source_reallocate(
+    table = (struct dj_pool_block**)d_mem_source_reallocate(
                 &_pool->source,
                 (void*)_pool->blocks,
                 old_bytes,
                 new_bytes,
-                (d_mem_size)sizeof(struct d_pool_block*));
+                (dj_mem_size)sizeof(struct dj_pool_block*));
 
     if (!table)
     {
@@ -358,24 +358,24 @@ Parameter(s):
 Return:
   The block holding that slot, or NULL when the index names no slot.
 */
-static struct d_pool_block*
-d_internal_pool_block_for(
-    const struct d_pool* _pool,
-    d_pool_index         _index
+static
+struct dj_pool_block* d_internal_pool_block_for(
+    const struct dj_pool* _pool,
+    dj_pool_index         _index
 )
 {
 #if (D_INTERNAL_POOL_BLOCK_TABLE == 0)
-    struct d_pool_block* block;
+    struct dj_pool_block* block;
 #endif
-    d_mem_size           number;
+    dj_mem_size           number;
 
     if (_index >= _pool->capacity)
     {
         return NULL;
     }
 
-    number = (d_mem_size)((d_mem_size)_index /
-                          (d_mem_size)_pool->slots_per_block);
+    number = (dj_mem_size)((dj_mem_size)_index /
+                          (dj_mem_size)_pool->slots_per_block);
 
 #if (D_INTERNAL_POOL_BLOCK_TABLE == 1)
     if ( (_pool->blocks) && (number < _pool->block_count) )
@@ -408,14 +408,14 @@ Parameter(s):
 Return:
   A pointer to the slot's first byte, or NULL when the index names no slot.
 */
-static void*
-d_internal_pool_slot_at(
-    const struct d_pool* _pool,
-    d_pool_index         _index
+static
+void* d_internal_pool_slot_at(
+    const struct dj_pool* _pool,
+    dj_pool_index         _index
 )
 {
-    struct d_pool_block* block;
-    d_mem_size           offset;
+    struct dj_pool_block* block;
+    dj_mem_size           offset;
 
     block = d_internal_pool_block_for(_pool, _index);
 
@@ -424,8 +424,8 @@ d_internal_pool_slot_at(
         return NULL;
     }
 
-    offset = (d_mem_size)((d_mem_size)_index -
-                          (d_mem_size)block->first_index);
+    offset = (dj_mem_size)((dj_mem_size)_index -
+                          (dj_mem_size)block->first_index);
 
     return (void*)(d_internal_pool_block_slots(block, _pool->align) +
                    (size_t)(offset * _pool->stride));
@@ -451,21 +451,21 @@ Parameter(s):
 Return:
   The index of the next free slot, or D_POOL_INDEX_NONE at the end.
 */
-static d_pool_index
-d_internal_pool_link_read(
-    const struct d_pool* _pool,
-    void*                _slot
+static
+dj_pool_index d_internal_pool_link_read(
+    const struct dj_pool* _pool,
+    void*                 _slot
 )
 {
 #if (D_INTERNAL_POOL_INDEXED_LINKS == 1)
-    d_pool_index next;
+    dj_pool_index next;
 
     D_MEM_UNUSED(_pool);
 
     // read through memcpy rather than a cast: the slot is raw storage whose
     // effective type changes with every acquire, and a cast-and-dereference
     // would be an aliasing violation the optimiser is entitled to act on
-    memcpy(&next, _slot, sizeof(d_pool_index));
+    memcpy(&next, _slot, sizeof(dj_pool_index));
 
     return next;
 #else
@@ -501,17 +501,17 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_pool_link_write(
-    struct d_pool* _pool,
-    void*          _slot,
-    d_pool_index   _next
+static
+void d_internal_pool_link_write(
+    struct dj_pool* _pool,
+    void*           _slot,
+    dj_pool_index   _next
 )
 {
 #if (D_INTERNAL_POOL_INDEXED_LINKS == 1)
     D_MEM_UNUSED(_pool);
 
-    memcpy(_slot, &_next, sizeof(d_pool_index));
+    memcpy(_slot, &_next, sizeof(dj_pool_index));
 #else
     void* next;
 
@@ -544,14 +544,14 @@ Return:
   - true, if the index is already on the free list, or
   - false, otherwise.
 */
-static bool
-d_internal_pool_is_free(
-    const struct d_pool* _pool,
-    d_pool_index         _index
+static
+bool d_internal_pool_is_free(
+    const struct dj_pool* _pool,
+    dj_pool_index         _index
 )
 {
-    d_pool_index cursor;
-    d_pool_index guard;
+    dj_pool_index cursor;
+    dj_pool_index guard;
     void*        slot;
 
     cursor = _pool->free_head;
@@ -606,17 +606,17 @@ Return:
 D_MEM_ERR_EXHAUSTED when the slot ceiling forbids growth or the source
 refused.
 */
-static enum d_mem_status
+static enum dj_mem_status
 d_internal_pool_grow(
-    struct d_pool* _pool
+    struct dj_pool* _pool
 )
 {
-    d_pool_index         slots;
-    d_mem_size           block_bytes;
+    dj_pool_index         slots;
+    dj_mem_size           block_bytes;
     void*                memory;
-    struct d_pool_block* block;
+    struct dj_pool_block* block;
 #if (D_INTERNAL_POOL_BLOCK_TABLE == 1)
-    enum d_mem_status    status;
+    enum dj_mem_status    status;
 #endif
 
     slots = _pool->slots_per_block;
@@ -630,17 +630,17 @@ d_internal_pool_grow(
             return D_MEM_ERR_EXHAUSTED;
         }
 
-        if ((d_mem_size)slots >
-            (d_mem_size)(_pool->max_slots - _pool->capacity))
+        if ((dj_mem_size)slots >
+            (dj_mem_size)(_pool->max_slots - _pool->capacity))
         {
-            slots = (d_pool_index)(_pool->max_slots - _pool->capacity);
+            slots = (dj_pool_index)(_pool->max_slots - _pool->capacity);
         }
     }
 
     // the index space is finite, and running off the end of it must be a
     // reported failure rather than a wrap into slot zero
-    if ((d_mem_size)slots >
-        (d_mem_size)(D_POOL_INDEX_NONE - (d_mem_size)_pool->capacity))
+    if ((dj_mem_size)slots >
+        (dj_mem_size)(D_POOL_INDEX_NONE - (dj_mem_size)_pool->capacity))
     {
         return D_MEM_ERR_OVERFLOW;
     }
@@ -679,7 +679,7 @@ d_internal_pool_grow(
         return D_MEM_ERR_EXHAUSTED;
     }
 
-    block              = (struct d_pool_block*)memory;
+    block              = (struct dj_pool_block*)memory;
     block->next        = NULL;
     block->first_index = _pool->capacity;
     block->slot_count  = slots;
@@ -699,8 +699,8 @@ d_internal_pool_grow(
     _pool->blocks[_pool->block_count] = block;
 #endif
 
-    _pool->block_count = (d_mem_size)(_pool->block_count + 1);
-    _pool->capacity    = (d_pool_index)(_pool->capacity + slots);
+    _pool->block_count = (dj_mem_size)(_pool->block_count + 1);
+    _pool->capacity    = (dj_pool_index)(_pool->capacity + slots);
 
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
     // every slot starts at generation zero, and a handle never carries zero
@@ -709,7 +709,7 @@ d_internal_pool_grow(
     if (_pool->policy == (uint8_t)D_POOL_POLICY_GENERATIONAL)
     {
         d_mem_zero((void*)d_internal_pool_block_slots(block, _pool->align),
-                   (d_mem_size)((d_mem_size)slots * _pool->stride));
+                   (dj_mem_size)((dj_mem_size)slots * _pool->stride));
     }
 #endif
 
@@ -740,13 +740,12 @@ throughout. Free-list rather than monotonic because a caller who has not
 thought about the question means "a pool", and a pool that never reuses a slot
 would surprise them.
 */
-struct d_pool_config
-d_pool_config_default(
-    d_mem_size _slot_size,
-    d_mem_size _slot_align
+struct dj_pool_config d_pool_config_default(
+    dj_mem_size _slot_size,
+    dj_mem_size _slot_align
 )
 {
-    struct d_pool_config config;
+    struct dj_pool_config config;
 
     config.slot_size       = _slot_size;
     config.slot_align      = _slot_align;
@@ -780,15 +779,15 @@ D_MEM_ERR_INVALID when the geometry is inadmissible or the named release
 policy was not compiled, D_MEM_ERR_OVERFLOW when the geometry does not fit, or
 D_MEM_ERR_EXHAUSTED when initial slots were requested and could not be taken.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_init(
-    struct d_pool*              _pool,
-    const struct d_pool_config* _config
+    struct dj_pool*              _pool,
+    const struct dj_pool_config* _config
 )
 {
-    d_mem_size          align;
-    d_mem_size          stride;
-    enum d_pool_policy policy;
+    dj_mem_size          align;
+    dj_mem_size          stride;
+    enum dj_pool_policy policy;
 
     D_MEM_REQUIRE(_pool != NULL, D_MEM_ERR_NULL);
     D_MEM_REQUIRE(_config != NULL, D_MEM_ERR_NULL);
@@ -857,7 +856,7 @@ d_pool_init(
     {
         _pool->slots_per_block = (_config->initial_slots != 0)
             ? _config->initial_slots
-            : (d_pool_index)D_INTERNAL_POOL_SLOTS_PER_BLOCK;
+            : (dj_pool_index)D_INTERNAL_POOL_SLOTS_PER_BLOCK;
     }
 
     if (_pool->slots_per_block == 0)
@@ -880,7 +879,7 @@ d_pool_init(
         d_mem_slot_size(_config->slot_size,
                         align,
                         (policy == D_POOL_POLICY_MONOTONIC)
-                            ? (d_mem_size)0
+                            ? (dj_mem_size)0
                             : D_INTERNAL_POOL_LINK_SIZE));
 #endif
 
@@ -908,13 +907,13 @@ Return:
   D_MEM_OK on success (including when the capacity was already sufficient), or
 whatever d_internal_pool_grow reported.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_reserve(
-    struct d_pool* _pool,
-    d_pool_index   _slots
+    struct dj_pool* _pool,
+    dj_pool_index   _slots
 )
 {
-    enum d_mem_status status;
+    enum dj_mem_status status;
 
     D_MEM_REQUIRE(_pool != NULL, D_MEM_ERR_NULL);
 
@@ -948,16 +947,15 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_pool_reset(
-    struct d_pool* _pool
+void d_pool_reset(
+    struct dj_pool* _pool
 )
 {
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-    struct d_pool_block* block;
+    struct dj_pool_block* block;
     char*                slots;
-    d_pool_index         i;
-    d_pool_generation*   generation;
+    dj_pool_index         i;
+    dj_pool_generation*   generation;
 #endif
 
     if (!_pool)
@@ -978,10 +976,10 @@ d_pool_reset(
             {
                 generation = d_internal_pool_generation_at(
                                  _pool,
-                                 (void*)(slots + (size_t)((d_mem_size)i *
+                                 (void*)(slots + (size_t)((dj_mem_size)i *
                                                           _pool->stride)));
 
-                *generation = (d_pool_generation)(*generation + 1);
+                *generation = (dj_pool_generation)(*generation + 1);
             }
 
             block = block->next;
@@ -1015,14 +1013,13 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_pool_release(
-    struct d_pool* _pool
+void d_pool_release(
+    struct dj_pool* _pool
 )
 {
-    struct d_pool_block* block;
-    struct d_pool_block* next;
-    d_mem_size           block_bytes;
+    struct dj_pool_block* block;
+    struct dj_pool_block* next;
+    dj_mem_size           block_bytes;
 
     if (!_pool)
     {
@@ -1052,9 +1049,9 @@ d_pool_release(
         d_mem_source_release(
             &_pool->source,
             (void*)_pool->blocks,
-            (d_mem_size)(_pool->block_capacity *
-                         sizeof(struct d_pool_block*)),
-            (d_mem_size)sizeof(struct d_pool_block*));
+            (dj_mem_size)(_pool->block_capacity *
+                         sizeof(struct dj_pool_block*)),
+            (dj_mem_size)sizeof(struct dj_pool_block*));
 
         _pool->blocks         = NULL;
         _pool->block_capacity = 0;
@@ -1096,14 +1093,14 @@ Parameter(s):
 Return:
   A pointer to the slot, or NULL on failure.
 */
-static void*
-d_internal_pool_take(
-    struct d_pool* _pool,
-    d_pool_index*  _index
+static
+void* d_internal_pool_take(
+    struct dj_pool* _pool,
+    dj_pool_index*  _index
 )
 {
     void*        slot;
-    d_pool_index index;
+    dj_pool_index index;
 
 #if (D_INTERNAL_POOL_FREE_LIST == 1)
     // (1) a recycled slot, if there is one. This is the common path in a
@@ -1116,7 +1113,7 @@ d_internal_pool_take(
         if (slot)
         {
             _pool->free_head  = d_internal_pool_link_read(_pool, slot);
-            _pool->free_count = (d_pool_index)(_pool->free_count - 1);
+            _pool->free_count = (dj_pool_index)(_pool->free_count - 1);
             *_index           = index;
 
             return slot;
@@ -1146,7 +1143,7 @@ d_internal_pool_take(
         return NULL;
     }
 
-    _pool->bump = (d_pool_index)(_pool->bump + 1);
+    _pool->bump = (dj_pool_index)(_pool->bump + 1);
     *_index     = index;
 
     return slot;
@@ -1163,12 +1160,11 @@ Return:
   A pointer to one slot's worth of storage, aligned as the pool was
 configured, or NULL when the pool is full and could not grow.
 */
-void*
-d_pool_acquire(
-    struct d_pool* _pool
+void* d_pool_acquire(
+    struct dj_pool* _pool
 )
 {
-    struct d_mem_block block;
+    struct dj_mem_block block;
 
     if (d_pool_acquire_ex(_pool, &block) != D_MEM_OK)
     {
@@ -1190,15 +1186,15 @@ Parameter(s):
 Return:
   D_MEM_OK, D_MEM_ERR_NULL, or D_MEM_ERR_EXHAUSTED.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_acquire_ex(
-    struct d_pool*      _pool,
-    struct d_mem_block* _out
+    struct dj_pool*      _pool,
+    struct dj_mem_block* _out
 )
 {
     void*        base;
     void*        payload;
-    d_pool_index index;
+    dj_pool_index index;
 
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
     D_MEM_REQUIRE(_pool != NULL, D_MEM_ERR_NULL);
@@ -1212,7 +1208,7 @@ d_pool_acquire_ex(
         return D_MEM_ERR_EXHAUSTED;
     }
 
-    _pool->live = (d_pool_index)(_pool->live + 1);
+    _pool->live = (dj_pool_index)(_pool->live + 1);
 
     payload = D_INTERNAL_POOL_PAYLOAD_OF(_pool, base);
 
@@ -1260,18 +1256,18 @@ wrong pointer -- into an out-of-bounds read inside the allocator, which is a
 worse bug than the one being diagnosed. The guard check still precedes
 RECYCLING, which is all its own rationale ever required.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_release_slot(
-    struct d_pool* _pool,
+    struct dj_pool* _pool,
     void*          _slot
 )
 {
 #if (D_INTERNAL_POOL_FREE_LIST == 1)
-    d_pool_index index;
+    dj_pool_index index;
     void*        base;
 #endif
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-    d_pool_generation* generation;
+    dj_pool_generation* generation;
 #endif
 
     D_MEM_REQUIRE(_pool != NULL, D_MEM_ERR_NULL);
@@ -1319,7 +1315,7 @@ d_pool_release_slot(
     if (_pool->policy == (uint8_t)D_POOL_POLICY_GENERATIONAL)
     {
         generation  = d_internal_pool_generation_at(_pool, base);
-        *generation = (d_pool_generation)(*generation + 1);
+        *generation = (dj_pool_generation)(*generation + 1);
     }
 #   endif
 
@@ -1330,11 +1326,11 @@ d_pool_release_slot(
     d_internal_pool_link_write(_pool, base, _pool->free_head);
 
     _pool->free_head  = index;
-    _pool->free_count = (d_pool_index)(_pool->free_count + 1);
+    _pool->free_count = (dj_pool_index)(_pool->free_count + 1);
 
     if (_pool->live > 0)
     {
-        _pool->live = (d_pool_index)(_pool->live - 1);
+        _pool->live = (dj_pool_index)(_pool->live - 1);
     }
 
 #   if (D_INTERNAL_MEM_STATS == 1)
@@ -1363,10 +1359,9 @@ Parameter(s):
 Return:
   A handle that never resolves.
 */
-struct d_pool_handle
-d_pool_handle_null(void)
+struct dj_pool_handle d_pool_handle_null(void)
 {
-    struct d_pool_handle handle;
+    struct dj_pool_handle handle;
 
     handle.index      = D_POOL_INDEX_NONE;
     handle.generation = 0;
@@ -1386,9 +1381,8 @@ Return:
   - true, if the handle is the null handle, or
   - false, otherwise.
 */
-bool
-d_pool_handle_is_null(
-    struct d_pool_handle _handle
+bool d_pool_handle_is_null(
+    struct dj_pool_handle _handle
 )
 {
     return (_handle.index == D_POOL_INDEX_NONE);
@@ -1410,16 +1404,16 @@ Return:
   D_MEM_OK, D_MEM_ERR_NULL, D_MEM_ERR_UNSUPPORTED when the pool is not
 generational, or D_MEM_ERR_EXHAUSTED.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_acquire_handle(
-    struct d_pool*        _pool,
-    struct d_pool_handle* _out
+    struct dj_pool*        _pool,
+    struct dj_pool_handle* _out
 )
 {
     void*              base;
     void*              payload;
-    d_pool_index       index;
-    d_pool_generation* generation;
+    dj_pool_index       index;
+    dj_pool_generation* generation;
 
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
     D_MEM_REQUIRE(_pool != NULL, D_MEM_ERR_NULL);
@@ -1443,9 +1437,9 @@ d_pool_acquire_handle(
     // slot's counter is never zero -- and a zero-initialised handle
     // therefore cannot accidentally resolve to a never-used slot
     generation  = d_internal_pool_generation_at(_pool, base);
-    *generation = (d_pool_generation)(*generation + 1);
+    *generation = (dj_pool_generation)(*generation + 1);
 
-    _pool->live = (d_pool_index)(_pool->live + 1);
+    _pool->live = (dj_pool_index)(_pool->live + 1);
 
     payload = D_INTERNAL_POOL_PAYLOAD_OF(_pool, base);
 
@@ -1476,15 +1470,15 @@ Return:
 generational, D_MEM_ERR_FOREIGN when the index names no slot, or
 D_MEM_ERR_STALE when the slot has been released since the handle was issued.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_resolve_ex(
-    const struct d_pool* _pool,
-    struct d_pool_handle _handle,
+    const struct dj_pool* _pool,
+    struct dj_pool_handle _handle,
     void**               _out
 )
 {
     void*              base;
-    d_pool_generation* generation;
+    dj_pool_generation* generation;
 
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
     D_MEM_REQUIRE(_pool != NULL, D_MEM_ERR_NULL);
@@ -1534,10 +1528,9 @@ Parameter(s):
 Return:
   A pointer to the slot, or NULL when the handle is null, foreign, or stale.
 */
-void*
-d_pool_resolve(
-    const struct d_pool* _pool,
-    struct d_pool_handle _handle
+void* d_pool_resolve(
+    const struct dj_pool* _pool,
+    struct dj_pool_handle _handle
 )
 {
     void* slot;
@@ -1563,10 +1556,9 @@ Return:
   - true, if the handle resolves, or
   - false, if it is null, foreign, or stale.
 */
-bool
-d_pool_handle_is_live(
-    const struct d_pool* _pool,
-    struct d_pool_handle _handle
+bool d_pool_handle_is_live(
+    const struct dj_pool* _pool,
+    struct dj_pool_handle _handle
 )
 {
     return (d_pool_resolve(_pool, _handle) != NULL);
@@ -1588,16 +1580,16 @@ Return:
 D_MEM_ERR_STALE -- the last meaning the slot was already released, which this
 detects rather than double-freeing.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_release_handle(
-    struct d_pool*       _pool,
-    struct d_pool_handle _handle
+    struct dj_pool*       _pool,
+    struct dj_pool_handle _handle
 )
 {
-    enum d_mem_status  status;
+    enum dj_mem_status  status;
     void*              payload;
     void*              base;
-    d_pool_generation* generation;
+    dj_pool_generation* generation;
 
     D_MEM_REQUIRE(_pool != NULL, D_MEM_ERR_NULL);
 
@@ -1615,7 +1607,7 @@ d_pool_release_handle(
 
     base        = D_INTERNAL_POOL_BASE_OF(_pool, payload);
     generation  = d_internal_pool_generation_at(_pool, base);
-    *generation = (d_pool_generation)(*generation + 1);
+    *generation = (dj_pool_generation)(*generation + 1);
 
     d_mem_poison_free(payload, _pool->payload);
 
@@ -1623,12 +1615,12 @@ d_pool_release_handle(
     d_internal_pool_link_write(_pool, base, _pool->free_head);
 
     _pool->free_head  = _handle.index;
-    _pool->free_count = (d_pool_index)(_pool->free_count + 1);
+    _pool->free_count = (dj_pool_index)(_pool->free_count + 1);
 #endif
 
     if (_pool->live > 0)
     {
-        _pool->live = (d_pool_index)(_pool->live - 1);
+        _pool->live = (dj_pool_index)(_pool->live - 1);
     }
 
 #if (D_INTERNAL_MEM_STATS == 1)
@@ -1658,10 +1650,9 @@ Parameter(s):
 Return:
   A pointer to the slot, or NULL when the index names no slot.
 */
-void*
-d_pool_at(
-    const struct d_pool* _pool,
-    d_pool_index         _index
+void* d_pool_at(
+    const struct dj_pool* _pool,
+    dj_pool_index         _index
 )
 {
     void* base;
@@ -1700,17 +1691,16 @@ Return:
 this pool. An address INSIDE a slot but not at its start also yields NONE:
 partial-slot pointers are a caller error, not a rounding case.
 */
-d_pool_index
-d_pool_index_of(
-    const struct d_pool* _pool,
-    const void*          _slot
+dj_pool_index d_pool_index_of(
+    const struct dj_pool* _pool,
+    const void*           _slot
 )
 {
-    struct d_pool_block* block;
+    struct dj_pool_block* block;
     const char*          slots;
     const char*          target;
-    d_mem_size           span;
-    d_mem_size           offset;
+    dj_mem_size           span;
+    dj_mem_size           offset;
 
     if ( (!_pool) || (!_slot) )
     {
@@ -1724,12 +1714,12 @@ d_pool_index_of(
     while (block)
     {
         slots = d_internal_pool_block_slots(block, _pool->align);
-        span  = (d_mem_size)((d_mem_size)block->slot_count * _pool->stride);
+        span  = (dj_mem_size)((dj_mem_size)block->slot_count * _pool->stride);
 
         if ( ((uintptr_t)target >= (uintptr_t)slots) &&
              ((uintptr_t)target <  (uintptr_t)(slots + (size_t)span)) )
         {
-            offset = (d_mem_size)(target - slots);
+            offset = (dj_mem_size)(target - slots);
 
             // an address partway into a slot is a caller error rather than a
             // slot to round to, and is reported as naming no slot
@@ -1738,7 +1728,7 @@ d_pool_index_of(
                 return D_POOL_INDEX_NONE;
             }
 
-            return (d_pool_index)((d_mem_size)block->first_index +
+            return (dj_pool_index)((dj_mem_size)block->first_index +
                                   (offset / _pool->stride));
         }
 
@@ -1770,12 +1760,11 @@ Parameter(s):
 Return:
   A cursor at the first slot, or an exhausted cursor when the pool is empty.
 */
-struct d_pool_cursor
-d_pool_first(
-    const struct d_pool* _pool
+struct dj_pool_cursor d_pool_first(
+    const struct dj_pool* _pool
 )
 {
-    struct d_pool_cursor cursor;
+    struct dj_pool_cursor cursor;
 
     cursor.block  = NULL;
     cursor.index  = 0;
@@ -1802,10 +1791,9 @@ Return:
   - true, if the cursor names a slot that has been handed out, or
   - false, otherwise.
 */
-bool
-d_pool_cursor_valid(
-    const struct d_pool*        _pool,
-    const struct d_pool_cursor* _cursor
+bool d_pool_cursor_valid(
+    const struct dj_pool*        _pool,
+    const struct dj_pool_cursor* _cursor
 )
 {
     if ( (!_pool) || (!_cursor) || (!_cursor->block) )
@@ -1827,10 +1815,9 @@ Parameter(s):
 Return:
   A pointer to the slot, or NULL when the cursor is exhausted.
 */
-void*
-d_pool_cursor_slot(
-    const struct d_pool*        _pool,
-    const struct d_pool_cursor* _cursor
+void* d_pool_cursor_slot(
+    const struct dj_pool*        _pool,
+    const struct dj_pool_cursor* _cursor
 )
 {
     if (!d_pool_cursor_valid(_pool, _cursor))
@@ -1841,7 +1828,7 @@ d_pool_cursor_slot(
     return D_INTERNAL_POOL_PAYLOAD_OF(
                _pool,
                d_internal_pool_block_slots(_cursor->block, _pool->align) +
-                   (size_t)((d_mem_size)_cursor->offset * _pool->stride));
+                   (size_t)((dj_mem_size)_cursor->offset * _pool->stride));
 }
 
 
@@ -1855,10 +1842,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_pool_next(
-    const struct d_pool*  _pool,
-    struct d_pool_cursor* _cursor
+void d_pool_next(
+    const struct dj_pool*  _pool,
+    struct dj_pool_cursor* _cursor
 )
 {
     if ( (!_pool) || (!_cursor) || (!_cursor->block) )
@@ -1866,8 +1852,8 @@ d_pool_next(
         return;
     }
 
-    _cursor->index  = (d_pool_index)(_cursor->index + 1);
-    _cursor->offset = (d_pool_index)(_cursor->offset + 1);
+    _cursor->index  = (dj_pool_index)(_cursor->index + 1);
+    _cursor->offset = (dj_pool_index)(_cursor->offset + 1);
 
     // crossing a block boundary is the only thing this has to get right, and
     // it is a comparison rather than a division because the cursor already
@@ -1899,9 +1885,8 @@ Return:
   - true, if the pool has a slot geometry, or
   - false, otherwise.
 */
-bool
-d_pool_is_valid(
-    const struct d_pool* _pool
+bool d_pool_is_valid(
+    const struct dj_pool* _pool
 )
 {
     if (!_pool)
@@ -1922,9 +1907,8 @@ Parameter(s):
 Return:
   The live slot count, or 0 when _pool is NULL.
 */
-d_pool_index
-d_pool_size(
-    const struct d_pool* _pool
+dj_pool_index d_pool_size(
+    const struct dj_pool* _pool
 )
 {
     if (!_pool)
@@ -1945,9 +1929,8 @@ Parameter(s):
 Return:
   The total slot count across every block, or 0 when _pool is NULL.
 */
-d_pool_index
-d_pool_capacity(
-    const struct d_pool* _pool
+dj_pool_index d_pool_capacity(
+    const struct dj_pool* _pool
 )
 {
     if (!_pool)
@@ -1968,26 +1951,25 @@ Parameter(s):
 Return:
   The free-list length plus the unused bump region, or 0 when _pool is NULL.
 */
-d_pool_index
-d_pool_available(
-    const struct d_pool* _pool
+dj_pool_index d_pool_available(
+    const struct dj_pool* _pool
 )
 {
-    d_mem_size available;
+    dj_mem_size available;
 
     if (!_pool)
     {
         return 0;
     }
 
-    available = (d_mem_size)((d_mem_size)_pool->capacity -
-                             (d_mem_size)_pool->bump);
+    available = (dj_mem_size)((dj_mem_size)_pool->capacity -
+                             (dj_mem_size)_pool->bump);
 
 #if (D_INTERNAL_POOL_FREE_LIST == 1)
-    available = (d_mem_size)(available + (d_mem_size)_pool->free_count);
+    available = (dj_mem_size)(available + (dj_mem_size)_pool->free_count);
 #endif
 
-    return (d_pool_index)available;
+    return (dj_pool_index)available;
 }
 
 
@@ -2002,9 +1984,8 @@ Return:
 asked for, not the stride -- use d_pool_bytes_allocated to learn what the pool
 actually costs.
 */
-d_mem_size
-d_pool_slot_size(
-    const struct d_pool* _pool
+dj_mem_size d_pool_slot_size(
+    const struct dj_pool* _pool
 )
 {
     if (!_pool)
@@ -2026,9 +2007,8 @@ Return:
   The slot alignment, or 0 when _pool is NULL. May be stricter than what was
 requested, where the free list's link demanded more; never weaker.
 */
-d_mem_size
-d_pool_slot_align(
-    const struct d_pool* _pool
+dj_mem_size d_pool_slot_align(
+    const struct dj_pool* _pool
 )
 {
     if (!_pool)
@@ -2049,9 +2029,8 @@ Parameter(s):
 Return:
   The block count, or 0 when _pool is NULL.
 */
-d_mem_size
-d_pool_block_count(
-    const struct d_pool* _pool
+dj_mem_size d_pool_block_count(
+    const struct dj_pool* _pool
 )
 {
     if (!_pool)
@@ -2076,13 +2055,12 @@ Parameter(s):
 Return:
   The byte total, or 0 when _pool is NULL.
 */
-d_mem_size
-d_pool_bytes_allocated(
-    const struct d_pool* _pool
+dj_mem_size d_pool_bytes_allocated(
+    const struct dj_pool* _pool
 )
 {
-    struct d_pool_block* block;
-    d_mem_size           total;
+    struct dj_pool_block* block;
+    dj_mem_size           total;
 
     if (!_pool)
     {
@@ -2094,7 +2072,7 @@ d_pool_bytes_allocated(
 
     while (block)
     {
-        total = (d_mem_size)(total +
+        total = (dj_mem_size)(total +
                              d_internal_pool_block_bytes(block->slot_count,
                                                          _pool->stride,
                                                          _pool->align));
@@ -2102,9 +2080,9 @@ d_pool_bytes_allocated(
     }
 
 #if (D_INTERNAL_POOL_BLOCK_TABLE == 1)
-    total = (d_mem_size)(total +
+    total = (dj_mem_size)(total +
                          (_pool->block_capacity *
-                          sizeof(struct d_pool_block*)));
+                          sizeof(struct dj_pool_block*)));
 #endif
 
     return total;
@@ -2120,9 +2098,8 @@ Parameter(s):
 Return:
   A value in [0.0, 1.0], or 0.0 when _pool is NULL or has no slots yet.
 */
-double
-d_pool_utilization(
-    const struct d_pool* _pool
+double d_pool_utilization(
+    const struct dj_pool* _pool
 )
 {
     if ( (!_pool) || (_pool->capacity == 0) )
@@ -2146,10 +2123,10 @@ Return:
 D_MEM_ERR_UNSUPPORTED when this build carries no accounting -- in which case
 _out is zeroed rather than left undefined.
 */
-enum d_mem_status
+enum dj_mem_status
 d_pool_stats(
-    const struct d_pool* _pool,
-    struct d_mem_stats*  _out
+    const struct dj_pool* _pool,
+    struct dj_mem_stats*  _out
 )
 {
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
@@ -2181,10 +2158,9 @@ Return:
   - true, if _slot is the first byte of a slot of this pool, or
   - false, otherwise.
 */
-bool
-d_pool_owns(
-    const struct d_pool* _pool,
-    const void*          _slot
+bool d_pool_owns(
+    const struct dj_pool* _pool,
+    const void*           _slot
 )
 {
     return (d_pool_index_of(_pool, _slot) != D_POOL_INDEX_NONE);

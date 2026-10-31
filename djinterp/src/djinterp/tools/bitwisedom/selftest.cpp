@@ -37,8 +37,7 @@ namespace
 //   the literal a self-test compares a value with: wide enough for it. C++98
 // has no long long, so there every value is an unsigned long, as the header's
 // own are -- which holds 64 bits only where long does.
-std::string
-literal_for(
+std::string literal_for(
     u64      _value,
     standard _level
 )
@@ -52,8 +51,7 @@ literal_for(
 // has_template
 //   whether the header writes a template of _name beside a symbol of
 // _kind: one that is on, for that kind, and for a sheet of _sheet's width.
-bool
-has_template(
+bool has_template(
     const sheet&       _sheet,
     const std::string& _name,
     def_kind           _kind
@@ -75,8 +73,7 @@ has_template(
 
 // narrow_self_test
 //   a translation unit that compiles only if the header is right.
-std::string
-narrow_self_test(
+std::string narrow_self_test(
     const sheet&       _sheet,
     const resolution&  _resolution,
     const std::string& _header
@@ -165,8 +162,7 @@ narrow_self_test(
 //   the type a wide sheet's self-test holds a word in: the header's own --
 // the fixed-width type in the C++ constants form, which includes <cstdint>
 // for it -- and elsewhere the C type as wide.
-std::string
-word_type(
+std::string word_type(
     int      _word,
     standard _level,
     bool     _constants
@@ -199,8 +195,7 @@ array macros, and every field written and read back through its _SET and
 _GET, alone and among bits all set. It returns 0 only if each check holds,
 and names the checks that do not.
 */
-std::string
-wide_self_test(
+std::string wide_self_test(
     const sheet&       _sheet,
     const resolution&  _resolution,
     const std::string& _header
@@ -550,8 +545,7 @@ wide_self_test(
 self_test
   The wide one for a sheet whose bits are arrays, the narrow one otherwise.
 */
-std::string
-self_test(
+std::string self_test(
     const sheet&       _sheet,
     const resolution&  _resolution,
     const std::string& _header

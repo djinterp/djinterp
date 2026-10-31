@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_handler_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -22,8 +22,11 @@ static int d_tests_sa_event_handler_ops_fire_count = 0;
 
 // d_tests_sa_event_handler_ops_cb
 //   helper: callback that increments the fire counter.
-static void
-d_tests_sa_event_handler_ops_cb(size_t _count, void** _args)
+static
+void d_tests_sa_event_handler_ops_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -41,16 +44,14 @@ d_tests_sa_event_handler_fire_valid
   - Returns 1 (listener executed)
   - Callback was invoked
 */
-bool
-d_tests_sa_event_handler_fire_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_fire_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
-    struct d_event*          event;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
+    struct dj_event*          event;
     ssize_t                  ret;
 
     result  = true;
@@ -95,15 +96,13 @@ d_tests_sa_event_handler_fire_no_listener
   Tests the following:
   - Returns 0
 */
-bool
-d_tests_sa_event_handler_fire_no_listener
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_fire_no_listener(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_event_handler* handler;
-    struct d_event*         event;
+    struct dj_event_handler* handler;
+    struct dj_event*         event;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -132,16 +131,14 @@ d_tests_sa_event_handler_fire_disabled
   - Returns 0
   - Callback is NOT invoked
 */
-bool
-d_tests_sa_event_handler_fire_disabled
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_fire_disabled(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
-    struct d_event*          event;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
+    struct dj_event*          event;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -180,10 +177,8 @@ d_tests_sa_event_handler_fire_null
   Tests the following:
   - Returns -1
 */
-bool
-d_tests_sa_event_handler_fire_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_fire_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -207,16 +202,14 @@ d_tests_sa_event_handler_queue_valid
   - pending_events increases
   - Multiple queues accumulate
 */
-bool
-d_tests_sa_event_handler_queue_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_queue_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_event_handler* handler;
-    struct d_event*         e1;
-    struct d_event*         e2;
+    struct dj_event_handler* handler;
+    struct dj_event*         e1;
+    struct dj_event*         e2;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -260,10 +253,8 @@ d_tests_sa_event_handler_queue_null
   Tests the following:
   - Returns false
 */
-bool
-d_tests_sa_event_handler_queue_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_queue_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -287,18 +278,16 @@ d_tests_sa_event_handler_process_all
   - All callbacks invoked
   - Queue is empty after processing
 */
-bool
-d_tests_sa_event_handler_process_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_process_all(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
-    struct d_event*          e1;
-    struct d_event*          e2;
-    struct d_event*          e3;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
+    struct dj_event*          e1;
+    struct dj_event*          e2;
+    struct dj_event*          e3;
     size_t                   processed;
 
     result  = true;
@@ -354,16 +343,14 @@ d_tests_sa_event_handler_process_limited
   - Only processes up to max_events
   - Remaining events stay in queue
 */
-bool
-d_tests_sa_event_handler_process_limited
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_process_limited(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
-    struct d_event*          events[3];
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
+    struct dj_event*          events[3];
     size_t                   processed;
     int                      i;
 
@@ -419,10 +406,8 @@ d_tests_sa_event_handler_process_null
   Tests the following:
   - Returns 0
 */
-bool
-d_tests_sa_event_handler_process_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_process_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -442,10 +427,8 @@ d_tests_sa_event_handler_process_null
 d_tests_sa_event_handler_event_ops_all
   Runs all event operations tests.
 */
-bool
-d_tests_sa_event_handler_event_ops_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_event_ops_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

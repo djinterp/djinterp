@@ -23,13 +23,10 @@
 d_tests_file_flock
   Tests d_file_lock_fd.
 */
-static struct d_test_object*
-d_tests_file_flock
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_flock(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     int                   fd;
     size_t                idx;
@@ -87,13 +84,10 @@ d_tests_file_flock
 d_tests_file_flock_stream
   Tests d_file_lock_stream.
 */
-static struct d_test_object*
-d_tests_file_flock_stream
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_flock_stream(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     FILE*                 file;
     size_t                idx;
@@ -129,13 +123,9 @@ d_tests_file_flock_stream
 d_tests_file_lock_all
   Runs every file_lock test.
 */
-struct d_test_object*
-d_tests_file_lock_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_lock_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

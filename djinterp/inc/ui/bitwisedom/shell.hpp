@@ -100,17 +100,27 @@ const int ARRANGEMENT_COUNT = 4;
 //   a tool window's title on its tab and on View's list; the name its
 // window is known by, within its workspace; where it is first docked; and
 // whether it is open in a workspace never laid out before.
-D_NODISCARD const char*  tool_title(tool _tool);
-D_NODISCARD const char*  tool_key(tool _tool);
-D_NODISCARD dock_slot    tool_slot(tool _tool);
-D_NODISCARD bool         tool_open(tool _tool);
+D_NODISCARD const char* tool_title(
+    tool _tool
+);
+D_NODISCARD const char* tool_key(
+    tool _tool
+);
+D_NODISCARD dock_slot tool_slot(
+    tool _tool
+);
+D_NODISCARD bool tool_open(
+    tool _tool
+);
 
 // tool_for_page
 //   the tool window an old page number names -- the bottom panel's, as
 // "tab.show" has always numbered them: 0 operations, 1 macros, 2
 // templates, 3 issues, 4 grid lines, 5 colours, 6 columns, 7 naming, 8
 // the sheet.
-D_NODISCARD tool  tool_for_page(int _page);
+D_NODISCARD tool tool_for_page(
+    int _page
+);
 
 // workspace
 //   struct: one of the window's desktops. Its documents, by id, in the
@@ -269,18 +279,26 @@ const float ZOOM_STEP  = 0.1f;
 // document_key / tool_window_key
 //   the key a document's window carries -- its zoom's, and the name ImGui
 // knows it by -- and a tool window's, within its workspace.
-D_NODISCARD std::string  document_key(int _document);
-D_NODISCARD std::string  tool_window_key(int  _workspace,
-                                         tool _tool);
+D_NODISCARD std::string document_key(
+    int _document
+);
+D_NODISCARD std::string tool_window_key(
+    int  _workspace,
+    tool _tool
+);
 
 // dock_id
 //   the dock space a workspace's windows are laid out in.
-D_NODISCARD unsigned int  dock_id(int _workspace);
+D_NODISCARD unsigned int dock_id(
+    int _workspace
+);
 
 // zoom_of
 //   a window's zoom, by its key: 1 until it is zoomed.
-D_NODISCARD float  zoom_of(const shell_state& _shell,
-                           const std::string& _key);
+D_NODISCARD float zoom_of(
+    const shell_state& _shell,
+    const std::string& _key
+);
 
 }  // namespace gui
 }  // namespace bitwisedom

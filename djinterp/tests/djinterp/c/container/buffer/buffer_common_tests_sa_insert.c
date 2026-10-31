@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,10 +24,8 @@ d_tests_sa_buffer_common_append_element
   - successful append to empty buffer
   - successful append to non-empty buffer
 */
-bool
-d_tests_sa_buffer_common_append_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_append_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -133,10 +131,8 @@ d_tests_sa_buffer_common_append_data
   - successful append of multiple elements
   - data integrity after append
 */
-bool
-d_tests_sa_buffer_common_append_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_append_data(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -225,10 +221,8 @@ d_tests_sa_buffer_common_prepend_element
   - full buffer rejection
   - successful prepend shifts existing elements
 */
-bool
-d_tests_sa_buffer_common_prepend_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_prepend_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -298,10 +292,8 @@ d_tests_sa_buffer_common_prepend_data
   - successful prepend of multiple elements
   - existing elements shifted correctly
 */
-bool
-d_tests_sa_buffer_common_prepend_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_prepend_data(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -379,10 +371,8 @@ d_tests_sa_buffer_common_insert_element
   - successful insert at middle
   - successful insert at end
 */
-bool
-d_tests_sa_buffer_common_insert_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_insert_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -421,7 +411,7 @@ d_tests_sa_buffer_common_insert_element
         result = d_assert_standalone(
             d_buffer_common_insert_element(elements, &count, capacity,
                                            sizeof(int), &value,
-                                           (d_index)100) == false,
+                                           (dj_index)100) == false,
             "insert_elem_oob",
             "Out-of-bounds index should return false",
             _counter) && result;
@@ -452,7 +442,7 @@ d_tests_sa_buffer_common_insert_element
         result = d_assert_standalone(
             d_buffer_common_insert_element(elements, &count, capacity,
                                            sizeof(int), &value,
-                                           (d_index)count) == true,
+                                           (dj_index)count) == true,
             "insert_elem_end_success",
             "Insert at end should succeed",
             _counter) && result;
@@ -494,10 +484,8 @@ d_tests_sa_buffer_common_insert_data
   - successful range insert at middle
   - correct element ordering after insert
 */
-bool
-d_tests_sa_buffer_common_insert_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_insert_data(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -535,7 +523,7 @@ d_tests_sa_buffer_common_insert_data
         result = d_assert_standalone(
             d_buffer_common_insert_data(elements, &count, capacity,
                                         sizeof(int), insert_data, 2,
-                                        (d_index)100) == false,
+                                        (dj_index)100) == false,
             "insert_data_oob",
             "Out-of-bounds index should return false",
             _counter) && result;
@@ -578,10 +566,8 @@ d_tests_sa_buffer_common_insert_data
 d_tests_sa_buffer_common_insert_all
   Aggregation function that runs all insertion (resize mode) tests.
 */
-bool
-d_tests_sa_buffer_common_insert_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_insert_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

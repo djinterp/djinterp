@@ -46,9 +46,9 @@ Return:
   - true, if _align exceeds the platform's fundamental alignment, or
   - false, otherwise.
 */
-static bool
-d_internal_mem_system_needs_aligned_path(
-    d_mem_size _align
+static
+bool d_internal_mem_system_needs_aligned_path(
+    dj_mem_size _align
 )
 {
     return (_align > D_MEM_MAX_ALIGN);
@@ -70,14 +70,14 @@ Parameter(s):
 Return:
   A pointer to _bytes aligned bytes, or NULL on failure or overflow.
 */
-static void*
-d_internal_mem_manual_aligned_alloc(
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void* d_internal_mem_manual_aligned_alloc(
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
-    d_mem_size overhead;
-    d_mem_size total;
+    dj_mem_size overhead;
+    dj_mem_size total;
     void*      raw;
     char*      payload;
 
@@ -88,14 +88,14 @@ d_internal_mem_manual_aligned_alloc(
 
     // the payload may start anywhere in the first _align bytes, and one
     // pointer must fit behind wherever it starts
-    overhead = (d_mem_size)(_align + (d_mem_size)sizeof(void*));
+    overhead = (dj_mem_size)(_align + (dj_mem_size)sizeof(void*));
 
     if (d_mem_add_would_overflow(_bytes, overhead))
     {
         return NULL;
     }
 
-    total = (d_mem_size)(_bytes + overhead);
+    total = (dj_mem_size)(_bytes + overhead);
     raw   = malloc((size_t)total);
 
     if (!raw)
@@ -106,7 +106,7 @@ d_internal_mem_manual_aligned_alloc(
     // align forward from the first byte that leaves room for the back-pointer
     payload = (char*)raw + sizeof(void*);
     payload = payload +
-              (size_t)d_mem_align_padding((d_mem_size)(uintptr_t)payload,
+              (size_t)d_mem_align_padding((dj_mem_size)(uintptr_t)payload,
                                           _align);
 
     ((void**)payload)[-1] = raw;
@@ -124,8 +124,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_mem_manual_aligned_free(
+static
+void d_internal_mem_manual_aligned_free(
     void* _ptr
 )
 {
@@ -149,11 +149,11 @@ Parameter(s):
 Return:
   A pointer to _bytes bytes aligned to _align, or NULL.
 */
-static void*
-d_internal_mem_system_allocate(
-    void*      _context,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void* d_internal_mem_system_allocate(
+    void*       _context,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
     D_MEM_UNUSED(_context);
@@ -171,7 +171,7 @@ d_internal_mem_system_allocate(
 
 #if (D_INTERNAL_MEM_SOURCE_ALIGNED_API == D_CFG_MEM_SOURCE_ALIGN_C11)
     {
-        d_mem_size rounded;
+        dj_mem_size rounded;
 
         // C11 aligned_alloc requires the size to be a multiple of the
         // alignment; rounding up is the caller's job, not the library's
@@ -187,16 +187,16 @@ d_internal_mem_system_allocate(
 #elif (D_INTERNAL_MEM_SOURCE_ALIGNED_API == D_CFG_MEM_SOURCE_ALIGN_POSIX)
     {
         void*      result;
-        d_mem_size align;
+        dj_mem_size align;
 
         result = NULL;
 
         // posix_memalign additionally requires a multiple of sizeof(void*)
         align = _align;
 
-        if (align < (d_mem_size)sizeof(void*))
+        if (align < (dj_mem_size)sizeof(void*))
         {
-            align = (d_mem_size)sizeof(void*);
+            align = (dj_mem_size)sizeof(void*);
         }
 
         if (posix_memalign(&result, (size_t)align, (size_t)_bytes) != 0)
@@ -228,12 +228,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_mem_system_release(
-    void*      _context,
-    void*      _ptr,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void d_internal_mem_system_release(
+    void*       _context,
+    void*       _ptr,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
     D_MEM_UNUSED(_context);
@@ -282,13 +282,13 @@ Return:
 source cannot resize a block of that alignment in place. In the latter case
 the ORIGINAL BLOCK IS UNTOUCHED, which is what makes the fallback safe.
 */
-static void*
-d_internal_mem_system_reallocate(
-    void*      _context,
-    void*      _ptr,
-    d_mem_size _old_bytes,
-    d_mem_size _new_bytes,
-    d_mem_size _align
+static
+void* d_internal_mem_system_reallocate(
+    void*       _context,
+    void*       _ptr,
+    dj_mem_size _old_bytes,
+    dj_mem_size _new_bytes,
+    dj_mem_size _align
 )
 {
     D_MEM_UNUSED(_context);
@@ -324,8 +324,8 @@ Return:
   D_MEM_SIZE_MAX. The system heap's real ceiling is not knowable without
 asking it, and a guess would be worse than an honest "unbounded".
 */
-static d_mem_size
-d_internal_mem_system_max_size(
+static
+dj_mem_size d_internal_mem_system_max_size(
     const void* _context
 )
 {
@@ -340,7 +340,7 @@ d_internal_mem_system_max_size(
 // d_internal_mem_system_vtable
 //   constant: the system source's operation table. One instance for the
 // process, since the source is stateless.
-static const struct d_mem_source_vtable d_internal_mem_system_vtable =
+static const struct dj_mem_source_vtable d_internal_mem_system_vtable =
 {
     d_internal_mem_system_allocate,
     d_internal_mem_system_release
@@ -366,10 +366,9 @@ Return:
   A source that draws from the C library heap. Stateless, so every copy is
 interchangeable and none of them owns anything.
 */
-struct d_mem_source
-d_mem_source_system(void)
+struct dj_mem_source d_mem_source_system(void)
 {
-    struct d_mem_source source;
+    struct dj_mem_source source;
 
     source.vtable  = &d_internal_mem_system_vtable;
     source.context = NULL;
@@ -397,11 +396,11 @@ Parameter(s):
 Return:
   NULL, always.
 */
-static void*
-d_internal_mem_null_allocate(
-    void*      _context,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void* d_internal_mem_null_allocate(
+    void*       _context,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
     D_MEM_UNUSED(_context);
@@ -424,12 +423,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_mem_null_release(
-    void*      _context,
-    void*      _ptr,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void d_internal_mem_null_release(
+    void*       _context,
+    void*       _ptr,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
     D_MEM_UNUSED(_context);
@@ -453,8 +452,8 @@ Return:
   Zero -- which lets an allocator discover it can never grow BEFORE it tries,
 and is the reason this slot is worth a pointer.
 */
-static d_mem_size
-d_internal_mem_null_max_size(
+static
+dj_mem_size d_internal_mem_null_max_size(
     const void* _context
 )
 {
@@ -468,7 +467,7 @@ d_internal_mem_null_max_size(
 
 // d_internal_mem_null_vtable
 //   constant: the null source's operation table.
-static const struct d_mem_source_vtable d_internal_mem_null_vtable =
+static const struct dj_mem_source_vtable d_internal_mem_null_vtable =
 {
     d_internal_mem_null_allocate,
     d_internal_mem_null_release
@@ -494,10 +493,9 @@ Return:
   A source whose allocate always fails. Pointing an allocator at it turns
 "this subsystem does not allocate" from a claim into a test.
 */
-struct d_mem_source
-d_mem_source_null(void)
+struct dj_mem_source d_mem_source_null(void)
 {
-    struct d_mem_source source;
+    struct dj_mem_source source;
 
     source.vtable  = &d_internal_mem_null_vtable;
     source.context = NULL;
@@ -519,36 +517,36 @@ d_internal_mem_buffer_allocate
   The buffer source's allocate slot: a bump pointer over the caller's memory.
 
 Parameter(s):
-  _context: the struct d_mem_buffer_source; must not be NULL.
+  _context: the struct dj_mem_buffer_source; must not be NULL.
   _bytes:   the request size.
   _align:   the required alignment.
 Return:
   A pointer into the caller's buffer, or NULL when the buffer cannot satisfy
 the request.
 */
-static void*
-d_internal_mem_buffer_allocate(
-    void*      _context,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void* d_internal_mem_buffer_allocate(
+    void*       _context,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
-    struct d_mem_buffer_source* state;
-    d_mem_size                  padding;
-    d_mem_size                  start;
-    d_mem_size                  end;
+    struct dj_mem_buffer_source* state;
+    dj_mem_size                  padding;
+    dj_mem_size                  start;
+    dj_mem_size                  end;
 
     if ( (!_context) || (_bytes == 0) )
     {
         return NULL;
     }
 
-    state = (struct d_mem_buffer_source*)_context;
+    state = (struct dj_mem_buffer_source*)_context;
 
     // align relative to the real address, not to the offset: the caller's
     // buffer is not itself guaranteed to be aligned to _align
     padding = d_mem_align_padding(
-                  (d_mem_size)(uintptr_t)(state->base + state->used),
+                  (dj_mem_size)(uintptr_t)(state->base + state->used),
                   _align);
 
     if (d_mem_add_would_overflow(state->used, padding))
@@ -556,14 +554,14 @@ d_internal_mem_buffer_allocate(
         return NULL;
     }
 
-    start = (d_mem_size)(state->used + padding);
+    start = (dj_mem_size)(state->used + padding);
 
     if (d_mem_add_would_overflow(start, _bytes))
     {
         return NULL;
     }
 
-    end = (d_mem_size)(start + _bytes);
+    end = (dj_mem_size)(start + _bytes);
 
     // a fixed buffer reports exhaustion; it never grows
     if (end > state->capacity)
@@ -589,22 +587,22 @@ a free list for the handful of large regions this source vends would cost more
 than it recovers.
 
 Parameter(s):
-  _context: the struct d_mem_buffer_source; may be NULL.
+  _context: the struct dj_mem_buffer_source; may be NULL.
   _ptr:     the block to release; may be NULL.
   _bytes:   the size it was allocated with.
   _align:   unused; the block's position already encodes its alignment.
 Return:
   none.
 */
-static void
-d_internal_mem_buffer_release(
-    void*      _context,
-    void*      _ptr,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void d_internal_mem_buffer_release(
+    void*       _context,
+    void*       _ptr,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
-    struct d_mem_buffer_source* state;
+    struct dj_mem_buffer_source* state;
 
     D_MEM_UNUSED(_align);
 
@@ -613,7 +611,7 @@ d_internal_mem_buffer_release(
         return;
     }
 
-    state = (struct d_mem_buffer_source*)_context;
+    state = (struct dj_mem_buffer_source*)_context;
 
     // pop only when this is exactly the block the bump pointer last vended
     if ( (state->last_size == _bytes) &&
@@ -635,26 +633,26 @@ d_internal_mem_buffer_max_size
   The buffer source's max_size slot.
 
 Parameter(s):
-  _context: the struct d_mem_buffer_source; may be NULL.
+  _context: the struct dj_mem_buffer_source; may be NULL.
 Return:
   The bytes still unused, ignoring alignment padding -- an upper bound, which
 is what a growth policy wants when deciding how large a step to attempt.
 */
-static d_mem_size
-d_internal_mem_buffer_max_size(
+static
+dj_mem_size d_internal_mem_buffer_max_size(
     const void* _context
 )
 {
-    const struct d_mem_buffer_source* state;
+    const struct dj_mem_buffer_source* state;
 
     if (!_context)
     {
         return 0;
     }
 
-    state = (const struct d_mem_buffer_source*)_context;
+    state = (const struct dj_mem_buffer_source*)_context;
 
-    return (d_mem_size)(state->capacity - state->used);
+    return (dj_mem_size)(state->capacity - state->used);
 }
 
 #endif  // D_INTERNAL_MEM_SOURCE_MAX_SIZE
@@ -664,7 +662,7 @@ d_internal_mem_buffer_max_size(
 //   constant: the buffer source's operation table. Its reallocate slot is
 // deliberately null: growing in place would only ever succeed for the most
 // recent block, and the emulation handles that case correctly anyway.
-static const struct d_mem_source_vtable d_internal_mem_buffer_vtable =
+static const struct dj_mem_source_vtable d_internal_mem_buffer_vtable =
 {
     d_internal_mem_buffer_allocate,
     d_internal_mem_buffer_release
@@ -695,11 +693,11 @@ Return:
   D_MEM_OK on success, D_MEM_ERR_NULL when a pointer argument is NULL, or
 D_MEM_ERR_INVALID when the length is zero.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_buffer_source_init(
-    struct d_mem_buffer_source* _state,
+    struct dj_mem_buffer_source* _state,
     void*                       _buffer,
-    d_mem_size                  _bytes
+    dj_mem_size                  _bytes
 )
 {
     D_MEM_REQUIRE(_state != NULL, D_MEM_ERR_NULL);
@@ -727,12 +725,11 @@ Parameter(s):
 Return:
   A source that vends from the caller's buffer.
 */
-struct d_mem_source
-d_mem_source_buffer(
-    struct d_mem_buffer_source* _state
+struct dj_mem_source d_mem_source_buffer(
+    struct dj_mem_buffer_source* _state
 )
 {
-    struct d_mem_source source;
+    struct dj_mem_source source;
 
     source.vtable  = NULL;
     source.context = NULL;
@@ -756,9 +753,8 @@ Parameter(s):
 Return:
   The bytes consumed, including alignment padding, or 0 when _state is NULL.
 */
-d_mem_size
-d_mem_buffer_source_used(
-    const struct d_mem_buffer_source* _state
+dj_mem_size d_mem_buffer_source_used(
+    const struct dj_mem_buffer_source* _state
 )
 {
     if (!_state)
@@ -780,9 +776,8 @@ Return:
   The bytes remaining, ignoring the alignment padding a future request may
 need, or 0 when _state is NULL.
 */
-d_mem_size
-d_mem_buffer_source_remaining(
-    const struct d_mem_buffer_source* _state
+dj_mem_size d_mem_buffer_source_remaining(
+    const struct dj_mem_buffer_source* _state
 )
 {
     if (!_state)
@@ -790,7 +785,7 @@ d_mem_buffer_source_remaining(
         return 0;
     }
 
-    return (d_mem_size)(_state->capacity - _state->used);
+    return (dj_mem_size)(_state->capacity - _state->used);
 }
 
 
@@ -805,9 +800,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_buffer_source_reset(
-    struct d_mem_buffer_source* _state
+void d_mem_buffer_source_reset(
+    struct dj_mem_buffer_source* _state
 )
 {
     if (_state)
@@ -836,20 +830,20 @@ d_internal_mem_counting_allocate
   The counting source's allocate slot: forwards, then records.
 
 Parameter(s):
-  _context: the struct d_mem_counting_source; must not be NULL.
+  _context: the struct dj_mem_counting_source; must not be NULL.
   _bytes:   the request size.
   _align:   the required alignment.
 Return:
   Whatever the wrapped source returned.
 */
-static void*
-d_internal_mem_counting_allocate(
-    void*      _context,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void* d_internal_mem_counting_allocate(
+    void*       _context,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
-    struct d_mem_counting_source* state;
+    struct dj_mem_counting_source* state;
     void*                         result;
 
     if (!_context)
@@ -857,7 +851,7 @@ d_internal_mem_counting_allocate(
         return NULL;
     }
 
-    state  = (struct d_mem_counting_source*)_context;
+    state  = (struct dj_mem_counting_source*)_context;
     result = d_mem_source_allocate(&state->upstream, _bytes, _align);
 
     // a refused request is not reserved memory, so only success is recorded
@@ -876,29 +870,29 @@ d_internal_mem_counting_release
   The counting source's release slot: records, then forwards.
 
 Parameter(s):
-  _context: the struct d_mem_counting_source; must not be NULL.
+  _context: the struct dj_mem_counting_source; must not be NULL.
   _ptr:     the block to release; may be NULL.
   _bytes:   the size it was allocated with.
   _align:   the alignment it was allocated with.
 Return:
   none.
 */
-static void
-d_internal_mem_counting_release(
-    void*      _context,
-    void*      _ptr,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void d_internal_mem_counting_release(
+    void*       _context,
+    void*       _ptr,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
-    struct d_mem_counting_source* state;
+    struct dj_mem_counting_source* state;
 
     if ( (!_context) || (!_ptr) )
     {
         return;
     }
 
-    state = (struct d_mem_counting_source*)_context;
+    state = (struct dj_mem_counting_source*)_context;
 
     d_mem_stats_on_release(&state->stats, _bytes);
     d_mem_stats_on_unreserve(&state->stats, _bytes);
@@ -915,23 +909,23 @@ d_internal_mem_counting_max_size
   The counting source's max_size slot: forwards unchanged.
 
 Parameter(s):
-  _context: the struct d_mem_counting_source; may be NULL.
+  _context: the struct dj_mem_counting_source; may be NULL.
 Return:
   The wrapped source's ceiling, or 0 when _context is NULL.
 */
-static d_mem_size
-d_internal_mem_counting_max_size(
+static
+dj_mem_size d_internal_mem_counting_max_size(
     const void* _context
 )
 {
-    const struct d_mem_counting_source* state;
+    const struct dj_mem_counting_source* state;
 
     if (!_context)
     {
         return 0;
     }
 
-    state = (const struct d_mem_counting_source*)_context;
+    state = (const struct dj_mem_counting_source*)_context;
 
     return d_mem_source_max_size(&state->upstream);
 }
@@ -944,7 +938,7 @@ d_internal_mem_counting_max_size(
 // null on purpose: the emulation routes through allocate and release, which
 // are the two slots that count, so a forwarded reallocate would be invisible
 // to the very accounting this source exists to provide.
-static const struct d_mem_source_vtable d_internal_mem_counting_vtable =
+static const struct dj_mem_source_vtable d_internal_mem_counting_vtable =
 {
     d_internal_mem_counting_allocate,
     d_internal_mem_counting_release
@@ -972,10 +966,10 @@ Parameter(s):
 Return:
   D_MEM_OK on success, or D_MEM_ERR_NULL when _state is NULL.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_counting_source_init(
-    struct d_mem_counting_source* _state,
-    struct d_mem_source           _upstream
+    struct dj_mem_counting_source* _state,
+    struct dj_mem_source           _upstream
 )
 {
     D_MEM_REQUIRE(_state != NULL, D_MEM_ERR_NULL);
@@ -998,12 +992,11 @@ Parameter(s):
 Return:
   A source that forwards to the wrapped one and accounts for what passes.
 */
-struct d_mem_source
-d_mem_source_counting(
-    struct d_mem_counting_source* _state
+struct dj_mem_source d_mem_source_counting(
+    struct dj_mem_counting_source* _state
 )
 {
-    struct d_mem_source source;
+    struct dj_mem_source source;
 
     source.vtable  = NULL;
     source.context = NULL;
@@ -1028,10 +1021,10 @@ Parameter(s):
 Return:
   D_MEM_OK on success, or D_MEM_ERR_NULL when either pointer is NULL.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_counting_source_stats(
-    const struct d_mem_counting_source* _state,
-    struct d_mem_stats*                 _out
+    const struct dj_mem_counting_source* _state,
+    struct dj_mem_stats*                 _out
 )
 {
     D_MEM_REQUIRE(_state != NULL, D_MEM_ERR_NULL);
@@ -1052,7 +1045,7 @@ d_mem_counting_source_stats(
 /*
 d_mem_source_none
   Builds the unset source.
-  A zeroed d_mem_source is not an error state; it is the one every
+  A zeroed dj_mem_source is not an error state; it is the one every
 configuration struct starts in, and d_mem_source_resolve turns it into the
 configured default. This function exists so a caller can say so explicitly.
 
@@ -1061,10 +1054,9 @@ Parameter(s):
 Return:
   A source with a null vtable and a null context.
 */
-struct d_mem_source
-d_mem_source_none(void)
+struct dj_mem_source d_mem_source_none(void)
 {
-    struct d_mem_source source;
+    struct dj_mem_source source;
 
     source.vtable  = NULL;
     source.context = NULL;
@@ -1086,8 +1078,7 @@ Parameter(s):
 Return:
   The configured default source.
 */
-struct d_mem_source
-d_mem_source_default(void)
+struct dj_mem_source d_mem_source_default(void)
 {
 #if (D_INTERNAL_MEM_SOURCE_DEFAULT == D_CFG_MEM_SOURCE_DEFAULT_SYSTEM)
     return d_mem_source_system();
@@ -1110,9 +1101,8 @@ Return:
   - true, if the source has a vtable with both mandatory slots filled, or
   - false, otherwise.
 */
-bool
-d_mem_source_is_valid(
-    const struct d_mem_source* _source
+bool d_mem_source_is_valid(
+    const struct dj_mem_source* _source
 )
 {
     if ( (!_source) || (!_source->vtable) )
@@ -1138,9 +1128,8 @@ Parameter(s):
 Return:
   _source when it is usable, or the configured default when it is not.
 */
-struct d_mem_source
-d_mem_source_resolve(
-    const struct d_mem_source* _source
+struct dj_mem_source d_mem_source_resolve(
+    const struct dj_mem_source* _source
 )
 {
     if (d_mem_source_is_valid(_source))
@@ -1164,9 +1153,8 @@ invalid source yields "unknown", so the result may be printed unchecked. When
 D_CFG_MEM_SOURCE_NAMED is off, every source reports "unnamed" -- the slot is
 absent, not the function.
 */
-const char*
-d_mem_source_name(
-    const struct d_mem_source* _source
+const char* d_mem_source_name(
+    const struct dj_mem_source* _source
 )
 {
     if (!d_mem_source_is_valid(_source))
@@ -1199,14 +1187,13 @@ Parameter(s):
 Return:
   A pointer to _bytes bytes aligned to the normalized alignment, or NULL.
 */
-void*
-d_mem_source_allocate(
-    const struct d_mem_source* _source,
-    d_mem_size                 _bytes,
-    d_mem_size                 _align
+void* d_mem_source_allocate(
+    const struct dj_mem_source* _source,
+    dj_mem_size                 _bytes,
+    dj_mem_size                 _align
 )
 {
-    d_mem_size align;
+    dj_mem_size align;
 
     if ( (!d_mem_source_is_valid(_source)) || (_bytes == 0) )
     {
@@ -1242,15 +1229,15 @@ Return:
   D_MEM_OK, D_MEM_ERR_NULL, D_MEM_ERR_INVALID when the size is zero or the
 alignment inadmissible, or D_MEM_ERR_EXHAUSTED when the source refused.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_source_allocate_ex(
-    const struct d_mem_source* _source,
-    d_mem_size                 _bytes,
-    d_mem_size                 _align,
-    struct d_mem_block*        _out
+    const struct dj_mem_source* _source,
+    dj_mem_size                 _bytes,
+    dj_mem_size                 _align,
+    struct dj_mem_block*        _out
 )
 {
-    d_mem_size align;
+    dj_mem_size align;
     void*      result;
 
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
@@ -1302,15 +1289,14 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_source_release(
-    const struct d_mem_source* _source,
-    void*                      _ptr,
-    d_mem_size                 _bytes,
-    d_mem_size                 _align
+void d_mem_source_release(
+    const struct dj_mem_source* _source,
+    void*                       _ptr,
+    dj_mem_size                 _bytes,
+    dj_mem_size                 _align
 )
 {
-    d_mem_size align;
+    dj_mem_size align;
 
     if ( (!d_mem_source_is_valid(_source)) || (!_ptr) )
     {
@@ -1344,11 +1330,10 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_source_release_block(
-    const struct d_mem_source* _source,
-    struct d_mem_block*        _block,
-    d_mem_size                 _align
+void d_mem_source_release_block(
+    const struct dj_mem_source* _source,
+    struct dj_mem_block*        _block,
+    dj_mem_size                 _align
 )
 {
     if ( (!_block) || (d_mem_block_is_empty(_block)) )
@@ -1386,18 +1371,17 @@ Return:
   A pointer to the resized block, or NULL on failure. ON FAILURE THE ORIGINAL
 BLOCK IS UNTOUCHED and remains the caller's to release.
 */
-void*
-d_mem_source_reallocate(
-    const struct d_mem_source* _source,
-    void*                      _ptr,
-    d_mem_size                 _old_bytes,
-    d_mem_size                 _new_bytes,
-    d_mem_size                 _align
+void* d_mem_source_reallocate(
+    const struct dj_mem_source* _source,
+    void*                       _ptr,
+    dj_mem_size                 _old_bytes,
+    dj_mem_size                 _new_bytes,
+    dj_mem_size                 _align
 )
 {
-    d_mem_size align;
+    dj_mem_size align;
     void*      result;
-    d_mem_size copy_bytes;
+    dj_mem_size copy_bytes;
 
     if (!d_mem_source_is_valid(_source))
     {
@@ -1479,12 +1463,12 @@ Parameter(s):
 Return:
   D_MEM_OK, D_MEM_ERR_NULL, D_MEM_ERR_INVALID, or D_MEM_ERR_EXHAUSTED.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_source_reallocate_ex(
-    const struct d_mem_source* _source,
-    d_mem_size                 _new_bytes,
-    d_mem_size                 _align,
-    struct d_mem_block*        _block
+    const struct dj_mem_source* _source,
+    dj_mem_size                 _new_bytes,
+    dj_mem_size                 _align,
+    struct dj_mem_block*        _block
 )
 {
     void* result;
@@ -1532,9 +1516,8 @@ Return:
   The source's ceiling, or D_MEM_SIZE_MAX when it declares none. An invalid
 source reports 0, which is honest: it can satisfy nothing.
 */
-d_mem_size
-d_mem_source_max_size(
-    const struct d_mem_source* _source
+dj_mem_size d_mem_source_max_size(
+    const struct dj_mem_source* _source
 )
 {
     if (!d_mem_source_is_valid(_source))

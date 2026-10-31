@@ -8,7 +8,7 @@
 * need neither sqlite3.h nor the library.
 *
 *   Build (from the repo root), at any language level from C99, with no SQLite
-* -- or let ci/check_db_sqlite.sh do it, given `stubs`:
+* -- or let scripts/ci/check_db_sqlite.sh do it, given `stubs`:
 *     cc -std=c99 -Wall -Wextra -Werror -Iinc -DD_CFG_SQLITE=0               \
 *        src/djinterp/c/db/db_*.c src/djinterp/c/db/sqlite/sqlite_[a-z]*.c    \
 *        tests/unintegrated/c/db/sqlite/t_sqlite_stubs.c -o t_sqlite_stubs
@@ -25,7 +25,7 @@
 // djinterp
 #include "../../../../../inc/djinterp/c/db/sqlite/sqlite.h"  // unit under test
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, int64_t
 
 
 //==============================================================================
@@ -41,8 +41,8 @@ static int g_failures = 0;
 d_tests_sqlite_stubs_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_sqlite_stubs_expect(
+static
+void d_tests_sqlite_stubs_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -89,15 +89,13 @@ d_tests_sqlite_stubs_common
   - db_common.h's rows need no SQLite: a conversion converts, and empty
     rows have no value and are released
 */
-static void
-d_tests_sqlite_stubs_common(
-    void
-)
+static
+void d_tests_sqlite_stubs_common(void)
 {
     int               marker = 0;
     int64_t           number = 0;
-    struct d_db_rows  rows   = { 0u, 0u, NULL, NULL };
-    struct d_db_value value  = { D_DB_VALUE_NULL, 0u, { 0 } };
+    struct dj_db_rows  rows   = { 0u, 0u, NULL, NULL };
+    struct dj_db_value value  = { D_DB_VALUE_NULL, 0u, { 0 } };
 
     printf("sqlite_common\n");
 
@@ -112,7 +110,7 @@ d_tests_sqlite_stubs_common(
          ++f)
     {
         D_TESTS_SQLITE_STUBS_CHECK(
-            !d_sqlite_supports((enum d_sqlite_feature)f));
+            !d_sqlite_supports((enum dj_sqlite_feature)f));
     }
 
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_library_threadsafe() == 0);
@@ -152,10 +150,8 @@ d_tests_sqlite_stubs_connection
   - closing NULL succeeds; the queries answer with nothing
   - no extension loads, and nothing is said of it
 */
-static void
-d_tests_sqlite_stubs_connection(
-    void
-)
+static
+void d_tests_sqlite_stubs_connection(void)
 {
     int             marker = 0;
     struct sqlite3* db     = (struct sqlite3*)&marker;
@@ -203,16 +199,14 @@ d_tests_sqlite_stubs_query
     count, value or rows untouched
   - quoting has no SQLite to quote with: NULL
 */
-static void
-d_tests_sqlite_stubs_query(
-    void
-)
+static
+void d_tests_sqlite_stubs_query(void)
 {
     struct sqlite3*  db     = NULL;
     int64_t          number = 42;
     double           real   = 2.5;
     char*            text   = (char*)&number;
-    struct d_db_rows rows   = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows rows   = { 7u, 7u, NULL, NULL };
 
     printf("sqlite_query\n");
 
@@ -259,17 +253,15 @@ d_tests_sqlite_stubs_statement
   - every bind, clear and run fails, the count and the rows untouched; so
     does every cursor call
 */
-static void
-d_tests_sqlite_stubs_statement(
-    void
-)
+static
+void d_tests_sqlite_stubs_statement(void)
 {
     struct sqlite3*      db        = NULL;
     int                  marker    = 0;
     struct sqlite3_stmt* statement = (struct sqlite3_stmt*)(void*)&marker;
     size_t               index     = 9u;
     int64_t              changes   = 42;
-    struct d_db_rows     rows      = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows     rows      = { 7u, 7u, NULL, NULL };
 
     printf("sqlite_statement\n");
 
@@ -321,13 +313,11 @@ d_tests_sqlite_stubs_database
   - creating and deleting a file fail; no file is a database
   - serializing and deserializing fail, nothing written
 */
-static void
-d_tests_sqlite_stubs_database(
-    void
-)
+static
+void d_tests_sqlite_stubs_database(void)
 {
     struct sqlite3*       db     = NULL;
-    struct d_db_name_list names  = { 7u, NULL };
+    struct dj_db_name_list names  = { 7u, NULL };
     bool                  exists = true;
 
     printf("sqlite_database\n");
@@ -367,18 +357,16 @@ d_tests_sqlite_stubs_tables
   - no table or column exists; the _s forms say so and fail
   - every other table and column function fails, its output untouched
 */
-static void
-d_tests_sqlite_stubs_tables(
-    void
-)
+static
+void d_tests_sqlite_stubs_tables(void)
 {
-    static const struct d_db_column column =
+    static const struct dj_db_column column =
     {
         "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
     struct sqlite3*         db      = NULL;
-    struct d_db_name_list   names   = { 7u, NULL };
-    struct d_db_column_list columns = { 7u, NULL };
+    struct dj_db_name_list   names   = { 7u, NULL };
+    struct dj_db_column_list columns = { 7u, NULL };
     int64_t                 count   = 42;
     bool                    exists  = true;
 
@@ -429,13 +417,11 @@ d_tests_sqlite_stubs_objects
   - none exists; the _s forms say so and fail
   - every other function fails, its list untouched
 */
-static void
-d_tests_sqlite_stubs_objects(
-    void
-)
+static
+void d_tests_sqlite_stubs_objects(void)
 {
     struct sqlite3*       db     = NULL;
-    struct d_db_name_list names  = { 7u, NULL };
+    struct dj_db_name_list names  = { 7u, NULL };
     bool                  exists = true;
 
     printf("sqlite_schema: indexes, views, triggers\n");
@@ -482,10 +468,8 @@ d_tests_sqlite_stubs_transaction
   Tests the following:
   - every function fails; no transaction is ever open
 */
-static void
-d_tests_sqlite_stubs_transaction(
-    void
-)
+static
+void d_tests_sqlite_stubs_transaction(void)
 {
     struct sqlite3* db = NULL;
 
@@ -509,16 +493,14 @@ d_tests_sqlite_stubs_settings
   Tests the following:
   - every setter and getter fails, the getter's output untouched
 */
-static void
-d_tests_sqlite_stubs_settings(
-    void
-)
+static
+void d_tests_sqlite_stubs_settings(void)
 {
     struct sqlite3*            db      = NULL;
     bool                       enabled = true;
     int                        timeout = 42;
-    enum d_sqlite_journal_mode mode    = D_SQLITE_JOURNAL_WAL;
-    enum d_sqlite_synchronous  level   = D_SQLITE_SYNCHRONOUS_FULL;
+    enum dj_sqlite_journal_mode mode    = D_SQLITE_JOURNAL_WAL;
+    enum dj_sqlite_synchronous  level   = D_SQLITE_SYNCHRONOUS_FULL;
     int32_t                    number  = 42;
     char*                      text    = NULL;
 
@@ -562,10 +544,8 @@ d_tests_sqlite_stubs_maintenance
   Tests the following:
   - every function fails; a check's verdict is untouched
 */
-static void
-d_tests_sqlite_stubs_maintenance(
-    void
-)
+static
+void d_tests_sqlite_stubs_maintenance(void)
 {
     struct sqlite3* db = NULL;
     bool            ok = true;
@@ -600,10 +580,7 @@ main
   Runs every test and reports; the exit status is 0 only if every check
 passed.
 */
-int
-main(
-    void
-)
+int main(void)
 {
     d_tests_sqlite_stubs_common();
     d_tests_sqlite_stubs_connection();

@@ -1,0 +1,53 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\src\djinterp\core\
+├── 📁 container
+│   ├── 📁 array
+│   │   ├── 📄 array.cpp
+│   │   ├── 📄 array_iterator.cpp
+│   │   ├── 📄 fixed_array.cpp
+│   │   └── 📄 static_array.cpp
+│   ├── 📁 graph
+│   │   └── 📄 graph.cpp
+│   ├── 📁 list
+│   │   ├── 📄 linked_list.cpp
+│   │   └── 📄 list.cpp
+│   ├── 📁 map
+│   │   ├── 📄 map.cpp
+│   │   └── 📄 multimap.cpp
+│   ├── 📁 set
+│   │   ├── 📄 multiset.cpp
+│   │   └── 📄 set.cpp
+│   ├── 📁 table
+│   │   └── 📄 table.cpp
+│   ├── 📁 tree
+│   │   ├── 📁 avl
+│   │   │   └── 📄 AVLtree.cpp
+│   │   └── 📄 tree.cpp
+│   ├── 📁 vector
+│   │   └── 📄 vector.cpp
+│   ├── 📄 container.cpp
+│   ├── 📄 container_concepts.cpp
+│   ├── 📄 container_iterator.cpp
+│   ├── 📄 container_traits.cpp
+│   ├── 📄 edge.cpp
+│   ├── 📄 node.cpp
+│   └── 📄 tuple.cpp
+├── 📁 core
+│   ├── 📄 concepts.cpp
+│   └── 📄 type_traits.cpp
+├── 📁 db
+│   ├── 📁 mariadb
+│   │   └── 📄 mariadb.cpp
+│   └── 📄 database_common.cpp
+├── 📁 math
+│   ├── 📄 interval.cpp
+│   ├── 📄 math.cpp
+│   ├── 📄 math_concepts.cpp
+│   ├── 📄 math_traits.cpp
+│   └── 📄 numeric_compare.cpp
+├── 📁 meta
+│   ├── 📄 tuple_manip.cpp
+│   └── 📄 tuple_util.cpp
+└── 📁 util
+    ├── 📄 archive.cpp
+    ├── 📄 compress.cpp
+    └── 📄 git.cpp

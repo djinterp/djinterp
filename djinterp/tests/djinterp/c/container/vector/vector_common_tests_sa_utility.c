@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,10 +24,8 @@ d_tests_sa_vector_common_swap
   - successful swap with positive indices
   - successful swap with negative indices
 */
-bool
-d_tests_sa_vector_common_swap
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_swap(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -210,10 +208,8 @@ d_tests_sa_vector_common_copy_to
   - destination too small handling
   - successful copy
 */
-bool
-d_tests_sa_vector_common_copy_to
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_copy_to(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -361,10 +357,8 @@ d_tests_sa_vector_common_copy_to
 d_tests_sa_vector_common_utility_all
   Aggregation function that runs all utility tests.
 */
-bool
-d_tests_sa_vector_common_utility_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_utility_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

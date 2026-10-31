@@ -20,18 +20,18 @@
 #include <string.h>
 
 // the extensions take a source; this makes one from text, as a host would
-static const struct d_source* source_of(const char* _text, size_t _length, const char* _path)
+static const struct dj_source* source_of(const char* _text, size_t _length, const char* _path)
 {
-    static struct d_source s;
+    static struct dj_source s;
     d_source_init(&s, _text, _length, _path);
     (void)d_source_skip_bom(&s);
     return &s;
 }
 
 // and the input a build reads: that source, and no sink
-static const struct d_token_node_input* input_of(const char* _text, size_t _length, const char* _path)
+static const struct dj_token_node_input* input_of(const char* _text, size_t _length, const char* _path)
 {
-    static struct d_token_node_input in;
+    static struct dj_token_node_input in;
     in.source = source_of(_text, _length, _path);
     in.sink   = NULL;
     return &in;
@@ -41,11 +41,11 @@ static int failures = 0;
 static void check(int ok, const char* what)
 { if (!ok) { printf("  FAIL %s\n", what); ++failures; } }
 
-static const char* attr(struct d_node_tree* t, uint32_t n, const char* name)
+static const char* attr(struct dj_node_tree* t, uint32_t n, const char* name)
 {
-    struct d_node* nd = d_node_at(t, n);
+    struct dj_node* nd = d_node_at(t, n);
     for (uint32_t a = 0; a < nd->attribute_count; ++a) {
-        const struct d_node_attribute* at = d_node_attribute_at(t, nd->first_attribute + a);
+        const struct dj_node_attribute* at = d_node_attribute_at(t, nd->first_attribute + a);
         if (!strcmp(d_node_name(t, at->name), name))
             return at->value == D_DSS_NO_INDEX ? "" : d_node_text(t, at->value);
     }
@@ -54,9 +54,9 @@ static const char* attr(struct d_node_tree* t, uint32_t n, const char* name)
 
 static size_t findings(const char* sheet_text, const char* src, int cpp)
 {
-    struct d_dss_error e;
-    struct d_dss_sheet* sh = d_dss_parse(sheet_text, strlen(sheet_text), &e);
-    struct d_node_tree* t = d_node_tree_new();
+    struct dj_dss_error e;
+    struct dj_dss_sheet* sh = d_dss_parse(sheet_text, strlen(sheet_text), &e);
+    struct dj_node_tree* t = d_node_tree_new();
     if (cpp) d_ext_cpp_build(t, D_DSS_NO_INDEX, 0, input_of(src, strlen(src), "t.cpp"), NULL);
     else     d_ext_c_build(t, D_DSS_NO_INDEX, 0, input_of(src, strlen(src), "t.c"), NULL);
     size_t hits = 0;
@@ -73,14 +73,14 @@ static size_t findings(const char* sheet_text, const char* src, int cpp)
 // such as `severity` is not a claim at all
 static size_t violations(const char* sheet_text, const char* src)
 {
-    struct d_dss_error e;
-    struct d_dss_sheet* sh = d_dss_parse(sheet_text, strlen(sheet_text), &e);
-    struct d_node_tree* t = d_node_tree_new();
+    struct dj_dss_error e;
+    struct dj_dss_sheet* sh = d_dss_parse(sheet_text, strlen(sheet_text), &e);
+    struct dj_node_tree* t = d_node_tree_new();
     d_ext_c_build(t, D_DSS_NO_INDEX, 0, input_of(src, strlen(src), "t.c"), NULL);
     size_t hits = 0;
     for (uint32_t n = 0; n < (uint32_t)d_node_count(t); ++n)
         for (size_t r = 0; r < d_dss_rule_count(sh); ++r) {
-            const struct d_dss_rule* rule = d_dss_rule_at(sh, (uint32_t)r);
+            const struct dj_dss_rule* rule = d_dss_rule_at(sh, (uint32_t)r);
             if (!d_match_rule(sh, t, n, rule)) continue;
             for (uint32_t d = 0; d < rule->declaration_count; ++d) {
                 bool evaluated = false;
@@ -101,7 +101,7 @@ int main(void)
     check(!d_ext_cpp_accepts("a.h") && !d_ext_c_accepts("a.cpp"), "no extension claimed twice");
 
     // the file node carries the language and the standard apart
-    { struct d_node_tree* t = d_node_tree_new();
+    { struct dj_node_tree* t = d_node_tree_new();
       uint32_t r = d_ext_cpp_build(t, D_DSS_NO_INDEX, 0, input_of("int x;", 6, "a.cpp"), NULL);
       check(r != D_DSS_NO_INDEX, "C++ tree built");
       check(attr(t, r, "lang") && !strcmp(attr(t, r, "lang"), "c++"), "lang is the language");
@@ -109,7 +109,7 @@ int main(void)
       d_node_tree_free(t); }
 
     // a closing bracket is folded into its group; a group holds its contents
-    { struct d_node_tree* t = d_node_tree_new();
+    { struct dj_node_tree* t = d_node_tree_new();
       uint32_t r = d_ext_c_build(t, D_DSS_NO_INDEX, 0, input_of("f(a, b);", 8, "a.c"), NULL);
       // found by type, not position: the statement is an item holding it
       uint32_t g = D_DSS_NO_INDEX;
@@ -170,7 +170,7 @@ int main(void)
     // naming and declaration rule, and nothing else, must give one finding
     // per rule -- a rule that silently matches nothing fails here.  Each
     // snippet is otherwise conforming, documentation comments included
-    { FILE* f = fopen("sheets/c_style.dss", "rb");
+    { FILE* f = fopen("res/sheets/c_style.dss", "rb");
       check(f != NULL, "the shipped sheet opens (run from the bundle root)");
       if (f) {
           static char sheet[65536]; size_t n = fread(sheet, 1, sizeof sheet - 1, f);
@@ -234,12 +234,12 @@ int main(void)
     // the shipped sheet parses without a warning and uses nothing the
     // matcher refuses: a broken compound or a misspelt pseudo-class there
     // would disable a rule silently
-    { FILE* f = fopen("sheets/c_style.dss", "rb");
+    { FILE* f = fopen("res/sheets/c_style.dss", "rb");
       if (f) {
           static char text[1 << 16];
           size_t n = fread(text, 1, sizeof text - 1, f); fclose(f);
-          struct d_dss_error e;
-          struct d_dss_sheet* sh = d_dss_parse(text, n, &e);
+          struct dj_dss_error e;
+          struct dj_dss_sheet* sh = d_dss_parse(text, n, &e);
           uint32_t line = 0; const char* name = NULL;
           check(sh && d_dss_warning_count(sh) == 0, "the shipped sheet parses without a warning");
           check(sh && !d_match_unsupported(sh, &line, &name), "the shipped sheet uses only supported selectors");

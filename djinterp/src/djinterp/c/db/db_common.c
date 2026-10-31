@@ -24,7 +24,7 @@
 // djinterp
 #include "./db_internal.h"  // the number readers
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 //==============================================================================
@@ -41,8 +41,8 @@
  * Only A-Z fold, whatever the C locale says, as SQL folds an unquoted name;
  * every other byte, UTF-8 included, compares as it is.
  */
-static bool
-d_internal_db_same_name(
+static
+bool d_internal_db_same_name(
     const char* _left,
     const char* _right
 )
@@ -86,9 +86,9 @@ d_internal_db_same_name(
  * @param[in] _value  a TEXT value.
  * @return `true` when its size is its C string's length.
  */
-static bool
-d_internal_db_whole_text(
-    const struct d_db_value* _value
+static
+bool d_internal_db_whole_text(
+    const struct dj_db_value* _value
 )
 {
     return (strlen(_value->as.text) == _value->size);
@@ -106,8 +106,7 @@ d_db_status_message
   The wording is shared, so that every vendor layer describes the conditions
 none of them has a code for in the same words.
 */
-const char*
-d_db_status_message(
+const char* d_db_status_message(
     int _status
 )
 {
@@ -154,7 +153,7 @@ the same from either face.
 */
 const char*
 d_db_type_name(
-    enum d_db_type _type
+    enum dj_db_type _type
 )
 {
     switch (_type)
@@ -191,9 +190,8 @@ d_db_name_list_free
   The names live in the same block as the array that points at them, so one
 free releases both.
 */
-void
-d_db_name_list_free(
-    struct d_db_name_list* _list
+void d_db_name_list_free(
+    struct dj_db_name_list* _list
 )
 {
     // accept NULL, as free does
@@ -212,9 +210,8 @@ d_db_name_list_free(
 d_db_column_list_free
   As d_db_name_list_free: the strings share the block.
 */
-void
-d_db_column_list_free(
-    struct d_db_column_list* _list
+void d_db_column_list_free(
+    struct dj_db_column_list* _list
 )
 {
     // accept NULL, as free does
@@ -234,8 +231,7 @@ d_db_free
   Exists so that memory is released by the C runtime that allocated it, which
 on Windows need not be the caller's.
 */
-void
-d_db_free(
+void d_db_free(
     void* _block
 )
 {
@@ -256,11 +252,10 @@ d_db_rows_value
 formed until both are known to be in range, where it cannot overflow: the
 values exist, and so fit in memory.
 */
-const struct d_db_value*
-d_db_rows_value(
-    const struct d_db_rows* _rows,
-    size_t                  _row,
-    size_t                  _column
+const struct dj_db_value* d_db_rows_value(
+    const struct dj_db_rows* _rows,
+    size_t                   _row,
+    size_t                   _column
 )
 {
     // no rows, or a place outside them
@@ -280,11 +275,10 @@ d_db_rows_column_index
   Two passes: an exact match anywhere wins over a match without case earlier,
 so a query that names both "Id" and "id" finds each by its own spelling.
 */
-int
-d_db_rows_column_index(
-    const struct d_db_rows* _rows,
-    const char*             _name,
-    size_t*                 _index
+int d_db_rows_column_index(
+    const struct dj_db_rows* _rows,
+    const char*              _name,
+    size_t*                  _index
 )
 {
     // parameter validation
@@ -328,10 +322,9 @@ d_db_value_int64
 double, and has no fraction; the range is checked before the cast, which
 outside it is undefined. NaN fails both comparisons.
 */
-int
-d_db_value_int64(
-    const struct d_db_value* _value,
-    int64_t*                 _out
+int d_db_value_int64(
+    const struct dj_db_value* _value,
+    int64_t*                  _out
 )
 {
     // parameter validation
@@ -400,10 +393,9 @@ d_db_value_double
 nearest double to a value near INT64_MAX is 2^63, which int64_t cannot hold,
 so that case is refused before the cast back.
 */
-int
-d_db_value_double(
-    const struct d_db_value* _value,
-    double*                  _out
+int d_db_value_double(
+    const struct dj_db_value* _value,
+    double*                   _out
 )
 {
     // parameter validation
@@ -466,10 +458,9 @@ d_db_value_bool
   The words are those PostgreSQL's boolean input takes, which cover what the
 other servers write for a boolean as well.
 */
-int
-d_db_value_bool(
-    const struct d_db_value* _value,
-    bool*                    _out
+int d_db_value_bool(
+    const struct dj_db_value* _value,
+    bool*                     _out
 )
 {
     static const struct
@@ -524,9 +515,8 @@ d_db_rows_free
   The block starts with the columns, the values and the text following them,
 so one free releases everything; rows without columns hold nothing.
 */
-void
-d_db_rows_free(
-    struct d_db_rows* _rows
+void d_db_rows_free(
+    struct dj_db_rows* _rows
 )
 {
     // accept NULL, as free does

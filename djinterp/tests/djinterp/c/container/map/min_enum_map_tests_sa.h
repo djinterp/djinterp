@@ -49,7 +49,7 @@
 
 // test_color_enum
 //   enum: sample enumeration for testing.
-enum d_test_color_min_enum_map
+enum dj_test_color_min_enum_map
 {
     D_TEST_COLOR_MIN_ENUM_MAP_RED    = 0,
     D_TEST_COLOR_MIN_ENUM_MAP_GREEN  = 1,
@@ -78,11 +78,15 @@ enum test_status_enum
 
 // d_test_min_enum_map_create_int
 //   function: helper to create heap-allocated integer for testing.
-int* d_test_min_enum_map_create_int(int _value);
+int* d_test_min_enum_map_create_int(
+    int _value
+);
 
 // d_test_min_enum_map_create_string
 //   function: helper to create heap-allocated string copy for testing.
-char* d_test_min_enum_map_create_string(const char* _str);
+char* d_test_min_enum_map_create_string(
+    const char* _str
+);
 
 
 /******************************************************************************
@@ -90,22 +94,22 @@ char* d_test_min_enum_map_create_string(const char* _str);
  *****************************************************************************/
 
 // creation tests
-struct d_test_object* d_tests_min_enum_map_new(void);
-struct d_test_object* d_tests_min_enum_map_new_copy(void);
+struct dj_test_object* d_tests_min_enum_map_new(void);
+struct dj_test_object* d_tests_min_enum_map_new_copy(void);
 
 // insertion tests
-struct d_test_object* d_tests_min_enum_map_put(void);
+struct dj_test_object* d_tests_min_enum_map_put(void);
 
 // retrieval tests
-struct d_test_object* d_tests_min_enum_map_get(void);
-struct d_test_object* d_tests_min_enum_map_contains(void);
-struct d_test_object* d_tests_min_enum_map_count(void);
+struct dj_test_object* d_tests_min_enum_map_get(void);
+struct dj_test_object* d_tests_min_enum_map_contains(void);
+struct dj_test_object* d_tests_min_enum_map_count(void);
 
 // removal tests
-struct d_test_object* d_tests_min_enum_map_remove(void);
+struct dj_test_object* d_tests_min_enum_map_remove(void);
 
 // core operations aggregator
-struct d_test_object* d_tests_min_enum_map_core_all(void);
+struct dj_test_object* d_tests_min_enum_map_core_all(void);
 
 
 /******************************************************************************
@@ -113,13 +117,13 @@ struct d_test_object* d_tests_min_enum_map_core_all(void);
  *****************************************************************************/
 
 // clear operation tests
-struct d_test_object* d_tests_min_enum_map_clear(void);
+struct dj_test_object* d_tests_min_enum_map_clear(void);
 
 // destruction tests
-struct d_test_object* d_tests_min_enum_map_free(void);
+struct dj_test_object* d_tests_min_enum_map_free(void);
 
 // memory management aggregator
-struct d_test_object* d_tests_min_enum_map_memory_all(void);
+struct dj_test_object* d_tests_min_enum_map_memory_all(void);
 
 
 /******************************************************************************
@@ -127,28 +131,28 @@ struct d_test_object* d_tests_min_enum_map_memory_all(void);
  *****************************************************************************/
 
 // merge operation tests
-struct d_test_object* d_tests_min_enum_map_merge(void);
+struct dj_test_object* d_tests_min_enum_map_merge(void);
 
 // entry macro tests
-struct d_test_object* d_tests_min_enum_map_entry_macros(void);
+struct dj_test_object* d_tests_min_enum_map_entry_macros(void);
 
 // sorting and ordering tests
-struct d_test_object* d_tests_min_enum_map_ordering(void);
+struct dj_test_object* d_tests_min_enum_map_ordering(void);
 
 // advanced operations aggregator
-struct d_test_object* d_tests_min_enum_map_advanced_all(void);
+struct dj_test_object* d_tests_min_enum_map_advanced_all(void);
 
 
 // EDGE CASE AND STRESS TESTS
 
 // edge case tests
-struct d_test_object* d_tests_min_enum_map_edge_cases(void);
+struct dj_test_object* d_tests_min_enum_map_edge_cases(void);
 
 // stress tests
-struct d_test_object* d_tests_min_enum_map_stress(void);
+struct dj_test_object* d_tests_min_enum_map_stress(void);
 
 // edge case and stress aggregator
-struct d_test_object* d_tests_min_enum_map_edge_stress_all(void);
+struct dj_test_object* d_tests_min_enum_map_edge_stress_all(void);
 
 
 /******************************************************************************
@@ -156,7 +160,7 @@ struct d_test_object* d_tests_min_enum_map_edge_stress_all(void);
  *****************************************************************************/
 
 // master test runner for all min_enum_map tests
-struct d_test_object* d_tests_min_enum_map_run_all(void);
+struct dj_test_object* d_tests_min_enum_map_run_all(void);
 
 
 #endif  // DJINTERP_MIN_ENUM_MAP_TESTS_STANDALONE_

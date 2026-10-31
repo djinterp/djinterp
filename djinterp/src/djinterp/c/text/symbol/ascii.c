@@ -24,16 +24,15 @@ d_internal_ascii_code
 on a signed-char platform -- lands at 0x80 or above, outside every ASCII
 range, rather than below them.
 */
-static unsigned int
-d_internal_ascii_code(
+static
+unsigned int d_internal_ascii_code(
     char _c
 )
 {
     return (unsigned int)(unsigned char)_c;
 }
 
-bool
-d_ascii_char_is_numeric(
+bool d_ascii_char_is_numeric(
     char _c
 )
 {
@@ -43,8 +42,7 @@ d_ascii_char_is_numeric(
              (code <= 0x39u) );
 }
 
-bool
-d_ascii_char_is_alphabetical(
+bool d_ascii_char_is_alphabetical(
     char _c
 )
 {
@@ -54,8 +52,7 @@ d_ascii_char_is_alphabetical(
              ( (code >= 0x61u) && (code <= 0x7Au) ) );
 }
 
-bool
-d_ascii_char_is_alphanumeric(
+bool d_ascii_char_is_alphanumeric(
     char _c
 )
 {
@@ -68,8 +65,7 @@ d_ascii_char_is_whitespace
   The six characters isspace accepts in the "C" locale: space, and \t \n \v
 \f \r, which are 0x09 to 0x0D.
 */
-bool
-d_ascii_char_is_whitespace(
+bool d_ascii_char_is_whitespace(
     char _c
 )
 {
@@ -79,16 +75,14 @@ d_ascii_char_is_whitespace(
              ( (code >= 0x09u) && (code <= 0x0Du) ) );
 }
 
-bool
-d_ascii_char_is_null(
+bool d_ascii_char_is_null(
     char _c
 )
 {
     return (d_internal_ascii_code(_c) == 0x00u);
 }
 
-bool
-d_ascii_char_is_control(
+bool d_ascii_char_is_control(
     char _c
 )
 {
@@ -102,8 +96,7 @@ d_ascii_char_is_control(
 d_ascii_char_is_printable
   Space counts, as it does for isprint; DEL (0x7F) does not.
 */
-bool
-d_ascii_char_is_printable(
+bool d_ascii_char_is_printable(
     char _c
 )
 {
@@ -118,8 +111,7 @@ d_ascii_char_is_punctuation
   Every printable character that is neither a space nor alphanumeric: the
 four runs 0x21-0x2F, 0x3A-0x40, 0x5B-0x60 and 0x7B-0x7E.
 */
-bool
-d_ascii_char_is_punctuation(
+bool d_ascii_char_is_punctuation(
     char _c
 )
 {
@@ -130,8 +122,7 @@ d_ascii_char_is_punctuation(
              (!d_ascii_char_is_alphanumeric(_c)) );
 }
 
-bool
-d_ascii_char_is_hex_digit(
+bool d_ascii_char_is_hex_digit(
     char _c
 )
 {
@@ -146,8 +137,7 @@ d_ascii_char_is_hex_digit(
 d_ascii_char_to_upper
   Only a-z move, by the 0x20 that separates the two cases in ASCII.
 */
-char
-d_ascii_char_to_upper(
+char d_ascii_char_to_upper(
     char _c
 )
 {
@@ -167,8 +157,7 @@ d_ascii_char_to_upper(
 d_ascii_char_to_lower
   Only A-Z move, by the 0x20 that separates the two cases in ASCII.
 */
-char
-d_ascii_char_to_lower(
+char d_ascii_char_to_lower(
     char _c
 )
 {

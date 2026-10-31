@@ -71,11 +71,11 @@ D_EXTERN_C_BEGIN
 // member, not an enum or a bool, so the struct's layout is the same in both
 // dialects.)
 
-// d_table_overlay
+// dj_table_overlay
 //   struct: the restriction bundle a table wears. Every field is inert unless
 // its bit is set in `present`, so the empty bundle is a zeroed struct and is
 // worn by everything.
-struct d_table_overlay
+struct dj_table_overlay
 {
     uint32_t                present;        // the set of declared restrictions
     D_INTERNAL_TABLE_EXTENT capacity;       // kappa, when CAPACITY is present
@@ -94,10 +94,9 @@ struct d_table_overlay
 // d_table_overlay_none
 //   function: the empty overlay -- the top of the strength order, worn by
 // every table. A zeroed bundle, so a caller may also just memset one.
-D_NODISCARD D_INLINE struct d_table_overlay
-d_table_overlay_none(void)
+D_NODISCARD D_INLINE struct dj_table_overlay d_table_overlay_none(void)
 {
-    struct d_table_overlay result;
+    struct dj_table_overlay result;
 
     result.present      = 0;
     result.capacity     = 0;
@@ -113,48 +112,62 @@ d_table_overlay_none(void)
 
 // d_table_overlay_wears
 //   function: whether the bundle declares a given restriction.
-int d_table_overlay_wears(const struct d_table_overlay* _overlay,
-                          uint32_t                      _restriction);
+int d_table_overlay_wears(
+    const struct dj_table_overlay* _overlay,
+    uint32_t                       _restriction
+);
 
 // d_table_overlay_capacity_of
 //   function: kappa, or the largest representable extent when the bundle
 // declares no capacity -- an undeclared ceiling does not bind.
-size_t d_table_overlay_capacity_of(const struct d_table_overlay* _overlay);
+size_t d_table_overlay_capacity_of(
+    const struct dj_table_overlay* _overlay
+);
 
 // d_table_overlay_in_domain
 //   function: whether a cell lies in <I> -- delta_I applied to one value.
 // Vacuously true when the restriction is absent, and also when the bundle
 // carries no comparator, since an unreadable restriction is not a failed one.
-int d_table_overlay_in_domain(const struct d_table_overlay* _overlay,
-                              const void*                   _cell);
+int d_table_overlay_in_domain(
+    const struct dj_table_overlay* _overlay,
+    const void*                    _cell
+);
 
 // d_table_overlay_key
 //   function: eta's projection of a cell, or the cell itself when the bundle
 // is not keyed -- an unkeyed duplicate-equivalence is over whole values.
-const void* d_table_overlay_key(const struct d_table_overlay* _overlay,
-                                const void*                   _cell);
+const void* d_table_overlay_key(
+    const struct dj_table_overlay* _overlay,
+    const void*                    _cell
+);
 
 
 // II.   operations (cont.)
-enum d_table_status    d_table_overlay_admits_row(
-    const struct d_table*         _table,
-    const struct d_table_overlay* _overlay,
-    const void*                   _row,
-    size_t                        _width);
-enum d_table_status    d_table_overlay_holds(
-    const struct d_table*         _table,
-    const struct d_table_overlay* _overlay);
-struct d_table_overlay d_table_overlay_meet(const struct d_table_overlay* _a,
-                                            const struct d_table_overlay* _b);
-int                    d_table_overlay_stronger_than(
-    const struct d_table_overlay* _a,
-    const struct d_table_overlay* _b);
-enum d_table_status    d_table_overlay_push_row(
-    struct d_table*               _table,
-    const struct d_table_overlay* _overlay,
-    const void*                   _row,
-    size_t                        _width,
-    const struct d_table_alloc*   _alloc);
+enum dj_table_status d_table_overlay_admits_row(
+    const struct dj_table*         _table,
+    const struct dj_table_overlay* _overlay,
+    const void*                    _row,
+    size_t                         _width
+);
+enum dj_table_status d_table_overlay_holds(
+    const struct dj_table*         _table,
+    const struct dj_table_overlay* _overlay
+);
+struct dj_table_overlay d_table_overlay_meet(
+    const struct dj_table_overlay* _a,
+    const struct dj_table_overlay* _b
+);
+int d_table_overlay_stronger_than(
+    const struct dj_table_overlay* _a,
+    const struct dj_table_overlay* _b
+);
+enum dj_table_status d_table_overlay_push_row(
+    struct dj_table*               _table,
+    const struct dj_table_overlay* _overlay,
+    const void*                    _row,
+    size_t                         _width,
+    const struct dj_table_alloc*   _alloc
+);
 
 D_EXTERN_C_END
 

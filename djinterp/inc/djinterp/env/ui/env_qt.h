@@ -209,7 +209,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env.h"  // D_ENV_LANG_CPP_STANDARD, D_ENV_LANG_USING_CPP
-#include "../../config/core/env/ui/cfg_env_qt.h"  // D_CFG_ENV_QT_PROBE_VERSION
+#include "../../config/env/ui/cfg_env_qt.h"  // D_CFG_ENV_QT_PROBE_VERSION
 
 
 //==============================================================================
@@ -1706,19 +1706,21 @@ const char* d_env_qt_get_compile_version(void);
  *
  * @return `1` if the major and minor versions match, `0` otherwise.
  */
-int         d_env_qt_runtime_matches_compile(void);
+int d_env_qt_runtime_matches_compile(void);
 /**
  * @brief Tests at runtime whether a Qt module's shared library is loadable.
  *
  * @param[in] _module_name  the module's name, e.g. "QtWidgets" or "QtQml".
  * @return `1` if the module's library is loadable, `0` otherwise.
  */
-int         d_env_qt_has_module(const char* _module_name);
+int d_env_qt_has_module(
+    const char* _module_name
+);
 /**
  * @brief Prints the detected Qt environment: version, modules, platform,
  *        build configuration, and feature flags.
  */
-void        d_env_qt_print_info(void);
+void d_env_qt_print_info(void);
 
 #if D_ENV_LANG_USING_CPP
     }

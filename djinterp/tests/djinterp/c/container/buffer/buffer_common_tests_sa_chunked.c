@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,14 +20,12 @@ d_tests_sa_buffer_common_chunk_new
   - zero capacity returns NULL
   - successful allocation sets count=0, capacity, next=NULL
 */
-bool
-d_tests_sa_buffer_common_chunk_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_chunk_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_buffer_chunk* chunk;
+    struct dj_buffer_chunk* chunk;
 
     result = true;
 
@@ -93,14 +91,12 @@ d_tests_sa_buffer_common_chunk_free
   - NULL chunk does not crash
   - valid chunk is freed without error
 */
-bool
-d_tests_sa_buffer_common_chunk_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_chunk_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_buffer_chunk* chunk;
+    struct dj_buffer_chunk* chunk;
 
     result = true;
 
@@ -136,14 +132,12 @@ d_tests_sa_buffer_common_chunk_list_init
   - NULL list does not crash
   - initialized list has zeroed fields
 */
-bool
-d_tests_sa_buffer_common_chunk_list_init
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_chunk_list_init(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_buffer_chunk_list list;
+    struct dj_buffer_chunk_list list;
 
     result = true;
 
@@ -156,8 +150,8 @@ d_tests_sa_buffer_common_chunk_list_init
         _counter) && result;
 
     // test 2: fields zeroed
-    list.head        = (struct d_buffer_chunk*)0xDEAD;
-    list.tail        = (struct d_buffer_chunk*)0xBEEF;
+    list.head        = (struct dj_buffer_chunk*)0xDEAD;
+    list.tail        = (struct dj_buffer_chunk*)0xBEEF;
     list.chunk_count = 99;
     list.total_count = 99;
 
@@ -186,14 +180,12 @@ d_tests_sa_buffer_common_chunk_list_free
   - NULL list does not crash
   - list with chunks is freed and re-initialized
 */
-bool
-d_tests_sa_buffer_common_chunk_list_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_chunk_list_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_buffer_chunk_list list;
+    struct dj_buffer_chunk_list list;
     int                        value;
 
     result = true;
@@ -244,14 +236,12 @@ d_tests_sa_buffer_common_append_element_chunked
   - element fills tail chunk before creating new
   - total_count tracks correctly
 */
-bool
-d_tests_sa_buffer_common_append_element_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_append_element_chunked(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_buffer_chunk_list list;
+    struct dj_buffer_chunk_list list;
     int                        value;
 
     result = true;
@@ -329,14 +319,12 @@ d_tests_sa_buffer_common_append_data_chunked
   - successful multi-element chunked append
   - data spans multiple chunks when needed
 */
-bool
-d_tests_sa_buffer_common_append_data_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_append_data_chunked(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_buffer_chunk_list list;
+    struct dj_buffer_chunk_list list;
     int                        data[5] = {10, 20, 30, 40, 50};
 
     result = true;
@@ -389,7 +377,7 @@ d_tests_sa_buffer_common_append_data_chunked
         for (i = 0; i < 5; ++i)
         {
             void* elem = d_buffer_common_get_element_chunked(
-                             NULL, 0, sizeof(int), &list, (d_index)i);
+                             NULL, 0, sizeof(int), &list, (dj_index)i);
 
             if ( (!elem) ||
                  (*(int*)elem != data[i]) )
@@ -421,17 +409,15 @@ d_tests_sa_buffer_common_consolidate
   - chunk list is freed after consolidation
   - data integrity after consolidation
 */
-bool
-d_tests_sa_buffer_common_consolidate
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_consolidate(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
     void*                      elements;
     size_t                     count;
     size_t                     capacity;
-    struct d_buffer_chunk_list list;
+    struct dj_buffer_chunk_list list;
     int                        value;
 
     result = true;
@@ -538,14 +524,12 @@ d_tests_sa_buffer_common_total_count
   - NULL list returns just primary count
   - correct sum of primary + chunks
 */
-bool
-d_tests_sa_buffer_common_total_count
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_total_count(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_buffer_chunk_list list;
+    struct dj_buffer_chunk_list list;
     int                        value;
 
     result = true;
@@ -587,17 +571,15 @@ d_tests_sa_buffer_common_get_element_chunked
   - out-of-bounds index returns NULL
   - NULL list with index beyond primary returns NULL
 */
-bool
-d_tests_sa_buffer_common_get_element_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_get_element_chunked(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
     void*                      elements;
     size_t                     count;
     size_t                     capacity;
-    struct d_buffer_chunk_list list;
+    struct dj_buffer_chunk_list list;
     int                        value;
     void*                      got;
 
@@ -687,10 +669,8 @@ d_tests_sa_buffer_common_get_element_chunked
 d_tests_sa_buffer_common_chunked_all
   Aggregation function that runs all chunked (append mode) tests.
 */
-bool
-d_tests_sa_buffer_common_chunked_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_chunked_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

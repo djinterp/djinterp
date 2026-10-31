@@ -36,8 +36,7 @@ const float GOLDEN = 0.61803398875f;
 
 // to_byte
 //   a channel in [0, 1] as a byte.
-re_std::uint32_t
-to_byte(
+re_std::uint32_t to_byte(
     float _channel
 )
 {
@@ -48,8 +47,7 @@ to_byte(
 
 // hex_value
 //   one hexadecimal digit's value, or -1.
-int
-hex_value(
+int hex_value(
     char _digit
 )
 {
@@ -76,8 +74,7 @@ hex_value(
 
 // assign_ids
 //   gives a row and all of its descendants fresh ids.
-void
-assign_ids(
+void assign_ids(
     sheet& _sheet,
     row&   _row
 )
@@ -94,8 +91,7 @@ assign_ids(
 
 // find_in
 //   the row with an id below (or at) a row, and its parent.
-row*
-find_in(
+row* find_in(
     row&  _at,
     int   _id,
     row** _parent
@@ -131,10 +127,9 @@ find_in(
 
 // walk_from
 //   the depth-first walk below one row.
-void
-walk_from(
-    const row&                                              _parent,
-    int                                                     _depth,
+void walk_from(
+    const row& _parent,
+    int        _depth,
     const std::function<void(const row&, const row&, int)>& _visit
 )
 {
@@ -149,8 +144,7 @@ walk_from(
 
 // contains
 //   whether a row's subtree holds an id.
-bool
-contains(
+bool contains(
     const row& _row,
     int        _id
 )
@@ -174,8 +168,7 @@ contains(
 // open_within
 //   _row, unless it is the root, and every group within it, opened or
 // closed; how many of them changed.
-int
-open_within(
+int open_within(
     row& _row,
     bool _open,
     bool _root
@@ -206,8 +199,7 @@ open_within(
 
 // line
 //   a line_spec, for the defaults below.
-line_spec
-line(
+line_spec line(
     bool       _show,
     float      _thickness,
     rgba       _colour,
@@ -225,8 +217,7 @@ line(
 
 // make_template
 //   one macro template, for the defaults below.
-macro_template
-make_template(
+macro_template make_template(
     bool               _enabled,
     int                _applies,
     const std::string& _name,
@@ -251,8 +242,7 @@ make_template(
 
 // ------------------------------------------------------------------ colours
 
-rgba
-make_rgba(
+rgba make_rgba(
     float _r,
     float _g,
     float _b,
@@ -265,8 +255,7 @@ make_rgba(
            to_byte(_a);
 }
 
-float
-channel(
+float channel(
     rgba _colour,
     int  _index
 )
@@ -276,8 +265,7 @@ channel(
     return static_cast<float>((_colour >> shift) & 0xFFu) / 255.0f;
 }
 
-rgba
-with_alpha(
+rgba with_alpha(
     rgba  _colour,
     float _alpha
 )
@@ -285,8 +273,7 @@ with_alpha(
     return (_colour & 0xFFFFFF00u) | to_byte(_alpha);
 }
 
-rgba
-from_hsv(
+rgba from_hsv(
     float _h,
     float _s,
     float _v,
@@ -321,8 +308,7 @@ half, neon pins the saturation to full. The colour-blind-safe palette is
 Okabe and Ito's seven, which stay distinct to the common colour-vision
 deficiencies; past the seventh it goes round again darker, then lighter.
 */
-rgba
-palette_colour(
+rgba palette_colour(
     int   _palette,
     int   _index,
     float _saturation,
@@ -377,8 +363,7 @@ palette_colour(
     }
 }
 
-rgba
-or_else(
+rgba or_else(
     rgba _colour,
     rgba _automatic
 )
@@ -390,8 +375,7 @@ or_else(
 
 // ------------------------------------------------------- themes and schemes
 
-const char*
-theme_name(
+const char* theme_name(
     int _theme
 )
 {
@@ -399,8 +383,7 @@ theme_name(
                          : "Dark";
 }
 
-const char*
-scheme_name(
+const char* scheme_name(
     int _scheme
 )
 {
@@ -419,8 +402,7 @@ colour-blind-safe scheme takes its collision and probe colours from its
 own palette. A light theme's palettes are darker and more saturated than a
 dark one's, to stand out against white.
 */
-scheme_colours
-scheme_for(
+scheme_colours scheme_for(
     int _theme,
     int _scheme
 )
@@ -565,8 +547,7 @@ scheme_for(
     return out;
 }
 
-look
-make_look(
+look make_look(
     const colour_settings& _colours,
     const grid_settings&   _grid,
     int                    _theme,
@@ -615,8 +596,7 @@ make_look(
     return out;
 }
 
-look
-make_look(
+look make_look(
     const sheet& _sheet,
     int          _theme,
     int          _scheme
@@ -625,16 +605,14 @@ make_look(
     return make_look(_sheet.colours, _sheet.grid, _theme, _scheme);
 }
 
-std::string
-rgba_text(
+std::string rgba_text(
     rgba _colour
 )
 {
     return "#" + format_hex(_colour, 8, true);
 }
 
-bool
-parse_rgba(
+bool parse_rgba(
     const std::string& _text,
     rgba&              _colour
 )
@@ -673,16 +651,14 @@ parse_rgba(
 
 // ------------------------------------------------------------- construction
 
-int
-applies_bit(
+int applies_bit(
     def_kind _kind
 )
 {
     return 1 << static_cast<int>(_kind);
 }
 
-std::vector<macro_template>
-default_templates()
+std::vector<macro_template> default_templates()
 {
     const int range = applies_bit(def_kind::range);
     const int bit   = applies_bit(def_kind::bit);
@@ -718,8 +694,7 @@ and its value read from and written into an array; a bit's word and mask,
 and a test of it; a value compared with its field. Only the ranges' are
 on to begin with, as the narrow sheet's are.
 */
-std::vector<macro_template>
-default_wide_templates()
+std::vector<macro_template> default_wide_templates()
 {
     const int range = applies_bit(def_kind::range);
     const int bit   = applies_bit(def_kind::bit);
@@ -758,8 +733,7 @@ default_wide_templates()
     return out;
 }
 
-int
-word_bits(
+int word_bits(
     const sheet& _sheet
 )
 {
@@ -774,8 +748,7 @@ reset_view
   The grid's lines and the colours as a new sheet has them: every colour
 automatic, so the theme and scheme it is shown with choose them.
 */
-void
-reset_view(
+void reset_view(
     sheet& _sheet
 )
 {
@@ -803,8 +776,7 @@ automatic_colours
 the palette and its saturation and brightness, and the lines' colours. The
 rows' own colours, and everything that is not a colour, are left alone.
 */
-void
-automatic_colours(
+void automatic_colours(
     sheet& _sheet
 )
 {
@@ -832,8 +804,7 @@ automatic_colours(
     return;
 }
 
-sheet
-make_sheet(
+sheet make_sheet(
     const std::string& _title,
     int                _width
 )
@@ -865,8 +836,7 @@ holding one bit, bit 0, the 0x...01 a sheet's first flag usually is.
 make_sheet stays empty, for the importers, the examples and the other
 callers that fill a sheet themselves.
 */
-sheet
-make_document(
+sheet make_document(
     const std::string& _title,
     int                _width
 )
@@ -897,8 +867,7 @@ make_document(
 
 // ------------------------------------------------------------------- lookup
 
-row*
-find_row(
+row* find_row(
     sheet& _sheet,
     int    _id
 )
@@ -906,8 +875,7 @@ find_row(
     return find_in(_sheet.root, _id, nullptr);
 }
 
-const row*
-find_row(
+const row* find_row(
     const sheet& _sheet,
     int          _id
 )
@@ -954,8 +922,7 @@ row_index::row_index(
          });
 }
 
-const row*
-row_index::find(
+const row* row_index::find(
     int _id
 ) const
 {
@@ -968,8 +935,7 @@ row_index::find(
     return m_rows[static_cast<std::size_t>(_id)];
 }
 
-row*
-parent_of(
+row* parent_of(
     sheet& _sheet,
     int    _id
 )
@@ -987,9 +953,8 @@ parent_of(
     return parent;
 }
 
-void
-walk(
-    const sheet&                                            _sheet,
+void walk(
+    const sheet& _sheet,
     const std::function<void(const row&, const row&, int)>& _visit
 )
 {
@@ -1001,8 +966,7 @@ walk(
 
 // ---------------------------------------------------------------- mutation
 
-int
-insert_row(
+int insert_row(
     sheet&     _sheet,
     int        _parent,
     int        _index,
@@ -1058,8 +1022,7 @@ insert_row(
     return id;
 }
 
-bool
-remove_row(
+bool remove_row(
     sheet& _sheet,
     int    _id
 )
@@ -1085,8 +1048,7 @@ remove_row(
     return false;
 }
 
-int
-open_groups(
+int open_groups(
     sheet& _sheet,
     int    _id,
     bool   _open
@@ -1111,8 +1073,7 @@ move_row
 move later within the same group counts its position before the removal, so
 the index the caller sees is the one the row ends up at.
 */
-bool
-move_row(
+bool move_row(
     sheet& _sheet,
     int    _id,
     int    _parent,
@@ -1173,8 +1134,7 @@ move_row(
 
 // --------------------------------------------------------------- allocation
 
-int
-next_free_bit(
+int next_free_bit(
     const sheet& _sheet,
     int          _group
 )
@@ -1239,8 +1199,7 @@ next_free_bit(
     return -1;
 }
 
-bool
-function_like(
+bool function_like(
     const row& _row
 )
 {
@@ -1254,8 +1213,7 @@ host_data_model
 64-bit pointer beside a 32-bit long is LLP64, and anything else is taken
 for a 32-bit target.
 */
-data_model
-host_data_model()
+data_model host_data_model()
 {
     if constexpr (sizeof(long) == 8)
     {
@@ -1274,8 +1232,7 @@ host_data_model()
 
 // -------------------------------------------------------- what the grid shows
 
-int
-rule_part(
+int rule_part(
     const display_rule& _rule,
     shown_part          _part
 )
@@ -1290,8 +1247,7 @@ rule_part(
     return -1;
 }
 
-int&
-rule_part(
+int& rule_part(
     display_rule& _rule,
     shown_part    _part
 )
@@ -1306,8 +1262,7 @@ rule_part(
     return _rule.colour;
 }
 
-bool
-grid_shows(
+bool grid_shows(
     const grid_settings& _grid,
     shown_part           _part
 )
@@ -1322,8 +1277,7 @@ grid_shows(
     return true;
 }
 
-bool&
-grid_shows(
+bool& grid_shows(
     grid_settings& _grid,
     shown_part     _part
 )
@@ -1338,8 +1292,7 @@ grid_shows(
     return _grid.show_colours;
 }
 
-bool
-shows(
+bool shows(
     const cell_shows& _cell,
     shown_part        _part
 )
@@ -1354,8 +1307,7 @@ shows(
     return true;
 }
 
-std::vector<int>
-lineage(
+std::vector<int> lineage(
     const sheet& _sheet,
     int          _id
 )
@@ -1379,8 +1331,7 @@ namespace
 // covers_row
 //   whether a rule's rows hold a row: every row, for a rule that names
 // none; else the row, or a group or range it is in.
-bool
-covers_row(
+bool covers_row(
     const display_rule&     _rule,
     const std::vector<int>& _lineage
 )
@@ -1404,8 +1355,7 @@ covers_row(
 
 // sets_nothing
 //   whether a rule leaves every part as the sheet says.
-bool
-sets_nothing(
+bool sets_nothing(
     const display_rule& _rule
 )
 {
@@ -1417,8 +1367,7 @@ sets_nothing(
 // same_region
 //   whether a rule is over just these rows and bits: the rows sorted, and
 // every bit however it is written.
-bool
-same_region(
+bool same_region(
     const display_rule&     _rule,
     const std::vector<int>& _rows,
     int                     _lsb,
@@ -1446,8 +1395,7 @@ same_region(
 }  // anonymous namespace
 
 
-std::vector<const display_rule*>
-rules_over(
+std::vector<const display_rule*> rules_over(
     const grid_settings&    _grid,
     const std::vector<int>& _lineage
 )
@@ -1465,8 +1413,7 @@ rules_over(
     return out;
 }
 
-cell_shows
-shown_at(
+cell_shows shown_at(
     const grid_settings&                    _grid,
     const std::vector<const display_rule*>& _over,
     int                                     _lsb,
@@ -1508,8 +1455,7 @@ shown_at(
     return out;
 }
 
-void
-set_shown(
+void set_shown(
     grid_settings&          _grid,
     const std::vector<int>& _rows,
     int                     _lsb,
@@ -1582,8 +1528,7 @@ set_shown(
     return;
 }
 
-int
-prune_rules(
+int prune_rules(
     sheet& _sheet
 )
 {
@@ -1638,16 +1583,14 @@ prune_rules(
 // 4.4  SPECIAL ROWS
 //==============================================================================
 
-const char*
-special_name(
+const char* special_name(
     special_kind _kind
 )
 {
     return (_kind == special_kind::usage) ? "usage" : "probe";
 }
 
-const char*
-place_name(
+const char* place_name(
     special_place _place
 )
 {
@@ -1672,8 +1615,7 @@ settle_specials
 sheet has. A row of the tree that is gone is let go of: the row it came
 before, for the end of its parent; its parent, for the sheet's own rows.
 */
-bool
-settle_specials(
+bool settle_specials(
     sheet& _sheet
 )
 {
@@ -1752,8 +1694,7 @@ settle_specials(
     return changed;
 }
 
-special_row*
-find_special(
+special_row* find_special(
     grid_settings& _grid,
     int            _id
 )
@@ -1769,8 +1710,7 @@ find_special(
     return nullptr;
 }
 
-const special_row*
-find_special(
+const special_row* find_special(
     const grid_settings& _grid,
     int                  _id
 )
@@ -1791,8 +1731,7 @@ add_special
   A copy of where another is, just after it; or pinned at the bottom, last.
 Its id is one past the highest.
 */
-int
-add_special(
+int add_special(
     grid_settings& _grid,
     special_kind   _kind,
     int            _like
@@ -1836,8 +1775,7 @@ remove_special
   Gone -- unless it is the last of its kind, which stays where it was and is
 hidden with its kind.
 */
-bool
-remove_special(
+bool remove_special(
     grid_settings& _grid,
     int            _id
 )
@@ -1885,8 +1823,7 @@ place_special
   Where it is shown, and where it stands in the specials' order: just
 before another, or last. Pinned, it is anchored to no row.
 */
-bool
-place_special(
+bool place_special(
     grid_settings& _grid,
     int            _id,
     special_place  _place,

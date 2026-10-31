@@ -86,15 +86,15 @@ Parameter(s):
   _amount: saturation multiplier (1.0 = unchanged, 0.0 = grayscale,
            > 1.0 = more saturated).
 Return:
-  A d_color_rgb with adjusted saturation.
+  A dj_color_rgb with adjusted saturation.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_adjust_saturation(
-    struct d_color_rgb _rgb,
-    float       _amount
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_adjust_saturation(
+    struct dj_color_rgb _rgb,
+    float               _amount
 )
 {
-    struct d_color_hsl hsl = d_color_convert_rgb_to_hsl(_rgb);
+    struct dj_color_hsl hsl = d_color_convert_rgb_to_hsl(_rgb);
 
     hsl.s = d_color_clamp_01(hsl.s * _amount);
 
@@ -110,15 +110,15 @@ Parameter(s):
   _amount: brightness multiplier (1.0 = unchanged, 0.0 = black,
            > 1.0 = brighter).
 Return:
-  A d_color_rgb with adjusted brightness.
+  A dj_color_rgb with adjusted brightness.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_adjust_brightness(
-    struct d_color_rgb _rgb,
-    float       _amount
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_adjust_brightness(
+    struct dj_color_rgb _rgb,
+    float               _amount
 )
 {
-    struct d_color_hsl hsl = d_color_convert_rgb_to_hsl(_rgb);
+    struct dj_color_hsl hsl = d_color_convert_rgb_to_hsl(_rgb);
 
     hsl.l = d_color_clamp_01(hsl.l * _amount);
 
@@ -133,15 +133,15 @@ Parameter(s):
   _rgb:     source color.
   _degrees: hue rotation in degrees (positive or negative).
 Return:
-  A d_color_rgb with rotated hue.
+  A dj_color_rgb with rotated hue.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_rotate_hue(
-    struct d_color_rgb _rgb,
-    float       _degrees
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_rotate_hue(
+    struct dj_color_rgb _rgb,
+    float               _degrees
 )
 {
-    struct d_color_hsl hsl = d_color_convert_rgb_to_hsl(_rgb);
+    struct dj_color_hsl hsl = d_color_convert_rgb_to_hsl(_rgb);
 
     hsl.h = d_color_fmodf(hsl.h + _degrees, 360.0f);
 
@@ -169,10 +169,10 @@ Parameter(s):
 Return:
   The Delta E 2000 value (0 = identical; larger = more different).
 */
-D_COLOR_FN_RT float
-d_color_delta_e(
-    struct d_color_lab _lab1,
-    struct d_color_lab _lab2
+D_COLOR_FN_RT
+float d_color_delta_e(
+    struct dj_color_lab _lab1,
+    struct dj_color_lab _lab2
 )
 {
     float delta_l = _lab2.l - _lab1.l;
@@ -291,10 +291,10 @@ Parameter(s):
 Return:
   The Delta E 2000 value.
 */
-D_COLOR_FN_RT float
-d_color_rgb_delta_e(
-    struct d_color_rgb _rgb1,
-    struct d_color_rgb _rgb2
+D_COLOR_FN_RT
+float d_color_rgb_delta_e(
+    struct dj_color_rgb _rgb1,
+    struct dj_color_rgb _rgb2
 )
 {
     return d_color_delta_e(

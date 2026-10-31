@@ -21,8 +21,8 @@
 /*
 d_internal_blank
 */
-static bool
-d_internal_blank(
+static
+bool d_internal_blank(
     char _c
 )
 {
@@ -37,8 +37,8 @@ the whole of what a geometric repair may preserve: it may move text, and it
 may not change, join, split or reorder it.  Gluing a value to its label joins
 two runs into one, and fails here.
 */
-static bool
-d_internal_same_runs(
+static
+bool d_internal_same_runs(
     const char* _a,
     const char* _b
 )
@@ -92,8 +92,8 @@ d_internal_same_runs(
 d_internal_fill_char
   The fill of a rule is its most frequent character.
 */
-static char
-d_internal_fill_char(
+static
+char d_internal_fill_char(
     const char* _line
 )
 {
@@ -122,8 +122,8 @@ d_internal_same_fill
 every fill character removed, the two lines must be identical, and the fill
 in the result must be a single run.
 */
-static bool
-d_internal_same_fill(
+static
+bool d_internal_same_fill(
     const char* _before,
     const char* _after
 )
@@ -181,8 +181,8 @@ d_internal_same_fill(
 d_internal_at
   Reports whether `_text` occurs in `_line` at `_head`.
 */
-static bool
-d_internal_at(
+static
+bool d_internal_at(
     const char* _line,
     size_t      _head,
     size_t      _run,
@@ -204,8 +204,8 @@ d_internal_at(
 d_internal_matches
   Reports whether `_after` is exactly the concatenation of up to five pieces.
 */
-static bool
-d_internal_matches(
+static
+bool d_internal_matches(
     const char* _after,
     const char* _p[5],
     size_t      _n[5]
@@ -242,8 +242,8 @@ d_internal_single_word_comment
   Reports whether `_text` is blank, then one block comment holding a single
 identifier and nothing else, then blank.
 */
-static bool
-d_internal_single_word_comment(
+static
+bool d_internal_single_word_comment(
     const char* _text
 )
 {
@@ -299,12 +299,11 @@ d_internal_single_word_comment(
 }
 
 
-bool
-d_audit_verify(
-    const char*                 _before,
-    const char*                 _after,
-    const struct d_audit_claim* _claim,
-    const char**                _out_reason
+bool d_audit_verify(
+    const char*                  _before,
+    const char*                  _after,
+    const struct dj_audit_claim* _claim,
+    const char**                 _out_reason
 )
 {
     const char* reason = NULL;

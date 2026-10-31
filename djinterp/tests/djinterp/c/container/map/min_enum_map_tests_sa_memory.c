@@ -19,14 +19,10 @@
  * CLEAR OPERATION TESTS
  *****************************************************************************/
 
-struct d_test_object*
-d_tests_min_enum_map_clear
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_clear(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   value;
     bool                   test_null_safe;
     bool                   test_empty;
@@ -105,15 +101,11 @@ d_tests_min_enum_map_clear
  * FREE OPERATION TESTS
  *****************************************************************************/
 
-struct d_test_object*
-d_tests_min_enum_map_free
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_free(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
-    struct d_min_enum_map* temp;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
+    struct dj_min_enum_map* temp;
     int*                   value;
     bool                   test_null_safe;
     bool                   test_empty;
@@ -206,13 +198,9 @@ d_tests_min_enum_map_free
 }
 
 
-struct d_test_object*
-d_tests_min_enum_map_memory_all
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_memory_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Memory Management", 2);
@@ -250,15 +238,11 @@ d_tests_min_enum_map_merge
   This is an optimization but could mask bugs. A stricter implementation would
   return false for any NULL dest regardless of src state.
 */
-struct d_test_object*
-d_tests_min_enum_map_merge
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_merge(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* dest;
-    struct d_min_enum_map* src;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* dest;
+    struct dj_min_enum_map* src;
     int*                   val1;
     int*                   val2;
     bool                   result;
@@ -423,13 +407,9 @@ d_tests_min_enum_map_merge
  * ENTRY MACRO TESTS
  *****************************************************************************/
 
-struct d_test_object*
-d_tests_min_enum_map_entry_macros
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_entry_macros(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_entry;
     bool                  test_entry_str;
     bool                  test_entry_int;
@@ -439,32 +419,32 @@ d_tests_min_enum_map_entry_macros
     size_t                idx;
 
     // test D_ENUM_ENTRY
-    struct d_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_MIN_ENUM_MAP_RED, (void*)0x1234);
+    struct dj_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_MIN_ENUM_MAP_RED, (void*)0x1234);
     test_entry = ( (e1.key == D_TEST_COLOR_MIN_ENUM_MAP_RED) &&
                    (e1.value == (void*)0x1234) );
 
     // test D_ENUM_ENTRY_STR
-    struct d_enum_map_entry e2 = D_ENUM_ENTRY_STR(D_TEST_COLOR_MIN_ENUM_MAP_GREEN, "green");
+    struct dj_enum_map_entry e2 = D_ENUM_ENTRY_STR(D_TEST_COLOR_MIN_ENUM_MAP_GREEN, "green");
     test_entry_str = ( (e2.key == D_TEST_COLOR_MIN_ENUM_MAP_GREEN) &&
                        (strcmp((char*)e2.value, "green") == 0) );
 
     // test D_ENUM_ENTRY_INT
-    struct d_enum_map_entry e3 = D_ENUM_ENTRY_INT(D_TEST_COLOR_MIN_ENUM_MAP_BLUE, 42);
+    struct dj_enum_map_entry e3 = D_ENUM_ENTRY_INT(D_TEST_COLOR_MIN_ENUM_MAP_BLUE, 42);
     test_entry_int = ( (e3.key == D_TEST_COLOR_MIN_ENUM_MAP_BLUE) &&
                        ((intptr_t)e3.value == 42) );
 
     // test D_ENUM_ENTRY_NULL
-    struct d_enum_map_entry e4 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_MIN_ENUM_MAP_YELLOW);
+    struct dj_enum_map_entry e4 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_MIN_ENUM_MAP_YELLOW);
     test_entry_null = ( (e4.key == D_TEST_COLOR_MIN_ENUM_MAP_YELLOW) &&
                         (e4.value == NULL) );
 
     // test D_ENUM_ENTRY_SELF
-    struct d_enum_map_entry e5 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_MIN_ENUM_MAP_PURPLE);
+    struct dj_enum_map_entry e5 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_MIN_ENUM_MAP_PURPLE);
     test_entry_self = ( (e5.key == D_TEST_COLOR_MIN_ENUM_MAP_PURPLE) &&
                         ((intptr_t)e5.value == D_TEST_COLOR_MIN_ENUM_MAP_PURPLE) );
 
     // test D_ENUM_ENTRY_SENTINEL
-    struct d_enum_map_entry sent = D_ENUM_ENTRY_SENTINEL;
+    struct dj_enum_map_entry sent = D_ENUM_ENTRY_SENTINEL;
     test_sentinel = D_ENUM_ENTRY_IS_SENTINEL(sent);
 
     group = d_test_object_new_interior("Entry Macros", 6);
@@ -492,14 +472,10 @@ d_tests_min_enum_map_entry_macros
 }
 
 
-struct d_test_object*
-d_tests_min_enum_map_ordering
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_ordering(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   val;
     bool                   test_insert_order;
     bool                   test_binary_search;
@@ -603,13 +579,9 @@ d_tests_min_enum_map_ordering
 }
 
 
-struct d_test_object*
-d_tests_min_enum_map_advanced_all
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_advanced_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Advanced Operations", 3);
@@ -631,14 +603,10 @@ d_tests_min_enum_map_advanced_all
  * EDGE CASES AND STRESS TESTS
  *****************************************************************************/
 
-struct d_test_object*
-d_tests_min_enum_map_edge_cases
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_edge_cases(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   val;
     bool                   test_duplicate_puts;
     bool                   test_remove_nonexistent;
@@ -747,14 +715,10 @@ d_tests_min_enum_map_edge_cases
     return group;
 }
 
-struct d_test_object*
-d_tests_min_enum_map_stress
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_stress(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   values[D_TEST_MIN_ENUM_MAP_LARGE_SIZE];
     bool                   test_many_inserts;
     bool                   test_many_gets;
@@ -928,13 +892,9 @@ d_tests_min_enum_map_stress
     return group;
 }
 
-struct d_test_object*
-d_tests_min_enum_map_edge_stress_all
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_edge_stress_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Edge Cases and Stress", 2);

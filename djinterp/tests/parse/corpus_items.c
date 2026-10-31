@@ -11,9 +11,9 @@
 *******************************************************************************/
 // items over a corpus: counts, recognizer failures, and the indentation
 // convention measured against the structure's level and pp-depth
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
-#include "../../inc/djinterp/parse/syntax/syntax_item.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

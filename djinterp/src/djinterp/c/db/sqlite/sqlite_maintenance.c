@@ -48,8 +48,8 @@
  * needs. A sound database answers with the single row "ok"; anything else is
  * a description of what is wrong.
  */
-static int
-d_internal_sqlite_check(
+static
+int d_internal_sqlite_check(
     sqlite3*    _db,
     const char* _schema,
     const char* _pragma,
@@ -102,8 +102,7 @@ d_sqlite_vacuum
   From 3.15.0 the schema is named; before it, only "main" can be vacuumed, and
 plain VACUUM is the statement that does it.
 */
-int
-d_sqlite_vacuum(
+int d_sqlite_vacuum(
     sqlite3*    _db,
     const char* _schema
 )
@@ -133,8 +132,7 @@ d_sqlite_vacuum_into
   VACUUM INTO (3.27.0) writes the copy through the same machinery as VACUUM,
 so it is consistent without a backup's page-by-page copy.
 */
-int
-d_sqlite_vacuum_into(
+int d_sqlite_vacuum_into(
     sqlite3*    _db,
     const char* _schema,
     const char* _path
@@ -166,8 +164,7 @@ d_sqlite_vacuum_into(
 d_sqlite_analyze
   ANALYZE with a schema name analyzes every table in it, on every version.
 */
-int
-d_sqlite_analyze(
+int d_sqlite_analyze(
     sqlite3*    _db,
     const char* _schema
 )
@@ -189,8 +186,7 @@ d_sqlite_optimize
   Before 3.18.0 SQLite ignores the unknown PRAGMA without a word, so the
 version is checked rather than the call trusted.
 */
-int
-d_sqlite_optimize(
+int d_sqlite_optimize(
     sqlite3*    _db,
     const char* _schema
 )
@@ -219,8 +215,7 @@ d_sqlite_optimize(
 d_sqlite_integrity_check
   The thorough check.
 */
-int
-d_sqlite_integrity_check(
+int d_sqlite_integrity_check(
     sqlite3*    _db,
     const char* _schema,
     bool*       _ok
@@ -233,8 +228,7 @@ d_sqlite_integrity_check(
 d_sqlite_quick_check
   The fast check.
 */
-int
-d_sqlite_quick_check(
+int d_sqlite_quick_check(
     sqlite3*    _db,
     const char* _schema,
     bool*       _ok
@@ -258,7 +252,7 @@ int
 d_sqlite_checkpoint(
     sqlite3*                      _db,
     const char*                   _schema,
-    enum d_sqlite_checkpoint_mode _mode
+    enum dj_sqlite_checkpoint_mode _mode
 )
 {
     // parameter validation
@@ -298,8 +292,7 @@ in a return code. A step of -1 copies every page at once, ending in
 SQLITE_DONE; finish then reports any error the step met, and releases the
 backup either way.
 */
-int
-d_sqlite_copy_database(
+int d_sqlite_copy_database(
     sqlite3*    _source,
     const char* _source_schema,
     sqlite3*    _destination,
@@ -338,8 +331,7 @@ d_sqlite_backup_to_file
   The file is opened as a database in its own right and the copy goes into its
 "main"; it is closed whatever happens.
 */
-int
-d_sqlite_backup_to_file(
+int d_sqlite_backup_to_file(
     sqlite3*    _db,
     const char* _schema,
     const char* _path
@@ -375,8 +367,7 @@ d_sqlite_backup_to_file(
 d_sqlite_restore_from_file
   The file is opened read-only, so a restore can never change it.
 */
-int
-d_sqlite_restore_from_file(
+int d_sqlite_restore_from_file(
     sqlite3*    _db,
     const char* _schema,
     const char* _path
@@ -420,8 +411,7 @@ d_sqlite_restore_from_file(
 d_sqlite_vacuum
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_vacuum(
+int d_sqlite_vacuum(
     struct sqlite3* _db,
     const char*     _schema
 )
@@ -436,8 +426,7 @@ d_sqlite_vacuum(
 d_sqlite_vacuum_into
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_vacuum_into(
+int d_sqlite_vacuum_into(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _path
@@ -454,8 +443,7 @@ d_sqlite_vacuum_into(
 d_sqlite_analyze
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_analyze(
+int d_sqlite_analyze(
     struct sqlite3* _db,
     const char*     _schema
 )
@@ -470,8 +458,7 @@ d_sqlite_analyze(
 d_sqlite_optimize
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_optimize(
+int d_sqlite_optimize(
     struct sqlite3* _db,
     const char*     _schema
 )
@@ -486,8 +473,7 @@ d_sqlite_optimize(
 d_sqlite_integrity_check
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_integrity_check(
+int d_sqlite_integrity_check(
     struct sqlite3* _db,
     const char*     _schema,
     bool*           _ok
@@ -504,8 +490,7 @@ d_sqlite_integrity_check(
 d_sqlite_quick_check
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_quick_check(
+int d_sqlite_quick_check(
     struct sqlite3* _db,
     const char*     _schema,
     bool*           _ok
@@ -526,7 +511,7 @@ int
 d_sqlite_checkpoint(
     struct sqlite3*               _db,
     const char*                   _schema,
-    enum d_sqlite_checkpoint_mode _mode
+    enum dj_sqlite_checkpoint_mode _mode
 )
 {
     (void)_db;
@@ -540,8 +525,7 @@ d_sqlite_checkpoint(
 d_sqlite_copy_database
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_copy_database(
+int d_sqlite_copy_database(
     struct sqlite3* _source,
     const char*     _source_schema,
     struct sqlite3* _destination,
@@ -560,8 +544,7 @@ d_sqlite_copy_database(
 d_sqlite_backup_to_file
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_backup_to_file(
+int d_sqlite_backup_to_file(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _path
@@ -578,8 +561,7 @@ d_sqlite_backup_to_file(
 d_sqlite_restore_from_file
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_restore_from_file(
+int d_sqlite_restore_from_file(
     struct sqlite3* _db,
     const char*     _schema,
     const char*     _path

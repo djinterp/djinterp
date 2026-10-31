@@ -23,7 +23,7 @@ TABLE OF CONTENTS
 1.  TRANSACTIONS
     ------------
     1.  Modes
-         1.  d_sqlite_transaction_mode
+         1.  dj_sqlite_transaction_mode
     2.  Beginning and ending
     3.  State
 2.  SAVEPOINTS
@@ -50,9 +50,9 @@ D_EXTERN_C_BEGIN
 // 1.1    Modes
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_sqlite_transaction_mode
+// dj_sqlite_transaction_mode
 //   enum: when a transaction takes the database's write lock.
-enum d_sqlite_transaction_mode
+enum dj_sqlite_transaction_mode
 {
     D_SQLITE_TRANSACTION_DEFERRED  = 0,  // at its first write; the default
     D_SQLITE_TRANSACTION_IMMEDIATE = 1,  // at once
@@ -72,8 +72,10 @@ enum d_sqlite_transaction_mode
  *         them (use a savepoint); or SQLITE_MISUSE for a `NULL` connection or
  *         an unknown mode.
  */
-int  d_sqlite_begin_transaction(struct sqlite3*                _db,
-                                enum d_sqlite_transaction_mode _mode) D_NOTHROW;
+int d_sqlite_begin_transaction(
+    struct sqlite3*                 _db,
+    enum dj_sqlite_transaction_mode _mode
+) D_NOTHROW;
 /**
  * @brief Commits the transaction.
  *
@@ -82,7 +84,9 @@ int  d_sqlite_begin_transaction(struct sqlite3*                _db,
  *         -- the transaction is still open, and the commit can be retried;
  *         SQLITE_ERROR outside a transaction; or SQLITE_MISUSE.
  */
-int  d_sqlite_commit(struct sqlite3* _db) D_NOTHROW;
+int d_sqlite_commit(
+    struct sqlite3* _db
+) D_NOTHROW;
 /**
  * @brief Rolls the transaction back.
  *
@@ -90,13 +94,17 @@ int  d_sqlite_commit(struct sqlite3* _db) D_NOTHROW;
  * @return SQLITE_OK; SQLITE_ERROR outside a transaction; or SQLITE_MISUSE.
  * @post No transaction is open.
  */
-int  d_sqlite_rollback(struct sqlite3* _db) D_NOTHROW;
+int d_sqlite_rollback(
+    struct sqlite3* _db
+) D_NOTHROW;
 
 // 1.3    State
 //------------------------------------------------------------------------------
 // state -- true while a transaction is open: one begun here, or natively, or
 // by a savepoint; false for a NULL connection
-bool d_sqlite_in_transaction(struct sqlite3* _db) D_NOTHROW;
+bool d_sqlite_in_transaction(
+    struct sqlite3* _db
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -112,12 +120,18 @@ bool d_sqlite_in_transaction(struct sqlite3* _db) D_NOTHROW;
 // argument or an empty name. Releasing the outermost savepoint commits, when
 // it began the transaction. Rolling back to a savepoint undoes the work since
 // it and leaves it open; release it to close it.
-int  d_sqlite_create_savepoint(struct sqlite3* _db,
-                               const char*     _name) D_NOTHROW;
-int  d_sqlite_release_savepoint(struct sqlite3* _db,
-                                const char*     _name) D_NOTHROW;
-int  d_sqlite_rollback_to_savepoint(struct sqlite3* _db,
-                                    const char*     _name) D_NOTHROW;
+int d_sqlite_create_savepoint(
+    struct sqlite3* _db,
+    const char*     _name
+) D_NOTHROW;
+int d_sqlite_release_savepoint(
+    struct sqlite3* _db,
+    const char*     _name
+) D_NOTHROW;
+int d_sqlite_rollback_to_savepoint(
+    struct sqlite3* _db,
+    const char*     _name
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

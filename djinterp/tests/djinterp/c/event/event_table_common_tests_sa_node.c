@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -21,8 +21,10 @@
 //   NOTE: the original tests used d_event_listener_new_default(id, NULL)
 // which always returns NULL because NULL callback is rejected.  This
 // dummy callback fixes that bug.
-static void
-d_tests_sa_etc_node_dummy_cb(void* _args)
+static
+void d_tests_sa_etc_node_dummy_cb(
+    void* _args
+)
 {
     (void)_args;
 
@@ -39,15 +41,13 @@ d_tests_sa_event_hash_node_new_valid
   - value stores the listener pointer
   - next is initialized to NULL
 */
-bool
-d_tests_sa_event_hash_node_new_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_new_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_listener*  lis;
-    struct d_event_hash_node* node;
+    struct dj_event_listener*  lis;
+    struct dj_event_hash_node* node;
 
     result = true;
     lis    = d_event_listener_new_default(
@@ -89,14 +89,12 @@ d_tests_sa_event_hash_node_new_null_value
   Tests the following:
   - Node is created with NULL value
 */
-bool
-d_tests_sa_event_hash_node_new_null_value
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_new_null_value(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_hash_node* node;
+    struct dj_event_hash_node* node;
 
     result = true;
     node   = d_event_hash_node_new(2002, NULL);
@@ -123,14 +121,12 @@ d_tests_sa_event_hash_node_new_ids
   - Negative key is accepted
   - Max key value is accepted
 */
-bool
-d_tests_sa_event_hash_node_new_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_new_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_hash_node* node;
+    struct dj_event_hash_node* node;
 
     result = true;
 
@@ -163,10 +159,10 @@ d_tests_sa_event_hash_node_new_ids
     }
 
     // max key
-    node = d_event_hash_node_new((d_event_id)(-1), NULL);
+    node = d_event_hash_node_new((dj_event_id)(-1), NULL);
 
     result = d_assert_standalone(
-        node != NULL && node->key == (d_event_id)(-1),
+        node != NULL && node->key == (dj_event_id)(-1),
         "node_new_max_key",
         "Node should accept max key value",
         _counter) && result;
@@ -185,14 +181,12 @@ d_tests_sa_event_hash_node_free_valid
   Tests the following:
   - Freeing a valid node does not crash
 */
-bool
-d_tests_sa_event_hash_node_free_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_free_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_hash_node* node;
+    struct dj_event_hash_node* node;
 
     result = true;
     node   = d_event_hash_node_new(100, NULL);
@@ -217,10 +211,8 @@ d_tests_sa_event_hash_node_free_null
   Tests the following:
   - d_event_hash_node_free(NULL) does not crash
 */
-bool
-d_tests_sa_event_hash_node_free_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_free_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -244,15 +236,13 @@ d_tests_sa_event_hash_node_free_preserves_listener
   Tests the following:
   - Listener remains valid after node is freed
 */
-bool
-d_tests_sa_event_hash_node_free_preserves_listener
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_free_preserves_listener(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_listener*  lis;
-    struct d_event_hash_node* node;
+    struct dj_event_listener*  lis;
+    struct dj_event_hash_node* node;
 
     result = true;
     lis    = d_event_listener_new_default(
@@ -290,19 +280,17 @@ d_tests_sa_event_hash_node_chaining
   - Chain has correct length
   - Last node has NULL next
 */
-bool
-d_tests_sa_event_hash_node_chaining
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_chaining(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_listener*  l1;
-    struct d_event_listener*  l2;
-    struct d_event_listener*  l3;
-    struct d_event_hash_node* n1;
-    struct d_event_hash_node* n2;
-    struct d_event_hash_node* n3;
+    struct dj_event_listener*  l1;
+    struct dj_event_listener*  l2;
+    struct dj_event_listener*  l3;
+    struct dj_event_hash_node* n1;
+    struct dj_event_hash_node* n2;
+    struct dj_event_hash_node* n3;
 
     result = true;
     l1     = d_event_listener_new_default(
@@ -338,7 +326,7 @@ d_tests_sa_event_hash_node_chaining
 
             // count chain length
             {
-                struct d_event_hash_node* cur;
+                struct dj_event_hash_node* cur;
                 int                       count;
 
                 count = 0;
@@ -402,10 +390,8 @@ d_tests_sa_event_hash_node_chaining
 d_tests_sa_event_hash_node_all
   Runs all node management tests.
 */
-bool
-d_tests_sa_event_hash_node_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

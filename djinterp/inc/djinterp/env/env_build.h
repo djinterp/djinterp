@@ -19,7 +19,7 @@
 #define DJINTERP_ENV_ENV_BUILD_H 1
 
 // djinterp
-#include "../config/core/env/cfg_env_build.h"  // D_CFG_ENV_BUILD_ENABLED
+#include "../config/env/cfg_env_build.h"  // D_CFG_ENV_BUILD_ENABLED
 
 
 // D_ENV_BUILD_DEBUG / D_ENV_BUILD_RELEASE / D_ENV_BUILD_TYPE

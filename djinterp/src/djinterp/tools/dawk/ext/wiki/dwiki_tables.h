@@ -15,13 +15,13 @@
 
 #define D_INTERNAL_DWIKI_UNICODE_VERSION "15.1.0"
 
-struct d_internal_dwiki_entity
+struct dj_internal_dwiki_entity
 {
     const char* name;
     const char* text;
 };
 
-static const struct d_internal_dwiki_entity d_internal_dwiki_entities[] =
+static const struct dj_internal_dwiki_entity d_internal_dwiki_entities[] =
 {
     { "AElig", "\xC3\x86" },
     { "Aacute", "\xC3\x81" },
@@ -1398,7 +1398,7 @@ static const uint32_t d_internal_dwiki_space[][2] =
 };
 #define D_INTERNAL_DWIKI_SPACE_COUNT 6u
 
-struct d_internal_dwiki_lower
+struct dj_internal_dwiki_lower
 {
     uint32_t first;
     uint32_t last;
@@ -1406,7 +1406,7 @@ struct d_internal_dwiki_lower
     int32_t  delta;
 };
 
-static const struct d_internal_dwiki_lower d_internal_dwiki_lowers[] =
+static const struct dj_internal_dwiki_lower d_internal_dwiki_lowers[] =
 {
     { 0x0000C0, 0x0000D6, 1, 32 },
     { 0x0000D8, 0x0000DE, 1, 32 },
@@ -1591,7 +1591,7 @@ static const struct d_internal_dwiki_lower d_internal_dwiki_lowers[] =
 };
 #define D_INTERNAL_DWIKI_LOWERS_COUNT 180u
 
-static const struct d_internal_dwiki_entity d_internal_dwiki_emoji[] =
+static const struct dj_internal_dwiki_entity d_internal_dwiki_emoji[] =
 {
     { "+1", "\xF0\x9F\x91\x8D" },
     { "-1", "\xF0\x9F\x91\x8E" },

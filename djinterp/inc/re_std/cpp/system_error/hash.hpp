@@ -1,0 +1,88 @@
+/*******************************************************************************
+* djinterp [re_std]                                                     hash.hpp
+*
+* re_std::hash specialisations for error_code / error_condition:
+*   the functional module defers hash<error_code> and
+*   hash<error_condition> to ship with their owning header; this is that
+*   header. Both specialise re_std::hash (empty primary from
+*   re_std/cpp/functional/hash.hpp). std ships hash<error_code> at C++11 and
+*   hash<error_condition> at C++17; re_std ships BOTH at C++11 — a
+*   six-year back-port of the error_condition specialisation. Both combine
+*   the integer value() with the address-identity of the category via
+*   reinterpret_cast, so neither is constexpr on any tier (matching std
+*   and re_std's pointer-hash specialisation).
+*
+*
+* path:      /inc/re_std/cpp/system_error/hash.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+#ifndef RE_STD_SYSTEM_ERROR_HASH_HPP
+#define RE_STD_SYSTEM_ERROR_HASH_HPP 1
+
+// re_std
+#include "../../config.hpp"  // RE_STD_* configuration
+
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <cstddef>                  // size_t
+#include <system_error>
+// re_std
+#include "../functional/hash.hpp"   // re_std::hash primary template
+#include "error_code.hpp"
+#include "error_condition.hpp"
+
+namespace re_std
+{
+
+    // hash<error_code>
+    //   struct: specialisation of re_std::hash for error_code (std: C++11).
+    template<>
+    struct hash<error_code>
+    {
+        std::size_t
+        operator()(
+            const error_code& _code
+        ) const RE_STD_NOEXCEPT
+        {
+            std::size_t value_hash = static_cast<std::size_t>(
+                static_cast<unsigned int>(_code.value()));
+            std::size_t cat_hash = reinterpret_cast<std::size_t>(
+                &_code.category());
+
+            return ( value_hash ^
+                     ( cat_hash + 0x9e3779b9u +
+                       (value_hash << 6) + (value_hash >> 2) ) );
+        }
+    };
+
+    // hash<error_condition>
+    //   struct: specialisation of re_std::hash for error_condition. std ships
+    // this at C++17; re_std back-ports it to C++11.
+    template<>
+    struct hash<error_condition>
+    {
+        std::size_t
+        operator()(
+            const error_condition& _cond
+        ) const RE_STD_NOEXCEPT
+        {
+            std::size_t value_hash = static_cast<std::size_t>(
+                static_cast<unsigned int>(_cond.value()));
+            std::size_t cat_hash = reinterpret_cast<std::size_t>(
+                &_cond.category());
+
+            return ( value_hash ^
+                     ( cat_hash + 0x9e3779b9u +
+                       (value_hash << 6) + (value_hash >> 2) ) );
+        }
+    };
+
+}  // re_std
+
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+#endif  // RE_STD_SYSTEM_ERROR_HASH_HPP

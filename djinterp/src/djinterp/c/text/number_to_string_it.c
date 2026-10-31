@@ -108,7 +108,12 @@ static const nts_it_word g_big_ordinals[] =
     NTS_IT_WORD("trilionesimo")
 };
 
-static void nts_it_term(char* dst, size_t dst_cap, size_t total)
+static
+void nts_it_term(
+    char*  dst,
+    size_t dst_cap,
+    size_t total
+)
 {
     if (dst_cap == 0u) {
         return;
@@ -121,7 +126,14 @@ static void nts_it_term(char* dst, size_t dst_cap, size_t total)
     }
 }
 
-static void nts_it_put_mem(char* dst, size_t dst_cap, size_t* total, const char* s, size_t n)
+static
+void nts_it_put_mem(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    const char* s,
+    size_t      n
+)
 {
     size_t off = *total;
 
@@ -136,12 +148,24 @@ static void nts_it_put_mem(char* dst, size_t dst_cap, size_t* total, const char*
     *total = off + n;
 }
 
-static void nts_it_put_word(char* dst, size_t dst_cap, size_t* total, nts_it_word w)
+static
+void nts_it_put_word(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    nts_it_word w
+)
 {
     nts_it_put_mem(dst, dst_cap, total, w.s, w.len);
 }
 
-static void nts_it_put_char(char* dst, size_t dst_cap, size_t* total, char c)
+static
+void nts_it_put_char(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total,
+    char    c
+)
 {
     size_t off = *total;
 
@@ -152,18 +176,30 @@ static void nts_it_put_char(char* dst, size_t dst_cap, size_t* total, char c)
     *total = off + 1u;
 }
 
-static void nts_it_put_space(char* dst, size_t dst_cap, size_t* total)
+static
+void nts_it_put_space(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total
+)
 {
     nts_it_put_char(dst, dst_cap, total, ' ');
 }
 
-static uint64_t nts_it_abs_i64(int64_t value)
+static
+uint64_t nts_it_abs_i64(
+    int64_t value
+)
 {
     uint64_t u = (uint64_t)value;
     return (value < 0) ? (UINT64_C(0) - u) : u;
 }
 
-static unsigned nts_it_split_groups(uint64_t value, unsigned groups[7])
+static
+unsigned nts_it_split_groups(
+    uint64_t value,
+    unsigned groups[7]
+)
 {
     unsigned count = 0u;
 
@@ -175,11 +211,13 @@ static unsigned nts_it_split_groups(uint64_t value, unsigned groups[7])
     return count;
 }
 
-static void nts_it_append_units_with_tre_accent(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_it_append_units_with_tre_accent(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     if (value == 3u) {
         nts_it_put_mem(dst, dst_cap, total, "tré", sizeof("tré") - 1u);
@@ -188,11 +226,13 @@ static void nts_it_append_units_with_tre_accent(
     }
 }
 
-static void nts_it_write_sub100_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_it_write_sub100_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     unsigned tens;
     unsigned ones;
@@ -218,11 +258,13 @@ static void nts_it_write_sub100_cardinal(
     }
 }
 
-static void nts_it_write_triplet_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_it_write_triplet_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -259,11 +301,13 @@ static void nts_it_write_triplet_cardinal(
     }
 }
 
-static void nts_it_write_under_million_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_it_write_under_million_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     unsigned thousands;
     unsigned rem;
@@ -292,7 +336,12 @@ static void nts_it_write_under_million_cardinal(
     }
 }
 
-static size_t nts_it_build_under_million_cardinal(char* buf, size_t cap, unsigned value)
+static
+size_t nts_it_build_under_million_cardinal(
+    char*    buf,
+    size_t   cap,
+    unsigned value
+)
 {
     size_t total = 0u;
 
@@ -302,7 +351,11 @@ static size_t nts_it_build_under_million_cardinal(char* buf, size_t cap, unsigne
 }
 
 
-static size_t nts_it_trim_final_vowel_bytes(const char* s, size_t n)
+static
+size_t nts_it_trim_final_vowel_bytes(
+    const char* s,
+    size_t      n
+)
 {
     if (n >= 2u && (unsigned char)s[n - 2u] == 0xC3u && (unsigned char)s[n - 1u] == 0xA9u) {
         return n - 2u;
@@ -318,11 +371,13 @@ static size_t nts_it_trim_final_vowel_bytes(const char* s, size_t n)
     return n;
 }
 
-static size_t nts_it_make_simple_ordinal_from_cardinal(
-    char*           dst,
-    size_t          dst_cap,
-    const char*     cardinal,
-    size_t          cardinal_len)
+static
+size_t nts_it_make_simple_ordinal_from_cardinal(
+    char*       dst,
+    size_t      dst_cap,
+    const char* cardinal,
+    size_t      cardinal_len
+)
 {
     size_t total = 0u;
     size_t base_len;
@@ -357,7 +412,12 @@ static size_t nts_it_make_simple_ordinal_from_cardinal(
     return total;
 }
 
-static size_t nts_it_build_under_million_ordinal(char* buf, size_t cap, unsigned value)
+static
+size_t nts_it_build_under_million_ordinal(
+    char*    buf,
+    size_t   cap,
+    unsigned value
+)
 {
     char cardinal[512];
     size_t n;
@@ -389,11 +449,13 @@ static size_t nts_it_build_under_million_ordinal(char* buf, size_t cap, unsigned
     return nts_it_make_simple_ordinal_from_cardinal(buf, cap, cardinal, n);
 }
 
-static void nts_it_write_positive_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    uint64_t    mag)
+static
+void nts_it_write_positive_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    uint64_t mag
+)
 {
     unsigned groups[7];
     unsigned count;
@@ -452,11 +514,13 @@ static void nts_it_write_positive_cardinal(
 }
 
 /* A direct recursive ordinal writer for million-plus values. */
-static void nts_it_write_positive_ordinal_rec(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    uint64_t    mag)
+static
+void nts_it_write_positive_ordinal_rec(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    uint64_t mag
+)
 {
     unsigned groups[7];
     unsigned count;
@@ -546,7 +610,12 @@ static void nts_it_write_positive_ordinal_rec(
     }
 }
 
-size_t nts_it_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_it_cardinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     size_t total = 0u;
     uint64_t mag;
@@ -564,7 +633,12 @@ size_t nts_it_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fl
     return total;
 }
 
-size_t nts_it_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_it_ordinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     size_t total = 0u;
     uint64_t mag;
@@ -582,7 +656,12 @@ size_t nts_it_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fla
     return total;
 }
 
-size_t nts_it_ordinal_abbrev_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_it_ordinal_abbrev_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     char digits[32];
     size_t n = 0u;

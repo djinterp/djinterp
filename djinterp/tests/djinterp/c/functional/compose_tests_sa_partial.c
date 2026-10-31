@@ -10,7 +10,7 @@
 // djinterp
 #include "./compose_tests_sa.h"
 #include "./compose_tests_sa_helpers.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,14 +25,12 @@ d_tests_sa_partial_consumer_new
   - creation with different consumer and context types
   - creation with no-op consumer
 */
-bool
-d_tests_sa_partial_consumer_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_partial_consumer_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_partial_consumer* partial;
+    struct dj_partial_consumer* partial;
     struct consumer_context    ctx;
     int                        addend;
 
@@ -172,14 +170,12 @@ d_tests_sa_partial_consumer_apply
   - zero boundary value
   - negative value handling
 */
-bool
-d_tests_sa_partial_consumer_apply
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_partial_consumer_apply(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_partial_consumer* partial;
+    struct dj_partial_consumer* partial;
     struct consumer_context    ctx;
     int                        value;
     int                        addend;
@@ -314,8 +310,8 @@ d_tests_sa_partial_consumer_apply
     ctx.count = 0;
 
     {
-        struct d_partial_consumer* partial1;
-        struct d_partial_consumer* partial2;
+        struct dj_partial_consumer* partial1;
+        struct dj_partial_consumer* partial2;
 
         partial1 = d_functional_partial_consumer_new(consumer_accumulate,
                                                      &ctx);
@@ -452,14 +448,12 @@ d_tests_sa_partial_consumer_free
   - context not freed (should remain valid)
   - free after use (context should remain valid)
 */
-bool
-d_tests_sa_partial_consumer_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_partial_consumer_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_partial_consumer* partial;
+    struct dj_partial_consumer* partial;
     struct consumer_context    ctx;
 
     result      = true;
@@ -542,10 +536,8 @@ d_tests_sa_partial_consumer_free
 d_tests_sa_compose_partial_all
   Aggregation function that runs all partial application tests.
 */
-bool
-d_tests_sa_compose_partial_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_partial_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

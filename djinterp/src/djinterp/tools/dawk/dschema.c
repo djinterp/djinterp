@@ -20,19 +20,18 @@
 #include "../../../../inc/djinterp/tools/dawk/dsymbol.h"  // d_symbol_intern
 
 
-// d_schema_binding
+// dj_schema_binding
 //   struct: entry pointers indexed by symbol.
-struct d_schema_binding
+struct dj_schema_binding
 {
-    const struct d_schema_property**  by_symbol;
+    const struct dj_schema_property**  by_symbol;
     size_t                            limit;
 };
 
 
-const struct d_schema_property*
-d_schema_find(
-    const struct d_schema* _schema,
-    const char*            _name
+const struct dj_schema_property* d_schema_find(
+    const struct dj_schema* _schema,
+    const char*             _name
 )
 {
     for (size_t at = 0u; (_schema) && (_name) && (at < _schema->count); ++at)
@@ -52,27 +51,26 @@ d_schema_validate
   Walks rule declarations only.  At-rule blocks -- @table rows, @set -- are
 host syntax whose "properties" are keys, not properties.
 */
-bool
-d_schema_validate(
-    const struct d_schema*    _schema,
-    const struct d_dss_sheet* _sheet,
-    uint32_t*                 _out_line,
-    const char**              _out_name,
-    const char**              _out_why
+bool d_schema_validate(
+    const struct dj_schema*    _schema,
+    const struct dj_dss_sheet* _sheet,
+    uint32_t*                  _out_line,
+    const char**               _out_name,
+    const char**               _out_why
 )
 {
     for (size_t at = 0u; (_schema) && (_sheet) &&
                          (at < d_dss_rule_count(_sheet)); ++at)
     {
-        const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(_sheet, at);
 
         for (uint32_t which = 0u; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const declaration =
+            const struct dj_dss_declaration* const declaration =
                 d_dss_declaration_at(_sheet, rule->first_declaration + which);
             const char* const name = d_dss_text(_sheet,
                                                 declaration->property);
-            const struct d_schema_property* const entry =
+            const struct dj_schema_property* const entry =
                 d_schema_find(_schema, name);
             const char* why = NULL;
 
@@ -109,10 +107,9 @@ d_schema_validate(
 d_schema_bind
   Interns every registered name, so the array can be sized to cover them.
 */
-struct d_schema_binding*
-d_schema_bind(
-    const struct d_schema* _schema,
-    struct d_symbol_table* _symbols
+struct dj_schema_binding* d_schema_bind(
+    const struct dj_schema* _schema,
+    struct dj_symbol_table* _symbols
 )
 {
     if ( (!_schema) || (!_symbols) )
@@ -130,7 +127,7 @@ d_schema_bind(
         }
     }
 
-    struct d_schema_binding* const binding = calloc(1u, sizeof(*binding));
+    struct dj_schema_binding* const binding = calloc(1u, sizeof(*binding));
 
     if (!binding)
     {
@@ -139,7 +136,7 @@ d_schema_bind(
 
     binding->limit     = d_symbol_count(_symbols);
     binding->by_symbol = calloc(binding->limit + 1u,
-                                sizeof(const struct d_schema_property*));
+                                sizeof(const struct dj_schema_property*));
 
     if (!binding->by_symbol)
     {
@@ -160,9 +157,8 @@ d_schema_bind(
 }
 
 
-void
-d_schema_binding_free(
-    struct d_schema_binding* _binding
+void d_schema_binding_free(
+    struct dj_schema_binding* _binding
 )
 {
     if (_binding)
@@ -175,10 +171,9 @@ d_schema_binding_free(
 }
 
 
-const struct d_schema_property*
-d_schema_lookup(
-    const struct d_schema_binding* _binding,
-    uint32_t                       _symbol
+const struct dj_schema_property* d_schema_lookup(
+    const struct dj_schema_binding* _binding,
+    uint32_t                        _symbol
 )
 {
     if ( (!_binding) || (_symbol >= _binding->limit) )
@@ -195,17 +190,16 @@ d_schema_evaluate
   A property with no evaluate callback is the host's to read: nothing is
 evaluated here, exactly as for a modifier before the registry existed.
 */
-bool
-d_schema_evaluate(
-    const struct d_schema_binding*  _binding,
-    const struct d_dss_sheet*       _sheet,
-    struct d_node_tree*             _tree,
-    uint32_t                        _node,
-    const struct d_dss_declaration* _declaration,
-    bool*                           _out_evaluated
+bool d_schema_evaluate(
+    const struct dj_schema_binding*  _binding,
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    bool*                            _out_evaluated
 )
 {
-    const struct d_schema_property* const entry =
+    const struct dj_schema_property* const entry =
         _declaration ? d_schema_lookup(_binding, _declaration->symbol) : NULL;
 
     if ( (!entry) || (!entry->evaluate) )

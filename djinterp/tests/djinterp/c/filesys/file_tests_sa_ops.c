@@ -18,13 +18,10 @@
 d_tests_file_remove_unlink
   Tests d_file_remove and d_file_unlink, and the one thing that distinguishes them.
 */
-static struct d_test_object*
-d_tests_file_remove_unlink
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_remove_unlink(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     char                  dir[D_TEST_FILE_PATH_BUF];
     size_t                idx;
@@ -77,13 +74,10 @@ d_tests_file_remove_unlink
 d_tests_file_rename
   Tests d_file_rename.
 */
-static struct d_test_object*
-d_tests_file_rename
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_rename(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  src[D_TEST_FILE_PATH_BUF];
     char                  dst[D_TEST_FILE_PATH_BUF];
     char*                 back;
@@ -151,14 +145,11 @@ d_tests_file_rename
 d_tests_file_copy
   Tests d_file_copy.
 */
-static struct d_test_object*
-d_tests_file_copy
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_copy(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
-    struct d_stat_t       st;
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_stat_t       st;
     char                  src[D_TEST_FILE_PATH_BUF];
     char                  dst[D_TEST_FILE_PATH_BUF];
     char*                 back;
@@ -234,13 +225,9 @@ d_tests_file_copy
 d_tests_file_ops_all
   Runs every file_ops test.
 */
-struct d_test_object*
-d_tests_file_ops_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_ops_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

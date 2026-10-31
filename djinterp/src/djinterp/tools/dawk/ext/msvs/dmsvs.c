@@ -32,12 +32,12 @@
 #define D_INTERNAL_FOLDER_TYPE "2150e333-8fdc-42a3-9474-1a3956d46de8"
 
 
-// d_internal_reader
+// dj_internal_reader
 //   struct: what one reading holds while it runs: the records it grows, the
 //   line it has counted to, and where to say a failure is.
-struct d_internal_reader
+struct dj_internal_reader
 {
-    struct d_msvs* msvs;
+    struct dj_msvs* msvs;
     size_t         element_capacity;
     size_t         project_capacity;
     size_t         folder_capacity;
@@ -62,12 +62,12 @@ struct d_internal_reader
 d_internal_fail
   Records where reading stopped and why; the first failure is the one kept.
 */
-static bool
-d_internal_fail(
-    struct d_internal_reader* _reader,
-    size_t                    _line,
-    size_t                    _column,
-    const char*               _why
+static
+bool d_internal_fail(
+    struct dj_internal_reader* _reader,
+    size_t                     _line,
+    size_t                     _column,
+    const char*                _why
 )
 {
     // a later failure follows from the first, and would only mislead
@@ -97,11 +97,11 @@ d_internal_line_at
   Counts lines up to `_at`, which never goes back, and gives the line it is
 on; `_column`, when given, receives its column.
 */
-static size_t
-d_internal_line_at(
-    struct d_internal_reader* _reader,
-    size_t                    _at,
-    size_t*                   _column
+static
+size_t d_internal_line_at(
+    struct dj_internal_reader* _reader,
+    size_t                     _at,
+    size_t*                    _column
 )
 {
     const char* const text = _reader->msvs->text;
@@ -141,8 +141,8 @@ d_internal_line_at(
 d_internal_grow
   Makes room for one more record in an array of `_size`-byte records.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _array,
     size_t* _capacity,
     size_t  _count,
@@ -175,8 +175,8 @@ d_internal_grow(
 d_internal_copy
   A string of its own, of `_length` bytes from `_text`.
 */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _text,
     size_t      _length
 )
@@ -202,8 +202,8 @@ d_internal_copy(
 d_internal_lower_guid
   A GUID as the records keep one: lower case, without braces.
 */
-static char*
-d_internal_lower_guid(
+static
+char* d_internal_lower_guid(
     const char* _text,
     size_t      _length
 )
@@ -237,8 +237,8 @@ d_internal_lower_guid(
 d_internal_same_text
   ASCII case folding, which is all a GUID or a configuration needs.
 */
-static bool
-d_internal_same_text(
+static
+bool d_internal_same_text(
     const char* _left,
     size_t      _left_length,
     const char* _right,
@@ -277,8 +277,8 @@ d_internal_same_text(
 d_internal_ends_with
   Whether a name ends in a suffix, in any case.
 */
-static bool
-d_internal_ends_with(
+static
+bool d_internal_ends_with(
     const char* _name,
     const char* _suffix
 )
@@ -301,20 +301,20 @@ d_internal_ends_with(
 d_msvs_kind_of
   By the name's ending; .vcxproj.filters before .vcxproj's own kind.
 */
-enum d_msvs_kind
+enum dj_msvs_kind
 d_msvs_kind_of(
     const char* _path
 )
 {
-    // d_internal_ending
+    // dj_internal_ending
     //   struct: a name's ending, and the kind it marks.
-    struct d_internal_ending
+    struct dj_internal_ending
     {
         const char*      suffix;
-        enum d_msvs_kind kind;
+        enum dj_msvs_kind kind;
     };
 
-    static const struct d_internal_ending endings[] =
+    static const struct dj_internal_ending endings[] =
     {
         { ".vcxproj.filters", D_MSVS_FILTERS  },
         { ".vcxproj.user",    D_MSVS_USER     },
@@ -360,8 +360,8 @@ d_internal_is_name_start, d_internal_is_name_char
 `:`, digits, `.` and `-` after the first, and any byte of a character past
 ASCII.
 */
-static bool
-d_internal_is_name_start(
+static
+bool d_internal_is_name_start(
     unsigned char _byte
 )
 {
@@ -373,8 +373,8 @@ d_internal_is_name_start(
 }
 
 
-static bool
-d_internal_is_name_char(
+static
+bool d_internal_is_name_char(
     unsigned char _byte
 )
 {
@@ -389,8 +389,8 @@ d_internal_is_name_char(
 d_internal_name_sound
   Whether a span is an XML name.
 */
-static bool
-d_internal_name_sound(
+static
+bool d_internal_name_sound(
     const char* _name,
     size_t      _length
 )
@@ -422,8 +422,8 @@ d_internal_reference_length
 predefined entity, or a character reference to a character XML allows; 0
 when no such reference begins there.
 */
-static size_t
-d_internal_reference_length(
+static
+size_t d_internal_reference_length(
     const char* _text,
     size_t      _length
 )
@@ -515,8 +515,8 @@ d_internal_text_problem
 reference, or `]]>`, which only a CDATA section may end with.  `_at`
 receives where.
 */
-static const char*
-d_internal_text_problem(
+static
+const char* d_internal_text_problem(
     const char* _text,
     size_t      _length,
     size_t*     _at
@@ -554,8 +554,8 @@ d_internal_attributes_problem
 name, `=` and a quoted value, once each, the value holding no `<` and no
 `&` that begins no reference.  `_at` receives where.
 */
-static const char*
-d_internal_attributes_problem(
+static
+const char* d_internal_attributes_problem(
     const char* _text,
     size_t      _length,
     size_t*     _at
@@ -702,8 +702,8 @@ d_internal_pseudo
 given, `=`, and a quoted value, setting the value's span.  Gives false,
 leaving `*_at` as it was, when that name does not come next.
 */
-static bool
-d_internal_pseudo(
+static
+bool d_internal_pseudo(
     const char* _text,
     size_t      _length,
     size_t*     _at,
@@ -803,8 +803,8 @@ the file, is named in lower case, and gives, in this order, its version,
 1.0 or another 1.x, an encoding if any -- which must be UTF-8, the one
 encoding this reader reads -- and standalone, yes or no, if any.
 */
-static const char*
-d_internal_declaration_problem(
+static
+const char* d_internal_declaration_problem(
     const char* _text,
     size_t      _length,
     size_t      _offset,
@@ -918,8 +918,8 @@ d_internal_markup_problem
 anything: a comment holds no `--`, an instruction is named by a name, and
 the XML declaration is sound.  `_at` receives where.
 */
-static const char*
-d_internal_markup_problem(
+static
+const char* d_internal_markup_problem(
     const char* _text,
     size_t      _length,
     size_t      _offset,
@@ -994,8 +994,8 @@ d_internal_document_problem
   What is wrong with the text as a whole, if anything: a control character
 XML allows nowhere, or bytes that are not UTF-8.  `_at` receives where.
 */
-static const char*
-d_internal_document_problem(
+static
+const char* d_internal_document_problem(
     const char* _text,
     size_t      _length,
     size_t      _from,
@@ -1057,16 +1057,16 @@ d_internal_new_element
   Adds an element for a start or empty-element tag, linked beneath the
 element open, if any.
 */
-static size_t
-d_internal_new_element(
-    struct d_internal_reader* _reader,
-    const struct d_xml_token* _token,
-    size_t                    _parent,
-    size_t*                   _last_child,
-    size_t                    _depth
+static
+size_t d_internal_new_element(
+    struct dj_internal_reader* _reader,
+    const struct dj_xml_token* _token,
+    size_t                     _parent,
+    size_t*                    _last_child,
+    size_t                     _depth
 )
 {
-    struct d_msvs* const msvs = _reader->msvs;
+    struct dj_msvs* const msvs = _reader->msvs;
 
     // the element is recorded with room for it
     if (!d_internal_grow((void**)&msvs->elements, &_reader->element_capacity,
@@ -1076,7 +1076,7 @@ d_internal_new_element(
     }
 
     const size_t                 which   = msvs->element_count++;
-    struct d_msvs_element* const element = &msvs->elements[which];
+    struct dj_msvs_element* const element = &msvs->elements[which];
     size_t                       column  = 0;
 
     memset(element, 0, sizeof(*element));
@@ -1096,7 +1096,7 @@ d_internal_new_element(
     // the new element is its parent's last child
     if (_parent != D_MSVS_NONE)
     {
-        struct d_msvs_element* const parent = &msvs->elements[_parent];
+        struct dj_msvs_element* const parent = &msvs->elements[_parent];
 
         // the first child, or one after the last
         if (parent->first_child == D_MSVS_NONE)
@@ -1120,8 +1120,8 @@ d_internal_new_element(
 d_internal_blank
   Whether a span holds only space.
 */
-static bool
-d_internal_blank(
+static
+bool d_internal_blank(
     const char* _text,
     size_t      _length
 )
@@ -1149,21 +1149,21 @@ d_internal_read_xml
 end tag the one its open element needs; one root, and nothing but space,
 comments and declarations outside it.
 */
-static bool
-d_internal_read_xml(
-    struct d_internal_reader* _reader,
-    size_t                    _from
+static
+bool d_internal_read_xml(
+    struct dj_internal_reader* _reader,
+    size_t                     _from
 )
 {
-    struct d_msvs* const msvs  = _reader->msvs;
+    struct dj_msvs* const msvs  = _reader->msvs;
     size_t*              open  = NULL;
     size_t               open_capacity = 0;
     size_t*              last  = NULL;
     size_t               last_capacity = 0;
     size_t               depth = 0;
     size_t               roots = 0;
-    struct d_xml         xml;
-    struct d_xml_token   token;
+    struct dj_xml         xml;
+    struct dj_xml_token   token;
     bool                 ok    = true;
 
     memset(&token, 0, sizeof(token));
@@ -1351,7 +1351,7 @@ d_internal_read_xml(
                 break;
             }
 
-            struct d_msvs_element* const element = &msvs->elements[which];
+            struct dj_msvs_element* const element = &msvs->elements[which];
 
             // an empty element ends where it starts
             if (token.kind == D_XML_EMPTY)
@@ -1393,7 +1393,7 @@ d_internal_read_xml(
                 break;
             }
 
-            struct d_msvs_element* const element =
+            struct dj_msvs_element* const element =
                 &msvs->elements[open[depth - 1u]];
 
             // and one for an element of another name ends the wrong one
@@ -1441,7 +1441,7 @@ d_internal_read_xml(
     if ( (ok) &&
          (depth > 0u) )
     {
-        const struct d_msvs_element* const element =
+        const struct dj_msvs_element* const element =
             &msvs->elements[open[depth - 1u]];
 
         ok = d_internal_fail(_reader, element->line, element->column,
@@ -1475,8 +1475,8 @@ d_internal_read_xml(
 d_internal_add_text
   Adds a string to one of the solution's lists.
 */
-static bool
-d_internal_add_text(
+static
+bool d_internal_add_text(
     char***     _list,
     size_t*     _count,
     size_t*     _capacity,
@@ -1507,18 +1507,18 @@ d_internal_add_text(
 d_internal_add_project
   Adds a project, owning the strings it is given; NULL ones become "".
 */
-static struct d_msvs_project*
-d_internal_add_project(
-    struct d_internal_reader* _reader,
-    char*                     _name,
-    char*                     _path,
-    char*                     _type,
-    char*                     _id,
-    char*                     _folder,
-    size_t                    _line
+static
+struct dj_msvs_project* d_internal_add_project(
+    struct dj_internal_reader* _reader,
+    char*                      _name,
+    char*                      _path,
+    char*                      _type,
+    char*                      _id,
+    char*                      _folder,
+    size_t                     _line
 )
 {
-    struct d_msvs* const msvs = _reader->msvs;
+    struct dj_msvs* const msvs = _reader->msvs;
 
     // the project needs room, and every string it holds
     if ( (!_name) || (!_path) || (!_type) || (!_id) || (!_folder) ||
@@ -1535,7 +1535,7 @@ d_internal_add_project(
         return NULL;
     }
 
-    struct d_msvs_project* const project =
+    struct dj_msvs_project* const project =
         &msvs->projects[msvs->project_count++];
 
     project->name             = _name;
@@ -1560,15 +1560,15 @@ d_internal_add_project(
 d_internal_add_folder
   Adds a folder, owning the strings it is given; NULL ones fail.
 */
-static struct d_msvs_folder*
-d_internal_add_folder(
-    struct d_internal_reader* _reader,
-    char*                     _path,
-    char*                     _id,
-    size_t                    _line
+static
+struct dj_msvs_folder* d_internal_add_folder(
+    struct dj_internal_reader* _reader,
+    char*                      _path,
+    char*                      _id,
+    size_t                     _line
 )
 {
-    struct d_msvs* const msvs = _reader->msvs;
+    struct dj_msvs* const msvs = _reader->msvs;
 
     // the folder needs room, and both its strings
     if ( (!_path) || (!_id) ||
@@ -1581,7 +1581,7 @@ d_internal_add_folder(
         return NULL;
     }
 
-    struct d_msvs_folder* const folder = &msvs->folders[msvs->folder_count++];
+    struct dj_msvs_folder* const folder = &msvs->folders[msvs->folder_count++];
 
     folder->path    = _path;
     folder->id      = _id;
@@ -1598,8 +1598,8 @@ d_internal_add_folder(
 d_internal_stem
   A path's file name without its extension.
 */
-static char*
-d_internal_stem(
+static
+char* d_internal_stem(
     const char* _path
 )
 {
@@ -1627,11 +1627,11 @@ d_internal_stem(
 d_internal_decoded_attribute
   An attribute's value, decoded, as a string of its own; "" when absent.
 */
-static char*
-d_internal_decoded_attribute(
-    const struct d_msvs*         _msvs,
-    const struct d_msvs_element* _element,
-    const char*                  _name
+static
+char* d_internal_decoded_attribute(
+    const struct dj_msvs*         _msvs,
+    const struct dj_msvs_element* _element,
+    const char*                   _name
 )
 {
     size_t start  = 0;
@@ -1661,12 +1661,12 @@ its <Folder>s, its <BuildDependency>s, and the configurations: every
 <BuildType> of <Configurations> with every <Platform>, Debug and Release
 when only platforms are named.
 */
-static bool
-d_internal_read_slnx(
-    struct d_internal_reader* _reader
+static
+bool d_internal_read_slnx(
+    struct dj_internal_reader* _reader
 )
 {
-    struct d_msvs* const msvs  = _reader->msvs;
+    struct dj_msvs* const msvs  = _reader->msvs;
     char**               types = NULL;
     size_t               type_count = 0;
     size_t               type_capacity = 0;
@@ -1678,8 +1678,8 @@ d_internal_read_slnx(
     // every element, in document order
     for (size_t at = 0; (ok) && (at < msvs->element_count); ++at)
     {
-        const struct d_msvs_element* const element = &msvs->elements[at];
-        const struct d_msvs_element* const parent  =
+        const struct dj_msvs_element* const element = &msvs->elements[at];
+        const struct dj_msvs_element* const parent  =
             (element->parent != D_MSVS_NONE)
             ? &msvs->elements[element->parent] : NULL;
 
@@ -1712,7 +1712,7 @@ d_internal_read_slnx(
                                                              "Id");
             char* const ident = (id) ? d_internal_lower_guid(id, strlen(id))
                                      : NULL;
-            struct d_msvs_folder* const folder =
+            struct dj_msvs_folder* const folder =
                 d_internal_add_folder(_reader,
                                       d_internal_decoded_attribute(msvs,
                                                                    element,
@@ -1764,7 +1764,7 @@ d_internal_read_slnx(
         free(type);
         free(id);
 
-        struct d_msvs_project* const project =
+        struct dj_msvs_project* const project =
             d_internal_add_project(_reader, name, path, guid, ident, folder,
                                    element->line);
 
@@ -1869,7 +1869,7 @@ d_internal_read_slnx(
 // d_internal_sln_folder
 //   struct: a .sln solution folder, or a nesting of one thing in another;
 //   a folder's `record` is its record among the folders.
-struct d_internal_sln_folder
+struct dj_internal_sln_folder
 {
     char*  id;
     char*  name;
@@ -1882,8 +1882,8 @@ struct d_internal_sln_folder
 d_internal_quoted
   The next "..." on a line at or after `*_at`, moving past it.
 */
-static bool
-d_internal_quoted(
+static
+bool d_internal_quoted(
     const char* _line,
     size_t      _length,
     size_t*     _at,
@@ -1933,8 +1933,8 @@ d_internal_quoted(
 d_internal_trimmed
   A line without its leading and trailing space.
 */
-static void
-d_internal_trimmed(
+static
+void d_internal_trimmed(
     const char*  _line,
     size_t       _length,
     const char** _out,
@@ -1970,8 +1970,8 @@ d_internal_trimmed(
 d_internal_starts
   Whether a trimmed line begins with a word.
 */
-static bool
-d_internal_starts(
+static
+bool d_internal_starts(
     const char* _line,
     size_t      _length,
     const char* _word
@@ -1988,8 +1988,8 @@ d_internal_starts(
 d_internal_is
   Whether a trimmed line is a word and nothing more.
 */
-static bool
-d_internal_is(
+static
+bool d_internal_is(
     const char* _line,
     size_t      _length,
     const char* _word
@@ -2005,15 +2005,15 @@ d_internal_nesting
   The folders holding a thing, outward from it, as "/outer/inner/": "/" for
 a thing nested in none.
 */
-static void
-d_internal_nesting(
-    const struct d_internal_sln_folder* _folders,
-    size_t                              _folder_count,
-    const struct d_internal_sln_folder* _nests,
-    size_t                              _nest_count,
-    const char*                         _id,
-    char*                               _out,
-    size_t                              _capacity
+static
+void d_internal_nesting(
+    const struct dj_internal_sln_folder* _folders,
+    size_t                               _folder_count,
+    const struct dj_internal_sln_folder* _nests,
+    size_t                               _nest_count,
+    const char*                          _id,
+    char*                                _out,
+    size_t                               _capacity
 )
 {
     const char* id    = _id;
@@ -2083,17 +2083,17 @@ d_internal_add_section
   Records a global section opening on a line, by the name in its
 parentheses.
 */
-static bool
-d_internal_add_section(
-    struct d_internal_reader* _reader,
-    const char*               _text,
-    size_t                    _length,
-    size_t                    _start,
-    size_t                    _content,
-    size_t                    _line
+static
+bool d_internal_add_section(
+    struct dj_internal_reader* _reader,
+    const char*                _text,
+    size_t                     _length,
+    size_t                     _start,
+    size_t                     _content,
+    size_t                     _line
 )
 {
-    struct d_msvs* const msvs  = _reader->msvs;
+    struct dj_msvs* const msvs  = _reader->msvs;
     const char* const    open  = memchr(_text, '(', _length);
     const char* const    close = (open)
                                  ? memchr(open, ')',
@@ -2118,7 +2118,7 @@ d_internal_add_section(
         return false;
     }
 
-    struct d_msvs_section* const section =
+    struct dj_msvs_section* const section =
         &msvs->sections[msvs->section_count++];
 
     section->name    = name;
@@ -2141,17 +2141,17 @@ SolutionConfigurationPlatforms for the configurations, NestedProjects for
 the folders.  A solution folder is a project of a type of its own, and is
 read as a folder.  Each record keeps the bytes its lines span.
 */
-static bool
-d_internal_read_sln(
-    struct d_internal_reader* _reader,
-    size_t                    _from
+static
+bool d_internal_read_sln(
+    struct dj_internal_reader* _reader,
+    size_t                     _from
 )
 {
-    struct d_msvs* const          msvs     = _reader->msvs;
-    struct d_internal_sln_folder* folders  = NULL;
+    struct dj_msvs* const          msvs     = _reader->msvs;
+    struct dj_internal_sln_folder* folders  = NULL;
     size_t                        folder_count    = 0;
     size_t                        folder_capacity = 0;
-    struct d_internal_sln_folder* nests    = NULL;
+    struct dj_internal_sln_folder* nests    = NULL;
     size_t                        nest_count      = 0;
     size_t                        nest_capacity   = 0;
     char**                        ids      = NULL;   // dependencies, by id
@@ -2247,7 +2247,7 @@ d_internal_read_sln(
             {
                 char* const own = (id) ? d_internal_copy(id, strlen(id))
                                        : NULL;
-                struct d_msvs_folder* const folder =
+                struct dj_msvs_folder* const folder =
                     d_internal_add_folder(_reader, d_internal_copy("", 0u),
                                           own, line);
 
@@ -2275,7 +2275,7 @@ d_internal_read_sln(
             }
             else
             {
-                struct d_msvs_project* const project =
+                struct dj_msvs_project* const project =
                     d_internal_add_project(
                         _reader,
                         d_internal_copy(&text[parts[1][0]], parts[1][1]),
@@ -2408,7 +2408,7 @@ d_internal_read_sln(
                     (where == D_SECTION) ) &&
                   (d_internal_starts(text, length, "EndGlobalSection")) )
         {
-            struct d_msvs_section* const section =
+            struct dj_msvs_section* const section =
                 &msvs->sections[msvs->section_count - 1u];
 
             section->close = at;
@@ -2599,10 +2599,10 @@ byte-order mark.
 */
 bool
 d_msvs_read(
-    struct d_msvs*   _out,
+    struct dj_msvs*   _out,
     const char*      _text,
     size_t           _length,
-    enum d_msvs_kind _kind,
+    enum dj_msvs_kind _kind,
     char*            _problem,
     size_t           _capacity
 )
@@ -2627,7 +2627,7 @@ d_msvs_read(
         _problem[0] = '\0';
     }
 
-    struct d_internal_reader reader;
+    struct dj_internal_reader reader;
 
     memset(&reader, 0, sizeof(reader));
     reader.msvs     = _out;
@@ -2681,7 +2681,7 @@ d_msvs_read(
         return false;
     }
 
-    const struct d_msvs_element* const root = &_out->elements[0];
+    const struct dj_msvs_element* const root = &_out->elements[0];
     const bool solution = d_msvs_is(_out, root, "Solution");
     const bool project  = d_msvs_is(_out, root, "Project");
 
@@ -2718,9 +2718,8 @@ d_msvs_read(
 d_msvs_release
   Frees what the reading made; the text was never the reader's.
 */
-void
-d_msvs_release(
-    struct d_msvs* _msvs
+void d_msvs_release(
+    struct dj_msvs* _msvs
 )
 {
     // releasing nothing is allowed
@@ -2780,11 +2779,10 @@ d_msvs_release(
 d_msvs_is
   Exact, as XML names compare.
 */
-bool
-d_msvs_is(
-    const struct d_msvs*         _msvs,
-    const struct d_msvs_element* _element,
-    const char*                  _name
+bool d_msvs_is(
+    const struct dj_msvs*         _msvs,
+    const struct dj_msvs_element* _element,
+    const char*                   _name
 )
 {
     // an element must be named to be compared
@@ -2806,13 +2804,12 @@ d_msvs_is(
 d_msvs_attribute
   Walks the attributes as name, `=`, quoted value, which reading checked.
 */
-bool
-d_msvs_attribute(
-    const struct d_msvs*         _msvs,
-    const struct d_msvs_element* _element,
-    const char*                  _name,
-    size_t*                      _out_start,
-    size_t*                      _out_length
+bool d_msvs_attribute(
+    const struct dj_msvs*         _msvs,
+    const struct dj_msvs_element* _element,
+    const char*                   _name,
+    size_t*                       _out_start,
+    size_t*                       _out_length
 )
 {
     // an element must be given, and the name sought
@@ -2823,7 +2820,7 @@ d_msvs_attribute(
         return false;
     }
 
-    struct d_xml_token token;
+    struct dj_xml_token token;
     const char*        value  = NULL;
     size_t             length = 0;
 
@@ -2852,8 +2849,8 @@ a lone CR, is LF; in an attribute's value, each tab and line ending is then
 a space; and a reference is the character it names, which no normalizing
 touches.  CDATA has its line endings normalized and nothing else.
 */
-static size_t
-d_internal_decode(
+static
+size_t d_internal_decode(
     const char* _raw,
     size_t      _length,
     bool        _attribute,
@@ -2924,12 +2921,11 @@ d_internal_decode(
 d_msvs_value
   An attribute's value, decoded as XML decodes one.
 */
-size_t
-d_msvs_value(
-    const struct d_msvs* _msvs,
-    size_t               _start,
-    size_t               _length,
-    char*                _out
+size_t d_msvs_value(
+    const struct dj_msvs* _msvs,
+    size_t                _start,
+    size_t                _length,
+    char*                 _out
 )
 {
     // a value needs a file and a place to go
@@ -2953,11 +2949,10 @@ d_msvs_text
   The text of an element holding no element: its character data decoded,
 its CDATA as it stands but for its line endings, its comments left out.
 */
-size_t
-d_msvs_text(
-    const struct d_msvs*         _msvs,
-    const struct d_msvs_element* _element,
-    char*                        _out
+size_t d_msvs_text(
+    const struct dj_msvs*         _msvs,
+    const struct dj_msvs_element* _element,
+    char*                         _out
 )
 {
     // text needs a file, an element and a place to go
@@ -2968,8 +2963,8 @@ d_msvs_text(
         return 0u;
     }
 
-    struct d_xml       xml;
-    struct d_xml_token token;
+    struct dj_xml       xml;
+    struct dj_xml_token token;
     size_t             used = 0;
 
     d_xml_begin(&xml, &_msvs->text[_element->content_start],
@@ -2998,11 +2993,10 @@ d_msvs_text(
 d_msvs_child
   The first child so named.
 */
-size_t
-d_msvs_child(
-    const struct d_msvs* _msvs,
-    size_t               _element,
-    const char*          _name
+size_t d_msvs_child(
+    const struct dj_msvs* _msvs,
+    size_t                _element,
+    const char*           _name
 )
 {
     // an element must be there to have children
@@ -3031,8 +3025,7 @@ d_msvs_child(
 d_msvs_is_name
   XML's Name production, as the reader holds a tag's name to it.
 */
-bool
-d_msvs_is_name(
+bool d_msvs_is_name(
     const char* _text,
     size_t      _length
 )
@@ -3051,8 +3044,8 @@ d_msvs_is_name(
 d_internal_quote_at
   Reads a single-quoted string at `*_at`, past any space, moving past it.
 */
-static bool
-d_internal_quote_at(
+static
+bool d_internal_quote_at(
     const char* _text,
     size_t*     _at,
     size_t*     _start,
@@ -3099,7 +3092,7 @@ d_internal_quote_at(
 d_msvs_condition_of
   'A'=='B', one side the configuration's properties and the other plain.
 */
-enum d_msvs_condition
+enum dj_msvs_condition
 d_msvs_condition_of(
     const char* _condition,
     char*       _out_tested,
@@ -3167,16 +3160,16 @@ d_msvs_condition_of(
         return D_MSVS_UNKNOWN;
     }
 
-    // d_internal_side
+    // dj_internal_side
     //   struct: what one side of the test may be, and what it tests.
-    struct d_internal_side
+    struct dj_internal_side
     {
         const char* text;
         const char* before;
         const char* after;
     };
 
-    static const struct d_internal_side sides[] =
+    static const struct dj_internal_side sides[] =
     {
         { "$(Configuration)|$(Platform)", "",   ""   },
         { "$(Configuration)",             "",   "|*" },
@@ -3227,8 +3220,7 @@ d_msvs_config_matches
   Each half compared without case, `*` matching any; a configuration named
 without a platform is any platform's.
 */
-bool
-d_msvs_config_matches(
+bool d_msvs_config_matches(
     const char* _tested,
     const char* _config
 )
@@ -3273,8 +3265,7 @@ d_msvs_config_matches(
 d_msvs_compare_paths
   Byte by byte, each folded to lower case and `/` to `\`.
 */
-int
-d_msvs_compare_paths(
+int d_msvs_compare_paths(
     const char* _left,
     const char* _right
 )
@@ -3310,10 +3301,10 @@ d_msvs_compare_paths(
 //==============================================================================
 
 
-// d_internal_sha1
+// dj_internal_sha1
 //   struct: SHA-1 as it runs: the state, the block being filled, and how
 //   many bytes it has taken.
-struct d_internal_sha1
+struct dj_internal_sha1
 {
     uint32_t state[5];
     uint8_t  block[64];
@@ -3326,8 +3317,8 @@ struct d_internal_sha1
 d_internal_rotate
   A 32-bit word rotated left.
 */
-static uint32_t
-d_internal_rotate(
+static
+uint32_t d_internal_rotate(
     uint32_t _word,
     unsigned _by
 )
@@ -3340,9 +3331,9 @@ d_internal_rotate(
 d_internal_sha1_block
   Takes one 64-byte block into the state: FIPS 180-4, 6.1.2.
 */
-static void
-d_internal_sha1_block(
-    struct d_internal_sha1* _sha1
+static
+void d_internal_sha1_block(
+    struct dj_internal_sha1* _sha1
 )
 {
     uint32_t words[80];
@@ -3419,11 +3410,11 @@ d_internal_sha1_block(
 d_internal_sha1_take
   Takes bytes into the hash.
 */
-static void
-d_internal_sha1_take(
-    struct d_internal_sha1* _sha1,
-    const uint8_t*          _bytes,
-    size_t                  _length
+static
+void d_internal_sha1_take(
+    struct dj_internal_sha1* _sha1,
+    const uint8_t*           _bytes,
+    size_t                   _length
 )
 {
     for (size_t at = 0; at < _length; ++at)
@@ -3447,10 +3438,10 @@ d_internal_sha1_take(
 d_internal_sha1_finish
   Pads the message with its length and gives the 20-byte digest.
 */
-static void
-d_internal_sha1_finish(
-    struct d_internal_sha1* _sha1,
-    uint8_t*                _digest
+static
+void d_internal_sha1_finish(
+    struct dj_internal_sha1* _sha1,
+    uint8_t*                 _digest
 )
 {
     const uint64_t bits = _sha1->total * 8u;
@@ -3497,8 +3488,7 @@ d_msvs_guid
   RFC 9562's version 5: SHA-1 over the namespace and the name, its first
 sixteen bytes marked with the version and the variant.
 */
-void
-d_msvs_guid(
+void d_msvs_guid(
     const char* _seed,
     size_t      _length,
     char*       _out
@@ -3511,7 +3501,7 @@ d_msvs_guid(
         0x9bu, 0x1cu, 0x7fu, 0x3au, 0x2du, 0x6eu, 0x4cu, 0x58u
     };
     static const char digits[] = "0123456789abcdef";
-    struct d_internal_sha1 sha1;
+    struct dj_internal_sha1 sha1;
     uint8_t                digest[20];
 
     memset(&sha1, 0, sizeof(sha1));
@@ -3549,10 +3539,10 @@ d_msvs_guid(
 }
 
 
-// d_internal_parts
+// dj_internal_parts
 //   struct: a path's parts, each a span of the path, with `.` dropped and
 //   `..` taken back where it can be.
-struct d_internal_parts
+struct dj_internal_parts
 {
     const char* text;
     size_t*     starts;
@@ -3565,10 +3555,10 @@ struct d_internal_parts
 d_internal_split
   Splits a path at `/` and `\`.
 */
-static bool
-d_internal_split(
-    const char*              _path,
-    struct d_internal_parts* _out
+static
+bool d_internal_split(
+    const char*               _path,
+    struct dj_internal_parts* _out
 )
 {
     const size_t length = strlen(_path);
@@ -3636,15 +3626,14 @@ d_msvs_relative
   Climbs from the directory to where it and the path part, then down the
 rest of the path.
 */
-char*
-d_msvs_relative(
+char* d_msvs_relative(
     const char* _directory,
     const char* _path,
     char        _separator
 )
 {
-    struct d_internal_parts from;
-    struct d_internal_parts to;
+    struct dj_internal_parts from;
+    struct dj_internal_parts to;
 
     // both must be given
     if ( (!_directory) ||
@@ -3753,8 +3742,7 @@ d_msvs_escape
 markup's two, the quote around a value, and character references for what
 line-ending and value normalization would change.
 */
-size_t
-d_msvs_escape(
+size_t d_msvs_escape(
     const char* _text,
     size_t      _length,
     char        _quote,
@@ -3763,14 +3751,14 @@ d_msvs_escape(
 {
     // d_internal_reference
     //   struct: a byte, what stands for it, and whether only a value needs it.
-    struct d_internal_reference
+    struct dj_internal_reference
     {
         char        byte;
         const char* reference;
         bool        value_only;
     };
 
-    static const struct d_internal_reference references[] =
+    static const struct dj_internal_reference references[] =
     {
         { '&',  "&amp;",  false },
         { '<',  "&lt;",   false },

@@ -128,7 +128,7 @@ TABLE OF CONTENTS
 #include "../../env.h"   // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS,
                          // D_ENV_IS_OS_FLAG_IN_BLOCK, D_ENV_LANG_USING_CPP
 #include "../env_net.h"  // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
-#include "../../../config/core/env/net/tls/cfg_env_tls.h"  // D_CFG_ENV_TLS_*
+#include "../../../config/env/net/tls/cfg_env_tls.h"  // D_CFG_ENV_TLS_*
 
 
 //==============================================================================
@@ -947,7 +947,9 @@ TABLE OF CONTENTS
  * @return `1` if the library negotiates TLS 1.3 here; `0` if it does not, if
  *         the build lacks it, or if `_backend` names no library.
  */
-int d_env_tls_backend_has_tls1_3(int _backend);
+int d_env_tls_backend_has_tls1_3(
+    int _backend
+);
 
 #if D_ENV_LANG_USING_CPP
     }

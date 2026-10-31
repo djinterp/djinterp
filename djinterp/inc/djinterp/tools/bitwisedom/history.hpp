@@ -15,8 +15,8 @@
 *                                                            revised: 2026.10.10
 *******************************************************************************/
 
-#ifndef BITWISEDOM_HISTORY_HPP
-#define BITWISEDOM_HISTORY_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_HISTORY_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_HISTORY_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -27,7 +27,7 @@
 #include <string>   // std::string
 #include <vector>   // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./sheet.hpp"  // sheet
 
@@ -51,19 +51,25 @@ public:
      * @param[in] _key     the edit's merge key; empty never merges.
      * @post   The redo stack is empty.
      */
-    void record(const sheet&       _before,
-                const std::string& _key);
+    void record(
+        const sheet&       _before,
+        const std::string& _key
+    );
 
     // stepping -- each returns false, leaving _current alone, when there is
     // nothing to step to
-    bool undo(sheet& _current);
-    bool redo(sheet& _current);
+    bool undo(
+        sheet& _current
+    );
+    bool redo(
+        sheet& _current
+    );
 
     void seal();
     void clear();
 
-    D_NODISCARD bool        can_undo() const;
-    D_NODISCARD bool        can_redo() const;
+    D_NODISCARD bool can_undo() const;
+    D_NODISCARD bool can_redo() const;
     D_NODISCARD std::size_t depth() const;
 
 private:
@@ -77,4 +83,4 @@ private:
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_HISTORY_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_HISTORY_HPP

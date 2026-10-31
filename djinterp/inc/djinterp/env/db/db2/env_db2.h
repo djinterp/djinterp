@@ -163,7 +163,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_DB2_ENV_DB2_H 1
 
 // djinterp
-#include "../../../config/core/env/db/db2/cfg_env_db2.h"  // D_CFG_ENV_*
+#include "../../../config/env/db/db2/cfg_env_db2.h"  // D_CFG_ENV_*
 #include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "test_cli_unix_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -24,11 +24,8 @@ static bool g_opt_help    = false;
 static int  g_opt_level   = 0;
 static const char* g_opt_output = NULL;
 
-static void
-test_unix_reset
-(
-    void
-)
+static
+void test_unix_reset(void)
 {
     g_opt_verbose = false;
     g_opt_quiet   = true;
@@ -46,7 +43,7 @@ test_unix_reset
  * TEST TABLE (bare keys, no operators)
  *****************************************************************************/
 
-static struct d_string_cli_entry g_unix_entries[] =
+static struct dj_string_cli_entry g_unix_entries[] =
 {
     { "v",       1, &g_opt_verbose },
     { "verbose", 7, &g_opt_verbose },
@@ -74,9 +71,8 @@ static size_t g_unix_last_key_len  = 0;
 test_unix_toggle
   Toggles bool at value. Returns 0 (did not consume next_arg).
 */
-static int
-test_unix_toggle
-(
+static
+int test_unix_toggle(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -104,9 +100,8 @@ test_unix_toggle
 test_unix_stop
   Stops parsing immediately.
 */
-static int
-test_unix_stop
-(
+static
+int test_unix_stop(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -132,9 +127,8 @@ test_unix_dispatch
   "level" -> consume int (return 1).
   else -> toggle bool (return 0).
 */
-static int
-test_unix_dispatch
-(
+static
+int test_unix_dispatch(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -182,9 +176,8 @@ test_unix_dispatch
 test_unix_with_context
   Increments int context. Returns 0.
 */
-static int
-test_unix_with_context
-(
+static
+int test_unix_with_context(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -209,9 +202,8 @@ test_unix_with_context
 test_unix_check_key_length
   Verifies _key_length == strlen(_key). Stores result in context bool.
 */
-static int
-test_unix_check_key_length
-(
+static
+int test_unix_check_key_length(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -248,10 +240,8 @@ d_tests_sa_test_cli_unix_long_option
   - unrecognized "--bogus" is skipped
   - handler receives correct key_length
 */
-bool
-d_tests_sa_test_cli_unix_long_option
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_long_option(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -336,10 +326,8 @@ d_tests_sa_test_cli_unix_long_equals
   - embedded value does not consume next argv
   - handler receives correct key_length (excludes =val)
 */
-bool
-d_tests_sa_test_cli_unix_long_equals
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_long_equals(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -435,10 +423,8 @@ d_tests_sa_test_cli_unix_short_single
   - unrecognized "-z" is skipped
   - handler receives key_length==1
 */
-bool
-d_tests_sa_test_cli_unix_short_single
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_short_single(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -523,10 +509,8 @@ d_tests_sa_test_cli_unix_short_combined
   - unknown chars in combination are skipped
   - all handlers receive key_length==1
 */
-bool
-d_tests_sa_test_cli_unix_short_combined
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_short_combined(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -638,10 +622,8 @@ d_tests_sa_test_cli_unix_consume_next
   - consumed arg is not re-processed as a flag
   - last char in combined flags can consume: "-vo file.txt"
 */
-bool
-d_tests_sa_test_cli_unix_consume_next
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_consume_next(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -753,10 +735,8 @@ d_tests_sa_test_cli_unix_stop_token
   - args after "--" are not processed
   - flags before "--" are processed
 */
-bool
-d_tests_sa_test_cli_unix_stop_token
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_stop_token(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -826,10 +806,8 @@ d_tests_sa_test_cli_unix_edge_cases
   - D_CLI_UNIX_PARSE macro works
   - mixed long, short, combined, equals in one command
 */
-bool
-d_tests_sa_test_cli_unix_edge_cases
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_edge_cases(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -994,10 +972,8 @@ d_tests_sa_test_cli_unix_edge_cases
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
 
-bool
-d_tests_sa_test_cli_unix_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_unix_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

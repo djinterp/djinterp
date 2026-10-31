@@ -23,22 +23,18 @@
 d_tests_sa_dstring_assign
   Tests d_string_assign function.
   Tests the following:
-  - assigning from one d_string to another
+  - assigning from one dj_string to another
   - assigning to empty string
   - assigning empty string
   - self-assignment handling
   - NULL destination handling
   - NULL source handling
 */
-struct d_test_object*
-d_tests_sa_dstring_assign
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_assign(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     bool                  result;
     size_t                idx;
 
@@ -51,7 +47,7 @@ d_tests_sa_dstring_assign
 
     idx = 0;
 
-    // test: assigning from one d_string to another
+    // test: assigning from one dj_string to another
     dest = d_string_new_from_cstr("original");
     src  = d_string_new_from_cstr("replacement");
 
@@ -168,20 +164,16 @@ d_tests_sa_dstring_assign
 d_tests_sa_dstring_assign_cstr
   Tests d_string_assign_cstr function.
   Tests the following:
-  - assigning C string to d_string
+  - assigning C string to dj_string
   - assigning to empty string
   - assigning empty C string
   - NULL destination handling
   - NULL C string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_assign_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_assign_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -194,7 +186,7 @@ d_tests_sa_dstring_assign_cstr
 
     idx = 0;
 
-    // test: assigning C string to d_string
+    // test: assigning C string to dj_string
     dest = d_string_new_from_cstr("original");
 
     if (dest)
@@ -281,20 +273,16 @@ d_tests_sa_dstring_assign_cstr
 d_tests_sa_dstring_assign_buffer
   Tests d_string_assign_buffer function.
   Tests the following:
-  - assigning buffer with length to d_string
+  - assigning buffer with length to dj_string
   - assigning partial buffer
   - assigning buffer with embedded null
   - NULL destination handling
   - NULL buffer handling
 */
-struct d_test_object*
-d_tests_sa_dstring_assign_buffer
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_assign_buffer(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     const char*           buffer;
     bool                  result;
     size_t                idx;
@@ -308,7 +296,7 @@ d_tests_sa_dstring_assign_buffer
 
     idx = 0;
 
-    // test: assigning buffer with length to d_string
+    // test: assigning buffer with length to dj_string
     dest   = d_string_new_from_cstr("original");
     buffer = "replacement";
 
@@ -403,14 +391,10 @@ d_tests_sa_dstring_assign_char
   - assigning zero count (empty result)
   - NULL destination handling
 */
-struct d_test_object*
-d_tests_sa_dstring_assign_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_assign_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -505,21 +489,17 @@ d_tests_sa_dstring_assign_char
 d_tests_sa_dstring_append
   Tests d_string_append function.
   Tests the following:
-  - appending d_string to another
+  - appending dj_string to another
   - appending to empty string
   - appending empty string
   - NULL destination handling
   - NULL source handling
 */
-struct d_test_object*
-d_tests_sa_dstring_append
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_append(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     bool                  result;
     size_t                idx;
 
@@ -532,7 +512,7 @@ d_tests_sa_dstring_append
 
     idx = 0;
 
-    // test: appending d_string to another
+    // test: appending dj_string to another
     dest = d_string_new_from_cstr("hello");
     src  = d_string_new_from_cstr(" world");
 
@@ -628,20 +608,16 @@ d_tests_sa_dstring_append
 d_tests_sa_dstring_append_cstr
   Tests d_string_append_cstr function.
   Tests the following:
-  - appending C string to d_string
+  - appending C string to dj_string
   - appending to empty string
   - appending empty C string
   - NULL destination handling
   - NULL C string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_append_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_append_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -654,7 +630,7 @@ d_tests_sa_dstring_append_cstr
 
     idx = 0;
 
-    // test: appending C string to d_string
+    // test: appending C string to dj_string
     dest = d_string_new_from_cstr("hello");
 
     if (dest)
@@ -747,14 +723,10 @@ d_tests_sa_dstring_append_buffer
   - NULL destination handling
   - NULL buffer handling
 */
-struct d_test_object*
-d_tests_sa_dstring_append_buffer
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_append_buffer(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     const char*           buffer;
     bool                  result;
     size_t                idx;
@@ -863,14 +835,10 @@ d_tests_sa_dstring_append_char
   - appending multiple characters sequentially
   - NULL destination handling
 */
-struct d_test_object*
-d_tests_sa_dstring_append_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_append_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -967,14 +935,10 @@ d_tests_sa_dstring_append_formatted
   - appending formatted string with mixed types
   - NULL destination handling
 */
-struct d_test_object*
-d_tests_sa_dstring_append_formatted
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_append_formatted(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -1069,21 +1033,17 @@ d_tests_sa_dstring_append_formatted
 d_tests_sa_dstring_prepend
   Tests d_string_prepend function.
   Tests the following:
-  - prepending d_string to another
+  - prepending dj_string to another
   - prepending to empty string
   - prepending empty string
   - NULL destination handling
   - NULL source handling
 */
-struct d_test_object*
-d_tests_sa_dstring_prepend
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_prepend(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     bool                  result;
     size_t                idx;
 
@@ -1096,7 +1056,7 @@ d_tests_sa_dstring_prepend
 
     idx = 0;
 
-    // test: prepending d_string to another
+    // test: prepending dj_string to another
     dest = d_string_new_from_cstr("world");
     src  = d_string_new_from_cstr("hello ");
 
@@ -1192,20 +1152,16 @@ d_tests_sa_dstring_prepend
 d_tests_sa_dstring_prepend_cstr
   Tests d_string_prepend_cstr function.
   Tests the following:
-  - prepending C string to d_string
+  - prepending C string to dj_string
   - prepending to empty string
   - prepending empty C string
   - NULL destination handling
   - NULL C string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_prepend_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_prepend_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -1218,7 +1174,7 @@ d_tests_sa_dstring_prepend_cstr
 
     idx = 0;
 
-    // test: prepending C string to d_string
+    // test: prepending C string to dj_string
     dest = d_string_new_from_cstr("world");
 
     if (dest)
@@ -1310,14 +1266,10 @@ d_tests_sa_dstring_prepend_char
   - prepending multiple characters sequentially
   - NULL destination handling
 */
-struct d_test_object*
-d_tests_sa_dstring_prepend_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_prepend_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -1421,15 +1373,11 @@ d_tests_sa_dstring_insert
   - NULL destination handling
   - NULL source handling
 */
-struct d_test_object*
-d_tests_sa_dstring_insert
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_insert(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     bool                  result;
     size_t                idx;
 
@@ -1567,14 +1515,10 @@ d_tests_sa_dstring_insert_cstr
   - NULL destination handling
   - NULL C string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_insert_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_insert_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -1679,14 +1623,10 @@ d_tests_sa_dstring_insert_char
   - inserting char in middle
   - NULL destination handling
 */
-struct d_test_object*
-d_tests_sa_dstring_insert_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_insert_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     bool                  result;
     size_t                idx;
 
@@ -1788,14 +1728,10 @@ d_tests_sa_dstring_erase
   - erasing zero characters
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_erase
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_erase(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -1932,14 +1868,10 @@ d_tests_sa_dstring_erase_char
   - erasing char in middle
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_erase_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_erase_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2033,14 +1965,10 @@ d_tests_sa_dstring_clear
   - clearing empty string
   - NULL string handling (should not crash)
 */
-struct d_test_object*
-d_tests_sa_dstring_clear
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_clear(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_clear", 3);
@@ -2120,15 +2048,11 @@ d_tests_sa_dstring_replace
   - replacing with longer string
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_replace
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_replace(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      replacement;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      replacement;
     bool                  result;
     size_t                idx;
 
@@ -2279,14 +2203,10 @@ d_tests_sa_dstring_replace_cstr
   - NULL string handling
   - NULL C string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_replace_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_replace_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2392,16 +2312,12 @@ d_tests_sa_dstring_replace_all
   - replacing overlapping patterns
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_replace_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_replace_all(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      old_str;
-    struct d_string*      new_str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      old_str;
+    struct dj_string*      new_str;
     bool                  result;
     size_t                idx;
 
@@ -2538,14 +2454,10 @@ d_tests_sa_dstring_replace_all_cstr
   - replacing when pattern not found
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_replace_all_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_replace_all_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2640,14 +2552,10 @@ d_tests_sa_dstring_replace_char
   - replacing when character not found
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_replace_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_replace_char(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -2751,13 +2659,9 @@ d_tests_sa_dstring_modify_all
   - replace functions (replace, replace_cstr, replace_all, replace_all_cstr,
     replace_char)
 */
-struct d_test_object*
-d_tests_sa_dstring_modify_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_modify_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Modification Functions", 23);

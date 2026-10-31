@@ -27,7 +27,7 @@
 #include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy, d_memset
 #include "../../../inc/djinterp/c/string_fn.h"       // d_strncasecmp
 // re_std
-#include "../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 // platform
 #if defined(D_TIME_PLATFORM_WINDOWS)
     #ifndef WIN32_LEAN_AND_MEAN
@@ -76,8 +76,7 @@ d_localtime
   Windows: localtime_s, whose parameters are the reverse of localtime_r's and
 which reports failure as a nonzero errno_t rather than a NULL result.
 */
-struct tm*
-d_localtime(
+struct tm* d_localtime(
     const time_t* _timer,
     struct tm*    _result
 )
@@ -105,8 +104,7 @@ d_localtime(
 d_localtime
   POSIX: delegates to localtime_r.
 */
-struct tm*
-d_localtime(
+struct tm* d_localtime(
     const time_t* _timer,
     struct tm*    _result
 )
@@ -131,8 +129,7 @@ d_localtime
 another thread's localtime or gmtime can overwrite that buffer between the
 call and the copy.
 */
-struct tm*
-d_localtime(
+struct tm* d_localtime(
     const time_t* _timer,
     struct tm*    _result
 )
@@ -167,8 +164,7 @@ d_gmtime
   Windows: gmtime_s, whose parameters are the reverse of gmtime_r's and which
 reports failure as a nonzero errno_t rather than a NULL result.
 */
-struct tm*
-d_gmtime(
+struct tm* d_gmtime(
     const time_t* _timer,
     struct tm*    _result
 )
@@ -196,8 +192,7 @@ d_gmtime(
 d_gmtime
   POSIX: delegates to gmtime_r.
 */
-struct tm*
-d_gmtime(
+struct tm* d_gmtime(
     const time_t* _timer,
     struct tm*    _result
 )
@@ -222,8 +217,7 @@ d_gmtime
 another thread's gmtime or localtime can overwrite that buffer between the
 call and the copy.
 */
-struct tm*
-d_gmtime(
+struct tm* d_gmtime(
     const time_t* _timer,
     struct tm*    _result
 )
@@ -257,8 +251,7 @@ d_gmtime(
 d_ctime
   Windows: ctime_s, given the fixed 26 bytes the ctime format needs.
 */
-char*
-d_ctime(
+char* d_ctime(
     const time_t* _timer,
     char*         _buf
 )
@@ -287,8 +280,7 @@ d_ctime(
 d_ctime
   POSIX: delegates to ctime_r.
 */
-char*
-d_ctime(
+char* d_ctime(
     const time_t* _timer,
     char*         _buf
 )
@@ -312,8 +304,7 @@ d_ctime
   Fallback: copies 26 bytes out of ctime's shared static buffer. Not
 thread-safe, and the fixed length holds only for four-digit years.
 */
-char*
-d_ctime(
+char* d_ctime(
     const time_t* _timer,
     char*         _buf
 )
@@ -348,8 +339,7 @@ d_ctime(
 d_asctime
   Windows: asctime_s, given the fixed 26 bytes the asctime format needs.
 */
-char*
-d_asctime(
+char* d_asctime(
     const struct tm* _tm,
     char*            _buf
 )
@@ -378,8 +368,7 @@ d_asctime(
 d_asctime
   POSIX: delegates to asctime_r.
 */
-char*
-d_asctime(
+char* d_asctime(
     const struct tm* _tm,
     char*            _buf
 )
@@ -403,8 +392,7 @@ d_asctime
   Fallback: copies 26 bytes out of asctime's shared static buffer. Not
 thread-safe, and the fixed length holds only for four-digit years.
 */
-char*
-d_asctime(
+char* d_asctime(
     const struct tm* _tm,
     char*            _buf
 )
@@ -440,8 +428,7 @@ d_asctime(
 d_clock_gettime
   POSIX: delegates to clock_gettime.
 */
-int
-d_clock_gettime(
+int d_clock_gettime(
     clockid_t        _clock_id,
     struct timespec* _tp
 )
@@ -469,8 +456,7 @@ Unix epoch, using the precise variant from Windows 8 on; the CPU-time clocks
 add kernel and user time from GetProcessTimes or GetThreadTimes. Any other
 clock fails with EINVAL.
 */
-int
-d_clock_gettime(
+int d_clock_gettime(
     clockid_t        _clock_id,
     struct timespec* _tp
 )
@@ -591,8 +577,7 @@ d_clock_gettime
   Fallback: only CLOCK_REALTIME, from time(), at one-second resolution; every
 other clock fails with EINVAL.
 */
-int
-d_clock_gettime(
+int d_clock_gettime(
     clockid_t        _clock_id,
     struct timespec* _tp
 )
@@ -628,8 +613,7 @@ d_clock_gettime(
 d_clock_getres
   POSIX: delegates to clock_getres.
 */
-int
-d_clock_getres(
+int d_clock_getres(
     clockid_t        _clock_id,
     struct timespec* _res
 )
@@ -655,8 +639,7 @@ d_clock_getres
 performance counter's period for CLOCK_MONOTONIC (at least 1 ns), and the 100
 ns FILETIME tick for the realtime and CPU-time clocks.
 */
-int
-d_clock_getres(
+int d_clock_getres(
     clockid_t        _clock_id,
     struct timespec* _res
 )
@@ -724,8 +707,7 @@ d_clock_getres
   Fallback: time()'s one-second resolution, for CLOCK_REALTIME only, the one
 clock the fallback d_clock_gettime supports.
 */
-int
-d_clock_getres(
+int d_clock_getres(
     clockid_t        _clock_id,
     struct timespec* _res
 )
@@ -760,8 +742,7 @@ d_clock_getres(
 d_timespec_get
   Delegates to C11 timespec_get.
 */
-int
-d_timespec_get(
+int d_timespec_get(
     struct timespec* _ts,
     int              _base
 )
@@ -783,8 +764,7 @@ d_timespec_get(
 d_timespec_get
   Fallback: TIME_UTC only, read through d_clock_gettime(CLOCK_REALTIME).
 */
-int
-d_timespec_get(
+int d_timespec_get(
     struct timespec* _ts,
     int              _base
 )
@@ -818,8 +798,7 @@ d_timespec_get(
 d_nanosleep
   POSIX: checks the nanoseconds itself, then delegates to nanosleep.
 */
-int
-d_nanosleep(
+int d_nanosleep(
     const struct timespec* _req,
     struct timespec*       _rem
 )
@@ -855,8 +834,7 @@ whole milliseconds, with a nonzero sub-millisecond request raised to 1 ms.
 When _rem is given, the performance counter measures the sleep, and the
 remainder is whatever part of the request it fell short of -- usually nothing.
 */
-int
-d_nanosleep(
+int d_nanosleep(
     const struct timespec* _req,
     struct timespec*       _rem
 )
@@ -938,8 +916,7 @@ d_nanosleep
 timespec. It returns 0, -1 when a signal cut the sleep short (the remainder is
 in _rem), or another negative value on an error.
 */
-int
-d_nanosleep(
+int d_nanosleep(
     const struct timespec* _req,
     struct timespec*       _rem
 )
@@ -982,8 +959,7 @@ d_nanosleep
   Fallback on a POSIX platform without nanosleep: sleep(), with any
 fractional second rounded up to a whole one, and no remaining time reported.
 */
-int
-d_nanosleep(
+int d_nanosleep(
     const struct timespec* _req,
     struct timespec*       _rem
 )
@@ -1034,8 +1010,7 @@ d_nanosleep
   Fallback with no way to sleep: the arguments are checked as everywhere,
 then it fails with ENOSYS (EINVAL where <errno.h> has no ENOSYS).
 */
-int
-d_nanosleep(
+int d_nanosleep(
     const struct timespec* _req,
     struct timespec*       _rem
 )
@@ -1068,8 +1043,7 @@ d_nanosleep(
 d_usleep
   Splits the microseconds into a timespec and delegates to d_nanosleep.
 */
-int
-d_usleep(
+int d_usleep(
     unsigned int _usec
 )
 {
@@ -1088,8 +1062,7 @@ d_usleep(
 d_sleep_ms
   Splits the milliseconds into a timespec and delegates to d_nanosleep.
 */
-int
-d_sleep_ms(
+int d_sleep_ms(
     unsigned long _milliseconds
 )
 {
@@ -1111,8 +1084,7 @@ d_sleep_ms(
 d_timegm
   Delegates to timegm.
 */
-time_t
-d_timegm(
+time_t d_timegm(
     struct tm* _tm
 )
 {
@@ -1132,8 +1104,7 @@ d_timegm(
 d_timegm
   Windows: delegates to _mkgmtime.
 */
-time_t
-d_timegm(
+time_t d_timegm(
     struct tm* _tm
 )
 {
@@ -1159,8 +1130,7 @@ timegm does, it writes the normalized time back into _tm, tm_wday and
 tm_yday included (decision 25 of the register; it used to leave _tm as
 given).
 */
-time_t
-d_timegm(
+time_t d_timegm(
     struct tm* _tm
 )
 {
@@ -1259,10 +1229,7 @@ d_timegm(
 d_tzset
   Delegates to _tzset on Windows and to tzset elsewhere.
 */
-void
-d_tzset(
-    void
-)
+void d_tzset(void)
 {
 #if defined(D_TIME_PLATFORM_WINDOWS)
     _tzset();
@@ -1275,12 +1242,12 @@ d_tzset(
 
 // parsing and formatting
 
-// d_time_internal_parse
+// dj_time_internal_parse
 //   struct: a parse in progress: the input left, the struct it fills, and
 // what the conversions so far have read that d_strptime's last step must
 // settle -- the century and year in it, the week, the 12-hour clock, and
 // which of the date's fields the input gave.
-struct d_time_internal_parse
+struct dj_time_internal_parse
 {
     const char* input;
     struct tm*  tm;
@@ -1330,8 +1297,8 @@ static const int YEAR_DAYS[2][13] =
  * @param[in] _c  the character.
  * @return true for a space, tab, newline, vertical tab, form feed or return.
  */
-static bool
-d_time_internal_is_space(
+static
+bool d_time_internal_is_space(
     char _c
 )
 {
@@ -1348,9 +1315,9 @@ d_time_internal_is_space(
  *
  * @param[in,out] _parse  the parse.
  */
-static void
-d_time_internal_skip_space(
-    struct d_time_internal_parse* _parse
+static
+void d_time_internal_skip_space(
+    struct dj_time_internal_parse* _parse
 )
 {
     // each white-space character
@@ -1368,8 +1335,8 @@ d_time_internal_skip_space(
  * @param[in] _year  the year, as written.
  * @return 1 for a leap year, 0 otherwise, to index YEAR_DAYS.
  */
-static int
-d_time_internal_leap(
+static
+int d_time_internal_leap(
     int _year
 )
 {
@@ -1390,8 +1357,8 @@ d_time_internal_leap(
  * days-from-civil, which starts each year at March so that February's
  * length is the year's last term.
  */
-static int
-d_time_internal_weekday(
+static
+int d_time_internal_weekday(
     int _year,
     int _month,
     int _mday
@@ -1424,13 +1391,13 @@ d_time_internal_weekday(
  * not pass `_high`, as the C libraries read: "123" as a month is 12,
  * leaving "3".
  */
-static bool
-d_time_internal_number(
-    struct d_time_internal_parse* _parse,
-    int                           _low,
-    int                           _high,
-    int                           _digits,
-    int*                          _value
+static
+bool d_time_internal_number(
+    struct dj_time_internal_parse* _parse,
+    int                            _low,
+    int                            _high,
+    int                            _digits,
+    int*                           _value
 )
 {
     int value = 0;
@@ -1465,11 +1432,11 @@ d_time_internal_number(
  * @param[out]    _value   receives the number.
  * @return true when that many digits were there.
  */
-static bool
-d_time_internal_digits(
-    struct d_time_internal_parse* _parse,
-    int                           _digits,
-    int*                          _value
+static
+bool d_time_internal_digits(
+    struct dj_time_internal_parse* _parse,
+    int                            _digits,
+    int*                           _value
 )
 {
     int value = 0;
@@ -1507,12 +1474,12 @@ d_time_internal_digits(
  * Each name is tried in full and then by its first three letters before the
  * next name is tried, as the C libraries try them in the C locale.
  */
-static bool
-d_time_internal_name(
-    struct d_time_internal_parse* _parse,
-    const char* const*            _names,
-    int                           _count,
-    int*                          _index
+static
+bool d_time_internal_name(
+    struct dj_time_internal_parse* _parse,
+    const char* const*             _names,
+    int                            _count,
+    int*                           _index
 )
 {
     // each name, in full and then abbreviated
@@ -1548,9 +1515,9 @@ d_time_internal_name(
  * @param[in,out] _parse  the parse; its position passes the marker.
  * @return true when either was read.
  */
-static bool
-d_time_internal_meridiem(
-    struct d_time_internal_parse* _parse
+static
+bool d_time_internal_meridiem(
+    struct dj_time_internal_parse* _parse
 )
 {
     const bool am = (d_strncasecmp(_parse->input,
@@ -1580,9 +1547,9 @@ d_time_internal_meridiem(
  * @return true when an offset of at most 23:59 was read. It is checked and
  *         not stored, struct tm having no standard field for it.
  */
-static bool
-d_time_internal_offset(
-    struct d_time_internal_parse* _parse
+static
+bool d_time_internal_offset(
+    struct dj_time_internal_parse* _parse
 )
 {
     int hours   = 0;
@@ -1645,10 +1612,10 @@ d_time_internal_offset(
  * @return true when it read; false for a mismatch or a character that is
  *         no date conversion.
  */
-static bool
-d_time_internal_date(
-    struct d_time_internal_parse* _parse,
-    char                          _conversion
+static
+bool d_time_internal_date(
+    struct dj_time_internal_parse* _parse,
+    char                           _conversion
 )
 {
     struct tm* const tm    = _parse->tm;
@@ -1761,10 +1728,10 @@ d_time_internal_date(
  * @return true when it read; false for a mismatch or a character that is
  *         no time conversion.
  */
-static bool
-d_time_internal_time(
-    struct d_time_internal_parse* _parse,
-    char                          _conversion
+static
+bool d_time_internal_time(
+    struct dj_time_internal_parse* _parse,
+    char                           _conversion
 )
 {
     struct tm* const tm = _parse->tm;
@@ -1818,8 +1785,11 @@ d_time_internal_time(
     }
 }
 
-static bool d_time_internal_walk(struct d_time_internal_parse* _parse,
-                                 const char*                   _format);
+static
+bool d_time_internal_walk(
+    struct dj_time_internal_parse* _parse,
+    const char*                    _format
+);
 
 /**
  * @brief Reads one conversion, a composite one through its C-locale form.
@@ -1828,10 +1798,10 @@ static bool d_time_internal_walk(struct d_time_internal_parse* _parse,
  * @param[in]     _conversion  the conversion's character.
  * @return true when it read; false for a mismatch or an unknown conversion.
  */
-static bool
-d_time_internal_convert(
-    struct d_time_internal_parse* _parse,
-    char                          _conversion
+static
+bool d_time_internal_convert(
+    struct dj_time_internal_parse* _parse,
+    char                           _conversion
 )
 {
     switch (_conversion)
@@ -1884,8 +1854,8 @@ d_time_internal_convert(
  * @return true where POSIX defines the pair; the C locale reads it as the
  *         plain conversion.
  */
-static bool
-d_time_internal_modifies(
+static
+bool d_time_internal_modifies(
     char _modifier,
     char _conversion
 )
@@ -1908,10 +1878,10 @@ d_time_internal_modifies(
  * White space in the format matches any run of white space in the input, or
  * none; any other character outside a conversion matches only itself.
  */
-static bool
-d_time_internal_walk(
-    struct d_time_internal_parse* _parse,
-    const char*                   _format
+static
+bool d_time_internal_walk(
+    struct dj_time_internal_parse* _parse,
+    const char*                    _format
 )
 {
     const char* format = _format;
@@ -1971,9 +1941,9 @@ d_time_internal_walk(
  * Week 1 starts on the year's first Sunday (%U) or Monday (%W); the days
  * before it are week 0.
  */
-static bool
-d_time_internal_from_week(
-    struct d_time_internal_parse* _parse
+static
+bool d_time_internal_from_week(
+    struct dj_time_internal_parse* _parse
 )
 {
     struct tm* const tm      = _parse->tm;
@@ -2008,9 +1978,9 @@ d_time_internal_from_week(
  * @return false for a day the year does not have, or a month or day the
  *         input gave that the day of the year contradicts.
  */
-static bool
-d_time_internal_from_yday(
-    struct d_time_internal_parse* _parse
+static
+bool d_time_internal_from_yday(
+    struct dj_time_internal_parse* _parse
 )
 {
     struct tm* const tm    = _parse->tm;
@@ -2062,9 +2032,9 @@ d_time_internal_from_yday(
  * weekday; and once the year, the month and the day are known, the day of
  * the year and of the week follow, where the input gave neither.
  */
-static bool
-d_time_internal_settle(
-    struct d_time_internal_parse* _parse
+static
+bool d_time_internal_settle(
+    struct dj_time_internal_parse* _parse
 )
 {
     struct tm* const tm = _parse->tm;
@@ -2136,8 +2106,7 @@ into _tm or, where its meaning waits on others, into the parse; a last
 step settles the year, the hour, the date, and the days of the year and of
 the week.
 */
-char*
-d_strptime(
+char* d_strptime(
     const char* _s,
     const char* _format,
     struct tm*  _tm
@@ -2151,7 +2120,7 @@ d_strptime(
         return NULL;
     }
 
-    struct d_time_internal_parse parse = { .input      = _s,
+    struct dj_time_internal_parse parse = { .input      = _s,
                                            .tm         = _tm,
                                            .century    = -1,
                                            .short_year = -1,
@@ -2179,8 +2148,7 @@ runtime has, behind D_ENV_CRT_MSVC, which only simulated-environment builds
 define, is gone (decision 27 of the register). The size_t count is narrowed
 to int.
 */
-int
-d_strftime_s(
+int d_strftime_s(
     char*            _s,
     size_t           _maxsize,
     const char*      _format,
@@ -2217,8 +2185,7 @@ d_timespec_add
 nanoseconds reach a full second. A single carry repairs only normalized
 operands.
 */
-void
-d_timespec_add(
+void d_timespec_add(
     const struct timespec* _a,
     const struct timespec* _b,
     struct timespec*       _result
@@ -2250,8 +2217,7 @@ d_timespec_sub
   Subtracts seconds and nanoseconds separately, then borrows one second if the
 nanoseconds went negative. A single borrow repairs only normalized operands.
 */
-void
-d_timespec_sub(
+void d_timespec_sub(
     const struct timespec* _a,
     const struct timespec* _b,
     struct timespec*       _result
@@ -2284,8 +2250,7 @@ d_timespec_cmp
 either side, so swapping the arguments negates the result (decision 28 of
 the register: either one alone used to yield -1).
 */
-int
-d_timespec_cmp(
+int d_timespec_cmp(
     const struct timespec* _a,
     const struct timespec* _b
 )
@@ -2331,8 +2296,7 @@ d_timespec_to_ms
   Widens the seconds to int64_t before scaling, so a 32-bit time_t cannot
 overflow the multiply; the nanoseconds are truncated toward zero.
 */
-int64_t
-d_timespec_to_ms(
+int64_t d_timespec_to_ms(
     const struct timespec* _ts
 )
 {
@@ -2350,8 +2314,7 @@ d_timespec_to_us
   Widens the seconds to int64_t before scaling, so a 32-bit time_t cannot
 overflow the multiply; the nanoseconds are truncated toward zero.
 */
-int64_t
-d_timespec_to_us(
+int64_t d_timespec_to_us(
     const struct timespec* _ts
 )
 {
@@ -2371,8 +2334,7 @@ overflow the multiply. The precondition, a seconds count whose nanosecond
 total fits int64_t, is asserted in debug builds (decision 14 of the
 register); with NDEBUG, breaking it is undefined, as the contract says.
 */
-int64_t
-d_timespec_to_ns(
+int64_t d_timespec_to_ns(
     const struct timespec* _ts
 )
 {
@@ -2394,8 +2356,7 @@ d_ms_to_timespec
   Splits with / and %, which truncate toward zero, so a negative input yields
 a negative tv_nsec rather than a normalized timespec.
 */
-void
-d_ms_to_timespec(
+void d_ms_to_timespec(
     int64_t          _milliseconds,
     struct timespec* _ts
 )
@@ -2417,8 +2378,7 @@ d_us_to_timespec
   Splits with / and %, which truncate toward zero, so a negative input yields
 a negative tv_nsec rather than a normalized timespec.
 */
-void
-d_us_to_timespec(
+void d_us_to_timespec(
     int64_t          _microseconds,
     struct timespec* _ts
 )
@@ -2440,8 +2400,7 @@ d_ns_to_timespec
   Splits with / and %, which truncate toward zero, so a negative input yields
 a negative tv_nsec rather than a normalized timespec.
 */
-void
-d_ns_to_timespec(
+void d_ns_to_timespec(
     int64_t          _nanoseconds,
     struct timespec* _ts
 )
@@ -2463,10 +2422,7 @@ d_monotonic_time_ms
   Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
 monotonic -- when the monotonic clock cannot be read.
 */
-int64_t
-d_monotonic_time_ms(
-    void
-)
+int64_t d_monotonic_time_ms(void)
 {
     struct timespec ts = {0};
 
@@ -2491,10 +2447,7 @@ d_monotonic_time_us
   Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
 monotonic -- when the monotonic clock cannot be read.
 */
-int64_t
-d_monotonic_time_us(
-    void
-)
+int64_t d_monotonic_time_us(void)
 {
     struct timespec ts = {0};
 
@@ -2518,10 +2471,7 @@ d_monotonic_time_ns
   Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
 monotonic -- when the monotonic clock cannot be read.
 */
-int64_t
-d_monotonic_time_ns(
-    void
-)
+int64_t d_monotonic_time_ns(void)
 {
     struct timespec ts = {0};
 
@@ -2547,8 +2497,7 @@ d_timespec_normalize
 tv_nsec may be a 32-bit long. Negative nanoseconds borrow with a ceiling
 division, and a final range check catches its edge cases.
 */
-void
-d_timespec_normalize(
+void d_timespec_normalize(
     struct timespec* _ts
 )
 {
@@ -2608,8 +2557,7 @@ d_timespec_normalize(
 d_timespec_is_valid
   Checks tv_nsec only; any tv_sec, negative included, is accepted.
 */
-int
-d_timespec_is_valid(
+int d_timespec_is_valid(
     const struct timespec* _ts
 )
 {

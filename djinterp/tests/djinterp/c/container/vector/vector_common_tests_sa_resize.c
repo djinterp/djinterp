@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,10 +22,8 @@ d_tests_sa_vector_common_resize
   - growing (zero-initializes new elements)
   - no change when new_count equals current count
 */
-bool
-d_tests_sa_vector_common_resize
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_resize(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -228,10 +226,8 @@ d_tests_sa_vector_common_resize_fill
   - growing with fill value
   - NULL fill value when growing fails
 */
-bool
-d_tests_sa_vector_common_resize_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_resize_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -470,10 +466,8 @@ d_tests_sa_vector_common_resize_fill
 d_tests_sa_vector_common_resize_all
   Aggregation function that runs all resize tests.
 */
-bool
-d_tests_sa_vector_common_resize_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_resize_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

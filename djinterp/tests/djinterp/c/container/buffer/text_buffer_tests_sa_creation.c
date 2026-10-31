@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_text_buffer_new
   - returned buffer has zero count
   - returned buffer data is non-NULL and null-terminated
 */
-bool
-d_tests_sa_text_buffer_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -116,14 +114,12 @@ d_tests_sa_text_buffer_new_default_capacity
   - length is zero
   - data is null-terminated
 */
-bool
-d_tests_sa_text_buffer_new_default_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_default_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -175,14 +171,12 @@ d_tests_sa_text_buffer_new_from_string
   - buffer is null-terminated
   - length matches original string
 */
-bool
-d_tests_sa_text_buffer_new_from_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_from_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -271,14 +265,12 @@ d_tests_sa_text_buffer_new_from_string_n
   - partial copy of string with correct length
   - content matches first _length characters
 */
-bool
-d_tests_sa_text_buffer_new_from_string_n
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_from_string_n(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -361,14 +353,12 @@ d_tests_sa_text_buffer_new_from_strings
   - multiple string concatenation
   - result is null-terminated with correct total length
 */
-bool
-d_tests_sa_text_buffer_new_from_strings
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_from_strings(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -431,14 +421,12 @@ d_tests_sa_text_buffer_new_from_buffer
   - data with embedded nulls copies correct number of bytes
   - result is null-terminated
 */
-bool
-d_tests_sa_text_buffer_new_from_buffer
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_from_buffer(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     char                  raw_data[8];
     const char*           str;
 
@@ -529,15 +517,13 @@ d_tests_sa_text_buffer_new_copy
   - copied buffer is independent (modifying copy does not affect original)
   - lengths and contents match
 */
-bool
-d_tests_sa_text_buffer_new_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* original;
-    struct d_text_buffer* copy;
+    struct dj_text_buffer* original;
+    struct dj_text_buffer* copy;
     const char*           orig_str;
     const char*           copy_str;
 
@@ -613,15 +599,13 @@ d_tests_sa_text_buffer_new_copy_range
   - valid range extracts correct substring
   - result is null-terminated
 */
-bool
-d_tests_sa_text_buffer_new_copy_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_copy_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* original;
-    struct d_text_buffer* sub;
+    struct dj_text_buffer* original;
+    struct dj_text_buffer* sub;
     const char*           str;
 
     result = true;
@@ -692,14 +676,12 @@ d_tests_sa_text_buffer_new_fill
   - fill creates buffer with correct length and character
   - result is null-terminated
 */
-bool
-d_tests_sa_text_buffer_new_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     size_t                i;
     bool                  all_match;
@@ -768,14 +750,12 @@ d_tests_sa_text_buffer_new_formatted
   - format with multiple arguments
   - result is null-terminated with correct length
 */
-bool
-d_tests_sa_text_buffer_new_formatted
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_new_formatted(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -857,10 +837,8 @@ d_tests_sa_text_buffer_new_formatted
 d_tests_sa_text_buffer_creation_all
   Aggregation function that runs all creation tests.
 */
-bool
-d_tests_sa_text_buffer_creation_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_creation_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

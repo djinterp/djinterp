@@ -22,7 +22,7 @@
 * schema and the name, as SQLite's do. Trigger names belong to their table,
 * so the trigger functions take the table, as MariaDB's index functions do;
 * a trigger lives in its table's schema, which its definition names.
-*   A table can be described column by column with struct d_db_column, which
+*   A table can be described column by column with struct dj_db_column, which
 * maps to PostgreSQL's types as section 1 tabulates, or by its definition as
 * SQL.
 *   Statements that change the schema are transactional in PostgreSQL: inside
@@ -84,10 +84,10 @@ TABLE OF CONTENTS
 #include <stddef.h>  // size_t
 // djinterp
 #include "../../djinterp.h"     // framework root
-#include "../db_common.h"       // d_db_column, the lists, D_DB_*
+#include "../db_common.h"       // dj_db_column, the lists, D_DB_*
 #include "./postgres_common.h"  // pg_conn, the layer's results and flags
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -108,9 +108,9 @@ D_EXTERN_C_BEGIN
 
 // 1.1    Type mapping
 //------------------------------------------------------------------------------
-// How a struct d_db_column's type is declared:
+// How a struct dj_db_column's type is declared:
 //
-//     d_db_type        declared as
+//     dj_db_type        declared as
 //     NONE             refused: PostgreSQL needs a type; give type_sql
 //     BOOLEAN          boolean
 //     INTEGER          integer
@@ -149,13 +149,17 @@ D_EXTERN_C_BEGIN
 // partitioned (a view, a sequence or a foreign table is not one). The plain
 // form answers false for any failure; the _s form returns 0 and writes the
 // answer, or the failure, the answer then false.
-bool   d_postgres_has_table(struct pg_conn* _db,
-                            const char*     _schema,
-                            const char*     _table) D_NOTHROW;
-int    d_postgres_has_table_s(struct pg_conn* _db,
-                              const char*     _schema,
-                              const char*     _table,
-                              bool*           _exists) D_NOTHROW;
+bool d_postgres_has_table(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table
+) D_NOTHROW;
+int d_postgres_has_table_s(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    bool*           _exists
+) D_NOTHROW;
 
 // 2.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -184,12 +188,14 @@ int    d_postgres_has_table_s(struct pg_conn* _db,
  *         AUTO_INCREMENT without a sole primary key, or key places that
  *         skip, repeat, or fall outside the key.
  */
-int    d_postgres_create_table(struct pg_conn*           _db,
-                               const char*               _schema,
-                               const char*               _table,
-                               const struct d_db_column* _columns,
-                               size_t                    _count,
-                               unsigned                  _flags) D_NOTHROW;
+int d_postgres_create_table(
+    struct pg_conn*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
+) D_NOTHROW;
 /**
  * @brief Creates a table from its definition, written as SQL.
  *
@@ -203,28 +209,34 @@ int    d_postgres_create_table(struct pg_conn*           _db,
  * @param[in] _flags       0, or D_DB_IF_NOT_EXISTS.
  * @return as d_postgres_create_table.
  */
-int    d_postgres_create_table_sql(struct pg_conn* _db,
-                                   const char*     _schema,
-                                   const char*     _table,
-                                   const char*     _definition,
-                                   unsigned        _flags) D_NOTHROW;
+int d_postgres_create_table_sql(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _definition,
+    unsigned        _flags
+) D_NOTHROW;
 // drops a table, with its indexes and triggers; D_DB_IF_EXISTS makes a
 // missing one a success, and D_POSTGRES_CASCADE drops the views and foreign
 // keys that depend on it, where without it the server refuses (2BP01). 0,
 // the SQLSTATE of a failure (42P01, no such table), or D_DB_INVALID_ARGUMENT.
-int    d_postgres_drop_table(struct pg_conn* _db,
-                             const char*     _schema,
-                             const char*     _table,
-                             unsigned        _flags) D_NOTHROW;
+int d_postgres_drop_table(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 2.3    Changing
 //------------------------------------------------------------------------------
 // renames a table within its schema. 0, the SQLSTATE of a failure (42P01, no
 // such table; 42P07, the new name is taken), or D_DB_INVALID_ARGUMENT.
-int    d_postgres_rename_table(struct pg_conn* _db,
-                               const char*     _schema,
-                               const char*     _table,
-                               const char*     _new_name) D_NOTHROW;
+int d_postgres_rename_table(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _new_name
+) D_NOTHROW;
 
 // 2.4    Rows
 //------------------------------------------------------------------------------
@@ -234,13 +246,17 @@ int    d_postgres_rename_table(struct pg_conn* _db,
 // (0A000); _count_rows counts its rows into _count, written only on success.
 // 0, the SQLSTATE of a failure (42P01, no such table), or
 // D_DB_INVALID_ARGUMENT.
-int    d_postgres_truncate_table(struct pg_conn* _db,
-                                 const char*     _schema,
-                                 const char*     _table) D_NOTHROW;
-int    d_postgres_count_rows(struct pg_conn* _db,
-                             const char*     _schema,
-                             const char*     _table,
-                             int64_t*        _count) D_NOTHROW;
+int d_postgres_truncate_table(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table
+) D_NOTHROW;
+int d_postgres_count_rows(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    int64_t*        _count
+) D_NOTHROW;
 
 // 2.5    Listing
 //------------------------------------------------------------------------------
@@ -256,9 +272,11 @@ int    d_postgres_count_rows(struct pg_conn* _db,
  *         `NULL` connection or list, or an empty schema.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int    d_postgres_list_tables(struct pg_conn*        _db,
-                              const char*            _schema,
-                              struct d_db_name_list* _names) D_NOTHROW;
+int d_postgres_list_tables(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -271,15 +289,19 @@ int    d_postgres_list_tables(struct pg_conn*        _db,
 // existence -- whether a table, or a view, has a column of that name; the
 // system's own columns (ctid, xmin, ...) are not counted, and a table that
 // does not exist has none. As for tables, the _s form reports a failure.
-bool   d_postgres_has_column(struct pg_conn* _db,
-                             const char*     _schema,
-                             const char*     _table,
-                             const char*     _column) D_NOTHROW;
-int    d_postgres_has_column_s(struct pg_conn* _db,
-                               const char*     _schema,
-                               const char*     _table,
-                               const char*     _column,
-                               bool*           _exists) D_NOTHROW;
+bool d_postgres_has_column(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column
+) D_NOTHROW;
+int d_postgres_has_column_s(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column,
+    bool*           _exists
+) D_NOTHROW;
 
 // 3.2    Adding, renaming and dropping
 //------------------------------------------------------------------------------
@@ -287,26 +309,34 @@ int    d_postgres_has_column_s(struct pg_conn* _db,
 // the table. 0, the SQLSTATE of a failure (42701, the name is taken; 42P01, no
 // such table), 53200, or D_DB_INVALID_ARGUMENT, as d_postgres_create_table
 // judges a column.
-int    d_postgres_add_column(struct pg_conn*           _db,
-                             const char*               _schema,
-                             const char*               _table,
-                             const struct d_db_column* _column) D_NOTHROW;
-int    d_postgres_add_column_sql(struct pg_conn* _db,
-                                 const char*     _schema,
-                                 const char*     _table,
-                                 const char*     _definition) D_NOTHROW;
+int d_postgres_add_column(
+    struct pg_conn*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
+) D_NOTHROW;
+int d_postgres_add_column_sql(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _definition
+) D_NOTHROW;
 // renaming and dropping -- 0, the SQLSTATE of a failure (42703, no such
 // column; 42701, the new name is taken; 2BP01, a view uses it), or
 // D_DB_INVALID_ARGUMENT. PostgreSQL lets a table lose its last column.
-int    d_postgres_rename_column(struct pg_conn* _db,
-                                const char*     _schema,
-                                const char*     _table,
-                                const char*     _column,
-                                const char*     _new_name) D_NOTHROW;
-int    d_postgres_drop_column(struct pg_conn* _db,
-                              const char*     _schema,
-                              const char*     _table,
-                              const char*     _column) D_NOTHROW;
+int d_postgres_rename_column(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column,
+    const char*     _new_name
+) D_NOTHROW;
+int d_postgres_drop_column(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column
+) D_NOTHROW;
 
 // 3.3    Listing
 //------------------------------------------------------------------------------
@@ -333,10 +363,12 @@ int    d_postgres_drop_column(struct pg_conn* _db,
  * @post On success the caller releases `_columns` with
  *       d_db_column_list_free.
  */
-int    d_postgres_list_columns(struct pg_conn*          _db,
-                               const char*              _schema,
-                               const char*              _table,
-                               struct d_db_column_list* _columns) D_NOTHROW;
+int d_postgres_list_columns(
+    struct pg_conn*           _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -349,13 +381,17 @@ int    d_postgres_list_columns(struct pg_conn*          _db,
 // existence -- whether the schema has an index of that name, those the
 // server made for a primary key or a UNIQUE constraint ("t_pkey") included.
 // As for tables, the _s form reports a failure.
-bool   d_postgres_has_index(struct pg_conn* _db,
-                            const char*     _schema,
-                            const char*     _index) D_NOTHROW;
-int    d_postgres_has_index_s(struct pg_conn* _db,
-                              const char*     _schema,
-                              const char*     _index,
-                              bool*           _exists) D_NOTHROW;
+bool d_postgres_has_index(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _index
+) D_NOTHROW;
+int d_postgres_has_index_s(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _index,
+    bool*           _exists
+) D_NOTHROW;
 
 // 4.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -383,21 +419,25 @@ int    d_postgres_has_index_s(struct pg_conn* _db,
  *         a transaction), 53200, or D_DB_INVALID_ARGUMENT for a `NULL`
  *         argument, an empty name or another flag.
  */
-int    d_postgres_create_index(struct pg_conn* _db,
-                               const char*     _schema,
-                               const char*     _index,
-                               const char*     _table,
-                               const char*     _columns,
-                               unsigned        _flags) D_NOTHROW;
+int d_postgres_create_index(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _index,
+    const char*     _table,
+    const char*     _columns,
+    unsigned        _flags
+) D_NOTHROW;
 // drops an index; D_DB_IF_EXISTS makes a missing one a success,
 // D_POSTGRES_CONCURRENTLY drops it without blocking its table, and
 // D_POSTGRES_CASCADE drops what depends on it; the server refuses the last
 // two together (0A000), and an index a constraint owns (2BP01). 0, the
 // SQLSTATE of a failure (42704, no such index), or D_DB_INVALID_ARGUMENT.
-int    d_postgres_drop_index(struct pg_conn* _db,
-                             const char*     _schema,
-                             const char*     _index,
-                             unsigned        _flags) D_NOTHROW;
+int d_postgres_drop_index(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _index,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 4.3    Listing
 //------------------------------------------------------------------------------
@@ -406,10 +446,12 @@ int    d_postgres_drop_index(struct pg_conn* _db,
 // constraint's -- left out, as they are the constraint's to make and drop. 0,
 // the SQLSTATE of a failure, 53200, or D_DB_INVALID_ARGUMENT; the caller
 // releases the list with d_db_name_list_free.
-int    d_postgres_list_indexes(struct pg_conn*        _db,
-                               const char*            _schema,
-                               const char*            _table,
-                               struct d_db_name_list* _names) D_NOTHROW;
+int d_postgres_list_indexes(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -421,13 +463,17 @@ int    d_postgres_list_indexes(struct pg_conn*        _db,
 //------------------------------------------------------------------------------
 // existence -- whether the schema has a view of that name (a materialized
 // view is not one). As for tables, the _s form reports a failure.
-bool   d_postgres_has_view(struct pg_conn* _db,
-                           const char*     _schema,
-                           const char*     _view) D_NOTHROW;
-int    d_postgres_has_view_s(struct pg_conn* _db,
-                             const char*     _schema,
-                             const char*     _view,
-                             bool*           _exists) D_NOTHROW;
+bool d_postgres_has_view(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _view
+) D_NOTHROW;
+int d_postgres_has_view_s(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _view,
+    bool*           _exists
+) D_NOTHROW;
 
 // 5.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -439,22 +485,28 @@ int    d_postgres_has_view_s(struct pg_conn* _db,
 // D_DB_IF_EXISTS makes a missing one a success, and D_POSTGRES_CASCADE drops
 // the views that use it. Each returns 0, the SQLSTATE of a failure (42P07,
 // the name is taken; 42P01, no such view), 53200, or D_DB_INVALID_ARGUMENT.
-int    d_postgres_create_view(struct pg_conn* _db,
-                              const char*     _schema,
-                              const char*     _view,
-                              const char*     _select,
-                              unsigned        _flags) D_NOTHROW;
-int    d_postgres_drop_view(struct pg_conn* _db,
-                            const char*     _schema,
-                            const char*     _view,
-                            unsigned        _flags) D_NOTHROW;
+int d_postgres_create_view(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _view,
+    const char*     _select,
+    unsigned        _flags
+) D_NOTHROW;
+int d_postgres_drop_view(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _view,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 5.3    Listing
 //------------------------------------------------------------------------------
 // lists a schema's views, sorted by name; as d_postgres_list_tables.
-int    d_postgres_list_views(struct pg_conn*        _db,
-                             const char*            _schema,
-                             struct d_db_name_list* _names) D_NOTHROW;
+int d_postgres_list_views(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -467,15 +519,19 @@ int    d_postgres_list_views(struct pg_conn*        _db,
 // existence -- whether a table in the schema has a trigger of that name; the
 // triggers PostgreSQL makes itself, for foreign keys, are not counted. As for
 // tables, the _s form reports a failure.
-bool   d_postgres_has_trigger(struct pg_conn* _db,
-                              const char*     _schema,
-                              const char*     _trigger,
-                              const char*     _table) D_NOTHROW;
-int    d_postgres_has_trigger_s(struct pg_conn* _db,
-                                const char*     _schema,
-                                const char*     _trigger,
-                                const char*     _table,
-                                bool*           _exists) D_NOTHROW;
+bool d_postgres_has_trigger(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _trigger,
+    const char*     _table
+) D_NOTHROW;
+int d_postgres_has_trigger_s(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _trigger,
+    const char*     _table,
+    bool*           _exists
+) D_NOTHROW;
 
 // 6.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -502,19 +558,23 @@ int    d_postgres_has_trigger_s(struct pg_conn* _db,
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument, an empty name, both
  *         flags or another.
  */
-int    d_postgres_create_trigger(struct pg_conn* _db,
-                                 const char*     _trigger,
-                                 const char*     _definition,
-                                 unsigned        _flags) D_NOTHROW;
+int d_postgres_create_trigger(
+    struct pg_conn* _db,
+    const char*     _trigger,
+    const char*     _definition,
+    unsigned        _flags
+) D_NOTHROW;
 // drops a table's trigger; D_DB_IF_EXISTS makes a missing one a success, and
 // D_POSTGRES_CASCADE drops what depends on it. 0, the SQLSTATE of a failure
 // (42704, no such trigger; 42P01, no such table, which D_DB_IF_EXISTS forgives
 // as well), or D_DB_INVALID_ARGUMENT.
-int    d_postgres_drop_trigger(struct pg_conn* _db,
-                               const char*     _schema,
-                               const char*     _trigger,
-                               const char*     _table,
-                               unsigned        _flags) D_NOTHROW;
+int d_postgres_drop_trigger(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _trigger,
+    const char*     _table,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 6.3    Listing
 //------------------------------------------------------------------------------
@@ -522,10 +582,12 @@ int    d_postgres_drop_trigger(struct pg_conn* _db,
 // NULL, sorted by name, PostgreSQL's own left out. Since PostgreSQL names
 // triggers per table, a name appears once for each table that has a trigger
 // of that name. As d_postgres_list_tables.
-int    d_postgres_list_triggers(struct pg_conn*        _db,
-                                const char*            _schema,
-                                const char*            _table,
-                                struct d_db_name_list* _names) D_NOTHROW;
+int d_postgres_list_triggers(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -538,13 +600,17 @@ int    d_postgres_list_triggers(struct pg_conn*        _db,
 // existence -- whether the schema has a sequence of that name, those behind
 // identity and serial columns included. As for tables, the _s form reports a
 // failure.
-bool   d_postgres_has_sequence(struct pg_conn* _db,
-                               const char*     _schema,
-                               const char*     _sequence) D_NOTHROW;
-int    d_postgres_has_sequence_s(struct pg_conn* _db,
-                                 const char*     _schema,
-                                 const char*     _sequence,
-                                 bool*           _exists) D_NOTHROW;
+bool d_postgres_has_sequence(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _sequence
+) D_NOTHROW;
+int d_postgres_has_sequence_s(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _sequence,
+    bool*           _exists
+) D_NOTHROW;
 
 // 7.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -555,23 +621,29 @@ int    d_postgres_has_sequence_s(struct pg_conn* _db,
 // the defaults that use it. Each returns 0, the SQLSTATE of a failure (42P07,
 // the name is taken; 42P01, no such sequence; 2BP01, an identity column owns
 // it), 53200, or D_DB_INVALID_ARGUMENT.
-int    d_postgres_create_sequence(struct pg_conn* _db,
-                                  const char*     _schema,
-                                  const char*     _sequence,
-                                  unsigned        _flags) D_NOTHROW;
-int    d_postgres_drop_sequence(struct pg_conn* _db,
-                                const char*     _schema,
-                                const char*     _sequence,
-                                unsigned        _flags) D_NOTHROW;
+int d_postgres_create_sequence(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _sequence,
+    unsigned        _flags
+) D_NOTHROW;
+int d_postgres_drop_sequence(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _sequence,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 7.3    Listing
 //------------------------------------------------------------------------------
 // lists a schema's sequences, sorted by name, those behind identity and
 // serial columns included (named by PostgreSQL: orders_id_seq); as
 // d_postgres_list_tables.
-int    d_postgres_list_sequences(struct pg_conn*        _db,
-                                 const char*            _schema,
-                                 struct d_db_name_list* _names) D_NOTHROW;
+int d_postgres_list_sequences(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 // 7.4    Values
 //------------------------------------------------------------------------------
@@ -580,18 +652,22 @@ int    d_postgres_list_sequences(struct pg_conn*        _db,
 // back; written only on success. 0, D_DB_NOT_FOUND for a sequence that does
 // not exist, the SQLSTATE of a failure (2200H, the sequence has reached its
 // limit), or D_DB_INVALID_ARGUMENT.
-int    d_postgres_next_value(struct pg_conn* _db,
-                             const char*     _schema,
-                             const char*     _sequence,
-                             int64_t*        _value) D_NOTHROW;
+int d_postgres_next_value(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _sequence,
+    int64_t*        _value
+) D_NOTHROW;
 // the value nextval() last handed out in the session, from any sequence --
 // an identity or serial column's included -- as lastval() reads it; written
 // only on success. 0; D_DB_NOT_FOUND before the session's first; the
 // SQLSTATE of a failure, 25P02 in a failed transaction; or
 // D_DB_INVALID_ARGUMENT. Inside a transaction it is asked under a savepoint,
 // so that the first case leaves the transaction as it was.
-int    d_postgres_last_value(struct pg_conn* _db,
-                             int64_t*        _value) D_NOTHROW;
+int d_postgres_last_value(
+    struct pg_conn* _db,
+    int64_t*        _value
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

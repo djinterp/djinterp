@@ -18,8 +18,8 @@
 #include <stddef.h>   // size_t, NULL
 
 
-static const void*
-d_internal_functional_element(
+static
+const void* d_internal_functional_element(
     const void* _input,
     size_t      _i,
     size_t      _element_size
@@ -28,8 +28,8 @@ d_internal_functional_element(
     return (const unsigned char*)_input + (_i * _element_size);
 }
 
-static bool
-d_internal_functional_searchable(
+static
+bool d_internal_functional_searchable(
     const void* _input,
     size_t      _count,
     size_t      _element_size,
@@ -42,8 +42,7 @@ d_internal_functional_searchable(
              (_element_size > 0u) );
 }
 
-size_t
-d_functional_index_of(
+size_t d_functional_index_of(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,
@@ -72,8 +71,7 @@ d_functional_index_of(
     return (size_t)-1;
 }
 
-size_t
-d_functional_last_index_of(
+size_t d_functional_last_index_of(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,
@@ -102,8 +100,7 @@ d_functional_last_index_of(
     return (size_t)-1;
 }
 
-void*
-d_functional_find_last(
+void* d_functional_find_last(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,
@@ -126,8 +123,7 @@ d_functional_is_sorted
 the first pair whose comparison is positive. Fewer than two elements are
 sorted; a missing comparator, or a missing array with elements, is not.
 */
-bool
-d_functional_is_sorted(
+bool d_functional_is_sorted(
     const void*            _input,
     size_t                 _count,
     size_t                 _element_size,

@@ -8,7 +8,7 @@
 * will notice is wrong.
 *
 *
-* path:      /tests/djinterp/c/dawk/test_dvalue.c
+* path:      /tests/dawk/test_dvalue.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
 *                                                          revised: 2026.09.19
@@ -191,16 +191,16 @@ d_tests_comparison_matrix(void)
 {
     printf("comparison matrix\n");
 
-    struct d_awk_value* uninit = d_awk_value_new();
-    struct d_awk_value* num10  = d_awk_value_new();
-    struct d_awk_value* num9   = d_awk_value_new();
-    struct d_awk_value* num0   = d_awk_value_new();
-    struct d_awk_value* str10  = d_awk_value_new();
-    struct d_awk_value* str9   = d_awk_value_new();
-    struct d_awk_value* strmt  = d_awk_value_new();
-    struct d_awk_value* snum10 = d_awk_value_new();
-    struct d_awk_value* snum9  = d_awk_value_new();
-    struct d_awk_value* sinp   = d_awk_value_new();
+    struct dj_awk_value* uninit = d_awk_value_new();
+    struct dj_awk_value* num10  = d_awk_value_new();
+    struct dj_awk_value* num9   = d_awk_value_new();
+    struct dj_awk_value* num0   = d_awk_value_new();
+    struct dj_awk_value* str10  = d_awk_value_new();
+    struct dj_awk_value* str9   = d_awk_value_new();
+    struct dj_awk_value* strmt  = d_awk_value_new();
+    struct dj_awk_value* snum10 = d_awk_value_new();
+    struct dj_awk_value* snum9  = d_awk_value_new();
+    struct dj_awk_value* sinp   = d_awk_value_new();
 
     d_awk_value_set_number(num10, 10.0);
     d_awk_value_set_number(num9, 9.0);
@@ -225,7 +225,7 @@ d_tests_comparison_matrix(void)
         "str10", "str9", "strmt", "snum10", "snum9"
     };
 
-    struct d_awk_value* values[] =
+    struct dj_awk_value* values[] =
     {
         NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     };
@@ -314,10 +314,10 @@ d_tests_truth(void)
 {
     printf("truth\n");
 
-    struct d_awk_value* field  = d_awk_value_new();
-    struct d_awk_value* text   = d_awk_value_new();
-    struct d_awk_value* blank  = d_awk_value_new();
-    struct d_awk_value* uninit = d_awk_value_new();
+    struct dj_awk_value* field  = d_awk_value_new();
+    struct dj_awk_value* text   = d_awk_value_new();
+    struct dj_awk_value* blank  = d_awk_value_new();
+    struct dj_awk_value* uninit = d_awk_value_new();
 
     (void)d_awk_value_set_input(field, "0", 1);
     (void)d_awk_value_set_string(text, "0", 1);
@@ -367,8 +367,8 @@ d_tests_extern(void)
 {
     printf("extern values\n");
 
-    struct d_awk_value* node   = d_awk_value_new();
-    struct d_awk_value* number = d_awk_value_new();
+    struct dj_awk_value* node   = d_awk_value_new();
+    struct dj_awk_value* number = d_awk_value_new();
     char                body[] = "10";
 
     d_awk_value_set_extern(node, body, d_tests_node_text, NULL);
@@ -405,14 +405,14 @@ d_tests_arrays(void)
 {
     printf("associative arrays\n");
 
-    struct d_awk_array* array = d_awk_array_new();
+    struct dj_awk_array* array = d_awk_array_new();
 
     d_tests_report((d_awk_array_find(array, "a", 1) == NULL),
                    "find does not create");
     d_tests_report((d_awk_array_count(array) == 0),
                    "find left the array empty");
 
-    struct d_awk_value* cell = d_awk_array_lookup(array, "a", 1);
+    struct dj_awk_value* cell = d_awk_array_lookup(array, "a", 1);
 
     d_tests_report((cell != NULL), "lookup creates");
     d_tests_report((d_awk_array_count(array) == 1), "lookup grew the array");
@@ -427,7 +427,7 @@ d_tests_arrays(void)
         char key[16];
         const int written = snprintf(key, sizeof(key), "k%d", at);
 
-        struct d_awk_value* slot = d_awk_array_lookup(array,
+        struct dj_awk_value* slot = d_awk_array_lookup(array,
                                                       key,
                                                       (size_t)written);
 
@@ -437,7 +437,7 @@ d_tests_arrays(void)
     d_tests_report((d_awk_array_count(array) == 65u),
                    "65 elements after growth");
 
-    struct d_awk_value* probe = d_awk_array_find(array, "k40", 3);
+    struct dj_awk_value* probe = d_awk_array_find(array, "k40", 3);
 
     d_tests_report(((probe) && (d_awk_value_number(probe) == 40.0)),
                    "values survive rehashing");

@@ -9,12 +9,13 @@
 * reads no command line of its own; and it says what it has to say -- a
 * window that could not be opened, a screenshot written -- through the
 * program the module made, so it says it as every djinterp program does.
+* window_host() names the host for `bitwisedom gui --version --verbose`.
 *
 *
 * path:      /inc/ui/bitwisedom/host.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -26,6 +27,7 @@ TABLE OF CONTENTS
          1.  window_options
          2.  window_feature
          3.  window_features
+         4.  window_host
     2.  Running it
          1.  run_window
 */
@@ -42,15 +44,12 @@ TABLE OF CONTENTS
 
 namespace djinterp
 {
-namespace parse
-{
 namespace cli
 {
 
 class program;
 
 }  // namespace cli
-}  // namespace parse
 }  // namespace djinterp
 
 
@@ -112,7 +111,21 @@ enum window_feature
  *
  * @return window_feature values, or'd.
  */
-int  window_features();
+int window_features();
+
+// 1.1.4
+// window_host
+/**
+ * @brief The linked host as `bitwisedom gui --version --verbose` names it:
+ *        its window system and the graphics it draws with -- `GLFW 3.4.0,
+ *        OpenGL 3.0`, `Win32, Direct3D 11` -- a window system's version the
+ *        one the window runs with, and the one it was built with too where
+ *        they differ.
+ *
+ * @return the name; std::bad_alloc, as std::string throws it, when it
+ *         cannot be made.
+ */
+std::string window_host();
 
 // 1.2    Running it
 //------------------------------------------------------------------------------
@@ -131,8 +144,10 @@ int  window_features();
  *         the window closed, or the screenshot was written; 2 when the
  *         window could not be opened or the screenshot not written.
  */
-int  run_window(::djinterp::parse::cli::program& _program,
-                const window_options&            _options);
+int run_window(
+    ::djinterp::cli::program& _program,
+    const window_options&     _options
+);
 
 
 }  // namespace gui

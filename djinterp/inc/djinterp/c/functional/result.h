@@ -12,7 +12,7 @@
 *   - `D_RESULT_DECLARE(name, vtype, etype)` emits a tag plus a UNION of the two
 *     payloads, which is the faithful lowering of "value xor error" and keeps
 *     `sizeof` at the larger arm rather than their sum.
-*   - `struct d_result` is a borrowed view onto such a cell, carrying both
+*   - `struct dj_result` is a borrowed view onto such a cell, carrying both
 *     widths so one implementation of `map` and `map_err` serves every
 *     instantiation.
 * A view borrows; the cell must outlive it.
@@ -50,7 +50,7 @@
 #include "./producer.h"
 #include "./maybe.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -60,11 +60,11 @@
 #if RE_STD_HAS_INT64
 
 
-// d_result
+// dj_result
 //   struct: a borrowed, type-erased view onto a result cell.
 // `payload` points at the union slot shared by the two arms; which arm is live
 // is decided by `is_ok`.
-struct d_result
+struct dj_result
 {
     bool*  is_ok;       // the cell's tag
     void*  payload;     // the cell's union slot
@@ -108,67 +108,99 @@ struct d_result
                   sizeof((cell).payload.error))
 
 // I.     construction
-struct d_result d_result_view(bool*  _is_ok,
-                              void*  _payload,
-                              size_t _value_size,
-                              size_t _error_size);
-bool            d_result_is_valid(const struct d_result* _result);
+struct dj_result d_result_view(
+    bool*  _is_ok,
+    void*  _payload,
+    size_t _value_size,
+    size_t _error_size
+);
+bool d_result_is_valid(
+    const struct dj_result* _result
+);
 
 // II.    introduction
-bool     d_result_ok(struct d_result* _result,
-                     const void*      _value);
-bool     d_result_err(struct d_result* _result,
-                      const void*      _error);
+bool d_result_ok(
+    struct dj_result* _result,
+    const void*       _value
+);
+bool d_result_err(
+    struct dj_result* _result,
+    const void*       _error
+);
 
 // III.   inspection
-bool     d_result_is_ok(const struct d_result* _result);
-bool     d_result_is_err(const struct d_result* _result);
-bool     d_result_value_or(const struct d_result* _result,
-                           void*                  _out,
-                           const void*            _fallback);
-bool     d_result_error(const struct d_result* _result,
-                        void*                  _out);
+bool d_result_is_ok(
+    const struct dj_result* _result
+);
+bool d_result_is_err(
+    const struct dj_result* _result
+);
+bool d_result_value_or(
+    const struct dj_result* _result,
+    void*                   _out,
+    const void*             _fallback
+);
+bool d_result_error(
+    const struct dj_result* _result,
+    void*                   _out
+);
 
 // IV.    Functor, Bifunctor and Monad, over this carrier
-bool     d_result_map(const struct d_result* _in,
-                      struct d_result*       _out,
-                      fn_transformer         _transform,
-                      void*                  _context);
-bool     d_result_map_err(const struct d_result* _in,
-                          struct d_result*       _out,
-                          fn_transformer         _transform,
-                          void*                  _context);
-bool     d_result_bimap(const struct d_result* _in,
-                        struct d_result*       _out,
-                        fn_transformer         _on_value,
-                        fn_transformer         _on_error,
-                        void*                  _context);
-bool     d_result_bind(const struct d_result* _in,
-                       struct d_result*       _out,
-                       fn_kleisli             _arrow,
-                       void*                  _context);
+bool d_result_map(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_transformer          _transform,
+    void*                   _context
+);
+bool d_result_map_err(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_transformer          _transform,
+    void*                   _context
+);
+bool d_result_bimap(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_transformer          _on_value,
+    fn_transformer          _on_error,
+    void*                   _context
+);
+bool d_result_bind(
+    const struct dj_result* _in,
+    struct dj_result*       _out,
+    fn_kleisli              _arrow,
+    void*                   _context
+);
 
 // V.     conversion to maybe (forgets the error)
-bool     d_result_to_maybe(const struct d_result* _result,
-                           struct d_maybe*        _out);
+bool d_result_to_maybe(
+    const struct dj_result* _result,
+    struct dj_maybe*        _out
+);
 
 // VI.    Foldable, via the tier 1 spine
-size_t   d_result_drive(const struct d_result*   _result,
-                        const struct d_reducer*  _reducer,
-                        struct d_reducing_state* _state);
-bool     d_result_fold(const struct d_result* _result,
-                       void*                  _accumulator,
-                       fn_fold                _step,
-                       void*                  _context);
-struct d_producer d_result_producer(struct d_producer_array_state* _state,
-                                    const struct d_result*         _result);
+size_t d_result_drive(
+    const struct dj_result*   _result,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
+);
+bool d_result_fold(
+    const struct dj_result* _result,
+    void*                   _accumulator,
+    fn_fold                 _step,
+    void*                   _context
+);
+struct dj_producer d_result_producer(
+    struct dj_producer_array_state* _state,
+    const struct dj_result*         _result
+);
 
 // VII.   layout assertions (Layout law: one declaration, asserted in both)
-D_STATIC_ASSERT(offsetof(struct d_result, payload) == sizeof(bool*),
-                "d_result layout drift");
-D_STATIC_ASSERT(offsetof(struct d_result, error_size) ==
+D_STATIC_ASSERT(offsetof(struct dj_result, payload) == sizeof(bool*),
+                "dj_result layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_result, error_size) ==
                     (sizeof(bool*) + sizeof(void*) + sizeof(size_t)),
-                "d_result layout drift");
+                "dj_result layout drift");
 
 
 #endif  // RE_STD_HAS_INT64

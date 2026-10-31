@@ -36,8 +36,8 @@ TABLE OF CONTENTS
 #include <stdint.h>   // uint32_t
 
 // djinterp
-#include "./dnode.h"        // d_node_tree
-#include "./dtoken_node.h"  // d_token_node_stats
+#include "./dnode.h"        // dj_node_tree
+#include "./dtoken_node.h"  // dj_token_node_stats
 
 
 //==============================================================================
@@ -51,7 +51,9 @@ TABLE OF CONTENTS
 // d_ext_c_build lexes a source as C at `_level` -- zero for the newest --
 // and builds its tree beneath `_parent`, or beneath a new `file` node when
 // `_parent` is D_DSS_NO_INDEX.  The source is borrowed for the call only.
-bool         d_ext_c_accepts(const char* _path);
+bool d_ext_c_accepts(
+    const char* _path
+);
 /**
  * @brief Builds the DSS node tree for C source.
  *
@@ -64,11 +66,13 @@ bool         d_ext_c_accepts(const char* _path);
  * @param[out]    _out_stats  receives what was built; may be `NULL`.
  * @return the node the tree hangs from, or `D_DSS_NO_INDEX` on failure.
  */
-uint32_t     d_ext_c_build(struct d_node_tree*        _tree,
-                           uint32_t                   _parent,
-                           const struct d_source*     _source,
-                           unsigned                   _level,
-                           struct d_token_node_stats* _out_stats);
+uint32_t d_ext_c_build(
+    struct dj_node_tree*        _tree,
+    uint32_t                    _parent,
+    const struct dj_source*     _source,
+    unsigned                    _level,
+    struct dj_token_node_stats* _out_stats
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DEXT_C_H

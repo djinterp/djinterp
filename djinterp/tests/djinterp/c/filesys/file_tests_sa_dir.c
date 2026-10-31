@@ -18,13 +18,10 @@
 d_tests_file_mkdir
   Tests d_dir_create and d_dir_create_parents.
 */
-static struct d_test_object*
-d_tests_file_mkdir
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_mkdir(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  dir[D_TEST_FILE_PATH_BUF];
     char                  nested[D_TEST_FILE_PATH_BUF];
     char                  parent[D_TEST_FILE_PATH_BUF];
@@ -94,13 +91,10 @@ d_tests_file_mkdir
 d_tests_file_rmdir
   Tests d_dir_remove.
 */
-static struct d_test_object*
-d_tests_file_rmdir
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_rmdir(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  dir[D_TEST_FILE_PATH_BUF];
     size_t                idx;
 
@@ -133,16 +127,13 @@ d_tests_file_rmdir
 d_tests_file_traversal
   Tests d_dir_open / d_dir_read / d_dir_rewind / d_dir_close.
 */
-static struct d_test_object*
-d_tests_file_traversal
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_traversal(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
-    struct d_dir_t*       dir;
-    struct d_dirent_t*    entry;
-    struct d_dirent_t*    entry2;
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_dir_t*       dir;
+    struct dj_dirent_t*    entry;
+    struct dj_dirent_t*    entry2;
     char                  first[D_FILE_NAME_MAX + 1];
     size_t                count;
     size_t                dots;
@@ -268,13 +259,10 @@ d_tests_file_traversal
 d_tests_file_cwd
   Tests d_dir_get_current / d_dir_set_current / d_path_resolve.
 */
-static struct d_test_object*
-d_tests_file_cwd
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_cwd(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  saved[D_FILE_PATH_MAX];
     char                  buf[D_FILE_PATH_MAX];
     size_t                idx;
@@ -358,13 +346,9 @@ d_tests_file_cwd
 d_tests_file_dir_all
   Runs every file_dir test.
 */
-struct d_test_object*
-d_tests_file_dir_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_dir_all(void)
 {
-    struct d_test_object* items[8];
+    struct dj_test_object* items[8];
     size_t                idx;
 
     idx = 0;

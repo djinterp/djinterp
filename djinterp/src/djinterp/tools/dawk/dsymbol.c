@@ -20,10 +20,10 @@
 #include <string.h>   // memcpy, memcmp
 
 
-// d_symbol_table
+// dj_symbol_table
 //   struct: the arena of names, per-symbol offset, length and hash, and the
 // bucket array mapping a hash to a symbol.
-struct d_symbol_table
+struct dj_symbol_table
 {
     char*      text;
     size_t     text_used;
@@ -47,8 +47,8 @@ struct d_symbol_table
  * @param[in] _length  their count.
  * @return the hash.
  */
-static uint32_t
-d_internal_symbol_hash(
+static
+uint32_t d_internal_symbol_hash(
     const char* _text,
     size_t      _length
 )
@@ -72,9 +72,9 @@ d_internal_symbol_hash(
  * @param[in,out] _table  the table.
  * @return `true` on success, `false` if allocation failed.
  */
-static bool
-d_internal_symbol_rehash(
-    struct d_symbol_table* _table
+static
+bool d_internal_symbol_rehash(
+    struct dj_symbol_table* _table
 )
 {
     const size_t buckets = (_table->bucket_mask == 0u)
@@ -123,12 +123,12 @@ d_internal_symbol_rehash(
  * @param[in] _hash    its hash.
  * @return the slot.
  */
-static size_t
-d_internal_symbol_slot(
-    const struct d_symbol_table* _table,
-    const char*                  _text,
-    size_t                       _length,
-    uint32_t                     _hash
+static
+size_t d_internal_symbol_slot(
+    const struct dj_symbol_table* _table,
+    const char*                   _text,
+    size_t                        _length,
+    uint32_t                      _hash
 )
 {
     size_t slot = _hash & _table->bucket_mask;
@@ -158,12 +158,9 @@ d_internal_symbol_slot(
 d_symbol_table_new
   An empty table allocates nothing until its first intern.
 */
-struct d_symbol_table*
-d_symbol_table_new(
-    void
-)
+struct dj_symbol_table* d_symbol_table_new(void)
 {
-    return calloc(1u, sizeof(struct d_symbol_table));
+    return calloc(1u, sizeof(struct dj_symbol_table));
 }
 
 
@@ -171,9 +168,8 @@ d_symbol_table_new(
 d_symbol_table_free
   Accepts NULL, as free does.
 */
-void
-d_symbol_table_free(
-    struct d_symbol_table* _table
+void d_symbol_table_free(
+    struct dj_symbol_table* _table
 )
 {
     if (_table)
@@ -196,11 +192,10 @@ d_symbol_intern
 arrays and the arena as needed.  The arena keeps a terminator after each name
 so d_symbol_text can hand out a C string.
 */
-uint32_t
-d_symbol_intern(
-    struct d_symbol_table* _table,
-    const char*            _text,
-    size_t                 _length
+uint32_t d_symbol_intern(
+    struct dj_symbol_table* _table,
+    const char*             _text,
+    size_t                  _length
 )
 {
     // parameter validation first
@@ -303,11 +298,10 @@ d_symbol_intern(
 d_symbol_find
   The same probe as an intern, with nothing added on a miss.
 */
-uint32_t
-d_symbol_find(
-    const struct d_symbol_table* _table,
-    const char*                  _text,
-    size_t                       _length
+uint32_t d_symbol_find(
+    const struct dj_symbol_table* _table,
+    const char*                   _text,
+    size_t                        _length
 )
 {
     if ( (!_table) || (!_text) || (_table->bucket_mask == 0u) )
@@ -327,10 +321,9 @@ d_symbol_text
   "" rather than NULL for an unknown symbol, so a caller printing a name never
 has to guard.
 */
-const char*
-d_symbol_text(
-    const struct d_symbol_table* _table,
-    uint32_t                     _symbol
+const char* d_symbol_text(
+    const struct dj_symbol_table* _table,
+    uint32_t                      _symbol
 )
 {
     if ( (!_table) || (_symbol >= _table->count) )
@@ -346,9 +339,8 @@ d_symbol_text(
 d_symbol_count
   Symbols are dense, so this is also one past the largest.
 */
-size_t
-d_symbol_count(
-    const struct d_symbol_table* _table
+size_t d_symbol_count(
+    const struct dj_symbol_table* _table
 )
 {
     return _table ? _table->count : 0u;

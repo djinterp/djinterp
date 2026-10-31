@@ -14,8 +14,7 @@
 #include <djinterp/tools/bitwisedom/cli.hpp>  // run_cli
 
 
-int
-main(
+int main(
     int    _argc,
     char** _argv
 )

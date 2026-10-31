@@ -39,8 +39,7 @@ static int t_failures = 0;
     } while (0)
 
 
-int
-main(void)
+int main(void)
 {
     unsigned char buffer[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     unsigned char source[4] = { 9, 9, 9, 9 };

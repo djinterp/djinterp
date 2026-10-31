@@ -25,9 +25,8 @@
  * VI.a  d_file_sync_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_sync_fsync
-(
+static
+void d_fs_tests_sync_fsync(
     dtest_suite* _suite
 )
 {
@@ -74,9 +73,8 @@ d_fs_tests_sync_fsync
  * VI.b  d_file_sync_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_sync_fsync_stream
-(
+static
+void d_fs_tests_sync_fsync_stream(
     dtest_suite* _suite
 )
 {
@@ -125,9 +123,8 @@ d_fs_tests_sync_fsync_stream
  * VI.c  d_file_flush_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_sync_fflush
-(
+static
+void d_fs_tests_sync_fflush(
     dtest_suite* _suite
 )
 {
@@ -165,9 +162,7 @@ d_fs_tests_sync_fflush
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_sync
-(
+void d_fs_tests_sync(
     dtest_suite* _suite
 )
 {

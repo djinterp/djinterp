@@ -54,9 +54,9 @@ TABLE OF CONTENTS
 // 1.2    Opaque types
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_symbol_table
+// dj_symbol_table
 //   struct: interned names, numbered densely from 0 in order of first sight.
-struct d_symbol_table;
+struct dj_symbol_table;
 
 
 //==============================================================================
@@ -71,8 +71,10 @@ struct d_symbol_table;
  *
  * @return the table, or `NULL` if allocation failed.
  */
-struct d_symbol_table* d_symbol_table_new(void);
-void                   d_symbol_table_free(struct d_symbol_table* _table);
+struct dj_symbol_table* d_symbol_table_new(void);
+void d_symbol_table_free(
+    struct dj_symbol_table* _table
+);
 
 // 2.2    Interning and lookup
 //------------------------------------------------------------------------------
@@ -84,17 +86,25 @@ void                   d_symbol_table_free(struct d_symbol_table* _table);
  * @param[in]     _length  its length in bytes.
  * @return the symbol, or `D_SYMBOL_NONE` if the table could not grow.
  */
-uint32_t               d_symbol_intern(struct d_symbol_table* _table,
-                                       const char*            _text,
-                                       size_t                 _length);
+uint32_t d_symbol_intern(
+    struct dj_symbol_table* _table,
+    const char*             _text,
+    size_t                  _length
+);
 // lookup without adding; D_SYMBOL_NONE when the name was never interned
-uint32_t               d_symbol_find(const struct d_symbol_table* _table,
-                                     const char*                  _text,
-                                     size_t                       _length);
+uint32_t d_symbol_find(
+    const struct dj_symbol_table* _table,
+    const char*                   _text,
+    size_t                        _length
+);
 // a symbol's text, valid until the next intern; "" for D_SYMBOL_NONE
-const char*            d_symbol_text(const struct d_symbol_table* _table,
-                                     uint32_t                     _symbol);
-size_t                 d_symbol_count(const struct d_symbol_table* _table);
+const char* d_symbol_text(
+    const struct dj_symbol_table* _table,
+    uint32_t                      _symbol
+);
+size_t d_symbol_count(
+    const struct dj_symbol_table* _table
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DSYMBOL_H

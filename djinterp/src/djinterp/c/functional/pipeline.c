@@ -24,7 +24,7 @@
 #include <stdlib.h>   // malloc, free
 #include <string.h>   // memcpy, memmove, memset
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*
@@ -32,10 +32,10 @@ d_internal_pipeline_failed
   Records the first failure; the pipeline keeps whatever data it had, so
 free still releases it.
 */
-static struct d_functional_pipeline
-d_internal_pipeline_failed(
-    struct d_functional_pipeline _pipe,
-    int                          _error
+static
+struct dj_functional_pipeline d_internal_pipeline_failed(
+    struct dj_functional_pipeline _pipe,
+    int                           _error
 )
 {
     if (_pipe.error_code == 0)
@@ -50,8 +50,8 @@ d_internal_pipeline_failed(
 d_internal_pipeline_bytes
   The bytes `_count` elements take, or SIZE_MAX when that would overflow.
 */
-static size_t
-d_internal_pipeline_bytes(
+static
+size_t d_internal_pipeline_bytes(
     size_t _count,
     size_t _element_size
 )
@@ -70,12 +70,12 @@ d_internal_pipeline_adopt
   Replaces the pipeline's data with a new owned block, releasing the old one
 if the pipeline owned it.
 */
-static struct d_functional_pipeline
-d_internal_pipeline_adopt(
-    struct d_functional_pipeline _pipe,
-    void*                        _data,
-    size_t                       _count,
-    size_t                       _element_size
+static
+struct dj_functional_pipeline d_internal_pipeline_adopt(
+    struct dj_functional_pipeline _pipe,
+    void*                         _data,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
     if (_pipe.owns_data)
@@ -91,14 +91,13 @@ d_internal_pipeline_adopt(
     return _pipe;
 }
 
-struct d_functional_pipeline
-d_functional_pipeline_begin(
+struct dj_functional_pipeline d_functional_pipeline_begin(
     void*  _data,
     size_t _count,
     size_t _element_size
 )
 {
-    struct d_functional_pipeline pipe;
+    struct dj_functional_pipeline pipe;
 
     pipe.data         = _data;
     pipe.element_size = _element_size;
@@ -117,14 +116,13 @@ d_functional_pipeline_begin(
     return pipe;
 }
 
-struct d_functional_pipeline
-d_functional_pipeline_begin_copy(
+struct dj_functional_pipeline d_functional_pipeline_begin_copy(
     const void* _data,
     size_t      _count,
     size_t      _element_size
 )
 {
-    struct d_functional_pipeline pipe =
+    struct dj_functional_pipeline pipe =
         d_functional_pipeline_begin((void*)_data, _count, _element_size);
 
     // nothing to copy
@@ -159,11 +157,10 @@ d_functional_pipeline_map
   Writes every result to a new owned block of the same element size, so a
 transformer never reads and writes one element in place.
 */
-struct d_functional_pipeline
-d_functional_pipeline_map(
-    struct d_functional_pipeline _pipe,
-    fn_transformer               _transform,
-    void*                        _context
+struct dj_functional_pipeline d_functional_pipeline_map(
+    struct dj_functional_pipeline _pipe,
+    fn_transformer                _transform,
+    void*                         _context
 )
 {
     // an earlier failure, or nothing to apply
@@ -217,11 +214,10 @@ d_functional_pipeline_filter
   An owned block is compacted in place; a view is copied first, since the
 caller's array is not the pipeline's to rearrange.
 */
-struct d_functional_pipeline
-d_functional_pipeline_filter(
-    struct d_functional_pipeline _pipe,
-    fn_predicate                 _test,
-    void*                        _context
+struct dj_functional_pipeline d_functional_pipeline_filter(
+    struct dj_functional_pipeline _pipe,
+    fn_predicate                  _test,
+    void*                         _context
 )
 {
     // an earlier failure, or nothing to test with
@@ -289,13 +285,12 @@ d_functional_pipeline_fold
   Reduces the pipeline to one owned element of `_accumulator_size` bytes,
 starting from `*_initial` (zero when `_initial` is NULL), combining in order.
 */
-struct d_functional_pipeline
-d_functional_pipeline_fold(
-    struct d_functional_pipeline _pipe,
-    void*                        _initial,
-    size_t                       _accumulator_size,
-    fn_accumulator               _combine,
-    void*                        _context
+struct dj_functional_pipeline d_functional_pipeline_fold(
+    struct dj_functional_pipeline _pipe,
+    void*                         _initial,
+    size_t                        _accumulator_size,
+    fn_accumulator                _combine,
+    void*                         _context
 )
 {
     // an earlier failure, or nothing to fold with
@@ -345,11 +340,10 @@ d_functional_pipeline_fold(
                                      _accumulator_size);
 }
 
-struct d_functional_pipeline
-d_functional_pipeline_for_each(
-    struct d_functional_pipeline _pipe,
-    fn_consumer                  _apply,
-    void*                        _context
+struct dj_functional_pipeline d_functional_pipeline_for_each(
+    struct dj_functional_pipeline _pipe,
+    fn_consumer                   _apply,
+    void*                         _context
 )
 {
     // an earlier failure, or nothing to apply
@@ -378,10 +372,9 @@ d_functional_pipeline_skip
   A view moves its start; an owned block keeps its start, which free needs,
 and moves the kept elements down instead.
 */
-struct d_functional_pipeline
-d_functional_pipeline_skip(
-    struct d_functional_pipeline _pipe,
-    size_t                       _n
+struct dj_functional_pipeline d_functional_pipeline_skip(
+    struct dj_functional_pipeline _pipe,
+    size_t                        _n
 )
 {
     // an earlier failure
@@ -414,10 +407,9 @@ d_functional_pipeline_skip(
     return _pipe;
 }
 
-struct d_functional_pipeline
-d_functional_pipeline_take(
-    struct d_functional_pipeline _pipe,
-    size_t                       _n
+struct dj_functional_pipeline d_functional_pipeline_take(
+    struct dj_functional_pipeline _pipe,
+    size_t                        _n
 )
 {
     // an earlier failure
@@ -442,10 +434,9 @@ must not also be freed. A failed pipeline, or an empty result, yields NULL
 and a count of 0 -- check error_code first to tell them apart. A failed
 pipeline's own block is released here.
 */
-void*
-d_functional_pipeline_end(
-    struct d_functional_pipeline _pipe,
-    size_t*                      _out_count
+void* d_functional_pipeline_end(
+    struct dj_functional_pipeline _pipe,
+    size_t*                       _out_count
 )
 {
     if (_out_count)
@@ -491,9 +482,8 @@ d_functional_pipeline_end(
     return result;
 }
 
-void
-d_functional_pipeline_free(
-    struct d_functional_pipeline* _pipe
+void d_functional_pipeline_free(
+    struct dj_functional_pipeline* _pipe
 )
 {
     // nothing to release

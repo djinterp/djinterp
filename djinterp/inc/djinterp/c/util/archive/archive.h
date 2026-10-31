@@ -90,17 +90,17 @@ VII.  ITERATION                 (entries, formats)
 // c
 #include <stddef.h>
 // djinterp
-#include "../sink_common.h"          // d_pack_text/bytes_from_* -- section I
+#include "../sink_common.h"          // dj_pack_text/bytes_from_* -- section I
 #include "./archive_common.h"       // the kernel this is notation over
 #include "../compress/compress.h"             // D_PACK_OK / D_PACK_TRY / D_CODEC
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 
 
 // =============================================================================
 // I.   SPAN BUILDERS
 // =============================================================================
-//   A d_pack_text or d_pack_bytes in two forms, and the distinction is not
+//   A dj_pack_text or dj_pack_bytes in two forms, and the distinction is not
 // cosmetic -- it is forced by C and getting it wrong is a compile error at
 // every static call site.
 //
@@ -115,7 +115,7 @@ VII.  ITERATION                 (entries, formats)
 // takes the plain ones.
 //
 //   THE PLAIN FORMS ARE THE KERNEL CONSTRUCTORS, NOT COMPOUND LITERALS.  They
-// used to be `((struct d_pack_text)D_TEXT_INIT(...))` and so on -- seven casts
+// used to be `((struct dj_pack_text)D_TEXT_INIT(...))` and so on -- seven casts
 // over brace initialisers, which is a second spelling of
 // d_pack_text_from_cstr / d_pack_text_from_span / d_pack_bytes_from_span, all
 // three of which sink_common.h has exported the whole time.  Two spellings of
@@ -143,39 +143,39 @@ VII.  ITERATION                 (entries, formats)
 #define D_INTERNAL_PACK_LITERAL_LEN(_lit)   (sizeof(_lit) - 1u)
 
 // D_TEXT_INIT
-//   macro: brace initialiser for a d_pack_text over the string LITERAL _lit.
+//   macro: brace initialiser for a dj_pack_text over the string LITERAL _lit.
 // Only valid for a literal -- for a runtime pointer use D_TEXT_CSTR or
 // D_TEXT_SPAN_INIT.
 #define D_TEXT_INIT(_lit)           { (_lit),                                  \
                                       D_INTERNAL_PACK_LITERAL_LEN(_lit) }
 
 // D_TEXT_SPAN_INIT
-//   macro: brace initialiser for a d_pack_text over an explicit pointer and
+//   macro: brace initialiser for a dj_pack_text over an explicit pointer and
 // length.
 #define D_TEXT_SPAN_INIT(_p, _n)    { (_p), (size_t)(_n) }
 
 // D_BYTES_INIT
-//   macro: brace initialiser for a d_pack_bytes over a pointer and size.
+//   macro: brace initialiser for a dj_pack_bytes over a pointer and size.
 #define D_BYTES_INIT(_p, _n)        { (_p), (size_t)(_n) }
 
 // D_BYTES_LITERAL_INIT
-//   macro: brace initialiser for a d_pack_bytes over a string literal's
+//   macro: brace initialiser for a dj_pack_bytes over a string literal's
 // characters, excluding its terminator.
 #define D_BYTES_LITERAL_INIT(_lit)  { (_lit),                                  \
                                       D_INTERNAL_PACK_LITERAL_LEN(_lit) }
 
 // D_TEXT
-//   macro: a d_pack_text over the string literal _lit, as an EXPRESSION.
+//   macro: a dj_pack_text over the string literal _lit, as an EXPRESSION.
 #define D_TEXT(_lit)                                                           \
     d_pack_text_from_span((_lit), D_INTERNAL_PACK_LITERAL_LEN(_lit))
 
 // D_TEXT_SPAN
-//   macro: a d_pack_text over an explicit pointer and length, as an expression.
+//   macro: a dj_pack_text over an explicit pointer and length, as an expression.
 #define D_TEXT_SPAN(_p, _n)                                                    \
     d_pack_text_from_span((_p), (size_t)(_n))
 
 // D_TEXT_CSTR
-//   macro: a d_pack_text over a NUL-terminated runtime pointer, as an
+//   macro: a dj_pack_text over a NUL-terminated runtime pointer, as an
 // expression.  This is the only span builder that consults a terminator, and
 // it has no _INIT form: strlen is not a constant expression, so it can never
 // initialise a static.
@@ -183,12 +183,12 @@ VII.  ITERATION                 (entries, formats)
     d_pack_text_from_cstr(_p)
 
 // D_BYTES
-//   macro: a d_pack_bytes over a pointer and size, as an expression.
+//   macro: a dj_pack_bytes over a pointer and size, as an expression.
 #define D_BYTES(_p, _n)                                                        \
     d_pack_bytes_from_span((_p), (size_t)(_n))
 
 // D_BYTES_LITERAL
-//   macro: a d_pack_bytes over a string literal's characters, as an expression.
+//   macro: a dj_pack_bytes over a string literal's characters, as an expression.
 #define D_BYTES_LITERAL(_lit)                                                  \
     d_pack_bytes_from_span((_lit), D_INTERNAL_PACK_LITERAL_LEN(_lit))
 
@@ -199,7 +199,7 @@ VII.  ITERATION                 (entries, formats)
     d_pack_bytes_from_span((const void*)0, (size_t)0)
 
 // D_BYTES_ARRAY
-//   macro: a d_pack_bytes over the whole of array _arr, size taken from its own
+//   macro: a dj_pack_bytes over the whole of array _arr, size taken from its own
 // declaration.  Passing a pointer where an array was meant is caught by
 // D_ARRAY_STATIC_SIZE rather than silently yielding a size of 1.
 #define D_BYTES_ARRAY(_arr)                                                    \
@@ -257,23 +257,23 @@ VII.  ITERATION                 (entries, formats)
 // D_ARCHIVE_FILE
 //   macro: a regular-file entry over a pointer and size, as an expression.
 #define D_ARCHIVE_FILE(_name, _data, _size)                                    \
-    ((struct d_archive_entry)D_ARCHIVE_FILE_INIT((_name), (_data), (_size)))
+    ((struct dj_archive_entry)D_ARCHIVE_FILE_INIT((_name), (_data), (_size)))
 
 // D_ARCHIVE_TEXT
 //   macro: a regular-file entry with a string-literal payload, as an
 // expression.  The readable form for a test fixture.
 #define D_ARCHIVE_TEXT(_name, _body)                                           \
-    ((struct d_archive_entry)D_ARCHIVE_TEXT_INIT((_name), (_body)))
+    ((struct dj_archive_entry)D_ARCHIVE_TEXT_INIT((_name), (_body)))
 
 // D_ARCHIVE_DIR
 //   macro: a directory entry, as an expression.
 #define D_ARCHIVE_DIR(_name)                                                   \
-    ((struct d_archive_entry)D_ARCHIVE_DIR_INIT(_name))
+    ((struct dj_archive_entry)D_ARCHIVE_DIR_INIT(_name))
 
 // D_ARCHIVE_ENTRY_FULL
 //   macro: the general entry builder, as an expression.
 #define D_ARCHIVE_ENTRY_FULL(_name, _data, _size, _is_dir, _mode, _mtime)      \
-    ((struct d_archive_entry)D_ARCHIVE_ENTRY_FULL_INIT(                        \
+    ((struct dj_archive_entry)D_ARCHIVE_ENTRY_FULL_INIT(                        \
         (_name), (_data), (_size), (_is_dir), (_mode), (_mtime)))
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
@@ -288,7 +288,7 @@ VII.  ITERATION                 (entries, formats)
 // named array with the _INIT builders and D_ARCHIVE_CREATE_LIST below, which
 // derives the count from the declaration and cannot drift.
 #define D_ARCHIVE_ENTRIES(...)                                                 \
-    ((const struct d_archive_entry[]){ __VA_ARGS__ })
+    ((const struct dj_archive_entry[]){ __VA_ARGS__ })
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // =============================================================================
@@ -301,15 +301,15 @@ VII.  ITERATION                 (entries, formats)
 // most of them.  See that section for the full argument.
 //
 //   For tuning a knob with no named builder, declare and assign:
-//       struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
+//       struct dj_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 //       opt.zip.method = D_ZIP_METHOD_DEFLATE;
 
 // d_archive_options_of
 //   function: a pristine container option set as an expression.
-D_INLINE struct d_archive_options
-d_archive_options_of(void)
+D_INLINE
+struct dj_archive_options d_archive_options_of(void)
 {
-    struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 
     return opt;
 }
@@ -317,13 +317,13 @@ d_archive_options_of(void)
 // d_archive_at_level
 //   function: a pristine set with the CONTAINER-level effort at _level.
 // Distinct from the embedded codec's level -- see the note on
-// d_archive_options.
-D_INLINE struct d_archive_options
-d_archive_at_level(
+// dj_archive_options.
+D_INLINE
+struct dj_archive_options d_archive_at_level(
     int32_t _level
 )
 {
-    struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 
     opt.level = _level;
 
@@ -335,12 +335,12 @@ d_archive_at_level(
 // container-level effort left UNSET.  Pairs with d_archive_at_level for
 // testing which of the two a call site consults, as codec_level_options does
 // on the C++ side.
-D_INLINE struct d_archive_options
-d_archive_at_codec_level(
+D_INLINE
+struct dj_archive_options d_archive_at_codec_level(
     int32_t _level
 )
 {
-    struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 
     opt.codec.level = _level;
 
@@ -351,10 +351,10 @@ d_archive_at_codec_level(
 //   function: a pristine set that stores every member uncompressed.  The mode
 // a container uses for already-compressed payloads, and the one that always
 // works on a build with no codec at all.
-D_INLINE struct d_archive_options
-d_archive_store_only(void)
+D_INLINE
+struct dj_archive_options d_archive_store_only(void)
 {
-    struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 
     opt.store_only = 1;
 
@@ -368,10 +368,10 @@ d_archive_store_only(void)
 // mtimes -- the four places a container otherwise absorbs the environment.
 //   Worth a named builder because every one of those is silent: the archive is
 // valid either way, and only a byte comparison across two machines reveals it.
-D_INLINE struct d_archive_options
-d_archive_reproducible(void)
+D_INLINE
+struct dj_archive_options d_archive_reproducible(void)
 {
-    struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 
     opt.preserve_permissions = 0;
     opt.preserve_mtime       = 0;
@@ -387,14 +387,14 @@ d_archive_reproducible(void)
 // Fixed at AES rather than parameterised over the scheme because the legacy
 // PKWARE scheme is broken and should not be reachable by a one-word edit; a
 // caller needing it for read compatibility sets zip.encryption directly.
-//   _password is BORROWED, as every d_pack_text is: it must outlive the create
+//   _password is BORROWED, as every dj_pack_text is: it must outlive the create
 // call, not merely this builder.
-D_INLINE struct d_archive_options
-d_archive_encrypted_zip(
+D_INLINE
+struct dj_archive_options d_archive_encrypted_zip(
     const char* _password
 )
 {
-    struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 
     opt.zip.encryption = D_ZIP_ENCRYPTION_AES_256;
     opt.zip.password   = d_pack_text_from_cstr(_password);
@@ -416,9 +416,9 @@ d_archive_encrypted_zip(
 // d_internal_format_identity
 //   function: the enumerator arm of D_FORMAT -- the identity, so both arms are
 // function calls and the macro has one shape.
-D_INLINE enum d_format_id
+D_INLINE enum dj_format_id
 d_internal_format_identity(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     return _format;
@@ -428,12 +428,12 @@ d_internal_format_identity(
 //   function: the string arm of D_FORMAT -- resolves a format name, falling
 // back to zip when unknown.  A caller needing to DETECT a bad name calls
 // d_format_id_from_name, which reports it.
-D_INLINE enum d_format_id
+D_INLINE enum dj_format_id
 d_internal_format_from_any(
     const char* _name
 )
 {
-    enum d_format_id format = D_FORMAT_ID_ZIP;
+    enum dj_format_id format = D_FORMAT_ID_ZIP;
 
     (void)d_format_id_from_name(_name, &format);
 
@@ -441,7 +441,7 @@ d_internal_format_from_any(
 }
 
 // D_FORMAT
-//   macro: an enum d_format_id from either an enumerator or a format name.
+//   macro: an enum dj_format_id from either an enumerator or a format name.
 #define D_FORMAT(_x)                                                           \
     _Generic((_x),                                                             \
              char*:       d_internal_format_from_any,                          \
@@ -583,9 +583,9 @@ d_internal_format_from_any(
 // D_FOR_EACH_FORMAT
 //   macro: iterate _var over every format the framework names.
 #define D_FOR_EACH_FORMAT(_var)                                                \
-    for (enum d_format_id _var = D_FORMAT_ID_ZIP;                              \
+    for (enum dj_format_id _var = D_FORMAT_ID_ZIP;                              \
          (int)_var < D_FORMAT_ID_COUNT;                                        \
-         _var = (enum d_format_id)((int)_var + 1))
+         _var = (enum dj_format_id)((int)_var + 1))
 
 // D_FOR_EACH_WRITABLE_FORMAT
 //   macro: iterate _var over only the formats this build can create.
@@ -604,7 +604,7 @@ d_internal_format_from_any(
 // extract call filled in.  Reads the count from the layout rather than from a
 // separate variable, which is where a hand-written loop drifts.
 #define D_FOR_EACH_ENTRY(_var, _entries, _layout)                              \
-    for (const struct d_archive_entry* _var = (_entries);                      \
+    for (const struct dj_archive_entry* _var = (_entries);                      \
          _var < ((_entries) + (_layout)->entry_count);                         \
          ++_var)
 

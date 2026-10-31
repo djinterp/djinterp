@@ -8,7 +8,7 @@
 * objects SQLite makes for itself, whose names begin with "sqlite_".
 *   Each kind of object has the same verbs: has, create, drop, list. A create
 * or drop is idempotent under D_DB_IF_NOT_EXISTS or D_DB_IF_EXISTS. A table
-* can be described column by column with struct d_db_column, which maps to
+* can be described column by column with struct dj_db_column, which maps to
 * SQLite's types as section 1 tabulates, or by its definition as SQL.
 *   Changes SQLite added late are checked against the library in use, and
 * refused with D_DB_UNSUPPORTED below their release instead of failing as a
@@ -67,10 +67,10 @@ TABLE OF CONTENTS
 #include <stddef.h>  // size_t
 // djinterp
 #include "../../djinterp.h"   // framework root
-#include "../db_common.h"     // d_db_column, the lists, D_DB_IF_*
+#include "../db_common.h"     // dj_db_column, the lists, D_DB_IF_*
 #include "./sqlite_common.h"  // sqlite3, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -105,11 +105,11 @@ D_EXTERN_C_BEGIN
 
 // 1.2    Type mapping
 //------------------------------------------------------------------------------
-// How a struct d_db_column's type is declared. SQLite stores by affinity, not
+// How a struct dj_db_column's type is declared. SQLite stores by affinity, not
 // type, so each maps to the name that gives the right affinity; in a STRICT
 // table, to one of the five names STRICT allows.
 //
-//     d_db_type                 declared as       in a STRICT table
+//     dj_db_type                 declared as       in a STRICT table
 //     NONE                      (no type)         ANY
 //     BOOLEAN                   INTEGER           INTEGER
 //     INTEGER, BIG_INTEGER      INTEGER           INTEGER
@@ -138,13 +138,17 @@ D_EXTERN_C_BEGIN
 // included. The plain form answers false for any failure; the _s form returns
 // SQLITE_OK and writes the answer, or the result code of the failure, among
 // them SQLITE_ERROR for a schema that is not attached.
-bool d_sqlite_has_table(struct sqlite3* _db,
-                        const char*     _schema,
-                        const char*     _table) D_NOTHROW;
-int  d_sqlite_has_table_s(struct sqlite3* _db,
-                          const char*     _schema,
-                          const char*     _table,
-                          bool*           _exists) D_NOTHROW;
+bool d_sqlite_has_table(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table
+) D_NOTHROW;
+int d_sqlite_has_table_s(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    bool*           _exists
+) D_NOTHROW;
 
 // 2.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -173,12 +177,14 @@ int  d_sqlite_has_table_s(struct sqlite3* _db,
  *         flag or type, AUTO_INCREMENT without a sole primary key, or key
  *         places that skip, repeat, or fall outside the key.
  */
-int  d_sqlite_create_table(struct sqlite3*           _db,
-                           const char*               _schema,
-                           const char*               _table,
-                           const struct d_db_column* _columns,
-                           size_t                    _count,
-                           unsigned                  _flags) D_NOTHROW;
+int d_sqlite_create_table(
+    struct sqlite3*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
+) D_NOTHROW;
 /**
  * @brief Creates a table from its definition, written as SQL.
  *
@@ -191,11 +197,13 @@ int  d_sqlite_create_table(struct sqlite3*           _db,
  * @param[in] _flags       as d_sqlite_create_table.
  * @return as d_sqlite_create_table.
  */
-int  d_sqlite_create_table_sql(struct sqlite3* _db,
-                               const char*     _schema,
-                               const char*     _table,
-                               const char*     _definition,
-                               unsigned        _flags) D_NOTHROW;
+int d_sqlite_create_table_sql(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _definition,
+    unsigned        _flags
+) D_NOTHROW;
 /**
  * @brief Drops a table, with its indexes and triggers.
  *
@@ -207,10 +215,12 @@ int  d_sqlite_create_table_sql(struct sqlite3* _db,
  *         D_DB_IF_EXISTS; SQLITE_CONSTRAINT when enforced foreign keys refuse
  *         it; another SQLite result code; or SQLITE_MISUSE.
  */
-int  d_sqlite_drop_table(struct sqlite3* _db,
-                         const char*     _schema,
-                         const char*     _table,
-                         unsigned        _flags) D_NOTHROW;
+int d_sqlite_drop_table(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 2.3    Changing
 //------------------------------------------------------------------------------
@@ -223,10 +233,12 @@ int  d_sqlite_drop_table(struct sqlite3* _db,
  * @param[in] _new_name  its new name.
  * @return SQLITE_OK, the SQLite result code of the failure, or SQLITE_MISUSE.
  */
-int  d_sqlite_rename_table(struct sqlite3* _db,
-                           const char*     _schema,
-                           const char*     _table,
-                           const char*     _new_name) D_NOTHROW;
+int d_sqlite_rename_table(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _new_name
+) D_NOTHROW;
 /**
  * @brief Deletes every row of a table, and restarts its AUTOINCREMENT
  *        sequence, as MySQL's TRUNCATE does.
@@ -240,9 +252,11 @@ int  d_sqlite_rename_table(struct sqlite3* _db,
  * @param[in] _table   the table's name.
  * @return SQLITE_OK, the SQLite result code of the failure, or SQLITE_MISUSE.
  */
-int  d_sqlite_truncate_table(struct sqlite3* _db,
-                             const char*     _schema,
-                             const char*     _table) D_NOTHROW;
+int d_sqlite_truncate_table(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table
+) D_NOTHROW;
 
 // 2.4    Rows
 //------------------------------------------------------------------------------
@@ -255,10 +269,12 @@ int  d_sqlite_truncate_table(struct sqlite3* _db,
  * @param[out] _count   receives the count; written only on success.
  * @return SQLITE_OK, the SQLite result code of the failure, or SQLITE_MISUSE.
  */
-int  d_sqlite_count_rows(struct sqlite3* _db,
-                         const char*     _schema,
-                         const char*     _table,
-                         int64_t*        _count) D_NOTHROW;
+int d_sqlite_count_rows(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    int64_t*        _count
+) D_NOTHROW;
 
 // 2.5    Listing
 //------------------------------------------------------------------------------
@@ -272,9 +288,11 @@ int  d_sqlite_count_rows(struct sqlite3* _db,
  *         SQLITE_MISUSE.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int  d_sqlite_list_tables(struct sqlite3*        _db,
-                          const char*            _schema,
-                          struct d_db_name_list* _names) D_NOTHROW;
+int d_sqlite_list_tables(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -289,15 +307,19 @@ int  d_sqlite_list_tables(struct sqlite3*        _db,
 //------------------------------------------------------------------------------
 // existence -- whether the table has a column of that name; false, not an
 // error, when the table itself is missing. As has_table for the two forms.
-bool d_sqlite_has_column(struct sqlite3* _db,
-                         const char*     _schema,
-                         const char*     _table,
-                         const char*     _column) D_NOTHROW;
-int  d_sqlite_has_column_s(struct sqlite3* _db,
-                           const char*     _schema,
-                           const char*     _table,
-                           const char*     _column,
-                           bool*           _exists) D_NOTHROW;
+bool d_sqlite_has_column(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column
+) D_NOTHROW;
+int d_sqlite_has_column_s(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column,
+    bool*           _exists
+) D_NOTHROW;
 
 // 3.2    Adding, renaming and dropping
 //------------------------------------------------------------------------------
@@ -316,10 +338,12 @@ int  d_sqlite_has_column_s(struct sqlite3* _db,
  *         SQLITE_MISUSE for a `NULL` argument, an empty name or an unknown
  *         type.
  */
-int  d_sqlite_add_column(struct sqlite3*           _db,
-                         const char*               _schema,
-                         const char*               _table,
-                         const struct d_db_column* _column) D_NOTHROW;
+int d_sqlite_add_column(
+    struct sqlite3*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
+) D_NOTHROW;
 /**
  * @brief Adds a column to a table, from its definition written as SQL.
  *
@@ -329,10 +353,12 @@ int  d_sqlite_add_column(struct sqlite3*           _db,
  * @param[in] _definition  the column definition, e.g. "note TEXT DEFAULT ''".
  * @return SQLITE_OK, the SQLite result code of the failure, or SQLITE_MISUSE.
  */
-int  d_sqlite_add_column_sql(struct sqlite3* _db,
-                             const char*     _schema,
-                             const char*     _table,
-                             const char*     _definition) D_NOTHROW;
+int d_sqlite_add_column_sql(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _definition
+) D_NOTHROW;
 /**
  * @brief Renames a column, and every reference to it in the schema.
  *
@@ -344,11 +370,13 @@ int  d_sqlite_add_column_sql(struct sqlite3* _db,
  * @return SQLITE_OK; D_DB_UNSUPPORTED before SQLite 3.25.0; the SQLite result
  *         code of the failure; or SQLITE_MISUSE.
  */
-int  d_sqlite_rename_column(struct sqlite3* _db,
-                            const char*     _schema,
-                            const char*     _table,
-                            const char*     _column,
-                            const char*     _new_name) D_NOTHROW;
+int d_sqlite_rename_column(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column,
+    const char*     _new_name
+) D_NOTHROW;
 /**
  * @brief Drops a column from a table.
  *
@@ -363,10 +391,12 @@ int  d_sqlite_rename_column(struct sqlite3* _db,
  * @return SQLITE_OK; D_DB_UNSUPPORTED before SQLite 3.35.0; the SQLite result
  *         code of the failure; or SQLITE_MISUSE.
  */
-int  d_sqlite_drop_column(struct sqlite3* _db,
-                          const char*     _schema,
-                          const char*     _table,
-                          const char*     _column) D_NOTHROW;
+int d_sqlite_drop_column(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _table,
+    const char*     _column
+) D_NOTHROW;
 
 // 3.3    Listing
 //------------------------------------------------------------------------------
@@ -386,10 +416,12 @@ int  d_sqlite_drop_column(struct sqlite3* _db,
  *         SQLite result code of the failure; SQLITE_NOMEM; or SQLITE_MISUSE.
  * @post On success the caller releases `_columns` with d_db_column_list_free.
  */
-int  d_sqlite_list_columns(struct sqlite3*          _db,
-                           const char*              _schema,
-                           const char*              _table,
-                           struct d_db_column_list* _columns) D_NOTHROW;
+int d_sqlite_list_columns(
+    struct sqlite3*           _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -401,13 +433,17 @@ int  d_sqlite_list_columns(struct sqlite3*          _db,
 //------------------------------------------------------------------------------
 // existence -- whether the schema has an index of that name. As has_table for
 // the two forms.
-bool d_sqlite_has_index(struct sqlite3* _db,
-                        const char*     _schema,
-                        const char*     _index) D_NOTHROW;
-int  d_sqlite_has_index_s(struct sqlite3* _db,
-                          const char*     _schema,
-                          const char*     _index,
-                          bool*           _exists) D_NOTHROW;
+bool d_sqlite_has_index(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _index
+) D_NOTHROW;
+int d_sqlite_has_index_s(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _index,
+    bool*           _exists
+) D_NOTHROW;
 
 // 4.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -432,12 +468,14 @@ int  d_sqlite_has_index_s(struct sqlite3* _db,
  *         SQLITE_CONSTRAINT when D_DB_UNIQUE meets duplicates; or
  *         SQLITE_MISUSE.
  */
-int  d_sqlite_create_index(struct sqlite3* _db,
-                           const char*     _schema,
-                           const char*     _index,
-                           const char*     _table,
-                           const char*     _columns,
-                           unsigned        _flags) D_NOTHROW;
+int d_sqlite_create_index(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _index,
+    const char*     _table,
+    const char*     _columns,
+    unsigned        _flags
+) D_NOTHROW;
 /**
  * @brief Drops an index.
  *
@@ -448,10 +486,12 @@ int  d_sqlite_create_index(struct sqlite3* _db,
  * @return SQLITE_OK; SQLITE_ERROR when it does not exist without
  *         D_DB_IF_EXISTS, or it belongs to a constraint; or SQLITE_MISUSE.
  */
-int  d_sqlite_drop_index(struct sqlite3* _db,
-                         const char*     _schema,
-                         const char*     _index,
-                         unsigned        _flags) D_NOTHROW;
+int d_sqlite_drop_index(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _index,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 4.3    Listing
 //------------------------------------------------------------------------------
@@ -469,10 +509,12 @@ int  d_sqlite_drop_index(struct sqlite3* _db,
  *         SQLITE_MISUSE.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int  d_sqlite_list_indexes(struct sqlite3*        _db,
-                           const char*            _schema,
-                           const char*            _table,
-                           struct d_db_name_list* _names) D_NOTHROW;
+int d_sqlite_list_indexes(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -484,13 +526,17 @@ int  d_sqlite_list_indexes(struct sqlite3*        _db,
 //------------------------------------------------------------------------------
 // existence -- whether the schema has a view of that name. As has_table for
 // the two forms.
-bool d_sqlite_has_view(struct sqlite3* _db,
-                       const char*     _schema,
-                       const char*     _view) D_NOTHROW;
-int  d_sqlite_has_view_s(struct sqlite3* _db,
-                         const char*     _schema,
-                         const char*     _view,
-                         bool*           _exists) D_NOTHROW;
+bool d_sqlite_has_view(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _view
+) D_NOTHROW;
+int d_sqlite_has_view_s(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _view,
+    bool*           _exists
+) D_NOTHROW;
 
 // 5.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -505,11 +551,13 @@ int  d_sqlite_has_view_s(struct sqlite3* _db,
  * @return SQLITE_OK; SQLITE_ERROR when it exists without
  *         D_DB_IF_NOT_EXISTS, or SQLite rejects the SELECT; or SQLITE_MISUSE.
  */
-int  d_sqlite_create_view(struct sqlite3* _db,
-                          const char*     _schema,
-                          const char*     _view,
-                          const char*     _select,
-                          unsigned        _flags) D_NOTHROW;
+int d_sqlite_create_view(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _view,
+    const char*     _select,
+    unsigned        _flags
+) D_NOTHROW;
 /**
  * @brief Drops a view.
  *
@@ -520,10 +568,12 @@ int  d_sqlite_create_view(struct sqlite3* _db,
  * @return SQLITE_OK; SQLITE_ERROR when it does not exist without
  *         D_DB_IF_EXISTS; or SQLITE_MISUSE.
  */
-int  d_sqlite_drop_view(struct sqlite3* _db,
-                        const char*     _schema,
-                        const char*     _view,
-                        unsigned        _flags) D_NOTHROW;
+int d_sqlite_drop_view(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _view,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 5.3    Listing
 //------------------------------------------------------------------------------
@@ -537,9 +587,11 @@ int  d_sqlite_drop_view(struct sqlite3* _db,
  *         SQLITE_MISUSE.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int  d_sqlite_list_views(struct sqlite3*        _db,
-                         const char*            _schema,
-                         struct d_db_name_list* _names) D_NOTHROW;
+int d_sqlite_list_views(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -551,13 +603,17 @@ int  d_sqlite_list_views(struct sqlite3*        _db,
 //------------------------------------------------------------------------------
 // existence -- whether the schema has a trigger of that name. As has_table
 // for the two forms.
-bool d_sqlite_has_trigger(struct sqlite3* _db,
-                          const char*     _schema,
-                          const char*     _trigger) D_NOTHROW;
-int  d_sqlite_has_trigger_s(struct sqlite3* _db,
-                            const char*     _schema,
-                            const char*     _trigger,
-                            bool*           _exists) D_NOTHROW;
+bool d_sqlite_has_trigger(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _trigger
+) D_NOTHROW;
+int d_sqlite_has_trigger_s(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _trigger,
+    bool*           _exists
+) D_NOTHROW;
 
 // 6.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -575,11 +631,13 @@ int  d_sqlite_has_trigger_s(struct sqlite3* _db,
  *         D_DB_IF_NOT_EXISTS, or SQLite rejects the definition; or
  *         SQLITE_MISUSE.
  */
-int  d_sqlite_create_trigger(struct sqlite3* _db,
-                             const char*     _schema,
-                             const char*     _trigger,
-                             const char*     _definition,
-                             unsigned        _flags) D_NOTHROW;
+int d_sqlite_create_trigger(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _trigger,
+    const char*     _definition,
+    unsigned        _flags
+) D_NOTHROW;
 /**
  * @brief Drops a trigger.
  *
@@ -590,10 +648,12 @@ int  d_sqlite_create_trigger(struct sqlite3* _db,
  * @return SQLITE_OK; SQLITE_ERROR when it does not exist without
  *         D_DB_IF_EXISTS; or SQLITE_MISUSE.
  */
-int  d_sqlite_drop_trigger(struct sqlite3* _db,
-                           const char*     _schema,
-                           const char*     _trigger,
-                           unsigned        _flags) D_NOTHROW;
+int d_sqlite_drop_trigger(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _trigger,
+    unsigned        _flags
+) D_NOTHROW;
 
 // 6.3    Listing
 //------------------------------------------------------------------------------
@@ -608,10 +668,12 @@ int  d_sqlite_drop_trigger(struct sqlite3* _db,
  *         SQLITE_MISUSE.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int  d_sqlite_list_triggers(struct sqlite3*        _db,
-                            const char*            _schema,
-                            const char*            _table,
-                            struct d_db_name_list* _names) D_NOTHROW;
+int d_sqlite_list_triggers(
+    struct sqlite3*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

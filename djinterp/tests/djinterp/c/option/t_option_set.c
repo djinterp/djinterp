@@ -29,8 +29,8 @@
 static int g_checks   = 0;
 static int g_failures = 0;
 
-static void
-d_tests_option_expect(
+static
+void d_tests_option_expect(
     bool        _ok,
     const char* _what
 )
@@ -47,11 +47,10 @@ d_tests_option_expect(
     return;
 }
 
-int
-main(void)
+int main(void)
 {
-    struct d_option     cells[4];
-    struct d_option_set set;
+    struct dj_option     cells[4];
+    struct dj_option_set set;
 
     memset(cells, 0, sizeof(cells));
     memset(&set, 0, sizeof(set));
@@ -81,8 +80,8 @@ main(void)
 
     // the by-value status agrees with the pointer form in both arms
     {
-        const struct d_option_result ok   = d_option_ok(7u);
-        const struct d_option_result fail =
+        const struct dj_option_result ok   = d_option_ok(7u);
+        const struct dj_option_result fail =
             d_option_fail((int32_t)D_OPTION_STATUS_BUFFER_TOO_SMALL);
 
         d_tests_option_expect(

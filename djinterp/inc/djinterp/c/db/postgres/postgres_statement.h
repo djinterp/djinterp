@@ -78,9 +78,9 @@ TABLE OF CONTENTS
 #include <stddef.h>  // size_t
 // djinterp
 #include "../../djinterp.h"     // framework root
-#include "./postgres_common.h"  // pg_conn, d_postgres_statement, the results
+#include "./postgres_common.h"  // pg_conn, dj_postgres_statement, the results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -113,9 +113,11 @@ D_EXTERN_C_BEGIN
  * @post On success the caller releases `*_statement` with
  *       d_postgres_finalize.
  */
-int    d_postgres_prepare(struct pg_conn*               _db,
-                          struct d_postgres_statement** _statement,
-                          const char*                   _sql) D_NOTHROW;
+int d_postgres_prepare(
+    struct pg_conn*                _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _sql
+) D_NOTHROW;
 /**
  * @brief Formats one SQL statement and has the server prepare it, as
  *        d_postgres_prepare.
@@ -130,10 +132,12 @@ int    d_postgres_prepare(struct pg_conn*               _db,
  *         layer cannot read.
  * @post As for d_postgres_prepare.
  */
-int    d_postgres_preparef(struct pg_conn*               _db,
-                           struct d_postgres_statement** _statement,
-                           const char*                   _format,
-                           ...) D_NOTHROW;
+int d_postgres_preparef(
+    struct pg_conn*                _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _format,
+    ...
+) D_NOTHROW;
 
 // 1.2    Finalizing and closing
 //------------------------------------------------------------------------------
@@ -152,8 +156,9 @@ int    d_postgres_preparef(struct pg_conn*               _db,
  *         copy.
  * @post `_statement` is invalid.
  */
-int    d_postgres_finalize(struct d_postgres_statement* _statement)
-       D_NOTHROW;
+int d_postgres_finalize(
+    struct dj_postgres_statement* _statement
+) D_NOTHROW;
 /**
  * @brief Closes a statement the session has prepared, by its name: one
  *        PREPARE made, or a program's own libpq call.
@@ -171,19 +176,22 @@ int    d_postgres_finalize(struct d_postgres_statement* _statement)
  *         SQLSTATE of the failure, packed; D_DB_INVALID_ARGUMENT for a
  *         `NULL` connection, or a `NULL` or empty name.
  */
-int    d_postgres_close_prepared(struct pg_conn* _db,
-                                 const char*     _name) D_NOTHROW;
+int d_postgres_close_prepared(
+    struct pg_conn* _db,
+    const char*     _name
+) D_NOTHROW;
 
 // 1.3    Describing
 //------------------------------------------------------------------------------
 // describing -- _parameter_count is the number of the highest parameter the
 // statement uses, 0 for NULL; _statement_connection is the connection it
 // belongs to, NULL for NULL
-size_t d_postgres_parameter_count(const struct d_postgres_statement* _statement)
-       D_NOTHROW;
-struct pg_conn*
-       d_postgres_statement_connection(
-           const struct d_postgres_statement* _statement) D_NOTHROW;
+size_t d_postgres_parameter_count(
+    const struct dj_postgres_statement* _statement
+) D_NOTHROW;
+struct pg_conn* d_postgres_statement_connection(
+    const struct dj_postgres_statement* _statement
+) D_NOTHROW;
 
 
 // 1.4    Preparing without blocking
@@ -214,16 +222,17 @@ struct pg_conn*
  *       d_postgres_finalize, and continues it with
  *       d_postgres_prepare_continue while the answer is D_DB_WAIT.
  */
-int    d_postgres_prepare_start(struct pg_conn*               _db,
-                                struct d_postgres_statement** _statement,
-                                const char*                   _sql,
-                                struct d_db_pending*          _pending)
-                                D_NOTHROW;
+int d_postgres_prepare_start(
+    struct pg_conn*                _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _sql,
+    struct dj_db_pending*          _pending
+) D_NOTHROW;
 /**
  * @brief Continues the prepare d_postgres_prepare_start began.
  *
  * @param[in]     _statement  the statement being prepared.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @return 0, the statement prepared and its parameters described;
@@ -231,10 +240,11 @@ int    d_postgres_prepare_start(struct pg_conn*               _db,
  *         statement unprepared; D_DB_INVALID_ARGUMENT for a `NULL` argument,
  *         or a statement with no prepare under way.
  */
-int    d_postgres_prepare_continue(struct d_postgres_statement* _statement,
-                                   unsigned                     _events,
-                                   struct d_db_pending*         _pending)
-                                   D_NOTHROW;
+int d_postgres_prepare_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -252,31 +262,44 @@ int    d_postgres_prepare_continue(struct d_postgres_statement* _statement,
 // statement does not have; 53200 when memory ran out; or
 // D_DB_INVALID_ARGUMENT for a NULL statement, or text or bytes longer than
 // libpq can send.
-int    d_postgres_bind_null(struct d_postgres_statement* _statement,
-                            size_t                       _index) D_NOTHROW;
-int    d_postgres_bind_bool(struct d_postgres_statement* _statement,
-                            size_t                       _index,
-                            bool                         _value) D_NOTHROW;
-int    d_postgres_bind_int64(struct d_postgres_statement* _statement,
-                             size_t                       _index,
-                             int64_t                      _value) D_NOTHROW;
-int    d_postgres_bind_double(struct d_postgres_statement* _statement,
-                              size_t                       _index,
-                              double                       _value) D_NOTHROW;
-int    d_postgres_bind_text(struct d_postgres_statement* _statement,
-                            size_t                       _index,
-                            const char*                  _text) D_NOTHROW;
-int    d_postgres_bind_blob(struct d_postgres_statement* _statement,
-                            size_t                       _index,
-                            const void*                  _bytes,
-                            size_t                       _size) D_NOTHROW;
+int d_postgres_bind_null(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index
+) D_NOTHROW;
+int d_postgres_bind_bool(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    bool                          _value
+) D_NOTHROW;
+int d_postgres_bind_int64(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    int64_t                       _value
+) D_NOTHROW;
+int d_postgres_bind_double(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    double                        _value
+) D_NOTHROW;
+int d_postgres_bind_text(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    const char*                   _text
+) D_NOTHROW;
+int d_postgres_bind_blob(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    const void*                   _bytes,
+    size_t                        _size
+) D_NOTHROW;
 
 // 2.2    Clearing
 //------------------------------------------------------------------------------
 // clearing -- every parameter NULL again: 0, or D_DB_INVALID_ARGUMENT for a
 // NULL statement
-int    d_postgres_clear_bindings(struct d_postgres_statement* _statement)
-       D_NOTHROW;
+int d_postgres_clear_bindings(
+    struct dj_postgres_statement* _statement
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -298,9 +321,10 @@ int    d_postgres_clear_bindings(struct d_postgres_statement* _statement)
  *         D_DB_INVALID_ARGUMENT for a `NULL` statement.
  * @post Its values stay bound.
  */
-int    d_postgres_execute_update(struct d_postgres_statement* _statement,
-                                 int64_t*                     _changes)
-       D_NOTHROW;
+int d_postgres_execute_update(
+    struct dj_postgres_statement* _statement,
+    int64_t*                      _changes
+) D_NOTHROW;
 
 // 3.2    Rows
 //------------------------------------------------------------------------------
@@ -315,8 +339,10 @@ int    d_postgres_execute_update(struct d_postgres_statement* _statement,
  * @post Its values stay bound. On success the caller releases `_rows` with
  *       d_db_rows_free.
  */
-int    d_postgres_execute_query(struct d_postgres_statement* _statement,
-                                struct d_db_rows*            _rows) D_NOTHROW;
+int d_postgres_execute_query(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_rows*            _rows
+) D_NOTHROW;
 
 // 3.3    Rows a few at a time
 //------------------------------------------------------------------------------
@@ -334,8 +360,9 @@ int    d_postgres_execute_query(struct d_postgres_statement* _statement,
  *         (postgres_protocol.h); 08006 when the connection is lost;
  *         D_DB_INVALID_ARGUMENT for a `NULL` statement.
  */
-int    d_postgres_open_cursor(struct d_postgres_statement* _statement)
-       D_NOTHROW;
+int d_postgres_open_cursor(
+    struct dj_postgres_statement* _statement
+) D_NOTHROW;
 /**
  * @brief Reads the next rows of the run d_postgres_open_cursor began.
  *
@@ -355,16 +382,19 @@ int    d_postgres_open_cursor(struct d_postgres_statement* _statement)
  *         or no run open.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_postgres_fetch_rows(struct d_postgres_statement* _statement,
-                             size_t                       _max,
-                             struct d_db_rows*            _rows) D_NOTHROW;
+int d_postgres_fetch_rows(
+    struct dj_postgres_statement* _statement,
+    size_t                        _max,
+    struct dj_db_rows*            _rows
+) D_NOTHROW;
 // ending a run -- _close_cursor ends the run d_postgres_open_cursor began,
 // reading away whatever rows it had left, so that the connection is free
 // again: 0, or the SQLSTATE, packed, of a failure the server reported among
 // them, the run ended all the same; 0 for a statement with no run open;
 // D_DB_INVALID_ARGUMENT for NULL
-int    d_postgres_close_cursor(struct d_postgres_statement* _statement)
-       D_NOTHROW;
+int d_postgres_close_cursor(
+    struct dj_postgres_statement* _statement
+) D_NOTHROW;
 
 // 3.4    Running without blocking
 //------------------------------------------------------------------------------
@@ -396,15 +426,16 @@ int    d_postgres_close_cursor(struct d_postgres_statement* _statement)
  *       d_postgres_execute_update_continue or
  *       d_postgres_execute_query_continue.
  */
-int    d_postgres_execute_start(struct d_postgres_statement* _statement,
-                                struct d_db_pending*         _pending)
-                                D_NOTHROW;
+int d_postgres_execute_start(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending
+) D_NOTHROW;
 /**
  * @brief Reads the result of the run d_postgres_execute_start sent, once it
  *        has arrived, counting the rows it changed.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @param[out]    _changes    as for d_postgres_execute_update; may be
@@ -413,17 +444,18 @@ int    d_postgres_execute_start(struct d_postgres_statement* _statement,
  *         D_DB_INVALID_ARGUMENT for a `NULL` statement or pending call, or a
  *         statement with no run sent.
  */
-int    d_postgres_execute_update_continue(
-           struct d_postgres_statement* _statement,
-           unsigned                     _events,
-           struct d_db_pending*         _pending,
-           int64_t*                     _changes) D_NOTHROW;
+int d_postgres_execute_update_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    int64_t*                      _changes
+) D_NOTHROW;
 /**
  * @brief Reads the result of the run d_postgres_execute_start sent, once it
  *        has arrived, returning its rows.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @param[out]    _rows       as for d_postgres_execute_query.
@@ -431,11 +463,12 @@ int    d_postgres_execute_update_continue(
  *         also for a statement with no run sent.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_postgres_execute_query_continue(
-           struct d_postgres_statement* _statement,
-           unsigned                     _events,
-           struct d_db_pending*         _pending,
-           struct d_db_rows*            _rows) D_NOTHROW;
+int d_postgres_execute_query_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
+) D_NOTHROW;
 /**
  * @brief Opens a run as d_postgres_open_cursor does, without waiting for
  *        the socket.
@@ -447,23 +480,25 @@ int    d_postgres_execute_query_continue(
  *         d_postgres_execute_start gives it; 08006 when the connection is
  *         lost; D_DB_INVALID_ARGUMENT for a `NULL` argument.
  */
-int    d_postgres_open_cursor_start(struct d_postgres_statement* _statement,
-                                    struct d_db_pending*         _pending)
-                                    D_NOTHROW;
+int d_postgres_open_cursor_start(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending
+) D_NOTHROW;
 /**
  * @brief Writes more of the run d_postgres_open_cursor_start opened.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @return as d_postgres_open_cursor_start; D_DB_INVALID_ARGUMENT also for a
  *         statement with no run being opened.
  */
-int    d_postgres_open_cursor_continue(
-           struct d_postgres_statement* _statement,
-           unsigned                     _events,
-           struct d_db_pending*         _pending) D_NOTHROW;
+int d_postgres_open_cursor_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending
+) D_NOTHROW;
 /**
  * @brief Begins reading the next page of the open run, without waiting.
  *
@@ -478,17 +513,18 @@ int    d_postgres_open_cursor_continue(
  *         d_postgres_fetch_rows gives it.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_postgres_fetch_rows_start(struct d_postgres_statement* _statement,
-                                   size_t                       _max,
-                                   struct d_db_pending*         _pending,
-                                   struct d_db_rows*            _rows)
-                                   D_NOTHROW;
+int d_postgres_fetch_rows_start(
+    struct dj_postgres_statement* _statement,
+    size_t                        _max,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
+) D_NOTHROW;
 /**
  * @brief Reads more of the page d_postgres_fetch_rows_start began, giving
  *        it once it is whole.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @param[out]    _rows       as for d_postgres_fetch_rows_start.
@@ -496,11 +532,12 @@ int    d_postgres_fetch_rows_start(struct d_postgres_statement* _statement,
  *         statement with no page under way.
  * @post As for d_postgres_fetch_rows_start.
  */
-int    d_postgres_fetch_rows_continue(
-           struct d_postgres_statement* _statement,
-           unsigned                     _events,
-           struct d_db_pending*         _pending,
-           struct d_db_rows*            _rows) D_NOTHROW;
+int d_postgres_fetch_rows_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

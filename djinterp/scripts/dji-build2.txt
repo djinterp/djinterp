@@ -1,0 +1,7 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\build\cmake\config\testing\djinterp\core\util\metadata
+├── 📁 metadata_concepts
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 metadata_concepts_tests_runner.cpp
+└── 📁 metadata_traits
+    ├── 📄 CMakeLists.txt
+    └── 📄 metadata_traits_tests_runner.cpp

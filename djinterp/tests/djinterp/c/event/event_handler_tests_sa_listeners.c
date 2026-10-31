@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_handler_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_event_handler_mgmt_cb
 //   helper: minimal callback for listener construction.
-static void
-d_tests_sa_event_handler_mgmt_cb(size_t _count, void** _args)
+static
+void d_tests_sa_event_handler_mgmt_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -36,16 +39,14 @@ d_tests_sa_event_handler_bind_valid
   - listener_count increases
   - Multiple binds work
 */
-bool
-d_tests_sa_event_handler_bind_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_bind_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* l1;
-    struct d_event_listener* l2;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* l1;
+    struct dj_event_listener* l2;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -98,16 +99,14 @@ d_tests_sa_event_handler_bind_update
   - Returns true
   - listener_count remains unchanged
 */
-bool
-d_tests_sa_event_handler_bind_update
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_bind_update(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* l_orig;
-    struct d_event_listener* l_repl;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* l_orig;
+    struct dj_event_listener* l_repl;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -149,15 +148,13 @@ d_tests_sa_event_handler_bind_null
   - NULL handler returns false
   - NULL listener returns false
 */
-bool
-d_tests_sa_event_handler_bind_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_bind_null(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
 
     result = true;
 
@@ -200,16 +197,14 @@ d_tests_sa_event_handler_unbind_valid
   - listener_count decreases
   - Listener no longer found via get_listener
 */
-bool
-d_tests_sa_event_handler_unbind_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_unbind_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* l1;
-    struct d_event_listener* l2;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* l1;
+    struct dj_event_listener* l2;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -263,14 +258,12 @@ d_tests_sa_event_handler_unbind_missing_and_null
   - Missing key returns false
   - NULL handler returns false
 */
-bool
-d_tests_sa_event_handler_unbind_missing_and_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_unbind_missing_and_null(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_event_handler* handler;
+    struct dj_event_handler* handler;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -303,15 +296,13 @@ d_tests_sa_event_handler_get_listener_basic
   - Returns NULL for missing key
   - Returns NULL for NULL handler
 */
-bool
-d_tests_sa_event_handler_get_listener_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_get_listener_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -360,15 +351,13 @@ d_tests_sa_event_handler_enable_disable
   - enabled_count increases after enable
   - Disable on non-existent ID returns false
 */
-bool
-d_tests_sa_event_handler_enable_disable
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_enable_disable(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -431,10 +420,8 @@ d_tests_sa_event_handler_enable_disable_null
   - Enable returns false for NULL handler
   - Disable returns false for NULL handler
 */
-bool
-d_tests_sa_event_handler_enable_disable_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_enable_disable_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -460,10 +447,8 @@ d_tests_sa_event_handler_enable_disable_null
 d_tests_sa_event_handler_listener_mgmt_all
   Runs all listener management tests.
 */
-bool
-d_tests_sa_event_handler_listener_mgmt_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_listener_mgmt_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

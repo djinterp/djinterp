@@ -25,9 +25,7 @@ Parameter(s):
 Return:
   negative if a < b, zero if a == b, positive if a > b
 */
-int
-d_test_int_comparator
-(
+int d_test_int_comparator(
     const void* _a,
     const void* _b
 )
@@ -59,9 +57,7 @@ Parameter(s):
 Return:
   true if arrays are equal, false otherwise
 */
-bool
-d_test_arrays_equal_int
-(
+bool d_test_arrays_equal_int(
     const void* _arr1,
     const void* _arr2,
     size_t      _count
@@ -97,9 +93,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_test_create_test_data_int
-(
+void d_test_create_test_data_int(
     int**  _data,
     size_t _count
 )

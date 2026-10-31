@@ -28,10 +28,10 @@
 // 1.1    Scanner state
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_awk_lexer
+// dj_awk_lexer
 //   struct: cursor, the scratch buffer holding the current token's text, and
 //   the one bit of history the slash rule needs.
-struct d_awk_lexer
+struct dj_awk_lexer
 {
     const char* source;
     size_t      length;
@@ -51,17 +51,17 @@ struct d_awk_lexer
 // 1.1.2
 // d_internal_keyword
 //   struct: one reserved word and the kind it produces.
-struct d_internal_keyword
+struct dj_internal_keyword
 {
     const char*           text;
-    enum d_awk_token_kind kind;
+    enum dj_awk_token_kind kind;
 };
 
 // POSIX reserves `function` and not `func`.  one-true-awk and gawk accept
 // `func` as a synonym, but reserving it breaks the perfectly legal program
 // `BEGIN { func = 5 }`, which mawk runs.  Fidelity wins; if the synonym is
 // ever wanted it belongs behind a non-POSIX flag rather than in this table.
-static const struct d_internal_keyword g_keywords[] =
+static const struct dj_internal_keyword g_keywords[] =
 {
     { "BEGIN",    D_AWK_TOK_BEGIN    },
     { "END",      D_AWK_TOK_END      },
@@ -109,10 +109,10 @@ Return:
   - true, if the buffer is large enough, or
   - false, otherwise.
 */
-static bool
-d_internal_reserve(
-    struct d_awk_lexer* _lexer,
-    size_t              _needed
+static
+bool d_internal_reserve(
+    struct dj_awk_lexer* _lexer,
+    size_t               _needed
 )
 {
     // grow the buffer when the token and its terminator do not fit
@@ -153,10 +153,10 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_fail(
-    struct d_awk_lexer* _lexer,
-    const char*         _message
+static
+void d_internal_fail(
+    struct dj_awk_lexer* _lexer,
+    const char*          _message
 )
 {
     // The message is stored raw.  Position and origin are added by whoever
@@ -184,10 +184,10 @@ Parameter(s):
 Return:
   The byte, or -1 past the end of the source.
 */
-static int
-d_internal_peek(
-    const struct d_awk_lexer* _lexer,
-    size_t                    _ahead
+static
+int d_internal_peek(
+    const struct dj_awk_lexer* _lexer,
+    size_t                     _ahead
 )
 {
     const size_t at = _lexer->at + _ahead;
@@ -207,9 +207,9 @@ Parameter(s):
 Return:
   The byte consumed, or -1 past the end of the source.
 */
-static int
-d_internal_advance(
-    struct d_awk_lexer* _lexer
+static
+int d_internal_advance(
+    struct dj_awk_lexer* _lexer
 )
 {
     const int byte = d_internal_peek(_lexer, 0);
@@ -254,10 +254,10 @@ Return:
   - true, if a literal was consumed, or
   - false, otherwise.
 */
-static bool
-d_internal_scan_string(
-    struct d_awk_lexer* _lexer,
-    struct d_awk_token* _out_token
+static
+bool d_internal_scan_string(
+    struct dj_awk_lexer* _lexer,
+    struct dj_awk_token* _out_token
 )
 {
     (void)d_internal_advance(_lexer);  // consume the opening quote
@@ -336,10 +336,10 @@ Return:
   - true, if a literal was consumed, or
   - false, otherwise.
 */
-static bool
-d_internal_scan_ere(
-    struct d_awk_lexer* _lexer,
-    struct d_awk_token* _out_token
+static
+bool d_internal_scan_ere(
+    struct dj_awk_lexer* _lexer,
+    struct dj_awk_token* _out_token
 )
 {
     (void)d_internal_advance(_lexer);  // consume the opening slash
@@ -423,10 +423,10 @@ Return:
   - true, if a word was consumed, or
   - false, otherwise.
 */
-static bool
-d_internal_scan_word(
-    struct d_awk_lexer* _lexer,
-    struct d_awk_token* _out_token
+static
+bool d_internal_scan_word(
+    struct dj_awk_lexer* _lexer,
+    struct dj_awk_token* _out_token
 )
 {
     const size_t start = _lexer->at;
@@ -506,10 +506,10 @@ Return:
   - true, if a literal was consumed, or
   - false, otherwise.
 */
-static bool
-d_internal_scan_number(
-    struct d_awk_lexer* _lexer,
-    struct d_awk_token* _out_token
+static
+bool d_internal_scan_number(
+    struct dj_awk_lexer* _lexer,
+    struct dj_awk_token* _out_token
 )
 {
     const size_t start = _lexer->at;
@@ -600,8 +600,7 @@ Parameter(s):
 Return:
   The scanner, or NULL on failure.
 */
-struct d_awk_lexer*
-d_awk_lexer_new(
+struct dj_awk_lexer* d_awk_lexer_new(
     const char* _source,
     size_t      _length,
     const char* _origin
@@ -613,7 +612,7 @@ d_awk_lexer_new(
         return NULL;
     }
 
-    struct d_awk_lexer* lexer = calloc(1, sizeof(*lexer));
+    struct dj_awk_lexer* lexer = calloc(1, sizeof(*lexer));
 
     // abandon the allocation when the handle could not be held
     if (!lexer)
@@ -640,9 +639,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_lexer_free(
-    struct d_awk_lexer* _lexer
+void d_awk_lexer_free(
+    struct dj_awk_lexer* _lexer
 )
 {
     if (_lexer)
@@ -672,10 +670,9 @@ Return:
   - true, if a token was produced, or
   - false, at end of input or on error.
 */
-bool
-d_awk_lexer_next(
-    struct d_awk_lexer* _lexer,
-    struct d_awk_token* _out_token
+bool d_awk_lexer_next(
+    struct dj_awk_lexer* _lexer,
+    struct dj_awk_token* _out_token
 )
 {
     // parameter validation first
@@ -965,9 +962,8 @@ Parameter(s):
 Return:
   The diagnostic, or NULL when none was recorded.
 */
-const char*
-d_awk_lexer_error(
-    const struct d_awk_lexer* _lexer
+const char* d_awk_lexer_error(
+    const struct dj_awk_lexer* _lexer
 )
 {
     // parameter validation first
@@ -989,9 +985,8 @@ Parameter(s):
 Return:
   The line number, counting from one.
 */
-size_t
-d_awk_lexer_line(
-    const struct d_awk_lexer* _lexer
+size_t d_awk_lexer_line(
+    const struct dj_awk_lexer* _lexer
 )
 {
     // the position of the diagnostic, when there is one, not the cursor
@@ -1013,9 +1008,8 @@ Parameter(s):
 Return:
   The column number, counting from one.
 */
-size_t
-d_awk_lexer_column(
-    const struct d_awk_lexer* _lexer
+size_t d_awk_lexer_column(
+    const struct dj_awk_lexer* _lexer
 )
 {
     // the position of the diagnostic, when there is one, not the cursor
@@ -1039,7 +1033,7 @@ Return:
 */
 const char*
 d_awk_token_name(
-    enum d_awk_token_kind _kind
+    enum dj_awk_token_kind _kind
 )
 {
     static const char* const names[] =
@@ -1067,8 +1061,8 @@ d_internal_escape_of
 that names no escape stands for itself, which is what awk has always done with
 "\q": POSIX leaves it undefined.
 */
-static char
-d_internal_escape_of(
+static
+char d_internal_escape_of(
     char _letter
 )
 {
@@ -1097,8 +1091,7 @@ and `"a\nz"` another.
 A backslash that ends the text is kept, since only the scanner can call that
 an error.
 */
-size_t
-d_awk_unescape(
+size_t d_awk_unescape(
     const char* _text,
     size_t      _length,
     char*       _out

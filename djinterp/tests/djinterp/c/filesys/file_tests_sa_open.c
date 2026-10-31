@@ -23,13 +23,10 @@ d_tests_file_fopen
   - returns NULL for a nonexistent file
   - rejects NULL arguments
 */
-static struct d_test_object*
-d_tests_file_fopen
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fopen(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     char                  fresh[D_TEST_FILE_PATH_BUF];
     FILE*                 file;
@@ -88,13 +85,10 @@ d_tests_file_fopen_s
   - clears the out-parameter before anything else
   - rejects a NULL out-parameter
 */
-static struct d_test_object*
-d_tests_file_fopen_s
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_fopen_s(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     FILE*                 stream;
     size_t                idx;
@@ -135,13 +129,9 @@ d_tests_file_fopen_s
 d_tests_file_open_all
   Runs every file_open test.
 */
-struct d_test_object*
-d_tests_file_open_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_open_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

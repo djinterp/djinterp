@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_handler_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_event_handler_query_cb
 //   helper: minimal callback for listener construction.
-static void
-d_tests_sa_event_handler_query_cb(size_t _count, void** _args)
+static
+void d_tests_sa_event_handler_query_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -36,14 +39,12 @@ d_tests_sa_event_handler_queries_empty
   - enabled_count returns 0
   - pending_events returns 0
 */
-bool
-d_tests_sa_event_handler_queries_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_queries_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_event_handler* handler;
+    struct dj_event_handler* handler;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -72,18 +73,16 @@ d_tests_sa_event_handler_queries_populated
   - enabled_count counts only enabled listeners
   - pending_events reflects queued events
 */
-bool
-d_tests_sa_event_handler_queries_populated
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_queries_populated(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* l1;
-    struct d_event_listener* l2;
-    struct d_event*          e1;
-    struct d_event*          e2;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* l1;
+    struct dj_event_listener* l2;
+    struct dj_event*          e1;
+    struct dj_event*          e2;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -144,10 +143,8 @@ d_tests_sa_event_handler_queries_null
   Tests the following:
   - All return 0
 */
-bool
-d_tests_sa_event_handler_queries_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_queries_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -169,10 +166,8 @@ d_tests_sa_event_handler_queries_null
 d_tests_sa_event_handler_query_all
   Runs all query function tests.
 */
-bool
-d_tests_sa_event_handler_query_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_query_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

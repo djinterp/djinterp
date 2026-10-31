@@ -14,7 +14,11 @@
 // djinterp
 #include "../../../../inc/djinterp/c/text/number_to_string_it.h"
 
-static int check_cardinal(int64_t value, const char* expected)
+static
+int check_cardinal(
+    int64_t     value,
+    const char* expected
+)
 {
     char buf[NTS_IT_I64_BUFFER_SIZE];
     size_t n = nts_it_cardinal_i64(buf, sizeof(buf), value, NTS_IT_FLAGS_DEFAULT);
@@ -32,7 +36,11 @@ static int check_cardinal(int64_t value, const char* expected)
     return 0;
 }
 
-static int check_ordinal(int64_t value, const char* expected)
+static
+int check_ordinal(
+    int64_t     value,
+    const char* expected
+)
 {
     char buf[NTS_IT_I64_BUFFER_SIZE];
     size_t n = nts_it_ordinal_i64(buf, sizeof(buf), value, NTS_IT_FLAGS_DEFAULT);
@@ -50,7 +58,12 @@ static int check_ordinal(int64_t value, const char* expected)
     return 0;
 }
 
-static int check_ordinal_abbrev(int64_t value, unsigned flags, const char* expected)
+static
+int check_ordinal_abbrev(
+    int64_t     value,
+    unsigned    flags,
+    const char* expected
+)
 {
     char buf[NTS_IT_I64_BUFFER_SIZE];
     size_t n = nts_it_ordinal_abbrev_i64(buf, sizeof(buf), value, flags);

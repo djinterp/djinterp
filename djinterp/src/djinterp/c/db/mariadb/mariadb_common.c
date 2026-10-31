@@ -34,11 +34,11 @@
 // FILE-LOCAL DEFINITIONS
 //==============================================================================
 
-// d_internal_mariadb_feature_need
+// dj_internal_mariadb_feature_need
 //   struct: the releases that brought one feature to each server.
-struct d_internal_mariadb_feature_need
+struct dj_internal_mariadb_feature_need
 {
-    enum d_mariadb_feature feature;        // the feature
+    enum dj_mariadb_feature feature;        // the feature
     unsigned long          mysql_since;    // MySQL's first release with it,
                                            // or 0 for none yet
     unsigned long          mariadb_since;  // MariaDB's, likewise
@@ -47,7 +47,7 @@ struct d_internal_mariadb_feature_need
 // d_internal_mariadb_feature_needs
 //   table: every feature, and the releases, numbered MAJOR*10000 +
 // MINOR*100 + PATCH, that introduced it, as mariadb_common.h lists them.
-static const struct d_internal_mariadb_feature_need
+static const struct dj_internal_mariadb_feature_need
 d_internal_mariadb_feature_needs[] =
 {
     { D_MARIADB_FEATURE_CTE,                 80001ul, 100202ul },
@@ -83,7 +83,7 @@ server's alone.
 */
 static bool
 d_internal_mariadb_client_has(
-    enum d_mariadb_feature _feature
+    enum dj_mariadb_feature _feature
 )
 {
     switch (_feature)
@@ -115,10 +115,7 @@ d_mariadb_client_version
   The loaded library's own string: Connector/C's version (3.3.17, say),
 or libmysqlclient's, which is its server release (8.0.46).
 */
-const char*
-d_mariadb_client_version(
-    void
-)
+const char* d_mariadb_client_version(void)
 {
     return mysql_get_client_info();
 }
@@ -127,10 +124,7 @@ d_mariadb_client_version(
 d_mariadb_client_version_number
   The loaded library's own number, as its string reads.
 */
-unsigned long
-d_mariadb_client_version_number(
-    void
-)
+unsigned long d_mariadb_client_version_number(void)
 {
     return mysql_get_client_version();
 }
@@ -140,10 +134,7 @@ d_mariadb_client_is_mariadb
   Decided when the layer was compiled, by the header env found: the two
 clients' libraries are not interchangeable at run time.
 */
-bool
-d_mariadb_client_is_mariadb(
-    void
-)
+bool d_mariadb_client_is_mariadb(void)
 {
     return (D_ENV_MYSQL_COMMON_IS_MARIADB != 0);
 }
@@ -157,10 +148,7 @@ layer was compiled against: its number, then its TLS library's name, which
 Schannel's build gives as "Schannel" (schannel.c's tls_library_version) and
 a build without TLS as "Off", which has no TLS to pass by.
 */
-bool
-d_mariadb_client_nonblocking_tls(
-    void
-)
+bool d_mariadb_client_nonblocking_tls(void)
 {
     const unsigned long version = mysql_get_client_version();
     const char*         library = NULL;
@@ -191,10 +179,7 @@ d_mariadb_client_nonblocking_tls
   A client without Schannel carries TLS as it carries anything else, where
 it has calls that do not block at all.
 */
-bool
-d_mariadb_client_nonblocking_tls(
-    void
-)
+bool d_mariadb_client_nonblocking_tls(void)
 {
     return (D_INTERNAL_MARIADB_ASYNC != 0);
 }
@@ -209,8 +194,7 @@ d_mariadb_result_message
 only d_mariadb_error_message can give it; this says so, save for the four
 numbers the layer returns itself, which have no text there.
 */
-const char*
-d_mariadb_result_message(
+const char* d_mariadb_result_message(
     int _result
 )
 {
@@ -255,9 +239,9 @@ d_mariadb_result_message(
 d_mariadb_server_flavor
   Read when the handle was made.
 */
-enum d_mariadb_flavor
+enum dj_mariadb_flavor
 d_mariadb_server_flavor(
-    const struct d_mariadb* _db
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? _db->flavor : D_MARIADB_FLAVOR_UNKNOWN;
@@ -268,9 +252,8 @@ d_mariadb_server_version
   The client's copy of what the server sent; Connector/C strips MariaDB's
 "5.5.5-" from it, and libmysqlclient does not.
 */
-const char*
-d_mariadb_server_version(
-    const struct d_mariadb* _db
+const char* d_mariadb_server_version(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? mysql_get_server_info(_db->native) : NULL;
@@ -281,9 +264,8 @@ d_mariadb_server_version_number
   Read when the handle was made, past MariaDB's disguise, where
 mysql_get_server_version under libmysqlclient answers 50505.
 */
-unsigned long
-d_mariadb_server_version_number(
-    const struct d_mariadb* _db
+unsigned long d_mariadb_server_version_number(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? _db->version : 0ul;
@@ -296,8 +278,8 @@ however large, can overflow an encoded number.
 */
 bool
 d_mariadb_server_at_least(
-    const struct d_mariadb* _db,
-    enum d_mariadb_flavor   _flavor,
+    const struct dj_mariadb* _db,
+    enum dj_mariadb_flavor   _flavor,
     unsigned                _major,
     unsigned                _minor,
     unsigned                _patch
@@ -339,8 +321,8 @@ server.
 */
 bool
 d_mariadb_supports(
-    const struct d_mariadb* _db,
-    enum d_mariadb_feature  _feature
+    const struct dj_mariadb* _db,
+    enum dj_mariadb_feature  _feature
 )
 {
     const size_t count = sizeof(d_internal_mariadb_feature_needs) /
@@ -355,7 +337,7 @@ d_mariadb_supports(
 
     for (size_t i = 0u; i < count; ++i)
     {
-        const struct d_internal_mariadb_feature_need* const need =
+        const struct dj_internal_mariadb_feature_need* const need =
             &d_internal_mariadb_feature_needs[i];
 
         // the feature's row decides
@@ -384,9 +366,8 @@ d_mariadb_supports(
 d_mariadb_native
   The MYSQL* inside, as void* because no public header can name it.
 */
-void*
-d_mariadb_native(
-    struct d_mariadb* _db
+void* d_mariadb_native(
+    struct dj_mariadb* _db
 )
 {
     return (_db) ? (void*)_db->native : NULL;
@@ -398,9 +379,8 @@ d_mariadb_native(
 d_mariadb_error_code
   The client's record of the last call on the connection.
 */
-unsigned
-d_mariadb_error_code(
-    const struct d_mariadb* _db
+unsigned d_mariadb_error_code(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? mysql_errno(_db->native) : 0u;
@@ -411,9 +391,8 @@ d_mariadb_error_message
   As d_mariadb_error_code, in words; the client's buffer, valid until the
 next call on the connection.
 */
-const char*
-d_mariadb_error_message(
-    const struct d_mariadb* _db
+const char* d_mariadb_error_message(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? mysql_error(_db->native) : "";
@@ -423,9 +402,8 @@ d_mariadb_error_message(
 d_mariadb_sqlstate
   As d_mariadb_error_code, as an SQLSTATE.
 */
-const char*
-d_mariadb_sqlstate(
-    const struct d_mariadb* _db
+const char* d_mariadb_sqlstate(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? mysql_sqlstate(_db->native) : "";
@@ -444,10 +422,7 @@ d_mariadb_sqlstate(
 d_mariadb_client_version
   Without a client there is no version: the empty string, never NULL.
 */
-const char*
-d_mariadb_client_version(
-    void
-)
+const char* d_mariadb_client_version(void)
 {
     return "";
 }
@@ -456,10 +431,7 @@ d_mariadb_client_version(
 d_mariadb_client_version_number
   Without a client the version is 0, below every release.
 */
-unsigned long
-d_mariadb_client_version_number(
-    void
-)
+unsigned long d_mariadb_client_version_number(void)
 {
     return 0ul;
 }
@@ -468,10 +440,7 @@ d_mariadb_client_version_number(
 d_mariadb_client_is_mariadb
   Without a client, false.
 */
-bool
-d_mariadb_client_is_mariadb(
-    void
-)
+bool d_mariadb_client_is_mariadb(void)
 {
     return false;
 }
@@ -480,10 +449,7 @@ d_mariadb_client_is_mariadb(
 d_mariadb_client_nonblocking_tls
   Without a client, false.
 */
-bool
-d_mariadb_client_nonblocking_tls(
-    void
-)
+bool d_mariadb_client_nonblocking_tls(void)
 {
     return false;
 }
@@ -493,8 +459,7 @@ d_mariadb_result_message
   Without a client only the layer's own results occur; this build's
 D_DB_UNSUPPORTED says why, and any other value is unknown.
 */
-const char*
-d_mariadb_result_message(
+const char* d_mariadb_result_message(
     int _result
 )
 {
@@ -513,9 +478,9 @@ d_mariadb_result_message(
 d_mariadb_server_flavor
   Without a client no server is reached.
 */
-enum d_mariadb_flavor
+enum dj_mariadb_flavor
 d_mariadb_server_flavor(
-    const struct d_mariadb* _db
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -527,9 +492,8 @@ d_mariadb_server_flavor(
 d_mariadb_server_version
   Without a client, NULL.
 */
-const char*
-d_mariadb_server_version(
-    const struct d_mariadb* _db
+const char* d_mariadb_server_version(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -541,9 +505,8 @@ d_mariadb_server_version(
 d_mariadb_server_version_number
   Without a client the version is 0, below every release.
 */
-unsigned long
-d_mariadb_server_version_number(
-    const struct d_mariadb* _db
+unsigned long d_mariadb_server_version_number(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -557,8 +520,8 @@ d_mariadb_server_at_least
 */
 bool
 d_mariadb_server_at_least(
-    const struct d_mariadb* _db,
-    enum d_mariadb_flavor   _flavor,
+    const struct dj_mariadb* _db,
+    enum dj_mariadb_flavor   _flavor,
     unsigned                _major,
     unsigned                _minor,
     unsigned                _patch
@@ -579,8 +542,8 @@ d_mariadb_supports
 */
 bool
 d_mariadb_supports(
-    const struct d_mariadb* _db,
-    enum d_mariadb_feature  _feature
+    const struct dj_mariadb* _db,
+    enum dj_mariadb_feature  _feature
 )
 {
     (void)_db;
@@ -593,9 +556,8 @@ d_mariadb_supports(
 d_mariadb_native
   Without a client, NULL.
 */
-void*
-d_mariadb_native(
-    struct d_mariadb* _db
+void* d_mariadb_native(
+    struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -607,9 +569,8 @@ d_mariadb_native(
 d_mariadb_error_code
   Without a client there is nothing to count: 0.
 */
-unsigned
-d_mariadb_error_code(
-    const struct d_mariadb* _db
+unsigned d_mariadb_error_code(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -621,9 +582,8 @@ d_mariadb_error_code(
 d_mariadb_error_message
   Without a client there is no error to describe: the empty string.
 */
-const char*
-d_mariadb_error_message(
-    const struct d_mariadb* _db
+const char* d_mariadb_error_message(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -635,9 +595,8 @@ d_mariadb_error_message(
 d_mariadb_sqlstate
   Without a client there is no error to describe: the empty string.
 */
-const char*
-d_mariadb_sqlstate(
-    const struct d_mariadb* _db
+const char* d_mariadb_sqlstate(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;

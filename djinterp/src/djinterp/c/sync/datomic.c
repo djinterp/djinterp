@@ -196,7 +196,7 @@
     d_atomic_load_##sfx##_explicit                                     \
     (                                                                  \
         const atype*   _obj,                                           \
-        d_memory_order _order                                          \
+        dj_memory_order _order                                          \
     )                                                                  \
     {                                                                  \
         if (!_obj)                                                     \
@@ -226,7 +226,7 @@
     (                                                                  \
         atype*         _obj,                                           \
         vtype          _value,                                         \
-        d_memory_order _order                                          \
+        dj_memory_order _order                                          \
     )                                                                  \
     {                                                                  \
         if (_obj)                                                      \
@@ -260,7 +260,7 @@
     (                                                                  \
         atype*         _obj,                                           \
         vtype          _value,                                         \
-        d_memory_order _order                                          \
+        dj_memory_order _order                                          \
     )                                                                  \
     {                                                                  \
         if (!_obj)                                                     \
@@ -293,7 +293,7 @@
     (                                                                  \
         atype*         _obj,                                           \
         vtype          _arg,                                           \
-        d_memory_order _order                                          \
+        dj_memory_order _order                                          \
     )                                                                  \
     {                                                                  \
         if (!_obj)                                                     \
@@ -362,8 +362,8 @@
         atype*         _obj,                                           \
         vtype*         _expected,                                      \
         vtype          _desired,                                       \
-        d_memory_order _success,                                       \
-        d_memory_order _failure                                        \
+        dj_memory_order _success,                                       \
+        dj_memory_order _failure                                        \
     )                                                                  \
     {                                                                  \
         if ( (!_obj) || (!_expected) )                                 \
@@ -382,8 +382,8 @@
         atype*         _obj,                                           \
         vtype*         _expected,                                      \
         vtype          _desired,                                       \
-        d_memory_order _success,                                       \
-        d_memory_order _failure                                        \
+        dj_memory_order _success,                                       \
+        dj_memory_order _failure                                        \
     )                                                                  \
     {                                                                  \
         if ( (!_obj) || (!_expected) )                                 \
@@ -465,8 +465,8 @@
         atype*         _obj,                                           \
         vtype*         _expected,                                      \
         vtype          _desired,                                       \
-        d_memory_order _success,                                       \
-        d_memory_order _failure                                        \
+        dj_memory_order _success,                                       \
+        dj_memory_order _failure                                        \
     )                                                                  \
     {                                                                  \
         vtype old_val;                                                 \
@@ -498,8 +498,8 @@
         atype*         _obj,                                           \
         vtype*         _expected,                                      \
         vtype          _desired,                                       \
-        d_memory_order _success,                                       \
-        d_memory_order _failure                                        \
+        dj_memory_order _success,                                       \
+        dj_memory_order _failure                                        \
     )                                                                  \
     {                                                                  \
         return d_atomic_compare_exchange_strong_##sfx##_explicit(       \
@@ -571,7 +571,7 @@ Return:
 void
 d_atomic_init_ptr
 (
-    d_atomic_ptr* _obj,
+    dj_atomic_ptr* _obj,
     void*         _value
 )
 {
@@ -597,11 +597,9 @@ Parameter(s):
 Return:
   the current value, or NULL if _obj is NULL.
 */
-void*
-d_atomic_load_ptr_explicit
-(
-    const d_atomic_ptr* _obj,
-    d_memory_order      _order
+void* d_atomic_load_ptr_explicit(
+    const dj_atomic_ptr* _obj,
+    dj_memory_order      _order
 )
 {
     if (!_obj)
@@ -610,7 +608,7 @@ d_atomic_load_ptr_explicit
     }
 
 #if D_ATOMIC_USE_STDATOMIC
-    return atomic_load_explicit((d_atomic_ptr*)_obj, _order);
+    return atomic_load_explicit((dj_atomic_ptr*)_obj, _order);
 #elif D_ATOMIC_USE_WINDOWS
     #if (defined(_WIN64))
         return (void*)InterlockedCompareExchange64(
@@ -634,10 +632,8 @@ Parameter(s):
 Return:
   the current value, or NULL if _obj is NULL.
 */
-void*
-d_atomic_load_ptr
-(
-    const d_atomic_ptr* _obj
+void* d_atomic_load_ptr(
+    const dj_atomic_ptr* _obj
 )
 {
     return d_atomic_load_ptr_explicit(_obj,
@@ -655,12 +651,10 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_atomic_store_ptr_explicit
-(
-    d_atomic_ptr*  _obj,
-    void*          _value,
-    d_memory_order _order
+void d_atomic_store_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void*           _value,
+    dj_memory_order _order
 )
 {
     if (!_obj)
@@ -699,11 +693,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_atomic_store_ptr
-(
-    d_atomic_ptr* _obj,
-    void*         _value
+void d_atomic_store_ptr(
+    dj_atomic_ptr* _obj,
+    void*          _value
 )
 {
     d_atomic_store_ptr_explicit(_obj,
@@ -724,12 +716,10 @@ Parameter(s):
 Return:
   the previous value, or NULL if _obj is NULL.
 */
-void*
-d_atomic_exchange_ptr_explicit
-(
-    d_atomic_ptr*  _obj,
-    void*          _value,
-    d_memory_order _order
+void* d_atomic_exchange_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void*           _value,
+    dj_memory_order _order
 )
 {
     if (!_obj)
@@ -765,11 +755,9 @@ Parameter(s):
 Return:
   the previous value, or NULL if _obj is NULL.
 */
-void*
-d_atomic_exchange_ptr
-(
-    d_atomic_ptr* _obj,
-    void*         _value
+void* d_atomic_exchange_ptr(
+    dj_atomic_ptr* _obj,
+    void*          _value
 )
 {
     return d_atomic_exchange_ptr_explicit(
@@ -791,14 +779,12 @@ Parameter(s):
 Return:
   true if the exchange occurred, false otherwise.
 */
-bool
-d_atomic_compare_exchange_strong_ptr_explicit
-(
-    d_atomic_ptr*  _obj,
-    void**         _expected,
-    void*          _desired,
-    d_memory_order _success,
-    d_memory_order _failure
+bool d_atomic_compare_exchange_strong_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void**          _expected,
+    void*           _desired,
+    dj_memory_order _success,
+    dj_memory_order _failure
 )
 {
 #if !D_ATOMIC_USE_STDATOMIC
@@ -869,12 +855,10 @@ Parameter(s):
 Return:
   true if the exchange occurred, false otherwise.
 */
-bool
-d_atomic_compare_exchange_strong_ptr
-(
-    d_atomic_ptr* _obj,
-    void**        _expected,
-    void*         _desired
+bool d_atomic_compare_exchange_strong_ptr(
+    dj_atomic_ptr* _obj,
+    void**         _expected,
+    void*          _desired
 )
 {
     return d_atomic_compare_exchange_strong_ptr_explicit(
@@ -897,14 +881,12 @@ Parameter(s):
 Return:
   true if the exchange occurred, false otherwise.
 */
-bool
-d_atomic_compare_exchange_weak_ptr_explicit
-(
-    d_atomic_ptr*  _obj,
-    void**         _expected,
-    void*          _desired,
-    d_memory_order _success,
-    d_memory_order _failure
+bool d_atomic_compare_exchange_weak_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void**          _expected,
+    void*           _desired,
+    dj_memory_order _success,
+    dj_memory_order _failure
 )
 {
 #if D_ATOMIC_USE_STDATOMIC
@@ -934,12 +916,10 @@ Parameter(s):
 Return:
   true if the exchange occurred, false otherwise.
 */
-bool
-d_atomic_compare_exchange_weak_ptr
-(
-    d_atomic_ptr* _obj,
-    void**        _expected,
-    void*         _desired
+bool d_atomic_compare_exchange_weak_ptr(
+    dj_atomic_ptr* _obj,
+    void**         _expected,
+    void*          _desired
 )
 {
     return d_atomic_compare_exchange_weak_ptr_explicit(
@@ -963,11 +943,9 @@ Parameter(s):
 Return:
   the previous value of the flag.
 */
-bool
-d_atomic_flag_test_and_set_explicit
-(
-    d_atomic_flag* _flag,
-    d_memory_order _order
+bool d_atomic_flag_test_and_set_explicit(
+    dj_atomic_flag* _flag,
+    dj_memory_order _order
 )
 {
     if (!_flag)
@@ -995,10 +973,8 @@ Parameter(s):
 Return:
   the previous value of the flag.
 */
-bool
-d_atomic_flag_test_and_set
-(
-    d_atomic_flag* _flag
+bool d_atomic_flag_test_and_set(
+    dj_atomic_flag* _flag
 )
 {
     return d_atomic_flag_test_and_set_explicit(
@@ -1016,11 +992,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_atomic_flag_clear_explicit
-(
-    d_atomic_flag* _flag,
-    d_memory_order _order
+void d_atomic_flag_clear_explicit(
+    dj_atomic_flag* _flag,
+    dj_memory_order _order
 )
 {
     if (!_flag)
@@ -1050,10 +1024,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_atomic_flag_clear
-(
-    d_atomic_flag* _flag
+void d_atomic_flag_clear(
+    dj_atomic_flag* _flag
 )
 {
     d_atomic_flag_clear_explicit(_flag,
@@ -1076,10 +1048,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_atomic_thread_fence
-(
-    d_memory_order _order
+void d_atomic_thread_fence(
+    dj_memory_order _order
 )
 {
 #if D_ATOMIC_USE_STDATOMIC
@@ -1104,10 +1074,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_atomic_signal_fence
-(
-    d_memory_order _order
+void d_atomic_signal_fence(
+    dj_memory_order _order
 )
 {
 #if D_ATOMIC_USE_STDATOMIC
@@ -1132,11 +1100,7 @@ Parameter(s):
 Return:
   true if 1-byte atomics are lock-free on this platform.
 */
-bool
-d_atomic_is_lock_free_1
-(
-    void
-)
+bool d_atomic_is_lock_free_1(void)
 {
 #if D_ATOMIC_USE_STDATOMIC
     #ifdef ATOMIC_CHAR_LOCK_FREE
@@ -1158,11 +1122,7 @@ Parameter(s):
 Return:
   true if 2-byte atomics are lock-free on this platform.
 */
-bool
-d_atomic_is_lock_free_2
-(
-    void
-)
+bool d_atomic_is_lock_free_2(void)
 {
 #if D_ATOMIC_USE_STDATOMIC
     #ifdef ATOMIC_SHORT_LOCK_FREE
@@ -1184,11 +1144,7 @@ Parameter(s):
 Return:
   true if 4-byte atomics are lock-free on this platform.
 */
-bool
-d_atomic_is_lock_free_4
-(
-    void
-)
+bool d_atomic_is_lock_free_4(void)
 {
 #if D_ATOMIC_USE_STDATOMIC
     #ifdef ATOMIC_INT_LOCK_FREE
@@ -1210,11 +1166,7 @@ Parameter(s):
 Return:
   true if 8-byte atomics are lock-free on this platform.
 */
-bool
-d_atomic_is_lock_free_8
-(
-    void
-)
+bool d_atomic_is_lock_free_8(void)
 {
 #if D_ATOMIC_USE_STDATOMIC
     #ifdef ATOMIC_LLONG_LOCK_FREE

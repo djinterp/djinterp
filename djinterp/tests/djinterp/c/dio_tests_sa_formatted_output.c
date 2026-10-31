@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dio_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,10 +25,8 @@ d_tests_sa_dio_sprintf_s
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
   Behavior varies between sprintf_s (Windows) and vsnprintf (fallback).
 */
-bool
-d_tests_sa_dio_sprintf_s
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_sprintf_s(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -143,9 +141,8 @@ d_tests_sa_dio_vsprintf_s
 
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
 */
-static int
-vsprintf_s_test_wrapper
-(
+static
+int vsprintf_s_test_wrapper(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -162,10 +159,8 @@ vsprintf_s_test_wrapper
     return result;
 }
 
-bool
-d_tests_sa_dio_vsprintf_s
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_vsprintf_s(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -220,10 +215,8 @@ d_tests_sa_dio_snprintf
   - truncation behavior
   - return value for truncated output
 */
-bool
-d_tests_sa_dio_snprintf
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_snprintf(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -322,9 +315,8 @@ d_tests_sa_dio_vsnprintf
   - truncation behavior
   - return value correctness
 */
-static int
-vsnprintf_test_wrapper
-(
+static
+int vsnprintf_test_wrapper(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -341,10 +333,8 @@ vsnprintf_test_wrapper
     return result;
 }
 
-bool
-d_tests_sa_dio_vsnprintf
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_vsnprintf(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -406,10 +396,8 @@ d_tests_sa_dio_vsnprintf
 d_tests_sa_dio_formatted_output_all
   Aggregation function that runs all formatted output tests.
 */
-bool
-d_tests_sa_dio_formatted_output_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_formatted_output_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

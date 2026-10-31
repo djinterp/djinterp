@@ -37,8 +37,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -108,8 +108,8 @@ static const char THEME_XML[] =
 d_tests_slide_rels
   A slide's relationship part, with up to three media targets.
 */
-static void
-d_tests_slide_rels(
+static
+void d_tests_slide_rels(
     char*       _out,
     size_t      _size,
     const char* _first,
@@ -145,11 +145,11 @@ d_tests_slide_rels(
 d_tests_add_text
   Adds a text part to an archive being built.
 */
-static bool
-d_tests_add_text(
-    struct d_zip* _zip,
-    const char*   _name,
-    const char*   _text
+static
+bool d_tests_add_text(
+    struct dj_zip* _zip,
+    const char*    _name,
+    const char*    _text
 )
 {
     return d_zip_add(_zip, _name, (const unsigned char*)_text,
@@ -162,13 +162,13 @@ d_tests_make_story
   Builds the synthetic story and writes it to `_path`.  With `_scenes`
 false, the story part has no scene list, which is the fallback's case.
 */
-static bool
-d_tests_make_story(
+static
+bool d_tests_make_story(
     const char* _path,
     bool        _scenes
 )
 {
-    struct d_zip* const zip = d_zip_new();
+    struct dj_zip* const zip = d_zip_new();
     char                rels[1024];
     bool                ok  = (zip != NULL);
 
@@ -222,8 +222,8 @@ d_tests_make_story(
 d_tests_write
   Writes a small file, for a replacement's source.
 */
-static bool
-d_tests_write(
+static
+bool d_tests_write(
     const char* _path,
     const char* _text
 )
@@ -248,13 +248,13 @@ d_tests_write(
 d_tests_part
   Reads one part of a saved package as text; NULL when it is not there.
 */
-static char*
-d_tests_part(
+static
+char* d_tests_part(
     const char* _path,
     const char* _name
 )
 {
-    struct d_zip* const zip   = d_zip_open(_path, NULL, 0);
+    struct dj_zip* const zip   = d_zip_open(_path, NULL, 0);
     unsigned char*      bytes = NULL;
     size_t              length = 0;
 
@@ -280,9 +280,9 @@ d_tests_order
   - a slide's name is its root's, decoded, a prefix on the root allowed
   - an image is media but not audio
 */
-static void
-d_tests_order(
-    const struct d_story* _story
+static
+void d_tests_order(
+    const struct dj_story* _story
 )
 {
     printf("slides and media\n");
@@ -322,9 +322,9 @@ d_tests_keys
   - anything else is a name; nothing named resolves to 0
   - a rule's key is the last number short of the extension, or a group
 */
-static void
-d_tests_keys(
-    const struct d_story* _story
+static
+void d_tests_keys(
+    const struct dj_story* _story
 )
 {
     char key[64];
@@ -383,11 +383,11 @@ d_tests_replace
   - a saved story holds the new bytes, every checksum spelling rewritten in
     every part, and every other part byte for byte
 */
-static void
-d_tests_replace(
-    struct d_story* _story,
-    const char*     _path,
-    const char*     _work
+static
+void d_tests_replace(
+    struct dj_story* _story,
+    const char*      _path,
+    const char*      _work
 )
 {
     char why[256];
@@ -475,8 +475,8 @@ d_tests_fallback
   - without a scene list the slides follow their part names, numerically
   - and the story notes it
 */
-static void
-d_tests_fallback(
+static
+void d_tests_fallback(
     const char* _work
 )
 {
@@ -487,8 +487,8 @@ d_tests_fallback(
 
     (void)snprintf(path, sizeof(path), "%s/plain.story", _work);
 
-    const struct d_story_driver* const drivers[1] = { d_articulate_driver() };
-    struct d_story*                    story      = NULL;
+    const struct dj_story_driver* const drivers[1] = { d_articulate_driver() };
+    struct dj_story*                    story      = NULL;
 
     d_tests_check(d_tests_make_story(path, false), "the story is written");
     story = d_story_open(path, drivers, 1u, why, sizeof(why));
@@ -510,8 +510,7 @@ d_tests_fallback(
 main
   Runs the checks in a directory of the caller's, or serves story.sh.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
@@ -547,11 +546,11 @@ main(
 
     (void)snprintf(path, sizeof(path), "%s/course.story", work);
 
-    const struct d_story_driver* const drivers[1] = { d_articulate_driver() };
+    const struct dj_story_driver* const drivers[1] = { d_articulate_driver() };
 
     d_tests_check(d_tests_make_story(path, true), "the story is written");
 
-    struct d_story* const story = d_story_open(path, drivers, 1u, why,
+    struct dj_story* const story = d_story_open(path, drivers, 1u, why,
                                                sizeof(why));
 
     d_tests_check(story != NULL, "the story opens");

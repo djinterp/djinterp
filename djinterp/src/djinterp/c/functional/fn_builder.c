@@ -23,13 +23,12 @@
 #include <stdlib.h>   // malloc, realloc, free
 #include <string.h>   // memcpy
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
-struct d_fn_builder*
-d_fn_builder_new(void)
+struct dj_fn_builder* d_fn_builder_new(void)
 {
-    struct d_fn_builder* const builder = malloc(sizeof(*builder));
+    struct dj_fn_builder* const builder = malloc(sizeof(*builder));
 
     if (!builder)
     {
@@ -63,9 +62,9 @@ d_internal_fn_builder_room
   Both arrays share one capacity, so both grow together, doubling. On a
 failed growth the builder is unchanged.
 */
-static bool
-d_internal_fn_builder_room(
-    struct d_fn_builder* _builder
+static
+bool d_internal_fn_builder_room(
+    struct dj_fn_builder* _builder
 )
 {
     // room in both arrays already
@@ -113,10 +112,9 @@ grow -- the builder itself is then unchanged and still the caller's to free,
 so keep the original pointer when chaining. A missing transformer adds
 nothing.
 */
-struct d_fn_builder*
-d_funtional_builder_map(
-    struct d_fn_builder* _builder,
-    fn_transformer       _transform
+struct dj_fn_builder* d_funtional_builder_map(
+    struct dj_fn_builder* _builder,
+    fn_transformer        _transform
 )
 {
     // no builder, or nothing to add
@@ -142,10 +140,9 @@ d_funtional_builder_map(
 d_funtional_builder_and_then
   The same as map: a further transformer, applied after those added before.
 */
-struct d_fn_builder*
-d_funtional_builder_and_then(
-    struct d_fn_builder* _builder,
-    fn_transformer       _transform
+struct dj_fn_builder* d_funtional_builder_and_then(
+    struct dj_fn_builder* _builder,
+    fn_transformer        _transform
 )
 {
     return d_funtional_builder_map(_builder, _transform);
@@ -155,10 +152,9 @@ d_funtional_builder_and_then(
 d_funtional_builder_filter
   Appends a predicate; failure as for map.
 */
-struct d_fn_builder*
-d_funtional_builder_filter(
-    struct d_fn_builder* _builder,
-    fn_predicate         _test
+struct dj_fn_builder* d_funtional_builder_filter(
+    struct dj_fn_builder* _builder,
+    fn_predicate          _test
 )
 {
     // no builder, or nothing to add
@@ -184,10 +180,9 @@ d_funtional_builder_filter(
 d_funtional_builder_where
   The same as filter.
 */
-struct d_fn_builder*
-d_funtional_builder_where(
-    struct d_fn_builder* _builder,
-    fn_predicate         _test
+struct dj_fn_builder* d_funtional_builder_where(
+    struct dj_fn_builder* _builder,
+    fn_predicate          _test
 )
 {
     return d_funtional_builder_filter(_builder, _test);
@@ -201,14 +196,13 @@ Between transformers the value moves through two scratch elements. A
 transformer that fails stops the run: false, with `*_out_count` the number of
 elements completed.
 */
-bool
-d_fn_builder_execute(
-    const struct d_fn_builder* _builder,
-    const void*                _input,
-    size_t                     _count,
-    size_t                     _element_size,
-    void*                      _output,
-    size_t*                    _out_count
+bool d_fn_builder_execute(
+    const struct dj_fn_builder* _builder,
+    const void*                 _input,
+    size_t                      _count,
+    size_t                      _element_size,
+    void*                       _output,
+    size_t*                     _out_count
 )
 {
     size_t written = 0u;
@@ -306,9 +300,8 @@ d_fn_builder_execute(
     return ok;
 }
 
-void
-d_fn_builder_free(
-    struct d_fn_builder* _builder
+void d_fn_builder_free(
+    struct dj_fn_builder* _builder
 )
 {
     // nothing to release

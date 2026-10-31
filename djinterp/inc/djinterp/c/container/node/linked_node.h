@@ -29,21 +29,25 @@
 #include "../container.h"
 
 
-// d_linked_node
+// dj_linked_node
 //   type: a struct containing only:
 // 1. a value pointer, and
-// 2. a single pointer to another `d_linked_node`. `d_linked_node` is the
+// 2. a single pointer to another `dj_linked_node`. `dj_linked_node` is the
 // foundation for many abstract data structures.
-struct d_linked_node
+struct dj_linked_node
 {
     void*                 value;
-    struct d_linked_node* next;
+    struct dj_linked_node* next;
 };
 
-struct d_linked_node* d_linked_node_new(void*,
-                                        struct d_linked_node*);
+struct dj_linked_node* d_linked_node_new(
+    void*,
+    struct dj_linked_node*
+);
 
-void d_linked_node_free(struct d_linked_node*);
+void d_linked_node_free(
+    struct dj_linked_node*
+);
 
 
 #endif  // DJINTERP_C_CONTAINER_NODE_LINKED_NODE_H

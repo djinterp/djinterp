@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_vector_push_back
   - successful push to non-empty vector
   - automatic growth when full
 */
-bool
-d_tests_sa_vector_push_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_push_back(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              value;
 
     result = true;
@@ -125,14 +123,12 @@ d_tests_sa_vector_push_front
   - successful push front
   - existing elements shifted
 */
-bool
-d_tests_sa_vector_push_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_push_front(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              value;
 
     result = true;
@@ -184,14 +180,12 @@ d_tests_sa_vector_pop_back
   - successful pop with output
   - successful pop without output
 */
-bool
-d_tests_sa_vector_pop_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_pop_back(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              out_value;
 
     result = true;
@@ -264,14 +258,12 @@ d_tests_sa_vector_pop_front
   - successful pop with output
   - remaining elements shifted
 */
-bool
-d_tests_sa_vector_pop_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_pop_front(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              out_value;
 
     result = true;
@@ -343,14 +335,12 @@ d_tests_sa_vector_insert_element
   - successful insert at various positions
   - negative index support
 */
-bool
-d_tests_sa_vector_insert_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_insert_element(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              value;
 
     result = true;
@@ -424,14 +414,12 @@ d_tests_sa_vector_insert_elements
   - zero count no-op
   - successful range insert
 */
-bool
-d_tests_sa_vector_insert_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_insert_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              source[3] = {100, 200, 300};
 
     result = true;
@@ -495,14 +483,12 @@ d_tests_sa_vector_erase
   - successful erase
   - negative index support
 */
-bool
-d_tests_sa_vector_erase
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_erase(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -563,14 +549,12 @@ d_tests_sa_vector_erase_range
   - invalid range rejection
   - successful range erase
 */
-bool
-d_tests_sa_vector_erase_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_erase_range(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -618,14 +602,12 @@ d_tests_sa_vector_clear
   - successful clear
   - capacity preserved after clear
 */
-bool
-d_tests_sa_vector_clear
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_clear(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -669,10 +651,8 @@ d_tests_sa_vector_clear
 d_tests_sa_vector_element_all
   Aggregation function that runs all element manipulation tests.
 */
-bool
-d_tests_sa_vector_element_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_element_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

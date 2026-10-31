@@ -2,8 +2,8 @@
 * djinterp [test]                                         text_lineup_tests_sa.h
 *
 *   Unit tests for the text_lineup module (text lineup and formatting
-* utilities). Tests cover the lightweight d_text_buffer used for output
-* accumulation, the d_string_array token container, and the core
+* utilities). Tests cover the lightweight dj_text_buffer used for output
+* accumulation, the dj_string_array token container, and the core
 * d_text_lineup formatting engine with its full set of behavior flags.
 *
 *
@@ -76,70 +76,74 @@
  * TEST UTILITY FUNCTIONS
  *****************************************************************************/
 
-bool                   d_tests_sa_text_lineup_setup(void);
-bool                   d_tests_sa_text_lineup_teardown(void);
-struct d_text_buffer*  d_tests_sa_text_lineup_make_buffer(size_t _capacity);
-struct d_string_array* d_tests_sa_text_lineup_make_token_array(size_t _count,
-                                                               ...);
-struct d_text_template d_tests_sa_text_lineup_make_template(
-                           struct d_string_array* _tokens,
-                           const char*            _separator,
-                           bool                   _sep_before,
-                           bool                   _sep_after,
-                           const char*            _line_prefix,
-                           const char*            _line_suffix,
-                           size_t                 _min_token_width,
-                           uint32_t               _flags);
+bool d_tests_sa_text_lineup_setup(void);
+bool d_tests_sa_text_lineup_teardown(void);
+struct dj_text_buffer* d_tests_sa_text_lineup_make_buffer(
+    size_t _capacity
+);
+struct dj_string_array* d_tests_sa_text_lineup_make_token_array(
+    size_t _count,
+    ...
+);
+struct dj_text_template d_tests_sa_text_lineup_make_template(
+    struct dj_string_array* _tokens,
+    const char*             _separator,
+    bool                    _sep_before,
+    bool                    _sep_after,
+    const char*             _line_prefix,
+    const char*             _line_suffix,
+    size_t                  _min_token_width,
+    uint32_t                _flags
+);
 
 
 /******************************************************************************
- * SECTION I: d_text_buffer OPERATIONS
+ * SECTION I: dj_text_buffer OPERATIONS
  *****************************************************************************/
 
 // d_text_buffer_new tests
-struct d_test_object* d_tests_sa_text_lineup_text_buffer_new(void);
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_new(void);
 
 // d_text_buffer_ensure_capacity tests
-struct d_test_object* d_tests_sa_text_lineup_text_buffer_ensure_capacity(void);
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_ensure_capacity(void);
 
 // d_text_buffer_append tests
-struct d_test_object* d_tests_sa_text_lineup_text_buffer_append(void);
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_append(void);
 
 // d_text_buffer_append_s tests
-struct d_test_object* d_tests_sa_text_lineup_text_buffer_append_s(void);
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_append_s(void);
 
 // d_text_buffer_prepend tests
-struct d_test_object* d_tests_sa_text_lineup_text_buffer_prepend(void);
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_prepend(void);
 
 // d_text_buffer_write_over tests
-struct d_test_object* d_tests_sa_text_lineup_text_buffer_write_over(void);
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_write_over(void);
 
 // section I aggregator
-struct d_test_object* d_tests_sa_text_lineup_text_buffer_all(void);
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_all(void);
 
 
 /******************************************************************************
- * SECTION II: d_string_array OPERATIONS
+ * SECTION II: dj_string_array OPERATIONS
  *****************************************************************************/
 
 // d_string_array_new tests
-struct d_test_object* d_tests_sa_text_lineup_string_array_new(void);
+struct dj_test_object* d_tests_sa_text_lineup_string_array_new(void);
 
 // d_string_array_reserve tests
-struct d_test_object* d_tests_sa_text_lineup_string_array_reserve(void);
+struct dj_test_object* d_tests_sa_text_lineup_string_array_reserve(void);
 
 // d_string_array_append tests
-struct d_test_object* d_tests_sa_text_lineup_string_array_append(void);
+struct dj_test_object* d_tests_sa_text_lineup_string_array_append(void);
 
 // d_string_array_generate_series tests
-struct d_test_object* d_tests_sa_text_lineup_string_array_generate_series(void);
+struct dj_test_object* d_tests_sa_text_lineup_string_array_generate_series(void);
 
 // d_string_array_generate_series_capacity tests
-struct d_test_object*
-    d_tests_sa_text_lineup_string_array_generate_series_capacity(void);
+struct dj_test_object* d_tests_sa_text_lineup_string_array_generate_series_capacity(void);
 
 // section II aggregator
-struct d_test_object* d_tests_sa_text_lineup_string_array_all(void);
+struct dj_test_object* d_tests_sa_text_lineup_string_array_all(void);
 
 
 /******************************************************************************
@@ -147,37 +151,37 @@ struct d_test_object* d_tests_sa_text_lineup_string_array_all(void);
  *****************************************************************************/
 
 // null / invalid input rejection
-struct d_test_object* d_tests_sa_text_lineup_null_inputs(void);
+struct dj_test_object* d_tests_sa_text_lineup_null_inputs(void);
 
 // zero line_width (no-wrap) output
-struct d_test_object* d_tests_sa_text_lineup_no_wrap(void);
+struct dj_test_object* d_tests_sa_text_lineup_no_wrap(void);
 
 // line-wrapping over multiple rows
-struct d_test_object* d_tests_sa_text_lineup_wrapping(void);
+struct dj_test_object* d_tests_sa_text_lineup_wrapping(void);
 
 // first-line prefix / last-line suffix
-struct d_test_object* d_tests_sa_text_lineup_prefix_suffix(void);
+struct dj_test_object* d_tests_sa_text_lineup_prefix_suffix(void);
 
 // per-line prefix / per-line suffix
-struct d_test_object* d_tests_sa_text_lineup_line_prefix_suffix(void);
+struct dj_test_object* d_tests_sa_text_lineup_line_prefix_suffix(void);
 
 // separator_before / separator_after
-struct d_test_object* d_tests_sa_text_lineup_separators(void);
+struct dj_test_object* d_tests_sa_text_lineup_separators(void);
 
 // token alignment flags (left, center, right/default)
-struct d_test_object* d_tests_sa_text_lineup_token_alignment(void);
+struct dj_test_object* d_tests_sa_text_lineup_token_alignment(void);
 
 // behavior flags (right-align line suffix, suffix after suffix, etc.)
-struct d_test_object* d_tests_sa_text_lineup_flags(void);
+struct dj_test_object* d_tests_sa_text_lineup_flags(void);
 
 // min_token_width enforcement
-struct d_test_object* d_tests_sa_text_lineup_min_token_width(void);
+struct dj_test_object* d_tests_sa_text_lineup_min_token_width(void);
 
 // indent_prefix / outdent_suffix parameters
-struct d_test_object* d_tests_sa_text_lineup_indent_outdent(void);
+struct dj_test_object* d_tests_sa_text_lineup_indent_outdent(void);
 
 // section III aggregator
-struct d_test_object* d_tests_sa_text_lineup_lineup_all(void);
+struct dj_test_object* d_tests_sa_text_lineup_lineup_all(void);
 
 
 /******************************************************************************
@@ -185,7 +189,7 @@ struct d_test_object* d_tests_sa_text_lineup_lineup_all(void);
  *****************************************************************************/
 
 // master runner for all text_lineup module tests
-struct d_test_object* d_tests_sa_text_lineup_run_all(void);
+struct dj_test_object* d_tests_sa_text_lineup_run_all(void);
 
 
 #endif  // DJINTERP_TEXT_LINEUP_TESTS_STANDALONE_

@@ -17,43 +17,142 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-struct d_color_rgb d_color_rgb_make(float _r, float _g, float _b);
-struct d_color_rgba d_color_rgba_make(float _r, float _g, float _b, float _a);
-struct d_color_rgba_premul d_color_rgba_premul_make(float _r, float _g, float _b, float _a);
-struct d_color_rgb_u8 d_color_rgb_u8_make(uint8_t _r, uint8_t _g, uint8_t _b);
-struct d_color_rgba_u8 d_color_rgba_u8_make(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a);
-bool d_color_rgb_is_valid(struct d_color_rgb _rgb);
-bool d_color_rgba_is_valid(struct d_color_rgba _rgba);
-struct d_color_rgb d_color_rgb_clamp(struct d_color_rgb _rgb);
-struct d_color_rgba d_color_rgba_clamp(struct d_color_rgba _rgba);
-float d_color_srgb_to_linear_component(float _component);
-float d_color_linear_to_srgb_component(float _component);
-struct d_color_rgb d_color_rgb_from_srgb(struct d_color_rgb _srgb);
-struct d_color_rgb d_color_rgb_to_srgb(struct d_color_rgb _linear);
-struct d_color_rgba d_color_rgba_from_rgb(struct d_color_rgb _rgb, float _alpha);
-struct d_color_rgb d_color_rgb_from_rgba(struct d_color_rgba _rgba);
-struct d_color_rgba_premul d_color_rgba_premultiply(struct d_color_rgba _rgba);
-struct d_color_rgba d_color_rgba_unpremultiply(struct d_color_rgba_premul _premul);
-struct d_color_rgba_premul d_color_rgba_blend_over(struct d_color_rgba_premul _src, struct d_color_rgba_premul _dst);
-struct d_color_rgba d_color_rgba_blend_over_straight(struct d_color_rgba _src, struct d_color_rgba _dst);
-struct d_color_rgb d_color_rgb_from_u8(struct d_color_rgb_u8 _u8);
-struct d_color_rgb_u8 d_color_rgb_to_u8(struct d_color_rgb _rgb);
-struct d_color_rgba d_color_rgba_from_u8(struct d_color_rgba_u8 _u8);
-struct d_color_rgba_u8 d_color_rgba_to_u8(struct d_color_rgba _rgba);
-struct d_color_rgb d_color_rgb_from_hex(d_color_rgb_hex _hex);
-d_color_rgb_hex d_color_rgb_to_hex(struct d_color_rgb _rgb);
-struct d_color_rgba d_color_rgba_from_hex(d_color_rgba_hex _hex);
-d_color_rgba_hex d_color_rgba_to_hex(struct d_color_rgba _rgba);
-bool d_color_rgb_from_hex_string(const char* _str, struct d_color_rgb* _out_rgb);
-bool d_color_rgba_from_hex_string(const char* _str, struct d_color_rgba* _out_rgba);
-d_color_rgb_hex d_color_rgb_hex_from_string(const char* _str);
-float d_color_rgb_luminance(struct d_color_rgb _rgb);
-float d_color_rgba_luminance(struct d_color_rgba _rgba);
-float d_color_rgb_contrast_ratio(struct d_color_rgb _a, struct d_color_rgb _b);
-struct d_color_rgb d_color_rgb_to_grayscale(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_rgb_invert(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_rgb_lerp(struct d_color_rgb _a, struct d_color_rgb _b, float _t);
-struct d_color_rgba d_color_rgba_lerp(struct d_color_rgba _a, struct d_color_rgba _b, float _t);
-struct d_color_rgb d_color_rgb_from_temperature(float _kelvin);
+struct dj_color_rgb d_color_rgb_make(
+    float _r,
+    float _g,
+    float _b
+);
+struct dj_color_rgba d_color_rgba_make(
+    float _r,
+    float _g,
+    float _b,
+    float _a
+);
+struct dj_color_rgba_premul d_color_rgba_premul_make(
+    float _r,
+    float _g,
+    float _b,
+    float _a
+);
+struct dj_color_rgb_u8 d_color_rgb_u8_make(
+    uint8_t _r,
+    uint8_t _g,
+    uint8_t _b
+);
+struct dj_color_rgba_u8 d_color_rgba_u8_make(
+    uint8_t _r,
+    uint8_t _g,
+    uint8_t _b,
+    uint8_t _a
+);
+bool d_color_rgb_is_valid(
+    struct dj_color_rgb _rgb
+);
+bool d_color_rgba_is_valid(
+    struct dj_color_rgba _rgba
+);
+struct dj_color_rgb d_color_rgb_clamp(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgba d_color_rgba_clamp(
+    struct dj_color_rgba _rgba
+);
+float d_color_srgb_to_linear_component(
+    float _component
+);
+float d_color_linear_to_srgb_component(
+    float _component
+);
+struct dj_color_rgb d_color_rgb_from_srgb(
+    struct dj_color_rgb _srgb
+);
+struct dj_color_rgb d_color_rgb_to_srgb(
+    struct dj_color_rgb _linear
+);
+struct dj_color_rgba d_color_rgba_from_rgb(
+    struct dj_color_rgb _rgb,
+    float               _alpha
+);
+struct dj_color_rgb d_color_rgb_from_rgba(
+    struct dj_color_rgba _rgba
+);
+struct dj_color_rgba_premul d_color_rgba_premultiply(
+    struct dj_color_rgba _rgba
+);
+struct dj_color_rgba d_color_rgba_unpremultiply(
+    struct dj_color_rgba_premul _premul
+);
+struct dj_color_rgba_premul d_color_rgba_blend_over(
+    struct dj_color_rgba_premul _src,
+    struct dj_color_rgba_premul _dst
+);
+struct dj_color_rgba d_color_rgba_blend_over_straight(
+    struct dj_color_rgba _src,
+    struct dj_color_rgba _dst
+);
+struct dj_color_rgb d_color_rgb_from_u8(
+    struct dj_color_rgb_u8 _u8
+);
+struct dj_color_rgb_u8 d_color_rgb_to_u8(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgba d_color_rgba_from_u8(
+    struct dj_color_rgba_u8 _u8
+);
+struct dj_color_rgba_u8 d_color_rgba_to_u8(
+    struct dj_color_rgba _rgba
+);
+struct dj_color_rgb d_color_rgb_from_hex(
+    dj_color_rgb_hex _hex
+);
+dj_color_rgb_hex d_color_rgb_to_hex(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgba d_color_rgba_from_hex(
+    dj_color_rgba_hex _hex
+);
+dj_color_rgba_hex d_color_rgba_to_hex(
+    struct dj_color_rgba _rgba
+);
+bool d_color_rgb_from_hex_string(
+    const char*          _str,
+    struct dj_color_rgb* _out_rgb
+);
+bool d_color_rgba_from_hex_string(
+    const char*           _str,
+    struct dj_color_rgba* _out_rgba
+);
+dj_color_rgb_hex d_color_rgb_hex_from_string(
+    const char* _str
+);
+float d_color_rgb_luminance(
+    struct dj_color_rgb _rgb
+);
+float d_color_rgba_luminance(
+    struct dj_color_rgba _rgba
+);
+float d_color_rgb_contrast_ratio(
+    struct dj_color_rgb _a,
+    struct dj_color_rgb _b
+);
+struct dj_color_rgb d_color_rgb_to_grayscale(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_rgb_invert(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_rgb_lerp(
+    struct dj_color_rgb _a,
+    struct dj_color_rgb _b,
+    float               _t
+);
+struct dj_color_rgba d_color_rgba_lerp(
+    struct dj_color_rgba _a,
+    struct dj_color_rgba _b,
+    float                _t
+);
+struct dj_color_rgb d_color_rgb_from_temperature(
+    float _kelvin
+);
 
 #endif  // D_COLOR_HEADER_ONLY

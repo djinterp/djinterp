@@ -7,7 +7,7 @@
 *  structures, user type ID support, and utility helpers.
 *
 *  Bit layout covered here:
-*  - base (d_type_info16 = uint16_t):
+*  - base (dj_type_info16 = uint16_t):
 *      bits 0-3:   Kind flags (PRIMITIVE, POINTER, ARRAY, TYPEDEF) - combinable
 *      bits 4-7:   Subtype (primitive ID 0-15 or compound kind 0-5)
 *      bits 8-10:  Context-specific (signed for primitives, compound data
@@ -17,11 +17,11 @@
 *      bit  13:    Reserved
 *      bit  14:    Extended info follows (EXT)
 *      bit  15:    Custom/Framework-defined type (CUSTOM)
-*  - pointer (d_type_info32 = uint32_t):
-*      bits 0-15:  Base d_type_info16
+*  - pointer (dj_type_info32 = uint32_t):
+*      bits 0-15:  Base dj_type_info16
 *      bits 16-23: Pointer depth (1-255) when POINTER flag set
 *      bits 24-31: Reserved / extended flags
-*  - user type ID (d_type_info64, bits 48-63):
+*  - user type ID (dj_type_info64, bits 48-63):
 *      When bit 15 (CUSTOM) is set, bits 48-63 carry a 16-bit user-defined
 *      type ID (0-65535).  The subtype nibble (bits 4-7) still independently
 *      describes the compound shape (struct, union, enum, etc.), so a
@@ -44,7 +44,7 @@
 #include "../../env/env.h"
 #include "../djinterp.h"  // D_LONG_LONG_DIAG_PUSH / _POP
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // uint8_t, uint16_t, uint32_t,
+#include "../../../re_std/c/cstdint/dstdint.h"  // uint8_t, uint16_t, uint32_t,
                                               // uint64_t, UINT32_MAX,
                                               // UINT64_MAX, SIZE_MAX
 
@@ -66,26 +66,26 @@
  *                         TYPE DEFINITIONS                                   *
  *============================================================================*/
 
-// d_type_info16
+// dj_type_info16
 //   type: 16-bit base type descriptor encoding kind, subtype, signedness,
 // cv-qualifiers, and control flags.
-typedef uint16_t d_type_info16;
+typedef uint16_t dj_type_info16;
 
-// d_type_info32
+// dj_type_info32
 //   type: 32-bit descriptor extending the base with a pointer-depth byte
 // in bits 16-23.
-typedef uint32_t d_type_info32;
+typedef uint32_t dj_type_info32;
 
-// d_type_info_ex
+// dj_type_info_ex
 //   type: 32-bit extended descriptor; bits 24-31 carry C storage-class
 // qualifiers (restrict, atomic, static, extern, inline, noreturn).
-typedef uint32_t d_type_info_ex;
+typedef uint32_t dj_type_info_ex;
 
-// d_type_info64
+// dj_type_info64
 //   type: 64-bit full descriptor; bits 32-47 carry C++ modifiers
 // (references, constexpr, virtual, etc.), bits 48-63 are reserved for
 // user payload.
-typedef uint64_t d_type_info64;
+typedef uint64_t dj_type_info64;
 
 /*============================================================================*
  *                         BIT LAYOUT — BASE (bits 0-15)                      *
@@ -97,7 +97,7 @@ typedef uint64_t d_type_info64;
 #define D_TYPE_KIND_SHIFT        0u
 #define D_TYPE_KIND_BITS         4u
 #define D_TYPE_KIND_MASK                                                    \
-    ((d_type_info16)((1u << D_TYPE_KIND_BITS) - 1u))
+    ((dj_type_info16)((1u << D_TYPE_KIND_BITS) - 1u))
 
 // D_TYPE_SUB_SHIFT / D_TYPE_SUB_BITS / D_TYPE_SUB_MASK
 //   macro: position, width, and extraction mask for the subtype nibble
@@ -105,58 +105,58 @@ typedef uint64_t d_type_info64;
 #define D_TYPE_SUB_SHIFT         4u
 #define D_TYPE_SUB_BITS          4u
 #define D_TYPE_SUB_MASK                                                     \
-    ( (d_type_info16)(((1u << D_TYPE_SUB_BITS) - 1u) << D_TYPE_SUB_SHIFT) )
+    ( (dj_type_info16)(((1u << D_TYPE_SUB_BITS) - 1u) << D_TYPE_SUB_SHIFT) )
 
 // D_TYPE_SIGNED_SHIFT / D_TYPE_SIGNED_BIT
 //   macro: bit 8 — set when a primitive type is signed.  Aliases
 // D_TYPE_CTX0 because bit 8 doubles as the first context bit for
 // non-primitive types.
 #define D_TYPE_SIGNED_SHIFT      8u
-#define D_TYPE_SIGNED_BIT        ((d_type_info16)(1u << D_TYPE_SIGNED_SHIFT))
+#define D_TYPE_SIGNED_BIT        ((dj_type_info16)(1u << D_TYPE_SIGNED_SHIFT))
 
 // D_TYPE_CTX0_SHIFT / D_TYPE_CTX0_BIT
 //   macro: context-specific bit 0 (bit 8).
 #define D_TYPE_CTX0_SHIFT        8u
-#define D_TYPE_CTX0_BIT          ((d_type_info16)(1u << D_TYPE_CTX0_SHIFT))
+#define D_TYPE_CTX0_BIT          ((dj_type_info16)(1u << D_TYPE_CTX0_SHIFT))
 
 // D_TYPE_CTX1_SHIFT / D_TYPE_CTX1_BIT
 //   macro: context-specific bit 1 (bit 9).
 #define D_TYPE_CTX1_SHIFT        9u
-#define D_TYPE_CTX1_BIT          ((d_type_info16)(1u << D_TYPE_CTX1_SHIFT))
+#define D_TYPE_CTX1_BIT          ((dj_type_info16)(1u << D_TYPE_CTX1_SHIFT))
 
 // D_TYPE_CTX2_SHIFT / D_TYPE_CTX2_BIT
 //   macro: context-specific bit 2 (bit 10).
 #define D_TYPE_CTX2_SHIFT        10u
-#define D_TYPE_CTX2_BIT          ((d_type_info16)(1u << D_TYPE_CTX2_SHIFT))
+#define D_TYPE_CTX2_BIT          ((dj_type_info16)(1u << D_TYPE_CTX2_SHIFT))
 
 // D_TYPE_CTX_MASK
 //   macro: 3-bit mask spanning the context-specific field (bits 8-10).
-#define D_TYPE_CTX_MASK          ((d_type_info16)(0x7u << D_TYPE_CTX0_SHIFT))
+#define D_TYPE_CTX_MASK          ((dj_type_info16)(0x7u << D_TYPE_CTX0_SHIFT))
 
 // D_TYPE_CONST_SHIFT / D_TYPE_CONST_BIT
 //   macro: bit 11 — const qualifier.
 #define D_TYPE_CONST_SHIFT       11u
-#define D_TYPE_CONST_BIT         ((d_type_info16)(1u << D_TYPE_CONST_SHIFT))
+#define D_TYPE_CONST_BIT         ((dj_type_info16)(1u << D_TYPE_CONST_SHIFT))
 
 // D_TYPE_VOLATILE_SHIFT / D_TYPE_VOLATILE_BIT
 //   macro: bit 12 — volatile qualifier.
 #define D_TYPE_VOLATILE_SHIFT    12u
-#define D_TYPE_VOLATILE_BIT      ((d_type_info16)(1u << D_TYPE_VOLATILE_SHIFT))
+#define D_TYPE_VOLATILE_BIT      ((dj_type_info16)(1u << D_TYPE_VOLATILE_SHIFT))
 
 // D_TYPE_RSV_SHIFT / D_TYPE_RSV_BIT
 //   macro: bit 13 — reserved for future use.
 #define D_TYPE_RSV_SHIFT         13u
-#define D_TYPE_RSV_BIT           ((d_type_info16)(1u << D_TYPE_RSV_SHIFT))
+#define D_TYPE_RSV_BIT           ((dj_type_info16)(1u << D_TYPE_RSV_SHIFT))
 
 // D_TYPE_EXT_SHIFT / D_TYPE_EXT_BIT
 //   macro: bit 14 — signals that extended info follows.
 #define D_TYPE_EXT_SHIFT         14u
-#define D_TYPE_EXT_BIT           ((d_type_info16)(1u << D_TYPE_EXT_SHIFT))
+#define D_TYPE_EXT_BIT           ((dj_type_info16)(1u << D_TYPE_EXT_SHIFT))
 
 // D_TYPE_CUSTOM_SHIFT / D_TYPE_CUSTOM_BIT
 //   macro: bit 15 — marks a custom or framework-defined type.
 #define D_TYPE_CUSTOM_SHIFT      15u
-#define D_TYPE_CUSTOM_BIT        ((d_type_info16)(1u << D_TYPE_CUSTOM_SHIFT))
+#define D_TYPE_CUSTOM_BIT        ((dj_type_info16)(1u << D_TYPE_CUSTOM_SHIFT))
 
 /*============================================================================*
  *                         BIT LAYOUT — POINTER DEPTH (bits 16-23)            *
@@ -170,7 +170,7 @@ typedef uint64_t d_type_info64;
 
 // D_TYPE_PTR_DEPTH_MASK_U64
 //   macro: 64-bit mask isolating the pointer-depth byte so the same mask
-// works on both d_type_info32 and d_type_info64.
+// works on both dj_type_info32 and dj_type_info64.
 #define D_TYPE_PTR_DEPTH_MASK_U64 ((uint64_t)0xFFu << D_TYPE_PTR_DEPTH_SHIFT)
 
 // D_TYPE_PTR_DEPTH_MAX
@@ -183,7 +183,7 @@ typedef uint64_t d_type_info64;
 
 // D_TYPE_USER_ID_SHIFT / D_TYPE_USER_ID_BITS
 //   macro: position and width of the user type ID field inside a
-// d_type_info64.  Only meaningful when the CUSTOM bit (15) is set.
+// dj_type_info64.  Only meaningful when the CUSTOM bit (15) is set.
 #define D_TYPE_USER_ID_SHIFT     48u
 #define D_TYPE_USER_ID_BITS      16u
 
@@ -247,10 +247,10 @@ typedef uint64_t d_type_info64;
  *============================================================================*/
 
 // kind bit values (bits 0-3) — each is a single-bit flag
-#define D_TYPE_PRIMITIVE   ((d_type_info16)(1u << 0))
-#define D_TYPE_POINTER     ((d_type_info16)(1u << 1))
-#define D_TYPE_ARRAY       ((d_type_info16)(1u << 2))
-#define D_TYPE_TYPEDEF     ((d_type_info16)(1u << 3))
+#define D_TYPE_PRIMITIVE   ((dj_type_info16)(1u << 0))
+#define D_TYPE_POINTER     ((dj_type_info16)(1u << 1))
+#define D_TYPE_ARRAY       ((dj_type_info16)(1u << 2))
+#define D_TYPE_TYPEDEF     ((dj_type_info16)(1u << 3))
 #define D_TYPE_KIND_MASK_  D_TYPE_KIND_MASK
 
 // D_TYPE_PRIM_VOID .. D_TYPE_PRIM_LDOUBLE
@@ -340,30 +340,30 @@ D_LONG_LONG_DIAG_POP
  *============================================================================*/
 
 // D_TYPE_MAKE
-//   macro: build a raw d_type_info16 from a kind flag set and a 4-bit
+//   macro: build a raw dj_type_info16 from a kind flag set and a 4-bit
 // subtype value.
 #define D_TYPE_MAKE(kind, subtype)                                          \
-    ((d_type_info16)(                                                       \
-        ((d_type_info16)((kind) & D_TYPE_KIND_MASK)) |                      \
-        ((d_type_info16)(((subtype) & 0x0Fu) << D_TYPE_SUB_SHIFT))          \
+    ((dj_type_info16)(                                                       \
+        ((dj_type_info16)((kind) & D_TYPE_KIND_MASK)) |                      \
+        ((dj_type_info16)(((subtype) & 0x0Fu) << D_TYPE_SUB_SHIFT))          \
     ))
 
 // D_TYPE_MAKE_PRIM
-//   macro: build a d_type_info16 for a primitive, automatically setting
+//   macro: build a dj_type_info16 for a primitive, automatically setting
 // the PRIMITIVE kind flag, the subtype nibble, and the signed bit from
 // D_TYPE_PRIM_SIGNED_MASK.
 #define D_TYPE_MAKE_PRIM(prim_id)                                               \
-    ( (d_type_info16)(                                                          \
+    ( (dj_type_info16)(                                                          \
         D_TYPE_PRIMITIVE |                                                      \
         (((prim_id) & 0x0Fu) << D_TYPE_SUB_SHIFT) |                             \
         (((D_TYPE_PRIM_SIGNED_MASK >> (prim_id)) & 1u) << D_TYPE_SIGNED_SHIFT)  \
     ) )
 
 // D_TYPE_MAKE_COMPOUND
-//   macro: build a d_type_info16 for a compound type; PRIMITIVE flag is
+//   macro: build a dj_type_info16 for a compound type; PRIMITIVE flag is
 // NOT set.
 #define D_TYPE_MAKE_COMPOUND(compound_kind)                                     \
-    ((d_type_info16)(((compound_kind) & 0x0Fu) << D_TYPE_SUB_SHIFT))
+    ((dj_type_info16)(((compound_kind) & 0x0Fu) << D_TYPE_SUB_SHIFT))
 
 // D_TYPE_VOID_() .. D_TYPE_LDOUBLE_()
 //   macro: convenience builders for each primitive type.
@@ -397,17 +397,17 @@ D_LONG_LONG_DIAG_POP
  *============================================================================*/
 
 // D_TYPE_SET_ARRAY .. D_TYPE_SET_FRAMEWORK
-//   macro: set individual flag bits on a d_type_info16.
-#define D_TYPE_SET_ARRAY(info16)        ((d_type_info16)((info16) | D_TYPE_ARRAY))
-#define D_TYPE_SET_TYPEDEF(info16)      ((d_type_info16)((info16) | D_TYPE_TYPEDEF))
-#define D_TYPE_SET_EXT(info16)          ((d_type_info16)((info16) | D_TYPE_EXT_BIT))
-#define D_TYPE_SET_CUSTOM(info16)       ((d_type_info16)((info16) | D_TYPE_CUSTOM_BIT))
+//   macro: set individual flag bits on a dj_type_info16.
+#define D_TYPE_SET_ARRAY(info16)        ((dj_type_info16)((info16) | D_TYPE_ARRAY))
+#define D_TYPE_SET_TYPEDEF(info16)      ((dj_type_info16)((info16) | D_TYPE_TYPEDEF))
+#define D_TYPE_SET_EXT(info16)          ((dj_type_info16)((info16) | D_TYPE_EXT_BIT))
+#define D_TYPE_SET_CUSTOM(info16)       ((dj_type_info16)((info16) | D_TYPE_CUSTOM_BIT))
 #define D_TYPE_SET_FRAMEWORK(info16)    D_TYPE_SET_CUSTOM(info16)
 
 // D_TYPE_SET_CONST / D_TYPE_SET_VOLATILE
 //   macro: apply cv-qualifiers.
-#define D_TYPE_SET_CONST(info16)        ((d_type_info16)((info16) | D_TYPE_CONST_BIT))
-#define D_TYPE_SET_VOLATILE(info16)     ((d_type_info16)((info16) | D_TYPE_VOLATILE_BIT))
+#define D_TYPE_SET_CONST(info16)        ((dj_type_info16)((info16) | D_TYPE_CONST_BIT))
+#define D_TYPE_SET_VOLATILE(info16)     ((dj_type_info16)((info16) | D_TYPE_VOLATILE_BIT))
 
 /*============================================================================*
  *                         MODIFIER MACROS — POINTER (32-bit)                 *
@@ -415,9 +415,9 @@ D_LONG_LONG_DIAG_POP
 
 // D_TYPE_MAKE_PTR
 //   macro: combine a 16-bit base descriptor with a pointer depth (1-255)
-// into a d_type_info32, setting the POINTER kind flag.
+// into a dj_type_info32, setting the POINTER kind flag.
 #define D_TYPE_MAKE_PTR(base16, depth)                                      \
-    ((d_type_info32)(                                                       \
+    ((dj_type_info32)(                                                       \
         ((uint32_t)((base16) & 0xFFFFu)) |                                  \
         (uint32_t)D_TYPE_POINTER |                                          \
         (((uint32_t)((depth) & 0xFFu)) << D_TYPE_PTR_DEPTH_SHIFT)           \
@@ -427,7 +427,7 @@ D_LONG_LONG_DIAG_POP
 //   macro: extract the low 16 bits (the base descriptor) from any wider
 // descriptor.
 #define D_TYPE_GET_BASE(info)                                               \
-    ((d_type_info16)((info) & 0xFFFFu))
+    ((dj_type_info16)((info) & 0xFFFFu))
 
 // D_TYPE_GET_PTR_DEPTH
 //   macro: return the pointer depth.  Yields 0 when the POINTER flag is
@@ -445,7 +445,7 @@ D_LONG_LONG_DIAG_POP
 // of 0 clears the POINTER flag entirely.
 #define D_TYPE_SET_PTR_DEPTH(info, depth)                                          \
     ( ((depth) == 0u)                                                              \
-        ? (d_type_info32)(D_TYPE_GET_BASE(info) & (d_type_info16)~D_TYPE_POINTER)  \
+        ? (dj_type_info32)(D_TYPE_GET_BASE(info) & (dj_type_info16)~D_TYPE_POINTER)  \
         : D_TYPE_MAKE_PTR(D_TYPE_GET_BASE(info), (depth)) )
 
 // D_TYPE_ADD_PTR
@@ -466,14 +466,14 @@ D_LONG_LONG_DIAG_POP
 #define D_TYPE_SUB_PTR(info)                                                       \
     ( (D_TYPE_GET_PTR_DEPTH(info) > 1u)                                            \
         ? D_TYPE_SET_PTR_DEPTH((info), (D_TYPE_GET_PTR_DEPTH(info) - 1u))          \
-        : (d_type_info16)(D_TYPE_GET_BASE(info) & (d_type_info16)~D_TYPE_POINTER) )
+        : (dj_type_info16)(D_TYPE_GET_BASE(info) & (dj_type_info16)~D_TYPE_POINTER) )
 
 /*============================================================================*
  *                         ACCESSORS / TESTS                                  *
  *============================================================================*/
 
 // field extractors
-#define D_TYPE_GET_KIND(info)       ((d_type_info16)((info) & D_TYPE_KIND_MASK))
+#define D_TYPE_GET_KIND(info)       ((dj_type_info16)((info) & D_TYPE_KIND_MASK))
 #define D_TYPE_GET_SUB(info)        ((unsigned)(((info) & D_TYPE_SUB_MASK) >> D_TYPE_SUB_SHIFT))
 #define D_TYPE_GET_PRIM(info)       D_TYPE_GET_SUB(info)
 #define D_TYPE_GET_COMPOUND(info)   D_TYPE_GET_SUB(info)
@@ -721,7 +721,7 @@ D_LONG_LONG_DIAG_POP
     (D_TYPE_IS_CUSTOM(D_TYPE_GET_BASE(info)))
 
 // D_TYPE_GET_USER_ID
-//   macro: extract the 16-bit user type ID from a d_type_info64.
+//   macro: extract the 16-bit user type ID from a dj_type_info64.
 // Returns 0 when CUSTOM is not set.
 #define D_TYPE_GET_USER_ID(info)                                              \
     ( D_TYPE_HAS_USER_ID(info)                                                \
@@ -730,38 +730,38 @@ D_LONG_LONG_DIAG_POP
         : 0u )
 
 // D_TYPE_SET_USER_ID
-//   macro: set or replace the user type ID on an existing d_type_info64,
+//   macro: set or replace the user type ID on an existing dj_type_info64,
 // automatically setting the CUSTOM bit.
 #define D_TYPE_SET_USER_ID(info, id)                                          \
-    ((d_type_info64)(                                                         \
+    ((dj_type_info64)(                                                         \
         ((uint64_t)(info) & ~D_TYPE_USER_ID_MASK)                             \
         | ((uint64_t)D_TYPE_CUSTOM_BIT)                                       \
         | (((uint64_t)((id) & 0xFFFFu)) << D_TYPE_USER_ID_SHIFT)             \
     ))
 
 // D_TYPE_MAKE_USER
-//   macro: build a complete d_type_info64 for a user-defined compound
+//   macro: build a complete dj_type_info64 for a user-defined compound
 // type from scratch.  `compound_kind` is one of D_TYPE_STRUCT,
 // D_TYPE_UNION, D_TYPE_ENUM, etc.  `user_id` is the caller's type ID
 // (0-65535).
 //   Example:
-//     d_type_info64 my_struct = D_TYPE_MAKE_USER(D_TYPE_STRUCT, 42);
-//     d_type_info64 my_enum   = D_TYPE_MAKE_USER(D_TYPE_ENUM, 7);
+//     dj_type_info64 my_struct = D_TYPE_MAKE_USER(D_TYPE_STRUCT, 42);
+//     dj_type_info64 my_enum   = D_TYPE_MAKE_USER(D_TYPE_ENUM, 7);
 #define D_TYPE_MAKE_USER(compound_kind, user_id)                              \
-    ((d_type_info64)(                                                         \
+    ((dj_type_info64)(                                                         \
         (uint64_t)D_TYPE_MAKE_COMPOUND(compound_kind)                         \
         | (uint64_t)D_TYPE_CUSTOM_BIT                                         \
         | (((uint64_t)((user_id) & 0xFFFFu)) << D_TYPE_USER_ID_SHIFT)        \
     ))
 
 // D_TYPE_MAKE_USER_PTR
-//   macro: build a d_type_info64 for a pointer to a user-defined compound
+//   macro: build a dj_type_info64 for a pointer to a user-defined compound
 // type.  Combines user type ID with pointer depth.
 //   Example:
-//     d_type_info64 p = D_TYPE_MAKE_USER_PTR(D_TYPE_STRUCT, 42, 1);
+//     dj_type_info64 p = D_TYPE_MAKE_USER_PTR(D_TYPE_STRUCT, 42, 1);
 //     // struct #42 *
 #define D_TYPE_MAKE_USER_PTR(compound_kind, user_id, depth)                   \
-    ((d_type_info64)(                                                         \
+    ((dj_type_info64)(                                                         \
         (uint64_t)D_TYPE_MAKE_COMPOUND(compound_kind)                         \
         | (uint64_t)D_TYPE_CUSTOM_BIT                                         \
         | (uint64_t)D_TYPE_POINTER                                            \
@@ -773,7 +773,7 @@ D_LONG_LONG_DIAG_POP
 //   macro: clear the user type ID field and the CUSTOM bit, yielding the
 // underlying compound descriptor.
 #define D_TYPE_STRIP_USER_ID(info)                                            \
-    ((d_type_info64)(                                                         \
+    ((dj_type_info64)(                                                         \
         (uint64_t)(info) & ~(D_TYPE_USER_ID_MASK | (uint64_t)D_TYPE_CUSTOM_BIT) \
     ))
 
@@ -781,46 +781,46 @@ D_LONG_LONG_DIAG_POP
  *                         EXTENDED INFO STRUCTURES                           *
  *============================================================================*/
 
-// d_type_array_ext
+// dj_type_array_ext
 //   type: variable-length descriptor for multi-dimensional array types.
 // The base field carries the ARRAY flag; ndims and dims[] describe the
 // shape.
-struct d_type_array_ext
+struct dj_type_array_ext
 {
-    d_type_info16 base;     // base info (with ARRAY flag)
+    dj_type_info16 base;     // base info (with ARRAY flag)
     uint8_t       ndims;    // number of dimensions
     uint32_t      dims[1];  // flexible dims (actual length = ndims)
 };
 
-// d_type_struct_field
+// dj_type_struct_field
 //   type: per-field record inside a struct descriptor.
-struct d_type_struct_field
+struct dj_type_struct_field
 {
     uint16_t      offset;   // byte offset within the struct
     uint16_t      size;     // byte size of this field
-    d_type_info16 type;     // type descriptor for the field
+    dj_type_info16 type;     // type descriptor for the field
 };
 
-// d_type_struct_ext
+// dj_type_struct_ext
 //   type: variable-length descriptor for struct/union types, carrying
 // field layout information.
-struct d_type_struct_ext
+struct dj_type_struct_ext
 {
-    d_type_info16              base;        // base info
+    dj_type_info16              base;        // base info
     uint16_t                   total_size;  // sizeof the struct
     uint8_t                    nfields;     // number of fields
-    struct d_type_struct_field fields[1];   // flexible (length = nfields)
+    struct dj_type_struct_field fields[1];   // flexible (length = nfields)
 };
 
-// d_type_func_ext
+// dj_type_func_ext
 //   type: variable-length descriptor for function types, carrying return
 // type and parameter list.
-struct d_type_func_ext
+struct dj_type_func_ext
 {
-    d_type_info16 base;      // base info (compound FUNCTION)
-    d_type_info16 ret_type;  // return type descriptor
+    dj_type_info16 base;      // base info (compound FUNCTION)
+    dj_type_info16 ret_type;  // return type descriptor
     uint8_t       nparam;    // number of parameters
-    d_type_info16 params[1]; // flexible (length = nparam)
+    dj_type_info16 params[1]; // flexible (length = nparam)
 };
 
 /*============================================================================*
@@ -830,7 +830,7 @@ struct d_type_func_ext
 // D_TYPE_STRIP_CV
 //   macro: clear both const and volatile bits.
 #define D_TYPE_STRIP_CV(info)                                                 \
-    ((d_type_info16)((info) & ~(D_TYPE_CONST_BIT | D_TYPE_VOLATILE_BIT)))
+    ((dj_type_info16)((info) & ~(D_TYPE_CONST_BIT | D_TYPE_VOLATILE_BIT)))
 
 // D_TYPE_STRIP_PTR
 //   macro: decrement pointer depth by one (alias for D_TYPE_SUB_PTR).
@@ -839,13 +839,13 @@ struct d_type_func_ext
 // D_TYPE_STRIP_ALL_PTR
 //   macro: remove the pointer flag entirely, yielding the base non-pointer
 // descriptor.
-#define D_TYPE_STRIP_ALL_PTR(info)    ((d_type_info16)(D_TYPE_GET_BASE(info) & (d_type_info16)~D_TYPE_POINTER))
+#define D_TYPE_STRIP_ALL_PTR(info)    ((dj_type_info16)(D_TYPE_GET_BASE(info) & (dj_type_info16)~D_TYPE_POINTER))
 
 // D_TYPE_BASE
 //   macro: extract only the core identity (kind + subtype + signed bit),
 // stripping cv-qualifiers and upper flags.
 #define D_TYPE_BASE(info)                                                     \
-    ((d_type_info16)((info) & (D_TYPE_PRIMITIVE | D_TYPE_SUB_MASK | D_TYPE_SIGNED_BIT)))
+    ((dj_type_info16)((info) & (D_TYPE_PRIMITIVE | D_TYPE_SUB_MASK | D_TYPE_SIGNED_BIT)))
 
 // D_TYPE_EQ / D_TYPE_EQ_BASE / D_TYPE_COMPAT
 //   macro: comparison helpers.  EQ is exact; EQ_BASE compares only the low
@@ -856,8 +856,8 @@ struct d_type_func_ext
 
 // D_TYPE_TO_BASE / D_TYPE_TO_PTR
 //   macro: narrowing / widening casts between descriptor widths.
-#define D_TYPE_TO_BASE(info)     ((d_type_info16)((info) & 0xFFFFu))
-#define D_TYPE_TO_PTR(info)      ((d_type_info32)(info))
+#define D_TYPE_TO_BASE(info)     ((dj_type_info16)((info) & 0xFFFFu))
+#define D_TYPE_TO_PTR(info)      ((dj_type_info32)(info))
 
 // D_TYPE_DUMP_BITS
 //   macro: initializer list suitable for printf debugging; expands to

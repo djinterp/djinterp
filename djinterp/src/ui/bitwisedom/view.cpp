@@ -131,8 +131,7 @@ const std::vector<std::string> KIND_NAMES = {
 
 // ------------------------------------------------------------------ helpers
 
-std::string
-hex(
+std::string hex(
     u64 _value,
     int _width
 )
@@ -144,8 +143,7 @@ hex(
 // brief
 //   a value in a line: in hex, where an integer holds it; else as its
 // runs, the first few named.
-std::string
-brief(
+std::string brief(
     const wide& _value,
     int         _width
 )
@@ -157,8 +155,7 @@ brief(
 // brief
 //   a row's value in a line: a wide sheet's macro is C's integer, and its
 // other symbols are sets of bits.
-std::string
-brief(
+std::string brief(
     const resolved_row& _row,
     int                 _width
 )
@@ -173,8 +170,7 @@ brief(
                            : hex(_row.value, _width);
 }
 
-element_template
-muted(
+element_template muted(
     const std::string& _text
 )
 {
@@ -185,8 +181,7 @@ muted(
 //   text in a colour, on a panel: the colour as far as it reads there, and
 // the theme's text for no colour -- a row with no fill. The panel and the
 // text are the scheme's, as the window is drawn with them.
-element_template
-coloured(
+element_template coloured(
     const model&       _model,
     const std::string& _text,
     rgba               _colour
@@ -208,8 +203,7 @@ coloured(
 // level_label
 //   text in the colour of an issue's severity: errors red, warnings amber,
 // notes muted.
-element_template
-level_label(
+element_template level_label(
     const std::string& _text,
     severity           _level,
     bool               _wrap
@@ -251,8 +245,7 @@ action_button(
 
 // form
 //   a two-column table: labels on the left, controls on the right.
-element_template
-form(
+element_template form(
     const std::string& _id,
     templates          _rows,
     double             _label_width = 128.0
@@ -274,8 +267,7 @@ form(
 //   a form whose two columns share its width, two parts to three: for a
 // panel that may be narrow, where a fixed label column would leave the
 // controls no room.
-element_template
-shared_form(
+element_template shared_form(
     const std::string& _id,
     templates          _rows
 )
@@ -290,8 +282,7 @@ shared_form(
                          { "widths", "2*\n3*" } }));
 }
 
-element_template
-form_row(
+element_template form_row(
     const std::string& _label,
     element_template   _control
 )
@@ -302,8 +293,7 @@ form_row(
 // form_heading
 //   a heading between a form's parts: the part's name in the labels'
 // column, and a faint line beside it.
-element_template
-form_heading(
+element_template form_heading(
     const std::string& _text
 )
 {
@@ -413,8 +403,7 @@ setting_control(
 
 // setting_rows
 //   form rows for registered settings, by path; a flag's label is its own.
-templates
-setting_rows(
+templates setting_rows(
     const model&                    _model,
     const std::vector<std::string>& _paths
 )
@@ -454,8 +443,7 @@ lined up -- the two that need an integer's width greyed in a wider sheet,
 and the two least plain with an example. The one chosen is checked; each
 is one "set" of "grid.names_by", one step to undo.
 */
-templates
-names_by_items(
+templates names_by_items(
     const model& _model
 )
 {
@@ -498,8 +486,7 @@ names_by_items(
 
 // setting_toggle
 //   a checkable menu item over a flag setting of the sheet's.
-element_template
-setting_toggle(
+element_template setting_toggle(
     const model& _model,
     const char*  _text,
     const char*  _path,
@@ -526,8 +513,7 @@ way; and the sorted order made the sheet's own, which the header follows.
 Each choice is one "set" of "grid.sort_by" or "grid.sort_descending", one
 step to undo.
 */
-templates
-sort_items(
+templates sort_items(
     const model& _model
 )
 {
@@ -581,8 +567,7 @@ const char* const SHOWN_NAMES[SHOWN_PART_COUNT] = {
 
 // ids_text
 //   rows by id, as a display event carries them: "3,7,12".
-std::string
-ids_text(
+std::string ids_text(
     const std::vector<int>& _rows
 )
 {
@@ -599,8 +584,7 @@ ids_text(
 // bits_text
 //   a rule's or a region's bits, as the menus and the Display window write
 // them.
-std::string
-bits_text(
+std::string bits_text(
     int _lsb,
     int _msb
 )
@@ -622,8 +606,7 @@ bits_text(
 // rows_text
 //   a rule's or a region's rows, as the Display window writes them: their
 // symbol names, the first few.
-std::string
-rows_text(
+std::string rows_text(
     const model&            _model,
     const std::vector<int>& _rows
 )
@@ -664,8 +647,7 @@ rows_text(
 // lineage_in
 //   a row's lineage, from the resolution: the row's id, then each group's
 // it is in.
-std::vector<int>
-lineage_in(
+std::vector<int> lineage_in(
     const model& _model,
     int          _id
 )
@@ -686,8 +668,7 @@ lineage_in(
 //   whether a region of the grid shows a part: 0 nowhere, 1 in places, 2
 // everywhere -- read over its rows, at every bit where a rule begins or
 // ends, between which nothing changes.
-int
-scope_shows(
+int scope_shows(
     const model&            _model,
     const std::vector<int>& _rows,
     int                     _lsb,
@@ -757,8 +738,7 @@ there; then each shown there and nowhere else; and the region as the rest
 of the grid shows it, its own rules taken back. Each is one
 "display.set", one step to undo.
 */
-templates
-display_items(
+templates display_items(
     const model&            _model,
     const std::vector<int>& _rows,
     int                     _lsb,
@@ -851,8 +831,7 @@ struct openness
     bool open   = false;
 };
 
-openness
-openness_of(
+openness openness_of(
     const sheet& _sheet
 )
 {
@@ -878,8 +857,7 @@ openness_of(
 // file_name
 //   a document's file, without the directories it is in: what its tab and
 // the menus call it.
-std::string
-file_name(
+std::string file_name(
     const model& _model
 )
 {
@@ -895,8 +873,7 @@ file_name(
 // look_items
 //   the Theme menu: the themes, then the colour schemes, each checked when
 // it is the window's; then the sheet's own colours.
-templates
-look_items(
+templates look_items(
     const shell_view& _view
 )
 {
@@ -948,8 +925,7 @@ look_items(
 // example_items
 //   the examples, on their shelves in the order the shelves first appear,
 // each with its size beside it.
-templates
-example_items()
+templates example_items()
 {
     const std::vector<example_info>& list = example_list();
     std::vector<std::string>         shelves;
@@ -1003,8 +979,7 @@ every tool window, each checked while it is open in this workspace;
 Window holds the workspaces, the sheets of this one and how they are laid
 out.
 */
-element_template
-menus(
+element_template menus(
     const shell_view& _view
 )
 {
@@ -1308,8 +1283,7 @@ menus(
 
 // ----------------------------------------------------------------- the tree
 
-std::string
-kind_tag(
+std::string kind_tag(
     const row& _row
 )
 {
@@ -1341,8 +1315,7 @@ const double NO_SWATCH = 1.0e-3;
 //   an "Add child..." field's attributes: its key, its tip, and -- when the
 // window gives it the keyboard, after a child was added or a name refused
 // -- that request, and the text to start from.
-option_set
-child_attrs(
+option_set child_attrs(
     const model& _model,
     int          _parent
 )
@@ -1370,8 +1343,7 @@ child_attrs(
 // children_shown
 //   a group's rows in the order the tree shows them: the sheet's own, or
 // sorted as the grid is.
-std::vector<const row*>
-children_shown(
+std::vector<const row*> children_shown(
     const model& _model,
     const row&   _row
 )
@@ -1400,8 +1372,7 @@ children_shown(
     return out;
 }
 
-element_template
-tree_row(
+element_template tree_row(
     const model& _model,
     const row&   _row
 )
@@ -1497,8 +1468,7 @@ tree_row(
 //   the add control's attributes, as the user prefers it: a button and its
 // menu, or a split button and the kind it adds; and the colour new rows
 // take, which its menu sets.
-option_set
-add_attrs(
+option_set add_attrs(
     const shell_state& _shell,
     const std::string& _key
 )
@@ -1522,8 +1492,7 @@ symbols_tool
 that open and close every group above the rows; then the rows, ending in a
 "+" with its faded "Add new...".
 */
-element_template
-symbols_tool(
+element_template symbols_tool(
     const shell_view& _view
 )
 {
@@ -1573,8 +1542,7 @@ symbols_tool(
 
 // ------------------------------------------------------------ the inspector
 
-templates
-value_rows(
+templates value_rows(
     const model&        _model,
     const resolved_row& _resolved
 )
@@ -1662,8 +1630,7 @@ value_rows(
     return rows;
 }
 
-templates
-definition_rows(
+templates definition_rows(
     const model&        _model,
     const row&          _row,
     const resolved_row& _resolved,
@@ -1881,8 +1848,7 @@ definition_rows(
     return rows;
 }
 
-templates
-common_rows(
+templates common_rows(
     const model&       _model,
     const row&         _row,
     const std::string& _act = "row."
@@ -1955,8 +1921,7 @@ common_rows(
     return rows;
 }
 
-element_template
-issue_list(
+element_template issue_list(
     const model& _model,
     int          _id
 )
@@ -1976,8 +1941,7 @@ issue_list(
     return column(std::move(lines), 1, attrs({ { "key", "issues" } }));
 }
 
-element_template
-symbol_inspector(
+element_template symbol_inspector(
     const model&      _model,
     const row&        _row,
     const option_set& _add
@@ -2080,8 +2044,7 @@ symbol_inspector(
               action_button("Down", "edit.move_down") }) });
 }
 
-element_template
-group_inspector(
+element_template group_inspector(
     const model&      _model,
     const row&        _row,
     const option_set& _add
@@ -2163,8 +2126,7 @@ group_inspector(
                action_button("Delete", "edit.delete") }) });
 }
 
-element_template
-sheet_inspector(
+element_template sheet_inspector(
     const model& _model
 )
 {
@@ -2200,8 +2162,7 @@ inspector_tool
   The inspector, in a window of its own: the row selected first, the group
 it is, or the sheet when nothing is selected.
 */
-element_template
-inspector_tool(
+element_template inspector_tool(
     const shell_view& _view
 )
 {
@@ -2231,8 +2192,7 @@ inspector_tool(
 // ---------------------------------------------------------- the tool windows
 
 
-element_template
-operations_tab(
+element_template operations_tab(
     const model& _model
 )
 {
@@ -2321,8 +2281,7 @@ operations_tab(
                       { "widths", "0\n110\n110\n44\n52\n0" } })) });
 }
 
-element_template
-macros_tab(
+element_template macros_tab(
     const model& _model
 )
 {
@@ -2376,8 +2335,7 @@ macros_tab(
         code_view(attrs({ { "height", 0.0 } })) });
 }
 
-element_template
-templates_tab(
+element_template templates_tab(
     const model& _model
 )
 {
@@ -2466,8 +2424,7 @@ templates_tab(
                       { "widths", "28\n150\n70\n0\n300\n160\n24" } })) });
 }
 
-element_template
-issues_tab(
+element_template issues_tab(
     const model& _model
 )
 {
@@ -2540,8 +2497,7 @@ issues_tab(
     return column(std::move(page));
 }
 
-element_template
-grid_tab(
+element_template grid_tab(
     const model& _model
 )
 {
@@ -2646,8 +2602,7 @@ grid_tab(
               attrs({ { "width", 0.0 }, { "height", 0.0 } })) });
 }
 
-element_template
-colours_tab(
+element_template colours_tab(
     const model& _model
 )
 {
@@ -2681,8 +2636,7 @@ colours_tab(
               attrs({ { "width", 0.0 }, { "height", 0.0 } })) });
 }
 
-element_template
-columns_tab(
+element_template columns_tab(
     const model& _model
 )
 {
@@ -2757,8 +2711,7 @@ hides them in a part of it: its rows, its bits, and each part as the grid
 has it, shown or hidden; the last rule over a cell wins. A rule is made
 from the grid's menus, on a row, a segment's heading or a block selected.
 */
-element_template
-display_tab(
+element_template display_tab(
     const model& _model
 )
 {
@@ -2844,8 +2797,7 @@ display_tab(
               attrs({ { "width", 0.0 }, { "height", 0.0 } })) });
 }
 
-element_template
-sheet_tab(
+element_template sheet_tab(
     const model& _model
 )
 {
@@ -2877,8 +2829,9 @@ sheet_tab(
 
 // naming_tab
 //   Sheet-wide boundary trimming, kept out of the per-symbol inspector.
-element_template
-naming_tab(const model& _model)
+element_template naming_tab(
+    const model& _model
+)
 {
     templates preview;
     const row* selected = find_row(_model.doc, _model.ui.selection.empty()
@@ -2920,14 +2873,15 @@ naming_tab(const model& _model)
     });
 }
 
-element_template console_tab(const shell_view&);
+element_template console_tab(
+    const shell_view&
+);
 
 /*
 tool_content
   A tool window's content: what it shows of the document in front.
 */
-element_template
-tool_content(
+element_template tool_content(
     const shell_view& _view,
     tool              _tool
 )
@@ -2956,8 +2910,7 @@ tool_content(
 
 // tool_caption
 //   a tool window's title: the issues' says how many there are.
-std::string
-tool_caption(
+std::string tool_caption(
     const model& _model,
     tool         _tool
 )
@@ -2976,8 +2929,7 @@ tool_caption(
 
 // ------------------------------------------------------- the context menu
 
-templates
-add_items()
+templates add_items()
 {
     return {
         menu_item("Bit", "edit.add", attrs({ { "value", 0L } })),
@@ -2994,8 +2946,7 @@ add_items()
 
 // pinned_here
 //   whether the workspace has a window's tab pinned, by its key.
-bool
-pinned_here(
+bool pinned_here(
     const workspace&   _workspace,
     const std::string& _key
 )
@@ -3011,8 +2962,7 @@ tab_items
 or its right -- pinned tabs staying -- pin or unpin it, rename a sheet's
 file, and where the sheets' tabs run and which end they keep to.
 */
-templates
-tab_items(
+templates tab_items(
     const shell_view& _view
 )
 {
@@ -3120,8 +3070,7 @@ context_menu
 was opened for: a row, a segment of the grid's columns, a tab, or the
 sheet.
 */
-element_template
-context_menu(
+element_template context_menu(
     const shell_view& _view
 )
 {
@@ -3444,8 +3393,7 @@ context_menu(
 // slot_name
 //   a place in a new workspace's layout, as the dock space's layout names
 // it.
-const char*
-slot_name(
+const char* slot_name(
     dock_slot _slot
 )
 {
@@ -3463,8 +3411,7 @@ slot_name(
 // dock_text
 //   a dock space's id as its attribute carries it: text, which holds every
 // id a 32-bit hash makes on every platform.
-std::string
-dock_text(
+std::string dock_text(
     const workspace& _workspace
 )
 {
@@ -3473,8 +3420,7 @@ dock_text(
 
 // definition_key
 //   the key of a document's window for one of its definition files.
-std::string
-definition_key(
+std::string definition_key(
     int         _document,
     std::size_t _index
 )
@@ -3490,8 +3436,7 @@ name and a dot while it has changes. It docks beside the document before
 it the first time it is shown -- or in the middle -- and among this
 workspace's documents at once when it has just come from another.
 */
-element_template
-document_window(
+element_template document_window(
     const shell_view&  _view,
     const model&       _document,
     const std::string& _with
@@ -3551,8 +3496,7 @@ definition_window
   One of a document's imported definition files, beside the document: its
 x removes the file from the sheet, a step to undo.
 */
-element_template
-definition_window(
+element_template definition_window(
     const shell_view& _view,
     const model&      _document,
     std::size_t       _index
@@ -3601,8 +3545,7 @@ tool_window
   A tool window of the workspace in front, showing the document in front:
 its x closes it, and View opens it again where it was.
 */
-element_template
-tool_window(
+element_template tool_window(
     const shell_view& _view,
     tool              _tool
 )
@@ -3631,8 +3574,7 @@ tool_window(
 
 // env_control
 //   the control that edits one of the window's own settings.
-element_template
-env_control(
+element_template env_control(
     const shell_state& _shell,
     const std::string& _path
 )
@@ -3683,8 +3625,7 @@ env_control(
 // page_paths
 //   the settings a page of the Options window shows, by path; the
 // settings files' page shows none.
-std::vector<std::string>
-page_paths(
+std::vector<std::string> page_paths(
     int _page
 )
 {
@@ -3765,8 +3706,7 @@ page_paths(
 // full_label
 //   a setting's label where nothing around it says what it is about: a
 // grid line's four, as "Lines between bits: thickness".
-std::string
-full_label(
+std::string full_label(
     const std::string& _path,
     const std::string& _label
 )
@@ -3794,8 +3734,7 @@ full_label(
 // option_rows
 //   a form's rows for settings by path, the window's own or the sheet's; a
 // flag's label is its own.
-templates
-option_rows(
+templates option_rows(
     const shell_view&               _view,
     const std::vector<std::string>& _paths
 )
@@ -3846,8 +3785,7 @@ option_rows(
 
 // lowered
 //   a text in lower case, to search without regard to case.
-std::string
-lowered(
+std::string lowered(
     std::string _text
 )
 {
@@ -3862,8 +3800,7 @@ lowered(
 
 // matches
 //   whether a setting's label, path or help holds the text searched for.
-bool
-matches(
+bool matches(
     const std::string& _path,
     const std::string& _query
 )
@@ -3888,8 +3825,7 @@ files_page
 and the files the window keeps, each to apply again, to forget, or to
 delete.
 */
-templates
-files_page(
+templates files_page(
     const shell_view& _view
 )
 {
@@ -3973,8 +3909,7 @@ as the inspector shows it; then what it comes to, tried on a copy of the
 sheet -- its name and value, and the issues it would have -- and the
 buttons that add it.
 */
-templates
-node_content(
+templates node_content(
     const model& _model
 )
 {
@@ -4105,8 +4040,7 @@ name typed -- is one line, with how many times. The list reads the actions
 as each frame is drawn: an action taken is listed without the window being
 built again.
 */
-element_template
-console_tab(
+element_template console_tab(
     const shell_view&
 )
 {
@@ -4119,8 +4053,7 @@ status_text
 symbols and its issues, the row selected, and the bit the grid's cursor is
 on.
 */
-std::string
-status_text(
+std::string status_text(
     const model& _model
 )
 {
@@ -4193,8 +4126,7 @@ them, as the preferences say -- each its own window to ImGui, so either
 keeps where it was put. It shows the document in front's row in the
 making.
 */
-element_template
-add_node_window(
+element_template add_node_window(
     const shell_view& _view
 )
 {
@@ -4244,8 +4176,7 @@ finds, on the right. The window's own settings apply at once and are kept
 for the next run; the sheet's are the sheet in front's, saved with it, and
 each change is a step to undo.
 */
-element_template
-options_window(
+element_template options_window(
     const shell_view& _view
 )
 {
@@ -4373,8 +4304,7 @@ out as a new workspace's the first time it is shown; a window for each of
 its documents, and for each definition file they hold; its tool windows
 that are open; the Options, when they are; and the one context menu.
 */
-element_template
-build_ui(
+element_template build_ui(
     const shell_view& _view
 )
 {

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,14 +23,12 @@ d_tests_sa_registry_contains
   - does not find non-existent key
   - finds via alias
 */
-bool
-d_tests_sa_registry_contains
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_contains(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -101,14 +99,12 @@ d_tests_sa_registry_index_of
   - returns correct row index for existing key
   - returns correct index via alias (same row)
 */
-bool
-d_tests_sa_registry_index_of
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_index_of(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     ssize_t            idx;
 
@@ -186,14 +182,12 @@ d_tests_sa_registry_at
   - valid index returns correct row pointer
   - returned pointer allows reading row data
 */
-bool
-d_tests_sa_registry_at
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_at(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     struct test_row*   found;
 
@@ -263,14 +257,12 @@ d_tests_sa_registry_count
   - count reflects number of rows added
   - count decrements after remove
 */
-bool
-d_tests_sa_registry_count
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_count(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -327,14 +319,12 @@ d_tests_sa_registry_capacity_fn
   - reflects initial allocation
   - capacity >= count invariant
 */
-bool
-d_tests_sa_registry_capacity_fn
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_capacity_fn(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
 
     result = true;
 
@@ -378,14 +368,12 @@ d_tests_sa_registry_is_empty
   - after add, not empty
   - after clear, empty again
 */
-bool
-d_tests_sa_registry_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -436,10 +424,8 @@ d_tests_sa_registry_is_empty
 d_tests_sa_registry_queries_all
   Aggregation function that runs all query tests.
 */
-bool
-d_tests_sa_registry_queries_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_queries_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

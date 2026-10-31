@@ -7,7 +7,7 @@
 * one of the same name. So a program written for one extension reads as awk,
 * and one that never calls a host function cannot tell whether any is there.
 *   This is the builtin seam of the six dawk.h describes, lowered onto
-* d_awk_interp as the record source is in dsource.h. Arguments are values and
+* dj_awk_interp as the record source is in dsource.h. Arguments are values and
 * the result is a value: a host function takes no array and cannot assign to
 * its arguments, so it cannot reach what the program has not handed it.
 *   Under D_AWK_STRICT_POSIX installation is refused, so the conforming core
@@ -25,9 +25,9 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Hook types
-         1.  d_awk_fn_host
+         1.  dj_awk_fn_host
     2.  Descriptor
-         1.  d_awk_host_function
+         1.  dj_awk_host_function
 */
 
 #ifndef DJINTERP_TOOLS_DAWK_DHOST_H
@@ -37,7 +37,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>   // bool
 #include <stddef.h>    // size_t
 // djinterp
-#include "./dvalue.h"  // d_awk_value
+#include "./dvalue.h"  // dj_awk_value
 
 
 //==============================================================================
@@ -49,7 +49,7 @@ TABLE OF CONTENTS
 // 1.1    Hook types
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_awk_fn_host
+// dj_awk_fn_host
 //   type: one host function.  `_args` holds `_count` values, already
 // evaluated, in the order the call gave them; `_out` receives the result and
 // arrives uninitialised.  Returns true, or false with a diagnostic of at most
@@ -58,26 +58,26 @@ TABLE OF CONTENTS
 // an operation that can fail in the world, such as opening a file, reports
 // its failure through `_out` instead, as getline does.
 typedef bool
-(*d_awk_fn_host)(void*                _user,
-                 struct d_awk_value** _args,
+(*dj_awk_fn_host)(void*                _user,
+                 struct dj_awk_value** _args,
                  size_t               _count,
-                 struct d_awk_value*  _out,
+                 struct dj_awk_value*  _out,
                  char*                _problem,
                  size_t               _capacity);
 
 // 1.2    Descriptor
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_awk_host_function
+// dj_awk_host_function
 //   struct: one host function as an extension declares it.  A call outside
 // `least` to `most` arguments is a runtime error naming the function, so an
 // implementation may index its arguments without checking the count.
-struct d_awk_host_function
+struct dj_awk_host_function
 {
     const char*   name;   // the name a program calls it by
     size_t        least;  // the fewest arguments it takes
     size_t        most;   // the most arguments it takes
-    d_awk_fn_host call;   // the implementation
+    dj_awk_fn_host call;   // the implementation
 };
 
 

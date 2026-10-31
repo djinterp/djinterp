@@ -34,9 +34,9 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../djinterp.h"    // framework root
-#include "./mariadb_common.h"  // d_mariadb, the layer's results
+#include "./mariadb_common.h"  // dj_mariadb, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -63,26 +63,34 @@ D_EXTERN_C_BEGIN
 // statistics and storage -- ANALYZE TABLE refreshes the key distribution the
 // optimizer plans by; OPTIMIZE TABLE rebuilds the table to reclaim space,
 // which InnoDB does as a recreate and analyze
-int    d_mariadb_analyze_table(struct d_mariadb* _db,
-                               const char*       _schema,
-                               const char*       _table) D_NOTHROW;
-int    d_mariadb_optimize_table(struct d_mariadb* _db,
-                                const char*       _schema,
-                                const char*       _table) D_NOTHROW;
+int d_mariadb_analyze_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
+) D_NOTHROW;
+int d_mariadb_optimize_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
+) D_NOTHROW;
 
 // 1.2    Checks
 //------------------------------------------------------------------------------
 // checks -- CHECK TABLE writes to _ok whether the table is sound; CHECKSUM
 // TABLE writes a checksum of its contents, which two tables share only when
 // they hold the same rows. Each answer is written only on success.
-int    d_mariadb_check_table(struct d_mariadb* _db,
-                             const char*       _schema,
-                             const char*       _table,
-                             bool*             _ok) D_NOTHROW;
-int    d_mariadb_checksum_table(struct d_mariadb* _db,
-                                const char*       _schema,
-                                const char*       _table,
-                                uint64_t*         _checksum) D_NOTHROW;
+int d_mariadb_check_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    bool*              _ok
+) D_NOTHROW;
+int d_mariadb_checksum_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    uint64_t*          _checksum
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

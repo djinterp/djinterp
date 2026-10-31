@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,14 +20,12 @@ d_tests_sa_text_buffer_find_char
   - character not found returns -1
   - finds first occurrence
 */
-bool
-d_tests_sa_text_buffer_find_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_find_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -77,14 +75,12 @@ d_tests_sa_text_buffer_find_char_from
   - search from offset skips earlier occurrences
   - search from beyond last occurrence returns -1
 */
-bool
-d_tests_sa_text_buffer_find_char_from
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_find_char_from(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -136,14 +132,12 @@ d_tests_sa_text_buffer_find_string
   - finds first occurrence of substring
   - empty search string returns 0
 */
-bool
-d_tests_sa_text_buffer_find_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_find_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -199,14 +193,12 @@ d_tests_sa_text_buffer_find_string_from
   - search from offset finds second occurrence
   - search from past all occurrences returns -1
 */
-bool
-d_tests_sa_text_buffer_find_string_from
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_find_string_from(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -249,14 +241,12 @@ d_tests_sa_text_buffer_find_last_char
   - character not found returns -1
   - finds last occurrence
 */
-bool
-d_tests_sa_text_buffer_find_last_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_find_last_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -306,14 +296,12 @@ d_tests_sa_text_buffer_find_last_string
   - substring not found returns -1
   - finds last occurrence of substring
 */
-bool
-d_tests_sa_text_buffer_find_last_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_find_last_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -356,14 +344,12 @@ d_tests_sa_text_buffer_contains_char
   - character present returns true
   - character absent returns false
 */
-bool
-d_tests_sa_text_buffer_contains_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_contains_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -408,14 +394,12 @@ d_tests_sa_text_buffer_contains_string
   - substring absent returns false
   - empty substring returns true
 */
-bool
-d_tests_sa_text_buffer_contains_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_contains_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -468,14 +452,12 @@ d_tests_sa_text_buffer_starts_with
   - empty prefix returns true
   - prefix longer than buffer returns false
 */
-bool
-d_tests_sa_text_buffer_starts_with
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_starts_with(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -535,14 +517,12 @@ d_tests_sa_text_buffer_ends_with
   - non-matching suffix returns false
   - empty suffix returns true
 */
-bool
-d_tests_sa_text_buffer_ends_with
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_ends_with(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -592,14 +572,12 @@ d_tests_sa_text_buffer_count_char
   - character not present returns 0
   - correct count of occurrences
 */
-bool
-d_tests_sa_text_buffer_count_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_count_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -650,14 +628,12 @@ d_tests_sa_text_buffer_count_string
   - substring not present returns 0
   - correct count of non-overlapping occurrences
 */
-bool
-d_tests_sa_text_buffer_count_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_count_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -703,10 +679,8 @@ d_tests_sa_text_buffer_count_string
 d_tests_sa_text_buffer_search_all
   Aggregation function that runs all search operation tests.
 */
-bool
-d_tests_sa_text_buffer_search_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_search_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

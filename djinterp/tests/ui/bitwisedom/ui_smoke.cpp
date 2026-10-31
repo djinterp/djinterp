@@ -106,8 +106,7 @@ const float FARTHEST = 100000.0f;
 
 // stray_vertex
 //   whether the last frame drew a vertex a GPU may draw as stray pixels.
-bool
-stray_vertex()
+bool stray_vertex()
 {
     const ImDrawData* drawn = ImGui::GetDrawData();
 
@@ -138,8 +137,7 @@ stray_vertex()
 //   the first check that failed in the running section, or nullptr.
 const char* failure = nullptr;
 
-void
-expect(
+void expect(
     bool        _ok,
     const char* _what
 )
@@ -153,8 +151,7 @@ expect(
     return;
 }
 
-bool
-id_clash()
+bool id_clash()
 {
     ImGuiContext& context = *GImGui;
 
@@ -188,8 +185,7 @@ id_clash()
 
 // frames
 //   runs frames of the window, recording any clash.
-void
-frames(
+void frames(
     app& _window,
     int  _count
 )
@@ -223,8 +219,7 @@ frames(
 
 // post
 //   an event as an element would post it.
-void
-post(
+void post(
     app&                            _window,
     const std::string&              _kind,
     const ::djinterp::option_value& _value,
@@ -245,9 +240,8 @@ post(
 // move_to
 //   the mouse to a point of the grid, and two frames for it to be seen
 // there: ImGui hovers what the mouse was over the frame before.
-bool
-move_to(
-    app&                           _window,
+bool move_to(
+    app&                               _window,
     const bitwisedom::gui::grid_point& _point
 )
 {
@@ -264,8 +258,7 @@ move_to(
 
 // click
 //   a button pressed and released where the mouse is.
-void
-click(
+void click(
     app&             _window,
     ImGuiMouseButton _button = ImGuiMouseButton_Left
 )
@@ -282,8 +275,7 @@ click(
 
 // double_click
 //   two clicks, well inside the double-click time.
-void
-double_click(
+void double_click(
     app& _window
 )
 {
@@ -296,8 +288,7 @@ double_click(
 // drag_by
 //   a press where the mouse is, a move across by _dx in two steps, and a
 // release.
-void
-drag_by(
+void drag_by(
     app&  _window,
     float _dx
 )
@@ -319,8 +310,7 @@ drag_by(
 
 // key
 //   a key pressed and released.
-void
-key(
+void key(
     app&     _window,
     ImGuiKey _key
 )
@@ -338,8 +328,7 @@ key(
 // press
 //   a key pressed and released with modifiers held -- Ctrl, Shift, Alt --
 // as a chord names them.
-void
-press(
+void press(
     app&          _window,
     ImGuiKeyChord _chord
 )
@@ -375,8 +364,7 @@ press(
 
 // type
 //   text typed into whatever has the keyboard, then Enter.
-void
-type(
+void type(
     app&        _window,
     const char* _text
 )
@@ -391,16 +379,14 @@ type(
 
 // popups
 //   how many popups are open.
-int
-popups()
+int popups()
 {
     return GImGui->OpenPopupStack.Size;
 }
 
 // tooltip_shown
 //   whether a tooltip window was drawn in the last frame.
-bool
-tooltip_shown()
+bool tooltip_shown()
 {
     for (const ImGuiWindow* window : GImGui->Windows)
     {
@@ -416,8 +402,7 @@ tooltip_shown()
 
 // window_shown
 //   whether a window of that name was drawn in the last frame.
-bool
-window_shown(
+bool window_shown(
     const char* _name
 )
 {
@@ -429,8 +414,7 @@ window_shown(
 
 // rest
 //   the mouse held still for longer than ImGui waits before a tooltip.
-void
-rest(
+void rest(
     app& _window
 )
 {
@@ -442,8 +426,7 @@ rest(
 
 // here
 //   the workspace in front.
-const bitwisedom::gui::workspace&
-here(
+const bitwisedom::gui::workspace& here(
     app& _window
 )
 {
@@ -454,10 +437,9 @@ here(
 
 // tool_key
 //   a tool window's key, in the workspace in front.
-std::string
-tool_key(
-    app&                   _window,
-    bitwisedom::gui::tool  _tool
+std::string tool_key(
+    app&                  _window,
+    bitwisedom::gui::tool _tool
 )
 {
     return bitwisedom::gui::tool_window_key(here(_window).id, _tool);
@@ -466,19 +448,17 @@ tool_key(
 // tool_is_open / tool_in_view
 //   whether a tool window of the workspace in front is open; and whether
 // it drew its content in the last frame -- its tab in front of its dock.
-bool
-tool_is_open(
-    app&                   _window,
-    bitwisedom::gui::tool  _tool
+bool tool_is_open(
+    app&                  _window,
+    bitwisedom::gui::tool _tool
 )
 {
     return here(_window).tools[static_cast<std::size_t>(_tool)];
 }
 
-bool
-tool_in_view(
-    app&                   _window,
-    bitwisedom::gui::tool  _tool
+bool tool_in_view(
+    app&                  _window,
+    bitwisedom::gui::tool _tool
 )
 {
     return bitwisedom::gui::window_seen(tool_key(_window, _tool));
@@ -486,8 +466,7 @@ tool_in_view(
 
 // id_of
 //   a symbol's id, by its full name, or 0.
-int
-id_of(
+int id_of(
     app&               _window,
     const std::string& _full
 )
@@ -499,8 +478,7 @@ id_of(
 
 // --------------------------------------------------------------- sections
 
-void
-first_frames(
+void first_frames(
     app& _window
 )
 {
@@ -525,8 +503,7 @@ first_frames(
     return;
 }
 
-void
-every_tab(
+void every_tab(
     app& _window
 )
 {
@@ -576,8 +553,7 @@ every_tab(
     return;
 }
 
-void
-every_row(
+void every_row(
     app& _window
 )
 {
@@ -608,8 +584,7 @@ every_row(
     return;
 }
 
-void
-every_setting(
+void every_setting(
     app& _window
 )
 {
@@ -673,8 +648,7 @@ every_setting(
     return;
 }
 
-void
-an_operation(
+void an_operation(
     app& _window
 )
 {
@@ -709,8 +683,7 @@ an_operation(
     return;
 }
 
-void
-a_file(
+void a_file(
     app& _window
 )
 {
@@ -751,8 +724,7 @@ a_file(
 
 // next
 //   a small deterministic generator, so a failure repeats.
-unsigned
-next(
+unsigned next(
     unsigned& _state
 )
 {
@@ -761,8 +733,7 @@ next(
     return _state >> 8;
 }
 
-void
-a_wandering_mouse(
+void a_wandering_mouse(
     app& _window
 )
 {
@@ -810,8 +781,7 @@ a_wandering_mouse(
     return;
 }
 
-void
-the_header(
+void the_header(
     app& _window
 )
 {
@@ -829,8 +799,7 @@ the_header(
     return;
 }
 
-void
-the_context_menus(
+void the_context_menus(
     app& _window
 )
 {
@@ -894,8 +863,7 @@ the_context_menus(
     return;
 }
 
-void
-a_rename_in_the_grid(
+void a_rename_in_the_grid(
     app& _window
 )
 {
@@ -961,8 +929,7 @@ a_rename_in_the_grid(
     return;
 }
 
-void
-a_rename_in_the_tree(
+void a_rename_in_the_tree(
     app& _window
 )
 {
@@ -1026,8 +993,7 @@ a_rename_in_the_tree(
     return;
 }
 
-void
-a_segment_renamed(
+void a_segment_renamed(
     app& _window
 )
 {
@@ -1069,8 +1035,7 @@ a_segment_renamed(
     return;
 }
 
-void
-columns_resized(
+void columns_resized(
     app& _window
 )
 {
@@ -1144,8 +1109,7 @@ columns_resized(
     return;
 }
 
-void
-code_in_and_out(
+void code_in_and_out(
     app& _window
 )
 {
@@ -1228,8 +1192,7 @@ code_in_and_out(
 // the_grid_fills
 //   the grid takes its panel's width: the cells widened, or the name column,
 // or nothing -- and then its rows end where its columns do.
-void
-the_grid_fills(
+void the_grid_fills(
     app& _window
 )
 {
@@ -1305,8 +1268,7 @@ the_grid_fills(
 //   the tool windows, every way they come and go: closed by their x and
 // opened again from View, put away below the sheets with Ctrl+J and
 // brought back as they were, and opened by a page asked for.
-void
-the_tool_windows(
+void the_tool_windows(
     app& _window
 )
 {
@@ -1379,8 +1341,7 @@ the_tool_windows(
 // the_theme_and_scheme
 //   the window's theme and colour scheme: they recolour the window, leave
 // the sheet as it was, and are kept for the next run.
-void
-the_theme_and_scheme(
+void the_theme_and_scheme(
     app& _window
 )
 {
@@ -1448,8 +1409,7 @@ the_theme_and_scheme(
 // mouseover_info
 //   what the grid cannot show in full, or has more to say about, it says
 // under a resting mouse: a name, a value, a band, the ruler.
-void
-mouseover_info(
+void mouseover_info(
     app& _window
 )
 {
@@ -1487,8 +1447,7 @@ mouseover_info(
 
 // defined_as
 //   what the header's #define of _name says, its spaces trimmed.
-std::string
-defined_as(
+std::string defined_as(
     const std::string& _text,
     const std::string& _name
 )
@@ -1512,8 +1471,7 @@ defined_as(
 
 // example_index
 //   an example's place on the File menu, by its name.
-long
-example_index(
+long example_index(
     const std::string& _name
 )
 {
@@ -1531,8 +1489,7 @@ example_index(
 
 // in_view
 //   how many rows the tree and the grid show.
-std::size_t
-in_view(
+std::size_t in_view(
     app& _window
 )
 {
@@ -1550,8 +1507,7 @@ in_view(
 //   the HRESULT example: 1,376 codes, which arrive in closed groups, every
 // group opened and every row then in view, rows across the whole of it
 // selected, a code renamed in the open tree, and the groups closed again.
-void
-a_thousand_rows(
+void a_thousand_rows(
     app& _window
 )
 {
@@ -1639,8 +1595,7 @@ a_thousand_rows(
 // the panel's buttons and the menus post, by Ctrl+Shift with minus and plus
 // and Ctrl with the keypad's, and one group with those in it from its own
 // menu; none of it a step to undo, and a second time changing nothing.
-void
-every_group_at_once(
+void every_group_at_once(
     app& _window
 )
 {
@@ -1743,8 +1698,7 @@ every_group_at_once(
 //   a sheet wider than an integer: the probe set past the 64th bit, a bit
 // moved there by its cell, the header's arrays of another word, and all of
 // it undone.
-void
-a_wide_sheet(
+void a_wide_sheet(
     app& _window
 )
 {
@@ -1796,8 +1750,7 @@ a_wide_sheet(
 //   the sheet as JSON beside its file -- the bitfield alone, and everything
 // -- and each read back: the bitfield dropped on the window, and from the
 // clipboard.
-void
-json_out_and_in(
+void json_out_and_in(
     app& _window
 )
 {
@@ -1856,8 +1809,7 @@ json_out_and_in(
 // add_child
 //   a name entered in the tree's "Add child..." field under a group or a
 // range, as the field posts it.
-void
-add_child(
+void add_child(
     app&               _window,
     int                _parent,
     const std::string& _name
@@ -1875,8 +1827,7 @@ add_child(
 // row_height
 //   how far apart the grid draws two rows the sheet shows one after the
 // other: the first two it shows.
-float
-row_height(
+float row_height(
     app& _window
 )
 {
@@ -1905,8 +1856,7 @@ row_height(
                               : 0.0f;
 }
 
-void
-a_new_sheet(
+void a_new_sheet(
     app& _window
 )
 {
@@ -1948,8 +1898,7 @@ a_new_sheet(
     return;
 }
 
-void
-children_added(
+void children_added(
     app& _window
 )
 {
@@ -2053,8 +2002,7 @@ children_added(
     return;
 }
 
-void
-square_cells(
+void square_cells(
     app& _window
 )
 {
@@ -2190,8 +2138,7 @@ square_cells(
     return;
 }
 
-void
-the_menu_bar(
+void the_menu_bar(
     app& _window
 )
 {
@@ -2255,8 +2202,7 @@ the_menu_bar(
 
 // first_shown
 //   the first of the sheet's rows the grid shows, or 0.
-int
-first_shown(
+int first_shown(
     app& _window
 )
 {
@@ -2274,8 +2220,7 @@ first_shown(
 // fitted_names
 //   the name column fitted to what it writes, as a double-click on its
 // edge fits it: the width the sheet is given.
-float
-fitted_names(
+float fitted_names(
     app& _window
 )
 {
@@ -2304,8 +2249,7 @@ label still swaps the columns. A narrow column takes shorter words, a
 hidden one has none, and with no bands and no ruler the buttons keep their
 strip, the label its line below it.
 */
-void
-symbols_by(
+void symbols_by(
     app& _window
 )
 {
@@ -2491,8 +2435,7 @@ a way chosen from it lists the rows so. A sheet wider than an integer
 passes over decimal and binary. And a macro with no bits has its cells,
 with its definition written over them as the header writes it.
 */
-void
-values_every_way(
+void values_every_way(
     app& _window
 )
 {
@@ -2661,8 +2604,7 @@ values_every_way(
 
 // doc_window
 //   a document's ImGui window, or nullptr.
-ImGuiWindow*
-doc_window(
+ImGuiWindow* doc_window(
     int _document
 )
 {
@@ -2672,8 +2614,7 @@ doc_window(
 
 // doc_in_view
 //   whether a document's window drew its grid in the last frame.
-bool
-doc_in_view(
+bool doc_in_view(
     int _document
 )
 {
@@ -2688,8 +2629,7 @@ beside the rest, and an example takes the place of a new sheet untouched;
 the menu brings another to the front; and a sheet with changes asks before
 it closes, where one without closes at once.
 */
-void
-several_sheets(
+void several_sheets(
     app& _window
 )
 {
@@ -2774,8 +2714,7 @@ the_workspaces
 windows; a new one, named; the sheet in front moved to another; the
 workspaces stepped through; and one closed, its sheets kept in the next.
 */
-void
-the_workspaces(
+void the_workspaces(
     app& _window
 )
 {
@@ -2847,8 +2786,7 @@ arrangements
   The sheets of a workspace laid out as the Window menu asks: side by side
 in columns, one above another in rows, in a grid, and as tabs again.
 */
-void
-arrangements(
+void arrangements(
     app& _window
 )
 {
@@ -2921,8 +2859,7 @@ zoom_like_a_browser
 by Ctrl and the wheel over it or the menu; held between a half and three
 times; and back to its actual size by Ctrl+0.
 */
-void
-zoom_like_a_browser(
+void zoom_like_a_browser(
     app& _window
 )
 {
@@ -3023,8 +2960,7 @@ zoom_like_a_browser(
 // password manager -- opens the moment after each copy: a copy straight
 // after another then fails without a word, and the test reads the text
 // before it. Its own leaves the user's clipboard alone, too.
-std::string&
-clipboard_text()
+std::string& clipboard_text()
 {
     static std::string text;
 
@@ -3050,8 +2986,7 @@ clipboard_set(
     return;
 }
 
-void
-own_clipboard()
+void own_clipboard()
 {
     ImGuiPlatformIO& platform = ImGui::GetPlatformIO();
 
@@ -3067,8 +3002,7 @@ own_clipboard()
 //   an ImGui of its own, for a window of its own: made current, its null
 // backend and fonts ready; and done with, the ImGui before it current
 // again, with the monospace font it had.
-ImGuiContext*
-an_imgui()
+ImGuiContext* an_imgui()
 {
     ImGuiContext* made = ImGui::CreateContext();
 
@@ -3082,8 +3016,7 @@ an_imgui()
     return made;
 }
 
-void
-done_with(
+void done_with(
     ImGuiContext* _made,
     ImGuiContext* _before,
     ImFont*       _mono
@@ -3106,8 +3039,7 @@ the sheets laid out as they were. Each run is a window of its own, in an
 ImGui of its own, keeping its settings and its session in files of their
 own.
 */
-void
-the_next_run(
+void the_next_run(
     app& _window
 )
 {
@@ -3224,8 +3156,7 @@ the symbols tree in a window of its own, and merged again; and the
 settings files: exported, imported back over changes, forgotten, and
 deleted.
 */
-void
-the_options(
+void the_options(
     app& _window
 )
 {
@@ -3334,8 +3265,7 @@ the_options(
 // drag_to
 //   a press at one point of the grid, the mouse moved to another in steps,
 // and a release there.
-void
-drag_to(
+void drag_to(
     app&                               _window,
     const bitwisedom::gui::grid_point& _from,
     const bitwisedom::gui::grid_point& _to
@@ -3366,8 +3296,7 @@ drag_to(
 
 // order_of
 //   a row's place among the sheet's rows, in tree order; -1 for none.
-int
-order_of(
+int order_of(
     app& _window,
     int  _id
 )
@@ -3393,8 +3322,7 @@ closed: a row selected has an "Add child..." field under its group's rows,
 where names are typed one after another; and a row dragged by its name
 drops before a symbol, or into a group -- each a step to undo.
 */
-void
-the_grid_as_the_tree(
+void the_grid_as_the_tree(
     app& _window
 )
 {
@@ -3496,8 +3424,7 @@ counting only them -- and the probe before a row; pinned at the top from
 their menu; another added and removed, the last of a kind hidden instead;
 and each a step to undo.
 */
-void
-special_rows(
+void special_rows(
     app& _window
 )
 {
@@ -3671,8 +3598,7 @@ opens the Add node window, a tab among the sheets or a window of its own,
 where a row of any kind is made in full: a range, three bits wide, added
 in its group, a step to undo; a name another symbol has, refused.
 */
-void
-the_add_node(
+void the_add_node(
     app& _window
 )
 {
@@ -3813,8 +3739,7 @@ and at its right end what the window last said -- after a "*" while the
 sheet has changes. A click there opens the console: every action so far,
 the latest first, a slider dragged one action many times over.
 */
-void
-the_status_bar(
+void the_status_bar(
     app& _window
 )
 {
@@ -3885,8 +3810,7 @@ column alone. A double-click on the tab renames the sheet's file, the name
 typed over the tab: ".bitwisedom.json" put after a bare name, a name with
 a folder in it refused, and Escape keeping the name it had.
 */
-void
-tabs_over_the_bits(
+void tabs_over_the_bits(
     app& _window
 )
 {
@@ -4006,8 +3930,7 @@ order: pinned, a tab moves before the rest and loses its x; the tabs to a
 tab's right close, then every other but the pinned, then those to a tab's
 left but the pinned; unpinned, the tab has its x again.
 */
-void
-the_tabs_menu(
+void the_tabs_menu(
     app& _window
 )
 {
@@ -4156,8 +4079,7 @@ Ctrl+Space, Ctrl+A, Shift+Backspace and Ctrl+.; F8's Extend mode; F2 and
 Space; Page Down and Ctrl+End scrolling the 1,424 rows of HRESULTs with the
 cursor; and Ctrl+Page Up and Down from sheet to sheet.
 */
-void
-the_keyboard(
+void the_keyboard(
     app& _window
 )
 {
@@ -4533,8 +4455,7 @@ front: what the preprocessor cannot read in it is named by its line; Edit
 makes the view an editor, where what is typed is the file's -- a step to
 undo -- and its notes follow; Done makes it a view again.
 */
-void
-definition_files(
+void definition_files(
     app& _window
 )
 {
@@ -4614,8 +4535,7 @@ definition_files(
 
 // above
 //   whether the grid drew one row above another.
-bool
-above(
+bool above(
     int _upper,
     int _lower
 )
@@ -4632,8 +4552,7 @@ above(
 
 // show_in
 //   a part of what a region of the grid shows, set as its menu sets it.
-void
-show_in(
+void show_in(
     app&               _window,
     const std::string& _rows,
     long               _lsb,
@@ -4667,8 +4586,7 @@ segment's bits, from the band's, its set bits drawn plain; colours nowhere;
 digits in a block selected and nowhere else; every rule in the Display
 window, removed there, and every one a step to undo.
 */
-void
-sorted_and_shown(
+void sorted_and_shown(
     app& _window
 )
 {
@@ -4859,8 +4777,7 @@ sorted_and_shown(
 
 // selected_row
 //   the first row selected, in the sheet; nullptr for none.
-const bitwisedom::row*
-selected_row(
+const bitwisedom::row* selected_row(
     app& _window
 )
 {
@@ -4874,8 +4791,7 @@ selected_row(
 // added_where
 //   whether the row selected -- the one just added -- is of a kind, in a
 // group.
-bool
-added_where(
+bool added_where(
     app&                 _window,
     bitwisedom::def_kind _kind,
     int                  _group
@@ -4899,8 +4815,7 @@ added_where(
 
 // set_colour
 //   the colour every new row takes, as the add control's swatch sets it.
-void
-set_colour(
+void set_colour(
     app&             _window,
     bitwisedom::rgba _colour
 )
@@ -4931,8 +4846,7 @@ kind chosen is added, and is what the face adds from then on. And the
 colour a new row takes: none at first, the palette's, or one colour for
 every new row alike, until the user says otherwise.
 */
-void
-the_add_control(
+void the_add_control(
     app& _window
 )
 {
@@ -5079,8 +4993,7 @@ the_add_control(
     return;
 }
 
-void
-readable_text(
+void readable_text(
     app& _window
 )
 {
@@ -5155,8 +5068,7 @@ readable_text(
 // no_errors
 //   the last section: no frame of any section had an ImGui error, or gave
 // the GPU a stray vertex.
-void
-no_errors(
+void no_errors(
     app& _window
 )
 {
@@ -5228,8 +5140,7 @@ const section SECTIONS[] = {
 }  // anonymous namespace
 
 
-int
-main()
+int main()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

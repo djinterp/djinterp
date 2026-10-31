@@ -21,8 +21,8 @@
 d_internal_is_space
   XML's white space: space, tab, carriage return and line feed.
 */
-static bool
-d_internal_is_space(
+static
+bool d_internal_is_space(
     char _byte
 )
 {
@@ -37,11 +37,11 @@ d_internal_is_space(
 d_internal_find
   Finds the first occurrence of `_needle` at or after `_from`.
 */
-static size_t
-d_internal_find(
-    const struct d_xml* _xml,
-    size_t              _from,
-    const char*         _needle
+static
+size_t d_internal_find(
+    const struct dj_xml* _xml,
+    size_t               _from,
+    const char*          _needle
 )
 {
     const size_t span = strlen(_needle);
@@ -63,10 +63,10 @@ d_internal_find(
 d_internal_fail
   Marks the scan as failed at the cursor, for good.
 */
-static bool
-d_internal_fail(
-    struct d_xml*       _xml,
-    struct d_xml_token* _out
+static
+bool d_internal_fail(
+    struct dj_xml*       _xml,
+    struct dj_xml_token* _out
 )
 {
     _out->kind  = D_XML_ERROR;
@@ -83,10 +83,10 @@ d_internal_markup
   Reads a comment, a processing instruction, a declaration or a CDATA
 section: the markup that begins `<!` or `<?`.
 */
-static bool
-d_internal_markup(
-    struct d_xml*       _xml,
-    struct d_xml_token* _out
+static
+bool d_internal_markup(
+    struct dj_xml*       _xml,
+    struct dj_xml_token* _out
 )
 {
     const char* const at = &_xml->text[_xml->at];
@@ -146,10 +146,10 @@ d_internal_markup(
 d_internal_tag
   Reads a start, end or empty-element tag.
 */
-static bool
-d_internal_tag(
-    struct d_xml*       _xml,
-    struct d_xml_token* _out
+static
+bool d_internal_tag(
+    struct dj_xml*       _xml,
+    struct dj_xml_token* _out
 )
 {
     const bool closing = ( ((_xml->at + 1u) < _xml->length) &&
@@ -228,11 +228,10 @@ d_internal_tag(
 d_xml_begin
   The buffer is borrowed, and must stay as it is while it is scanned.
 */
-void
-d_xml_begin(
-    struct d_xml* _xml,
-    const char*   _text,
-    size_t        _length
+void d_xml_begin(
+    struct dj_xml* _xml,
+    const char*    _text,
+    size_t         _length
 )
 {
     _xml->text   = _text;
@@ -248,10 +247,9 @@ d_xml_next
   A scan that failed stays failed: the cursor is put past the end, where
 every call reports D_XML_ERROR rather than D_XML_END.
 */
-bool
-d_xml_next(
-    struct d_xml*       _xml,
-    struct d_xml_token* _out
+bool d_xml_next(
+    struct dj_xml*       _xml,
+    struct dj_xml_token* _out
 )
 {
     memset(_out, 0, sizeof(*_out));
@@ -307,10 +305,9 @@ d_xml_next(
 d_xml_is
   The local name is what follows the last `:` of the name, or all of it.
 */
-bool
-d_xml_is(
-    const struct d_xml_token* _token,
-    const char*               _local_name
+bool d_xml_is(
+    const struct dj_xml_token* _token,
+    const char*                _local_name
 )
 {
     // only a tag has a name
@@ -343,12 +340,11 @@ d_xml_attribute
   Walks the attributes as name, `=`, quoted value; an attribute without a
 quoted value ends the walk, since the rest cannot be read reliably.
 */
-bool
-d_xml_attribute(
-    const struct d_xml_token* _token,
-    const char*               _name,
-    const char**              _out_value,
-    size_t*                   _out_length
+bool d_xml_attribute(
+    const struct dj_xml_token* _token,
+    const char*                _name,
+    const char**               _out_value,
+    size_t*                    _out_length
 )
 {
     // only a start or empty-element tag carries attributes
@@ -453,8 +449,8 @@ d_internal_utf8
   Writes a code point as UTF-8, returning the bytes written; a value no
 character has is written as nothing.
 */
-static size_t
-d_internal_utf8(
+static
+size_t d_internal_utf8(
     unsigned long _code,
     char*         _out
 )
@@ -513,23 +509,23 @@ d_internal_reference
   Decodes the reference at `_raw[0]`, a `&`, into `_out`.  Returns how many
 raw bytes it took, or 0 when it is no reference this decoder knows.
 */
-static size_t
-d_internal_reference(
+static
+size_t d_internal_reference(
     const char* _raw,
     size_t      _length,
     char*       _out,
     size_t*     _out_written
 )
 {
-    // d_internal_entity
+    // dj_internal_entity
     //   struct: a predefined entity, as written, and the byte it stands for.
-    struct d_internal_entity
+    struct dj_internal_entity
     {
         const char* name;
         char        byte;
     };
 
-    static const struct d_internal_entity named[] =
+    static const struct dj_internal_entity named[] =
     {
         { "&amp;", '&' }, { "&lt;", '<' }, { "&gt;", '>' },
         { "&quot;", '"' }, { "&apos;", '\'' }
@@ -619,8 +615,7 @@ d_xml_decode
   A reference is at least four bytes and its character at most four, so the
 output never runs ahead of the input.
 */
-size_t
-d_xml_decode(
+size_t d_xml_decode(
     const char* _raw,
     size_t      _length,
     char*       _out

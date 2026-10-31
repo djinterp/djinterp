@@ -14,7 +14,7 @@
 
 // djinterp
 #include "./byte_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,10 +25,8 @@ d_tests_sa_byte_array_bytes_1
     - Can be used in array initializers
     - Handles various values
 */
-bool
-d_tests_sa_byte_array_bytes_1
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_1(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -71,10 +69,8 @@ d_tests_sa_byte_array_bytes_2
     - Can be used in array initializers
     - Handles various 16-bit values
 */
-bool
-d_tests_sa_byte_array_bytes_2
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_2(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -131,10 +127,8 @@ d_tests_sa_byte_array_bytes_4
     - Can be used in array initializers
     - Handles various 32-bit values
 */
-bool
-d_tests_sa_byte_array_bytes_4
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_4(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -196,10 +190,8 @@ d_tests_sa_byte_array_bytes_8
     - Can be used in array initializers
     - Handles various 64-bit values
 */
-bool
-d_tests_sa_byte_array_bytes_8
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_8(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -253,10 +245,8 @@ d_tests_sa_byte_array_bytes_n
     - D_BYTES_N(4, x) dispatches to D_BYTES_4
     - D_BYTES_N(8, x) dispatches to D_BYTES_8
 */
-bool
-d_tests_sa_byte_array_bytes_n
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_bytes_n(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -306,10 +296,8 @@ d_tests_sa_byte_array_bytes_n
 d_tests_sa_byte_array_expansion_all
     Aggregation function that runs all byte expansion tests.
 */
-bool
-d_tests_sa_byte_array_expansion_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_expansion_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

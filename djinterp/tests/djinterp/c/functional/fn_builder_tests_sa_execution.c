@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./fn_builder_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -20,9 +20,8 @@
 test_helper_double_int
   Transformer: multiplies each int by 2.
 */
-static bool
-test_helper_double_int
-(
+static
+bool test_helper_double_int(
     const void* _input,
     void*       _output,
     void*       _context
@@ -40,9 +39,8 @@ test_helper_double_int
 test_helper_add_ten
   Transformer: adds 10 to each int.
 */
-static bool
-test_helper_add_ten
-(
+static
+bool test_helper_add_ten(
     const void* _input,
     void*       _output,
     void*       _context
@@ -60,9 +58,8 @@ test_helper_add_ten
 test_helper_negate
   Transformer: negates each int.
 */
-static bool
-test_helper_negate
-(
+static
+bool test_helper_negate(
     const void* _input,
     void*       _output,
     void*       _context
@@ -80,9 +77,8 @@ test_helper_negate
 test_helper_square
   Transformer: squares each int.
 */
-static bool
-test_helper_square
-(
+static
+bool test_helper_square(
     const void* _input,
     void*       _output,
     void*       _context
@@ -103,9 +99,8 @@ test_helper_square
 test_helper_fail_transformer
   Transformer: always fails (returns false).
 */
-static bool
-test_helper_fail_transformer
-(
+static
+bool test_helper_fail_transformer(
     const void* _input,
     void*       _output,
     void*       _context
@@ -123,9 +118,8 @@ test_helper_fail_transformer
 test_helper_is_even
   Predicate: returns true if the int is even.
 */
-static bool
-test_helper_is_even
-(
+static
+bool test_helper_is_even(
     const void* _element,
     void*       _context
 )
@@ -140,9 +134,8 @@ test_helper_is_even
 test_helper_is_positive
   Predicate: returns true if the int is > 0.
 */
-static bool
-test_helper_is_positive
-(
+static
+bool test_helper_is_positive(
     const void* _element,
     void*       _context
 )
@@ -157,9 +150,8 @@ test_helper_is_positive
 test_helper_greater_than_five
   Predicate: returns true if the int is > 5.
 */
-static bool
-test_helper_greater_than_five
-(
+static
+bool test_helper_greater_than_five(
     const void* _element,
     void*       _context
 )
@@ -174,9 +166,8 @@ test_helper_greater_than_five
 test_helper_always_false
   Predicate: always returns false.
 */
-static bool
-test_helper_always_false
-(
+static
+bool test_helper_always_false(
     const void* _element,
     void*       _context
 )
@@ -200,13 +191,11 @@ d_tests_sa_fn_builder_execute_validation
   - zero element_size returns false, sets _out_count to 0
   - multiple invalid params at once returns false
 */
-bool
-d_tests_sa_fn_builder_execute_validation
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execute_validation(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 1, 2, 3 };
     int                  output[3];
     size_t               out_count;
@@ -341,13 +330,11 @@ d_tests_sa_fn_builder_execute_passthrough
   - output contents match input exactly
   - single element passthrough works
 */
-bool
-d_tests_sa_fn_builder_execute_passthrough
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execute_passthrough(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 10, 20, 30, 40, 50 };
     int                  output[5];
     size_t               out_count;
@@ -432,13 +419,11 @@ d_tests_sa_fn_builder_execute_transforms_only
   - out_count equals input count
   - original input is not modified
 */
-bool
-d_tests_sa_fn_builder_execute_transforms_only
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execute_transforms_only(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 1, 2, 3, 4, 5 };
     int                  output[5];
     size_t               out_count;
@@ -526,13 +511,11 @@ d_tests_sa_fn_builder_execute_predicates_only
   - all-fail predicate produces out_count 0
   - single predicate that passes all produces full copy
 */
-bool
-d_tests_sa_fn_builder_execute_predicates_only
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execute_predicates_only(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 1, 2, 3, 4, 5, 6 };
     int                  output[6];
     size_t               out_count;
@@ -648,13 +631,11 @@ d_tests_sa_fn_builder_execute_combined
   - double -> is_even + > 5: combined filtering on transformed data
   - output contains the TRANSFORMED values, not originals
 */
-bool
-d_tests_sa_fn_builder_execute_combined
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execute_combined(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 1, 2, 3, 4, 5 };
     int                  output[5];
     size_t               out_count;
@@ -789,13 +770,11 @@ d_tests_sa_fn_builder_execute_transform_failure
   - second of two transforms fails: returns false, out_count 0
   - failure on a non-first element still returns false
 */
-bool
-d_tests_sa_fn_builder_execute_transform_failure
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execute_transform_failure(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 1, 2, 3, 4, 5 };
     int                  output[5];
     size_t               out_count;
@@ -911,13 +890,11 @@ d_tests_sa_fn_builder_execute_pingpong
   - two transforms (single swap, temp_a -> temp_b -> done)
   - large struct elements work with ping-pong
 */
-bool
-d_tests_sa_fn_builder_execute_pingpong
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execute_pingpong(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 1, 2, 3 };
     int                  output[3];
     size_t               out_count;
@@ -1094,10 +1071,8 @@ d_tests_sa_fn_builder_execution_all
   - transform failure paths
   - ping-pong buffer mechanism
 */
-bool
-d_tests_sa_fn_builder_execution_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_execution_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

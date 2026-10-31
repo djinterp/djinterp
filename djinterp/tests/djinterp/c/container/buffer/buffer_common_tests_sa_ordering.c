@@ -9,13 +9,16 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // int_comparator_ordering
 //   internal: comparison function for int elements used in ordering tests.
-static int
-int_comparator_ordering(const void* _a, const void* _b)
+static
+int int_comparator_ordering(
+    const void* _a,
+    const void* _b
+)
 {
     int a_val = *(const int*)_a;
     int b_val = *(const int*)_b;
@@ -44,10 +47,8 @@ d_tests_sa_buffer_common_reverse
   - successful reverse of even-length buffer
   - successful reverse of odd-length buffer
 */
-bool
-d_tests_sa_buffer_common_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_reverse(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -166,10 +167,8 @@ d_tests_sa_buffer_common_sort
   - successful sort of unsorted buffer
   - already-sorted buffer remains correct
 */
-bool
-d_tests_sa_buffer_common_sort
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_sort(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -284,10 +283,8 @@ d_tests_sa_buffer_common_sort
 d_tests_sa_buffer_common_ordering_all
   Aggregation function that runs all ordering tests.
 */
-bool
-d_tests_sa_buffer_common_ordering_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_ordering_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

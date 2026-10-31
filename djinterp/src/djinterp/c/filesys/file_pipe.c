@@ -65,8 +65,8 @@
  *         not UTF-8, EINVAL for a mode past seven letters, ENOMEM, or the
  *         CRT's reason.
  */
-static FILE*
-d_internal_pipe_wpopen(
+static
+FILE* d_internal_pipe_wpopen(
     const char* _command,
     const char* _mode
 )
@@ -146,8 +146,8 @@ aside for a 'b' or a 't'; 'e', glibc's close-on-exec, for an 'e'. An explicit
 choice is never overruled, as in file_open. A mode too long to be one is
 malformed.
 */
-static int
-d_internal_pipe_mode(
+static
+int d_internal_pipe_mode(
     const char* _mode,
     char*       _buf
 )
@@ -185,8 +185,8 @@ d_internal_pipe_raw
 (d_internal_pipe_mode): on glibc that is 'e', which makes the parent's end
 close-on-exec atomically.
 */
-static FILE*
-d_internal_pipe_raw(
+static
+FILE* d_internal_pipe_raw(
     const char* _command,
     const char* _mode
 )
@@ -215,8 +215,8 @@ copy keeps from coming, outlives the close. The child popen started already
 has its own end and is unaffected. A refusal is reported, not fatal: the pipe
 works.
 */
-static FILE*
-d_internal_pipe_raw(
+static
+FILE* d_internal_pipe_raw(
     const char* _command,
     const char* _mode
 )
@@ -253,8 +253,8 @@ d_internal_pipe_raw
   The platform's popen as it is: on Windows the CRT keeps the parent's end
 from the child itself, and this build adds no letter to the mode.
 */
-static FILE*
-d_internal_pipe_raw(
+static
+FILE* d_internal_pipe_raw(
     const char* _command,
     const char* _mode
 )
@@ -277,8 +277,7 @@ is why D_CFG_FILE_CLOEXEC_DEFAULT is on: inheritance becomes something asked
 for rather than something that happens -- and the pipe's own end, which popen
 leaves inheritable, is kept back too (d_internal_pipe_raw).
 */
-FILE*
-d_pipe_open(
+FILE* d_pipe_open(
     const char* _command,
     const char* _mode
 )
@@ -332,8 +331,7 @@ d_pipe_close
 status into an exit code here would discard the signal information it
 carries; d_pipe_exit_code does that decoding for the callers who want it.
 */
-int
-d_pipe_close(
+int d_pipe_close(
     FILE* _stream
 )
 {
@@ -370,8 +368,7 @@ the identity, for every value: a crash ends a process with an NTSTATUS such as
 failed wait. An exit code of 0xFFFFFFFF is that -1 as well, and nothing can
 tell those two apart.
 */
-int
-d_pipe_exit_code(
+int d_pipe_exit_code(
     int _status
 )
 {
@@ -388,8 +385,7 @@ here rather than in each caller, so that every caller makes the same one. A
 status that is neither a normal exit nor a signal comes back unchanged rather
 than mapped onto a plausible-looking number.
 */
-int
-d_pipe_exit_code(
+int d_pipe_exit_code(
     int _status
 )
 {

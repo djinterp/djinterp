@@ -21,26 +21,67 @@ static void ck(bool c,const char*l){g_ck++;if(c)g_ok++;else printf("    FAIL  %s
 static bool idt(const void*i,void*o,void*x){(void)x;*(intmax_t*)o=*(const intmax_t*)i;return true;}
 static bool inc(const void*i,void*o,void*x){(void)x;*(intmax_t*)o=*(const intmax_t*)i+1;return true;}
 static bool dbl(const void*i,void*o,void*x){(void)x;*(intmax_t*)o=*(const intmax_t*)i*2;return true;}
-static bool evenonly(const void*i,void*o,void*x){(void)x;if(*(const intmax_t*)i%2)return false;
+static
+bool evenonly(
+    const void* i,
+    void*       o,
+    void*       x
+)
+{(void)x;if(*(const intmax_t*)i%2)return false;
   *(intmax_t*)o=*(const intmax_t*)i;return true;}
-static bool addz(const void*a,const void*b,void*o,void*x){(void)x;
+static
+bool addz(
+    const void* a,
+    const void* b,
+    void*       o,
+    void*       x
+)
+{(void)x;
   *(intmax_t*)o=*(const intmax_t*)a+*(const intmax_t*)b;return true;}
-static void k_inc(const void*v,void*oc,void*x){(void)x;intmax_t n=*(const intmax_t*)v+1;
-  d_maybe_just((struct d_maybe*)oc,&n);}
-static void k_unit(const void*v,void*oc,void*x){(void)x;d_maybe_just((struct d_maybe*)oc,v);}
-static void k_res(const void*v,void*oc,void*x){(void)x;intmax_t n=*(const intmax_t*)v*3;
-  d_result_ok((struct d_result*)oc,&n);}
+static
+void k_inc(
+    const void* v,
+    void*       oc,
+    void*       x
+)
+{(void)x;intmax_t n=*(const intmax_t*)v+1;
+  d_maybe_just((struct dj_maybe*)oc,&n);}
+static void k_unit(const void*v,void*oc,void*x){(void)x;d_maybe_just((struct dj_maybe*)oc,v);}
+static
+void k_res(
+    const void* v,
+    void*       oc,
+    void*       x
+)
+{(void)x;intmax_t n=*(const intmax_t*)v*3;
+  d_result_ok((struct dj_result*)oc,&n);}
 /* free: catamorphism arms summing hole values */
 static bool oh(const void*v,void*o,void*x){(void)x;*(intmax_t*)o=*(const intmax_t*)v;return true;}
-static bool on(const void*l,const void*cr,size_t n,size_t rs,void*o,void*x){(void)l;(void)x;(void)rs;
+static
+bool on(
+    const void* l,
+    const void* cr,
+    size_t      n,
+    size_t      rs,
+    void*       o,
+    void*       x
+)
+{(void)l;(void)x;(void)rs;
   intmax_t t=0;size_t i;for(i=0;i<n;i++)t+=((const intmax_t*)cr)[i];*(intmax_t*)o=t;return true;}
-static struct d_free* graft_pair(const void*v,struct d_free_arena*ar,void*x){
-  struct d_free**slots=(struct d_free**)x;struct d_free*kids=slots[0];
+static
+struct dj_free* graft_pair(
+    const void*           v,
+    struct dj_free_arena* ar,
+    void*                 x
+)
+{
+  struct dj_free**slots=(struct dj_free**)x;struct dj_free*kids=slots[0];
   (void)v; return d_free_node(ar,NULL,kids,2);}
-int main(void){
+int main(void)
+{
   struct tm ca,cb,co; struct tr ra,rb,ro;
-  struct d_maybe ma,mb,mo; struct d_result rra,rrb,rro;
-  struct d_functor fm,fr; struct d_applicative am,ar_; struct d_monad mm,mr;
+  struct dj_maybe ma,mb,mo; struct dj_result rra,rrb,rro;
+  struct dj_functor fm,fr; struct dj_applicative am,ar_; struct dj_monad mm,mr;
   intmax_t v,w;
   printf("djinterp [functional] tier 3/4 conformance\n");
   ma=D_MAYBE_VIEW(ca); mb=D_MAYBE_VIEW(cb); mo=D_MAYBE_VIEW(co);
@@ -90,9 +131,9 @@ int main(void){
   w=-2; d_result_err(&rra,&w); d_monad_bind(&mr,&rra,&rro,k_res,NULL);
   ck(d_result_is_err(&rro),"bind short-circuits on error");
   /* free */
-  {struct d_free nodes[64],kids[4],*t,*m2,*b2; struct d_free_arena ar2;
-   struct d_value_arena va; intmax_t vals[16],scr[16],hv[4]={1,2,3,4},out;
-   struct d_reducer red; struct d_reducing_state st; struct d_monoid sum;
+  {struct dj_free nodes[64],kids[4],*t,*m2,*b2; struct dj_free_arena ar2;
+   struct dj_value_arena va; intmax_t vals[16],scr[16],hv[4]={1,2,3,4},out;
+   struct dj_reducer red; struct dj_reducing_state st; struct dj_monoid sum;
    d_free_arena_init(&ar2,nodes,64);
    kids[0]=*d_free_hole(&ar2,&hv[0]); kids[1]=*d_free_hole(&ar2,&hv[1]);
    kids[2]=*d_free_hole(&ar2,&hv[2]);
@@ -118,14 +159,14 @@ int main(void){
    ck(out==6,"free map doubled every hole");
    ck(d_free_size(m2)==3,"free map preserves the shape");
    /* Monad: substitution at the holes */
-   {struct d_free sub[2]; struct d_free* slots[1];
+   {struct dj_free sub[2]; struct dj_free* slots[1];
     sub[0]=*d_free_hole(&ar2,&hv[0]); sub[1]=*d_free_hole(&ar2,&hv[1]);
     slots[0]=sub;
     b2=d_free_bind(t,&ar2,graft_pair,slots);
     ck(b2!=NULL&&d_free_hole_count(b2)==4,"bind substitutes a subtree per hole");}
    /* traverse: the narrow slice */
    d_free_arena_init(&ar2,nodes,64); d_value_arena_init(&va,vals,sizeof(intmax_t),16);
-   {intmax_t ev[2]={2,4}; struct d_free k2[2],*tt,*res=NULL;
+   {intmax_t ev[2]={2,4}; struct dj_free k2[2],*tt,*res=NULL;
     k2[0]=*d_free_hole(&ar2,&ev[0]); k2[1]=*d_free_hole(&ar2,&ev[1]);
     tt=d_free_node(&ar2,NULL,k2,2);
     ck(d_free_traverse(tt,evenonly,NULL,&ar2,&va,&res)&&res!=NULL,
@@ -145,7 +186,7 @@ int main(void){
    /* a two-level tree: 3 inner nodes of 3 holes each. Unwinding the scratch
       needs 6 slots concurrently; never unwinding would need 12. A scratch of 8
       distinguishes the two, which a shallow tree cannot. */
-   {struct d_free deep[32],inner[3],leaf[9]; struct d_free_arena da;
+   {struct dj_free deep[32],inner[3],leaf[9]; struct dj_free_arena da;
     intmax_t dv[9],sc8[8],dout; size_t i;
     for(i=0;i<9;i++)dv[i]=(intmax_t)(i+1);
     d_free_arena_init(&da,deep,32);
@@ -157,9 +198,9 @@ int main(void){
        "fold unwinds the scratch between siblings");}
   }
   /* cofree */
-  {struct d_cofree cn[8],ck2[2],*c; struct d_cofree_arena ca2;
-   intmax_t an[3]={10,20,30},out; struct d_reducer red; struct d_reducing_state st;
-   struct d_monoid sum=d_monoid_sum_intmax();
+  {struct dj_cofree cn[8],ck2[2],*c; struct dj_cofree_arena ca2;
+   intmax_t an[3]={10,20,30},out; struct dj_reducer red; struct dj_reducing_state st;
+   struct dj_monoid sum=d_monoid_sum_intmax();
    d_cofree_arena_init(&ca2,cn,8);
    ck2[0]=*d_cofree_node(&ca2,&an[1],NULL,NULL,0);
    ck2[1]=*d_cofree_node(&ca2,&an[2],NULL,NULL,0);

@@ -1,0 +1,1190 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\inc\djinterp\
+├── 📁 c
+│   └── 📁 test
+│       └── 📄 dtest
+├── 📁 core
+│   ├── 📁 binary
+│   │   ├── 📄 binary.hpp
+│   │   └── 📄 binary_template.hpp
+│   ├── 📁 cli
+│   │   ├── 📄 cli.hpp
+│   │   ├── 📄 cli_render.hpp
+│   │   └── 📄 cli_string.hpp
+│   ├── 📁 container
+│   │   ├── 📁 arena
+│   │   │   ├── 📁 tree
+│   │   │   │   ├── 📄 arena_tree.hpp
+│   │   │   │   ├── 📄 arena_tree_concepts.hpp
+│   │   │   │   └── 📄 arena_tree_traits.hpp
+│   │   │   ├── 📄 arena.hpp
+│   │   │   ├── 📄 arena_concepts.hpp
+│   │   │   └── 📄 arena_traits.hpp
+│   │   ├── 📁 array
+│   │   │   ├── 📄 array.hpp
+│   │   │   ├── 📄 array_concepts.hpp
+│   │   │   ├── 📄 array_iterator.hpp
+│   │   │   ├── 📄 array_option_view.hpp
+│   │   │   ├── 📄 array_options.hpp
+│   │   │   ├── 📄 array_traits.hpp
+│   │   │   ├── 📄 atomic_array.hpp
+│   │   │   ├── 📄 cow_array.hpp
+│   │   │   ├── 📄 rcu_array.hpp
+│   │   │   └── 📄 threadsafe_array.hpp
+│   │   ├── 📁 buffer
+│   │   │   ├── 📄 buffer.hpp
+│   │   │   └── 📄 text_buffer.hpp
+│   │   ├── 📁 concepts
+│   │   │   ├── 📄 bounded_container_concepts.hpp
+│   │   │   ├── 📄 constexpr_container_concepts.hpp
+│   │   │   ├── 📄 container_binary_concepts.hpp
+│   │   │   ├── 📄 container_cli_concepts.hpp
+│   │   │   ├── 📄 container_compare_concepts.hpp
+│   │   │   ├── 📄 container_concepts.hpp
+│   │   │   ├── 📄 container_constructive_concepts.hpp
+│   │   │   ├── 📄 container_conversion_concepts.hpp
+│   │   │   ├── 📄 container_database_concepts.hpp
+│   │   │   ├── 📄 container_filter_concepts.hpp
+│   │   │   ├── 📄 container_multiplicity_concepts.hpp
+│   │   │   ├── 📄 container_option_concepts.hpp
+│   │   │   ├── 📄 container_overlay_concepts.hpp
+│   │   │   ├── 📄 container_path_concepts.hpp
+│   │   │   ├── 📄 container_storage_concepts.hpp
+│   │   │   ├── 📄 container_text_concepts.hpp
+│   │   │   ├── 📄 container_view_concepts.hpp
+│   │   │   ├── 📄 flat_hierarchical_container_concepts.hpp
+│   │   │   ├── 📄 iterable_container_concepts.hpp
+│   │   │   ├── 📄 mutable_container_concepts.hpp
+│   │   │   ├── 📄 node_container_concepts.hpp
+│   │   │   ├── 📄 runtime_container_concepts.hpp
+│   │   │   ├── 📄 sequential_container_concepts.hpp
+│   │   │   ├── 📄 sorted_container_concepts.hpp
+│   │   │   └── 📄 threadsafe_container_concepts.hpp
+│   │   ├── 📁 graph
+│   │   │   ├── 📄 graph.hpp
+│   │   │   ├── 📄 graph_common.hpp
+│   │   │   ├── 📄 graph_concepts.hpp
+│   │   │   ├── 📄 graph_traits.hpp
+│   │   │   └── 📄 math_common.hpp
+│   │   ├── 📁 iterator
+│   │   │   ├── 📄 constexpr_iterator.hpp
+│   │   │   ├── 📄 constexpr_iterator_concepts.hpp
+│   │   │   ├── 📄 constexpr_iterator_traits.hpp
+│   │   │   ├── 📄 container_iterator.hpp
+│   │   │   ├── 📄 flat_iterator.hpp
+│   │   │   ├── 📄 flat_iterator_traits.hpp
+│   │   │   ├── 📄 hierarchical_iterator.hpp
+│   │   │   ├── 📄 hierarchical_iterator_traits.hpp
+│   │   │   └── 📄 iterator_traits.hpp
+│   │   ├── 📁 list
+│   │   │   ├── 📁 linked
+│   │   │   │   ├── 📄 linked_list.hpp
+│   │   │   │   ├── 📄 linked_list_concepts.hpp
+│   │   │   │   ├── 📄 linked_list_iterator.hpp
+│   │   │   │   └── 📄 linked_list_traits.hpp
+│   │   │   ├── 📄 list.hpp
+│   │   │   ├── 📄 list_concepts.hpp
+│   │   │   └── 📄 list_traits.hpp
+│   │   ├── 📁 map
+│   │   │   ├── 📄 enum_map.hpp
+│   │   │   ├── 📄 enum_map_traits.hpp
+│   │   │   ├── 📄 map.hpp
+│   │   │   ├── 📄 map_concepts.hpp
+│   │   │   ├── 📄 map_traits.hpp
+│   │   │   └── 📄 multimap.hpp
+│   │   ├── 📁 matrix
+│   │   │   ├── 📄 matrix.hpp
+│   │   │   └── 📄 matrix_iterator.hpp
+│   │   ├── 📁 node
+│   │   │   ├── 📄 linked_node.hpp
+│   │   │   ├── 📄 node.hpp
+│   │   │   ├── 📄 node_iterator.hpp
+│   │   │   ├── 📄 node_traits.hpp
+│   │   │   └── 📄 poly_tree.hpp
+│   │   ├── 📁 set
+│   │   │   ├── 📄 multiset.hpp
+│   │   │   ├── 📄 set.hpp
+│   │   │   ├── 📄 set_concepts.hpp
+│   │   │   └── 📄 set_traits.hpp
+│   │   ├── 📁 stack
+│   │   │   └── 📄 stack.hpp
+│   │   ├── 📁 table
+│   │   │   ├── 📁 registry
+│   │   │   │   ├── 📄 atomic_registry_table.hpp
+│   │   │   │   ├── 📄 cow_registry_table.hpp
+│   │   │   │   ├── 📄 mutex_registry_table.hpp
+│   │   │   │   ├── 📄 rcu_registry_table.hpp
+│   │   │   │   ├── 📄 registry_table.hpp
+│   │   │   │   ├── 📄 registry_table_concepts.hpp
+│   │   │   │   └── 📄 registry_table_traits.hpp
+│   │   │   ├── 📄 cow_table.hpp
+│   │   │   ├── 📄 lookup_table.hpp
+│   │   │   ├── 📄 mutex_table.hpp
+│   │   │   ├── 📄 mutex_table_base.hpp
+│   │   │   ├── 📄 rcu_table.hpp
+│   │   │   ├── 📄 table.hpp
+│   │   │   ├── 📄 table_builder.hpp
+│   │   │   ├── 📄 table_common.hpp
+│   │   │   ├── 📄 table_concepts.hpp
+│   │   │   ├── 📄 table_defaults.hpp
+│   │   │   ├── 📄 table_layout.hpp
+│   │   │   ├── 📄 table_layout_concepts.hpp
+│   │   │   ├── 📄 table_layout_traits.hpp
+│   │   │   ├── 📄 table_metadata.hpp
+│   │   │   ├── 📄 table_storage_strategy.hpp
+│   │   │   ├── 📄 table_traits.hpp
+│   │   │   └── 📄 threadsafe_table_common.hpp
+│   │   ├── 📁 traits
+│   │   │   ├── 📄 bounded_container_traits.hpp
+│   │   │   ├── 📄 concurrency_strategy_traits.hpp
+│   │   │   ├── 📄 constexpr_container_traits.hpp
+│   │   │   ├── 📄 container_binary_traits.hpp
+│   │   │   ├── 📄 container_cli_traits.hpp
+│   │   │   ├── 📄 container_compare_traits.hpp
+│   │   │   ├── 📄 container_constructive_traits.hpp
+│   │   │   ├── 📄 container_conversion_traits.hpp
+│   │   │   ├── 📄 container_database_traits.hpp
+│   │   │   ├── 📄 container_filter_traits.hpp
+│   │   │   ├── 📄 container_memory_traits.hpp
+│   │   │   ├── 📄 container_multiplicity_traits.hpp
+│   │   │   ├── 📄 container_option_traits.hpp
+│   │   │   ├── 📄 container_overlay_traits.hpp
+│   │   │   ├── 📄 container_path_traits.hpp
+│   │   │   ├── 📄 container_storage_traits.hpp
+│   │   │   ├── 📄 container_text_traits.hpp
+│   │   │   ├── 📄 container_traits.hpp
+│   │   │   ├── 📄 container_view_traits.hpp
+│   │   │   ├── 📄 flat_container_traits.hpp
+│   │   │   ├── 📄 hierarchical_container_traits.hpp
+│   │   │   ├── 📄 iterable_container_traits.hpp
+│   │   │   ├── 📄 mutable_container_traits.hpp
+│   │   │   ├── 📄 node_container_traits.hpp
+│   │   │   ├── 📄 read_only_container.hpp
+│   │   │   ├── 📄 read_write_container.hpp
+│   │   │   ├── 📄 runtime_container_traits.hpp
+│   │   │   ├── 📄 sequential_container_traits.hpp
+│   │   │   ├── 📄 sorted_container_traits.hpp
+│   │   │   ├── 📄 threadsafe_container_traits.hpp
+│   │   │   └── 📄 write_only_container.hpp
+│   │   ├── 📁 tree
+│   │   │   ├── 📁 avl
+│   │   │   │   └── 📄 AVLtree.hpp
+│   │   │   ├── 📁 file
+│   │   │   │   ├── 📄 file_attributes.hpp
+│   │   │   │   ├── 📄 file_tree.hpp
+│   │   │   │   ├── 📄 file_tree_apple.hpp
+│   │   │   │   ├── 📄 file_tree_bsd.hpp
+│   │   │   │   ├── 📄 file_tree_common.hpp
+│   │   │   │   ├── 📄 file_tree_concepts.hpp
+│   │   │   │   ├── 📄 file_tree_filter.hpp
+│   │   │   │   ├── 📄 file_tree_ios.hpp
+│   │   │   │   ├── 📄 file_tree_linux.hpp
+│   │   │   │   ├── 📄 file_tree_path.hpp
+│   │   │   │   ├── 📄 file_tree_posix.hpp
+│   │   │   │   ├── 📄 file_tree_traits.hpp
+│   │   │   │   ├── 📄 file_tree_windows.hpp
+│   │   │   │   └── 📄 fs_os.hpp
+│   │   │   ├── 📁 nary
+│   │   │   │   ├── 📄 nary_tree.hpp
+│   │   │   │   ├── 📄 nary_tree_concepts.hpp
+│   │   │   │   ├── 📄 nary_tree_iterator.hpp
+│   │   │   │   ├── 📄 nary_tree_node.hpp
+│   │   │   │   └── 📄 nary_tree_traits.hpp
+│   │   │   ├── 📁 radix
+│   │   │   │   ├── 📄 binary_radix_tree.hpp
+│   │   │   │   ├── 📄 radix_tree_common.hpp
+│   │   │   │   ├── 📄 radix_tree_traits.hpp
+│   │   │   │   └── 📄 text_radix_tree.hpp
+│   │   │   ├── 📄 tree_container.hpp
+│   │   │   ├── 📄 tree_container_concepts.hpp
+│   │   │   ├── 📄 tree_container_traits.hpp
+│   │   │   ├── 📄 tree_iterator.hpp
+│   │   │   ├── 📄 tree_path.hpp
+│   │   │   └── 📄 tree_visitor.hpp
+│   │   ├── 📁 vector
+│   │   │   └── 📄 vector.hpp
+│   │   ├── 📄 container.hpp
+│   │   ├── 📄 container_binary.hpp
+│   │   ├── 📄 container_metadata.hpp
+│   │   ├── 📄 container_options.hpp
+│   │   ├── 📄 container_overlay.hpp
+│   │   ├── 📄 container_path.hpp
+│   │   ├── 📄 node_container.hpp
+│   │   ├── 📄 sequential_container.hpp
+│   │   ├── 📄 stl_array_structural_traits.hpp
+│   │   ├── 📄 stl_container_concepts.hpp
+│   │   ├── 📄 stl_container_traits.hpp
+│   │   ├── 📄 stl_traits.hpp
+│   │   ├── 📄 threadsafe_container.hpp
+│   │   └── 📄 tuple_map.hpp
+│   ├── 📁 db
+│   │   ├── 📁 arangodb
+│   │   │   ├── 📄 arango_concepts.hpp
+│   │   │   ├── 📄 arango_table.hpp
+│   │   │   ├── 📄 arango_traits.hpp
+│   │   │   └── 📄 arangodb.hpp
+│   │   ├── 📁 cassandra
+│   │   │   ├── 📄 cassandra.hpp
+│   │   │   ├── 📄 cassandra_concepts.hpp
+│   │   │   ├── 📄 cassandra_table.hpp
+│   │   │   └── 📄 cassandra_traits.hpp
+│   │   ├── 📁 db2
+│   │   │   ├── 📄 db2.hpp
+│   │   │   ├── 📄 db2_concepts.hpp
+│   │   │   ├── 📄 db2_table.hpp
+│   │   │   └── 📄 db2_traits.hpp
+│   │   ├── 📁 dynamodb
+│   │   │   ├── 📄 dynamodb.hpp
+│   │   │   ├── 📄 dynamodb_concepts.hpp
+│   │   │   ├── 📄 dynamodb_table.hpp
+│   │   │   └── 📄 dynamodb_traits.hpp
+│   │   ├── 📁 mariadb
+│   │   │   ├── 📄 mariadb.hpp
+│   │   │   ├── 📄 mariadb_concepts.hpp
+│   │   │   ├── 📄 mariadb_table.hpp
+│   │   │   └── 📄 mariadb_traits.hpp
+│   │   ├── 📁 mongodb
+│   │   │   ├── 📄 mongo_concepts.hpp
+│   │   │   ├── 📄 mongo_table.hpp
+│   │   │   ├── 📄 mongo_traits.hpp
+│   │   │   └── 📄 mongodb.hpp
+│   │   ├── 📁 mysql
+│   │   │   ├── 📄 mysql.hpp
+│   │   │   ├── 📄 mysql_common.hpp
+│   │   │   ├── 📄 mysql_common_concepts.hpp
+│   │   │   ├── 📄 mysql_common_table.hpp
+│   │   │   ├── 📄 mysql_common_traits.hpp
+│   │   │   ├── 📄 mysql_concepts.hpp
+│   │   │   ├── 📄 mysql_table.hpp
+│   │   │   └── 📄 mysql_traits.hpp
+│   │   ├── 📁 oracle
+│   │   │   ├── 📄 oracle.hpp
+│   │   │   ├── 📄 oracle_concepts.hpp
+│   │   │   ├── 📄 oracle_table.hpp
+│   │   │   └── 📄 oracle_traits.hpp
+│   │   ├── 📁 postgres
+│   │   │   ├── 📄 postgres.hpp
+│   │   │   ├── 📄 postgres_concepts.hpp
+│   │   │   ├── 📄 postgres_table.hpp
+│   │   │   └── 📄 postgres_traits.hpp
+│   │   ├── 📁 redis
+│   │   │   ├── 📄 redis.hpp
+│   │   │   ├── 📄 redis_concepts.hpp
+│   │   │   ├── 📄 redis_table.hpp
+│   │   │   └── 📄 redis_traits.hpp
+│   │   ├── 📁 sqlite
+│   │   │   ├── 📄 sqlite.hpp
+│   │   │   ├── 📄 sqlite_concepts.hpp
+│   │   │   ├── 📄 sqlite_table.hpp
+│   │   │   └── 📄 sqlite_traits.hpp
+│   │   ├── 📄 database.hpp
+│   │   ├── 📄 database_common.hpp
+│   │   ├── 📄 database_concepts.hpp
+│   │   ├── 📄 database_connection.hpp
+│   │   ├── 📄 database_connection_template.hpp
+│   │   ├── 📄 database_table.hpp
+│   │   ├── 📄 database_table_concepts.hpp
+│   │   ├── 📄 database_table_traits.hpp
+│   │   └── 📄 database_traits.hpp
+│   ├── 📁 env
+│   │   └── 📄 print_env.hpp
+│   ├── 📁 event
+│   │   ├── 📄 event.hpp
+│   │   ├── 📄 event_common.hpp
+│   │   ├── 📄 event_dispatcher.hpp
+│   │   ├── 📄 event_handler.hpp
+│   │   ├── 📄 event_registry.hpp
+│   │   └── 📄 event_table.hpp
+│   ├── 📁 functional
+│   │   ├── 📄 accumulator.hpp
+│   │   ├── 📄 alternative.hpp
+│   │   ├── 📄 applicative.hpp
+│   │   ├── 📄 bifunctor.hpp
+│   │   ├── 📄 cofree.hpp
+│   │   ├── 📄 comonad.hpp
+│   │   ├── 📄 comparator.hpp
+│   │   ├── 📄 compose.hpp
+│   │   ├── 📄 consumer.hpp
+│   │   ├── 📄 curry.hpp
+│   │   ├── 📄 extractor.hpp
+│   │   ├── 📄 filter.hpp
+│   │   ├── 📄 fn_builder.hpp
+│   │   ├── 📄 foldable.hpp
+│   │   ├── 📄 free.hpp
+│   │   ├── 📄 functional_concepts.hpp
+│   │   ├── 📄 functional_traits.hpp
+│   │   ├── 📄 functor.hpp
+│   │   ├── 📄 interpolate.hpp
+│   │   ├── 📄 maybe.hpp
+│   │   ├── 📄 monad.hpp
+│   │   ├── 📄 monoid.hpp
+│   │   ├── 📄 pipeline.hpp
+│   │   ├── 📄 predicate.hpp
+│   │   ├── 📄 producer.hpp
+│   │   ├── 📄 profunctor.hpp
+│   │   ├── 📄 reduce.hpp
+│   │   ├── 📄 result.hpp
+│   │   ├── 📄 semigroup.hpp
+│   │   ├── 📄 structural_traits.hpp
+│   │   ├── 📄 transducer.hpp
+│   │   ├── 📄 traversable.hpp
+│   │   └── 📄 view.hpp
+│   ├── 📁 memory
+│   │   ├── 📁 pool
+│   │   │   ├── 📄 pool.hpp
+│   │   │   ├── 📄 pool_allocator.hpp
+│   │   │   ├── 📄 pool_concepts.hpp
+│   │   │   └── 📄 pool_traits.hpp
+│   │   ├── 📄 allocator_memory_strategy.hpp
+│   │   ├── 📄 container_memory_strategy.hpp
+│   │   ├── 📄 memory_strategy_concepts.hpp
+│   │   ├── 📄 memory_strategy_traits.hpp
+│   │   ├── 📄 monotonic_byte_arena.hpp
+│   │   ├── 📄 pool_memory_strategy.hpp
+│   │   └── 📄 static_buffer_strategy.hpp
+│   ├── 📁 meta
+│   │   ├── 📁 stl
+│   │   │   ├── 📄 cpp_named03.hpp
+│   │   │   ├── 📄 cpp_named11.hpp
+│   │   │   ├── 📄 cpp_named14.hpp
+│   │   │   ├── 📄 cpp_named17.hpp
+│   │   │   ├── 📄 cpp_named20.hpp
+│   │   │   ├── 📄 cpp_named23.hpp
+│   │   │   ├── 📄 cpp_named26.hpp
+│   │   │   └── 📄 cpp_named98.hpp
+│   │   ├── 📄 bsearch.hpp
+│   │   ├── 📄 carrier.hpp
+│   │   ├── 📄 concepts.hpp
+│   │   ├── 📄 dtuple.hpp
+│   │   ├── 📄 fixed_string.hpp
+│   │   ├── 📄 flat.hpp
+│   │   ├── 📄 hierarchical.hpp
+│   │   ├── 📄 kv_pair.hpp
+│   │   ├── 📄 lifetime.hpp
+│   │   ├── 📄 lookup.hpp
+│   │   ├── 📄 member_traits.hpp
+│   │   ├── 📄 member_types.hpp
+│   │   ├── 📄 memory_discipline.hpp
+│   │   ├── 📄 multiplicity.hpp
+│   │   ├── 📄 override.hpp
+│   │   ├── 📄 pack_element.hpp
+│   │   ├── 📄 passthrough.hpp
+│   │   ├── 📄 read_only.hpp
+│   │   ├── 📄 read_write.hpp
+│   │   ├── 📄 storage.hpp
+│   │   ├── 📄 trait_detect.hpp
+│   │   ├── 📄 tuple_partition.hpp
+│   │   ├── 📄 type_traits.hpp
+│   │   ├── 📄 value_list.hpp
+│   │   └── 📄 write_only.hpp
+│   ├── 📁 option
+│   │   ├── 📄 option.hpp
+│   │   ├── 📄 option_builder.hpp
+│   │   ├── 📄 option_compose.hpp
+│   │   ├── 📄 option_diff.hpp
+│   │   ├── 📄 option_factory.hpp
+│   │   ├── 📄 option_generator.hpp
+│   │   ├── 📄 option_override.hpp
+│   │   ├── 📄 option_set.hpp
+│   │   ├── 📄 option_set_compare.hpp
+│   │   └── 📄 optionator.hpp
+│   ├── 📁 paradigm
+│   │   ├── 📁 adapter
+│   │   │   └── 📄 adapter.hpp
+│   │   ├── 📁 mediator
+│   │   │   └── 📄 mediator.hpp
+│   │   ├── 📁 momento
+│   │   │   └── 📄 memento.hpp
+│   │   ├── 📁 observer
+│   │   │   └── 📄 observer.hpp
+│   │   ├── 📁 pattern
+│   │   │   └── 📄 pattern.hpp
+│   │   ├── 📁 publisher
+│   │   │   └── 📄 publisher.hpp
+│   │   ├── 📁 sequence
+│   │   │   └── 📄 sequence.hpp
+│   │   ├── 📁 template
+│   │   │   └── 📄 template.hpp
+│   │   └── 📁 visitor
+│   │       └── 📄 visitor.hpp
+│   ├── 📁 sync
+│   │   ├── 📄 atomic.hpp
+│   │   ├── 📄 concurrency_strategy_tags.hpp
+│   │   ├── 📄 condvar.hpp
+│   │   ├── 📄 cow.hpp
+│   │   ├── 📄 hazard_pointer.hpp
+│   │   ├── 📄 lock_guard.hpp
+│   │   ├── 📄 lock_policy.hpp
+│   │   ├── 📄 lock_policy_c.hpp
+│   │   ├── 📄 rcu.hpp
+│   │   └── 📄 threadsafe.hpp
+│   ├── 📁 text
+│   │   ├── 📁 css
+│   │   │   ├── 📁 less
+│   │   │   │   ├── 📄 less.hpp
+│   │   │   │   ├── 📄 less_template.hpp
+│   │   │   │   ├── 📄 less_template_concepts.hpp
+│   │   │   │   └── 📄 less_template_traits.hpp
+│   │   │   ├── 📁 sass
+│   │   │   │   ├── 📄 sass.hpp
+│   │   │   │   ├── 📄 sass_printer.hpp
+│   │   │   │   └── 📄 sass_template.hpp
+│   │   │   ├── 📄 css.hpp
+│   │   │   ├── 📄 css_printer.hpp
+│   │   │   └── 📄 css_template.hpp
+│   │   ├── 📁 html
+│   │   │   ├── 📄 html.hpp
+│   │   │   ├── 📄 html_dialect.hpp
+│   │   │   ├── 📄 html_printer.hpp
+│   │   │   ├── 📄 html_string_template.hpp
+│   │   │   ├── 📄 html_template.hpp
+│   │   │   ├── 📄 html_template_concepts.hpp
+│   │   │   └── 📄 html_template_traits.hpp
+│   │   ├── 📁 markdown
+│   │   │   ├── 📄 markdown.hpp
+│   │   │   ├── 📄 markdown_template.hpp
+│   │   │   ├── 📄 markdown_template_concepts.hpp
+│   │   │   └── 📄 markdown_template_traits.hpp
+│   │   ├── 📁 pdf
+│   │   │   ├── 📄 pdf.hpp
+│   │   │   ├── 📄 pdf_backend.hpp
+│   │   │   ├── 📄 pdf_builtin_backend.hpp
+│   │   │   ├── 📄 pdf_canvas.hpp
+│   │   │   ├── 📄 pdf_document.hpp
+│   │   │   ├── 📄 pdf_metrics.hpp
+│   │   │   ├── 📄 pdf_options.hpp
+│   │   │   ├── 📄 pdf_primitives.hpp
+│   │   │   ├── 📄 pdf_printer.hpp
+│   │   │   ├── 📄 pdf_template.hpp
+│   │   │   └── 📄 pdf_template_traits.hpp
+│   │   ├── 📁 xml
+│   │   │   ├── 📄 xml.hpp
+│   │   │   ├── 📄 xml_dialect.hpp
+│   │   │   ├── 📄 xml_string_template.hpp
+│   │   │   └── 📄 xml_template.hpp
+│   │   ├── 📄 document.hpp
+│   │   ├── 📄 document_writer.hpp
+│   │   ├── 📄 font.hpp
+│   │   ├── 📄 markup_string_template.hpp
+│   │   ├── 📄 printer.hpp
+│   │   ├── 📄 section.hpp
+│   │   ├── 📄 text_align.hpp
+│   │   ├── 📄 text_pattern.hpp
+│   │   ├── 📄 text_template.hpp
+│   │   └── 📄 writer.hpp
+│   ├── 📁 util
+│   │   ├── 📁 color
+│   │   │   ├── 📄 color.hpp
+│   │   │   ├── 📄 color_cie_lab.hpp
+│   │   │   ├── 📄 color_cmyk.hpp
+│   │   │   ├── 📄 color_common.hpp
+│   │   │   ├── 📄 color_convert.hpp
+│   │   │   ├── 📄 color_hsl.hpp
+│   │   │   ├── 📄 color_hsv.hpp
+│   │   │   ├── 📄 color_rgb.hpp
+│   │   │   └── 📄 color_ycbcr.hpp
+│   │   ├── 📁 counter
+│   │   │   ├── 📄 atomic_counter.hpp
+│   │   │   ├── 📄 counter.hpp
+│   │   │   └── 📄 mutex_counter.hpp
+│   │   ├── 📁 lookup
+│   │   │   ├── 📄 lookup.hpp
+│   │   │   ├── 📄 lookup_sentinels.hpp
+│   │   │   └── 📄 lookup_traits.hpp
+│   │   ├── 📁 metadata
+│   │   │   ├── 📄 metadata_concepts.hpp
+│   │   │   └── 📄 metadata_traits.hpp
+│   │   ├── 📁 output
+│   │   │   └── 📄 output_packaging.hpp
+│   │   ├── 📁 path
+│   │   │   └── 📄 path.hpp
+│   │   ├── 📁 sort
+│   │   │   ├── 📄 bubble_sort.hpp
+│   │   │   ├── 📄 heap_sort.hpp
+│   │   │   ├── 📄 insertion_sort.hpp
+│   │   │   ├── 📄 merge_sort.hpp
+│   │   │   ├── 📄 quick_sort.hpp
+│   │   │   ├── 📄 selection_sort.hpp
+│   │   │   ├── 📄 sort.hpp
+│   │   │   ├── 📄 sort_common.hpp
+│   │   │   ├── 📄 sort_dispatch.hpp
+│   │   │   ├── 📄 sort_monoid.hpp
+│   │   │   └── 📄 sort_view.hpp
+│   │   ├── 📁 timer
+│   │   │   ├── 📄 mutex_timer.hpp
+│   │   │   └── 📄 timer.hpp
+│   │   ├── 📄 archive.hpp
+│   │   ├── 📄 archive_options.hpp
+│   │   ├── 📄 compress_options.hpp
+│   │   ├── 📄 compression.hpp
+│   │   ├── 📄 document_bundle.hpp
+│   │   ├── 📄 git.hpp
+│   │   └── 📄 table_index.hpp
+│   └── 📄 djinterp.hpp
+├── 📁 math
+│   ├── 📁 calculus
+│   │   ├── 📄 calculus.hpp
+│   │   ├── 📄 differentiation.hpp
+│   │   ├── 📄 elementary.hpp
+│   │   ├── 📄 integration.hpp
+│   │   ├── 📄 sequence.hpp
+│   │   └── 📄 series.hpp
+│   ├── 📁 coordinate
+│   │   ├── 📄 cartesian.hpp
+│   │   ├── 📄 coordinate.hpp
+│   │   ├── 📄 cylindrical.hpp
+│   │   ├── 📄 polar.hpp
+│   │   └── 📄 spherical.hpp
+│   ├── 📁 function
+│   │   └── 📄 function.hpp
+│   ├── 📁 geometry
+│   │   ├── 📄 edge.hpp
+│   │   ├── 📄 geometry.hpp
+│   │   ├── 📄 geometry_common.hpp
+│   │   ├── 📄 measure_2d.hpp
+│   │   ├── 📄 measure_3d.hpp
+│   │   ├── 📄 named_2d.hpp
+│   │   ├── 📄 named_3d.hpp
+│   │   ├── 📄 shape_2d.hpp
+│   │   ├── 📄 solid.hpp
+│   │   ├── 📄 star_2d.hpp
+│   │   ├── 📄 star_3d.hpp
+│   │   └── 📄 surface.hpp
+│   ├── 📁 interval
+│   │   ├── 📄 closed_interval.hpp
+│   │   ├── 📄 discrete_interval.hpp
+│   │   ├── 📄 interval.hpp
+│   │   └── 📄 open_interval.hpp
+│   ├── 📄 constants.hpp
+│   ├── 📄 expression.hpp
+│   ├── 📄 functional.hpp
+│   ├── 📄 math.hpp
+│   ├── 📄 math_common.hpp
+│   ├── 📄 numeric_compare.hpp
+│   └── 📄 values.hpp
+├── 📁 parse
+│   ├── 📁 command
+│   │   └── 📄 command.hpp
+│   ├── 📁 grammar
+│   │   └── 📄 grammar.hpp
+│   ├── 📁 parser
+│   │   └── 📄 parser.hpp
+│   ├── 📁 parsers
+│   │   ├── 📁 c
+│   │   │   ├── 📄 c.hpp
+│   │   │   ├── 📄 c_parser.hpp
+│   │   │   └── 📄 preprocessor.hpp
+│   │   ├── 📁 cpp
+│   │   │   ├── 📄 c.hpp
+│   │   │   ├── 📄 clang_util.hpp
+│   │   │   ├── 📄 cpp.hpp
+│   │   │   ├── 📄 cpp_def_parser.hpp
+│   │   │   ├── 📄 cpp_dom.hpp
+│   │   │   ├── 📄 cpp_dom_node.hpp
+│   │   │   ├── 📄 cpp_parser.hpp
+│   │   │   ├── 📄 cross_ref.hpp
+│   │   │   └── 📄 dom_node.hpp
+│   │   └── 📁 css
+│   │       ├── 📄 css_ast.hpp
+│   │       ├── 📄 css_engine.hpp
+│   │       ├── 📄 css_match.hpp
+│   │       └── 📄 css_parser.hpp
+│   ├── 📁 scanner
+│   │   └── 📄 scanner.hpp
+│   ├── 📁 token
+│   │   └── 📄 token.hpp
+│   ├── 📄 combinators.hpp
+│   ├── 📄 free.hpp
+│   ├── 📄 parse.hpp
+│   ├── 📄 pattern_occurrence.hpp
+│   ├── 📄 primitives.hpp
+│   ├── 📄 prism.hpp
+│   └── 📄 symbol_model.hpp
+├── 📁 parsegen
+│   ├── 📄 machine.hpp
+│   ├── 📄 parsegen.hpp
+│   └── 📄 peg.hpp
+├── 📁 restd
+│   ├── 📁 algorithm
+│   │   ├── 📄 adjacent_find.hpp
+│   │   ├── 📄 all_of.hpp
+│   │   ├── 📄 any_of.hpp
+│   │   ├── 📄 binary_search.hpp
+│   │   ├── 📄 copy.hpp
+│   │   ├── 📄 copy_backward.hpp
+│   │   ├── 📄 copy_if.hpp
+│   │   ├── 📄 copy_n.hpp
+│   │   ├── 📄 count.hpp
+│   │   ├── 📄 count_if.hpp
+│   │   ├── 📄 equal_range.hpp
+│   │   ├── 📄 fill.hpp
+│   │   ├── 📄 fill_n.hpp
+│   │   ├── 📄 find.hpp
+│   │   ├── 📄 find_end.hpp
+│   │   ├── 📄 find_first_of.hpp
+│   │   ├── 📄 find_if.hpp
+│   │   ├── 📄 find_if_not.hpp
+│   │   ├── 📄 for_each.hpp
+│   │   ├── 📄 for_each_n.hpp
+│   │   ├── 📄 generate.hpp
+│   │   ├── 📄 generate_n.hpp
+│   │   ├── 📄 includes.hpp
+│   │   ├── 📄 inplace_merge.hpp
+│   │   ├── 📄 is_heap.hpp
+│   │   ├── 📄 is_heap_until.hpp
+│   │   ├── 📄 is_partitioned.hpp
+│   │   ├── 📄 is_sorted.hpp
+│   │   ├── 📄 is_sorted_until.hpp
+│   │   ├── 📄 iter_swap.hpp
+│   │   ├── 📄 lower_bound.hpp
+│   │   ├── 📄 make_heap.hpp
+│   │   ├── 📄 merge.hpp
+│   │   ├── 📄 mismatch.hpp
+│   │   ├── 📄 move.hpp
+│   │   ├── 📄 move_backward.hpp
+│   │   ├── 📄 none_of.hpp
+│   │   ├── 📄 nth_element.hpp
+│   │   ├── 📄 partial_sort.hpp
+│   │   ├── 📄 partial_sort_copy.hpp
+│   │   ├── 📄 partition.hpp
+│   │   ├── 📄 partition_copy.hpp
+│   │   ├── 📄 partition_point.hpp
+│   │   ├── 📄 pop_heap.hpp
+│   │   ├── 📄 push_heap.hpp
+│   │   ├── 📄 remove.hpp
+│   │   ├── 📄 remove_copy.hpp
+│   │   ├── 📄 remove_copy_if.hpp
+│   │   ├── 📄 remove_if.hpp
+│   │   ├── 📄 replace.hpp
+│   │   ├── 📄 replace_copy.hpp
+│   │   ├── 📄 replace_copy_if.hpp
+│   │   ├── 📄 replace_if.hpp
+│   │   ├── 📄 reverse.hpp
+│   │   ├── 📄 reverse_copy.hpp
+│   │   ├── 📄 rotate.hpp
+│   │   ├── 📄 rotate_copy.hpp
+│   │   ├── 📄 sample.hpp
+│   │   ├── 📄 search.hpp
+│   │   ├── 📄 search_n.hpp
+│   │   ├── 📄 set_difference.hpp
+│   │   ├── 📄 set_intersection.hpp
+│   │   ├── 📄 set_symmetric_difference.hpp
+│   │   ├── 📄 set_union.hpp
+│   │   ├── 📄 shift_left.hpp
+│   │   ├── 📄 shift_right.hpp
+│   │   ├── 📄 shuffle.hpp
+│   │   ├── 📄 sort.hpp
+│   │   ├── 📄 sort_heap.hpp
+│   │   ├── 📄 stable_partition.hpp
+│   │   ├── 📄 stable_sort.hpp
+│   │   ├── 📄 swap_ranges.hpp
+│   │   ├── 📄 transform.hpp
+│   │   ├── 📄 unique.hpp
+│   │   ├── 📄 unique_copy.hpp
+│   │   └── 📄 upper_bound.hpp
+│   ├── 📁 any
+│   │   ├── 📄 any.hpp
+│   │   ├── 📄 any_cast.hpp
+│   │   ├── 📄 any_swap.hpp
+│   │   ├── 📄 bad_any_cast.hpp
+│   │   └── 📄 make_any.hpp
+│   ├── 📁 array
+│   │   ├── 📄 array.hpp
+│   │   ├── 📄 array_compare.hpp
+│   │   ├── 📄 array_compare_three_way.hpp
+│   │   ├── 📄 array_get.hpp
+│   │   ├── 📄 array_swap.hpp
+│   │   ├── 📄 array_tuple_element.hpp
+│   │   ├── 📄 array_tuple_size.hpp
+│   │   ├── 📄 array_umbrella
+│   │   └── 📄 to_array.hpp
+│   ├── 📁 compare
+│   │   ├── 📄 common_comparison_category.hpp
+│   │   ├── 📄 compare
+│   │   ├── 📄 compare_three_way.hpp
+│   │   ├── 📄 compare_three_way_result.hpp
+│   │   ├── 📄 literal_zero_helper.hpp
+│   │   ├── 📄 partial_order.hpp
+│   │   ├── 📄 partial_ordering.hpp
+│   │   ├── 📄 strong_order.hpp
+│   │   ├── 📄 strong_ordering.hpp
+│   │   ├── 📄 weak_order.hpp
+│   │   └── 📄 weak_ordering.hpp
+│   ├── 📁 exception
+│   │   ├── 📄 bad_exception.hpp
+│   │   ├── 📄 exception.hpp
+│   │   ├── 📄 exception_ptr.hpp
+│   │   ├── 📄 make_exception_ptr.hpp
+│   │   ├── 📄 nested_exception.hpp
+│   │   ├── 📄 rethrow_if_nested.hpp
+│   │   ├── 📄 terminate.hpp
+│   │   ├── 📄 throw_with_nested.hpp
+│   │   └── 📄 uncaught_exceptions.hpp
+│   ├── 📁 expected
+│   │   ├── 📄 bad_expected_access.hpp
+│   │   ├── 📄 expected.hpp
+│   │   ├── 📄 expected_compare.hpp
+│   │   ├── 📄 expected_swap.hpp
+│   │   ├── 📄 expected_umbrella
+│   │   ├── 📄 unexpect.hpp
+│   │   ├── 📄 unexpected.hpp
+│   │   └── 📄 unexpected_compare.hpp
+│   ├── 📁 functional
+│   │   ├── 📄 bad_function_call.hpp
+│   │   ├── 📄 bit_and.hpp
+│   │   ├── 📄 bit_not.hpp
+│   │   ├── 📄 bit_or.hpp
+│   │   ├── 📄 bit_xor.hpp
+│   │   ├── 📄 cref.hpp
+│   │   ├── 📄 divides.hpp
+│   │   ├── 📄 equal_to.hpp
+│   │   ├── 📄 functional.hpp
+│   │   ├── 📄 greater.hpp
+│   │   ├── 📄 greater_equal.hpp
+│   │   ├── 📄 hash.hpp
+│   │   ├── 📄 identity.hpp
+│   │   ├── 📄 invoke.hpp
+│   │   ├── 📄 invoke_r.hpp
+│   │   ├── 📄 is_bind_expression.hpp
+│   │   ├── 📄 is_placeholder.hpp
+│   │   ├── 📄 less.hpp
+│   │   ├── 📄 less_equal.hpp
+│   │   ├── 📄 logical_and.hpp
+│   │   ├── 📄 logical_not.hpp
+│   │   ├── 📄 logical_or.hpp
+│   │   ├── 📄 mem_fn.hpp
+│   │   ├── 📄 minus.hpp
+│   │   ├── 📄 modulus.hpp
+│   │   ├── 📄 multiplies.hpp
+│   │   ├── 📄 negate.hpp
+│   │   ├── 📄 not_equal_to.hpp
+│   │   ├── 📄 not_fn.hpp
+│   │   ├── 📄 plus.hpp
+│   │   ├── 📄 ref.hpp
+│   │   ├── 📄 reference_wrapper.hpp
+│   │   ├── 📄 unwrap_ref_decay.hpp
+│   │   └── 📄 unwrap_reference.hpp
+│   ├── 📁 initializer_list
+│   │   ├── 📄 begin.hpp
+│   │   ├── 📄 end.hpp
+│   │   ├── 📄 initializer_list
+│   │   └── 📄 initializer_list.hpp
+│   ├── 📁 iterator
+│   │   ├── 📄 advance.hpp
+│   │   ├── 📄 back_insert_iterator.hpp
+│   │   ├── 📄 begin.hpp
+│   │   ├── 📄 bidirectional_iterator_tag.hpp
+│   │   ├── 📄 cbegin.hpp
+│   │   ├── 📄 cend.hpp
+│   │   ├── 📄 contiguous_iterator_tag.hpp
+│   │   ├── 📄 crbegin.hpp
+│   │   ├── 📄 crend.hpp
+│   │   ├── 📄 data.hpp
+│   │   ├── 📄 distance.hpp
+│   │   ├── 📄 empty.hpp
+│   │   ├── 📄 end.hpp
+│   │   ├── 📄 forward_iterator_tag.hpp
+│   │   ├── 📄 front_insert_iterator.hpp
+│   │   ├── 📄 input_iterator_tag.hpp
+│   │   ├── 📄 insert_iterator.hpp
+│   │   ├── 📄 iterator.hpp
+│   │   ├── 📄 iterator_traits.hpp
+│   │   ├── 📄 move_iterator.hpp
+│   │   ├── 📄 next.hpp
+│   │   ├── 📄 output_iterator_tag.hpp
+│   │   ├── 📄 prev.hpp
+│   │   ├── 📄 random_access_iterator_tag.hpp
+│   │   ├── 📄 rbegin.hpp
+│   │   ├── 📄 rend.hpp
+│   │   ├── 📄 reverse_iterator.hpp
+│   │   └── 📄 size.hpp
+│   ├── 📁 limits
+│   │   ├── 📄 float_denorm_style.hpp
+│   │   ├── 📄 float_round_style.hpp
+│   │   ├── 📄 limits
+│   │   └── 📄 numeric_limits.hpp
+│   ├── 📁 memory
+│   │   ├── 📄 addressof.hpp
+│   │   ├── 📄 align.hpp
+│   │   ├── 📄 allocate_shared.hpp
+│   │   ├── 📄 allocate_shared_for_overwrite.hpp
+│   │   ├── 📄 allocator.hpp
+│   │   ├── 📄 allocator_arg.hpp
+│   │   ├── 📄 allocator_traits.hpp
+│   │   ├── 📄 assume_aligned.hpp
+│   │   ├── 📄 bad_weak_ptr.hpp
+│   │   ├── 📄 const_pointer_cast.hpp
+│   │   ├── 📄 construct_at.hpp
+│   │   ├── 📄 default_delete.hpp
+│   │   ├── 📄 destroy.hpp
+│   │   ├── 📄 destroy_at.hpp
+│   │   ├── 📄 dynamic_pointer_cast.hpp
+│   │   ├── 📄 enable_shared_from_this.hpp
+│   │   ├── 📄 get_deleter.hpp
+│   │   ├── 📄 iter_value.hpp
+│   │   ├── 📄 make_shared.hpp
+│   │   ├── 📄 make_shared_for_overwrite.hpp
+│   │   ├── 📄 make_unique.hpp
+│   │   ├── 📄 memory.hpp
+│   │   ├── 📄 owner_less.hpp
+│   │   ├── 📄 pointer_traits.hpp
+│   │   ├── 📄 reinterpret_pointer_cast.hpp
+│   │   ├── 📄 shared_ptr.hpp
+│   │   ├── 📄 shared_ptr_swap.hpp
+│   │   ├── 📄 sp_control_block.hpp
+│   │   ├── 📄 static_pointer_cast.hpp
+│   │   ├── 📄 to_address.hpp
+│   │   ├── 📄 uninitialized_copy.hpp
+│   │   ├── 📄 uninitialized_copy_n.hpp
+│   │   ├── 📄 uninitialized_default_construct.hpp
+│   │   ├── 📄 uninitialized_default_construct_n.hpp
+│   │   ├── 📄 uninitialized_fill.hpp
+│   │   ├── 📄 uninitialized_fill_n.hpp
+│   │   ├── 📄 uninitialized_move.hpp
+│   │   ├── 📄 uninitialized_move_n.hpp
+│   │   ├── 📄 uninitialized_value_construct.hpp
+│   │   ├── 📄 uninitialized_value_construct_n.hpp
+│   │   ├── 📄 unique_ptr.hpp
+│   │   ├── 📄 unique_ptr_swap.hpp
+│   │   ├── 📄 uses_allocator.hpp
+│   │   ├── 📄 weak_ptr.hpp
+│   │   └── 📄 weak_ptr_swap.hpp
+│   ├── 📁 new
+│   │   ├── 📄 align_val_t.hpp
+│   │   ├── 📄 bad_alloc.hpp
+│   │   ├── 📄 bad_array_new_length.hpp
+│   │   ├── 📄 destroying_delete.hpp
+│   │   ├── 📄 hardware_interference_size.hpp
+│   │   ├── 📄 launder.hpp
+│   │   ├── 📄 new_handler.hpp
+│   │   ├── 📄 new_umbrella
+│   │   └── 📄 nothrow.hpp
+│   ├── 📁 numeric
+│   │   ├── 📄 accumulate.hpp
+│   │   ├── 📄 adjacent_difference.hpp
+│   │   ├── 📄 exclusive_scan.hpp
+│   │   ├── 📄 gcd.hpp
+│   │   ├── 📄 inclusive_scan.hpp
+│   │   ├── 📄 inner_product.hpp
+│   │   ├── 📄 iota.hpp
+│   │   ├── 📄 lcm.hpp
+│   │   ├── 📄 midpoint.hpp
+│   │   ├── 📄 numeric.hpp
+│   │   ├── 📄 partial_sum.hpp
+│   │   ├── 📄 reduce.hpp
+│   │   ├── 📄 transform_exclusive_scan.hpp
+│   │   ├── 📄 transform_inclusive_scan.hpp
+│   │   └── 📄 transform_reduce.hpp
+│   ├── 📁 optional
+│   │   ├── 📄 bad_optional_access.hpp
+│   │   ├── 📄 in_place.hpp
+│   │   ├── 📄 make_optional.hpp
+│   │   ├── 📄 nullopt.hpp
+│   │   ├── 📄 optional
+│   │   ├── 📄 optional.hpp
+│   │   └── 📄 optional_swap.hpp
+│   ├── 📁 ranges
+│   │   ├── 📄 all.hpp
+│   │   ├── 📄 as_const_view.hpp
+│   │   ├── 📄 as_rvalue_view.hpp
+│   │   ├── 📄 basic_const_iterator.hpp
+│   │   ├── 📄 bidirectional_range.hpp
+│   │   ├── 📄 borrowed_iterator_t.hpp
+│   │   ├── 📄 borrowed_range.hpp
+│   │   ├── 📄 borrowed_subrange_t.hpp
+│   │   ├── 📄 chunk_by_view.hpp
+│   │   ├── 📄 chunk_view.hpp
+│   │   ├── 📄 common_range.hpp
+│   │   ├── 📄 constant_range.hpp
+│   │   ├── 📄 contiguous_range.hpp
+│   │   ├── 📄 dangling.hpp
+│   │   ├── 📄 drop_view.hpp
+│   │   ├── 📄 drop_while_view.hpp
+│   │   ├── 📄 empty_view.hpp
+│   │   ├── 📄 enable_borrowed_range.hpp
+│   │   ├── 📄 enable_view.hpp
+│   │   ├── 📄 filter_view.hpp
+│   │   ├── 📄 forward_range.hpp
+│   │   ├── 📄 input_range.hpp
+│   │   ├── 📄 iota_view.hpp
+│   │   ├── 📄 iter_move.hpp
+│   │   ├── 📄 iterator_t.hpp
+│   │   ├── 📄 join_view.hpp
+│   │   ├── 📄 join_with_view.hpp
+│   │   ├── 📄 lazy_split_view.hpp
+│   │   ├── 📄 movable_box.hpp
+│   │   ├── 📄 non_propagating_cache.hpp
+│   │   ├── 📄 output_range.hpp
+│   │   ├── 📄 owning_view.hpp
+│   │   ├── 📄 random_access_range.hpp
+│   │   ├── 📄 range.hpp
+│   │   ├── 📄 range_adaptor_closure.hpp
+│   │   ├── 📄 range_const_reference_t.hpp
+│   │   ├── 📄 range_difference_t.hpp
+│   │   ├── 📄 range_reference_t.hpp
+│   │   ├── 📄 range_rvalue_reference_t.hpp
+│   │   ├── 📄 range_size_t.hpp
+│   │   ├── 📄 range_value_t.hpp
+│   │   ├── 📄 ranges
+│   │   ├── 📄 ranges_access.hpp
+│   │   ├── 📄 ref_view.hpp
+│   │   ├── 📄 repeat_view.hpp
+│   │   ├── 📄 reverse_view.hpp
+│   │   ├── 📄 sentinel_t.hpp
+│   │   ├── 📄 single_view.hpp
+│   │   ├── 📄 sized_range.hpp
+│   │   ├── 📄 slide_view.hpp
+│   │   ├── 📄 split_view.hpp
+│   │   ├── 📄 stride_view.hpp
+│   │   ├── 📄 subrange.hpp
+│   │   ├── 📄 subrange_kind.hpp
+│   │   ├── 📄 take_view.hpp
+│   │   ├── 📄 take_while_view.hpp
+│   │   ├── 📄 transform_view.hpp
+│   │   ├── 📄 unreachable_sentinel_t.hpp
+│   │   ├── 📄 view.hpp
+│   │   ├── 📄 view_base.hpp
+│   │   ├── 📄 view_interface.hpp
+│   │   └── 📄 viewable_range.hpp
+│   ├── 📁 source_location
+│   │   ├── 📄 source_location
+│   │   └── 📄 source_location.hpp
+│   ├── 📁 span
+│   │   ├── 📄 as_bytes.hpp
+│   │   ├── 📄 as_writable_bytes.hpp
+│   │   ├── 📄 dynamic_extent.hpp
+│   │   ├── 📄 span
+│   │   └── 📄 span.hpp
+│   ├── 📁 stdexception
+│   │   ├── 📄 domain_error.hpp
+│   │   ├── 📄 invalid_argument.hpp
+│   │   ├── 📄 length_error.hpp
+│   │   ├── 📄 logic_error.hpp
+│   │   ├── 📄 out_of_range.hpp
+│   │   ├── 📄 overflow_error.hpp
+│   │   ├── 📄 range_error.hpp
+│   │   ├── 📄 runtime_error.hpp
+│   │   └── 📄 underflow_error.hpp
+│   ├── 📁 string_view
+│   │   ├── 📄 basic_string_view.hpp
+│   │   ├── 📄 char_traits.hpp
+│   │   ├── 📄 string_view
+│   │   ├── 📄 string_view_compare.hpp
+│   │   ├── 📄 string_view_hash.hpp
+│   │   ├── 📄 string_view_literals.hpp
+│   │   └── 📄 string_view_typedefs.hpp
+│   ├── 📁 system_error
+│   │   ├── 📄 errc.hpp
+│   │   ├── 📄 error_category.hpp
+│   │   ├── 📄 error_code.hpp
+│   │   ├── 📄 error_condition.hpp
+│   │   ├── 📄 generic_category.hpp
+│   │   ├── 📄 hash.hpp
+│   │   ├── 📄 is_error_code_enum.hpp
+│   │   ├── 📄 is_error_condition_enum.hpp
+│   │   ├── 📄 make_error_code.hpp
+│   │   ├── 📄 make_error_condition.hpp
+│   │   ├── 📄 system_category.hpp
+│   │   ├── 📄 system_error
+│   │   └── 📄 system_error.hpp
+│   ├── 📁 tuple
+│   │   ├── 📄 apply.hpp
+│   │   ├── 📄 forward_as_tuple.hpp
+│   │   ├── 📄 ignore.hpp
+│   │   ├── 📄 make_from_tuple.hpp
+│   │   ├── 📄 make_tuple.hpp
+│   │   ├── 📄 pair_get.hpp
+│   │   ├── 📄 pair_tuple_element.hpp
+│   │   ├── 📄 pair_tuple_size.hpp
+│   │   ├── 📄 tie.hpp
+│   │   ├── 📄 tuple
+│   │   ├── 📄 tuple.hpp
+│   │   ├── 📄 tuple_cat.hpp
+│   │   ├── 📄 tuple_compare.hpp
+│   │   ├── 📄 tuple_compare_three_way.hpp
+│   │   ├── 📄 tuple_element.hpp
+│   │   ├── 📄 tuple_get.hpp
+│   │   ├── 📄 tuple_size.hpp
+│   │   └── 📄 tuple_swap.hpp
+│   ├── 📁 type_traits
+│   │   ├── 📄 add_const.hpp
+│   │   ├── 📄 add_cv.hpp
+│   │   ├── 📄 add_lvalue_reference.hpp
+│   │   ├── 📄 add_pointer.hpp
+│   │   ├── 📄 add_rvalue_reference.hpp
+│   │   ├── 📄 add_volatile.hpp
+│   │   ├── 📄 aligned_storage.hpp
+│   │   ├── 📄 aligned_union.hpp
+│   │   ├── 📄 alignment_of.hpp
+│   │   ├── 📄 basic_common_reference.hpp
+│   │   ├── 📄 bool_constant.hpp
+│   │   ├── 📄 common_reference.hpp
+│   │   ├── 📄 common_type.hpp
+│   │   ├── 📄 conditional.hpp
+│   │   ├── 📄 conjunction.hpp
+│   │   ├── 📄 decay.hpp
+│   │   ├── 📄 disjunction.hpp
+│   │   ├── 📄 enable_if.hpp
+│   │   ├── 📄 extent.hpp
+│   │   ├── 📄 false_type.hpp
+│   │   ├── 📄 integral_constant.hpp
+│   │   ├── 📄 invoke_result.hpp
+│   │   ├── 📄 is_arithmetic.hpp
+│   │   ├── 📄 is_array.hpp
+│   │   ├── 📄 is_assignable.hpp
+│   │   ├── 📄 is_class.hpp
+│   │   ├── 📄 is_compound.hpp
+│   │   ├── 📄 is_const.hpp
+│   │   ├── 📄 is_constructible.hpp
+│   │   ├── 📄 is_copy_assignable.hpp
+│   │   ├── 📄 is_copy_constructible.hpp
+│   │   ├── 📄 is_default_constructible.hpp
+│   │   ├── 📄 is_destructible.hpp
+│   │   ├── 📄 is_enum.hpp
+│   │   ├── 📄 is_floating_point.hpp
+│   │   ├── 📄 is_function.hpp
+│   │   ├── 📄 is_fundamental.hpp
+│   │   ├── 📄 is_integral.hpp
+│   │   ├── 📄 is_invocable.hpp
+│   │   ├── 📄 is_invocable_r.hpp
+│   │   ├── 📄 is_lvalue_reference.hpp
+│   │   ├── 📄 is_member_function_pointer.hpp
+│   │   ├── 📄 is_member_object_pointer.hpp
+│   │   ├── 📄 is_member_pointer.hpp
+│   │   ├── 📄 is_move_assignable.hpp
+│   │   ├── 📄 is_move_constructible.hpp
+│   │   ├── 📄 is_nothrow_assignable.hpp
+│   │   ├── 📄 is_nothrow_constructible.hpp
+│   │   ├── 📄 is_nothrow_convertible.hpp
+│   │   ├── 📄 is_nothrow_copy_assignable.hpp
+│   │   ├── 📄 is_nothrow_copy_constructible.hpp
+│   │   ├── 📄 is_nothrow_default_constructible.hpp
+│   │   ├── 📄 is_nothrow_destructible.hpp
+│   │   ├── 📄 is_nothrow_invocable.hpp
+│   │   ├── 📄 is_nothrow_invocable_r.hpp
+│   │   ├── 📄 is_nothrow_move_assignable.hpp
+│   │   ├── 📄 is_nothrow_move_constructible.hpp
+│   │   ├── 📄 is_nothrow_swappable.hpp
+│   │   ├── 📄 is_nothrow_swappable_with.hpp
+│   │   ├── 📄 is_null_pointer.hpp
+│   │   ├── 📄 is_object.hpp
+│   │   ├── 📄 is_pointer.hpp
+│   │   ├── 📄 is_reference.hpp
+│   │   ├── 📄 is_rvalue_reference.hpp
+│   │   ├── 📄 is_same.hpp
+│   │   ├── 📄 is_scalar.hpp
+│   │   ├── 📄 is_signed.hpp
+│   │   ├── 📄 is_swappable.hpp
+│   │   ├── 📄 is_swappable_with.hpp
+│   │   ├── 📄 is_trivially_assignable.hpp
+│   │   ├── 📄 is_trivially_constructible.hpp
+│   │   ├── 📄 is_trivially_copy_assignable.hpp
+│   │   ├── 📄 is_trivially_copy_constructible.hpp
+│   │   ├── 📄 is_trivially_default_constructible.hpp
+│   │   ├── 📄 is_trivially_destructible.hpp
+│   │   ├── 📄 is_trivially_move_assignable.hpp
+│   │   ├── 📄 is_trivially_move_constructible.hpp
+│   │   ├── 📄 is_union.hpp
+│   │   ├── 📄 is_unsigned.hpp
+│   │   ├── 📄 is_void.hpp
+│   │   ├── 📄 is_volatile.hpp
+│   │   ├── 📄 make_signed.hpp
+│   │   ├── 📄 make_unsigned.hpp
+│   │   ├── 📄 negation.hpp
+│   │   ├── 📄 rank.hpp
+│   │   ├── 📄 remove_all_extents.hpp
+│   │   ├── 📄 remove_const.hpp
+│   │   ├── 📄 remove_cv.hpp
+│   │   ├── 📄 remove_cvref.hpp
+│   │   ├── 📄 remove_extent.hpp
+│   │   ├── 📄 remove_pointer.hpp
+│   │   ├── 📄 remove_reference.hpp
+│   │   ├── 📄 remove_volatile.hpp
+│   │   ├── 📄 result_of.hpp
+│   │   ├── 📄 true_type.hpp
+│   │   ├── 📄 type_identity.hpp
+│   │   ├── 📄 type_traits.hpp
+│   │   ├── 📄 underlying_type.hpp
+│   │   └── 📄 void_t.hpp
+│   ├── 📁 typeindex
+│   │   ├── 📄 type_index.hpp
+│   │   └── 📄 typeindex
+│   ├── 📁 typeinfo
+│   │   ├── 📄 bad_cast.hpp
+│   │   ├── 📄 bad_typeid.hpp
+│   │   ├── 📄 type_info.hpp
+│   │   └── 📄 typeinfo
+│   ├── 📁 utility
+│   │   ├── 📄 as_const.hpp
+│   │   ├── 📄 cmp.hpp
+│   │   ├── 📄 declval.hpp
+│   │   ├── 📄 exchange.hpp
+│   │   ├── 📄 forward.hpp
+│   │   ├── 📄 forward_like.hpp
+│   │   ├── 📄 in_place_index.hpp
+│   │   ├── 📄 in_place_type.hpp
+│   │   ├── 📄 intcmp.hpp
+│   │   ├── 📄 integer_sequence.hpp
+│   │   ├── 📄 make_integer_sequence.hpp
+│   │   ├── 📄 make_pair.hpp
+│   │   ├── 📄 move.hpp
+│   │   ├── 📄 move_if_noexcept.hpp
+│   │   ├── 📄 pair.hpp
+│   │   ├── 📄 pair_compare_three_way.hpp
+│   │   ├── 📄 swap.hpp
+│   │   ├── 📄 to_underlying.hpp
+│   │   ├── 📄 unreachable.hpp
+│   │   └── 📄 utility.hpp
+│   ├── 📁 variant
+│   │   ├── 📄 bad_variant_access.hpp
+│   │   ├── 📄 holds_alternative.hpp
+│   │   ├── 📄 monostate.hpp
+│   │   ├── 📄 variant.hpp
+│   │   ├── 📄 variant_alternative.hpp
+│   │   ├── 📄 variant_compare.hpp
+│   │   ├── 📄 variant_get.hpp
+│   │   ├── 📄 variant_get_if.hpp
+│   │   ├── 📄 variant_npos.hpp
+│   │   ├── 📄 variant_size.hpp
+│   │   ├── 📄 variant_swap.hpp
+│   │   ├── 📄 variant_umbrella
+│   │   └── 📄 visit.hpp
+│   └── 📁 version
+│       └── 📄 version
+└── 📁 test
+    ├── 📁 output
+    │   ├── 📄 test_output.hpp
+    │   ├── 📄 test_output_config.hpp
+    │   ├── 📄 test_render.hpp
+    │   ├── 📄 test_render_pdf.hpp
+    │   ├── 📄 test_report.hpp
+    │   └── 📄 test_report_runner.hpp
+    ├── 📁 sync
+    │   ├── 📄 test_concurrent.hpp
+    │   ├── 📄 test_deadlock.hpp
+    │   ├── 📄 test_invariant.hpp
+    │   ├── 📄 test_race.hpp
+    │   ├── 📄 test_stress.hpp
+    │   ├── 📄 test_sync.hpp
+    │   ├── 📄 test_thread.hpp
+    │   ├── 📄 test_thread_concepts.hpp
+    │   ├── 📄 test_thread_traits.hpp
+    │   └── 📄 test_threadsafe.hpp
+    ├── 📄 test_builder.hpp
+    ├── 📄 test_callable.hpp
+    ├── 📄 test_common.hpp
+    ├── 📄 test_container.hpp
+    ├── 📄 test_context.hpp
+    ├── 📄 test_counter.hpp
+    ├── 📄 test_defaults.hpp
+    ├── 📄 test_emit.hpp
+    ├── 📄 test_event.hpp
+    ├── 📄 test_handler.hpp
+    ├── 📄 test_kind.hpp
+    ├── 📄 test_object.hpp
+    ├── 📄 test_options.hpp
+    ├── 📄 test_pack.hpp
+    ├── 📄 test_printer.hpp
+    ├── 📄 test_runner.hpp
+    ├── 📄 test_session.hpp
+    ├── 📄 test_timer.hpp
+    └── 📄 test_tree.hpp

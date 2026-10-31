@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,13 +21,11 @@ d_tests_sa_text_buffer_append_string_chunked
   - successful chunked append creates overflow chunks
   - data accessible after chunked append
 */
-bool
-d_tests_sa_text_buffer_append_string_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_string_chunked(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -87,13 +85,11 @@ d_tests_sa_text_buffer_append_buffer_chunked
   - successful raw data chunked append
   - total length is correct
 */
-bool
-d_tests_sa_text_buffer_append_buffer_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_buffer_chunked(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     char                  data[4];
     bool                  result = true;
 
@@ -150,13 +146,11 @@ d_tests_sa_text_buffer_append_char_chunked
   - successful single char chunked append
   - multiple chunked char appends
 */
-bool
-d_tests_sa_text_buffer_append_char_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_char_chunked(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -202,13 +196,11 @@ d_tests_sa_text_buffer_append_formatted_chunked
   - formatted chunked append with integer substitution
   - total length correct after chunked formatted append
 */
-bool
-d_tests_sa_text_buffer_append_formatted_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_formatted_chunked(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -261,13 +253,11 @@ d_tests_sa_text_buffer_consolidate
   - after consolidation, has_chunks returns false
   - consolidated content matches expected concatenation
 */
-bool
-d_tests_sa_text_buffer_consolidate
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_consolidate(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     bool                  result = true;
 
@@ -350,13 +340,11 @@ d_tests_sa_text_buffer_total_length
   - buffer with no chunks returns count
   - buffer with chunks returns primary + chunk total
 */
-bool
-d_tests_sa_text_buffer_total_length
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_total_length(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -401,13 +389,11 @@ d_tests_sa_text_buffer_has_chunks
   - buffer with chunked append has chunks
   - after consolidation, has_chunks is false
 */
-bool
-d_tests_sa_text_buffer_has_chunks
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_has_chunks(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -456,10 +442,8 @@ d_tests_sa_text_buffer_has_chunks
 d_tests_sa_text_buffer_append_mode_all
   Aggregation function that runs all append mode tests.
 */
-bool
-d_tests_sa_text_buffer_append_mode_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_append_mode_all(
+    struct dj_test_counter* _counter
 )
 {
     printf("\n  [SECTION] String Operations (Append Mode)\n");

@@ -27,153 +27,309 @@
 #include "../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../inc/djinterp/c/dtime.h"
 #include "../../../../inc/djinterp/c/sync/datomic.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * I. ATOMIC FLAG OPERATION TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_flag_test_and_set(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_flag_clear(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_flag_explicit(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_flag_test_and_set(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_flag_clear(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_flag_explicit(
+    struct dj_test_counter* _counter
+);
 
 // I.   aggregation function
-bool d_tests_sa_datomic_flag_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_flag_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * II. ATOMIC INITIALIZATION TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_init_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_init_uint(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_init_long(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_init_ulong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_init_llong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_init_ullong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_init_ptr(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_init_size(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_init_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_init_uint(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_init_long(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_init_ulong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_init_llong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_init_ullong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_init_ptr(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_init_size(
+    struct dj_test_counter* _counter
+);
 
 // II.  aggregation function
-bool d_tests_sa_datomic_init_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_init_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * III. ATOMIC LOAD OPERATION TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_load_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_uint(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_long(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_ulong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_llong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_ullong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_ptr(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_size(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_load_explicit(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_load_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_uint(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_long(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_ulong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_llong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_ullong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_ptr(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_size(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_load_explicit(
+    struct dj_test_counter* _counter
+);
 
 // III. aggregation function
-bool d_tests_sa_datomic_load_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_load_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IV. ATOMIC STORE OPERATION TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_store_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_uint(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_long(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_ulong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_llong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_ullong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_ptr(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_size(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_store_explicit(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_store_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_uint(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_long(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_ulong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_llong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_ullong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_ptr(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_size(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_store_explicit(
+    struct dj_test_counter* _counter
+);
 
 // IV.  aggregation function
-bool d_tests_sa_datomic_store_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_store_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * V. ATOMIC EXCHANGE OPERATION TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_exchange_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_uint(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_long(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_ulong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_llong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_ullong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_ptr(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_size(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_exchange_explicit(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_exchange_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_uint(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_long(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_ulong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_llong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_ullong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_ptr(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_size(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_exchange_explicit(
+    struct dj_test_counter* _counter
+);
 
 // V.   aggregation function
-bool d_tests_sa_datomic_exchange_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_exchange_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * VI. ATOMIC COMPARE-AND-EXCHANGE TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_compare_exchange_strong_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_compare_exchange_weak_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_compare_exchange_strong_uint(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_compare_exchange_strong_long(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_compare_exchange_strong_llong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_compare_exchange_strong_ptr(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_compare_exchange_strong_size(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_compare_exchange_explicit(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_compare_exchange_strong_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_compare_exchange_weak_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_compare_exchange_strong_uint(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_compare_exchange_strong_long(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_compare_exchange_strong_llong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_compare_exchange_strong_ptr(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_compare_exchange_strong_size(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_compare_exchange_explicit(
+    struct dj_test_counter* _counter
+);
 
 // VI.  aggregation function
-bool d_tests_sa_datomic_compare_exchange_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_compare_exchange_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * VII. ATOMIC FETCH-AND-MODIFY TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_fetch_add_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_add_uint(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_add_long(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_add_llong(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_add_size(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_sub_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_sub_long(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_sub_size(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_or_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_xor_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_and_int(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_fetch_explicit(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_fetch_add_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_add_uint(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_add_long(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_add_llong(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_add_size(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_sub_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_sub_long(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_sub_size(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_or_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_xor_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_and_int(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_fetch_explicit(
+    struct dj_test_counter* _counter
+);
 
 // VII. aggregation function
-bool d_tests_sa_datomic_fetch_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_fetch_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * VIII. MEMORY FENCE AND UTILITY TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_thread_fence(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_signal_fence(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_is_lock_free(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_thread_fence(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_signal_fence(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_is_lock_free(
+    struct dj_test_counter* _counter
+);
 
 // VIII. aggregation function
-bool d_tests_sa_datomic_fence_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_fence_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IX. NULL-SAFETY TESTS
  *****************************************************************************/
-bool d_tests_sa_datomic_null_load(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_null_store(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_null_exchange(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_null_cas(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_null_fetch(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_null_flag(struct d_test_counter* _counter);
-bool d_tests_sa_datomic_null_ptr(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_null_load(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_null_store(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_null_exchange(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_null_cas(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_null_fetch(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_null_flag(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_datomic_null_ptr(
+    struct dj_test_counter* _counter
+);
 
 // IX.  aggregation function
-bool d_tests_sa_datomic_null_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_null_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
-bool d_tests_sa_datomic_run_all(struct d_test_counter* _counter);
+bool d_tests_sa_datomic_run_all(
+    struct dj_test_counter* _counter
+);
 
 
 #endif  // DJINTERP_TESTS_ATOMIC_SA_

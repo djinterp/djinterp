@@ -28,43 +28,43 @@
 #define D_SETTINGS_VALUE_MAX 128
 
 
-// d_internal_entry
+// dj_internal_entry
 //   struct: one registered setting and its current value.
-struct d_internal_entry
+struct dj_internal_entry
 {
-    const struct d_setting_def*  def;
+    const struct dj_setting_def*  def;
     char                         value[D_SETTINGS_VALUE_MAX];
-    enum d_setting_source        source;
+    enum dj_setting_source        source;
 };
 
 // d_internal_key
 //   struct: one lookup row -- a name or an alias, and its entry.
-struct d_internal_key
+struct dj_internal_key
 {
     const char*  key;
     size_t       entry;
 };
 
-struct d_settings
+struct dj_settings
 {
-    struct d_internal_entry*  entries;
+    struct dj_internal_entry*  entries;
     size_t                    entry_count;
     size_t                    entry_capacity;
 
-    struct d_internal_key*    keys;
+    struct dj_internal_key*    keys;
     size_t                    key_count;
     size_t                    key_capacity;
 };
 
 
-static int
-d_internal_key_compare(
+static
+int d_internal_key_compare(
     const void* _left,
     const void* _right
 )
 {
-    return strcmp(((const struct d_internal_key*)_left)->key,
-                  ((const struct d_internal_key*)_right)->key);
+    return strcmp(((const struct dj_internal_key*)_left)->key,
+                  ((const struct dj_internal_key*)_right)->key);
 }
 
 
@@ -73,10 +73,10 @@ d_internal_find
   Bisects the sorted lookup for a name or alias.  Returns the entry index, or
 the entry count when the name is not registered.
 */
-static size_t
-d_internal_find(
-    const struct d_settings* _settings,
-    const char*              _name
+static
+size_t d_internal_find(
+    const struct dj_settings* _settings,
+    const char*               _name
 )
 {
     size_t low  = 0;
@@ -111,8 +111,8 @@ d_internal_distance
   Edit distance between two short strings, capped: anything beyond three is
 reported as four, since only close names are worth suggesting.
 */
-static size_t
-d_internal_distance(
+static
+size_t d_internal_distance(
     const char* _a,
     const char* _b
 )
@@ -168,13 +168,13 @@ d_internal_distance(
 d_internal_validate
   Checks a value against its definition and writes the canonical text.
 */
-static bool
-d_internal_validate(
-    const struct d_setting_def* _def,
-    const char*                 _value,
-    char*                       _out,
-    char*                       _error,
-    size_t                      _error_size
+static
+bool d_internal_validate(
+    const struct dj_setting_def* _def,
+    const char*                  _value,
+    char*                        _out,
+    char*                        _error,
+    size_t                       _error_size
 )
 {
     if (strlen(_value) >= D_SETTINGS_VALUE_MAX)
@@ -268,18 +268,14 @@ d_internal_validate(
 }
 
 
-struct d_settings*
-d_settings_new(
-    void
-)
+struct dj_settings* d_settings_new(void)
 {
-    return calloc(1u, sizeof(struct d_settings));
+    return calloc(1u, sizeof(struct dj_settings));
 }
 
 
-void
-d_settings_free(
-    struct d_settings* _settings
+void d_settings_free(
+    struct dj_settings* _settings
 )
 {
     if (_settings)
@@ -296,11 +292,11 @@ d_settings_free(
 /*
 d_internal_add_key
 */
-static bool
-d_internal_add_key(
-    struct d_settings* _settings,
-    const char*        _key,
-    size_t             _entry
+static
+bool d_internal_add_key(
+    struct dj_settings* _settings,
+    const char*         _key,
+    size_t              _entry
 )
 {
     if (_settings->key_count == _settings->key_capacity)
@@ -309,8 +305,8 @@ d_internal_add_key(
                            ? 16u
                            : (_settings->key_capacity * 2u);
 
-        struct d_internal_key* const keys =
-            realloc(_settings->keys, grown * sizeof(struct d_internal_key));
+        struct dj_internal_key* const keys =
+            realloc(_settings->keys, grown * sizeof(struct dj_internal_key));
 
         if (!keys)
         {
@@ -336,11 +332,10 @@ d_settings_register
 is refused: two components claiming one setting would each believe they
 control it.
 */
-bool
-d_settings_register(
-    struct d_settings*          _settings,
-    const struct d_setting_def* _defs,
-    size_t                      _count
+bool d_settings_register(
+    struct dj_settings*          _settings,
+    const struct dj_setting_def* _defs,
+    size_t                       _count
 )
 {
     if ((!_settings) || ((!_defs) && (_count > 0)))
@@ -350,7 +345,7 @@ d_settings_register(
 
     for (size_t at = 0; at < _count; ++at)
     {
-        const struct d_setting_def* const def = &_defs[at];
+        const struct dj_setting_def* const def = &_defs[at];
 
         if ( (d_internal_find(_settings, def->name) != _settings->entry_count)
              ||
@@ -367,9 +362,9 @@ d_settings_register(
                                ? 16u
                                : (_settings->entry_capacity * 2u);
 
-            struct d_internal_entry* const entries =
+            struct dj_internal_entry* const entries =
                 realloc(_settings->entries,
-                        grown * sizeof(struct d_internal_entry));
+                        grown * sizeof(struct dj_internal_entry));
 
             if (!entries)
             {
@@ -380,7 +375,7 @@ d_settings_register(
             _settings->entry_capacity = grown;
         }
 
-        struct d_internal_entry* const entry =
+        struct dj_internal_entry* const entry =
             &_settings->entries[_settings->entry_count];
 
         char error[160];
@@ -407,7 +402,7 @@ d_settings_register(
         }
 
         qsort(_settings->keys, _settings->key_count,
-              sizeof(struct d_internal_key), d_internal_key_compare);
+              sizeof(struct dj_internal_key), d_internal_key_compare);
     }
 
     return true;
@@ -416,10 +411,10 @@ d_settings_register(
 
 bool
 d_settings_set(
-    struct d_settings*    _settings,
+    struct dj_settings*    _settings,
     const char*           _name,
     const char*           _value,
-    enum d_setting_source _source,
+    enum dj_setting_source _source,
     char*                 _error,
     size_t                _error_size
 )
@@ -462,7 +457,7 @@ d_settings_set(
         return false;
     }
 
-    struct d_internal_entry* const entry = &_settings->entries[at];
+    struct dj_internal_entry* const entry = &_settings->entries[at];
 
     char canonical[D_SETTINGS_VALUE_MAX];
 
@@ -490,9 +485,9 @@ supplies them.  The first bad pair stops the list and is reported.
 */
 bool
 d_settings_apply(
-    struct d_settings*    _settings,
+    struct dj_settings*    _settings,
     const char*           _list,
-    enum d_setting_source _source,
+    enum dj_setting_source _source,
     char*                 _error,
     size_t                _error_size
 )
@@ -561,8 +556,10 @@ d_settings_apply(
 }
 
 
-const char*
-d_settings_text(const struct d_settings* _settings, const char* _name)
+const char* d_settings_text(
+    const struct dj_settings* _settings,
+    const char*               _name
+)
 {
     const size_t at = _settings ? d_internal_find(_settings, _name) : 0u;
 
@@ -570,33 +567,39 @@ d_settings_text(const struct d_settings* _settings, const char* _name)
            ? _settings->entries[at].value : NULL;
 }
 
-long
-d_settings_int(const struct d_settings* _settings, const char* _name)
+long d_settings_int(
+    const struct dj_settings* _settings,
+    const char*               _name
+)
 {
     const char* const text = d_settings_text(_settings, _name);
 
     return text ? strtol(text, NULL, 10) : 0L;
 }
 
-bool
-d_settings_bool(const struct d_settings* _settings, const char* _name)
+bool d_settings_bool(
+    const struct dj_settings* _settings,
+    const char*               _name
+)
 {
     const char* const text = d_settings_text(_settings, _name);
 
     return ((text) && (strcmp(text, "true") == 0));
 }
 
-bool
-d_settings_is(const struct d_settings* _settings, const char* _name,
-              const char* _word)
+bool d_settings_is(
+    const struct dj_settings* _settings,
+    const char*               _name,
+    const char*               _word
+)
 {
     const char* const text = d_settings_text(_settings, _name);
 
     return ((text) && (_word) && (strcmp(text, _word) == 0));
 }
 
-enum d_setting_source
-d_settings_source(const struct d_settings* _settings, const char* _name)
+enum dj_setting_source
+d_settings_source(const struct dj_settings* _settings, const char* _name)
 {
     const size_t at = _settings ? d_internal_find(_settings, _name) : 0u;
 
@@ -604,35 +607,40 @@ d_settings_source(const struct d_settings* _settings, const char* _name)
            ? _settings->entries[at].source : D_SETTING_DEFAULT;
 }
 
-size_t
-d_settings_count(const struct d_settings* _settings)
+size_t d_settings_count(
+    const struct dj_settings* _settings
+)
 {
     return _settings ? _settings->entry_count : 0u;
 }
 
-const struct d_setting_def*
-d_settings_def_at(const struct d_settings* _settings, size_t _at)
+const struct dj_setting_def* d_settings_def_at(
+    const struct dj_settings* _settings,
+    size_t                    _at
+)
 {
     return ((_settings) && (_at < _settings->entry_count))
            ? _settings->entries[_at].def : NULL;
 }
 
-const char*
-d_settings_value_at(const struct d_settings* _settings, size_t _at)
+const char* d_settings_value_at(
+    const struct dj_settings* _settings,
+    size_t                    _at
+)
 {
     return ((_settings) && (_at < _settings->entry_count))
            ? _settings->entries[_at].value : NULL;
 }
 
-enum d_setting_source
-d_settings_source_at(const struct d_settings* _settings, size_t _at)
+enum dj_setting_source
+d_settings_source_at(const struct dj_settings* _settings, size_t _at)
 {
     return ((_settings) && (_at < _settings->entry_count))
            ? _settings->entries[_at].source : D_SETTING_DEFAULT;
 }
 
 const char*
-d_settings_source_name(enum d_setting_source _source)
+d_settings_source_name(enum dj_setting_source _source)
 {
     static const char* const names[] =
     {
@@ -652,14 +660,13 @@ d_settings_take_option
 badly, with the reason in `_error`.  Both dawk and dcheck parse settings
 through this, so the two commands cannot drift apart.
 */
-int
-d_settings_take_option(
-    struct d_settings* _settings,
-    int                _argc,
-    char**             _argv,
-    int*               _at,
-    char*              _error,
-    size_t             _error_size
+int d_settings_take_option(
+    struct dj_settings* _settings,
+    int                 _argc,
+    char**              _argv,
+    int*                _at,
+    char*               _error,
+    size_t              _error_size
 )
 {
     const char* const argument = _argv[*_at];
@@ -720,15 +727,14 @@ d_settings_describe
   Writes every registered setting: its value and where it came from, what it
 does, what it accepts, and any older name it answers to.
 */
-void
-d_settings_describe(
-    const struct d_settings* _settings,
-    FILE*                    _out
+void d_settings_describe(
+    const struct dj_settings* _settings,
+    FILE*                     _out
 )
 {
     for (size_t at = 0; at < d_settings_count(_settings); ++at)
     {
-        const struct d_setting_def* const def = d_settings_def_at(_settings,
+        const struct dj_setting_def* const def = d_settings_def_at(_settings,
                                                                   at);
 
         (void)fprintf(_out, "  %-20s = %-10s (%s)\n", def->name,

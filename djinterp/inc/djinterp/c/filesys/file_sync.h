@@ -70,7 +70,9 @@ D_EXTERN_C_BEGIN
  * @return 0, or -1 on failure with errno set, in which case the data is not
  *         durable; ENOSYS on the ISO C backend.
  */
-int d_file_sync_fd(int _fd);
+int d_file_sync_fd(
+    int _fd
+);
 /**
  * @brief Forces a stream's data to durable storage: stdio's buffer into the
  *        kernel, then the kernel's copy onto the device.
@@ -80,7 +82,9 @@ int d_file_sync_fd(int _fd);
  * @return 0, or -1 on failure with errno set -- EBADF for a stream with no
  *         descriptor; ENOSYS on the ISO C backend.
  */
-int d_file_sync_stream(FILE* _stream);
+int d_file_sync_stream(
+    FILE* _stream
+);
 
 // 1.2    Stdio -> kernel
 //------------------------------------------------------------------------------
@@ -94,7 +98,9 @@ int d_file_sync_stream(FILE* _stream);
  *                     stream, per ISO C.
  * @return 0, or EOF on failure with errno set.
  */
-int d_file_flush_stream(FILE* _stream);
+int d_file_flush_stream(
+    FILE* _stream
+);
 
 
 //==============================================================================
@@ -116,7 +122,9 @@ int d_file_flush_stream(FILE* _stream);
  * @param[in] _fd  an open descriptor, a file's or a directory's.
  * @return 0, or -1 on failure with errno set; ENOSYS on the ISO C backend.
  */
-int d_internal_file_sync_raw(int _fd);
+int d_internal_file_sync_raw(
+    int _fd
+);
 
 
 D_EXTERN_C_END

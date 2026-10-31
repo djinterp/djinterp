@@ -35,11 +35,10 @@ not switched off.
 // produced by accident.
 static int d_tests_file_notice_marker;
 
-static void
-d_tests_file_notice_handler
-(
-    const struct d_file_notice* _notice,
-    void*                       _context
+static
+void d_tests_file_notice_handler(
+    const struct dj_file_notice* _notice,
+    void*                        _context
 )
 {
     (void)_notice;
@@ -58,13 +57,10 @@ d_tests_file_notify
   - the hook fires exactly when the build says it should
   - NULL removes the handler
 */
-static struct d_test_object*
-d_tests_file_notify
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_notify(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     size_t                size;
     size_t                idx;
 #if D_FILE_NOTIFY_IS_ACTIVE
@@ -136,13 +132,10 @@ assertions are conditioned on. Asserting them makes the configuration visible
 in the output, so a surprising result elsewhere can be read against the build
 that produced it rather than guessed at.
 */
-static struct d_test_object*
-d_tests_file_introspection
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_introspection(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     size_t                idx;
 
     idx = 0;
@@ -172,8 +165,8 @@ d_tests_file_introspection
     // the struct must be laid out, not merely declared -- this catches the
     // st_mtime macro collision at its cheapest possible point
     items[idx++] = D_ASSERT_TRUE("stat_layout",
-                                 sizeof(struct d_stat_t) >= 40,
-                                 "d_stat_t is a real layout, not a macro casualty");
+                                 sizeof(struct dj_stat_t) >= 40,
+                                 "dj_stat_t is a real layout, not a macro casualty");
 
     return d_tests_file_group("build introspection", items, idx);
 }
@@ -183,13 +176,9 @@ d_tests_file_introspection
 d_tests_file_common_all
   Runs every file_common test.
 */
-struct d_test_object*
-d_tests_file_common_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_common_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

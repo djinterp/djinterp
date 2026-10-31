@@ -42,8 +42,8 @@ d_tests_shim_next
 as an object pointer, which the callers below store into function pointers
 through memcpy, ISO C having no conversion between the two.
 */
-static void*
-d_tests_shim_next(
+static
+void* d_tests_shim_next(
     const char* _symbol
 )
 {
@@ -55,8 +55,8 @@ d_tests_shim_next(
 d_tests_shim_wide
   Whether an entry is one the shim widens: its name begins with "wide".
 */
-static int
-d_tests_shim_wide(
+static
+int d_tests_shim_wide(
     const char* _name
 )
 {
@@ -69,8 +69,8 @@ d_tests_shim_wide(
 d_tests_shim_fake
   Whether a path is one the shim reports 5 TiB under: it names fake5t.
 */
-static int
-d_tests_shim_fake(
+static
+int d_tests_shim_fake(
     const char* _path
 )
 {
@@ -82,10 +82,8 @@ d_tests_shim_fake(
 d_tests_shim_report
   Prints the count of copy_file_range calls; registered by the first one.
 */
-static void
-d_tests_shim_report(
-    void
-)
+static
+void d_tests_shim_report(void)
 {
     fprintf(stderr,
             "t_file_shim: copy_file_range calls %d\n",
@@ -98,8 +96,7 @@ d_tests_shim_report(
 readdir64
   The C library's, with a wide* entry's inode number raised by 2^32.
 */
-struct dirent64*
-readdir64(
+struct dirent64* readdir64(
     DIR* _dir
 )
 {
@@ -127,8 +124,7 @@ readdir
   The same, for a build whose plain readdir has a 64-bit inode number; a
 narrower one is left as it is.
 */
-struct dirent*
-readdir(
+struct dirent* readdir(
     DIR* _dir
 )
 {
@@ -156,10 +152,9 @@ readdir(
 statvfs64
   The C library's, reporting 5 TiB in 4 KiB blocks under a fake5t path.
 */
-int
-statvfs64(
-    const char*        _path,
-    struct statvfs64*  _buf
+int statvfs64(
+    const char*       _path,
+    struct statvfs64* _buf
 )
 {
     int (*real)(const char*, struct statvfs64*) = NULL;
@@ -187,10 +182,9 @@ statvfs64(
 statvfs
   The same, for the plain call; 5 TiB in 4 KiB blocks fits 32 bits.
 */
-int
-statvfs(
-    const char*      _path,
-    struct statvfs*  _buf
+int statvfs(
+    const char*     _path,
+    struct statvfs* _buf
 )
 {
     int (*real)(const char*, struct statvfs*) = NULL;
@@ -218,8 +212,7 @@ statvfs(
 copy_file_range
   The C library's, counted; the first call arranges the report at exit.
 */
-ssize_t
-copy_file_range(
+ssize_t copy_file_range(
     int          _in,
     loff_t*      _in_offset,
     int          _out,

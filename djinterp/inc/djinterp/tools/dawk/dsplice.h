@@ -25,9 +25,9 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Changes
-         1.  d_splices
-         2.  d_splice_result
-         3.  d_splice_fn_between
+         1.  dj_splices
+         2.  dj_splice_result
+         3.  dj_splice_fn_between
 2.  OPERATIONS
     ----------
     1.  Changes
@@ -50,15 +50,15 @@ TABLE OF CONTENTS
 // 1.1    Changes
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_splices
+// dj_splices
 //   struct: the changes made to one text and not yet applied.  Layout is
 //   private.
-struct d_splices;
+struct dj_splices;
 
 // 1.1.2
-// d_splice_result
+// dj_splice_result
 //   enum: what became of a change.
-enum d_splice_result
+enum dj_splice_result
 {
     D_SPLICE_ADDED = 0,
     D_SPLICE_OVERLAPS,     // it meets a change already made
@@ -66,11 +66,11 @@ enum d_splice_result
 };
 
 // 1.1.3
-// d_splice_fn_between
+// dj_splice_fn_between
 //   function: asked, where a change's text meets the text before or after
 //   it, for a byte to stand between the two -- the space that keeps two
 //   arguments apart -- or '\0' for none.
-typedef char (*d_splice_fn_between)(void* _user,
+typedef char (*dj_splice_fn_between)(void* _user,
                                     char  _before,
                                     char  _after);
 
@@ -86,15 +86,23 @@ typedef char (*d_splice_fn_between)(void* _user,
 // where an insertion falls strictly inside a replacement.  Insertions at
 // one place are applied in the order they were made, before a replacement
 // starting there.
-struct d_splices*    d_splices_new(void);
-void                 d_splices_free(struct d_splices* _splices);
-void                 d_splices_clear(struct d_splices* _splices);
-size_t               d_splices_count(const struct d_splices* _splices);
-enum d_splice_result d_splices_add(struct d_splices* _splices,
-                                   size_t            _start,
-                                   size_t            _end,
-                                   const char*       _text,
-                                   size_t            _length);
+struct dj_splices* d_splices_new(void);
+void d_splices_free(
+    struct dj_splices* _splices
+);
+void d_splices_clear(
+    struct dj_splices* _splices
+);
+size_t d_splices_count(
+    const struct dj_splices* _splices
+);
+enum dj_splice_result d_splices_add(
+    struct dj_splices* _splices,
+    size_t             _start,
+    size_t             _end,
+    const char*        _text,
+    size_t             _length
+);
 /**
  * @brief Applies every change to a text.
  *
@@ -108,12 +116,14 @@ enum d_splice_result d_splices_add(struct d_splices* _splices,
  * @post   The caller frees the new text.
  * @return the new text, terminated, or `NULL` when memory runs out.
  */
-char*                d_splices_apply(struct d_splices*   _splices,
-                                     const char*         _text,
-                                     size_t              _length,
-                                     d_splice_fn_between _between,
-                                     void*               _user,
-                                     size_t*             _out_length);
+char* d_splices_apply(
+    struct dj_splices*   _splices,
+    const char*          _text,
+    size_t               _length,
+    dj_splice_fn_between _between,
+    void*                _user,
+    size_t*              _out_length
+);
 
 // 2.2    Files
 //------------------------------------------------------------------------------
@@ -121,13 +131,17 @@ char*                d_splices_apply(struct d_splices*   _splices,
 // when it cannot be read.  d_text_write writes `<path>.part` and renames it
 // over the path, and a rename that will not replace a file -- Windows' -- is
 // retried once the file is gone; it writes why it failed into `_problem`.
-char*                d_text_read(const char* _path,
-                                 size_t*     _out_length);
-bool                 d_text_write(const char* _path,
-                                  const char* _text,
-                                  size_t      _length,
-                                  char*       _problem,
-                                  size_t      _capacity);
+char* d_text_read(
+    const char* _path,
+    size_t*     _out_length
+);
+bool d_text_write(
+    const char* _path,
+    const char* _text,
+    size_t      _length,
+    char*       _problem,
+    size_t      _capacity
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DSPLICE_H

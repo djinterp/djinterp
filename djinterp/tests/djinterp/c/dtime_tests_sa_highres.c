@@ -33,13 +33,9 @@ d_tests_sa_dtime_clock_gettime
   - handles CLOCK_PROCESS_CPUTIME_ID
   - handles CLOCK_THREAD_CPUTIME_ID
 */
-struct d_test_object*
-d_tests_sa_dtime_clock_gettime
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_clock_gettime(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts1;
     struct timespec       ts2;
     int                   result;
@@ -183,13 +179,9 @@ d_tests_sa_dtime_clock_getres
   - returns -1 for NULL resolution parameter
   - CLOCK_MONOTONIC typically has nanosecond-level resolution
 */
-struct d_test_object*
-d_tests_sa_dtime_clock_getres
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_clock_getres(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       res;
     int                   result;
     bool                  test_realtime_success;
@@ -295,13 +287,9 @@ d_tests_sa_dtime_timespec_get
   - consecutive calls show time progression
   - multiple calls produce consistent results
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_get
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_get(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts1;
     struct timespec       ts2;
     int                   result;
@@ -423,13 +411,9 @@ d_tests_sa_dtime_high_resolution_time_all
   - d_clock_getres
   - d_timespec_get
 */
-struct d_test_object*
-d_tests_sa_dtime_high_resolution_time_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_high_resolution_time_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("IV. High-Resolution Time", 3);

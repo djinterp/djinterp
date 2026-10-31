@@ -8,7 +8,7 @@
 * mariadb_connection and mariadb_schema, and nothing else. Include the
 * modules you call in a library; include this in a program or a test, where
 * the rest costs nothing that matters.
-*   The modules work on the layer's struct d_mariadb, and none of them
+*   The modules work on the layer's struct dj_mariadb, and none of them
 * includes mysql.h; include it as well, and cast d_mariadb_native's answer,
 * to call the client directly. Build the sources against libmysqlclient 5.7
 * or a MariaDB client, and link it (-lmariadb, or -lmysqlclient) -- or,

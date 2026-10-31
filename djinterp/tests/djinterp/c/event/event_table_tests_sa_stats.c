@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_et_stat_cb
 //   helper: minimal callback for listener construction.
-static void
-d_tests_sa_et_stat_cb(size_t _count, void** _args)
+static
+void d_tests_sa_et_stat_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -34,15 +37,13 @@ d_tests_sa_et_stats_empty
   Tests the following:
   - total_elements is 0
 */
-bool
-d_tests_sa_et_stats_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_stats_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_hash_stats  stats;
+    struct dj_event_hash_table* table;
+    struct dj_event_hash_stats  stats;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -70,16 +71,14 @@ d_tests_sa_et_stats_populated
   - total_elements matches inserted count
   - total_buckets matches table size
 */
-bool
-d_tests_sa_et_stats_populated
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_stats_populated(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   listeners[5];
-    struct d_event_hash_stats  stats;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   listeners[5];
+    struct dj_event_hash_stats  stats;
     int                        i;
 
     result = true;
@@ -128,14 +127,12 @@ d_tests_sa_et_stats_null
   Tests the following:
   - Returns zeroed stats
 */
-bool
-d_tests_sa_et_stats_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_stats_null(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_hash_stats stats;
+    struct dj_event_hash_stats stats;
 
     result = true;
     stats  = d_event_hash_table_get_stats(NULL);
@@ -153,10 +150,8 @@ d_tests_sa_et_stats_null
 d_tests_sa_et_statistics_all
   Runs all statistics tests.
 */
-bool
-d_tests_sa_et_statistics_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_statistics_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

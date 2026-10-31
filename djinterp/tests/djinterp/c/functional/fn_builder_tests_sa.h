@@ -25,38 +25,78 @@
 #include "../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../inc/djinterp/c/functional/functional_common.h"
 #include "../../../../inc/djinterp/c/functional/fn_builder.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // i.    builder creation tests
-bool d_tests_sa_fn_builder_new(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_creation_all(struct d_test_counter* _test_info);
+bool d_tests_sa_fn_builder_new(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_creation_all(
+    struct dj_test_counter* _test_info
+);
 
 // ii.   fluent operation tests (chainable)
-bool d_tests_sa_fn_builder_map(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_filter(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_and_then(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_where(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_chaining(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_grow(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_operations_all(struct d_test_counter* _test_info);
+bool d_tests_sa_fn_builder_map(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_filter(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_and_then(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_where(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_chaining(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_grow(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_operations_all(
+    struct dj_test_counter* _test_info
+);
 
 // iii.  builder execution tests
-bool d_tests_sa_fn_builder_execute_validation(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_execute_passthrough(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_execute_transforms_only(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_execute_predicates_only(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_execute_combined(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_execute_transform_failure(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_execute_pingpong(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_execution_all(struct d_test_counter* _test_info);
+bool d_tests_sa_fn_builder_execute_validation(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_execute_passthrough(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_execute_transforms_only(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_execute_predicates_only(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_execute_combined(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_execute_transform_failure(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_execute_pingpong(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_execution_all(
+    struct dj_test_counter* _test_info
+);
 
 // iv.   builder cleanup tests
-bool d_tests_sa_fn_builder_free(struct d_test_counter* _test_info);
-bool d_tests_sa_fn_builder_cleanup_all(struct d_test_counter* _test_info);
+bool d_tests_sa_fn_builder_free(
+    struct dj_test_counter* _test_info
+);
+bool d_tests_sa_fn_builder_cleanup_all(
+    struct dj_test_counter* _test_info
+);
 
 // v.    comprehensive test runner
-bool d_tests_sa_fn_builder_all(struct d_test_counter* _test_info);
+bool d_tests_sa_fn_builder_all(
+    struct dj_test_counter* _test_info
+);
 
 
 #endif  // DJINTERP_TESTING_FN_BUILDER_

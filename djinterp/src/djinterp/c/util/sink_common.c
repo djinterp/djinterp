@@ -33,12 +33,11 @@ Parameter(s):
 Return:
   The span.
 */
-struct d_pack_text
-d_pack_text_from_cstr(
+struct dj_pack_text d_pack_text_from_cstr(
     const char* _cstr
 )
 {
-    struct d_pack_text t;
+    struct dj_pack_text t;
 
     t.data   = _cstr;
     t.length = (_cstr != NULL) ? strlen(_cstr) : (size_t)0;
@@ -56,13 +55,12 @@ Parameter(s):
 Return:
   The span.
 */
-struct d_pack_text
-d_pack_text_from_span(
+struct dj_pack_text d_pack_text_from_span(
     const char* _data,
     size_t      _length
 )
 {
-    struct d_pack_text t;
+    struct dj_pack_text t;
 
     t.data   = _data;
     t.length = (_data != NULL) ? _length : (size_t)0;
@@ -80,13 +78,12 @@ Parameter(s):
 Return:
   The span.
 */
-struct d_pack_bytes
-d_pack_bytes_from_span(
+struct dj_pack_bytes d_pack_bytes_from_span(
     const void* _data,
     size_t      _size
 )
 {
-    struct d_pack_bytes b;
+    struct dj_pack_bytes b;
 
     b.data = _data;
     b.size = (_data != NULL) ? _size : (size_t)0;
@@ -108,10 +105,9 @@ Return:
   1 when the two are byte-identical, 0 otherwise.  Two empty spans are equal
 whatever their pointers.
 */
-int
-d_pack_text_equal(
-    struct d_pack_text _a,
-    struct d_pack_text _b
+int d_pack_text_equal(
+    struct dj_pack_text _a,
+    struct dj_pack_text _b
 )
 {
     if (_a.length != _b.length)
@@ -140,9 +136,8 @@ Parameter(s):
 Return:
   1 when the span is null or zero-length, 0 otherwise.
 */
-int
-d_pack_text_is_empty(
-    struct d_pack_text _text
+int d_pack_text_is_empty(
+    struct dj_pack_text _text
 )
 {
     return ( (_text.data == NULL) ||
@@ -173,11 +168,10 @@ Return:
   1 when the sink accepted every byte, 0 otherwise.  A zero-size write always
 succeeds and never calls through.
 */
-int
-d_sink_emit(
-    struct d_pack_sink _sink,
-    const void*        _data,
-    size_t             _size
+int d_sink_emit(
+    struct dj_pack_sink _sink,
+    const void*         _data,
+    size_t              _size
 )
 {
     if (_sink.write == NULL)

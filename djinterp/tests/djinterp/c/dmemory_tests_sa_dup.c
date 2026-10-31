@@ -28,13 +28,9 @@ d_tests_sa_dmemory_memdup_s
   - duplicates binary data
   - memory is properly aligned
 */
-struct d_test_object*
-d_tests_sa_dmemory_memdup_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_memdup_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         src[D_TESTS_MEMORY_MEDIUM_SIZE];
     void*                 dup;
     bool                  test_basic_dup;
@@ -187,13 +183,9 @@ d_tests_sa_dmemory_duplication_all
   Tests the following:
   - d_memdup_s
 */
-struct d_test_object*
-d_tests_sa_dmemory_duplication_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_duplication_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Memory Duplication", 1);
@@ -227,13 +219,9 @@ d_tests_sa_dmemory_memset
   - returns destination pointer
   - fills entire buffer
 */
-struct d_test_object*
-d_tests_sa_dmemory_memset
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_memset(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         buffer[D_TESTS_MEMORY_MEDIUM_SIZE];
     unsigned char         guard_buf[D_TESTS_MEMORY_MEDIUM_SIZE + 32];
     void*                 result;
@@ -399,13 +387,9 @@ d_tests_sa_dmemory_memset_s
   - returns 0 on success
   - handles maximum values
 */
-struct d_test_object*
-d_tests_sa_dmemory_memset_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_memset_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         buffer[D_TESTS_MEMORY_MEDIUM_SIZE];
     errno_t               result;
     bool                  test_basic_set;
@@ -539,13 +523,9 @@ d_tests_sa_dmemory_set_all
   - d_memset
   - d_memset_s
 */
-struct d_test_object*
-d_tests_sa_dmemory_set_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_set_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Memory Set Operations", 2);

@@ -9,13 +9,12 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // --- local helper: accumulator that sums ints ---
-static bool
-test_helper_sum_int
-(
+static
+bool test_helper_sum_int(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -36,9 +35,8 @@ test_helper_sum_int
 
 
 // --- local helper: accumulator that multiplies ints ---
-static bool
-test_helper_product_int
-(
+static
+bool test_helper_product_int(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -60,9 +58,8 @@ test_helper_product_int
 
 // --- local helper: accumulator that appends int to running total ---
 // builds a "digit string" by: acc = acc * 10 + element
-static bool
-test_helper_digit_concat
-(
+static
+bool test_helper_digit_concat(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -84,9 +81,8 @@ test_helper_digit_concat
 
 
 // --- local helper: accumulator that always fails ---
-static bool
-test_helper_failing_accumulator
-(
+static
+bool test_helper_failing_accumulator(
     void*       _accumulated,
     const void* _element,
     void*       _context
@@ -115,10 +111,8 @@ d_tests_sa_functional_fold_left
   - zero element_size returns false
   - failing accumulator causes false return
 */
-bool
-d_tests_sa_functional_fold_left
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_fold_left(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;
@@ -323,10 +317,8 @@ d_tests_sa_functional_fold_right
   - zero count returns false
   - zero element_size returns false
 */
-bool
-d_tests_sa_functional_fold_right
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_fold_right(
+    struct dj_test_counter* _counter
 )
 {
     bool all_passed;

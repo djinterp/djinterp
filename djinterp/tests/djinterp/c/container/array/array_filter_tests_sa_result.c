@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,7 +18,7 @@
 
 /*
 d_tests_sa_array_filter_result_struct
-  Tests the d_contiguous_filter_result structure.
+  Tests the dj_contiguous_filter_result structure.
   Tests the following:
   - data member is accessible and assignable
   - count member is accessible and assignable
@@ -27,14 +27,12 @@ d_tests_sa_array_filter_result_struct
   - status member is accessible and assignable
   - zero-initialized struct has expected default values
 */
-bool
-d_tests_sa_array_filter_result_struct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_struct(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
 
     result = true;
 
@@ -100,7 +98,7 @@ d_tests_sa_array_filter_result_struct
 
 /*
 d_tests_sa_array_filter_result_status_enum
-  Tests the d_filter_result_type enum values.
+  Tests the dj_filter_result_type enum values.
   Tests the following:
   - D_FILTER_RESULT_SUCCESS is 0
   - D_FILTER_RESULT_EMPTY is positive
@@ -109,10 +107,8 @@ d_tests_sa_array_filter_result_status_enum
   - D_FILTER_RESULT_NO_MEMORY is negative and distinct from ERROR/INVALID
   - All enum values are unique
 */
-bool
-d_tests_sa_array_filter_result_status_enum
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_status_enum(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -170,7 +166,7 @@ d_tests_sa_array_filter_result_status_enum
           (D_FILTER_RESULT_ERROR     != D_FILTER_RESULT_NO_MEMORY) &&
           (D_FILTER_RESULT_INVALID   != D_FILTER_RESULT_NO_MEMORY) ),
         "enum_all_unique",
-        "All d_filter_result_type values should be unique",
+        "All dj_filter_result_type values should be unique",
         _counter) && result;
 
     return result;
@@ -181,10 +177,8 @@ d_tests_sa_array_filter_result_status_enum
 d_tests_sa_array_filter_result_all
   Aggregation function that runs all result structure tests.
 */
-bool
-d_tests_sa_array_filter_result_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_result_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -57,7 +57,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.h"   // framework root
 #include "./sqlite_common.h"  // sqlite3, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -162,8 +162,10 @@ D_EXTERN_C_BEGIN
  *         SQLITE_MISUSE for a `NULL` argument.
  * @post On success the caller closes `*_db` with d_sqlite_close.
  */
-int         d_sqlite_open(const char*     _path,
-                          struct sqlite3** _db) D_NOTHROW;
+int d_sqlite_open(
+    const char*      _path,
+    struct sqlite3** _db
+) D_NOTHROW;
 /**
  * @brief Opens an existing database file for reading only, and applies the
  *        layer's connection defaults.
@@ -174,8 +176,10 @@ int         d_sqlite_open(const char*     _path,
  *         SQLITE_MISUSE for a `NULL` argument.
  * @post On success the caller closes `*_db` with d_sqlite_close.
  */
-int         d_sqlite_open_readonly(const char*     _path,
-                                   struct sqlite3** _db) D_NOTHROW;
+int d_sqlite_open_readonly(
+    const char*      _path,
+    struct sqlite3** _db
+) D_NOTHROW;
 /**
  * @brief Opens a private in-memory database, which vanishes when it is
  *        closed, and applies the layer's connection defaults.
@@ -185,7 +189,9 @@ int         d_sqlite_open_readonly(const char*     _path,
  *         SQLITE_MISUSE for a `NULL` argument.
  * @post On success the caller closes `*_db` with d_sqlite_close.
  */
-int         d_sqlite_open_memory(struct sqlite3** _db) D_NOTHROW;
+int d_sqlite_open_memory(
+    struct sqlite3** _db
+) D_NOTHROW;
 
 /**
  * @brief Opens a database file as the flags say, through the VFS named, and
@@ -207,10 +213,12 @@ int         d_sqlite_open_memory(struct sqlite3** _db) D_NOTHROW;
  *         name no way of opening, or name both of a pair.
  * @post On success the caller closes `*_db` with d_sqlite_close.
  */
-int         d_sqlite_open_with(const char*      _path,
-                               unsigned         _flags,
-                               const char*      _vfs,
-                               struct sqlite3** _db) D_NOTHROW;
+int d_sqlite_open_with(
+    const char*      _path,
+    unsigned         _flags,
+    const char*      _vfs,
+    struct sqlite3** _db
+) D_NOTHROW;
 /**
  * @brief Gives a connection the defaults d_sqlite_open would have: the busy
  *        timeout, foreign keys and result codes cfg_sqlite_connection.h
@@ -220,7 +228,9 @@ int         d_sqlite_open_with(const char*      _path,
  * @return SQLITE_OK, or the SQLite result code of the setting that failed,
  *         or SQLITE_MISUSE for a `NULL` connection.
  */
-int         d_sqlite_apply_defaults(struct sqlite3* _db) D_NOTHROW;
+int d_sqlite_apply_defaults(
+    struct sqlite3* _db
+) D_NOTHROW;
 /**
  * @brief Closes a connection.
  *
@@ -232,7 +242,9 @@ int         d_sqlite_apply_defaults(struct sqlite3* _db) D_NOTHROW;
  * @return SQLITE_OK, or the SQLite result code of the failure.
  * @post `_db` is invalid.
  */
-int         d_sqlite_close(struct sqlite3* _db) D_NOTHROW;
+int d_sqlite_close(
+    struct sqlite3* _db
+) D_NOTHROW;
 
 // 1.3    Location and access
 //------------------------------------------------------------------------------
@@ -241,10 +253,14 @@ int         d_sqlite_close(struct sqlite3* _db) D_NOTHROW;
 // database of that name is attached; the string is SQLite's, valid while the
 // database stays attached. _is_readonly is true only for a database attached
 // for reading alone, and false when there is none.
-const char* d_sqlite_database_path(struct sqlite3* _db,
-                                   const char*     _schema) D_NOTHROW;
-bool        d_sqlite_is_readonly(struct sqlite3* _db,
-                                 const char*     _schema) D_NOTHROW;
+const char* d_sqlite_database_path(
+    struct sqlite3* _db,
+    const char*     _schema
+) D_NOTHROW;
+bool d_sqlite_is_readonly(
+    struct sqlite3* _db,
+    const char*     _schema
+) D_NOTHROW;
 
 // 1.4    Rows changed
 //------------------------------------------------------------------------------
@@ -252,9 +268,15 @@ bool        d_sqlite_is_readonly(struct sqlite3* _db,
 // the rows the latest INSERT, UPDATE or DELETE changed; and every row changed
 // since the connection opened. Counts are 64-bit where the library offers it
 // (3.37.0), so they do not wrap at 2^31. All are 0 for a NULL connection.
-int64_t     d_sqlite_last_insert_id(struct sqlite3* _db) D_NOTHROW;
-int64_t     d_sqlite_changes(struct sqlite3* _db) D_NOTHROW;
-int64_t     d_sqlite_total_changes(struct sqlite3* _db) D_NOTHROW;
+int64_t d_sqlite_last_insert_id(
+    struct sqlite3* _db
+) D_NOTHROW;
+int64_t d_sqlite_changes(
+    struct sqlite3* _db
+) D_NOTHROW;
+int64_t d_sqlite_total_changes(
+    struct sqlite3* _db
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -302,10 +324,12 @@ int64_t     d_sqlite_total_changes(struct sqlite3* _db) D_NOTHROW;
  *         D_DB_UNSUPPORTED where the library or the layer's build has no
  *         extension loading; SQLITE_MISUSE for a `NULL` connection or path.
  */
-int         d_sqlite_load_extension(struct sqlite3* _db,
-                                    const char*     _path,
-                                    const char*     _entry_point,
-                                    char**          _message) D_NOTHROW;
+int d_sqlite_load_extension(
+    struct sqlite3* _db,
+    const char*     _path,
+    const char*     _entry_point,
+    char**          _message
+) D_NOTHROW;
 
 // 2.2    Allowing SQL to load
 //------------------------------------------------------------------------------
@@ -323,8 +347,10 @@ int         d_sqlite_load_extension(struct sqlite3* _db,
  * @return SQLITE_OK; D_DB_UNSUPPORTED where the library or the layer's build
  *         has no extension loading; SQLITE_MISUSE for a `NULL` connection.
  */
-int         d_sqlite_enable_load_extension(struct sqlite3* _db,
-                                           bool            _enabled) D_NOTHROW;
+int d_sqlite_enable_load_extension(
+    struct sqlite3* _db,
+    bool            _enabled
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

@@ -27,14 +27,14 @@
 // djinterp
 #include "../../../../../../inc/djinterp/c/text/symbol/emoji/emoji.h"  // unit under test
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t,
+#include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t,
                                                            // UINT32_MAX
 
 
-// d_tests_emoji_case
+// dj_tests_emoji_case
 //   struct: one code point and the UTF-8 it must encode to; a length of 0
 // means the encoder must refuse it.
-struct d_tests_emoji_case
+struct dj_tests_emoji_case
 {
     uint32_t    cp;      // the code point
     const char* bytes;   // its encoding
@@ -49,8 +49,8 @@ static int g_failures = 0;
 d_tests_emoji_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_emoji_expect(
+static
+void d_tests_emoji_expect(
     bool        _ok,
     const char* _what
 )
@@ -76,10 +76,10 @@ d_tests_emoji_encode
     each refused with nothing written
   - a NULL output buffer, refused
 */
-static void
-d_tests_emoji_encode(void)
+static
+void d_tests_emoji_encode(void)
 {
-    static const struct d_tests_emoji_case cases[] =
+    static const struct dj_tests_emoji_case cases[] =
     {
         { 0x000000u, "\x00",             1 },
         { 0x00007Fu, "\x7F",             1 },
@@ -144,8 +144,8 @@ d_tests_emoji_utf8
   - U+0000 gives the empty string
   - a refused value returns NULL and leaves the previous result intact
 */
-static void
-d_tests_emoji_utf8(void)
+static
+void d_tests_emoji_utf8(void)
 {
     const char* grinning = d_text_emoji_utf8(0x1F600u);
 
@@ -186,8 +186,8 @@ d_tests_emoji_seq
   - exactly D_EMOJI_SEQ_CAPACITY - 1 bytes fit, and one more is refused
   - the two functions keep separate buffers
 */
-static void
-d_tests_emoji_seq(void)
+static
+void d_tests_emoji_seq(void)
 {
     d_tests_emoji_expect(strcmp(D_EMOJI_SEQ(0x1F9D1u, 0x200Du, 0x1F4BBu),
                                 D_EMOJI_PROFESSION_TECHNOLOGIST) == 0,
@@ -255,8 +255,7 @@ d_tests_emoji_seq(void)
 #endif  // D_THREAD_LOCAL_AVAILABLE
 
 
-int
-main(void)
+int main(void)
 {
     d_tests_emoji_encode();
 #if D_THREAD_LOCAL_AVAILABLE

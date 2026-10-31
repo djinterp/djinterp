@@ -26,13 +26,9 @@ d_tests_dfile_popen_pclose
   - closes pipe successfully
   - returns NULL for NULL command
 */
-struct d_test_object*
-d_tests_dfile_popen_pclose
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_popen_pclose(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     FILE*                 pipe_stream;
     char                  buf[256];
     int                   close_result;
@@ -102,13 +98,9 @@ d_tests_dfile_pipe_operations_all
   Tests the following:
   - d_pipe_open/d_pipe_close
 */
-struct d_test_object*
-d_tests_dfile_pipe_operations_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_pipe_operations_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("XIV. Pipe Operations", 1);

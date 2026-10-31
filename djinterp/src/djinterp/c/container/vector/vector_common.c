@@ -12,7 +12,7 @@
 #include "../../../../../inc/djinterp/c/container/vector/vector_common.h"
 
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
 // =============================================================================
@@ -34,9 +34,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_vector_common_init
-(
+bool d_vector_common_init(
     void**  _elements,
     size_t* _count,
     size_t* _capacity,
@@ -94,9 +92,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_vector_common_init_from_array
-(
+bool d_vector_common_init_from_array(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -168,9 +164,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_vector_common_init_from_args
-(
+bool d_vector_common_init_from_args(
     void**  _elements,
     size_t* _count,
     size_t* _capacity,
@@ -271,9 +265,7 @@ Return:
   - true, if copy initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_vector_common_init_copy
-(
+bool d_vector_common_init_copy(
     void**      _elements,
     size_t*     _count,
     size_t*     _capacity,
@@ -343,9 +335,7 @@ Return:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-bool
-d_vector_common_init_fill
-(
+bool d_vector_common_init_fill(
     void**      _elements,
     size_t*     _count,
     size_t*     _capacity,
@@ -430,9 +420,7 @@ Return:
   - true, if reservation was successful (or already sufficient), or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_reserve
-(
+bool d_vector_common_reserve(
     void**  _elements,
     size_t  _count,
     size_t* _capacity,
@@ -483,9 +471,7 @@ Return:
   - true, if shrink was successful (or no change needed), or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_shrink_to_fit
-(
+bool d_vector_common_shrink_to_fit(
     void**  _elements,
     size_t  _count,
     size_t* _capacity,
@@ -551,9 +537,7 @@ Return:
   - true, if sufficient capacity exists or was allocated, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_ensure_capacity
-(
+bool d_vector_common_ensure_capacity(
     void**  _elements,
     size_t  _count,
     size_t* _capacity,
@@ -618,9 +602,7 @@ Return:
   - true, if growth was successful, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_grow
-(
+bool d_vector_common_grow(
     void**  _elements,
     size_t  _count,
     size_t* _capacity,
@@ -672,9 +654,7 @@ Return:
   - true, if no shrink needed or shrink was successful, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_maybe_shrink
-(
+bool d_vector_common_maybe_shrink(
     void**  _elements,
     size_t  _count,
     size_t* _capacity,
@@ -751,9 +731,7 @@ Parameter(s):
 Return:
   The number of available slots (capacity - count).
 */
-size_t
-d_vector_common_available
-(
+size_t d_vector_common_available(
     size_t _count,
     size_t _capacity
 )
@@ -783,9 +761,7 @@ Return:
   - true, if element was successfully appended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_push_back
-(
+bool d_vector_common_push_back(
     void**      _elements,
     size_t*     _count,
     size_t*     _capacity,
@@ -832,9 +808,7 @@ Return:
   - true, if element was successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_push_front
-(
+bool d_vector_common_push_front(
     void**      _elements,
     size_t*     _count,
     size_t*     _capacity,
@@ -893,9 +867,7 @@ Return:
   - true, if element was successfully removed, or
   - false, if vector is empty or parameters are invalid.
 */
-bool
-d_vector_common_pop_back
-(
+bool d_vector_common_pop_back(
     void*   _elements,
     size_t* _count,
     size_t  _element_size,
@@ -938,9 +910,7 @@ Return:
   - true, if element was successfully removed, or
   - false, if vector is empty or parameters are invalid.
 */
-bool
-d_vector_common_pop_front
-(
+bool d_vector_common_pop_front(
     void*   _elements,
     size_t* _count,
     size_t  _element_size,
@@ -993,14 +963,12 @@ Return:
   - true, if element was successfully inserted, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_insert_element
-(
+bool d_vector_common_insert_element(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
     size_t      _element_size,
-    d_index     _index,
+    dj_index    _index,
     const void* _value
 )
 {
@@ -1065,14 +1033,12 @@ Return:
   - true, if elements were successfully inserted, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_insert_elements
-(
+bool d_vector_common_insert_elements(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
     size_t      _element_size,
-    d_index     _index,
+    dj_index    _index,
     const void* _source,
     size_t      _source_count
 )
@@ -1144,13 +1110,11 @@ Return:
   - true, if element was successfully removed, or
   - false, if index is invalid or parameters are invalid.
 */
-bool
-d_vector_common_erase
-(
-    void*   _elements,
-    size_t* _count,
-    size_t  _element_size,
-    d_index _index
+bool d_vector_common_erase(
+    void*    _elements,
+    size_t*  _count,
+    size_t   _element_size,
+    dj_index _index
 )
 {
     size_t erase_idx;
@@ -1200,14 +1164,12 @@ Return:
   - true, if elements were successfully removed, or
   - false, if indices are invalid or parameters are invalid.
 */
-bool
-d_vector_common_erase_range
-(
-    void*   _elements,
-    size_t* _count,
-    size_t  _element_size,
-    d_index _start,
-    d_index _end
+bool d_vector_common_erase_range(
+    void*    _elements,
+    size_t*  _count,
+    size_t   _element_size,
+    dj_index _start,
+    dj_index _end
 )
 {
     size_t start_idx;
@@ -1273,9 +1235,7 @@ Return:
   - D_SUCCESS, if elements were successfully appended, or
   - D_FAILURE, if parameters are invalid, or if memory reallocation failed.
 */
-bool
-d_vector_common_append_element
-(
+bool d_vector_common_append_element(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -1313,7 +1273,7 @@ d_vector_common_append_element
 
 /*
 d_vector_common_append_elements
-  Appends a one or more elements to the end of the `d_vector` provided.
+  Appends a one or more elements to the end of the `dj_vector` provided.
 
 Parameter(s):
   _destination:  pointer to elements pointer (may be reallocated)
@@ -1327,9 +1287,7 @@ Return:
   - true, if elements were successfully appended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_append_elements
-(
+bool d_vector_common_append_elements(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -1394,9 +1352,7 @@ Return:
   - D_SUCCESS, if elements were successfully appended, or
   - D_FAILURE, if parameters are invalid, or if memory reallocation failed.
 */
-bool
-d_vector_common_prepend_element
-(
+bool d_vector_common_prepend_element(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -1428,9 +1384,7 @@ Return:
   - true, if elements were successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_prepend_elements
-(
+bool d_vector_common_prepend_elements(
     void**      _elements,
     size_t*     _count,
     size_t*     _capacity,
@@ -1469,9 +1423,7 @@ Return:
   - true, if resize was successful, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_resize
-(
+bool d_vector_common_resize(
     void**  _elements,
     size_t* _count,
     size_t* _capacity,
@@ -1533,9 +1485,7 @@ Return:
   - true, if resize was successful, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_vector_common_resize_fill
-(
+bool d_vector_common_resize_fill(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -1609,13 +1559,11 @@ Parameter(s):
 Return:
   Pointer to the element, or NULL if index is out of bounds.
 */
-void*
-d_vector_common_at
-(
+void* d_vector_common_at(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
-    d_index     _index
+    dj_index    _index
 )
 {
     size_t actual_idx;
@@ -1646,9 +1594,7 @@ Parameter(s):
 Return:
   Pointer to the first element, or NULL if vector is empty.
 */
-void*
-d_vector_common_front
-(
+void* d_vector_common_front(
     const void* _elements,
     size_t      _count
 )
@@ -1673,9 +1619,7 @@ Parameter(s):
 Return:
   Pointer to the last element, or NULL if vector is empty.
 */
-void*
-d_vector_common_back
-(
+void* d_vector_common_back(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
@@ -1700,9 +1644,7 @@ Parameter(s):
 Return:
   Pointer to the underlying array, or NULL if elements is NULL.
 */
-void*
-d_vector_common_data
-(
+void* d_vector_common_data(
     const void* _elements
 )
 {
@@ -1725,9 +1667,7 @@ Return:
   - true, if the vector is empty (count == 0), or
   - false, if the vector contains elements.
 */
-bool
-d_vector_common_is_empty
-(
+bool d_vector_common_is_empty(
     size_t _count
 )
 {
@@ -1746,9 +1686,7 @@ Return:
   - true, if count equals capacity, or
   - false, if there is available capacity.
 */
-bool
-d_vector_common_is_full
-(
+bool d_vector_common_is_full(
     size_t _count,
     size_t _capacity
 )
@@ -1765,9 +1703,7 @@ Parameter(s):
 Return:
   The number of elements.
 */
-size_t
-d_vector_common_size
-(
+size_t d_vector_common_size(
     size_t _count
 )
 {
@@ -1783,9 +1719,7 @@ Parameter(s):
 Return:
   The current capacity.
 */
-size_t
-d_vector_common_capacity
-(
+size_t d_vector_common_capacity(
     size_t _capacity
 )
 {
@@ -1812,14 +1746,12 @@ Return:
   - true, if swap was successful, or
   - false, if indices are invalid or parameters are invalid.
 */
-bool
-d_vector_common_swap
-(
-    void*   _elements,
-    size_t  _count,
-    size_t  _element_size,
-    d_index _index_a,
-    d_index _index_b
+bool d_vector_common_swap(
+    void*    _elements,
+    size_t   _count,
+    size_t   _element_size,
+    dj_index _index_a,
+    dj_index _index_b
 )
 {
     size_t idx_a;
@@ -1882,9 +1814,7 @@ Return:
   - true, if copy was successful, or
   - false, if destination is too small or parameters are invalid.
 */
-bool
-d_vector_common_copy_to
-(
+bool d_vector_common_copy_to(
     const void* _source,
     size_t      _count,
     size_t      _element_size,
@@ -1930,9 +1860,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_vector_common_free_elements
-(
+void d_vector_common_free_elements(
     void* _elements
 )
 {

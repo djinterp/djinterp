@@ -26,13 +26,9 @@ d_tests_sa_string_fn_strcmp_n
   - handles NULL inputs
   - handles zero-length strings
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcmp_n
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcmp_n(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   result;
     bool                  test_identical;
     bool                  test_less_than;
@@ -112,13 +108,9 @@ d_tests_sa_string_fn_strncmp_n
   - handles NULL inputs
   - handles strings shorter than n
 */
-struct d_test_object*
-d_tests_sa_string_fn_strncmp_n
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strncmp_n(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   result;
     bool                  test_n_chars;
     bool                  test_ignore_beyond_n;
@@ -195,13 +187,9 @@ d_tests_sa_string_fn_strcasecmp_n
   - handles empty strings
   - shorter prefix compares less
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcasecmp_n
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcasecmp_n(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   result;
     bool                  test_case_diff;
     bool                  test_less_than;
@@ -279,13 +267,9 @@ d_tests_sa_string_fn_strncasecmp_n
   - handles NULL inputs
   - handles mixed case within n
 */
-struct d_test_object*
-d_tests_sa_string_fn_strncasecmp_n
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strncasecmp_n(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   result;
     bool                  test_n_chars;
     bool                  test_ignore_beyond_n;
@@ -362,13 +346,9 @@ d_tests_sa_string_fn_strequals
   - handles empty strings
   - returns false for partial match
 */
-struct d_test_object*
-d_tests_sa_string_fn_strequals
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strequals(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  result;
     bool                  test_identical;
     bool                  test_different;
@@ -446,13 +426,9 @@ d_tests_sa_string_fn_strequals_nocase
   - handles mixed alphanumeric
   - handles empty strings
 */
-struct d_test_object*
-d_tests_sa_string_fn_strequals_nocase
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strequals_nocase(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  result;
     bool                  test_case_diff;
     bool                  test_different;
@@ -529,13 +505,9 @@ d_tests_sa_string_fn_length_aware_cmp_all
   - d_strequals
   - d_strequals_nocase
 */
-struct d_test_object*
-d_tests_sa_string_fn_length_aware_cmp_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_length_aware_cmp_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Length-Aware Comparison", 6);

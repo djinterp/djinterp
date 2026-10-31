@@ -9,13 +9,11 @@
 *******************************************************************************/
 // djinterp
 #include "./djinterp_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
-bool
-d_tests_sa_macro_array_total_size
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_array_total_size(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -23,10 +21,8 @@ d_tests_sa_macro_array_total_size
     return true;
 }
 
-bool
-d_tests_sa_macro_array_count
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_array_count(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -34,17 +30,15 @@ d_tests_sa_macro_array_count
     return true;
 }
 
-bool
-d_tests_sa_array_macros_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_macros_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n========================================\n");
     printf("  ARRAY UTILITY MACRO TESTS\n");
     printf("========================================\n");
 
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     d_tests_sa_macro_array_total_size(&module_counter);
     d_tests_sa_macro_array_count(&module_counter);

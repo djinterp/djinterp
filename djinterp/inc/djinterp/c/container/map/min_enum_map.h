@@ -33,12 +33,12 @@
     #define D_MIN_ENUM_MAP_DEFAULT_CAPACITY 8
 #endif
 
-// d_min_enum_map
+// dj_min_enum_map
 //   struct: a bare-bones associative container mapping integer keys to pointer
 // values, optimized to consume minimal space.
-struct d_min_enum_map
+struct dj_min_enum_map
 {
-    struct d_enum_map_entry* entries;
+    struct dj_enum_map_entry* entries;
     size_t                   count;
     size_t                   capacity;
 };
@@ -46,38 +46,56 @@ struct d_min_enum_map
 // creation function
 // I.    creation and initialization
 // I.    creation and initialization
-struct d_min_enum_map* d_min_enum_map_new(void);
-struct d_min_enum_map* d_min_enum_map_new_arr(
-    struct d_enum_map_entry** _enum_map_entries,
-    size_t                    _count);
-struct d_min_enum_map* d_min_enum_map_new_copy(
-    const struct d_min_enum_map* _source);
+struct dj_min_enum_map* d_min_enum_map_new(void);
+struct dj_min_enum_map* d_min_enum_map_new_arr(
+    struct dj_enum_map_entry** _enum_map_entries,
+    size_t                     _count
+);
+struct dj_min_enum_map* d_min_enum_map_new_copy(
+    const struct dj_min_enum_map* _source
+);
 
 // II.   element access
-void* d_min_enum_map_get(const struct d_min_enum_map* _map,
-                         int                          _key);
+void* d_min_enum_map_get(
+    const struct dj_min_enum_map* _map,
+    int                           _key
+);
 
 // III.  insertion and removal
-bool d_min_enum_map_put(struct d_min_enum_map* _map,
-                        int                    _key,
-                        void*                  _value);
-bool d_min_enum_map_remove(struct d_min_enum_map* _map,
-                           int                    _key);
+bool d_min_enum_map_put(
+    struct dj_min_enum_map* _map,
+    int                     _key,
+    void*                   _value
+);
+bool d_min_enum_map_remove(
+    struct dj_min_enum_map* _map,
+    int                     _key
+);
 
 // IV.   search
-bool d_min_enum_map_contains(const struct d_min_enum_map* _map,
-                             int                          _key);
+bool d_min_enum_map_contains(
+    const struct dj_min_enum_map* _map,
+    int                           _key
+);
 
 // V.    capacity and state queries
-size_t d_min_enum_map_count(const struct d_min_enum_map* _map);
+size_t d_min_enum_map_count(
+    const struct dj_min_enum_map* _map
+);
 
 // VI.   mutation and reordering
-void d_min_enum_map_clear(struct d_min_enum_map* _map);
-bool d_min_enum_map_merge(struct d_min_enum_map*       _destination,
-                          const struct d_min_enum_map* _source,
-                          bool                         _overwrite);
+void d_min_enum_map_clear(
+    struct dj_min_enum_map* _map
+);
+bool d_min_enum_map_merge(
+    struct dj_min_enum_map*       _destination,
+    const struct dj_min_enum_map* _source,
+    bool                          _overwrite
+);
 
 // VII.  destruction
-void d_min_enum_map_free(struct d_min_enum_map* _map);
+void d_min_enum_map_free(
+    struct dj_min_enum_map* _map
+);
 
 #endif  // DJINTERP_C_CONTAINER_MAP_MIN_ENUM_MAP_H

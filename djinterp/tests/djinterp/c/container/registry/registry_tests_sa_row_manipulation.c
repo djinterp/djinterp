@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -28,14 +28,12 @@ d_tests_sa_registry_add
   - sorted-flag registry inserts in key order
   - capacity grows automatically when full
 */
-bool
-d_tests_sa_registry_add
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_add(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     struct test_row*   found;
 
@@ -210,14 +208,12 @@ d_tests_sa_registry_add_rows
   - all added rows are findable
   - partial failure returns false (duplicate in batch)
 */
-bool
-d_tests_sa_registry_add_rows
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_add_rows(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    batch[3];
     struct test_row*   found;
 
@@ -311,14 +307,12 @@ d_tests_sa_registry_set
   - set preserves the original canonical key in the row
   - set via alias updates the correct row
 */
-bool
-d_tests_sa_registry_set
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_set(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     struct test_row    replacement;
     struct test_row*   found;
@@ -434,14 +428,12 @@ d_tests_sa_registry_remove
   - other rows remain accessible after removal
   - aliases pointing to removed row are also removed
 */
-bool
-d_tests_sa_registry_remove
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_remove(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -535,14 +527,12 @@ d_tests_sa_registry_remove_at
   - remaining rows shift down correctly
   - lookup indices are adjusted after removal
 */
-bool
-d_tests_sa_registry_remove_at
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_remove_at(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     struct test_row*   found;
 
@@ -647,14 +637,12 @@ d_tests_sa_registry_clear
   - static registry: clears lookup_count but preserves row count
   - calls row_free for each row when OWNS_ROWS is set
 */
-bool
-d_tests_sa_registry_clear
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_clear(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     size_t             cap_before;
 
@@ -729,10 +717,8 @@ d_tests_sa_registry_clear
 d_tests_sa_registry_row_manipulation_all
   Aggregation function that runs all row manipulation tests.
 */
-bool
-d_tests_sa_registry_row_manipulation_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_row_manipulation_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

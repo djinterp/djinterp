@@ -19,7 +19,7 @@
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_edit.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 #include "./cli_internal.hpp"  // corresponding header
 
@@ -125,8 +125,7 @@ const char* const ONE_DEFINITION =
 // encoding_words / radix_words / suffix_words
 //   the words a sheet file writes each encoding, radix and literal suffix
 // as, in their enumerations' order.
-std::vector<std::string>
-encoding_words()
+std::vector<std::string> encoding_words()
 {
     std::vector<std::string> out;
 
@@ -138,8 +137,7 @@ encoding_words()
     return out;
 }
 
-std::vector<std::string>
-radix_words()
+std::vector<std::string> radix_words()
 {
     std::vector<std::string> out;
 
@@ -153,8 +151,7 @@ radix_words()
     return out;
 }
 
-std::vector<std::string>
-suffix_words()
+std::vector<std::string> suffix_words()
 {
     std::vector<std::string> out;
 
@@ -190,8 +187,7 @@ run_new
   File > New's sheet -- a full-width range named root, and in it one bit --
 under the title, width and affixes given.
 */
-int
-run_new(
+int run_new(
     kit::program&      _program,
     kit::command       _command,
     const new_request& _request
@@ -256,8 +252,7 @@ import_settings
   The level, the data model and the shape, each word checked, as the
 importer's options and the shape's index.
 */
-int
-import_settings(
+int import_settings(
     kit::program&         _program,
     kit::command          _command,
     const import_request& _request,
@@ -307,8 +302,7 @@ import_one
 sheet, each after it merged in. A file with no #define in it is trouble, as
 nothing came of it.
 */
-int
-import_one(
+int import_one(
     kit::program&         _program,
     const std::string&    _file,
     const import_options& _options,
@@ -360,8 +354,7 @@ import_one(
 run_import
   Every file imported in turn, then the sheet written whole.
 */
-int
-run_import(
+int run_import(
     kit::program&         _program,
     kit::command          _command,
     const import_request& _request
@@ -451,8 +444,7 @@ chosen_kind
   Which definition the options choose: its index in KINDS; -1 for none, and
 KIND_COUNT for more than one.
 */
-int
-chosen_kind(
+int chosen_kind(
     kit::command _command
 )
 {
@@ -478,8 +470,7 @@ parts_fit
 error for the first that does not, which says where it goes -- or, when no
 definition was given, what the row is.
 */
-int
-parts_fit(
+int parts_fit(
     kit::program&      _program,
     kit::command       _command,
     def_kind           _kind,
@@ -527,8 +518,7 @@ text_or_file
   An option's text, or a file's, read whole -- `-` standard input -- so
 that text the shells would take apart need never be quoted.
 */
-bool
-text_or_file(
+bool text_or_file(
     kit::program&      _program,
     const std::string& _text,
     const std::string& _file,
@@ -573,8 +563,7 @@ text_or_file(
 read_range
   A RANGE as the grammar writes one: `4..6`, `6..4`, or one bit, `5`.
 */
-bool
-read_range(
+bool read_range(
     const std::string& _text,
     int&               _lsb,
     int&               _width
@@ -617,8 +606,7 @@ read_range(
 define_bit
   --bit, alone the next bit free in the row's group.
 */
-int
-define_bit(
+int define_bit(
     kit::program&             _program,
     kit::command              _command,
     const definition_options& _options,
@@ -651,8 +639,7 @@ define_bit(
 range_width
   --width, a range's part: one bit or more, inside the sheet from its lowest.
 */
-int
-range_width(
+int range_width(
     kit::program&             _program,
     kit::command              _command,
     const definition_options& _options,
@@ -692,8 +679,7 @@ define_range
   --bits, or --lsb -- alone the next bit free -- and its width: --width's,
 or the row's own where it was a range already, or one bit.
 */
-int
-define_range(
+int define_range(
     kit::program&             _program,
     kit::command              _command,
     const definition_options& _options,
@@ -742,8 +728,7 @@ value_parts
 rest kept; offset binary with no bias takes its field's, as the window
 gives it.
 */
-int
-value_parts(
+int value_parts(
     kit::program&             _program,
     kit::command              _command,
     const definition_options& _options,
@@ -793,8 +778,7 @@ define_value
   --field, a range and not the row itself; then its parts, a new value's
 starting from 0, unsigned.
 */
-int
-define_value(
+int define_value(
     kit::program&             _program,
     kit::command              _command,
     const definition_options& _options,
@@ -842,8 +826,7 @@ define_value(
 macro_parts
   --params and --callable, a macro's parts: each given set, the rest kept.
 */
-void
-macro_parts(
+void macro_parts(
     kit::command              _command,
     const definition_options& _options,
     row&                      _row
@@ -863,8 +846,7 @@ define_text
 literal read as the grammar writes an integer, the text from the option or
 its file -- and a macro's parts, a new macro's starting with none.
 */
-int
-define_text(
+int define_text(
     kit::program&             _program,
     kit::command              _command,
     const definition_options& _options,
@@ -914,8 +896,7 @@ define
   The definition the options chose, with its parts; -- none chosen -- the
 parts alone, of the definition the row has.
 */
-int
-define(
+int define(
     kit::program&             _program,
     kit::command              _command,
     const definition_options& _options,
@@ -974,8 +955,7 @@ row_colour
   --colour: #RRGGBB, #RRGGBBAA; auto, a colour of the scheme's; or none,
 no fill.
 */
-int
-row_colour(
+int row_colour(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _colour,
@@ -1013,8 +993,7 @@ row_switches
   --emit, and a group's or a range's own: --isolate, --name-children and
 --exclusive, refused for a row that holds no rows.
 */
-int
-row_switches(
+int row_switches(
     kit::program&      _program,
     kit::command       _command,
     const row_options& _options,
@@ -1052,8 +1031,7 @@ row_form
   --radix, --int-suffix and --digits: how a symbol's value is written,
 refused for a group, which has none.
 */
-int
-row_form(
+int row_form(
     kit::program&      _program,
     kit::command       _command,
     const row_options& _options,
@@ -1108,8 +1086,7 @@ apply_row_options
   Every option given of what a row says besides its definition; the rest
 left as the row has them.
 */
-int
-apply_row_options(
+int apply_row_options(
     kit::program&      _program,
     kit::command       _command,
     const row_options& _options,
@@ -1163,8 +1140,7 @@ struct add_request
 add_parent
   --in: a group or a range, by name; the sheet's own rows, 0, without it.
 */
-int
-add_parent(
+int add_parent(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _in,
@@ -1202,8 +1178,7 @@ keep_trial
   A row tried in a copy: refused as the window refuses it, or the copy kept
 and stored, the row said with the bits it took.
 */
-int
-keep_trial(
+int keep_trial(
     kit::program&      _program,
     kit::command       _command,
     source&            _source,
@@ -1246,8 +1221,7 @@ run_add
   One definition, a place to put it, the rest of what it says, and the row
 tried in a copy of the sheet.
 */
-int
-run_add(
+int run_add(
     kit::program&      _program,
     kit::command       _command,
     const add_request& _request
@@ -1329,8 +1303,7 @@ anything_given
   Whether the options give a change at all: a definition, a part of one, or
 anything else a row says.
 */
-bool
-anything_given(
+bool anything_given(
     kit::command _command,
     int          _kind
 )
@@ -1355,8 +1328,7 @@ change_definition
   A group has none to change; a symbol takes the definition given, or the
 parts of its own.
 */
-int
-change_definition(
+int change_definition(
     kit::program&         _program,
     kit::command          _command,
     const change_request& _request,
@@ -1399,8 +1371,7 @@ run_change
   The row found, its fields changed in a copy of it, and the copy tried in
 place of the row -- refused as the window refuses a name it cannot take.
 */
-int
-run_change(
+int run_change(
     kit::program&         _program,
     kit::command          _command,
     const change_request& _request
@@ -1466,8 +1437,7 @@ run_change(
 add_place_options
   A bit's and a range's options; a change keeps what a range already is.
 */
-void
-add_place_options(
+void add_place_options(
     kit::command        _command,
     definition_options& _options,
     bool                _adding
@@ -1500,8 +1470,7 @@ add_place_options(
 add_value_options
   A value's options; a change keeps what a value already is.
 */
-void
-add_value_options(
+void add_value_options(
     kit::command        _command,
     definition_options& _options,
     bool                _adding
@@ -1536,8 +1505,7 @@ add_value_options(
 add_text_options
   A literal's, an expression's and a macro's options; add's group.
 */
-void
-add_text_options(
+void add_text_options(
     kit::command        _command,
     definition_options& _options,
     bool                _adding
@@ -1584,8 +1552,7 @@ add_row_options
   What a row says besides its definition: its texts, colour and switches,
 and how its literal is written.
 */
-void
-add_row_options(
+void add_row_options(
     kit::command _command,
     row_options& _options
 )
@@ -1639,8 +1606,7 @@ add_row_options(
 define_new
   new: a sheet as File > New makes one.
 */
-void
-define_new(
+void define_new(
     kit::program& _program
 )
 {
@@ -1680,8 +1646,7 @@ define_new(
 define_import
   import: a sheet from C headers.
 */
-void
-define_import(
+void define_import(
     kit::program& _program
 )
 {
@@ -1729,8 +1694,7 @@ define_import(
 define_add
   add: a row by a bitfield's keys.
 */
-void
-define_add(
+void define_add(
     kit::program& _program
 )
 {
@@ -1744,7 +1708,7 @@ define_add(
         });
 
     made.group(CHANGING);
-    add_sheet(made, request->sheet);
+    add_sheet(_program, made, request->where, request->sheet);
     made.add_option("NAME", request->name,
                     "its own name, without the affixes around it")
         .required();
@@ -1756,7 +1720,7 @@ define_add(
         .type_name("ROW")
         .default_str("the sheet's own rows");
     add_row_options(made, request->rest);
-    add_destination(made, request->where);
+    add_destination(_program, made, request->where);
 
     return;
 }
@@ -1765,8 +1729,7 @@ define_add(
 define_change
   change: a row's definition, or anything else it says.
 */
-void
-define_change(
+void define_change(
     kit::program& _program
 )
 {
@@ -1780,7 +1743,7 @@ define_change(
         });
 
     made.group(CHANGING);
-    add_sheet(made, request->sheet);
+    add_sheet(_program, made, request->where, request->sheet);
     made.add_option("ROW", request->row,
                     "the row: its macro name, its own name where one row "
                     "has it, or a group's name")
@@ -1789,7 +1752,7 @@ define_change(
     add_value_options(made, request->def, false);
     add_text_options(made, request->def, false);
     add_row_options(made, request->rest);
-    add_destination(made, request->where);
+    add_destination(_program, made, request->where);
 
     return;
 }
@@ -1801,8 +1764,7 @@ define_change(
 add_edit_commands
   new, import, add and change, in the order the grammar lists them.
 */
-void
-add_edit_commands(
+void add_edit_commands(
     kit::program& _program
 )
 {

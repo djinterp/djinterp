@@ -26,8 +26,8 @@ TABLE OF CONTENTS
 1.  VALUES
     ------
     1.  Enumerated settings
-         1.  d_sqlite_journal_mode
-         2.  d_sqlite_synchronous
+         1.  dj_sqlite_journal_mode
+         2.  dj_sqlite_synchronous
 2.  CONNECTION SETTINGS
     -------------------
     1.  Foreign keys
@@ -49,7 +49,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.h"   // framework root
 #include "./sqlite_common.h"  // sqlite3, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
@@ -63,10 +63,10 @@ D_EXTERN_C_BEGIN
 // 1.1    Enumerated settings
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_sqlite_journal_mode
+// dj_sqlite_journal_mode
 //   enum: how a database keeps what a transaction would undo (PRAGMA
 // journal_mode).
-enum d_sqlite_journal_mode
+enum dj_sqlite_journal_mode
 {
     D_SQLITE_JOURNAL_DELETE = 0,  // a rollback journal, deleted at commit
     D_SQLITE_JOURNAL_TRUNCATE,    // ... truncated at commit
@@ -77,10 +77,10 @@ enum d_sqlite_journal_mode
 };
 
 // 1.1.2
-// d_sqlite_synchronous
+// dj_sqlite_synchronous
 //   enum: how often SQLite waits for the disk (PRAGMA synchronous). The values
 // are SQLite's own.
-enum d_sqlite_synchronous
+enum dj_sqlite_synchronous
 {
     D_SQLITE_SYNCHRONOUS_OFF    = 0,  // never: fast, and unsafe on power loss
     D_SQLITE_SYNCHRONOUS_NORMAL = 1,  // at critical moments; safe with WAL
@@ -105,8 +105,10 @@ enum d_sqlite_synchronous
  *         a transaction, or in a library built without foreign keys; the
  *         SQLite result code of a failure; or SQLITE_MISUSE.
  */
-int  d_sqlite_set_foreign_keys(struct sqlite3* _db,
-                               bool            _enabled) D_NOTHROW;
+int d_sqlite_set_foreign_keys(
+    struct sqlite3* _db,
+    bool            _enabled
+) D_NOTHROW;
 /**
  * @brief Reports whether the connection enforces foreign keys.
  *
@@ -115,8 +117,10 @@ int  d_sqlite_set_foreign_keys(struct sqlite3* _db,
  * @return SQLITE_OK; D_DB_UNSUPPORTED in a library built without foreign
  *         keys; the SQLite result code of a failure; or SQLITE_MISUSE.
  */
-int  d_sqlite_get_foreign_keys(struct sqlite3* _db,
-                               bool*           _enabled) D_NOTHROW;
+int d_sqlite_get_foreign_keys(
+    struct sqlite3* _db,
+    bool*           _enabled
+) D_NOTHROW;
 
 // 2.2    Busy timeout
 //------------------------------------------------------------------------------
@@ -125,10 +129,14 @@ int  d_sqlite_get_foreign_keys(struct sqlite3* _db,
 // Each returns SQLITE_OK, the SQLite result code of a failure, or
 // SQLITE_MISUSE for a NULL argument or a negative timeout; get writes only on
 // success.
-int  d_sqlite_set_busy_timeout(struct sqlite3* _db,
-                               int             _milliseconds) D_NOTHROW;
-int  d_sqlite_get_busy_timeout(struct sqlite3* _db,
-                               int*            _milliseconds) D_NOTHROW;
+int d_sqlite_set_busy_timeout(
+    struct sqlite3* _db,
+    int             _milliseconds
+) D_NOTHROW;
+int d_sqlite_get_busy_timeout(
+    struct sqlite3* _db,
+    int*            _milliseconds
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -146,42 +154,58 @@ int  d_sqlite_get_busy_timeout(struct sqlite3* _db,
 // mode (an in-memory database takes only MEMORY and OFF); SQLite refuses
 // with SQLITE_ERROR to leave or enter WAL inside a transaction. Get answers
 // D_DB_UNSUPPORTED for a mode this enumeration does not name.
-int  d_sqlite_set_journal_mode(struct sqlite3*            _db,
-                               const char*                _schema,
-                               enum d_sqlite_journal_mode _mode) D_NOTHROW;
-int  d_sqlite_get_journal_mode(struct sqlite3*             _db,
-                               const char*                 _schema,
-                               enum d_sqlite_journal_mode* _mode) D_NOTHROW;
+int d_sqlite_set_journal_mode(
+    struct sqlite3*             _db,
+    const char*                 _schema,
+    enum dj_sqlite_journal_mode _mode
+) D_NOTHROW;
+int d_sqlite_get_journal_mode(
+    struct sqlite3*              _db,
+    const char*                  _schema,
+    enum dj_sqlite_journal_mode* _mode
+) D_NOTHROW;
 
 // 3.2    Synchronous
 //------------------------------------------------------------------------------
 // synchronous -- set answers D_DB_UNSUPPORTED for EXTRA before 3.11.0, which
 // an older library stores and reads back but treats as FULL, and when the
 // value did not take
-int  d_sqlite_set_synchronous(struct sqlite3*           _db,
-                              const char*               _schema,
-                              enum d_sqlite_synchronous _value) D_NOTHROW;
-int  d_sqlite_get_synchronous(struct sqlite3*            _db,
-                              const char*                _schema,
-                              enum d_sqlite_synchronous* _value) D_NOTHROW;
+int d_sqlite_set_synchronous(
+    struct sqlite3*            _db,
+    const char*                _schema,
+    enum dj_sqlite_synchronous _value
+) D_NOTHROW;
+int d_sqlite_get_synchronous(
+    struct sqlite3*             _db,
+    const char*                 _schema,
+    enum dj_sqlite_synchronous* _value
+) D_NOTHROW;
 
 // 3.3    Version numbers
 //------------------------------------------------------------------------------
 // version numbers -- two integers in the database header that SQLite stores
 // and never interprets: user_version, for an application's schema version,
 // and application_id, which identifies the file format to tools like file(1)
-int  d_sqlite_set_user_version(struct sqlite3* _db,
-                               const char*     _schema,
-                               int32_t         _version) D_NOTHROW;
-int  d_sqlite_get_user_version(struct sqlite3* _db,
-                               const char*     _schema,
-                               int32_t*        _version) D_NOTHROW;
-int  d_sqlite_set_application_id(struct sqlite3* _db,
-                                 const char*     _schema,
-                                 int32_t         _id) D_NOTHROW;
-int  d_sqlite_get_application_id(struct sqlite3* _db,
-                                 const char*     _schema,
-                                 int32_t*        _id) D_NOTHROW;
+int d_sqlite_set_user_version(
+    struct sqlite3* _db,
+    const char*     _schema,
+    int32_t         _version
+) D_NOTHROW;
+int d_sqlite_get_user_version(
+    struct sqlite3* _db,
+    const char*     _schema,
+    int32_t*        _version
+) D_NOTHROW;
+int d_sqlite_set_application_id(
+    struct sqlite3* _db,
+    const char*     _schema,
+    int32_t         _id
+) D_NOTHROW;
+int d_sqlite_get_application_id(
+    struct sqlite3* _db,
+    const char*     _schema,
+    int32_t*        _id
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -206,10 +230,12 @@ int  d_sqlite_get_application_id(struct sqlite3* _db,
  * @return SQLITE_OK, the SQLite result code of the failure, or SQLITE_MISUSE
  *         for a `NULL` argument or a name that is not a PRAGMA's.
  */
-int  d_sqlite_set_pragma(struct sqlite3* _db,
-                         const char*     _schema,
-                         const char*     _pragma,
-                         const char*     _value) D_NOTHROW;
+int d_sqlite_set_pragma(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _pragma,
+    const char*     _value
+) D_NOTHROW;
 /**
  * @brief Reads any PRAGMA: the first column of its first row, as text.
  *
@@ -222,10 +248,12 @@ int  d_sqlite_set_pragma(struct sqlite3* _db,
  *         unknown one does; the SQLite result code of a failure; or
  *         SQLITE_MISUSE.
  */
-int  d_sqlite_get_pragma(struct sqlite3* _db,
-                         const char*     _schema,
-                         const char*     _pragma,
-                         char**          _value) D_NOTHROW;
+int d_sqlite_get_pragma(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _pragma,
+    char**          _value
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

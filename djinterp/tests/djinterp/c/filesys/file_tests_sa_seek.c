@@ -18,13 +18,10 @@
 d_tests_file_seek_tell
   Tests d_file_seek_stream / d_file_tell_stream / d_file_rewind_stream.
 */
-static struct d_test_object*
-d_tests_file_seek_tell
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_seek_tell(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     FILE*                 file;
     size_t                idx;
@@ -37,30 +34,30 @@ d_tests_file_seek_tell
     if (file)
     {
         items[idx++] = D_ASSERT_EQUAL("tell_start", d_file_tell_stream(file),
-                                      (d_off_t)0,
+                                      (dj_off_t)0,
                                       "a fresh stream is at 0");
         items[idx++] = D_ASSERT_EQUAL("seek_set",
                                       d_file_seek_stream(file, 5, SEEK_SET), 0,
                                       "d_file_seek_stream seeks from the start");
         items[idx++] = D_ASSERT_EQUAL("tell_after_set", d_file_tell_stream(file),
-                                      (d_off_t)5,
+                                      (dj_off_t)5,
                                       "...and d_file_tell_stream agrees");
         items[idx++] = D_ASSERT_EQUAL("seek_cur",
                                       d_file_seek_stream(file, 3, SEEK_CUR), 0,
                                       "d_file_seek_stream seeks relatively");
         items[idx++] = D_ASSERT_EQUAL("tell_after_cur", d_file_tell_stream(file),
-                                      (d_off_t)8,
+                                      (dj_off_t)8,
                                       "...cumulatively");
         items[idx++] = D_ASSERT_EQUAL("seek_end",
                                       d_file_seek_stream(file, -5, SEEK_END), 0,
                                       "d_file_seek_stream seeks from the end");
         items[idx++] = D_ASSERT_EQUAL("tell_after_end", d_file_tell_stream(file),
-                                      (d_off_t)(strlen(D_TEST_FILE_TEST_CONTENT) - 5),
+                                      (dj_off_t)(strlen(D_TEST_FILE_TEST_CONTENT) - 5),
                                       "...to the right place");
         items[idx++] = D_ASSERT_EQUAL("rewind", d_file_rewind_stream(file), 0,
                                       "d_file_rewind_stream reports success, unlike rewind()");
         items[idx++] = D_ASSERT_EQUAL("rewind_pos", d_file_tell_stream(file),
-                                      (d_off_t)0,
+                                      (dj_off_t)0,
                                       "...and returns to 0");
         items[idx++] = D_ASSERT_EQUAL("bad_whence",
                                       d_file_seek_stream(file, 0, 99), -1,
@@ -74,7 +71,7 @@ d_tests_file_seek_tell
                                   "d_file_seek_stream rejects NULL");
     #endif
     #if D_FILE_VALIDATE_IS_ACTIVE
-    items[idx++] = D_ASSERT_EQUAL("tell_null", d_file_tell_stream(NULL), (d_off_t)-1,
+    items[idx++] = D_ASSERT_EQUAL("tell_null", d_file_tell_stream(NULL), (dj_off_t)-1,
                                   "d_file_tell_stream rejects NULL");
     #endif
 
@@ -86,13 +83,10 @@ d_tests_file_seek_tell
 d_tests_file_truncate
   Tests d_file_truncate_fd and d_file_truncate_stream -- including the dirty-buffer trap.
 */
-static struct d_test_object*
-d_tests_file_truncate
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_truncate(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     int                   fd;
     size_t                idx;
@@ -181,13 +175,9 @@ d_tests_file_truncate
 d_tests_file_seek_all
   Runs every file_seek test.
 */
-struct d_test_object*
-d_tests_file_seek_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_seek_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

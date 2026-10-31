@@ -29,13 +29,13 @@ d_internal_same_name
   Compares a sheet's name with a tree's: as symbols when the sheet is bound
 to the tree's table, as text otherwise.
 */
-static bool
-d_internal_same_name(
-    const struct d_dss_sheet*  _sheet,
-    struct d_node_tree*        _tree,
-    bool                       _bound,
-    const struct d_dss_simple* _simple,
-    uint32_t                   _tree_id
+static
+bool d_internal_same_name(
+    const struct dj_dss_sheet*  _sheet,
+    struct dj_node_tree*        _tree,
+    bool                        _bound,
+    const struct dj_dss_simple* _simple,
+    uint32_t                    _tree_id
 )
 {
     if ( (_simple->name == D_DSS_NO_INDEX) || (_tree_id == D_DSS_NO_INDEX) )
@@ -60,18 +60,18 @@ d_internal_attribute_matches
 non-numeric value never matches, rather than comparing as text: the two
 readings disagree and the silent one is the wrong one to pick.
 */
-static bool
-d_internal_attribute_matches(
-    const struct d_dss_sheet*   _sheet,
-    struct d_node_tree*         _tree,
+static
+bool d_internal_attribute_matches(
+    const struct dj_dss_sheet*  _sheet,
+    struct dj_node_tree*        _tree,
     bool                        _bound,
-    const struct d_node*        _node,
-    const struct d_dss_simple*  _simple
+    const struct dj_node*       _node,
+    const struct dj_dss_simple* _simple
 )
 {
     for (uint32_t at = 0; at < _node->attribute_count; ++at)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, _node->first_attribute + at);
 
         if (!attribute)
@@ -151,8 +151,8 @@ d_internal_attribute_matches(
 d_internal_nth_holds
   Whether a one-based position is An+B for some n >= 0.
 */
-static bool
-d_internal_nth_holds(
+static
+bool d_internal_nth_holds(
     int32_t _a,
     int32_t _b,
     long    _position
@@ -178,16 +178,16 @@ d_internal_position
 asked.  Position is document position, so an absent node -- a placeholder for
 something the file does not carry -- is not a sibling for this purpose.
 */
-static void
-d_internal_position(
-    struct d_node_tree* _tree,
-    uint32_t            _node_index,
-    bool                _same_type,
-    long*               _out_before,
-    long*               _out_after
+static
+void d_internal_position(
+    struct dj_node_tree* _tree,
+    uint32_t             _node_index,
+    bool                 _same_type,
+    long*                _out_before,
+    long*                _out_after
 )
 {
-    const struct d_node* const node = d_node_at(_tree, _node_index);
+    const struct dj_node* const node = d_node_at(_tree, _node_index);
     bool                       seen = false;
 
     *_out_before = 0;
@@ -197,7 +197,7 @@ d_internal_position(
          at != D_DSS_NO_INDEX;
          at = d_node_at(_tree, at)->next_sibling)
     {
-        const struct d_node* const other = d_node_at(_tree, at);
+        const struct dj_node* const other = d_node_at(_tree, at);
 
         if (at == _node_index)
         {
@@ -226,10 +226,13 @@ d_internal_position(
 }
 
 
-static bool d_internal_has(const struct d_dss_sheet* _sheet,
-                           struct d_node_tree*       _tree,
-                           uint32_t                  _anchor,
-                           uint32_t                  _selector);
+static
+bool d_internal_has(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _anchor,
+    uint32_t                   _selector
+);
 
 
 /*
@@ -237,12 +240,12 @@ d_internal_functional_matches
   :not holds when no argument selector matches, :is when one does, :has when
 one of its relative selectors finds a match anchored at the node.
 */
-static bool
-d_internal_functional_matches(
-    const struct d_dss_sheet*  _sheet,
-    struct d_node_tree*        _tree,
-    uint32_t                   _node_index,
-    const struct d_dss_simple* _simple
+static
+bool d_internal_functional_matches(
+    const struct dj_dss_sheet*  _sheet,
+    struct dj_node_tree*        _tree,
+    uint32_t                    _node_index,
+    const struct dj_dss_simple* _simple
 )
 {
     const bool has = (_simple->pseudo == D_DSS_PSEUDO_HAS);
@@ -272,15 +275,15 @@ the structural ones by the node's position among its present siblings.  A
 root node has no siblings, so every structural pseudo-class is false there;
 the functional ones still apply.
 */
-static bool
-d_internal_pseudo_matches(
-    const struct d_dss_sheet*  _sheet,
-    struct d_node_tree*        _tree,
-    uint32_t                   _node_index,
-    const struct d_dss_simple* _simple
+static
+bool d_internal_pseudo_matches(
+    const struct dj_dss_sheet*  _sheet,
+    struct dj_node_tree*        _tree,
+    uint32_t                    _node_index,
+    const struct dj_dss_simple* _simple
 )
 {
-    struct d_node* const node   = d_node_at(_tree, _node_index);
+    struct dj_node* const node   = d_node_at(_tree, _node_index);
     long                 before = 0;
     long                 after  = 0;
 
@@ -336,18 +339,18 @@ d_internal_pseudo_matches(
 d_internal_compound_matches
   Every simple in the compound must hold.
 */
-static bool
-d_internal_compound_matches(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node_index,
-    uint32_t                  _compound
+static
+bool d_internal_compound_matches(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node_index,
+    uint32_t                   _compound
 )
 {
-    const struct d_dss_compound* const compound =
+    const struct dj_dss_compound* const compound =
         d_dss_compound_at(_sheet, _compound);
 
-    struct d_node* const node = d_node_at(_tree, _node_index);
+    struct dj_node* const node = d_node_at(_tree, _node_index);
 
     if ((!compound) || (!node))
     {
@@ -360,7 +363,7 @@ d_internal_compound_matches(
 
     for (uint32_t at = 0; at < compound->simple_count; ++at)
     {
-        const struct d_dss_simple* const simple =
+        const struct dj_dss_simple* const simple =
             d_dss_simple_at(_sheet, compound->first_simple + at);
 
         if (!simple)
@@ -412,20 +415,20 @@ d_internal_previous_sibling
   Walks the parent's children to find the node immediately before this one.
 Nodes link forwards only, so this is a scan rather than a field.
 */
-static uint32_t
-d_internal_previous_sibling(
-    struct d_node_tree* _tree,
-    uint32_t            _node_index
+static
+uint32_t d_internal_previous_sibling(
+    struct dj_node_tree* _tree,
+    uint32_t             _node_index
 )
 {
-    struct d_node* const node = d_node_at(_tree, _node_index);
+    struct dj_node* const node = d_node_at(_tree, _node_index);
 
     if ((!node) || (node->parent == D_DSS_NO_INDEX))
     {
         return D_DSS_NO_INDEX;
     }
 
-    struct d_node* const parent = d_node_at(_tree, node->parent);
+    struct dj_node* const parent = d_node_at(_tree, node->parent);
 
     if ((!parent) || (parent->first_child == _node_index))
     {
@@ -436,7 +439,7 @@ d_internal_previous_sibling(
 
     while (at != D_DSS_NO_INDEX)
     {
-        struct d_node* const child = d_node_at(_tree, at);
+        struct dj_node* const child = d_node_at(_tree, at);
 
         if ((!child) || (child->next_sibling == _node_index))
         {
@@ -456,13 +459,13 @@ d_internal_chain
 everything to its left.  A step index of D_DSS_NO_INDEX means the head has
 been reached and the selector is satisfied.
 */
-static bool
-d_internal_chain(
-    const struct d_dss_sheet*    _sheet,
-    struct d_node_tree*          _tree,
-    uint32_t                     _node_index,
-    const struct d_dss_selector* _selector,
-    uint32_t                     _step_index
+static
+bool d_internal_chain(
+    const struct dj_dss_sheet*    _sheet,
+    struct dj_node_tree*          _tree,
+    uint32_t                      _node_index,
+    const struct dj_dss_selector* _selector,
+    uint32_t                      _step_index
 )
 {
     if (_step_index == D_DSS_NO_INDEX)
@@ -470,7 +473,7 @@ d_internal_chain(
         return true;
     }
 
-    const struct d_dss_step* const step =
+    const struct dj_dss_step* const step =
         d_dss_step_at(_sheet, _selector->first_step + _step_index);
 
     if (!step)
@@ -488,7 +491,7 @@ d_internal_chain(
     const uint32_t next_step = (_step_index == 0) ? D_DSS_NO_INDEX
                                                   : (_step_index - 1u);
 
-    struct d_node* const node = d_node_at(_tree, _node_index);
+    struct dj_node* const node = d_node_at(_tree, _node_index);
 
     if (!node)
     {
@@ -529,7 +532,7 @@ d_internal_chain(
                     return true;
                 }
 
-                struct d_node* const up = d_node_at(_tree, ancestor);
+                struct dj_node* const up = d_node_at(_tree, ancestor);
 
                 ancestor = up ? up->parent : D_DSS_NO_INDEX;
             }
@@ -589,14 +592,14 @@ d_internal_next_in_subtree
 D_DSS_NO_INDEX when the walk is done.  Iterative, so a deep tree costs no
 stack.
 */
-static uint32_t
-d_internal_next_in_subtree(
-    struct d_node_tree* _tree,
-    uint32_t            _root,
-    uint32_t            _at
+static
+uint32_t d_internal_next_in_subtree(
+    struct dj_node_tree* _tree,
+    uint32_t             _root,
+    uint32_t             _at
 )
 {
-    const struct d_node* node = d_node_at(_tree, _at);
+    const struct dj_node* node = d_node_at(_tree, _at);
 
     // down first
     if (node->first_child != D_DSS_NO_INDEX)
@@ -627,22 +630,22 @@ compound at `_part` (0 is the head) must match a node related to `_anchor` by
 the combinator that introduces it, and the rest must follow from there.
 Recursion is bounded by the selector's length, not the tree's size.
 */
-static bool
-d_internal_forward(
-    const struct d_dss_sheet*    _sheet,
-    struct d_node_tree*          _tree,
-    uint32_t                     _anchor,
-    const struct d_dss_selector* _selector,
-    uint32_t                     _part
+static
+bool d_internal_forward(
+    const struct dj_dss_sheet*    _sheet,
+    struct dj_node_tree*          _tree,
+    uint32_t                      _anchor,
+    const struct dj_dss_selector* _selector,
+    uint32_t                      _part
 )
 {
-    const struct d_dss_step* const step = (_part == 0u)
+    const struct dj_dss_step* const step = (_part == 0u)
         ? NULL
         : d_dss_step_at(_sheet, _selector->first_step + _part - 1u);
     const uint32_t compound   = step ? step->compound : _selector->head;
     const uint8_t  combinator = step ? step->combinator : _selector->leading;
     const bool     last       = (_part == _selector->step_count);
-    const struct d_node* const anchor = d_node_at(_tree, _anchor);
+    const struct dj_node* const anchor = d_node_at(_tree, _anchor);
 
     // children and descendants start below the anchor, siblings beside it
     uint32_t at = ( (combinator == D_DSS_COMBINATOR_CHILD) ||
@@ -652,7 +655,7 @@ d_internal_forward(
 
     while (at != D_DSS_NO_INDEX)
     {
-        const struct d_node* const node = d_node_at(_tree, at);
+        const struct dj_node* const node = d_node_at(_tree, at);
 
         if ( node->present &&
              d_internal_compound_matches(_sheet, _tree, at, compound) &&
@@ -683,15 +686,15 @@ d_internal_forward(
 d_internal_has
   Whether a relative selector, anchored at a node, finds a match.
 */
-static bool
-d_internal_has(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _anchor,
-    uint32_t                  _selector
+static
+bool d_internal_has(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _anchor,
+    uint32_t                   _selector
 )
 {
-    const struct d_dss_selector* const selector =
+    const struct dj_dss_selector* const selector =
         d_dss_selector_at(_sheet, _selector);
 
     return ( selector &&
@@ -703,12 +706,11 @@ d_internal_has(
 d_match_selector
   Tests one complex selector against one node.
 */
-bool
-d_match_selector(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    uint32_t                  _selector
+bool d_match_selector(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    uint32_t                   _selector
 )
 {
     // parameter validation first
@@ -717,7 +719,7 @@ d_match_selector(
         return false;
     }
 
-    const struct d_dss_selector* const selector =
+    const struct dj_dss_selector* const selector =
         d_dss_selector_at(_sheet, _selector);
 
     if (!selector)
@@ -734,7 +736,7 @@ d_match_selector(
 
     const uint32_t last = selector->step_count - 1u;
 
-    const struct d_dss_step* const step =
+    const struct dj_dss_step* const step =
         d_dss_step_at(_sheet, selector->first_step + last);
 
     if (!step)
@@ -757,12 +759,11 @@ d_match_rule
   Tests a node against a rule's selector list.  A node matches the rule when
 it matches any one selector in the list.
 */
-bool
-d_match_rule(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    const struct d_dss_rule*  _rule
+bool d_match_rule(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const struct dj_dss_rule*  _rule
 )
 {
     if ((!_sheet) || (!_tree) || (!_rule))
@@ -788,13 +789,13 @@ d_internal_unsupported_in
   Finds a simple the matcher cannot evaluate in one selector, looking inside
 the arguments of :not, :is and :has as well; nesting is bounded by the sheet.
 */
-static const struct d_dss_simple*
-d_internal_unsupported_in(
-    const struct d_dss_sheet* _sheet,
-    uint32_t                  _selector
+static
+const struct dj_dss_simple* d_internal_unsupported_in(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _selector
 )
 {
-    const struct d_dss_selector* const selector =
+    const struct dj_dss_selector* const selector =
         d_dss_selector_at(_sheet, _selector);
 
     for (uint32_t part = 0; selector && (part <= selector->step_count); ++part)
@@ -803,12 +804,12 @@ d_internal_unsupported_in(
             ? selector->head
             : d_dss_step_at(_sheet, selector->first_step + part - 1u)
                   ->compound;
-        const struct d_dss_compound* const compound =
+        const struct dj_dss_compound* const compound =
             d_dss_compound_at(_sheet, compound_index);
 
         for (uint32_t k = 0; k < compound->simple_count; ++k)
         {
-            const struct d_dss_simple* const simple =
+            const struct dj_dss_simple* const simple =
                 d_dss_simple_at(_sheet, compound->first_simple + k);
             bool refused = ( (simple->kind == D_DSS_SIMPLE_CLASS) ||
                              (simple->kind == D_DSS_SIMPLE_PSEUDO_ELEMENT) );
@@ -825,7 +826,7 @@ d_internal_unsupported_in(
 
             for (uint32_t arg = 0; arg < simple->argument_count; ++arg)
             {
-                const struct d_dss_simple* const inner =
+                const struct dj_dss_simple* const inner =
                     d_internal_unsupported_in(_sheet,
                                               simple->first_argument + arg);
 
@@ -848,20 +849,19 @@ evaluate, and reports the line of the rule that carries it.  A pseudo-class
 the matcher does not know would otherwise match nothing, silently -- a typo
 that disables a rule and says nothing is the worst failure a linter can have.
 */
-bool
-d_match_unsupported(
-    const struct d_dss_sheet* _sheet,
-    uint32_t*                 _out_line,
-    const char**              _out_name
+bool d_match_unsupported(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t*                  _out_line,
+    const char**               _out_name
 )
 {
     for (size_t at = 0; at < d_dss_rule_count(_sheet); ++at)
     {
-        const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(_sheet, at);
 
         for (uint32_t which = 0; which < rule->selector_count; ++which)
         {
-            const struct d_dss_simple* const simple =
+            const struct dj_dss_simple* const simple =
                 d_internal_unsupported_in(_sheet,
                                           rule->first_selector + which);
 
@@ -879,10 +879,10 @@ d_match_unsupported(
 }
 
 
-// d_match_index
+// dj_match_index
 //   struct: rules bucketed by the type their subject compound names, in CSR
 // form, plus the rules whose subject names no type.
-struct d_match_index
+struct dj_match_index
 {
     uint32_t*  offsets;          // limit + 1 entries
     uint32_t*  rules;            // bucketed rule indices, ascending per bucket
@@ -900,13 +900,13 @@ struct d_match_index
  * @param[in] _selector  the selector.
  * @return the symbol, or `D_DSS_NO_INDEX` when any type may match.
  */
-static uint32_t
-d_internal_subject_type(
-    const struct d_dss_sheet* _sheet,
-    uint32_t                  _selector
+static
+uint32_t d_internal_subject_type(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _selector
 )
 {
-    const struct d_dss_selector* const selector =
+    const struct dj_dss_selector* const selector =
         d_dss_selector_at(_sheet, _selector);
 
     if (!selector)
@@ -918,12 +918,12 @@ d_internal_subject_type(
         ? selector->head
         : d_dss_step_at(_sheet, selector->first_step +
                                 selector->step_count - 1u)->compound;
-    const struct d_dss_compound* const compound =
+    const struct dj_dss_compound* const compound =
         d_dss_compound_at(_sheet, subject);
 
     for (uint32_t at = 0u; (compound) && (at < compound->simple_count); ++at)
     {
-        const struct d_dss_simple* const simple =
+        const struct dj_dss_simple* const simple =
             d_dss_simple_at(_sheet, compound->first_simple + at);
 
         if ( (simple->kind == D_DSS_SIMPLE_TYPE) &&
@@ -944,9 +944,8 @@ every subject names a type lands in each distinct bucket; a rule with any
 subject naming none goes to the universal list instead, which reaches every
 node already.
 */
-struct d_match_index*
-d_match_index_new(
-    const struct d_dss_sheet* _sheet
+struct dj_match_index* d_match_index_new(
+    const struct dj_dss_sheet* _sheet
 )
 {
     if (!_sheet)
@@ -954,8 +953,8 @@ d_match_index_new(
         return NULL;
     }
 
-    struct d_symbol_table* const symbols = d_dss_symbols(_sheet);
-    struct d_match_index* const  index   = calloc(1u, sizeof(*index));
+    struct dj_symbol_table* const symbols = d_dss_symbols(_sheet);
+    struct dj_match_index* const  index   = calloc(1u, sizeof(*index));
 
     if (!index)
     {
@@ -981,7 +980,7 @@ d_match_index_new(
     {
         for (size_t at = 0u; at < index->rule_count; ++at)
         {
-            const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+            const struct dj_dss_rule* const rule = d_dss_rule_at(_sheet, at);
             bool universal = (!symbols);
 
             for (uint32_t which = 0u;
@@ -1068,9 +1067,8 @@ d_match_index_new(
 d_match_index_free
   Accepts NULL, as free does.
 */
-void
-d_match_index_free(
-    struct d_match_index* _index
+void d_match_index_free(
+    struct dj_match_index* _index
 )
 {
     if (_index)
@@ -1092,12 +1090,11 @@ caller sees candidates in rule order -- the order first-match resolution and
 every report depend on.  A type interned after the index was built has no
 bucket and meets only the universal rules, which is exact: no rule names it.
 */
-size_t
-d_match_index_candidates(
-    const struct d_match_index* _index,
-    uint32_t                    _type,
-    uint32_t*                   _out,
-    size_t                      _capacity
+size_t d_match_index_candidates(
+    const struct dj_match_index* _index,
+    uint32_t                     _type,
+    uint32_t*                    _out,
+    size_t                       _capacity
 )
 {
     if ( (!_index) || (!_out) )
@@ -1137,13 +1134,12 @@ d_match_rule_specificity
   Unlike d_match_rule it cannot stop at the first matching selector: the CSS
 cascade ranks a rule by the most specific selector of its list that matched.
 */
-bool
-d_match_rule_specificity(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    const struct d_dss_rule*  _rule,
-    uint32_t*                 _out_specificity
+bool d_match_rule_specificity(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const struct dj_dss_rule*  _rule,
+    uint32_t*                  _out_specificity
 )
 {
     bool     matched = false;

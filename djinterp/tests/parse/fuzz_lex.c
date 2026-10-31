@@ -13,9 +13,9 @@
 // runaway, and every literal token decoded under a sink.  Pass 1 is ASCII and
 // its counts are the baseline's; pass 2 adds UTF-8, ill-formed bytes, UCNs and
 // the C++23 escapes, over every dialect level.
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../inc/djinterp/parse/lex/lex_literal.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lex/lex_literal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

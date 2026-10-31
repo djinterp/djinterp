@@ -28,14 +28,11 @@
 d_tests_file_stat_basic
   Tests d_file_stat / d_file_stat_nofollow / d_file_stat_fd.
 */
-static struct d_test_object*
-d_tests_file_stat_basic
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_stat_basic(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
-    struct d_stat_t       st;
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_stat_t       st;
     char                  path[D_TEST_FILE_PATH_BUF];
     int                   fd;
     size_t                idx;
@@ -97,14 +94,11 @@ d_tests_file_stat_basic
 d_tests_file_stat_times
   Tests the timestamp fields, and that the macros describing them are honest.
 */
-static struct d_test_object*
-d_tests_file_stat_times
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_stat_times(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
-    struct d_stat_t       st;
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_stat_t       st;
     char                  path[D_TEST_FILE_PATH_BUF];
     size_t                idx;
 
@@ -150,13 +144,10 @@ d_tests_file_stat_times
 d_tests_file_stat_sizes
   Tests d_file_size and d_file_size_stream.
 */
-static struct d_test_object*
-d_tests_file_stat_sizes
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_stat_sizes(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  path[D_TEST_FILE_PATH_BUF];
     FILE*                 file;
     size_t                idx;
@@ -206,14 +197,11 @@ d_tests_file_stat_sizes
 d_tests_file_stat_predicates
   Tests d_file_exists / d_file_is_regular / d_dir_exists, and d_file_access / d_file_chmod.
 */
-static struct d_test_object*
-d_tests_file_stat_predicates
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_stat_predicates(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
-    struct d_stat_t       st;
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_stat_t       st;
     char                  path[D_TEST_FILE_PATH_BUF];
     size_t                idx;
 
@@ -287,13 +275,9 @@ d_tests_file_stat_predicates
 d_tests_file_stat_all
   Runs every file_stat test.
 */
-struct d_test_object*
-d_tests_file_stat_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_stat_all(void)
 {
-    struct d_test_object* items[8];
+    struct dj_test_object* items[8];
     size_t                idx;
 
     idx = 0;

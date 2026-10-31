@@ -61,8 +61,8 @@ are. Asked next, fsync could report success for the same data -- an error,
 once reported, need not be reported again -- and the data would be called
 durable just after the device had said it could not keep it.
 */
-static int
-d_internal_sync_lost(
+static
+int d_internal_sync_lost(
     int _code
 )
 {
@@ -83,8 +83,7 @@ d_internal_sync_lost(
 d_file_sync_fd
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_sync_fd(
+int d_file_sync_fd(
     int _fd
 )
 {
@@ -101,8 +100,7 @@ d_file_sync_fd(
 d_file_sync_stream
   The ISO C backend has no descriptors to sync, so this only reports ENOSYS.
 */
-int
-d_file_sync_stream(
+int d_file_sync_stream(
     FILE* _stream
 )
 {
@@ -126,8 +124,7 @@ explicitly does NOT ask the drive to flush its own write cache -- it returns,
 the power fails, and the data is gone from the one call whose purpose was to
 prevent that -- so D_CFG_FILE_SYNC_FULL routes there to fcntl(F_FULLFSYNC).
 */
-int
-d_file_sync_fd(
+int d_file_sync_fd(
     int _fd
 )
 {
@@ -162,8 +159,7 @@ device. Calling either alone is the classic way to believe you have durability
 and not have it -- fflush leaves the data in the page cache, and fsync cannot
 see what stdio has not handed over.
 */
-int
-d_file_sync_stream(
+int d_file_sync_stream(
     FILE* _stream
 )
 {
@@ -210,8 +206,7 @@ d_file_flush_stream
   A NULL stream flushes every output stream, per ISO C, so there is nothing to
 validate: NULL here is a meaningful argument, not a mistake.
 */
-int
-d_file_flush_stream(
+int d_file_flush_stream(
     FILE* _stream
 )
 {
@@ -240,8 +235,7 @@ d_file_flush_stream(
 d_internal_file_sync_raw
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_internal_file_sync_raw(
+int d_internal_file_sync_raw(
     int _fd
 )
 {
@@ -264,8 +258,7 @@ with EINVAL, as Linux refuses one, where FlushFileBuffers would wait on a pipe
 until its reader had drained it. A descriptor without write access, which
 FlushFileBuffers needs, gives EBADF, as a write through one does on POSIX.
 */
-int
-d_internal_file_sync_raw(
+int d_internal_file_sync_raw(
     int _fd
 )
 {
@@ -314,8 +307,7 @@ call. A filesystem that refuses the command, as most network ones do, gets
 plain fsync with a warning rather than a failure fsync can spare it; a failure
 that is about the data (d_internal_sync_lost) is reported, not retried.
 */
-int
-d_internal_file_sync_raw(
+int d_internal_file_sync_raw(
     int _fd
 )
 {
@@ -355,8 +347,7 @@ for a new entry to reach the device, and the entry is what a directory is
 synced for -- which is why SQLite and PostgreSQL sync directories with fsync.
 A descriptor fstat cannot describe gets fdatasync, which will say why.
 */
-int
-d_internal_file_sync_raw(
+int d_internal_file_sync_raw(
     int _fd
 )
 {
@@ -387,8 +378,7 @@ d_internal_file_sync_raw
   fsync, which on Linux and the other POSIX systems here reaches the device,
 retried across interruptions.
 */
-int
-d_internal_file_sync_raw(
+int d_internal_file_sync_raw(
     int _fd
 )
 {

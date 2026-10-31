@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                       dstring_tests_sa_error.c
 *
-*   Unit tests for d_string error functions:
+*   Unit tests for dj_string error functions:
 *     - d_string_error
 *     - d_string_error_r
 *
@@ -24,7 +24,7 @@
 
 /*
 d_tests_sa_dstring_error
-  Tests d_string_error() which returns a d_string containing the error message
+  Tests d_string_error() which returns a dj_string containing the error message
   for the given error number.
 
 Test cases:
@@ -41,15 +41,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_error
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_error(void)
 {
-    struct d_test_object* group;
-    struct d_string*      error_str;
-    struct d_string*      error_str2;
+    struct dj_test_object* group;
+    struct dj_string*      error_str;
+    struct dj_string*      error_str2;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_error", 9);
@@ -194,7 +190,7 @@ d_tests_sa_dstring_error
 /*
 d_tests_sa_dstring_error_r
   Tests d_string_error_r() which is the reentrant/thread-safe version that
-  copies the error message to a provided d_string.
+  copies the error message to a provided dj_string.
 
 Test cases:
   1.  NULL destination returns error
@@ -210,14 +206,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_error_r
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_error_r(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     size_t                child_idx;
     int                   result;
 
@@ -370,16 +362,12 @@ Parameter(s):
 Return:
   Test object containing all error string test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_error_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_error_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Error Functions", 2);
+    group     = d_test_object_new_interior("dj_string Error Functions", 2);
     child_idx = 0;
 
     if (!group)

@@ -16,7 +16,7 @@
 * d_file_stat64, and the unsuffixed names follow D_FILE_WIDTH (file_common.h
 * has the rules). A 32-bit query fails with EOVERFLOW rather than report a
 * size, a time or an inode number its type cannot hold. The predicates ask
-* the 64-bit queries, so a file too large for d_stat32_t still exists, and
+* the 64-bit queries, so a file too large for dj_stat32_t still exists, and
 * d_file_mode, which has no width, answers what a path IS at either one.
 *   A build with neither POSIX nor Windows has nothing to ask -- ISO C cannot
 * describe a file -- so there every query fails with ENOSYS and every
@@ -50,11 +50,11 @@ TABLE OF CONTENTS
 // std
 #include <stdio.h>   // FILE
 // djinterp
-#include "./file_common.h"                         // foundation, d_stat32_t,
-                                                   // d_stat64_t
+#include "./file_common.h"                         // foundation, dj_stat32_t,
+                                                   // dj_stat64_t
 #include "../../config/c/filesys/cfg_file_stat.h"  // module configuration
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 
 
 D_EXTERN_C_BEGIN
@@ -87,8 +87,10 @@ D_EXTERN_C_BEGIN
  *                    this platform cannot answer set to 0.
  * @return 0, or -1 on failure with errno set.
  */
-int     d_file_stat64(const char*        _path,
-                      struct d_stat64_t* _buf);
+int d_file_stat64(
+    const char*         _path,
+    struct dj_stat64_t* _buf
+);
 /**
  * @brief Retrieves the status of a path without following a symbolic link,
  *        so the result describes the link itself.
@@ -102,8 +104,10 @@ int     d_file_stat64(const char*        _path,
  * @param[out] _buf   receives the status.
  * @return 0, or -1 on failure with errno set.
  */
-int     d_file_stat_nofollow64(const char*        _path,
-                               struct d_stat64_t* _buf);
+int d_file_stat_nofollow64(
+    const char*         _path,
+    struct dj_stat64_t* _buf
+);
 /**
  * @brief Retrieves the status of an open descriptor.
  *
@@ -117,8 +121,10 @@ int     d_file_stat_nofollow64(const char*        _path,
  * @param[out] _buf  receives the status.
  * @return 0, or -1 on failure with errno set; ENOSYS on the ISO C backend.
  */
-int     d_file_stat_fd64(int                _fd,
-                         struct d_stat64_t* _buf);
+int d_file_stat_fd64(
+    int                 _fd,
+    struct dj_stat64_t* _buf
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief d_file_stat64, into the 32-bit layout.
@@ -126,30 +132,36 @@ int     d_file_stat_fd64(int                _fd,
  * @param[in]  _path  the path to query.
  * @param[out] _buf   receives the status; zeroed on failure.
  * @return 0, or -1 on failure with errno set; EOVERFLOW when a size, time,
- *         device or inode number does not fit d_stat32_t.
+ *         device or inode number does not fit dj_stat32_t.
  */
-int     d_file_stat32(const char*        _path,
-                      struct d_stat32_t* _buf);
+int d_file_stat32(
+    const char*         _path,
+    struct dj_stat32_t* _buf
+);
 /**
  * @brief d_file_stat_nofollow64, into the 32-bit layout.
  *
  * @param[in]  _path  the path to query.
  * @param[out] _buf   receives the status; zeroed on failure.
  * @return 0, or -1 on failure with errno set; EOVERFLOW when a value does
- *         not fit d_stat32_t.
+ *         not fit dj_stat32_t.
  */
-int     d_file_stat_nofollow32(const char*        _path,
-                               struct d_stat32_t* _buf);
+int d_file_stat_nofollow32(
+    const char*         _path,
+    struct dj_stat32_t* _buf
+);
 /**
  * @brief d_file_stat_fd64, into the 32-bit layout.
  *
  * @param[in]  _fd   an open descriptor.
  * @param[out] _buf  receives the status; zeroed on failure.
  * @return 0, or -1 on failure with errno set; EOVERFLOW when a value does
- *         not fit d_stat32_t, ENOSYS on the ISO C backend.
+ *         not fit dj_stat32_t, ENOSYS on the ISO C backend.
  */
-int     d_file_stat_fd32(int                _fd,
-                         struct d_stat32_t* _buf);
+int d_file_stat_fd32(
+    int                 _fd,
+    struct dj_stat32_t* _buf
+);
 
 // 1.2    Mode
 //------------------------------------------------------------------------------
@@ -161,17 +173,19 @@ int     d_file_stat_fd32(int                _fd,
  *       that is not there fails with ENOENT or ENOTDIR but raises no notice.
  *
  * @note The mode is 32-bit at either width, so this has no twin and never
- *       fails for a value d_stat32_t cannot hold: it is how "what is this
+ *       fails for a value dj_stat32_t cannot hold: it is how "what is this
  *       path" stays answerable for a file too large, or too far from 1970,
- *       for d_stat32_t. (Where the C library's own time_t is 32-bit, a time
+ *       for dj_stat32_t. (Where the C library's own time_t is 32-bit, a time
  *       past 2038 still fails the underlying stat with EOVERFLOW.)
  *
  * @param[in]  _path  the path to query.
  * @param[out] _mode  receives the mode, for S_ISREG and its kin.
  * @return 0, or -1 on failure with errno set.
  */
-int     d_file_mode(const char* _path,
-                    uint32_t*   _mode);
+int d_file_mode(
+    const char* _path,
+    uint32_t*   _mode
+);
 /**
  * @brief d_file_mode without following a final symbolic link, so that a link
  *        reports as a link -- on Windows a junction too, as
@@ -181,8 +195,10 @@ int     d_file_mode(const char* _path,
  * @param[out] _mode  receives the mode.
  * @return 0, or -1 on failure with errno set.
  */
-int     d_file_mode_nofollow(const char* _path,
-                             uint32_t*   _mode);
+int d_file_mode_nofollow(
+    const char* _path,
+    uint32_t*   _mode
+);
 
 // 1.3    Permissions
 //------------------------------------------------------------------------------
@@ -201,8 +217,10 @@ int     d_file_mode_nofollow(const char* _path,
  * @return 0 when the access is permitted, or -1 otherwise with errno set:
  *         EINVAL for a mode with any other bit.
  */
-int     d_file_access(const char* _path,
-                      int         _mode);
+int d_file_access(
+    const char* _path,
+    int         _mode
+);
 /**
  * @brief Sets the permission bits of a path.
  *
@@ -214,8 +232,10 @@ int     d_file_access(const char* _path,
  * @param[in] _mode  permission bits (S_IRUSR, S_IWUSR, ...).
  * @return 0, or -1 on failure with errno set.
  */
-int     d_file_chmod(const char* _path,
-                     uint32_t    _mode);
+int d_file_chmod(
+    const char* _path,
+    uint32_t    _mode
+);
 
 // 1.4    Size
 //------------------------------------------------------------------------------
@@ -229,7 +249,9 @@ int     d_file_chmod(const char* _path,
  * @param[in] _path  the path to measure.
  * @return the size in bytes, or -1 on failure with errno set.
  */
-int64_t d_file_size64(const char* _path);
+int64_t d_file_size64(
+    const char* _path
+);
 /**
  * @brief Reports the size of the file behind a stream, without moving the
  *        stream's position.
@@ -241,7 +263,9 @@ int64_t d_file_size64(const char* _path);
  * @return the size in bytes, or -1 on failure with errno set; ENOSYS on the
  *         ISO C backend.
  */
-int64_t d_file_size_stream64(FILE* _stream);
+int64_t d_file_size_stream64(
+    FILE* _stream
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief d_file_size64, as a 32-bit count.
@@ -250,7 +274,9 @@ int64_t d_file_size_stream64(FILE* _stream);
  * @return the size in bytes, or -1 on failure with errno set; EOVERFLOW past
  *         2 GiB - 1.
  */
-int32_t d_file_size32(const char* _path);
+int32_t d_file_size32(
+    const char* _path
+);
 /**
  * @brief d_file_size_stream64, as a 32-bit count.
  *
@@ -258,7 +284,9 @@ int32_t d_file_size32(const char* _path);
  * @return the size in bytes, or -1 on failure with errno set; EOVERFLOW past
  *         2 GiB - 1, ENOSYS on the ISO C backend.
  */
-int32_t d_file_size_stream32(FILE* _stream);
+int32_t d_file_size_stream32(
+    FILE* _stream
+);
 
 // 1.5    Predicates
 //------------------------------------------------------------------------------
@@ -266,9 +294,15 @@ int32_t d_file_size_stream32(FILE* _stream);
 // they follow symbolic links as it does and no file is too large to exist;
 // the answer is already stale when it returns. Each answers non-zero for yes
 // and 0 for no, for a NULL path, or for any failure.
-int     d_file_exists(const char* _path);
-int     d_file_is_regular(const char* _path);
-int     d_dir_exists(const char* _path);
+int d_file_exists(
+    const char* _path
+);
+int d_file_is_regular(
+    const char* _path
+);
+int d_dir_exists(
+    const char* _path
+);
 
 
 //==============================================================================
@@ -279,7 +313,7 @@ int     d_dir_exists(const char* _path);
 // 2.1    Unsuffixed names
 //------------------------------------------------------------------------------
 // d_file_stat
-//   alias: the call's twin at D_FILE_WIDTH, so it fills a d_stat_t
+//   alias: the call's twin at D_FILE_WIDTH, so it fills a dj_stat_t
 // (file_common.h, 3.2); d_file_stat_nofollow, d_file_stat_fd, d_file_size and
 // d_file_size_stream after it are the same alias for their calls, the sizes
 // returning the matching type.

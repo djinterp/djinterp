@@ -9,18 +9,18 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // test structures for member access
-struct d_test_point
+struct dj_test_point
 {
     int x;
     int y;
     int z;
 };
 
-struct d_test_record
+struct dj_test_record
 {
     int    field_a;
     int    field_b;
@@ -41,16 +41,14 @@ d_tests_sa_dmacro_for_each_member_ptr
   - Works with struct pointers
   - Concatenates member prefix with each suffix
 */
-bool
-d_tests_sa_dmacro_for_each_member_ptr
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_member_ptr(
+    struct dj_test_counter* _test_info
 )
 {
     bool                 all_assertions_passed;
     size_t               initial_tests_passed;
-    struct d_test_record rec;
-    struct d_test_record* ptr;
+    struct dj_test_record rec;
+    struct dj_test_record* ptr;
     int                  sum;
 
     if (!_test_info)
@@ -141,15 +139,13 @@ d_tests_sa_dmacro_for_each_member_dot
   - Works with struct values (not pointers)
   - Concatenates member prefix with each suffix
 */
-bool
-d_tests_sa_dmacro_for_each_member_dot
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_member_dot(
+    struct dj_test_counter* _test_info
 )
 {
     bool                 all_assertions_passed;
     size_t               initial_tests_passed;
-    struct d_test_record rec;
+    struct dj_test_record rec;
     int                  sum;
 
     if (!_test_info)
@@ -234,15 +230,13 @@ d_tests_sa_dmacro_for_each_op
   - Can iterate with custom operators/transformations
   - Verifies the internal helper macros work correctly
 */
-bool
-d_tests_sa_dmacro_for_each_op
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_op(
+    struct dj_test_counter* _test_info
 )
 {
     bool                all_assertions_passed;
     size_t              initial_tests_passed;
-    struct d_test_point pt;
+    struct dj_test_point pt;
     int                 sum;
 
     if (!_test_info)
@@ -325,13 +319,11 @@ d_tests_sa_dmacro_member_access_all
   - D_FOR_EACH_MEMBER_DOT direct access
   - Generic operator access patterns
 */
-bool
-d_tests_sa_dmacro_member_access_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_member_access_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  ptr_result;
     bool                  dot_result;
     bool                  op_result;
@@ -342,7 +334,7 @@ d_tests_sa_dmacro_member_access_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

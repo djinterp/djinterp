@@ -9,12 +9,12 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
 d_tests_sa_event_hash_table_all
-  Module-level aggregation function that runs all event_table tests.
+  Module-level aggregation function that runs all DEventTable tests.
   Executes tests for all categories:
   - Creation and destruction
   - Core operations (insert, lookup, remove, contains)
@@ -23,10 +23,8 @@ d_tests_sa_event_hash_table_all
   - Statistics reporting
   - Integration, stress, and edge cases
 */
-bool
-d_tests_sa_event_hash_table_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_table_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -92,18 +92,22 @@ D_EXTERN_C_BEGIN
 
 
 // II.    placement
-size_t d_insertion_place(void*                           _base,
-                         size_t                          _lower,
-                         size_t                          _index,
-                         size_t                          _elem_size,
-                         const struct d_sort_comparator* _comparator,
-                         enum d_sort_order               _order);
-void   d_insertion_pass(void*                           _base,
-                        size_t                          _begin,
-                        size_t                          _end,
-                        size_t                          _elem_size,
-                        const struct d_sort_comparator* _comparator,
-                        enum d_sort_order               _order);
+size_t d_insertion_place(
+    void*                            _base,
+    size_t                           _lower,
+    size_t                           _index,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
+void d_insertion_pass(
+    void*                            _base,
+    size_t                           _begin,
+    size_t                           _end,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
 
 
 D_EXTERN_C_END

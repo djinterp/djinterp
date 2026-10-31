@@ -9,15 +9,14 @@
 *******************************************************************************/
 // djinterp
 #include "./pipeline_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * TEST HELPER: int transformer (doubles each element)
  *****************************************************************************/
-static bool
-test_helper_double_int
-(
+static
+bool test_helper_double_int(
     const void* _input,
     void*       _output,
     void*       _context
@@ -50,13 +49,11 @@ d_tests_sa_pipeline_begin
   - zero element_size returns error pipeline
   - error pipeline has NULL data, zero count, owns_data == false
 */
-bool
-d_tests_sa_pipeline_begin
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_begin(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
+    struct dj_functional_pipeline pipe;
     int                          data[] = { 10, 20, 30, 40, 50 };
     bool                         all_passed;
 
@@ -189,13 +186,11 @@ d_tests_sa_pipeline_begin_copy
   - error pipeline fields are properly zeroed
   - modifications to the copy do not affect the original
 */
-bool
-d_tests_sa_pipeline_begin_copy
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_begin_copy(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
+    struct dj_functional_pipeline pipe;
     const int                    data[] = { 100, 200, 300 };
     int*                         copied;
     bool                         all_passed;
@@ -370,10 +365,8 @@ d_tests_sa_pipeline_creation_all
   - d_functional_pipeline_begin
   - d_functional_pipeline_begin_copy
 */
-bool
-d_tests_sa_pipeline_creation_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_creation_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

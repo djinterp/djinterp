@@ -54,10 +54,10 @@
 // 1.2    Entries
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_zip_entry
+// dj_internal_zip_entry
 //   struct: one entry, as the directory describes it, and its replacement.
 //   `bytes` is NULL for an entry copied from the archive as it was stored.
-struct d_internal_zip_entry
+struct dj_internal_zip_entry
 {
     char*          name;
     unsigned       version_made;
@@ -81,12 +81,12 @@ struct d_internal_zip_entry
 // 1.3.1
 // d_zip
 //   struct: the open file, if any, and the entries.
-struct d_zip
+struct dj_zip
 {
     FILE*                        file;
     char*                        path;
     long                         file_size;
-    struct d_internal_zip_entry* entries;
+    struct dj_internal_zip_entry* entries;
     size_t                       count;
     size_t                       capacity;
 };
@@ -102,8 +102,8 @@ d_internal_problem
   Writes a reason into a caller's buffer, which may be NULL; always false, so
 a failing path can return it.
 */
-static bool
-d_internal_problem(
+static
+bool d_internal_problem(
     char*       _problem,
     size_t      _capacity,
     const char* _message,
@@ -129,8 +129,8 @@ d_internal_problem(
 d_internal_le16, d_internal_le32
   Read a little-endian 16- or 32-bit field, ZIP's only byte order.
 */
-static unsigned
-d_internal_le16(
+static
+unsigned d_internal_le16(
     const unsigned char* _at
 )
 {
@@ -138,8 +138,8 @@ d_internal_le16(
 }
 
 
-static unsigned long
-d_internal_le32(
+static
+unsigned long d_internal_le32(
     const unsigned char* _at
 )
 {
@@ -154,8 +154,8 @@ d_internal_le32(
 d_internal_put16, d_internal_put32
   Write a little-endian field into a record being built.
 */
-static void
-d_internal_put16(
+static
+void d_internal_put16(
     unsigned char* _at,
     unsigned long  _value
 )
@@ -167,8 +167,8 @@ d_internal_put16(
 }
 
 
-static void
-d_internal_put32(
+static
+void d_internal_put32(
     unsigned char* _at,
     unsigned long  _value
 )
@@ -184,9 +184,9 @@ d_internal_put32(
 d_internal_read_at
   Reads exactly `_length` bytes from an offset of the archive's file.
 */
-static bool
-d_internal_read_at(
-    struct d_zip*  _zip,
+static
+bool d_internal_read_at(
+    struct dj_zip* _zip,
     unsigned long  _offset,
     unsigned char* _out,
     size_t         _length
@@ -208,9 +208,9 @@ d_internal_read_at(
 d_internal_grow_entries
   Makes room for one more entry.
 */
-static bool
-d_internal_grow_entries(
-    struct d_zip* _zip
+static
+bool d_internal_grow_entries(
+    struct dj_zip* _zip
 )
 {
     // a table with room left is left as it is
@@ -221,7 +221,7 @@ d_internal_grow_entries(
 
     const size_t capacity = (_zip->capacity == 0) ? 16u : (_zip->capacity * 2u);
 
-    struct d_internal_zip_entry* const grown =
+    struct dj_internal_zip_entry* const grown =
         realloc(_zip->entries, capacity * sizeof(*grown));
 
     // report the failure rather than dropping an entry
@@ -241,8 +241,8 @@ d_internal_grow_entries(
 d_internal_copy_text
   Copies a run of bytes into an allocated, terminated string.
 */
-static char*
-d_internal_copy_text(
+static
+char* d_internal_copy_text(
     const char* _text,
     size_t      _length
 )
@@ -272,8 +272,7 @@ d_zip_crc32
   Four bits at a time from a sixteen-entry table, which needs no setup and no
 writable state: fast enough for files read from disk, which are read slower.
 */
-unsigned long
-d_zip_crc32(
+unsigned long d_zip_crc32(
     unsigned long        _crc,
     const unsigned char* _bytes,
     size_t               _length
@@ -322,11 +321,11 @@ d_zip_crc32(
 #define D_INTERNAL_FIXED_LITERALS 288
 
 // 4.1.1
-// d_internal_inflate
+// dj_internal_inflate
 //   struct: the input and its bit buffer, and the output.  `failed` is set by
 //   the first read past the input or write past the output, after which every
 //   read yields zeros and the decode unwinds.
-struct d_internal_inflate
+struct dj_internal_inflate
 {
     const unsigned char* in;
     size_t               in_length;
@@ -340,10 +339,10 @@ struct d_internal_inflate
 };
 
 // 4.1.2
-// d_internal_huffman
+// dj_internal_huffman
 //   struct: a canonical Huffman code, as how many codes there are of each
 //   length and the symbols in code order.
-struct d_internal_huffman
+struct dj_internal_huffman
 {
     short count[D_INTERNAL_MAX_BITS + 1];
     short symbol[D_INTERNAL_FIXED_LITERALS];
@@ -356,10 +355,10 @@ d_internal_bits
   Takes `_need` bits from the input, least significant first, as DEFLATE packs
 them.
 */
-static unsigned
-d_internal_bits(
-    struct d_internal_inflate* _s,
-    int                        _need
+static
+unsigned d_internal_bits(
+    struct dj_internal_inflate* _s,
+    int                         _need
 )
 {
     // the bit buffer is filled a byte at a time until it holds enough
@@ -391,10 +390,10 @@ d_internal_put
   Appends one byte to the output, which is exactly as long as the directory
 says the entry is: a stream that would write past it is damaged.
 */
-static void
-d_internal_put(
-    struct d_internal_inflate* _s,
-    unsigned char              _byte
+static
+void d_internal_put(
+    struct dj_internal_inflate* _s,
+    unsigned char               _byte
 )
 {
     // a byte past the expected size means the stream and the directory differ
@@ -420,11 +419,11 @@ Return:
 single-distance-code block may legitimately have, and -1 for an
 over-subscribed one, which no stream can mean.
 */
-static int
-d_internal_huffman_build(
-    struct d_internal_huffman* _h,
-    const short*               _lengths,
-    int                        _count
+static
+int d_internal_huffman_build(
+    struct dj_internal_huffman* _h,
+    const short*                _lengths,
+    int                         _count
 )
 {
     short offsets[D_INTERNAL_MAX_BITS + 1];
@@ -486,10 +485,10 @@ the first code of each length until it falls among them.
 Return:
   The symbol, or -1 for a code the table does not hold.
 */
-static int
-d_internal_decode(
-    struct d_internal_inflate*       _s,
-    const struct d_internal_huffman* _h
+static
+int d_internal_decode(
+    struct dj_internal_inflate*       _s,
+    const struct dj_internal_huffman* _h
 )
 {
     int code  = 0;
@@ -525,11 +524,11 @@ its end-of-block code.
 Return:
   true at the end of the block; false for a damaged stream.
 */
-static bool
-d_internal_codes(
-    struct d_internal_inflate*       _s,
-    const struct d_internal_huffman* _literals,
-    const struct d_internal_huffman* _distances
+static
+bool d_internal_codes(
+    struct dj_internal_inflate*       _s,
+    const struct dj_internal_huffman* _literals,
+    const struct dj_internal_huffman* _distances
 )
 {
     static const short length_base[29] =
@@ -622,9 +621,9 @@ d_internal_codes(
 d_internal_stored
   Copies a stored block, which begins at the next byte boundary.
 */
-static bool
-d_internal_stored(
-    struct d_internal_inflate* _s
+static
+bool d_internal_stored(
+    struct dj_internal_inflate* _s
 )
 {
     // the bits left of the current byte are padding
@@ -662,13 +661,13 @@ d_internal_stored(
 d_internal_fixed
   Decodes a block with the fixed codes of RFC 1951 3.2.6.
 */
-static bool
-d_internal_fixed(
-    struct d_internal_inflate* _s
+static
+bool d_internal_fixed(
+    struct dj_internal_inflate* _s
 )
 {
-    struct d_internal_huffman literals;
-    struct d_internal_huffman distances;
+    struct dj_internal_huffman literals;
+    struct dj_internal_huffman distances;
     short                     lengths[D_INTERNAL_FIXED_LITERALS];
 
     // the literal/length code: 8, 9, 7 and 8 bits over its four ranges
@@ -703,9 +702,9 @@ d_internal_dynamic
   Decodes a block that carries its own codes, themselves coded with a code
 of code lengths, as RFC 1951 3.2.7 describes.
 */
-static bool
-d_internal_dynamic(
-    struct d_internal_inflate* _s
+static
+bool d_internal_dynamic(
+    struct dj_internal_inflate* _s
 )
 {
     static const short order[19] =
@@ -726,7 +725,7 @@ d_internal_dynamic(
 
     short                     lengths[D_INTERNAL_MAX_LITERALS +
                                       D_INTERNAL_MAX_DISTANCES];
-    struct d_internal_huffman code_lengths;
+    struct dj_internal_huffman code_lengths;
 
     // the code-length code's lengths come three bits each, in a fixed order
     for (int at = 0; at < 19; ++at)
@@ -806,8 +805,8 @@ d_internal_dynamic(
         return false;
     }
 
-    struct d_internal_huffman literals;
-    struct d_internal_huffman distances;
+    struct dj_internal_huffman literals;
+    struct dj_internal_huffman distances;
     const int                 literal_state =
         d_internal_huffman_build(&literals, lengths, literal_count);
 
@@ -840,15 +839,15 @@ d_internal_inflate_all
   Inflates a whole raw DEFLATE stream into an output of exactly the size the
 directory gives, block by block until the last.
 */
-static bool
-d_internal_inflate_all(
+static
+bool d_internal_inflate_all(
     const unsigned char* _in,
     size_t               _in_length,
     unsigned char*       _out,
     size_t               _out_length
 )
 {
-    struct d_internal_inflate s;
+    struct dj_internal_inflate s;
 
     memset(&s, 0, sizeof(s));
     s.in         = _in;
@@ -907,9 +906,9 @@ d_internal_find_end
   Finds the end-of-directory record, searching back from the end of the file
 over the comment it may carry.
 */
-static bool
-d_internal_find_end(
-    struct d_zip*  _zip,
+static
+bool d_internal_find_end(
+    struct dj_zip* _zip,
     unsigned char* _record
 )
 {
@@ -959,11 +958,11 @@ d_internal_find_end(
 d_internal_read_directory
   Reads every directory record into an entry.
 */
-static bool
-d_internal_read_directory(
-    struct d_zip* _zip,
-    char*         _problem,
-    size_t        _capacity
+static
+bool d_internal_read_directory(
+    struct dj_zip* _zip,
+    char*          _problem,
+    size_t         _capacity
 )
 {
     unsigned char end[22];
@@ -1032,7 +1031,7 @@ d_internal_read_directory(
             break;
         }
 
-        struct d_internal_zip_entry* const entry = &_zip->entries[_zip->count];
+        struct dj_internal_zip_entry* const entry = &_zip->entries[_zip->count];
 
         memset(entry, 0, sizeof(*entry));
         entry->version_made        = d_internal_le16(&record[4]);
@@ -1080,8 +1079,7 @@ d_zip_open
   The file's size is taken once, by seeking to its end, so every offset the
 directory gives can be checked against it before it is used.
 */
-struct d_zip*
-d_zip_open(
+struct dj_zip* d_zip_open(
     const char* _path,
     char*       _problem,
     size_t      _capacity
@@ -1096,7 +1094,7 @@ d_zip_open(
         return NULL;
     }
 
-    struct d_zip* const zip = calloc(1u, sizeof(*zip));
+    struct dj_zip* const zip = calloc(1u, sizeof(*zip));
 
     // report the failure rather than opening half an archive
     if (!zip)
@@ -1137,10 +1135,9 @@ d_zip_open(
 d_zip_new
   An archive with no file behind it: every entry it will hold is added.
 */
-struct d_zip*
-d_zip_new(void)
+struct dj_zip* d_zip_new(void)
 {
-    return calloc(1u, sizeof(struct d_zip));
+    return calloc(1u, sizeof(struct dj_zip));
 }
 
 
@@ -1148,9 +1145,8 @@ d_zip_new(void)
 d_zip_free
   Every entry owns its name and any replacement; the file is closed last.
 */
-void
-d_zip_free(
-    struct d_zip* _zip
+void d_zip_free(
+    struct dj_zip* _zip
 )
 {
     if (_zip)
@@ -1185,9 +1181,8 @@ d_zip_free(
 d_zip_count
   The entries the directory listed, and those added since.
 */
-size_t
-d_zip_count(
-    const struct d_zip* _zip
+size_t d_zip_count(
+    const struct dj_zip* _zip
 )
 {
     return (_zip) ? _zip->count : 0u;
@@ -1198,10 +1193,9 @@ d_zip_count(
 d_zip_name
   An index past the entries names nothing.
 */
-const char*
-d_zip_name(
-    const struct d_zip* _zip,
-    size_t              _index
+const char* d_zip_name(
+    const struct dj_zip* _zip,
+    size_t               _index
 )
 {
     return ( (_zip) &&
@@ -1215,10 +1209,9 @@ d_zip_find
   A linear search: a package holds hundreds of entries, not millions, and a
 lookup is made once per slide.
 */
-size_t
-d_zip_find(
-    const struct d_zip* _zip,
-    const char*         _name
+size_t d_zip_find(
+    const struct dj_zip* _zip,
+    const char*          _name
 )
 {
     // parameter validation first
@@ -1246,11 +1239,11 @@ d_internal_data_offset
   Finds where an entry's data begins: after its local header, whose name and
 extra field may differ in length from the directory's.
 */
-static bool
-d_internal_data_offset(
-    struct d_zip*                      _zip,
-    const struct d_internal_zip_entry* _entry,
-    unsigned long*                     _out_offset
+static
+bool d_internal_data_offset(
+    struct dj_zip*                      _zip,
+    const struct dj_internal_zip_entry* _entry,
+    unsigned long*                      _out_offset
 )
 {
     unsigned char local[30];
@@ -1275,9 +1268,8 @@ d_zip_read
   The checksum is verified after inflating, so a damaged stream that happened
 to decode to the right length is still caught.
 */
-bool
-d_zip_read(
-    struct d_zip*   _zip,
+bool d_zip_read(
+    struct dj_zip*  _zip,
     size_t          _index,
     unsigned char** _out_bytes,
     size_t*         _out_length,
@@ -1297,7 +1289,7 @@ d_zip_read(
     *_out_bytes  = NULL;
     *_out_length = 0;
 
-    const struct d_internal_zip_entry* const entry = &_zip->entries[_index];
+    const struct dj_internal_zip_entry* const entry = &_zip->entries[_index];
 
     // a replaced or added entry is read from the bytes it now holds
     if ( (entry->bytes) ||
@@ -1407,11 +1399,11 @@ d_zip_read(
 d_internal_hold
   Copies bytes into an entry as its replacement, releasing any it had.
 */
-static bool
-d_internal_hold(
-    struct d_internal_zip_entry* _entry,
-    const unsigned char*         _bytes,
-    size_t                       _length
+static
+bool d_internal_hold(
+    struct dj_internal_zip_entry* _entry,
+    const unsigned char*          _bytes,
+    size_t                        _length
 )
 {
     // a replacement past what a ZIP entry without ZIP64 can hold is refused
@@ -1452,9 +1444,8 @@ d_zip_replace
   The entry keeps its name, its place and its timestamps; only its contents
 and what describes them change.
 */
-bool
-d_zip_replace(
-    struct d_zip*        _zip,
+bool d_zip_replace(
+    struct dj_zip*       _zip,
     size_t               _index,
     const unsigned char* _bytes,
     size_t               _length
@@ -1477,9 +1468,8 @@ d_zip_add
   An added entry is stamped with the DOS epoch, 1980-01-01, rather than the
 clock, so saving one archive twice gives the same bytes.
 */
-bool
-d_zip_add(
-    struct d_zip*        _zip,
+bool d_zip_add(
+    struct dj_zip*       _zip,
     const char*          _name,
     const unsigned char* _bytes,
     size_t               _length
@@ -1501,7 +1491,7 @@ d_zip_add(
         return false;
     }
 
-    struct d_internal_zip_entry* const entry = &_zip->entries[_zip->count];
+    struct dj_internal_zip_entry* const entry = &_zip->entries[_zip->count];
 
     memset(entry, 0, sizeof(*entry));
     entry->version_made   = 20u;
@@ -1536,12 +1526,12 @@ d_internal_copy_data
   Copies an unchanged entry's stored bytes from the archive to the output in
 pieces, so a large media file never needs to be held whole.
 */
-static bool
-d_internal_copy_data(
-    struct d_zip* _zip,
-    unsigned long _offset,
-    unsigned long _length,
-    FILE*         _out
+static
+bool d_internal_copy_data(
+    struct dj_zip* _zip,
+    unsigned long  _offset,
+    unsigned long  _length,
+    FILE*          _out
 )
 {
     unsigned char piece[65536];
@@ -1576,12 +1566,12 @@ d_internal_copy_data(
 d_internal_write_entry
   Writes one entry's local header and data, recording where it begins.
 */
-static bool
-d_internal_write_entry(
-    struct d_zip*                _zip,
-    struct d_internal_zip_entry* _entry,
-    FILE*                        _out,
-    unsigned long*               _out_offset
+static
+bool d_internal_write_entry(
+    struct dj_zip*                _zip,
+    struct dj_internal_zip_entry* _entry,
+    FILE*                         _out,
+    unsigned long*                _out_offset
 )
 {
     const long here = ftell(_out);
@@ -1636,9 +1626,9 @@ d_internal_write_entry(
 d_internal_write_directory
   Writes the directory records and the end record after the entries.
 */
-static bool
-d_internal_write_directory(
-    const struct d_zip*  _zip,
+static
+bool d_internal_write_directory(
+    const struct dj_zip* _zip,
     const unsigned long* _offsets,
     FILE*                _out
 )
@@ -1654,7 +1644,7 @@ d_internal_write_directory(
 
     for (size_t at = 0; at < _zip->count; ++at)
     {
-        const struct d_internal_zip_entry* const entry = &_zip->entries[at];
+        const struct dj_internal_zip_entry* const entry = &_zip->entries[at];
         const size_t  name_length = strlen(entry->name);
         unsigned char record[46];
 
@@ -1711,12 +1701,11 @@ d_zip_save
 existing file on POSIX and refuses to on Windows, so on refusal the old file
 is removed and the rename tried once more.
 */
-bool
-d_zip_save(
-    struct d_zip* _zip,
-    const char*   _path,
-    char*         _problem,
-    size_t        _capacity
+bool d_zip_save(
+    struct dj_zip* _zip,
+    const char*    _path,
+    char*          _problem,
+    size_t         _capacity
 )
 {
     // parameter validation first

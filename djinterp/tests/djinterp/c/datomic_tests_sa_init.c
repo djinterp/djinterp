@@ -8,14 +8,12 @@ d_tests_sa_datomic_init_int
   - d_atomic_init_int sets the correct value
   - d_atomic_load_int reads the initialized value
 */
-bool
-d_tests_sa_datomic_init_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
 
     result = true;
 
@@ -36,14 +34,12 @@ d_tests_sa_datomic_init_uint
   Tests the following:
   - d_atomic_init_uint sets the correct value
 */
-bool
-d_tests_sa_datomic_init_uint
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_uint(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_uint val;
+    dj_atomic_uint val;
 
     result = true;
 
@@ -64,14 +60,12 @@ d_tests_sa_datomic_init_long
   Tests the following:
   - d_atomic_init_long sets a negative value correctly
 */
-bool
-d_tests_sa_datomic_init_long
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_long(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_long val;
+    dj_atomic_long val;
 
     result = true;
 
@@ -92,14 +86,12 @@ d_tests_sa_datomic_init_ulong
   Tests the following:
   - d_atomic_init_ulong sets the correct value
 */
-bool
-d_tests_sa_datomic_init_ulong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_ulong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_ulong val;
+    dj_atomic_ulong val;
 
     result = true;
 
@@ -120,14 +112,12 @@ d_tests_sa_datomic_init_llong
   Tests the following:
   - d_atomic_init_llong sets a large negative value correctly
 */
-bool
-d_tests_sa_datomic_init_llong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_llong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_llong val;
+    dj_atomic_llong val;
 
     result = true;
 
@@ -148,14 +138,12 @@ d_tests_sa_datomic_init_ullong
   Tests the following:
   - d_atomic_init_ullong sets a large value correctly
 */
-bool
-d_tests_sa_datomic_init_ullong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_ullong(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_ullong val;
+    dj_atomic_ullong val;
 
     result = true;
 
@@ -177,14 +165,12 @@ d_tests_sa_datomic_init_ptr
   - d_atomic_init_ptr sets a non-NULL pointer
   - d_atomic_init_ptr handles NULL correctly
 */
-bool
-d_tests_sa_datomic_init_ptr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_ptr(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_ptr val;
+    dj_atomic_ptr val;
     int          dummy;
 
     result = true;
@@ -215,14 +201,12 @@ d_tests_sa_datomic_init_size
   Tests the following:
   - d_atomic_init_size sets the correct value
 */
-bool
-d_tests_sa_datomic_init_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_size(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_size_t val;
+    dj_atomic_size_t val;
 
     result = true;
 
@@ -243,10 +227,8 @@ d_tests_sa_datomic_init_all
   Tests the following:
   - int, uint, long, ulong, llong, ullong, ptr, size initialization
 */
-bool
-d_tests_sa_datomic_init_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_init_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

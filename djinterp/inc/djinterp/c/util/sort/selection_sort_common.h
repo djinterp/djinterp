@@ -98,18 +98,22 @@ D_EXTERN_C_BEGIN
 
 
 // II.    selection
-size_t d_selection_min_index(const void*                     _base,
-                             size_t                          _begin,
-                             size_t                          _end,
-                             size_t                          _elem_size,
-                             const struct d_sort_comparator* _comparator,
-                             enum d_sort_order               _order);
-void   d_selection_pass(void*                           _base,
-                        size_t                          _begin,
-                        size_t                          _end,
-                        size_t                          _elem_size,
-                        const struct d_sort_comparator* _comparator,
-                        enum d_sort_order               _order);
+size_t d_selection_min_index(
+    const void*                      _base,
+    size_t                           _begin,
+    size_t                           _end,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
+void d_selection_pass(
+    void*                            _base,
+    size_t                           _begin,
+    size_t                           _end,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
 
 
 D_EXTERN_C_END

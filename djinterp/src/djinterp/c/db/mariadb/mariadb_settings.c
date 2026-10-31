@@ -34,7 +34,7 @@
 #include "../../../../../inc/djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // D_INTERNAL_MARIADB
 #include "./mariadb_internal.h"  // mysql.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_MARIADB == 1)
@@ -49,7 +49,7 @@
 #define D_INTERNAL_MARIADB_LOCK_WAIT_MAX 1073741824u
 
 // d_internal_mariadb_isolation_names
-//   table: each d_mariadb_isolation as the server spells its value, in the
+//   table: each dj_mariadb_isolation as the server spells its value, in the
 // enum's order.
 static const char* const d_internal_mariadb_isolation_names[] =
 {
@@ -63,11 +63,11 @@ static const char* const d_internal_mariadb_isolation_names[] =
 d_internal_mariadb_set_text
   SET SESSION for a variable whose value is a string, quoted as a value.
 */
-static int
-d_internal_mariadb_set_text(
-    struct d_mariadb* _db,
-    const char*       _variable,
-    const char*       _value
+static
+int d_internal_mariadb_set_text(
+    struct dj_mariadb* _db,
+    const char*        _variable,
+    const char*        _value
 )
 {
     // parameter validation
@@ -88,11 +88,11 @@ d_internal_mariadb_set_text(
 d_internal_mariadb_get_text
   A session variable's value, as text the caller frees.
 */
-static int
-d_internal_mariadb_get_text(
-    struct d_mariadb* _db,
-    const char*       _variable,
-    char**            _value
+static
+int d_internal_mariadb_get_text(
+    struct dj_mariadb* _db,
+    const char*        _variable,
+    char**             _value
 )
 {
     // parameter validation
@@ -119,10 +119,9 @@ d_mariadb_set_autocommit
   SET autocommit; turning it on also commits an open transaction, as the
 servers do.
 */
-int
-d_mariadb_set_autocommit(
-    struct d_mariadb* _db,
-    bool              _enabled
+int d_mariadb_set_autocommit(
+    struct dj_mariadb* _db,
+    bool               _enabled
 )
 {
     // parameter validation
@@ -142,10 +141,9 @@ d_mariadb_get_autocommit
   SERVER_STATUS_AUTOCOMMIT, as the server's last reply set it: no statement
 is needed.
 */
-int
-d_mariadb_get_autocommit(
-    struct d_mariadb* _db,
-    bool*             _enabled
+int d_mariadb_get_autocommit(
+    struct dj_mariadb* _db,
+    bool*              _enabled
 )
 {
     // parameter validation
@@ -169,8 +167,8 @@ d_mariadb_set_isolation_level
 */
 int
 d_mariadb_set_isolation_level(
-    struct d_mariadb*        _db,
-    enum d_mariadb_isolation _level
+    struct dj_mariadb*        _db,
+    enum dj_mariadb_isolation _level
 )
 {
     static const char* const levels[] =
@@ -201,8 +199,8 @@ not know -- none exists -- is the unknown error.
 */
 int
 d_mariadb_get_isolation_level(
-    struct d_mariadb*         _db,
-    enum d_mariadb_isolation* _level
+    struct dj_mariadb*         _db,
+    enum dj_mariadb_isolation* _level
 )
 {
     const size_t count = sizeof(d_internal_mariadb_isolation_names) /
@@ -238,7 +236,7 @@ d_mariadb_get_isolation_level(
     {
         if (strcmp(text, d_internal_mariadb_isolation_names[i]) == 0)
         {
-            *_level = (enum d_mariadb_isolation)i;
+            *_level = (enum dj_mariadb_isolation)i;
             result  = 0;
         }
     }
@@ -257,8 +255,8 @@ next transaction and then forgets.
 */
 int
 d_mariadb_set_next_isolation_level(
-    struct d_mariadb*        _db,
-    enum d_mariadb_isolation _level
+    struct dj_mariadb*        _db,
+    enum dj_mariadb_isolation _level
 )
 {
     static const char* const levels[] =
@@ -287,10 +285,9 @@ d_mariadb_set_lock_wait_timeout
   The servers would take 0 and clamp it, with only a warning to say so; the
 layer refuses it, and anything past MySQL's ceiling, itself.
 */
-int
-d_mariadb_set_lock_wait_timeout(
-    struct d_mariadb* _db,
-    unsigned          _seconds
+int d_mariadb_set_lock_wait_timeout(
+    struct dj_mariadb* _db,
+    unsigned           _seconds
 )
 {
     // parameter validation
@@ -311,10 +308,9 @@ d_mariadb_set_lock_wait_timeout(
 d_mariadb_get_lock_wait_timeout
   The session's value, which both servers keep within an unsigned's range.
 */
-int
-d_mariadb_get_lock_wait_timeout(
-    struct d_mariadb* _db,
-    unsigned*         _seconds
+int d_mariadb_get_lock_wait_timeout(
+    struct dj_mariadb* _db,
+    unsigned*          _seconds
 )
 {
     int64_t value = 0;
@@ -361,10 +357,9 @@ client's together, so values are escaped for the new one; SET NAMES would
 change only the session's. Its SET NAMES is a query, which takes the query
 attributes set for the next one.
 */
-int
-d_mariadb_set_charset(
-    struct d_mariadb* _db,
-    const char*       _charset
+int d_mariadb_set_charset(
+    struct dj_mariadb* _db,
+    const char*        _charset
 )
 {
     // parameter validation
@@ -396,10 +391,9 @@ d_mariadb_set_charset(
 d_mariadb_get_charset
   The client's record of it, copied, which needs no statement.
 */
-int
-d_mariadb_get_charset(
-    struct d_mariadb* _db,
-    char**            _charset
+int d_mariadb_get_charset(
+    struct dj_mariadb* _db,
+    char**             _charset
 )
 {
     // parameter validation
@@ -431,10 +425,9 @@ d_mariadb_get_charset(
 d_mariadb_set_time_zone
   SET SESSION time_zone, the zone quoted as a value.
 */
-int
-d_mariadb_set_time_zone(
-    struct d_mariadb* _db,
-    const char*       _zone
+int d_mariadb_set_time_zone(
+    struct dj_mariadb* _db,
+    const char*        _zone
 )
 {
     return d_internal_mariadb_set_text(_db, "time_zone", _zone);
@@ -444,10 +437,9 @@ d_mariadb_set_time_zone(
 d_mariadb_get_time_zone
   @@SESSION.time_zone.
 */
-int
-d_mariadb_get_time_zone(
-    struct d_mariadb* _db,
-    char**            _zone
+int d_mariadb_get_time_zone(
+    struct dj_mariadb* _db,
+    char**             _zone
 )
 {
     return d_internal_mariadb_get_text(_db, "time_zone", _zone);
@@ -460,10 +452,9 @@ d_mariadb_set_sql_mode
   SET SESSION sql_mode. The server's reply tells the client whether
 NO_BACKSLASH_ESCAPES is now on, and its escaping follows.
 */
-int
-d_mariadb_set_sql_mode(
-    struct d_mariadb* _db,
-    const char*       _mode
+int d_mariadb_set_sql_mode(
+    struct dj_mariadb* _db,
+    const char*        _mode
 )
 {
     return d_internal_mariadb_set_text(_db, "sql_mode", _mode);
@@ -473,10 +464,9 @@ d_mariadb_set_sql_mode(
 d_mariadb_get_sql_mode
   @@SESSION.sql_mode.
 */
-int
-d_mariadb_get_sql_mode(
-    struct d_mariadb* _db,
-    char**            _mode
+int d_mariadb_get_sql_mode(
+    struct dj_mariadb* _db,
+    char**             _mode
 )
 {
     return d_internal_mariadb_get_text(_db, "sql_mode", _mode);
@@ -493,11 +483,10 @@ d_mariadb_set_variable
   The name is checked for a variable's shape, and written as it is; the
 value is the caller's SQL.
 */
-int
-d_mariadb_set_variable(
-    struct d_mariadb* _db,
-    const char*       _name,
-    const char*       _value
+int d_mariadb_set_variable(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    const char*        _value
 )
 {
     // parameter validation
@@ -519,11 +508,10 @@ d_mariadb_set_variable(
 d_mariadb_get_variable
   @@SESSION.name, the name checked as for d_mariadb_set_variable.
 */
-int
-d_mariadb_get_variable(
-    struct d_mariadb* _db,
-    const char*       _name,
-    char**            _value
+int d_mariadb_get_variable(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    char**             _value
 )
 {
     // parameter validation
@@ -550,9 +538,9 @@ as the protocol's, which both clients' enum_session_state_type follows.
 */
 int
 d_mariadb_session_track(
-    struct d_mariadb*      _db,
-    enum d_mariadb_track   _kind,
-    struct d_db_name_list* _entries
+    struct dj_mariadb*      _db,
+    enum dj_mariadb_track   _kind,
+    struct dj_db_name_list* _entries
 )
 {
     // parameter validation
@@ -571,11 +559,11 @@ d_mariadb_session_track(
     }
 
 #if (D_INTERNAL_MARIADB_SESSION_TRACK == 1)
-    struct d_internal_db_names builder =
+    struct dj_internal_db_names builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u
     };
-    struct d_internal_db_buffer        entry  = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer        entry  = { NULL, 0u, 0u };
     const enum enum_session_state_type type   =
         (enum enum_session_state_type)_kind;
     const char*                        data   = NULL;
@@ -635,10 +623,9 @@ d_mariadb_session_track(
 d_mariadb_set_autocommit
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_set_autocommit(
-    struct d_mariadb* _db,
-    bool              _enabled
+int d_mariadb_set_autocommit(
+    struct dj_mariadb* _db,
+    bool               _enabled
 )
 {
     (void)_db;
@@ -651,10 +638,9 @@ d_mariadb_set_autocommit(
 d_mariadb_get_autocommit
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_autocommit(
-    struct d_mariadb* _db,
-    bool*             _enabled
+int d_mariadb_get_autocommit(
+    struct dj_mariadb* _db,
+    bool*              _enabled
 )
 {
     (void)_db;
@@ -669,8 +655,8 @@ d_mariadb_set_isolation_level
 */
 int
 d_mariadb_set_isolation_level(
-    struct d_mariadb*        _db,
-    enum d_mariadb_isolation _level
+    struct dj_mariadb*        _db,
+    enum dj_mariadb_isolation _level
 )
 {
     (void)_db;
@@ -685,8 +671,8 @@ d_mariadb_get_isolation_level
 */
 int
 d_mariadb_get_isolation_level(
-    struct d_mariadb*         _db,
-    enum d_mariadb_isolation* _level
+    struct dj_mariadb*         _db,
+    enum dj_mariadb_isolation* _level
 )
 {
     (void)_db;
@@ -701,8 +687,8 @@ d_mariadb_set_next_isolation_level
 */
 int
 d_mariadb_set_next_isolation_level(
-    struct d_mariadb*        _db,
-    enum d_mariadb_isolation _level
+    struct dj_mariadb*        _db,
+    enum dj_mariadb_isolation _level
 )
 {
     (void)_db;
@@ -715,10 +701,9 @@ d_mariadb_set_next_isolation_level(
 d_mariadb_set_lock_wait_timeout
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_set_lock_wait_timeout(
-    struct d_mariadb* _db,
-    unsigned          _seconds
+int d_mariadb_set_lock_wait_timeout(
+    struct dj_mariadb* _db,
+    unsigned           _seconds
 )
 {
     (void)_db;
@@ -731,10 +716,9 @@ d_mariadb_set_lock_wait_timeout(
 d_mariadb_get_lock_wait_timeout
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_lock_wait_timeout(
-    struct d_mariadb* _db,
-    unsigned*         _seconds
+int d_mariadb_get_lock_wait_timeout(
+    struct dj_mariadb* _db,
+    unsigned*          _seconds
 )
 {
     (void)_db;
@@ -747,10 +731,9 @@ d_mariadb_get_lock_wait_timeout(
 d_mariadb_set_charset
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_set_charset(
-    struct d_mariadb* _db,
-    const char*       _charset
+int d_mariadb_set_charset(
+    struct dj_mariadb* _db,
+    const char*        _charset
 )
 {
     (void)_db;
@@ -763,10 +746,9 @@ d_mariadb_set_charset(
 d_mariadb_get_charset
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_charset(
-    struct d_mariadb* _db,
-    char**            _charset
+int d_mariadb_get_charset(
+    struct dj_mariadb* _db,
+    char**             _charset
 )
 {
     (void)_db;
@@ -779,10 +761,9 @@ d_mariadb_get_charset(
 d_mariadb_set_time_zone
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_set_time_zone(
-    struct d_mariadb* _db,
-    const char*       _zone
+int d_mariadb_set_time_zone(
+    struct dj_mariadb* _db,
+    const char*        _zone
 )
 {
     (void)_db;
@@ -795,10 +776,9 @@ d_mariadb_set_time_zone(
 d_mariadb_get_time_zone
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_time_zone(
-    struct d_mariadb* _db,
-    char**            _zone
+int d_mariadb_get_time_zone(
+    struct dj_mariadb* _db,
+    char**             _zone
 )
 {
     (void)_db;
@@ -811,10 +791,9 @@ d_mariadb_get_time_zone(
 d_mariadb_set_sql_mode
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_set_sql_mode(
-    struct d_mariadb* _db,
-    const char*       _mode
+int d_mariadb_set_sql_mode(
+    struct dj_mariadb* _db,
+    const char*        _mode
 )
 {
     (void)_db;
@@ -827,10 +806,9 @@ d_mariadb_set_sql_mode(
 d_mariadb_get_sql_mode
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_sql_mode(
-    struct d_mariadb* _db,
-    char**            _mode
+int d_mariadb_get_sql_mode(
+    struct dj_mariadb* _db,
+    char**             _mode
 )
 {
     (void)_db;
@@ -843,11 +821,10 @@ d_mariadb_get_sql_mode(
 d_mariadb_set_variable
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_set_variable(
-    struct d_mariadb* _db,
-    const char*       _name,
-    const char*       _value
+int d_mariadb_set_variable(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    const char*        _value
 )
 {
     (void)_db;
@@ -861,11 +838,10 @@ d_mariadb_set_variable(
 d_mariadb_get_variable
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_variable(
-    struct d_mariadb* _db,
-    const char*       _name,
-    char**            _value
+int d_mariadb_get_variable(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    char**             _value
 )
 {
     (void)_db;
@@ -881,9 +857,9 @@ d_mariadb_session_track
 */
 int
 d_mariadb_session_track(
-    struct d_mariadb*      _db,
-    enum d_mariadb_track   _kind,
-    struct d_db_name_list* _entries
+    struct dj_mariadb*      _db,
+    enum dj_mariadb_track   _kind,
+    struct dj_db_name_list* _entries
 )
 {
     (void)_db;

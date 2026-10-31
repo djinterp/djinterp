@@ -22,7 +22,7 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
 *                                                            revised: 2026.10.20
 *******************************************************************************/
-#include "./dgit_internal.h"  // corresponding header: d_git_repo layout
+#include "./dgit_internal.h"  // corresponding header: dj_git_repo layout
 // std
 #include <stdio.h>   // snprintf
 #include <stdlib.h>  // malloc, calloc, realloc, free, getenv, qsort
@@ -30,9 +30,9 @@
                      // strcmp, strlen, strncmp
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_repo.h"  // d_git_object
+#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_repo.h"  // dj_git_object
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t,
+#include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t,
                                                      // uint64_t, int64_t
 
 
@@ -67,7 +67,7 @@ static const char* const d_internal_type_names[5] =
 
 const char*
 d_git_object_type_name(
-    enum d_git_object_type _type
+    enum dj_git_object_type _type
 )
 {
     return ( (_type >= D_GIT_OBJECT_COMMIT) &&
@@ -77,7 +77,7 @@ d_git_object_type_name(
 }
 
 
-enum d_git_object_type
+enum dj_git_object_type
 d_git_object_type_named(
     const char* _name
 )
@@ -89,7 +89,7 @@ d_git_object_type_named(
         if ( (_name) &&
              (strcmp(_name, d_internal_type_names[at]) == 0) )
         {
-            return (enum d_git_object_type)at;
+            return (enum dj_git_object_type)at;
         }
     }
 
@@ -97,9 +97,8 @@ d_git_object_type_named(
 }
 
 
-void
-d_git_object_release(
-    struct d_git_object* _object
+void d_git_object_release(
+    struct dj_git_object* _object
 )
 {
     // nothing to release
@@ -122,7 +121,7 @@ in decimal, and a NUL; its length.
 */
 static size_t
 d_internal_header(
-    enum d_git_object_type _type,
+    enum dj_git_object_type _type,
     size_t                 _size,
     char*                  _out,
     size_t                 _capacity
@@ -140,11 +139,11 @@ d_internal_header(
 
 void
 d_git_repo_hash_object(
-    const struct d_git_repo* _repo,
-    enum d_git_object_type   _type,
+    const struct dj_git_repo* _repo,
+    enum dj_git_object_type   _type,
     const void*              _data,
     size_t                   _size,
-    struct d_git_oid*        _out
+    struct dj_git_oid*        _out
 )
 {
     char              header[64];
@@ -152,7 +151,7 @@ d_git_repo_hash_object(
                                                  _size,
                                                  header,
                                                  sizeof(header));
-    struct d_git_hash hash;
+    struct dj_git_hash hash;
 
     memset(_out, 0, sizeof(*_out));
     d_git_hash_begin(&hash, (_repo) ? _repo->hash : D_GIT_HASH_SHA1);
@@ -173,11 +172,11 @@ d_git_repo_hash_object(
 d_internal_hex
   A name in hex, terminated, of the repository's length.
 */
-static void
-d_internal_hex(
-    const struct d_git_repo* _repo,
-    const struct d_git_oid*  _oid,
-    char*                    _out
+static
+void d_internal_hex(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _oid,
+    char*                     _out
 )
 {
     d_git_repo_hex(_repo, _oid, _out);
@@ -190,10 +189,10 @@ d_internal_hex(
 d_internal_store_add
   A store of objects more, unless one of the same path is there already.
 */
-static bool
-d_internal_store_add(
-    struct d_git_repo* _repo,
-    const char*        _path
+static
+bool d_internal_store_add(
+    struct dj_git_repo* _repo,
+    const char*         _path
 )
 {
     // one of the same path, which an alternate may name again
@@ -206,7 +205,7 @@ d_internal_store_add(
         }
     }
 
-    struct d_git_store* const grown = realloc(_repo->stores,
+    struct dj_git_store* const grown = realloc(_repo->stores,
                                               (_repo->store_count + 1u)
                                                   * sizeof(*grown));
 
@@ -218,7 +217,7 @@ d_internal_store_add(
 
     _repo->stores = grown;
 
-    struct d_git_store* const store = &_repo->stores[_repo->store_count];
+    struct dj_git_store* const store = &_repo->stores[_repo->store_count];
     const size_t              length = strlen(_path);
 
     memset(store, 0, sizeof(*store));
@@ -241,8 +240,8 @@ d_internal_store_add(
 d_internal_resolve_path
   A path relative to a directory, made whole: as it is when absolute.
 */
-static char*
-d_internal_resolve_path(
+static
+char* d_internal_resolve_path(
     const char* _directory,
     const char* _path
 )
@@ -258,9 +257,12 @@ d_internal_resolve_path(
 }
 
 
-static bool d_internal_alternates(struct d_git_repo* _repo,
-                                  const char*        _objects,
-                                  unsigned           _depth);
+static
+bool d_internal_alternates(
+    struct dj_git_repo* _repo,
+    const char*         _objects,
+    unsigned            _depth
+);
 
 
 /*
@@ -268,16 +270,16 @@ d_internal_alternate_line
   One line of an alternates file: a comment, a path in C's quotes, or a
 path; relative to the objects directory that names it.
 */
-static bool
-d_internal_alternate_line(
-    struct d_git_repo* _repo,
-    const char*        _objects,
-    const char*        _line,
-    size_t             _length,
-    unsigned           _depth
+static
+bool d_internal_alternate_line(
+    struct dj_git_repo* _repo,
+    const char*         _objects,
+    const char*         _line,
+    size_t              _length,
+    unsigned            _depth
 )
 {
-    struct d_git_buffer path;
+    struct dj_git_buffer path;
     size_t              used = 0u;
 
     memset(&path, 0, sizeof(path));
@@ -316,11 +318,11 @@ d_internal_alternates
   The stores an objects directory's info/alternates names, and theirs, no
 deeper than git goes.
 */
-static bool
-d_internal_alternates(
-    struct d_git_repo* _repo,
-    const char*        _objects,
-    unsigned           _depth
+static
+bool d_internal_alternates(
+    struct dj_git_repo* _repo,
+    const char*         _objects,
+    unsigned            _depth
 )
 {
     // deep enough
@@ -366,10 +368,10 @@ d_internal_environment_alternates
   The stores GIT_ALTERNATE_OBJECT_DIRECTORIES names, apart by colons --
 semicolons on Windows.
 */
-static bool
-d_internal_environment_alternates(
-    struct d_git_repo* _repo,
-    char               _separator
+static
+bool d_internal_environment_alternates(
+    struct dj_git_repo* _repo,
+    char                _separator
 )
 {
     const char* at    = getenv("GIT_ALTERNATE_OBJECT_DIRECTORIES");
@@ -409,8 +411,8 @@ d_internal_environment_alternates(
 d_internal_list_separator
   What separates the paths of a list in the environment: `;` on Windows.
 */
-static char
-d_internal_list_separator(void)
+static
+char d_internal_list_separator(void)
 {
     return ';';
 }
@@ -421,8 +423,8 @@ d_internal_list_separator(void)
 d_internal_list_separator
   What separates the paths of a list in the environment: `:` on POSIX.
 */
-static char
-d_internal_list_separator(void)
+static
+char d_internal_list_separator(void)
 {
     return ':';
 }
@@ -435,9 +437,9 @@ d_internal_stores
   The stores, found the first time an object is wanted: the repository's
 own -- GIT_OBJECT_DIRECTORY's, when it is set -- then its alternates.
 */
-static bool
-d_internal_stores(
-    struct d_git_repo* _repo
+static
+bool d_internal_stores(
+    struct dj_git_repo* _repo
 )
 {
     // found already
@@ -463,15 +465,14 @@ d_internal_stores(
 }
 
 
-void
-d_git_stores_release(
-    struct d_git_repo* _repo
+void d_git_stores_release(
+    struct dj_git_repo* _repo
 )
 {
     // each store's packs
     for (size_t at = 0u; at < _repo->store_count; ++at)
     {
-        struct d_git_store* const store = &_repo->stores[at];
+        struct dj_git_store* const store = &_repo->stores[at];
 
         // each pack
         for (size_t pack = 0u; pack < store->pack_count; ++pack)
@@ -511,8 +512,8 @@ d_git_stores_release(
 d_internal_be32, d_internal_be64
   Four and eight bytes read big-endian.
 */
-static uint32_t
-d_internal_be32(
+static
+uint32_t d_internal_be32(
     const uint8_t* _bytes
 )
 {
@@ -523,8 +524,8 @@ d_internal_be32(
 }
 
 
-static uint64_t
-d_internal_be64(
+static
+uint64_t d_internal_be64(
     const uint8_t* _bytes
 )
 {
@@ -539,10 +540,10 @@ d_internal_index_layout
 names, checksums, places and places past 4 GiB in tables of their own; 1,
 a place before each name. False for one too short for what it says.
 */
-static bool
-d_internal_index_layout(
-    struct d_git_pack* _pack,
-    size_t             _hash
+static
+bool d_internal_index_layout(
+    struct dj_git_pack* _pack,
+    size_t              _hash
 )
 {
     static const uint8_t magic[4] = { 0xFFu, 't', 'O', 'c' };
@@ -589,17 +590,17 @@ d_internal_pack_load
 for ".idx"; the pack opened when an object is first read from it. An index
 that does not read is passed over, as git passes one over.
 */
-static bool
-d_internal_pack_load(
-    struct d_git_repo*  _repo,
-    struct d_git_store* _store,
-    const char*         _pack_dir,
-    const char*         _idx_name
+static
+bool d_internal_pack_load(
+    struct dj_git_repo*  _repo,
+    struct dj_git_store* _store,
+    const char*          _pack_dir,
+    const char*          _idx_name
 )
 {
     char* const         idx_path = d_git_path_join(_pack_dir, _idx_name);
-    struct d_git_pack   pack;
-    struct d_git_buffer path;
+    struct dj_git_pack   pack;
+    struct dj_git_buffer path;
 
     memset(&pack, 0, sizeof(pack));
     memset(&path, 0, sizeof(path));
@@ -629,7 +630,7 @@ d_internal_pack_load(
         return !memory;
     }
 
-    struct d_git_pack* const grown = realloc(_store->packs,
+    struct dj_git_pack* const grown = realloc(_store->packs,
                                              (_store->pack_count + 1u)
                                                  * sizeof(*grown));
 
@@ -654,8 +655,8 @@ d_internal_pack_load(
 d_internal_compare_names
   Orders names, so packs are searched in the same order each time.
 */
-static int
-d_internal_compare_names(
+static
+int d_internal_compare_names(
     const void* _left,
     const void* _right
 )
@@ -669,10 +670,10 @@ d_internal_packs
   A store's packs, read the first time an object is looked for in it: each
 .idx in its pack directory.
 */
-static bool
-d_internal_packs(
-    struct d_git_repo*  _repo,
-    struct d_git_store* _store
+static
+bool d_internal_packs(
+    struct dj_git_repo*  _repo,
+    struct dj_git_store* _store
 )
 {
     // read already
@@ -721,11 +722,11 @@ d_internal_pack_find
   The index of a name among a pack's, by the range its first byte's
 fanout gives and a binary search within it; D_GIT_REPO_NONE for none.
 */
-static size_t
-d_internal_pack_find(
-    const struct d_git_pack* _pack,
-    const struct d_git_oid*  _oid,
-    size_t                   _hash
+static
+size_t d_internal_pack_find(
+    const struct dj_git_pack* _pack,
+    const struct dj_git_oid*  _oid,
+    size_t                    _hash
 )
 {
     const uint8_t* const fanout = &_pack->idx[(_pack->version == 2u) ? 8u : 0u];
@@ -768,10 +769,10 @@ d_internal_pack_offset
   Where in the pack an object of its index begins: a place of 4 bytes, or,
 its top bit set, one of 8 from the table of large places.
 */
-static uint64_t
-d_internal_pack_offset(
-    const struct d_git_pack* _pack,
-    size_t                   _index
+static
+uint64_t d_internal_pack_offset(
+    const struct dj_git_pack* _pack,
+    size_t                    _index
 )
 {
     // version 1 keeps the place before the name
@@ -797,8 +798,8 @@ d_internal_pack_offset(
 d_internal_compare_offsets
   Orders places in a pack.
 */
-static int
-d_internal_compare_offsets(
+static
+int d_internal_compare_offsets(
     const void* _left,
     const void* _right
 )
@@ -815,10 +816,10 @@ d_internal_pack_open
   The pack opened, its header checked against its index, and every
 object's place in order, so each object's end is the next one's start.
 */
-static bool
-d_internal_pack_open(
-    struct d_git_repo* _repo,
-    struct d_git_pack* _pack
+static
+bool d_internal_pack_open(
+    struct dj_git_repo* _repo,
+    struct dj_git_pack* _pack
 )
 {
     // opened already
@@ -868,11 +869,11 @@ d_internal_pack_end
   Where the object at a place ends: at the next object's place, or the
 pack's trailer.
 */
-static uint64_t
-d_internal_pack_end(
-    const struct d_git_pack* _pack,
-    uint64_t                 _offset,
-    size_t                   _hash
+static
+uint64_t d_internal_pack_end(
+    const struct dj_git_pack* _pack,
+    uint64_t                  _offset,
+    size_t                    _hash
 )
 {
     size_t low  = 0u;
@@ -904,11 +905,11 @@ d_internal_pack_end(
 //==============================================================================
 
 
-// d_internal_entry
+// dj_internal_entry
 //   struct: one object of a pack, its header read: its type -- a delta's
 //   among them -- the size it inflates to, where its stream begins and
 //   ends, and a delta's base: a place back along the pack, or a name.
-struct d_internal_entry
+struct dj_internal_entry
 {
     unsigned         type;
     uint64_t         size;
@@ -916,14 +917,14 @@ struct d_internal_entry
     uint64_t         stream;
     uint64_t         end;
     uint64_t         base_offset;
-    struct d_git_oid base_oid;
+    struct dj_git_oid base_oid;
 };
 
-// d_internal_raw_object
+// dj_internal_raw_object
 //   struct: an object's type and bytes, allocated.
-struct d_internal_raw_object
+struct dj_internal_raw_object
 {
-    enum d_git_object_type type;
+    enum dj_git_object_type type;
     uint8_t*               data;
     size_t                 size;
 };
@@ -937,12 +938,12 @@ back, in git's offset encoding, or a name.
   Long as a pack entry's header -- its type, its size, and its base, by
 offset or by name -- is read in one pass.
 */
-static bool
-d_internal_entry_header(
-    const struct d_git_repo* _repo,
-    const struct d_git_pack* _pack,
-    uint64_t                 _offset,
-    struct d_internal_entry* _out
+static
+bool d_internal_entry_header(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_pack* _pack,
+    uint64_t                  _offset,
+    struct dj_internal_entry* _out
 )
 {
     const size_t hash  = d_git_repo_hash_size(_repo);
@@ -1034,11 +1035,11 @@ d_internal_entry_header(
 d_internal_entry_inflate
   An object's stream, read and inflated to the size its header says.
 */
-static bool
-d_internal_entry_inflate(
-    const struct d_git_pack*       _pack,
-    const struct d_internal_entry* _entry,
-    struct d_git_inflated*         _out
+static
+bool d_internal_entry_inflate(
+    const struct dj_git_pack*       _pack,
+    const struct dj_internal_entry* _entry,
+    struct dj_git_inflated*         _out
 )
 {
     const uint64_t length = _entry->end - _entry->stream;
@@ -1082,8 +1083,8 @@ d_internal_entry_inflate(
 d_internal_varint
   A delta's size, seven bits a byte, least significant first.
 */
-static bool
-d_internal_varint(
+static
+bool d_internal_varint(
     const uint8_t* _delta,
     size_t         _length,
     size_t*        _at,
@@ -1121,8 +1122,8 @@ d_internal_delta_copy
   A delta's copy: which of up to four bytes of place and three of size
 follow, by the command's bits; a size of 0 is 64 KiB.
 */
-static bool
-d_internal_delta_copy(
+static
+bool d_internal_delta_copy(
     const uint8_t* _delta,
     size_t         _length,
     size_t*        _at,
@@ -1176,13 +1177,13 @@ delta's own bytes, until the result is its size.
   Long as a delta's two sizes and its copies and inserts are read in one
 loop, each checked.
 */
-static bool
-d_internal_delta_apply(
-    const uint8_t*                _base,
-    size_t                        _base_size,
-    const uint8_t*                _delta,
-    size_t                        _length,
-    struct d_internal_raw_object* _out
+static
+bool d_internal_delta_apply(
+    const uint8_t*                 _base,
+    size_t                         _base_size,
+    const uint8_t*                 _delta,
+    size_t                         _length,
+    struct dj_internal_raw_object* _out
 )
 {
     size_t   at          = 0u;
@@ -1267,8 +1268,8 @@ d_internal_delta_apply(
 d_internal_cache_slot
   The slot a place's base is kept in.
 */
-static size_t
-d_internal_cache_slot(
+static
+size_t d_internal_cache_slot(
     size_t   _store,
     size_t   _pack,
     uint64_t _offset
@@ -1286,16 +1287,16 @@ d_internal_cache_slot(
 d_internal_cache_find
   A base kept for a place, copied; false for none.
 */
-static bool
-d_internal_cache_find(
-    const struct d_git_repo*      _repo,
-    size_t                        _store,
-    size_t                        _pack,
-    uint64_t                      _offset,
-    struct d_internal_raw_object* _out
+static
+bool d_internal_cache_find(
+    const struct dj_git_repo*      _repo,
+    size_t                         _store,
+    size_t                         _pack,
+    uint64_t                       _offset,
+    struct dj_internal_raw_object* _out
 )
 {
-    const struct d_git_cached* const cached =
+    const struct dj_git_cached* const cached =
         &_repo->cache[d_internal_cache_slot(_store, _pack, _offset)];
 
     // the place's
@@ -1328,16 +1329,16 @@ d_internal_cache_keep
   Keeps a base for its place, in place of what its slot held, unless it is
 too large to keep.
 */
-static void
-d_internal_cache_keep(
-    struct d_git_repo*                  _repo,
-    size_t                              _store,
-    size_t                              _pack,
-    uint64_t                            _offset,
-    const struct d_internal_raw_object* _object
+static
+void d_internal_cache_keep(
+    struct dj_git_repo*                  _repo,
+    size_t                               _store,
+    size_t                               _pack,
+    uint64_t                             _offset,
+    const struct dj_internal_raw_object* _object
 )
 {
-    struct d_git_cached* const cached =
+    struct dj_git_cached* const cached =
         &_repo->cache[d_internal_cache_slot(_store, _pack, _offset)];
 
     const size_t after = _repo->cache_bytes - ( (cached->data) ? cached->size
@@ -1373,29 +1374,35 @@ d_internal_cache_keep(
 }
 
 
-static bool d_internal_read_any(struct d_git_repo*            _repo,
-                                const struct d_git_oid*       _oid,
-                                struct d_internal_raw_object* _out);
+static
+bool d_internal_read_any(
+    struct dj_git_repo*            _repo,
+    const struct dj_git_oid*       _oid,
+    struct dj_internal_raw_object* _out
+);
 
 
-static bool d_internal_packed_at(struct d_git_repo*            _repo,
-                                 size_t                        _store,
-                                 size_t                        _pack,
-                                 uint64_t                      _offset,
-                                 struct d_internal_raw_object* _out);
+static
+bool d_internal_packed_at(
+    struct dj_git_repo*            _repo,
+    size_t                         _store,
+    size_t                         _pack,
+    uint64_t                       _offset,
+    struct dj_internal_raw_object* _out
+);
 
 
 /*
 d_internal_delta_base
   The base a delta needs: back along its pack, or named anywhere.
 */
-static bool
-d_internal_delta_base(
-    struct d_git_repo*             _repo,
-    size_t                         _store,
-    size_t                         _pack,
-    const struct d_internal_entry* _entry,
-    struct d_internal_raw_object*  _out
+static
+bool d_internal_delta_base(
+    struct dj_git_repo*             _repo,
+    size_t                          _store,
+    size_t                          _pack,
+    const struct dj_internal_entry* _entry,
+    struct dj_internal_raw_object*  _out
 )
 {
     // a place back along the pack, or a name
@@ -1415,23 +1422,23 @@ d_internal_chain_apply
 inflated and applied to what the one before it made, each result kept as
 a base for what comes after.
 */
-static bool
-d_internal_chain_apply(
-    struct d_git_repo*             _repo,
-    size_t                         _store,
-    size_t                         _pack,
-    const struct d_internal_entry* _chain,
-    size_t                         _count,
-    struct d_internal_raw_object*  _object
+static
+bool d_internal_chain_apply(
+    struct dj_git_repo*             _repo,
+    size_t                          _store,
+    size_t                          _pack,
+    const struct dj_internal_entry* _chain,
+    size_t                          _count,
+    struct dj_internal_raw_object*  _object
 )
 {
-    struct d_git_pack* const pack = &_repo->stores[_store].packs[_pack];
+    struct dj_git_pack* const pack = &_repo->stores[_store].packs[_pack];
 
     // from the base outward
     for (size_t at = _count; at-- > 0u;)
     {
-        struct d_git_inflated        delta;
-        struct d_internal_raw_object result;
+        struct dj_git_inflated        delta;
+        struct dj_internal_raw_object result;
 
         memset(&result, 0, sizeof(result));
 
@@ -1464,11 +1471,11 @@ d_internal_chain_apply(
 d_internal_chain_grow
   Room for one more delta in a chain.
 */
-static bool
-d_internal_chain_grow(
-    struct d_internal_entry** _chain,
-    size_t                    _count,
-    size_t*                   _capacity
+static
+bool d_internal_chain_grow(
+    struct dj_internal_entry** _chain,
+    size_t                     _count,
+    size_t*                    _capacity
 )
 {
     // room left
@@ -1480,7 +1487,7 @@ d_internal_chain_grow(
     const size_t                   wanted = (*_capacity > 0u)
                                             ? (*_capacity * 2u)
                                             : 16u;
-    struct d_internal_entry* const grown  = realloc(*_chain,
+    struct dj_internal_entry* const grown  = realloc(*_chain,
                                                     wanted * sizeof(*grown));
 
     // memory that ran out
@@ -1504,17 +1511,17 @@ outward. A base named is read by name, which may lead to another pack.
   Long as a chain of deltas is followed to its base, from the cache or the
 pack, before it is applied.
 */
-static bool
-d_internal_packed_at(
-    struct d_git_repo*            _repo,
-    size_t                        _store,
-    size_t                        _pack,
-    uint64_t                      _offset,
-    struct d_internal_raw_object* _out
+static
+bool d_internal_packed_at(
+    struct dj_git_repo*            _repo,
+    size_t                         _store,
+    size_t                         _pack,
+    uint64_t                       _offset,
+    struct dj_internal_raw_object* _out
 )
 {
-    struct d_git_pack* const pack     = &_repo->stores[_store].packs[_pack];
-    struct d_internal_entry* chain    = NULL;
+    struct dj_git_pack* const pack     = &_repo->stores[_store].packs[_pack];
+    struct dj_internal_entry* chain    = NULL;
     size_t                   count    = 0u;
     size_t                   capacity = 0u;
     uint64_t                 at       = _offset;
@@ -1525,7 +1532,7 @@ d_internal_packed_at(
     // back along the deltas, until a base
     while (!based)
     {
-        struct d_internal_entry entry;
+        struct dj_internal_entry entry;
 
         // one kept, or the entry's header
         if (d_internal_cache_find(_repo, _store, _pack, at, _out))
@@ -1564,7 +1571,7 @@ d_internal_packed_at(
             break;
         }
 
-        struct d_git_inflated inflated;
+        struct dj_git_inflated inflated;
 
         // the base itself
         if (!d_internal_entry_inflate(pack, &entry, &inflated))
@@ -1574,7 +1581,7 @@ d_internal_packed_at(
             return d_git_repo_fail(_repo, "bad object in pack", pack->path);
         }
 
-        _out->type = (enum d_git_object_type)entry.type;
+        _out->type = (enum dj_git_object_type)entry.type;
         _out->data = inflated.bytes;
         _out->size = inflated.length;
         d_internal_cache_keep(_repo, _store, _pack, at, _out);
@@ -1607,11 +1614,11 @@ d_internal_loose_path
   Where a loose object would be: its name's first two digits a directory,
 the rest the file.
 */
-static char*
-d_internal_loose_path(
-    const struct d_git_repo* _repo,
-    const char*              _objects,
-    const struct d_git_oid*  _oid
+static
+char* d_internal_loose_path(
+    const struct dj_git_repo* _repo,
+    const char*               _objects,
+    const struct dj_git_oid*  _oid
 )
 {
     char hex[(2u * D_GIT_OID_MOST) + 2u];
@@ -1633,7 +1640,7 @@ static bool
 d_internal_loose_header(
     const uint8_t*          _bytes,
     size_t                  _length,
-    enum d_git_object_type* _out_type,
+    enum dj_git_object_type* _out_type,
     size_t*                 _out_size,
     size_t*                 _out_used
 )
@@ -1687,20 +1694,20 @@ d_internal_loose_read
 header says, its name the hash of all it is. False with nothing said when
 it is not there; said when it is, but is unsound.
 */
-static bool
-d_internal_loose_read(
-    struct d_git_repo*            _repo,
-    const char*                   _objects,
-    const struct d_git_oid*       _oid,
-    struct d_internal_raw_object* _out,
-    bool*                         _out_there
+static
+bool d_internal_loose_read(
+    struct dj_git_repo*            _repo,
+    const char*                    _objects,
+    const struct dj_git_oid*       _oid,
+    struct dj_internal_raw_object* _out,
+    bool*                          _out_there
 )
 {
     char* const    path   = d_internal_loose_path(_repo, _objects, _oid);
     size_t         length = 0u;
     uint8_t* const bytes  = (path) ? (uint8_t*)d_git_file_read(path, &length)
                                    : NULL;
-    struct d_git_inflated inflated;
+    struct dj_git_inflated inflated;
 
     free(path);
     *_out_there = (bytes != NULL);
@@ -1714,7 +1721,7 @@ d_internal_loose_read(
     const bool read = d_git_inflate(bytes, length, 0u, &inflated);
     size_t     size = 0u;
     size_t     used = 0u;
-    struct d_git_oid named;
+    struct dj_git_oid named;
 
     free(bytes);
 
@@ -1763,11 +1770,11 @@ d_internal_read_any
   An object, by name, from the first store that has it: loose there, then
 in each of its packs.
 */
-static bool
-d_internal_read_any(
-    struct d_git_repo*            _repo,
-    const struct d_git_oid*       _oid,
-    struct d_internal_raw_object* _out
+static
+bool d_internal_read_any(
+    struct dj_git_repo*            _repo,
+    const struct dj_git_oid*       _oid,
+    struct dj_internal_raw_object* _out
 )
 {
     const size_t hash = d_git_repo_hash_size(_repo);
@@ -1802,7 +1809,7 @@ d_internal_read_any(
         // each pack
         for (size_t pack = 0u; pack < _repo->stores[store].pack_count; ++pack)
         {
-            struct d_git_pack* const record = &_repo->stores[store].packs[pack];
+            struct dj_git_pack* const record = &_repo->stores[store].packs[pack];
             const size_t             index  = d_internal_pack_find(record,
                                                                    _oid,
                                                                    hash);
@@ -1823,14 +1830,13 @@ d_internal_read_any(
 }
 
 
-bool
-d_git_repo_read(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _oid,
-    struct d_git_object*    _out
+bool d_git_repo_read(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _oid,
+    struct dj_git_object*    _out
 )
 {
-    struct d_internal_raw_object raw;
+    struct dj_internal_raw_object raw;
 
     memset(_out, 0, sizeof(*_out));
 
@@ -1865,10 +1871,9 @@ d_git_repo_read(
 }
 
 
-bool
-d_git_repo_has(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _oid
+bool d_git_repo_has(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _oid
 )
 {
     const size_t hash = d_git_repo_hash_size(_repo);
@@ -1887,7 +1892,7 @@ d_git_repo_has(
         char* const path  = d_internal_loose_path(_repo,
                                                   _repo->stores[store].path,
                                                   _oid);
-        struct d_git_file_info info;
+        struct dj_git_file_info info;
         const bool  loose = ( (path) && (d_git_file_info(path, &info)) );
 
         free(path);
@@ -1927,12 +1932,12 @@ d_git_repo_has(
 d_internal_parse_name
   A name in hex at the start of text, of the repository's length.
 */
-static bool
-d_internal_parse_name(
-    const struct d_git_repo* _repo,
-    const char*              _text,
-    size_t                   _length,
-    struct d_git_oid*        _out
+static
+bool d_internal_parse_name(
+    const struct dj_git_repo* _repo,
+    const char*               _text,
+    size_t                    _length,
+    struct dj_git_oid*        _out
 )
 {
     const size_t size = d_git_repo_hash_size(_repo);
@@ -1959,11 +1964,11 @@ the zone.
   Long as git's split_ident_line is, which it follows: the name, the
 address, the time and the zone.
 */
-static void
-d_internal_parse_person(
-    const char*          _text,
-    size_t               _length,
-    struct d_git_person* _out
+static
+void d_internal_parse_person(
+    const char*           _text,
+    size_t                _length,
+    struct dj_git_person* _out
 )
 {
     const char* const open  = memchr(_text, '<', _length);
@@ -2045,14 +2050,14 @@ d_internal_header_line
 `*_at` moved past it and the lines that continue it, which begin with a
 space. False at the blank line that ends the headers, or the content's end.
 */
-static bool
-d_internal_header_line(
-    const struct d_git_object* _object,
-    size_t*                    _at,
-    const char**               _out_value,
-    size_t*                    _out_value_length,
-    char*                      _out_key,
-    size_t                     _key_capacity
+static
+bool d_internal_header_line(
+    const struct dj_git_object* _object,
+    size_t*                     _at,
+    const char**                _out_value,
+    size_t*                     _out_value_length,
+    char*                       _out_key,
+    size_t                      _key_capacity
 )
 {
     const char* const text   = (const char*)_object->data;
@@ -2097,13 +2102,13 @@ d_internal_commit_header
   One header of a commit kept: its tree, a parent, its author, committer
 and encoding; any other passed over.
 */
-static bool
-d_internal_commit_header(
-    const struct d_git_repo* _repo,
-    const char*              _key,
-    const char*              _value,
-    size_t                   _length,
-    struct d_git_commit*     _out
+static
+bool d_internal_commit_header(
+    const struct dj_git_repo* _repo,
+    const char*               _key,
+    const char*               _value,
+    size_t                    _length,
+    struct dj_git_commit*     _out
 )
 {
     // each header git reads
@@ -2113,7 +2118,7 @@ d_internal_commit_header(
     }
     else if (strcmp(_key, "parent") == 0)
     {
-        struct d_git_oid* const grown = realloc(_out->parents,
+        struct dj_git_oid* const grown = realloc(_out->parents,
                                                 (_out->parent_count + 1u)
                                                     * sizeof(*grown));
 
@@ -2147,11 +2152,10 @@ d_internal_commit_header(
 }
 
 
-bool
-d_git_repo_parse_commit(
-    const struct d_git_repo*   _repo,
-    const struct d_git_object* _object,
-    struct d_git_commit*       _out
+bool d_git_repo_parse_commit(
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_object* _object,
+    struct dj_git_commit*       _out
 )
 {
     size_t      at     = 0u;
@@ -2194,9 +2198,8 @@ d_git_repo_parse_commit(
 }
 
 
-void
-d_git_commit_release(
-    struct d_git_commit* _commit
+void d_git_commit_release(
+    struct dj_git_commit* _commit
 )
 {
     // nothing to release
@@ -2212,11 +2215,10 @@ d_git_commit_release(
 }
 
 
-bool
-d_git_repo_parse_tag(
-    const struct d_git_repo*   _repo,
-    const struct d_git_object* _object,
-    struct d_git_tag*          _out
+bool d_git_repo_parse_tag(
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_object* _object,
+    struct dj_git_tag*          _out
 )
 {
     size_t      at     = 0u;
@@ -2273,12 +2275,11 @@ d_git_repo_parse_tag(
 }
 
 
-bool
-d_git_repo_tree_next(
-    const struct d_git_repo*   _repo,
-    const struct d_git_object* _tree,
-    size_t*                    _at,
-    struct d_git_tree_entry*   _out
+bool d_git_repo_tree_next(
+    const struct dj_git_repo*   _repo,
+    const struct dj_git_object* _tree,
+    size_t*                     _at,
+    struct dj_git_tree_entry*   _out
 )
 {
     const size_t      hash   = d_git_repo_hash_size(_repo);
@@ -2333,16 +2334,15 @@ d_git_repo_tree_next(
 }
 
 
-bool
-d_git_tree_find(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _tree,
-    const char*             _path,
-    struct d_git_oid*       _out,
-    uint32_t*               _out_mode
+bool d_git_tree_find(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _tree,
+    const char*              _path,
+    struct dj_git_oid*       _out,
+    uint32_t*                _out_mode
 )
 {
-    struct d_git_oid at   = *_tree;
+    struct dj_git_oid at   = *_tree;
     const char*      name = _path;
 
     // each name of the path
@@ -2351,8 +2351,8 @@ d_git_tree_find(
         const char* const slash  = strchr(name, '/');
         const size_t      length = (slash) ? (size_t)(slash - name)
                                            : strlen(name);
-        struct d_git_object     tree;
-        struct d_git_tree_entry entry;
+        struct dj_git_object     tree;
+        struct dj_git_tree_entry entry;
         size_t                  offset = 0u;
         bool                    found  = false;
 
@@ -2411,11 +2411,11 @@ d_git_tree_find(
 //   struct: a prefix being looked for: its bytes, the length in hex
 //   digits, and what has been found -- the first name, and whether
 //   another differs from it.
-struct d_internal_prefix
+struct dj_internal_prefix
 {
-    struct d_git_oid bytes;
+    struct dj_git_oid bytes;
     size_t           digits;
-    struct d_git_oid first;
+    struct dj_git_oid first;
     size_t           found;
 };
 
@@ -2424,10 +2424,10 @@ struct d_internal_prefix
 d_internal_prefix_matches
   Whether a name begins with the prefix's digits.
 */
-static bool
-d_internal_prefix_matches(
-    const struct d_internal_prefix* _prefix,
-    const uint8_t*                  _name
+static
+bool d_internal_prefix_matches(
+    const struct dj_internal_prefix* _prefix,
+    const uint8_t*                   _name
 )
 {
     const size_t whole = _prefix->digits / 2u;
@@ -2448,11 +2448,11 @@ d_internal_prefix_matches(
 d_internal_prefix_found
   A name the prefix matches, counted once however many places hold it.
 */
-static void
-d_internal_prefix_found(
-    const struct d_git_repo*  _repo,
-    struct d_internal_prefix* _prefix,
-    const struct d_git_oid*   _oid
+static
+void d_internal_prefix_found(
+    const struct dj_git_repo*  _repo,
+    struct dj_internal_prefix* _prefix,
+    const struct dj_git_oid*   _oid
 )
 {
     // the first, or one that differs from it
@@ -2475,11 +2475,11 @@ d_internal_prefix_loose
   The loose names of a store the prefix matches: its first two digits a
 directory, the rest each file's name.
 */
-static void
-d_internal_prefix_loose(
-    const struct d_git_repo*  _repo,
-    const char*               _objects,
-    struct d_internal_prefix* _prefix
+static
+void d_internal_prefix_loose(
+    const struct dj_git_repo*  _repo,
+    const char*                _objects,
+    struct dj_internal_prefix* _prefix
 )
 {
     static const char digits[] = "0123456789abcdef";
@@ -2506,7 +2506,7 @@ d_internal_prefix_loose(
     for (size_t at = 0u; ( (_prefix->found < 2u) && (at < count) ); ++at)
     {
         char             hex[(2u * D_GIT_OID_MOST) + 1u];
-        struct d_git_oid oid;
+        struct dj_git_oid oid;
 
         (void)snprintf(hex, sizeof(hex), "%s%s", directory, names[at]);
 
@@ -2530,11 +2530,11 @@ d_internal_prefix_pack
   The names of a pack the prefix matches: from the first not before the
 prefix, by binary search, while they match.
 */
-static void
-d_internal_prefix_pack(
-    const struct d_git_repo*  _repo,
-    const struct d_git_pack*  _pack,
-    struct d_internal_prefix* _prefix
+static
+void d_internal_prefix_pack(
+    const struct dj_git_repo*  _repo,
+    const struct dj_git_pack*  _pack,
+    struct dj_internal_prefix* _prefix
 )
 {
     const size_t hash = d_git_repo_hash_size(_repo);
@@ -2567,7 +2567,7 @@ d_internal_prefix_pack(
                                       &_pack->oids[at * _pack->stride])) );
          ++at)
     {
-        struct d_git_oid oid;
+        struct dj_git_oid oid;
 
         memset(&oid, 0, sizeof(oid));
         memcpy(oid.bytes, &_pack->oids[at * _pack->stride], hash);
@@ -2583,10 +2583,10 @@ d_internal_prefix_search
   Every store searched for the prefix, loose and packed, until two names
 are found.
 */
-static bool
-d_internal_prefix_search(
-    struct d_git_repo*        _repo,
-    struct d_internal_prefix* _prefix
+static
+bool d_internal_prefix_search(
+    struct dj_git_repo*        _repo,
+    struct dj_internal_prefix* _prefix
 )
 {
     // the stores
@@ -2628,11 +2628,11 @@ d_internal_prefix_of
   A prefix read from hex digits: whole bytes, and a last half; the rest of
 its bytes 0, so a search begins at the first name it could match.
 */
-static bool
-d_internal_prefix_of(
-    const char*               _hex,
-    size_t                    _length,
-    struct d_internal_prefix* _out
+static
+bool d_internal_prefix_of(
+    const char*                _hex,
+    size_t                     _length,
+    struct dj_internal_prefix* _out
 )
 {
     memset(_out, 0, sizeof(*_out));
@@ -2662,15 +2662,14 @@ d_internal_prefix_of(
 }
 
 
-bool
-d_git_repo_prefix_find(
-    struct d_git_repo* _repo,
-    const char*        _hex,
-    size_t             _length,
-    struct d_git_oid*  _out
+bool d_git_repo_prefix_find(
+    struct dj_git_repo* _repo,
+    const char*         _hex,
+    size_t              _length,
+    struct dj_git_oid*  _out
 )
 {
-    struct d_internal_prefix prefix;
+    struct dj_internal_prefix prefix;
 
     // a prefix in hex, searched for
     if ( (!d_internal_prefix_of(_hex, _length, &prefix)) ||
@@ -2701,9 +2700,9 @@ d_internal_auto_abbrev
 it: half the bits of how many objects the packs hold, rounded up, but no
 fewer than 7.
 */
-static size_t
-d_internal_auto_abbrev(
-    struct d_git_repo* _repo
+static
+size_t d_internal_auto_abbrev(
+    struct dj_git_repo* _repo
 )
 {
     uint64_t count = 0u;
@@ -2745,10 +2744,10 @@ d_internal_least_abbrev
   The length to begin abbreviating at: the one asked for, or core.abbrev's
 -- a number, "auto", or "no" for the whole name.
 */
-static size_t
-d_internal_least_abbrev(
-    struct d_git_repo* _repo,
-    size_t             _least
+static
+size_t d_internal_least_abbrev(
+    struct dj_git_repo* _repo,
+    size_t              _least
 )
 {
     bool              set   = false;
@@ -2779,12 +2778,11 @@ d_internal_least_abbrev(
 }
 
 
-bool
-d_git_repo_abbreviate(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _oid,
-    size_t                  _least,
-    char*                   _out
+bool d_git_repo_abbreviate(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _oid,
+    size_t                   _least,
+    char*                    _out
 )
 {
     const size_t most = d_git_repo_hash_size(_repo) * 2u;
@@ -2797,7 +2795,7 @@ d_git_repo_abbreviate(
          length <= most;
          ++length)
     {
-        struct d_internal_prefix prefix;
+        struct dj_internal_prefix prefix;
 
         // a prefix that names one object, or none yet
         if ( (!d_internal_prefix_of(hex, length, &prefix)) ||

@@ -33,7 +33,7 @@
 // 1.1.1
 // d_internal_token
 //   enum: the tokens of ninja's lexer, in its order.
-enum d_internal_token
+enum dj_internal_token
 {
     D_INTERNAL_ERROR = 0,
     D_INTERNAL_BUILD,
@@ -56,12 +56,12 @@ enum d_internal_token
 // 1.2    The reader
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_reader
+// dj_internal_reader
 //   struct: the lexer's place -- `at`, ninja's ofs_, and `last`, its
 //   last_token_ -- and the records it grows.
-struct d_internal_reader
+struct dj_internal_reader
 {
-    struct d_ninja* ninja;
+    struct dj_ninja* ninja;
     const char*     text;
     size_t          length;
     size_t          at;
@@ -88,8 +88,8 @@ struct d_internal_reader
 d_internal_grow
   Room for one more record in an array that doubles as it fills.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _array,
     size_t* _capacity,
     size_t  _count,
@@ -123,10 +123,9 @@ d_ninja_line_of
   The count of line starts at or before the place: a binary search of the
 table made when reading began.
 */
-size_t
-d_ninja_line_of(
-    const struct d_ninja* _ninja,
-    size_t                _at
+size_t d_ninja_line_of(
+    const struct dj_ninja* _ninja,
+    size_t                 _at
 )
 {
     size_t low  = 0;
@@ -165,9 +164,9 @@ d_ninja_line_of(
 d_internal_lines
   The table of line starts: one at 0, and one past each line feed.
 */
-static bool
-d_internal_lines(
-    struct d_ninja* _ninja
+static
+bool d_internal_lines(
+    struct dj_ninja* _ninja
 )
 {
     size_t feeds = 0;
@@ -216,11 +215,11 @@ d_internal_fail
   Says why reading stopped, at the place ninja's lexer last read, as ninja
 words it; and gives false.
 */
-static bool
-d_internal_fail(
-    struct d_internal_reader* _reader,
-    size_t                    _at,
-    const char*               _message
+static
+bool d_internal_fail(
+    struct dj_internal_reader* _reader,
+    size_t                     _at,
+    const char*                _message
 )
 {
     // only the first failure is the reader's to report
@@ -250,9 +249,9 @@ d_internal_fail(
 d_internal_no_memory
   Fails for memory that ran out.
 */
-static bool
-d_internal_no_memory(
-    struct d_internal_reader* _reader
+static
+bool d_internal_no_memory(
+    struct dj_internal_reader* _reader
 )
 {
     return d_internal_fail(_reader, _reader->at, "out of memory");
@@ -263,14 +262,14 @@ d_internal_no_memory(
 d_internal_add_comment
   Records a comment line, `#` to its line ending.
 */
-static bool
-d_internal_add_comment(
-    struct d_internal_reader* _reader,
-    size_t                    _start,
-    size_t                    _end
+static
+bool d_internal_add_comment(
+    struct dj_internal_reader* _reader,
+    size_t                     _start,
+    size_t                     _end
 )
 {
-    struct d_ninja* const ninja = _reader->ninja;
+    struct dj_ninja* const ninja = _reader->ninja;
 
     // room for one more
     if (!d_internal_grow((void**)&ninja->comments,
@@ -280,7 +279,7 @@ d_internal_add_comment(
         return d_internal_no_memory(_reader);
     }
 
-    struct d_ninja_comment* const comment =
+    struct dj_ninja_comment* const comment =
         &ninja->comments[ninja->comment_count++];
 
     comment->start  = _start;
@@ -304,8 +303,8 @@ d_internal_is_name_byte, d_internal_is_simple_byte
   A byte of ninja's varname, `[a-zA-Z0-9_.-]`, and of its simple_varname,
 the same without `.`.
 */
-static bool
-d_internal_is_simple_byte(
+static
+bool d_internal_is_simple_byte(
     char _c
 )
 {
@@ -317,8 +316,8 @@ d_internal_is_simple_byte(
 }
 
 
-static bool
-d_internal_is_name_byte(
+static
+bool d_internal_is_name_byte(
     char _c
 )
 {
@@ -331,11 +330,11 @@ d_internal_is_name_byte(
 d_internal_name_run
   How many bytes of names stand from a place.
 */
-static size_t
-d_internal_name_run(
-    const struct d_internal_reader* _reader,
-    size_t                          _at,
-    bool                            _simple
+static
+size_t d_internal_name_run(
+    const struct dj_internal_reader* _reader,
+    size_t                           _at,
+    bool                             _simple
 )
 {
     size_t at = _at;
@@ -357,10 +356,10 @@ d_internal_byte
   The byte at a place, or NUL past the end, as ninja's lexer reads its
 terminated input.
 */
-static char
-d_internal_byte(
-    const struct d_internal_reader* _reader,
-    size_t                          _at
+static
+char d_internal_byte(
+    const struct dj_internal_reader* _reader,
+    size_t                           _at
 )
 {
     return (_at < _reader->length) ? _reader->text[_at] : '\0';
@@ -371,9 +370,9 @@ d_internal_byte(
 d_internal_eat_whitespace
   Ninja's EatWhitespace: blanks, and `$` line continuations.
 */
-static void
-d_internal_eat_whitespace(
-    struct d_internal_reader* _reader
+static
+void d_internal_eat_whitespace(
+    struct dj_internal_reader* _reader
 )
 {
     // each run of spaces, and each continuation
@@ -412,7 +411,7 @@ d_internal_keyword
   The keyword a name of `_length` bytes is, or D_INTERNAL_IDENT: a
 keyword's rule wins over the name's only at the same length.
 */
-static enum d_internal_token
+static enum dj_internal_token
 d_internal_keyword(
     const char* _text,
     size_t      _length
@@ -422,7 +421,7 @@ d_internal_keyword(
     {
         "build", "pool", "rule", "default", "include", "subninja"
     };
-    static const enum d_internal_token tokens[] =
+    static const enum dj_internal_token tokens[] =
     {
         D_INTERNAL_BUILD, D_INTERNAL_POOL, D_INTERNAL_RULE,
         D_INTERNAL_DEFAULT, D_INTERNAL_INCLUDE, D_INTERNAL_SUBNINJA
@@ -448,11 +447,11 @@ d_internal_comment_at
   The end of a comment line from a place -- blanks, `#`, the rest, and its
 line feed -- or the place itself when none stands there.
 */
-static size_t
-d_internal_comment_at(
-    struct d_internal_reader* _reader,
-    size_t                    _at,
-    size_t*                   _out_hash
+static
+size_t d_internal_comment_at(
+    struct dj_internal_reader* _reader,
+    size_t                     _at,
+    size_t*                    _out_hash
 )
 {
     size_t p = _at;
@@ -494,12 +493,12 @@ d_internal_read_token
 ends a line or the file.
   Long as it is a table of the tokens, each a line or two.
 */
-static enum d_internal_token
+static enum dj_internal_token
 d_internal_read_token(
-    struct d_internal_reader* _reader
+    struct dj_internal_reader* _reader
 )
 {
-    enum d_internal_token token = D_INTERNAL_ERROR;
+    enum dj_internal_token token = D_INTERNAL_ERROR;
     size_t                start = _reader->at;
 
     // past each comment line
@@ -612,9 +611,9 @@ d_internal_read_token(
 d_internal_unread, d_internal_peek
   Ninja's UnreadToken, back to the last token's start, and PeekToken.
 */
-static void
-d_internal_unread(
-    struct d_internal_reader* _reader
+static
+void d_internal_unread(
+    struct dj_internal_reader* _reader
 )
 {
     _reader->at = _reader->last;
@@ -625,8 +624,8 @@ d_internal_unread(
 
 static bool
 d_internal_peek(
-    struct d_internal_reader* _reader,
-    enum d_internal_token     _token
+    struct dj_internal_reader* _reader,
+    enum dj_internal_token     _token
 )
 {
     // the token wanted is taken; any other is put back
@@ -647,7 +646,7 @@ d_internal_token_name
 */
 static const char*
 d_internal_token_name(
-    enum d_internal_token _token
+    enum dj_internal_token _token
 )
 {
     static const char* const names[] =
@@ -666,9 +665,9 @@ d_internal_describe
   Ninja's DescribeLastError: a tab says so; anything else is a lexing
 error.
 */
-static const char*
-d_internal_describe(
-    const struct d_internal_reader* _reader
+static
+const char* d_internal_describe(
+    const struct dj_internal_reader* _reader
 )
 {
     return (d_internal_byte(_reader, _reader->last) == '\t')
@@ -683,11 +682,11 @@ found.
 */
 static bool
 d_internal_expect(
-    struct d_internal_reader* _reader,
-    enum d_internal_token     _token
+    struct dj_internal_reader* _reader,
+    enum dj_internal_token     _token
 )
 {
-    const enum d_internal_token found = d_internal_read_token(_reader);
+    const enum dj_internal_token found = d_internal_read_token(_reader);
     char                        message[128];
 
     // the token wanted
@@ -711,11 +710,11 @@ d_internal_read_ident
   Ninja's ReadIdent: a name at `at`, its span given, and the blanks after
 it eaten; false, `last` at the place, when no name stands there.
 */
-static bool
-d_internal_read_ident(
-    struct d_internal_reader* _reader,
-    size_t*                   _out_start,
-    size_t*                   _out_end
+static
+bool d_internal_read_ident(
+    struct dj_internal_reader* _reader,
+    size_t*                    _out_start,
+    size_t*                    _out_end
 )
 {
     const size_t run = d_internal_name_run(_reader, _reader->at, false);
@@ -749,16 +748,16 @@ as ninja's EvalString joins its text.
 */
 static bool
 d_internal_add_piece(
-    struct d_internal_reader* _reader,
-    struct d_ninja_value*     _value,
-    enum d_ninja_piece_kind   _kind,
+    struct dj_internal_reader* _reader,
+    struct dj_ninja_value*     _value,
+    enum dj_ninja_piece_kind   _kind,
     size_t                    _start,
     size_t                    _end,
     size_t                    _name_start,
     size_t                    _name_end
 )
 {
-    struct d_ninja* const ninja = _reader->ninja;
+    struct dj_ninja* const ninja = _reader->ninja;
 
     // text after text is the same piece, longer
     if ( (_kind == D_NINJA_TEXT) &&
@@ -778,7 +777,7 @@ d_internal_add_piece(
         return d_internal_no_memory(_reader);
     }
 
-    struct d_ninja_piece* const piece = &ninja->pieces[ninja->piece_count++];
+    struct dj_ninja_piece* const piece = &ninja->pieces[ninja->piece_count++];
 
     piece->kind       = _kind;
     piece->start      = _start;
@@ -797,13 +796,13 @@ d_internal_dollar
 name is given; 0 for a bad escape, after ninja's message is made.
   Long as it is a table of the escapes, each a line or two.
 */
-static size_t
-d_internal_dollar(
-    struct d_internal_reader* _reader,
-    size_t                    _at,
-    bool*                     _out_reference,
-    size_t*                   _out_name_start,
-    size_t*                   _out_name_end
+static
+size_t d_internal_dollar(
+    struct dj_internal_reader* _reader,
+    size_t                     _at,
+    bool*                      _out_reference,
+    size_t*                    _out_name_start,
+    size_t*                    _out_name_end
 )
 {
     const char c = d_internal_byte(_reader, _at + 1u);
@@ -887,8 +886,8 @@ d_internal_plain
   Whether a byte is text to ReadEvalString, which ends a run only at `$`,
 space, `:`, a line ending, `|` or NUL.
 */
-static bool
-d_internal_plain(
+static
+bool d_internal_plain(
     char _c
 )
 {
@@ -909,12 +908,12 @@ added to the value, `p` moved past it; 1 to go on, 0 at the value's end,
 `p` then at its delimiter, and -1 for a failure.
   Long as it is a table of what may stand at the place.
 */
-static int
-d_internal_value_step(
-    struct d_internal_reader* _reader,
-    struct d_ninja_value*     _value,
-    bool                      _path,
-    size_t*                   _p
+static
+int d_internal_value_step(
+    struct dj_internal_reader* _reader,
+    struct dj_ninja_value*     _value,
+    bool                       _path,
+    size_t*                    _p
 )
 {
     const size_t start = *_p;
@@ -1009,14 +1008,14 @@ A path ends before a space, `:`, `|` or a line ending, and the blanks after
 it are eaten; a value ends at its line ending, which is read with it but is
 no part of it.
 */
-static bool
-d_internal_read_value(
-    struct d_internal_reader* _reader,
-    bool                      _path,
-    size_t*                   _out_value
+static
+bool d_internal_read_value(
+    struct dj_internal_reader* _reader,
+    bool                       _path,
+    size_t*                    _out_value
 )
 {
-    struct d_ninja* const ninja = _reader->ninja;
+    struct dj_ninja* const ninja = _reader->ninja;
 
     // room for one more
     if (!d_internal_grow((void**)&ninja->values, &_reader->value_capacity,
@@ -1025,7 +1024,7 @@ d_internal_read_value(
         return d_internal_no_memory(_reader);
     }
 
-    struct d_ninja_value value;
+    struct dj_ninja_value value;
     size_t               p    = _reader->at;
     int                  step = 1;
 
@@ -1071,14 +1070,14 @@ d_internal_read_value(
 d_internal_begin
   A statement begun at `_start`, of a kind; NULL when memory runs out.
 */
-static struct d_ninja_statement*
+static struct dj_ninja_statement*
 d_internal_begin(
-    struct d_internal_reader* _reader,
-    enum d_ninja_kind         _kind,
+    struct dj_internal_reader* _reader,
+    enum dj_ninja_kind         _kind,
     size_t                    _start
 )
 {
-    struct d_ninja* const ninja = _reader->ninja;
+    struct dj_ninja* const ninja = _reader->ninja;
 
     // room for one more
     if (!d_internal_grow((void**)&ninja->statements,
@@ -1090,7 +1089,7 @@ d_internal_begin(
         return NULL;
     }
 
-    struct d_ninja_statement* const statement =
+    struct dj_ninja_statement* const statement =
         &ninja->statements[ninja->statement_count];
 
     memset(statement, 0, sizeof(*statement));
@@ -1113,14 +1112,14 @@ d_internal_finish
   Keeps the statement begun: it ends at `_end`, and ninja reads next at
 `at`, past any comment.
 */
-static void
-d_internal_finish(
-    struct d_internal_reader* _reader,
-    size_t                    _end
+static
+void d_internal_finish(
+    struct dj_internal_reader* _reader,
+    size_t                     _end
 )
 {
-    struct d_ninja* const           ninja     = _reader->ninja;
-    struct d_ninja_statement* const statement =
+    struct dj_ninja* const           ninja     = _reader->ninja;
+    struct dj_ninja_statement* const statement =
         &ninja->statements[ninja->statement_count++];
     size_t                          next      = _reader->at;
     size_t                          hash      = 0;
@@ -1156,12 +1155,12 @@ d_internal_add_path
 */
 static bool
 d_internal_add_path(
-    struct d_internal_reader* _reader,
+    struct dj_internal_reader* _reader,
     size_t                    _value,
-    enum d_ninja_section      _section
+    enum dj_ninja_section      _section
 )
 {
-    struct d_ninja* const ninja = _reader->ninja;
+    struct dj_ninja* const ninja = _reader->ninja;
 
     // room for one more
     if (!d_internal_grow((void**)&ninja->paths, &_reader->path_capacity,
@@ -1186,12 +1185,12 @@ was read, which `_out_any` says.
 */
 static bool
 d_internal_paths(
-    struct d_internal_reader* _reader,
-    enum d_ninja_section      _section,
+    struct dj_internal_reader* _reader,
+    enum dj_ninja_section      _section,
     bool*                     _out_any
 )
 {
-    struct d_ninja* const ninja = _reader->ninja;
+    struct dj_ninja* const ninja = _reader->ninja;
 
     *_out_any = false;
 
@@ -1230,12 +1229,12 @@ d_internal_let
   Ninja's ParseLet at `at`: a name, `=`, and a value to its line's end,
 whose index is given.
 */
-static bool
-d_internal_let(
-    struct d_internal_reader* _reader,
-    size_t*                   _out_name_start,
-    size_t*                   _out_name_end,
-    size_t*                   _out_value
+static
+bool d_internal_let(
+    struct dj_internal_reader* _reader,
+    size_t*                    _out_name_start,
+    size_t*                    _out_name_end,
+    size_t*                    _out_value
 )
 {
     // a name
@@ -1256,13 +1255,13 @@ d_internal_bindings
 the comment lines among them skipped; the end of the last, or `_end`, is
 given.
 */
-static bool
-d_internal_bindings(
-    struct d_internal_reader* _reader,
-    size_t*                   _io_end
+static
+bool d_internal_bindings(
+    struct dj_internal_reader* _reader,
+    size_t*                    _io_end
 )
 {
-    struct d_ninja* const ninja = _reader->ninja;
+    struct dj_ninja* const ninja = _reader->ninja;
 
     // each indented line
     while (d_internal_peek(_reader, D_INTERNAL_INDENT))
@@ -1282,7 +1281,7 @@ d_internal_bindings(
             return (_reader->failed) ? false : d_internal_no_memory(_reader);
         }
 
-        struct d_ninja_binding* const binding =
+        struct dj_ninja_binding* const binding =
             &ninja->bindings[ninja->binding_count++];
 
         binding->start      = start;
@@ -1304,11 +1303,11 @@ d_internal_bindings(
 d_internal_binding_is
   Whether a binding of the statement begun has a name.
 */
-static bool
-d_internal_binding_is(
-    const struct d_internal_reader* _reader,
-    const struct d_ninja_binding*   _binding,
-    const char*                     _name
+static
+bool d_internal_binding_is(
+    const struct dj_internal_reader* _reader,
+    const struct dj_ninja_binding*   _binding,
+    const char*                      _name
 )
 {
     const size_t span = strlen(_name);
@@ -1324,21 +1323,21 @@ d_internal_has_value
   Whether the statement begun has a binding of a name whose value is not
 empty, as ninja's `bindings_[name].empty()` asks.
 */
-static bool
-d_internal_has_value(
-    const struct d_internal_reader* _reader,
-    const char*                     _name
+static
+bool d_internal_has_value(
+    const struct dj_internal_reader* _reader,
+    const char*                      _name
 )
 {
-    const struct d_ninja* const           ninja     = _reader->ninja;
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja* const           ninja     = _reader->ninja;
+    const struct dj_ninja_statement* const statement =
         &ninja->statements[ninja->statement_count];
     bool                                  has       = false;
 
     // the last binding of the name is the one the rule keeps
     for (size_t at = 0; at < statement->binding_count; ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &ninja->bindings[statement->first_binding + at];
 
         // the name's
@@ -1360,13 +1359,13 @@ both or neither of rspfile and rspfile_content; a pool needs its depth.
 */
 static bool
 d_internal_check_bindings(
-    struct d_internal_reader* _reader,
-    enum d_ninja_kind         _kind,
+    struct dj_internal_reader* _reader,
+    enum dj_ninja_kind         _kind,
     size_t                    _next
 )
 {
-    const struct d_ninja* const           ninja     = _reader->ninja;
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja* const           ninja     = _reader->ninja;
+    const struct dj_ninja_statement* const statement =
         &ninja->statements[ninja->statement_count];
     bool                                  depth     = false;
     char                                  message[192];
@@ -1374,7 +1373,7 @@ d_internal_check_bindings(
     // each binding, one the statement may have
     for (size_t at = 0; at < statement->binding_count; ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &ninja->bindings[statement->first_binding + at];
         const char* const name = &_reader->text[binding->name_start];
         const size_t      span = binding->name_end - binding->name_start;
@@ -1428,11 +1427,11 @@ as ninja checks them.
 */
 static bool
 d_internal_named(
-    struct d_internal_reader* _reader,
-    enum d_ninja_kind         _kind
+    struct dj_internal_reader* _reader,
+    enum dj_ninja_kind         _kind
 )
 {
-    struct d_ninja_statement* const statement =
+    struct dj_ninja_statement* const statement =
         d_internal_begin(_reader, _kind, _reader->last);
     size_t                          end       = 0;
 
@@ -1485,12 +1484,12 @@ d_internal_variable
   A variable at the top level: its name, `=` and its value; the version a
 ninja_required_version asks for is kept, for `$^`.
 */
-static bool
-d_internal_variable(
-    struct d_internal_reader* _reader
+static
+bool d_internal_variable(
+    struct dj_internal_reader* _reader
 )
 {
-    struct d_ninja_statement* const statement =
+    struct dj_ninja_statement* const statement =
         d_internal_begin(_reader, D_NINJA_VARIABLE, _reader->at);
 
     // room for it, and the let
@@ -1510,7 +1509,7 @@ d_internal_variable(
          (memcmp(&_reader->text[statement->name_start],
                  "ninja_required_version", 22u) == 0) )
     {
-        const struct d_ninja_value* const value =
+        const struct dj_ninja_value* const value =
             &_reader->ninja->values[statement->value];
         char                              text[32];
         size_t                            used = 0;
@@ -1518,7 +1517,7 @@ d_internal_variable(
         // its text, its references read as nothing
         for (size_t at = 0; at < value->piece_count; ++at)
         {
-            const struct d_ninja_piece* const piece =
+            const struct dj_ninja_piece* const piece =
                 &_reader->ninja->pieces[value->first_piece + at];
             char                              part[64];
 
@@ -1553,12 +1552,12 @@ d_internal_variable(
 d_internal_default
   A default: its targets, at least one, and its line's end.
 */
-static bool
-d_internal_default(
-    struct d_internal_reader* _reader
+static
+bool d_internal_default(
+    struct dj_internal_reader* _reader
 )
 {
-    struct d_ninja_statement* const statement =
+    struct dj_ninja_statement* const statement =
         d_internal_begin(_reader, D_NINJA_DEFAULT, _reader->last);
     bool                            any       = false;
 
@@ -1595,11 +1594,11 @@ d_internal_file
 */
 static bool
 d_internal_file(
-    struct d_internal_reader* _reader,
-    enum d_ninja_kind         _kind
+    struct dj_internal_reader* _reader,
+    enum dj_ninja_kind         _kind
 )
 {
-    struct d_ninja_statement* const statement =
+    struct dj_ninja_statement* const statement =
         d_internal_begin(_reader, _kind, _reader->last);
     size_t                          value     = 0;
 
@@ -1631,17 +1630,17 @@ d_internal_sections
   A build's sections after its outputs: `:`, its rule, its inputs, and the
 three that follow a pipe, each when its pipe stands there.
 */
-static bool
-d_internal_sections(
-    struct d_internal_reader*  _reader,
-    struct d_ninja_statement* _statement
+static
+bool d_internal_sections(
+    struct dj_internal_reader* _reader,
+    struct dj_ninja_statement* _statement
 )
 {
-    static const enum d_internal_token pipes[] =
+    static const enum dj_internal_token pipes[] =
     {
         D_INTERNAL_PIPE, D_INTERNAL_PIPE2, D_INTERNAL_PIPEAT
     };
-    static const enum d_ninja_section  sections[] =
+    static const enum dj_ninja_section  sections[] =
     {
         D_NINJA_IMPLICIT, D_NINJA_ORDER_ONLY, D_NINJA_VALIDATION
     };
@@ -1687,12 +1686,12 @@ d_internal_build
   A build: its outputs, its implicit outputs after a `|`, the rest of its
 line, its line's end, and its bindings.
 */
-static bool
-d_internal_build(
-    struct d_internal_reader* _reader
+static
+bool d_internal_build(
+    struct dj_internal_reader* _reader
 )
 {
-    struct d_ninja_statement* const statement =
+    struct dj_ninja_statement* const statement =
         d_internal_begin(_reader, D_NINJA_BUILD, _reader->last);
     bool                            outputs   = false;
     bool                            implicit  = false;
@@ -1746,12 +1745,12 @@ d_internal_statement
   One statement, by the token that opens it; a line ending alone is none.
 1 for a statement read, 0 at the file's end, -1 for a failure.
 */
-static int
-d_internal_statement(
-    struct d_internal_reader* _reader
+static
+int d_internal_statement(
+    struct dj_internal_reader* _reader
 )
 {
-    const enum d_internal_token token = d_internal_read_token(_reader);
+    const enum dj_internal_token token = d_internal_read_token(_reader);
     char                        message[64];
 
     // a table of what opens a statement
@@ -1808,9 +1807,9 @@ d_internal_statement(
 d_internal_place_comments
   Each comment among a statement's bindings is that statement's.
 */
-static void
-d_internal_place_comments(
-    struct d_ninja* _ninja
+static
+void d_internal_place_comments(
+    struct dj_ninja* _ninja
 )
 {
     size_t statement = 0;
@@ -1818,7 +1817,7 @@ d_internal_place_comments(
     // each comment, against the statements in order
     for (size_t at = 0; at < _ninja->comment_count; ++at)
     {
-        struct d_ninja_comment* const comment = &_ninja->comments[at];
+        struct dj_ninja_comment* const comment = &_ninja->comments[at];
 
         // the statements that end before it are passed
         while ( (statement < _ninja->statement_count) &&
@@ -1839,16 +1838,15 @@ d_internal_place_comments(
 }
 
 
-bool
-d_ninja_read(
-    struct d_ninja* _out,
-    const char*     _text,
-    size_t          _length,
-    char*           _problem,
-    size_t          _capacity
+bool d_ninja_read(
+    struct dj_ninja* _out,
+    const char*      _text,
+    size_t           _length,
+    char*            _problem,
+    size_t           _capacity
 )
 {
-    struct d_internal_reader reader;
+    struct dj_internal_reader reader;
 
     // parameter validation first
     if (!_out)
@@ -1904,9 +1902,8 @@ d_ninja_read(
 }
 
 
-void
-d_ninja_release(
-    struct d_ninja* _ninja
+void d_ninja_release(
+    struct dj_ninja* _ninja
 )
 {
     // releasing nothing is allowed
@@ -1935,7 +1932,7 @@ d_ninja_release(
 
 const char*
 d_ninja_kind_name(
-    enum d_ninja_kind _kind
+    enum dj_ninja_kind _kind
 )
 {
     static const char* const names[] =
@@ -1950,7 +1947,7 @@ d_ninja_kind_name(
 
 const char*
 d_ninja_section_name(
-    enum d_ninja_section _section
+    enum dj_ninja_section _section
 )
 {
     static const char* const names[] =
@@ -1964,8 +1961,7 @@ d_ninja_section_name(
 }
 
 
-bool
-d_ninja_is_name(
+bool d_ninja_is_name(
     const char* _text,
     size_t      _length
 )
@@ -1991,8 +1987,7 @@ d_ninja_is_name(
 }
 
 
-bool
-d_ninja_is_reserved(
+bool d_ninja_is_reserved(
     const char* _name,
     size_t      _length
 )
@@ -2024,11 +2019,10 @@ d_ninja_text_of
 newline, and a continuation, `$` and its line ending and the blanks after
 it, nothing.
 */
-size_t
-d_ninja_text_of(
-    const struct d_ninja*       _ninja,
-    const struct d_ninja_piece* _piece,
-    char*                       _out
+size_t d_ninja_text_of(
+    const struct dj_ninja*       _ninja,
+    const struct dj_ninja_piece* _piece,
+    char*                        _out
 )
 {
     size_t used = 0;
@@ -2084,11 +2078,10 @@ d_ninja_unparse
   Text decoded, a reference written as `${name}`; a reference's own form
 is never longer than that, but `$x` is shorter, hence the room asked for.
 */
-size_t
-d_ninja_unparse(
-    const struct d_ninja*       _ninja,
-    const struct d_ninja_value* _value,
-    char*                       _out
+size_t d_ninja_unparse(
+    const struct dj_ninja*       _ninja,
+    const struct dj_ninja_value* _value,
+    char*                        _out
 )
 {
     size_t used = 0;
@@ -2096,7 +2089,7 @@ d_ninja_unparse(
     // each piece
     for (size_t at = 0; at < _value->piece_count; ++at)
     {
-        const struct d_ninja_piece* const piece =
+        const struct dj_ninja_piece* const piece =
             &_ninja->pieces[_value->first_piece + at];
 
         // a table of the two kinds
@@ -2131,8 +2124,8 @@ d_ninja_unparse(
 d_internal_escape_byte
   How one byte is written, into `_out`: its length, or 0 when it cannot be.
 */
-static size_t
-d_internal_escape_byte(
+static
+size_t d_internal_escape_byte(
     char  _c,
     bool  _path,
     bool  _newline,
@@ -2174,8 +2167,7 @@ d_internal_escape_byte(
 }
 
 
-char*
-d_ninja_escape(
+char* d_ninja_escape(
     const char* _text,
     size_t      _length,
     bool        _path,
@@ -2232,8 +2224,8 @@ d_ninja_escape(
 d_internal_separator
   Whether a byte separates a path's components: `/`, and `\` on Windows.
 */
-static bool
-d_internal_separator(
+static
+bool d_internal_separator(
     char _c,
     bool _win32
 )
@@ -2248,8 +2240,8 @@ d_internal_back_up
   Takes the destination back to the start of the component before it, as
 CanonicalizePath backs up over one for a `..`.
 */
-static size_t
-d_internal_back_up(
+static
+size_t d_internal_back_up(
     const char* _out,
     size_t      _dst,
     size_t      _dst0,
@@ -2274,8 +2266,8 @@ d_internal_component
   One component of a path being made canonical, `_src` to `_next` with its
 separator, or to the end without one: dropped, backed over, or copied.
 */
-static size_t
-d_internal_component(
+static
+size_t d_internal_component(
     const char* _path,
     size_t      _src,
     size_t      _next,
@@ -2334,8 +2326,7 @@ without a separator after it; a trailing separator dropped, and "." for
 nothing left.  Windows' `\` become `/`.
   Long as the leading part, the components, and the end are each a step.
 */
-size_t
-d_ninja_canonical(
+size_t d_ninja_canonical(
     const char* _path,
     size_t      _length,
     bool        _win32,
@@ -2441,8 +2432,8 @@ d_internal_shell_safe
   A byte a shell takes as itself: a letter, a digit, `_`, `+`, `-`, `.`,
 `/`.
 */
-static bool
-d_internal_shell_safe(
+static
+bool d_internal_shell_safe(
     char _c
 )
 {
@@ -2462,8 +2453,8 @@ d_internal_needs_quotes
   Whether a path needs quoting: a byte a shell would not take as itself,
 or, on Windows, a space or a quote.
 */
-static bool
-d_internal_needs_quotes(
+static
+bool d_internal_needs_quotes(
     const char* _path,
     size_t      _length,
     bool        _win32
@@ -2484,8 +2475,7 @@ d_internal_needs_quotes(
 }
 
 
-char*
-d_ninja_shell_escape(
+char* d_ninja_shell_escape(
     const char* _path,
     size_t      _length,
     bool        _win32,

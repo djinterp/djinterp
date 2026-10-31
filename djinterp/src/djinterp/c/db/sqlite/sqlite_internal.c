@@ -28,9 +28,9 @@
 #include <stdlib.h>  // malloc, free
 #include <string.h>  // memcpy, strchr, strlen
 // djinterp
-#include "../db_internal.h"  // d_internal_db_names, d_internal_db_vformat
+#include "../db_internal.h"  // dj_internal_db_names, d_internal_db_vformat
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_SQLITE == 1)
@@ -39,13 +39,13 @@
 // FILE-LOCAL DEFINITIONS
 //==============================================================================
 
-// d_internal_sqlite_formatted
+// dj_internal_sqlite_formatted
 //   struct: a statement's formatted text, and whose memory holds it:
 // sqlite3_mprintf's, or the shared formatter's buffer.
-struct d_internal_sqlite_formatted
+struct dj_internal_sqlite_formatted
 {
     char*                       text;    // the statement; NULL before
-    struct d_internal_db_buffer shared;  // the buffer, when the shared
+    struct dj_internal_db_buffer shared;  // the buffer, when the shared
                                          // formatter wrote it
 };
 
@@ -62,11 +62,11 @@ struct d_internal_sqlite_formatted
  * The text is copied a run at a time, each run ending at a quote, which is
  * then written a second time.
  */
-static bool
-d_internal_sqlite_append_quoted(
-    struct d_internal_db_buffer* _out,
-    const char*                  _text,
-    char                         _quote
+static
+bool d_internal_sqlite_append_quoted(
+    struct dj_internal_db_buffer* _out,
+    const char*                   _text,
+    char                          _quote
 )
 {
     const size_t length_before = _out->length;
@@ -109,11 +109,11 @@ d_internal_sqlite_append_quoted(
  * @param[in]     _text     the value.
  * @return `true`, or `false` when memory ran out, the buffer as it was.
  */
-static bool
-d_internal_sqlite_quote_value(
-    void*                        _context,
-    struct d_internal_db_buffer* _out,
-    const char*                  _text
+static
+bool d_internal_sqlite_quote_value(
+    void*                         _context,
+    struct dj_internal_db_buffer* _out,
+    const char*                   _text
 )
 {
     (void)_context;
@@ -129,11 +129,11 @@ d_internal_sqlite_quote_value(
  * @param[in]     _name     the name.
  * @return `true`, or `false` when memory ran out, the buffer as it was.
  */
-static bool
-d_internal_sqlite_quote_name(
-    void*                        _context,
-    struct d_internal_db_buffer* _out,
-    const char*                  _name
+static
+bool d_internal_sqlite_quote_name(
+    void*                         _context,
+    struct dj_internal_db_buffer* _out,
+    const char*                   _name
 )
 {
     (void)_context;
@@ -153,8 +153,8 @@ d_internal_sqlite_quote_name(
  * names them, and reading such a format in the shared dialect changes
  * nothing that worked.
  */
-static bool
-d_internal_sqlite_names_shared(
+static
+bool d_internal_sqlite_names_shared(
     const char* _format
 )
 {
@@ -205,11 +205,11 @@ d_internal_sqlite_names_shared(
  *         argument it refuses: a NULL name, a NUL character, a NaN or an
  *         infinity.
  */
-static int
-d_internal_sqlite_vformat(
-    struct d_internal_sqlite_formatted* _formatted,
-    const char*                         _format,
-    va_list                             _args
+static
+int d_internal_sqlite_vformat(
+    struct dj_internal_sqlite_formatted* _formatted,
+    const char*                          _format,
+    va_list                              _args
 )
 {
     _formatted->text            = NULL;
@@ -226,13 +226,13 @@ d_internal_sqlite_vformat(
                                   : SQLITE_NOMEM;
     }
 
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
     {
         d_internal_sqlite_quote_value,
         d_internal_sqlite_quote_name,
         NULL
     };
-    const enum d_internal_db_format_status status =
+    const enum dj_internal_db_format_status status =
         d_internal_db_vformat(&_formatted->shared, &quoting, _format, _args);
 
     // memory, or a format or an argument the dialect refuses
@@ -253,9 +253,9 @@ d_internal_sqlite_vformat(
  *
  * @param[in,out] _formatted  the text; empty after.
  */
-static void
-d_internal_sqlite_formatted_release(
-    struct d_internal_sqlite_formatted* _formatted
+static
+void d_internal_sqlite_formatted_release(
+    struct dj_internal_sqlite_formatted* _formatted
 )
 {
     // the shared formatter's buffer, or sqlite3_mprintf's text
@@ -284,8 +284,8 @@ d_internal_sqlite_formatted_release(
  * and a block comment to its `*` `/`, or to the end of the text when it has
  * none.
  */
-static bool
-d_internal_sqlite_only_space(
+static
+bool d_internal_sqlite_only_space(
     const char* _tail
 )
 {
@@ -342,8 +342,8 @@ d_internal_sqlite_only_space(
  * @param[in] _word      the word, in capitals.
  * @return `true` when the word appears.
  */
-static bool
-d_internal_sqlite_names_word(
+static
+bool d_internal_sqlite_names_word(
     const char* _declared,
     const char* _word
 )
@@ -373,8 +373,7 @@ d_internal_sqlite_schema
   "main" is the database an unqualified CREATE writes to, which makes it the
 least surprising default for every function that takes a schema.
 */
-const char*
-d_internal_sqlite_schema(
+const char* d_internal_sqlite_schema(
     const char* _schema
 )
 {
@@ -388,8 +387,7 @@ arrived only with 3.33.0's sqlite_schema renaming, so this names the one
 spelling every version accepts. SQLite matches schema names ASCII-blind, as
 sqlite3_stricmp does.
 */
-const char*
-d_internal_sqlite_schema_table(
+const char* d_internal_sqlite_schema_table(
     const char* _schema
 )
 {
@@ -402,8 +400,7 @@ d_internal_sqlite_schema_table(
 d_internal_sqlite_is_main
   As SQLite matches schema names: ASCII-blind.
 */
-bool
-d_internal_sqlite_is_main(
+bool d_internal_sqlite_is_main(
     const char* _schema
 )
 {
@@ -415,8 +412,7 @@ d_internal_sqlite_name_ok
   SQLite would accept an empty quoted name, but a caller passing one has
 almost certainly made a mistake, and the layer says so with SQLITE_MISUSE.
 */
-bool
-d_internal_sqlite_name_ok(
+bool d_internal_sqlite_name_ok(
     const char* _name
 )
 {
@@ -428,8 +424,7 @@ d_internal_sqlite_name_ok(
 d_internal_sqlite_schema_ok
   NULL is the documented way to say "main"; an empty name is never one.
 */
-bool
-d_internal_sqlite_schema_ok(
+bool d_internal_sqlite_schema_ok(
     const char* _schema
 )
 {
@@ -441,8 +436,7 @@ d_internal_sqlite_schema_ok(
 d_internal_sqlite_runtime_at_least
   The library actually loaded decides, not the header compiled against.
 */
-bool
-d_internal_sqlite_runtime_at_least(
+bool d_internal_sqlite_runtime_at_least(
     int _version
 )
 {
@@ -460,15 +454,14 @@ d_internal_sqlite_vprepare
   The format's dialect does the quoting it asks for, and the formatted text
 is freed as soon as SQLite has compiled it.
 */
-int
-d_internal_sqlite_vprepare(
+int d_internal_sqlite_vprepare(
     sqlite3*       _db,
     sqlite3_stmt** _statement,
     const char*    _format,
     va_list        _args
 )
 {
-    struct d_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
+    struct dj_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
 
     *_statement = NULL;
 
@@ -491,8 +484,7 @@ d_internal_sqlite_vprepare(
 d_internal_sqlite_prepare
   The variadic face of d_internal_sqlite_vprepare.
 */
-int
-d_internal_sqlite_prepare(
+int d_internal_sqlite_prepare(
     sqlite3*       _db,
     sqlite3_stmt** _statement,
     const char*    _format,
@@ -519,8 +511,7 @@ d_internal_sqlite_prepare_one
 rest is read by hand rather than compiled, so a refusal does not replace the
 connection's message with one about the text that follows.
 */
-int
-d_internal_sqlite_prepare_one(
+int d_internal_sqlite_prepare_one(
     sqlite3*       _db,
     sqlite3_stmt** _statement,
     const char*    _sql
@@ -556,15 +547,14 @@ d_internal_sqlite_vprepare_one
   The text after the statement is read before the formatted text is freed,
 since the tail points into it.
 */
-int
-d_internal_sqlite_vprepare_one(
+int d_internal_sqlite_vprepare_one(
     sqlite3*       _db,
     sqlite3_stmt** _statement,
     const char*    _format,
     va_list        _args
 )
 {
-    struct d_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
+    struct dj_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
 
     *_statement = NULL;
 
@@ -589,14 +579,13 @@ d_internal_sqlite_vexecute
   sqlite3_exec runs every statement in the text and stops at the first
 failure, leaving its message on the connection.
 */
-int
-d_internal_sqlite_vexecute(
+int d_internal_sqlite_vexecute(
     sqlite3*    _db,
     const char* _format,
     va_list     _args
 )
 {
-    struct d_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
+    struct dj_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
     const int formatted = d_internal_sqlite_vformat(&sql, _format, _args);
 
     // nothing to run
@@ -616,8 +605,7 @@ d_internal_sqlite_vexecute(
 d_internal_sqlite_execute
   The variadic face of d_internal_sqlite_vexecute.
 */
-int
-d_internal_sqlite_execute(
+int d_internal_sqlite_execute(
     sqlite3*    _db,
     const char* _format,
     ...
@@ -640,8 +628,7 @@ d_internal_sqlite_execute_counted
 prepared and run here one at a time, as it would run them, each counted by
 d_internal_sqlite_run; the last count stands.
 */
-int
-d_internal_sqlite_execute_counted(
+int d_internal_sqlite_execute_counted(
     sqlite3*    _db,
     int64_t*    _changes,
     const char* _sql
@@ -692,15 +679,14 @@ d_internal_sqlite_vexecute_counted
   The formatted text outlives every statement prepared from it, since each
 tail points into it.
 */
-int
-d_internal_sqlite_vexecute_counted(
+int d_internal_sqlite_vexecute_counted(
     sqlite3*    _db,
     int64_t*    _changes,
     const char* _format,
     va_list     _args
 )
 {
-    struct d_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
+    struct dj_internal_sqlite_formatted sql = { NULL, { NULL, 0u, 0u } };
     const int formatted = d_internal_sqlite_vformat(&sql, _format, _args);
 
     // nothing to run
@@ -723,8 +709,7 @@ d_internal_sqlite_finish
 step; the step's own code is kept because it is the one the caller saw
 happen. A successful step's result is whatever finalizing reports.
 */
-int
-d_internal_sqlite_finish(
+int d_internal_sqlite_finish(
     sqlite3_stmt* _statement,
     int           _result
 )
@@ -748,8 +733,7 @@ d_internal_sqlite_finish(
 d_internal_sqlite_step_int64
   One step decides: a row carries the value, SQLITE_DONE means there was none.
 */
-int
-d_internal_sqlite_step_int64(
+int d_internal_sqlite_step_int64(
     sqlite3_stmt* _statement,
     int64_t*      _value
 )
@@ -777,8 +761,7 @@ d_internal_sqlite_step_int64(
 d_internal_sqlite_step_double
   As d_internal_sqlite_step_int64, reading a double.
 */
-int
-d_internal_sqlite_step_double(
+int d_internal_sqlite_step_double(
     sqlite3_stmt* _statement,
     double*       _value
 )
@@ -809,8 +792,7 @@ statement, and copied by length rather than to the first NUL, so text holding
 NULs survives whole. sqlite3_column_text returning NULL for a value that is
 not NULL means SQLite could not allocate the conversion.
 */
-int
-d_internal_sqlite_step_text(
+int d_internal_sqlite_step_text(
     sqlite3_stmt* _statement,
     char**        _value
 )
@@ -869,14 +851,13 @@ d_internal_sqlite_collect_names
 dies with the next step. A failure part-way keeps the step's code and drops
 what was collected, so the caller never receives half a list.
 */
-int
-d_internal_sqlite_collect_names(
-    sqlite3_stmt*          _statement,
-    int                    _column,
-    struct d_db_name_list* _names
+int d_internal_sqlite_collect_names(
+    sqlite3_stmt*           _statement,
+    int                     _column,
+    struct dj_db_name_list* _names
 )
 {
-    struct d_internal_db_names builder =
+    struct dj_internal_db_names builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u
     };
@@ -931,10 +912,9 @@ d_internal_sqlite_describe_columns
   The columns are described from the statement itself, which SQLite allows
 before the first step.
 */
-int
-d_internal_sqlite_describe_columns(
-    sqlite3_stmt*              _statement,
-    struct d_internal_db_rows* _builder
+int d_internal_sqlite_describe_columns(
+    sqlite3_stmt*               _statement,
+    struct dj_internal_db_rows* _builder
 )
 {
     const int columns = sqlite3_column_count(_statement);
@@ -967,10 +947,9 @@ next step. sqlite3_column_text is read before sqlite3_column_bytes, the order
 SQLite asks for, so the count is of the text read. A zero-length BLOB reads
 as NULL from sqlite3_column_blob and is still a BLOB.
 */
-int
-d_internal_sqlite_keep_row(
-    sqlite3_stmt*              _statement,
-    struct d_internal_db_rows* _builder
+int d_internal_sqlite_keep_row(
+    sqlite3_stmt*               _statement,
+    struct dj_internal_db_rows* _builder
 )
 {
     const int columns = sqlite3_column_count(_statement);
@@ -1047,13 +1026,12 @@ arrives. The reset before the first step may report the previous run's
 failure, which is not this run's; the one after the last repeats this run's,
 which the caller already has.
 */
-int
-d_internal_sqlite_collect_rows(
-    sqlite3_stmt*     _statement,
-    struct d_db_rows* _rows
+int d_internal_sqlite_collect_rows(
+    sqlite3_stmt*      _statement,
+    struct dj_db_rows* _rows
 )
 {
-    struct d_internal_db_rows builder =
+    struct dj_internal_db_rows builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
     };
@@ -1094,8 +1072,7 @@ finish, so after a statement of any other kind it still holds an older
 statement's. The running total moves only when rows change, and so tells the
 two apart; a statement that changed none counts the rows it returned, if any.
 */
-int
-d_internal_sqlite_run(
+int d_internal_sqlite_run(
     sqlite3_stmt* _statement,
     int64_t*      _changes
 )
@@ -1136,7 +1113,7 @@ ASCII case; anything else falls to SQLite's own affinity rules, in SQLite's
 order -- INT first, so that SQLite's well-known reading of "FLOATING POINT"
 as an integer type is kept, since it is how SQLite stores the values.
 */
-enum d_db_type
+enum dj_db_type
 d_internal_sqlite_declared_type(
     const char* _declared
 )
@@ -1144,7 +1121,7 @@ d_internal_sqlite_declared_type(
     static const struct
     {
         const char*    name;  // as written, in capitals
-        enum d_db_type type;  // what it names
+        enum dj_db_type type;  // what it names
     } names[] =
     {
         { "BOOLEAN",          D_DB_TYPE_BOOLEAN },
@@ -1242,9 +1219,9 @@ d_internal_sqlite_declared_type(
 
 #else
 
-// d_internal_sqlite_no_plumbing
+// dj_internal_sqlite_no_plumbing
 //   type: declared so that the translation unit is not empty, which ISO C
 // forbids; built as stubs, the layer has no plumbing to define.
-typedef int d_internal_sqlite_no_plumbing;
+typedef int dj_internal_sqlite_no_plumbing;
 
 #endif  // D_INTERNAL_SQLITE

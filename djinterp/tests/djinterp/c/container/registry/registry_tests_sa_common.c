@@ -13,7 +13,7 @@
 
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -32,10 +32,8 @@ d_tests_sa_registry_strcmp
   - prefix comparison: "abc" < "abcd"
   - empty strings: "" == ""
 */
-bool
-d_tests_sa_registry_strcmp
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_strcmp(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -178,15 +176,13 @@ d_tests_sa_registry_schema_max_enum_key
   - multiple entries returns the maximum
   - maximum is not necessarily the last element
 */
-bool
-d_tests_sa_registry_schema_max_enum_key
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key(
+    struct dj_test_counter* _counter
 )
 {
     bool                            result;
     uint16_t                        max_key;
-    struct d_registry_schema_row    schema[4];
+    struct dj_registry_schema_row    schema[4];
 
     result = true;
 
@@ -293,10 +289,8 @@ d_tests_sa_registry_schema_max_enum_key
 d_tests_sa_registry_common_all
   Aggregation function that runs all registry_common tests.
 */
-bool
-d_tests_sa_registry_common_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_common_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

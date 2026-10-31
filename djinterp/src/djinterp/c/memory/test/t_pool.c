@@ -56,10 +56,10 @@ struct node
  *   The behaviour every policy shares: slots are distinct, aligned, writable,
  * and do not overlap.
  */
-static void
-exercise_basic(
-    struct d_pool* _p,
-    int            _count
+static
+void exercise_basic(
+    struct dj_pool* _p,
+    int             _count
 )
 {
     void* slots[128];
@@ -83,7 +83,7 @@ exercise_basic(
         }
     }
 
-    CHECK(d_pool_size(_p) == (d_pool_index)_count);
+    CHECK(d_pool_size(_p) == (dj_pool_index)_count);
 
     /* every slot is distinct, and every write survived every other write */
     for (i = 0; i < _count; ++i)
@@ -129,11 +129,11 @@ exercise_basic(
 }
 
 
-static void
-test_monotonic(void)
+static
+void test_monotonic(void)
 {
-    struct d_pool        p;
-    struct d_pool_config cfg;
+    struct dj_pool        p;
+    struct dj_pool_config cfg;
     void*                s;
 
     cfg = d_pool_config_default(sizeof(struct node), 16);
@@ -164,16 +164,16 @@ test_monotonic(void)
 }
 
 
-static void
-test_free_list(void)
+static
+void test_free_list(void)
 {
 #if (D_INTERNAL_POOL_FREE_LIST == 1)
-    struct d_pool        p;
-    struct d_pool_config cfg;
+    struct dj_pool        p;
+    struct dj_pool_config cfg;
     void*                a;
     void*                b;
     void*                c;
-    d_pool_index         cap;
+    dj_pool_index         cap;
 
     cfg = d_pool_config_default(sizeof(struct node), 16);
     cfg.policy         = D_POOL_POLICY_FREE_LIST;
@@ -201,7 +201,7 @@ test_free_list(void)
 
         for (i = 0; i < 8; ++i)
         {
-            held[i] = d_pool_at(&p, (d_pool_index)i);
+            held[i] = d_pool_at(&p, (dj_pool_index)i);
             CHECK(d_pool_release_slot(&p, held[i]) == D_MEM_OK);
         }
 
@@ -242,15 +242,15 @@ test_free_list(void)
 }
 
 
-static void
-test_generational(void)
+static
+void test_generational(void)
 {
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-    struct d_pool        p;
-    struct d_pool_config cfg;
-    struct d_pool_handle h1;
-    struct d_pool_handle h2;
-    struct d_pool_handle held[16];
+    struct dj_pool        p;
+    struct dj_pool_config cfg;
+    struct dj_pool_handle h1;
+    struct dj_pool_handle h2;
+    struct dj_pool_handle held[16];
     void*                s;
     int                  i;
 
@@ -298,7 +298,7 @@ test_generational(void)
     /* a zeroed handle must not resolve to a never-used slot: this is why
        acquire advances the counter as well as release */
     {
-        struct d_pool_handle zeroed;
+        struct dj_pool_handle zeroed;
 
         memset(&zeroed, 0, sizeof(zeroed));
         CHECK(d_pool_resolve(&p, zeroed) == NULL);
@@ -347,12 +347,12 @@ test_generational(void)
 }
 
 
-static void
-test_ceiling_and_geometry(void)
+static
+void test_ceiling_and_geometry(void)
 {
-    struct d_pool        p;
-    struct d_pool_config cfg;
-    struct d_mem_block   blk;
+    struct dj_pool        p;
+    struct dj_pool_config cfg;
+    struct dj_mem_block   blk;
     int                  i;
 
     /* a slot ceiling is hard */
@@ -373,8 +373,8 @@ test_ceiling_and_geometry(void)
 
     /* geometry is answerable before a pool exists, and agrees with one */
     {
-        d_mem_size stride;
-        d_mem_size align;
+        dj_mem_size stride;
+        dj_mem_size align;
 
         stride = d_pool_stride_for(sizeof(struct node), 16,
                                    D_POOL_POLICY_MONOTONIC);
@@ -424,7 +424,7 @@ test_ceiling_and_geometry(void)
     CHECK(d_pool_init(&p, &cfg) == D_MEM_ERR_INVALID);
 
     /* an alignment above the ceiling is refused too */
-    cfg = d_pool_config_default(16, (d_mem_size)D_MEM_ALIGN_MAX * 2);
+    cfg = d_pool_config_default(16, (dj_mem_size)D_MEM_ALIGN_MAX * 2);
     CHECK(d_pool_init(&p, &cfg) == D_MEM_ERR_INVALID);
 #else
     ++skipped;
@@ -434,18 +434,18 @@ test_ceiling_and_geometry(void)
 }
 
 
-static void
-test_over_arena(void)
+static
+void test_over_arena(void)
 {
 #if (D_INTERNAL_ARENA_AS_SOURCE == 1)
     static char           buffer[262144];
-    struct d_arena        arena;
-    struct d_pool         p;
-    struct d_pool_config  cfg;
+    struct dj_arena        arena;
+    struct dj_pool         p;
+    struct dj_pool_config  cfg;
 
     /* an entire pool whose every byte came from a static array: no heap
        anywhere in this section, in any configuration */
-    CHECK(d_arena_init_buffer(&arena, buffer, (d_mem_size)sizeof(buffer)) ==
+    CHECK(d_arena_init_buffer(&arena, buffer, (dj_mem_size)sizeof(buffer)) ==
           D_MEM_OK);
 
     cfg = d_pool_config_default(sizeof(struct node), 16);
@@ -474,14 +474,14 @@ test_over_arena(void)
 }
 
 
-static void
-test_iteration(void)
+static
+void test_iteration(void)
 {
 #if (D_INTERNAL_POOL_ITERATE == 1)
-    struct d_pool        p;
-    struct d_pool_config cfg;
-    struct d_pool_cursor cursor;
-    d_pool_index         seen;
+    struct dj_pool        p;
+    struct dj_pool_config cfg;
+    struct dj_pool_cursor cursor;
+    dj_pool_index         seen;
     int                  i;
 
     cfg = d_pool_config_default(sizeof(struct node), 8);
@@ -534,10 +534,9 @@ test_iteration(void)
 }
 
 
-int
-main(void)
+int main(void)
 {
-    struct d_mem_source probe;
+    struct dj_mem_source probe;
     void*               p;
     int                 heap;
 

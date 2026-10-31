@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -27,10 +27,8 @@ d_tests_sa_event_hash_constants
   - D_EVENT_HASH_TABLE_RESIZE_FACTOR equals 2
   - D_EVENT_HASH_TABLE_RESIZE_FACTOR is greater than 1
 */
-bool
-d_tests_sa_event_hash_constants
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_constants(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -79,19 +77,17 @@ d_tests_sa_event_hash_constants
 
 /*
 d_tests_sa_event_hash_node_struct
-  Tests the d_event_hash_node structure layout.
+  Tests the dj_event_hash_node structure layout.
   Tests the following:
   - key, value, next members are accessible
-  - sizeof(struct d_event_hash_node) is non-zero
+  - sizeof(struct dj_event_hash_node) is non-zero
 */
-bool
-d_tests_sa_event_hash_node_struct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_node_struct(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_event_hash_node  node;
+    struct dj_event_hash_node  node;
 
     result = true;
 
@@ -102,13 +98,13 @@ d_tests_sa_event_hash_node_struct
     result = d_assert_standalone(
         node.key == 42 && node.value == NULL && node.next == NULL,
         "hash_node_struct_members",
-        "All d_event_hash_node members should be accessible",
+        "All dj_event_hash_node members should be accessible",
         _counter) && result;
 
     result = d_assert_standalone(
-        sizeof(struct d_event_hash_node) > 0,
+        sizeof(struct dj_event_hash_node) > 0,
         "hash_node_struct_sizeof",
-        "sizeof(struct d_event_hash_node) should be non-zero",
+        "sizeof(struct dj_event_hash_node) should be non-zero",
         _counter) && result;
 
     return result;
@@ -116,20 +112,18 @@ d_tests_sa_event_hash_node_struct
 
 /*
 d_tests_sa_event_hash_stats_struct
-  Tests the d_event_hash_stats structure layout.
+  Tests the dj_event_hash_stats structure layout.
   Tests the following:
   - Zero-initialized struct has all zero fields
   - All fields are assignable and readable
-  - sizeof(struct d_event_hash_stats) is non-zero
+  - sizeof(struct dj_event_hash_stats) is non-zero
 */
-bool
-d_tests_sa_event_hash_stats_struct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_stats_struct(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_stats  stats;
+    struct dj_event_hash_stats  stats;
 
     result = true;
 
@@ -175,9 +169,9 @@ d_tests_sa_event_hash_stats_struct
         _counter) && result;
 
     result = d_assert_standalone(
-        sizeof(struct d_event_hash_stats) > 0,
+        sizeof(struct dj_event_hash_stats) > 0,
         "hash_stats_sizeof",
-        "sizeof(struct d_event_hash_stats) should be non-zero",
+        "sizeof(struct dj_event_hash_stats) should be non-zero",
         _counter) && result;
 
     return result;
@@ -187,10 +181,8 @@ d_tests_sa_event_hash_stats_struct
 d_tests_sa_event_hash_constant_all
   Runs all constant and type tests.
 */
-bool
-d_tests_sa_event_hash_constant_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_constant_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

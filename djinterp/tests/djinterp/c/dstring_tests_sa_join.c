@@ -17,8 +17,8 @@
 
 /*
 d_tests_sa_dstring_join
-  Tests d_string_join function (joins d_string array with C string separator).
-  Signature: d_string* d_string_join(const d_string* const* _strings, size_t _count, const char* _delimiter)
+  Tests d_string_join function (joins dj_string array with C string separator).
+  Signature: dj_string* d_string_join(const dj_string* const* _strings, size_t _count, const char* _delimiter)
   Tests the following:
   - joining multiple strings with separator
   - joining two strings
@@ -29,15 +29,11 @@ d_tests_sa_dstring_join
   - NULL array handling
   - NULL separator handling
 */
-struct d_test_object*
-d_tests_sa_dstring_join
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_join(void)
 {
-    struct d_test_object* group;
-    struct d_string*      result;
-    struct d_string*      parts[5];
+    struct dj_test_object* group;
+    struct dj_string*      result;
+    struct dj_string*      parts[5];
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_join", 8);
@@ -56,7 +52,7 @@ d_tests_sa_dstring_join
 
     if (parts[0] && parts[1] && parts[2])
     {
-        result = d_string_join((const struct d_string* const*)parts, 3, ", ");
+        result = d_string_join((const struct dj_string* const*)parts, 3, ", ");
         group->elements[idx++] = D_ASSERT_TRUE(
             "join_multiple_strings",
             result && d_string_equals_cstr(result, "hello, world, test"),
@@ -82,7 +78,7 @@ d_tests_sa_dstring_join
 
     if (parts[0] && parts[1])
     {
-        result = d_string_join((const struct d_string* const*)parts, 2, "-");
+        result = d_string_join((const struct dj_string* const*)parts, 2, "-");
         group->elements[idx++] = D_ASSERT_TRUE(
             "join_two_strings",
             result && d_string_equals_cstr(result, "hello-world"),
@@ -106,7 +102,7 @@ d_tests_sa_dstring_join
 
     if (parts[0])
     {
-        result = d_string_join((const struct d_string* const*)parts, 1, ", ");
+        result = d_string_join((const struct dj_string* const*)parts, 1, ", ");
         group->elements[idx++] = D_ASSERT_TRUE(
             "join_single_string",
             result && d_string_equals_cstr(result, "hello"),
@@ -131,7 +127,7 @@ d_tests_sa_dstring_join
 
     if (parts[0] && parts[1] && parts[2])
     {
-        result = d_string_join((const struct d_string* const*)parts, 3, "");
+        result = d_string_join((const struct dj_string* const*)parts, 3, "");
         group->elements[idx++] = D_ASSERT_TRUE(
             "join_empty_separator",
             result && d_string_equals_cstr(result, "abc"),
@@ -158,7 +154,7 @@ d_tests_sa_dstring_join
 
     if (parts[0] && parts[1] && parts[2])
     {
-        result = d_string_join((const struct d_string* const*)parts, 3, ",");
+        result = d_string_join((const struct dj_string* const*)parts, 3, ",");
         group->elements[idx++] = D_ASSERT_TRUE(
             "join_with_empty_strings",
             result && d_string_equals_cstr(result, "a,,b"),
@@ -197,7 +193,7 @@ d_tests_sa_dstring_join
     // test: NULL separator handling
     parts[0] = d_string_new_from_cstr("hello");
     parts[1] = d_string_new_from_cstr("world");
-    result   = d_string_join((const struct d_string* const*)parts, 2, NULL);
+    result   = d_string_join((const struct dj_string* const*)parts, 2, NULL);
     group->elements[idx++] = D_ASSERT_NULL(
         "join_null_separator",
         result,
@@ -212,7 +208,7 @@ d_tests_sa_dstring_join
 /*
 d_tests_sa_dstring_join_cstr
   Tests d_string_join_cstr function (joins C string array with C string sep).
-  Signature: d_string* d_string_join_cstr(const char* const* _strings, size_t _count, const char* _delimiter)
+  Signature: dj_string* d_string_join_cstr(const char* const* _strings, size_t _count, const char* _delimiter)
   Tests the following:
   - joining multiple C strings with separator
   - joining two C strings
@@ -222,14 +218,10 @@ d_tests_sa_dstring_join_cstr
   - NULL array handling
   - NULL separator handling
 */
-struct d_test_object*
-d_tests_sa_dstring_join_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_join_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      result;
+    struct dj_test_object* group;
+    struct dj_string*      result;
     const char*           parts[5];
     size_t                idx;
 
@@ -318,8 +310,8 @@ d_tests_sa_dstring_join_cstr
 /*
 d_tests_sa_dstring_concat
   Tests d_string_concat function (variadic concatenation).
-  Signature: d_string* d_string_concat(size_t _count, ...)
-  Takes count followed by that many d_string* arguments.
+  Signature: dj_string* d_string_concat(size_t _count, ...)
+  Takes count followed by that many dj_string* arguments.
   Tests the following:
   - concatenating multiple strings
   - concatenating two strings
@@ -328,17 +320,13 @@ d_tests_sa_dstring_concat
   - concatenating zero strings
   - NULL pointer in arguments
 */
-struct d_test_object*
-d_tests_sa_dstring_concat
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_concat(void)
 {
-    struct d_test_object* group;
-    struct d_string*      result;
-    struct d_string*      s1;
-    struct d_string*      s2;
-    struct d_string*      s3;
+    struct dj_test_object* group;
+    struct dj_string*      result;
+    struct dj_string*      s1;
+    struct dj_string*      s2;
+    struct dj_string*      s3;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_concat", 6);
@@ -483,17 +471,13 @@ d_tests_sa_dstring_concat
 d_tests_sa_dstring_join_all
   Runs all join function tests for dstring module.
   Tests the following:
-  - join function (d_string array with C string separator)
+  - join function (dj_string array with C string separator)
   - join_cstr function (C string array with C string separator)
-  - concat function (variadic d_string concatenation)
+  - concat function (variadic dj_string concatenation)
 */
-struct d_test_object*
-d_tests_sa_dstring_join_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_join_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Join Functions", 3);

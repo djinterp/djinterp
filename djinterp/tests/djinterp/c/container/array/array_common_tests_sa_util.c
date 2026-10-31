@@ -31,7 +31,7 @@
 
 // djinterp
 #include "./array_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -46,10 +46,8 @@ d_tests_sa_array_common_alloc
   - zero size handling (should return NULL)
   - various element sizes
 */
-bool
-d_tests_sa_array_common_alloc
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_alloc(
+    struct dj_test_counter* _test_info
 )
 {
     bool  test_result;
@@ -159,10 +157,8 @@ d_tests_sa_array_common_append_element
   - zero element size handling
   Note: This function calls realloc, so arrays MUST be malloc'd.
 */
-bool
-d_tests_sa_array_common_append_element
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_append_element(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -353,10 +349,8 @@ d_tests_sa_array_common_append_elements
   - NULL parameter handling
   Note: This function calls realloc, so arrays MUST be malloc'd.
 */
-bool
-d_tests_sa_array_common_append_elements
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_append_elements(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -515,10 +509,8 @@ d_tests_sa_array_common_calc_capacity
   - zero size handling
   - large size handling (overflow protection)
 */
-bool
-d_tests_sa_array_common_calc_capacity
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_calc_capacity(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -634,10 +626,8 @@ d_tests_sa_array_common_contains
   - NULL parameter handling
   - empty array handling
 */
-bool
-d_tests_sa_array_common_contains
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_contains(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -777,10 +767,8 @@ d_tests_sa_array_common_fill
   - NULL parameter handling
   - return value (number of elements filled)
 */
-bool
-d_tests_sa_array_common_fill
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_fill(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -909,10 +897,8 @@ d_tests_sa_array_common_find
   - finding first occurrence with duplicates
   - NULL parameter handling
 */
-bool
-d_tests_sa_array_common_find
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_find(
+    struct dj_test_counter* _test_info
 )
 {
     bool    test_result;
@@ -1097,10 +1083,8 @@ d_tests_sa_array_common_find_closest
   - empty array handling
   Note: Array must be sorted for meaningful results.
 */
-bool
-d_tests_sa_array_common_find_closest
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_find_closest(
+    struct dj_test_counter* _test_info
 )
 {
     bool    test_result;
@@ -1283,10 +1267,8 @@ Return:
   - true, if all utility tests passed, or
   - false, if any test failed.
 */
-bool
-d_tests_sa_array_common_run_util_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_run_util_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result;

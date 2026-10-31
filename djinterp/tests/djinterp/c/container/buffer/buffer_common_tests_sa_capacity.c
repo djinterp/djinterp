@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,10 +22,8 @@ d_tests_sa_buffer_common_alloc
   - successful allocation returns non-NULL
   - allocated memory is zero-initialized
 */
-bool
-d_tests_sa_buffer_common_alloc
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_alloc(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -100,10 +98,8 @@ d_tests_sa_buffer_common_calc_growth
   - small required returns factor-based growth
   - large required returns required directly
 */
-bool
-d_tests_sa_buffer_common_calc_growth
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_calc_growth(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -164,10 +160,8 @@ d_tests_sa_buffer_common_ensure_capacity
   - successful growth when required exceeds current
   - capacity updated after growth
 */
-bool
-d_tests_sa_buffer_common_ensure_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_ensure_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -256,10 +250,8 @@ d_tests_sa_buffer_common_resize_to_fit
   - already exact capacity is a no-op
   - successful shrink to actual count
 */
-bool
-d_tests_sa_buffer_common_resize_to_fit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_resize_to_fit(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -377,10 +369,8 @@ d_tests_sa_buffer_common_resize_to_fit
 d_tests_sa_buffer_common_capacity_all
   Aggregation function that runs all capacity management tests.
 */
-bool
-d_tests_sa_buffer_common_capacity_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_capacity_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -24,8 +24,9 @@
 
 // d_env_compression_codec_name
 //   function: human-readable name for a codec identifier.
-const char*
-d_env_compression_codec_name(int codec)
+const char* d_env_compression_codec_name(
+    int codec
+)
 {
     switch (codec)
     {
@@ -45,8 +46,7 @@ d_env_compression_codec_name(int codec)
 
 // d_env_compression_zlib_runtime_version
 //   function: zlib runtime version string, or "unavailable" when not linked.
-const char*
-d_env_compression_zlib_runtime_version(void)
+const char* d_env_compression_zlib_runtime_version(void)
 {
 #if D_ENV_COMPRESSION_HAVE_ZLIB
     return zlibVersion();
@@ -57,8 +57,7 @@ d_env_compression_zlib_runtime_version(void)
 
 // d_env_compression_print_info
 //   function: print detected codec libraries and versions to stdout.
-void
-d_env_compression_print_info(void)
+void d_env_compression_print_info(void)
 {
     printf("djinterp compression codecs:\n");
 

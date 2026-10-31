@@ -29,23 +29,56 @@
 */
 #if (D_INTERNAL_MEM_HEADER_ONLY == 0)
 
-D_MEM_EXTERN_INLINE bool       d_mem_is_pow2(d_mem_size _value);
-D_MEM_EXTERN_INLINE d_mem_size d_mem_align_normalize(d_mem_size _align);
-D_MEM_EXTERN_INLINE bool       d_mem_align_is_valid(d_mem_size _align);
-D_MEM_EXTERN_INLINE d_mem_size d_mem_align_accept(d_mem_size _align);
-D_MEM_EXTERN_INLINE d_mem_size d_mem_align_up(d_mem_size _value,
-                                              d_mem_size _align);
-D_MEM_EXTERN_INLINE d_mem_size d_mem_align_padding(d_mem_size _value,
-                                                   d_mem_size _align);
-D_MEM_EXTERN_INLINE bool       d_mem_align_would_overflow(d_mem_size _value,
-                                                          d_mem_size _align);
-D_MEM_EXTERN_INLINE bool       d_mem_is_aligned(const void* _ptr,
-                                                d_mem_size  _align);
-D_MEM_EXTERN_INLINE bool       d_mem_add_would_overflow(d_mem_size _a,
-                                                        d_mem_size _b);
-D_MEM_EXTERN_INLINE bool       d_mem_mul_would_overflow(d_mem_size _a,
-                                                        d_mem_size _b);
-D_MEM_EXTERN_INLINE d_mem_size d_mem_redzone_lead(d_mem_size _align);
+D_MEM_EXTERN_INLINE
+bool d_mem_is_pow2(
+    dj_mem_size _value
+);
+D_MEM_EXTERN_INLINE
+dj_mem_size d_mem_align_normalize(
+    dj_mem_size _align
+);
+D_MEM_EXTERN_INLINE
+bool d_mem_align_is_valid(
+    dj_mem_size _align
+);
+D_MEM_EXTERN_INLINE
+dj_mem_size d_mem_align_accept(
+    dj_mem_size _align
+);
+D_MEM_EXTERN_INLINE
+dj_mem_size d_mem_align_up(
+    dj_mem_size _value,
+    dj_mem_size _align
+);
+D_MEM_EXTERN_INLINE
+dj_mem_size d_mem_align_padding(
+    dj_mem_size _value,
+    dj_mem_size _align
+);
+D_MEM_EXTERN_INLINE
+bool d_mem_align_would_overflow(
+    dj_mem_size _value,
+    dj_mem_size _align
+);
+D_MEM_EXTERN_INLINE
+bool d_mem_is_aligned(
+    const void* _ptr,
+    dj_mem_size _align
+);
+D_MEM_EXTERN_INLINE
+bool d_mem_add_would_overflow(
+    dj_mem_size _a,
+    dj_mem_size _b
+);
+D_MEM_EXTERN_INLINE
+bool d_mem_mul_would_overflow(
+    dj_mem_size _a,
+    dj_mem_size _b
+);
+D_MEM_EXTERN_INLINE
+dj_mem_size d_mem_redzone_lead(
+    dj_mem_size _align
+);
 
 #endif  // D_INTERNAL_MEM_HEADER_ONLY
 
@@ -63,13 +96,12 @@ Return:
   A block view of (_ptr, _size). A null _ptr yields the empty block regardless
 of _size, so that "empty" has one representation rather than two.
 */
-struct d_mem_block
-d_mem_block_make(
-    void*      _ptr,
-    d_mem_size _size
+struct dj_mem_block d_mem_block_make(
+    void*       _ptr,
+    dj_mem_size _size
 )
 {
-    struct d_mem_block block;
+    struct dj_mem_block block;
 
     block.ptr  = NULL;
     block.size = 0;
@@ -94,10 +126,9 @@ Parameter(s):
 Return:
   A block view whose pointer is NULL and whose size is zero.
 */
-struct d_mem_block
-d_mem_block_empty(void)
+struct dj_mem_block d_mem_block_empty(void)
 {
-    struct d_mem_block block;
+    struct dj_mem_block block;
 
     block.ptr  = NULL;
     block.size = 0;
@@ -120,9 +151,8 @@ Return:
     - the block's size is zero, or
   - false, otherwise.
 */
-bool
-d_mem_block_is_empty(
-    const struct d_mem_block* _block
+bool d_mem_block_is_empty(
+    const struct dj_mem_block* _block
 )
 {
     if (!_block)
@@ -144,9 +174,8 @@ Return:
   A pointer one past the block's last byte, or NULL when the block is empty.
 The result is a valid comparison operand but must not be dereferenced.
 */
-void*
-d_mem_block_end(
-    const struct d_mem_block* _block
+void* d_mem_block_end(
+    const struct dj_mem_block* _block
 )
 {
     if (d_mem_block_is_empty(_block))
@@ -176,10 +205,9 @@ Return:
   - true, if the block is non-empty and _ptr lies within [begin, end), or
   - false, otherwise.
 */
-bool
-d_mem_block_contains(
-    const struct d_mem_block* _block,
-    const void*               _ptr
+bool d_mem_block_contains(
+    const struct dj_mem_block* _block,
+    const void*                _ptr
 )
 {
     uintptr_t begin;
@@ -218,14 +246,14 @@ Return:
 when the normalized alignment is not an admissible power of two, or
 D_MEM_ERR_OVERFLOW when the rounded value would not fit.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_align_up_checked(
-    d_mem_size  _value,
-    d_mem_size  _align,
-    d_mem_size* _out
+    dj_mem_size  _value,
+    dj_mem_size  _align,
+    dj_mem_size* _out
 )
 {
-    d_mem_size align;
+    dj_mem_size align;
 
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
 
@@ -261,11 +289,11 @@ Return:
   D_MEM_OK on success, D_MEM_ERR_NULL when _out is NULL, or
 D_MEM_ERR_OVERFLOW when the sum would exceed D_MEM_SIZE_MAX.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_add_checked(
-    d_mem_size  _a,
-    d_mem_size  _b,
-    d_mem_size* _out
+    dj_mem_size  _a,
+    dj_mem_size  _b,
+    dj_mem_size* _out
 )
 {
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
@@ -275,7 +303,7 @@ d_mem_add_checked(
         return D_MEM_ERR_OVERFLOW;
     }
 
-    *_out = (d_mem_size)(_a + _b);
+    *_out = (dj_mem_size)(_a + _b);
 
     return D_MEM_OK;
 }
@@ -296,11 +324,11 @@ Return:
   D_MEM_OK on success, D_MEM_ERR_NULL when _out is NULL, or
 D_MEM_ERR_OVERFLOW when the product would exceed D_MEM_SIZE_MAX.
 */
-enum d_mem_status
+enum dj_mem_status
 d_mem_mul_checked(
-    d_mem_size  _a,
-    d_mem_size  _b,
-    d_mem_size* _out
+    dj_mem_size  _a,
+    dj_mem_size  _b,
+    dj_mem_size* _out
 )
 {
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
@@ -310,7 +338,7 @@ d_mem_mul_checked(
         return D_MEM_ERR_OVERFLOW;
     }
 
-    *_out = (d_mem_size)(_a * _b);
+    *_out = (dj_mem_size)(_a * _b);
 
     return D_MEM_OK;
 }
@@ -338,13 +366,12 @@ Return:
 the storage. The result is a power of two, or 0 when the normalized alignment
 was inadmissible.
 */
-d_mem_size
-d_mem_slot_align(
-    d_mem_size _align,
-    d_mem_size _link_align
+dj_mem_size d_mem_slot_align(
+    dj_mem_size _align,
+    dj_mem_size _link_align
 )
 {
-    d_mem_size align;
+    dj_mem_size align;
 
     align = d_mem_align_accept(_align);
 
@@ -378,14 +405,13 @@ Return:
   The slot stride in bytes, or 0 when the arguments are inadmissible or the
 computation would overflow.
 */
-d_mem_size
-d_mem_slot_size(
-    d_mem_size _object_size,
-    d_mem_size _slot_align,
-    d_mem_size _link_size
+dj_mem_size d_mem_slot_size(
+    dj_mem_size _object_size,
+    dj_mem_size _slot_align,
+    dj_mem_size _link_size
 )
 {
-    d_mem_size size;
+    dj_mem_size size;
 
     if ( (_object_size == 0) ||
          (!d_mem_align_is_valid(_slot_align)) )
@@ -403,9 +429,9 @@ d_mem_slot_size(
     // of the preceding block's header.
     if (D_MEM_REDZONE_BYTES != 0)
     {
-        d_mem_size guards;
+        dj_mem_size guards;
 
-        guards = (d_mem_size)(d_mem_redzone_lead(_slot_align) +
+        guards = (dj_mem_size)(d_mem_redzone_lead(_slot_align) +
                               D_MEM_REDZONE_BYTES);
 
         if (d_mem_add_would_overflow(size, guards))
@@ -413,7 +439,7 @@ d_mem_slot_size(
             return 0;
         }
 
-        size = (d_mem_size)(size + guards);
+        size = (dj_mem_size)(size + guards);
     }
 
     // a slot that stores a link while free must be wide enough to hold one
@@ -441,14 +467,13 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_stats_clear(
-    struct d_mem_stats* _stats
+void d_mem_stats_clear(
+    struct dj_mem_stats* _stats
 )
 {
     if (_stats)
     {
-        memset(_stats, 0, sizeof(struct d_mem_stats));
+        memset(_stats, 0, sizeof(struct dj_mem_stats));
     }
 
     return;
@@ -465,18 +490,17 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_stats_on_reserve(
-    struct d_mem_stats* _stats,
-    d_mem_size          _bytes
+void d_mem_stats_on_reserve(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
 )
 {
     if (_stats)
     {
         _stats->bytes_reserved =
-            (d_mem_size)(_stats->bytes_reserved + _bytes);
+            (dj_mem_size)(_stats->bytes_reserved + _bytes);
         _stats->upstream_count =
-            (d_mem_size)(_stats->upstream_count + 1);
+            (dj_mem_size)(_stats->upstream_count + 1);
     }
 
     return;
@@ -493,10 +517,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_stats_on_unreserve(
-    struct d_mem_stats* _stats,
-    d_mem_size          _bytes
+void d_mem_stats_on_unreserve(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
 )
 {
     if (_stats)
@@ -506,7 +529,7 @@ d_mem_stats_on_unreserve(
         if (_stats->bytes_reserved >= _bytes)
         {
             _stats->bytes_reserved =
-                (d_mem_size)(_stats->bytes_reserved - _bytes);
+                (dj_mem_size)(_stats->bytes_reserved - _bytes);
         }
         else
         {
@@ -529,20 +552,19 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_stats_on_acquire(
-    struct d_mem_stats* _stats,
-    d_mem_size          _bytes
+void d_mem_stats_on_acquire(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
 )
 {
     if (_stats)
     {
         _stats->bytes_committed =
-            (d_mem_size)(_stats->bytes_committed + _bytes);
+            (dj_mem_size)(_stats->bytes_committed + _bytes);
         _stats->bytes_live =
-            (d_mem_size)(_stats->bytes_live + _bytes);
+            (dj_mem_size)(_stats->bytes_live + _bytes);
         _stats->acquire_count =
-            (d_mem_size)(_stats->acquire_count + 1);
+            (dj_mem_size)(_stats->acquire_count + 1);
 
 #if (D_INTERNAL_MEM_STATS_PEAK == 1)
         // high-water marks: a compare and a conditional store, which is why
@@ -556,7 +578,7 @@ d_mem_stats_on_acquire(
             _stats->peak_live_count)
         {
             _stats->peak_live_count =
-                (d_mem_size)(_stats->acquire_count - _stats->release_count);
+                (dj_mem_size)(_stats->acquire_count - _stats->release_count);
         }
 #endif
     }
@@ -575,10 +597,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_stats_on_release(
-    struct d_mem_stats* _stats,
-    d_mem_size          _bytes
+void d_mem_stats_on_release(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
 )
 {
     if (_stats)
@@ -587,7 +608,7 @@ d_mem_stats_on_release(
         if (_stats->bytes_live >= _bytes)
         {
             _stats->bytes_live =
-                (d_mem_size)(_stats->bytes_live - _bytes);
+                (dj_mem_size)(_stats->bytes_live - _bytes);
         }
         else
         {
@@ -595,7 +616,7 @@ d_mem_stats_on_release(
         }
 
         _stats->release_count =
-            (d_mem_size)(_stats->release_count + 1);
+            (dj_mem_size)(_stats->release_count + 1);
     }
 
     return;
@@ -613,9 +634,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_stats_on_reset(
-    struct d_mem_stats* _stats
+void d_mem_stats_on_reset(
+    struct dj_mem_stats* _stats
 )
 {
     if (_stats)
@@ -639,9 +659,8 @@ Return:
 reserved. Values above 1.0 are impossible by construction and are clamped, so
 a caller may use the result as a ratio without checking it.
 */
-double
-d_mem_stats_utilization(
-    const struct d_mem_stats* _stats
+double d_mem_stats_utilization(
+    const struct dj_mem_stats* _stats
 )
 {
     double live;
@@ -676,10 +695,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_poison(
-    void*      _ptr,
-    d_mem_size _size
+void d_mem_poison(
+    void*       _ptr,
+    dj_mem_size _size
 )
 {
 #if (D_INTERNAL_MEM_POISON_ALLOC == 1)
@@ -708,10 +726,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_poison_free(
-    void*      _ptr,
-    d_mem_size _size
+void d_mem_poison_free(
+    void*       _ptr,
+    dj_mem_size _size
 )
 {
 #if (D_INTERNAL_MEM_POISON_FREE == 1)
@@ -740,10 +757,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_zero(
-    void*      _ptr,
-    d_mem_size _size
+void d_mem_zero(
+    void*       _ptr,
+    dj_mem_size _size
 )
 {
     if ( (_ptr) && (_size > 0) )
@@ -770,10 +786,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_prepare(
-    void*      _ptr,
-    d_mem_size _size
+void d_mem_prepare(
+    void*       _ptr,
+    dj_mem_size _size
 )
 {
 #if (D_INTERNAL_MEM_ZERO == 1)
@@ -803,10 +818,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_mem_redzone_write(
-    void*      _payload,
-    d_mem_size _payload_size
+void d_mem_redzone_write(
+    void*       _payload,
+    dj_mem_size _payload_size
 )
 {
 #if (D_INTERNAL_MEM_REDZONE == 1)
@@ -848,15 +862,14 @@ Return:
     - both guard bands still hold the fill byte, or
   - false, if either band has been overwritten.
 */
-bool
-d_mem_redzone_verify(
+bool d_mem_redzone_verify(
     const void* _payload,
-    d_mem_size  _payload_size
+    dj_mem_size _payload_size
 )
 {
 #if (D_INTERNAL_MEM_REDZONE == 1)
     const unsigned char* base;
-    d_mem_size           index;
+    dj_mem_size           index;
 
     if (!_payload)
     {
@@ -910,7 +923,7 @@ value yields "unknown", so a caller may print the result without checking it.
 */
 const char*
 d_mem_status_string(
-    enum d_mem_status _status
+    enum dj_mem_status _status
 )
 {
     switch (_status)
@@ -944,7 +957,7 @@ Return:
 */
 bool
 d_mem_status_is_ok(
-    enum d_mem_status _status
+    enum dj_mem_status _status
 )
 {
     return (_status == D_MEM_OK);

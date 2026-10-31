@@ -38,8 +38,8 @@ TABLE OF CONTENTS
 // std
 #include <stdio.h>  // FILE, SEEK_SET, SEEK_CUR, SEEK_END
 // djinterp
-#include "./file_common.h"                         // foundation, d_off32_t,
-                                                   // d_off64_t
+#include "./file_common.h"                         // foundation, dj_off32_t,
+                                                   // dj_off64_t
 #include "../../config/c/filesys/cfg_file_seek.h"  // module configuration
 
 
@@ -63,16 +63,20 @@ D_EXTERN_C_BEGIN
  * @return 0, or -1 on failure with errno set; EOVERFLOW where the build has
  *         no 64-bit seek and `_offset` does not fit a long.
  */
-int       d_file_seek_stream64(FILE*     _stream,
-                               d_off64_t _offset,
-                               int       _whence);
+int d_file_seek_stream64(
+    FILE*      _stream,
+    dj_off64_t _offset,
+    int        _whence
+);
 /**
  * @brief Reports a stream's position, 64-bit on every target.
  *
  * @param[in] _stream  an open stream.
  * @return the current offset, or -1 on failure with errno set.
  */
-d_off64_t d_file_tell_stream64(FILE* _stream);
+dj_off64_t d_file_tell_stream64(
+    FILE* _stream
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief Sets a stream's position with a 32-bit offset. The position itself
@@ -83,9 +87,11 @@ d_off64_t d_file_tell_stream64(FILE* _stream);
  * @param[in] _whence  SEEK_SET, SEEK_CUR or SEEK_END.
  * @return 0, or -1 on failure with errno set.
  */
-int       d_file_seek_stream32(FILE*     _stream,
-                               d_off32_t _offset,
-                               int       _whence);
+int d_file_seek_stream32(
+    FILE*      _stream,
+    dj_off32_t _offset,
+    int        _whence
+);
 /**
  * @brief Reports a stream's position as a 32-bit offset.
  *
@@ -93,7 +99,9 @@ int       d_file_seek_stream32(FILE*     _stream,
  * @return the current offset, or -1 on failure with errno set; EOVERFLOW
  *         when the position is past 2 GiB - 1.
  */
-d_off32_t d_file_tell_stream32(FILE* _stream);
+dj_off32_t d_file_tell_stream32(
+    FILE* _stream
+);
 /**
  * @brief Returns a stream to its start and clears its error flag -- unlike
  *        ISO C's rewind, reporting whether it could.
@@ -102,7 +110,9 @@ d_off32_t d_file_tell_stream32(FILE* _stream);
  * @return 0, or -1 on failure with errno set; a stream that refuses is
  *         usually a pipe.
  */
-int       d_file_rewind_stream(FILE* _stream);
+int d_file_rewind_stream(
+    FILE* _stream
+);
 
 // 1.2    Truncation
 //------------------------------------------------------------------------------
@@ -118,8 +128,10 @@ int       d_file_rewind_stream(FILE* _stream);
  * @param[in] _length  the new length in bytes; not negative.
  * @return 0, or -1 on failure with errno set; ENOSYS on the ISO C backend.
  */
-int       d_file_truncate_fd64(int       _fd,
-                               d_off64_t _length);
+int d_file_truncate_fd64(
+    int        _fd,
+    dj_off64_t _length
+);
 /**
  * @brief Sets a file's length through the stream that owns it, flushing
  *        stdio's buffer first.
@@ -132,8 +144,10 @@ int       d_file_truncate_fd64(int       _fd,
  * @param[in] _length  the new length in bytes; not negative.
  * @return 0, or -1 on failure with errno set; ENOSYS on the ISO C backend.
  */
-int       d_file_truncate_stream64(FILE*     _stream,
-                                   d_off64_t _length);
+int d_file_truncate_stream64(
+    FILE*      _stream,
+    dj_off64_t _length
+);
 #endif  // D_FILE_64_IS_AVAILABLE
 /**
  * @brief d_file_truncate_fd64 with a 32-bit length.
@@ -142,8 +156,10 @@ int       d_file_truncate_stream64(FILE*     _stream,
  * @param[in] _length  the new length in bytes; not negative.
  * @return 0, or -1 on failure with errno set; ENOSYS on the ISO C backend.
  */
-int       d_file_truncate_fd32(int       _fd,
-                               d_off32_t _length);
+int d_file_truncate_fd32(
+    int        _fd,
+    dj_off32_t _length
+);
 /**
  * @brief d_file_truncate_stream64 with a 32-bit length.
  *
@@ -151,8 +167,10 @@ int       d_file_truncate_fd32(int       _fd,
  * @param[in] _length  the new length in bytes; not negative.
  * @return 0, or -1 on failure with errno set; ENOSYS on the ISO C backend.
  */
-int       d_file_truncate_stream32(FILE*     _stream,
-                                   d_off32_t _length);
+int d_file_truncate_stream32(
+    FILE*      _stream,
+    dj_off32_t _length
+);
 
 
 //==============================================================================
@@ -163,7 +181,7 @@ int       d_file_truncate_stream32(FILE*     _stream,
 // 2.1    Unsuffixed names
 //------------------------------------------------------------------------------
 // d_file_seek_stream
-//   alias: the call's twin at D_FILE_WIDTH, so it takes a d_off_t
+//   alias: the call's twin at D_FILE_WIDTH, so it takes a dj_off_t
 // (file_common.h, 3.2); d_file_tell_stream, d_file_truncate_fd and
 // d_file_truncate_stream after it are the same alias for their calls.
 #if (D_FILE_WIDTH == 64)

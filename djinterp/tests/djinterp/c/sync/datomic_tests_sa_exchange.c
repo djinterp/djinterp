@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "datomic_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,14 +19,12 @@ d_tests_sa_datomic_exchange_int
   - d_atomic_exchange_int returns the old value
   - the atomic holds the new value after exchange
 */
-bool
-d_tests_sa_datomic_exchange_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          old;
 
     result = true;
@@ -55,14 +53,12 @@ d_tests_sa_datomic_exchange_uint
   Tests the following:
   - d_atomic_exchange_uint returns old and sets new value
 */
-bool
-d_tests_sa_datomic_exchange_uint
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_uint(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_uint val;
+    dj_atomic_uint val;
     unsigned int  old;
 
     result = true;
@@ -85,14 +81,12 @@ d_tests_sa_datomic_exchange_long
   Tests the following:
   - d_atomic_exchange_long handles negative values correctly
 */
-bool
-d_tests_sa_datomic_exchange_long
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_long(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_long val;
+    dj_atomic_long val;
     long          old;
 
     result = true;
@@ -115,14 +109,12 @@ d_tests_sa_datomic_exchange_ulong
   Tests the following:
   - d_atomic_exchange_ulong returns old and sets new value
 */
-bool
-d_tests_sa_datomic_exchange_ulong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_ulong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_ulong val;
+    dj_atomic_ulong val;
     unsigned long  old;
 
     result = true;
@@ -145,14 +137,12 @@ d_tests_sa_datomic_exchange_llong
   Tests the following:
   - d_atomic_exchange_llong returns old and sets new value
 */
-bool
-d_tests_sa_datomic_exchange_llong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_llong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_llong val;
+    dj_atomic_llong val;
     long long      old;
 
     result = true;
@@ -175,14 +165,12 @@ d_tests_sa_datomic_exchange_ullong
   Tests the following:
   - d_atomic_exchange_ullong returns old and sets new value
 */
-bool
-d_tests_sa_datomic_exchange_ullong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_ullong(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    d_atomic_ullong     val;
+    dj_atomic_ullong     val;
     unsigned long long old;
 
     result = true;
@@ -205,14 +193,12 @@ d_tests_sa_datomic_exchange_ptr
   Tests the following:
   - d_atomic_exchange_ptr returns old pointer and sets new one
 */
-bool
-d_tests_sa_datomic_exchange_ptr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_ptr(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_ptr val;
+    dj_atomic_ptr val;
     int          dummy1;
     int          dummy2;
     void*        old;
@@ -239,14 +225,12 @@ d_tests_sa_datomic_exchange_size
   Tests the following:
   - d_atomic_exchange_size returns old and sets new value
 */
-bool
-d_tests_sa_datomic_exchange_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_size(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_size_t val;
+    dj_atomic_size_t val;
     size_t          old;
 
     result = true;
@@ -272,15 +256,13 @@ d_tests_sa_datomic_exchange_explicit
   - d_atomic_exchange_int_explicit with seq_cst ordering
   - d_atomic_exchange_ptr_explicit with seq_cst ordering
 */
-bool
-d_tests_sa_datomic_exchange_explicit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_explicit(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
-    d_atomic_ptr pval;
+    dj_atomic_int val;
+    dj_atomic_ptr pval;
     int          old;
     int          dummy1;
     int          dummy2;
@@ -341,10 +323,8 @@ d_tests_sa_datomic_exchange_all
   - all types: int, uint, long, ulong, llong, ullong, ptr, size
   - explicit memory order variants
 */
-bool
-d_tests_sa_datomic_exchange_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_exchange_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

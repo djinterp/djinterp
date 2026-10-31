@@ -42,12 +42,12 @@
 // 1.1    The reader
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_nmake
+// dj_internal_nmake
 //   struct: where NMake's reading stands: whether a rule is above, how many
 //   commands it has, and the last branch of each conditional open.
-struct d_internal_nmake
+struct dj_internal_nmake
 {
-    struct d_make_reader* reader;
+    struct dj_make_reader* reader;
     const char*           text;
     bool                  in_rule;
     size_t                commands;
@@ -68,8 +68,8 @@ struct d_internal_nmake
  * @param[in] _byte  the byte.
  * @return `true` for A to Z and a to z.
  */
-static bool
-d_internal_is_alpha(
+static
+bool d_internal_is_alpha(
     char _byte
 )
 {
@@ -89,8 +89,8 @@ d_internal_is_alpha(
  * @param[in] _word   the word, in upper case.
  * @return `true` if the bytes are the word's.
  */
-static bool
-d_internal_is_keyword(
+static
+bool d_internal_is_keyword(
     const char* _text,
     size_t      _start,
     size_t      _end,
@@ -136,8 +136,8 @@ d_internal_is_keyword(
  * letter that begins a word, or follows a `{`, is a drive's, as NMake reads
  * `c:\src`, and is passed over.
  */
-static size_t
-d_internal_separator(
+static
+size_t d_internal_separator(
     const char* _text,
     size_t      _start,
     size_t      _end
@@ -189,10 +189,10 @@ d_internal_separator(
  */
 static size_t
 d_internal_record(
-    struct d_internal_nmake*  _nmake,
-    const struct d_make_line* _line,
-    enum d_make_kind          _kind,
-    struct d_make_span        _word,
+    struct dj_internal_nmake*  _nmake,
+    const struct dj_make_line* _line,
+    enum dj_make_kind          _kind,
+    struct dj_make_span        _word,
     size_t                    _comment
 )
 {
@@ -206,7 +206,7 @@ d_internal_record(
         return index;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_nmake->reader->make->statements[index];
     const size_t                   start     = d_make_skip_blanks(
                                                    _nmake->text,
@@ -243,12 +243,12 @@ d_internal_record(
  * Long as counting's two halves, opening one and continuing one, kept
  * together as the preprocessor keeps them.
  */
-static bool
-d_internal_conditional(
-    struct d_internal_nmake*  _nmake,
-    const struct d_make_line* _line,
-    struct d_make_span        _word,
-    size_t                    _comment
+static
+bool d_internal_conditional(
+    struct dj_internal_nmake*  _nmake,
+    const struct dj_make_line* _line,
+    struct dj_make_span        _word,
+    size_t                     _comment
 )
 {
     const char* const text    = _nmake->text;
@@ -347,11 +347,11 @@ d_internal_conditional(
  * Long as the keyword's three tables -- the conditionals, INCLUDE, the
  * others -- each a short loop.
  */
-static bool
-d_internal_directive(
-    struct d_internal_nmake*  _nmake,
-    const struct d_make_line* _line,
-    size_t                    _comment
+static
+bool d_internal_directive(
+    struct dj_internal_nmake*  _nmake,
+    const struct dj_make_line* _line,
+    size_t                     _comment
 )
 {
     static const char* const conditionals[] =
@@ -368,7 +368,7 @@ d_internal_directive(
     const size_t       at   = d_make_skip_blanks(text,
                                                  _line->start + 1u,
                                                  _comment);
-    struct d_make_span word = { at, at };
+    struct dj_make_span word = { at, at };
 
     // the keyword's letters
     while ( (word.end < _comment) &&
@@ -390,7 +390,7 @@ d_internal_directive(
         }
     }
 
-    enum d_make_kind kind = D_MAKE_EXPANSION;
+    enum dj_make_kind kind = D_MAKE_EXPANSION;
 
     // a table of the others: INCLUDE, then the rest
     if (d_internal_is_keyword(text, word.start, word.end, "INCLUDE"))
@@ -442,8 +442,8 @@ d_internal_directive(
  * @param[in] _end    where it ends.
  * @return how many.
  */
-static size_t
-d_internal_inline_files(
+static
+size_t d_internal_inline_files(
     const char* _text,
     size_t      _start,
     size_t      _end
@@ -486,14 +486,14 @@ d_internal_inline_files(
  * Long as a command's two parts, its modifiers and its inline files, each a
  * short loop.
  */
-static bool
-d_internal_command(
-    struct d_internal_nmake* _nmake,
-    size_t*                  _index
+static
+bool d_internal_command(
+    struct dj_internal_nmake* _nmake,
+    size_t*                   _index
 )
 {
-    const struct d_make_lines* const lines   = &_nmake->reader->make->lines;
-    const struct d_make_line* const  line    = &lines->lines[*_index];
+    const struct dj_make_lines* const lines   = &_nmake->reader->make->lines;
+    const struct dj_make_line* const  line    = &lines->lines[*_index];
     const char* const                text    = _nmake->text;
     const size_t                     comment = d_make_find_with(text,
                                                                 line->start,
@@ -527,7 +527,7 @@ d_internal_command(
         }
     }
 
-    const struct d_make_span word  = { line->start, flags };
+    const struct dj_make_span word  = { line->start, flags };
     const size_t             index = d_internal_record(_nmake,
                                                        line,
                                                        D_MAKE_RECIPE,
@@ -540,7 +540,7 @@ d_internal_command(
         return false;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_nmake->reader->make->statements[index];
     size_t                         files     = d_internal_inline_files(text,
                                                                        flags,
@@ -557,7 +557,7 @@ d_internal_command(
     while ( (files > 0u) &&
             (last + 1u < lines->count) )
     {
-        const struct d_make_line* const next = &lines->lines[++last];
+        const struct dj_make_line* const next = &lines->lines[++last];
 
         // a line that begins `<<` closes one
         if ( (next->end - next->start >= 2u) &&
@@ -598,10 +598,10 @@ d_internal_command(
  * value to its comment; a rule's targets, colon, dependents to its `;` or
  * comment, and its command.
  */
-static bool
-d_internal_definition(
-    struct d_internal_nmake*  _nmake,
-    const struct d_make_line* _line
+static
+bool d_internal_definition(
+    struct dj_internal_nmake*  _nmake,
+    const struct dj_make_line* _line
 )
 {
     const char* const        text      = _nmake->text;
@@ -624,7 +624,7 @@ d_internal_definition(
     const size_t             end       = ( (stop < _line->end) &&
                                            (text[stop] == ';') ) ? _line->end
                                                                  : stop;
-    const struct d_make_span empty     = { _line->start, _line->start };
+    const struct dj_make_span empty     = { _line->start, _line->start };
     const size_t             index     = d_internal_record(
                                              _nmake,
                                              _line,
@@ -645,7 +645,7 @@ d_internal_definition(
         return (index != D_MAKE_NONE);
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_nmake->reader->make->statements[index];
     const size_t                   after     =
         ( (rule) &&
@@ -694,13 +694,13 @@ d_internal_definition(
  * @param[in,out] _index  the line's index; receives the last line taken.
  * @return `true`; `false` when NMake refuses it or memory runs out.
  */
-static bool
-d_internal_line(
-    struct d_internal_nmake* _nmake,
-    size_t*                  _index
+static
+bool d_internal_line(
+    struct dj_internal_nmake* _nmake,
+    size_t*                   _index
 )
 {
-    const struct d_make_line* const line =
+    const struct dj_make_line* const line =
         &_nmake->reader->make->lines.lines[*_index];
     const char* const               text = _nmake->text;
     const bool                      led  = ( (line->start < line->end) &&
@@ -760,18 +760,17 @@ d_make_read_nmake
 with it; at the end, a conditional still open is refused, at the line past
 the last, as U1020 says it.
 */
-bool
-d_make_read_nmake(
-    struct d_make_reader* _reader
+bool d_make_read_nmake(
+    struct dj_make_reader* _reader
 )
 {
-    struct d_internal_nmake nmake;
+    struct dj_internal_nmake nmake;
 
     memset(&nmake, 0, sizeof(nmake));
     nmake.reader = _reader;
     nmake.text   = _reader->make->text;
 
-    const struct d_make_lines* const lines = &_reader->make->lines;
+    const struct dj_make_lines* const lines = &_reader->make->lines;
     bool                             read  = true;
 
     // each logical line, while reading goes on

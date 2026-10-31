@@ -47,7 +47,7 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Results
-         1.  d_ext_cmake_stats
+         1.  dj_ext_cmake_stats
 2.  OPERATIONS
     ----------
     1.  Binding
@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 #include <stddef.h>    // size_t
 #include <stdint.h>    // uint32_t
 // djinterp
-#include "../../dnode.h"  // d_node_tree
+#include "../../dnode.h"  // dj_node_tree
 
 
 //==============================================================================
@@ -72,10 +72,10 @@ TABLE OF CONTENTS
 // 1.1    Results
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_ext_cmake_stats
+// dj_ext_cmake_stats
 //   struct: what one build made.  `refused` is a text the reader stopped
 //   in, `generated` a file that was given no tree.
-struct d_ext_cmake_stats
+struct dj_ext_cmake_stats
 {
     size_t commands;
     size_t arguments;
@@ -96,7 +96,9 @@ struct d_ext_cmake_stats
 //------------------------------------------------------------------------------
 // d_ext_cmake_accepts reports whether a path is CMake's by its name:
 // CMakeLists.txt, or a name ending in .cmake or .cmake.in.
-bool         d_ext_cmake_accepts(const char* _path);
+bool d_ext_cmake_accepts(
+    const char* _path
+);
 /**
  * @brief Builds the DSS node tree for a CMake file's text.
  *
@@ -111,20 +113,24 @@ bool         d_ext_cmake_accepts(const char* _path);
  * @param[out]    _out_stats  receives what was built; may be `NULL`.
  * @return the file node, or `D_DSS_NO_INDEX` when no node could be added.
  */
-uint32_t     d_ext_cmake_build(struct d_node_tree*       _tree,
-                               uint32_t                  _parent,
-                               const char*               _text,
-                               size_t                    _length,
-                               const char*               _path,
-                               struct d_ext_cmake_stats* _out_stats);
+uint32_t d_ext_cmake_build(
+    struct dj_node_tree*       _tree,
+    uint32_t                   _parent,
+    const char*                _text,
+    size_t                     _length,
+    const char*                _path,
+    struct dj_ext_cmake_stats* _out_stats
+);
 // d_ext_cmake_build_path reads the file and builds its tree beneath a file
 // node a driver already holds, as d_ext_source_build does for C; a file
 // that cannot be read gets [lang] alone.  It returns the file node, or
 // `D_DSS_NO_INDEX` for a path that is not CMake's.
-uint32_t     d_ext_cmake_build_path(struct d_node_tree*       _tree,
-                                    uint32_t                  _file,
-                                    const char*               _path,
-                                    struct d_ext_cmake_stats* _out_stats);
+uint32_t d_ext_cmake_build_path(
+    struct dj_node_tree*       _tree,
+    uint32_t                   _file,
+    const char*                _path,
+    struct dj_ext_cmake_stats* _out_stats
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_CHECK_DEXT_CMAKE_H

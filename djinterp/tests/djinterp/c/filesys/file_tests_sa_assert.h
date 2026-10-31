@@ -23,19 +23,27 @@
 #include <stdbool.h>  // bool
 #include <stddef.h>   // NULL, size_t
 // djinterp
-// struct d_test_object, d_test_str_equal
-#include "../../../../inc/djinterp/test/c/test_standalone.h"
+// struct dj_test_object, d_test_str_equal
+#include "../../../../inc/djinterp/c/modules/test/test_standalone.h"
 
 // the object model, defined by test_standalone.c and test_standalone_min.c
-struct d_test_object* d_test_object_new_leaf(const char* _name,
-                                             const char* _message,
-                                             bool        _result);
-struct d_test_object* d_test_object_new_interior(const char* _name,
-                                                 size_t      _child_count);
-void                  d_test_object_free(struct d_test_object* _obj);
-void                  d_test_object_add_child(struct d_test_object* _parent,
-                                              struct d_test_object* _child,
-                                              size_t                _index);
+struct dj_test_object* d_test_object_new_leaf(
+    const char* _name,
+    const char* _message,
+    bool        _result
+);
+struct dj_test_object* d_test_object_new_interior(
+    const char* _name,
+    size_t      _child_count
+);
+void d_test_object_free(
+    struct dj_test_object* _obj
+);
+void d_test_object_add_child(
+    struct dj_test_object* _parent,
+    struct dj_test_object* _child,
+    size_t                 _index
+);
 
 // D_ASSERT_TRUE
 //   macro: a leaf asserting that a condition holds.

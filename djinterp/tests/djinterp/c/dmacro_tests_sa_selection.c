@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -25,10 +25,8 @@ d_tests_sa_dmacro_first_second_third
   - D_VARG_GET_THIRD through D_VARG_GET_TENTH return correct positions
   - Positional accessors work with various argument types
 */
-bool
-d_tests_sa_dmacro_first_second_third
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_first_second_third(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -203,10 +201,8 @@ d_tests_sa_dmacro_head_rest_tail
   - D_TAIL is an alias for D_REST
   - These macros work with various argument counts
 */
-bool
-d_tests_sa_dmacro_head_rest_tail
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_head_rest_tail(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -351,10 +347,8 @@ d_tests_sa_dmacro_remove_parentheses
   - D_VARG_LAST returns the last argument in a list
   - Both macros work with various argument counts and types
 */
-bool
-d_tests_sa_dmacro_remove_parentheses
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_remove_parentheses(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -485,13 +479,11 @@ d_tests_sa_dmacro_selection_all
   - D_HEAD, D_REST, D_TAIL
   - D_VARGS_REMOVE_PARENTHESES, D_VARG_LAST
 */
-bool
-d_tests_sa_dmacro_selection_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_selection_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  positional_result;
     bool                  head_rest_tail_result;
     bool                  paren_handling_result;
@@ -502,7 +494,7 @@ d_tests_sa_dmacro_selection_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

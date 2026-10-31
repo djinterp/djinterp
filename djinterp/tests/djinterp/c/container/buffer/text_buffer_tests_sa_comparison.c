@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,14 +21,12 @@ d_tests_sa_text_buffer_compare
   - lexicographically lesser buffer returns negative
   - lexicographically greater buffer returns positive
 */
-bool
-d_tests_sa_text_buffer_compare
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_compare(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buf1;
-    struct d_text_buffer* buf2;
+    struct dj_text_buffer* buf1;
+    struct dj_text_buffer* buf2;
     bool                  result = true;
 
     buf1 = d_text_buffer_new_from_string("abc");
@@ -98,13 +96,11 @@ d_tests_sa_text_buffer_compare_string
   - equal comparison returns 0
   - lexicographic ordering correct
 */
-bool
-d_tests_sa_text_buffer_compare_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_compare_string(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     buffer = d_text_buffer_new_from_string("hello");
@@ -146,14 +142,12 @@ d_tests_sa_text_buffer_compare_n
   - comparing first N characters when they differ
   - N = 0 returns 0
 */
-bool
-d_tests_sa_text_buffer_compare_n
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_compare_n(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buf1;
-    struct d_text_buffer* buf2;
+    struct dj_text_buffer* buf1;
+    struct dj_text_buffer* buf2;
     bool                  result = true;
 
     buf1 = d_text_buffer_new_from_string("abcXYZ");
@@ -203,14 +197,12 @@ d_tests_sa_text_buffer_equals
   - different buffers return false
   - same pointer returns true
 */
-bool
-d_tests_sa_text_buffer_equals
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_equals(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buf1;
-    struct d_text_buffer* buf2;
+    struct dj_text_buffer* buf1;
+    struct dj_text_buffer* buf2;
     bool                  result = true;
 
     // test 1: NULL == NULL -> returns true
@@ -274,13 +266,11 @@ d_tests_sa_text_buffer_equals_string
   - matching string returns true
   - non-matching string returns false
 */
-bool
-d_tests_sa_text_buffer_equals_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_equals_string(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -325,10 +315,8 @@ d_tests_sa_text_buffer_equals_string
 d_tests_sa_text_buffer_comparison_all
   Aggregation function that runs all comparison operation tests.
 */
-bool
-d_tests_sa_text_buffer_comparison_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_comparison_all(
+    struct dj_test_counter* _counter
 )
 {
     printf("\n  [SECTION] Comparison Operations\n");

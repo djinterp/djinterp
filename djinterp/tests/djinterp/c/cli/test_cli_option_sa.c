@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "test_cli_option_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -31,7 +31,7 @@
  *   fix:      d_cli_find_by_field(..., (_key), (_key_length))
  *
  * d_cli_find (in .c):
- *   typo:     d_string_cli_entry_s -> d_string_cli_entry
+ *   typo:     d_string_cli_entry_s -> dj_string_cli_entry
  *
  * d_cli_find_with (in .c):
  *   guard:    (_key_length) -> (!_key_length)
@@ -56,11 +56,8 @@ static bool g_opt_quiet   = true;
 static bool g_opt_help    = false;
 static int  g_opt_level   = 0;
 
-static void
-test_reset
-(
-    void
-)
+static
+void test_reset(void)
 {
     g_opt_verbose = false;
     g_opt_quiet   = true;
@@ -78,7 +75,7 @@ test_reset
  * the key_length field.
  *****************************************************************************/
 
-static struct d_string_cli_entry g_test_entries[] =
+static struct dj_string_cli_entry g_test_entries[] =
 {
     { "verbose", 7, &g_opt_verbose },
     { "v",       1, &g_opt_verbose },
@@ -124,9 +121,8 @@ static int g_match_count = 0;
 test_match_toggle_bool
   Toggles the bool at value. Returns true (continue).
 */
-static bool
-test_match_toggle_bool
-(
+static
+bool test_match_toggle_bool(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -153,9 +149,8 @@ test_match_toggle_bool
 test_match_stop
   Always stops parsing.
 */
-static bool
-test_match_stop
-(
+static
+bool test_match_stop(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -178,9 +173,8 @@ test_match_stop
 test_match_with_context
   Increments an int context.
 */
-static bool
-test_match_with_context
-(
+static
+bool test_match_with_context(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -205,9 +199,8 @@ test_match_with_context
 test_match_consume_next
   Reads next_arg as int into value. Returns true (continue).
 */
-static bool
-test_match_consume_next
-(
+static
+bool test_match_consume_next(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -233,9 +226,8 @@ test_match_consume_next
 test_match_check_key_length
   Verifies _key_length matches strlen(_key). Stores result in context.
 */
-static bool
-test_match_check_key_length
-(
+static
+bool test_match_check_key_length(
     const char* _key,
     size_t      _key_length,
     void*       _value,
@@ -263,9 +255,8 @@ test_match_check_key_length
  * CUSTOM LOOKUP FOR find_with TESTS (fn_cli_lookup signature)
  *****************************************************************************/
 
-static const void*
-test_custom_lookup
-(
+static
+const void* test_custom_lookup(
     const void* _array,
     size_t      _array_count,
     const char* _key,
@@ -273,10 +264,10 @@ test_custom_lookup
     void*       _context
 )
 {
-    const struct d_string_cli_entry* entries;
+    const struct dj_string_cli_entry* entries;
     size_t                           i;
 
-    entries = (const struct d_string_cli_entry*)_array;
+    entries = (const struct dj_string_cli_entry*)_array;
 
     if (_context)
     {
@@ -311,7 +302,7 @@ test_custom_lookup
 
 /*
 d_tests_sa_test_cli_string_entry
-  Tests d_string_cli_entry struct and d_cli_find.
+  Tests dj_string_cli_entry struct and d_cli_find.
   Tests the following:
   - struct has key, key_length, and value fields
   - d_cli_find returns value for existing key with correct length
@@ -320,17 +311,15 @@ d_tests_sa_test_cli_string_entry
   - returns NULL for NULL / zero-length inputs
   - key_length is respected (partial match does not succeed)
 */
-bool
-d_tests_sa_test_cli_string_entry
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_string_entry(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
     int                       val;
     void*                     found;
-    struct d_string_cli_entry entry =
-        (struct d_string_cli_entry)
+    struct dj_string_cli_entry entry =
+        (struct dj_string_cli_entry)
         {
             .key = "test",
             .key_length = 4,
@@ -348,15 +337,15 @@ d_tests_sa_test_cli_string_entry
         (entry.value == &val) &&
         (*(int*)entry.value == 42),
         "entry_fields",
-        "d_string_cli_entry should store key, key_length, and value",
+        "dj_string_cli_entry should store key, key_length, and value",
         _counter) && result;
 
     // test 2: struct size (two pointers + size_t)
     result = d_assert_standalone(
-        sizeof(struct d_string_cli_entry) >=
+        sizeof(struct dj_string_cli_entry) >=
             (sizeof(const char*) + sizeof(size_t) + sizeof(void*)),
         "entry_size",
-        "d_string_cli_entry should be at least char*+size_t+void*",
+        "dj_string_cli_entry should be at least char*+size_t+void*",
         _counter) && result;
 
     // test 3: d_cli_find returns value for "v" (length 1)
@@ -476,10 +465,8 @@ d_tests_sa_test_cli_find_by_field
   - returns NULL for missing key and invalid inputs
   - key_length is passed through correctly
 */
-bool
-d_tests_sa_test_cli_find_by_field
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_find_by_field(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
@@ -608,10 +595,8 @@ d_tests_sa_test_cli_find_macro
     D_CLI_FIND_IN(_type, _array, _field, _key, _key_length)
   Until fixed, call d_cli_find_by_field directly.
 */
-bool
-d_tests_sa_test_cli_find_macro
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_find_macro(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
@@ -701,15 +686,13 @@ d_tests_sa_test_cli_find_with
   - context passed through and used
   - returns NULL for missing key and NULL inputs
 */
-bool
-d_tests_sa_test_cli_find_with
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_find_with(
+    struct dj_test_counter* _counter
 )
 {
     bool                              result;
     const void*                       found;
-    const struct d_string_cli_entry*  entry;
+    const struct dj_string_cli_entry*  entry;
     int                               call_count;
 
     result = true;
@@ -721,7 +704,7 @@ d_tests_sa_test_cli_find_with
                                  "q", 1,
                                  test_custom_lookup,
                                  &call_count);
-    entry      = (const struct d_string_cli_entry*)found;
+    entry      = (const struct dj_string_cli_entry*)found;
     result     = d_assert_standalone(
         (entry != NULL) && (entry->value == &g_opt_quiet),
         "with_found",
@@ -742,7 +725,7 @@ d_tests_sa_test_cli_find_with
                                  "verbose", 7,
                                  test_custom_lookup,
                                  &call_count);
-    entry      = (const struct d_string_cli_entry*)found;
+    entry      = (const struct dj_string_cli_entry*)found;
     result     = d_assert_standalone(
         (entry != NULL) && (entry->value == &g_opt_verbose),
         "with_found_long",
@@ -809,10 +792,8 @@ d_tests_sa_test_cli_parse
   - NULL argv returns true
   - D_CLI_PARSE macro works
 */
-bool
-d_tests_sa_test_cli_parse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_parse(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -1047,10 +1028,8 @@ d_tests_sa_test_cli_table_macros
   - macros work on both global and stack arrays
   - key_length stored correctly in table entries
 */
-bool
-d_tests_sa_test_cli_table_macros
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_table_macros(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -1066,7 +1045,7 @@ d_tests_sa_test_cli_table_macros
 
     // test 2: D_CLI_COUNT on stack array
     {
-        struct d_string_cli_entry local[] =
+        struct dj_string_cli_entry local[] =
         {
             { "a", 1, NULL },
             { "b", 1, NULL },
@@ -1083,7 +1062,7 @@ d_tests_sa_test_cli_table_macros
     // test 3: D_CLI_TOTAL_SIZE
     result = d_assert_standalone(
         D_CLI_TOTAL_SIZE(g_test_entries) ==
-            (7 * sizeof(struct d_string_cli_entry)),
+            (7 * sizeof(struct dj_string_cli_entry)),
         "macro_total_size",
         "D_CLI_TOTAL_SIZE should equal count * element size",
         _counter) && result;
@@ -1127,10 +1106,8 @@ d_tests_sa_test_cli_table_macros
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
 
-bool
-d_tests_sa_test_cli_option_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_cli_option_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

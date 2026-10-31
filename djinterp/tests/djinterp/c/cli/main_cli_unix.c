@@ -28,14 +28,12 @@ Parameter(s):
 Return:
   0 on success, 1 on failure.
 */
-int
-main
-(
+int main(
     int   _argc,
     char* _argv[]
 )
 {
-    struct d_test_sa_runner runner;
+    struct dj_test_sa_runner runner;
     int                     exit_code;
 
     (void)_argc;

@@ -22,7 +22,7 @@
 
 // djinterp
 #include "./array_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -36,10 +36,8 @@ d_tests_sa_array_common_free_elements_arr
   - freeing allocated array
   - handling NULL pointer safely (should not crash)
 */
-bool
-d_tests_sa_array_common_free_elements_arr
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_free_elements_arr(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -143,10 +141,8 @@ d_tests_sa_array_common_free_elements_deep
   - handling zero count safely
   - handling NULL free function
 */
-bool
-d_tests_sa_array_common_free_elements_deep
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_free_elements_deep(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -375,10 +371,8 @@ Return:
   - true, if all cleanup tests passed, or
   - false, if any test failed.
 */
-bool
-d_tests_sa_array_common_run_free_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_run_free_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result;

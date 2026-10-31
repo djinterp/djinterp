@@ -26,17 +26,15 @@ d_filter_take_first
 Parameter(s):
   _n: the number of elements to take from the beginning.
 Return:
-  A d_filter_operation configured for take-first behavior.
+  A dj_filter_operation configured for take-first behavior.
 */
-struct d_filter_operation*
-d_filter_take_first
-(
+struct dj_filter_operation* d_filter_take_first(
     size_t _n
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -57,17 +55,15 @@ d_filter_take_last
 Parameter(s):
   _n: the number of elements to take from the end.
 Return:
-  A d_filter_operation configured for take-last behavior.
+  A dj_filter_operation configured for take-last behavior.
 */
-struct d_filter_operation*
-d_filter_take_last
-(
+struct dj_filter_operation* d_filter_take_last(
     size_t _n
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -88,17 +84,15 @@ d_filter_take_nth
 Parameter(s):
   _n: the step between selected elements (0 defaults to 1).
 Return:
-  A d_filter_operation configured for take-nth behavior.
+  A dj_filter_operation configured for take-nth behavior.
 */
-struct d_filter_operation*
-d_filter_take_nth
-(
+struct dj_filter_operation* d_filter_take_nth(
     size_t _n
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -119,17 +113,13 @@ d_filter_head
 Parameter(s):
   (none)
 Return:
-  A d_filter_operation configured for head behavior.
+  A dj_filter_operation configured for head behavior.
 */
-struct d_filter_operation*
-d_filter_head
-(
-    void
-)
+struct dj_filter_operation* d_filter_head(void)
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -150,17 +140,13 @@ d_filter_tail
 Parameter(s):
   (none)
 Return:
-  A d_filter_operation configured for tail behavior.
+  A dj_filter_operation configured for tail behavior.
 */
-struct d_filter_operation*
-d_filter_tail
-(
-    void
-)
+struct dj_filter_operation* d_filter_tail(void)
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -181,17 +167,15 @@ d_filter_skip_first
 Parameter(s):
   _n: the number of elements to skip from the beginning.
 Return:
-  A d_filter_operation configured for skip-first behavior.
+  A dj_filter_operation configured for skip-first behavior.
 */
-struct d_filter_operation*
-d_filter_skip_first
-(
+struct dj_filter_operation* d_filter_skip_first(
     size_t _n
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -212,17 +196,15 @@ d_filter_skip_last
 Parameter(s):
   _n: the number of elements to skip from the end.
 Return:
-  A d_filter_operation configured for skip-last behavior.
+  A dj_filter_operation configured for skip-last behavior.
 */
-struct d_filter_operation*
-d_filter_skip_last
-(
+struct dj_filter_operation* d_filter_skip_last(
     size_t _n
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -243,17 +225,13 @@ d_filter_init
 Parameter(s):
   (none)
 Return:
-  A d_filter_operation configured for init behavior.
+  A dj_filter_operation configured for init behavior.
 */
-struct d_filter_operation*
-d_filter_init
-(
-    void
-)
+struct dj_filter_operation* d_filter_init(void)
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -273,17 +251,13 @@ d_filter_rest
 Parameter(s):
   (none)
 Return:
-  A d_filter_operation configured for rest behavior.
+  A dj_filter_operation configured for rest behavior.
 */
-struct d_filter_operation*
-d_filter_rest
-(
-    void
-)
+struct dj_filter_operation* d_filter_rest(void)
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -305,18 +279,16 @@ Parameter(s):
   _start: the inclusive start index.
   _end:   the exclusive end index.
 Return:
-  A d_filter_operation configured for range selection.
+  A dj_filter_operation configured for range selection.
 */
-struct d_filter_operation*
-d_filter_range
-(
+struct dj_filter_operation* d_filter_range(
     size_t _start,
     size_t _end
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -341,19 +313,17 @@ Parameter(s):
   _end:   the exclusive end index.
   _step:  the step size between selected elements (0 defaults to 1).
 Return:
-  A d_filter_operation configured for slice selection.
+  A dj_filter_operation configured for slice selection.
 */
-struct d_filter_operation*
-d_filter_slice
-(
+struct dj_filter_operation* d_filter_slice(
     size_t _start,
     size_t _end,
     size_t _step
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -376,17 +346,15 @@ d_filter_where
 Parameter(s):
   _test: the predicate function to test each element.
 Return:
-  A d_filter_operation configured for predicate-based filtering.
+  A dj_filter_operation configured for predicate-based filtering.
 */
-struct d_filter_operation*
-d_filter_where
-(
+struct dj_filter_operation* d_filter_where(
     fn_predicate _test
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -410,18 +378,16 @@ Parameter(s):
   _test:    the predicate function to test each element.
   _context: the context pointer passed to the predicate.
 Return:
-  A d_filter_operation configured for context-predicate filtering.
+  A dj_filter_operation configured for context-predicate filtering.
 */
-struct d_filter_operation*
-d_filter_where_context
-(
+struct dj_filter_operation* d_filter_where_context(
     fn_predicate _test,
-    void*       _context
+    void*        _context
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -444,17 +410,15 @@ predicate.
 Parameter(s):
   _test: the predicate function whose result will be negated.
 Return:
-  A d_filter_operation configured for negated predicate filtering.
+  A dj_filter_operation configured for negated predicate filtering.
 */
-struct d_filter_operation*
-d_filter_where_not
-(
+struct dj_filter_operation* d_filter_where_not(
     fn_predicate _test
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -478,19 +442,17 @@ Parameter(s):
   _test:    the predicate function whose result will be negated.
   _context: the context pointer passed to the predicate.
 Return:
-  A d_filter_operation configured for negated context-predicate
+  A dj_filter_operation configured for negated context-predicate
 filtering.
 */
-struct d_filter_operation*
-d_filter_where_not_context
-(
+struct dj_filter_operation* d_filter_where_not_context(
     fn_predicate _test,
-    void*       _context
+    void*        _context
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -512,17 +474,15 @@ d_filter_at
 Parameter(s):
   _index: the index of the element to select.
 Return:
-  A d_filter_operation configured for single-index selection.
+  A dj_filter_operation configured for single-index selection.
 */
-struct d_filter_operation*
-d_filter_at
-(
+struct dj_filter_operation* d_filter_at(
     size_t _index
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -546,18 +506,16 @@ Parameter(s):
   _indices: the array of indices to select.
   _count:   the number of indices.
 Return:
-  A d_filter_operation configured for multi-index selection.
+  A dj_filter_operation configured for multi-index selection.
 */
-struct d_filter_operation*
-d_filter_at_indices
-(
+struct dj_filter_operation* d_filter_at_indices(
     const size_t* _indices,
     size_t        _count
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -593,17 +551,15 @@ comparator.
 Parameter(s):
   _comparator: the comparator function for detecting duplicates.
 Return:
-  A d_filter_operation configured for deduplication.
+  A dj_filter_operation configured for deduplication.
 */
-struct d_filter_operation*
-d_filter_distinct
-(
+struct dj_filter_operation* d_filter_distinct(
     fn_function_comparator _comparator
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     // ensure that memory allocation was successful
     if (!op)
@@ -626,17 +582,13 @@ d_filter_reverse
 Parameter(s):
   (none)
 Return:
-  A d_filter_operation configured for reversal.
+  A dj_filter_operation configured for reversal.
 */
-struct d_filter_operation*
-d_filter_reverse
-(
-    void
-)
+struct dj_filter_operation* d_filter_reverse(void)
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
 
-    op = malloc(sizeof(struct d_filter_operation));
+    op = malloc(sizeof(struct dj_filter_operation));
 
     if (!op)
     {
@@ -658,10 +610,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_operation_free
-(
-    struct d_filter_operation* _op
+void d_filter_operation_free(
+    struct dj_filter_operation* _op
 )
 {
     if (!_op)
@@ -696,18 +646,14 @@ d_filter_chain_new
 Parameter(s):
   (none)
 Return:
-  A pointer to a newly allocated d_filter_chain, or NULL if allocation
+  A pointer to a newly allocated dj_filter_chain, or NULL if allocation
 fails.
 */
-struct d_filter_chain*
-d_filter_chain_new
-(
-    void
-)
+struct dj_filter_chain* d_filter_chain_new(void)
 {
-    struct d_filter_chain* chain;
+    struct dj_filter_chain* chain;
 
-    chain = malloc(sizeof(struct d_filter_chain));
+    chain = malloc(sizeof(struct dj_filter_chain));
 
     if (!chain)
     {
@@ -729,18 +675,16 @@ d_filter_chain_new_with_capacity
 Parameter(s):
   _capacity: the initial number of operations to allocate for.
 Return:
-  A pointer to a newly allocated d_filter_chain, or NULL if allocation
+  A pointer to a newly allocated dj_filter_chain, or NULL if allocation
 fails.
 */
-struct d_filter_chain*
-d_filter_chain_new_with_capacity
-(
+struct dj_filter_chain* d_filter_chain_new_with_capacity(
     size_t _capacity
 )
 {
-    struct d_filter_chain* chain;
+    struct dj_filter_chain* chain;
 
-    chain = malloc(sizeof(struct d_filter_chain));
+    chain = malloc(sizeof(struct dj_filter_chain));
 
     if (!chain)
     {
@@ -755,7 +699,7 @@ d_filter_chain_new_with_capacity
     if (_capacity > 0)
     {
         chain->operations = malloc(_capacity *
-                                   sizeof(struct d_filter_operation));
+                                   sizeof(struct dj_filter_operation));
 
         if (!chain->operations)
         {
@@ -779,13 +723,11 @@ Parameter(s):
 Return:
   A pointer to a newly allocated copy, or NULL on failure.
 */
-struct d_filter_chain*
-d_filter_chain_clone
-(
-    const struct d_filter_chain* _chain
+struct dj_filter_chain* d_filter_chain_clone(
+    const struct dj_filter_chain* _chain
 )
 {
-    struct d_filter_chain* clone;
+    struct dj_filter_chain* clone;
 
     if (!_chain)
     {
@@ -804,7 +746,7 @@ d_filter_chain_clone
     {
         memcpy(clone->operations,
                _chain->operations,
-               _chain->count * sizeof(struct d_filter_operation));
+               _chain->count * sizeof(struct dj_filter_operation));
         clone->count = _chain->count;
     }
 
@@ -824,14 +766,12 @@ Return:
   - true, if the operation was added successfully, or
   - false, if either parameter is NULL or allocation fails.
 */
-bool
-d_filter_chain_add
-(
-    struct d_filter_chain*           _chain,
-    const struct d_filter_operation* _op
+bool d_filter_chain_add(
+    struct dj_filter_chain*           _chain,
+    const struct dj_filter_operation* _op
 )
 {
-    struct d_filter_operation* new_ops;
+    struct dj_filter_operation* new_ops;
     size_t                     new_capacity;
 
     if ( (!_chain) ||
@@ -846,10 +786,10 @@ d_filter_chain_add
         new_capacity = (_chain->capacity == 0)
                        ? 4
                        : (_chain->capacity * 2);
-        new_ops = (struct d_filter_operation*)realloc(
+        new_ops = (struct dj_filter_operation*)realloc(
                       _chain->operations,
                       new_capacity
-                      * sizeof(struct d_filter_operation));
+                      * sizeof(struct dj_filter_operation));
 
         if (!new_ops)
         {
@@ -878,11 +818,9 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-bool
-d_filter_chain_add_take_first
-(
-    struct d_filter_chain* _chain,
-    size_t                 _n
+bool d_filter_chain_add_take_first(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
 )
 {
     return d_filter_chain_add(_chain, d_filter_take_first(_n));
@@ -898,11 +836,9 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-bool
-d_filter_chain_add_take_last
-(
-    struct d_filter_chain* _chain,
-    size_t                 _n
+bool d_filter_chain_add_take_last(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
 )
 {
     return d_filter_chain_add(_chain, d_filter_take_last(_n));
@@ -918,11 +854,9 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-bool
-d_filter_chain_add_skip_first
-(
-    struct d_filter_chain* _chain,
-    size_t                 _n
+bool d_filter_chain_add_skip_first(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
 )
 {
     return d_filter_chain_add(_chain, d_filter_skip_first(_n));
@@ -938,11 +872,9 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-bool
-d_filter_chain_add_skip_last
-(
-    struct d_filter_chain* _chain,
-    size_t                 _n
+bool d_filter_chain_add_skip_last(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
 )
 {
     return d_filter_chain_add(_chain, d_filter_skip_last(_n));
@@ -959,12 +891,10 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-bool
-d_filter_chain_add_range
-(
-    struct d_filter_chain* _chain,
-    size_t                 _start,
-    size_t                 _end
+bool d_filter_chain_add_range(
+    struct dj_filter_chain* _chain,
+    size_t                  _start,
+    size_t                  _end
 )
 {
     return d_filter_chain_add(_chain, d_filter_range(_start, _end));
@@ -980,11 +910,9 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-bool
-d_filter_chain_add_where
-(
-    struct d_filter_chain* _chain,
-    fn_predicate           _test
+bool d_filter_chain_add_where(
+    struct dj_filter_chain* _chain,
+    fn_predicate            _test
 )
 {
     return d_filter_chain_add(_chain, d_filter_where(_test));
@@ -1001,12 +929,10 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-bool
-d_filter_chain_add_where_context
-(
-    struct d_filter_chain* _chain,
-    fn_predicate           _test,
-    void*                  _context
+bool d_filter_chain_add_where_context(
+    struct dj_filter_chain* _chain,
+    fn_predicate            _test,
+    void*                   _context
 )
 {
     return d_filter_chain_add(_chain, d_filter_where_context(_test, _context));
@@ -1023,14 +949,12 @@ Return:
   A pointer to a newly allocated concatenated chain, or NULL on
 failure.
 */
-struct d_filter_chain*
-d_filter_chain_concat
-(
-    const struct d_filter_chain* _first,
-    const struct d_filter_chain* _second
+struct dj_filter_chain* d_filter_chain_concat(
+    const struct dj_filter_chain* _first,
+    const struct dj_filter_chain* _second
 )
 {
-    struct d_filter_chain* result;
+    struct dj_filter_chain* result;
     size_t                 total;
 
     if ( (!_first) ||
@@ -1051,14 +975,14 @@ d_filter_chain_concat
     {
         memcpy(result->operations,
                _first->operations,
-               _first->count * sizeof(struct d_filter_operation));
+               _first->count * sizeof(struct dj_filter_operation));
     }
 
     if (_second->count > 0)
     {
         memcpy(result->operations + _first->count,
                _second->operations,
-               _second->count * sizeof(struct d_filter_operation));
+               _second->count * sizeof(struct dj_filter_operation));
     }
 
     result->count = total;
@@ -1076,11 +1000,9 @@ Parameter(s):
 Return:
   A boolean value; true if all operations were appended.
 */
-bool
-d_filter_chain_append
-(
-    struct d_filter_chain*       _dest,
-    const struct d_filter_chain* _source
+bool d_filter_chain_append(
+    struct dj_filter_chain*       _dest,
+    const struct dj_filter_chain* _source
 )
 {
     size_t i;
@@ -1113,15 +1035,13 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was inserted successfully.
 */
-bool
-d_filter_chain_insert
-(
-    struct d_filter_chain*           _chain,
-    size_t                           _index,
-    const struct d_filter_operation* _op
+bool d_filter_chain_insert(
+    struct dj_filter_chain*           _chain,
+    size_t                            _index,
+    const struct dj_filter_operation* _op
 )
 {
-    struct d_filter_operation* new_ops;
+    struct dj_filter_operation* new_ops;
     size_t                    new_capacity;
 
     if ( (!_chain) ||
@@ -1137,10 +1057,10 @@ d_filter_chain_insert
         new_capacity = (_chain->capacity == 0)
                        ? 4
                        : (_chain->capacity * 2);
-        new_ops = (struct d_filter_operation*)realloc(
+        new_ops = (struct dj_filter_operation*)realloc(
                       _chain->operations,
                       new_capacity
-                      * sizeof(struct d_filter_operation));
+                      * sizeof(struct dj_filter_operation));
 
         if (!new_ops)
         {
@@ -1157,7 +1077,7 @@ d_filter_chain_insert
         memmove(&_chain->operations[_index + 1],
                 &_chain->operations[_index],
                 (_chain->count - _index)
-                * sizeof(struct d_filter_operation));
+                * sizeof(struct dj_filter_operation));
     }
 
     memcpy(&_chain->operations[_index], _op, sizeof(*_op));
@@ -1176,11 +1096,9 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was removed.
 */
-bool
-d_filter_chain_remove
-(
-    struct d_filter_chain* _chain,
-    size_t                 _index
+bool d_filter_chain_remove(
+    struct dj_filter_chain* _chain,
+    size_t                  _index
 )
 {
     if ( (!_chain) ||
@@ -1196,7 +1114,7 @@ d_filter_chain_remove
         memmove(&_chain->operations[_index],
                 &_chain->operations[_index + 1],
                 (_chain->count - _index - 1)
-                * sizeof(struct d_filter_operation));
+                * sizeof(struct dj_filter_operation));
     }
 
     _chain->count--;
@@ -1213,10 +1131,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_chain_clear
-(
-    struct d_filter_chain* _chain
+void d_filter_chain_clear(
+    struct dj_filter_chain* _chain
 )
 {
     size_t i;
@@ -1245,10 +1161,8 @@ Parameter(s):
 Return:
   The number of operations, or 0 if _chain is NULL.
 */
-size_t
-d_filter_chain_length
-(
-    const struct d_filter_chain* _chain
+size_t d_filter_chain_length(
+    const struct dj_filter_chain* _chain
 )
 {
     if (!_chain)
@@ -1268,10 +1182,8 @@ Parameter(s):
 Return:
   true if the chain is NULL or has no operations; false otherwise.
 */
-bool
-d_filter_chain_is_empty
-(
-    const struct d_filter_chain* _chain
+bool d_filter_chain_is_empty(
+    const struct dj_filter_chain* _chain
 )
 {
     if (!_chain)
@@ -1291,10 +1203,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_chain_free
-(
-    struct d_filter_chain* _chain
+void d_filter_chain_free(
+    struct dj_filter_chain* _chain
 )
 {
     size_t i;
@@ -1340,14 +1250,13 @@ Return:
   A pointer to a newly allocated array containing the filtered result,
 or NULL on failure. Caller is responsible for freeing the result.
 */
-static void*
-d_filter_apply_operation_internal
-(
-    const struct d_filter_operation* _op,
-    const void*                      _input,
-    size_t                           _count,
-    size_t                           _element_size,
-    size_t*                          _out_count
+static
+void* d_filter_apply_operation_internal(
+    const struct dj_filter_operation* _op,
+    const void*                       _input,
+    size_t                            _count,
+    size_t                            _element_size,
+    size_t*                           _out_count
 )
 {
     void*       output;
@@ -1796,22 +1705,20 @@ Parameter(s):
   _count:        the number of elements in the input.
   _element_size: the size in bytes of each element.
 Return:
-  A d_filter_result containing the filtered elements and status.
+  A dj_filter_result containing the filtered elements and status.
 */
-struct d_filter_result*
-d_filter_apply_operation
-(
-    const struct d_filter_operation* _op,
-    const void*                      _input,
-    size_t                           _count,
-    size_t                           _element_size
+struct dj_filter_result* d_filter_apply_operation(
+    const struct dj_filter_operation* _op,
+    const void*                       _input,
+    size_t                            _count,
+    size_t                            _element_size
 )
 {
-    struct d_filter_result* result;
+    struct dj_filter_result* result;
     size_t                  out_count;
     void*                   output;
 
-    result = malloc(sizeof(struct d_filter_result));
+    result = malloc(sizeof(struct dj_filter_result));
 
     if (!result)
     {
@@ -1859,25 +1766,23 @@ Parameter(s):
   _count:        the number of elements in the input.
   _element_size: the size in bytes of each element.
 Return:
-  A d_filter_result containing the final filtered elements and status.
+  A dj_filter_result containing the final filtered elements and status.
 */
-struct d_filter_result*
-d_filter_apply_chain
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size
+struct dj_filter_result* d_filter_apply_chain(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
-    struct d_filter_result* result;
+    struct dj_filter_result* result;
     size_t                  i;
     void*                   current_data;
     size_t                  current_count;
     void*                   next_data;
     size_t                  next_count;
 
-    result = malloc(sizeof(struct d_filter_result));
+    result = malloc(sizeof(struct dj_filter_result));
 
     if (!result)
     {
@@ -1971,16 +1876,14 @@ Return:
   The number of elements remaining after filtering. Returns 0 if any
 parameter is invalid or the operation fails.
 */
-size_t
-d_filter_apply_in_place
-(
-    const struct d_filter_chain* _chain,
-    void*                        _data,
-    size_t                       _count,
-    size_t                       _element_size
+size_t d_filter_apply_in_place(
+    const struct dj_filter_chain* _chain,
+    void*                         _data,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
-    struct d_filter_result* result;
+    struct dj_filter_result* result;
     size_t                  new_count;
 
     if ( (!_chain)           ||
@@ -2039,19 +1942,17 @@ Parameter(s):
 Return:
   true if the element survives the entire chain, false otherwise.
 */
-bool
-d_filter_chain_matches_element
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _element,
-    size_t                       _element_size
+bool d_filter_chain_matches_element(
+    const struct dj_filter_chain* _chain,
+    const void*                   _element,
+    size_t                        _element_size
 )
 {
     size_t                           i;
-    const struct d_filter_operation* op;
+    const struct dj_filter_operation* op;
     bool                             matches;
     bool                             all_predicates;
-    struct d_filter_result*          result;
+    struct dj_filter_result*          result;
 
     if ( (!_chain)          ||
          (!_element)        ||
@@ -2145,10 +2046,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_result_free
-(
-    struct d_filter_result* _result
+void d_filter_result_free(
+    struct dj_filter_result* _result
 )
 {
     if (!_result)
@@ -2192,17 +2091,15 @@ d_filter_union_new
 Parameter(s):
   _capacity: the initial number of filters to allocate for.
 Return:
-  A pointer to a newly allocated d_filter_union, or NULL on failure.
+  A pointer to a newly allocated dj_filter_union, or NULL on failure.
 */
-struct d_filter_union*
-d_filter_union_new
-(
+struct dj_filter_union* d_filter_union_new(
     size_t _capacity
 )
 {
-    struct d_filter_union* u;
+    struct dj_filter_union* u;
 
-    u = malloc(sizeof(struct d_filter_union));
+    u = malloc(sizeof(struct dj_filter_union));
 
     if (!u)
     {
@@ -2216,7 +2113,7 @@ d_filter_union_new
     if (_capacity > 0)
     {
         u->filters = malloc(_capacity *
-                            sizeof(struct d_filter_chain*));
+                            sizeof(struct dj_filter_chain*));
 
         if (!u->filters)
         {
@@ -2237,18 +2134,16 @@ capacity.
 Parameter(s):
   _capacity: the initial number of filters to allocate for.
 Return:
-  A pointer to a newly allocated d_filter_intersection, or NULL on
+  A pointer to a newly allocated dj_filter_intersection, or NULL on
 failure.
 */
-struct d_filter_intersection*
-d_filter_intersection_new
-(
+struct dj_filter_intersection* d_filter_intersection_new(
     size_t _capacity
 )
 {
-    struct d_filter_intersection* inter;
+    struct dj_filter_intersection* inter;
 
-    inter = malloc(sizeof(struct d_filter_intersection));
+    inter = malloc(sizeof(struct dj_filter_intersection));
 
     if (!inter)
     {
@@ -2261,7 +2156,7 @@ d_filter_intersection_new
 
     if (_capacity > 0)
     {
-        inter->filters = malloc(_capacity * sizeof(struct d_filter_chain*));
+        inter->filters = malloc(_capacity * sizeof(struct dj_filter_chain*));
 
         if (!inter->filters)
         {
@@ -2282,19 +2177,17 @@ Parameter(s):
   _include: the chain of elements to include.
   _exclude: the chain of elements to exclude.
 Return:
-  A pointer to a newly allocated d_filter_difference, or NULL on
+  A pointer to a newly allocated dj_filter_difference, or NULL on
 failure.
 */
-struct d_filter_difference*
-d_filter_difference_new
-(
-    struct d_filter_chain* _include,
-    struct d_filter_chain* _exclude
+struct dj_filter_difference* d_filter_difference_new(
+    struct dj_filter_chain* _include,
+    struct dj_filter_chain* _exclude
 )
 {
-    struct d_filter_difference* diff;
+    struct dj_filter_difference* diff;
 
-    diff = malloc(sizeof(struct d_filter_difference));
+    diff = malloc(sizeof(struct dj_filter_difference));
 
     if (!diff)
     {
@@ -2317,11 +2210,9 @@ Parameter(s):
 Return:
   A boolean value; true if the chain was added.
 */
-bool
-d_filter_union_add
-(
-    struct d_filter_union*       _union,
-    const struct d_filter_chain* _filter
+bool d_filter_union_add(
+    struct dj_filter_union*       _union,
+    const struct dj_filter_chain* _filter
 )
 {
     if ( (!_union)  ||
@@ -2331,7 +2222,7 @@ d_filter_union_add
         return false;
     }
 
-    _union->filters[_union->count] = (struct d_filter_chain*)_filter;
+    _union->filters[_union->count] = (struct dj_filter_chain*)_filter;
     _union->count++;
 
     return true;
@@ -2347,11 +2238,9 @@ Parameter(s):
 Return:
   A boolean value; true if the chain was added.
 */
-bool
-d_filter_intersection_add
-(
-    struct d_filter_intersection* _intersection,
-    const struct d_filter_chain*  _filter
+bool d_filter_intersection_add(
+    struct dj_filter_intersection* _intersection,
+    const struct dj_filter_chain*  _filter
 )
 {
     if ( (!_intersection) ||
@@ -2362,7 +2251,7 @@ d_filter_intersection_add
     }
 
     _intersection->filters[_intersection->count] =
-        (struct d_filter_chain*)_filter;
+        (struct dj_filter_chain*)_filter;
     _intersection->count++;
 
     return true;
@@ -2377,10 +2266,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_union_free
-(
-    struct d_filter_union* _union
+void d_filter_union_free(
+    struct dj_filter_union* _union
 )
 {
     if (!_union)
@@ -2408,10 +2295,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_intersection_free
-(
-    struct d_filter_intersection* _intersection
+void d_filter_intersection_free(
+    struct dj_filter_intersection* _intersection
 )
 {
     if (!_intersection)
@@ -2439,10 +2324,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_difference_free
-(
-    struct d_filter_difference* _difference
+void d_filter_difference_free(
+    struct dj_filter_difference* _difference
 )
 {
     if (!_difference)
@@ -2472,19 +2355,17 @@ Parameter(s):
   _count:        the number of elements.
   _element_size: the size in bytes of each element.
 Return:
-  A d_filter_result containing the union of all filter results.
+  A dj_filter_result containing the union of all filter results.
 */
-struct d_filter_result*
-d_filter_apply_union
-(
-    const struct d_filter_union* _union,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size
+struct dj_filter_result* d_filter_apply_union(
+    const struct dj_filter_union* _union,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
-    struct d_filter_result* result;
-    struct d_filter_result* sub_result;
+    struct dj_filter_result* result;
+    struct dj_filter_result* sub_result;
     bool*                   included;
     size_t                  i;
     size_t                  j;
@@ -2494,7 +2375,7 @@ d_filter_apply_union
     const char*             in_bytes;
     const char*             res_bytes;
 
-    result = malloc(sizeof(struct d_filter_result));
+    result = malloc(sizeof(struct dj_filter_result));
 
     if (!result)
     {
@@ -2628,24 +2509,22 @@ Parameter(s):
   _count:        the number of elements.
   _element_size: the size in bytes of each element.
 Return:
-  A d_filter_result containing the intersection of all filter results.
+  A dj_filter_result containing the intersection of all filter results.
 */
-struct d_filter_result*
-d_filter_apply_intersection
-(
-    const struct d_filter_intersection* _inter,
-    const void*                         _input,
-    size_t                              _count,
-    size_t                              _element_size
+struct dj_filter_result* d_filter_apply_intersection(
+    const struct dj_filter_intersection* _inter,
+    const void*                          _input,
+    size_t                               _count,
+    size_t                               _element_size
 )
 {
-    struct d_filter_result* result;
-    struct d_filter_result* sub_result;
+    struct dj_filter_result* result;
+    struct dj_filter_result* sub_result;
     void*                   current_data;
     size_t                  current_count;
     size_t                  i;
 
-    result = malloc(sizeof(struct d_filter_result));
+    result = malloc(sizeof(struct dj_filter_result));
 
     if (!result)
     {
@@ -2734,20 +2613,18 @@ Parameter(s):
   _count:        the number of elements.
   _element_size: the size in bytes of each element.
 Return:
-  A d_filter_result containing elements in include but not in exclude.
+  A dj_filter_result containing elements in include but not in exclude.
 */
-struct d_filter_result*
-d_filter_apply_difference
-(
-    const struct d_filter_difference* _diff,
-    const void*                       _input,
-    size_t                            _count,
-    size_t                            _element_size
+struct dj_filter_result* d_filter_apply_difference(
+    const struct dj_filter_difference* _diff,
+    const void*                        _input,
+    size_t                             _count,
+    size_t                             _element_size
 )
 {
-    struct d_filter_result*  result;
-    struct d_filter_result* include_result;
-    struct d_filter_result* exclude_result;
+    struct dj_filter_result*  result;
+    struct dj_filter_result* include_result;
+    struct dj_filter_result* exclude_result;
     size_t                  i;
     size_t                  j;
     size_t                  out_count;
@@ -2756,7 +2633,7 @@ d_filter_apply_difference
     const char*             exc_bytes;
     bool                    excluded;
 
-    result = malloc(sizeof(struct d_filter_result));
+    result = malloc(sizeof(struct dj_filter_result));
 
     if (!result)
     {
@@ -2903,16 +2780,14 @@ Parameter(s):
 Return:
   The number of matching elements. Returns 0 on error.
 */
-size_t
-d_filter_count_matches
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size
+size_t d_filter_count_matches(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
-    struct d_filter_result* result;
+    struct dj_filter_result* result;
     size_t                 match_count;
 
     result = d_filter_apply_chain(_chain,
@@ -2950,13 +2825,11 @@ Parameter(s):
 Return:
   true if at least one element matches.
 */
-bool
-d_filter_any_match
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size
+bool d_filter_any_match(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
     return (d_filter_count_matches(_chain,
@@ -2977,13 +2850,11 @@ Parameter(s):
 Return:
   true if all elements match.
 */
-bool
-d_filter_all_match
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size
+bool d_filter_all_match(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
     return (d_filter_count_matches(_chain,
@@ -3004,13 +2875,11 @@ Parameter(s):
 Return:
   true if no elements match.
 */
-bool
-d_filter_none_match
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size
+bool d_filter_none_match(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
     return (d_filter_count_matches(_chain,
@@ -3035,17 +2904,15 @@ Return:
   A newly allocated array of indices, or NULL on error. Caller must
 free the result.
 */
-size_t*
-d_filter_get_indices
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size,
-    size_t*                      _out_count
+size_t* d_filter_get_indices(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size,
+    size_t*                       _out_count
 )
 {
-    struct d_filter_result* result;
+    struct dj_filter_result* result;
     size_t*                indices;
     size_t                 idx_count;
     size_t                 i;
@@ -3141,10 +3008,8 @@ Parameter(s):
 Return:
   true if the operation is valid.
 */
-bool
-d_filter_operation_is_valid
-(
-    const struct d_filter_operation* _op
+bool d_filter_operation_is_valid(
+    const struct dj_filter_operation* _op
 )
 {
     if (!_op)
@@ -3185,10 +3050,8 @@ Parameter(s):
 Return:
   true if the chain is valid.
 */
-bool
-d_filter_chain_is_valid
-(
-    const struct d_filter_chain* _chain
+bool d_filter_chain_is_valid(
+    const struct dj_filter_chain* _chain
 )
 {
     size_t i;
@@ -3222,7 +3085,7 @@ Return:
 static const char*
 d_filter_op_type_name
 (
-    enum d_filter_op_type _type
+    enum dj_filter_op_type _type
 )
 {
     switch (_type)
@@ -3269,9 +3132,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_filter_predicate_to_hex_internal
-(
+static
+void d_filter_predicate_to_hex_internal(
     char*        _buffer,
     fn_predicate _test
 )
@@ -3315,10 +3177,8 @@ Parameter(s):
 Return:
   A newly allocated string, or NULL on failure. Caller must free.
 */
-char*
-d_filter_operation_to_string
-(
-    const struct d_filter_operation* _op
+char* d_filter_operation_to_string(
+    const struct dj_filter_operation* _op
 )
 {
     char*  buffer;
@@ -3405,10 +3265,8 @@ Parameter(s):
 Return:
   A newly allocated string, or NULL on failure. Caller must free.
 */
-char*
-d_filter_chain_to_string
-(
-    const struct d_filter_chain* _chain
+char* d_filter_chain_to_string(
+    const struct dj_filter_chain* _chain
 )
 {
     char*  buffer;
@@ -3494,13 +3352,11 @@ Parameter(s):
 Return:
   A pointer to a newly allocated operation, or NULL on failure.
 */
-struct d_filter_operation*
-d_filter_operation_from_string
-(
+struct dj_filter_operation* d_filter_operation_from_string(
     const char* _str
 )
 {
-    struct d_filter_operation* op;
+    struct dj_filter_operation* op;
     size_t                    n;
     size_t                    s;
     size_t                    e;
@@ -3611,14 +3467,12 @@ Parameter(s):
 Return:
   A pointer to a newly allocated chain, or NULL on failure.
 */
-struct d_filter_chain*
-d_filter_chain_from_string
-(
+struct dj_filter_chain* d_filter_chain_from_string(
     const char* _str
 )
 {
-    struct d_filter_chain*     chain;
-    struct d_filter_operation* op;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_operation* op;
     char*                      copy;
     char*                      token;
     char*                      save_ptr;
@@ -3708,15 +3562,13 @@ Parameter(s):
 Return:
   A pointer to a newly allocated optimized chain, or NULL on failure.
 */
-struct d_filter_chain*
-d_filter_chain_optimize
-(
-    const struct d_filter_chain* _chain
+struct dj_filter_chain* d_filter_chain_optimize(
+    const struct dj_filter_chain* _chain
 )
 {
-    struct d_filter_chain*    result;
-    struct d_filter_operation prev;
-    struct d_filter_operation curr;
+    struct dj_filter_chain*    result;
+    struct dj_filter_operation prev;
+    struct dj_filter_operation curr;
     size_t                    i;
     bool                      has_prev;
 
@@ -3795,11 +3647,9 @@ Parameter(s):
 Return:
   An estimated number of output elements.
 */
-size_t
-d_filter_estimate_result_size
-(
-    const struct d_filter_chain* _chain,
-    size_t                       _input_count
+size_t d_filter_estimate_result_size(
+    const struct dj_filter_chain* _chain,
+    size_t                        _input_count
 )
 {
     size_t estimated;
@@ -3814,7 +3664,7 @@ d_filter_estimate_result_size
 
     for (i = 0; i < _chain->count; i++)
     {
-        const struct d_filter_operation* op;
+        const struct dj_filter_operation* op;
 
         op = &_chain->operations[i];
 
@@ -3908,19 +3758,17 @@ Parameter(s):
 Return:
   A pointer to a newly allocated iterator, or NULL on failure.
 */
-struct d_filter_iterator*
-d_filter_iterator_new
-(
-    const struct d_filter_chain* _chain,
-    const void*                  _input,
-    size_t                       _count,
-    size_t                       _element_size
+struct dj_filter_iterator* d_filter_iterator_new(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
 )
 {
-    struct d_filter_iterator* iter;
+    struct dj_filter_iterator* iter;
     size_t                    idx_count;
 
-    iter = malloc(sizeof(struct d_filter_iterator));
+    iter = malloc(sizeof(struct dj_filter_iterator));
 
     if (!iter)
     {
@@ -3961,10 +3809,8 @@ Parameter(s):
 Return:
   true if more elements are available.
 */
-bool
-d_filter_iterator_has_next
-(
-    const struct d_filter_iterator* _iter
+bool d_filter_iterator_has_next(
+    const struct dj_filter_iterator* _iter
 )
 {
     if (!_iter)
@@ -3984,10 +3830,8 @@ Parameter(s):
 Return:
   A pointer to the next matching element, or NULL if exhausted.
 */
-void*
-d_filter_iterator_next
-(
-    struct d_filter_iterator* _iter
+void* d_filter_iterator_next(
+    struct dj_filter_iterator* _iter
 )
 {
     const char* bytes;
@@ -4023,10 +3867,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_iterator_reset
-(
-    struct d_filter_iterator* _iter
+void d_filter_iterator_reset(
+    struct dj_filter_iterator* _iter
 )
 {
     if (!_iter)
@@ -4049,10 +3891,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_iterator_free
-(
-    struct d_filter_iterator* _iter
+void d_filter_iterator_free(
+    struct dj_filter_iterator* _iter
 )
 {
     if (!_iter)
@@ -4084,15 +3924,11 @@ Parameter(s):
 Return:
   A pointer to a newly allocated builder, or NULL on failure.
 */
-struct d_filter_builder*
-d_filter_builder_new
-(
-    void
-)
+struct dj_filter_builder* d_filter_builder_new(void)
 {
-    struct d_filter_builder* builder;
+    struct dj_filter_builder* builder;
 
-    builder = malloc(sizeof(struct d_filter_builder));
+    builder = malloc(sizeof(struct dj_filter_builder));
 
     if (!builder)
     {
@@ -4122,15 +3958,13 @@ Parameter(s):
 Return:
   A pointer to a newly allocated builder, or NULL on failure.
 */
-struct d_filter_builder*
-d_filter_builder_from_chain
-(
-    struct d_filter_chain* _chain
+struct dj_filter_builder* d_filter_builder_from_chain(
+    struct dj_filter_chain* _chain
 )
 {
-    struct d_filter_builder* builder;
+    struct dj_filter_builder* builder;
 
-    builder = malloc(sizeof(struct d_filter_builder));
+    builder = malloc(sizeof(struct dj_filter_builder));
 
     if (!builder)
     {
@@ -4155,11 +3989,10 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-static struct d_filter_builder*
-d_filter_builder_add_op_internal
-(
-    struct d_filter_builder*    _builder,
-    struct d_filter_operation*  _op
+static
+struct dj_filter_builder* d_filter_builder_add_op_internal(
+    struct dj_filter_builder*   _builder,
+    struct dj_filter_operation* _op
 )
 {
     if ( (!_builder) ||
@@ -4186,11 +4019,9 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_take_first
-(
-    struct d_filter_builder* _builder,
-    size_t                   _n
+struct dj_filter_builder* d_filter_builder_take_first(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_take_first(_n));
@@ -4206,11 +4037,9 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_take_last
-(
-    struct d_filter_builder* _builder,
-    size_t                   _n
+struct dj_filter_builder* d_filter_builder_take_last(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_take_last(_n));
@@ -4226,11 +4055,9 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_take_nth
-(
-    struct d_filter_builder* _builder,
-    size_t                   _n
+struct dj_filter_builder* d_filter_builder_take_nth(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_take_nth(_n));
@@ -4246,11 +4073,9 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_skip_first
-(
-    struct d_filter_builder* _builder,
-    size_t                   _n
+struct dj_filter_builder* d_filter_builder_skip_first(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_skip_first(_n));
@@ -4266,11 +4091,9 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_skip_last
-(
-    struct d_filter_builder* _builder,
-    size_t                   _n
+struct dj_filter_builder* d_filter_builder_skip_last(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_skip_last(_n));
@@ -4286,10 +4109,8 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_where
-(
-    struct d_filter_builder* _builder,
+struct dj_filter_builder* d_filter_builder_where(
+    struct dj_filter_builder* _builder,
     fn_predicate              _test
 )
 {
@@ -4307,12 +4128,10 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_where_context
-(
-    struct d_filter_builder* _builder,
+struct dj_filter_builder* d_filter_builder_where_context(
+    struct dj_filter_builder* _builder,
     fn_predicate              _test,
-    void*                    _context
+    void*                     _context
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_where_context(_test, _context));
@@ -4328,10 +4147,8 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_where_not
-(
-    struct d_filter_builder* _builder,
+struct dj_filter_builder* d_filter_builder_where_not(
+    struct dj_filter_builder* _builder,
     fn_predicate              _test
 )
 {
@@ -4349,12 +4166,10 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_range
-(
-    struct d_filter_builder* _builder,
-    size_t                   _start,
-    size_t                   _end
+struct dj_filter_builder* d_filter_builder_range(
+    struct dj_filter_builder* _builder,
+    size_t                    _start,
+    size_t                    _end
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_range(_start, _end));
@@ -4373,13 +4188,11 @@ Return:
   The builder pointer for chaining.
 */
 
-struct d_filter_builder*
-d_filter_builder_slice
-(
-    struct d_filter_builder* _builder,
-    size_t                   _start,
-    size_t                   _end,
-    size_t                   _step
+struct dj_filter_builder* d_filter_builder_slice(
+    struct dj_filter_builder* _builder,
+    size_t                    _start,
+    size_t                    _end,
+    size_t                    _step
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_slice(_start, _end, _step));
@@ -4395,11 +4208,9 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_distinct
-(
-    struct d_filter_builder* _builder,
-    fn_function_comparator   _comparator
+struct dj_filter_builder* d_filter_builder_distinct(
+    struct dj_filter_builder* _builder,
+    fn_function_comparator    _comparator
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_distinct(_comparator));
@@ -4414,10 +4225,8 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_reverse
-(
-    struct d_filter_builder* _builder
+struct dj_filter_builder* d_filter_builder_reverse(
+    struct dj_filter_builder* _builder
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_reverse());
@@ -4433,11 +4242,9 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_at
-(
-    struct d_filter_builder* _builder,
-    size_t                   _index
+struct dj_filter_builder* d_filter_builder_at(
+    struct dj_filter_builder* _builder,
+    size_t                    _index
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_at(_index));
@@ -4454,12 +4261,10 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-struct d_filter_builder*
-d_filter_builder_at_indices
-(
-    struct d_filter_builder* _builder,
-    const size_t*            _indices,
-    size_t                   _n
+struct dj_filter_builder* d_filter_builder_at_indices(
+    struct dj_filter_builder* _builder,
+    const size_t*             _indices,
+    size_t                    _n
 )
 {
     return d_filter_builder_add_op_internal(_builder, d_filter_at_indices(_indices, _n));
@@ -4475,13 +4280,11 @@ Parameter(s):
 Return:
   The constructed filter chain, or NULL on error.
 */
-struct d_filter_chain*
-d_filter_builder_build
-(
-    struct d_filter_builder* _builder
+struct dj_filter_chain* d_filter_builder_build(
+    struct dj_filter_builder* _builder
 )
 {
-    struct d_filter_chain* chain;
+    struct dj_filter_chain* chain;
 
     if (!_builder)
     {
@@ -4504,20 +4307,18 @@ Parameter(s):
   _count:        the number of elements.
   _element_size: the size in bytes of each element.
 Return:
-  A d_filter_result containing the filtered output.
+  A dj_filter_result containing the filtered output.
 */
-struct d_filter_result*
-d_filter_builder_apply
-(
-    struct d_filter_builder* _builder,
-    const void*              _input,
-    size_t                   _count,
-    size_t                   _element_size
+struct dj_filter_result* d_filter_builder_apply(
+    struct dj_filter_builder* _builder,
+    const void*               _input,
+    size_t                    _count,
+    size_t                    _element_size
 )
 {
-    struct d_filter_result* result;
+    struct dj_filter_result* result;
 
-    result = malloc(sizeof(struct d_filter_result));
+    result = malloc(sizeof(struct dj_filter_result));
 
     if (!result)
     {
@@ -4536,7 +4337,7 @@ d_filter_builder_apply
 
     // delegate to apply_chain which returns a pointer
     {
-        struct d_filter_result* chain_result;
+        struct dj_filter_result* chain_result;
 
         chain_result = d_filter_apply_chain(
                            _builder->chain,
@@ -4567,10 +4368,8 @@ Parameter(s):
 Return:
   true if an error has occurred.
 */
-bool
-d_filter_builder_has_error
-(
-    const struct d_filter_builder* _builder
+bool d_filter_builder_has_error(
+    const struct dj_filter_builder* _builder
 )
 {
     if (!_builder)
@@ -4590,10 +4389,8 @@ Parameter(s):
 Return:
   The error code, or -1 if _builder is NULL.
 */
-int
-d_filter_builder_get_error_code
-(
-    const struct d_filter_builder* _builder
+int d_filter_builder_get_error_code(
+    const struct dj_filter_builder* _builder
 )
 {
     if (!_builder)
@@ -4613,10 +4410,8 @@ Parameter(s):
 Return:
   The error message string, or NULL if no error.
 */
-char*
-d_filter_builder_get_error_message
-(
-    const struct d_filter_builder* _builder
+char* d_filter_builder_get_error_message(
+    const struct dj_filter_builder* _builder
 )
 {
     if (!_builder)
@@ -4636,10 +4431,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_filter_builder_free
-(
-    struct d_filter_builder* _builder
+void d_filter_builder_free(
+    struct dj_filter_builder* _builder
 )
 {
     if (!_builder)

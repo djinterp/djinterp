@@ -36,8 +36,8 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Documents
-         1.  d_wiki_doc
-         2.  d_wiki_saved
+         1.  dj_wiki_doc
+         2.  dj_wiki_saved
 2.  OPERATIONS
     ----------
     1.  Documents
@@ -56,7 +56,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 // djinterp
-#include "./dwiki.h"  // d_wiki
+#include "./dwiki.h"  // dj_wiki
 
 
 //==============================================================================
@@ -67,15 +67,15 @@ TABLE OF CONTENTS
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_wiki_doc
+// dj_wiki_doc
 //   struct: one page's text, its records, and why the last change failed.
 //   Layout is private.
-struct d_wiki_doc;
+struct dj_wiki_doc;
 
 // 1.1.2
-// d_wiki_saved
+// dj_wiki_saved
 //   enum: what saving did.
-enum d_wiki_saved
+enum dj_wiki_saved
 {
     D_WIKI_SAVE_FAILED = 0,
     D_WIKI_SAVE_WRITTEN,
@@ -102,35 +102,55 @@ enum d_wiki_saved
  * @return the document, or `NULL` when the file cannot be read, its
  *         dialect is not known, or memory runs out.
  */
-struct d_wiki_doc*   d_wiki_doc_read(const char*         _path,
-                                     enum d_wiki_dialect _dialect,
-                                     char*               _problem,
-                                     size_t              _capacity);
+struct dj_wiki_doc* d_wiki_doc_read(
+    const char*          _path,
+    enum dj_wiki_dialect _dialect,
+    char*                _problem,
+    size_t               _capacity
+);
 // d_wiki_doc_make makes a document of a text, to be saved to `_path`;
 // the dialect, D_WIKI_OTHER, is the path's.
-struct d_wiki_doc*   d_wiki_doc_make(const char*         _path,
-                                     const char*         _text,
-                                     size_t              _length,
-                                     enum d_wiki_dialect _dialect,
-                                     char*               _problem,
-                                     size_t              _capacity);
-void                 d_wiki_doc_free(struct d_wiki_doc* _doc);
+struct dj_wiki_doc* d_wiki_doc_make(
+    const char*          _path,
+    const char*          _text,
+    size_t               _length,
+    enum dj_wiki_dialect _dialect,
+    char*                _problem,
+    size_t               _capacity
+);
+void d_wiki_doc_free(
+    struct dj_wiki_doc* _doc
+);
 // What a document holds: its records, as of its last change; its path, its
 // dialect, how many changes it has taken, why the last change failed, and
 // its text. d_wiki_doc_changed says where the last change kept was: the
 // text before it from `start` to `old_end` is the text now from `start` to
 // `new_end`, and all else is as it was; false before any change.
-const struct d_wiki* d_wiki_doc_records(const struct d_wiki_doc* _doc);
-const char*          d_wiki_doc_path(const struct d_wiki_doc* _doc);
-enum d_wiki_dialect  d_wiki_doc_dialect(const struct d_wiki_doc* _doc);
-size_t               d_wiki_doc_changes(const struct d_wiki_doc* _doc);
-bool                 d_wiki_doc_changed(const struct d_wiki_doc* _doc,
-                                        size_t*                  _out_start,
-                                        size_t*                  _out_old_end,
-                                        size_t*                  _out_new_end);
-const char*          d_wiki_doc_problem(const struct d_wiki_doc* _doc);
-const char*          d_wiki_doc_text(const struct d_wiki_doc* _doc,
-                                     size_t*                  _out_length);
+const struct dj_wiki* d_wiki_doc_records(
+    const struct dj_wiki_doc* _doc
+);
+const char* d_wiki_doc_path(
+    const struct dj_wiki_doc* _doc
+);
+enum dj_wiki_dialect d_wiki_doc_dialect(
+    const struct dj_wiki_doc* _doc
+);
+size_t d_wiki_doc_changes(
+    const struct dj_wiki_doc* _doc
+);
+bool d_wiki_doc_changed(
+    const struct dj_wiki_doc* _doc,
+    size_t*                   _out_start,
+    size_t*                   _out_old_end,
+    size_t*                   _out_new_end
+);
+const char* d_wiki_doc_problem(
+    const struct dj_wiki_doc* _doc
+);
+const char* d_wiki_doc_text(
+    const struct dj_wiki_doc* _doc,
+    size_t*                   _out_length
+);
 
 // 2.2    Changes
 //------------------------------------------------------------------------------
@@ -147,11 +167,13 @@ const char*          d_wiki_doc_text(const struct d_wiki_doc* _doc,
  * @return `true` if the change was kept; `false` otherwise, with
  *         d_wiki_doc_problem saying why, and the page as it was.
  */
-bool                 d_wiki_doc_splice(struct d_wiki_doc* _doc,
-                                       size_t             _start,
-                                       size_t             _end,
-                                       const char*        _text,
-                                       size_t             _length);
+bool d_wiki_doc_splice(
+    struct dj_wiki_doc* _doc,
+    size_t              _start,
+    size_t              _end,
+    const char*         _text,
+    size_t              _length
+);
 
 // 2.3    Links
 //------------------------------------------------------------------------------
@@ -162,12 +184,16 @@ bool                 d_wiki_doc_splice(struct d_wiki_doc* _doc,
 // shows its destination -- <https://...>, a bare one -- has no label to
 // set.  d_wiki_doc_unlink replaces a link with the text it shows; an image
 // or a category it removes.
-bool                 d_wiki_doc_set_link(struct d_wiki_doc* _doc,
-                                         size_t             _link,
-                                         const char*        _target,
-                                         const char*        _label);
-bool                 d_wiki_doc_unlink(struct d_wiki_doc* _doc,
-                                       size_t             _link);
+bool d_wiki_doc_set_link(
+    struct dj_wiki_doc* _doc,
+    size_t              _link,
+    const char*         _target,
+    const char*         _label
+);
+bool d_wiki_doc_unlink(
+    struct dj_wiki_doc* _doc,
+    size_t              _link
+);
 
 // 2.4    Sections
 //------------------------------------------------------------------------------
@@ -183,22 +209,32 @@ bool                 d_wiki_doc_unlink(struct d_wiki_doc* _doc,
 //                             body only
 // A body or a section is written with a blank line before the heading that
 // follows it.
-bool                 d_wiki_doc_set_body(struct d_wiki_doc* _doc,
-                                         size_t             _section,
-                                         const char*        _text);
-bool                 d_wiki_doc_set_section(struct d_wiki_doc* _doc,
-                                            size_t             _section,
-                                            const char*        _text);
-bool                 d_wiki_doc_rename_section(struct d_wiki_doc* _doc,
-                                               size_t             _section,
-                                               const char*        _title);
-bool                 d_wiki_doc_insert_section(struct d_wiki_doc* _doc,
-                                               size_t             _before,
-                                               size_t             _level,
-                                               const char*        _title,
-                                               const char*        _body);
-bool                 d_wiki_doc_remove_section(struct d_wiki_doc* _doc,
-                                               size_t             _section);
+bool d_wiki_doc_set_body(
+    struct dj_wiki_doc* _doc,
+    size_t              _section,
+    const char*         _text
+);
+bool d_wiki_doc_set_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _section,
+    const char*         _text
+);
+bool d_wiki_doc_rename_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _section,
+    const char*         _title
+);
+bool d_wiki_doc_insert_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _before,
+    size_t              _level,
+    const char*         _title,
+    const char*         _body
+);
+bool d_wiki_doc_remove_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _section
+);
 
 // 2.5    Regions
 //------------------------------------------------------------------------------
@@ -207,16 +243,22 @@ bool                 d_wiki_doc_remove_section(struct d_wiki_doc* _doc,
 // a section's own text, or of the page for D_WIKI_NONE;
 // d_wiki_doc_remove_region removes a region's markers, and its text unless
 // `_keep` says to keep it.
-bool                 d_wiki_doc_set_region(struct d_wiki_doc* _doc,
-                                           const char*        _name,
-                                           const char*        _text);
-bool                 d_wiki_doc_add_region(struct d_wiki_doc* _doc,
-                                           const char*        _name,
-                                           const char*        _text,
-                                           size_t             _section);
-bool                 d_wiki_doc_remove_region(struct d_wiki_doc* _doc,
-                                              const char*        _name,
-                                              bool               _keep);
+bool d_wiki_doc_set_region(
+    struct dj_wiki_doc* _doc,
+    const char*         _name,
+    const char*         _text
+);
+bool d_wiki_doc_add_region(
+    struct dj_wiki_doc* _doc,
+    const char*         _name,
+    const char*         _text,
+    size_t              _section
+);
+bool d_wiki_doc_remove_region(
+    struct dj_wiki_doc* _doc,
+    const char*         _name,
+    bool                _keep
+);
 
 // 2.6    Templates
 //------------------------------------------------------------------------------
@@ -224,13 +266,17 @@ bool                 d_wiki_doc_remove_region(struct d_wiki_doc* _doc,
 // it, as MediaWiki reads the last -- keeping the space about a named one's
 // value, or adds it before the template's close, numbered when its key is
 // the next number; d_wiki_doc_remove_argument removes it, and its `|`.
-bool                 d_wiki_doc_set_argument(struct d_wiki_doc* _doc,
-                                             size_t             _template,
-                                             const char*        _key,
-                                             const char*        _value);
-bool                 d_wiki_doc_remove_argument(struct d_wiki_doc* _doc,
-                                                size_t             _template,
-                                                const char*        _key);
+bool d_wiki_doc_set_argument(
+    struct dj_wiki_doc* _doc,
+    size_t              _template,
+    const char*         _key,
+    const char*         _value
+);
+bool d_wiki_doc_remove_argument(
+    struct dj_wiki_doc* _doc,
+    size_t              _template,
+    const char*         _key
+);
 
 // 2.7    Saving
 //------------------------------------------------------------------------------
@@ -243,10 +289,12 @@ bool                 d_wiki_doc_remove_argument(struct d_wiki_doc* _doc,
  * @param[in]     _capacity  the size of `_problem`.
  * @return what saving did.
  */
-enum d_wiki_saved    d_wiki_doc_save(struct d_wiki_doc* _doc,
-                                     const char*        _path,
-                                     char*              _problem,
-                                     size_t             _capacity);
+enum dj_wiki_saved d_wiki_doc_save(
+    struct dj_wiki_doc* _doc,
+    const char*         _path,
+    char*               _problem,
+    size_t              _capacity
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_WIKI_DWIKI_DOC_H

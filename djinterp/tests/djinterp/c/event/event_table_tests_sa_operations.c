@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_et_ops_cb
 //   helper: minimal callback for listener construction.
-static void
-d_tests_sa_et_ops_cb(size_t _count, void** _args)
+static
+void d_tests_sa_et_ops_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -36,15 +39,13 @@ d_tests_sa_et_insert_valid
   - count increases to 1
   - enabled_count increases to 1
 */
-bool
-d_tests_sa_et_insert_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_insert_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   lis;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   lis;
     bool                       ins;
 
     result = true;
@@ -85,16 +86,14 @@ d_tests_sa_et_insert_disabled
   - count increases
   - enabled_count does NOT increase
 */
-bool
-d_tests_sa_et_insert_disabled
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_insert_disabled(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   l_en;
-    struct d_event_listener*   l_dis;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   l_en;
+    struct dj_event_listener*   l_dis;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -137,16 +136,14 @@ d_tests_sa_et_insert_update
   - count remains unchanged
   - enabled_count updates when replacement changes enabled flag
 */
-bool
-d_tests_sa_et_insert_update
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_insert_update(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   l_orig;
-    struct d_event_listener*   l_repl;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   l_orig;
+    struct dj_event_listener*   l_repl;
     bool                       ins;
 
     result = true;
@@ -197,15 +194,13 @@ d_tests_sa_et_insert_null
   - NULL table returns false
   - NULL listener returns false
 */
-bool
-d_tests_sa_et_insert_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_insert_null(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   lis;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   lis;
 
     result = true;
 
@@ -246,16 +241,14 @@ d_tests_sa_et_lookup_found
   Tests the following:
   - Returns correct listener for each key
 */
-bool
-d_tests_sa_et_lookup_found
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_lookup_found(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   l1;
-    struct d_event_listener*   l2;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   l1;
+    struct dj_event_listener*   l2;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -302,14 +295,12 @@ d_tests_sa_et_lookup_missing
   Tests the following:
   - Returns NULL for missing key
 */
-bool
-d_tests_sa_et_lookup_missing
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_lookup_missing(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -334,10 +325,8 @@ d_tests_sa_et_lookup_null
   Tests the following:
   - Returns NULL
 */
-bool
-d_tests_sa_et_lookup_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_lookup_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -362,16 +351,14 @@ d_tests_sa_et_remove_valid
   - enabled_count decreases for enabled listener
   - Removed element no longer found by lookup
 */
-bool
-d_tests_sa_et_remove_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_remove_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   l1;
-    struct d_event_listener*   l2;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   l1;
+    struct dj_event_listener*   l2;
     bool                       rm;
 
     result = true;
@@ -428,14 +415,12 @@ d_tests_sa_et_remove_missing_and_null
   - Missing key returns false
   - NULL table returns false
 */
-bool
-d_tests_sa_et_remove_missing_and_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_remove_missing_and_null(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
 
@@ -469,15 +454,13 @@ d_tests_sa_et_contains_basic
   - Returns false for missing key
   - Returns false for NULL table
 */
-bool
-d_tests_sa_et_contains_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_contains_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   lis;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   lis;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -520,10 +503,8 @@ d_tests_sa_et_contains_basic
 d_tests_sa_et_operations_all
   Runs all core operations tests.
 */
-bool
-d_tests_sa_et_operations_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_operations_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

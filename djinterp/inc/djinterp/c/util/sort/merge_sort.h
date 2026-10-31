@@ -12,7 +12,7 @@
 *
 *       size_t bytes = d_merge_sort_scratch_size(count, sizeof(item));
 *       void*  work  = malloc(bytes);
-*       enum d_sort_status s = d_merge_sort(items, count, sizeof(item),
+*       enum dj_sort_status s = d_merge_sort(items, count, sizeof(item),
 *                                           &ordering, D_SORT_ORDER_ASCENDING,
 *                                           work, bytes);
 *
@@ -64,15 +64,19 @@ D_EXTERN_C_BEGIN
 
 
 // I.     sorting
-size_t             d_merge_sort_scratch_size(size_t _count,
-                                             size_t _elem_size);
-enum d_sort_status d_merge_sort(void*                           _base,
-                                size_t                          _count,
-                                size_t                          _elem_size,
-                                const struct d_sort_comparator* _comparator,
-                                enum d_sort_order               _order,
-                                void*                           _scratch,
-                                size_t                          _scratch_size);
+size_t d_merge_sort_scratch_size(
+    size_t _count,
+    size_t _elem_size
+);
+enum dj_sort_status d_merge_sort(
+    void*                            _base,
+    size_t                           _count,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order,
+    void*                            _scratch,
+    size_t                           _scratch_size
+);
 
 
 D_EXTERN_C_END

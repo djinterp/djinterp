@@ -87,21 +87,25 @@ D_EXTERN_C_BEGIN
 
 
 // II.    merging
-void   d_merge_runs(const void*                     _src,
-                    void*                           _dst,
-                    size_t                          _begin,
-                    size_t                          _mid,
-                    size_t                          _end,
-                    size_t                          _elem_size,
-                    const struct d_sort_comparator* _comparator,
-                    enum d_sort_order               _order);
-void   d_merge_pass(const void*                     _src,
-                    void*                           _dst,
-                    size_t                          _count,
-                    size_t                          _width,
-                    size_t                          _elem_size,
-                    const struct d_sort_comparator* _comparator,
-                    enum d_sort_order               _order);
+void d_merge_runs(
+    const void*                      _src,
+    void*                            _dst,
+    size_t                           _begin,
+    size_t                           _mid,
+    size_t                           _end,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
+void d_merge_pass(
+    const void*                      _src,
+    void*                            _dst,
+    size_t                           _count,
+    size_t                           _width,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
 
 
 D_EXTERN_C_END

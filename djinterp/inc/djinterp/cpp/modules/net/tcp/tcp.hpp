@@ -1,0 +1,644 @@
+/*******************************************************************************
+* djinterp [cpp/net]                                                     tcp.hpp
+*
+* The TCP transport for net.hpp: tcp.h's sockets as C++ connections.
+*   socket_connection is a net::connection over a dj_tcp_connection it holds
+* by value; tcp_connector opens one, and tcp_acceptor binds, listens, and
+* accepts them, and can be closed from any thread to wake a blocked accept.
+* The names and signatures are the replaced C++ tcp.hpp's, so client.hpp,
+* server.hpp, reactor.hpp, tls.hpp, and http.hpp compile unchanged, while the
+* socket code exists once, in tcp.c.
+*   Each member forwards to one tcp.h function, called directly rather than
+* through net.h's table. Nothing throws: connect and accept allocate the
+* connection open_result owns with nothrow new, and report a failure to as
+* io_error::out_of_memory.
+*   C++98 or later. connect and accept fill an open_result in place at every
+* level, and from C++11, where it can be moved, also return one; the
+* connection and the acceptor move from C++11 and copy at no level. Link
+* tcp.c and net.c.
+*
+*
+* path:      /inc/djinterp/cpp/modules/net/tcp/tcp.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.10.14
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  OPTIONS
+    -------
+    1.  Tunables
+         1.  socket_options
+2.  CONNECTIONS
+    -----------
+    1.  Handles
+         1.  socket_native_handle
+    2.  Socket connections
+         1.  socket_connection
+3.  OPENING
+    -------
+    1.  Connecting
+         1.  tcp_connector
+    2.  Accepting
+         1.  tcp_acceptor
+4.  NATIVE HELPERS
+    --------------
+    1.  Kept for consumers
+         1.  from_errno
+         2.  set_cloexec
+         3.  suppress_sigpipe
+*/
+
+#ifndef DJINTERP_NET_TCP_TCP_HPP
+#define DJINTERP_NET_TCP_TCP_HPP 1
+
+// std
+#include <cstddef>  // std::size_t
+#include <new>      // std::nothrow
+// djinterp
+#include "../../../djinterp.hpp"  // framework root
+#include "../net_common.hpp"   // connection, endpoint, open_result, to_c
+#include "../../../../c/modules/net/tcp/tcp.h"             // the C transport
+
+
+NS_DJINTERP
+NS_NET
+
+
+//==============================================================================
+// 1.  OPTIONS
+//==============================================================================
+
+
+// 1.1    Tunables
+//------------------------------------------------------------------------------
+// 1.1.1
+// socket_options
+//   struct: how connections are opened and listeners bound, with the
+// replaced tcp.hpp's defaults; the backlog comes from cfg_tcp.h.
+struct socket_options
+{
+    bool no_delay;            // set TCP_NODELAY, disabling Nagle
+    bool reuse_address;       // set SO_REUSEADDR on listeners
+    bool reuse_port;          // set SO_REUSEPORT on listeners, where it exists
+    long connect_timeout_ms;  // per address tried; 0 waits as the system does
+    long io_timeout_ms;       // per read and write of a connection opened or
+                              // accepted; 0: no limit
+    int  listen_backlog;      // listen()'s backlog
+
+    socket_options()
+        : no_delay(false),
+          reuse_address(true),
+          reuse_port(false),
+          connect_timeout_ms(0),
+          io_timeout_ms(0),
+          listen_backlog(D_INTERNAL_TCP_LISTEN_BACKLOG)
+    {}
+};
+
+NS_INTERNAL
+
+    // to_c_options
+    //   function: the dj_tcp_options equal to a socket_options.
+    D_NODISCARD inline ::dj_tcp_options to_c_options(
+        const socket_options& _options
+    ) D_NOEXCEPT
+    {
+        ::dj_tcp_options converted = ::dj_tcp_options();
+
+        ::d_tcp_options_init(&converted);
+        converted.connect_timeout_ms = _options.connect_timeout_ms;
+        converted.io_timeout_ms      = _options.io_timeout_ms;
+        converted.listen_backlog     = _options.listen_backlog;
+        converted.no_delay           = _options.no_delay;
+        converted.reuse_address      = _options.reuse_address;
+        converted.reuse_port         = _options.reuse_port;
+
+        return converted;
+    }
+
+NS_END  // internal
+
+
+//==============================================================================
+// 2.  CONNECTIONS
+//==============================================================================
+
+
+// 2.1    Handles
+//------------------------------------------------------------------------------
+// 2.1.1
+// socket_native_handle
+//   type: a socket's native handle: an int descriptor under BSD sockets, as
+// the replaced tcp.hpp returned, and tcp.h's dj_tcp_socket under Winsock.
+#if (D_INTERNAL_TCP_BACKEND == D_ENV_TCP_BACKEND_WINSOCK)
+    typedef ::dj_tcp_socket socket_native_handle;
+#else
+    typedef int socket_native_handle;
+#endif  // D_INTERNAL_TCP_BACKEND
+
+// 2.2    Socket connections
+//------------------------------------------------------------------------------
+// 2.2.1
+// socket_connection
+//   class: a connection over a connected socket, which it owns and closes
+// on destruction. Both endpoints are recorded when it opens and outlive the
+// socket. Not copyable; movable from C++11.
+class socket_connection : public connection
+{
+public:
+    typedef socket_native_handle native_handle_type;
+
+    // a closed connection, for connect and accept to open in place
+    socket_connection() D_NOEXCEPT
+        : connection(),
+          m_connection()
+    {
+        ::d_tcp_connection_init(&m_connection);
+    }
+
+    // adopts a connected socket; ownership passes even when it is refused,
+    // as an invalid handle is, leaving the connection closed
+    explicit socket_connection(
+        native_handle_type _fd,
+        protocol::value    _proto = protocol::tcp
+    ) D_NOEXCEPT
+        : connection(),
+          m_connection()
+    {
+        (void)::d_tcp_connection_adopt(&m_connection,
+                                       static_cast<dj_tcp_socket>(_fd),
+                                       to_c(_proto));
+    }
+
+    ~socket_connection() D_OVERRIDE
+    {
+        ::d_tcp_connection_close(&m_connection);
+    }
+
+#if (D_MOVE_ENABLED == 1)
+    socket_connection(
+        socket_connection&& _other
+    ) D_NOEXCEPT
+        : connection(),
+          m_connection(_other.m_connection)
+    {
+        (void)::d_tcp_connection_release(&_other.m_connection);
+    }
+
+    socket_connection&
+    operator=(
+        socket_connection&& _other
+    ) D_NOEXCEPT
+    {
+        // assigning a connection to itself keeps its socket
+        if (this != &_other)
+        {
+            ::d_tcp_connection_close(&m_connection);
+            m_connection = _other.m_connection;
+            (void)::d_tcp_connection_release(&_other.m_connection);
+        }
+
+        return *this;
+    }
+#endif  // D_MOVE_ENABLED
+
+    // the connection's operations, each forwarded to tcp.h
+    D_NODISCARD io_result read(
+        void*       _buffer,
+        std::size_t _size
+    ) D_OVERRIDE
+    {
+        return from_c(::d_tcp_connection_read(&m_connection,
+                                              _buffer,
+                                              _size));
+    }
+
+    D_NODISCARD io_result write(
+        const void* _data,
+        std::size_t _size
+    ) D_OVERRIDE
+    {
+        return from_c(::d_tcp_connection_write(&m_connection,
+                                               _data,
+                                               _size));
+    }
+
+    D_NODISCARD bool is_open() const D_OVERRIDE
+    {
+        return ::d_tcp_connection_is_open(&m_connection);
+    }
+
+    void close() D_OVERRIDE
+    {
+        ::d_tcp_connection_close(&m_connection);
+
+        return;
+    }
+
+    D_NODISCARD io_error::value shutdown(
+        shutdown_mode::value _mode
+    ) D_OVERRIDE
+    {
+        return from_c(::d_tcp_connection_shutdown(&m_connection,
+                                                  to_c(_mode)));
+    }
+
+    // the endpoints recorded at opening; an unknown one is a default
+    // endpoint, as it was
+    D_NODISCARD endpoint remote_endpoint() const D_OVERRIDE
+    {
+        ::dj_net_endpoint recorded = ::dj_net_endpoint();
+
+        return (::d_tcp_connection_remote_endpoint(&m_connection,
+                                                   &recorded))
+                   ? from_c(recorded)
+                   : endpoint();
+    }
+
+    D_NODISCARD endpoint local_endpoint() const D_OVERRIDE
+    {
+        ::dj_net_endpoint recorded = ::dj_net_endpoint();
+
+        return (::d_tcp_connection_local_endpoint(&m_connection,
+                                                  &recorded))
+                   ? from_c(recorded)
+                   : endpoint();
+    }
+
+    // native_handle -- the socket, or -1 (INVALID_SOCKET) once closed
+    D_NODISCARD native_handle_type native_handle() const D_NOEXCEPT
+    {
+        return static_cast<native_handle_type>(
+                   ::d_tcp_connection_native(&m_connection));
+    }
+
+    // c_view -- the C connection beneath, still owned here, for tcp.h and
+    // net.h's C algorithms
+    D_NODISCARD ::dj_tcp_connection& c_view() D_NOEXCEPT
+    {
+        return m_connection;
+    }
+
+    D_NODISCARD const ::dj_tcp_connection& c_view() const D_NOEXCEPT
+    {
+        return m_connection;
+    }
+
+private:
+    D_DELETED_FN(socket_connection(const socket_connection&))
+    D_DELETED_FN(socket_connection& operator=(const socket_connection&))
+
+    ::dj_tcp_connection m_connection;
+};
+
+
+//==============================================================================
+// 3.  OPENING
+//==============================================================================
+// A connector and an acceptor in the shapes client.hpp's connector concept,
+// server.hpp, and tls.hpp take.
+
+
+// 3.1    Connecting
+//------------------------------------------------------------------------------
+// 3.1.1
+// tcp_connector
+//   class: opens socket_connections, over TCP or to a unix-domain path by
+// the endpoint's protocol, with its socket_options.
+class tcp_connector
+{
+public:
+    tcp_connector()
+        : m_options()
+    {}
+
+    explicit tcp_connector(
+        const socket_options& _options
+    )
+        : m_options(_options)
+    {}
+
+    // options -- the tunables the next connect uses
+    D_NODISCARD socket_options& options()
+    {
+        return m_options;
+    }
+
+    /**
+     * @brief Resolves and connects, trying each address in turn.
+     *
+     * @param[in]  _endpoint  where to connect: a host and port, or a path.
+     * @param[out] _out       on success owns the connection; otherwise
+     *                        holds the error, any connection it held before
+     *                        closed either way.
+     * @return io_error::none, or the error _out records.
+     */
+    io_error::value connect(
+        const endpoint& _endpoint,
+        open_result&    _out
+    )
+    {
+        ::dj_net_endpoint      target = ::dj_net_endpoint();
+        const io_error::value stored = to_c(_endpoint,
+                                            target);
+
+        // an endpoint C cannot hold is refused before a socket exists
+        if (stored != io_error::none)
+        {
+            _out.fail(stored);
+
+            return stored;
+        }
+
+        socket_connection* const opened =
+            new (std::nothrow) socket_connection();
+
+        // no connection to open into
+        if (!opened)
+        {
+            _out.fail(io_error::out_of_memory);
+
+            return io_error::out_of_memory;
+        }
+
+        const ::dj_tcp_options tuned  = internal::to_c_options(m_options);
+        const io_error::value result =
+            from_c(::d_tcp_connect(&opened->c_view(),
+                                   &target,
+                                   &tuned));
+
+        // a failed connect hands back only its error
+        if (result != io_error::none)
+        {
+            delete opened;
+            _out.fail(result);
+
+            return result;
+        }
+
+        _out.reset(opened);
+
+        return io_error::none;
+    }
+
+#if (D_MOVE_ENABLED == 1)
+    // connect -- the same, returning the result, which C++11 can move
+    D_NODISCARD open_result connect(
+        const endpoint& _endpoint
+    )
+    {
+        open_result result;
+
+        (void)connect(_endpoint,
+                      result);
+
+        return result;
+    }
+#endif  // D_MOVE_ENABLED
+
+private:
+    socket_options m_options;
+};
+
+// 3.2    Accepting
+//------------------------------------------------------------------------------
+// 3.2.1
+// tcp_acceptor
+//   class: binds and listens on an endpoint, TCP or a unix-domain path, and
+// accepts socket_connections. close may be called from another thread to
+// wake an accept blocked in this one. Not copyable; movable from C++11.
+class tcp_acceptor
+{
+public:
+    typedef socket_native_handle native_handle_type;
+
+    tcp_acceptor()
+        : m_listener(),
+          m_options()
+    {
+        ::d_tcp_listener_init(&m_listener);
+    }
+
+    explicit tcp_acceptor(
+        const socket_options& _options
+    )
+        : m_listener(),
+          m_options(_options)
+    {
+        ::d_tcp_listener_init(&m_listener);
+    }
+
+    ~tcp_acceptor()
+    {
+        ::d_tcp_listener_close(&m_listener);
+    }
+
+#if (D_MOVE_ENABLED == 1)
+    tcp_acceptor(
+        tcp_acceptor&& _other
+    ) D_NOEXCEPT
+        : m_listener(_other.m_listener),
+          m_options(_other.m_options)
+    {
+        ::d_tcp_listener_init(&_other.m_listener);
+    }
+
+    tcp_acceptor&
+    operator=(
+        tcp_acceptor&& _other
+    ) D_NOEXCEPT
+    {
+        // assigning an acceptor to itself keeps its listener
+        if (this != &_other)
+        {
+            ::d_tcp_listener_close(&m_listener);
+            m_listener = _other.m_listener;
+            m_options  = _other.m_options;
+            ::d_tcp_listener_init(&_other.m_listener);
+        }
+
+        return *this;
+    }
+#endif  // D_MOVE_ENABLED
+
+    // bind -- binds and listens, closing any earlier binding first; port 0
+    // takes an ephemeral port, which local_endpoint then reports
+    D_NODISCARD io_error::value bind(
+        const endpoint& _endpoint
+    )
+    {
+        ::dj_net_endpoint      target = ::dj_net_endpoint();
+        const io_error::value stored = to_c(_endpoint,
+                                            target);
+
+        // an endpoint C cannot hold is refused before a socket exists
+        if (stored != io_error::none)
+        {
+            return stored;
+        }
+
+        const ::dj_tcp_options tuned = internal::to_c_options(m_options);
+
+        return from_c(::d_tcp_listen(&m_listener,
+                                     &target,
+                                     &tuned));
+    }
+
+    /**
+     * @brief Waits for a connection and accepts it.
+     *
+     * @param[out] _out  on success owns the connection; otherwise holds the
+     *                   error, any connection it held before closed either
+     *                   way.
+     * @return io_error::none, or the error _out records: io_error::closed
+     *         once the acceptor is closed, including by close from another
+     *         thread during the wait.
+     */
+    io_error::value accept(
+        open_result& _out
+    )
+    {
+        socket_connection* const accepted =
+            new (std::nothrow) socket_connection();
+
+        // no connection to accept into
+        if (!accepted)
+        {
+            _out.fail(io_error::out_of_memory);
+
+            return io_error::out_of_memory;
+        }
+
+        const io_error::value result =
+            from_c(::d_tcp_accept(&m_listener,
+                                  &accepted->c_view()));
+
+        // a failed accept hands back only its error
+        if (result != io_error::none)
+        {
+            delete accepted;
+            _out.fail(result);
+
+            return result;
+        }
+
+        _out.reset(accepted);
+
+        return io_error::none;
+    }
+
+#if (D_MOVE_ENABLED == 1)
+    // accept -- the same, returning the result, which C++11 can move
+    D_NODISCARD open_result accept()
+    {
+        open_result result;
+
+        (void)accept(result);
+
+        return result;
+    }
+#endif  // D_MOVE_ENABLED
+
+    D_NODISCARD bool is_open() const
+    {
+        return ::d_tcp_listener_is_open(&m_listener);
+    }
+
+    // close -- stops listening, waking a blocked accept; a unix-domain path
+    // the acceptor created is removed
+    void close()
+    {
+        ::d_tcp_listener_close(&m_listener);
+
+        return;
+    }
+
+    // local_endpoint -- the address bound, or a default endpoint
+    D_NODISCARD endpoint local_endpoint() const
+    {
+        ::dj_net_endpoint recorded = ::dj_net_endpoint();
+
+        return (::d_tcp_listener_local_endpoint(&m_listener,
+                                                &recorded))
+                   ? from_c(recorded)
+                   : endpoint();
+    }
+
+    // native_handle -- the listening socket, or -1 (INVALID_SOCKET)
+    D_NODISCARD native_handle_type native_handle() const D_NOEXCEPT
+    {
+        return static_cast<native_handle_type>(
+                   ::d_tcp_listener_native(&m_listener));
+    }
+
+private:
+    D_DELETED_FN(tcp_acceptor(const tcp_acceptor&))
+    D_DELETED_FN(tcp_acceptor& operator=(const tcp_acceptor&))
+
+    ::dj_tcp_listener m_listener;
+    socket_options   m_options;
+};
+
+
+//==============================================================================
+// 4.  NATIVE HELPERS
+//==============================================================================
+// The replaced tcp.hpp's internal helpers that its consumers call:
+// reactor.hpp maps errno and prepares the sockets it accepts itself, as the
+// replaced tls.hpp mapped errno. Each now forwards to tcp.h, so the mapping
+// and the preparation exist once.
+
+
+// 4.1    Kept for consumers
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // 4.1.1
+    // from_errno
+    //   function: a native socket error as an io_error, mapped as tcp.h
+    // maps its own.
+    D_NODISCARD inline io_error::value from_errno(
+        int _errnum
+    ) D_NOEXCEPT
+    {
+        return from_c(::d_tcp_error_from_native(_errnum));
+    }
+
+    // 4.1.2
+    // set_cloexec
+    //   function: marks a socket close-on-exec.
+    inline
+    void set_cloexec(
+        socket_native_handle _fd
+    ) D_NOEXCEPT
+    {
+        ::d_tcp_socket_cloexec(static_cast<dj_tcp_socket>(_fd));
+
+        return;
+    }
+
+    // 4.1.3
+    // suppress_sigpipe
+    //   function: stops a socket raising SIGPIPE, where the socket itself
+    // can say so; elsewhere tcp.h's sends pass MSG_NOSIGNAL.
+    inline
+    void suppress_sigpipe(
+        socket_native_handle _fd
+    ) D_NOEXCEPT
+    {
+        ::d_tcp_socket_no_sigpipe(static_cast<dj_tcp_socket>(_fd));
+
+        return;
+    }
+
+NS_END  // internal
+
+
+NS_END  // net
+NS_END  // djinterp
+
+
+#endif  // DJINTERP_NET_TCP_TCP_HPP

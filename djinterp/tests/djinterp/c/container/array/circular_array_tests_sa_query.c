@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./circular_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -24,14 +24,12 @@ d_tests_sa_circular_array_is_empty
   - is_empty on non-empty array returns false
   - is_empty on NULL returns true
 */
-bool
-d_tests_sa_circular_array_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       value = 42;
 
     result = true;
@@ -79,14 +77,12 @@ d_tests_sa_circular_array_is_full
   - is_full on partially filled returns false
   - is_full on full array returns true
 */
-bool
-d_tests_sa_circular_array_is_full
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_is_full(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
 
     result = true;
@@ -145,14 +141,12 @@ d_tests_sa_circular_array_count
   - count after push operations
   - count after pop operations
 */
-bool
-d_tests_sa_circular_array_count
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_count(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
 
     result = true;
@@ -211,14 +205,12 @@ d_tests_sa_circular_array_capacity
   - capacity returns correct value
   - capacity unchanged after operations
 */
-bool
-d_tests_sa_circular_array_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       value = 42;
 
     result = true;
@@ -266,14 +258,12 @@ d_tests_sa_circular_array_available_space
   - available_space decreases after push
   - available_space on full array is 0
 */
-bool
-d_tests_sa_circular_array_available_space
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_available_space(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
 
     result = true;
@@ -332,14 +322,12 @@ d_tests_sa_circular_array_element_size
   Tests the following:
   - element_size returns correct value
 */
-bool
-d_tests_sa_circular_array_element_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_element_size(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
 
     result = true;
 
@@ -386,10 +374,8 @@ d_tests_sa_circular_array_element_size
 d_tests_sa_circular_array_query_all
   Aggregation function that runs all query tests.
 */
-bool
-d_tests_sa_circular_array_query_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_query_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

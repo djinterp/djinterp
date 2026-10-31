@@ -38,8 +38,7 @@ namespace
 
 // owner_colour
 //   the colour of the first target whose value, before, holds a bit.
-rgba
-owner_colour(
+rgba owner_colour(
     const model& _model,
     int          _bit,
     bool&        _owned

@@ -1,0 +1,3040 @@
+arena_domain.hpp
+	#include <cstddef>
+	#include <cstdint>
+	#include "../core/djinterp.hpp"
+	#include "../lang/cpp.hpp"
+	#include "./arena.hpp"
+	#include "./string_table.hpp"
+	#include "./cross_ref.hpp"
+	#include "./dirty_tracker.hpp"
+	#include "./file_tree.hpp"
+
+			c\container\array\array.h
+				#include <math.h>
+				#include <stdarg.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+				#include "./array_common.h"
+
+			c\container\array\array_common.h
+				#include <limits.h>
+				#include <math.h>
+				#include <stdarg.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+
+			c\container\array\array_filter.h
+				#include "..\..\djinterp.h"
+				#include "..\..\dmemory.h"
+				#include "..\..\functional\filter.h"
+
+			c\container\array\byte_array.h
+				#include <stddef.h>
+				#include <stdint.h>
+				#include "../../djinterp.h"
+
+			c\container\array\circular_array.h
+				#include <stdarg.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../../container/container.h"
+				#include "./array_common.h"
+
+			c\container\array\ptr_array.h
+				#include <math.h>
+				#include <stdarg.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+				#include "./array_common.h"
+
+			c\container\buffer\buffer_common.h
+				#include <limits.h>
+				#include <math.h>
+				#include <stdarg.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../../functional/filter.h"
+				#include "../container.h"
+
+			c\container\buffer\text_buffer.h
+				#include <ctype.h>
+				#include <stdarg.h>
+				#include <stdio.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../../dstring.h"
+				#include "../../functional/filter.h"
+				#include "../container.h"
+				#include "./buffer_common.h"
+
+		c\container\container.h
+			#include "../djinterp.h"
+			#include "../core/config/container/container_config.h"
+
+			c\container\map\enum_map_entry.h
+				#include <stdarg.h>
+				#include <stdint.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../container.h"
+				#include "./map.h"
+
+			c\container\map\map.h
+				#include "../../djinterp.h"
+				#include "../container.h"
+
+			c\container\map\min_enum_map.h
+				#include <stdlib.h>
+				#include <string.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+				#include "./enum_map_entry.h"
+
+			c\container\node\linked_node.h
+				#include <assert.h>
+				#include <stdio.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../container.h"
+
+			c\container\registry\registry.h
+				#include <ctype.h>      // tolower
+				#include <stdarg.h>
+				#include <stddef.h>
+				#include <stdint.h>
+				#include <stdlib.h>
+				#include <string.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+
+			c\container\registry\registry_common.h
+				#include <stddef.h>
+				#include <stdint.h>
+				#include "../../djinterp.h"
+				#include "../../type_info.h"
+
+			c\container\stack\min_stack.h
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../container.h"
+				#include "../node/linked_node.h"
+
+			c\container\vector\ptr_vector.h
+				#include <stdarg.h>
+				#include <stdbool.h>
+				#include <stddef.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+				#include "./vector_common.h"
+
+			c\container\vector\vector.h
+				#include <math.h>
+				#include <stdarg.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+				#include "./vector_common.h"
+
+			c\container\vector\vector_common.h
+				#include <math.h>
+				#include <stdarg.h>
+				#include <stdlib.h>
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "../container.h"
+				#include "../array/array_common.h"
+
+	c\datomic.h
+		#include <stddef.h>      // for size_t
+		#include <stdint.h>      // for fixed-width types
+		#include <stdbool.h>     // for bool
+		#include "./djinterp.h"
+		#include <atomic>
+		#include <stdatomic.h>
+		#include <windows.h>
+		#include <intrin.h>
+
+	c\derror.h
+		#include "./djinterp.h"
+		#include "./dmemory.h"
+
+	c\dfile.h
+		#include <stdarg.h>
+		#include <stddef.h>
+		#include <stdint.h>
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <string.h>
+		#include <errno.h>
+		#include "./djinterp.h"
+		#include "./dmemory.h"
+		#include "./string_fn.h"
+		#include <windows.h>
+		#include <winioctl.h>   // for FSCTL_GET_REPARSE_POINT
+		#include <io.h>
+		#include <fcntl.h>
+		#include <sys/types.h>
+		#include <sys/stat.h>
+		#include <direct.h>
+		#include <share.h>
+		#include <unistd.h>
+		#include <fcntl.h>
+		#include <sys/types.h>
+		#include <sys/stat.h>
+		#include <sys/file.h>
+		#include <dirent.h>
+		#include <libgen.h>
+
+	c\dio.h
+		#include <stdarg.h>
+		#include <stdio.h>
+		#include "./djinterp.h"
+		#include "./dfile.h"
+		#include "./djinterp.h"
+
+	c\djinterp.h
+		#include <stdint.h>
+		#include "./env.h"
+		#include "./dmacro.h"
+		#include <stdbool.h>
+
+	c\dmacro.h
+		#include <stddef.h>
+		#include "./env.h"
+
+	c\dmemory.h
+		#include <stddef.h>      // for size_t
+		#include <stdlib.h>      // for malloc
+		#include <string.h>      // for memcpy
+		#include "./djinterp.h"
+
+	c\dmutex.h
+		#include <stddef.h>      // for size_t
+		#include "./djinterp.h"
+		#include "./dtime.h"
+		#include <threads.h>
+		#include <pthread.h>
+		#include <errno.h>
+		#include <unistd.h>
+		#include <sys/time.h>
+		#include <windows.h>
+		#include <process.h>
+
+	c\dstring.h
+		#include <ctype.h>
+		#include <stdarg.h>
+		#include <stddef.h>
+		#include <stdint.h>
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include "./djinterp.h"
+		#include "./string_fn.h"
+
+	c\dtime.h
+		#include <errno.h>
+		#include <stddef.h>
+		#include <stdint.h>
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <time.h>
+		#include <string.h>
+		#include "./djinterp.h"
+		#include "./dmemory.h"
+		#include "./string_fn.h"
+		#include <windows.h>
+		#include <unistd.h>
+		#include <sys/time.h>
+
+	c\env.h
+		#include "./core/config/env_config.h"
+		#include <TargetConditionals.h>
+		#include <stdio.h>
+
+		c\event\event.h
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+
+		c\event\event_handler.h
+			#include <stddef.h>
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "./event.h"
+			#include "./event_table.h"
+			#include "../container/array/circular_array.h"
+			#include "../sync/container/array/circular_array_mtx.h"
+
+		c\event\event_table.h
+			#include <stddef.h>
+			#include <stdlib.h>
+			#include <stdint.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "./event.h"
+			#include "./event_table_common.h"
+
+		c\event\event_table_common.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "./event.h"
+
+		c\functional\compose.h
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "./functional_common.h"
+
+		c\functional\filter.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdlib.h>
+			#include <string.h>
+			#include <stdio.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "../dio.h"
+			#include "./functional.h"
+
+		c\functional\fn_builder.h
+			#include <stddef.h>
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "./functional_common.h"
+
+		c\functional\functional.h
+			#include "../djinterp.h"
+			#include "./functional_common.h"
+			#include "./predicate.h"
+			#include "./compose.h"
+			#include "./fn_builder.h"
+			#include "./pipeline.h"
+
+		c\functional\functional_common.h
+			#include <stddef.h>
+			#include <string.h>
+			#include "../djinterp.h"
+
+		c\functional\pipeline.h
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "./functional_common.h"
+
+		c\functional\predicate.h
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "./functional_common.h"
+
+	c\string_fn.h
+		#include <ctype.h>          // for `tolower`
+		#include <stddef.h>         // for `size_t`
+		#include <stdint.h>
+		#include <stdlib.h>
+		#include <string.h>
+		#include "./djinterp.h"
+		#include "./dmemory.h"
+
+				c\sync\container\array\circular_array_mtx.h
+					#include <stdarg.h>
+					#include <stdlib.h>
+					#include "../../../djinterp.h"
+					#include "../../../dmemory.h"
+					#include "../../../dmutex.h"
+					#include "../../../container/container.h"
+					#include "../../../container/array/array_common.h"
+					#include "../../../container/array/circular_array.h"
+
+		c\test\assert.h
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include <string.h>
+			#include "../djinterp.h"
+
+		c\test\test.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "../container/map/min_enum_map.h"
+			#include "../container/vector/ptr_vector.h"
+			#include "./test_common.h"
+			#include "./test_options.h"
+			#include "./assert.h"
+
+		c\test\test_block.h
+			#include <stdint.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "../container/map/min_enum_map.h"
+			#include "../container/vector/ptr_vector.h"
+			#include "./test.h"
+
+		c\test\test_cli.h
+			#include <stddef.h>
+			#include "../djinterp.h"
+			#include "../util/cli/cli_option.h"
+
+		c\test\test_common.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include <string.h>
+			#include "../djinterp.h"
+			#include "../container/map/min_enum_map.h"
+
+		c\test\test_cvar.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include "../djinterp.h"
+			#include "../container/registry/registry.h"
+			#include "../type_info.h"
+
+		c\test\test_handler.h
+			#include <stdint.h>
+			#include <stdlib.h>
+			#include <stdarg.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "../dfile.h"
+			#include "../dtime.h"
+			#include "../string_fn.h"
+			#include "../event/event.h"
+			#include "../event/event_handler.h"
+			#include "../test/test_options.h"
+			#include "../test/test_common.h"
+			#include "../test/assert.h"
+			#include "../test/test.h"
+			#include "../test/test_block.h"
+			#include "../test/test_module.h"
+			#include "../test/test_session.h"
+			#include "../container/stack/min_stack.h"
+
+		c\test\test_module.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdbool.h>
+			#include "../djinterp.h"
+			#include "../container/map/min_enum_map.h"
+			#include "./test_common.h"
+			#include "./test_options.h"
+			#include "./test_block.h"
+
+		c\test\test_options.h
+			#include <stdint.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "../container/map/min_enum_map.h"
+			#include "../container/registry/registry.h"
+			#include "./test_cvar.h"
+
+		c\test\test_printer.h
+			#include <stdint.h>
+			#include <stdlib.h>
+			#include "../../djinterp.h"
+			#include "../../dmemory.h"
+			#include "../../test/assert.h"
+			#include "../../test/test.h"
+			#include "../../test.h"
+
+		c\test\test_session.h
+			#include <stdarg.h>
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdbool.h>
+			#include <stdio.h>
+			#include "../djinterp.h"
+			#include "../dfile.h"
+			#include "../dstring.h"
+			#include "../dtime.h"
+			#include "../container/map/min_enum_map.h"
+			#include "../container/vector/ptr_vector.h"
+			#include "./test_module.h"
+			#include "./test_stats.h"
+
+		c\test\test_standalone.h
+			#include <stddef.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include "../../../inc/c/djinterp.h"
+			#include "../../../inc/c/dmemory.h"
+			#include "../../../inc/c/dfile.h"
+			#include "../../../inc/c/dstring.h"
+			#include "../../../inc/c/dtime.h"
+			#include "./test_common.h"
+
+		c\test\test_stats.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdbool.h>
+			#include <string.h>
+
+		c\test\test_tree.h
+			#include <stdint.h>
+			#include <stddef.h>
+			#include <stdlib.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+
+		c\text\number_to_string_en.h
+			#include <stddef.h>
+			#include <stdint.h>
+
+		c\text\number_to_string_es.h
+			#include <stddef.h>
+			#include <stdint.h>
+
+		c\text\number_to_string_fr.h
+			#include <stddef.h>
+			#include <stdint.h>
+
+		c\text\number_to_string_it.h
+			#include <stddef.h>
+			#include <stdint.h>
+
+		c\text\number_to_string_la.h
+			#include <stddef.h>
+			#include <stdint.h>
+
+		c\text\number_to_string_pt.h
+			#include <stddef.h>
+			#include <stdint.h>
+
+		c\text\str_interp.h
+			#include <stddef.h>
+			#include "../djinterp.h"
+			#include "../dmemory.h"
+			#include "../string_fn.h"
+
+			c\text\symbol\ascii.h
+				#include "../../djinterp.h"
+
+			c\text\symbol\emoji.h
+				#include <stddef.h>         // size_t
+				#include <stdint.h>         // uint32_t
+				#include "../../djinterp.h"
+				#include "../../dmemory.h"
+				#include "..\
+
+				c\text\symbol\emoji\emoji.h
+					#include <stddef.h>         // size_t
+					#include <stdint.h>         // uint32_t
+					#include "../../djinterp.h"
+					#include "../../dmemory.h"
+					#include "../../../unicode/unicode.h"
+					#include "./emoji_flags.h"
+
+				c\text\symbol\emoji\emoji_flags.h
+					#include "../../../unicode/unicode.h"
+
+			c\text\symbol\math_symbols.h
+				#include "../../djinterp.h"
+
+		c\text\text_template.h
+			#include <stddef.h>
+			#include "../djinterp.h"
+			#include "./str_interp.h"
+
+	c\threadsafe_common.h
+		#include "./datomic.h"
+		#include "./dmutex.h"
+
+	c\type_info.h
+		#include <stddef.h>
+		#include <stdint.h>
+
+	c\type_info_c.h
+		#include "type_info_common.h"
+
+			c\util\cli\cli_option.h
+				#include <stddef.h>
+				#include <stdio.h>
+				#include "../../djinterp.h"
+				#include "../../string_fn.h"
+
+			c\util\color\cmyk.h
+				#include "../../../djinterp.h"
+				#include "../../../dmemory.h"
+
+			c\util\color\color.h
+				#include <ctype.h>
+				#include <math.h>
+				#include <stdint.h>
+				#include <string.h>
+				#include "../../../djinterp.h"
+				#include "../../../dmemory.h"
+
+			c\util\color\color_conv.h
+				#include "color_rgb.h"
+				#include "color_hsv.h"
+				#include "color_hsl.h"
+				#include "color_cmyk.h"
+				#include "color_xyz.h"
+				#include "color_lab.h"
+				#include "color_ycbcr.h"
+
+			c\util\color\hsl.h
+				#include <stdbool.h>
+
+			c\util\color\hsv.h
+				#include <stdbool.h>
+
+			c\util\color\lab.h
+				#include <stdbool.h>
+
+			c\util\color\rgb.h
+				#include <ctype.h>
+				#include <math.h>
+				#include <stdint.h>
+				#include "../../../djinterp.h"
+				#include "../../../dmemory.h"
+
+			c\util\color\xyz.h
+				#include <stdbool.h>
+
+			c\util\color\ycbcr.h
+				#include <stdbool.h>
+
+		c\util\iterator.h
+			#include <math.h>
+			#include <stdarg.h>
+			#include <stdlib.h>
+			#include "..\djinterp.h"
+			#include "..\dmemory.h"
+
+		c\util\type_info_common.h
+			#include "env.h"
+			#include <stddef.h>
+			#include <stdint.h>
+
+		container\arena\arena.hpp
+			#include <cassert>
+			#include <cstddef>
+			#include <cstdint>
+			#include <type_traits>
+			#include <vector>
+			#include "../../djinterp.hpp"
+
+		container\arena\arena_concepts.hpp
+			#include <type_traits>
+			#include "arena_traits.hpp"
+
+		container\arena\arena_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../../djinterp.hpp"
+			#include "./arena.hpp"
+
+			container\arena\tree\arena_tree.hpp
+				#include "./arena.hpp"
+
+			container\arena\tree\arena_tree_concepts.hpp
+				#include <type_traits>
+				#include "arena_concepts.hpp"
+				#include "arena_tree_traits.hpp"
+
+			container\arena\tree\arena_tree_traits.hpp
+				#include <cstddef>
+				#include <type_traits>
+				#include "../../djinterp.hpp"
+				#include "./arena.hpp"
+				#include "./arena_traits.hpp"
+
+		container\array\array_binary.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <cstring>
+			#include <type_traits>
+			#include <vector>
+			#include "..\djinterp.hpp"
+			#include "container_binary.hpp"
+			#include "array_container.hpp"
+			#include "meta\array_container_traits.hpp"
+
+		container\array\array_cli_options.hpp
+			#include <cstddef>
+			#include <cstring>
+			#include <string>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "..\djinterp.hpp"
+			#include "array_container.hpp"
+			#include "array_options.hpp"
+			#include "meta\array_container_traits.hpp"
+			#include "meta\container_cli_traits.hpp"
+			#include "meta\container_option_traits.hpp"
+
+		container\array\array_container.hpp
+			#include <algorithm>
+			#include <cstddef>
+			#include <cstring>
+			#include <iterator>
+			#include <type_traits>
+			#include <utility>
+			#include "../../core/djinterp.hpp"
+			#include "../sequential_container.hpp"
+			#include "./array_iterator.hpp"
+			#include "./array_container_traits.hpp"
+
+		container\array\array_container_concepts.hpp
+			#include <type_traits>
+			#include "array_container_traits.hpp"
+
+		container\array\array_container_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+			#include "..\type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "iterator_traits.hpp"
+
+		container\array\array_filter.hpp
+			#include <algorithm>
+			#include <cstddef>
+			#include <iterator>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "..\djinterp.hpp"
+			#include "array_container.hpp"
+			#include "array_iterator.hpp"
+			#include "meta\array_container_traits.hpp"
+			#include "meta\container_filter_traits.hpp"
+
+		container\array\array_iterator.hpp
+			#include <cstddef>
+			#include <iterator>
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+
+		container\array\array_options.hpp
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "..\djinterp.hpp"
+			#include "array_container.hpp"
+			#include "meta\array_container_traits.hpp"
+			#include "meta\container_option_traits.hpp"
+
+		container\array\threadsafe_array.hpp
+			#include <algorithm>
+			#include <cstddef>
+			#include <iterator>
+			#include <type_traits>
+			#include <vector>
+			#include "..\djinterp.hpp"
+			#include "threadsafe\container_base.hpp"
+			#include "threadsafe\locked_accessor.hpp"
+			#include "threadsafe\atomic_state.hpp"
+			#include "threadsafe\snapshot.hpp"
+			#include "array_container.hpp"
+			#include "array_iterator.hpp"
+			#include <array>
+			#include <utility>
+
+		container\buffer\buffer.hpp
+			#include <algorithm>
+			#include <cstddef>
+			#include <cstdint>
+			#include <cstring>
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+
+		container\buffer\text_buffer.hpp
+			#include <algorithm>
+			#include <cstdarg>
+			#include <cstddef>
+			#include <cstdint>
+			#include <cstdio>
+			#include <cstring>
+			#include <ostream>
+			#include <iterator>
+			#include <limits>
+			#include <new>
+			#include <string>
+			#include <type_traits>
+			#include <utility>
+			#include "..\djinterp.hpp"
+			#include "buffer.hpp"
+			#include <string_view>
+
+	container\container.hpp
+		#include <cstddef>
+		#include <iterator>
+		#include <type_traits>
+		#include <utility>
+		#include "../djinterp.hpp"
+		#include "./container_traits.hpp"
+		#include "./container_compare_traits.hpp"
+		#include "./container_view_traits.hpp"
+		#include "./container_constructive_traits.hpp"
+		#include "./container_conversion_traits.hpp"
+		#include "./iterator_traits.hpp"
+
+	container\container_binary.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <cstring>
+		#include <type_traits>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "../binary/binary.hpp"
+		#include "./meta/container_binary_traits.hpp"
+
+	container\container_options.hpp
+		#include <cstddef>
+		#include <type_traits>
+
+	container\container_path.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <cstring>
+		#include <string>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "../util/path/path.hpp"
+
+	container\container_path_traits.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include "../djinterp.hpp"
+		#include "../type_traits.hpp"
+		#include "./container_traits.hpp"
+
+	container\flat_store.hpp
+		#include <array>
+		#include <cstddef>
+		#include <limits>
+		#include <memory>
+		#include <type_traits>
+		#include <utility>
+		#include "../djinterp.hpp"
+
+		container\iterator\constexpr_iterator.hpp
+			#include <cstddef>
+			#include <iterator>
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+
+		container\iterator\container_iterator.hpp
+			#include <memory>
+			#include <type_traits>
+			#include "../djinterp"
+			#include "../iterator.hpp"
+			#include "./container.hpp"
+			#include "./container_concepts.hpp"
+
+		container\iterator\flat_iterator.hpp
+			#include <cstddef>
+			#include <iterator>
+			#include <queue>
+			#include <stack>
+			#include <type_traits>
+			#include <vector>
+			#include "../djinterp.hpp"
+
+		container\iterator\flat_iterator_traits.hpp
+			#include <cstddef>
+			#include <iterator>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "./container_traits.hpp"
+			#include "./iterator_traits.hpp"
+
+		container\iterator\hierarchical_iterator.hpp
+			#include <cstddef>
+			#include <iterator>
+			#include <queue>
+			#include <stack>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "../djinterp.hpp"
+
+		container\iterator\hierarchical_iterator_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "./container_traits.hpp"
+
+		container\iterator\iterator_traits.hpp
+			#include <cstddef>
+			#include <iterator>
+			#include <type_traits>
+			#include <utility>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+
+		container\list\doubly_linked_list.hpp
+			#include <memory>
+			#include <type_traits>
+			#include "../meta/container_traits.hpp"
+
+		container\list\linked_list.hpp
+			#include <initializer_list>
+			#include <iterator>
+			#include <limits>
+			#include <memory>
+			#include <stdexcept>
+			#include <type_traits>
+			#include "..\..\djinterp"
+
+		container\list\list.hpp
+			#include <memory>
+			#include "../container.hpp"
+			#include "../container_iterator.hpp"
+			#include "../node.hpp"
+
+		container\map\enum_map.hpp
+			#include <cstddef>
+			#include <functional>
+			#include <initializer_list>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "./meta/container_traits.hpp"
+			#include "./meta/map_traits.hpp"
+			#include "./meta/enum_map_traits.hpp"
+			#include "./map.hpp"
+
+		container\map\enum_map_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../../djinterp.hpp"
+			#include "../../type_traits.hpp"
+			#include "./container_traits.hpp"
+			#include "./map_traits.hpp"
+
+		container\map\map.hpp
+			#include <algorithm>
+			#include <cstddef>
+			#include <functional>
+			#include <iterator>
+			#include <type_traits>
+			#include <utility>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "./meta/container_traits.hpp"
+			#include "./meta/container_compare_traits.hpp"
+			#include "./meta/container_conversion_traits.hpp"
+			#include "./meta/iterator_traits.hpp"
+
+		container\map\map_concepts.hpp
+			#include <type_traits>
+			#include "map_traits.hpp"
+
+		container\map\map_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include <utility>
+			#include "../../djinterp.hpp"
+			#include "../../type_traits.hpp"
+			#include "./container_traits.hpp"
+			#include <variant>
+
+		container\matrix\matrix.hpp
+			#include <algorithm>
+			#include <initializer_list>
+			#include <numeric>
+			#include <stdexcept>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "..\..\djinterp"
+			#include ".\array.hpp"
+			#include ".\array_iterator.hpp"
+			#include ".\matrix_iterator.hpp"
+
+		container\matrix\matrix_iterator.hpp
+			#include <iterator>
+			#include <memory>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "..\..\djinterp"
+
+		container\meta\container_binary_traits.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <type_traits>
+			#include <vector>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "../../c/type_info.h"
+			#include "./container_traits.hpp"
+
+		container\meta\container_cli_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "container_option_traits.hpp"
+			#include "../../cli/cli_traits.hpp"
+			#include "../../options/kv_pair.hpp"
+
+		container\meta\container_compare_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+			#include "..\type_traits.hpp"
+			#include "container_traits.hpp"
+			#include <compare>
+
+		container\meta\container_constructive_traits.hpp
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+			#include "..\type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "container_compare_traits.hpp"
+			#include "container_view_traits.hpp"
+			#include "iterator_traits.hpp"
+			#include "threadsafe_container_traits.hpp"
+
+		container\meta\container_conversion_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "container_compare_traits.hpp"
+			#include "container_view_traits.hpp"
+			#include "container_constructive_traits.hpp"
+
+		container\meta\container_database_traits.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <string>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "../../database/database_traits.hpp"
+
+		container\meta\container_filter_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include <vector>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "./container_traits.hpp"
+
+		container\meta\container_option_traits.hpp
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "../../options/option_set_traits.hpp"
+
+		container\meta\container_text_traits.hpp
+			#include <cstddef>
+			#include <iosfwd>
+			#include <string>
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+			#include "..\type_traits.hpp"
+			#include "container_traits.hpp"
+
+		container\meta\container_traits.hpp
+			#include <limits>
+			#include <memory>
+			#include <type_traits>
+			#include <utility>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "../maths/interval_traits.hpp"
+
+		container\meta\container_view_traits.hpp
+			#include <type_traits>
+			#include "..\djinterp.hpp"
+			#include "..\type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "container_compare_traits.hpp"
+			#include "iterator_traits.hpp"
+			#include "threadsafe_container_traits.hpp"
+
+		container\meta\node_container_traits.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <memory>
+			#include <type_traits>
+			#include "../../djinterp.hpp"
+			#include "../../meta/type_traits.hpp"
+
+		container\meta\sequential_container_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include <utility>
+			#include "..\djinterp.hpp"
+			#include "container_traits.hpp"
+			#include "iterator_traits.hpp"
+
+		container\meta\threadsafe_container_traits.hpp
+			#include <atomic>
+			#include <cstddef>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "container_traits.hpp"
+			#include "threadsafe.hpp"
+
+	container\nary_tree.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <memory>
+		#include <type_traits>
+		#include <vector>
+		#include "nary_tree_options.hpp"
+		#include "../../djinterp.hpp"
+
+	container\nary_tree_options.hpp
+		#include <cstddef>
+		#include <type_traits>
+
+		container\node\linked_node.hpp
+			#include <array>
+			#include <cstddef>
+			#include <type_traits>
+			#include <utility>
+			#include "../../djinterp.hpp"
+
+		container\node\node.hpp
+			#include <memory>
+			#include <tuple>
+			#include <vector>
+			#include "../../djinterp.hpp"
+			#include "../../meta/type_traits.hpp"
+
+		container\node\node_iterator.hpp
+			#include <iterator>
+			#include <variant>
+			#include <vector>
+			#include "../../djinterp.hpp"
+			#include "../../meta/node_traits.hpp"
+
+		container\node\node_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include <memory>
+			#include "../../djinterp.hpp"
+
+		container\node\poly_tree.hpp
+			#include <vector>
+			#include <variant>
+			#include <utility>
+			#include "../djinterp.hpp"
+			#include "node/node.hpp"
+			#include "node/node_iterator.hpp"
+
+	container\node_container.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <memory>
+		#include <type_traits>
+		#include "../../djinterp.hpp"
+
+	container\sequential_container.hpp
+		#include <algorithm>
+		#include <cstddef>
+		#include <iterator>
+		#include <type_traits>
+		#include <utility>
+		#include "..\djinterp.hpp"
+		#include "meta\container_traits.hpp"
+		#include "meta\iterator_traits.hpp"
+
+		container\set\set.hpp
+			#include <functional>
+			#include <memory>
+			#include <set>
+			#include <unordered_set>
+			#include "..\core\djinterp.hpp"
+			#include "..\core\type_traits.hpp"
+			#include "..\meta\container_traits.hpp"
+			#include ".\set_traits.hpp"
+
+		container\set\set_concepts.hpp
+			#include "../../djinterp.hpp"
+			#include "./set_traits.hpp"
+
+		container\set\set_traits.hpp
+			#include ".\djinterp.hpp"
+			#include ".\meta\type_traits.hpp"
+			#include ".\container\traits\container_traits.hpp"
+
+		container\stack\stack.hpp
+			#include <memory>
+			#include <type_traits>
+			#include "../meta/container_traits.hpp"
+
+	container\stl_array_structural_traits.hpp
+		#include <type_traits>
+		#include <array>
+		#include <tuple>
+		#include <cstddef>
+		#include <utility>
+		#include "..\djinterp.h"
+
+	container\stl_container_concepts.hpp
+		#include "..\djinterp"
+		#include "..\type_traits.hpp"
+		#include ".\container.hpp"
+
+	container\stl_container_traits.hpp
+		#include <cstddef>
+		#include <iterator>
+		#include <type_traits>
+		#include <utility>
+		#include "../djinterp.hpp"
+		#include "../type_traits.hpp"
+
+	container\stl_traits.hpp
+		#include <cstddef>
+		#include <iosfwd>
+		#include <type_traits>
+		#include <utility>
+		#include "..\env.h"
+		#include "..\cpp_features.h"
+		#include "..\djinterp.h"
+
+			container\table\lookup\lookup_table.hpp
+				#include <cstddef>
+				#include <type_traits>
+				#include <utility>
+				#include "..\..\djinterp.h"
+
+			container\table\lookup\lookup_table_traits.hpp
+				#include <cstddef>
+				#include <type_traits>
+				#include "..\..\djinterp.h"
+
+			container\table\registry\registry_table.hpp
+				#include <cstddef>
+				#include <type_traits>
+				#include <utility>
+				#include "../../../djinterp.h"
+				#include "../lookup/lookup_table.hpp"
+
+			container\table\registry\registry_table_traits.hpp
+				#include <cstddef>
+				#include <type_traits>
+				#include "../../../djinterp.h"
+				#include "./lookup_table_traits.hpp"
+
+		container\table\table.hpp
+			#include <array>
+			#include <cstddef>
+			#include <initializer_list>
+			#include <iterator>
+			#include <stdexcept>
+			#include <type_traits>
+			#include "..\..\djinterp.h"
+			#include "..\meta\table_traits.hpp"
+
+		container\table\table_layout.hpp
+			#include "..\..\djinterp.h"
+			#include "..\meta\table_traits.hpp"
+
+		container\table\table_traits.hpp
+			#include <cstddef>
+			#include <tuple>
+			#include <type_traits>
+			#include "..\..\djinterp.h"
+			#include "..\..\type_traits.hpp"
+
+	container\threadsafe_container.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include "..\djinterp.hpp"
+		#include "threadsafe.hpp"
+		#include "meta\threadsafe_container_traits.hpp"
+		#include "meta\container_traits.hpp"
+		#include <atomic>
+		#include <functional>
+		#include <utility>
+		#include <vector>
+		#include <optional>
+		#include <hazard_pointer>
+		#include <rcu>
+
+			container\tree\avl\AVLtree.hpp
+				#include <memory>
+				#include <type_traits>
+				#include "./tree.hpp"
+				#include "../node.hpp"
+				#include "../container.hpp"
+
+			container\tree\file\file_attributes.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cstring>
+				#include <string>
+				#include "../djinterp.hpp"
+				#include <windows.h>
+				#include <sys/stat.h>
+				#include <unistd.h>
+				#include <sys/xattr.h>
+				#include <sys/xattr.h>
+				#include <sys/stat.h>
+				#include <unistd.h>
+
+			container\tree\file\file_tree.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cstring>
+				#include <string>
+				#include <vector>
+				#include <unordered_map>
+				#include "../djinterp.hpp"
+				#include "../arena/arena.hpp"
+				#include <windows.h>
+				#include <dirent.h>
+				#include <sys/stat.h>
+				#include <unistd.h>
+				#include <dirent.h>
+				#include <sys/stat.h>
+				#include <unistd.h>
+
+			container\tree\file\file_tree_filter.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cstring>
+				#include <string>
+				#include <vector>
+				#include <functional>
+				#include "../djinterp.hpp"
+				#include "../container/arena.hpp"
+				#include "./file_tree.hpp"
+				#include "./file_attributes.hpp"
+				#include "../functional/predicate_combinators.hpp"
+				#include "../functional/pipeline.hpp"
+
+			container\tree\file\file_tree_path.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cstring>
+				#include <string>
+				#include <vector>
+				#include "../djinterp.hpp"
+				#include "../core/path.hpp"
+				#include "../container/arena.hpp"
+				#include "../container/container_path.hpp"
+				#include "../container/tree_path.hpp"
+				#include "./file_tree.hpp"
+
+		container\tree\nary_tree.hpp
+			#include <algorithm>
+			#include <functional>
+			#include <iterator>
+			#include <limits>
+			#include <list>
+			#include <memory>
+			#include <stack>
+			#include <stdexcept>
+			#include <string>
+			#include <type_traits>
+			#include <unordered_map>
+			#include <vector>
+			#include <deque>
+			#include "..\..\djinterp"
+			#include "..\container.hpp"
+
+		container\tree\nary_tree_concepts.hpp
+			#include "nary_tree_traits.hpp"
+
+		container\tree\nary_tree_traits.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <type_traits>
+			#include <memory>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+
+		container\tree\tree_container.hpp
+			#include <memory>
+			#include <type_traits>
+			#include "../../djinterp.hpp"
+			#include "node/node_container.hpp"
+			#include "node/node_traits.hpp"
+
+		container\tree\tree_container_concepts.hpp
+			#include "tree_container_traits.hpp"
+
+		container\tree\tree_container_traits.hpp
+			#include <type_traits>
+			#include "../../djinterp.hpp"
+			#include "../../meta/type_traits.hpp"
+			#include "../../meta/node_traits.hpp"
+
+		container\tree\tree_iterator.hpp
+			#include <iterator>
+			#include <vector>
+			#include <cstddef>
+			#include "../djinterp.hpp"
+			#include "../meta/node_traits.hpp"
+
+		container\tree\tree_path.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <cstring>
+			#include <string>
+			#include <vector>
+			#include "../djinterp.hpp"
+			#include "../core/path.hpp"
+			#include "./arena.hpp"
+			#include "./container_path.hpp"
+
+		container\tree\tree_visitor.hpp
+			#include <type_traits>
+			#include "../../djinterp.hpp"
+			#include "../../meta/type_traits.hpp"
+			#include "tree_container.hpp"
+			#include "tree_container_traits.hpp"
+			#include "tree_iterator.hpp"
+			#include <utility>
+			#include <functional>
+			#include <queue>
+
+		container\vector\vector.hpp
+			#include <memory>
+
+		core\binary\binary.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <cstring>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../../c/type_info.h"
+
+		core\cli\cli.hpp
+			#include "./cli_parser.hpp"
+
+		core\cli\cli_parser.hpp
+			#include <cctype>
+			#include <cstddef>
+			#include <cstdint>
+			#include <cstdlib>
+			#include <cstring>
+			#include <string>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+			#include "../core/djinterp.hpp"
+			#include "../parse/parse.hpp"
+			#include "../parse/parser.hpp"
+			#include "./cli_traits.hpp"
+			#include "./option_store.hpp"
+
+		core\cli\cli_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../core/djinterp.hpp"
+			#include <string_view>
+
+		core\cli\option_set.hpp
+			#include <array>
+			#include <cstddef>
+			#include <limits>
+			#include <memory>
+			#include <type_traits>
+			#include <utility>
+			#include "kv_pair.hpp"
+
+		core\cli\option_set_traits.hpp
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include <string_view>
+
+		core\cli\options.hpp
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include <vector>
+			#include "..\djinterp.hpp"
+			#include "meta\container_option_traits.hpp"
+			#include <optional>
+			#include <string_view>
+
+		core\cli\options_parser.hpp
+			#include <cstddef>
+			#include <cstring>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../../parse/parse.hpp"
+			#include "../../parse/parser.hpp"
+			#include "./option_set.hpp"
+			#include "./options_parser_traits.hpp"
+			#include <string_view>
+
+		core\cli\options_parser_traits.hpp
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include "../core/djinterp.hpp"
+			#include "./option_set.hpp"
+			#include <string_view>
+
+		core\core\concepts.hpp
+			#include <concepts>
+			#include <type_traits>
+			#include <memory>
+			#include <tuple>
+			#include ".\djinterp.hpp"
+			#include ".\core\env\env_cpp_features.h"
+
+					core\core\config\container\array\array_config.h
+						#include "../container_config.h"
+
+				core\core\config\container\container_config.h
+					#include "../../../dconfig.h"
+
+					core\core\config\container\iterator\container_iterator_config.h
+						#include "../../../../dconfig.h"
+						#include "../../container_config.h"
+
+					core\core\config\container\registry\registry_config.h
+						#include "../../../../dconfig.h"
+
+			core\core\config\env_config.h
+				#include "../../../../inc/c/dconfig.h"
+
+				core\core\config\event\event_config.h
+					#include "../../../dconfig.h"
+
+				core\core\config\functional\functional_config.h
+					#include "../../../../dconfig.h"
+
+				core\core\config\test\test_config.h
+					#include "../../../djinterp.h"
+					#include "../../../dconfig.h"
+
+				core\core\config\text\text_config.h
+					#include "../../../dconfig.h"
+
+					core\core\config\util\cli\cli_option_config.h
+						#include "../../../../dconfig.h"
+
+				core\core\defaults\test\dtest_defaults.h
+					#include <stddef.h>
+					#include <stdio.h>
+					#include <stdlib.h>
+					#include "../../../inc/c/djinterp.h"
+					#include "../../../inc/c/dmemory.h"
+					#include "../../../inc/c/dfile.h"
+					#include "../../../inc/c/dstring.h"
+					#include "../../../inc/c/dtime.h"
+					#include "./test_common.h"
+
+				core\core\defaults\test\test_standalone_defaults.h
+					#include <stddef.h>
+					#include <stdio.h>
+					#include <stdlib.h>
+					#include "../../../djinterp.h"
+					#include "../../../container/map/map.h"
+					#include "../../../container/map/enum_map_entry.h"
+					#include "../../../container/map/min_enum_map.h"
+					#include "../../config/test/test_config.h"
+
+		core\core\dtuple.hpp
+			#include <algorithm>
+			#include <array>
+			#include <tuple>
+			#include <type_traits>
+			#include <utility>
+			#include ".\djinterp.h"
+			#include ".\cpp_features.h"
+
+				core\core\env\db\env_arangodb.h
+					#include "./env_db.h"
+
+				core\core\env\db\env_db.h
+					#include "./env.h"
+
+				core\core\env\db\env_mariadb.h
+					#include "./env_mysql_common.h"
+
+				core\core\env\db\env_mongodb.h
+					#include "./env_db.h"
+
+				core\core\env\db\env_mysql.h
+					#include "./env_mysql_common.h"
+
+				core\core\env\db\env_mysql_common.h
+					#include "./env_db.h"
+
+				core\core\env\db\env_oracle.h
+					#include "./env_db.h"
+
+				core\core\env\db\env_postgresql.h
+					#include "./env_db.h"
+
+				core\core\env\db\env_sqlite.h
+					#include "./env_db.h"
+
+				core\core\env\os\env_apple.h
+					#include "./env.h"
+
+				core\core\env\os\env_ios.h
+					#include "./env_apple.h"
+
+				core\core\env\os\env_linux.h
+					#include "./env.h"
+
+			core\core\env\print_env.hpp
+				#include "../djinterp.hpp"
+				#include "./print.hpp"
+				#include "./printer_traits.hpp"
+
+				core\core\env\ui\env_curses.h
+					#include "./env.h"
+
+				core\core\env\ui\env_qt.h
+					#include "./env.h"
+
+			core\core\macro\for_each_msvc.h
+				#include "for_each_1_tuple_sep_mvc.h"
+
+			core\core\macro\for_each_pair_msvc.h
+				#include "for_each_2_tuple_sep_mvc.h"
+
+			core\core\macro\for_each_pair1024.h
+				#include "for_each_2_tuple_sep1024.h"
+
+			core\core\macro\for_each_pair128.h
+				#include "for_each_2_tuple_sep128.h"
+
+			core\core\macro\for_each_pair256.h
+				#include "for_each_2_tuple_sep256.h"
+
+			core\core\macro\for_each_pair512.h
+				#include "for_each_2_tuple_sep512.h"
+
+			core\core\macro\for_each_pair64.h
+				#include "for_each_2_tuple_sep64.h"
+
+			core\core\macro\for_each1024.h
+				#include "for_each_1_tuple_sep1024.h"
+
+			core\core\macro\for_each128.h
+				#include "for_each_1_tuple_sep128.h"
+
+			core\core\macro\for_each256.h
+				#include "for_each_1_tuple_sep256.h"
+
+			core\core\macro\for_each512.h
+				#include "for_each_1_tuple_sep512.h"
+
+			core\core\macro\for_each64.h
+				#include "for_each_1_tuple_sep64.h"
+
+		core\core\type_info.h
+			#include "type_info_common.h"
+			#include "type_info_cpp.h"
+			#include "type_info_c.h"
+
+		core\core\type_info_cpp.h
+			#include "type_info_common.h"
+			#include "env_cpp_features.h"
+
+		core\db\arango_concepts.hpp
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "./arango_traits.hpp"
+
+		core\db\arango_traits.hpp
+			#include "../database_traits.hpp"
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include <utility>
+			#include <vector>
+
+		core\db\arangodb.hpp
+			#include "..\database_connection.hpp"
+			#include "arango_traits.hpp"
+			#include "..\..\core\env\env_arangodb.h"
+
+		core\db\database_common.hpp
+			#include "database_traits.hpp"
+			#include <algorithm>
+			#include <chrono>
+			#include <cstddef>
+			#include <cstdint>
+			#include <functional>
+			#include <map>
+			#include <memory>
+			#include <optional>
+			#include <stdexcept>
+			#include <string>
+			#include <string_view>
+			#include <variant>
+			#include <vector>
+
+		core\db\database_concepts.hpp
+			#include <type_traits>
+			#include "database_traits.hpp"
+
+		core\db\database_connection.hpp
+			#include <atomic>
+			#include <utility>
+			#include "../djinterp.hpp"
+			#include "./database_connection_template.hpp"
+
+		core\db\database_connection_template.hpp
+			#include "database_common.hpp"
+			#include <type_traits>
+
+		core\db\database_traits.hpp
+			#include "..\meta\type_traits.hpp"
+			#include <string>
+			#include <cstddef>
+			#include <cstdint>
+
+		core\db\mariadb.hpp
+			#include "mysql_common.hpp"
+			#include "..\..\core\env\env_mariadb.h"
+
+		core\db\mariadb_concepts.hpp
+			#include <type_traits>
+			#include "mariadb_traits.hpp"
+
+		core\db\mariadb_traits.hpp
+			#include "..\mysql\mysql_common_traits.hpp"
+
+		core\db\mongo_concepts.hpp
+			#include <type_traits>
+			#include "mongo_traits.hpp"
+
+		core\db\mongo_traits.hpp
+			#include "..\database_traits.hpp"
+			#include <vector>
+
+		core\db\mongodb.hpp
+			#include "..\database_connection.hpp"
+			#include "mongo_traits.hpp"
+			#include "..\..\core\env\env_mongodb.h"
+
+		core\db\mysql.hpp
+			#include "mysql_common.hpp"
+			#include "mysql_traits.hpp"
+			#include "..\..\core\env\env_mysql.h"
+
+		core\db\mysql_common.hpp
+			#include "..\database_connection.hpp"
+			#include "mysql_common_traits.hpp"
+			#include "..\..\core\env\env_mysql_common.h"
+
+		core\db\mysql_common_concepts.hpp
+			#include <type_traits>
+			#include "mysql_common_traits.hpp"
+
+		core\db\mysql_common_traits.hpp
+			#include "..\database_traits.hpp"
+
+		core\db\mysql_concepts.hpp
+			#include <type_traits>
+			#include "mysql_traits.hpp"
+
+		core\db\mysql_traits.hpp
+			#include "mysql_common_traits.hpp"
+
+		core\db\oracle.hpp
+			#include "..\database_connection.hpp"
+			#include "oracle_traits.hpp"
+			#include "..\..\core\env\env_oracle.h"
+
+		core\db\oracle_concepts.hpp
+			#include <type_traits>
+			#include "oracle_traits.hpp"
+
+		core\db\oracle_traits.hpp
+			#include "..\\database_traits.hpp"
+			#include <cstddef>
+			#include <cstdint>
+			#include <string>
+			#include <vector>
+
+		core\db\postgres.hpp
+			#include "..\djinterp.hpp"
+			#include "..\..\core\env\env_postgresql.h"
+			#include "..\database_connection.hpp"
+			#include ".\postgres_traits.hpp"
+
+		core\db\postgres_concepts.hpp
+			#include <type_traits>
+			#include "postgres_traits.hpp"
+
+		core\db\postgres_traits.hpp
+			#include "..\djinterp.hpp"
+			#include ".\database_traits.hpp"
+			#include <vector>
+
+		core\db\sqlite.hpp
+			#include "..\database_connection.hpp"
+			#include "sqlite_traits.hpp"
+			#include "..\..\core\env\env_sqlite.h"
+
+		core\db\sqlite_concepts.hpp
+			#include <type_traits>
+			#include "sqlite_traits.hpp"
+
+		core\db\sqlite_traits.hpp
+			#include "..\database_traits.hpp"
+
+			core\db\table\database_table.hpp
+				#include "database_common.hpp"
+				#include "..\meta\table_traits.hpp"
+				#include <algorithm>
+				#include <chrono>
+				#include <cstddef>
+				#include <cstdint>
+				#include <functional>
+				#include <optional>
+				#include <stdexcept>
+				#include <string>
+				#include <string_view>
+				#include <type_traits>
+				#include <utility>
+				#include <vector>
+
+			core\db\table\mariadb_table.hpp
+				#include "mysql_common_table.hpp"
+				#include "./mariadb.hpp"
+
+			core\db\table\mysql_common_table.hpp
+				#include "..\database_table.hpp"
+				#include "mysql_common.hpp"
+
+			core\db\table\mysql_table.hpp
+				#include "mysql_common_table.hpp"
+
+	core\djinterp.hpp
+		#include <cstddef>
+		#include <initializer_list>
+		#include <memory>
+		#include "../c/djinterp.h"
+		#include "./core/env/env_cpp98.h"
+		#include "./core/env/env_cpp_features.h"
+
+		core\event\event.hpp
+			#include "event_handler.hpp"
+			#include "event_table_traits.hpp"
+			#include "event_handler_traits.hpp"
+
+		core\event\event_concepts.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "event_traits.hpp"
+
+		core\event\event_handler.hpp
+			#include <cstddef>
+			#include <deque>
+			#include <functional>
+			#include <memory>
+			#include <tuple>
+			#include "event_listener.hpp"
+
+		core\event\event_handler_concepts.hpp
+			#include <cstddef>
+			#include "event_listener_concepts.hpp"
+			#include "event_handler_traits.hpp"
+
+		core\event\event_handler_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "event_listener_traits.hpp"
+
+		core\event\event_listener.hpp
+			#include <cstddef>
+			#include <functional>
+			#include <memory>
+			#include <tuple>
+			#include <type_traits>
+			#include <utility>
+			#include "event_table.hpp"
+
+		core\event\event_listener_concepts.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "event_concepts.hpp"
+			#include "event_listener_traits.hpp"
+
+		core\event\event_listener_traits.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <tuple>
+			#include <type_traits>
+			#include "event_traits.hpp"
+
+		core\event\event_table.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <functional>
+			#include <vector>
+			#include <unordered_map>
+			#include "event_listener_traits.hpp"
+
+		core\event\event_table_concepts.hpp
+			#include "event_handler_concepts.hpp"
+			#include "event_table_traits.hpp"
+
+		core\event\event_table_traits.hpp
+			#include <cstddef>
+			#include <functional>
+			#include <type_traits>
+			#include "event_listener_traits.hpp"
+
+		core\event\event_traits.hpp
+			#include <cstddef>
+			#include <tuple>
+			#include <type_traits>
+			#include <utility>
+
+		core\math\constant.hpp
+			#include "..\djinterp.h"
+			#include "..\cpp_features.h"
+			#include ".\interval.hpp"
+			#include <string>
+			#include <string_view>
+			#include <cstddef>
+			#include <cstdint>
+			#include <compare>
+			#include <utility>
+
+			core\math\coordinate\cartesian.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cmath>
+				#include <array>
+				#include <type_traits>
+				#include "../djinterp.h"
+
+			core\math\coordinate\coordinate.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cmath>
+				#include <array>
+				#include <type_traits>
+				#include "../djinterp.h"
+				#include "cartesian.hpp"
+				#include "polar.hpp"
+				#include "cylindrical.hpp"
+				#include "spherical.hpp"
+
+			core\math\coordinate\cylindrical.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cmath>
+				#include <array>
+				#include <type_traits>
+				#include "../djinterp.h"
+
+			core\math\coordinate\polar.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cmath>
+				#include <array>
+				#include <type_traits>
+				#include "../djinterp.h"
+
+			core\math\coordinate\spherical.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cmath>
+				#include <array>
+				#include <type_traits>
+				#include "../djinterp.h"
+
+		core\math\expression.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <cmath>
+			#include <type_traits>
+			#include "..\env.h"
+			#include "..\cpp_features.h"
+			#include "..\djinterp.h"
+
+			core\math\function\function.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <cmath>
+				#include <array>
+				#include <tuple>
+				#include <type_traits>
+				#include <utility>
+				#include "../djinterp.h"
+				#include "../cpp_features.h"
+				#include "expression.hpp"
+				#include "interval.hpp"
+
+			core\math\function\function_traits.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <type_traits>
+				#include "../env.h"
+				#include "../cpp_features.h"
+				#include "../djinterp.h"
+
+			core\math\interval\closed_interval.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <limits>
+				#include <string>
+				#include <type_traits>
+				#include "../djinterp.h"
+
+			core\math\interval\discrete_interval.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <limits>
+				#include <string>
+				#include <type_traits>
+				#include "../djinterp.h"
+
+			core\math\interval\interval.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <limits>
+				#include <string>
+				#include <type_traits>
+				#include "../djinterp.h"
+				#include "closed_interval.hpp"
+				#include "open_interval.hpp"
+				#include "discrete_interval.hpp"
+
+			core\math\interval\interval_traits.hpp
+				#include <cstddef>
+				#include <type_traits>
+				#include "../env.h"
+				#include "../cpp_features.h"
+				#include "../djinterp.h"
+
+			core\math\interval\open_interval.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <limits>
+				#include <stdexcept>
+				#include <string>
+				#include <type_traits>
+				#include "../djinterp.h"
+
+		core\math\math.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <array>
+			#include <ratio>
+			#include <tuple>
+			#include <type_traits>
+			#include <utility>
+			#include "..\djinterp.h"
+			#include "interval.hpp"
+
+		core\math\math_common.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <array>
+			#include <ratio>
+			#include <tuple>
+			#include <type_traits>
+			#include <utility>
+			#include "..\djinterp.h"
+			#include "interval.hpp"
+
+		core\math\math_traits.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <type_traits>
+			#include "..\djinterp.h"
+			#include "..\cpp_features.h"
+			#include ".\interval.hpp"
+
+		core\math\numeric_compare.hpp
+			#include <string>
+			#include <string_view>
+			#include <utility>
+			#include <cstddef>
+			#include <cstdint>
+			#include <stdexcept>
+			#include "..\djinterp.h"
+
+		core\math\value.hpp
+			#include <memory>
+			#include <type_traits>
+			#include "..\djinterp.h"
+
+		core\memory\pool.hpp
+			#include <cassert>
+			#include <cstddef>
+			#include <cstdint>
+			#include <cstring>
+			#include <memory>
+			#include <new>
+			#include <type_traits>
+			#include <utility>
+			#include "../djinterp.hpp"
+			#include "../buffer.hpp"
+
+		core\memory\pool_allocator.hpp
+			#include <cstddef>
+			#include <limits>
+			#include <memory>
+			#include <new>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "./pool.hpp"
+
+		core\memory\pool_concepts.hpp
+			#include <type_traits>
+			#include "pool_traits.hpp"
+
+		core\memory\pool_traits.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "./pool.hpp"
+
+		core\meta\jagged.hpp
+			#include <array>
+			#include <cstddef>
+			#include <tuple>
+			#include <type_traits>
+			#include <utility>
+			#include ".\djinterp.h"
+			#include ".\cpp_features.h"
+			#include ".\dtuple.hpp"
+
+		core\meta\path.hpp
+			#include <array>
+			#include <deque>
+			#include <filesystem>
+			#include <iterator>
+			#include <list>
+			#include <map>
+			#include <set>
+			#include <string>
+			#include <type_traits>
+			#include <vector>
+			#include <unordered_set>
+			#include <djinterp>
+			#include <type_traits.hpp>
+			#include <container/iterator_traits.hpp>
+
+		core\meta\sequence.hpp
+			#include <array>
+			#include <deque>
+			#include <filesystem>
+			#include <iterator>
+			#include <list>
+			#include <map>
+			#include <set>
+			#include <string>
+			#include <type_traits>
+			#include <vector>
+			#include <unordered_set>
+			#include <djinterp>
+			#include <type_traits.hpp>
+			#include <container/iterator_traits.hpp>
+
+		core\meta\std_concepts.hpp
+			#include <iterator>
+			#include <memory>
+			#include <type_traits>
+
+			core\meta\stl\cpp_named03.hpp
+				#include "cpp_named98.h"
+
+			core\meta\stl\cpp_named11.hpp
+				#include "cpp_named03.h"
+				#include <type_traits>
+				#include <functional>
+				#include <utility>
+				#include <memory>
+				#include <iterator>
+				#include <ios>
+				#include <random>
+				#include <chrono>
+
+			core\meta\stl\cpp_named14.hpp
+				#include "cpp_named11.h"
+
+			core\meta\stl\cpp_named17.hpp
+				#include "cpp_named14.h"
+				#include <type_traits>
+
+			core\meta\stl\cpp_named20.hpp
+				#include "cpp_named17.h"
+				#include <type_traits>
+				#include <concepts>
+				#include <iterator>
+				#include <random>
+				#include <format>
+				#include <ranges>
+
+			core\meta\stl\cpp_named23.hpp
+				#include "cpp_named20.h"
+				#include <type_traits>
+				#include <concepts>
+				#include <iterator>
+				#include <random>
+				#include <ios>
+				#include <chrono>
+				#include <mdspan>
+
+			core\meta\stl\cpp_named26.hpp
+				#include "cpp_named23.h"
+				#include <type_traits>
+
+			core\meta\stl\cpp_named98.hpp
+				#include <cstddef>
+
+		core\meta\type_traits.hpp
+			#include <memory>
+			#include <type_traits>
+			#include ".\djinterp.hpp"
+			#include ".\meta\tuple_manip.hpp"
+			#include ".\meta\tuple_util.hpp"
+
+		core\options\option_diff.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include <vector>
+			#include "../djinterp.hpp"
+
+		core\options\option_layer.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "./option_pair.hpp"
+			#include "./option_set.hpp"
+			#include "./option_override_policy.hpp"
+
+		core\options\option_override_policy.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+
+		core\options\option_pair.hpp
+			#include <type_traits>
+			#include "../djinterp.hpp"
+
+		core\options\option_pair_traits.hpp
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include <string_view>
+
+		core\options\option_set.hpp
+			#include <algorithm>
+			#include <cstddef>
+			#include <initializer_list>
+			#include <type_traits>
+			#include <vector>
+			#include "../djinterp.hpp"
+			#include "./option_pair.hpp"
+
+		core\options\option_set_traits.hpp
+			#include <cstddef>
+			#include <initializer_list>
+			#include <string>
+			#include <type_traits>
+			#include "../djinterp.hpp"
+			#include "../type_traits.hpp"
+			#include "./option_pair_traits.hpp"
+			#include <string_view>
+
+		core\options\options.hpp
+			#include <cstddef>
+			#include <string>
+			#include <type_traits>
+			#include <vector>
+			#include "../djinterp.hpp"
+			#include "./option_pair.hpp"
+			#include "./option_pair_traits.hpp"
+			#include "./option_set.hpp"
+			#include "./option_set_traits.hpp"
+			#include <optional>
+			#include <string_view>
+
+		core\sync\atomic.hpp
+			#include <atomic>
+			#include <cstddef>
+			#include <cstdint>
+
+		core\sync\condvar.hpp
+			#include "lock_policy.hpp"
+			#include <condition_variable>
+			#include <mutex>
+			#include <thread>
+			#include <chrono>
+			#include <stop_token>
+			#include <windows.h>
+			#include <unistd.h>
+			#include <sched.h>
+
+		core\sync\cow.hpp
+			#include <atomic>
+			#include <cstddef>
+			#include <cstdint>
+			#include <new>
+			#include <type_traits>
+			#include <utility>
+			#include "lock_policy.hpp"
+			#include "lock_guard.hpp"
+			#include "atomic.hpp"
+
+		core\sync\hazard_pointer.hpp
+			#include <hazard_pointer>
+			#include <atomic>
+			#include <cstddef>
+			#include <cstdint>
+			#include <new>
+			#include <functional>
+			#include <vector>
+
+		core\sync\lock_guard.hpp
+			#include "lock_policy.hpp"
+			#include <chrono>
+
+		core\sync\lock_policy.hpp
+			#include <cstddef>
+			#include <mutex>
+			#include <shared_mutex>
+			#include <shared_mutex>
+
+		core\sync\lock_policy_c.hpp
+			#include "lock_policy.hpp"
+			#include <windows.h>
+			#include <pthread.h>
+			#include <atomic>
+
+		core\sync\rcu.hpp
+			#include <rcu>
+			#include <atomic>
+			#include <cstddef>
+			#include <cstdint>
+			#include <vector>
+			#include <functional>
+			#include <new>
+			#include "atomic.hpp"
+
+		core\sync\threadsafe.hpp
+			#include "threadsafe\lock_policy.hpp"
+			#include "threadsafe\lock_guard.hpp"
+			#include "threadsafe\lock_policy_c.hpp"
+			#include "threadsafe\atomic.hpp"
+			#include "threadsafe\condvar.hpp"
+			#include "threadsafe\cow.hpp"
+			#include "threadsafe\hazard_pointer.hpp"
+			#include "threadsafe\rcu.hpp"
+
+			core\util\color\color.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+				#include "color_rgb.hpp"
+				#include "color_cmyk.hpp"
+				#include "color_hsl.hpp"
+				#include "color_hsv.hpp"
+				#include "color_ycbcr.hpp"
+				#include "color_cie_lab.hpp"
+				#include "color_convert.hpp"
+
+			core\util\color\color_cie_lab.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+
+			core\util\color\color_cmyk.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+
+			core\util\color\color_convert.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+				#include <cmath>
+
+			core\util\color\color_hsl.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+
+			core\util\color\color_hsv.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+
+			core\util\color\color_rgb.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+
+			core\util\color\color_ycbcr.hpp
+				#include "../../djinterp.hpp"
+				#include "./color.hpp"
+
+			core\util\counter\atomic_counter.hpp
+				#include <atomic>
+				#include <cstdint>
+				#include <limits>
+				#include <type_traits>
+				#include "../../djinterp.hpp"
+
+			core\util\counter\counter.hpp
+				#include <cstdint>
+				#include <limits>
+				#include <vector>
+				#include "../../djinterp.hpp"
+
+			core\util\counter\mutex_counter.hpp
+				#include <cstdint>
+				#include <limits>
+				#include "../../djinterp.hpp"
+				#include "../../sync/lock_policy.hpp"
+				#include "../../sync/lock_guard.hpp"
+				#include "./counter.hpp"
+
+		core\util\interval.hpp
+			#include "..\djinterp"
+
+		core\util\kv_pair.hpp
+			#include <type_traits>
+			#include <utility>
+			#include "../djinterp.hpp"
+
+			core\util\path\path.hpp
+				#include <cstddef>
+				#include <cstdint>
+				#include <string>
+				#include <vector>
+				#include "../djinterp.hpp"
+
+		core\util\sequence.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <initializer_list>
+			#include <type_traits>
+			#include <vector>
+			#include "../djinterp.hpp"
+
+			core\util\sort\bubble_sort.hpp
+				#include "../../djinterp.hpp"
+				#include "./sort.hpp"
+
+			core\util\sort\heap_sort.hpp
+				#include "./sort.hpp"
+
+			core\util\sort\insertion_sort.hpp
+				#include "../../djinterp.hpp"
+				#include "./sort.hpp"
+
+			core\util\sort\merge_sort.hpp
+				#include "./sort.hpp"
+
+			core\util\sort\quick_sort.hpp
+				#include "./sort.hpp"
+				#include "./insertion_sort.hpp"
+
+			core\util\sort\selection_sort.hpp
+				#include "../../djinterp.hpp"
+				#include "./sort.hpp"
+
+			core\util\sort\sort.hpp
+				#include <stddef.h>
+				#include "../../djinterp.hpp"
+				#include <functional>
+				#include <iterator>
+				#include <utility>
+				#include <algorithm>
+				#include <type_traits>
+
+			core\util\timer\mutex_timer.hpp
+				#include <chrono>
+				#include <vector>
+				#include "../../djinterp.hpp"
+				#include "../../sync/lock_policy.hpp"
+				#include "../../sync/lock_guard.hpp"
+				#include "./timer.hpp"
+
+			core\util\timer\timer.hpp
+				#include <chrono>
+				#include <vector>
+				#include "../../djinterp.hpp"
+
+		core\util\tuple_map.hpp
+			#include <utility>
+			#include "..\djinterp"
+			#include "..\utility\tuple_utility.hpp"
+			#include "..\type_traits.hpp"
+
+	functional\compose.hpp
+		#include <cstddef>
+		#include <functional>
+		#include <map>
+		#include <type_traits>
+		#include <utility>
+		#include "./djinterp.h"
+		#include "./env.h"
+		#include "./cpp_features.h"
+		#include "./functional.hpp"
+		#include "./functional_traits.hpp"
+
+	functional\filter.hpp
+		#include <algorithm>
+		#include <cstddef>
+		#include <functional>
+		#include <string>
+		#include <type_traits>
+		#include <utility>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "../../c/env.h"
+		#include "./functional.hpp"
+		#include "./functional_traits.hpp"
+
+	functional\filterable_traits.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include <iterator>
+		#include "../djinterp.hpp"
+
+	functional\fn_builder.hpp
+		#include <cstddef>
+		#include <functional>
+		#include <type_traits>
+		#include <utility>
+		#include <vector>
+		#include "./djinterp.h"
+		#include "./env.h"
+		#include "./cpp_features.h"
+		#include "./functional_traits.hpp"
+
+	functional\functional.hpp
+		#include <algorithm>
+		#include <cstddef>
+		#include <functional>
+		#include <iterator>
+		#include <map>
+		#include <numeric>
+		#include <type_traits>
+		#include <utility>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "./functional_core.hpp"
+		#include "./functional_traits.hpp"
+		#include "./predicate.hpp"
+		#include "./compose.hpp"
+		#include "./pipeline.hpp"
+		#include "./fn_builder.hpp"
+		#include "./filter.hpp"
+
+	functional\pipeline.hpp
+		#include <algorithm>
+		#include <cstddef>
+		#include <functional>
+		#include <map>
+		#include <type_traits>
+		#include <utility>
+		#include <vector>
+		#include "./djinterp.h"
+		#include "./env.h"
+		#include "./cpp_features.h"
+		#include "./functional.hpp"
+		#include "./functional_traits.hpp"
+
+	functional\predicate.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include <utility>
+		#include "../djinterp.hpp"
+		#include "./functional_traits.hpp"
+
+		paradigm\adapter\adapter.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../../djinterp.hpp"
+			#include "../../meta/type_traits.hpp"
+			#include <utility>
+			#include <functional>
+			#include <memory>
+			#include <tuple>
+
+		paradigm\mediator\mediator.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include <vector>
+			#include <functional>
+			#include ".\djinterp.hpp"
+			#include ".\meta\type_traits.hpp"
+			#include ".\compat\std\any.hpp"
+			#include <utility>
+			#include <memory>
+			#include <algorithm>
+			#include <string>
+			#include <string_view>
+			#include <variant>
+			#include <optional>
+
+		paradigm\momento\memento.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include <vector>
+			#include "../../djinterp.hpp"
+			#include "../../meta/type_traits.hpp"
+			#include "../compat/std/any.hpp"
+			#include <utility>
+			#include <functional>
+			#include <chrono>
+			#include <memory>
+			#include <optional>
+			#include <string_view>
+			#include <span>
+			#include <concepts>
+
+		paradigm\observer\observer.hpp
+			#include <array>
+			#include <cstddef>
+			#include <functional>
+			#include <memory>
+			#include <type_traits>
+			#include <vector>
+			#include <djinterp>
+
+		paradigm\visitor\visitor.hpp
+			#include <type_traits>
+			#include ".\djinterp.hpp"
+			#include <variant>
+			#include <tuple>
+			#include <utility>
+
+	parse\binary_parser.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <cstring>
+		#include <type_traits>
+		#include "./parser.hpp"
+
+	parse\c.hpp
+		#include <cstdint>
+		#include "../core/djinterp.hpp"
+		#include "./common.hpp"
+
+	parse\c_parser.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <vector>
+		#include <clang-c/Index.h>
+		#include "../core/djinterp.hpp"
+		#include "../arena/arena.hpp"
+		#include "../arena/arena_domain.hpp"
+		#include "../parse/parse.hpp"
+		#include "../parse/parser.hpp"
+		#include "./parse_context.hpp"
+		#include "./clang_util.hpp"
+
+	parse\clang_util.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <functional>
+		#include <string>
+		#include <vector>
+		#include <clang-c/Index.h>
+		#include "../core/djinterp.hpp"
+		#include "../arena/arena.hpp"
+		#include "../arena/arena_domain.hpp"
+		#include "../arena/string_table.hpp"
+		#include "../arena/cross_ref.hpp"
+		#include "./parse_context.hpp"
+
+	parse\common.hpp
+		#include <cstdint>
+		#include "../core/djinterp.hpp"
+		#include "./preprocessor.hpp"
+
+	parse\cpp.hpp
+		#include <cstdint>
+		#include "../core/djinterp.hpp"
+		#include "./common.hpp"
+
+	parse\cpp_def_parser.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <string>
+		#include <vector>
+		#include <clang-c/Index.h>
+		#include "../core/djinterp.hpp"
+		#include "../arena/arena.hpp"
+		#include "../arena/arena_domain.hpp"
+		#include "../arena/string_table.hpp"
+		#include "../arena/cross_ref.hpp"
+		#include "../parse/parse.hpp"
+		#include "../parse/parser.hpp"
+		#include "./parse_context.hpp"
+		#include "./clang_util.hpp"
+		#include "./cpp_parser.hpp"
+
+	parse\cpp_parser.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <vector>
+		#include <clang-c/Index.h>
+		#include "../core/djinterp.hpp"
+		#include "../arena/arena.hpp"
+		#include "../arena/arena_domain.hpp"
+		#include "../parse/parse.hpp"
+		#include "../parse/parser.hpp"
+		#include "./parse_context.hpp"
+		#include "./clang_util.hpp"
+
+	parse\cross_ref.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <unordered_map>
+		#include <vector>
+		#include "../core/djinterp.hpp"
+		#include "./arena.hpp"
+
+		parse\grammar\parse_abnf.h
+			#include <ctype.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include <string.h>
+			#include "parse_bnf_common.h"
+
+		parse\grammar\parse_bnf.h
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include <string.h>
+			#include "..\..\..\inc\djinterp.h"
+			#include "..\..\..\inc\dmemory.h"
+			#include "..\..\..\inc\dstring.h"
+			#include "..\..\..\inc\string_fn.h"
+			#include ".\parse_bnf_common.h"
+
+		parse\grammar\parse_bnf_common.h
+			#include <stddef.h>
+			#include <stdint.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+			#include <string.h>
+			#include "djinterp.h"
+
+		parse\grammar\parse_ebnf.h
+			#include "parse_bnf_common.h"
+
+	parse\parse.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <string>
+		#include <type_traits>
+		#include "../core/djinterp.hpp"
+
+	parse\parse_context.hpp
+		#include "../core/djinterp.hpp"
+		#include "../arena/arena.hpp"
+		#include "../arena/cross_ref.hpp"
+		#include "../arena/arena_domain.hpp"
+		#include "../arena/string_table.hpp"
+
+	parse\parse_runtime.h
+		#include <stddef.h>
+		#include <stdint.h>
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <string.h>
+		#include <ctype.h>
+		#include "..\djinterp.h"
+		#include "..\dstring.h"
+
+	parse\parser.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include "../core/djinterp.hpp"
+		#include "./parse.hpp"
+		#include "./parser_traits.hpp"
+
+	parse\parser_traits.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include "./parse.hpp"
+
+	parse\preprocessor.hpp
+		#include <cstdint>
+		#include "../core/djinterp.hpp"
+
+	parse\scanner.hpp
+		#include "../common/types.hpp"
+		#include <clang-c/Index.h>
+		#include <functional>
+		#include <map>
+		#include <mutex>
+		#include <set>
+		#include <string>
+		#include <vector>
+
+		parse\scanner\catalogue_db.hpp
+			#include "../common/types.hpp"
+			#include <cstdint>
+			#include <functional>
+			#include <map>
+			#include <memory>
+			#include <set>
+			#include <string>
+			#include <vector>
+
+		parse\scanner\scanner.hpp
+			#include "../common/types.hpp"
+			#include <clang-c/Index.h>
+			#include <functional>
+			#include <map>
+			#include <mutex>
+			#include <set>
+			#include <string>
+			#include <vector>
+
+		parse\scanner\types.hpp
+			#include <cstddef>
+			#include <cstdint>
+			#include <map>
+			#include <set>
+			#include <string>
+			#include <vector>
+
+		parse\scanner\wiki_generator.hpp
+			#include "../common/types.hpp"
+			#include "../database/catalogue_db.hpp"
+			#include <functional>
+			#include <map>
+			#include <set>
+			#include <string>
+			#include <vector>
+
+	parse\text_parser.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include "./parser.hpp"
+
+	parsegen\parsegen.hpp
+		#include ".\djinterp.h"
+
+		re_std\any\any.hpp
+			#include <cstddef>
+			#include <type_traits>
+			#include "../../core/djinterp.hpp"
+			#include <new>
+			#include <utility>
+
+		re_std\any\any_cast.hpp
+			#include ".\djinterp.hpp"
+			#include ".\stl\any.hpp"
+			#include ".\stl\bad_any_cast.hpp"
+
+		re_std\any\any_swap.hpp
+			#include ".\djinterp.hpp"
+			#include ".\stl\any.hpp"
+
+		re_std\any\bad_any_cast.hpp
+			#include ".\djinterp.hpp"
+			#include <typeinfo>
+			#include <exception>
+
+		re_std\any\make_any.hpp
+			#include <initializer_list>
+			#include ".\djinterp.hpp"
+			#include ".\stl\any.hpp"
+
+	test\test_cli.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <cstdlib>
+		#include <cstring>
+		#include <string>
+		#include <utility>
+		#include <vector>
+		#include "./test_options.hpp"
+
+	test\test_common.hpp
+		#include <cstddef>
+		#include "../djinterp.hpp"
+
+	test\test_concepts.hpp
+		#include <type_traits>
+		#include "../djinterp.hpp"
+		#include "./test_common.hpp"
+		#include "./test_options.hpp"
+
+	test\test_counter.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <limits>
+		#include <tuple>
+		#include <type_traits>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "../util/counter/counter.hpp"
+		#include "../event/event_handler.hpp"
+
+	test\test_defaults.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <string>
+		#include <vector>
+		#include "test_common.hpp"
+		#include "test_tree.hpp"
+
+	test\test_object.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <type_traits>
+		#include "../djinterp.hpp"
+		#include "./test_common.hpp"
+
+	test\test_object_concepts.hpp
+		#include "test_object_traits.hpp"
+
+	test\test_object_traits.hpp
+		#include <type_traits>
+		#include <utility>
+		#include "../djinterp.hpp"
+		#include "../type_traits.hpp"
+		#include "./test_common.hpp"
+		#include "./test_options.hpp"
+
+	test\test_options.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include "../djinterp.hpp"
+		#include "../any.hpp"
+		#include "../options/option_pair.hpp"
+		#include "../options/option_set.hpp"
+		#include "./test_common.hpp"
+
+	test\test_printer.hpp
+		#include <cstddef>
+		#include <cstdint>
+		#include <cstdio>
+		#include <cstring>
+		#include <functional>
+		#include <string>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "../text/text_template.hpp"
+		#include "./test_common.hpp"
+
+	test\test_printer_concepts.hpp
+		#include "../core/djinterp.hpp"
+		#include "./test_printer_traits.hpp"
+
+	test\test_printer_traits.hpp
+		#include <cstddef>
+		#include <functional>
+		#include <string>
+		#include <type_traits>
+		#include "../../djinterp.hpp"
+		#include "./test_common.hpp"
+
+	test\test_timer.hpp
+		#include <chrono>
+		#include <cstddef>
+		#include <tuple>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "../util/timer/timer.hpp"
+		#include "../event/event_handler.hpp"
+
+	test\test_tree.hpp
+		#include <cstddef>
+		#include <type_traits>
+		#include "../djinterp.hpp"
+		#include "../meta/type_traits.hpp"
+		#include "./test_common.hpp"
+		#include "./test_object_traits.hpp"
+
+	text\print.hpp
+		#include <cstddef>
+		#include <cstdio>
+		#include <cstring>
+		#include <string>
+		#include "../djinterp.hpp"
+		#include "./printer_traits.hpp"
+		#include <string_view>
+
+	text\printer_traits.hpp
+		#include <cstddef>
+		#include <cstdio>
+		#include <type_traits>
+		#include "../djinterp.hpp"
+
+		text\symbol\math_symbols.h
+			#include "../../djinterp.h"
+
+	text\text_function.hpp
+		#include <cstddef>
+		#include <functional>
+		#include <string>
+		#include <type_traits>
+		#include <utility>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "./text_function_traits.hpp"
+
+	text\text_function_traits.hpp
+		#include <cstddef>
+		#include <string>
+		#include <type_traits>
+		#include "../djinterp.hpp"
+		#include "../meta/type_traits.hpp"
+
+	text\text_template.hpp
+		#include <cstddef>
+		#include <functional>
+		#include <string>
+		#include <type_traits>
+		#include <utility>
+		#include <vector>
+		#include "../djinterp.hpp"
+		#include "../meta/type_traits.hpp"
+		#include "./text_function_traits.hpp"
+		#include "./text_template_traits.hpp"
+
+	text\text_template_traits.hpp
+		#include <cstddef>
+		#include <functional>
+		#include <string>
+		#include <type_traits>
+		#include "../djinterp.hpp"
+		#include "../meta/type_traits.hpp"
+		#include "./text_function_traits.hpp"

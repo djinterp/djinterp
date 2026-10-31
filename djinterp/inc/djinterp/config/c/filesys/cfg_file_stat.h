@@ -68,7 +68,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_CFG_FILE_STAT_NSEC
-//   knob: populate d_stat_t's sub-second timestamp fields.
+//   knob: populate dj_stat_t's sub-second timestamp fields.
 //   On where the platform reports them. Turn it off if you compare
 // timestamps for equality across a copy: most tools preserve whole seconds
 // and drop nanoseconds, so a file and its copy compare EQUAL at second
@@ -84,7 +84,7 @@ TABLE OF CONTENTS
 
 // 1.1.2
 // D_CFG_FILE_STAT_BIRTHTIME
-//   knob: populate d_stat_t.st_created with a true creation time where the
+//   knob: populate dj_stat_t.st_created with a true creation time where the
 // platform has one.
 //   On by default where available. Note what it is NOT: st_changed carries
 // POSIX ctime, which is the METADATA CHANGE time and is not creation. The old
@@ -201,7 +201,7 @@ TABLE OF CONTENTS
 
 // 3.1.3
 // D_INTERNAL_FILE_STAT_BIRTHTIME
-//   resolved: 1 when d_stat_t.st_created carries a real creation time. When 0
+//   resolved: 1 when dj_stat_t.st_created carries a real creation time. When 0
 // the field reads 0, never a substituted ctime -- a fabricated timestamp is a
 // lie the caller cannot detect.
 //
@@ -271,7 +271,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 4.1.1
 // D_FILE_STAT_HAS_NSEC / D_FILE_STAT_HAS_BIRTHTIME
-//   query: 1 when the corresponding d_stat_t fields carry real data, else 0.
+//   query: 1 when the corresponding dj_stat_t fields carry real data, else 0.
 // Safe in #if; the test suite uses them to decide what it may assert. On
 // Linux the creation time answers for a translation unit built as
 // file_stat.c is, with _GNU_SOURCE; one built without reads 0 even where the

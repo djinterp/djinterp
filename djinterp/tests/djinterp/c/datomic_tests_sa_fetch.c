@@ -8,14 +8,12 @@ d_tests_sa_datomic_fetch_add_int
   - d_atomic_fetch_add_int returns old value
   - value is incremented after fetch-add
 */
-bool
-d_tests_sa_datomic_fetch_add_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_add_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          old;
 
     result = true;
@@ -44,14 +42,12 @@ d_tests_sa_datomic_fetch_add_uint
   Tests the following:
   - d_atomic_fetch_add_uint returns old and adds correctly
 */
-bool
-d_tests_sa_datomic_fetch_add_uint
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_add_uint(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_uint val;
+    dj_atomic_uint val;
     unsigned int  old;
 
     result = true;
@@ -74,14 +70,12 @@ d_tests_sa_datomic_fetch_add_long
   Tests the following:
   - d_atomic_fetch_add_long returns old and adds correctly
 */
-bool
-d_tests_sa_datomic_fetch_add_long
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_add_long(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_long val;
+    dj_atomic_long val;
     long          old;
 
     result = true;
@@ -104,14 +98,12 @@ d_tests_sa_datomic_fetch_add_llong
   Tests the following:
   - d_atomic_fetch_add_llong returns old and adds correctly
 */
-bool
-d_tests_sa_datomic_fetch_add_llong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_add_llong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_llong val;
+    dj_atomic_llong val;
     long long      old;
 
     result = true;
@@ -134,14 +126,12 @@ d_tests_sa_datomic_fetch_add_size
   Tests the following:
   - d_atomic_fetch_add_size returns old and adds correctly
 */
-bool
-d_tests_sa_datomic_fetch_add_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_add_size(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_size_t val;
+    dj_atomic_size_t val;
     size_t          old;
 
     result = true;
@@ -164,14 +154,12 @@ d_tests_sa_datomic_fetch_sub_int
   Tests the following:
   - d_atomic_fetch_sub_int returns old and subtracts correctly
 */
-bool
-d_tests_sa_datomic_fetch_sub_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_sub_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          old;
 
     result = true;
@@ -194,14 +182,12 @@ d_tests_sa_datomic_fetch_sub_long
   Tests the following:
   - d_atomic_fetch_sub_long returns old and subtracts correctly
 */
-bool
-d_tests_sa_datomic_fetch_sub_long
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_sub_long(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_long val;
+    dj_atomic_long val;
     long          old;
 
     result = true;
@@ -224,14 +210,12 @@ d_tests_sa_datomic_fetch_sub_size
   Tests the following:
   - d_atomic_fetch_sub_size returns old and subtracts correctly
 */
-bool
-d_tests_sa_datomic_fetch_sub_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_sub_size(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_size_t val;
+    dj_atomic_size_t val;
     size_t          old;
 
     result = true;
@@ -254,14 +238,12 @@ d_tests_sa_datomic_fetch_or_int
   Tests the following:
   - d_atomic_fetch_or_int returns old and ORs correctly
 */
-bool
-d_tests_sa_datomic_fetch_or_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_or_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          old;
 
     result = true;
@@ -284,14 +266,12 @@ d_tests_sa_datomic_fetch_xor_int
   Tests the following:
   - d_atomic_fetch_xor_int returns old and XORs correctly
 */
-bool
-d_tests_sa_datomic_fetch_xor_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_xor_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          old;
 
     result = true;
@@ -314,14 +294,12 @@ d_tests_sa_datomic_fetch_and_int
   Tests the following:
   - d_atomic_fetch_and_int returns old and ANDs correctly
 */
-bool
-d_tests_sa_datomic_fetch_and_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_and_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          old;
 
     result = true;
@@ -348,14 +326,12 @@ d_tests_sa_datomic_fetch_explicit
   - fetch_and_int_explicit with relaxed ordering
   - fetch_xor_int_explicit with seq_cst ordering
 */
-bool
-d_tests_sa_datomic_fetch_explicit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_explicit(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          old;
 
     result = true;
@@ -426,10 +402,8 @@ d_tests_sa_datomic_fetch_all
   - fetch_or, fetch_xor, fetch_and for int
   - explicit memory order variants
 */
-bool
-d_tests_sa_datomic_fetch_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_fetch_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

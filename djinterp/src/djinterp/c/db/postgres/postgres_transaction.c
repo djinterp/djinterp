@@ -37,7 +37,7 @@
 //==============================================================================
 
 // d_internal_postgres_begins
-//   table: the BEGIN each d_postgres_transaction_mode sends, in the enum's
+//   table: the BEGIN each dj_postgres_transaction_mode sends, in the enum's
 // order.
 static const char* const d_internal_postgres_begins[] =
 {
@@ -52,15 +52,15 @@ static const char* const d_internal_postgres_begins[] =
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_begins) /
                   sizeof(d_internal_postgres_begins[0])) ==
                  ((size_t)D_POSTGRES_TRANSACTION_READ_COMMITTED + 1u),
-                 "every d_postgres_transaction_mode has a BEGIN" );
+                 "every dj_postgres_transaction_mode has a BEGIN" );
 
 /*
 d_internal_postgres_savepoint
   Every savepoint function's body: the arguments checked, and the statement,
 whose words come before the quoted name.
 */
-static int
-d_internal_postgres_savepoint(
+static
+int d_internal_postgres_savepoint(
     PGconn*     _db,
     const char* _words,
     const char* _name
@@ -90,7 +90,7 @@ with the code that warning carries, 25001.
 int
 d_postgres_begin_transaction(
     struct pg_conn*                  _db,
-    enum d_postgres_transaction_mode _mode
+    enum dj_postgres_transaction_mode _mode
 )
 {
     // parameter validation
@@ -119,8 +119,7 @@ d_postgres_commit
   Nothing is sent outside a transaction. A failed one is rolled back, which
 is what the server would make of the COMMIT, and reported as 25P02.
 */
-int
-d_postgres_commit(
+int d_postgres_commit(
     struct pg_conn* _db
 )
 {
@@ -157,8 +156,7 @@ d_postgres_commit(
 d_postgres_rollback
   Nothing is sent outside a transaction.
 */
-int
-d_postgres_rollback(
+int d_postgres_rollback(
     struct pg_conn* _db
 )
 {
@@ -179,8 +177,7 @@ d_postgres_rollback(
 d_postgres_in_transaction
   Open, whether it has failed or not.
 */
-bool
-d_postgres_in_transaction(
+bool d_postgres_in_transaction(
     const struct pg_conn* _db
 )
 {
@@ -195,8 +192,7 @@ d_postgres_in_transaction(
 d_postgres_in_failed_transaction
   Open and failed: only a rollback ends it.
 */
-bool
-d_postgres_in_failed_transaction(
+bool d_postgres_in_failed_transaction(
     const struct pg_conn* _db
 )
 {
@@ -208,7 +204,7 @@ d_postgres_in_failed_transaction(
 d_postgres_transaction_status
   libpq's five states, one for one.
 */
-enum d_postgres_transaction_state
+enum dj_postgres_transaction_state
 d_postgres_transaction_status(
     const struct pg_conn* _db
 )
@@ -249,8 +245,7 @@ d_postgres_transaction_status(
 d_postgres_create_savepoint
   SAVEPOINT, which the server refuses outside a transaction.
 */
-int
-d_postgres_create_savepoint(
+int d_postgres_create_savepoint(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -262,8 +257,7 @@ d_postgres_create_savepoint(
 d_postgres_release_savepoint
   RELEASE SAVEPOINT.
 */
-int
-d_postgres_release_savepoint(
+int d_postgres_release_savepoint(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -275,8 +269,7 @@ d_postgres_release_savepoint(
 d_postgres_rollback_to_savepoint
   ROLLBACK TO SAVEPOINT, which also mends a failed transaction.
 */
-int
-d_postgres_rollback_to_savepoint(
+int d_postgres_rollback_to_savepoint(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -300,7 +293,7 @@ d_postgres_begin_transaction
 int
 d_postgres_begin_transaction(
     struct pg_conn*                  _db,
-    enum d_postgres_transaction_mode _mode
+    enum dj_postgres_transaction_mode _mode
 )
 {
     (void)_db;
@@ -313,8 +306,7 @@ d_postgres_begin_transaction(
 d_postgres_commit
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_commit(
+int d_postgres_commit(
     struct pg_conn* _db
 )
 {
@@ -327,8 +319,7 @@ d_postgres_commit(
 d_postgres_rollback
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_rollback(
+int d_postgres_rollback(
     struct pg_conn* _db
 )
 {
@@ -341,8 +332,7 @@ d_postgres_rollback(
 d_postgres_in_transaction
   Without libpq, false.
 */
-bool
-d_postgres_in_transaction(
+bool d_postgres_in_transaction(
     const struct pg_conn* _db
 )
 {
@@ -355,8 +345,7 @@ d_postgres_in_transaction(
 d_postgres_in_failed_transaction
   Without libpq, false.
 */
-bool
-d_postgres_in_failed_transaction(
+bool d_postgres_in_failed_transaction(
     const struct pg_conn* _db
 )
 {
@@ -369,7 +358,7 @@ d_postgres_in_failed_transaction(
 d_postgres_transaction_status
   Without libpq, no state.
 */
-enum d_postgres_transaction_state
+enum dj_postgres_transaction_state
 d_postgres_transaction_status(
     const struct pg_conn* _db
 )
@@ -383,8 +372,7 @@ d_postgres_transaction_status(
 d_postgres_create_savepoint
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_savepoint(
+int d_postgres_create_savepoint(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -399,8 +387,7 @@ d_postgres_create_savepoint(
 d_postgres_release_savepoint
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_release_savepoint(
+int d_postgres_release_savepoint(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -415,8 +402,7 @@ d_postgres_release_savepoint(
 d_postgres_rollback_to_savepoint
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_rollback_to_savepoint(
+int d_postgres_rollback_to_savepoint(
     struct pg_conn* _db,
     const char*     _name
 )

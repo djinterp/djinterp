@@ -207,7 +207,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_SQLITE_ENV_SQLITE_H 1
 
 // djinterp
-#include "../../../config/core/env/db/sqlite/cfg_env_sqlite.h"  // config
+#include "../../../config/env/db/sqlite/cfg_env_sqlite.h"  // config
 #include "../../env_os.h"  // D_ENV_OS_ID, D_ENV_IS_OS_POSIX_LIKE
 #include "../env_db.h"     // base database detection (D_ENV_DB_*)
 

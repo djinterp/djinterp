@@ -27,7 +27,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_stat.h"    // d_dir_exists, d_file_mode_nofollow
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_link.h"  // D_INTERNAL_FILE_LINK_UNPRIV
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 
 
 #if (D_INTERNAL_FILE_HAS_SYMLINKS == 1)
@@ -52,8 +52,8 @@ d_internal_link_word
   The little-endian 16-bit field at _offset of reparse data, read byte by
 byte: the data carries no alignment promise for its fields.
 */
-static size_t
-d_internal_link_word(
+static
+size_t d_internal_link_word(
     const BYTE* _data,
     size_t      _offset
 )
@@ -66,8 +66,8 @@ d_internal_link_word(
 d_internal_link_tag
   The reparse tag that opens the data, little-endian as the fields are.
 */
-static DWORD
-d_internal_link_tag(
+static
+DWORD d_internal_link_tag(
     const BYTE* _data
 )
 {
@@ -87,8 +87,8 @@ are, so damaged data is refused rather than read past. Returns 0 with the
 name's extent in UTF-16 units, or -1 with EINVAL for anything but a symbolic
 link or a junction.
 */
-static int
-d_internal_link_name(
+static
+int d_internal_link_name(
     BYTE*         _data,
     size_t        _got,
     const WCHAR** _name,
@@ -182,8 +182,8 @@ hands Windows UTF-16, the ANSI code page the -A calls speak otherwise
 UTF-8 here is WTF-8, which spells a lone surrogate too, so only the code page
 refuses a name: EIO for one outside it, whose text would not be the link's.
 */
-static char*
-d_internal_link_convert(
+static
+char* d_internal_link_convert(
     const WCHAR* _name,
     size_t       _length,
     int*         _made
@@ -268,8 +268,8 @@ d_internal_link_narrow
   A link's name as the caller reads it (d_internal_link_convert), truncated to
 _bufsize as readlink truncates, and unterminated as readlink leaves it.
 */
-static ssize_t
-d_internal_link_narrow(
+static
+ssize_t d_internal_link_narrow(
     const WCHAR* _name,
     size_t       _length,
     char*        _buf,
@@ -312,14 +312,14 @@ MAXIMUM_REPARSE_DATA_BUFFER_SIZE bytes. Returns the bytes read, or 0 with
 errno set: a path that is no reparse point at all is EINVAL, as readlink(2)
 reports a file that is no link.
 */
-static DWORD
-d_internal_link_fetch(
+static
+DWORD d_internal_link_fetch(
     const char* _path,
     BYTE*       _data
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -383,8 +383,8 @@ d_internal_link_read
 holds (d_internal_link_name), and that name narrowed for the caller
 (d_internal_link_narrow).
 */
-static ssize_t
-d_internal_link_read(
+static
+ssize_t d_internal_link_read(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -432,8 +432,8 @@ d_internal_link_target
 target written with forward slashes is stored as written and then not
 followed. Returns 0, or -1 with ENAMETOOLONG when it does not fit _bufsize.
 */
-static int
-d_internal_link_target(
+static
+int d_internal_link_target(
     const char* _target,
     char*       _buf,
     size_t      _bufsize
@@ -466,8 +466,8 @@ link -- judged where the link will resolve it: a relative target from the
 link's own directory, not from the working directory. A target that cannot be
 judged is no directory, as a dangling one is not.
 */
-static int
-d_internal_link_is_dir_in(
+static
+int d_internal_link_is_dir_in(
     const char* _target,
     const char* _linkpath,
     char*       _dir_room,
@@ -502,16 +502,16 @@ d_internal_link_is_dir_in(
 d_internal_link_is_dir
   d_internal_link_is_dir's work is d_internal_link_is_dir_in; this keeps the
 room it builds a path in, on the heap where that is 32 KiB
-(d_internal_file_path).
+(dj_internal_file_path).
 */
-static int
-d_internal_link_is_dir(
+static
+int d_internal_link_is_dir(
     const char* _target,
     const char* _linkpath
 )
 {
-    struct d_internal_file_path dir_held  = {0};
-    struct d_internal_file_path full_held = {0};
+    struct dj_internal_file_path dir_held  = {0};
+    struct dj_internal_file_path full_held = {0};
     char* const dir = d_internal_file_path_room(&dir_held);
     char* const full = d_internal_file_path_room(&full_held);
 
@@ -544,11 +544,11 @@ for it -- and again without it when the system rejects the flag itself, as
 Windows 10 before 1703 rejects the whole call rather than ignore it. Returns
 the call's answer; GetLastError says why it failed.
 */
-static BOOL
-d_internal_link_make(
-    const d_internal_file_nchar_t* _linkpath,
-    const d_internal_file_nchar_t* _target,
-    DWORD                          _flags
+static
+BOOL d_internal_link_make(
+    const dj_internal_file_nchar_t* _linkpath,
+    const dj_internal_file_nchar_t* _target,
+    DWORD                           _flags
 )
 {
     // the plain call, where the build does not ask for the flag
@@ -595,8 +595,8 @@ link will resolve it (d_internal_link_is_dir); a dangling target makes a file
 link. A failure is the reason Win32 gives -- EPERM for the missing privilege,
 EEXIST for a name already taken, and so on.
 */
-static int
-d_internal_link_create_in(
+static
+int d_internal_link_create_in(
     const char* _target,
     const char* _linkpath,
     char*       _target_room
@@ -624,12 +624,12 @@ d_internal_link_create_in(
     const DWORD flags = (is_dir) ? (DWORD)SYMBOLIC_LINK_FLAG_DIRECTORY
                                  : (DWORD)0;
 
-    struct d_internal_file_native        link_held = {0};
-    struct d_internal_file_native        text_held = {0};
-    const d_internal_file_nchar_t* const link =
+    struct dj_internal_file_native        link_held = {0};
+    struct dj_internal_file_native        text_held = {0};
+    const dj_internal_file_nchar_t* const link =
         d_internal_file_native_of(&link_held,
                                   _linkpath);
-    const d_internal_file_nchar_t* const text =
+    const dj_internal_file_nchar_t* const text =
         (link) ? d_internal_file_native_of(&text_held,
                                            target)
                : NULL;
@@ -674,15 +674,15 @@ d_internal_link_create_in(
 d_internal_link_create
   d_internal_link_create's work is d_internal_link_create_in; this keeps the
 room it builds a path in, on the heap where that is 32 KiB
-(d_internal_file_path).
+(dj_internal_file_path).
 */
-static int
-d_internal_link_create(
+static
+int d_internal_link_create(
     const char* _target,
     const char* _linkpath
 )
 {
-    struct d_internal_file_path target_held = {0};
+    struct dj_internal_file_path target_held = {0};
     char* const target = d_internal_file_path_room(&target_held);
 
     // d_internal_file_path_room has set errno, and reported the failure
@@ -709,8 +709,8 @@ d_internal_link_create
   symlink(2): a link is text, and its kind is a question for read time, so
 nothing about the target is asked.
 */
-static int
-d_internal_link_create(
+static
+int d_internal_link_create(
     const char* _target,
     const char* _linkpath
 )
@@ -723,8 +723,8 @@ d_internal_link_create(
 d_internal_link_read
   readlink(2), as it is.
 */
-static ssize_t
-d_internal_link_read(
+static
+ssize_t d_internal_link_read(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -745,8 +745,7 @@ d_internal_link_read(
 d_file_symlink
   The platform's creation (d_internal_link_create), and the failure's notice.
 */
-int
-d_file_symlink(
+int d_file_symlink(
     const char* _target,
     const char* _linkpath
 )
@@ -785,8 +784,7 @@ d_file_symlink(
 d_file_readlink
   The platform's reading (d_internal_link_read), and the failure's notice.
 */
-ssize_t
-d_file_readlink(
+ssize_t d_file_readlink(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -838,8 +836,7 @@ so it could never report a link at all. It describes a link as one on every
 platform -- on Windows a junction too -- needs no width, and raises no notice
 for a path that is not there.
 */
-int
-d_file_is_symlink(
+int d_file_is_symlink(
     const char* _path
 )
 {

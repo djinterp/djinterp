@@ -19,16 +19,16 @@
 * inform rather than pre-empt.
 *
 * ONE OPERATION IS ENOUGH FOR FOLDABLE, because tier 1 already supplies the
-* driver. A `d_foldable` says only how to push a carrier's elements at a
-* `d_reducer`; everything else -- folds, quantifiers, monoid summaries -- is the
+* driver. A `dj_foldable` says only how to push a carrier's elements at a
+* `dj_reducer`; everything else -- folds, quantifiers, monoid summaries -- is the
 * tier 1 spine applied through that one call. So `d_foldable_mconcat` folds ANY
 * carrier under ANY monoid, and neither the carrier nor the monoid knows about
 * the other. That is the payoff of the whole three-tier arrangement, and the
 * conformance suite asserts it across four carriers.
 *
 * THE CARRIER IS ALWAYS A `const void*`, and what it points at is fixed per
-* instance: `d_foldable_array` takes a `d_array_carrier`, `d_foldable_maybe` a
-* `struct d_maybe`, and so on. That pairing is unchecked, which is the price of
+* instance: `d_foldable_array` takes a `dj_array_carrier`, `d_foldable_maybe` a
+* `struct dj_maybe`, and so on. That pairing is unchecked, which is the price of
 * encoding (b) and the reason the assessment recommends monomorphisation for the
 * closed set of carriers and dictionaries only at the boundary.
 *
@@ -53,7 +53,7 @@
 #include "./result.h"
 #include "./monoid.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -68,14 +68,14 @@
 // Returns how many were delivered, which may be fewer than the carrier holds if
 // the reducing state latched.
 typedef size_t (*fn_foldable_drive)(const void*              _carrier,
-                                    const struct d_reducer*  _reducer,
-                                    struct d_reducing_state* _state);
+                                    const struct dj_reducer*  _reducer,
+                                    struct dj_reducing_state* _state);
 
-// d_foldable
+// dj_foldable
 //   struct: the Foldable dictionary for one carrier.
 // `element_size` is the width of the elements the carrier yields, which the
 // generic operations need in order to size accumulators and scratch.
-struct d_foldable
+struct dj_foldable
 {
     fn_foldable_drive drive;        // how to push the carrier's elements
     size_t            element_size; // width of a yielded element
@@ -91,90 +91,119 @@ typedef bool (*fn_alt)(const void* _first,
 //   function pointer: the Alternative identity.
 typedef bool (*fn_aempty)(void* _out);
 
-// d_alternative
+// dj_alternative
 //   struct: the Alternative dictionary for one carrier.
-struct d_alternative
+struct dj_alternative
 {
     fn_alt    alt;      // the choice
     fn_aempty aempty;   // its two-sided identity
 };
 
-// d_array_carrier
+// dj_array_carrier
 //   struct: the carrier a plain array presents to a Foldable dictionary.
 // An array is three facts, not one pointer, so the instance needs somewhere to
 // keep them.
-struct d_array_carrier
+struct dj_array_carrier
 {
     const void* elements;      // the first element
     size_t      count;         // how many
     size_t      element_size;  // stride between them
 };
 
-// d_producer_carrier
+// dj_producer_carrier
 //   struct: the carrier a producer presents to a Foldable dictionary.
 // A producer needs scratch to pull into, and the dictionary's one `void*` has
 // nowhere else to keep it.
-struct d_producer_carrier
+struct dj_producer_carrier
 {
-    struct d_producer* producer;   // the borrowed source
+    struct dj_producer* producer;   // the borrowed source
     void*              scratch;    // buffer of at least `value_size` bytes
 };
 
 // I.     Foldable instances
-struct d_foldable d_foldable_array(size_t _element_size);
-struct d_foldable d_foldable_maybe(size_t _element_size);
-struct d_foldable d_foldable_result(size_t _element_size);
-struct d_foldable d_foldable_producer(size_t _element_size);
-bool              d_foldable_is_valid(const struct d_foldable* _foldable);
+struct dj_foldable d_foldable_array(
+    size_t _element_size
+);
+struct dj_foldable d_foldable_maybe(
+    size_t _element_size
+);
+struct dj_foldable d_foldable_result(
+    size_t _element_size
+);
+struct dj_foldable d_foldable_producer(
+    size_t _element_size
+);
+bool d_foldable_is_valid(
+    const struct dj_foldable* _foldable
+);
 
 // II.    generic operations over any Foldable
-size_t   d_foldable_drive(const struct d_foldable* _foldable,
-                          const void*              _carrier,
-                          const struct d_reducer*  _reducer,
-                          struct d_reducing_state* _state);
-size_t   d_foldable_length(const struct d_foldable* _foldable,
-                           const void*              _carrier);
-bool     d_foldable_is_empty(const struct d_foldable* _foldable,
-                             const void*              _carrier);
-bool     d_foldable_fold(const struct d_foldable* _foldable,
-                         const void*              _carrier,
-                         void*                    _accumulator,
-                         fn_fold                  _step,
-                         void*                    _context);
-bool     d_foldable_any(const struct d_foldable* _foldable,
-                        const void*              _carrier,
-                        fn_predicate             _predicate,
-                        void*                    _context);
-bool     d_foldable_all(const struct d_foldable* _foldable,
-                        const void*              _carrier,
-                        fn_predicate             _predicate,
-                        void*                    _context);
-bool     d_foldable_mconcat(const struct d_foldable* _foldable,
-                            const void*              _carrier,
-                            const struct d_monoid*   _monoid,
-                            void*                    _out);
+size_t d_foldable_drive(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
+);
+size_t d_foldable_length(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier
+);
+bool d_foldable_is_empty(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier
+);
+bool d_foldable_fold(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    void*                     _accumulator,
+    fn_fold                   _step,
+    void*                     _context
+);
+bool d_foldable_any(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    fn_predicate              _predicate,
+    void*                     _context
+);
+bool d_foldable_all(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    fn_predicate              _predicate,
+    void*                     _context
+);
+bool d_foldable_mconcat(
+    const struct dj_foldable* _foldable,
+    const void*               _carrier,
+    const struct dj_monoid*   _monoid,
+    void*                     _out
+);
 
 // III.   Alternative instances
-struct d_alternative d_alternative_maybe(void);
-bool                 d_alternative_is_valid(
-                         const struct d_alternative* _alternative);
+struct dj_alternative d_alternative_maybe(void);
+bool d_alternative_is_valid(
+    const struct dj_alternative* _alternative
+);
 
 // IV.    generic operations over any Alternative
-bool     d_alternative_alt(const struct d_alternative* _alternative,
-                           const void*                 _first,
-                           const void*                 _second,
-                           void*                       _out);
-bool     d_alternative_aempty(const struct d_alternative* _alternative,
-                              void*                       _out);
+bool d_alternative_alt(
+    const struct dj_alternative* _alternative,
+    const void*                  _first,
+    const void*                  _second,
+    void*                        _out
+);
+bool d_alternative_aempty(
+    const struct dj_alternative* _alternative,
+    void*                        _out
+);
 
 // V.     layout assertions (Layout law: one declaration, asserted in both)
-D_STATIC_ASSERT(offsetof(struct d_foldable, element_size) ==
+D_STATIC_ASSERT(offsetof(struct dj_foldable, element_size) ==
                     sizeof(fn_foldable_drive),
-                "d_foldable layout drift");
-D_STATIC_ASSERT(offsetof(struct d_alternative, aempty) == sizeof(fn_alt),
-                "d_alternative layout drift");
-D_STATIC_ASSERT(offsetof(struct d_array_carrier, count) == sizeof(void*),
-                "d_array_carrier layout drift");
+                "dj_foldable layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_alternative, aempty) == sizeof(fn_alt),
+                "dj_alternative layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_array_carrier, count) == sizeof(void*),
+                "dj_array_carrier layout drift");
 
 
 #endif  // RE_STD_HAS_INT64

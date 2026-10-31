@@ -31,13 +31,11 @@ Return:
   The size of the fibre, whether or not it was written. A caller passing a null
 _out, or too small a capacity, receives the count and writes nothing.
 */
-size_t
-d_table_index_fibre
-(
-    struct d_table_index  _coarse,
-    const size_t*         _factors,
-    struct d_table_index* _out,
-    size_t                _out_capacity
+size_t d_table_index_fibre(
+    struct dj_table_index  _coarse,
+    const size_t*          _factors,
+    struct dj_table_index* _out,
+    size_t                 _out_capacity
 )
 {
     size_t   total;
@@ -93,7 +91,7 @@ Parameter(s):
   _region:   the region to merge.
   _domain:   the atomic domain the cover lies over.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the cell was added, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if a required argument was null, or
   - D_TABLE_STATUS_SHAPE, if the region is a singleton (nothing to merge), or
@@ -101,14 +99,14 @@ Return:
   - D_TABLE_STATUS_COVER, if it meets a cell already declared, or
   - D_TABLE_STATUS_CAPACITY, if the array is full.
 */
-enum d_table_status
+enum dj_table_status
 d_table_layout_merge
 (
-    struct d_table_region* _merges,
+    struct dj_table_region* _merges,
     size_t*                _count,
     size_t                 _capacity,
-    struct d_table_region  _region,
-    struct d_table_domain  _domain
+    struct dj_table_region  _region,
+    struct dj_table_domain  _domain
 )
 {
     size_t i;
@@ -170,26 +168,26 @@ Parameter(s):
   _pieces:      the partition of that merge's region.
   _piece_count: how many pieces.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the cover was refined, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if a required argument was null, or
   - D_TABLE_STATUS_DOMAIN, if _which names no merge, or
   - D_TABLE_STATUS_CAPACITY, if the array cannot hold the result, or
   - whatever d_table_region_partitions refuses the partition with.
 */
-enum d_table_status
+enum dj_table_status
 d_table_layout_split
 (
-    struct d_table_region*       _merges,
+    struct dj_table_region*       _merges,
     size_t*                      _count,
     size_t                       _capacity,
     size_t                       _which,
-    const struct d_table_region* _pieces,
+    const struct dj_table_region* _pieces,
     size_t                       _piece_count
 )
 {
-    enum d_table_status   status;
-    struct d_table_region target;
+    enum dj_table_status   status;
+    struct dj_table_region target;
     size_t                kept;
     size_t                i;
 
@@ -270,17 +268,17 @@ Parameter(s):
   _layout: the cover to check.
   _domain: the atomic domain the cover lies over.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the merges give a partition, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _layout was null, or
   - D_TABLE_STATUS_DOMAIN, if a merge left I_T or was empty, or
   - D_TABLE_STATUS_SHAPE, if two merges shared an atomic position.
 */
-enum d_table_status
+enum dj_table_status
 d_table_layout_validate
 (
-    const struct d_table_layout* _layout,
-    struct d_table_domain        _domain
+    const struct dj_table_layout* _layout,
+    struct dj_table_domain        _domain
 )
 {
     size_t                  i;
@@ -337,7 +335,7 @@ Parameter(s):
   _count:  how many.
   _whole:  the region they must partition.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the pieces partition _whole, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _pieces was null with a non-zero count,
   - D_TABLE_STATUS_SHAPE, if fewer than two pieces were offered, or
@@ -345,12 +343,12 @@ Return:
   - D_TABLE_STATUS_COVER, if a piece escapes _whole, two pieces overlap, or the
     extents do not sum to |R_C|.
 */
-enum d_table_status
+enum dj_table_status
 d_table_region_partitions
 (
-    const struct d_table_region* _pieces,
+    const struct dj_table_region* _pieces,
     size_t                       _count,
-    struct d_table_region        _whole
+    struct dj_table_region        _whole
 )
 {
     size_t   covered;
@@ -429,18 +427,16 @@ Parameter(s):
   _spans:   array of `_rank` spans, one per coordinate.
   _rank:    the number of coordinates.
 Return:
-  A `d_table_region` at those origins with those spans; coordinates beyond
+  A `dj_table_region` at those origins with those spans; coordinates beyond
   `_rank` are zeroed.
 */
-D_NODISCARD D_INLINE_DEF struct d_table_region
-d_table_region_make
-(
+D_NODISCARD D_INLINE_DEF struct dj_table_region d_table_region_make(
     const size_t* _origins,
     const size_t* _spans,
     uint32_t      _rank
 )
 {
-    struct d_table_region result;
+    struct dj_table_region result;
     uint32_t              r;
 
     result.rank = _rank;
@@ -470,11 +466,9 @@ Parameter(s):
   _rows: the leading span.
   _cols: the trailing span.
 Return:
-  A rank-2 `d_table_region`.
+  A rank-2 `dj_table_region`.
 */
-D_NODISCARD D_INLINE_DEF struct d_table_region
-d_table_region_make2
-(
+D_NODISCARD D_INLINE_DEF struct dj_table_region d_table_region_make2(
     size_t _row0,
     size_t _col0,
     size_t _rows,
@@ -502,13 +496,11 @@ Parameter(s):
 Return:
   The region covering exactly that one position -- every span 1.
 */
-D_NODISCARD D_INLINE_DEF struct d_table_region
-d_table_region_singleton
-(
-    struct d_table_index _index
+D_NODISCARD D_INLINE_DEF struct dj_table_region d_table_region_singleton(
+    struct dj_table_index _index
 )
 {
-    struct d_table_region result;
+    struct dj_table_region result;
     uint32_t              r;
 
     result.rank = _index.rank;
@@ -532,10 +524,8 @@ Return:
   Nonzero when the region covers more than one position, 0 when it is a
   singleton.
 */
-D_NODISCARD int
-d_table_region_is_merge
-(
-    struct d_table_region _region
+D_NODISCARD int d_table_region_is_merge(
+    struct dj_table_region _region
 )
 {
     return (d_table_region_extent(_region) > 1);
@@ -551,11 +541,9 @@ Parameter(s):
 Return:
   Nonzero when the region spans more than one position along `_r`.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_region_is_merged_along
-(
-    struct d_table_region _region,
-    uint32_t              _r
+D_NODISCARD D_INLINE_DEF int d_table_region_is_merged_along(
+    struct dj_table_region _region,
+    uint32_t               _r
 )
 {
     return (_region.span[_r] > 1);
@@ -573,11 +561,9 @@ Return:
   Nonzero when the region lies wholly inside the domain, 0 when the ranks
   disagree or any coordinate runs past its extent.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_region_within
-(
-    struct d_table_region _region,
-    struct d_table_domain _domain
+D_NODISCARD D_INLINE_DEF int d_table_region_within(
+    struct dj_table_region _region,
+    struct dj_table_domain _domain
 )
 {
     uint32_t r;
@@ -618,11 +604,9 @@ Return:
   Nonzero when the two regions share at least one position, 0 when the ranks
   disagree or they are disjoint along any coordinate.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_regions_overlap
-(
-    struct d_table_region _a,
-    struct d_table_region _b
+D_NODISCARD D_INLINE_DEF int d_table_regions_overlap(
+    struct dj_table_region _a,
+    struct dj_table_region _b
 )
 {
     uint32_t r;
@@ -654,17 +638,15 @@ Parameter(s):
   _merges: the caller's array of merged regions.
   _count:  the number of regions at `_merges`.
 Return:
-  A `d_table_layout` viewing that array. The layout borrows the storage and
+  A `dj_table_layout` viewing that array. The layout borrows the storage and
   never owns it.
 */
-D_NODISCARD D_INLINE_DEF struct d_table_layout
-d_table_layout_over
-(
-    const struct d_table_region* _merges,
-    size_t                       _count
+D_NODISCARD D_INLINE_DEF struct dj_table_layout d_table_layout_over(
+    const struct dj_table_region* _merges,
+    size_t                        _count
 )
 {
-    struct d_table_layout result;
+    struct dj_table_layout result;
 
     result.merges = _merges;
     result.count  = (D_INTERNAL_TABLE_EXTENT)_count;
@@ -681,10 +663,8 @@ Parameter(s):
 Return:
   Nonzero when the layout declares no merges, 0 when it declares any.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_layout_wears_no_merges
-(
-    const struct d_table_layout* _layout
+D_NODISCARD D_INLINE_DEF int d_table_layout_wears_no_merges(
+    const struct dj_table_layout* _layout
 )
 {
     return (_layout->count == 0);
@@ -702,11 +682,9 @@ Return:
   Nonzero when the position names its own cell, 0 when it is covered by a merge
   anchored elsewhere.
 */
-D_NODISCARD int
-d_table_layout_is_anchor
-(
-    const struct d_table_layout* _layout,
-    struct d_table_index         _index
+D_NODISCARD int d_table_layout_is_anchor(
+    const struct dj_table_layout* _layout,
+    struct dj_table_index         _index
 )
 {
     return d_table_index_equal(d_table_layout_anchor_of(_layout, _index),

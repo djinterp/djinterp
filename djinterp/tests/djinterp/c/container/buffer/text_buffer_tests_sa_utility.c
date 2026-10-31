@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_text_buffer_clear
   - data pointer remains valid
   - buffer is empty after clear
 */
-bool
-d_tests_sa_text_buffer_clear
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_clear(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     size_t                cap_before;
 
     result = true;
@@ -104,14 +102,12 @@ d_tests_sa_text_buffer_is_empty
   - buffer with content is not empty
   - buffer after clear is empty
 */
-bool
-d_tests_sa_text_buffer_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -171,14 +167,12 @@ d_tests_sa_text_buffer_length
   - returns correct length for populated buffer
   - length updates after append
 */
-bool
-d_tests_sa_text_buffer_length
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_length(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
 
     result = true;
 
@@ -238,14 +232,12 @@ d_tests_sa_text_buffer_capacity
   - custom capacity returned correctly
   - capacity >= count always holds
 */
-bool
-d_tests_sa_text_buffer_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     size_t                cap;
 
     result = true;
@@ -313,14 +305,12 @@ d_tests_sa_text_buffer_utilization
   - utilization is in range [0.0, 1.0]
   - utilization increases after adding data
 */
-bool
-d_tests_sa_text_buffer_utilization
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_utilization(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     double                util;
 
     result = true;
@@ -382,15 +372,13 @@ d_tests_sa_text_buffer_hash
   - different content likely produces different hashes
   - empty buffer hash is consistent
 */
-bool
-d_tests_sa_text_buffer_hash
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_hash(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buf1;
-    struct d_text_buffer* buf2;
+    struct dj_text_buffer* buf1;
+    struct dj_text_buffer* buf2;
     size_t                hash1;
     size_t                hash2;
 
@@ -470,10 +458,8 @@ d_tests_sa_text_buffer_hash
 d_tests_sa_text_buffer_utility_all
   Aggregation function that runs all utility tests.
 */
-bool
-d_tests_sa_text_buffer_utility_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_utility_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

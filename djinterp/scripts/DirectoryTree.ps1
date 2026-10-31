@@ -1,4 +1,4 @@
-<# DirectoryTree.ps1
+﻿<# DirectoryTree.ps1
 
 One big (optionally pruned) tree printer for PowerShell 5.1+.
 

@@ -18,10 +18,25 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-struct d_color_rgb d_color_rgb_adjust_saturation(struct d_color_rgb _rgb, float _amount);
-struct d_color_rgb d_color_rgb_adjust_brightness(struct d_color_rgb _rgb, float _amount);
-struct d_color_rgb d_color_rgb_rotate_hue(struct d_color_rgb _rgb, float _degrees);
-float d_color_delta_e(struct d_color_lab _lab1, struct d_color_lab _lab2);
-float d_color_rgb_delta_e(struct d_color_rgb _rgb1, struct d_color_rgb _rgb2);
+struct dj_color_rgb d_color_rgb_adjust_saturation(
+    struct dj_color_rgb _rgb,
+    float               _amount
+);
+struct dj_color_rgb d_color_rgb_adjust_brightness(
+    struct dj_color_rgb _rgb,
+    float               _amount
+);
+struct dj_color_rgb d_color_rgb_rotate_hue(
+    struct dj_color_rgb _rgb,
+    float               _degrees
+);
+float d_color_delta_e(
+    struct dj_color_lab _lab1,
+    struct dj_color_lab _lab2
+);
+float d_color_rgb_delta_e(
+    struct dj_color_rgb _rgb1,
+    struct dj_color_rgb _rgb2
+);
 
 #endif  // D_COLOR_HEADER_ONLY

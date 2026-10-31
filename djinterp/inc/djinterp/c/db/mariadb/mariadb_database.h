@@ -36,8 +36,8 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../djinterp.h"    // framework root
-#include "../db_common.h"      // d_db_name_list, D_DB_IF_*
-#include "./mariadb_common.h"  // d_mariadb, the layer's results
+#include "../db_common.h"      // dj_db_name_list, D_DB_IF_*
+#include "./mariadb_common.h"  // dj_mariadb, the layer's results
 
 
 D_EXTERN_C_BEGIN
@@ -54,11 +54,15 @@ D_EXTERN_C_BEGIN
 // server's own lower_case_table_names setting matches names. The plain form
 // answers false for a failure or a bad argument; the _s form returns 0 and
 // writes the answer, or the failure, the answer then false.
-bool   d_mariadb_has_database(struct d_mariadb* _db,
-                              const char*       _name) D_NOTHROW;
-int    d_mariadb_has_database_s(struct d_mariadb* _db,
-                                const char*       _name,
-                                bool*             _exists) D_NOTHROW;
+bool d_mariadb_has_database(
+    struct dj_mariadb* _db,
+    const char*        _name
+) D_NOTHROW;
+int d_mariadb_has_database_s(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    bool*              _exists
+) D_NOTHROW;
 
 // 1.2    Creating and dropping
 //------------------------------------------------------------------------------
@@ -72,9 +76,11 @@ int    d_mariadb_has_database_s(struct d_mariadb* _db,
  *         no privilege), or D_DB_INVALID_ARGUMENT for a `NULL` argument, an
  *         empty name or another flag.
  */
-int    d_mariadb_create_database(struct d_mariadb* _db,
-                                 const char*       _name,
-                                 unsigned          _flags) D_NOTHROW;
+int d_mariadb_create_database(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    unsigned           _flags
+) D_NOTHROW;
 /**
  * @brief Drops a database and everything in it.
  *
@@ -85,9 +91,11 @@ int    d_mariadb_create_database(struct d_mariadb* _db,
  *         database), or D_DB_INVALID_ARGUMENT for a `NULL` argument, an empty
  *         name or another flag.
  */
-int    d_mariadb_drop_database(struct d_mariadb* _db,
-                               const char*       _name,
-                               unsigned          _flags) D_NOTHROW;
+int d_mariadb_drop_database(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    unsigned           _flags
+) D_NOTHROW;
 
 // 1.3    Listing
 //------------------------------------------------------------------------------
@@ -103,8 +111,10 @@ int    d_mariadb_drop_database(struct d_mariadb* _db,
  *         `NULL` argument.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int    d_mariadb_list_databases(struct d_mariadb*      _db,
-                                struct d_db_name_list* _names) D_NOTHROW;
+int d_mariadb_list_databases(
+    struct dj_mariadb*      _db,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -120,10 +130,14 @@ int    d_mariadb_list_databases(struct d_mariadb*      _db,
 // argument or an empty name. _current_database names it, in a string the
 // caller releases with d_db_free: 0, D_DB_NOT_FOUND when none is current, or a
 // failure as for the queries.
-int    d_mariadb_use_database(struct d_mariadb* _db,
-                              const char*       _name) D_NOTHROW;
-int    d_mariadb_current_database(struct d_mariadb* _db,
-                                  char**            _name) D_NOTHROW;
+int d_mariadb_use_database(
+    struct dj_mariadb* _db,
+    const char*        _name
+) D_NOTHROW;
+int d_mariadb_current_database(
+    struct dj_mariadb* _db,
+    char**             _name
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

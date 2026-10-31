@@ -102,7 +102,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../env.h"     // D_ENV_OS_ID, D_ENV_IS_OS_*, D_ENV_OS_FLAG_*
 #include "../../../config/cfg_common.h"  // D_CFG_IS_ON
-#include "../../../config/core/env/net/ssh/cfg_env_ssh.h"  // D_CFG_ENV_SSH_*
+#include "../../../config/env/net/ssh/cfg_env_ssh.h"  // D_CFG_ENV_SSH_*
 #include "../env_net.h"   // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
 
 

@@ -65,16 +65,16 @@ const int CURSOR_NONE  = -9;
 //   a probe or usage row as the cursor names its row -- by its id among the
 // special rows, below zero, where a row of the sheet's is its id, above --
 // and back again: -1 for a row of the sheet's, or none.
-inline int
-special_cursor(
+inline
+int special_cursor(
     int _id
 )
 {
     return (-1 - _id);
 }
 
-inline int
-cursor_special(
+inline
+int cursor_special(
     int _row
 )
 {
@@ -246,8 +246,8 @@ struct model
 // sort_rows
 //   the order the grid and the tree show a model's rows in, worked out
 // again: after every resolution.
-inline void
-sort_rows(
+inline
+void sort_rows(
     model& _model
 )
 {
@@ -265,8 +265,8 @@ sort_rows(
 // shown_rows
 //   a model's rows, in the order the grid and the tree show them -- the
 // sheet's own, while the order is out of step with the resolution.
-inline std::vector<const resolved_row*>
-shown_rows(
+inline
+std::vector<const resolved_row*> shown_rows(
     const model& _model
 )
 {
@@ -296,8 +296,8 @@ shown_rows(
 // place_of
 //   where a row comes among those the grid and the tree show, by its id:
 // for sorting a group's children as they are shown.
-inline std::size_t
-place_of(
+inline
+std::size_t place_of(
     const model& _model,
     int          _id
 )
@@ -316,8 +316,8 @@ place_of(
 
 // inspected
 //   the row the inspector shows, or nullptr.
-inline const row*
-inspected(
+inline
+const row* inspected(
     const model& _model
 )
 {
@@ -331,8 +331,8 @@ inspected(
 
 // is_selected
 //   whether a row is part of the selection.
-inline bool
-is_selected(
+inline
+bool is_selected(
     const model& _model,
     int          _id
 )
@@ -353,8 +353,8 @@ is_selected(
 // -- a probe or usage row, while the selection is the one it chose -- and
 // otherwise the selection's first, so the cursor follows a selection made
 // elsewhere; 0 for none. While it is the cursor's own, the range selected from it holds.
-inline int
-active_row(
+inline
+int active_row(
     const model& _model
 )
 {

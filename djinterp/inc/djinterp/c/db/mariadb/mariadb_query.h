@@ -10,7 +10,7 @@
 * run one statement and return the first column of its first row, which
 * covers the common single-value case -- a count, a version, a setting -- in
 * one call; d_mariadb_query_rows returns all of its rows, as db_common.h's
-* d_db_rows.
+* dj_db_rows.
 *   Each comes in a plain form, which takes SQL as written, and an `f` form,
 * which takes a printf-like format: %Q writes a string as a quoted value (and
 * NULL as NULL), %I as a quoted name, and %T a qualifier and a name as
@@ -79,9 +79,9 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../djinterp.h"    // framework root
-#include "./mariadb_common.h"  // d_mariadb, the layer's results
+#include "./mariadb_common.h"  // dj_mariadb, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -112,13 +112,19 @@ D_EXTERN_C_BEGIN
 // ones before it having run. A script that fails leaves the client's
 // multi-statement mode on until the layer next runs a statement, so that
 // d_mariadb_error_message can still describe the failure.
-int    d_mariadb_exec(struct d_mariadb* _db,
-                      const char*       _sql) D_NOTHROW;
-int    d_mariadb_execf(struct d_mariadb* _db,
-                       const char*       _format,
-                       ...) D_NOTHROW;
-int    d_mariadb_exec_script(struct d_mariadb* _db,
-                             const char*       _sql) D_NOTHROW;
+int d_mariadb_exec(
+    struct dj_mariadb* _db,
+    const char*        _sql
+) D_NOTHROW;
+int d_mariadb_execf(
+    struct dj_mariadb* _db,
+    const char*        _format,
+    ...
+) D_NOTHROW;
+int d_mariadb_exec_script(
+    struct dj_mariadb* _db,
+    const char*        _sql
+) D_NOTHROW;
 
 // 1.2    Rows changed
 //------------------------------------------------------------------------------
@@ -127,13 +133,17 @@ int    d_mariadb_exec_script(struct d_mariadb* _db,
 // affected (an UPDATE counts those it changed, not those it matched), or the
 // rows it returned; 0 for a statement that counts none, such as CREATE TABLE.
 // Written only on success.
-int    d_mariadb_exec_changes(struct d_mariadb* _db,
-                              int64_t*          _changes,
-                              const char*       _sql) D_NOTHROW;
-int    d_mariadb_execf_changes(struct d_mariadb* _db,
-                               int64_t*          _changes,
-                               const char*       _format,
-                               ...) D_NOTHROW;
+int d_mariadb_exec_changes(
+    struct dj_mariadb* _db,
+    int64_t*           _changes,
+    const char*        _sql
+) D_NOTHROW;
+int d_mariadb_execf_changes(
+    struct dj_mariadb* _db,
+    int64_t*           _changes,
+    const char*        _format,
+    ...
+) D_NOTHROW;
 
 // 1.3    Single values
 //------------------------------------------------------------------------------
@@ -146,27 +156,39 @@ int    d_mariadb_execf_changes(struct d_mariadb* _db,
 // fraction or an exponent truncated toward zero; _double rounds to the
 // nearest double. A value that is not a number, or not one the type can
 // hold, is D_DB_INVALID_ARGUMENT, the statement having run.
-int    d_mariadb_query_int64(struct d_mariadb* _db,
-                             int64_t*          _value,
-                             const char*       _sql) D_NOTHROW;
-int    d_mariadb_query_int64f(struct d_mariadb* _db,
-                              int64_t*          _value,
-                              const char*       _format,
-                              ...) D_NOTHROW;
-int    d_mariadb_query_double(struct d_mariadb* _db,
-                              double*           _value,
-                              const char*       _sql) D_NOTHROW;
-int    d_mariadb_query_doublef(struct d_mariadb* _db,
-                               double*           _value,
-                               const char*       _format,
-                               ...) D_NOTHROW;
-int    d_mariadb_query_text(struct d_mariadb* _db,
-                            char**            _value,
-                            const char*       _sql) D_NOTHROW;
-int    d_mariadb_query_textf(struct d_mariadb* _db,
-                             char**            _value,
-                             const char*       _format,
-                             ...) D_NOTHROW;
+int d_mariadb_query_int64(
+    struct dj_mariadb* _db,
+    int64_t*           _value,
+    const char*        _sql
+) D_NOTHROW;
+int d_mariadb_query_int64f(
+    struct dj_mariadb* _db,
+    int64_t*           _value,
+    const char*        _format,
+    ...
+) D_NOTHROW;
+int d_mariadb_query_double(
+    struct dj_mariadb* _db,
+    double*            _value,
+    const char*        _sql
+) D_NOTHROW;
+int d_mariadb_query_doublef(
+    struct dj_mariadb* _db,
+    double*            _value,
+    const char*        _format,
+    ...
+) D_NOTHROW;
+int d_mariadb_query_text(
+    struct dj_mariadb* _db,
+    char**             _value,
+    const char*        _sql
+) D_NOTHROW;
+int d_mariadb_query_textf(
+    struct dj_mariadb* _db,
+    char**             _value,
+    const char*        _format,
+    ...
+) D_NOTHROW;
 
 // 1.4    Rows
 //------------------------------------------------------------------------------
@@ -185,9 +207,11 @@ int    d_mariadb_query_textf(struct d_mariadb* _db,
  *       no columns. Every result after the first, which only a CALL
  *       produces, is read and discarded.
  */
-int    d_mariadb_query_rows(struct d_mariadb* _db,
-                            struct d_db_rows* _rows,
-                            const char*       _sql) D_NOTHROW;
+int d_mariadb_query_rows(
+    struct dj_mariadb* _db,
+    struct dj_db_rows* _rows,
+    const char*        _sql
+) D_NOTHROW;
 /**
  * @brief Formats a statement, runs it, and returns every row it produced, as
  *        d_mariadb_query_rows.
@@ -200,10 +224,12 @@ int    d_mariadb_query_rows(struct d_mariadb* _db,
  *         the layer cannot read.
  * @post As for d_mariadb_query_rows.
  */
-int    d_mariadb_query_rowsf(struct d_mariadb* _db,
-                             struct d_db_rows* _rows,
-                             const char*       _format,
-                             ...) D_NOTHROW;
+int d_mariadb_query_rowsf(
+    struct dj_mariadb* _db,
+    struct dj_db_rows* _rows,
+    const char*        _format,
+    ...
+) D_NOTHROW;
 
 // 1.5    Quoting
 //------------------------------------------------------------------------------
@@ -214,7 +240,9 @@ int    d_mariadb_query_rowsf(struct d_mariadb* _db,
  * @return the quoted name, which the caller releases with d_db_free; `NULL`
  *         for a `NULL` name, or when memory ran out.
  */
-char*  d_mariadb_quote_identifier(const char* _name) D_NOTHROW;
+char* d_mariadb_quote_identifier(
+    const char* _name
+) D_NOTHROW;
 /**
  * @brief Quotes a value for SQL, as the connection's character set and SQL
  *        mode require, quotes included; `NULL` becomes the keyword NULL.
@@ -224,8 +252,10 @@ char*  d_mariadb_quote_identifier(const char* _name) D_NOTHROW;
  * @return the quoted value, which the caller releases with d_db_free; `NULL`
  *         for a `NULL` handle, or when memory ran out or the client refused.
  */
-char*  d_mariadb_quote_literal(struct d_mariadb* _db,
-                               const char*       _text) D_NOTHROW;
+char* d_mariadb_quote_literal(
+    struct dj_mariadb* _db,
+    const char*        _text
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -257,12 +287,16 @@ char*  d_mariadb_quote_literal(struct d_mariadb* _db,
  *         before 8.0.23); D_DB_INVALID_ARGUMENT for a `NULL` argument, an
  *         empty name, or a value longer than the client's lengths carry.
  */
-int    d_mariadb_set_query_attribute(struct d_mariadb* _db,
-                                     const char*       _name,
-                                     const char*       _value) D_NOTHROW;
+int d_mariadb_set_query_attribute(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    const char*        _value
+) D_NOTHROW;
 // drops the attributes set and not yet sent: 0, whether any were, and
 // wherever there can be none; D_DB_INVALID_ARGUMENT for a NULL handle
-int    d_mariadb_clear_query_attributes(struct d_mariadb* _db) D_NOTHROW;
+int d_mariadb_clear_query_attributes(
+    struct dj_mariadb* _db
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -305,9 +339,11 @@ int    d_mariadb_clear_query_attributes(struct d_mariadb* _db) D_NOTHROW;
  * @post On 0 the results are read with d_mariadb_next_result_start until it
  *       answers D_DB_NOT_FOUND, or a failure.
  */
-int    d_mariadb_send_query_start(struct d_mariadb*    _db,
-                                  const char*          _sql,
-                                  struct d_db_pending* _pending) D_NOTHROW;
+int d_mariadb_send_query_start(
+    struct dj_mariadb*    _db,
+    const char*           _sql,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 /**
  * @brief Gives the next result of the SQL sent once it has arrived, without
  *        waiting for it.
@@ -329,24 +365,29 @@ int    d_mariadb_send_query_start(struct d_mariadb*    _db,
  *         connection, pending call or rows.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_mariadb_next_result_start(struct d_mariadb*    _db,
-                                   struct d_db_pending* _pending,
-                                   struct d_db_rows*    _rows,
-                                   int64_t*             _changes) D_NOTHROW;
+int d_mariadb_next_result_start(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
+) D_NOTHROW;
 // continuing -- _send_query_continue goes on with a send, and
-// _next_result_continue with a result's read, given what came, as d_db_wait,
+// _next_result_continue with a result's read, given what came, as dj_db_wait,
 // and what the start or the last continuation wrote, which receives what to
 // wait for next; each answers as its start does, and D_DB_INVALID_ARGUMENT
 // for a NULL argument or no such call under way
-int    d_mariadb_send_query_continue(struct d_mariadb*    _db,
-                                     unsigned             _events,
-                                     struct d_db_pending* _pending) D_NOTHROW;
-int    d_mariadb_next_result_continue(struct d_mariadb*    _db,
-                                      unsigned             _events,
-                                      struct d_db_pending* _pending,
-                                      struct d_db_rows*    _rows,
-                                      int64_t*             _changes)
-                                      D_NOTHROW;
+int d_mariadb_send_query_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
+int d_mariadb_next_result_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    struct dj_db_rows*    _rows,
+    int64_t*              _changes
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

@@ -30,9 +30,8 @@ Return:
   A pointer to the addressed element. No bounds check is performed; the caller
   has already established the index is in range.
 */
-D_STATIC_INLINE void*
-d_internal_buffer_common_element_at
-(
+D_STATIC_INLINE
+void* d_internal_buffer_common_element_at(
     const void* _base,
     size_t      _index,
     size_t      _element_size
@@ -55,9 +54,8 @@ Parameter(s):
 Return:
   none.
 */
-D_STATIC_INLINE void
-d_internal_buffer_common_move_elements
-(
+D_STATIC_INLINE
+void d_internal_buffer_common_move_elements(
     void*  _base,
     size_t _element_size,
     size_t _from,
@@ -80,11 +78,10 @@ Parameter(s):
 Return:
   none.
 */
-D_STATIC_INLINE void
-d_internal_buffer_common_chunk_list_push
-(
-    struct d_buffer_chunk_list* _list,
-    struct d_buffer_chunk*      _chunk
+D_STATIC_INLINE
+void d_internal_buffer_common_chunk_list_push(
+    struct dj_buffer_chunk_list* _list,
+    struct dj_buffer_chunk*      _chunk
 )
 {
     // add to tail
@@ -124,9 +121,7 @@ Return:
   - true, if initialization succeeded, or
   - false, if allocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_init_sized
-(
+bool d_buffer_common_init_sized(
     void**  _destination,
     size_t* _count,
     size_t* _capacity,
@@ -185,9 +180,7 @@ Return:
   - true, if initialization succeeded, or
   - false, if allocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_init_from_data
-(
+bool d_buffer_common_init_from_data(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -260,9 +253,7 @@ Return:
   - true, if initialization succeeded, or
   - false, if allocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_init_from_args
-(
+bool d_buffer_common_init_from_args(
     void**  _destination,
     size_t* _count,
     size_t* _capacity,
@@ -332,9 +323,7 @@ Return:
   - true, if initialization succeeded, or
   - false, if allocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_init_copy
-(
+bool d_buffer_common_init_copy(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -368,9 +357,7 @@ Return:
   - true, if initialization succeeded, or
   - false, if allocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_init_fill
-(
+bool d_buffer_common_init_fill(
     void**      _destination,
     size_t*     _count,
     size_t*     _capacity,
@@ -437,9 +424,7 @@ Parameter(s):
 Return:
   A pointer to the allocated memory, or NULL on failure.
 */
-void*
-d_buffer_common_alloc
-(
+void* d_buffer_common_alloc(
     size_t _element_size,
     size_t _capacity
 )
@@ -482,9 +467,7 @@ Parameter(s):
 Return:
   The new capacity, which is at least _required_capacity.
 */
-size_t
-d_buffer_common_calc_growth
-(
+size_t d_buffer_common_calc_growth(
     size_t _current_capacity,
     size_t _required_capacity
 )
@@ -526,9 +509,7 @@ Return:
   - true, if the capacity is sufficient or reallocation succeeded, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_ensure_capacity
-(
+bool d_buffer_common_ensure_capacity(
     void**  _elements,
     size_t* _capacity,
     size_t  _element_size,
@@ -595,9 +576,7 @@ Return:
   - true, if the resize succeeded, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_resize_to_fit
-(
+bool d_buffer_common_resize_to_fit(
     void**  _elements,
     size_t* _capacity,
     size_t  _element_size,
@@ -664,13 +643,11 @@ Return:
   A pointer to the element, or NULL if out of bounds or parameters are
 invalid.
 */
-void*
-d_buffer_common_get_element
-(
+void* d_buffer_common_get_element(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
-    d_index     _index
+    dj_index    _index
 )
 {
     // validate parameters
@@ -701,13 +678,11 @@ Return:
   - true, if the element was set successfully, or
   - false, if out of bounds or parameters are invalid.
 */
-bool
-d_buffer_common_set_element
-(
+bool d_buffer_common_set_element(
     void*       _elements,
     size_t      _count,
     size_t      _element_size,
-    d_index     _index,
+    dj_index    _index,
     const void* _value
 )
 {
@@ -741,9 +716,7 @@ Return:
   A pointer to the first element, or NULL if empty or parameters are
 invalid.
 */
-void*
-d_buffer_common_peek_front
-(
+void* d_buffer_common_peek_front(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
@@ -772,9 +745,7 @@ Return:
   A pointer to the last element, or NULL if empty or parameters are
 invalid.
 */
-void*
-d_buffer_common_peek_back
-(
+void* d_buffer_common_peek_back(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
@@ -813,9 +784,7 @@ Return:
   - true, if the element was appended successfully, or
   - false, if capacity is insufficient or parameters are invalid.
 */
-bool
-d_buffer_common_append_element
-(
+bool d_buffer_common_append_element(
     void*       _elements,
     size_t*     _count,
     size_t      _capacity,
@@ -866,9 +835,7 @@ Return:
   - true, if the data was appended successfully, or
   - false, if capacity is insufficient or parameters are invalid.
 */
-bool
-d_buffer_common_append_data
-(
+bool d_buffer_common_append_data(
     void*       _elements,
     size_t*     _count,
     size_t      _capacity,
@@ -919,9 +886,7 @@ Return:
   - true, if the element was prepended successfully, or
   - false, if capacity is insufficient or parameters are invalid.
 */
-bool
-d_buffer_common_prepend_element
-(
+bool d_buffer_common_prepend_element(
     void*       _elements,
     size_t*     _count,
     size_t      _capacity,
@@ -975,9 +940,7 @@ Return:
   - true, if the data was prepended successfully, or
   - false, if capacity is insufficient or parameters are invalid.
 */
-bool
-d_buffer_common_prepend_data
-(
+bool d_buffer_common_prepend_data(
     void*       _elements,
     size_t*     _count,
     size_t      _capacity,
@@ -1033,15 +996,13 @@ Return:
   - false, if capacity is insufficient, out of bounds, or parameters are
 invalid.
 */
-bool
-d_buffer_common_insert_element
-(
+bool d_buffer_common_insert_element(
     void*       _elements,
     size_t*     _count,
     size_t      _capacity,
     size_t      _element_size,
     const void* _value,
-    d_index     _index
+    dj_index    _index
 )
 {
     size_t idx;
@@ -1104,16 +1065,14 @@ Return:
   - false, if capacity is insufficient, out of bounds, or parameters are
 invalid.
 */
-bool
-d_buffer_common_insert_data
-(
+bool d_buffer_common_insert_data(
     void*       _elements,
     size_t*     _count,
     size_t      _capacity,
     size_t      _element_size,
     const void* _data,
     size_t      _data_count,
-    d_index     _index
+    dj_index    _index
 )
 {
     size_t idx;
@@ -1173,14 +1132,12 @@ Parameter(s):
 Return:
   A pointer to the new chunk, or NULL on failure.
 */
-struct d_buffer_chunk*
-d_buffer_common_chunk_new
-(
+struct dj_buffer_chunk* d_buffer_common_chunk_new(
     size_t _element_size,
     size_t _capacity
 )
 {
-    struct d_buffer_chunk* chunk;
+    struct dj_buffer_chunk* chunk;
 
     // validate parameters
     if ( (!_element_size) ||
@@ -1190,7 +1147,7 @@ d_buffer_common_chunk_new
     }
 
     // allocate chunk structure
-    chunk = malloc(sizeof(struct d_buffer_chunk));
+    chunk = malloc(sizeof(struct dj_buffer_chunk));
 
     // ensure that memory allocation was successful
     if (!chunk)
@@ -1225,10 +1182,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_buffer_common_chunk_free
-(
-    struct d_buffer_chunk* _chunk
+void d_buffer_common_chunk_free(
+    struct dj_buffer_chunk* _chunk
 )
 {
     // validate parameter
@@ -1252,10 +1207,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_buffer_common_chunk_list_init
-(
-    struct d_buffer_chunk_list* _list
+void d_buffer_common_chunk_list_init(
+    struct dj_buffer_chunk_list* _list
 )
 {
     // validate parameter
@@ -1281,14 +1234,12 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_buffer_common_chunk_list_free
-(
-    struct d_buffer_chunk_list* _list
+void d_buffer_common_chunk_list_free(
+    struct dj_buffer_chunk_list* _list
 )
 {
-    struct d_buffer_chunk* cur;
-    struct d_buffer_chunk* next;
+    struct dj_buffer_chunk* cur;
+    struct dj_buffer_chunk* next;
 
     // validate parameter
     if (!_list)
@@ -1327,17 +1278,15 @@ Return:
   - true, if the element was appended successfully, or
   - false, if allocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_append_element_chunked
-(
-    struct d_buffer_chunk_list* _list,
-    size_t                      _element_size,
-    const void*                 _value,
-    size_t                      _chunk_capacity
+bool d_buffer_common_append_element_chunked(
+    struct dj_buffer_chunk_list* _list,
+    size_t                       _element_size,
+    const void*                  _value,
+    size_t                       _chunk_capacity
 )
 {
     size_t                 cap;
-    struct d_buffer_chunk* chunk;
+    struct dj_buffer_chunk* chunk;
 
     // validate parameters
     if ( (!_list)  ||
@@ -1404,14 +1353,12 @@ Return:
   - true, if the data was appended successfully, or
   - false, if allocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_append_data_chunked
-(
-    struct d_buffer_chunk_list* _list,
-    size_t                      _element_size,
-    const void*                 _data,
-    size_t                      _data_count,
-    size_t                      _chunk_capacity
+bool d_buffer_common_append_data_chunked(
+    struct dj_buffer_chunk_list* _list,
+    size_t                       _element_size,
+    const void*                  _data,
+    size_t                       _data_count,
+    size_t                       _chunk_capacity
 )
 {
     const char*            src;
@@ -1419,7 +1366,7 @@ d_buffer_common_append_data_chunked
     size_t                 space;
     size_t                 batch;
     size_t                 cap;
-    struct d_buffer_chunk* chunk;
+    struct dj_buffer_chunk* chunk;
 
     // validate parameters
     if ( (!_list)             ||
@@ -1506,20 +1453,18 @@ Return:
   - true, if consolidation succeeded, or
   - false, if reallocation failed or parameters are invalid.
 */
-bool
-d_buffer_common_consolidate
-(
-    void**                      _elements,
-    size_t*                     _count,
-    size_t*                     _capacity,
-    size_t                      _element_size,
-    struct d_buffer_chunk_list* _list
+bool d_buffer_common_consolidate(
+    void**                       _elements,
+    size_t*                      _count,
+    size_t*                      _capacity,
+    size_t                       _element_size,
+    struct dj_buffer_chunk_list* _list
 )
 {
     size_t                 total;
     void*                  new_mem;
     char*                  dst;
-    struct d_buffer_chunk* cur;
+    struct dj_buffer_chunk* cur;
 
     // validate parameters
     if ( (!_elements) ||
@@ -1593,11 +1538,9 @@ Parameter(s):
 Return:
   The total element count.
 */
-size_t
-d_buffer_common_total_count
-(
-    size_t                            _primary_count,
-    const struct d_buffer_chunk_list* _list
+size_t d_buffer_common_total_count(
+    size_t                             _primary_count,
+    const struct dj_buffer_chunk_list* _list
 )
 {
     size_t total;
@@ -1625,18 +1568,16 @@ Parameter(s):
 Return:
   A pointer to the element, or NULL if out of bounds.
 */
-void*
-d_buffer_common_get_element_chunked
-(
-    const void*                       _primary_elements,
-    size_t                            _primary_count,
-    size_t                            _element_size,
-    const struct d_buffer_chunk_list* _list,
-    d_index                           _index
+void* d_buffer_common_get_element_chunked(
+    const void*                        _primary_elements,
+    size_t                             _primary_count,
+    size_t                             _element_size,
+    const struct dj_buffer_chunk_list* _list,
+    dj_index                           _index
 )
 {
     size_t                       idx;
-    const struct d_buffer_chunk* cur;
+    const struct dj_buffer_chunk* cur;
 
     idx = (size_t)_index;
 
@@ -1693,13 +1634,11 @@ Return:
   - true, if the element was removed successfully, or
   - false, if out of bounds or parameters are invalid.
 */
-bool
-d_buffer_common_remove_element
-(
-    void*   _elements,
-    size_t* _count,
-    size_t  _element_size,
-    d_index _index
+bool d_buffer_common_remove_element(
+    void*    _elements,
+    size_t*  _count,
+    size_t   _element_size,
+    dj_index _index
 )
 {
     size_t idx;
@@ -1757,14 +1696,12 @@ Return:
   - true, if the range was removed successfully, or
   - false, if out of bounds or parameters are invalid.
 */
-bool
-d_buffer_common_remove_range
-(
-    void*   _elements,
-    size_t* _count,
-    size_t  _element_size,
-    d_index _start,
-    d_index _end
+bool d_buffer_common_remove_range(
+    void*    _elements,
+    size_t*  _count,
+    size_t   _element_size,
+    dj_index _start,
+    dj_index _end
 )
 {
     size_t s;
@@ -1833,9 +1770,7 @@ Return:
   - true, if elements were removed successfully, or
   - false, if insufficient elements or parameters are invalid.
 */
-bool
-d_buffer_common_consume_front
-(
+bool d_buffer_common_consume_front(
     void*   _elements,
     size_t* _count,
     size_t  _element_size,
@@ -1895,9 +1830,7 @@ Return:
   - true, if elements were removed successfully, or
   - false, if insufficient elements or parameters are invalid.
 */
-bool
-d_buffer_common_consume_back
-(
+bool d_buffer_common_consume_back(
     void*   _elements,
     size_t* _count,
     size_t  _element_size,
@@ -1944,9 +1877,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_buffer_common_clear
-(
+void d_buffer_common_clear(
     size_t* _count
 )
 {
@@ -1970,9 +1901,7 @@ Return:
   - true, if _count is zero, or
   - false, otherwise.
 */
-bool
-d_buffer_common_is_empty
-(
+bool d_buffer_common_is_empty(
     size_t _count
 )
 {
@@ -1991,9 +1920,7 @@ Return:
   - true, if _count >= _capacity, or
   - false, otherwise.
 */
-bool
-d_buffer_common_is_full
-(
+bool d_buffer_common_is_full(
     size_t _count,
     size_t _capacity
 )
@@ -2011,9 +1938,7 @@ Parameter(s):
 Return:
   The utilization as a value between 0.0 and 1.0.
 */
-double
-d_buffer_common_utilization
-(
+double d_buffer_common_utilization(
     size_t _count,
     size_t _capacity
 )
@@ -2044,9 +1969,7 @@ Return:
   - true, if the value was found, or
   - false, otherwise.
 */
-bool
-d_buffer_common_contains
-(
+bool d_buffer_common_contains(
     const void*   _elements,
     size_t        _count,
     size_t        _element_size,
@@ -2074,9 +1997,7 @@ Parameter(s):
 Return:
   The index of the first occurrence, or -1 if not found.
 */
-ssize_t
-d_buffer_common_find
-(
+ssize_t d_buffer_common_find(
     const void*   _elements,
     size_t        _count,
     size_t        _element_size,
@@ -2123,9 +2044,7 @@ Parameter(s):
 Return:
   The index of the last occurrence, or -1 if not found.
 */
-ssize_t
-d_buffer_common_find_last
-(
+ssize_t d_buffer_common_find_last(
     const void*   _elements,
     size_t        _count,
     size_t        _element_size,
@@ -2181,15 +2100,13 @@ Return:
   - true, if filtering succeeded (including zero matches), or
   - false, if allocation failed or output pointers are NULL.
 */
-bool
-d_buffer_common_filter
-(
-    const void*                  _elements,
-    size_t                       _count,
-    size_t                       _element_size,
-    const struct d_filter_chain* _chain,
-    void**                       _out_elements,
-    size_t*                      _out_count
+bool d_buffer_common_filter(
+    const void*                   _elements,
+    size_t                        _count,
+    size_t                        _element_size,
+    const struct dj_filter_chain* _chain,
+    void**                        _out_elements,
+    size_t*                       _out_count
 )
 {
     size_t      matches;
@@ -2292,13 +2209,11 @@ Return:
   - true, if filtering succeeded, or
   - false, if parameters are invalid.
 */
-bool
-d_buffer_common_filter_in_place
-(
-    void*                        _elements,
-    size_t*                      _count,
-    size_t                       _element_size,
-    const struct d_filter_chain* _chain
+bool d_buffer_common_filter_in_place(
+    void*                         _elements,
+    size_t*                       _count,
+    size_t                        _element_size,
+    const struct dj_filter_chain* _chain
 )
 {
     size_t      write;
@@ -2371,21 +2286,19 @@ Return:
   - true, if filtering succeeded (including zero matches), or
   - false, if allocation failed or output pointers are NULL.
 */
-bool
-d_buffer_common_filter_indices
-(
-    const void*                  _elements,
-    size_t                       _count,
-    size_t                       _element_size,
-    const struct d_filter_chain* _chain,
-    d_index**                    _out_indices,
-    size_t*                      _out_count
+bool d_buffer_common_filter_indices(
+    const void*                   _elements,
+    size_t                        _count,
+    size_t                        _element_size,
+    const struct dj_filter_chain* _chain,
+    dj_index**                    _out_indices,
+    size_t*                       _out_count
 )
 {
     size_t   matches;
     size_t   i;
     size_t   w;
-    d_index* indices;
+    dj_index* indices;
 
     // validate output pointers
     if ( (!_out_indices) ||
@@ -2429,7 +2342,7 @@ d_buffer_common_filter_indices
     }
 
     // allocate index array
-    indices = malloc(matches * sizeof(d_index));
+    indices = malloc(matches * sizeof(dj_index));
 
     // ensure that memory allocation was successful
     if (!indices)
@@ -2449,7 +2362,7 @@ d_buffer_common_filter_indices
                                                     _element_size),
                 _element_size))
         {
-            indices[w++] = (d_index)i;
+            indices[w++] = (dj_index)i;
         }
     }
 
@@ -2472,13 +2385,11 @@ Return:
   The number of matching elements, or 0 if the buffer is empty or
 _chain is NULL.
 */
-size_t
-d_buffer_common_count_matching
-(
-    const void*                  _elements,
-    size_t                       _count,
-    size_t                       _element_size,
-    const struct d_filter_chain* _chain
+size_t d_buffer_common_count_matching(
+    const void*                   _elements,
+    size_t                        _count,
+    size_t                        _element_size,
+    const struct dj_filter_chain* _chain
 )
 {
     size_t matches;
@@ -2528,23 +2439,21 @@ Return:
   - true, if filtering succeeded (including zero matches), or
   - false, if allocation failed or output pointers are NULL.
 */
-bool
-d_buffer_common_filter_chunked
-(
-    const void*                       _primary_elements,
-    size_t                            _primary_count,
-    size_t                            _element_size,
-    const struct d_buffer_chunk_list* _list,
-    const struct d_filter_chain*      _chain,
-    void**                            _out_elements,
-    size_t*                           _out_count
+bool d_buffer_common_filter_chunked(
+    const void*                        _primary_elements,
+    size_t                             _primary_count,
+    size_t                             _element_size,
+    const struct dj_buffer_chunk_list* _list,
+    const struct dj_filter_chain*      _chain,
+    void**                             _out_elements,
+    size_t*                            _out_count
 )
 {
     size_t                       total;
     size_t                       matches;
     size_t                       i;
     size_t                       w;
-    const struct d_buffer_chunk* cur;
+    const struct dj_buffer_chunk* cur;
     const void*                  elem;
     void*                        out;
 
@@ -2709,9 +2618,7 @@ Return:
   - true, if the copy succeeded, or
   - false, if parameters are invalid.
 */
-bool
-d_buffer_common_copy_to
-(
+bool d_buffer_common_copy_to(
     const void* _source,
     size_t      _source_count,
     size_t      _element_size,
@@ -2762,14 +2669,12 @@ Return:
   - true, if the copy succeeded, or
   - false, if out of range or parameters are invalid.
 */
-bool
-d_buffer_common_copy_range_to
-(
+bool d_buffer_common_copy_range_to(
     const void* _source,
     size_t      _source_count,
     size_t      _element_size,
-    d_index     _start,
-    d_index     _end,
+    dj_index    _start,
+    dj_index    _end,
     void*       _destination,
     size_t      _destination_capacity,
     size_t*     _copied_count
@@ -2833,9 +2738,7 @@ Return:
   - true, if the reversal succeeded or was a no-op, or
   - false, if _elements is NULL.
 */
-bool
-d_buffer_common_reverse
-(
+bool d_buffer_common_reverse(
     void*  _elements,
     size_t _count,
     size_t _element_size
@@ -2910,9 +2813,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_buffer_common_sort
-(
+void d_buffer_common_sort(
     void*         _elements,
     size_t        _count,
     size_t        _element_size,
@@ -2949,9 +2850,7 @@ Return:
   - true, if _element_size > 0, or
   - false, otherwise.
 */
-bool
-d_buffer_common_validate_params
-(
+bool d_buffer_common_validate_params(
     size_t _element_size
 )
 {
@@ -2969,9 +2868,7 @@ Return:
   - true, if _capacity > 0, or
   - false, otherwise.
 */
-bool
-d_buffer_common_validate_capacity
-(
+bool d_buffer_common_validate_capacity(
     size_t _capacity
 )
 {
@@ -2990,11 +2887,9 @@ Return:
   - true, if _index < _count, or
   - false, otherwise.
 */
-bool
-d_buffer_common_validate_index
-(
-    d_index _index,
-    size_t  _count
+bool d_buffer_common_validate_index(
+    dj_index _index,
+    size_t   _count
 )
 {
     return (size_t)_index < _count;
@@ -3014,9 +2909,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_buffer_common_free_data
-(
+void d_buffer_common_free_data(
     void* _elements
 )
 {
@@ -3036,9 +2929,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_buffer_common_free_data_deep
-(
+void d_buffer_common_free_data_deep(
     size_t  _count,
     void**  _elements,
     fn_free _free_fn

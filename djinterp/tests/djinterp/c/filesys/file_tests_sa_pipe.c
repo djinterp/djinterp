@@ -23,13 +23,10 @@ d_tests_file_popen
 status, not a success flag, and a suite that tested `!= 0` for "did it close"
 would report every failing command as a broken close.
 */
-static struct d_test_object*
-d_tests_file_popen
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_popen(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     FILE*                 pipe_stream;
     char                  buf[256];
     int                   status;
@@ -90,13 +87,9 @@ d_tests_file_popen
 d_tests_file_pipe_all
   Runs every file_pipe test.
 */
-struct d_test_object*
-d_tests_file_pipe_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_pipe_all(void)
 {
-    struct d_test_object* items[2];
+    struct dj_test_object* items[2];
     size_t                idx;
 
     idx = 0;

@@ -24,7 +24,7 @@
     static void                                                             \
     d_internal_monoid_mappend_##suffix                                      \
     (                                                                       \
-        const struct d_semigroup* _semigroup,                               \
+        const struct dj_semigroup* _semigroup,                               \
         void*                     _result,                                  \
         const void*               _left,                                    \
         const void*               _right                                    \
@@ -48,7 +48,7 @@
     static void                                                             \
     d_internal_monoid_mempty_##suffix                                       \
     (                                                                       \
-        const struct d_monoid* _monoid,                                     \
+        const struct dj_monoid* _monoid,                                     \
         void*                  _identity                                    \
     )                                                                       \
     {                                                                       \
@@ -75,7 +75,7 @@
     static void                                                             \
     d_internal_monoid_mappend_##suffix                                      \
     (                                                                       \
-        const struct d_semigroup* _semigroup,                               \
+        const struct dj_semigroup* _semigroup,                               \
         void*                     _result,                                  \
         const void*               _left,                                    \
         const void*               _right                                    \
@@ -104,7 +104,7 @@
     static void                                                             \
     d_internal_monoid_mempty_##suffix                                       \
     (                                                                       \
-        const struct d_monoid* _monoid,                                     \
+        const struct dj_monoid* _monoid,                                     \
         void*                  _identity                                    \
     )                                                                       \
     {                                                                       \
@@ -134,13 +134,13 @@ D_INTERNAL_MONOID_INFIX(all,             bool,     &&, true)
 D_INTERNAL_MONOID_INFIX(any,             bool,     ||, false)
 
 
-// d_internal_fold_monoid_binding
+// dj_internal_fold_monoid_binding
 //   struct: state threaded through a `d_fold_monoid` drive.
 // Holds the monoid being folded into, the mapping from element to monoid value,
 // and the scratch that mapped value lands in.
-struct d_internal_fold_monoid_binding
+struct dj_internal_fold_monoid_binding
 {
-    const struct d_monoid* monoid;      // the monoid supplying the combine
+    const struct dj_monoid* monoid;      // the monoid supplying the combine
     fn_transformer         to_monoid;   // element -> monoid value
     void*                  context;     // context for `to_monoid`
     void*                  scratch;     // buffer for the mapped value
@@ -156,20 +156,19 @@ which keeps a partial mapping well-defined over its domain.
 Parameter(s):
   _state:   the reducing state whose accumulator is combined into.
   _element: the incoming element, in the source type.
-  _context: the `d_internal_fold_monoid_binding` for this drive.
+  _context: the `dj_internal_fold_monoid_binding` for this drive.
 Return:
   none.
 */
-static void
-d_internal_monoid_fold_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_monoid_fold_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
-    struct d_internal_fold_monoid_binding* binding;
-    const struct d_semigroup*              semigroup;
+    struct dj_internal_fold_monoid_binding* binding;
+    const struct dj_semigroup*              semigroup;
 
     // a NULL state, binding, or element is a caller error
     if ( (!_state)   ||
@@ -179,7 +178,7 @@ d_internal_monoid_fold_step
         return;
     }
 
-    binding = (struct d_internal_fold_monoid_binding*)_context;
+    binding = (struct dj_internal_fold_monoid_binding*)_context;
 
     // without a mapping, scratch, or an accumulator there is nothing to fold
     if ( (!binding->to_monoid)    ||
@@ -218,14 +217,12 @@ Parameter(s):
 Return:
   A monoid by value.
 */
-struct d_monoid
-d_monoid_make
-(
-    struct d_semigroup _semigroup,
-    fn_mempty          _mempty
+struct dj_monoid d_monoid_make(
+    struct dj_semigroup _semigroup,
+    fn_mempty           _mempty
 )
 {
-    struct d_monoid monoid;
+    struct dj_monoid monoid;
 
     monoid.semigroup = _semigroup;
     monoid.mempty    = _mempty;
@@ -244,10 +241,8 @@ Return:
   - true, if the contained semigroup is valid and the identity is set, or
   - false, otherwise.
 */
-bool
-d_monoid_is_valid
-(
-    const struct d_monoid* _monoid
+bool d_monoid_is_valid(
+    const struct dj_monoid* _monoid
 )
 {
     // a NULL monoid is not valid
@@ -270,10 +265,8 @@ Parameter(s):
 Return:
   A pointer to the contained semigroup, or NULL if `_monoid` is NULL.
 */
-const struct d_semigroup*
-d_monoid_semigroup
-(
-    const struct d_monoid* _monoid
+const struct dj_semigroup* d_monoid_semigroup(
+    const struct dj_monoid* _monoid
 )
 {
     // a NULL monoid has no semigroup to forget to
@@ -298,11 +291,9 @@ Return:
   - true, if the identity was written, or
   - false, if the parameters were unusable.
 */
-bool
-d_mempty
-(
-    const struct d_monoid* _monoid,
-    void*                  _identity
+bool d_mempty(
+    const struct dj_monoid* _monoid,
+    void*                   _identity
 )
 {
     // an unusable request writes nothing
@@ -328,10 +319,8 @@ Parameter(s):
 Return:
   A reducer by value; an invalid reducer if the monoid is unusable.
 */
-struct d_reducer
-d_monoid_reducer
-(
-    const struct d_monoid* _monoid
+struct dj_reducer d_monoid_reducer(
+    const struct dj_monoid* _monoid
 )
 {
     // an unusable monoid yields an invalid reducer
@@ -359,17 +348,15 @@ Return:
   - true, if the combination (or the identity) was written, or
   - false, if the parameters were unusable.
 */
-bool
-d_mconcat
-(
-    const struct d_monoid* _monoid,
-    const void*            _elements,
-    size_t                 _count,
-    void*                  _out
+bool d_mconcat(
+    const struct dj_monoid* _monoid,
+    const void*             _elements,
+    size_t                  _count,
+    void*                   _out
 )
 {
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
 
     // an unusable request writes nothing
     if ( (!d_monoid_is_valid(_monoid))    ||
@@ -415,17 +402,15 @@ Return:
   - true, if the combination (or the identity) was written, or
   - false, if the parameters were unusable.
 */
-bool
-d_mconcat_producer
-(
-    const struct d_monoid* _monoid,
-    struct d_producer*     _producer,
-    void*                  _out,
-    void*                  _scratch
+bool d_mconcat_producer(
+    const struct dj_monoid* _monoid,
+    struct dj_producer*     _producer,
+    void*                   _out,
+    void*                   _scratch
 )
 {
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
 
     // an unusable request writes nothing
     if ( (!d_monoid_is_valid(_monoid)) ||
@@ -473,22 +458,20 @@ Return:
   - true, if the combination (or the identity) was written, or
   - false, if the parameters were unusable.
 */
-bool
-d_fold_monoid
-(
-    const struct d_monoid* _monoid,
-    const void*            _elements,
-    size_t                 _count,
-    size_t                 _element_size,
-    fn_transformer         _to_monoid,
-    void*                  _context,
-    void*                  _out,
-    void*                  _scratch
+bool d_fold_monoid(
+    const struct dj_monoid* _monoid,
+    const void*             _elements,
+    size_t                  _count,
+    size_t                  _element_size,
+    fn_transformer          _to_monoid,
+    void*                   _context,
+    void*                   _out,
+    void*                   _scratch
 )
 {
-    struct d_internal_fold_monoid_binding binding;
-    struct d_reducer                      reducer;
-    struct d_reducing_state               state;
+    struct dj_internal_fold_monoid_binding binding;
+    struct dj_reducer                      reducer;
+    struct dj_reducing_state               state;
 
     // an unusable request writes nothing
     if ( (!d_monoid_is_valid(_monoid))    ||
@@ -536,11 +519,7 @@ Parameter(s):
 Return:
   A monoid by value over `intmax_t`.
 */
-struct d_monoid
-d_monoid_sum_intmax
-(
-    void
-)
+struct dj_monoid d_monoid_sum_intmax(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_sum_intmax,
                                           NULL,
@@ -557,11 +536,7 @@ Parameter(s):
 Return:
   A monoid by value over `intmax_t`.
 */
-struct d_monoid
-d_monoid_product_intmax
-(
-    void
-)
+struct dj_monoid d_monoid_product_intmax(void)
 {
     return d_monoid_make(
         d_semigroup_make(&d_internal_monoid_mappend_product_intmax,
@@ -579,11 +554,7 @@ Parameter(s):
 Return:
   A monoid by value over `intmax_t`.
 */
-struct d_monoid
-d_monoid_min_intmax
-(
-    void
-)
+struct dj_monoid d_monoid_min_intmax(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_min_intmax,
                                           NULL,
@@ -600,11 +571,7 @@ Parameter(s):
 Return:
   A monoid by value over `intmax_t`.
 */
-struct d_monoid
-d_monoid_max_intmax
-(
-    void
-)
+struct dj_monoid d_monoid_max_intmax(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_max_intmax,
                                           NULL,
@@ -624,11 +591,7 @@ Parameter(s):
 Return:
   A monoid by value over `double`.
 */
-struct d_monoid
-d_monoid_sum_double
-(
-    void
-)
+struct dj_monoid d_monoid_sum_double(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_sum_double,
                                           NULL,
@@ -646,11 +609,7 @@ Parameter(s):
 Return:
   A monoid by value over `double`.
 */
-struct d_monoid
-d_monoid_product_double
-(
-    void
-)
+struct dj_monoid d_monoid_product_double(void)
 {
     return d_monoid_make(
         d_semigroup_make(&d_internal_monoid_mappend_product_double,
@@ -668,11 +627,7 @@ Parameter(s):
 Return:
   A monoid by value over `double`.
 */
-struct d_monoid
-d_monoid_min_double
-(
-    void
-)
+struct dj_monoid d_monoid_min_double(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_min_double,
                                           NULL,
@@ -690,11 +645,7 @@ Parameter(s):
 Return:
   A monoid by value over `double`.
 */
-struct d_monoid
-d_monoid_max_double
-(
-    void
-)
+struct dj_monoid d_monoid_max_double(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_max_double,
                                           NULL,
@@ -711,11 +662,7 @@ Parameter(s):
 Return:
   A monoid by value over `bool`.
 */
-struct d_monoid
-d_monoid_all
-(
-    void
-)
+struct dj_monoid d_monoid_all(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_all,
                                           NULL,
@@ -732,11 +679,7 @@ Parameter(s):
 Return:
   A monoid by value over `bool`.
 */
-struct d_monoid
-d_monoid_any
-(
-    void
-)
+struct dj_monoid d_monoid_any(void)
 {
     return d_monoid_make(d_semigroup_make(&d_internal_monoid_mappend_any,
                                           NULL,

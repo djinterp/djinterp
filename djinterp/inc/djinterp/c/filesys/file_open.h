@@ -62,8 +62,10 @@ D_EXTERN_C_BEGIN
  * @return the stream, or `NULL` on failure with errno set.
  * @post The caller owns the stream and closes it with d_file_close_stream.
  */
-FILE* d_file_open_stream(const char* _filename,
-                         const char* _mode);
+FILE* d_file_open_stream(
+    const char* _filename,
+    const char* _mode
+);
 /**
  * @brief Opens a file as a stream, reporting through the return value (C11
  *        Annex K fopen_s equivalent).
@@ -76,9 +78,11 @@ FILE* d_file_open_stream(const char* _filename,
  * @return 0, or a non-zero error code: EINVAL for a bad argument, otherwise
  *         the platform's errno.
  */
-int   d_file_open_stream_s(FILE**      _stream,
-                           const char* _filename,
-                           const char* _mode);
+int d_file_open_stream_s(
+    FILE**      _stream,
+    const char* _filename,
+    const char* _mode
+);
 /**
  * @brief Reopens an existing stream on a new file or in a new mode (portable
  *        freopen).
@@ -96,9 +100,11 @@ int   d_file_open_stream_s(FILE**      _stream,
  * @param[in,out] _stream    the stream to reopen.
  * @return the reopened stream, or `NULL` on failure.
  */
-FILE* d_file_reopen_stream(const char* _filename,
-                           const char* _mode,
-                           FILE*       _stream);
+FILE* d_file_reopen_stream(
+    const char* _filename,
+    const char* _mode,
+    FILE*       _stream
+);
 /**
  * @brief Reopens an existing stream, reporting through the return value (C11
  *        Annex K freopen_s equivalent).
@@ -113,10 +119,12 @@ FILE* d_file_reopen_stream(const char* _filename,
  * @return 0, or a non-zero error code: EINVAL for a bad argument, otherwise
  *         the platform's errno.
  */
-int   d_file_reopen_stream_s(FILE**      _newstream,
-                             const char* _filename,
-                             const char* _mode,
-                             FILE*       _stream);
+int d_file_reopen_stream_s(
+    FILE**      _newstream,
+    const char* _filename,
+    const char* _mode,
+    FILE*       _stream
+);
 /**
  * @brief Associates a stream with an already open descriptor (POSIX fdopen
  *        equivalent).
@@ -134,8 +142,10 @@ int   d_file_reopen_stream_s(FILE**      _newstream,
  *         C backend, which has no descriptors.
  * @post The stream owns `_fd`.
  */
-FILE* d_file_open_stream_fd(int         _fd,
-                            const char* _mode);
+FILE* d_file_open_stream_fd(
+    int         _fd,
+    const char* _mode
+);
 
 // 1.2    Stream closing
 //------------------------------------------------------------------------------
@@ -150,7 +160,9 @@ FILE* d_file_open_stream_fd(int         _fd,
  * @return 0, or EOF on failure with errno set.
  * @post `_stream` is closed whatever the result, and must not be used again.
  */
-int   d_file_close_stream(FILE* _stream);
+int d_file_close_stream(
+    FILE* _stream
+);
 
 
 D_EXTERN_C_END

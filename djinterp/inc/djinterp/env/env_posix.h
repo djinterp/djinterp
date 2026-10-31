@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_ENV_POSIX_H 1
 
 // djinterp
-#include "../config/core/env/cfg_env_posix.h"  // D_CFG_ENV_POSIX_*
+#include "../config/env/cfg_env_posix.h"  // D_CFG_ENV_POSIX_*
 
 
 //==============================================================================

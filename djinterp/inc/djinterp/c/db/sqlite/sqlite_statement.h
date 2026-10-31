@@ -57,7 +57,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.h"   // framework root
 #include "./sqlite_common.h"  // sqlite3, sqlite3_stmt, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -90,9 +90,11 @@ D_EXTERN_C_BEGIN
  *         one.
  * @post On success the caller releases `*_statement` with d_sqlite_finalize.
  */
-int    d_sqlite_prepare(struct sqlite3*       _db,
-                        struct sqlite3_stmt** _statement,
-                        const char*           _sql) D_NOTHROW;
+int d_sqlite_prepare(
+    struct sqlite3*       _db,
+    struct sqlite3_stmt** _statement,
+    const char*           _sql
+) D_NOTHROW;
 /**
  * @brief Formats one SQL statement and compiles it, as d_sqlite_prepare.
  *
@@ -106,10 +108,12 @@ int    d_sqlite_prepare(struct sqlite3*       _db,
  *         memory; SQLITE_MISUSE for a shared-dialect format it refuses.
  * @post As for d_sqlite_prepare.
  */
-int    d_sqlite_preparef(struct sqlite3*       _db,
-                         struct sqlite3_stmt** _statement,
-                         const char*           _format,
-                         ...) D_NOTHROW;
+int d_sqlite_preparef(
+    struct sqlite3*       _db,
+    struct sqlite3_stmt** _statement,
+    const char*           _format,
+    ...
+) D_NOTHROW;
 
 // 1.2    Finalizing
 //------------------------------------------------------------------------------
@@ -121,7 +125,9 @@ int    d_sqlite_preparef(struct sqlite3*       _db,
  *         statement's last run, which the run itself has already reported.)
  * @post `_statement` is invalid.
  */
-int    d_sqlite_finalize(struct sqlite3_stmt* _statement) D_NOTHROW;
+int d_sqlite_finalize(
+    struct sqlite3_stmt* _statement
+) D_NOTHROW;
 
 // 1.3    Describing
 //------------------------------------------------------------------------------
@@ -131,13 +137,17 @@ int    d_sqlite_finalize(struct sqlite3_stmt* _statement) D_NOTHROW;
 // only then, D_DB_NOT_FOUND, or SQLITE_MISUSE for a NULL argument;
 // _statement_connection is the connection the statement belongs to, NULL for
 // NULL
-size_t d_sqlite_parameter_count(struct sqlite3_stmt* _statement) D_NOTHROW;
-int    d_sqlite_parameter_index(struct sqlite3_stmt* _statement,
-                                const char*          _name,
-                                size_t*              _index) D_NOTHROW;
-struct sqlite3*
-       d_sqlite_statement_connection(struct sqlite3_stmt* _statement)
-       D_NOTHROW;
+size_t d_sqlite_parameter_count(
+    struct sqlite3_stmt* _statement
+) D_NOTHROW;
+int d_sqlite_parameter_index(
+    struct sqlite3_stmt* _statement,
+    const char*          _name,
+    size_t*              _index
+) D_NOTHROW;
+struct sqlite3* d_sqlite_statement_connection(
+    struct sqlite3_stmt* _statement
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -156,30 +166,44 @@ struct sqlite3*
 // past SQLite's limit; SQLITE_NOMEM; or SQLITE_MISUSE for a NULL statement,
 // or for one part-way through a run (section 3.3), whose values SQLite reads
 // as it goes.
-int    d_sqlite_bind_null(struct sqlite3_stmt* _statement,
-                          size_t               _index) D_NOTHROW;
-int    d_sqlite_bind_bool(struct sqlite3_stmt* _statement,
-                          size_t               _index,
-                          bool                 _value) D_NOTHROW;
-int    d_sqlite_bind_int64(struct sqlite3_stmt* _statement,
-                           size_t               _index,
-                           int64_t              _value) D_NOTHROW;
-int    d_sqlite_bind_double(struct sqlite3_stmt* _statement,
-                            size_t               _index,
-                            double               _value) D_NOTHROW;
-int    d_sqlite_bind_text(struct sqlite3_stmt* _statement,
-                          size_t               _index,
-                          const char*          _text) D_NOTHROW;
-int    d_sqlite_bind_blob(struct sqlite3_stmt* _statement,
-                          size_t               _index,
-                          const void*          _bytes,
-                          size_t               _size) D_NOTHROW;
+int d_sqlite_bind_null(
+    struct sqlite3_stmt* _statement,
+    size_t               _index
+) D_NOTHROW;
+int d_sqlite_bind_bool(
+    struct sqlite3_stmt* _statement,
+    size_t               _index,
+    bool                 _value
+) D_NOTHROW;
+int d_sqlite_bind_int64(
+    struct sqlite3_stmt* _statement,
+    size_t               _index,
+    int64_t              _value
+) D_NOTHROW;
+int d_sqlite_bind_double(
+    struct sqlite3_stmt* _statement,
+    size_t               _index,
+    double               _value
+) D_NOTHROW;
+int d_sqlite_bind_text(
+    struct sqlite3_stmt* _statement,
+    size_t               _index,
+    const char*          _text
+) D_NOTHROW;
+int d_sqlite_bind_blob(
+    struct sqlite3_stmt* _statement,
+    size_t               _index,
+    const void*          _bytes,
+    size_t               _size
+) D_NOTHROW;
 
 // 2.2    Clearing
 //------------------------------------------------------------------------------
 // clearing -- every parameter NULL again: SQLITE_OK, or SQLITE_MISUSE for a
 // NULL statement, or for one part-way through a run, as binding
-int    d_sqlite_clear_bindings(struct sqlite3_stmt* _statement) D_NOTHROW;
+int d_sqlite_clear_bindings(
+    struct sqlite3_stmt* _statement
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -201,8 +225,10 @@ int    d_sqlite_clear_bindings(struct sqlite3_stmt* _statement) D_NOTHROW;
  *         for a `NULL` statement.
  * @post The statement is reset, its values kept, whatever the result.
  */
-int    d_sqlite_execute_update(struct sqlite3_stmt* _statement,
-                               int64_t*             _changes) D_NOTHROW;
+int d_sqlite_execute_update(
+    struct sqlite3_stmt* _statement,
+    int64_t*             _changes
+) D_NOTHROW;
 
 // 3.2    Rows
 //------------------------------------------------------------------------------
@@ -218,8 +244,10 @@ int    d_sqlite_execute_update(struct sqlite3_stmt* _statement,
  * @post The statement is reset, its values kept, whatever the result. On
  *       success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_sqlite_execute_query(struct sqlite3_stmt* _statement,
-                              struct d_db_rows*    _rows) D_NOTHROW;
+int d_sqlite_execute_query(
+    struct sqlite3_stmt* _statement,
+    struct dj_db_rows*   _rows
+) D_NOTHROW;
 
 // 3.3    Rows a few at a time
 //------------------------------------------------------------------------------
@@ -238,7 +266,9 @@ int    d_sqlite_execute_query(struct sqlite3_stmt* _statement,
  * @return SQLITE_OK; SQLITE_MISUSE for a `NULL` statement.
  * @post The statement is reset, its values kept.
  */
-int    d_sqlite_open_cursor(struct sqlite3_stmt* _statement) D_NOTHROW;
+int d_sqlite_open_cursor(
+    struct sqlite3_stmt* _statement
+) D_NOTHROW;
 /**
  * @brief Reads the next rows of the run d_sqlite_open_cursor began.
  *
@@ -254,13 +284,17 @@ int    d_sqlite_open_cursor(struct sqlite3_stmt* _statement) D_NOTHROW;
  *         SQLITE_MISUSE for a `NULL` argument or no rows asked for.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_sqlite_fetch_rows(struct sqlite3_stmt* _statement,
-                           size_t               _max,
-                           struct d_db_rows*    _rows) D_NOTHROW;
+int d_sqlite_fetch_rows(
+    struct sqlite3_stmt* _statement,
+    size_t               _max,
+    struct dj_db_rows*   _rows
+) D_NOTHROW;
 // ending a run -- _close_cursor ends the run d_sqlite_open_cursor began,
 // whatever rows it had left, and resets the statement, its values kept:
 // SQLITE_OK, or SQLITE_MISUSE for NULL
-int    d_sqlite_close_cursor(struct sqlite3_stmt* _statement) D_NOTHROW;
+int d_sqlite_close_cursor(
+    struct sqlite3_stmt* _statement
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

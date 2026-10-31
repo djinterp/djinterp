@@ -17,7 +17,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -35,10 +35,8 @@ the concept manually.
   - Type-name pairs for struct field generation concept
   - Key-value pairs for enum generation concept
 */
-bool
-d_tests_sa_dmacro_for_each_pair
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_pair(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -60,14 +58,14 @@ d_tests_sa_dmacro_for_each_pair
     // concept: type-name pairs for struct generation
     // D_FOR_EACH_PAIR(FIELD_OP, int, x, int, y, double, z)
     // would generate: int x; int y; double z;
-    struct d_test_manual_struct
+    struct dj_test_manual_struct
     {
         int    x;
         int    y;
         double z;
     };
 
-    struct d_test_manual_struct ps;
+    struct dj_test_manual_struct ps;
     ps.x = 10;
     ps.y = 20;
     ps.z = 3.14;
@@ -102,7 +100,7 @@ d_tests_sa_dmacro_for_each_pair
     // concept: name-value pairs for enum generation
     // D_FOR_EACH_PAIR(ENUM_OP, VAL_A, 10, VAL_B, 20, VAL_C, 30)
     // would generate: VAL_A = 10, VAL_B = 20, VAL_C = 30,
-    enum d_test_manual_enum
+    enum dj_test_manual_enum
     {
         VAL_A = 10,
         VAL_B = 20,
@@ -161,10 +159,8 @@ which is incompatible with MSVC traditional preprocessor.
   - Pair iteration with separator concept
   - Assignment patterns using pairs
 */
-bool
-d_tests_sa_dmacro_for_each_pair_sep
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_pair_sep(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -258,10 +254,8 @@ which is incompatible with MSVC traditional preprocessor.
   - Triple iteration concept (processing elements in groups of 3)
   - Type-name-default triples for field generation
 */
-bool
-d_tests_sa_dmacro_for_each_triple
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_triple(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -279,14 +273,14 @@ d_tests_sa_dmacro_for_each_triple
 
     // D_FOR_EACH_TRIPLE(FIELD_INIT_OP, int, x, 0, int, y, 0, double, z, 0.0)
     // concept: type-name-initializer triples
-    struct d_test_triple_manual
+    struct dj_test_triple_manual
     {
         int    x;
         int    y;
         double z;
     };
 
-    struct d_test_triple_manual ts;
+    struct dj_test_triple_manual ts;
     ts.x = 111;
     ts.y = 222;
     ts.z = 3.33;
@@ -319,7 +313,7 @@ d_tests_sa_dmacro_for_each_triple
     }
 
     // verify struct size
-    if (!d_assert_standalone(sizeof(struct d_test_triple_manual) >=
+    if (!d_assert_standalone(sizeof(struct dj_test_triple_manual) >=
                              2 * sizeof(int) + sizeof(double),
                              "triple struct has expected minimum size",
                              "all triple fields created",
@@ -357,10 +351,8 @@ which is incompatible with MSVC traditional preprocessor.
   - 4-tuple iteration concept
   - Complex field definitions with multiple attributes
 */
-bool
-d_tests_sa_dmacro_for_each_4tuple
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_4tuple(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -378,13 +370,13 @@ d_tests_sa_dmacro_for_each_4tuple
 
     // D_FOR_EACH_4TUPLE(OP, name, type, default, attr, ...)
     // concept: 4-tuples for complex field definitions
-    struct d_test_4tuple_manual
+    struct dj_test_4tuple_manual
     {
         int field_x;
         int field_y;
     };
 
-    struct d_test_4tuple_manual s4;
+    struct dj_test_4tuple_manual s4;
     s4.field_x = 1000;
     s4.field_y = 2000;
 
@@ -435,10 +427,8 @@ is the index and second is the value.
   - Indexed iteration concept using pairs
   - Array initialization with explicit indices
 */
-bool
-d_tests_sa_dmacro_for_each_indexed
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_for_each_indexed(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -554,13 +544,11 @@ traditional preprocessor. Tests verify concepts manually.
   - D_FOR_EACH_4TUPLE concept
   - Indexed iteration patterns
 */
-bool
-d_tests_sa_dmacro_pair_indexed_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_pair_indexed_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  pair_result;
     bool                  pair_sep_result;
     bool                  triple_result;
@@ -573,7 +561,7 @@ d_tests_sa_dmacro_pair_indexed_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

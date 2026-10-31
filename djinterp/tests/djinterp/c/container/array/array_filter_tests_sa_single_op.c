@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -27,15 +27,13 @@ d_tests_sa_array_filter_take_first
   - NULL input is handled safely
   - Empty array (count=0) is handled safely
 */
-bool
-d_tests_sa_array_filter_take_first
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_take_first(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -139,15 +137,13 @@ d_tests_sa_array_filter_take_last
   - n >= count returns all elements
   - Single element array
 */
-bool
-d_tests_sa_array_filter_take_last
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_take_last(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -242,15 +238,13 @@ d_tests_sa_array_filter_take_nth
   - n > count returns only the first element
   - n=0 is handled safely (edge case)
 */
-bool
-d_tests_sa_array_filter_take_nth
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_take_nth(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -353,15 +347,13 @@ d_tests_sa_array_filter_head
   - Value matches first element of source
   - Empty array is handled safely
 */
-bool
-d_tests_sa_array_filter_head
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_head(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -415,15 +407,13 @@ d_tests_sa_array_filter_tail
   - Value matches last element of source
   - Empty array is handled safely
 */
-bool
-d_tests_sa_array_filter_tail
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_tail(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -479,15 +469,13 @@ d_tests_sa_array_filter_skip_first
   - n >= count returns empty
   - NULL input is handled safely
 */
-bool
-d_tests_sa_array_filter_skip_first
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_skip_first(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -574,15 +562,13 @@ d_tests_sa_array_filter_skip_last
   - n=0 returns all elements
   - n >= count returns empty
 */
-bool
-d_tests_sa_array_filter_skip_last
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_skip_last(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -654,15 +640,13 @@ d_tests_sa_array_filter_init
   - Result is the prefix of the source
   - Empty and single-element arrays
 */
-bool
-d_tests_sa_array_filter_init
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_init(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -727,15 +711,13 @@ d_tests_sa_array_filter_rest
   - Result is the suffix of the source
   - Empty and single-element arrays
 */
-bool
-d_tests_sa_array_filter_rest
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_rest(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -791,15 +773,13 @@ d_tests_sa_array_filter_range
   - start > end is handled safely
   - end > count clamps to count
 */
-bool
-d_tests_sa_array_filter_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -902,15 +882,13 @@ d_tests_sa_array_filter_slice
   - step=2 takes every other element in range
   - step > (end - start) returns only first element in range
 */
-bool
-d_tests_sa_array_filter_slice
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_slice(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
 
     result = true;
@@ -1012,15 +990,13 @@ d_tests_sa_array_filter_where
   - Always-false predicate returns 0 elements
   - NULL predicate is handled safely
 */
-bool
-d_tests_sa_array_filter_where
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_where(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
     int                          threshold;
 
@@ -1128,15 +1104,13 @@ d_tests_sa_array_filter_where_not
   - where_not(always_true) returns 0
   - where_not(always_false) returns all
 */
-bool
-d_tests_sa_array_filter_where_not
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_where_not(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
 
     result = true;
     d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
@@ -1200,15 +1174,13 @@ d_tests_sa_array_filter_at_indices
   - NULL index list is handled safely
   - Duplicate indices
 */
-bool
-d_tests_sa_array_filter_at_indices
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_at_indices(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     int*                         out;
     size_t                       indices[3];
     size_t                       dup_indices[4];
@@ -1307,16 +1279,14 @@ d_tests_sa_array_filter_distinct
   - All-same array returns 1 element
   - Empty array returns 0 elements
 */
-bool
-d_tests_sa_array_filter_distinct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_distinct(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     int                          same[5];
-    struct d_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res;
     size_t                       i;
 
     result = true;
@@ -1399,16 +1369,14 @@ d_tests_sa_array_filter_reverse
   - Empty array returns 0 elements
   - Double reverse restores original
 */
-bool
-d_tests_sa_array_filter_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_reverse(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
     int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_contiguous_filter_result res;
-    struct d_contiguous_filter_result res2;
+    struct dj_contiguous_filter_result res;
+    struct dj_contiguous_filter_result res2;
     int*                         out;
 
     result = true;
@@ -1491,10 +1459,8 @@ d_tests_sa_array_filter_reverse
 d_tests_sa_array_filter_single_op_all
   Aggregation function that runs all single-operation filter tests.
 */
-bool
-d_tests_sa_array_filter_single_op_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_single_op_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

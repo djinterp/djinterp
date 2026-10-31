@@ -1,0 +1,924 @@
+/*******************************************************************************
+* djinterp [cpp/test]                                              test_race.hpp
+*
+*   Race-condition probing and linearization recording for the DTest
+* multithreading harness.
+*
+*   We can't reliably "detect" data races without a runtime tool like
+* TSAN; the standard says any racing read/write is undefined behavior
+* and may produce any result.  But we CAN do three things that catch
+* the bugs in practice:
+*
+*     1. RACE PROBES
+*        Many threads hammer a non-atomic location for a long time.
+*        If the final value, expected from a sequential reasoning,
+*        does not match what was observed, a race occurred.  The
+*        probe runs the harness many times to reduce false negatives.
+*
+*     2. ATOMICITY ASSERTIONS
+*        Verify that an operation that the user claims is atomic
+*        actually appears so to outside observers.  We snapshot the
+*        observed state from many threads and check that no
+*        intermediate state is ever visible.
+*
+*     3. LINEARIZATION RECORDING
+*        Threads record (start_time, end_time, op_name, args, result)
+*        for every operation.  Post-hoc, the recording can be
+*        analyzed for serializability - does there exist a sequential
+*        ordering of operations consistent with both the timestamps
+*        and the observed results?
+*
+*   Components in this header:
+*
+*     DRaceProbe        - drives N threads against a non-atomic value
+*                         and reports observed final-value variance
+*     DAtomicityObserver - captures intermediate-state snapshots
+*     DLinearizationLog  - append-only timestamped op log
+*     DConsistencyCheck  - sequential-consistency post-hoc verifier
+*
+*   PORTABILITY:
+*   Requires C++11 or later.
+*
+*
+* path:      /inc/djinterp/cpp/modules/test/sync/test_race.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    RACE PROBE
+      ----------
+
+II.   ATOMICITY OBSERVER
+      ------------------
+
+III.  LINEARIZATION LOG
+      -----------------
+
+IV.   CONSISTENCY CHECK
+      -----------------
+
+V.    FACTORY HELPERS
+      ---------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_RACE_HPP
+#define DJINTERP_TEST_SYNC_TEST_RACE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
+#include <cstddef>
+#include <string>
+
+// djinterp
+#include "../../../djinterp.hpp"  // framework root: env, read by the gates below
+// re_std
+#include "../../../../../re_std/cpp/cstdint/cstdint.hpp"  // fixed-width integers
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
+    #include <atomic>
+    #include <chrono>
+    #include <functional>
+    #include <mutex>
+    #include <utility>
+    #include <vector>
+#endif
+
+// djinterp
+#include "../../../sync/atomic.hpp"
+#include "../test_common.hpp"
+#include "../test_object.hpp"
+#include "./test_thread.hpp"
+#include "./test_concurrent.hpp"
+
+
+NS_DJINTERP
+NS_TEST
+
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// --- threadsafe foundation wrappers used by this module ---
+using djinterp::atomic_size;
+
+///////////////////////////////////////////////////////////////////////////////
+///                I.   RACE PROBE                                          ///
+///////////////////////////////////////////////////////////////////////////////
+
+// DRaceProbeReport
+//   struct: result of a race probe run.
+struct DRaceProbeReport
+{
+    using size_type = std::size_t;
+
+    size_type runs_performed;
+    size_type runs_with_race_evidence;
+    size_type total_thread_iterations;
+    bool      any_evidence;
+
+    DRaceProbeReport()
+        : runs_performed(0),
+          runs_with_race_evidence(0),
+          total_thread_iterations(0),
+          any_evidence(false)
+    {}
+
+    // probability_estimate
+    //   returns runs_with_race_evidence / runs_performed,
+    // a coarse estimate of how often the bug manifests
+    // under this stress pattern.
+    double probability_estimate() const D_NOEXCEPT
+    {
+        if (runs_performed == 0)
+        {
+            return 0.0;
+        }
+
+        return static_cast<double>(runs_with_race_evidence) /
+               static_cast<double>(runs_performed);
+    }
+
+    bool success() const D_NOEXCEPT
+    {
+        return !any_evidence;
+    }
+
+    basic_test to_test_object(
+        DTestTypeId _type_id,
+        const char* _name = "race_probe"
+    ) const
+    {
+        const bool passed = success();
+
+        basic_test t(_type_id, passed);
+        t.metadata().set("name", _name);
+        t.metadata().set("message", passed
+            ? "no race evidence observed"
+            : "race evidence observed");
+
+        return t;
+    }
+};
+
+
+// DRaceProbe
+//   class: drives a workload many times across many threads
+// and checks that a user-supplied invariant holds at the
+// end of every run.  If the invariant is violated, the run
+// is counted as race evidence.
+//
+// Example: testing a non-atomic counter.
+//
+//   int counter = 0;
+//   DRaceProbe probe;
+//   probe.set_thread_count(8);
+//   probe.set_iterations_per_thread(1000);
+//   probe.set_runs(20);
+//   probe.set_setup([&counter]() { counter = 0; });
+//   probe.set_operation([&counter](std::size_t, std::size_t) {
+//       ++counter;   // racy on purpose
+//   });
+//   probe.set_invariant([&counter]() {
+//       return (counter == 8 * 1000);
+//   });
+//   auto report = probe.run();
+//   // For a non-atomic counter, expect any_evidence == true
+class DRaceProbe
+{
+public:
+    using size_type     = std::size_t;
+    using duration_type = test_thread::duration_type;
+    using setup_fn      = std::function<void()>;
+    using operation_fn  = std::function<void(size_type /*tid*/,
+                                             size_type /*iter*/)>;
+    using invariant_fn  = std::function<bool()>;
+
+    DRaceProbe()
+        : m_thread_count(2),
+          m_iterations(1000),
+          m_runs(10),
+          m_setup(),
+          m_operation(),
+          m_invariant(),
+          m_join_timeout(duration_type::zero())
+    {}
+
+    DRaceProbe(
+        const DRaceProbe&
+    ) = delete;
+    DRaceProbe& operator=(
+        const DRaceProbe&
+    ) = delete;
+    DRaceProbe(
+        DRaceProbe&&
+    ) = default;
+    DRaceProbe& operator=(
+        DRaceProbe&&
+    ) = default;
+
+    // -----------------------------------------------------------------
+    //  configuration
+    // -----------------------------------------------------------------
+
+    void set_thread_count(size_type _c)        D_NOEXCEPT { m_thread_count = _c; }
+    void set_iterations_per_thread(size_type _i) D_NOEXCEPT { m_iterations = _i; }
+    void set_runs(size_type _r)                  D_NOEXCEPT { m_runs = _r;       }
+
+    void set_setup(
+        setup_fn _setup
+    )
+    {
+        m_setup = static_cast<setup_fn&&>(_setup);
+
+        return;
+    }
+
+    void set_operation(
+        operation_fn _op
+    )
+    {
+        m_operation = static_cast<operation_fn&&>(_op);
+
+        return;
+    }
+
+    void set_invariant(
+        invariant_fn _inv
+    )
+    {
+        m_invariant = static_cast<invariant_fn&&>(_inv);
+
+        return;
+    }
+
+    template<typename Rep,
+             typename Period>
+    void set_join_timeout(
+        const std::chrono::duration<Rep, Period>& _t
+    )
+    {
+        m_join_timeout =
+            std::chrono::duration_cast<duration_type>(_t);
+
+        return;
+    }
+
+    // -----------------------------------------------------------------
+    //  execution
+    // -----------------------------------------------------------------
+
+    // run
+    //   performs m_runs repetitions of the test workload,
+    // checking the invariant after each.
+    DRaceProbeReport run()
+    {
+        DRaceProbeReport report;
+
+        if ( (m_thread_count == 0) ||
+             (m_iterations  == 0) ||
+             (m_runs        == 0) ||
+             (!m_operation)         ||
+             (!m_invariant) )
+        {
+            return report;
+        }
+
+        for (size_type r = 0; r < m_runs; ++r)
+        {
+            // setup before each run
+            if (m_setup)
+            {
+                m_setup();
+            }
+
+            DConcurrentRunner runner(m_thread_count);
+            runner.set_join_timeout(m_join_timeout);
+
+            size_type iters = m_iterations;
+            operation_fn op = m_operation;
+
+            runner.set_worker(
+                [iters, op]
+                (size_type _tid)
+                {
+                    for (size_type i = 0; i < iters; ++i)
+                    {
+                        op(_tid, i);
+                    }
+                });
+
+            auto cr = runner.run();
+
+            ++report.runs_performed;
+            report.total_thread_iterations +=
+                m_thread_count * m_iterations;
+
+            // a thread that threw is itself race evidence
+            if (!cr.success())
+            {
+                ++report.runs_with_race_evidence;
+                report.any_evidence = true;
+                continue;
+            }
+
+            // check invariant on the main thread (no
+            // contention by this point)
+            bool ok = false;
+
+            try
+            {
+                ok = m_invariant();
+            }
+            catch (...)
+            {
+                ok = false;
+            }
+
+            if (!ok)
+            {
+                ++report.runs_with_race_evidence;
+                report.any_evidence = true;
+            }
+        }
+
+        return report;
+    }
+
+private:
+    size_type     m_thread_count;
+    size_type     m_iterations;
+    size_type     m_runs;
+    setup_fn      m_setup;
+    operation_fn  m_operation;
+    invariant_fn  m_invariant;
+    duration_type m_join_timeout;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                II.  ATOMICITY OBSERVER                                  ///
+///////////////////////////////////////////////////////////////////////////////
+
+// DAtomicityObserverReport
+//   struct: result of an atomicity observation.
+struct DAtomicityObserverReport
+{
+    using size_type = std::size_t;
+
+    size_type total_observations;
+    size_type allowed_state_observations;
+    size_type forbidden_state_observations;
+
+    DAtomicityObserverReport()
+        : total_observations(0),
+          allowed_state_observations(0),
+          forbidden_state_observations(0)
+    {}
+
+    bool success() const D_NOEXCEPT
+    {
+        return (forbidden_state_observations == 0);
+    }
+
+    basic_test to_test_object(
+        DTestTypeId _type_id,
+        const char* _name = "atomicity"
+    ) const
+    {
+        const bool passed = success();
+
+        basic_test t(_type_id, passed);
+        t.metadata().set("name", _name);
+        t.metadata().set("message", passed
+            ? "only allowed states observed"
+            : "intermediate state observed: not atomic");
+
+        return t;
+    }
+};
+
+
+// DAtomicityObserver
+//   class template: spawns N observer threads that
+// repeatedly snapshot a value via a user-supplied reader,
+// classify each snapshot via a user-supplied state
+// classifier, and count occurrences of each state.
+//
+//   When the operation under test is supposed to be atomic,
+// the user provides a state predicate that returns true
+// for "valid intermediate-or-final" states.  Any false
+// result indicates a torn read or partial update - i.e.
+// non-atomicity.
+//
+// Template parameters:
+//   Snapshot: the snapshot type returned by the reader.
+//
+// Example: testing torn writes on a 64-bit field.
+//
+//   re_std::uint64_t field = 0;
+//   DAtomicityObserver<re_std::uint64_t> obs;
+//   obs.set_observer_count(4);
+//   obs.set_observation_count(100000);
+//   obs.set_reader([&field]() { return field; });
+//   obs.set_allowed([](re_std::uint64_t v) {
+//       return (v == 0 || v == 0xAAAA'AAAA'AAAA'AAAAull);
+//   });
+//   // ... a writer thread alternates field between the two values ...
+//   auto report = obs.run_observers();
+template<typename Snapshot>
+class DAtomicityObserver
+{
+public:
+    using size_type     = std::size_t;
+    using snapshot_type = Snapshot;
+    using reader_fn     = std::function<snapshot_type()>;
+    using allowed_fn    = std::function<bool(const snapshot_type&)>;
+
+    DAtomicityObserver()
+        : m_observer_count(2),
+          m_observations(10000),
+          m_reader(),
+          m_allowed(),
+          m_join_timeout(test_thread::duration_type::zero())
+    {}
+
+    DAtomicityObserver(
+        const DAtomicityObserver&
+    ) = delete;
+    DAtomicityObserver& operator=(
+        const DAtomicityObserver&
+    ) = delete;
+
+    // -----------------------------------------------------------------
+    //  configuration
+    // -----------------------------------------------------------------
+
+    void set_observer_count(size_type _c)    D_NOEXCEPT { m_observer_count = _c; }
+    void set_observation_count(size_type _o) D_NOEXCEPT { m_observations = _o;   }
+
+    void set_reader(
+        reader_fn _r
+    )
+    {
+        m_reader = static_cast<reader_fn&&>(_r);
+
+        return;
+    }
+
+    void set_allowed(
+        allowed_fn _a
+    )
+    {
+        m_allowed = static_cast<allowed_fn&&>(_a);
+
+        return;
+    }
+
+    template<typename Rep,
+             typename Period>
+    void set_join_timeout(
+        const std::chrono::duration<Rep, Period>& _t
+    )
+    {
+        m_join_timeout =
+            std::chrono::duration_cast<
+                test_thread::duration_type>(_t);
+
+        return;
+    }
+
+    // -----------------------------------------------------------------
+    //  execution
+    // -----------------------------------------------------------------
+
+    // run_observers
+    //   launches m_observer_count threads, each performing
+    // m_observations snapshot-and-classify cycles.  This
+    // is meant to be run alongside an external writer; the
+    // user is responsible for orchestrating that.
+    DAtomicityObserverReport run_observers()
+    {
+        DAtomicityObserverReport report;
+
+        if ( (m_observer_count == 0) ||
+             (m_observations  == 0)  ||
+             (!m_reader)               ||
+             (!m_allowed) )
+        {
+            return report;
+        }
+
+        atomic_size total(0);
+        atomic_size allowed(0);
+        atomic_size forbidden(0);
+
+        size_type   obs_count = m_observations;
+        reader_fn   reader    = m_reader;
+        allowed_fn  allowed_p = m_allowed;
+
+        DConcurrentRunner runner(m_observer_count);
+        runner.set_join_timeout(m_join_timeout);
+
+        runner.set_worker(
+            [obs_count, reader, allowed_p,
+             &total, &allowed, &forbidden]
+            (size_type /*tid*/)
+            {
+                for (size_type i = 0; i < obs_count; ++i)
+                {
+                    snapshot_type snap = reader();
+                    bool ok            = allowed_p(snap);
+
+                    total.fetch_add(1, std::memory_order_relaxed);
+
+                    if (ok)
+                    {
+                        allowed.fetch_add(
+                            1, std::memory_order_relaxed);
+                    }
+                    else
+                    {
+                        forbidden.fetch_add(
+                            1, std::memory_order_relaxed);
+                    }
+                }
+            });
+
+        runner.run();
+
+        report.total_observations =
+            total.load(std::memory_order_relaxed);
+        report.allowed_state_observations =
+            allowed.load(std::memory_order_relaxed);
+        report.forbidden_state_observations =
+            forbidden.load(std::memory_order_relaxed);
+
+        return report;
+    }
+
+private:
+    size_type                       m_observer_count;
+    size_type                       m_observations;
+    reader_fn                       m_reader;
+    allowed_fn                      m_allowed;
+    test_thread::duration_type      m_join_timeout;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III. LINEARIZATION LOG                                   ///
+///////////////////////////////////////////////////////////////////////////////
+
+// DLinearizationEvent
+//   struct: a single recorded operation in the log.
+struct DLinearizationEvent
+{
+    using size_type  = std::size_t;
+    using clock_type = test_thread::clock_type;
+    using time_point = test_thread::time_point;
+
+    size_type     thread_id;
+    std::string   op_name;
+    std::string   args;     // freeform - caller chooses format
+    std::string   result;   // freeform
+    time_point    invoked_at;
+    time_point    completed_at;
+
+    DLinearizationEvent()
+        : thread_id(0),
+          op_name(),
+          args(),
+          result(),
+          invoked_at(),
+          completed_at()
+    {}
+};
+
+
+// DLinearizationLog
+//   class: append-only timestamped log of operations.
+// Threads call begin_event() before performing the
+// operation and end_event() after.  The log records the
+// invocation interval for each event.
+//
+//   The classic Linearizability test asks: does there
+// exist a total order of these events, with each event
+// placed at some point within its invoked..completed
+// interval, that is consistent with the recorded results?
+// Full linearizability checking is NP-hard in general but
+// well-studied for individual data structures.  This log
+// provides the raw data; the DConsistencyCheck class
+// below offers a basic sequential-consistency verifier.
+//
+// Example:
+//   DLinearizationLog log;
+//
+//   // in worker:
+//   auto h = log.begin_event(tid, "push", "42");
+//   q.push(42);
+//   log.end_event(h, "ok");
+//
+//   // post-hoc:
+//   auto events = log.snapshot();
+//   // ... feed to verifier ...
+class DLinearizationLog
+{
+public:
+    using size_type  = std::size_t;
+    using clock_type = test_thread::clock_type;
+    using time_point = test_thread::time_point;
+
+    // DEventHandle
+    //   token returned by begin_event; pass to end_event.
+    struct DEventHandle
+    {
+        size_type index;
+    };
+
+    DLinearizationLog()
+        : m_events(),
+          m_mutex()
+    {}
+
+    DLinearizationLog(
+        const DLinearizationLog&
+    ) = delete;
+    DLinearizationLog& operator=(
+        const DLinearizationLog&
+    ) = delete;
+
+    // -----------------------------------------------------------------
+    //  recording
+    // -----------------------------------------------------------------
+
+    // begin_event
+    //   records the invocation timestamp for an operation
+    // and returns a handle to be passed to end_event.
+    DEventHandle begin_event(
+        size_type   _thread_id,
+        std::string _op_name,
+        std::string _args = std::string()
+    )
+    {
+        DLinearizationEvent ev;
+        ev.thread_id  = _thread_id;
+        ev.op_name    = static_cast<std::string&&>(_op_name);
+        ev.args       = static_cast<std::string&&>(_args);
+        ev.invoked_at = clock_type::now();
+
+        std::lock_guard<std::mutex> lk(m_mutex);
+        m_events.push_back(static_cast<DLinearizationEvent&&>(ev));
+
+        DEventHandle h;
+        h.index = m_events.size() - 1;
+
+        return h;
+    }
+
+    // end_event
+    //   records the completion timestamp and result for an
+    // event previously opened with begin_event.
+    void end_event(
+        DEventHandle _handle,
+        std::string  _result = std::string()
+    )
+    {
+        time_point now = clock_type::now();
+
+        std::lock_guard<std::mutex> lk(m_mutex);
+
+        if (_handle.index < m_events.size())
+        {
+            m_events[_handle.index].completed_at = now;
+            m_events[_handle.index].result =
+                static_cast<std::string&&>(_result);
+        }
+
+        return;
+    }
+
+    // record_event
+    //   convenience: records a single instantaneous event
+    // with both timestamps equal to the call time.
+    void record_event(
+        size_type   _thread_id,
+        std::string _op_name,
+        std::string _result = std::string()
+    )
+    {
+        DLinearizationEvent ev;
+        ev.thread_id    = _thread_id;
+        ev.op_name      = static_cast<std::string&&>(_op_name);
+        ev.result       = static_cast<std::string&&>(_result);
+        ev.invoked_at   = clock_type::now();
+        ev.completed_at = ev.invoked_at;
+
+        std::lock_guard<std::mutex> lk(m_mutex);
+        m_events.push_back(static_cast<DLinearizationEvent&&>(ev));
+
+        return;
+    }
+
+    // -----------------------------------------------------------------
+    //  inspection
+    // -----------------------------------------------------------------
+
+    // snapshot
+    //   returns a copy of the events in the order they were
+    // begun.  Safe to call from any thread.
+    std::vector<DLinearizationEvent> snapshot() const
+    {
+        std::lock_guard<std::mutex> lk(m_mutex);
+
+        return m_events;
+    }
+
+    // size
+    size_type size() const
+    {
+        std::lock_guard<std::mutex> lk(m_mutex);
+
+        return m_events.size();
+    }
+
+    // clear
+    void clear()
+    {
+        std::lock_guard<std::mutex> lk(m_mutex);
+        m_events.clear();
+
+        return;
+    }
+
+private:
+    std::vector<DLinearizationEvent> m_events;
+    mutable std::mutex               m_mutex;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                IV.  CONSISTENCY CHECK                                   ///
+///////////////////////////////////////////////////////////////////////////////
+
+// DConsistencyCheckReport
+//   struct: result of a sequential-consistency analysis.
+struct DConsistencyCheckReport
+{
+    using size_type = std::size_t;
+
+    size_type events_examined;
+    size_type ordering_violations;
+    size_type interval_violations;
+    bool      consistent;
+
+    DConsistencyCheckReport()
+        : events_examined(0),
+          ordering_violations(0),
+          interval_violations(0),
+          consistent(true)
+    {}
+
+    basic_test to_test_object(
+        DTestTypeId _type_id,
+        const char* _name = "consistency"
+    ) const
+    {
+        const bool passed = consistent;
+
+        basic_test t(_type_id, passed);
+        t.metadata().set("name", _name);
+        t.metadata().set("message", passed
+            ? "events are sequentially consistent"
+            : "consistency violation observed");
+
+        return t;
+    }
+};
+
+
+// DConsistencyCheck
+//   class: runs a basic sequential-consistency check
+// against a DLinearizationLog.  Verifies two structural
+// properties:
+//
+//     1. INTERVAL VALIDITY
+//        For every event, completed_at >= invoked_at.
+//
+//     2. PER-THREAD PROGRAM ORDER
+//        Within a single thread, op N+1's invoked_at
+//        is >= op N's completed_at.  This catches log
+//        corruption (same handle reused, etc.) and is
+//        a necessary condition for sequential consistency.
+//
+//   Full linearizability checking is NP-hard and
+// data-structure-specific; that is intentionally beyond
+// the scope of this verifier.  The user can take the
+// log snapshot and feed it to a specialized checker.
+class DConsistencyCheck
+{
+public:
+    using size_type = std::size_t;
+
+    DConsistencyCheckReport check(
+        const DLinearizationLog& _log
+    ) const
+    {
+        DConsistencyCheckReport report;
+
+        auto events = _log.snapshot();
+
+        report.events_examined = events.size();
+
+        // pass 1: interval validity
+        for (const auto& e : events)
+        {
+            if (e.completed_at < e.invoked_at)
+            {
+                ++report.interval_violations;
+                report.consistent = false;
+            }
+        }
+
+        // pass 2: per-thread program order
+        // group events by thread id, then verify each group
+        // is monotonic in (invoked_at, completed_at).
+        std::vector<size_type> by_thread_last_completed;
+        std::vector<size_type> thread_ids;
+
+        // simple O(N*T) scan - fine for test diagnostics
+        for (size_type i = 0; i < events.size(); ++i)
+        {
+            const auto& e = events[i];
+
+            // find this thread's last completion time
+            for (size_type j = i; j > 0; --j)
+            {
+                const auto& prev = events[j - 1];
+
+                if (prev.thread_id == e.thread_id)
+                {
+                    if (e.invoked_at < prev.completed_at)
+                    {
+                        ++report.ordering_violations;
+                        report.consistent = false;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        return report;
+    }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                V.   FACTORY HELPERS                                     ///
+///////////////////////////////////////////////////////////////////////////////
+
+// make_race_probe
+//   factory: returns a configured DRaceProbe.
+template<typename Op,
+         typename Inv>
+inline
+DRaceProbe make_race_probe(
+    std::size_t _thread_count,
+    std::size_t _iterations,
+    std::size_t _runs,
+    Op&&        _operation,
+    Inv&&       _invariant
+)
+{
+    DRaceProbe probe;
+    probe.set_thread_count(_thread_count);
+    probe.set_iterations_per_thread(_iterations);
+    probe.set_runs(_runs);
+    probe.set_operation(DRaceProbe::operation_fn(
+        static_cast<Op&&>(_operation)));
+    probe.set_invariant(DRaceProbe::invariant_fn(
+        static_cast<Inv&&>(_invariant)));
+
+    return probe;
+}
+
+#endif  // C++11
+
+
+NS_END  // test
+NS_END  // djinterp
+
+#endif  // floor, for now
+
+
+#endif  // DJINTERP_TEST_SYNC_TEST_RACE_HPP

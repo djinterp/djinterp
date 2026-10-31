@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,14 +20,12 @@ d_tests_sa_vector_is_empty
   - empty vector returns true
   - non-empty vector returns false
 */
-bool
-d_tests_sa_vector_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -78,14 +76,12 @@ d_tests_sa_vector_is_full
   - full vector returns true
   - non-full vector returns false
 */
-bool
-d_tests_sa_vector_is_full
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_is_full(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              fill = 42;
 
     result = true;
@@ -141,14 +137,12 @@ d_tests_sa_vector_size
   - empty vector returns 0
   - non-empty vector returns correct count
 */
-bool
-d_tests_sa_vector_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_size(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -198,14 +192,12 @@ d_tests_sa_vector_capacity_query
   - NULL vector returns 0
   - valid vector returns correct capacity
 */
-bool
-d_tests_sa_vector_capacity_query
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_capacity_query(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -241,14 +233,12 @@ d_tests_sa_vector_element_size
   - NULL vector returns 0
   - valid vector returns correct element size
 */
-bool
-d_tests_sa_vector_element_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_element_size(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -281,10 +271,8 @@ d_tests_sa_vector_element_size
 d_tests_sa_vector_query_all
   Aggregation function that runs all query tests.
 */
-bool
-d_tests_sa_vector_query_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_query_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

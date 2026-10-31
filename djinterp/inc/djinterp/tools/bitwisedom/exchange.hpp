@@ -45,8 +45,8 @@ TABLE OF CONTENTS
     -------
 */
 
-#ifndef BITWISEDOM_EXCHANGE_HPP
-#define BITWISEDOM_EXCHANGE_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_EXCHANGE_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_EXCHANGE_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -57,7 +57,7 @@ TABLE OF CONTENTS
 #include <string_view>  // std::string_view
 #include <vector>       // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./codegen.hpp"  // generated
 #include "./resolve.hpp"  // resolution
@@ -122,7 +122,9 @@ struct json_read
  *                   or a bitfield.
  * @return the sheet and the shape it came in, or why there is none.
  */
-D_NODISCARD json_read  read_json_sheet(std::string_view _text);
+D_NODISCARD json_read read_json_sheet(
+    std::string_view _text
+);
 
 
 //==============================================================================
@@ -141,7 +143,9 @@ D_NODISCARD json_read  read_json_sheet(std::string_view _text);
  * @param[in] _sheet  the sheet.
  * @return the JSON text.
  */
-D_NODISCARD std::string  write_bitfield(const sheet& _sheet);
+D_NODISCARD std::string write_bitfield(
+    const sheet& _sheet
+);
 
 /**
  * @brief Writes everything about a sheet.
@@ -153,9 +157,11 @@ D_NODISCARD std::string  write_bitfield(const sheet& _sheet);
  *                         notes.
  * @return the JSON text.
  */
-D_NODISCARD std::string  write_export(const sheet&      _sheet,
-                                      const resolution& _resolution,
-                                      const generated&  _header);
+D_NODISCARD std::string write_export(
+    const sheet&      _sheet,
+    const resolution& _resolution,
+    const generated&  _header
+);
 
 
 }  // namespace bitwisedom
@@ -163,4 +169,4 @@ D_NODISCARD std::string  write_export(const sheet&      _sheet,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_EXCHANGE_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_EXCHANGE_HPP

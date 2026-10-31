@@ -9,13 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./event_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // d_tests_sa_event_find_dummy_cb
 //   helper: minimal callback for listener construction in search tests.
-static void
-d_tests_sa_event_find_dummy_cb(void* _args)
+static
+void d_tests_sa_event_find_dummy_cb(
+    void* _args
+)
 {
     (void)_args;
 
@@ -30,10 +32,8 @@ d_tests_sa_event_find_null
   - NULL array returns -1 and sets count to 0
   - NULL count pointer does not crash
 */
-bool
-d_tests_sa_event_find_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_null(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -67,15 +67,13 @@ d_tests_sa_event_find_zero_count
   Tests the following:
   - Zero listeners_count returns -1 and count=0
 */
-bool
-d_tests_sa_event_find_zero_count
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_zero_count(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener        dummy;
-    const struct d_event_listener* arr[1];
+    struct dj_event_listener        dummy;
+    const struct dj_event_listener* arr[1];
     ssize_t                        idx;
     size_t                         count;
 
@@ -102,15 +100,13 @@ d_tests_sa_event_find_single_match
   Tests the following:
   - Returns index 0 and count 1
 */
-bool
-d_tests_sa_event_find_single_match
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_single_match(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener*       l;
-    const struct d_event_listener* arr[1];
+    struct dj_event_listener*       l;
+    const struct dj_event_listener* arr[1];
     ssize_t                        idx;
     size_t                         count;
 
@@ -143,15 +139,13 @@ d_tests_sa_event_find_single_no_match
   Tests the following:
   - Returns -1 and count 0
 */
-bool
-d_tests_sa_event_find_single_no_match
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_single_no_match(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener*       l;
-    const struct d_event_listener* arr[1];
+    struct dj_event_listener*       l;
+    const struct dj_event_listener* arr[1];
     ssize_t                        idx;
     size_t                         count;
 
@@ -184,17 +178,15 @@ d_tests_sa_event_find_multi_one_match
   Tests the following:
   - Returns correct index for match at known position
 */
-bool
-d_tests_sa_event_find_multi_one_match
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_multi_one_match(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener*       l1;
-    struct d_event_listener*       l2;
-    struct d_event_listener*       l3;
-    const struct d_event_listener* arr[3];
+    struct dj_event_listener*       l1;
+    struct dj_event_listener*       l2;
+    struct dj_event_listener*       l3;
+    const struct dj_event_listener* arr[3];
     ssize_t                        idx;
     size_t                         count;
 
@@ -251,18 +243,16 @@ d_tests_sa_event_find_multi_many_matches
   - Returns first matching index
   - Count reflects total number of matches
 */
-bool
-d_tests_sa_event_find_multi_many_matches
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_multi_many_matches(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener*       l1;
-    struct d_event_listener*       l2;
-    struct d_event_listener*       l3;
-    struct d_event_listener*       l4;
-    const struct d_event_listener* arr[4];
+    struct dj_event_listener*       l1;
+    struct dj_event_listener*       l2;
+    struct dj_event_listener*       l3;
+    struct dj_event_listener*       l4;
+    const struct dj_event_listener* arr[4];
     ssize_t                        idx;
     size_t                         count;
 
@@ -323,16 +313,14 @@ d_tests_sa_event_find_no_matches
   Tests the following:
   - Returns -1 and count 0
 */
-bool
-d_tests_sa_event_find_no_matches
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_no_matches(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener*       l1;
-    struct d_event_listener*       l2;
-    const struct d_event_listener* arr[2];
+    struct dj_event_listener*       l1;
+    struct dj_event_listener*       l2;
+    const struct dj_event_listener* arr[2];
     ssize_t                        idx;
     size_t                         count;
 
@@ -374,16 +362,14 @@ d_tests_sa_event_find_null_entries
   - NULL entries do not crash
   - Matches around NULL entries are counted correctly
 */
-bool
-d_tests_sa_event_find_null_entries
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_null_entries(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener*       l1;
-    struct d_event_listener*       l3;
-    const struct d_event_listener* arr[3];
+    struct dj_event_listener*       l1;
+    struct dj_event_listener*       l3;
+    const struct dj_event_listener* arr[3];
     ssize_t                        idx;
     size_t                         count;
 
@@ -425,17 +411,15 @@ d_tests_sa_event_find_all_match
   Tests the following:
   - Returns valid index and count equals array size
 */
-bool
-d_tests_sa_event_find_all_match
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_all_match(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_event_listener*       l1;
-    struct d_event_listener*       l2;
-    struct d_event_listener*       l3;
-    const struct d_event_listener* arr[3];
+    struct dj_event_listener*       l1;
+    struct dj_event_listener*       l2;
+    struct dj_event_listener*       l3;
+    const struct dj_event_listener* arr[3];
     ssize_t                        idx;
     size_t                         count;
 
@@ -481,10 +465,8 @@ d_tests_sa_event_find_all_match
 d_tests_sa_event_find_all
   Runs all search function tests.
 */
-bool
-d_tests_sa_event_find_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_find_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -14,7 +14,7 @@
 
 /*
 d_tests_sa_dstring_cat_s
-  Tests d_string_cat_s() which safely concatenates one d_string to another,
+  Tests d_string_cat_s() which safely concatenates one dj_string to another,
   similar to strcat_s.
 
 Test cases:
@@ -34,15 +34,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_cat_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_cat_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     size_t                child_idx;
     bool                  result;
 
@@ -287,7 +283,7 @@ d_tests_sa_dstring_cat_s
 /*
 d_tests_sa_dstring_cat_cstr_s
   Tests d_string_cat_cstr_s() which safely concatenates a C string to a
-  d_string.
+  dj_string.
 
 Test cases:
   1. NULL destination returns false
@@ -304,14 +300,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_cat_cstr_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_cat_cstr_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     size_t                child_idx;
     bool                  result;
 
@@ -486,7 +478,7 @@ d_tests_sa_dstring_cat_cstr_s
 /*
 d_tests_sa_dstring_ncat_s
   Tests d_string_ncat_s() which safely concatenates up to n characters from
-  one d_string to another.
+  one dj_string to another.
 
 Test cases:
   1. NULL destination returns false
@@ -503,15 +495,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncat_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncat_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
-    struct d_string*      src;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
+    struct dj_string*      src;
     size_t                child_idx;
     bool                  result;
 
@@ -739,7 +727,7 @@ d_tests_sa_dstring_ncat_s
 /*
 d_tests_sa_dstring_ncat_cstr_s
   Tests d_string_ncat_cstr_s() which safely concatenates up to n characters
-  from a C string to a d_string.
+  from a C string to a dj_string.
 
 Test cases:
   1. NULL destination returns false
@@ -755,14 +743,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncat_cstr_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncat_cstr_s(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     size_t                child_idx;
     bool                  result;
 
@@ -956,16 +940,12 @@ Parameter(s):
 Return:
   Test object containing all concatenation test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_concat_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_concat_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Concatenation Functions", 4);
+    group     = d_test_object_new_interior("dj_string Concatenation Functions", 4);
     child_idx = 0;
 
     if (!group)

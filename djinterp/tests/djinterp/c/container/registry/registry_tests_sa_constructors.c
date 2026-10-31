@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,14 +25,12 @@ d_tests_sa_registry_new
   - row_size is stored correctly
   - row_free is NULL
 */
-bool
-d_tests_sa_registry_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_new(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
 
     result = true;
 
@@ -112,14 +110,12 @@ d_tests_sa_registry_new_with_capacity
   - large capacity allocates successfully
   - row and lookup capacity are both reserved
 */
-bool
-d_tests_sa_registry_new_with_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_new_with_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
 
     result = true;
 
@@ -193,15 +189,13 @@ d_tests_sa_registry_new_copy
   - flags (other than STATIC_ROWS) are preserved
   - row_free function pointer is copied
 */
-bool
-d_tests_sa_registry_new_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_new_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* src;
-    struct d_registry* cpy;
+    struct dj_registry* src;
+    struct dj_registry* cpy;
     struct test_row    row;
     struct test_row*   found;
 
@@ -306,14 +300,12 @@ d_tests_sa_registry_new_from_array
   - all rows are accessible by key
   - non-existent key returns NULL
 */
-bool
-d_tests_sa_registry_new_from_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_new_from_array(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    rows[3];
     struct test_row*   found;
 
@@ -395,10 +387,8 @@ d_tests_sa_registry_new_from_array
 d_tests_sa_registry_constructors_all
   Aggregation function that runs all constructor tests.
 */
-bool
-d_tests_sa_registry_constructors_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_constructors_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

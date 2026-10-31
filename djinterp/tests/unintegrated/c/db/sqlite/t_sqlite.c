@@ -17,7 +17,7 @@
 * removed before and after.
 *
 *   Build (from the repo root), at any language level from C99, against an
-* SQLite amalgamation or a system library -- or let ci/check_db_sqlite.sh,
+* SQLite amalgamation or a system library -- or let scripts/ci/check_db_sqlite.sh,
 * which runs it across compilers, standards and SQLite releases:
 *     cc -std=c99 -Wall -Wextra -Werror -Iinc -I<sqlite3.h's directory>       \
 *        src/djinterp/c/db/db_*.c src/djinterp/c/db/sqlite/sqlite_[a-z]*.c    \
@@ -44,7 +44,7 @@
 // sqlite
 #include <sqlite3.h>  // SQLITE_* result codes, sqlite3_exec for setup
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, int64_t
 
 
 //==============================================================================
@@ -64,8 +64,8 @@ static const char* g_directory = ".";
 d_tests_sqlite_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_sqlite_expect(
+static
+void d_tests_sqlite_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -93,18 +93,18 @@ d_tests_sqlite_expect(
 // FIXTURES
 //==============================================================================
 
-// d_tests_sqlite_feature_probe
+// dj_tests_sqlite_feature_probe
 //   struct: a feature, and SQL that runs only where the library has it.
-struct d_tests_sqlite_feature_probe
+struct dj_tests_sqlite_feature_probe
 {
-    enum d_sqlite_feature feature;  // the feature
+    enum dj_sqlite_feature feature;  // the feature
     const char*           sql;      // SQL that needs it
 };
 
 // d_tests_sqlite_probes
 //   table: SQL for every feature that SQL can show; the others are checked
 // against their releases.
-static const struct d_tests_sqlite_feature_probe
+static const struct dj_tests_sqlite_feature_probe
 d_tests_sqlite_probes[] =
 {
     { D_SQLITE_FEATURE_PARTIAL_INDEX,
@@ -143,10 +143,10 @@ d_tests_sqlite_probes[] =
 };
 
 // d_tests_sqlite_every_type
-//   table: a column of every d_db_type, between them carrying every column
+//   table: a column of every dj_db_type, between them carrying every column
 // flag, DEFAULTs, a size and a scale; the last is the only one with type_sql,
 // which a STRICT table would refuse, so the STRICT test leaves it out.
-static const struct d_db_column
+static const struct dj_db_column
 d_tests_sqlite_every_type[] =
 {
     { "c_id",   D_DB_TYPE_BIG_INTEGER,
@@ -171,7 +171,7 @@ d_tests_sqlite_every_type[] =
 
 // d_tests_sqlite_composite
 //   table: three columns, the first two a composite primary key.
-static const struct d_db_column
+static const struct dj_db_column
 d_tests_sqlite_composite[] =
 {
     { "a", D_DB_TYPE_STRING,  D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 0u },
@@ -182,7 +182,7 @@ d_tests_sqlite_composite[] =
 // d_tests_sqlite_ordered
 //   table: a composite key whose places order it b, a: otherwise than the
 // table.
-static const struct d_db_column
+static const struct dj_db_column
 d_tests_sqlite_ordered[] =
 {
     { "a", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 2u },
@@ -194,8 +194,8 @@ d_tests_sqlite_ordered[] =
 d_tests_sqlite_at_least
   The library's version, the one the layer's run-time checks read.
 */
-static bool
-d_tests_sqlite_at_least(
+static
+bool d_tests_sqlite_at_least(
     int _major,
     int _minor,
     int _patch
@@ -209,8 +209,8 @@ d_tests_sqlite_at_least(
 d_tests_sqlite_path
   A file name inside the test directory.
 */
-static const char*
-d_tests_sqlite_path(
+static
+const char* d_tests_sqlite_path(
     char*       _buffer,
     size_t      _size,
     const char* _name
@@ -225,8 +225,8 @@ d_tests_sqlite_path(
 d_tests_sqlite_exists
   Whether a file can be opened for reading.
 */
-static bool
-d_tests_sqlite_exists(
+static
+bool d_tests_sqlite_exists(
     const char* _path
 )
 {
@@ -245,8 +245,8 @@ d_tests_sqlite_exists(
 d_tests_sqlite_write_file
   Replaces a file's contents with text.
 */
-static void
-d_tests_sqlite_write_file(
+static
+void d_tests_sqlite_write_file(
     const char* _path,
     const char* _text
 )
@@ -268,8 +268,8 @@ d_tests_sqlite_remove_all
   Removes a database file and the three SQLite may keep beside it, whether
 or not they exist.
 */
-static void
-d_tests_sqlite_remove_all(
+static
+void d_tests_sqlite_remove_all(
     const char* _path
 )
 {
@@ -289,8 +289,8 @@ d_tests_sqlite_remove_all(
 d_tests_sqlite_int
   One integer from a query, or -999 when the query fails or has no row.
 */
-static int64_t
-d_tests_sqlite_int(
+static
+int64_t d_tests_sqlite_int(
     sqlite3*    _db,
     const char* _sql
 )
@@ -310,10 +310,10 @@ d_tests_sqlite_int(
 d_tests_sqlite_has_name
   Whether a name list holds a name, compared exactly.
 */
-static bool
-d_tests_sqlite_has_name(
-    const struct d_db_name_list* _list,
-    const char*                  _name
+static
+bool d_tests_sqlite_has_name(
+    const struct dj_db_name_list* _list,
+    const char*                   _name
 )
 {
     for (size_t i = 0u; i < _list->count; ++i)
@@ -332,10 +332,10 @@ d_tests_sqlite_has_name(
 d_tests_sqlite_find_column
   A column of a column list, by exact name, or NULL.
 */
-static const struct d_db_column_info*
-d_tests_sqlite_find_column(
-    const struct d_db_column_list* _list,
-    const char*                    _name
+static
+const struct dj_db_column_info* d_tests_sqlite_find_column(
+    const struct dj_db_column_list* _list,
+    const char*                     _name
 )
 {
     for (size_t i = 0u; i < _list->count; ++i)
@@ -355,12 +355,12 @@ d_tests_sqlite_same_page
   Whether a page of rows read a few at a time holds the columns of the rows
 read all at once, and `_count` of their rows from `_first`, value for value.
 */
-static bool
-d_tests_sqlite_same_page(
-    const struct d_db_rows* _page,
-    const struct d_db_rows* _all,
-    size_t                  _first,
-    size_t                  _count
+static
+bool d_tests_sqlite_same_page(
+    const struct dj_db_rows* _page,
+    const struct dj_db_rows* _all,
+    size_t                   _first,
+    size_t                   _count
 )
 {
     // the same columns, and as many rows as expected
@@ -386,8 +386,8 @@ d_tests_sqlite_same_page(
     // the same values, row by row
     for (size_t i = 0u; i < (_count * _all->column_count); ++i)
     {
-        const struct d_db_value* const got  = &_page->values[i];
-        const struct d_db_value* const want =
+        const struct dj_db_value* const got  = &_page->values[i];
+        const struct dj_db_value* const want =
             &_all->values[(_first * _all->column_count) + i];
         bool                           same = ( (got->type == want->type) &&
                                                 (got->size == want->size) );
@@ -436,8 +436,8 @@ d_tests_sqlite_probe
   Whether SQL needing a feature runs, in a fresh in-memory database opened
 natively, so that nothing the layer does is involved.
 */
-static bool
-d_tests_sqlite_probe(
+static
+bool d_tests_sqlite_probe(
     const char* _sql
 )
 {
@@ -460,10 +460,8 @@ d_tests_sqlite_open_values
   An in-memory connection holding one table whose name needs quoting,
 we"ird(a, b), with the rows (1, 'x'), (2, NULL) and (3, 'it''s').
 */
-static sqlite3*
-d_tests_sqlite_open_values(
-    void
-)
+static
+sqlite3* d_tests_sqlite_open_values(void)
 {
     sqlite3* db = NULL;
 
@@ -484,10 +482,8 @@ d_tests_sqlite_open_schemas
   An in-memory connection with a second in-memory database attached as
 "aux", so that a test can work in main, temp and an attached schema at once.
 */
-static sqlite3*
-d_tests_sqlite_open_schemas(
-    void
-)
+static
+sqlite3* d_tests_sqlite_open_schemas(void)
 {
     sqlite3* db = NULL;
 
@@ -504,10 +500,8 @@ d_tests_sqlite_open_people
 of them Smiths, and audit(n), one row of 0, for the index, view and trigger
 tests.
 */
-static sqlite3*
-d_tests_sqlite_open_people(
-    void
-)
+static
+sqlite3* d_tests_sqlite_open_people(void)
 {
     sqlite3* db = NULL;
 
@@ -530,8 +524,8 @@ d_tests_sqlite_open_file
 an index on b and three rows, 'one' to 'three', and a second in-memory
 database attached as "aux" holding x(a).
 */
-static sqlite3*
-d_tests_sqlite_open_file(
+static
+sqlite3* d_tests_sqlite_open_file(
     const char* _path
 )
 {
@@ -565,16 +559,14 @@ d_tests_sqlite_db_common
   - the status codes are 0 and distinct negatives, MISMATCH among them with
     a message, and the value past the last without one
   - the shared flags fit below D_DB_VENDOR_FLAGS, and SQLite's above them
-  - every d_db_type has a name, and a stray value is "unknown"
+  - every dj_db_type has a name, and a stray value is "unknown"
   - the release functions accept NULL and empty lists, and leave them empty
 */
-static void
-d_tests_sqlite_db_common(
-    void
-)
+static
+void d_tests_sqlite_db_common(void)
 {
-    struct d_db_name_list   names   = { 0u, NULL };
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_name_list   names   = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
 
     printf("db_common\n");
 
@@ -603,12 +595,12 @@ d_tests_sqlite_db_common(
         strcmp(d_db_type_name(D_DB_TYPE_BIG_INTEGER), "big_integer") == 0);
     D_TESTS_SQLITE_CHECK(strcmp(d_db_type_name(D_DB_TYPE_UUID), "uuid") == 0);
     D_TESTS_SQLITE_CHECK(
-        strcmp(d_db_type_name((enum d_db_type)99), "unknown") == 0);
+        strcmp(d_db_type_name((enum dj_db_type)99), "unknown") == 0);
 
     for (int t = D_DB_TYPE_NONE; t <= D_DB_TYPE_UUID; ++t)
     {
         D_TESTS_SQLITE_CHECK(
-            strcmp(d_db_type_name((enum d_db_type)t), "unknown") != 0);
+            strcmp(d_db_type_name((enum dj_db_type)t), "unknown") != 0);
     }
 
     d_db_name_list_free(NULL);
@@ -631,15 +623,15 @@ d_tests_sqlite_value
   A value as a layer fills one in: an INTEGER or a REAL holding a number, or
 TEXT or a BLOB holding the bytes of a C string; any other type holds nothing.
 */
-static struct d_db_value
+static struct dj_db_value
 d_tests_sqlite_value(
-    enum d_db_value_type _type,
+    enum dj_db_value_type _type,
     int64_t              _integer,
     double               _real,
     const char*          _bytes
 )
 {
-    struct d_db_value value = { _type, 0u, { 0 } };
+    struct dj_db_value value = { _type, 0u, { 0 } };
 
     switch (_type)
     {
@@ -677,8 +669,8 @@ d_tests_sqlite_value(
 d_tests_sqlite_text_value
   A TEXT value of a C string.
 */
-static struct d_db_value
-d_tests_sqlite_text_value(
+static
+struct dj_db_value d_tests_sqlite_text_value(
     const char* _text
 )
 {
@@ -696,17 +688,15 @@ d_tests_sqlite_integer_conversions
     them; a fraction, an exponent, spaces, a NUL inside and "" are not
   - NULL and a BLOB are D_DB_MISMATCH; a mismatch writes nothing
 */
-static void
-d_tests_sqlite_integer_conversions(
-    void
-)
+static
+void d_tests_sqlite_integer_conversions(void)
 {
     static const char* const refused[] =
     {
         "", "4.0", "4e2", " 4", "4 ", "0x10", "--4", "+", "9223372036854775808",
         "-9223372036854775809"
     };
-    struct d_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
+    struct dj_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
     int64_t           out   = 0;
 
     printf("db_common: integer conversions\n");
@@ -796,17 +786,15 @@ d_tests_sqlite_real_conversions
     of any other shape, a NUL inside included, is not
   - NULL and a BLOB are D_DB_MISMATCH; a mismatch writes nothing
 */
-static void
-d_tests_sqlite_real_conversions(
-    void
-)
+static
+void d_tests_sqlite_real_conversions(void)
 {
     static const char* const refused[] =
     {
         "", ".", "e5", "1e", "1,5", " 1.5", "1.5 ", "inf", "NaN", "0x1p3",
         "1e999"
     };
-    struct d_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
+    struct dj_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
     double            out   = 0.0;
 
     printf("db_common: real conversions\n");
@@ -896,10 +884,8 @@ d_tests_sqlite_bool_conversions
   - other words, prefixes and spaced words; a REAL, NULL and a BLOB are
     D_DB_MISMATCH; a mismatch writes nothing
 */
-static void
-d_tests_sqlite_bool_conversions(
-    void
-)
+static
+void d_tests_sqlite_bool_conversions(void)
 {
     static const char* const truths[]    =
     {
@@ -913,7 +899,7 @@ d_tests_sqlite_bool_conversions(
     {
         "", "maybe", "tr", "2", " t", "on ", "-1", "yess"
     };
-    struct d_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
+    struct dj_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
     bool              out   = false;
 
     printf("db_common: boolean conversions\n");
@@ -975,14 +961,12 @@ d_tests_sqlite_rows_reading
   - d_db_rows_free empties the rows, and accepts NULL and empty rows
   - NULL arguments are D_DB_INVALID_ARGUMENT
 */
-static void
-d_tests_sqlite_rows_reading(
-    void
-)
+static
+void d_tests_sqlite_rows_reading(void)
 {
     sqlite3*         db    = NULL;
-    struct d_db_rows rows  = { 0u, 0u, NULL, NULL };
-    struct d_db_rows empty = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows  = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows empty = { 0u, 0u, NULL, NULL };
     size_t           index = 0u;
 
     printf("db_common: reading rows\n");
@@ -996,8 +980,8 @@ d_tests_sqlite_rows_reading(
     D_TESTS_SQLITE_CHECK( (rows.column_count == 3u) &&
                           (rows.row_count == 2u) );
 
-    const struct d_db_value* const first = d_db_rows_value(&rows, 0u, 0u);
-    const struct d_db_value* const last  = d_db_rows_value(&rows, 1u, 2u);
+    const struct dj_db_value* const first = d_db_rows_value(&rows, 0u, 0u);
+    const struct dj_db_value* const last  = d_db_rows_value(&rows, 1u, 2u);
 
     D_TESTS_SQLITE_CHECK( (first)                               &&
                           (first->type == D_DB_VALUE_INTEGER)   &&
@@ -1065,10 +1049,8 @@ d_tests_sqlite_versions
   - library_at_least on each side of the exact version, and with parts no
     release can have, overflow-sized ones included
 */
-static void
-d_tests_sqlite_versions(
-    void
-)
+static
+void d_tests_sqlite_versions(void)
 {
     const int library = sqlite3_libversion_number();
     const int major   = library / 1000000;
@@ -1113,10 +1095,8 @@ d_tests_sqlite_features
     the threading level, sqlite3_threadsafe's
   - a value outside the enumeration is no feature
 */
-static void
-d_tests_sqlite_features(
-    void
-)
+static
+void d_tests_sqlite_features(void)
 {
     const size_t count = sizeof(d_tests_sqlite_probes) /
                          sizeof(d_tests_sqlite_probes[0]);
@@ -1125,7 +1105,7 @@ d_tests_sqlite_features(
 
     for (size_t i = 0u; i < count; ++i)
     {
-        const struct d_tests_sqlite_feature_probe* const probe =
+        const struct dj_tests_sqlite_feature_probe* const probe =
             &d_tests_sqlite_probes[i];
         const bool claimed = d_sqlite_supports(probe->feature);
         const bool works   = d_tests_sqlite_probe(probe->sql);
@@ -1154,8 +1134,8 @@ d_tests_sqlite_features(
     D_TESTS_SQLITE_CHECK(!d_sqlite_supports(D_SQLITE_FEATURE_ENCRYPTION));
     D_TESTS_SQLITE_CHECK(d_sqlite_library_threadsafe() ==
                          sqlite3_threadsafe());
-    D_TESTS_SQLITE_CHECK(!d_sqlite_supports((enum d_sqlite_feature)999));
-    D_TESTS_SQLITE_CHECK(!d_sqlite_supports((enum d_sqlite_feature)-1));
+    D_TESTS_SQLITE_CHECK(!d_sqlite_supports((enum dj_sqlite_feature)999));
+    D_TESTS_SQLITE_CHECK(!d_sqlite_supports((enum dj_sqlite_feature)-1));
 
     return;
 }
@@ -1168,10 +1148,8 @@ d_tests_sqlite_messages
   - an unknown negative value is "unknown result"
   - SQLite's codes have SQLite's messages
 */
-static void
-d_tests_sqlite_messages(
-    void
-)
+static
+void d_tests_sqlite_messages(void)
 {
     printf("sqlite_common: result messages\n");
 
@@ -1203,10 +1181,8 @@ d_tests_sqlite_errors
   - a statement that succeeds leaves "not an error"
   - a NULL connection has no message
 */
-static void
-d_tests_sqlite_errors(
-    void
-)
+static
+void d_tests_sqlite_errors(void)
 {
     struct sqlite3* db = NULL;
 
@@ -1241,10 +1217,8 @@ d_tests_sqlite_opening
   - a failed open leaves NULL behind
   - a file that is not a database opens, and fails at first use
 */
-static void
-d_tests_sqlite_opening(
-    void
-)
+static
+void d_tests_sqlite_opening(void)
 {
     char     path[1024]      = "";
     char     text_path[1024] = "";
@@ -1308,10 +1282,8 @@ d_tests_sqlite_opening_with
   - flags that name no way of opening, both of a pair, or an unknown bit are
     SQLITE_MISUSE, as are NULL arguments; every failure leaves NULL behind
 */
-static void
-d_tests_sqlite_opening_with(
-    void
-)
+static
+void d_tests_sqlite_opening_with(void)
 {
     char           path[1024]   = "";
     char           linked[1024] = "";
@@ -1456,10 +1428,8 @@ d_tests_sqlite_apply_defaults
   Tests the following:
   - apply_defaults turns foreign keys on and sets the busy timeout
 */
-static void
-d_tests_sqlite_apply_defaults(
-    void
-)
+static
+void d_tests_sqlite_apply_defaults(void)
 {
     sqlite3* db      = NULL;
     int      timeout = -1;
@@ -1488,10 +1458,8 @@ d_tests_sqlite_location
     name not attached
   - is_readonly: for read-write, read-only and missing schemas
 */
-static void
-d_tests_sqlite_location(
-    void
-)
+static
+void d_tests_sqlite_location(void)
 {
     char     path[1024] = "";
     sqlite3* db         = NULL;
@@ -1534,10 +1502,8 @@ d_tests_sqlite_rows_changed
   - last_insert_id after a multi-row insert
   - changes counts the last statement; total_changes the connection's life
 */
-static void
-d_tests_sqlite_rows_changed(
-    void
-)
+static
+void d_tests_sqlite_rows_changed(void)
 {
     sqlite3* db = NULL;
 
@@ -1567,7 +1533,7 @@ d_tests_sqlite_extensions
   - supports says what the library has, the build being one that calls it
   - a library that is not there: SQLITE_ERROR, and SQLite's words for it
   - with the test extension (DJINTERP_TEST_SQLITE_EXTENSION, which
-    ci/check_db_sqlite.sh builds): loaded by its default entry point, its
+    scripts/ci/check_db_sqlite.sh builds): loaded by its default entry point, its
     function there; by a named one, its second function too; an entry point
     it does not have, refused with words; from 3.13.0, SQL's load_extension
     still off after a load, and on once enable_load_extension turns it on,
@@ -1575,10 +1541,8 @@ d_tests_sqlite_extensions
     C API refused until loading is on
   - misuse: a NULL connection or path
 */
-static void
-d_tests_sqlite_extensions(
-    void
-)
+static
+void d_tests_sqlite_extensions(void)
 {
     const char* const extension = getenv("DJINTERP_TEST_SQLITE_EXTENSION");
     const bool        separate  = d_tests_sqlite_at_least(3, 13, 0);
@@ -1724,10 +1688,8 @@ d_tests_sqlite_connection_arguments
     apply_defaults refuses NULL; close accepts NULL, as sqlite3_close does
   - the queries answer a NULL handle with 0, NULL or false
 */
-static void
-d_tests_sqlite_connection_arguments(
-    void
-)
+static
+void d_tests_sqlite_connection_arguments(void)
 {
     sqlite3* db = NULL;
 
@@ -1760,10 +1722,8 @@ d_tests_sqlite_statements
     code and message, keeping what ran before it
   - execf quotes a name with %w and a value with %Q
 */
-static void
-d_tests_sqlite_statements(
-    void
-)
+static
+void d_tests_sqlite_statements(void)
 {
     printf("sqlite_query: running statements\n");
 
@@ -1806,10 +1766,8 @@ d_tests_sqlite_dialects
   - in the shared dialect a NULL name, a NaN and sqlite3_mprintf's own %q are
     SQLITE_MISUSE, and nothing runs
 */
-static void
-d_tests_sqlite_dialects(
-    void
-)
+static
+void d_tests_sqlite_dialects(void)
 {
     printf("sqlite_query: format dialects\n");
 
@@ -1906,10 +1864,8 @@ d_tests_sqlite_numbers
   - no row is D_DB_NOT_FOUND and leaves the value alone; NULL reads as 0
   - a failure at prepare and a failure at step are SQLite's codes
 */
-static void
-d_tests_sqlite_numbers(
-    void
-)
+static
+void d_tests_sqlite_numbers(void)
 {
     printf("sqlite_query: single numbers\n");
 
@@ -1967,10 +1923,8 @@ d_tests_sqlite_text
   - NULL reads as a NULL string; no row is D_DB_NOT_FOUND and leaves the
     pointer alone
 */
-static void
-d_tests_sqlite_text(
-    void
-)
+static
+void d_tests_sqlite_text(void)
 {
     printf("sqlite_query: single text\n");
 
@@ -2032,10 +1986,8 @@ d_tests_sqlite_changes_counted
   - a failure stops the rest, keeps what ran before it, and writes no count
   - the `f` form formats in both dialects
 */
-static void
-d_tests_sqlite_changes_counted(
-    void
-)
+static
+void d_tests_sqlite_changes_counted(void)
 {
     sqlite3* const db      = d_tests_sqlite_open_people();
     int64_t        changes = -1;
@@ -2175,13 +2127,11 @@ d_tests_sqlite_rows_values
   - RETURNING rows, where SQLite has RETURNING
   - both dialects of the `f` form
 */
-static void
-d_tests_sqlite_rows_values(
-    void
-)
+static
+void d_tests_sqlite_rows_values(void)
 {
     sqlite3* const   db   = d_tests_sqlite_open_values();
-    struct d_db_rows rows = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows = { 0u, 0u, NULL, NULL };
 
     printf("sqlite_query: rows\n");
 
@@ -2198,7 +2148,7 @@ d_tests_sqlite_rows_values(
     // values as stored
     if (rows.row_count == 1u)
     {
-        const struct d_db_value* const v = rows.values;
+        const struct dj_db_value* const v = rows.values;
 
         D_TESTS_SQLITE_CHECK( (v[0].type == D_DB_VALUE_INTEGER) &&
                               (v[0].as.integer == INT64_MAX) );
@@ -2327,15 +2277,13 @@ d_tests_sqlite_rows_types
     POINT an integer type, TIMESTAMP WITH TIME ZONE a decimal one
   - no declared type, and ANY, read as NONE
 */
-static void
-d_tests_sqlite_rows_types(
-    void
-)
+static
+void d_tests_sqlite_rows_types(void)
 {
     static const struct
     {
         const char*    declared;  // the declared type, as written
-        enum d_db_type type;      // what the column reads as
+        enum dj_db_type type;      // what the column reads as
     } expected[] =
     {
         { "BOOLEAN",                  D_DB_TYPE_BOOLEAN },
@@ -2378,7 +2326,7 @@ d_tests_sqlite_rows_types(
     };
     const size_t     count = sizeof(expected) / sizeof(expected[0]);
     sqlite3*         db    = NULL;
-    struct d_db_rows rows  = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows  = { 0u, 0u, NULL, NULL };
 
     printf("sqlite_query: column types\n");
 
@@ -2434,14 +2382,12 @@ d_tests_sqlite_rows_statements
   - a statement that fails to compile is SQLite's code and message; one that
     fails as it runs, past its first row, too, and the rows are left alone
 */
-static void
-d_tests_sqlite_rows_statements(
-    void
-)
+static
+void d_tests_sqlite_rows_statements(void)
 {
     sqlite3* const   db     = d_tests_sqlite_open_values();
-    struct d_db_rows rows   = { 0u, 0u, NULL, NULL };
-    struct d_db_rows marker = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows rows   = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows marker = { 7u, 7u, NULL, NULL };
 
     printf("sqlite_query: one statement\n");
 
@@ -2508,10 +2454,8 @@ d_tests_sqlite_quoting
   - a name's double quotes doubled, and an empty name quoted; NULL refused
   - a value's single quotes doubled; NULL as the keyword
 */
-static void
-d_tests_sqlite_quoting(
-    void
-)
+static
+void d_tests_sqlite_quoting(void)
 {
     char* text = NULL;
 
@@ -2541,16 +2485,14 @@ d_tests_sqlite_query_arguments
   - a NULL handle, statement, format or value pointer is SQLITE_MISUSE, for
     every running, counting, single-value and rows function
 */
-static void
-d_tests_sqlite_query_arguments(
-    void
-)
+static
+void d_tests_sqlite_query_arguments(void)
 {
     sqlite3*         db     = NULL;
     int64_t          number = 0;
     double           real   = 0.0;
     char*            text   = NULL;
-    struct d_db_rows rows   = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows rows   = { 0u, 0u, NULL, NULL };
 
     printf("sqlite_query: arguments\n");
 
@@ -2618,10 +2560,8 @@ d_tests_sqlite_preparing
   - preparef in both dialects, and refusing what the shared dialect refuses
   - finalize accepts NULL, and succeeds after a run that failed
 */
-static void
-d_tests_sqlite_preparing(
-    void
-)
+static
+void d_tests_sqlite_preparing(void)
 {
     sqlite3* const       db        = d_tests_sqlite_open_values();
     struct sqlite3_stmt* statement = NULL;
@@ -2738,14 +2678,12 @@ d_tests_sqlite_binding
     SQLITE_RANGE; text or bytes past SQLite's length limit SQLITE_TOOBIG
   - clearing makes every parameter NULL again
 */
-static void
-d_tests_sqlite_binding(
-    void
-)
+static
+void d_tests_sqlite_binding(void)
 {
     sqlite3*             db        = NULL;
     struct sqlite3_stmt* statement = NULL;
-    struct d_db_rows     rows      = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows     rows      = { 0u, 0u, NULL, NULL };
     char                 text[]    = "it's";
     unsigned char        bytes[]   = { 0x00, 0x01, 0x00 };
     int64_t              changes   = 0;
@@ -2812,7 +2750,7 @@ d_tests_sqlite_binding(
     // the first row: each storage class
     if (rows.row_count == 3u)
     {
-        const struct d_db_value* const v = rows.values;
+        const struct dj_db_value* const v = rows.values;
 
         D_TESTS_SQLITE_CHECK(strcmp(v[0].as.text, "null") == 0);
         D_TESTS_SQLITE_CHECK( (v[1].type == D_DB_VALUE_INTEGER) &&
@@ -2898,16 +2836,14 @@ d_tests_sqlite_running
     runs again afterwards
   - a statement may outlive d_sqlite_close, which waits for it
 */
-static void
-d_tests_sqlite_running(
-    void
-)
+static
+void d_tests_sqlite_running(void)
 {
     sqlite3* const       db        = d_tests_sqlite_open_values();
     struct sqlite3_stmt* insert    = NULL;
     struct sqlite3_stmt* select    = NULL;
-    struct d_db_rows     rows      = { 0u, 0u, NULL, NULL };
-    struct d_db_rows     marker    = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows     rows      = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows     marker    = { 7u, 7u, NULL, NULL };
     int64_t              changes   = -1;
 
     printf("sqlite_statement: running\n");
@@ -3017,17 +2953,15 @@ d_tests_sqlite_cursors
   - a step failing part-way through a run is SQLite's code, described on the
     connection, writes no rows, and ends the run; a good run follows
 */
-static void
-d_tests_sqlite_cursors(
-    void
-)
+static
+void d_tests_sqlite_cursors(void)
 {
     sqlite3*             db     = NULL;
     struct sqlite3_stmt* select = NULL;
     struct sqlite3_stmt* insert = NULL;
-    struct d_db_rows     all    = { 0u, 0u, NULL, NULL };
-    struct d_db_rows     rows   = { 0u, 0u, NULL, NULL };
-    struct d_db_rows     marker = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows     all    = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows     rows   = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows     marker = { 7u, 7u, NULL, NULL };
 
     printf("sqlite_statement: rows a few at a time\n");
 
@@ -3209,15 +3143,13 @@ d_tests_sqlite_statement_locks
   - a run read a few rows at a time holds the lock part-way, as SQLite's own
     step does, until a short page or close_cursor ends it
 */
-static void
-d_tests_sqlite_statement_locks(
-    void
-)
+static
+void d_tests_sqlite_statement_locks(void)
 {
     char                 path[1024] = "";
     sqlite3*             writer     = NULL;
     struct sqlite3_stmt* statement  = NULL;
-    struct d_db_rows     rows       = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows     rows       = { 0u, 0u, NULL, NULL };
 
     printf("sqlite_statement: locks\n");
 
@@ -3300,15 +3232,13 @@ d_tests_sqlite_statement_arguments
   - the cursor calls refuse a NULL statement, and fetch_rows NULL rows or
     none asked for, with SQLITE_MISUSE, the rows untouched
 */
-static void
-d_tests_sqlite_statement_arguments(
-    void
-)
+static
+void d_tests_sqlite_statement_arguments(void)
 {
     sqlite3*             db        = NULL;
     struct sqlite3_stmt* statement = NULL;
-    struct d_db_rows     rows      = { 0u, 0u, NULL, NULL };
-    struct d_db_rows     marker    = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows     rows      = { 0u, 0u, NULL, NULL };
+    struct dj_db_rows     marker    = { 7u, 7u, NULL, NULL };
     size_t               index     = 0u;
     int64_t              changes   = 0;
 
@@ -3389,14 +3319,12 @@ d_tests_sqlite_attached
   - list_databases: main first, every attached name, NULL-terminated
   - detach; detaching what is not attached, or main, fails
 */
-static void
-d_tests_sqlite_attached(
-    void
-)
+static
+void d_tests_sqlite_attached(void)
 {
     char                  aux_path[1024] = "";
     sqlite3*              db             = NULL;
-    struct d_db_name_list names          = { 0u, NULL };
+    struct dj_db_name_list names          = { 0u, NULL };
     bool                  exists         = true;
 
     printf("sqlite_database: attached databases\n");
@@ -3456,10 +3384,8 @@ d_tests_sqlite_database_files
     without D_DB_IF_EXISTS
   - is_database_file: a database, an empty file, text, ":memory:"
 */
-static void
-d_tests_sqlite_database_files(
-    void
-)
+static
+void d_tests_sqlite_database_files(void)
 {
     static const char* const suffixes[] = { "-journal", "-wal", "-shm" };
     char                     path[1024]      = "";
@@ -3530,10 +3456,8 @@ d_tests_sqlite_serialization
   - where the library cannot, both D_DB_UNSUPPORTED
   - misuse: a NULL connection or out-parameter, NULL bytes of a size
 */
-static void
-d_tests_sqlite_serialization(
-    void
-)
+static
+void d_tests_sqlite_serialization(void)
 {
     const bool supported =
         ( (d_tests_sqlite_at_least(3, 36, 0)) &&
@@ -3689,10 +3613,8 @@ d_tests_sqlite_database_arguments
   - NULL and empty names, paths and handles; flags a function does not take
   - has_database_s answers false when it fails, where it can
 */
-static void
-d_tests_sqlite_database_arguments(
-    void
-)
+static
+void d_tests_sqlite_database_arguments(void)
 {
     sqlite3* db     = NULL;
     bool     exists = true;
@@ -3747,10 +3669,8 @@ d_tests_sqlite_table_existence
     for in the wrong schema
   - has_table_s: a schema not attached is SQLite's error, and answers false
 */
-static void
-d_tests_sqlite_table_existence(
-    void
-)
+static
+void d_tests_sqlite_table_existence(void)
 {
     printf("sqlite_schema: tables, existence\n");
 
@@ -3799,10 +3719,8 @@ d_tests_sqlite_table_changes
   - drop_table, again (an error), and again under D_DB_IF_EXISTS
   - drop_table in an attached schema
 */
-static void
-d_tests_sqlite_table_changes(
-    void
-)
+static
+void d_tests_sqlite_table_changes(void)
 {
     printf("sqlite_schema: tables, changes\n");
 
@@ -3841,10 +3759,8 @@ d_tests_sqlite_table_rows
     as TRUNCATE does; a table without one empties too
   - a failed truncate leaves no transaction open
 */
-static void
-d_tests_sqlite_table_rows(
-    void
-)
+static
+void d_tests_sqlite_table_rows(void)
 {
     printf("sqlite_schema: tables, rows\n");
 
@@ -3895,15 +3811,13 @@ d_tests_sqlite_table_listing
   - temp's tables, read from its own catalogue on every version
   - a schema not attached is SQLite's error
 */
-static void
-d_tests_sqlite_table_listing(
-    void
-)
+static
+void d_tests_sqlite_table_listing(void)
 {
     printf("sqlite_schema: tables, listing\n");
 
     sqlite3* const        db    = d_tests_sqlite_open_schemas();
-    struct d_db_name_list names = { 0u, NULL };
+    struct dj_db_name_list names = { 0u, NULL };
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_exec(db,
@@ -3943,15 +3857,13 @@ d_tests_sqlite_table_arguments
   - NULL handles, empty schemas and names, empty SQL, NULL outputs, and
     flags a function does not take
 */
-static void
-d_tests_sqlite_table_arguments(
-    void
-)
+static
+void d_tests_sqlite_table_arguments(void)
 {
     printf("sqlite_schema: tables, arguments\n");
 
     sqlite3* const        db    = d_tests_sqlite_open_schemas();
-    struct d_db_name_list names = { 0u, NULL };
+    struct dj_db_name_list names = { 0u, NULL };
 
     D_TESTS_SQLITE_CHECK(!d_sqlite_has_table(NULL, NULL, "users"));
     D_TESTS_SQLITE_CHECK(!d_sqlite_has_table(db, "", "users"));
@@ -3982,15 +3894,13 @@ d_tests_sqlite_table_arguments(
 
 /*
 d_tests_sqlite_described_types
-  A table described with struct d_db_column, one column of every type.
+  A table described with struct dj_db_column, one column of every type.
   Tests the following:
-  - each d_db_type's declared type, and type_sql used as written, in the
+  - each dj_db_type's declared type, and type_sql used as written, in the
     columns' order
 */
-static void
-d_tests_sqlite_described_types(
-    void
-)
+static
+void d_tests_sqlite_described_types(void)
 {
     static const char* const types[] =
     {
@@ -4003,7 +3913,7 @@ d_tests_sqlite_described_types(
     printf("sqlite_schema: described tables, types\n");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_create_table(db, NULL, "typed", d_tests_sqlite_every_type,
@@ -4033,10 +3943,8 @@ d_tests_sqlite_described_constraints
   - a sole key with AUTOINCREMENT, NOT NULL, UNIQUE and DEFAULTs, as
     list_columns reads them back and as the table then behaves
 */
-static void
-d_tests_sqlite_described_constraints(
-    void
-)
+static
+void d_tests_sqlite_described_constraints(void)
 {
     const size_t count = sizeof(d_tests_sqlite_every_type) /
                          sizeof(d_tests_sqlite_every_type[0]);
@@ -4044,7 +3952,7 @@ d_tests_sqlite_described_constraints(
     printf("sqlite_schema: described tables, constraints\n");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_create_table(db, NULL, "typed", d_tests_sqlite_every_type,
@@ -4094,15 +4002,13 @@ d_tests_sqlite_described_keys
     SQLITE_MISUSE, and make nothing
   - D_DB_IF_NOT_EXISTS makes the second create a success
 */
-static void
-d_tests_sqlite_described_keys(
-    void
-)
+static
+void d_tests_sqlite_described_keys(void)
 {
     printf("sqlite_schema: described tables, keys\n");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_create_table(db, "aux", "pairs", d_tests_sqlite_composite, 3u,
@@ -4123,7 +4029,7 @@ d_tests_sqlite_described_keys(
     D_TESTS_SQLITE_CHECK(!d_sqlite_has_table(db, NULL, "pairs"));
 
     // a key in the order its places give, not the table's
-    struct d_db_column bad[3] =
+    struct dj_db_column bad[3] =
     {
         d_tests_sqlite_ordered[0],
         d_tests_sqlite_ordered[1],
@@ -4145,9 +4051,9 @@ d_tests_sqlite_described_keys(
                                       &columns) ==
         SQLITE_OK);
 
-    const struct d_db_column_info* const first  =
+    const struct dj_db_column_info* const first  =
         d_tests_sqlite_find_column(&columns, "a");
-    const struct d_db_column_info* const second =
+    const struct dj_db_column_info* const second =
         d_tests_sqlite_find_column(&columns, "b");
 
     D_TESTS_SQLITE_CHECK( (first) && (first->primary_key == 2) );
@@ -4205,33 +4111,31 @@ d_tests_sqlite_described_refusals
   Column sets the layer refuses before SQLite sees them.
   Tests the following:
   - AUTO_INCREMENT on a composite key, or without a key
-  - a type outside enum d_db_type, an unknown column flag, an empty name
+  - a type outside enum dj_db_type, an unknown column flag, an empty name
   - no columns, a NULL array, and an unknown table flag
   - nothing is created by any of them
 */
-static void
-d_tests_sqlite_described_refusals(
-    void
-)
+static
+void d_tests_sqlite_described_refusals(void)
 {
-    static const struct d_db_column bad_increment[] =
+    static const struct dj_db_column bad_increment[] =
     {
         { "a", D_DB_TYPE_INTEGER, D_DB_COLUMN_AUTO_INCREMENT, NULL, 0u, 0u,
           NULL, 0u }
     };
-    static const struct d_db_column bad_type[] =
+    static const struct dj_db_column bad_type[] =
     {
-        { "a", (enum d_db_type)99, 0u, NULL, 0u, 0u, NULL, 0u }
+        { "a", (enum dj_db_type)99, 0u, NULL, 0u, 0u, NULL, 0u }
     };
-    static const struct d_db_column bad_flag[] =
+    static const struct dj_db_column bad_flag[] =
     {
         { "a", D_DB_TYPE_INTEGER, 0x8000u, NULL, 0u, 0u, NULL, 0u }
     };
-    static const struct d_db_column no_name[] =
+    static const struct dj_db_column no_name[] =
     {
         { "", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u }
     };
-    struct d_db_column half[2] =
+    struct dj_db_column half[2] =
     {
         d_tests_sqlite_composite[0], d_tests_sqlite_composite[1]
     };
@@ -4277,10 +4181,8 @@ d_tests_sqlite_described_options
     D_DB_UNSUPPORTED below 3.37.0
   - WITHOUT ROWID alone; D_DB_UNSUPPORTED below 3.8.2
 */
-static void
-d_tests_sqlite_described_options(
-    void
-)
+static
+void d_tests_sqlite_described_options(void)
 {
     static const char* const strict_types[] =
     {
@@ -4292,7 +4194,7 @@ d_tests_sqlite_described_options(
     printf("sqlite_schema: described tables, options\n");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
     const bool              strict  = d_tests_sqlite_at_least(3, 37, 0);
 
     D_TESTS_SQLITE_CHECK(
@@ -4336,22 +4238,20 @@ d_tests_sqlite_column_existence
     without a DEFAULT on a table with rows, and of a second primary key
   - list_columns reads the added column back
 */
-static void
-d_tests_sqlite_column_existence(
-    void
-)
+static
+void d_tests_sqlite_column_existence(void)
 {
-    static const struct d_db_column note = {
+    static const struct dj_db_column note = {
         "note", D_DB_TYPE_STRING, 0u, "''", 0u, 0u, NULL, 0u
     };
-    static const struct d_db_column key = {
+    static const struct dj_db_column key = {
         "k2", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 0u
     };
 
     printf("sqlite_schema: columns, existence and adding\n");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
     bool                    exists  = true;
 
     D_TESTS_SQLITE_CHECK(
@@ -4400,20 +4300,18 @@ d_tests_sqlite_column_kinds
   - a generated column is a column to has_column and list_columns, from
     3.31.0
 */
-static void
-d_tests_sqlite_column_kinds(
-    void
-)
+static
+void d_tests_sqlite_column_kinds(void)
 {
-    static const struct d_db_column price = {
+    static const struct dj_db_column price = {
         "price", D_DB_TYPE_DECIMAL, 0u, NULL, 0u, 0u, NULL, 0u
     };
 
     printf("sqlite_schema: columns, kinds\n");
 
     sqlite3* const                 db      = d_tests_sqlite_open_schemas();
-    struct d_db_column_list        columns = { 0u, NULL };
-    const struct d_db_column_info* info    = NULL;
+    struct dj_db_column_list        columns = { 0u, NULL };
+    const struct dj_db_column_info* info    = NULL;
 
     // STRICT, from 3.37.0
     if (d_tests_sqlite_at_least(3, 37, 0))
@@ -4470,15 +4368,13 @@ d_tests_sqlite_column_changes
   - drop_column, or D_DB_UNSUPPORTED below 3.35.0
   - list_columns of a missing table is D_DB_NOT_FOUND, the list left empty
 */
-static void
-d_tests_sqlite_column_changes(
-    void
-)
+static
+void d_tests_sqlite_column_changes(void)
 {
     printf("sqlite_schema: columns, changes\n");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
-    struct d_db_column_list columns = { 0u, NULL };
+    struct dj_db_column_list columns = { 0u, NULL };
     const bool              renames = d_tests_sqlite_at_least(3, 25, 0);
     const bool              drops   = d_tests_sqlite_at_least(3, 35, 0);
 
@@ -4509,10 +4405,8 @@ d_tests_sqlite_column_arguments
   Tests the following:
   - NULL outputs and tables, empty names and SQL, and a NULL description
 */
-static void
-d_tests_sqlite_column_arguments(
-    void
-)
+static
+void d_tests_sqlite_column_arguments(void)
 {
     printf("sqlite_schema: columns, arguments\n");
 
@@ -4549,15 +4443,13 @@ d_tests_sqlite_indexes
     the schema
   - drop_index, and under D_DB_IF_EXISTS
 */
-static void
-d_tests_sqlite_indexes(
-    void
-)
+static
+void d_tests_sqlite_indexes(void)
 {
     printf("sqlite_schema: indexes\n");
 
     sqlite3* const        db    = d_tests_sqlite_open_people();
-    struct d_db_name_list names = { 0u, NULL };
+    struct dj_db_name_list names = { 0u, NULL };
     const char* const     email =
         (d_sqlite_supports(D_SQLITE_FEATURE_EXPRESSION_INDEX))
             ? "lower(email)"
@@ -4615,15 +4507,13 @@ d_tests_sqlite_views
   - has_view, which a table of the same name does not satisfy
   - the view answers queries; list_views; drop_view
 */
-static void
-d_tests_sqlite_views(
-    void
-)
+static
+void d_tests_sqlite_views(void)
 {
     printf("sqlite_schema: views\n");
 
     sqlite3* const        db    = d_tests_sqlite_open_people();
-    struct d_db_name_list names = { 0u, NULL };
+    struct dj_db_name_list names = { 0u, NULL };
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_create_view(db, NULL, "smiths",
@@ -4662,15 +4552,13 @@ d_tests_sqlite_triggers
     NULL-terminated list
   - drop_trigger, and again (an error)
 */
-static void
-d_tests_sqlite_triggers(
-    void
-)
+static
+void d_tests_sqlite_triggers(void)
 {
     printf("sqlite_schema: triggers\n");
 
     sqlite3* const        db    = d_tests_sqlite_open_people();
-    struct d_db_name_list names = { 0u, NULL };
+    struct dj_db_name_list names = { 0u, NULL };
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_create_trigger(db, NULL, "count_people",
@@ -4715,15 +4603,13 @@ right.
   - empty and NULL names and SQL, NULL outputs, and flags a function does
     not take, D_DB_UNIQUE outside an index among them
 */
-static void
-d_tests_sqlite_object_arguments(
-    void
-)
+static
+void d_tests_sqlite_object_arguments(void)
 {
     printf("sqlite_schema: indexes, views, triggers, arguments\n");
 
     sqlite3* const        db     = d_tests_sqlite_open_people();
-    struct d_db_name_list names  = { 0u, NULL };
+    struct dj_db_name_list names  = { 0u, NULL };
     bool                  exists = true;
 
     D_TESTS_SQLITE_CHECK(
@@ -4772,10 +4658,8 @@ d_tests_sqlite_transactions
   - commit keeps work; rollback undoes it; neither works outside one
   - argument checks
 */
-static void
-d_tests_sqlite_transactions(
-    void
-)
+static
+void d_tests_sqlite_transactions(void)
 {
     sqlite3* db = NULL;
 
@@ -4813,7 +4697,7 @@ d_tests_sqlite_transactions(
     D_TESTS_SQLITE_CHECK(d_sqlite_commit(db) == SQLITE_OK);
 
     D_TESTS_SQLITE_CHECK(
-        d_sqlite_begin_transaction(db, (enum d_sqlite_transaction_mode)7) ==
+        d_sqlite_begin_transaction(db, (enum dj_sqlite_transaction_mode)7) ==
         SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(
         d_sqlite_begin_transaction(NULL, D_SQLITE_TRANSACTION_DEFERRED) ==
@@ -4836,10 +4720,8 @@ d_tests_sqlite_savepoints
   - a savepoint outside a transaction opens one, and its release ends it
   - argument checks
 */
-static void
-d_tests_sqlite_savepoints(
-    void
-)
+static
+void d_tests_sqlite_savepoints(void)
 {
     sqlite3* db = NULL;
 
@@ -4895,10 +4777,8 @@ d_tests_sqlite_connection_settings
     SQLite would ignore the change
   - the busy timeout round trip; a negative one refused
 */
-static void
-d_tests_sqlite_connection_settings(
-    void
-)
+static
+void d_tests_sqlite_connection_settings(void)
 {
     sqlite3* db      = NULL;
     bool     enabled = false;
@@ -4937,14 +4817,12 @@ d_tests_sqlite_journal_modes
   - memory refuses WAL and takes MEMORY, read back; a stray mode refused
   - a file takes WAL, read back, and returns to DELETE
 */
-static void
-d_tests_sqlite_journal_modes(
-    void
-)
+static
+void d_tests_sqlite_journal_modes(void)
 {
     char                       path[1024] = "";
     sqlite3*                   db         = NULL;
-    enum d_sqlite_journal_mode mode       = D_SQLITE_JOURNAL_OFF;
+    enum dj_sqlite_journal_mode mode       = D_SQLITE_JOURNAL_OFF;
 
     printf("sqlite_settings: journal modes\n");
 
@@ -4959,7 +4837,7 @@ d_tests_sqlite_journal_modes(
                          SQLITE_OK);
     D_TESTS_SQLITE_CHECK(mode == D_SQLITE_JOURNAL_MEMORY);
     D_TESTS_SQLITE_CHECK(
-        d_sqlite_set_journal_mode(db, NULL, (enum d_sqlite_journal_mode)9) ==
+        d_sqlite_set_journal_mode(db, NULL, (enum dj_sqlite_journal_mode)9) ==
         SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
 
@@ -4993,13 +4871,11 @@ d_tests_sqlite_synchronous
   - EXTRA where the library knows it, D_DB_UNSUPPORTED before 3.11.0, where
     SQLite would store it and act as FULL
 */
-static void
-d_tests_sqlite_synchronous(
-    void
-)
+static
+void d_tests_sqlite_synchronous(void)
 {
     sqlite3*                  db    = NULL;
-    enum d_sqlite_synchronous level = D_SQLITE_SYNCHRONOUS_OFF;
+    enum dj_sqlite_synchronous level = D_SQLITE_SYNCHRONOUS_OFF;
 
     printf("sqlite_settings: synchronous\n");
 
@@ -5009,7 +4885,7 @@ d_tests_sqlite_synchronous(
     {
         D_TESTS_SQLITE_CHECK(
             d_sqlite_set_synchronous(db, NULL,
-                                     (enum d_sqlite_synchronous)value) ==
+                                     (enum dj_sqlite_synchronous)value) ==
             SQLITE_OK);
         D_TESTS_SQLITE_CHECK(
             d_sqlite_get_synchronous(db, "main", &level) == SQLITE_OK);
@@ -5017,7 +4893,7 @@ d_tests_sqlite_synchronous(
     }
 
     D_TESTS_SQLITE_CHECK(
-        d_sqlite_set_synchronous(db, NULL, (enum d_sqlite_synchronous)4) ==
+        d_sqlite_set_synchronous(db, NULL, (enum dj_sqlite_synchronous)4) ==
         SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(
         d_sqlite_set_synchronous(db, NULL, D_SQLITE_SYNCHRONOUS_EXTRA) ==
@@ -5041,10 +4917,8 @@ d_tests_sqlite_version_numbers
   - each schema keeps its own; a schema not attached is SQLite's error
   - argument checks
 */
-static void
-d_tests_sqlite_version_numbers(
-    void
-)
+static
+void d_tests_sqlite_version_numbers(void)
 {
     printf("sqlite_settings: version numbers\n");
 
@@ -5086,10 +4960,8 @@ d_tests_sqlite_pragmas
   - a pragma that answers nothing is D_DB_NOT_FOUND
   - names that are not names refused before SQLite sees them; NULL values
 */
-static void
-d_tests_sqlite_pragmas(
-    void
-)
+static
+void d_tests_sqlite_pragmas(void)
 {
     printf("sqlite_settings: any pragma\n");
 
@@ -5140,10 +5012,8 @@ d_tests_sqlite_upkeep
   - analyze; optimize, or D_DB_UNSUPPORTED before 3.18.0
   - both checks pass a sound database; a schema not attached is an error
 */
-static void
-d_tests_sqlite_upkeep(
-    void
-)
+static
+void d_tests_sqlite_upkeep(void)
 {
     char path[1024]      = "";
     char copy_path[1024] = "";
@@ -5195,10 +5065,8 @@ d_tests_sqlite_checkpoints
   - every mode on a WAL file, TRUNCATE refused before 3.8.8
   - a stray mode refused
 */
-static void
-d_tests_sqlite_checkpoints(
-    void
-)
+static
+void d_tests_sqlite_checkpoints(void)
 {
     char path[1024] = "";
 
@@ -5225,7 +5093,7 @@ d_tests_sqlite_checkpoints(
         d_sqlite_checkpoint(db, NULL, D_SQLITE_CHECKPOINT_TRUNCATE) ==
         ((d_tests_sqlite_at_least(3, 8, 8)) ? SQLITE_OK : D_DB_UNSUPPORTED));
     D_TESTS_SQLITE_CHECK(
-        d_sqlite_checkpoint(db, NULL, (enum d_sqlite_checkpoint_mode)4) ==
+        d_sqlite_checkpoint(db, NULL, (enum dj_sqlite_checkpoint_mode)4) ==
         SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
 
@@ -5242,10 +5110,8 @@ d_tests_sqlite_backups
   - backup_to_file, and restore_from_file into a fresh connection
   - restoring from a file that is not a database, or is not there
 */
-static void
-d_tests_sqlite_backups(
-    void
-)
+static
+void d_tests_sqlite_backups(void)
 {
     char     path[1024]      = "";
     char     copy_path[1024] = "";
@@ -5299,10 +5165,8 @@ d_tests_sqlite_maintenance_arguments
   Tests the following:
   - NULL handles and outputs, empty schemas and paths, for every function
 */
-static void
-d_tests_sqlite_maintenance_arguments(
-    void
-)
+static
+void d_tests_sqlite_maintenance_arguments(void)
 {
     sqlite3* db = NULL;
 
@@ -5333,13 +5197,13 @@ d_tests_sqlite_maintenance_arguments(
 // DRIVER
 //==============================================================================
 
-// d_tests_sqlite_test
+// dj_tests_sqlite_test
 //   type: a test, which reports through D_TESTS_SQLITE_CHECK.
-typedef void (*d_tests_sqlite_test)(void);
+typedef void (*dj_tests_sqlite_test)(void);
 
 // d_tests_sqlite_all
 //   table: every test, in the order of the headers.
-static const d_tests_sqlite_test
+static const dj_tests_sqlite_test
 d_tests_sqlite_all[] =
 {
     d_tests_sqlite_db_common,
@@ -5414,8 +5278,7 @@ main
   Runs every test and reports; the exit status is 0 only if every check
 passed.
 */
-int
-main(
+int main(
     int    _argc,
     char** _argv
 )

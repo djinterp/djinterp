@@ -13,30 +13,28 @@
 
 // djinterp
 #include "./array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
 d_tests_sa_array_all
   Runs all core array tests.
 */
-bool
-d_tests_sa_array_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool                   overall_result = true;
-    struct d_test_counter  local_counter = { 0, 0, 0, 0 };
+    struct dj_test_counter  local_counter = { 0, 0, 0, 0 };
 
     printf("\n========================================\n");
     printf("Running Core Array Module Tests\n");
     printf("========================================\n");
 
-    // run d_array creation function tests
+    // run dj_array creation function tests
     overall_result &= d_tests_sa_array_run_creation_tests(&local_counter);
 
-    // run d_array_s creation function tests
+    // run dj_array_s creation function tests
     overall_result &= d_tests_sa_array_run_creation_s_tests(&local_counter);
 
     // run manipulation function tests
@@ -75,14 +73,12 @@ d_tests_sa_array_all
 d_tests_sa_array_all_extended
   Runs all array tests including integration and edge cases.
 */
-bool
-d_tests_sa_array_all_extended
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_all_extended(
+    struct dj_test_counter* _test_info
 )
 {
     bool                   overall_result = true;
-    struct d_test_counter  local_counter = { 0, 0, 0, 0 };
+    struct dj_test_counter  local_counter = { 0, 0, 0, 0 };
 
     printf("\n========================================\n");
     printf("Running COMPLETE Array Module Test Suite\n");
@@ -127,10 +123,8 @@ d_tests_sa_array_all_extended
 d_tests_sa_array_run_all
   Main entry point for the test module runner.
 */
-bool
-d_tests_sa_array_run_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_run_all(
+    struct dj_test_counter* _test_info
 )
 {
     return d_tests_sa_array_all_extended(_test_info);

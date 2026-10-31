@@ -31,13 +31,9 @@ d_tests_sa_dtime_localtime
   - handles known timestamp (Y2K)
   - handles negative timestamp (pre-epoch, if supported)
 */
-struct d_test_object*
-d_tests_sa_dtime_localtime
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_localtime(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     time_t                now;
     time_t                epoch;
     time_t                y2k;
@@ -149,13 +145,9 @@ d_tests_sa_dtime_gmtime
   - returns NULL for NULL result parameter
   - all struct tm fields are in valid ranges
 */
-struct d_test_object*
-d_tests_sa_dtime_gmtime
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_gmtime(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     time_t                now;
     time_t                epoch;
     time_t                y2k;
@@ -268,13 +260,9 @@ d_tests_sa_dtime_ctime
   - returns NULL for NULL buffer parameter
   - handles epoch timestamp
 */
-struct d_test_object*
-d_tests_sa_dtime_ctime
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_ctime(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     time_t                now;
     time_t                epoch;
     time_t                y2k;
@@ -388,13 +376,9 @@ d_tests_sa_dtime_asctime
   - handles edge case dates (first of month, last of year)
   - produces consistent output for same input
 */
-struct d_test_object*
-d_tests_sa_dtime_asctime
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_asctime(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct tm             tm_now;
     struct tm             tm_y2k;
     time_t                now;
@@ -514,13 +498,9 @@ d_tests_sa_dtime_thread_safe_conversion_all
   - d_ctime
   - d_asctime
 */
-struct d_test_object*
-d_tests_sa_dtime_thread_safe_conversion_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_thread_safe_conversion_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("III. Thread-Safe Time Conversion", 4);

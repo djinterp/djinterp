@@ -666,7 +666,9 @@ D_EXTERN_C_BEGIN
  * @param[in] _codec  one of the D_ENV_COMPRESSION_CODEC_* constants.
  * @return a static, null-terminated codec name, or "none".
  */
-const char* d_env_compression_codec_name(int _codec);
+const char* d_env_compression_codec_name(
+    int _codec
+);
 /**
  * @brief Returns the version of the zlib linked at runtime.
  *
@@ -679,7 +681,7 @@ const char* d_env_compression_zlib_runtime_version(void);
  *
  * @note Intended for diagnostics and build verification.
  */
-void        d_env_compression_print_info(void);
+void d_env_compression_print_info(void);
 
 D_EXTERN_C_END
 

@@ -17,8 +17,16 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-struct d_color_hsv d_color_hsv_make(float _h, float _s, float _v);
-bool d_color_hsv_is_valid(struct d_color_hsv _hsv);
-struct d_color_hsv d_color_hsv_clamp(struct d_color_hsv _hsv);
+struct dj_color_hsv d_color_hsv_make(
+    float _h,
+    float _s,
+    float _v
+);
+bool d_color_hsv_is_valid(
+    struct dj_color_hsv _hsv
+);
+struct dj_color_hsv d_color_hsv_clamp(
+    struct dj_color_hsv _hsv
+);
 
 #endif  // D_COLOR_HEADER_ONLY

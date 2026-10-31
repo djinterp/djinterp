@@ -43,7 +43,7 @@ TABLE OF CONTENTS
 #define DJINTERP_TOOLS_DAWK_EXT_STORY_DHOST_ARTICULATE_H 1
 
 // djinterp
-#include "./dhost_story.h"  // d_story_driver
+#include "./dhost_story.h"  // dj_story_driver
 
 
 //==============================================================================
@@ -55,7 +55,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // The driver claims a file whose name ends in .story, in any case; the
 // descriptor is static, and outlives every story opened with it.
-const struct d_story_driver* d_articulate_driver(void);
+const struct dj_story_driver* d_articulate_driver(void);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_STORY_DHOST_ARTICULATE_H

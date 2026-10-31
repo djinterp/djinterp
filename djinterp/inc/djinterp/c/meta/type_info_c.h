@@ -3,7 +3,7 @@
 *
 *  C-specific extensions to the common type-information system.
 *  Covers:
-*  - extended (d_type_info_ex) storage-class / qualifier bits (bits 24-31):
+*  - extended (dj_type_info_ex) storage-class / qualifier bits (bits 24-31):
 *      bit 24: restrict
 *      bit 25: _Atomic
 *      bit 26: static
@@ -27,7 +27,7 @@
 // djinterp
 #include "djinterp/c/meta/type_info_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -77,13 +77,13 @@
 
 // D_TYPE_SET_RESTRICT .. D_TYPE_SET_NORETURN
 //   macro: apply the corresponding storage-class / qualifier bit to a
-// d_type_info_ex descriptor.
-#define D_TYPE_SET_RESTRICT(info)   ((d_type_info_ex)((info) | (d_type_info_ex)D_TYPE_RESTRICT_BIT))
-#define D_TYPE_SET_ATOMIC(info)     ((d_type_info_ex)((info) | (d_type_info_ex)D_TYPE_ATOMIC_BIT))
-#define D_TYPE_SET_STATIC(info)     ((d_type_info_ex)((info) | (d_type_info_ex)D_TYPE_STATIC_BIT))
-#define D_TYPE_SET_EXTERN(info)     ((d_type_info_ex)((info) | (d_type_info_ex)D_TYPE_EXTERN_BIT))
-#define D_TYPE_SET_INLINE(info)     ((d_type_info_ex)((info) | (d_type_info_ex)D_TYPE_INLINE_BIT))
-#define D_TYPE_SET_NORETURN(info)   ((d_type_info_ex)((info) | (d_type_info_ex)D_TYPE_NORETURN_BIT))
+// dj_type_info_ex descriptor.
+#define D_TYPE_SET_RESTRICT(info)   ((dj_type_info_ex)((info) | (dj_type_info_ex)D_TYPE_RESTRICT_BIT))
+#define D_TYPE_SET_ATOMIC(info)     ((dj_type_info_ex)((info) | (dj_type_info_ex)D_TYPE_ATOMIC_BIT))
+#define D_TYPE_SET_STATIC(info)     ((dj_type_info_ex)((info) | (dj_type_info_ex)D_TYPE_STATIC_BIT))
+#define D_TYPE_SET_EXTERN(info)     ((dj_type_info_ex)((info) | (dj_type_info_ex)D_TYPE_EXTERN_BIT))
+#define D_TYPE_SET_INLINE(info)     ((dj_type_info_ex)((info) | (dj_type_info_ex)D_TYPE_INLINE_BIT))
+#define D_TYPE_SET_NORETURN(info)   ((dj_type_info_ex)((info) | (dj_type_info_ex)D_TYPE_NORETURN_BIT))
 
 /*============================================================================*
  *                  PREDEFINED TYPE CONSTANTS (FOR _Generic)                  *
@@ -91,20 +91,20 @@
 
 // D_INTERNAL_PRIM_CONST
 //   macro: X-macro callback that expands each primitive entry into a
-// `static const d_type_info16` constant named D_TYPE_C_<name>.
+// `static const dj_type_info16` constant named D_TYPE_C_<name>.
 #define D_INTERNAL_PRIM_CONST(name, id, ctype, sz, sgn)                       \
-    static const d_type_info16 D_TYPE_C_##name = D_TYPE_MAKE_PRIM(id);
+    static const dj_type_info16 D_TYPE_C_##name = D_TYPE_MAKE_PRIM(id);
 
 D_TYPE_PRIMITIVE_X(D_INTERNAL_PRIM_CONST)
 
 #undef D_INTERNAL_PRIM_CONST
 
 // compound constants for _Generic default paths
-static const d_type_info16 D_TYPE_C_STRUCT   = D_TYPE_STRUCT_();
-static const d_type_info16 D_TYPE_C_UNION    = D_TYPE_UNION_();
-static const d_type_info16 D_TYPE_C_ENUM     = D_TYPE_ENUM_();
-static const d_type_info16 D_TYPE_C_FUNCTION = D_TYPE_FUNCTION_();
-static const d_type_info16 D_TYPE_C_CUSTOM   = D_TYPE_CUSTOM_();
+static const dj_type_info16 D_TYPE_C_STRUCT   = D_TYPE_STRUCT_();
+static const dj_type_info16 D_TYPE_C_UNION    = D_TYPE_UNION_();
+static const dj_type_info16 D_TYPE_C_ENUM     = D_TYPE_ENUM_();
+static const dj_type_info16 D_TYPE_C_FUNCTION = D_TYPE_FUNCTION_();
+static const dj_type_info16 D_TYPE_C_CUSTOM   = D_TYPE_CUSTOM_();
 
 /*============================================================================*
  *                  _GENERIC TYPE DETECTION (C11)                             *
@@ -114,7 +114,7 @@ static const d_type_info16 D_TYPE_C_CUSTOM   = D_TYPE_CUSTOM_();
 
 // D_TYPE_OF_EXPR
 //   macro: use C11 _Generic to map an expression's type to the matching
-// d_type_info16 constant at compile time.  Returns 0 for unrecognised
+// dj_type_info16 constant at compile time.  Returns 0 for unrecognised
 // types.
 #define D_TYPE_OF_EXPR(x) _Generic((x),                                     \
     _Bool:              D_TYPE_C_BOOL,                                      \
@@ -132,10 +132,10 @@ static const d_type_info16 D_TYPE_C_CUSTOM   = D_TYPE_CUSTOM_();
     float:              D_TYPE_C_FLOAT,                                     \
     double:             D_TYPE_C_DOUBLE,                                    \
     long double:        D_TYPE_C_LDOUBLE,                                   \
-    default:            (d_type_info16)0)
+    default:            (dj_type_info16)0)
 
 // D_TYPE_OF_TYPE
-//   macro: deduce the d_type_info16 for a type name by casting a zero
+//   macro: deduce the dj_type_info16 for a type name by casting a zero
 // literal and passing it through D_TYPE_OF_EXPR.
 #define D_TYPE_OF_TYPE(T)   D_TYPE_OF_EXPR((T)0)
 

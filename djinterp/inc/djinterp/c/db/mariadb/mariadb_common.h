@@ -4,7 +4,7 @@
 * Shared foundation of djinterp's MariaDB/MySQL convenience layer.
 *   One layer serves both servers, MariaDB and Oracle's MySQL, through either
 * client library, MariaDB Connector/C or libmysqlclient, which share the C
-* API. It works through a handle of its own, struct d_mariadb, around the
+* API. It works through a handle of its own, struct dj_mariadb, around the
 * client's MYSQL: the two clients disagree on that struct's tag, and mysql.h
 * spells `long long`, which ISO C++98 refuses, so a public header can neither
 * name the client's type nor include its header. d_mariadb_native hands back
@@ -56,12 +56,12 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Handles
-         1.  d_mariadb
-         2.  d_mariadb_statement
+         1.  dj_mariadb
+         2.  dj_mariadb_statement
     2.  Servers
-         1.  d_mariadb_flavor
+         1.  dj_mariadb_flavor
     3.  Features
-         1.  d_mariadb_feature
+         1.  dj_mariadb_feature
 2.  LIBRARY
     -------
     1.  Client
@@ -96,26 +96,26 @@ D_EXTERN_C_BEGIN
 // 1.1    Handles
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_mariadb
+// dj_mariadb
 //   struct: a connection to a MariaDB or MySQL server, as the layer holds it:
 // the client's MYSQL, and what the layer learned of the server when it was
 // made. Declared and never defined here; every function takes a pointer.
-struct d_mariadb;
+struct dj_mariadb;
 
 // 1.1.2
-// d_mariadb_statement
+// dj_mariadb_statement
 //   struct: a prepared statement, as the layer holds it: the client's
 // MYSQL_STMT, the values bound to its parameters until it next runs, and a
 // run whose rows are still arriving. Declared and never defined here;
 // mariadb_statement.h's functions take a pointer.
-struct d_mariadb_statement;
+struct dj_mariadb_statement;
 
 // 1.2    Servers
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_mariadb_flavor
+// dj_mariadb_flavor
 //   enum: which server a connection reached, by its own version string.
-enum d_mariadb_flavor
+enum dj_mariadb_flavor
 {
     D_MARIADB_FLAVOR_UNKNOWN = 0,  // no connection, or one that did not say
     D_MARIADB_FLAVOR_MARIADB,      // MariaDB
@@ -126,12 +126,12 @@ enum d_mariadb_flavor
 // 1.3    Features
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_mariadb_feature
+// dj_mariadb_feature
 //   enum: capabilities that depend on the server, by its flavor and version.
 // Each names, in brackets, the releases that introduced it; "--" for a server
 // that has never had it. The last three are calls of the client's too, which
 // the client the layer is built with must have (d_mariadb_supports).
-enum d_mariadb_feature
+enum dj_mariadb_feature
 {
     D_MARIADB_FEATURE_CTE = 0,              // WITH       [MySQL 8.0.1,
                                             //             MariaDB 10.2.2]
@@ -188,9 +188,9 @@ enum d_mariadb_feature
 // client -- the client library's version string and number (MAJOR*10000 +
 // MINOR*100 + PATCH, as mysql_get_client_version gives it), and whether it is
 // MariaDB's rather than Oracle's; "", 0 and false in a build without one
-const char*    d_mariadb_client_version(void) D_NOTHROW;
-unsigned long  d_mariadb_client_version_number(void) D_NOTHROW;
-bool           d_mariadb_client_is_mariadb(void) D_NOTHROW;
+const char* d_mariadb_client_version(void) D_NOTHROW;
+unsigned long d_mariadb_client_version_number(void) D_NOTHROW;
+bool d_mariadb_client_is_mariadb(void) D_NOTHROW;
 // nonblocking tls -- whether the client's calls that do not block
 // (mariadb_connection.h 1.8) can go over TLS: false for Connector/C before
 // 3.4.10 whose TLS is Schannel, Windows' own, and before 3.0.4 whatever its
@@ -199,7 +199,7 @@ bool           d_mariadb_client_is_mariadb(void) D_NOTHROW;
 // one; true otherwise. Where it is false, every start refuses a connection
 // under TLS with D_DB_UNSUPPORTED, and a connect's start one that would ask
 // for it: connect without blocking with D_MARIADB_SSL_DISABLED, or block
-bool           d_mariadb_client_nonblocking_tls(void) D_NOTHROW;
+bool d_mariadb_client_nonblocking_tls(void) D_NOTHROW;
 
 // 2.2    Result messages
 //------------------------------------------------------------------------------
@@ -211,7 +211,9 @@ bool           d_mariadb_client_nonblocking_tls(void) D_NOTHROW;
 // any other client or server number, a note that d_mariadb_error_message
 // describes it, since only the connection keeps that text. Never NULL, and
 // never to be freed.
-const char*    d_mariadb_result_message(int _result) D_NOTHROW;
+const char* d_mariadb_result_message(
+    int _result
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -228,22 +230,27 @@ const char*    d_mariadb_result_message(int _result) D_NOTHROW;
 // version for old clients, and libmysqlclient keeps it); its version number
 // (MAJOR*10000 + MINOR*100 + PATCH), MariaDB's true one either way; and
 // whether it is of the flavor named, at that version or later
-enum d_mariadb_flavor
-               d_mariadb_server_flavor(const struct d_mariadb* _db) D_NOTHROW;
-const char*    d_mariadb_server_version(const struct d_mariadb* _db) D_NOTHROW;
-unsigned long  d_mariadb_server_version_number(const struct d_mariadb* _db)
-                                               D_NOTHROW;
-bool           d_mariadb_server_at_least(const struct d_mariadb* _db,
-                                         enum d_mariadb_flavor   _flavor,
-                                         unsigned                _major,
-                                         unsigned                _minor,
-                                         unsigned                _patch)
-                                         D_NOTHROW;
+enum dj_mariadb_flavor d_mariadb_server_flavor(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
+const char* d_mariadb_server_version(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
+unsigned long d_mariadb_server_version_number(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
+bool d_mariadb_server_at_least(
+    const struct dj_mariadb* _db,
+    enum dj_mariadb_flavor   _flavor,
+    unsigned                 _major,
+    unsigned                 _minor,
+    unsigned                 _patch
+) D_NOTHROW;
 
 // 3.2    Features
 //------------------------------------------------------------------------------
 // features -- whether the server can do it, by its flavor and release;
-// `false` for a value outside enum d_mariadb_feature. What a plugin or a
+// `false` for a value outside enum dj_mariadb_feature. What a plugin or a
 // setting adds -- Galera, the X Plugin, Group Replication -- is whether the
 // server's release has it; whether this server runs it is its configuration,
 // and its build: MariaDB's Windows builds leave Galera out, its wsrep_*
@@ -252,8 +259,10 @@ bool           d_mariadb_server_at_least(const struct d_mariadb* _db,
 // query attributes -- needs the client the layer was built with to have it
 // too: Connector/C from 3.0, or libmysqlclient from 5.7.3, 5.7.4 and 8.0.23,
 // Connector/C having no query attributes
-bool           d_mariadb_supports(const struct d_mariadb* _db,
-                                  enum d_mariadb_feature  _feature) D_NOTHROW;
+bool d_mariadb_supports(
+    const struct dj_mariadb* _db,
+    enum dj_mariadb_feature  _feature
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -266,7 +275,9 @@ bool           d_mariadb_supports(const struct d_mariadb* _db,
 // the client's handle -- the MYSQL* inside, for the client's own calls: cast
 // it to MYSQL* where mysql.h is included. It stays the layer's: close the
 // handle with d_mariadb_close, never with mysql_close. NULL for NULL.
-void*          d_mariadb_native(struct d_mariadb* _db) D_NOTHROW;
+void* d_mariadb_native(
+    struct dj_mariadb* _db
+) D_NOTHROW;
 
 // 4.2    Errors
 //------------------------------------------------------------------------------
@@ -274,9 +285,15 @@ void*          d_mariadb_native(struct d_mariadb* _db) D_NOTHROW;
 // its message (mysql_error, "" for none) and its SQLSTATE (mysql_sqlstate,
 // "00000" for none). A result of the layer's own, negative, leaves them as
 // they were. A NULL handle answers 0 and "".
-unsigned       d_mariadb_error_code(const struct d_mariadb* _db) D_NOTHROW;
-const char*    d_mariadb_error_message(const struct d_mariadb* _db) D_NOTHROW;
-const char*    d_mariadb_sqlstate(const struct d_mariadb* _db) D_NOTHROW;
+unsigned d_mariadb_error_code(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
+const char* d_mariadb_error_message(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
+const char* d_mariadb_sqlstate(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

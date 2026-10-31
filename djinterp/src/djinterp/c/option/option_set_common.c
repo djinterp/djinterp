@@ -21,15 +21,14 @@
 // I.   CONSTRUCTION
 // ===========================================================================
 
-struct d_option_set
-d_option_set_view(
-    struct d_option* _options,
-    unsigned char*   _values,
-    uint32_t         _capacity,
-    uint32_t         _value_capacity
+struct dj_option_set d_option_set_view(
+    struct dj_option* _options,
+    unsigned char*    _values,
+    uint32_t          _capacity,
+    uint32_t          _value_capacity
 )
 {
-    struct d_option_set set;
+    struct dj_option_set set;
 
     set.options        = _options;
     set.values         = _values;
@@ -41,9 +40,8 @@ d_option_set_view(
     return set;
 }
 
-void
-d_option_set_clear(
-    struct d_option_set* _set
+void d_option_set_clear(
+    struct dj_option_set* _set
 )
 {
     if (_set == NULL)
@@ -57,9 +55,8 @@ d_option_set_clear(
     return;
 }
 
-bool
-d_option_set_is_valid(
-    const struct d_option_set* _set
+bool d_option_set_is_valid(
+    const struct dj_option_set* _set
 )
 {
     uint32_t i;
@@ -83,7 +80,7 @@ d_option_set_is_valid(
 
     for (i = 0u; i < _set->count; ++i)
     {
-        const struct d_option* option = &_set->options[i];
+        const struct dj_option* option = &_set->options[i];
 
         if (!d_option_is_valid(option))
         {
@@ -126,14 +123,13 @@ d_option_set_is_valid(
 // II.  POPULATION
 // ===========================================================================
 
-struct d_option_result
-d_option_set_add(
-    struct d_option_set* _set,
-    uint64_t             _key,
-    d_type_info16        _key_type,
-    d_type_info16        _value_type,
-    uint32_t             _value_size,
-    uint32_t             _value_align
+struct dj_option_result d_option_set_add(
+    struct dj_option_set* _set,
+    uint64_t              _key,
+    dj_type_info16        _key_type,
+    dj_type_info16        _value_type,
+    uint32_t              _value_size,
+    uint32_t              _value_align
 )
 {
     uint32_t align;
@@ -189,11 +185,10 @@ d_option_set_add(
     return d_option_ok(index);
 }
 
-struct d_option_result
-d_option_set_add_unary(
-    struct d_option_set* _set,
-    uint64_t             _key,
-    d_type_info16        _key_type
+struct dj_option_result d_option_set_add_unary(
+    struct dj_option_set* _set,
+    uint64_t              _key,
+    dj_type_info16        _key_type
 )
 {
     uint32_t index;
@@ -225,14 +220,13 @@ d_option_set_add_unary(
     return d_option_ok(index);
 }
 
-struct d_option_result
-d_option_set_add_cell(
-    struct d_option_set*   _set,
-    const struct d_option* _option,
-    const void*            _value
+struct dj_option_result d_option_set_add_cell(
+    struct dj_option_set*   _set,
+    const struct dj_option* _option,
+    const void*             _value
 )
 {
-    struct d_option_result result;
+    struct dj_option_result result;
     uint32_t               align;
 
     if ((_set == NULL) || (_option == NULL))
@@ -267,7 +261,7 @@ d_option_set_add_cell(
 
     if (_value != NULL)
     {
-        struct d_option* placed = &_set->options[result.payload.value];
+        struct dj_option* placed = &_set->options[result.payload.value];
 
         return d_option_write(placed, _set->values, _value,
                               (size_t)_option->value_size);
@@ -281,27 +275,24 @@ d_option_set_add_cell(
 // III. QUERIES
 // ===========================================================================
 
-uint32_t
-d_option_set_size(
-    const struct d_option_set* _set
+uint32_t d_option_set_size(
+    const struct dj_option_set* _set
 )
 {
     return ((_set != NULL) ? _set->count : 0u);
 }
 
-bool
-d_option_set_empty(
-    const struct d_option_set* _set
+bool d_option_set_empty(
+    const struct dj_option_set* _set
 )
 {
     return (d_option_set_size(_set) == 0u);
 }
 
-bool
-d_option_set_find(
-    const struct d_option_set* _set,
-    uint64_t                   _key,
-    uint32_t*                  _out_index
+bool d_option_set_find(
+    const struct dj_option_set* _set,
+    uint64_t                    _key,
+    uint32_t*                   _out_index
 )
 {
     uint32_t i;
@@ -329,19 +320,17 @@ d_option_set_find(
     return false;
 }
 
-bool
-d_option_set_contains(
-    const struct d_option_set* _set,
-    uint64_t                   _key
+bool d_option_set_contains(
+    const struct dj_option_set* _set,
+    uint64_t                    _key
 )
 {
     return d_option_set_find(_set, _key, NULL);
 }
 
-struct d_option*
-d_option_set_at(
-    struct d_option_set* _set,
-    uint32_t             _index
+struct dj_option* d_option_set_at(
+    struct dj_option_set* _set,
+    uint32_t              _index
 )
 {
     if ((_set == NULL) || (_index >= _set->count))
@@ -352,10 +341,9 @@ d_option_set_at(
     return &_set->options[_index];
 }
 
-const struct d_option*
-d_option_set_at_const(
-    const struct d_option_set* _set,
-    uint32_t                   _index
+const struct dj_option* d_option_set_at_const(
+    const struct dj_option_set* _set,
+    uint32_t                    _index
 )
 {
     if ((_set == NULL) || (_index >= _set->count))
@@ -366,14 +354,13 @@ d_option_set_at_const(
     return &_set->options[_index];
 }
 
-bool
-d_option_set_key_at(
-    const struct d_option_set* _set,
-    uint32_t                   _index,
-    uint64_t*                  _out_key
+bool d_option_set_key_at(
+    const struct dj_option_set* _set,
+    uint32_t                    _index,
+    uint64_t*                   _out_key
 )
 {
-    const struct d_option* option = d_option_set_at_const(_set, _index);
+    const struct dj_option* option = d_option_set_at_const(_set, _index);
 
     if ((option == NULL) || (_out_key == NULL))
     {
@@ -385,14 +372,13 @@ d_option_set_key_at(
     return true;
 }
 
-d_type_info16
-d_option_set_key_type(
-    const struct d_option_set* _set
+dj_type_info16 d_option_set_key_type(
+    const struct dj_option_set* _set
 )
 {
     if ((_set == NULL) || (_set->count == 0u))
     {
-        return (d_type_info16)0;
+        return (dj_type_info16)0;
     }
 
     return _set->options[0].key_type;
@@ -403,12 +389,11 @@ d_option_set_key_type(
 // IV.  ACCESS
 // ===========================================================================
 
-struct d_option_result
-d_option_set_get(
-    const struct d_option_set* _set,
-    uint64_t                   _key,
-    void*                      _out,
-    size_t                     _out_size
+struct dj_option_result d_option_set_get(
+    const struct dj_option_set* _set,
+    uint64_t                    _key,
+    void*                       _out,
+    size_t                      _out_size
 )
 {
     uint32_t index;
@@ -426,12 +411,11 @@ d_option_set_get(
     return d_option_read(&_set->options[index], _set->values, _out, _out_size);
 }
 
-struct d_option_result
-d_option_set_set(
-    struct d_option_set* _set,
-    uint64_t             _key,
-    const void*          _value,
-    size_t               _value_size
+struct dj_option_result d_option_set_set(
+    struct dj_option_set* _set,
+    uint64_t              _key,
+    const void*           _value,
+    size_t                _value_size
 )
 {
     uint32_t index;
@@ -450,10 +434,9 @@ d_option_set_set(
                           _value, _value_size);
 }
 
-bool
-d_option_set_is_assigned(
-    const struct d_option_set* _set,
-    uint64_t                   _key
+bool d_option_set_is_assigned(
+    const struct dj_option_set* _set,
+    uint64_t                    _key
 )
 {
     uint32_t index;
@@ -475,10 +458,9 @@ d_option_set_is_assigned(
 // written to make its own quantifier visible rather than sharing a helper that
 // would hide it.
 
-bool
-d_option_set_key_equal(
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs
+bool d_option_set_key_equal(
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs
 )
 {
     uint32_t i;
@@ -506,13 +488,12 @@ d_option_set_key_equal(
     return true;
 }
 
-bool
-d_option_set_agrees(
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+bool d_option_set_agrees(
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     uint32_t i;
@@ -544,14 +525,13 @@ d_option_set_agrees(
     return true;
 }
 
-bool
-d_option_set_conflicts(
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context,
-    uint64_t*                  _out_key
+bool d_option_set_conflicts(
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context,
+    uint64_t*                   _out_key
 )
 {
     uint32_t i;
@@ -587,13 +567,12 @@ d_option_set_conflicts(
     return false;
 }
 
-bool
-d_option_set_equal(
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+bool d_option_set_equal(
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     //   EQUALITY QUANTIFIES OVER THE UNION: same key set, then identical
@@ -613,12 +592,11 @@ d_option_set_equal(
 // VI.  UNION AND INTERSECTION
 // ===========================================================================
 
-struct d_option_result
-d_option_set_key_intersection(
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs,
-    uint64_t*                  _out,
-    uint32_t                   _capacity
+struct dj_option_result d_option_set_key_intersection(
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    uint64_t*                   _out,
+    uint32_t                    _capacity
 )
 {
     uint32_t i;
@@ -656,14 +634,13 @@ d_option_set_key_intersection(
     return d_option_ok(n);
 }
 
-struct d_option_result
-d_option_set_intersection(
-    struct d_option_set*       _out,
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+struct dj_option_result d_option_set_intersection(
+    struct dj_option_set*       _out,
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     uint32_t i;
@@ -683,7 +660,7 @@ d_option_set_intersection(
 
     for (i = 0u; i < _lhs->count; ++i)
     {
-        struct d_option_result added;
+        struct dj_option_result added;
 
         if (!d_option_set_find(_rhs, _lhs->options[i].key, &j))
         {
@@ -712,14 +689,13 @@ d_option_set_intersection(
     return d_option_ok(_out->count);
 }
 
-struct d_option_result
-d_option_set_union(
-    struct d_option_set*       _out,
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+struct dj_option_result d_option_set_union(
+    struct dj_option_set*       _out,
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     uint32_t i;
@@ -747,7 +723,7 @@ d_option_set_union(
 
     for (i = 0u; i < _lhs->count; ++i)
     {
-        struct d_option_result added =
+        struct dj_option_result added =
             d_option_set_add_cell(_out, &_lhs->options[i],
                                   d_option_slot_const(&_lhs->options[i],
                                                       _lhs->values));
@@ -760,7 +736,7 @@ d_option_set_union(
 
     for (i = 0u; i < _rhs->count; ++i)
     {
-        struct d_option_result added;
+        struct dj_option_result added;
 
         //   shared keys are already present, and the sets agree, so either
         // copy would do. Skipping keeps the left set's order.
@@ -787,11 +763,10 @@ d_option_set_union(
 // VII. TRAVERSAL
 // ===========================================================================
 
-uint32_t
-d_option_set_for_each(
-    const struct d_option_set* _set,
-    fn_option_visit            _visit,
-    void*                      _context
+uint32_t d_option_set_for_each(
+    const struct dj_option_set* _set,
+    fn_option_visit             _visit,
+    void*                       _context
 )
 {
     uint32_t i;
@@ -815,12 +790,11 @@ d_option_set_for_each(
     return _set->count;
 }
 
-bool
-d_option_set_fold(
-    const struct d_option_set* _set,
-    void*                      _accumulator,
-    fn_accumulator             _step,
-    void*                      _context
+bool d_option_set_fold(
+    const struct dj_option_set* _set,
+    void*                       _accumulator,
+    fn_accumulator              _step,
+    void*                       _context
 )
 {
     uint32_t i;
@@ -841,9 +815,8 @@ d_option_set_fold(
     return true;
 }
 
-bool
-d_option_set_is_canon(
-    const struct d_option_set* _set
+bool d_option_set_is_canon(
+    const struct dj_option_set* _set
 )
 {
     uint32_t i;
@@ -864,9 +837,8 @@ d_option_set_is_canon(
     return true;
 }
 
-struct d_option_result
-d_option_set_canon(
-    struct d_option_set* _set
+struct dj_option_result d_option_set_canon(
+    struct dj_option_set* _set
 )
 {
     uint32_t i;
@@ -888,7 +860,7 @@ d_option_set_canon(
     // matters because it makes canon idempotent on an already-sorted set.
     for (i = 1u; i < _set->count; ++i)
     {
-        struct d_option pivot = _set->options[i];
+        struct dj_option pivot = _set->options[i];
 
         j = i;
 
@@ -904,9 +876,8 @@ d_option_set_canon(
     return d_option_ok(_set->count);
 }
 
-size_t
-d_option_set_byte_size(
-    const struct d_option_set* _set
+size_t d_option_set_byte_size(
+    const struct dj_option_set* _set
 )
 {
     if (_set == NULL)
@@ -915,6 +886,6 @@ d_option_set_byte_size(
     }
 
     //   arithmetic, not a traversal -- goal 4's runtime sizeof for a flat set.
-    return ( (sizeof(struct d_option) * (size_t)_set->count) +
+    return ( (sizeof(struct dj_option) * (size_t)_set->count) +
              (size_t)_set->value_used );
 }

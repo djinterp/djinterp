@@ -142,7 +142,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_DYNAMODB_ENV_DYNAMODB_H 1
 
 // djinterp
-#include "../../../config/core/env/db/dynamodb/cfg_env_dynamodb.h"  // D_CFG_ENV_*
+#include "../../../config/env/db/dynamodb/cfg_env_dynamodb.h"  // D_CFG_ENV_*
 #include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 

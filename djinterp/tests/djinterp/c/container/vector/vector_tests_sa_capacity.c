@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,14 +21,12 @@ d_tests_sa_vector_reserve
   - successful reservation with larger capacity
   - elements preserved after reservation
 */
-bool
-d_tests_sa_vector_reserve
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_reserve(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              value;
 
     result = true;
@@ -113,14 +111,12 @@ d_tests_sa_vector_shrink_to_fit
   - successful shrink of over-allocated vector
   - elements preserved after shrink
 */
-bool
-d_tests_sa_vector_shrink_to_fit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_shrink_to_fit(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              value;
 
     result = true;
@@ -210,14 +206,12 @@ d_tests_sa_vector_ensure_capacity
   - no-op when sufficient capacity exists
   - successful growth when needed
 */
-bool
-d_tests_sa_vector_ensure_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_ensure_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -281,14 +275,12 @@ d_tests_sa_vector_available
   - partially filled vector returns remaining
   - full vector returns 0
 */
-bool
-d_tests_sa_vector_available
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_available(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              value;
     size_t           avail;
 
@@ -355,10 +347,8 @@ d_tests_sa_vector_available
 d_tests_sa_vector_capacity_all
   Aggregation function that runs all capacity management tests.
 */
-bool
-d_tests_sa_vector_capacity_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_capacity_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -10,8 +10,8 @@
 *                                                            revised: 2026.09.22
 *******************************************************************************/
 // unit checks for the C++ lexer, and the cross-language invariants
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
 #include <stdio.h>
 #include <string.h>
 

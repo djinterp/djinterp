@@ -24,13 +24,9 @@ d_tests_dfile_fread_all
   - returns NULL for nonexistent file
   - returns NULL for NULL path
 */
-struct d_test_object*
-d_tests_dfile_fread_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fread_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     void*                 content;
     size_t                size;
@@ -102,13 +98,9 @@ d_tests_dfile_fwrite_all
   - overwrites existing file
   - returns error for NULL path
 */
-struct d_test_object*
-d_tests_dfile_fwrite_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fwrite_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char*                 read_content;
     size_t                read_size;
@@ -189,13 +181,9 @@ d_tests_dfile_fappend_all
   - creates new file if not exists
   - returns error for NULL path
 */
-struct d_test_object*
-d_tests_dfile_fappend_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fappend_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char*                 read_content;
     size_t                read_size;
@@ -263,13 +251,9 @@ d_tests_dfile_binary_io_all
   - d_file_write_all
   - d_file_append_all
 */
-struct d_test_object*
-d_tests_dfile_binary_io_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_binary_io_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("XV. Binary I/O Helpers", 3);

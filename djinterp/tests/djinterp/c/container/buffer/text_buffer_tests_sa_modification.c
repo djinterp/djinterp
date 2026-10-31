@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,14 +22,12 @@ d_tests_sa_text_buffer_set_string
   - empty string clears buffer content
   - set with longer string grows buffer
 */
-bool
-d_tests_sa_text_buffer_set_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_set_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -109,14 +107,12 @@ d_tests_sa_text_buffer_set_buffer
   - zero length clears content
   - raw data replaces content with specified length
 */
-bool
-d_tests_sa_text_buffer_set_buffer
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_set_buffer(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
     char                  data[4];
 
@@ -187,14 +183,12 @@ d_tests_sa_text_buffer_set_formatted
   - formatted set replaces entire content
   - multiple argument substitution
 */
-bool
-d_tests_sa_text_buffer_set_formatted
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_set_formatted(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -247,14 +241,12 @@ d_tests_sa_text_buffer_replace_char
   - all occurrences replaced
   - length unchanged after replacement
 */
-bool
-d_tests_sa_text_buffer_replace_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_replace_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -321,14 +313,12 @@ d_tests_sa_text_buffer_replace_string
   - replacement with different length adjusts buffer
   - replacement with empty string removes occurrences
 */
-bool
-d_tests_sa_text_buffer_replace_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_replace_string(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -406,14 +396,12 @@ d_tests_sa_text_buffer_replace_range
   - replacement with shorter string
   - replacement with longer string
 */
-bool
-d_tests_sa_text_buffer_replace_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_replace_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -485,14 +473,12 @@ d_tests_sa_text_buffer_remove_char
   - removing last character
   - length decremented correctly
 */
-bool
-d_tests_sa_text_buffer_remove_char
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_remove_char(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -534,7 +520,7 @@ d_tests_sa_text_buffer_remove_char
 
         // test 4: remove last character
         d_text_buffer_remove_char(
-            buffer, (d_index)(d_text_buffer_length(buffer) - 1));
+            buffer, (dj_index)(d_text_buffer_length(buffer) - 1));
         str = d_text_buffer_get_string(buffer);
         result = d_assert_standalone(
             d_strcasecmp(str, "BD") == 0,
@@ -558,14 +544,12 @@ d_tests_sa_text_buffer_remove_range
   - remove range from beginning
   - remove entire content
 */
-bool
-d_tests_sa_text_buffer_remove_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_remove_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -627,14 +611,12 @@ d_tests_sa_text_buffer_consume_front
   - consuming all characters empties buffer
   - consuming more than length returns false or clamps
 */
-bool
-d_tests_sa_text_buffer_consume_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_consume_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -702,14 +684,12 @@ d_tests_sa_text_buffer_consume_back
   - consume removes trailing characters
   - consuming all characters empties buffer
 */
-bool
-d_tests_sa_text_buffer_consume_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_consume_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                  result;
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     const char*           str;
 
     result = true;
@@ -765,10 +745,8 @@ d_tests_sa_text_buffer_consume_back
 d_tests_sa_text_buffer_modification_all
   Aggregation function that runs all modification operation tests.
 */
-bool
-d_tests_sa_text_buffer_modification_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_modification_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

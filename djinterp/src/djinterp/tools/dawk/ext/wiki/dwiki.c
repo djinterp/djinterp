@@ -20,7 +20,7 @@
 #include <stdlib.h>  // malloc, realloc, free, qsort
 #include <string.h>  // memcpy, memset, strcmp, strlen, strncmp
 // djinterp
-#include "./dwiki_driver.h"  // d_wiki_driver
+#include "./dwiki_driver.h"  // dj_wiki_driver
 #include "./dwiki_tables.h"  // d_internal_dwiki_entities
 
 
@@ -38,10 +38,10 @@
 d_internal_room
   Room in a buffer for `_more` bytes and a terminator.
 */
-static bool
-d_internal_room(
-    struct d_wiki_buffer* _buffer,
-    size_t                _more
+static
+bool d_internal_room(
+    struct dj_wiki_buffer* _buffer,
+    size_t                 _more
 )
 {
     // a buffer that has failed stays failed
@@ -79,11 +79,10 @@ d_internal_room(
 }
 
 
-bool
-d_wiki_buffer_add(
-    struct d_wiki_buffer* _buffer,
-    const char*           _text,
-    size_t                _length
+bool d_wiki_buffer_add(
+    struct dj_wiki_buffer* _buffer,
+    const char*            _text,
+    size_t                 _length
 )
 {
     // there must be room for the text
@@ -105,10 +104,9 @@ d_wiki_buffer_add(
 }
 
 
-bool
-d_wiki_buffer_add_text(
-    struct d_wiki_buffer* _buffer,
-    const char*           _text
+bool d_wiki_buffer_add_text(
+    struct dj_wiki_buffer* _buffer,
+    const char*            _text
 )
 {
     return d_wiki_buffer_add(_buffer, (_text) ? _text : "",
@@ -116,19 +114,17 @@ d_wiki_buffer_add_text(
 }
 
 
-bool
-d_wiki_buffer_add_char(
-    struct d_wiki_buffer* _buffer,
-    char                  _byte
+bool d_wiki_buffer_add_char(
+    struct dj_wiki_buffer* _buffer,
+    char                   _byte
 )
 {
     return d_wiki_buffer_add(_buffer, &_byte, 1u);
 }
 
 
-char*
-d_wiki_buffer_take(
-    struct d_wiki_buffer* _buffer
+char* d_wiki_buffer_take(
+    struct dj_wiki_buffer* _buffer
 )
 {
     // a failed buffer gives nothing, and is emptied
@@ -153,9 +149,8 @@ d_wiki_buffer_take(
 }
 
 
-void
-d_wiki_buffer_free(
-    struct d_wiki_buffer* _buffer
+void d_wiki_buffer_free(
+    struct dj_wiki_buffer* _buffer
 )
 {
     free(_buffer->text);
@@ -165,8 +160,7 @@ d_wiki_buffer_free(
 }
 
 
-char*
-d_wiki_copy(
+char* d_wiki_copy(
     const char* _text,
     size_t      _length
 )
@@ -196,8 +190,7 @@ d_wiki_copy(
 //==============================================================================
 
 
-uint32_t
-d_wiki_utf8(
+uint32_t d_wiki_utf8(
     const char* _text,
     size_t      _length,
     size_t*     _out_bytes
@@ -270,10 +263,9 @@ d_wiki_utf8(
 }
 
 
-bool
-d_wiki_add_utf8(
-    struct d_wiki_buffer* _out,
-    uint32_t              _character
+bool d_wiki_add_utf8(
+    struct dj_wiki_buffer* _out,
+    uint32_t               _character
 )
 {
     char   bytes[4];
@@ -318,11 +310,11 @@ d_wiki_add_utf8(
 d_internal_in_ranges
   Whether a character is in a sorted table of ranges.
 */
-static bool
-d_internal_in_ranges(
+static
+bool d_internal_in_ranges(
     const uint32_t (*_ranges)[2],
-    size_t           _count,
-    uint32_t         _character
+    size_t   _count,
+    uint32_t _character
 )
 {
     size_t low  = 0;
@@ -356,8 +348,8 @@ d_internal_in_ranges(
 d_internal_is_ascii_punctuation
   Whether a byte is ASCII's punctuation, as CommonMark names it.
 */
-static bool
-d_internal_is_ascii_punctuation(
+static
+bool d_internal_is_ascii_punctuation(
     uint32_t _character
 )
 {
@@ -368,8 +360,7 @@ d_internal_is_ascii_punctuation(
 }
 
 
-bool
-d_wiki_is_punctuation(
+bool d_wiki_is_punctuation(
     uint32_t _character
 )
 {
@@ -385,8 +376,7 @@ d_wiki_is_punctuation(
 }
 
 
-bool
-d_wiki_is_space(
+bool d_wiki_is_space(
     uint32_t _character
 )
 {
@@ -406,8 +396,7 @@ d_wiki_is_space(
 }
 
 
-bool
-d_wiki_is_word(
+bool d_wiki_is_word(
     uint32_t _character
 )
 {
@@ -426,8 +415,7 @@ d_wiki_is_word(
 }
 
 
-uint32_t
-d_wiki_lower(
+uint32_t d_wiki_lower(
     uint32_t _character
 )
 {
@@ -441,7 +429,7 @@ d_wiki_lower(
     // each run of capitals is a distance from its small letters
     for (size_t index = 0; index < D_INTERNAL_DWIKI_LOWERS_COUNT; ++index)
     {
-        const struct d_internal_dwiki_lower* const run =
+        const struct dj_internal_dwiki_lower* const run =
             &d_internal_dwiki_lowers[index];
 
         // the runs are sorted, so one past the character ends the search
@@ -466,8 +454,8 @@ d_wiki_lower(
 d_internal_compare_entity
   Orders an entity's name against a looked-for name of a length.
 */
-static int
-d_internal_compare_entity(
+static
+int d_internal_compare_entity(
     const char* _name,
     const char* _wanted,
     size_t      _length
@@ -485,11 +473,10 @@ d_internal_compare_entity(
 }
 
 
-size_t
-d_wiki_entity(
-    const char*           _text,
-    size_t                _length,
-    struct d_wiki_buffer* _out
+size_t d_wiki_entity(
+    const char*            _text,
+    size_t                 _length,
+    struct dj_wiki_buffer* _out
 )
 {
     size_t at = 1u;
@@ -607,11 +594,10 @@ d_wiki_entity(
 }
 
 
-bool
-d_wiki_emoji(
-    const char*           _name,
-    size_t                _length,
-    struct d_wiki_buffer* _out
+bool d_wiki_emoji(
+    const char*            _name,
+    size_t                 _length,
+    struct dj_wiki_buffer* _out
 )
 {
     size_t low  = 0;
@@ -646,8 +632,7 @@ d_wiki_emoji(
 }
 
 
-bool
-d_wiki_has_scheme(
+bool d_wiki_has_scheme(
     const char* _target
 )
 {
@@ -679,8 +664,7 @@ d_wiki_has_scheme(
 }
 
 
-bool
-d_wiki_is_image(
+bool d_wiki_is_image(
     const char* _path,
     size_t      _length
 )
@@ -740,11 +724,10 @@ d_wiki_is_image(
 }
 
 
-bool
-d_wiki_normalize_label(
-    struct d_wiki_buffer* _out,
-    const char*           _label,
-    size_t                _length
+bool d_wiki_normalize_label(
+    struct dj_wiki_buffer* _out,
+    const char*            _label,
+    size_t                 _length
 )
 {
     bool   space = false;
@@ -791,8 +774,8 @@ d_wiki_normalize_label(
 d_internal_ends_with
   Whether a name ends with an extension, in any case.
 */
-static bool
-d_internal_ends_with(
+static
+bool d_internal_ends_with(
     const char* _name,
     size_t      _length,
     const char* _extension
@@ -829,13 +812,13 @@ static size_t
 d_internal_extension_of(
     const char*          _name,
     size_t               _length,
-    enum d_wiki_dialect* _out_dialect
+    enum dj_wiki_dialect* _out_dialect
 )
 {
     static const struct
     {
         const char*         extension;
-        enum d_wiki_dialect dialect;
+        enum dj_wiki_dialect dialect;
     } extensions[] =
     {
         { ".md",        D_WIKI_MARKDOWN  },
@@ -868,12 +851,12 @@ d_internal_extension_of(
 }
 
 
-enum d_wiki_dialect
+enum dj_wiki_dialect
 d_wiki_dialect_of(
     const char* _path
 )
 {
-    enum d_wiki_dialect dialect = D_WIKI_OTHER;
+    enum dj_wiki_dialect dialect = D_WIKI_OTHER;
 
     // a path that is not there names nothing
     if (!_path)
@@ -887,7 +870,7 @@ d_wiki_dialect_of(
 }
 
 
-enum d_wiki_dialect
+enum dj_wiki_dialect
 d_wiki_dialect_named(
     const char* _name
 )
@@ -895,7 +878,7 @@ d_wiki_dialect_named(
     static const struct
     {
         const char*         name;
-        enum d_wiki_dialect dialect;
+        enum dj_wiki_dialect dialect;
     } names[] =
     {
         { "markdown",  D_WIKI_MARKDOWN  },
@@ -942,7 +925,7 @@ d_wiki_dialect_named(
 
 const char*
 d_wiki_dialect_name(
-    enum d_wiki_dialect _dialect
+    enum dj_wiki_dialect _dialect
 )
 {
     // a table of the names, by dialect
@@ -956,9 +939,9 @@ d_wiki_dialect_name(
 }
 
 
-const struct d_wiki_driver*
+const struct dj_wiki_driver*
 d_wiki_driver_of(
-    enum d_wiki_dialect _dialect
+    enum dj_wiki_dialect _dialect
 )
 {
     // a table of the drivers, by dialect
@@ -985,8 +968,8 @@ d_wiki_driver_of(
 d_internal_grow
   Room in an array for one more item.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _items,
     size_t* _capacity,
     size_t  _count,
@@ -1017,19 +1000,19 @@ d_internal_grow(
 
 size_t
 d_wiki_add_block(
-    struct d_wiki*         _wiki,
-    enum d_wiki_block_kind _kind,
+    struct dj_wiki*         _wiki,
+    enum dj_wiki_block_kind _kind,
     size_t                 _start
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_wiki->blocks, &_wiki->block_capacity,
-                         _wiki->block_count, sizeof(struct d_wiki_block)))
+                         _wiki->block_count, sizeof(struct dj_wiki_block)))
     {
         return D_WIKI_NONE;
     }
 
-    struct d_wiki_block* const block = &_wiki->blocks[_wiki->block_count];
+    struct dj_wiki_block* const block = &_wiki->blocks[_wiki->block_count];
 
     memset(block, 0, sizeof(*block));
     block->kind          = _kind;
@@ -1044,19 +1027,18 @@ d_wiki_add_block(
 }
 
 
-bool
-d_wiki_add_segment(
-    struct d_wiki* _wiki,
-    size_t         _start,
-    size_t         _end,
-    size_t         _pad
+bool d_wiki_add_segment(
+    struct dj_wiki* _wiki,
+    size_t          _start,
+    size_t          _end,
+    size_t          _pad
 )
 {
     // a segment belongs to the last block
     if ( (_wiki->block_count == 0u) ||
          (!d_internal_grow((void**)&_wiki->segments,
                            &_wiki->segment_capacity, _wiki->segment_count,
-                           sizeof(struct d_wiki_segment))) )
+                           sizeof(struct dj_wiki_segment))) )
     {
         return false;
     }
@@ -1071,16 +1053,15 @@ d_wiki_add_segment(
 }
 
 
-size_t
-d_wiki_add_heading(
-    struct d_wiki*               _wiki,
-    const struct d_wiki_heading* _heading
+size_t d_wiki_add_heading(
+    struct dj_wiki*               _wiki,
+    const struct dj_wiki_heading* _heading
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_wiki->headings, &_wiki->heading_capacity,
                          _wiki->heading_count,
-                         sizeof(struct d_wiki_heading)))
+                         sizeof(struct dj_wiki_heading)))
     {
         return D_WIKI_NONE;
     }
@@ -1091,15 +1072,14 @@ d_wiki_add_heading(
 }
 
 
-size_t
-d_wiki_add_link(
-    struct d_wiki*            _wiki,
-    const struct d_wiki_link* _link
+size_t d_wiki_add_link(
+    struct dj_wiki*            _wiki,
+    const struct dj_wiki_link* _link
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_wiki->links, &_wiki->link_capacity,
-                         _wiki->link_count, sizeof(struct d_wiki_link)))
+                         _wiki->link_count, sizeof(struct dj_wiki_link)))
     {
         return D_WIKI_NONE;
     }
@@ -1110,16 +1090,15 @@ d_wiki_add_link(
 }
 
 
-size_t
-d_wiki_add_template(
-    struct d_wiki*                _wiki,
-    const struct d_wiki_template* _template
+size_t d_wiki_add_template(
+    struct dj_wiki*                _wiki,
+    const struct dj_wiki_template* _template
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_wiki->templates,
                          &_wiki->template_capacity, _wiki->template_count,
-                         sizeof(struct d_wiki_template)))
+                         sizeof(struct dj_wiki_template)))
     {
         return D_WIKI_NONE;
     }
@@ -1130,16 +1109,15 @@ d_wiki_add_template(
 }
 
 
-size_t
-d_wiki_add_argument(
-    struct d_wiki*                _wiki,
-    const struct d_wiki_argument* _argument
+size_t d_wiki_add_argument(
+    struct dj_wiki*                _wiki,
+    const struct dj_wiki_argument* _argument
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_wiki->arguments,
                          &_wiki->argument_capacity, _wiki->argument_count,
-                         sizeof(struct d_wiki_argument)))
+                         sizeof(struct dj_wiki_argument)))
     {
         return D_WIKI_NONE;
     }
@@ -1150,11 +1128,10 @@ d_wiki_add_argument(
 }
 
 
-bool
-d_wiki_add_problem(
-    struct d_wiki* _wiki,
-    size_t         _offset,
-    const char*    _what
+bool d_wiki_add_problem(
+    struct dj_wiki* _wiki,
+    size_t          _offset,
+    const char*     _what
 )
 {
     char* const what = d_wiki_copy(_what, strlen(_what));
@@ -1163,7 +1140,7 @@ d_wiki_add_problem(
     if ( (!what) ||
          (!d_internal_grow((void**)&_wiki->problems,
                            &_wiki->problem_capacity, _wiki->problem_count,
-                           sizeof(struct d_wiki_problem))) )
+                           sizeof(struct dj_wiki_problem))) )
     {
         free(what);
 
@@ -1181,8 +1158,8 @@ d_wiki_add_problem(
 
 void
 d_wiki_new_link(
-    struct d_wiki_link* _link,
-    enum d_wiki_form    _form,
+    struct dj_wiki_link* _link,
+    enum dj_wiki_form    _form,
     size_t              _start,
     size_t              _end
 )
@@ -1217,9 +1194,9 @@ d_internal_find_lines
   The start of every line, a line ending `\n`, `\r\n` or `\r`; the line
 after a last line ending is a line too, empty.
 */
-static bool
-d_internal_find_lines(
-    struct d_wiki* _wiki
+static
+bool d_internal_find_lines(
+    struct dj_wiki* _wiki
 )
 {
     size_t count = 1u;
@@ -1273,11 +1250,10 @@ d_internal_find_lines(
 }
 
 
-size_t
-d_wiki_line_of(
-    const struct d_wiki* _wiki,
-    size_t               _offset,
-    size_t*              _out_column
+size_t d_wiki_line_of(
+    const struct dj_wiki* _wiki,
+    size_t                _offset,
+    size_t*               _out_column
 )
 {
     size_t low  = 0;
@@ -1326,7 +1302,7 @@ d_internal_compare_links, d_internal_compare_templates
   Order records by where they start, and those that start together by the
 order they were found in, which a record's place among the found keeps.
 */
-struct d_internal_order
+struct dj_internal_order
 {
     size_t start;
     size_t end;
@@ -1334,14 +1310,14 @@ struct d_internal_order
 };
 
 
-static int
-d_internal_compare_order(
+static
+int d_internal_compare_order(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_internal_order* const left  = _left;
-    const struct d_internal_order* const right = _right;
+    const struct dj_internal_order* const left  = _left;
+    const struct dj_internal_order* const right = _right;
 
     // by start, then the longer first, then as found
     if (left->start != right->start)
@@ -1364,17 +1340,17 @@ d_internal_compare_order(
 d_internal_order_links
   Puts the links in the text's order, keeping each reference's definition.
 */
-static bool
-d_internal_order_links(
-    struct d_wiki* _wiki
+static
+bool d_internal_order_links(
+    struct dj_wiki* _wiki
 )
 {
     const size_t                   count  = _wiki->link_count;
-    struct d_internal_order* const order  = malloc((count + 1u) *
+    struct dj_internal_order* const order  = malloc((count + 1u) *
                                                    sizeof(*order));
     size_t* const                  placed = malloc((count + 1u) *
                                                    sizeof(size_t));
-    struct d_wiki_link* const      sorted = malloc((count + 1u) *
+    struct dj_wiki_link* const      sorted = malloc((count + 1u) *
                                                    sizeof(*sorted));
 
     // everything at once, or nothing
@@ -1435,15 +1411,15 @@ d_internal_order_templates
   Puts the templates in the text's order, and gives each the template
 whose arguments hold it.
 */
-static bool
-d_internal_order_templates(
-    struct d_wiki* _wiki
+static
+bool d_internal_order_templates(
+    struct dj_wiki* _wiki
 )
 {
     const size_t                   count  = _wiki->template_count;
-    struct d_internal_order* const order  = malloc((count + 1u) *
+    struct dj_internal_order* const order  = malloc((count + 1u) *
                                                    sizeof(*order));
-    struct d_wiki_template* const  sorted = malloc((count + 1u) *
+    struct dj_wiki_template* const  sorted = malloc((count + 1u) *
                                                    sizeof(*sorted));
     size_t* const                  stack  = malloc((count + 1u) *
                                                    sizeof(size_t));
@@ -1507,9 +1483,9 @@ d_internal_place_links
   Gives each link its line and column, the template whose arguments hold
 it, and, when its driver did not, the leaf that holds it.
 */
-static void
-d_internal_place_links(
-    struct d_wiki* _wiki
+static
+void d_internal_place_links(
+    struct dj_wiki* _wiki
 )
 {
     size_t leaf = 0;
@@ -1517,7 +1493,7 @@ d_internal_place_links(
     // each link, in order, as the leaves are, in order
     for (size_t index = 0; index < _wiki->link_count; ++index)
     {
-        struct d_wiki_link* const link = &_wiki->links[index];
+        struct dj_wiki_link* const link = &_wiki->links[index];
 
         link->line = d_wiki_line_of(_wiki, link->start, &link->column);
 
@@ -1571,15 +1547,15 @@ d_internal_order_headings
   Puts the headings in the text's order, as a driver may find them out of
 it: an insertion sort, as most are in order already.
 */
-static void
-d_internal_order_headings(
-    struct d_wiki* _wiki
+static
+void d_internal_order_headings(
+    struct dj_wiki* _wiki
 )
 {
     // each heading moved back past those that start after it
     for (size_t index = 1u; index < _wiki->heading_count; ++index)
     {
-        const struct d_wiki_heading moving = _wiki->headings[index];
+        const struct dj_wiki_heading moving = _wiki->headings[index];
         size_t                      at     = index;
 
         // those after it moved up, to its place
@@ -1601,15 +1577,15 @@ d_internal_order_headings(
 d_internal_place
   Gives every other record its line and column.
 */
-static void
-d_internal_place(
-    struct d_wiki* _wiki
+static
+void d_internal_place(
+    struct dj_wiki* _wiki
 )
 {
     // a block from its first line to its last
     for (size_t index = 0; index < _wiki->block_count; ++index)
     {
-        struct d_wiki_block* const block = &_wiki->blocks[index];
+        struct dj_wiki_block* const block = &_wiki->blocks[index];
 
         block->line     = d_wiki_line_of(_wiki, block->start, NULL);
         block->end_line = d_wiki_line_of(_wiki,
@@ -1621,7 +1597,7 @@ d_internal_place(
     // a heading from its first line; one at the top from that line's start
     for (size_t index = 0; index < _wiki->heading_count; ++index)
     {
-        struct d_wiki_heading* const heading = &_wiki->headings[index];
+        struct dj_wiki_heading* const heading = &_wiki->headings[index];
 
         heading->line = d_wiki_line_of(_wiki, heading->start, NULL);
 
@@ -1635,7 +1611,7 @@ d_internal_place(
     // a template where it opens
     for (size_t index = 0; index < _wiki->template_count; ++index)
     {
-        struct d_wiki_template* const tmpl = &_wiki->templates[index];
+        struct dj_wiki_template* const tmpl = &_wiki->templates[index];
 
         tmpl->line = d_wiki_line_of(_wiki, tmpl->start, &tmpl->column);
     }
@@ -1650,10 +1626,10 @@ d_internal_name_anchors
 heading before it has, that anchor told apart by a number -- or as its
 dialect tells them apart, for one that has its own way.
 */
-static bool
-d_internal_name_anchors(
-    struct d_wiki*              _wiki,
-    const struct d_wiki_driver* _driver
+static
+bool d_internal_name_anchors(
+    struct dj_wiki*              _wiki,
+    const struct dj_wiki_driver* _driver
 )
 {
     bool ok = true;
@@ -1662,8 +1638,8 @@ d_internal_name_anchors(
     for (size_t index = 0; ( (ok) && (index < _wiki->heading_count) );
          ++index)
     {
-        struct d_wiki_buffer   base    = { NULL, 0u, 0u, false };
-        struct d_wiki_heading* heading = &_wiki->headings[index];
+        struct dj_wiki_buffer   base    = { NULL, 0u, 0u, false };
+        struct dj_wiki_heading* heading = &_wiki->headings[index];
 
         ok = _driver->anchor(&base, (heading->title) ? heading->title : "");
         heading->anchor = d_wiki_buffer_take(&base);
@@ -1682,7 +1658,7 @@ d_internal_name_anchors(
     for (size_t index = _wiki->heading_count; ( (ok) && (index > 0u) );
          --index)
     {
-        struct d_wiki_heading* const heading = &_wiki->headings[index - 1u];
+        struct dj_wiki_heading* const heading = &_wiki->headings[index - 1u];
         size_t                       repeats = 0;
 
         // how many before it had the same anchor
@@ -1698,7 +1674,7 @@ d_internal_name_anchors(
         // a repeated anchor, numbered as its dialect numbers it
         if (repeats > 0u)
         {
-            struct d_wiki_buffer anchor = { NULL, 0u, 0u, false };
+            struct dj_wiki_buffer anchor = { NULL, 0u, 0u, false };
             char                 number[32];
 
             (void)snprintf(number, sizeof(number), "%c%zu",
@@ -1720,9 +1696,9 @@ d_internal_name_anchors(
 d_internal_make_sections
   The lead, and a section for each heading at the top level.
 */
-static bool
-d_internal_make_sections(
-    struct d_wiki* _wiki
+static
+bool d_internal_make_sections(
+    struct dj_wiki* _wiki
 )
 {
     const size_t begin = (_wiki->bom) ? 3u : 0u;
@@ -1734,7 +1710,7 @@ d_internal_make_sections(
         count += (_wiki->headings[index].top) ? 1u : 0u;
     }
 
-    _wiki->sections = malloc(count * sizeof(struct d_wiki_section));
+    _wiki->sections = malloc(count * sizeof(struct dj_wiki_section));
 
     // memory that ran out
     if (!_wiki->sections)
@@ -1744,7 +1720,7 @@ d_internal_make_sections(
 
     _wiki->section_count = count;
 
-    struct d_wiki_section* const lead = &_wiki->sections[0];
+    struct dj_wiki_section* const lead = &_wiki->sections[0];
 
     lead->heading = D_WIKI_NONE;
     lead->level   = 0u;
@@ -1757,7 +1733,7 @@ d_internal_make_sections(
     // each section from its heading
     for (size_t index = 0; index < _wiki->heading_count; ++index)
     {
-        const struct d_wiki_heading* const heading = &_wiki->headings[index];
+        const struct dj_wiki_heading* const heading = &_wiki->headings[index];
 
         // a heading within a list or a template is no section's
         if (!heading->top)
@@ -1776,7 +1752,7 @@ d_internal_make_sections(
     // each section ends where the next at its level or above begins
     for (size_t index = 0; index < count; ++index)
     {
-        struct d_wiki_section* const section = &_wiki->sections[index];
+        struct dj_wiki_section* const section = &_wiki->sections[index];
         const size_t                 next    = ((index + 1u) < count)
                                                    ? _wiki->sections[index + 1u]
                                                          .start
@@ -1829,12 +1805,12 @@ d_internal_marker
 "dawk:end NAME", alone in the comment.  Gives 1 for a begin, 2 for an end,
 and 0 for a comment that is neither, with the name's place.
 */
-static int
-d_internal_marker(
-    const struct d_wiki*       _wiki,
-    const struct d_wiki_block* _block,
-    size_t*                    _out_name,
-    size_t*                    _out_length
+static
+int d_internal_marker(
+    const struct dj_wiki*       _wiki,
+    const struct dj_wiki_block* _block,
+    size_t*                     _out_name,
+    size_t*                     _out_length
 )
 {
     const char* const text = _wiki->text;
@@ -1938,13 +1914,13 @@ d_internal_marker(
 d_internal_add_region
   Keeps a region, from its begin marker's block to its end marker's.
 */
-static bool
-d_internal_add_region(
-    struct d_wiki*             _wiki,
-    const struct d_wiki_block* _begin,
-    const struct d_wiki_block* _end,
-    size_t                     _name,
-    size_t                     _length
+static
+bool d_internal_add_region(
+    struct dj_wiki*             _wiki,
+    const struct dj_wiki_block* _begin,
+    const struct dj_wiki_block* _end,
+    size_t                      _name,
+    size_t                      _length
 )
 {
     char* const name = d_wiki_copy(&_wiki->text[_name], _length);
@@ -1953,14 +1929,14 @@ d_internal_add_region(
     if ( (!name) ||
          (!d_internal_grow((void**)&_wiki->regions, &_wiki->region_capacity,
                            _wiki->region_count,
-                           sizeof(struct d_wiki_region))) )
+                           sizeof(struct dj_wiki_region))) )
     {
         free(name);
 
         return false;
     }
 
-    struct d_wiki_region* const region = &_wiki->regions[_wiki->region_count];
+    struct dj_wiki_region* const region = &_wiki->regions[_wiki->region_count];
 
     region->name    = name;
     region->begin   = _wiki->line_starts[_begin->line - 1u];
@@ -1979,12 +1955,12 @@ d_internal_find_regions
   The regions, from the markers that stand at the top level: each begin
 closed by the end of its name, with nothing begun between.
 */
-static bool
-d_internal_find_regions(
-    struct d_wiki* _wiki
+static
+bool d_internal_find_regions(
+    struct dj_wiki* _wiki
 )
 {
-    const struct d_wiki_block* open        = NULL;
+    const struct dj_wiki_block* open        = NULL;
     size_t                     open_name   = 0;
     size_t                     open_length = 0;
     char                       why[160];
@@ -1992,7 +1968,7 @@ d_internal_find_regions(
     // each comment at the top level, in order
     for (size_t index = 0; index < _wiki->block_count; ++index)
     {
-        const struct d_wiki_block* const block = &_wiki->blocks[index];
+        const struct dj_wiki_block* const block = &_wiki->blocks[index];
         size_t                           name  = 0;
         size_t                           span  = 0;
 
@@ -2109,15 +2085,15 @@ d_internal_order_problems
   Orders problems by line, keeping the order of those on one line: an
 insertion sort, as a page has few.
 */
-static void
-d_internal_order_problems(
-    struct d_wiki* _wiki
+static
+void d_internal_order_problems(
+    struct dj_wiki* _wiki
 )
 {
     // each problem moved back past those on later lines
     for (size_t index = 1u; index < _wiki->problem_count; ++index)
     {
-        const struct d_wiki_problem moving = _wiki->problems[index];
+        const struct dj_wiki_problem moving = _wiki->problems[index];
         size_t                      at     = index;
 
         // those after it moved up, to its place
@@ -2137,15 +2113,15 @@ d_internal_order_problems(
 
 bool
 d_wiki_read(
-    struct d_wiki*      _out,
+    struct dj_wiki*      _out,
     const char*         _text,
     size_t              _length,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     char*               _problem,
     size_t              _capacity
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     // parameter validation first
     if (!_out)
@@ -2205,9 +2181,8 @@ d_wiki_read(
 }
 
 
-void
-d_wiki_release(
-    struct d_wiki* _wiki
+void d_wiki_release(
+    struct dj_wiki* _wiki
 )
 {
     // releasing nothing is allowed
@@ -2278,11 +2253,10 @@ d_wiki_release(
 //==============================================================================
 
 
-bool
-d_wiki_content(
-    const struct d_wiki*  _wiki,
-    size_t                _block,
-    struct d_wiki_buffer* _out
+bool d_wiki_content(
+    const struct dj_wiki*  _wiki,
+    size_t                 _block,
+    struct dj_wiki_buffer* _out
 )
 {
     // a block not there has no content
@@ -2291,12 +2265,12 @@ d_wiki_content(
         return false;
     }
 
-    const struct d_wiki_block* const block = &_wiki->blocks[_block];
+    const struct dj_wiki_block* const block = &_wiki->blocks[_block];
 
     // each segment, padded, a line feed between
     for (size_t index = 0; index < block->segment_count; ++index)
     {
-        const struct d_wiki_segment* const segment =
+        const struct dj_wiki_segment* const segment =
             &_wiki->segments[block->first_segment + index];
 
         // a line feed between lines
@@ -2322,10 +2296,9 @@ d_wiki_content(
 }
 
 
-size_t
-d_wiki_find_region(
-    const struct d_wiki* _wiki,
-    const char*          _name
+size_t d_wiki_find_region(
+    const struct dj_wiki* _wiki,
+    const char*           _name
 )
 {
     // the first of the name
@@ -2342,14 +2315,13 @@ d_wiki_find_region(
 }
 
 
-size_t
-d_wiki_find_definition(
-    const struct d_wiki* _wiki,
-    const char*          _label,
-    size_t               _length
+size_t d_wiki_find_definition(
+    const struct dj_wiki* _wiki,
+    const char*           _label,
+    size_t                _length
 )
 {
-    struct d_wiki_buffer wanted = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer wanted = { NULL, 0u, 0u, false };
     size_t               found  = D_WIKI_NONE;
 
     // the label as labels compare
@@ -2364,8 +2336,8 @@ d_wiki_find_definition(
     for (size_t index = 0; ( (found == D_WIKI_NONE) &&
                              (index < _wiki->link_count) ); ++index)
     {
-        const struct d_wiki_link* const link = &_wiki->links[index];
-        struct d_wiki_buffer            have = { NULL, 0u, 0u, false };
+        const struct dj_wiki_link* const link = &_wiki->links[index];
+        struct dj_wiki_buffer            have = { NULL, 0u, 0u, false };
 
         // a definition, with a label written
         if ( (link->form != D_WIKI_FORM_DEFINITION) ||
@@ -2402,8 +2374,8 @@ d_wiki_find_definition(
 d_internal_base_name
   Where a path's last part begins, after its last `/` or `\`.
 */
-static const char*
-d_internal_base_name(
+static
+const char* d_internal_base_name(
     const char* _path
 )
 {
@@ -2427,11 +2399,11 @@ d_internal_base_name(
 char*
 d_wiki_page_name(
     const char*         _path,
-    enum d_wiki_dialect _dialect
+    enum dj_wiki_dialect _dialect
 )
 {
     const char* const   base    = d_internal_base_name((_path) ? _path : "");
-    enum d_wiki_dialect named   = D_WIKI_OTHER;
+    enum dj_wiki_dialect named   = D_WIKI_OTHER;
     size_t              length  = strlen(base);
 
     char*               name    = NULL;
@@ -2466,12 +2438,12 @@ d_wiki_page_name(
 char*
 d_wiki_page_file(
     const char*         _name,
-    enum d_wiki_dialect _dialect
+    enum dj_wiki_dialect _dialect
 )
 {
     const char* const    extension = (_dialect == D_WIKI_MEDIAWIKI)
                                          ? ".mediawiki" : ".md";
-    struct d_wiki_buffer file      = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer file      = { NULL, 0u, 0u, false };
 
     // each byte, or `-` for one a file's name cannot hold
     for (const char* at = (_name) ? _name : ""; *at != '\0'; ++at)
@@ -2495,9 +2467,9 @@ lower case, all of it or its first letter.
 */
 bool
 d_wiki_page_key(
-    struct d_wiki_buffer* _out,
+    struct dj_wiki_buffer* _out,
     const char*           _name,
-    enum d_wiki_dialect   _dialect
+    enum dj_wiki_dialect   _dialect
 )
 {
     const char* at    = _name;
@@ -2554,11 +2526,11 @@ bool
 d_wiki_same_page(
     const char*         _left,
     const char*         _right,
-    enum d_wiki_dialect _dialect
+    enum dj_wiki_dialect _dialect
 )
 {
-    struct d_wiki_buffer left  = { NULL, 0u, 0u, false };
-    struct d_wiki_buffer right = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer left  = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer right = { NULL, 0u, 0u, false };
     bool                 same  = false;
 
     // both as names compare
@@ -2577,12 +2549,12 @@ d_wiki_same_page(
 
 bool
 d_wiki_anchor(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _title
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) && (driver->anchor(_out, (_title) ? _title : ""));
 }
@@ -2596,14 +2568,14 @@ as the dialect makes them.
 */
 bool
 d_wiki_anchors(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _titles
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
     const char*                       at     = (_titles) ? _titles : "";
-    struct d_wiki                     page;
+    struct dj_wiki                     page;
     size_t                            count  = 0;
     bool                              ok     = (driver != NULL);
 
@@ -2617,7 +2589,7 @@ d_wiki_anchors(
         line = (ending) ? (ending + 1) : (line + strlen(line));
     }
 
-    page.headings      = calloc(count + 1u, sizeof(struct d_wiki_heading));
+    page.headings      = calloc(count + 1u, sizeof(struct dj_wiki_heading));
     page.heading_count = count;
     ok                 = (ok) && (page.headings != NULL);
 
@@ -2663,13 +2635,13 @@ d_wiki_anchors(
 
 bool
 d_wiki_write_heading(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     size_t                _level,
     const char*           _title
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     // a level from 1 to the deepest
     if ( (!driver) ||
@@ -2685,14 +2657,14 @@ d_wiki_write_heading(
 
 bool
 d_wiki_write_page_link(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _page,
     const char*           _anchor,
     const char*           _label
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (driver->page_link(_out, (_page) ? _page : "",
@@ -2705,13 +2677,13 @@ d_wiki_write_page_link(
 
 bool
 d_wiki_write_url_link(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _url,
     const char*           _label
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (driver->url_link(_out, (_url) ? _url : "",
@@ -2722,13 +2694,13 @@ d_wiki_write_url_link(
 
 bool
 d_wiki_write_image(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _source,
     const char*           _text
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (driver->image(_out, (_source) ? _source : "",
@@ -2738,13 +2710,13 @@ d_wiki_write_image(
 
 bool
 d_wiki_write_code(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _code,
     const char*           _language
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (driver->code(_out, (_code) ? _code : "",
@@ -2755,12 +2727,12 @@ d_wiki_write_code(
 
 bool
 d_wiki_write_inline_code(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _code
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (driver->inline_code(_out, (_code) ? _code : ""));
@@ -2769,14 +2741,14 @@ d_wiki_write_inline_code(
 
 bool
 d_wiki_write_item(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _text,
     size_t                _depth,
     bool                  _ordered
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (_depth >= 1u) &&
@@ -2786,12 +2758,12 @@ d_wiki_write_item(
 
 bool
 d_wiki_write_table(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _rows
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (driver->table(_out, (_rows) ? _rows : ""));
@@ -2800,12 +2772,12 @@ d_wiki_write_table(
 
 bool
 d_wiki_write_escape(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _text
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_dialect);
 
     return (driver) &&
            (driver->escape(_out, (_text) ? _text : ""));
@@ -2814,8 +2786,8 @@ d_wiki_write_escape(
 
 bool
 d_wiki_write_comment(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _text
 )
 {
@@ -2850,8 +2822,8 @@ d_wiki_write_comment(
 
 bool
 d_wiki_write_region(
-    struct d_wiki_buffer* _out,
-    enum d_wiki_dialect   _dialect,
+    struct dj_wiki_buffer* _out,
+    enum dj_wiki_dialect   _dialect,
     const char*           _name,
     const char*           _text
 )
@@ -2889,15 +2861,14 @@ d_wiki_write_region(
 }
 
 
-bool
-d_wiki_write_toc(
-    struct d_wiki_buffer* _out,
-    const struct d_wiki*  _wiki,
-    size_t                _least,
-    size_t                _most
+bool d_wiki_write_toc(
+    struct dj_wiki_buffer* _out,
+    const struct dj_wiki*  _wiki,
+    size_t                 _least,
+    size_t                 _most
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_wiki->dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_wiki->dialect);
     size_t                            last   = 0;
 
     // a list needs a dialect that writes one
@@ -2909,9 +2880,9 @@ d_wiki_write_toc(
     // each heading at the top within the levels
     for (size_t index = 0; index < _wiki->heading_count; ++index)
     {
-        const struct d_wiki_heading* const heading = &_wiki->headings[index];
-        struct d_wiki_buffer               title   = { NULL, 0u, 0u, false };
-        struct d_wiki_buffer               link    = { NULL, 0u, 0u, false };
+        const struct dj_wiki_heading* const heading = &_wiki->headings[index];
+        struct dj_wiki_buffer               title   = { NULL, 0u, 0u, false };
+        struct dj_wiki_buffer               link    = { NULL, 0u, 0u, false };
 
         // a heading at the top, of a level asked for
         if ( (!heading->top) ||

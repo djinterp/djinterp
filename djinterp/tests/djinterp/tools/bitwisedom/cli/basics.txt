@@ -157,6 +157,7 @@ $ bitwisedom gen example:uart_cr --level=c13
 ! Try 'bitwisedom gen --help' for more information.
 ? 2
 $ bitwisedom gen example:uart_cr --level=c11 --level=cpp17 --date=2026.01.01 -o out.hpp -v
+! bitwisedom: warning: gen: --level was given twice; the last, 'cpp17', is taken
 $ bitwisedom gen example:uart_cr --date=2026.1.1
 ! bitwisedom: error: gen: --date: '2026.1.1' is not a date written YYYY.MM.DD
 ! Try 'bitwisedom gen --help' for more information.

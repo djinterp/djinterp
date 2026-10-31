@@ -10,7 +10,7 @@
 * SQL and return the first column of its first row, which covers the common
 * single-value case -- a count, an EXISTS, a setting, an INSERT's RETURNING
 * id -- in one call; d_postgres_query_rows runs one statement and returns all
-* of its rows, as db_common.h's d_db_rows, and d_postgres_query_rows_params
+* of its rows, as db_common.h's dj_db_rows, and d_postgres_query_rows_params
 * does so with values for the statement's parameters, apart from its SQL.
 *   Each comes in a plain form, which takes SQL as written, and an `f` form,
 * which takes a printf-like format: %Q writes a string as a quoted value (and
@@ -76,7 +76,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.h"     // framework root
 #include "./postgres_common.h"  // pg_conn, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -104,11 +104,15 @@ D_EXTERN_C_BEGIN
 // which the layer ends at once, leaving the connection ready; or
 // D_DB_INVALID_ARGUMENT for a NULL connection or SQL, or a format the layer
 // cannot read. Rows a statement returns are discarded.
-int    d_postgres_exec(struct pg_conn* _db,
-                       const char*     _sql) D_NOTHROW;
-int    d_postgres_execf(struct pg_conn* _db,
-                        const char*     _format,
-                        ...) D_NOTHROW;
+int d_postgres_exec(
+    struct pg_conn* _db,
+    const char*     _sql
+) D_NOTHROW;
+int d_postgres_execf(
+    struct pg_conn* _db,
+    const char*     _format,
+    ...
+) D_NOTHROW;
 
 // 1.2    Rows changed
 //------------------------------------------------------------------------------
@@ -116,13 +120,17 @@ int    d_postgres_execf(struct pg_conn* _db,
 // last statement inserted, updated, deleted or merged, or returned, for a
 // SELECT; 0 for a statement that counts none, such as CREATE TABLE. Written
 // only on success.
-int    d_postgres_exec_changes(struct pg_conn* _db,
-                               int64_t*        _changes,
-                               const char*     _sql) D_NOTHROW;
-int    d_postgres_execf_changes(struct pg_conn* _db,
-                                int64_t*        _changes,
-                                const char*     _format,
-                                ...) D_NOTHROW;
+int d_postgres_exec_changes(
+    struct pg_conn* _db,
+    int64_t*        _changes,
+    const char*     _sql
+) D_NOTHROW;
+int d_postgres_execf_changes(
+    struct pg_conn* _db,
+    int64_t*        _changes,
+    const char*     _format,
+    ...
+) D_NOTHROW;
 
 // 1.3    Single values
 //------------------------------------------------------------------------------
@@ -136,34 +144,50 @@ int    d_postgres_execf_changes(struct pg_conn* _db,
 // _bool reads a boolean as the server writes one, t or f. A value of another
 // shape, or one the type cannot hold, is D_DB_INVALID_ARGUMENT, the
 // statement having run.
-int    d_postgres_query_int64(struct pg_conn* _db,
-                              int64_t*        _value,
-                              const char*     _sql) D_NOTHROW;
-int    d_postgres_query_int64f(struct pg_conn* _db,
-                               int64_t*        _value,
-                               const char*     _format,
-                               ...) D_NOTHROW;
-int    d_postgres_query_double(struct pg_conn* _db,
-                               double*         _value,
-                               const char*     _sql) D_NOTHROW;
-int    d_postgres_query_doublef(struct pg_conn* _db,
-                                double*         _value,
-                                const char*     _format,
-                                ...) D_NOTHROW;
-int    d_postgres_query_text(struct pg_conn* _db,
-                             char**          _value,
-                             const char*     _sql) D_NOTHROW;
-int    d_postgres_query_textf(struct pg_conn* _db,
-                              char**          _value,
-                              const char*     _format,
-                              ...) D_NOTHROW;
-int    d_postgres_query_bool(struct pg_conn* _db,
-                             bool*           _value,
-                             const char*     _sql) D_NOTHROW;
-int    d_postgres_query_boolf(struct pg_conn* _db,
-                              bool*           _value,
-                              const char*     _format,
-                              ...) D_NOTHROW;
+int d_postgres_query_int64(
+    struct pg_conn* _db,
+    int64_t*        _value,
+    const char*     _sql
+) D_NOTHROW;
+int d_postgres_query_int64f(
+    struct pg_conn* _db,
+    int64_t*        _value,
+    const char*     _format,
+    ...
+) D_NOTHROW;
+int d_postgres_query_double(
+    struct pg_conn* _db,
+    double*         _value,
+    const char*     _sql
+) D_NOTHROW;
+int d_postgres_query_doublef(
+    struct pg_conn* _db,
+    double*         _value,
+    const char*     _format,
+    ...
+) D_NOTHROW;
+int d_postgres_query_text(
+    struct pg_conn* _db,
+    char**          _value,
+    const char*     _sql
+) D_NOTHROW;
+int d_postgres_query_textf(
+    struct pg_conn* _db,
+    char**          _value,
+    const char*     _format,
+    ...
+) D_NOTHROW;
+int d_postgres_query_bool(
+    struct pg_conn* _db,
+    bool*           _value,
+    const char*     _sql
+) D_NOTHROW;
+int d_postgres_query_boolf(
+    struct pg_conn* _db,
+    bool*           _value,
+    const char*     _format,
+    ...
+) D_NOTHROW;
 
 // 1.4    Rows
 //------------------------------------------------------------------------------
@@ -183,9 +207,11 @@ int    d_postgres_query_boolf(struct pg_conn* _db,
  *       statement that returns no rows -- an INSERT without RETURNING, say
  *       -- gives rows with no columns.
  */
-int    d_postgres_query_rows(struct pg_conn*   _db,
-                             struct d_db_rows* _rows,
-                             const char*       _sql) D_NOTHROW;
+int d_postgres_query_rows(
+    struct pg_conn*    _db,
+    struct dj_db_rows* _rows,
+    const char*        _sql
+) D_NOTHROW;
 /**
  * @brief Formats a statement, runs it, and returns every row it produced, as
  *        d_postgres_query_rows.
@@ -198,10 +224,12 @@ int    d_postgres_query_rows(struct pg_conn*   _db,
  *         the layer cannot read.
  * @post As for d_postgres_query_rows.
  */
-int    d_postgres_query_rowsf(struct pg_conn*   _db,
-                              struct d_db_rows* _rows,
-                              const char*       _format,
-                              ...) D_NOTHROW;
+int d_postgres_query_rowsf(
+    struct pg_conn*    _db,
+    struct dj_db_rows* _rows,
+    const char*        _format,
+    ...
+) D_NOTHROW;
 
 /**
  * @brief Runs one statement with values for its parameters, written $1, $2
@@ -228,11 +256,13 @@ int    d_postgres_query_rowsf(struct pg_conn*   _db,
  *         nonzero count, or a count past 65535.
  * @post As for d_postgres_query_rows.
  */
-int    d_postgres_query_rows_params(struct pg_conn*    _db,
-                                    struct d_db_rows*  _rows,
-                                    const char*        _sql,
-                                    const char* const* _values,
-                                    size_t             _count) D_NOTHROW;
+int d_postgres_query_rows_params(
+    struct pg_conn*    _db,
+    struct dj_db_rows* _rows,
+    const char*        _sql,
+    const char* const* _values,
+    size_t             _count
+) D_NOTHROW;
 
 // 1.5    Quoting
 //------------------------------------------------------------------------------
@@ -244,7 +274,9 @@ int    d_postgres_query_rows_params(struct pg_conn*    _db,
  * @return the quoted name, which the caller releases with d_db_free; `NULL`
  *         for a `NULL` name, or when memory ran out.
  */
-char*  d_postgres_quote_identifier(const char* _name) D_NOTHROW;
+char* d_postgres_quote_identifier(
+    const char* _name
+) D_NOTHROW;
 /**
  * @brief Quotes a value for SQL, as the connection's encoding and
  *        standard_conforming_strings require, quotes included; `NULL` becomes
@@ -263,8 +295,10 @@ char*  d_postgres_quote_identifier(const char* _name) D_NOTHROW;
  *         an older libpq quotes it, and the server then refuses the
  *         statement (22021).
  */
-char*  d_postgres_quote_literal(struct pg_conn* _db,
-                                const char*     _text) D_NOTHROW;
+char* d_postgres_quote_literal(
+    struct pg_conn* _db,
+    const char*     _text
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

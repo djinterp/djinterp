@@ -16,29 +16,27 @@
 
 
 /******************************************************************************
- * I. `d_string_cli_entry` LOOKUP
+ * I. `dj_string_cli_entry` LOOKUP
  *****************************************************************************/
 
 /*
 d_cli_find
-  Searches an array of `d_string_cli_entry` for an element whose key
+  Searches an array of `dj_string_cli_entry` for an element whose key
 matches _key via strcmp. Returns the matching entry's value pointer,
 or NULL if not found. NULL keys in the array are skipped.
 
 Parameter(s):
-  _entries: array of `d_string_cli_entry` structs
+  _entries: array of `dj_string_cli_entry` structs
   _count:   number of elements in the array
   _key:     string to search for
 Return:
   the value pointer of the matching entry, or NULL.
 */
-void*
-d_cli_find
-(
-    const struct d_string_cli_entry* _entries,
-    size_t                           _entries_count,
-    const char*                      _key,
-    size_t                           _key_length
+void* d_cli_find(
+    const struct dj_string_cli_entry* _entries,
+    size_t                            _entries_count,
+    const char*                       _key,
+    size_t                            _key_length
 )
 {
     size_t i;
@@ -53,7 +51,7 @@ d_cli_find
 
     for (i = 0; i < _entries_count; i++)
     {
-        const struct d_string_cli_entry* e = &_entries[i];
+        const struct dj_string_cli_entry* e = &_entries[i];
 
         if ( (e->key) &&
              (d_strcmp_n(e->key, e->key_length, _key, _key_length) == 0) )
@@ -88,9 +86,7 @@ Parameter(s):
 Return:
   pointer to the matching element, or NULL.
 */
-void*
-d_cli_find_by_field
-(
+void* d_cli_find_by_field(
     const void* _array,
     size_t      _count,
     size_t      _element_size,
@@ -154,9 +150,7 @@ Parameter(s):
 Return:
   whatever the lookup function returns, or NULL on invalid input.
 */
-const void*
-d_cli_find_with
-(
+const void* d_cli_find_with(
     const void*   _array,
     size_t        _count,
     const char*   _key,
@@ -184,7 +178,7 @@ d_cli_find_with
 
 /*
 d_cli_parse
-  Parses argc/argv against a `d_string_cli_entry` table. For each argv element
+  Parses argc/argv against a `dj_string_cli_entry` table. For each argv element
 starting from index 1, looks up the entire token as a key in the entry table.
 On match:
   - if parameter _on_match is non-NULL, invoke it with the matched key, value,
@@ -194,7 +188,7 @@ On match:
 Unrecognized arguments are skipped.
 
 Parameter(s):
-  _entries:  array of `d_string_cli_entry` structs
+  _entries:  array of `dj_string_cli_entry` structs
   _count:    number of entries
   _argc:     argument count from main
   _argv:     argument vector from main
@@ -203,15 +197,13 @@ Parameter(s):
 Return:
   true if parsing completed, false if handler stopped it.
 */
-bool
-d_cli_parse
-(
-    const struct d_string_cli_entry* _entries,
-    size_t                           _count,
-    int                              _argc,
-    char*                            _argv[],
-    fn_cli_match                     _on_match,
-    void*                            _context
+bool d_cli_parse(
+    const struct dj_string_cli_entry* _entries,
+    size_t                            _count,
+    int                               _argc,
+    char*                             _argv[],
+    fn_cli_match                      _on_match,
+    void*                             _context
 )
 {
     int         i;

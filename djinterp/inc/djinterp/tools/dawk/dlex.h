@@ -22,10 +22,10 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Token kinds
-         1.  d_awk_token_kind
+         1.  dj_awk_token_kind
     2.  Token and scanner
-         1.  d_awk_token
-         2.  d_awk_lexer
+         1.  dj_awk_token
+         2.  dj_awk_lexer
 2.  OPERATIONS
     ----------
     1.  Scanning
@@ -50,11 +50,11 @@ TABLE OF CONTENTS
 // 1.1    Token kinds
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_awk_token_kind
+// dj_awk_token_kind
 //   enum: the lexical classes of POSIX awk.  Compound assignment and the
 //   two-character operators are distinct kinds so the parser never re-reads
 //   text.
-enum d_awk_token_kind
+enum dj_awk_token_kind
 {
     D_AWK_TOK_EOF = 0,
     D_AWK_TOK_NEWLINE,
@@ -130,12 +130,12 @@ enum d_awk_token_kind
 // 1.2    Token and scanner
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_awk_token
+// dj_awk_token
 //   struct: one token.  `text` points into a buffer owned by the lexer for a
 //   NAME, STRING or ERE, and is already unescaped for a STRING.
-struct d_awk_token
+struct dj_awk_token
 {
-    enum d_awk_token_kind kind;
+    enum dj_awk_token_kind kind;
     const char*           text;
     size_t                length;
     double                number;
@@ -144,9 +144,9 @@ struct d_awk_token
 };
 
 // 1.2.2
-// d_awk_lexer
+// dj_awk_lexer
 //   struct: scanner state.  Layout is private.
-struct d_awk_lexer;
+struct dj_awk_lexer;
 
 
 //==============================================================================
@@ -156,19 +156,33 @@ struct d_awk_lexer;
 
 // 2.1    Scanning
 //------------------------------------------------------------------------------
-struct d_awk_lexer* d_awk_lexer_new(const char* _source,
-                                    size_t      _length,
-                                    const char* _origin);
-void                d_awk_lexer_free(struct d_awk_lexer* _lexer);
-bool                d_awk_lexer_next(struct d_awk_lexer* _lexer,
-                                     struct d_awk_token* _out_token);
+struct dj_awk_lexer* d_awk_lexer_new(
+    const char* _source,
+    size_t      _length,
+    const char* _origin
+);
+void d_awk_lexer_free(
+    struct dj_awk_lexer* _lexer
+);
+bool d_awk_lexer_next(
+    struct dj_awk_lexer* _lexer,
+    struct dj_awk_token* _out_token
+);
 
 // 2.2    Diagnostics
 //------------------------------------------------------------------------------
-const char*         d_awk_lexer_error(const struct d_awk_lexer* _lexer);
-size_t              d_awk_lexer_line(const struct d_awk_lexer* _lexer);
-size_t              d_awk_lexer_column(const struct d_awk_lexer* _lexer);
-const char*         d_awk_token_name(enum d_awk_token_kind _kind);
+const char* d_awk_lexer_error(
+    const struct dj_awk_lexer* _lexer
+);
+size_t d_awk_lexer_line(
+    const struct dj_awk_lexer* _lexer
+);
+size_t d_awk_lexer_column(
+    const struct dj_awk_lexer* _lexer
+);
+const char* d_awk_token_name(
+    enum dj_awk_token_kind _kind
+);
 
 // 2.3    String escapes
 //------------------------------------------------------------------------------
@@ -184,9 +198,11 @@ const char*         d_awk_token_name(enum d_awk_token_kind _kind);
  *                      `_length` bytes, since decoding never lengthens.
  * @return the number of bytes written to `_out`.
  */
-size_t              d_awk_unescape(const char* _text,
-                                   size_t      _length,
-                                   char*       _out);
+size_t d_awk_unescape(
+    const char* _text,
+    size_t      _length,
+    char*       _out
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DLEX_H

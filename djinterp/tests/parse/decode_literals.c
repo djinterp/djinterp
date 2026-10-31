@@ -12,9 +12,9 @@
 // literal decoder driver: one literal per line of a file, lexed and decoded
 // under a named dialect; prints one result line per input line, for
 // diff_literal.py to compare against gcc
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
-#include "../../inc/djinterp/parse/lex/lex_literal.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/lex/lex_literal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

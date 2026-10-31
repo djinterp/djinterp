@@ -20,11 +20,11 @@
 #include <string.h>  // memcpy, memset, memcmp, strlen
 
 
-// d_internal_reader
+// dj_internal_reader
 //   struct: the reader's place in the text, and the records it grows.
-struct d_internal_reader
+struct dj_internal_reader
 {
-    struct d_cmake* cmake;
+    struct dj_cmake* cmake;
     const char*     text;
     size_t          length;
     size_t          at;
@@ -45,12 +45,12 @@ struct d_internal_reader
 d_internal_fail
   Records where reading stopped and why; the first failure is the one kept.
 */
-static bool
-d_internal_fail(
-    struct d_internal_reader* _reader,
-    size_t                    _line,
-    size_t                    _column,
-    const char*               _why
+static
+bool d_internal_fail(
+    struct dj_internal_reader* _reader,
+    size_t                     _line,
+    size_t                     _column,
+    const char*                _why
 )
 {
     // a later failure follows from the first, and would only mislead
@@ -79,10 +79,10 @@ d_internal_fail(
 d_internal_fail_here
   A failure at the reader's place.
 */
-static bool
-d_internal_fail_here(
-    struct d_internal_reader* _reader,
-    const char*               _why
+static
+bool d_internal_fail_here(
+    struct dj_internal_reader* _reader,
+    const char*                _why
 )
 {
     return d_internal_fail(_reader, _reader->line,
@@ -94,8 +94,8 @@ d_internal_fail_here(
 d_internal_grow
   Makes room for one more record in an array of `_size`-byte records.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _array,
     size_t* _capacity,
     size_t  _count,
@@ -128,10 +128,10 @@ d_internal_grow(
 d_internal_newline_length
   The length of the line ending at `_at`: 1 for LF, 2 for CR LF, 0 for none.
 */
-static size_t
-d_internal_newline_length(
-    const struct d_internal_reader* _reader,
-    size_t                          _at
+static
+size_t d_internal_newline_length(
+    const struct dj_internal_reader* _reader,
+    size_t                           _at
 )
 {
     // LF ends a line on its own
@@ -157,9 +157,9 @@ d_internal_newline_length(
 d_internal_take_newline
   Moves past the line ending at the reader's place, if there is one.
 */
-static bool
-d_internal_take_newline(
-    struct d_internal_reader* _reader
+static
+bool d_internal_take_newline(
+    struct dj_internal_reader* _reader
 )
 {
     const size_t span = d_internal_newline_length(_reader, _reader->at);
@@ -188,10 +188,10 @@ d_internal_take_newline(
 d_internal_is_space
   Space between elements: a blank, a tab, or a CR that ends no line.
 */
-static bool
-d_internal_is_space(
-    const struct d_internal_reader* _reader,
-    size_t                          _at
+static
+bool d_internal_is_space(
+    const struct dj_internal_reader* _reader,
+    size_t                           _at
 )
 {
     const char byte = _reader->text[_at];
@@ -207,9 +207,9 @@ d_internal_is_space(
 d_internal_skip_space
   Moves past blanks and tabs, never past a line ending.
 */
-static void
-d_internal_skip_space(
-    struct d_internal_reader* _reader
+static
+void d_internal_skip_space(
+    struct dj_internal_reader* _reader
 )
 {
     // past every blank and lone CR
@@ -228,10 +228,10 @@ d_internal_bracket_open
   The number of `=` in a bracket's opening at `_at`, `[` `=`* `[`; -1 when
 no bracket opens there.
 */
-static long
-d_internal_bracket_open(
-    const struct d_internal_reader* _reader,
-    size_t                          _at
+static
+long d_internal_bracket_open(
+    const struct dj_internal_reader* _reader,
+    size_t                           _at
 )
 {
     // a bracket opens with `[`
@@ -268,13 +268,13 @@ number of `=` and `]`, counting the lines it spans.  The opening's length is
 `_equals` + 2; a bracket never closed is reported at `_line`, `_column`, where
 the element holding it begins.
 */
-static bool
-d_internal_bracket_body(
-    struct d_internal_reader* _reader,
-    size_t                    _equals,
-    size_t                    _line,
-    size_t                    _column,
-    const char*               _what
+static
+bool d_internal_bracket_body(
+    struct dj_internal_reader* _reader,
+    size_t                     _equals,
+    size_t                     _line,
+    size_t                     _column,
+    const char*                _what
 )
 {
     _reader->at += _equals + 2u;
@@ -324,14 +324,14 @@ d_internal_comment
   Reads a comment at the reader's `#`: a bracket comment when a bracket opens
 directly after it, a line comment to the end of the line otherwise.
 */
-static bool
-d_internal_comment(
-    struct d_internal_reader* _reader,
-    size_t                    _within,
-    bool                      _trailing
+static
+bool d_internal_comment(
+    struct dj_internal_reader* _reader,
+    size_t                     _within,
+    bool                       _trailing
 )
 {
-    struct d_cmake* const cmake  = _reader->cmake;
+    struct dj_cmake* const cmake  = _reader->cmake;
     const size_t          start  = _reader->at;
     const size_t          line   = _reader->line;
     const size_t          column = (start - _reader->line_start) + 1u;
@@ -368,7 +368,7 @@ d_internal_comment(
         return d_internal_fail_here(_reader, "out of memory");
     }
 
-    struct d_cmake_comment* const comment =
+    struct dj_cmake_comment* const comment =
         &cmake->comments[cmake->comment_count++];
 
     comment->start    = start;
@@ -392,8 +392,8 @@ d_internal_add_argument
 */
 static bool
 d_internal_add_argument(
-    struct d_internal_reader*  _reader,
-    enum d_cmake_argument_kind _kind,
+    struct dj_internal_reader*  _reader,
+    enum dj_cmake_argument_kind _kind,
     size_t                     _start,
     size_t                     _line,
     size_t                     _column,
@@ -402,7 +402,7 @@ d_internal_add_argument(
     size_t                     _equals
 )
 {
-    struct d_cmake* const cmake = _reader->cmake;
+    struct dj_cmake* const cmake = _reader->cmake;
 
     // the argument is recorded once it is whole
     if (!d_internal_grow((void**)&cmake->arguments,
@@ -412,7 +412,7 @@ d_internal_add_argument(
         return d_internal_fail_here(_reader, "out of memory");
     }
 
-    struct d_cmake_argument* const argument =
+    struct dj_cmake_argument* const argument =
         &cmake->arguments[cmake->argument_count++];
 
     argument->kind     = _kind;
@@ -436,9 +436,9 @@ d_internal_quoted
   Reads a quoted argument at the reader's `"`: any text, newlines included,
 to the next `"` no backslash escapes.
 */
-static bool
-d_internal_quoted(
-    struct d_internal_reader* _reader
+static
+bool d_internal_quoted(
+    struct dj_internal_reader* _reader
 )
 {
     const size_t start  = _reader->at;
@@ -493,10 +493,10 @@ d_internal_ends_unquoted
   Whether the byte at `_at` ends an unquoted argument: space, a line ending,
 a parenthesis, or a comment's `#`.
 */
-static bool
-d_internal_ends_unquoted(
-    const struct d_internal_reader* _reader,
-    size_t                          _at
+static
+bool d_internal_ends_unquoted(
+    const struct dj_internal_reader* _reader,
+    size_t                           _at
 )
 {
     const char byte = _reader->text[_at];
@@ -516,9 +516,9 @@ one, `-Da="b c"`, keeps its quotes and may hold space, and a make variable,
 `$(X)`, may hold parentheses.
   Long as the scanner is one loop, each byte that matters handled in turn.
 */
-static bool
-d_internal_unquoted(
-    struct d_internal_reader* _reader
+static
+bool d_internal_unquoted(
+    struct dj_internal_reader* _reader
 )
 {
     const size_t start  = _reader->at;
@@ -631,8 +631,8 @@ d_internal_unquoted(
 d_internal_is_name_start
   Whether a byte begins a command's name.
 */
-static bool
-d_internal_is_name_start(
+static
+bool d_internal_is_name_start(
     char _byte
 )
 {
@@ -649,12 +649,12 @@ comments among them.
   Long as the argument list is read in one loop, by what each element
 opens with, and a command refused is taken back whole.
 */
-static bool
-d_internal_command(
-    struct d_internal_reader* _reader
+static
+bool d_internal_command(
+    struct dj_internal_reader* _reader
 )
 {
-    struct d_cmake* const cmake  = _reader->cmake;
+    struct dj_cmake* const cmake  = _reader->cmake;
     const size_t          start  = _reader->at;
     const size_t          line   = _reader->line;
     const size_t          column = (start - _reader->line_start) + 1u;
@@ -812,7 +812,7 @@ d_internal_command(
         return false;
     }
 
-    struct d_cmake_command* const command = &cmake->commands[which];
+    struct dj_cmake_command* const command = &cmake->commands[which];
 
     command->end            = _reader->at;
     command->end_line       = _reader->line;
@@ -830,22 +830,22 @@ d_internal_command(
 d_internal_classify
   The block a command's name opens, branches or closes, if any.
 */
-static void
-d_internal_classify(
-    const struct d_cmake*   _cmake,
-    struct d_cmake_command* _command
+static
+void d_internal_classify(
+    const struct dj_cmake*   _cmake,
+    struct dj_cmake_command* _command
 )
 {
-    // d_internal_block_name
+    // dj_internal_block_name
     //   struct: one name that takes part in a block, and the part it takes.
-    struct d_internal_block_name
+    struct dj_internal_block_name
     {
         const char*        name;
-        enum d_cmake_block block;
-        enum d_cmake_role  role;
+        enum dj_cmake_block block;
+        enum dj_cmake_role  role;
     };
 
-    static const struct d_internal_block_name names[] =
+    static const struct dj_internal_block_name names[] =
     {
         { "if",          D_CMAKE_BLOCK_IF,       D_CMAKE_ROLE_OPEN   },
         { "elseif",      D_CMAKE_BLOCK_IF,       D_CMAKE_ROLE_BRANCH },
@@ -888,9 +888,9 @@ a closer with no such block is unpaired, as is a branch outside an if.
   Long as the stack of open blocks is kept here, by each part a command
 takes.
 */
-static bool
-d_internal_pair(
-    struct d_cmake* _cmake
+static
+bool d_internal_pair(
+    struct dj_cmake* _cmake
 )
 {
     size_t* const open  = malloc((_cmake->command_count + 1u)
@@ -906,7 +906,7 @@ d_internal_pair(
     // each command, against the blocks open where it stands
     for (size_t at = 0; at < _cmake->command_count; ++at)
     {
-        struct d_cmake_command* const command = &_cmake->commands[at];
+        struct dj_cmake_command* const command = &_cmake->commands[at];
 
         d_internal_classify(_cmake, command);
         command->depth = depth;
@@ -958,7 +958,7 @@ d_internal_pair(
                 continue;
             }
 
-            struct d_cmake_command* const opener =
+            struct dj_cmake_command* const opener =
                 &_cmake->commands[open[found - 1u]];
 
             opener->partner   = at;
@@ -983,13 +983,12 @@ space and comments.
   Long as the reader is set up, run over the file, and its counts settled,
 each a step.
 */
-bool
-d_cmake_read(
-    struct d_cmake* _out,
-    const char*     _text,
-    size_t          _length,
-    char*           _problem,
-    size_t          _capacity
+bool d_cmake_read(
+    struct dj_cmake* _out,
+    const char*      _text,
+    size_t           _length,
+    char*            _problem,
+    size_t           _capacity
 )
 {
     // parameter validation first
@@ -1009,7 +1008,7 @@ d_cmake_read(
         _problem[0] = '\0';
     }
 
-    struct d_internal_reader reader;
+    struct dj_internal_reader reader;
 
     memset(&reader, 0, sizeof(reader));
     reader.cmake    = _out;
@@ -1106,9 +1105,8 @@ d_cmake_read(
 d_cmake_release
   Frees the arrays; the text was never the reader's.
 */
-void
-d_cmake_release(
-    struct d_cmake* _cmake
+void d_cmake_release(
+    struct dj_cmake* _cmake
 )
 {
     // releasing nothing is allowed
@@ -1131,8 +1129,7 @@ d_cmake_generated
   CMake's own files say so on their first line; the tree's generators say so
 anywhere near the top.
 */
-bool
-d_cmake_generated(
+bool d_cmake_generated(
     const char* _text,
     size_t      _length
 )
@@ -1188,11 +1185,10 @@ d_cmake_generated(
 d_cmake_is
   ASCII case folding, which is all a CMake name can hold.
 */
-bool
-d_cmake_is(
-    const struct d_cmake*         _cmake,
-    const struct d_cmake_command* _command,
-    const char*                   _name
+bool d_cmake_is(
+    const struct dj_cmake*         _cmake,
+    const struct dj_cmake_command* _command,
+    const char*                    _name
 )
 {
     // a command must be named to be compared
@@ -1239,7 +1235,7 @@ d_cmake_block_name
 */
 const char*
 d_cmake_block_name(
-    enum d_cmake_block _block
+    enum dj_cmake_block _block
 )
 {
     switch (_block)
@@ -1266,8 +1262,8 @@ is kept as it is in a quoted argument, and in an unquoted one when `_keep`
 says so, for the list division that reads it later.
   Long as it is a table of the escapes, each a line or two.
 */
-static size_t
-d_internal_unescape(
+static
+size_t d_internal_unescape(
     const char* _raw,
     size_t      _length,
     bool        _quoted,
@@ -1362,11 +1358,10 @@ d_cmake_value
   The argument as CMake reads it, before expansion.
   Long as each of the three kinds is read here.
 */
-size_t
-d_cmake_value(
-    const struct d_cmake*          _cmake,
-    const struct d_cmake_argument* _argument,
-    char*                          _out
+size_t d_cmake_value(
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    char*                           _out
 )
 {
     // no argument has no value
@@ -1438,11 +1433,10 @@ d_cmake_value(
 d_cmake_passed
   An unquoted argument's text, decoded but for `\;`; any other's value.
 */
-size_t
-d_cmake_passed(
-    const struct d_cmake*          _cmake,
-    const struct d_cmake_argument* _argument,
-    char*                          _out
+size_t d_cmake_passed(
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    char*                           _out
 )
 {
     // no argument passes nothing
@@ -1477,8 +1471,7 @@ so a `]` before any `[` leaves the count below none and divides nothing
 more.  A list with no `;` is one item as it stands, its backslashes and all.
   Long as the four bytes that matter are each handled in the one loop.
 */
-size_t
-d_cmake_list_items(
+size_t d_cmake_list_items(
     const char* _list,
     size_t      _length,
     bool        _keep_empty,
@@ -1576,8 +1569,7 @@ d_cmake_list_items(
 d_cmake_is_name
   `[A-Za-z_][A-Za-z0-9_]*`, as cmake-language(7) gives an identifier.
 */
-bool
-d_cmake_is_name(
+bool d_cmake_is_name(
     const char* _text,
     size_t      _length
 )
@@ -1616,8 +1608,8 @@ d_internal_plain
 one that ends, escapes or quotes, not `;`, which would divide it, and not a
 control character.
 */
-static bool
-d_internal_plain(
+static
+bool d_internal_plain(
     char _c
 )
 {
@@ -1639,8 +1631,8 @@ d_internal_fence
   The fewest `=` a bracket argument needs so that no `]`, that many `=`
 and `]` stands in its value.
 */
-static size_t
-d_internal_fence(
+static
+size_t d_internal_fence(
     const char* _value,
     size_t      _length
 )
@@ -1691,7 +1683,7 @@ char*
 d_cmake_write(
     const char*                _value,
     size_t                     _length,
-    enum d_cmake_argument_kind _kind,
+    enum dj_cmake_argument_kind _kind,
     size_t*                    _out_length
 )
 {
@@ -1819,8 +1811,7 @@ d_cmake_write(
 d_cmake_write_any
   Unquoted when the value can be, quoted otherwise.
 */
-char*
-d_cmake_write_any(
+char* d_cmake_write_any(
     const char* _value,
     size_t      _length,
     size_t*     _out_length

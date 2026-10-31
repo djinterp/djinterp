@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_et_mgmt_cb
 //   helper: minimal callback for listener construction.
-static void
-d_tests_sa_et_mgmt_cb(size_t _count, void** _args)
+static
+void d_tests_sa_et_mgmt_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -35,14 +38,12 @@ d_tests_sa_et_size_basic
   - Returns >= requested size
   - Returns 0 for NULL table
 */
-bool
-d_tests_sa_et_size_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_size_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new(50);
@@ -75,16 +76,14 @@ d_tests_sa_et_count_basic
   - Returns correct count after inserts
   - Returns 0 for NULL table
 */
-bool
-d_tests_sa_et_count_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_count_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   l1;
-    struct d_event_listener*   l2;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   l1;
+    struct dj_event_listener*   l2;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -138,17 +137,15 @@ d_tests_sa_et_enabled_count_mixed
   - Correctly counts only enabled listeners
   - Returns 0 for NULL table
 */
-bool
-d_tests_sa_et_enabled_count_mixed
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_enabled_count_mixed(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   l1;
-    struct d_event_listener*   l2;
-    struct d_event_listener*   l3;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   l1;
+    struct dj_event_listener*   l2;
+    struct dj_event_listener*   l3;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -204,15 +201,13 @@ d_tests_sa_et_load_factor_basic
   - Returns valid positive value after inserts
   - Returns 0.0 for NULL table
 */
-bool
-d_tests_sa_et_load_factor_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_load_factor_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   listeners[5];
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   listeners[5];
     int                        i;
 
     result = true;
@@ -268,15 +263,13 @@ d_tests_sa_et_resize_valid
   - count is preserved
   - All elements remain accessible after resize
 */
-bool
-d_tests_sa_et_resize_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_resize_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   listeners[5];
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   listeners[5];
     size_t                     old_size;
     int                        i;
     bool                       all_found;
@@ -351,10 +344,8 @@ d_tests_sa_et_resize_null
   Tests the following:
   - Returns false
 */
-bool
-d_tests_sa_et_resize_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_resize_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -381,15 +372,13 @@ d_tests_sa_et_clear_valid
   NOTE: clear frees nodes but NOT listeners — callers must free
   listeners separately. The original test had a memory leak here.
 */
-bool
-d_tests_sa_et_clear_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_clear_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   listeners[5];
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   listeners[5];
     size_t                     old_size;
     int                        i;
     bool                       none_found;
@@ -460,10 +449,8 @@ d_tests_sa_et_clear_null
   Tests the following:
   - Does not crash
 */
-bool
-d_tests_sa_et_clear_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_clear_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -485,10 +472,8 @@ d_tests_sa_et_clear_null
 d_tests_sa_et_management_all
   Runs all table management tests.
 */
-bool
-d_tests_sa_et_management_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_management_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

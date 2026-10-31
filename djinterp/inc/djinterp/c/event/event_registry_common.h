@@ -15,20 +15,20 @@
 * leave only one thing that could break it.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   registry  rho in prod_e H_e*  -- struct d_event_registry
+*   registry  rho in prod_e H_e*  -- struct dj_event_registry
 *   dispatch  delta_rho           -- d_event_registry_dispatch: the inner fold
 *                                    of seq over mask_m(rho_e)
 *   run       run_rho             -- d_event_registry_run: the outer fold over
 *                                    a trace
-*   enriched dispatch (count, P)  -- struct d_dispatch_result
+*   enriched dispatch (count, P)  -- struct dj_dispatch_result
 *   merge     rho (+) rho'        -- d_event_registry_merge
-*   staging   hat-h, once         -- d_event_registry_compile -> d_event_word
+*   staging   hat-h, once         -- d_event_registry_compile -> dj_event_word
 *
 * SNAPSHOT SEMANTICS:
 *   dispatch folds the word in force AT THE START of the occurrence. A handler
 * that binds or unbinds during its own dispatch does not change the word being
 * folded; the edit is visible to the next occurrence. compile() takes the
-* snapshot earlier still -- at compile time -- so a d_event_word is unaffected
+* snapshot earlier still -- at compile time -- so a dj_event_word is unaffected
 * by every later registry edit. Binding time is the whole difference between
 * the two paths, and it is the reason drive() and run() are separate calls.
 *
@@ -49,12 +49,12 @@
 #include <stddef.h>
 // djinterp
 #include "../djinterp.h"
-#include "../../config/core/event/cfg_event_registry.h"
+#include "../../config/c/event/cfg_event_registry.h"
 #include "./event_common.h"
 #include "./event_handler_common.h"
 #include "./event_table_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t, uint32_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -71,33 +71,33 @@ D_EXTERN_C_BEGIN
 ///        I.    ENRICHED RESULTS                                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_dispatch_result
+// dj_dispatch_result
 //   struct: the result of dispatching one occurrence -- the pair
 // (count, final verdict). Evaluating dispatch in the product with (N, +)
 // counts the letters actually invoked; `outcome` is the verdict of the folded
 // word. `outcome` is int32_t carrying a pinned D_VERDICT_* code, not an enum,
 // because the record's byte layout is part of the wire format.
-struct d_dispatch_result
+struct dj_dispatch_result
 {
     size_t  invoked;
     int32_t outcome;
     int32_t reserved;   // must be 0
 };
 
-// d_run_result
+// dj_run_result
 //   struct: the aggregate of folding dispatch over a trace.
-struct d_run_result
+struct dj_run_result
 {
     size_t occurrences;
     size_t handlers_invoked;
     size_t consumed_count;
 };
 
-// d_drive_result
+// dj_drive_result
 //   struct: the aggregate of driving a trace through a fused word. The fused
 // path is deliberately NOT instrumented per handler -- that is the erased
 // path's role -- so only occurrence and consume counts are reported.
-struct d_drive_result
+struct dj_drive_result
 {
     size_t occurrences;
     size_t consumed_count;
@@ -105,8 +105,10 @@ struct d_drive_result
 
 // d_dispatch_result_consumed
 //   function: true if the occurrence was consumed by one of its handlers.
-D_STATIC_INLINE bool
-d_dispatch_result_consumed(const struct d_dispatch_result* _result)
+D_STATIC_INLINE
+bool d_dispatch_result_consumed(
+    const struct dj_dispatch_result* _result
+)
 {
     return ( (_result != NULL) &&
              D_VERDICT_IS_CONSUMED(_result->outcome) );
@@ -117,10 +119,10 @@ d_dispatch_result_consumed(const struct d_dispatch_result* _result)
 // invocations, verdict pass. This is what dispatch returns for a key with no
 // handlers, and it is NOT an error: an alphabet summand with no subscribers
 // is a well-formed state.
-D_STATIC_INLINE struct d_dispatch_result
-d_dispatch_result_empty(void)
+D_STATIC_INLINE
+struct dj_dispatch_result d_dispatch_result_empty(void)
 {
-    struct d_dispatch_result result;
+    struct dj_dispatch_result result;
 
     result.invoked  = 0u;
     result.outcome  = (int32_t)D_VERDICT_PASS;
@@ -134,50 +136,60 @@ d_dispatch_result_empty(void)
 ///        II.   THE REGISTRY                                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_event_registry
+// dj_event_registry
 //   struct: the registry rho. It is exactly one table; the type exists so
 // that "the store" and "the thing you fold" are separately nameable, and so
-// that the C++ event_registry has a C member to contain rather than a second
+// that the C++ DEventRegistry has a C member to contain rather than a second
 // set of fields.
-struct d_event_registry
+struct dj_event_registry
 {
-    struct d_event_table table;
+    struct dj_event_table table;
 };
 
 // d_event_registry_init_fixed
 //   function: initializes a registry over caller-provided table storage. No
 // allocation. Arguments as for d_event_table_init_fixed.
-int d_event_registry_init_fixed(struct d_event_registry* _registry,
-                                struct d_event_entry*    _entries,
-                                size_t                   _capacity,
-                                uint32_t*                _bucket_head,
-                                uint32_t*                _bucket_tail,
-                                size_t                   _bucket_count);
+int d_event_registry_init_fixed(
+    struct dj_event_registry* _registry,
+    struct dj_event_entry*    _entries,
+    size_t                    _capacity,
+    uint32_t*                 _bucket_head,
+    uint32_t*                 _bucket_tail,
+    size_t                    _bucket_count
+);
 
 // d_event_registry_init
 //   function: initializes an allocating registry. A zero argument selects the
 // corresponding default.
-int d_event_registry_init(struct d_event_registry* _registry,
-                          size_t                   _capacity,
-                          size_t                   _bucket_count);
+int d_event_registry_init(
+    struct dj_event_registry* _registry,
+    size_t                    _capacity,
+    size_t                    _bucket_count
+);
 
 // d_event_registry_dispose
 //   function: releases the registry's table.
-void d_event_registry_dispose(struct d_event_registry* _registry);
+void d_event_registry_dispose(
+    struct dj_event_registry* _registry
+);
 
 // d_event_registry_table
 //   function: the underlying table, for the storage operations the registry
 // does not re-declare (enable, disable, contains, iteration, statistics).
-D_STATIC_INLINE struct d_event_table*
-d_event_registry_table(struct d_event_registry* _registry)
+D_STATIC_INLINE
+struct dj_event_table* d_event_registry_table(
+    struct dj_event_registry* _registry
+)
 {
     return (_registry ? &_registry->table : NULL);
 }
 
 // d_event_registry_table_const
 //   function: const overload of d_event_registry_table.
-D_STATIC_INLINE const struct d_event_table*
-d_event_registry_table_const(const struct d_event_registry* _registry)
+D_STATIC_INLINE
+const struct dj_event_table* d_event_registry_table_const(
+    const struct dj_event_registry* _registry
+)
 {
     return (_registry ? &_registry->table : NULL);
 }
@@ -191,25 +203,31 @@ d_event_registry_table_const(const struct d_event_registry* _registry)
 //   function: appends a letter to the word for `_key`. Forwards to
 // d_event_table_bind; declared here so that a caller working against the
 // registry never needs to reach for the table.
-int d_event_registry_bind(struct d_event_registry* _registry,
-                          d_event_key              _key,
-                          struct d_event_step      _step,
-                          fn_free                  _state_free,
-                          d_handler_id*            _id_out);
+int d_event_registry_bind(
+    struct dj_event_registry* _registry,
+    dj_event_key              _key,
+    struct dj_event_step      _step,
+    fn_free                   _state_free,
+    dj_handler_id*            _id_out
+);
 
 // d_event_registry_unbind
 //   function: removes the letter named by `_id`.
-int d_event_registry_unbind(struct d_event_registry* _registry,
-                            d_handler_id             _id);
+int d_event_registry_unbind(
+    struct dj_event_registry* _registry,
+    dj_handler_id             _id
+);
 
 #if (D_INTERNAL_EVENT_REGISTRY_MERGE == 1)
 
 // d_event_registry_merge
 //   function: pointwise concatenation rho (+) rho'. Forwards to
 // d_event_table_merge; the empty registry is the identity.
-int d_event_registry_merge(struct d_event_registry*       _registry,
-                           const struct d_event_registry* _other,
-                           size_t*                        _merged_out);
+int d_event_registry_merge(
+    struct dj_event_registry*       _registry,
+    const struct dj_event_registry* _other,
+    size_t*                         _merged_out
+);
 
 
 #endif  // D_INTERNAL_EVENT_REGISTRY_MERGE
@@ -227,18 +245,20 @@ int d_event_registry_merge(struct d_event_registry*       _registry,
 // event of arity 0. It is passed through untouched: the core never reads it.
 // returns: the enriched (count, verdict) result. An absent word yields
 // d_dispatch_result_empty().
-struct d_dispatch_result d_event_registry_dispatch(
-    struct d_event_registry* _registry,
-    d_event_key              _key,
-    void*                    _payload);
+struct dj_dispatch_result d_event_registry_dispatch(
+    struct dj_event_registry* _registry,
+    dj_event_key              _key,
+    void*                     _payload
+);
 
 // d_event_registry_dispatch_occurrence
 //   function: dispatch spelled over an occurrence pair (e, a) rather than a
 // loose key and pointer. Equivalent to
 // d_event_registry_dispatch(r, o->key, o->payload.data).
-struct d_dispatch_result d_event_registry_dispatch_occurrence(
-    struct d_event_registry*         _registry,
-    const struct d_event_occurrence* _occurrence);
+struct dj_dispatch_result d_event_registry_dispatch_occurrence(
+    struct dj_event_registry*         _registry,
+    const struct dj_event_occurrence* _occurrence
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -259,11 +279,13 @@ struct d_dispatch_result d_event_registry_dispatch_occurrence(
 // wanting per-occurrence isolation copies into a scratch block and dispatches
 // that.
 // returns: the aggregate run result.
-struct d_run_result d_event_registry_run(struct d_event_registry* _registry,
-                                         d_event_key              _key,
-                                         void*                    _first,
-                                         size_t                   _stride,
-                                         size_t                   _count);
+struct dj_run_result d_event_registry_run(
+    struct dj_event_registry* _registry,
+    dj_event_key              _key,
+    void*                     _first,
+    size_t                    _stride,
+    size_t                    _count
+);
 
 
 #endif  // D_INTERNAL_EVENT_REGISTRY_RUN
@@ -279,21 +301,21 @@ struct d_run_result d_event_registry_run(struct d_event_registry* _registry,
 //   constant: set when the word allocated its own step array.
 #define D_EVENT_WORD_FLAG_OWNS_STORAGE      ((uint32_t)0x00000001u)
 
-// d_event_word
+// dj_event_word
 //   struct: a static registry word for one key, evaluated once into a single
 // closed step (hat-h). Holds a snapshot of the enabled letters, in order,
 // taken at compile time; folding it costs no table lookup and no re-reading
 // of the registry.
-//   A d_event_word does NOT track the registry. Later binds, unbinds, and
+//   A dj_event_word does NOT track the registry. Later binds, unbinds, and
 // mask changes are invisible to it. That is the point of staging, and it is
 // also the precondition the coherence law attaches to: the law holds for a
 // registry held fixed between the snapshot and the runs.
-struct d_event_word
+struct dj_event_word
 {
-    struct d_event_step* steps;
+    struct dj_event_step* steps;
     size_t               count;
     size_t               capacity;
-    d_event_key          key;
+    dj_event_key          key;
     uint32_t             flags;
     uint32_t             reserved;   // must be 0
 };
@@ -306,32 +328,40 @@ struct d_event_word
 // with `_word_out` holding the prefix that fitted -- a truncated word is a
 // different word, so this is a mechanical failure the caller must not ignore.
 // returns: D_EVENT_OK, D_EVENT_ERR_NULL, or D_EVENT_ERR_CAPACITY.
-int d_event_registry_compile_into(const struct d_event_registry* _registry,
-                                  d_event_key                    _key,
-                                  struct d_event_step*           _steps,
-                                  size_t                         _capacity,
-                                  struct d_event_word*           _word_out);
+int d_event_registry_compile_into(
+    const struct dj_event_registry* _registry,
+    dj_event_key                    _key,
+    struct dj_event_step*           _steps,
+    size_t                          _capacity,
+    struct dj_event_word*           _word_out
+);
 
 #if (D_INTERNAL_EVENT_REGISTRY_STAGING_ALLOC == 1)
 
 // d_event_registry_compile
 //   function: as d_event_registry_compile_into, but the word allocates and
 // owns its step array. Release it with d_event_word_dispose.
-int d_event_registry_compile(const struct d_event_registry* _registry,
-                             d_event_key                    _key,
-                             struct d_event_word*           _word_out);
+int d_event_registry_compile(
+    const struct dj_event_registry* _registry,
+    dj_event_key                    _key,
+    struct dj_event_word*           _word_out
+);
 
 #endif  // D_INTERNAL_EVENT_REGISTRY_STAGING_ALLOC
 
 // d_event_word_dispose
 //   function: releases a word's step array if it owns one. Safe on a zeroed
 // word and safe to call twice.
-void d_event_word_dispose(struct d_event_word* _word);
+void d_event_word_dispose(
+    struct dj_event_word* _word
+);
 
 // d_event_word_size
 //   function: the number of letters fused into the word.
-D_STATIC_INLINE size_t
-d_event_word_size(const struct d_event_word* _word)
+D_STATIC_INLINE
+size_t d_event_word_size(
+    const struct dj_event_word* _word
+)
 {
     return (_word ? _word->count : 0u);
 }
@@ -340,9 +370,11 @@ d_event_word_size(const struct d_event_word* _word)
 //   function: folds the snapshotted word over one payload block, stopping at
 // the first consume. `_invoked_out` may be NULL.
 // returns: the pinned verdict code.
-int32_t d_event_word_run_one(const struct d_event_word* _word,
-                             void*                      _payload,
-                             size_t*                    _invoked_out);
+int32_t d_event_word_run_one(
+    const struct dj_event_word* _word,
+    void*                       _payload,
+    size_t*                     _invoked_out
+);
 
 // d_event_word_drive
 //   function: runs a homogeneous trace through the fused word as a single
@@ -361,10 +393,12 @@ int32_t d_event_word_run_one(const struct d_event_word* _word,
 // with identical per-occurrence side effects in identical order. This is the
 // operational form of the fused/erased coherence proposition and the contract
 // any fused build must preserve.
-struct d_drive_result d_event_word_drive(const struct d_event_word* _word,
-                                         void*                      _first,
-                                         size_t                     _stride,
-                                         size_t                     _count);
+struct dj_drive_result d_event_word_drive(
+    const struct dj_event_word* _word,
+    void*                       _first,
+    size_t                      _stride,
+    size_t                      _count
+);
 
 
 #endif  // D_INTERNAL_EVENT_REGISTRY_STAGING
@@ -376,37 +410,37 @@ struct d_drive_result d_event_word_drive(const struct d_event_word* _word,
 
 #if (D_INTERNAL_EVENT_ASSERT_SIZES == 1)
 
-    D_STATIC_ASSERT(sizeof(struct d_dispatch_result) == 16,
-                    "d_dispatch_result layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_dispatch_result) == 16,
+                    "dj_dispatch_result layout drift");
 #if (D_INTERNAL_EVENT_REGISTRY_RUN == 1)
-    D_STATIC_ASSERT(sizeof(struct d_run_result) == 24,
-                    "d_run_result layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_run_result) == 24,
+                    "dj_run_result layout drift");
 #endif
 #if (D_INTERNAL_EVENT_REGISTRY_STAGING == 1)
-    D_STATIC_ASSERT(sizeof(struct d_drive_result) == 16,
-                    "d_drive_result layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_drive_result) == 16,
+                    "dj_drive_result layout drift");
 #endif
-    D_STATIC_ASSERT(sizeof(struct d_event_registry) == 80,
-                    "d_event_registry layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_registry) == 80,
+                    "dj_event_registry layout drift");
 #if (D_INTERNAL_EVENT_REGISTRY_STAGING == 1)
-    D_STATIC_ASSERT(sizeof(struct d_event_word) == 40,
-                    "d_event_word layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_word) == 40,
+                    "dj_event_word layout drift");
 #endif
-    D_STATIC_ASSERT(sizeof(struct d_event_registry) ==
-                    sizeof(struct d_event_table),
+    D_STATIC_ASSERT(sizeof(struct dj_event_registry) ==
+                    sizeof(struct dj_event_table),
                     "the registry must add no state to the table");
 
 #endif  // D_INTERNAL_EVENT_ASSERT_SIZES
 
 #if (D_INTERNAL_EVENT_ASSERT_LAYOUT == 1)
 
-D_STATIC_ASSERT(offsetof(struct d_dispatch_result, invoked) == 0,
-                "d_dispatch_result field drift");
-D_STATIC_ASSERT(offsetof(struct d_event_registry, table) == 0,
-                "d_event_registry field drift");
+D_STATIC_ASSERT(offsetof(struct dj_dispatch_result, invoked) == 0,
+                "dj_dispatch_result field drift");
+D_STATIC_ASSERT(offsetof(struct dj_event_registry, table) == 0,
+                "dj_event_registry field drift");
 #if (D_INTERNAL_EVENT_REGISTRY_STAGING == 1)
-D_STATIC_ASSERT(offsetof(struct d_event_word, steps) == 0,
-                "d_event_word field drift");
+D_STATIC_ASSERT(offsetof(struct dj_event_word, steps) == 0,
+                "dj_event_word field drift");
 #endif
 
 #endif  // D_INTERNAL_EVENT_ASSERT_LAYOUT

@@ -26,13 +26,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_semigroup_mappend_first
-(
-    const struct d_semigroup* _semigroup,
-    void*                     _result,
-    const void*               _left,
-    const void*               _right
+static
+void d_internal_semigroup_mappend_first(
+    const struct dj_semigroup* _semigroup,
+    void*                      _result,
+    const void*                _left,
+    const void*                _right
 )
 {
     (void)_right;
@@ -66,13 +65,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_semigroup_mappend_last
-(
-    const struct d_semigroup* _semigroup,
-    void*                     _result,
-    const void*               _left,
-    const void*               _right
+static
+void d_internal_semigroup_mappend_last(
+    const struct dj_semigroup* _semigroup,
+    void*                      _result,
+    const void*                _left,
+    const void*                _right
 )
 {
     (void)_left;
@@ -99,19 +97,18 @@ layer, and it is why `mappend` permits `_result` to alias `_left`.
 Parameter(s):
   _state:   the reducing state whose accumulator is combined into.
   _element: the incoming element.
-  _context: the borrowed `d_semigroup` supplying the combine.
+  _context: the borrowed `dj_semigroup` supplying the combine.
 Return:
   none.
 */
-static void
-d_internal_semigroup_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_semigroup_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
-    const struct d_semigroup* semigroup;
+    const struct dj_semigroup* semigroup;
 
     // a NULL state, semigroup, or element is a caller error
     if ( (!_state)   ||
@@ -121,7 +118,7 @@ d_internal_semigroup_step
         return;
     }
 
-    semigroup = (const struct d_semigroup*)_context;
+    semigroup = (const struct dj_semigroup*)_context;
 
     // an unset combine, or no accumulator, leaves the fold as it was
     if ( (!semigroup->mappend)  ||
@@ -151,15 +148,13 @@ Parameter(s):
 Return:
   A semigroup by value.
 */
-struct d_semigroup
-d_semigroup_make
-(
+struct dj_semigroup d_semigroup_make(
     fn_mappend _mappend,
     void*      _context,
     size_t     _value_size
 )
 {
-    struct d_semigroup semigroup;
+    struct dj_semigroup semigroup;
 
     semigroup.mappend    = _mappend;
     semigroup.context    = _context;
@@ -179,10 +174,8 @@ Return:
   - true, if the combine is set and the width is non-zero, or
   - false, otherwise.
 */
-bool
-d_semigroup_is_valid
-(
-    const struct d_semigroup* _semigroup
+bool d_semigroup_is_valid(
+    const struct dj_semigroup* _semigroup
 )
 {
     // a NULL semigroup is not valid
@@ -210,13 +203,11 @@ Return:
   - true, if the combination was written, or
   - false, if the parameters were unusable.
 */
-bool
-d_mappend
-(
-    const struct d_semigroup* _semigroup,
-    void*                     _result,
-    const void*               _left,
-    const void*               _right
+bool d_mappend(
+    const struct dj_semigroup* _semigroup,
+    void*                      _result,
+    const void*                _left,
+    const void*                _right
 )
 {
     // an unusable request combines nothing
@@ -237,7 +228,7 @@ d_mappend
 d_semigroup_reducer
   Lifts a semigroup into a reducer whose accumulator is combined in place. The
 semigroup is borrowed, not copied, and must outlive the reducer.
-  Because the result is an ordinary `d_reducer`, a semigroup fold is drivable by
+  Because the result is an ordinary `dj_reducer`, a semigroup fold is drivable by
 every driver in the subframework: over an array, over a producer, or as the sink
 of a transducer chain.
 
@@ -246,10 +237,8 @@ Parameter(s):
 Return:
   A reducer by value; an invalid reducer if the semigroup is unusable.
 */
-struct d_reducer
-d_semigroup_reducer
-(
-    const struct d_semigroup* _semigroup
+struct dj_reducer d_semigroup_reducer(
+    const struct dj_semigroup* _semigroup
 )
 {
     // an unusable semigroup yields an invalid reducer
@@ -278,17 +267,15 @@ Return:
   - true, if the array was combined into `_accumulator`, or
   - false, if the array was empty or the parameters were unusable.
 */
-bool
-d_semigroup_reduce
-(
-    const struct d_semigroup* _semigroup,
-    const void*               _elements,
-    size_t                    _count,
-    void*                     _accumulator
+bool d_semigroup_reduce(
+    const struct dj_semigroup* _semigroup,
+    const void*                _elements,
+    size_t                     _count,
+    void*                      _accumulator
 )
 {
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     const unsigned char*    base;
 
     // an empty array has no result, because there is no identity to return
@@ -333,9 +320,7 @@ Parameter(s):
 Return:
   A semigroup by value; an invalid semigroup if `_value_size` is 0.
 */
-struct d_semigroup
-d_semigroup_first
-(
+struct dj_semigroup d_semigroup_first(
     size_t _value_size
 )
 {
@@ -360,9 +345,7 @@ Parameter(s):
 Return:
   A semigroup by value; an invalid semigroup if `_value_size` is 0.
 */
-struct d_semigroup
-d_semigroup_last
-(
+struct dj_semigroup d_semigroup_last(
     size_t _value_size
 )
 {

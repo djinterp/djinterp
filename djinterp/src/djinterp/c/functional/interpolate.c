@@ -23,9 +23,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the byte continues a key.
 */
-static bool
-d_internal_interp_is_key_byte
-(
+static
+bool d_internal_interp_is_key_byte(
     char _byte
 )
 {
@@ -49,20 +48,19 @@ An unterminated opening delimiter is emitted as literal text rather than
 treated as an error, so a malformed template degrades to its own source.
 
 Parameter(s):
-  _state: the `d_interp_scanner` to advance.
-  _out:   destination for one `d_interp_piece`.
+  _state: the `dj_interp_scanner` to advance.
+  _out:   destination for one `dj_interp_piece`.
 Return:
   A boolean value corresponding to whether a piece was produced.
 */
-static bool
-d_internal_interp_next_brace
-(
+static
+bool d_internal_interp_next_brace(
     void* _state,
     void* _out
 )
 {
-    struct d_interp_scanner* state;
-    struct d_interp_piece*   piece;
+    struct dj_interp_scanner* state;
+    struct dj_interp_piece*   piece;
     const char*              run;
     const char*              close;
 
@@ -73,8 +71,8 @@ d_internal_interp_next_brace
         return false;
     }
 
-    state = (struct d_interp_scanner*)_state;
-    piece = (struct d_interp_piece*)_out;
+    state = (struct dj_interp_scanner*)_state;
+    piece = (struct dj_interp_piece*)_out;
 
     // exhaustion is the ordinary end of the text
     if (state->cursor >= state->end)
@@ -134,20 +132,19 @@ d_internal_interp_next_sigil
 as literal text, which is how an escaped or bare sigil survives a pass.
 
 Parameter(s):
-  _state: the `d_interp_scanner` to advance.
-  _out:   destination for one `d_interp_piece`.
+  _state: the `dj_interp_scanner` to advance.
+  _out:   destination for one `dj_interp_piece`.
 Return:
   A boolean value corresponding to whether a piece was produced.
 */
-static bool
-d_internal_interp_next_sigil
-(
+static
+bool d_internal_interp_next_sigil(
     void* _state,
     void* _out
 )
 {
-    struct d_interp_scanner* state;
-    struct d_interp_piece*   piece;
+    struct dj_interp_scanner* state;
+    struct dj_interp_piece*   piece;
     const char*              run;
 
     // a NULL state or destination is a caller error
@@ -157,8 +154,8 @@ d_internal_interp_next_sigil
         return false;
     }
 
-    state = (struct d_interp_scanner*)_state;
-    piece = (struct d_interp_piece*)_out;
+    state = (struct dj_interp_scanner*)_state;
+    piece = (struct dj_interp_piece*)_out;
 
     // exhaustion is the ordinary end of the text
     if (state->cursor >= state->end)
@@ -222,22 +219,20 @@ Parameter(s):
   _text:   the template text; borrowed, and must outlive the producer.
   _length: its length in bytes.
 Return:
-  A producer of `d_interp_piece`; the empty producer if the parameters were
+  A producer of `dj_interp_piece`; the empty producer if the parameters were
 unusable.
 */
-struct d_producer
-d_interp_brace_scanner
-(
-    struct d_interp_scanner* _state,
-    const char*              _text,
-    size_t                   _length
+struct dj_producer d_interp_brace_scanner(
+    struct dj_interp_scanner* _state,
+    const char*               _text,
+    size_t                    _length
 )
 {
     // an unusable request degrades to the empty producer
     if ( (!_state) ||
          (!_text)  )
     {
-        return d_producer_empty(sizeof(struct d_interp_piece));
+        return d_producer_empty(sizeof(struct dj_interp_piece));
     }
 
     _state->cursor = _text;
@@ -248,7 +243,7 @@ d_interp_brace_scanner
 
     return d_producer_make(&d_internal_interp_next_brace,
                            _state,
-                           sizeof(struct d_interp_piece));
+                           sizeof(struct dj_interp_piece));
 }
 
 /*
@@ -261,16 +256,14 @@ Parameter(s):
   _length: its length in bytes.
   _sigil:  the byte introducing a key; must be non-zero.
 Return:
-  A producer of `d_interp_piece`; the empty producer if the parameters were
+  A producer of `dj_interp_piece`; the empty producer if the parameters were
 unusable.
 */
-struct d_producer
-d_interp_sigil_scanner
-(
-    struct d_interp_scanner* _state,
-    const char*              _text,
-    size_t                   _length,
-    char                     _sigil
+struct dj_producer d_interp_sigil_scanner(
+    struct dj_interp_scanner* _state,
+    const char*               _text,
+    size_t                    _length,
+    char                      _sigil
 )
 {
     // a zero sigil would match the string terminator, so it is refused
@@ -278,7 +271,7 @@ d_interp_sigil_scanner
          (!_text)      ||
          (_sigil == 0) )
     {
-        return d_producer_empty(sizeof(struct d_interp_piece));
+        return d_producer_empty(sizeof(struct dj_interp_piece));
     }
 
     _state->cursor = _text;
@@ -289,7 +282,7 @@ d_interp_sigil_scanner
 
     return d_producer_make(&d_internal_interp_next_sigil,
                            _state,
-                           sizeof(struct d_interp_piece));
+                           sizeof(struct dj_interp_piece));
 }
 
 /*
@@ -302,14 +295,12 @@ Parameter(s):
 Return:
   A frame by value.
 */
-struct d_interp_frame
-d_interp_frame_make
-(
+struct dj_interp_frame d_interp_frame_make(
     fn_resolver _resolve,
     void*       _context
 )
 {
-    struct d_interp_frame frame;
+    struct dj_interp_frame frame;
 
     frame.resolve = _resolve;
     frame.context = _context;
@@ -328,12 +319,10 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the chain was initialised.
 */
-bool
-d_interp_chain_init
-(
-    struct d_interp_chain*       _chain,
-    const struct d_interp_frame* _frames,
-    size_t                       _count
+bool d_interp_chain_init(
+    struct dj_interp_chain*       _chain,
+    const struct dj_interp_frame* _frames,
+    size_t                        _count
 )
 {
     // a chain claiming frames must have them
@@ -366,14 +355,12 @@ Return:
   - true, if some frame answered, or
   - false, if every frame missed. A miss is not an error.
 */
-bool
-d_interp_chain_resolve
-(
-    const struct d_interp_chain* _chain,
-    const char*                  _key,
-    size_t                       _key_length,
-    const char**                 _out_value,
-    size_t*                      _out_length
+bool d_interp_chain_resolve(
+    const struct dj_interp_chain* _chain,
+    const char*                   _key,
+    size_t                        _key_length,
+    const char**                  _out_value,
+    size_t*                       _out_length
 )
 {
     size_t index;
@@ -419,12 +406,10 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the sink was initialised.
 */
-bool
-d_interp_sink_init
-(
-    struct d_interp_sink* _sink,
-    char*                 _buffer,
-    size_t                _capacity
+bool d_interp_sink_init(
+    struct dj_interp_sink* _sink,
+    char*                  _buffer,
+    size_t                 _capacity
 )
 {
     // an unusable request leaves the sink untouched
@@ -456,12 +441,10 @@ Return:
   - true, if every byte fit, or
   - false, if some or all overflowed.
 */
-bool
-d_interp_sink_append
-(
-    struct d_interp_sink* _sink,
-    const char*           _bytes,
-    size_t                _length
+bool d_interp_sink_append(
+    struct dj_interp_sink* _sink,
+    const char*            _bytes,
+    size_t                 _length
 )
 {
     size_t room;
@@ -520,17 +503,15 @@ Return:
   - true, if the pass completed with nothing overflowing, or
   - false, if the sink overflowed or the parameters were unusable.
 */
-bool
-d_interpolate
-(
-    struct d_producer*           _scanner,
-    const struct d_interp_chain* _chain,
-    struct d_interp_sink*        _sink,
-    struct d_interp_report*      _report
+bool d_interpolate(
+    struct dj_producer*           _scanner,
+    const struct dj_interp_chain* _chain,
+    struct dj_interp_sink*        _sink,
+    struct dj_interp_report*      _report
 )
 {
-    struct d_interp_piece  piece;
-    struct d_interp_report report;
+    struct dj_interp_piece  piece;
+    struct dj_interp_report report;
     const char*            value;
     size_t                 length;
 
@@ -622,20 +603,18 @@ Return:
   A boolean value corresponding to whether the pass completed without
 overflowing.
 */
-bool
-d_interpolate_text
-(
-    const char*                  _text,
-    size_t                       _length,
-    const struct d_interp_chain* _chain,
-    char*                        _out,
-    size_t                       _capacity,
-    struct d_interp_report*      _report
+bool d_interpolate_text(
+    const char*                   _text,
+    size_t                        _length,
+    const struct dj_interp_chain* _chain,
+    char*                         _out,
+    size_t                        _capacity,
+    struct dj_interp_report*      _report
 )
 {
-    struct d_interp_scanner state;
-    struct d_interp_sink    sink;
-    struct d_producer       scanner;
+    struct dj_interp_scanner state;
+    struct dj_interp_sink    sink;
+    struct dj_producer       scanner;
 
     // an unusable request interpolates nothing
     if (!d_interp_sink_init(&sink, _out, _capacity))

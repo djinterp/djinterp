@@ -28,7 +28,7 @@
  *   like "d_file_symlink creates symbolic link (skipped: no privilege)". A reader
  *   scanning the output sees PASS. CI sees PASS. The claim is false.
  *
- *   The framework has no third state -- d_test_object carries a bool -- so
+ *   The framework has no third state -- dj_test_object carries a bool -- so
  *   there is no honest way to say "skipped" inside an assertion. The honest
  *   way is not to make the assertion. This suite therefore OMITS what it
  *   cannot run: nothing green, nothing red, nothing claimed, and the group
@@ -63,11 +63,8 @@ Parameter(s):
 Return:
   true when a link can be created, false otherwise.
 */
-static bool
-d_tests_file_link_permitted
-(
-    void
-)
+static
+bool d_tests_file_link_permitted(void)
 {
     static int cached = -1;   // -1 untested, 0 no, 1 yes
     char       target[D_TEST_FILE_PATH_BUF];
@@ -110,13 +107,10 @@ d_tests_file_symlink
   - rejects a NULL target
   - rejects a NULL link path
 */
-static struct d_test_object*
-d_tests_file_symlink
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_symlink(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  target[D_TEST_FILE_PATH_BUF];
     char                  link[D_TEST_FILE_PATH_BUF];
     size_t                idx;
@@ -188,13 +182,10 @@ d_tests_file_readlink
   - a non-symlink is EINVAL
   - NULL is rejected
 */
-static struct d_test_object*
-d_tests_file_readlink
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_readlink(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  target[D_TEST_FILE_PATH_BUF];
     char                  link[D_TEST_FILE_PATH_BUF];
     char                  read_buf[D_TEST_FILE_PATH_BUF];
@@ -273,13 +264,10 @@ d_tests_file_is_symlink
   - a directory is not
   - NULL is not
 */
-static struct d_test_object*
-d_tests_file_is_symlink
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_is_symlink(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
     char                  target[D_TEST_FILE_PATH_BUF];
     char                  link[D_TEST_FILE_PATH_BUF];
     size_t                idx;
@@ -327,13 +315,9 @@ d_tests_file_is_symlink
 d_tests_file_link_all
   Runs every file_link test.
 */
-struct d_test_object*
-d_tests_file_link_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_link_all(void)
 {
-    struct d_test_object* items[4];
+    struct dj_test_object* items[4];
     size_t                idx;
 
     idx = 0;

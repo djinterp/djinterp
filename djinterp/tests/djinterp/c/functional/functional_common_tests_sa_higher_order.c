@@ -9,12 +9,16 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // helper functions for testing
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -30,7 +34,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -46,9 +54,12 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static bool transform_double(const void* _input,
-                              void*       _output,
-                              void*       _context)
+static
+bool transform_double(
+    const void* _input,
+    void*       _output,
+    void*       _context
+)
 {
     const int* in;
     int*       out;
@@ -69,9 +80,12 @@ static bool transform_double(const void* _input,
     return true;
 }
 
-static bool accumulate_sum(void*       _accumulated,
-                            const void* _element,
-                            void*       _context)
+static
+bool accumulate_sum(
+    void*       _accumulated,
+    const void* _element,
+    void*       _context
+)
 {
     int*       acc;
     const int* elem;
@@ -92,7 +106,11 @@ static bool accumulate_sum(void*       _accumulated,
     return true;
 }
 
-static void consumer_increment(void* _element, void* _context)
+static
+void consumer_increment(
+    void* _element,
+    void* _context
+)
 {
     int* value;
 
@@ -121,10 +139,8 @@ d_tests_sa_fc_map
   - successful transformation
   - output count verification
 */
-bool
-d_tests_sa_fc_map
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_map(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -227,10 +243,8 @@ d_tests_sa_fc_filter
   - successful filtering
   - output count verification
 */
-bool
-d_tests_sa_fc_filter
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_filter(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -331,10 +345,8 @@ d_tests_sa_fc_fold_left
   - successful left fold (sum)
   - accumulator updates
 */
-bool
-d_tests_sa_fc_fold_left
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_fold_left(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -417,10 +429,8 @@ d_tests_sa_fc_fold_right
   - successful right fold
   - accumulator updates from right to left
 */
-bool
-d_tests_sa_fc_fold_right
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_fold_right(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -461,10 +471,8 @@ d_tests_sa_fc_for_each
   - successful for_each application
   - side effects verification
 */
-bool
-d_tests_sa_fc_for_each
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_for_each(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -511,10 +519,8 @@ d_tests_sa_fc_for_each
 d_tests_sa_fc_higher_order_all
   Aggregation function that runs all higher-order function tests.
 */
-bool
-d_tests_sa_fc_higher_order_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_higher_order_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

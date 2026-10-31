@@ -26,11 +26,7 @@ d_tests_sa_dtime_setup
 Return:
   true on success, false on failure.
 */
-bool
-d_tests_sa_dtime_setup
-(
-    void
-)
+bool d_tests_sa_dtime_setup(void)
 {
     // initialize timezone information
     d_tzset();
@@ -47,11 +43,7 @@ d_tests_sa_dtime_teardown
 Return:
   true on success, false on failure.
 */
-bool
-d_tests_sa_dtime_teardown
-(
-    void
-)
+bool d_tests_sa_dtime_teardown(void)
 {
     // no cleanup needed for time tests
     return true;
@@ -74,13 +66,9 @@ d_tests_sa_dtime_run_all
 Return:
   pointer to root test object containing all test results, or NULL on failure.
 */
-struct d_test_object*
-d_tests_sa_dtime_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_run_all(void)
 {
-    struct d_test_object* root;
+    struct dj_test_object* root;
     size_t                idx;
     size_t                total_tests;
 

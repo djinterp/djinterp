@@ -55,12 +55,12 @@
 #include <stdlib.h>  // malloc, free
 #include <string.h>  // memcpy, memset, strcmp, strlen
 // djinterp
-#include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, d_db_rows
+#include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, dj_db_rows
 #include "../db_internal.h"  // the rows builder, formatting, numbers
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
 #include "./postgres_internal.h"  // libpq-fe.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uintptr_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, uintptr_t
 
 
 // as its header: below the 64-bit floor there is nothing to define
@@ -77,20 +77,20 @@
 // of an address, and a terminator.
 #define D_INTERNAL_POSTGRES_NAME_ROOM (8u + (2u * sizeof(uintptr_t)) + 1u)
 
-// d_internal_postgres_value
+// dj_internal_postgres_value
 //   struct: what one parameter is bound to, as the server reads it.
-struct d_internal_postgres_value
+struct dj_internal_postgres_value
 {
-    enum d_db_value_type type;   // NULL until a bind says otherwise; TEXT
+    enum dj_db_value_type type;   // NULL until a bind says otherwise; TEXT
                                  // for every value sent as text, BLOB for
                                  // bytes
     char*                bytes;  // the text, terminated, or the bytes
     size_t               size;   // their length
 };
 
-// d_internal_postgres_phase
+// dj_internal_postgres_phase
 //   enum: which exchange a statement's call that does not block is in.
-enum d_internal_postgres_phase
+enum dj_internal_postgres_phase
 {
     D_INTERNAL_POSTGRES_IDLE = 0,    // no such call under way
     D_INTERNAL_POSTGRES_LOOKING,     // a prepare's lookup of a stale name
@@ -106,15 +106,15 @@ enum d_internal_postgres_phase
                                      // result for a page
 };
 
-// d_postgres_statement
+// dj_postgres_statement
 //   struct: the definition postgres_common.h declares.
-struct d_postgres_statement
+struct dj_postgres_statement
 {
     PGconn*                           db;         // the connection it is on
     char                              name[D_INTERNAL_POSTGRES_NAME_ROOM];
                                                   // its name on the server
     size_t                            count;      // its parameters
-    struct d_internal_postgres_value* values;     // count of them
+    struct dj_internal_postgres_value* values;     // count of them
     const char**                      texts;      // count, pointed at the
                                                   // values to run
     int*                              lengths;    // count: the bytes'
@@ -127,7 +127,7 @@ struct d_postgres_statement
     bool                              prepared;   // the server holds it
                                                   // under its name
     // a call that does not block, under way
-    enum d_internal_postgres_phase    phase;      // its exchange, or IDLE
+    enum dj_internal_postgres_phase    phase;      // its exchange, or IDLE
     bool                              sending;    // some of the exchange's
                                                   // send left to write
     bool                              turned_on;  // the send turned libpq's
@@ -147,7 +147,7 @@ struct d_postgres_statement
                                                   // read may hold
     size_t                            gathered;   // the rows it holds
     bool                              described;  // its columns described
-    struct d_internal_db_rows         page;       // the page, as it fills
+    struct dj_internal_db_rows         page;       // the page, as it fills
 };
 
 // d_internal_postgres_left_behind
@@ -164,9 +164,9 @@ static volatile sig_atomic_t d_internal_postgres_left_behind = 0;
  *
  * @param[in,out] _statement  the statement, whose name is written.
  */
-static void
-d_internal_postgres_name(
-    struct d_postgres_statement* _statement
+static
+void d_internal_postgres_name(
+    struct dj_postgres_statement* _statement
 )
 {
     static const char digits[] = "0123456789abcdef";
@@ -195,10 +195,8 @@ d_internal_postgres_name(
  *
  * @return the answer.
  */
-static bool
-d_internal_postgres_closes(
-    void
-)
+static
+bool d_internal_postgres_closes(void)
 {
     return d_postgres_client_supports(D_POSTGRES_CLIENT_CLOSE_PREPARED);
 }
@@ -214,8 +212,8 @@ d_internal_postgres_closes(
  * which a failed transaction still takes; DEALLOCATE, before it, is a
  * statement, which a failed transaction refuses.
  */
-static int
-d_internal_postgres_drop(
+static
+int d_internal_postgres_drop(
     PGconn*     _db,
     const char* _name
 )
@@ -248,8 +246,8 @@ d_internal_postgres_drop(
  * @param[out] _held  receives the answer; written only on success.
  * @return 0, or the failure's SQLSTATE, packed.
  */
-static int
-d_internal_postgres_held(
+static
+int d_internal_postgres_held(
     PGconn*     _db,
     const char* _name,
     bool*       _held
@@ -279,8 +277,8 @@ d_internal_postgres_held(
  * a statement is released while the connection cannot take its Close
  * (d_internal_postgres_left_behind).
  */
-static int
-d_internal_postgres_clear_stale(
+static
+int d_internal_postgres_clear_stale(
     PGconn*     _db,
     const char* _name
 )
@@ -309,9 +307,9 @@ d_internal_postgres_clear_stale(
  *
  * @param[in,out] _value  the value; NULL after.
  */
-static void
-d_internal_postgres_value_clear(
-    struct d_internal_postgres_value* _value
+static
+void d_internal_postgres_value_clear(
+    struct dj_internal_postgres_value* _value
 )
 {
     free(_value->bytes);
@@ -331,10 +329,10 @@ d_internal_postgres_value_clear(
  * @return 0; 42P02 for a parameter the statement does not have;
  *         D_DB_INVALID_ARGUMENT for a `NULL` statement.
  */
-static int
-d_internal_postgres_check(
-    const struct d_postgres_statement* _statement,
-    size_t                             _index
+static
+int d_internal_postgres_check(
+    const struct dj_postgres_statement* _statement,
+    size_t                              _index
 )
 {
     // parameter validation
@@ -374,9 +372,9 @@ d_internal_postgres_check(
  */
 static int
 d_internal_postgres_keep(
-    struct d_postgres_statement* _statement,
+    struct dj_postgres_statement* _statement,
     size_t                       _index,
-    enum d_db_value_type         _type,
+    enum dj_db_value_type         _type,
     const void*                  _bytes,
     size_t                       _size
 )
@@ -406,7 +404,7 @@ d_internal_postgres_keep(
     memcpy(copy, _bytes, _size);
     copy[_size] = '\0';
 
-    struct d_internal_postgres_value* const value =
+    struct dj_internal_postgres_value* const value =
         &_statement->values[_index - 1u];
 
     d_internal_postgres_value_clear(value);
@@ -429,15 +427,15 @@ d_internal_postgres_keep(
  * @param[in] ...         the number.
  * @return as d_internal_postgres_keep.
  */
-static int
-d_internal_postgres_keep_number(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    const char*                  _format,
+static
+int d_internal_postgres_keep_number(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    const char*                   _format,
     ...
 )
 {
-    struct d_internal_db_buffer text = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer text = { NULL, 0u, 0u };
     va_list                     args;
     int                         result =
         d_internal_postgres_check(_statement, _index);
@@ -448,7 +446,7 @@ d_internal_postgres_keep_number(
         return result;
     }
 
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_statement->db);
 
     va_start(args, _format);
@@ -477,15 +475,15 @@ d_internal_postgres_keep_number(
  *
  * @param[in,out] _statement  the statement.
  */
-static void
-d_internal_postgres_point(
-    struct d_postgres_statement* _statement
+static
+void d_internal_postgres_point(
+    struct dj_postgres_statement* _statement
 )
 {
     // libpq's arrays, pointed at the values
     for (size_t i = 0u; i < _statement->count; ++i)
     {
-        const struct d_internal_postgres_value* const value =
+        const struct dj_internal_postgres_value* const value =
             &_statement->values[i];
 
         _statement->texts[i]   = (value->type == D_DB_VALUE_NULL)
@@ -511,9 +509,9 @@ d_internal_postgres_point(
  * to libpq's NULL, as PQgetResult does in blocking; a prepare the server
  * made meanwhile is a statement the server holds.
  */
-static void
-d_internal_postgres_end_call(
-    struct d_postgres_statement* _statement
+static
+void d_internal_postgres_end_call(
+    struct dj_postgres_statement* _statement
 )
 {
     PGconn* const db = _statement->db;
@@ -577,9 +575,9 @@ d_internal_postgres_end_call(
  * division by zero at the thousandth row -- is still the run's, and the
  * transaction's, so it is reported.
  */
-static int
-d_internal_postgres_end_run(
-    struct d_postgres_statement* _statement
+static
+int d_internal_postgres_end_run(
+    struct dj_postgres_statement* _statement
 )
 {
     PGconn* const db     = _statement->db;
@@ -625,10 +623,10 @@ d_internal_postgres_end_run(
  *         d_internal_postgres_take.
  * @post On success the caller frees `*_result` with PQclear.
  */
-static int
-d_internal_postgres_execute_prepared(
-    struct d_postgres_statement* _statement,
-    PGresult**                   _result
+static
+int d_internal_postgres_execute_prepared(
+    struct dj_postgres_statement* _statement,
+    PGresult**                    _result
 )
 {
     // its own call, waited for; its own run, read away
@@ -666,9 +664,9 @@ d_internal_postgres_execute_prepared(
  *
  * @param[in] _statement  the statement; may be `NULL`.
  */
-static void
-d_internal_postgres_free(
-    struct d_postgres_statement* _statement
+static
+void d_internal_postgres_free(
+    struct dj_postgres_statement* _statement
 )
 {
     // accept NULL, as free does
@@ -707,13 +705,13 @@ d_internal_postgres_free(
  * @param[in] _db  the connection it is to be on.
  * @return the record, or `NULL` when memory ran out.
  */
-static struct d_postgres_statement*
-d_internal_postgres_made(
+static
+struct dj_postgres_statement* d_internal_postgres_made(
     PGconn* _db
 )
 {
-    struct d_postgres_statement* const made =
-        (struct d_postgres_statement*)malloc(sizeof(*made));
+    struct dj_postgres_statement* const made =
+        (struct dj_postgres_statement*)malloc(sizeof(*made));
 
     // allocation failure
     if (!made)
@@ -736,10 +734,10 @@ d_internal_postgres_made(
  * @param[in]     _count      how many parameters the server says it has.
  * @return 0, or 53200 when memory ran out, the statement then with none.
  */
-static int
-d_internal_postgres_room(
-    struct d_postgres_statement* _statement,
-    int                          _count
+static
+int d_internal_postgres_room(
+    struct dj_postgres_statement* _statement,
+    int                           _count
 )
 {
     _statement->count = (_count > 0) ? (size_t)_count : 0u;
@@ -750,9 +748,9 @@ d_internal_postgres_room(
         return 0;
     }
 
-    _statement->values  = (struct d_internal_postgres_value*)malloc(
+    _statement->values  = (struct dj_internal_postgres_value*)malloc(
                               _statement->count *
-                              sizeof(struct d_internal_postgres_value));
+                              sizeof(struct dj_internal_postgres_value));
     _statement->texts   = (const char**)malloc(_statement->count *
                                                sizeof(const char*));
     _statement->lengths = (int*)malloc(_statement->count * sizeof(int));
@@ -802,11 +800,11 @@ d_internal_postgres_room(
  * one the prepare fails (42P05), and it is dropped and the prepare tried
  * once more.
  */
-static int
-d_internal_postgres_prepare_text(
-    PGconn*                       _db,
-    struct d_postgres_statement** _statement,
-    const char*                   _sql
+static
+int d_internal_postgres_prepare_text(
+    PGconn*                        _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _sql
 )
 {
     const int ready = d_internal_postgres_ready(_db);
@@ -817,7 +815,7 @@ d_internal_postgres_prepare_text(
         return ready;
     }
 
-    struct d_postgres_statement* const made = d_internal_postgres_made(_db);
+    struct dj_postgres_statement* const made = d_internal_postgres_made(_db);
 
     // allocation failure
     if (!made)
@@ -905,10 +903,10 @@ d_internal_postgres_prepare_text(
  * A run's result is kept for the continuation that reads it, when it
  * succeeded; everything else the call held goes.
  */
-static int
-d_internal_postgres_finish(
-    struct d_postgres_statement* _statement,
-    int                          _result
+static
+int d_internal_postgres_finish(
+    struct dj_postgres_statement* _statement,
+    int                           _result
 )
 {
     // the result a run's continuation reads, or nothing
@@ -944,8 +942,8 @@ d_internal_postgres_finish(
  */
 static int
 d_internal_postgres_send_phase(
-    struct d_postgres_statement*   _statement,
-    enum d_internal_postgres_phase _phase
+    struct dj_postgres_statement*   _statement,
+    enum dj_internal_postgres_phase _phase
 )
 {
     PGconn* const db   = _statement->db;
@@ -1075,10 +1073,10 @@ d_internal_postgres_send_phase(
  * No exchange of a statement's can start a COPY -- PREPARE takes none --
  * but a COPY would hold the connection, so one is ended as everywhere.
  */
-static void
-d_internal_postgres_absorb(
-    struct d_postgres_statement* _statement,
-    PGresult*                    _result
+static
+void d_internal_postgres_absorb(
+    struct dj_postgres_statement* _statement,
+    PGresult*                     _result
 )
 {
     PGconn* const        db     = _statement->db;
@@ -1130,9 +1128,9 @@ d_internal_postgres_absorb(
  * @param[in,out] _statement  the statement.
  * @return D_DB_WAIT, the next exchange sent; or the call's result.
  */
-static int
-d_internal_postgres_advance(
-    struct d_postgres_statement* _statement
+static
+int d_internal_postgres_advance(
+    struct dj_postgres_statement* _statement
 )
 {
     const int failure = _statement->failure;
@@ -1229,15 +1227,15 @@ d_internal_postgres_advance(
  *        exchange, until it must wait or the call is done.
  *
  * @param[in,out] _statement  the statement, a call under way, not a page.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    receives what to wait for.
  * @return D_DB_WAIT, or the call's result.
  */
-static int
-d_internal_postgres_drive(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending
+static
+int d_internal_postgres_drive(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending
 )
 {
     PGconn* const db     = _statement->db;
@@ -1320,10 +1318,10 @@ d_internal_postgres_drive(
  *         the end of its rows, a command's result, a failure, memory, or a
  *         COPY -- the outcome then in `_statement->failure`.
  */
-static bool
-d_internal_postgres_page_add(
-    struct d_postgres_statement* _statement,
-    PGresult*                    _result
+static
+bool d_internal_postgres_page_add(
+    struct dj_postgres_statement* _statement,
+    PGresult*                     _result
 )
 {
     PGconn* const        db     = _statement->db;
@@ -1382,11 +1380,11 @@ d_internal_postgres_page_add(
  * @param[out]    _rows       receives the page, on success.
  * @return `_result`, or 53200 when the page could not be finished.
  */
-static int
-d_internal_postgres_page_give(
-    struct d_postgres_statement* _statement,
-    int                          _result,
-    struct d_db_rows*            _rows
+static
+int d_internal_postgres_page_give(
+    struct dj_postgres_statement* _statement,
+    int                           _result,
+    struct dj_db_rows*            _rows
 )
 {
     int result = _result;
@@ -1421,11 +1419,11 @@ d_internal_postgres_page_give(
  * @param[out]    _rows       receives the page once it is given.
  * @return D_DB_WAIT; or as d_postgres_fetch_rows.
  */
-static int
-d_internal_postgres_page_drive(
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+static
+int d_internal_postgres_page_drive(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     PGconn* const db = _statement->db;
@@ -1493,9 +1491,9 @@ d_internal_postgres_page_drive(
  * @param[in] _statement  the statement.
  * @return 0, or 08000 as the layer's own answer.
  */
-static int
-d_internal_postgres_may_start(
-    const struct d_postgres_statement* _statement
+static
+int d_internal_postgres_may_start(
+    const struct dj_postgres_statement* _statement
 )
 {
     // its own run or call, which the start would have to wait for
@@ -1516,7 +1514,7 @@ d_internal_postgres_may_start(
  *        given, and leaves nothing pending once it is done.
  *
  * @param[in,out] _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    receives what to wait for.
  * @param[in]     _first      the first phase the call may be in.
  * @param[in]     _last       the last.
@@ -1525,11 +1523,11 @@ d_internal_postgres_may_start(
  */
 static int
 d_internal_postgres_continue(
-    struct d_postgres_statement*   _statement,
+    struct dj_postgres_statement*   _statement,
     unsigned                       _events,
-    struct d_db_pending*           _pending,
-    enum d_internal_postgres_phase _first,
-    enum d_internal_postgres_phase _last
+    struct dj_db_pending*           _pending,
+    enum dj_internal_postgres_phase _first,
+    enum dj_internal_postgres_phase _last
 )
 {
     // parameter validation
@@ -1564,11 +1562,10 @@ d_internal_postgres_continue(
 d_postgres_prepare
   The server parses the text as it stands, and infers each parameter's type.
 */
-int
-d_postgres_prepare(
-    PGconn*                       _db,
-    struct d_postgres_statement** _statement,
-    const char*                   _sql
+int d_postgres_prepare(
+    PGconn*                        _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _sql
 )
 {
     // no place to put a statement
@@ -1593,15 +1590,14 @@ d_postgres_prepare(
 d_postgres_preparef
   Formatted with the connection's quoting, then prepared.
 */
-int
-d_postgres_preparef(
-    PGconn*                       _db,
-    struct d_postgres_statement** _statement,
-    const char*                   _format,
+int d_postgres_preparef(
+    PGconn*                        _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _format,
     ...
 )
 {
-    struct d_internal_db_buffer sql = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer sql = { NULL, 0u, 0u };
     va_list                     args;
 
     // no place to put a statement
@@ -1619,7 +1615,7 @@ d_postgres_preparef(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
 
     va_start(args, _format);
@@ -1651,9 +1647,8 @@ be the statement's; the memory goes whatever the server said. A copy the
 server keeps is a name left behind, which prepares inside a transaction look
 for from then on.
 */
-int
-d_postgres_finalize(
-    struct d_postgres_statement* _statement
+int d_postgres_finalize(
+    struct dj_postgres_statement* _statement
 )
 {
     // accept NULL, as free does
@@ -1692,8 +1687,7 @@ d_postgres_close_prepared
 DEALLOCATE fails where it has none (26000), so before libpq 17 the name is
 looked for first.
 */
-int
-d_postgres_close_prepared(
+int d_postgres_close_prepared(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -1728,9 +1722,8 @@ d_postgres_close_prepared(
 d_postgres_parameter_count
   As PQdescribePrepared counted them when the statement was prepared.
 */
-size_t
-d_postgres_parameter_count(
-    const struct d_postgres_statement* _statement
+size_t d_postgres_parameter_count(
+    const struct dj_postgres_statement* _statement
 )
 {
     return (_statement) ? _statement->count : 0u;
@@ -1740,9 +1733,8 @@ d_postgres_parameter_count(
 d_postgres_statement_connection
   The connection the statement was prepared on.
 */
-PGconn*
-d_postgres_statement_connection(
-    const struct d_postgres_statement* _statement
+PGconn* d_postgres_statement_connection(
+    const struct dj_postgres_statement* _statement
 )
 {
     return (_statement) ? _statement->db : NULL;
@@ -1757,12 +1749,11 @@ sent: the lookup of a stale name where d_internal_postgres_clear_stale would
 make it -- inside a transaction, unless libpq's Close has left no name
 behind -- and otherwise the prepare.
 */
-int
-d_postgres_prepare_start(
-    struct pg_conn*               _db,
-    struct d_postgres_statement** _statement,
-    const char*                   _sql,
-    struct d_db_pending*          _pending
+int d_postgres_prepare_start(
+    struct pg_conn*                _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _sql,
+    struct dj_db_pending*          _pending
 )
 {
     // nothing yet, whatever follows
@@ -1800,7 +1791,7 @@ d_postgres_prepare_start(
         return ready;
     }
 
-    struct d_postgres_statement* const made   = d_internal_postgres_made(_db);
+    struct dj_postgres_statement* const made   = d_internal_postgres_made(_db);
     const size_t                       length = strlen(_sql);
     char* const                        text   = (made)
                                                     ? (char*)malloc(length +
@@ -1847,11 +1838,10 @@ d_postgres_prepare_start(
 d_postgres_prepare_continue
   The exchanges, one after another (d_internal_postgres_drive).
 */
-int
-d_postgres_prepare_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending
+int d_postgres_prepare_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending
 )
 {
     return d_internal_postgres_continue(_statement,
@@ -1871,10 +1861,9 @@ d_postgres_prepare_continue(
 d_postgres_bind_null
   The value emptied: a run passes libpq a NULL for it.
 */
-int
-d_postgres_bind_null(
-    struct d_postgres_statement* _statement,
-    size_t                       _index
+int d_postgres_bind_null(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index
 )
 {
     const int checked = d_internal_postgres_check(_statement, _index);
@@ -1895,11 +1884,10 @@ d_postgres_bind_bool
   1 or 0, which boolean input reads as true and false, and integer input as
 the numbers.
 */
-int
-d_postgres_bind_bool(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    bool                         _value
+int d_postgres_bind_bool(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    bool                          _value
 )
 {
     return d_internal_postgres_keep(_statement, _index, D_DB_VALUE_TEXT,
@@ -1910,11 +1898,10 @@ d_postgres_bind_bool(
 d_postgres_bind_int64
   Decimal digits, which no locale changes.
 */
-int
-d_postgres_bind_int64(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    int64_t                      _value
+int d_postgres_bind_int64(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    int64_t                       _value
 )
 {
     return d_internal_postgres_keep_number(_statement, _index, "%lld",
@@ -1927,11 +1914,10 @@ d_postgres_bind_double
 double, its point a `.`; it refuses NaN and the infinities, which PostgreSQL
 spells for itself.
 */
-int
-d_postgres_bind_double(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    double                       _value
+int d_postgres_bind_double(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    double                        _value
 )
 {
     // PostgreSQL's spellings of NaN and the infinities
@@ -1959,11 +1945,10 @@ d_postgres_bind_double(
 d_postgres_bind_text
   A copy, sent as text; NULL binds NULL.
 */
-int
-d_postgres_bind_text(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    const char*                  _text
+int d_postgres_bind_text(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    const char*                   _text
 )
 {
     return (_text) ? d_internal_postgres_keep(_statement, _index,
@@ -1977,12 +1962,11 @@ d_postgres_bind_blob
   A copy, sent as bytes, the binary format, which a bytea takes as it is;
 NULL binds NULL.
 */
-int
-d_postgres_bind_blob(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    const void*                  _bytes,
-    size_t                       _size
+int d_postgres_bind_blob(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    const void*                   _bytes,
+    size_t                        _size
 )
 {
     return (_bytes) ? d_internal_postgres_keep(_statement, _index,
@@ -1997,9 +1981,8 @@ d_postgres_bind_blob(
 d_postgres_clear_bindings
   Every value emptied; nothing is sent.
 */
-int
-d_postgres_clear_bindings(
-    struct d_postgres_statement* _statement
+int d_postgres_clear_bindings(
+    struct dj_postgres_statement* _statement
 )
 {
     // parameter validation
@@ -2027,10 +2010,9 @@ d_postgres_execute_update
   The count is the command tag's, which a SELECT's carries too; a command
 without one, such as CREATE TABLE, counts none.
 */
-int
-d_postgres_execute_update(
-    struct d_postgres_statement* _statement,
-    int64_t*                     _changes
+int d_postgres_execute_update(
+    struct dj_postgres_statement* _statement,
+    int64_t*                      _changes
 )
 {
     PGresult* result_rows = NULL;
@@ -2077,10 +2059,9 @@ d_postgres_execute_update(
 d_postgres_execute_query
   The rows of the result, read as a query's.
 */
-int
-d_postgres_execute_query(
-    struct d_postgres_statement* _statement,
-    struct d_db_rows*            _rows
+int d_postgres_execute_query(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_rows*            _rows
 )
 {
     PGresult* result_rows = NULL;
@@ -2112,9 +2093,8 @@ d_postgres_open_cursor
 after the send, before anything is read. A pipeline reads its results its
 own way, statement by statement, and is refused.
 */
-int
-d_postgres_open_cursor(
-    struct d_postgres_statement* _statement
+int d_postgres_open_cursor(
+    struct dj_postgres_statement* _statement
 )
 {
     // parameter validation
@@ -2193,14 +2173,13 @@ ends the run: the zero-row result of rows, which carries their columns; a
 command's, which has none; or a failure. The run's end is read to libpq's
 NULL, so that the connection is free when the call returns.
 */
-int
-d_postgres_fetch_rows(
-    struct d_postgres_statement* _statement,
-    size_t                       _max,
-    struct d_db_rows*            _rows
+int d_postgres_fetch_rows(
+    struct dj_postgres_statement* _statement,
+    size_t                        _max,
+    struct dj_db_rows*            _rows
 )
 {
-    struct d_internal_db_rows builder =
+    struct dj_internal_db_rows builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
     };
@@ -2316,9 +2295,8 @@ d_postgres_fetch_rows(
 d_postgres_close_cursor
   The rest of the run read away (d_internal_postgres_end_run).
 */
-int
-d_postgres_close_cursor(
-    struct d_postgres_statement* _statement
+int d_postgres_close_cursor(
+    struct dj_postgres_statement* _statement
 )
 {
     // parameter validation
@@ -2346,10 +2324,9 @@ d_postgres_execute_start
   The run's message, sent in non-blocking mode; the start never reads, so
 that the result is read by a continuation, which gives it.
 */
-int
-d_postgres_execute_start(
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending
+int d_postgres_execute_start(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending
 )
 {
     // nothing pending yet, whatever follows
@@ -2417,12 +2394,11 @@ d_postgres_execute_update_continue
   The run's result, once read, counted as d_postgres_execute_update counts
 it: its command tag's count.
 */
-int
-d_postgres_execute_update_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending,
-    int64_t*                     _changes
+int d_postgres_execute_update_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    int64_t*                      _changes
 )
 {
     const int result = d_internal_postgres_continue(
@@ -2469,12 +2445,11 @@ d_postgres_execute_update_continue(
 d_postgres_execute_query_continue
   The run's result, once read, its rows read as a query's.
 */
-int
-d_postgres_execute_query_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+int d_postgres_execute_query_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     // somewhere to put the rows
@@ -2509,10 +2484,9 @@ d_postgres_open_cursor_start
   PQsendQueryPrepared and single-row mode, as d_postgres_open_cursor; the
 run is open from the send, its message written as the socket takes it.
 */
-int
-d_postgres_open_cursor_start(
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending
+int d_postgres_open_cursor_start(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending
 )
 {
     // nothing pending yet, whatever follows
@@ -2553,11 +2527,10 @@ d_postgres_open_cursor_start(
 d_postgres_open_cursor_continue
   The rest of the run's message (d_internal_postgres_drive).
 */
-int
-d_postgres_open_cursor_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending
+int d_postgres_open_cursor_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending
 )
 {
     return d_internal_postgres_continue(_statement,
@@ -2572,12 +2545,11 @@ d_postgres_fetch_rows_start
   A page begun, filled from whatever has arrived (d_internal_postgres_page_
 drive), the statement keeping it between continuations.
 */
-int
-d_postgres_fetch_rows_start(
-    struct d_postgres_statement* _statement,
-    size_t                       _max,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+int d_postgres_fetch_rows_start(
+    struct dj_postgres_statement* _statement,
+    size_t                        _max,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     // nothing pending yet, whatever follows
@@ -2629,12 +2601,11 @@ d_postgres_fetch_rows_continue
   More of the page (d_internal_postgres_page_drive); what came is read
 whatever the program says came, PQconsumeInput never waiting.
 */
-int
-d_postgres_fetch_rows_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+int d_postgres_fetch_rows_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     (void)_events;
@@ -2676,11 +2647,10 @@ d_postgres_prepare
   Without libpq there is nothing to prepare: D_DB_UNSUPPORTED, and the
 statement NULL, as a failed prepare leaves it.
 */
-int
-d_postgres_prepare(
-    struct pg_conn*               _db,
-    struct d_postgres_statement** _statement,
-    const char*                   _sql
+int d_postgres_prepare(
+    struct pg_conn*                _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _sql
 )
 {
     (void)_db;
@@ -2699,11 +2669,10 @@ d_postgres_prepare(
 d_postgres_preparef
   As d_postgres_prepare.
 */
-int
-d_postgres_preparef(
-    struct pg_conn*               _db,
-    struct d_postgres_statement** _statement,
-    const char*                   _format,
+int d_postgres_preparef(
+    struct pg_conn*                _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _format,
     ...
 )
 {
@@ -2723,9 +2692,8 @@ d_postgres_preparef(
 d_postgres_finalize
   Without libpq no statement exists, and releasing none succeeds.
 */
-int
-d_postgres_finalize(
-    struct d_postgres_statement* _statement
+int d_postgres_finalize(
+    struct dj_postgres_statement* _statement
 )
 {
     (void)_statement;
@@ -2737,8 +2705,7 @@ d_postgres_finalize(
 d_postgres_close_prepared
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_close_prepared(
+int d_postgres_close_prepared(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -2753,9 +2720,8 @@ d_postgres_close_prepared(
 d_postgres_parameter_count
   Without libpq, 0.
 */
-size_t
-d_postgres_parameter_count(
-    const struct d_postgres_statement* _statement
+size_t d_postgres_parameter_count(
+    const struct dj_postgres_statement* _statement
 )
 {
     (void)_statement;
@@ -2767,9 +2733,8 @@ d_postgres_parameter_count(
 d_postgres_statement_connection
   Without libpq, NULL.
 */
-struct pg_conn*
-d_postgres_statement_connection(
-    const struct d_postgres_statement* _statement
+struct pg_conn* d_postgres_statement_connection(
+    const struct dj_postgres_statement* _statement
 )
 {
     (void)_statement;
@@ -2781,10 +2746,9 @@ d_postgres_statement_connection(
 d_postgres_bind_null
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_bind_null(
-    struct d_postgres_statement* _statement,
-    size_t                       _index
+int d_postgres_bind_null(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index
 )
 {
     (void)_statement;
@@ -2797,11 +2761,10 @@ d_postgres_bind_null(
 d_postgres_bind_bool
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_bind_bool(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    bool                         _value
+int d_postgres_bind_bool(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    bool                          _value
 )
 {
     (void)_statement;
@@ -2815,11 +2778,10 @@ d_postgres_bind_bool(
 d_postgres_bind_int64
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_bind_int64(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    int64_t                      _value
+int d_postgres_bind_int64(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    int64_t                       _value
 )
 {
     (void)_statement;
@@ -2833,11 +2795,10 @@ d_postgres_bind_int64(
 d_postgres_bind_double
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_bind_double(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    double                       _value
+int d_postgres_bind_double(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    double                        _value
 )
 {
     (void)_statement;
@@ -2851,11 +2812,10 @@ d_postgres_bind_double(
 d_postgres_bind_text
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_bind_text(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    const char*                  _text
+int d_postgres_bind_text(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    const char*                   _text
 )
 {
     (void)_statement;
@@ -2869,12 +2829,11 @@ d_postgres_bind_text(
 d_postgres_bind_blob
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_bind_blob(
-    struct d_postgres_statement* _statement,
-    size_t                       _index,
-    const void*                  _bytes,
-    size_t                       _size
+int d_postgres_bind_blob(
+    struct dj_postgres_statement* _statement,
+    size_t                        _index,
+    const void*                   _bytes,
+    size_t                        _size
 )
 {
     (void)_statement;
@@ -2889,9 +2848,8 @@ d_postgres_bind_blob(
 d_postgres_clear_bindings
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_clear_bindings(
-    struct d_postgres_statement* _statement
+int d_postgres_clear_bindings(
+    struct dj_postgres_statement* _statement
 )
 {
     (void)_statement;
@@ -2903,10 +2861,9 @@ d_postgres_clear_bindings(
 d_postgres_execute_update
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_execute_update(
-    struct d_postgres_statement* _statement,
-    int64_t*                     _changes
+int d_postgres_execute_update(
+    struct dj_postgres_statement* _statement,
+    int64_t*                      _changes
 )
 {
     (void)_statement;
@@ -2919,10 +2876,9 @@ d_postgres_execute_update(
 d_postgres_execute_query
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_execute_query(
-    struct d_postgres_statement* _statement,
-    struct d_db_rows*            _rows
+int d_postgres_execute_query(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_rows*            _rows
 )
 {
     (void)_statement;
@@ -2935,9 +2891,8 @@ d_postgres_execute_query(
 d_postgres_open_cursor
   Without libpq there is nothing to run: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_open_cursor(
-    struct d_postgres_statement* _statement
+int d_postgres_open_cursor(
+    struct dj_postgres_statement* _statement
 )
 {
     (void)_statement;
@@ -2950,11 +2905,10 @@ d_postgres_fetch_rows
   Without libpq there are no rows: D_DB_UNSUPPORTED, and the rows left as
 they were.
 */
-int
-d_postgres_fetch_rows(
-    struct d_postgres_statement* _statement,
-    size_t                       _max,
-    struct d_db_rows*            _rows
+int d_postgres_fetch_rows(
+    struct dj_postgres_statement* _statement,
+    size_t                        _max,
+    struct dj_db_rows*            _rows
 )
 {
     (void)_statement;
@@ -2968,9 +2922,8 @@ d_postgres_fetch_rows(
 d_postgres_close_cursor
   Without libpq there is no run to end: D_DB_UNSUPPORTED.
 */
-int
-d_postgres_close_cursor(
-    struct d_postgres_statement* _statement
+int d_postgres_close_cursor(
+    struct dj_postgres_statement* _statement
 )
 {
     (void)_statement;
@@ -2983,9 +2936,9 @@ d_internal_postgres_nothing_pending
   What a start or continuation leaves without libpq: nothing pending.
 D_DB_UNSUPPORTED.
 */
-static int
-d_internal_postgres_nothing_pending(
-    struct d_db_pending* _pending
+static
+int d_internal_postgres_nothing_pending(
+    struct dj_db_pending* _pending
 )
 {
     if (_pending)
@@ -3005,12 +2958,11 @@ d_postgres_prepare_start
   Without libpq there is nothing to prepare: D_DB_UNSUPPORTED, the
 statement NULL, nothing pending.
 */
-int
-d_postgres_prepare_start(
-    struct pg_conn*               _db,
-    struct d_postgres_statement** _statement,
-    const char*                   _sql,
-    struct d_db_pending*          _pending
+int d_postgres_prepare_start(
+    struct pg_conn*                _db,
+    struct dj_postgres_statement** _statement,
+    const char*                    _sql,
+    struct dj_db_pending*          _pending
 )
 {
     (void)_db;
@@ -3028,11 +2980,10 @@ d_postgres_prepare_start(
 d_postgres_prepare_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_prepare_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending
+int d_postgres_prepare_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending
 )
 {
     (void)_statement;
@@ -3045,10 +2996,9 @@ d_postgres_prepare_continue(
 d_postgres_execute_start
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_execute_start(
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending
+int d_postgres_execute_start(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending
 )
 {
     (void)_statement;
@@ -3060,12 +3010,11 @@ d_postgres_execute_start(
 d_postgres_execute_update_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending, nothing counted.
 */
-int
-d_postgres_execute_update_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending,
-    int64_t*                     _changes
+int d_postgres_execute_update_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    int64_t*                      _changes
 )
 {
     (void)_statement;
@@ -3079,12 +3028,11 @@ d_postgres_execute_update_continue(
 d_postgres_execute_query_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending, no rows.
 */
-int
-d_postgres_execute_query_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+int d_postgres_execute_query_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     (void)_statement;
@@ -3098,10 +3046,9 @@ d_postgres_execute_query_continue(
 d_postgres_open_cursor_start
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_open_cursor_start(
-    struct d_postgres_statement* _statement,
-    struct d_db_pending*         _pending
+int d_postgres_open_cursor_start(
+    struct dj_postgres_statement* _statement,
+    struct dj_db_pending*         _pending
 )
 {
     (void)_statement;
@@ -3113,11 +3060,10 @@ d_postgres_open_cursor_start(
 d_postgres_open_cursor_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending.
 */
-int
-d_postgres_open_cursor_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending
+int d_postgres_open_cursor_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending
 )
 {
     (void)_statement;
@@ -3130,12 +3076,11 @@ d_postgres_open_cursor_continue(
 d_postgres_fetch_rows_start
   Without libpq, D_DB_UNSUPPORTED, nothing pending, no rows.
 */
-int
-d_postgres_fetch_rows_start(
-    struct d_postgres_statement* _statement,
-    size_t                       _max,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+int d_postgres_fetch_rows_start(
+    struct dj_postgres_statement* _statement,
+    size_t                        _max,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     (void)_statement;
@@ -3149,12 +3094,11 @@ d_postgres_fetch_rows_start(
 d_postgres_fetch_rows_continue
   Without libpq, D_DB_UNSUPPORTED, nothing pending, no rows.
 */
-int
-d_postgres_fetch_rows_continue(
-    struct d_postgres_statement* _statement,
-    unsigned                     _events,
-    struct d_db_pending*         _pending,
-    struct d_db_rows*            _rows
+int d_postgres_fetch_rows_continue(
+    struct dj_postgres_statement* _statement,
+    unsigned                      _events,
+    struct dj_db_pending*         _pending,
+    struct dj_db_rows*            _rows
 )
 {
     (void)_statement;

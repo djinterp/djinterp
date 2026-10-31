@@ -44,8 +44,7 @@ struct edit
 
 // rewrite
 //   a text's edits made, the last first.
-std::string
-rewrite(
+std::string rewrite(
     const std::string&       _text,
     const std::vector<edit>& _edits
 )
@@ -62,8 +61,7 @@ rewrite(
 
 // trimmed
 //   a name without the blanks around it.
-std::string
-trimmed(
+std::string trimmed(
     const std::string& _text
 )
 {
@@ -86,8 +84,7 @@ own name where the expression would find the row by it. The expression
 language has no strings or comments, so a scan for names suffices; a
 number's letters (0x1Fu) are skipped with the number.
 */
-std::vector<edit>
-expression_edits(
+std::vector<edit> expression_edits(
     const std::string& _text,
     const resolution&  _before,
     int                _from,
@@ -151,8 +148,7 @@ body_edits
 a {placeholder} that names the row -- but not one of the macro's own
 parameters, which only share the spelling.
 */
-std::vector<edit>
-body_edits(
+std::vector<edit> body_edits(
     const row&         _macro,
     standard           _level,
     const resolution&  _before,
@@ -215,9 +211,8 @@ body_edits(
 
 // each_row
 //   every row below a group, depth first.
-void
-each_row(
-    row&                             _group,
+void each_row(
+    row& _group,
     const std::function<void(row&)>& _visit
 )
 {
@@ -233,8 +228,7 @@ each_row(
 }  // anonymous namespace
 
 
-renamed
-rename_row(
+renamed rename_row(
     sheet&             _sheet,
     int                _id,
     const std::string& _name

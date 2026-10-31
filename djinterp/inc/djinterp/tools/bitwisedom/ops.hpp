@@ -36,8 +36,8 @@ TABLE OF CONTENTS
     2.  preview_op, apply_op_to
 */
 
-#ifndef BITWISEDOM_OPS_HPP
-#define BITWISEDOM_OPS_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_OPS_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_OPS_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -47,7 +47,7 @@ TABLE OF CONTENTS
 #include <string>  // std::string
 #include <vector>  // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./resolve.hpp"  // resolution
 #include "./sheet.hpp"    // sheet
@@ -114,15 +114,21 @@ struct op_info
 // A count -- of a shift, a rotation, a bit -- is the operand's integer;
 // the bitwise operations, addition and subtraction take the operand whole;
 // a product takes its integer.
-D_NODISCARD op_info           describe(op_kind _op);
-D_NODISCARD wide              apply_op(op_kind     _op,
-                                       const wide& _value,
-                                       const wide& _operand,
-                                       int         _width);
-D_NODISCARD u64               apply_op(op_kind _op,
-                                       u64     _value,
-                                       u64     _operand,
-                                       int     _width);
+D_NODISCARD op_info describe(
+    op_kind _op
+);
+D_NODISCARD wide apply_op(
+    op_kind     _op,
+    const wide& _value,
+    const wide& _operand,
+    int         _width
+);
+D_NODISCARD u64 apply_op(
+    op_kind _op,
+    u64     _value,
+    u64     _operand,
+    int     _width
+);
 
 /**
  * @brief Where each bit of an operation's result comes from.
@@ -133,9 +139,11 @@ D_NODISCARD u64               apply_op(op_kind _op,
  * @return for each result bit, the operand bit it copies, or -1 where a
  *         zero fills in. Empty for an operation that does more than move.
  */
-D_NODISCARD std::vector<int>  bit_flow(op_kind _op,
-                                       u64     _operand,
-                                       int     _width);
+D_NODISCARD std::vector<int> bit_flow(
+    op_kind _op,
+    u64     _operand,
+    int     _width
+);
 
 
 //==============================================================================
@@ -191,12 +199,14 @@ struct op_preview
  * @return each target before and after, and the distribution before and
  *         after.
  */
-D_NODISCARD op_preview preview_op(const sheet&            _sheet,
-                                  const resolution&       _resolution,
-                                  const std::vector<int>& _targets,
-                                  op_kind                 _op,
-                                  const wide&             _operand,
-                                  bool                    _probe);
+D_NODISCARD op_preview preview_op(
+    const sheet&            _sheet,
+    const resolution&       _resolution,
+    const std::vector<int>& _targets,
+    op_kind                 _op,
+    const wide&             _operand,
+    bool                    _probe
+);
 
 /**
  * @brief Applies an operation, rewriting each target's definition.
@@ -210,12 +220,14 @@ D_NODISCARD op_preview preview_op(const sheet&            _sheet,
  * @post   _resolution no longer describes _sheet.
  * @return how many rows, and the probe, were changed.
  */
-int apply_op_to(sheet&                  _sheet,
-                const resolution&       _resolution,
-                const std::vector<int>& _targets,
-                op_kind                 _op,
-                const wide&             _operand,
-                bool                    _probe);
+int apply_op_to(
+    sheet&                  _sheet,
+    const resolution&       _resolution,
+    const std::vector<int>& _targets,
+    op_kind                 _op,
+    const wide&             _operand,
+    bool                    _probe
+);
 
 
 }  // namespace bitwisedom
@@ -223,4 +235,4 @@ int apply_op_to(sheet&                  _sheet,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_OPS_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_OPS_HPP

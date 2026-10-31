@@ -12,15 +12,17 @@
 *******************************************************************************/
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 static int g_iter_test_values[] = {1, 2, 3, 4, 5};
 static int g_apply_sum = 0;
 static int g_apply_count = 0;
 
-static void
-apply_sum_fn(void* _element)
+static
+void apply_sum_fn(
+    void* _element
+)
 {
     if (_element)
     {
@@ -29,8 +31,11 @@ apply_sum_fn(void* _element)
     g_apply_count++;
 }
 
-static void
-apply_ctx_fn(void* _element, void* _context)
+static
+void apply_ctx_fn(
+    void* _element,
+    void* _context
+)
 {
     if (_element && _context)
     {
@@ -39,14 +44,12 @@ apply_ctx_fn(void* _element, void* _context)
 }
 
 
-bool
-d_tests_sa_ptr_vector_foreach
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_foreach(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -109,10 +112,8 @@ d_tests_sa_ptr_vector_foreach
     return result;
 }
 
-bool
-d_tests_sa_ptr_vector_iteration_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_iteration_all(
+    struct dj_test_counter* _counter
 )
 {
     printf("\n  [SECTION] Iteration Helper Functions\n");

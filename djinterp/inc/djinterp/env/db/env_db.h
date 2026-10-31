@@ -74,7 +74,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_ENV_DB_H 1
 
 // djinterp
-#include "../../config/core/env/db/cfg_env_db.h"  // D_CFG_ENV_DB_CUSTOM
+#include "../../config/env/db/cfg_env_db.h"  // D_CFG_ENV_DB_CUSTOM
 
 
 //==============================================================================

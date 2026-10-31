@@ -24,13 +24,9 @@ d_tests_dfile_tmpfile
   - creates a temporary file stream
   - stream is readable and writable
 */
-struct d_test_object*
-d_tests_dfile_tmpfile
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_tmpfile(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     FILE*                 tmp;
     int                   write_result;
     bool                  test_create;
@@ -77,13 +73,9 @@ d_tests_dfile_tmpfile_s
   - returns 0 and valid stream on success
   - returns EINVAL for NULL stream pointer
 */
-struct d_test_object*
-d_tests_dfile_tmpfile_s
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_tmpfile_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     FILE*                 stream;
     int                   result;
     bool                  test_create;
@@ -132,13 +124,9 @@ d_tests_dfile_mkstemp
   - returns valid fd
   - template is modified in place
 */
-struct d_test_object*
-d_tests_dfile_mkstemp
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_mkstemp(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  template_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  original[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
@@ -191,13 +179,9 @@ d_tests_dfile_tmpnam_s
   - returns error for NULL buffer
   - returns error for buffer too small
 */
-struct d_test_object*
-d_tests_dfile_tmpnam_s
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_tmpnam_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  name_buf[D_FILE_PATH_MAX];
     int                   result;
     bool                  test_generate;
@@ -249,13 +233,9 @@ d_tests_dfile_tempdir
   - returned path exists
   - returns NULL for NULL buffer
 */
-struct d_test_object*
-d_tests_dfile_tempdir
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_tempdir(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  dir_buf[D_FILE_PATH_MAX];
     char*                 result;
     bool                  test_get_dir;
@@ -305,13 +285,9 @@ d_tests_dfile_temporary_files_all
   - d_file_temp_name
   - d_dir_temp
 */
-struct d_test_object*
-d_tests_dfile_temporary_files_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_temporary_files_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("VIII. Temporary Files", 5);

@@ -139,7 +139,7 @@ XI.   TYPED FILTER WRAPPERS (C11+)
 #include "../dio.h"
 #include "./functional.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // fixed-width types, for users
+#include "../../../re_std/c/cstdint/dstdint.h"  // fixed-width types, for users
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -159,9 +159,9 @@ XI.   TYPED FILTER WRAPPERS (C11+)
 ///             II.   CORE FILTER TYPES                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_filter_op_type
+// dj_filter_op_type
 //   enum: types of filter operations.
-enum d_filter_op_type
+enum dj_filter_op_type
 {
     D_FILTER_OP_NONE        = 0x00,  // no operation
     D_FILTER_OP_TAKE_FIRST  = 0x01,  // take first n elements
@@ -182,9 +182,9 @@ enum d_filter_op_type
     D_FILTER_OP_REST        = 0x10   // all except first
 };
 
-// d_filter_result_type
+// dj_filter_result_type
 //   enum: result type of filter operation.
-enum d_filter_result_type
+enum dj_filter_result_type
 {
     D_FILTER_RESULT_SUCCESS    =  0,  // operation succeeded
     D_FILTER_RESULT_EMPTY      =  1,  // no elements matched
@@ -193,9 +193,9 @@ enum d_filter_result_type
     D_FILTER_RESULT_NO_MEMORY  = -3   // allocation failed
 };
 
-// struct d_filter_op_params
+// struct dj_filter_op_params
 //   struct: parameters for a filter operation.
-struct d_filter_op_params
+struct dj_filter_op_params
 {
     size_t                 count;          // count parameter (for take/skip)
     size_t                 start;          // start index (for range/slice)
@@ -208,33 +208,33 @@ struct d_filter_op_params
     fn_function_comparator comparator;     // comparator (for distinct)
 };
 
-// struct d_filter_operation
+// struct dj_filter_operation
 //   struct: single filter operation in a chain.
-struct d_filter_operation
+struct dj_filter_operation
 {
-    enum d_filter_op_type     type;    // operation type
-    struct d_filter_op_params params;  // operation parameters
+    enum dj_filter_op_type     type;    // operation type
+    struct dj_filter_op_params params;  // operation parameters
     char*                     name;    // optional name/description
 };
 
-// struct d_filter_chain
+// struct dj_filter_chain
 //   struct: chain of sequential filter operations.
-struct d_filter_chain
+struct dj_filter_chain
 {
-    struct d_filter_operation* operations;      // array of operations
+    struct dj_filter_operation* operations;      // array of operations
     size_t                     count;           // number of operations
     size_t                     capacity;        // allocated capacity
     bool                       owns_operations; // whether chain owns ops
 };
 
-// struct d_filter_result
+// struct dj_filter_result
 //   struct: result of applying a filter.
-struct d_filter_result
+struct dj_filter_result
 {
     void*                     elements;      // resulting elements
     size_t                    count;         // number of results
     size_t*                   indices;       // original indices (if tracked)
-    enum d_filter_result_type status;        // operation status
+    enum dj_filter_result_type status;        // operation status
     char*                     error_message; // error description if failed
 };
 
@@ -244,42 +244,74 @@ struct d_filter_result
 ///////////////////////////////////////////////////////////////////////////////
 
 // i.    take operations
-struct d_filter_operation* d_filter_take_first(size_t _n);
-struct d_filter_operation* d_filter_take_last(size_t _n);
-struct d_filter_operation* d_filter_take_nth(size_t _n);
-struct d_filter_operation* d_filter_head(void);
-struct d_filter_operation* d_filter_tail(void);
+struct dj_filter_operation* d_filter_take_first(
+    size_t _n
+);
+struct dj_filter_operation* d_filter_take_last(
+    size_t _n
+);
+struct dj_filter_operation* d_filter_take_nth(
+    size_t _n
+);
+struct dj_filter_operation* d_filter_head(void);
+struct dj_filter_operation* d_filter_tail(void);
 
 // ii.   skip operations
-struct d_filter_operation* d_filter_skip_first(size_t _n);
-struct d_filter_operation* d_filter_skip_last(size_t _n);
-struct d_filter_operation* d_filter_init(void);
-struct d_filter_operation* d_filter_rest(void);
+struct dj_filter_operation* d_filter_skip_first(
+    size_t _n
+);
+struct dj_filter_operation* d_filter_skip_last(
+    size_t _n
+);
+struct dj_filter_operation* d_filter_init(void);
+struct dj_filter_operation* d_filter_rest(void);
 
 // iii.  range and slice operations
-struct d_filter_operation* d_filter_range(size_t _start, size_t _end);
-struct d_filter_operation* d_filter_slice(size_t _start, size_t _end,
-                                         size_t _step);
+struct dj_filter_operation* d_filter_range(
+    size_t _start,
+    size_t _end
+);
+struct dj_filter_operation* d_filter_slice(
+    size_t _start,
+    size_t _end,
+    size_t _step
+);
 
 // iv.   predicate-based operations
-struct d_filter_operation* d_filter_where(fn_predicate _test);
-struct d_filter_operation* d_filter_where_context(fn_predicate _test,
-                                              void* _context);
-struct d_filter_operation* d_filter_where_not(fn_predicate _test);
-struct d_filter_operation* d_filter_where_not_context(fn_predicate _test,
-                                                  void* _context);
+struct dj_filter_operation* d_filter_where(
+    fn_predicate _test
+);
+struct dj_filter_operation* d_filter_where_context(
+    fn_predicate _test,
+    void*        _context
+);
+struct dj_filter_operation* d_filter_where_not(
+    fn_predicate _test
+);
+struct dj_filter_operation* d_filter_where_not_context(
+    fn_predicate _test,
+    void*        _context
+);
 
 // v.    index-based operations
-struct d_filter_operation* d_filter_at(size_t _index);
-struct d_filter_operation* d_filter_at_indices(const size_t* _indices,
-                                               size_t _count);
+struct dj_filter_operation* d_filter_at(
+    size_t _index
+);
+struct dj_filter_operation* d_filter_at_indices(
+    const size_t* _indices,
+    size_t        _count
+);
 
 // vi.   transformation operations
-struct d_filter_operation* d_filter_distinct(fn_function_comparator _comparator);
-struct d_filter_operation* d_filter_reverse(void);
+struct dj_filter_operation* d_filter_distinct(
+    fn_function_comparator _comparator
+);
+struct dj_filter_operation* d_filter_reverse(void);
 
 // vii.  operation cleanup
-void d_filter_operation_free(struct d_filter_operation* _op);
+void d_filter_operation_free(
+    struct dj_filter_operation* _op
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -287,85 +319,155 @@ void d_filter_operation_free(struct d_filter_operation* _op);
 ///////////////////////////////////////////////////////////////////////////////
 
 // i.    chain creation
-struct d_filter_chain* d_filter_chain_new(void);
-struct d_filter_chain* d_filter_chain_new_with_capacity(size_t _capacity);
-struct d_filter_chain* d_filter_chain_clone(const struct d_filter_chain* _chain);
+struct dj_filter_chain* d_filter_chain_new(void);
+struct dj_filter_chain* d_filter_chain_new_with_capacity(
+    size_t _capacity
+);
+struct dj_filter_chain* d_filter_chain_clone(
+    const struct dj_filter_chain* _chain
+);
 
 // ii.   adding operations (generic)
-bool d_filter_chain_add(struct d_filter_chain* _chain, const struct d_filter_operation* _op);
+bool d_filter_chain_add(
+    struct dj_filter_chain*           _chain,
+    const struct dj_filter_operation* _op
+);
 
 // iii.  convenience add helpers
-bool d_filter_chain_add_take_first(struct d_filter_chain* _chain, size_t _n);
-bool d_filter_chain_add_take_last(struct d_filter_chain* _chain, size_t _n);
-bool d_filter_chain_add_skip_first(struct d_filter_chain* _chain, size_t _n);
-bool d_filter_chain_add_skip_last(struct d_filter_chain* _chain, size_t _n);
-bool d_filter_chain_add_range(struct d_filter_chain* _chain, size_t _start, size_t _end);
-bool d_filter_chain_add_where(struct d_filter_chain* _chain, fn_predicate _test);
-bool d_filter_chain_add_where_context(struct d_filter_chain* _chain, fn_predicate _test, void* _context);
+bool d_filter_chain_add_take_first(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
+);
+bool d_filter_chain_add_take_last(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
+);
+bool d_filter_chain_add_skip_first(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
+);
+bool d_filter_chain_add_skip_last(
+    struct dj_filter_chain* _chain,
+    size_t                  _n
+);
+bool d_filter_chain_add_range(
+    struct dj_filter_chain* _chain,
+    size_t                  _start,
+    size_t                  _end
+);
+bool d_filter_chain_add_where(
+    struct dj_filter_chain* _chain,
+    fn_predicate            _test
+);
+bool d_filter_chain_add_where_context(
+    struct dj_filter_chain* _chain,
+    fn_predicate            _test,
+    void*                   _context
+);
 
 // iv.   combining chains
-struct d_filter_chain* d_filter_chain_concat(const struct d_filter_chain* _first, const struct d_filter_chain* _second);
-bool d_filter_chain_append(struct d_filter_chain* _dest, const struct d_filter_chain* _source);
+struct dj_filter_chain* d_filter_chain_concat(
+    const struct dj_filter_chain* _first,
+    const struct dj_filter_chain* _second
+);
+bool d_filter_chain_append(
+    struct dj_filter_chain*       _dest,
+    const struct dj_filter_chain* _source
+);
 
 // v.    chain manipulation
-bool d_filter_chain_insert(struct d_filter_chain* _chain, size_t _index, const struct d_filter_operation* _op);
-bool d_filter_chain_remove(struct d_filter_chain* _chain, size_t _index);
-void d_filter_chain_clear(struct d_filter_chain* _chain);
+bool d_filter_chain_insert(
+    struct dj_filter_chain*           _chain,
+    size_t                            _index,
+    const struct dj_filter_operation* _op
+);
+bool d_filter_chain_remove(
+    struct dj_filter_chain* _chain,
+    size_t                  _index
+);
+void d_filter_chain_clear(
+    struct dj_filter_chain* _chain
+);
 
 // vi.   chain properties
-size_t d_filter_chain_length(const struct d_filter_chain* _chain);
-bool   d_filter_chain_is_empty(const struct d_filter_chain* _chain);
+size_t d_filter_chain_length(
+    const struct dj_filter_chain* _chain
+);
+bool d_filter_chain_is_empty(
+    const struct dj_filter_chain* _chain
+);
 
 // vii.  chain cleanup
-void d_filter_chain_free(struct d_filter_chain* _chain);
+void d_filter_chain_free(
+    struct dj_filter_chain* _chain
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             V.    FILTER COMBINATORS                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// struct d_filter_union
+// struct dj_filter_union
 //   struct: union of multiple filter chains (OR semantics).
 // An element is included if it passes any of the contained chains.
-struct d_filter_union
+struct dj_filter_union
 {
-    struct d_filter_chain** filters;
+    struct dj_filter_chain** filters;
     size_t                  count;
     size_t                  capacity;
 };
 
-// struct d_filter_intersection
+// struct dj_filter_intersection
 //   struct: intersection of multiple filter chains (AND semantics).
 // An element is included only if it passes all contained chains.
-struct d_filter_intersection
+struct dj_filter_intersection
 {
-    struct d_filter_chain** filters;
+    struct dj_filter_chain** filters;
     size_t                  count;
     size_t                  capacity;
 };
 
-// struct d_filter_difference
+// struct dj_filter_difference
 //   struct: difference of two filter chains (A - B).
 // An element is included if it passes `include` but not `exclude`.
-struct d_filter_difference
+struct dj_filter_difference
 {
-    struct d_filter_chain* include;
-    struct d_filter_chain* exclude;
+    struct dj_filter_chain* include;
+    struct dj_filter_chain* exclude;
 };
 
 // i.    combinator creation
-struct d_filter_union*        d_filter_union_new(size_t _capacity);
-struct d_filter_intersection* d_filter_intersection_new(size_t _capacity);
-struct d_filter_difference*   d_filter_difference_new(struct d_filter_chain* _include, struct d_filter_chain* _exclude);
+struct dj_filter_union* d_filter_union_new(
+    size_t _capacity
+);
+struct dj_filter_intersection* d_filter_intersection_new(
+    size_t _capacity
+);
+struct dj_filter_difference* d_filter_difference_new(
+    struct dj_filter_chain* _include,
+    struct dj_filter_chain* _exclude
+);
 
 // ii.   adding filters to combinators
-bool d_filter_union_add(struct d_filter_union* _union, const struct d_filter_chain* _filter);
-bool d_filter_intersection_add(struct d_filter_intersection* _intersection, const struct d_filter_chain* _filter);
+bool d_filter_union_add(
+    struct dj_filter_union*       _union,
+    const struct dj_filter_chain* _filter
+);
+bool d_filter_intersection_add(
+    struct dj_filter_intersection* _intersection,
+    const struct dj_filter_chain*  _filter
+);
 
 // iii.  combinator cleanup
-void d_filter_union_free(struct d_filter_union* _union);
-void d_filter_intersection_free(struct d_filter_intersection* _intersection);
-void d_filter_difference_free(struct d_filter_difference* _difference);
+void d_filter_union_free(
+    struct dj_filter_union* _union
+);
+void d_filter_intersection_free(
+    struct dj_filter_intersection* _intersection
+);
+void d_filter_difference_free(
+    struct dj_filter_difference* _difference
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -373,64 +475,95 @@ void d_filter_difference_free(struct d_filter_difference* _difference);
 ///////////////////////////////////////////////////////////////////////////////
 
 // i.    apply single operation
-struct d_filter_result* d_filter_apply_operation(
-                           const struct d_filter_operation* _op,
-                           const void* _input, size_t _count,
-                           size_t _element_size);
+struct dj_filter_result* d_filter_apply_operation(
+    const struct dj_filter_operation* _op,
+    const void*                       _input,
+    size_t                            _count,
+    size_t                            _element_size
+);
 
 // ii.   apply filter chain
-struct d_filter_result* d_filter_apply_chain(
-                           const struct d_filter_chain* _chain,
-                           const void* _input, size_t _count,
-                           size_t _element_size);
+struct dj_filter_result* d_filter_apply_chain(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
+);
 
 // iii.  apply combinators
-struct d_filter_result* d_filter_apply_union(
-                           const struct d_filter_union* _union,
-                           const void* _input, size_t _count,
-                           size_t _element_size);
-struct d_filter_result* d_filter_apply_intersection(
-                           const struct d_filter_intersection* _inter,
-                           const void* _input, size_t _count,
-                           size_t _element_size);
-struct d_filter_result* d_filter_apply_difference(
-                           const struct d_filter_difference* _diff,
-                           const void* _input, size_t _count,
-                           size_t _element_size);
+struct dj_filter_result* d_filter_apply_union(
+    const struct dj_filter_union* _union,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
+);
+struct dj_filter_result* d_filter_apply_intersection(
+    const struct dj_filter_intersection* _inter,
+    const void*                          _input,
+    size_t                               _count,
+    size_t                               _element_size
+);
+struct dj_filter_result* d_filter_apply_difference(
+    const struct dj_filter_difference* _diff,
+    const void*                        _input,
+    size_t                             _count,
+    size_t                             _element_size
+);
 
 // iv.   counting and querying
-size_t d_filter_count_matches(const struct d_filter_chain* _chain,
-                               const void* _input, size_t _count,
-                               size_t _element_size);
-bool   d_filter_any_match(const struct d_filter_chain* _chain,
-                           const void* _input, size_t _count,
-                           size_t _element_size);
-bool   d_filter_all_match(const struct d_filter_chain* _chain,
-                           const void* _input, size_t _count,
-                           size_t _element_size);
-bool   d_filter_none_match(const struct d_filter_chain* _chain,
-                            const void* _input, size_t _count,
-                            size_t _element_size);
+size_t d_filter_count_matches(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
+);
+bool d_filter_any_match(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
+);
+bool d_filter_all_match(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
+);
+bool d_filter_none_match(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
+);
 
 // v.    index retrieval (no element copying)
-size_t* d_filter_get_indices(const struct d_filter_chain* _chain,
-                              const void* _input, size_t _count,
-                              size_t _element_size,
-                              size_t* _out_count);
+size_t* d_filter_get_indices(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size,
+    size_t*                       _out_count
+);
 
 // vi.   in-place filtering (modifies original array)
-size_t d_filter_apply_in_place(const struct d_filter_chain* _chain,
-                                void* _array, size_t _count,
-                                size_t _element_size);
+size_t d_filter_apply_in_place(
+    const struct dj_filter_chain* _chain,
+    void*                         _array,
+    size_t                        _count,
+    size_t                        _element_size
+);
 
 // vii.  single-element evaluation
 bool d_filter_chain_matches_element(
-         const struct d_filter_chain* _chain,
-         const void* _element,
-         size_t _element_size);
+    const struct dj_filter_chain* _chain,
+    const void*                   _element,
+    size_t                        _element_size
+);
 
 // viii. result management
-void d_filter_result_free(struct d_filter_result* _result);
+void d_filter_result_free(
+    struct dj_filter_result* _result
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -439,46 +572,54 @@ void d_filter_result_free(struct d_filter_result* _result);
 
 // i.    validation
 bool d_filter_operation_is_valid(
-         const struct d_filter_operation* _op);
+    const struct dj_filter_operation* _op
+);
 bool d_filter_chain_is_valid(
-         const struct d_filter_chain* _chain);
+    const struct dj_filter_chain* _chain
+);
 
 // ii.   description / serialization
 char* d_filter_operation_to_string(
-          const struct d_filter_operation* _op);
+    const struct dj_filter_operation* _op
+);
 char* d_filter_chain_to_string(
-          const struct d_filter_chain* _chain);
+    const struct dj_filter_chain* _chain
+);
 
 // iii.  parsing (from string)
-struct d_filter_operation* d_filter_operation_from_string(
-                               const char* _str);
-struct d_filter_chain*     d_filter_chain_from_string(
-                               const char* _str);
+struct dj_filter_operation* d_filter_operation_from_string(
+    const char* _str
+);
+struct dj_filter_chain* d_filter_chain_from_string(
+    const char* _str
+);
 
 // iv.   optimization
-struct d_filter_chain* d_filter_chain_optimize(
-                           const struct d_filter_chain* _chain);
+struct dj_filter_chain* d_filter_chain_optimize(
+    const struct dj_filter_chain* _chain
+);
 
 // v.    statistics
 size_t d_filter_estimate_result_size(
-           const struct d_filter_chain* _chain,
-           size_t _input_count);
+    const struct dj_filter_chain* _chain,
+    size_t                        _input_count
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             VIII. ITERATOR INTERFACE                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// struct d_filter_iterator
+// struct dj_filter_iterator
 //   struct: iterator for lazily evaluating filtered results.
 // Precomputes matching indices on creation, then yields elements one
 // at a time via next(). The iterator does not own the input data.
-struct d_filter_iterator
+struct dj_filter_iterator
 {
     const void*                  input;         // input array
     size_t                       input_count;   // input element count
     size_t                       element_size;  // size of each element
-    const struct d_filter_chain* chain;         // filter chain (ref)
+    const struct dj_filter_chain* chain;         // filter chain (ref)
     size_t*                      indices;       // precomputed indices
     size_t                       indices_count; // number of indices
     size_t                       indices_pos;   // current position
@@ -486,104 +627,140 @@ struct d_filter_iterator
 };
 
 // i.    iterator creation
-struct d_filter_iterator* d_filter_iterator_new(
-                              const struct d_filter_chain* _chain,
-                              const void* _input, size_t _count,
-                              size_t _element_size);
+struct dj_filter_iterator* d_filter_iterator_new(
+    const struct dj_filter_chain* _chain,
+    const void*                   _input,
+    size_t                        _count,
+    size_t                        _element_size
+);
 
 // ii.   iterator operations
-bool  d_filter_iterator_has_next(
-          const struct d_filter_iterator* _iter);
-void* d_filter_iterator_next(struct d_filter_iterator* _iter);
-void  d_filter_iterator_reset(struct d_filter_iterator* _iter);
+bool d_filter_iterator_has_next(
+    const struct dj_filter_iterator* _iter
+);
+void* d_filter_iterator_next(
+    struct dj_filter_iterator* _iter
+);
+void d_filter_iterator_reset(
+    struct dj_filter_iterator* _iter
+);
 
 // iii.  iterator cleanup
-void d_filter_iterator_free(struct d_filter_iterator* _iter);
+void d_filter_iterator_free(
+    struct dj_filter_iterator* _iter
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             IX.   FLUENT FILTER BUILDER                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// struct d_filter_builder
+// struct dj_filter_builder
 //   struct: fluent builder for constructing filter chains.
 // Provides method-chaining style API where each operation returns the
 // builder. If an error occurs, subsequent operations are no-ops and
 // the error is propagated.
-struct d_filter_builder
+struct dj_filter_builder
 {
-    struct d_filter_chain* chain;
+    struct dj_filter_chain* chain;
     int                    error_code;
     char*                  error_message;
 };
 
 // i.    builder creation
-struct d_filter_builder* d_filter_builder_new(void);
-struct d_filter_builder* d_filter_builder_from_chain(
-                             struct d_filter_chain* _chain);
+struct dj_filter_builder* d_filter_builder_new(void);
+struct dj_filter_builder* d_filter_builder_from_chain(
+    struct dj_filter_chain* _chain
+);
 
 // ii.   fluent operations (return builder for chaining)
-struct d_filter_builder* d_filter_builder_take_first(
-                             struct d_filter_builder* _builder,
-                             size_t _n);
-struct d_filter_builder* d_filter_builder_take_last(
-                             struct d_filter_builder* _builder,
-                             size_t _n);
-struct d_filter_builder* d_filter_builder_take_nth(
-                             struct d_filter_builder* _builder,
-                             size_t _n);
-struct d_filter_builder* d_filter_builder_skip_first(
-                             struct d_filter_builder* _builder,
-                             size_t _n);
-struct d_filter_builder* d_filter_builder_skip_last(
-                             struct d_filter_builder* _builder,
-                             size_t _n);
-struct d_filter_builder* d_filter_builder_where(
-                             struct d_filter_builder* _builder,
-                             fn_predicate _test);
-struct d_filter_builder* d_filter_builder_where_context(
-                             struct d_filter_builder* _builder,
-                             fn_predicate _test, void* _context);
-struct d_filter_builder* d_filter_builder_where_not(
-                             struct d_filter_builder* _builder,
-                             fn_predicate _test);
-struct d_filter_builder* d_filter_builder_range(
-                             struct d_filter_builder* _builder,
-                             size_t _start, size_t _end);
-struct d_filter_builder* d_filter_builder_slice(
-                             struct d_filter_builder* _builder,
-                             size_t _start, size_t _end,
-                             size_t _step);
-struct d_filter_builder* d_filter_builder_distinct(
-                             struct d_filter_builder* _builder,
-                             fn_function_comparator _comparator);
-struct d_filter_builder* d_filter_builder_reverse(
-                             struct d_filter_builder* _builder);
-struct d_filter_builder* d_filter_builder_at(
-                             struct d_filter_builder* _builder,
-                             size_t _index);
-struct d_filter_builder* d_filter_builder_at_indices(
-                             struct d_filter_builder* _builder,
-                             const size_t* _indices, size_t _n);
+struct dj_filter_builder* d_filter_builder_take_first(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
+);
+struct dj_filter_builder* d_filter_builder_take_last(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
+);
+struct dj_filter_builder* d_filter_builder_take_nth(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
+);
+struct dj_filter_builder* d_filter_builder_skip_first(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
+);
+struct dj_filter_builder* d_filter_builder_skip_last(
+    struct dj_filter_builder* _builder,
+    size_t                    _n
+);
+struct dj_filter_builder* d_filter_builder_where(
+    struct dj_filter_builder* _builder,
+    fn_predicate              _test
+);
+struct dj_filter_builder* d_filter_builder_where_context(
+    struct dj_filter_builder* _builder,
+    fn_predicate              _test,
+    void*                     _context
+);
+struct dj_filter_builder* d_filter_builder_where_not(
+    struct dj_filter_builder* _builder,
+    fn_predicate              _test
+);
+struct dj_filter_builder* d_filter_builder_range(
+    struct dj_filter_builder* _builder,
+    size_t                    _start,
+    size_t                    _end
+);
+struct dj_filter_builder* d_filter_builder_slice(
+    struct dj_filter_builder* _builder,
+    size_t                    _start,
+    size_t                    _end,
+    size_t                    _step
+);
+struct dj_filter_builder* d_filter_builder_distinct(
+    struct dj_filter_builder* _builder,
+    fn_function_comparator    _comparator
+);
+struct dj_filter_builder* d_filter_builder_reverse(
+    struct dj_filter_builder* _builder
+);
+struct dj_filter_builder* d_filter_builder_at(
+    struct dj_filter_builder* _builder,
+    size_t                    _index
+);
+struct dj_filter_builder* d_filter_builder_at_indices(
+    struct dj_filter_builder* _builder,
+    const size_t*             _indices,
+    size_t                    _n
+);
 
 // iii.  builder finalization
-struct d_filter_chain*  d_filter_builder_build(
-                            struct d_filter_builder* _builder);
-struct d_filter_result* d_filter_builder_apply(
-                            struct d_filter_builder* _builder,
-                            const void* _input, size_t _count,
-                            size_t _element_size);
+struct dj_filter_chain* d_filter_builder_build(
+    struct dj_filter_builder* _builder
+);
+struct dj_filter_result* d_filter_builder_apply(
+    struct dj_filter_builder* _builder,
+    const void*               _input,
+    size_t                    _count,
+    size_t                    _element_size
+);
 
 // iv.   builder error handling
-bool  d_filter_builder_has_error(
-          const struct d_filter_builder* _builder);
-int   d_filter_builder_get_error_code(
-          const struct d_filter_builder* _builder);
+bool d_filter_builder_has_error(
+    const struct dj_filter_builder* _builder
+);
+int d_filter_builder_get_error_code(
+    const struct dj_filter_builder* _builder
+);
 char* d_filter_builder_get_error_message(
-          const struct d_filter_builder* _builder);
+    const struct dj_filter_builder* _builder
+);
 
 // v.    builder cleanup
-void d_filter_builder_free(struct d_filter_builder* _builder);
+void d_filter_builder_free(
+    struct dj_filter_builder* _builder
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -612,7 +789,7 @@ void d_filter_builder_free(struct d_filter_builder* _builder);
 //   macro: shorthand for taking first n elements.
 #define D_FILTER_FIRST_N(INPUT, COUNT, SIZE, N)                      \
     d_filter_apply_operation(                                        \
-        &(struct d_filter_operation){                                \
+        &(struct dj_filter_operation){                                \
             .type = D_FILTER_OP_TAKE_FIRST,                          \
             .params = { .count = (N) }                               \
         },                                                           \
@@ -622,7 +799,7 @@ void d_filter_builder_free(struct d_filter_builder* _builder);
 //   macro: shorthand for taking last n elements.
 #define D_FILTER_LAST_N(INPUT, COUNT, SIZE, N)                       \
     d_filter_apply_operation(                                        \
-        &(struct d_filter_operation){                                \
+        &(struct dj_filter_operation){                                \
             .type = D_FILTER_OP_TAKE_LAST,                           \
             .params = { .count = (N) }                               \
         },                                                           \
@@ -632,7 +809,7 @@ void d_filter_builder_free(struct d_filter_builder* _builder);
 //   macro: shorthand for predicate-based filtering.
 #define D_FILTER_WHERE(INPUT, COUNT, SIZE, PRED)                     \
     d_filter_apply_operation(                                        \
-        &(struct d_filter_operation){                                \
+        &(struct dj_filter_operation){                                \
             .type = D_FILTER_OP_WHERE,                               \
             .params = { .test = (PRED) }                             \
         },                                                           \

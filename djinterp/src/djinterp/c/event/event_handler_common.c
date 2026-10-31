@@ -15,7 +15,7 @@
 // std
 #include <stddef.h>  // size_t, NULL
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 #if (D_INTERNAL_EVENT_HANDLER_ADAPTER == 1)
@@ -26,13 +26,12 @@ d_event_callback_step_fn
 which is exactly the pre-core `listener->fn(event->context)`. A missing state
 or callback behaves as the unit: it passes without a call.
 */
-int32_t
-d_event_callback_step_fn(
+int32_t d_event_callback_step_fn(
     void* _payload,
     void* _state
 )
 {
-    const struct d_event_callback_state* const state = _state;
+    const struct dj_event_callback_state* const state = _state;
 
     (void)_payload;
 
@@ -61,13 +60,12 @@ that the second stage is not merely outvoted but never called. The result is
 normalized to a pinned code, so a handler returning some other value cannot
 leak it through a seq node.
 */
-int32_t
-d_event_seq_step_fn(
+int32_t d_event_seq_step_fn(
     void* _payload,
     void* _state
 )
 {
-    const struct d_event_seq_state* const node = _state;
+    const struct dj_event_seq_state* const node = _state;
 
     // a missing node is the unit
     if (!node)
@@ -95,12 +93,11 @@ d_event_step_fold
 the verdict, is unchanged by inserting or removing the unit. The count is
 written even when _steps is NULL, so a caller never reads a stale value.
 */
-int32_t
-d_event_step_fold(
-    const struct d_event_step* _steps,
-    size_t                     _count,
-    void*                      _payload,
-    size_t*                    _invoked_out
+int32_t d_event_step_fold(
+    const struct dj_event_step* _steps,
+    size_t                      _count,
+    void*                       _payload,
+    size_t*                     _invoked_out
 )
 {
     size_t  invoked = 0u;

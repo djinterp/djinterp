@@ -21,12 +21,13 @@
 * opened as File > Open opens one.
 *   What GLFW says is said through the module's program: why a window could
 * not be opened, as an error that ends the run in trouble; anything after,
-* as a warning.
+* as a warning. The window's version names GLFW as the window runs it, and
+* the GL context it asks for.
 *
 * path:      /src/ui/bitwisedom/host_glfw.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 #include "../../../inc/ui/bitwisedom/host.hpp"  // corresponding header
 // std
@@ -40,7 +41,7 @@
 // glfw
 #include <GLFW/glfw3.h>  // glfw*, and the system's GL 1.1 header
 // djinterp
-#include <djinterp/parse/cli/cli.hpp>  // program, severity, exit statuses
+#include <djinterp/tools/cli/cli.hpp>  // program, severity, exit statuses
 // bitwisedom
 #include "../../../inc/ui/bitwisedom/app.hpp"    // app, preferences_path
 #include "../../../inc/ui/bitwisedom/theme.hpp"  // dpi_scale
@@ -49,10 +50,26 @@
 namespace
 {
 
-namespace kit = ::djinterp::parse::cli;
+namespace kit = ::djinterp::cli;
 
 using bitwisedom::gui::app;
 using bitwisedom::gui::window_options;
+
+// CONTEXT_MAJOR / CONTEXT_MINOR / SHADER_VERSION / CONTEXT_NAME
+//   constants: the GL context the window asks for -- 3.2 core where the
+// platform insists (macOS), 3.0 elsewhere -- the shaders' version to match,
+// and the context as the window's version names it.
+#if defined(__APPLE__)
+const int         CONTEXT_MAJOR  = 3;
+const int         CONTEXT_MINOR  = 2;
+const char* const SHADER_VERSION = "#version 150";
+const char* const CONTEXT_NAME   = "OpenGL 3.2 core";
+#else
+const int         CONTEXT_MAJOR  = 3;
+const int         CONTEXT_MINOR  = 0;
+const char* const SHADER_VERSION = "#version 130";
+const char* const CONTEXT_NAME   = "OpenGL 3.0";
+#endif
 
 // glfw_voice
 //   struct: what GLFW said last -- the reason a window that could not be
@@ -64,8 +81,7 @@ struct glfw_voice
     std::string         last;
 };
 
-glfw_voice&
-voice()
+glfw_voice& voice()
 {
     static glfw_voice held;
 
@@ -77,8 +93,7 @@ report_glfw_error
   GLFW's error callback: its words kept, for an error that keeps the window
 from opening; said as a warning once the window is open.
 */
-void
-report_glfw_error(
+void report_glfw_error(
     int         _code,
     const char* _message
 )
@@ -101,8 +116,7 @@ report_glfw_error(
 cannot_open
   The window could not be opened: said, with what GLFW said last; trouble.
 */
-int
-cannot_open(
+int cannot_open(
     const kit::program& _program
 )
 {
@@ -121,8 +135,7 @@ write_ppm
 a file -- whole or not at all, `-` standard output: 0, or the errno value
 the write failed with.
 */
-int
-write_ppm(
+int write_ppm(
     const std::string& _path,
     int                _width,
     int                _height
@@ -157,16 +170,14 @@ write_ppm(
 // dropped
 //   the files dropped on the window since the last frame: GLFW gives their
 // paths as UTF-8.
-std::vector<std::string>&
-dropped()
+std::vector<std::string>& dropped()
 {
     static std::vector<std::string> held;
 
     return held;
 }
 
-void
-take_drop(
+void take_drop(
     GLFWwindow*  _window,
     int          _count,
     const char** _paths
@@ -184,12 +195,11 @@ take_drop(
 
 /*
 open_window
-  GLFW, then the window and its GL context: GL 3.2 core where the platform
-insists (macOS), 3.0 elsewhere, `_glsl` the shaders' version to match;
-hidden for a screenshot. NULL, GLFW let go, when either fails.
+  GLFW, then the window and its GL context, CONTEXT_MAJOR.CONTEXT_MINOR --
+core and forward-compatible on macOS -- `_glsl` the shaders' version to
+match; hidden for a screenshot. NULL, GLFW let go, when either fails.
 */
-GLFWwindow*
-open_window(
+GLFWwindow* open_window(
     const window_options& _options,
     const char*&          _glsl
 )
@@ -199,16 +209,12 @@ open_window(
         return nullptr;
     }
 
+    _glsl = SHADER_VERSION;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, CONTEXT_MAJOR);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, CONTEXT_MINOR);
 #if defined(__APPLE__)
-    _glsl = "#version 150";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#else
-    _glsl = "#version 130";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
 
     if (!_options.screenshot.empty())
@@ -241,8 +247,7 @@ start_imgui
 -- then ImGui's context and backends, and the fonts at that scale. The
 window keeps its own settings file, so ImGui keeps none.
 */
-void
-start_imgui(
+void start_imgui(
     GLFWwindow*           _window,
     const window_options& _options,
     const char*           _glsl
@@ -281,8 +286,7 @@ draw_frame
 app between NewFrame and Render, drawn over the theme's background. The
 framebuffer's size, for a screenshot.
 */
-void
-draw_frame(
+void draw_frame(
     GLFWwindow* _window,
     app&        _app,
     int&        _width,
@@ -325,8 +329,7 @@ photograph
   The screenshot, taken before the buffers swap: written, and said with -v;
 or not, and said as the kit says a file it could not write.
 */
-int
-photograph(
+int photograph(
     const kit::program&   _program,
     const window_options& _options,
     int                   _width,
@@ -358,8 +361,7 @@ run_frames
 by the user, by the app quitting, or by the screenshot, the last frame. The
 app's session and settings are kept unless a screenshot is taken.
 */
-int
-run_frames(
+int run_frames(
     const kit::program&   _program,
     GLFWwindow*           _window,
     const window_options& _options
@@ -416,10 +418,41 @@ run_frames(
 window_features
   A screenshot reads GL's framebuffer; WARP is Direct3D's.
 */
-int
-bitwisedom::gui::window_features()
+int bitwisedom::gui::window_features()
 {
     return static_cast<int>(window_feature_screenshot);
+}
+
+/*
+window_host
+  GLFW as the window runs it -- glfwGetVersion may be asked before
+glfwInit -- the headers' too where they differ, and the context asked for.
+*/
+std::string bitwisedom::gui::window_host()
+{
+    int major    = 0;
+    int minor    = 0;
+    int revision = 0;
+
+    glfwGetVersion(&major,
+                   &minor,
+                   &revision);
+
+    std::string name = "GLFW " + std::to_string(major) + "." +
+                       std::to_string(minor) + "." +
+                       std::to_string(revision);
+
+    // built with other headers than the library it runs with
+    if ( (major != GLFW_VERSION_MAJOR) ||
+         (minor != GLFW_VERSION_MINOR) ||
+         (revision != GLFW_VERSION_REVISION) )
+    {
+        name += " (built with " + std::to_string(GLFW_VERSION_MAJOR) + "." +
+                std::to_string(GLFW_VERSION_MINOR) + "." +
+                std::to_string(GLFW_VERSION_REVISION) + ")";
+    }
+
+    return name + ", " + CONTEXT_NAME;
 }
 
 /*
@@ -427,8 +460,7 @@ run_window
   GLFW's errors said through the program, the window opened, the frames
 run, and everything let go in the order it was made.
 */
-int
-bitwisedom::gui::run_window(
+int bitwisedom::gui::run_window(
     kit::program&         _program,
     const window_options& _options
 )

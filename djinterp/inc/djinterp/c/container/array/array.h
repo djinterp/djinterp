@@ -39,11 +39,11 @@ TABLE OF CONTENTS
       2.    D_ARRAY_S_INIT
 
       types
-      1.    struct d_array
-      2.    struct d_array_s
+      1.    struct dj_array
+      2.    struct dj_array_s
 
       creation functions
-      i.    d_array
+      i.    dj_array
             1.    d_array_new
             2.    d_array_new_default_size
             3.    d_array_new_from_arr
@@ -58,7 +58,7 @@ TABLE OF CONTENTS
             12.   d_array_new_slice_reverse
             13.   d_array_new_slice_range
             14.   d_array_new_slice_range_reverse
-      ii.   d_array_s
+      ii.   dj_array_s
             1.    d_array_s_new
             2.    d_array_s_new_default_size
             3.    d_array_s_new_from_arr
@@ -122,11 +122,11 @@ TABLE OF CONTENTS
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_ARRAY_INIT
-//   macro: brace initializer for a stack-allocated `d_array`. Sets `count`
+//   macro: brace initializer for a stack-allocated `dj_array`. Sets `count`
 // from the number of variadic arguments and points `elements` at a compound
 // literal of `element_type`; the literal has automatic storage, so the array
 // must not outlive the enclosing scope.
-//   Example: struct d_array arr = D_ARRAY_INIT(int, 1, 2, 3, 4, 5);
+//   Example: struct dj_array arr = D_ARRAY_INIT(int, 1, 2, 3, 4, 5);
 #define D_ARRAY_INIT(element_type, ...)             \
     {                                               \
         .count    = D_ARRAY_COUNT_T(element_type,   \
@@ -135,10 +135,10 @@ TABLE OF CONTENTS
     }
 
 // D_ARRAY_S_INIT
-//   macro: brace initializer for a stack-allocated `d_array_s`. As
+//   macro: brace initializer for a stack-allocated `dj_array_s`. As
 // D_ARRAY_INIT, but also records `sizeof(element_type)` in `element_size`, so
 // the resulting array carries its own stride and need not be told it again.
-//   Example: struct d_array_s arr = D_ARRAY_S_INIT(int, 1, 2, 3, 4, 5);
+//   Example: struct dj_array_s arr = D_ARRAY_S_INIT(int, 1, 2, 3, 4, 5);
 #define D_ARRAY_S_INIT(element_type, ...)                \
     {                                                    \
         .count        = D_ARRAY_COUNT_T(element_type,    \
@@ -148,20 +148,20 @@ TABLE OF CONTENTS
     }
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
-// d_array
+// dj_array
 //   struct: a fixed-size array that carries its own length. The element stride
 // is NOT stored, so every operation takes `_element_size` from the caller; use
-// `d_array_s` when the stride should travel with the array.
-struct d_array
+// `dj_array_s` when the stride should travel with the array.
+struct dj_array
 {
     size_t count;       // number of elements currently held
     void*  elements;    // contiguous element storage, or NULL when empty
 };
-// d_array_s
-//   struct: a `d_array` that also stores its element stride, so the size need
-// not be supplied at each call. Layout matches `d_array` in its first two
-// members, so an `_s` array may be read through a `d_array*`.
-struct d_array_s
+// dj_array_s
+//   struct: a `dj_array` that also stores its element stride, so the size need
+// not be supplied at each call. Layout matches `dj_array` in its first two
+// members, so an `_s` array may be read through a `dj_array*`.
+struct dj_array_s
 {
     size_t count;           // number of elements currently held
     void*  elements;        // contiguous element storage, or NULL when empty
@@ -169,184 +169,284 @@ struct d_array_s
 };
 
 
-// `d_array` creation functions
-struct d_array* d_array_new(size_t _element_size,
-                            size_t _initial_size);
-struct d_array* d_array_new_default_size(size_t _element_size);
-struct d_array* d_array_new_from_arr(size_t      _element_size,
-                                     const void* _source,
-                                     size_t      _source_count);
-struct d_array* d_array_new_from_args(size_t _element_size,
-                                      size_t _arg_count,
-                                      ...);
-struct d_array* d_array_new_copy(const struct d_array* _other,
-                                 size_t                _element_size);
-struct d_array* d_array_new_copy_reverse(const struct d_array* _other,
-                                         size_t                _element_size,
-                                         d_index               _start,
-                                         d_index               _end);
-struct d_array* d_array_new_copy_range(const struct d_array* _other,
-                                       size_t                _element_size,
-                                       d_index               _start,
-                                       d_index               _end);
-struct d_array* d_array_new_copy_range_reverse(
-    const struct d_array* _other,
-    size_t                _element_size,
-    d_index               _start,
-    d_index               _end);
-struct d_array* d_array_new_fill(size_t      _element_size,
-                                 size_t      _initial_size,
-                                 const void* _value);
-struct d_array* d_array_new_merge(size_t _element_size,
-                                  size_t _count,
-                                  ...);
-struct d_array* d_array_new_slice(const struct d_array* _other,
-                                  size_t                _element_size,
-                                  d_index               _start);
-struct d_array* d_array_new_slice_reverse(const struct d_array* _other,
-                                          size_t                _element_size,
-                                          d_index               _start);
-struct d_array* d_array_new_slice_range(const struct d_array* _other,
-                                        size_t                _element_size,
-                                        d_index               _start,
-                                        d_index               _end);
-struct d_array* d_array_new_slice_range_reverse(
-    const struct d_array* _other,
-    size_t                _element_size,
-    d_index               _start,
-    d_index               _end);
+// `dj_array` creation functions
+struct dj_array* d_array_new(
+    size_t _element_size,
+    size_t _initial_size
+);
+struct dj_array* d_array_new_default_size(
+    size_t _element_size
+);
+struct dj_array* d_array_new_from_arr(
+    size_t      _element_size,
+    const void* _source,
+    size_t      _source_count
+);
+struct dj_array* d_array_new_from_args(
+    size_t _element_size,
+    size_t _arg_count,
+    ...
+);
+struct dj_array* d_array_new_copy(
+    const struct dj_array* _other,
+    size_t                 _element_size
+);
+struct dj_array* d_array_new_copy_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array* d_array_new_copy_range(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array* d_array_new_copy_range_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array* d_array_new_fill(
+    size_t      _element_size,
+    size_t      _initial_size,
+    const void* _value
+);
+struct dj_array* d_array_new_merge(
+    size_t _element_size,
+    size_t _count,
+    ...
+);
+struct dj_array* d_array_new_slice(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start
+);
+struct dj_array* d_array_new_slice_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start
+);
+struct dj_array* d_array_new_slice_range(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array* d_array_new_slice_range_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
 
-// `d_array_s` creation functions
-struct d_array_s* d_array_s_new(size_t _element_size,
-                                size_t _initial_size);
-struct d_array_s* d_array_s_new_default_size(size_t _element_size);
-struct d_array_s* d_array_s_new_from_arr(size_t      _element_size,
-                                         const void* _source,
-                                         size_t      _source_count);
-struct d_array_s* d_array_s_new_from_args(size_t _element_size,
-                                          size_t _arg_count,
-                                          ...);
-struct d_array_s* d_array_s_new_copy(const struct d_array* _other,
-                                     size_t                _element_size);
-struct d_array_s* d_array_s_new_copy_reverse(
-    const struct d_array* _other,
-    size_t                _element_size,
-    d_index               _start,
-    d_index               _end);
-struct d_array_s* d_array_s_new_copy_range(const struct d_array* _other,
-                                           size_t                _element_size,
-                                           d_index               _start,
-                                           d_index               _end);
-struct d_array_s* d_array_s_new_copy_range_reverse(
-    const struct d_array* _other,
-    size_t                _element_size,
-    d_index               _start,
-    d_index               _end);
-struct d_array_s* d_array_s_new_fill(size_t      _element_size,
-                                     size_t      _initial_size,
-                                     const void* _value);
-struct d_array_s* d_array_s_new_merge(size_t _element_size,
-                                      size_t _count,
-                                      ...);
-struct d_array_s* d_array_s_new_slice(const struct d_array* _other,
-                                      size_t                _element_size,
-                                      d_index               _start);
-struct d_array_s* d_array_s_new_slice_reverse(
-    const struct d_array* _other,
-    size_t                _element_size,
-    d_index               _start);
-struct d_array_s* d_array_s_new_slice_range(const struct d_array* _other,
-                                            size_t                _element_size,
-                                            d_index               _start,
-                                            d_index               _end);
-struct d_array_s* d_array_s_new_slice_range_reverse(
-    const struct d_array* _other,
-    size_t                _element_size,
-    d_index               _start,
-    d_index               _end);
+// `dj_array_s` creation functions
+struct dj_array_s* d_array_s_new(
+    size_t _element_size,
+    size_t _initial_size
+);
+struct dj_array_s* d_array_s_new_default_size(
+    size_t _element_size
+);
+struct dj_array_s* d_array_s_new_from_arr(
+    size_t      _element_size,
+    const void* _source,
+    size_t      _source_count
+);
+struct dj_array_s* d_array_s_new_from_args(
+    size_t _element_size,
+    size_t _arg_count,
+    ...
+);
+struct dj_array_s* d_array_s_new_copy(
+    const struct dj_array* _other,
+    size_t                 _element_size
+);
+struct dj_array_s* d_array_s_new_copy_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array_s* d_array_s_new_copy_range(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array_s* d_array_s_new_copy_range_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array_s* d_array_s_new_fill(
+    size_t      _element_size,
+    size_t      _initial_size,
+    const void* _value
+);
+struct dj_array_s* d_array_s_new_merge(
+    size_t _element_size,
+    size_t _count,
+    ...
+);
+struct dj_array_s* d_array_s_new_slice(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start
+);
+struct dj_array_s* d_array_s_new_slice_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start
+);
+struct dj_array_s* d_array_s_new_slice_range(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
+struct dj_array_s* d_array_s_new_slice_range_reverse(
+    const struct dj_array* _other,
+    size_t                 _element_size,
+    dj_index               _start,
+    dj_index               _end
+);
 
-// `d_array` manipulation functions
-bool    d_array_append_element(struct d_array* _array,
-                               size_t          _element_size,
-                               const void*     _element);
-bool    d_array_append_elements(struct d_array* _array,
-                                size_t          _element_size,
-                                const void*     _elements,
-                                size_t          _count);
-bool    d_array_append_array(struct d_array* _array,
-                             size_t          _element_size,
-                             const void*     _elements,
-                             size_t          _count,
-                             d_index         _index);
-bool    d_array_contains(const struct d_array* _array,
-                         size_t                _element_size,
-                         const void*           _value);
-bool    d_array_fill(struct d_array* _array,
-                     size_t          _element_size,
-                     const void*     _fill_element);
-ssize_t d_array_find(struct d_array* _array,
-                     size_t          _element_size,
-                     const void*     _value);
-bool    d_array_insert_element(struct d_array* _array,
-                               size_t          _element_size,
-                               const void*     _element,
-                               d_index         _index);
-bool    d_array_insert_elements(struct d_array* _array,
-                                size_t          _element_size,
-                                const void*     _elements,
-                                size_t          _count,
-                                d_index         _index);
-bool    d_array_insert_array(struct d_array*       _destination,
-                             size_t                _element_size,
-                             const struct d_array* _source,
-                             d_index               _index);
-bool    d_array_is_empty(const struct d_array* _array);
-bool    d_array_prepend_element(struct d_array* _array,
-                                size_t          _element_size,
-                                const void*     _element);
-bool    d_array_prepend_elements(struct d_array* _array,
-                                 size_t          _element_size,
-                                 const void*     _elements,
-                                 size_t          _count);
-bool    d_array_prepend_array(struct d_array*       _destination,
-                              size_t                _element_size,
-                              const struct d_array* _source);
-bool    d_array_resize_amount(struct d_array* _array,
-                              size_t          _element_size,
-                              ssize_t         _amount);
-bool    d_array_resize_factor(struct d_array* _array,
-                              size_t          _element_size,
-                              double          _factor);
-bool    d_array_reverse(struct d_array* _array,
-                        size_t          _element_size);
-bool    d_array_shift_left(struct d_array* _array,
-                           size_t          _element_size,
-                           size_t          _amount);
-bool    d_array_shift_left_circular(struct d_array* _array,
-                                    size_t          _element_size,
-                                    size_t          _amount);
-bool    d_array_shift_right(struct d_array* _array,
-                            size_t          _element_size,
-                            size_t          _amount);
-bool    d_array_shift_right_circular(struct d_array* _array,
-                                     size_t          _element_size,
-                                     size_t          _amount);
-void*   d_array_slice(void*  _source,
-                      size_t _length,
-                      d_index index,
-                      size_t _element_size);
-void*   d_array_slice_range(void*   _source,
-                            size_t  _length,
-                            d_index _start,
-                            d_index _end,
-                            size_t  _element_size);
-void    d_array_sort(struct d_array* _array,
-                     size_t          _element_size,
-                     fn_comparator   _comparator);
+// `dj_array` manipulation functions
+bool d_array_append_element(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _element
+);
+bool d_array_append_elements(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _elements,
+    size_t           _count
+);
+bool d_array_append_array(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _elements,
+    size_t           _count,
+    dj_index         _index
+);
+bool d_array_contains(
+    const struct dj_array* _array,
+    size_t                 _element_size,
+    const void*            _value
+);
+bool d_array_fill(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _fill_element
+);
+ssize_t d_array_find(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _value
+);
+bool d_array_insert_element(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _element,
+    dj_index         _index
+);
+bool d_array_insert_elements(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _elements,
+    size_t           _count,
+    dj_index         _index
+);
+bool d_array_insert_array(
+    struct dj_array*       _destination,
+    size_t                 _element_size,
+    const struct dj_array* _source,
+    dj_index               _index
+);
+bool d_array_is_empty(
+    const struct dj_array* _array
+);
+bool d_array_prepend_element(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _element
+);
+bool d_array_prepend_elements(
+    struct dj_array* _array,
+    size_t           _element_size,
+    const void*      _elements,
+    size_t           _count
+);
+bool d_array_prepend_array(
+    struct dj_array*       _destination,
+    size_t                 _element_size,
+    const struct dj_array* _source
+);
+bool d_array_resize_amount(
+    struct dj_array* _array,
+    size_t           _element_size,
+    ssize_t          _amount
+);
+bool d_array_resize_factor(
+    struct dj_array* _array,
+    size_t           _element_size,
+    double           _factor
+);
+bool d_array_reverse(
+    struct dj_array* _array,
+    size_t           _element_size
+);
+bool d_array_shift_left(
+    struct dj_array* _array,
+    size_t           _element_size,
+    size_t           _amount
+);
+bool d_array_shift_left_circular(
+    struct dj_array* _array,
+    size_t           _element_size,
+    size_t           _amount
+);
+bool d_array_shift_right(
+    struct dj_array* _array,
+    size_t           _element_size,
+    size_t           _amount
+);
+bool d_array_shift_right_circular(
+    struct dj_array* _array,
+    size_t           _element_size,
+    size_t           _amount
+);
+void* d_array_slice(
+    void*    _source,
+    size_t   _length,
+    dj_index index,
+    size_t   _element_size
+);
+void* d_array_slice_range(
+    void*    _source,
+    size_t   _length,
+    dj_index _start,
+    dj_index _end,
+    size_t   _element_size
+);
+void d_array_sort(
+    struct dj_array* _array,
+    size_t           _element_size,
+    fn_comparator    _comparator
+);
 
 // memory management
-void d_array_free(struct d_array* _array);
-void d_array_s_free(struct d_array_s* _array);
+void d_array_free(
+    struct dj_array* _array
+);
+void d_array_s_free(
+    struct dj_array_s* _array
+);
 
 
 #endif  // DJINTERP_C_CONTAINER_ARRAY_ARRAY_H

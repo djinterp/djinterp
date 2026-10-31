@@ -21,11 +21,11 @@
 #include <stdlib.h>  // malloc, realloc, calloc, free
 #include <string.h>  // memcpy, strcmp, strlen
 // djinterp
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"                  // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"                  // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"                 // d_awk_value_text
-#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja.h"       // d_ninja
-#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_doc.h"   // d_ninja_doc
-#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_eval.h"  // d_ninja_graph
+#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja.h"       // dj_ninja
+#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_doc.h"   // dj_ninja_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_eval.h"  // dj_ninja_graph
 
 
 //==============================================================================
@@ -36,14 +36,14 @@
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_ninja
+// dj_host_ninja
 //   struct: the files and builds, open or let go, and the last failure.
-struct d_host_ninja
+struct dj_host_ninja
 {
-    struct d_ninja_doc**   files;
+    struct dj_ninja_doc**   files;
     size_t                 file_count;
     size_t                 file_capacity;
-    struct d_ninja_graph** graphs;
+    struct dj_ninja_graph** graphs;
     size_t                 graph_count;
     size_t                 graph_capacity;
     char                   error[768];
@@ -52,7 +52,7 @@ struct d_host_ninja
 // 1.1.2
 // d_internal_lines
 //   struct: lines being joined, in an array that grows.
-struct d_internal_lines
+struct dj_internal_lines
 {
     char*  text;
     size_t length;
@@ -72,18 +72,18 @@ d_internal_text, d_internal_index
   An argument's text, and an argument as an index from 1: a value below 1,
 or not a number, is 0.
 */
-static const char*
-d_internal_text(
-    struct d_awk_value* _value
+static
+const char* d_internal_text(
+    struct dj_awk_value* _value
 )
 {
     return d_awk_value_text(_value, NULL, NULL);
 }
 
 
-static size_t
-d_internal_index(
-    struct d_awk_value* _value
+static
+size_t d_internal_index(
+    struct dj_awk_value* _value
 )
 {
     const double number = d_awk_value_number(_value);
@@ -102,9 +102,9 @@ d_internal_index(
 d_internal_copy_arg
   An argument's text, copied, as the next argument's may be read over it.
 */
-static char*
-d_internal_copy_arg(
-    struct d_awk_value* _value
+static
+char* d_internal_copy_arg(
+    struct dj_awk_value* _value
 )
 {
     size_t            length = 0;
@@ -127,11 +127,11 @@ d_internal_fail
   Gives -1 for a failure a program can recover from, ninja_error() saying
 why.
 */
-static bool
-d_internal_fail(
-    struct d_host_ninja* _host,
-    struct d_awk_value*  _out,
-    const char*          _why
+static
+bool d_internal_fail(
+    struct dj_host_ninja* _host,
+    struct dj_awk_value*  _out,
+    const char*           _why
 )
 {
     // a reason already given stays; another is copied
@@ -156,12 +156,12 @@ d_internal_clear
   Clears the last failure, as each call but ninja_error() does first, so
 that ninja_error() is "" after a call that did not fail.
 */
-static void
-d_internal_clear(
+static
+void d_internal_clear(
     void* _user
 )
 {
-    struct d_host_ninja* const host = _user;
+    struct dj_host_ninja* const host = _user;
 
     host->error[0] = '\0';
 
@@ -174,10 +174,10 @@ d_internal_set_text, d_internal_set_input, d_internal_set_number
   Gives a string; text of a file, which compares as a number when it looks
 like one, as a field does; or a number.
 */
-static bool
-d_internal_set_text(
-    struct d_awk_value* _out,
-    const char*         _text
+static
+bool d_internal_set_text(
+    struct dj_awk_value* _out,
+    const char*          _text
 )
 {
     return d_awk_value_set_string(_out, (_text) ? _text : "",
@@ -185,21 +185,21 @@ d_internal_set_text(
 }
 
 
-static bool
-d_internal_set_input(
-    struct d_awk_value* _out,
-    const char*         _text,
-    size_t              _length
+static
+bool d_internal_set_input(
+    struct dj_awk_value* _out,
+    const char*          _text,
+    size_t               _length
 )
 {
     return d_awk_value_set_input(_out, _text, _length);
 }
 
 
-static bool
-d_internal_set_number(
-    struct d_awk_value* _out,
-    double              _number
+static
+bool d_internal_set_number(
+    struct dj_awk_value* _out,
+    double               _number
 )
 {
     d_awk_value_set_number(_out, _number);
@@ -212,12 +212,12 @@ d_internal_set_number(
 d_internal_set_owned
   Gives a text made for the caller, and frees it; -1 for one not made.
 */
-static bool
-d_internal_set_owned(
-    struct d_host_ninja* _host,
-    struct d_awk_value*  _out,
-    char*                _text,
-    const char*          _why
+static
+bool d_internal_set_owned(
+    struct dj_host_ninja* _host,
+    struct dj_awk_value*  _out,
+    char*                 _text,
+    const char*           _why
 )
 {
     // a text that could not be made
@@ -238,8 +238,8 @@ d_internal_set_owned(
 d_internal_field
   A field's place among a table of names; `_count` for none.
 */
-static size_t
-d_internal_field(
+static
+size_t d_internal_field(
     const char*        _field,
     const char* const* _names,
     size_t             _count
@@ -263,11 +263,11 @@ d_internal_field(
 d_internal_unknown_field
   Gives "" for a field not known, ninja_error() saying so.
 */
-static bool
-d_internal_unknown_field(
-    struct d_host_ninja* _host,
-    struct d_awk_value*  _out,
-    const char*          _field
+static
+bool d_internal_unknown_field(
+    struct dj_host_ninja* _host,
+    struct dj_awk_value*  _out,
+    const char*           _field
 )
 {
     (void)snprintf(_host->error, sizeof(_host->error), "no field %s",
@@ -282,11 +282,11 @@ d_internal_add_line
   Adds an item to lines being joined, a line ending before all but the
 first.
 */
-static void
-d_internal_add_line(
-    struct d_internal_lines* _lines,
-    const char*              _text,
-    size_t                   _length
+static
+void d_internal_add_line(
+    struct dj_internal_lines* _lines,
+    const char*               _text,
+    size_t                    _length
 )
 {
     const size_t more = _length + 2u;
@@ -341,11 +341,11 @@ d_internal_add_line(
 d_internal_give_lines
   Gives the lines joined, and frees them.
 */
-static bool
-d_internal_give_lines(
-    struct d_host_ninja*     _host,
-    struct d_awk_value*      _out,
-    struct d_internal_lines* _lines
+static
+bool d_internal_give_lines(
+    struct dj_host_ninja*     _host,
+    struct dj_awk_value*      _out,
+    struct dj_internal_lines* _lines
 )
 {
     // a list that could not be made
@@ -371,8 +371,8 @@ d_internal_give_lines(
 d_internal_section
   A section by its name, or -1 for a name none has.
 */
-static int
-d_internal_section(
+static
+int d_internal_section(
     const char* _name
 )
 {
@@ -397,10 +397,10 @@ d_internal_section(
 d_internal_file
   The file a handle names, or NULL, ninja_error() saying why.
 */
-static struct d_ninja_doc*
-d_internal_file(
-    struct d_host_ninja* _host,
-    struct d_awk_value*  _handle
+static
+struct dj_ninja_doc* d_internal_file(
+    struct dj_host_ninja* _host,
+    struct dj_awk_value*  _handle
 )
 {
     const size_t handle = d_internal_index(_handle);
@@ -424,11 +424,11 @@ d_internal_file(
 d_internal_add_file
   Keeps a file, and gives its handle.
 */
-static bool
-d_internal_add_file(
-    struct d_host_ninja* _host,
-    struct d_awk_value*  _out,
-    struct d_ninja_doc*  _doc
+static
+bool d_internal_add_file(
+    struct dj_host_ninja* _host,
+    struct dj_awk_value*  _out,
+    struct dj_ninja_doc*  _doc
 )
 {
     // room for one more
@@ -436,7 +436,7 @@ d_internal_add_file(
     {
         const size_t         wanted = (_host->file_capacity > 0u)
                                           ? (_host->file_capacity * 2u) : 8u;
-        struct d_ninja_doc** grown  = realloc(_host->files,
+        struct dj_ninja_doc** grown  = realloc(_host->files,
                                               wanted * sizeof(*grown));
 
         // a file that cannot be kept is freed, and the handle not given
@@ -460,26 +460,26 @@ d_internal_add_file(
 /*
 ninja_open(path), ninja_new(path[, text])
 */
-static bool
-d_internal_ninja_open(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_open(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host = _user;
+    struct dj_host_ninja* const host = _user;
     char                       why[512];
 
     (void)_count;
     (void)_problem;
     (void)_capacity;
 
-    struct d_ninja_doc* const doc = d_ninja_doc_read(d_internal_text(_args[0]),
+    struct dj_ninja_doc* const doc = d_ninja_doc_read(d_internal_text(_args[0]),
                                                      why, sizeof(why));
 
     // why it did not read
@@ -492,19 +492,19 @@ d_internal_ninja_open(
 }
 
 
-static bool
-d_internal_ninja_new(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_new(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host = _user;
+    struct dj_host_ninja* const host = _user;
     char* const                path = d_internal_copy_arg(_args[0]);
     char                       why[512];
 
@@ -522,7 +522,7 @@ d_internal_ninja_new(
                                            ? d_awk_value_text(_args[1], NULL,
                                                               &length)
                                            : "";
-    struct d_ninja_doc* const doc    = d_ninja_doc_make(path, text, length,
+    struct dj_ninja_doc* const doc    = d_ninja_doc_make(path, text, length,
                                                         why, sizeof(why));
 
     free(path);
@@ -540,20 +540,20 @@ d_internal_ninja_new(
 /*
 ninja_save(f[, path]), ninja_close(f), ninja_error()
 */
-static bool
-d_internal_ninja_save(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_save(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host = _user;
-    struct d_ninja_doc* const  doc  = d_internal_file(host, _args[0]);
+    struct dj_host_ninja* const host = _user;
+    struct dj_ninja_doc* const  doc  = d_internal_file(host, _args[0]);
     char                       why[512];
 
     (void)_problem;
@@ -565,7 +565,7 @@ d_internal_ninja_save(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const enum d_ninja_saved saved = d_ninja_doc_save(
+    const enum dj_ninja_saved saved = d_ninja_doc_save(
                                          doc,
                                          (_count > 1u)
                                              ? d_internal_text(_args[1])
@@ -583,19 +583,19 @@ d_internal_ninja_save(
 }
 
 
-static bool
-d_internal_ninja_close(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_close(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host   = _user;
+    struct dj_host_ninja* const host   = _user;
     const size_t               handle = d_internal_index(_args[0]);
 
     (void)_count;
@@ -617,17 +617,17 @@ d_internal_ninja_close(
 }
 
 
-static bool
-d_internal_ninja_error(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_error(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_ninja* const host = _user;
+    struct dj_host_ninja* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -643,16 +643,16 @@ d_internal_file_fact
   A fact of a file: 0 its path, 1 its text, 2 its changes, 3 its
 statements, 4 its comments.
 */
-static bool
-d_internal_file_fact(
-    void*               _user,
-    struct d_awk_value* _handle,
-    struct d_awk_value* _out,
-    int                 _fact
+static
+bool d_internal_file_fact(
+    void*                _user,
+    struct dj_awk_value* _handle,
+    struct dj_awk_value* _out,
+    int                  _fact
 )
 {
-    struct d_host_ninja* const      host = _user;
-    const struct d_ninja_doc* const doc  = d_internal_file(host, _handle);
+    struct dj_host_ninja* const      host = _user;
+    const struct dj_ninja_doc* const doc  = d_internal_file(host, _handle);
 
     // a handle to no file
     if (!doc)
@@ -662,7 +662,7 @@ d_internal_file_fact(
 
     size_t                      length  = 0;
     const char* const           text    = d_ninja_doc_text(doc, &length);
-    const struct d_ninja* const records = d_ninja_doc_records(doc);
+    const struct dj_ninja* const records = d_ninja_doc_records(doc);
 
     // a table of the facts
     switch (_fact)
@@ -693,14 +693,14 @@ d_internal_file_fact(
 ninja_path(f), ninja_text(f), ninja_changes(f), ninja_statements(f),
 ninja_comments(f)
 */
-static bool
-d_internal_ninja_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -713,14 +713,14 @@ d_internal_ninja_path(
 }
 
 
-static bool
-d_internal_ninja_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -733,14 +733,14 @@ d_internal_ninja_text(
 }
 
 
-static bool
-d_internal_ninja_changes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_changes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -753,14 +753,14 @@ d_internal_ninja_changes(
 }
 
 
-static bool
-d_internal_ninja_statements(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_statements(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -773,14 +773,14 @@ d_internal_ninja_statements(
 }
 
 
-static bool
-d_internal_ninja_comments(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_comments(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -803,15 +803,15 @@ d_internal_statement_at
   The statement a handle and an index name, and its records, or NULL,
 ninja_error() saying why.
 */
-static const struct d_ninja_statement*
-d_internal_statement_at(
-    struct d_host_ninja*   _host,
-    struct d_awk_value*    _handle,
-    struct d_awk_value*    _index,
-    const struct d_ninja** _out_records
+static
+const struct dj_ninja_statement* d_internal_statement_at(
+    struct dj_host_ninja*   _host,
+    struct dj_awk_value*    _handle,
+    struct dj_awk_value*    _index,
+    const struct dj_ninja** _out_records
 )
 {
-    const struct d_ninja_doc* const doc = d_internal_file(_host, _handle);
+    const struct dj_ninja_doc* const doc = d_internal_file(_host, _handle);
 
     // a handle to no file
     if (!doc)
@@ -819,7 +819,7 @@ d_internal_statement_at(
         return NULL;
     }
 
-    const struct d_ninja* const records = d_ninja_doc_records(doc);
+    const struct dj_ninja* const records = d_ninja_doc_records(doc);
     const size_t                n       = d_internal_index(_index);
 
     // a statement the file has
@@ -843,10 +843,10 @@ d_internal_statement_at(
 d_internal_unparsed
   A value unparsed, for the caller to free; "" for none.
 */
-static char*
-d_internal_unparsed(
-    const struct d_ninja* _ninja,
-    size_t                _value
+static
+char* d_internal_unparsed(
+    const struct dj_ninja* _ninja,
+    size_t                 _value
 )
 {
     // no value is ""
@@ -855,7 +855,7 @@ d_internal_unparsed(
         return calloc(1u, 1u);
     }
 
-    const struct d_ninja_value* const value = &_ninja->values[_value];
+    const struct dj_ninja_value* const value = &_ninja->values[_value];
     char* const out = malloc(((value->end - value->start) * 2u) + 1u);
 
     // the value, unparsed
@@ -872,11 +872,11 @@ d_internal_unparsed(
 d_internal_set_written
   Gives a value as written.
 */
-static bool
-d_internal_set_written(
-    struct d_awk_value*   _out,
-    const struct d_ninja* _ninja,
-    size_t                _value
+static
+bool d_internal_set_written(
+    struct dj_awk_value*   _out,
+    const struct dj_ninja* _ninja,
+    size_t                 _value
 )
 {
     // no value is ""
@@ -885,7 +885,7 @@ d_internal_set_written(
         return d_awk_value_set_string(_out, "", 0u);
     }
 
-    const struct d_ninja_value* const value = &_ninja->values[_value];
+    const struct dj_ninja_value* const value = &_ninja->values[_value];
 
     return d_internal_set_input(_out, &_ninja->text[value->start],
                                 value->end - value->start);
@@ -897,13 +897,13 @@ d_internal_statement_field
   One field of a statement.
   Long as it is a table of the fields, each a line or two.
 */
-static bool
-d_internal_statement_field(
-    struct d_host_ninja*            _host,
-    const struct d_ninja*           _ninja,
-    const struct d_ninja_statement* _statement,
-    const char*                     _field,
-    struct d_awk_value*             _out
+static
+bool d_internal_statement_field(
+    struct dj_host_ninja*            _host,
+    const struct dj_ninja*           _ninja,
+    const struct dj_ninja_statement* _statement,
+    const char*                      _field,
+    struct dj_awk_value*             _out
 )
 {
     static const char* const fields[] =
@@ -966,20 +966,20 @@ d_internal_statement_field(
 /*
 ninja_statement(f, n, field)
 */
-static bool
-d_internal_ninja_statement(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_statement(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host    = _user;
-    const struct d_ninja*      records = NULL;
+    struct dj_host_ninja* const host    = _user;
+    const struct dj_ninja*      records = NULL;
     char* const                field   = d_internal_copy_arg(_args[2]);
 
     (void)_count;
@@ -992,7 +992,7 @@ d_internal_ninja_statement(
         return false;
     }
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(host, _args[0], _args[1], &records);
     const bool                            ok        =
         (statement) ? d_internal_statement_field(host, records, statement,
@@ -1010,11 +1010,11 @@ d_internal_names
   Whether a statement is of a name: a variable's, a rule's or a pool's, a
 build's outputs, an include's or a subninja's file, a default's targets.
 */
-static bool
-d_internal_names(
-    const struct d_ninja*           _ninja,
-    const struct d_ninja_statement* _statement,
-    const char*                     _name
+static
+bool d_internal_names(
+    const struct dj_ninja*           _ninja,
+    const struct dj_ninja_statement* _statement,
+    const char*                      _name
 )
 {
     const size_t span = strlen(_name);
@@ -1037,7 +1037,7 @@ d_internal_names(
     // each path that names it
     for (size_t at = 0; (!found) && (at < _statement->path_count); ++at)
     {
-        const struct d_ninja_path* const path =
+        const struct dj_ninja_path* const path =
             &_ninja->paths[_statement->first_path + at];
         char* const text = (path->section != D_NINJA_INPUT) &&
                            (path->section != D_NINJA_IMPLICIT) &&
@@ -1058,20 +1058,20 @@ d_internal_names(
 /*
 ninja_find(f, kind[, name[, after]])
 */
-static bool
-d_internal_ninja_find(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_find(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const      host = _user;
-    const struct d_ninja_doc* const doc  = d_internal_file(host, _args[0]);
+    struct dj_host_ninja* const      host = _user;
+    const struct dj_ninja_doc* const doc  = d_internal_file(host, _args[0]);
     char* const                     kind = d_internal_copy_arg(_args[1]);
     char* const                     name = (_count > 2u)
                                                ? d_internal_copy_arg(_args[2])
@@ -1092,7 +1092,7 @@ d_internal_ninja_find(
                                                  : host->error);
     }
 
-    const struct d_ninja* const records = d_ninja_doc_records(doc);
+    const struct dj_ninja* const records = d_ninja_doc_records(doc);
     const size_t                after   = (_count > 3u)
                                               ? d_internal_index(_args[3])
                                               : 0u;
@@ -1103,7 +1103,7 @@ d_internal_ninja_find(
          (found == 0u) && (at < records->statement_count);
          ++at)
     {
-        const struct d_ninja_statement* const statement =
+        const struct dj_ninja_statement* const statement =
             &records->statements[at];
 
         // the kind's, and the name's when one is given
@@ -1130,25 +1130,25 @@ d_internal_ninja_find(
 /*
 ninja_paths(f, n[, section])
 */
-static bool
-d_internal_ninja_paths(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_paths(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host    = _user;
-    const struct d_ninja*      records = NULL;
+    struct dj_host_ninja* const host    = _user;
+    const struct dj_ninja*      records = NULL;
 
     (void)_problem;
     (void)_capacity;
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(host, _args[0], _args[1], &records);
 
     // a statement the file has
@@ -1187,21 +1187,21 @@ d_internal_ninja_paths(
 ninja_path_at(f, n, k[, field])
   Long as it is a table of the fields, each a line or two.
 */
-static bool
-d_internal_ninja_path_at(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_path_at(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
     static const char* const fields[] = { "text", "value", "section", "line" };
-    struct d_host_ninja* const host    = _user;
-    const struct d_ninja*      records = NULL;
+    struct dj_host_ninja* const host    = _user;
+    const struct dj_ninja*      records = NULL;
     char* const                field   = (_count > 3u)
                                              ? d_internal_copy_arg(_args[3])
                                              : NULL;
@@ -1209,7 +1209,7 @@ d_internal_ninja_path_at(
     (void)_problem;
     (void)_capacity;
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(host, _args[0], _args[1], &records);
     const size_t                          k         =
         d_internal_index(_args[2]);
@@ -1226,7 +1226,7 @@ d_internal_ninja_path_at(
                                            : host->error);
     }
 
-    const struct d_ninja_path* const path =
+    const struct dj_ninja_path* const path =
         &records->paths[statement->first_path + k - 1u];
     const size_t which = d_internal_field((field) ? field : "text", fields,
                                           4u);
@@ -1273,26 +1273,26 @@ d_internal_ninja_path_at(
 /*
 ninja_bindings(f, n)
 */
-static bool
-d_internal_ninja_bindings(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_bindings(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host    = _user;
-    const struct d_ninja*      records = NULL;
+    struct dj_host_ninja* const host    = _user;
+    const struct dj_ninja*      records = NULL;
 
     (void)_count;
     (void)_problem;
     (void)_capacity;
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(host, _args[0], _args[1], &records);
 
     // a statement the file has
@@ -1309,21 +1309,21 @@ d_internal_ninja_bindings(
 ninja_binding(f, n, k[, field])
   Long as it is a table of the fields, each a line or two.
 */
-static bool
-d_internal_ninja_binding(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_binding(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
     static const char* const fields[] = { "name", "text", "value", "line" };
-    struct d_host_ninja* const host    = _user;
-    const struct d_ninja*      records = NULL;
+    struct dj_host_ninja* const host    = _user;
+    const struct dj_ninja*      records = NULL;
     char* const                field   = (_count > 3u)
                                              ? d_internal_copy_arg(_args[3])
                                              : NULL;
@@ -1331,7 +1331,7 @@ d_internal_ninja_binding(
     (void)_problem;
     (void)_capacity;
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(host, _args[0], _args[1], &records);
     const size_t                          k         =
         d_internal_index(_args[2]);
@@ -1349,7 +1349,7 @@ d_internal_ninja_binding(
                                            : host->error);
     }
 
-    const struct d_ninja_binding* const binding =
+    const struct dj_ninja_binding* const binding =
         &records->bindings[statement->first_binding + k - 1u];
     bool                                ok      = false;
 
@@ -1392,27 +1392,27 @@ d_internal_ninja_binding(
 /*
 ninja_find_binding(f, n, name)
 */
-static bool
-d_internal_ninja_find_binding(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_find_binding(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host    = _user;
-    const struct d_ninja*      records = NULL;
+    struct dj_host_ninja* const host    = _user;
+    const struct dj_ninja*      records = NULL;
     char* const                name    = d_internal_copy_arg(_args[2]);
 
     (void)_count;
     (void)_problem;
     (void)_capacity;
 
-    const struct d_ninja_statement* const statement =
+    const struct dj_ninja_statement* const statement =
         d_internal_statement_at(host, _args[0], _args[1], &records);
 
     // a statement the file has, and the name copied
@@ -1431,7 +1431,7 @@ d_internal_ninja_find_binding(
     // each binding, the last of the name kept
     for (size_t at = 0; at < statement->binding_count; ++at)
     {
-        const struct d_ninja_binding* const binding =
+        const struct dj_ninja_binding* const binding =
             &records->bindings[statement->first_binding + at];
 
         // the name's
@@ -1456,14 +1456,14 @@ d_internal_ninja_find_binding(
 /*
 ninja_comment(f, i, field)
 */
-static bool
-d_internal_ninja_comment(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_comment(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1472,8 +1472,8 @@ d_internal_ninja_comment(
     {
         "text", "body", "line", "statement"
     };
-    struct d_host_ninja* const      host  = _user;
-    const struct d_ninja_doc* const doc   = d_internal_file(host, _args[0]);
+    struct dj_host_ninja* const      host  = _user;
+    const struct dj_ninja_doc* const doc   = d_internal_file(host, _args[0]);
     const size_t                    index = d_internal_index(_args[1]);
 
     (void)_count;
@@ -1490,8 +1490,8 @@ d_internal_ninja_comment(
                                      : host->error);
     }
 
-    const struct d_ninja* const         records = d_ninja_doc_records(doc);
-    const struct d_ninja_comment* const comment =
+    const struct dj_ninja* const         records = d_ninja_doc_records(doc);
+    const struct dj_ninja_comment* const comment =
         &records->comments[index - 1u];
     const char* const                   field   = d_internal_text(_args[2]);
 
@@ -1532,7 +1532,7 @@ d_internal_ninja_comment(
 
 // d_internal_edit
 //   enum: the changes ninja_set_value ... ninja_remove make.
-enum d_internal_edit
+enum dj_internal_edit
 {
     D_INTERNAL_SET_VALUE = 0,
     D_INTERNAL_SET_NAME,
@@ -1552,9 +1552,9 @@ d_internal_less_one
   An index from 1 as an index from 0; one that names nothing, 0 here, is
 past any the file has.
 */
-static size_t
-d_internal_less_one(
-    struct d_awk_value* _value
+static
+size_t d_internal_less_one(
+    struct dj_awk_value* _value
 )
 {
     const size_t index = d_internal_index(_value);
@@ -1567,11 +1567,11 @@ d_internal_less_one(
 d_internal_insert_path
   A path inserted as the kth of its named section.
 */
-static bool
-d_internal_insert_path(
-    struct d_ninja_doc*  _doc,
-    struct d_awk_value** _args,
-    const char*          _text
+static
+bool d_internal_insert_path(
+    struct dj_ninja_doc*  _doc,
+    struct dj_awk_value** _args,
+    const char*           _text
 )
 {
     const int section = d_internal_section(d_internal_text(_args[2]));
@@ -1583,7 +1583,7 @@ d_internal_insert_path(
     }
 
     return d_ninja_doc_insert_path(_doc, d_internal_less_one(_args[1]),
-                                   (enum d_ninja_section)section,
+                                   (enum dj_ninja_section)section,
                                    d_internal_less_one(_args[3]), _text);
 }
 
@@ -1596,9 +1596,9 @@ are the copies of the arguments the change takes.
 */
 static bool
 d_internal_edit_doc(
-    struct d_ninja_doc*  _doc,
-    enum d_internal_edit _edit,
-    struct d_awk_value** _args,
+    struct dj_ninja_doc*  _doc,
+    enum dj_internal_edit _edit,
+    struct dj_awk_value** _args,
     size_t               _count,
     const char*          _name,
     const char*          _text
@@ -1656,7 +1656,7 @@ d_internal_edit_arguments
 */
 static void
 d_internal_edit_arguments(
-    enum d_internal_edit _edit,
+    enum dj_internal_edit _edit,
     size_t*              _out_name,
     size_t*              _out_text
 )
@@ -1678,14 +1678,14 @@ d_internal_edit
 static bool
 d_internal_edit(
     void*                _user,
-    struct d_awk_value** _args,
+    struct dj_awk_value** _args,
     size_t               _count,
-    struct d_awk_value*  _out,
-    enum d_internal_edit _edit
+    struct dj_awk_value*  _out,
+    enum dj_internal_edit _edit
 )
 {
-    struct d_host_ninja* const host = _user;
-    struct d_ninja_doc* const  doc  = d_internal_file(host, _args[0]);
+    struct dj_host_ninja* const host = _user;
+    struct dj_ninja_doc* const  doc  = d_internal_file(host, _args[0]);
     size_t                     name = 0;
     size_t                     text = 0;
 
@@ -1746,14 +1746,14 @@ ninja_set_value, ninja_set_name, ninja_set_binding, ninja_remove_binding,
 ninja_set_path, ninja_insert_path, ninja_remove_path, ninja_insert,
 ninja_replace, ninja_remove
 */
-static bool
-d_internal_ninja_set_value(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_set_value(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1765,14 +1765,14 @@ d_internal_ninja_set_value(
 }
 
 
-static bool
-d_internal_ninja_set_name(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_set_name(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1784,14 +1784,14 @@ d_internal_ninja_set_name(
 }
 
 
-static bool
-d_internal_ninja_set_binding(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_set_binding(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1804,14 +1804,14 @@ d_internal_ninja_set_binding(
 }
 
 
-static bool
-d_internal_ninja_remove_binding(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_remove_binding(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1824,14 +1824,14 @@ d_internal_ninja_remove_binding(
 }
 
 
-static bool
-d_internal_ninja_set_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_set_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1843,14 +1843,14 @@ d_internal_ninja_set_path(
 }
 
 
-static bool
-d_internal_ninja_insert_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_insert_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1863,14 +1863,14 @@ d_internal_ninja_insert_path(
 }
 
 
-static bool
-d_internal_ninja_remove_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_remove_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1883,14 +1883,14 @@ d_internal_ninja_remove_path(
 }
 
 
-static bool
-d_internal_ninja_insert(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_insert(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1902,14 +1902,14 @@ d_internal_ninja_insert(
 }
 
 
-static bool
-d_internal_ninja_replace(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_replace(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1921,14 +1921,14 @@ d_internal_ninja_replace(
 }
 
 
-static bool
-d_internal_ninja_remove(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_remove(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -1948,19 +1948,19 @@ d_internal_ninja_remove(
 /*
 ninja_escape(text[, how])
 */
-static bool
-d_internal_ninja_escape(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_escape(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host = _user;
+    struct dj_host_ninja* const host = _user;
     size_t                     length = 0;
     char* const                text   = d_internal_copy_arg(_args[0]);
     const char* const          how    = (_count > 1u)
@@ -2004,14 +2004,14 @@ d_internal_ninja_escape(
 /*
 ninja_canonical(path[, win32]), ninja_shell_escape(path[, win32])
 */
-static bool
-d_internal_ninja_canonical(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_canonical(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2040,14 +2040,14 @@ d_internal_ninja_canonical(
 }
 
 
-static bool
-d_internal_ninja_shell_escape(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_shell_escape(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2086,10 +2086,10 @@ d_internal_ninja_shell_escape(
 d_internal_graph
   The build a handle names, or NULL, ninja_error() saying why.
 */
-static struct d_ninja_graph*
-d_internal_graph(
-    struct d_host_ninja* _host,
-    struct d_awk_value*  _handle
+static
+struct dj_ninja_graph* d_internal_graph(
+    struct dj_host_ninja* _host,
+    struct dj_awk_value*  _handle
 )
 {
     const size_t handle = d_internal_index(_handle);
@@ -2112,19 +2112,19 @@ d_internal_graph(
 /*
 ninja_load(path[, directory[, version]])
 */
-static bool
-d_internal_ninja_load(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_load(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host      = _user;
+    struct dj_host_ninja* const host      = _user;
     char* const                path      = d_internal_copy_arg(_args[0]);
     char* const                directory = (_count > 1u)
                                                ? d_internal_copy_arg(_args[1])
@@ -2137,7 +2137,7 @@ d_internal_ninja_load(
     (void)_problem;
     (void)_capacity;
 
-    struct d_ninja_options options;
+    struct dj_ninja_options options;
 
     options.directory = ( (directory) && (directory[0] != '\0') ) ? directory
                                                                   : NULL;
@@ -2145,7 +2145,7 @@ d_internal_ninja_load(
                                                               : NULL;
     options.win32     = false;
 
-    struct d_ninja_graph* const graph =
+    struct dj_ninja_graph* const graph =
         (path) ? d_ninja_load(path, &options, why, sizeof(why)) : NULL;
 
     free(path);
@@ -2164,7 +2164,7 @@ d_internal_ninja_load(
         const size_t           wanted = (host->graph_capacity > 0u)
                                             ? (host->graph_capacity * 2u)
                                             : 4u;
-        struct d_ninja_graph** grown  = realloc(host->graphs,
+        struct dj_ninja_graph** grown  = realloc(host->graphs,
                                                 wanted * sizeof(*grown));
 
         // a build that cannot be kept is let go
@@ -2188,19 +2188,19 @@ d_internal_ninja_load(
 /*
 ninja_unload(g)
 */
-static bool
-d_internal_ninja_unload(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_unload(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host   = _user;
+    struct dj_host_ninja* const host   = _user;
     const size_t               handle = d_internal_index(_args[0]);
 
     (void)_count;
@@ -2226,16 +2226,16 @@ d_internal_ninja_unload(
 d_internal_node_lines
   Nodes' paths, a line each.
 */
-static bool
-d_internal_node_lines(
-    struct d_host_ninja*        _host,
-    const struct d_ninja_graph* _graph,
-    const size_t*               _nodes,
-    size_t                      _count,
-    struct d_awk_value*         _out
+static
+bool d_internal_node_lines(
+    struct dj_host_ninja*        _host,
+    const struct dj_ninja_graph* _graph,
+    const size_t*                _nodes,
+    size_t                       _count,
+    struct dj_awk_value*         _out
 )
 {
-    struct d_internal_lines lines = { NULL, 0u, 0u, 0u, false };
+    struct dj_internal_lines lines = { NULL, 0u, 0u, 0u, false };
 
     // each node's path
     for (size_t at = 0; at < _count; ++at)
@@ -2253,15 +2253,15 @@ d_internal_node_lines(
 d_internal_number_lines
   Indices, each one more, a line each.
 */
-static bool
-d_internal_number_lines(
-    struct d_host_ninja* _host,
-    const size_t*        _items,
-    size_t               _count,
-    struct d_awk_value*  _out
+static
+bool d_internal_number_lines(
+    struct dj_host_ninja* _host,
+    const size_t*         _items,
+    size_t                _count,
+    struct dj_awk_value*  _out
 )
 {
-    struct d_internal_lines lines = { NULL, 0u, 0u, 0u, false };
+    struct dj_internal_lines lines = { NULL, 0u, 0u, 0u, false };
 
     // each index, from 1
     for (size_t at = 0; at < _count; ++at)
@@ -2280,20 +2280,20 @@ d_internal_number_lines(
 /*
 ninja_edges(g), ninja_nodes(g)
 */
-static bool
-d_internal_ninja_edges(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_edges(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const        host  = _user;
-    const struct d_ninja_graph* const graph = d_internal_graph(host,
+    struct dj_host_ninja* const        host  = _user;
+    const struct dj_ninja_graph* const graph = d_internal_graph(host,
                                                                _args[0]);
 
     (void)_count;
@@ -2310,20 +2310,20 @@ d_internal_ninja_edges(
 }
 
 
-static bool
-d_internal_ninja_nodes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_nodes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const        host  = _user;
-    const struct d_ninja_graph* const graph = d_internal_graph(host,
+    struct dj_host_ninja* const        host  = _user;
+    const struct dj_ninja_graph* const graph = d_internal_graph(host,
                                                                _args[0]);
 
     (void)_count;
@@ -2345,15 +2345,15 @@ d_internal_edge_at
   The edge a handle and an index name, from 0, or D_NINJA_NONE,
 ninja_error() saying why.
 */
-static size_t
-d_internal_edge_at(
-    struct d_host_ninja*         _host,
-    struct d_awk_value*          _handle,
-    struct d_awk_value*          _index,
-    struct d_ninja_graph**       _out_graph
+static
+size_t d_internal_edge_at(
+    struct dj_host_ninja*   _host,
+    struct dj_awk_value*    _handle,
+    struct dj_awk_value*    _index,
+    struct dj_ninja_graph** _out_graph
 )
 {
-    struct d_ninja_graph* const graph = d_internal_graph(_host, _handle);
+    struct dj_ninja_graph* const graph = d_internal_graph(_host, _handle);
     const size_t                e     = d_internal_index(_index);
 
     // a build loaded, and an edge it has
@@ -2382,14 +2382,14 @@ d_internal_edge_at(
 ninja_edge(g, e, field)
   Long as it is a table of the fields, each a line or two.
 */
-static bool
-d_internal_ninja_edge(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_edge(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2399,8 +2399,8 @@ d_internal_ninja_edge(
         "outputs", "implicit_outputs", "inputs", "implicit", "order_only",
         "validations", "rule", "phony", "pool", "file", "line"
     };
-    struct d_host_ninja* const host  = _user;
-    struct d_ninja_graph*      graph = NULL;
+    struct dj_host_ninja* const host  = _user;
+    struct dj_ninja_graph*      graph = NULL;
     char* const                field = d_internal_copy_arg(_args[2]);
 
     (void)_count;
@@ -2427,7 +2427,7 @@ d_internal_ninja_edge(
     {
         const size_t* nodes = NULL;
         const size_t  count = d_ninja_edge_nodes(graph, edge,
-                                                 (enum d_ninja_section)which,
+                                                 (enum dj_ninja_section)which,
                                                  &nodes);
 
         ok = d_internal_node_lines(host, graph, nodes, count, _out);
@@ -2469,20 +2469,20 @@ d_internal_ninja_edge(
 /*
 ninja_edge_var(g, e, name[, raw])
 */
-static bool
-d_internal_ninja_edge_var(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_edge_var(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const host  = _user;
-    struct d_ninja_graph*      graph = NULL;
+    struct dj_host_ninja* const host  = _user;
+    struct dj_ninja_graph*      graph = NULL;
     char* const                name  = d_internal_copy_arg(_args[2]);
     char                       why[512];
 
@@ -2515,14 +2515,14 @@ d_internal_ninja_edge_var(
 /*
 ninja_node(g, n, field)
 */
-static bool
-d_internal_ninja_node(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_node(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2531,8 +2531,8 @@ d_internal_ninja_node(
     {
         "path", "in_edge", "out_edges", "validation_edges"
     };
-    struct d_host_ninja* const        host  = _user;
-    const struct d_ninja_graph* const graph = d_internal_graph(host,
+    struct dj_host_ninja* const        host  = _user;
+    const struct dj_ninja_graph* const graph = d_internal_graph(host,
                                                                _args[0]);
     const size_t                      n     = d_internal_index(_args[1]);
 
@@ -2591,20 +2591,20 @@ d_internal_ninja_node(
 /*
 ninja_find_node(g, path)
 */
-static bool
-d_internal_ninja_find_node(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_find_node(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const        host   = _user;
-    const struct d_ninja_graph* const graph  = d_internal_graph(host,
+    struct dj_host_ninja* const        host   = _user;
+    const struct dj_ninja_graph* const graph  = d_internal_graph(host,
                                                                 _args[0]);
     size_t                            length = 0;
 
@@ -2633,18 +2633,18 @@ d_internal_build_list
 rules, 3 its pools, 4 its files, 5 its warnings.
   Long as it is a table of the lists.
 */
-static bool
-d_internal_build_list(
-    void*               _user,
-    struct d_awk_value* _handle,
-    struct d_awk_value* _out,
-    int                 _list
+static
+bool d_internal_build_list(
+    void*                _user,
+    struct dj_awk_value* _handle,
+    struct dj_awk_value* _out,
+    int                  _list
 )
 {
-    struct d_host_ninja* const        host  = _user;
-    const struct d_ninja_graph* const graph = d_internal_graph(host,
+    struct dj_host_ninja* const        host  = _user;
+    const struct dj_ninja_graph* const graph = d_internal_graph(host,
                                                                _handle);
-    struct d_internal_lines           lines = { NULL, 0u, 0u, 0u, false };
+    struct dj_internal_lines           lines = { NULL, 0u, 0u, 0u, false };
     const size_t*                     nodes = NULL;
 
     // a build loaded
@@ -2690,14 +2690,14 @@ d_internal_build_list(
 ninja_defaults(g), ninja_roots(g), ninja_rules(g), ninja_pools(g),
 ninja_files(g), ninja_warnings(g)
 */
-static bool
-d_internal_ninja_defaults(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_defaults(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2710,14 +2710,14 @@ d_internal_ninja_defaults(
 }
 
 
-static bool
-d_internal_ninja_roots(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_roots(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2730,14 +2730,14 @@ d_internal_ninja_roots(
 }
 
 
-static bool
-d_internal_ninja_rules(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_rules(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2750,14 +2750,14 @@ d_internal_ninja_rules(
 }
 
 
-static bool
-d_internal_ninja_pools(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_pools(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2770,14 +2770,14 @@ d_internal_ninja_pools(
 }
 
 
-static bool
-d_internal_ninja_files(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_files(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2790,14 +2790,14 @@ d_internal_ninja_files(
 }
 
 
-static bool
-d_internal_ninja_warnings(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_warnings(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
@@ -2814,10 +2814,10 @@ d_internal_ninja_warnings(
 d_internal_rule_named
   The rule of a name among a build's, or D_NINJA_NONE.
 */
-static size_t
-d_internal_rule_named(
-    const struct d_ninja_graph* _graph,
-    const char*                 _name
+static
+size_t d_internal_rule_named(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _name
 )
 {
     // each rule, by name
@@ -2839,12 +2839,12 @@ d_internal_rule_names
   The names a rule binds, a line each, in the order ninja lists the names a
 rule may bind.
 */
-static bool
-d_internal_rule_names(
-    struct d_host_ninja*        _host,
-    const struct d_ninja_graph* _graph,
-    size_t                      _rule,
-    struct d_awk_value*         _out
+static
+bool d_internal_rule_names(
+    struct dj_host_ninja*        _host,
+    const struct dj_ninja_graph* _graph,
+    size_t                       _rule,
+    struct dj_awk_value*         _out
 )
 {
     static const char* const names[] =
@@ -2852,7 +2852,7 @@ d_internal_rule_names(
         "command", "depfile", "dyndep", "description", "deps", "generator",
         "pool", "restat", "rspfile", "rspfile_content", "msvc_deps_prefix"
     };
-    struct d_internal_lines  lines = { NULL, 0u, 0u, 0u, false };
+    struct dj_internal_lines  lines = { NULL, 0u, 0u, 0u, false };
 
     // each name a rule may bind, listed where it binds it
     for (size_t at = 0; at < (sizeof(names) / sizeof(names[0])); ++at)
@@ -2875,20 +2875,20 @@ d_internal_rule_names(
 /*
 ninja_rule(g, name[, binding])
 */
-static bool
-d_internal_ninja_rule(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_rule(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const        host  = _user;
-    const struct d_ninja_graph* const graph = d_internal_graph(host,
+    struct dj_host_ninja* const        host  = _user;
+    const struct dj_ninja_graph* const graph = d_internal_graph(host,
                                                                _args[0]);
 
     (void)_problem;
@@ -2937,20 +2937,20 @@ d_internal_ninja_rule(
 /*
 ninja_pool(g, name), ninja_variable(g, name)
 */
-static bool
-d_internal_ninja_pool(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_pool(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const        host  = _user;
-    const struct d_ninja_graph* const graph = d_internal_graph(host,
+    struct dj_host_ninja* const        host  = _user;
+    const struct dj_ninja_graph* const graph = d_internal_graph(host,
                                                                _args[0]);
 
     (void)_count;
@@ -2977,20 +2977,20 @@ d_internal_ninja_pool(
 }
 
 
-static bool
-d_internal_ninja_variable(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_ninja_variable(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     d_internal_clear(_user);
 
-    struct d_host_ninja* const        host  = _user;
-    const struct d_ninja_graph* const graph = d_internal_graph(host,
+    struct dj_host_ninja* const        host  = _user;
+    const struct dj_ninja_graph* const graph = d_internal_graph(host,
                                                                _args[0]);
 
     (void)_count;
@@ -3019,12 +3019,12 @@ d_internal_ninja_variable(
 d_internal_functions
   The extension's host functions, as a program calls them.
 */
-static const struct d_awk_host_function*
-d_internal_functions(
+static
+const struct dj_awk_host_function* d_internal_functions(
     size_t* _out_count
 )
 {
-    static const struct d_awk_host_function functions[] =
+    static const struct dj_awk_host_function functions[] =
     {
         { "ninja_open",           1u, 1u, d_internal_ninja_open           },
         { "ninja_new",            1u, 2u, d_internal_ninja_new            },
@@ -3082,16 +3082,14 @@ d_internal_functions(
 }
 
 
-struct d_host_ninja*
-d_host_ninja_new(void)
+struct dj_host_ninja* d_host_ninja_new(void)
 {
-    return calloc(1u, sizeof(struct d_host_ninja));
+    return calloc(1u, sizeof(struct dj_host_ninja));
 }
 
 
-void
-d_host_ninja_free(
-    struct d_host_ninja* _host
+void d_host_ninja_free(
+    struct dj_host_ninja* _host
 )
 {
     // freeing nothing is allowed
@@ -3120,14 +3118,13 @@ d_host_ninja_free(
 }
 
 
-bool
-d_host_ninja_install(
-    struct d_host_ninja* _host,
-    struct d_awk_interp* _interp
+bool d_host_ninja_install(
+    struct dj_host_ninja* _host,
+    struct dj_awk_interp* _interp
 )
 {
     size_t                                  count     = 0;
-    const struct d_awk_host_function* const functions =
+    const struct dj_awk_host_function* const functions =
         d_internal_functions(&count);
 
     // parameter validation first

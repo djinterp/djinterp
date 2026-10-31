@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,10 +24,8 @@ d_tests_sa_functional_identity_transformer
   - both NULL returns false
   - output receives the exact pointer value of input
 */
-bool
-d_tests_sa_functional_identity_transformer
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_identity_transformer(
+    struct dj_test_counter* _counter
 )
 {
     bool           all_passed;
@@ -132,10 +130,8 @@ d_tests_sa_functional_identity_predicate
   - non-NULL context is accepted and ignored
   - various non-NULL pointer types all return true
 */
-bool
-d_tests_sa_functional_identity_predicate
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_functional_identity_predicate(
+    struct dj_test_counter* _counter
 )
 {
     bool   all_passed;

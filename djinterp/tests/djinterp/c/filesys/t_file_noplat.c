@@ -8,7 +8,7 @@
 * without allocating; that the calls that are only text still work; that the
 * predicates answer no rather than fail; and that streams still do what ISO C
 * can. It is ISO C itself, and works in the current directory.
-*   ci/check_filesys_platforms.sh runs it natively at 64 and 32 bits, and on
+*   scripts/ci/check_filesys_platforms.sh runs it natively at 64 and 32 bits, and on
 * WASI under a runtime; by hand, from the repo root, in a scratch directory:
 *     cc -std=c99 -D_XOPEN_SOURCE=700 -DD_CFG_FILE_HAS_POSIX=0 -Wall -Wextra  \
 *        -Werror src/djinterp/c/filesys/file_*.c                               \
@@ -28,7 +28,7 @@
 // djinterp
 #include "../../../../inc/djinterp/c/filesys/dfile.h"  // unit under test
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 
 
 static int g_checks   = 0;
@@ -66,10 +66,8 @@ static int g_failures = 0;
 t_noplat_directories
   Directories and resolution need the platform; joining names does not.
 */
-static void
-t_noplat_directories(
-    void
-)
+static
+void t_noplat_directories(void)
 {
     char buf[256] = {0};
 
@@ -100,12 +98,10 @@ t_noplat_directories(
 t_noplat_metadata
   Metadata needs the platform; the predicates answer no instead of failing.
 */
-static void
-t_noplat_metadata(
-    void
-)
+static
+void t_noplat_metadata(void)
 {
-    struct d_stat64_t st   = {0};
+    struct dj_stat64_t st   = {0};
     uint32_t          mode = 0;
 
     CHECK_ENOSYS(d_file_stat64("t.txt", &st) == -1,
@@ -132,10 +128,8 @@ t_noplat_metadata(
 t_noplat_streams
   What ISO C can do, a whole-file write and read, still works.
 */
-static void
-t_noplat_streams(
-    void
-)
+static
+void t_noplat_streams(void)
 {
     size_t length = 0;
     char*  data   = NULL;
@@ -156,10 +150,7 @@ t_noplat_streams(
 }
 
 
-int
-main(
-    void
-)
+int main(void)
 {
     CHECK(D_FILE_BACKEND_IS_STDC,
           "the build is on the ISO C backend");

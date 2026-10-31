@@ -140,8 +140,10 @@ using actions_source = std::function<const std::vector<action_entry>*()>;
  * @param[in] _actions    how the console finds the actions it lists, the
  *                        same.
  */
-void register_renderers(document_source _documents,
-                        actions_source  _actions = actions_source());
+void register_renderers(
+    document_source _documents,
+    actions_source  _actions = actions_source()
+);
 
 /**
  * @brief Whether a dock window drew its content in this frame or the last:
@@ -151,7 +153,9 @@ void register_renderers(document_source _documents,
  * @param[in] _key  the dock window's key.
  * @return true if it was drawn, open and in view.
  */
-bool window_seen(const std::string& _key);
+bool window_seen(
+    const std::string& _key
+);
 
 /**
  * @brief Whether a sheet's grid has the keyboard this frame.
@@ -165,25 +169,43 @@ bool window_seen(const std::string& _key);
 bool grid_keyboard();
 
 // the drawings -- called by the renderers inside a frame
-void draw_grid(model&                        _model,
-               uxoxo::platform::imgui_frame& _frame);
-void draw_add_new(const uxoxo::option_set&      _attrs,
-                  uxoxo::platform::imgui_frame& _frame);
-void draw_add_child(const uxoxo::option_set&      _attrs,
-                    uxoxo::platform::imgui_frame& _frame);
-void draw_menu_bar_rest(const uxoxo::option_set&      _attrs,
-                        const blueprint_list&         _children,
-                        uxoxo::platform::imgui_frame& _frame);
-void draw_add_control(const uxoxo::option_set&      _attrs,
-                      uxoxo::platform::imgui_frame& _frame);
-void draw_status_bar(const uxoxo::option_set&      _attrs,
-                     uxoxo::platform::imgui_frame& _frame);
-void draw_action_list(const std::vector<action_entry>& _actions);
-void draw_dock_space(const uxoxo::option_set&      _attrs,
-                     uxoxo::platform::imgui_frame& _frame);
-void draw_dock_window(const uxoxo::option_set&      _attrs,
-                      const blueprint_list&         _children,
-                      uxoxo::platform::imgui_frame& _frame);
+void draw_grid(
+    model&                        _model,
+    uxoxo::platform::imgui_frame& _frame
+);
+void draw_add_new(
+    const uxoxo::option_set&      _attrs,
+    uxoxo::platform::imgui_frame& _frame
+);
+void draw_add_child(
+    const uxoxo::option_set&      _attrs,
+    uxoxo::platform::imgui_frame& _frame
+);
+void draw_menu_bar_rest(
+    const uxoxo::option_set&      _attrs,
+    const blueprint_list&         _children,
+    uxoxo::platform::imgui_frame& _frame
+);
+void draw_add_control(
+    const uxoxo::option_set&      _attrs,
+    uxoxo::platform::imgui_frame& _frame
+);
+void draw_status_bar(
+    const uxoxo::option_set&      _attrs,
+    uxoxo::platform::imgui_frame& _frame
+);
+void draw_action_list(
+    const std::vector<action_entry>& _actions
+);
+void draw_dock_space(
+    const uxoxo::option_set&      _attrs,
+    uxoxo::platform::imgui_frame& _frame
+);
+void draw_dock_window(
+    const uxoxo::option_set&      _attrs,
+    const blueprint_list&         _children,
+    uxoxo::platform::imgui_frame& _frame
+);
 
 // grid_point
 //   struct: a point of the grid on the screen, if the last frame drew it.
@@ -213,18 +235,22 @@ struct grid_point
  * @param[in] _bit   the bit, for "cell", "band" and "boundary".
  * @return the point, found or not.
  */
-grid_point grid_spot(const std::string& _part,
-                     int                _row,
-                     int                _bit);
+grid_point grid_spot(
+    const std::string& _part,
+    int                _row,
+    int                _bit
+);
 
 // grid_spot
 //   the same, in the grid of the document named by its id -- for a test
 // with more than one grid in view; the one above reads the grid drawn
 // last.
-grid_point grid_spot(int                _document,
-                     const std::string& _part,
-                     int                _row,
-                     int                _bit);
+grid_point grid_spot(
+    int                _document,
+    const std::string& _part,
+    int                _row,
+    int                _bit
+);
 
 /**
  * @brief Where the last frame drew a part of a control, on the screen: for
@@ -238,7 +264,9 @@ grid_point grid_spot(int                _document,
  *                  coloured, and ".rgba", the swatch of the one colour.
  * @return the middle of the part, found or not.
  */
-grid_point control_spot(const std::string& _key);
+grid_point control_spot(
+    const std::string& _key
+);
 
 // ... and an "Add child..." row's, by where it is -- "tree" or "grid":
 // "add_child.WHERE.plus", its +; ".field", its field; ".end", where the
@@ -267,9 +295,13 @@ struct grid_text
  *         sheet lists values in -- where it ended, and what a row with no
  *         bits wrote over its cells; not found for a row not drawn.
  */
-grid_text grid_written(int _row);
-grid_text grid_written(int _document,
-                       int _row);
+grid_text grid_written(
+    int _row
+);
+grid_text grid_written(
+    int _document,
+    int _row
+);
 
 /**
  * @brief What the last frame wrote for a probe or usage row.
@@ -279,7 +311,9 @@ grid_text grid_written(int _document,
  *         its group -- and its value, in note: the probe's, or "N of W",
  *         the bits it counts allocated; not found for a row not drawn.
  */
-grid_text grid_special(int _special);
+grid_text grid_special(
+    int _special
+);
 
 // grid_columns_seen
 //   struct: where a document's grid put its columns across the screen in
@@ -304,12 +338,18 @@ struct grid_columns_seen
  * @param[in] _document  the document's id.
  * @return each column's span; not found for a grid not drawn.
  */
-grid_columns_seen grid_columns(int _document);
-void draw_flow(model&                        _model,
-               uxoxo::platform::imgui_frame& _frame,
-               float                         _height);
-void draw_code(model&                        _model,
-               uxoxo::platform::imgui_frame& _frame);
+grid_columns_seen grid_columns(
+    int _document
+);
+void draw_flow(
+    model&                        _model,
+    uxoxo::platform::imgui_frame& _frame,
+    float                         _height
+);
+void draw_code(
+    model&                        _model,
+    uxoxo::platform::imgui_frame& _frame
+);
 
 }  // namespace gui
 }  // namespace bitwisedom

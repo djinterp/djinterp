@@ -16,7 +16,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -33,10 +33,8 @@ d_tests_sa_dmacro_array_count_basic
   - D_ARRAY_COUNT returns correct count for pointer arrays
   - D_ARRAY_COUNT works with arrays of different sizes (1, 5, 10, 100)
 */
-bool
-d_tests_sa_dmacro_array_count_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_array_count_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -169,10 +167,8 @@ d_tests_sa_dmacro_array_count_initialized
   - D_ARRAY_COUNT works with compound literal arrays (C99)
   - D_ARRAY_COUNT returns correct count for auto-sized arrays
 */
-bool
-d_tests_sa_dmacro_array_count_initialized
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_array_count_initialized(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -261,10 +257,8 @@ d_tests_sa_dmacro_array_count_structs
   - D_ARRAY_COUNT returns element count, not byte size
   - D_ARRAY_COUNT handles structs with padding correctly
 */
-bool
-d_tests_sa_dmacro_array_count_structs
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_array_count_structs(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -387,10 +381,8 @@ d_tests_sa_dmacro_array_count_safe
   - D_ARRAY_COUNT_SAFE returns 0 for empty (if supported)
   - D_ARRAY_COUNT_SAFE works with type parameter
 */
-bool
-d_tests_sa_dmacro_array_count_safe
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_array_count_safe(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -496,10 +488,8 @@ d_tests_sa_dmacro_array_count_t
   - D_ARRAY_COUNT_T works with pointer types
   - D_ARRAY_COUNT_T counts correctly for larger lists
 */
-bool
-d_tests_sa_dmacro_array_count_t
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_array_count_t(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -618,10 +608,8 @@ d_tests_sa_dmacro_make_array
   - D_MAKE_ARRAY creates correct array size
   - D_MAKE_ARRAY works with different types
 */
-bool
-d_tests_sa_dmacro_make_array
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_make_array(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -741,10 +729,8 @@ d_tests_sa_dmacro_make_string_array
   - D_MAKE_STRING_ARRAY creates correct array size
   - strings are null-terminated and comparable
 */
-bool
-d_tests_sa_dmacro_make_string_array
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_make_string_array(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -875,13 +861,11 @@ d_tests_sa_dmacro_array_all
   - D_MAKE_ARRAY array generation
   - D_MAKE_STRING_ARRAY string array generation
 */
-bool
-d_tests_sa_dmacro_array_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_array_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  count_basic_result;
     bool                  count_initialized_result;
     bool                  count_structs_result;
@@ -896,7 +880,7 @@ d_tests_sa_dmacro_array_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

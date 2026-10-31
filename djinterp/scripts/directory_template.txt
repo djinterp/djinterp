@@ -1,0 +1,13 @@
+.confg^
+----.msvs^
+--------modules
+--------testing
+bin
+build
+docs
+inc
+lib
+res
+scripts
+src
+tests

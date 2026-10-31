@@ -29,13 +29,9 @@ d_tests_sa_str_interp_error_string
   - ALLOCATION_FAILED string contains "allocation"
   - returns non-NULL for unknown/invalid error code
 */
-struct d_test_object*
-d_tests_sa_str_interp_error_string
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_error_string(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     const char*           s_success;
     const char*           s_null;
     const char*           s_buffer;
@@ -61,7 +57,7 @@ d_tests_sa_str_interp_error_string
     s_not_found = d_str_interp_error_string(D_STR_INTERP_ERROR_SPECIFIER_NOT_FOUND);
     s_too_many  = d_str_interp_error_string(D_STR_INTERP_ERROR_TOO_MANY_SPECIFIERS);
     s_alloc     = d_str_interp_error_string(D_STR_INTERP_ERROR_ALLOCATION_FAILED);
-    s_unknown   = d_str_interp_error_string((enum d_str_interp_error)999);
+    s_unknown   = d_str_interp_error_string((enum dj_str_interp_error)999);
 
     // test 1: all non-NULL
     test_not_null = ( (s_success != NULL)   &&
@@ -190,13 +186,9 @@ d_tests_sa_str_interp_utility_all
   Tests the following:
   - d_str_interp_error_string
 */
-struct d_test_object*
-d_tests_sa_str_interp_utility_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_utility_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Utility Functions", 1);

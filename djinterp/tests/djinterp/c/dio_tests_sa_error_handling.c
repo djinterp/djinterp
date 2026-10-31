@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dio_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,10 +24,8 @@ d_tests_sa_dio_perror
   Note: d_perror writes to stderr, so these tests mainly verify
   it doesn't crash and accepts various inputs.
 */
-bool
-d_tests_sa_dio_perror
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_perror(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -94,10 +92,8 @@ d_tests_sa_dio_feof
 
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_feof
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_feof(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -242,10 +238,8 @@ d_tests_sa_dio_ferror
 
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_ferror
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_ferror(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -365,10 +359,8 @@ d_tests_sa_dio_clearerr
 
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
-bool
-d_tests_sa_dio_clearerr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_clearerr(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -530,10 +522,8 @@ d_tests_sa_dio_clearerr
 d_tests_sa_dio_error_handling_all
   Aggregation function that runs all error handling tests.
 */
-bool
-d_tests_sa_dio_error_handling_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_dio_error_handling_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

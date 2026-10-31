@@ -19,7 +19,7 @@
 #include <string.h>
 // djinterp
 #include "dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -77,10 +77,8 @@ d_tests_sa_dmacro_concat_basic
   - D_CONCAT handles underscore-prefixed tokens
   - D_CONCAT works with single-character tokens
 */
-bool
-d_tests_sa_dmacro_concat_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_concat_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -184,10 +182,8 @@ d_tests_sa_dmacro_concat_with_macros
   - D_CONCAT works with both prefix and suffix as macros
   - nested D_CONCAT calls work correctly
 */
-bool
-d_tests_sa_dmacro_concat_with_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_concat_with_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -281,10 +277,8 @@ d_tests_sa_dmacro_concat_edge_cases
   - D_CONCAT with numbers at start (invalid C identifier - compile test)
   - multiple sequential D_CONCAT operations
 */
-bool
-d_tests_sa_dmacro_concat_edge_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_concat_edge_cases(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -392,10 +386,8 @@ d_tests_sa_dmacro_stringify_basic
   - D_STRINGIFY works with numbers
   - D_STRINGIFY works with expressions
 */
-bool
-d_tests_sa_dmacro_stringify_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_stringify_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -502,10 +494,8 @@ d_tests_sa_dmacro_stringify_vs_tostr
   - behavior difference is correct for numeric macros
   - behavior difference is correct for nested macros
 */
-bool
-d_tests_sa_dmacro_stringify_vs_tostr
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_stringify_vs_tostr(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -625,10 +615,8 @@ d_tests_sa_dmacro_stringify_edge_cases
   - D_STRINGIFY with comma-containing text
   - D_TOSTR preserves whitespace appropriately
 */
-bool
-d_tests_sa_dmacro_stringify_edge_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_stringify_edge_cases(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -727,10 +715,8 @@ d_tests_sa_dmacro_expand_basic
   - D_EXPAND works with expressions
   - D_EXPAND works with macro results
 */
-bool
-d_tests_sa_dmacro_expand_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_expand_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -824,10 +810,8 @@ d_tests_sa_dmacro_empty_macro
   - D_EMPTY can be used for delayed expansion
   - multiple D_EMPTY calls have no cumulative effect
 */
-bool
-d_tests_sa_dmacro_empty_macro
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_empty_macro(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -915,10 +899,8 @@ d_tests_sa_dmacro_defer_macro
   - D_DEFER is essential for recursive macro patterns
   - D_DEFER works with D_EXPAND to control timing
 */
-bool
-d_tests_sa_dmacro_defer_macro
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_defer_macro(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -994,10 +976,8 @@ d_tests_sa_dmacro_obstruct_macro
   - D_OBSTRUCT is used for advanced recursive patterns
   - D_OBSTRUCT with multiple D_EXPAND calls
 */
-bool
-d_tests_sa_dmacro_obstruct_macro
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_obstruct_macro(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -1073,10 +1053,8 @@ d_tests_sa_dmacro_unpack_basic
   Note: multi-argument stringify tests avoided due to MSVC traditional
   preprocessor limitations (use /Zc:preprocessor for conformant behavior).
 */
-bool
-d_tests_sa_dmacro_unpack_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_unpack_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -1199,10 +1177,8 @@ d_tests_sa_dmacro_unpack_nested
   Note: multi-argument stringify tests avoided due to MSVC traditional
   preprocessor limitations (use /Zc:preprocessor for conformant behavior).
 */
-bool
-d_tests_sa_dmacro_unpack_nested
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_unpack_nested(
+    struct dj_test_counter* _test_info
 )
 {
     bool        all_assertions_passed;
@@ -1354,13 +1330,11 @@ d_tests_sa_dmacro_token_all
   - D_EXPAND, D_EMPTY, D_DEFER, D_OBSTRUCT
   - D_UNPACK basic and nested
 */
-bool
-d_tests_sa_dmacro_token_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_token_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  concat_basic_result;
     bool                  concat_macros_result;
     bool                  concat_edge_result;
@@ -1380,7 +1354,7 @@ d_tests_sa_dmacro_token_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

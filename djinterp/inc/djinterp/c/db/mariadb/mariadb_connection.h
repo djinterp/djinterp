@@ -37,10 +37,10 @@ TABLE OF CONTENTS
 1.  CONNECTIONS
     -----------
     1.  Options
-         1.  d_mariadb_options
-         2.  d_mariadb_setting_name
-         3.  d_mariadb_ssl_mode
-         4.  d_mariadb_setting
+         1.  dj_mariadb_options
+         2.  dj_mariadb_setting_name
+         3.  dj_mariadb_ssl_mode
+         4.  dj_mariadb_setting
     2.  Connecting and closing
     3.  Changing user
     4.  Resetting the session
@@ -58,9 +58,9 @@ TABLE OF CONTENTS
 #include <stddef.h>  // size_t
 // djinterp
 #include "../../djinterp.h"    // framework root
-#include "./mariadb_common.h"  // d_mariadb, the layer's results
+#include "./mariadb_common.h"  // dj_mariadb, the layer's results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -82,14 +82,14 @@ D_EXTERN_C_BEGIN
 // 1.1    Options
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_mariadb_options
+// dj_mariadb_options
 //   struct: where and as whom to connect. Every field may be left 0 or NULL
 // for the client's default; the order suits a positional initializer, which
 // is all C++ before C++20 has:
-//     struct d_mariadb_options options = { "db.example", "app", secret };
+//     struct dj_mariadb_options options = { "db.example", "app", secret };
 // GCC's and Clang's -Wextra warn of the members such a list leaves out;
 // listing them all, as NULL and 0, keeps it quiet.
-struct d_mariadb_options
+struct dj_mariadb_options
 {
     const char* host;         // name or address; NULL: localhost
     const char* user;         // NULL: the client's default user
@@ -101,10 +101,10 @@ struct d_mariadb_options
 };
 
 // 1.1.2
-// d_mariadb_setting_name
+// dj_mariadb_setting_name
 //   enum: a client setting d_mariadb_connect_with applies before connecting,
-// beyond what d_mariadb_options says, and which of a setting's fields it
-// reads (d_mariadb_setting). The last five are options not every client
+// beyond what dj_mariadb_options says, and which of a setting's fields it
+// reads (dj_mariadb_setting). The last five are options not every client
 // has, and a setting the client has no option for is D_DB_UNSUPPORTED:
 // MAX_PACKET is every libmysqlclient's and Connector/C's from 3.0;
 // DEFAULT_AUTH every client's; TLS_VERSION libmysqlclient's from 5.7.10,
@@ -115,7 +115,7 @@ struct d_mariadb_options
 // one unasked, whatever the setting says. CHARSET, or a NATIVE setting of
 // MYSQL_SET_CHARSET_NAME, replaces the layer's character set, and the session
 // is given it where the handshake loses it, as it is given the layer's.
-enum d_mariadb_setting_name
+enum dj_mariadb_setting_name
 {
     D_MARIADB_SETTING_CONNECT_TIMEOUT = 0,  // number: seconds to wait for the
                                             // server to answer; replaces the
@@ -137,7 +137,7 @@ enum d_mariadb_setting_name
     D_MARIADB_SETTING_SSL_CERT,             // text: the client's certificate
     D_MARIADB_SETTING_SSL_CA,               // text: the certificates that
                                             // vouch for the server's
-    D_MARIADB_SETTING_SSL_MODE,             // number: a d_mariadb_ssl_mode
+    D_MARIADB_SETTING_SSL_MODE,             // number: a dj_mariadb_ssl_mode
     D_MARIADB_SETTING_CONNECT_ATTRIBUTE,    // text and value: an attribute's
                                             // name and its value, a string,
                                             // which performance_schema shows
@@ -195,7 +195,7 @@ enum d_mariadb_setting_name
 };
 
 // 1.1.3
-// d_mariadb_ssl_mode
+// dj_mariadb_ssl_mode
 //   enum: what the connection asks of TLS; PREFERRED where no setting names
 // a mode, with every client. MySQL's client takes each as its --ssl-mode
 // does. MariaDB's client is given each by its two switches -- PREFERRED
@@ -205,7 +205,7 @@ enum d_mariadb_setting_name
 // server's name as well, so VERIFY_CA is D_DB_UNSUPPORTED with it. With
 // either, a mode that insists on TLS is checked once connected, and a
 // connection without it is refused with 2026.
-enum d_mariadb_ssl_mode
+enum dj_mariadb_ssl_mode
 {
     D_MARIADB_SSL_PREFERRED = 0,     // TLS where the server offers it, the
                                      // certificate unchecked
@@ -217,17 +217,17 @@ enum d_mariadb_ssl_mode
 };
 
 // 1.1.4
-// d_mariadb_setting
+// dj_mariadb_setting
 //   struct: one setting; the fields its name does not read are ignored.
 // Positional initializers fill it in order:
-//     struct d_mariadb_setting settings[] =
+//     struct dj_mariadb_setting settings[] =
 //     {
 //         { D_MARIADB_SETTING_READ_TIMEOUT, 30ul, NULL, NULL },
 //         { D_MARIADB_SETTING_SSL_MODE, D_MARIADB_SSL_REQUIRED, NULL, NULL }
 //     };
-struct d_mariadb_setting
+struct dj_mariadb_setting
 {
-    enum d_mariadb_setting_name name;    // which setting
+    enum dj_mariadb_setting_name name;    // which setting
     unsigned long               number;  // seconds, a switch, flags, a mode;
                                          // NATIVE's option
     const char*                 text;    // a file, SQL, an attribute's name
@@ -250,8 +250,10 @@ struct d_mariadb_setting
  *         D_DB_INVALID_ARGUMENT for a `NULL` `_db`.
  * @post On success the caller closes `*_db` with d_mariadb_close.
  */
-int            d_mariadb_connect(const struct d_mariadb_options* _options,
-                                 struct d_mariadb**              _db) D_NOTHROW;
+int d_mariadb_connect(
+    const struct dj_mariadb_options* _options,
+    struct dj_mariadb**              _db
+) D_NOTHROW;
 /**
  * @brief Connects as d_mariadb_connect does, with the client settings given
  *        applied first.
@@ -284,12 +286,13 @@ int            d_mariadb_connect(const struct d_mariadb_options* _options,
  *         with a nonzero count.
  * @post On success the caller closes `*_db` with d_mariadb_close.
  */
-int            d_mariadb_connect_with(const struct d_mariadb_options* _options,
-                                      const struct d_mariadb_setting* _settings,
-                                      size_t                          _count,
-                                      struct d_mariadb**              _db,
-                                      char**                          _message)
-                                      D_NOTHROW;
+int d_mariadb_connect_with(
+    const struct dj_mariadb_options* _options,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db,
+    char**                           _message
+) D_NOTHROW;
 /**
  * @brief Wraps a connection a program made with the client's own calls.
  *
@@ -301,12 +304,16 @@ int            d_mariadb_connect_with(const struct d_mariadb_options* _options,
  * @post On success the caller closes `*_db` with d_mariadb_close; on failure
  *       `_native` is the caller's, whatever `_owned` said.
  */
-int            d_mariadb_adopt(void*              _native,
-                               bool               _owned,
-                               struct d_mariadb** _db) D_NOTHROW;
+int d_mariadb_adopt(
+    void*               _native,
+    bool                _owned,
+    struct dj_mariadb** _db
+) D_NOTHROW;
 // closes a handle, and the client's connection with it when the layer owns
 // that; NULL is accepted. Returns 0.
-int            d_mariadb_close(struct d_mariadb* _db) D_NOTHROW;
+int d_mariadb_close(
+    struct dj_mariadb* _db
+) D_NOTHROW;
 
 // 1.3    Changing user
 //------------------------------------------------------------------------------
@@ -327,10 +334,12 @@ int            d_mariadb_close(struct d_mariadb* _db) D_NOTHROW;
  *         in as before, and a MySQL server closes it, so that d_mariadb_ping
  *         then answers 2013; or D_DB_INVALID_ARGUMENT for a `NULL` handle.
  */
-int            d_mariadb_change_user(struct d_mariadb* _db,
-                                     const char*       _user,
-                                     const char*       _password,
-                                     const char*       _database) D_NOTHROW;
+int d_mariadb_change_user(
+    struct dj_mariadb* _db,
+    const char*        _user,
+    const char*        _password,
+    const char*        _database
+) D_NOTHROW;
 
 // 1.4    Resetting the session
 //------------------------------------------------------------------------------
@@ -362,22 +371,30 @@ int            d_mariadb_change_user(struct d_mariadb* _db,
  *         client before Connector/C 3.0); D_DB_INVALID_ARGUMENT for a `NULL`
  *         handle.
  */
-int            d_mariadb_reset_connection(struct d_mariadb* _db) D_NOTHROW;
+int d_mariadb_reset_connection(
+    struct dj_mariadb* _db
+) D_NOTHROW;
 
 // 1.5    Liveness
 //------------------------------------------------------------------------------
 // liveness -- whether the server still answers: 0, or the client's error
 // number (2006, gone away; 2013, lost); D_DB_INVALID_ARGUMENT for NULL
-int            d_mariadb_ping(struct d_mariadb* _db) D_NOTHROW;
+int d_mariadb_ping(
+    struct dj_mariadb* _db
+) D_NOTHROW;
 // the server's id for the connection, as CONNECTION_ID() and KILL see it; 0
 // for NULL
-unsigned long  d_mariadb_connection_id(const struct d_mariadb* _db) D_NOTHROW;
+unsigned long d_mariadb_connection_id(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
 // the server's summary of itself, as mysql_stat words it ("Uptime: 3600
 // Threads: 2  Questions: 15 ..."), in `_status`, which the caller releases
 // with d_db_free; written only on success. Returns 0, the client's error
 // number, CR_OUT_OF_MEMORY (2008), or D_DB_INVALID_ARGUMENT for NULL
-int            d_mariadb_server_status(struct d_mariadb* _db,
-                                       char**            _status) D_NOTHROW;
+int d_mariadb_server_status(
+    struct dj_mariadb* _db,
+    char**             _status
+) D_NOTHROW;
 
 // 1.6    Rows changed
 //------------------------------------------------------------------------------
@@ -388,9 +405,15 @@ int            d_mariadb_server_status(struct d_mariadb* _db,
 // warnings it raised. Any statement is the last, the layer's own among them
 // -- d_mariadb_has_table asks one -- so read these straight after the
 // statement they are about. A NULL handle answers 0.
-uint64_t       d_mariadb_last_insert_id(const struct d_mariadb* _db) D_NOTHROW;
-int64_t        d_mariadb_changes(const struct d_mariadb* _db) D_NOTHROW;
-unsigned       d_mariadb_warning_count(const struct d_mariadb* _db) D_NOTHROW;
+uint64_t d_mariadb_last_insert_id(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
+int64_t d_mariadb_changes(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
+unsigned d_mariadb_warning_count(
+    const struct dj_mariadb* _db
+) D_NOTHROW;
 
 // 1.7    Options read back
 //------------------------------------------------------------------------------
@@ -402,7 +425,7 @@ unsigned       d_mariadb_warning_count(const struct d_mariadb* _db) D_NOTHROW;
  *       for mysql_options: an unsigned int for MYSQL_OPT_CONNECT_TIMEOUT, a
  *       const char* for MYSQL_SET_CHARSET_NAME, and so on. A text read is
  *       the client's, valid until the option changes or the connection
- *       closes. Options the layer sets from d_mariadb_options and the
+ *       closes. Options the layer sets from dj_mariadb_options and the
  *       settings read back as it set them.
  *
  * @param[in]  _db      the connection.
@@ -412,9 +435,11 @@ unsigned       d_mariadb_warning_count(const struct d_mariadb* _db) D_NOTHROW;
  *         for a client without mysql_get_option (Connector/C before 3.0);
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
  */
-int            d_mariadb_get_option(const struct d_mariadb* _db,
-                                    int                     _option,
-                                    void*                   _value) D_NOTHROW;
+int d_mariadb_get_option(
+    const struct dj_mariadb* _db,
+    int                      _option,
+    void*                    _value
+) D_NOTHROW;
 
 // 1.8    Without blocking
 //------------------------------------------------------------------------------
@@ -465,10 +490,11 @@ int            d_mariadb_get_option(const struct d_mariadb* _db,
  *       d_mariadb_connect_continue, or abandons the connection with
  *       d_mariadb_close; on 0 the caller closes `*_db` with d_mariadb_close.
  */
-int            d_mariadb_connect_start(const struct d_mariadb_options* _options,
-                                       struct d_mariadb**              _db,
-                                       struct d_db_pending*            _pending)
-                                       D_NOTHROW;
+int d_mariadb_connect_start(
+    const struct dj_mariadb_options* _options,
+    struct dj_mariadb**              _db,
+    struct dj_db_pending*            _pending
+) D_NOTHROW;
 /**
  * @brief Starts a connection as d_mariadb_connect_with makes one, without
  *        waiting.
@@ -484,19 +510,20 @@ int            d_mariadb_connect_start(const struct d_mariadb_options* _options,
  *         settings.
  * @post As for d_mariadb_connect_start.
  */
-int            d_mariadb_connect_with_start(
-                   const struct d_mariadb_options* _options,
-                   const struct d_mariadb_setting* _settings,
-                   size_t                          _count,
-                   struct d_mariadb**              _db,
-                   struct d_db_pending*            _pending,
-                   char**                          _message) D_NOTHROW;
+int d_mariadb_connect_with_start(
+    const struct dj_mariadb_options* _options,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db,
+    struct dj_db_pending*            _pending,
+    char**                           _message
+) D_NOTHROW;
 /**
  * @brief Continues a connection a start of 1.8 began.
  *
  * @param[in,out] _db       the handle, its connection being made; `NULL`ed
  *                          when it fails, which closes it.
- * @param[in]     _events   what came, as d_db_wait.
+ * @param[in]     _events   what came, as dj_db_wait.
  * @param[in,out] _pending  what the start or the last continuation wrote;
  *                          receives what to wait for next.
  * @param[out]    _message  as for d_mariadb_connect_with.
@@ -506,11 +533,12 @@ int            d_mariadb_connect_with_start(
  * @post On 0 the caller closes `*_db` with d_mariadb_close; on a failure
  *       `*_db` is `NULL`.
  */
-int            d_mariadb_connect_continue(struct d_mariadb**   _db,
-                                          unsigned             _events,
-                                          struct d_db_pending* _pending,
-                                          char**               _message)
-                                          D_NOTHROW;
+int d_mariadb_connect_continue(
+    struct dj_mariadb**   _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
+) D_NOTHROW;
 /**
  * @brief Starts signing the connection in as another user, as
  *        d_mariadb_change_user does, without waiting.
@@ -525,12 +553,13 @@ int            d_mariadb_connect_continue(struct d_mariadb**   _db,
  *         libmysqlclient, and over TLS the client cannot carry so;
  *         D_DB_INVALID_ARGUMENT for a `NULL` handle or pending call.
  */
-int            d_mariadb_change_user_start(struct d_mariadb*    _db,
-                                           const char*          _user,
-                                           const char*          _password,
-                                           const char*          _database,
-                                           struct d_db_pending* _pending)
-                                           D_NOTHROW;
+int d_mariadb_change_user_start(
+    struct dj_mariadb*    _db,
+    const char*           _user,
+    const char*           _password,
+    const char*           _database,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 /**
  * @brief Gives the connection a fresh session, as
  *        d_mariadb_reset_connection does, without waiting: the reset, then
@@ -544,9 +573,10 @@ int            d_mariadb_change_user_start(struct d_mariadb*    _db,
  *         cannot carry so, besides where the blocking form is;
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
  */
-int            d_mariadb_reset_connection_start(struct d_mariadb*    _db,
-                                                struct d_db_pending* _pending)
-                                                D_NOTHROW;
+int d_mariadb_reset_connection_start(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 /**
  * @brief Asks whether the server still answers, as d_mariadb_ping does,
  *        without waiting.
@@ -557,25 +587,30 @@ int            d_mariadb_reset_connection_start(struct d_mariadb*    _db,
  *         D_DB_UNSUPPORTED with libmysqlclient, and over TLS the client
  *         cannot carry so; D_DB_INVALID_ARGUMENT for a `NULL` argument.
  */
-int            d_mariadb_ping_start(struct d_mariadb*    _db,
-                                    struct d_db_pending* _pending) D_NOTHROW;
+int d_mariadb_ping_start(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 // continuing -- each continues what its start of this subsection began,
-// told what came, as d_db_wait, and given what the start or the last
+// told what came, as dj_db_wait, and given what the start or the last
 // continuation wrote, which receives what to wait for next: D_DB_WAIT, or the
 // answer the blocking form gives; D_DB_INVALID_ARGUMENT for a NULL argument,
 // or a handle with no such call under way
-int            d_mariadb_change_user_continue(struct d_mariadb*    _db,
-                                              unsigned             _events,
-                                              struct d_db_pending* _pending)
-                                              D_NOTHROW;
-int            d_mariadb_reset_connection_continue(
-                   struct d_mariadb*    _db,
-                   unsigned             _events,
-                   struct d_db_pending* _pending) D_NOTHROW;
-int            d_mariadb_ping_continue(struct d_mariadb*    _db,
-                                       unsigned             _events,
-                                       struct d_db_pending* _pending)
-                                       D_NOTHROW;
+int d_mariadb_change_user_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
+int d_mariadb_reset_connection_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
+int d_mariadb_ping_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
+) D_NOTHROW;
 
 // 1.9    Cancelling
 //------------------------------------------------------------------------------
@@ -612,8 +647,10 @@ int            d_mariadb_ping_continue(struct d_mariadb*    _db,
  *         could not be made, or KILL QUERY failed;
  *         D_DB_INVALID_ARGUMENT for a `NULL` connection.
  */
-int            d_mariadb_cancel(struct d_mariadb* _db,
-                                char**            _message) D_NOTHROW;
+int d_mariadb_cancel(
+    struct dj_mariadb* _db,
+    char**             _message
+) D_NOTHROW;
 /**
  * @brief Starts asking the server to stop what the connection runs,
  *        without waiting.
@@ -631,28 +668,30 @@ int            d_mariadb_cancel(struct d_mariadb* _db,
  *       d_mariadb_cancel_continue, or abandons the request with
  *       d_mariadb_close.
  */
-int            d_mariadb_cancel_start(struct d_mariadb*    _db,
-                                      struct d_mariadb**   _canceller,
-                                      struct d_db_pending* _pending,
-                                      char**               _message)
-                                      D_NOTHROW;
+int d_mariadb_cancel_start(
+    struct dj_mariadb*    _db,
+    struct dj_mariadb**   _canceller,
+    struct dj_db_pending* _pending,
+    char**                _message
+) D_NOTHROW;
 /**
  * @brief Continues a request d_mariadb_cancel_start began.
  *
  * @param[in,out] _canceller  the request's connection; closed, and
  *                            `NULL`ed, once the request is done or fails.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation
  *                            wrote; receives what to wait for next.
  * @param[out]    _message    as for d_mariadb_cancel.
  * @return as d_mariadb_cancel, and D_DB_WAIT; D_DB_INVALID_ARGUMENT for a
  *         `NULL` argument, or a handle with no request under way.
  */
-int            d_mariadb_cancel_continue(struct d_mariadb**   _canceller,
-                                         unsigned             _events,
-                                         struct d_db_pending* _pending,
-                                         char**               _message)
-                                         D_NOTHROW;
+int d_mariadb_cancel_continue(
+    struct dj_mariadb**   _canceller,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

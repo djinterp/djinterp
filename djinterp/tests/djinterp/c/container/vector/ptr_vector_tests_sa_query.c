@@ -12,19 +12,17 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_query_test_values[] = {10, 20, 30, 40, 50};
 
 
-bool
-d_tests_sa_ptr_vector_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -83,14 +81,12 @@ d_tests_sa_ptr_vector_is_empty
 }
 
 
-bool
-d_tests_sa_ptr_vector_is_full
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_is_full(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -135,14 +131,12 @@ d_tests_sa_ptr_vector_is_full
 }
 
 
-bool
-d_tests_sa_ptr_vector_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_size(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -186,14 +180,12 @@ d_tests_sa_ptr_vector_size
 }
 
 
-bool
-d_tests_sa_ptr_vector_capacity_query
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_capacity_query(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -235,10 +227,8 @@ d_tests_sa_ptr_vector_capacity_query
 }
 
 
-bool
-d_tests_sa_ptr_vector_query_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_query_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

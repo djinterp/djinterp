@@ -45,7 +45,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "./djinterp.h"    // framework root
 // re_std
-#include "../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -77,9 +77,11 @@ D_EXTERN_C_BEGIN
  * @return the number of fields converted and assigned, or EOF on an input
  *         failure before the first conversion.
  */
-int     d_sscanf(const char* _buffer,
-                 const char* _format,
-                 ...);
+int d_sscanf(
+    const char* _buffer,
+    const char* _format,
+    ...
+);
 /**
  * @brief Reads formatted data from a string, with the C11 Annex K checks
  *        (sscanf_s equivalent).
@@ -111,9 +113,11 @@ int     d_sscanf(const char* _buffer,
  * @return the number of fields assigned; EOF on a runtime-constraint
  *         violation, or on an input failure before the first conversion.
  */
-int     d_sscanf_s(const char* _buffer,
-                   const char* _format,
-                   ...);
+int d_sscanf_s(
+    const char* _buffer,
+    const char* _format,
+    ...
+);
 /**
  * @brief Reads formatted data from a string with a va_list (vsscanf
  *        equivalent).
@@ -124,9 +128,11 @@ int     d_sscanf_s(const char* _buffer,
  * @return the number of fields converted and assigned, or EOF on an input
  *         failure before the first conversion.
  */
-int     d_vsscanf(const char* _buffer,
-                  const char* _format,
-                  va_list     _argptr);
+int d_vsscanf(
+    const char* _buffer,
+    const char* _format,
+    va_list     _argptr
+);
 /**
  * @brief Reads formatted data from a string with a va_list, with the C11
  *        Annex K checks (vsscanf_s equivalent).
@@ -140,9 +146,11 @@ int     d_vsscanf(const char* _buffer,
  * @return the number of fields assigned; EOF on a runtime-constraint
  *         violation, or on an input failure before the first conversion.
  */
-int     d_vsscanf_s(const char* _buffer,
-                    const char* _format,
-                    va_list     _argptr);
+int d_vsscanf_s(
+    const char* _buffer,
+    const char* _format,
+    va_list     _argptr
+);
 /**
  * @brief Reads formatted data from a stream (fscanf equivalent).
  *
@@ -152,9 +160,11 @@ int     d_vsscanf_s(const char* _buffer,
  * @return the number of fields converted and assigned, or EOF on an input
  *         failure before the first conversion.
  */
-int     d_fscanf(FILE*       _stream,
-                 const char* _format,
-                 ...);
+int d_fscanf(
+    FILE*       _stream,
+    const char* _format,
+    ...
+);
 /**
  * @brief Reads formatted data from a stream, with the C11 Annex K checks
  *        (fscanf_s equivalent).
@@ -174,9 +184,11 @@ int     d_fscanf(FILE*       _stream,
  * @return the number of fields assigned; EOF on a runtime-constraint
  *         violation, or on an input failure before the first conversion.
  */
-int     d_fscanf_s(FILE*       _stream,
-                   const char* _format,
-                   ...);
+int d_fscanf_s(
+    FILE*       _stream,
+    const char* _format,
+    ...
+);
 
 
 //==============================================================================
@@ -195,10 +207,12 @@ int     d_fscanf_s(FILE*       _stream,
  * @param[in]  ...      the values to format.
  * @return as d_vsprintf_s().
  */
-int     d_sprintf_s(char*       _buffer,
-                    size_t      _size,
-                    const char* _format,
-                    ...);
+int d_sprintf_s(
+    char*       _buffer,
+    size_t      _size,
+    const char* _format,
+    ...
+);
 /**
  * @brief Writes formatted data to a bounded buffer with a va_list (vsprintf_s
  *        equivalent).
@@ -214,10 +228,12 @@ int     d_sprintf_s(char*       _buffer,
  *         terminator, or a negative value on failure; with the vsnprintf
  *         fallback, the length the full output would have had.
  */
-int     d_vsprintf_s(char*       _buffer,
-                     size_t      _size,
-                     const char* _format,
-                     va_list     _argptr);
+int d_vsprintf_s(
+    char*       _buffer,
+    size_t      _size,
+    const char* _format,
+    va_list     _argptr
+);
 /**
  * @brief Writes formatted data to a bounded buffer (snprintf equivalent).
  *
@@ -227,10 +243,12 @@ int     d_vsprintf_s(char*       _buffer,
  * @param[in]  ...      the values to format.
  * @return as d_vsnprintf().
  */
-int     d_snprintf(char*       _buffer,
-                   size_t      _size,
-                   const char* _format,
-                   ...);
+int d_snprintf(
+    char*       _buffer,
+    size_t      _size,
+    const char* _format,
+    ...
+);
 /**
  * @brief Writes formatted data to a bounded buffer with a va_list (vsnprintf
  *        equivalent).
@@ -245,10 +263,12 @@ int     d_snprintf(char*       _buffer,
  * @return the length the full output would have had, excluding the terminator,
  *         or a negative value on an encoding error.
  */
-int     d_vsnprintf(char*       _buffer,
-                    size_t      _size,
-                    const char* _format,
-                    va_list     _argptr);
+int d_vsnprintf(
+    char*       _buffer,
+    size_t      _size,
+    const char* _format,
+    va_list     _argptr
+);
 
 
 //==============================================================================
@@ -270,8 +290,10 @@ int     d_vsnprintf(char*       _buffer,
  * @return `_buffer`, or `NULL` for a `NULL` `_buffer`, a zero `_size`, end of
  *         file, or a read error.
  */
-char*   d_gets_s(char*  _buffer,
-                 size_t _size);
+char* d_gets_s(
+    char*  _buffer,
+    size_t _size
+);
 /**
  * @brief Writes a string to a stream (fputs equivalent).
  *
@@ -279,8 +301,10 @@ char*   d_gets_s(char*  _buffer,
  * @param[in,out] _stream  the stream.
  * @return a non-negative value on success, or EOF on error.
  */
-int     d_fputs(const char* _str,
-                FILE*       _stream);
+int d_fputs(
+    const char* _str,
+    FILE*       _stream
+);
 /**
  * @brief Reads a line from a stream (fgets equivalent).
  *
@@ -289,9 +313,11 @@ int     d_fputs(const char* _str,
  * @param[in,out] _stream  the stream.
  * @return `_str`, or `NULL` at end of file or on a read error.
  */
-char*   d_fgets(char* _str,
-                int   _num,
-                FILE* _stream);
+char* d_fgets(
+    char* _str,
+    int   _num,
+    FILE* _stream
+);
 
 
 //==============================================================================
@@ -307,28 +333,36 @@ char*   d_fgets(char* _str,
  *
  * @param[in] _s  the prefix; may be `NULL` or empty for none.
  */
-void    d_perror(const char* _s);
+void d_perror(
+    const char* _s
+);
 /**
  * @brief Tests a stream's end-of-file indicator (feof equivalent).
  *
  * @param[in] _stream  the stream.
  * @return nonzero if the indicator is set.
  */
-int     d_feof(FILE* _stream);
+int d_feof(
+    FILE* _stream
+);
 /**
  * @brief Tests a stream's error indicator (ferror equivalent).
  *
  * @param[in] _stream  the stream.
  * @return nonzero if the indicator is set.
  */
-int     d_ferror(FILE* _stream);
+int d_ferror(
+    FILE* _stream
+);
 /**
  * @brief Clears a stream's end-of-file and error indicators (clearerr
  *        equivalent).
  *
  * @param[in,out] _stream  the stream.
  */
-void    d_clearerr(FILE* _stream);
+void d_clearerr(
+    FILE* _stream
+);
 
 
 D_EXTERN_C_END

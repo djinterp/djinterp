@@ -28,23 +28,23 @@ TABLE OF CONTENTS
     1.  Constants
          1.  D_DSS_NO_INDEX
     2.  Enumerations
-         1.  d_dss_simple_kind
-         2.  d_dss_combinator
-         3.  d_dss_attr_op
-         4.  d_dss_value_kind
+         1.  dj_dss_simple_kind
+         2.  dj_dss_combinator
+         3.  dj_dss_attr_op
+         4.  dj_dss_value_kind
     3.  Records
-         1.  d_dss_simple
-         2.  d_dss_compound
-         3.  d_dss_step
-         4.  d_dss_selector
-         5.  d_dss_value
-         6.  d_dss_declaration
-         7.  d_dss_rule
-         8.  d_dss_at_rule
-         9.  d_dss_error
-         10. d_dss_warning
+         1.  dj_dss_simple
+         2.  dj_dss_compound
+         3.  dj_dss_step
+         4.  dj_dss_selector
+         5.  dj_dss_value
+         6.  dj_dss_declaration
+         7.  dj_dss_rule
+         8.  dj_dss_at_rule
+         9.  dj_dss_error
+         10. dj_dss_warning
     4.  Opaque types
-         1.  d_dss_sheet
+         1.  dj_dss_sheet
 2.  OPERATIONS
     ----------
     1.  Parsing
@@ -74,17 +74,17 @@ TABLE OF CONTENTS
 // index into every array, so absence needs a value of its own.
 #define D_DSS_NO_INDEX ((uint32_t)-1)
 
-// d_symbol_table
+// dj_symbol_table
 //   struct: the shared name table a sheet binds to (dsymbol.h); forward
 // declared so the parser depends on nothing.
-struct d_symbol_table;
+struct dj_symbol_table;
 
 // 1.2    Enumerations
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_dss_simple_kind
+// dj_dss_simple_kind
 //   enum: which variant of simple selector a record holds.
-enum d_dss_simple_kind
+enum dj_dss_simple_kind
 {
     D_DSS_SIMPLE_UNIVERSAL = 0,   // *
     D_DSS_SIMPLE_TYPE,            // banner
@@ -95,11 +95,11 @@ enum d_dss_simple_kind
 };
 
 // 1.2.2
-// d_dss_combinator
+// dj_dss_combinator
 //   enum: how a step joins to the compound before it.  The general sibling
 // combinator is spelled `...` rather than `~`, which awk keeps for regex
 // match.
-enum d_dss_combinator
+enum dj_dss_combinator
 {
     D_DSS_COMBINATOR_DESCENDANT = 0,  // whitespace
     D_DSS_COMBINATOR_CHILD,           // >
@@ -108,10 +108,10 @@ enum d_dss_combinator
 };
 
 // 1.2.3
-// d_dss_attr_op
+// dj_dss_attr_op
 //   enum: the comparison an attribute selector performs.  The numeric four
 // are the ones CSS lacks and the guide's rules need, e.g. [size>=4k].
-enum d_dss_pseudo
+enum dj_dss_pseudo
 {
     D_DSS_PSEUDO_UNKNOWN = 0,  // no pseudo-class, or one the matcher lacks
     D_DSS_PSEUDO_FIRST_CHILD,
@@ -126,25 +126,25 @@ enum d_dss_pseudo
     D_DSS_PSEUDO_HAS
 };
 
-// d_dss_dialect
+// dj_dss_dialect
 //   enum: the syntax a sheet is written in.  DSS is CSS respelled for awk:
 // `#` comments, `...` for the sibling combinator (awk keeps `~` for regex),
 // `==` and numeric attribute comparisons, and `!name` flags.  CSS is the
 // standard's own: `/* */` comments, `~`, and only `!important`.
-enum d_dss_dialect
+enum dj_dss_dialect
 {
     D_DSS_DIALECT_DSS = 0,
     D_DSS_DIALECT_CSS
 };
 
-// d_dss_options
+// dj_dss_options
 //   struct: how to parse.  A NULL options pointer is the DSS dialect.
-struct d_dss_options
+struct dj_dss_options
 {
-    uint8_t  dialect;  // d_dss_dialect
+    uint8_t  dialect;  // dj_dss_dialect
 };
 
-enum d_dss_attr_op
+enum dj_dss_attr_op
 {
     D_DSS_ATTR_PRESENCE = 0,  // [attr]
     D_DSS_ATTR_EQUAL,         // [attr=v]  /  [attr==v]
@@ -161,9 +161,9 @@ enum d_dss_attr_op
 };
 
 // 1.2.4
-// d_dss_value_kind
+// dj_dss_value_kind
 //   enum: which variant of declaration value a record holds.
-enum d_dss_value_kind
+enum dj_dss_value_kind
 {
     D_DSS_VALUE_IDENT = 0,  // one-per-line
     D_DSS_VALUE_STRING,     // "TBA"
@@ -176,13 +176,13 @@ enum d_dss_value_kind
 // 1.3    Records
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_dss_simple
+// dj_dss_simple
 //   struct: one atomic selector predicate.  Only the fields relevant to
 // `kind` carry meaning; the rest hold their defaults.
-struct d_dss_simple
+struct dj_dss_simple
 {
-    uint8_t   kind;        // d_dss_simple_kind
-    uint8_t   op;          // d_dss_attr_op, for attributes
+    uint8_t   kind;        // dj_dss_simple_kind
+    uint8_t   op;          // dj_dss_attr_op, for attributes
     bool      numeric;     // the attribute value parsed as a number
     uint32_t  name;        // interned: type, class, attribute or pseudo name
     uint32_t  value;       // interned: the attribute value, or NO_INDEX
@@ -191,49 +191,49 @@ struct d_dss_simple
     uint32_t  argument_count;  // selectors; zero for any other simple
     int32_t   nth_a;           // :nth-child(An+B) and :nth-last-child
     int32_t   nth_b;
-    uint8_t   pseudo;          // d_dss_pseudo, resolved once at parse
+    uint8_t   pseudo;          // dj_dss_pseudo, resolved once at parse
     uint32_t  symbol;          // the name in the bound symbol table, or
                                // NO_INDEX until d_dss_bind
 };
 
 // 1.3.2
-// d_dss_compound
+// dj_dss_compound
 //   struct: simple selectors fused with no whitespace between them.
-struct d_dss_compound
+struct dj_dss_compound
 {
     uint32_t  first_simple;
     uint32_t  simple_count;
 };
 
 // 1.3.3
-// d_dss_step
+// dj_dss_step
 //   struct: a combinator and the compound it introduces.
-struct d_dss_step
+struct dj_dss_step
 {
-    uint8_t   combinator;  // d_dss_combinator
+    uint8_t   combinator;  // dj_dss_combinator
     uint32_t  compound;
 };
 
 // 1.3.4
-// d_dss_selector
+// dj_dss_selector
 //   struct: a chain of compounds.  The head has no preceding combinator.
-struct d_dss_selector
+struct dj_dss_selector
 {
     uint32_t  head;
     uint32_t  first_step;
     uint32_t  step_count;
-    uint8_t   leading;     // d_dss_combinator joining a relative selector,
+    uint8_t   leading;     // dj_dss_combinator joining a relative selector,
                            // one inside :has(), to its anchor
     uint32_t  specificity; // CSS specificity, packed (a << 20) | (b << 10) | c
 };
 
 // 1.3.5
-// d_dss_value
+// dj_dss_value
 //   struct: one term of a declaration value.  Function arguments are a
 // contiguous run of further values, so the record stays fixed-size.
-struct d_dss_value
+struct dj_dss_value
 {
-    uint8_t   kind;        // d_dss_value_kind
+    uint8_t   kind;        // dj_dss_value_kind
     uint32_t  text;        // interned: ident, string body or function name
     double    number;      // the numeric value, for numbers
     uint32_t  first_arg;
@@ -241,10 +241,10 @@ struct d_dss_value
 };
 
 // 1.3.6
-// d_dss_declaration
+// dj_dss_declaration
 //   struct: a property and its value terms.  The line is kept so that a
 // report can name the sheet position that produced it.
-struct d_dss_declaration
+struct dj_dss_declaration
 {
     uint32_t  property;    // interned
     uint32_t  first_value;
@@ -255,9 +255,9 @@ struct d_dss_declaration
 };
 
 // 1.3.7
-// d_dss_rule
+// dj_dss_rule
 //   struct: a selector list and the declarations it carries.
-struct d_dss_rule
+struct dj_dss_rule
 {
     uint32_t  first_selector;
     uint32_t  selector_count;
@@ -268,11 +268,11 @@ struct d_dss_rule
 };
 
 // 1.3.8
-// d_dss_at_rule
+// dj_dss_at_rule
 //   struct: an at-rule.  A block body is parsed as declarations, which is
 // what @table rows are; a prelude is kept as interned text for the host to
 // interpret.
-struct d_dss_at_rule
+struct dj_dss_at_rule
 {
     uint32_t  name;        // interned, without the leading @
     uint32_t  prelude;     // interned, or NO_INDEX
@@ -283,9 +283,9 @@ struct d_dss_at_rule
 };
 
 // 1.3.9
-// d_dss_error
+// dj_dss_error
 //   struct: where parsing stopped and why.  A zero line means no error.
-struct d_dss_error
+struct dj_dss_error
 {
     uint32_t     line;
     uint32_t     column;
@@ -293,10 +293,10 @@ struct d_dss_error
 };
 
 // 1.3.10
-// d_dss_warning
+// dj_dss_warning
 //   struct: something the parser accepted but that is almost never meant.
 // The message is a static string.
-struct d_dss_warning
+struct dj_dss_warning
 {
     uint32_t     line;
     uint32_t     column;
@@ -306,9 +306,9 @@ struct d_dss_warning
 // 1.4    Opaque types
 //------------------------------------------------------------------------------
 // 1.4.1
-// d_dss_sheet
+// dj_dss_sheet
 //   struct: a parsed stylesheet.  Owns its arrays and its intern table.
-struct d_dss_sheet;
+struct dj_dss_sheet;
 
 
 //==============================================================================
@@ -318,9 +318,11 @@ struct d_dss_sheet;
 
 // 2.1    Parsing
 //------------------------------------------------------------------------------
-struct d_dss_sheet* d_dss_parse(const char*         _text,
-                                size_t              _length,
-                                struct d_dss_error* _out_error);
+struct dj_dss_sheet* d_dss_parse(
+    const char*          _text,
+    size_t               _length,
+    struct dj_dss_error* _out_error
+);
 /**
  * @brief Parses a sheet in a chosen dialect.
  *
@@ -330,10 +332,12 @@ struct d_dss_sheet* d_dss_parse(const char*         _text,
  * @param[out] _out_error  receives the first error; may be `NULL`.
  * @return the sheet, or `NULL` on the first syntax error.
  */
-struct d_dss_sheet* d_dss_parse_ex(const char*                 _text,
-                                   size_t                      _length,
-                                   const struct d_dss_options* _options,
-                                   struct d_dss_error*         _out_error);
+struct dj_dss_sheet* d_dss_parse_ex(
+    const char*                  _text,
+    size_t                       _length,
+    const struct dj_dss_options* _options,
+    struct dj_dss_error*         _out_error
+);
 /**
  * @brief Names every type, attribute, pseudo-class and property of a sheet in
  *        a shared symbol table.
@@ -345,52 +349,83 @@ struct d_dss_sheet* d_dss_parse_ex(const char*                 _text,
  * @param[in,out] _symbols  the table; the sheet borrows it.
  * @return `true` on success, `false` if the table could not grow.
  */
-bool                d_dss_bind(struct d_dss_sheet*    _sheet,
-                               struct d_symbol_table* _symbols);
-struct d_symbol_table*
-                    d_dss_symbols(const struct d_dss_sheet* _sheet);
-void                d_dss_free(struct d_dss_sheet* _sheet);
-// what the parser accepted but warns about; see d_dss_warning
-size_t              d_dss_warning_count(const struct d_dss_sheet* _sheet);
-const struct d_dss_warning*
-                    d_dss_warning_at(const struct d_dss_sheet* _sheet,
-                                     size_t                    _at);
+bool d_dss_bind(
+    struct dj_dss_sheet*    _sheet,
+    struct dj_symbol_table* _symbols
+);
+struct dj_symbol_table* d_dss_symbols(
+    const struct dj_dss_sheet* _sheet
+);
+void d_dss_free(
+    struct dj_dss_sheet* _sheet
+);
+// what the parser accepted but warns about; see dj_dss_warning
+size_t d_dss_warning_count(
+    const struct dj_dss_sheet* _sheet
+);
+const struct dj_dss_warning* d_dss_warning_at(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _at
+);
 
 // 2.2    Inspection
 //------------------------------------------------------------------------------
-size_t                        d_dss_rule_count(const struct d_dss_sheet* _sheet);
-const struct d_dss_rule*      d_dss_rule_at(const struct d_dss_sheet* _sheet,
-                                            size_t                    _at);
-size_t                        d_dss_at_rule_count(
-                                  const struct d_dss_sheet* _sheet);
-const struct d_dss_at_rule*   d_dss_at_rule_at(const struct d_dss_sheet* _sheet,
-                                               size_t                    _at);
-const struct d_dss_selector*  d_dss_selector_at(const struct d_dss_sheet* _sheet,
-                                                uint32_t                  _at);
-const struct d_dss_compound*  d_dss_compound_at(const struct d_dss_sheet* _sheet,
-                                                uint32_t                  _at);
-const struct d_dss_step*      d_dss_step_at(const struct d_dss_sheet* _sheet,
-                                            uint32_t                  _at);
-const struct d_dss_simple*    d_dss_simple_at(const struct d_dss_sheet* _sheet,
-                                              uint32_t                  _at);
-const struct d_dss_declaration*
-                              d_dss_declaration_at(
-                                  const struct d_dss_sheet* _sheet,
-                                  uint32_t                  _at);
-const struct d_dss_value*     d_dss_value_at(const struct d_dss_sheet* _sheet,
-                                             uint32_t                  _at);
+size_t d_dss_rule_count(
+    const struct dj_dss_sheet* _sheet
+);
+const struct dj_dss_rule* d_dss_rule_at(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _at
+);
+size_t d_dss_at_rule_count(
+    const struct dj_dss_sheet* _sheet
+);
+const struct dj_dss_at_rule* d_dss_at_rule_at(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _at
+);
+const struct dj_dss_selector* d_dss_selector_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+);
+const struct dj_dss_compound* d_dss_compound_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+);
+const struct dj_dss_step* d_dss_step_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+);
+const struct dj_dss_simple* d_dss_simple_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+);
+const struct dj_dss_declaration* d_dss_declaration_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+);
+const struct dj_dss_value* d_dss_value_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+);
 
-bool                          d_dss_set_rule_layer(struct d_dss_sheet* _sheet,
-                                                   size_t              _at,
-                                                   uint32_t            _layer);
-bool                          d_dss_outranks(const struct d_dss_sheet* _sheet,
-                                             size_t                    _a,
-                                             size_t                    _b);
+bool d_dss_set_rule_layer(
+    struct dj_dss_sheet* _sheet,
+    size_t               _at,
+    uint32_t             _layer
+);
+bool d_dss_outranks(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _a,
+    size_t                     _b
+);
 
 // 2.3    Text
 //------------------------------------------------------------------------------
-const char*         d_dss_text(const struct d_dss_sheet* _sheet,
-                               uint32_t                  _id);
+const char* d_dss_text(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _id
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DSS_H

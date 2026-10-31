@@ -9,13 +9,12 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // helper comparator for int values
-static int
-int_comparator_util
-(
+static
+int int_comparator_util(
     const void* _a,
     const void* _b
 )
@@ -36,14 +35,12 @@ d_tests_sa_vector_swap
   - successful swap
   - negative index support
 */
-bool
-d_tests_sa_vector_swap
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_swap(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -111,14 +108,12 @@ d_tests_sa_vector_reverse
   - NULL vector rejection
   - successful reverse
 */
-bool
-d_tests_sa_vector_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_reverse(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -167,14 +162,12 @@ d_tests_sa_vector_sort
   - NULL comparator handling
   - successful sort
 */
-bool
-d_tests_sa_vector_sort
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_sort(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -228,14 +221,12 @@ d_tests_sa_vector_copy_to
   - destination too small rejection
   - successful copy
 */
-bool
-d_tests_sa_vector_copy_to
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_copy_to(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              dest[10];
 
     result = true;
@@ -294,10 +285,8 @@ d_tests_sa_vector_copy_to
 d_tests_sa_vector_utility_all
   Aggregation function that runs all utility tests.
 */
-bool
-d_tests_sa_vector_utility_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_utility_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

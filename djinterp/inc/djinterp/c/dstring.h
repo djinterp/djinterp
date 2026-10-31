@@ -2,10 +2,10 @@
 * djinterp [c]                                                         dstring.h
 *
 * Safe string type containing a textual value and its length.
-*   Distinguished from `text_buffer.h` in that `d_string` is optimized for
+*   Distinguished from `text_buffer.h` in that `dj_string` is optimized for
 * strings that may occasionally be resized but are not expected to undergo
 * frequent modifications. Provides cross-platform string operations mirroring
-* `string_fn.h` but operating on `d_string` types.
+* `string_fn.h` but operating on `dj_string` types.
 *
 *
 * path:      /inc/djinterp/c/dstring.h
@@ -20,7 +20,7 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  String type
-         1.  d_string
+         1.  dj_string
 2.  LIFECYCLE
     ---------
     1.  Creation
@@ -95,12 +95,12 @@ D_EXTERN_C_BEGIN
 // 1.1    String type
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_string
+// dj_string
 //   struct: a safe string type containing a textual value and its length.
 // The text is always null-terminated for compatibility with C string
-// functions. Unlike text_buffer, `d_string` is intended for strings that may
+// functions. Unlike text_buffer, `dj_string` is intended for strings that may
 // occasionally be resized but do not undergo frequent modifications.
-struct d_string
+struct dj_string
 {
     size_t size;      // length of string (excluding null terminator)
     char*  text;      // null-terminated string data
@@ -122,7 +122,7 @@ struct d_string
  *         d_string_free().
  * @return the new string, or `NULL` if allocation failed.
  */
-struct d_string* d_string_new(void);
+struct dj_string* d_string_new(void);
 /**
  * @brief Creates an empty string with the given initial capacity.
  *
@@ -134,7 +134,9 @@ struct d_string* d_string_new(void);
  *         d_string_free().
  * @return the new string, or `NULL` if allocation failed.
  */
-struct d_string* d_string_new_with_capacity(size_t _capacity);
+struct dj_string* d_string_new_with_capacity(
+    size_t _capacity
+);
 /**
  * @brief Creates a string from a null-terminated C string.
  *
@@ -143,7 +145,9 @@ struct d_string* d_string_new_with_capacity(size_t _capacity);
  *         d_string_free().
  * @return the new string, or `NULL` if `_cstr` is `NULL` or allocation failed.
  */
-struct d_string* d_string_new_from_cstr(const char* _cstr);
+struct dj_string* d_string_new_from_cstr(
+    const char* _cstr
+);
 /**
  * @brief Creates a string from at most `_length` characters of a C string.
  *
@@ -153,8 +157,10 @@ struct d_string* d_string_new_from_cstr(const char* _cstr);
  *         d_string_free().
  * @return the new string, or `NULL` if `_cstr` is `NULL` or allocation failed.
  */
-struct d_string* d_string_new_from_cstr_n(const char* _cstr,
-                                          size_t      _length);
+struct dj_string* d_string_new_from_cstr_n(
+    const char* _cstr,
+    size_t      _length
+);
 /**
  * @brief Creates a string from `_length` bytes of a buffer that need not be
  *        null-terminated.
@@ -166,8 +172,10 @@ struct d_string* d_string_new_from_cstr_n(const char* _cstr,
  * @return the new string, or `NULL` if `_buffer` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_new_from_buffer(const char* _buffer,
-                                          size_t      _length);
+struct dj_string* d_string_new_from_buffer(
+    const char* _buffer,
+    size_t      _length
+);
 /**
  * @brief Creates a deep copy of a string.
  *
@@ -176,7 +184,9 @@ struct d_string* d_string_new_from_buffer(const char* _buffer,
  *         d_string_free().
  * @return the new string, or `NULL` if `_other` is `NULL` or allocation failed.
  */
-struct d_string* d_string_new_copy(const struct d_string* _other);
+struct dj_string* d_string_new_copy(
+    const struct dj_string* _other
+);
 /**
  * @brief Creates a string of `_length` copies of one character.
  *
@@ -186,8 +196,10 @@ struct d_string* d_string_new_copy(const struct d_string* _other);
  *         d_string_free().
  * @return the new string, or `NULL` if allocation failed.
  */
-struct d_string* d_string_new_fill(size_t _length,
-                                   char   _fill_char);
+struct dj_string* d_string_new_fill(
+    size_t _length,
+    char   _fill_char
+);
 /**
  * @brief Creates a string from printf-style formatting.
  *
@@ -198,8 +210,10 @@ struct d_string* d_string_new_fill(size_t _length,
  * @return the new string, or `NULL` if `_format` is `NULL`, formatting fails,
  *         or allocation fails.
  */
-struct d_string* d_string_new_formatted(const char* _format,
-                                        ...);
+struct dj_string* d_string_new_formatted(
+    const char* _format,
+    ...
+);
 
 // 2.2    Capacity management
 //------------------------------------------------------------------------------
@@ -213,8 +227,10 @@ struct d_string* d_string_new_formatted(const char* _format,
  * @return `true` if the capacity is now at least `_capacity`, or `false` if
  *         `_string` is `NULL` or allocation failed.
  */
-bool             d_string_reserve(struct d_string* _string,
-                                  size_t           _capacity);
+bool d_string_reserve(
+    struct dj_string* _string,
+    size_t            _capacity
+);
 /**
  * @brief Reduces the capacity to the current size plus the terminator.
  *
@@ -224,14 +240,18 @@ bool             d_string_reserve(struct d_string* _string,
  * @return `true` on success or when there is nothing to shrink, or `false` if
  *         `_string` is `NULL` or allocation failed.
  */
-bool             d_string_shrink_to_fit(struct d_string* _string);
+bool d_string_shrink_to_fit(
+    struct dj_string* _string
+);
 /**
  * @brief Returns the allocated capacity, terminator included.
  *
  * @param[in] _string  the string to query.
  * @return the capacity, or `0` if `_string` is `NULL`.
  */
-size_t           d_string_capacity(const struct d_string* _string);
+size_t d_string_capacity(
+    const struct dj_string* _string
+);
 /**
  * @brief Sets the size, truncating or padding as needed.
  *
@@ -239,14 +259,16 @@ size_t           d_string_capacity(const struct d_string* _string);
  *       characters until they are overwritten.
  *
  * @param[in,out] _string    the string to resize.
- * @param[in]     _new_size  new size for the `d_string`.
+ * @param[in]     _new_size  new size for the `dj_string`.
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if `_string` is `NULL` or allocation
  *         failed.
  */
-bool             d_string_resize(struct d_string* _string,
-                                 size_t           _new_size);
+bool d_string_resize(
+    struct dj_string* _string,
+    size_t            _new_size
+);
 
 // 2.3    Destruction
 //------------------------------------------------------------------------------
@@ -256,7 +278,9 @@ bool             d_string_resize(struct d_string* _string,
  * @param[in] _string  the string to free; may be `NULL`.
  * @post   `_string` and every pointer obtained from it are invalid.
  */
-void             d_string_free(struct d_string* _string);
+void d_string_free(
+    struct dj_string* _string
+);
 /**
  * @brief Frees a string's buffer but not the string itself.
  *
@@ -264,7 +288,9 @@ void             d_string_free(struct d_string* _string);
  * @post   `_string` is empty with no buffer, and pointers previously obtained
  *         into its buffer are invalid.
  */
-void             d_string_free_contents(struct d_string* _string);
+void d_string_free_contents(
+    struct dj_string* _string
+);
 
 
 //==============================================================================
@@ -280,14 +306,18 @@ void             d_string_free_contents(struct d_string* _string);
  * @param[in] _string  the string to query.
  * @return the length, or `0` if `_string` is `NULL`.
  */
-size_t           d_string_length(const struct d_string* _string);
+size_t d_string_length(
+    const struct dj_string* _string
+);
 /**
  * @brief Alias for d_string_length().
  *
  * @param[in] _string  the string to query.
  * @return the length, or `0` if `_string` is `NULL`.
  */
-size_t           d_string_size(const struct d_string* _string);
+size_t d_string_size(
+    const struct dj_string* _string
+);
 /**
  * @brief Returns the null-terminated text.
  *
@@ -297,7 +327,9 @@ size_t           d_string_size(const struct d_string* _string);
  * @param[in] _string  the string to access.
  * @return the text, or `NULL` if `_string` is `NULL`.
  */
-const char*      d_string_cstr(const struct d_string* _string);
+const char* d_string_cstr(
+    const struct dj_string* _string
+);
 /**
  * @brief Returns the text for modification.
  *
@@ -307,14 +339,18 @@ const char*      d_string_cstr(const struct d_string* _string);
  * @param[in] _string  the string to access.
  * @return the text, or `NULL` if `_string` is `NULL`.
  */
-char*            d_string_data(struct d_string* _string);
+char* d_string_data(
+    struct dj_string* _string
+);
 /**
  * @brief Tests whether a string is empty.
  *
  * @param[in] _string  the string to check.
  * @return `true` if `_string` is `NULL` or empty, `false` otherwise.
  */
-bool             d_string_is_empty(const struct d_string* _string);
+bool d_string_is_empty(
+    const struct dj_string* _string
+);
 
 // 3.2    Character access
 //------------------------------------------------------------------------------
@@ -326,8 +362,10 @@ bool             d_string_is_empty(const struct d_string* _string);
  * @return the character, or '\0' if `_string` is `NULL` or `_index` is out of
  *         range.
  */
-char             d_string_char_at(const struct d_string* _string,
-                                  d_index                _index);
+char d_string_char_at(
+    const struct dj_string* _string,
+    dj_index                _index
+);
 /**
  * @brief Replaces the character at an index.
  *
@@ -337,23 +375,29 @@ char             d_string_char_at(const struct d_string* _string,
  * @return `true` on success, or `false` if `_string` is `NULL` or `_index` is
  *         out of range.
  */
-bool             d_string_set_char(struct d_string* _string,
-                                   d_index          _index,
-                                   char             _c);
+bool d_string_set_char(
+    struct dj_string* _string,
+    dj_index          _index,
+    char              _c
+);
 /**
  * @brief Returns the first character.
  *
  * @param[in] _string  the string to access.
  * @return the first character, or '\0' if `_string` is `NULL` or empty.
  */
-char             d_string_front(const struct d_string* _string);
+char d_string_front(
+    const struct dj_string* _string
+);
 /**
  * @brief Returns the last character.
  *
  * @param[in] _string  the string to access.
  * @return the last character, or '\0' if `_string` is `NULL` or empty.
  */
-char             d_string_back(const struct d_string* _string);
+char d_string_back(
+    const struct dj_string* _string
+);
 
 
 //==============================================================================
@@ -367,8 +411,8 @@ char             d_string_back(const struct d_string* _string);
 /**
  * @brief Copies one string over another (C11 `strcpy_s` equivalent).
  *
- * @param[in,out] _destination  the destination `d_string`.
- * @param[in]     _source       the source `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
+ * @param[in]     _source       the source `dj_string`.
  * @pre    `_source` is not `_destination` itself.
  * @post   pointers previously obtained into `_destination`'s buffer may be
  *         invalidated.
@@ -376,12 +420,14 @@ char             d_string_back(const struct d_string* _string);
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_copy_s(struct d_string*       _destination,
-                                 const struct d_string* _source);
+int d_string_copy_s(
+    struct dj_string*       _destination,
+    const struct dj_string* _source
+);
 /**
  * @brief Copies a C string over a string.
  *
- * @param[in,out] _destination  the destination `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
  * @param[in]     _source       the source C string.
  * @pre    `_source` does not point into `_destination`'s own buffer, which
  *         growing may free.
@@ -391,13 +437,15 @@ int              d_string_copy_s(struct d_string*       _destination,
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_copy_cstr_s(struct d_string* _destination,
-                                      const char*      _source);
+int d_string_copy_cstr_s(
+    struct dj_string* _destination,
+    const char*       _source
+);
 /**
  * @brief Copies at most `_count` characters of one string over another.
  *
- * @param[in,out] _destination  the destination `d_string`.
- * @param[in]     _source       the source `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
+ * @param[in]     _source       the source `dj_string`.
  * @param[in]     _count        maximum number of characters to copy.
  * @pre    `_source` is not `_destination` itself.
  * @post   pointers previously obtained into `_destination`'s buffer may be
@@ -406,13 +454,15 @@ int              d_string_copy_cstr_s(struct d_string* _destination,
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_ncopy_s(struct d_string*       _destination,
-                                  const struct d_string* _source,
-                                  size_t                 _count);
+int d_string_ncopy_s(
+    struct dj_string*       _destination,
+    const struct dj_string* _source,
+    size_t                  _count
+);
 /**
  * @brief Copies at most `_count` characters of a C string over a string.
  *
- * @param[in,out] _destination  the destination `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
  * @param[in]     _source       the source C string.
  * @param[in]     _count        maximum number of characters to copy.
  * @pre    `_source` does not point into `_destination`'s own buffer, which
@@ -423,32 +473,36 @@ int              d_string_ncopy_s(struct d_string*       _destination,
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_ncopy_cstr_s(struct d_string* _destination,
-                                       const char*      _source,
-                                       size_t           _count);
+int d_string_ncopy_cstr_s(
+    struct dj_string* _destination,
+    const char*       _source,
+    size_t            _count
+);
 /**
  * @brief Copies a string into a caller-supplied character buffer.
  *
  * @param[out] _destination       the destination buffer.
  * @param[in]  _destination_size  the size of `_destination` in bytes,
  *                                terminator included.
- * @param[in]  _source            the source `d_string`.
+ * @param[in]  _source            the source `dj_string`.
  * @retval 0       success.
  * @retval EINVAL  either pointer is `NULL`.
  * @retval ERANGE  `_destination_size` cannot hold the text and its terminator;
  *                 unless it is `0`, `_destination` is left holding an empty
  *                 string.
  */
-int              d_string_to_buffer_s(char* D_RESTRICT       _destination,
-                                      size_t                 _destination_size,
-                                      const struct d_string* _source);
+int d_string_to_buffer_s(
+    char* D_RESTRICT        _destination,
+    size_t                  _destination_size,
+    const struct dj_string* _source
+);
 
 // 4.2    Safe concatenation
 //------------------------------------------------------------------------------
 /**
  * @brief Appends one string to another (C11 `strcat_s` equivalent).
  *
- * @param[in,out] _destination  the destination `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
  * @param[in]     _source       the source string to append.
  * @pre    `_source` is not `_destination` itself.
  * @post   pointers previously obtained into `_destination`'s buffer may be
@@ -457,12 +511,14 @@ int              d_string_to_buffer_s(char* D_RESTRICT       _destination,
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_cat_s(struct d_string* D_RESTRICT       _destination,
-                                const struct d_string* D_RESTRICT _source);
+int d_string_cat_s(
+    struct dj_string* D_RESTRICT       _destination,
+    const struct dj_string* D_RESTRICT _source
+);
 /**
  * @brief Appends a C string to a string.
  *
- * @param[in,out] _destination  the destination `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
  * @param[in]     _source       the source C string to append.
  * @pre    `_source` does not point into `_destination`'s own buffer, which
  *         growing may free.
@@ -472,12 +528,14 @@ int              d_string_cat_s(struct d_string* D_RESTRICT       _destination,
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_cat_cstr_s(struct d_string* D_RESTRICT _destination,
-                                     const char* D_RESTRICT      _source);
+int d_string_cat_cstr_s(
+    struct dj_string* D_RESTRICT _destination,
+    const char* D_RESTRICT       _source
+);
 /**
  * @brief Appends at most `_count` characters of one string to another.
  *
- * @param[in,out] _destination  the destination `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
  * @param[in]     _source       the source string to append.
  * @param[in]     _count        maximum number of characters to append.
  * @pre    `_source` is not `_destination` itself.
@@ -487,13 +545,15 @@ int              d_string_cat_cstr_s(struct d_string* D_RESTRICT _destination,
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_ncat_s(struct d_string* D_RESTRICT       _destination,
-                                 const struct d_string* D_RESTRICT _source,
-                                 size_t                            _count);
+int d_string_ncat_s(
+    struct dj_string* D_RESTRICT       _destination,
+    const struct dj_string* D_RESTRICT _source,
+    size_t                             _count
+);
 /**
  * @brief Appends at most `_count` characters of a C string to a string.
  *
- * @param[in,out] _destination  the destination `d_string`.
+ * @param[in,out] _destination  the destination `dj_string`.
  * @param[in]     _source       the source C string to append.
  * @param[in]     _count        maximum number of characters to append.
  * @pre    `_source` does not point into `_destination`'s own buffer, which
@@ -504,9 +564,11 @@ int              d_string_ncat_s(struct d_string* D_RESTRICT       _destination,
  * @retval EINVAL  either argument is `NULL`.
  * @retval ERANGE  the destination could not be grown (allocation failed).
  */
-int              d_string_ncat_cstr_s(struct d_string* D_RESTRICT _destination,
-                                      const char* D_RESTRICT      _source,
-                                      size_t                      _count);
+int d_string_ncat_cstr_s(
+    struct dj_string* D_RESTRICT _destination,
+    const char* D_RESTRICT       _source,
+    size_t                       _count
+);
 
 // 4.3    Duplication
 //------------------------------------------------------------------------------
@@ -519,7 +581,9 @@ int              d_string_ncat_cstr_s(struct d_string* D_RESTRICT _destination,
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_dup(const struct d_string* _string);
+struct dj_string* d_string_dup(
+    const struct dj_string* _string
+);
 /**
  * @brief Duplicates at most `_n` characters of a string.
  *
@@ -530,14 +594,16 @@ struct d_string* d_string_dup(const struct d_string* _string);
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_ndup(const struct d_string* _string,
-                               size_t                 _n);
+struct dj_string* d_string_ndup(
+    const struct dj_string* _string,
+    size_t                  _n
+);
 /**
  * @brief Copies up to `_length` characters starting at an index.
  *
  * @note `_length` is clamped to the characters available.
  *
- * @param[in] _string  the source `d_string`.
+ * @param[in] _string  the source `dj_string`.
  * @param[in] _start   starting index (negative counts from end).
  * @param[in] _length  number of characters to extract.
  * @post   on success the caller owns the result and releases it with
@@ -545,9 +611,11 @@ struct d_string* d_string_ndup(const struct d_string* _string,
  * @return the new string, or `NULL` if `_string` is `NULL`, `_start` is out of
  *         range, or allocation failed.
  */
-struct d_string* d_string_substr(const struct d_string* _string,
-                                 d_index                _start,
-                                 size_t                 _length);
+struct dj_string* d_string_substr(
+    const struct dj_string* _string,
+    dj_index                _start,
+    size_t                  _length
+);
 
 
 //==============================================================================
@@ -566,8 +634,10 @@ struct d_string* d_string_substr(const struct d_string* _string,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal.
  */
-int              d_string_compare(const struct d_string* _s1,
-                                  const struct d_string* _s2);
+int d_string_compare(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
+);
 /**
  * @brief Compares a string with a C string lexicographically, lengths included.
  *
@@ -577,8 +647,10 @@ int              d_string_compare(const struct d_string* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal.
  */
-int              d_string_compare_cstr(const struct d_string* _s1,
-                                       const char*            _s2);
+int d_string_compare_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2
+);
 /**
  * @brief Compares at most `_n` characters of two strings.
  *
@@ -589,9 +661,11 @@ int              d_string_compare_cstr(const struct d_string* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal; always `0` when `_n` is `0`.
  */
-int              d_string_ncmp(const struct d_string* _s1,
-                               const struct d_string* _s2,
-                               size_t                 _n);
+int d_string_ncmp(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2,
+    size_t                  _n
+);
 /**
  * @brief Compares at most `_n` characters of a string and a C string.
  *
@@ -605,9 +679,11 @@ int              d_string_ncmp(const struct d_string* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal; always `0` when `_n` is `0`.
  */
-int              d_string_ncmp_cstr(const struct d_string* _s1,
-                                    const char*            _s2,
-                                    size_t                 _n);
+int d_string_ncmp_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2,
+    size_t                  _n
+);
 
 // 5.2    Case-insensitive comparison
 //------------------------------------------------------------------------------
@@ -620,8 +696,10 @@ int              d_string_ncmp_cstr(const struct d_string* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal.
  */
-int              d_string_casecmp(const struct d_string* _s1,
-                                  const struct d_string* _s2);
+int d_string_casecmp(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
+);
 /**
  * @brief Compares a string with a C string, ignoring case.
  *
@@ -631,8 +709,10 @@ int              d_string_casecmp(const struct d_string* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal.
  */
-int              d_string_casecmp_cstr(const struct d_string* _s1,
-                                       const char*            _s2);
+int d_string_casecmp_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2
+);
 /**
  * @brief Compares at most `_n` characters of two strings, ignoring case.
  *
@@ -643,9 +723,11 @@ int              d_string_casecmp_cstr(const struct d_string* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal; always `0` when `_n` is `0`.
  */
-int              d_string_ncasecmp(const struct d_string* _s1,
-                                   const struct d_string* _s2,
-                                   size_t                 _n);
+int d_string_ncasecmp(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2,
+    size_t                  _n
+);
 /**
  * @brief Compares at most `_n` characters of a string and a C string, ignoring
  *        case.
@@ -657,9 +739,11 @@ int              d_string_ncasecmp(const struct d_string* _s1,
  *         before, equal to, or after `_s2`; a `NULL` string orders before any
  *         other, and two `NULL`s compare equal; always `0` when `_n` is `0`.
  */
-int              d_string_ncasecmp_cstr(const struct d_string* _s1,
-                                        const char*            _s2,
-                                        size_t                 _n);
+int d_string_ncasecmp_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2,
+    size_t                  _n
+);
 
 // 5.3    Equality
 //------------------------------------------------------------------------------
@@ -670,8 +754,10 @@ int              d_string_ncasecmp_cstr(const struct d_string* _s1,
  * @param[in] _s2  the second string being compared; may be `NULL`.
  * @return `true` if the strings are equal or both `NULL`, `false` otherwise.
  */
-bool             d_string_equals(const struct d_string* _s1,
-                                 const struct d_string* _s2);
+bool d_string_equals(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
+);
 /**
  * @brief Tests a string and a C string for equality.
  *
@@ -679,8 +765,10 @@ bool             d_string_equals(const struct d_string* _s1,
  * @param[in] _s2  the C string being compared; may be `NULL`.
  * @return `true` if the strings are equal or both `NULL`, `false` otherwise.
  */
-bool             d_string_equals_cstr(const struct d_string* _s1,
-                                      const char*            _s2);
+bool d_string_equals_cstr(
+    const struct dj_string* _s1,
+    const char*             _s2
+);
 /**
  * @brief Tests two strings for equality, ignoring case.
  *
@@ -689,8 +777,10 @@ bool             d_string_equals_cstr(const struct d_string* _s1,
  * @return `true` if the strings are equal ignoring case or both `NULL`, `false`
  *         otherwise.
  */
-bool             d_string_equals_ignore_case(const struct d_string* _s1,
-                                             const struct d_string* _s2);
+bool d_string_equals_ignore_case(
+    const struct dj_string* _s1,
+    const struct dj_string* _s2
+);
 /**
  * @brief Tests a string and a C string for equality, ignoring case.
  *
@@ -699,8 +789,10 @@ bool             d_string_equals_ignore_case(const struct d_string* _s1,
  * @return `true` if the strings are equal ignoring case or both `NULL`, `false`
  *         otherwise.
  */
-bool             d_string_equals_cstr_ignore_case(const struct d_string* _s1,
-                                                  const char*            _s2);
+bool d_string_equals_cstr_ignore_case(
+    const struct dj_string* _s1,
+    const char*             _s2
+);
 
 
 //==============================================================================
@@ -720,8 +812,10 @@ bool             d_string_equals_cstr_ignore_case(const struct d_string* _s1,
  * @return the index of the first occurrence, or `-1` if there is none or
  *         `_string` is `NULL`.
  */
-d_index          d_string_find_char(const struct d_string* _string,
-                                    char                   _c);
+dj_index d_string_find_char(
+    const struct dj_string* _string,
+    char                    _c
+);
 /**
  * @brief Finds the first occurrence of a character at or after an index.
  *
@@ -731,9 +825,11 @@ d_index          d_string_find_char(const struct d_string* _string,
  * @return the index of the first occurrence at or after `_start`, or `-1` if
  *         there is none, `_start` is out of range, or `_string` is `NULL`.
  */
-d_index          d_string_find_char_from(const struct d_string* _string,
-                                         char                   _c,
-                                         d_index                _start);
+dj_index d_string_find_char_from(
+    const struct dj_string* _string,
+    char                    _c,
+    dj_index                _start
+);
 /**
  * @brief Finds the last occurrence of a character.
  *
@@ -742,8 +838,10 @@ d_index          d_string_find_char_from(const struct d_string* _string,
  * @return the index of the last occurrence, or `-1` if there is none or
  *         `_string` is `NULL`.
  */
-d_index          d_string_rfind_char(const struct d_string* _string,
-                                     char                   _c);
+dj_index d_string_rfind_char(
+    const struct dj_string* _string,
+    char                    _c
+);
 /**
  * @brief Finds the first occurrence of a character (`strchr` equivalent).
  *
@@ -755,8 +853,10 @@ d_index          d_string_rfind_char(const struct d_string* _string,
  * @return a pointer to the first occurrence, or `NULL` if there is none or
  *         `_string` is `NULL`.
  */
-char*            d_string_chr(const struct d_string* _string,
-                              int                    _c);
+char* d_string_chr(
+    const struct dj_string* _string,
+    int                     _c
+);
 /**
  * @brief Finds the last occurrence of a character (`strrchr` equivalent).
  *
@@ -768,8 +868,10 @@ char*            d_string_chr(const struct d_string* _string,
  * @return a pointer to the last occurrence, or `NULL` if there is none or
  *         `_string` is `NULL`.
  */
-char*            d_string_rchr(const struct d_string* _string,
-                               int                    _c);
+char* d_string_rchr(
+    const struct dj_string* _string,
+    int                     _c
+);
 /**
  * @brief Finds a character, or the terminator if it is absent.
  *
@@ -781,8 +883,10 @@ char*            d_string_rchr(const struct d_string* _string,
  * @return a pointer to the first occurrence or to the terminator, or `NULL`
  *         only if `_string` is `NULL`.
  */
-char*            d_string_chrnul(const struct d_string* _string,
-                                 int                    _c);
+char* d_string_chrnul(
+    const struct dj_string* _string,
+    int                     _c
+);
 
 // 6.2    Substring search
 //------------------------------------------------------------------------------
@@ -794,8 +898,10 @@ char*            d_string_chrnul(const struct d_string* _string,
  * @return the index of the first occurrence, `0` for an empty needle, or `-1`
  *         if there is none or either argument is `NULL`.
  */
-d_index          d_string_find(const struct d_string* _haystack,
-                               const struct d_string* _needle);
+dj_index d_string_find(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle
+);
 /**
  * @brief Finds the first occurrence of a C string.
  *
@@ -804,8 +910,10 @@ d_index          d_string_find(const struct d_string* _haystack,
  * @return the index of the first occurrence, `0` for an empty needle, or `-1`
  *         if there is none or either argument is `NULL`.
  */
-d_index          d_string_find_cstr(const struct d_string* _haystack,
-                                    const char*            _needle);
+dj_index d_string_find_cstr(
+    const struct dj_string* _haystack,
+    const char*             _needle
+);
 /**
  * @brief Finds the first occurrence of a substring at or after an index.
  *
@@ -815,9 +923,11 @@ d_index          d_string_find_cstr(const struct d_string* _haystack,
  * @return the index of the first occurrence at or after `_start`, or `-1` if
  *         there is none, `_start` is out of range, or either string is `NULL`.
  */
-d_index          d_string_find_from(const struct d_string* _haystack,
-                                    const struct d_string* _needle,
-                                    d_index                _start);
+dj_index d_string_find_from(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle,
+    dj_index                _start
+);
 /**
  * @brief Finds the first occurrence of a C string at or after an index.
  *
@@ -827,9 +937,11 @@ d_index          d_string_find_from(const struct d_string* _haystack,
  * @return the index of the first occurrence at or after `_start`, or `-1` if
  *         there is none, `_start` is out of range, or either string is `NULL`.
  */
-d_index          d_string_find_cstr_from(const struct d_string* _haystack,
-                                         const char*            _needle,
-                                         d_index                _start);
+dj_index d_string_find_cstr_from(
+    const struct dj_string* _haystack,
+    const char*             _needle,
+    dj_index                _start
+);
 /**
  * @brief Finds the last occurrence of a substring.
  *
@@ -838,8 +950,10 @@ d_index          d_string_find_cstr_from(const struct d_string* _haystack,
  * @return the index of the last occurrence, the length for an empty needle, or
  *         `-1` if there is none or either argument is `NULL`.
  */
-d_index          d_string_rfind(const struct d_string* _haystack,
-                                const struct d_string* _needle);
+dj_index d_string_rfind(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle
+);
 /**
  * @brief Finds the last occurrence of a C string.
  *
@@ -848,8 +962,10 @@ d_index          d_string_rfind(const struct d_string* _haystack,
  * @return the index of the last occurrence, the length for an empty needle, or
  *         `-1` if there is none or either argument is `NULL`.
  */
-d_index          d_string_rfind_cstr(const struct d_string* _haystack,
-                                     const char*            _needle);
+dj_index d_string_rfind_cstr(
+    const struct dj_string* _haystack,
+    const char*             _needle
+);
 /**
  * @brief Finds a C string (`strstr` equivalent).
  *
@@ -861,8 +977,10 @@ d_index          d_string_rfind_cstr(const struct d_string* _haystack,
  * @return a pointer to the first occurrence, or `NULL` if there is none or
  *         either argument is `NULL`.
  */
-char*            d_string_str(const struct d_string* _haystack,
-                              const char*            _needle);
+char* d_string_str(
+    const struct dj_string* _haystack,
+    const char*             _needle
+);
 
 // 6.3    Case-insensitive search
 //------------------------------------------------------------------------------
@@ -874,8 +992,10 @@ char*            d_string_str(const struct d_string* _haystack,
  * @return the index of the first occurrence, or `-1` if there is none or either
  *         argument is `NULL`.
  */
-d_index          d_string_casefind(const struct d_string* _haystack,
-                                   const struct d_string* _needle);
+dj_index d_string_casefind(
+    const struct dj_string* _haystack,
+    const struct dj_string* _needle
+);
 /**
  * @brief Finds the first occurrence of a C string, ignoring case.
  *
@@ -884,8 +1004,10 @@ d_index          d_string_casefind(const struct d_string* _haystack,
  * @return the index of the first occurrence, or `-1` if there is none or either
  *         argument is `NULL`.
  */
-d_index          d_string_casefind_cstr(const struct d_string* _haystack,
-                                        const char*            _needle);
+dj_index d_string_casefind_cstr(
+    const struct dj_string* _haystack,
+    const char*             _needle
+);
 /**
  * @brief Finds a C string, ignoring case.
  *
@@ -897,8 +1019,10 @@ d_index          d_string_casefind_cstr(const struct d_string* _haystack,
  * @return a pointer to the first occurrence, or `NULL` if there is none or
  *         either argument is `NULL`.
  */
-char*            d_string_casestr(const struct d_string* _haystack,
-                                  const char*            _needle);
+char* d_string_casestr(
+    const struct dj_string* _haystack,
+    const char*             _needle
+);
 
 // 6.4    Containment
 //------------------------------------------------------------------------------
@@ -910,8 +1034,10 @@ char*            d_string_casestr(const struct d_string* _haystack,
  * @return `true` if `_substr` occurs in `_string`, `false` otherwise or if
  *         either argument is `NULL`.
  */
-bool             d_string_contains(const struct d_string* _string,
-                                   const struct d_string* _substr);
+bool d_string_contains(
+    const struct dj_string* _string,
+    const struct dj_string* _substr
+);
 /**
  * @brief Tests whether a string contains a C string.
  *
@@ -920,8 +1046,10 @@ bool             d_string_contains(const struct d_string* _string,
  * @return `true` if `_substr` occurs in `_string`, `false` otherwise or if
  *         either argument is `NULL`.
  */
-bool             d_string_contains_cstr(const struct d_string* _string,
-                                        const char*            _substr);
+bool d_string_contains_cstr(
+    const struct dj_string* _string,
+    const char*             _substr
+);
 /**
  * @brief Tests whether a string contains a character.
  *
@@ -930,8 +1058,10 @@ bool             d_string_contains_cstr(const struct d_string* _string,
  * @return `true` if `_c` occurs in `_string`, `false` otherwise or if `_string`
  *         is `NULL`.
  */
-bool             d_string_contains_char(const struct d_string* _string,
-                                        char                   _c);
+bool d_string_contains_char(
+    const struct dj_string* _string,
+    char                    _c
+);
 /**
  * @brief Tests whether a string begins with a prefix.
  *
@@ -940,8 +1070,10 @@ bool             d_string_contains_char(const struct d_string* _string,
  * @return `true` if `_string` begins with `_prefix`, `false` otherwise or if
  *         either argument is `NULL`.
  */
-bool             d_string_starts_with(const struct d_string* _string,
-                                      const struct d_string* _prefix);
+bool d_string_starts_with(
+    const struct dj_string* _string,
+    const struct dj_string* _prefix
+);
 /**
  * @brief Tests whether a string begins with a C string prefix.
  *
@@ -950,8 +1082,10 @@ bool             d_string_starts_with(const struct d_string* _string,
  * @return `true` if `_string` begins with `_prefix`, `false` otherwise or if
  *         either argument is `NULL`.
  */
-bool             d_string_starts_with_cstr(const struct d_string* _string,
-                                           const char*            _prefix);
+bool d_string_starts_with_cstr(
+    const struct dj_string* _string,
+    const char*             _prefix
+);
 /**
  * @brief Tests whether a string ends with a suffix.
  *
@@ -960,8 +1094,10 @@ bool             d_string_starts_with_cstr(const struct d_string* _string,
  * @return `true` if `_string` ends with `_suffix`, `false` otherwise or if
  *         either argument is `NULL`.
  */
-bool             d_string_ends_with(const struct d_string* _string,
-                                    const struct d_string* _suffix);
+bool d_string_ends_with(
+    const struct dj_string* _string,
+    const struct dj_string* _suffix
+);
 /**
  * @brief Tests whether a string ends with a C string suffix.
  *
@@ -970,8 +1106,10 @@ bool             d_string_ends_with(const struct d_string* _string,
  * @return `true` if `_string` ends with `_suffix`, `false` otherwise or if
  *         either argument is `NULL`.
  */
-bool             d_string_ends_with_cstr(const struct d_string* _string,
-                                         const char*            _suffix);
+bool d_string_ends_with_cstr(
+    const struct dj_string* _string,
+    const char*             _suffix
+);
 
 // 6.5    Spans
 //------------------------------------------------------------------------------
@@ -982,8 +1120,10 @@ bool             d_string_ends_with_cstr(const struct d_string* _string,
  * @param[in] _accept  string of accepted characters.
  * @return the length of the run, or `0` if either argument is `NULL`.
  */
-size_t           d_string_spn(const struct d_string* _string,
-                              const char*            _accept);
+size_t d_string_spn(
+    const struct dj_string* _string,
+    const char*             _accept
+);
 /**
  * @brief Measures the leading run of characters not in `_reject`.
  *
@@ -991,8 +1131,10 @@ size_t           d_string_spn(const struct d_string* _string,
  * @param[in] _reject  string of rejected characters.
  * @return the length of the run, or `0` if either argument is `NULL`.
  */
-size_t           d_string_cspn(const struct d_string* _string,
-                               const char*            _reject);
+size_t d_string_cspn(
+    const struct dj_string* _string,
+    const char*             _reject
+);
 /**
  * @brief Finds the first character drawn from `_accept`.
  *
@@ -1004,8 +1146,10 @@ size_t           d_string_cspn(const struct d_string* _string,
  * @return a pointer to the first such character, or `NULL` if there is none or
  *         either argument is `NULL`.
  */
-char*            d_string_pbrk(const struct d_string* _string,
-                               const char*            _accept);
+char* d_string_pbrk(
+    const struct dj_string* _string,
+    const char*             _accept
+);
 
 
 //==============================================================================
@@ -1019,15 +1163,17 @@ char*            d_string_pbrk(const struct d_string* _string,
  * @brief Replaces a string's contents with a copy of another string.
  *
  * @param[in,out] _string  the string to modify.
- * @param[in]     _other   the source `d_string`.
+ * @param[in]     _other   the source `dj_string`.
  * @note   `_other` may be `_string` itself (decision 23 of the register).
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if either argument is `NULL` or
  *         allocation failed.
  */
-bool             d_string_assign(struct d_string*       _string,
-                                 const struct d_string* _other);
+bool d_string_assign(
+    struct dj_string*       _string,
+    const struct dj_string* _other
+);
 /**
  * @brief Replaces a string's contents with a C string.
  *
@@ -1040,8 +1186,10 @@ bool             d_string_assign(struct d_string*       _string,
  * @return `true` on success, or `false` if either argument is `NULL` or
  *         allocation failed.
  */
-bool             d_string_assign_cstr(struct d_string* _string,
-                                      const char*      _cstr);
+bool d_string_assign_cstr(
+    struct dj_string* _string,
+    const char*       _cstr
+);
 /**
  * @brief Replaces a string's contents with `_length` bytes of a buffer.
  *
@@ -1055,9 +1203,11 @@ bool             d_string_assign_cstr(struct d_string* _string,
  * @return `true` on success, or `false` if either pointer is `NULL` or
  *         allocation failed.
  */
-bool             d_string_assign_buffer(struct d_string* _string,
-                                        const char*      _buffer,
-                                        size_t           _length);
+bool d_string_assign_buffer(
+    struct dj_string* _string,
+    const char*       _buffer,
+    size_t            _length
+);
 /**
  * @brief Replaces a string's contents with `_count` copies of a character.
  *
@@ -1069,9 +1219,11 @@ bool             d_string_assign_buffer(struct d_string* _string,
  * @return `true` on success, or `false` if `_string` is `NULL` or allocation
  *         failed.
  */
-bool             d_string_assign_char(struct d_string* _string,
-                                      size_t           _count,
-                                      char             _c);
+bool d_string_assign_char(
+    struct dj_string* _string,
+    size_t            _count,
+    char              _c
+);
 
 // 7.2    Append
 //------------------------------------------------------------------------------
@@ -1086,8 +1238,10 @@ bool             d_string_assign_char(struct d_string* _string,
  * @return `true` on success, or `false` if either argument is `NULL` or
  *         allocation failed.
  */
-bool             d_string_append(struct d_string*       _string,
-                                 const struct d_string* _other);
+bool d_string_append(
+    struct dj_string*       _string,
+    const struct dj_string* _other
+);
 /**
  * @brief Appends a C string.
  *
@@ -1100,8 +1254,10 @@ bool             d_string_append(struct d_string*       _string,
  * @return `true` on success, or `false` if either argument is `NULL` or
  *         allocation failed.
  */
-bool             d_string_append_cstr(struct d_string* _string,
-                                      const char*      _cstr);
+bool d_string_append_cstr(
+    struct dj_string* _string,
+    const char*       _cstr
+);
 /**
  * @brief Appends `_length` bytes of a buffer.
  *
@@ -1115,9 +1271,11 @@ bool             d_string_append_cstr(struct d_string* _string,
  * @return `true` on success, or `false` if either pointer is `NULL` or
  *         allocation failed.
  */
-bool             d_string_append_buffer(struct d_string* _string,
-                                        const char*      _buffer,
-                                        size_t           _length);
+bool d_string_append_buffer(
+    struct dj_string* _string,
+    const char*       _buffer,
+    size_t            _length
+);
 /**
  * @brief Appends one character.
  *
@@ -1128,8 +1286,10 @@ bool             d_string_append_buffer(struct d_string* _string,
  * @return `true` on success, or `false` if `_string` is `NULL` or allocation
  *         failed.
  */
-bool             d_string_append_char(struct d_string* _string,
-                                      char             _c);
+bool d_string_append_char(
+    struct dj_string* _string,
+    char              _c
+);
 /**
  * @brief Appends printf-style formatted text.
  *
@@ -1143,9 +1303,11 @@ bool             d_string_append_char(struct d_string* _string,
  * @return `true` on success, or `false` if either pointer is `NULL`, formatting
  *         fails, or allocation fails.
  */
-bool             d_string_append_formatted(struct d_string* _string,
-                                           const char*      _format,
-                                           ...);
+bool d_string_append_formatted(
+    struct dj_string* _string,
+    const char*       _format,
+    ...
+);
 
 // 7.3    Prepend
 //------------------------------------------------------------------------------
@@ -1160,8 +1322,10 @@ bool             d_string_append_formatted(struct d_string* _string,
  * @return `true` on success, or `false` if either argument is `NULL` or
  *         allocation failed.
  */
-bool             d_string_prepend(struct d_string*       _string,
-                                  const struct d_string* _other);
+bool d_string_prepend(
+    struct dj_string*       _string,
+    const struct dj_string* _other
+);
 /**
  * @brief Prepends a C string.
  *
@@ -1174,8 +1338,10 @@ bool             d_string_prepend(struct d_string*       _string,
  * @return `true` on success, or `false` if either argument is `NULL` or
  *         allocation failed.
  */
-bool             d_string_prepend_cstr(struct d_string* _string,
-                                       const char*      _cstr);
+bool d_string_prepend_cstr(
+    struct dj_string* _string,
+    const char*       _cstr
+);
 /**
  * @brief Prepends one character.
  *
@@ -1186,8 +1352,10 @@ bool             d_string_prepend_cstr(struct d_string* _string,
  * @return `true` on success, or `false` if `_string` is `NULL` or allocation
  *         failed.
  */
-bool             d_string_prepend_char(struct d_string* _string,
-                                       char             _c);
+bool d_string_prepend_char(
+    struct dj_string* _string,
+    char              _c
+);
 
 // 7.4    Insert
 //------------------------------------------------------------------------------
@@ -1205,9 +1373,11 @@ bool             d_string_prepend_char(struct d_string* _string,
  * @return `true` on success, or `false` if either argument is `NULL`, `_index`
  *         is out of range, or allocation failed.
  */
-bool             d_string_insert(struct d_string*       _string,
-                                 d_index                _index,
-                                 const struct d_string* _other);
+bool d_string_insert(
+    struct dj_string*       _string,
+    dj_index                _index,
+    const struct dj_string* _other
+);
 /**
  * @brief Inserts a C string before an index.
  *
@@ -1223,9 +1393,11 @@ bool             d_string_insert(struct d_string*       _string,
  * @return `true` on success, or `false` if either argument is `NULL`, `_index`
  *         is out of range, or allocation failed.
  */
-bool             d_string_insert_cstr(struct d_string* _string,
-                                      d_index          _index,
-                                      const char*      _cstr);
+bool d_string_insert_cstr(
+    struct dj_string* _string,
+    dj_index          _index,
+    const char*       _cstr
+);
 /**
  * @brief Inserts one character before an index.
  *
@@ -1239,9 +1411,11 @@ bool             d_string_insert_cstr(struct d_string* _string,
  * @return `true` on success, or `false` if `_string` is `NULL`, `_index` is out
  *         of range, or allocation failed.
  */
-bool             d_string_insert_char(struct d_string* _string,
-                                      d_index          _index,
-                                      char             _c);
+bool d_string_insert_char(
+    struct dj_string* _string,
+    dj_index          _index,
+    char              _c
+);
 
 // 7.5    Erase and clear
 //------------------------------------------------------------------------------
@@ -1256,9 +1430,11 @@ bool             d_string_insert_char(struct d_string* _string,
  * @return `true` on success, or `false` if `_string` is `NULL` or `_index` is
  *         out of range.
  */
-bool             d_string_erase(struct d_string* _string,
-                                d_index          _index,
-                                size_t           _count);
+bool d_string_erase(
+    struct dj_string* _string,
+    dj_index          _index,
+    size_t            _count
+);
 /**
  * @brief Removes the character at an index.
  *
@@ -1267,14 +1443,18 @@ bool             d_string_erase(struct d_string* _string,
  * @return `true` on success, or `false` if `_string` is `NULL` or `_index` is
  *         out of range.
  */
-bool             d_string_erase_char(struct d_string* _string,
-                                     d_index          _index);
+bool d_string_erase_char(
+    struct dj_string* _string,
+    dj_index          _index
+);
 /**
  * @brief Empties a string, keeping its capacity.
  *
  * @param[in,out] _string  the string to clear.
  */
-void             d_string_clear(struct d_string* _string);
+void d_string_clear(
+    struct dj_string* _string
+);
 
 // 7.6    Replace
 //------------------------------------------------------------------------------
@@ -1294,10 +1474,12 @@ void             d_string_clear(struct d_string* _string);
  * @return `true` on success, or `false` if either argument is `NULL`, `_index`
  *         is out of range, or allocation failed.
  */
-bool             d_string_replace(struct d_string*       _string,
-                                  d_index                _index,
-                                  size_t                 _count,
-                                  const struct d_string* _replacement);
+bool d_string_replace(
+    struct dj_string*       _string,
+    dj_index                _index,
+    size_t                  _count,
+    const struct dj_string* _replacement
+);
 /**
  * @brief Replaces up to `_count` characters at an index with a C string.
  *
@@ -1314,10 +1496,12 @@ bool             d_string_replace(struct d_string*       _string,
  * @return `true` on success, or `false` if either argument is `NULL`, `_index`
  *         is out of range, or allocation failed.
  */
-bool             d_string_replace_cstr(struct d_string* _string,
-                                       d_index          _index,
-                                       size_t           _count,
-                                       const char*      _replacement);
+bool d_string_replace_cstr(
+    struct dj_string* _string,
+    dj_index          _index,
+    size_t            _count,
+    const char*       _replacement
+);
 /**
  * @brief Replaces every occurrence of one substring with another.
  *
@@ -1329,9 +1513,11 @@ bool             d_string_replace_cstr(struct d_string* _string,
  * @return `true` on success, including when nothing matched, or `false` if an
  *         argument is `NULL`, `_old` is empty, or allocation failed.
  */
-bool             d_string_replace_all(struct d_string*       _string,
-                                      const struct d_string* _old,
-                                      const struct d_string* _new);
+bool d_string_replace_all(
+    struct dj_string*       _string,
+    const struct dj_string* _old,
+    const struct dj_string* _new
+);
 /**
  * @brief Replaces every occurrence of one C string with another.
  *
@@ -1343,9 +1529,11 @@ bool             d_string_replace_all(struct d_string*       _string,
  * @return `true` on success, including when nothing matched, or `false` if an
  *         argument is `NULL`, `_old` is empty, or allocation failed.
  */
-bool             d_string_replace_all_cstr(struct d_string* _string,
-                                           const char*      _old,
-                                           const char*      _new);
+bool d_string_replace_all_cstr(
+    struct dj_string* _string,
+    const char*       _old,
+    const char*       _new
+);
 /**
  * @brief Replaces every occurrence of one character with another.
  *
@@ -1354,9 +1542,11 @@ bool             d_string_replace_all_cstr(struct d_string* _string,
  * @param[in]     _new_char  replacement character.
  * @return `true` on success, or `false` if `_string` is `NULL`.
  */
-bool             d_string_replace_char(struct d_string* _string,
-                                       char             _old_char,
-                                       char             _new_char);
+bool d_string_replace_char(
+    struct dj_string* _string,
+    char              _old_char,
+    char              _new_char
+);
 
 
 //==============================================================================
@@ -1374,14 +1564,18 @@ bool             d_string_replace_char(struct d_string* _string,
  * @param[in,out] _string  the string to convert.
  * @return `true` on success, or `false` if `_string` or its text is `NULL`.
  */
-bool             d_string_to_lower(struct d_string* _string);
+bool d_string_to_lower(
+    struct dj_string* _string
+);
 /**
  * @brief Converts a string to uppercase in place (`_strupr` equivalent).
  *
  * @param[in,out] _string  the string to convert.
  * @return `true` on success, or `false` if `_string` or its text is `NULL`.
  */
-bool             d_string_to_upper(struct d_string* _string);
+bool d_string_to_upper(
+    struct dj_string* _string
+);
 /**
  * @brief Returns a lowercase copy of a string.
  *
@@ -1391,7 +1585,9 @@ bool             d_string_to_upper(struct d_string* _string);
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_lower(const struct d_string* _string);
+struct dj_string* d_string_lower(
+    const struct dj_string* _string
+);
 /**
  * @brief Returns an uppercase copy of a string.
  *
@@ -1401,7 +1597,9 @@ struct d_string* d_string_lower(const struct d_string* _string);
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_upper(const struct d_string* _string);
+struct dj_string* d_string_upper(
+    const struct dj_string* _string
+);
 
 // 8.2    Reversal
 //------------------------------------------------------------------------------
@@ -1411,7 +1609,9 @@ struct d_string* d_string_upper(const struct d_string* _string);
  * @param[in,out] _string  the string to reverse.
  * @return `true` on success, or `false` if `_string` or its text is `NULL`.
  */
-bool             d_string_reverse(struct d_string* _string);
+bool d_string_reverse(
+    struct dj_string* _string
+);
 /**
  * @brief Returns a reversed copy of a string.
  *
@@ -1421,7 +1621,9 @@ bool             d_string_reverse(struct d_string* _string);
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_reversed(const struct d_string* _string);
+struct dj_string* d_string_reversed(
+    const struct dj_string* _string
+);
 
 // 8.3    Trimming
 //------------------------------------------------------------------------------
@@ -1434,7 +1636,9 @@ struct d_string* d_string_reversed(const struct d_string* _string);
  * @param[in,out] _string  the string to trim.
  * @return `true` on success, or `false` if `_string` is `NULL`.
  */
-bool             d_string_trim(struct d_string* _string);
+bool d_string_trim(
+    struct dj_string* _string
+);
 /**
  * @brief Removes leading whitespace in place.
  *
@@ -1444,7 +1648,9 @@ bool             d_string_trim(struct d_string* _string);
  * @param[in,out] _string  the string to trim.
  * @return `true` on success, or `false` if `_string` is `NULL`.
  */
-bool             d_string_trim_left(struct d_string* _string);
+bool d_string_trim_left(
+    struct dj_string* _string
+);
 /**
  * @brief Removes trailing whitespace in place.
  *
@@ -1454,7 +1660,9 @@ bool             d_string_trim_left(struct d_string* _string);
  * @param[in,out] _string  the string to trim.
  * @return `true` on success, or `false` if `_string` is `NULL`.
  */
-bool             d_string_trim_right(struct d_string* _string);
+bool d_string_trim_right(
+    struct dj_string* _string
+);
 /**
  * @brief Removes leading and trailing characters drawn from `_chars`, in place.
  *
@@ -1462,8 +1670,10 @@ bool             d_string_trim_right(struct d_string* _string);
  * @param[in]     _chars   characters to trim.
  * @return `true` on success, or `false` if either argument is `NULL`.
  */
-bool             d_string_trim_chars(struct d_string* _string,
-                                     const char*      _chars);
+bool d_string_trim_chars(
+    struct dj_string* _string,
+    const char*       _chars
+);
 /**
  * @brief Returns a copy with leading and trailing whitespace removed.
  *
@@ -1476,7 +1686,9 @@ bool             d_string_trim_chars(struct d_string* _string,
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_trimmed(const struct d_string* _string);
+struct dj_string* d_string_trimmed(
+    const struct dj_string* _string
+);
 /**
  * @brief Returns a copy with leading whitespace removed.
  *
@@ -1489,7 +1701,9 @@ struct d_string* d_string_trimmed(const struct d_string* _string);
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_trimmed_left(const struct d_string* _string);
+struct dj_string* d_string_trimmed_left(
+    const struct dj_string* _string
+);
 /**
  * @brief Returns a copy with trailing whitespace removed.
  *
@@ -1502,7 +1716,9 @@ struct d_string* d_string_trimmed_left(const struct d_string* _string);
  * @return the new string, or `NULL` if `_string` is `NULL` or allocation
  *         failed.
  */
-struct d_string* d_string_trimmed_right(const struct d_string* _string);
+struct dj_string* d_string_trimmed_right(
+    const struct dj_string* _string
+);
 
 // 8.4    Tokenization
 //------------------------------------------------------------------------------
@@ -1524,9 +1740,11 @@ struct d_string* d_string_trimmed_right(const struct d_string* _string);
  * @return the next token, or `NULL` when there are no more tokens or `_delim`
  *         or `_saveptr` is `NULL`.
  */
-char*            d_string_tokenize(struct d_string* _string,
-                                   const char*      _delim,
-                                   char**           _saveptr);
+char* d_string_tokenize(
+    struct dj_string* _string,
+    const char*       _delim,
+    char**            _saveptr
+);
 /**
  * @brief Splits a string into newly allocated tokens.
  *
@@ -1542,9 +1760,11 @@ char*            d_string_tokenize(struct d_string* _string,
  * @return the number of tokens stored in `*_tokens`, or `0` if there are none
  *         or the split failed.
  */
-size_t           d_string_split(const struct d_string* _string,
-                                const char*            _delim,
-                                struct d_string***     _tokens);
+size_t d_string_split(
+    const struct dj_string* _string,
+    const char*             _delim,
+    struct dj_string***     _tokens
+);
 /**
  * @brief Frees a token array produced by d_string_split().
  *
@@ -1552,8 +1772,10 @@ size_t           d_string_split(const struct d_string* _string,
  * @param[in] _count   number of tokens in array.
  * @post   `_tokens` and every string in it are invalid.
  */
-void             d_string_split_free(struct d_string** _tokens,
-                                     size_t            _count);
+void d_string_split_free(
+    struct dj_string** _tokens,
+    size_t             _count
+);
 
 // 8.5    Joining
 //------------------------------------------------------------------------------
@@ -1571,9 +1793,11 @@ void             d_string_split_free(struct d_string** _tokens,
  * @return the joined string, or `NULL` if `_strings` or `_delimiter` is `NULL`
  *         or allocation failed; a `_count` of `0` yields an empty string.
  */
-struct d_string* d_string_join(const struct d_string* const* _strings,
-                               size_t                        _count,
-                               const char*                   _delimiter);
+struct dj_string* d_string_join(
+    const struct dj_string* const* _strings,
+    size_t                         _count,
+    const char*                    _delimiter
+);
 /**
  * @brief Joins an array of C strings with a delimiter.
  *
@@ -1588,21 +1812,25 @@ struct d_string* d_string_join(const struct d_string* const* _strings,
  * @return the joined string, or `NULL` if `_strings` or `_delimiter` is `NULL`
  *         or allocation failed; a `_count` of `0` yields an empty string.
  */
-struct d_string* d_string_join_cstr(const char* const* _strings,
-                                    size_t             _count,
-                                    const char*        _delimiter);
+struct dj_string* d_string_join_cstr(
+    const char* const* _strings,
+    size_t             _count,
+    const char*        _delimiter
+);
 /**
  * @brief Concatenates a list of strings.
  *
  * @param[in] _count  number of strings to concatenate.
- * @param[in] ...     `_count` `const struct d_string*` arguments.
+ * @param[in] ...     `_count` `const struct dj_string*` arguments.
  * @post   on success the caller owns the result and releases it with
  *         d_string_free().
  * @return the concatenated string, or `NULL` if any argument is `NULL` or
  *         allocation failed; a `_count` of `0` yields an empty string.
  */
-struct d_string* d_string_concat(size_t _count,
-                                 ...);
+struct dj_string* d_string_concat(
+    size_t _count,
+    ...
+);
 
 
 //==============================================================================
@@ -1620,7 +1848,9 @@ struct d_string* d_string_concat(size_t _count,
  *         '\0' before `size`, and a terminator sits at `size`; `false`
  *         otherwise.
  */
-bool             d_string_is_valid(const struct d_string* _string);
+bool d_string_is_valid(
+    const struct dj_string* _string
+);
 /**
  * @brief Tests whether every character is 7-bit ASCII.
  *
@@ -1628,7 +1858,9 @@ bool             d_string_is_valid(const struct d_string* _string);
  * @return `true` if every character is below 0x80, including for an empty
  *         string; `false` otherwise or if `_string` is `NULL`.
  */
-bool             d_string_is_ascii(const struct d_string* _string);
+bool d_string_is_ascii(
+    const struct dj_string* _string
+);
 /**
  * @brief Tests whether every character is a decimal digit.
  *
@@ -1636,7 +1868,9 @@ bool             d_string_is_ascii(const struct d_string* _string);
  * @return `true` if the string is non-empty and every character is a digit;
  *         `false` otherwise or if `_string` is `NULL`.
  */
-bool             d_string_is_numeric(const struct d_string* _string);
+bool d_string_is_numeric(
+    const struct dj_string* _string
+);
 /**
  * @brief Tests whether every character is alphabetic.
  *
@@ -1644,7 +1878,9 @@ bool             d_string_is_numeric(const struct d_string* _string);
  * @return `true` if the string is non-empty and every character is alphabetic;
  *         `false` otherwise or if `_string` is `NULL`.
  */
-bool             d_string_is_alpha(const struct d_string* _string);
+bool d_string_is_alpha(
+    const struct dj_string* _string
+);
 /**
  * @brief Tests whether every character is alphanumeric.
  *
@@ -1652,7 +1888,9 @@ bool             d_string_is_alpha(const struct d_string* _string);
  * @return `true` if the string is non-empty and every character is
  *         alphanumeric; `false` otherwise or if `_string` is `NULL`.
  */
-bool             d_string_is_alnum(const struct d_string* _string);
+bool d_string_is_alnum(
+    const struct dj_string* _string
+);
 /**
  * @brief Tests whether every character is whitespace.
  *
@@ -1660,7 +1898,9 @@ bool             d_string_is_alnum(const struct d_string* _string);
  * @return `true` if the string is non-empty and every character is whitespace;
  *         `false` otherwise or if `_string` is `NULL`.
  */
-bool             d_string_is_whitespace(const struct d_string* _string);
+bool d_string_is_whitespace(
+    const struct dj_string* _string
+);
 
 // 9.2    Counting and hashing
 //------------------------------------------------------------------------------
@@ -1671,8 +1911,10 @@ bool             d_string_is_whitespace(const struct d_string* _string);
  * @param[in] _c       character to count.
  * @return the number of occurrences, or `0` if `_string` or its text is `NULL`.
  */
-size_t           d_string_count_char(const struct d_string* _string,
-                                     char                   _c);
+size_t d_string_count_char(
+    const struct dj_string* _string,
+    char                    _c
+);
 /**
  * @brief Counts non-overlapping occurrences of a C string.
  *
@@ -1681,15 +1923,19 @@ size_t           d_string_count_char(const struct d_string* _string,
  * @return the number of occurrences, or `0` if either argument is `NULL` or
  *         `_substr` is empty.
  */
-size_t           d_string_count_substr(const struct d_string* _string,
-                                       const char*            _substr);
+size_t d_string_count_substr(
+    const struct dj_string* _string,
+    const char*             _substr
+);
 /**
  * @brief Hashes a string with djb2.
  *
  * @param[in] _string  the string to hash.
  * @return the hash, or `0` if `_string` or its text is `NULL`.
  */
-size_t           d_string_hash(const struct d_string* _string);
+size_t d_string_hash(
+    const struct dj_string* _string
+);
 
 // 9.3    Error strings
 //------------------------------------------------------------------------------
@@ -1702,7 +1948,9 @@ size_t           d_string_hash(const struct d_string* _string);
  * @return the description, "Unknown error" if none is available, or `NULL` if
  *         allocation failed.
  */
-struct d_string* d_string_error(int _errnum);
+struct dj_string* d_string_error(
+    int _errnum
+);
 /**
  * @brief Describes an error number into an existing string (`strerror_r`
  *        equivalent).
@@ -1714,8 +1962,10 @@ struct d_string* d_string_error(int _errnum);
  * @return `0` on success, `EINVAL` if `_string` is `NULL` or storing the text
  *         failed, or the nonzero code d_strerror_r() reported.
  */
-int              d_string_error_r(int              _errnum,
-                                  struct d_string* _string);
+int d_string_error_r(
+    int               _errnum,
+    struct dj_string* _string
+);
 
 // 9.4    Formatted strings
 //------------------------------------------------------------------------------
@@ -1729,8 +1979,10 @@ int              d_string_error_r(int              _errnum,
  * @return the new string, or `NULL` if `_format` is `NULL`, formatting fails,
  *         or allocation fails.
  */
-struct d_string* d_string_printf(const char* _format,
-                                 ...);
+struct dj_string* d_string_printf(
+    const char* _format,
+    ...
+);
 /**
  * @brief Creates a string from printf-style formatting and a `va_list`.
  *
@@ -1744,8 +1996,10 @@ struct d_string* d_string_printf(const char* _format,
  * @return the new string, or `NULL` if `_format` is `NULL`, formatting fails,
  *         or allocation fails.
  */
-struct d_string* d_string_vprintf(const char* _format,
-                                  va_list     _args);
+struct dj_string* d_string_vprintf(
+    const char* _format,
+    va_list     _args
+);
 /**
  * @brief Replaces a string's contents with printf-style formatted text.
  *
@@ -1759,9 +2013,11 @@ struct d_string* d_string_vprintf(const char* _format,
  * @return the number of characters written, or `-1` if either pointer is
  *         `NULL`, formatting fails, or allocation fails.
  */
-int              d_string_sprintf(struct d_string* _string,
-                                  const char*      _format,
-                                  ...);
+int d_string_sprintf(
+    struct dj_string* _string,
+    const char*       _format,
+    ...
+);
 
 
 D_EXTERN_C_END

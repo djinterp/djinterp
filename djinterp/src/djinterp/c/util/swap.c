@@ -14,7 +14,7 @@
 // std
 #include <string.h>
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 
 // D_INTERNAL_SWAP_BLOCK
@@ -42,9 +42,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_memswap
-(
+void d_memswap(
     void*  _first,
     void*  _second,
     size_t _size

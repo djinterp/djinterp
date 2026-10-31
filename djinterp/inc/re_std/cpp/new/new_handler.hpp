@@ -1,0 +1,141 @@
+/*******************************************************************************
+* djinterp [re_std]                                              new_handler.hpp
+*
+* new_handler facility header:
+*   The new-handler is the function called by operator new when
+* allocation fails (before it throws bad_alloc). User code installs
+* a handler via set_new_handler; the handler typically tries to
+* free memory, retries the allocation, or terminates.
+*
+*   STRATEGY:
+*     re_std::new_handler        - typedef for std::new_handler.
+*     re_std::set_new_handler    - pass-through to std::set_new_handler;
+*                                 C++98+.
+*     re_std::get_new_handler    - C++11+ in std. Back-ported to C++98
+*                                 via a wrapper that remembers the
+*                                 last value passed to set_new_handler.
+*
+*   PORTABILITY NOTE FOR C++98 BACK-PORT:
+*   The C++98 back-port of get_new_handler is not thread-safe — it
+* uses a single global to remember the last set value. Pre-C++11 std
+* itself isn't thread-aware so this matches the era's idioms; on
+* C++11+ the std::get_new_handler is properly atomic and we defer
+* to it.
+*
+*
+* path:      /inc/re_std/cpp/new/new_handler.hpp
+* link(s):   TBA
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+
+#ifndef RE_STD_NEW_NEW_HANDLER_HPP
+#define RE_STD_NEW_NEW_HANDLER_HPP 1
+
+// std
+#include <new>
+// re_std
+#include "../../config.hpp"  // RE_STD_* configuration
+
+
+namespace re_std
+{
+
+
+// ===========================================================================
+// I.   NEW_HANDLER TYPEDEF
+// ===========================================================================
+
+// new_handler
+//   typedef: pointer to a no-argument, no-return function.
+typedef std::new_handler new_handler;
+
+
+// ===========================================================================
+// II.  C++98 STORAGE HELPER (back-port for get_new_handler)
+// ===========================================================================
+
+#if !RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+namespace internal
+{
+
+    // Single global that mirrors the value last passed to set_new_handler.
+    // Function-local static = zero-init at first use, no order-of-init
+    // issues. NOT thread-safe — pre-C++11 std isn't thread-aware so this
+    // matches the era's overall idioms.
+    inline new_handler&
+    _last_set_handler()
+    {
+        static new_handler _h = RE_STD_NULLPTR;
+        return _h;
+    }
+
+}  // internal
+
+#endif
+
+
+// ===========================================================================
+// III. SET_NEW_HANDLER
+// ===========================================================================
+
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// C++11+: std::set_new_handler is noexcept. Pass through directly.
+inline new_handler
+set_new_handler(
+    new_handler _h
+) RE_STD_NOEXCEPT
+{
+    return std::set_new_handler(_h);
+}
+
+#else
+
+// C++98: std::set_new_handler is throw(). Wrap to also update our
+// storage shadow so get_new_handler can return the current value.
+inline new_handler
+set_new_handler(
+    new_handler _h
+) throw()
+{
+    new_handler _prev = std::set_new_handler(_h);
+    internal::_last_set_handler() = _h;
+    return _prev;
+}
+
+#endif
+
+
+// ===========================================================================
+// IV.  GET_NEW_HANDLER
+// ===========================================================================
+
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// C++11+: pass through to std.
+inline new_handler
+get_new_handler() RE_STD_NOEXCEPT
+{
+    return std::get_new_handler();
+}
+
+#else
+
+// C++98 back-port: returns the last value passed to re_std::set_new_handler.
+// Caveat: if user code calls std::set_new_handler directly (instead of
+// re_std::set_new_handler), the back-port will not see the update.
+inline new_handler
+get_new_handler() throw()
+{
+    return internal::_last_set_handler();
+}
+
+#endif
+
+
+}  // re_std
+
+
+#endif  // RE_STD_NEW_NEW_HANDLER_HPP

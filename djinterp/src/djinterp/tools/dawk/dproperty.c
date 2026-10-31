@@ -26,11 +26,11 @@ d_internal_ancestor_attribute
 carries it.  A derivation names a fact, not a place: top-level-dir() should
 not have to know that `top` lives on the file node three levels up.
 */
-static const char*
-d_internal_ancestor_attribute(
-    struct d_node_tree* _tree,
-    uint32_t            _node_index,
-    const char*         _name
+static
+const char* d_internal_ancestor_attribute(
+    struct dj_node_tree* _tree,
+    uint32_t             _node_index,
+    const char*          _name
 )
 {
     const uint32_t wanted = d_node_find_id(_tree, _name);
@@ -44,7 +44,7 @@ d_internal_ancestor_attribute(
 
     while (at != D_DSS_NO_INDEX)
     {
-        const struct d_node* const node = d_node_at(_tree, at);
+        const struct dj_node* const node = d_node_at(_tree, at);
 
         if (!node)
         {
@@ -53,7 +53,7 @@ d_internal_ancestor_attribute(
 
         for (uint32_t which = 0; which < node->attribute_count; ++which)
         {
-            const struct d_node_attribute* const attribute =
+            const struct dj_node_attribute* const attribute =
                 d_node_attribute_at(_tree, node->first_attribute + which);
 
             if ((attribute) && (attribute->name == wanted))
@@ -77,16 +77,16 @@ what makes @table more than decoration: a derivation reads the guide's own
 data out of the sheet rather than carrying a copy compiled into C, so the
 table has exactly one home and the sheet is the whole specification.
 */
-static const char*
-d_internal_table_lookup(
-    const struct d_dss_sheet* _sheet,
-    const char*               _table,
-    const char*               _key
+static
+const char* d_internal_table_lookup(
+    const struct dj_dss_sheet* _sheet,
+    const char*                _table,
+    const char*                _key
 )
 {
     for (size_t at = 0; at < d_dss_at_rule_count(_sheet); ++at)
     {
-        const struct d_dss_at_rule* const rule = d_dss_at_rule_at(_sheet, at);
+        const struct dj_dss_at_rule* const rule = d_dss_at_rule_at(_sheet, at);
 
         if ((!rule) || (!rule->has_block))
         {
@@ -106,7 +106,7 @@ d_internal_table_lookup(
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const row =
+            const struct dj_dss_declaration* const row =
                 d_dss_declaration_at(_sheet,
                                      rule->first_declaration + which);
 
@@ -121,7 +121,7 @@ d_internal_table_lookup(
                 return "";
             }
 
-            const struct d_dss_value* const value =
+            const struct dj_dss_value* const value =
                 d_dss_value_at(_sheet, row->first_value);
 
             if (!value)
@@ -146,12 +146,12 @@ top-level directory, every remaining directory segment, the file stem, and
 _H or _HPP.  Every run of characters that is not alphanumeric collapses to a
 single underscore.
 */
-static bool
-d_internal_guard_name(
-    const struct d_dss_sheet* _sheet,
-    const char*               _path,
-    char*                     _out,
-    size_t                    _out_size
+static
+bool d_internal_guard_name(
+    const struct dj_dss_sheet* _sheet,
+    const char*                _path,
+    char*                      _out,
+    size_t                     _out_size
 )
 {
     const char* const first = strchr(_path, '/');
@@ -259,15 +259,15 @@ d_internal_format_of
   Returns the pattern string of a `format:` declaration's function argument --
 the "YYYY.MM.DD" in `format: date("YYYY.MM.DD")` -- or NULL.
 */
-static const char*
-d_internal_format_of(
-    const struct d_dss_sheet*       _sheet,
-    const struct d_dss_declaration* _declaration
+static
+const char* d_internal_format_of(
+    const struct dj_dss_sheet*       _sheet,
+    const struct dj_dss_declaration* _declaration
 )
 {
     for (uint32_t at = 0; at < _declaration->value_count; ++at)
     {
-        const struct d_dss_value* const value =
+        const struct dj_dss_value* const value =
             d_dss_value_at(_sheet, _declaration->first_value + at);
 
         if ((!value) || (value->kind != D_DSS_VALUE_FUNCTION))
@@ -277,7 +277,7 @@ d_internal_format_of(
 
         for (uint32_t arg = 0; arg < value->arg_count; ++arg)
         {
-            const struct d_dss_value* const argument =
+            const struct dj_dss_value* const argument =
                 d_dss_value_at(_sheet, value->first_arg + arg);
 
             if ((argument) && (argument->kind == D_DSS_VALUE_STRING))
@@ -298,8 +298,8 @@ pattern, Y, M and D each stand for one decimal digit and every other
 character stands for itself.  A date is the only format the guide needs, and
 this is the smallest notation that states one without becoming a regex.
 */
-static bool
-d_internal_format_matches_at(
+static
+bool d_internal_format_matches_at(
     const char* _text,
     size_t      _at,
     const char* _pattern
@@ -341,19 +341,18 @@ alongside something else -- `date: 2026.03.25` under a `created:` label --
 keeps the date and loses the rest.  It is derivable without a human, which is
 the test every repair has to pass, and it fails closed: no match, no repair.
 */
-bool
-d_property_format_extract(
-    const struct d_dss_sheet*       _sheet,
-    struct d_node_tree*             _tree,
-    uint32_t                        _node,
-    const struct d_dss_declaration* _declaration,
-    char*                           _out,
-    size_t                          _out_size
+bool d_property_format_extract(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node,
+    const struct dj_dss_declaration* _declaration,
+    char*                            _out,
+    size_t                           _out_size
 )
 {
     const char* const pattern = d_internal_format_of(_sheet, _declaration);
 
-    struct d_node* const node = d_node_at(_tree, _node);
+    struct dj_node* const node = d_node_at(_tree, _node);
 
     if ((!pattern) || (!node))
     {
@@ -391,21 +390,20 @@ derivation that needs a source this build does not have -- commit history,
 for instance -- returns false, and the property is reported as unevaluated
 rather than silently passing.
 */
-bool
-d_property_derive(
-    const struct d_dss_sheet*       _sheet,
-    struct d_node_tree*             _tree,
-    uint32_t                        _node_index,
-    const struct d_dss_declaration* _declaration,
-    char*                           _out,
-    size_t                          _out_size
+bool d_property_derive(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node_index,
+    const struct dj_dss_declaration* _declaration,
+    char*                            _out,
+    size_t                           _out_size
 )
 {
-    const struct d_dss_value* function = NULL;
+    const struct dj_dss_value* function = NULL;
 
     for (uint32_t at = 0; at < _declaration->value_count; ++at)
     {
-        const struct d_dss_value* const value =
+        const struct dj_dss_value* const value =
             d_dss_value_at(_sheet, _declaration->first_value + at);
 
         if ((value) && (value->kind == D_DSS_VALUE_FUNCTION))
@@ -561,15 +559,14 @@ d_property_number
 declaration carries none.  A property whose value is not a number is simply
 not a geometry property and is skipped by the geometry evaluator.
 */
-double
-d_property_number(
-    const struct d_dss_sheet*       _sheet,
-    const struct d_dss_declaration* _declaration
+double d_property_number(
+    const struct dj_dss_sheet*       _sheet,
+    const struct dj_dss_declaration* _declaration
 )
 {
     for (uint32_t at = 0; at < _declaration->value_count; ++at)
     {
-        const struct d_dss_value* const value =
+        const struct dj_dss_value* const value =
             d_dss_value_at(_sheet, _declaration->first_value + at);
 
         if ((value) && (value->kind == D_DSS_VALUE_NUMBER))
@@ -592,18 +589,17 @@ present node it is applied to.  Modifiers -- severity, initial, immutable --
 are not claims about a node and report as unevaluated, as does a property
 whose derivation source is missing, rather than silently passing.
 */
-bool
-d_property_evaluate(
-    const struct d_dss_sheet*       _sheet,
-    struct d_node_tree*             _tree,
-    uint32_t                        _node_index,
-    const struct d_dss_declaration* _declaration,
-    bool*                           _out_evaluated
+bool d_property_evaluate(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node_index,
+    const struct dj_dss_declaration* _declaration,
+    bool*                            _out_evaluated
 )
 {
     const char* const property = d_dss_text(_sheet, _declaration->property);
 
-    struct d_node* const node = d_node_at(_tree, _node_index);
+    struct dj_node* const node = d_node_at(_tree, _node_index);
 
     *_out_evaluated = true;
 
@@ -677,7 +673,7 @@ d_property_evaluate(
     // the table reads; on their own they assert nothing and do not evaluate.
     if (strcmp(property, "display") == 0)
     {
-        const struct d_dss_value* const value =
+        const struct dj_dss_value* const value =
             d_dss_value_at(_sheet, _declaration->first_value);
 
         if ( (value) && (value->text != D_DSS_NO_INDEX) &&
@@ -733,19 +729,18 @@ returns false when no repair is derivable.  A repair exists only where the
 expected value is computable without asking a human; everything else is
 reported and left alone.
 */
-bool
-d_property_repair(
-    struct d_node_tree* _tree,
-    uint32_t            _node_index,
-    const char*         _property,
-    double              _want,
-    const char*         _line_text,
-    const char*         _derived,
-    char*               _out,
-    size_t              _out_size
+bool d_property_repair(
+    struct dj_node_tree* _tree,
+    uint32_t             _node_index,
+    const char*          _property,
+    double               _want,
+    const char*          _line_text,
+    const char*          _derived,
+    char*                _out,
+    size_t               _out_size
 )
 {
-    struct d_node* const node = d_node_at(_tree, _node_index);
+    struct dj_node* const node = d_node_at(_tree, _node_index);
 
     if (!node)
     {
@@ -952,7 +947,7 @@ d_property_repair(
 // modifiers -- severity, initial, immutable -- and min-gap, which a table
 // layout reads beside its display, go through it too and come back
 // unevaluated, exactly as before the registry.
-static const struct d_schema_property d_internal_lint_properties[] =
+static const struct dj_schema_property d_internal_lint_properties[] =
 {
     { "content",      false, NULL, NULL, d_property_evaluate, NULL },
     { "display",      false, NULL, NULL, d_property_evaluate, NULL },
@@ -969,12 +964,9 @@ static const struct d_schema_property d_internal_lint_properties[] =
 };
 
 
-const struct d_schema*
-d_property_schema(
-    void
-)
+const struct dj_schema* d_property_schema(void)
 {
-    static const struct d_schema schema =
+    static const struct dj_schema schema =
     {
         d_internal_lint_properties,
         sizeof(d_internal_lint_properties) /

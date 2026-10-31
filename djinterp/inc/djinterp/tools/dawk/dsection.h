@@ -25,7 +25,7 @@
 // std
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
+#include "./dnode.h"  // dj_node_tree
 
 
 //==============================================================================
@@ -35,15 +35,19 @@
 
 // 1.1    Construction
 //------------------------------------------------------------------------------
-uint32_t d_section_build(struct d_node_tree* _tree,
-                         uint32_t            _file,
-                         const char*         _path);
+uint32_t d_section_build(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path
+);
 // d_section_build_marked reads delimiters whose comment opens with
 // `_comment` -- "//" as d_section_build reads them, "#" in a CMake file
-uint32_t d_section_build_marked(struct d_node_tree* _tree,
-                                uint32_t            _file,
-                                const char*         _path,
-                                const char*         _comment);
+uint32_t d_section_build_marked(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path,
+    const char*          _comment
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DSECTION_H

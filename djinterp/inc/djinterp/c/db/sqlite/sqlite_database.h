@@ -46,7 +46,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../djinterp.h"   // framework root
-#include "../db_common.h"     // d_db_name_list, D_DB_IF_*
+#include "../db_common.h"     // dj_db_name_list, D_DB_IF_*
 #include "./sqlite_common.h"  // sqlite3, the layer's results
 
 
@@ -64,11 +64,15 @@ D_EXTERN_C_BEGIN
 // "main" and "temp" always are. Names match as SQLite matches them, ignoring
 // ASCII case. The plain form answers false for a failure or a bad argument;
 // the _s form returns SQLITE_OK and writes the answer, or SQLITE_MISUSE.
-bool d_sqlite_has_database(struct sqlite3* _db,
-                           const char*     _name) D_NOTHROW;
-int  d_sqlite_has_database_s(struct sqlite3* _db,
-                             const char*     _name,
-                             bool*           _exists) D_NOTHROW;
+bool d_sqlite_has_database(
+    struct sqlite3* _db,
+    const char*     _name
+) D_NOTHROW;
+int d_sqlite_has_database_s(
+    struct sqlite3* _db,
+    const char*     _name,
+    bool*           _exists
+) D_NOTHROW;
 
 // 1.2    Attaching and detaching
 //------------------------------------------------------------------------------
@@ -87,9 +91,11 @@ int  d_sqlite_has_database_s(struct sqlite3* _db,
  *         SQLITE_ERROR for a name already in use, or too many attached --
  *         or SQLITE_MISUSE for a `NULL` argument or an empty name.
  */
-int  d_sqlite_attach_database(struct sqlite3* _db,
-                              const char*     _path,
-                              const char*     _name) D_NOTHROW;
+int d_sqlite_attach_database(
+    struct sqlite3* _db,
+    const char*     _path,
+    const char*     _name
+) D_NOTHROW;
 /**
  * @brief Detaches a database the connection attached.
  *
@@ -100,8 +106,10 @@ int  d_sqlite_attach_database(struct sqlite3* _db,
  *         when no such database is attached, or it is in use -- or
  *         SQLITE_MISUSE for a `NULL` argument or an empty name.
  */
-int  d_sqlite_detach_database(struct sqlite3* _db,
-                              const char*     _name) D_NOTHROW;
+int d_sqlite_detach_database(
+    struct sqlite3* _db,
+    const char*     _name
+) D_NOTHROW;
 
 // 1.3    Listing
 //------------------------------------------------------------------------------
@@ -116,8 +124,10 @@ int  d_sqlite_detach_database(struct sqlite3* _db,
  *         argument.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int  d_sqlite_list_databases(struct sqlite3*        _db,
-                             struct d_db_name_list* _names) D_NOTHROW;
+int d_sqlite_list_databases(
+    struct sqlite3*         _db,
+    struct dj_db_name_list* _names
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -142,8 +152,10 @@ int  d_sqlite_list_databases(struct sqlite3*        _db,
  *         `NULL` or empty path or an unknown flag.
  * @post On success `_path` holds a database a later open finds valid.
  */
-int  d_sqlite_create_database_file(const char* _path,
-                                   unsigned    _flags) D_NOTHROW;
+int d_sqlite_create_database_file(
+    const char* _path,
+    unsigned    _flags
+) D_NOTHROW;
 /**
  * @brief Deletes a database file, and the -journal, -wal and -shm files
  *        SQLite may have left beside it.
@@ -161,8 +173,10 @@ int  d_sqlite_create_database_file(const char* _path,
  *         an unknown flag.
  * @post On success neither the file nor any of the three beside it exists.
  */
-int  d_sqlite_delete_database_file(const char* _path,
-                                   unsigned    _flags) D_NOTHROW;
+int d_sqlite_delete_database_file(
+    const char* _path,
+    unsigned    _flags
+) D_NOTHROW;
 
 // 2.2    Recognising
 //------------------------------------------------------------------------------
@@ -170,7 +184,9 @@ int  d_sqlite_delete_database_file(const char* _path,
 // database, an empty file included (SQLite treats one as an empty database);
 // false for a missing file, anything else, or an encrypted database whose key
 // is not given
-bool d_sqlite_is_database_file(const char* _path) D_NOTHROW;
+bool d_sqlite_is_database_file(
+    const char* _path
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -209,10 +225,12 @@ bool d_sqlite_is_database_file(const char* _path) D_NOTHROW;
  *         layer's build has no sqlite3_serialize; SQLITE_MISUSE for a `NULL`
  *         connection or out-parameter, or an empty name.
  */
-int  d_sqlite_serialize(struct sqlite3* _db,
-                        const char*     _schema,
-                        void**          _bytes,
-                        size_t*         _size) D_NOTHROW;
+int d_sqlite_serialize(
+    struct sqlite3* _db,
+    const char*     _schema,
+    void**          _bytes,
+    size_t*         _size
+) D_NOTHROW;
 
 // 3.2    Deserializing
 //------------------------------------------------------------------------------
@@ -242,11 +260,13 @@ int  d_sqlite_serialize(struct sqlite3* _db,
  *         SQLITE_MISUSE for a `NULL` connection, `NULL` bytes of a size, or
  *         an empty name.
  */
-int  d_sqlite_deserialize(struct sqlite3* _db,
-                          const char*     _schema,
-                          const void*     _bytes,
-                          size_t          _size,
-                          bool            _read_only) D_NOTHROW;
+int d_sqlite_deserialize(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const void*     _bytes,
+    size_t          _size,
+    bool            _read_only
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

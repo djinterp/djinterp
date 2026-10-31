@@ -13,7 +13,7 @@
 
 // djinterp
 #include "./array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,14 +23,12 @@ d_tests_sa_array_null_parameter_safety
   - all creation functions reject NULL where appropriate
   - all manipulation functions reject NULL arrays
 */
-bool
-d_tests_sa_array_null_parameter_safety
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_null_parameter_safety(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             value = 42;
 
     printf("Testing NULL parameter safety...\n");
@@ -85,15 +83,13 @@ d_tests_sa_array_zero_element_size_safety
   - all creation functions reject zero element size
   - all manipulation functions reject zero element size
 */
-bool
-d_tests_sa_array_zero_element_size_safety
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_zero_element_size_safety(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
-    struct d_array* test_arr;
+    struct dj_array* arr;
+    struct dj_array* test_arr;
     int             data[] = { 1, 2, 3, 4, 5 };
     int             value = 42;
 
@@ -162,15 +158,13 @@ d_tests_sa_array_negative_indexing
   - copy_range with negative indices
   - slice with negative indices
 */
-bool
-d_tests_sa_array_negative_indexing
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_negative_indexing(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
-    struct d_array* source;
+    struct dj_array* arr;
+    struct dj_array* source;
     int             data[] = { 1, 2, 3, 4, 5 };
     int*            int_elements;
 
@@ -238,14 +232,12 @@ d_tests_sa_array_large_data_sets
   - creating large arrays
   - operations on large arrays
 */
-bool
-d_tests_sa_array_large_data_sets
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_large_data_sets(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     const size_t    large_size = 10000;
     int             fill_value = 42;
     int*            int_elements;
@@ -300,10 +292,8 @@ d_tests_sa_array_large_data_sets
 d_tests_sa_array_run_integration_tests
   Runs all integration and edge case tests.
 */
-bool
-d_tests_sa_array_run_integration_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_run_integration_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result = true;

@@ -9,13 +9,12 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // helper comparator for int values
-static int
-int_comparator
-(
+static
+int int_comparator(
     const void* _a,
     const void* _b
 )
@@ -36,14 +35,12 @@ d_tests_sa_vector_find
   - value not found returns -1
   - value found returns correct index
 */
-bool
-d_tests_sa_vector_find
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_find(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              search_val;
     ssize_t          idx;
 
@@ -103,14 +100,12 @@ d_tests_sa_vector_find_last
   - NULL comparator returns -1
   - returns last occurrence index
 */
-bool
-d_tests_sa_vector_find_last
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_find_last(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              search_val;
     ssize_t          idx;
 
@@ -162,14 +157,12 @@ d_tests_sa_vector_contains
   - value found returns true
   - value not found returns false
 */
-bool
-d_tests_sa_vector_contains
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_contains(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              search_val;
 
     result = true;
@@ -217,14 +210,12 @@ d_tests_sa_vector_count_value
   - NULL comparator returns 0
   - correct count of occurrences
 */
-bool
-d_tests_sa_vector_count_value
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_count_value(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              search_val;
     size_t           count;
 
@@ -280,10 +271,8 @@ d_tests_sa_vector_count_value
 d_tests_sa_vector_search_all
   Aggregation function that runs all search tests.
 */
-bool
-d_tests_sa_vector_search_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_search_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

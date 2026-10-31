@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./circular_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -25,14 +25,12 @@ d_tests_sa_circular_array_push
   - push to full array fails
   - push updates count and tail
 */
-bool
-d_tests_sa_circular_array_push
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_push(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      elem;
 
@@ -114,14 +112,12 @@ d_tests_sa_circular_array_push_front
   - push_front adds to beginning
   - push_front to full array fails
 */
-bool
-d_tests_sa_circular_array_push_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_push_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int*                      elem;
 
@@ -184,14 +180,12 @@ d_tests_sa_circular_array_push_back
   - push_back adds to end
   - same behavior as push
 */
-bool
-d_tests_sa_circular_array_push_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_push_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20};
     int*                      elem;
 
@@ -233,14 +227,12 @@ d_tests_sa_circular_array_push_all
   - push_all partial when not enough space
   - push_all to full array fails
 */
-bool
-d_tests_sa_circular_array_push_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_push_all(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      elem;
 
@@ -319,14 +311,12 @@ d_tests_sa_circular_array_push_all_front
   - push_all_front adds elements to beginning
   - order preserved
 */
-bool
-d_tests_sa_circular_array_push_all_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_push_all_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       initial = 100;
     int                       values[] = {10, 20, 30};
     int*                      elem;
@@ -382,14 +372,12 @@ d_tests_sa_circular_array_pop
   - pop from empty array returns NULL
   - pop updates count and head
 */
-bool
-d_tests_sa_circular_array_pop
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_pop(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int*                      elem;
 
@@ -468,14 +456,12 @@ d_tests_sa_circular_array_pop
 d_tests_sa_circular_array_pop_front
   Tests the d_circular_array_pop_front function (alias for pop).
 */
-bool
-d_tests_sa_circular_array_pop_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_pop_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int*                      elem;
 
@@ -517,14 +503,12 @@ d_tests_sa_circular_array_pop_back
   - pop_back removes last element
   - pop_back from empty returns NULL
 */
-bool
-d_tests_sa_circular_array_pop_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_pop_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int*                      elem;
 
@@ -592,14 +576,12 @@ d_tests_sa_circular_array_pop_to
   - pop_to copies value to output
   - pop_to on empty returns false
 */
-bool
-d_tests_sa_circular_array_pop_to
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_pop_to(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int                       output;
 
@@ -662,14 +644,12 @@ d_tests_sa_circular_array_push_overwrite
   - push_overwrite to non-full array
   - push_overwrite to full array overwrites oldest
 */
-bool
-d_tests_sa_circular_array_push_overwrite
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_push_overwrite(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40};
     int*                      elem;
 
@@ -741,10 +721,8 @@ d_tests_sa_circular_array_push_overwrite
 d_tests_sa_circular_array_modification_all
   Aggregation function that runs all modification tests.
 */
-bool
-d_tests_sa_circular_array_modification_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_modification_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

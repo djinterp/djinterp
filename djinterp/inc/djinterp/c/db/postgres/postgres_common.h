@@ -67,11 +67,11 @@ TABLE OF CONTENTS
     -----
     1.  Connections
          1.  pg_conn
-         2.  d_postgres_statement
+         2.  dj_postgres_statement
          3.  pg_cancel_conn
     2.  Features
-         1.  d_postgres_feature
-         2.  d_postgres_client_feature
+         1.  dj_postgres_feature
+         2.  dj_postgres_client_feature
 2.  FLAGS
     -----
     1.  Vendor flags
@@ -86,7 +86,7 @@ TABLE OF CONTENTS
     1.  SQLSTATE codes
          1.  D_POSTGRES_SQLSTATE
     2.  Conditions the layer documents
-         1.  d_postgres_sqlstate
+         1.  dj_postgres_sqlstate
     3.  Reading results
 4.  LIBRARY
     -------
@@ -128,12 +128,12 @@ D_EXTERN_C_BEGIN
 struct pg_conn;
 
 // 1.1.2
-// d_postgres_statement
+// dj_postgres_statement
 //   struct: a statement prepared on the server, as the layer holds it: its
 // connection, its name there, its parameters' types, and the values bound to
 // them until it next runs. Declared and never defined here;
 // postgres_statement.h's functions take a pointer.
-struct d_postgres_statement;
+struct dj_postgres_statement;
 
 // 1.1.3
 // pg_cancel_conn
@@ -145,10 +145,10 @@ struct pg_cancel_conn;
 // 1.2    Features
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_postgres_feature
+// dj_postgres_feature
 //   enum: capabilities that arrived after the layer's floor, PostgreSQL 10,
 // each with the major release that brought it in brackets.
-enum d_postgres_feature
+enum dj_postgres_feature
 {
     D_POSTGRES_FEATURE_PROCEDURES = 0,        // CREATE PROCEDURE, CALL  [11]
     D_POSTGRES_FEATURE_COVERING_INDEXES,      // CREATE INDEX ... INCLUDE
@@ -178,11 +178,11 @@ enum d_postgres_feature
 };
 
 // 1.2.2
-// d_postgres_client_feature
+// dj_postgres_client_feature
 //   enum: what libpq can do that arrived after the layer's floor, libpq 10,
 // each with the release that brought it in brackets. The layer needs both the
 // header it was compiled against and the library loaded to have it.
-enum d_postgres_client_feature
+enum dj_postgres_client_feature
 {
     D_POSTGRES_CLIENT_PIPELINE = 0,   // pipeline mode                   [14]
     D_POSTGRES_CLIENT_CHUNKED_ROWS,   // results read in chunks of rows  [17]
@@ -267,12 +267,12 @@ enum d_postgres_client_feature
 // 3.2    Conditions the layer documents
 //------------------------------------------------------------------------------
 // 3.2.1
-// d_postgres_sqlstate
+// dj_postgres_sqlstate
 //   enum: the SQLSTATEs the layer's headers name, packed, each named as the
 // PostgreSQL manual's appendix A names its condition. Any other code the
 // server sends arrives packed the same way, and D_POSTGRES_SQLSTATE builds
 // its constant. The functions return int, so that every code fits.
-enum d_postgres_sqlstate
+enum dj_postgres_sqlstate
 {
     // class 08: connection exception -- three of the five codes the layer
     // gives itself (53200, out of memory, and 58030, a client's file, are
@@ -388,9 +388,13 @@ enum d_postgres_sqlstate
 // writes "" and returns false. _result_from_sqlstate packs a five-character
 // SQLSTATE, as libpq's PG_DIAG_SQLSTATE gives it; 0 for "00000", and
 // D_DB_INVALID_ARGUMENT for NULL or text of any other shape.
-bool         d_postgres_result_sqlstate(int  _result,
-                                        char _sqlstate[6]) D_NOTHROW;
-int          d_postgres_result_from_sqlstate(const char* _sqlstate) D_NOTHROW;
+bool d_postgres_result_sqlstate(
+    int  _result,
+    char _sqlstate[6]
+) D_NOTHROW;
+int d_postgres_result_from_sqlstate(
+    const char* _sqlstate
+) D_NOTHROW;
 // result messages -- an English description of a result the layer returns:
 // db_common.h's own words for its values; the layer's own for the five
 // SQLSTATEs it gives itself; the PostgreSQL manual's for the conditions
@@ -398,7 +402,9 @@ int          d_postgres_result_from_sqlstate(const char* _sqlstate) D_NOTHROW;
 // SQLSTATE, the manual's words for its class ("syntax error or access rule
 // violation" for 42P10), since only the connection keeps the message itself
 // (d_postgres_error_message). Never NULL, and never to be freed.
-const char*  d_postgres_result_message(int _result) D_NOTHROW;
+const char* d_postgres_result_message(
+    int _result
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -412,10 +418,11 @@ const char*  d_postgres_result_message(int _result) D_NOTHROW;
 // 16.4), and whether the layer can do what libpq added after 10: the header
 // the layer was compiled against declares it, and the library loaded is of
 // its release or later; 0 and false in a build without libpq, and false for a
-// value outside enum d_postgres_client_feature. Neither can fail.
-int          d_postgres_client_version_number(void) D_NOTHROW;
-bool         d_postgres_client_supports(enum d_postgres_client_feature
-                                            _feature) D_NOTHROW;
+// value outside enum dj_postgres_client_feature. Neither can fail.
+int d_postgres_client_version_number(void) D_NOTHROW;
+bool d_postgres_client_supports(
+    enum dj_postgres_client_feature _feature
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -433,19 +440,26 @@ bool         d_postgres_client_supports(enum d_postgres_client_feature
 // is; its number, as PQserverVersion gives it (160004 for 16.4); and whether
 // it is MAJOR.MINOR or later, PostgreSQL's numbering since 10 having only the
 // two parts (16.4: major 16, minor 4)
-const char*  d_postgres_server_version(const struct pg_conn* _db) D_NOTHROW;
-int          d_postgres_server_version_number(const struct pg_conn* _db)
-                                              D_NOTHROW;
-bool         d_postgres_server_at_least(const struct pg_conn* _db,
-                                        unsigned              _major,
-                                        unsigned              _minor) D_NOTHROW;
+const char* d_postgres_server_version(
+    const struct pg_conn* _db
+) D_NOTHROW;
+int d_postgres_server_version_number(
+    const struct pg_conn* _db
+) D_NOTHROW;
+bool d_postgres_server_at_least(
+    const struct pg_conn* _db,
+    unsigned              _major,
+    unsigned              _minor
+) D_NOTHROW;
 
 // 5.2    Features
 //------------------------------------------------------------------------------
 // features -- whether the server can do it, by its major version; `false` for
-// a value outside enum d_postgres_feature
-bool         d_postgres_supports(const struct pg_conn*   _db,
-                                 enum d_postgres_feature _feature) D_NOTHROW;
+// a value outside enum dj_postgres_feature
+bool d_postgres_supports(
+    const struct pg_conn*    _db,
+    enum dj_postgres_feature _feature
+) D_NOTHROW;
 
 // 5.3    Reported parameters
 //------------------------------------------------------------------------------
@@ -457,9 +471,10 @@ bool         d_postgres_supports(const struct pg_conn*   _db,
 // application_name, and from 14 default_transaction_read_only and
 // in_hot_standby. libpq's copy, valid until the setting next changes; NULL
 // for a setting the server does not report, or a NULL argument
-const char*  d_postgres_parameter_status(const struct pg_conn* _db,
-                                         const char*           _name)
-                                         D_NOTHROW;
+const char* d_postgres_parameter_status(
+    const struct pg_conn* _db,
+    const char*           _name
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -473,7 +488,9 @@ const char*  d_postgres_parameter_status(const struct pg_conn* _db,
 // PQerrorMessage gives it ("ERROR:  relation \"t\" does not exist\n...");
 // "" for none, or for NULL. A result of the layer's own, negative, leaves it
 // as it was. libpq's buffer, valid until the next call on the connection.
-const char*  d_postgres_error_message(const struct pg_conn* _db) D_NOTHROW;
+const char* d_postgres_error_message(
+    const struct pg_conn* _db
+) D_NOTHROW;
 /**
  * @brief Says whether a result is the layer's own: given before anything was
  *        sent on the connection, which then says nothing about it.
@@ -497,9 +514,10 @@ const char*  d_postgres_error_message(const struct pg_conn* _db) D_NOTHROW;
  * @return `true` for every negative result, for 53200, and for a result of
  *         the other six codes the layer gave on its own; `false` otherwise.
  */
-bool         d_postgres_result_is_own(const struct pg_conn* _db,
-                                      int                   _result)
-                                      D_NOTHROW;
+bool d_postgres_result_is_own(
+    const struct pg_conn* _db,
+    int                   _result
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

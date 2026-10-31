@@ -26,9 +26,9 @@ TABLE OF CONTENTS
 1.  VALUES
     ------
     1.  Enumerated settings
-         1.  d_mariadb_isolation
+         1.  dj_mariadb_isolation
     2.  Session state
-         1.  d_mariadb_track
+         1.  dj_mariadb_track
 2.  TRANSACTION SETTINGS
     --------------------
     1.  Autocommit
@@ -52,7 +52,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../djinterp.h"    // framework root
-#include "./mariadb_common.h"  // d_mariadb, the layer's results
+#include "./mariadb_common.h"  // dj_mariadb, the layer's results
 
 
 D_EXTERN_C_BEGIN
@@ -66,9 +66,9 @@ D_EXTERN_C_BEGIN
 // 1.1    Enumerated settings
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_mariadb_isolation
+// dj_mariadb_isolation
 //   enum: the transaction isolation levels, weakest first.
-enum d_mariadb_isolation
+enum dj_mariadb_isolation
 {
     D_MARIADB_ISOLATION_READ_UNCOMMITTED = 0,
     D_MARIADB_ISOLATION_READ_COMMITTED,
@@ -79,11 +79,11 @@ enum d_mariadb_isolation
 // 1.2    Session state
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_mariadb_track
+// dj_mariadb_track
 //   enum: the kinds of session state a server reports changes to, numbered
 // as the protocol numbers them (enum_session_state_type). A server reports
 // a kind only as the session variable named here asks.
-enum d_mariadb_track
+enum dj_mariadb_track
 {
     D_MARIADB_TRACK_SYSTEM_VARIABLES = 0,     // each variable changed, then
                                               // its value; those
@@ -125,10 +125,14 @@ enum d_mariadb_track
 // default; turning it off leaves a transaction open until commit or rollback.
 // The getter reads the status the server sent with its last reply, and asks
 // nothing
-int    d_mariadb_set_autocommit(struct d_mariadb* _db,
-                                bool              _enabled) D_NOTHROW;
-int    d_mariadb_get_autocommit(struct d_mariadb* _db,
-                                bool*             _enabled) D_NOTHROW;
+int d_mariadb_set_autocommit(
+    struct dj_mariadb* _db,
+    bool               _enabled
+) D_NOTHROW;
+int d_mariadb_get_autocommit(
+    struct dj_mariadb* _db,
+    bool*              _enabled
+) D_NOTHROW;
 
 // 2.2    Isolation level
 //------------------------------------------------------------------------------
@@ -136,24 +140,32 @@ int    d_mariadb_get_autocommit(struct d_mariadb* _db,
 // _set_next for the next transaction alone, begun explicitly or by a
 // statement with autocommit off, after which the session's level holds
 // again. The server refuses _set_next inside a transaction (1568).
-int    d_mariadb_set_isolation_level(struct d_mariadb*        _db,
-                                     enum d_mariadb_isolation _level) D_NOTHROW;
-int    d_mariadb_get_isolation_level(struct d_mariadb*         _db,
-                                     enum d_mariadb_isolation* _level)
-                                     D_NOTHROW;
-int    d_mariadb_set_next_isolation_level(struct d_mariadb*        _db,
-                                          enum d_mariadb_isolation _level)
-                                          D_NOTHROW;
+int d_mariadb_set_isolation_level(
+    struct dj_mariadb*        _db,
+    enum dj_mariadb_isolation _level
+) D_NOTHROW;
+int d_mariadb_get_isolation_level(
+    struct dj_mariadb*         _db,
+    enum dj_mariadb_isolation* _level
+) D_NOTHROW;
+int d_mariadb_set_next_isolation_level(
+    struct dj_mariadb*        _db,
+    enum dj_mariadb_isolation _level
+) D_NOTHROW;
 
 // 2.3    Lock waits
 //------------------------------------------------------------------------------
 // lock waits -- how long, in seconds, a statement waits for a row lock before
 // failing with 1205 (innodb_lock_wait_timeout); 1 to 1073741824, MySQL's
 // ceiling, which MariaDB lowers to its own
-int    d_mariadb_set_lock_wait_timeout(struct d_mariadb* _db,
-                                       unsigned          _seconds) D_NOTHROW;
-int    d_mariadb_get_lock_wait_timeout(struct d_mariadb* _db,
-                                       unsigned*         _seconds) D_NOTHROW;
+int d_mariadb_set_lock_wait_timeout(
+    struct dj_mariadb* _db,
+    unsigned           _seconds
+) D_NOTHROW;
+int d_mariadb_get_lock_wait_timeout(
+    struct dj_mariadb* _db,
+    unsigned*          _seconds
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -170,28 +182,40 @@ int    d_mariadb_get_lock_wait_timeout(struct d_mariadb* _db,
 // character set -- the connection's, through the client's own call, so that
 // the client quotes values for it too; the getter reads the client's record
 // of it, and asks nothing
-int    d_mariadb_set_charset(struct d_mariadb* _db,
-                             const char*       _charset) D_NOTHROW;
-int    d_mariadb_get_charset(struct d_mariadb* _db,
-                             char**            _charset) D_NOTHROW;
+int d_mariadb_set_charset(
+    struct dj_mariadb* _db,
+    const char*        _charset
+) D_NOTHROW;
+int d_mariadb_get_charset(
+    struct dj_mariadb* _db,
+    char**             _charset
+) D_NOTHROW;
 
 // 3.2    Time zone
 //------------------------------------------------------------------------------
 // time zone -- "+00:00", "SYSTEM", or a name such as "Europe/Paris" where the
 // server has its time zone tables loaded
-int    d_mariadb_set_time_zone(struct d_mariadb* _db,
-                               const char*       _zone) D_NOTHROW;
-int    d_mariadb_get_time_zone(struct d_mariadb* _db,
-                               char**            _zone) D_NOTHROW;
+int d_mariadb_set_time_zone(
+    struct dj_mariadb* _db,
+    const char*        _zone
+) D_NOTHROW;
+int d_mariadb_get_time_zone(
+    struct dj_mariadb* _db,
+    char**             _zone
+) D_NOTHROW;
 
 // 3.3    SQL mode
 //------------------------------------------------------------------------------
 // SQL mode -- a comma-separated list, such as
 // "STRICT_TRANS_TABLES,NO_ZERO_DATE"; "" for none
-int    d_mariadb_set_sql_mode(struct d_mariadb* _db,
-                              const char*       _mode) D_NOTHROW;
-int    d_mariadb_get_sql_mode(struct d_mariadb* _db,
-                              char**            _mode) D_NOTHROW;
+int d_mariadb_set_sql_mode(
+    struct dj_mariadb* _db,
+    const char*        _mode
+) D_NOTHROW;
+int d_mariadb_get_sql_mode(
+    struct dj_mariadb* _db,
+    char**             _mode
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -214,9 +238,11 @@ int    d_mariadb_get_sql_mode(struct d_mariadb* _db,
  *         value it does not take), or D_DB_INVALID_ARGUMENT for a `NULL`
  *         argument or a name that is not one.
  */
-int    d_mariadb_set_variable(struct d_mariadb* _db,
-                              const char*       _name,
-                              const char*       _value) D_NOTHROW;
+int d_mariadb_set_variable(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    const char*        _value
+) D_NOTHROW;
 /**
  * @brief Reads a session variable, as text.
  *
@@ -228,9 +254,11 @@ int    d_mariadb_set_variable(struct d_mariadb* _db,
  *         CR_OUT_OF_MEMORY (2008), or D_DB_INVALID_ARGUMENT.
  * @post On success the caller releases `*_value` with d_db_free.
  */
-int    d_mariadb_get_variable(struct d_mariadb* _db,
-                              const char*       _name,
-                              char**            _value) D_NOTHROW;
+int d_mariadb_get_variable(
+    struct dj_mariadb* _db,
+    const char*        _name,
+    char**             _value
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -268,12 +296,14 @@ int    d_mariadb_get_variable(struct d_mariadb* _db,
  *         older than MySQL 5.7.4 or MariaDB 10.2.2, or the client has no
  *         session tracking (a MariaDB client before Connector/C 3.0), or
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument or a kind outside enum
- *         d_mariadb_track.
+ *         dj_mariadb_track.
  * @post On success the caller releases `_entries` with d_db_name_list_free.
  */
-int    d_mariadb_session_track(struct d_mariadb*      _db,
-                               enum d_mariadb_track   _kind,
-                               struct d_db_name_list* _entries) D_NOTHROW;
+int d_mariadb_session_track(
+    struct dj_mariadb*      _db,
+    enum dj_mariadb_track   _kind,
+    struct dj_db_name_list* _entries
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

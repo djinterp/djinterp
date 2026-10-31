@@ -14,7 +14,7 @@
 
 // djinterp
 #include "./byte_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -26,10 +26,8 @@ d_tests_sa_byte_array_default
     - Elements are stored as 1 byte each
     - Layout: [count:1][elem0:1][elem1:1]...
 */
-bool
-d_tests_sa_byte_array_default
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_default(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -86,10 +84,8 @@ d_tests_sa_byte_array_init
     - Can be embedded in larger structures
     - Same layout as D_BYTE_ARRAY
 */
-bool
-d_tests_sa_byte_array_init
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_init(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -139,10 +135,8 @@ d_tests_sa_byte_array_1_x
     - Element sizes of 1, 2, 4, and 8 bytes
     - Correct total array sizes
 */
-bool
-d_tests_sa_byte_array_1_x
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_1_x(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -230,10 +224,8 @@ d_tests_sa_byte_array_2_x
     - 2-byte count prefix for all variants
     - Various element sizes
 */
-bool
-d_tests_sa_byte_array_2_x
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_2_x(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -314,10 +306,8 @@ d_tests_sa_byte_array_4_x
     - 4-byte count prefix for all variants
     - Various element sizes
 */
-bool
-d_tests_sa_byte_array_4_x
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_4_x(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -397,10 +387,8 @@ d_tests_sa_byte_array_8_x
     These tests are skipped on MSVC.
 */
 #if !defined(_MSC_VER)
-bool
-d_tests_sa_byte_array_8_x
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_8_x(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -466,10 +454,8 @@ d_tests_sa_byte_array_custom
     - Allows arbitrary count_size and element_size
     - Produces correct layout
 */
-bool
-d_tests_sa_byte_array_custom
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_custom(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -536,10 +522,8 @@ d_tests_sa_byte_array_custom
 d_tests_sa_byte_array_1d_all
     Aggregation function that runs all 1D array builder tests.
 */
-bool
-d_tests_sa_byte_array_1d_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_1d_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

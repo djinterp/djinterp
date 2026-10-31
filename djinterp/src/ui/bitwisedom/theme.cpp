@@ -51,8 +51,7 @@ const float MIN_CONTRAST = 3.0f;
 
 // channel_of
 //   one 8-bit channel of an ImGui colour, by its shift.
-float
-channel_of(
+float channel_of(
     ImU32 _colour,
     int   _shift
 )
@@ -62,8 +61,7 @@ channel_of(
 
 // linear
 //   one sRGB channel, in [0, 1], as linear light.
-float
-linear(
+float linear(
     float _channel
 )
 {
@@ -77,8 +75,7 @@ linear(
 
 // luminance
 //   an opaque colour's relative luminance, in [0, 1]; its alpha is not read.
-float
-luminance(
+float luminance(
     ImU32 _colour
 )
 {
@@ -89,8 +86,7 @@ luminance(
 
 // opaque
 //   a colour with its alpha full.
-ImU32
-opaque(
+ImU32 opaque(
     ImU32 _colour
 )
 {
@@ -99,8 +95,7 @@ opaque(
 
 // shade
 //   a colour lighter (positive) or darker (negative) by an amount.
-ImVec4
-shade(
+ImVec4 shade(
     const ImVec4& _colour,
     float         _amount
 )
@@ -118,8 +113,7 @@ shade(
                   _colour.w);
 }
 
-ImVec4
-alpha(
+ImVec4 alpha(
     const ImVec4& _colour,
     float         _alpha
 )
@@ -130,8 +124,7 @@ alpha(
 }  // anonymous namespace
 
 
-ImU32
-to_u32(
+ImU32 to_u32(
     rgba _colour
 )
 {
@@ -141,8 +134,7 @@ to_u32(
                     _colour & 0xFFu);
 }
 
-ImVec4
-to_vec4(
+ImVec4 to_vec4(
     rgba _colour
 )
 {
@@ -152,8 +144,7 @@ to_vec4(
                   channel(_colour, 3));
 }
 
-ImU32
-mix(
+ImU32 mix(
     ImU32 _a,
     ImU32 _b,
     float _t
@@ -169,8 +160,7 @@ mix(
                a.w + (b.w - a.w) * _t));
 }
 
-bool
-is_light(
+bool is_light(
     const colour_settings& _colours
 )
 {
@@ -183,8 +173,7 @@ composite
 rest. The ground is taken as opaque -- what text is drawn on is the window
 at the bottom of every stack of fills -- and so is the result.
 */
-ImU32
-composite(
+ImU32 composite(
     ImU32 _top,
     ImU32 _ground
 )
@@ -208,8 +197,7 @@ composite(
                     255);
 }
 
-float
-contrast(
+float contrast(
     ImU32 _a,
     ImU32 _b
 )
@@ -228,8 +216,7 @@ ground. Black and white contrast alike with a ground of luminance 0.179,
 and there each manages 4.58:1, so whatever the ground the ink reads at
 least as well as WCAG asks of body text.
 */
-ImU32
-ink_on(
+ImU32 ink_on(
     ImU32 _ground,
     ImU32 _text
 )
@@ -255,8 +242,7 @@ not opaque -- if that reads; else the colour moved a tenth at a time toward
 the ink the ground takes, which keeps its hue as long as it can. No colour,
 as a row with no fill has, is the theme's text.
 */
-ImU32
-legible(
+ImU32 legible(
     rgba  _colour,
     ImU32 _ground,
     ImU32 _text
@@ -292,8 +278,7 @@ legible(
     return ink;
 }
 
-ImU32
-faint(
+ImU32 faint(
     ImU32 _ink,
     float _alpha
 )
@@ -305,38 +290,33 @@ faint(
              (alpha << IM_COL32_A_SHIFT) );
 }
 
-ImFont*&
-mono_font()
+ImFont*& mono_font()
 {
     static ImFont* font = nullptr;
 
     return font;
 }
 
-float
-font_base()
+float font_base()
 {
     return GImGui->FontSizeBase;
 }
 
-float&
-dpi_scale()
+float& dpi_scale()
 {
     static float scale = 1.0f;
 
     return scale;
 }
 
-float&
-zoom_now()
+float& zoom_now()
 {
     static float zoom = 1.0f;
 
     return zoom;
 }
 
-float
-ui_scale()
+float ui_scale()
 {
     return dpi_scale() * zoom_now();
 }
@@ -347,8 +327,7 @@ apply_style
 derived from the accent, so changing the accent recolours the whole window
 consistently.
 */
-void
-apply_style(
+void apply_style(
     const look& _look,
     int         _scheme
 )

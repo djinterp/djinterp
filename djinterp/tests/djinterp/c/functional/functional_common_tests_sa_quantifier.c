@@ -9,12 +9,16 @@
 *******************************************************************************/
 // djinterp
 #include "./functional_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // helper predicates for testing
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -30,7 +34,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -46,7 +54,11 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static bool pred_is_negative(const void* _element, void* _context)
+static
+bool pred_is_negative(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -62,7 +74,11 @@ static bool pred_is_negative(const void* _element, void* _context)
     return (*value < 0);
 }
 
-static bool pred_greater_than_10(const void* _element, void* _context)
+static
+bool pred_greater_than_10(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -89,10 +105,8 @@ d_tests_sa_fc_any
   - returns false when no elements match
   - short-circuit behavior
 */
-bool
-d_tests_sa_fc_any
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_any(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -178,10 +192,8 @@ d_tests_sa_fc_all
   - returns false when at least one element doesn't match
   - short-circuit behavior
 */
-bool
-d_tests_sa_fc_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -258,10 +270,8 @@ d_tests_sa_fc_none
   - returns true when no elements match
   - returns false when at least one element matches
 */
-bool
-d_tests_sa_fc_none
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_none(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -339,10 +349,8 @@ d_tests_sa_fc_count_if
   - count 0 when no elements match
   - count all when all elements match
 */
-bool
-d_tests_sa_fc_count_if
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_count_if(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -426,10 +434,8 @@ d_tests_sa_fc_find_if
   - returns NULL when no element matches
   - pointer points to correct element in array
 */
-bool
-d_tests_sa_fc_find_if
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_find_if(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -522,10 +528,8 @@ d_tests_sa_fc_find_if
 d_tests_sa_fc_quantifier_all
   Aggregation function that runs all quantifier function tests.
 */
-bool
-d_tests_sa_fc_quantifier_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_fc_quantifier_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

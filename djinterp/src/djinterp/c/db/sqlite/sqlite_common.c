@@ -32,20 +32,20 @@
 // FILE-LOCAL DEFINITIONS
 //==============================================================================
 
-// d_internal_sqlite_feature_need
+// dj_internal_sqlite_feature_need
 //   struct: what one feature needs of the library loaded.
-struct d_internal_sqlite_feature_need
+struct dj_internal_sqlite_feature_need
 {
-    enum d_sqlite_feature feature;  // the feature
+    enum dj_sqlite_feature feature;  // the feature
     int                   since;    // the release that introduced it
     const char*           option;   // a build option it needs too, or NULL
 };
 
-// d_internal_sqlite_feature_omit
+// dj_internal_sqlite_feature_omit
 //   struct: a build option that takes a feature out.
-struct d_internal_sqlite_feature_omit
+struct dj_internal_sqlite_feature_omit
 {
-    enum d_sqlite_feature feature;  // the feature
+    enum dj_sqlite_feature feature;  // the feature
     const char*           option;   // the option
 };
 
@@ -56,7 +56,7 @@ struct d_internal_sqlite_feature_omit
 // years; from 3.38.0 it is built in, which d_sqlite_supports checks first.
 // Encryption's row is a codec's option; SQLCipher, which may not report one,
 // is asked.
-static const struct d_internal_sqlite_feature_need
+static const struct dj_internal_sqlite_feature_need
 d_internal_sqlite_feature_needs[] =
 {
     { D_SQLITE_FEATURE_PARTIAL_INDEX,     3008000, NULL                    },
@@ -84,7 +84,7 @@ d_internal_sqlite_feature_needs[] =
 
 // d_internal_sqlite_feature_omits
 //   table: the features a build can take out, and the option that does.
-static const struct d_internal_sqlite_feature_omit
+static const struct dj_internal_sqlite_feature_omit
 d_internal_sqlite_feature_omits[] =
 {
     { D_SQLITE_FEATURE_WAL, "OMIT_WAL" }
@@ -97,7 +97,7 @@ d_internal_sqlite_feature_omits.
 */
 static bool
 d_internal_sqlite_omitted(
-    enum d_sqlite_feature _feature
+    enum dj_sqlite_feature _feature
 )
 {
     const size_t count = sizeof(d_internal_sqlite_feature_omits) /
@@ -122,10 +122,8 @@ d_internal_sqlite_can_serialize
 have it: from 3.36.0 unless built without it, and from 3.23.0 where built with
 it.
 */
-static bool
-d_internal_sqlite_can_serialize(
-    void
-)
+static
+bool d_internal_sqlite_can_serialize(void)
 {
 #if (D_INTERNAL_SQLITE_SERIALIZE == 1)
     return ( ( (d_internal_sqlite_runtime_at_least(3036000)) &&
@@ -142,10 +140,8 @@ d_internal_sqlite_can_load_extensions
   The build must call it (D_INTERNAL_SQLITE_LOAD_EXTENSION), and the library
 loaded not have left it out.
 */
-static bool
-d_internal_sqlite_can_load_extensions(
-    void
-)
+static
+bool d_internal_sqlite_can_load_extensions(void)
 {
 #if (D_INTERNAL_SQLITE_LOAD_EXTENSION == 1)
     return (sqlite3_compileoption_used("OMIT_LOAD_EXTENSION") == 0);
@@ -160,10 +156,8 @@ d_internal_sqlite_is_sqlcipher
 SQLite with no row, on a private in-memory database (Zetetic's own advice);
 a library that cannot open one answers `false`.
 */
-static bool
-d_internal_sqlite_is_sqlcipher(
-    void
-)
+static
+bool d_internal_sqlite_is_sqlcipher(void)
 {
     sqlite3*      db        = NULL;
     sqlite3_stmt* statement = NULL;
@@ -202,10 +196,7 @@ d_internal_sqlite_is_sqlcipher(
 d_sqlite_library_version
   The loaded library's own string, which outlives every connection.
 */
-const char*
-d_sqlite_library_version(
-    void
-)
+const char* d_sqlite_library_version(void)
 {
     return sqlite3_libversion();
 }
@@ -216,10 +207,7 @@ d_sqlite_library_version_number
 d_sqlite_header_version_number to see whether a shared library differs from
 the header the layer was built against.
 */
-int
-d_sqlite_library_version_number(
-    void
-)
+int d_sqlite_library_version_number(void)
 {
     return sqlite3_libversion_number();
 }
@@ -230,10 +218,7 @@ d_sqlite_header_version_number
 SQLITE_VERSION_NUMBER, unless the build set D_ENV_SQLITE_DETECTED_VERSION by
 hand to target an older library.
 */
-int
-d_sqlite_header_version_number(
-    void
-)
+int d_sqlite_header_version_number(void)
 {
     return D_ENV_SQLITE_VERSION_ID;
 }
@@ -244,8 +229,7 @@ d_sqlite_library_at_least
 argument, however large, can overflow an encoded number. A negative part names
 no release and answers `false`.
 */
-bool
-d_sqlite_library_at_least(
+bool d_sqlite_library_at_least(
     int _major,
     int _minor,
     int _patch
@@ -289,7 +273,7 @@ built in. A value outside the table is no feature, and answers `false`.
 */
 bool
 d_sqlite_supports(
-    enum d_sqlite_feature _feature
+    enum dj_sqlite_feature _feature
 )
 {
     // the APIs this build may not call, and the library may not have
@@ -316,7 +300,7 @@ d_sqlite_supports(
 
     for (size_t i = 0; i < count; ++i)
     {
-        const struct d_internal_sqlite_feature_need* const need =
+        const struct dj_internal_sqlite_feature_need* const need =
             &d_internal_sqlite_feature_needs[i];
 
         // the feature's row decides
@@ -344,10 +328,7 @@ d_sqlite_library_threadsafe
   sqlite3_threadsafe reports the SQLITE_THREADSAFE the library was compiled
 with.
 */
-int
-d_sqlite_library_threadsafe(
-    void
-)
+int d_sqlite_library_threadsafe(void)
 {
     return sqlite3_threadsafe();
 }
@@ -360,8 +341,7 @@ d_sqlite_result_message
 d_db_status_message does; everything else is SQLite's, and sqlite3_errstr
 knows its extended codes too.
 */
-const char*
-d_sqlite_result_message(
+const char* d_sqlite_result_message(
     int _result
 )
 {
@@ -387,8 +367,7 @@ d_sqlite_error_message
   sqlite3_errmsg, which reads a NULL connection as one that ran out of
 memory; the layer answers NULL for it instead.
 */
-const char*
-d_sqlite_error_message(
+const char* d_sqlite_error_message(
     struct sqlite3* _db
 )
 {
@@ -408,10 +387,7 @@ d_sqlite_error_message(
 d_sqlite_library_version
   Without SQLite there is no version: the empty string, never NULL.
 */
-const char*
-d_sqlite_library_version(
-    void
-)
+const char* d_sqlite_library_version(void)
 {
     return "";
 }
@@ -420,10 +396,7 @@ d_sqlite_library_version(
 d_sqlite_library_version_number
   Without SQLite the version is 0, below every release.
 */
-int
-d_sqlite_library_version_number(
-    void
-)
+int d_sqlite_library_version_number(void)
 {
     return 0;
 }
@@ -432,10 +405,7 @@ d_sqlite_library_version_number(
 d_sqlite_header_version_number
   Without SQLite the version is 0, below every release.
 */
-int
-d_sqlite_header_version_number(
-    void
-)
+int d_sqlite_header_version_number(void)
 {
     return 0;
 }
@@ -444,8 +414,7 @@ d_sqlite_header_version_number(
 d_sqlite_library_at_least
   Without SQLite, false.
 */
-bool
-d_sqlite_library_at_least(
+bool d_sqlite_library_at_least(
     int _major,
     int _minor,
     int _patch
@@ -464,7 +433,7 @@ d_sqlite_supports
 */
 bool
 d_sqlite_supports(
-    enum d_sqlite_feature _feature
+    enum dj_sqlite_feature _feature
 )
 {
     (void)_feature;
@@ -476,10 +445,7 @@ d_sqlite_supports(
 d_sqlite_library_threadsafe
   Without SQLite, 0.
 */
-int
-d_sqlite_library_threadsafe(
-    void
-)
+int d_sqlite_library_threadsafe(void)
 {
     return 0;
 }
@@ -489,8 +455,7 @@ d_sqlite_result_message
   Without SQLite only the layer's own results occur; this build's
 D_DB_UNSUPPORTED says why, and any other value is unknown.
 */
-const char*
-d_sqlite_result_message(
+const char* d_sqlite_result_message(
     int _result
 )
 {
@@ -509,8 +474,7 @@ d_sqlite_result_message(
 d_sqlite_error_message
   Without SQLite there is no connection to have failed: NULL.
 */
-const char*
-d_sqlite_error_message(
+const char* d_sqlite_error_message(
     struct sqlite3* _db
 )
 {

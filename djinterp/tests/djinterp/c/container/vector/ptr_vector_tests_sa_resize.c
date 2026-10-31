@@ -12,19 +12,17 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_resize_test_values[] = {11, 22, 33, 44, 55};
 
 
-bool
-d_tests_sa_ptr_vector_resize
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_resize(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     size_t               i;
     bool                 all_null;
 
@@ -113,14 +111,12 @@ d_tests_sa_ptr_vector_resize
 }
 
 
-bool
-d_tests_sa_ptr_vector_resize_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_resize_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                fill_ptr;
     size_t               i;
     bool                 all_match;
@@ -192,10 +188,8 @@ d_tests_sa_ptr_vector_resize_fill
 }
 
 
-bool
-d_tests_sa_ptr_vector_resize_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_resize_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

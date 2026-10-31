@@ -39,7 +39,7 @@
 * the missing laziness and conclude the C side is incomplete.
 *
 * WHAT HAS NO C FORM, AND CORRECTLY SO.
-*   `arg_union_delta` merges two options' ARG PACKS -- it concatenates types.
+*   `DArgUnionDelta` merges two options' ARG PACKS -- it concatenates types.
 * Args are opaque types that carry no runtime bytes, so they do not survive
 * lowering and there is nothing in C for the policy to concatenate. Per goal
 * 11 this is declared C++-only rather than approximated: an approximation would
@@ -49,7 +49,7 @@
 * takes the delta's value. That is the operation a C caller wanted.
 *
 * THE STRICT POLICY ERRORS RATHER THAN ASSERTING.
-*   C++ `strict_subset` fires a static_assert on an extension, which is a
+*   C++ `DStrictSubset` fires a static_assert on an extension, which is a
 // `-D_OPTION_STATUS_POLICY_REJECTED`, and the engine stops and reports
 // it. Keeping verdicts non-negative and errors negative means one
 // comparison distinguishes them, and no verdict can collide with a status.
@@ -73,7 +73,7 @@
 #include "./option_common.h"
 #include "./option_set_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t, uint32_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -131,20 +131,20 @@ D_EXTERN_C_BEGIN
 //   `*_out_bytes` may be left NULL for a unary cell, and is ignored when the
 // verdict is D_OPTION_DROP.
 // Note: `_context` may be NULL.
-typedef int32_t (*fn_option_on_both)(const struct d_option* _base,
+typedef int32_t (*fn_option_on_both)(const struct dj_option* _base,
                                      const unsigned char*   _base_values,
-                                     const struct d_option* _delta,
+                                     const struct dj_option* _delta,
                                      const unsigned char*   _delta_values,
-                                     struct d_option*       _out,
+                                     struct dj_option*       _out,
                                      const void**           _out_bytes,
                                      void*                  _context);
 
 // fn_option_on_base_only
 //   function pointer: the key is in the base and not in the delta.
 // Note: `_context` may be NULL.
-typedef int32_t (*fn_option_on_base_only)(const struct d_option* _base,
+typedef int32_t (*fn_option_on_base_only)(const struct dj_option* _base,
                                           const unsigned char*   _base_values,
-                                          struct d_option*       _out,
+                                          struct dj_option*       _out,
                                           const void**           _out_bytes,
                                           void*                  _context);
 
@@ -153,17 +153,17 @@ typedef int32_t (*fn_option_on_base_only)(const struct d_option* _base,
 // EXTENSION. Called only for keys that genuinely are one, which is where the
 // C++ side needs its SFINAE wrapper and C needs nothing.
 // Note: `_context` may be NULL.
-typedef int32_t (*fn_option_on_delta_only)(const struct d_option* _delta,
+typedef int32_t (*fn_option_on_delta_only)(const struct dj_option* _delta,
                                            const unsigned char*   _delta_values,
-                                           struct d_option*       _out,
+                                           struct dj_option*       _out,
                                            const void**           _out_bytes,
                                            void*                  _context);
 
-// d_option_policy
+// dj_option_policy
 //   struct: the three hooks plus their shared context -- the C image of a C++
 // override policy. A NULL hook means "drop", so a policy that only cares about
 // one branch is three words and two zeroes rather than three stubs.
-struct d_option_policy
+struct dj_option_policy
 {
     fn_option_on_both       on_both;
     fn_option_on_base_only  on_base_only;
@@ -175,7 +175,9 @@ struct d_option_policy
 //   function: a policy is usable if at least one hook is non-NULL. An all-NULL
 // policy drops everything, which is almost certainly a mistake rather than an
 // intention, so it is rejected here rather than silently returning empty.
-bool     d_option_policy_is_valid(const struct d_option_policy* _policy);
+bool d_option_policy_is_valid(
+    const struct dj_option_policy* _policy
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -188,31 +190,31 @@ bool     d_option_policy_is_valid(const struct d_option_policy* _policy);
 
 // d_option_policy_replace
 //   policy: the delta wins at shared keys; base-only kept; extensions added.
-// C++ `override_replace` (= keep_delta). The default, because "add this
+// C++ `DOverrideReplace` (= DKeepDelta). The default, because "add this
 // option" most naturally means "this option now holds for this key".
-struct d_option_policy d_option_policy_replace(void);
+struct dj_option_policy d_option_policy_replace(void);
 
 // d_option_policy_keep
 //   policy: the base wins at shared keys; extensions still added.
-// C++ `override_keep` (= keep_base).
-struct d_option_policy d_option_policy_keep(void);
+// C++ `DOverrideKeep` (= keep_base).
+struct dj_option_policy d_option_policy_keep(void);
 
 // d_option_policy_subset
 //   policy: the delta wins at shared keys; extensions DROPPED.
-// C++ `override_subset` (= drop_extras).
-struct d_option_policy d_option_policy_subset(void);
+// C++ `DOverrideSubset` (= DDropExtras).
+struct dj_option_policy d_option_policy_subset(void);
 
 // d_option_policy_strict
 //   policy: the delta wins at shared keys; an extension is an ERROR.
-// C++ `override_strict` (= strict_subset), where it is a static_assert. Here
+// C++ `DOverrideStrict` (= DStrictSubset), where it is a static_assert. Here
 // it is D_OPTION_STATUS_POLICY_REJECTED, which is formal -- so a caller inspecting
 // the range learns the merge was ill-formed rather than under-provisioned.
-struct d_option_policy d_option_policy_strict(void);
+struct dj_option_policy d_option_policy_strict(void);
 
 // d_option_policy_filter
 //   policy: keep only keys the delta also has -- base-only positions dropped,
-// extensions added. C++ `override_filter` (= drop_unmatched_base).
-struct d_option_policy d_option_policy_filter(void);
+// extensions added. C++ `DOverrideFilter` (= DDropUnmatchedBase).
+struct dj_option_policy d_option_policy_filter(void);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -234,7 +236,9 @@ struct d_option_policy d_option_policy_filter(void);
 // two spellings, and share a value here so the two halves cannot disagree
 // about whether they are the same thing. In every mode extensions are added,
 // matching the runtime merge, which always inserts new keys.
-struct d_option_policy d_option_merge_mode_policy(int32_t _mode);
+struct dj_option_policy d_option_merge_mode_policy(
+    int32_t _mode
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -285,7 +289,9 @@ struct d_option_policy d_option_merge_mode_policy(int32_t _mode);
 // and named so the identity law can be asserted against the document's notion
 // rather than against `count == 0`, which is an implementation fact that
 // happens to coincide today.
-bool     d_option_set_is_identity(const struct d_option_set* _set);
+bool d_option_set_is_identity(
+    const struct dj_option_set* _set
+);
 
 // d_option_set_commutes
 //   function: whether `(+)` commutes on this pair -- which, by the .tex's
@@ -293,11 +299,13 @@ bool     d_option_set_is_identity(const struct d_option_set* _set);
 // test rather than by computing both folds and comparing: the proposition says
 // the two questions are the same question, so answering it twice would create
 // the possibility of two answers.
-bool     d_option_set_commutes(const struct d_option_set* _lhs,
-                               const struct d_option_set* _rhs,
-                               fn_option_project          _project,
-                               fn_binary_predicate        _compare,
-                               void*                      _context);
+bool d_option_set_commutes(
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -336,10 +344,12 @@ bool     d_option_set_commutes(const struct d_option_set* _lhs,
 //   On success the result carries the number of options written. A policy
 // error is returned as-is, so `strict` meeting an extension surfaces as
 // D_OPTION_STATUS_POLICY_REJECTED and not as a generic failure.
-struct d_option_result d_option_set_override(struct d_option_set*          _out,
-                                             const struct d_option_set*    _base,
-                                             const struct d_option_set*    _delta,
-                                             const struct d_option_policy* _policy);
+struct dj_option_result d_option_set_override(
+    struct dj_option_set*          _out,
+    const struct dj_option_set*    _base,
+    const struct dj_option_set*    _delta,
+    const struct dj_option_policy* _policy
+);
 
 // d_option_set_merge
 //   function: fold `_delta` into `_target` in place under a merge MODE.
@@ -348,9 +358,11 @@ struct d_option_result d_option_set_override(struct d_option_set*          _out,
 // in-place merge over a mode needs no output set and no second buffer, which
 // is what makes it usable on a fixed-storage tier. Returns the number of
 // entries inserted or modified.
-struct d_option_result d_option_set_merge(struct d_option_set*       _target,
-                                          const struct d_option_set* _delta,
-                                          int32_t                    _mode);
+struct dj_option_result d_option_set_merge(
+    struct dj_option_set*       _target,
+    const struct dj_option_set* _delta,
+    int32_t                     _mode
+);
 
 // d_option_set_compose
 //   function: left fold of `_count` deltas into `_base` under one policy --
@@ -359,12 +371,14 @@ struct d_option_result d_option_set_merge(struct d_option_set*       _target,
 // engine. It needs one scratch set because each step's output is the next
 // step's base; `_scratch` must have the same capacity as `_out` and the two
 // are swapped between rounds.
-struct d_option_result d_option_set_compose(struct d_option_set*          _out,
-                                            struct d_option_set*          _scratch,
-                                            const struct d_option_set*    _base,
-                                            const struct d_option_set**   _deltas,
-                                            uint32_t                      _count,
-                                            const struct d_option_policy* _policy);
+struct dj_option_result d_option_set_compose(
+    struct dj_option_set*          _out,
+    struct dj_option_set*          _scratch,
+    const struct dj_option_set*    _base,
+    const struct dj_option_set**   _deltas,
+    uint32_t                       _count,
+    const struct dj_option_policy* _policy
+);
 
 
 D_EXTERN_C_END

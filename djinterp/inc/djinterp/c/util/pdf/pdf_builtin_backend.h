@@ -34,7 +34,7 @@
 * reproducible build wants the caller to supply the timestamp instead, which is
 * why `d_pdf_format_date` is exposed separately from `d_pdf_creation_date`.
 *
-*   THE BACKEND CLASS IS NOT HERE. `builtin_pdf_backend` implements nine pure
+*   THE BACKEND CLASS IS NOT HERE. `DBuiltinPdfBackend` implements nine pure
 * virtuals, and its C form is a struct of function pointers plus a context --
 * who owns the context, what a null slot means, whether the table is versioned.
 * Those are decisions, not translations, and they belong with the module that
@@ -57,7 +57,7 @@
 #include "../../djinterp.h"
 #include "./pdf_primitives.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t
 
 
 D_EXTERN_C_BEGIN
@@ -83,37 +83,49 @@ D_EXTERN_C_BEGIN
 #define D_PDF_ESCAPE_WORST_CASE  4
 
 // I.   escaping
-size_t d_pdf_escape_text(const char* _text,
-                         size_t      _length,
-                         char*       _out,
-                         size_t      _out_capacity);
+size_t d_pdf_escape_text(
+    const char* _text,
+    size_t      _length,
+    char*       _out,
+    size_t      _out_capacity
+);
 
 // II.  scalars
-size_t d_pdf_num(double _value,
-                 char*  _out,
-                 size_t _out_capacity);
+size_t d_pdf_num(
+    double _value,
+    char*  _out,
+    size_t _out_capacity
+);
 
 // III. colour operators
-size_t d_pdf_set_color(const struct d_pdf_color* _color,
-                       int32_t                   _fill,
-                       char*                     _out,
-                       size_t                    _out_capacity);
+size_t d_pdf_set_color(
+    const struct dj_pdf_color* _color,
+    int32_t                    _fill,
+    char*                      _out,
+    size_t                     _out_capacity
+);
 
 // IV.  dates
-size_t d_pdf_format_date(int64_t _unix_seconds,
-                         int32_t _use_local_time,
-                         char*   _out,
-                         size_t  _out_capacity);
-size_t d_pdf_creation_date(char*  _out,
-                           size_t _out_capacity);
+size_t d_pdf_format_date(
+    int64_t _unix_seconds,
+    int32_t _use_local_time,
+    char*   _out,
+    size_t  _out_capacity
+);
+size_t d_pdf_creation_date(
+    char*  _out,
+    size_t _out_capacity
+);
 
 // V.   object markers
-size_t d_pdf_begin_object(char*   _out,
-                          size_t  _out_capacity,
-                          size_t  _out_length,
-                          size_t* _offsets,
-                          size_t  _offset_count,
-                          int32_t _object_number);
+size_t d_pdf_begin_object(
+    char*   _out,
+    size_t  _out_capacity,
+    size_t  _out_length,
+    size_t* _offsets,
+    size_t  _offset_count,
+    int32_t _object_number
+);
 
 // VI.  layout assertions
 D_STATIC_ASSERT(D_PDF_DATE_MAX == 16,

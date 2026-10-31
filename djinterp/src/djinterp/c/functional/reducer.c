@@ -20,19 +20,18 @@ access to the termination latch, so this trampoline never sets it.
 Parameter(s):
   _state:   the reducing state whose accumulator is folded into.
   _element: the element being folded.
-  _context: the `d_fold_binding` carrying the fold step and its context.
+  _context: the `dj_fold_binding` carrying the fold step and its context.
 Return:
   none.
 */
-static void
-d_internal_reducer_fold_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_reducer_fold_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
-    struct d_fold_binding* binding;
+    struct dj_fold_binding* binding;
 
     // a NULL state or binding is a caller error, not a fold outcome
     if ( (!_state)   ||
@@ -41,7 +40,7 @@ d_internal_reducer_fold_step
         return;
     }
 
-    binding = (struct d_fold_binding*)_context;
+    binding = (struct dj_fold_binding*)_context;
 
     // an unset step is a no-op rather than a crash
     if (binding->step)
@@ -62,19 +61,18 @@ accumulator entirely and never terminates early, so it is the canonical sink.
 Parameter(s):
   _state:   the reducing state; its accumulator is unused.
   _element: the element handed to the sink.
-  _context: the `d_consumer_binding` carrying the sink and its context.
+  _context: the `dj_consumer_binding` carrying the sink and its context.
 Return:
   none.
 */
-static void
-d_internal_reducer_consumer_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_reducer_consumer_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
-    struct d_consumer_binding* binding;
+    struct dj_consumer_binding* binding;
 
     (void)_state;
 
@@ -84,7 +82,7 @@ d_internal_reducer_consumer_step
         return;
     }
 
-    binding = (struct d_consumer_binding*)_context;
+    binding = (struct dj_consumer_binding*)_context;
 
     // an unset sink discards the element
     if (binding->consume)
@@ -105,19 +103,18 @@ short-circuit": the only difference from an ordinary fold is the assignment to
 Parameter(s):
   _state:   the reducing state; its accumulator must point at a `bool`.
   _element: the element being tested.
-  _context: the `d_quantifier` carrying the predicate and the quantifier kind.
+  _context: the `dj_quantifier` carrying the predicate and the quantifier kind.
 Return:
   none.
 */
-static void
-d_internal_reducer_quantifier_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_reducer_quantifier_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
-    struct d_quantifier* quantifier;
+    struct dj_quantifier* quantifier;
     bool*                result;
     bool                 satisfied;
 
@@ -128,7 +125,7 @@ d_internal_reducer_quantifier_step
         return;
     }
 
-    quantifier = (struct d_quantifier*)_context;
+    quantifier = (struct dj_quantifier*)_context;
     result     = (bool*)_state->accumulator;
 
     // without a predicate or an accumulator there is no answer to fold into
@@ -193,19 +190,18 @@ decidable early answer.
 Parameter(s):
   _state:   the reducing state; its accumulator must point at a `size_t`.
   _element: the element being tested.
-  _context: the `d_quantifier` whose predicate selects countable elements.
+  _context: the `dj_quantifier` whose predicate selects countable elements.
 Return:
   none.
 */
-static void
-d_internal_reducer_count_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_reducer_count_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
-    struct d_quantifier* quantifier;
+    struct dj_quantifier* quantifier;
     size_t*              total;
 
     // a NULL state or quantifier is a caller error
@@ -215,7 +211,7 @@ d_internal_reducer_count_step
         return;
     }
 
-    quantifier = (struct d_quantifier*)_context;
+    quantifier = (struct dj_quantifier*)_context;
     total      = (size_t*)_state->accumulator;
 
     // without a predicate or an accumulator there is nothing to count into
@@ -260,12 +256,12 @@ d_internal_reducer_quantify
     size_t                 _element_size,
     fn_predicate           _predicate,
     void*                  _context,
-    enum d_quantifier_kind _kind
+    enum dj_quantifier_kind _kind
 )
 {
-    struct d_quantifier     quantifier;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_quantifier     quantifier;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     bool                    answer;
 
     answer = d_quantifier_seed(_kind);
@@ -306,11 +302,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_reducing_state_init
-(
-    struct d_reducing_state* _state,
-    void*                    _accumulator
+void d_reducing_state_init(
+    struct dj_reducing_state* _state,
+    void*                     _accumulator
 )
 {
     // a NULL state is a caller error
@@ -334,10 +328,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_reducing_state_mark_done
-(
-    struct d_reducing_state* _state
+void d_reducing_state_mark_done(
+    struct dj_reducing_state* _state
 )
 {
     // a NULL state is a caller error
@@ -362,10 +354,8 @@ Return:
   - true, if the state is non-NULL and its latch is set, or
   - false, otherwise.
 */
-bool
-d_reducing_state_is_done
-(
-    const struct d_reducing_state* _state
+bool d_reducing_state_is_done(
+    const struct dj_reducing_state* _state
 )
 {
     // a NULL state is treated as not-done so drivers fail safe
@@ -386,10 +376,8 @@ Parameter(s):
 Return:
   The accumulator pointer, or NULL if `_state` is NULL.
 */
-void*
-d_reducing_state_accumulator
-(
-    const struct d_reducing_state* _state
+void* d_reducing_state_accumulator(
+    const struct dj_reducing_state* _state
 )
 {
     // a NULL state carries no accumulator
@@ -411,14 +399,12 @@ Parameter(s):
 Return:
   A reducer by value.
 */
-struct d_reducer
-d_reducer_make
-(
+struct dj_reducer d_reducer_make(
     fn_reducer_step _step,
     void*           _context
 )
 {
-    struct d_reducer reducer;
+    struct dj_reducer reducer;
 
     reducer.step    = _step;
     reducer.context = _context;
@@ -436,10 +422,8 @@ Parameter(s):
 Return:
   A reducer by value; an invalid reducer if `_binding` is NULL.
 */
-struct d_reducer
-d_reducer_from_fold
-(
-    struct d_fold_binding* _binding
+struct dj_reducer d_reducer_from_fold(
+    struct dj_fold_binding* _binding
 )
 {
     // a NULL binding has no step to lift
@@ -461,10 +445,8 @@ Parameter(s):
 Return:
   A reducer by value; an invalid reducer if `_binding` is NULL.
 */
-struct d_reducer
-d_reducer_from_consumer
-(
-    struct d_consumer_binding* _binding
+struct dj_reducer d_reducer_from_consumer(
+    struct dj_consumer_binding* _binding
 )
 {
     // a NULL binding has no sink to lift
@@ -486,10 +468,8 @@ Parameter(s):
 Return:
   A reducer by value; an invalid reducer if `_quantifier` is NULL.
 */
-struct d_reducer
-d_reducer_from_quantifier
-(
-    struct d_quantifier* _quantifier
+struct dj_reducer d_reducer_from_quantifier(
+    struct dj_quantifier* _quantifier
 )
 {
     // a NULL quantifier has no predicate to fold
@@ -512,10 +492,8 @@ Return:
   - true, if the reducer is non-NULL and its step is set, or
   - false, otherwise.
 */
-bool
-d_reducer_is_valid
-(
-    const struct d_reducer* _reducer
+bool d_reducer_is_valid(
+    const struct dj_reducer* _reducer
 )
 {
     // a NULL reducer is not valid
@@ -539,12 +517,10 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_reducer_step_once
-(
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state,
-    const void*              _element
+void d_reducer_step_once(
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
     // an invalid reducer, a missing state, or a latched state is a no-op
@@ -575,14 +551,12 @@ Return:
   The number of elements delivered to the reducer. A result less than `_count`
 means the drive short-circuited or the parameters were unusable.
 */
-size_t
-d_reducer_drive_array
-(
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state,
-    const void*              _elements,
-    size_t                   _count,
-    size_t                   _element_size
+size_t d_reducer_drive_array(
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state,
+    const void*               _elements,
+    size_t                    _count,
+    size_t                    _element_size
 )
 {
     const unsigned char* cursor;
@@ -629,14 +603,12 @@ Parameter(s):
 Return:
   The number of elements delivered to the reducer.
 */
-size_t
-d_reducer_drive_array_reverse
-(
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state,
-    const void*              _elements,
-    size_t                   _count,
-    size_t                   _element_size
+size_t d_reducer_drive_array_reverse(
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state,
+    const void*               _elements,
+    size_t                    _count,
+    size_t                    _element_size
 )
 {
     const unsigned char* base;
@@ -688,9 +660,7 @@ Return:
   - true, if every element was folded, or
   - false, if the parameters were unusable.
 */
-bool
-d_fold_left
-(
+bool d_fold_left(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -699,9 +669,9 @@ d_fold_left
     void*       _context
 )
 {
-    struct d_fold_binding   binding;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_fold_binding   binding;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     size_t                  delivered;
 
     // an unusable request folds nothing and reports failure
@@ -746,9 +716,7 @@ Return:
   - true, if every element was folded, or
   - false, if the parameters were unusable.
 */
-bool
-d_fold_right
-(
+bool d_fold_right(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -757,9 +725,9 @@ d_fold_right
     void*       _context
 )
 {
-    struct d_fold_binding   binding;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_fold_binding   binding;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     size_t                  delivered;
 
     // an unusable request folds nothing and reports failure
@@ -802,7 +770,7 @@ Return:
 bool
 d_quantifier_seed
 (
-    enum d_quantifier_kind _kind
+    enum dj_quantifier_kind _kind
 )
 {
     // an existential starts false; the two universals start true
@@ -830,9 +798,7 @@ Return:
   - true, if some element satisfied the predicate, or
   - false, if none did or the parameters were unusable.
 */
-bool
-d_reducer_any
-(
+bool d_reducer_any(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -864,9 +830,7 @@ Return:
   - true, if every element satisfied the predicate or the array was empty, or
   - false, if some element did not.
 */
-bool
-d_reducer_all
-(
+bool d_reducer_all(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -898,9 +862,7 @@ Return:
   - true, if no element satisfied the predicate, or
   - false, if some element did.
 */
-bool
-d_reducer_none
-(
+bool d_reducer_none(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -930,9 +892,7 @@ Parameter(s):
 Return:
   The number of satisfying elements, or 0 if the parameters were unusable.
 */
-size_t
-d_reducer_count_if
-(
+size_t d_reducer_count_if(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -940,9 +900,9 @@ d_reducer_count_if
     void*        _context
 )
 {
-    struct d_quantifier     quantifier;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_quantifier     quantifier;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
     size_t                  total;
 
     // an unusable request counts nothing

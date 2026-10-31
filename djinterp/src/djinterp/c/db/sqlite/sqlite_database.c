@@ -59,8 +59,8 @@
  * Both of SQLite's own VFSs, unix and win32, report a missing file as
  * SQLITE_IOERR_DELETE_NOENT, and have since before the layer's floor.
  */
-static int
-d_internal_sqlite_delete_file(
+static
+int d_internal_sqlite_delete_file(
     sqlite3_vfs* _vfs,
     const char*  _path,
     bool*        _missing
@@ -89,8 +89,8 @@ d_internal_sqlite_delete_file(
  * @return SQLITE_OK, or the VFS's result code for the first file it failed to
  *         delete, the rest then left alone.
  */
-static int
-d_internal_sqlite_delete_companions(
+static
+int d_internal_sqlite_delete_companions(
     sqlite3_vfs* _vfs,
     char*        _path
 )
@@ -122,8 +122,7 @@ d_internal_sqlite_delete_companions(
 d_sqlite_has_database
   The _s form, with every failure read as "no".
 */
-bool
-d_sqlite_has_database(
+bool d_sqlite_has_database(
     sqlite3*    _db,
     const char* _name
 )
@@ -140,8 +139,7 @@ d_sqlite_has_database_s
 SQLite has created its file, so both answer yes without asking. For any other
 name, sqlite3_db_readonly (3.7.11) is -1 exactly when it is not attached.
 */
-int
-d_sqlite_has_database_s(
+int d_sqlite_has_database_s(
     sqlite3*    _db,
     const char* _name,
     bool*       _exists
@@ -175,8 +173,7 @@ d_sqlite_attach_database
   The path is a string literal and the name an identifier, each quoted for
 what it is.
 */
-int
-d_sqlite_attach_database(
+int d_sqlite_attach_database(
     sqlite3*    _db,
     const char* _path,
     const char* _name
@@ -200,8 +197,7 @@ d_sqlite_attach_database(
 d_sqlite_detach_database
   SQLite itself refuses "main" and "temp", with its own message.
 */
-int
-d_sqlite_detach_database(
+int d_sqlite_detach_database(
     sqlite3*    _db,
     const char* _name
 )
@@ -223,10 +219,9 @@ d_sqlite_list_databases
   PRAGMA database_list has one row per database, the name in column 1, in
 the order SQLite numbers them.
 */
-int
-d_sqlite_list_databases(
-    sqlite3*               _db,
-    struct d_db_name_list* _names
+int d_sqlite_list_databases(
+    sqlite3*                _db,
+    struct dj_db_name_list* _names
 )
 {
     // parameter validation
@@ -264,8 +259,7 @@ created by opening with CREATE and then committing an empty transaction,
 which makes SQLite write the header: an open alone leaves no file, or an empty
 one, behind.
 */
-int
-d_sqlite_create_database_file(
+int d_sqlite_create_database_file(
     const char* _path,
     unsigned    _flags
 )
@@ -321,8 +315,7 @@ buffer with room for the companions' suffixes after it. The main file goes
 first, so an error deleting it leaves its companions -- which may hold its
 only copy of committed changes -- untouched.
 */
-int
-d_sqlite_delete_database_file(
+int d_sqlite_delete_database_file(
     const char* _path,
     unsigned    _flags
 )
@@ -387,8 +380,7 @@ d_sqlite_is_database_file
   Read-only, so a check never creates or changes a file. ":memory:" names no
 file, and is answered before SQLite would happily open one.
 */
-bool
-d_sqlite_is_database_file(
+bool d_sqlite_is_database_file(
     const char* _path
 )
 {
@@ -433,8 +425,7 @@ no trace of. SQLite's block is asked for without copying where SQLite holds
 the database in one (one deserialized), and made otherwise; either is copied
 into the C runtime's memory, which d_db_free releases.
 */
-int
-d_sqlite_serialize(
+int d_sqlite_serialize(
     sqlite3*    _db,
     const char* _schema,
     void**      _bytes,
@@ -555,8 +546,7 @@ which it frees when the database closes (FREEONCLOSE), and on a failure
 before it returns, and may grow as the database does (RESIZEABLE); a read-only
 database never grows. An empty database is no block at all.
 */
-int
-d_sqlite_deserialize(
+int d_sqlite_deserialize(
     sqlite3*    _db,
     const char* _schema,
     const void* _bytes,
@@ -633,8 +623,7 @@ d_sqlite_deserialize(
 d_sqlite_has_database
   Without SQLite, false.
 */
-bool
-d_sqlite_has_database(
+bool d_sqlite_has_database(
     struct sqlite3* _db,
     const char*     _name
 )
@@ -650,8 +639,7 @@ d_sqlite_has_database_s
   Without SQLite there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_sqlite_has_database_s(
+int d_sqlite_has_database_s(
     struct sqlite3* _db,
     const char*     _name,
     bool*           _exists
@@ -673,8 +661,7 @@ d_sqlite_has_database_s(
 d_sqlite_attach_database
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_attach_database(
+int d_sqlite_attach_database(
     struct sqlite3* _db,
     const char*     _path,
     const char*     _name
@@ -691,8 +678,7 @@ d_sqlite_attach_database(
 d_sqlite_detach_database
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_detach_database(
+int d_sqlite_detach_database(
     struct sqlite3* _db,
     const char*     _name
 )
@@ -707,10 +693,9 @@ d_sqlite_detach_database(
 d_sqlite_list_databases
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_list_databases(
-    struct sqlite3*        _db,
-    struct d_db_name_list* _names
+int d_sqlite_list_databases(
+    struct sqlite3*         _db,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -723,8 +708,7 @@ d_sqlite_list_databases(
 d_sqlite_create_database_file
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_create_database_file(
+int d_sqlite_create_database_file(
     const char* _path,
     unsigned    _flags
 )
@@ -739,8 +723,7 @@ d_sqlite_create_database_file(
 d_sqlite_delete_database_file
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_delete_database_file(
+int d_sqlite_delete_database_file(
     const char* _path,
     unsigned    _flags
 )
@@ -755,8 +738,7 @@ d_sqlite_delete_database_file(
 d_sqlite_is_database_file
   Without SQLite, false.
 */
-bool
-d_sqlite_is_database_file(
+bool d_sqlite_is_database_file(
     const char* _path
 )
 {
@@ -769,8 +751,7 @@ d_sqlite_is_database_file(
 d_sqlite_serialize
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_serialize(
+int d_sqlite_serialize(
     struct sqlite3* _db,
     const char*     _schema,
     void**          _bytes,
@@ -789,8 +770,7 @@ d_sqlite_serialize(
 d_sqlite_deserialize
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_deserialize(
+int d_sqlite_deserialize(
     struct sqlite3* _db,
     const char*     _schema,
     const void*     _bytes,

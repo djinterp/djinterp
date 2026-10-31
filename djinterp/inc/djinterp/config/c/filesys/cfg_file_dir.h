@@ -117,7 +117,7 @@ TABLE OF CONTENTS
 
 // 1.2.2
 // D_CFG_FILE_DIR_FILL_TYPE
-//   knob: populate d_dirent_t.d_type, falling back to a stat per entry where
+//   knob: populate dj_dirent_t.d_type, falling back to a stat per entry where
 // the kernel will not say.
 //   ON. Read the cost honestly: where the kernel supplies d_type this is
 // free, and where it does not (or says DT_UNKNOWN) it is ONE STAT PER ENTRY.
@@ -245,7 +245,7 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 4.1.1
 // D_FILE_DIR_TYPE_IS_FREE
-//   query: 1 when d_dirent_t.d_type costs nothing; 0 when it may cost a stat
+//   query: 1 when dj_dirent_t.d_type costs nothing; 0 when it may cost a stat
 // per entry, or is never populated. Safe in #if.
 #define D_FILE_DIR_TYPE_IS_FREE D_INTERNAL_FILE_DIR_TYPE_FROM_KERNEL
 

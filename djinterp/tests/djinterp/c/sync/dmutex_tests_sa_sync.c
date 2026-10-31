@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "dmutex_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,34 +20,33 @@
 static volatile int g_once_counter      = 0;
 static volatile int g_once_conc_counter = 0;
 
-static void
-d_test_once_increment(void)
+static
+void d_test_once_increment(void)
 {
     g_once_counter++;
 }
 
-static void
-d_test_once_conc_increment(void)
+static
+void d_test_once_conc_increment(void)
 {
     g_once_conc_counter++;
 }
 
 // helper struct for concurrent call_once test
-struct d_test_once_conc_data
+struct dj_test_once_conc_data
 {
-    d_once_flag_t* flag;
+    dj_once_flag_t* flag;
 };
 
 // helper: worker that calls d_call_once
-static void*
-d_test_once_conc_worker
-(
+static
+void* d_test_once_conc_worker(
     void* _arg
 )
 {
-    struct d_test_once_conc_data* data;
+    struct dj_test_once_conc_data* data;
 
-    data = (struct d_test_once_conc_data*)_arg;
+    data = (struct dj_test_once_conc_data*)_arg;
     d_call_once(data->flag, d_test_once_conc_increment);
 
     return D_THREAD_SUCCESS;
@@ -68,14 +67,12 @@ d_tests_sa_call_once
   - function side effects are visible after call
   - different flag allows re-invocation
 */
-bool
-d_tests_sa_call_once
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_call_once(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_once_flag_t flag = D_ONCE_FLAG_INIT;
+    dj_once_flag_t flag = D_ONCE_FLAG_INIT;
 
     result = true;
 
@@ -111,7 +108,7 @@ d_tests_sa_call_once
 
     // test 4: different flag invokes again
     {
-        d_once_flag_t flag2 = D_ONCE_FLAG_INIT;
+        dj_once_flag_t flag2 = D_ONCE_FLAG_INIT;
 
         d_call_once(&flag2, d_test_once_increment);
 
@@ -133,16 +130,14 @@ d_tests_sa_call_once_concurrent
   - function is called exactly once even with concurrent callers
   - all threads see the side effects after their d_call_once returns
 */
-bool
-d_tests_sa_call_once_concurrent
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_call_once_concurrent(
+    struct dj_test_counter* _counter
 )
 {
     bool                         result;
-    d_once_flag_t                flag = D_ONCE_FLAG_INIT;
-    struct d_test_once_conc_data shared;
-    d_thread_t                   threads[8];
+    dj_once_flag_t                flag = D_ONCE_FLAG_INIT;
+    struct dj_test_once_conc_data shared;
+    dj_thread_t                   threads[8];
     int                          rc;
     int                          i;
     int                          created;
@@ -156,7 +151,7 @@ d_tests_sa_call_once_concurrent
     for (i = 0; i < 8; i++)
     {
         rc = d_thread_create(&threads[i],
-                                 (d_thread_func_t)d_test_once_conc_worker,
+                                 (dj_thread_func_t)d_test_once_conc_worker,
                              &shared);
 
         if (rc == D_MUTEX_SUCCESS)
@@ -190,10 +185,8 @@ d_tests_sa_call_once_concurrent
 d_tests_sa_sync_all
   Aggregation function that runs all synchronization primitive tests.
 */
-bool
-d_tests_sa_sync_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_sync_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -7,7 +7,7 @@
 * and stated explicitly against the alternative a Perl-style engine would give.
 *
 *
-* path:      /tests/djinterp/c/dawk/test_dregex.c
+* path:      /tests/dawk/test_dregex.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
 *                                                          revised: 2026.09.19
@@ -46,8 +46,8 @@ d_tests_expect(
     size_t      _length
 )
 {
-    enum d_regex_status status = D_REGEX_OK;
-    struct d_regex*     regex  = d_regex_compile(_pattern, &status);
+    enum dj_regex_status status = D_REGEX_OK;
+    struct dj_regex*     regex  = d_regex_compile(_pattern, &status);
 
     g_checks++;
 
@@ -61,7 +61,7 @@ d_tests_expect(
         return;
     }
 
-    struct d_regex_match match = { 0, 0 };
+    struct dj_regex_match match = { 0, 0 };
 
     const bool found = d_regex_search(regex,
                                       _subject,
@@ -113,8 +113,8 @@ d_tests_expect_error(
     const char* _pattern
 )
 {
-    enum d_regex_status status = D_REGEX_OK;
-    struct d_regex*     regex  = d_regex_compile(_pattern, &status);
+    enum dj_regex_status status = D_REGEX_OK;
+    struct dj_regex*     regex  = d_regex_compile(_pattern, &status);
 
     g_checks++;
 
@@ -309,8 +309,8 @@ d_tests_iteration(void)
 {
     printf("iteration\n");
 
-    enum d_regex_status status  = D_REGEX_OK;
-    struct d_regex*     regex   = d_regex_compile("x*", &status);
+    enum dj_regex_status status  = D_REGEX_OK;
+    struct dj_regex*     regex   = d_regex_compile("x*", &status);
     const char* const   subject = "abc";
     const size_t        length  = strlen(subject);
 
@@ -330,7 +330,7 @@ d_tests_iteration(void)
     // scan as gsub does, advancing one byte past every empty match
     while (position <= length)
     {
-        struct d_regex_match match = { 0, 0 };
+        struct dj_regex_match match = { 0, 0 };
 
         // stop when no further match is available
         if (!d_regex_search(regex, subject, length, position, &match))
@@ -377,8 +377,8 @@ d_tests_offsets(void)
 {
     printf("offsets\n");
 
-    enum d_regex_status status = D_REGEX_OK;
-    struct d_regex*     regex  = d_regex_compile("ab", &status);
+    enum dj_regex_status status = D_REGEX_OK;
+    struct dj_regex*     regex  = d_regex_compile("ab", &status);
     const char* const   text   = "abxxab";
 
     g_checks += 3;
@@ -391,7 +391,7 @@ d_tests_offsets(void)
         return;
     }
 
-    struct d_regex_match match = { 0, 0 };
+    struct dj_regex_match match = { 0, 0 };
 
     // a search from the middle skips the first occurrence
     if ( (!d_regex_search(regex, text, 6, 1, &match)) ||
@@ -446,8 +446,8 @@ d_tests_expect_groups(
     size_t        _count
 )
 {
-    enum d_regex_status status = D_REGEX_OK;
-    struct d_regex*     regex  = d_regex_compile(_pattern, &status);
+    enum dj_regex_status status = D_REGEX_OK;
+    struct dj_regex*     regex  = d_regex_compile(_pattern, &status);
 
     g_checks++;
 
@@ -459,7 +459,7 @@ d_tests_expect_groups(
         return;
     }
 
-    struct d_regex_match groups[D_REGEX_GROUP_MAX + 1];
+    struct dj_regex_match groups[D_REGEX_GROUP_MAX + 1];
 
     status = d_regex_search_groups(regex,
                                    _subject,
@@ -577,9 +577,9 @@ d_tests_captures(void)
     d_tests_expect_groups("[^c](b|a?){1,3}c",     "abbccb", bounded_take, 2);
 
     // an unmatched pattern reports OK with an absent whole match
-    enum d_regex_status  status = D_REGEX_OK;
-    struct d_regex*      regex  = d_regex_compile("(z)", &status);
-    struct d_regex_match groups[2];
+    enum dj_regex_status  status = D_REGEX_OK;
+    struct dj_regex*      regex  = d_regex_compile("(z)", &status);
+    struct dj_regex_match groups[2];
 
     g_checks++;
 
@@ -637,8 +637,8 @@ d_tests_groups(void)
 
     for (size_t index = 0; index < total; ++index)
     {
-        enum d_regex_status status = D_REGEX_OK;
-        struct d_regex*     regex  = d_regex_compile(counts[index].pattern,
+        enum dj_regex_status status = D_REGEX_OK;
+        struct dj_regex*     regex  = d_regex_compile(counts[index].pattern,
                                                      &status);
 
         g_checks++;

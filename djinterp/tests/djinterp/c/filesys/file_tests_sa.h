@@ -16,7 +16,7 @@
 *      Five assertions, reported green, for code that never executed. A suite
 *      that says PASS for something it did not test is worse than one that
 *      says nothing: it is a claim, and the claim is false. The framework has
-*      no skip state -- d_test_object carries a bool -- so the honest move is
+*      no skip state -- dj_test_object carries a bool -- so the honest move is
 *      to leave the assertion out of the tree entirely and say so in the group
 *      name. Nothing green, nothing red, nothing claimed.
 *
@@ -44,8 +44,8 @@
 
 // djinterp
 #include "../../../../inc/djinterp/c/filesys/dfile.h"  // the library under test
-#include "../../../../inc/djinterp/test/c/test_standalone.h"  // D_ASSERT_*,
-                                                              // d_test_object
+#include "../../../../inc/djinterp/c/modules/test/test_standalone.h"  // D_ASSERT_*,
+                                                              // dj_test_object
 
 
 /******************************************************************************
@@ -125,9 +125,11 @@ bool d_tests_file_teardown(void);
 // d_tests_file_path
 //   function: builds a path inside the scratch directory.
 // writes to _buf and returns it, or NULL on failure.
-char* d_tests_file_path(char*       _buf,
-                        size_t      _bufsize,
-                        const char* _filename);
+char* d_tests_file_path(
+    char*       _buf,
+    size_t      _bufsize,
+    const char* _filename
+);
 
 // d_tests_file_group
 //   function: builds an interior node from an array of already-created
@@ -148,14 +150,18 @@ char* d_tests_file_path(char*       _buf,
 // directory test that used it was naming one file with a backslash in it
 // rather than a child of the parent.
 
-char* d_tests_file_child(char*       _buf,
-                         size_t      _bufsize,
-                         const char* _parent,
-                         const char* _name);
+char* d_tests_file_child(
+    char*       _buf,
+    size_t      _bufsize,
+    const char* _parent,
+    const char* _name
+);
 
-struct d_test_object* d_tests_file_group(const char*            _name,
-                                         struct d_test_object** _items,
-                                         size_t                 _count);
+struct dj_test_object* d_tests_file_group(
+    const char*             _name,
+    struct dj_test_object** _items,
+    size_t                  _count
+);
 
 
 /******************************************************************************
@@ -163,60 +169,60 @@ struct d_test_object* d_tests_file_group(const char*            _name,
  *****************************************************************************/
 
 // I.    file_common  -- notifications, backend introspection
-struct d_test_object* d_tests_file_common_all(void);
+struct dj_test_object* d_tests_file_common_all(void);
 
 // II.   file_open
-struct d_test_object* d_tests_file_open_all(void);
+struct dj_test_object* d_tests_file_open_all(void);
 
 // III.  file_desc
-struct d_test_object* d_tests_file_desc_all(void);
+struct dj_test_object* d_tests_file_desc_all(void);
 
 // IV.   file_io
-struct d_test_object* d_tests_file_io_all(void);
+struct dj_test_object* d_tests_file_io_all(void);
 
 // V.    file_seek
-struct d_test_object* d_tests_file_seek_all(void);
+struct dj_test_object* d_tests_file_seek_all(void);
 
 // VI.   file_sync
-struct d_test_object* d_tests_file_sync_all(void);
+struct dj_test_object* d_tests_file_sync_all(void);
 
 // VII.  file_lock
-struct d_test_object* d_tests_file_lock_all(void);
+struct dj_test_object* d_tests_file_lock_all(void);
 
 // VIII. file_stat
-struct d_test_object* d_tests_file_stat_all(void);
+struct dj_test_object* d_tests_file_stat_all(void);
 
 // IX.   file_path
-struct d_test_object* d_tests_file_path_all(void);
+struct dj_test_object* d_tests_file_path_all(void);
 
 // X.    file_dir
-struct d_test_object* d_tests_file_dir_all(void);
+struct dj_test_object* d_tests_file_dir_all(void);
 
 // XI.   file_ops
-struct d_test_object* d_tests_file_ops_all(void);
+struct dj_test_object* d_tests_file_ops_all(void);
 
 // XII.  file_temp
-struct d_test_object* d_tests_file_temp_all(void);
+struct dj_test_object* d_tests_file_temp_all(void);
 
 // XIII. file_link
 //   Compiled only where the platform has symbolic links. The suite omits the
 // whole group otherwise rather than reporting an empty pass.
 #if D_FILE_LINK_IS_AVAILABLE
-struct d_test_object* d_tests_file_link_all(void);
+struct dj_test_object* d_tests_file_link_all(void);
 #endif
 
 // XIV.  file_pipe
 #if D_FILE_PIPE_IS_AVAILABLE
-struct d_test_object* d_tests_file_pipe_all(void);
+struct dj_test_object* d_tests_file_pipe_all(void);
 #endif
 
 // XV.   file_space
 #if D_FILE_SPACE_IS_AVAILABLE
-struct d_test_object* d_tests_file_space_all(void);
+struct dj_test_object* d_tests_file_space_all(void);
 #endif
 
 // master runner
-struct d_test_object* d_tests_file_run_all(void);
+struct dj_test_object* d_tests_file_run_all(void);
 
 
 #endif  // DJINTERP_FILE_TESTS_SA_

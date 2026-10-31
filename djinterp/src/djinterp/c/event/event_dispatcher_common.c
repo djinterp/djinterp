@@ -26,7 +26,7 @@
 #include <stdlib.h>   // malloc, free
 #include <string.h>   // memcpy, memset
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, SIZE_MAX
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t, SIZE_MAX
 
 
 #if (D_INTERNAL_EVENT_QUEUE == 1)
@@ -48,8 +48,8 @@ d_internal_event_queue_padded
 alignment. Returns 0 for a size so large that rounding would overflow, which
 the caller refuses.
 */
-static size_t
-d_internal_event_queue_padded(
+static
+size_t d_internal_event_queue_padded(
     size_t _size
 )
 {
@@ -70,12 +70,12 @@ bytes_used bytes, possibly wrapping; free space is after them up to the end
 and before bytes_head. Placing at the start charges the skipped gap at the end
 too, so that releasing in order always returns exactly what was charged.
 */
-static bool
-d_internal_event_queue_place(
-    const struct d_event_queue* _queue,
-    size_t                      _padded,
-    size_t*                     _offset_out,
-    size_t*                     _charge_out
+static
+bool d_internal_event_queue_place(
+    const struct dj_event_queue* _queue,
+    size_t                       _padded,
+    size_t*                      _offset_out,
+    size_t*                      _charge_out
 )
 {
     const size_t end = _queue->bytes_head + _queue->bytes_used;
@@ -129,12 +129,12 @@ d_internal_event_queue_release_head
 the end of its payload, which includes any gap charged to it. An empty
 payload holds no bytes and returns none.
 */
-static void
-d_internal_event_queue_release_head(
-    struct d_event_queue* _queue
+static
+void d_internal_event_queue_release_head(
+    struct dj_event_queue* _queue
 )
 {
-    const struct d_event_slot* const slot = &_queue->slots[_queue->head];
+    const struct dj_event_slot* const slot = &_queue->slots[_queue->head];
 
     // return the payload's bytes and any gap charged ahead of them
     if (slot->size > 0u)
@@ -168,13 +168,12 @@ d_internal_event_queue_release_head(
     return;
 }
 
-int
-d_event_queue_init_fixed(
-    struct d_event_queue* _queue,
-    struct d_event_slot*  _slots,
-    size_t                _capacity,
-    unsigned char*        _bytes,
-    size_t                _bytes_size
+int d_event_queue_init_fixed(
+    struct dj_event_queue* _queue,
+    struct dj_event_slot*  _slots,
+    size_t                 _capacity,
+    unsigned char*         _bytes,
+    size_t                 _bytes_size
 )
 {
     // the queue, and any storage it is given room in, are required
@@ -197,11 +196,10 @@ d_event_queue_init_fixed(
 
 #if (D_INTERNAL_EVENT_QUEUE_ALLOC == 1)
 
-int
-d_event_queue_init(
-    struct d_event_queue* _queue,
-    size_t                _capacity,
-    size_t                _bytes_size
+int d_event_queue_init(
+    struct dj_event_queue* _queue,
+    size_t                 _capacity,
+    size_t                 _bytes_size
 )
 {
     // the queue is required
@@ -220,12 +218,12 @@ d_event_queue_init(
                                   : D_EVENT_QUEUE_DEFAULT_BYTES;
 
     // the slot ring's size would overflow
-    if (capacity > (SIZE_MAX / sizeof(struct d_event_slot)))
+    if (capacity > (SIZE_MAX / sizeof(struct dj_event_slot)))
     {
         return D_EVENT_ERR_ALLOC;
     }
 
-    struct d_event_slot* slots = malloc(capacity * sizeof(struct d_event_slot));
+    struct dj_event_slot* slots = malloc(capacity * sizeof(struct dj_event_slot));
     unsigned char*       bytes = malloc(bytes_size);
 
     // all or nothing
@@ -254,9 +252,8 @@ d_event_queue_dispose
   Refused while the queue is processing: the occurrence in flight lives in
 the arena being freed. A handler that must drop the queue clears it instead.
 */
-void
-d_event_queue_dispose(
-    struct d_event_queue* _queue
+void d_event_queue_dispose(
+    struct dj_event_queue* _queue
 )
 {
     // nothing to release, or a handler of this queue asking
@@ -284,9 +281,8 @@ d_event_queue_clear
 still reading its payload -- and everything behind it is discarded, so the
 running process stops after it.
 */
-void
-d_event_queue_clear(
-    struct d_event_queue* _queue
+void d_event_queue_clear(
+    struct dj_event_queue* _queue
 )
 {
     // nothing queued
@@ -299,7 +295,7 @@ d_event_queue_clear(
     // keep only the occurrence in flight and the bytes charged to it
     if ((_queue->flags & D_INTERNAL_EVENT_QUEUE_FLAG_PROCESSING) != 0u)
     {
-        const struct d_event_slot* const slot = &_queue->slots[_queue->head];
+        const struct dj_event_slot* const slot = &_queue->slots[_queue->head];
 
         _queue->count = 1u;
 
@@ -335,11 +331,10 @@ queue untouched. Under the drop-oldest policy the oldest occurrences are
 released unprocessed to make room -- but never while processing, when the
 oldest is the one in flight.
 */
-int
-d_event_queue_enqueue(
-    struct d_event_queue*  _queue,
-    d_event_key            _key,
-    struct d_event_payload _payload
+int d_event_queue_enqueue(
+    struct dj_event_queue*  _queue,
+    dj_event_key            _key,
+    struct dj_event_payload _payload
 )
 {
     // the queue is required, and so are the bytes of a non-empty payload
@@ -392,7 +387,7 @@ d_event_queue_enqueue(
         return D_EVENT_ERR_CAPACITY;
     }
 
-    struct d_event_slot* const slot =
+    struct dj_event_slot* const slot =
         &_queue->slots[(_queue->head + _queue->count) % _queue->capacity];
 
     slot->key    = _key;
@@ -420,15 +415,14 @@ a later call. Each occurrence is released only after its dispatch returns,
 and only if a handler has not already cleared it away. A nested process is
 refused, because it would dispatch the occurrence in flight a second time.
 */
-size_t
-d_event_queue_process(
-    struct d_event_queue*    _queue,
-    struct d_event_registry* _registry,
-    size_t                   _max,
-    struct d_run_result*     _result_out
+size_t d_event_queue_process(
+    struct dj_event_queue*    _queue,
+    struct dj_event_registry* _registry,
+    size_t                    _max,
+    struct dj_run_result*     _result_out
 )
 {
-    struct d_run_result run;
+    struct dj_run_result run;
     size_t              processed = 0u;
 
     run.occurrences      = 0u;
@@ -458,12 +452,12 @@ d_event_queue_process(
     while ( (processed < prefix) &&
             (_queue->count > 0u) )
     {
-        const struct d_event_slot slot    = _queue->slots[_queue->head];
+        const struct dj_event_slot slot    = _queue->slots[_queue->head];
         void* const               payload = (slot.size > 0u)
                                                 ? (void*)(_queue->bytes +
                                                           slot.offset)
                                                 : NULL;
-        const struct d_dispatch_result result =
+        const struct dj_dispatch_result result =
             d_event_registry_dispatch(_registry, slot.key, payload);
 
         ++processed;
@@ -492,19 +486,17 @@ d_event_queue_process(
     return processed;
 }
 
-size_t
-d_event_queue_process_all(
-    struct d_event_queue*    _queue,
-    struct d_event_registry* _registry,
-    struct d_run_result*     _result_out
+size_t d_event_queue_process_all(
+    struct dj_event_queue*    _queue,
+    struct dj_event_registry* _registry,
+    struct dj_run_result*     _result_out
 )
 {
     return d_event_queue_process(_queue, _registry, 0u, _result_out);
 }
 
-const struct d_event_slot*
-d_event_queue_peek(
-    const struct d_event_queue* _queue
+const struct dj_event_slot* d_event_queue_peek(
+    const struct dj_event_queue* _queue
 )
 {
     // nothing queued
@@ -517,10 +509,9 @@ d_event_queue_peek(
     return &_queue->slots[_queue->head];
 }
 
-struct d_event_payload
-d_event_queue_payload(
-    const struct d_event_queue* _queue,
-    const struct d_event_slot*  _slot
+struct dj_event_payload d_event_queue_payload(
+    const struct dj_event_queue* _queue,
+    const struct dj_event_slot*  _slot
 )
 {
     // no slot, or an empty payload: the empty view
@@ -538,9 +529,8 @@ d_event_queue_payload(
                                 _slot->arity);
 }
 
-size_t
-d_event_queue_footprint(
-    const struct d_event_queue* _queue
+size_t d_event_queue_footprint(
+    const struct dj_event_queue* _queue
 )
 {
     // no queue, no bytes
@@ -549,12 +539,12 @@ d_event_queue_footprint(
         return 0u;
     }
 
-    size_t bytes = sizeof(struct d_event_queue);
+    size_t bytes = sizeof(struct dj_event_queue);
 
     // owned storage counts; borrowed storage is the caller's
     if ((_queue->flags & D_EVENT_QUEUE_FLAG_OWNS_STORAGE) != 0u)
     {
-        bytes += _queue->capacity * sizeof(struct d_event_slot);
+        bytes += _queue->capacity * sizeof(struct dj_event_slot);
         bytes += _queue->bytes_size;
     }
 
@@ -566,18 +556,17 @@ d_event_queue_footprint(
 
 #if (D_INTERNAL_EVENT_QUEUE == 1)
 
-int
-d_event_dispatcher_init_fixed(
-    struct d_event_dispatcher* _dispatcher,
-    struct d_event_entry*      _entries,
-    size_t                     _capacity,
-    uint32_t*                  _bucket_head,
-    uint32_t*                  _bucket_tail,
-    size_t                     _bucket_count,
-    struct d_event_slot*       _slots,
-    size_t                     _slot_capacity,
-    unsigned char*             _bytes,
-    size_t                     _bytes_size
+int d_event_dispatcher_init_fixed(
+    struct dj_event_dispatcher* _dispatcher,
+    struct dj_event_entry*      _entries,
+    size_t                      _capacity,
+    uint32_t*                   _bucket_head,
+    uint32_t*                   _bucket_tail,
+    size_t                      _bucket_count,
+    struct dj_event_slot*       _slots,
+    size_t                      _slot_capacity,
+    unsigned char*              _bytes,
+    size_t                      _bytes_size
 )
 {
     // the dispatcher is required
@@ -615,14 +604,13 @@ d_event_dispatcher_init_fixed(
 
 #else
 
-int
-d_event_dispatcher_init_fixed(
-    struct d_event_dispatcher* _dispatcher,
-    struct d_event_entry*      _entries,
-    size_t                     _capacity,
-    uint32_t*                  _bucket_head,
-    uint32_t*                  _bucket_tail,
-    size_t                     _bucket_count
+int d_event_dispatcher_init_fixed(
+    struct dj_event_dispatcher* _dispatcher,
+    struct dj_event_entry*      _entries,
+    size_t                      _capacity,
+    uint32_t*                   _bucket_head,
+    uint32_t*                   _bucket_tail,
+    size_t                      _bucket_count
 )
 {
     // the dispatcher is required
@@ -649,13 +637,12 @@ d_event_dispatcher_init
 way to give the queue storage, so that configuration reports a state error
 and leaves nothing allocated.
 */
-int
-d_event_dispatcher_init(
-    struct d_event_dispatcher* _dispatcher,
-    size_t                     _listener_capacity,
-    size_t                     _bucket_count,
-    size_t                     _queue_capacity,
-    size_t                     _queue_bytes
+int d_event_dispatcher_init(
+    struct dj_event_dispatcher* _dispatcher,
+    size_t                      _listener_capacity,
+    size_t                      _bucket_count,
+    size_t                      _queue_capacity,
+    size_t                      _queue_bytes
 )
 {
     // the dispatcher is required
@@ -700,9 +687,8 @@ d_event_dispatcher_init(
 
 #endif  // D_INTERNAL_EVENT_TABLE_ALLOC
 
-void
-d_event_dispatcher_dispose(
-    struct d_event_dispatcher* _dispatcher
+void d_event_dispatcher_dispose(
+    struct dj_event_dispatcher* _dispatcher
 )
 {
     // nothing to release
@@ -719,13 +705,12 @@ d_event_dispatcher_dispose(
     return;
 }
 
-int
-d_event_dispatcher_bind(
-    struct d_event_dispatcher* _dispatcher,
-    d_event_key                _key,
-    struct d_event_step        _step,
-    fn_free                    _state_free,
-    d_handler_id*              _id_out
+int d_event_dispatcher_bind(
+    struct dj_event_dispatcher* _dispatcher,
+    dj_event_key                _key,
+    struct dj_event_step        _step,
+    fn_free                     _state_free,
+    dj_handler_id*              _id_out
 )
 {
     // the dispatcher is required
@@ -741,10 +726,9 @@ d_event_dispatcher_bind(
                                  _id_out);
 }
 
-int
-d_event_dispatcher_unbind(
-    struct d_event_dispatcher* _dispatcher,
-    d_handler_id               _id
+int d_event_dispatcher_unbind(
+    struct dj_event_dispatcher* _dispatcher,
+    dj_handler_id               _id
 )
 {
     // the dispatcher is required
@@ -756,10 +740,9 @@ d_event_dispatcher_unbind(
     return d_event_registry_unbind(&_dispatcher->registry, _id);
 }
 
-int
-d_event_dispatcher_enable(
-    struct d_event_dispatcher* _dispatcher,
-    d_handler_id               _id
+int d_event_dispatcher_enable(
+    struct dj_event_dispatcher* _dispatcher,
+    dj_handler_id               _id
 )
 {
     // the dispatcher is required
@@ -771,10 +754,9 @@ d_event_dispatcher_enable(
     return d_event_table_enable(&_dispatcher->registry.table, _id);
 }
 
-int
-d_event_dispatcher_disable(
-    struct d_event_dispatcher* _dispatcher,
-    d_handler_id               _id
+int d_event_dispatcher_disable(
+    struct dj_event_dispatcher* _dispatcher,
+    dj_handler_id               _id
 )
 {
     // the dispatcher is required
@@ -786,31 +768,28 @@ d_event_dispatcher_disable(
     return d_event_table_disable(&_dispatcher->registry.table, _id);
 }
 
-bool
-d_event_dispatcher_is_enabled(
-    const struct d_event_dispatcher* _dispatcher,
-    d_handler_id                     _id
+bool d_event_dispatcher_is_enabled(
+    const struct dj_event_dispatcher* _dispatcher,
+    dj_handler_id                     _id
 )
 {
     return ( (_dispatcher != NULL) &&
              (d_event_table_is_enabled(&_dispatcher->registry.table, _id)) );
 }
 
-bool
-d_event_dispatcher_contains(
-    const struct d_event_dispatcher* _dispatcher,
-    d_handler_id                     _id
+bool d_event_dispatcher_contains(
+    const struct dj_event_dispatcher* _dispatcher,
+    dj_handler_id                     _id
 )
 {
     return ( (_dispatcher != NULL) &&
              (d_event_table_contains(&_dispatcher->registry.table, _id)) );
 }
 
-struct d_dispatch_result
-d_event_dispatcher_fire(
-    struct d_event_dispatcher* _dispatcher,
-    d_event_key                _key,
-    void*                      _payload
+struct dj_dispatch_result d_event_dispatcher_fire(
+    struct dj_event_dispatcher* _dispatcher,
+    dj_event_key                _key,
+    void*                       _payload
 )
 {
     // no dispatcher: the empty word's result
@@ -824,11 +803,10 @@ d_event_dispatcher_fire(
 
 #if (D_INTERNAL_EVENT_QUEUE == 1)
 
-int
-d_event_dispatcher_queue(
-    struct d_event_dispatcher* _dispatcher,
-    d_event_key                _key,
-    struct d_event_payload     _payload
+int d_event_dispatcher_queue(
+    struct dj_event_dispatcher* _dispatcher,
+    dj_event_key                _key,
+    struct dj_event_payload     _payload
 )
 {
     // the dispatcher is required
@@ -840,11 +818,10 @@ d_event_dispatcher_queue(
     return d_event_queue_enqueue(&_dispatcher->queue, _key, _payload);
 }
 
-size_t
-d_event_dispatcher_process(
-    struct d_event_dispatcher* _dispatcher,
-    size_t                     _max,
-    struct d_run_result*       _result_out
+size_t d_event_dispatcher_process(
+    struct dj_event_dispatcher* _dispatcher,
+    size_t                      _max,
+    struct dj_run_result*       _result_out
 )
 {
     // no dispatcher: nothing processed, and a zero result
@@ -859,10 +836,9 @@ d_event_dispatcher_process(
                                  _result_out);
 }
 
-size_t
-d_event_dispatcher_process_all(
-    struct d_event_dispatcher* _dispatcher,
-    struct d_run_result*       _result_out
+size_t d_event_dispatcher_process_all(
+    struct dj_event_dispatcher* _dispatcher,
+    struct dj_run_result*       _result_out
 )
 {
     return d_event_dispatcher_process(_dispatcher, 0u, _result_out);
@@ -872,13 +848,12 @@ d_event_dispatcher_process_all(
 
 #if (D_INTERNAL_EVENT_REGISTRY_RUN == 1)
 
-struct d_run_result
-d_event_dispatcher_run(
-    struct d_event_dispatcher* _dispatcher,
-    d_event_key                _key,
-    void*                      _first,
-    size_t                     _stride,
-    size_t                     _count
+struct dj_run_result d_event_dispatcher_run(
+    struct dj_event_dispatcher* _dispatcher,
+    dj_event_key                _key,
+    void*                       _first,
+    size_t                      _stride,
+    size_t                      _count
 )
 {
     return d_event_registry_run((_dispatcher != NULL)
@@ -900,11 +875,10 @@ d_event_dispatcher_compile
 allocating compile; a build without staging allocation reports a state error
 and leaves the word zeroed.
 */
-int
-d_event_dispatcher_compile(
-    const struct d_event_dispatcher* _dispatcher,
-    d_event_key                      _key,
-    struct d_event_word*             _word_out
+int d_event_dispatcher_compile(
+    const struct dj_event_dispatcher* _dispatcher,
+    dj_event_key                      _key,
+    struct dj_event_word*             _word_out
 )
 {
     // the dispatcher and the word are required
@@ -928,11 +902,10 @@ d_event_dispatcher_compile(
 
 #if (D_INTERNAL_EVENT_DISPATCHER_MERGE == 1)
 
-int
-d_event_dispatcher_merge(
-    struct d_event_dispatcher*       _dispatcher,
-    const struct d_event_dispatcher* _other,
-    size_t*                          _merged_out
+int d_event_dispatcher_merge(
+    struct dj_event_dispatcher*       _dispatcher,
+    const struct dj_event_dispatcher* _other,
+    size_t*                           _merged_out
 )
 {
     // both dispatchers are required
@@ -954,9 +927,8 @@ d_event_dispatcher_merge(
 
 #endif  // D_INTERNAL_EVENT_DISPATCHER_MERGE
 
-size_t
-d_event_dispatcher_handler_count(
-    const struct d_event_dispatcher* _dispatcher
+size_t d_event_dispatcher_handler_count(
+    const struct dj_event_dispatcher* _dispatcher
 )
 {
     return (_dispatcher != NULL)
@@ -964,9 +936,8 @@ d_event_dispatcher_handler_count(
         : 0u;
 }
 
-size_t
-d_event_dispatcher_enabled_count(
-    const struct d_event_dispatcher* _dispatcher
+size_t d_event_dispatcher_enabled_count(
+    const struct dj_event_dispatcher* _dispatcher
 )
 {
     return (_dispatcher != NULL)
@@ -974,10 +945,9 @@ d_event_dispatcher_enabled_count(
         : 0u;
 }
 
-size_t
-d_event_dispatcher_handler_count_for(
-    const struct d_event_dispatcher* _dispatcher,
-    d_event_key                      _key
+size_t d_event_dispatcher_handler_count_for(
+    const struct dj_event_dispatcher* _dispatcher,
+    dj_event_key                      _key
 )
 {
     return (_dispatcher != NULL)
@@ -987,9 +957,8 @@ d_event_dispatcher_handler_count_for(
 
 #if (D_INTERNAL_EVENT_QUEUE == 1)
 
-size_t
-d_event_dispatcher_pending(
-    const struct d_event_dispatcher* _dispatcher
+size_t d_event_dispatcher_pending(
+    const struct dj_event_dispatcher* _dispatcher
 )
 {
     return (_dispatcher != NULL)
@@ -1004,9 +973,8 @@ d_event_dispatcher_footprint
   The members' own sizes are already inside sizeof the dispatcher, so only
 their owned storage is added.
 */
-size_t
-d_event_dispatcher_footprint(
-    const struct d_event_dispatcher* _dispatcher
+size_t d_event_dispatcher_footprint(
+    const struct dj_event_dispatcher* _dispatcher
 )
 {
     // no dispatcher, no bytes
@@ -1015,13 +983,13 @@ d_event_dispatcher_footprint(
         return 0u;
     }
 
-    size_t bytes = sizeof(struct d_event_dispatcher);
+    size_t bytes = sizeof(struct dj_event_dispatcher);
 
     bytes += d_event_table_footprint(&_dispatcher->registry.table) -
-             sizeof(struct d_event_table);
+             sizeof(struct dj_event_table);
 #if (D_INTERNAL_EVENT_QUEUE == 1)
     bytes += d_event_queue_footprint(&_dispatcher->queue) -
-             sizeof(struct d_event_queue);
+             sizeof(struct dj_event_queue);
 #endif  // D_INTERNAL_EVENT_QUEUE
 
     return bytes;

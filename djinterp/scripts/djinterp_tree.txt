@@ -1,0 +1,538 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release
+├── 📁 .config
+│   └── 📁 .msvs
+│       └── 📁 testing
+│           ├── 📁 c
+│           └── 📁 core
+│               ├── 📁 container
+│               └── 📁 core
+├── 📁 build
+│   └── 📁 cmake
+│       └── 📁 msvs
+│           └── 📁 debug
+│               ├── 📁 c
+│               └── 📁 container
+└── 📁 inc
+    └── 📁 djinterp
+        ├── 📁 c
+        │   ├── 📁 container
+        │   │   ├── 📁 array
+        │   │   │   ├── 📄 array.h
+        │   │   │   ├── 📄 array_common.h
+        │   │   │   ├── 📄 array_filter.h
+        │   │   │   ├── 📄 byte_array.h
+        │   │   │   ├── 📄 circular_array.h
+        │   │   │   └── 📄 ptr_array.h
+        │   │   ├── 📁 buffer
+        │   │   │   ├── 📄 buffer_common.h
+        │   │   │   └── 📄 text_buffer.h
+        │   │   ├── 📁 map
+        │   │   │   ├── 📄 enum_map_entry.h
+        │   │   │   ├── 📄 map.h
+        │   │   │   └── 📄 min_enum_map.h
+        │   │   ├── 📁 node
+        │   │   │   └── 📄 linked_node.h
+        │   │   ├── 📁 registry
+        │   │   │   ├── 📄 registry.h
+        │   │   │   └── 📄 registry_common.h
+        │   │   ├── 📁 stack
+        │   │   │   └── 📄 min_stack.h
+        │   │   ├── 📁 vector
+        │   │   │   ├── 📄 ptr_vector.h
+        │   │   │   ├── 📄 vector.h
+        │   │   │   └── 📄 vector_common.h
+        │   │   └── 📄 container.h
+        │   ├── 📁 core
+        │   │   └── 📁 env
+        │   │       ├── 📄 env_attributes.h
+        │   │       ├── 📄 env_c_lib.h
+        │   │       └── 📄 env_vendor_attributes.h
+        │   ├── 📁 event
+        │   │   ├── 📄 event.h
+        │   │   ├── 📄 event_handler.h
+        │   │   ├── 📄 event_table.h
+        │   │   └── 📄 event_table_common.h
+        │   ├── 📁 functional
+        │   │   ├── 📄 compose.h
+        │   │   ├── 📄 filter.h
+        │   │   ├── 📄 fn_builder.h
+        │   │   ├── 📄 functional.h
+        │   │   ├── 📄 functional_common.h
+        │   │   ├── 📄 pipeline.h
+        │   │   └── 📄 predicate.h
+        │   ├── 📁 sync
+        │   │   └── 📁 container
+        │   │       └── 📁 array
+        │   │           └── 📄 circular_array_mtx.h
+        │   ├── 📁 test
+        │   │   ├── 📄 assert.h
+        │   │   ├── 📄 dtest
+        │   │   ├── 📄 test.h
+        │   │   ├── 📄 test_block.h
+        │   │   ├── 📄 test_cli.h
+        │   │   ├── 📄 test_common.h
+        │   │   ├── 📄 test_cvar.h
+        │   │   ├── 📄 test_handler.h
+        │   │   ├── 📄 test_module.h
+        │   │   ├── 📄 test_options.h
+        │   │   ├── 📄 test_printer.h
+        │   │   ├── 📄 test_session.h
+        │   │   ├── 📄 test_standalone.h
+        │   │   ├── 📄 test_stats.h
+        │   │   └── 📄 test_tree.h
+        │   ├── 📁 text
+        │   │   ├── 📁 symbol
+        │   │   │   ├── 📁 emoji
+        │   │   │   │   ├── 📄 emoji.h
+        │   │   │   │   └── 📄 emoji_flags.h
+        │   │   │   ├── 📄 ascii.h
+        │   │   │   ├── 📄 box_drawing.h
+        │   │   │   ├── 📄 emoji.h
+        │   │   │   └── 📄 math_symbols.h
+        │   │   ├── 📁 unicode
+        │   │   │   └── 📄 unicode.h
+        │   │   ├── 📄 number_to_string_en.h
+        │   │   ├── 📄 number_to_string_es.h
+        │   │   ├── 📄 number_to_string_fr.h
+        │   │   ├── 📄 number_to_string_it.h
+        │   │   ├── 📄 number_to_string_la.h
+        │   │   ├── 📄 number_to_string_pt.h
+        │   │   ├── 📄 str_interp.h
+        │   │   └── 📄 text_template.h
+        │   ├── 📁 util
+        │   │   ├── 📁 cli
+        │   │   │   └── 📄 cli_option.h
+        │   │   ├── 📁 color
+        │   │   │   ├── 📄 cmyk.h
+        │   │   │   ├── 📄 color.h
+        │   │   │   ├── 📄 color_conv.h
+        │   │   │   ├── 📄 hsl.h
+        │   │   │   ├── 📄 hsv.h
+        │   │   │   ├── 📄 lab.h
+        │   │   │   ├── 📄 rgb.h
+        │   │   │   ├── 📄 xyz.h
+        │   │   │   └── 📄 ycbcr.h
+        │   │   ├── 📄 iterator.h
+        │   │   └── 📄 type_info_common.h
+        │   ├── 📄 datomic.h
+        │   ├── 📄 dconfig.h
+        │   ├── 📄 derror.h
+        │   ├── 📄 dfile.h
+        │   ├── 📄 dio.h
+        │   ├── 📄 djinterp.h
+        │   ├── 📄 dmacro.h
+        │   ├── 📄 dmemory.h
+        │   ├── 📄 dmutex.h
+        │   ├── 📄 dstring.h
+        │   ├── 📄 dtime.h
+        │   ├── 📄 env.h
+        │   ├── 📄 string_fn.h
+        │   ├── 📄 threadsafe_common.h
+        │   ├── 📄 type_info.h
+        │   └── 📄 type_info_c.h
+        ├── 📁 container
+        │   ├── 📁 arena
+        │   │   ├── 📁 tree
+        │   │   │   ├── 📄 arena_tree.hpp
+        │   │   │   ├── 📄 arena_tree_concepts.hpp
+        │   │   │   └── 📄 arena_tree_traits.hpp
+        │   │   ├── 📄 arena.hpp
+        │   │   ├── 📄 arena_concepts.hpp
+        │   │   └── 📄 arena_traits.hpp
+        │   ├── 📁 array
+        │   │   ├── 📄 array_binary.hpp
+        │   │   ├── 📄 array_cli_options.hpp
+        │   │   ├── 📄 array_container.hpp
+        │   │   ├── 📄 array_container_concepts.hpp
+        │   │   ├── 📄 array_container_traits.hpp
+        │   │   ├── 📄 array_filter.hpp
+        │   │   ├── 📄 array_iterator.hpp
+        │   │   ├── 📄 array_options.hpp
+        │   │   └── 📄 threadsafe_array.hpp
+        │   ├── 📁 buffer
+        │   │   ├── 📄 buffer.hpp
+        │   │   └── 📄 text_buffer.hpp
+        │   ├── 📁 graph
+        │   │   └── 📄 graph.hpp
+        │   ├── 📁 iterator
+        │   │   ├── 📄 constexpr_iterator.hpp
+        │   │   ├── 📄 container_iterator.hpp
+        │   │   ├── 📄 flat_iterator.hpp
+        │   │   ├── 📄 flat_iterator_traits.hpp
+        │   │   ├── 📄 hierarchical_iterator.hpp
+        │   │   ├── 📄 hierarchical_iterator_traits.hpp
+        │   │   └── 📄 iterator_traits.hpp
+        │   ├── 📁 list
+        │   │   ├── 📄 doubly_linked_list.hpp
+        │   │   ├── 📄 linked_list.hpp
+        │   │   └── 📄 list.hpp
+        │   ├── 📁 map
+        │   │   ├── 📄 enum_map.hpp
+        │   │   ├── 📄 enum_map_traits.hpp
+        │   │   ├── 📄 map.hpp
+        │   │   ├── 📄 map_concepts.hpp
+        │   │   ├── 📄 map_traits.hpp
+        │   │   └── 📄 multimap.hpp
+        │   ├── 📁 matrix
+        │   │   ├── 📄 matrix.hpp
+        │   │   └── 📄 matrix_iterator.hpp
+        │   ├── 📁 meta
+        │   │   ├── 📄 container_binary_traits.hpp
+        │   │   ├── 📄 container_cli_traits.hpp
+        │   │   ├── 📄 container_compare_traits.hpp
+        │   │   ├── 📄 container_constructive_traits.hpp
+        │   │   ├── 📄 container_conversion_traits.hpp
+        │   │   ├── 📄 container_database_traits.hpp
+        │   │   ├── 📄 container_filter_traits.hpp
+        │   │   ├── 📄 container_option_traits.hpp
+        │   │   ├── 📄 container_text_traits.hpp
+        │   │   ├── 📄 container_traits.hpp
+        │   │   ├── 📄 container_view_traits.hpp
+        │   │   ├── 📄 node_container_traits.hpp
+        │   │   ├── 📄 sequential_container_traits.hpp
+        │   │   └── 📄 threadsafe_container_traits.hpp
+        │   ├── 📁 node
+        │   │   ├── 📄 linked_node.hpp
+        │   │   ├── 📄 node.hpp
+        │   │   ├── 📄 node_iterator.hpp
+        │   │   ├── 📄 node_traits.hpp
+        │   │   └── 📄 poly_tree.hpp
+        │   ├── 📁 set
+        │   │   ├── 📄 multiset.hpp
+        │   │   ├── 📄 set.hpp
+        │   │   ├── 📄 set_concepts.hpp
+        │   │   └── 📄 set_traits.hpp
+        │   ├── 📁 stack
+        │   │   └── 📄 stack.hpp
+        │   ├── 📁 table
+        │   │   ├── 📁 lookup
+        │   │   │   ├── 📄 lookup_table.hpp
+        │   │   │   └── 📄 lookup_table_traits.hpp
+        │   │   ├── 📁 registry
+        │   │   │   ├── 📄 registry_table.hpp
+        │   │   │   └── 📄 registry_table_traits.hpp
+        │   │   ├── 📄 table.hpp
+        │   │   ├── 📄 table_layout.hpp
+        │   │   └── 📄 table_traits.hpp
+        │   ├── 📁 tree
+        │   │   ├── 📁 avl
+        │   │   │   └── 📄 AVLtree.hpp
+        │   │   ├── 📁 file
+        │   │   │   ├── 📄 file_attributes.hpp
+        │   │   │   ├── 📄 file_tree.hpp
+        │   │   │   ├── 📄 file_tree_filter.hpp
+        │   │   │   └── 📄 file_tree_path.hpp
+        │   │   ├── 📄 nary_tree.hpp
+        │   │   ├── 📄 nary_tree_concepts.hpp
+        │   │   ├── 📄 nary_tree_traits.hpp
+        │   │   ├── 📄 tree_container.hpp
+        │   │   ├── 📄 tree_container_concepts.hpp
+        │   │   ├── 📄 tree_container_traits.hpp
+        │   │   ├── 📄 tree_iterator.hpp
+        │   │   ├── 📄 tree_path.hpp
+        │   │   └── 📄 tree_visitor.hpp
+        │   ├── 📁 vector
+        │   │   └── 📄 vector.hpp
+        │   ├── 📄 container.hpp
+        │   ├── 📄 container_binary.hpp
+        │   ├── 📄 container_options.hpp
+        │   ├── 📄 container_path.hpp
+        │   ├── 📄 container_path_traits.hpp
+        │   ├── 📄 flat_store.hpp
+        │   ├── 📄 nary_tree.hpp
+        │   ├── 📄 nary_tree_options.hpp
+        │   ├── 📄 node_container.hpp
+        │   ├── 📄 sequential_container.hpp
+        │   ├── 📄 stl_array_structural_traits.hpp
+        │   ├── 📄 stl_container_concepts.hpp
+        │   ├── 📄 stl_container_traits.hpp
+        │   ├── 📄 stl_traits.hpp
+        │   └── 📄 threadsafe_container.hpp
+        ├── 📁 core
+        │   ├── 📁 binary
+        │   │   └── 📄 binary.hpp
+        │   ├── 📁 cli
+        │   │   ├── 📄 cli.hpp
+        │   │   ├── 📄 cli_parser.hpp
+        │   │   ├── 📄 cli_traits.hpp
+        │   │   ├── 📄 option_set.hpp
+        │   │   ├── 📄 option_set_traits.hpp
+        │   │   ├── 📄 options.hpp
+        │   │   ├── 📄 options_parser.hpp
+        │   │   └── 📄 options_parser_traits.hpp
+        │   ├── 📁 core
+        │   │   ├── 📁 config
+        │   │   │   ├── 📁 container
+        │   │   │   │   ├── 📁 array
+        │   │   │   │   │   └── 📄 array_config.h
+        │   │   │   │   ├── 📁 iterator
+        │   │   │   │   │   └── 📄 container_iterator_config.h
+        │   │   │   │   ├── 📁 registry
+        │   │   │   │   │   └── 📄 registry_config.h
+        │   │   │   │   └── 📄 container_config.h
+        │   │   │   ├── 📁 event
+        │   │   │   │   └── 📄 event_config.h
+        │   │   │   ├── 📁 functional
+        │   │   │   │   └── 📄 functional_config.h
+        │   │   │   ├── 📁 test
+        │   │   │   │   └── 📄 test_config.h
+        │   │   │   ├── 📁 text
+        │   │   │   │   └── 📄 text_config.h
+        │   │   │   ├── 📁 util
+        │   │   │   │   └── 📁 cli
+        │   │   │   │       └── 📄 cli_option_config.h
+        │   │   │   ├── 📄 dmacro_config.h
+        │   │   │   └── 📄 env_config.h
+        │   │   ├── 📁 defaults
+        │   │   │   └── 📁 test
+        │   │   │       ├── 📄 dtest_defaults.h
+        │   │   │       └── 📄 test_standalone_defaults.h
+        │   │   ├── 📁 env
+        │   │   │   ├── 📁 db
+        │   │   │   │   ├── 📄 env_arangodb.h
+        │   │   │   │   ├── 📄 env_db.h
+        │   │   │   │   ├── 📄 env_mariadb.h
+        │   │   │   │   ├── 📄 env_mongodb.h
+        │   │   │   │   ├── 📄 env_mysql.h
+        │   │   │   │   ├── 📄 env_mysql_common.h
+        │   │   │   │   ├── 📄 env_oracle.h
+        │   │   │   │   ├── 📄 env_postgresql.h
+        │   │   │   │   └── 📄 env_sqlite.h
+        │   │   │   ├── 📁 os
+        │   │   │   │   ├── 📄 env_apple.h
+        │   │   │   │   ├── 📄 env_ios.h
+        │   │   │   │   ├── 📄 env_linux.h
+        │   │   │   │   └── 📄 env_windows.h
+        │   │   │   ├── 📁 ui
+        │   │   │   │   ├── 📄 env_curses.h
+        │   │   │   │   └── 📄 env_qt.h
+        │   │   │   ├── 📄 env_cpp_features.h
+        │   │   │   ├── 📄 env_cpp98.h
+        │   │   │   └── 📄 print_env.hpp
+        │   │   ├── 📄 concepts.hpp
+        │   │   ├── 📄 dtuple.hpp
+        │   │   ├── 📄 type_info.h
+        │   │   └── 📄 type_info_cpp.h
+        │   ├── 📁 db
+        │   │   ├── 📁 table
+        │   │   │   ├── 📄 database_table.hpp
+        │   │   │   ├── 📄 mariadb_table.hpp
+        │   │   │   ├── 📄 mysql_common_table.hpp
+        │   │   │   └── 📄 mysql_table.hpp
+        │   │   ├── 📄 arango_concepts.hpp
+        │   │   ├── 📄 arango_traits.hpp
+        │   │   ├── 📄 arangodb.hpp
+        │   │   ├── 📄 database_common.hpp
+        │   │   ├── 📄 database_concepts.hpp
+        │   │   ├── 📄 database_connection.hpp
+        │   │   ├── 📄 database_connection_template.hpp
+        │   │   ├── 📄 database_traits.hpp
+        │   │   ├── 📄 mariadb.hpp
+        │   │   ├── 📄 mariadb_concepts.hpp
+        │   │   ├── 📄 mariadb_traits.hpp
+        │   │   ├── 📄 mongo_concepts.hpp
+        │   │   ├── 📄 mongo_traits.hpp
+        │   │   ├── 📄 mongodb.hpp
+        │   │   ├── 📄 mysql.hpp
+        │   │   ├── 📄 mysql_common.hpp
+        │   │   ├── 📄 mysql_common_concepts.hpp
+        │   │   ├── 📄 mysql_common_traits.hpp
+        │   │   ├── 📄 mysql_concepts.hpp
+        │   │   ├── 📄 mysql_traits.hpp
+        │   │   ├── 📄 oracle.hpp
+        │   │   ├── 📄 oracle_concepts.hpp
+        │   │   ├── 📄 oracle_traits.hpp
+        │   │   ├── 📄 postgres.hpp
+        │   │   ├── 📄 postgres_concepts.hpp
+        │   │   ├── 📄 postgres_traits.hpp
+        │   │   ├── 📄 sqlite.hpp
+        │   │   ├── 📄 sqlite_concepts.hpp
+        │   │   └── 📄 sqlite_traits.hpp
+        │   ├── 📁 event
+        │   │   ├── 📄 event.hpp
+        │   │   ├── 📄 event_concepts.hpp
+        │   │   ├── 📄 event_handler.hpp
+        │   │   ├── 📄 event_handler_concepts.hpp
+        │   │   ├── 📄 event_handler_traits.hpp
+        │   │   ├── 📄 event_listener.hpp
+        │   │   ├── 📄 event_listener_concepts.hpp
+        │   │   ├── 📄 event_listener_traits.hpp
+        │   │   ├── 📄 event_table.hpp
+        │   │   ├── 📄 event_table_concepts.hpp
+        │   │   ├── 📄 event_table_traits.hpp
+        │   │   └── 📄 event_traits.hpp
+        │   ├── 📁 math
+        │   │   ├── 📁 coordinate
+        │   │   │   ├── 📄 cartesian.hpp
+        │   │   │   ├── 📄 coordinate.hpp
+        │   │   │   ├── 📄 cylindrical.hpp
+        │   │   │   ├── 📄 polar.hpp
+        │   │   │   └── 📄 spherical.hpp
+        │   │   ├── 📁 function
+        │   │   │   ├── 📄 function.hpp
+        │   │   │   └── 📄 function_traits.hpp
+        │   │   ├── 📁 interval
+        │   │   │   ├── 📄 closed_interval.hpp
+        │   │   │   ├── 📄 discrete_interval.hpp
+        │   │   │   ├── 📄 interval.hpp
+        │   │   │   ├── 📄 interval_traits.hpp
+        │   │   │   └── 📄 open_interval.hpp
+        │   │   ├── 📄 constant.hpp
+        │   │   ├── 📄 expression.hpp
+        │   │   ├── 📄 math.hpp
+        │   │   ├── 📄 math_common.hpp
+        │   │   ├── 📄 math_traits.hpp
+        │   │   ├── 📄 numeric_compare.hpp
+        │   │   └── 📄 value.hpp
+        │   ├── 📁 memory
+        │   │   ├── 📄 pool.hpp
+        │   │   ├── 📄 pool_allocator.hpp
+        │   │   ├── 📄 pool_concepts.hpp
+        │   │   └── 📄 pool_traits.hpp
+        │   ├── 📁 meta
+        │   │   ├── 📁 stl
+        │   │   │   ├── 📄 cpp_named03.hpp
+        │   │   │   ├── 📄 cpp_named11.hpp
+        │   │   │   ├── 📄 cpp_named14.hpp
+        │   │   │   ├── 📄 cpp_named17.hpp
+        │   │   │   ├── 📄 cpp_named20.hpp
+        │   │   │   ├── 📄 cpp_named23.hpp
+        │   │   │   ├── 📄 cpp_named26.hpp
+        │   │   │   └── 📄 cpp_named98.hpp
+        │   │   ├── 📄 jagged.hpp
+        │   │   ├── 📄 path.hpp
+        │   │   ├── 📄 sequence.hpp
+        │   │   ├── 📄 std_concepts.hpp
+        │   │   └── 📄 type_traits.hpp
+        │   ├── 📁 options
+        │   │   ├── 📄 option_diff.hpp
+        │   │   ├── 📄 option_layer.hpp
+        │   │   ├── 📄 option_override_policy.hpp
+        │   │   ├── 📄 option_pair.hpp
+        │   │   ├── 📄 option_pair_traits.hpp
+        │   │   ├── 📄 option_set.hpp
+        │   │   ├── 📄 option_set_traits.hpp
+        │   │   └── 📄 options.hpp
+        │   ├── 📁 sync
+        │   │   ├── 📄 atomic.hpp
+        │   │   ├── 📄 condvar.hpp
+        │   │   ├── 📄 cow.hpp
+        │   │   ├── 📄 hazard_pointer.hpp
+        │   │   ├── 📄 lock_guard.hpp
+        │   │   ├── 📄 lock_policy.hpp
+        │   │   ├── 📄 lock_policy_c.hpp
+        │   │   ├── 📄 rcu.hpp
+        │   │   └── 📄 threadsafe.hpp
+        │   ├── 📁 util
+        │   │   ├── 📁 color
+        │   │   │   ├── 📄 color.hpp
+        │   │   │   ├── 📄 color_cie_lab.hpp
+        │   │   │   ├── 📄 color_cmyk.hpp
+        │   │   │   ├── 📄 color_convert.hpp
+        │   │   │   ├── 📄 color_hsl.hpp
+        │   │   │   ├── 📄 color_hsv.hpp
+        │   │   │   ├── 📄 color_rgb.hpp
+        │   │   │   └── 📄 color_ycbcr.hpp
+        │   │   ├── 📁 counter
+        │   │   │   ├── 📄 atomic_counter.hpp
+        │   │   │   ├── 📄 counter.hpp
+        │   │   │   └── 📄 mutex_counter.hpp
+        │   │   ├── 📁 path
+        │   │   │   └── 📄 path.hpp
+        │   │   ├── 📁 sort
+        │   │   │   ├── 📄 bubble_sort.hpp
+        │   │   │   ├── 📄 heap_sort.hpp
+        │   │   │   ├── 📄 insertion_sort.hpp
+        │   │   │   ├── 📄 merge_sort.hpp
+        │   │   │   ├── 📄 quick_sort.hpp
+        │   │   │   ├── 📄 selection_sort.hpp
+        │   │   │   └── 📄 sort.hpp
+        │   │   ├── 📁 timer
+        │   │   │   ├── 📄 mutex_timer.hpp
+        │   │   │   └── 📄 timer.hpp
+        │   │   ├── 📄 interval.hpp
+        │   │   ├── 📄 kv_pair.hpp
+        │   │   ├── 📄 sequence.hpp
+        │   │   └── 📄 tuple_map.hpp
+        │   └── 📄 djinterp.hpp
+        ├── 📁 functional
+        │   ├── 📄 compose.hpp
+        │   ├── 📄 filter.hpp
+        │   ├── 📄 filterable_traits.hpp
+        │   ├── 📄 fn_builder.hpp
+        │   ├── 📄 functional.hpp
+        │   ├── 📄 pipeline.hpp
+        │   └── 📄 predicate.hpp
+        ├── 📁 paradigm
+        │   ├── 📁 adapter
+        │   │   └── 📄 adapter.hpp
+        │   ├── 📁 mediator
+        │   │   └── 📄 mediator.hpp
+        │   ├── 📁 momento
+        │   │   └── 📄 memento.hpp
+        │   ├── 📁 observer
+        │   │   └── 📄 observer.hpp
+        │   └── 📁 visitor
+        │       └── 📄 visitor.hpp
+        ├── 📁 parse
+        │   ├── 📁 grammar
+        │   │   ├── 📄 parse_abnf.h
+        │   │   ├── 📄 parse_bnf.h
+        │   │   ├── 📄 parse_bnf_common.h
+        │   │   └── 📄 parse_ebnf.h
+        │   ├── 📁 scanner
+        │   │   ├── 📄 catalogue_db.hpp
+        │   │   ├── 📄 scanner.hpp
+        │   │   ├── 📄 types.hpp
+        │   │   └── 📄 wiki_generator.hpp
+        │   ├── 📄 binary_parser.hpp
+        │   ├── 📄 c.hpp
+        │   ├── 📄 c_parser.hpp
+        │   ├── 📄 clang_util.hpp
+        │   ├── 📄 common.hpp
+        │   ├── 📄 cpp.hpp
+        │   ├── 📄 cpp_def_parser.hpp
+        │   ├── 📄 cpp_parser.hpp
+        │   ├── 📄 cross_ref.hpp
+        │   ├── 📄 parse.hpp
+        │   ├── 📄 parse_context.hpp
+        │   ├── 📄 parse_runtime.h
+        │   ├── 📄 parser.hpp
+        │   ├── 📄 parser_traits.hpp
+        │   ├── 📄 preprocessor.hpp
+        │   ├── 📄 scanner.hpp
+        │   └── 📄 text_parser.hpp
+        ├── 📁 parsegen
+        │   └── 📄 parsegen.hpp
+        ├── 📁 re_std
+        │   └── 📁 any
+        │       ├── 📄 any.hpp
+        │       ├── 📄 any_cast.hpp
+        │       ├── 📄 any_swap.hpp
+        │       ├── 📄 bad_any_cast.hpp
+        │       └── 📄 make_any.hpp
+        ├── 📁 test
+        │   ├── 📄 test_cli.hpp
+        │   ├── 📄 test_common.hpp
+        │   ├── 📄 test_concepts.hpp
+        │   ├── 📄 test_counter.hpp
+        │   ├── 📄 test_defaults.hpp
+        │   ├── 📄 test_object.hpp
+        │   ├── 📄 test_object_concepts.hpp
+        │   ├── 📄 test_object_traits.hpp
+        │   ├── 📄 test_options.hpp
+        │   ├── 📄 test_printer.hpp
+        │   ├── 📄 test_printer_concepts.hpp
+        │   ├── 📄 test_printer_traits.hpp
+        │   ├── 📄 test_timer.hpp
+        │   └── 📄 test_tree.hpp
+        ├── 📁 text
+        │   ├── 📁 symbol
+        │   │   └── 📄 math_symbols.h
+        │   ├── 📄 print.hpp
+        │   ├── 📄 printer_traits.hpp
+        │   ├── 📄 text_function.hpp
+        │   ├── 📄 text_function_traits.hpp
+        │   ├── 📄 text_template.hpp
+        │   └── 📄 text_template_traits.hpp
+        └── 📄 arena_domain.hpp

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "dmutex_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,23 +17,22 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // helper struct for per-thread TSS isolation test
-struct d_test_tss_thread_data
+struct dj_test_tss_thread_data
 {
-    d_tss_t key;
+    dj_tss_t key;
     int     child_value;
     void*   child_got;
 };
 
 // helper: child thread that reads then writes its own TSS value
-static void*
-d_test_tss_child_worker
-(
+static
+void* d_test_tss_child_worker(
     void* _arg
 )
 {
-    struct d_test_tss_thread_data* data;
+    struct dj_test_tss_thread_data* data;
 
-    data = (struct d_test_tss_thread_data*)_arg;
+    data = (struct dj_test_tss_thread_data*)_arg;
 
     // child sees its own TSS (initially NULL)
     data->child_got = d_tss_get(data->key);
@@ -59,14 +58,12 @@ d_tests_sa_tss_create_delete
   - creation with NULL destructor succeeds
   - multiple keys can be created
 */
-bool
-d_tests_sa_tss_create_delete
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_tss_create_delete(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
-    d_tss_t key;
+    dj_tss_t key;
     int     rc;
 
     result = true;
@@ -92,8 +89,8 @@ d_tests_sa_tss_create_delete
 
     // test 3: multiple keys
     {
-        d_tss_t key_a;
-        d_tss_t key_b;
+        dj_tss_t key_a;
+        dj_tss_t key_b;
         int     rc_a;
         int     rc_b;
 
@@ -130,14 +127,12 @@ d_tests_sa_tss_get_set
   - overwriting a value works correctly
   - setting NULL clears the value
 */
-bool
-d_tests_sa_tss_get_set
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_tss_get_set(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
-    d_tss_t key;
+    dj_tss_t key;
     int     rc;
     void*   val;
 
@@ -218,14 +213,12 @@ d_tests_sa_tss_per_thread
   - main thread and child thread have independent TSS values
   - setting TSS in child does not affect main thread's TSS value
 */
-bool
-d_tests_sa_tss_per_thread
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_tss_per_thread(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
-    d_tss_t key;
+    dj_tss_t key;
     int     rc;
 
     result = true;
@@ -234,8 +227,8 @@ d_tests_sa_tss_per_thread
 
     if (rc == D_MUTEX_SUCCESS)
     {
-        struct d_test_tss_thread_data shared;
-        d_thread_t                    thd;
+        struct dj_test_tss_thread_data shared;
+        dj_thread_t                    thd;
         int                           main_value;
 
         main_value = 111;
@@ -248,7 +241,7 @@ d_tests_sa_tss_per_thread
         shared.child_got   = NULL;
 
         rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_tss_child_worker,
+                                 (dj_thread_func_t)d_test_tss_child_worker,
                              &shared);
 
         if (rc == D_MUTEX_SUCCESS)
@@ -289,10 +282,8 @@ d_tests_sa_tss_per_thread
 d_tests_sa_tss_all
   Aggregation function that runs all TSS tests.
 */
-bool
-d_tests_sa_tss_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_tss_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -8,8 +8,8 @@
 * both, that d_file_temp_stream then fails with ENOSYS, that a temporary name
 * is still made, seeded without the clock, and that a file round-trips. It
 * works in the current directory, which the runtime must preopen as ".".
-*   ci/check_filesys_platforms.sh runs it under wasmtime, with and without
-* the clock emulation; by hand, from the repo root, with zig:
+*   scripts/ci/check_filesys_platforms.sh runs it under wasmtime, with and
+* without the clock emulation; by hand, from the repo root, with zig:
 *     zig cc -target wasm32-wasi -std=c99 -Wall -Wextra -Werror              \
 *        src/djinterp/c/filesys/file_*.c                                       \
 *        tests/djinterp/c/filesys/t_file_wasi.c -o t_file_wasi.wasm
@@ -64,10 +64,8 @@ static int g_failures = 0;
 t_wasi_gates
   The build is on the ISO C backend, and knows what WASI's libc lacks.
 */
-static void
-t_wasi_gates(
-    void
-)
+static
+void t_wasi_gates(void)
 {
     CHECK(D_FILE_BACKEND_IS_STDC,
           "WASI builds on the ISO C backend");
@@ -83,10 +81,8 @@ t_wasi_gates(
 t_wasi_temporaries
   No anonymous temporary, said with ENOSYS.
 */
-static void
-t_wasi_temporaries(
-    void
-)
+static
+void t_wasi_temporaries(void)
 {
     FILE* stream = stdout;  // anything but NULL, to see it cleared
 
@@ -107,10 +103,8 @@ t_wasi_temporaries(
 t_wasi_name
   A temporary name, made without the clock.
 */
-static void
-t_wasi_name(
-    void
-)
+static
+void t_wasi_name(void)
 {
     char name[256] = {0};
 
@@ -127,10 +121,8 @@ t_wasi_name(
 t_wasi_name
   This build makes no racy names (D_CFG_FILE_TEMP_TMPNAM).
 */
-static void
-t_wasi_name(
-    void
-)
+static
+void t_wasi_name(void)
 {
     return;
 }
@@ -141,10 +133,8 @@ t_wasi_name(
 t_wasi_streams
   A file written, read back and removed.
 */
-static void
-t_wasi_streams(
-    void
-)
+static
+void t_wasi_streams(void)
 {
     size_t length = 0;
     char*  data   = NULL;
@@ -165,10 +155,7 @@ t_wasi_streams(
 }
 
 
-int
-main(
-    void
-)
+int main(void)
 {
     t_wasi_gates();
     t_wasi_temporaries();

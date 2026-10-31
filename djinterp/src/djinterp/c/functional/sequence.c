@@ -15,7 +15,7 @@
 #include <stddef.h>   // size_t, NULL
 #include <string.h>   // memcpy
 // djinterp
-#include "../../../../inc/djinterp/c/functional/reducer.h"     // d_reducing_state
+#include "../../../../inc/djinterp/c/functional/reducer.h"     // dj_reducing_state
 #include "../../../../inc/djinterp/c/functional/transducer.h"  // d_transducer_emit
 
 
@@ -31,9 +31,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_sequence_swap
-(
+static
+void d_internal_sequence_swap(
     unsigned char* _left,
     unsigned char* _right,
     size_t         _element_size
@@ -74,9 +73,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_sequence_sift
-(
+static
+void d_internal_sequence_sift(
     unsigned char*      _base,
     size_t              _count,
     size_t              _root,
@@ -144,11 +142,10 @@ Return:
   - true, if the element had not been seen, or
   - false, if it had, or the state is unusable.
 */
-static bool
-d_internal_sequence_distinct_admits
-(
-    struct d_distinct_state* _state,
-    const void*              _element
+static
+bool d_internal_sequence_distinct_admits(
+    struct dj_distinct_state* _state,
+    const void*               _element
 )
 {
     unsigned char* cursor;
@@ -207,17 +204,16 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_sequence_step_flat_map
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_sequence_step_flat_map(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
-    struct d_flat_map_state*   binding;
+    struct dj_transducer_stage* stage;
+    struct dj_flat_map_state*   binding;
     unsigned char*             cursor;
     size_t                     produced;
     size_t                     emitted;
@@ -237,7 +233,7 @@ d_internal_sequence_step_flat_map
         return;
     }
 
-    binding = (struct d_flat_map_state*)stage->context;
+    binding = (struct dj_flat_map_state*)stage->context;
 
     // without an expander or somewhere to expand into, the value is dropped
     if ( (!binding->expander) ||
@@ -290,16 +286,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_sequence_step_distinct
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_sequence_step_distinct(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -318,7 +313,7 @@ d_internal_sequence_step_distinct
 
     // only a novel value reaches the next stage
     if (d_internal_sequence_distinct_admits(
-            (struct d_distinct_state*)stage->context,
+            (struct dj_distinct_state*)stage->context,
             _element))
     {
         d_transducer_emit(_transducer, _index + 1, _state, _element);
@@ -341,9 +336,7 @@ Return:
   - true, if the array was reversed (a count below 2 is already reversed), or
   - false, if the parameters were unusable.
 */
-bool
-d_reverse
-(
+bool d_reverse(
     void*  _elements,
     size_t _count,
     size_t _element_size
@@ -400,9 +393,7 @@ Return:
   - true, if the reversal was written, or
   - false, if the parameters were unusable.
 */
-bool
-d_reverse_into
-(
+bool d_reverse_into(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -454,9 +445,7 @@ Return:
   - true, if the array was sorted (a count below 2 is already sorted), or
   - false, if the parameters were unusable.
 */
-bool
-d_sorted
-(
+bool d_sorted(
     void*               _elements,
     size_t              _count,
     size_t              _element_size,
@@ -529,9 +518,7 @@ Return:
   - true, if no element strictly precedes its predecessor, or
   - false, if one does or the parameters were unusable.
 */
-bool
-d_is_sorted
-(
+bool d_is_sorted(
     const void*         _elements,
     size_t              _count,
     size_t              _element_size,
@@ -589,9 +576,7 @@ Parameter(s):
 Return:
   The number of pairs written.
 */
-size_t
-d_zip
-(
+size_t d_zip(
     const void* _left,
     size_t      _left_size,
     const void* _right,
@@ -660,9 +645,7 @@ Parameter(s):
 Return:
   The number of outputs written.
 */
-size_t
-d_zip_with
-(
+size_t d_zip_with(
     const void* _left,
     size_t      _left_size,
     const void* _right,
@@ -733,9 +716,7 @@ Parameter(s):
 Return:
   The number of outputs written, which stops at the capacity.
 */
-size_t
-d_flat_map
-(
+size_t d_flat_map(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -808,9 +789,7 @@ Parameter(s):
 Return:
   The number of elements written.
 */
-size_t
-d_slice
-(
+size_t d_slice(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -866,15 +845,13 @@ Return:
   - true, if the state was initialised, or
   - false, if the parameters were unusable.
 */
-bool
-d_distinct_state_init
-(
-    struct d_distinct_state* _state,
-    void*                    _seen,
-    size_t                   _capacity,
-    size_t                   _element_size,
-    fn_binary_predicate      _equals,
-    void*                    _context
+bool d_distinct_state_init(
+    struct dj_distinct_state* _state,
+    void*                     _seen,
+    size_t                    _capacity,
+    size_t                    _element_size,
+    fn_binary_predicate       _equals,
+    void*                     _context
 )
 {
     // an unusable request leaves the state untouched
@@ -911,14 +888,12 @@ Parameter(s):
 Return:
   The number of distinct elements written.
 */
-size_t
-d_distinct
-(
-    const void*              _elements,
-    size_t                   _count,
-    struct d_distinct_state* _state,
-    void*                    _out_array,
-    size_t                   _out_capacity
+size_t d_distinct(
+    const void*               _elements,
+    size_t                    _count,
+    struct dj_distinct_state* _state,
+    void*                     _out_array,
+    size_t                    _out_capacity
 )
 {
     const unsigned char* source;
@@ -975,9 +950,7 @@ Parameter(s):
 Return:
   A pointer to the last satisfying element, or NULL if there is none.
 */
-void*
-d_find_last
-(
+void* d_find_last(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -1032,9 +1005,7 @@ Return:
   - true, if a satisfying element was found, or
   - false, otherwise.
 */
-bool
-d_index_of
-(
+bool d_index_of(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -1088,9 +1059,7 @@ Return:
   - true, if a satisfying element was found, or
   - false, otherwise.
 */
-bool
-d_last_index_of
-(
+bool d_last_index_of(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -1142,13 +1111,11 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_distinct
-(
-    struct d_distinct_state* _state
+struct dj_transducer_stage d_transducer_distinct(
+    struct dj_distinct_state* _state
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage.step               = &d_internal_sequence_step_distinct;
     stage.callable.predicate = NULL;
@@ -1169,21 +1136,19 @@ specifies: "left precedes right" is "the comparison is negative".
 Parameter(s):
   _left:                the left operand.
   _right:               the right operand.
-  _comparator_binding:  a caller-owned `d_comparator_binding`.
+  _comparator_binding:  a caller-owned `dj_comparator_binding`.
 Return:
   A boolean value corresponding to either:
   - true, if the comparison is negative, or
   - false, otherwise.
 */
-bool
-d_precedes_from_comparator
-(
+bool d_precedes_from_comparator(
     const void* _left,
     const void* _right,
     void*       _comparator_binding
 )
 {
-    struct d_comparator_binding* binding;
+    struct dj_comparator_binding* binding;
 
     // an unusable binding orders nothing
     if (!_comparator_binding)
@@ -1191,7 +1156,7 @@ d_precedes_from_comparator
         return false;
     }
 
-    binding = (struct d_comparator_binding*)_comparator_binding;
+    binding = (struct dj_comparator_binding*)_comparator_binding;
 
     // an unset comparison leaves every pair unordered
     if (!binding->compare)
@@ -1218,15 +1183,13 @@ Return:
   - true, if the binding was initialised, or
   - false, if the parameters were unusable.
 */
-bool
-d_flat_map_state_init
-(
-    struct d_flat_map_state* _state,
-    fn_expander              _expander,
-    void*                    _context,
-    void*                    _scratch,
-    size_t                   _capacity,
-    size_t                   _out_size
+bool d_flat_map_state_init(
+    struct dj_flat_map_state* _state,
+    fn_expander               _expander,
+    void*                     _context,
+    void*                     _scratch,
+    size_t                    _capacity,
+    size_t                    _out_size
 )
 {
     // an unusable request leaves the binding untouched
@@ -1259,13 +1222,11 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_flat_map
-(
-    struct d_flat_map_state* _state
+struct dj_transducer_stage d_transducer_flat_map(
+    struct dj_flat_map_state* _state
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage.step               = &d_internal_sequence_step_flat_map;
     stage.callable.predicate = NULL;

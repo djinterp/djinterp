@@ -18,7 +18,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -35,10 +35,8 @@ d_tests_sa_dmacro_varg_count_basic
   - D_VARG_COUNT correctly counts 5 arguments
   - D_VARG_COUNT correctly counts 10 arguments
 */
-bool
-d_tests_sa_dmacro_varg_count_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_varg_count_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -141,10 +139,8 @@ d_tests_sa_dmacro_varg_count_medium
   - D_VARG_COUNT correctly counts 31 arguments
   - D_VARG_COUNT correctly counts 32 arguments (power of 2 boundary)
 */
-bool
-d_tests_sa_dmacro_varg_count_medium
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_varg_count_medium(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -254,10 +250,8 @@ d_tests_sa_dmacro_varg_count_large
   - D_VARG_COUNT correctly counts 63 arguments (max - 1)
   - D_VARG_COUNT correctly counts 64 arguments (variant max for 64-bit)
 */
-bool
-d_tests_sa_dmacro_varg_count_large
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_varg_count_large(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -362,10 +356,8 @@ d_tests_sa_dmacro_varg_count_types
   - D_VARG_COUNT works with mixed types
   - D_VARG_COUNT works with expressions
 */
-bool
-d_tests_sa_dmacro_varg_count_types
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_varg_count_types(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -492,10 +484,8 @@ d_tests_sa_dmacro_varg_count_edge_cases
   - D_VARG_COUNT result usable in array declarations
   - D_VARG_COUNT with compound literals
 */
-bool
-d_tests_sa_dmacro_varg_count_edge_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_varg_count_edge_cases(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -620,10 +610,8 @@ d_tests_sa_dmacro_has_args_basic
   - D_HAS_ARGS result is usable as boolean
   - D_HAS_ARGS works with various argument counts
 */
-bool
-d_tests_sa_dmacro_has_args_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_has_args_basic(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -725,10 +713,8 @@ d_tests_sa_dmacro_has_args_types
   - D_HAS_ARGS works with expressions
   - D_HAS_ARGS works with mixed types
 */
-bool
-d_tests_sa_dmacro_has_args_types
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_has_args_types(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -835,10 +821,8 @@ d_tests_sa_dmacro_has_args_large_counts
   - D_HAS_ARGS returns 1 for 63 arguments
   - D_HAS_ARGS returns 1 for max variant arguments
 */
-bool
-d_tests_sa_dmacro_has_args_large_counts
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_has_args_large_counts(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -939,10 +923,8 @@ d_tests_sa_dmacro_has_args_conditionals
   - D_HAS_ARGS result usable in logical expressions
   - D_HAS_ARGS combined with D_VARG_COUNT
 */
-bool
-d_tests_sa_dmacro_has_args_conditionals
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_has_args_conditionals(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1046,10 +1028,8 @@ d_tests_sa_dmacro_arg_count_combined
   - Consistency between D_VARG_COUNT > 0 and D_HAS_ARGS == 1
   - Practical usage patterns
 */
-bool
-d_tests_sa_dmacro_arg_count_combined
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_arg_count_combined(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1178,10 +1158,8 @@ d_tests_sa_dmacro_arg_count_boundary
   - Consistency near maximum supported count
   - Verification against D_DMACRO_VARG_MAX
 */
-bool
-d_tests_sa_dmacro_arg_count_boundary
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_arg_count_boundary(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1305,13 +1283,11 @@ d_tests_sa_dmacro_arg_count_all
   - Combined usage patterns
   - Boundary conditions
 */
-bool
-d_tests_sa_dmacro_arg_count_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_arg_count_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  varg_count_basic_result;
     bool                  varg_count_medium_result;
     bool                  varg_count_large_result;
@@ -1330,7 +1306,7 @@ d_tests_sa_dmacro_arg_count_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

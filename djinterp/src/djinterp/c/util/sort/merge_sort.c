@@ -14,7 +14,7 @@
 // std
 #include <string.h>
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*
@@ -34,9 +34,7 @@ Return:
   the required scratch in bytes, or 0 when none is needed or the range is not
 addressable.
 */
-size_t
-d_merge_sort_scratch_size
-(
+size_t d_merge_sort_scratch_size(
     size_t _count,
     size_t _elem_size
 )
@@ -92,19 +90,19 @@ Return:
 does not cover the range, with the range left untouched; otherwise the formal
 status from d_sort_verify.
 */
-enum d_sort_status
+enum dj_sort_status
 d_merge_sort
 (
     void*                           _base,
     size_t                          _count,
     size_t                          _elem_size,
-    const struct d_sort_comparator* _comparator,
-    enum d_sort_order               _order,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order,
     void*                           _scratch,
     size_t                          _scratch_size
 )
 {
-    enum d_sort_status status;
+    enum dj_sort_status status;
     size_t             required;
     size_t             width;
     void*              source;

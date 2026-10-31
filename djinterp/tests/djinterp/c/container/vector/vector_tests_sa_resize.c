@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,14 +20,12 @@ d_tests_sa_vector_resize
   - successful shrink
   - successful grow (zero-initialized)
 */
-bool
-d_tests_sa_vector_resize
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_resize(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
 
     result = true;
 
@@ -107,14 +105,12 @@ d_tests_sa_vector_resize_fill
   - successful grow with fill value
   - NULL fill when growing should fail
 */
-bool
-d_tests_sa_vector_resize_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_resize_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool             result;
-    struct d_vector* vec;
+    struct dj_vector* vec;
     int              fill_value;
 
     result = true;
@@ -183,10 +179,8 @@ d_tests_sa_vector_resize_fill
 d_tests_sa_vector_resize_all
   Aggregation function that runs all resize tests.
 */
-bool
-d_tests_sa_vector_resize_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_resize_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

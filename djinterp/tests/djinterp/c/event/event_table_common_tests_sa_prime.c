@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_common_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,10 @@
 
 // d_tests_sa_etc_is_prime
 //   helper: verifies a value is prime by trial division.
-static bool
-d_tests_sa_etc_is_prime(size_t _n)
+static
+bool d_tests_sa_etc_is_prime(
+    size_t _n
+)
 {
     size_t i;
 
@@ -59,10 +61,8 @@ d_tests_sa_event_hash_next_prime_basic
   - Input 3 returns 3
   - Input 4 returns 5
 */
-bool
-d_tests_sa_event_hash_next_prime_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_next_prime_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -105,10 +105,8 @@ d_tests_sa_event_hash_next_prime_known
   - Input 1000 returns 1009
   - Returned values are actually prime
 */
-bool
-d_tests_sa_event_hash_next_prime_known
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_next_prime_known(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -153,10 +151,8 @@ d_tests_sa_event_hash_next_prime_edge
   - Input 0 returns 2
   - Even input returns odd prime >= input
 */
-bool
-d_tests_sa_event_hash_next_prime_edge
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_next_prime_edge(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -188,10 +184,8 @@ d_tests_sa_event_hash_next_prime_sequence
   - Generated sequence is monotonically increasing
   - All values in sequence are prime
 */
-bool
-d_tests_sa_event_hash_next_prime_sequence
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_next_prime_sequence(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -255,10 +249,8 @@ d_tests_sa_event_hash_next_prime_large
   Tests the following:
   - Result is >= 10000 and is actually prime
 */
-bool
-d_tests_sa_event_hash_next_prime_large
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_next_prime_large(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -280,10 +272,8 @@ d_tests_sa_event_hash_next_prime_large
 d_tests_sa_event_hash_prime_all
   Runs all prime number utility tests.
 */
-bool
-d_tests_sa_event_hash_prime_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_hash_prime_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

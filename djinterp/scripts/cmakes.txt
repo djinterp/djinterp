@@ -1,0 +1,2339 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release
+├── 📁 bin
+├── 📁 build
+│   └── 📁 cmake
+│       ├── 📁 config
+│       │   ├── 📁 testing
+│       │   │   ├── 📁 djinterp
+│       │   │   │   ├── 📁 core
+│       │   │   │   │   ├── 📁 container
+│       │   │   │   │   │   ├── 📁 array
+│       │   │   │   │   │   │   ├── 📄 array_tests_runner.cpp
+│       │   │   │   │   │   │   └── 📄 CMakeLists.txt
+│       │   │   │   │   │   └── 📄 CMakeLists.txt
+│       │   │   │   │   ├── 📁 functional
+│       │   │   │   │   │   ├── 📄 accumulator_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 comparator_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 compose_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 consumer_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 curry_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 extractor_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 filter_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 fn_builder_runner.cpp
+│       │   │   │   │   │   ├── 📄 maybe_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 monad_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 pipeline_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 predicate_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 producer_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 result_test_runner.cpp
+│       │   │   │   │   │   ├── 📄 transducer_test_runner.cpp
+│       │   │   │   │   │   └── 📄 view_test_runner.cpp
+│       │   │   │   │   ├── 📁 meta
+│       │   │   │   │   │   ├── 📄 concepts_tests_runner.cpp
+│       │   │   │   │   │   ├── 📄 dtuple_tests_runner.cpp
+│       │   │   │   │   │   └── 📄 type_traits_tests_runner.cpp
+│       │   │   │   │   ├── 📁 option
+│       │   │   │   │   │   └── 📄 option_tests.cpp
+│       │   │   │   │   ├── 📁 text
+│       │   │   │   │   │   └── 📄 text_template_tests.cpp
+│       │   │   │   │   ├── 📄 CMakeLists.txt
+│       │   │   │   │   └── 📄 djinterp_header_tests_runner.cpp
+│       │   │   │   └── 📄 CMakeLists.txt
+│       │   │   └── 📄 CMakeLists.txt
+│       │   ├── 📄 CMakeLists.txt
+│       │   └── 📄 djinterp_module.cmake
+│       ├── 📁 msvs
+│       │   ├── 📁 CMakeFiles
+│       │   │   ├── 📁 4.3.1
+│       │   │   │   ├── 📁 CompilerIdC
+│       │   │   │   │   └── 📄 CMakeCCompilerId.c
+│       │   │   │   ├── 📁 CompilerIdCXX
+│       │   │   │   │   └── 📄 CMakeCXXCompilerId.cpp
+│       │   │   │   ├── 📄 CMakeCCompiler.cmake
+│       │   │   │   ├── 📄 CMakeCXXCompiler.cmake
+│       │   │   │   ├── 📄 CMakeRCCompiler.cmake
+│       │   │   │   ├── 📄 CMakeSystem.cmake
+│       │   │   │   └── 📄 VCTargetsPath.txt
+│       │   │   ├── 📄 CTestScript.cmake
+│       │   │   ├── 📄 TargetDirectories.txt
+│       │   │   └── 📄 VerifyGlobs.cmake
+│       │   ├── 📁 Testing
+│       │   │   ├── 📁 djinterp
+│       │   │   │   ├── 📁 core
+│       │   │   │   │   ├── 📁 container
+│       │   │   │   │   │   ├── 📁 array
+│       │   │   │   │   │   │   ├── 📄 cmake_install.cmake
+│       │   │   │   │   │   │   └── 📄 CTestTestfile.cmake
+│       │   │   │   │   │   ├── 📄 cmake_install.cmake
+│       │   │   │   │   │   └── 📄 CTestTestfile.cmake
+│       │   │   │   │   ├── 📄 cmake_install.cmake
+│       │   │   │   │   └── 📄 CTestTestfile.cmake
+│       │   │   │   ├── 📄 cmake_install.cmake
+│       │   │   │   └── 📄 CTestTestfile.cmake
+│       │   │   ├── 📄 cmake_install.cmake
+│       │   │   └── 📄 CTestTestfile.cmake
+│       │   ├── 📄 cmake_install.cmake
+│       │   ├── 📄 CMakeCache.txt
+│       │   └── 📄 CTestTestfile.cmake
+│       ├── 📄 aggregate_main.cpp
+│       ├── 📄 CMakeLists_djinterp_header_leaf.txt
+│       ├── 📄 CMakeLists_dtuple_leaf.txt
+│       ├── 📄 CMakeLists_testing_root.txt
+│       ├── 📄 djinterp_header_tests_runner (1).cpp
+│       ├── 📄 djinterp_module.cmake
+│       ├── 📄 dtuple_tests_runner.cpp
+│       └── 📄 single_module_main.cpp
+├── 📁 inc
+│   └── 📁 djinterp
+│       ├── 📁 c
+│       │   ├── 📁 container
+│       │   │   ├── 📁 array
+│       │   │   │   ├── 📄 array.h
+│       │   │   │   ├── 📄 array_common.h
+│       │   │   │   ├── 📄 array_filter.h
+│       │   │   │   ├── 📄 byte_array.h
+│       │   │   │   ├── 📄 circular_array.h
+│       │   │   │   └── 📄 ptr_array.h
+│       │   │   ├── 📁 buffer
+│       │   │   │   ├── 📄 buffer_common.h
+│       │   │   │   └── 📄 text_buffer.h
+│       │   │   ├── 📁 map
+│       │   │   │   ├── 📄 enum_map_entry.h
+│       │   │   │   ├── 📄 map.h
+│       │   │   │   └── 📄 min_enum_map.h
+│       │   │   ├── 📁 node
+│       │   │   │   └── 📄 linked_node.h
+│       │   │   ├── 📁 registry
+│       │   │   │   ├── 📄 registry.h
+│       │   │   │   └── 📄 registry_common.h
+│       │   │   ├── 📁 stack
+│       │   │   │   └── 📄 min_stack.h
+│       │   │   ├── 📁 tree
+│       │   │   │   └── 📁 file
+│       │   │   │       └── 📄 file_tree.h
+│       │   │   ├── 📁 vector
+│       │   │   │   ├── 📄 ptr_vector.h
+│       │   │   │   ├── 📄 vector.h
+│       │   │   │   └── 📄 vector_common.h
+│       │   │   └── 📄 container.h
+│       │   ├── 📁 event
+│       │   │   ├── 📄 event.h
+│       │   │   ├── 📄 event_handler.h
+│       │   │   ├── 📄 event_table.h
+│       │   │   └── 📄 event_table_common.h
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 compose.h
+│       │   │   ├── 📄 filter.h
+│       │   │   ├── 📄 fn_builder.h
+│       │   │   ├── 📄 functional.h
+│       │   │   ├── 📄 functional_common.h
+│       │   │   ├── 📄 pipeline.h
+│       │   │   └── 📄 predicate.h
+│       │   ├── 📁 sync
+│       │   │   └── 📁 container
+│       │   │       └── 📁 array
+│       │   │           └── 📄 circular_array_mtx.h
+│       │   ├── 📁 test
+│       │   │   ├── 📄 assert.h
+│       │   │   ├── 📄 dtest
+│       │   │   ├── 📄 test.h
+│       │   │   ├── 📄 test_block.h
+│       │   │   ├── 📄 test_cli.h
+│       │   │   ├── 📄 test_common.h
+│       │   │   ├── 📄 test_cvar.h
+│       │   │   ├── 📄 test_handler.h
+│       │   │   ├── 📄 test_module.h
+│       │   │   ├── 📄 test_options.h
+│       │   │   ├── 📄 test_printer.h
+│       │   │   ├── 📄 test_session.h
+│       │   │   ├── 📄 test_standalone.h
+│       │   │   ├── 📄 test_stats.h
+│       │   │   └── 📄 test_tree.h
+│       │   ├── 📁 text
+│       │   │   ├── 📁 symbol
+│       │   │   │   ├── 📁 emoji
+│       │   │   │   │   ├── 📄 emoji.h
+│       │   │   │   │   └── 📄 emoji_flags.h
+│       │   │   │   ├── 📄 ascii.h
+│       │   │   │   ├── 📄 box_drawing.h
+│       │   │   │   ├── 📄 emoji.h
+│       │   │   │   └── 📄 math_symbols.h
+│       │   │   ├── 📁 unicode
+│       │   │   │   └── 📄 unicode.h
+│       │   │   ├── 📄 number_to_string_en.h
+│       │   │   ├── 📄 number_to_string_es.h
+│       │   │   ├── 📄 number_to_string_fr.h
+│       │   │   ├── 📄 number_to_string_it.h
+│       │   │   ├── 📄 number_to_string_la.h
+│       │   │   ├── 📄 number_to_string_pt.h
+│       │   │   ├── 📄 str_interp.h
+│       │   │   └── 📄 text_template.h
+│       │   ├── 📁 util
+│       │   │   ├── 📁 cli
+│       │   │   │   └── 📄 cli_option.h
+│       │   │   ├── 📁 color
+│       │   │   │   ├── 📄 color.h
+│       │   │   │   ├── 📄 color_cmyk.h
+│       │   │   │   ├── 📄 color_common.h
+│       │   │   │   ├── 📄 color_convert.h
+│       │   │   │   ├── 📄 color_hsl.h
+│       │   │   │   ├── 📄 color_hsv.h
+│       │   │   │   ├── 📄 color_lab.h
+│       │   │   │   ├── 📄 color_rgb.h
+│       │   │   │   └── 📄 color_ycbcr.h
+│       │   │   ├── 📁 macro
+│       │   │   │   ├── 📄 for_each_1_tuple_comma_mvc.h
+                           ...
+│     
+│       │   │   ├── 📄 iterator.h
+│       │   │   ├── 📄 path_mirror.h
+│       │   │   ├── 📄 path_repair.h
+│       │   │   ├── 📄 relative_path_repair.h
+│       │   │   └── 📄 type_info_common.h
+│       │   ├── 📄 datomic.h
+│       │   ├── 📄 derror.h
+│       │   ├── 📄 dfile.h
+│       │   ├── 📄 dio.h
+│       │   ├── 📄 djinterp.h
+│       │   ├── 📄 dmacro.h
+│       │   ├── 📄 dmemory.h
+│       │   ├── 📄 dmutex.h
+│       │   ├── 📄 dstring.h
+│       │   ├── 📄 dtime.h
+│       │   ├── 📄 string_fn.h
+│       │   ├── 📄 threadsafe_common.h
+│       │   ├── 📄 type_info.h
+│       │   └── 📄 type_info_c.h
+│       ├── 📁 config
+│       │   ├── 📁 c
+│       │   │   └── 📁 util
+│       │   │       └── 📄 dmacro_config.h
+│       │   ├── 📁 core
+│       │   │   ├── 📁 container
+│       │   │   │   ├── 📁 array
+│       │   │   │   │   └── 📄 array_config.h
+│       │   │   │   ├── 📁 iterator
+│       │   │   │   │   └── 📄 container_iterator_config.h
+│       │   │   │   ├── 📁 registry
+│       │   │   │   │   └── 📄 registry_config.h
+│       │   │   │   ├── 📁 tree
+│       │   │   │   │   └── 📁 file
+│       │   │   │   │       └── 📄 cfg_filesys.h
+│       │   │   │   └── 📄 container_config.h
+│       │   │   ├── 📁 defaults
+│       │   │   │   └── 📁 test
+│       │   │   │       ├── 📄 dtest_defaults.h
+│       │   │   │       └── 📄 test_standalone_defaults.h
+│       │   │   ├── 📁 env
+│       │   │   │   ├── 📁 db
+│       │   │   │   │   ├── 📁 arangodb
+│       │   │   │   │   │   └── 📄 env_arangodb_config.h
+│       │   │   │   │   ├── 📁 mariadb
+│       │   │   │   │   │   └── 📄 env_mariadb_config.h
+│       │   │   │   │   ├── 📁 mongodb
+│       │   │   │   │   │   └── 📄 env_mongodb_config.h
+│       │   │   │   │   ├── 📁 mysql
+│       │   │   │   │   │   └── 📄 env_mysql_config.h
+│       │   │   │   │   ├── 📁 oracle
+│       │   │   │   │   │   └── 📄 env_oracle_config.h
+│       │   │   │   │   ├── 📁 postgres
+│       │   │   │   │   │   └── 📄 env_postgres_config.h
+│       │   │   │   │   ├── 📁 sqlite
+│       │   │   │   │   │   └── 📄 env_sqlite_config.h
+│       │   │   │   │   └── 📄 env_db_config.h
+│       │   │   │   └── 📄 env_config.h
+│       │   │   ├── 📁 event
+│       │   │   │   └── 📄 event_config.h
+│       │   │   ├── 📁 functional
+│       │   │   │   └── 📄 functional_config.h
+│       │   │   ├── 📁 test
+│       │   │   │   └── 📄 test_config.h
+│       │   │   ├── 📁 text
+│       │   │   │   └── 📄 text_config.h
+│       │   │   └── 📁 util
+│       │   │       └── 📁 cli
+│       │   │           └── 📄 cli_option_config.h
+│       │   └── 📄 dconfig.h
+│       ├── 📁 core
+│       │   ├── 📁 binary
+│       │   │   ├── 📄 binary.hpp
+│       │   │   └── 📄 binary_template.hpp
+│       │   ├── 📁 cli
+│       │   │   ├── 📄 cli.hpp
+│       │   │   ├── 📄 cli_render.hpp
+│       │   │   └── 📄 cli_string.hpp
+│       │   ├── 📁 container
+│       │   │   ├── 📁 arena
+│       │   │   │   ├── 📁 tree
+│       │   │   │   │   ├── 📄 arena_tree.hpp
+│       │   │   │   │   ├── 📄 arena_tree_concepts.hpp
+│       │   │   │   │   └── 📄 arena_tree_traits.hpp
+│       │   │   │   ├── 📄 arena.hpp
+│       │   │   │   ├── 📄 arena_concepts.hpp
+│       │   │   │   └── 📄 arena_traits.hpp
+│       │   │   ├── 📁 array
+│       │   │   │   ├── 📄 array.hpp
+│       │   │   │   ├── 📄 array_concepts.hpp
+│       │   │   │   ├── 📄 array_iterator.hpp
+│       │   │   │   ├── 📄 array_option_view.hpp
+│       │   │   │   ├── 📄 array_options.hpp
+│       │   │   │   ├── 📄 array_traits.hpp
+│       │   │   │   ├── 📄 atomic_array.hpp
+│       │   │   │   ├── 📄 cow_array.hpp
+│       │   │   │   ├── 📄 rcu_array.hpp
+│       │   │   │   └── 📄 threadsafe_array.hpp
+│       │   │   ├── 📁 buffer
+│       │   │   │   ├── 📄 buffer.hpp
+│       │   │   │   └── 📄 text_buffer.hpp
+│       │   │   ├── 📁 concepts
+│       │   │   │   ├── 📄 bounded_container_concepts.hpp
+│       │   │   │   ├── 📄 constexpr_container_concepts.hpp
+│       │   │   │   ├── 📄 container_binary_concepts.hpp
+│       │   │   │   ├── 📄 container_cli_concepts.hpp
+│       │   │   │   ├── 📄 container_compare_concepts.hpp
+│       │   │   │   ├── 📄 container_concepts.hpp
+│       │   │   │   ├── 📄 container_constructive_concepts.hpp
+│       │   │   │   ├── 📄 container_conversion_concepts.hpp
+│       │   │   │   ├── 📄 container_database_concepts.hpp
+│       │   │   │   ├── 📄 container_filter_concepts.hpp
+│       │   │   │   ├── 📄 container_multiplicity_concepts.hpp
+│       │   │   │   ├── 📄 container_option_concepts.hpp
+│       │   │   │   ├── 📄 container_overlay_concepts.hpp
+│       │   │   │   ├── 📄 container_path_concepts.hpp
+│       │   │   │   ├── 📄 container_storage_concepts.hpp
+│       │   │   │   ├── 📄 container_text_concepts.hpp
+│       │   │   │   ├── 📄 container_view_concepts.hpp
+│       │   │   │   ├── 📄 flat_hierarchical_container_concepts.hpp
+│       │   │   │   ├── 📄 iterable_container_concepts.hpp
+│       │   │   │   ├── 📄 mutable_container_concepts.hpp
+│       │   │   │   ├── 📄 node_container_concepts.hpp
+│       │   │   │   ├── 📄 runtime_container_concepts.hpp
+│       │   │   │   ├── 📄 sequential_container_concepts.hpp
+│       │   │   │   ├── 📄 sorted_container_concepts.hpp
+│       │   │   │   └── 📄 threadsafe_container_concepts.hpp
+│       │   │   ├── 📁 graph
+│       │   │   │   ├── 📄 graph.hpp
+│       │   │   │   ├── 📄 graph_common.hpp
+│       │   │   │   ├── 📄 graph_concepts.hpp
+│       │   │   │   ├── 📄 graph_traits.hpp
+│       │   │   │   └── 📄 math_common.hpp
+│       │   │   ├── 📁 iterator
+│       │   │   │   ├── 📄 constexpr_iterator.hpp
+│       │   │   │   ├── 📄 constexpr_iterator_concepts.hpp
+│       │   │   │   ├── 📄 constexpr_iterator_traits.hpp
+│       │   │   │   ├── 📄 container_iterator.hpp
+│       │   │   │   ├── 📄 flat_iterator.hpp
+│       │   │   │   ├── 📄 flat_iterator_traits.hpp
+│       │   │   │   ├── 📄 hierarchical_iterator.hpp
+│       │   │   │   ├── 📄 hierarchical_iterator_traits.hpp
+│       │   │   │   └── 📄 iterator_traits.hpp
+│       │   │   ├── 📁 list
+│       │   │   │   ├── 📁 linked
+│       │   │   │   │   ├── 📄 linked_list.hpp
+│       │   │   │   │   ├── 📄 linked_list_concepts.hpp
+│       │   │   │   │   ├── 📄 linked_list_iterator.hpp
+│       │   │   │   │   └── 📄 linked_list_traits.hpp
+│       │   │   │   ├── 📄 list.hpp
+│       │   │   │   ├── 📄 list_concepts.hpp
+│       │   │   │   └── 📄 list_traits.hpp
+│       │   │   ├── 📁 map
+│       │   │   │   ├── 📄 enum_map.hpp
+│       │   │   │   ├── 📄 enum_map_traits.hpp
+│       │   │   │   ├── 📄 map.hpp
+│       │   │   │   ├── 📄 map_concepts.hpp
+│       │   │   │   ├── 📄 map_traits.hpp
+│       │   │   │   └── 📄 multimap.hpp
+│       │   │   ├── 📁 matrix
+│       │   │   │   ├── 📄 matrix.hpp
+│       │   │   │   └── 📄 matrix_iterator.hpp
+│       │   │   ├── 📁 node
+│       │   │   │   ├── 📄 linked_node.hpp
+│       │   │   │   ├── 📄 node.hpp
+│       │   │   │   ├── 📄 node_iterator.hpp
+│       │   │   │   ├── 📄 node_traits.hpp
+│       │   │   │   └── 📄 poly_tree.hpp
+│       │   │   ├── 📁 set
+│       │   │   │   ├── 📄 multiset.hpp
+│       │   │   │   ├── 📄 set.hpp
+│       │   │   │   ├── 📄 set_concepts.hpp
+│       │   │   │   └── 📄 set_traits.hpp
+│       │   │   ├── 📁 stack
+│       │   │   │   └── 📄 stack.hpp
+│       │   │   ├── 📁 table
+│       │   │   │   ├── 📁 registry
+│       │   │   │   │   ├── 📄 atomic_registry_table.hpp
+│       │   │   │   │   ├── 📄 cow_registry_table.hpp
+│       │   │   │   │   ├── 📄 mutex_registry_table.hpp
+│       │   │   │   │   ├── 📄 rcu_registry_table.hpp
+│       │   │   │   │   ├── 📄 registry_table.hpp
+│       │   │   │   │   ├── 📄 registry_table_concepts.hpp
+│       │   │   │   │   └── 📄 registry_table_traits.hpp
+│       │   │   │   ├── 📄 cow_table.hpp
+│       │   │   │   ├── 📄 lookup_table.hpp
+│       │   │   │   ├── 📄 mutex_table.hpp
+│       │   │   │   ├── 📄 mutex_table_base.hpp
+│       │   │   │   ├── 📄 rcu_table.hpp
+│       │   │   │   ├── 📄 table.hpp
+│       │   │   │   ├── 📄 table_builder.hpp
+│       │   │   │   ├── 📄 table_common.hpp
+│       │   │   │   ├── 📄 table_concepts.hpp
+│       │   │   │   ├── 📄 table_defaults.hpp
+│       │   │   │   ├── 📄 table_layout.hpp
+│       │   │   │   ├── 📄 table_layout_concepts.hpp
+│       │   │   │   ├── 📄 table_layout_traits.hpp
+│       │   │   │   ├── 📄 table_metadata.hpp
+│       │   │   │   ├── 📄 table_storage_strategy.hpp
+│       │   │   │   ├── 📄 table_traits.hpp
+│       │   │   │   └── 📄 threadsafe_table_common.hpp
+│       │   │   ├── 📁 traits
+│       │   │   │   ├── 📄 bounded_container_traits.hpp
+│       │   │   │   ├── 📄 concurrency_strategy_traits.hpp
+│       │   │   │   ├── 📄 constexpr_container_traits.hpp
+│       │   │   │   ├── 📄 container_binary_traits.hpp
+│       │   │   │   ├── 📄 container_cli_traits.hpp
+│       │   │   │   ├── 📄 container_compare_traits.hpp
+│       │   │   │   ├── 📄 container_constructive_traits.hpp
+│       │   │   │   ├── 📄 container_conversion_traits.hpp
+│       │   │   │   ├── 📄 container_database_traits.hpp
+│       │   │   │   ├── 📄 container_filter_traits.hpp
+│       │   │   │   ├── 📄 container_multiplicity_traits.hpp
+│       │   │   │   ├── 📄 container_option_traits.hpp
+│       │   │   │   ├── 📄 container_overlay_traits.hpp
+│       │   │   │   ├── 📄 container_path_traits.hpp
+│       │   │   │   ├── 📄 container_storage_traits.hpp
+│       │   │   │   ├── 📄 container_text_traits.hpp
+│       │   │   │   ├── 📄 container_traits.hpp
+│       │   │   │   ├── 📄 container_view_traits.hpp
+│       │   │   │   ├── 📄 flat_hierarchical_container_traits.hpp
+│       │   │   │   ├── 📄 iterable_container_traits.hpp
+│       │   │   │   ├── 📄 mutable_container_traits.hpp
+│       │   │   │   ├── 📄 node_container_traits.hpp
+│       │   │   │   ├── 📄 runtime_container_traits.hpp
+│       │   │   │   ├── 📄 sequential_container_traits.hpp
+│       │   │   │   ├── 📄 sorted_container_traits.hpp
+│       │   │   │   └── 📄 threadsafe_container_traits.hpp
+│       │   │   ├── 📁 tree
+│       │   │   │   ├── 📁 avl
+│       │   │   │   │   └── 📄 AVLtree.hpp
+│       │   │   │   ├── 📁 file
+│       │   │   │   │   ├── 📄 file_attributes.hpp
+│       │   │   │   │   ├── 📄 file_tree.hpp
+│       │   │   │   │   ├── 📄 file_tree_apple.hpp
+│       │   │   │   │   ├── 📄 file_tree_bsd.hpp
+│       │   │   │   │   ├── 📄 file_tree_common.hpp
+│       │   │   │   │   ├── 📄 file_tree_concepts.hpp
+│       │   │   │   │   ├── 📄 file_tree_filter.hpp
+│       │   │   │   │   ├── 📄 file_tree_ios.hpp
+│       │   │   │   │   ├── 📄 file_tree_linux.hpp
+│       │   │   │   │   ├── 📄 file_tree_path.hpp
+│       │   │   │   │   ├── 📄 file_tree_posix.hpp
+│       │   │   │   │   ├── 📄 file_tree_traits.hpp
+│       │   │   │   │   ├── 📄 file_tree_windows.hpp
+│       │   │   │   │   └── 📄 fs_os.hpp
+│       │   │   │   ├── 📁 nary
+│       │   │   │   │   ├── 📄 nary_tree.hpp
+│       │   │   │   │   ├── 📄 nary_tree_concepts.hpp
+│       │   │   │   │   ├── 📄 nary_tree_iterator.hpp
+│       │   │   │   │   ├── 📄 nary_tree_node.hpp
+│       │   │   │   │   └── 📄 nary_tree_traits.hpp
+│       │   │   │   ├── 📁 radix
+│       │   │   │   │   ├── 📄 binary_radix_tree.hpp
+│       │   │   │   │   ├── 📄 radix_tree_common.hpp
+│       │   │   │   │   ├── 📄 radix_tree_traits.hpp
+│       │   │   │   │   └── 📄 text_radix_tree.hpp
+│       │   │   │   ├── 📄 tree_container.hpp
+│       │   │   │   ├── 📄 tree_container_concepts.hpp
+│       │   │   │   ├── 📄 tree_container_traits.hpp
+│       │   │   │   ├── 📄 tree_iterator.hpp
+│       │   │   │   ├── 📄 tree_path.hpp
+│       │   │   │   └── 📄 tree_visitor.hpp
+│       │   │   ├── 📁 vector
+│       │   │   │   └── 📄 vector.hpp
+│       │   │   ├── 📄 container.hpp
+│       │   │   ├── 📄 container_binary.hpp
+│       │   │   ├── 📄 container_metadata.hpp
+│       │   │   ├── 📄 container_options.hpp
+│       │   │   ├── 📄 container_overlay.hpp
+│       │   │   ├── 📄 container_path.hpp
+│       │   │   ├── 📄 node_container.hpp
+│       │   │   ├── 📄 sequential_container.hpp
+│       │   │   ├── 📄 stl_array_structural_traits.hpp
+│       │   │   ├── 📄 stl_container_concepts.hpp
+│       │   │   ├── 📄 stl_container_traits.hpp
+│       │   │   ├── 📄 stl_traits.hpp
+│       │   │   ├── 📄 threadsafe_container.hpp
+│       │   │   └── 📄 tuple_map.hpp
+│       │   ├── 📁 env
+│       │   │   ├── 📁 c
+│       │   │   │   ├── 📄 env_attributes.h
+│       │   │   │   ├── 📄 env_c_lib.h
+│       │   │   │   ├── 📄 env_long_long.h
+│       │   │   │   └── 📄 env_vendor_attributes.h
+│       │   │   ├── 📁 cpp
+│       │   │   │   ├── 📄 env_cpp_features.h
+│       │   │   │   └── 📄 env_cpp98.h
+│       │   │   ├── 📁 os
+│       │   │   │   ├── 📄 env_apple.h
+│       │   │   │   ├── 📄 env_bsd.h
+│       │   │   │   ├── 📄 env_ios.h
+│       │   │   │   ├── 📄 env_linux.h
+│       │   │   │   └── 📄 env_windows.h
+│       │   │   ├── 📁 ui
+│       │   │   │   ├── 📄 env_curses.h
+│       │   │   │   └── 📄 env_qt.h
+│       │   │   ├── 📄 env.h
+│       │   │   ├── 📄 env_archive.h
+│       │   │   ├── 📄 env_compress.h
+│       │   │   ├── 📄 env_compression.h
+│       │   │   ├── 📄 env_pdf.h
+│       │   │   └── 📄 print_env.hpp
+│       │   ├── 📁 event
+│       │   │   ├── 📄 event.hpp
+│       │   │   ├── 📄 event_common.hpp
+│       │   │   ├── 📄 event_dispatcher.hpp
+│       │   │   ├── 📄 event_handler.hpp
+│       │   │   ├── 📄 event_listener.hpp
+│       │   │   ├── 📄 event_registry.hpp
+│       │   │   └── 📄 event_table.hpp
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 accumulator.hpp
+│       │   │   ├── 📄 alternative.hpp
+│       │   │   ├── 📄 applicative.hpp
+│       │   │   ├── 📄 bifunctor.hpp
+│       │   │   ├── 📄 cofree.hpp
+│       │   │   ├── 📄 comonad.hpp
+│       │   │   ├── 📄 comparator.hpp
+│       │   │   ├── 📄 compose.hpp
+│       │   │   ├── 📄 consumer.hpp
+│       │   │   ├── 📄 curry.hpp
+│       │   │   ├── 📄 extractor.hpp
+│       │   │   ├── 📄 filter.hpp
+│       │   │   ├── 📄 fn_builder.hpp
+│       │   │   ├── 📄 foldable.hpp
+│       │   │   ├── 📄 free.hpp
+│       │   │   ├── 📄 functional_concepts.hpp
+│       │   │   ├── 📄 functional_traits.hpp
+│       │   │   ├── 📄 functor.hpp
+│       │   │   ├── 📄 interpolate.hpp
+│       │   │   ├── 📄 maybe.hpp
+│       │   │   ├── 📄 monad.hpp
+│       │   │   ├── 📄 monoid.hpp
+│       │   │   ├── 📄 pipeline.hpp
+│       │   │   ├── 📄 predicate.hpp
+│       │   │   ├── 📄 producer.hpp
+│       │   │   ├── 📄 profunctor.hpp
+│       │   │   ├── 📄 reduce.hpp
+│       │   │   ├── 📄 result.hpp
+│       │   │   ├── 📄 semigroup.hpp
+│       │   │   ├── 📄 structural_traits.hpp
+│       │   │   ├── 📄 transducer.hpp
+│       │   │   ├── 📄 traversable.hpp
+│       │   │   └── 📄 view.hpp
+│       │   ├── 📁 memory
+│       │   │   ├── 📁 pool
+│       │   │   │   ├── 📄 pool.hpp
+│       │   │   │   ├── 📄 pool_allocator.hpp
+│       │   │   │   ├── 📄 pool_concepts.hpp
+│       │   │   │   └── 📄 pool_traits.hpp
+│       │   │   ├── 📄 allocator_memory_strategy.hpp
+│       │   │   ├── 📄 container_memory_strategy.hpp
+│       │   │   ├── 📄 memory_strategy_concepts.hpp
+│       │   │   ├── 📄 memory_strategy_traits.hpp
+│       │   │   ├── 📄 monotonic_byte_arena.hpp
+│       │   │   ├── 📄 pool_memory_strategy.hpp
+│       │   │   └── 📄 static_buffer_strategy.hpp
+│       │   ├── 📁 meta
+│       │   │   ├── 📄 bsearch.hpp
+│       │   │   ├── 📄 carrier.hpp
+│       │   │   ├── 📄 concepts.hpp
+│       │   │   ├── 📄 dtuple.hpp
+│       │   │   ├── 📄 fixed_string.hpp
+│       │   │   ├── 📄 kv_pair.hpp
+│       │   │   ├── 📄 lookup.hpp
+│       │   │   ├── 📄 member_traits.hpp
+│       │   │   ├── 📄 member_types.hpp
+│       │   │   ├── 📄 override.hpp
+│       │   │   ├── 📄 pack_element.hpp
+│       │   │   ├── 📄 passthrough.hpp
+│       │   │   ├── 📄 trait_detect.hpp
+│       │   │   ├── 📄 tuple_partition.hpp
+│       │   │   ├── 📄 type_info.h
+│       │   │   ├── 📄 type_info_cpp.h
+│       │   │   ├── 📄 type_traits.hpp
+│       │   │   └── 📄 value_list.hpp
+│       │   ├── 📁 option
+│       │   │   ├── 📄 option.hpp
+│       │   │   ├── 📄 option_builder.hpp
+│       │   │   ├── 📄 option_compose.hpp
+│       │   │   ├── 📄 option_diff.hpp
+│       │   │   ├── 📄 option_factory.hpp
+│       │   │   ├── 📄 option_override.hpp
+│       │   │   ├── 📄 option_set.hpp
+│       │   │   ├── 📄 option_set_compare.hpp
+│       │   │   └── 📄 optionator.hpp
+│       │   ├── 📁 paradigm
+│       │   │   ├── 📁 adapter
+│       │   │   │   └── 📄 adapter.hpp
+│       │   │   ├── 📁 mediator
+│       │   │   │   └── 📄 mediator.hpp
+│       │   │   ├── 📁 momento
+│       │   │   │   └── 📄 memento.hpp
+│       │   │   ├── 📁 observer
+│       │   │   │   └── 📄 observer.hpp
+│       │   │   ├── 📁 pattern
+│       │   │   │   └── 📄 pattern.hpp
+│       │   │   ├── 📁 publisher
+│       │   │   │   └── 📄 publisher.hpp
+│       │   │   ├── 📁 sequence
+│       │   │   │   └── 📄 sequence.hpp
+│       │   │   ├── 📁 template
+│       │   │   │   └── 📄 template.hpp
+│       │   │   └── 📁 visitor
+│       │   │       └── 📄 visitor.hpp
+│       │   ├── 📁 sync
+│       │   │   ├── 📄 atomic.hpp
+│       │   │   ├── 📄 concurrency_strategy_tags.hpp
+│       │   │   ├── 📄 condvar.hpp
+│       │   │   ├── 📄 cow.hpp
+│       │   │   ├── 📄 hazard_pointer.hpp
+│       │   │   ├── 📄 lock_guard.hpp
+│       │   │   ├── 📄 lock_policy.hpp
+│       │   │   ├── 📄 lock_policy_c.hpp
+│       │   │   ├── 📄 rcu.hpp
+│       │   │   └── 📄 threadsafe.hpp
+│       │   ├── 📁 text
+│       │   │   ├── 📁 html
+│       │   │   │   ├── 📄 html.hpp
+│       │   │   │   ├── 📄 html_dialect.hpp
+│       │   │   │   ├── 📄 html_printer.hpp
+│       │   │   │   ├── 📄 html_string_template.hpp
+│       │   │   │   ├── 📄 html_template.hpp
+│       │   │   │   ├── 📄 html_template_concepts.hpp
+│       │   │   │   └── 📄 html_template_traits.hpp
+│       │   │   ├── 📁 markdown
+│       │   │   │   ├── 📄 markdown.hpp
+│       │   │   │   ├── 📄 markdown_template.hpp
+│       │   │   │   ├── 📄 markdown_template_concepts.hpp
+│       │   │   │   └── 📄 markdown_template_traits.hpp
+│       │   │   ├── 📁 pdf
+│       │   │   │   ├── 📄 pdf.hpp
+│       │   │   │   ├── 📄 pdf_backend.hpp
+│       │   │   │   ├── 📄 pdf_builtin_backend.hpp
+│       │   │   │   ├── 📄 pdf_canvas.hpp
+│       │   │   │   ├── 📄 pdf_concepts.hpp
+│       │   │   │   ├── 📄 pdf_document.hpp
+│       │   │   │   ├── 📄 pdf_metrics.hpp
+│       │   │   │   ├── 📄 pdf_primitives.hpp
+│       │   │   │   ├── 📄 pdf_printer.hpp
+│       │   │   │   ├── 📄 pdf_template.hpp
+│       │   │   │   └── 📄 pdf_template_traits.hpp
+│       │   │   ├── 📁 symbol
+│       │   │   │   └── 📄 math_symbols.h
+│       │   │   ├── 📁 xml
+│       │   │   │   ├── 📄 xml.hpp
+│       │   │   │   ├── 📄 xml_dialect.hpp
+│       │   │   │   ├── 📄 xml_string_template.hpp
+│       │   │   │   ├── 📄 xml_template.hpp
+│       │   │   │   ├── 📄 xml_template_concepts.hpp
+│       │   │   │   └── 📄 xml_template_traits.hpp
+│       │   │   ├── 📄 document.hpp
+│       │   │   ├── 📄 document_writer.hpp
+│       │   │   ├── 📄 font.hpp
+│       │   │   ├── 📄 markup_string_template.hpp
+│       │   │   ├── 📄 printer.hpp
+│       │   │   ├── 📄 text_align.hpp
+│       │   │   ├── 📄 text_pattern.hpp
+│       │   │   ├── 📄 text_template.hpp
+│       │   │   └── 📄 writer.hpp
+│       │   ├── 📁 util
+│       │   │   ├── 📁 color
+│       │   │   │   ├── 📄 color.hpp
+│       │   │   │   ├── 📄 color_cie_lab.hpp
+│       │   │   │   ├── 📄 color_cmyk.hpp
+│       │   │   │   ├── 📄 color_common.hpp
+│       │   │   │   ├── 📄 color_convert.hpp
+│       │   │   │   ├── 📄 color_hsl.hpp
+│       │   │   │   ├── 📄 color_hsv.hpp
+│       │   │   │   ├── 📄 color_rgb.hpp
+│       │   │   │   └── 📄 color_ycbcr.hpp
+│       │   │   ├── 📁 counter
+│       │   │   │   ├── 📄 atomic_counter.hpp
+│       │   │   │   ├── 📄 counter.hpp
+│       │   │   │   └── 📄 mutex_counter.hpp
+│       │   │   ├── 📁 lookup
+│       │   │   │   ├── 📄 lookup.hpp
+│       │   │   │   ├── 📄 lookup_sentinels.hpp
+│       │   │   │   └── 📄 lookup_traits.hpp
+│       │   │   ├── 📁 metadata
+│       │   │   │   ├── 📄 metadata_concepts.hpp
+│       │   │   │   └── 📄 metadata_traits.hpp
+│       │   │   ├── 📁 path
+│       │   │   │   └── 📄 path.hpp
+│       │   │   ├── 📁 sort
+│       │   │   │   ├── 📄 bubble_sort.hpp
+│       │   │   │   ├── 📄 heap_sort.hpp
+│       │   │   │   ├── 📄 insertion_sort.hpp
+│       │   │   │   ├── 📄 merge_sort.hpp
+│       │   │   │   ├── 📄 quick_sort.hpp
+│       │   │   │   ├── 📄 selection_sort.hpp
+│       │   │   │   └── 📄 sort.hpp
+│       │   │   ├── 📁 timer
+│       │   │   │   ├── 📄 mutex_timer.hpp
+│       │   │   │   └── 📄 timer.hpp
+│       │   │   ├── 📄 archive.hpp
+│       │   │   ├── 📄 compression.hpp
+│       │   │   ├── 📄 git.hpp
+│       │   │   ├── 📄 interval.hpp
+│       │   │   └── 📄 table_index.hpp
+│       │   └── 📄 djinterp.hpp
+│       ├── 📁 math
+│       │   ├── 📁 calculus
+│       │   │   ├── 📄 calculus.hpp
+│       │   │   ├── 📄 differentiation.hpp
+│       │   │   ├── 📄 elementary.hpp
+│       │   │   ├── 📄 integration.hpp
+│       │   │   ├── 📄 sequence.hpp
+│       │   │   └── 📄 series.hpp
+│       │   ├── 📁 coordinate
+│       │   │   ├── 📄 cartesian.hpp
+│       │   │   ├── 📄 coordinate.hpp
+│       │   │   ├── 📄 cylindrical.hpp
+│       │   │   ├── 📄 polar.hpp
+│       │   │   └── 📄 spherical.hpp
+│       │   ├── 📁 function
+│       │   │   └── 📄 function.hpp
+│       │   ├── 📁 geometry
+│       │   │   ├── 📄 edge.hpp
+│       │   │   ├── 📄 geometry.hpp
+│       │   │   ├── 📄 geometry_common.hpp
+│       │   │   ├── 📄 measure_2d.hpp
+│       │   │   ├── 📄 measure_3d.hpp
+│       │   │   ├── 📄 named_2d.hpp
+│       │   │   ├── 📄 named_3d.hpp
+│       │   │   ├── 📄 shape_2d.hpp
+│       │   │   ├── 📄 solid.hpp
+│       │   │   ├── 📄 star_2d.hpp
+│       │   │   ├── 📄 star_3d.hpp
+│       │   │   └── 📄 surface.hpp
+│       │   ├── 📁 interval
+│       │   │   ├── 📄 closed_interval.hpp
+│       │   │   ├── 📄 discrete_interval.hpp
+│       │   │   ├── 📄 interval.hpp
+│       │   │   └── 📄 open_interval.hpp
+│       │   ├── 📄 constants.hpp
+│       │   ├── 📄 expression.hpp
+│       │   ├── 📄 functional.hpp
+│       │   ├── 📄 math.hpp
+│       │   ├── 📄 math_common.hpp
+│       │   ├── 📄 numeric_compare.hpp
+│       │   └── 📄 values.hpp
+│       ├── 📁 restd
+│       │   ├── 📁 algorithm
+│       │   │   ├── 📄 adjacent_find.hpp
+│       │   │   ├── 📄 all_of.hpp
+│       │   │   ├── 📄 any_of.hpp
+│       │   │   ├── 📄 binary_search.hpp
+│       │   │   ├── 📄 copy.hpp
+│       │   │   ├── 📄 copy_backward.hpp
+│       │   │   ├── 📄 copy_if.hpp
+│       │   │   ├── 📄 copy_n.hpp
+│       │   │   ├── 📄 count.hpp
+│       │   │   ├── 📄 count_if.hpp
+│       │   │   ├── 📄 equal_range.hpp
+│       │   │   ├── 📄 fill.hpp
+│       │   │   ├── 📄 fill_n.hpp
+│       │   │   ├── 📄 find.hpp
+│       │   │   ├── 📄 find_end.hpp
+│       │   │   ├── 📄 find_first_of.hpp
+│       │   │   ├── 📄 find_if.hpp
+│       │   │   ├── 📄 find_if_not.hpp
+│       │   │   ├── 📄 for_each.hpp
+│       │   │   ├── 📄 for_each_n.hpp
+│       │   │   ├── 📄 generate.hpp
+│       │   │   ├── 📄 generate_n.hpp
+│       │   │   ├── 📄 includes.hpp
+│       │   │   ├── 📄 inplace_merge.hpp
+│       │   │   ├── 📄 is_heap.hpp
+│       │   │   ├── 📄 is_heap_until.hpp
+│       │   │   ├── 📄 is_partitioned.hpp
+│       │   │   ├── 📄 is_sorted.hpp
+│       │   │   ├── 📄 is_sorted_until.hpp
+│       │   │   ├── 📄 iter_swap.hpp
+│       │   │   ├── 📄 lower_bound.hpp
+│       │   │   ├── 📄 make_heap.hpp
+│       │   │   ├── 📄 merge.hpp
+│       │   │   ├── 📄 mismatch.hpp
+│       │   │   ├── 📄 move.hpp
+│       │   │   ├── 📄 move_backward.hpp
+│       │   │   ├── 📄 none_of.hpp
+│       │   │   ├── 📄 nth_element.hpp
+│       │   │   ├── 📄 partial_sort.hpp
+│       │   │   ├── 📄 partial_sort_copy.hpp
+│       │   │   ├── 📄 partition.hpp
+│       │   │   ├── 📄 partition_copy.hpp
+│       │   │   ├── 📄 partition_point.hpp
+│       │   │   ├── 📄 pop_heap.hpp
+│       │   │   ├── 📄 push_heap.hpp
+│       │   │   ├── 📄 remove.hpp
+│       │   │   ├── 📄 remove_copy.hpp
+│       │   │   ├── 📄 remove_copy_if.hpp
+│       │   │   ├── 📄 remove_if.hpp
+│       │   │   ├── 📄 replace.hpp
+│       │   │   ├── 📄 replace_copy.hpp
+│       │   │   ├── 📄 replace_copy_if.hpp
+│       │   │   ├── 📄 replace_if.hpp
+│       │   │   ├── 📄 reverse.hpp
+│       │   │   ├── 📄 reverse_copy.hpp
+│       │   │   ├── 📄 rotate.hpp
+│       │   │   ├── 📄 rotate_copy.hpp
+│       │   │   ├── 📄 sample.hpp
+│       │   │   ├── 📄 search.hpp
+│       │   │   ├── 📄 search_n.hpp
+│       │   │   ├── 📄 set_difference.hpp
+│       │   │   ├── 📄 set_intersection.hpp
+│       │   │   ├── 📄 set_symmetric_difference.hpp
+│       │   │   ├── 📄 set_union.hpp
+│       │   │   ├── 📄 shift_left.hpp
+│       │   │   ├── 📄 shift_right.hpp
+│       │   │   ├── 📄 shuffle.hpp
+│       │   │   ├── 📄 sort.hpp
+│       │   │   ├── 📄 sort_heap.hpp
+│       │   │   ├── 📄 stable_partition.hpp
+│       │   │   ├── 📄 stable_sort.hpp
+│       │   │   ├── 📄 swap_ranges.hpp
+│       │   │   ├── 📄 transform.hpp
+│       │   │   ├── 📄 unique.hpp
+│       │   │   ├── 📄 unique_copy.hpp
+│       │   │   └── 📄 upper_bound.hpp
+│       │   ├── 📁 any
+│       │   │   ├── 📄 any.hpp
+│       │   │   ├── 📄 any_cast.hpp
+│       │   │   ├── 📄 any_swap.hpp
+│       │   │   ├── 📄 bad_any_cast.hpp
+│       │   │   └── 📄 make_any.hpp
+│       │   ├── 📁 array
+│       │   │   ├── 📄 array.hpp
+│       │   │   ├── 📄 array_compare.hpp
+│       │   │   ├── 📄 array_compare_three_way.hpp
+│       │   │   ├── 📄 array_get.hpp
+│       │   │   ├── 📄 array_swap.hpp
+│       │   │   ├── 📄 array_tuple_element.hpp
+│       │   │   ├── 📄 array_tuple_size.hpp
+│       │   │   ├── 📄 array_umbrella
+│       │   │   └── 📄 to_array.hpp
+│       │   ├── 📁 compare
+│       │   │   ├── 📄 common_comparison_category.hpp
+│       │   │   ├── 📄 compare
+│       │   │   ├── 📄 compare_three_way.hpp
+│       │   │   ├── 📄 compare_three_way_result.hpp
+│       │   │   ├── 📄 literal_zero_helper.hpp
+│       │   │   ├── 📄 partial_order.hpp
+│       │   │   ├── 📄 partial_ordering.hpp
+│       │   │   ├── 📄 strong_order.hpp
+│       │   │   ├── 📄 strong_ordering.hpp
+│       │   │   ├── 📄 weak_order.hpp
+│       │   │   └── 📄 weak_ordering.hpp
+│       │   ├── 📁 exception
+│       │   │   ├── 📄 bad_exception.hpp
+│       │   │   ├── 📄 exception.hpp
+│       │   │   ├── 📄 exception_ptr.hpp
+│       │   │   ├── 📄 make_exception_ptr.hpp
+│       │   │   ├── 📄 nested_exception.hpp
+│       │   │   ├── 📄 rethrow_if_nested.hpp
+│       │   │   ├── 📄 terminate.hpp
+│       │   │   ├── 📄 throw_with_nested.hpp
+│       │   │   └── 📄 uncaught_exceptions.hpp
+│       │   ├── 📁 expected
+│       │   │   ├── 📄 bad_expected_access.hpp
+│       │   │   ├── 📄 expected.hpp
+│       │   │   ├── 📄 expected_compare.hpp
+│       │   │   ├── 📄 expected_swap.hpp
+│       │   │   ├── 📄 expected_umbrella
+│       │   │   ├── 📄 unexpect.hpp
+│       │   │   ├── 📄 unexpected.hpp
+│       │   │   └── 📄 unexpected_compare.hpp
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 bad_function_call.hpp
+│       │   │   ├── 📄 bit_and.hpp
+│       │   │   ├── 📄 bit_not.hpp
+│       │   │   ├── 📄 bit_or.hpp
+│       │   │   ├── 📄 bit_xor.hpp
+│       │   │   ├── 📄 cref.hpp
+│       │   │   ├── 📄 divides.hpp
+│       │   │   ├── 📄 equal_to.hpp
+│       │   │   ├── 📄 functional.hpp
+│       │   │   ├── 📄 greater.hpp
+│       │   │   ├── 📄 greater_equal.hpp
+│       │   │   ├── 📄 hash.hpp
+│       │   │   ├── 📄 identity.hpp
+│       │   │   ├── 📄 invoke.hpp
+│       │   │   ├── 📄 invoke_r.hpp
+│       │   │   ├── 📄 is_bind_expression.hpp
+│       │   │   ├── 📄 is_placeholder.hpp
+│       │   │   ├── 📄 less.hpp
+│       │   │   ├── 📄 less_equal.hpp
+│       │   │   ├── 📄 logical_and.hpp
+│       │   │   ├── 📄 logical_not.hpp
+│       │   │   ├── 📄 logical_or.hpp
+│       │   │   ├── 📄 mem_fn.hpp
+│       │   │   ├── 📄 minus.hpp
+│       │   │   ├── 📄 modulus.hpp
+│       │   │   ├── 📄 multiplies.hpp
+│       │   │   ├── 📄 negate.hpp
+│       │   │   ├── 📄 not_equal_to.hpp
+│       │   │   ├── 📄 not_fn.hpp
+│       │   │   ├── 📄 plus.hpp
+│       │   │   ├── 📄 ref.hpp
+│       │   │   ├── 📄 reference_wrapper.hpp
+│       │   │   ├── 📄 unwrap_ref_decay.hpp
+│       │   │   └── 📄 unwrap_reference.hpp
+│       │   ├── 📁 initializer_list
+│       │   │   ├── 📄 begin.hpp
+│       │   │   ├── 📄 end.hpp
+│       │   │   ├── 📄 initializer_list
+│       │   │   └── 📄 initializer_list.hpp
+│       │   ├── 📁 iterator
+│       │   │   ├── 📄 advance.hpp
+│       │   │   ├── 📄 back_insert_iterator.hpp
+│       │   │   ├── 📄 begin.hpp
+│       │   │   ├── 📄 bidirectional_iterator_tag.hpp
+│       │   │   ├── 📄 cbegin.hpp
+│       │   │   ├── 📄 cend.hpp
+│       │   │   ├── 📄 contiguous_iterator_tag.hpp
+│       │   │   ├── 📄 crbegin.hpp
+│       │   │   ├── 📄 crend.hpp
+│       │   │   ├── 📄 data.hpp
+│       │   │   ├── 📄 distance.hpp
+│       │   │   ├── 📄 empty.hpp
+│       │   │   ├── 📄 end.hpp
+│       │   │   ├── 📄 forward_iterator_tag.hpp
+│       │   │   ├── 📄 front_insert_iterator.hpp
+│       │   │   ├── 📄 input_iterator_tag.hpp
+│       │   │   ├── 📄 insert_iterator.hpp
+│       │   │   ├── 📄 iterator.hpp
+│       │   │   ├── 📄 iterator_traits.hpp
+│       │   │   ├── 📄 move_iterator.hpp
+│       │   │   ├── 📄 next.hpp
+│       │   │   ├── 📄 output_iterator_tag.hpp
+│       │   │   ├── 📄 prev.hpp
+│       │   │   ├── 📄 random_access_iterator_tag.hpp
+│       │   │   ├── 📄 rbegin.hpp
+│       │   │   ├── 📄 rend.hpp
+│       │   │   ├── 📄 reverse_iterator.hpp
+│       │   │   └── 📄 size.hpp
+│       │   ├── 📁 limits
+│       │   │   ├── 📄 float_denorm_style.hpp
+│       │   │   ├── 📄 float_round_style.hpp
+│       │   │   ├── 📄 limits
+│       │   │   └── 📄 numeric_limits.hpp
+│       │   ├── 📁 memory
+│       │   │   ├── 📄 addressof.hpp
+│       │   │   ├── 📄 align.hpp
+│       │   │   ├── 📄 allocate_shared.hpp
+│       │   │   ├── 📄 allocate_shared_for_overwrite.hpp
+│       │   │   ├── 📄 allocator.hpp
+│       │   │   ├── 📄 allocator_arg.hpp
+│       │   │   ├── 📄 allocator_traits.hpp
+│       │   │   ├── 📄 assume_aligned.hpp
+│       │   │   ├── 📄 bad_weak_ptr.hpp
+│       │   │   ├── 📄 const_pointer_cast.hpp
+│       │   │   ├── 📄 construct_at.hpp
+│       │   │   ├── 📄 default_delete.hpp
+│       │   │   ├── 📄 destroy.hpp
+│       │   │   ├── 📄 destroy_at.hpp
+│       │   │   ├── 📄 dynamic_pointer_cast.hpp
+│       │   │   ├── 📄 enable_shared_from_this.hpp
+│       │   │   ├── 📄 get_deleter.hpp
+│       │   │   ├── 📄 iter_value.hpp
+│       │   │   ├── 📄 make_shared.hpp
+│       │   │   ├── 📄 make_shared_for_overwrite.hpp
+│       │   │   ├── 📄 make_unique.hpp
+│       │   │   ├── 📄 memory.hpp
+│       │   │   ├── 📄 owner_less.hpp
+│       │   │   ├── 📄 pointer_traits.hpp
+│       │   │   ├── 📄 reinterpret_pointer_cast.hpp
+│       │   │   ├── 📄 shared_ptr.hpp
+│       │   │   ├── 📄 shared_ptr_swap.hpp
+│       │   │   ├── 📄 sp_control_block.hpp
+│       │   │   ├── 📄 static_pointer_cast.hpp
+│       │   │   ├── 📄 to_address.hpp
+│       │   │   ├── 📄 uninitialized_copy.hpp
+│       │   │   ├── 📄 uninitialized_copy_n.hpp
+│       │   │   ├── 📄 uninitialized_default_construct.hpp
+│       │   │   ├── 📄 uninitialized_default_construct_n.hpp
+│       │   │   ├── 📄 uninitialized_fill.hpp
+│       │   │   ├── 📄 uninitialized_fill_n.hpp
+│       │   │   ├── 📄 uninitialized_move.hpp
+│       │   │   ├── 📄 uninitialized_move_n.hpp
+│       │   │   ├── 📄 uninitialized_value_construct.hpp
+│       │   │   ├── 📄 uninitialized_value_construct_n.hpp
+│       │   │   ├── 📄 unique_ptr.hpp
+│       │   │   ├── 📄 unique_ptr_swap.hpp
+│       │   │   ├── 📄 uses_allocator.hpp
+│       │   │   ├── 📄 weak_ptr.hpp
+│       │   │   └── 📄 weak_ptr_swap.hpp
+│       │   ├── 📁 new
+│       │   │   ├── 📄 align_val_t.hpp
+│       │   │   ├── 📄 bad_alloc.hpp
+│       │   │   ├── 📄 bad_array_new_length.hpp
+│       │   │   ├── 📄 destroying_delete.hpp
+│       │   │   ├── 📄 hardware_interference_size.hpp
+│       │   │   ├── 📄 launder.hpp
+│       │   │   ├── 📄 new_handler.hpp
+│       │   │   ├── 📄 new_umbrella
+│       │   │   └── 📄 nothrow.hpp
+│       │   ├── 📁 numeric
+│       │   │   ├── 📄 accumulate.hpp
+│       │   │   ├── 📄 adjacent_difference.hpp
+│       │   │   ├── 📄 exclusive_scan.hpp
+│       │   │   ├── 📄 gcd.hpp
+│       │   │   ├── 📄 inclusive_scan.hpp
+│       │   │   ├── 📄 inner_product.hpp
+│       │   │   ├── 📄 iota.hpp
+│       │   │   ├── 📄 lcm.hpp
+│       │   │   ├── 📄 midpoint.hpp
+│       │   │   ├── 📄 numeric.hpp
+│       │   │   ├── 📄 partial_sum.hpp
+│       │   │   ├── 📄 reduce.hpp
+│       │   │   ├── 📄 transform_exclusive_scan.hpp
+│       │   │   ├── 📄 transform_inclusive_scan.hpp
+│       │   │   └── 📄 transform_reduce.hpp
+│       │   ├── 📁 optional
+│       │   │   ├── 📄 bad_optional_access.hpp
+│       │   │   ├── 📄 in_place.hpp
+│       │   │   ├── 📄 make_optional.hpp
+│       │   │   ├── 📄 nullopt.hpp
+│       │   │   ├── 📄 optional
+│       │   │   ├── 📄 optional.hpp
+│       │   │   └── 📄 optional_swap.hpp
+│       │   ├── 📁 ranges
+│       │   │   ├── 📄 all.hpp
+│       │   │   ├── 📄 as_const_view.hpp
+│       │   │   ├── 📄 as_rvalue_view.hpp
+│       │   │   ├── 📄 basic_const_iterator.hpp
+│       │   │   ├── 📄 bidirectional_range.hpp
+│       │   │   ├── 📄 borrowed_iterator_t.hpp
+│       │   │   ├── 📄 borrowed_range.hpp
+│       │   │   ├── 📄 borrowed_subrange_t.hpp
+│       │   │   ├── 📄 chunk_by_view.hpp
+│       │   │   ├── 📄 chunk_view.hpp
+│       │   │   ├── 📄 common_range.hpp
+│       │   │   ├── 📄 constant_range.hpp
+│       │   │   ├── 📄 contiguous_range.hpp
+│       │   │   ├── 📄 dangling.hpp
+│       │   │   ├── 📄 drop_view.hpp
+│       │   │   ├── 📄 drop_while_view.hpp
+│       │   │   ├── 📄 empty_view.hpp
+│       │   │   ├── 📄 enable_borrowed_range.hpp
+│       │   │   ├── 📄 enable_view.hpp
+│       │   │   ├── 📄 filter_view.hpp
+│       │   │   ├── 📄 forward_range.hpp
+│       │   │   ├── 📄 input_range.hpp
+│       │   │   ├── 📄 iota_view.hpp
+│       │   │   ├── 📄 iter_move.hpp
+│       │   │   ├── 📄 iterator_t.hpp
+│       │   │   ├── 📄 join_view.hpp
+│       │   │   ├── 📄 join_with_view.hpp
+│       │   │   ├── 📄 lazy_split_view.hpp
+│       │   │   ├── 📄 movable_box.hpp
+│       │   │   ├── 📄 non_propagating_cache.hpp
+│       │   │   ├── 📄 output_range.hpp
+│       │   │   ├── 📄 owning_view.hpp
+│       │   │   ├── 📄 random_access_range.hpp
+│       │   │   ├── 📄 range.hpp
+│       │   │   ├── 📄 range_adaptor_closure.hpp
+│       │   │   ├── 📄 range_const_reference_t.hpp
+│       │   │   ├── 📄 range_difference_t.hpp
+│       │   │   ├── 📄 range_reference_t.hpp
+│       │   │   ├── 📄 range_rvalue_reference_t.hpp
+│       │   │   ├── 📄 range_size_t.hpp
+│       │   │   ├── 📄 range_value_t.hpp
+│       │   │   ├── 📄 ranges
+│       │   │   ├── 📄 ranges_access.hpp
+│       │   │   ├── 📄 ref_view.hpp
+│       │   │   ├── 📄 repeat_view.hpp
+│       │   │   ├── 📄 reverse_view.hpp
+│       │   │   ├── 📄 sentinel_t.hpp
+│       │   │   ├── 📄 single_view.hpp
+│       │   │   ├── 📄 sized_range.hpp
+│       │   │   ├── 📄 slide_view.hpp
+│       │   │   ├── 📄 split_view.hpp
+│       │   │   ├── 📄 stride_view.hpp
+│       │   │   ├── 📄 subrange.hpp
+│       │   │   ├── 📄 subrange_kind.hpp
+│       │   │   ├── 📄 take_view.hpp
+│       │   │   ├── 📄 take_while_view.hpp
+│       │   │   ├── 📄 transform_view.hpp
+│       │   │   ├── 📄 unreachable_sentinel_t.hpp
+│       │   │   ├── 📄 view.hpp
+│       │   │   ├── 📄 view_base.hpp
+│       │   │   ├── 📄 view_interface.hpp
+│       │   │   └── 📄 viewable_range.hpp
+│       │   ├── 📁 source_location
+│       │   │   ├── 📄 source_location
+│       │   │   └── 📄 source_location.hpp
+│       │   ├── 📁 span
+│       │   │   ├── 📄 as_bytes.hpp
+│       │   │   ├── 📄 as_writable_bytes.hpp
+│       │   │   ├── 📄 dynamic_extent.hpp
+│       │   │   ├── 📄 span
+│       │   │   └── 📄 span.hpp
+│       │   ├── 📁 stdexception
+│       │   │   ├── 📄 domain_error.hpp
+│       │   │   ├── 📄 invalid_argument.hpp
+│       │   │   ├── 📄 length_error.hpp
+│       │   │   ├── 📄 logic_error.hpp
+│       │   │   ├── 📄 out_of_range.hpp
+│       │   │   ├── 📄 overflow_error.hpp
+│       │   │   ├── 📄 range_error.hpp
+│       │   │   ├── 📄 runtime_error.hpp
+│       │   │   └── 📄 underflow_error.hpp
+│       │   ├── 📁 string_view
+│       │   │   ├── 📄 basic_string_view.hpp
+│       │   │   ├── 📄 char_traits.hpp
+│       │   │   ├── 📄 string_view
+│       │   │   ├── 📄 string_view_compare.hpp
+│       │   │   ├── 📄 string_view_hash.hpp
+│       │   │   ├── 📄 string_view_literals.hpp
+│       │   │   └── 📄 string_view_typedefs.hpp
+│       │   ├── 📁 system_error
+│       │   │   ├── 📄 errc.hpp
+│       │   │   ├── 📄 error_category.hpp
+│       │   │   ├── 📄 error_code.hpp
+│       │   │   ├── 📄 error_condition.hpp
+│       │   │   ├── 📄 generic_category.hpp
+│       │   │   ├── 📄 hash.hpp
+│       │   │   ├── 📄 is_error_code_enum.hpp
+│       │   │   ├── 📄 is_error_condition_enum.hpp
+│       │   │   ├── 📄 make_error_code.hpp
+│       │   │   ├── 📄 make_error_condition.hpp
+│       │   │   ├── 📄 system_category.hpp
+│       │   │   ├── 📄 system_error
+│       │   │   └── 📄 system_error.hpp
+│       │   ├── 📁 tuple
+│       │   │   ├── 📄 apply.hpp
+│       │   │   ├── 📄 forward_as_tuple.hpp
+│       │   │   ├── 📄 ignore.hpp
+│       │   │   ├── 📄 make_from_tuple.hpp
+│       │   │   ├── 📄 make_tuple.hpp
+│       │   │   ├── 📄 pair_get.hpp
+│       │   │   ├── 📄 pair_tuple_element.hpp
+│       │   │   ├── 📄 pair_tuple_size.hpp
+│       │   │   ├── 📄 tie.hpp
+│       │   │   ├── 📄 tuple
+│       │   │   ├── 📄 tuple.hpp
+│       │   │   ├── 📄 tuple_cat.hpp
+│       │   │   ├── 📄 tuple_compare.hpp
+│       │   │   ├── 📄 tuple_compare_three_way.hpp
+│       │   │   ├── 📄 tuple_element.hpp
+│       │   │   ├── 📄 tuple_get.hpp
+│       │   │   ├── 📄 tuple_size.hpp
+│       │   │   └── 📄 tuple_swap.hpp
+│       │   ├── 📁 type_traits
+│       │   │   ├── 📄 add_const.hpp
+│       │   │   ├── 📄 add_cv.hpp
+│       │   │   ├── 📄 add_lvalue_reference.hpp
+│       │   │   ├── 📄 add_pointer.hpp
+│       │   │   ├── 📄 add_rvalue_reference.hpp
+│       │   │   ├── 📄 add_volatile.hpp
+│       │   │   ├── 📄 aligned_storage.hpp
+│       │   │   ├── 📄 aligned_union.hpp
+│       │   │   ├── 📄 alignment_of.hpp
+│       │   │   ├── 📄 basic_common_reference.hpp
+│       │   │   ├── 📄 bool_constant.hpp
+│       │   │   ├── 📄 common_reference.hpp
+│       │   │   ├── 📄 common_type.hpp
+│       │   │   ├── 📄 conditional.hpp
+│       │   │   ├── 📄 conjunction.hpp
+│       │   │   ├── 📄 decay.hpp
+│       │   │   ├── 📄 disjunction.hpp
+│       │   │   ├── 📄 enable_if.hpp
+│       │   │   ├── 📄 extent.hpp
+│       │   │   ├── 📄 false_type.hpp
+│       │   │   ├── 📄 integral_constant.hpp
+│       │   │   ├── 📄 invoke_result.hpp
+│       │   │   ├── 📄 is_arithmetic.hpp
+│       │   │   ├── 📄 is_array.hpp
+│       │   │   ├── 📄 is_assignable.hpp
+│       │   │   ├── 📄 is_class.hpp
+│       │   │   ├── 📄 is_compound.hpp
+│       │   │   ├── 📄 is_const.hpp
+│       │   │   ├── 📄 is_constructible.hpp
+│       │   │   ├── 📄 is_copy_assignable.hpp
+│       │   │   ├── 📄 is_copy_constructible.hpp
+│       │   │   ├── 📄 is_default_constructible.hpp
+│       │   │   ├── 📄 is_destructible.hpp
+│       │   │   ├── 📄 is_enum.hpp
+│       │   │   ├── 📄 is_floating_point.hpp
+│       │   │   ├── 📄 is_function.hpp
+│       │   │   ├── 📄 is_fundamental.hpp
+│       │   │   ├── 📄 is_integral.hpp
+│       │   │   ├── 📄 is_invocable.hpp
+│       │   │   ├── 📄 is_invocable_r.hpp
+│       │   │   ├── 📄 is_lvalue_reference.hpp
+│       │   │   ├── 📄 is_member_function_pointer.hpp
+│       │   │   ├── 📄 is_member_object_pointer.hpp
+│       │   │   ├── 📄 is_member_pointer.hpp
+│       │   │   ├── 📄 is_move_assignable.hpp
+│       │   │   ├── 📄 is_move_constructible.hpp
+│       │   │   ├── 📄 is_nothrow_assignable.hpp
+│       │   │   ├── 📄 is_nothrow_constructible.hpp
+│       │   │   ├── 📄 is_nothrow_convertible.hpp
+│       │   │   ├── 📄 is_nothrow_copy_assignable.hpp
+│       │   │   ├── 📄 is_nothrow_copy_constructible.hpp
+│       │   │   ├── 📄 is_nothrow_default_constructible.hpp
+│       │   │   ├── 📄 is_nothrow_destructible.hpp
+│       │   │   ├── 📄 is_nothrow_invocable.hpp
+│       │   │   ├── 📄 is_nothrow_invocable_r.hpp
+│       │   │   ├── 📄 is_nothrow_move_assignable.hpp
+│       │   │   ├── 📄 is_nothrow_move_constructible.hpp
+│       │   │   ├── 📄 is_nothrow_swappable.hpp
+│       │   │   ├── 📄 is_nothrow_swappable_with.hpp
+│       │   │   ├── 📄 is_null_pointer.hpp
+│       │   │   ├── 📄 is_object.hpp
+│       │   │   ├── 📄 is_pointer.hpp
+│       │   │   ├── 📄 is_reference.hpp
+│       │   │   ├── 📄 is_rvalue_reference.hpp
+│       │   │   ├── 📄 is_same.hpp
+│       │   │   ├── 📄 is_scalar.hpp
+│       │   │   ├── 📄 is_signed.hpp
+│       │   │   ├── 📄 is_swappable.hpp
+│       │   │   ├── 📄 is_swappable_with.hpp
+│       │   │   ├── 📄 is_trivially_assignable.hpp
+│       │   │   ├── 📄 is_trivially_constructible.hpp
+│       │   │   ├── 📄 is_trivially_copy_assignable.hpp
+│       │   │   ├── 📄 is_trivially_copy_constructible.hpp
+│       │   │   ├── 📄 is_trivially_default_constructible.hpp
+│       │   │   ├── 📄 is_trivially_destructible.hpp
+│       │   │   ├── 📄 is_trivially_move_assignable.hpp
+│       │   │   ├── 📄 is_trivially_move_constructible.hpp
+│       │   │   ├── 📄 is_union.hpp
+│       │   │   ├── 📄 is_unsigned.hpp
+│       │   │   ├── 📄 is_void.hpp
+│       │   │   ├── 📄 is_volatile.hpp
+│       │   │   ├── 📄 make_signed.hpp
+│       │   │   ├── 📄 make_unsigned.hpp
+│       │   │   ├── 📄 negation.hpp
+│       │   │   ├── 📄 rank.hpp
+│       │   │   ├── 📄 remove_all_extents.hpp
+│       │   │   ├── 📄 remove_const.hpp
+│       │   │   ├── 📄 remove_cv.hpp
+│       │   │   ├── 📄 remove_cvref.hpp
+│       │   │   ├── 📄 remove_extent.hpp
+│       │   │   ├── 📄 remove_pointer.hpp
+│       │   │   ├── 📄 remove_reference.hpp
+│       │   │   ├── 📄 remove_volatile.hpp
+│       │   │   ├── 📄 result_of.hpp
+│       │   │   ├── 📄 true_type.hpp
+│       │   │   ├── 📄 type_identity.hpp
+│       │   │   ├── 📄 type_traits.hpp
+│       │   │   ├── 📄 underlying_type.hpp
+│       │   │   └── 📄 void_t.hpp
+│       │   ├── 📁 typeindex
+│       │   │   ├── 📄 type_index.hpp
+│       │   │   └── 📄 typeindex
+│       │   ├── 📁 typeinfo
+│       │   │   ├── 📄 bad_cast.hpp
+│       │   │   ├── 📄 bad_typeid.hpp
+│       │   │   ├── 📄 type_info.hpp
+│       │   │   └── 📄 typeinfo
+│       │   ├── 📁 utility
+│       │   │   ├── 📄 as_const.hpp
+│       │   │   ├── 📄 cmp.hpp
+│       │   │   ├── 📄 declval.hpp
+│       │   │   ├── 📄 exchange.hpp
+│       │   │   ├── 📄 forward.hpp
+│       │   │   ├── 📄 forward_like.hpp
+│       │   │   ├── 📄 in_place_index.hpp
+│       │   │   ├── 📄 in_place_type.hpp
+│       │   │   ├── 📄 intcmp.hpp
+│       │   │   ├── 📄 integer_sequence.hpp
+│       │   │   ├── 📄 make_integer_sequence.hpp
+│       │   │   ├── 📄 make_pair.hpp
+│       │   │   ├── 📄 move.hpp
+│       │   │   ├── 📄 move_if_noexcept.hpp
+│       │   │   ├── 📄 pair.hpp
+│       │   │   ├── 📄 pair_compare_three_way.hpp
+│       │   │   ├── 📄 swap.hpp
+│       │   │   ├── 📄 to_underlying.hpp
+│       │   │   ├── 📄 unreachable.hpp
+│       │   │   └── 📄 utility.hpp
+│       │   ├── 📁 variant
+│       │   │   ├── 📄 bad_variant_access.hpp
+│       │   │   ├── 📄 holds_alternative.hpp
+│       │   │   ├── 📄 monostate.hpp
+│       │   │   ├── 📄 variant.hpp
+│       │   │   ├── 📄 variant_alternative.hpp
+│       │   │   ├── 📄 variant_compare.hpp
+│       │   │   ├── 📄 variant_get.hpp
+│       │   │   ├── 📄 variant_get_if.hpp
+│       │   │   ├── 📄 variant_npos.hpp
+│       │   │   ├── 📄 variant_size.hpp
+│       │   │   ├── 📄 variant_swap.hpp
+│       │   │   ├── 📄 variant_umbrella
+│       │   │   └── 📄 visit.hpp
+│       │   └── 📁 version
+│       │       └── 📄 version
+│       └── 📁 test
+│           ├── 📁 sync
+│           │   ├── 📄 test_concurrent.hpp
+│           │   ├── 📄 test_deadlock.hpp
+│           │   ├── 📄 test_invariant.hpp
+│           │   ├── 📄 test_race.hpp
+│           │   ├── 📄 test_stress.hpp
+│           │   ├── 📄 test_sync.hpp
+│           │   ├── 📄 test_thread.hpp
+│           │   ├── 📄 test_thread_concepts.hpp
+│           │   ├── 📄 test_thread_traits.hpp
+│           │   └── 📄 test_threadsafe.hpp
+│           ├── 📄 test_builder.hpp
+│           ├── 📄 test_callable.hpp
+│           ├── 📄 test_common.hpp
+│           ├── 📄 test_container.hpp
+│           ├── 📄 test_counter.hpp
+│           ├── 📄 test_defaults.hpp
+│           ├── 📄 test_event.hpp
+│           ├── 📄 test_handler.hpp
+│           ├── 📄 test_kind.hpp
+│           ├── 📄 test_object.hpp
+│           ├── 📄 test_options.hpp
+│           ├── 📄 test_printer.hpp
+│           ├── 📄 test_runner.hpp
+│           ├── 📄 test_session.hpp
+│           ├── 📄 test_timer.hpp
+│           └── 📄 test_tree.hpp
+├── 📁 src
+│   ├── 📁 djinterp
+│   │   ├── 📁 c
+│   │   │   ├── 📁 container
+│   │   │   │   ├── 📁 array
+│   │   │   │   │   ├── 📄 array.c
+│   │   │   │   │   ├── 📄 array_common.c
+│   │   │   │   │   ├── 📄 array_filter.c
+│   │   │   │   │   ├── 📄 circular_array.c
+│   │   │   │   │   └── 📄 ptr_array.c
+│   │   │   │   ├── 📁 buffer
+│   │   │   │   │   ├── 📄 buffer_common.c
+│   │   │   │   │   └── 📄 text_buffer.c
+│   │   │   │   ├── 📁 map
+│   │   │   │   │   ├── 📄 enum_map_entry.c
+│   │   │   │   │   ├── 📄 map.c
+│   │   │   │   │   └── 📄 min_enum_map.c
+│   │   │   │   ├── 📁 node
+│   │   │   │   │   └── 📄 linked_node.c
+│   │   │   │   ├── 📁 registry
+│   │   │   │   │   ├── 📄 registry.c
+│   │   │   │   │   └── 📄 registry_common.c
+│   │   │   │   ├── 📁 stack
+│   │   │   │   │   └── 📄 min_stack.c
+│   │   │   │   ├── 📁 tree
+│   │   │   │   │   └── 📁 file
+│   │   │   │   │       └── 📄 file_tree.c
+│   │   │   │   ├── 📁 vector
+│   │   │   │   │   ├── 📄 ptr_vector.c
+│   │   │   │   │   ├── 📄 vector.c
+│   │   │   │   │   └── 📄 vector_common.c
+│   │   │   │   └── 📄 container.c
+│   │   │   ├── 📁 event
+│   │   │   │   ├── 📄 event.c
+│   │   │   │   ├── 📄 event_handler.c
+│   │   │   │   ├── 📄 event_table.c
+│   │   │   │   └── 📄 event_table_common.c
+│   │   │   ├── 📁 functional
+│   │   │   │   ├── 📄 compose.c
+│   │   │   │   ├── 📄 filter.c
+│   │   │   │   ├── 📄 fn_builder.c
+│   │   │   │   ├── 📄 functional.c
+│   │   │   │   ├── 📄 functional_common.c
+│   │   │   │   ├── 📄 pipeline.c
+│   │   │   │   └── 📄 predicate.c
+│   │   │   ├── 📁 sync
+│   │   │   │   └── 📁 container
+│   │   │   │       └── 📁 array
+│   │   │   │           └── 📄 circular_array_mtx.c
+│   │   │   ├── 📁 test
+│   │   │   │   ├── 📄 assert.c
+│   │   │   │   ├── 📄 test.c
+│   │   │   │   ├── 📄 test_block.c
+│   │   │   │   ├── 📄 test_cli.c
+│   │   │   │   ├── 📄 test_common.c
+│   │   │   │   ├── 📄 test_cvar.c
+│   │   │   │   ├── 📄 test_handler.c
+│   │   │   │   ├── 📄 test_module.c
+│   │   │   │   ├── 📄 test_options.c
+│   │   │   │   ├── 📄 test_printer.c
+│   │   │   │   ├── 📄 test_session.c
+│   │   │   │   ├── 📄 test_standalone.c
+│   │   │   │   ├── 📄 test_stats.c
+│   │   │   │   └── 📄 test_tree.c
+│   │   │   ├── 📁 text
+│   │   │   │   ├── 📄 number_to_string_en.c
+│   │   │   │   ├── 📄 number_to_string_es.c
+│   │   │   │   ├── 📄 number_to_string_fr.c
+│   │   │   │   ├── 📄 number_to_string_it.c
+│   │   │   │   ├── 📄 number_to_string_la.c
+│   │   │   │   ├── 📄 number_to_string_pt.c
+│   │   │   │   ├── 📄 str_interp.c
+│   │   │   │   └── 📄 text_template.c
+│   │   │   ├── 📁 util
+│   │   │   │   ├── 📁 cli
+│   │   │   │   │   └── 📄 cli_option.c
+│   │   │   │   ├── 📁 color
+│   │   │   │   │   ├── 📄 color.c
+│   │   │   │   │   ├── 📄 color_cmyk.c
+│   │   │   │   │   ├── 📄 color_common.c
+│   │   │   │   │   ├── 📄 color_convert.c
+│   │   │   │   │   ├── 📄 color_hsl.c
+│   │   │   │   │   ├── 📄 color_hsv.c
+│   │   │   │   │   ├── 📄 color_lab.c
+│   │   │   │   │   ├── 📄 color_rgb.c
+│   │   │   │   │   └── 📄 color_ycbcr.c
+│   │   │   │   ├── 📄 iterator.c
+│   │   │   │   ├── 📄 path_mirror.c
+│   │   │   │   ├── 📄 path_repair.c
+│   │   │   │   └── 📄 relative_path_repair.c
+│   │   │   ├── 📄 datomic.c
+│   │   │   ├── 📄 dconfig.c
+│   │   │   ├── 📄 dfile.c
+│   │   │   ├── 📄 dio.c
+│   │   │   ├── 📄 djinterp.c
+│   │   │   ├── 📄 dmemory.c
+│   │   │   ├── 📄 dmutex.c
+│   │   │   ├── 📄 dstring.c
+│   │   │   ├── 📄 dtime.c
+│   │   │   └── 📄 string_fn.c
+│   │   ├── 📁 core
+│   │   │   ├── 📁 container
+│   │   │   │   ├── 📁 array
+│   │   │   │   │   ├── 📄 array.cpp
+│   │   │   │   │   ├── 📄 array_iterator.cpp
+│   │   │   │   │   ├── 📄 fixed_array.cpp
+│   │   │   │   │   └── 📄 static_array.cpp
+│   │   │   │   ├── 📁 graph
+│   │   │   │   │   └── 📄 graph.cpp
+│   │   │   │   ├── 📁 list
+│   │   │   │   │   ├── 📄 linked_list.cpp
+│   │   │   │   │   └── 📄 list.cpp
+│   │   │   │   ├── 📁 map
+│   │   │   │   │   ├── 📄 map.cpp
+│   │   │   │   │   └── 📄 multimap.cpp
+│   │   │   │   ├── 📁 set
+│   │   │   │   │   ├── 📄 multiset.cpp
+│   │   │   │   │   └── 📄 set.cpp
+│   │   │   │   ├── 📁 table
+│   │   │   │   │   └── 📄 table.cpp
+│   │   │   │   ├── 📁 tree
+│   │   │   │   │   ├── 📁 avl
+│   │   │   │   │   │   └── 📄 AVLtree.cpp
+│   │   │   │   │   └── 📄 tree.cpp
+│   │   │   │   ├── 📁 vector
+│   │   │   │   │   └── 📄 vector.cpp
+│   │   │   │   ├── 📄 container.cpp
+│   │   │   │   ├── 📄 container_concepts.cpp
+│   │   │   │   ├── 📄 container_iterator.cpp
+│   │   │   │   ├── 📄 container_traits.cpp
+│   │   │   │   ├── 📄 edge.cpp
+│   │   │   │   ├── 📄 node.cpp
+│   │   │   │   └── 📄 tuple.cpp
+│   │   │   ├── 📁 core
+│   │   │   │   ├── 📄 concepts.cpp
+│   │   │   │   └── 📄 type_traits.cpp
+│   │   │   ├── 📁 db
+│   │   │   │   ├── 📁 mariadb
+│   │   │   │   │   └── 📄 mariadb.cpp
+│   │   │   │   └── 📄 database_common.cpp
+│   │   │   ├── 📁 env
+│   │   │   │   ├── 📁 ui
+│   │   │   │   │   └── 📄 env_curses.c
+│   │   │   │   ├── 📄 env.c
+│   │   │   │   ├── 📄 env_archive.c
+│   │   │   │   └── 📄 env_compression.c
+│   │   │   ├── 📁 math
+│   │   │   │   ├── 📄 interval.cpp
+│   │   │   │   ├── 📄 math.cpp
+│   │   │   │   ├── 📄 math_concepts.cpp
+│   │   │   │   ├── 📄 math_traits.cpp
+│   │   │   │   └── 📄 numeric_compare.cpp
+│   │   │   ├── 📁 meta
+│   │   │   │   ├── 📄 tuple_manip.cpp
+│   │   │   │   └── 📄 tuple_util.cpp
+│   │   │   └── 📁 util
+│   │   │       ├── 📄 archive.cpp
+│   │   │       ├── 📄 compression.cpp
+│   │   │       └── 📄 git.cpp
+│   │   ├── 📁 parse
+│   │   │   ├── 📄 c_parser.cpp
+│   │   │   ├── 📄 clang_util.cpp
+│   │   │   ├── 📄 cpp_def_parser.cpp
+│   │   │   ├── 📄 cpp_parser.cpp
+│   │   │   ├── 📄 cross_ref.cpp
+│   │   │   ├── 📄 parse.cpp
+│   │   │   └── 📄 scanner.cpp
+│   │   ├── 📁 test
+│   │   │   ├── 📄 test.cpp
+│   │   │   └── 📄 test_block.cpp
+│   │   ├── 📄 parse_abnf.h
+│   │   ├── 📄 parse_bnf.h
+│   │   ├── 📄 parse_bnf_common.h
+│   │   └── 📄 parse_ebnf.h
+│   ├── 📄 component_common.hpp
+│   ├── 📄 component_types.hpp
+│   ├── 📄 input_control.hpp
+│   ├── 📄 option.hpp
+│   ├── 📄 option_set.hpp
+│   ├── 📄 output_control.hpp
+│   ├── 📄 test_common.hpp
+│   ├── 📄 test_object.hpp
+│   ├── 📄 test_options.cpp
+│   └── 📄 toggleable_common.hpp
+├── 📁 tests
+│   └── 📁 djinterp
+│       ├── 📁 c
+│       │   ├── 📁 container
+│       │   │   ├── 📁 array
+│       │   │   │   ├── 📄 array_common_tests_sa.c
+│       │   │   │   ├── 📄 array_common_tests_sa.h
+│       │   │   │   ├── 📄 array_common_tests_sa_free.c
+│       │   │   │   ├── 📄 array_common_tests_sa_init.c
+│       │   │   │   ├── 📄 array_common_tests_sa_manip.c
+│       │   │   │   ├── 📄 array_common_tests_sa_util.c
+│       │   │   │   ├── 📄 array_filter_tests_sa.c
+│       │   │   │   ├── 📄 array_filter_tests_sa.h
+│       │   │   │   ├── 📄 array_filter_tests_sa_builder.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_chain.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_fixtures.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_in_place.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_macros.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_query.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_result.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_result_mgmt.c
+│       │   │   │   ├── 📄 array_filter_tests_sa_single_op.c
+│       │   │   │   ├── 📄 array_tests_sa.c
+│       │   │   │   ├── 📄 array_tests_sa.h
+│       │   │   │   ├── 📄 array_tests_sa_creation.c
+│       │   │   │   ├── 📄 array_tests_sa_creation_s.c
+│       │   │   │   ├── 📄 array_tests_sa_helpers.c
+│       │   │   │   ├── 📄 array_tests_sa_integration.c
+│       │   │   │   ├── 📄 array_tests_sa_manip.c
+│       │   │   │   ├── 📄 array_tests_sa_memory.c
+│       │   │   │   ├── 📄 byte_array_tests_sa.c
+│       │   │   │   ├── 📄 byte_array_tests_sa.h
+│       │   │   │   ├── 📄 byte_array_tests_sa_1d.c
+│       │   │   │   ├── 📄 byte_array_tests_sa_2d.c
+│       │   │   │   ├── 📄 byte_array_tests_sa_expansion.c
+│       │   │   │   ├── 📄 byte_array_tests_sa_extraction.c
+│       │   │   │   ├── 📄 byte_array_tests_sa_jagged.c
+│       │   │   │   ├── 📄 circular_array_tests_sa.c
+│       │   │   │   ├── 📄 circular_array_tests_sa.h
+│       │   │   │   ├── 📄 circular_array_tests_sa_access.c
+│       │   │   │   ├── 📄 circular_array_tests_sa_bulk.c
+│       │   │   │   ├── 📄 circular_array_tests_sa_constructor.c
+│       │   │   │   ├── 📄 circular_array_tests_sa_modification.c
+│       │   │   │   ├── 📄 circular_array_tests_sa_query.c
+│       │   │   │   ├── 📄 circular_array_tests_sa_search.c
+│       │   │   │   ├── 📄 circular_array_tests_sa_utility.c
+│       │   │   │   ├── 📄 ptr_array_tests_sa.c
+│       │   │   │   ├── 📄 ptr_array_tests_sa.h
+│       │   │   │   ├── 📄 ptr_array_tests_sa_constructor.c
+│       │   │   │   ├── 📄 ptr_array_tests_sa_destructor.c
+│       │   │   │   └── 📄 ptr_array_tests_sa_element.c
+│       │   │   ├── 📁 buffer
+│       │   │   │   ├── 📄 buffer_common_tests_sa.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa.h
+│       │   │   │   ├── 📄 buffer_common_tests_sa_access.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_capacity.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_chunked.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_copy.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_destruction.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_init.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_insert.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_ordering.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_removal.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_search.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_state.c
+│       │   │   │   ├── 📄 buffer_common_tests_sa_validation.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa.h
+│       │   │   │   ├── 📄 text_buffer_tests_sa_access.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_append_mode.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_capacity.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_comparison.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_conversion.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_creation.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_filter.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_memory.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_modification.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_search.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_string_ops.c
+│       │   │   │   ├── 📄 text_buffer_tests_sa_text_processing.c
+│       │   │   │   └── 📄 text_buffer_tests_sa_utility.c
+│       │   │   ├── 📁 map
+│       │   │   │   ├── 📄 enum_map_entry_tests_sa.c
+│       │   │   │   ├── 📄 enum_map_entry_tests_sa.h
+│       │   │   │   ├── 📄 min_enum_map_tests_sa.c
+│       │   │   │   ├── 📄 min_enum_map_tests_sa.h
+│       │   │   │   ├── 📄 min_enum_map_tests_sa_core.c
+│       │   │   │   └── 📄 min_enum_map_tests_sa_memory.c
+│       │   │   ├── 📁 registry
+│       │   │   │   ├── 📄 registry_common_tests_sa.c
+│       │   │   │   ├── 📄 registry_common_tests_sa.h
+│       │   │   │   ├── 📄 registry_common_tests_sa_schema.c
+│       │   │   │   ├── 📄 registry_common_tests_sa_strcmp.c
+│       │   │   │   ├── 📄 registry_tests_sa.c
+│       │   │   │   ├── 📄 registry_tests_sa.h
+│       │   │   │   ├── 📄 registry_tests_sa_aliases.c
+│       │   │   │   ├── 📄 registry_tests_sa_common.c
+│       │   │   │   ├── 📄 registry_tests_sa_comparison.c
+│       │   │   │   ├── 📄 registry_tests_sa_constructors.c
+│       │   │   │   ├── 📄 registry_tests_sa_destructor.c
+│       │   │   │   ├── 📄 registry_tests_sa_iterators.c
+│       │   │   │   ├── 📄 registry_tests_sa_lookup.c
+│       │   │   │   ├── 📄 registry_tests_sa_lookup_maint.c
+│       │   │   │   ├── 📄 registry_tests_sa_queries.c
+│       │   │   │   ├── 📄 registry_tests_sa_row_manipulation.c
+│       │   │   │   └── 📄 registry_tests_sa_utility.c
+│       │   │   ├── 📁 vector
+│       │   │   │   ├── 📄 ptr_vector_tests_sa.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa.h
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_access.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_append.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_capacity.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_constructor.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_destructor.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_element.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_iteration.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_query.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_resize.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_search.c
+│       │   │   │   ├── 📄 ptr_vector_tests_sa_utility.c
+│       │   │   │   ├── 📄 vector_common_tests_sa.c
+│       │   │   │   ├── 📄 vector_common_tests_sa.h
+│       │   │   │   ├── 📄 vector_common_tests_sa_access.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_append.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_capacity.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_cleanup.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_element.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_init.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_query.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_resize.c
+│       │   │   │   ├── 📄 vector_common_tests_sa_utility.c
+│       │   │   │   ├── 📄 vector_tests_sa.c
+│       │   │   │   ├── 📄 vector_tests_sa.h
+│       │   │   │   ├── 📄 vector_tests_sa_access.c
+│       │   │   │   ├── 📄 vector_tests_sa_append.c
+│       │   │   │   ├── 📄 vector_tests_sa_capacity.c
+│       │   │   │   ├── 📄 vector_tests_sa_constructor.c
+│       │   │   │   ├── 📄 vector_tests_sa_destructor.c
+│       │   │   │   ├── 📄 vector_tests_sa_element.c
+│       │   │   │   ├── 📄 vector_tests_sa_query.c
+│       │   │   │   ├── 📄 vector_tests_sa_resize.c
+│       │   │   │   ├── 📄 vector_tests_sa_search.c
+│       │   │   │   └── 📄 vector_tests_sa_utility.c
+│       │   │   ├── 📄 container_tests_sa.c
+│       │   │   └── 📄 container_tests_sa.h
+│       │   ├── 📁 event
+│       │   │   ├── 📄 event_handler_tests_sa.c
+│       │   │   ├── 📄 event_handler_tests_sa.h
+│       │   │   ├── 📄 event_handler_tests_sa_advanced.c
+│       │   │   ├── 📄 event_handler_tests_sa_creation.c
+│       │   │   ├── 📄 event_handler_tests_sa_events.c
+│       │   │   ├── 📄 event_handler_tests_sa_listeners.c
+│       │   │   ├── 📄 event_handler_tests_sa_queries.c
+│       │   │   ├── 📄 event_table_common_tests_sa.c
+│       │   │   ├── 📄 event_table_common_tests_sa.h
+│       │   │   ├── 📄 event_table_common_tests_sa_advanced.c
+│       │   │   ├── 📄 event_table_common_tests_sa_constants.c
+│       │   │   ├── 📄 event_table_common_tests_sa_hash.c
+│       │   │   ├── 📄 event_table_common_tests_sa_node.c
+│       │   │   ├── 📄 event_table_common_tests_sa_prime.c
+│       │   │   ├── 📄 event_table_common_tests_sa_stats.c
+│       │   │   ├── 📄 event_table_tests_sa.c
+│       │   │   ├── 📄 event_table_tests_sa.h
+│       │   │   ├── 📄 event_table_tests_sa_advanced.c
+│       │   │   ├── 📄 event_table_tests_sa_creation.c
+│       │   │   ├── 📄 event_table_tests_sa_iterator.c
+│       │   │   ├── 📄 event_table_tests_sa_management.c
+│       │   │   ├── 📄 event_table_tests_sa_operations.c
+│       │   │   ├── 📄 event_table_tests_sa_stats.c
+│       │   │   ├── 📄 event_tests_sa.c
+│       │   │   ├── 📄 event_tests_sa.h
+│       │   │   ├── 📄 event_tests_sa_compare.c
+│       │   │   ├── 📄 event_tests_sa_constants.c
+│       │   │   ├── 📄 event_tests_sa_event_new.c
+│       │   │   ├── 📄 event_tests_sa_find.c
+│       │   │   ├── 📄 event_tests_sa_free.c
+│       │   │   └── 📄 event_tests_sa_listener_new.c
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 compose_tests_sa.c
+│       │   │   ├── 📄 compose_tests_sa.h
+│       │   │   ├── 📄 compose_tests_sa_helpers.h
+│       │   │   ├── 📄 compose_tests_sa_macro.c
+│       │   │   ├── 📄 compose_tests_sa_partial.c
+│       │   │   ├── 📄 compose_tests_sa_transformer.c
+│       │   │   ├── 📄 filter_tests_sa.c
+│       │   │   ├── 📄 filter_tests_sa.h
+│       │   │   ├── 📄 filter_tests_sa_builder.c
+│       │   │   ├── 📄 filter_tests_sa_chain.c
+│       │   │   ├── 📄 filter_tests_sa_combinators.c
+│       │   │   ├── 📄 filter_tests_sa_execution.c
+│       │   │   ├── 📄 filter_tests_sa_iterator.c
+│       │   │   ├── 📄 filter_tests_sa_macros.c
+│       │   │   ├── 📄 filter_tests_sa_operations.c
+│       │   │   ├── 📄 filter_tests_sa_utility.c
+│       │   │   ├── 📄 fn_builder_tests_sa.c
+│       │   │   ├── 📄 fn_builder_tests_sa.h
+│       │   │   ├── 📄 fn_builder_tests_sa_cleanup.c
+│       │   │   ├── 📄 fn_builder_tests_sa_creation.c
+│       │   │   ├── 📄 fn_builder_tests_sa_execution.c
+│       │   │   ├── 📄 fn_builder_tests_sa_operations.c
+│       │   │   ├── 📄 functional_common_tests_sa.c
+│       │   │   ├── 📄 functional_common_tests_sa.h
+│       │   │   ├── 📄 functional_common_tests_sa_comparison.c
+│       │   │   ├── 📄 functional_common_tests_sa_constant.c
+│       │   │   ├── 📄 functional_common_tests_sa_fold.c
+│       │   │   ├── 📄 functional_common_tests_sa_higher_order.c
+│       │   │   ├── 📄 functional_common_tests_sa_identity.c
+│       │   │   ├── 📄 functional_common_tests_sa_iteration.c
+│       │   │   ├── 📄 functional_common_tests_sa_predicate.c
+│       │   │   ├── 📄 functional_common_tests_sa_quantifier.c
+│       │   │   ├── 📄 functional_common_tests_sa_utility.c
+│       │   │   ├── 📄 pipeline_tests_sa.c
+│       │   │   ├── 📄 pipeline_tests_sa.h
+│       │   │   ├── 📄 pipeline_tests_sa_creation.c
+│       │   │   ├── 📄 pipeline_tests_sa_finalization.c
+│       │   │   ├── 📄 pipeline_tests_sa_operations.c
+│       │   │   ├── 📄 predicate_tests_sa.c
+│       │   │   ├── 📄 predicate_tests_sa.h
+│       │   │   ├── 📄 predicate_tests_sa_constructor.c
+│       │   │   ├── 📄 predicate_tests_sa_eval.c
+│       │   │   ├── 📄 predicate_tests_sa_helpers.h
+│       │   │   └── 📄 predicate_tests_sa_macro.c
+│       │   ├── 📁 test
+│       │   │   ├── 📄 assert_tests_sa.c
+│       │   │   ├── 📄 assert_tests_sa.h
+│       │   │   ├── 📄 assert_tests_sa_advanced.c
+│       │   │   ├── 📄 assert_tests_sa_array.c
+│       │   │   ├── 📄 assert_tests_sa_compare.c
+│       │   │   ├── 📄 assert_tests_sa_core.c
+│       │   │   ├── 📄 assert_tests_sa_null.c
+│       │   │   ├── 📄 assert_tests_sa_string.c
+│       │   │   ├── 📄 assert_tests_sa_utility.c
+│       │   │   ├── 📄 test_block_tests_sa.c
+│       │   │   ├── 📄 test_block_tests_sa.h
+│       │   │   ├── 📄 test_block_tests_sa_child_mgmt.c
+│       │   │   ├── 📄 test_block_tests_sa_constructor.c
+│       │   │   ├── 📄 test_block_tests_sa_execution.c
+│       │   │   ├── 📄 test_block_tests_sa_stage_hooks.c
+│       │   │   ├── 📄 test_block_tests_sa_utility.c
+│       │   │   ├── 📄 test_common_tests_sa.c
+│       │   │   ├── 📄 test_common_tests_sa.h
+│       │   │   ├── 📄 test_common_tests_sa_arg.c
+│       │   │   ├── 📄 test_common_tests_sa_discriminator.c
+│       │   │   ├── 📄 test_common_tests_sa_fn.c
+│       │   │   ├── 📄 test_common_tests_sa_fn_wrapper.c
+│       │   │   ├── 📄 test_common_tests_sa_lifecycle.c
+│       │   │   ├── 📄 test_common_tests_sa_macro.c
+│       │   │   ├── 📄 test_common_tests_sa_symbols.c
+│       │   │   ├── 📄 test_common_tests_sa_test_fn.c
+│       │   │   ├── 📄 test_common_tests_sa_type.c
+│       │   │   ├── 📄 test_cvar_tests_sa.c
+│       │   │   ├── 📄 test_cvar_tests_sa.h
+│       │   │   ├── 📄 test_cvar_tests_sa_aliases.c
+│       │   │   ├── 📄 test_cvar_tests_sa_defaults.c
+│       │   │   ├── 📄 test_cvar_tests_sa_find.c
+│       │   │   ├── 📄 test_cvar_tests_sa_get_set.c
+│       │   │   ├── 📄 test_cvar_tests_sa_init.c
+│       │   │   ├── 📄 test_cvar_tests_sa_predicates.c
+│       │   │   ├── 📄 test_cvar_tests_sa_reset.c
+│       │   │   ├── 📄 test_cvar_tests_sa_row_flags.c
+│       │   │   ├── 📄 test_cvar_tests_sa_row_struct.c
+│       │   │   ├── 📄 test_cvar_tests_sa_table_integrity.c
+│       │   │   ├── 📄 test_cvar_tests_sa_typed_macros.c
+│       │   │   ├── 📄 test_cvar_tests_sa_valid_arg.c
+│       │   │   ├── 📄 test_cvar_tests_sa_value_union.c
+│       │   │   ├── 📄 test_handler_link_stubs.c
+│       │   │   ├── 📄 test_handler_test_helpers.c
+│       │   │   ├── 📄 test_handler_test_helpers.h
+│       │   │   ├── 📄 test_handler_tests_sa.c
+│       │   │   ├── 📄 test_handler_tests_sa.h
+│       │   │   ├── 📄 test_handler_tests_sa_abort.c
+│       │   │   ├── 📄 test_handler_tests_sa_assertions.c
+│       │   │   ├── 📄 test_handler_tests_sa_context.c
+│       │   │   ├── 📄 test_handler_tests_sa_creation.c
+│       │   │   ├── 📄 test_handler_tests_sa_dsl.c
+│       │   │   ├── 📄 test_handler_tests_sa_edge.c
+│       │   │   ├── 📄 test_handler_tests_sa_emission.c
+│       │   │   ├── 📄 test_handler_tests_sa_execution.c
+│       │   │   ├── 📄 test_handler_tests_sa_flags.c
+│       │   │   ├── 📄 test_handler_tests_sa_integration.c
+│       │   │   ├── 📄 test_handler_tests_sa_listeners.c
+│       │   │   ├── 📄 test_handler_tests_sa_results.c
+│       │   │   ├── 📄 test_handler_tests_sa_stack.c
+│       │   │   ├── 📄 test_handler_tests_sa_stats.c
+│       │   │   ├── 📄 test_module_helpers.c
+│       │   │   ├── 📄 test_module_tests_sa.c
+│       │   │   ├── 📄 test_module_tests_sa.h
+│       │   │   ├── 📄 test_module_tests_sa_children.c
+│       │   │   ├── 📄 test_module_tests_sa_config.c
+│       │   │   ├── 📄 test_module_tests_sa_constructor.c
+│       │   │   ├── 📄 test_module_tests_sa_execution.c
+│       │   │   ├── 📄 test_module_tests_sa_hooks.c
+│       │   │   ├── 📄 test_module_tests_sa_output.c
+│       │   │   ├── 📄 test_module_tests_sa_result.c
+│       │   │   ├── 📄 test_options_tests_sa.c
+│       │   │   ├── 📄 test_options_tests_sa.h
+│       │   │   ├── 📄 test_options_tests_sa_combinations.c
+│       │   │   ├── 📄 test_options_tests_sa_defaults.c
+│       │   │   ├── 📄 test_options_tests_sa_enums.c
+│       │   │   ├── 📄 test_options_tests_sa_flag_macros.c
+│       │   │   ├── 📄 test_options_tests_sa_getters.c
+│       │   │   ├── 📄 test_options_tests_sa_key_lookup.c
+│       │   │   ├── 📄 test_options_tests_sa_lifecycle.c
+│       │   │   ├── 📄 test_options_tests_sa_masks.c
+│       │   │   ├── 📄 test_options_tests_sa_modes.c
+│       │   │   ├── 📄 test_options_tests_sa_semantic.c
+│       │   │   ├── 📄 test_options_tests_sa_setters.c
+│       │   │   ├── 📄 test_options_tests_sa_struct.c
+│       │   │   ├── 📄 test_options_tests_sa_utility_macros.c
+│       │   │   ├── 📄 test_printer_tests_sa.c
+│       │   │   ├── 📄 test_printer_tests_sa.h
+│       │   │   ├── 📄 test_session_tests_sa.c
+│       │   │   ├── 📄 test_session_tests_sa.h
+│       │   │   ├── 📄 test_session_tests_sa_children.c
+│       │   │   ├── 📄 test_session_tests_sa_config.c
+│       │   │   ├── 📄 test_session_tests_sa_constructor.c
+│       │   │   ├── 📄 test_session_tests_sa_execution.c
+│       │   │   ├── 📄 test_session_tests_sa_output.c
+│       │   │   ├── 📄 test_session_tests_sa_stats.c
+│       │   │   ├── 📄 test_session_tests_sa_status.c
+│       │   │   ├── 📄 test_standalone_tests_sa.c
+│       │   │   ├── 📄 test_standalone_tests_sa.h
+│       │   │   ├── 📄 test_standalone_tests_sa_assert_fn.c
+│       │   │   ├── 📄 test_standalone_tests_sa_assertion.c
+│       │   │   ├── 📄 test_standalone_tests_sa_constant.c
+│       │   │   ├── 📄 test_standalone_tests_sa_counter.c
+│       │   │   ├── 📄 test_standalone_tests_sa_failure.c
+│       │   │   ├── 📄 test_standalone_tests_sa_fn_ptr.c
+│       │   │   ├── 📄 test_standalone_tests_sa_global.c
+│       │   │   ├── 📄 test_standalone_tests_sa_note.c
+│       │   │   ├── 📄 test_standalone_tests_sa_object.c
+│       │   │   ├── 📄 test_standalone_tests_sa_options.c
+│       │   │   ├── 📄 test_standalone_tests_sa_results.c
+│       │   │   ├── 📄 test_standalone_tests_sa_runner.c
+│       │   │   ├── 📄 test_standalone_tests_sa_runner_fn.c
+│       │   │   ├── 📄 test_standalone_tests_sa_runner_struct.c
+│       │   │   ├── 📄 test_standalone_tests_sa_template.c
+│       │   │   ├── 📄 test_standalone_tests_sa_utility.c
+│       │   │   ├── 📄 test_tests_sa.c
+│       │   │   ├── 📄 test_tests_sa.h
+│       │   │   ├── 📄 test_tests_sa_child_mgmt.c
+│       │   │   ├── 📄 test_tests_sa_construction.c
+│       │   │   ├── 📄 test_tests_sa_destruction.c
+│       │   │   ├── 📄 test_tests_sa_enum.c
+│       │   │   ├── 📄 test_tests_sa_execution.c
+│       │   │   ├── 📄 test_tests_sa_fn_wrapper.c
+│       │   │   ├── 📄 test_tests_sa_stage_enum.c
+│       │   │   ├── 📄 test_tests_sa_stage_hooks.c
+│       │   │   ├── 📄 test_tests_sa_utility.c
+│       │   │   └── 📄 test_tests_sa_validate_args.c
+│       │   ├── 📁 text
+│       │   │   ├── 📄 str_interp_tests_sa.c
+│       │   │   ├── 📄 str_interp_tests_sa.h
+│       │   │   ├── 📄 str_interp_tests_sa_context.c
+│       │   │   ├── 📄 str_interp_tests_sa_convenience.c
+│       │   │   ├── 📄 str_interp_tests_sa_interp.c
+│       │   │   ├── 📄 str_interp_tests_sa_specifier.c
+│       │   │   ├── 📄 str_interp_tests_sa_utility.c
+│       │   │   ├── 📄 test_number_to_string.c
+│       │   │   ├── 📄 test_number_to_string_es.c
+│       │   │   ├── 📄 test_number_to_string_fr.c
+│       │   │   ├── 📄 test_number_to_string_it.c
+│       │   │   ├── 📄 test_number_to_string_la.c
+│       │   │   ├── 📄 test_number_to_string_pt.c
+│       │   │   ├── 📄 text_lineup_tests_sa.c
+│       │   │   ├── 📄 text_lineup_tests_sa.h
+│       │   │   ├── 📄 text_lineup_tests_sa_lineup.c
+│       │   │   ├── 📄 text_lineup_tests_sa_string_array.c
+│       │   │   ├── 📄 text_lineup_tests_sa_text_buffer.c
+│       │   │   ├── 📄 text_template_tests_sa.c
+│       │   │   ├── 📄 text_template_tests_sa.h
+│       │   │   ├── 📄 text_template_tests_sa_binding.c
+│       │   │   ├── 📄 text_template_tests_sa_lifecycle.c
+│       │   │   ├── 📄 text_template_tests_sa_marker.c
+│       │   │   ├── 📄 text_template_tests_sa_render.c
+│       │   │   ├── 📄 text_template_tests_sa_utility.c
+│       │   │   └── 📄 text_template_tests_sa_wrap.c
+│       │   ├── 📁 util
+│       │   │   └── 📁 cli
+│       │   │       ├── 📄 cli_unix.c
+│       │   │       ├── 📄 cli_unix.h
+│       │   │       ├── 📄 main_cli_option.c
+│       │   │       ├── 📄 main_cli_unix.c
+│       │   │       ├── 📄 test_cli_option_sa.c
+│       │   │       ├── 📄 test_cli_option_sa.h
+│       │   │       ├── 📄 test_cli_unix_sa.c
+│       │   │       ├── 📄 test_cli_unix_sa.h
+│       │   │       ├── 📄 test_common_tests_sa.c
+│       │   │       ├── 📄 test_common_tests_sa.h
+│       │   │       └── 📄 test_common_tests_sa_cli_option.c
+│       │   ├── 📄 datomic_tests_sa.c
+│       │   ├── 📄 datomic_tests_sa.h
+│       │   ├── 📄 datomic_tests_sa_cas.c
+│       │   ├── 📄 datomic_tests_sa_exchange.c
+│       │   ├── 📄 datomic_tests_sa_fence.c
+│       │   ├── 📄 datomic_tests_sa_fetch.c
+│       │   ├── 📄 datomic_tests_sa_flag.c
+│       │   ├── 📄 datomic_tests_sa_init.c
+│       │   ├── 📄 datomic_tests_sa_load.c
+│       │   ├── 📄 datomic_tests_sa_null.c
+│       │   ├── 📄 datomic_tests_sa_store.c
+│       │   ├── 📄 dfile_tests_sa.c
+│       │   ├── 📄 dfile_tests_sa.h
+│       │   ├── 📄 dfile_tests_sa_binary.c
+│       │   ├── 📄 dfile_tests_sa_desc.c
+│       │   ├── 📄 dfile_tests_sa_dir.c
+│       │   ├── 📄 dfile_tests_sa_large.c
+│       │   ├── 📄 dfile_tests_sa_lock.c
+│       │   ├── 📄 dfile_tests_sa_meta.c
+│       │   ├── 📄 dfile_tests_sa_null.c
+│       │   ├── 📄 dfile_tests_sa_open.c
+│       │   ├── 📄 dfile_tests_sa_ops.c
+│       │   ├── 📄 dfile_tests_sa_path.c
+│       │   ├── 📄 dfile_tests_sa_pipe.c
+│       │   ├── 📄 dfile_tests_sa_symlink.c
+│       │   ├── 📄 dfile_tests_sa_sync.c
+│       │   ├── 📄 dfile_tests_sa_temp.c
+│       │   ├── 📄 dfile_tests_sa_util.c
+│       │   ├── 📄 dio_tests_sa.c
+│       │   ├── 📄 dio_tests_sa.h
+│       │   ├── 📄 dio_tests_sa_char_string_io.c
+│       │   ├── 📄 dio_tests_sa_error_handling.c
+│       │   ├── 📄 dio_tests_sa_file_positioning.c
+│       │   ├── 📄 dio_tests_sa_formatted_input.c
+│       │   ├── 📄 dio_tests_sa_formatted_output.c
+│       │   ├── 📄 djinterp_tests_sa.c
+│       │   ├── 📄 djinterp_tests_sa.h
+│       │   ├── 📄 djinterp_tests_sa_array.c
+│       │   ├── 📄 djinterp_tests_sa_boolean.c
+│       │   ├── 📄 djinterp_tests_sa_edge.c
+│       │   ├── 📄 djinterp_tests_sa_function_ptr.c
+│       │   ├── 📄 djinterp_tests_sa_index.c
+│       │   ├── 📄 djinterp_tests_sa_index_macros.c
+│       │   ├── 📄 dmacro_tests_sa.c
+│       │   ├── 📄 dmacro_tests_sa.h
+│       │   ├── 📄 dmacro_tests_sa_arg_count.c
+│       │   ├── 📄 dmacro_tests_sa_array_util.c
+│       │   ├── 📄 dmacro_tests_sa_boolean.c
+│       │   ├── 📄 dmacro_tests_sa_config.c
+│       │   ├── 📄 dmacro_tests_sa_eval.c
+│       │   ├── 📄 dmacro_tests_sa_for_each.c
+│       │   ├── 📄 dmacro_tests_sa_iter_adv.c
+│       │   ├── 📄 dmacro_tests_sa_iter_core.c
+│       │   ├── 📄 dmacro_tests_sa_member.c
+│       │   ├── 📄 dmacro_tests_sa_pair_idx.c
+│       │   ├── 📄 dmacro_tests_sa_ptr_array.c
+│       │   ├── 📄 dmacro_tests_sa_selection.c
+│       │   ├── 📄 dmacro_tests_sa_static_assert.c
+│       │   ├── 📄 dmacro_tests_sa_token_manip.c
+│       │   ├── 📄 dmacro_tests_sa_utility.c
+│       │   ├── 📄 dmemory_tests_sa.c
+│       │   ├── 📄 dmemory_tests_sa.h
+│       │   ├── 📄 dmemory_tests_sa_copy.c
+│       │   ├── 📄 dmemory_tests_sa_dup.c
+│       │   ├── 📄 dmemory_tests_sa_runner.c
+│       │   ├── 📄 dmemory_tests_sa_special.c
+│       │   ├── 📄 dmutex_tests_sa.c
+│       │   ├── 📄 dmutex_tests_sa.h
+│       │   ├── 📄 dmutex_tests_sa_cond.c
+│       │   ├── 📄 dmutex_tests_sa_mutex_basic.c
+│       │   ├── 📄 dmutex_tests_sa_mutex_recursive.c
+│       │   ├── 📄 dmutex_tests_sa_rwlock.c
+│       │   ├── 📄 dmutex_tests_sa_sync.c
+│       │   ├── 📄 dmutex_tests_sa_thread_ops.c
+│       │   ├── 📄 dmutex_tests_sa_tss.c
+│       │   ├── 📄 dmutex_tests_sa_utility.c
+│       │   ├── 📄 dstring_tests_sa.c
+│       │   ├── 📄 dstring_tests_sa.h
+│       │   ├── 📄 dstring_tests_sa_access.c
+│       │   ├── 📄 dstring_tests_sa_capacity.c
+│       │   ├── 📄 dstring_tests_sa_case_conv.c
+│       │   ├── 📄 dstring_tests_sa_compare.c
+│       │   ├── 📄 dstring_tests_sa_concat.c
+│       │   ├── 📄 dstring_tests_sa_copy.c
+│       │   ├── 📄 dstring_tests_sa_creation.c
+│       │   ├── 📄 dstring_tests_sa_dup.c
+│       │   ├── 📄 dstring_tests_sa_error.c
+│       │   ├── 📄 dstring_tests_sa_format.c
+│       │   ├── 📄 dstring_tests_sa_join.c
+│       │   ├── 📄 dstring_tests_sa_manip.c
+│       │   ├── 📄 dstring_tests_sa_modify.c
+│       │   ├── 📄 dstring_tests_sa_reverse.c
+│       │   ├── 📄 dstring_tests_sa_search.c
+│       │   ├── 📄 dstring_tests_sa_token.c
+│       │   ├── 📄 dstring_tests_sa_trim.c
+│       │   ├── 📄 dstring_tests_sa_util.c
+│       │   ├── 📄 dtime_tests_sa.c
+│       │   ├── 📄 dtime_tests_sa.h
+│       │   ├── 📄 dtime_tests_sa_arith.c
+│       │   ├── 📄 dtime_tests_sa_convert.c
+│       │   ├── 📄 dtime_tests_sa_highres.c
+│       │   ├── 📄 dtime_tests_sa_monotonic.c
+│       │   ├── 📄 dtime_tests_sa_norm.c
+│       │   ├── 📄 dtime_tests_sa_null.c
+│       │   ├── 📄 dtime_tests_sa_sleep.c
+│       │   ├── 📄 dtime_tests_sa_strtime.c
+│       │   ├── 📄 dtime_tests_sa_tz.c
+│       │   ├── 📄 env_tests_sa.c
+│       │   ├── 📄 env_tests_sa.h
+│       │   ├── 📄 env_tests_sa_arch.c
+│       │   ├── 📄 env_tests_sa_build.c
+│       │   ├── 📄 env_tests_sa_cfg.c
+│       │   ├── 📄 env_tests_sa_compiler.c
+│       │   ├── 📄 env_tests_sa_lang.c
+│       │   ├── 📄 env_tests_sa_os.c
+│       │   ├── 📄 env_tests_sa_posix.c
+│       │   ├── 📄 env_tests_sa_pp_limits.c
+│       │   ├── 📄 env_tests_sa_stdlib.c
+│       │   ├── 📄 ssize64_tests_sa.c
+│       │   ├── 📄 ssize64_tests_sa.h
+│       │   ├── 📄 string_fn_tests_sa.c
+│       │   ├── 📄 string_fn_tests_sa.h
+│       │   ├── 📄 string_fn_tests_sa_cmp_n.c
+│       │   ├── 📄 string_fn_tests_sa_copy.c
+│       │   ├── 📄 string_fn_tests_sa_count.c
+│       │   ├── 📄 string_fn_tests_sa_dup.c
+│       │   ├── 📄 string_fn_tests_sa_error.c
+│       │   ├── 📄 string_fn_tests_sa_index.c
+│       │   ├── 📄 string_fn_tests_sa_manip.c
+│       │   ├── 📄 string_fn_tests_sa_prefix.c
+│       │   ├── 📄 string_fn_tests_sa_validate.c
+│       │   └── 📄 test_env_config.h
+│       ├── 📁 core
+│       │   ├── 📁 container
+│       │   │   ├── 📁 array
+│       │   │   │   ├── 📄 array_core_tests.cpp
+│       │   │   │   ├── 📄 array_options_alias_tests.cpp
+│       │   │   │   ├── 📄 array_options_core_tests.cpp
+│       │   │   │   ├── 📄 array_options_edge_tests.cpp
+│       │   │   │   ├── 📄 array_options_factory_tests.cpp
+│       │   │   │   ├── 📄 array_tests.hpp
+│       │   │   │   ├── 📄 atomic_array_core_tests.cpp
+│       │   │   │   ├── 📄 cow_array_core_tests.cpp
+│       │   │   │   └── 📄 threadsafe_array_core_tests.cpp
+│       │   │   ├── 📁 buffer
+│       │   │   │   ├── 📄 buffer_tests.hpp
+│       │   │   │   ├── 📄 buffer_tests_buffer_base_lifecycle.cpp
+│       │   │   │   ├── 📄 buffer_tests_buffer_base_read.cpp
+│       │   │   │   ├── 📄 buffer_tests_buffer_base_state.cpp
+│       │   │   │   ├── 📄 buffer_tests_buffer_base_write.cpp
+│       │   │   │   ├── 📄 buffer_tests_cursor_policies.cpp
+│       │   │   │   ├── 📄 buffer_tests_defaults.cpp
+│       │   │   │   ├── 📄 buffer_tests_enums.cpp
+│       │   │   │   ├── 📄 buffer_tests_growth_policies.cpp
+│       │   │   │   └── 📄 buffer_tests_policy_selection.cpp
+│       │   │   ├── 📁 debug
+│       │   │   │   ├── 📁 container
+│       │   │   │   │   ├── 📄 debug_container_traits.cpp
+│       │   │   │   │   └── 📄 debug_contiguous_iterator_traits.cpp
+│       │   │   │   └── 📄 debug_container_traits.cpp
+│       │   │   ├── 📁 graph
+│       │   │   │   └── 📄 djinterp-graph-tests.cpp
+│       │   │   ├── 📁 list
+│       │   │   │   └── 📄 djinterp-list-tests.cpp
+│       │   │   ├── 📁 map
+│       │   │   │   ├── 📄 djinterp-map-tests.cpp
+│       │   │   │   └── 📄 djinterp-multimap-tests.cpp
+│       │   │   ├── 📁 set
+│       │   │   │   ├── 📄 djinterp-multiset-tests.cpp
+│       │   │   │   └── 📄 djinterp-set-tests.cpp
+│       │   │   ├── 📁 table
+│       │   │   │   ├── 📄 table_common_tests.hpp
+│       │   │   │   ├── 📄 table_common_tests_for_each_index.cpp
+│       │   │   │   ├── 📄 table_common_tests_leaf_detectors.cpp
+│       │   │   │   ├── 📄 table_common_tests_predicates.cpp
+│       │   │   │   ├── 📄 table_common_tests_table_base.cpp
+│       │   │   │   ├── 📄 table_common_tests_table_rank.cpp
+│       │   │   │   ├── 📄 table_common_tests_tags.cpp
+│       │   │   │   ├── 📄 table_layout_tests.hpp
+│       │   │   │   ├── 📄 table_layout_tests_axes.cpp
+│       │   │   │   ├── 📄 table_layout_tests_cell.cpp
+│       │   │   │   ├── 📄 table_layout_tests_construction.cpp
+│       │   │   │   ├── 📄 table_layout_tests_descriptors.cpp
+│       │   │   │   ├── 📄 table_layout_tests_free_functions.cpp
+│       │   │   │   ├── 📄 table_layout_tests_iteration.cpp
+│       │   │   │   ├── 📄 table_layout_tests_keys_tags.cpp
+│       │   │   │   ├── 📄 table_layout_tests_mutation.cpp
+│       │   │   │   ├── 📄 table_layout_tests_queries.cpp
+│       │   │   │   ├── 📄 table_layout_tests_static_descriptors.cpp
+│       │   │   │   ├── 📄 table_layout_tests_static_specialization.cpp
+│       │   │   │   ├── 📄 table_layout_tests_storage_policy.cpp
+│       │   │   │   ├── 📄 table_tests.hpp
+│       │   │   │   ├── 📄 table_tests_aliases.cpp
+│       │   │   │   ├── 📄 table_tests_axes.cpp
+│       │   │   │   ├── 📄 table_tests_capacity.cpp
+│       │   │   │   ├── 📄 table_tests_classification.cpp
+│       │   │   │   ├── 📄 table_tests_construction.cpp
+│       │   │   │   ├── 📄 table_tests_detection.cpp
+│       │   │   │   ├── 📄 table_tests_element_access.cpp
+│       │   │   │   ├── 📄 table_tests_iteration.cpp
+│       │   │   │   ├── 📄 table_tests_mutation.cpp
+│       │   │   │   └── 📄 table_tests_underlying.cpp
+│       │   │   └── 📁 vector
+│       │   │       └── 📄 djinterp-vector-tests.cpp
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 accumulator_tests.hpp
+│       │   │   ├── 📄 accumulator_tests_boxed.cpp
+│       │   │   ├── 📄 accumulator_tests_collectors.cpp
+│       │   │   ├── 📄 accumulator_tests_combinators.cpp
+│       │   │   ├── 📄 accumulator_tests_combine.cpp
+│       │   │   ├── 📄 accumulator_tests_positional.cpp
+│       │   │   ├── 📄 accumulator_tests_predicates.cpp
+│       │   │   ├── 📄 accumulator_tests_primitive.cpp
+│       │   │   ├── 📄 accumulator_tests_reducers.cpp
+│       │   │   ├── 📄 accumulator_tests_statistics.cpp
+│       │   │   ├── 📄 accumulator_tests_traits.cpp
+│       │   │   ├── 📄 comparator_tests.hpp
+│       │   │   ├── 📄 comparator_tests_combinators.cpp
+│       │   │   ├── 📄 comparator_tests_pipeline.cpp
+│       │   │   ├── 📄 comparator_tests_predicates.cpp
+│       │   │   ├── 📄 comparator_tests_primitive.cpp
+│       │   │   ├── 📄 comparator_tests_traits.cpp
+│       │   │   ├── 📄 compose_tests.hpp
+│       │   │   ├── 📄 compose_tests_composition.cpp
+│       │   │   ├── 📄 compose_tests_fix.cpp
+│       │   │   ├── 📄 compose_tests_memoize.cpp
+│       │   │   ├── 📄 compose_tests_partial.cpp
+│       │   │   ├── 📄 compose_tests_runner.cpp
+│       │   │   ├── 📄 compose_tests_tap.cpp
+│       │   │   ├── 📄 compose_tests_traits.cpp
+│       │   │   ├── 📄 compose_tests_variadic.cpp
+│       │   │   ├── 📄 consumer_tests.hpp
+│       │   │   ├── 📄 consumer_tests_adapters.cpp
+│       │   │   ├── 📄 consumer_tests_branching.cpp
+│       │   │   ├── 📄 consumer_tests_erasure.cpp
+│       │   │   ├── 📄 consumer_tests_flow.cpp
+│       │   │   ├── 📄 consumer_tests_primitives.cpp
+│       │   │   ├── 📄 consumer_tests_runner.cpp
+│       │   │   ├── 📄 consumer_tests_tee.cpp
+│       │   │   ├── 📄 consumer_tests_traits.cpp
+│       │   │   ├── 📄 curry_tests.hpp
+│       │   │   ├── 📄 curry_tests_combinators.cpp
+│       │   │   ├── 📄 curry_tests_curry.cpp
+│       │   │   ├── 📄 curry_tests_flip.cpp
+│       │   │   ├── 📄 curry_tests_internal.cpp
+│       │   │   ├── 📄 curry_tests_predicate_traits.cpp
+│       │   │   ├── 📄 curry_tests_runner.cpp
+│       │   │   ├── 📄 curry_tests_uncurry.cpp
+│       │   │   ├── 📄 extractor_tests.hpp
+│       │   │   ├── 📄 extractor_tests_combinators.cpp
+│       │   │   ├── 📄 extractor_tests_drivers.cpp
+│       │   │   ├── 📄 extractor_tests_pipeline.cpp
+│       │   │   ├── 📄 extractor_tests_primitive.cpp
+│       │   │   ├── 📄 extractor_tests_traits.cpp
+│       │   │   ├── 📄 filter_tests.hpp
+│       │   │   ├── 📄 filter_tests_builder.cpp
+│       │   │   ├── 📄 filter_tests_chain.cpp
+│       │   │   ├── 📄 filter_tests_combinators.cpp
+│       │   │   ├── 📄 filter_tests_filterable.cpp
+│       │   │   ├── 📄 filter_tests_iterator.cpp
+│       │   │   ├── 📄 filter_tests_result.cpp
+│       │   │   ├── 📄 filter_tests_traits.cpp
+│       │   │   ├── 📄 filter_tests_typed.cpp
+│       │   │   ├── 📄 fn_builder_tests.hpp
+│       │   │   ├── 📄 fn_builder_tests_boxed.cpp
+│       │   │   ├── 📄 fn_builder_tests_creation.cpp
+│       │   │   ├── 📄 fn_builder_tests_execute.cpp
+│       │   │   ├── 📄 fn_builder_tests_reorder.cpp
+│       │   │   ├── 📄 fn_builder_tests_runner.cpp
+│       │   │   ├── 📄 fn_builder_tests_terminal.cpp
+│       │   │   ├── 📄 fn_builder_tests_traits.cpp
+│       │   │   ├── 📄 fn_builder_tests_transform.cpp
+│       │   │   ├── 📄 maybe_tests.hpp
+│       │   │   ├── 📄 maybe_tests_combinators.cpp
+│       │   │   ├── 📄 maybe_tests_equality.cpp
+│       │   │   ├── 📄 maybe_tests_factories.cpp
+│       │   │   ├── 📄 maybe_tests_free.cpp
+│       │   │   ├── 📄 maybe_tests_lifetime.cpp
+│       │   │   ├── 📄 maybe_tests_monad_traits.cpp
+│       │   │   ├── 📄 maybe_tests_monadic.cpp
+│       │   │   ├── 📄 maybe_tests_runner.cpp
+│       │   │   ├── 📄 maybe_tests_traits.cpp
+│       │   │   ├── 📄 monad_tests.hpp
+│       │   │   ├── 📄 monad_tests_composition.cpp
+│       │   │   ├── 📄 monad_tests_operations.cpp
+│       │   │   ├── 📄 monad_tests_pipeline.cpp
+│       │   │   ├── 📄 monad_tests_protocol.cpp
+│       │   │   ├── 📄 monad_tests_runner.cpp
+│       │   │   ├── 📄 monad_tests_traits.cpp
+│       │   │   ├── 📄 pipeline_tests.hpp
+│       │   │   ├── 📄 pipeline_tests_accessors.cpp
+│       │   │   ├── 📄 pipeline_tests_aggregate.cpp
+│       │   │   ├── 📄 pipeline_tests_creation.cpp
+│       │   │   ├── 📄 pipeline_tests_errors.cpp
+│       │   │   ├── 📄 pipeline_tests_factory.cpp
+│       │   │   ├── 📄 pipeline_tests_query.cpp
+│       │   │   ├── 📄 pipeline_tests_runner.cpp
+│       │   │   ├── 📄 pipeline_tests_slicing.cpp
+│       │   │   ├── 📄 pipeline_tests_traits.cpp
+│       │   │   ├── 📄 pipeline_tests_transform.cpp
+│       │   │   ├── 📄 predicate_tests.hpp
+│       │   │   ├── 📄 predicate_tests_behavioral.cpp
+│       │   │   ├── 📄 predicate_tests_binary.cpp
+│       │   │   ├── 📄 predicate_tests_nand_nor.cpp
+│       │   │   ├── 📄 predicate_tests_not.cpp
+│       │   │   ├── 📄 predicate_tests_traits.cpp
+│       │   │   ├── 📄 predicate_tests_variadic.cpp
+│       │   │   ├── 📄 producer_tests.hpp
+│       │   │   ├── 📄 producer_tests_adapters.cpp
+│       │   │   ├── 📄 producer_tests_generators.cpp
+│       │   │   ├── 📄 producer_tests_step.cpp
+│       │   │   ├── 📄 producer_tests_terminals.cpp
+│       │   │   ├── 📄 producer_tests_traits.cpp
+│       │   │   ├── 📄 result_tests.hpp
+│       │   │   ├── 📄 result_tests_combinators.cpp
+│       │   │   ├── 📄 result_tests_conversions.cpp
+│       │   │   ├── 📄 result_tests_equality.cpp
+│       │   │   ├── 📄 result_tests_factories.cpp
+│       │   │   ├── 📄 result_tests_free.cpp
+│       │   │   ├── 📄 result_tests_lifetime.cpp
+│       │   │   ├── 📄 result_tests_monad_traits.cpp
+│       │   │   ├── 📄 result_tests_runner.cpp
+│       │   │   ├── 📄 result_tests_traits.cpp
+│       │   │   ├── 📄 result_tests_transform.cpp
+│       │   │   ├── 📄 transducer_tests.hpp
+│       │   │   ├── 📄 transducer_tests_composition.cpp
+│       │   │   ├── 📄 transducer_tests_core.cpp
+│       │   │   ├── 📄 transducer_tests_core2.cpp
+│       │   │   ├── 📄 transducer_tests_drivers.cpp
+│       │   │   ├── 📄 transducer_tests_state.cpp
+│       │   │   ├── 📄 transducer_tests_traits.cpp
+│       │   │   ├── 📄 view_tests.hpp
+│       │   │   ├── 📄 view_tests_adapters_basic.cpp
+│       │   │   ├── 📄 view_tests_adapters_combining.cpp
+│       │   │   ├── 📄 view_tests_fundamental.cpp
+│       │   │   ├── 📄 view_tests_pipeline.cpp
+│       │   │   ├── 📄 view_tests_runner.cpp
+│       │   │   ├── 📄 view_tests_source.cpp
+│       │   │   ├── 📄 view_tests_terminal.cpp
+│       │   │   └── 📄 view_tests_traits.cpp
+│       │   ├── 📁 math
+│       │   │   └── 📄 djinterp-iterval-tests.cpp
+│       │   ├── 📁 memory
+│       │   │   └── 📁 pool
+│       │   │       ├── 📄 pool_tests.hpp
+│       │   │       ├── 📄 pool_tests_accounting.cpp
+│       │   │       ├── 📄 pool_tests_acquire_release.cpp
+│       │   │       ├── 📄 pool_tests_block_policies.cpp
+│       │   │       ├── 📄 pool_tests_capacity.cpp
+│       │   │       ├── 📄 pool_tests_construction.cpp
+│       │   │       ├── 📄 pool_tests_default_aliases.cpp
+│       │   │       ├── 📄 pool_tests_enums.cpp
+│       │   │       ├── 📄 pool_tests_generational.cpp
+│       │   │       ├── 📄 pool_tests_geometry.cpp
+│       │   │       ├── 📄 pool_tests_growth.cpp
+│       │   │       ├── 📄 pool_tests_policy_selection.cpp
+│       │   │       └── 📄 pool_tests_release_policies.cpp
+│       │   ├── 📁 meta
+│       │   │   ├── 📄 concepts_tests.hpp
+│       │   │   ├── 📄 concepts_tests_composite.cpp
+│       │   │   ├── 📄 concepts_tests_container.cpp
+│       │   │   ├── 📄 concepts_tests_fundamental.cpp
+│       │   │   ├── 📄 concepts_tests_invocable.cpp
+│       │   │   ├── 📄 concepts_tests_logical.cpp
+│       │   │   ├── 📄 concepts_tests_macros.cpp
+│       │   │   ├── 📄 concepts_tests_numeric.cpp
+│       │   │   ├── 📄 concepts_tests_pack.cpp
+│       │   │   ├── 📄 concepts_tests_properties.cpp
+│       │   │   ├── 📄 concepts_tests_rules.cpp
+│       │   │   ├── 📄 concepts_tests_std_reexports.cpp
+│       │   │   ├── 📄 concepts_tests_templates.cpp
+│       │   │   ├── 📄 concepts_tests_tuple.cpp
+│       │   │   ├── 📄 dtuple_tests.hpp
+│       │   │   ├── 📄 dtuple_tests_2d.cpp
+│       │   │   ├── 📄 dtuple_tests_access.cpp
+│       │   │   ├── 📄 dtuple_tests_construction.cpp
+│       │   │   ├── 📄 dtuple_tests_counting.cpp
+│       │   │   ├── 📄 dtuple_tests_homogeneity.cpp
+│       │   │   ├── 📄 dtuple_tests_modifiers.cpp
+│       │   │   ├── 📄 dtuple_tests_pack.cpp
+│       │   │   ├── 📄 dtuple_tests_relations.cpp
+│       │   │   ├── 📄 dtuple_tests_selection.cpp
+│       │   │   ├── 📄 dtuple_tests_splitting.cpp
+│       │   │   ├── 📄 dtuple_tests_transformation.cpp
+│       │   │   ├── 📄 dtuple_tests_utilities.cpp
+│       │   │   ├── 📄 type_traits_tests.hpp
+│       │   │   ├── 📄 type_traits_tests_arity.cpp
+│       │   │   ├── 📄 type_traits_tests_callable.cpp
+│       │   │   ├── 📄 type_traits_tests_cpp20.cpp
+│       │   │   ├── 📄 type_traits_tests_cpp23.cpp
+│       │   │   ├── 📄 type_traits_tests_detection.cpp
+│       │   │   ├── 📄 type_traits_tests_evaluate.cpp
+│       │   │   ├── 📄 type_traits_tests_logical.cpp
+│       │   │   ├── 📄 type_traits_tests_macros_core.cpp
+│       │   │   ├── 📄 type_traits_tests_macros_member.cpp
+│       │   │   ├── 📄 type_traits_tests_macros_op.cpp
+│       │   │   ├── 📄 type_traits_tests_macros_spec.cpp
+│       │   │   ├── 📄 type_traits_tests_rules.cpp
+│       │   │   ├── 📄 type_traits_tests_template.cpp
+│       │   │   ├── 📄 type_traits_tests_traits.cpp
+│       │   │   └── 📄 type_traits_tests_tuple.cpp
+│       │   ├── 📁 util
+│       │   │   ├── 📄 interval_tests.cpp
+│       │   │   └── 📄 tuple_map_tests.cpp
+│       │   ├── 📄 djinterp_header_tests.hpp
+│       │   ├── 📄 djinterp_header_tests_abs_value.cpp
+│       │   ├── 📄 djinterp_header_tests_clean.cpp
+│       │   ├── 📄 djinterp_header_tests_constexpr_support.cpp
+│       │   ├── 📄 djinterp_header_tests_constexpr_swap.cpp
+│       │   ├── 📄 djinterp_header_tests_keywords_ns.cpp
+│       │   ├── 📄 djinterp_header_tests_main.cpp
+│       │   ├── 📄 djinterp_header_tests_repeat.cpp
+│       │   ├── 📄 djinterp_header_tests_self_resolve.cpp
+│       │   └── 📄 djinterp_header_tests_void_t.cpp
+│       ├── 📁 math
+│       │   ├── 📄 test.cpp
+│       │   ├── 📄 test_calc.cpp
+│       │   ├── 📄 test_constants_values.cpp
+│       │   ├── 📄 test_functional.cpp
+│       │   └── 📄 test_interval_traits.cpp
+│       ├── 📁 restd
+│       │   └── 📁 any
+│       │       ├── 📄 restd_any_tests.cpp
+│       │       ├── 📄 restd_any_tests.hpp
+│       │       ├── 📄 restd_any_tests_main.cpp
+│       │       ├── 📄 test_any_cast.cpp
+│       │       ├── 📄 test_constexpr.cpp
+│       │       ├── 📄 test_construction.cpp
+│       │       ├── 📄 test_edge_cases.cpp
+│       │       ├── 📄 test_make_any.cpp
+│       │       ├── 📄 test_modifiers.cpp
+│       │       ├── 📄 test_observers.cpp
+│       │       ├── 📄 test_retrieval.cpp
+│       │       └── 📄 test_std_compat.cpp
+│       └── 📁 test
+│           ├── 📄 test_common_tests.hpp
+│           ├── 📄 test_common_tests_constexpr.cpp
+│           ├── 📄 test_common_tests_event.cpp
+│           ├── 📄 test_common_tests_main.cpp
+│           ├── 📄 test_common_tests_status.cpp
+│           ├── 📄 test_common_tests_type_id.cpp
+│           ├── 📄 test_kind_tests.hpp
+│           ├── 📄 test_kind_tests_detection.cpp
+│           ├── 📄 test_kind_tests_factory.cpp
+│           ├── 📄 test_kind_tests_main.cpp
+│           ├── 📄 test_kind_tests_queries.cpp
+│           ├── 📄 test_kind_tests_record.cpp
+│           ├── 📄 test_kind_tests_set_construction.cpp
+│           ├── 📄 test_kind_tests_set_contains.cpp
+│           ├── 📄 test_kind_tests_set_surface.cpp
+│           ├── 📄 test_object_tests.hpp
+│           ├── 📄 test_object_tests_aliases.cpp
+│           ├── 📄 test_object_tests_construction.cpp
+│           ├── 📄 test_object_tests_factory.cpp
+│           ├── 📄 test_object_tests_main.cpp
+│           ├── 📄 test_object_tests_metadata.cpp
+│           ├── 📄 test_object_tests_metadata_access.cpp
+│           ├── 📄 test_object_tests_mutation.cpp
+│           ├── 📄 test_object_tests_object.cpp
+│           └── 📄 test_object_tests_protocol.cpp
+└── 📄 containers.txt

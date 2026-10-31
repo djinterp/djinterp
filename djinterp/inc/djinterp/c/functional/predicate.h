@@ -23,11 +23,11 @@
 #include "./functional_common.h"
 
 
-// d_predicate_and
+// dj_predicate_and
 //   struct: combines two predicates with logical AND.
 // context1 and context2 may be NULL if the underlying predicates do not
 // require context.
-struct d_predicate_and
+struct dj_predicate_and
 {
     fn_predicate predicate1;
     fn_predicate predicate2;
@@ -35,9 +35,9 @@ struct d_predicate_and
     void*        context2;
 };
 
-// d_predicate_or
+// dj_predicate_or
 //   struct: combines two predicates with logical OR.
-struct d_predicate_or
+struct dj_predicate_or
 {
     fn_predicate predicate1;
     fn_predicate predicate2;
@@ -45,9 +45,9 @@ struct d_predicate_or
     void*        context2;
 };
 
-// d_predicate_xor
+// dj_predicate_xor
 //   struct: combines two predicates with logical XOR.
-struct d_predicate_xor
+struct dj_predicate_xor
 {
     fn_predicate predicate1;
     fn_predicate predicate2;
@@ -55,9 +55,9 @@ struct d_predicate_xor
     void*        context2;
 };
 
-// d_predicate_not
+// dj_predicate_not
 //   struct: negates a predicate.
-struct d_predicate_not
+struct dj_predicate_not
 {
     fn_predicate predicate;
     void*        context;
@@ -69,7 +69,7 @@ struct d_predicate_not
                         context1,                                           \
                         predicate2,                                         \
                         context2)                                           \
-    ( (struct d_predicate_and){ (predicate1),                               \
+    ( (struct dj_predicate_and){ (predicate1),                               \
                                 (predicate2),                               \
                                 (context1),                                 \
                                 (context2) } )
@@ -80,7 +80,7 @@ struct d_predicate_not
                        context1,                                            \
                        predicate2,                                          \
                        context2)                                            \
-    ( (struct d_predicate_or){ (predicate1),                                \
+    ( (struct dj_predicate_or){ (predicate1),                                \
                                (predicate2),                                \
                                (context1),                                  \
                                (context2) } )
@@ -91,7 +91,7 @@ struct d_predicate_not
                         context1,                                           \
                         predicate2,                                         \
                         context2)                                           \
-    ( (struct d_predicate_xor){ (predicate1),                               \
+    ( (struct dj_predicate_xor){ (predicate1),                               \
                                 (predicate2),                               \
                                 (context1),                                 \
                                 (context2) } )
@@ -100,7 +100,7 @@ struct d_predicate_not
 //   macro: creates a NOT combinator from a `fn_predicate` with context.
 #define D_PREDICATE_NOT(predicate,                                          \
                         context)                                            \
-    ( (struct d_predicate_not){ (predicate),                                \
+    ( (struct dj_predicate_not){ (predicate),                                \
                                 (context) } )
 
 // D_PREDICATE_AND_SIMPLE
@@ -108,7 +108,7 @@ struct d_predicate_not
 // context).
 #define D_PREDICATE_AND_SIMPLE(predicate1,                                  \
                                predicate2)                                  \
-    ( (struct d_predicate_and){ (predicate1),                               \
+    ( (struct dj_predicate_and){ (predicate1),                               \
                                 (predicate2),                               \
                                 NULL,                                       \
                                 NULL } )
@@ -118,7 +118,7 @@ struct d_predicate_not
 // context).
 #define D_PREDICATE_OR_SIMPLE(predicate1,                                   \
                               predicate2)                                   \
-    ( (struct d_predicate_or){ (predicate1),                                \
+    ( (struct dj_predicate_or){ (predicate1),                                \
                                (predicate2),                                \
                                NULL,                                        \
                                NULL } )
@@ -128,7 +128,7 @@ struct d_predicate_not
 // context).
 #define D_PREDICATE_XOR_SIMPLE(predicate1,                                  \
                                predicate2)                                  \
-    ( (struct d_predicate_xor){ (predicate1),                               \
+    ( (struct dj_predicate_xor){ (predicate1),                               \
                                 (predicate2),                               \
                                 NULL,                                       \
                                 NULL } )
@@ -136,19 +136,49 @@ struct d_predicate_not
 // D_PREDICATE_NOT_SIMPLE
 //   macro: creates a NOT combinator from a plain `fn_predicate` (no context).
 #define D_PREDICATE_NOT_SIMPLE(predicate)                                   \
-    ( (struct d_predicate_not){ (predicate),                                \
+    ( (struct dj_predicate_not){ (predicate),                                \
                                 NULL } )
 
 
-struct d_predicate_and* d_predicate_and_new(fn_predicate _predicate1, void* _context1, fn_predicate _predicate2, void* _context2);
-struct d_predicate_or*  d_predicate_or_new( fn_predicate _predicate1, void* _context1, fn_predicate _predicate2, void* _context2);
-struct d_predicate_xor* d_predicate_xor_new(fn_predicate _predicate1, void* _context1, fn_predicate _predicate2, void* _context2);
-struct d_predicate_not* d_predicate_not_new(fn_predicate _predicate,  void* _context);
+struct dj_predicate_and* d_predicate_and_new(
+    fn_predicate _predicate1,
+    void*        _context1,
+    fn_predicate _predicate2,
+    void*        _context2
+);
+struct dj_predicate_or* d_predicate_or_new(
+    fn_predicate _predicate1,
+    void*        _context1,
+    fn_predicate _predicate2,
+    void*        _context2
+);
+struct dj_predicate_xor* d_predicate_xor_new(
+    fn_predicate _predicate1,
+    void*        _context1,
+    fn_predicate _predicate2,
+    void*        _context2
+);
+struct dj_predicate_not* d_predicate_not_new(
+    fn_predicate _predicate,
+    void*        _context
+);
 
-bool d_predicate_and_eval(const struct d_predicate_and* _combo, const void* _element);
-bool d_predicate_or_eval( const struct d_predicate_or*  _combo, const void* _element);
-bool d_predicate_xor_eval(const struct d_predicate_xor* _combo, const void* _element);
-bool d_predicate_not_eval(const struct d_predicate_not* _combo, const void* _element);
+bool d_predicate_and_eval(
+    const struct dj_predicate_and* _combo,
+    const void*                    _element
+);
+bool d_predicate_or_eval(
+    const struct dj_predicate_or* _combo,
+    const void*                   _element
+);
+bool d_predicate_xor_eval(
+    const struct dj_predicate_xor* _combo,
+    const void*                    _element
+);
+bool d_predicate_not_eval(
+    const struct dj_predicate_not* _combo,
+    const void*                    _element
+);
 
 
 #endif  // DJINTERP_C_FUNCTIONAL_PREDICATE_H

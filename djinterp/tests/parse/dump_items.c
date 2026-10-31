@@ -10,9 +10,9 @@
 *                                                            revised: 2026.09.22
 *******************************************************************************/
 // print the items of a source, indented by item nesting, for inspection
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
-#include "../../inc/djinterp/parse/syntax/syntax_item.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

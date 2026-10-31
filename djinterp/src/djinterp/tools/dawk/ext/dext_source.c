@@ -21,7 +21,7 @@
 #include <stdlib.h>   // realloc, free
 #include <string.h>   // memcpy, memcmp, memset, strrchr, strcmp
 // djinterp
-#include "../../../../../inc/djinterp/parse/source/source_reader.h"  // d_source
+#include "../../../../../inc/djinterp/c/modules/parse/source/source_reader.h"  // dj_source
 #include "../../../../../inc/djinterp/tools/dawk/dss.h"          // D_DSS_NO_INDEX
 #include "../../../../../inc/djinterp/tools/dawk/ext/dext_c.h"   // d_ext_c_build
 #include "../../../../../inc/djinterp/tools/dawk/ext/dext_cpp.h" // d_ext_cpp_build
@@ -35,8 +35,8 @@
  * @return the text, which the caller frees, or `NULL` if the file could not
  *         be read; an empty file is a one-byte buffer of length zero.
  */
-static char*
-d_internal_read(
+static
+char* d_internal_read(
     const char* _path,
     size_t*     _out_length
 )
@@ -98,8 +98,7 @@ d_ext_source_generated
   A plain scan of the first 4 KiB: the marker sits in a generator's banner,
 so a file that carries it anywhere later is not one the generator wrote.
 */
-bool
-d_ext_source_generated(
+bool d_ext_source_generated(
     const char* _text,
     size_t      _length
 )
@@ -124,8 +123,7 @@ d_ext_source_generated(
 d_ext_source_accepts
   C++ by its own list, C by `.c` and `.h`; anything else is not source.
 */
-bool
-d_ext_source_accepts(
+bool d_ext_source_accepts(
     const char* _path
 )
 {
@@ -148,16 +146,15 @@ d_ext_source_build
   The file node is marked before anything is read, so a sheet can key on the
 language even for a file that turns out to be generated or unreadable.
 */
-uint32_t
-d_ext_source_build(
-    struct d_node_tree*        _tree,
-    uint32_t                   _file,
-    const char*                _path,
-    struct d_token_node_stats* _out_stats
+uint32_t d_ext_source_build(
+    struct dj_node_tree*        _tree,
+    uint32_t                    _file,
+    const char*                 _path,
+    struct dj_token_node_stats* _out_stats
 )
 {
-    struct d_token_node_stats scratch;
-    struct d_token_node_stats* const stats = _out_stats ? _out_stats
+    struct dj_token_node_stats scratch;
+    struct dj_token_node_stats* const stats = _out_stats ? _out_stats
                                                         : &scratch;
 
     memset(stats, 0, sizeof(*stats));
@@ -190,7 +187,7 @@ d_ext_source_build(
         return D_DSS_NO_INDEX;
     }
 
-    struct d_source source;
+    struct dj_source source;
 
     d_source_init(&source,
                   text,
@@ -198,7 +195,7 @@ d_ext_source_build(
                   _path);
     (void)d_source_skip_bom(&source);
 
-    const struct d_token_node_input input = { &source, NULL };
+    const struct dj_token_node_input input = { &source, NULL };
     const uint32_t                  root  = cpp
         ? d_ext_cpp_build(_tree, _file, 0u, &input, stats)
         : d_ext_c_build(_tree, _file, 0u, &input, stats);

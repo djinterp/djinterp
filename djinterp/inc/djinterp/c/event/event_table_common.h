@@ -8,7 +8,7 @@
 * removing them. It provides bind, unbind, enable, disable, lookup, ordered
 * iteration, statistics, pointwise merge, and clearing.
 *
-*   This replaces the pre-core C hash table AND backs the C++ event_table. The
+*   This replaces the pre-core C hash table AND backs the C++ DEventTable. The
 * two were not the same object: the C table was a MAP (insert replaced the
 * listener bound to a key, so multiplicity was 1) while the C++ table was an
 * ordered MULTIMAP (bind appended a letter to a word). The word is the object
@@ -30,7 +30,7 @@
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
 *   erasure  kappa : T_e -> K   -- the key stored on each entry
 *   word     rho_e              -- the per-key chain, in bind order
-*   mask     m : L -> {on,off}  -- d_event_entry::enabled
+*   mask     m : L -> {on,off}  -- dj_event_entry::enabled
 *   bind / unbind               -- d_event_table_bind / _unbind
 *   enable / disable            -- flip the mask; the letter stays in the word
 *   merge    rho (+) rho'       -- d_event_table_merge (pointwise
@@ -56,11 +56,11 @@
 #include <stddef.h>
 // djinterp
 #include "../djinterp.h"
-#include "../../config/core/event/cfg_event_table.h"
+#include "../../config/c/event/cfg_event_table.h"
 #include "./event_common.h"
 #include "./event_handler_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // uint8_t, uint32_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -104,17 +104,17 @@ D_EXTERN_C_BEGIN
 ///        I.    THE ENTRY (one letter of a word)                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_event_entry
+// dj_event_entry
 //   struct: one bound handler. `next` is the index of the following entry in
 // the same bucket chain, or D_EVENT_INDEX_NONE. `state_free` is called on the
 // step's state when the entry is unbound or the table is cleared; it may be
 // NULL, in which case the state is borrowed and the caller owns its lifetime.
-struct d_event_entry
+struct dj_event_entry
 {
-    d_handler_id        id;             // 0 when the slot is free
-    d_event_key         key;            // kappa(e) -- which word this letter
+    dj_handler_id        id;             // 0 when the slot is free
+    dj_event_key         key;            // kappa(e) -- which word this letter
                                         // belongs to
-    struct d_event_step step;           // the handler itself
+    struct dj_event_step step;           // the handler itself
     fn_free             state_free;     // may be NULL (borrowed state)
     uint32_t            next;           // index-linked chain, not a pointer
     uint8_t             enabled;        // the mask m
@@ -135,20 +135,20 @@ struct d_event_entry
 // past capacity returns D_EVENT_ERR_CAPACITY rather than rehashing.
 #define D_EVENT_TABLE_FLAG_FIXED            ((uint32_t)0x00000002u)
 
-// d_event_table
+// dj_event_table
 //   struct: the erased store. Bucket chains preserve append order, so the
 // relative order of two entries sharing a key is their bind order -- which is
 // the word order, and therefore the dispatch priority.
-struct d_event_table
+struct dj_event_table
 {
-    struct d_event_entry* entries;       // the flat entry arena
+    struct dj_event_entry* entries;       // the flat entry arena
     uint32_t*             bucket_head;   // first entry index per bucket
     uint32_t*             bucket_tail;   // last entry index per bucket
     size_t                capacity;      // arena capacity, in entries
     size_t                bucket_count;  // length of the bucket arrays
     size_t                count;         // live entries
     size_t                enabled_count; // live entries with the mask on
-    d_handler_id          next_id;       // id counter; first bind yields 1
+    dj_handler_id          next_id;       // id counter; first bind yields 1
     uint32_t              free_head;     // free-list head index
     uint32_t              used;          // arena high-water mark
     uint32_t              flags;         // D_EVENT_TABLE_FLAG_*
@@ -157,15 +157,15 @@ struct d_event_table
 
 #if (D_INTERNAL_EVENT_TABLE_STATS == 1)
 
-// d_event_table_stats
+// dj_event_table_stats
 //   struct: a snapshot of table metrics.
 //   NOTE: instrumentation, not formal content -- the note does not define a
 // statistics record. It is nonetheless declared HERE rather than once per
 // language because the pre-core forms had DIFFERENT FIELDS (the C
-// d_event_hash_stats counted only elements; the C++ event_table_stats also
+// dj_event_hash_stats counted only elements; the C++ DEventTableStats also
 // counted enabled entries and distinct types), and two shapes for one report
 // is a silent parity break the moment either is printed.
-struct d_event_table_stats
+struct dj_event_table_stats
 {
     size_t total_buckets;
     size_t used_buckets;
@@ -192,12 +192,14 @@ struct d_event_table_stats
 //   `_entries` must hold `_capacity` entries; `_bucket_head` and
 // `_bucket_tail` must each hold `_bucket_count` indices.
 // returns: D_EVENT_OK, or D_EVENT_ERR_NULL on a missing argument.
-int d_event_table_init_fixed(struct d_event_table* _table,
-                             struct d_event_entry* _entries,
-                             size_t                _capacity,
-                             uint32_t*             _bucket_head,
-                             uint32_t*             _bucket_tail,
-                             size_t                _bucket_count);
+int d_event_table_init_fixed(
+    struct dj_event_table* _table,
+    struct dj_event_entry* _entries,
+    size_t                 _capacity,
+    uint32_t*              _bucket_head,
+    uint32_t*              _bucket_tail,
+    size_t                 _bucket_count
+);
 
 #if (D_INTERNAL_EVENT_TABLE_ALLOC == 1)
 
@@ -206,9 +208,11 @@ int d_event_table_init_fixed(struct d_event_table* _table,
 // zero argument selects the corresponding D_EVENT_TABLE_DEFAULT_*; the bucket
 // count is rounded up to the next prime.
 // returns: D_EVENT_OK, or D_EVENT_ERR_ALLOC / D_EVENT_ERR_NULL.
-int d_event_table_init(struct d_event_table* _table,
-                       size_t                _capacity,
-                       size_t                _bucket_count);
+int d_event_table_init(
+    struct dj_event_table* _table,
+    size_t                 _capacity,
+    size_t                 _bucket_count
+);
 
 #endif  // D_INTERNAL_EVENT_TABLE_ALLOC
 
@@ -216,19 +220,25 @@ int d_event_table_init(struct d_event_table* _table,
 //   function: releases every entry's state through its state_free hook and,
 // if the table owns its storage, frees the arena. Safe on a zeroed table and
 // safe to call twice.
-void d_event_table_dispose(struct d_event_table* _table);
+void d_event_table_dispose(
+    struct dj_event_table* _table
+);
 
 // d_event_table_clear
 //   function: removes every entry, running each state_free hook, and returns
 // the table to the empty state. Storage and capacity are retained.
 //   The empty table is the identity of merge.
-void d_event_table_clear(struct d_event_table* _table);
+void d_event_table_clear(
+    struct dj_event_table* _table
+);
 
 // d_event_table_clear_key
 //   function: removes every entry bound to one key.
 // returns: the number of entries removed.
-size_t d_event_table_clear_key(struct d_event_table* _table,
-                               d_event_key           _key);
+size_t d_event_table_clear_key(
+    struct dj_event_table* _table,
+    dj_event_key           _key
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -244,18 +254,22 @@ size_t d_event_table_clear_key(struct d_event_table* _table,
 //   `_id_out` may be NULL.
 // returns: D_EVENT_OK, D_EVENT_ERR_NULL, D_EVENT_ERR_CAPACITY (fixed arena
 // full), or D_EVENT_ERR_ALLOC.
-int d_event_table_bind(struct d_event_table* _table,
-                       d_event_key           _key,
-                       struct d_event_step   _step,
-                       fn_free               _state_free,
-                       d_handler_id*         _id_out);
+int d_event_table_bind(
+    struct dj_event_table* _table,
+    dj_event_key           _key,
+    struct dj_event_step   _step,
+    fn_free                _state_free,
+    dj_handler_id*         _id_out
+);
 
 // d_event_table_unbind
 //   function: removes the letter named by `_id` from whichever word holds it,
 // running its state_free hook.
 // returns: D_EVENT_OK or D_EVENT_ERR_NOT_FOUND.
-int d_event_table_unbind(struct d_event_table* _table,
-                         d_handler_id          _id);
+int d_event_table_unbind(
+    struct dj_event_table* _table,
+    dj_handler_id          _id
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -275,24 +289,32 @@ int d_event_table_unbind(struct d_event_table* _table,
 // disagreed here (C returned true for an already-enabled listener, C++
 // returned false), and reporting "already in that state" as either success or
 // absence loses information one of the two call sites needs.
-int d_event_table_enable(struct d_event_table* _table,
-                         d_handler_id          _id);
+int d_event_table_enable(
+    struct dj_event_table* _table,
+    dj_handler_id          _id
+);
 
 // d_event_table_disable
 //   function: flips the mask off for `_id`. Result convention as for
 // d_event_table_enable.
-int d_event_table_disable(struct d_event_table* _table,
-                          d_handler_id          _id);
+int d_event_table_disable(
+    struct dj_event_table* _table,
+    dj_handler_id          _id
+);
 
 // d_event_table_is_enabled
 //   function: true if the entry exists and its mask is on.
-bool d_event_table_is_enabled(const struct d_event_table* _table,
-                              d_handler_id                _id);
+bool d_event_table_is_enabled(
+    const struct dj_event_table* _table,
+    dj_handler_id                _id
+);
 
 // d_event_table_contains
 //   function: true if an entry with `_id` exists in any word.
-bool d_event_table_contains(const struct d_event_table* _table,
-                            d_handler_id                _id);
+bool d_event_table_contains(
+    const struct dj_event_table* _table,
+    dj_handler_id                _id
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -304,29 +326,35 @@ bool d_event_table_contains(const struct d_event_table* _table,
 // d_event_table_first
 //   function: index of the first entry of the word for `_key`, or
 // D_EVENT_INDEX_NONE if the word is empty.
-uint32_t d_event_table_first(const struct d_event_table* _table,
-                             d_event_key                 _key);
+uint32_t d_event_table_first(
+    const struct dj_event_table* _table,
+    dj_event_key                 _key
+);
 
 // d_event_table_next
 //   function: index of the next entry of the same word after `_index`, or
 // D_EVENT_INDEX_NONE at the end. Entries of other keys sharing the bucket are
 // skipped.
-uint32_t d_event_table_next(const struct d_event_table* _table,
-                            d_event_key                 _key,
-                            uint32_t                    _index);
+uint32_t d_event_table_next(
+    const struct dj_event_table* _table,
+    dj_event_key                 _key,
+    uint32_t                     _index
+);
 
 // d_event_table_at
 //   function: the entry at `_index`, or NULL if the index is out of range or
 // names a free slot.
-const struct d_event_entry* d_event_table_at(
-    const struct d_event_table* _table,
-    uint32_t                    _index);
+const struct dj_event_entry* d_event_table_at(
+    const struct dj_event_table* _table,
+    uint32_t                     _index
+);
 
 // d_event_table_find
 //   function: the entry named by `_id`, or NULL.
-const struct d_event_entry* d_event_table_find(
-    const struct d_event_table* _table,
-    d_handler_id                _id);
+const struct dj_event_entry* d_event_table_find(
+    const struct dj_event_table* _table,
+    dj_handler_id                _id
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -335,30 +363,40 @@ const struct d_event_entry* d_event_table_find(
 
 // d_event_table_count
 //   function: total live entries across every word.
-size_t d_event_table_count(const struct d_event_table* _table);
+size_t d_event_table_count(
+    const struct dj_event_table* _table
+);
 
 // d_event_table_enabled_count
 //   function: live entries whose mask is on.
-size_t d_event_table_enabled_count(const struct d_event_table* _table);
+size_t d_event_table_enabled_count(
+    const struct dj_event_table* _table
+);
 
 // d_event_table_count_for
 //   function: length of the word for `_key`.
-size_t d_event_table_count_for(const struct d_event_table* _table,
-                               d_event_key                 _key);
+size_t d_event_table_count_for(
+    const struct dj_event_table* _table,
+    dj_event_key                 _key
+);
 
 // d_event_table_has_entries_for
 //   function: true if the word for `_key` is non-empty.
-bool d_event_table_has_entries_for(const struct d_event_table* _table,
-                                   d_event_key                 _key);
+bool d_event_table_has_entries_for(
+    const struct dj_event_table* _table,
+    dj_event_key                 _key
+);
 
 // d_event_table_key_count
 //   function: number of distinct keys with a non-empty word.
-size_t d_event_table_key_count(const struct d_event_table* _table);
+size_t d_event_table_key_count(
+    const struct dj_event_table* _table
+);
 
 // fn_event_entry_visitor
 //   function pointer: receives each visited entry. Returning false stops the
 // walk.
-typedef bool (*fn_event_entry_visitor)(const struct d_event_entry* _entry,
+typedef bool (*fn_event_entry_visitor)(const struct dj_event_entry* _entry,
                                        void*                       _context);
 
 // d_event_table_for_each
@@ -370,17 +408,21 @@ typedef bool (*fn_event_entry_visitor)(const struct d_event_entry* _entry,
 // comparable cannot serve the parity law. Bind order is the one total order
 // both languages agree on without coordination.
 // returns: the number of entries visited.
-size_t d_event_table_for_each(const struct d_event_table* _table,
-                              fn_event_entry_visitor      _visitor,
-                              void*                       _context);
+size_t d_event_table_for_each(
+    const struct dj_event_table* _table,
+    fn_event_entry_visitor       _visitor,
+    void*                        _context
+);
 
 // d_event_table_for_each_key
 //   function: visits the word for one key, in word order.
 // returns: the number of entries visited.
-size_t d_event_table_for_each_key(const struct d_event_table* _table,
-                                  d_event_key                 _key,
-                                  fn_event_entry_visitor      _visitor,
-                                  void*                       _context);
+size_t d_event_table_for_each_key(
+    const struct dj_event_table* _table,
+    dj_event_key                 _key,
+    fn_event_entry_visitor       _visitor,
+    void*                        _context
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -402,9 +444,11 @@ size_t d_event_table_for_each_key(const struct d_event_table* _table,
 // D_EVENT_ERR_CAPACITY the merge is PARTIAL and `_merged_out` reports how far
 // it got; merge is not transactional, because rolling back would require the
 // allocation the fixed form exists to avoid.
-int d_event_table_merge(struct d_event_table*       _table,
-                        const struct d_event_table* _other,
-                        size_t*                     _merged_out);
+int d_event_table_merge(
+    struct dj_event_table*       _table,
+    const struct dj_event_table* _other,
+    size_t*                      _merged_out
+);
 
 
 #endif  // D_INTERNAL_EVENT_TABLE_MERGE
@@ -419,8 +463,9 @@ int d_event_table_merge(struct d_event_table*       _table,
 // d_event_table_get_stats
 //   function: computes a metrics snapshot. Safe on a zeroed table, which
 // yields an all-zero record.
-struct d_event_table_stats d_event_table_get_stats(
-    const struct d_event_table* _table);
+struct dj_event_table_stats d_event_table_get_stats(
+    const struct dj_event_table* _table
+);
 
 #endif  // D_INTERNAL_EVENT_TABLE_STATS
 
@@ -430,7 +475,9 @@ struct d_event_table_stats d_event_table_get_stats(
 //   NOT gated on D_CFG_EVENT_TABLE_STATS: the load factor is what the rehash
 // policy tests, not something it reports, so a build with instrumentation
 // compiled out still needs it.
-double d_event_table_load_factor(const struct d_event_table* _table);
+double d_event_table_load_factor(
+    const struct dj_event_table* _table
+);
 
 #if (D_INTERNAL_EVENT_TABLE_ALLOC == 1)
 
@@ -439,21 +486,27 @@ double d_event_table_load_factor(const struct d_event_table* _table);
 // up to the next prime. Word order is preserved. A no-op on a fixed table,
 // which returns D_EVENT_ERR_STATE.
 // returns: D_EVENT_OK, D_EVENT_ERR_ALLOC, or D_EVENT_ERR_STATE.
-int d_event_table_rehash(struct d_event_table* _table,
-                         size_t                _bucket_count);
+int d_event_table_rehash(
+    struct dj_event_table* _table,
+    size_t                 _bucket_count
+);
 
 // d_event_table_reserve
 //   function: grows the entry arena to hold at least `_capacity` entries.
 // A no-op on a fixed table, which returns D_EVENT_ERR_STATE.
-int d_event_table_reserve(struct d_event_table* _table,
-                          size_t                _capacity);
+int d_event_table_reserve(
+    struct dj_event_table* _table,
+    size_t                 _capacity
+);
 
 #endif  // D_INTERNAL_EVENT_TABLE_ALLOC
 
 // d_event_table_footprint
 //   function: the table's total byte footprint including owned storage --
 // the runtime `sizeof` that goals section 4 requires of every type.
-size_t d_event_table_footprint(const struct d_event_table* _table);
+size_t d_event_table_footprint(
+    const struct dj_event_table* _table
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -462,27 +515,27 @@ size_t d_event_table_footprint(const struct d_event_table* _table);
 
 #if (D_INTERNAL_EVENT_ASSERT_SIZES == 1)
 
-    D_STATIC_ASSERT(sizeof(struct d_event_entry) == 48,
-                    "d_event_entry layout drift");
-    D_STATIC_ASSERT(sizeof(struct d_event_table) == 80,
-                    "d_event_table layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_entry) == 48,
+                    "dj_event_entry layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_table) == 80,
+                    "dj_event_table layout drift");
 #if (D_INTERNAL_EVENT_TABLE_STATS == 1)
-    D_STATIC_ASSERT(sizeof(struct d_event_table_stats) == 64,
-                    "d_event_table_stats layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_table_stats) == 64,
+                    "dj_event_table_stats layout drift");
 #endif
-    D_STATIC_ASSERT(offsetof(struct d_event_entry, step) == 16,
-                    "d_event_entry field drift");
-    D_STATIC_ASSERT(offsetof(struct d_event_table, count) == 40,
-                    "d_event_table field drift");
+    D_STATIC_ASSERT(offsetof(struct dj_event_entry, step) == 16,
+                    "dj_event_entry field drift");
+    D_STATIC_ASSERT(offsetof(struct dj_event_table, count) == 40,
+                    "dj_event_table field drift");
 
 #endif  // D_INTERNAL_EVENT_ASSERT_SIZES
 
 #if (D_INTERNAL_EVENT_ASSERT_LAYOUT == 1)
 
-D_STATIC_ASSERT(offsetof(struct d_event_entry, id) == 0,
-                "d_event_entry field drift");
-D_STATIC_ASSERT(offsetof(struct d_event_table, entries) == 0,
-                "d_event_table field drift");
+D_STATIC_ASSERT(offsetof(struct dj_event_entry, id) == 0,
+                "dj_event_entry field drift");
+D_STATIC_ASSERT(offsetof(struct dj_event_table, entries) == 0,
+                "dj_event_table field drift");
 
 #endif  // D_INTERNAL_EVENT_ASSERT_LAYOUT
 

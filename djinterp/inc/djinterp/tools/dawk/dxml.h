@@ -26,10 +26,10 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Tokens
-         1.  d_xml_kind
-         2.  d_xml_token
+         1.  dj_xml_kind
+         2.  dj_xml_token
     2.  Scanner
-         1.  d_xml
+         1.  dj_xml
 2.  OPERATIONS
     ----------
     1.  Scanning
@@ -53,10 +53,10 @@ TABLE OF CONTENTS
 // 1.1    Tokens
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_xml_kind
+// dj_xml_kind
 //   enum: what a token is.  A comment, a processing instruction and a
 //   declaration are all D_XML_OTHER: a reader of a known format skips them.
-enum d_xml_kind
+enum dj_xml_kind
 {
     D_XML_END = 0,   // the buffer is exhausted
     D_XML_START,     // <name ...>
@@ -68,14 +68,14 @@ enum d_xml_kind
 };
 
 // 1.1.2
-// d_xml_token
+// dj_xml_token
 //   struct: one token, pointing into the scanned buffer.  `start` and `end`
 //   bound the whole token; `name` is the element's for the three tag kinds,
 //   `attributes` the raw text between the name and the tag's close, and
 //   `text` the raw character data, entities still encoded unless `cdata`.
-struct d_xml_token
+struct dj_xml_token
 {
-    enum d_xml_kind kind;
+    enum dj_xml_kind kind;
     size_t          start;
     size_t          end;
     const char*     name;
@@ -90,10 +90,10 @@ struct d_xml_token
 // 1.2    Scanner
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_xml
+// dj_xml
 //   struct: a cursor over a buffer the caller owns and keeps unchanged while
 //   it scans.  Fields are the scanner's.
-struct d_xml
+struct dj_xml
 {
     const char* text;
     size_t      length;
@@ -111,23 +111,31 @@ struct d_xml
 // d_xml_next yields the token at the cursor and moves past it; it returns
 // false at the end of the buffer and on malformed markup, which the token's
 // kind tells apart, and keeps returning it.
-void         d_xml_begin(struct d_xml* _xml,
-                         const char*  _text,
-                         size_t       _length);
-bool         d_xml_next(struct d_xml*       _xml,
-                        struct d_xml_token* _out);
+void d_xml_begin(
+    struct dj_xml* _xml,
+    const char*    _text,
+    size_t         _length
+);
+bool d_xml_next(
+    struct dj_xml*       _xml,
+    struct dj_xml_token* _out
+);
 
 // 2.2    Names and attributes
 //------------------------------------------------------------------------------
 // d_xml_is compares an element's local name: `sld` matches <sld> and <p:sld>.
 // d_xml_attribute finds an attribute by its name as written, `r:id`
 // included, and gives its value raw, between the quotes, entities encoded.
-bool         d_xml_is(const struct d_xml_token* _token,
-                      const char*               _local_name);
-bool         d_xml_attribute(const struct d_xml_token* _token,
-                             const char*               _name,
-                             const char**              _out_value,
-                             size_t*                   _out_length);
+bool d_xml_is(
+    const struct dj_xml_token* _token,
+    const char*                _local_name
+);
+bool d_xml_attribute(
+    const struct dj_xml_token* _token,
+    const char*                _name,
+    const char**               _out_value,
+    size_t*                    _out_length
+);
 
 // 2.3    Text
 //------------------------------------------------------------------------------
@@ -143,9 +151,11 @@ bool         d_xml_attribute(const struct d_xml_token* _token,
  *                      `_length` bytes.
  * @return the number of bytes written.
  */
-size_t       d_xml_decode(const char* _raw,
-                          size_t      _length,
-                          char*       _out);
+size_t d_xml_decode(
+    const char* _raw,
+    size_t      _length,
+    char*       _out
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DXML_H

@@ -31,8 +31,8 @@ TABLE OF CONTENTS
 1.  TYPES AND CONSTANTS
     -------------------
     1.  Types
-         1.  d_token_node_input
-         2.  d_token_node_stats
+         1.  dj_token_node_input
+         2.  dj_token_node_stats
 2.  OPERATIONS
     ----------
     1.  Building
@@ -46,11 +46,11 @@ TABLE OF CONTENTS
 #include <stdint.h>  // uint32_t
 
 // djinterp
-#include "../../dnode.h"                             // d_node_tree
-#include "../../../../parse/lex/lex_dialect.h"       // d_lex_dialect
-#include "../../../../parse/c/diagnostic.h"          // d_parse_diag_sink
-#include "../../../../parse/lex/lex_scan.h"          // d_lexer
-#include "../../../../parse/source/source_reader.h"  // d_source
+#include "../../dnode.h"                             // dj_node_tree
+#include "../../../../c/modules/parse/lex/lex_dialect.h"       // dj_lex_dialect
+#include "../../../../c/modules/parse/diagnostic.h"          // dj_parse_diag_sink
+#include "../../../../c/modules/parse/lex/lex_scan.h"          // dj_lexer
+#include "../../../../c/modules/parse/source/source_reader.h"  // dj_source
 
 
 //==============================================================================
@@ -61,24 +61,24 @@ TABLE OF CONTENTS
 // 1.1    Types
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_token_node_input
+// dj_token_node_input
 //   struct: what a build reads and where it reports -- everything but the
 //   language, which each entry point takes in its own terms.  `source` is
 //   borrowed for the call and required; `sink` receives the scanner's
 //   diagnostics and may be NULL.  Grouped so that the next input (a target
 //   descriptor, a preprocessor context) is a field, not a parameter.
-struct d_token_node_input
+struct dj_token_node_input
 {
-    const struct d_source*     source;
-    struct d_parse_diag_sink*  sink;
+    const struct dj_source*     source;
+    struct dj_parse_diag_sink*  sink;
 };
 
-// d_token_node_stats
+// dj_token_node_stats
 //   struct: what a build produced and what it found wrong.  `lex_errors`
 //   counts the error diagnostics the scanner emitted during this build, into
 //   the caller's sink or, with none, a counting one; `unbalanced` totals the
 //   three bracket counts from syntax_group.h, outside directives only.
-struct d_token_node_stats
+struct dj_token_node_stats
 {
     size_t             tokens;
     size_t             nodes;
@@ -113,15 +113,17 @@ struct d_token_node_stats
  *                            a new `file` node carrying `path`, `lang` and
  *                            `std`.
  * @param[in]     _dialect    the language to read it as.
- * @param[in]     _input      the source and the sink; see d_token_node_input.
+ * @param[in]     _input      the source and the sink; see dj_token_node_input.
  * @param[out]    _out_stats  receives what was built; may be `NULL`.
  * @return the node the tree hangs from, or `D_DSS_NO_INDEX` on failure.
  */
-uint32_t     d_token_node_build(struct d_node_tree*              _tree,
-                                uint32_t                         _parent,
-                                const struct d_lex_dialect*      _dialect,
-                                const struct d_token_node_input* _input,
-                                struct d_token_node_stats*       _out_stats);
+uint32_t d_token_node_build(
+    struct dj_node_tree*              _tree,
+    uint32_t                          _parent,
+    const struct dj_lex_dialect*      _dialect,
+    const struct dj_token_node_input* _input,
+    struct dj_token_node_stats*       _out_stats
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_CHECK_DTOKEN_NODE_H

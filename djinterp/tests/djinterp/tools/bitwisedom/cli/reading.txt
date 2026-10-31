@@ -491,3 +491,20 @@ $ bitwisedom examples --format=json
 >         "width": 320
 >     }
 > ]
+# a file whose name is a named operand's: the operand is the example, and
+# the run says so, once, with the spelling that reaches the file (GRAMMAR
+# R13, ruling 11); `-q` keeps it quiet; `example:` alone names no example,
+# and is a file's name
++ example:uart_cr
+| { "format": "bitwisedom.bitfield", "version": 1, "title": "mine", "width": 8,
+|   "rows": [ { "name": "MINE", "bit": 0 } ] }
+$ bitwisedom check example:uart_cr
+> example:uart_cr: no issues
+! bitwisedom: warning: 'example:uart_cr' is the built-in example; the file is './example:uart_cr'
+$ bitwisedom show ./example:uart_cr
+> MINE  bit  bit 0  0x01
+$ bitwisedom -q check example:uart_cr
+> example:uart_cr: no issues
+$ bitwisedom check example:
+! bitwisedom: error: cannot read 'example:': No such file or directory
+? 2

@@ -32,7 +32,7 @@
 *   That is a deliberate, tiered cost: one extra encode per entry, paid to keep
 * tier 0 allocation-free and the output maximally compatible.  The store
 * method pays nothing, because its compressed size is its input size.  When
-* d_string exists, staging becomes possible and the second pass can go.
+* dj_string exists, staging becomes possible and the second pass can go.
 *
 *   REPRODUCIBILITY IS THE DEFAULT:
 *   Nothing here reads the clock, the umask, the environment, or the locale.
@@ -112,7 +112,7 @@ X.    TRANSFORMS
 // =============================================================================
 
 // d_internal_format_names
-//   table: the format names, indexed by d_format_id.
+//   table: the format names, indexed by dj_format_id.
 static const char* const d_internal_format_names[D_FORMAT_ID_COUNT] =
 {
     "zip", "tar", "gz", "tar_gz", "sevenzip", "rar"
@@ -120,7 +120,7 @@ static const char* const d_internal_format_names[D_FORMAT_ID_COUNT] =
 
 // d_internal_format_suffixes
 //   table: the conventional file suffix for each format, indexed by
-// d_format_id.
+// dj_format_id.
 static const char* const d_internal_format_suffixes[D_FORMAT_ID_COUNT] =
 {
     ".zip", ".tar", ".gz", ".tar.gz", ".7z", ".rar"
@@ -137,7 +137,7 @@ Return:
 */
 const char*
 d_format_id_name(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     if (!D_FORMAT_ID_IS_VALID(_format))
@@ -159,7 +159,7 @@ Return:
 */
 const char*
 d_format_suffix(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     if (!D_FORMAT_ID_IS_VALID(_format))
@@ -184,7 +184,7 @@ Return:
 int
 d_format_id_from_name(
     const char*       _name,
-    enum d_format_id* _out_format
+    enum dj_format_id* _out_format
 )
 {
     int i;
@@ -199,7 +199,7 @@ d_format_id_from_name(
     {
         if (strcmp(_name, d_internal_format_names[i]) == 0)
         {
-            *_out_format = (enum d_format_id)i;
+            *_out_format = (enum dj_format_id)i;
 
             return 1;
         }
@@ -247,7 +247,7 @@ Return:
 int
 d_format_id_from_suffix(
     const char*       _path,
-    enum d_format_id* _out_format
+    enum dj_format_id* _out_format
 )
 {
     static const char* const compound[]  = { ".tar.gz", ".tgz" };
@@ -284,7 +284,7 @@ d_format_id_from_suffix(
         if ( (len >= sl) &&
              (strcmp(_path + (len - sl), d_internal_format_suffixes[i]) == 0) )
         {
-            *_out_format = (enum d_format_id)i;
+            *_out_format = (enum dj_format_id)i;
 
             return 1;
         }
@@ -303,9 +303,9 @@ Return:
   The codec.  tar is STORE because tar itself does not compress -- compression
 is the outer layer, which is precisely what distinguishes tar from tar_gz.
 */
-enum d_codec_id
+enum dj_codec_id
 d_format_default_codec(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     switch (_format)
@@ -328,7 +328,7 @@ d_format_default_codec(
 
 // d_internal_archive_knob_names
 //   table: the qualified name of each container knob, indexed by
-// d_archive_knob.  These are the strings a diff report prints and a config
+// dj_archive_knob.  These are the strings a diff report prints and a config
 // file binds against.
 static const char* const
 d_internal_archive_knob_names[D_ARCHIVE_KNOB_COUNT] =
@@ -355,7 +355,7 @@ Return:
 */
 const char*
 d_archive_knob_name(
-    enum d_archive_knob _knob
+    enum dj_archive_knob _knob
 )
 {
     if ( ((int)_knob < 0) ||
@@ -382,7 +382,7 @@ Return:
 */
 int
 d_archive_knob_is_text(
-    enum d_archive_knob _knob
+    enum dj_archive_knob _knob
 )
 {
     switch (_knob)
@@ -412,9 +412,9 @@ d_archive_knob_is_text(
 d_internal_archive_knob_value
   Read a numeric container knob by index.
 
-  A switch rather than an offset table, because d_archive_options is NOT
+  A switch rather than an offset table, because dj_archive_options is NOT
 densely packed -- it mixes int32_t knobs with pointer-bearing spans, so the
-index-to-offset arithmetic that works for d_compress_options does not apply
+index-to-offset arithmetic that works for dj_compress_options does not apply
 here.  The switch is the honest form; the header's assertions say why.
 
 Parameter(s):
@@ -425,8 +425,8 @@ Return:
 */
 static int32_t
 d_internal_archive_knob_value(
-    const struct d_archive_options* _options,
-    enum d_archive_knob             _knob
+    const struct dj_archive_options* _options,
+    enum dj_archive_knob             _knob
 )
 {
     if (_options == NULL)
@@ -500,13 +500,13 @@ Parameter(s):
 Return:
   The span, or an empty span for a numeric knob or unknown index.
 */
-static struct d_pack_text
+static struct dj_pack_text
 d_internal_archive_knob_text(
-    const struct d_archive_options* _options,
-    enum d_archive_knob             _knob
+    const struct dj_archive_options* _options,
+    enum dj_archive_knob             _knob
 )
 {
-    struct d_pack_text empty;
+    struct dj_pack_text empty;
 
     empty.data   = NULL;
     empty.length = 0u;
@@ -543,12 +543,11 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_archive_options_init(
-    struct d_archive_options* _options
+void d_archive_options_init(
+    struct dj_archive_options* _options
 )
 {
-    struct d_archive_options fresh = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options fresh = D_ARCHIVE_OPTIONS_INIT;
 
     if (_options != NULL)
     {
@@ -568,10 +567,9 @@ Parameter(s):
 Return:
   1 when both are null or every knob matches, 0 otherwise.
 */
-int
-d_archive_options_equal(
-    const struct d_archive_options* _a,
-    const struct d_archive_options* _b
+int d_archive_options_equal(
+    const struct dj_archive_options* _a,
+    const struct dj_archive_options* _b
 )
 {
     int i;
@@ -584,7 +582,7 @@ d_archive_options_equal(
 
     for (i = 0; i < D_ARCHIVE_KNOB_COUNT; ++i)
     {
-        enum d_archive_knob k = (enum d_archive_knob)i;
+        enum dj_archive_knob k = (enum dj_archive_knob)i;
 
         if (k == D_ARCHIVE_KNOB_CODEC)
         {
@@ -624,12 +622,11 @@ Parameter(s):
 Return:
   1 when the set is pristine, 0 otherwise.
 */
-int
-d_archive_options_are_default(
-    const struct d_archive_options* _options
+int d_archive_options_are_default(
+    const struct dj_archive_options* _options
 )
 {
-    struct d_archive_options fresh = D_ARCHIVE_OPTIONS_INIT;
+    struct dj_archive_options fresh = D_ARCHIVE_OPTIONS_INIT;
 
     if (_options == NULL)
     {
@@ -652,9 +649,8 @@ Parameter(s):
 Return:
   1 when the codec block is untouched, 0 otherwise.
 */
-int
-d_archive_options_codec_is_default(
-    const struct d_archive_options* _options
+int d_archive_options_codec_is_default(
+    const struct dj_archive_options* _options
 )
 {
     if (_options == NULL)
@@ -686,9 +682,9 @@ Return:
 */
 size_t
 d_archive_options_diff(
-    const struct d_archive_options* _a,
-    const struct d_archive_options* _b,
-    enum d_archive_knob*            _out_knobs,
+    const struct dj_archive_options* _a,
+    const struct dj_archive_options* _b,
+    enum dj_archive_knob*            _out_knobs,
     size_t                          _out_capacity
 )
 {
@@ -703,7 +699,7 @@ d_archive_options_diff(
 
     for (i = 0; i < D_ARCHIVE_KNOB_COUNT; ++i)
     {
-        enum d_archive_knob k       = (enum d_archive_knob)i;
+        enum dj_archive_knob k       = (enum dj_archive_knob)i;
         int                 differs = 0;
 
         if (k == D_ARCHIVE_KNOB_CODEC)
@@ -757,16 +753,16 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_INVALID_ARGUMENT.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_options_resolve(
-    enum d_format_id                _format,
-    const struct d_archive_options* _in,
-    struct d_archive_options*       _out
+    enum dj_format_id                _format,
+    const struct dj_archive_options* _in,
+    struct dj_archive_options*       _out
 )
 {
-    struct d_archive_options work;
-    enum d_codec_id          codec;
-    enum d_pack_status       status;
+    struct dj_archive_options work;
+    enum dj_codec_id          codec;
+    enum dj_pack_status       status;
 
     if ( (_out == NULL) ||
          (!D_FORMAT_ID_IS_VALID(_format)) )
@@ -936,11 +932,11 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or a formal status naming the offender.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_options_validate(
-    enum d_format_id                _format,
-    const struct d_archive_options* _options,
-    enum d_archive_knob*            _out_offender
+    enum dj_format_id                _format,
+    const struct dj_archive_options* _options,
+    enum dj_archive_knob*            _out_offender
 )
 {
     if (_options == NULL)
@@ -1021,7 +1017,7 @@ Return:
 */
 int
 d_format_is_readable(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     switch (_format)
@@ -1068,7 +1064,7 @@ Return:
 */
 int
 d_format_is_writable(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     switch (_format)
@@ -1114,8 +1110,8 @@ Return:
 */
 int
 d_format_supports_codec(
-    enum d_format_id _format,
-    enum d_codec_id  _codec
+    enum dj_format_id _format,
+    enum dj_codec_id  _codec
 )
 {
     if ( (!D_FORMAT_ID_IS_VALID(_format)) ||
@@ -1180,7 +1176,7 @@ Return:
 */
 int
 d_format_supports_encryption(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     return ( (_format == D_FORMAT_ID_ZIP)      ||
@@ -1201,7 +1197,7 @@ aspiration.
 */
 int
 d_format_backend_id(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     switch (_format)
@@ -1228,7 +1224,7 @@ Return:
 */
 const char*
 d_format_backend_name(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     return d_env_archive_backend_name(d_format_backend_id(_format));
@@ -1246,7 +1242,7 @@ Return:
 */
 size_t
 d_format_writable_list(
-    enum d_format_id* _out_formats,
+    enum dj_format_id* _out_formats,
     size_t            _out_capacity
 )
 {
@@ -1255,14 +1251,14 @@ d_format_writable_list(
 
     for (i = 0; i < D_FORMAT_ID_COUNT; ++i)
     {
-        if (!d_format_is_writable((enum d_format_id)i))
+        if (!d_format_is_writable((enum dj_format_id)i))
         {
             continue;
         }
         if ( (_out_formats != NULL) &&
              (found < _out_capacity) )
         {
-            _out_formats[found] = (enum d_format_id)i;
+            _out_formats[found] = (enum dj_format_id)i;
         }
 
         ++found;
@@ -1291,9 +1287,8 @@ Parameter(s):
 Return:
   1 when the name is acceptable, 0 otherwise.
 */
-int
-d_archive_entry_name_is_valid(
-    struct d_pack_text _name
+int d_archive_entry_name_is_valid(
+    struct dj_pack_text _name
 )
 {
     size_t i;
@@ -1349,9 +1344,8 @@ Parameter(s):
 Return:
   1 when the name passes and a directory carries no payload, 0 otherwise.
 */
-int
-d_archive_entry_is_valid(
-    const struct d_archive_entry* _entry
+int d_archive_entry_is_valid(
+    const struct dj_archive_entry* _entry
 )
 {
     if (_entry == NULL)
@@ -1397,7 +1391,7 @@ Return:
 */
 int
 d_format_signature_length(
-    enum d_format_id _format
+    enum dj_format_id _format
 )
 {
     switch (_format)
@@ -1426,7 +1420,7 @@ Return:
 */
 int
 d_format_signature_matches(
-    enum d_format_id _format,
+    enum dj_format_id _format,
     const void*      _data,
     size_t           _size
 )
@@ -1498,10 +1492,10 @@ int
 d_format_detect(
     const void*       _data,
     size_t            _size,
-    enum d_format_id* _out_format
+    enum dj_format_id* _out_format
 )
 {
-    static const enum d_format_id order[] =
+    static const enum dj_format_id order[] =
     {
         D_FORMAT_ID_SEVENZIP, D_FORMAT_ID_RAR, D_FORMAT_ID_ZIP,
         D_FORMAT_ID_TAR,      D_FORMAT_ID_GZ
@@ -1549,8 +1543,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_put_le16(
+static
+void d_internal_put_le16(
     unsigned char* _dst,
     uint32_t       _value
 )
@@ -1571,8 +1565,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_put_le32(
+static
+void d_internal_put_le32(
     unsigned char* _dst,
     uint32_t       _value
 )
@@ -1594,8 +1588,8 @@ Parameter(s):
 Return:
   The value.
 */
-static uint32_t
-d_internal_get_le16(
+static
+uint32_t d_internal_get_le16(
     const unsigned char* _src
 )
 {
@@ -1611,8 +1605,8 @@ Parameter(s):
 Return:
   The value.
 */
-static uint32_t
-d_internal_get_le32(
+static
+uint32_t d_internal_get_le32(
     const unsigned char* _src
 )
 {
@@ -1634,8 +1628,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_put_octal(
+static
+void d_internal_put_octal(
     unsigned char* _dst,
     size_t         _width,
     uint64_t       _value
@@ -1667,8 +1661,8 @@ Parameter(s):
 Return:
   The value.
 */
-static uint64_t
-d_internal_get_octal(
+static
+uint64_t d_internal_get_octal(
     const unsigned char* _src,
     size_t               _width
 )
@@ -1715,8 +1709,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_dos_datetime(
+static
+void d_internal_dos_datetime(
     int64_t   _unix,
     uint32_t* _out_date,
     uint32_t* _out_time
@@ -1773,10 +1767,10 @@ Return:
 the caller asked not to preserve it -- never the current time, which is what
 keeps two runs byte-identical.
 */
-static int64_t
-d_internal_entry_mtime(
-    const struct d_archive_entry*   _entry,
-    const struct d_archive_options* _options
+static
+int64_t d_internal_entry_mtime(
+    const struct dj_archive_entry*   _entry,
+    const struct dj_archive_options* _options
 )
 {
     if ( (_options != NULL) &&
@@ -1805,10 +1799,10 @@ Return:
   The mode.  A pinned default when the entry carries none or when the caller
 asked not to preserve permissions -- never the process umask.
 */
-static uint32_t
-d_internal_entry_mode(
-    const struct d_archive_entry*   _entry,
-    const struct d_archive_options* _options
+static
+uint32_t d_internal_entry_mode(
+    const struct dj_archive_entry*   _entry,
+    const struct dj_archive_options* _options
 )
 {
     int is_dir = ((_entry != NULL) && _entry->is_directory);
@@ -1844,7 +1838,7 @@ d_internal_entry_mode(
 // 255 bytes is representable provided it can be SPLIT at a separator.  A
 // single component longer than 100 bytes cannot be, and that is a formal
 // limitation of ustar rather than a defect here -- it is what pax exists to
-// fix, and the reason d_tar_format enumerates pax.
+// fix, and the reason dj_tar_format enumerates pax.
 
 // d_internal_tar_field
 //   constant: the byte offsets of each ustar header field, so the writer and
@@ -1877,9 +1871,9 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_SINK_ERROR.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_emit(
-    struct d_pack_sink _sink,
+    struct dj_pack_sink _sink,
     const void*        _data,
     size_t             _size
 )
@@ -1900,9 +1894,9 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_SINK_ERROR.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_emit_zeros(
-    struct d_pack_sink _sink,
+    struct dj_pack_sink _sink,
     size_t             _size
 )
 {
@@ -1914,7 +1908,7 @@ d_internal_emit_zeros(
     while (left > 0u)
     {
         size_t             take = (left < sizeof(zeros)) ? left : sizeof(zeros);
-        enum d_pack_status s    = d_internal_emit(_sink, zeros, take);
+        enum dj_pack_status s    = d_internal_emit(_sink, zeros, take);
 
         if (s != D_PACK_STATUS_OK)
         {
@@ -1944,8 +1938,8 @@ Parameter(s):
 Return:
   The number of bytes before the first NUL, or _width when there is none.
 */
-static size_t
-d_internal_field_len(
+static
+size_t d_internal_field_len(
     const unsigned char* _field,
     size_t               _width
 )
@@ -1979,12 +1973,12 @@ Parameter(s):
 Return:
   1 when the name is representable in ustar, 0 otherwise.
 */
-static int
-d_internal_tar_split_name(
-    struct d_pack_text _name,
-    size_t*            _out_name_off,
-    size_t*            _out_name_len,
-    size_t*            _out_prefix_len
+static
+int d_internal_tar_split_name(
+    struct dj_pack_text _name,
+    size_t*             _out_name_off,
+    size_t*             _out_name_len,
+    size_t*             _out_prefix_len
 )
 {
     size_t split;
@@ -2043,11 +2037,11 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_UNSUPPORTED for an unrepresentable name.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_tar_header(
     unsigned char*                  _block,
-    const struct d_archive_entry*   _entry,
-    const struct d_archive_options* _options
+    const struct dj_archive_entry*   _entry,
+    const struct dj_archive_options* _options
 )
 {
     size_t   name_off   = 0;
@@ -2121,16 +2115,16 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or the first failure encountered.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_tar_create(
-    const struct d_archive_entry*   _entries,
+    const struct dj_archive_entry*   _entries,
     size_t                          _count,
-    const struct d_archive_options* _options,
-    struct d_pack_sink              _sink
+    const struct dj_archive_options* _options,
+    struct dj_pack_sink              _sink
 )
 {
     unsigned char      block[D_INTERNAL_TAR_BLOCK];
-    enum d_pack_status status;
+    enum dj_pack_status status;
     size_t             i;
 
     for (i = 0; i < _count; ++i)
@@ -2208,15 +2202,15 @@ Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL when a region was short, or
 a formal status when the archive is malformed.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_tar_walk(
     const void*              _in,
     size_t                   _in_size,
-    struct d_archive_entry*  _entries,
+    struct dj_archive_entry*  _entries,
     size_t                   _entry_cap,
     void*                    _arena,
     size_t                   _arena_size,
-    struct d_archive_layout* _out
+    struct dj_archive_layout* _out
 )
 {
     const unsigned char* p        = (const unsigned char*)_in;
@@ -2267,7 +2261,7 @@ d_internal_tar_walk(
              (count < _entry_cap) &&
              ((used + total_name + (size_t)size) <= _arena_size) )
         {
-            struct d_archive_entry* e = &_entries[count];
+            struct dj_archive_entry* e = &_entries[count];
             unsigned char*          n = arena + used;
 
             if (prefix_len != 0u)
@@ -2360,8 +2354,8 @@ Parameter(s):
 Return:
   _size always.
 */
-static size_t
-d_internal_zip_count_write(
+static
+size_t d_internal_zip_count_write(
     void*       _context,
     const void* _data,
     size_t      _size
@@ -2382,11 +2376,11 @@ d_internal_zip_codec_for_method
   The codec that performs a ZIP method.
 
 Parameter(s):
-  _method: a d_zip_method value.
+  _method: a dj_zip_method value.
 Return:
   The codec, or D_CODEC_ID_STORE for an unrecognised method.
 */
-static enum d_codec_id
+static enum dj_codec_id
 d_internal_zip_codec_for_method(
     int32_t _method
 )
@@ -2416,15 +2410,15 @@ Parameter(s):
   _entry:   the entry.
   _options: a resolved option set.
 Return:
-  A d_zip_method value.
+  A dj_zip_method value.
 */
-static int32_t
-d_internal_zip_entry_method(
-    const struct d_archive_entry*   _entry,
-    const struct d_archive_options* _options
+static
+int32_t d_internal_zip_entry_method(
+    const struct dj_archive_entry*   _entry,
+    const struct dj_archive_options* _options
 )
 {
-    enum d_codec_id codec;
+    enum dj_codec_id codec;
 
     if ( _entry->is_directory ||
          (_entry->data.size == 0u) ||
@@ -2459,19 +2453,19 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or a status from the codec.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_zip_entry_sizes(
-    const struct d_archive_entry*   _entry,
-    const struct d_archive_options* _options,
+    const struct dj_archive_entry*   _entry,
+    const struct dj_archive_options* _options,
     int32_t                         _method,
     size_t*                         _out_csize,
     uint32_t*                       _out_crc
 )
 {
-    struct d_pack_sink counter;
+    struct dj_pack_sink counter;
     size_t             total = 0;
-    enum d_codec_id    codec;
-    enum d_pack_status status;
+    enum dj_codec_id    codec;
+    enum dj_pack_status status;
 
     *_out_crc = d_pack_crc32(0u, _entry->data.data, _entry->data.size);
 
@@ -2515,16 +2509,16 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or the first failure encountered.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_zip_create(
-    const struct d_archive_entry*   _entries,
+    const struct dj_archive_entry*   _entries,
     size_t                          _count,
-    const struct d_archive_options* _options,
-    struct d_pack_sink              _sink
+    const struct dj_archive_options* _options,
+    struct dj_pack_sink              _sink
 )
 {
     unsigned char      hdr[D_INTERNAL_ZIP_CENTRAL_SIZE];
-    enum d_pack_status status;
+    enum dj_pack_status status;
     size_t             i;
     size_t             offset    = 0;
     size_t             cd_offset = 0;
@@ -2533,7 +2527,7 @@ d_internal_zip_create(
     // -- pass 1: local headers and member data ------------------------------
     for (i = 0; i < _count; ++i)
     {
-        const struct d_archive_entry* e = &_entries[i];
+        const struct dj_archive_entry* e = &_entries[i];
         int32_t                       method;
         size_t                        csize = 0;
         uint32_t                      crc   = 0;
@@ -2614,7 +2608,7 @@ d_internal_zip_create(
 
     for (i = 0; i < _count; ++i)
     {
-        const struct d_archive_entry* e = &_entries[i];
+        const struct dj_archive_entry* e = &_entries[i];
         int32_t                       method;
         size_t                        csize = 0;
         uint32_t                      crc   = 0;
@@ -2723,8 +2717,8 @@ Parameter(s):
 Return:
   1 when the record was found, 0 otherwise.
 */
-static int
-d_internal_zip_find_eocd(
+static
+int d_internal_zip_find_eocd(
     const unsigned char* _in,
     size_t               _in_size,
     size_t*              _out_off
@@ -2782,15 +2776,15 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL, or a formal status.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_zip_walk(
     const void*              _in,
     size_t                   _in_size,
-    struct d_archive_entry*  _entries,
+    struct dj_archive_entry*  _entries,
     size_t                   _entry_cap,
     void*                    _arena,
     size_t                   _arena_size,
-    struct d_archive_layout* _out
+    struct dj_archive_layout* _out
 )
 {
     const unsigned char* p        = (const unsigned char*)_in;
@@ -2869,7 +2863,7 @@ d_internal_zip_walk(
              (count < _entry_cap) &&
              ((used + name_len + usize) <= _arena_size) )
         {
-            struct d_archive_entry* e = &_entries[count];
+            struct dj_archive_entry* e = &_entries[count];
             unsigned char*          n = arena + used;
 
             memcpy(n, c + D_INTERNAL_ZIP_CENTRAL_SIZE, name_len);
@@ -2891,7 +2885,7 @@ d_internal_zip_walk(
                 }
                 else
                 {
-                    enum d_pack_status s = d_decompress(
+                    enum dj_pack_status s = d_decompress(
                         d_internal_zip_codec_for_method((int32_t)method),
                         p + data_off, csize,
                         arena + used, _arena_size - used, &got);
@@ -2953,20 +2947,20 @@ own translation unit, and exporting it would put a sink implementation in the
 public surface where a caller could bind to it.
 
 Parameter(s):
-  _context: a struct d_pack_buffer_sink.
+  _context: a struct dj_pack_buffer_sink.
   _data:    the bytes offered.
   _size:    how many.
 Return:
   _size always; the caller checks `overflow`.
 */
-static size_t
-d_internal_archive_buffer_write(
+static
+size_t d_internal_archive_buffer_write(
     void*       _context,
     const void* _data,
     size_t      _size
 )
 {
-    struct d_pack_buffer_sink* b = (struct d_pack_buffer_sink*)_context;
+    struct dj_pack_buffer_sink* b = (struct dj_pack_buffer_sink*)_context;
 
     if (b == NULL)
     {
@@ -2993,12 +2987,12 @@ d_internal_archive_buffer_write(
     return _size;
 }
 
-// d_internal_tee
+// dj_internal_tee
 //   struct: the context of a sink that counts the bytes passing through it and
 // forwards them to an inner sink.
-struct d_internal_tee
+struct dj_internal_tee
 {
-    struct d_pack_sink  inner;
+    struct dj_pack_sink  inner;
     size_t              total;
 };
 
@@ -3011,20 +3005,20 @@ caller's sink to be countable -- a file, a socket and a growable buffer are all
 legitimate destinations and none of them is obliged to keep a total.
 
 Parameter(s):
-  _context: a struct d_internal_tee.
+  _context: a struct dj_internal_tee.
   _data:    the bytes offered.
   _size:    how many.
 Return:
   What the inner sink accepted, so a short write still propagates.
 */
-static size_t
-d_internal_tee_write(
+static
+size_t d_internal_tee_write(
     void*       _context,
     const void* _data,
     size_t      _size
 )
 {
-    struct d_internal_tee* t = (struct d_internal_tee*)_context;
+    struct dj_internal_tee* t = (struct dj_internal_tee*)_context;
     size_t                 taken;
 
     if ( (t == NULL) ||
@@ -3051,15 +3045,15 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or the formal status that stops the call.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_archive_prepare(
-    enum d_format_id                _format,
+    enum dj_format_id                _format,
     int                             _writing,
-    const struct d_archive_options* _in,
-    struct d_archive_options*       _out
+    const struct dj_archive_options* _in,
+    struct dj_archive_options*       _out
 )
 {
-    enum d_pack_status status;
+    enum dj_pack_status status;
 
     if (!D_FORMAT_ID_IS_VALID(_format))
     {
@@ -3103,20 +3097,20 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or a status describing the failure.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_create_to_sink(
-    enum d_format_id                _format,
-    const struct d_archive_entry*   _entries,
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
     size_t                          _entry_count,
-    const struct d_archive_options* _options,
-    struct d_pack_sink              _sink,
+    const struct dj_archive_options* _options,
+    struct dj_pack_sink              _sink,
     size_t*                         _out_size
 )
 {
-    struct d_archive_options resolved;
-    struct d_pack_sink       counted;
-    struct d_internal_tee    tally;
-    enum d_pack_status       status;
+    struct dj_archive_options resolved;
+    struct dj_pack_sink       counted;
+    struct dj_internal_tee    tally;
+    enum dj_pack_status       status;
 
     if ( (_sink.write == NULL) ||
          ((_entries == NULL) && (_entry_count != 0u)) )
@@ -3184,7 +3178,7 @@ d_archive_create_to_sink(
             // output feeds the codec's input.  The codec leaves consume a whole
             // buffer rather than a stream, so this path needs staging that
             // tier 0 has nowhere to put.  UNSUPPORTED is the honest answer
-            // until d_string exists; a caller wanting a tarball today creates
+            // until dj_string exists; a caller wanting a tarball today creates
             // the tar, then compresses the result.
             status = D_PACK_STATUS_UNSUPPORTED;
             break;
@@ -3221,20 +3215,20 @@ Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL with the requirement in
 *_out_size, or a status describing the failure.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_create(
-    enum d_format_id                _format,
-    const struct d_archive_entry*   _entries,
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
     size_t                          _entry_count,
-    const struct d_archive_options* _options,
+    const struct dj_archive_options* _options,
     void*                           _out,
     size_t                          _out_capacity,
     size_t*                         _out_size
 )
 {
-    struct d_pack_buffer_sink dest;
-    struct d_pack_sink        sink;
-    enum d_pack_status        status;
+    struct dj_pack_buffer_sink dest;
+    struct dj_pack_sink        sink;
+    enum dj_pack_status        status;
 
     if (_out_size == NULL)
     {
@@ -3286,12 +3280,12 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_INVALID_ARGUMENT.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_bound(
-    enum d_format_id                _format,
-    const struct d_archive_entry*   _entries,
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
     size_t                          _entry_count,
-    const struct d_archive_options* _options,
+    const struct dj_archive_options* _options,
     size_t*                         _out_bound
 )
 {
@@ -3310,7 +3304,7 @@ d_archive_bound(
     for (i = 0; i < _entry_count; ++i)
     {
         size_t             payload = 0;
-        enum d_pack_status s       = d_compress_bound(
+        enum dj_pack_status s       = d_compress_bound(
             d_format_default_codec(_format),
             _entries[i].data.size, NULL, &payload);
 
@@ -3383,17 +3377,17 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or a formal status when the archive is malformed.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_measure(
-    enum d_format_id                _format,
+    enum dj_format_id                _format,
     const void*                     _in,
     size_t                          _in_size,
-    const struct d_archive_options* _options,
-    struct d_archive_layout*        _out_layout
+    const struct dj_archive_options* _options,
+    struct dj_archive_layout*        _out_layout
 )
 {
-    struct d_archive_options resolved;
-    enum d_pack_status       status;
+    struct dj_archive_options resolved;
+    enum dj_pack_status       status;
 
     if ( (_out_layout == NULL) ||
          ((_in == NULL) && (_in_size != 0u)) )
@@ -3423,7 +3417,7 @@ d_archive_measure(
         case D_FORMAT_ID_GZ:
         {
             size_t             need = 0;
-            enum d_pack_status s    = d_decompress(D_CODEC_ID_GZIP,
+            enum dj_pack_status s    = d_decompress(D_CODEC_ID_GZIP,
                                                    _in, _in_size,
                                                    NULL, 0u, &need);
 
@@ -3468,21 +3462,21 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL, or a formal status.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_extract(
-    enum d_format_id                _format,
+    enum dj_format_id                _format,
     const void*                     _in,
     size_t                          _in_size,
-    const struct d_archive_options* _options,
-    struct d_archive_entry*         _entries,
+    const struct dj_archive_options* _options,
+    struct dj_archive_entry*         _entries,
     size_t                          _entry_cap,
     void*                           _arena,
     size_t                          _arena_size,
-    struct d_archive_layout*        _out_used
+    struct dj_archive_layout*        _out_used
 )
 {
-    struct d_archive_options resolved;
-    enum d_pack_status       status;
+    struct dj_archive_options resolved;
+    enum dj_pack_status       status;
 
     if ( (_out_used == NULL) ||
          ((_in == NULL) && (_in_size != 0u)) )
@@ -3566,21 +3560,21 @@ Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL, or a formal status.
 D_PACK_STATUS_INVALID_ARGUMENT when no member carries that name.
 */
-enum d_pack_status
+enum dj_pack_status
 d_archive_extract_entry(
-    enum d_format_id                _format,
+    enum dj_format_id                _format,
     const void*                     _in,
     size_t                          _in_size,
-    struct d_pack_text              _name,
-    const struct d_archive_options* _options,
+    struct dj_pack_text              _name,
+    const struct dj_archive_options* _options,
     void*                           _out,
     size_t                          _out_capacity,
     size_t*                         _out_size
 )
 {
     const unsigned char*     p = (const unsigned char*)_in;
-    struct d_archive_options resolved;
-    enum d_pack_status       status;
+    struct dj_archive_options resolved;
+    enum dj_pack_status       status;
 
     if ( (_out_size == NULL) ||
          ((_in == NULL) && (_in_size != 0u)) )
@@ -3605,7 +3599,7 @@ d_archive_extract_entry(
             size_t               nl;
             size_t               pl;
             uint64_t             size;
-            struct d_pack_text   here;
+            struct dj_pack_text   here;
             char                 joined[256];
 
             if (h[0] == 0u)
@@ -3681,7 +3675,7 @@ d_archive_extract_entry(
             size_t               usize;
             uint32_t             method;
             size_t               data_off;
-            struct d_pack_text   here;
+            struct dj_pack_text   here;
 
             if ( ((pos + D_INTERNAL_ZIP_CENTRAL_SIZE) > _in_size) ||
                  (memcmp(c, "PK\001\002", 4) != 0) )

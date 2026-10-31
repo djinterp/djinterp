@@ -39,7 +39,9 @@ static int g_curses_features_cache = -1;
 // =============================================================================
 
 // Try to initialize curses in a safe way for detection
-static int try_init_curses(void) {
+static
+int try_init_curses(void)
+{
 #if D_ENV_CURSES_AVAILABLE
     WINDOW* test_win = NULL;
 
@@ -58,7 +60,9 @@ static int try_init_curses(void) {
 }
 
 // Detect curses features at runtime
-static int detect_curses_features(void) {
+static
+int detect_curses_features(void)
+{
 #if D_ENV_CURSES_AVAILABLE
     int features = 0;
 
@@ -104,7 +108,8 @@ static int detect_curses_features(void) {
 // PUBLIC API IMPLEMENTATION
 // =============================================================================
 
-int d_env_curses_detect(void) {
+int d_env_curses_detect(void)
+{
     // Return cached result if available
     if (g_curses_type_cache != -1) {
         return g_curses_type_cache;
@@ -146,7 +151,8 @@ int d_env_curses_detect(void) {
 #endif
 }
 
-const char* d_env_curses_get_name(void) {
+const char* d_env_curses_get_name(void)
+{
     int curses_type = d_env_curses_detect();
 
     if (curses_type == D_ENV_CURSES_TYPE_NONE) {
@@ -175,7 +181,8 @@ const char* d_env_curses_get_name(void) {
     #endif
 }
 
-const char* d_env_curses_get_version(void) {
+const char* d_env_curses_get_version(void)
+{
 #if defined(NCURSES_VERSION)
     return NCURSES_VERSION;
 #elif defined(PDC_VER_MAJOR)
@@ -190,7 +197,10 @@ const char* d_env_curses_get_version(void) {
 #endif
 }
 
-int d_env_curses_has_feature(int feature) {
+int d_env_curses_has_feature(
+    int feature
+)
+{
     // Ensure detection has run
     if (g_curses_features_cache == -1) {
         d_env_curses_detect();
@@ -199,19 +209,23 @@ int d_env_curses_has_feature(int feature) {
     return (g_curses_features_cache & feature) != 0;
 }
 
-int d_env_curses_supports_color(void) {
+int d_env_curses_supports_color(void)
+{
     return d_env_curses_has_feature(D_ENV_CURSES_FEAT_COLOR);
 }
 
-int d_env_curses_supports_wide(void) {
+int d_env_curses_supports_wide(void)
+{
     return d_env_curses_has_feature(D_ENV_CURSES_FEAT_WIDE);
 }
 
-int d_env_curses_supports_mouse(void) {
+int d_env_curses_supports_mouse(void)
+{
     return d_env_curses_has_feature(D_ENV_CURSES_FEAT_MOUSE);
 }
 
-void d_env_curses_print_info(void) {
+void d_env_curses_print_info(void)
+{
     int curses_type = d_env_curses_detect();
 
     printf("Curses Library Information:\n");

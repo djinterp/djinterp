@@ -6,7 +6,7 @@
 * or an adapter over libHaru, PDFHummus, PoDoFo or Cairo. This header carries
 * the two VALUE types that describe one -- what it can do, and which one it is.
 *
-*   THE SELECTOR VALUES ARE NOT RESTATED HERE. `d_pdf_backend_kind` is defined
+*   THE SELECTOR VALUES ARE NOT RESTATED HERE. `dj_pdf_backend_kind` is defined
 * in terms of the D_ENV_PDF_BACKEND_* macros from env_pdf.h, exactly as the C++
 * enum is. Writing 0..4 again would be a second copy of a mapping that already
 * exists in a C header both tiers include -- and a detected backend would then
@@ -19,7 +19,7 @@
 * D_ENV_PDF_HAS_LIBHARU directly. Mirroring them into constants here would add
 * a second spelling of each with no reader who wanted it.
 *
-*   THE ABSTRACT PROTOCOL IS DELIBERATELY ABSENT. `pdf_backend` is a C++ class
+*   THE ABSTRACT PROTOCOL IS DELIBERATELY ABSENT. `DPdfBackend` is a C++ class
 * with nine pure virtuals, and its C form is a struct of function pointers plus
 * a context -- a real design decision (who owns the context, what a null slot
 * means, whether the table is versioned) rather than a mechanical translation.
@@ -51,16 +51,16 @@
 #include "../../../env/env_pdf.h"
 #include "./pdf_primitives.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
 
-// d_pdf_capabilities
+// dj_pdf_capabilities
 //   type: what a backend can do. Every member is 0 or 1; int32_t rather than a
 // bitfield or a bool array so the struct has one obvious layout across
 // compilers and can be compared member-for-member by a differential.
-struct d_pdf_capabilities
+struct dj_pdf_capabilities
 {
     int32_t text;                   // positioned text (always 1)
     int32_t vector_graphics;        // lines and rectangles
@@ -93,12 +93,12 @@ struct d_pdf_capabilities
 // four; until it does, this is the single place the C tier states it.
 #define D_PDF_BACKEND_BUILTIN_NAME  "djinterp builtin"
 
-// d_pdf_backend_kind
+// dj_pdf_backend_kind
 //   type: which backend. Values are the D_ENV_PDF_BACKEND_* selectors from
 // env_pdf.h, so a detected or preferred backend round-trips between the macro
 // layer and this enum. `builtin` is the always-available djinterp serializer,
 // used when no external generation library is present.
-enum d_pdf_backend_kind
+enum dj_pdf_backend_kind
 {
     D_PDF_BACKEND_BUILTIN   = D_ENV_PDF_BACKEND_NONE,
     D_PDF_BACKEND_LIBHARU   = D_ENV_PDF_BACKEND_LIBHARU,
@@ -110,15 +110,21 @@ enum d_pdf_backend_kind
 };
 
 // I.   capabilities
-struct d_pdf_capabilities d_pdf_capabilities_init(void);
-struct d_pdf_capabilities d_pdf_capabilities_builtin(void);
-int32_t                   d_pdf_capabilities_supports_all(const struct d_pdf_capabilities* _have,
-                                                          const struct d_pdf_capabilities* _need);
+struct dj_pdf_capabilities d_pdf_capabilities_init(void);
+struct dj_pdf_capabilities d_pdf_capabilities_builtin(void);
+int32_t d_pdf_capabilities_supports_all(
+    const struct dj_pdf_capabilities* _have,
+    const struct dj_pdf_capabilities* _need
+);
 
 // II.  backend taxonomy
-const char* d_pdf_backend_name(int32_t _kind);
-int32_t     d_pdf_backend_is_available(int32_t _kind);
-int32_t     d_pdf_backend_preferred(void);
+const char* d_pdf_backend_name(
+    int32_t _kind
+);
+int32_t d_pdf_backend_is_available(
+    int32_t _kind
+);
+int32_t d_pdf_backend_preferred(void);
 
 // III. layout assertions
 D_STATIC_ASSERT(D_PDF_BACKEND_BUILTIN == 0,
@@ -127,9 +133,9 @@ D_STATIC_ASSERT(D_PDF_BACKEND_BUILTIN == 0,
 D_STATIC_ASSERT(D_PDF_BACKEND_COUNT == 5,
                 "a backend was added to env_pdf.h -- extend d_pdf_backend_name "
                 "and d_pdf_backend_is_available");
-D_STATIC_ASSERT(sizeof(struct d_pdf_capabilities) ==
+D_STATIC_ASSERT(sizeof(struct dj_pdf_capabilities) ==
                     (D_PDF_CAPABILITY_COUNT * sizeof(int32_t)),
-                "d_pdf_capabilities gained a member of another type -- "
+                "dj_pdf_capabilities gained a member of another type -- "
                 "D_PDF_CAPABILITY_COUNT no longer describes it");
 
 D_EXTERN_C_END

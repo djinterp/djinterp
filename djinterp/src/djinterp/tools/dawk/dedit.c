@@ -22,8 +22,7 @@
 d_edit_trim_end
   Returns the length with trailing newline and carriage return removed.
 */
-size_t
-d_edit_trim_end(
+size_t d_edit_trim_end(
     char*  _text,
     size_t _length
 )
@@ -48,8 +47,7 @@ own text: a `name` node's text is the file name, and indexing that at the
 name's column writes nonsense into the file.  Asking the file is the only
 answer that cannot drift from what is on disk.
 */
-bool
-d_edit_read_line(
+bool d_edit_read_line(
     const char* _path,
     uint32_t    _line,
     char*       _out,
@@ -92,8 +90,7 @@ the right shape for a first fixer: a file is rewritten only when it has a
 defect, and the alternative is an edit-ordering problem that does not need
 solving yet.
 */
-bool
-d_edit_rewrite_line(
+bool d_edit_rewrite_line(
     const char* _path,
     uint32_t    _line,
     const char* _replacement
@@ -197,8 +194,7 @@ a caller that edits by line number must re-measure afterwards -- which the
 fixpoint driver already does, since it applies one repair per file per pass
 and rebuilds the tree from disk on the next.
 */
-bool
-d_edit_delete_line(
+bool d_edit_delete_line(
     const char* _path,
     uint32_t    _line
 )
@@ -291,8 +287,7 @@ d_edit_insert_line
 `_text` and a terminator before line `_line`; one past the last line appends.
 Mirrors d_edit_delete_line: read whole, splice, write whole.
 */
-bool
-d_edit_insert_line(
+bool d_edit_insert_line(
     const char* _path,
     uint32_t    _line,
     const char* _text

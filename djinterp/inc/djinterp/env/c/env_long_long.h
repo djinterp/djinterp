@@ -25,7 +25,7 @@
 #define DJINTERP_ENV_C_ENV_LONG_LONG_H 1
 
 // djinterp
-#include "../../config/core/env/cfg_env.h"  // D_CFG_ENV_ISO_STRICT
+#include "../../config/env/cfg_env.h"  // D_CFG_ENV_ISO_STRICT
 #include "../env_lang.h"                    // D_ENV_LANG_IS_*_OR_HIGHER
 
 

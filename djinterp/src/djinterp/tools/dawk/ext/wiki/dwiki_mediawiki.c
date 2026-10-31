@@ -39,7 +39,7 @@
 #include <stdlib.h>  // malloc, realloc, free, calloc, qsort
 #include <string.h>  // memcpy, memset, memchr, strchr, strlen, strncmp
 // djinterp
-#include "./dwiki_driver.h"  // d_wiki_driver, d_wiki_add_block
+#include "./dwiki_driver.h"  // dj_wiki_driver, d_wiki_add_block
 
 
 // D_INTERNAL_MOST_DEPTH
@@ -59,9 +59,9 @@
 // 1.1    The preprocessor
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_hidden_kind
+// dj_internal_hidden_kind
 //   enum: what the preprocessor sets apart from the text.
-enum d_internal_hidden_kind
+enum dj_internal_hidden_kind
 {
     D_INTERNAL_COMMENT = 0,  // <!-- ... -->, dropped
     D_INTERNAL_IGNORED,      // <noinclude>, <onlyinclude>: dropped
@@ -72,12 +72,12 @@ enum d_internal_hidden_kind
 };
 
 // 1.1.2
-// d_internal_hidden
+// dj_internal_hidden
 //   struct: one thing set apart: its span, and an element's content and
 //   tag's name.
-struct d_internal_hidden
+struct dj_internal_hidden
 {
-    enum d_internal_hidden_kind kind;
+    enum dj_internal_hidden_kind kind;
     size_t                      start;
     size_t                      end;
     size_t                      content;
@@ -91,35 +91,35 @@ struct d_internal_hidden
 // 1.1.3
 // d_internal_part
 //   struct: one part of a piece: where it begins, and its first `=`.
-struct d_internal_part
+struct dj_internal_part
 {
     size_t start;
     size_t equals;
 };
 
 // 1.1.4
-// d_internal_piece
+// dj_internal_piece
 //   struct: one opening on the preprocessor's stack: `{`, `[`, `-` for
 //   the language converter's `-{`, or a heading's `=`s at a line's start,
 //   how many are left to match, where they begin, and the parts after
 //   them.  `dash` says a `-` before braces is held back, for `-{` to open
 //   again when one brace is left.
-struct d_internal_piece
+struct dj_internal_piece
 {
     char                    open;
     size_t                  count;
     size_t                  start;
     bool                    dash;
-    struct d_internal_part* parts;
+    struct dj_internal_part* parts;
     size_t                  part_count;
     size_t                  part_capacity;
 };
 
 // 1.1.5
-// d_internal_found_heading
+// dj_internal_found_heading
 //   struct: a heading the preprocessor found: its line, its level, its
 //   title, whether it stands at the top, and whether a block has kept it.
-struct d_internal_found_heading
+struct dj_internal_found_heading
 {
     size_t start;
     size_t end;
@@ -131,23 +131,23 @@ struct d_internal_found_heading
 };
 
 // 1.1.6
-// d_internal_mw
+// dj_internal_mw
 //   struct: the reader: the page, what is set apart, the boundaries of
 //   templates and of tables' cells, the headings, for each line how far
 //   what began before it reaches past its start, and where the cells'
 //   attributes are, which hold no link, two places to a cell.
-struct d_internal_mw
+struct dj_internal_mw
 {
-    struct d_wiki*                   wiki;
+    struct dj_wiki*                   wiki;
     const char*                      text;
     size_t                           length;
-    struct d_internal_hidden*        hidden;
+    struct dj_internal_hidden*        hidden;
     size_t                           hidden_count;
     size_t                           hidden_capacity;
     size_t*                          boundaries;
     size_t                           boundary_count;
     size_t                           boundary_capacity;
-    struct d_internal_found_heading* headings;
+    struct dj_internal_found_heading* headings;
     size_t                           heading_count;
     size_t                           heading_capacity;
     size_t*                          reach;
@@ -158,10 +158,10 @@ struct d_internal_mw
 };
 
 // 1.1.7
-// d_internal_magic
+// dj_internal_magic
 //   struct: one of MediaWiki's magic words: its name, in lower case
 //   unless `sensitive` says its case is its own.
-struct d_internal_magic
+struct dj_internal_magic
 {
     const char* name;
     bool        sensitive;
@@ -176,7 +176,7 @@ struct d_internal_magic
 //   MediaWiki takes off it -- `safesubst:`, `msgnw:`, `msg:`, `raw:` --
 //   and trimmed; where that name stands on the page, `name_start` to
 //   `name_end`; and a function's `:`, D_WIKI_NONE for none.
-struct d_internal_named
+struct dj_internal_named
 {
     size_t start;
     size_t end;
@@ -189,9 +189,9 @@ struct d_internal_named
 };
 
 // 1.1.9
-// d_internal_offsets
+// dj_internal_offsets
 //   struct: places on the page, a list that grows.
-struct d_internal_offsets
+struct dj_internal_offsets
 {
     size_t* at;
     size_t  count;
@@ -201,9 +201,9 @@ struct d_internal_offsets
 // 1.2    Streams
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_piece_map
+// dj_internal_piece_map
 //   struct: a run of a stream's text and where on the page it stands.
-struct d_internal_piece_map
+struct dj_internal_piece_map
 {
     size_t joined;
     size_t source;
@@ -211,11 +211,11 @@ struct d_internal_piece_map
 };
 
 // 1.2.2
-// d_internal_cover
+// dj_internal_cover
 //   enum: what holds a byte of a stream, of the links found so far, for
 //   the links found after: MediaWiki finds [[...]] first, then [url text]
 //   -- in the page, and within each image -- then bare URLs.
-enum d_internal_cover
+enum dj_internal_cover
 {
     D_INTERNAL_FREE = 0,   // nothing: any link may be here
     D_INTERNAL_LINKED,     // a link: no other may be within it
@@ -227,13 +227,13 @@ enum d_internal_cover
 // d_internal_stream
 //   struct: text read as one: the page, or an element's content, with what
 //   is dropped gone and each element a mark; each place tied to the page.
-//   `covered` holds what covers each byte, a d_internal_cover, and
+//   `covered` holds what covers each byte, a dj_internal_cover, and
 //   `images` where each image's parts begin and end, two to an image.
-struct d_internal_stream
+struct dj_internal_stream
 {
-    struct d_internal_mw*        mw;
-    struct d_wiki_buffer         joined;
-    struct d_internal_piece_map* pieces;
+    struct dj_internal_mw*        mw;
+    struct dj_wiki_buffer         joined;
+    struct dj_internal_piece_map* pieces;
     size_t                       piece_count;
     size_t                       piece_capacity;
     char*                        covered;
@@ -247,7 +247,7 @@ struct d_internal_stream
 // d_internal_opens
 //   struct: the `[[`s of a stream, in order, `count` of them, and the one
 //   whose piece -- to the next, or the stream's end -- is being read.
-struct d_internal_opens
+struct dj_internal_opens
 {
     const size_t* at;
     size_t        count;
@@ -255,13 +255,13 @@ struct d_internal_opens
 };
 
 // 1.2.5
-// d_internal_internal
+// dj_internal_internal
 //   struct: an internal link being read: its title, `title_start` to
 //   `title_end`; its `]]`; its label, `label` to `label_end`, D_WIKI_NONE
 //   for none; whether it is an image, its caption still to be closed;
 //   whether a `:` before its title links to the page a namespace would put
 //   in place; and its title's namespace.
-struct d_internal_internal
+struct dj_internal_internal
 {
     size_t title_start;
     size_t title_end;
@@ -274,11 +274,11 @@ struct d_internal_internal
 };
 
 // 1.2.6
-// d_internal_image
+// dj_internal_image
 //   struct: what an image's parts say, as places in a stream: its caption,
 //   the last part that is no option; its alt=; its link='s value, each
 //   D_WIKI_NONE for none; and whether it is framed, its caption shown.
-struct d_internal_image
+struct dj_internal_image
 {
     size_t caption;
     size_t caption_end;
@@ -299,8 +299,8 @@ struct d_internal_image
 d_internal_grow
   Room in an array for one more item.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _items,
     size_t* _capacity,
     size_t  _count,
@@ -334,8 +334,8 @@ d_internal_lower, d_internal_is_alpha, d_internal_is_alnum,
 d_internal_is_hex, d_internal_is_space_or_tab
   ASCII's classes, without the locale's say.
 */
-static char
-d_internal_lower(
+static
+char d_internal_lower(
     char _c
 )
 {
@@ -343,8 +343,8 @@ d_internal_lower(
 }
 
 
-static bool
-d_internal_is_alpha(
+static
+bool d_internal_is_alpha(
     char _c
 )
 {
@@ -353,8 +353,8 @@ d_internal_is_alpha(
 }
 
 
-static bool
-d_internal_is_alnum(
+static
+bool d_internal_is_alnum(
     char _c
 )
 {
@@ -363,8 +363,8 @@ d_internal_is_alnum(
 }
 
 
-static bool
-d_internal_is_hex(
+static
+bool d_internal_is_hex(
     char _c
 )
 {
@@ -374,8 +374,8 @@ d_internal_is_hex(
 }
 
 
-static bool
-d_internal_is_space_or_tab(
+static
+bool d_internal_is_space_or_tab(
     char _c
 )
 {
@@ -388,8 +388,8 @@ d_internal_is_space
   Whether a byte is white space as a regular expression's \s is: space,
 a tab, a line ending, a form feed or a vertical tab.
 */
-static bool
-d_internal_is_space(
+static
+bool d_internal_is_space(
     char _c
 )
 {
@@ -402,8 +402,8 @@ d_internal_is_space(
 d_internal_starts_with
   Whether text of a length begins with a word, in any case.
 */
-static bool
-d_internal_starts_with(
+static
+bool d_internal_starts_with(
     const char* _text,
     size_t      _length,
     const char* _word
@@ -435,8 +435,8 @@ d_internal_starts_with(
 d_internal_in_list
   Whether a name of a length is one of a list's, in any case.
 */
-static bool
-d_internal_in_list(
+static
+bool d_internal_in_list(
     const char*        _name,
     size_t             _length,
     const char* const* _list,
@@ -463,8 +463,8 @@ d_internal_protocol
   The length of a URL's protocol at `_text`, MediaWiki's own list, in any
 case; 0 for none.  `_relative` allows `//`.
 */
-static size_t
-d_internal_protocol(
+static
+size_t d_internal_protocol(
     const char* _text,
     size_t      _length,
     bool        _relative
@@ -502,8 +502,8 @@ d_internal_is_url_byte
   Whether a byte may be in a URL: not a bracket, `<`, `>`, `"`, a control,
 space or the mark.
 */
-static bool
-d_internal_is_url_byte(
+static
+bool d_internal_is_url_byte(
     char _c
 )
 {
@@ -521,8 +521,8 @@ d_internal_is_title_byte
 bracket, `|`, `<`, `>`, a control or the mark.  Braces are allowed, for
 the templates a title may hold.
 */
-static bool
-d_internal_is_title_byte(
+static
+bool d_internal_is_title_byte(
     char _c
 )
 {
@@ -539,18 +539,18 @@ d_internal_is_magic
   Whether a name of a length is one of a list of magic words: in its own
 case for one whose case is its own, else in any.
 */
-static bool
-d_internal_is_magic(
-    const char*                    _name,
-    size_t                         _length,
-    const struct d_internal_magic* _list,
-    size_t                         _count
+static
+bool d_internal_is_magic(
+    const char*                     _name,
+    size_t                          _length,
+    const struct dj_internal_magic* _list,
+    size_t                          _count
 )
 {
     // each word of the list
     for (size_t index = 0; index < _count; ++index)
     {
-        const struct d_internal_magic* const word = &_list[index];
+        const struct dj_internal_magic* const word = &_list[index];
 
         // a word of another length is not this one
         if (strlen(word->name) != _length)
@@ -577,8 +577,8 @@ d_internal_zs_width
 space -- U+00A0, U+1680, U+2000 to U+200A, U+202F, U+205F, U+3000 -- 0 for
 another character.
 */
-static size_t
-d_internal_zs_width(
+static
+size_t d_internal_zs_width(
     const char* _at
 )
 {
@@ -611,8 +611,8 @@ d_internal_url_char
 EXT_LINK_URL_CLASS has it: not a bracket, `<`, `>`, `"`, a control, a
 space -- Unicode's spaces among them -- nor U+FFFD; 0 for one it may not.
 */
-static size_t
-d_internal_url_char(
+static
+size_t d_internal_url_char(
     const char* _at
 )
 {
@@ -650,8 +650,8 @@ d_internal_url_stop
   Whether a reference at `_at` ends a URL, as MediaWiki cuts one: &lt; and
 &gt;; and, for a bare URL, &nbsp; and the numbers of all three.
 */
-static bool
-d_internal_url_stop(
+static
+bool d_internal_url_stop(
     const char* _at,
     bool        _bare
 )
@@ -701,8 +701,8 @@ d_internal_ends_reference
   Whether the text from `_from` to `_at` ends as a reference does before
 its `;`: `&` and a name, `&#` and digits, or `&#x` and hex digits.
 */
-static bool
-d_internal_ends_reference(
+static
+bool d_internal_ends_reference(
     const char* _text,
     size_t      _from,
     size_t      _at
@@ -773,8 +773,8 @@ open, closing or empty, its name one of its elements' -- to its `>`, with
 no `<` before that; 0 for none, the `<` then text.
   Long as the sanitizer's list of elements is, held here.
 */
-static size_t
-d_internal_html_tag(
+static
+size_t d_internal_html_tag(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -852,14 +852,14 @@ d_internal_double_word
   The length of a magic word of MediaWiki's between double underscores at
 `_at` -- __TOC__, __NOTOC__ -- which a page does not show; 0 for none.
 */
-static size_t
-d_internal_double_word(
+static
+size_t d_internal_double_word(
     const char* _text,
     size_t      _at,
     size_t      _end
 )
 {
-    static const struct d_internal_magic words[] =
+    static const struct dj_internal_magic words[] =
     {
         { "__notoc__", false }, { "__nogallery__", false },
         { "__forcetoc__", false }, { "__toc__", false },
@@ -904,11 +904,11 @@ d_internal_double_word(
 d_internal_unescape
   Writes text with its character references read.
 */
-static bool
-d_internal_unescape(
-    struct d_wiki_buffer* _out,
-    const char*           _text,
-    size_t                _length
+static
+bool d_internal_unescape(
+    struct dj_wiki_buffer* _out,
+    const char*            _text,
+    size_t                 _length
 )
 {
     size_t at = 0;
@@ -949,24 +949,24 @@ d_internal_unescape(
 d_internal_hide
   Keeps something set apart.
 */
-static struct d_internal_hidden*
+static struct dj_internal_hidden*
 d_internal_hide(
-    struct d_internal_mw*       _mw,
-    enum d_internal_hidden_kind _kind,
+    struct dj_internal_mw*       _mw,
+    enum dj_internal_hidden_kind _kind,
     size_t                      _start,
     size_t                      _end
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_mw->hidden, &_mw->hidden_capacity,
-                         _mw->hidden_count, sizeof(struct d_internal_hidden)))
+                         _mw->hidden_count, sizeof(struct dj_internal_hidden)))
     {
         _mw->failed = true;
 
         return NULL;
     }
 
-    struct d_internal_hidden* const hidden = &_mw->hidden[_mw->hidden_count++];
+    struct dj_internal_hidden* const hidden = &_mw->hidden[_mw->hidden_count++];
 
     memset(hidden, 0, sizeof(*hidden));
     hidden->kind           = _kind;
@@ -986,10 +986,10 @@ d_internal_first_hidden
   The first record of what is hidden that starts at or after `_at`; the
 count of them for none.  The records are in the order of their starts.
 */
-static size_t
-d_internal_first_hidden(
-    const struct d_internal_mw* _mw,
-    size_t                      _at
+static
+size_t d_internal_first_hidden(
+    const struct dj_internal_mw* _mw,
+    size_t                       _at
 )
 {
     size_t low  = 0;
@@ -1020,10 +1020,10 @@ d_internal_add_boundary
   Keeps a place a template's syntax stands: a brace, or a pipe between its
 parts, which an external link may not cross.
 */
-static void
-d_internal_add_boundary(
-    struct d_internal_mw* _mw,
-    size_t                _at
+static
+void d_internal_add_boundary(
+    struct dj_internal_mw* _mw,
+    size_t                 _at
 )
 {
     // room for one more
@@ -1045,8 +1045,8 @@ d_internal_add_boundary(
 d_internal_tag_name
   The length of a tag's name at `_at`, after `<` or `</`: letters, digits.
 */
-static size_t
-d_internal_tag_name(
+static
+size_t d_internal_tag_name(
     const char* _text,
     size_t      _end,
     size_t      _at
@@ -1077,8 +1077,8 @@ d_internal_find_close_tag
   Where `</name>` begins, in any case, from `_at`; D_WIKI_NONE for none,
 and where it ends.
 */
-static size_t
-d_internal_find_close_tag(
+static
+size_t d_internal_find_close_tag(
     const char* _text,
     size_t      _end,
     size_t      _at,
@@ -1144,12 +1144,12 @@ extension tag's element.  Gives where reading goes on, or 0 for text.
   Long as the three kinds of what a `<` begins are read in turn, as the
 preprocessor reads them.
 */
-static size_t
-d_internal_angle(
-    struct d_internal_mw* _mw,
-    size_t                _at,
-    size_t                _end,
-    size_t                _depth
+static
+size_t d_internal_angle(
+    struct dj_internal_mw* _mw,
+    size_t                 _at,
+    size_t                 _end,
+    size_t                 _depth
 );
 
 
@@ -1157,20 +1157,20 @@ d_internal_angle(
 d_internal_new_piece
   An opening pushed on the stack, with its first part after it.
 */
-static bool
-d_internal_new_piece(
-    struct d_internal_piece* _piece,
-    char                     _open,
-    size_t                   _count,
-    size_t                   _start,
-    size_t                   _content
+static
+bool d_internal_new_piece(
+    struct dj_internal_piece* _piece,
+    char                      _open,
+    size_t                    _count,
+    size_t                    _start,
+    size_t                    _content
 )
 {
     memset(_piece, 0, sizeof(*_piece));
     _piece->open  = _open;
     _piece->count = _count;
     _piece->start = _start;
-    _piece->parts = malloc(4u * sizeof(struct d_internal_part));
+    _piece->parts = malloc(4u * sizeof(struct dj_internal_part));
 
     // a piece needs room for its parts
     if (!_piece->parts)
@@ -1191,15 +1191,15 @@ d_internal_new_piece(
 d_internal_add_part
   A part after a pipe.
 */
-static bool
-d_internal_add_part(
-    struct d_internal_piece* _piece,
-    size_t                   _start
+static
+bool d_internal_add_part(
+    struct dj_internal_piece* _piece,
+    size_t                    _start
 )
 {
     // room for one more
     if (!d_internal_grow((void**)&_piece->parts, &_piece->part_capacity,
-                         _piece->part_count, sizeof(struct d_internal_part)))
+                         _piece->part_count, sizeof(struct dj_internal_part)))
     {
         return false;
     }
@@ -1216,8 +1216,8 @@ d_internal_add_part(
 d_internal_trimmed
   Bounds a span past the space at either end.
 */
-static void
-d_internal_trimmed(
+static
+void d_internal_trimmed(
     const char* _text,
     size_t*     _start,
     size_t*     _end
@@ -1248,13 +1248,13 @@ d_internal_is_function
   Whether a name is one of MediaWiki's parser functions, as written
 before its `:`.
 */
-static bool
-d_internal_is_function(
+static
+bool d_internal_is_function(
     const char* _name,
     size_t      _length
 )
 {
-    static const struct d_internal_magic functions[] =
+    static const struct dj_internal_magic functions[] =
     {
         { "#bcp47", true }, { "#dateformat", false }, { "#dir", true },
         { "#FORMAL", true }, { "#formatdate", false }, { "#language", false },
@@ -1305,13 +1305,13 @@ d_internal_is_function(
 d_internal_is_variable
   Whether a name is one of MediaWiki's variables, written alone.
 */
-static bool
-d_internal_is_variable(
+static
+bool d_internal_is_variable(
     const char* _name,
     size_t      _length
 )
 {
-    static const struct d_internal_magic variables[] =
+    static const struct dj_internal_magic variables[] =
     {
         { "!", true }, { "#bcp47", true }, { "#dir", true },
         { "#language", false }, { "=", true }, { "ARTICLEPAGENAME", true },
@@ -1368,13 +1368,13 @@ d_internal_clean_name
 dropped tags among them, as MediaWiki reads a template's name, each one's
 place on the page kept in `_at`; gives how many there are.
 */
-static size_t
-d_internal_clean_name(
-    const struct d_internal_mw* _mw,
-    size_t                      _start,
-    size_t                      _end,
-    char*                       _out,
-    size_t*                     _at
+static
+size_t d_internal_clean_name(
+    const struct dj_internal_mw* _mw,
+    size_t                       _start,
+    size_t                       _end,
+    char*                        _out,
+    size_t*                      _at
 )
 {
     size_t count = 0;
@@ -1384,7 +1384,7 @@ d_internal_clean_name(
     // each byte, past what is dropped
     while (at < _end)
     {
-        const struct d_internal_hidden* const hidden =
+        const struct dj_internal_hidden* const hidden =
             (index < _mw->hidden_count) ? &_mw->hidden[index] : NULL;
 
         // a comment, or a tag dropped, here: past it
@@ -1431,8 +1431,8 @@ d_internal_take_prefix
   Takes a prefix, in any case, off the start of a name, `*_first` to
 `_end`; gives whether it was there.
 */
-static bool
-d_internal_take_prefix(
+static
+bool d_internal_take_prefix(
     const char* _name,
     size_t*     _first,
     size_t      _end,
@@ -1461,8 +1461,8 @@ template's name, `*_first` to `_end`, where a parser function's `:` is: a
 name of MediaWiki's before it, or any after `#`, the extensions' --
 the name's end for one with none; D_WIKI_NONE for no function.
 */
-static size_t
-d_internal_function_colon(
+static
+size_t d_internal_function_colon(
     const char* _name,
     size_t*     _first,
     size_t      _end
@@ -1503,16 +1503,16 @@ template.  Fills in the rest of `_named`.
   Long as braceSubstitution's order is, which it follows: each prefix,
 then each kind, read in turn.
 */
-static enum d_wiki_template_kind
+static enum dj_wiki_template_kind
 d_internal_template_kind(
-    struct d_internal_mw*    _mw,
-    struct d_internal_named* _named
+    struct dj_internal_mw*    _mw,
+    struct dj_internal_named* _named
 )
 {
     const size_t              span  = _named->end - _named->start;
     char* const               name  = malloc(span + 1u);
     size_t* const             at    = malloc((span + 1u) * sizeof(size_t));
-    enum d_wiki_template_kind kind  = D_WIKI_TEMPLATE;
+    enum dj_wiki_template_kind kind  = D_WIKI_TEMPLATE;
     size_t                    first = 0;
     size_t                    end   = 0;
     size_t                    colon = D_WIKI_NONE;
@@ -1585,16 +1585,16 @@ d_internal_add_argument
   Keeps one argument of a template, from `_start` to `_end`, its `=` at
 `_equals` when it is named; a numbered one is given `_number`.
 */
-static bool
-d_internal_add_argument(
-    struct d_internal_mw* _mw,
-    size_t                _start,
-    size_t                _end,
-    size_t                _equals,
-    size_t*               _number
+static
+bool d_internal_add_argument(
+    struct dj_internal_mw* _mw,
+    size_t                 _start,
+    size_t                 _end,
+    size_t                 _equals,
+    size_t*                _number
 )
 {
-    struct d_wiki_argument argument;
+    struct dj_wiki_argument argument;
     char                   key[32];
 
     memset(&argument, 0, sizeof(argument));
@@ -1644,12 +1644,12 @@ d_internal_template_boundaries
 braces, `_start` to its first part and its last part's end to `_end`, and
 each `|` between its parts.
 */
-static void
-d_internal_template_boundaries(
-    struct d_internal_mw*          _mw,
-    const struct d_internal_piece* _piece,
-    size_t                         _start,
-    size_t                         _end
+static
+void d_internal_template_boundaries(
+    struct dj_internal_mw*          _mw,
+    const struct dj_internal_piece* _piece,
+    size_t                          _start,
+    size_t                          _end
 )
 {
     const size_t braces = _piece->parts[0].start - _start;
@@ -1677,16 +1677,16 @@ d_internal_add_template
   Long as a template's record is filled from its piece in turn: its name,
 its first argument after a function's `:`, then each other part.
 */
-static void
-d_internal_add_template(
-    struct d_internal_mw*          _mw,
-    const struct d_internal_piece* _piece,
-    size_t                         _braces,
-    size_t                         _close
+static
+void d_internal_add_template(
+    struct dj_internal_mw*          _mw,
+    const struct dj_internal_piece* _piece,
+    size_t                          _braces,
+    size_t                          _close
 )
 {
-    struct d_wiki_template  tmpl;
-    struct d_internal_named named;
+    struct dj_wiki_template  tmpl;
+    struct dj_internal_named named;
     size_t                  number = 1u;
     const size_t            start  = _piece->start + _piece->count - _braces;
     const size_t            name_e = (_piece->part_count > 1u)
@@ -1770,16 +1770,16 @@ d_internal_enclose
 Those found since are the last found, as one closes only after all it
 holds.
 */
-static void
-d_internal_enclose(
-    struct d_internal_mw* _mw,
-    size_t                _start
+static
+void d_internal_enclose(
+    struct dj_internal_mw* _mw,
+    size_t                 _start
 )
 {
     // the headings found since it opened, the last found first
     for (size_t index = _mw->heading_count; index > 0u; --index)
     {
-        struct d_internal_found_heading* const heading =
+        struct dj_internal_found_heading* const heading =
             &_mw->headings[index - 1u];
 
         // one found before it opened, as are all before that one
@@ -1801,14 +1801,14 @@ d_internal_one_line
 MediaWiki expands it: a line ending within it must be in a comment, an
 element or a template, which leave none.
 */
-static bool
-d_internal_one_line(
-    const struct d_internal_mw* _mw,
-    size_t                      _start,
-    size_t                      _end
+static
+bool d_internal_one_line(
+    const struct dj_internal_mw* _mw,
+    size_t                       _start,
+    size_t                       _end
 )
 {
-    const struct d_wiki* const wiki = _mw->wiki;
+    const struct dj_wiki* const wiki = _mw->wiki;
 
     // each line ending within the title
     for (size_t at = _start; at < _end; ++at)
@@ -1862,12 +1862,12 @@ than one line once expanded.
   Long as the preprocessor's line-end case is, which it follows: the close
 sought back past space and comments, the level, then the heading kept.
 */
-static void
-d_internal_close_heading(
-    struct d_internal_mw*          _mw,
-    const struct d_internal_piece* _piece,
-    size_t                         _at,
-    bool                           _top
+static
+void d_internal_close_heading(
+    struct dj_internal_mw*          _mw,
+    const struct dj_internal_piece* _piece,
+    size_t                          _at,
+    bool                            _top
 )
 {
     const char* const text  = _mw->text;
@@ -1890,7 +1890,7 @@ d_internal_close_heading(
         // past a comment at the line's end, the last first
         for (size_t index = _mw->hidden_count; index > 0u; --index)
         {
-            const struct d_internal_hidden* const hidden =
+            const struct dj_internal_hidden* const hidden =
                 &_mw->hidden[index - 1u];
 
             // a comment that ends where the line does
@@ -1962,14 +1962,14 @@ d_internal_close_heading(
     // room for one more
     if (!d_internal_grow((void**)&_mw->headings, &_mw->heading_capacity,
                          _mw->heading_count,
-                         sizeof(struct d_internal_found_heading)))
+                         sizeof(struct dj_internal_found_heading)))
     {
         _mw->failed = true;
 
         return;
     }
 
-    struct d_internal_found_heading* const heading =
+    struct dj_internal_found_heading* const heading =
         &_mw->headings[_mw->heading_count++];
 
     heading->start       = _piece->start;
@@ -1990,11 +1990,11 @@ d_internal_free_stack
   Frees the pieces left on a stack, keeping a problem for each template
 left open.
 */
-static void
-d_internal_free_stack(
-    struct d_internal_mw*    _mw,
-    struct d_internal_piece* _stack,
-    size_t                   _count
+static
+void d_internal_free_stack(
+    struct dj_internal_mw*    _mw,
+    struct dj_internal_piece* _stack,
+    size_t                    _count
 )
 {
     // each piece, a brace left open told of
@@ -2025,16 +2025,16 @@ its own; `_depth` counts the elements it is within.
   Long as Preprocessor_Hash's main loop is, which it follows: one state
 machine over the bytes, its stack the state.
 */
-static void
-d_internal_preprocess(
-    struct d_internal_mw* _mw,
-    size_t                _from,
-    size_t                _end,
-    size_t                _depth
+static
+void d_internal_preprocess(
+    struct dj_internal_mw* _mw,
+    size_t                 _from,
+    size_t                 _end,
+    size_t                 _depth
 )
 {
     const char* const        text     = _mw->text;
-    struct d_internal_piece* stack    = NULL;
+    struct dj_internal_piece* stack    = NULL;
     size_t                   count    = 0;
     size_t                   capacity = 0;
     size_t                   at       = _from;
@@ -2044,7 +2044,7 @@ d_internal_preprocess(
     while ( (!_mw->failed) &&
             (at <= _end) )
     {
-        struct d_internal_piece* const top = (count > 0u)
+        struct dj_internal_piece* const top = (count > 0u)
                                                  ? &stack[count - 1u] : NULL;
         const char c = (at < _end) ? text[at] : '\0';
 
@@ -2295,8 +2295,8 @@ d_internal_attribute
 attributes from `_from` to `_to`, quoted or not, and where it ends;
 D_WIKI_NONE for none.
 */
-static size_t
-d_internal_attribute(
+static
+size_t d_internal_attribute(
     const char* _text,
     size_t      _from,
     size_t      _to,
@@ -2373,13 +2373,13 @@ what it holds to its close, or the text's end: a page shows none of it,
 but what it holds is read apart, for the pages and templates it uses.
 Gives where reading goes on.
 */
-static size_t
-d_internal_include_only(
-    struct d_internal_mw* _mw,
-    size_t                _at,
-    size_t                _open_end,
-    size_t                _end,
-    size_t                _depth
+static
+size_t d_internal_include_only(
+    struct dj_internal_mw* _mw,
+    size_t                 _at,
+    size_t                 _open_end,
+    size_t                 _end,
+    size_t                 _depth
 )
 {
     const char* const text   = _mw->text;
@@ -2393,7 +2393,7 @@ d_internal_include_only(
                                                                "includeonly",
                                                                11u, &end_at);
     const size_t      inner  = (close == D_WIKI_NONE) ? _end : close;
-    struct d_internal_hidden* const hidden =
+    struct dj_internal_hidden* const hidden =
         d_internal_hide(_mw, D_INTERNAL_INCLUDED, _at,
                         (empty) ? _open_end
                                 : (close == D_WIKI_NONE) ? _end : end_at);
@@ -2422,12 +2422,12 @@ d_internal_include_only(
 }
 
 
-static size_t
-d_internal_angle(
-    struct d_internal_mw* _mw,
-    size_t                _at,
-    size_t                _end,
-    size_t                _depth
+static
+size_t d_internal_angle(
+    struct dj_internal_mw* _mw,
+    size_t                 _at,
+    size_t                 _end,
+    size_t                 _depth
 )
 {
     static const char* const literal[] =
@@ -2543,7 +2543,7 @@ d_internal_angle(
         return 0u;
     }
 
-    struct d_internal_hidden* hidden = NULL;
+    struct dj_internal_hidden* hidden = NULL;
 
     // <nowiki/>: an element with nothing in it
     if (empty)
@@ -2645,18 +2645,18 @@ d_internal_angle(
 d_internal_stream_add
   Adds a run of the page to a stream.
 */
-static void
-d_internal_stream_add(
-    struct d_internal_stream* _stream,
-    size_t                    _source,
-    size_t                    _length,
-    const char*               _text
+static
+void d_internal_stream_add(
+    struct dj_internal_stream* _stream,
+    size_t                     _source,
+    size_t                     _length,
+    const char*                _text
 )
 {
     // room for one more piece
     if (!d_internal_grow((void**)&_stream->pieces, &_stream->piece_capacity,
                          _stream->piece_count,
-                         sizeof(struct d_internal_piece_map)))
+                         sizeof(struct dj_internal_piece_map)))
     {
         _stream->failed = true;
 
@@ -2682,10 +2682,10 @@ d_internal_stream_add(
 d_internal_stream_source
   Where a place in a stream stands on the page.
 */
-static size_t
-d_internal_stream_source(
-    const struct d_internal_stream* _stream,
-    size_t                          _at
+static
+size_t d_internal_stream_source(
+    const struct dj_internal_stream* _stream,
+    size_t                           _at
 )
 {
     size_t low  = 0;
@@ -2713,7 +2713,7 @@ d_internal_stream_source(
         }
     }
 
-    const struct d_internal_piece_map* const piece = &_stream->pieces[low];
+    const struct dj_internal_piece_map* const piece = &_stream->pieces[low];
     const size_t                             into  = _at - piece->joined;
 
     return piece->source + ((into > piece->length) ? piece->length : into);
@@ -2725,17 +2725,17 @@ d_internal_shut
   Covers what of a stream is a table's cells' attributes, which hold no
 link.
 */
-static void
-d_internal_shut(
-    struct d_internal_stream* _stream
+static
+void d_internal_shut(
+    struct dj_internal_stream* _stream
 )
 {
-    const struct d_internal_mw* const mw = _stream->mw;
+    const struct dj_internal_mw* const mw = _stream->mw;
 
     // each run of the stream
     for (size_t piece = 0; piece < _stream->piece_count; ++piece)
     {
-        const struct d_internal_piece_map* const run = &_stream->pieces[piece];
+        const struct dj_internal_piece_map* const run = &_stream->pieces[piece];
         const size_t                             end = run->source +
                                                        run->length;
 
@@ -2765,15 +2765,15 @@ d_internal_build_stream
   The text from `_from` to `_end` as a stream: what is dropped gone, each
 element a mark, from the record of what is hidden at `_hidden` on.
 */
-static void
-d_internal_build_stream(
-    struct d_internal_stream* _stream,
-    size_t                    _from,
-    size_t                    _end,
-    size_t                    _hidden
+static
+void d_internal_build_stream(
+    struct dj_internal_stream* _stream,
+    size_t                     _from,
+    size_t                     _end,
+    size_t                     _hidden
 )
 {
-    const struct d_internal_mw* const mw    = _stream->mw;
+    const struct dj_internal_mw* const mw    = _stream->mw;
     size_t                            at    = _from;
     size_t                            index = _hidden;
 
@@ -2803,7 +2803,7 @@ d_internal_build_stream(
             break;
         }
 
-        const struct d_internal_hidden* const hidden = &mw->hidden[index];
+        const struct dj_internal_hidden* const hidden = &mw->hidden[index];
 
         // an element is a mark; a comment and a dropped tag are nothing
         if ( (hidden->kind == D_INTERNAL_LITERAL) ||
@@ -2838,9 +2838,9 @@ d_internal_build_stream(
 d_internal_free_stream
   Frees what a stream holds.
 */
-static void
-d_internal_free_stream(
-    struct d_internal_stream* _stream
+static
+void d_internal_free_stream(
+    struct dj_internal_stream* _stream
 )
 {
     d_wiki_buffer_free(&_stream->joined);
@@ -2856,11 +2856,11 @@ d_internal_free_stream(
 d_internal_crosses
   Whether a span of the page holds a boundary of a template.
 */
-static bool
-d_internal_crosses(
-    const struct d_internal_mw* _mw,
-    size_t                      _start,
-    size_t                      _end
+static
+bool d_internal_crosses(
+    const struct dj_internal_mw* _mw,
+    size_t                       _start,
+    size_t                       _end
 )
 {
     size_t low  = 0;
@@ -2891,8 +2891,8 @@ d_internal_crosses(
 d_internal_compare_offsets
   Orders offsets.
 */
-static int
-d_internal_compare_offsets(
+static
+int d_internal_compare_offsets(
     const void* _left,
     const void* _right
 )
@@ -2917,12 +2917,12 @@ sanitizer keeps, magic words and marks gone, references read; another
 tag is text.
   Long as a dispatch on what the byte read begins is.
 */
-static void
-d_internal_plain(
-    const struct d_internal_stream* _stream,
-    size_t                          _from,
-    size_t                          _to,
-    struct d_wiki_buffer*           _out
+static
+void d_internal_plain(
+    const struct dj_internal_stream* _stream,
+    size_t                           _from,
+    size_t                           _to,
+    struct dj_wiki_buffer*           _out
 );
 
 
@@ -2936,8 +2936,8 @@ d_internal_namespace
   The namespace a title is in, by its prefix: 1 for File or Image, 2 for
 Media, 3 for Category, 0 for any other.
 */
-static int
-d_internal_namespace(
+static
+int d_internal_namespace(
     const char* _title,
     size_t      _length
 )
@@ -2989,8 +2989,8 @@ d_internal_listed
   Whether a part, in its own case, is one of a list's words -- or, with
 `_prefix`, begins with one.
 */
-static bool
-d_internal_listed(
+static
+bool d_internal_listed(
     const char*        _part,
     size_t             _length,
     const char* const* _list,
@@ -3023,13 +3023,13 @@ reads its options, in their own case: a format -- the first only,
 values are; another option; or, the last of what is none, its caption.
   Long as makeImage's option words are, listed here.
 */
-static void
-d_internal_image_part(
-    const char*              _text,
-    size_t                   _start,
-    size_t                   _end,
-    bool*                    _seen,
-    struct d_internal_image* _out
+static
+void d_internal_image_part(
+    const char*               _text,
+    size_t                    _start,
+    size_t                    _end,
+    bool*                     _seen,
+    struct dj_internal_image* _out
 )
 {
     static const char* const framed[] =
@@ -3124,12 +3124,12 @@ d_internal_image_parts
   Reads an image's parts, `_from` to `_to` of a stream: apart by `|`, but
 for one within a link or a template.
 */
-static void
-d_internal_image_parts(
-    const struct d_internal_stream* _stream,
-    size_t                          _from,
-    size_t                          _to,
-    struct d_internal_image*        _out
+static
+void d_internal_image_parts(
+    const struct dj_internal_stream* _stream,
+    size_t                           _from,
+    size_t                           _to,
+    struct dj_internal_image*        _out
 )
 {
     const char* const text  = _stream->joined.text;
@@ -3197,15 +3197,15 @@ d_internal_image_parts(
 d_internal_image_label
   An image's text: its caption, or its alt=.
 */
-static void
-d_internal_image_label(
-    const struct d_internal_stream* _stream,
-    size_t                          _from,
-    size_t                          _to,
-    struct d_wiki_buffer*           _out
+static
+void d_internal_image_label(
+    const struct dj_internal_stream* _stream,
+    size_t                           _from,
+    size_t                           _to,
+    struct dj_wiki_buffer*           _out
 )
 {
-    struct d_internal_image image;
+    struct dj_internal_image image;
 
     d_internal_image_parts(_stream, _from, _to, &image);
 
@@ -3230,11 +3230,11 @@ d_internal_find_close
   Where the first `]]` is in a stream from `_at` to `_end`; D_WIKI_NONE for
 none.
 */
-static size_t
-d_internal_find_close(
-    const struct d_internal_stream* _stream,
-    size_t                          _at,
-    size_t                          _end
+static
+size_t d_internal_find_close(
+    const struct dj_internal_stream* _stream,
+    size_t                           _at,
+    size_t                           _end
 )
 {
     const char* const text = _stream->joined.text;
@@ -3258,10 +3258,10 @@ d_internal_find_close(
 d_internal_keep
   Adds a link found in a stream, its places in the stream given.
 */
-static size_t
-d_internal_keep(
-    struct d_internal_stream* _stream,
-    struct d_wiki_link*       _link
+static
+size_t d_internal_keep(
+    struct dj_internal_stream* _stream,
+    struct dj_wiki_link*       _link
 )
 {
     const size_t index = d_wiki_add_link(_stream->mw->wiki, _link);
@@ -3285,9 +3285,9 @@ d_internal_page_and_anchor
   Splits a link's title, decoded, at its `#`: the page before, its leading
 `:` and space gone, and the anchor after.
 */
-static bool
-d_internal_page_and_anchor(
-    struct d_wiki_link* _link
+static
+bool d_internal_page_and_anchor(
+    struct dj_wiki_link* _link
 )
 {
     const char* const title = _link->target;
@@ -3326,12 +3326,12 @@ holds links.  Gives whether it begins a link, and what it holds.
   Long as a title's end is read four ways: ]], `|`, {{!}}, or no ]] at
 all for an image whose caption holds links.
 */
-static bool
-d_internal_link_title(
-    const struct d_internal_stream* _stream,
-    size_t                          _open,
-    size_t                          _next,
-    struct d_internal_internal*     _out
+static
+bool d_internal_link_title(
+    const struct dj_internal_stream* _stream,
+    size_t                           _open,
+    size_t                           _next,
+    struct dj_internal_internal*     _out
 )
 {
     const char* const text  = _stream->joined.text;
@@ -3417,11 +3417,11 @@ d_internal_image_close
 the first `]]` of a later piece closes.  Gives whether it does; an image
 needs its namespace written, with nothing before it.
 */
-static bool
-d_internal_image_close(
-    const struct d_internal_stream* _stream,
-    const struct d_internal_opens*  _opens,
-    struct d_internal_internal*     _link
+static
+bool d_internal_image_close(
+    const struct dj_internal_stream* _stream,
+    const struct dj_internal_opens*  _opens,
+    struct dj_internal_internal*     _link
 )
 {
     // an image needs its namespace written, and nothing before it
@@ -3471,11 +3471,11 @@ d_internal_percent_decode
   Writes text with each `%` and two hex digits the byte they stand for, as
 PHP's rawurldecode does.
 */
-static bool
-d_internal_percent_decode(
-    struct d_wiki_buffer* _out,
-    const char*           _text,
-    size_t                _length
+static
+bool d_internal_percent_decode(
+    struct dj_wiki_buffer* _out,
+    const char*            _text,
+    size_t                 _length
 )
 {
     static const char hex[] = "0123456789abcdef";
@@ -3516,14 +3516,14 @@ d_internal_title_text
   Writes a link's title as MediaWiki reads it: percent-decoded when it
 holds `%`, then its references read.
 */
-static bool
-d_internal_title_text(
-    struct d_wiki_buffer* _out,
-    const char*           _title,
-    size_t                _length
+static
+bool d_internal_title_text(
+    struct dj_wiki_buffer* _out,
+    const char*            _title,
+    size_t                 _length
 )
 {
-    struct d_wiki_buffer decoded = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer decoded = { NULL, 0u, 0u, false };
 
     // no `%`: its references read
     if (!memchr(_title, '%', _length))
@@ -3547,8 +3547,8 @@ d_internal_valid_page
 control, bracket, `|`, `<` or `>`; no `%` and two hex digits, nor a
 reference, left in it; no `~~~`; not `.` or `..` as a part of a path.
 */
-static bool
-d_internal_valid_page(
+static
+bool d_internal_valid_page(
     const char* _page
 )
 {
@@ -3600,8 +3600,8 @@ d_internal_whole_url
 address -- IPv6's in brackets -- then the characters a URL may hold, to
 its end.
 */
-static bool
-d_internal_whole_url(
+static
+bool d_internal_whole_url(
     const char* _text,
     size_t      _scheme,
     size_t      _length
@@ -3654,8 +3654,8 @@ d_internal_holds_pair
   Whether a stream's text from `_from` to `_to` holds two of a byte in a
 row: `[[`, `{{`.
 */
-static bool
-d_internal_holds_pair(
+static
+bool d_internal_holds_pair(
     const char* _text,
     size_t      _from,
     size_t      _to,
@@ -3683,15 +3683,15 @@ d_internal_option_target
 or a page by its title percent-decoded, the link then kept when MediaWiki
 would have a title of it.
 */
-static void
-d_internal_option_target(
-    struct d_internal_stream* _stream,
-    struct d_wiki_link*       _link,
-    struct d_wiki_buffer*     _shown,
-    size_t                    _scheme
+static
+void d_internal_option_target(
+    struct dj_internal_stream* _stream,
+    struct dj_wiki_link*       _link,
+    struct dj_wiki_buffer*     _shown,
+    size_t                     _scheme
 )
 {
-    struct d_wiki_buffer decoded = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer decoded = { NULL, 0u, 0u, false };
 
     // a URL, as it is shown
     if (_scheme > 0u)
@@ -3759,16 +3759,16 @@ a URL for a value with a protocol that is one whole, else a page by its
 title percent-decoded.  A value that holds a link or a template makes
 none: what it holds is the link.
 */
-static void
-d_internal_option_link(
-    struct d_internal_stream* _stream,
-    size_t                    _value,
-    size_t                    _end
+static
+void d_internal_option_link(
+    struct dj_internal_stream* _stream,
+    size_t                     _value,
+    size_t                     _end
 )
 {
     const char* const    text  = _stream->joined.text;
-    struct d_wiki_buffer shown = { NULL, 0u, 0u, false };
-    struct d_wiki_link   link;
+    struct dj_wiki_buffer shown = { NULL, 0u, 0u, false };
+    struct dj_wiki_link   link;
 
     // nothing, or a link or a template within
     if ( (_value >= _end) ||
@@ -3818,13 +3818,13 @@ d_internal_image_kept
 bare URLs; its parts are read again, on their own, for [url text]; and
 its link= is a link of its own.
 */
-static void
-d_internal_image_kept(
-    struct d_internal_stream*         _stream,
-    const struct d_internal_internal* _parts
+static
+void d_internal_image_kept(
+    struct dj_internal_stream*         _stream,
+    const struct dj_internal_internal* _parts
 )
 {
-    struct d_internal_image image;
+    struct dj_internal_image image;
 
     // an image with nothing after its name holds nothing
     if (_parts->label == D_WIKI_NONE)
@@ -3870,7 +3870,7 @@ d_internal_destination
 with a `:` before it or not; File:, Image: and Category: in place, without
 one; any other to a page.
 */
-static enum d_wiki_target
+static enum dj_wiki_target
 d_internal_destination(
     const char* _title
 )
@@ -3897,16 +3897,16 @@ holds, which no other link may be within -- but for an image's.
   Long as a link's record is filled in turn: its places, its title
 decoded, its trail, its page and anchor, then what it covers.
 */
-static void
-d_internal_internal_record(
-    struct d_internal_stream*         _stream,
-    size_t                            _open,
-    const struct d_internal_internal* _parts
+static
+void d_internal_internal_record(
+    struct dj_internal_stream*         _stream,
+    size_t                             _open,
+    const struct dj_internal_internal* _parts
 )
 {
     const char* const    text   = _stream->joined.text;
-    struct d_wiki_link   link;
-    struct d_wiki_buffer target = { NULL, 0u, 0u, false };
+    struct dj_wiki_link   link;
+    struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
     size_t               end    = _parts->close + 2u;
 
     d_wiki_new_link(&link, D_WIKI_FORM_WIKI,
@@ -3991,17 +3991,17 @@ d_internal_internal_link
 a link if it begins with a title and ends with ]], or an image whose
 caption holds links, ending at the ]] after theirs.
 */
-static void
-d_internal_internal_link(
-    struct d_internal_stream*      _stream,
-    const struct d_internal_opens* _opens
+static
+void d_internal_internal_link(
+    struct dj_internal_stream*      _stream,
+    const struct dj_internal_opens* _opens
 )
 {
     const size_t               open = _opens->at[_opens->index];
     const size_t               next = ((_opens->index + 1u) < _opens->count)
                                           ? _opens->at[_opens->index + 1u]
                                           : _stream->joined.length;
-    struct d_internal_internal parts;
+    struct dj_internal_internal parts;
 
     // a title, and its close: here, or past an image's caption
     if ( (!d_internal_link_title(_stream, open, next, &parts)) ||
@@ -4023,8 +4023,8 @@ d_internal_may_begin
 nothing does; within an image, where it does alone -- its caption shown
 or not; and, for a bare URL, in a caption shown besides.
 */
-static bool
-d_internal_may_begin(
+static
+bool d_internal_may_begin(
     char _cover,
     bool _image,
     bool _bare
@@ -4050,11 +4050,11 @@ template's boundary.
   Long as each of what ends a URL is tested in turn, as MediaWiki's
 earlier passes have left the text.
 */
-static size_t
-d_internal_url_end(
-    const struct d_internal_stream* _stream,
-    size_t                          _from,
-    bool                            _bare
+static
+size_t d_internal_url_end(
+    const struct dj_internal_stream* _stream,
+    size_t                           _from,
+    bool                             _bare
 )
 {
     const char* const text   = _stream->joined.text;
@@ -4129,20 +4129,20 @@ d_internal_external_link
   Keeps [url label] from `_at` to the `]` at `_close` of a stream, its URL
 to `_url` and its label from `_label`; what it covers is not read again.
 */
-static void
-d_internal_external_link(
-    struct d_internal_stream* _stream,
-    size_t                    _at,
-    size_t                    _url,
-    size_t                    _label,
-    size_t                    _close
+static
+void d_internal_external_link(
+    struct dj_internal_stream* _stream,
+    size_t                     _at,
+    size_t                     _url,
+    size_t                     _label,
+    size_t                     _close
 )
 {
     const char* const    text   = _stream->joined.text;
     const size_t         scheme = d_internal_protocol(&text[_at + 1u],
                                                       _url - _at - 1u, true);
-    struct d_wiki_link   link;
-    struct d_wiki_buffer target = { NULL, 0u, 0u, false };
+    struct dj_wiki_link   link;
+    struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
 
     d_wiki_new_link(&link, D_WIKI_FORM_EXTERNAL,
                     d_internal_stream_source(_stream, _at),
@@ -4194,12 +4194,12 @@ d_internal_label_end
 `]`, a line ending or a control but a tab, what is not the link's own --
 another link, or in the page an image -- passed whole.
 */
-static size_t
-d_internal_label_end(
-    const struct d_internal_stream* _stream,
-    size_t                          _label,
-    size_t                          _to,
-    bool                            _image
+static
+size_t d_internal_label_end(
+    const struct dj_internal_stream* _stream,
+    size_t                           _label,
+    size_t                           _to,
+    bool                             _image
 )
 {
     const char* const text  = _stream->joined.text;
@@ -4241,12 +4241,12 @@ whole, and none crosses a template's boundary.
   Long as handleExternalLinks' expression is read a part at a time: the
 `[`, the protocol, the URL, the space, the label and the `]`.
 */
-static void
-d_internal_external_links(
-    struct d_internal_stream* _stream,
-    size_t                    _from,
-    size_t                    _to,
-    bool                      _image
+static
+void d_internal_external_links(
+    struct dj_internal_stream* _stream,
+    size_t                     _from,
+    size_t                     _to,
+    bool                       _image
 )
 {
     const char* const text = _stream->joined.text;
@@ -4320,8 +4320,8 @@ d_internal_url_trail
 off, as MediaWiki's makeFreeExternalLink leaves it: `,;\.:!?`, and `)` in
 one without `(`; but a `;` that ends a reference stays.
 */
-static size_t
-d_internal_url_trail(
+static
+size_t d_internal_url_trail(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -4356,13 +4356,13 @@ d_internal_clean_url
 one shows: a bracket, `<`, `>`, `"`, `|`, a control and space each `%` and
 two hex digits.
 */
-static char*
-d_internal_clean_url(
+static
+char* d_internal_clean_url(
     const char* _url
 )
 {
     static const char    hex[] = "0123456789ABCDEF";
-    struct d_wiki_buffer out   = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer out   = { NULL, 0u, 0u, false };
 
     // each byte, or its escape
     for (const char* at = _url; *at != '\0'; ++at)
@@ -4395,17 +4395,17 @@ d_internal_bare_link
   Keeps a bare URL from `_at` to `_end` of a stream, its protocol
 `_scheme` bytes; it shows itself as MediaWiki's cleanUrl leaves it.
 */
-static void
-d_internal_bare_link(
-    struct d_internal_stream* _stream,
-    size_t                    _at,
-    size_t                    _scheme,
-    size_t                    _end
+static
+void d_internal_bare_link(
+    struct dj_internal_stream* _stream,
+    size_t                     _at,
+    size_t                     _scheme,
+    size_t                     _end
 )
 {
     const char* const    text   = _stream->joined.text;
-    struct d_wiki_link   link;
-    struct d_wiki_buffer target = { NULL, 0u, 0u, false };
+    struct dj_wiki_link   link;
+    struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
 
     d_wiki_new_link(&link, D_WIKI_FORM_BARE,
                     d_internal_stream_source(_stream, _at),
@@ -4447,9 +4447,9 @@ d_internal_bare_links
 what ends it and short of what trails it; outside links, but for a caption
 shown, and the HTML tags the sanitizer keeps.
 */
-static void
-d_internal_bare_links(
-    struct d_internal_stream* _stream
+static
+void d_internal_bare_links(
+    struct dj_internal_stream* _stream
 )
 {
     const char* const text   = _stream->joined.text;
@@ -4509,10 +4509,10 @@ d_internal_find_opens
   Each `[[` of a stream, as MediaWiki splits its text at them, left to
 right; none in the attributes of a tag the sanitizer keeps.
 */
-static void
-d_internal_find_opens(
-    struct d_internal_stream*  _stream,
-    struct d_internal_offsets* _out
+static
+void d_internal_find_opens(
+    struct dj_internal_stream*  _stream,
+    struct dj_internal_offsets* _out
 )
 {
     const char* const text   = _stream->joined.text;
@@ -4559,13 +4559,13 @@ d_internal_stream_links
   Every link of a stream: [[...]] first, then [url label] -- in the page,
 and within each image -- then bare.
 */
-static void
-d_internal_stream_links(
-    struct d_internal_stream* _stream
+static
+void d_internal_stream_links(
+    struct dj_internal_stream* _stream
 )
 {
     const size_t              length = _stream->joined.length;
-    struct d_internal_offsets opens  = { NULL, 0u, 0u };
+    struct dj_internal_offsets opens  = { NULL, 0u, 0u };
 
     d_internal_find_opens(_stream, &opens);
 
@@ -4573,7 +4573,7 @@ d_internal_stream_links(
     for (size_t index = 0; ( (!_stream->failed) && (index < opens.count) );
          ++index)
     {
-        const struct d_internal_opens piece = { opens.at, opens.count, index };
+        const struct dj_internal_opens piece = { opens.at, opens.count, index };
 
         d_internal_internal_link(_stream, &piece);
     }
@@ -4606,15 +4606,15 @@ d_internal_stream_links(
 }
 
 
-static void
-d_internal_plain(
-    const struct d_internal_stream* _stream,
-    size_t                          _from,
-    size_t                          _to,
-    struct d_wiki_buffer*           _out
+static
+void d_internal_plain(
+    const struct dj_internal_stream* _stream,
+    size_t                           _from,
+    size_t                           _to,
+    struct dj_wiki_buffer*           _out
 )
 {
-    const struct d_internal_mw* const mw    = _stream->mw;
+    const struct dj_internal_mw* const mw    = _stream->mw;
     const char* const                 text  = _stream->joined.text;
     size_t                            at    = _from;
 
@@ -4678,7 +4678,7 @@ d_internal_plain(
             // its label, then past it
             if (found != D_WIKI_NONE)
             {
-                const struct d_wiki_link* const link = &mw->wiki->links[found];
+                const struct dj_wiki_link* const link = &mw->wiki->links[found];
 
                 // an image and a category show nothing
                 if ( (link->to != D_WIKI_TO_IMAGE) &&
@@ -4749,7 +4749,7 @@ d_internal_plain(
             // what is set apart: <nowiki>'s content shows as itself
             for (size_t index = 0; index < mw->hidden_count; ++index)
             {
-                const struct d_internal_hidden* const hidden =
+                const struct dj_internal_hidden* const hidden =
                     &mw->hidden[index];
 
                 // the element that starts here
@@ -4803,10 +4803,10 @@ d_internal_plain(
 d_internal_line_end
   Where a line's text ends, its ending not among it.
 */
-static size_t
-d_internal_line_end(
-    const struct d_wiki* _wiki,
-    size_t               _line
+static
+size_t d_internal_line_end(
+    const struct dj_wiki* _wiki,
+    size_t                _line
 )
 {
     size_t end = ((_line + 1u) < _wiki->line_count)
@@ -4834,10 +4834,10 @@ d_internal_line_end(
 d_internal_line_after
   Where the line after a line begins: past its ending, or the text's end.
 */
-static size_t
-d_internal_line_after(
-    const struct d_wiki* _wiki,
-    size_t               _line
+static
+size_t d_internal_line_after(
+    const struct dj_wiki* _wiki,
+    size_t                _line
 )
 {
     return ((_line + 1u) < _wiki->line_count)
@@ -4849,8 +4849,8 @@ d_internal_line_after(
 d_internal_compare_spans
   Orders spans, two offsets each, by where they start.
 */
-static int
-d_internal_compare_spans(
+static
+int d_internal_compare_spans(
     const void* _left,
     const void* _right
 )
@@ -4867,12 +4867,12 @@ d_internal_find_reach
   For each line, how far what began before its start -- a comment, an
 element, a template -- reaches past it: the line's start for nothing.
 */
-static void
-d_internal_find_reach(
-    struct d_internal_mw* _mw
+static
+void d_internal_find_reach(
+    struct dj_internal_mw* _mw
 )
 {
-    const struct d_wiki* const wiki  = _mw->wiki;
+    const struct dj_wiki* const wiki  = _mw->wiki;
     const size_t               count = _mw->hidden_count +
                                        wiki->template_count;
     size_t* const              spans = malloc((count + 1u) * 2u *
@@ -4938,11 +4938,11 @@ d_internal_find_reach(
 d_internal_first_non_space
   The first byte of a line that is not a space or tab.
 */
-static size_t
-d_internal_first_non_space(
-    const struct d_wiki* _wiki,
-    size_t               _start,
-    size_t               _end
+static
+size_t d_internal_first_non_space(
+    const struct dj_wiki* _wiki,
+    size_t                _start,
+    size_t                _end
 )
 {
     size_t at = _start;
@@ -4963,10 +4963,10 @@ d_internal_hidden_at
   The first record of what is hidden that starts at `_at`; NULL for none.
 The records are in the order of their starts.
 */
-static const struct d_internal_hidden*
-d_internal_hidden_at(
-    const struct d_internal_mw* _mw,
-    size_t                      _at
+static
+const struct dj_internal_hidden* d_internal_hidden_at(
+    const struct dj_internal_mw* _mw,
+    size_t                       _at
 )
 {
     size_t low  = 0;
@@ -4998,18 +4998,18 @@ d_internal_is_comment_line
   Whether a line holds a comment and space alone, and where the comment's
 last line ends.
 */
-static bool
-d_internal_is_comment_line(
-    const struct d_internal_mw* _mw,
-    size_t                      _start,
-    size_t                      _end,
-    size_t*                     _out_end
+static
+bool d_internal_is_comment_line(
+    const struct dj_internal_mw* _mw,
+    size_t                       _start,
+    size_t                       _end,
+    size_t*                      _out_end
 )
 {
     const size_t                          at     = d_internal_first_non_space(
                                                        _mw->wiki, _start,
                                                        _end);
-    const struct d_internal_hidden* const hidden = d_internal_hidden_at(_mw,
+    const struct dj_internal_hidden* const hidden = d_internal_hidden_at(_mw,
                                                                         at);
 
     // a comment that begins the line
@@ -5043,13 +5043,13 @@ d_internal_literal_at
   The literal element that begins at `_at`, if it is <pre>,
 <syntaxhighlight> or <source>; NULL for none.
 */
-static const struct d_internal_hidden*
-d_internal_literal_at(
-    const struct d_internal_mw* _mw,
-    size_t                      _at
+static
+const struct dj_internal_hidden* d_internal_literal_at(
+    const struct dj_internal_mw* _mw,
+    size_t                       _at
 )
 {
-    const struct d_internal_hidden* const hidden = d_internal_hidden_at(_mw,
+    const struct dj_internal_hidden* const hidden = d_internal_hidden_at(_mw,
                                                                         _at);
 
     // an element hidden that begins there
@@ -5078,11 +5078,11 @@ d_internal_literal_at(
 d_internal_language
   The lang="..." of a code element, kept as a block's info.
 */
-static void
-d_internal_language(
-    const struct d_internal_mw*     _mw,
-    const struct d_internal_hidden* _hidden,
-    struct d_wiki_block*            _block
+static
+void d_internal_language(
+    const struct dj_internal_mw*     _mw,
+    const struct dj_internal_hidden* _hidden,
+    struct dj_wiki_block*            _block
 )
 {
     size_t       end   = 0;
@@ -5107,12 +5107,12 @@ d_internal_add_lines
   Adds lines `_first` to `_last` to the last block's content, from
 `_skip` bytes into each.
 */
-static void
-d_internal_add_lines(
-    struct d_internal_mw* _mw,
-    size_t                _first,
-    size_t                _last,
-    size_t                _skip
+static
+void d_internal_add_lines(
+    struct dj_internal_mw* _mw,
+    size_t                 _first,
+    size_t                 _last,
+    size_t                 _skip
 )
 {
     // each line
@@ -5142,14 +5142,14 @@ line endings after its open tag and before its close.
   Long as the line endings either side of the content are passed one
 at a time, CR and LF.
 */
-static void
-d_internal_code_lines(
-    struct d_internal_mw*           _mw,
-    const struct d_internal_hidden* _code,
-    size_t                          _block
+static
+void d_internal_code_lines(
+    struct dj_internal_mw*           _mw,
+    const struct dj_internal_hidden* _code,
+    size_t                           _block
 )
 {
-    struct d_wiki* const wiki  = _mw->wiki;
+    struct dj_wiki* const wiki  = _mw->wiki;
     size_t               start = _code->content;
     size_t               end   = _code->content_end;
 
@@ -5224,10 +5224,10 @@ d_internal_code_lines(
 d_internal_heading_at
   The heading the preprocessor found at a line's start; NULL for none.
 */
-static struct d_internal_found_heading*
-d_internal_heading_at(
-    struct d_internal_mw* _mw,
-    size_t                _at
+static
+struct dj_internal_found_heading* d_internal_heading_at(
+    struct dj_internal_mw* _mw,
+    size_t                 _at
 )
 {
     size_t low  = 0;
@@ -5259,13 +5259,13 @@ d_internal_table_end
   The line a table that begins on `_line` ends on: its |}, tables within
 it counted; the last line for one not closed.
 */
-static size_t
-d_internal_table_end(
-    struct d_internal_mw* _mw,
-    size_t                _line
+static
+size_t d_internal_table_end(
+    struct dj_internal_mw* _mw,
+    size_t                 _line
 )
 {
-    const struct d_wiki* const wiki  = _mw->wiki;
+    const struct dj_wiki* const wiki  = _mw->wiki;
     size_t                     depth = 1u;
 
     // each line after it not covered by what began before it
@@ -5326,8 +5326,8 @@ d_internal_begin_block
 */
 static size_t
 d_internal_begin_block(
-    struct d_internal_mw*  _mw,
-    enum d_wiki_block_kind _kind,
+    struct dj_internal_mw*  _mw,
+    enum dj_wiki_block_kind _kind,
     size_t                 _start,
     size_t                 _first,
     size_t                 _last,
@@ -5350,7 +5350,7 @@ d_internal_begin_block(
     // the first line's content from where the block begins on it
     if (_mw->wiki->blocks[block].segment_count > 0u)
     {
-        struct d_wiki_segment* const first =
+        struct dj_wiki_segment* const first =
             &_mw->wiki->segments[_mw->wiki->blocks[block].first_segment];
 
         // the first line's content from where the block begins on it
@@ -5368,15 +5368,15 @@ d_internal_begin_block(
 d_internal_add_heading
   The heading of a block, from what the preprocessor found.
 */
-static void
-d_internal_add_heading(
-    struct d_internal_mw*                  _mw,
-    const struct d_internal_found_heading* _found,
-    size_t                                 _block,
-    bool                                   _top
+static
+void d_internal_add_heading(
+    struct dj_internal_mw*                  _mw,
+    const struct dj_internal_found_heading* _found,
+    size_t                                  _block,
+    bool                                    _top
 )
 {
-    struct d_wiki_heading heading;
+    struct dj_wiki_heading heading;
 
     memset(&heading, 0, sizeof(heading));
     heading.block       = _block;
@@ -5404,14 +5404,14 @@ d_internal_classify_line
   The kind of block a line begins, and the line it ends on.
   Long as a dispatch on what a line begins with is.
 */
-static enum d_wiki_block_kind
+static enum dj_wiki_block_kind
 d_internal_classify_line(
-    struct d_internal_mw* _mw,
+    struct dj_internal_mw* _mw,
     size_t                _line,
     size_t*               _out_last
 )
 {
-    const struct d_wiki* const wiki  = _mw->wiki;
+    const struct dj_wiki* const wiki  = _mw->wiki;
     const size_t               start = wiki->line_starts[_line];
     const size_t               end   = d_internal_line_end(wiki, _line);
     const char* const          text  = wiki->text;
@@ -5446,7 +5446,7 @@ d_internal_classify_line(
     }
 
     // code, in an element that begins the line
-    const struct d_internal_hidden* const code =
+    const struct dj_internal_hidden* const code =
         d_internal_literal_at(_mw, d_internal_first_non_space(wiki, start,
                                                               end));
 
@@ -5490,12 +5490,12 @@ d_internal_read_blocks
 earlier line -- a comment, an element, a template -- goes with it.
   Long as a dispatch on what each line begins is.
 */
-static void
-d_internal_read_blocks(
-    struct d_internal_mw* _mw
+static
+void d_internal_read_blocks(
+    struct dj_internal_mw* _mw
 )
 {
-    struct d_wiki* const wiki    = _mw->wiki;
+    struct dj_wiki* const wiki    = _mw->wiki;
     size_t               current = D_WIKI_NONE;
     size_t               line    = 0;
 
@@ -5542,7 +5542,7 @@ d_internal_read_blocks(
             continue;
         }
 
-        struct d_internal_found_heading* const found =
+        struct dj_internal_found_heading* const found =
             d_internal_heading_at(_mw, start);
 
         // a heading the preprocessor found here
@@ -5570,7 +5570,7 @@ d_internal_read_blocks(
         }
 
         size_t                       last = line;
-        const enum d_wiki_block_kind kind = d_internal_classify_line(_mw, line,
+        const enum dj_wiki_block_kind kind = d_internal_classify_line(_mw, line,
                                                                      &last);
 
         // a paragraph, or lines that begin with a space, go on together
@@ -5621,7 +5621,7 @@ d_internal_read_blocks(
         }
         else if (kind == D_WIKI_CODE)
         {
-            const struct d_internal_hidden* const code =
+            const struct dj_internal_hidden* const code =
                 d_internal_literal_at(_mw, wiki->blocks[block].start);
 
             d_internal_language(_mw, code, &wiki->blocks[block]);
@@ -5648,12 +5648,12 @@ d_internal_cell_attributes
 `|` that is no template's, when no `[[` is before that, kept as a span
 that holds no link, and the `|` a boundary in `_out`.
 */
-static void
-d_internal_cell_attributes(
-    struct d_internal_mw*      _mw,
-    size_t                     _cell,
-    size_t                     _end,
-    struct d_internal_offsets* _out
+static
+void d_internal_cell_attributes(
+    struct dj_internal_mw*      _mw,
+    size_t                      _cell,
+    size_t                      _end,
+    struct dj_internal_offsets* _out
 )
 {
     const char* const text  = _mw->text;
@@ -5722,11 +5722,11 @@ d_internal_row_cells
 its `|` or `!`, at `||` -- and `!!` in a row of headers -- that is no
 template's, each a boundary in `_out`; then each cell's attributes.
 */
-static void
-d_internal_row_cells(
-    struct d_internal_mw*      _mw,
-    size_t                     _line,
-    struct d_internal_offsets* _out
+static
+void d_internal_row_cells(
+    struct dj_internal_mw*      _mw,
+    size_t                      _line,
+    struct dj_internal_offsets* _out
 )
 {
     const char* const text  = _mw->text;
@@ -5792,19 +5792,19 @@ d_internal_table_cells
 links: the splits are boundaries no URL crosses, and the attributes hold
 no link.  A line within what began on one before it is no row's.
 */
-static void
-d_internal_table_cells(
-    struct d_internal_mw* _mw
+static
+void d_internal_table_cells(
+    struct dj_internal_mw* _mw
 )
 {
-    const struct d_wiki* const wiki  = _mw->wiki;
-    struct d_internal_offsets  found = { NULL, 0u, 0u };
+    const struct dj_wiki* const wiki  = _mw->wiki;
+    struct dj_internal_offsets  found = { NULL, 0u, 0u };
 
     // each table
     for (size_t index = 0; ( (!_mw->failed) && (index < wiki->block_count) );
          ++index)
     {
-        const struct d_wiki_block* const block = &wiki->blocks[index];
+        const struct dj_wiki_block* const block = &wiki->blocks[index];
 
         // a block of another kind
         if ( (block->kind != D_WIKI_TABLE) ||
@@ -5856,16 +5856,16 @@ page not a file.
   Long as renderImageGallery's reading of a name is followed: its
 namespace, its decoding, and its title's validity.
 */
-static void
-d_internal_gallery_file(
-    struct d_internal_mw* _mw,
-    size_t                _start,
-    size_t                _end,
-    size_t                _line_end
+static
+void d_internal_gallery_file(
+    struct dj_internal_mw* _mw,
+    size_t                 _start,
+    size_t                 _end,
+    size_t                 _line_end
 )
 {
-    struct d_wiki_buffer target = { NULL, 0u, 0u, false };
-    struct d_wiki_link   link;
+    struct dj_wiki_buffer target = { NULL, 0u, 0u, false };
+    struct dj_wiki_link   link;
     const bool           percent = (memchr(&_mw->text[_start], '%',
                                            _line_end - _start) != NULL);
     const int            space   = d_internal_namespace(&_mw->text[_start],
@@ -5938,11 +5938,11 @@ d_internal_gallery_line
 first `|`, and what follows, wikitext read on its own, as MediaWiki reads
 it -- its caption, alt= and link= among it.
 */
-static void
-d_internal_gallery_line(
-    struct d_internal_mw* _mw,
-    size_t                _start,
-    size_t                _end
+static
+void d_internal_gallery_line(
+    struct dj_internal_mw* _mw,
+    size_t                 _start,
+    size_t                 _end
 )
 {
     const char* const        bar   = memchr(&_mw->text[_start], '|',
@@ -5950,8 +5950,8 @@ d_internal_gallery_line(
     const size_t             split = (bar) ? (size_t)(bar - _mw->text) : _end;
     size_t                   name  = _start;
     size_t                   stop  = split;
-    struct d_internal_stream stream;
-    struct d_internal_image  image;
+    struct dj_internal_stream stream;
+    struct dj_internal_image  image;
 
     d_internal_trimmed(_mw->text, &name, &stop);
 
@@ -6001,10 +6001,10 @@ d_internal_gallery
   A <gallery>'s caption, and its lines, each read on its own, as
 MediaWiki's gallery reads them.
 */
-static void
-d_internal_gallery(
-    struct d_internal_mw*           _mw,
-    const struct d_internal_hidden* _gallery
+static
+void d_internal_gallery(
+    struct dj_internal_mw*           _mw,
+    const struct dj_internal_hidden* _gallery
 )
 {
     size_t                   at          = _gallery->content;
@@ -6014,7 +6014,7 @@ d_internal_gallery(
                                                _gallery->attributes,
                                                _gallery->attributes_end,
                                                "caption", &caption_end);
-    struct d_internal_stream stream;
+    struct dj_internal_stream stream;
 
     // its caption, wikitext read on its own
     if (caption != D_WIKI_NONE)
@@ -6065,12 +6065,12 @@ d_internal_read_streams
 what each <includeonly> holds, each a stream of its own; and each line of
 a <gallery>.
 */
-static void
-d_internal_read_streams(
-    struct d_internal_mw* _mw
+static
+void d_internal_read_streams(
+    struct dj_internal_mw* _mw
 )
 {
-    struct d_internal_stream stream;
+    struct dj_internal_stream stream;
 
     memset(&stream, 0, sizeof(stream));
     stream.mw = _mw;
@@ -6089,7 +6089,7 @@ d_internal_read_streams(
     for (size_t index = 0; ( (!_mw->failed) && (index < _mw->hidden_count) );
          ++index)
     {
-        const struct d_internal_hidden* const hidden = &_mw->hidden[index];
+        const struct dj_internal_hidden* const hidden = &_mw->hidden[index];
 
         // a gallery's lines
         if ( (hidden->kind == D_INTERNAL_LITERAL) &&
@@ -6133,16 +6133,16 @@ d_internal_plain_span
   Writes what the page shows from `_start` to `_end`, read as a stream of
 its own; an image's caption, when `_image` says it is one.
 */
-static bool
-d_internal_plain_span(
-    struct d_internal_mw* _mw,
-    size_t                _start,
-    size_t                _end,
-    bool                  _image,
-    struct d_wiki_buffer* _out
+static
+bool d_internal_plain_span(
+    struct dj_internal_mw* _mw,
+    size_t                 _start,
+    size_t                 _end,
+    bool                   _image,
+    struct dj_wiki_buffer* _out
 )
 {
-    struct d_internal_stream stream;
+    struct dj_internal_stream stream;
     size_t                   first = 0;
     size_t                   high  = _mw->hidden_count;
 
@@ -6194,8 +6194,8 @@ d_internal_plain_span(
 d_internal_compare_length
   Orders links, as their lengths and indices, the shortest first.
 */
-static int
-d_internal_compare_length(
+static
+int d_internal_compare_length(
     const void* _left,
     const void* _right
 )
@@ -6216,13 +6216,13 @@ d_internal_label
 an image its caption; a category its sort key; an external link its
 label.
 */
-static bool
-d_internal_label(
-    struct d_internal_mw* _mw,
-    struct d_wiki_link*   _link
+static
+bool d_internal_label(
+    struct dj_internal_mw* _mw,
+    struct dj_wiki_link*   _link
 )
 {
-    struct d_wiki_buffer shown = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer shown = { NULL, 0u, 0u, false };
     bool                 ok    = true;
 
     // a bare link shows itself, as it was kept
@@ -6275,12 +6275,12 @@ d_internal_labels
   Each link's label, the shortest links first, so a link within another
 shows its own label in the other's.
 */
-static void
-d_internal_labels(
-    struct d_internal_mw* _mw
+static
+void d_internal_labels(
+    struct dj_internal_mw* _mw
 )
 {
-    struct d_wiki* const wiki  = _mw->wiki;
+    struct dj_wiki* const wiki  = _mw->wiki;
     size_t* const        order = malloc((wiki->link_count + 1u) * 2u *
                                         sizeof(size_t));
 
@@ -6325,17 +6325,17 @@ d_internal_titles
   The headings no block has kept -- within templates, elements, tables --
 kept as headings not at the top; then each heading's title as plain text.
 */
-static void
-d_internal_titles(
-    struct d_internal_mw* _mw
+static
+void d_internal_titles(
+    struct dj_internal_mw* _mw
 )
 {
-    struct d_wiki* const wiki = _mw->wiki;
+    struct dj_wiki* const wiki = _mw->wiki;
 
     // the headings not at the top, each held by the leaf it is in
     for (size_t index = 0; index < _mw->heading_count; ++index)
     {
-        const struct d_internal_found_heading* const found =
+        const struct dj_internal_found_heading* const found =
             &_mw->headings[index];
         size_t                                       block = D_WIKI_NONE;
 
@@ -6363,8 +6363,8 @@ d_internal_titles(
     for (size_t index = 0; ( (!_mw->failed) && (index < wiki->heading_count) );
          ++index)
     {
-        struct d_wiki_heading* const heading = &wiki->headings[index];
-        struct d_wiki_buffer         title   = { NULL, 0u, 0u, false };
+        struct dj_wiki_heading* const heading = &wiki->headings[index];
+        struct dj_wiki_buffer         title   = { NULL, 0u, 0u, false };
         const bool                   ok      = d_internal_plain_span(
                                                    _mw, heading->title_start,
                                                    heading->title_end, false,
@@ -6387,12 +6387,12 @@ d_internal_titles(
 d_internal_redirect
   #REDIRECT [[Page]] at the page's start: the link it leads by.
 */
-static void
-d_internal_redirect(
-    struct d_internal_mw* _mw
+static
+void d_internal_redirect(
+    struct dj_internal_mw* _mw
 )
 {
-    struct d_wiki* const wiki = _mw->wiki;
+    struct dj_wiki* const wiki = _mw->wiki;
     size_t               at   = (wiki->bom) ? 3u : 0u;
 
     // space, then #REDIRECT, then perhaps `:`, then space
@@ -6415,7 +6415,7 @@ d_internal_redirect(
     // the first link after it
     for (size_t index = 0; index < wiki->link_count; ++index)
     {
-        const struct d_wiki_link* const link = &wiki->links[index];
+        const struct dj_wiki_link* const link = &wiki->links[index];
 
         // the first link after #REDIRECT
         if ( (link->start >= at) &&
@@ -6449,14 +6449,14 @@ d_internal_redirect(
 d_internal_compare_headings
   Orders the headings found by where they start.
 */
-static int
-d_internal_compare_headings(
+static
+int d_internal_compare_headings(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_internal_found_heading* const left  = _left;
-    const struct d_internal_found_heading* const right = _right;
+    const struct dj_internal_found_heading* const left  = _left;
+    const struct dj_internal_found_heading* const right = _right;
 
     return (left->start < right->start) ? -1
          : (left->start > right->start) ?  1 : 0;
@@ -6471,12 +6471,12 @@ gallery -- the labels, the titles and a redirect.
   Long as the passes run in MediaWiki's order, each after the last has
 succeeded.
 */
-static bool
-d_internal_read(
-    struct d_wiki* _wiki
+static
+bool d_internal_read(
+    struct dj_wiki* _wiki
 )
 {
-    struct d_internal_mw mw;
+    struct dj_internal_mw mw;
 
     memset(&mw, 0, sizeof(mw));
     mw.wiki   = _wiki;
@@ -6490,7 +6490,7 @@ d_internal_read(
     if (mw.heading_count > 1u)
     {
         qsort(mw.headings, mw.heading_count,
-              sizeof(struct d_internal_found_heading),
+              sizeof(struct dj_internal_found_heading),
               d_internal_compare_headings);
     }
 
@@ -6563,8 +6563,8 @@ d_internal_space_width
   The length of a character MediaWiki's titles count as white space at
 `_at` -- space, `_`, and Unicode's spaces -- 0 for another.
 */
-static size_t
-d_internal_space_width(
+static
+size_t d_internal_space_width(
     const char* _at
 )
 {
@@ -6606,8 +6606,8 @@ d_internal_mark_width
   The length of a mark that sets a direction at `_at`, which MediaWiki's
 titles drop -- U+200E, U+200F, U+202A to U+202E -- 0 for another.
 */
-static size_t
-d_internal_mark_width(
+static
+size_t d_internal_mark_width(
     const char* _at
 )
 {
@@ -6626,11 +6626,11 @@ d_internal_add_id_byte
 ending or a form feed `_`; else the legacy form's, a byte but a letter, a
 digit, `_`, `.`, `-` or `:` written `.` and two hex digits.
 */
-static void
-d_internal_add_id_byte(
-    struct d_wiki_buffer* _out,
-    char                  _c,
-    bool                  _legacy
+static
+void d_internal_add_id_byte(
+    struct dj_wiki_buffer* _out,
+    char                   _c,
+    bool                   _legacy
 )
 {
     static const char hex[] = "0123456789ABCDEF";
@@ -6672,11 +6672,11 @@ gone, each run of white space one `_` but for one at its end, 1024
 characters at most -- unless it holds U+FFFD, which it leaves as it is --
 then escaped, HTML5's way or the legacy way.
 */
-static bool
-d_internal_fragment(
-    struct d_wiki_buffer* _out,
-    const char*           _title,
-    bool                  _legacy
+static
+bool d_internal_fragment(
+    struct dj_wiki_buffer* _out,
+    const char*            _title,
+    bool                   _legacy
 )
 {
     const bool  odd   = (strstr(_title, "\xEF\xBF\xBD") != NULL);
@@ -6742,14 +6742,14 @@ d_internal_anchor_form
 each run of spaces and underscores one space, trimmed again; then the
 fragment that is, as an id, escaped HTML5's way or the legacy way.
 */
-static bool
-d_internal_anchor_form(
-    struct d_wiki_buffer* _out,
-    const char*           _title,
-    bool                  _legacy
+static
+bool d_internal_anchor_form(
+    struct dj_wiki_buffer* _out,
+    const char*            _title,
+    bool                   _legacy
 )
 {
-    struct d_wiki_buffer spaced  = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer spaced  = { NULL, 0u, 0u, false };
     size_t               start   = 0;
     size_t               end     = strlen(_title);
     bool                 between = false;
@@ -6806,10 +6806,10 @@ d_internal_anchor_form(
 d_internal_anchor
   MediaWiki's anchor of a title, its HTML5 id.
 */
-static bool
-d_internal_anchor(
-    struct d_wiki_buffer* _out,
-    const char*           _title
+static
+bool d_internal_anchor(
+    struct dj_wiki_buffer* _out,
+    const char*            _title
 )
 {
     return d_internal_anchor_form(_out, _title, false);
@@ -6821,8 +6821,8 @@ d_internal_key_kept
   Whether a key is among those kept, `_count` of them; a key made of the
 key given and `_2`, `_3`, ... when `_number` is not 0.
 */
-static bool
-d_internal_key_kept(
+static
+bool d_internal_key_kept(
     char* const* _keys,
     size_t       _count,
     const char*  _key,
@@ -6856,14 +6856,14 @@ d_internal_keep_key
 that makes it a key not kept; gives that number, 0 for none, and
 D_WIKI_NONE for memory that ran out.
 */
-static size_t
-d_internal_keep_key(
+static
+size_t d_internal_keep_key(
     char**      _keys,
     size_t*     _count,
     const char* _key
 )
 {
-    struct d_wiki_buffer key    = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer key    = { NULL, 0u, 0u, false };
     size_t               number = 0;
     char                 suffix[32];
 
@@ -6913,9 +6913,9 @@ letters, among those kept so far; one kept already is given the first
 `_2`, `_3`, ... that is not, and kept so.  A legacy form that is its
 anchor's is none, kept as `0`, as PHP keeps `false` as a key.
 */
-static bool
-d_internal_number(
-    struct d_wiki* _wiki
+static
+bool d_internal_number(
+    struct dj_wiki* _wiki
 )
 {
     char** const keys  = calloc((2u * _wiki->heading_count) + 1u,
@@ -6927,8 +6927,8 @@ d_internal_number(
     for (size_t index = 0; ( (ok) && (index < _wiki->heading_count) );
          ++index)
     {
-        struct d_wiki_heading* const heading = &_wiki->headings[index];
-        struct d_wiki_buffer         legacy  = { NULL, 0u, 0u, false };
+        struct dj_wiki_heading* const heading = &_wiki->headings[index];
+        struct dj_wiki_buffer         legacy  = { NULL, 0u, 0u, false };
         const size_t                 number  = d_internal_keep_key(
                                                    keys, &count,
                                                    heading->anchor);
@@ -6957,7 +6957,7 @@ d_internal_number(
         if ( (ok) &&
              (number > 0u) )
         {
-            struct d_wiki_buffer anchor = { NULL, 0u, 0u, false };
+            struct dj_wiki_buffer anchor = { NULL, 0u, 0u, false };
             char                 suffix[32];
 
             (void)snprintf(suffix, sizeof(suffix), "_%zu", number);
@@ -6990,10 +6990,10 @@ d_internal_number(
 d_internal_add_line
   Writes text on one line: each line ending a space.
 */
-static void
-d_internal_add_line(
-    struct d_wiki_buffer* _out,
-    const char*           _text
+static
+void d_internal_add_line(
+    struct dj_wiki_buffer* _out,
+    const char*            _text
 )
 {
     // each byte, a line ending a space
@@ -7025,10 +7025,10 @@ d_internal_add_literal
   Writes text to be read as it is within <pre> or <nowiki>: `&` and `<`
 as references.
 */
-static void
-d_internal_add_literal(
-    struct d_wiki_buffer* _out,
-    const char*           _text
+static
+void d_internal_add_literal(
+    struct dj_wiki_buffer* _out,
+    const char*            _text
 )
 {
     // each byte, `&` and `<` written as references
@@ -7053,11 +7053,11 @@ d_internal_add_literal(
 }
 
 
-static bool
-d_internal_write_heading(
-    struct d_wiki_buffer* _out,
-    size_t                _level,
-    const char*           _title
+static
+bool d_internal_write_heading(
+    struct dj_wiki_buffer* _out,
+    size_t                 _level,
+    const char*            _title
 )
 {
     // the level's `=`s, either side
@@ -7088,12 +7088,12 @@ d_internal_write_page_link
 -- one with `#`, `|`, a bracket or a brace, `<` or `>` -- an anchor with
 what would end the link, or a label with a link's brackets.
 */
-static bool
-d_internal_write_page_link(
-    struct d_wiki_buffer* _out,
-    const char*           _page,
-    const char*           _anchor,
-    const char*           _label
+static
+bool d_internal_write_page_link(
+    struct dj_wiki_buffer* _out,
+    const char*            _page,
+    const char*            _anchor,
+    const char*            _label
 )
 {
     // what would read as another link, or end this one
@@ -7142,10 +7142,10 @@ d_internal_add_url
   Writes a URL with what a URL may not hold in wikitext encoded: space,
 brackets, `<`, `>`, `"`.
 */
-static void
-d_internal_add_url(
-    struct d_wiki_buffer* _out,
-    const char*           _url
+static
+void d_internal_add_url(
+    struct dj_wiki_buffer* _out,
+    const char*            _url
 )
 {
     static const char digits[] = "0123456789ABCDEF";
@@ -7172,11 +7172,11 @@ d_internal_add_url(
 }
 
 
-static bool
-d_internal_write_url_link(
-    struct d_wiki_buffer* _out,
-    const char*           _url,
-    const char*           _label
+static
+bool d_internal_write_url_link(
+    struct dj_wiki_buffer* _out,
+    const char*            _url,
+    const char*            _label
 )
 {
     const size_t length = strlen(_url);
@@ -7241,11 +7241,11 @@ d_internal_write_image
   Writes [[File:source|alt=text]]: refused for a file's name a title cannot
 hold, or a text that would end the option or the link.
 */
-static bool
-d_internal_write_image(
-    struct d_wiki_buffer* _out,
-    const char*           _source,
-    const char*           _text
+static
+bool d_internal_write_image(
+    struct dj_wiki_buffer* _out,
+    const char*            _source,
+    const char*            _text
 )
 {
     // what would end the option, or the link
@@ -7280,11 +7280,11 @@ d_internal_write_image(
 }
 
 
-static bool
-d_internal_write_code(
-    struct d_wiki_buffer* _out,
-    const char*           _code,
-    const char*           _language
+static
+bool d_internal_write_code(
+    struct dj_wiki_buffer* _out,
+    const char*            _code,
+    const char*            _language
 )
 {
     bool highlight = (_language != NULL);
@@ -7337,10 +7337,10 @@ d_internal_write_code(
 }
 
 
-static bool
-d_internal_write_inline_code(
-    struct d_wiki_buffer* _out,
-    const char*           _code
+static
+bool d_internal_write_inline_code(
+    struct dj_wiki_buffer* _out,
+    const char*            _code
 )
 {
     // nothing is no code
@@ -7377,12 +7377,12 @@ d_internal_write_inline_code(
 }
 
 
-static bool
-d_internal_write_item(
-    struct d_wiki_buffer* _out,
-    const char*           _text,
-    size_t                _depth,
-    bool                  _ordered
+static
+bool d_internal_write_item(
+    struct dj_wiki_buffer* _out,
+    const char*            _text,
+    size_t                 _depth,
+    bool                   _ordered
 )
 {
     // a marker for each level
@@ -7404,12 +7404,12 @@ d_internal_write_cell
   Writes a table's cell: its `|` a reference, and in a header its `!` too,
 but for those within a link's or a template's brackets, which keep them.
 */
-static void
-d_internal_write_cell(
-    struct d_wiki_buffer* _out,
-    const char*           _cell,
-    size_t                _length,
-    bool                  _header
+static
+void d_internal_write_cell(
+    struct dj_wiki_buffer* _out,
+    const char*            _cell,
+    size_t                 _length,
+    bool                   _header
 )
 {
     size_t within = 0;
@@ -7465,10 +7465,10 @@ d_internal_write_cell(
 }
 
 
-static bool
-d_internal_write_table(
-    struct d_wiki_buffer* _out,
-    const char*           _rows
+static
+bool d_internal_write_table(
+    struct dj_wiki_buffer* _out,
+    const char*            _rows
 )
 {
     const char* at  = _rows;
@@ -7525,8 +7525,8 @@ d_internal_ends_protocol
   Whether the `:` at `_colon` of a text ends the name of a URL's protocol,
 mailto:, that begins a word.
 */
-static bool
-d_internal_ends_protocol(
+static
+bool d_internal_ends_protocol(
     const char* _text,
     const char* _colon
 )
@@ -7563,10 +7563,10 @@ name, as mailto: does; what begins a line's markup there; and a `=` that
 ends a line.
   Long as a dispatch on what each byte would begin is.
 */
-static bool
-d_internal_write_escape(
-    struct d_wiki_buffer* _out,
-    const char*           _text
+static
+bool d_internal_write_escape(
+    struct dj_wiki_buffer* _out,
+    const char*            _text
 )
 {
     bool line_start = true;
@@ -7644,10 +7644,10 @@ d_internal_write_option
   What stands in an image's link=: a URL, whole, or a page's title, which
 holds no `|`, bracket, brace, `<`, `>` or line ending.
 */
-static bool
-d_internal_write_option(
-    struct d_wiki_buffer* _out,
-    const char*           _target
+static
+bool d_internal_write_option(
+    struct dj_wiki_buffer* _out,
+    const char*            _target
 )
 {
     const size_t length = strlen(_target);
@@ -7691,11 +7691,11 @@ link with `:` where its namespace would put it in place; a URL.
   Long as each form's destination has rules of its own: a title's, a
 gallery's file's, a URL's.
 */
-static bool
-d_internal_write_target(
-    struct d_wiki_buffer*     _out,
-    const struct d_wiki_link* _link,
-    const char*               _target
+static
+bool d_internal_write_target(
+    struct dj_wiki_buffer*     _out,
+    const struct dj_wiki_link* _link,
+    const char*                _target
 )
 {
     const size_t length = strlen(_target);
@@ -7786,11 +7786,11 @@ d_internal_write_target(
 d_internal_write_link_label
   What stands in a link's label, in its form.
 */
-static bool
-d_internal_write_link_label(
-    struct d_wiki_buffer*     _out,
-    const struct d_wiki_link* _link,
-    const char*               _label
+static
+bool d_internal_write_link_label(
+    struct dj_wiki_buffer*     _out,
+    const struct dj_wiki_link* _link,
+    const char*                _label
 )
 {
     // a title's label holds no [[ or ]]; a URL's no `]` or line ending; a
@@ -7829,10 +7829,9 @@ d_internal_write_link_label(
 d_wiki_mediawiki_driver
   The driver's table.
 */
-const struct d_wiki_driver*
-d_wiki_mediawiki_driver(void)
+const struct dj_wiki_driver* d_wiki_mediawiki_driver(void)
 {
-    static const struct d_wiki_driver driver =
+    static const struct dj_wiki_driver driver =
     {
         D_WIKI_MEDIAWIKI,
         d_internal_read,

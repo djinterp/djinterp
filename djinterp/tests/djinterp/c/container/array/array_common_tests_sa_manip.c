@@ -16,7 +16,7 @@
 
 // djinterp
 #include "./array_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -31,10 +31,8 @@ d_tests_sa_array_common_insert_element
   - negative index support
   - NULL parameter handling
 */
-bool
-d_tests_sa_array_common_insert_element
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_insert_element(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -142,10 +140,8 @@ d_tests_sa_array_common_insert_element
 d_tests_sa_array_common_insert_elements
   Tests the `d_array_common_insert_elements` function.
 */
-bool
-d_tests_sa_array_common_insert_elements
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_insert_elements(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -220,10 +216,8 @@ d_tests_sa_array_common_insert_elements
 d_tests_sa_array_common_prepend_element
   Tests the `d_array_common_prepend_element` function.
 */
-bool
-d_tests_sa_array_common_prepend_element
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_prepend_element(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -287,10 +281,8 @@ d_tests_sa_array_common_prepend_element
 d_tests_sa_array_common_prepend_elements
   Tests the `d_array_common_prepend_elements` function.
 */
-bool
-d_tests_sa_array_common_prepend_elements
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_prepend_elements(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -347,10 +339,8 @@ d_tests_sa_array_common_prepend_elements
 d_tests_sa_array_common_is_valid_resize_amount
   Tests the `d_array_common_is_valid_resize_amount` function.
 */
-bool
-d_tests_sa_array_common_is_valid_resize_amount
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_is_valid_resize_amount(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -432,10 +422,8 @@ d_tests_sa_array_common_is_valid_resize_amount
 d_tests_sa_array_common_is_valid_resize_factor
   Tests the `d_array_common_is_valid_resize_factor` function.
 */
-bool
-d_tests_sa_array_common_is_valid_resize_factor
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_is_valid_resize_factor(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -506,10 +494,8 @@ d_tests_sa_array_common_is_valid_resize_factor
 d_tests_sa_array_common_resize_amount
   Tests the `d_array_common_resize_amount` function.
 */
-bool
-d_tests_sa_array_common_resize_amount
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_resize_amount(
+    struct dj_test_counter* _test_info
 )
 {
     bool    test_result;
@@ -579,10 +565,8 @@ d_tests_sa_array_common_resize_amount
 d_tests_sa_array_common_resize_factor
   Tests the `d_array_common_resize_factor` function.
 */
-bool
-d_tests_sa_array_common_resize_factor
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_resize_factor(
+    struct dj_test_counter* _test_info
 )
 {
     bool    test_result;
@@ -657,10 +641,8 @@ d_tests_sa_array_common_resize_factor
 d_tests_sa_array_common_reverse
   Tests the `d_array_common_reverse` function.
 */
-bool
-d_tests_sa_array_common_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -733,10 +715,8 @@ d_tests_sa_array_common_reverse
 d_tests_sa_array_common_shift_left
   Tests the `d_array_common_shift_left` function.
 */
-bool
-d_tests_sa_array_common_shift_left
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_shift_left(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -798,10 +778,8 @@ d_tests_sa_array_common_shift_left
 d_tests_sa_array_common_shift_left_circular
   Tests the `d_array_common_shift_left_circular` function.
 */
-bool
-d_tests_sa_array_common_shift_left_circular
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_shift_left_circular(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -852,10 +830,8 @@ d_tests_sa_array_common_shift_left_circular
 d_tests_sa_array_common_shift_right
   Tests the `d_array_common_shift_right` function.
 */
-bool
-d_tests_sa_array_common_shift_right
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_shift_right(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -905,10 +881,8 @@ d_tests_sa_array_common_shift_right
 d_tests_sa_array_common_shift_right_circular
   Tests the `d_array_common_shift_right_circular` function.
 */
-bool
-d_tests_sa_array_common_shift_right_circular
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_shift_right_circular(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -959,10 +933,8 @@ d_tests_sa_array_common_shift_right_circular
 d_tests_sa_array_common_sort
   Tests the `d_array_common_sort` function.
 */
-bool
-d_tests_sa_array_common_sort
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_sort(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result;
@@ -1041,10 +1013,8 @@ d_tests_sa_array_common_sort
 d_tests_sa_array_common_run_manip_tests
   Runs all manipulation function tests.
 */
-bool
-d_tests_sa_array_common_run_manip_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_run_manip_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result;

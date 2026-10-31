@@ -28,7 +28,7 @@
 #include "./option_set.h"
 #include "./option_override_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -41,7 +41,7 @@
 // caller has the C core
 #if ( (D_ENV_LANG_USING_CPP) &&                                           \
       (D_ENV_LANG_IS_CPP17_OR_HIGHER) )
-#   include "../../core/option/option_override.hpp"
+// C++ callers include option_override.hpp themselves (no C header includes C++)
 #endif  // C++17 and up
 
 

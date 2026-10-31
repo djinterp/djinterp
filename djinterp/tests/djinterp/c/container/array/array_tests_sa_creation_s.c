@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [container]                               array_tests_sa_creation_s.c
 *
-* Unit tests for `array.h` d_array_s creation functions.
+* Unit tests for `array.h` dj_array_s creation functions.
 * Part of the array standalone test suite.
 *
 *
@@ -13,21 +13,19 @@
 
 // djinterp
 #include "./array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
 d_tests_sa_array_s_new
   Tests the `d_array_s_new` function.
 */
-bool
-d_tests_sa_array_s_new
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array_s* arr;
+    struct dj_array_s* arr;
 
     printf("Testing `d_array_s_new`...\n");
 
@@ -61,14 +59,12 @@ d_tests_sa_array_s_new
 d_tests_sa_array_s_new_default_size
   Tests the `d_array_s_new_default_size` function.
 */
-bool
-d_tests_sa_array_s_new_default_size
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_default_size(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array_s* arr;
+    struct dj_array_s* arr;
 
     printf("Testing `d_array_s_new_default_size`...\n");
 
@@ -93,14 +89,12 @@ d_tests_sa_array_s_new_default_size
 d_tests_sa_array_s_new_from_arr
   Tests the `d_array_s_new_from_arr` function.
 */
-bool
-d_tests_sa_array_s_new_from_arr
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_from_arr(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array_s* arr;
+    struct dj_array_s* arr;
     int               data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_s_new_from_arr`...\n");
@@ -126,14 +120,12 @@ d_tests_sa_array_s_new_from_arr
 d_tests_sa_array_s_new_from_args
   Tests the `d_array_s_new_from_args` function.
 */
-bool
-d_tests_sa_array_s_new_from_args
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_from_args(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array_s* arr;
+    struct dj_array_s* arr;
 
     printf("Testing `d_array_s_new_from_args`...\n");
 
@@ -158,15 +150,13 @@ d_tests_sa_array_s_new_from_args
 d_tests_sa_array_s_new_copy
   Tests the `d_array_s_new_copy` function.
 */
-bool
-d_tests_sa_array_s_new_copy
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_copy(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* copy;
+    struct dj_array*   original;
+    struct dj_array_s* copy;
     int               data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_s_new_copy`...\n");
@@ -202,15 +192,13 @@ d_tests_sa_array_s_new_copy
 d_tests_sa_array_s_new_copy_reverse
   Tests the `d_array_s_new_copy_reverse` function.
 */
-bool
-d_tests_sa_array_s_new_copy_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_copy_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* copy;
+    struct dj_array*   original;
+    struct dj_array_s* copy;
     int               data[] = { 1, 2, 3, 4, 5 };
     int*              int_elements;
 
@@ -248,15 +236,13 @@ d_tests_sa_array_s_new_copy_reverse
 d_tests_sa_array_s_new_copy_range
   Tests the `d_array_s_new_copy_range` function.
 */
-bool
-d_tests_sa_array_s_new_copy_range
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_copy_range(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* copy;
+    struct dj_array*   original;
+    struct dj_array_s* copy;
     int               data[] = { 1, 2, 3, 4, 5 };
     int*              int_elements;
 
@@ -294,15 +280,13 @@ d_tests_sa_array_s_new_copy_range
 d_tests_sa_array_s_new_copy_range_reverse
   Tests the `d_array_s_new_copy_range_reverse` function.
 */
-bool
-d_tests_sa_array_s_new_copy_range_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_copy_range_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* copy;
+    struct dj_array*   original;
+    struct dj_array_s* copy;
     int               data[] = { 1, 2, 3, 4, 5 };
     int*              int_elements;
 
@@ -340,14 +324,12 @@ d_tests_sa_array_s_new_copy_range_reverse
 d_tests_sa_array_s_new_fill
   Tests the `d_array_s_new_fill` function.
 */
-bool
-d_tests_sa_array_s_new_fill
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_fill(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array_s* arr;
+    struct dj_array_s* arr;
     int               fill_value = 42;
     int*              int_elements;
 
@@ -375,16 +357,14 @@ d_tests_sa_array_s_new_fill
 d_tests_sa_array_s_new_merge
   Tests the `d_array_s_new_merge` function.
 */
-bool
-d_tests_sa_array_s_new_merge
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_merge(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array_s* merged;
-    struct d_array_s* arr1;
-    struct d_array_s* arr2;
+    struct dj_array_s* merged;
+    struct dj_array_s* arr1;
+    struct dj_array_s* arr2;
     int               data1[] = { 1, 2, 3 };
     int               data2[] = { 4, 5 };
 
@@ -425,15 +405,13 @@ d_tests_sa_array_s_new_merge
 d_tests_sa_array_s_new_slice
   Tests the `d_array_s_new_slice` function.
 */
-bool
-d_tests_sa_array_s_new_slice
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_slice(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* slice;
+    struct dj_array*   original;
+    struct dj_array_s* slice;
     int               data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_s_new_slice`...\n");
@@ -469,15 +447,13 @@ d_tests_sa_array_s_new_slice
 d_tests_sa_array_s_new_slice_reverse
   Tests the `d_array_s_new_slice_reverse` function.
 */
-bool
-d_tests_sa_array_s_new_slice_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_slice_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* slice;
+    struct dj_array*   original;
+    struct dj_array_s* slice;
     int               data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_s_new_slice_reverse`...\n");
@@ -513,15 +489,13 @@ d_tests_sa_array_s_new_slice_reverse
 d_tests_sa_array_s_new_slice_range
   Tests the `d_array_s_new_slice_range` function.
 */
-bool
-d_tests_sa_array_s_new_slice_range
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_slice_range(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* slice;
+    struct dj_array*   original;
+    struct dj_array_s* slice;
     int               data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_s_new_slice_range`...\n");
@@ -557,15 +531,13 @@ d_tests_sa_array_s_new_slice_range
 d_tests_sa_array_s_new_slice_range_reverse
   Tests the `d_array_s_new_slice_range_reverse` function.
 */
-bool
-d_tests_sa_array_s_new_slice_range_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_new_slice_range_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array*   original;
-    struct d_array_s* slice;
+    struct dj_array*   original;
+    struct dj_array_s* slice;
     int               data[] = { 1, 2, 3, 4, 5 };
 
     printf("Testing `d_array_s_new_slice_range_reverse`...\n");
@@ -606,18 +578,16 @@ d_tests_sa_array_s_new_slice_range_reverse
 
 /*
 d_tests_sa_array_run_creation_s_tests
-  Runs all d_array_s creation function tests.
+  Runs all dj_array_s creation function tests.
 */
-bool
-d_tests_sa_array_run_creation_s_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_run_creation_s_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result = true;
 
     printf("\n----------------------------------------\n");
-    printf("Running d_array_s Creation Function Tests\n");
+    printf("Running dj_array_s Creation Function Tests\n");
     printf("----------------------------------------\n");
 
     overall_result &= d_tests_sa_array_s_new(_test_info);

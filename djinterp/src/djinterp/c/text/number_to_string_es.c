@@ -213,7 +213,12 @@ static const nts_es_word g_magnitude_ordinals[] =
     NTS_ES_WORD("trillonésimo")
 };
 
-static void nts_es_term(char* dst, size_t dst_cap, size_t total)
+static
+void nts_es_term(
+    char*  dst,
+    size_t dst_cap,
+    size_t total
+)
 {
     if (dst_cap == 0u) {
         return;
@@ -226,7 +231,14 @@ static void nts_es_term(char* dst, size_t dst_cap, size_t total)
     }
 }
 
-static void nts_es_put_mem(char* dst, size_t dst_cap, size_t* total, const char* s, size_t n)
+static
+void nts_es_put_mem(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    const char* s,
+    size_t      n
+)
 {
     size_t off = *total;
 
@@ -241,12 +253,24 @@ static void nts_es_put_mem(char* dst, size_t dst_cap, size_t* total, const char*
     *total = off + n;
 }
 
-static void nts_es_put_word(char* dst, size_t dst_cap, size_t* total, nts_es_word w)
+static
+void nts_es_put_word(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    nts_es_word w
+)
 {
     nts_es_put_mem(dst, dst_cap, total, w.s, w.len);
 }
 
-static void nts_es_put_char(char* dst, size_t dst_cap, size_t* total, char c)
+static
+void nts_es_put_char(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total,
+    char    c
+)
 {
     size_t off = *total;
 
@@ -257,18 +281,29 @@ static void nts_es_put_char(char* dst, size_t dst_cap, size_t* total, char c)
     *total = off + 1u;
 }
 
-static void nts_es_put_space(char* dst, size_t dst_cap, size_t* total)
+static
+void nts_es_put_space(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total
+)
 {
     nts_es_put_char(dst, dst_cap, total, ' ');
 }
 
-static uint64_t nts_es_abs_i64(int64_t value)
+static
+uint64_t nts_es_abs_i64(
+    int64_t value
+)
 {
     uint64_t u = (uint64_t)value;
     return (value < 0) ? (UINT64_C(0) - u) : u;
 }
 
-static int nts_es_triplet_is_univerbal(unsigned value)
+static
+int nts_es_triplet_is_univerbal(
+    unsigned value
+)
 {
     if (value == 0u) {
         return 0;
@@ -285,12 +320,14 @@ static int nts_es_triplet_is_univerbal(unsigned value)
     return (value % 100u) == 0u;
 }
 
-static void nts_es_parse_sub100_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value,
-    int         apocope)
+static
+void nts_es_parse_sub100_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value,
+    int      apocope
+)
 {
     unsigned tens;
     unsigned ones;
@@ -316,12 +353,14 @@ static void nts_es_parse_sub100_cardinal(
     }
 }
 
-static void nts_es_parse_triplet_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value,
-    int         apocope)
+static
+void nts_es_parse_triplet_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value,
+    int      apocope
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -350,11 +389,13 @@ static void nts_es_parse_triplet_cardinal(
     }
 }
 
-static void nts_es_parse_sub100_ordinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_es_parse_sub100_ordinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     unsigned tens;
     unsigned ones;
@@ -376,11 +417,13 @@ static void nts_es_parse_sub100_ordinal(
     nts_es_put_word(dst, dst_cap, total, g_ord_0_29[ones]);
 }
 
-static void nts_es_parse_triplet_ordinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value)
+static
+void nts_es_parse_triplet_ordinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -406,12 +449,21 @@ static void nts_es_parse_triplet_ordinal(
     nts_es_parse_sub100_ordinal(dst, dst_cap, total, rem);
 }
 
-static void nts_es_put_group_separator(char* dst, size_t dst_cap, size_t* total)
+static
+void nts_es_put_group_separator(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total
+)
 {
     nts_es_put_space(dst, dst_cap, total);
 }
 
-static unsigned nts_es_split_groups(uint64_t value, unsigned groups[7])
+static
+unsigned nts_es_split_groups(
+    uint64_t value,
+    unsigned groups[7]
+)
 {
     unsigned count = 0u;
 
@@ -423,7 +475,12 @@ static unsigned nts_es_split_groups(uint64_t value, unsigned groups[7])
     return count;
 }
 
-size_t nts_es_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_es_cardinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     unsigned groups[7];
     unsigned count;
@@ -506,7 +563,12 @@ size_t nts_es_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fl
     return total;
 }
 
-size_t nts_es_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_es_ordinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     unsigned groups[7];
     unsigned count;
@@ -565,7 +627,12 @@ size_t nts_es_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fla
     return total;
 }
 
-size_t nts_es_ordinal_abbrev_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_es_ordinal_abbrev_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     char digits[32];
     size_t n = 0u;

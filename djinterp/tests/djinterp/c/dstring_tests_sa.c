@@ -17,7 +17,7 @@
 
  /*
  d_tests_sa_dstring_all
-   Master test runner for all d_string unit tests. Runs all test categories
+   Master test runner for all dj_string unit tests. Runs all test categories
    and returns an aggregate test object containing all results.
 
  Test categories run:
@@ -42,19 +42,15 @@
    (none)
 
  Return:
-   Test object containing all d_string test results.
+   Test object containing all dj_string test results.
  */
-struct d_test_object*
-d_tests_sa_dstring_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
     // create master group with all implemented test categories
-    group = d_test_object_new_interior("d_string Module Tests", 16);
+    group = d_test_object_new_interior("dj_string Module Tests", 16);
     child_idx = 0;
 
     if (!group)

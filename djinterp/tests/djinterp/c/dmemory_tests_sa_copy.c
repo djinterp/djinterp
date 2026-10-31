@@ -28,13 +28,9 @@ d_tests_sa_dmemory_memcpy
   - returns destination pointer
   - copies binary data correctly
 */
-struct d_test_object*
-d_tests_sa_dmemory_memcpy
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_memcpy(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         src[D_TESTS_MEMORY_MEDIUM_SIZE]  = { '\0' };
     unsigned char         dest[D_TESTS_MEMORY_MEDIUM_SIZE] = { '\0' };
     unsigned char         guard_dest[D_TESTS_MEMORY_MEDIUM_SIZE + 32];
@@ -162,13 +158,9 @@ d_tests_sa_dmemory_memcpy_s
   - returns 0 on success
   - validates against RSIZE_MAX
 */
-struct d_test_object*
-d_tests_sa_dmemory_memcpy_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_memcpy_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         src[D_TESTS_MEMORY_MEDIUM_SIZE];
     unsigned char         dest[D_TESTS_MEMORY_MEDIUM_SIZE];
     unsigned char         small_dest[D_TESTS_MEMORY_SMALL_SIZE];
@@ -295,13 +287,9 @@ d_tests_sa_dmemory_copy_all
   - d_memcpy
   - d_memcpy_s
 */
-struct d_test_object*
-d_tests_sa_dmemory_copy_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_copy_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Memory Copy Operations", 2);

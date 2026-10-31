@@ -40,12 +40,12 @@
 // 1.1    The reader
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_posix
+// dj_internal_posix
 //   struct: where pdpmake's input loop stands: the text, and whether a rule
 //   is above, whose commands a tab-led line would be.
-struct d_internal_posix
+struct dj_internal_posix
 {
-    struct d_make_reader* reader;
+    struct dj_make_reader* reader;
     const char*           text;
     bool                  in_rule;
 };
@@ -68,8 +68,8 @@ struct d_internal_posix
  * first `)` that no inner reference holds closes it, so `$(a(b)c)` ends at
  * its first `)`.
  */
-static size_t
-d_internal_skip(
+static
+size_t d_internal_skip(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -114,8 +114,8 @@ d_internal_skip(
  * @param[in] _byte  the byte.
  * @return its place, or `_end`.
  */
-static size_t
-d_internal_find(
+static
+size_t d_internal_find(
     const char* _text,
     size_t      _at,
     size_t      _end,
@@ -154,8 +154,8 @@ d_internal_find(
  * @param[in] _end    where it ends.
  * @return `true` if a `$` is in it.
  */
-static bool
-d_internal_refers(
+static
+bool d_internal_refers(
     const char* _text,
     size_t      _start,
     size_t      _end
@@ -175,8 +175,8 @@ d_internal_refers(
  * @param[in] _byte   the byte.
  * @return its place, or `_end`.
  */
-static size_t
-d_internal_first(
+static
+size_t d_internal_first(
     const char* _text,
     size_t      _start,
     size_t      _end,
@@ -210,11 +210,11 @@ d_internal_first(
  * and names a logical line by its last: so a continued line is named by its
  * last physical line, and a last line no line feed ends by the line before.
  */
-static bool
-d_internal_refuse(
-    struct d_internal_posix*  _posix,
-    const struct d_make_line* _line,
-    const char*               _message
+static
+bool d_internal_refuse(
+    struct dj_internal_posix*  _posix,
+    const struct dj_make_line* _line,
+    const char*                _message
 )
 {
     const bool unended = (_line->next == _line->end);
@@ -235,12 +235,12 @@ d_internal_refuse(
  * @param[in]     _within   the statement the line holds, or D_MAKE_NONE.
  * @return `true`; `false` when memory runs out.
  */
-static bool
-d_internal_comment(
-    struct d_internal_posix*  _posix,
-    const struct d_make_line* _line,
-    size_t                    _comment,
-    size_t                    _within
+static
+bool d_internal_comment(
+    struct dj_internal_posix*  _posix,
+    const struct dj_make_line* _line,
+    size_t                     _comment,
+    size_t                     _within
 )
 {
     // no comment
@@ -264,11 +264,11 @@ d_internal_comment(
  * @param[in]     _comment  where its comment starts, or its end.
  * @return `true`; `false` when memory runs out.
  */
-static bool
-d_internal_command(
-    struct d_internal_posix*  _posix,
-    const struct d_make_line* _line,
-    size_t                    _comment
+static
+bool d_internal_command(
+    struct dj_internal_posix*  _posix,
+    const struct dj_make_line* _line,
+    size_t                     _comment
 )
 {
     const size_t index = d_make_reader_statement(_posix->reader,
@@ -295,7 +295,7 @@ d_internal_command(
         flags++;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_posix->reader->make->statements[index];
 
     statement->word.start = _line->start;
@@ -316,12 +316,12 @@ d_internal_command(
  * @param[in]     _comment  where its comment starts, or its end.
  * @return `true`; `false` when pdpmake refuses it or memory runs out.
  */
-static bool
-d_internal_include(
-    struct d_internal_posix*  _posix,
-    const struct d_make_line* _line,
-    size_t                    _word,
-    size_t                    _comment
+static
+bool d_internal_include(
+    struct dj_internal_posix*  _posix,
+    const struct dj_make_line* _line,
+    size_t                     _word,
+    size_t                     _comment
 )
 {
     const char* const text  = _posix->text;
@@ -344,7 +344,7 @@ d_internal_include(
         return false;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_posix->reader->make->statements[index];
 
     statement->word.start = _line->start;
@@ -369,12 +369,12 @@ d_internal_include(
  * pdpmake's `q - 1 > copy2` has it; `:=` is no operator in POSIX mode, so
  * its colon is the name's.
  */
-static void
-d_internal_operator(
-    const char*         _text,
-    size_t              _start,
-    size_t              _equal,
-    struct d_make_span* _out
+static
+void d_internal_operator(
+    const char*          _text,
+    size_t               _start,
+    size_t               _equal,
+    struct dj_make_span* _out
 )
 {
     _out->start = _equal;
@@ -422,17 +422,17 @@ d_internal_operator(
  *                          it, as pdpmake's try_target has it.
  * @return `true`; `false` when pdpmake refuses it or memory runs out.
  */
-static bool
-d_internal_macro(
-    struct d_internal_posix*  _posix,
-    const struct d_make_line* _line,
-    size_t                    _equal,
-    size_t                    _comment,
-    bool*                     _rule
+static
+bool d_internal_macro(
+    struct dj_internal_posix*  _posix,
+    const struct dj_make_line* _line,
+    size_t                     _equal,
+    size_t                     _comment,
+    bool*                      _rule
 )
 {
     const char* const  text = _posix->text;
-    struct d_make_span op;
+    struct dj_make_span op;
 
     d_internal_operator(text, _line->start, _equal, &op);
 
@@ -470,7 +470,7 @@ d_internal_macro(
         return false;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_posix->reader->make->statements[index];
 
     statement->name.start = name;
@@ -496,11 +496,11 @@ d_internal_macro(
  * Long as a rule's parts, each found after the one before: the colon, the
  * `;`, the prerequisites between.
  */
-static bool
-d_internal_rule(
-    struct d_internal_posix*  _posix,
-    const struct d_make_line* _line,
-    size_t                    _comment
+static
+bool d_internal_rule(
+    struct dj_internal_posix*  _posix,
+    const struct dj_make_line* _line,
+    size_t                     _comment
 )
 {
     const char* const text  = _posix->text;
@@ -533,7 +533,7 @@ d_internal_rule(
         return false;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_posix->reader->make->statements[index];
 
     // a table of the two: an expansion, or a rule and its parts
@@ -581,10 +581,10 @@ d_internal_rule(
  * Long as the input loop's order of trials, each a few lines: what is
  * passed over, a command, an include, a macro, a rule.
  */
-static bool
-d_internal_line(
-    struct d_internal_posix*  _posix,
-    const struct d_make_line* _line
+static
+bool d_internal_line(
+    struct dj_internal_posix*  _posix,
+    const struct dj_make_line* _line
 )
 {
     const char* const text    = _posix->text;
@@ -657,18 +657,17 @@ d_make_read_posix
   Each line is taken as pdpmake's input loop takes it; nothing is left open
 at the end, as POSIX mode reads no conditional.
 */
-bool
-d_make_read_posix(
-    struct d_make_reader* _reader
+bool d_make_read_posix(
+    struct dj_make_reader* _reader
 )
 {
-    struct d_internal_posix posix;
+    struct dj_internal_posix posix;
 
     memset(&posix, 0, sizeof(posix));
     posix.reader = _reader;
     posix.text   = _reader->make->text;
 
-    const struct d_make_lines* const lines = &_reader->make->lines;
+    const struct dj_make_lines* const lines = &_reader->make->lines;
 
     // each logical line, while reading goes on
     for (size_t index = 0; index < lines->count; index++)

@@ -24,8 +24,7 @@ Parameter(s):
 Return:
   _destination on success; NULL if _destination or _source is NULL.
 */
-void*
-d_memcpy(
+void* d_memcpy(
     void*       _destination,
     const void* _source,
     size_t      _amount
@@ -59,8 +58,7 @@ Return:
   0 on success; EINVAL for an invalid pointer; ERANGE when _amount exceeds
 _destination_size.
 */
-int
-d_memcpy_s(
+int d_memcpy_s(
     void*       _destination,
     size_t      _destination_size,
     const void* _source,
@@ -126,8 +124,7 @@ Return:
   A pointer to the new allocation on success; NULL if _source is NULL or the
 allocation fails.
 */
-void*
-d_memdup(
+void* d_memdup(
     const void* _source,
     size_t      _size
 )
@@ -175,8 +172,7 @@ Return:
   A pointer to the new allocation on success; NULL if _source is NULL, _size is
 0, allocation fails, or the copy operation fails.
 */
-void*
-d_memdup_s(
+void* d_memdup_s(
     const void* _source,
     size_t      _size
 )
@@ -226,8 +222,7 @@ Parameter(s):
 Return:
   _ptr on success; NULL if _ptr is NULL.
 */
-void*
-d_memset(
+void* d_memset(
     void*  _ptr,
     int    _value,
     size_t _amount
@@ -259,8 +254,7 @@ Return:
 D_MEMORY_RSIZE_MAX; ERANGE when _count exceeds _destination_size, after the
 whole destination is filled.
 */
-int
-d_memset_s(
+int d_memset_s(
     void*  _destination,
     size_t _destination_size,
     int    _ch,

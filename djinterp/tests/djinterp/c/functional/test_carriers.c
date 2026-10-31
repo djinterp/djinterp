@@ -35,9 +35,9 @@ If that stops holding, the two tiers have drifted apart.
 #include "../../../../inc/djinterp/c/functional/transducer.h"
 
 
-// d_carrier_tally
+// dj_carrier_tally
 //   struct: the running count of conformance assertions.
-struct d_carrier_tally
+struct dj_carrier_tally
 {
     size_t checked;     // assertions attempted
     size_t passed;      // assertions that held
@@ -50,13 +50,13 @@ struct d_carrier_tally
                         label)                                              \
     d_internal_carrier_record((tally), (condition), (label))
 
-D_MAYBE_DECLARE(d_test_maybe_int, intmax_t);
-D_RESULT_DECLARE(d_test_result_int, intmax_t, intmax_t);
+D_MAYBE_DECLARE(dj_test_maybe_int, intmax_t);
+D_RESULT_DECLARE(dj_test_result_int, intmax_t, intmax_t);
 
-// d_internal_carrier_probe
+// dj_internal_carrier_probe
 //   struct: counts callable invocations, so "was the transform called at all"
 // is measured rather than assumed.
-struct d_internal_carrier_probe
+struct dj_internal_carrier_probe
 {
     size_t calls;       // how many times the callable ran
 };
@@ -73,12 +73,11 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_carrier_record
-(
-    struct d_carrier_tally* _tally,
-    bool                    _condition,
-    const char*             _label
+static
+void d_internal_carrier_record(
+    struct dj_carrier_tally* _tally,
+    bool                     _condition,
+    const char*              _label
 )
 {
     // a NULL tally is a caller error
@@ -113,9 +112,8 @@ Parameter(s):
 Return:
   Always true.
 */
-static bool
-d_internal_carrier_identity
-(
+static
+bool d_internal_carrier_identity(
     const void* _in,
     void*       _out,
     void*       _context
@@ -124,8 +122,8 @@ d_internal_carrier_identity
     // the probe is optional
     if (_context)
     {
-        ((struct d_internal_carrier_probe*)_context)->calls =
-            ((struct d_internal_carrier_probe*)_context)->calls + 1;
+        ((struct dj_internal_carrier_probe*)_context)->calls =
+            ((struct dj_internal_carrier_probe*)_context)->calls + 1;
     }
 
     *(intmax_t*)_out = *(const intmax_t*)_in;
@@ -144,9 +142,8 @@ Parameter(s):
 Return:
   Always true.
 */
-static bool
-d_internal_carrier_add_one
-(
+static
+bool d_internal_carrier_add_one(
     const void* _in,
     void*       _out,
     void*       _context
@@ -155,8 +152,8 @@ d_internal_carrier_add_one
     // the probe is optional
     if (_context)
     {
-        ((struct d_internal_carrier_probe*)_context)->calls =
-            ((struct d_internal_carrier_probe*)_context)->calls + 1;
+        ((struct dj_internal_carrier_probe*)_context)->calls =
+            ((struct dj_internal_carrier_probe*)_context)->calls + 1;
     }
 
     *(intmax_t*)_out = (*(const intmax_t*)_in) + 1;
@@ -175,9 +172,8 @@ Parameter(s):
 Return:
   Always true.
 */
-static bool
-d_internal_carrier_times_two
-(
+static
+bool d_internal_carrier_times_two(
     const void* _in,
     void*       _out,
     void*       _context
@@ -200,9 +196,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to whether the value is even.
 */
-static bool
-d_internal_carrier_is_even
-(
+static
+bool d_internal_carrier_is_even(
     const void* _element,
     void*       _context
 )
@@ -224,9 +219,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_carrier_arrow_just
-(
+static
+void d_internal_carrier_arrow_just(
     const void* _value,
     void*       _out,
     void*       _context
@@ -234,7 +228,7 @@ d_internal_carrier_arrow_just
 {
     (void)_context;
 
-    d_maybe_just((struct d_maybe*)_out, _value);
+    d_maybe_just((struct dj_maybe*)_out, _value);
 
     return;
 }
@@ -251,9 +245,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_carrier_arrow_even_only
-(
+static
+void d_internal_carrier_arrow_even_only(
     const void* _value,
     void*       _out,
     void*       _context
@@ -264,12 +257,12 @@ d_internal_carrier_arrow_even_only
     // an odd value is rejected into a nothing
     if (((*(const intmax_t*)_value) % 2) != 0)
     {
-        d_maybe_nothing((struct d_maybe*)_out);
+        d_maybe_nothing((struct dj_maybe*)_out);
 
         return;
     }
 
-    d_maybe_just((struct d_maybe*)_out, _value);
+    d_maybe_just((struct dj_maybe*)_out, _value);
 
     return;
 }
@@ -285,9 +278,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_carrier_arrow_result_ok
-(
+static
+void d_internal_carrier_arrow_result_ok(
     const void* _value,
     void*       _out,
     void*       _context
@@ -299,7 +291,7 @@ d_internal_carrier_arrow_result_ok
 
     scaled = (*(const intmax_t*)_value) * 10;
 
-    d_result_ok((struct d_result*)_out, &scaled);
+    d_result_ok((struct dj_result*)_out, &scaled);
 
     return;
 }
@@ -317,21 +309,20 @@ d_tests_maybe
   - filter never grows the carrier
   - that alt is left-biased and aempty is its two-sided identity
 */
-static bool
-d_tests_maybe
-(
-    struct d_carrier_tally* _tally
+static
+bool d_tests_maybe(
+    struct dj_carrier_tally* _tally
 )
 {
-    struct d_test_maybe_int         cell;
-    struct d_test_maybe_int         other;
-    struct d_test_maybe_int         out;
-    struct d_test_maybe_int         composed;
-    struct d_maybe                  a;
-    struct d_maybe                  b;
-    struct d_maybe                  c;
-    struct d_maybe                  d;
-    struct d_internal_carrier_probe probe;
+    struct dj_test_maybe_int         cell;
+    struct dj_test_maybe_int         other;
+    struct dj_test_maybe_int         out;
+    struct dj_test_maybe_int         composed;
+    struct dj_maybe                  a;
+    struct dj_maybe                  b;
+    struct dj_maybe                  c;
+    struct dj_maybe                  d;
+    struct dj_internal_carrier_probe probe;
     intmax_t                        value;
     intmax_t                        fallback;
     intmax_t                        got;
@@ -488,19 +479,18 @@ d_tests_result
   - that bind short-circuits on an error
   - that to_maybe forgets the error, and is one-way
 */
-static bool
-d_tests_result
-(
-    struct d_carrier_tally* _tally
+static
+bool d_tests_result(
+    struct dj_carrier_tally* _tally
 )
 {
-    struct d_test_result_int        cell;
-    struct d_test_result_int        out;
-    struct d_test_maybe_int         forgotten;
-    struct d_result                 a;
-    struct d_result                 b;
-    struct d_maybe                  m;
-    struct d_internal_carrier_probe probe;
+    struct dj_test_result_int        cell;
+    struct dj_test_result_int        out;
+    struct dj_test_maybe_int         forgotten;
+    struct dj_result                 a;
+    struct dj_result                 b;
+    struct dj_maybe                  m;
+    struct dj_internal_carrier_probe probe;
     intmax_t                        value;
     intmax_t                        error;
     intmax_t                        fallback;
@@ -617,21 +607,20 @@ d_tests_carriers_are_foldable
   This group is the join between tier 1 and tier 2: if it fails, the carriers
 have grown a second, parallel fold rather than reusing the spine.
 */
-static bool
-d_tests_carriers_are_foldable
-(
-    struct d_carrier_tally* _tally
+static
+bool d_tests_carriers_are_foldable(
+    struct dj_carrier_tally* _tally
 )
 {
-    struct d_test_maybe_int       mcell;
-    struct d_test_result_int      rcell;
-    struct d_maybe                m;
-    struct d_result               r;
-    struct d_monoid               sum;
-    struct d_reducer              reducer;
-    struct d_reducing_state       state;
-    struct d_producer_array_state pstate;
-    struct d_producer             source;
+    struct dj_test_maybe_int       mcell;
+    struct dj_test_result_int      rcell;
+    struct dj_maybe                m;
+    struct dj_result               r;
+    struct dj_monoid               sum;
+    struct dj_reducer              reducer;
+    struct dj_reducing_state       state;
+    struct dj_producer_array_state pstate;
+    struct dj_producer             source;
     intmax_t                      accumulator;
     intmax_t                      value;
     intmax_t                      error;
@@ -705,10 +694,10 @@ d_tests_carriers_are_foldable
 
     // a transducer chain runs over a carrier with no modification
     {
-        struct d_transducer_stage stages[1];
-        struct d_transducer       transducer;
-        struct d_array_sink       sink;
-        struct d_reducing_state   tstate;
+        struct dj_transducer_stage stages[1];
+        struct dj_transducer       transducer;
+        struct dj_array_sink       sink;
+        struct dj_reducing_state   tstate;
         intmax_t                  scratch;
 
         value = 8;
@@ -744,13 +733,9 @@ Parameter(s):
 Return:
   0 if every assertion passed, or 1 otherwise.
 */
-int
-main
-(
-    void
-)
+int main(void)
 {
-    struct d_carrier_tally tally;
+    struct dj_carrier_tally tally;
 
     tally.checked = 0;
     tally.passed  = 0;

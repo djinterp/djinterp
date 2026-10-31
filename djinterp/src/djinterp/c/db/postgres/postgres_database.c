@@ -41,8 +41,7 @@
 d_postgres_has_database
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_database(
+bool d_postgres_has_database(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -58,14 +57,13 @@ d_postgres_has_database_s
   A row of pg_database, which lists every database whatever the user may do
 in it.
 */
-int
-d_postgres_has_database_s(
+int d_postgres_has_database_s(
     struct pg_conn* _db,
     const char*     _name,
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { NULL, NULL, _name };
+    const struct dj_internal_postgres_path path = { NULL, NULL, _name };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_DATABASE,
@@ -81,8 +79,7 @@ d_postgres_create_database
 cannot run inside a transaction, so no savepoint is ever needed: the server
 refuses it there first.
 */
-int
-d_postgres_create_database(
+int d_postgres_create_database(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -112,8 +109,7 @@ d_postgres_create_database(
 d_postgres_drop_database
   The server's own DROP DATABASE [IF EXISTS], and WITH (FORCE) from 13.
 */
-int
-d_postgres_drop_database(
+int d_postgres_drop_database(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -151,13 +147,12 @@ d_postgres_drop_database(
 d_postgres_list_databases
   Every row of pg_database, in byte order.
 */
-int
-d_postgres_list_databases(
-    struct pg_conn*        _db,
-    struct d_db_name_list* _names
+int d_postgres_list_databases(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { NULL, NULL, NULL };
+    const struct dj_internal_postgres_path path = { NULL, NULL, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_DATABASE,
@@ -172,8 +167,7 @@ d_postgres_current_database
   libpq's copy of the name the connection was made with, which the server
 cannot change under it.
 */
-const char*
-d_postgres_current_database(
+const char* d_postgres_current_database(
     const struct pg_conn* _db
 )
 {
@@ -190,8 +184,7 @@ d_postgres_current_database(
 d_postgres_has_schema
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_schema(
+bool d_postgres_has_schema(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -207,14 +200,13 @@ d_postgres_has_schema_s
   A row of pg_namespace, "pg_temp" matched as the session's temporary
 schema.
 */
-int
-d_postgres_has_schema_s(
+int d_postgres_has_schema_s(
     struct pg_conn* _db,
     const char*     _name,
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { NULL, NULL, _name };
+    const struct dj_internal_postgres_path path = { NULL, NULL, _name };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_SCHEMA,
@@ -228,8 +220,7 @@ d_postgres_has_schema_s(
 d_postgres_create_schema
   The server's own CREATE SCHEMA [IF NOT EXISTS].
 */
-int
-d_postgres_create_schema(
+int d_postgres_create_schema(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -257,8 +248,7 @@ d_postgres_create_schema(
 d_postgres_drop_schema
   The server's own DROP SCHEMA [IF EXISTS] ... [CASCADE].
 */
-int
-d_postgres_drop_schema(
+int d_postgres_drop_schema(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -288,13 +278,12 @@ d_postgres_drop_schema(
 d_postgres_list_schemas
   pg_namespace, the system's schemas left out, in byte order.
 */
-int
-d_postgres_list_schemas(
-    struct pg_conn*        _db,
-    struct d_db_name_list* _names
+int d_postgres_list_schemas(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { NULL, NULL, NULL };
+    const struct dj_internal_postgres_path path = { NULL, NULL, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_SCHEMA,
@@ -309,8 +298,7 @@ d_postgres_current_schema
   current_schema() is NULL when no schema of the search path exists, which
 is D_DB_NOT_FOUND here.
 */
-int
-d_postgres_current_schema(
+int d_postgres_current_schema(
     struct pg_conn* _db,
     char**          _name
 )
@@ -355,8 +343,7 @@ d_postgres_current_schema(
 d_postgres_has_extension
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_extension(
+bool d_postgres_has_extension(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -371,14 +358,13 @@ d_postgres_has_extension(
 d_postgres_has_extension_s
   A row of pg_extension, which lists what is installed, not what could be.
 */
-int
-d_postgres_has_extension_s(
+int d_postgres_has_extension_s(
     struct pg_conn* _db,
     const char*     _name,
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { NULL, NULL, _name };
+    const struct dj_internal_postgres_path path = { NULL, NULL, _name };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_EXTENSION,
@@ -393,8 +379,7 @@ d_postgres_create_extension
   The server's own CREATE EXTENSION [IF NOT EXISTS] ... [SCHEMA ...]
 [CASCADE]; CASCADE arrived with 9.6, below the floor.
 */
-int
-d_postgres_create_extension(
+int d_postgres_create_extension(
     struct pg_conn* _db,
     const char*     _name,
     const char*     _schema,
@@ -439,8 +424,7 @@ d_postgres_create_extension(
 d_postgres_drop_extension
   The server's own DROP EXTENSION [IF EXISTS] ... [CASCADE].
 */
-int
-d_postgres_drop_extension(
+int d_postgres_drop_extension(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -470,13 +454,12 @@ d_postgres_drop_extension(
 d_postgres_list_extensions
   Every row of pg_extension, in byte order.
 */
-int
-d_postgres_list_extensions(
-    struct pg_conn*        _db,
-    struct d_db_name_list* _names
+int d_postgres_list_extensions(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { NULL, NULL, NULL };
+    const struct dj_internal_postgres_path path = { NULL, NULL, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_EXTENSION,
@@ -497,8 +480,7 @@ d_postgres_list_extensions(
 d_postgres_has_database
   Without libpq, false.
 */
-bool
-d_postgres_has_database(
+bool d_postgres_has_database(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -514,8 +496,7 @@ d_postgres_has_database_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_database_s(
+int d_postgres_has_database_s(
     struct pg_conn* _db,
     const char*     _name,
     bool*           _exists
@@ -537,8 +518,7 @@ d_postgres_has_database_s(
 d_postgres_create_database
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_database(
+int d_postgres_create_database(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -555,8 +535,7 @@ d_postgres_create_database(
 d_postgres_drop_database
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_database(
+int d_postgres_drop_database(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -573,10 +552,9 @@ d_postgres_drop_database(
 d_postgres_list_databases
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_databases(
-    struct pg_conn*        _db,
-    struct d_db_name_list* _names
+int d_postgres_list_databases(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -589,8 +567,7 @@ d_postgres_list_databases(
 d_postgres_current_database
   Without libpq, NULL.
 */
-const char*
-d_postgres_current_database(
+const char* d_postgres_current_database(
     const struct pg_conn* _db
 )
 {
@@ -603,8 +580,7 @@ d_postgres_current_database(
 d_postgres_has_schema
   Without libpq, false.
 */
-bool
-d_postgres_has_schema(
+bool d_postgres_has_schema(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -620,8 +596,7 @@ d_postgres_has_schema_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_schema_s(
+int d_postgres_has_schema_s(
     struct pg_conn* _db,
     const char*     _name,
     bool*           _exists
@@ -643,8 +618,7 @@ d_postgres_has_schema_s(
 d_postgres_create_schema
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_schema(
+int d_postgres_create_schema(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -661,8 +635,7 @@ d_postgres_create_schema(
 d_postgres_drop_schema
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_schema(
+int d_postgres_drop_schema(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -679,10 +652,9 @@ d_postgres_drop_schema(
 d_postgres_list_schemas
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_schemas(
-    struct pg_conn*        _db,
-    struct d_db_name_list* _names
+int d_postgres_list_schemas(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -695,8 +667,7 @@ d_postgres_list_schemas(
 d_postgres_current_schema
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_current_schema(
+int d_postgres_current_schema(
     struct pg_conn* _db,
     char**          _name
 )
@@ -711,8 +682,7 @@ d_postgres_current_schema(
 d_postgres_has_extension
   Without libpq, false.
 */
-bool
-d_postgres_has_extension(
+bool d_postgres_has_extension(
     struct pg_conn* _db,
     const char*     _name
 )
@@ -728,8 +698,7 @@ d_postgres_has_extension_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_extension_s(
+int d_postgres_has_extension_s(
     struct pg_conn* _db,
     const char*     _name,
     bool*           _exists
@@ -751,8 +720,7 @@ d_postgres_has_extension_s(
 d_postgres_create_extension
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_extension(
+int d_postgres_create_extension(
     struct pg_conn* _db,
     const char*     _name,
     const char*     _schema,
@@ -771,8 +739,7 @@ d_postgres_create_extension(
 d_postgres_drop_extension
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_extension(
+int d_postgres_drop_extension(
     struct pg_conn* _db,
     const char*     _name,
     unsigned        _flags
@@ -789,10 +756,9 @@ d_postgres_drop_extension(
 d_postgres_list_extensions
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_extensions(
-    struct pg_conn*        _db,
-    struct d_db_name_list* _names
+int d_postgres_list_extensions(
+    struct pg_conn*         _db,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;

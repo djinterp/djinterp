@@ -15,7 +15,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -33,10 +33,8 @@ d_tests_sa_dmacro_utility_ops
   - D_PRINT_OP concept (stringifies argument)
   - D_PRINT_VAL_OP concept (stringifies and prints value)
 */
-bool
-d_tests_sa_dmacro_utility_ops
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_utility_ops(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -222,13 +220,11 @@ d_tests_sa_dmacro_utility_all
   - D_ASSIGN_OP, D_INIT_ZERO_OP
   - D_PRINT_OP, D_PRINT_VAL_OP concepts
 */
-bool
-d_tests_sa_dmacro_utility_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_utility_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  ops_result;
     bool                  overall_result;
 
@@ -237,7 +233,7 @@ d_tests_sa_dmacro_utility_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

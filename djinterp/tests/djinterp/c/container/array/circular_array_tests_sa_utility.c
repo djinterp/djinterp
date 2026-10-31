@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./circular_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -17,9 +17,8 @@
  *****************************************************************************/
 
 // helper comparator for int values
-static int
-int_comparator_util
-(
+static
+int int_comparator_util(
     const void* _a,
     const void* _b
 )
@@ -34,9 +33,8 @@ int_comparator_util
 static size_t g_deep_free_call_count = 0;
 
 // helper free function that tracks calls
-static void
-tracking_free
-(
+static
+void tracking_free(
     void* _ptr
 )
 {
@@ -68,14 +66,12 @@ d_tests_sa_circular_array_to_linear_array
   - handles wraparound correctly
   - returns NULL for empty array
 */
-bool
-d_tests_sa_circular_array_to_linear_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_to_linear_array(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      linear;
 
@@ -182,14 +178,12 @@ d_tests_sa_circular_array_copy_to
   - copies data to destination buffer
   - handles insufficient capacity
 */
-bool
-d_tests_sa_circular_array_copy_to
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_copy_to(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int                       dest[10];
 
@@ -258,10 +252,8 @@ d_tests_sa_circular_array_copy_to
 d_tests_sa_circular_array_conversion_all
   Aggregation function that runs all conversion tests.
 */
-bool
-d_tests_sa_circular_array_conversion_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_conversion_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -290,14 +282,12 @@ d_tests_sa_circular_array_sort
   - sort linearizes the array
   - sort on empty array
 */
-bool
-d_tests_sa_circular_array_sort
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_sort(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {50, 20, 40, 10, 30};
     int*                      elem;
 
@@ -374,14 +364,12 @@ d_tests_sa_circular_array_linearize
   - linearize on already linear array
   - linearize on empty array
 */
-bool
-d_tests_sa_circular_array_linearize
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_linearize(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40};
     int*                      elem;
 
@@ -482,14 +470,12 @@ d_tests_sa_circular_array_free
   - free empty array
   - free populated array
 */
-bool
-d_tests_sa_circular_array_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
 
     result = true;
@@ -545,14 +531,12 @@ d_tests_sa_circular_array_free_deep
   - free_deep with NULL free function
   - free_deep on empty array
 */
-bool
-d_tests_sa_circular_array_free_deep
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_free_deep(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     void*                     heap_values[3];
     result = true;
 
@@ -643,10 +627,8 @@ d_tests_sa_circular_array_free_deep
 d_tests_sa_circular_array_utility_all
   Aggregation function that runs all utility tests.
 */
-bool
-d_tests_sa_circular_array_utility_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_utility_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

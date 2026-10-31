@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,10 +19,8 @@ d_tests_sa_vector_common_free_elements
   - NULL elements handling (should not crash)
   - successful free of allocated memory
 */
-bool
-d_tests_sa_vector_common_free_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_free_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -103,10 +101,8 @@ d_tests_sa_vector_common_free_elements
 d_tests_sa_vector_common_cleanup_all
   Aggregation function that runs all cleanup tests.
 */
-bool
-d_tests_sa_vector_common_cleanup_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_cleanup_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

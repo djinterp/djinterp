@@ -10,7 +10,7 @@
 // djinterp
 #include "./compose_tests_sa.h"
 #include "./compose_tests_sa_helpers.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -28,14 +28,12 @@ d_tests_sa_compose_new
   - large temp_size allocation
   - mixed context handling (one NULL, one non-NULL)
 */
-bool
-d_tests_sa_compose_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_composed_transformer* composed;
+    struct dj_composed_transformer* composed;
     int                            context1;
     int                            context2;
 
@@ -257,14 +255,12 @@ d_tests_sa_compose_apply
   - negative input value
   - identity composition
 */
-bool
-d_tests_sa_compose_apply
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_apply(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_composed_transformer* composed;
+    struct dj_composed_transformer* composed;
     int                            input;
     int                            output;
     int                            context1;
@@ -704,7 +700,7 @@ d_tests_sa_compose_apply
     // test 18: three-stage composition via nesting
     // input: 3 -> square -> 9 -> double -> 18
     {
-        struct d_composed_transformer* inner;
+        struct dj_composed_transformer* inner;
 
         inner = d_functional_compose_new(transform_square,
                                          NULL,
@@ -746,14 +742,12 @@ d_tests_sa_compose_free
   - free with contexts (contexts should remain valid)
   - free after use (contexts should remain valid)
 */
-bool
-d_tests_sa_compose_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_free(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    struct d_composed_transformer* composed;
+    struct dj_composed_transformer* composed;
 
     result = true;
 
@@ -856,10 +850,8 @@ d_tests_sa_compose_free
 d_tests_sa_compose_transformer_all
   Aggregation function that runs all transformer composition tests.
 */
-bool
-d_tests_sa_compose_transformer_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_transformer_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

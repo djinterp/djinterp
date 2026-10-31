@@ -49,8 +49,7 @@ using words = std::vector<std::string>;
 // flag
 //   a setting over a bool.
 template<typename Reach>
-sheet_setting
-flag(
+sheet_setting flag(
     const char* _path,
     const char* _label,
     Reach       _reach,
@@ -77,8 +76,7 @@ flag(
 // integer
 //   a setting over an int, held to its bounds.
 template<typename Reach>
-sheet_setting
-integer(
+sheet_setting integer(
     const char* _path,
     const char* _label,
     int         _low,
@@ -108,8 +106,7 @@ integer(
 // real
 //   a setting over a float, held to its bounds.
 template<typename Reach>
-sheet_setting
-real(
+sheet_setting real(
     const char* _path,
     const char* _label,
     double      _low,
@@ -141,8 +138,7 @@ real(
 //   a real the theme and scheme choose while it is negative: as real, but
 // a value below its bounds is written as -1, the theme's again.
 template<typename Reach>
-sheet_setting
-theme_real(
+sheet_setting theme_real(
     const char* _path,
     const char* _label,
     double      _low,
@@ -167,8 +163,7 @@ theme_real(
 // colour
 //   a setting over a packed colour, the theme's and scheme's while it is 0.
 template<typename Reach>
-sheet_setting
-colour(
+sheet_setting colour(
     const char* _path,
     const char* _label,
     Reach       _reach
@@ -196,8 +191,7 @@ colour(
 //   a setting over an enumeration whose first choice is _first.
 template<typename Enum,
          typename Reach>
-sheet_setting
-choice(
+sheet_setting choice(
     const char*              _path,
     const char*              _label,
     std::vector<std::string> _choices,
@@ -235,8 +229,7 @@ choice(
 // text
 //   a setting over a string.
 template<typename Reach>
-sheet_setting
-text(
+sheet_setting text(
     const char* _path,
     const char* _label,
     Reach       _reach
@@ -263,8 +256,7 @@ text(
 // word_of
 //   a label as a word: lower case, each run of anything but letters and
 // digits one underscore -- "Colour-blind safe" is colour_blind_safe.
-std::string
-word_of(
+std::string word_of(
     const std::string& _label
 )
 {
@@ -300,8 +292,7 @@ word_of(
 
 // line
 //   the four settings of one kind of grid line.
-void
-line(
+void line(
     std::vector<sheet_setting>& _out,
     const std::string&          _key,
     line_spec grid_settings::*  _member
@@ -345,8 +336,7 @@ line(
 
 // sheet_part
 //   the sheet's own settings: its names, its width and its numbering.
-void
-sheet_part(
+void sheet_part(
     std::vector<sheet_setting>& _out
 )
 {
@@ -394,8 +384,7 @@ sheet_part(
 
 // lines_part
 //   the grid's lines.
-void
-lines_part(
+void lines_part(
     std::vector<sheet_setting>& _out
 )
 {
@@ -427,8 +416,7 @@ lines_part(
 
 // cells_part
 //   the grid's cells and columns.
-void
-cells_part(
+void cells_part(
     std::vector<sheet_setting>& _out
 )
 {
@@ -491,8 +479,7 @@ cells_part(
 
 // segments_setting
 //   the automatic segments: a choice whose values are 0, 4, 8 and 16 bits.
-sheet_setting
-segments_setting()
+sheet_setting segments_setting()
 {
     sheet_setting made;
 
@@ -528,8 +515,7 @@ segments_setting()
 // the header writes it or, lined up, every row alike. Values leave the
 // macro names alone, which still say how a range's name is written across
 // its cells; one choice is one setting, and one step to undo.
-sheet_setting
-names_by_setting()
+sheet_setting names_by_setting()
 {
     sheet_setting made;
 
@@ -670,8 +656,7 @@ const gen_text GEN_TEXTS[] = {
 
 // columns_part
 //   the grid's columns, labels and order.
-void
-columns_part(
+void columns_part(
     std::vector<sheet_setting>& _out
 )
 {
@@ -703,8 +688,7 @@ columns_part(
 //   the order the rows are shown in, and what is drawn of what is unused:
 // the sheet's own order, or each group's sorted -- the grid and the tree
 // alike, the header never.
-void
-order_part(
+void order_part(
     std::vector<sheet_setting>& _out
 )
 {
@@ -765,8 +749,7 @@ order_part(
 // colours_part
 //   the sheet's colours: the theme is the window's (the Theme menu); the
 // palette, the scheme's unless the sheet chooses one.
-void
-colours_part(
+void colours_part(
     std::vector<sheet_setting>& _out
 )
 {
@@ -828,8 +811,7 @@ colours_part(
 
 // level_setting
 //   the language level, which decides the language as well.
-sheet_setting
-level_setting()
+sheet_setting level_setting()
 {
     std::vector<std::string> levels;
     words                    named;
@@ -872,8 +854,7 @@ level_setting()
 
 // word_setting
 //   a wide sheet's arrays: words of 8, 16, 32 or 64 bits.
-sheet_setting
-word_setting()
+sheet_setting word_setting()
 {
     sheet_setting made;
 
@@ -909,8 +890,7 @@ word_setting()
 
 // generator_part
 //   how the header is written.
-void
-generator_part(
+void generator_part(
     std::vector<sheet_setting>& _out
 )
 {
@@ -971,8 +951,7 @@ generator_part(
 
 // make_settings
 //   the table, in the order the window's panels list it.
-std::vector<sheet_setting>
-make_settings()
+std::vector<sheet_setting> make_settings()
 {
     std::vector<sheet_setting> out;
 
@@ -993,8 +972,7 @@ const char* const AUTOMATIC = "auto";
 
 // lowered
 //   ASCII text in lower case.
-std::string
-lowered(
+std::string lowered(
     const std::string& _text
 )
 {
@@ -1014,8 +992,7 @@ separated_digits
   The characters from `_at` with each `_` taken out, which must stand
 between two others; false for one that does not.
 */
-bool
-separated_digits(
+bool separated_digits(
     const std::string& _text,
     std::size_t        _at,
     std::string&       _digits
@@ -1050,8 +1027,7 @@ read_whole
 or 0x, 0o or 0b and the base's digits, `_` between digits; a leading zero
 is not octal. False for anything else, or past what a long holds.
 */
-bool
-read_whole(
+bool read_whole(
     const std::string& _text,
     long&              _value
 )
@@ -1111,8 +1087,7 @@ read_real
   A real in the C locale's form, whole; locale-independent where the library
 has from_chars for doubles.
 */
-bool
-read_real(
+bool read_real(
     const std::string& _text,
     double&            _value
 )
@@ -1156,8 +1131,7 @@ read_real(
 
 // real_text
 //   a float's value as the shortest text that reads back as it.
-std::string
-real_text(
+std::string real_text(
     double _value
 )
 {
@@ -1186,8 +1160,7 @@ real_text(
 // yes, on or 1, or their opposites, in any case; an integer within the
 // bounds; #RRGGBB or #RRGGBBAA as its packed bits; a choice's word as its
 // index. False for anything else.
-bool
-read_flag(
+bool read_flag(
     const std::string& _text,
     double&            _value
 )
@@ -1210,8 +1183,7 @@ read_flag(
     return false;
 }
 
-bool
-read_integer(
+bool read_integer(
     const sheet_setting& _setting,
     const std::string&   _text,
     double&              _value
@@ -1232,8 +1204,7 @@ read_integer(
              (_value <= _setting.high) );
 }
 
-bool
-read_colour(
+bool read_colour(
     const std::string& _text,
     double&            _value
 )
@@ -1252,8 +1223,7 @@ read_colour(
     return true;
 }
 
-bool
-read_choice(
+bool read_choice(
     const sheet_setting& _setting,
     const std::string&   _text,
     double&              _value
@@ -1274,8 +1244,7 @@ read_choice(
 
 // bound_text
 //   a bound as help writes it: an integer's as one, a real's shortest.
-std::string
-bound_text(
+std::string bound_text(
     const sheet_setting& _setting,
     double               _bound
 )
@@ -1293,16 +1262,14 @@ sheet_settings / find_sheet_setting
   The table, made once; a path found by walking it, which at a hundred
 entries is quicker than anything that must be built first.
 */
-const std::vector<sheet_setting>&
-sheet_settings()
+const std::vector<sheet_setting>& sheet_settings()
 {
     static const std::vector<sheet_setting> table = make_settings();
 
     return table;
 }
 
-const sheet_setting*
-find_sheet_setting(
+const sheet_setting* find_sheet_setting(
     const std::string& _path
 )
 {
@@ -1321,8 +1288,7 @@ find_sheet_setting(
 is_preference
   Everything but the sheet's content, which is listed.
 */
-bool
-is_preference(
+bool is_preference(
     const std::string& _path
 )
 {
@@ -1350,8 +1316,7 @@ is_preference(
 setting_text
   The value read, written as its kind writes it.
 */
-std::string
-setting_text(
+std::string setting_text(
     const sheet_setting& _setting,
     const sheet&         _sheet
 )
@@ -1400,12 +1365,12 @@ set_setting
 reads it, checked against the bounds -- the write would hold a value to
 them, which a script should hear of -- and only then written.
 */
-bool
-set_setting(
+bool set_setting(
     sheet&               _sheet,
     const sheet_setting& _setting,
     const std::string&   _value,
-    std::string&         _error)
+    std::string&         _error
+)
 {
     double value = 0.0;
     bool   read  = false;
@@ -1468,8 +1433,7 @@ set_setting(
 setting_values
   The kind's words, and a choice's own, joined as English joins a list.
 */
-std::string
-setting_values(
+std::string setting_values(
     const sheet_setting& _setting
 )
 {

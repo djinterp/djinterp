@@ -9,14 +9,18 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPER PREDICATES
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -32,7 +36,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -48,7 +56,11 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static bool pred_greater_than_context(const void* _element, void* _context)
+static
+bool pred_greater_than_context(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
     const int* threshold;
@@ -65,7 +77,12 @@ static bool pred_greater_than_context(const void* _element, void* _context)
     return (*value > *threshold);
 }
 
-static int cmp_int(const void* _a, const void* _b, void* _context)
+static
+int cmp_int(
+    const void* _a,
+    const void* _b,
+    void*       _context
+)
 {
     const int* a;
     const int* b;
@@ -90,15 +107,13 @@ d_tests_sa_filter_builder_create
   - free on valid builder does not crash
   - free NULL does not crash
 */
-bool
-d_tests_sa_filter_builder_create
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_builder_create(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_filter_builder* builder;
-    struct d_filter_chain*   chain;
+    struct dj_filter_builder* builder;
+    struct dj_filter_chain*   chain;
 
     result = true;
 
@@ -230,15 +245,13 @@ d_tests_sa_filter_builder_fluent
   - chaining multiple operations accumulates in chain
   - NULL builder returns NULL for each operation
 */
-bool
-d_tests_sa_filter_builder_fluent
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_builder_fluent(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_filter_builder* builder;
-    struct d_filter_builder* ret;
+    struct dj_filter_builder* builder;
+    struct dj_filter_builder* ret;
     int                      threshold;
     size_t                   indices[2] = { 0, 3 };
 
@@ -414,15 +427,13 @@ d_tests_sa_filter_builder_finalize
   - build on empty builder returns empty chain
   - apply on empty builder returns all elements
 */
-bool
-d_tests_sa_filter_builder_finalize
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_builder_finalize(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_builder* builder;
-    struct d_filter_chain*   chain;
-    struct d_filter_result*  res;
+    struct dj_filter_builder* builder;
+    struct dj_filter_chain*   chain;
+    struct dj_filter_result*  res;
     int                      input[6] = { 1,2,3,4,5,6 };
     int*                     elems;
     bool                     result;
@@ -611,14 +622,12 @@ d_tests_sa_filter_builder_errors
   - NULL builder: get_error_code returns non-zero
   - NULL builder: get_error_message returns NULL
 */
-bool
-d_tests_sa_filter_builder_errors
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_builder_errors(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_filter_builder* builder;
+    struct dj_filter_builder* builder;
     size_t                   count_before;
     size_t                   count_after;
     size_t                   i;
@@ -734,10 +743,8 @@ d_tests_sa_filter_builder_errors
 d_tests_sa_filter_builder_all
   Aggregation function that runs all fluent filter builder tests.
 */
-bool
-d_tests_sa_filter_builder_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_builder_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

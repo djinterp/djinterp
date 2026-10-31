@@ -1,0 +1,337 @@
+########################################################################
+#  c_style.dss -- djinterp's C style rules, as far as tokens can say.
+#
+#  Written against the trees dext_c builds.  Every rule comes from
+#  the style guide; none is invented.  Evaluation is the engine's
+#  (docs/dss-evaluation.md in the dawk tree), so the sheet means the
+#  same under dcheck, the lint driver and the tests: a rule whose every
+#  match is a finding declares `violation`, with the finding's message;
+#  `start-column` fails only a node in another column; `severity` is a
+#  modifier that sets how a failure is reported, never a claim itself.
+#  Every rule is scoped to `file[lang=c]`, so the sheet may be run over
+#  a mixed tree without judging C++ by C's conventions.
+#
+#  Naming rules are negations and are written as such, with `:not()`
+#  over the name's own `text`; `:has()` lets a rule's subject be the
+#  name it is about while still looking at what follows it.  Under
+#  dcheck, set `source.tree` to build the trees this sheet reads.
+########################################################################
+
+#  ── naming ────────────────────────────────────────────────────────
+#  Macros djinterp defines are D_-prefixed.  Exempt, because another
+#  header owns the spelling: an include guard, spelled DJINTERP_ from
+#  the path; a reserved name, which begins with `_`, as
+#  `_POSIX_C_SOURCE` must; a fallback -- `#ifndef X_OK` then
+#  `#define X_OK 1` -- which `guarded` marks; and the three
+#  configuration macros below, which other libraries' headers read by
+#  exactly those names.  Only `#define` is checked: `#ifdef _WIN32`
+#  tests someone else's.
+#
+#  Exempt too, because the guide's Macro Names makes it the one
+#  lower-case macro: a width alias, `#define d_stat_t d_stat64_t` --
+#  object-like, d_-spelled, and naming a twin that ends in 32 or 64
+#  (before a `_t`, for a type).
+#
+#  A compound selector may not be broken across lines: whitespace inside
+#  one is a descendant combinator, and `identifier[a] [b]` asks for a
+#  `[b]` inside an identifier.  The parser warns about exactly that
+#  shape; break only at a combinator, so this line runs long.
+file[lang=c] directive[name=define]:not([guarded])[macro!=WIN32_LEAN_AND_MEAN][macro!=NOMINMAX][macro!=LZMA_API_STATIC]:not([macro^="d_"]:not([function-like]):has(> identifier:not([macro]):is([text$="32"], [text$="64"], [text$="32_t"], [text$="64_t"])))
+    > identifier[macro]:not([text^="D_"], [text^="DJINTERP_"], [text^="_"]) {
+    violation: "a macro djinterp defines is D_-prefixed";
+    severity:  warn;
+}
+
+#  A struct, union or enum djinterp defines is d_-prefixed.  The
+#  subject is the tag's name; `:has(+ group)` asks that a body follow
+#  it, so `struct stat st;`, which uses someone else's tag, is not
+#  matched.
+file[lang=c] keyword[text=struct]
+    + identifier:not([text^="d_"]):has(+ group[open="{"]) {
+    violation: "a struct djinterp defines is d_-prefixed";
+    severity:  warn;
+}
+file[lang=c] keyword[text=union]
+    + identifier:not([text^="d_"]):has(+ group[open="{"]) {
+    violation: "a union djinterp defines is d_-prefixed";
+    severity:  warn;
+}
+file[lang=c] keyword[text=enum]
+    + identifier:not([text^="d_"]):has(+ group[open="{"]) {
+    violation: "a enum djinterp defines is d_-prefixed";
+    severity:  warn;
+}
+
+#  ── declarations (the item layer) ─────────────────────────────────
+#  A parameter's name has a single leading underscore.  `declarator`
+#  marks the identifier a declaration names, so a type or a macro in
+#  the parameter never trips the rule; the descendant combinator
+#  reaches the name inside a function-pointer parameter too.
+file[lang=c] param identifier[declarator]:not([text^="_"]) {
+    violation: "a parameter's name begins with one underscore";
+    severity:  warn;
+}
+
+#  A void function ends with an explicit `return;`.
+file[lang=c] fn-def[returns=void][ends!=return] {
+    violation: "a void function ends with an explicit return";
+    severity:  warn;
+}
+
+#  A typedef may name a function-pointer type, a portability alias or
+#  a scalar abstraction; it may not hide a struct, union or enum.
+file[lang=c] typedef[hides] {
+    violation: "a typedef may not hide a struct, union or enum";
+    severity:  warn;
+}
+
+#  Aligned parameters begin under the first one.
+file[lang=c] param[misaligned] {
+    violation: "a parameter does not begin under the first";
+    severity:  warn;
+}
+
+#  A declaration's parameters begin after its `(`, the rest aligned
+#  beneath the first.  A definition with more than one parameter puts
+#  each on its own line, one level in; one parameter, `(void)` and `()`
+#  may stay on the name's line, since the guide splits only past one.
+#  Once per function, not once per parameter.
+file[lang=c] fn-decl[detached] {
+    violation: "a declaration's parameters begin after its (";
+    severity:  warn;
+}
+file[lang=c] fn-def[aligned][params>1] {
+    violation: "a definition with several parameters puts each on its own line";
+    severity:  warn;
+}
+
+#  An #if inside a function body.  The guide forbids an #if whose two
+#  arms have different control flow; which arms differ is not decidable
+#  over tokens, so this flags every conditional in a body -- a superset
+#  of the rule -- and is info, a place to look, not a violation.
+file[lang=c] fn-def[pp-split] {
+    violation: "a conditional inside a function body";
+    severity:  advise;
+}
+
+#  The size tripwires: signals that need a reason, not prohibitions.
+file[lang=c] fn-def[lines>60] {
+    violation: "a function over 60 lines";
+    severity:  advise;
+}
+file[lang=c] fn-def[nesting>4] {
+    violation: "a function nested past 4 levels";
+    severity:  advise;
+}
+file[lang=c] fn-def[params>5] {
+    violation: "a function with more than 5 parameters";
+    severity:  advise;
+}
+
+#  ── layout ────────────────────────────────────────────────────────
+#  Four spaces per structural level: a body, a member list, a braceless
+#  body and the statements under a `case` each add one; an `extern "C"`
+#  block adds none.  Items inside a conditional are left to the rule
+#  above, and aligned parameters carry no level, so neither is measured
+#  here.
+file[lang=c] *[line-start][level=1][pp-depth=0] { start-column: 5; }
+file[lang=c] *[line-start][level=2][pp-depth=0] { start-column: 9; }
+file[lang=c] *[line-start][level=3][pp-depth=0] { start-column: 13; }
+file[lang=c] *[line-start][level=4][pp-depth=0] { start-column: 17; }
+file[lang=c] *[line-start][level=5][pp-depth=0] { start-column: 21; }
+file[lang=c] *[line-start][level=6][pp-depth=0] { start-column: 25; }
+
+#  ── brackets ──────────────────────────────────────────────────────
+#  "No bracketless if-statements (always use brackets)."  A braced body
+#  is a `group` child of its statement and a braceless one a
+#  `statement` child; an `else if` stays flat beneath the first `if`,
+#  so a chain is never mistaken for a braceless body.  The guide names
+#  only `if`, so loops are left alone until it says otherwise.
+#
+#  An `if` holding a directive is one whose header an #if splits --
+#  `if (a)` / `#else` / `if (b)` / `#endif` / `{` -- and there the
+#  second header reads as the first one's body.  The pp-split rule
+#  above already reports that shape, so this one stays out of it.
+file[lang=c] statement[kind=if]:not(:has(> directive)) > statement {
+    violation: "an if-statement's body is braced";
+    severity:  warn;
+}
+
+#  "All opening braces { on their own line."  `level` marks a brace that
+#  opens a body -- a function, a control statement, an aggregate -- and
+#  is absent from an initializer's or a compound literal's, which are
+#  expressions, not bodies.  `extern "C" {` is exempt: it is the
+#  linkage form the converted env headers use (decisions register,
+#  section 1.1), since D_EXTERN_C_BEGIN is not yet defined below
+#  djinterp.h.
+file[lang=c] group[open="{"][level]:not([line-start]):not(keyword[text=extern] + string + *) {
+    violation: "an opening brace is on its own line";
+    severity:  warn;
+}
+
+#  ── conditional-block closures ────────────────────────────────────
+#  "In header files, every #endif that closes an #ifdef or #ifndef block
+#  must identify the controlling symbol in a trailing comment."  The
+#  builder pairs each #endif with its opener (`closes`) and says whether
+#  a comment on its line names the opener's macro (`named`).
+file[lang=c][path$=".h"] directive[name=endif]:is([closes=ifdef], [closes=ifndef]):not([named]) {
+    violation: "an #endif closing #ifdef or #ifndef names its symbol";
+    severity:  warn;
+}
+
+#  ── include directives ────────────────────────────────────────────
+#  "An include of djinterp.h or djinterp.hpp, regardless of its relative
+#  path, must use the exact summary `// framework root`."  djinterp.c's
+#  include of its own header is its corresponding header, and that
+#  rule wins there (decisions register, #33).
+file[lang=c]:not([path$="/djinterp.c"]) directive[name=include]:is([header="djinterp.h"], [header$="/djinterp.h"], [header="djinterp.hpp"], [header$="/djinterp.hpp"]):not(:has(> comment[text="// framework root"])) {
+    violation: "an include of djinterp.h is summarized // framework root";
+    severity:  warn;
+}
+
+#  ── reserved identifiers ──────────────────────────────────────────
+#  A leading underscore then a capital, or a double underscore anywhere,
+#  is reserved "for any use"; -Wreserved-identifier needs clang, which
+#  the build does not assume, so the sheet stands in for it.  Names the
+#  project declares are checked, and names it #defines -- except a
+#  fallback (`guarded`) and the four configuration macros the platform
+#  reads by exactly these reserved names.
+file[lang=c] identifier[declarator]:is([text*="__"], [text^="_A"], [text^="_B"], [text^="_C"], [text^="_D"], [text^="_E"], [text^="_F"], [text^="_G"], [text^="_H"], [text^="_I"], [text^="_J"], [text^="_K"], [text^="_L"], [text^="_M"], [text^="_N"], [text^="_O"], [text^="_P"], [text^="_Q"], [text^="_R"], [text^="_S"], [text^="_T"], [text^="_U"], [text^="_V"], [text^="_W"], [text^="_X"], [text^="_Y"], [text^="_Z"]) {
+    violation: "a name djinterp declares is not reserved";
+    severity:  warn;
+}
+file[lang=c] directive[name=define]:not([guarded])[macro!=_POSIX_C_SOURCE][macro!=_WIN32_WINNT][macro!=_CRT_SECURE_NO_WARNINGS][macro!=_TIMESPEC_DEFINED] > identifier[macro]:is([text*="__"], [text^="_A"], [text^="_B"], [text^="_C"], [text^="_D"], [text^="_E"], [text^="_F"], [text^="_G"], [text^="_H"], [text^="_I"], [text^="_J"], [text^="_K"], [text^="_L"], [text^="_M"], [text^="_N"], [text^="_O"], [text^="_P"], [text^="_Q"], [text^="_R"], [text^="_S"], [text^="_T"], [text^="_U"], [text^="_V"], [text^="_W"], [text^="_X"], [text^="_Y"], [text^="_Z"]) {
+    violation: "a macro djinterp defines is not reserved";
+    severity:  warn;
+}
+
+#  ── assertions ────────────────────────────────────────────────────
+#  "Give every static assertion a message."  A top-level comma in the
+#  argument group is what separates a message from the condition; a
+#  comma nested deeper sits in a group of its own.
+file[lang=c] :is(keyword[kind=kw-static-assert], keyword[kind=kw-static-assert-reserved], identifier[text=static_assert]) + group[open="("]:not(:has(> punctuator[kind=comma])) {
+    violation: "a static assertion carries a message";
+    severity:  warn;
+}
+
+#  "Use the <assert.h> spelling so the code reads the same in both
+#  languages."
+file[lang=c] keyword[kind=kw-static-assert-reserved] {
+    violation: "a static assertion is spelled static_assert";
+    severity:  warn;
+}
+
+#  ── control flow and spacing ──────────────────────────────────────
+#  `blank-before` counts the empty lines above a node that begins its
+#  line; one node per line carries it, the outermost.
+#
+#  "Return statements should be preceded by an empty line."  A return
+#  opening its block has nothing to be set apart from -- nor has one
+#  right after a `case` label, or one that is a braceless body (which
+#  the brace rule reports) -- and a comment directly above a return
+#  takes the empty line for both.
+file[lang=c] :not(comment):not(punctuator):not(label):not(group) + statement[kind=return]:not([blank-before]) {
+    violation: "a return statement is preceded by an empty line";
+    severity:  warn;
+}
+file[lang=c] :not(comment):not(punctuator):not(label):not(group) + comment:not([blank-before]) + statement[kind=return]:not([blank-before]) {
+    violation: "a return statement is preceded by an empty line";
+    severity:  warn;
+}
+
+#  "if-statements should be followed by an empty line, unless the next
+#  line contains another closing bracket."  An else chain belongs to
+#  its if, and a closing brace is no sibling of the statement.
+file[lang=c] statement[kind=if] + :not(punctuator):not([blank-before]) {
+    violation: "an if-statement is followed by an empty line";
+    severity:  warn;
+}
+
+#  ── variable declarations ─────────────────────────────────────────
+#  "Initialize a variable in its declaration; do not declare it
+#  uninitialized and assign to it later."  `initialized` marks a
+#  declared name a top-level `=` follows.
+file[lang=c] fn-def declaration > identifier[declarator]:not([initialized]) {
+    violation: "a variable is initialized in its declaration";
+    severity:  warn;
+}
+
+#  ── function declarations ─────────────────────────────────────────
+#  "No empty lines between functions -- functions within the same group
+#  have no blank lines separating them."  A blank line with no comment
+#  between two declarations may be a group boundary the guide also
+#  allows ("one blank line between distinct declaration groups when
+#  useful"), so this only advises.
+file[lang=c][path$=".h"] fn-decl + fn-decl[blank-before] {
+    violation: "no blank line inside a declaration group";
+    severity:  advise;
+}
+
+#  ── file structure ────────────────────────────────────────────────
+#  "After the last #include, use exactly two empty lines before the
+#  first function comment.  No other location in a .c file should
+#  contain two consecutive empty lines."
+file[lang=c][path$=".c"] > directive[name=include] + :not(directive[name=include]):not([blank-before=2]) {
+    violation: "exactly two empty lines follow the last #include";
+    severity:  warn;
+}
+#  Advice until ruled: the tree puts two empty lines between function
+#  definitions about 1,200 times, recently converted files included,
+#  against the guide's letter.
+file[lang=c][path$=".c"] *[blank-before>=2]:not(directive[name=include] + *) {
+    violation: "two consecutive empty lines only after the last #include";
+    severity:  advise;
+}
+
+#  ── source file header ────────────────────────────────────────────
+#  "The corresponding header is the first include" ... "write
+#  // corresponding header".  `corresponding` marks an include whose
+#  header shares the file's stem; a file with none (a main, a test) is
+#  not judged.
+file[lang=c][path$=".c"]:has(> directive[corresponding]) > directive[name=include]:not([corresponding]):not(directive[name=include] ... *) {
+    violation: "a source's first include is its corresponding header";
+    severity:  warn;
+}
+file[lang=c][path$=".c"] > directive[corresponding]:not(:has(> comment[text="// corresponding header"])) {
+    violation: "the corresponding header is summarized // corresponding header";
+    severity:  warn;
+}
+
+#  ── brief comments ────────────────────────────────────────────────
+#  "All #define statements ... should consist of the following format":
+#  `// NAME`, then `//   macro: ...`.  `documented` marks a node whose
+#  run of comments directly above has a line that is exactly its name.
+#  A #define directly after another, no line between, is one iterative
+#  block ("one comment for the entire block is sufficient"); a fallback
+#  (`guarded`) is documented above its #ifndef, as the config skeleton
+#  shows.
+file[lang=c] directive[name=define]:not([documented]):not([guarded]):not(directive[name=define] + directive[name=define]:not([blank-before])) {
+    violation: "a #define carries a // NAME comment above it";
+    severity:  warn;
+}
+
+#  "In the source, on the definition -- the mechanism": a comment that
+#  opens with the function's name.
+#  A file-local `static` definition is left out: where its contract
+#  goes is open (decisions register, #84), and the proposal there puts a
+#  Doxygen block above it, which need not open with the name.
+file[lang=c][path$=".c"] fn-def:not([documented]):not(:has(> keyword[text=static])) {
+    violation: "a definition carries a comment opening with its name";
+    severity:  warn;
+}
+
+#  ── the preprocessor ──────────────────────────────────────────────
+#  "Outside that directory [c/util/macro/], a function-like macro needs
+#  a reason that survives review."  No sheet can judge the reason, so
+#  every such macro is listed for the review, as advice.
+file[lang=c]:not([path*="c/util/macro/"]) directive[name=define][function-like] {
+    violation: "a function-like macro outside c/util/macro/ needs a reason";
+    severity:  advise;
+}
+
+#  ── section delimiters ────────────────────────────────────────────
+#  "Use zero empty lines after the //--- delimiter."
+file[lang=c] comment[text^="//-----"] + *[blank-before] {
+    violation: "no empty line after a subsection delimiter";
+    severity:  warn;
+}

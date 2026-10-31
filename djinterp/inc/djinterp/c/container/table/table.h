@@ -22,7 +22,7 @@
 * the two languages, or both.  table_common.h is common in both ways at once:
 * it is compiled by C and by C++, and it serves table, fixed_table and the
 * overlay siblings from one declaration.  vector_common.h is common the other
-* way, serving d_vector and d_vector_s within C.  One convention, one meaning.
+* way, serving dj_vector and d_vector_s within C.  One convention, one meaning.
 *
 *   C++ DOES NOT INCLUDE THIS FILE.  D_TABLE_PUSH_ROW below is a C99 compound
 * literal, which ISO C++ has no equivalent for: including this header from C++
@@ -129,8 +129,8 @@ D_EXTERN_C_BEGIN
 
 // d_table_internal_stdlib_realloc
 //   function: the reallocate hook of the stdlib strategy.
-D_INLINE void*
-d_table_internal_stdlib_realloc(
+D_INLINE
+void* d_table_internal_stdlib_realloc(
     void*  _context,
     void*  _block,
     size_t _old_size,
@@ -145,8 +145,8 @@ d_table_internal_stdlib_realloc(
 
 // d_table_internal_stdlib_free
 //   function: the release hook of the stdlib strategy.
-D_INLINE void
-d_table_internal_stdlib_free(
+D_INLINE
+void d_table_internal_stdlib_free(
     void*  _context,
     void*  _block,
     size_t _size
@@ -164,10 +164,9 @@ d_table_internal_stdlib_free(
 //   function: the storage strategy backed by realloc and free. The one place
 // this module names the standard allocator, and it names it only because the
 // caller asked for it by writing this call.
-D_NODISCARD D_INLINE struct d_table_alloc
-d_table_alloc_stdlib(void)
+D_NODISCARD D_INLINE struct dj_table_alloc d_table_alloc_stdlib(void)
 {
-    struct d_table_alloc result;
+    struct dj_table_alloc result;
 
     result.reallocate = d_table_internal_stdlib_realloc;
     result.release    = d_table_internal_stdlib_free;
@@ -257,21 +256,21 @@ d_table_alloc_stdlib(void)
 //
 //     D_TABLE_DECLARE_TYPED(d_int_table, int)
 //
-//     struct d_table t = d_int_table_empty(3);
+//     struct dj_table t = d_int_table_empty(3);
 //     d_int_table_push(&t, row, 3, &alloc);
-//     int v = d_int_table_get(&t, 1, 2); The table is still a struct d_table
+//     int v = d_int_table_get(&t, 1, 2); The table is still a struct dj_table
 // -- the family adds no type, so a typed
 // call site and an untyped one interoperate, and the lowered form stays the
 // one the interpreter and the wire format already know.
 #define D_TABLE_DECLARE_TYPED(_prefix, _type)                              \
                                                                            \
-    D_NODISCARD D_INLINE struct d_table                                    \
+    D_NODISCARD D_INLINE struct dj_table                                    \
     _prefix##_empty(size_t _cols)                                          \
     {                                                                      \
         return d_table_empty_of(_cols, D_TABLE_CELL_SIZE_OF(_type));       \
     }                                                                      \
                                                                            \
-    D_NODISCARD D_INLINE struct d_table                                    \
+    D_NODISCARD D_INLINE struct dj_table                                    \
     _prefix##_over(_type* _cells,                                          \
                    size_t _rows,                                           \
                    size_t _cols)                                           \
@@ -281,15 +280,15 @@ d_table_alloc_stdlib(void)
     }                                                                      \
                                                                            \
     D_NODISCARD D_INLINE _type                                             \
-    _prefix##_get(const struct d_table* _table,                            \
+    _prefix##_get(const struct dj_table* _table,                            \
                   size_t                _row,                              \
                   size_t                _col)                              \
     {                                                                      \
         return *(const _type*)d_table_cell_const(_table, _row, _col);      \
     }                                                                      \
                                                                            \
-    D_INLINE enum d_table_status                                           \
-    _prefix##_set(struct d_table* _table,                                  \
+    D_INLINE enum dj_table_status                                           \
+    _prefix##_set(struct dj_table* _table,                                  \
                   size_t          _row,                                    \
                   size_t          _col,                                    \
                   _type           _value)                                  \
@@ -298,7 +297,7 @@ d_table_alloc_stdlib(void)
     }                                                                      \
                                                                            \
     D_NODISCARD D_INLINE _type*                                            \
-    _prefix##_at(struct d_table* _table,                                   \
+    _prefix##_at(struct dj_table* _table,                                   \
                  size_t          _row,                                     \
                  size_t          _col)                                     \
     {                                                                      \
@@ -306,32 +305,32 @@ d_table_alloc_stdlib(void)
     }                                                                      \
                                                                            \
     D_NODISCARD D_INLINE _type*                                            \
-    _prefix##_row(struct d_table* _table,                                  \
+    _prefix##_row(struct dj_table* _table,                                  \
                   size_t          _row)                                    \
     {                                                                      \
         return (_type*)d_table_row(_table, _row);                          \
     }                                                                      \
                                                                            \
-    D_INLINE enum d_table_status                                           \
-    _prefix##_push(struct d_table*             _table,                     \
+    D_INLINE enum dj_table_status                                           \
+    _prefix##_push(struct dj_table*             _table,                     \
                    const _type*                _cells,                     \
                    size_t                      _width,                     \
-                   const struct d_table_alloc* _alloc)                     \
+                   const struct dj_table_alloc* _alloc)                     \
     {                                                                      \
         return d_table_push_row(_table, (const void*)_cells,               \
                                 _width, _alloc);                           \
     }                                                                      \
                                                                            \
-    D_INLINE enum d_table_status                                           \
-    _prefix##_fill(struct d_table* _table,                                 \
+    D_INLINE enum dj_table_status                                           \
+    _prefix##_fill(struct dj_table* _table,                                 \
                    _type           _value)                                 \
     {                                                                      \
         return d_table_fill(_table, (const void*)&_value);                 \
     }                                                                      \
                                                                            \
     D_NODISCARD D_INLINE const _type*                                      \
-    _prefix##_resolve(const struct d_table*        _table,                 \
-                      const struct d_table_layout* _layout,                \
+    _prefix##_resolve(const struct dj_table*        _table,                 \
+                      const struct dj_table_layout* _layout,                \
                       size_t                       _row,                   \
                       size_t                       _col)                   \
     {                                                                      \

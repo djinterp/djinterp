@@ -13,11 +13,13 @@
 * every issue it brought is said either way.
 *   The window's SHEET operands are taken here too, by read_source's rules,
 * so that `bitwisedom gui` refuses what the commands refuse, in their words.
+* An example is a named operand, `example:NAME`, read through the kit, which
+* says so when a file has the operand's name too (ruling 11).
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_common.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 #include "./cli_internal.hpp"  // corresponding header
 
@@ -49,10 +51,12 @@ namespace cmd
 namespace
 {
 
-// EXAMPLE_PREFIX
-//   constant: what a named operand that is a built-in example begins with
-// (GRAMMAR.md, R13).
-const char* const EXAMPLE_PREFIX = "example:";
+// EXAMPLE_PREFIX / EXAMPLE_WHAT
+//   constants: the prefix of a named operand that is a built-in example,
+// without its colon (GRAMMAR.md, R13); and what one is, as the kit's
+// warning of a file with its name says it.
+const char* const EXAMPLE_PREFIX = "example";
+const char* const EXAMPLE_WHAT   = "the built-in example";
 
 // FORMATS
 //   constant: --format's words.
@@ -60,8 +64,7 @@ const std::vector<std::string> FORMATS = { "text", "json" };
 
 // errors_by_row
 //   how many errors each row has, by its id; the sheet's own under 0.
-std::map<int, int>
-errors_by_row(
+std::map<int, int> errors_by_row(
     const resolution& _resolution
 )
 {
@@ -77,10 +80,9 @@ errors_by_row(
 
 // write_to
 //   text to a sink, when it has a writer and there is text.
-void
-write_to(
-    const ::d_pack_sink& _sink,
-    const std::string&   _text
+void write_to(
+    const ::dj_pack_sink& _sink,
+    const std::string&    _text
 )
 {
     if ( (_sink.write != nullptr) &&
@@ -97,8 +99,7 @@ write_to(
 // distance
 //   the edits -- a letter put in, taken out or changed -- from one word to
 // another, as the parser's suggestions count them.
-std::size_t
-distance(
+std::size_t distance(
     const std::string& _from,
     const std::string& _to
 )
@@ -138,8 +139,7 @@ place_of
 "line 3, column 7: ..." -- split into the place and the rest; a line that
 does not keeps its whole text, at no place.
 */
-std::string
-place_of(
+std::string place_of(
     const std::string& _line,
     long&              _row,
     long&              _column
@@ -194,8 +194,7 @@ place_of(
 
 // digit_of
 //   a digit's value in a base, -1 when it is none of that base's.
-int
-digit_of(
+int digit_of(
     char _digit,
     int  _base
 )
@@ -214,8 +213,7 @@ base_of
   Where an integer's digits start, past its sign and its base's prefix, and
 the base, with the prefix the model's reader takes for it.
 */
-std::size_t
-base_of(
+std::size_t base_of(
     const std::string& _text,
     int&               _base,
     std::string&       _prefix
@@ -250,8 +248,7 @@ digits_of
   An integer's digits from `_at`, each of the base, a `_` only between two;
 false, with why, at the first that is not.
 */
-bool
-digits_of(
+bool digits_of(
     const std::string& _text,
     std::size_t        _at,
     int                _base,
@@ -299,8 +296,7 @@ which_rows
   The rows a name is several rows' own name of, by their macro names, the
 first three, as a usage error lists them.
 */
-std::string
-which_rows(
+std::string which_rows(
     const std::vector<const resolved_row*>& _named
 )
 {
@@ -322,8 +318,7 @@ make_example gives the first for a name it does not know: one it does not
 know said, with the nearest, and where the examples are listed -- by
 bitwisedom-gen's own option, for its users -- and -1.
 */
-int
-example_place(
+int example_place(
     kit::program&      _program,
     const std::string& _name
 )
@@ -361,8 +356,7 @@ example_place(
 read_example
   An example by name, once example_place knows it.
 */
-bool
-read_example(
+bool read_example(
     kit::program&      _program,
     const std::string& _name,
     source&            _source
@@ -384,11 +378,11 @@ read_example(
 
 /*
 read_source
-  An example by name; otherwise the file, read whole, then any of the three
+  An example by name, read as the kit reads a named operand -- a file of
+its name said; otherwise the file, read whole, then any of the three
 shapes, its notes and its error placed in it.
 */
-bool
-read_source(
+bool read_source(
     kit::program&      _program,
     const std::string& _operand,
     source&            _source
@@ -397,12 +391,23 @@ read_source(
     _source         = source();
     _source.operand = _operand;
 
-    const std::string prefix = EXAMPLE_PREFIX;
+    std::string name;
+
+    // no room to look for a file of the example's name, said
+    if (!kit::named_operand(_program,
+                            _operand,
+                            EXAMPLE_PREFIX,
+                            EXAMPLE_WHAT,
+                            name).ok())
+    {
+        return false;
+    }
 
     // a built-in example
-    if (_operand.compare(0, prefix.size(), prefix) == 0)
+    if (!name.empty())
     {
-        return read_example(_program, _operand.substr(prefix.size()),
+        return read_example(_program,
+                            name,
                             _source);
     }
 
@@ -446,22 +451,18 @@ read_source(
 
 /*
 add_destination
-  The two options, bound to the destination.
+  The kit's two options, then `-f`, bound to the destination; a failure is
+the program's to say when it runs.
 */
-void
-add_destination(
-    kit::command _command,
-    destination& _destination
+void add_destination(
+    kit::program& _program,
+    kit::command  _command,
+    destination&  _destination
 )
 {
-    _command.add_option("-o,--out",
-                        _destination.out,
-                        "write the sheet to FILE, - for standard output, "
-                        "and leave the one read as it was")
-            .type_name("FILE");
-    _command.add_flag("-n,--dry-run",
-                      _destination.dry_run,
-                      "write nothing; say what would change");
+    (void)_destination.edit.add_options(_program,
+                                        _command,
+                                        "the sheet");
     _command.add_flag("-f,--force",
                       _destination.force,
                       "write it even if the change gives the sheet errors");
@@ -471,19 +472,21 @@ add_destination(
 
 /*
 add_sheet
-  The operand, as every changing command takes it.
+  The operand, as every changing command takes it: the kit's, its help
+naming the sheet.
 */
-void
-add_sheet(
-    kit::command _command,
-    std::string& _sheet
+void add_sheet(
+    kit::program& _program,
+    kit::command  _command,
+    destination&  _destination,
+    std::string&  _sheet
 )
 {
-    _command.add_option("SHEET",
-                        _sheet,
-                        "the sheet, written back where it was read; - for "
-                        "standard input, written to standard output")
-            .required();
+    (void)_destination.edit.add_operand(_program,
+                                        _command,
+                                        "SHEET",
+                                        "the sheet",
+                                        _sheet);
 
     return;
 }
@@ -493,8 +496,7 @@ sheet_text
   The model's writer for the shape; an export with its header, as the
 generator writes it on the date given.
 */
-std::string
-sheet_text(
+std::string sheet_text(
     const sheet&       _sheet,
     json_shape         _shape,
     const std::string& _date
@@ -527,8 +529,7 @@ sheet_text(
 new_errors
   Each row's errors after, less those it had before, where it has more.
 */
-int
-new_errors(
+int new_errors(
     const resolution& _before,
     const resolution& _after
 )
@@ -550,13 +551,12 @@ new_errors(
 
 /*
 store
-  Back where it came from unless told otherwise -- an example has no such
-place -- written whole by the kit; refused when it gives the sheet errors
-and was not forced; the change said once it is done, or, in a dry run,
-instead.
+  Where the kit's edit sends it -- back where it came from unless told
+otherwise, which an example has no such place for -- written whole by the
+kit; refused when it gives the sheet errors and was not forced; the change
+said once it is done, or, in a dry run, instead.
 */
-int
-store(
+int store(
     kit::program&      _program,
     kit::command       _command,
     const source&      _source,
@@ -565,12 +565,8 @@ store(
     const resolution&  _before
 )
 {
-    const std::string target = (!_destination.out.empty())
-                               ? _destination.out
-                               : _source.operand;
-
     // a built-in example, with nowhere to go back to
-    if ( (_destination.out.empty()) &&
+    if ( (_destination.edit.target(_program) == kit::edit_place::back) &&
          (_source.example) )
     {
         return _program.usage_error(_command,
@@ -601,7 +597,7 @@ store(
     }
 
     // nothing written
-    if (_destination.dry_run)
+    if (_destination.edit.dry_run())
     {
         _program.report(kit::severity::note,
                         _change + " (a dry run: nothing was written)");
@@ -609,16 +605,15 @@ store(
         return D_CLI_EXIT_OK;
     }
 
-    const int failed = kit::write_file(target,
-                                       sheet_text(_source.doc,
-                                                  _source.shape,
-                                                  today()));
+    const int written = _destination.edit.write(_program,
+                                                sheet_text(_source.doc,
+                                                           _source.shape,
+                                                           today()));
 
-    if (failed != 0)
+    // not written, and said
+    if (written != D_CLI_EXIT_OK)
     {
-        return _program.file_error("write",
-                                   target,
-                                   failed);
+        return written;
     }
 
     _program.note(1,
@@ -633,8 +628,7 @@ row_named
 name, which must be one row's -- a command line refuses to guess, where a
 row's expression would take the nearest sibling's.
 */
-int
-row_named(
+int row_named(
     kit::program&      _program,
     kit::command       _command,
     const resolution&  _resolution,
@@ -702,8 +696,7 @@ row_named(
 shown_name
   A symbol by the name the header defines, a group by its own.
 */
-std::string
-shown_name(
+std::string shown_name(
     const resolved_row& _row
 )
 {
@@ -718,8 +711,7 @@ digits, its separators -- then given to the model's reader in a form it
 reads the same way: hexadecimal, octal and binary with their prefixes, and
 decimal with its leading zeros gone, which C would read as octal.
 */
-bool
-read_value(
+bool read_value(
     const std::string& _text,
     wide&              _value,
     bool&              _negative,
@@ -776,8 +768,7 @@ read_value(
 read_number
   read_value, then held to what 64 bits hold as a signed number.
 */
-bool
-read_number(
+bool read_number(
     const std::string& _text,
     i64&               _value
 )
@@ -813,8 +804,7 @@ choice_of / word_list / nearest
   A search; a join; and the parser's own rule for a suggestion: no more
 edits than a third of the word, and at least one.
 */
-int
-choice_of(
+int choice_of(
     const std::string&              _word,
     const std::vector<std::string>& _words
 )
@@ -830,8 +820,7 @@ choice_of(
     return -1;
 }
 
-std::string
-word_list(
+std::string word_list(
     const std::vector<std::string>& _words
 )
 {
@@ -848,8 +837,7 @@ word_list(
     return out;
 }
 
-std::string
-nearest(
+std::string nearest(
     const std::string&              _word,
     const std::vector<std::string>& _words
 )
@@ -889,8 +877,7 @@ nearest(
 bad_word
   The words the option takes, and the nearest, in one usage error.
 */
-int
-bad_word(
+int bad_word(
     kit::program&                   _program,
     kit::command                    _command,
     const std::string&              _option,
@@ -913,8 +900,7 @@ bad_word(
 level_words
   Each standard's name in lower case, `+` as `p`: C++17 is cpp17.
 */
-std::vector<std::string>
-level_words()
+std::vector<std::string> level_words()
 {
     std::vector<std::string> out;
 
@@ -942,8 +928,7 @@ level_words()
 given
   The parser's count of the option, by whichever name finds it.
 */
-bool
-given(
+bool given(
     kit::command       _command,
     const std::string& _option
 )
@@ -956,8 +941,7 @@ table
   Each column as wide as its widest cell; the last cell of a line is left as
 it is, and a line's trailing blanks go.
 */
-std::string
-table(
+std::string table(
     const std::vector<std::vector<std::string>>& _rows
 )
 {
@@ -1001,8 +985,7 @@ table(
 plural
   The noun with an s for every count but one.
 */
-std::string
-plural(
+std::string plural(
     long        _count,
     const char* _noun
 )
@@ -1016,8 +999,7 @@ emit
   The program's output sink, which is standard output unless a test gave
 the program another.
 */
-void
-emit(
+void emit(
     kit::program&      _program,
     const std::string& _text
 )
@@ -1032,8 +1014,7 @@ emit(
 say
   The program's error sink, as emit writes its output's.
 */
-void
-say(
+void say(
     kit::program&      _program,
     const std::string& _text
 )
@@ -1048,8 +1029,7 @@ say(
 add_format / json_wanted
   One option, --format; and its word looked up, a usage error for any other.
 */
-void
-add_format(
+void add_format(
     kit::command _command,
     std::string& _format
 )
@@ -1063,8 +1043,7 @@ add_format(
     return;
 }
 
-bool
-json_wanted(
+bool json_wanted(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _format,
@@ -1093,8 +1072,7 @@ report_issues
   Each issue at the sheet, named for its row -- a symbol by its macro name,
 a group by its own -- with the kit's severity for the model's.
 */
-int
-report_issues(
+int report_issues(
     kit::program&      _program,
     const std::string& _operand,
     const resolution&  _resolution
@@ -1132,8 +1110,7 @@ report_new_issues
 words are; ids survive every edit but a row's removal, so a moved or
 renamed row's old issues are not new.
 */
-void
-report_new_issues(
+void report_new_issues(
     kit::program&      _program,
     const std::string& _operand,
     const resolution&  _before,
@@ -1173,8 +1150,7 @@ report_new_issues(
 report_lines
   Each line at its place in the file, where it gives one.
 */
-void
-report_lines(
+void report_lines(
     kit::program&                   _program,
     int                             _severity,
     const std::string&              _file,
@@ -1204,8 +1180,7 @@ today
   The local date; a build that must write the same bytes every day gives
 the date itself.
 */
-std::string
-today()
+std::string today()
 {
     const std::time_t now   = std::time(nullptr);
     const std::tm*    local = std::localtime(&now);
@@ -1237,15 +1212,14 @@ example by its place, checked as read_source checks one; a file read once,
 to know that the window can read it, and said as read_source says one it
 cannot; and `-` refused, since a window has no standard input to read.
 */
-bool
-window_sheet_of(
+bool window_sheet_of(
     cmd::kit::program& _program,
     const std::string& _operand,
     window_sheet&      _sheet
 )
 {
-    const std::string prefix = cmd::EXAMPLE_PREFIX;
-    std::string       text;
+    std::string name;
+    std::string text;
 
     _sheet = window_sheet();
 
@@ -1258,11 +1232,21 @@ window_sheet_of(
         return false;
     }
 
+    // no room to look for a file of the example's name, said
+    if (!cmd::kit::named_operand(_program,
+                                 _operand,
+                                 cmd::EXAMPLE_PREFIX,
+                                 cmd::EXAMPLE_WHAT,
+                                 name).ok())
+    {
+        return false;
+    }
+
     // a built-in example, by its place
-    if (_operand.compare(0, prefix.size(), prefix) == 0)
+    if (!name.empty())
     {
         _sheet.example = cmd::example_place(_program,
-                                            _operand.substr(prefix.size()));
+                                            name);
 
         return (_sheet.example >= 0);
     }

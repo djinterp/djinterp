@@ -61,8 +61,7 @@ using uxoxo::platform::imgui_platform;
 // descriptor
 //   an application element's type: its archetype no backend knows, and how
 // many children it takes -- none, or any number (-1).
-const element_type*
-descriptor(
+const element_type* descriptor(
     const char* _name,
     int         _most = 0
 )
@@ -106,16 +105,14 @@ struct code_cache
     std::map<std::string, ImU32> names;
 };
 
-code_cache&
-cache()
+code_cache& cache()
 {
     static code_cache state;
 
     return state;
 }
 
-void
-refresh(
+void refresh(
     const model& _model
 )
 {
@@ -195,8 +192,7 @@ refresh(
 
 // piece
 //   draws one run of a line in a colour, on the same line as the last.
-void
-piece(
+void piece(
     const std::string& _text,
     ImU32              _colour
 )
@@ -216,8 +212,7 @@ piece(
 
 // paint_line
 //   one line, tokenized just enough to colour it.
-void
-paint_line(
+void paint_line(
     const model&       _model,
     const std::string& _line,
     bool               _comment
@@ -422,10 +417,9 @@ struct line_note
 // line_notes
 //   a definition file's notes, by the line each names -- "line N: ..." --
 // counting from 1; a note that names no line is left out.
-std::map<int, std::vector<line_note>>
-line_notes(
-    const model&      _model,
-    std::size_t       _index
+std::map<int, std::vector<line_note>> line_notes(
+    const model& _model,
+    std::size_t  _index
 )
 {
     std::map<int, std::vector<line_note>> out;
@@ -467,8 +461,7 @@ line_notes(
 // squiggle
 //   a wavy line under text, from _from to _to along _y: red where the line
 // does nothing, amber where something was only assumed of it.
-void
-squiggle(
+void squiggle(
     ImDrawList* _list,
     float       _from,
     float       _to,
@@ -499,8 +492,7 @@ squiggle(
 
 // noted_tip
 //   the notes of a line the mouse is on, as its tooltip.
-void
-noted_tip(
+void noted_tip(
     const std::vector<line_note>& _notes
 )
 {
@@ -529,8 +521,11 @@ nothing; what it only assumed, in amber; the mouse on one says what. Edit
 turns the view into an editor of the whole text, each change a step to
 undo, the underlines kept over it; Done turns it back.
 */
-void
-draw_definitions(model& _model, imgui_frame& _frame, std::size_t _index)
+void draw_definitions(
+    model&       _model,
+    imgui_frame& _frame,
+    std::size_t  _index
+)
 {
     if (_index >= _model.doc.definitions.size()) return;
     const definition_source& source  = _model.doc.definitions[_index];
@@ -809,8 +804,7 @@ draw_definitions(model& _model, imgui_frame& _frame, std::size_t _index)
     ImGui::PopID();
 }
 
-uxoxo::element_template
-definition_view(
+uxoxo::element_template definition_view(
     option_set _attrs
 )
 {
@@ -819,40 +813,35 @@ definition_view(
                                {});
 }
 
-uxoxo::element_template
-bit_grid(
+uxoxo::element_template bit_grid(
     option_set _attrs
 )
 {
     return uxoxo::make_element(descriptor("bitwisedom.bit_grid"), _attrs, {});
 }
 
-uxoxo::element_template
-flow_view(
+uxoxo::element_template flow_view(
     option_set _attrs
 )
 {
     return uxoxo::make_element(descriptor("bitwisedom.flow_view"), _attrs, {});
 }
 
-uxoxo::element_template
-code_view(
+uxoxo::element_template code_view(
     option_set _attrs
 )
 {
     return uxoxo::make_element(descriptor("bitwisedom.code_view"), _attrs, {});
 }
 
-uxoxo::element_template
-add_new_button(
+uxoxo::element_template add_new_button(
     option_set _attrs
 )
 {
     return uxoxo::make_element(descriptor("bitwisedom.add_new"), _attrs, {});
 }
 
-uxoxo::element_template
-add_child_field(
+uxoxo::element_template add_child_field(
     long       _parent,
     option_set _attrs
 )
@@ -864,8 +853,7 @@ add_child_field(
                                {});
 }
 
-uxoxo::element_template
-action_list(
+uxoxo::element_template action_list(
     option_set _attrs
 )
 {
@@ -874,8 +862,7 @@ action_list(
                                {});
 }
 
-uxoxo::element_template
-status_bar(
+uxoxo::element_template status_bar(
     option_set _attrs
 )
 {
@@ -884,8 +871,7 @@ status_bar(
                                {});
 }
 
-uxoxo::element_template
-add_control(
+uxoxo::element_template add_control(
     option_set _attrs
 )
 {
@@ -894,8 +880,7 @@ add_control(
                                {});
 }
 
-uxoxo::element_template
-dock_space(
+uxoxo::element_template dock_space(
     option_set _attrs
 )
 {
@@ -904,8 +889,7 @@ dock_space(
                                {});
 }
 
-uxoxo::element_template
-dock_window(
+uxoxo::element_template dock_window(
     const std::string& _key,
     const std::string& _title,
     element_list       _items,
@@ -920,8 +904,7 @@ dock_window(
                                std::move(_items));
 }
 
-uxoxo::element_template
-menu_bar_rest(
+uxoxo::element_template menu_bar_rest(
     element_list _leading,
     element_list _trailing,
     option_set   _attrs
@@ -946,8 +929,7 @@ its element carries -- the one in front, for none -- so the blueprint it
 returns, rebuilt with the rest of the interface, always draws a document
 as it is now, and nothing for one closed since.
 */
-void
-register_renderers(
+void register_renderers(
     document_source _documents,
     actions_source  _actions
 )

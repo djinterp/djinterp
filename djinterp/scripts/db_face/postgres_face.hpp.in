@@ -1,0 +1,1190 @@
+/*******************************************************************************
+* djinterp [cpp]                                               postgres_face.hpp
+*
+* The C++ face of djinterp's PostgreSQL layer.
+*   face::postgres owns a connection, libpq's PGconn (struct pg_conn), and
+* closes it when it goes; every function of the layer (postgres.h) is a
+* member of the same name, the connection argument dropped, each with its C
+* function's contract:
+*     face::postgres db;
+*     face::text     why;
+*     if (db.connect_string("host=db.example dbname=shop", why) == 0)
+*     {
+*         face::transaction<face::postgres> work(db);
+*
+*         db.create_table_sql(0, "notes", "id bigint PRIMARY KEY, body text",
+*                             D_DB_IF_NOT_EXISTS);
+*         work.commit();
+*     }
+* Results are the layer's: 0, the server's SQLSTATE packed, or a negative
+* D_DB_*. Functions that need no connection -- results, libpq's version,
+* quoting a name -- are static. db_face.hpp describes what the face adds,
+* how strings, lists and text cross it, and what each language level adds
+* beside the exact forms: from C++17 std::optional text, from C++20 formats
+* checked at compile time and std::span columns, from C++23 std::expected
+* results.
+*   connect, connect_string and connect_with replace the connection only when
+* they succeed; a failure leaves the face as it was, and puts libpq's reason
+* in the text, where one is given. Their forms that do not block --
+* connect_start and its kin -- replace it with the connection being made
+* when they answer D_DB_WAIT, and connect_continue goes on with the
+* connection held, which the face holds no more once it fails. A member
+* called on a face with no connection passes NULL to the layer, which
+* answers D_DB_INVALID_ARGUMENT, or false, 0 or NULL.
+*   face::postgres_statement owns a prepared statement, the layer's struct
+* dj_postgres_statement, whose copy the server holds, and finalizes it when it
+* goes; prepare and preparef fill one, and every function of
+* postgres_statement.h that takes a statement is its member, the statement
+* argument dropped:
+*     face::postgres_statement insert;
+*     if (db.prepare(insert, "INSERT INTO notes (body) VALUES ($1)") == 0)
+*     {
+*         re_std::int64_t changes = 0;
+*
+*         insert.bind_text(1, "first");
+*         insert.execute_update(changes);
+*     }
+* face::rows (db_face.hpp) holds the rows a query or a statement returned.
+* Finalize a statement before closing its connection.
+*   The members that forward are generated, by scripts/gen_db_face.py from the
+* layer's prototypes and scripts/db_face/postgres_face.hpp.in, and keep the C
+* functions' contracts, in the headers each part names; those written by
+* hand in the template -- the ones that connect, close or hand over the
+* connection or the statement, and result_sqlstate -- carry their own. Edit
+* the template, not this file.
+*
+*
+* path:      /inc/djinterp/cpp/db/postgres/postgres_face.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
+*                                                            revised: 2026.10.24
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  FACE
+    ----
+    1.  The statement
+         1.  postgres_statement
+              1.  Ownership
+              2.  Describing, binding and running
+    2.  The connection
+         1.  postgres
+              1.  Ownership
+              2.  Results and library
+              3.  Servers and errors
+              4.  Connections
+              5.  Queries
+              6.  Statements
+              7.  Databases, schemas and extensions
+              8.  Schema objects
+              9.  Transactions
+              10. Settings
+              11. Maintenance
+              12. Protocol
+    3.  Swapping
+2.  COST
+    ----
+    1.  Sizes and moves
+*/
+
+#ifndef DJINTERP_DB_POSTGRES_POSTGRES_FACE_HPP
+#define DJINTERP_DB_POSTGRES_POSTGRES_FACE_HPP 1
+
+// std
+#include <cstddef>  // std::size_t
+#include <string>   // std::string
+#include <vector>   // std::vector
+// djinterp
+#include "../db_face.hpp"  // string_arg, text, the lists, the levels
+#include "../../../c/db/postgres/postgres.h"    // the layer
+// re_std
+#include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t, INT64_MAX
+
+// std, by level: what the forms each level adds take and return
+// (db_face.hpp, 1)
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #include <type_traits>  // std::is_nothrow_move_constructible
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if D_INTERNAL_DB_FACE_OPTIONAL
+    #include <optional>  // std::optional
+#endif  // D_INTERNAL_DB_FACE_OPTIONAL
+#if D_INTERNAL_DB_FACE_SPAN
+    #include <span>  // std::span
+#endif  // D_INTERNAL_DB_FACE_SPAN
+#if D_INTERNAL_DB_FACE_EXPECTED
+    #include <expected>  // std::expected, std::unexpected
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+// 64-bit floor: the layer needs a 64-bit integer type, and below it the face
+// compiles to nothing, as db_face.hpp does.
+#if defined(INT64_MAX)
+
+
+namespace djinterp
+{
+namespace face
+{
+
+
+//==============================================================================
+// 1.  FACE
+//==============================================================================
+
+
+// 1.1    The statement
+//------------------------------------------------------------------------------
+// 1.1.1
+// postgres_statement
+//   class: a prepared statement -- the layer's struct dj_postgres_statement,
+// whose copy the server holds -- owned: finalized when the object goes.
+// Made empty, and filled by face::postgres's prepare and preparef; every
+// function of postgres_statement.h that takes a statement is a member of
+// the same name, whose contract it keeps. Finalize it before closing its
+// connection. Not copyable; movable from C++11.
+class postgres_statement
+{
+public:
+    // 1.1.1.1
+    // Ownership
+    //   a statement made empty holds none; whatever a statement holds, it
+    // finalizes when it goes.
+    D_CONSTEXPR postgres_statement() D_NOEXCEPT
+        : m_statement(D_NULLPTR)
+    {}
+
+    /**
+     * @brief Makes a statement that owns one prepared elsewhere.
+     *
+     * @param[in] _owned  the statement, or `NULL` for none.
+     * @post The object finalizes `_owned`; the caller no longer does.
+     */
+    explicit D_CONSTEXPR postgres_statement(
+        struct dj_postgres_statement* _owned
+    ) D_NOEXCEPT
+        : m_statement(_owned)
+    {}
+
+    ~postgres_statement()
+    {
+        // a statement, when there is one; an empty object calls nothing
+        if (m_statement)
+        {
+            (void)d_postgres_finalize(m_statement);
+        }
+    }
+
+#if D_MOVE_ENABLED
+    // moving -- the statement passes to the object moved to, which
+    // finalizes what it held; the object moved from holds none
+    postgres_statement(
+        postgres_statement&& _other
+    ) D_NOEXCEPT
+        : m_statement(_other.release())
+    {}
+
+    postgres_statement&
+    operator=(
+        postgres_statement&& _other
+    ) D_NOEXCEPT
+    {
+        reset(_other.release());
+
+        return *this;
+    }
+#endif  // D_MOVE_ENABLED
+
+    // the handle -- the statement, for the layer's own calls, NULL when
+    // there is none; and whether there is one
+    D_NODISCARD struct dj_postgres_statement*
+    handle() const D_NOEXCEPT
+    {
+        return m_statement;
+    }
+
+    D_NODISCARD bool
+    is_prepared() const D_NOEXCEPT
+    {
+        return (m_statement != D_NULLPTR);
+    }
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    D_EXPLICIT_BOOL operator bool() const D_NOEXCEPT
+    {
+        return is_prepared();
+    }
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+    /**
+     * @brief Gives up the statement without finalizing it.
+     *
+     * @return the statement, which the caller then finalizes with
+     *         d_postgres_finalize; `NULL` when there is none.
+     * @post The object holds no statement.
+     */
+    D_NODISCARD struct dj_postgres_statement*
+    release() D_NOEXCEPT
+    {
+        struct dj_postgres_statement* const held = m_statement;
+
+        m_statement = D_NULLPTR;
+
+        return held;
+    }
+
+    /**
+     * @brief Finalizes the statement held, if any, and takes another.
+     *
+     * @param[in] _owned  the statement to own, or `NULL` for none; the one
+     *                    already held is kept, not finalized.
+     * @post The statement that was held, if another, is finalized.
+     */
+    void
+    reset(
+        struct dj_postgres_statement* _owned = D_NULLPTR
+    ) D_NOEXCEPT
+    {
+        // what is held is finalized, unless it is what comes
+        if (_owned != m_statement)
+        {
+            // a statement, when there is one
+            if (m_statement)
+            {
+                (void)d_postgres_finalize(m_statement);
+            }
+
+            m_statement = _owned;
+        }
+
+        return;
+    }
+
+    /**
+     * @brief Finalizes the statement, as d_postgres_finalize does.
+     *
+     * @return d_postgres_finalize's result: 0, or the SQLSTATE, packed,
+     *         of a failure to close the server's copy.
+     * @post The object holds no statement, whatever the result.
+     */
+    int
+    finalize() D_NOEXCEPT
+    {
+        return d_postgres_finalize(release());
+    }
+
+    /**
+     * @brief Finalizes the statement held, if any, and hands its slot to a
+     *        layer's prepare to fill.
+     *
+     * @return where the layer writes the statement it prepares; the object
+     *         owns what is written there.
+     * @post The object holds no statement until the prepare fills the slot,
+     *       and holds none when the prepare fails.
+     */
+    struct dj_postgres_statement**
+    out() D_NOEXCEPT
+    {
+        reset();
+
+        return &m_statement;
+    }
+
+    // swap -- the two objects trade statements
+    void
+    swap(
+        postgres_statement& _other
+    ) D_NOEXCEPT
+    {
+        struct dj_postgres_statement* const held = m_statement;
+
+        m_statement        = _other.m_statement;
+        _other.m_statement = held;
+
+        return;
+    }
+
+    // 1.1.1.2
+    // Describing, binding and running
+    //   postgres_statement.h's functions that take a statement.
+    @@MEMBERS postgres_statement.h statement@@
+
+private:
+    D_DELETED_FN_MSG(postgres_statement(const postgres_statement&),
+                     "a statement owns what the server prepared; move it")
+    D_DELETED_FN_MSG(postgres_statement& operator=(const postgres_statement&),
+                     "a statement owns what the server prepared; move it")
+
+    struct dj_postgres_statement* m_statement;
+};
+
+// 1.2    The connection
+//------------------------------------------------------------------------------
+// 1.2.1
+// postgres
+//   class: a PostgreSQL connection, owned: closed when the object goes.
+// Every member forwards to the layer's function of the same name, whose
+// contract it keeps. Not copyable; movable from C++11.
+class postgres
+{
+public:
+    // transaction_mode
+    //   type: how a transaction begins, for face::transaction.
+    typedef enum dj_postgres_transaction_mode transaction_mode;
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // format
+    //   type: an f form's format, for the arguments that follow it: a
+    // literal in the shared dialect, read at compile time from C++20, or a
+    // format runtime_format marked (db_face.hpp, 2.3).
+    template<typename... Args>
+    using format = format_arg<internal::shared_dialect, Args...>;
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+    // 1.2.1.1
+    // Ownership
+    //   a face made empty holds no connection; whatever a face holds, it
+    // closes when it goes.
+    D_CONSTEXPR postgres() D_NOEXCEPT
+        : m_db(D_NULLPTR)
+    {}
+
+    /**
+     * @brief Makes a face that owns a connection made elsewhere, by libpq's
+     *        own calls, say.
+     *
+     * @param[in] _owned  the connection, or `NULL` for none.
+     * @post The face closes `_owned`; the caller no longer does.
+     */
+    explicit D_CONSTEXPR postgres(
+        struct pg_conn* _owned
+    ) D_NOEXCEPT
+        : m_db(_owned)
+    {}
+
+    ~postgres()
+    {
+        // a connection, when there is one; an empty face calls nothing
+        if (m_db)
+        {
+            (void)d_postgres_close(m_db);
+        }
+    }
+
+#if D_MOVE_ENABLED
+    // moving -- the connection passes to the face moved to, which closes
+    // what it held; the face moved from holds none
+    postgres(
+        postgres&& _other
+    ) D_NOEXCEPT
+        : m_db(_other.release())
+    {}
+
+    postgres&
+    operator=(
+        postgres&& _other
+    ) D_NOEXCEPT
+    {
+        reset(_other.release());
+
+        return *this;
+    }
+#endif  // D_MOVE_ENABLED
+
+    // the handle -- the connection, for the layer's or libpq's own calls,
+    // NULL when there is none; and whether there is one
+    D_NODISCARD struct pg_conn*
+    handle() const D_NOEXCEPT
+    {
+        return m_db;
+    }
+
+    D_NODISCARD bool
+    is_open() const D_NOEXCEPT
+    {
+        return (m_db != D_NULLPTR);
+    }
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    D_EXPLICIT_BOOL operator bool() const D_NOEXCEPT
+    {
+        return is_open();
+    }
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+    /**
+     * @brief Gives up the connection without closing it.
+     *
+     * @return the connection, which the caller then closes with
+     *         d_postgres_close; `NULL` when there is none.
+     * @post The face holds no connection.
+     */
+    D_NODISCARD struct pg_conn*
+    release() D_NOEXCEPT
+    {
+        struct pg_conn* const held = m_db;
+
+        m_db = D_NULLPTR;
+
+        return held;
+    }
+
+    /**
+     * @brief Closes the connection held, if any, and takes another.
+     *
+     * @param[in] _owned  the connection to own, or `NULL` for none; the one
+     *                    already held is kept, not closed.
+     * @post The connection that was held, if another, is closed, and every
+     *       pointer obtained through it is invalid.
+     */
+    void
+    reset(
+        struct pg_conn* _owned = D_NULLPTR
+    ) D_NOEXCEPT
+    {
+        // what is held closes, unless it is what comes
+        if (_owned != m_db)
+        {
+            // a connection, when there is one
+            if (m_db)
+            {
+                (void)d_postgres_close(m_db);
+            }
+
+            m_db = _owned;
+        }
+
+        return;
+    }
+
+    // swap -- the two faces trade connections
+    void
+    swap(
+        postgres& _other
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* const held = m_db;
+
+        m_db        = _other.m_db;
+        _other.m_db = held;
+
+        return;
+    }
+
+    // default_transaction_mode -- how face::transaction begins when told
+    // nothing: as BEGIN does, in the session's isolation level and access
+    // mode
+    D_NODISCARD static D_CONSTEXPR transaction_mode
+    default_transaction_mode() D_NOEXCEPT
+    {
+        return D_POSTGRES_TRANSACTION_DEFAULT;
+    }
+
+    // 1.2.1.2
+    // Results and library
+    //   postgres_common.h's results and libpq's version: static, since
+    // they need no connection.
+    @@MEMBERS postgres_common.h static@@
+
+    /**
+     * @brief Spells a result's SQLSTATE into a buffer, as
+     *        d_postgres_result_sqlstate does.
+     *
+     * @param[in]  _result    a result the layer returned.
+     * @param[out] _sqlstate  receives the five characters and a terminator:
+     *                        "00000" for 0, and "" for a negative result or
+     *                        one no SQLSTATE packs to.
+     * @return `true` when the result packs a SQLSTATE, 0 included.
+     */
+    static bool
+    result_sqlstate(
+        int  _result,
+        char (&_sqlstate)[6]
+    ) D_NOEXCEPT
+    {
+        return d_postgres_result_sqlstate(_result, _sqlstate);
+    }
+
+    /**
+     * @brief Spells a result's SQLSTATE, as d_postgres_result_sqlstate does.
+     *
+     * @param[in] _result  a result the layer returned.
+     * @return the five characters: "00000" for 0, and "" for a negative
+     *         result or one no SQLSTATE packs to.
+     */
+    D_NODISCARD static std::string
+    result_sqlstate(
+        int _result
+    )
+    {
+        char spelled[6] = "";
+
+        return (d_postgres_result_sqlstate(_result, spelled))
+                   ? std::string(spelled)
+                   : std::string();
+    }
+
+    // 1.2.1.3
+    // Servers and errors
+    //   postgres_common.h's server versions and features, and the
+    // connection's latest error.
+    @@MEMBERS postgres_common.h instance@@
+
+    // 1.2.1.4
+    // Connections
+    //   postgres_connection.h.
+
+    /**
+     * @brief Connects to a server, as d_postgres_connect does, in place of
+     *        the connection held.
+     *
+     * @param[in] _options  where and as whom; `NULL` leaves every field to
+     *                      libpq.
+     * @return d_postgres_connect's result.
+     * @post On success the face holds the new connection, and the one it
+     *       held is closed; on failure the face is as it was.
+     */
+    int
+    connect(
+        const struct dj_postgres_options* _options
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect(_options,
+                                                    &made,
+                                                    D_NULLPTR);
+
+        return m_take(result, made);
+    }
+
+    /**
+     * @brief Connects as connect does, and says why a connection could not
+     *        be made.
+     *
+     * @param[in]  _options  where and as whom; `NULL` leaves every field to
+     *                       libpq.
+     * @param[out] _message  libpq's reason when no connection could be made;
+     *                       null otherwise.
+     * @return d_postgres_connect's result.
+     * @post As for connect.
+     */
+    int
+    connect(
+        const struct dj_postgres_options* _options,
+        text&                            _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect(_options,
+                                                    &made,
+                                                    _message.out());
+
+        return m_take(result, made);
+    }
+
+    /**
+     * @brief Connects as a connection string says, as
+     *        d_postgres_connect_string does, in place of the connection held.
+     *
+     * @param[in] _conninfo  keywords and values, or a URI; `NULL` or "" leaves
+     *                       everything to libpq.
+     * @return d_postgres_connect_string's result.
+     * @post As for connect.
+     */
+    int
+    connect_string(
+        string_arg _conninfo
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_string(_conninfo.c_str(),
+                                                           &made,
+                                                           D_NULLPTR);
+
+        return m_take(result, made);
+    }
+
+    /**
+     * @brief Connects as connect_string does, and says why a connection
+     *        could not be made.
+     *
+     * @param[in]  _conninfo  keywords and values, or a URI; `NULL` or ""
+     *                        leaves everything to libpq.
+     * @param[out] _message   libpq's reason when no connection could be
+     *                        made, or the string could not be read; null
+     *                        otherwise.
+     * @return d_postgres_connect_string's result.
+     * @post As for connect.
+     */
+    int
+    connect_string(
+        string_arg _conninfo,
+        text&      _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_string(_conninfo.c_str(),
+                                                           &made,
+                                                           _message.out());
+
+        return m_take(result, made);
+    }
+
+    /**
+     * @brief Connects with libpq's keywords and values and a connection
+     *        string, whose parts override them, as d_postgres_connect_with
+     *        does, in place of the connection held.
+     *
+     * @param[in] _conninfo  keywords and values, a URI, or a database's
+     *                       name; `NULL` or "" for none.
+     * @param[in] _keywords  libpq's connection keywords.
+     * @param[in] _values    their values, in the same order; a `NULL` or
+     *                       empty value is left out.
+     * @param[in] _count     how many keywords there are.
+     * @return d_postgres_connect_with's result.
+     * @post As for connect.
+     */
+    int
+    connect_with(
+        string_arg         _conninfo,
+        const char* const* _keywords,
+        const char* const* _values,
+        std::size_t        _count
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_with(_conninfo.c_str(),
+                                                         _keywords,
+                                                         _values,
+                                                         _count,
+                                                         &made,
+                                                         D_NULLPTR);
+
+        return m_take(result, made);
+    }
+
+    /**
+     * @brief Connects as connect_with does, and says why a connection could
+     *        not be made.
+     *
+     * @param[in]  _conninfo  keywords and values, a URI, or a database's
+     *                        name; `NULL` or "" for none.
+     * @param[in]  _keywords  libpq's connection keywords.
+     * @param[in]  _values    their values, in the same order; a `NULL` or
+     *                        empty value is left out.
+     * @param[in]  _count     how many keywords there are.
+     * @param[out] _message   libpq's reason when no connection could be
+     *                        made, the string could not be read, or a
+     *                        keyword is not libpq's; null otherwise.
+     * @return d_postgres_connect_with's result.
+     * @post As for connect.
+     */
+    int
+    connect_with(
+        string_arg         _conninfo,
+        const char* const* _keywords,
+        const char* const* _values,
+        std::size_t        _count,
+        text&              _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_with(_conninfo.c_str(),
+                                                         _keywords,
+                                                         _values,
+                                                         _count,
+                                                         &made,
+                                                         _message.out());
+
+        return m_take(result, made);
+    }
+
+    // connect_with -- the keywords and values as arrays of one size, the
+    // count; from C++20 as std::spans, which must be the same size, or the
+    // layer answers D_DB_INVALID_ARGUMENT; each with the reason too
+    template<std::size_t Count>
+    int
+    connect_with(
+        string_arg        _conninfo,
+        const char* const (&_keywords)[Count],
+        const char* const (&_values)[Count]
+    ) D_NOEXCEPT
+    {
+        return connect_with(_conninfo, _keywords, _values, Count);
+    }
+
+    template<std::size_t Count>
+    int
+    connect_with(
+        string_arg        _conninfo,
+        const char* const (&_keywords)[Count],
+        const char* const (&_values)[Count],
+        text&             _message
+    ) D_NOEXCEPT
+    {
+        return connect_with(_conninfo, _keywords, _values, Count, _message);
+    }
+
+#if D_INTERNAL_DB_FACE_SPAN
+    int
+    connect_with(
+        string_arg                   _conninfo,
+        std::span<const char* const> _keywords,
+        std::span<const char* const> _values
+    ) noexcept
+    {
+        // keywords without values, or values without keywords
+        if (_keywords.size() != _values.size())
+        {
+            return D_DB_INVALID_ARGUMENT;
+        }
+
+        return connect_with(_conninfo,
+                            _keywords.data(),
+                            _values.data(),
+                            _keywords.size());
+    }
+
+    int
+    connect_with(
+        string_arg                   _conninfo,
+        std::span<const char* const> _keywords,
+        std::span<const char* const> _values,
+        text&                        _message
+    ) noexcept
+    {
+        // keywords without values, or values without keywords
+        if (_keywords.size() != _values.size())
+        {
+            _message.reset();
+
+            return D_DB_INVALID_ARGUMENT;
+        }
+
+        return connect_with(_conninfo,
+                            _keywords.data(),
+                            _values.data(),
+                            _keywords.size(),
+                            _message);
+    }
+#endif  // D_INTERNAL_DB_FACE_SPAN
+
+    /**
+     * @brief Closes the connection, as d_postgres_close does.
+     *
+     * @return 0.
+     * @post The face holds no connection.
+     */
+    int
+    close() D_NOEXCEPT
+    {
+        return d_postgres_close(release());
+    }
+
+    /**
+     * @brief Starts a connection, as d_postgres_connect_start does, to
+     *        replace the connection held.
+     *
+     * @param[in]  _options  where and as whom; `NULL` leaves every field to
+     *                       libpq.
+     * @param[out] _pending  receives what to wait for before continuing.
+     * @return d_postgres_connect_start's result.
+     * @post On D_DB_WAIT the face holds the connection being made, and the
+     *       one it held is closed; on failure the face is as it was.
+     */
+    int
+    connect_start(
+        const struct dj_postgres_options* _options,
+        dj_db_pending&                    _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_start(_options,
+                                                          &made,
+                                                          &_pending,
+                                                          D_NULLPTR);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as connect_start does, and says why one
+     *        could not be.
+     *
+     * @param[in]  _options  where and as whom; `NULL` leaves every field to
+     *                       libpq.
+     * @param[out] _pending  receives what to wait for before continuing.
+     * @param[out] _message  libpq's reason when no connection could be
+     *                       started; null otherwise.
+     * @return d_postgres_connect_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_start(
+        const struct dj_postgres_options* _options,
+        dj_db_pending&                    _pending,
+        text&                            _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_start(_options,
+                                                          &made,
+                                                          &_pending,
+                                                          _message.out());
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as a connection string says, as
+     *        d_postgres_connect_string_start does, to replace the
+     *        connection held.
+     *
+     * @param[in]  _conninfo  keywords and values, or a URI; `NULL` or ""
+     *                        leaves everything to libpq.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @return d_postgres_connect_string_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_string_start(
+        string_arg    _conninfo,
+        dj_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_string_start(
+                                     _conninfo.c_str(),
+                                     &made,
+                                     &_pending,
+                                     D_NULLPTR);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as connect_string_start does, and says why
+     *        one could not be.
+     *
+     * @param[in]  _conninfo  keywords and values, or a URI; `NULL` or ""
+     *                        leaves everything to libpq.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @param[out] _message   libpq's reason when no connection could be
+     *                        started, or the string could not be read; null
+     *                        otherwise.
+     * @return d_postgres_connect_string_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_string_start(
+        string_arg    _conninfo,
+        dj_db_pending& _pending,
+        text&         _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_string_start(
+                                     _conninfo.c_str(),
+                                     &made,
+                                     &_pending,
+                                     _message.out());
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection with libpq's keywords and values and a
+     *        connection string, as d_postgres_connect_with_start does, to
+     *        replace the connection held.
+     *
+     * @param[in]  _conninfo  keywords and values, a URI, or a database's
+     *                        name; `NULL` or "" for none.
+     * @param[in]  _keywords  libpq's connection keywords.
+     * @param[in]  _values    their values, in the same order; a `NULL` or
+     *                        empty value is left out.
+     * @param[in]  _count     how many keywords there are.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @return d_postgres_connect_with_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_with_start(
+        string_arg         _conninfo,
+        const char* const* _keywords,
+        const char* const* _values,
+        std::size_t        _count,
+        dj_db_pending&      _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_with_start(
+                                     _conninfo.c_str(),
+                                     _keywords,
+                                     _values,
+                                     _count,
+                                     &made,
+                                     &_pending,
+                                     D_NULLPTR);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as connect_with_start does, and says why
+     *        one could not be.
+     *
+     * @param[in]  _conninfo  keywords and values, a URI, or a database's
+     *                        name; `NULL` or "" for none.
+     * @param[in]  _keywords  libpq's connection keywords.
+     * @param[in]  _values    their values, in the same order; a `NULL` or
+     *                        empty value is left out.
+     * @param[in]  _count     how many keywords there are.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @param[out] _message   libpq's reason when no connection could be
+     *                        started, the string could not be read, or a
+     *                        keyword is not libpq's; null otherwise.
+     * @return d_postgres_connect_with_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_with_start(
+        string_arg         _conninfo,
+        const char* const* _keywords,
+        const char* const* _values,
+        std::size_t        _count,
+        dj_db_pending&      _pending,
+        text&              _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_with_start(
+                                     _conninfo.c_str(),
+                                     _keywords,
+                                     _values,
+                                     _count,
+                                     &made,
+                                     &_pending,
+                                     _message.out());
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Continues the connection a start began, as
+     *        d_postgres_connect_continue does.
+     *
+     * @param[in]     _events   what came, as dj_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @return d_postgres_connect_continue's result.
+     * @post On a failure the face holds no connection: the layer finished
+     *       the one being made.
+     */
+    int
+    connect_continue(
+        unsigned      _events,
+        dj_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* db     = m_db;
+        const int       result = d_postgres_connect_continue(&db,
+                                                             _events,
+                                                             &_pending,
+                                                             D_NULLPTR);
+
+        m_db = db;
+
+        return result;
+    }
+
+    /**
+     * @brief Continues the connection as connect_continue does, and says
+     *        why it could not be made.
+     *
+     * @param[in]     _events   what came, as dj_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @param[out]    _message  libpq's reason when the connection could not
+     *                          be made, "timeout expired" for its deadline;
+     *                          null otherwise.
+     * @return d_postgres_connect_continue's result.
+     * @post As for connect_continue.
+     */
+    int
+    connect_continue(
+        unsigned      _events,
+        dj_db_pending& _pending,
+        text&         _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* db     = m_db;
+        const int       result = d_postgres_connect_continue(&db,
+                                                             _events,
+                                                             &_pending,
+                                                             _message.out());
+
+        m_db = db;
+
+        return result;
+    }
+
+    // cancel_finish -- abandons a cancel request under way, as
+    // d_postgres_cancel_finish does; NULL is accepted. Returns 0
+    static int
+    cancel_finish(
+        struct pg_cancel_conn* _cancel
+    ) D_NOEXCEPT
+    {
+        return d_postgres_cancel_finish(_cancel);
+    }
+
+    @@MEMBERS postgres_connection.h all@@
+
+    // 1.2.1.5
+    // Queries
+    //   postgres_query.h; the f forms from C++11, their formats checked
+    // from C++20 (db_face.hpp, 2.2 to 2.5).
+    @@MEMBERS postgres_query.h all@@
+
+    // 1.2.1.6
+    // Statements
+    //   postgres_statement.h's preparing, into a
+    // face::postgres_statement, whose members its other functions are.
+    @@MEMBERS postgres_statement.h instance@@
+
+    // 1.2.1.7
+    // Databases, schemas and extensions
+    //   postgres_database.h.
+    @@MEMBERS postgres_database.h all@@
+
+    // 1.2.1.8
+    // Schema objects
+    //   postgres_schema.h.
+    @@MEMBERS postgres_schema.h all@@
+
+    // 1.2.1.9
+    // Transactions
+    //   postgres_transaction.h; face::transaction and face::savepoint guard
+    // them.
+    @@MEMBERS postgres_transaction.h all@@
+
+    // 1.2.1.10
+    // Settings
+    //   postgres_settings.h.
+    @@MEMBERS postgres_settings.h all@@
+
+    // 1.2.1.11
+    // Maintenance
+    //   postgres_maintenance.h.
+    @@MEMBERS postgres_maintenance.h all@@
+
+    // 1.2.1.12
+    // Protocol
+    //   postgres_protocol.h: COPY in, notifications, and statements sent
+    // without waiting.
+    @@MEMBERS postgres_protocol.h all@@
+
+private:
+    D_DELETED_FN_MSG(postgres(const postgres&),
+                     "a face owns its connection; move it")
+    D_DELETED_FN_MSG(postgres& operator=(const postgres&),
+                     "a face owns its connection; move it")
+
+    // m_take -- a connect's result; the connection it made replaces the
+    // face's when it succeeded. Each connect calls the layer first, in a
+    // statement of its own, since the order a call's arguments are
+    // evaluated in is the compiler's.
+    int
+    m_take(
+        int             _result,
+        struct pg_conn* _made
+    ) D_NOEXCEPT
+    {
+        // a failed connect made nothing to keep
+        if (_result == 0)
+        {
+            reset(_made);
+        }
+
+        return _result;
+    }
+
+    // m_take_started -- a start's result; the connection being made replaces
+    // the face's when it answered D_DB_WAIT
+    int
+    m_take_started(
+        int             _result,
+        struct pg_conn* _made
+    ) D_NOEXCEPT
+    {
+        // a failed start made nothing to keep
+        if (_result == D_DB_WAIT)
+        {
+            reset(_made);
+        }
+
+        return _result;
+    }
+
+    struct pg_conn* m_db;
+};
+
+// 1.3    Swapping
+//------------------------------------------------------------------------------
+// swapping -- the two connections, or statements, trade places, as std::swap
+// would have them, for code that swaps unqualified
+inline void
+swap(
+    postgres_statement& _left,
+    postgres_statement& _right
+) D_NOEXCEPT
+{
+    _left.swap(_right);
+
+    return;
+}
+
+inline void
+swap(
+    postgres& _left,
+    postgres& _right
+) D_NOEXCEPT
+{
+    _left.swap(_right);
+
+    return;
+}
+
+
+//==============================================================================
+// 2.  COST
+//==============================================================================
+
+
+// 2.1    Sizes and moves
+//------------------------------------------------------------------------------
+// the face is its connection, and a statement its handle, and from C++11
+// each moves without throwing (db_face.hpp, 6)
+D_STATIC_ASSERT(sizeof(postgres_statement) ==
+                    sizeof(struct dj_postgres_statement*),
+                "face::postgres_statement is its handle, and no more");
+D_STATIC_ASSERT(sizeof(postgres) == sizeof(struct pg_conn*),
+                "face::postgres is its connection, and no more");
+#if D_MOVE_ENABLED
+D_STATIC_ASSERT(
+    ( (std::is_nothrow_move_constructible<postgres_statement>::value) &&
+      (std::is_nothrow_move_assignable<postgres_statement>::value) ),
+    "face::postgres_statement moves without throwing");
+D_STATIC_ASSERT( ( (std::is_nothrow_move_constructible<postgres>::value) &&
+                   (std::is_nothrow_move_assignable<postgres>::value) ),
+                 "face::postgres moves without throwing");
+#endif  // D_MOVE_ENABLED
+
+
+}  // namespace face
+}  // namespace djinterp
+
+
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_DB_POSTGRES_POSTGRES_FACE_HPP

@@ -25,16 +25,16 @@ int main(void)
 {
     struct tf_maybe               mc;
     struct tf_result              rc;
-    struct d_maybe                m, m2, mo;
+    struct dj_maybe                m, m2, mo;
     struct tf_maybe               mc2, mco;
-    struct d_result               r;
-    struct d_array_carrier        ac;
-    struct d_producer_carrier     pc;
-    struct d_producer_array_state ps;
-    struct d_producer             prod;
-    struct d_foldable             fa, fm, fr, fp;
-    struct d_alternative          alt;
-    struct d_monoid               sum;
+    struct dj_result               r;
+    struct dj_array_carrier        ac;
+    struct dj_producer_carrier     pc;
+    struct dj_producer_array_state ps;
+    struct dj_producer             prod;
+    struct dj_foldable             fa, fm, fr, fp;
+    struct dj_alternative          alt;
+    struct dj_monoid               sum;
     intmax_t arr[4] = {1,2,3,4};
     intmax_t v, out, scratch;
 
@@ -83,7 +83,7 @@ int main(void)
     ck(d_foldable_mconcat(&fp,&pc,&sum,&out)&&out==10,"mconcat over a producer");
 
     /* a width mismatch between carrier and monoid must be refused */
-    { struct d_foldable narrow = d_foldable_array(1);
+    { struct dj_foldable narrow = d_foldable_array(1);
       ck(!d_foldable_mconcat(&narrow,&ac,&sum,&out),
          "mconcat refuses a width mismatch"); }
 

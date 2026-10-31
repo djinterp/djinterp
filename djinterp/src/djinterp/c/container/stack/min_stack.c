@@ -14,25 +14,21 @@
 
 /*
 d_min_stack_new
-  Allocates and initializes a new (empty) `d_min_stack`.
+  Allocates and initializes a new (empty) `dj_min_stack`.
   A min-stack (minimal stack) is a LIFO (last in, first out) stack data
 structure optimized to occupy minimal space.
 
 Parameter(s):
   none
 Return:
-  A `struct d_min_stack` pointer corresponding to either:
+  A `struct dj_min_stack` pointer corresponding to either:
   1. an address in memory corresponding to the newly-initialized `struct
-     d_min_stack`, if memory allocation was successful, or
+     dj_min_stack`, if memory allocation was successful, or
   2. NULL, if memory allocation was unsuccessful.
 */
-struct d_min_stack*
-d_min_stack_new
-(
-    void
-)
+struct dj_min_stack* d_min_stack_new(void)
 {
-    struct d_min_stack* new_min_stack = malloc(sizeof(struct d_min_stack));
+    struct dj_min_stack* new_min_stack = malloc(sizeof(struct dj_min_stack));
 
     // ensure that memory allocation was successful
     if (new_min_stack)
@@ -53,14 +49,12 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_min_stack_clear
-(
-    struct d_min_stack* _min_stack
+void d_min_stack_clear(
+    struct dj_min_stack* _min_stack
 )
 {
-    struct d_linked_node* node;
-    struct d_linked_node* next;
+    struct dj_linked_node* node;
+    struct dj_linked_node* next;
 
     if (_min_stack)
     {
@@ -97,10 +91,8 @@ Parameter(s):
 Return:
   a pointer to the value on the top of the stack, or NULL if stack is empty or NULL
 */
-void*
-d_min_stack_peek
-(
-    struct d_min_stack* _min_stack
+void* d_min_stack_peek(
+    struct dj_min_stack* _min_stack
 )
 {
     return ( (_min_stack) && (_min_stack->top) )
@@ -110,10 +102,10 @@ d_min_stack_peek
 
 /*
 d_min_stack_pop
-  Removes the element at top of the given `d_min_stack` and returns its value.
+  Removes the element at top of the given `dj_min_stack` and returns its value.
 
 Parameter(s):
-  _min_stack: the `d_min_stack` being modified by this operation by having the
+  _min_stack: the `dj_min_stack` being modified by this operation by having the
               top element removed.
 Return:
   A `void` pointer corresponding to either:
@@ -121,18 +113,16 @@ Return:
     was removed by this operation (if `_min_stack` was non-NULL and non-empty),
     or
   - NULL, if any of the following is true:
-    1. the given `d_min_stack` was NULL, or
-    2. the given `d_min_stack` was empty, or
-    3. the given `d_min_stack` was non-NULL and non-empty, but the value of
+    1. the given `dj_min_stack` was NULL, or
+    2. the given `dj_min_stack` was empty, or
+    3. the given `dj_min_stack` was non-NULL and non-empty, but the value of
        the node removed was itself NULL.
 */
-void*
-d_min_stack_pop
-(
-    struct d_min_stack* _min_stack
+void* d_min_stack_pop(
+    struct dj_min_stack* _min_stack
 )
 {
-    struct d_linked_node* node;
+    struct dj_linked_node* node;
     void* value;
 
     // required that parameter is a non-NULL reference to a non-empty min stack
@@ -159,25 +149,23 @@ d_min_stack_pop
 
 /*
 d_min_stack_push
-  Adds an element to the top of the given `d_min_stack`.
+  Adds an element to the top of the given `dj_min_stack`.
 
 Parameter(s):
-  _value:     a pointer to a value being added to the top of the `d_min_stack`.
-  _min_stack: the `d_min_stack` being modified by this operation.
+  _value:     a pointer to a value being added to the top of the `dj_min_stack`.
+  _min_stack: the `dj_min_stack` being modified by this operation.
 Return:
   A `void` pointer corresponding to either:
   1. the memory address pointed to by `_value`, if the `push` operation was
      successful, or
   2. NULL, if memory allocation was unsuccessful.
 */
-void*
-d_min_stack_push
-(
-    struct d_min_stack* _min_stack,
-    void*               _value
+void* d_min_stack_push(
+    struct dj_min_stack* _min_stack,
+    void*                _value
 )
 {
-    struct d_linked_node* new_node;
+    struct dj_linked_node* new_node;
 
     // _min_stack cannot be null
     if (!_min_stack)
@@ -185,11 +173,11 @@ d_min_stack_push
         return NULL;
     }
 
-    //   attempt to allocate and initialize a new `d_linked_node` with the
+    //   attempt to allocate and initialize a new `dj_linked_node` with the
     // value provided and linked to the current top
     new_node = d_linked_node_new(_value, _min_stack->top);
 
-    // ensure allocation of new `d_linked_node` allocation was successful
+    // ensure allocation of new `dj_linked_node` allocation was successful
     if (!new_node)
     {
         return NULL;
@@ -204,18 +192,16 @@ d_min_stack_push
 
 /*
 d_min_stack_free
-  Frees the space allocated to the `d_min_stack` and all of the
-`d_linked_node`(s) associated with it.
+  Frees the space allocated to the `dj_min_stack` and all of the
+`dj_linked_node`(s) associated with it.
 
 Parameter(s):
-  _min_stack: the `d_min_stack` being freed.
+  _min_stack: the `dj_min_stack` being freed.
 Return:
   none.
 */
-void
-d_min_stack_free
-(
-    struct d_min_stack* _min_stack
+void d_min_stack_free(
+    struct dj_min_stack* _min_stack
 )
 {
     if (_min_stack)

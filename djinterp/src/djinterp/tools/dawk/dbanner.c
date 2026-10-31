@@ -29,15 +29,15 @@ d_internal_field
 an attribute and the value's columns measured.  The value's start column is
 what the guide's "values all begin on character 14" rule compares against.
 */
-static uint32_t
-d_internal_field(
-    struct d_node_tree* _tree,
-    uint32_t            _banner,
-    const char*         _name,
-    const char*         _line,
-    size_t              _length,
-    size_t              _value_start,
-    uint32_t            _line_number
+static
+uint32_t d_internal_field(
+    struct dj_node_tree* _tree,
+    uint32_t             _banner,
+    const char*          _name,
+    const char*          _line,
+    size_t               _length,
+    size_t               _value_start,
+    uint32_t             _line_number
 )
 {
     const uint32_t field = d_node_add(_tree, _banner, "field");
@@ -49,7 +49,7 @@ d_internal_field(
 
     (void)d_node_set_attribute(_tree, field, "name", _name);
 
-    struct d_node* const field_node = d_node_at(_tree, field);
+    struct dj_node* const field_node = d_node_at(_tree, field);
 
     field_node->start_column = 1u;
     field_node->width        = (uint32_t)_length;
@@ -70,7 +70,7 @@ d_internal_field(
         --end;
     }
 
-    struct d_node* const value_node = d_node_at(_tree, value);
+    struct dj_node* const value_node = d_node_at(_tree, value);
 
     value_node->start_column = (uint32_t)(_value_start + 1u);
     value_node->end_column   = (uint32_t)end;
@@ -94,8 +94,8 @@ the label repair then rewrites prose: `read-copy-update:` became
 `read-copy-upcreated:` in a run over this tree.  A label is a whole word or
 it is not a label.
 */
-static const char*
-d_internal_find_label(
+static
+const char* d_internal_find_label(
     const char* _line,
     const char* _label
 )
@@ -122,13 +122,13 @@ d_internal_label
 `name` attribute is the canonical meaning; this node is the spelling.  Keeping
 them apart is what lets a sheet say "this means created but is spelled date".
 */
-static void
-d_internal_label(
-    struct d_node_tree* _tree,
-    uint32_t            _field,
-    const char*         _spelling,
-    size_t              _column,
-    uint32_t            _line_number
+static
+void d_internal_label(
+    struct dj_node_tree* _tree,
+    uint32_t             _field,
+    const char*          _spelling,
+    size_t               _column,
+    uint32_t             _line_number
 )
 {
     if (_field == D_DSS_NO_INDEX)
@@ -143,7 +143,7 @@ d_internal_label(
         return;
     }
 
-    struct d_node* const node = d_node_at(_tree, label);
+    struct dj_node* const node = d_node_at(_tree, label);
 
     node->start_column = (uint32_t)_column;
     node->width        = (uint32_t)strlen(_spelling);
@@ -164,14 +164,14 @@ only the value moves it within the field; when the label has drifted right,
 that cannot bring the pair back to column 80, and the line is reported as
 unfixable when it is not.
 */
-static void
-d_internal_span_unit(
-    struct d_node_tree* _tree,
-    uint32_t            _field,
-    size_t              _label_column
+static
+void d_internal_span_unit(
+    struct dj_node_tree* _tree,
+    uint32_t             _field,
+    size_t               _label_column
 )
 {
-    struct d_node* field = d_node_at(_tree, _field);
+    struct dj_node* field = d_node_at(_tree, _field);
 
     if ((!field) || (field->first_child == D_DSS_NO_INDEX))
     {
@@ -202,8 +202,8 @@ that names none of them is taken by its last two directories, which is what
 every root was taken by before, and was right only for a root exactly two
 deep.
 */
-static size_t
-d_internal_repository_part(
+static
+size_t d_internal_repository_part(
     const char* _root,
     size_t      _length
 )
@@ -256,11 +256,10 @@ d_banner_file
 of d_banner_build so a file with no banner still gets the same node, and the
 driver can go on to check everything else about it.
 */
-uint32_t
-d_banner_file(
-    struct d_node_tree* _tree,
-    const char*         _path,
-    const char*         _root
+uint32_t d_banner_file(
+    struct dj_node_tree* _tree,
+    const char*          _path,
+    const char*          _root
 )
 {
     const uint32_t file = d_node_add(_tree, D_DSS_NO_INDEX, "file");
@@ -393,11 +392,10 @@ d_banner_build
 banner node, or D_DSS_NO_INDEX when the file has no banner at all -- which is
 itself a finding, and is counted by the caller rather than reported here.
 */
-uint32_t
-d_banner_build(
-    struct d_node_tree* _tree,
-    const char*         _path,
-    const char*         _root
+uint32_t d_banner_build(
+    struct dj_node_tree* _tree,
+    const char*          _path,
+    const char*          _root
 )
 {
     FILE* const handle = fopen(_path, "rb");
@@ -444,7 +442,7 @@ d_banner_build(
 
     uint32_t open_rule = d_node_add(_tree, banner, "rule");
 
-    struct d_node* rule_node = d_node_at(_tree, open_rule);
+    struct dj_node* rule_node = d_node_at(_tree, open_rule);
 
     rule_node->width      = (uint32_t)length;
     rule_node->end_column = (uint32_t)length;
@@ -484,7 +482,7 @@ d_banner_build(
         {
             const uint32_t close_rule = d_node_add(_tree, banner, "rule");
 
-            struct d_node* const close_node = d_node_at(_tree, close_rule);
+            struct dj_node* const close_node = d_node_at(_tree, close_rule);
 
             close_node->width      = (uint32_t)length;
             close_node->end_column = (uint32_t)length;
@@ -500,7 +498,7 @@ d_banner_build(
         {
             const uint32_t title = d_node_add(_tree, banner, "title");
 
-            struct d_node* const title_node = d_node_at(_tree, title);
+            struct dj_node* const title_node = d_node_at(_tree, title);
 
             title_node->width      = (uint32_t)length;
             title_node->end_column = (uint32_t)length;
@@ -523,7 +521,7 @@ d_banner_build(
 
                 const uint32_t tag = d_node_add(_tree, title, "tag");
 
-                struct d_node* const tag_node = d_node_at(_tree, tag);
+                struct dj_node* const tag_node = d_node_at(_tree, tag);
 
                 tag_node->start_column =
                     (uint32_t)(open_bracket - buffer) + 2u;
@@ -553,7 +551,7 @@ d_banner_build(
             {
                 const uint32_t name = d_node_add(_tree, title, "name");
 
-                struct d_node* const name_node = d_node_at(_tree, name);
+                struct dj_node* const name_node = d_node_at(_tree, name);
 
                 name_node->start_column = (uint32_t)(name_start + 1u);
                 name_node->end_column   = (uint32_t)length;
@@ -707,7 +705,7 @@ d_banner_build(
 
         for (uint32_t at = 0; at < (uint32_t)d_node_count(_tree); ++at)
         {
-            const struct d_node* const node = d_node_at(_tree, at);
+            const struct dj_node* const node = d_node_at(_tree, at);
 
             if ((!node) || (node->parent != banner))
             {
@@ -718,7 +716,7 @@ d_banner_build(
                  which_attribute < node->attribute_count;
                  ++which_attribute)
             {
-                const struct d_node_attribute* const attribute =
+                const struct dj_node_attribute* const attribute =
                     d_node_attribute_at(_tree,
                                         node->first_attribute
                                         + which_attribute);

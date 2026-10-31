@@ -28,7 +28,7 @@
 
 // djinterp
 #include "./dss.h"      // D_DSS_NO_INDEX
-#include "./dsymbol.h"  // d_symbol_table: types and attribute names
+#include "./dsymbol.h"  // dj_symbol_table: types and attribute names
 
 
 //==============================================================================
@@ -39,9 +39,9 @@
 // 1.1    Records
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_node_attribute
+// dj_node_attribute
 //   struct: one interned name/value pair attached to a node.
-struct d_node_attribute
+struct dj_node_attribute
 {
     uint32_t  name;
     uint32_t  value;
@@ -50,11 +50,11 @@ struct d_node_attribute
 };
 
 // 1.1.2
-// d_node
+// dj_node
 //   struct: one node.  `text` is the node's own source text; `width`,
 // `start_column` and `end_column` are the geometry facts a layout property
 // compares against, counted in characters rather than bytes.
-struct d_node
+struct dj_node
 {
     uint32_t  type;
     uint32_t  text;
@@ -78,9 +78,9 @@ struct d_node
 };
 
 // 1.1.3
-// d_node_tree
+// dj_node_tree
 //   struct: the nodes, their attributes, and the intern table they name.
-struct d_node_tree;
+struct dj_node_tree;
 
 
 //==============================================================================
@@ -90,51 +90,79 @@ struct d_node_tree;
 
 // 2.1    Lifecycle
 //------------------------------------------------------------------------------
-struct d_node_tree* d_node_tree_new(void);
+struct dj_node_tree* d_node_tree_new(void);
 // a tree naming its types and attributes in a table it does not own, so
 // a sheet bound to the same table compares names as integers
-struct d_node_tree* d_node_tree_new_shared(struct d_symbol_table* _symbols);
-void                d_node_tree_free(struct d_node_tree* _tree);
-void                d_node_tree_clear(struct d_node_tree* _tree);
+struct dj_node_tree* d_node_tree_new_shared(
+    struct dj_symbol_table* _symbols
+);
+void d_node_tree_free(
+    struct dj_node_tree* _tree
+);
+void d_node_tree_clear(
+    struct dj_node_tree* _tree
+);
 
 // 2.2    Construction
 //------------------------------------------------------------------------------
-uint32_t            d_node_intern(struct d_node_tree* _tree,
-                                  const char*         _text,
-                                  size_t              _length);
-uint32_t            d_node_add(struct d_node_tree* _tree,
-                               uint32_t            _parent,
-                               const char*         _type);
-bool                d_node_set_attribute(struct d_node_tree* _tree,
-                                         uint32_t            _node,
-                                         const char*         _name,
-                                         const char*         _value);
-bool                d_node_set_text(struct d_node_tree* _tree,
-                                    uint32_t            _node,
-                                    const char*         _text,
-                                    size_t              _length);
+uint32_t d_node_intern(
+    struct dj_node_tree* _tree,
+    const char*          _text,
+    size_t               _length
+);
+uint32_t d_node_add(
+    struct dj_node_tree* _tree,
+    uint32_t             _parent,
+    const char*          _type
+);
+bool d_node_set_attribute(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _name,
+    const char*          _value
+);
+bool d_node_set_text(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _text,
+    size_t               _length
+);
 
 // 2.3    Inspection
 //------------------------------------------------------------------------------
-size_t              d_node_count(const struct d_node_tree* _tree);
-struct d_node*      d_node_at(struct d_node_tree* _tree,
-                              uint32_t            _at);
-const struct d_node_attribute*
-                    d_node_attribute_at(const struct d_node_tree* _tree,
-                                        uint32_t                  _at);
-const char*         d_node_text(const struct d_node_tree* _tree,
-                                uint32_t                  _id);
+size_t d_node_count(
+    const struct dj_node_tree* _tree
+);
+struct dj_node* d_node_at(
+    struct dj_node_tree* _tree,
+    uint32_t             _at
+);
+const struct dj_node_attribute* d_node_attribute_at(
+    const struct dj_node_tree* _tree,
+    uint32_t                   _at
+);
+const char* d_node_text(
+    const struct dj_node_tree* _tree,
+    uint32_t                   _id
+);
 // a type's or attribute name's symbol; D_DSS_NO_INDEX when never seen
-uint32_t            d_node_find_id(const struct d_node_tree* _tree,
-                                   const char*               _text);
+uint32_t d_node_find_id(
+    const struct dj_node_tree* _tree,
+    const char*                _text
+);
 // a text's or attribute value's id, as node->text and attribute->value hold
-uint32_t            d_node_find_text(const struct d_node_tree* _tree,
-                                     const char*               _text);
+uint32_t d_node_find_text(
+    const struct dj_node_tree* _tree,
+    const char*                _text
+);
 // a type's or attribute name's text: node->type, attribute->name
-const char*         d_node_name(const struct d_node_tree* _tree,
-                                uint32_t                  _symbol);
-struct d_symbol_table*
-                    d_node_tree_symbols(const struct d_node_tree* _tree);
+const char* d_node_name(
+    const struct dj_node_tree* _tree,
+    uint32_t                   _symbol
+);
+struct dj_symbol_table* d_node_tree_symbols(
+    const struct dj_node_tree* _tree
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DNODE_H

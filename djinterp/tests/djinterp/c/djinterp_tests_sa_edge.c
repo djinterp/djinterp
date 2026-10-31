@@ -9,55 +9,63 @@
 *******************************************************************************/
 // djinterp
 #include "./djinterp_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
-bool d_tests_sa_edge_size_max(struct d_test_counter* _test_info)
+bool d_tests_sa_edge_size_max(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement SIZE_MAX boundary tests
     printf("  TODO: d_tests_sa_edge_size_max\n");
     return true;
 }
 
-bool d_tests_sa_edge_ssize_overflow(struct d_test_counter* _test_info)
+bool d_tests_sa_edge_ssize_overflow(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement ssize_t overflow tests
     printf("  TODO: d_tests_sa_edge_ssize_overflow\n");
     return true;
 }
 
-bool d_tests_sa_edge_zero_arrays(struct d_test_counter* _test_info)
+bool d_tests_sa_edge_zero_arrays(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement zero-element array tests
     printf("  TODO: d_tests_sa_edge_zero_arrays\n");
     return true;
 }
 
-bool d_tests_sa_edge_single_element(struct d_test_counter* _test_info)
+bool d_tests_sa_edge_single_element(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement single-element array tests
     printf("  TODO: d_tests_sa_edge_single_element\n");
     return true;
 }
 
-bool d_tests_sa_edge_large_arrays(struct d_test_counter* _test_info)
+bool d_tests_sa_edge_large_arrays(
+    struct dj_test_counter* _test_info
+)
 {
     // TODO: Implement large array stress tests
     printf("  TODO: d_tests_sa_edge_large_arrays\n");
     return true;
 }
 
-bool
-d_tests_sa_edge_cases_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_edge_cases_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n========================================\n");
     printf("  EDGE CASE AND BOUNDARY TESTS\n");
     printf("========================================\n");
 
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     d_tests_sa_edge_size_max(&module_counter);
     d_tests_sa_edge_ssize_overflow(&module_counter);

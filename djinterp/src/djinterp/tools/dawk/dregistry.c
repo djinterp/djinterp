@@ -25,11 +25,11 @@ d_internal_ancestor_attribute
 carries it.  A derivation names a fact, not a place: top-level-dir() should
 not have to know that `top` lives on the file node three levels up.
 */
-static const char*
-d_internal_ancestor_attribute(
-    struct d_node_tree* _tree,
-    uint32_t            _node_index,
-    const char*         _name
+static
+const char* d_internal_ancestor_attribute(
+    struct dj_node_tree* _tree,
+    uint32_t             _node_index,
+    const char*          _name
 )
 {
     const uint32_t wanted = d_node_find_id(_tree, _name);
@@ -43,7 +43,7 @@ d_internal_ancestor_attribute(
 
     while (at != D_DSS_NO_INDEX)
     {
-        const struct d_node* const node = d_node_at(_tree, at);
+        const struct dj_node* const node = d_node_at(_tree, at);
 
         if (!node)
         {
@@ -52,7 +52,7 @@ d_internal_ancestor_attribute(
 
         for (uint32_t which = 0; which < node->attribute_count; ++which)
         {
-            const struct d_node_attribute* const attribute =
+            const struct dj_node_attribute* const attribute =
                 d_node_attribute_at(_tree, node->first_attribute + which);
 
             if ((attribute) && (attribute->name == wanted))
@@ -75,21 +75,20 @@ derivation that needs a source this build does not have -- commit history,
 for instance -- returns false, and the property is reported as unevaluated
 rather than silently passing.
 */
-bool
-d_registry_derive(
-    const struct d_dss_sheet*       _sheet,
-    struct d_node_tree*             _tree,
-    uint32_t                        _node_index,
-    const struct d_dss_declaration* _declaration,
-    char*                           _out,
-    size_t                          _out_size
+bool d_registry_derive(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node_index,
+    const struct dj_dss_declaration* _declaration,
+    char*                            _out,
+    size_t                           _out_size
 )
 {
-    const struct d_dss_value* function = NULL;
+    const struct dj_dss_value* function = NULL;
 
     for (uint32_t at = 0; at < _declaration->value_count; ++at)
     {
-        const struct d_dss_value* const value =
+        const struct dj_dss_value* const value =
             d_dss_value_at(_sheet, _declaration->first_value + at);
 
         if ((value) && (value->kind == D_DSS_VALUE_FUNCTION))
@@ -164,15 +163,14 @@ d_registry_number
 declaration carries none.  A property whose value is not a number is simply
 not a geometry property and is skipped by the geometry evaluator.
 */
-double
-d_registry_number(
-    const struct d_dss_sheet*       _sheet,
-    const struct d_dss_declaration* _declaration
+double d_registry_number(
+    const struct dj_dss_sheet*       _sheet,
+    const struct dj_dss_declaration* _declaration
 )
 {
     for (uint32_t at = 0; at < _declaration->value_count; ++at)
     {
-        const struct d_dss_value* const value =
+        const struct dj_dss_value* const value =
             d_dss_value_at(_sheet, _declaration->first_value + at);
 
         if ((value) && (value->kind == D_DSS_VALUE_NUMBER))
@@ -192,18 +190,17 @@ Only the geometry and presence properties are evaluated here; content and
 format need a derivation source and history respectively, and are counted as
 matched-but-unevaluated rather than silently passing.
 */
-bool
-d_registry_evaluate(
-    const struct d_dss_sheet*       _sheet,
-    struct d_node_tree*             _tree,
-    uint32_t                        _node_index,
-    const struct d_dss_declaration* _declaration,
-    bool*                           _out_evaluated
+bool d_registry_evaluate(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    uint32_t                         _node_index,
+    const struct dj_dss_declaration* _declaration,
+    bool*                            _out_evaluated
 )
 {
     const char* const property = d_dss_text(_sheet, _declaration->property);
 
-    struct d_node* const node = d_node_at(_tree, _node_index);
+    struct dj_node* const node = d_node_at(_tree, _node_index);
 
     *_out_evaluated = true;
 
@@ -279,19 +276,18 @@ returns false when no repair is derivable.  A repair exists only where the
 expected value is computable without asking a human; everything else is
 reported and left alone.
 */
-bool
-d_registry_repair(
-    struct d_node_tree* _tree,
-    uint32_t            _node_index,
-    const char*         _property,
-    double              _want,
-    const char*         _line_text,
-    const char*         _derived,
-    char*               _out,
-    size_t              _out_size
+bool d_registry_repair(
+    struct dj_node_tree* _tree,
+    uint32_t             _node_index,
+    const char*          _property,
+    double               _want,
+    const char*          _line_text,
+    const char*          _derived,
+    char*                _out,
+    size_t               _out_size
 )
 {
-    struct d_node* const node = d_node_at(_tree, _node_index);
+    struct dj_node* const node = d_node_at(_tree, _node_index);
 
     if (!node)
     {

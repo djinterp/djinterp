@@ -53,8 +53,7 @@ struct token
 // word_character
 //   whether a character may continue a name or a number: a letter, a digit
 // or an underscore.
-bool
-word_character(
+bool word_character(
     char _character
 )
 {
@@ -316,28 +315,36 @@ private:
         return left;
     }
 
-    int parse_or(int _depth)
+    int parse_or(
+        int _depth
+    )
     {
         return binary_level(_depth,
                             { { "|", expr_op::bit_or } },
                             [this](int _d) { return parse_xor(_d); });
     }
 
-    int parse_xor(int _depth)
+    int parse_xor(
+        int _depth
+    )
     {
         return binary_level(_depth,
                             { { "^", expr_op::bit_xor } },
                             [this](int _d) { return parse_and(_d); });
     }
 
-    int parse_and(int _depth)
+    int parse_and(
+        int _depth
+    )
     {
         return binary_level(_depth,
                             { { "&", expr_op::bit_and } },
                             [this](int _d) { return parse_shift(_d); });
     }
 
-    int parse_shift(int _depth)
+    int parse_shift(
+        int _depth
+    )
     {
         return binary_level(_depth,
                             { { "<<", expr_op::shift_left },
@@ -345,7 +352,9 @@ private:
                             [this](int _d) { return parse_sum(_d); });
     }
 
-    int parse_sum(int _depth)
+    int parse_sum(
+        int _depth
+    )
     {
         return binary_level(_depth,
                             { { "+", expr_op::add },
@@ -353,7 +362,9 @@ private:
                             [this](int _d) { return parse_product(_d); });
     }
 
-    int parse_product(int _depth)
+    int parse_product(
+        int _depth
+    )
     {
         return binary_level(_depth,
                             { { "*", expr_op::multiply },
@@ -566,8 +577,7 @@ private:
 
 // shift
 //   a left or right shift that gives zero, and says so, past 63.
-u64
-shift(
+u64 shift(
     u64   _value,
     u64   _count,
     bool  _left,
@@ -589,8 +599,7 @@ shift(
 
 // evaluate_node
 //   evaluates one node and its operands.
-bool
-evaluate_node(
+bool evaluate_node(
     const expression&  _expression,
     int                _index,
     const name_lookup& _lookup,
@@ -711,8 +720,7 @@ evaluate_wide_node
   One node over sets of bits. A count, an index or a divisor must be an
 integer -- 64 bits or fewer -- and so must one side of a product.
 */
-bool
-evaluate_wide_node(
+bool evaluate_wide_node(
     const expression&  _expression,
     int                _index,
     const wide_lookup& _lookup,
@@ -916,8 +924,7 @@ evaluate_wide_node(
 
 // binary_text
 //   the C spelling of a binary operator.
-const char*
-binary_text(
+const char* binary_text(
     expr_op _op
 )
 {
@@ -940,8 +947,7 @@ binary_text(
 // associative
 //   whether a chain of one operator may drop its inner parentheses on both
 // sides; subtraction and division only on the left, as C groups them.
-bool
-associative(
+bool associative(
     expr_op _op
 )
 {
@@ -956,8 +962,7 @@ associative(
 //   the operands of a run of one operator, left to right, each printed by
 // _print; operands of another operator are printed whole.
 template<typename Print>
-void
-chain(
+void chain(
     const expression&         _expression,
     int                       _index,
     expr_op                   _op,
@@ -992,8 +997,7 @@ chain(
 // print_node
 //   prints one node; _count marks a shift's right operand, which keeps its
 // spelling and takes no suffix.
-std::string
-print_node(
+std::string print_node(
     const expression&      _expression,
     int                    _index,
     const name_printer&    _names,
@@ -1100,8 +1104,7 @@ print_node(
 
 // collect_names
 //   gathers names below one node, in order.
-void
-collect_names(
+void collect_names(
     const expression&         _expression,
     int                       _index,
     std::vector<std::string>& _names
@@ -1125,8 +1128,7 @@ collect_names(
 }  // anonymous namespace
 
 
-expression
-parse_expression(
+expression parse_expression(
     std::string_view _text
 )
 {
@@ -1157,8 +1159,7 @@ parse_expression(
     return reader.run();
 }
 
-std::vector<std::string>
-referenced_names(
+std::vector<std::string> referenced_names(
     const expression& _expression
 )
 {
@@ -1172,8 +1173,7 @@ referenced_names(
     return names;
 }
 
-evaluation
-evaluate(
+evaluation evaluate(
     const expression&  _expression,
     const name_lookup& _lookup
 )
@@ -1199,8 +1199,7 @@ evaluate(
     return result;
 }
 
-wide_evaluation
-evaluate_wide(
+wide_evaluation evaluate_wide(
     const expression&  _expression,
     const wide_lookup& _lookup,
     int                _width
@@ -1229,8 +1228,7 @@ evaluate_wide(
     return result;
 }
 
-std::string
-print_c(
+std::string print_c(
     const expression&      _expression,
     const name_printer&    _names,
     const literal_printer& _literals,

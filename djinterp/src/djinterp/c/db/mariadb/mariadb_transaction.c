@@ -37,11 +37,11 @@ d_internal_mariadb_savepoint
   The three savepoint statements differ only in their words, the name always
 quoted.
 */
-static int
-d_internal_mariadb_savepoint(
-    struct d_mariadb* _db,
-    const char*       _verb,
-    const char*       _name
+static
+int d_internal_mariadb_savepoint(
+    struct dj_mariadb* _db,
+    const char*        _verb,
+    const char*        _name
 )
 {
     // parameter validation
@@ -67,8 +67,8 @@ MariaDB 10.0, both below the layer's floors.
 */
 int
 d_mariadb_begin_transaction(
-    struct d_mariadb*               _db,
-    enum d_mariadb_transaction_mode _mode
+    struct dj_mariadb*               _db,
+    enum dj_mariadb_transaction_mode _mode
 )
 {
     static const char* const statements[] =
@@ -92,9 +92,8 @@ d_mariadb_begin_transaction(
 d_mariadb_commit
   COMMIT, which with no transaction open does nothing and succeeds.
 */
-int
-d_mariadb_commit(
-    struct d_mariadb* _db
+int d_mariadb_commit(
+    struct dj_mariadb* _db
 )
 {
     // parameter validation
@@ -110,9 +109,8 @@ d_mariadb_commit(
 d_mariadb_rollback
   ROLLBACK, which with no transaction open does nothing and succeeds.
 */
-int
-d_mariadb_rollback(
-    struct d_mariadb* _db
+int d_mariadb_rollback(
+    struct dj_mariadb* _db
 )
 {
     // parameter validation
@@ -130,9 +128,8 @@ d_mariadb_rollback(
 d_mariadb_in_transaction
   SERVER_STATUS_IN_TRANS, as the server's last reply set it.
 */
-bool
-d_mariadb_in_transaction(
-    const struct d_mariadb* _db
+bool d_mariadb_in_transaction(
+    const struct dj_mariadb* _db
 )
 {
     return ( (_db) &&
@@ -149,10 +146,9 @@ d_mariadb_in_transaction(
 d_mariadb_create_savepoint
   SAVEPOINT; a name already set moves to here, as the servers have it.
 */
-int
-d_mariadb_create_savepoint(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_create_savepoint(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     return d_internal_mariadb_savepoint(_db, "SAVEPOINT", _name);
@@ -162,10 +158,9 @@ d_mariadb_create_savepoint(
 d_mariadb_release_savepoint
   RELEASE SAVEPOINT.
 */
-int
-d_mariadb_release_savepoint(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_release_savepoint(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     return d_internal_mariadb_savepoint(_db, "RELEASE SAVEPOINT", _name);
@@ -175,10 +170,9 @@ d_mariadb_release_savepoint(
 d_mariadb_rollback_to_savepoint
   ROLLBACK TO SAVEPOINT, which keeps the savepoint.
 */
-int
-d_mariadb_rollback_to_savepoint(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_rollback_to_savepoint(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     return d_internal_mariadb_savepoint(_db, "ROLLBACK TO SAVEPOINT", _name);
@@ -199,8 +193,8 @@ d_mariadb_begin_transaction
 */
 int
 d_mariadb_begin_transaction(
-    struct d_mariadb*               _db,
-    enum d_mariadb_transaction_mode _mode
+    struct dj_mariadb*               _db,
+    enum dj_mariadb_transaction_mode _mode
 )
 {
     (void)_db;
@@ -213,9 +207,8 @@ d_mariadb_begin_transaction(
 d_mariadb_commit
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_commit(
-    struct d_mariadb* _db
+int d_mariadb_commit(
+    struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -227,9 +220,8 @@ d_mariadb_commit(
 d_mariadb_rollback
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_rollback(
-    struct d_mariadb* _db
+int d_mariadb_rollback(
+    struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -241,9 +233,8 @@ d_mariadb_rollback(
 d_mariadb_in_transaction
   Without a client, false.
 */
-bool
-d_mariadb_in_transaction(
-    const struct d_mariadb* _db
+bool d_mariadb_in_transaction(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -255,10 +246,9 @@ d_mariadb_in_transaction(
 d_mariadb_create_savepoint
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_create_savepoint(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_create_savepoint(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     (void)_db;
@@ -271,10 +261,9 @@ d_mariadb_create_savepoint(
 d_mariadb_release_savepoint
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_release_savepoint(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_release_savepoint(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     (void)_db;
@@ -287,10 +276,9 @@ d_mariadb_release_savepoint(
 d_mariadb_rollback_to_savepoint
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_rollback_to_savepoint(
-    struct d_mariadb* _db,
-    const char*       _name
+int d_mariadb_rollback_to_savepoint(
+    struct dj_mariadb* _db,
+    const char*        _name
 )
 {
     (void)_db;

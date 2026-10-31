@@ -1,9 +1,9 @@
 /*******************************************************************************
 * djinterp [c]                                                    t_file_gates.c
 *
-*   Not a program: a probe ci/check_filesys_platforms.sh preprocesses, once
-* per target, to read what c/filesys's configuration resolves to there. After
-* preprocessing, each D_FILE_GATE line holds a gate's name, quoted so no
+*   Not a program: a probe scripts/ci/check_filesys_platforms.sh preprocesses,
+* once per target, to read what c/filesys's configuration resolves to there.
+* After preprocessing, each D_FILE_GATE line holds a gate's name, quoted so no
 * header's macro can rewrite it, and its value as the preprocessor leaves it,
 * for the script to evaluate:
 *     backend    D_INTERNAL_FILE_BACKEND: 1 ISO C, 2 POSIX, 3 native

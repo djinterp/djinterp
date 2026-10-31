@@ -1,0 +1,53 @@
+/*******************************************************************************
+* djinterp [re_std]                                                view_base.hpp
+*
+* view_base tag header:
+*   Provides the empty marker class historically used to opt a type
+* into the C++20 view concept. A range that publicly inherits from
+* view_base is treated as a view by the default specialisation of
+* enable_view.
+*
+*   PORTABILITY:
+*   Standalone empty class. Available unconditionally on C++98+.
+*   The base-class mechanism is the original C++20 opt-in. C++20
+* shipped a derived_from<view_base> + enable_view variable-template
+* customisation point; re_std mirrors both (variable template lives in
+* enable_view.hpp).
+*
+*
+* path:      /inc/re_std/cpp/ranges/view_base.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+#ifndef RE_STD_RANGES_VIEW_BASE_HPP
+#define RE_STD_RANGES_VIEW_BASE_HPP 1
+
+// re_std
+#include "../../config.hpp"  // RE_STD_* configuration
+
+
+namespace re_std
+{
+
+
+// ===========================================================================
+// I.   VIEW_BASE
+// ===========================================================================
+
+// view_base
+//   class: empty marker. A class type publicly deriving from
+// view_base is considered a view by the default enable_view
+// specialisation. Note that view_interface CRTP already provides
+// this base via its own publicly-inherited view_base, so types
+// inheriting from view_interface<D> do not need to inherit
+// view_base directly.
+class view_base
+{};
+
+
+}  // re_std
+
+
+#endif  // RE_STD_RANGES_VIEW_BASE_HPP

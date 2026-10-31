@@ -1,0 +1,43 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\tests
+└── 📁 djinterp
+    └── 📁 core
+        ├── 📁 meta
+        │   ├── 📄 dtuple_tests.hpp
+        │   ├── 📄 dtuple_tests_2d.cpp
+        │   ├── 📄 dtuple_tests_access.cpp
+        │   ├── 📄 dtuple_tests_construction.cpp
+        │   ├── 📄 dtuple_tests_counting.cpp
+        │   ├── 📄 dtuple_tests_homogeneity.cpp
+        │   ├── 📄 dtuple_tests_modifiers.cpp
+        │   ├── 📄 dtuple_tests_pack.cpp
+        │   ├── 📄 dtuple_tests_relations.cpp
+        │   ├── 📄 dtuple_tests_selection.cpp
+        │   ├── 📄 dtuple_tests_splitting.cpp
+        │   ├── 📄 dtuple_tests_transformation.cpp
+        │   ├── 📄 dtuple_tests_utilities.cpp
+        │   ├── 📄 type_traits_tests.hpp
+        │   ├── 📄 type_traits_tests_arity.cpp
+        │   ├── 📄 type_traits_tests_callable.cpp
+        │   ├── 📄 type_traits_tests_cpp20.cpp
+        │   ├── 📄 type_traits_tests_cpp23.cpp
+        │   ├── 📄 type_traits_tests_detection.cpp
+        │   ├── 📄 type_traits_tests_evaluate.cpp
+        │   ├── 📄 type_traits_tests_logical.cpp
+        │   ├── 📄 type_traits_tests_macros_core.cpp
+        │   ├── 📄 type_traits_tests_macros_member.cpp
+        │   ├── 📄 type_traits_tests_macros_op.cpp
+        │   ├── 📄 type_traits_tests_macros_spec.cpp
+        │   ├── 📄 type_traits_tests_rules.cpp
+        │   ├── 📄 type_traits_tests_template.cpp
+        │   ├── 📄 type_traits_tests_traits.cpp
+        │   └── 📄 type_traits_tests_tuple.cpp
+        ├── 📄 djinterp_header_tests.hpp
+        ├── 📄 djinterp_header_tests_abs_value.cpp
+        ├── 📄 djinterp_header_tests_clean.cpp
+        ├── 📄 djinterp_header_tests_constexpr_support.cpp
+        ├── 📄 djinterp_header_tests_constexpr_swap.cpp
+        ├── 📄 djinterp_header_tests_keywords_ns.cpp
+        ├── 📄 djinterp_header_tests_main.cpp
+        ├── 📄 djinterp_header_tests_repeat.cpp
+        ├── 📄 djinterp_header_tests_self_resolve.cpp
+        └── 📄 djinterp_header_tests_void_t.cpp

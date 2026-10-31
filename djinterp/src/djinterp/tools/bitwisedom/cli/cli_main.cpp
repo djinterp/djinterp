@@ -64,8 +64,7 @@ front_job
   Which of its jobs bitwisedom-gen was given -- one, or a usage error, said:
 the examples listed, 0; one saved, 1; a sheet's header, 2.
 */
-int
-front_job(
+int front_job(
     kit::program&        _program,
     kit::command         _command,
     const front_request& _request,
@@ -110,8 +109,7 @@ run_front
 the sheet or the example named -- exactly one of those, as it always
 required.
 */
-int
-run_front(
+int run_front(
     kit::program&        _program,
     kit::command         _command,
     const front_request& _request
@@ -168,8 +166,7 @@ run_cli
   The program, its commands, and the window's command, whose module is
 found and loaded only when it is run.
 */
-int
-run_cli(
+int run_cli(
     int                _argc,
     const char* const* _argv
 )
@@ -194,8 +191,7 @@ run_cli(
 run_gen_front
   bitwisedom-gen: one command's program, whose root does gen's work.
 */
-int
-run_gen_front(
+int run_gen_front(
     int                _argc,
     const char* const* _argv
 )

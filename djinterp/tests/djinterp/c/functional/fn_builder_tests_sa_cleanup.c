@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./fn_builder_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -20,9 +20,8 @@
 test_helper_identity_transform
   Transformer: copies input to output unchanged.
 */
-static bool
-test_helper_identity_transform
-(
+static
+bool test_helper_identity_transform(
     const void* _input,
     void*       _output,
     void*       _context
@@ -40,9 +39,8 @@ test_helper_identity_transform
 test_helper_always_true
   Predicate: always returns true.
 */
-static bool
-test_helper_always_true
-(
+static
+bool test_helper_always_true(
     const void* _element,
     void*       _context
 )
@@ -65,13 +63,11 @@ d_tests_sa_fn_builder_free
   - free(NULL) is a safe no-op
   - free on a builder that was used for execute succeeds
 */
-bool
-d_tests_sa_fn_builder_free
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_free(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
+    struct dj_fn_builder* builder;
     int                  input[]  = { 1, 2, 3 };
     int                  output[3];
     size_t               out_count;
@@ -189,10 +185,8 @@ d_tests_sa_fn_builder_cleanup_all
   Tests the following:
   - d_fn_builder_free
 */
-bool
-d_tests_sa_fn_builder_cleanup_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_cleanup_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

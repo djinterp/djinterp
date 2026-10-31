@@ -47,44 +47,44 @@
 #include "./functional_common.h"
 
 
-// d_extractor
+// dj_extractor
 //   struct: a projection bound to its context.
 // The projection itself is an ordinary `fn_transformer`; this pairs it with the
 // context so it can travel as one value.
-struct d_extractor
+struct dj_extractor
 {
     fn_transformer project;   // `Source -> Target`
     void*          context;   // context for `project`; may be NULL
 };
 
-// d_extractor_chain
+// dj_extractor_chain
 //   struct: two projections applied in sequence, `Source -> Mid -> Target`.
 // `scratch` holds the intermediate `Mid` and must be at least as wide as it.
-struct d_extractor_chain
+struct dj_extractor_chain
 {
-    struct d_extractor first;    // `Source -> Mid`
-    struct d_extractor second;   // `Mid -> Target`
+    struct dj_extractor first;    // `Source -> Mid`
+    struct dj_extractor second;   // `Mid -> Target`
     void*              scratch;  // caller-owned slot for the intermediate
 };
 
-// d_contramap_predicate
+// dj_contramap_predicate
 //   struct: a predicate over `Target` read as a predicate over `Source`.
 // Pass the whole struct as the `void* _context` of `d_contramap_test`, which is
 // itself an `fn_predicate`.
-struct d_contramap_predicate
+struct dj_contramap_predicate
 {
-    struct d_extractor extract;    // `Source -> Target`
+    struct dj_extractor extract;    // `Source -> Target`
     fn_predicate       predicate;  // the test over `Target`
     void*              context;    // context for `predicate`; may be NULL
     void*              scratch;    // caller-owned slot for the projected value
 };
 
-// d_contramap_comparator
+// dj_contramap_comparator
 //   struct: an ordering over `Target` read as an ordering over `Source`.
 // Two scratch slots, because both operands are projected before comparison.
-struct d_contramap_comparator
+struct dj_contramap_comparator
 {
-    struct d_extractor  extract;    // `Source -> Target`
+    struct dj_extractor  extract;    // `Source -> Target`
     fn_binary_predicate precedes;   // the ordering over `Target`
     void*               context;    // context for `precedes`; may be NULL
     void*               left;       // caller-owned slot for the left projection
@@ -92,46 +92,64 @@ struct d_contramap_comparator
 };
 
 // I.     construction
-struct d_extractor d_extractor_make(fn_transformer _project,
-                                    void*          _context);
-bool               d_extractor_is_valid(const struct d_extractor* _extractor);
-bool     d_extractor_chain_init(struct d_extractor_chain* _chain,
-                                struct d_extractor        _first,
-                                struct d_extractor        _second,
-                                void*                     _scratch);
+struct dj_extractor d_extractor_make(
+    fn_transformer _project,
+    void*          _context
+);
+bool d_extractor_is_valid(
+    const struct dj_extractor* _extractor
+);
+bool d_extractor_chain_init(
+    struct dj_extractor_chain* _chain,
+    struct dj_extractor        _first,
+    struct dj_extractor        _second,
+    void*                      _scratch
+);
 
 // II.    application
-bool     d_extract(const struct d_extractor* _extractor,
-                   const void*               _source,
-                   void*                     _target);
-bool     d_extractor_chain_apply(const void* _source,
-                                 void*       _target,
-                                 void*       _chain);
+bool d_extract(
+    const struct dj_extractor* _extractor,
+    const void*                _source,
+    void*                      _target
+);
+bool d_extractor_chain_apply(
+    const void* _source,
+    void*       _target,
+    void*       _chain
+);
 
 // III.   contravariant mapping
-bool     d_contramap_predicate_init(struct d_contramap_predicate* _binding,
-                                    struct d_extractor            _extract,
-                                    fn_predicate                  _predicate,
-                                    void*                         _context,
-                                    void*                         _scratch);
-bool     d_contramap_test(const void* _element,
-                          void*       _binding);
-bool     d_contramap_comparator_init(struct d_contramap_comparator* _binding,
-                                     struct d_extractor             _extract,
-                                     fn_binary_predicate            _precedes,
-                                     void*                          _context,
-                                     void*                          _left,
-                                     void*                          _right);
-bool     d_contramap_precedes(const void* _left,
-                              const void* _right,
-                              void*       _binding);
+bool d_contramap_predicate_init(
+    struct dj_contramap_predicate* _binding,
+    struct dj_extractor            _extract,
+    fn_predicate                   _predicate,
+    void*                          _context,
+    void*                          _scratch
+);
+bool d_contramap_test(
+    const void* _element,
+    void*       _binding
+);
+bool d_contramap_comparator_init(
+    struct dj_contramap_comparator* _binding,
+    struct dj_extractor             _extract,
+    fn_binary_predicate             _precedes,
+    void*                           _context,
+    void*                           _left,
+    void*                           _right
+);
+bool d_contramap_precedes(
+    const void* _left,
+    const void* _right,
+    void*       _binding
+);
 
 // IV.    layout assertions (Layout law: one declaration, asserted in both)
-D_STATIC_ASSERT(offsetof(struct d_extractor, context) == sizeof(fn_transformer),
-                "d_extractor layout drift");
-D_STATIC_ASSERT(offsetof(struct d_contramap_predicate, predicate) ==
-                    sizeof(struct d_extractor),
-                "d_contramap_predicate layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_extractor, context) == sizeof(fn_transformer),
+                "dj_extractor layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_contramap_predicate, predicate) ==
+                    sizeof(struct dj_extractor),
+                "dj_contramap_predicate layout drift");
 
 
 #endif  // DJINTERP_C_FUNCTIONAL_EXTRACTOR_H

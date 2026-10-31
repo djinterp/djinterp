@@ -29,15 +29,11 @@ d_tests_sa_str_interp_add_specifier
   - returns ERROR_NULL_PARAM for NULL value
   - returns ERROR_TOO_MANY_SPECIFIERS at capacity
 */
-struct d_test_object*
-d_tests_sa_str_interp_add_specifier
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_add_specifier(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
-    enum d_str_interp_error      err;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
+    enum dj_str_interp_error      err;
     bool                         test_success;
     bool                         test_count;
     bool                         test_name_match;
@@ -184,15 +180,11 @@ d_tests_sa_str_interp_add_specifier_n
   - handles zero-length value
   - returns ERROR_NULL_PARAM for NULL inputs
 */
-struct d_test_object*
-d_tests_sa_str_interp_add_specifier_n
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_add_specifier_n(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
-    enum d_str_interp_error      err;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
+    enum dj_str_interp_error      err;
     bool                         test_success;
     bool                         test_name_len;
     bool                         test_value_len;
@@ -299,15 +291,11 @@ d_tests_sa_str_interp_remove_specifier
   - returns ERROR_NULL_PARAM for NULL name
   - handles removing last specifier
 */
-struct d_test_object*
-d_tests_sa_str_interp_remove_specifier
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_remove_specifier(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
-    enum d_str_interp_error      err;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
+    enum dj_str_interp_error      err;
     bool                         test_remove;
     bool                         test_count;
     bool                         test_not_found_after;
@@ -422,15 +410,11 @@ d_tests_sa_str_interp_update_specifier
   - returns ERROR_SPECIFIER_NOT_FOUND for unknown name
   - returns ERROR_NULL_PARAM for NULL inputs
 */
-struct d_test_object*
-d_tests_sa_str_interp_update_specifier
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_update_specifier(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
-    enum d_str_interp_error      err;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
+    enum dj_str_interp_error      err;
     const char*                  val;
     bool                         test_update;
     bool                         test_name_unchanged;
@@ -523,14 +507,10 @@ d_tests_sa_str_interp_get_specifier
   - returns updated value after update
   - returns NULL after specifier is removed
 */
-struct d_test_object*
-d_tests_sa_str_interp_get_specifier
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_get_specifier(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
     const char*                  val;
     bool                         test_found;
     bool                         test_unknown;
@@ -630,14 +610,10 @@ d_tests_sa_str_interp_has_specifier
   - returns false after removal
   - returns true after re-add
 */
-struct d_test_object*
-d_tests_sa_str_interp_has_specifier
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_has_specifier(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
     bool                         test_exists;
     bool                         test_unknown;
     bool                         test_null_ctx;
@@ -728,13 +704,9 @@ d_tests_sa_str_interp_specifier_all
   - d_str_interp_get_specifier
   - d_str_interp_has_specifier
 */
-struct d_test_object*
-d_tests_sa_str_interp_specifier_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_specifier_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Specifier Management", 6);

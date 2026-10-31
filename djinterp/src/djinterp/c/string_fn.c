@@ -35,8 +35,8 @@
 d_internal_ascii_tolower
   'A' to 'Z' to 'a' to 'z'; every other value as it is.
 */
-static int
-d_internal_ascii_tolower(
+static
+int d_internal_ascii_tolower(
     int _c
 )
 {
@@ -48,8 +48,8 @@ d_internal_ascii_tolower(
 d_internal_ascii_toupper
   'a' to 'z' to 'A' to 'Z'; every other value as it is.
 */
-static int
-d_internal_ascii_toupper(
+static
+int d_internal_ascii_toupper(
     int _c
 )
 {
@@ -61,8 +61,8 @@ d_internal_ascii_toupper(
 d_internal_ascii_isalpha
   An ASCII letter.
 */
-static int
-d_internal_ascii_isalpha(
+static
+int d_internal_ascii_isalpha(
     int _c
 )
 {
@@ -74,8 +74,8 @@ d_internal_ascii_isalpha(
 d_internal_ascii_isdigit
   An ASCII decimal digit, as isdigit is in every locale.
 */
-static int
-d_internal_ascii_isdigit(
+static
+int d_internal_ascii_isdigit(
     int _c
 )
 {
@@ -87,8 +87,8 @@ d_internal_ascii_isdigit(
 d_internal_ascii_isalnum
   An ASCII letter or decimal digit.
 */
-static int
-d_internal_ascii_isalnum(
+static
+int d_internal_ascii_isalnum(
     int _c
 )
 {
@@ -100,8 +100,8 @@ d_internal_ascii_isalnum(
 d_internal_ascii_isspace
   The six white-space characters of the C locale: space, and \t through \r.
 */
-static int
-d_internal_ascii_isspace(
+static
+int d_internal_ascii_isspace(
     int _c
 )
 {
@@ -118,8 +118,7 @@ source still empties a usable destination. Measures the source once and copies
 text and terminator together; on overflow the destination is emptied rather
 than truncated.
 */
-int
-d_strcpy_s(
+int d_strcpy_s(
     char* D_RESTRICT       _destination,
     size_t                 _dest_size,
     const char* D_RESTRICT _source
@@ -164,8 +163,7 @@ d_strncpy_s
 within that range, and terminates the copy explicitly. On overflow the
 destination is emptied rather than truncated.
 */
-int
-d_strncpy_s(
+int d_strncpy_s(
     char* D_RESTRICT       _destination,
     size_t                 _dest_size,
     const char* D_RESTRICT _source,
@@ -213,8 +211,7 @@ d_strcat_s
 unterminated destination reads as full and fails with ERANGE instead of
 overrunning. On failure the destination is emptied.
 */
-int
-d_strcat_s(
+int d_strcat_s(
     char* D_RESTRICT       _destination,
     size_t                 _dest_size,
     const char* D_RESTRICT _source
@@ -260,8 +257,7 @@ d_strncat_s
   As d_strcat_s, with the appended length bounded by d_strnlen at _count and
 the terminator written explicitly.
 */
-int
-d_strncat_s(
+int d_strncat_s(
     char* D_RESTRICT       _destination,
     size_t                 _dest_size,
     const char* D_RESTRICT _source,
@@ -311,8 +307,7 @@ d_strdup
   Measures once and copies the terminator along with the text into a malloc'd
 buffer.
 */
-char*
-d_strdup(
+char* d_strdup(
     const char* _str
 )
 {
@@ -339,8 +334,7 @@ d_strndup
   Bounds the length with d_strnlen, so the source need not be terminated
 within _n, and terminates the copy explicitly.
 */
-char*
-d_strndup(
+char* d_strndup(
     const char* _str,
     size_t      _n
 )
@@ -372,8 +366,7 @@ d_strcasecmp
 unsigned char, until either string ends; the final difference also orders
 strings of unequal length.
 */
-int
-d_strcasecmp(
+int d_strcasecmp(
     const char* _s1,
     const char* _s2
 )
@@ -418,8 +411,7 @@ d_strncasecmp
   As d_strcasecmp, stopping after _n characters; a zero count compares equal
 before any NULL check.
 */
-int
-d_strncasecmp(
+int d_strncasecmp(
     const char* _s1,
     const char* _s2,
     size_t      _n
@@ -479,8 +471,7 @@ d_strtok_r
 is overwritten with '\0'. *_saveptr is left just past it, or NULL once the
 input is exhausted.
 */
-char*
-d_strtok_r(
+char* d_strtok_r(
     char* D_RESTRICT       _str,
     const char* D_RESTRICT _delim,
     char** D_RESTRICT      _saveptr
@@ -537,8 +528,7 @@ d_strtok_r(
 d_strnlen
   Scans at most _maxlen bytes, so an unterminated buffer is safe to measure.
 */
-size_t
-d_strnlen(
+size_t d_strnlen(
     const char* _str,
     size_t      _maxlen
 )
@@ -565,8 +555,7 @@ d_strcasestr
   Tries d_strncasecmp at each position of _haystack in turn: O(n * m), with no
 skip table.
 */
-char*
-d_strcasestr(
+char* d_strcasestr(
     const char* _haystack,
     const char* _needle
 )
@@ -605,8 +594,7 @@ d_strlwr
   Rewrites each character through tolower, read as unsigned char so negative
 char values stay defined.
 */
-char*
-d_strlwr(
+char* d_strlwr(
     char* _str
 )
 {
@@ -631,8 +619,7 @@ d_strupr
   Rewrites each character through toupper, read as unsigned char so negative
 char values stay defined.
 */
-char*
-d_strupr(
+char* d_strupr(
     char* _str
 )
 {
@@ -658,8 +645,7 @@ d_strrev
   Swaps from both ends toward the middle; a string of length 0 or 1 returns at
 once.
 */
-char*
-d_strrev(
+char* d_strrev(
     char* _str
 )
 {
@@ -695,8 +681,7 @@ d_strrev(
 d_strchrnul
   Scans until the character or the terminator, whichever comes first.
 */
-char*
-d_strchrnul(
+char* d_strchrnul(
     const char* _str,
     int         _c
 )
@@ -752,8 +737,8 @@ d_internal_strerror_platform
 returned from the C library's own storage; NULL where the platform has none,
 or none for this number.
 */
-static const char*
-d_internal_strerror_platform(
+static
+const char* d_internal_strerror_platform(
     int    _errnum,
     char*  _local,
     size_t _size
@@ -779,8 +764,8 @@ d_internal_strerror_table
   The fallback, where the platform describes nothing: 0, EINVAL and ERANGE,
 and "Unknown error" for every other number.
 */
-static const char*
-d_internal_strerror_table(
+static
+const char* d_internal_strerror_table(
     int _errnum
 )
 {
@@ -800,8 +785,7 @@ buffer, so the caller's buffer is written only with a whole description and
 is untouched when that does not fit. The local buffer holds any message a C
 library writes; a number the platform does not know falls back to the table.
 */
-int
-d_strerror_r(
+int d_strerror_r(
     int    _errnum,
     char*  _buf,
     size_t _buflen
@@ -848,8 +832,7 @@ d_strcmp_n
   Settles the NULL cases, compares the common prefix with memcmp, and breaks a
 tie on length, so embedded NULs take part.
 */
-int
-d_strcmp_n(
+int d_strcmp_n(
     const char* _s1,
     size_t      _s1_len,
     const char* _s2,
@@ -905,8 +888,7 @@ d_strncmp_n
   Clamps both lengths to _n, then compares as d_strcmp_n does; a zero count
 compares equal before any NULL check.
 */
-int
-d_strncmp_n(
+int d_strncmp_n(
     const char* _s1,
     size_t      _s1_len,
     const char* _s2,
@@ -969,8 +951,7 @@ d_strcasecmp_n
   As d_strcmp_n, comparing lowercased characters one at a time instead of with
 memcmp.
 */
-int
-d_strcasecmp_n(
+int d_strcasecmp_n(
     const char* _s1,
     size_t      _s1_len,
     const char* _s2,
@@ -1027,8 +1008,7 @@ d_strncasecmp_n
   As d_strncmp_n, comparing lowercased characters one at a time instead of
 with memcmp.
 */
-int
-d_strncasecmp_n(
+int d_strncasecmp_n(
     const char* _s1,
     size_t      _s1_len,
     const char* _s2,
@@ -1093,8 +1073,7 @@ d_strequals
   Rejects unequal lengths before comparing contents, then compares with
 memcmp.
 */
-bool
-d_strequals(
+bool d_strequals(
     const char* _s1,
     size_t      _s1_len,
     const char* _s2,
@@ -1130,8 +1109,7 @@ d_strequals_nocase
   Rejects unequal lengths first, then compares lowercased characters one at a
 time.
 */
-bool
-d_strequals_nocase(
+bool d_strequals_nocase(
     const char* _s1,
     size_t      _s1_len,
     const char* _s2,
@@ -1179,8 +1157,7 @@ d_str_is_valid
   Scans the first _length bytes for a '\0'; the byte at _length itself is not
 examined.
 */
-bool
-d_str_is_valid(
+bool d_str_is_valid(
     const char* _text,
     size_t      _length
 )
@@ -1205,8 +1182,7 @@ d_str_is_valid(
 d_str_is_ascii
   Tests each byte, read as unsigned char, against 127; an empty buffer passes.
 */
-bool
-d_str_is_ascii(
+bool d_str_is_ascii(
     const char* _text,
     size_t      _length
 )
@@ -1231,8 +1207,7 @@ d_str_is_ascii(
 d_str_is_numeric
   Applies isdigit to each byte, read as unsigned char; an empty buffer fails.
 */
-bool
-d_str_is_numeric(
+bool d_str_is_numeric(
     const char* _text,
     size_t      _length
 )
@@ -1259,8 +1234,7 @@ d_str_is_alpha
   Applies isalpha, which follows the current C locale, to each byte, read as
 unsigned char; an empty buffer fails.
 */
-bool
-d_str_is_alpha(
+bool d_str_is_alpha(
     const char* _text,
     size_t      _length
 )
@@ -1287,8 +1261,7 @@ d_str_is_alnum
   Applies isalnum, which follows the current C locale, to each byte, read as
 unsigned char; an empty buffer fails.
 */
-bool
-d_str_is_alnum(
+bool d_str_is_alnum(
     const char* _text,
     size_t      _length
 )
@@ -1315,8 +1288,7 @@ d_str_is_whitespace
   Applies isspace, which follows the current C locale, to each byte, read as
 unsigned char; an empty buffer fails.
 */
-bool
-d_str_is_whitespace(
+bool d_str_is_whitespace(
     const char* _text,
     size_t      _length
 )
@@ -1348,8 +1320,7 @@ d_strcount_char
   Walks all _len bytes, so embedded NULs are counted rather than ending the
 scan.
 */
-size_t
-d_strcount_char(
+size_t d_strcount_char(
     const char* _str,
     size_t      _len,
     char        _c
@@ -1378,8 +1349,7 @@ d_strcount_substr
   Slides a memcmp window across the buffer, jumping past each match so the
 occurrences counted never overlap.
 */
-size_t
-d_strcount_substr(
+size_t d_strcount_substr(
     const char* _str,
     size_t      _len,
     const char* _substr
@@ -1431,8 +1401,7 @@ d_strhash
   djb2 (hash * 33 + c from a seed of 5381), reading bytes as unsigned char so
 the result does not depend on the signedness of char.
 */
-size_t
-d_strhash(
+size_t d_strhash(
     const char* _str,
     size_t      _len
 )
@@ -1461,8 +1430,7 @@ d_strhash(
 d_strstartswith
   Rejects a prefix longer than the string, then compares with memcmp.
 */
-bool
-d_strstartswith(
+bool d_strstartswith(
     const char* _str,
     size_t      _str_len,
     const char* _prefix,
@@ -1490,8 +1458,7 @@ d_strendswith
   Rejects a suffix longer than the string, which keeps the offset from
 underflowing, then compares the tail with memcmp.
 */
-bool
-d_strendswith(
+bool d_strendswith(
     const char* _str,
     size_t      _str_len,
     const char* _suffix,
@@ -1519,8 +1486,7 @@ d_strcontains
   Slides a memcmp window across the buffer; an empty substring is found at
 once.
 */
-bool
-d_strcontains(
+bool d_strcontains(
     const char* _str,
     size_t      _str_len,
     const char* _substr
@@ -1566,8 +1532,7 @@ d_strcontains(
 d_strcontains_char
   Walks all _str_len bytes.
 */
-bool
-d_strcontains_char(
+bool d_strcontains_char(
     const char* _str,
     size_t      _str_len,
     char        _c
@@ -1598,8 +1563,7 @@ d_strcontains_char(
 d_strchr_index
   Walks the buffer forward and returns the first matching index.
 */
-d_index
-d_strchr_index(
+dj_index d_strchr_index(
     const char* _str,
     size_t      _len,
     char        _c
@@ -1614,7 +1578,7 @@ d_strchr_index(
     {
         if (_str[i] == _c)
         {
-            return (d_index)i;
+            return (dj_index)i;
         }
     }
 
@@ -1625,8 +1589,7 @@ d_strchr_index(
 d_strchr_index_from
   Walks the buffer forward from _start.
 */
-d_index
-d_strchr_index_from(
+dj_index d_strchr_index_from(
     const char* _str,
     size_t      _len,
     char        _c,
@@ -1643,7 +1606,7 @@ d_strchr_index_from(
     {
         if (_str[i] == _c)
         {
-            return (d_index)i;
+            return (dj_index)i;
         }
     }
 
@@ -1655,8 +1618,7 @@ d_strrchr_index
   Walks backward from the end, decrementing before each test so the size_t
 index never wraps.
 */
-d_index
-d_strrchr_index(
+dj_index d_strrchr_index(
     const char* _str,
     size_t      _len,
     char        _c
@@ -1677,7 +1639,7 @@ d_strrchr_index(
 
         if (_str[i] == _c)
         {
-            return (d_index)i;
+            return (dj_index)i;
         }
     }
 
@@ -1689,8 +1651,7 @@ d_strstr_index
   Slides a memcmp window forward; an empty substring matches at 0 without
 searching.
 */
-d_index
-d_strstr_index(
+dj_index d_strstr_index(
     const char* _str,
     size_t      _str_len,
     const char* _substr,
@@ -1722,7 +1683,7 @@ d_strstr_index(
                    _substr,
                    _substr_len) == 0)
         {
-            return (d_index)i;
+            return (dj_index)i;
         }
     }
 
@@ -1734,8 +1695,7 @@ d_strstr_index_from
   Slides a memcmp window forward from _start; an empty substring matches at
 _start itself when that lies within the string.
 */
-d_index
-d_strstr_index_from(
+dj_index d_strstr_index_from(
     const char* _str,
     size_t      _str_len,
     const char* _substr,
@@ -1751,7 +1711,7 @@ d_strstr_index_from(
 
     if (_substr_len == 0)
     {
-        return (_start <= _str_len) ? (d_index)_start : D_STRING_NPOS;
+        return (_start <= _str_len) ? (dj_index)_start : D_STRING_NPOS;
     }
 
     if ( (_start >= _str_len) ||
@@ -1768,7 +1728,7 @@ d_strstr_index_from(
                    _substr,
                    _substr_len) == 0)
         {
-            return (d_index)i;
+            return (dj_index)i;
         }
     }
 
@@ -1780,8 +1740,7 @@ d_strrstr_index
   Slides a memcmp window backward from the last possible position; an empty
 substring matches at the end.
 */
-d_index
-d_strrstr_index(
+dj_index d_strrstr_index(
     const char* _str,
     size_t      _str_len,
     const char* _substr,
@@ -1796,7 +1755,7 @@ d_strrstr_index(
 
     if (_substr_len == 0)
     {
-        return (d_index)_str_len;
+        return (dj_index)_str_len;
     }
 
     if (_substr_len > _str_len)
@@ -1815,7 +1774,7 @@ d_strrstr_index(
                    _substr,
                    _substr_len) == 0)
         {
-            return (d_index)i;
+            return (dj_index)i;
         }
     }
 
@@ -1829,8 +1788,7 @@ it compares exactly _substr_len characters at each position, embedded NULs
 included (decision 30 of the register; it went through d_strncasecmp, which
 stops at a '\0').
 */
-d_index
-d_strcasestr_index(
+dj_index d_strcasestr_index(
     const char* _str,
     size_t      _str_len,
     const char* _substr,
@@ -1863,7 +1821,7 @@ d_strcasestr_index(
                             _substr_len,
                             _substr_len) == 0)
         {
-            return (d_index)i;
+            return (dj_index)i;
         }
     }
 
@@ -1879,8 +1837,7 @@ d_strcasestr_index(
 d_strreplace_char
   Walks all _len bytes, rewriting matches in place and counting them.
 */
-size_t
-d_strreplace_char(
+size_t d_strreplace_char(
     char*  _str,
     size_t _len,
     char   _old,

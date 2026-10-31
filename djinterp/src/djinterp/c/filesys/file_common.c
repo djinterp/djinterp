@@ -107,8 +107,7 @@ d_file_notify_set_handler
   A plain store into two file-scope pointers. Nothing synchronizes it, which
 is why the contract is set-once-at-startup.
 */
-void
-d_file_notify_set_handler(
+void d_file_notify_set_handler(
     fn_file_notify _handler,
     void*          _context
 )
@@ -124,8 +123,7 @@ d_file_notify_get_handler
   With notifications compiled out, nothing installed will ever run, so the
 answer is "none installed": NULL, and the cookie cleared.
 */
-fn_file_notify
-d_file_notify_get_handler(
+fn_file_notify d_file_notify_get_handler(
     void** _context
 )
 {
@@ -151,10 +149,9 @@ it to write to corrupts somebody's stdout. The line reads "function: message:
 'path' (errno=N)", each part present only when the notice carries it; the
 quotes keep a path apart from the message even when it holds spaces.
 */
-void
-d_file_notify_default_handler(
-    const struct d_file_notice* _notice,
-    void*                       _context
+void d_file_notify_default_handler(
+    const struct dj_file_notice* _notice,
+    void*                        _context
 )
 {
     (void)_context;
@@ -194,8 +191,7 @@ d_file_notify_level_name
   A switch over the enum; any other value falls through to "unknown", so the
 result is never NULL and can go straight to printf.
 */
-const char*
-d_file_notify_level_name(
+const char* d_file_notify_level_name(
     int _level
 )
 {
@@ -237,10 +233,7 @@ d_file_backend_name
 build has exactly one answer. It exists for diagnostics, and for a test suite
 that has to skip what the build cannot do.
 */
-const char*
-d_file_backend_name(
-    void
-)
+const char* d_file_backend_name(void)
 {
     return D_INTERNAL_COMMON_BACKEND_NAME;
 }
@@ -257,8 +250,7 @@ branch. D_INTERNAL_FILE_NOTIFY has already applied the severity ceiling, and
 with notifications compiled out it never calls this; a call that comes anyway
 finds no handler to run.
 */
-void
-d_internal_file_notify_emit(
+void d_internal_file_notify_emit(
     int         _level,
     int         _error,
     const char* _function,
@@ -276,7 +268,7 @@ d_internal_file_notify_emit(
         return;
     }
 
-    const struct d_file_notice notice = { _level,
+    const struct dj_file_notice notice = { _level,
                                           _error,
                                           _function,
                                           _path,
@@ -293,8 +285,8 @@ d_internal_file_alloc_short
   An allocation that came back empty or was refused: ENOMEM, and a notice
 naming the function and why.
 */
-static void
-d_internal_file_alloc_short(
+static
+void d_internal_file_alloc_short(
     const char* _function,
     const char* _message
 )
@@ -317,8 +309,8 @@ d_internal_file_alloc_refused
   Whether a request is past D_INTERNAL_COMMON_ALLOC_CEILING. One that is gets
 reported as a shortfall, and the allocator never sees it.
 */
-static int
-d_internal_file_alloc_refused(
+static
+int d_internal_file_alloc_refused(
     size_t      _size,
     const char* _function
 )
@@ -345,8 +337,7 @@ size usually came from a file's own metadata: without it, d_file_read_all on a
 sparse 40 GiB file is an out-of-memory event in a process that only wanted to
 read a config file.
 */
-void*
-d_internal_file_alloc(
+void* d_internal_file_alloc(
     size_t _size
 )
 {
@@ -375,8 +366,7 @@ d_internal_file_realloc
 original block is untouched and still the caller's. The ceiling is the same
 one d_internal_file_alloc applies, for the same reason.
 */
-void*
-d_internal_file_realloc(
+void* d_internal_file_realloc(
     void*  _ptr,
     size_t _size
 )
@@ -406,8 +396,7 @@ d_internal_file_free
   NULL is filtered here rather than handed on, because a configured
 D_CFG_FILE_FREE need not tolerate it the way free does.
 */
-void
-d_internal_file_free(
+void d_internal_file_free(
     void* _ptr
 )
 {
@@ -422,10 +411,10 @@ d_internal_file_free(
 
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
 
-// d_internal_file_errno_pair
+// dj_internal_file_errno_pair
 //   struct: a Win32 reason and the errno that a POSIX call failing for the
 // same reason sets.
-struct d_internal_file_errno_pair
+struct dj_internal_file_errno_pair
 {
     DWORD error;  // a GetLastError() value
     int   code;   // the errno that names it
@@ -434,7 +423,7 @@ struct d_internal_file_errno_pair
 // d_internal_file_errno_pairs
 //   constant: the reasons a caller can act on, each with its errno. Any other
 // reason is an I/O failure, which is what it looks like from outside.
-static const struct d_internal_file_errno_pair d_internal_file_errno_pairs[] =
+static const struct dj_internal_file_errno_pair d_internal_file_errno_pairs[] =
 {
     { ERROR_FILE_NOT_FOUND,        ENOENT       },
     { ERROR_PATH_NOT_FOUND,        ENOENT       },
@@ -476,8 +465,7 @@ reasons a caller can act on get a name of their own
 (d_internal_file_errno_pairs); the rest are I/O failures. A failure is no hot
 path, so the table is searched in order.
 */
-int
-d_internal_file_errno_win32(
+int d_internal_file_errno_win32(
     DWORD _error
 )
 {
@@ -502,8 +490,7 @@ d_internal_file_tag_is_link_win32
 IO_REPARSE_TAG_SYMLINK and IO_REPARSE_TAG_MOUNT_POINT, a junction. Following
 anything else is the filesystem's business, not a link's.
 */
-int
-d_internal_file_tag_is_link_win32(
+int d_internal_file_tag_is_link_win32(
     DWORD _tag
 )
 {
@@ -518,8 +505,8 @@ tag cannot be read -- the query fails, or answers as though there were no
 reparse point -- is taken for one: mistaking a link for the directory it
 names is the error that costs data.
 */
-static int
-d_internal_file_handle_is_link_win32(
+static
+int d_internal_file_handle_is_link_win32(
     HANDLE _handle
 )
 {
@@ -544,9 +531,9 @@ d_internal_file_open_reparse_win32
 (FILE_FLAG_OPEN_REPARSE_POINT): enough access to read its attributes and tag,
 shared with every other opener.
 */
-static HANDLE
-d_internal_file_open_reparse_win32(
-    const d_internal_file_nchar_t* _path
+static
+HANDLE d_internal_file_open_reparse_win32(
+    const dj_internal_file_nchar_t* _path
 )
 {
     return D_INTERNAL_COMMON_CREATE_FILE(_path,
@@ -570,14 +557,13 @@ convert to the platform's text, is not reported as a link: the caller's own
 call then meets the reason and reports it. A link whose information cannot be
 read is still a link, with that information zeroed.
 */
-int
-d_internal_file_is_link_win32(
+int d_internal_file_is_link_win32(
     const char*                 _path,
     BY_HANDLE_FILE_INFORMATION* _info
 )
 {
-    struct d_internal_file_native        held  = {0};
-    const d_internal_file_nchar_t* const path  =
+    struct dj_internal_file_native        held  = {0};
+    const dj_internal_file_nchar_t* const path  =
         d_internal_file_native_of(&held,
                                   _path);
     const DWORD                          attrs =
@@ -631,11 +617,10 @@ d_internal_file_to_native_text
 neither take a lone surrogate's three bytes nor be told to: a name read from
 Windows must go back to it unchanged.
 */
-const d_internal_file_nchar_t*
-d_internal_file_to_native_text(
-    const char*              _text,
-    d_internal_file_nchar_t* _buf,
-    size_t                   _count
+const dj_internal_file_nchar_t* d_internal_file_to_native_text(
+    const char*               _text,
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
 )
 {
     const int result = d_internal_file_wtf8_to_utf16(_text,
@@ -680,10 +665,10 @@ d_internal_file_to_native_text(
  * GetFullPathNameW is asked first for the size alone, so the absolute form is
  * built, on the heap, only for a path that takes it.
  */
-static const d_internal_file_nchar_t*
-d_internal_file_long_form(
-    d_internal_file_nchar_t* _buf,
-    size_t                   _count
+static
+const dj_internal_file_nchar_t* d_internal_file_long_form(
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
 )
 {
     // a device path, or one in the long form already, goes as it is
@@ -721,8 +706,8 @@ d_internal_file_long_form(
         return _buf;
     }
 
-    d_internal_file_nchar_t* const full =
-        (d_internal_file_nchar_t*)d_internal_file_alloc((size_t)need *
+    dj_internal_file_nchar_t* const full =
+        (dj_internal_file_nchar_t*)d_internal_file_alloc((size_t)need *
                                                         sizeof(*full));
 
     // d_internal_file_alloc has reported the failure
@@ -744,10 +729,10 @@ d_internal_file_long_form(
                           (full[2] == L'.') &&
                           (full[3] == L'\\') );
     // a share keeps one of its two backslashes, after \\?\UNC
-    const d_internal_file_nchar_t* const prefix = (unc) ? L"\\\\?\\UNC"
+    const dj_internal_file_nchar_t* const prefix = (unc) ? L"\\\\?\\UNC"
                                                         : L"\\\\?\\";
     const size_t                         plen   = (unc) ? 7 : 4;
-    const d_internal_file_nchar_t* const rest   = (unc) ? (full + 1) : full;
+    const dj_internal_file_nchar_t* const rest   = (unc) ? (full + 1) : full;
     const size_t                         rlen   = (unc) ? ((size_t)got - 1)
                                                         : (size_t)got;
     int                                  code   = 0;
@@ -795,10 +780,10 @@ d_internal_file_long_form(
  * @param[in] _count  unused.
  * @return `_buf`.
  */
-static const d_internal_file_nchar_t*
-d_internal_file_long_form(
-    d_internal_file_nchar_t* _buf,
-    size_t                   _count
+static
+const dj_internal_file_nchar_t* d_internal_file_long_form(
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
 )
 {
     (void)_count;
@@ -813,11 +798,10 @@ d_internal_file_to_native
   A path: its text (d_internal_file_to_native_text), then the long form where
 the build takes long paths (d_internal_file_long_form).
 */
-const d_internal_file_nchar_t*
-d_internal_file_to_native(
-    const char*              _text,
-    d_internal_file_nchar_t* _buf,
-    size_t                   _count
+const dj_internal_file_nchar_t* d_internal_file_to_native(
+    const char*               _text,
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
 )
 {
     // d_internal_file_to_native_text has set errno
@@ -838,11 +822,10 @@ d_internal_file_from_native
 units, so that the only failure left is room. A failure puts an empty string
 over whatever part of the text was written.
 */
-int
-d_internal_file_from_native(
-    const d_internal_file_nchar_t* _native,
-    char*                          _out,
-    size_t                         _size
+int d_internal_file_from_native(
+    const dj_internal_file_nchar_t* _native,
+    char*                           _out,
+    size_t                          _size
 )
 {
     // no room for the text and its terminator, or none even for the latter
@@ -872,11 +855,10 @@ d_internal_file_from_native(
 d_internal_file_to_native_text
   The platform takes the text as it is.
 */
-const d_internal_file_nchar_t*
-d_internal_file_to_native_text(
-    const char*              _text,
-    d_internal_file_nchar_t* _buf,
-    size_t                   _count
+const dj_internal_file_nchar_t* d_internal_file_to_native_text(
+    const char*               _text,
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
 )
 {
     (void)_buf;
@@ -889,11 +871,10 @@ d_internal_file_to_native_text(
 d_internal_file_to_native
   The platform takes a path as it is, too.
 */
-const d_internal_file_nchar_t*
-d_internal_file_to_native(
-    const char*              _text,
-    d_internal_file_nchar_t* _buf,
-    size_t                   _count
+const dj_internal_file_nchar_t* d_internal_file_to_native(
+    const char*               _text,
+    dj_internal_file_nchar_t* _buf,
+    size_t                    _count
 )
 {
     return d_internal_file_to_native_text(_text,
@@ -906,11 +887,10 @@ d_internal_file_from_native
   A copy of the platform's text, refused with ERANGE rather than truncated
 when it does not fit.
 */
-int
-d_internal_file_from_native(
-    const d_internal_file_nchar_t* _native,
-    char*                          _out,
-    size_t                         _size
+int d_internal_file_from_native(
+    const dj_internal_file_nchar_t* _native,
+    char*                           _out,
+    size_t                          _size
 )
 {
     const size_t length = strlen(_native);
@@ -944,15 +924,14 @@ d_internal_file_from_native(
 d_internal_file_native_room
   Allocated on first asking, so a holder that never converts costs nothing.
 */
-d_internal_file_nchar_t*
-d_internal_file_native_room(
-    struct d_internal_file_native* _native
+dj_internal_file_nchar_t* d_internal_file_native_room(
+    struct dj_internal_file_native* _native
 )
 {
     // the block, the first time it is asked for
     if (!_native->room)
     {
-        _native->room = (d_internal_file_nchar_t*)d_internal_file_alloc(
+        _native->room = (dj_internal_file_nchar_t*)d_internal_file_alloc(
                             (size_t)D_INTERNAL_FILE_NATIVE_ROOM *
                             sizeof(*_native->room));
     }
@@ -965,9 +944,8 @@ d_internal_file_native_release
   errno and the last error are saved around the free: a caller releases the
 room between a call and the reading of why it failed.
 */
-void
-d_internal_file_native_release(
-    struct d_internal_file_native* _native
+void d_internal_file_native_release(
+    struct dj_internal_file_native* _native
 )
 {
     const int   saved_errno = errno;
@@ -987,9 +965,8 @@ d_internal_file_native_release(
 d_internal_file_native_room
   The holder's own array.
 */
-d_internal_file_nchar_t*
-d_internal_file_native_room(
-    struct d_internal_file_native* _native
+dj_internal_file_nchar_t* d_internal_file_native_room(
+    struct dj_internal_file_native* _native
 )
 {
     return _native->room;
@@ -999,9 +976,8 @@ d_internal_file_native_room(
 d_internal_file_native_release
   The array goes with the holder: nothing to return.
 */
-void
-d_internal_file_native_release(
-    struct d_internal_file_native* _native
+void d_internal_file_native_release(
+    struct dj_internal_file_native* _native
 )
 {
     (void)_native;
@@ -1017,9 +993,8 @@ d_internal_file_native_release(
 d_internal_file_path_room
   Allocated on first asking and cleared, as the array it stands in for was.
 */
-char*
-d_internal_file_path_room(
-    struct d_internal_file_path* _path
+char* d_internal_file_path_room(
+    struct dj_internal_file_path* _path
 )
 {
     // the block, the first time it is asked for
@@ -1049,9 +1024,8 @@ d_internal_file_path_release
   errno and the last error are saved around the free, as the native
 holder's are (d_internal_file_native_release).
 */
-void
-d_internal_file_path_release(
-    struct d_internal_file_path* _path
+void d_internal_file_path_release(
+    struct dj_internal_file_path* _path
 )
 {
     const int   saved_errno = errno;
@@ -1071,9 +1045,8 @@ d_internal_file_path_release(
 d_internal_file_path_room
   The holder's own array.
 */
-char*
-d_internal_file_path_room(
-    struct d_internal_file_path* _path
+char* d_internal_file_path_room(
+    struct dj_internal_file_path* _path
 )
 {
     return _path->room;
@@ -1083,9 +1056,8 @@ d_internal_file_path_room(
 d_internal_file_path_release
   The array goes with the holder: nothing to return.
 */
-void
-d_internal_file_path_release(
-    struct d_internal_file_path* _path
+void d_internal_file_path_release(
+    struct dj_internal_file_path* _path
 )
 {
     (void)_path;
@@ -1100,13 +1072,12 @@ d_internal_file_native_of
   A failed conversion releases the room it was given, so the caller has
 nothing to release on that path.
 */
-const d_internal_file_nchar_t*
-d_internal_file_native_of(
-    struct d_internal_file_native* _native,
-    const char*                    _path
+const dj_internal_file_nchar_t* d_internal_file_native_of(
+    struct dj_internal_file_native* _native,
+    const char*                     _path
 )
 {
-    d_internal_file_nchar_t* const room = d_internal_file_native_room(_native);
+    dj_internal_file_nchar_t* const room = d_internal_file_native_room(_native);
 
     // d_internal_file_alloc has reported the failure
     if (!room)
@@ -1114,7 +1085,7 @@ d_internal_file_native_of(
         return NULL;
     }
 
-    const d_internal_file_nchar_t* const path =
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_to_native(_path,
                                   room,
                                   D_INTERNAL_FILE_NATIVE_MAX);
@@ -1139,13 +1110,12 @@ one is a pair in the wrong spelling, and refused, so that no two spellings
 reach the same name. Compiled on every platform, so the tests can run where
 Windows is not.
 */
-int
-d_internal_file_wtf8_to_utf16(
-    const char*            _in,
-    size_t                 _in_size,
-    d_internal_file_u16_t* _out,
-    size_t                 _count,
-    size_t*                _made
+int d_internal_file_wtf8_to_utf16(
+    const char*             _in,
+    size_t                  _in_size,
+    dj_internal_file_u16_t* _out,
+    size_t                  _count,
+    size_t*                 _made
 )
 {
     const unsigned char* const in        = (const unsigned char*)_in;
@@ -1234,14 +1204,14 @@ d_internal_file_wtf8_to_utf16(
 
             if (units == 1)
             {
-                _out[made] = (d_internal_file_u16_t)point;
+                _out[made] = (dj_internal_file_u16_t)point;
             }
             else
             {
                 const unsigned long rest = point - 0x10000UL;
 
-                _out[made]     = (d_internal_file_u16_t)(0xD800UL | (rest >> 10));
-                _out[made + 1] = (d_internal_file_u16_t)(0xDC00UL | (rest & 0x3FFUL));
+                _out[made]     = (dj_internal_file_u16_t)(0xD800UL | (rest >> 10));
+                _out[made + 1] = (dj_internal_file_u16_t)(0xDC00UL | (rest & 0x3FFUL));
             }
         }
 
@@ -1274,13 +1244,12 @@ d_internal_file_utf16_to_wtf8
 bytes; any other unit, a lone surrogate included, is its own code point in one
 to three. Nothing is refused, so the result is 1 only for want of room.
 */
-int
-d_internal_file_utf16_to_wtf8(
-    const d_internal_file_u16_t* _in,
-    size_t                       _in_count,
-    char*                        _out,
-    size_t                       _size,
-    size_t*                      _made
+int d_internal_file_utf16_to_wtf8(
+    const dj_internal_file_u16_t* _in,
+    size_t                        _in_count,
+    char*                         _out,
+    size_t                        _size,
+    size_t*                       _made
 )
 {
     size_t at   = 0;

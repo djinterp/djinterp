@@ -15,7 +15,7 @@
 *******************************************************************************/
 // djinterp
 #include "./env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -34,10 +34,8 @@ d_tests_sa_env_stdlib_c_standard_headers
   - C99 headers available when C99+
   - C11 headers available when C11+
 */
-bool
-d_tests_sa_env_stdlib_c_standard_headers
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_c_standard_headers(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -219,10 +217,8 @@ d_tests_sa_env_stdlib_posix_headers
   - D_ENV_C_HAS_DIRENT_H is defined and boolean
   - headers consistent with OS detection
 */
-bool
-d_tests_sa_env_stdlib_posix_headers
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_posix_headers(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -353,10 +349,8 @@ d_tests_sa_env_stdlib_string_functions
   - D_ENV_C_HAS_MEMCCPY is defined and boolean
   - platform-specific functions consistent with OS
 */
-bool
-d_tests_sa_env_stdlib_string_functions
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_string_functions(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -527,10 +521,8 @@ d_tests_sa_env_stdlib_file_io_features
   - D_ENV_C_HAS_LOCKFILE is defined and boolean
   - Windows/POSIX exclusive features consistent with OS
 */
-bool
-d_tests_sa_env_stdlib_file_io_features
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_file_io_features(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -666,10 +658,8 @@ d_tests_sa_env_stdlib_time_features
   - timespec_get available in C11+
   - Windows timer available on Windows
 */
-bool
-d_tests_sa_env_stdlib_time_features
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_time_features(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -785,10 +775,8 @@ d_tests_sa_env_stdlib_math_features
   - D_ENV_C_HAS_FENV_H is defined and boolean
   - math headers available in C99+
 */
-bool
-d_tests_sa_env_stdlib_math_features
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_math_features(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -902,10 +890,8 @@ d_tests_sa_env_stdlib_network_features
   - D_ENV_C_HAS_GETADDRINFO is defined and boolean
   - platform-specific sockets consistent with OS
 */
-bool
-d_tests_sa_env_stdlib_network_features
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_network_features(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1012,10 +998,8 @@ d_tests_sa_env_stdlib_process_features
   - D_ENV_C_HAS_SIGNAL_H is defined and boolean
   - POSIX process functions consistent with OS
 */
-bool
-d_tests_sa_env_stdlib_process_features
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_process_features(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1132,10 +1116,8 @@ d_tests_sa_env_stdlib_memory_features
   - D_ENV_C_HAS_ALLOCA is defined and boolean
   - platform-specific allocators consistent with OS
 */
-bool
-d_tests_sa_env_stdlib_memory_features
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_memory_features(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1253,10 +1235,8 @@ d_tests_sa_env_stdlib_simd_features
   - D_ENV_C_HAS_NEON is defined and boolean
   - SIMD features consistent with architecture
 */
-bool
-d_tests_sa_env_stdlib_simd_features
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_simd_features(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1430,10 +1410,8 @@ d_tests_sa_env_stdlib_vla_and_security
   - D_ENV_C_HAS_GETENTROPY is defined and boolean
   - VLA available in C99+ (unless __STDC_NO_VLA__)
 */
-bool
-d_tests_sa_env_stdlib_vla_and_security
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_vla_and_security(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1539,10 +1517,8 @@ d_tests_sa_env_stdlib_consistency_check
   - at least one timer mechanism is available
   - at least one aligned alloc mechanism on modern systems
 */
-bool
-d_tests_sa_env_stdlib_consistency_check
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_consistency_check(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1655,13 +1631,11 @@ d_tests_sa_env_stdlib_all
   - VLA and security features
   - consistency check
 */
-bool
-d_tests_sa_env_stdlib_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_stdlib_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool c_headers_result;
     bool posix_headers_result;
     bool string_funcs_result;
@@ -1681,7 +1655,7 @@ d_tests_sa_env_stdlib_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing Standard Library Feature Detection\n");
     printf("========================================="

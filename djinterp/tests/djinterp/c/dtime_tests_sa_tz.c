@@ -30,13 +30,9 @@ d_tests_sa_dtime_timegm
   - returns -1 for NULL parameter
   - handles dates before epoch (if supported)
 */
-struct d_test_object*
-d_tests_sa_dtime_timegm
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timegm(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct tm             tm_epoch;
     struct tm             tm_y2k;
     struct tm             tm_midyear;
@@ -214,13 +210,9 @@ d_tests_sa_dtime_tzset
   - works in conjunction with localtime
   - timezone offset is reasonable
 */
-struct d_test_object*
-d_tests_sa_dtime_tzset
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_tzset(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct tm             tm_local;
     time_t                now;
     time_t                epoch;
@@ -380,13 +372,9 @@ d_tests_sa_dtime_timezone_utilities_all
   - d_timegm
   - d_tzset
 */
-struct d_test_object*
-d_tests_sa_dtime_timezone_utilities_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timezone_utilities_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("VI. Timezone Utilities", 2);

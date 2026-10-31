@@ -131,7 +131,7 @@ TABLE OF CONTENTS
 #endif
 
 // djinterp
-#include "../../../core/env/db/postgres/cfg_env_postgres.h"  // env's knobs
+#include "../../../env/db/postgres/cfg_env_postgres.h"  // env's knobs
 
 
 //==============================================================================

@@ -35,8 +35,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -58,13 +58,13 @@ d_tests_check(
 d_tests_doc
   A document of a text that must read.
 */
-static struct d_cmake_doc*
-d_tests_doc(
+static
+struct dj_cmake_doc* d_tests_doc(
     const char* _text
 )
 {
     char                      why[256];
-    struct d_cmake_doc* const doc = d_cmake_doc_make("t.cmake", _text,
+    struct dj_cmake_doc* const doc = d_cmake_doc_make("t.cmake", _text,
                                                      strlen(_text), why,
                                                      sizeof(why));
 
@@ -83,10 +83,10 @@ d_tests_doc(
 d_tests_text_is
   Whether a document's text is the text expected; a difference is printed.
 */
-static bool
-d_tests_text_is(
-    const struct d_cmake_doc* _doc,
-    const char*               _expected
+static
+bool d_tests_text_is(
+    const struct dj_cmake_doc* _doc,
+    const char*                _expected
 )
 {
     size_t            length = 0;
@@ -109,12 +109,12 @@ d_tests_text_is(
 d_tests_refused
   Whether a change was refused, the document unchanged and saying why.
 */
-static bool
-d_tests_refused(
-    const struct d_cmake_doc* _doc,
-    bool                      _kept,
-    const char*               _before,
-    const char*               _why
+static
+bool d_tests_refused(
+    const struct dj_cmake_doc* _doc,
+    bool                       _kept,
+    const char*                _before,
+    const char*                _why
 )
 {
     const bool said = (strstr(d_cmake_doc_problem(_doc), _why) != NULL);
@@ -138,11 +138,11 @@ d_tests_documents
   - its path, its text, its changes, and where the last change was
   - a raw splice kept, and one refused for what it does outside it
 */
-static void
-d_tests_documents(void)
+static
+void d_tests_documents(void)
 {
     char                      why[256];
-    struct d_cmake_doc* const bad = d_cmake_doc_make("b.cmake", "set(a",
+    struct dj_cmake_doc* const bad = d_cmake_doc_make("b.cmake", "set(a",
                                                      5u, why, sizeof(why));
     size_t                    start   = 0;
     size_t                    old_end = 0;
@@ -152,7 +152,7 @@ d_tests_documents(void)
     d_tests_check(strstr(why, "b.cmake") != NULL,
                   "...and the refusal names the file");
 
-    struct d_cmake_doc* const doc = d_tests_doc("set(a b)\nset(c)\n");
+    struct dj_cmake_doc* const doc = d_tests_doc("set(a b)\nset(c)\n");
 
     // nothing more is checked of a document not made
     if (!doc)
@@ -188,7 +188,7 @@ d_tests_documents(void)
                   "...and one that changes a command outside it, by its "
                   "line");
 
-    struct d_cmake_doc* const block = d_tests_doc("if(A)\nset(a)\nendif()\n");
+    struct dj_cmake_doc* const block = d_tests_doc("if(A)\nset(a)\nendif()\n");
 
     // a splice that would change the pairing of the commands outside it
     if (block)
@@ -217,10 +217,10 @@ d_tests_set_argument
   - a text that is not one argument, a parenthesis, and an argument not
     there, each refused
 */
-static void
-d_tests_set_argument(void)
+static
+void d_tests_set_argument(void)
 {
-    struct d_cmake_doc* const doc =
+    struct dj_cmake_doc* const doc =
         d_tests_doc("set(a \"b\" [[c]])\nset(y \"a\"\"b\")\nif((A) OR B)\n"
                     "endif()\n");
 
@@ -263,7 +263,7 @@ d_tests_set_argument(void)
                   "an argument not there is refused, by its number from 1");
     d_cmake_doc_free(doc);
 
-    struct d_cmake_doc* const crlf = d_tests_doc("set(a\r\n    b)\r\n");
+    struct dj_cmake_doc* const crlf = d_tests_doc("set(a\r\n    b)\r\n");
 
     // a CR LF file's text takes CR LF
     if (crlf)
@@ -287,10 +287,10 @@ d_tests_insert_argument
   - appended after the last, and into an empty list
   - beside a parenthesis, and a place not there refused
 */
-static void
-d_tests_insert_argument(void)
+static
+void d_tests_insert_argument(void)
 {
-    struct d_cmake_doc* const doc =
+    struct dj_cmake_doc* const doc =
         d_tests_doc("add_library(lib STATIC\n    \"a.c\"\n    # a comment\n"
                     "    \"c.c\" # trailing\n    LINK x)\nset()\n"
                     "set(a b c)\nif((A) OR B)\nendif()\n");
@@ -341,10 +341,10 @@ d_tests_remove_argument
   - the last, before the `)`, which closes up to the argument before
   - a parenthesis refused
 */
-static void
-d_tests_remove_argument(void)
+static
+void d_tests_remove_argument(void)
 {
-    struct d_cmake_doc* const doc =
+    struct dj_cmake_doc* const doc =
         d_tests_doc("set(a\n    b # why\n    c d\n)\nset(x y z)\n"
                     "set(p\n    q)\nset(\n    only)\nif((A) OR B)\n"
                     "endif()\n");
@@ -382,10 +382,10 @@ d_tests_commands
   - a run of commands removed, a whole block among them, and an opener
     alone refused
 */
-static void
-d_tests_commands(void)
+static
+void d_tests_commands(void)
 {
-    struct d_cmake_doc* const doc =
+    struct dj_cmake_doc* const doc =
         d_tests_doc("set(a)\nif(A)\n    message(x) # why\nendif()\n"
                     "set(b)\n");
 
@@ -447,10 +447,10 @@ d_tests_insert_commands
     as it is
   - a block left unpaired refused
 */
-static void
-d_tests_insert_commands(void)
+static
+void d_tests_insert_commands(void)
 {
-    struct d_cmake_doc* const doc =
+    struct dj_cmake_doc* const doc =
         d_tests_doc("project(p)\n\n# the flags\n# for all\nset(f)\n"
                     "if(A)\n  set(x)\nendif()\nwhile(B)\nendwhile()");
 
@@ -487,7 +487,7 @@ d_tests_insert_commands(void)
                   "reads, and a place not there");
     d_cmake_doc_free(doc);
 
-    struct d_cmake_doc* const empty = d_tests_doc("");
+    struct dj_cmake_doc* const empty = d_tests_doc("");
 
     // an empty file takes its first command
     if (empty)
@@ -500,7 +500,7 @@ d_tests_insert_commands(void)
         d_cmake_doc_free(empty);
     }
 
-    struct d_cmake_doc* const crlf = d_tests_doc("set(a)\r\n");
+    struct dj_cmake_doc* const crlf = d_tests_doc("set(a)\r\n");
 
     // a CR LF file's lines end so
     if (crlf)
@@ -520,10 +520,10 @@ d_tests_indent
   Tests the following:
   - the indentation of a slot, from the neighbours about it
 */
-static void
-d_tests_indent(void)
+static
+void d_tests_indent(void)
 {
-    struct d_cmake_doc* const doc =
+    struct dj_cmake_doc* const doc =
         d_tests_doc("function(f)\n\tif(A)\n\tendif()\nendfunction()\n");
     char                      indent[16];
 
@@ -559,8 +559,8 @@ d_tests_saving
   - a file written to another path, its directories made
   - a document read back from what was written
 */
-static void
-d_tests_saving(
+static
+void d_tests_saving(
     const char* _work
 )
 {
@@ -576,7 +576,7 @@ d_tests_saving(
     (void)remove(path);
     (void)remove(other);
 
-    struct d_cmake_doc* const doc = d_cmake_doc_make(path, "set(a)\n", 7u,
+    struct dj_cmake_doc* const doc = d_cmake_doc_make(path, "set(a)\n", 7u,
                                                      why, sizeof(why));
 
     // nothing is checked of a document not made
@@ -598,7 +598,7 @@ d_tests_saving(
                         D_CMAKE_SAVE_WRITTEN),
                   "a document is written to another path");
 
-    struct d_cmake_doc* const back = d_cmake_doc_read(other, why,
+    struct dj_cmake_doc* const back = d_cmake_doc_read(other, why,
                                                       sizeof(why));
 
     d_tests_check( (back) &&
@@ -607,7 +607,7 @@ d_tests_saving(
     d_cmake_doc_free(back);
     d_cmake_doc_free(doc);
 
-    struct d_cmake_doc* const none = d_cmake_doc_make("", "", 0u, why,
+    struct dj_cmake_doc* const none = d_cmake_doc_make("", "", 0u, why,
                                                       sizeof(why));
 
     d_tests_check( (none) &&
@@ -627,7 +627,7 @@ d_tests_saving(
 
 // d_tests_fuzz
 //   struct: a run's random state and what it counted.
-struct d_tests_fuzz
+struct dj_tests_fuzz
 {
     unsigned long state;
     unsigned long rounds;
@@ -643,10 +643,10 @@ d_tests_random
   A number below `_limit`, from a linear congruential generator; 0 for a
 limit of 0.
 */
-static size_t
-d_tests_random(
-    struct d_tests_fuzz* _fuzz,
-    size_t               _limit
+static
+size_t d_tests_random(
+    struct dj_tests_fuzz* _fuzz,
+    size_t                _limit
 )
 {
     _fuzz->state = (_fuzz->state * 1103515245ul) + 12345ul;
@@ -663,10 +663,10 @@ d_tests_one_change
 a change may be given, good and bad.
   Long as it is a table of the changes, each a call.
 */
-static bool
-d_tests_one_change(
-    struct d_cmake_doc*  _doc,
-    struct d_tests_fuzz* _fuzz
+static
+bool d_tests_one_change(
+    struct dj_cmake_doc*  _doc,
+    struct dj_tests_fuzz* _fuzz
 )
 {
     static const char* const arguments[] =
@@ -688,7 +688,7 @@ d_tests_one_change(
     {
         ")", "(", "\"", " ", "\n", "#", "set(z)\n", "]]", "", "x"
     };
-    const struct d_cmake* const cmake = d_cmake_doc_records(_doc);
+    const struct dj_cmake* const cmake = d_cmake_doc_records(_doc);
     const size_t                count = cmake->command_count;
     const size_t                n     = d_tests_random(_fuzz, count + 1u);
     const size_t                args  = (n < count)
@@ -766,13 +766,13 @@ the change cut.
   Long as the places are found afresh, apart from the document's own way of
 finding them.
 */
-static bool
-d_tests_same_outside(
-    const struct d_cmake* _old,
-    const struct d_cmake* _new,
-    size_t                _start,
-    size_t                _old_end,
-    size_t                _new_end
+static
+bool d_tests_same_outside(
+    const struct dj_cmake* _old,
+    const struct dj_cmake* _new,
+    size_t                 _start,
+    size_t                 _old_end,
+    size_t                 _new_end
 )
 {
     size_t before = 0;
@@ -824,8 +824,8 @@ d_tests_same_outside(
             continue;
         }
 
-        const struct d_cmake_command* const a = &_old->commands[at];
-        const struct d_cmake_command* const b = &_new->commands[other];
+        const struct dj_cmake_command* const a = &_old->commands[at];
+        const struct dj_cmake_command* const b = &_new->commands[other];
         const size_t                        p = a->partner;
         const size_t                        q =
             (p == D_CMAKE_NONE) ? D_CMAKE_NONE
@@ -858,12 +858,12 @@ d_tests_fuzz_holds
 before and after where it was are the text's own, and so are the commands
 outside it; refused, the text as it was.
 */
-static bool
-d_tests_fuzz_holds(
-    const struct d_cmake_doc* _doc,
-    bool                      _kept,
-    const char*               _before,
-    size_t                    _before_length
+static
+bool d_tests_fuzz_holds(
+    const struct dj_cmake_doc* _doc,
+    bool                       _kept,
+    const char*                _before,
+    size_t                     _before_length
 )
 {
     size_t            length  = 0;
@@ -879,8 +879,8 @@ d_tests_fuzz_holds(
                  (memcmp(text, _before, length) == 0) );
     }
 
-    struct d_cmake old;
-    struct d_cmake now;
+    struct dj_cmake old;
+    struct dj_cmake now;
 
     // each released whether or not it was read
     memset(&old, 0, sizeof(old));
@@ -914,14 +914,14 @@ d_tests_fuzz_holds(
 d_tests_fuzz_file
   Makes the run's changes to one file.
 */
-static void
-d_tests_fuzz_file(
-    const char*          _path,
-    struct d_tests_fuzz* _fuzz
+static
+void d_tests_fuzz_file(
+    const char*           _path,
+    struct dj_tests_fuzz* _fuzz
 )
 {
     char                      why[256];
-    struct d_cmake_doc* const doc = d_cmake_doc_read(_path, why, sizeof(why));
+    struct dj_cmake_doc* const doc = d_cmake_doc_read(_path, why, sizeof(why));
 
     // a file that does not read is the reader's to answer for
     if (!doc)
@@ -972,8 +972,8 @@ d_tests_fuzz_file(
 d_tests_is_cmake
   Whether a file name is CMake's: CMakeLists.txt, *.cmake or *.cmake.in.
 */
-static bool
-d_tests_is_cmake(
+static
+bool d_tests_is_cmake(
     const char* _name
 )
 {
@@ -991,10 +991,10 @@ d_tests_is_cmake(
 d_tests_fuzz_walk
   Every CMake file under a directory, in name order.
 */
-static void
-d_tests_fuzz_walk(
-    const char*          _directory,
-    struct d_tests_fuzz* _fuzz
+static
+void d_tests_fuzz_walk(
+    const char*           _directory,
+    struct dj_tests_fuzz* _fuzz
 )
 {
     char** names = NULL;
@@ -1045,8 +1045,7 @@ main
 process is in; with --fuzz, changes at random to every CMake file under a
 directory.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
@@ -1055,7 +1054,7 @@ main(
     if ( (argc > 2) &&
          (strcmp(argv[1], "--fuzz") == 0) )
     {
-        struct d_tests_fuzz fuzz;
+        struct dj_tests_fuzz fuzz;
 
         memset(&fuzz, 0, sizeof(fuzz));
         fuzz.state  = (argc > 3) ? strtoul(argv[3], NULL, 10) : 1ul;

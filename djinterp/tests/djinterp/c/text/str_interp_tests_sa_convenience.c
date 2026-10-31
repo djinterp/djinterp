@@ -30,14 +30,10 @@ d_tests_sa_str_interp_quick
   - handles no match (arrays have entries but nothing matches)
   - result matches expected string
 */
-struct d_test_object*
-d_tests_sa_str_interp_quick
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_quick(void)
 {
-    struct d_test_object*   group;
-    enum d_str_interp_error err;
+    struct dj_test_object*   group;
+    enum dj_str_interp_error err;
     char                    buf[D_TEST_INTERP_BUFFER_SIZE];
     bool                    test_single_pair;
     bool                    test_multi_pair;
@@ -248,13 +244,9 @@ d_tests_sa_str_interp_convenience_all
   Tests the following:
   - d_str_interp_quick
 */
-struct d_test_object*
-d_tests_sa_str_interp_convenience_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_convenience_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Convenience Functions", 1);

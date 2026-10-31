@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -22,13 +22,11 @@ d_tests_sa_text_buffer_to_cstring
   - returned string is independent (modifying it does not affect buffer)
   - caller must free returned string
 */
-bool
-d_tests_sa_text_buffer_to_cstring
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_to_cstring(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     char*                 str;
     bool                  result = true;
 
@@ -116,13 +114,11 @@ d_tests_sa_text_buffer_copy_to_buffer
   - destination is null-terminated
   - copy truncates when destination too small
 */
-bool
-d_tests_sa_text_buffer_copy_to_buffer
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_copy_to_buffer(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     char                  dest[64];
     bool                  result = true;
 
@@ -207,13 +203,11 @@ d_tests_sa_text_buffer_copy_to_buffer_n
   - does not exceed destination size
   - returns number of characters actually copied
 */
-bool
-d_tests_sa_text_buffer_copy_to_buffer_n
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_copy_to_buffer_n(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
+    struct dj_text_buffer* buffer;
     char                  dest[64];
     size_t                copied;
     bool                  result = true;
@@ -278,18 +272,16 @@ d_tests_sa_text_buffer_to_d_string
   Tests the d_text_buffer_to_d_string function.
   Tests the following:
   - NULL buffer returns NULL
-  - returns a new d_string with matching content
-  - returned d_string has correct size
-  - returned d_string is independent of original buffer
+  - returns a new dj_string with matching content
+  - returned dj_string has correct size
+  - returned dj_string is independent of original buffer
 */
-bool
-d_tests_sa_text_buffer_to_d_string
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_to_d_string(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_text_buffer* buffer;
-    struct d_string*      str;
+    struct dj_text_buffer* buffer;
+    struct dj_string*      str;
     bool                  result = true;
 
     // test 1: NULL buffer
@@ -309,7 +301,7 @@ d_tests_sa_text_buffer_to_d_string
         result = d_assert_standalone(
             str != NULL,
             "to_dstr_not_null",
-            "Returned d_string should not be NULL",
+            "Returned dj_string should not be NULL",
             _counter) && result;
 
         if (str)
@@ -319,14 +311,14 @@ d_tests_sa_text_buffer_to_d_string
                 str->text != NULL
                 && d_strcasecmp(str->text, "Hello, World!") == 0,
                 "to_dstr_content",
-                "d_string text should match buffer content",
+                "dj_string text should match buffer content",
                 _counter) && result;
 
             // test 4: size match
             result = d_assert_standalone(
                 str->size == 13,
                 "to_dstr_size",
-                "d_string size should be 13",
+                "dj_string size should be 13",
                 _counter) && result;
 
             // NOTE: already know str->text is non-NULL due to previous assert
@@ -339,7 +331,7 @@ d_tests_sa_text_buffer_to_d_string
                 result = d_assert_standalone(
                     buffer->data[0] == 'H',
                     "to_dstr_independent",
-                    "Modifying d_string should not affect buffer",
+                    "Modifying dj_string should not affect buffer",
                     _counter) && result;
             }
 
@@ -359,7 +351,7 @@ d_tests_sa_text_buffer_to_d_string
         result = d_assert_standalone(
             (str != NULL),
             "to_dstr_empty_not_null",
-            "Empty buffer should produce non-NULL d_string",
+            "Empty buffer should produce non-NULL dj_string",
             _counter) && result;
 
         if (str)
@@ -367,7 +359,7 @@ d_tests_sa_text_buffer_to_d_string
             result = d_assert_standalone(
                 (str->size == 0),
                 "to_dstr_empty_size",
-                "Empty buffer d_string size should be 0",
+                "Empty buffer dj_string size should be 0",
                 _counter) && result;
 
             d_string_free(str);
@@ -383,10 +375,8 @@ d_tests_sa_text_buffer_to_d_string
 d_tests_sa_text_buffer_conversion_all
   Aggregation function that runs all conversion tests.
 */
-bool
-d_tests_sa_text_buffer_conversion_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_conversion_all(
+    struct dj_test_counter* _counter
 )
 {
     printf("\n  [SECTION] Conversion Functions\n");

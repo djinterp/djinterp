@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,10 +21,8 @@ d_tests_sa_vector_common_append_element
   - successful append of single element
   - automatic capacity growth
 */
-bool
-d_tests_sa_vector_common_append_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_append_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -157,10 +155,8 @@ d_tests_sa_vector_common_append_elements
   - successful append to non-empty vector
   - automatic capacity growth
 */
-bool
-d_tests_sa_vector_common_append_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_append_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -387,10 +383,8 @@ d_tests_sa_vector_common_prepend_element
   - successful prepend to empty vector
   - successful prepend to non-empty vector (shifts existing)
 */
-bool
-d_tests_sa_vector_common_prepend_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_prepend_element(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -481,10 +475,8 @@ d_tests_sa_vector_common_prepend_elements
   - successful prepend to non-empty vector
   - elements correctly shifted
 */
-bool
-d_tests_sa_vector_common_prepend_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_prepend_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -627,10 +619,8 @@ d_tests_sa_vector_common_prepend_elements
 d_tests_sa_vector_common_append_all
   Aggregation function that runs all append/extend tests.
 */
-bool
-d_tests_sa_vector_common_append_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_append_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

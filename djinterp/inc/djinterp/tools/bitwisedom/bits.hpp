@@ -42,8 +42,8 @@ TABLE OF CONTENTS
     2.  Parsing
 */
 
-#ifndef BITWISEDOM_BITS_HPP
-#define BITWISEDOM_BITS_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_BITS_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_BITS_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -54,9 +54,9 @@ TABLE OF CONTENTS
 #include <string_view>  // std::string_view
 #include <vector>       // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // re_std
-#include "re_std/cstdint/cstdint.hpp"  // re_std::uint64_t, re_std::int64_t
+#include "re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint64_t, re_std::int64_t
 
 
 namespace bitwisedom
@@ -86,8 +86,8 @@ const int MAX_WIDTH     = 65536;
 // is_wide
 //   whether a sheet of a width is wider than an integer: its values are
 // sets of bits, and C holds them as arrays.
-inline bool
-is_wide(
+inline
+bool is_wide(
     int _width
 )
 {
@@ -98,12 +98,22 @@ is_wide(
 //------------------------------------------------------------------------------
 // basic masks -- all pure, none allocate; widths outside [0, 64] are clamped
 // to it
-D_NODISCARD u64  width_mask(int _width);
-D_NODISCARD u64  range_mask(int _lsb,
-                            int _width);
-D_NODISCARD int  bit_count(u64 _value);
-D_NODISCARD int  lowest_set(u64 _value);
-D_NODISCARD int  highest_set(u64 _value);
+D_NODISCARD u64 width_mask(
+    int _width
+);
+D_NODISCARD u64 range_mask(
+    int _lsb,
+    int _width
+);
+D_NODISCARD int bit_count(
+    u64 _value
+);
+D_NODISCARD int lowest_set(
+    u64 _value
+);
+D_NODISCARD int highest_set(
+    u64 _value
+);
 
 /**
  * @brief Whether the set bits of a value form one unbroken run.
@@ -113,25 +123,37 @@ D_NODISCARD int  highest_set(u64 _value);
  * @param[out] _width  the run's length, when it is one.
  * @return `true` if _value is a single run of ones, `false` otherwise.
  */
-D_NODISCARD bool is_run(u64  _value,
-                        int& _lsb,
-                        int& _width);
+D_NODISCARD bool is_run(
+    u64  _value,
+    int& _lsb,
+    int& _width
+);
 
 // 1.3    Movement within a width
 //------------------------------------------------------------------------------
 // movement -- each takes and returns a value in the low _width bits
-D_NODISCARD u64  rotate_left(u64 _value,
-                             int _count,
-                             int _width);
-D_NODISCARD u64  rotate_right(u64 _value,
-                              int _count,
-                              int _width);
-D_NODISCARD u64  reverse_bits(u64 _value,
-                              int _width);
-D_NODISCARD u64  reverse_bytes(u64 _value,
-                               int _width);
-D_NODISCARD i64  sign_extend(u64 _value,
-                             int _width);
+D_NODISCARD u64 rotate_left(
+    u64 _value,
+    int _count,
+    int _width
+);
+D_NODISCARD u64 rotate_right(
+    u64 _value,
+    int _count,
+    int _width
+);
+D_NODISCARD u64 reverse_bits(
+    u64 _value,
+    int _width
+);
+D_NODISCARD u64 reverse_bytes(
+    u64 _value,
+    int _width
+);
+D_NODISCARD i64 sign_extend(
+    u64 _value,
+    int _width
+);
 
 // 1.4    Values wider than an integer
 //------------------------------------------------------------------------------
@@ -145,52 +167,86 @@ class wide
 {
 public:
     wide() = default;
-    wide(u64 _low);   // implicit: a narrow value is a wide one
+    wide(
+        u64 _low
+    );   // implicit: a narrow value is a wide one
 
     // construction -- one bit, or a run of them
-    D_NODISCARD static wide  bit(int _index);
-    D_NODISCARD static wide  run(int _lsb,
-                                 int _width);
+    D_NODISCARD static wide bit(
+        int _index
+    );
+    D_NODISCARD static wide run(
+        int _lsb,
+        int _width
+    );
 
     // bits -- out-of-range indices read as clear and are not set
-    D_NODISCARD bool  test(int _index) const;
-    void              set(int  _index,
-                          bool _on = true);
+    D_NODISCARD bool test(
+        int _index
+    ) const;
+    void set(
+        int  _index,
+        bool _on = true
+    );
 
     // words -- word 0 holds bits 0..63; past the last, zero
-    D_NODISCARD u64  word(int _index) const;
-    D_NODISCARD u64  low() const;
-    D_NODISCARD int  words() const;
+    D_NODISCARD u64 word(
+        int _index
+    ) const;
+    D_NODISCARD u64 low() const;
+    D_NODISCARD int words() const;
 
     // fields -- up to 64 bits from _lsb, read as an integer and written
     // from one; slice is any run, as a wide value moved down to bit 0
-    D_NODISCARD u64   field(int _lsb,
-                            int _width) const;
-    void              put(int _lsb,
-                          int _width,
-                          u64 _bits);
-    D_NODISCARD wide  slice(int _lsb,
-                            int _width) const;
+    D_NODISCARD u64 field(
+        int _lsb,
+        int _width
+    ) const;
+    void put(
+        int _lsb,
+        int _width,
+        u64 _bits
+    );
+    D_NODISCARD wide slice(
+        int _lsb,
+        int _width
+    ) const;
 
     // counting -- lowest and highest are -1, and next is -1 past the last,
     // when no bit is set
-    D_NODISCARD bool  any() const;
-    D_NODISCARD int   count() const;
-    D_NODISCARD int   lowest() const;
-    D_NODISCARD int   highest() const;
-    D_NODISCARD int   next(int _from) const;
+    D_NODISCARD bool any() const;
+    D_NODISCARD int count() const;
+    D_NODISCARD int lowest() const;
+    D_NODISCARD int highest() const;
+    D_NODISCARD int next(
+        int _from
+    ) const;
 
     // width -- whether every set bit lies below it, and the bits above it
     // cleared
-    D_NODISCARD bool  fits(int _width) const;
-    void              trim(int _width);
+    D_NODISCARD bool fits(
+        int _width
+    ) const;
+    void trim(
+        int _width
+    );
 
-    wide&  operator|=(const wide& _other);
-    wide&  operator&=(const wide& _other);
-    wide&  operator^=(const wide& _other);
+    wide& operator|=(
+        const wide& _other
+    );
+    wide& operator&=(
+        const wide& _other
+    );
+    wide& operator^=(
+        const wide& _other
+    );
 
-    D_NODISCARD bool  operator==(const wide& _other) const;
-    D_NODISCARD bool  operator!=(const wide& _other) const;
+    D_NODISCARD bool operator==(
+        const wide& _other
+    ) const;
+    D_NODISCARD bool operator!=(
+        const wide& _other
+    ) const;
 
 private:
     std::vector<u64> m_words;   // never a zero word at the top
@@ -199,47 +255,77 @@ private:
 };
 
 // the bitwise operators, by value
-D_NODISCARD wide  operator|(wide        _a,
-                            const wide& _b);
-D_NODISCARD wide  operator&(wide        _a,
-                            const wide& _b);
-D_NODISCARD wide  operator^(wide        _a,
-                            const wide& _b);
+D_NODISCARD wide operator|(
+    wide        _a,
+    const wide& _b
+);
+D_NODISCARD wide operator&(
+    wide        _a,
+    const wide& _b
+);
+D_NODISCARD wide operator^(
+    wide        _a,
+    const wide& _b
+);
 
 // movement and arithmetic within a width -- each takes and returns a value
 // whose set bits lie below _width
-D_NODISCARD wide  complement(const wide& _value,
-                             int         _width);
-D_NODISCARD wide  shift_left(const wide& _value,
-                             int         _count,
-                             int         _width);
-D_NODISCARD wide  shift_right(const wide& _value,
-                              int         _count);
-D_NODISCARD wide  rotate_left(const wide& _value,
-                              int         _count,
-                              int         _width);
-D_NODISCARD wide  rotate_right(const wide& _value,
-                               int         _count,
-                               int         _width);
-D_NODISCARD wide  reverse_bits(const wide& _value,
-                               int         _width);
-D_NODISCARD wide  reverse_bytes(const wide& _value,
-                                int         _width);
-D_NODISCARD wide  add(const wide& _a,
-                      const wide& _b,
-                      int         _width);
-D_NODISCARD wide  subtract(const wide& _a,
-                           const wide& _b,
-                           int         _width);
-D_NODISCARD wide  negate(const wide& _value,
-                         int         _width);
-D_NODISCARD wide  multiply(const wide& _value,
-                           u64         _by,
-                           int         _width);
+D_NODISCARD wide complement(
+    const wide& _value,
+    int         _width
+);
+D_NODISCARD wide shift_left(
+    const wide& _value,
+    int         _count,
+    int         _width
+);
+D_NODISCARD wide shift_right(
+    const wide& _value,
+    int         _count
+);
+D_NODISCARD wide rotate_left(
+    const wide& _value,
+    int         _count,
+    int         _width
+);
+D_NODISCARD wide rotate_right(
+    const wide& _value,
+    int         _count,
+    int         _width
+);
+D_NODISCARD wide reverse_bits(
+    const wide& _value,
+    int         _width
+);
+D_NODISCARD wide reverse_bytes(
+    const wide& _value,
+    int         _width
+);
+D_NODISCARD wide add(
+    const wide& _a,
+    const wide& _b,
+    int         _width
+);
+D_NODISCARD wide subtract(
+    const wide& _a,
+    const wide& _b,
+    int         _width
+);
+D_NODISCARD wide negate(
+    const wide& _value,
+    int         _width
+);
+D_NODISCARD wide multiply(
+    const wide& _value,
+    u64         _by,
+    int         _width
+);
 
 // a signed number as the _width bits of its two's complement
-D_NODISCARD wide  widen_signed(i64 _value,
-                               int _width);
+D_NODISCARD wide widen_signed(
+    i64 _value,
+    int _width
+);
 
 /**
  * @brief Whether the set bits of a wide value form one unbroken run.
@@ -249,9 +335,11 @@ D_NODISCARD wide  widen_signed(i64 _value,
  * @param[out] _width  the run's length, when it is one.
  * @return `true` if _value is a single run of ones, `false` otherwise.
  */
-D_NODISCARD bool  is_run(const wide& _value,
-                         int&        _lsb,
-                         int&        _width);
+D_NODISCARD bool is_run(
+    const wide& _value,
+    int&        _lsb,
+    int&        _width
+);
 
 
 //==============================================================================
@@ -289,11 +377,17 @@ struct value_range
     i64 high = 0;
 };
 
-D_NODISCARD const char*  encoding_name(encoding _encoding);
-D_NODISCARD i64          default_bias(int _width);
-D_NODISCARD value_range  range_of(encoding _encoding,
-                                  int      _width,
-                                  i64      _bias);
+D_NODISCARD const char* encoding_name(
+    encoding _encoding
+);
+D_NODISCARD i64 default_bias(
+    int _width
+);
+D_NODISCARD value_range range_of(
+    encoding _encoding,
+    int      _width,
+    i64      _bias
+);
 
 /**
  * @brief Encodes a number into a field's bits.
@@ -306,15 +400,19 @@ D_NODISCARD value_range  range_of(encoding _encoding,
  *                        and the bits it wraps to when it does not.
  * @return `true` if _value lies in the encoding's range, `false` otherwise.
  */
-D_NODISCARD bool  encode(encoding _encoding,
-                         int      _width,
-                         i64      _bias,
-                         i64      _value,
-                         u64&     _bits);
-D_NODISCARD i64   decode(encoding _encoding,
-                         int      _width,
-                         i64      _bias,
-                         u64      _bits);
+D_NODISCARD bool encode(
+    encoding _encoding,
+    int      _width,
+    i64      _bias,
+    i64      _value,
+    u64&     _bits
+);
+D_NODISCARD i64 decode(
+    encoding _encoding,
+    int      _width,
+    i64      _bias,
+    u64      _bits
+);
 
 
 //==============================================================================
@@ -325,22 +423,36 @@ D_NODISCARD i64   decode(encoding _encoding,
 // 3.1    Formatting
 //------------------------------------------------------------------------------
 // formatting -- digits only: no prefix and no suffix; _digits pads with zeros
-D_NODISCARD std::string  format_hex(u64  _value,
-                                    int  _digits,
-                                    bool _upper);
-D_NODISCARD std::string  format_oct(u64 _value);
-D_NODISCARD std::string  format_dec(u64 _value);
-D_NODISCARD std::string  format_signed(i64 _value);
+D_NODISCARD std::string format_hex(
+    u64  _value,
+    int  _digits,
+    bool _upper
+);
+D_NODISCARD std::string format_oct(
+    u64 _value
+);
+D_NODISCARD std::string format_dec(
+    u64 _value
+);
+D_NODISCARD std::string format_signed(
+    i64 _value
+);
 // For display only: separate unprefixed digits from the right with spaces.
-D_NODISCARD std::string  group_digits(std::string_view _digits,
-                                      int              _group);
-D_NODISCARD std::string  format_bin(u64  _value,
-                                    int  _width,
-                                    int  _group,
-                                    char _separator);
-D_NODISCARD std::string  format_hex(const wide& _value,
-                                    int         _digits,
-                                    bool        _upper);
+D_NODISCARD std::string group_digits(
+    std::string_view _digits,
+    int              _group
+);
+D_NODISCARD std::string format_bin(
+    u64  _value,
+    int  _width,
+    int  _group,
+    char _separator
+);
+D_NODISCARD std::string format_hex(
+    const wide& _value,
+    int         _digits,
+    bool        _upper
+);
 
 /**
  * @brief A set of bits as its runs, for a person to read.
@@ -350,8 +462,10 @@ D_NODISCARD std::string  format_hex(const wide& _value,
  * @return "no bits", "bit 5", or "bits 4..7, 12 and 30..31", lowest first;
  *         past _most runs, "and 3 more runs".
  */
-D_NODISCARD std::string  runs_text(const wide& _value,
-                                   int         _most);
+D_NODISCARD std::string runs_text(
+    const wide& _value,
+    int         _most
+);
 
 // 3.2    Parsing
 //------------------------------------------------------------------------------
@@ -378,7 +492,9 @@ struct parsed_integer
  * @return the value, or `ok == false` and why: no digits, a digit the base
  *         lacks, or a value beyond 64 bits.
  */
-D_NODISCARD parsed_integer parse_integer(std::string_view _text);
+D_NODISCARD parsed_integer parse_integer(
+    std::string_view _text
+);
 
 // 3.2.2
 // parsed_wide
@@ -400,7 +516,9 @@ struct parsed_wide
  * @param[in] _text  the text, with surrounding blanks allowed.
  * @return the value, or `ok == false` and why.
  */
-D_NODISCARD parsed_wide parse_wide(std::string_view _text);
+D_NODISCARD parsed_wide parse_wide(
+    std::string_view _text
+);
 
 
 }  // namespace bitwisedom
@@ -408,4 +526,4 @@ D_NODISCARD parsed_wide parse_wide(std::string_view _text);
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_BITS_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_BITS_HPP

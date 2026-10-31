@@ -29,7 +29,7 @@
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
 #include "./postgres_internal.h"  // libpq-fe.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // INT64_MAX, int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // INT64_MAX, int64_t
 
 
 // as its header: below the 64-bit floor there is nothing to define
@@ -46,8 +46,8 @@ d_internal_postgres_upkeep
   VACUUM or ANALYZE, with its words, of one table or of the whole database:
 the schema is settled only when there is a table to qualify.
 */
-static int
-d_internal_postgres_upkeep(
+static
+int d_internal_postgres_upkeep(
     PGconn*     _db,
     const char* _words,
     const char* _schema,
@@ -85,8 +85,8 @@ d_internal_postgres_upkeep(
 d_internal_postgres_upkeep_ok
   A schema only with a table, and neither empty.
 */
-static bool
-d_internal_postgres_upkeep_ok(
+static
+bool d_internal_postgres_upkeep_ok(
     const char* _schema,
     const char* _table
 )
@@ -107,8 +107,7 @@ d_postgres_vacuum
   VACUUM [FULL] [ANALYZE] [table], which the server refuses inside a
 transaction.
 */
-int
-d_postgres_vacuum(
+int d_postgres_vacuum(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -138,8 +137,7 @@ d_postgres_vacuum(
 d_postgres_analyze
   ANALYZE [table].
 */
-int
-d_postgres_analyze(
+int d_postgres_analyze(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table
@@ -161,8 +159,7 @@ d_postgres_analyze(
 d_postgres_reindex
   REINDEX TABLE [CONCURRENTLY], which arrived with 12.
 */
-int
-d_postgres_reindex(
+int d_postgres_reindex(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -199,8 +196,7 @@ d_postgres_checkpoint
   CHECKPOINT, which the server keeps to its superusers, and from 15 to
 pg_checkpoint's members too.
 */
-int
-d_postgres_checkpoint(
+int d_postgres_checkpoint(
     struct pg_conn* _db
 )
 {
@@ -220,16 +216,15 @@ d_postgres_table_size
   pg_total_relation_size() of the table's oid, found as a lookup finds a
 table.
 */
-int
-d_postgres_table_size(
+int d_postgres_table_size(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
     int64_t*        _bytes
 )
 {
-    struct d_internal_db_buffer        sql     = { NULL, 0u, 0u };
-    const struct d_internal_db_quoting quoting =
+    struct dj_internal_db_buffer        sql     = { NULL, 0u, 0u };
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
 
     // parameter validation
@@ -241,7 +236,7 @@ d_postgres_table_size(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    enum d_internal_db_format_status status = d_internal_db_format(
+    enum dj_internal_db_format_status status = d_internal_db_format(
         &sql,
         &quoting,
         "SELECT pg_catalog.pg_total_relation_size(c.oid) "
@@ -273,8 +268,7 @@ d_postgres_table_size(
 d_postgres_database_size
   pg_database_size() of the database's oid, or of the current one's name.
 */
-int
-d_postgres_database_size(
+int d_postgres_database_size(
     struct pg_conn* _db,
     const char*     _name,
     int64_t*        _bytes
@@ -316,8 +310,7 @@ d_postgres_database_size(
 d_postgres_vacuum
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_vacuum(
+int d_postgres_vacuum(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -336,8 +329,7 @@ d_postgres_vacuum(
 d_postgres_analyze
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_analyze(
+int d_postgres_analyze(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table
@@ -354,8 +346,7 @@ d_postgres_analyze(
 d_postgres_reindex
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_reindex(
+int d_postgres_reindex(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -374,8 +365,7 @@ d_postgres_reindex(
 d_postgres_checkpoint
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_checkpoint(
+int d_postgres_checkpoint(
     struct pg_conn* _db
 )
 {
@@ -388,8 +378,7 @@ d_postgres_checkpoint(
 d_postgres_table_size
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_table_size(
+int d_postgres_table_size(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -408,8 +397,7 @@ d_postgres_table_size(
 d_postgres_database_size
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_database_size(
+int d_postgres_database_size(
     struct pg_conn* _db,
     const char*     _name,
     int64_t*        _bytes

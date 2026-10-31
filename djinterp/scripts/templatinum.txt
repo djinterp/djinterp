@@ -1,0 +1,39 @@
+﻿D:\sam\code\projects\frameworks\templatinum\templatinum-project\inc\templatinum\core\
+├── 📁 beam
+│   ├── 📄 beam.hpp
+│   └── 📄 beam_traits.hpp
+├── 📁 beamline
+│   ├── 📄 beamline.hpp
+│   └── 📄 beamline_traits.hpp
+├── 📁 prism
+│   ├── 📄 prism.hpp
+│   └── 📄 prism_traits.hpp
+├── 📁 projector
+│   └── 📄 projector.hpp
+├── 📁 propagation
+│   └── 📄 propagation.hpp
+├── 📁 recombiner
+│   ├── 📄 recombiner.hpp
+│   └── 📄 recombiner_traits.hpp
+├── 📁 sink
+│   ├── 📄 sink.hpp
+│   └── 📄 sink_traits.hpp
+├── 📁 source
+│   ├── 📄 source.hpp
+│   └── 📄 source_traits.hpp
+├── 📁 template
+│   ├── 📁 code
+│   │   ├── 📄 code_template.hpp
+│   │   └── 📄 cpp_code_template.hpp
+│   ├── 📁 markup
+│   │   └── 📄 wiki_template.hpp
+│   ├── 📁 text
+│   │   └── 📄 text_template.hpp
+│   ├── 📄 template.hpp
+│   ├── 📄 template_traits.hpp
+│   └── 📄 wiki_template.hpp
+├── 📁 trigger
+│   ├── 📄 trigger.hpp
+│   └── 📄 trigger_traits.hpp
+├── 📄 context.hpp
+└── 📄 templatinum.hpp

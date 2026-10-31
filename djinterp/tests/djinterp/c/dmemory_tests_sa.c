@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "dmemory_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -30,10 +30,8 @@ d_tests_sa_dmemcpy
   - struct data copying
   - overlapping memory region behavior
 */
-bool
-d_tests_sa_dmemcpy
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemcpy(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -138,10 +136,8 @@ d_tests_sa_dmemcpy_s
   - exact size boundary testing
   - destination clearing on error conditions
 */
-bool
-d_tests_sa_dmemcpy_s
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemcpy_s(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -255,10 +251,8 @@ d_tests_sa_d_memdup_s
   - memory allocation failure simulation
   - large allocation handling
 */
-bool
-d_tests_sa_d_memdup_s
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_d_memdup_s(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -354,10 +348,8 @@ d_tests_sa_d_memset
   - boundary value testing (0, 255)
   - large memory regions
 */
-bool
-d_tests_sa_d_memset
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_d_memset(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -486,10 +478,8 @@ d_tests_sa_d_memset_s
   - boundary condition testing with RSIZE_MAX
   - proper error code returns
 */
-bool
-d_tests_sa_d_memset_s
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_d_memset_s(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -611,10 +601,8 @@ d_tests_sa_dmemory_integration
   - complex data structure handling
   - cross-function compatibility verification
 */
-bool
-d_tests_sa_dmemory_integration
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemory_integration(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -740,10 +728,8 @@ d_tests_sa_dmemory_security
   - memory safety in edge conditions
   - resistance to malicious input patterns
 */
-bool
-d_tests_sa_dmemory_security
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemory_security(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -886,10 +872,8 @@ d_tests_sa_dmemory_edge_cases
   - alignment and padding considerations
   - extreme parameter combinations
 */
-bool
-d_tests_sa_dmemory_edge_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemory_edge_cases(
+    struct dj_test_counter* _test_info
 )
 {
     bool test_result = true;
@@ -1038,14 +1022,12 @@ d_tests_sa_dmemory_core_all
   - comprehensive function coverage
   - core functionality validation
 */
-bool
-d_tests_sa_dmemory_core_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemory_core_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing dmemory Core Functions ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     bool memcpy_result = d_tests_sa_dmemcpy(&module_counter);
     bool memcpy_s_result = d_tests_sa_dmemcpy_s(&module_counter);
@@ -1078,14 +1060,12 @@ d_tests_sa_dmemory_advanced_all
   - security feature validation
   - edge case and boundary testing
 */
-bool
-d_tests_sa_dmemory_advanced_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemory_advanced_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing dmemory Advanced Scenarios ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     bool integration_result = d_tests_sa_dmemory_integration(&module_counter);
     bool security_result = d_tests_sa_dmemory_security(&module_counter);
@@ -1118,13 +1098,11 @@ d_tests_sa_dmemory_all
   - all advanced test scenarios
   - comprehensive coverage and reporting
 */
-bool
-d_tests_sa_dmemory_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmemory_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter suite_counter = {0, 0, 0, 0};
+    struct dj_test_counter suite_counter = {0, 0, 0, 0};
 
     // Run all test modules
     bool core_result     = d_tests_sa_dmemory_core_all(&suite_counter);

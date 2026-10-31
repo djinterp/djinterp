@@ -26,9 +26,9 @@
 #include <cstddef>    // std::size_t
 #include <string>     // std::string
 // re_std
-#include "re_std/bit/countl_zero.hpp"  // re_std::countl_zero
-#include "re_std/bit/countr_zero.hpp"  // re_std::countr_zero
-#include "re_std/bit/popcount.hpp"     // re_std::popcount
+#include "re_std/cpp/bit/countl_zero.hpp"  // re_std::countl_zero
+#include "re_std/cpp/bit/countr_zero.hpp"  // re_std::countr_zero
+#include "re_std/cpp/bit/popcount.hpp"     // re_std::popcount
 
 
 namespace bitwisedom
@@ -39,8 +39,7 @@ namespace
 
 // clamp_width
 //   a width held to [0, INTEGER_WIDTH]: the functions on u64.
-int
-clamp_width(
+int clamp_width(
     int _width
 )
 {
@@ -55,8 +54,7 @@ clamp_width(
 
 // clamp_wide
 //   a width held to [0, MAX_WIDTH]: the functions on wide values.
-int
-clamp_wide(
+int clamp_wide(
     int _width
 )
 {
@@ -72,8 +70,7 @@ multiply_word
   The 128-bit product of two words, as a high and a low word, from 32-bit
 halves: a * b = (ah * 2^32 + al) * (bh * 2^32 + bl).
 */
-void
-multiply_word(
+void multiply_word(
     u64  _a,
     u64  _b,
     u64& _high,
@@ -101,8 +98,7 @@ multiply_word(
 
 // digit_value
 //   the value of one digit character in any base up to 16, or -1.
-int
-digit_value(
+int digit_value(
     char _character
 )
 {
@@ -126,8 +122,7 @@ digit_value(
 
 // is_suffix
 //   whether text is a C integer suffix this reader accepts and ignores.
-bool
-is_suffix(
+bool is_suffix(
     std::string_view _text
 )
 {
@@ -153,8 +148,7 @@ is_suffix(
 
 // ------------------------------------------------------------ masks and runs
 
-u64
-width_mask(
+u64 width_mask(
     int _width
 )
 {
@@ -164,8 +158,7 @@ width_mask(
                                     : ((u64(1) << width) - 1u);
 }
 
-u64
-range_mask(
+u64 range_mask(
     int _lsb,
     int _width
 )
@@ -181,16 +174,14 @@ range_mask(
     return width_mask(_width) << _lsb;
 }
 
-int
-bit_count(
+int bit_count(
     u64 _value
 )
 {
     return re_std::popcount(_value);
 }
 
-int
-lowest_set(
+int lowest_set(
     u64 _value
 )
 {
@@ -198,8 +189,7 @@ lowest_set(
                          : re_std::countr_zero(_value);
 }
 
-int
-highest_set(
+int highest_set(
     u64 _value
 )
 {
@@ -212,8 +202,7 @@ is_run
   A run of ones shifted down to bit zero is one less than a power of two, so
 adding one to it leaves a single bit; anything else leaves more.
 */
-bool
-is_run(
+bool is_run(
     u64  _value,
     int& _lsb,
     int& _width
@@ -249,8 +238,7 @@ is_run(
 
 // ----------------------------------------------------------------- movement
 
-u64
-rotate_left(
+u64 rotate_left(
     u64 _value,
     int _count,
     int _width
@@ -276,8 +264,7 @@ rotate_left(
              (value >> (width - count)) ) & width_mask(width);
 }
 
-u64
-rotate_right(
+u64 rotate_right(
     u64 _value,
     int _count,
     int _width
@@ -295,8 +282,7 @@ rotate_right(
                        width);
 }
 
-u64
-reverse_bits(
+u64 reverse_bits(
     u64 _value,
     int _width
 )
@@ -322,8 +308,7 @@ reverse_bytes
 cover it, with the top byte's missing bits as zeros; the result is cut back
 to the width, so the bits that were padding fall away.
 */
-u64
-reverse_bytes(
+u64 reverse_bytes(
     u64 _value,
     int _width
 )
@@ -343,8 +328,7 @@ reverse_bytes(
     return result & width_mask(width);
 }
 
-i64
-sign_extend(
+i64 sign_extend(
     u64 _value,
     int _width
 )
@@ -386,8 +370,7 @@ wide::wide(
     }
 }
 
-wide
-wide::bit(
+wide wide::bit(
     int _index
 )
 {
@@ -397,8 +380,7 @@ wide::bit(
     return out;
 }
 
-wide
-wide::run(
+wide wide::run(
     int _lsb,
     int _width
 )
@@ -436,8 +418,7 @@ wide::run(
     return out;
 }
 
-bool
-wide::test(
+bool wide::test(
     int _index
 ) const
 {
@@ -449,8 +430,7 @@ wide::test(
     return ((word(_index / WORD) >> (_index % WORD)) & 1u) != 0;
 }
 
-void
-wide::set(
+void wide::set(
     int  _index,
     bool _on
 )
@@ -482,8 +462,7 @@ wide::set(
     return;
 }
 
-u64
-wide::word(
+u64 wide::word(
     int _index
 ) const
 {
@@ -493,20 +472,17 @@ wide::word(
                : 0;
 }
 
-u64
-wide::low() const
+u64 wide::low() const
 {
     return word(0);
 }
 
-int
-wide::words() const
+int wide::words() const
 {
     return static_cast<int>(m_words.size());
 }
 
-u64
-wide::field(
+u64 wide::field(
     int _lsb,
     int _width
 ) const
@@ -533,8 +509,7 @@ wide::field(
     return bits & width_mask(width);
 }
 
-void
-wide::put(
+void wide::put(
     int _lsb,
     int _width,
     u64 _bits
@@ -587,8 +562,7 @@ wide::put(
     return;
 }
 
-wide
-wide::slice(
+wide wide::slice(
     int _lsb,
     int _width
 ) const
@@ -609,14 +583,12 @@ wide::slice(
     return out;
 }
 
-bool
-wide::any() const
+bool wide::any() const
 {
     return !m_words.empty();
 }
 
-int
-wide::count() const
+int wide::count() const
 {
     int total = 0;
 
@@ -628,8 +600,7 @@ wide::count() const
     return total;
 }
 
-int
-wide::lowest() const
+int wide::lowest() const
 {
     for (std::size_t i = 0; i < m_words.size(); ++i)
     {
@@ -643,8 +614,7 @@ wide::lowest() const
     return -1;
 }
 
-int
-wide::highest() const
+int wide::highest() const
 {
     if (m_words.empty())
     {
@@ -655,8 +625,7 @@ wide::highest() const
            highest_set(m_words.back());
 }
 
-int
-wide::next(
+int wide::next(
     int _from
 ) const
 {
@@ -677,16 +646,14 @@ wide::next(
     return -1;
 }
 
-bool
-wide::fits(
+bool wide::fits(
     int _width
 ) const
 {
     return (highest() < _width);
 }
 
-void
-wide::trim(
+void wide::trim(
     int _width
 )
 {
@@ -710,8 +677,7 @@ wide::trim(
     return;
 }
 
-wide&
-wide::operator|=(
+wide& wide::operator|=(
     const wide& _other
 )
 {
@@ -728,8 +694,7 @@ wide::operator|=(
     return *this;
 }
 
-wide&
-wide::operator&=(
+wide& wide::operator&=(
     const wide& _other
 )
 {
@@ -748,8 +713,7 @@ wide::operator&=(
     return *this;
 }
 
-wide&
-wide::operator^=(
+wide& wide::operator^=(
     const wide& _other
 )
 {
@@ -768,24 +732,21 @@ wide::operator^=(
     return *this;
 }
 
-bool
-wide::operator==(
+bool wide::operator==(
     const wide& _other
 ) const
 {
     return (m_words == _other.m_words);
 }
 
-bool
-wide::operator!=(
+bool wide::operator!=(
     const wide& _other
 ) const
 {
     return !(*this == _other);
 }
 
-void
-wide::normalize()
+void wide::normalize()
 {
     while ( (!m_words.empty()) &&
             (m_words.back() == 0) )
@@ -796,8 +757,7 @@ wide::normalize()
     return;
 }
 
-wide
-operator|(
+wide operator|(
     wide        _a,
     const wide& _b
 )
@@ -807,8 +767,7 @@ operator|(
     return _a;
 }
 
-wide
-operator&(
+wide operator&(
     wide        _a,
     const wide& _b
 )
@@ -818,8 +777,7 @@ operator&(
     return _a;
 }
 
-wide
-operator^(
+wide operator^(
     wide        _a,
     const wide& _b
 )
@@ -829,8 +787,7 @@ operator^(
     return _a;
 }
 
-wide
-complement(
+wide complement(
     const wide& _value,
     int         _width
 )
@@ -844,8 +801,7 @@ shift_left
 rest: the low part of it into the word it lands in, the high part into the
 one above.
 */
-wide
-shift_left(
+wide shift_left(
     const wide& _value,
     int         _count,
     int         _width
@@ -891,8 +847,7 @@ shift_left(
     return out;
 }
 
-wide
-shift_right(
+wide shift_right(
     const wide& _value,
     int         _count
 )
@@ -920,8 +875,7 @@ shift_right(
     return out;
 }
 
-wide
-rotate_left(
+wide rotate_left(
     const wide& _value,
     int         _count,
     int         _width
@@ -944,8 +898,7 @@ rotate_left(
            shift_right(value, width - turn);
 }
 
-wide
-rotate_right(
+wide rotate_right(
     const wide& _value,
     int         _count,
     int         _width
@@ -963,8 +916,7 @@ rotate_right(
                        width);
 }
 
-wide
-reverse_bits(
+wide reverse_bits(
     const wide& _value,
     int         _width
 )
@@ -988,8 +940,7 @@ reverse_bytes
 width that is no whole number of bytes is taken as the bytes that hold it,
 and the result held to the width again.
 */
-wide
-reverse_bytes(
+wide reverse_bytes(
     const wide& _value,
     int         _width
 )
@@ -1016,8 +967,7 @@ reverse_bytes(
     return out;
 }
 
-wide
-add(
+wide add(
     const wide& _a,
     const wide& _b,
     int         _width
@@ -1048,8 +998,7 @@ add(
     return out;
 }
 
-wide
-subtract(
+wide subtract(
     const wide& _a,
     const wide& _b,
     int         _width
@@ -1059,8 +1008,7 @@ subtract(
     return add(add(_a, complement(_b, _width), _width), wide(1), _width);
 }
 
-wide
-negate(
+wide negate(
     const wide& _value,
     int         _width
 )
@@ -1068,8 +1016,7 @@ negate(
     return subtract(wide(), _value, _width);
 }
 
-wide
-multiply(
+wide multiply(
     const wide& _value,
     u64         _by,
     int         _width
@@ -1101,8 +1048,7 @@ multiply(
     return out;
 }
 
-wide
-widen_signed(
+wide widen_signed(
     i64 _value,
     int _width
 )
@@ -1124,8 +1070,7 @@ widen_signed(
     return out;
 }
 
-bool
-is_run(
+bool is_run(
     const wide& _value,
     int&        _lsb,
     int&        _width
@@ -1153,8 +1098,7 @@ is_run(
 
 // ---------------------------------------------------------------- encodings
 
-const char*
-encoding_name(
+const char* encoding_name(
     encoding _encoding
 )
 {
@@ -1170,8 +1114,7 @@ encoding_name(
     return "unsigned";
 }
 
-i64
-default_bias(
+i64 default_bias(
     int _width
 )
 {
@@ -1192,8 +1135,7 @@ range_of
   A width of 64 cannot hold its unsigned maximum in an i64, so the unsigned
 range there stops at the i64 maximum; every other case is exact.
 */
-value_range
-range_of(
+value_range range_of(
     encoding _encoding,
     int      _width,
     i64      _bias
@@ -1239,8 +1181,7 @@ range_of(
     return range;
 }
 
-bool
-encode(
+bool encode(
     encoding _encoding,
     int      _width,
     i64      _bias,
@@ -1283,8 +1224,7 @@ encode(
     return fits;
 }
 
-i64
-decode(
+i64 decode(
     encoding _encoding,
     int      _width,
     i64      _bias,
@@ -1329,8 +1269,7 @@ decode(
 
 // --------------------------------------------------------------- formatting
 
-std::string
-format_hex(
+std::string format_hex(
     u64  _value,
     int  _digits,
     bool _upper
@@ -1357,8 +1296,7 @@ format_hex(
     return out;
 }
 
-std::string
-format_oct(
+std::string format_oct(
     u64 _value
 )
 {
@@ -1375,8 +1313,7 @@ format_oct(
     return out;
 }
 
-std::string
-format_dec(
+std::string format_dec(
     u64 _value
 )
 {
@@ -1393,8 +1330,7 @@ format_dec(
     return out;
 }
 
-std::string
-format_signed(
+std::string format_signed(
     i64 _value
 )
 {
@@ -1413,8 +1349,7 @@ group_digits
   digits only, without a base prefix, so these spaces never enter C literals
   or persisted numeric strings.
 */
-std::string
-group_digits(
+std::string group_digits(
     std::string_view _digits,
     int              _group
 )
@@ -1444,8 +1379,7 @@ group_digits(
     return result;
 }
 
-std::string
-format_bin(
+std::string format_bin(
     u64  _value,
     int  _width,
     int  _group,
@@ -1473,8 +1407,7 @@ format_bin(
     return out;
 }
 
-std::string
-format_hex(
+std::string format_hex(
     const wide& _value,
     int         _digits,
     bool        _upper
@@ -1503,8 +1436,7 @@ runs_text
 "4..7"; the runs are listed with commas and a last "and", and past _most of
 them the rest are counted.
 */
-std::string
-runs_text(
+std::string runs_text(
     const wide& _value,
     int         _most
 )
@@ -1574,8 +1506,7 @@ parse_integer
   Overflow is caught before it happens: a digit is added only if the value
 times the base, plus the digit, stays within 64 bits.
 */
-parsed_integer
-parse_integer(
+parsed_integer parse_integer(
     std::string_view _text
 )
 {
@@ -1706,8 +1637,7 @@ proportion to its length; a decimal one is multiplied and added a digit at
 a time. A negative number is the two's complement of a magnitude no wider
 than 64 bits, since nothing wider has a sign here.
 */
-parsed_wide
-parse_wide(
+parsed_wide parse_wide(
     std::string_view _text
 )
 {

@@ -25,7 +25,7 @@
 // djinterp
 #include "../../../../inc/djinterp/c/event/event_table_common.h"  // the table
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t
 
 
 // D_INTERNAL_EVENT_TABLE_FLAG_DISPATCHING
@@ -52,13 +52,17 @@
 // d_internal_event_table_dispatch_begin
 //   function: marks the table as dispatching; returns true when this is the
 // outermost dispatch, the one that must end it.
-bool d_internal_event_table_dispatch_begin(struct d_event_table* _table);
+bool d_internal_event_table_dispatch_begin(
+    struct dj_event_table* _table
+);
 
 // d_internal_event_table_dispatch_end
 //   function: when `_outermost`, clears the mark, reaps the zombies (running
 // their state_free hooks) and performs a disposal a handler requested.
-void d_internal_event_table_dispatch_end(struct d_event_table* _table,
-                                         bool                  _outermost);
+void d_internal_event_table_dispatch_end(
+    struct dj_event_table* _table,
+    bool                   _outermost
+);
 
 
 #endif  // DJINTERP_C_EVENT_EVENT_TABLE_INTERNAL_H

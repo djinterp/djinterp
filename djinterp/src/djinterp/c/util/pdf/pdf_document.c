@@ -3,7 +3,7 @@
 *
 * The backend protocol's validation and the document facade.
 *   Defines what pdf_document.h declares. The facade follows the C++
-* pdf_document: opening is idempotent, adding a page opens the document and
+* DPdfDocument: opening is idempotent, adding a page opens the document and
 * ends the previous page, metadata opens the document, and saving closes it
 * first. Closing calls only end_document, as the C++ does: a page still open
 * is the backend's to finish. Unlike the C++, drawing with no page open is
@@ -21,14 +21,14 @@
 #include <stddef.h>  // size_t, offsetof, NULL
 #include <string.h>  // memset
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 // D_INTERNAL_PDF_HAS_SLOT
 //   macro: whether a table of `_backend->size` bytes reaches the whole of
 // `_slot`. A slot past the end of an older caller's table is absent, not read.
 #define D_INTERNAL_PDF_HAS_SLOT(_backend, _slot)                             \
-    ( (_backend)->size >= ( offsetof(struct d_pdf_backend, _slot) +           \
+    ( (_backend)->size >= ( offsetof(struct dj_pdf_backend, _slot) +           \
                             sizeof((_backend)->_slot) ) )
 
 /*
@@ -38,9 +38,8 @@ through `save`; the optional slots after it are checked one by one when
 used. Null slots are not invalid -- they are reported as unsupported when
 called.
 */
-int32_t
-d_pdf_backend_is_valid(
-    const struct d_pdf_backend* _backend
+int32_t d_pdf_backend_is_valid(
+    const struct dj_pdf_backend* _backend
 )
 {
     return ( (_backend != NULL) &&
@@ -51,10 +50,10 @@ d_pdf_backend_is_valid(
 d_internal_pdf_result
   Records a status, and turns it into the facade's 1 or 0.
 */
-static int32_t
-d_internal_pdf_result(
-    struct d_pdf_document* _doc,
-    int32_t                _status
+static
+int32_t d_internal_pdf_result(
+    struct dj_pdf_document* _doc,
+    int32_t                 _status
 )
 {
     _doc->last_status = _status;
@@ -66,18 +65,17 @@ d_internal_pdf_result(
 d_internal_pdf_ran
   The status of a slot that was called.
 */
-static int32_t
-d_internal_pdf_ran(
+static
+int32_t d_internal_pdf_ran(
     int32_t _ok
 )
 {
     return _ok ? (int32_t)D_PDF_DOC_OK : (int32_t)D_PDF_DOC_BACKEND_FAILED;
 }
 
-int32_t
-d_pdf_document_init(
-    struct d_pdf_document* _doc,
-    struct d_pdf_backend*  _backend
+int32_t d_pdf_document_init(
+    struct dj_pdf_document* _doc,
+    struct dj_pdf_backend*  _backend
 )
 {
     // nowhere to initialise
@@ -99,9 +97,8 @@ d_pdf_document_init(
     return d_internal_pdf_result(_doc, (int32_t)D_PDF_DOC_OK);
 }
 
-int32_t
-d_pdf_document_open(
-    struct d_pdf_document* _doc
+int32_t d_pdf_document_open(
+    struct dj_pdf_document* _doc
 )
 {
     // no document
@@ -139,9 +136,8 @@ d_pdf_document_open(
     return d_internal_pdf_result(_doc, (int32_t)D_PDF_DOC_OK);
 }
 
-int32_t
-d_pdf_document_close(
-    struct d_pdf_document* _doc
+int32_t d_pdf_document_close(
+    struct dj_pdf_document* _doc
 )
 {
     // no document
@@ -184,9 +180,8 @@ d_pdf_document_dispose
 the table reaches the slot; then forgets the backend. It does not close the
 document: closing writes output, and disposing is not a request to.
 */
-void
-d_pdf_document_dispose(
-    struct d_pdf_document* _doc
+void d_pdf_document_dispose(
+    struct dj_pdf_document* _doc
 )
 {
     // no document
@@ -195,7 +190,7 @@ d_pdf_document_dispose(
         return;
     }
 
-    struct d_pdf_backend* const backend = _doc->backend;
+    struct dj_pdf_backend* const backend = _doc->backend;
 
     // destroy the context only if the facade was given it to own
     if ( (d_pdf_backend_is_valid(backend))             &&
@@ -211,10 +206,9 @@ d_pdf_document_dispose(
     return;
 }
 
-int32_t
-d_pdf_document_add_page(
-    struct d_pdf_document* _doc,
-    struct d_pdf_size      _size
+int32_t d_pdf_document_add_page(
+    struct dj_pdf_document* _doc,
+    struct dj_pdf_size      _size
 )
 {
     // no document, or one that cannot be opened
@@ -224,7 +218,7 @@ d_pdf_document_add_page(
         return 0;
     }
 
-    struct d_pdf_backend* const backend = _doc->backend;
+    struct dj_pdf_backend* const backend = _doc->backend;
 
     // both page slots are needed before anything is ended
     if ( ( (_doc->has_page) && (!backend->end_page) ) ||
@@ -260,9 +254,9 @@ d_pdf_document_add_page(
 d_internal_pdf_drawable
   The status a drawing call starts from: no backend, or no page open, or OK.
 */
-static int32_t
-d_internal_pdf_drawable(
-    const struct d_pdf_document* _doc
+static
+int32_t d_internal_pdf_drawable(
+    const struct dj_pdf_document* _doc
 )
 {
     if (!d_pdf_backend_is_valid(_doc->backend))
@@ -275,14 +269,13 @@ d_internal_pdf_drawable(
         : (int32_t)D_PDF_DOC_BAD_STATE;
 }
 
-int32_t
-d_pdf_document_text(
-    struct d_pdf_document*    _doc,
-    struct d_pdf_point        _at,
-    const char*               _text,
-    size_t                    _length,
-    const struct d_pdf_font*  _font,
-    const struct d_pdf_color* _color
+int32_t d_pdf_document_text(
+    struct dj_pdf_document*    _doc,
+    struct dj_pdf_point        _at,
+    const char*                _text,
+    size_t                     _length,
+    const struct dj_pdf_font*  _font,
+    const struct dj_pdf_color* _color
 )
 {
     // no document
@@ -313,12 +306,11 @@ d_pdf_document_text(
                                                     _color)));
 }
 
-int32_t
-d_pdf_document_line(
-    struct d_pdf_document*    _doc,
-    struct d_pdf_point        _from,
-    struct d_pdf_point        _to,
-    const struct d_pdf_paint* _paint
+int32_t d_pdf_document_line(
+    struct dj_pdf_document*    _doc,
+    struct dj_pdf_point        _from,
+    struct dj_pdf_point        _to,
+    const struct dj_pdf_paint* _paint
 )
 {
     // no document
@@ -347,11 +339,10 @@ d_pdf_document_line(
                                                     _paint)));
 }
 
-int32_t
-d_pdf_document_rect(
-    struct d_pdf_document*    _doc,
-    struct d_pdf_rect         _rect,
-    const struct d_pdf_paint* _paint
+int32_t d_pdf_document_rect(
+    struct dj_pdf_document*    _doc,
+    struct dj_pdf_rect         _rect,
+    const struct dj_pdf_paint* _paint
 )
 {
     // no document
@@ -379,11 +370,10 @@ d_pdf_document_rect(
                                                     _paint)));
 }
 
-int32_t
-d_pdf_document_set_metadata(
-    struct d_pdf_document* _doc,
-    const char*            _key,
-    const char*            _value
+int32_t d_pdf_document_set_metadata(
+    struct dj_pdf_document* _doc,
+    const char*             _key,
+    const char*             _value
 )
 {
     // no document, or one that cannot be opened
@@ -412,10 +402,9 @@ class's: a backend that leaves `capabilities` null reports text only, the
 default d_pdf_capabilities_init produces. A missing `_out` is a caller
 error, reported as a bad state.
 */
-int32_t
-d_pdf_document_capabilities(
-    struct d_pdf_document*     _doc,
-    struct d_pdf_capabilities* _out
+int32_t d_pdf_document_capabilities(
+    struct dj_pdf_document*     _doc,
+    struct dj_pdf_capabilities* _out
 )
 {
     // no document
@@ -448,10 +437,9 @@ d_pdf_document_capabilities(
                                                        _out)));
 }
 
-int32_t
-d_pdf_document_save(
-    struct d_pdf_document* _doc,
-    const char*            _path
+int32_t d_pdf_document_save(
+    struct dj_pdf_document* _doc,
+    const char*             _path
 )
 {
     // no document, or one that cannot be closed first
@@ -477,8 +465,7 @@ d_pdf_document_save(
                                                _path)));
 }
 
-const char*
-d_pdf_document_status_name(
+const char* d_pdf_document_status_name(
     int32_t _status
 )
 {
@@ -493,9 +480,8 @@ d_pdf_document_status_name(
     }
 }
 
-int32_t
-d_pdf_document_last_status(
-    const struct d_pdf_document* _doc
+int32_t d_pdf_document_last_status(
+    const struct dj_pdf_document* _doc
 )
 {
     return (_doc != NULL) ? _doc->last_status

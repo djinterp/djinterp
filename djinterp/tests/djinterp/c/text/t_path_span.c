@@ -10,7 +10,12 @@ static int g_checks = 0, g_failed = 0;
 #define CHECK(c, what) do { g_checks++; if (!(c)) { g_failed++; printf("FAIL %s (line %d)\n", what, __LINE__); } } while (0)
 
 /* Three grammars a caller might write -- none ships with the type. */
-static size_t file_anchor(const char* t, size_t n, const struct d_path_grammar* g)
+static
+size_t file_anchor(
+    const char*                   t,
+    size_t                        n,
+    const struct dj_path_grammar* g
+)
 {
     size_t a = 0;
     (void)g;
@@ -20,7 +25,12 @@ static size_t file_anchor(const char* t, size_t n, const struct d_path_grammar* 
     while ((a < n) && ((t[a] == '/') || (t[a] == '\\'))) a++;
     return a;
 }
-static size_t url_anchor(const char* t, size_t n, const struct d_path_grammar* g)
+static
+size_t url_anchor(
+    const char*                   t,
+    size_t                        n,
+    const struct dj_path_grammar* g
+)
 {
     size_t i = 0;
     (void)g;
@@ -33,23 +43,36 @@ static size_t url_anchor(const char* t, size_t n, const struct d_path_grammar* g
     }
     return ((n > 0) && (t[0] == '/')) ? 1 : 0;
 }
-static const struct d_path_grammar posix_g = { "/", '/', NULL, NULL, D_PATH_GRAMMAR_DOT_LABELS };
-static const struct d_path_grammar win_g   = { "\\/", '\\', NULL, file_anchor,
+static const struct dj_path_grammar posix_g = { "/", '/', NULL, NULL, D_PATH_GRAMMAR_DOT_LABELS };
+static const struct dj_path_grammar win_g   = { "\\/", '\\', NULL, file_anchor,
                                                D_PATH_GRAMMAR_DOT_LABELS | D_PATH_GRAMMAR_FOLD_CASE };
-static const struct d_path_grammar url_g   = { "/", '/', "?#", url_anchor, D_PATH_GRAMMAR_DOT_LABELS };
-static const struct d_path_grammar tree_g  = { ".", '.', NULL, NULL, 0u };
+static const struct dj_path_grammar url_g   = { "/", '/', "?#", url_anchor, D_PATH_GRAMMAR_DOT_LABELS };
+static const struct dj_path_grammar tree_g  = { ".", '.', NULL, NULL, 0u };
 
-static int renders(const struct d_path_span* s, const char* want)
+static
+int renders(
+    const struct dj_path_span* s,
+    const char*                want
+)
 {
     char buf[256];
     return (d_path_span_render(s, buf, sizeof(buf)) == strlen(want)) && (strcmp(buf, want) == 0);
 }
-static int joins(const struct d_path_span* a, const struct d_path_span* b, const char* want)
+static
+int joins(
+    const struct dj_path_span* a,
+    const struct dj_path_span* b,
+    const char*                want
+)
 {
     char buf[256];
     return (d_path_span_render_join(a, b, buf, sizeof(buf)) == strlen(want)) && (strcmp(buf, want) == 0);
 }
-static int label_is(struct d_path_label l, const char* want)
+static
+int label_is(
+    struct dj_path_label l,
+    const char*          want
+)
 {
     return (l.length == strlen(want)) && (strncmp(l.text, want, l.length) == 0);
 }
@@ -58,9 +81,9 @@ int main(void)
 {
     char buf[8];
     size_t cursor = 0;
-    struct d_path_label l;
-    struct d_path_span p = d_path_span_of("/usr//local/./lib/../bin", D_PATH_SPAN_TERMINATED, &posix_g);
-    struct d_path_span q, r, e;
+    struct dj_path_label l;
+    struct dj_path_span p = d_path_span_of("/usr//local/./lib/../bin", D_PATH_SPAN_TERMINATED, &posix_g);
+    struct dj_path_span q, r, e;
 
     /* reading: labels, anchor, level */
     CHECK(d_path_span_is_anchored(&p) && label_is(d_path_span_anchor(&p), "/"), "posix: anchored by /");

@@ -22,18 +22,17 @@
 // djinterp
 #include "./event_table_internal.h"  // the dispatch bracket and its markers
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, uint32_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t,
                                                      // SIZE_MAX
 
 
-int
-d_event_registry_init_fixed(
-    struct d_event_registry* _registry,
-    struct d_event_entry*    _entries,
-    size_t                   _capacity,
-    uint32_t*                _bucket_head,
-    uint32_t*                _bucket_tail,
-    size_t                   _bucket_count
+int d_event_registry_init_fixed(
+    struct dj_event_registry* _registry,
+    struct dj_event_entry*    _entries,
+    size_t                    _capacity,
+    uint32_t*                 _bucket_head,
+    uint32_t*                 _bucket_tail,
+    size_t                    _bucket_count
 )
 {
     // the registry is required
@@ -56,11 +55,10 @@ d_event_registry_init
 links; there it leaves the registry zeroed and reports the missing
 capability as a state error rather than an allocation failure.
 */
-int
-d_event_registry_init(
-    struct d_event_registry* _registry,
-    size_t                   _capacity,
-    size_t                   _bucket_count
+int d_event_registry_init(
+    struct dj_event_registry* _registry,
+    size_t                    _capacity,
+    size_t                    _bucket_count
 )
 {
     // the registry is required
@@ -80,9 +78,8 @@ d_event_registry_init(
 #endif  // D_INTERNAL_EVENT_TABLE_ALLOC
 }
 
-void
-d_event_registry_dispose(
-    struct d_event_registry* _registry
+void d_event_registry_dispose(
+    struct dj_event_registry* _registry
 )
 {
     // nothing to release
@@ -94,13 +91,12 @@ d_event_registry_dispose(
     return;
 }
 
-int
-d_event_registry_bind(
-    struct d_event_registry* _registry,
-    d_event_key              _key,
-    struct d_event_step      _step,
-    fn_free                  _state_free,
-    d_handler_id*            _id_out
+int d_event_registry_bind(
+    struct dj_event_registry* _registry,
+    dj_event_key              _key,
+    struct dj_event_step      _step,
+    fn_free                   _state_free,
+    dj_handler_id*            _id_out
 )
 {
     // the registry is required
@@ -116,10 +112,9 @@ d_event_registry_bind(
                               _id_out);
 }
 
-int
-d_event_registry_unbind(
-    struct d_event_registry* _registry,
-    d_handler_id             _id
+int d_event_registry_unbind(
+    struct dj_event_registry* _registry,
+    dj_handler_id             _id
 )
 {
     // the registry is required
@@ -133,11 +128,10 @@ d_event_registry_unbind(
 
 #if (D_INTERNAL_EVENT_REGISTRY_MERGE == 1)
 
-int
-d_event_registry_merge(
-    struct d_event_registry*       _registry,
-    const struct d_event_registry* _other,
-    size_t*                        _merged_out
+int d_event_registry_merge(
+    struct dj_event_registry*       _registry,
+    const struct dj_event_registry* _other,
+    size_t*                         _merged_out
 )
 {
     // both registries are required
@@ -174,14 +168,13 @@ table afresh after a handler returns, because a handler may grow the arena
 the letters of one key in word order, so following `next` from the current
 slot stays on the word.
 */
-struct d_dispatch_result
-d_event_registry_dispatch(
-    struct d_event_registry* _registry,
-    d_event_key              _key,
-    void*                    _payload
+struct dj_dispatch_result d_event_registry_dispatch(
+    struct dj_event_registry* _registry,
+    dj_event_key              _key,
+    void*                     _payload
 )
 {
-    struct d_dispatch_result result = d_dispatch_result_empty();
+    struct dj_dispatch_result result = d_dispatch_result_empty();
 
     // no registry, or an empty one: the empty word
     if ( (!_registry)                                 ||
@@ -192,8 +185,8 @@ d_event_registry_dispatch(
         return result;
     }
 
-    struct d_event_table* const table = &_registry->table;
-    const d_handler_id          bound = table->next_id - 1u;
+    struct dj_event_table* const table = &_registry->table;
+    const dj_handler_id          bound = table->next_id - 1u;
     uint32_t                    cursor =
         table->bucket_head[d_event_key_hash(_key, table->bucket_count)];
 
@@ -208,7 +201,7 @@ d_event_registry_dispatch(
     // fold the word in chain order, which for one key is bind order
     while (cursor != D_EVENT_INDEX_NONE)
     {
-        const struct d_event_entry* const entry  = &table->entries[cursor];
+        const struct dj_event_entry* const entry  = &table->entries[cursor];
         const bool                        zombie =
             ((entry->enabled & D_INTERNAL_EVENT_ENTRY_ZOMBIE) != 0u);
 
@@ -221,7 +214,7 @@ d_event_registry_dispatch(
                (outermost) ) )
         {
             // copy the step: the arena may move while it runs
-            const struct d_event_step step    = entry->step;
+            const struct dj_event_step step    = entry->step;
             size_t                    invoked = 0u;
             const int32_t             verdict =
                 d_event_step_fold(&step, 1u, _payload, &invoked);
@@ -245,10 +238,9 @@ d_event_registry_dispatch(
     return result;
 }
 
-struct d_dispatch_result
-d_event_registry_dispatch_occurrence(
-    struct d_event_registry*         _registry,
-    const struct d_event_occurrence* _occurrence
+struct dj_dispatch_result d_event_registry_dispatch_occurrence(
+    struct dj_event_registry*         _registry,
+    const struct dj_event_occurrence* _occurrence
 )
 {
     // no occurrence: the empty word's result
@@ -270,8 +262,8 @@ d_internal_event_block
   The payload block of trace element _i: NULL throughout for a trace of
 empty payloads (arity 0), else _first advanced by _i strides.
 */
-static void*
-d_internal_event_block(
+static
+void* d_internal_event_block(
     void*  _first,
     size_t _stride,
     size_t _i
@@ -291,16 +283,15 @@ d_event_registry_run
   Each element is a separate occurrence, so each dispatch takes its own
 snapshot: an edit a handler makes during element i is in force for i + 1.
 */
-struct d_run_result
-d_event_registry_run(
-    struct d_event_registry* _registry,
-    d_event_key              _key,
-    void*                    _first,
-    size_t                   _stride,
-    size_t                   _count
+struct dj_run_result d_event_registry_run(
+    struct dj_event_registry* _registry,
+    dj_event_key              _key,
+    void*                     _first,
+    size_t                    _stride,
+    size_t                    _count
 )
 {
-    struct d_run_result run;
+    struct dj_run_result run;
 
     run.occurrences      = 0u;
     run.handlers_invoked = 0u;
@@ -315,7 +306,7 @@ d_event_registry_run(
     // dispatch each block in place, in trace order
     for (size_t i = 0u; i < _count; ++i)
     {
-        const struct d_dispatch_result result = d_event_registry_dispatch(
+        const struct dj_dispatch_result result = d_event_registry_dispatch(
             _registry, _key, d_internal_event_block(_first, _stride, i));
 
         ++run.occurrences;
@@ -339,13 +330,12 @@ d_event_registry_compile_into
   The snapshot is the live, enabled letters in word order -- the masked word
 exactly as a dispatch starting now would fold it.
 */
-int
-d_event_registry_compile_into(
-    const struct d_event_registry* _registry,
-    d_event_key                    _key,
-    struct d_event_step*           _steps,
-    size_t                         _capacity,
-    struct d_event_word*           _word_out
+int d_event_registry_compile_into(
+    const struct dj_event_registry* _registry,
+    dj_event_key                    _key,
+    struct dj_event_step*           _steps,
+    size_t                          _capacity,
+    struct dj_event_word*           _word_out
 )
 {
     // the registry and the word are required, and storage if any fits
@@ -356,7 +346,7 @@ d_event_registry_compile_into(
         return D_EVENT_ERR_NULL;
     }
 
-    const struct d_event_table* const table = &_registry->table;
+    const struct dj_event_table* const table = &_registry->table;
     uint32_t index = d_event_table_first(table, _key);
 
     _word_out->steps    = _steps;
@@ -395,11 +385,10 @@ d_event_registry_compile
   Measures the enabled word first and allocates exactly that many steps; an
 empty word allocates nothing and owns nothing.
 */
-int
-d_event_registry_compile(
-    const struct d_event_registry* _registry,
-    d_event_key                    _key,
-    struct d_event_word*           _word_out
+int d_event_registry_compile(
+    const struct dj_event_registry* _registry,
+    dj_event_key                    _key,
+    struct dj_event_word*           _word_out
 )
 {
     // the registry and the word are required
@@ -409,7 +398,7 @@ d_event_registry_compile(
         return D_EVENT_ERR_NULL;
     }
 
-    const struct d_event_table* const table = &_registry->table;
+    const struct dj_event_table* const table = &_registry->table;
     size_t   letters = 0u;
     uint32_t index   = d_event_table_first(table, _key);
 
@@ -436,15 +425,15 @@ d_event_registry_compile(
     }
 
     // the block size would overflow
-    if (letters > (SIZE_MAX / sizeof(struct d_event_step)))
+    if (letters > (SIZE_MAX / sizeof(struct dj_event_step)))
     {
         memset(_word_out, 0, sizeof(*_word_out));
 
         return D_EVENT_ERR_ALLOC;
     }
 
-    struct d_event_step* const steps =
-        malloc(letters * sizeof(struct d_event_step));
+    struct dj_event_step* const steps =
+        malloc(letters * sizeof(struct dj_event_step));
 
     if (!steps)
     {
@@ -466,9 +455,8 @@ d_event_registry_compile(
 
 #endif  // D_INTERNAL_EVENT_REGISTRY_STAGING_ALLOC
 
-void
-d_event_word_dispose(
-    struct d_event_word* _word
+void d_event_word_dispose(
+    struct dj_event_word* _word
 )
 {
     // nothing to release
@@ -488,11 +476,10 @@ d_event_word_dispose(
     return;
 }
 
-int32_t
-d_event_word_run_one(
-    const struct d_event_word* _word,
-    void*                      _payload,
-    size_t*                    _invoked_out
+int32_t d_event_word_run_one(
+    const struct dj_event_word* _word,
+    void*                       _payload,
+    size_t*                     _invoked_out
 )
 {
     // no word: the empty word, which passes
@@ -518,15 +505,14 @@ d_event_word_drive
 d_event_step_fold that dispatch uses, which is what the coherence law with
 d_event_registry_run rests on.
 */
-struct d_drive_result
-d_event_word_drive(
-    const struct d_event_word* _word,
-    void*                      _first,
-    size_t                     _stride,
-    size_t                     _count
+struct dj_drive_result d_event_word_drive(
+    const struct dj_event_word* _word,
+    void*                       _first,
+    size_t                      _stride,
+    size_t                      _count
 )
 {
-    struct d_drive_result drive;
+    struct dj_drive_result drive;
 
     drive.occurrences    = 0u;
     drive.consumed_count = 0u;

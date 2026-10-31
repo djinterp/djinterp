@@ -58,12 +58,12 @@ TABLE OF CONTENTS
 =================
 I.    SCALARS AND TYPES
       -----------------
-      a. d_pool_index / d_pool_generation
-      b. enum d_pool_policy
-      c. struct d_pool_handle
-      d. struct d_pool_block
-      e. struct d_pool
-      f. struct d_pool_config
+      a. dj_pool_index / dj_pool_generation
+      b. enum dj_pool_policy
+      c. struct dj_pool_handle
+      d. struct dj_pool_block
+      e. struct dj_pool
+      f. struct dj_pool_config
 II.   LIFECYCLE
       ---------
       a. d_pool_config_default / d_pool_config_for
@@ -94,7 +94,7 @@ VII.  QUERIES
 // djinterp
 #include "./mem_common.h"
 #include "./mem_source.h"
-#include "../../config/core/memory/cfg_pool.h"
+#include "../../config/c/memory/cfg_pool.h"
 
 
 D_EXTERN_C_BEGIN
@@ -104,19 +104,19 @@ D_EXTERN_C_BEGIN
 ///                    I.   SCALARS AND TYPES                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_pool_index
+// dj_pool_index
 //   type: names one slot of one pool. Its width is D_CFG_POOL_INDEX_BITS,
 // and it is also the free-list link stored inside a free slot -- so it is
 // simultaneously the pool's addressing range and its minimum slot size.
 #if (D_INTERNAL_POOL_INDEX_BITS == 16)
-    typedef uint16_t d_pool_index;
-#   define D_POOL_INDEX_MAX         ((d_pool_index)UINT16_MAX)
+    typedef uint16_t dj_pool_index;
+#   define D_POOL_INDEX_MAX         ((dj_pool_index)UINT16_MAX)
 #elif (D_INTERNAL_POOL_INDEX_BITS == 64)
-    typedef uint64_t d_pool_index;
-#   define D_POOL_INDEX_MAX         ((d_pool_index)UINT64_MAX)
+    typedef uint64_t dj_pool_index;
+#   define D_POOL_INDEX_MAX         ((dj_pool_index)UINT64_MAX)
 #else
-    typedef uint32_t d_pool_index;
-#   define D_POOL_INDEX_MAX         ((d_pool_index)UINT32_MAX)
+    typedef uint32_t dj_pool_index;
+#   define D_POOL_INDEX_MAX         ((dj_pool_index)UINT32_MAX)
 #endif
 
 // D_POOL_INDEX_NONE
@@ -125,21 +125,21 @@ D_EXTERN_C_BEGIN
 // that slot zero is an ordinary slot and no index arithmetic needs a bias.
 #define D_POOL_INDEX_NONE           D_POOL_INDEX_MAX
 
-// d_pool_generation
+// dj_pool_generation
 //   type: the reuse counter stored beside a generational pool's slot. Its
 // width is D_CFG_POOL_GENERATION_BITS, and it is paid on every slot of such a
 // pool -- see the note in cfg_pool.h about why 16 bits is usually right.
 #if (D_INTERNAL_POOL_GENERATION_BITS == 8)
-    typedef uint8_t  d_pool_generation;
+    typedef uint8_t  dj_pool_generation;
 #elif (D_INTERNAL_POOL_GENERATION_BITS == 32)
-    typedef uint32_t d_pool_generation;
+    typedef uint32_t dj_pool_generation;
 #elif (D_INTERNAL_POOL_GENERATION_BITS == 64)
-    typedef uint64_t d_pool_generation;
+    typedef uint64_t dj_pool_generation;
 #else
-    typedef uint16_t d_pool_generation;
+    typedef uint16_t dj_pool_generation;
 #endif
 
-// d_pool_policy
+// dj_pool_policy
 //   enum: what release() does with a slot. Declared whatever the build
 // compiles, so code naming a policy still compiles where that policy is
 // absent -- d_pool_init reports D_MEM_ERR_INVALID rather than failing to
@@ -154,7 +154,7 @@ D_EXTERN_C_BEGIN
 // declaration would then have meant two different things in the two
 // languages, which is precisely what the parity law forbids. Renaming the
 // enum costs nothing and removes the collision at the source.
-enum d_pool_policy
+enum dj_pool_policy
 {
     // release is a no-op; slots return only on reset. No free list, no
     // generation, and therefore the smallest possible slot
@@ -169,200 +169,266 @@ enum d_pool_policy
     D_POOL_POLICY_GENERATIONAL = 2
 };
 
-// d_pool_handle
+// dj_pool_handle
 //   struct: a generation-checked reference to a slot. Two integers, copied by
 // value, and -- unlike a pointer -- SAFE TO STORE ACROSS A RELEASE, because
 // resolving it after the slot has been reused reports D_MEM_ERR_STALE instead
 // of returning the new occupant.
 //   A handle is also relocatable: it names a slot by index, so a pool that
 // has been moved, serialized, or reloaded still answers the same handles.
-struct d_pool_handle
+struct dj_pool_handle
 {
-    d_pool_index      index;
-    d_pool_generation generation;
+    dj_pool_index      index;
+    dj_pool_generation generation;
 };
 
-// d_pool_block
+// dj_pool_block
 //   struct: the header of one block of slots, placed at the front of the
 // block obtained from the upstream source. The slots follow it, aligned.
 //   EVERY BLOCK IN A POOL HOLDS EXACTLY THE SAME NUMBER OF SLOTS. That is
 // what turns "which block holds slot n" into a division instead of a walk,
 // and it is why the count is here for checking rather than for arithmetic.
-struct d_pool_block
+struct dj_pool_block
 {
-    struct d_pool_block* next;         // the next block, or NULL
-    d_pool_index         first_index;  // the index of this block's first slot
-    d_pool_index         slot_count;   // slots in this block
+    struct dj_pool_block* next;         // the next block, or NULL
+    dj_pool_index         first_index;  // the index of this block's first slot
+    dj_pool_index         slot_count;   // slots in this block
 };
 
-// d_pool
+// dj_pool
 //   struct: a fixed-slot allocator over one or more blocks.
-struct d_pool
+struct dj_pool
 {
     // where blocks come from. Resolved at init
-    struct d_mem_source   source;
+    struct dj_mem_source   source;
 
-    struct d_pool_block*  head;             // first block
-    struct d_pool_block*  tail;             // the block the bump cursor is in
+    struct dj_pool_block*  head;             // first block
+    struct dj_pool_block*  tail;             // the block the bump cursor is in
 
 #if (D_INTERNAL_POOL_BLOCK_TABLE == 1)
     // block pointers by block number, so that slot index -> address is a
     // division and an index rather than a walk. Grown by doubling
-    struct d_pool_block** blocks;
-    d_mem_size            block_capacity;   // entries the table can hold
+    struct dj_pool_block** blocks;
+    dj_mem_size            block_capacity;   // entries the table can hold
 #endif
 
     // --- slot geometry, computed once at init ---
-    d_mem_size            stride;           // bytes from one slot to the next
-    d_mem_size            payload;          // caller-visible bytes per slot
-    d_mem_size            align;            // slot alignment
+    dj_mem_size            stride;           // bytes from one slot to the next
+    dj_mem_size            payload;          // caller-visible bytes per slot
+    dj_mem_size            align;            // slot alignment
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-    d_mem_size            generation_offset; // where the counter sits in a slot
+    dj_mem_size            generation_offset; // where the counter sits in a slot
 #endif
 
     // --- population ---
-    d_pool_index          slots_per_block;
-    d_pool_index          capacity;         // slots that exist
-    d_pool_index          live;             // slots currently acquired
-    d_pool_index          bump;             // next never-yet-used slot index
-    d_pool_index          max_slots;        // hard ceiling; 0 means unbounded
-    d_mem_size            block_count;
+    dj_pool_index          slots_per_block;
+    dj_pool_index          capacity;         // slots that exist
+    dj_pool_index          live;             // slots currently acquired
+    dj_pool_index          bump;             // next never-yet-used slot index
+    dj_pool_index          max_slots;        // hard ceiling; 0 means unbounded
+    dj_mem_size            block_count;
 
 #if (D_INTERNAL_POOL_FREE_LIST == 1)
-    d_pool_index          free_head;        // first free slot, or _INDEX_NONE
-    d_pool_index          free_count;
+    dj_pool_index          free_head;        // first free slot, or _INDEX_NONE
+    dj_pool_index          free_count;
 #endif
 
-    uint8_t               policy;           // enum d_pool_policy, narrowed
+    uint8_t               policy;           // enum dj_pool_policy, narrowed
 
 #if (D_INTERNAL_MEM_STATS == 1)
-    struct d_mem_stats    stats;
+    struct dj_mem_stats    stats;
 #endif
 };
 
-// d_pool_config
+// dj_pool_config
 //   struct: how one pool differs from the configured defaults. The two size
 // fields are MANDATORY -- a pool with no slot size is not a pool -- and
 // everything else may be zero.
-struct d_pool_config
+struct dj_pool_config
 {
     // the caller-visible bytes in one slot. Must be non-zero
-    d_mem_size          slot_size;
+    dj_mem_size          slot_size;
 
     // the alignment each slot must satisfy; 0 means the configured default.
     // Raised where the free list needs more, which is the one place the pool
     // may hand back a stricter alignment than was asked for -- never a weaker
     // one
-    d_mem_size          slot_align;
+    dj_mem_size          slot_align;
 
     // where blocks come from. Unset (zeroed) means the configured default
-    struct d_mem_source source;
+    struct dj_mem_source source;
 
     // slots in every block; 0 means initial_slots, or the configured default.
     // Note that this fixes the size of EVERY block, not just the first
-    d_pool_index        slots_per_block;
+    dj_pool_index        slots_per_block;
 
     // slots to reserve at init; 0 reserves nothing, so a pool that is created
     // and never used costs its struct and no more
-    d_pool_index        initial_slots;
+    dj_pool_index        initial_slots;
 
     // a ceiling on total slots; 0 means unbounded. The knob that turns a pool
     // into a budget: past it, acquire reports exhaustion rather than growing
-    d_pool_index        max_slots;
+    dj_pool_index        max_slots;
 
     // what release() does with a slot
-    enum d_pool_policy policy;
+    enum dj_pool_policy policy;
 };
 
 #if (D_INTERNAL_POOL_ITERATE == 1)
 
-// d_pool_cursor
+// dj_pool_cursor
 //   struct: a position in a slot walk. A VALUE THE CALLER HOLDS, so iteration
 // costs the pool nothing and several walks may run at once.
-struct d_pool_cursor
+struct dj_pool_cursor
 {
-    struct d_pool_block* block;
-    d_pool_index         index;        // global slot index
-    d_pool_index         offset;       // slot number within the block
+    struct dj_pool_block* block;
+    dj_pool_index         index;        // global slot index
+    dj_pool_index         offset;       // slot number within the block
 };
 
 #endif  // D_INTERNAL_POOL_ITERATE
 
 
 // I.    lifecycle
-struct d_pool_config d_pool_config_default(d_mem_size _slot_size,
-                                           d_mem_size _slot_align);
-enum d_mem_status    d_pool_init(struct d_pool*              _pool,
-                                 const struct d_pool_config* _config);
-enum d_mem_status    d_pool_reserve(struct d_pool* _pool,
-                                    d_pool_index   _slots);
-void                 d_pool_reset(struct d_pool* _pool);
-void                 d_pool_release(struct d_pool* _pool);
+struct dj_pool_config d_pool_config_default(
+    dj_mem_size _slot_size,
+    dj_mem_size _slot_align
+);
+enum dj_mem_status d_pool_init(
+    struct dj_pool*              _pool,
+    const struct dj_pool_config* _config
+);
+enum dj_mem_status d_pool_reserve(
+    struct dj_pool* _pool,
+    dj_pool_index   _slots
+);
+void d_pool_reset(
+    struct dj_pool* _pool
+);
+void d_pool_release(
+    struct dj_pool* _pool
+);
 
 // II.   acquire and release
-void*                d_pool_acquire(struct d_pool* _pool);
-enum d_mem_status    d_pool_acquire_ex(struct d_pool*      _pool,
-                                       struct d_mem_block* _out);
-enum d_mem_status    d_pool_release_slot(struct d_pool* _pool,
-                                         void*          _slot);
+void* d_pool_acquire(
+    struct dj_pool* _pool
+);
+enum dj_mem_status d_pool_acquire_ex(
+    struct dj_pool*      _pool,
+    struct dj_mem_block* _out
+);
+enum dj_mem_status d_pool_release_slot(
+    struct dj_pool* _pool,
+    void*           _slot
+);
 
 // III.  handles
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-struct d_pool_handle d_pool_handle_null(void);
-bool                 d_pool_handle_is_null(struct d_pool_handle _handle);
-enum d_mem_status    d_pool_acquire_handle(struct d_pool*        _pool,
-                                           struct d_pool_handle* _out);
-void*                d_pool_resolve(const struct d_pool* _pool,
-                                    struct d_pool_handle _handle);
-enum d_mem_status    d_pool_resolve_ex(const struct d_pool* _pool,
-                                       struct d_pool_handle _handle,
-                                       void**               _out);
-enum d_mem_status    d_pool_release_handle(struct d_pool*       _pool,
-                                           struct d_pool_handle _handle);
-bool                 d_pool_handle_is_live(const struct d_pool* _pool,
-                                           struct d_pool_handle _handle);
+struct dj_pool_handle d_pool_handle_null(void);
+bool d_pool_handle_is_null(
+    struct dj_pool_handle _handle
+);
+enum dj_mem_status d_pool_acquire_handle(
+    struct dj_pool*        _pool,
+    struct dj_pool_handle* _out
+);
+void* d_pool_resolve(
+    const struct dj_pool* _pool,
+    struct dj_pool_handle _handle
+);
+enum dj_mem_status d_pool_resolve_ex(
+    const struct dj_pool* _pool,
+    struct dj_pool_handle _handle,
+    void**                _out
+);
+enum dj_mem_status d_pool_release_handle(
+    struct dj_pool*       _pool,
+    struct dj_pool_handle _handle
+);
+bool d_pool_handle_is_live(
+    const struct dj_pool* _pool,
+    struct dj_pool_handle _handle
+);
 #endif
 
 // IV.   addressing
-void*                d_pool_at(const struct d_pool* _pool,
-                               d_pool_index         _index);
-d_pool_index         d_pool_index_of(const struct d_pool* _pool,
-                                     const void*          _slot);
+void* d_pool_at(
+    const struct dj_pool* _pool,
+    dj_pool_index         _index
+);
+dj_pool_index d_pool_index_of(
+    const struct dj_pool* _pool,
+    const void*           _slot
+);
 
 // V.    iteration
 #if (D_INTERNAL_POOL_ITERATE == 1)
-struct d_pool_cursor d_pool_first(const struct d_pool* _pool);
-bool                 d_pool_cursor_valid(const struct d_pool*        _pool,
-                                         const struct d_pool_cursor* _cursor);
-void*                d_pool_cursor_slot(const struct d_pool*        _pool,
-                                        const struct d_pool_cursor* _cursor);
-void                 d_pool_next(const struct d_pool*  _pool,
-                                 struct d_pool_cursor* _cursor);
+struct dj_pool_cursor d_pool_first(
+    const struct dj_pool* _pool
+);
+bool d_pool_cursor_valid(
+    const struct dj_pool*        _pool,
+    const struct dj_pool_cursor* _cursor
+);
+void* d_pool_cursor_slot(
+    const struct dj_pool*        _pool,
+    const struct dj_pool_cursor* _cursor
+);
+void d_pool_next(
+    const struct dj_pool*  _pool,
+    struct dj_pool_cursor* _cursor
+);
 #endif
 
 // VI.   queries
-bool                 d_pool_is_valid(const struct d_pool* _pool);
-d_pool_index         d_pool_size(const struct d_pool* _pool);
-d_pool_index         d_pool_capacity(const struct d_pool* _pool);
-d_pool_index         d_pool_available(const struct d_pool* _pool);
-d_mem_size           d_pool_slot_size(const struct d_pool* _pool);
-d_mem_size           d_pool_slot_align(const struct d_pool* _pool);
-d_mem_size           d_pool_block_count(const struct d_pool* _pool);
-d_mem_size           d_pool_bytes_allocated(const struct d_pool* _pool);
-double               d_pool_utilization(const struct d_pool* _pool);
-enum d_mem_status    d_pool_stats(const struct d_pool* _pool,
-                                  struct d_mem_stats*  _out);
+bool d_pool_is_valid(
+    const struct dj_pool* _pool
+);
+dj_pool_index d_pool_size(
+    const struct dj_pool* _pool
+);
+dj_pool_index d_pool_capacity(
+    const struct dj_pool* _pool
+);
+dj_pool_index d_pool_available(
+    const struct dj_pool* _pool
+);
+dj_mem_size d_pool_slot_size(
+    const struct dj_pool* _pool
+);
+dj_mem_size d_pool_slot_align(
+    const struct dj_pool* _pool
+);
+dj_mem_size d_pool_block_count(
+    const struct dj_pool* _pool
+);
+dj_mem_size d_pool_bytes_allocated(
+    const struct dj_pool* _pool
+);
+double d_pool_utilization(
+    const struct dj_pool* _pool
+);
+enum dj_mem_status d_pool_stats(
+    const struct dj_pool* _pool,
+    struct dj_mem_stats*  _out
+);
 #if (D_INTERNAL_POOL_OWNS == 1)
-bool                 d_pool_owns(const struct d_pool* _pool,
-                                 const void*          _slot);
+bool d_pool_owns(
+    const struct dj_pool* _pool,
+    const void*           _slot
+);
 #endif
 
 // VII.  geometry helpers (usable before a pool exists)
-d_mem_size           d_pool_stride_for(d_mem_size         _slot_size,
-                                       d_mem_size         _slot_align,
-                                       enum d_pool_policy _policy);
-d_mem_size           d_pool_align_for(d_mem_size         _slot_align,
-                                      enum d_pool_policy _policy);
+dj_mem_size d_pool_stride_for(
+    dj_mem_size         _slot_size,
+    dj_mem_size         _slot_align,
+    enum dj_pool_policy _policy
+);
+dj_mem_size d_pool_align_for(
+    dj_mem_size         _slot_align,
+    enum dj_pool_policy _policy
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -371,28 +437,28 @@ d_mem_size           d_pool_align_for(d_mem_size         _slot_align,
 
 #if (D_INTERNAL_MEM_ASSERT_LAYOUT == 1)
 
-D_STATIC_ASSERT(offsetof(struct d_pool, source) == 0,
-                "d_pool.source must lead the struct");
+D_STATIC_ASSERT(offsetof(struct dj_pool, source) == 0,
+                "dj_pool.source must lead the struct");
 
-D_STATIC_ASSERT(offsetof(struct d_pool_block, next) == 0,
-                "d_pool_block.next must lead the header");
+D_STATIC_ASSERT(offsetof(struct dj_pool_block, next) == 0,
+                "dj_pool_block.next must lead the header");
 
-D_STATIC_ASSERT(offsetof(struct d_pool_handle, index) == 0,
-                "d_pool_handle.index must lead the handle");
+D_STATIC_ASSERT(offsetof(struct dj_pool_handle, index) == 0,
+                "dj_pool_handle.index must lead the handle");
 
 //   A handle is two integers and must stay that way: it is copied by value
 // everywhere, and it is the form that would go on a wire if a pool were ever
 // serialized.
-D_STATIC_ASSERT(sizeof(struct d_pool_handle) <=
-                    (2 * sizeof(d_pool_index)),
-                "d_pool_handle has grown beyond two indices");
+D_STATIC_ASSERT(sizeof(struct dj_pool_handle) <=
+                    (2 * sizeof(dj_pool_index)),
+                "dj_pool_handle has grown beyond two indices");
 
 //   The block header is the pool's only per-block cost. Asserting it makes an
 // added field a deliberate act rather than an accident.
-D_STATIC_ASSERT(sizeof(struct d_pool_block) <=
-                    (sizeof(void*) + (2 * sizeof(d_pool_index)) +
+D_STATIC_ASSERT(sizeof(struct dj_pool_block) <=
+                    (sizeof(void*) + (2 * sizeof(dj_pool_index)) +
                      sizeof(void*)),
-                "d_pool_block header has grown beyond its budget");
+                "dj_pool_block header has grown beyond its budget");
 
 #endif  // D_INTERNAL_MEM_ASSERT_LAYOUT
 

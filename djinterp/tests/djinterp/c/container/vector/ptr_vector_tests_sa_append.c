@@ -12,19 +12,17 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_append_test_values[] = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 
 
-bool
-d_tests_sa_ptr_vector_append
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_append(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                source[3];
 
     result = true;
@@ -106,15 +104,13 @@ d_tests_sa_ptr_vector_append
 }
 
 
-bool
-d_tests_sa_ptr_vector_append_vector
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_append_vector(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* dest;
-    struct d_ptr_vector* src;
+    struct dj_ptr_vector* dest;
+    struct dj_ptr_vector* src;
 
     result = true;
 
@@ -177,14 +173,12 @@ d_tests_sa_ptr_vector_append_vector
 }
 
 
-bool
-d_tests_sa_ptr_vector_prepend
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_prepend(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                source[3];
 
     result = true;
@@ -222,15 +216,13 @@ d_tests_sa_ptr_vector_prepend
 }
 
 
-bool
-d_tests_sa_ptr_vector_prepend_vector
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_prepend_vector(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* dest;
-    struct d_ptr_vector* src;
+    struct dj_ptr_vector* dest;
+    struct dj_ptr_vector* src;
 
     result = true;
 
@@ -280,10 +272,8 @@ d_tests_sa_ptr_vector_prepend_vector
 }
 
 
-bool
-d_tests_sa_ptr_vector_append_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_append_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -2,7 +2,7 @@
 * djinterp [c]                                                        file_dir.c
 *
 * Implementation of the directory operations declared in file_dir.h.
-*   struct d_dir_t wraps the platform's handle -- a DIR* on POSIX, a
+*   struct dj_dir_t wraps the platform's handle -- a DIR* on POSIX, a
 * FindFirstFile search on Windows -- and owns the entry d_dir_read64 hands
 * out, so the entry's lifetime is the handle's on every target. A build with
 * neither has no directory API to wrap, and every call that needs one reports
@@ -43,7 +43,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_stat.h"    // d_file_stat_nofollow64, d_dir_exists
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_dir.h"  // D_INTERNAL_FILE_DIR_*
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t,
                                                      // uint64_t, UINT32_MAX
 
 
@@ -122,7 +122,7 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
     #define D_INTERNAL_DIR_CHDIR _chdir
 #endif  // D_INTERNAL_FILE_WIDE == 1
 
-// d_dir_t
+// dj_dir_t
 //   struct: the opaque directory handle promised by file_common.h. It owns the
 // entries the readers hand back, which makes that pointer's lifetime a
 // property of the HANDLE rather than of the platform: POSIX readdir returns a
@@ -130,7 +130,7 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 // it lasts, while a copy here gives one answer on every target -- valid until
 // the next read on this handle, dead at d_dir_close. There is one entry per
 // width, since d_dir_read32 narrows what d_dir_read64 has just filled.
-struct d_dir_t
+struct dj_dir_t
 {
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     HANDLE              handle;        // FindFirstFile handle
@@ -146,8 +146,8 @@ struct d_dir_t
 #else
     void*               handle;                    // none: no directory API
 #endif
-    struct d_dirent64_t entry;         // what d_dir_read64 returns
-    struct d_dirent32_t entry32;       // what d_dir_read32 returns
+    struct dj_dirent64_t entry;         // what d_dir_read64 returns
+    struct dj_dirent32_t entry32;       // what d_dir_read32 returns
     char*               path;          // for stat and the search
     char                text[];        // path, then the pattern: as long as
                                        // they are, not D_FILE_PATH_MAX
@@ -162,8 +162,8 @@ struct d_dir_t
  * @return the handle, zeroed but for its path (and, on Windows, its pattern's
  *         room and an empty hold), or `NULL` with errno set.
  */
-static struct d_dir_t*
-d_internal_dir_new(
+static
+struct dj_dir_t* d_internal_dir_new(
     const char* _path,
     size_t      _length
 )
@@ -174,8 +174,8 @@ d_internal_dir_new(
 #else
     const size_t room = _length + 1;
 #endif
-    struct d_dir_t* const dir =
-        (struct d_dir_t*)d_internal_file_alloc(sizeof(struct d_dir_t) + room);
+    struct dj_dir_t* const dir =
+        (struct dj_dir_t*)d_internal_file_alloc(sizeof(struct dj_dir_t) + room);
 
     // d_internal_file_alloc has reported the failure
     if (!dir)
@@ -206,8 +206,8 @@ alternate that Windows accepts as well. file_path answers the same question
 for the configured grammar, which on a POSIX build reading Windows paths is
 a different question.
 */
-static int
-d_internal_dir_is_sep(
+static
+int d_internal_dir_is_sep(
     char _c
 )
 {
@@ -222,8 +222,8 @@ d_internal_dir_root_len
   The root of a path as the kernel reads it. On Windows that is file_path's
 answer, since cfg_file_path insists on Windows syntax there.
 */
-static size_t
-d_internal_dir_root_len(
+static
+size_t d_internal_dir_root_len(
     const char* _path
 )
 {
@@ -239,8 +239,8 @@ there are. file_path answers for the configured grammar instead, and a POSIX
 build told to read Windows syntax would take "//srv/share" for a share where
 the kernel sees the root and two directories.
 */
-static size_t
-d_internal_dir_root_len(
+static
+size_t d_internal_dir_root_len(
     const char* _path
 )
 {
@@ -264,8 +264,8 @@ an empty directory or one that ends in a separator already, and -- on Windows
 -- not after a bare drive, since "C:" names drive C's current directory and
 "C:x" is x inside it.
 */
-static int
-d_internal_dir_needs_sep(
+static
+int d_internal_dir_needs_sep(
     const char* _dir,
     size_t      _length
 )
@@ -288,8 +288,8 @@ d_internal_dir_join
   d_dir_entry_path's work, without its validation: the directory, a separator
 where one is needed, then the name -- or ERANGE when they do not fit.
 */
-static char*
-d_internal_dir_join(
+static
+char* d_internal_dir_join(
     char*       _buf,
     size_t      _bufsize,
     const char* _dir,
@@ -339,10 +339,10 @@ the one in the directory read; AT_SYMLINK_NOFOLLOW, so a dangling symlink
 reports DT_LNK instead of vanishing. An entry that cannot be described is
 DT_UNKNOWN.
 */
-static uint8_t
-d_internal_dir_type_by_stat(
-    struct d_dir_t* _dir,
-    const char*     _name
+static
+uint8_t d_internal_dir_type_by_stat(
+    struct dj_dir_t* _dir,
+    const char*      _name
 )
 {
     struct stat st;
@@ -411,8 +411,8 @@ the alternative is that every consumer of file_dir links dstring for one call.
 The filesys subframework's only dependencies should be the ones it genuinely
 needs. A name that does not fit is refused rather than truncated.
 */
-static int
-d_internal_dir_copy_name(
+static
+int d_internal_dir_copy_name(
     char*       _dst,
     size_t      _dstsize,
     const char* _src
@@ -440,8 +440,8 @@ d_internal_dir_is_dots
   Recognises exactly "." and "..", by their bytes rather than by string
 comparison.
 */
-static int
-d_internal_dir_is_dots(
+static
+int d_internal_dir_is_dots(
     const char* _name
 )
 {
@@ -476,8 +476,8 @@ directories. It raises no notice -- d_dir_create reports its own failures,
 and d_dir_create_parents expects EEXIST and reports only the failures that
 are failures.
 */
-static int
-d_internal_dir_mkdir(
+static
+int d_internal_dir_mkdir(
     const char* _path,
     uint32_t    _mode
 )
@@ -485,8 +485,8 @@ d_internal_dir_mkdir(
     // Windows has no permission bits for directories
     (void)_mode;
 
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -507,13 +507,13 @@ d_internal_dir_mkdir(
 d_internal_dir_rmdir
   The CRT's _rmdir.
 */
-static int
-d_internal_dir_rmdir(
+static
+int d_internal_dir_rmdir(
     const char* _path
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -537,8 +537,8 @@ d_internal_dir_mkdir
   mkdir, with the mode the process umask then reduces. It raises no notice,
 for the reason the Windows definition gives.
 */
-static int
-d_internal_dir_mkdir(
+static
+int d_internal_dir_mkdir(
     const char* _path,
     uint32_t    _mode
 )
@@ -551,8 +551,8 @@ d_internal_dir_mkdir(
 d_internal_dir_rmdir
   rmdir.
 */
-static int
-d_internal_dir_rmdir(
+static
+int d_internal_dir_rmdir(
     const char* _path
 )
 {
@@ -566,8 +566,8 @@ d_internal_dir_mkdir
   Neither POSIX nor Windows is here, and ISO C makes no directories, so this
 reports ENOSYS, as every directory operation of such a build does.
 */
-static int
-d_internal_dir_mkdir(
+static
+int d_internal_dir_mkdir(
     const char* _path,
     uint32_t    _mode
 )
@@ -584,8 +584,8 @@ d_internal_dir_mkdir(
 d_internal_dir_rmdir
   ENOSYS, as d_internal_dir_mkdir.
 */
-static int
-d_internal_dir_rmdir(
+static
+int d_internal_dir_rmdir(
     const char* _path
 )
 {
@@ -606,8 +606,8 @@ the same tree is expected. What exists must be a directory, and for the leaf
 it must not have existed at all when D_CFG_FILE_DIR_MKDIR_P_EXISTING_OK is 0.
 Failures are reported against _whole, the path the caller asked for.
 */
-static int
-d_internal_dir_ensure(
+static
+int d_internal_dir_ensure(
     const char* _path,
     uint32_t    _mode,
     int         _leaf,
@@ -668,8 +668,8 @@ made: it is there or it is not -- a drive that is not mounted, a share that
 is not reachable. Being there satisfies the request unless
 D_CFG_FILE_DIR_MKDIR_P_EXISTING_OK is 0.
 */
-static int
-d_internal_dir_ensure_root(
+static
+int d_internal_dir_ensure_root(
     const char* _root,
     const char* _whole
 )
@@ -722,10 +722,8 @@ d_internal_dir_skip_long
 reported, and a truncated name would name another file -- so the caller is
 told, and the next entry is read.
 */
-static int
-d_internal_dir_skip_long(
-    void
-)
+static
+int d_internal_dir_skip_long(void)
 {
     D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_WARN,
                            ENAMETOOLONG,
@@ -750,13 +748,13 @@ there: a drive's root or a share lists no "." or "..", so an empty one matches
 nothing at all, and the handle then reads as empty. A failed search asks what
 the path names, so that a file fails with ENOTDIR, as POSIX opendir fails it.
 */
-static int
-d_internal_dir_search(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_search(
+    struct dj_dir_t* _dir
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const pattern =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const pattern =
         d_internal_file_native_of(&held,
                                   _dir->pattern);
 
@@ -786,7 +784,7 @@ d_internal_dir_search(
 
     // read before the conversion, which can set it
     const DWORD error  = GetLastError();
-    const d_internal_file_nchar_t* const path =
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _dir->path);
     const DWORD attrs  = (path) ? D_INTERNAL_DIR_ATTRS(path)
@@ -825,9 +823,9 @@ d_internal_dir_start
   Win32 has no opendir: the handle's view of the directory is a search over
 every entry of it (d_internal_dir_search), its pattern built for the kernel.
 */
-static int
-d_internal_dir_start(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_start(
+    struct dj_dir_t* _dir
 )
 {
     // every entry of the directory, as a pattern the kernel reads
@@ -847,9 +845,9 @@ d_internal_dir_restart
   Win32 has no rewind either: the search is closed and started again, and
 that can fail.
 */
-static int
-d_internal_dir_restart(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_restart(
+    struct dj_dir_t* _dir
 )
 {
     // the old search goes first, where there was one
@@ -868,8 +866,8 @@ symbolic link or a junction is a link -- every other reparse point is the file
 or directory it appears to be, except one without a tag to tell, which is taken
 for a link, as d_internal_file_is_link_win32 takes it.
 */
-static uint8_t
-d_internal_dir_win32_type(
+static
+uint8_t d_internal_dir_win32_type(
     const D_INTERNAL_DIR_FIND* _data
 )
 {
@@ -908,8 +906,8 @@ d_internal_dir_win32_type(
  * errno is the caller's again afterwards: a skipped name is no failure of the
  * read, which goes on to the next entry.
  */
-static int
-d_internal_dir_take_name(
+static
+int d_internal_dir_take_name(
     char*        _dst,
     size_t       _dstsize,
     const WCHAR* _src
@@ -955,8 +953,8 @@ d_internal_dir_take_name(
  * @return D_INTERNAL_DIR_TAKEN, or D_INTERNAL_DIR_SKIPPED after a notice for
  *         a name longer than D_FILE_NAME_MAX.
  */
-static int
-d_internal_dir_take_name(
+static
+int d_internal_dir_take_name(
     char*       _dst,
     size_t      _dstsize,
     const char* _src
@@ -983,9 +981,9 @@ every hand-rolled Win32 dirent shim. FindNextFile failing other than at the
 end sets EIO, since a caller who cleared errno would read an untouched one as
 the end.
 */
-static int
-d_internal_dir_next(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_next(
+    struct dj_dir_t* _dir
 )
 {
     // nothing pending: a search that matched nothing, or ask for another
@@ -1032,9 +1030,9 @@ d_internal_dir_release
   Ends the handle's search, where one started. FindClose sets no errno, so its
 failure is recorded as EBADF.
 */
-static int
-d_internal_dir_release(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_release(
+    struct dj_dir_t* _dir
 )
 {
     // a search that never started has nothing to close
@@ -1065,14 +1063,14 @@ d_internal_dir_release(
  *         not fit, whether D_FILE_PATH_MAX characters or `_size` bytes, and
  *         EILSEQ for one UTF-8 cannot carry.
  */
-static char*
-d_internal_dir_getcwd(
+static
+char* d_internal_dir_getcwd(
     char*  _buf,
     size_t _size
 )
 {
-    struct d_internal_file_native  held = {0};
-    d_internal_file_nchar_t* const room = d_internal_file_native_room(&held);
+    struct dj_internal_file_native  held = {0};
+    dj_internal_file_nchar_t* const room = d_internal_file_native_room(&held);
 
     // d_internal_file_alloc has reported the failure
     if (!room)
@@ -1099,8 +1097,8 @@ d_internal_dir_getcwd
   The CRT's _getcwd, which takes an int: a larger buffer is offered as INT_MAX
 bytes.
 */
-static char*
-d_internal_dir_getcwd(
+static
+char* d_internal_dir_getcwd(
     char*  _buf,
     size_t _size
 )
@@ -1116,13 +1114,13 @@ d_internal_dir_getcwd(
 d_internal_dir_chdir
   The CRT's _chdir.
 */
-static int
-d_internal_dir_chdir(
+static
+int d_internal_dir_chdir(
     const char* _path
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -1145,9 +1143,9 @@ d_internal_dir_chdir(
 d_internal_dir_start
   The handle's view of the directory: the platform's DIR stream.
 */
-static int
-d_internal_dir_start(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_start(
+    struct dj_dir_t* _dir
 )
 {
     // open, then fdopendir, rather than opendir: the descriptor is kept for
@@ -1182,9 +1180,9 @@ d_internal_dir_start(
 d_internal_dir_restart
   rewinddir, which cannot fail.
 */
-static int
-d_internal_dir_restart(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_restart(
+    struct dj_dir_t* _dir
 )
 {
     rewinddir(_dir->handle);
@@ -1198,8 +1196,8 @@ d_internal_dir_restart(
 d_internal_dir_kernel_type
   The type the kernel put in the entry, which may be DT_UNKNOWN.
 */
-static uint8_t
-d_internal_dir_kernel_type(
+static
+uint8_t d_internal_dir_kernel_type(
     const struct dirent* _native
 )
 {
@@ -1212,8 +1210,8 @@ d_internal_dir_kernel_type(
 d_internal_dir_kernel_type
   This build's dirent carries no type, or it fills none: DT_UNKNOWN.
 */
-static uint8_t
-d_internal_dir_kernel_type(
+static
+uint8_t d_internal_dir_kernel_type(
     const struct dirent* _native
 )
 {
@@ -1233,9 +1231,9 @@ network filesystems -- one lstat (d_internal_dir_type_by_stat), though never
 for "." and "..", which are directories by definition. See
 D_CFG_FILE_DIR_FILL_TYPE for what that costs.
 */
-static uint8_t
-d_internal_dir_posix_type(
-    struct d_dir_t*      _dir,
+static
+uint8_t d_internal_dir_posix_type(
+    struct dj_dir_t*     _dir,
     const struct dirent* _native
 )
 {
@@ -1259,9 +1257,9 @@ d_internal_dir_posix_type(
 d_internal_dir_posix_type
   The kernel's answer alone: this build asks no more.
 */
-static uint8_t
-d_internal_dir_posix_type(
-    struct d_dir_t*      _dir,
+static
+uint8_t d_internal_dir_posix_type(
+    struct dj_dir_t*     _dir,
     const struct dirent* _native
 )
 {
@@ -1280,9 +1278,9 @@ value from some earlier call cannot then pass for this one's failure. The name
 is copied out of the platform's storage into the handle's, so the entry's
 lifetime is the handle's.
 */
-static int
-d_internal_dir_next(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_next(
+    struct dj_dir_t* _dir
 )
 {
     errno = 0;
@@ -1324,9 +1322,9 @@ d_internal_dir_next(
 d_internal_dir_release
   closedir, where the stream opened.
 */
-static int
-d_internal_dir_release(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_release(
+    struct dj_dir_t* _dir
 )
 {
     return (_dir->handle != NULL) ? closedir(_dir->handle)
@@ -1337,8 +1335,8 @@ d_internal_dir_release(
 d_internal_dir_getcwd
   getcwd.
 */
-static char*
-d_internal_dir_getcwd(
+static
+char* d_internal_dir_getcwd(
     char*  _buf,
     size_t _size
 )
@@ -1351,8 +1349,8 @@ d_internal_dir_getcwd(
 d_internal_dir_chdir
   chdir.
 */
-static int
-d_internal_dir_chdir(
+static
+int d_internal_dir_chdir(
     const char* _path
 )
 {
@@ -1365,9 +1363,9 @@ d_internal_dir_chdir(
 d_internal_dir_start
   No directory API to open one with: ENOSYS, as d_internal_dir_mkdir.
 */
-static int
-d_internal_dir_start(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_start(
+    struct dj_dir_t* _dir
 )
 {
     (void)_dir;
@@ -1381,9 +1379,9 @@ d_internal_dir_start(
 d_internal_dir_restart
   ENOSYS: no handle could have opened.
 */
-static int
-d_internal_dir_restart(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_restart(
+    struct dj_dir_t* _dir
 )
 {
     (void)_dir;
@@ -1397,9 +1395,9 @@ d_internal_dir_restart(
 d_internal_dir_next
   ENOSYS: no handle could have opened, so there is nothing to read.
 */
-static int
-d_internal_dir_next(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_next(
+    struct dj_dir_t* _dir
 )
 {
     (void)_dir;
@@ -1413,9 +1411,9 @@ d_internal_dir_next(
 d_internal_dir_release
   Nothing opened, so nothing to close.
 */
-static int
-d_internal_dir_release(
-    struct d_dir_t* _dir
+static
+int d_internal_dir_release(
+    struct dj_dir_t* _dir
 )
 {
     (void)_dir;
@@ -1427,8 +1425,8 @@ d_internal_dir_release(
 d_internal_dir_getcwd
   ISO C has no current directory to ask after: ENOSYS.
 */
-static char*
-d_internal_dir_getcwd(
+static
+char* d_internal_dir_getcwd(
     char*  _buf,
     size_t _size
 )
@@ -1445,8 +1443,8 @@ d_internal_dir_getcwd(
 d_internal_dir_chdir
   ISO C has no current directory to change: ENOSYS.
 */
-static int
-d_internal_dir_chdir(
+static
+int d_internal_dir_chdir(
     const char* _path
 )
 {
@@ -1469,8 +1467,8 @@ is set lower -- so it is asked to allocate instead, as POSIX.1-2008 lets it,
 and its answer is copied over only when it fits: a longer one fails with
 ENAMETOOLONG. The C library's allocation goes back to the C library's free.
 */
-static int
-d_internal_dir_resolve(
+static
+int d_internal_dir_resolve(
     const char* _path,
     char*       _found
 )
@@ -1520,18 +1518,18 @@ d_internal_dir_resolve(
  *
  * As the narrow form: lexical, so its answer is checked for existence.
  */
-static int
-d_internal_dir_resolve(
+static
+int d_internal_dir_resolve(
     const char* _path,
     char*       _found
 )
 {
-    struct d_internal_file_native        in_held  = {0};
-    struct d_internal_file_native        out_held = {0};
-    const d_internal_file_nchar_t* const path     =
+    struct dj_internal_file_native        in_held  = {0};
+    struct dj_internal_file_native        out_held = {0};
+    const dj_internal_file_nchar_t* const path     =
         d_internal_file_native_of(&in_held,
                                   _path);
-    d_internal_file_nchar_t* const       out      =
+    dj_internal_file_nchar_t* const       out      =
         (path) ? d_internal_file_native_room(&out_held)
                : NULL;
 
@@ -1622,8 +1620,8 @@ needs everywhere. It is lexical and does NOT verify existence, unlike realpath,
 so its answer is checked: reporting a canonical path for something that is not
 there would make the two platforms disagree about what d_path_resolve means.
 */
-static int
-d_internal_dir_resolve(
+static
+int d_internal_dir_resolve(
     const char* _path,
     char*       _found
 )
@@ -1673,8 +1671,8 @@ d_internal_dir_resolve
   No resolver here: refuse with ENOSYS, rather than return a lexical answer
 that silently differs from what the kernel would do with symlinks.
 */
-static int
-d_internal_dir_resolve(
+static
+int d_internal_dir_resolve(
     const char* _path,
     char*       _found
 )
@@ -1697,8 +1695,8 @@ one allocated to fit it exactly. The allocation goes through the filesys
 allocator, so D_CFG_FILE_MALLOC still owns every byte this subframework
 hands out.
 */
-static char*
-d_internal_dir_hand_back(
+static
+char* d_internal_dir_hand_back(
     const char* _found,
     char*       _resolved,
     size_t      _size
@@ -1749,8 +1747,7 @@ d_dir_create
   mkdir, through d_internal_dir_mkdir. A missing parent is a failure here --
 creating parents is d_dir_create_parents' job.
 */
-int
-d_dir_create(
+int d_dir_create(
     const char* _path,
     uint32_t    _mode
 )
@@ -1790,8 +1787,8 @@ ways -- a path that is nothing but a root is only checked. Trailing
 separators are dropped first, so the last real component is the leaf and gets
 the caller's mode, and an empty component ("a//b") is passed over.
 */
-static int
-d_internal_dir_create_parents_in(
+static
+int d_internal_dir_create_parents_in(
     const char* _path,
     uint32_t    _mode,
     char*       _work_room
@@ -1892,15 +1889,14 @@ d_internal_dir_create_parents_in(
 d_dir_create_parents
   d_dir_create_parents's work is d_internal_dir_create_parents_in; this keeps
 the room it builds a path in, on the heap where that is 32 KiB
-(d_internal_file_path).
+(dj_internal_file_path).
 */
-int
-d_dir_create_parents(
+int d_dir_create_parents(
     const char* _path,
     uint32_t    _mode
 )
 {
-    struct d_internal_file_path work_held = {0};
+    struct dj_internal_file_path work_held = {0};
     char* const work = d_internal_file_path_room(&work_held);
 
     // d_internal_file_path_room has set errno, and reported the failure
@@ -1926,8 +1922,7 @@ d_dir_remove
 is deliberately no recursive form, because deleting a tree is a policy
 decision with a symlink-traversal hazard attached.
 */
-int
-d_dir_remove(
+int d_dir_remove(
     const char* _path
 )
 {
@@ -1963,8 +1958,7 @@ either platform sees it -- POSIX would refuse it too, but Win32 would search
 the current directory. Any failure releases the handle before reporting,
 keeping the platform's errno.
 */
-struct d_dir_t*
-d_dir_open(
+struct dj_dir_t* d_dir_open(
     const char* _path
 )
 {
@@ -1998,7 +1992,7 @@ d_dir_open(
                              NULL);
     }
 
-    struct d_dir_t* const dir = d_internal_dir_new(_path,
+    struct dj_dir_t* const dir = d_internal_dir_new(_path,
                                                    length);
 
 
@@ -2033,8 +2027,8 @@ d_internal_dir_skipped
   Whether the caller asked not to see an entry: "." and "..", when the build
 skips them.
 */
-static int
-d_internal_dir_skipped(
+static
+int d_internal_dir_skipped(
     const char* _name
 )
 {
@@ -2051,9 +2045,8 @@ reports d_type, and by one lstat per entry where it answers DT_UNKNOWN. A name
 longer than D_FILE_NAME_MAX is skipped with a warning rather than truncated,
 and "." and ".." are skipped when the build asks.
 */
-struct d_dirent64_t*
-d_dir_read64(
-    struct d_dir_t* _dir
+struct dj_dirent64_t* d_dir_read64(
+    struct dj_dir_t* _dir
 )
 {
     // parameter validation
@@ -2093,9 +2086,8 @@ only field that can fail to fit is the inode number; such an entry fails on
 its own -- NULL with EOVERFLOW, as a 32-bit readdir fails it -- and, since
 d_dir_read64 has already moved past it, the next call reads on.
 */
-struct d_dirent32_t*
-d_dir_read32(
-    struct d_dir_t* _dir
+struct dj_dirent32_t* d_dir_read32(
+    struct dj_dir_t* _dir
 )
 {
     // parameter validation
@@ -2106,7 +2098,7 @@ d_dir_read32(
                             "handle is NULL",
                             NULL);
 
-    const struct d_dirent64_t* const wide = d_dir_read64(_dir);
+    const struct dj_dirent64_t* const wide = d_dir_read64(_dir);
 
     // the end, or a failure d_dir_read64 has already reported
     if (!wide)
@@ -2120,7 +2112,7 @@ d_dir_read32(
         D_INTERNAL_FILE_FAIL(EOVERFLOW,
                              "d_dir_read32",
                              NULL,
-                             "inode number exceeds d_dirent32_t",
+                             "inode number exceeds dj_dirent32_t",
                              NULL);
     }
 
@@ -2138,12 +2130,11 @@ d_dir_read_name
   Reads through d_dir_read64 and hands back the name and type alone. With no
 inode number in the answer there is nothing to narrow, so this is the reader
 a 32-bit build -- or one below the 64-bit floor, which cannot name
-d_dirent64_t -- walks with when the inode number does not matter.
+dj_dirent64_t -- walks with when the inode number does not matter.
 */
-const char*
-d_dir_read_name(
-    struct d_dir_t* _dir,
-    uint8_t*        _type
+const char* d_dir_read_name(
+    struct dj_dir_t* _dir,
+    uint8_t*         _type
 )
 {
     // parameter validation
@@ -2154,7 +2145,7 @@ d_dir_read_name(
                             "handle is NULL",
                             NULL);
 
-    const struct d_dirent64_t* const entry = d_dir_read64(_dir);
+    const struct dj_dirent64_t* const entry = d_dir_read64(_dir);
 
     // the end, or a failure d_dir_read64 has already reported
     if (!entry)
@@ -2181,8 +2172,7 @@ is one entry of the directory, appended after D_FILE_PATH_SEP where one is
 needed (d_internal_dir_needs_sep). The directory may share _buf, as when a
 caller extends its own buffer; the name may not.
 */
-char*
-d_dir_entry_path(
+char* d_dir_entry_path(
     char*       _buf,
     size_t      _bufsize,
     const char* _dir,
@@ -2228,9 +2218,8 @@ POSIX, where the call cannot fail -- but Win32 has no rewind at all, so the
 search is closed and restarted, and THAT can fail. A void return would hide
 it and leave the caller iterating a dead handle.
 */
-int
-d_dir_rewind(
-    struct d_dir_t* _dir
+int d_dir_rewind(
+    struct dj_dir_t* _dir
 )
 {
     // parameter validation
@@ -2262,9 +2251,8 @@ d_dir_close
 (d_internal_dir_release): it is not usable either way, and leaking it would
 be the worse failure.
 */
-int
-d_dir_close(
-    struct d_dir_t* _dir
+int d_dir_close(
+    struct dj_dir_t* _dir
 )
 {
     // parameter validation
@@ -2311,8 +2299,7 @@ d_dir_get_current
 convenient and is also a second ownership contract for one function -- so this
 one does not offer it.
 */
-char*
-d_dir_get_current(
+char* d_dir_get_current(
     char*  _buf,
     size_t _size
 )
@@ -2352,8 +2339,7 @@ d_dir_set_current
   chdir, or the CRT's _chdir (d_internal_dir_chdir). Process-wide by nature,
 which is why the declaration steers callers toward absolute paths instead.
 */
-int
-d_dir_set_current(
+int d_dir_set_current(
     const char* _path
 )
 {
@@ -2389,8 +2375,8 @@ of our own first is what lets the caller's be any size: the resolvers want
 room for the longest path before they start, and the answer's length is only
 known once they are done.
 */
-static char*
-d_internal_path_resolve_in(
+static
+char* d_internal_path_resolve_in(
     const char* _path,
     char*       _resolved,
     size_t      _size,
@@ -2442,16 +2428,15 @@ d_internal_path_resolve_in(
 /*
 d_path_resolve
   d_path_resolve's work is d_internal_path_resolve_in; this keeps the room it
-builds a path in, on the heap where that is 32 KiB (d_internal_file_path).
+builds a path in, on the heap where that is 32 KiB (dj_internal_file_path).
 */
-char*
-d_path_resolve(
+char* d_path_resolve(
     const char* _path,
     char*       _resolved,
     size_t      _size
 )
 {
-    struct d_internal_file_path found_held = {0};
+    struct dj_internal_file_path found_held = {0};
     char* const found = d_internal_file_path_room(&found_held);
 
     // d_internal_file_path_room has set errno, and reported the failure
@@ -2494,8 +2479,8 @@ d_path_resolve(
  * @param[in] _name  the name.
  * @return 1 for a name, 0 otherwise.
  */
-static int
-d_internal_dir_is_name(
+static
+int d_internal_dir_is_name(
     const char* _name
 )
 {
@@ -2530,11 +2515,11 @@ d_internal_dir_is_name(
  * @param[out] _length  receives the path's length.
  * @return the path, or `NULL` with errno set.
  */
-static char*
-d_internal_dir_compose(
-    const struct d_dir_t* _dir,
-    const char*           _name,
-    size_t*               _length
+static
+char* d_internal_dir_compose(
+    const struct dj_dir_t* _dir,
+    const char*            _name,
+    size_t*                _length
 )
 {
     const size_t room = strlen(_dir->path) + strlen(_name) + 2;
@@ -2575,8 +2560,8 @@ d_internal_dir_compose(
  * @param[in] _length  its length.
  * @return the handle, or `NULL` with errno set.
  */
-static struct d_dir_t*
-d_internal_dir_adopt(
+static
+struct dj_dir_t* d_internal_dir_adopt(
     int         _fd,
     const char* _path,
     size_t      _length
@@ -2595,7 +2580,7 @@ d_internal_dir_adopt(
         return NULL;
     }
 
-    struct d_dir_t* const dir = d_internal_dir_new(_path,
+    struct dj_dir_t* const dir = d_internal_dir_new(_path,
                                                    _length);
 
     // d_internal_dir_new has reported the failure
@@ -2627,8 +2612,8 @@ d_internal_dir_adopt(
  *         FreeBSD names it, is ELOOP here), ENOTDIR for anything else that
  *         is no directory.
  */
-static struct d_dir_t*
-d_internal_dir_open_held(
+static
+struct dj_dir_t* d_internal_dir_open_held(
     int         _at,
     const char* _name,
     const char* _path,
@@ -2725,14 +2710,14 @@ d_internal_dir_open_held(
  * @return the handle, or `NULL` with errno set: ELOOP for a link or a
  *         junction, ENOTDIR for anything else that is no directory.
  */
-static struct d_dir_t*
-d_internal_dir_open_held(
+static
+struct dj_dir_t* d_internal_dir_open_held(
     const char* _path,
     size_t      _length
 )
 {
-    struct d_internal_file_native        held   = {0};
-    const d_internal_file_nchar_t* const native =
+    struct dj_internal_file_native        held   = {0};
+    const dj_internal_file_nchar_t* const native =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -2784,7 +2769,7 @@ d_internal_dir_open_held(
         code = ENOTDIR;
     }
 
-    struct d_dir_t* const dir = (code == 0) ? d_internal_dir_new(_path,
+    struct dj_dir_t* const dir = (code == 0) ? d_internal_dir_new(_path,
                                                                  _length)
                                             : NULL;
 
@@ -2827,10 +2812,9 @@ so the name is looked up in the directory already open, whatever has been
 renamed since. Windows has no such call in Win32; the parent's hold keeps its
 path naming it, and the child is held in turn and examined through the hold.
 */
-struct d_dir_t*
-d_dir_open_at(
-    struct d_dir_t* _parent,
-    const char*     _name
+struct dj_dir_t* d_dir_open_at(
+    struct dj_dir_t* _parent,
+    const char*      _name
 )
 {
     D_INTERNAL_FILE_REQUIRE( ( (_parent != NULL) &&
@@ -2865,12 +2849,12 @@ d_dir_open_at(
     }
 
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
-    struct d_dir_t* const dir = d_internal_dir_open_held(_parent->fd,
+    struct dj_dir_t* const dir = d_internal_dir_open_held(_parent->fd,
                                                          _name,
                                                          path,
                                                          length);
 #else
-    struct d_dir_t* const dir = d_internal_dir_open_held(path,
+    struct dj_dir_t* const dir = d_internal_dir_open_held(path,
                                                          length);
 #endif
     const int saved = errno;
@@ -2893,11 +2877,10 @@ d_dir_remove_at
   unlinkat relative to the open directory on POSIX; on Windows, the entry's
 path under the directory's hold.
 */
-int
-d_dir_remove_at(
-    struct d_dir_t* _dir,
-    const char*     _name,
-    int             _flags
+int d_dir_remove_at(
+    struct dj_dir_t* _dir,
+    const char*      _name,
+    int              _flags
 )
 {
     D_INTERNAL_FILE_REQUIRE( ( (_dir != NULL) &&
@@ -2960,12 +2943,12 @@ d_dir_remove_at(
 #if ( D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX) ||                                     \
       D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32) )
 
-// d_internal_dir_frame
+// dj_internal_dir_frame
 //   struct: one directory on the path d_dir_remove_all has opened down to,
 // and the name its parent knows it by (none for the root).
-struct d_internal_dir_frame
+struct dj_internal_dir_frame
 {
-    struct d_dir_t* dir;
+    struct dj_dir_t* dir;
     char*           name;
 };
 
@@ -2975,10 +2958,10 @@ struct d_internal_dir_frame
  * @param[in] _stack  the frames.
  * @param[in] _depth  how many are open.
  */
-static void
-d_internal_dir_unwind(
-    struct d_internal_dir_frame* _stack,
-    size_t                       _depth
+static
+void d_internal_dir_unwind(
+    struct dj_internal_dir_frame* _stack,
+    size_t                        _depth
 )
 {
     while (_depth > 0)
@@ -3006,22 +2989,22 @@ d_internal_dir_unwind(
  *                        tell.
  * @return 0, or -1 with errno set.
  */
-static int
-d_internal_dir_take_entry(
-    struct d_internal_dir_frame** _stack,
-    size_t*                       _depth,
-    size_t*                       _room,
-    const char*                   _name,
-    uint8_t                       _type
+static
+int d_internal_dir_take_entry(
+    struct dj_internal_dir_frame** _stack,
+    size_t*                        _depth,
+    size_t*                        _room,
+    const char*                    _name,
+    uint8_t                        _type
 )
 {
-    struct d_dir_t* const top = (*_stack)[*_depth - 1].dir;
+    struct dj_dir_t* const top = (*_stack)[*_depth - 1].dir;
 
     // a directory, or what may be one: opened without following a link
     if ( (_type == DT_DIR) ||
          (_type == DT_UNKNOWN) )
     {
-        struct d_dir_t* const child = d_dir_open_at(top,
+        struct dj_dir_t* const child = d_dir_open_at(top,
                                                     _name);
 
         if (child)
@@ -3033,8 +3016,8 @@ d_internal_dir_take_entry(
             if ( (name) &&
                  (*_depth == *_room) )
             {
-                struct d_internal_dir_frame* const grown =
-                    (struct d_internal_dir_frame*)d_internal_file_realloc(
+                struct dj_internal_dir_frame* const grown =
+                    (struct dj_internal_dir_frame*)d_internal_file_realloc(
                         *_stack,
                         (*_room * 2) * sizeof(**_stack));
 
@@ -3106,8 +3089,7 @@ in between can send the removal elsewhere -- the race std::filesystem's own
 remove_all had (CVE-2022-21658). A directory is removed once read to its end,
 after its handle is closed. One handle is open per level of depth.
 */
-int
-d_dir_remove_all(
+int d_dir_remove_all(
     const char* _path
 )
 {
@@ -3133,12 +3115,12 @@ d_dir_remove_all(
 #if ( D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX) ||                                     \
       D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32) )
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
-    struct d_dir_t* const root = d_internal_dir_open_held(AT_FDCWD,
+    struct dj_dir_t* const root = d_internal_dir_open_held(AT_FDCWD,
                                                           _path,
                                                           _path,
                                                           length);
 #else
-    struct d_dir_t* const root = d_internal_dir_open_held(_path,
+    struct dj_dir_t* const root = d_internal_dir_open_held(_path,
                                                           length);
 #endif
 
@@ -3163,8 +3145,8 @@ d_dir_remove_all(
 
     size_t                       room  = 16;
     size_t                       depth = 1;
-    struct d_internal_dir_frame* stack =
-        (struct d_internal_dir_frame*)d_internal_file_alloc(room *
+    struct dj_internal_dir_frame* stack =
+        (struct dj_internal_dir_frame*)d_internal_file_alloc(room *
                                                             sizeof(*stack));
 
     // d_internal_file_alloc has reported the failure
@@ -3183,7 +3165,7 @@ d_dir_remove_all(
 
     while (depth > 0)
     {
-        struct d_dir_t* const top  = stack[depth - 1].dir;
+        struct dj_dir_t* const top  = stack[depth - 1].dir;
         uint8_t               type = DT_UNKNOWN;
 
         errno = 0;

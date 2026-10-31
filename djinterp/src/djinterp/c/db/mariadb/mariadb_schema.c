@@ -29,12 +29,12 @@
 #include <stddef.h>  // size_t, NULL
 #include <string.h>  // strcmp, strncmp, strstr
 // djinterp
-#include "../../../../../inc/djinterp/c/db/db_common.h"  // d_db_column, flags
+#include "../../../../../inc/djinterp/c/db/db_common.h"  // dj_db_column, flags
 #include "../db_internal.h"  // buffers, builders, formatting, numbers
 #include "../../../../../inc/djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // D_INTERNAL_MARIADB
 #include "./mariadb_internal.h"  // mysql.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_MARIADB == 1)
@@ -44,18 +44,18 @@
 //==============================================================================
 
 // D_INTERNAL_MARIADB_COLUMN_FLAGS
-//   constant: every flag a struct d_db_column may carry.
+//   constant: every flag a struct dj_db_column may carry.
 #define D_INTERNAL_MARIADB_COLUMN_FLAGS                                        \
     (D_DB_COLUMN_PRIMARY_KEY    |                                              \
      D_DB_COLUMN_AUTO_INCREMENT |                                              \
      D_DB_COLUMN_NOT_NULL       |                                              \
      D_DB_COLUMN_UNIQUE)
 
-// d_internal_mariadb_spelling
-//   struct: how one d_db_type is declared.
-struct d_internal_mariadb_spelling
+// dj_internal_mariadb_spelling
+//   struct: how one dj_db_type is declared.
+struct dj_internal_mariadb_spelling
 {
-    enum d_db_type type;   // the type
+    enum dj_db_type type;   // the type
     const char*    sized;  // with a size, as a format taking it; NULL where
                            // the size is not read
     const char*    plain;  // without one
@@ -66,7 +66,7 @@ struct d_internal_mariadb_spelling
 //   table: mariadb_schema.h's mapping, but for DECIMAL's two numbers. A key
 // column cannot be LONGTEXT or LONGBLOB without a prefix length, so it takes
 // a bounded type instead.
-static const struct d_internal_mariadb_spelling
+static const struct dj_internal_mariadb_spelling
 d_internal_mariadb_spellings[] =
 {
     { D_DB_TYPE_BOOLEAN,        NULL, " BOOLEAN", NULL },
@@ -105,8 +105,8 @@ static const char* const d_internal_mariadb_binary_types[] =
 d_internal_mariadb_listed
   Whether a string is one of a list's.
 */
-static bool
-d_internal_mariadb_listed(
+static
+bool d_internal_mariadb_listed(
     const char*        _text,
     const char* const* _list,
     size_t             _count
@@ -132,17 +132,17 @@ d_internal_mariadb_listed(
  * @param[in]     _keyed   whether the column is a key -- primary or unique --
  *                         which an unbounded type cannot be.
  * @return as d_internal_db_format; BAD for NONE without type_sql, or a type
- *         outside enum d_db_type, which leaves the buffer to the caller.
+ *         outside enum dj_db_type, which leaves the buffer to the caller.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_mariadb_append_type(
-    struct d_mariadb*            _db,
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _column,
+    struct dj_mariadb*            _db,
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _column,
     bool                         _keyed
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_mariadb_quoting(_db);
     const size_t count = sizeof(d_internal_mariadb_spellings) /
                          sizeof(d_internal_mariadb_spellings[0]);
@@ -165,7 +165,7 @@ d_internal_mariadb_append_type(
 
     for (size_t i = 0u; i < count; ++i)
     {
-        const struct d_internal_mariadb_spelling* const spelling =
+        const struct dj_internal_mariadb_spelling* const spelling =
             &d_internal_mariadb_spellings[i];
 
         // the type's row: sized, plain, or as a key
@@ -207,15 +207,15 @@ d_internal_mariadb_append_type(
  * a default of its own. The DEFAULT is the caller's SQL, unparenthesized,
  * which MySQL before 8.0.13 requires of a literal.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_mariadb_append_column(
-    struct d_mariadb*            _db,
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _column,
+    struct dj_mariadb*            _db,
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _column,
     unsigned                     _written
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_mariadb_quoting(_db);
     const unsigned                     flags   = _column->flags;
     const unsigned                     written = (flags & _written);
@@ -233,7 +233,7 @@ d_internal_mariadb_append_column(
                               (_column->type == D_DB_TYPE_TIMESTAMP) &&
                               (!keyed) );
     const char* dflt      = _column->default_sql;
-    enum d_internal_db_format_status status =
+    enum dj_internal_db_format_status status =
         d_internal_db_format(_sql, &quoting, "%I", _column->name);
 
     // the type, then the attributes, in the order the grammar lists them
@@ -274,11 +274,11 @@ d_internal_mariadb_append_column(
  *         sole primary key, or key places that are not sound
  *         (d_internal_db_key_places_ok).
  */
-static bool
-d_internal_mariadb_count_keys(
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    size_t*                   _keys
+static
+bool d_internal_mariadb_count_keys(
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    size_t*                    _keys
 )
 {
     size_t keys           = 0u;
@@ -323,19 +323,19 @@ d_internal_mariadb_count_keys(
  * A sole key is written on its column, beside its AUTO_INCREMENT; a
  * composite one as a table constraint after the columns.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_mariadb_build_definition(
-    struct d_mariadb*            _db,
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _columns,
+    struct dj_mariadb*            _db,
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _columns,
     size_t                       _count
 )
 {
-    const struct d_internal_db_quoting quoting   =
+    const struct dj_internal_db_quoting quoting   =
         d_internal_mariadb_quoting(_db);
     size_t                             keys      = 0u;
     const char*                        separator = ", PRIMARY KEY (";
-    enum d_internal_db_format_status   status    =
+    enum dj_internal_db_format_status   status    =
         (d_internal_mariadb_count_keys(_columns, _count, &keys))
             ? D_INTERNAL_DB_FORMAT_OK
             : D_INTERNAL_DB_FORMAT_BAD;
@@ -386,13 +386,13 @@ d_internal_mariadb_create_table
   CREATE TABLE once the definition is settled, in the layer's character set
 unless the build left that to the server.
 */
-static int
-d_internal_mariadb_create_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _definition,
-    unsigned          _flags
+static
+int d_internal_mariadb_create_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _definition,
+    unsigned           _flags
 )
 {
     const char* const charset = D_INTERNAL_MARIADB_CHARSET;
@@ -434,9 +434,9 @@ d_internal_mariadb_create_table(
  */
 static int
 d_internal_mariadb_settled(
-    struct d_mariadb*                     _db,
-    enum d_internal_mariadb_object        _object,
-    const struct d_internal_mariadb_path* _path,
+    struct dj_mariadb*                     _db,
+    enum dj_internal_mariadb_object        _object,
+    const struct dj_internal_mariadb_path* _path,
     bool                                  _wanted,
     bool*                                 _done
 )
@@ -457,12 +457,12 @@ to be SQL. An expression is SQL, marked DEFAULT_GENERATED from 8.0.13, as
 CURRENT_TIMESTAMP is, which before that is recognised by its words; numbers
 and bit values are SQL, and from 8.0 a binary value too, in hexadecimal.
 */
-static bool
-d_internal_mariadb_needs_quotes(
-    const struct d_mariadb* _db,
-    const char*             _extra,
-    const char*             _type,
-    const char*             _value
+static
+bool d_internal_mariadb_needs_quotes(
+    const struct dj_mariadb* _db,
+    const char*              _extra,
+    const char*              _type,
+    const char*              _value
 )
 {
     const size_t sql_types    = sizeof(d_internal_mariadb_sql_types) /
@@ -513,12 +513,12 @@ d_internal_mariadb_needs_quotes(
  * MariaDB writes NULL as the word, and every other default as SQL; MySQL
  * writes NULL as NULL, and needs d_internal_mariadb_needs_quotes.
  */
-static bool
-d_internal_mariadb_default_sql(
-    struct d_mariadb*            _db,
-    MYSQL_ROW                    _row,
-    struct d_internal_db_buffer* _quoted,
-    const char**                 _sql
+static
+bool d_internal_mariadb_default_sql(
+    struct dj_mariadb*            _db,
+    MYSQL_ROW                     _row,
+    struct dj_internal_db_buffer* _quoted,
+    const char**                  _sql
 )
 {
     const char* const value   = _row[2];
@@ -563,14 +563,14 @@ generated where EXTRA says so (VIRTUAL, STORED or, on older MariaDB,
 PERSISTENT GENERATED, never MySQL's DEFAULT_GENERATED); the builder
 copies every string, so the quoted default's buffer goes at once.
 */
-static int
-d_internal_mariadb_add_column_info(
-    struct d_mariadb*             _db,
-    struct d_internal_db_columns* _columns,
-    MYSQL_ROW                     _row
+static
+int d_internal_mariadb_add_column_info(
+    struct dj_mariadb*             _db,
+    struct dj_internal_db_columns* _columns,
+    MYSQL_ROW                      _row
 )
 {
-    struct d_internal_db_buffer quoted   = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer quoted   = { NULL, 0u, 0u };
     const char*                 dflt     = NULL;
     int64_t                     position = 0;
 
@@ -582,7 +582,7 @@ d_internal_mariadb_add_column_info(
         return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
     }
 
-    const struct d_db_column_info info =
+    const struct dj_db_column_info info =
     {
         _row[0],
         _row[1],
@@ -620,18 +620,18 @@ d_internal_mariadb_add_column_info(
  * The derived table's own conditions name the table, which keeps MariaDB
  * from reading every table's indexes to join them.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_mariadb_key_sql(
-    struct d_mariadb*            _db,
-    struct d_internal_db_buffer* _sql,
+    struct dj_mariadb*            _db,
+    struct dj_internal_db_buffer* _sql,
     const char*                  _schema,
     const char*                  _table,
     bool                         _exact
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_mariadb_quoting(_db);
-    enum d_internal_db_format_status   status  = d_internal_db_format(
+    enum dj_internal_db_format_status   status  = d_internal_db_format(
         _sql,
         &quoting,
         " LEFT JOIN (SELECT COLUMN_NAME, SEQ_IN_INDEX "
@@ -677,18 +677,18 @@ d_internal_mariadb_key_sql(
  * DATA_TYPE and the column's place in the primary key, in the table's
  * order.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_mariadb_columns_sql(
-    struct d_mariadb*            _db,
-    struct d_internal_db_buffer* _sql,
+    struct dj_mariadb*            _db,
+    struct dj_internal_db_buffer* _sql,
     const char*                  _schema,
     const char*                  _table,
     bool                         _exact
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_mariadb_quoting(_db);
-    enum d_internal_db_format_status   status  = d_internal_db_format(
+    enum dj_internal_db_format_status   status  = d_internal_db_format(
         _sql,
         &quoting,
         "SELECT c.COLUMN_NAME, c.COLUMN_TYPE, c.COLUMN_DEFAULT, "
@@ -736,14 +736,14 @@ d_internal_mariadb_read_columns
   Each row into the builder, then the list; a table with no rows is no
 table. The rows are freed whatever happens.
 */
-static int
-d_internal_mariadb_read_columns(
-    struct d_mariadb*        _db,
-    MYSQL_RES*               _rows,
-    struct d_db_column_list* _columns
+static
+int d_internal_mariadb_read_columns(
+    struct dj_mariadb*        _db,
+    MYSQL_RES*                _rows,
+    struct dj_db_column_list* _columns
 )
 {
-    struct d_internal_db_columns builder =
+    struct dj_internal_db_columns builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u
     };
@@ -791,11 +791,10 @@ d_internal_mariadb_read_columns(
 d_mariadb_has_table
   The _s form, with every failure read as "no".
 */
-bool
-d_mariadb_has_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+bool d_mariadb_has_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     bool exists = false;
@@ -810,15 +809,14 @@ d_mariadb_has_table_s
 none on MySQL, and MariaDB's, which have one from 11.2, are left out to
 match.
 */
-int
-d_mariadb_has_table_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    bool*             _exists
+int d_mariadb_has_table_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    bool*              _exists
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, NULL, _table };
+    const struct dj_internal_mariadb_path path = { _schema, NULL, _table };
 
     return d_internal_mariadb_has(_db,
                                   D_INTERNAL_MARIADB_TABLE,
@@ -835,17 +833,16 @@ d_mariadb_create_table_sql's. Six parameters, one past the guide's tripwire:
 the columns and their count are one argument, split in two as C passes an
 array.
 */
-int
-d_mariadb_create_table(
-    struct d_mariadb*         _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    unsigned                  _flags
+int d_mariadb_create_table(
+    struct dj_mariadb*         _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
 )
 {
-    struct d_internal_db_buffer definition = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer definition = { NULL, 0u, 0u };
 
     // parameter validation
     if ( (!_db)                                   ||
@@ -884,13 +881,12 @@ d_mariadb_create_table(
 d_mariadb_create_table_sql
   The caller's definition, between the parentheses as written.
 */
-int
-d_mariadb_create_table_sql(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _definition,
-    unsigned          _flags
+int d_mariadb_create_table_sql(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _definition,
+    unsigned           _flags
 )
 {
     // parameter validation
@@ -914,12 +910,11 @@ d_mariadb_create_table_sql(
 d_mariadb_drop_table
   The servers' own DROP TABLE [IF EXISTS].
 */
-int
-d_mariadb_drop_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    unsigned          _flags
+int d_mariadb_drop_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    unsigned           _flags
 )
 {
     // parameter validation
@@ -947,12 +942,11 @@ d_mariadb_drop_table(
 d_mariadb_rename_table
   RENAME TABLE, the new name in the same database.
 */
-int
-d_mariadb_rename_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _new_name
+int d_mariadb_rename_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _new_name
 )
 {
     // parameter validation
@@ -979,11 +973,10 @@ d_mariadb_rename_table(
 d_mariadb_truncate_table
   TRUNCATE TABLE, which the servers carry out as a drop and re-create.
 */
-int
-d_mariadb_truncate_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+int d_mariadb_truncate_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     // parameter validation
@@ -1005,12 +998,11 @@ d_mariadb_truncate_table(
 d_mariadb_count_rows
   SELECT COUNT(*), which InnoDB answers exactly, by reading an index.
 */
-int
-d_mariadb_count_rows(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    int64_t*          _count
+int d_mariadb_count_rows(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    int64_t*           _count
 )
 {
     // parameter validation
@@ -1035,14 +1027,13 @@ d_mariadb_count_rows(
 d_mariadb_list_tables
   The base tables' rows of information_schema.TABLES.
 */
-int
-d_mariadb_list_tables(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_mariadb_list_tables(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, NULL, NULL };
+    const struct dj_internal_mariadb_path path = { _schema, NULL, NULL };
 
     return d_internal_mariadb_list(_db,
                                    D_INTERNAL_MARIADB_TABLE,
@@ -1060,12 +1051,11 @@ d_mariadb_list_tables(
 d_mariadb_has_column
   The _s form, with every failure read as "no".
 */
-bool
-d_mariadb_has_column(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column
+bool d_mariadb_has_column(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column
 )
 {
     bool exists = false;
@@ -1082,16 +1072,15 @@ d_mariadb_has_column(
 d_mariadb_has_column_s
   A row of information_schema.COLUMNS, which a view's columns have too.
 */
-int
-d_mariadb_has_column_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column,
-    bool*             _exists
+int d_mariadb_has_column_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column,
+    bool*              _exists
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, _table, _column };
+    const struct dj_internal_mariadb_path path = { _schema, _table, _column };
 
     return d_internal_mariadb_has(_db,
                                   D_INTERNAL_MARIADB_COLUMN,
@@ -1106,15 +1095,14 @@ d_mariadb_add_column
   The column's definition, judged as a table's sole column would be, after
 ADD COLUMN.
 */
-int
-d_mariadb_add_column(
-    struct d_mariadb*         _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_mariadb_add_column(
+    struct dj_mariadb*         _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
-    struct d_internal_db_buffer definition = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer definition = { NULL, 0u, 0u };
     size_t                      keys       = 0u;
 
     // parameter validation
@@ -1155,12 +1143,11 @@ d_mariadb_add_column(
 d_mariadb_add_column_sql
   The caller's definition, after ADD COLUMN as written.
 */
-int
-d_mariadb_add_column_sql(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _definition
+int d_mariadb_add_column_sql(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _definition
 )
 {
     // parameter validation
@@ -1185,15 +1172,14 @@ d_mariadb_modify_column
   The column's definition, judged as add_column judges one, after MODIFY
 COLUMN, with no key constraint written: the column keeps the keys it has.
 */
-int
-d_mariadb_modify_column(
-    struct d_mariadb*         _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_mariadb_modify_column(
+    struct dj_mariadb*         _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
-    struct d_internal_db_buffer definition = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer definition = { NULL, 0u, 0u };
     size_t                      keys       = 0u;
 
     // parameter validation
@@ -1232,13 +1218,12 @@ d_mariadb_rename_column
 offer, would need the column's whole definition restated, which the layer
 does not attempt.
 */
-int
-d_mariadb_rename_column(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column,
-    const char*       _new_name
+int d_mariadb_rename_column(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column,
+    const char*        _new_name
 )
 {
     // parameter validation
@@ -1270,12 +1255,11 @@ d_mariadb_rename_column(
 d_mariadb_drop_column
   DROP COLUMN, which the servers refuse for a table's last column.
 */
-int
-d_mariadb_drop_column(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column
+int d_mariadb_drop_column(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column
 )
 {
     // parameter validation
@@ -1302,15 +1286,14 @@ d_mariadb_list_columns
   The server's case rule decides whether the table's name is matched by its
 bytes; then the query, and its rows read into the list.
 */
-int
-d_mariadb_list_columns(
-    struct d_mariadb*        _db,
-    const char*              _schema,
-    const char*              _table,
-    struct d_db_column_list* _columns
+int d_mariadb_list_columns(
+    struct dj_mariadb*        _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
 )
 {
-    struct d_internal_db_buffer sql  = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer sql  = { NULL, 0u, 0u };
     MYSQL_RES*                  rows = NULL;
     int                         rule = 0;
 
@@ -1357,12 +1340,11 @@ d_mariadb_list_columns(
 d_mariadb_has_index
   The _s form, with every failure read as "no".
 */
-bool
-d_mariadb_has_index(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table
+bool d_mariadb_has_index(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table
 )
 {
     bool exists = false;
@@ -1379,16 +1361,15 @@ d_mariadb_has_index(
 d_mariadb_has_index_s
   A row of information_schema.STATISTICS.
 */
-int
-d_mariadb_has_index_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table,
-    bool*             _exists
+int d_mariadb_has_index_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table,
+    bool*              _exists
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, _table, _index };
+    const struct dj_internal_mariadb_path path = { _schema, _table, _index };
 
     return d_internal_mariadb_has(_db,
                                   D_INTERNAL_MARIADB_INDEX,
@@ -1404,17 +1385,16 @@ d_mariadb_create_index
 asked first. Six parameters, one past the guide's tripwire: each is a
 separate part of the statement, and a struct would only rename them.
 */
-int
-d_mariadb_create_index(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table,
-    const char*       _columns,
-    unsigned          _flags
+int d_mariadb_create_index(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table,
+    const char*        _columns,
+    unsigned           _flags
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, _table, _index };
+    const struct dj_internal_mariadb_path path = { _schema, _table, _index };
     bool                                 done = false;
 
     // parameter validation
@@ -1468,16 +1448,15 @@ d_mariadb_drop_index
   MariaDB has DROP INDEX IF EXISTS (10.1.4); MySQL has not, and is asked
 first.
 */
-int
-d_mariadb_drop_index(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table,
-    unsigned          _flags
+int d_mariadb_drop_index(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table,
+    unsigned           _flags
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, _table, _index };
+    const struct dj_internal_mariadb_path path = { _schema, _table, _index };
     bool                                 done = false;
 
     // parameter validation
@@ -1528,15 +1507,14 @@ d_mariadb_drop_index(
 d_mariadb_list_indexes
   STATISTICS' first key part of each index but PRIMARY.
 */
-int
-d_mariadb_list_indexes(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_mariadb_list_indexes(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, _table, NULL };
+    const struct dj_internal_mariadb_path path = { _schema, _table, NULL };
 
     return d_internal_mariadb_list(_db,
                                    D_INTERNAL_MARIADB_INDEX,
@@ -1554,11 +1532,10 @@ d_mariadb_list_indexes(
 d_mariadb_has_view
   The _s form, with every failure read as "no".
 */
-bool
-d_mariadb_has_view(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view
+bool d_mariadb_has_view(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view
 )
 {
     bool exists = false;
@@ -1571,15 +1548,14 @@ d_mariadb_has_view(
 d_mariadb_has_view_s
   A view's row in information_schema.TABLES.
 */
-int
-d_mariadb_has_view_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view,
-    bool*             _exists
+int d_mariadb_has_view_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view,
+    bool*              _exists
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, NULL, _view };
+    const struct dj_internal_mariadb_path path = { _schema, NULL, _view };
 
     return d_internal_mariadb_has(_db,
                                   D_INTERNAL_MARIADB_VIEW,
@@ -1595,16 +1571,15 @@ d_mariadb_create_view
 satisfies too; MySQL has not, and is asked after any table or view of the
 name, to match.
 */
-int
-d_mariadb_create_view(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view,
-    const char*       _select,
-    unsigned          _flags
+int d_mariadb_create_view(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view,
+    const char*        _select,
+    unsigned           _flags
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, NULL, _view };
+    const struct dj_internal_mariadb_path path = { _schema, NULL, _view };
     bool                                 done = false;
 
     // parameter validation
@@ -1654,12 +1629,11 @@ d_mariadb_create_view(
 d_mariadb_drop_view
   The servers' own DROP VIEW [IF EXISTS].
 */
-int
-d_mariadb_drop_view(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view,
-    unsigned          _flags
+int d_mariadb_drop_view(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view,
+    unsigned           _flags
 )
 {
     // parameter validation
@@ -1687,14 +1661,13 @@ d_mariadb_drop_view(
 d_mariadb_list_views
   The views' rows of information_schema.TABLES.
 */
-int
-d_mariadb_list_views(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_mariadb_list_views(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, NULL, NULL };
+    const struct dj_internal_mariadb_path path = { _schema, NULL, NULL };
 
     return d_internal_mariadb_list(_db,
                                    D_INTERNAL_MARIADB_VIEW,
@@ -1712,11 +1685,10 @@ d_mariadb_list_views(
 d_mariadb_has_trigger
   The _s form, with every failure read as "no".
 */
-bool
-d_mariadb_has_trigger(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger
+bool d_mariadb_has_trigger(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger
 )
 {
     bool exists = false;
@@ -1729,15 +1701,14 @@ d_mariadb_has_trigger(
 d_mariadb_has_trigger_s
   A row of information_schema.TRIGGERS.
 */
-int
-d_mariadb_has_trigger_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger,
-    bool*             _exists
+int d_mariadb_has_trigger_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger,
+    bool*              _exists
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, NULL, _trigger };
+    const struct dj_internal_mariadb_path path = { _schema, NULL, _trigger };
 
     return d_internal_mariadb_has(_db,
                                   D_INTERNAL_MARIADB_TRIGGER,
@@ -1752,16 +1723,15 @@ d_mariadb_create_trigger
   CREATE TRIGGER IF NOT EXISTS is MariaDB's from 10.1.4 and MySQL's from
 8.0.29; an older MySQL is asked first.
 */
-int
-d_mariadb_create_trigger(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger,
-    const char*       _definition,
-    unsigned          _flags
+int d_mariadb_create_trigger(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger,
+    const char*        _definition,
+    unsigned           _flags
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, NULL, _trigger };
+    const struct dj_internal_mariadb_path path = { _schema, NULL, _trigger };
     bool                                 done = false;
 
     // parameter validation
@@ -1813,12 +1783,11 @@ d_mariadb_create_trigger(
 d_mariadb_drop_trigger
   The servers' own DROP TRIGGER [IF EXISTS].
 */
-int
-d_mariadb_drop_trigger(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger,
-    unsigned          _flags
+int d_mariadb_drop_trigger(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger,
+    unsigned           _flags
 )
 {
     // parameter validation
@@ -1847,15 +1816,14 @@ d_mariadb_list_triggers
   information_schema.TRIGGERS, narrowed to one table's by
 EVENT_OBJECT_TABLE when a table is named.
 */
-int
-d_mariadb_list_triggers(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_mariadb_list_triggers(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_mariadb_path path = { _schema, _table, NULL };
+    const struct dj_internal_mariadb_path path = { _schema, _table, NULL };
 
     return d_internal_mariadb_list(_db,
                                    D_INTERNAL_MARIADB_TRIGGER,
@@ -1876,11 +1844,10 @@ d_mariadb_list_triggers(
 d_mariadb_has_table
   Without a client, false.
 */
-bool
-d_mariadb_has_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+bool d_mariadb_has_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     (void)_db;
@@ -1895,12 +1862,11 @@ d_mariadb_has_table_s
   Without a client there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_mariadb_has_table_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    bool*             _exists
+int d_mariadb_has_table_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    bool*              _exists
 )
 {
     (void)_db;
@@ -1920,14 +1886,13 @@ d_mariadb_has_table_s(
 d_mariadb_create_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_create_table(
-    struct d_mariadb*         _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    unsigned                  _flags
+int d_mariadb_create_table(
+    struct dj_mariadb*         _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
 )
 {
     (void)_db;
@@ -1944,13 +1909,12 @@ d_mariadb_create_table(
 d_mariadb_create_table_sql
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_create_table_sql(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _definition,
-    unsigned          _flags
+int d_mariadb_create_table_sql(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _definition,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -1966,12 +1930,11 @@ d_mariadb_create_table_sql(
 d_mariadb_drop_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_drop_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    unsigned          _flags
+int d_mariadb_drop_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -1986,12 +1949,11 @@ d_mariadb_drop_table(
 d_mariadb_rename_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_rename_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _new_name
+int d_mariadb_rename_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _new_name
 )
 {
     (void)_db;
@@ -2006,11 +1968,10 @@ d_mariadb_rename_table(
 d_mariadb_truncate_table
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_truncate_table(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table
+int d_mariadb_truncate_table(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table
 )
 {
     (void)_db;
@@ -2024,12 +1985,11 @@ d_mariadb_truncate_table(
 d_mariadb_count_rows
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_count_rows(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    int64_t*          _count
+int d_mariadb_count_rows(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    int64_t*           _count
 )
 {
     (void)_db;
@@ -2044,11 +2004,10 @@ d_mariadb_count_rows(
 d_mariadb_list_tables
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_list_tables(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_mariadb_list_tables(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2062,12 +2021,11 @@ d_mariadb_list_tables(
 d_mariadb_has_column
   Without a client, false.
 */
-bool
-d_mariadb_has_column(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column
+bool d_mariadb_has_column(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column
 )
 {
     (void)_db;
@@ -2083,13 +2041,12 @@ d_mariadb_has_column_s
   Without a client there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_mariadb_has_column_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column,
-    bool*             _exists
+int d_mariadb_has_column_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column,
+    bool*              _exists
 )
 {
     (void)_db;
@@ -2110,12 +2067,11 @@ d_mariadb_has_column_s(
 d_mariadb_add_column
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_add_column(
-    struct d_mariadb*         _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_mariadb_add_column(
+    struct dj_mariadb*         _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
     (void)_db;
@@ -2130,12 +2086,11 @@ d_mariadb_add_column(
 d_mariadb_add_column_sql
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_add_column_sql(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _definition
+int d_mariadb_add_column_sql(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _definition
 )
 {
     (void)_db;
@@ -2150,12 +2105,11 @@ d_mariadb_add_column_sql(
 d_mariadb_modify_column
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_modify_column(
-    struct d_mariadb*         _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_mariadb_modify_column(
+    struct dj_mariadb*         _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
     (void)_db;
@@ -2170,13 +2124,12 @@ d_mariadb_modify_column(
 d_mariadb_rename_column
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_rename_column(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column,
-    const char*       _new_name
+int d_mariadb_rename_column(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column,
+    const char*        _new_name
 )
 {
     (void)_db;
@@ -2192,12 +2145,11 @@ d_mariadb_rename_column(
 d_mariadb_drop_column
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_drop_column(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _table,
-    const char*       _column
+int d_mariadb_drop_column(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _table,
+    const char*        _column
 )
 {
     (void)_db;
@@ -2212,12 +2164,11 @@ d_mariadb_drop_column(
 d_mariadb_list_columns
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_list_columns(
-    struct d_mariadb*        _db,
-    const char*              _schema,
-    const char*              _table,
-    struct d_db_column_list* _columns
+int d_mariadb_list_columns(
+    struct dj_mariadb*        _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
 )
 {
     (void)_db;
@@ -2232,12 +2183,11 @@ d_mariadb_list_columns(
 d_mariadb_has_index
   Without a client, false.
 */
-bool
-d_mariadb_has_index(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table
+bool d_mariadb_has_index(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table
 )
 {
     (void)_db;
@@ -2253,13 +2203,12 @@ d_mariadb_has_index_s
   Without a client there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_mariadb_has_index_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table,
-    bool*             _exists
+int d_mariadb_has_index_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table,
+    bool*              _exists
 )
 {
     (void)_db;
@@ -2280,14 +2229,13 @@ d_mariadb_has_index_s(
 d_mariadb_create_index
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_create_index(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table,
-    const char*       _columns,
-    unsigned          _flags
+int d_mariadb_create_index(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table,
+    const char*        _columns,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -2304,13 +2252,12 @@ d_mariadb_create_index(
 d_mariadb_drop_index
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_drop_index(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _index,
-    const char*       _table,
-    unsigned          _flags
+int d_mariadb_drop_index(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _index,
+    const char*        _table,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -2326,12 +2273,11 @@ d_mariadb_drop_index(
 d_mariadb_list_indexes
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_list_indexes(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_mariadb_list_indexes(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2346,11 +2292,10 @@ d_mariadb_list_indexes(
 d_mariadb_has_view
   Without a client, false.
 */
-bool
-d_mariadb_has_view(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view
+bool d_mariadb_has_view(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view
 )
 {
     (void)_db;
@@ -2365,12 +2310,11 @@ d_mariadb_has_view_s
   Without a client there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_mariadb_has_view_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view,
-    bool*             _exists
+int d_mariadb_has_view_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view,
+    bool*              _exists
 )
 {
     (void)_db;
@@ -2390,13 +2334,12 @@ d_mariadb_has_view_s(
 d_mariadb_create_view
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_create_view(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view,
-    const char*       _select,
-    unsigned          _flags
+int d_mariadb_create_view(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view,
+    const char*        _select,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -2412,12 +2355,11 @@ d_mariadb_create_view(
 d_mariadb_drop_view
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_drop_view(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _view,
-    unsigned          _flags
+int d_mariadb_drop_view(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _view,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -2432,11 +2374,10 @@ d_mariadb_drop_view(
 d_mariadb_list_views
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_list_views(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_mariadb_list_views(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2450,11 +2391,10 @@ d_mariadb_list_views(
 d_mariadb_has_trigger
   Without a client, false.
 */
-bool
-d_mariadb_has_trigger(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger
+bool d_mariadb_has_trigger(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger
 )
 {
     (void)_db;
@@ -2469,12 +2409,11 @@ d_mariadb_has_trigger_s
   Without a client there is nothing to look in: D_DB_UNSUPPORTED, and the
 answer false, as a failure leaves it.
 */
-int
-d_mariadb_has_trigger_s(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger,
-    bool*             _exists
+int d_mariadb_has_trigger_s(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger,
+    bool*              _exists
 )
 {
     (void)_db;
@@ -2494,13 +2433,12 @@ d_mariadb_has_trigger_s(
 d_mariadb_create_trigger
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_create_trigger(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger,
-    const char*       _definition,
-    unsigned          _flags
+int d_mariadb_create_trigger(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger,
+    const char*        _definition,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -2516,12 +2454,11 @@ d_mariadb_create_trigger(
 d_mariadb_drop_trigger
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_drop_trigger(
-    struct d_mariadb* _db,
-    const char*       _schema,
-    const char*       _trigger,
-    unsigned          _flags
+int d_mariadb_drop_trigger(
+    struct dj_mariadb* _db,
+    const char*        _schema,
+    const char*        _trigger,
+    unsigned           _flags
 )
 {
     (void)_db;
@@ -2536,12 +2473,11 @@ d_mariadb_drop_trigger(
 d_mariadb_list_triggers
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_list_triggers(
-    struct d_mariadb*      _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_mariadb_list_triggers(
+    struct dj_mariadb*      _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;

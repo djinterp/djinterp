@@ -31,13 +31,9 @@ d_tests_dfile_run_all
 Return:
   pointer to root test object containing all test results, or NULL on failure.
 */
-struct d_test_object*
-d_tests_dfile_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_run_all(void)
 {
-    struct d_test_object* root;
+    struct dj_test_object* root;
     size_t                idx;
     size_t                total_tests;
 

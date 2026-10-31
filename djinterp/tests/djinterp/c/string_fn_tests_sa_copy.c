@@ -28,13 +28,9 @@ d_tests_sa_string_fn_strcpy_s
   - handles empty source string
   - preserves destination on error
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcpy_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcpy_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  dest[D_TEST_DSTRING_BUFFER_SIZE];
     char                  small_dest[D_TEST_DSTRING_SMALL_BUFFER];
     char                  exact_dest[6];  // exactly for "Hello" + null
@@ -140,13 +136,9 @@ d_tests_sa_string_fn_strncpy_s
   - handles zero count
   - handles count equal to buffer size
 */
-struct d_test_object*
-d_tests_sa_string_fn_strncpy_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strncpy_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  dest[D_TEST_DSTRING_BUFFER_SIZE];
     char                  small_dest[D_TEST_DSTRING_SMALL_BUFFER];
     int                   result;
@@ -247,13 +239,9 @@ d_tests_sa_string_fn_strcat_s
   - preserves original on error
   - handles exact-fit scenario
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcat_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcat_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  dest[D_TEST_DSTRING_BUFFER_SIZE];
     char                  small_dest[D_TEST_DSTRING_SMALL_BUFFER];
     char                  exact_dest[11];  // for "Hello" + "World" + null
@@ -350,13 +338,9 @@ d_tests_sa_string_fn_strncat_s
   - handles zero count
   - preserves termination
 */
-struct d_test_object*
-d_tests_sa_string_fn_strncat_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strncat_s(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  dest[D_TEST_DSTRING_BUFFER_SIZE];
     char                  small_dest[D_TEST_DSTRING_SMALL_BUFFER];
     int                   result;
@@ -442,13 +426,9 @@ d_tests_sa_string_fn_safe_copy_all
   - d_strcat_s
   - d_strncat_s
 */
-struct d_test_object*
-d_tests_sa_string_fn_safe_copy_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_safe_copy_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Safe String Copy Operations", 4);

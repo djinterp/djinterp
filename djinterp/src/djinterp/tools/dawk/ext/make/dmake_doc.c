@@ -38,17 +38,17 @@
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_make_doc
+// dj_make_doc
 //   struct: the file's path and make, its text and records, how many
 //   changes it has taken and where the last one was, and why the last
 //   change failed.
-struct d_make_doc
+struct dj_make_doc
 {
     char*               path;
-    enum d_make_dialect dialect;
+    enum dj_make_dialect dialect;
     char*               text;
     size_t              length;
-    struct d_make       records;
+    struct dj_make       records;
     size_t              changes;
     bool                changed;
     size_t              start;
@@ -58,16 +58,16 @@ struct d_make_doc
 };
 
 // 1.1.2
-// d_internal_candidate
+// dj_internal_candidate
 //   struct: a change tried: its text and records, where its splice is in
 //   the old text and the new, how far it moves bytes and lines after it, and
 //   the statements about it: those wholly before (`before` of them), and the
 //   first wholly after in the old and in the new.
-struct d_internal_candidate
+struct dj_internal_candidate
 {
     char*         text;
     size_t        length;
-    struct d_make records;
+    struct dj_make records;
     size_t        start;
     size_t        old_end;
     size_t        new_end;
@@ -83,13 +83,13 @@ struct d_internal_candidate
 //   struct: a change to a rule's words: the part, the word's index, how --
 //   1 inserted, -1 removed, 0 set -- the word written, and the splice that
 //   makes it, its text kept here.
-struct d_internal_words
+struct dj_internal_words
 {
-    enum d_make_part   part;
+    enum dj_make_part   part;
     size_t             word;
     int                how;
     const char*        written;
-    struct d_make_span splice;
+    struct dj_make_span splice;
     char               text[1024];
 };
 
@@ -117,8 +117,8 @@ struct d_internal_words
  * @post   The caller frees the copy.
  * @return the copy, or `NULL` when memory runs out.
  */
-static char*
-d_internal_copy(
+static
+char* d_internal_copy(
     const char* _text,
     size_t      _length
 )
@@ -149,10 +149,10 @@ d_internal_copy(
  * @param[out] _problem  where; may be `NULL`.
  * @param[in]  _why      what to write.
  */
-static void
-d_internal_tell(
-    struct d_make_problem* _problem,
-    const char*            _why
+static
+void d_internal_tell(
+    struct dj_make_problem* _problem,
+    const char*             _why
 )
 {
     // a problem asked for
@@ -175,16 +175,16 @@ d_internal_tell(
  * @param[out] _problem  receives why it does not read; may be `NULL`.
  * @return the document, or `NULL`.
  */
-static struct d_make_doc*
+static struct dj_make_doc*
 d_internal_new(
     const char*            _path,
     char*                  _text,
     size_t                 _length,
-    enum d_make_dialect    _dialect,
-    struct d_make_problem* _problem
+    enum dj_make_dialect    _dialect,
+    struct dj_make_problem* _problem
 )
 {
-    struct d_make_doc* const doc = calloc(1u, sizeof(*doc));
+    struct dj_make_doc* const doc = calloc(1u, sizeof(*doc));
     char* const              path = d_internal_copy(_path ? _path : "",
                                                     _path ? strlen(_path) : 0u);
 
@@ -222,11 +222,11 @@ d_internal_new(
 d_make_doc_read
   The file is read whole, then made a document.
 */
-struct d_make_doc*
+struct dj_make_doc*
 d_make_doc_read(
     const char*            _path,
-    enum d_make_dialect    _dialect,
-    struct d_make_problem* _problem
+    enum dj_make_dialect    _dialect,
+    struct dj_make_problem* _problem
 )
 {
     size_t      length = 0;
@@ -255,13 +255,13 @@ d_make_doc_read(
 d_make_doc_make
   The text is copied, so the caller's stays its own.
 */
-struct d_make_doc*
+struct dj_make_doc*
 d_make_doc_make(
     const char*            _path,
     const char*            _text,
     size_t                 _length,
-    enum d_make_dialect    _dialect,
-    struct d_make_problem* _problem
+    enum dj_make_dialect    _dialect,
+    struct dj_make_problem* _problem
 )
 {
     char* const text = d_internal_copy(_text ? _text : "",
@@ -284,9 +284,8 @@ d_make_doc_make(
 d_make_doc_free
   The records first, as they borrow the text.
 */
-void
-d_make_doc_free(
-    struct d_make_doc* _doc
+void d_make_doc_free(
+    struct dj_make_doc* _doc
 )
 {
     // nothing to free
@@ -308,9 +307,8 @@ d_make_doc_free(
 d_make_doc_records
   The records as of the last change kept.
 */
-const struct d_make*
-d_make_doc_records(
-    const struct d_make_doc* _doc
+const struct dj_make* d_make_doc_records(
+    const struct dj_make_doc* _doc
 )
 {
     return (_doc) ? &_doc->records : NULL;
@@ -321,9 +319,8 @@ d_make_doc_records(
 d_make_doc_path
   The path it was read from or made for.
 */
-const char*
-d_make_doc_path(
-    const struct d_make_doc* _doc
+const char* d_make_doc_path(
+    const struct dj_make_doc* _doc
 )
 {
     return (_doc) ? _doc->path : "";
@@ -334,9 +331,8 @@ d_make_doc_path(
 d_make_doc_changes
   A count of the changes kept.
 */
-size_t
-d_make_doc_changes(
-    const struct d_make_doc* _doc
+size_t d_make_doc_changes(
+    const struct dj_make_doc* _doc
 )
 {
     return (_doc) ? _doc->changes : 0u;
@@ -347,12 +343,11 @@ d_make_doc_changes(
 d_make_doc_changed
   Where the last change kept fell, as d_internal_commit recorded it.
 */
-bool
-d_make_doc_changed(
-    const struct d_make_doc* _doc,
-    size_t*                  _out_start,
-    size_t*                  _out_old_end,
-    size_t*                  _out_new_end
+bool d_make_doc_changed(
+    const struct dj_make_doc* _doc,
+    size_t*                   _out_start,
+    size_t*                   _out_old_end,
+    size_t*                   _out_new_end
 )
 {
     // no change yet
@@ -374,9 +369,8 @@ d_make_doc_changed(
 d_make_doc_problem
   Why the last change failed, "" when it did not.
 */
-const char*
-d_make_doc_problem(
-    const struct d_make_doc* _doc
+const char* d_make_doc_problem(
+    const struct dj_make_doc* _doc
 )
 {
     return (_doc) ? _doc->problem : "";
@@ -387,10 +381,9 @@ d_make_doc_problem(
 d_make_doc_text
   The text, as of the last change kept.
 */
-const char*
-d_make_doc_text(
-    const struct d_make_doc* _doc,
-    size_t*                  _out_length
+const char* d_make_doc_text(
+    const struct dj_make_doc* _doc,
+    size_t*                   _out_length
 )
 {
     // its length, when asked
@@ -415,10 +408,10 @@ d_make_doc_text(
  * @param[in]     _why  why.
  * @return `false`.
  */
-static bool
-d_internal_fail(
-    struct d_make_doc* _doc,
-    const char*        _why
+static
+bool d_internal_fail(
+    struct dj_make_doc* _doc,
+    const char*         _why
 )
 {
     (void)snprintf(_doc->problem, sizeof(_doc->problem), "%s", _why);
@@ -434,8 +427,8 @@ d_internal_fail(
  * @param[in] _shift  how far the splice moves what is after it.
  * @return the place moved.
  */
-static size_t
-d_internal_moved(
+static
+size_t d_internal_moved(
     size_t    _at,
     ptrdiff_t _shift
 )
@@ -451,10 +444,10 @@ d_internal_moved(
  * @param[in]  _statement  the statement.
  * @param[out] _out        receives its D_INTERNAL_SPANS parts.
  */
-static void
-d_internal_spans(
-    const struct d_make_statement* _statement,
-    struct d_make_span*            _out
+static
+void d_internal_spans(
+    const struct dj_make_statement* _statement,
+    struct dj_make_span*            _out
 )
 {
     _out[0]  = _statement->modifiers;
@@ -482,7 +475,7 @@ d_internal_spans(
  */
 static size_t
 d_internal_part_index(
-    enum d_make_part _part
+    enum dj_make_part _part
 )
 {
     static const size_t indices[] = { 7u, 5u, 6u, 10u, 2u, 8u };
@@ -501,11 +494,11 @@ d_internal_part_index(
  * @param[in] _new        the index in the new.
  * @return `true` if the new index is where the old one must be.
  */
-static bool
-d_internal_mapped(
-    const struct d_internal_candidate* _candidate,
-    size_t                             _old,
-    size_t                             _new
+static
+bool d_internal_mapped(
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _old,
+    size_t                              _new
 )
 {
     // a table of where the statement stood: nowhere, before, after, within
@@ -541,12 +534,12 @@ d_internal_mapped(
  * @return `true` if they agree, or the part meets the splice and so is the
  *         change's to judge.
  */
-static bool
-d_internal_same_span(
-    struct d_make_span                 _a,
-    struct d_make_span                 _b,
-    const struct d_internal_candidate* _candidate,
-    bool                               _whole
+static
+bool d_internal_same_span(
+    struct dj_make_span                 _a,
+    struct dj_make_span                 _b,
+    const struct dj_internal_candidate* _candidate,
+    bool                                _whole
 )
 {
     // a table of where the part stands: after, before, within
@@ -582,18 +575,18 @@ d_internal_same_span(
  * A statement the splice meets is compared part by part, each by where it
  * stands, the part the change names left out.
  */
-static bool
-d_internal_same_statement(
-    const struct d_make_doc*           _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t                             _left,
-    size_t                             _right,
-    size_t                             _skip
+static
+bool d_internal_same_statement(
+    const struct dj_make_doc*           _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _left,
+    size_t                              _right,
+    size_t                              _skip
 )
 {
-    const struct d_make_statement* const a     =
+    const struct dj_make_statement* const a     =
         &_doc->records.statements[_left];
-    const struct d_make_statement* const b     =
+    const struct dj_make_statement* const b     =
         &_candidate->records.statements[_right];
     const bool                           whole = (_left >=
                                                   _candidate->old_after);
@@ -601,8 +594,8 @@ d_internal_same_statement(
                                                   _candidate->old_end)
                                                      ? _candidate->lines
                                                      : 0;
-    struct d_make_span                   x[D_INTERNAL_SPANS];
-    struct d_make_span                   y[D_INTERNAL_SPANS];
+    struct dj_make_span                   x[D_INTERNAL_SPANS];
+    struct dj_make_span                   y[D_INTERNAL_SPANS];
 
     const bool                           apart = ( (whole) ||
                                                    (a->end <=
@@ -620,8 +613,8 @@ d_internal_same_statement(
         return false;
     }
 
-    const struct d_make_span outer_a = { a->start, a->end };
-    const struct d_make_span outer_b = { b->start, b->end };
+    const struct dj_make_span outer_a = { a->start, a->end };
+    const struct dj_make_span outer_b = { b->start, b->end };
 
     // its place
     if (!d_internal_same_span(outer_a, outer_b, _candidate, whole))
@@ -662,14 +655,14 @@ d_internal_same_statement(
  * proves them where they must be. So a statement the change cut at its
  * start, which the new holds where the splice is, is the change's.
  */
-static bool
-d_internal_place(
-    const struct d_make_doc*     _doc,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_place(
+    const struct dj_make_doc*     _doc,
+    struct dj_internal_candidate* _candidate
 )
 {
-    const struct d_make* const old   = &_doc->records;
-    const struct d_make* const fresh = &_candidate->records;
+    const struct dj_make* const old   = &_doc->records;
+    const struct dj_make* const fresh = &_candidate->records;
     size_t                     left  = 0;
 
     // those wholly before the splice, in the old
@@ -708,11 +701,11 @@ d_internal_place(
  * @param[out] _out_line   receives the line of a statement changed.
  * @return `true` if all are as they were.
  */
-static bool
-d_internal_outside_statements(
-    const struct d_make_doc*           _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t*                            _out_line
+static
+bool d_internal_outside_statements(
+    const struct dj_make_doc*           _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t*                             _out_line
 )
 {
     const size_t after = _doc->records.statement_count -
@@ -757,15 +750,15 @@ d_internal_outside_statements(
  * Long as the two lists are walked side by side through the three places,
  * each a short loop.
  */
-static bool
-d_internal_outside_comments(
-    const struct d_make_doc*           _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t*                            _out_line
+static
+bool d_internal_outside_comments(
+    const struct dj_make_doc*           _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t*                             _out_line
 )
 {
-    const struct d_make* const old       = &_doc->records;
-    const struct d_make* const fresh     = &_candidate->records;
+    const struct dj_make* const old       = &_doc->records;
+    const struct dj_make* const fresh     = &_candidate->records;
     size_t                     left      = 0;
     size_t                     old_after = 0;
     size_t                     new_after = 0;
@@ -813,8 +806,8 @@ d_internal_outside_comments(
         }
 
         const bool                         after = (at >= old_after);
-        const struct d_make_comment* const a     = &old->comments[at];
-        const struct d_make_comment* const b     =
+        const struct dj_make_comment* const a     = &old->comments[at];
+        const struct dj_make_comment* const b     =
             &fresh->comments[(after) ? (at - old_after + new_after) : at];
         const ptrdiff_t                    shift = (after) ? _candidate->shift
                                                            : 0;
@@ -849,8 +842,8 @@ d_internal_outside_comments(
  * @param[in] _length  its length.
  * @return how many.
  */
-static ptrdiff_t
-d_internal_count_lines(
+static
+ptrdiff_t d_internal_count_lines(
     const char* _text,
     size_t      _length
 )
@@ -872,9 +865,9 @@ d_internal_count_lines(
  *
  * @param[in,out] _candidate  the candidate, left empty.
  */
-static void
-d_internal_discard(
-    struct d_internal_candidate* _candidate
+static
+void d_internal_discard(
+    struct dj_internal_candidate* _candidate
 )
 {
     d_make_release(&_candidate->records);
@@ -899,13 +892,13 @@ d_internal_discard(
  * In a file whose first line ends in CR LF, each line feed of the text not
  * already after a CR gets one.
  */
-static bool
-d_internal_build(
-    struct d_make_doc*           _doc,
-    size_t                       _start,
-    size_t                       _end,
-    const char*                  _text,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_build(
+    struct dj_make_doc*           _doc,
+    size_t                        _start,
+    size_t                        _end,
+    const char*                   _text,
+    struct dj_internal_candidate* _candidate
 )
 {
     const size_t length = strlen(_text);
@@ -983,16 +976,16 @@ d_internal_build(
  * Long as the trial's four steps, each a few lines: the splice's bounds,
  * the text built, the text read, and the records outside compared.
  */
-static bool
-d_internal_try(
-    struct d_make_doc*           _doc,
-    size_t                       _start,
-    size_t                       _end,
-    const char*                  _text,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_try(
+    struct dj_make_doc*           _doc,
+    size_t                        _start,
+    size_t                        _end,
+    const char*                   _text,
+    struct dj_internal_candidate* _candidate
 )
 {
-    struct d_make_problem why;
+    struct dj_make_problem why;
     size_t                line = 0;
 
     memset(_candidate, 0, sizeof(*_candidate));
@@ -1062,10 +1055,10 @@ d_internal_try(
  * @param[in,out] _candidate  the candidate, emptied.
  * @return `true`.
  */
-static bool
-d_internal_commit(
-    struct d_make_doc*           _doc,
-    struct d_internal_candidate* _candidate
+static
+bool d_internal_commit(
+    struct dj_make_doc*           _doc,
+    struct dj_internal_candidate* _candidate
 )
 {
     d_make_release(&_doc->records);
@@ -1095,11 +1088,11 @@ d_internal_commit(
  * @param[in]     _why        why.
  * @return `false`.
  */
-static bool
-d_internal_refuse(
-    struct d_make_doc*           _doc,
-    struct d_internal_candidate* _candidate,
-    const char*                  _why
+static
+bool d_internal_refuse(
+    struct dj_make_doc*           _doc,
+    struct dj_internal_candidate* _candidate,
+    const char*                   _why
 )
 {
     d_internal_discard(_candidate);
@@ -1112,16 +1105,15 @@ d_internal_refuse(
 d_make_doc_splice
   A splice is tried as any change is; nothing more is asked of it.
 */
-bool
-d_make_doc_splice(
-    struct d_make_doc* _doc,
-    size_t             _start,
-    size_t             _end,
-    const char*        _text,
-    size_t             _length
+bool d_make_doc_splice(
+    struct dj_make_doc* _doc,
+    size_t              _start,
+    size_t              _end,
+    const char*         _text,
+    size_t              _length
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // parameter validation first
     if (!_doc)
@@ -1162,10 +1154,10 @@ d_make_doc_splice(
  * @param[in]     _statement  its index.
  * @return the statement, or `NULL`, the document's problem saying why.
  */
-static const struct d_make_statement*
-d_internal_statement(
-    struct d_make_doc* _doc,
-    size_t             _statement
+static
+const struct dj_make_statement* d_internal_statement(
+    struct dj_make_doc* _doc,
+    size_t              _statement
 )
 {
     // one the file has
@@ -1191,11 +1183,11 @@ d_internal_statement(
  */
 static bool
 d_internal_has_part(
-    const struct d_make_statement* _statement,
-    enum d_make_part               _part
+    const struct dj_make_statement* _statement,
+    enum dj_make_part               _part
 )
 {
-    const enum d_make_kind kind = _statement->kind;
+    const enum dj_make_kind kind = _statement->kind;
 
     // a table of the parts, by the kinds that have them
     if (_part == D_MAKE_PART_TEXT)
@@ -1238,11 +1230,11 @@ d_internal_has_part(
  * @param[in] _statement  the old statement's index.
  * @return `true` if so.
  */
-static bool
-d_internal_one_for_one(
-    const struct d_make_doc*           _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t                             _statement
+static
+bool d_internal_one_for_one(
+    const struct dj_make_doc*           _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _statement
 )
 {
     return ( (_candidate->before == _statement) &&
@@ -1262,14 +1254,14 @@ d_internal_one_for_one(
  * @param[in] _index      the part's index, as d_internal_spans lists it.
  * @return `true` if the part is the splice's new text, exactly.
  */
-static bool
-d_internal_holds_change(
-    const struct d_internal_candidate* _candidate,
-    size_t                             _statement,
-    size_t                             _index
+static
+bool d_internal_holds_change(
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _statement,
+    size_t                              _index
 )
 {
-    struct d_make_span spans[D_INTERNAL_SPANS];
+    struct dj_make_span spans[D_INTERNAL_SPANS];
 
     d_internal_spans(&_candidate->records.statements[_statement], spans);
 
@@ -1289,9 +1281,9 @@ each a few lines.
 */
 bool
 d_make_doc_set(
-    struct d_make_doc* _doc,
+    struct dj_make_doc* _doc,
     size_t             _statement,
-    enum d_make_part   _part,
+    enum dj_make_part   _part,
     const char*        _text
 )
 {
@@ -1303,7 +1295,7 @@ d_make_doc_set(
         return (_doc) ? d_internal_fail(_doc, "no such part") : false;
     }
 
-    const struct d_make_statement* const statement =
+    const struct dj_make_statement* const statement =
         d_internal_statement(_doc, _statement);
 
     // a statement the file has, with the part
@@ -1315,7 +1307,7 @@ d_make_doc_set(
                            : false;
     }
 
-    struct d_make_span spans[D_INTERNAL_SPANS];
+    struct dj_make_span spans[D_INTERNAL_SPANS];
     const size_t       index  = d_internal_part_index(_part);
     const size_t       length = strlen(_text);
     const bool         ended  = ( (_part != D_MAKE_PART_BODY) ||
@@ -1334,7 +1326,7 @@ d_make_doc_set(
     text[length + (ended ? 0u : 1u)] = '\0';
     d_internal_spans(statement, spans);
 
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
     const bool                  tried = d_internal_try(_doc,
                                                        spans[index].start,
                                                        spans[index].end,
@@ -1381,13 +1373,13 @@ d_make_doc_set(
  */
 static bool
 d_internal_word_part(
-    struct d_make_doc*  _doc,
+    struct dj_make_doc*  _doc,
     size_t              _statement,
-    enum d_make_part    _part,
-    struct d_make_span* _out
+    enum dj_make_part    _part,
+    struct dj_make_span* _out
 )
 {
-    const struct d_make_statement* const statement =
+    const struct dj_make_statement* const statement =
         d_internal_statement(_doc, _statement);
 
     // a statement the file has
@@ -1431,13 +1423,13 @@ d_internal_word_part(
  * @param[in] _part       the part.
  * @return its place.
  */
-static struct d_make_span
+static struct dj_make_span
 d_internal_part_of(
-    const struct d_make_statement* _statement,
-    enum d_make_part               _part
+    const struct dj_make_statement* _statement,
+    enum dj_make_part               _part
 )
 {
-    struct d_make_span spans[D_INTERNAL_SPANS];
+    struct dj_make_span spans[D_INTERNAL_SPANS];
 
     d_internal_spans(_statement, spans);
 
@@ -1458,16 +1450,16 @@ d_internal_part_of(
  *
  * Long as the two lists of words are read, then walked side by side.
  */
-static bool
-d_internal_words_back(
-    const struct d_make_doc*           _doc,
-    const struct d_internal_candidate* _candidate,
-    size_t                             _statement,
-    const struct d_internal_words*     _change
+static
+bool d_internal_words_back(
+    const struct dj_make_doc*           _doc,
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _statement,
+    const struct dj_internal_words*     _change
 )
 {
-    struct d_make_span old_words[D_INTERNAL_WORDS];
-    struct d_make_span new_words[D_INTERNAL_WORDS];
+    struct dj_make_span old_words[D_INTERNAL_WORDS];
+    struct dj_make_span new_words[D_INTERNAL_WORDS];
     const size_t       old_count = d_make_words(
                                        &_doc->records,
                                        d_internal_part_of(
@@ -1497,7 +1489,7 @@ d_internal_words_back(
     // each new word: the one written, or the old one it stands for
     for (size_t at = 0; at < new_count; at++)
     {
-        const struct d_make_span word = new_words[at];
+        const struct dj_make_span word = new_words[at];
         const size_t             size = word.end - word.start;
         const bool               own  = ( (_change->how >= 0) &&
                                           (at == _change->word) );
@@ -1540,14 +1532,14 @@ d_internal_words_back(
  * @param[in]     _change     what was asked, and its splice.
  * @return `true` if the change was kept.
  */
-static bool
-d_internal_word_change(
-    struct d_make_doc*             _doc,
-    size_t                         _statement,
-    const struct d_internal_words* _change
+static
+bool d_internal_word_change(
+    struct dj_make_doc*             _doc,
+    size_t                          _statement,
+    const struct dj_internal_words* _change
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // refused outside the change
     if (!d_internal_try(_doc, _change->splice.start, _change->splice.end,
@@ -1577,16 +1569,16 @@ d_make_doc_set_word
 */
 bool
 d_make_doc_set_word(
-    struct d_make_doc* _doc,
+    struct dj_make_doc* _doc,
     size_t             _statement,
-    enum d_make_part   _part,
+    enum dj_make_part   _part,
     size_t             _word,
     const char*        _text
 )
 {
-    struct d_make_span      part;
-    struct d_make_span      words[D_INTERNAL_WORDS];
-    struct d_internal_words change;
+    struct dj_make_span      part;
+    struct dj_make_span      words[D_INTERNAL_WORDS];
+    struct dj_internal_words change;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1624,8 +1616,8 @@ d_make_doc_set_word(
  * @param[in] _byte  the byte.
  * @return `true` for a space or a tab.
  */
-static bool
-d_internal_is_space(
+static
+bool d_internal_is_space(
     char _byte
 )
 {
@@ -1651,13 +1643,13 @@ d_internal_is_space(
  * among words, after the last, into an empty part, and as the first
  * order-only word, its `|` written before it.
  */
-static bool
-d_internal_word_place(
-    struct d_make_doc*             _doc,
-    const struct d_make_statement* _rule,
-    const struct d_make_span*      _words,
-    size_t                         _count,
-    struct d_internal_words*       _change
+static
+bool d_internal_word_place(
+    struct dj_make_doc*             _doc,
+    const struct dj_make_statement* _rule,
+    const struct dj_make_span*      _words,
+    size_t                          _count,
+    struct dj_internal_words*       _change
 )
 {
     const char* const file  = _doc->text;
@@ -1717,16 +1709,16 @@ the place d_internal_word_place finds.
 */
 bool
 d_make_doc_insert_word(
-    struct d_make_doc* _doc,
+    struct dj_make_doc* _doc,
     size_t             _statement,
-    enum d_make_part   _part,
+    enum dj_make_part   _part,
     size_t             _place,
     const char*        _text
 )
 {
-    struct d_make_span      part;
-    struct d_make_span      words[D_INTERNAL_WORDS];
-    struct d_internal_words change;
+    struct dj_make_span      part;
+    struct dj_make_span      words[D_INTERNAL_WORDS];
+    struct dj_internal_words change;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1774,15 +1766,15 @@ only prerequisite the blanks before it.
 */
 bool
 d_make_doc_remove_word(
-    struct d_make_doc* _doc,
+    struct dj_make_doc* _doc,
     size_t             _statement,
-    enum d_make_part   _part,
+    enum dj_make_part   _part,
     size_t             _word
 )
 {
-    struct d_make_span      part;
-    struct d_make_span      words[D_INTERNAL_WORDS];
-    struct d_internal_words change;
+    struct dj_make_span      part;
+    struct dj_make_span      words[D_INTERNAL_WORDS];
+    struct dj_internal_words change;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1791,7 +1783,7 @@ d_make_doc_remove_word(
         return false;
     }
 
-    const struct d_make_statement* const rule  =
+    const struct dj_make_statement* const rule  =
         &_doc->records.statements[_statement];
     const size_t                         count = d_make_words(
                                                      &_doc->records,
@@ -1854,10 +1846,10 @@ d_make_doc_remove_word(
  * @param[in] _rule  the rule's index.
  * @return how many.
  */
-static size_t
-d_internal_commands(
-    const struct d_make_doc* _doc,
-    size_t                   _rule
+static
+size_t d_internal_commands(
+    const struct dj_make_doc* _doc,
+    size_t                    _rule
 )
 {
     size_t count = 0;
@@ -1884,12 +1876,11 @@ kept when one recipe line more stands under the rule, at the place asked,
 its command the text.
   Long as the place, the prefix, the text and the check, each a few lines.
 */
-bool
-d_make_doc_add_command(
-    struct d_make_doc* _doc,
-    size_t             _rule,
-    size_t             _place,
-    const char*        _text
+bool d_make_doc_add_command(
+    struct dj_make_doc* _doc,
+    size_t              _rule,
+    size_t              _place,
+    const char*         _text
 )
 {
     // parameter validation first
@@ -1899,7 +1890,7 @@ d_make_doc_add_command(
         return false;
     }
 
-    const struct d_make_statement* const rule =
+    const struct dj_make_statement* const rule =
         d_internal_statement(_doc, _rule);
 
     // a rule the file has
@@ -1918,7 +1909,7 @@ d_make_doc_add_command(
         return d_internal_fail(_doc, "the rule has no such place");
     }
 
-    const struct d_make_statement* const first =
+    const struct dj_make_statement* const first =
         (count > 0u) ? &_doc->records.statements[_rule + 1u] : NULL;
     const size_t                         where =
         (_place < count) ? _doc->records.statements[_rule + 1u + _place].start
@@ -1966,7 +1957,7 @@ d_make_doc_add_command(
     text[at++] = '\n';
     text[at]   = '\0';
 
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
     const size_t                index = _rule + 1u + _place;
     const bool                  tried = d_internal_try(_doc, where, where,
                                                        text, &candidate);
@@ -1979,7 +1970,7 @@ d_make_doc_add_command(
         return false;
     }
 
-    const struct d_make_statement* const added =
+    const struct dj_make_statement* const added =
         (index < candidate.records.statement_count)
             ? &candidate.records.statements[index]
             : NULL;
@@ -2007,10 +1998,9 @@ d_make_doc_remove_command
   The recipe line goes with its line; the candidate is kept when it alone
 went.
 */
-bool
-d_make_doc_remove_command(
-    struct d_make_doc* _doc,
-    size_t             _statement
+bool d_make_doc_remove_command(
+    struct dj_make_doc* _doc,
+    size_t              _statement
 )
 {
     // parameter validation first
@@ -2019,7 +2009,7 @@ d_make_doc_remove_command(
         return false;
     }
 
-    const struct d_make_statement* const command =
+    const struct dj_make_statement* const command =
         d_internal_statement(_doc, _statement);
 
     // a recipe line the file has
@@ -2031,7 +2021,7 @@ d_make_doc_remove_command(
                          : false;
     }
 
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // refused outside the change
     if (!d_internal_try(_doc, command->start, command->end, "", &candidate))
@@ -2067,11 +2057,11 @@ d_make_doc_remove_command(
  * @post   The caller frees the text.
  * @return the text, or `NULL` when memory runs out.
  */
-static char*
-d_internal_lines_text(
-    const struct d_make_doc* _doc,
-    size_t                   _where,
-    const char*              _text
+static
+char* d_internal_lines_text(
+    const struct dj_make_doc* _doc,
+    size_t                    _where,
+    const char*               _text
 )
 {
     const size_t length = strlen(_text);
@@ -2115,14 +2105,14 @@ d_internal_lines_text(
  * the orphan mark is left out, and a recipe's line read alone may be read in
  * place as any statement that line makes in its context.
  */
-static bool
-d_internal_as_alone(
-    const struct d_make_doc*           _doc,
-    const struct d_internal_candidate* _candidate,
-    const char*                        _text
+static
+bool d_internal_as_alone(
+    const struct dj_make_doc*           _doc,
+    const struct dj_internal_candidate* _candidate,
+    const char*                         _text
 )
 {
-    struct d_make      alone;
+    struct dj_make      alone;
     const size_t       length = strlen(_text);
     const size_t       offset = _candidate->start;
     bool               same   = d_make_read(&alone, _text, length,
@@ -2135,8 +2125,8 @@ d_internal_as_alone(
     // each statement written, against its reading alone
     for (size_t at = 0; (same) && (at < alone.statement_count); at++)
     {
-        const struct d_make_statement* const a = &alone.statements[at];
-        const struct d_make_statement* const b =
+        const struct dj_make_statement* const a = &alone.statements[at];
+        const struct dj_make_statement* const b =
             &_candidate->records.statements[_candidate->before + at];
 
         same = ( (a->start + offset == b->start) &&
@@ -2159,13 +2149,13 @@ d_internal_as_alone(
  * @param[in] _before  the statement's index, or the count to append.
  * @return the place.
  */
-static size_t
-d_internal_lead(
-    const struct d_make_doc* _doc,
-    size_t                   _before
+static
+size_t d_internal_lead(
+    const struct dj_make_doc* _doc,
+    size_t                    _before
 )
 {
-    const struct d_make* const records = &_doc->records;
+    const struct dj_make* const records = &_doc->records;
 
     // after the last
     if (_before >= records->statement_count)
@@ -2181,7 +2171,7 @@ d_internal_lead(
     // each comment line just above, from the nearest
     for (size_t index = records->comment_count; index > 0u; index--)
     {
-        const struct d_make_comment* const comment =
+        const struct dj_make_comment* const comment =
             &records->comments[index - 1u];
         const size_t                       gap     = at - comment->end;
         size_t                             line    = comment->start;
@@ -2231,13 +2221,13 @@ d_internal_lead(
  * @param[in]     _count   how many they replace.
  * @return `true` if the change was kept.
  */
-static bool
-d_internal_statements_change(
-    struct d_make_doc* _doc,
-    struct d_make_span _splice,
-    const char*        _text,
-    size_t             _first,
-    size_t             _count
+static
+bool d_internal_statements_change(
+    struct dj_make_doc* _doc,
+    struct dj_make_span _splice,
+    const char*         _text,
+    size_t              _first,
+    size_t              _count
 )
 {
     char* const text = d_internal_lines_text(_doc, _splice.start, _text);
@@ -2248,7 +2238,7 @@ d_internal_statements_change(
         return d_internal_fail(_doc, "out of memory");
     }
 
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
     const bool                  tried = d_internal_try(_doc,
                                                        _splice.start,
                                                        _splice.end,
@@ -2281,11 +2271,10 @@ d_make_doc_insert_statements
   The text goes above the comment lines that lead into the statement, so a
 statement and its comment stay together.
 */
-bool
-d_make_doc_insert_statements(
-    struct d_make_doc* _doc,
-    size_t             _before,
-    const char*        _text
+bool d_make_doc_insert_statements(
+    struct dj_make_doc* _doc,
+    size_t              _before,
+    const char*         _text
 )
 {
     // parameter validation first
@@ -2298,7 +2287,7 @@ d_make_doc_insert_statements(
     }
 
     const size_t             where  = d_internal_lead(_doc, _before);
-    const struct d_make_span splice = { where, where };
+    const struct dj_make_span splice = { where, where };
 
     return d_internal_statements_change(_doc, splice, _text, _before, 0u);
 }
@@ -2309,11 +2298,10 @@ d_make_doc_set_statement
   The statement's whole lines are spliced; the text must read as one
 statement of the old one's kind.
 */
-bool
-d_make_doc_set_statement(
-    struct d_make_doc* _doc,
-    size_t             _statement,
-    const char*        _text
+bool d_make_doc_set_statement(
+    struct dj_make_doc* _doc,
+    size_t              _statement,
+    const char*         _text
 )
 {
     // parameter validation first
@@ -2323,7 +2311,7 @@ d_make_doc_set_statement(
         return false;
     }
 
-    const struct d_make_statement* const statement =
+    const struct dj_make_statement* const statement =
         d_internal_statement(_doc, _statement);
 
     // a statement the file has
@@ -2332,9 +2320,9 @@ d_make_doc_set_statement(
         return false;
     }
 
-    const enum d_make_kind   kind   = statement->kind;
-    const struct d_make_span splice = { statement->start, statement->end };
-    struct d_make            alone;
+    const enum dj_make_kind   kind   = statement->kind;
+    const struct dj_make_span splice = { statement->start, statement->end };
+    struct dj_make            alone;
     const bool               one    = ( (d_make_read(&alone, _text,
                                                      strlen(_text),
                                                      _doc->dialect, NULL)) &&
@@ -2361,11 +2349,10 @@ d_make_doc_remove_statements
   The statements' whole lines go, and the comments among them; the
 candidate is kept when they alone went.
 */
-bool
-d_make_doc_remove_statements(
-    struct d_make_doc* _doc,
-    size_t             _first,
-    size_t             _last
+bool d_make_doc_remove_statements(
+    struct dj_make_doc* _doc,
+    size_t              _first,
+    size_t              _last
 )
 {
     // parameter validation first
@@ -2378,7 +2365,7 @@ d_make_doc_remove_statements(
                       : false;
     }
 
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // refused outside the change
     if (!d_internal_try(_doc,
@@ -2413,11 +2400,11 @@ d_make_doc_save
   The file on disk is read first: one that holds the text already is left
 as it is, its time untouched.
 */
-enum d_make_saved
+enum dj_make_saved
 d_make_doc_save(
-    struct d_make_doc*     _doc,
+    struct dj_make_doc*     _doc,
     const char*            _path,
-    struct d_make_problem* _problem
+    struct dj_make_problem* _problem
 )
 {
     char why[256];

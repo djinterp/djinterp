@@ -46,8 +46,8 @@ TABLE OF CONTENTS
     4.  The order rows are shown in
 */
 
-#ifndef BITWISEDOM_RESOLVE_HPP
-#define BITWISEDOM_RESOLVE_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_RESOLVE_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_RESOLVE_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -59,7 +59,7 @@ TABLE OF CONTENTS
 #include <string>   // std::string
 #include <vector>   // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./sheet.hpp"  // sheet, row, rgba
 
@@ -160,7 +160,9 @@ struct resolution
 
     // find
     //   accessor: the resolved row for an id, or nullptr.
-    D_NODISCARD const resolved_row* find(int _id) const
+    D_NODISCARD const resolved_row* find(
+        int _id
+    ) const
     {
         const auto found = index.find(_id);
 
@@ -185,7 +187,9 @@ struct resolution
  *         usage of each bit. A row in error has no value and is named in
  *         an issue of severity error.
  */
-D_NODISCARD resolution resolve(const sheet& _sheet);
+D_NODISCARD resolution resolve(
+    const sheet& _sheet
+);
 
 /**
  * @brief Resolves a sheet as a window shows it.
@@ -197,8 +201,10 @@ D_NODISCARD resolution resolve(const sheet& _sheet);
  *                    saturation and brightness.
  * @return as resolve(_sheet).
  */
-D_NODISCARD resolution resolve(const sheet&           _sheet,
-                               const colour_settings& _look);
+D_NODISCARD resolution resolve(
+    const sheet&           _sheet,
+    const colour_settings& _look
+);
 
 // 2.2    Names
 //------------------------------------------------------------------------------
@@ -214,10 +220,12 @@ D_NODISCARD resolution resolve(const sheet&           _sheet,
  * @param[out] _error       why there is no row, when there is none.
  * @return the row's id, or 0.
  */
-D_NODISCARD int find_name(const resolution&  _resolution,
-                          const std::string& _name,
-                          int                _from,
-                          std::string&       _error);
+D_NODISCARD int find_name(
+    const resolution&  _resolution,
+    const std::string& _name,
+    int                _from,
+    std::string&       _error
+);
 
 // 2.3    A wide sheet's C
 //------------------------------------------------------------------------------
@@ -247,11 +255,17 @@ struct c_constant
  * @param[in] _row  the resolved row.
  * @return the integer, or `ok == false` and why.
  */
-D_NODISCARD c_constant wide_constant(const resolved_row& _row);
+D_NODISCARD c_constant wide_constant(
+    const resolved_row& _row
+);
 
 // identifiers -- C's rules, and the forms C and C++ reserve
-D_NODISCARD bool is_identifier(const std::string& _name);
-D_NODISCARD bool is_reserved(const std::string& _name);
+D_NODISCARD bool is_identifier(
+    const std::string& _name
+);
+D_NODISCARD bool is_reserved(
+    const std::string& _name
+);
 
 /**
  * @brief A macro row's body as C: each {NAME} replaced by that symbol's
@@ -267,9 +281,11 @@ D_NODISCARD bool is_reserved(const std::string& _name);
  *                          may be nullptr.
  * @return the body.
  */
-D_NODISCARD std::string macro_body(const resolution&         _resolution,
-                                   const row&                _macro,
-                                   std::vector<std::string>* _unknown);
+D_NODISCARD std::string macro_body(
+    const resolution&         _resolution,
+    const row&                _macro,
+    std::vector<std::string>* _unknown
+);
 
 
 // 2.4    The order rows are shown in
@@ -291,11 +307,12 @@ D_NODISCARD std::string macro_body(const resolution&         _resolution,
  */
 D_NODISCARD std::vector<std::size_t> display_order(
     const sheet&      _sheet,
-    const resolution& _resolution);
+    const resolution& _resolution
+);
 
 }  // namespace bitwisedom
 
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_RESOLVE_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_RESOLVE_HPP

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -20,10 +20,8 @@ d_tests_sa_buffer_common_validate_params
   - positive element_size returns true
   - various valid sizes return true
 */
-bool
-d_tests_sa_buffer_common_validate_params
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_validate_params(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -69,10 +67,8 @@ d_tests_sa_buffer_common_validate_capacity
   - zero capacity returns false
   - positive capacity returns true
 */
-bool
-d_tests_sa_buffer_common_validate_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_validate_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -114,10 +110,8 @@ d_tests_sa_buffer_common_validate_index
   - zero count always returns false
   - first and last valid indices
 */
-bool
-d_tests_sa_buffer_common_validate_index
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_validate_index(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -167,10 +161,8 @@ d_tests_sa_buffer_common_validate_index
 d_tests_sa_buffer_common_validation_all
   Aggregation function that runs all validation tests.
 */
-bool
-d_tests_sa_buffer_common_validation_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_validation_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

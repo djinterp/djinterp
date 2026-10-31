@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -17,16 +17,14 @@ d_tests_sa_event_run_all
   Module-level aggregation function that runs all event tests.
   Executes tests for all categories:
   - Constants and types
-  - d_event constructors
-  - d_event_listener constructors
+  - dj_event constructors
+  - dj_event_listener constructors
   - Comparison functions
   - Search functions
   - Destructors
 */
-bool
-d_tests_sa_event_run_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_run_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

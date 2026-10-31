@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_handler_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -22,9 +22,8 @@ static int d_tests_sa_event_handler_adv_fire_count = 0;
 
 // d_tests_sa_event_handler_adv_cb
 //   helper: callback that increments the fire counter.
-D_STATIC void
-d_tests_sa_event_handler_adv_cb
-(
+D_STATIC
+void d_tests_sa_event_handler_adv_cb(
     void* _context
 )
 {
@@ -42,16 +41,14 @@ d_tests_sa_event_handler_integration
   - 3 listeners bound, 3 events queued, 3 processed with 3 callbacks
   - Disabled listener is skipped during processing
 */
-bool
-d_tests_sa_event_handler_integration
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_integration(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* listeners[3];
-    struct d_event*          event;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* listeners[3];
+    struct dj_event*          event;
     size_t                   processed;
     int                      i;
 
@@ -93,8 +90,8 @@ d_tests_sa_event_handler_integration
         d_tests_sa_event_handler_adv_fire_count = 0;
 
         {
-            struct d_event* e1;
-            struct d_event* e2;
+            struct dj_event* e1;
+            struct dj_event* e2;
 
             e1 = d_event_new(100);
             e2 = d_event_new(200);
@@ -134,16 +131,14 @@ d_tests_sa_event_handler_stress
   - All 50 events processed
   - All 50 callbacks fired
 */
-bool
-d_tests_sa_event_handler_stress
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_stress(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* listeners[50];
-    struct d_event*          event;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* listeners[50];
+    struct dj_event*          event;
     size_t                   processed;
     int                      i;
 
@@ -198,15 +193,13 @@ d_tests_sa_event_handler_edge_empty_queue
   - process_events on empty queue returns 0
   - fire_event with no matching listener returns 0
 */
-bool
-d_tests_sa_event_handler_edge_empty_queue
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_edge_empty_queue(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_event_handler* handler;
-    struct d_event*         event;
+    struct dj_event_handler* handler;
+    struct dj_event*         event;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -241,15 +234,13 @@ d_tests_sa_event_handler_edge_idempotent
   - Double disable keeps enabled_count at 0
   - Double enable keeps enabled_count at 1
 */
-bool
-d_tests_sa_event_handler_edge_idempotent
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_edge_idempotent(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_handler*  handler;
-    struct d_event_listener* lis;
+    struct dj_event_handler*  handler;
+    struct dj_event_listener* lis;
 
     result  = true;
     handler = d_event_handler_new(10, 10);
@@ -294,10 +285,8 @@ d_tests_sa_event_handler_edge_idempotent
 d_tests_sa_event_handler_advanced_all
   Runs all integration, stress, and edge case tests.
 */
-bool
-d_tests_sa_event_handler_advanced_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_handler_advanced_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

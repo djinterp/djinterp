@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,10 +19,8 @@ d_tests_sa_buffer_common_clear
   - NULL count does not crash
   - count is set to zero
 */
-bool
-d_tests_sa_buffer_common_clear
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_clear(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -58,10 +56,8 @@ d_tests_sa_buffer_common_is_empty
   - zero count returns true
   - non-zero count returns false
 */
-bool
-d_tests_sa_buffer_common_is_empty
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_is_empty(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -94,10 +90,8 @@ d_tests_sa_buffer_common_is_full
   - count == capacity returns true
   - count > capacity returns true
 */
-bool
-d_tests_sa_buffer_common_is_full
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_is_full(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -138,10 +132,8 @@ d_tests_sa_buffer_common_utilization
   - half-full returns approximately 0.5
   - full returns 1.0
 */
-bool
-d_tests_sa_buffer_common_utilization
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_utilization(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -188,10 +180,8 @@ d_tests_sa_buffer_common_utilization
 d_tests_sa_buffer_common_state_all
   Aggregation function that runs all state query tests.
 */
-bool
-d_tests_sa_buffer_common_state_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_state_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

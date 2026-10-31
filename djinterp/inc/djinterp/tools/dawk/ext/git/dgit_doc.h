@@ -39,8 +39,8 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Documents
-         1.  d_git_doc
-         2.  d_git_saved
+         1.  dj_git_doc
+         2.  dj_git_saved
 2.  OPERATIONS
     ----------
     1.  Documents
@@ -58,7 +58,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>      // bool
 #include <stddef.h>       // size_t
 // djinterp
-#include "./dgit_text.h"  // d_git_text, d_git_text_kind, d_git_text_state
+#include "./dgit_text.h"  // dj_git_text, dj_git_text_kind, dj_git_text_state
 
 
 //==============================================================================
@@ -69,15 +69,15 @@ TABLE OF CONTENTS
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_git_doc
+// dj_git_doc
 //   struct: one file's text, its records, and why the last change failed.
 //   Layout is private.
-struct d_git_doc;
+struct dj_git_doc;
 
 // 1.1.2
-// d_git_saved
+// dj_git_saved
 //   enum: what saving did.
-enum d_git_saved
+enum dj_git_saved
 {
     D_GIT_SAVE_FAILED = 0,
     D_GIT_SAVE_UNCHANGED,   // the file there holds the text already
@@ -104,10 +104,12 @@ enum d_git_saved
  * @return the document; `NULL` when the file cannot be read, its kind is
  *         none git reads, or memory ran out.
  */
-struct d_git_doc*        d_git_doc_read(const char*          _path,
-                                        enum d_git_text_kind _kind,
-                                        char*                _problem,
-                                        size_t               _capacity);
+struct dj_git_doc* d_git_doc_read(
+    const char*           _path,
+    enum dj_git_text_kind _kind,
+    char*                 _problem,
+    size_t                _capacity
+);
 /**
  * @brief Makes a document of a text not yet on disk.
  *
@@ -122,25 +124,43 @@ struct d_git_doc*        d_git_doc_read(const char*          _path,
  * @return the document; `NULL` for a kind git reads none of, or when
  *         memory ran out.
  */
-struct d_git_doc*        d_git_doc_make(const char*          _path,
-                                        enum d_git_text_kind _kind,
-                                        const char*          _text,
-                                        size_t               _length,
-                                        char*                _problem,
-                                        size_t               _capacity);
-void                     d_git_doc_free(struct d_git_doc* _doc);
+struct dj_git_doc* d_git_doc_make(
+    const char*           _path,
+    enum dj_git_text_kind _kind,
+    const char*           _text,
+    size_t                _length,
+    char*                 _problem,
+    size_t                _capacity
+);
+void d_git_doc_free(
+    struct dj_git_doc* _doc
+);
 // the document's records, path, kind, and changes kept; whether its text
 // differs from the one it was made from; why the last change failed, ""
 // when it did not; and its text, `_out_length` bytes, which may be NULL.
 // The records and text are the document's until its next change.
-const struct d_git_text* d_git_doc_records(const struct d_git_doc* _doc);
-const char*              d_git_doc_path(const struct d_git_doc* _doc);
-enum d_git_text_kind     d_git_doc_kind(const struct d_git_doc* _doc);
-size_t                   d_git_doc_changes(const struct d_git_doc* _doc);
-bool                     d_git_doc_changed(const struct d_git_doc* _doc);
-const char*              d_git_doc_problem(const struct d_git_doc* _doc);
-const char*              d_git_doc_text(const struct d_git_doc* _doc,
-                                        size_t*                 _out_length);
+const struct dj_git_text* d_git_doc_records(
+    const struct dj_git_doc* _doc
+);
+const char* d_git_doc_path(
+    const struct dj_git_doc* _doc
+);
+enum dj_git_text_kind d_git_doc_kind(
+    const struct dj_git_doc* _doc
+);
+size_t d_git_doc_changes(
+    const struct dj_git_doc* _doc
+);
+bool d_git_doc_changed(
+    const struct dj_git_doc* _doc
+);
+const char* d_git_doc_problem(
+    const struct dj_git_doc* _doc
+);
+const char* d_git_doc_text(
+    const struct dj_git_doc* _doc,
+    size_t*                  _out_length
+);
 
 // 2.2    Changes
 //------------------------------------------------------------------------------
@@ -158,11 +178,13 @@ const char*              d_git_doc_text(const struct d_git_doc* _doc,
  * @return `true` if the change was kept; `false`, the document as it was
  *         and d_git_doc_problem saying why, otherwise.
  */
-bool                     d_git_doc_splice(struct d_git_doc* _doc,
-                                          size_t            _start,
-                                          size_t            _end,
-                                          const char*       _text,
-                                          size_t            _length);
+bool d_git_doc_splice(
+    struct dj_git_doc* _doc,
+    size_t             _start,
+    size_t             _end,
+    const char*        _text,
+    size_t             _length
+);
 
 // 2.3    Lines
 //------------------------------------------------------------------------------
@@ -173,14 +195,20 @@ bool                     d_git_doc_splice(struct d_git_doc* _doc,
 // last for the line count -- and d_git_doc_set_line replaces a line's text,
 // each giving the index of the line it made, D_GIT_TEXT_NONE when refused;
 // d_git_doc_remove_line takes a line and its ending away.
-size_t                   d_git_doc_insert_line(struct d_git_doc* _doc,
-                                               size_t            _before,
-                                               const char*       _text);
-size_t                   d_git_doc_set_line(struct d_git_doc* _doc,
-                                            size_t            _line,
-                                            const char*       _text);
-bool                     d_git_doc_remove_line(struct d_git_doc* _doc,
-                                               size_t            _line);
+size_t d_git_doc_insert_line(
+    struct dj_git_doc* _doc,
+    size_t             _before,
+    const char*        _text
+);
+size_t d_git_doc_set_line(
+    struct dj_git_doc* _doc,
+    size_t             _line,
+    const char*        _text
+);
+bool d_git_doc_remove_line(
+    struct dj_git_doc* _doc,
+    size_t             _line
+);
 
 // 2.4    Attributes
 //------------------------------------------------------------------------------
@@ -190,14 +218,18 @@ bool                     d_git_doc_remove_line(struct d_git_doc* _doc,
 // d_git_doc_remove_state takes every state of the name off the line, the
 // blank before each with it. Each is kept as d_git_doc_splice keeps a
 // change, and invalidates the records on success.
-bool                     d_git_doc_set_state(struct d_git_doc*     _doc,
-                                             size_t                _pattern,
-                                             const char*           _name,
-                                             enum d_git_text_state _state,
-                                             const char*           _value);
-bool                     d_git_doc_remove_state(struct d_git_doc* _doc,
-                                                size_t            _pattern,
-                                                const char*       _name);
+bool d_git_doc_set_state(
+    struct dj_git_doc*     _doc,
+    size_t                 _pattern,
+    const char*            _name,
+    enum dj_git_text_state _state,
+    const char*            _value
+);
+bool d_git_doc_remove_state(
+    struct dj_git_doc* _doc,
+    size_t             _pattern,
+    const char*        _name
+);
 
 // 2.5    Configuration
 //------------------------------------------------------------------------------
@@ -211,30 +243,44 @@ bool                     d_git_doc_remove_state(struct d_git_doc* _doc,
 // d_git_doc_unset takes a key's entry away -- every one with `_all`, else
 // refused for several -- as git config --unset and --unset-all; and
 // d_git_doc_remove_entry takes one entry away.
-bool                     d_git_doc_set(struct d_git_doc* _doc,
-                                       const char*       _key,
-                                       const char*       _value);
-bool                     d_git_doc_add(struct d_git_doc* _doc,
-                                       const char*       _key,
-                                       const char*       _value);
-bool                     d_git_doc_set_entry(struct d_git_doc* _doc,
-                                             size_t            _entry,
-                                             const char*       _value);
-bool                     d_git_doc_unset(struct d_git_doc* _doc,
-                                         const char*       _key,
-                                         bool              _all);
-bool                     d_git_doc_remove_entry(struct d_git_doc* _doc,
-                                                size_t            _entry);
+bool d_git_doc_set(
+    struct dj_git_doc* _doc,
+    const char*        _key,
+    const char*        _value
+);
+bool d_git_doc_add(
+    struct dj_git_doc* _doc,
+    const char*        _key,
+    const char*        _value
+);
+bool d_git_doc_set_entry(
+    struct dj_git_doc* _doc,
+    size_t             _entry,
+    const char*        _value
+);
+bool d_git_doc_unset(
+    struct dj_git_doc* _doc,
+    const char*        _key,
+    bool               _all
+);
+bool d_git_doc_remove_entry(
+    struct dj_git_doc* _doc,
+    size_t             _entry
+);
 // d_git_doc_rename_section gives every section of a name -- "section" or
 // "section.subsection" -- another, as git config --rename-section, and
 // d_git_doc_remove_section takes every one away, its entries and comments
 // to the next section with it, as git config --remove-section; each is
 // refused when there is no such section.
-bool                     d_git_doc_rename_section(struct d_git_doc* _doc,
-                                                  const char*       _name,
-                                                  const char*       _to);
-bool                     d_git_doc_remove_section(struct d_git_doc* _doc,
-                                                  const char*       _name);
+bool d_git_doc_rename_section(
+    struct dj_git_doc* _doc,
+    const char*        _name,
+    const char*        _to
+);
+bool d_git_doc_remove_section(
+    struct dj_git_doc* _doc,
+    const char*        _name
+);
 
 // 2.6    Saving
 //------------------------------------------------------------------------------
@@ -247,10 +293,12 @@ bool                     d_git_doc_remove_section(struct d_git_doc* _doc,
  * @param[in]  _capacity  the size of `_problem`.
  * @return D_GIT_SAVE_WRITTEN, D_GIT_SAVE_UNCHANGED, or D_GIT_SAVE_FAILED.
  */
-enum d_git_saved         d_git_doc_save(const struct d_git_doc* _doc,
-                                        const char*             _path,
-                                        char*                   _problem,
-                                        size_t                  _capacity);
+enum dj_git_saved d_git_doc_save(
+    const struct dj_git_doc* _doc,
+    const char*              _path,
+    char*                    _problem,
+    size_t                   _capacity
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_GIT_DGIT_DOC_H

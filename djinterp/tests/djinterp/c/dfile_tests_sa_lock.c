@@ -26,13 +26,9 @@ d_tests_dfile_flock
   - releases lock
   - returns -1 for invalid fd
 */
-struct d_test_object*
-d_tests_dfile_flock
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_flock(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     int                   result;
@@ -112,13 +108,9 @@ d_tests_dfile_flock_stream
   - acquires lock via stream
   - returns -1 for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_flock_stream
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_flock_stream(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     int                   result;
@@ -178,13 +170,9 @@ d_tests_dfile_locking_all
   - d_file_lock_fd
   - d_file_lock_stream
 */
-struct d_test_object*
-d_tests_dfile_locking_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_locking_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("VII. File Locking", 2);

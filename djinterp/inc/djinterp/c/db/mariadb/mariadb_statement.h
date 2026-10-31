@@ -81,9 +81,9 @@ TABLE OF CONTENTS
 #include <stddef.h>  // size_t
 // djinterp
 #include "../../djinterp.h"    // framework root
-#include "./mariadb_common.h"  // d_mariadb, d_mariadb_statement, the results
+#include "./mariadb_common.h"  // dj_mariadb, dj_mariadb_statement, the results
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -119,9 +119,11 @@ D_EXTERN_C_BEGIN
  * @post On success the caller releases `*_statement` with
  *       d_mariadb_finalize.
  */
-int    d_mariadb_prepare(struct d_mariadb*            _db,
-                         struct d_mariadb_statement** _statement,
-                         const char*                  _sql) D_NOTHROW;
+int d_mariadb_prepare(
+    struct dj_mariadb*            _db,
+    struct dj_mariadb_statement** _statement,
+    const char*                   _sql
+) D_NOTHROW;
 /**
  * @brief Formats one SQL statement and has the server compile it, as
  *        d_mariadb_prepare.
@@ -136,10 +138,12 @@ int    d_mariadb_prepare(struct d_mariadb*            _db,
  *         layer cannot read.
  * @post As for d_mariadb_prepare.
  */
-int    d_mariadb_preparef(struct d_mariadb*            _db,
-                          struct d_mariadb_statement** _statement,
-                          const char*                  _format,
-                          ...) D_NOTHROW;
+int d_mariadb_preparef(
+    struct dj_mariadb*            _db,
+    struct dj_mariadb_statement** _statement,
+    const char*                   _format,
+    ...
+) D_NOTHROW;
 
 // 1.2    Finalizing
 //------------------------------------------------------------------------------
@@ -158,18 +162,21 @@ int    d_mariadb_preparef(struct d_mariadb*            _db,
  *         the statement released all the same.
  * @post `_statement` is invalid.
  */
-int    d_mariadb_finalize(struct d_mariadb_statement* _statement) D_NOTHROW;
+int d_mariadb_finalize(
+    struct dj_mariadb_statement* _statement
+) D_NOTHROW;
 
 // 1.3    Describing
 //------------------------------------------------------------------------------
 // describing -- _parameter_count is the number of `?` the statement has, 0
 // for NULL; _statement_connection is the connection it belongs to, NULL for
 // NULL or once that connection is closed
-size_t d_mariadb_parameter_count(const struct d_mariadb_statement* _statement)
-       D_NOTHROW;
-struct d_mariadb*
-       d_mariadb_statement_connection(
-           const struct d_mariadb_statement* _statement) D_NOTHROW;
+size_t d_mariadb_parameter_count(
+    const struct dj_mariadb_statement* _statement
+) D_NOTHROW;
+struct dj_mariadb* d_mariadb_statement_connection(
+    const struct dj_mariadb_statement* _statement
+) D_NOTHROW;
 
 // 1.4    Preparing without blocking
 //------------------------------------------------------------------------------
@@ -198,16 +205,17 @@ struct d_mariadb*
  *       d_mariadb_finalize, and continues it with d_mariadb_prepare_continue
  *       while the answer is D_DB_WAIT.
  */
-int    d_mariadb_prepare_start(struct d_mariadb*            _db,
-                               struct d_mariadb_statement** _statement,
-                               const char*                  _sql,
-                               struct d_db_pending*         _pending)
-                               D_NOTHROW;
+int d_mariadb_prepare_start(
+    struct dj_mariadb*            _db,
+    struct dj_mariadb_statement** _statement,
+    const char*                   _sql,
+    struct dj_db_pending*         _pending
+) D_NOTHROW;
 /**
  * @brief Continues the prepare d_mariadb_prepare_start began.
  *
  * @param[in]     _statement  the statement being prepared.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @return 0, the statement compiled and its parameters counted; D_DB_WAIT;
@@ -215,10 +223,11 @@ int    d_mariadb_prepare_start(struct d_mariadb*            _db,
  *         unprepared; D_DB_INVALID_ARGUMENT for a `NULL` argument, or a
  *         statement with no prepare under way.
  */
-int    d_mariadb_prepare_continue(struct d_mariadb_statement* _statement,
-                                  unsigned                    _events,
-                                  struct d_db_pending*        _pending)
-                                  D_NOTHROW;
+int d_mariadb_prepare_continue(
+    struct dj_mariadb_statement* _statement,
+    unsigned                     _events,
+    struct dj_db_pending*        _pending
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -237,31 +246,44 @@ int    d_mariadb_prepare_continue(struct d_mariadb_statement* _statement,
 // (2034) for a parameter the statement does not have; CR_OUT_OF_MEMORY
 // (2008); or D_DB_INVALID_ARGUMENT for a NULL statement, or text or bytes
 // longer than the client can send.
-int    d_mariadb_bind_null(struct d_mariadb_statement* _statement,
-                           size_t                      _index) D_NOTHROW;
-int    d_mariadb_bind_bool(struct d_mariadb_statement* _statement,
-                           size_t                      _index,
-                           bool                        _value) D_NOTHROW;
-int    d_mariadb_bind_int64(struct d_mariadb_statement* _statement,
-                            size_t                      _index,
-                            int64_t                     _value) D_NOTHROW;
-int    d_mariadb_bind_double(struct d_mariadb_statement* _statement,
-                             size_t                      _index,
-                             double                      _value) D_NOTHROW;
-int    d_mariadb_bind_text(struct d_mariadb_statement* _statement,
-                           size_t                      _index,
-                           const char*                 _text) D_NOTHROW;
-int    d_mariadb_bind_blob(struct d_mariadb_statement* _statement,
-                           size_t                      _index,
-                           const void*                 _bytes,
-                           size_t                      _size) D_NOTHROW;
+int d_mariadb_bind_null(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _index
+) D_NOTHROW;
+int d_mariadb_bind_bool(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _index,
+    bool                         _value
+) D_NOTHROW;
+int d_mariadb_bind_int64(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _index,
+    int64_t                      _value
+) D_NOTHROW;
+int d_mariadb_bind_double(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _index,
+    double                       _value
+) D_NOTHROW;
+int d_mariadb_bind_text(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _index,
+    const char*                  _text
+) D_NOTHROW;
+int d_mariadb_bind_blob(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _index,
+    const void*                  _bytes,
+    size_t                       _size
+) D_NOTHROW;
 
 // 2.2    Clearing
 //------------------------------------------------------------------------------
 // clearing -- every parameter NULL again: 0, or D_DB_INVALID_ARGUMENT for a
 // NULL statement
-int    d_mariadb_clear_bindings(struct d_mariadb_statement* _statement)
-       D_NOTHROW;
+int d_mariadb_clear_bindings(
+    struct dj_mariadb_statement* _statement
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -286,9 +308,10 @@ int    d_mariadb_clear_bindings(struct d_mariadb_statement* _statement)
  * @post A run of its own that was open has ended, read to its end. Every
  *       result the statement produced has been read; its values stay bound.
  */
-int    d_mariadb_execute_update(struct d_mariadb_statement* _statement,
-                                int64_t*                    _changes)
-       D_NOTHROW;
+int d_mariadb_execute_update(
+    struct dj_mariadb_statement* _statement,
+    int64_t*                     _changes
+) D_NOTHROW;
 
 // 3.2    Rows
 //------------------------------------------------------------------------------
@@ -308,8 +331,10 @@ int    d_mariadb_execute_update(struct d_mariadb_statement* _statement,
  *       kept; its values stay bound. On success the caller releases `_rows`
  *       with d_db_rows_free.
  */
-int    d_mariadb_execute_query(struct d_mariadb_statement* _statement,
-                               struct d_db_rows*           _rows) D_NOTHROW;
+int d_mariadb_execute_query(
+    struct dj_mariadb_statement* _statement,
+    struct dj_db_rows*           _rows
+) D_NOTHROW;
 
 // 3.3    Rows a few at a time
 //------------------------------------------------------------------------------
@@ -328,8 +353,9 @@ int    d_mariadb_execute_query(struct d_mariadb_statement* _statement,
  *         D_DB_INVALID_ARGUMENT for a `NULL` statement, or one whose
  *         connection is closed.
  */
-int    d_mariadb_open_cursor(struct d_mariadb_statement* _statement)
-       D_NOTHROW;
+int d_mariadb_open_cursor(
+    struct dj_mariadb_statement* _statement
+) D_NOTHROW;
 /**
  * @brief Reads the next rows of the run d_mariadb_open_cursor began.
  *
@@ -349,16 +375,19 @@ int    d_mariadb_open_cursor(struct d_mariadb_statement* _statement)
  *         argument, no rows asked for, or no run open.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_mariadb_fetch_rows(struct d_mariadb_statement* _statement,
-                            size_t                      _max,
-                            struct d_db_rows*           _rows) D_NOTHROW;
+int d_mariadb_fetch_rows(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _max,
+    struct dj_db_rows*           _rows
+) D_NOTHROW;
 // ending a run -- _close_cursor ends the run d_mariadb_open_cursor began,
 // reading away whatever rows and results it had left, so that the
 // connection is free again: 0, or the client's error number for a result
 // after the first that failed, the run ended all the same; 0 for a statement
 // with no run open; D_DB_INVALID_ARGUMENT for NULL
-int    d_mariadb_close_cursor(struct d_mariadb_statement* _statement)
-       D_NOTHROW;
+int d_mariadb_close_cursor(
+    struct dj_mariadb_statement* _statement
+) D_NOTHROW;
 
 // 3.4    Running without blocking
 //------------------------------------------------------------------------------
@@ -393,15 +422,16 @@ int    d_mariadb_close_cursor(struct d_mariadb_statement* _statement)
  *       d_mariadb_execute_update_continue or
  *       d_mariadb_execute_query_continue.
  */
-int    d_mariadb_execute_start(struct d_mariadb_statement* _statement,
-                               struct d_db_pending*        _pending)
-                               D_NOTHROW;
+int d_mariadb_execute_start(
+    struct dj_mariadb_statement* _statement,
+    struct dj_db_pending*        _pending
+) D_NOTHROW;
 /**
  * @brief Reads the results of the run d_mariadb_execute_start sent, once
  *        they have arrived, counting the rows it changed.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @param[out]    _changes    as for d_mariadb_execute_update; may be `NULL`.
@@ -409,17 +439,18 @@ int    d_mariadb_execute_start(struct d_mariadb_statement* _statement,
  *         for a `NULL` statement or pending call, or a statement with no run
  *         sent, or whose results d_mariadb_execute_query_continue reads.
  */
-int    d_mariadb_execute_update_continue(
-           struct d_mariadb_statement* _statement,
-           unsigned                    _events,
-           struct d_db_pending*        _pending,
-           int64_t*                    _changes) D_NOTHROW;
+int d_mariadb_execute_update_continue(
+    struct dj_mariadb_statement* _statement,
+    unsigned                     _events,
+    struct dj_db_pending*        _pending,
+    int64_t*                     _changes
+) D_NOTHROW;
 /**
  * @brief Reads the results of the run d_mariadb_execute_start sent, once
  *        they have arrived, returning the rows of the first.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @param[out]    _rows       as for d_mariadb_execute_query.
@@ -428,11 +459,12 @@ int    d_mariadb_execute_update_continue(
  *         d_mariadb_execute_update_continue reads.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_mariadb_execute_query_continue(
-           struct d_mariadb_statement* _statement,
-           unsigned                    _events,
-           struct d_db_pending*        _pending,
-           struct d_db_rows*           _rows) D_NOTHROW;
+int d_mariadb_execute_query_continue(
+    struct dj_mariadb_statement* _statement,
+    unsigned                     _events,
+    struct dj_db_pending*        _pending,
+    struct dj_db_rows*           _rows
+) D_NOTHROW;
 /**
  * @brief Opens a run as d_mariadb_open_cursor does, without waiting.
  *
@@ -445,23 +477,25 @@ int    d_mariadb_execute_query_continue(
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument, or a statement whose
  *         connection is closed.
  */
-int    d_mariadb_open_cursor_start(struct d_mariadb_statement* _statement,
-                                   struct d_db_pending*        _pending)
-                                   D_NOTHROW;
+int d_mariadb_open_cursor_start(
+    struct dj_mariadb_statement* _statement,
+    struct dj_db_pending*        _pending
+) D_NOTHROW;
 /**
  * @brief Continues the run d_mariadb_open_cursor_start began opening.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @return as d_mariadb_open_cursor_start; D_DB_INVALID_ARGUMENT also for a
  *         statement with no run being opened.
  */
-int    d_mariadb_open_cursor_continue(
-           struct d_mariadb_statement* _statement,
-           unsigned                    _events,
-           struct d_db_pending*        _pending) D_NOTHROW;
+int d_mariadb_open_cursor_continue(
+    struct dj_mariadb_statement* _statement,
+    unsigned                     _events,
+    struct dj_db_pending*        _pending
+) D_NOTHROW;
 /**
  * @brief Begins reading the next page of the open run, without waiting.
  *
@@ -477,17 +511,18 @@ int    d_mariadb_open_cursor_continue(
  *         D_DB_INVALID_ARGUMENT as d_mariadb_fetch_rows gives it.
  * @post On success the caller releases `_rows` with d_db_rows_free.
  */
-int    d_mariadb_fetch_rows_start(struct d_mariadb_statement* _statement,
-                                  size_t                      _max,
-                                  struct d_db_pending*        _pending,
-                                  struct d_db_rows*           _rows)
-                                  D_NOTHROW;
+int d_mariadb_fetch_rows_start(
+    struct dj_mariadb_statement* _statement,
+    size_t                       _max,
+    struct dj_db_pending*        _pending,
+    struct dj_db_rows*           _rows
+) D_NOTHROW;
 /**
  * @brief Reads more of the page d_mariadb_fetch_rows_start began, giving it
  *        once it is whole.
  *
  * @param[in]     _statement  the statement.
- * @param[in]     _events     what came, as d_db_wait.
+ * @param[in]     _events     what came, as dj_db_wait.
  * @param[in,out] _pending    what the start or the last continuation wrote;
  *                            receives what to wait for next.
  * @param[out]    _rows       as for d_mariadb_fetch_rows_start.
@@ -495,11 +530,12 @@ int    d_mariadb_fetch_rows_start(struct d_mariadb_statement* _statement,
  *         statement with no page under way.
  * @post As for d_mariadb_fetch_rows_start.
  */
-int    d_mariadb_fetch_rows_continue(
-           struct d_mariadb_statement* _statement,
-           unsigned                    _events,
-           struct d_db_pending*        _pending,
-           struct d_db_rows*           _rows) D_NOTHROW;
+int d_mariadb_fetch_rows_continue(
+    struct dj_mariadb_statement* _statement,
+    unsigned                     _events,
+    struct dj_db_pending*        _pending,
+    struct dj_db_rows*           _rows
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

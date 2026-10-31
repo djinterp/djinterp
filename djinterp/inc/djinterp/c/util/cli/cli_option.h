@@ -104,9 +104,9 @@ typedef bool (*fn_cli_match)(const char* _key,
                              const char* _next_arg,
                              void*       _context);
 
-// d_string_cli_entry
+// dj_string_cli_entry
 //   struct: maps a string key to an opaque value pointer.
-struct d_string_cli_entry
+struct dj_string_cli_entry
 {
     const char*  key;
     const size_t key_length;
@@ -114,28 +114,36 @@ struct d_string_cli_entry
 };
 
 
-void*       d_cli_find(const struct d_string_cli_entry* _entries,
-                       size_t                           _count,
-                       const char*                      _key,
-                       size_t                           _key_length);
-void*       d_cli_find_by_field(const void* _array,
-                                size_t      _count,
-                                size_t      _element_size,
-                                size_t      _field_offset,
-                                const char* _key,
-                                size_t      _key_length);
-const void* d_cli_find_with(const void*   _array,
-                            size_t        _count,
-                            const char*   _key,
-                            size_t        _key_length,
-                            fn_cli_lookup _lookup,
-                            void*         _context);
-bool        d_cli_parse(const struct d_string_cli_entry* _entries,
-                        size_t                           _count,
-                        int                              _argc,
-                        char*                            _argv[],
-                        fn_cli_match                     _on_match,
-                        void*                            _context);
+void* d_cli_find(
+    const struct dj_string_cli_entry* _entries,
+    size_t                            _count,
+    const char*                       _key,
+    size_t                            _key_length
+);
+void* d_cli_find_by_field(
+    const void* _array,
+    size_t      _count,
+    size_t      _element_size,
+    size_t      _field_offset,
+    const char* _key,
+    size_t      _key_length
+);
+const void* d_cli_find_with(
+    const void*   _array,
+    size_t        _count,
+    const char*   _key,
+    size_t        _key_length,
+    fn_cli_lookup _lookup,
+    void*         _context
+);
+bool d_cli_parse(
+    const struct dj_string_cli_entry* _entries,
+    size_t                            _count,
+    int                               _argc,
+    char*                             _argv[],
+    fn_cli_match                      _on_match,
+    void*                             _context
+);
 
 
 #endif  // DJINTERP_C_UTIL_CLI_CLI_OPTION_H

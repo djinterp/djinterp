@@ -34,8 +34,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_tests_emit(
+static
+void d_tests_emit(
     const char* _format,
     ...
 );
@@ -43,8 +43,8 @@ d_tests_emit(
 
 #include <stdarg.h>  // va_list, va_start, va_end
 
-static void
-d_tests_emit(
+static
+void d_tests_emit(
     const char* _format,
     ...
 )
@@ -70,7 +70,10 @@ d_tests_emit(
 }
 
 
-static void d_tests_show(struct d_awk_node* _node);
+static
+void d_tests_show(
+    struct dj_awk_node* _node
+);
 
 
 /*
@@ -83,10 +86,10 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_tests_show_list(
-    struct d_awk_node* _node,
-    const char*        _separator
+static
+void d_tests_show_list(
+    struct dj_awk_node* _node,
+    const char*         _separator
 )
 {
     for (size_t at = 0; at < _node->count; ++at)
@@ -113,9 +116,9 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_tests_show(
-    struct d_awk_node* _node
+static
+void d_tests_show(
+    struct dj_awk_node* _node
 )
 {
     // an absent child renders as a placeholder rather than vanishing
@@ -354,8 +357,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_tests_expect(
+static
+void d_tests_expect(
     const char* _source,
     const char* _expected
 )
@@ -364,7 +367,7 @@ d_tests_expect(
     g_out[0]  = '\0';
     g_checks++;
 
-    struct d_awk_program* program = d_awk_parse(_source,
+    struct dj_awk_program* program = d_awk_parse(_source,
                                                 strlen(_source),
                                                 "-");
 
@@ -406,7 +409,7 @@ d_tests_expect(
 
     for (size_t at = 0; at < program->rule_count; ++at)
     {
-        struct d_awk_rule* const rule = &program->rules[at];
+        struct dj_awk_rule* const rule = &program->rules[at];
 
         // the pattern renders as its kind, its expression, or a wildcard
         if (rule->kind == D_AWK_RULE_BEGIN)
@@ -474,8 +477,8 @@ d_tests_precedence
   - the relational operators do not associate
   - assignment associates to the right
 */
-static void
-d_tests_precedence(void)
+static
+void d_tests_precedence(void)
 {
     printf("precedence\n");
 
@@ -511,8 +514,8 @@ d_tests_patterns
   - a comma between patterns makes a range
   - a bare regular expression is a pattern in its own right
 */
-static void
-d_tests_patterns(void)
+static
+void d_tests_patterns(void)
 {
     printf("patterns\n");
 
@@ -543,8 +546,8 @@ d_tests_statements
   - a semicolon after a control header is the body, the empty statement,
     and not a terminator before it
 */
-static void
-d_tests_statements(void)
+static
+void d_tests_statements(void)
 {
     printf("statements\n");
 
@@ -602,8 +605,8 @@ d_tests_getline
   - a target that parses but cannot be assigned to is rejected
   - a token that cannot be a target concatenates rather than failing
 */
-static void
-d_tests_getline(void)
+static
+void d_tests_getline(void)
 {
     printf("getline\n");
 
@@ -654,8 +657,8 @@ d_tests_lexical
   - comments and escaped newlines are invisible to the parser
   - getline is rejected with a diagnostic rather than silently mis-parsed
 */
-static void
-d_tests_lexical(void)
+static
+void d_tests_lexical(void)
 {
     printf("lexical rules\n");
 
@@ -701,8 +704,8 @@ d_tests_builtins
   - the target sub and gsub write back to must be a variable, field or
     element, and a string constant is refused rather than crashing the run
 */
-static void
-d_tests_builtins(void)
+static
+void d_tests_builtins(void)
 {
     printf("builtin calls\n");
 
@@ -733,8 +736,7 @@ Parameter(s):
 Return:
   Zero when every check passed, and one otherwise.
 */
-int
-main(void)
+int main(void)
 {
     d_tests_precedence();
     d_tests_patterns();

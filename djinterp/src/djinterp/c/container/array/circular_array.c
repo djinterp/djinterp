@@ -12,7 +12,7 @@
 #include "../../../../../inc/djinterp/c/container/array/circular_array.h"
 
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
 // =============================================================================
@@ -29,11 +29,10 @@ Parameter(s):
 Return:
   Physical index in the elements buffer
 */
-D_STATIC_INLINE size_t
-d_circular_array_internal_get_physical_index
-(
-    const struct d_circular_array* _circular_array,
-    size_t                         _logical_index
+D_STATIC_INLINE
+size_t d_circular_array_internal_get_physical_index(
+    const struct dj_circular_array* _circular_array,
+    size_t                          _logical_index
 )
 {
     return (_circular_array->head + _logical_index) % _circular_array->capacity;
@@ -54,21 +53,19 @@ Parameter(s):
                  be greater than 0.
   _element_size: size in bytes of each element. Must be > 0.
 Return:
-  - Pointer to new `d_circular_array` on success
+  - Pointer to new `dj_circular_array` on success
   - NULL if either parameter is 0 or memory allocation fails
 Notes:
   - Caller is responsible for calling d_circular_array_free() to release memory
   - Circular array is initialized to empty state (count = 0, head = tail = 0)
   - Uses calloc() to zero-initialize the internal buffer
 */
-struct d_circular_array*
-d_circular_array_new
-(
+struct dj_circular_array* d_circular_array_new(
     size_t _capacity,
     size_t _element_size
 )
 {
-    struct d_circular_array* result;
+    struct dj_circular_array* result;
 
     // validate input parameters
     if ( (_capacity == 0)     ||
@@ -84,7 +81,7 @@ d_circular_array_new
     }
 
     // allocate memory for the circular array structure
-    result = malloc(sizeof(struct d_circular_array));
+    result = malloc(sizeof(struct dj_circular_array));
 
     // ensure that memory allocation was successful
     if (!result)
@@ -119,12 +116,10 @@ d_circular_array_new_default_capacity
 Parameter(s):
   _element_size: size in bytes of each element. Must be > 0.
 Return:
-  - Pointer to new `d_circular_array` on success
+  - Pointer to new `dj_circular_array` on success
   - NULL if _element_size is 0 or memory allocation fails
 */
-struct d_circular_array*
-d_circular_array_new_default_capacity
-(
+struct dj_circular_array* d_circular_array_new_default_capacity(
     size_t _element_size
 )
 {
@@ -144,22 +139,20 @@ Parameter(s):
   _source:       source array to copy elements from. Must not be NULL.
   _source_count: number of elements in the source array.
 Return:
-  - Pointer to new d_circular_array pre-populated with array data on success
+  - Pointer to new dj_circular_array pre-populated with array data on success
   - NULL if any parameter is invalid or memory allocation fails
 Notes:
   - If _source_count > _capacity, only the first _capacity elements are copied
   - If _source_count < _capacity, buffer will be partially filled
 */
-struct d_circular_array*
-d_circular_array_new_from_arr
-(
+struct dj_circular_array* d_circular_array_new_from_arr(
     size_t      _capacity,
     size_t      _element_size,
     const void* _source,
     size_t      _source_count
 )
 {
-    struct d_circular_array* result;
+    struct dj_circular_array* result;
     size_t                   elements_to_copy;
 
     // validate input parameters
@@ -203,19 +196,17 @@ Parameter(s):
   _arg_count:    number of variadic arguments to process. ...: variadic
                  arguments containing the element data.
 Return:
-  - Pointer to new d_circular_array on success
+  - Pointer to new dj_circular_array on success
   - NULL if allocation fails or parameters are invalid
 */
-struct d_circular_array*
-d_circular_array_new_from_args
-(
+struct dj_circular_array* d_circular_array_new_from_args(
     size_t _capacity,
     size_t _element_size,
     size_t _arg_count,
     ...
 )
 {
-    struct d_circular_array* result;
+    struct dj_circular_array* result;
     va_list                  args;
     size_t                   elements_to_copy;
     size_t                   i;
@@ -287,16 +278,14 @@ d_circular_array_new_copy
 Parameter(s):
   _other: pointer to the circular array to copy. Must not be NULL.
 Return:
-  - Pointer to new d_circular_array that is a copy of the source
+  - Pointer to new dj_circular_array that is a copy of the source
   - NULL if _other is NULL or memory allocation fails
 */
-struct d_circular_array*
-d_circular_array_new_copy
-(
-    const struct d_circular_array* _other
+struct dj_circular_array* d_circular_array_new_copy(
+    const struct dj_circular_array* _other
 )
 {
-    struct d_circular_array* result;
+    struct dj_circular_array* result;
     size_t                   i;
     size_t                   src_index;
     const char*              src_data;
@@ -349,17 +338,15 @@ Parameter(s):
   _other:        pointer to the circular array to copy. Must not be NULL.
   _new_capacity: new capacity for the copy. Must be >= _other->count.
 Return:
-  - Pointer to new d_circular_array with the new capacity
+  - Pointer to new dj_circular_array with the new capacity
   - NULL if parameters are invalid or memory allocation fails
 */
-struct d_circular_array*
-d_circular_array_new_copy_resized
-(
-    const struct d_circular_array* _other,
-    size_t                         _new_capacity
+struct dj_circular_array* d_circular_array_new_copy_resized(
+    const struct dj_circular_array* _other,
+    size_t                          _new_capacity
 )
 {
-    struct d_circular_array* result;
+    struct dj_circular_array* result;
     size_t                   i;
     size_t                   src_index;
     const char*              src_data;
@@ -411,18 +398,16 @@ Parameter(s):
   _element_size: size of each element
   _fill_value:   pointer to the value to fill with
 Return:
-  - Pointer to new d_circular_array filled with the value
+  - Pointer to new dj_circular_array filled with the value
   - NULL if parameters are invalid or memory allocation fails
 */
-struct d_circular_array*
-d_circular_array_new_fill
-(
+struct dj_circular_array* d_circular_array_new_fill(
     size_t      _capacity,
     size_t      _element_size,
     const void* _fill_value
 )
 {
-    struct d_circular_array* result;
+    struct dj_circular_array* result;
     size_t                   i;
     char*                    elem_ptr;
 
@@ -469,11 +454,9 @@ Return:
   - Pointer to element at the specified index
   - NULL if circular array is NULL, empty, or index is out of bounds
 */
-void*
-d_circular_array_get
-(
-    const struct d_circular_array* _circular_array,
-    d_index                        _index
+void* d_circular_array_get(
+    const struct dj_circular_array* _circular_array,
+    dj_index                        _index
 )
 {
     size_t logical_index;
@@ -509,12 +492,10 @@ Return:
   - true if value was successfully set
   - false if parameters are invalid or index is out of bounds
 */
-bool
-d_circular_array_set
-(
-    struct d_circular_array* _circular_array,
-    d_index                  _index,
-    const void*              _value
+bool d_circular_array_set(
+    struct dj_circular_array* _circular_array,
+    dj_index                  _index,
+    const void*               _value
 )
 {
     size_t logical_index;
@@ -553,10 +534,8 @@ Return:
   - Pointer to front element
   - NULL if circular array is NULL or empty
 */
-void*
-d_circular_array_front
-(
-    const struct d_circular_array* _circular_array
+void* d_circular_array_front(
+    const struct dj_circular_array* _circular_array
 )
 {
     if ( (!_circular_array)            ||
@@ -579,10 +558,8 @@ Return:
   - Pointer to back element
   - NULL if circular array is NULL or empty
 */
-void*
-d_circular_array_back
-(
-    const struct d_circular_array* _circular_array
+void* d_circular_array_back(
+    const struct dj_circular_array* _circular_array
 )
 {
     size_t back_index;
@@ -613,10 +590,8 @@ Return:
   - Pointer to front element
   - NULL if circular array is NULL or empty
 */
-void*
-d_circular_array_peek
-(
-    const struct d_circular_array* _circular_array
+void* d_circular_array_peek(
+    const struct dj_circular_array* _circular_array
 )
 {
     return d_circular_array_front(_circular_array);
@@ -633,10 +608,8 @@ Return:
   - Pointer to back element
   - NULL if circular array is NULL or empty
 */
-void*
-d_circular_array_peek_back
-(
-    const struct d_circular_array* _circular_array
+void* d_circular_array_peek_back(
+    const struct dj_circular_array* _circular_array
 )
 {
     return d_circular_array_back(_circular_array);
@@ -659,11 +632,9 @@ Return:
   - true if element was added successfully
   - false if buffer is full or parameters are invalid
 */
-bool
-d_circular_array_push
-(
-    struct d_circular_array* _circular_array,
-    const void*              _element
+bool d_circular_array_push(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
 )
 {
     return d_circular_array_push_back(_circular_array, _element);
@@ -680,11 +651,9 @@ Return:
   - true if element was added successfully
   - false if buffer is full or parameters are invalid
 */
-bool
-d_circular_array_push_front
-(
-    struct d_circular_array* _circular_array,
-    const void*              _element
+bool d_circular_array_push_front(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
 )
 {
     size_t new_head;
@@ -728,11 +697,9 @@ Return:
   - true if element was added successfully
   - false if buffer is full or parameters are invalid
 */
-bool
-d_circular_array_push_back
-(
-    struct d_circular_array* _circular_array,
-    const void*              _element
+bool d_circular_array_push_back(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
 )
 {
     char* dest;
@@ -773,12 +740,10 @@ Return:
   - true if all elements were added successfully
   - false if insufficient space or parameters are invalid
 */
-bool
-d_circular_array_push_all
-(
-    struct d_circular_array* _circular_array,
-    const void*              _elements,
-    size_t                   _count
+bool d_circular_array_push_all(
+    struct dj_circular_array* _circular_array,
+    const void*               _elements,
+    size_t                    _count
 )
 {
     size_t       available;
@@ -835,12 +800,10 @@ Return:
   - true if all elements were added successfully
   - false if insufficient space or parameters are invalid
 */
-bool
-d_circular_array_push_all_front
-(
-    struct d_circular_array* _circular_array,
-    const void*              _elements,
-    size_t                   _count
+bool d_circular_array_push_all_front(
+    struct dj_circular_array* _circular_array,
+    const void*               _elements,
+    size_t                    _count
 )
 {
     size_t       available;
@@ -899,10 +862,8 @@ Return:
   - Pointer to the removed element (valid until next push)
   - NULL if buffer is empty or parameter is invalid
 */
-void*
-d_circular_array_pop
-(
-    struct d_circular_array* _circular_array
+void* d_circular_array_pop(
+    struct dj_circular_array* _circular_array
 )
 {
     return d_circular_array_pop_front(_circular_array);
@@ -918,10 +879,8 @@ Return:
   - Pointer to the removed element (valid until next push)
   - NULL if buffer is empty or parameter is invalid
 */
-void*
-d_circular_array_pop_front
-(
-    struct d_circular_array* _circular_array
+void* d_circular_array_pop_front(
+    struct dj_circular_array* _circular_array
 )
 {
     void* item;
@@ -952,10 +911,8 @@ Return:
   - Pointer to the removed element (valid until next push)
   - NULL if buffer is empty or parameter is invalid
 */
-void*
-d_circular_array_pop_back
-(
-    struct d_circular_array* _circular_array
+void* d_circular_array_pop_back(
+    struct dj_circular_array* _circular_array
 )
 {
     size_t back_index;
@@ -988,11 +945,9 @@ Return:
   - true if element was removed and copied
   - false if buffer is empty or parameters are invalid
 */
-bool
-d_circular_array_pop_to
-(
-    struct d_circular_array* _circular_array,
-    void*                    _out_value
+bool d_circular_array_pop_to(
+    struct dj_circular_array* _circular_array,
+    void*                     _out_value
 )
 {
     return d_circular_array_pop_front_to(_circular_array, _out_value);
@@ -1009,11 +964,9 @@ Return:
   - true if element was removed and copied
   - false if buffer is empty or parameters are invalid
 */
-bool
-d_circular_array_pop_front_to
-(
-    struct d_circular_array* _circular_array,
-    void*                    _out_value
+bool d_circular_array_pop_front_to(
+    struct dj_circular_array* _circular_array,
+    void*                     _out_value
 )
 {
     void* item;
@@ -1048,11 +1001,9 @@ Return:
   - true if element was removed and copied
   - false if buffer is empty or parameters are invalid
 */
-bool
-d_circular_array_pop_back_to
-(
-    struct d_circular_array* _circular_array,
-    void*                    _out_value
+bool d_circular_array_pop_back_to(
+    struct dj_circular_array* _circular_array,
+    void*                     _out_value
 )
 {
     size_t back_index;
@@ -1096,11 +1047,9 @@ Return:
   - true if element was added
   - false if parameters are invalid
 */
-bool
-d_circular_array_push_overwrite
-(
-    struct d_circular_array* _circular_array,
-    const void*              _element
+bool d_circular_array_push_overwrite(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
 )
 {
     char* dest;
@@ -1143,11 +1092,9 @@ Return:
   - true if element was added
   - false if parameters are invalid
 */
-bool
-d_circular_array_push_front_overwrite
-(
-    struct d_circular_array* _circular_array,
-    const void*              _element
+bool d_circular_array_push_front_overwrite(
+    struct dj_circular_array* _circular_array,
+    const void*               _element
 )
 {
     size_t new_head;
@@ -1195,12 +1142,10 @@ Return:
   - true if elements were added
   - false if parameters are invalid
 */
-bool
-d_circular_array_push_all_overwrite
-(
-    struct d_circular_array* _circular_array,
-    const void*              _elements,
-    size_t                   _count
+bool d_circular_array_push_all_overwrite(
+    struct dj_circular_array* _circular_array,
+    const void*               _elements,
+    size_t                    _count
 )
 {
     const char* src;
@@ -1256,10 +1201,8 @@ Return:
   - true if cleared successfully
   - false if _circular_array is NULL
 */
-bool
-d_circular_array_clear
-(
-    struct d_circular_array* _circular_array
+bool d_circular_array_clear(
+    struct dj_circular_array* _circular_array
 )
 {
     if (!_circular_array)
@@ -1285,11 +1228,9 @@ Return:
   - true if filled successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_fill
-(
-    struct d_circular_array* _circular_array,
-    const void*              _fill_value
+bool d_circular_array_fill(
+    struct dj_circular_array* _circular_array,
+    const void*               _fill_value
 )
 {
     size_t i;
@@ -1328,11 +1269,9 @@ Return:
   - true if rotated successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_rotate_left
-(
-    struct d_circular_array* _circular_array,
-    size_t                   _amount
+bool d_circular_array_rotate_left(
+    struct dj_circular_array* _circular_array,
+    size_t                    _amount
 )
 {
     size_t effective_amount;
@@ -1375,11 +1314,9 @@ Return:
   - true if rotated successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_rotate_right
-(
-    struct d_circular_array* _circular_array,
-    size_t                   _amount
+bool d_circular_array_rotate_right(
+    struct dj_circular_array* _circular_array,
+    size_t                    _amount
 )
 {
     size_t effective_amount;
@@ -1425,10 +1362,8 @@ Return:
   - true if reversed successfully
   - false if parameters are invalid
 */
-bool
-d_circular_array_reverse
-(
-    struct d_circular_array* _circular_array
+bool d_circular_array_reverse(
+    struct dj_circular_array* _circular_array
 )
 {
     size_t i;
@@ -1491,12 +1426,10 @@ Return:
   - true if swapped successfully
   - false if parameters are invalid or indices out of bounds
 */
-bool
-d_circular_array_swap
-(
-    struct d_circular_array* _circular_array,
-    d_index                  _index_a,
-    d_index                  _index_b
+bool d_circular_array_swap(
+    struct dj_circular_array* _circular_array,
+    dj_index                  _index_a,
+    dj_index                  _index_b
 )
 {
     size_t logical_a;
@@ -1566,10 +1499,8 @@ Return:
   - true if empty
   - false if not empty or NULL
 */
-bool
-d_circular_array_is_empty
-(
-    const struct d_circular_array* _circular_array
+bool d_circular_array_is_empty(
+    const struct dj_circular_array* _circular_array
 )
 {
     if (!_circular_array)
@@ -1590,10 +1521,8 @@ Return:
   - true if full
   - false if not full or NULL
 */
-bool
-d_circular_array_is_full
-(
-    const struct d_circular_array* _circular_array
+bool d_circular_array_is_full(
+    const struct dj_circular_array* _circular_array
 )
 {
     if (!_circular_array)
@@ -1613,10 +1542,8 @@ Parameter(s):
 Return:
   Number of elements, or 0 if NULL
 */
-size_t
-d_circular_array_count
-(
-    const struct d_circular_array* _circular_array
+size_t d_circular_array_count(
+    const struct dj_circular_array* _circular_array
 )
 {
     if (!_circular_array)
@@ -1636,10 +1563,8 @@ Parameter(s):
 Return:
   Capacity, or 0 if NULL
 */
-size_t
-d_circular_array_capacity
-(
-    const struct d_circular_array* _circular_array
+size_t d_circular_array_capacity(
+    const struct dj_circular_array* _circular_array
 )
 {
     if (!_circular_array)
@@ -1659,10 +1584,8 @@ Parameter(s):
 Return:
   Available slots, or 0 if NULL
 */
-size_t
-d_circular_array_available_space
-(
-    const struct d_circular_array* _circular_array
+size_t d_circular_array_available_space(
+    const struct dj_circular_array* _circular_array
 )
 {
     if (!_circular_array)
@@ -1682,10 +1605,8 @@ Parameter(s):
 Return:
   Element size in bytes, or 0 if NULL
 */
-size_t
-d_circular_array_element_size
-(
-    const struct d_circular_array* _circular_array
+size_t d_circular_array_element_size(
+    const struct dj_circular_array* _circular_array
 )
 {
     if (!_circular_array)
@@ -1713,12 +1634,10 @@ Return:
   - true if value is found
   - false if not found or parameters are invalid
 */
-bool
-d_circular_array_contains
-(
-    const struct d_circular_array* _circular_array,
-    const void*                    _value,
-    fn_comparator                  _comparator
+bool d_circular_array_contains(
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
 )
 {
     return (d_circular_array_find(_circular_array, _value, _comparator) >= 0);
@@ -1736,12 +1655,10 @@ Return:
   - Logical index of first occurrence (>= 0)
   - -1 if not found or parameters are invalid
 */
-ssize_t
-d_circular_array_find
-(
-    const struct d_circular_array* _circular_array,
-    const void*                    _value,
-    fn_comparator                  _comparator
+ssize_t d_circular_array_find(
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
 )
 {
     size_t      i;
@@ -1784,12 +1701,10 @@ Return:
   - Logical index of last occurrence (>= 0)
   - -1 if not found or parameters are invalid
 */
-ssize_t
-d_circular_array_find_last
-(
-    const struct d_circular_array* _circular_array,
-    const void*                    _value,
-    fn_comparator                  _comparator
+ssize_t d_circular_array_find_last(
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
 )
 {
     size_t      i;
@@ -1831,12 +1746,10 @@ Parameter(s):
 Return:
   Number of occurrences, or 0 if not found or parameters invalid
 */
-size_t
-d_circular_array_count_value
-(
-    const struct d_circular_array* _circular_array,
-    const void*                    _value,
-    fn_comparator                  _comparator
+size_t d_circular_array_count_value(
+    const struct dj_circular_array* _circular_array,
+    const void*                     _value,
+    fn_comparator                   _comparator
 )
 {
     size_t      i;
@@ -1886,10 +1799,8 @@ Return:
 Notes:
   Caller is responsible for freeing the returned array.
 */
-void*
-d_circular_array_to_linear_array
-(
-    const struct d_circular_array* _circular_array
+void* d_circular_array_to_linear_array(
+    const struct dj_circular_array* _circular_array
 )
 {
     void*       result;
@@ -1940,12 +1851,10 @@ Return:
   - true if copied successfully
   - false if destination too small or parameters invalid
 */
-bool
-d_circular_array_copy_to
-(
-    const struct d_circular_array* _circular_array,
-    void*                          _destination,
-    size_t                         _dest_capacity
+bool d_circular_array_copy_to(
+    const struct dj_circular_array* _circular_array,
+    void*                           _destination,
+    size_t                          _dest_capacity
 )
 {
     size_t      i;
@@ -2000,11 +1909,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_foreach
-(
-    struct d_circular_array* _circular_array,
-    fn_apply                 _apply_fn
+void d_circular_array_foreach(
+    struct dj_circular_array* _circular_array,
+    fn_apply                  _apply_fn
 )
 {
     size_t i;
@@ -2040,11 +1947,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_foreach_reverse
-(
-    struct d_circular_array* _circular_array,
-    fn_apply                 _apply_fn
+void d_circular_array_foreach_reverse(
+    struct dj_circular_array* _circular_array,
+    fn_apply                  _apply_fn
 )
 {
     size_t i;
@@ -2085,11 +1990,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_sort
-(
-    struct d_circular_array* _circular_array,
-    fn_comparator            _comparator
+void d_circular_array_sort(
+    struct dj_circular_array* _circular_array,
+    fn_comparator             _comparator
 )
 {
     if ( (!_circular_array) ||
@@ -2125,10 +2028,8 @@ Return:
 Notes:
   This may allocate temporary memory.
 */
-bool
-d_circular_array_linearize
-(
-    struct d_circular_array* _circular_array
+bool d_circular_array_linearize(
+    struct dj_circular_array* _circular_array
 )
 {
     void*       temp;
@@ -2202,10 +2103,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_free
-(
-    struct d_circular_array* _circular_array
+void d_circular_array_free(
+    struct dj_circular_array* _circular_array
 )
 {
     if (_circular_array)
@@ -2231,11 +2130,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_circular_array_free_deep
-(
-    struct d_circular_array* _circular_array,
-    fn_free                  _free_fn
+void d_circular_array_free_deep(
+    struct dj_circular_array* _circular_array,
+    fn_free                   _free_fn
 )
 {
     size_t i;

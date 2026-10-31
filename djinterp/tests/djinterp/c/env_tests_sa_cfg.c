@@ -14,7 +14,7 @@
 
 // djinterp
 #include "env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -34,10 +34,8 @@ d_tests_sa_env_cfg_bit_flags
   - all bit flags are unique (no overlapping bits)
   - all bit flags are powers of 2
 */
-bool
-d_tests_sa_env_cfg_bit_flags
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_bit_flags(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -223,10 +221,8 @@ d_tests_sa_env_cfg_custom_value
   - D_CFG_ENV_CUSTOM has a valid value (0, 1, or bitfield)
   - current configuration mode is correctly identified
 */
-bool
-d_tests_sa_env_cfg_custom_value
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_custom_value(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -394,10 +390,8 @@ d_tests_sa_env_cfg_enabled_macros
   - D_CFG_ENV_BUILD_IS_ENABLED is defined and evaluates correctly
   - enabled macros are consistent with D_CFG_ENV_CUSTOM value
 */
-bool
-d_tests_sa_env_cfg_enabled_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_enabled_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -540,10 +534,8 @@ d_tests_sa_env_cfg_enabled_zero_case
   - when D_CFG_ENV_CUSTOM == 0, all sections should be enabled
   - the (D_CFG_ENV_CUSTOM == 0) branch of each _ENABLED macro works
 */
-bool
-d_tests_sa_env_cfg_enabled_zero_case
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_enabled_zero_case(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -658,10 +650,8 @@ d_tests_sa_env_cfg_detected_vars_lang
   - D_CFG_ENV_DETECTED_C_ONLY is set when only C detected vars are defined
   - language bit is correctly set in D_CFG_ENV_CUSTOM when detected vars exist
 */
-bool
-d_tests_sa_env_cfg_detected_vars_lang
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_detected_vars_lang(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -793,10 +783,8 @@ d_tests_sa_env_cfg_detected_vars_compiler
   - compiler bit is correctly set when any compiler detected var is defined
   - D_ENV_CRT_MSVC and D_ENV_MSC_VER are set correctly for MSVC
 */
-bool
-d_tests_sa_env_cfg_detected_vars_compiler
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_detected_vars_compiler(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -922,10 +910,8 @@ d_tests_sa_env_cfg_detected_vars_os
   - OS bit is correctly set when any OS detected var is defined
   - only one OS should be detected at a time
 */
-bool
-d_tests_sa_env_cfg_detected_vars_os
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_detected_vars_os(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1063,10 +1049,8 @@ d_tests_sa_env_cfg_detected_vars_arch
   - ARCH bit is correctly set when any arch detected var is defined
   - only one architecture should be detected at a time
 */
-bool
-d_tests_sa_env_cfg_detected_vars_arch
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_detected_vars_arch(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1210,10 +1194,8 @@ d_tests_sa_env_cfg_detected_vars_build
   - BUILD bit is correctly set when any build detected var is defined
   - only one build type should be detected at a time (debug XOR release)
 */
-bool
-d_tests_sa_env_cfg_detected_vars_build
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_detected_vars_build(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1298,10 +1280,8 @@ d_tests_sa_env_cfg_detected_vars_posix
   - POSIX bit is correctly set when any POSIX detected var is defined
   - POSIX version and feature variables are checked
 */
-bool
-d_tests_sa_env_cfg_detected_vars_posix
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_detected_vars_posix(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -1462,13 +1442,11 @@ d_tests_sa_env_cfg_all
   - section enable macros
   - detected variable auto-detection for all sections
 */
-bool
-d_tests_sa_env_cfg_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_cfg_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool bit_flags_result;
     bool custom_value_result;
     bool enabled_macros_result;
@@ -1486,7 +1464,7 @@ d_tests_sa_env_cfg_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n[MODULE] Testing CFG Configuration System\n");
     printf("========================================="

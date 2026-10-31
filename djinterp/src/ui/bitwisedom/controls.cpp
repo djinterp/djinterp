@@ -82,8 +82,7 @@ using uxoxo::platform::imgui_frame;
 // drafts
 //   what is typed in each "Add child..." field, by the field's ImGui ID,
 // while there is any.
-std::unordered_map<ImGuiID, std::string>&
-drafts()
+std::unordered_map<ImGuiID, std::string>& drafts()
 {
     static std::unordered_map<ImGuiID, std::string> held;
 
@@ -92,8 +91,7 @@ drafts()
 
 // blank
 //   whether a text is nothing but spaces.
-bool
-blank(
+bool blank(
     const std::string& _text
 )
 {
@@ -112,8 +110,7 @@ struct spotted
 
 // spots
 //   each control's last spot, by its key and part.
-std::unordered_map<std::string, spotted>&
-spots()
+std::unordered_map<std::string, spotted>& spots()
 {
     static std::unordered_map<std::string, spotted> held;
 
@@ -122,8 +119,7 @@ spots()
 
 // spot
 //   the last item drawn, kept as where the control with a key was.
-void
-spot(
+void spot(
     const std::string& _key
 )
 {
@@ -140,8 +136,7 @@ spot(
 
 // tip
 //   the element's "tooltip", under a mouse that has rested on the last item.
-void
-tip(
+void tip(
     const option_set& _attrs
 )
 {
@@ -159,8 +154,7 @@ tip(
 // draw_children
 //   children drawn in [_from, _to), each under its key, or its index, as
 // uxoxo's containers draw theirs.
-void
-draw_children(
+void draw_children(
     const blueprint_list& _children,
     std::size_t           _from,
     std::size_t           _to,
@@ -195,8 +189,7 @@ draw_children(
 
 // lines
 //   a text's lines, without their breaks.
-std::vector<std::string>
-lines(
+std::vector<std::string> lines(
     const std::string& _text
 )
 {
@@ -227,8 +220,7 @@ lines(
 //   the central node of a dock space's tree: where its documents go. Found
 // by walking the tree, not from the root's record of it, which a merge
 // earlier in the frame can leave behind.
-ImGuiDockNode*
-central(
+ImGuiDockNode* central(
     ImGuiDockNode* _node
 )
 {
@@ -255,8 +247,7 @@ central(
 
 // leaves_with_windows
 //   how many of a tree's leaves hold windows, the last found kept.
-int
-leaves_with_windows(
+int leaves_with_windows(
     ImGuiDockNode*  _node,
     ImGuiDockNode*& _last
 )
@@ -286,8 +277,7 @@ leaves_with_windows(
 //   a root's record of its middle, and of its one node with windows, made
 // true again after a merge. ImGui makes it so once a frame; a split later
 // in the same frame reads it, and would follow a node the merge freed.
-void
-refresh_root(
+void refresh_root(
     ImGuiDockNode* _root
 )
 {
@@ -305,8 +295,7 @@ refresh_root(
 //   every window docked by reference to a node -- not in it this frame, or
 // never shown at all -- docked by reference to another: a node split has
 // none of its own, and a window that points at one would float.
-void
-repoint(
+void repoint(
     ImGuiID _from,
     ImGuiID _to
 )
@@ -344,8 +333,7 @@ line of the layout names a window and its place -- "left", "right", "top"
 or "bottom"; "top" is the middle -- and every window named is docked there,
 open or not, so one opened later opens in its place.
 */
-void
-lay_out(
+void lay_out(
     ImGuiID            _space,
     const ImVec2&      _size,
     const std::string& _layout
@@ -395,8 +383,7 @@ shared the middle with them, the macros and the templates, stay in its
 first cell. It waits until every document has been shown once, and says
 whether it has laid them out.
 */
-bool
-arrange(
+bool arrange(
     ImGuiID            _space,
     const std::string& _documents,
     int                _way
@@ -529,8 +516,7 @@ arrange(
 
 // choose_tab
 //   a docked window's tab chosen in its dock, from the next frame.
-void
-choose_tab(
+void choose_tab(
     ImGuiWindow* _window
 )
 {
@@ -554,8 +540,7 @@ choose_tab(
 
 // dock_of
 //   a dock space's id, as an attribute carries it: decimal text.
-ImGuiID
-dock_of(
+ImGuiID dock_of(
     const option_set& _attrs,
     const char*       _key
 )
@@ -577,8 +562,7 @@ struct space_times
 
 // spaces
 //   each dock space's times, by its id, in the ImGui drawing it.
-std::unordered_map<ImGuiID, space_times>&
-spaces()
+std::unordered_map<ImGuiID, space_times>& spaces()
 {
     static std::unordered_map<const ImGuiContext*,
                               std::unordered_map<ImGuiID, space_times>> held;
@@ -595,8 +579,7 @@ const int SETTLING = 2;
 // settled
 //   whether a dock space's nodes have their sizes: shown long enough since
 // it appeared and since it was laid out.
-bool
-settled(
+bool settled(
     ImGuiID _space
 )
 {
@@ -619,8 +602,7 @@ struct sighting
 
 // seen
 //   each dock window's last sighting, by its key.
-std::unordered_map<std::string, sighting>&
-seen()
+std::unordered_map<std::string, sighting>& seen()
 {
     static std::unordered_map<std::string, sighting> held;
 
@@ -630,8 +612,7 @@ seen()
 // in_front
 //   the key of the dock window that last took the keyboard, by the ImGui it
 // took it in.
-std::string&
-in_front()
+std::string& in_front()
 {
     static std::unordered_map<const ImGuiContext*, std::string> held;
 
@@ -645,7 +626,8 @@ struct zoomed
 {
     bool pushed = false;
 
-    explicit zoomed(
+    explicit
+    zoomed(
         float _zoom
     )
     {
@@ -688,8 +670,12 @@ struct zoomed
         }
     }
 
-    zoomed(const zoomed&)            = delete;
-    zoomed& operator=(const zoomed&) = delete;
+    zoomed(
+        const zoomed&
+    ) = delete;
+    zoomed& operator=(
+        const zoomed&
+    ) = delete;
 };
 
 }  // anonymous namespace
@@ -702,8 +688,7 @@ words beside it are an invisible button of their size with the words drawn
 over it, so a press on them is a press of the "+" too. They are the
 theme's text, faded, and whole under the mouse.
 */
-void
-draw_add_new(
+void draw_add_new(
     const option_set& _attrs,
     imgui_frame&      _frame
 )
@@ -765,8 +750,7 @@ every new row, which a swatch there chooses.
   Each part is kept where it was drawn, under the control's key -- for a
 test that drives it.
 */
-void
-draw_add_control(
+void draw_add_control(
     const option_set& _attrs,
     imgui_frame&      _frame
 )
@@ -948,8 +932,7 @@ the window asks for the keyboard back, through "focus", with "text" to
 start from. Escape clears what was typed, and leaves the field when there
 is nothing to clear.
 */
-void
-draw_add_child(
+void draw_add_child(
     const option_set& _attrs,
     imgui_frame&      _frame
 )
@@ -1092,8 +1075,7 @@ view, and only the lines in view drawn, so two thousand cost what thirty
 do. The time, the sheet and the times over are faded; the action and what
 it carried are not.
 */
-void
-draw_action_list(
+void draw_action_list(
     const std::vector<action_entry>& _actions
 )
 {
@@ -1185,8 +1167,7 @@ last said at the right end, after a "*" while the sheet has changes: a
 click there opens the console; and before the sheet, the grid's End mode
 and Extend mode while they are on. What is on the left is cut short of it.
 */
-void
-draw_status_bar(
+void draw_status_bar(
     const option_set& _attrs,
     imgui_frame&      _frame
 )
@@ -1301,8 +1282,7 @@ indent, clipped a spacing short of the first trailing menu; the trailing
 menus, where the room begins. The cursor is moved only when something is
 drawn after it, as ImGui asks.
 */
-void
-draw_menu_bar_rest(
+void draw_menu_bar_rest(
     const option_set&     _attrs,
     const blueprint_list& _children,
     imgui_frame&          _frame
@@ -1361,8 +1341,7 @@ draw_menu_bar_rest(
     return;
 }
 
-grid_point
-control_spot(
+grid_point control_spot(
     const std::string& _key
 )
 {
@@ -1380,8 +1359,7 @@ control_spot(
                        found->second.middle.y };
 }
 
-bool
-window_seen(
+bool window_seen(
     const std::string& _key
 )
 {
@@ -1399,8 +1377,7 @@ const char* const PIN_ROOM = "      ";
 // tab_drafts
 //   what is being typed over a window's tab, renaming it, by the window's
 // key.
-std::map<std::string, std::string>&
-tab_drafts()
+std::map<std::string, std::string>& tab_drafts()
 {
     static std::map<std::string, std::string> held;
 
@@ -1432,8 +1409,7 @@ struct tab_place
 // tab_places
 //   each dock node's tab bar, by the node's id, as the documents docked
 // there asked in the frame before, kept until the dock space is next drawn.
-std::map<ImGuiID, tab_place>&
-tab_places()
+std::map<ImGuiID, tab_place>& tab_places()
 {
     static std::map<ImGuiID, tab_place> held;
 
@@ -1445,8 +1421,7 @@ tab_places()
 // node no document asked for across its width, at its left; the requests
 // then let go, for the next frame's. And each node's pinned tabs before
 // the rest: one moved a frame, as ImGui moves tabs.
-void
-set_tab_places(
+void set_tab_places(
     const std::vector<std::string>& _pinned
 )
 {
@@ -1526,8 +1501,7 @@ set_tab_places(
 // tab_keys
 //   the keys of the windows a dock node's tabs show, in the order the tabs
 // are in: what follows "###" in each window's name.
-std::vector<std::string>
-tab_keys(
+std::vector<std::string> tab_keys(
     const ImGuiDockNode* _node
 )
 {
@@ -1557,8 +1531,7 @@ tab_keys(
 // draw_pin
 //   a pushpin, its head up and to the right, its point down and to the
 // left, centred at _at.
-void
-draw_pin(
+void draw_pin(
     ImDrawList* _list,
     ImVec2      _at,
     float       _size,
@@ -1588,8 +1561,7 @@ of its dock builder. Each node's tabs are over the columns its documents
 asked for the frame before, and its pinned tabs -- "pinned", their keys a
 line each -- before the rest. It fills what is left of the window.
 */
-void
-draw_dock_space(
+void draw_dock_space(
     const option_set& _attrs,
     imgui_frame&      _frame
 )
@@ -1659,8 +1631,7 @@ its tab -- while its sheet has changes. Its content is drawn at its zoom,
 into a frame of its own whose events -- and the window's own -- are passed
 on with its document's id.
 */
-void
-draw_dock_window(
+void draw_dock_window(
     const option_set&     _attrs,
     const blueprint_list& _children,
     imgui_frame&          _frame

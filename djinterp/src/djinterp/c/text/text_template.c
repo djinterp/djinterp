@@ -13,37 +13,51 @@
 // =============================================================================
 // Forward declarations for internal helpers
 // =============================================================================
-static void
-d_internal_template_free_binding(struct d_text_template_binding* _binding);
+static
+void d_internal_template_free_binding(
+    struct dj_text_template_binding* _binding
+);
 
-static int
-d_internal_template_find_binding(const struct d_text_template* _template,
-                                 const char*                   _key);
+static
+int d_internal_template_find_binding(
+    const struct dj_text_template* _template,
+    const char*                    _key
+);
 
-static enum d_text_template_error
-d_internal_template_ensure_capacity(struct d_text_template* _template);
+static
+enum dj_text_template_error d_internal_template_ensure_capacity(
+    struct dj_text_template* _template
+);
 
-static enum d_text_template_error
-d_internal_template_resolve_value(const struct d_text_template*         _template,
-                                  const struct d_text_template_binding* _binding,
-                                  char**                                _result,
-                                  size_t*                               _length,
-                                  size_t                                _depth);
+static
+enum dj_text_template_error d_internal_template_resolve_value(
+    const struct dj_text_template*         _template,
+    const struct dj_text_template_binding* _binding,
+    char**                                 _result,
+    size_t*                                _length,
+    size_t                                 _depth
+);
 
-static enum d_text_template_error
-d_internal_template_build_interp_context(const struct d_text_template* _template,
-                                         struct d_str_interp_context*  _context,
-                                         size_t                        _depth);
+static
+enum dj_text_template_error d_internal_template_build_interp_context(
+    const struct dj_text_template* _template,
+    struct dj_str_interp_context*  _context,
+    size_t                         _depth
+);
 
-static void
-d_internal_template_format_padded(char*  _buf,
-                                  size_t _buf_size,
-                                  size_t _number,
-                                  size_t _width,
-                                  char   _pad_char);
+static
+void d_internal_template_format_padded(
+    char*  _buf,
+    size_t _buf_size,
+    size_t _number,
+    size_t _width,
+    char   _pad_char
+);
 
-static size_t
-d_internal_template_digit_count(size_t _value);
+static
+size_t d_internal_template_digit_count(
+    size_t _value
+);
 
 
 // =============================================================================
@@ -62,15 +76,11 @@ Parameter(s):
 Return:
   A non-NULL pointer on success, or NULL on allocation failure.
 */
-struct d_text_template*
-d_text_template_new
-(
-    void
-)
+struct dj_text_template* d_text_template_new(void)
 {
-    struct d_text_template* tmpl;
+    struct dj_text_template* tmpl;
 
-    tmpl = malloc(sizeof(struct d_text_template));
+    tmpl = malloc(sizeof(struct dj_text_template));
 
     // check if allocation succeeded
     if (!tmpl)
@@ -80,7 +90,7 @@ d_text_template_new
 
     // allocate the binding array
     tmpl->bindings = malloc(D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY
-                            * sizeof(struct d_text_template_binding));
+                            * sizeof(struct dj_text_template_binding));
     if (!tmpl->bindings)
     {
         free(tmpl);
@@ -92,7 +102,7 @@ d_text_template_new
     d_memset(tmpl->bindings,
              0,
              D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY
-             * sizeof(struct d_text_template_binding));
+             * sizeof(struct dj_text_template_binding));
 
     tmpl->binding_count    = 0;
     tmpl->binding_capacity = D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY;
@@ -139,14 +149,12 @@ Return:
   A non-NULL pointer on success, or NULL on allocation failure or NULL
 params.
 */
-struct d_text_template*
-d_text_template_new_with_markers
-(
+struct dj_text_template* d_text_template_new_with_markers(
     const char* _prefix,
     const char* _suffix
 )
 {
-    struct d_text_template* tmpl;
+    struct dj_text_template* tmpl;
 
     // validate parameters
     if ( (!_prefix) ||
@@ -189,10 +197,9 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_template_free_binding
-(
-    struct d_text_template_binding* _binding
+static
+void d_internal_template_free_binding(
+    struct dj_text_template_binding* _binding
 )
 {
     // free the key
@@ -246,10 +253,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_text_template_free
-(
-    struct d_text_template* _template
+void d_text_template_free(
+    struct dj_text_template* _template
 )
 {
     size_t i;
@@ -297,10 +302,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_text_template_clear
-(
-    struct d_text_template* _template
+void d_text_template_clear(
+    struct dj_text_template* _template
 )
 {
     size_t i;
@@ -317,7 +320,7 @@ d_text_template_clear
         d_memset(_template->bindings,
                  0,
                  _template->binding_capacity
-                 * sizeof(struct d_text_template_binding));
+                 * sizeof(struct dj_text_template_binding));
         _template->binding_count = 0;
     }
 
@@ -342,10 +345,10 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_set_markers
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     const char*             _prefix,
     const char*             _suffix
 )
@@ -417,10 +420,8 @@ Parameter(s):
 Return:
   The prefix string, or NULL if _template is NULL.
 */
-const char*
-d_text_template_get_prefix
-(
-    const struct d_text_template* _template
+const char* d_text_template_get_prefix(
+    const struct dj_text_template* _template
 )
 {
     if (!_template)
@@ -440,10 +441,8 @@ Parameter(s):
 Return:
   The suffix string, or NULL if _template is NULL.
 */
-const char*
-d_text_template_get_suffix
-(
-    const struct d_text_template* _template
+const char* d_text_template_get_suffix(
+    const struct dj_text_template* _template
 )
 {
     if (!_template)
@@ -472,10 +471,10 @@ Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or D_TEXT_TEMPLATE_ERROR_NULL_PARAM
 if _template is NULL.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_set_max_depth
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     size_t                  _depth
 )
 {
@@ -498,10 +497,8 @@ Parameter(s):
 Return:
   The max nesting depth, or 0 if _template is NULL.
 */
-size_t
-d_text_template_get_max_depth
-(
-    const struct d_text_template* _template
+size_t d_text_template_get_max_depth(
+    const struct dj_text_template* _template
 )
 {
     if (!_template)
@@ -532,14 +529,14 @@ Return:
 D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED if the new array could not be
 allocated.
 */
-static enum d_text_template_error
+static enum dj_text_template_error
 d_internal_template_ensure_capacity
 (
-    struct d_text_template* _template
+    struct dj_text_template* _template
 )
 {
     size_t                          new_capacity;
-    struct d_text_template_binding* new_bindings;
+    struct dj_text_template_binding* new_bindings;
 
     // check if there is room
     if (_template->binding_count < _template->binding_capacity)
@@ -556,7 +553,7 @@ d_internal_template_ensure_capacity
 
     // allocate new binding array
     new_bindings = malloc(new_capacity
-                          * sizeof(struct d_text_template_binding));
+                          * sizeof(struct dj_text_template_binding));
     if (!new_bindings)
     {
         return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
@@ -569,14 +566,14 @@ d_internal_template_ensure_capacity
         d_memcpy(new_bindings,
                  _template->bindings,
                  _template->binding_count
-                 * sizeof(struct d_text_template_binding));
+                 * sizeof(struct dj_text_template_binding));
     }
 
     // zero the new slots
     d_memset(new_bindings + _template->binding_count,
              0,
              (new_capacity - _template->binding_count)
-             * sizeof(struct d_text_template_binding));
+             * sizeof(struct dj_text_template_binding));
 
     // free old array and assign new
     free(_template->bindings);
@@ -602,11 +599,10 @@ Parameter(s):
 Return:
   The index of the binding if found, or -1 if not found.
 */
-static int
-d_internal_template_find_binding
-(
-    const struct d_text_template* _template,
-    const char*                   _key
+static
+int d_internal_template_find_binding(
+    const struct dj_text_template* _template,
+    const char*                    _key
 )
 {
     size_t i;
@@ -652,10 +648,10 @@ Return:
   D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED : string duplication or array
                                            growth failed.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_bind_string
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     const char*             _key,
     const char*             _value
 )
@@ -696,21 +692,21 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_bind_string_n
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     const char*             _key,
     size_t                  _key_length,
     const char*             _value,
     size_t                  _value_length
 )
 {
-    struct d_text_template_binding* binding;
+    struct dj_text_template_binding* binding;
     char*                           key_copy;
     char*                           value_copy;
     int                             existing;
-    enum d_text_template_error      err;
+    enum dj_text_template_error      err;
 
     // validate parameters
     if ( (!_template) ||
@@ -778,19 +774,19 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_bind_template
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     const char*             _key,
-    struct d_text_template* _nested
+    struct dj_text_template* _nested
 )
 {
-    struct d_text_template_binding* binding;
+    struct dj_text_template_binding* binding;
     char*                           key_copy;
     size_t                          key_len;
     int                             existing;
-    enum d_text_template_error      err;
+    enum dj_text_template_error      err;
 
     // validate parameters
     if ( (!_template) ||
@@ -862,20 +858,20 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_bind_function
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     const char*             _key,
-    d_text_template_fn      _fn,
+    dj_text_template_fn      _fn,
     void*                   _context
 )
 {
-    struct d_text_template_binding* binding;
+    struct dj_text_template_binding* binding;
     char*                           key_copy;
     size_t                          key_len;
     int                             existing;
-    enum d_text_template_error      err;
+    enum dj_text_template_error      err;
 
     // validate parameters
     if ( (!_template) ||
@@ -985,23 +981,23 @@ Return:
   D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED : key duplication or array
                                            growth failed.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_bind_list
 (
-    struct d_text_template*                   _template,
+    struct dj_text_template*                   _template,
     const char*                               _key,
-    struct d_text_template*                   _item_template,
+    struct dj_text_template*                   _item_template,
     size_t                                    _count,
-    d_text_template_list_fn                   _bind_fn,
+    dj_text_template_list_fn                   _bind_fn,
     void*                                     _context,
-    const struct d_text_template_list_options* _options
+    const struct dj_text_template_list_options* _options
 )
 {
-    struct d_text_template_binding* binding;
+    struct dj_text_template_binding* binding;
     char*                           key_copy;
     size_t                          key_len;
     int                             existing;
-    enum d_text_template_error      err;
+    enum dj_text_template_error      err;
 
     // validate parameters
     if ( (!_template)      ||
@@ -1053,7 +1049,7 @@ d_text_template_bind_list
     // deep-copy options (or use defaults)
     d_memset(&binding->value.list.options,
              0,
-             sizeof(struct d_text_template_list_options));
+             sizeof(struct dj_text_template_list_options));
 
     if (_options)
     {
@@ -1109,10 +1105,10 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_unbind
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     const char*             _key
 )
 {
@@ -1145,7 +1141,7 @@ d_text_template_unbind
     // clear the last slot and decrement count
     d_memset(&_template->bindings[_template->binding_count - 1],
              0,
-             sizeof(struct d_text_template_binding));
+             sizeof(struct dj_text_template_binding));
     _template->binding_count--;
 
     return D_TEXT_TEMPLATE_SUCCESS;
@@ -1162,10 +1158,10 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_update_string
 (
-    struct d_text_template* _template,
+    struct dj_text_template* _template,
     const char*             _key,
     const char*             _value
 )
@@ -1173,7 +1169,7 @@ d_text_template_update_string
     int                             index;
     size_t                          value_len;
     char*                           value_copy;
-    struct d_text_template_binding* binding;
+    struct dj_text_template_binding* binding;
 
     // validate parameters
     if ( (!_template) ||
@@ -1224,11 +1220,9 @@ Parameter(s):
 Return:
   true if the binding exists, false otherwise.
 */
-bool
-d_text_template_has_binding
-(
-    const struct d_text_template* _template,
-    const char*                   _key
+bool d_text_template_has_binding(
+    const struct dj_text_template* _template,
+    const char*                    _key
 )
 {
     // validate parameters
@@ -1251,10 +1245,8 @@ Parameter(s):
 Return:
   The number of bindings, or 0 if _template is NULL.
 */
-size_t
-d_text_template_binding_count
-(
-    const struct d_text_template* _template
+size_t d_text_template_binding_count(
+    const struct dj_text_template* _template
 )
 {
     if (!_template)
@@ -1280,9 +1272,8 @@ Parameter(s):
 Return:
   The number of decimal digits.
 */
-static size_t
-d_internal_template_digit_count
-(
+static
+size_t d_internal_template_digit_count(
     size_t _value
 )
 {
@@ -1321,9 +1312,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_template_format_padded
-(
+static
+void d_internal_template_format_padded(
     char*  _buf,
     size_t _buf_size,
     size_t _number,
@@ -1405,11 +1395,11 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-static enum d_text_template_error
+static enum dj_text_template_error
 d_internal_template_resolve_value
 (
-    const struct d_text_template*         _template,
-    const struct d_text_template_binding* _binding,
+    const struct dj_text_template*         _template,
+    const struct dj_text_template_binding* _binding,
     char**                                _result,
     size_t*                               _length,
     size_t                                _depth
@@ -1417,7 +1407,7 @@ d_internal_template_resolve_value
 {
     char*                      resolved;
     size_t                     resolved_len;
-    enum d_text_template_error err;
+    enum dj_text_template_error err;
 
     // check nesting depth
     if (_depth >= _template->max_nesting_depth)
@@ -1501,11 +1491,11 @@ d_internal_template_resolve_value
     // list binding: iterate and concatenate rendered items
     if (_binding->type == D_TEXT_TEMPLATE_BINDING_LIST)
     {
-        struct d_text_template*                    item_tmpl;
+        struct dj_text_template*                    item_tmpl;
         size_t                                     count;
-        d_text_template_list_fn                    bind_fn;
+        dj_text_template_list_fn                    bind_fn;
         void*                                      ctx;
-        const struct d_text_template_list_options*  opts;
+        const struct dj_text_template_list_options*  opts;
         char*                                      output;
         size_t                                     output_len;
         size_t                                     output_cap;
@@ -1516,8 +1506,8 @@ d_internal_template_resolve_value
         char                                       num_buf[32];
         char                                       idx_buf[32];
         char                                       cnt_buf[32];
-        struct d_str_interp_context*               item_ctx;
-        enum d_str_interp_error                    interp_err;
+        struct dj_str_interp_context*               item_ctx;
+        enum dj_str_interp_error                    interp_err;
         char*                                      item_format;
         size_t                                     item_format_len;
         char*                                      item_result;
@@ -1793,7 +1783,7 @@ d_internal_template_resolve_value
 
 /*
 d_internal_template_build_interp_context
-  Builds a d_str_interp_context from a template's bindings by
+  Builds a dj_str_interp_context from a template's bindings by
 constructing marker-wrapped keys (prefix + key + suffix) and resolving
 all values (including nested templates and function callbacks).
 
@@ -1804,11 +1794,11 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-static enum d_text_template_error
+static enum dj_text_template_error
 d_internal_template_build_interp_context
 (
-    const struct d_text_template* _template,
-    struct d_str_interp_context*  _context,
+    const struct dj_text_template* _template,
+    struct dj_str_interp_context*  _context,
     size_t                        _depth
 )
 {
@@ -1817,8 +1807,8 @@ d_internal_template_build_interp_context
     char*                      marked_key;
     char*                      resolved_value;
     size_t                     resolved_len;
-    enum d_text_template_error tmpl_err;
-    enum d_str_interp_error    interp_err;
+    enum dj_text_template_error tmpl_err;
+    enum dj_str_interp_error    interp_err;
 
     // process each binding
     for (i = 0; i < _template->binding_count; i++)
@@ -1910,18 +1900,18 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_render
 (
-    const struct d_text_template* _template,
+    const struct dj_text_template* _template,
     const char*                   _format,
     char*                         _buffer,
     size_t                        _buffer_size
 )
 {
-    struct d_str_interp_context* context;
-    enum d_text_template_error   tmpl_err;
-    enum d_str_interp_error      interp_err;
+    struct dj_str_interp_context* context;
+    enum dj_text_template_error   tmpl_err;
+    enum dj_str_interp_error      interp_err;
 
     // validate parameters
     if ( (!_template) ||
@@ -1989,17 +1979,17 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_render_alloc
 (
-    const struct d_text_template* _template,
+    const struct dj_text_template* _template,
     const char*                   _format,
     char**                        _result
 )
 {
-    struct d_str_interp_context* context;
-    enum d_text_template_error   tmpl_err;
-    enum d_str_interp_error      interp_err;
+    struct dj_str_interp_context* context;
+    enum dj_text_template_error   tmpl_err;
+    enum dj_str_interp_error      interp_err;
 
     // validate parameters
     if ( (!_template) ||
@@ -2060,17 +2050,17 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_render_length
 (
-    const struct d_text_template* _template,
+    const struct dj_text_template* _template,
     const char*                   _format,
     size_t*                       _length
 )
 {
-    struct d_str_interp_context* context;
-    enum d_text_template_error   tmpl_err;
-    enum d_str_interp_error      interp_err;
+    struct dj_str_interp_context* context;
+    enum dj_text_template_error   tmpl_err;
+    enum dj_str_interp_error      interp_err;
 
     // validate parameters
     if ( (!_template) ||
@@ -2138,10 +2128,10 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_wrap_keys
 (
-    const struct d_text_template* _template,
+    const struct dj_text_template* _template,
     const char*                   _input,
     char*                         _buffer,
     size_t                        _buffer_size
@@ -2268,10 +2258,10 @@ Parameter(s):
 Return:
   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
 */
-enum d_text_template_error
+enum dj_text_template_error
 d_text_template_wrap_keys_alloc
 (
-    const struct d_text_template* _template,
+    const struct dj_text_template* _template,
     const char*                   _input,
     char**                        _result
 )
@@ -2280,7 +2270,7 @@ d_text_template_wrap_keys_alloc
     size_t max_expansion;
     size_t buffer_size;
     char*  buffer;
-    enum d_text_template_error err;
+    enum dj_text_template_error err;
 
     // validate parameters
     if ( (!_template) ||
@@ -2339,7 +2329,7 @@ Return:
 const char*
 d_text_template_error_string
 (
-    enum d_text_template_error _error
+    enum dj_text_template_error _error
 )
 {
     switch (_error)

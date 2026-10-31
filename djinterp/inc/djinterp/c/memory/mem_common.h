@@ -50,15 +50,15 @@ I.    PORTABILITY LAYER
       c. D_MEM_EXTERN_INLINE            (C99 out-of-line emission)
 II.   COUNTER TYPE
       ------------
-      a. d_mem_size / D_MEM_SIZE_MAX
-      b. d_mem_max_align / D_MEM_MAX_ALIGN / D_MEM_ALIGN_DEFAULT
+      a. dj_mem_size / D_MEM_SIZE_MAX
+      b. dj_mem_max_align / D_MEM_MAX_ALIGN / D_MEM_ALIGN_DEFAULT
 III.  STATUS
       ------
-      a. enum d_mem_status
+      a. enum dj_mem_status
       b. d_mem_status_string
 IV.   BLOCK VIEW
       ----------
-      a. struct d_mem_block
+      a. struct dj_mem_block
       b. d_mem_block_make / _empty / _end / _contains / _is_empty
 V.    ALIGNMENT AND OVERFLOW ARITHMETIC
       ---------------------------------
@@ -68,7 +68,7 @@ V.    ALIGNMENT AND OVERFLOW ARITHMETIC
       d. d_mem_add_checked / _mul_checked
 VI.   ACCOUNTING
       ----------
-      a. struct d_mem_stats
+      a. struct dj_mem_stats
       b. d_mem_stats_clear / _on_reserve / _on_acquire / _on_release
       c. d_mem_stats_utilization
 VII.  HARDENING
@@ -88,9 +88,9 @@ VIII. ARGUMENT POLICY
 #include <string.h>
 // djinterp
 #include "../djinterp.h"
-#include "../../config/core/memory/cfg_mem_common.h"
+#include "../../config/c/memory/cfg_mem_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // uint32_t, uint64_t, uintptr_t,
+#include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t, uintptr_t,
                                               // UINT32_MAX, UINT64_MAX,
                                               // SIZE_MAX
 
@@ -141,7 +141,7 @@ VIII. ARGUMENT POLICY
 #endif
 
 #ifdef __cplusplus
-#   include "../../djinterp.hpp"
+#   include "../djinterp_cpp.h"
 
 #   define D_MEM_FN                 D_CONSTEXPR_INLINE
 #   define D_MEM_FN_HOT             inline
@@ -176,7 +176,7 @@ D_EXTERN_C_BEGIN
 ///                       II.   COUNTER TYPE                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_mem_size
+// dj_mem_size
 //   type: the one unsigned counter every allocator in this subframework
 // counts bytes, slots and capacities in. Its width is chosen by
 // D_CFG_MEM_SIZE_BITS, because it appears five to seven times per allocator
@@ -189,37 +189,37 @@ D_EXTERN_C_BEGIN
 // assertions below are what turn that into a compile error rather than a
 // silent disagreement about where a field lives.
 #if (D_INTERNAL_MEM_SIZE_BITS == 32)
-    typedef uint32_t d_mem_size;
-#   define D_MEM_SIZE_MAX           ((d_mem_size)UINT32_MAX)
+    typedef uint32_t dj_mem_size;
+#   define D_MEM_SIZE_MAX           ((dj_mem_size)UINT32_MAX)
 #elif (D_INTERNAL_MEM_SIZE_BITS == 64)
-    typedef uint64_t d_mem_size;
-#   define D_MEM_SIZE_MAX           ((d_mem_size)UINT64_MAX)
+    typedef uint64_t dj_mem_size;
+#   define D_MEM_SIZE_MAX           ((dj_mem_size)UINT64_MAX)
 #else
-    typedef size_t d_mem_size;
-#   define D_MEM_SIZE_MAX           ((d_mem_size)SIZE_MAX)
+    typedef size_t dj_mem_size;
+#   define D_MEM_SIZE_MAX           ((dj_mem_size)SIZE_MAX)
 #endif
 
-// d_mem_max_align
+// dj_mem_max_align
 //   union: the widest-aligned set of fundamental types. Exists so that
 // D_MEM_MAX_ALIGN can be computed at the C99 floor, where _Alignof does not
 // exist and <stddef.h> is not required to define max_align_t.
-union d_mem_max_align
+union dj_mem_max_align
 {
     long double         ld;
     void*               ptr;
     void              (*fn)(void);
     long                l;
-    d_mem_size          sz;
+    dj_mem_size          sz;
 };
 
-// d_mem_align_probe
+// dj_mem_align_probe
 //   struct: the offsetof vehicle for D_MEM_MAX_ALIGN. A named struct rather
 // than an anonymous one inside offsetof, because that spelling is a GNU
 // extension in C and ill-formed in C++, and this header is compiled by both.
-struct d_mem_align_probe
+struct dj_mem_align_probe
 {
     char                  pad;
-    union d_mem_max_align value;
+    union dj_mem_max_align value;
 };
 
 // D_MEM_MAX_ALIGN
@@ -227,7 +227,7 @@ struct d_mem_align_probe
 // offsetof rather than alignof so that the value is identical at every
 // language level this framework supports.
 #define D_MEM_MAX_ALIGN                                                       \
-    ((d_mem_size)offsetof(struct d_mem_align_probe, value))
+    ((dj_mem_size)offsetof(struct dj_mem_align_probe, value))
 
 // D_MEM_ALIGN_DEFAULT
 //   constant: the alignment applied when a caller passes 0. Resolves the
@@ -238,7 +238,7 @@ struct d_mem_align_probe
 #   define D_MEM_ALIGN_DEFAULT      D_MEM_MAX_ALIGN
 #else
 #   define D_MEM_ALIGN_DEFAULT                                                \
-        ((d_mem_size)D_INTERNAL_MEM_DEFAULT_ALIGN_CFG)
+        ((dj_mem_size)D_INTERNAL_MEM_DEFAULT_ALIGN_CFG)
 #endif
 
 // D_MEM_ALIGN_MIN / D_MEM_ALIGN_MAX
@@ -247,10 +247,10 @@ struct d_mem_align_probe
 #define D_MEM_ALIGN_MIN             D_INTERNAL_MEM_MIN_ALIGN
 #define D_MEM_ALIGN_MAX             D_INTERNAL_MEM_MAX_ALIGN
 
-// d_mem_link_probe
+// dj_mem_link_probe
 //   struct: the offsetof vehicle for D_MEM_LINK_ALIGN, for the same reason
-// d_mem_align_probe exists.
-struct d_mem_link_probe
+// dj_mem_align_probe exists.
+struct dj_mem_link_probe
 {
     char  pad;
     void* value;
@@ -261,16 +261,16 @@ struct d_mem_link_probe
 // slot. pool.h raises its slot geometry to these when its release policy
 // threads a free list through unused slots, which is the one place a slot must
 // be big enough to hold something other than the caller's object.
-#define D_MEM_LINK_SIZE             ((d_mem_size)sizeof(void*))
+#define D_MEM_LINK_SIZE             ((dj_mem_size)sizeof(void*))
 #define D_MEM_LINK_ALIGN                                                      \
-    ((d_mem_size)offsetof(struct d_mem_link_probe, value))
+    ((dj_mem_size)offsetof(struct dj_mem_link_probe, value))
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                         III.   STATUS                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_mem_status
+// dj_mem_status
 //   enum: the outcome of a fallible memory operation. Every _ex form in this
 // subframework returns one of these; the plain forms collapse them to a null
 // pointer or a bool, which is the ergonomic spelling for a caller that will
@@ -280,7 +280,7 @@ struct d_mem_link_probe
 // request was malformed and no allocator could have satisfied it. Reporting
 // them identically is the conformance bug that reads as correct behaviour, so
 // they are separate values and stay separate through every layer.
-enum d_mem_status
+enum dj_mem_status
 {
     // the operation completed
     D_MEM_OK              = 0,
@@ -324,16 +324,16 @@ enum d_mem_status
 ///                       IV.   BLOCK VIEW                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_mem_block
+// dj_mem_block
 //   struct: a borrowed view of a contiguous byte range. The universal currency
 // of this subframework: every source hands one back, every arena region is
 // one, and every bulk operation takes one. It OWNS NOTHING -- the allocator
 // that produced it owns the bytes, and the view is valid only as long as that
 // allocator says it is.
-struct d_mem_block
+struct dj_mem_block
 {
     void*      ptr;     // first byte, or NULL when the block is empty
-    d_mem_size size;    // length in bytes
+    dj_mem_size size;    // length in bytes
 };
 
 
@@ -345,9 +345,9 @@ struct d_mem_block
 //   kernel: true when _value is a power of two. Zero is NOT a power of two
 // here, which is the useful answer: zero is the "unspecified" alignment and
 // must take the default rather than pass validation.
-D_MEM_FN bool
-d_mem_is_pow2(
-    d_mem_size _value
+D_MEM_FN
+bool d_mem_is_pow2(
+    dj_mem_size _value
 )
 {
     return ( (_value != 0) && ((_value & (_value - 1)) == 0) );
@@ -358,9 +358,9 @@ d_mem_is_pow2(
 // value, or the default when it passed 0, raised to the configured floor.
 // Every module normalizes before validating, so that a caller passing 0 is
 // always correct and never merely tolerated.
-D_MEM_FN d_mem_size
-d_mem_align_normalize(
-    d_mem_size _align
+D_MEM_FN
+dj_mem_size d_mem_align_normalize(
+    dj_mem_size _align
 )
 {
     return ( (_align == 0)
@@ -375,9 +375,9 @@ d_mem_align_normalize(
 // d_mem_align_is_valid
 //   kernel: true when a NORMALIZED alignment is one this subframework will
 // honour -- a power of two within [D_MEM_ALIGN_MIN, D_MEM_ALIGN_MAX].
-D_MEM_FN bool
-d_mem_align_is_valid(
-    d_mem_size _align
+D_MEM_FN
+bool d_mem_align_is_valid(
+    dj_mem_size _align
 )
 {
     return ( d_mem_is_pow2(_align) &&
@@ -397,16 +397,16 @@ d_mem_align_is_valid(
 // result.
 //   Zero still means "the configured default", which is a request rather than
 // a mistake and is resolved rather than refused.
-D_MEM_FN d_mem_size
-d_mem_align_accept(
-    d_mem_size _align
+D_MEM_FN
+dj_mem_size d_mem_align_accept(
+    dj_mem_size _align
 )
 {
     return ( ( (_align != 0) && (!d_mem_is_pow2(_align)) )
-                 ? (d_mem_size)0
+                 ? (dj_mem_size)0
                  : ( d_mem_align_is_valid(d_mem_align_normalize(_align))
                          ? d_mem_align_normalize(_align)
-                         : (d_mem_size)0 ) );
+                         : (dj_mem_size)0 ) );
 }
 
 // d_mem_align_up
@@ -415,10 +415,10 @@ d_mem_align_accept(
 // the sum wraps and the result is smaller than _value. Use it only where the
 // magnitude is already known to be bounded -- a slot size, a header size --
 // and use d_mem_align_up_checked everywhere a caller's number is involved.
-D_MEM_FN d_mem_size
-d_mem_align_up(
-    d_mem_size _value,
-    d_mem_size _align
+D_MEM_FN
+dj_mem_size d_mem_align_up(
+    dj_mem_size _value,
+    dj_mem_size _align
 )
 {
     return ( (_value + (_align - 1)) & ~(_align - 1) );
@@ -427,10 +427,10 @@ d_mem_align_up(
 // d_mem_align_padding
 //   kernel: the bytes that must be skipped from _value to reach the next
 // multiple of _align. Cannot overflow: the result is always < _align.
-D_MEM_FN d_mem_size
-d_mem_align_padding(
-    d_mem_size _value,
-    d_mem_size _align
+D_MEM_FN
+dj_mem_size d_mem_align_padding(
+    dj_mem_size _value,
+    dj_mem_size _align
 )
 {
     return ( (_align - (_value & (_align - 1))) & (_align - 1) );
@@ -438,10 +438,10 @@ d_mem_align_padding(
 
 // d_mem_align_would_overflow
 //   kernel: true when d_mem_align_up(_value, _align) would wrap.
-D_MEM_FN bool
-d_mem_align_would_overflow(
-    d_mem_size _value,
-    d_mem_size _align
+D_MEM_FN
+bool d_mem_align_would_overflow(
+    dj_mem_size _value,
+    dj_mem_size _align
 )
 {
     return (_value > (D_MEM_SIZE_MAX - (_align - 1)));
@@ -449,10 +449,10 @@ d_mem_align_would_overflow(
 
 // d_mem_is_aligned
 //   kernel: true when the address held in _ptr is a multiple of _align.
-D_MEM_FN_HOT bool
-d_mem_is_aligned(
+D_MEM_FN_HOT
+bool d_mem_is_aligned(
     const void* _ptr,
-    d_mem_size  _align
+    dj_mem_size _align
 )
 {
     return ( ((uintptr_t)_ptr & (uintptr_t)(_align - 1)) == 0 );
@@ -462,19 +462,19 @@ d_mem_is_aligned(
 //   kernel: true when the sum / product would exceed D_MEM_SIZE_MAX. The
 // multiplication guard divides rather than multiplying, so it never produces
 // the wrapped value it is testing for.
-D_MEM_FN bool
-d_mem_add_would_overflow(
-    d_mem_size _a,
-    d_mem_size _b
+D_MEM_FN
+bool d_mem_add_would_overflow(
+    dj_mem_size _a,
+    dj_mem_size _b
 )
 {
     return (_a > (D_MEM_SIZE_MAX - _b));
 }
 
-D_MEM_FN bool
-d_mem_mul_would_overflow(
-    d_mem_size _a,
-    d_mem_size _b
+D_MEM_FN
+bool d_mem_mul_would_overflow(
+    dj_mem_size _a,
+    dj_mem_size _b
 )
 {
     return ( (_a != 0) && (_b > (D_MEM_SIZE_MAX / _a)) );
@@ -485,7 +485,7 @@ d_mem_mul_would_overflow(
 ///                       VI.   ACCOUNTING                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_mem_stats
+// dj_mem_stats
 //   struct: byte and call accounting for one allocator. Whether an allocator
 // EMBEDS one is D_CFG_MEM_STATS; the type itself is always declared, because a
 // caller may want to ask for one and receive a zeroed answer rather than fail
@@ -493,17 +493,17 @@ d_mem_mul_would_overflow(
 //   The peak fields are separately gated: a running total costs an add on the
 // allocate path, a high-water mark costs a compare and a conditional store,
 // and a caller that samples the totals periodically has no use for the second.
-struct d_mem_stats
+struct dj_mem_stats
 {
-    d_mem_size bytes_reserved;      // obtained from the upstream source
-    d_mem_size bytes_committed;     // handed out, including padding and guards
-    d_mem_size bytes_live;          // committed and not yet released
-    d_mem_size acquire_count;       // successful allocate calls
-    d_mem_size release_count;       // successful release calls
-    d_mem_size upstream_count;      // requests made of the upstream source
+    dj_mem_size bytes_reserved;      // obtained from the upstream source
+    dj_mem_size bytes_committed;     // handed out, including padding and guards
+    dj_mem_size bytes_live;          // committed and not yet released
+    dj_mem_size acquire_count;       // successful allocate calls
+    dj_mem_size release_count;       // successful release calls
+    dj_mem_size upstream_count;      // requests made of the upstream source
 #if (D_INTERNAL_MEM_STATS_PEAK == 1)
-    d_mem_size peak_bytes_live;     // high-water of bytes_live
-    d_mem_size peak_live_count;     // high-water of (acquire - release)
+    dj_mem_size peak_bytes_live;     // high-water of bytes_live
+    dj_mem_size peak_live_count;     // high-water of (acquire - release)
 #endif
 };
 
@@ -525,7 +525,7 @@ struct d_mem_stats
 
 // D_MEM_REDZONE_TOTAL
 //   constant: what a guarded block costs over an unguarded one -- two bands.
-#define D_MEM_REDZONE_TOTAL         (D_MEM_REDZONE_BYTES * (d_mem_size)2)
+#define D_MEM_REDZONE_TOTAL         (D_MEM_REDZONE_BYTES * (dj_mem_size)2)
 
 // d_mem_redzone_lead
 //   kernel: the bytes reserved BEFORE a payload for its leading guard band,
@@ -537,13 +537,13 @@ struct d_mem_stats
 // alignment in exactly one place -- this function -- and nowhere else.
 //   Zero when redzones are off, so a caller adds it unconditionally rather
 // than branching on the knob.
-D_MEM_FN d_mem_size
-d_mem_redzone_lead(
-    d_mem_size _align
+D_MEM_FN
+dj_mem_size d_mem_redzone_lead(
+    dj_mem_size _align
 )
 {
     return ( (D_MEM_REDZONE_BYTES == 0)
-                 ? (d_mem_size)0
+                 ? (dj_mem_size)0
                  : d_mem_align_up(D_MEM_REDZONE_BYTES, _align) );
 }
 
@@ -586,62 +586,110 @@ d_mem_redzone_lead(
 
 
 // I.    block view
-struct d_mem_block d_mem_block_make(void*      _ptr,
-                                    d_mem_size _size);
-struct d_mem_block d_mem_block_empty(void);
-bool               d_mem_block_is_empty(const struct d_mem_block* _block);
-void*              d_mem_block_end(const struct d_mem_block* _block);
-bool               d_mem_block_contains(const struct d_mem_block* _block,
-                                        const void*               _ptr);
+struct dj_mem_block d_mem_block_make(
+    void*       _ptr,
+    dj_mem_size _size
+);
+struct dj_mem_block d_mem_block_empty(void);
+bool d_mem_block_is_empty(
+    const struct dj_mem_block* _block
+);
+void* d_mem_block_end(
+    const struct dj_mem_block* _block
+);
+bool d_mem_block_contains(
+    const struct dj_mem_block* _block,
+    const void*                _ptr
+);
 
 // II.   checked arithmetic
-enum d_mem_status  d_mem_align_up_checked(d_mem_size  _value,
-                                          d_mem_size  _align,
-                                          d_mem_size* _out);
-enum d_mem_status  d_mem_add_checked(d_mem_size  _a,
-                                     d_mem_size  _b,
-                                     d_mem_size* _out);
-enum d_mem_status  d_mem_mul_checked(d_mem_size  _a,
-                                     d_mem_size  _b,
-                                     d_mem_size* _out);
+enum dj_mem_status d_mem_align_up_checked(
+    dj_mem_size  _value,
+    dj_mem_size  _align,
+    dj_mem_size* _out
+);
+enum dj_mem_status d_mem_add_checked(
+    dj_mem_size  _a,
+    dj_mem_size  _b,
+    dj_mem_size* _out
+);
+enum dj_mem_status d_mem_mul_checked(
+    dj_mem_size  _a,
+    dj_mem_size  _b,
+    dj_mem_size* _out
+);
 
 // III.  slot geometry
-d_mem_size         d_mem_slot_align(d_mem_size _align,
-                                    d_mem_size _link_align);
-d_mem_size         d_mem_slot_size(d_mem_size _object_size,
-                                   d_mem_size _slot_align,
-                                   d_mem_size _link_size);
+dj_mem_size d_mem_slot_align(
+    dj_mem_size _align,
+    dj_mem_size _link_align
+);
+dj_mem_size d_mem_slot_size(
+    dj_mem_size _object_size,
+    dj_mem_size _slot_align,
+    dj_mem_size _link_size
+);
 
 // IV.   accounting
-void               d_mem_stats_clear(struct d_mem_stats* _stats);
-void               d_mem_stats_on_reserve(struct d_mem_stats* _stats,
-                                          d_mem_size          _bytes);
-void               d_mem_stats_on_unreserve(struct d_mem_stats* _stats,
-                                            d_mem_size          _bytes);
-void               d_mem_stats_on_acquire(struct d_mem_stats* _stats,
-                                          d_mem_size          _bytes);
-void               d_mem_stats_on_release(struct d_mem_stats* _stats,
-                                          d_mem_size          _bytes);
-void               d_mem_stats_on_reset(struct d_mem_stats* _stats);
-double             d_mem_stats_utilization(const struct d_mem_stats* _stats);
+void d_mem_stats_clear(
+    struct dj_mem_stats* _stats
+);
+void d_mem_stats_on_reserve(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
+);
+void d_mem_stats_on_unreserve(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
+);
+void d_mem_stats_on_acquire(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
+);
+void d_mem_stats_on_release(
+    struct dj_mem_stats* _stats,
+    dj_mem_size          _bytes
+);
+void d_mem_stats_on_reset(
+    struct dj_mem_stats* _stats
+);
+double d_mem_stats_utilization(
+    const struct dj_mem_stats* _stats
+);
 
 // V.    hardening
-void               d_mem_poison(void*      _ptr,
-                                d_mem_size _size);
-void               d_mem_poison_free(void*      _ptr,
-                                     d_mem_size _size);
-void               d_mem_zero(void*      _ptr,
-                              d_mem_size _size);
-void               d_mem_prepare(void*      _ptr,
-                                 d_mem_size _size);
-void               d_mem_redzone_write(void*      _payload,
-                                       d_mem_size _payload_size);
-bool               d_mem_redzone_verify(const void* _payload,
-                                        d_mem_size  _payload_size);
+void d_mem_poison(
+    void*       _ptr,
+    dj_mem_size _size
+);
+void d_mem_poison_free(
+    void*       _ptr,
+    dj_mem_size _size
+);
+void d_mem_zero(
+    void*       _ptr,
+    dj_mem_size _size
+);
+void d_mem_prepare(
+    void*       _ptr,
+    dj_mem_size _size
+);
+void d_mem_redzone_write(
+    void*       _payload,
+    dj_mem_size _payload_size
+);
+bool d_mem_redzone_verify(
+    const void* _payload,
+    dj_mem_size _payload_size
+);
 
 // VI.   diagnostics
-const char*        d_mem_status_string(enum d_mem_status _status);
-bool               d_mem_status_is_ok(enum d_mem_status _status);
+const char* d_mem_status_string(
+    enum dj_mem_status _status
+);
+bool d_mem_status_is_ok(
+    enum dj_mem_status _status
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -654,28 +702,28 @@ bool               d_mem_status_is_ok(enum d_mem_status _status);
 
 #if (D_INTERNAL_MEM_ASSERT_LAYOUT == 1)
 
-D_STATIC_ASSERT(offsetof(struct d_mem_block, ptr) == 0,
-                "d_mem_block.ptr must lead the struct");
+D_STATIC_ASSERT(offsetof(struct dj_mem_block, ptr) == 0,
+                "dj_mem_block.ptr must lead the struct");
 
-D_STATIC_ASSERT(offsetof(struct d_mem_stats, bytes_reserved) == 0,
-                "d_mem_stats.bytes_reserved must lead the struct");
+D_STATIC_ASSERT(offsetof(struct dj_mem_stats, bytes_reserved) == 0,
+                "dj_mem_stats.bytes_reserved must lead the struct");
 
-D_STATIC_ASSERT(sizeof(struct d_mem_stats) >= (6 * sizeof(d_mem_size)),
-                "d_mem_stats must carry its six running counters");
+D_STATIC_ASSERT(sizeof(struct dj_mem_stats) >= (6 * sizeof(dj_mem_size)),
+                "dj_mem_stats must carry its six running counters");
 
 #endif  // D_INTERNAL_MEM_ASSERT_LAYOUT
 
 #if (D_INTERNAL_MEM_ASSERT_SIZES == 1)
 
-D_STATIC_ASSERT(sizeof(struct d_mem_block) == 16,
-                "d_mem_block layout drift (LP64, native counter)");
+D_STATIC_ASSERT(sizeof(struct dj_mem_block) == 16,
+                "dj_mem_block layout drift (LP64, native counter)");
 
 #   if (D_INTERNAL_MEM_STATS_PEAK == 1)
-D_STATIC_ASSERT(sizeof(struct d_mem_stats) == 64,
-                "d_mem_stats layout drift (LP64, native counter, peaks on)");
+D_STATIC_ASSERT(sizeof(struct dj_mem_stats) == 64,
+                "dj_mem_stats layout drift (LP64, native counter, peaks on)");
 #   else
-D_STATIC_ASSERT(sizeof(struct d_mem_stats) == 48,
-                "d_mem_stats layout drift (LP64, native counter, peaks off)");
+D_STATIC_ASSERT(sizeof(struct dj_mem_stats) == 48,
+                "dj_mem_stats layout drift (LP64, native counter, peaks off)");
 #   endif
 
 #endif  // D_INTERNAL_MEM_ASSERT_SIZES

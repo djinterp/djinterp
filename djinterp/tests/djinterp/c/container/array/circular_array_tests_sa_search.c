@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./circular_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -17,9 +17,8 @@
  *****************************************************************************/
 
 // helper comparator for int values
-static int
-int_comparator
-(
+static
+int int_comparator(
     const void* _a,
     const void* _b
 )
@@ -43,14 +42,12 @@ d_tests_sa_circular_array_contains
   - contains returns false for non-existing value
   - contains on empty array returns false
 */
-bool
-d_tests_sa_circular_array_contains
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_contains(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int                       search_value;
 
@@ -113,14 +110,12 @@ d_tests_sa_circular_array_find
   - find returns -1 for non-existing value
   - find returns first occurrence
 */
-bool
-d_tests_sa_circular_array_find
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_find(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 20, 50};
     int                       search_value;
 
@@ -197,14 +192,12 @@ d_tests_sa_circular_array_find_last
   - find_last returns last occurrence index
   - find_last returns -1 for non-existing value
 */
-bool
-d_tests_sa_circular_array_find_last
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_find_last(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 20, 50};
     int                       search_value;
 
@@ -267,14 +260,12 @@ d_tests_sa_circular_array_count_value
   - count_value returns 0 for non-existing
   - count_value on empty array returns 0
 */
-bool
-d_tests_sa_circular_array_count_value
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_count_value(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 20, 20};
     int                       search_value;
 
@@ -348,10 +339,8 @@ d_tests_sa_circular_array_count_value
 d_tests_sa_circular_array_search_all
   Aggregation function that runs all search tests.
 */
-bool
-d_tests_sa_circular_array_search_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_search_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

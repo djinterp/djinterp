@@ -12,7 +12,7 @@
 
 
 /******************************************************************************
- * SECTION I: d_text_buffer OPERATIONS
+ * SECTION I: dj_text_buffer OPERATIONS
  *****************************************************************************/
 
 /*
@@ -26,16 +26,12 @@ d_tests_sa_text_lineup_text_buffer_new
   - returns non-NULL for capacity of 1
   - returns non-NULL for a large capacity
 */
-struct d_test_object*
-d_tests_sa_text_lineup_text_buffer_new
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_new(void)
 {
-    struct d_test_object* group;
-    struct d_text_buffer* buf_normal;
-    struct d_text_buffer* buf_one;
-    struct d_text_buffer* buf_large;
+    struct dj_test_object* group;
+    struct dj_text_buffer* buf_normal;
+    struct dj_text_buffer* buf_one;
+    struct dj_text_buffer* buf_large;
     bool                  test_not_null;
     bool                  test_pos_zero;
     bool                  test_data_not_null;
@@ -115,14 +111,10 @@ d_tests_sa_text_lineup_text_buffer_ensure_capacity
   - content is preserved across a growth operation
   - pos is unchanged after growth
 */
-struct d_test_object*
-d_tests_sa_text_lineup_text_buffer_ensure_capacity
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_ensure_capacity(void)
 {
-    struct d_test_object* group;
-    struct d_text_buffer* buf;
+    struct dj_test_object* group;
+    struct dj_text_buffer* buf;
     bool                  result;
     size_t                old_cap;
     bool                  test_sufficient;
@@ -229,14 +221,10 @@ d_tests_sa_text_lineup_text_buffer_append
   - empty string append returns 0 and leaves pos unchanged
   - auto-grows the buffer when capacity is exceeded
 */
-struct d_test_object*
-d_tests_sa_text_lineup_text_buffer_append
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_append(void)
 {
-    struct d_test_object* group;
-    struct d_text_buffer* buf;
+    struct dj_test_object* group;
+    struct dj_text_buffer* buf;
     size_t                ret;
     bool                  test_return_value;
     bool                  test_pos_advance;
@@ -376,14 +364,10 @@ d_tests_sa_text_lineup_text_buffer_append_s
   - content is null-terminated after append
   - auto-grows the buffer when capacity is exceeded
 */
-struct d_test_object*
-d_tests_sa_text_lineup_text_buffer_append_s
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_append_s(void)
 {
-    struct d_test_object* group;
-    struct d_text_buffer* buf;
+    struct dj_test_object* group;
+    struct dj_text_buffer* buf;
     size_t                ret;
     bool                  test_return_value;
     bool                  test_partial;
@@ -531,14 +515,10 @@ d_tests_sa_text_lineup_text_buffer_prepend
   - returns 0 or (size_t)-1 for NULL text
   - empty string prepend is a safe no-op
 */
-struct d_test_object*
-d_tests_sa_text_lineup_text_buffer_prepend
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_prepend(void)
 {
-    struct d_test_object* group;
-    struct d_text_buffer* buf;
+    struct dj_test_object* group;
+    struct dj_text_buffer* buf;
     size_t                ret;
     bool                  test_prepend_empty;
     bool                  test_shift;
@@ -688,14 +668,10 @@ d_tests_sa_text_lineup_text_buffer_write_over
   - handles a range that starts at position 0
   - handles a range that ends at the last written byte
 */
-struct d_test_object*
-d_tests_sa_text_lineup_text_buffer_write_over
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_write_over(void)
 {
-    struct d_test_object* group;
-    struct d_text_buffer* buf;
+    struct dj_test_object* group;
+    struct dj_text_buffer* buf;
     size_t                ret;
     bool                  test_spaces;
     bool                  test_return_value;
@@ -864,7 +840,7 @@ d_tests_sa_text_lineup_text_buffer_write_over
 
 /*
 d_tests_sa_text_lineup_text_buffer_all
-  Runs all d_text_buffer tests (Section I).
+  Runs all dj_text_buffer tests (Section I).
   Tests the following:
   - d_text_buffer_new
   - d_text_buffer_ensure_capacity
@@ -873,16 +849,12 @@ d_tests_sa_text_lineup_text_buffer_all
   - d_text_buffer_prepend
   - d_text_buffer_write_over
 */
-struct d_test_object*
-d_tests_sa_text_lineup_text_buffer_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_text_buffer_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
-    group = d_test_object_new_interior("d_text_buffer Operations", 6);
+    group = d_test_object_new_interior("dj_text_buffer Operations", 6);
 
     if (!group)
     {

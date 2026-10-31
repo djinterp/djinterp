@@ -26,13 +26,9 @@ d_tests_sa_string_fn_strcount_char
   - handles empty string
   - counts at boundaries
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcount_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcount_char(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                result;
     bool                  test_single;
     bool                  test_multiple;
@@ -108,13 +104,9 @@ d_tests_sa_string_fn_strcount_substr
   - handles substring longer than string
   - counts adjacent occurrences
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcount_substr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcount_substr(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                result;
     bool                  test_non_overlapping;
     bool                  test_not_found;
@@ -187,13 +179,9 @@ d_tests_sa_string_fn_counting_all
   - d_strcount_char
   - d_strcount_substr
 */
-struct d_test_object*
-d_tests_sa_string_fn_counting_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_counting_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Counting", 2);
@@ -225,13 +213,9 @@ d_tests_sa_string_fn_strhash
   - handles empty string
   - hash changes with length
 */
-struct d_test_object*
-d_tests_sa_string_fn_strhash
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strhash(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                hash1;
     size_t                hash2;
     bool                  test_consistent;
@@ -298,13 +282,9 @@ d_tests_sa_string_fn_hash_all
   Tests the following:
   - d_strhash
 */
-struct d_test_object*
-d_tests_sa_string_fn_hash_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_hash_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Hash", 1);

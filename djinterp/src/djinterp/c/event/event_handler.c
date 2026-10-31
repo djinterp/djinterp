@@ -12,23 +12,21 @@
 // djinterp
 #include "../../../../inc/djinterp/c/event/event_handler.h"
 
-struct d_event_handler*
-d_event_handler_new
-(
+struct dj_event_handler* d_event_handler_new(
     size_t _events_capacity,
     size_t _listeners_capacity
 )
 {
-    struct d_event_handler* handler;
+    struct dj_event_handler* handler;
 
-    handler = malloc(sizeof(struct d_event_handler));
+    handler = malloc(sizeof(struct dj_event_handler));
 
     if (!handler)
     {
         return NULL;
     }
 
-    handler->events = d_circular_array_new(_events_capacity, sizeof(struct d_event));
+    handler->events = d_circular_array_new(_events_capacity, sizeof(struct dj_event));
 
     if (!handler->events)
     {
@@ -50,11 +48,9 @@ d_event_handler_new
     return handler;
 }
 
-bool
-d_event_handler_bind
-(
-    struct d_event_handler*  _handler,
-    struct d_event_listener* _listener
+bool d_event_handler_bind(
+    struct dj_event_handler*  _handler,
+    struct dj_event_listener* _listener
 )
 {
     if ( (!_handler) ||
@@ -66,11 +62,9 @@ d_event_handler_bind
     return d_event_hash_table_insert(_handler->listeners, _listener->id, _listener);
 }
 
-struct d_event_listener*
-d_event_handler_get_listener
-(
-    const struct d_event_handler* _handler,
-    d_event_id                    _id
+struct dj_event_listener* d_event_handler_get_listener(
+    const struct dj_event_handler* _handler,
+    dj_event_id                    _id
 )
 {
     if (!_handler)
@@ -81,11 +75,9 @@ d_event_handler_get_listener
     return d_event_hash_table_lookup(_handler->listeners, _id);
 }
 
-bool
-d_event_handler_unbind
-(
-    struct d_event_handler* _handler,
-    d_event_id              _id
+bool d_event_handler_unbind(
+    struct dj_event_handler* _handler,
+    dj_event_id              _id
 )
 {
     if (!_handler)
@@ -96,14 +88,12 @@ d_event_handler_unbind
     return d_event_hash_table_remove(_handler->listeners, _id);
 }
 
-bool
-d_event_handler_enable_listener
-(
-    struct d_event_handler* _handler,
-    d_event_id              _id
+bool d_event_handler_enable_listener(
+    struct dj_event_handler* _handler,
+    dj_event_id              _id
 )
 {
-    struct d_event_listener* listener;
+    struct dj_event_listener* listener;
 
     if (!_handler)
     {
@@ -126,14 +116,12 @@ d_event_handler_enable_listener
     return true;
 }
 
-bool
-d_event_handler_disable_listener
-(
-    struct d_event_handler* _handler,
-    d_event_id              _id
+bool d_event_handler_disable_listener(
+    struct dj_event_handler* _handler,
+    dj_event_id              _id
 )
 {
-    struct d_event_listener* listener;
+    struct dj_event_listener* listener;
 
     if (!_handler)
     {
@@ -168,14 +156,12 @@ Return:
   1 if a listener was found and executed, 0 if no listener or disabled,
   -1 on invalid parameters.
 */
-ssize_t
-d_event_handler_fire_event
-(
-    struct d_event_handler* _handler,
-    const struct d_event*   _event
+ssize_t d_event_handler_fire_event(
+    struct dj_event_handler* _handler,
+    const struct dj_event*   _event
 )
 {
-    struct d_event_listener* listener;
+    struct dj_event_listener* listener;
 
     if ( (!_handler) ||
          (!_event) )
@@ -201,11 +187,9 @@ d_event_handler_fire_event
     return 0;
 }
 
-bool
-d_event_handler_queue_event
-(
-    struct d_event_handler* _handler,
-    const struct d_event*   _event
+bool d_event_handler_queue_event(
+    struct dj_event_handler* _handler,
+    const struct dj_event*   _event
 )
 {
     if ( (!_handler) ||
@@ -217,15 +201,13 @@ d_event_handler_queue_event
     return d_circular_array_push(_handler->events, _event);
 }
 
-size_t
-d_event_handler_process_events
-(
-    struct d_event_handler* _handler,
-    size_t                  _max_events
+size_t d_event_handler_process_events(
+    struct dj_event_handler* _handler,
+    size_t                   _max_events
 )
 {
     size_t          processed;
-    struct d_event* event;
+    struct dj_event* event;
 
     if (!_handler)
     {
@@ -237,7 +219,7 @@ d_event_handler_process_events
     while ( (processed < _max_events) &&
             (!d_circular_array_is_empty(_handler->events)) )
     {
-        event = (struct d_event*)d_circular_array_pop(_handler->events);
+        event = (struct dj_event*)d_circular_array_pop(_handler->events);
 
         if (event)
         {
@@ -253,10 +235,8 @@ d_event_handler_process_events
     return processed;
 }
 
-size_t
-d_event_handler_listener_count
-(
-    const struct d_event_handler* _handler
+size_t d_event_handler_listener_count(
+    const struct dj_event_handler* _handler
 )
 {
     if (!_handler)
@@ -267,10 +247,8 @@ d_event_handler_listener_count
     return d_event_hash_table_count(_handler->listeners);
 }
 
-size_t
-d_event_handler_enabled_count
-(
-    const struct d_event_handler* _handler
+size_t d_event_handler_enabled_count(
+    const struct dj_event_handler* _handler
 )
 {
     if (!_handler)
@@ -281,10 +259,8 @@ d_event_handler_enabled_count
     return d_event_hash_table_enabled_count(_handler->listeners);
 }
 
-size_t
-d_event_handler_pending_events
-(
-    const struct d_event_handler* _handler
+size_t d_event_handler_pending_events(
+    const struct dj_event_handler* _handler
 )
 {
     if ( (!_handler) ||
@@ -296,10 +272,8 @@ d_event_handler_pending_events
     return _handler->events->count;
 }
 
-void
-d_event_handler_free
-(
-    struct d_event_handler* _handler
+void d_event_handler_free(
+    struct dj_event_handler* _handler
 )
 {
     if (!_handler)

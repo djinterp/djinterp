@@ -12,21 +12,31 @@
 // djinterp
 #include "../../../../inc/djinterp/c/text/number_to_string_la.h"
 
-static void print_cardinal(int64_t value, unsigned flags)
+static
+void print_cardinal(
+    int64_t  value,
+    unsigned flags
+)
 {
     char buf[NTS_LA_I64_BUFFER_SIZE];
     nts_la_cardinal_i64(buf, sizeof(buf), value, flags);
     printf("cardinal(%lld) = %s\n", (long long)value, buf);
 }
 
-static void print_ordinal(int64_t value)
+static
+void print_ordinal(
+    int64_t value
+)
 {
     char buf[NTS_LA_I64_BUFFER_SIZE];
     nts_la_ordinal_i64(buf, sizeof(buf), value, NTS_LA_FLAGS_DEFAULT);
     printf("ordinal(%lld)  = %s\n", (long long)value, buf);
 }
 
-static void print_abbrev(int64_t value)
+static
+void print_abbrev(
+    int64_t value
+)
 {
     char buf[NTS_LA_I64_BUFFER_SIZE];
     nts_la_ordinal_abbrev_i64(buf, sizeof(buf), value, NTS_LA_FLAGS_DEFAULT);

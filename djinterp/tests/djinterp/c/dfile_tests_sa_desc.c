@@ -24,13 +24,9 @@ d_tests_dfile_fileno
   - returns valid fd for open stream
   - returns -1 for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_fileno
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fileno(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     int                   fd;
@@ -86,13 +82,9 @@ d_tests_dfile_dup
   - both fds refer to same file
   - returns -1 for invalid fd
 */
-struct d_test_object*
-d_tests_dfile_dup
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_dup(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     int                   dup_fd;
@@ -160,13 +152,9 @@ d_tests_dfile_dup2
   - returns -1 for invalid source fd
   - returns -1 for invalid target fd
 */
-struct d_test_object*
-d_tests_dfile_dup2
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_dup2(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     int                   dup_fd;
@@ -252,13 +240,9 @@ d_tests_dfile_close
   - returns 0 for valid fd
   - returns -1 for invalid fd
 */
-struct d_test_object*
-d_tests_dfile_close
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_close(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     int                   result;
@@ -315,13 +299,9 @@ d_tests_dfile_read_write
   - returns -1 for invalid fd
   - returns -1 for NULL buffer
 */
-struct d_test_object*
-d_tests_dfile_read_write
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_read_write(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
     char                  write_buf[] = "Test data for read/write";
@@ -414,13 +394,9 @@ d_tests_dfile_open
   - returns -1 for NULL path
   - returns -1 for nonexistent file without O_CREAT
 */
-struct d_test_object*
-d_tests_dfile_open
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_open(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  new_file_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   fd;
@@ -504,13 +480,9 @@ d_tests_dfile_descriptor_operations_all
   - d_file_read_fd/d_file_write_fd
   - d_file_open
 */
-struct d_test_object*
-d_tests_dfile_descriptor_operations_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_descriptor_operations_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("V. File Descriptor Operations", 6);

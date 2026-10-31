@@ -26,14 +26,10 @@ d_tests_sa_string_fn_strchr_index
   - finds at position 0
   - finds at last position
 */
-struct d_test_object*
-d_tests_sa_string_fn_strchr_index
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strchr_index(void)
 {
-    struct d_test_object* group;
-    d_index               result;
+    struct dj_test_object* group;
+    dj_index               result;
     bool                  test_found;
     bool                  test_not_found;
     bool                  test_null;
@@ -106,14 +102,10 @@ d_tests_sa_string_fn_strchr_index_from
   - returns D_STRING_NPOS when start beyond length
   - returns D_STRING_NPOS when not found after start
 */
-struct d_test_object*
-d_tests_sa_string_fn_strchr_index_from
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strchr_index_from(void)
 {
-    struct d_test_object* group;
-    d_index               result;
+    struct dj_test_object* group;
+    dj_index               result;
     bool                  test_from_start;
     bool                  test_skip_early;
     bool                  test_start_beyond;
@@ -171,14 +163,10 @@ d_tests_sa_string_fn_strrchr_index
   - handles NULL
   - handles empty string
 */
-struct d_test_object*
-d_tests_sa_string_fn_strrchr_index
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strrchr_index(void)
 {
-    struct d_test_object* group;
-    d_index               result;
+    struct dj_test_object* group;
+    dj_index               result;
     bool                  test_last;
     bool                  test_not_found;
     bool                  test_single;
@@ -245,14 +233,10 @@ d_tests_sa_string_fn_strstr_index
   - handles substring longer than string
   - finds at beginning
 */
-struct d_test_object*
-d_tests_sa_string_fn_strstr_index
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strstr_index(void)
 {
-    struct d_test_object* group;
-    d_index               result;
+    struct dj_test_object* group;
+    dj_index               result;
     bool                  test_found;
     bool                  test_not_found;
     bool                  test_empty_substr;
@@ -325,14 +309,10 @@ d_tests_sa_string_fn_strstr_index_from
   - returns D_STRING_NPOS when start beyond length
   - returns D_STRING_NPOS when not found after start
 */
-struct d_test_object*
-d_tests_sa_string_fn_strstr_index_from
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strstr_index_from(void)
 {
-    struct d_test_object* group;
-    d_index               result;
+    struct dj_test_object* group;
+    dj_index               result;
     bool                  test_from_start;
     bool                  test_skip_early;
     bool                  test_start_beyond;
@@ -390,14 +370,10 @@ d_tests_sa_string_fn_strrstr_index
   - handles NULL
   - handles empty substring
 */
-struct d_test_object*
-d_tests_sa_string_fn_strrstr_index
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strrstr_index(void)
 {
-    struct d_test_object* group;
-    d_index               result;
+    struct dj_test_object* group;
+    dj_index               result;
     bool                  test_last;
     bool                  test_not_found;
     bool                  test_single;
@@ -463,14 +439,10 @@ d_tests_sa_string_fn_strcasestr_index
   - handles NULL
   - handles empty substring
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcasestr_index
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcasestr_index(void)
 {
-    struct d_test_object* group;
-    d_index               result;
+    struct dj_test_object* group;
+    dj_index               result;
     bool                  test_case_insensitive;
     bool                  test_not_found;
     bool                  test_same_case;
@@ -538,13 +510,9 @@ d_tests_sa_string_fn_index_search_all
   - d_strrstr_index
   - d_strcasestr_index
 */
-struct d_test_object*
-d_tests_sa_string_fn_index_search_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_index_search_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Index-Returning Search", 7);
@@ -582,13 +550,9 @@ d_tests_sa_string_fn_strreplace_char
   - handles empty string
   - replaces at boundaries
 */
-struct d_test_object*
-d_tests_sa_string_fn_strreplace_char
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strreplace_char(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  str1[] = "Hello World";
     char                  str2[] = "No match here";
     char                  str3[] = "aabaa";
@@ -663,13 +627,9 @@ d_tests_sa_string_fn_replace_all
   Tests the following:
   - d_strreplace_char
 */
-struct d_test_object*
-d_tests_sa_string_fn_replace_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_replace_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("In-Place Replacement", 1);

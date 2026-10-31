@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./circular_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -25,14 +25,12 @@ d_tests_sa_circular_array_clear
   - clear on empty array
   - clear preserves capacity
 */
-bool
-d_tests_sa_circular_array_clear
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_clear(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
 
     result = true;
@@ -100,14 +98,12 @@ d_tests_sa_circular_array_fill
   - fill replaces all elements with value
   - fill on empty array
 */
-bool
-d_tests_sa_circular_array_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int                       fill_value = 99;
     int*                      elem;
@@ -188,14 +184,12 @@ d_tests_sa_circular_array_rotate_left
   - rotate_left by 0 is no-op
   - rotate_left on empty array
 */
-bool
-d_tests_sa_circular_array_rotate_left
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_rotate_left(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      elem;
 
@@ -274,14 +268,12 @@ d_tests_sa_circular_array_rotate_right
   - rotate_right shifts elements
   - rotate_right by 0 is no-op
 */
-bool
-d_tests_sa_circular_array_rotate_right
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_rotate_right(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      elem;
 
@@ -340,14 +332,12 @@ d_tests_sa_circular_array_reverse
   - reverse on single element
   - reverse on empty array
 */
-bool
-d_tests_sa_circular_array_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_reverse(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      elem;
 
@@ -444,14 +434,12 @@ d_tests_sa_circular_array_swap
   - swap same index (no-op)
   - swap out of bounds fails
 */
-bool
-d_tests_sa_circular_array_swap
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_swap(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      elem;
 
@@ -526,10 +514,8 @@ d_tests_sa_circular_array_swap
 d_tests_sa_circular_array_bulk_all
   Aggregation function that runs all bulk operation tests.
 */
-bool
-d_tests_sa_circular_array_bulk_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_bulk_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

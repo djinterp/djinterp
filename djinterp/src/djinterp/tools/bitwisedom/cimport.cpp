@@ -48,8 +48,7 @@ const int TAB = 4;
 
 // trim
 //   a text without the blanks around it.
-std::string
-trim(
+std::string trim(
     const std::string& _text
 )
 {
@@ -68,8 +67,7 @@ trim(
 // visual_column
 //   where a byte stands in its line, from 0: tabs to the next multiple of
 // TAB, and a UTF-8 character one column whatever its length.
-int
-visual_column(
+int visual_column(
     std::string_view _text,
     std::size_t      _offset
 )
@@ -105,8 +103,7 @@ visual_column(
 // comment_lines
 //   a comment's lines, without its marks: `//`, `/*`, `*/`, and the `*` a
 // block comment's lines begin with.
-std::vector<std::string>
-comment_lines(
+std::vector<std::string> comment_lines(
     const c_token& _comment
 )
 {
@@ -176,8 +173,7 @@ enum class line_kind
 // numbered
 //   a line's leading section number -- "1.", "1.1", "1.1.1" -- its parts
 // counted, and what follows it.
-int
-numbered(
+int numbered(
     const std::string& _line,
     std::string&       _rest,
     bool&              _dot
@@ -224,8 +220,7 @@ numbered(
     return parts;
 }
 
-line_kind
-classify_line(
+line_kind classify_line(
     const std::string& _line,
     std::string&       _title
 )
@@ -293,8 +288,7 @@ classify_line(
 //   a comment block above a definition, as a note. A djinterp brief --
 // the name, then "  category: text" -- is read as one; numbered markers and
 // doxygen's tags are dropped.
-std::string
-brief_text(
+std::string brief_text(
     const std::vector<std::string>& _lines,
     const std::string&              _name
 )
@@ -363,8 +357,7 @@ brief_text(
 
 // squeezed
 //   a text without its blanks, to compare spellings by.
-std::string
-squeezed(
+std::string squeezed(
     const std::string& _text
 )
 {
@@ -481,7 +474,8 @@ private:
     std::set<int>               m_code;
     bool                        m_noted      = false;
 
-    static c_settings settings_of(
+    static
+    c_settings settings_of(
         const import_options& _options
     )
     {
@@ -1594,7 +1588,8 @@ private:
 
     // drop_empty
     //   groups with no symbol in them, taken out.
-    static bool drop_empty(
+    static
+    bool drop_empty(
         row& _group
     )
     {
@@ -1625,7 +1620,8 @@ private:
         return any;
     }
 
-    static void names_in(
+    static
+    void names_in(
         const row&                _group,
         std::vector<std::string>& _names
     )
@@ -1645,7 +1641,8 @@ private:
         return;
     }
 
-    static std::vector<std::string> words_of(
+    static
+    std::vector<std::string> words_of(
         const std::string& _name
     )
     {
@@ -1748,7 +1745,8 @@ private:
     // shared_words
     //   the longest run of words, past the first _skip, that more than
     // half of the names begin with.
-    static std::string shared_words(
+    static
+    std::string shared_words(
         const std::vector<std::string>& _names,
         std::size_t                     _skip
     )
@@ -1803,8 +1801,7 @@ private:
 
 // affixes_inside
 //   the prefix and suffix the names directly inside a group take.
-void
-affixes_inside(
+void affixes_inside(
     const sheet&      _sheet,
     const resolution& _resolution,
     int               _group,
@@ -1842,8 +1839,7 @@ affixes_inside(
 // take_definition
 //   one row's definition, given to another: everything that says what the
 // symbol is, not where it is or what it is called.
-void
-take_definition(
+void take_definition(
     row&       _row,
     const row& _from
 )
@@ -1870,8 +1866,7 @@ take_definition(
     return;
 }
 
-void
-merge_into(
+void merge_into(
     sheet&            _into,
     const resolution& _before,
     int               _parent,
@@ -1976,8 +1971,7 @@ merge_into(
 }  // anonymous namespace
 
 
-imported
-import_code(
+imported import_code(
     std::string_view      _text,
     const import_options& _options
 )
@@ -1990,8 +1984,7 @@ import_code(
     return out;
 }
 
-bool
-looks_like_sheet(
+bool looks_like_sheet(
     std::string_view _text
 )
 {
@@ -2016,8 +2009,7 @@ looks_like_sheet(
              (_text[at] == '{') );
 }
 
-merged
-merge_rows(
+merged merge_rows(
     sheet&       _into,
     int          _parent,
     const sheet& _from

@@ -12,19 +12,17 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_elem_test_values[] = {111, 222, 333, 444, 555, 666, 777, 888};
 
 
-bool
-d_tests_sa_ptr_vector_push_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_push_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -104,14 +102,12 @@ d_tests_sa_ptr_vector_push_back
 }
 
 
-bool
-d_tests_sa_ptr_vector_push_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_push_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -159,14 +155,12 @@ d_tests_sa_ptr_vector_push_front
 }
 
 
-bool
-d_tests_sa_ptr_vector_pop_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_pop_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                popped;
 
     result = true;
@@ -219,14 +213,12 @@ d_tests_sa_ptr_vector_pop_back
 }
 
 
-bool
-d_tests_sa_ptr_vector_pop_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_pop_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                popped;
 
     result = true;
@@ -279,14 +271,12 @@ d_tests_sa_ptr_vector_pop_front
 }
 
 
-bool
-d_tests_sa_ptr_vector_insert
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_insert(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -364,14 +354,12 @@ d_tests_sa_ptr_vector_insert
 }
 
 
-bool
-d_tests_sa_ptr_vector_insert_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_insert_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                source[3];
 
     result = true;
@@ -436,14 +424,12 @@ d_tests_sa_ptr_vector_insert_range
 }
 
 
-bool
-d_tests_sa_ptr_vector_erase
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_erase(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -494,14 +480,12 @@ d_tests_sa_ptr_vector_erase
 }
 
 
-bool
-d_tests_sa_ptr_vector_erase_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_erase_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -537,14 +521,12 @@ d_tests_sa_ptr_vector_erase_range
 }
 
 
-bool
-d_tests_sa_ptr_vector_remove
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_remove(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                removed;
 
     result = true;
@@ -607,14 +589,12 @@ d_tests_sa_ptr_vector_remove
 }
 
 
-bool
-d_tests_sa_ptr_vector_clear
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_clear(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     size_t               original_capacity;
 
     result = true;
@@ -650,10 +630,8 @@ d_tests_sa_ptr_vector_clear
 }
 
 
-bool
-d_tests_sa_ptr_vector_element_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_element_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

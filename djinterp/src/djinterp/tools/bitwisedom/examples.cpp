@@ -24,7 +24,7 @@
 * group for each facility; and ten of CPUID's feature registers, 320 bits,
 * with x86-64's levels as sets of them. These two are JSON, in
 * examples/large, which the build embeds (cmake/EmbedExamples.cmake) and
-* this file reads as it would any bitfield; tools/ holds the scripts that
+* this file reads as it would any bitfield; scripts/ holds the scripts that
 * made them.
 *
 * path:      /src/djinterp/tools/bitwisedom/examples.cpp
@@ -62,7 +62,9 @@ struct make
     sheet s;
     int   group = 0;
 
-    int add(const row& _row)
+    int add(
+        const row& _row
+    )
     {
         return insert_row(s, group, -1, _row);
     }
@@ -268,8 +270,7 @@ struct make
     }
 };
 
-sheet
-uart_cr()
+sheet uart_cr()
 {
     make m;
     m.s = make_sheet("uart_cr", 32);
@@ -324,8 +325,7 @@ uart_cr()
     return m.s;
 }
 
-sheet
-rv32i_itype()
+sheet rv32i_itype()
 {
     make m;
     m.s = make_sheet("rv32i_itype", 32);
@@ -382,8 +382,7 @@ rv32i_itype()
     return m.s;
 }
 
-sheet
-posix_mode()
+sheet posix_mode()
 {
     make m;
     m.s = make_sheet("posix_mode", 16);
@@ -438,8 +437,7 @@ usb_request_type
 transfer's setup packet says which way its data goes, who defines the
 request, and what it is addressed to.
 */
-sheet
-usb_request_type()
+sheet usb_request_type()
 {
     make m;
     m.s = make_sheet("usb_request_type", 8);
@@ -505,8 +503,7 @@ lm75_temperature
   A signed field in a 16-bit register: an LM75 reads out the temperature as
 nine bits of two's complement, in half degrees, at the top of the word.
 */
-sheet
-lm75_temperature()
+sheet lm75_temperature()
 {
     make m;
     m.s = make_sheet("lm75_temperature", 16);
@@ -553,8 +550,7 @@ x86_eflags
 its low 22 bits, with a two-bit privilege level among them, one reserved bit
 that always reads as one, and ten reserved bits above.
 */
-sheet
-x86_eflags()
+sheet x86_eflags()
 {
     make m;
     m.s = make_sheet("x86_eflags", 32);
@@ -614,8 +610,7 @@ x86_64_pte
   Eight bytes: an x86-64 page-table entry keeps its flags at both ends and a
 40-bit physical frame number between them, collapsed here to one column.
 */
-sheet
-x86_64_pte()
+sheet x86_64_pte()
 {
     make m;
     m.s = make_sheet("x86_64_pte", 64);
@@ -680,8 +675,7 @@ byte 4n -- and names each field and bit by its place: its byte offset times
 eight, and its bit within. Those are linux/pci_regs.h's offsets and masks,
 which the build compares with that header where it has it.
 */
-sheet
-pci_config_header()
+sheet pci_config_header()
 {
     make m;
     m.s = make_sheet("pci_config_header", 512);
@@ -897,8 +891,7 @@ ieee754_single
   A float, bit for bit: a sign, an exponent stored as offset binary with a
 bias of 127, and a fraction whose leading 1 is implied.
 */
-sheet
-ieee754_single()
+sheet ieee754_single()
 {
     make m;
     m.s = make_sheet("ieee754_single", 32);
@@ -963,8 +956,7 @@ rgb565
   A dense 16-bit pixel: five bits of red, six of green and five of blue,
 each channel, level and colour drawn in the colour it is.
 */
-sheet
-rgb565()
+sheet rgb565()
 {
     make m;
     m.s = make_sheet("rgb565", 16);
@@ -1032,8 +1024,7 @@ win32_hresult
 four flags, an 11-bit facility and a 16-bit code -- with the codes built
 from those parts, as winerror.h builds them.
 */
-sheet
-win32_hresult()
+sheet win32_hresult()
 {
     make m;
     m.s = make_sheet("win32_hresult", 32);
@@ -1118,8 +1109,7 @@ win32_window_style
 two names that mean different things on different windows, and the low
 half belongs to the window's class.
 */
-sheet
-win32_window_style()
+sheet win32_window_style()
 {
     make m;
     m.s = make_sheet("win32_window_style", 32);
@@ -1186,8 +1176,7 @@ win32_window_style()
 macos_macho_flags
   A dense word of flags: a Mach-O header's, 29 of its 32 bits named.
 */
-sheet
-macos_macho_flags()
+sheet macos_macho_flags()
 {
     make m;
     m.s = make_sheet("macos_macho_flags", 32);
@@ -1254,8 +1243,7 @@ macos_cpu_type
   A signed int: a cpu_type_t keeps its ABI's bits in the top byte and its
 processor family below, and CPU_TYPE_ANY is -1.
 */
-sheet
-macos_cpu_type()
+sheet macos_cpu_type()
 {
     make m;
     m.s = make_sheet("macos_cpu_type", 32);
@@ -1327,8 +1315,7 @@ linux_ioctl
 and the command's number, packed by the _IOC macros -- here as fields,
 macros that pack them, and commands both old and new.
 */
-sheet
-linux_ioctl()
+sheet linux_ioctl()
 {
     make m;
     m.s = make_sheet("linux_ioctl", 32);
@@ -1406,8 +1393,7 @@ linux_epoll_events
   A sparse word: epoll's readiness events sit in the low fourteen bits and
 its modes in the top four, with nothing between.
 */
-sheet
-linux_epoll_events()
+sheet linux_epoll_events()
 {
     make m;
     m.s = make_sheet("linux_epoll_events", 32);
@@ -1451,8 +1437,7 @@ linux_capabilities
   Eight bytes, the low 41 bits dense: a Linux capability set, a bit for
 each capability, numbered as linux/capability.h numbers them.
 */
-sheet
-linux_capabilities()
+sheet linux_capabilities()
 {
     make m;
     m.s = make_sheet("linux_capabilities", 64);
@@ -1541,8 +1526,7 @@ freebsd_file_flags
   Two halves: a FreeBSD file's flags, the owner's in the low sixteen bits
 and the superuser's in the high.
 */
-sheet
-freebsd_file_flags()
+sheet freebsd_file_flags()
 {
     make m;
     m.s = make_sheet("freebsd_file_flags", 32);
@@ -1597,8 +1581,7 @@ freebsd_kevent
   Two 16-bit fields of struct kevent in one sheet: its filter is a short,
 and every filter a negative one; its flags are an unsigned short.
 */
-sheet
-freebsd_kevent()
+sheet freebsd_kevent()
 {
     make m;
     m.s = make_sheet("freebsd_kevent", 16);
@@ -1661,8 +1644,7 @@ freebsd_kevent()
 // bitfield is. The tests read every example clean; one that would not read
 // is an empty sheet named for what went wrong, rather than none.
 template<std::size_t Size>
-sheet
-from_json(
+sheet from_json(
     const unsigned char (&_bytes)[Size]
 )
 {
@@ -1685,8 +1667,7 @@ from_json(
 //   every HRESULT MinGW-w64's winerror.h defines -- 1,376 codes, each a
 // literal, in a group for its facility -- under the fields that make them:
 // a thousand rows and more (tools/winerror_to_bitfield.py).
-sheet
-win32_hresults()
+sheet win32_hresults()
 {
     return from_json(LARGE_WIN32_HRESULTS);
 }
@@ -1696,8 +1677,7 @@ win32_hresults()
 // header's array is the nth register, the MPX address-width adjust a field
 // among the flags, and x86-64's levels sets of them
 // (tools/x86_cpuid_bitfield.py).
-sheet
-x86_cpuid()
+sheet x86_cpuid()
 {
     return from_json(LARGE_X86_CPUID);
 }
@@ -1713,8 +1693,7 @@ struct entry
 // the_examples
 //   every example, in the File menu's order within each shelf. The first
 // three keep their places: the tests open them by number.
-const std::vector<entry>&
-the_examples()
+const std::vector<entry>& the_examples()
 {
     static const std::vector<entry> table = {
         { { "uart_cr", "UART control register", "Hardware" }, uart_cr },
@@ -1769,8 +1748,7 @@ the_examples()
 }  // anonymous namespace
 
 
-const std::vector<example_info>&
-example_list()
+const std::vector<example_info>& example_list()
 {
     static const std::vector<example_info> list = []()
     {
@@ -1788,8 +1766,7 @@ example_list()
     return list;
 }
 
-std::vector<std::string>
-example_names()
+std::vector<std::string> example_names()
 {
     std::vector<std::string> names;
 
@@ -1801,8 +1778,7 @@ example_names()
     return names;
 }
 
-sheet
-make_example(
+sheet make_example(
     const std::string& _name
 )
 {

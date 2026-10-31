@@ -11,8 +11,8 @@
 *******************************************************************************/
 // self-consistency differential: extents must tile the source, and the
 // spelled token stream must re-lex to itself
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

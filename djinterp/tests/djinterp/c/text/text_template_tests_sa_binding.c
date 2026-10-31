@@ -20,7 +20,7 @@ d_test_internal_dummy_template_fn
   Dummy callback for function binding tests. Returns a heap-allocated
 string "dummy".
 */
-static enum d_text_template_error
+static enum dj_text_template_error
 d_test_internal_dummy_template_fn
 (
     void*  _context,
@@ -44,13 +44,12 @@ d_test_internal_dummy_list_fn
   Dummy per-item callback for list binding tests. Binds no additional
 keys; simply returns true to allow iteration to proceed.
 */
-static bool
-d_test_internal_dummy_list_fn
-(
-    size_t                  _index,
-    size_t                  _count,
-    struct d_text_template* _item_template,
-    void*                   _context
+static
+bool d_test_internal_dummy_list_fn(
+    size_t                   _index,
+    size_t                   _count,
+    struct dj_text_template* _item_template,
+    void*                    _context
 )
 {
     (void)_index;
@@ -80,15 +79,11 @@ d_tests_sa_text_template_bind_string
   - returns ERROR_NULL_PARAM for NULL value
   - returns ERROR_TOO_MANY_BINDINGS at capacity
 */
-struct d_test_object*
-d_tests_sa_text_template_bind_string
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_bind_string(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     bool                        test_success;
     bool                        test_count;
     bool                        test_key_match;
@@ -239,15 +234,11 @@ d_tests_sa_text_template_bind_string_n
   - handles zero-length value
   - returns ERROR_NULL_PARAM for NULL inputs
 */
-struct d_test_object*
-d_tests_sa_text_template_bind_string_n
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_bind_string_n(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     bool                        test_success;
     bool                        test_key_len;
     bool                        test_val_len;
@@ -353,16 +344,12 @@ d_tests_sa_text_template_bind_template
   - returns ERROR_NULL_PARAM for NULL nested
   - duplicate key replaces binding type
 */
-struct d_test_object*
-d_tests_sa_text_template_bind_template
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_bind_template(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     parent;
-    struct d_text_template*     child;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     parent;
+    struct dj_text_template*     child;
+    enum dj_text_template_error  err;
     bool                        test_success;
     bool                        test_type;
     bool                        test_count;
@@ -504,15 +491,11 @@ d_tests_sa_text_template_bind_function
   - returns ERROR_NULL_PARAM for NULL fn
   - duplicate key replaces binding type
 */
-struct d_test_object*
-d_tests_sa_text_template_bind_function
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_bind_function(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     bool                        test_success;
     bool                        test_type;
     bool                        test_count;
@@ -697,17 +680,13 @@ d_tests_sa_text_template_bind_list
   - returns ERROR_NULL_PARAM for NULL bind_fn
   - duplicate key replaces binding type
 */
-struct d_test_object*
-d_tests_sa_text_template_bind_list
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_bind_list(void)
 {
-    struct d_test_object*                group;
-    struct d_text_template*              tmpl;
-    struct d_text_template*              item_tmpl;
-    enum d_text_template_error           err;
-    struct d_text_template_list_options   opts;
+    struct dj_test_object*                group;
+    struct dj_text_template*              tmpl;
+    struct dj_text_template*              item_tmpl;
+    enum dj_text_template_error           err;
+    struct dj_text_template_list_options   opts;
     bool                                 test_success;
     bool                                 test_type;
     bool                                 test_count;
@@ -1023,15 +1002,11 @@ d_tests_sa_text_template_unbind
   - returns ERROR_NULL_PARAM for NULL key
   - removes until empty
 */
-struct d_test_object*
-d_tests_sa_text_template_unbind
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_unbind(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     bool                        test_remove;
     bool                        test_count;
     bool                        test_gone;
@@ -1146,15 +1121,11 @@ d_tests_sa_text_template_update_string
   - returns ERROR_NULL_PARAM for NULL inputs
   - updates value to shorter string
 */
-struct d_test_object*
-d_tests_sa_text_template_update_string
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_update_string(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     bool                        test_update;
     bool                        test_length;
     bool                        test_count;
@@ -1248,14 +1219,10 @@ d_tests_sa_text_template_has_binding
   - returns false after unbind
   - returns true after re-bind
 */
-struct d_test_object*
-d_tests_sa_text_template_has_binding
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_has_binding(void)
 {
-    struct d_test_object*   group;
-    struct d_text_template* tmpl;
+    struct dj_test_object*   group;
+    struct dj_text_template* tmpl;
     bool                    test_exists;
     bool                    test_unknown;
     bool                    test_null_tmpl;
@@ -1346,14 +1313,10 @@ d_tests_sa_text_template_binding_count
   - returns 0 after clear
   - returns 0 for NULL template
 */
-struct d_test_object*
-d_tests_sa_text_template_binding_count
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_binding_count(void)
 {
-    struct d_test_object*   group;
-    struct d_text_template* tmpl;
+    struct dj_test_object*   group;
+    struct dj_text_template* tmpl;
     bool                    test_zero;
     bool                    test_one;
     bool                    test_multi;
@@ -1451,13 +1414,9 @@ d_tests_sa_text_template_binding_all
   - d_text_template_has_binding
   - d_text_template_binding_count
 */
-struct d_test_object*
-d_tests_sa_text_template_binding_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_binding_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Binding Management", 9);

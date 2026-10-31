@@ -23,9 +23,9 @@
 // djinterp -- C headers, without guards of their own
 extern "C"
 {
-#include "djinterp/parse/lang/c/lex_c.h"      // d_lex_c_create
-#include "djinterp/parse/lang/cpp/lex_cpp.h"  // d_lex_cpp_create
-#include "djinterp/parse/lex/lex_literal.h"   // d_lex_literal_decode
+#include "djinterp/c/modules/parse/lang/c/lex_c.h"      // d_lex_c_create
+#include "djinterp/c/modules/parse/lang/cpp/lex_cpp.h"  // d_lex_cpp_create
+#include "djinterp/c/modules/parse/lex/lex_literal.h"   // d_lex_literal_decode
 }
 
 
@@ -54,11 +54,11 @@ struct heard
 extern "C"
 {
 
-static void
-bitwisedom_clex_hook(
-    void*                            _context,
-    const struct d_parse_diag_sink*  _sink,
-    const struct d_parse_diagnostic* _diagnostic
+static
+void bitwisedom_clex_hook(
+    void*                             _context,
+    const struct dj_parse_diag_sink*  _sink,
+    const struct dj_parse_diagnostic* _diagnostic
 )
 {
     (void)_sink;
@@ -97,10 +97,9 @@ namespace
 
 // listen
 //   a sink that stores nothing and tells _heard everything.
-void
-listen(
-    struct d_parse_diag_sink& _sink,
-    heard&                    _heard
+void listen(
+    struct dj_parse_diag_sink& _sink,
+    heard&                     _heard
 )
 {
     d_parse_diag_sink_init(&_sink, nullptr, 0u, nullptr, 0u);
@@ -111,8 +110,7 @@ listen(
 
 // class_of
 //   a djinterp kind as the expander's class.
-c_class
-class_of(
+c_class class_of(
     int _kind
 )
 {
@@ -144,11 +142,10 @@ class_of(
 
 // lexer_for
 //   a scanner over _source at a level.
-struct d_lexer*
-lexer_for(
-    const struct d_source* _source,
-    standard               _level,
-    unsigned               _options
+struct dj_lexer* lexer_for(
+    const struct dj_source* _source,
+    standard                _level,
+    unsigned                _options
 )
 {
     const unsigned year = lex_level(_level);
@@ -159,8 +156,7 @@ lexer_for(
 
 // prefix_length
 //   how many characters of an integer's spelling are its base's prefix.
-std::size_t
-prefix_length(
+std::size_t prefix_length(
     const std::string& _text,
     unsigned           _base
 )
@@ -186,8 +182,7 @@ prefix_length(
 }  // anonymous namespace
 
 
-unsigned
-lex_level(
+unsigned lex_level(
     standard _level
 )
 {
@@ -208,8 +203,7 @@ lex_level(
     return D_LEX_C99;
 }
 
-bool
-cpp_level(
+bool cpp_level(
     standard _level
 )
 {
@@ -222,8 +216,7 @@ lex_c
 spelling is copied out as it is read: from the text itself when nothing was
 rewritten in it, otherwise as djinterp spells it, splices removed.
 */
-c_lexed
-lex_c(
+c_lexed lex_c(
     std::string_view _text,
     standard         _level,
     bool             _comments
@@ -236,13 +229,13 @@ lex_c(
         return out;
     }
 
-    struct d_source source;
+    struct dj_source source;
     d_source_init(&source, _text.data(), _text.size(), "bitwisedom");
 
     // offsets are the source's, which starts past a byte-order mark
     const std::size_t skipped =
         static_cast<std::size_t>(source.text - _text.data());
-    struct d_lexer*   lexer   =
+    struct dj_lexer*   lexer   =
         lexer_for(&source,
                   _level,
                   _comments ? D_LEX_OPT_EMIT_COMMENTS : D_LEX_OPT_NONE);
@@ -255,8 +248,8 @@ lex_c(
     }
 
     heard                    errors;
-    struct d_parse_diag_sink sink;
-    struct d_token           token;
+    struct dj_parse_diag_sink sink;
+    struct dj_token           token;
     std::vector<char>        buffer;
 
     listen(sink, errors);
@@ -311,8 +304,7 @@ lex_c(
     return out;
 }
 
-std::string
-spelled(
+std::string spelled(
     const std::vector<c_token>& _tokens
 )
 {
@@ -345,8 +337,7 @@ decode_literal
 place; a token made for the purpose serves, since the spelling here may be
 one the expander pasted together rather than one read from a source.
 */
-c_literal
-decode_literal(
+c_literal decode_literal(
     const c_token& _token,
     standard       _level,
     data_model     _model
@@ -365,7 +356,7 @@ decode_literal(
     const unsigned year   = lex_level(_level);
     const auto     length = static_cast<re_std::uint32_t>(_token.text.size());
 
-    struct d_token token = {};
+    struct dj_token token = {};
     token.kind        = (_token.kind == c_class::number) ? D_TOKEN_NUMBER
                                                           : D_TOKEN_CHARACTER;
     token.span.length = length;
@@ -375,9 +366,9 @@ decode_literal(
     token.end_column  = length + 1u;
 
     heard                        said;
-    struct d_parse_diag_sink     sink;
-    struct d_lex_literal         literal = {};
-    struct d_lex_literal_context context = {};
+    struct dj_parse_diag_sink     sink;
+    struct dj_lex_literal         literal = {};
+    struct dj_lex_literal_context context = {};
 
     listen(sink, said);
     context.dialect = cpp_level(_level) ? d_lex_cpp_dialect(year)

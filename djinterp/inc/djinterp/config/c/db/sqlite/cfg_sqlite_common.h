@@ -151,7 +151,7 @@ TABLE OF CONTENTS
 #endif
 
 // djinterp
-#include "../../../core/env/db/sqlite/cfg_env_sqlite.h"  // env's SQLite knobs
+#include "../../../env/db/sqlite/cfg_env_sqlite.h"  // env's SQLite knobs
 
 
 //==============================================================================

@@ -22,13 +22,11 @@
 #include "file_tests.h"
 
 
-void
-d_fs_tests_space
-(
+void d_fs_tests_space(
     dtest_suite* _suite
 )
 {
-    struct d_space_t space;
+    struct dj_space_t space;
     char             path[D_FS_TEST_PATH_BUF];
     bool             sane;
 

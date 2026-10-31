@@ -13,7 +13,7 @@
 
 // djinterp
 #include "./array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,14 +24,12 @@ d_tests_sa_array_append_element
   - NULL array rejection
   - NULL element rejection
 */
-bool
-d_tests_sa_array_append_element
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_append_element(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             value = 99;
     int*            int_elements;
     bool            result;
@@ -97,14 +95,12 @@ d_tests_sa_array_append_elements
   - zero count handling
   - NULL array rejection
 */
-bool
-d_tests_sa_array_append_elements
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_append_elements(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             values[] = { 1, 2, 3 };
     bool            result;
 
@@ -167,14 +163,12 @@ d_tests_sa_array_append_array
   - appending array
   - NULL array rejection
 */
-bool
-d_tests_sa_array_append_array
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_append_array(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             source[] = { 4, 5, 6 };
     bool            result;
 
@@ -228,14 +222,12 @@ d_tests_sa_array_contains
   - not finding missing element
   - NULL array rejection
 */
-bool
-d_tests_sa_array_contains
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_contains(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             search_val;
     bool            result;
 
@@ -301,14 +293,12 @@ d_tests_sa_array_fill
   - NULL array rejection
   - NULL fill element rejection
 */
-bool
-d_tests_sa_array_fill
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_fill(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             fill_value = 42;
     int             new_fill = 99;
     int*            int_elements;
@@ -375,14 +365,12 @@ d_tests_sa_array_find
   - not finding missing element
   - NULL array rejection
 */
-bool
-d_tests_sa_array_find
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_find(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             search_val;
     ssize_t         result;
 
@@ -448,14 +436,12 @@ d_tests_sa_array_insert_element
   - inserting in middle
   - NULL array rejection
 */
-bool
-d_tests_sa_array_insert_element
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_insert_element(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             value = 99;
     bool            result;
 
@@ -508,14 +494,12 @@ d_tests_sa_array_insert_elements
   - inserting multiple elements
   - NULL array rejection
 */
-bool
-d_tests_sa_array_insert_elements
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_insert_elements(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             values[] = { 88, 99 };
     bool            result;
 
@@ -568,15 +552,13 @@ d_tests_sa_array_insert_array
   - inserting array
   - NULL destination rejection
 */
-bool
-d_tests_sa_array_insert_array
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_insert_array(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* dest;
-    struct d_array  source = { 2, NULL };
+    struct dj_array* dest;
+    struct dj_array  source = { 2, NULL };
     int             source_data[] = { 88, 99 };
     bool            result;
 
@@ -631,15 +613,13 @@ d_tests_sa_array_is_empty
   - non-empty array detection
   - NULL array handling
 */
-bool
-d_tests_sa_array_is_empty
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_is_empty(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* empty_arr;
-    struct d_array* full_arr;
+    struct dj_array* empty_arr;
+    struct dj_array* full_arr;
     bool            result;
 
     printf("Testing `d_array_is_empty`...\n");
@@ -705,14 +685,12 @@ d_tests_sa_array_prepend_element
   - prepending element
   - NULL array rejection
 */
-bool
-d_tests_sa_array_prepend_element
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_prepend_element(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             value = 99;
     bool            result;
 
@@ -765,14 +743,12 @@ d_tests_sa_array_prepend_elements
   - prepending multiple elements
   - NULL array rejection
 */
-bool
-d_tests_sa_array_prepend_elements
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_prepend_elements(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int             values[] = { 88, 99 };
     bool            result;
 
@@ -825,15 +801,13 @@ d_tests_sa_array_prepend_array
   - prepending array
   - NULL destination rejection
 */
-bool
-d_tests_sa_array_prepend_array
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_prepend_array(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* dest;
-    struct d_array  source = { 2, NULL };
+    struct dj_array* dest;
+    struct dj_array  source = { 2, NULL };
     int             source_data[] = { 88, 99 };
     bool            result;
 
@@ -888,14 +862,12 @@ d_tests_sa_array_resize_amount
   - negative resize
   - NULL array rejection
 */
-bool
-d_tests_sa_array_resize_amount
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_resize_amount(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     bool            result;
 
     printf("Testing `d_array_resize_amount`...\n");
@@ -948,14 +920,12 @@ d_tests_sa_array_resize_factor
   - 0.5x shrink
   - NULL array rejection
 */
-bool
-d_tests_sa_array_resize_factor
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_resize_factor(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     bool            result;
 
     printf("Testing `d_array_resize_factor`...\n");
@@ -1007,14 +977,12 @@ d_tests_sa_array_reverse
   - reversing array
   - NULL array rejection
 */
-bool
-d_tests_sa_array_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int*            int_elements;
     bool            result;
 
@@ -1068,14 +1036,12 @@ d_tests_sa_array_shift_left
   - shifting left
   - NULL array rejection
 */
-bool
-d_tests_sa_array_shift_left
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_shift_left(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     bool            result;
 
     printf("Testing `d_array_shift_left`...\n");
@@ -1127,14 +1093,12 @@ d_tests_sa_array_shift_left_circular
   - circular shift left
   - NULL array rejection
 */
-bool
-d_tests_sa_array_shift_left_circular
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_shift_left_circular(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     bool            result;
 
     printf("Testing `d_array_shift_left_circular`...\n");
@@ -1186,14 +1150,12 @@ d_tests_sa_array_shift_right
   - shifting right
   - NULL array rejection
 */
-bool
-d_tests_sa_array_shift_right
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_shift_right(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     bool            result;
 
     printf("Testing `d_array_shift_right`...\n");
@@ -1245,14 +1207,12 @@ d_tests_sa_array_shift_right_circular
   - circular shift right
   - NULL array rejection
 */
-bool
-d_tests_sa_array_shift_right_circular
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_shift_right_circular(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     bool            result;
 
     printf("Testing `d_array_shift_right_circular`...\n");
@@ -1304,10 +1264,8 @@ d_tests_sa_array_slice
   - slicing from positive index
   - NULL source rejection
 */
-bool
-d_tests_sa_array_slice
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_slice(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result = true;
@@ -1357,10 +1315,8 @@ d_tests_sa_array_slice_range
   - slicing range
   - NULL source rejection
 */
-bool
-d_tests_sa_array_slice_range
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_slice_range(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result = true;
@@ -1410,14 +1366,12 @@ d_tests_sa_array_sort
   - sorting unsorted array
   - NULL array handling
 */
-bool
-d_tests_sa_array_sort
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_sort(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
     int*            int_elements;
 
     printf("Testing `d_array_sort`...\n");
@@ -1472,18 +1426,16 @@ d_tests_sa_array_sort
 
 /*
 d_tests_sa_array_run_manipulation_tests
-  Runs all d_array manipulation function tests.
+  Runs all dj_array manipulation function tests.
 */
-bool
-d_tests_sa_array_run_manipulation_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_run_manipulation_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result = true;
 
     printf("\n----------------------------------------\n");
-    printf("Running d_array Manipulation Function Tests\n");
+    printf("Running dj_array Manipulation Function Tests\n");
     printf("----------------------------------------\n");
 
     overall_result &= d_tests_sa_array_append_element(_test_info);

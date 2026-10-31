@@ -31,7 +31,7 @@ TABLE OF CONTENTS
 2.  WRITE-AHEAD LOG
     ---------------
     1.  Checkpoint modes
-         1.  d_sqlite_checkpoint_mode
+         1.  dj_sqlite_checkpoint_mode
     2.  Checkpoints
 3.  BACKUPS
     -------
@@ -64,33 +64,45 @@ D_EXTERN_C_BEGIN
 // fragmentation; VACUUM INTO writes the rebuilt copy to a new file instead,
 // leaving the database as it was, which makes it a backup as well. The file
 // must not exist, or be empty.
-int  d_sqlite_vacuum(struct sqlite3* _db,
-                     const char*     _schema) D_NOTHROW;
-int  d_sqlite_vacuum_into(struct sqlite3* _db,
-                          const char*     _schema,
-                          const char*     _path) D_NOTHROW;
+int d_sqlite_vacuum(
+    struct sqlite3* _db,
+    const char*     _schema
+) D_NOTHROW;
+int d_sqlite_vacuum_into(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _path
+) D_NOTHROW;
 
 // 1.2    Statistics
 //------------------------------------------------------------------------------
 // statistics -- ANALYZE gathers the statistics the query planner chooses
 // indexes by; PRAGMA optimize does so only where they look stale, and is
 // cheap enough to run before closing every long-lived connection
-int  d_sqlite_analyze(struct sqlite3* _db,
-                      const char*     _schema) D_NOTHROW;
-int  d_sqlite_optimize(struct sqlite3* _db,
-                       const char*     _schema) D_NOTHROW;
+int d_sqlite_analyze(
+    struct sqlite3* _db,
+    const char*     _schema
+) D_NOTHROW;
+int d_sqlite_optimize(
+    struct sqlite3* _db,
+    const char*     _schema
+) D_NOTHROW;
 
 // 1.3    Checking
 //------------------------------------------------------------------------------
 // checking -- `_ok` receives whether the database passed, written only on
 // SQLITE_OK. integrity_check reads everything, indexes against their tables
 // included; quick_check skips that comparison and is much faster.
-int  d_sqlite_integrity_check(struct sqlite3* _db,
-                              const char*     _schema,
-                              bool*           _ok) D_NOTHROW;
-int  d_sqlite_quick_check(struct sqlite3* _db,
-                          const char*     _schema,
-                          bool*           _ok) D_NOTHROW;
+int d_sqlite_integrity_check(
+    struct sqlite3* _db,
+    const char*     _schema,
+    bool*           _ok
+) D_NOTHROW;
+int d_sqlite_quick_check(
+    struct sqlite3* _db,
+    const char*     _schema,
+    bool*           _ok
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -101,9 +113,9 @@ int  d_sqlite_quick_check(struct sqlite3* _db,
 // 2.1    Checkpoint modes
 //------------------------------------------------------------------------------
 // 2.1.1
-// d_sqlite_checkpoint_mode
+// dj_sqlite_checkpoint_mode
 //   enum: how hard a checkpoint tries. The values are SQLite's own.
-enum d_sqlite_checkpoint_mode
+enum dj_sqlite_checkpoint_mode
 {
     D_SQLITE_CHECKPOINT_PASSIVE  = 0,  // what can be done without waiting
     D_SQLITE_CHECKPOINT_FULL     = 1,  // all of it, waiting for writers
@@ -126,9 +138,11 @@ enum d_sqlite_checkpoint_mode
  *         D_DB_UNSUPPORTED for TRUNCATE before 3.8.8; the SQLite result code
  *         of a failure; or SQLITE_MISUSE.
  */
-int  d_sqlite_checkpoint(struct sqlite3*               _db,
-                         const char*                   _schema,
-                         enum d_sqlite_checkpoint_mode _mode) D_NOTHROW;
+int d_sqlite_checkpoint(
+    struct sqlite3*                _db,
+    const char*                    _schema,
+    enum dj_sqlite_checkpoint_mode _mode
+) D_NOTHROW;
 
 
 //==============================================================================
@@ -153,10 +167,12 @@ int  d_sqlite_checkpoint(struct sqlite3*               _db,
  * @return as section 3 describes.
  * @post On success the destination database is a copy of the source.
  */
-int  d_sqlite_copy_database(struct sqlite3* _source,
-                            const char*     _source_schema,
-                            struct sqlite3* _destination,
-                            const char*     _destination_schema) D_NOTHROW;
+int d_sqlite_copy_database(
+    struct sqlite3* _source,
+    const char*     _source_schema,
+    struct sqlite3* _destination,
+    const char*     _destination_schema
+) D_NOTHROW;
 /**
  * @brief Backs a database up to a file, which is created or overwritten.
  *
@@ -166,9 +182,11 @@ int  d_sqlite_copy_database(struct sqlite3* _source,
  * @return as section 3 describes, SQLITE_CANTOPEN among them.
  * @post On success `_path` holds a database equal to the one backed up.
  */
-int  d_sqlite_backup_to_file(struct sqlite3* _db,
-                             const char*     _schema,
-                             const char*     _path) D_NOTHROW;
+int d_sqlite_backup_to_file(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _path
+) D_NOTHROW;
 /**
  * @brief Replaces a database with the contents of a database file.
  *
@@ -179,9 +197,11 @@ int  d_sqlite_backup_to_file(struct sqlite3* _db,
  *         them.
  * @post On success the database equals the file.
  */
-int  d_sqlite_restore_from_file(struct sqlite3* _db,
-                                const char*     _schema,
-                                const char*     _path) D_NOTHROW;
+int d_sqlite_restore_from_file(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const char*     _path
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

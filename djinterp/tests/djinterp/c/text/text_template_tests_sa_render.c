@@ -20,7 +20,7 @@ d_test_internal_render_fn
   Dummy function binding callback that returns "computed" as a
 heap-allocated string.
 */
-static enum d_text_template_error
+static enum dj_text_template_error
 d_test_internal_render_fn
 (
     void*  _context,
@@ -44,13 +44,12 @@ d_test_internal_render_list_fn
   Per-item callback that binds "item" to "a", "b", or "c" based
 on the index.
 */
-static bool
-d_test_internal_render_list_fn
-(
-    size_t                  _index,
-    size_t                  _count,
-    struct d_text_template* _item_template,
-    void*                   _context
+static
+bool d_test_internal_render_list_fn(
+    size_t                   _index,
+    size_t                   _count,
+    struct dj_text_template* _item_template,
+    void*                    _context
 )
 {
     const char* vals[] = { "a", "b", "c" };
@@ -93,16 +92,12 @@ d_tests_sa_text_template_render
   - renders list binding concatenation
   - returns ERROR_NESTING_TOO_DEEP for depth overflow
 */
-struct d_test_object*
-d_tests_sa_text_template_render
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_render(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    struct d_text_template*     item_tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    struct dj_text_template*     item_tmpl;
+    enum dj_text_template_error  err;
     char                        buf[D_TEST_TMPL_BUFFER_SIZE];
     bool                        test_single;
     bool                        test_multiple;
@@ -330,7 +325,7 @@ d_tests_sa_text_template_render
     test_list_binding = false;
     if (tmpl && item_tmpl)
     {
-        struct d_text_template_list_options opts;
+        struct dj_text_template_list_options opts;
 
         d_memset(&opts, 0, sizeof(opts));
         opts.separator = ",";
@@ -380,13 +375,13 @@ d_tests_sa_text_template_render
     test_depth_limit = false;
     if (tmpl)
     {
-        struct d_text_template* deep;
+        struct dj_text_template* deep;
 
         d_text_template_set_max_depth(tmpl, 1);
         deep = d_text_template_new();
         if (deep)
         {
-            struct d_text_template* deeper;
+            struct dj_text_template* deeper;
 
             deeper = d_text_template_new();
             if (deeper)
@@ -504,15 +499,11 @@ d_tests_sa_text_template_render_alloc
   - returns ERROR_NULL_PARAM for NULL result pointer
   - allocates function binding result
 */
-struct d_test_object*
-d_tests_sa_text_template_render_alloc
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_render_alloc(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     char*                       result;
     bool                        test_correct;
     bool                        test_null_term;
@@ -754,15 +745,11 @@ d_tests_sa_text_template_render_length
   - returns ERROR_NULL_PARAM for NULL length pointer
   - handles multiple substitutions in length sum
 */
-struct d_test_object*
-d_tests_sa_text_template_render_length
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_render_length(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     tmpl;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     tmpl;
+    enum dj_text_template_error  err;
     size_t                      len;
     bool                        test_simple;
     bool                        test_empty;
@@ -914,17 +901,13 @@ d_tests_sa_text_template_render_nested
   - unbound marker in nested template passes through literally
   - nested template contributes to parent rendering
 */
-struct d_test_object*
-d_tests_sa_text_template_render_nested
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_render_nested(void)
 {
-    struct d_test_object*       group;
-    struct d_text_template*     parent;
-    struct d_text_template*     child;
-    struct d_text_template*     grandchild;
-    enum d_text_template_error  err;
+    struct dj_test_object*       group;
+    struct dj_text_template*     parent;
+    struct dj_text_template*     child;
+    struct dj_text_template*     grandchild;
+    enum dj_text_template_error  err;
     char                        buf[D_TEST_TMPL_BUFFER_SIZE];
     char*                       result;
     bool                        test_single_nest;
@@ -1161,13 +1144,9 @@ d_tests_sa_text_template_render_all
   - d_text_template_render_length
   - nested template rendering
 */
-struct d_test_object*
-d_tests_sa_text_template_render_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_render_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Rendering", 4);

@@ -34,7 +34,7 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
+#include "./dnode.h"  // dj_node_tree
 
 
 //==============================================================================
@@ -60,9 +60,11 @@ TABLE OF CONTENTS
  * @return the `text` node, or `D_DSS_NO_INDEX` when the file could not be
  *         read or the tree refused a node.
  */
-uint32_t d_line_build(struct d_node_tree* _tree,
-                      uint32_t            _file,
-                      const char*         _path);
+uint32_t d_line_build(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path
+);
 /**
  * @brief Builds the text layer of text already in memory.
  *
@@ -74,10 +76,12 @@ uint32_t d_line_build(struct d_node_tree* _tree,
  * @param[in]     _length  their count.
  * @return the `text` node, or `D_DSS_NO_INDEX` when the tree refused a node.
  */
-uint32_t d_line_build_text(struct d_node_tree* _tree,
-                           uint32_t            _file,
-                           const char*         _text,
-                           size_t              _length);
+uint32_t d_line_build_text(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _text,
+    size_t               _length
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DLINE_H

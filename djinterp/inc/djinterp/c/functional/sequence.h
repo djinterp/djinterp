@@ -14,10 +14,10 @@
 * destination must hold every element.
 *   Ordering is a strict `fn_binary_predicate`, read as "left strictly precedes
 * right". `d_precedes_from_comparator` reads a three-way comparator that way,
-* through a `d_comparator_binding`.
+* through a `dj_comparator_binding`.
 *   The two stages plug into transducer.h chains. Each borrows a caller-owned
 * binding, and the distinct stage keeps its run state there, out of reach of
-* `d_transducer_reset`: a chain driven twice needs its `d_distinct_state`
+* `d_transducer_reset`: a chain driven twice needs its `dj_distinct_state`
 * re-initialised as well as the chain reset. `flat_map` is the one stage that
 * can make a chain longer than its input, by up to `capacity` outputs per value.
 *
@@ -35,11 +35,11 @@ TABLE OF CONTENTS
     -----
     1.  Expansion
          1.  fn_expander
-         2.  d_flat_map_state
+         2.  dj_flat_map_state
     2.  Distinctness
-         1.  d_distinct_state
+         1.  dj_distinct_state
     3.  Ordering
-         1.  d_comparator_binding
+         1.  dj_comparator_binding
 2.  ARRAY OPERATIONS
     ----------------
     1.  Reversal
@@ -67,9 +67,9 @@ TABLE OF CONTENTS
 #include "./functional_common.h"  // fn_predicate, fn_binary_predicate,
                                   // fn_function_comparator
 #include "./reducer.h"            // fn_zipper
-#include "./transducer.h"         // d_transducer_stage
+#include "./transducer.h"         // dj_transducer_stage
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
+#include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: its floor
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -104,12 +104,12 @@ typedef size_t (*fn_expander)(const void* _element,
                               void*       _context);
 
 // 1.1.2
-// d_flat_map_state
+// dj_flat_map_state
 //   struct: the binding behind a flat_map stage.
 // The stage expands each value into `scratch` and emits the outputs downstream
 // from there, so no stage downstream of it may share its binding. Caller-owned;
 // must outlive every stage built from it.
-struct d_flat_map_state
+struct dj_flat_map_state
 {
     fn_expander expander;  // the one-to-many arrow
     void*       context;   // context for `expander`; may be NULL
@@ -121,7 +121,7 @@ struct d_flat_map_state
 // 1.2    Distinctness
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_distinct_state
+// dj_distinct_state
 //   struct: a seen-buffer, recording the distinct elements met so far in
 // caller-owned storage.
 // `count`, `overflow` and the contents of `seen` are mutable run state that
@@ -129,7 +129,7 @@ struct d_flat_map_state
 // recorded elements. Once `seen` is full a novel element is still admitted, but
 // counted in `overflow` instead of being recorded, so a later repeat of it is
 // admitted too: a non-zero `overflow` means the output may hold duplicates.
-struct d_distinct_state
+struct dj_distinct_state
 {
     void*               seen;          // caller-owned, `capacity` slots
     size_t              capacity;      // slots in `seen`
@@ -143,13 +143,13 @@ struct d_distinct_state
 // 1.3    Ordering
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_comparator_binding
+// dj_comparator_binding
 //   struct: binds a three-way comparator to its context, so that it can be read
 // as a strict ordering.
 // Pass the whole struct as the `void*` context of `d_precedes_from_comparator`,
 // which is itself an `fn_binary_predicate`. Caller-owned; must outlive every
 // use of it.
-struct d_comparator_binding
+struct dj_comparator_binding
 {
     fn_function_comparator compare;  // three-way comparison
     void*                  context;  // context for `compare`; may be NULL
@@ -177,9 +177,11 @@ struct d_comparator_binding
  * @return `true` if the array was reversed, a count below 2 trivially; `false`
  *         if the parameters were unusable, in which case it is untouched.
  */
-bool     d_reverse(void*  _elements,
-                   size_t _count,
-                   size_t _element_size);
+bool d_reverse(
+    void*  _elements,
+    size_t _count,
+    size_t _element_size
+);
 /**
  * @brief Writes an array's elements in reverse order into a separate
  *        destination, leaving the source untouched.
@@ -193,10 +195,12 @@ bool     d_reverse(void*  _elements,
  * @return `true` if the reversal was written; `false` if the parameters were
  *         unusable, in which case nothing was written.
  */
-bool     d_reverse_into(const void* _elements,
-                        size_t      _count,
-                        size_t      _element_size,
-                        void*       _out_array);
+bool d_reverse_into(
+    const void* _elements,
+    size_t      _count,
+    size_t      _element_size,
+    void*       _out_array
+);
 
 // 2.2    Ordering
 //------------------------------------------------------------------------------
@@ -219,11 +223,13 @@ bool     d_reverse_into(const void* _elements,
  * @return `true` if the array was sorted, a count below 2 trivially; `false`
  *         if the parameters were unusable, in which case it is untouched.
  */
-bool     d_sorted(void*               _elements,
-                  size_t              _count,
-                  size_t              _element_size,
-                  fn_binary_predicate _precedes,
-                  void*               _context);
+bool d_sorted(
+    void*               _elements,
+    size_t              _count,
+    size_t              _element_size,
+    fn_binary_predicate _precedes,
+    void*               _context
+);
 /**
  * @brief Reports whether an array is in order under a strict ordering: no
  *        element strictly precedes the one before it.
@@ -237,11 +243,13 @@ bool     d_sorted(void*               _elements,
  *         array vacuously is; `false` if it is not, or if the parameters were
  *         unusable.
  */
-bool     d_is_sorted(const void*         _elements,
-                     size_t              _count,
-                     size_t              _element_size,
-                     fn_binary_predicate _precedes,
-                     void*               _context);
+bool d_is_sorted(
+    const void*         _elements,
+    size_t              _count,
+    size_t              _element_size,
+    fn_binary_predicate _precedes,
+    void*               _context
+);
 /**
  * @brief Reads a three-way comparator as a strict ordering: `_left` precedes
  *        `_right` when their comparison is negative.
@@ -252,14 +260,16 @@ bool     d_is_sorted(const void*         _elements,
  *
  * @param[in] _left                the left operand, forwarded to `compare`.
  * @param[in] _right               the right operand, forwarded to `compare`.
- * @param[in] _comparator_binding  a `struct d_comparator_binding`; may be NULL.
+ * @param[in] _comparator_binding  a `struct dj_comparator_binding`; may be NULL.
  * @return `true` if the comparison is negative; `false` if it is not, or if the
  *         binding is NULL or has no `compare`, which leaves every pair
  *         unordered.
  */
-bool     d_precedes_from_comparator(const void* _left,
-                                    const void* _right,
-                                    void*       _comparator_binding);
+bool d_precedes_from_comparator(
+    const void* _left,
+    const void* _right,
+    void*       _comparator_binding
+);
 
 // 2.3    Zipping
 //------------------------------------------------------------------------------
@@ -282,13 +292,15 @@ bool     d_precedes_from_comparator(const void* _left,
  * @return the number of pairs written, the smaller of `_count` and
  *         `_capacity`; 0 if the parameters were unusable.
  */
-size_t   d_zip(const void* _left,
-               size_t      _left_size,
-               const void* _right,
-               size_t      _right_size,
-               size_t      _count,
-               void*       _out_array,
-               size_t      _capacity);
+size_t d_zip(
+    const void* _left,
+    size_t      _left_size,
+    const void* _right,
+    size_t      _right_size,
+    size_t      _count,
+    void*       _out_array,
+    size_t      _capacity
+);
 /**
  * @brief Combines two arrays elementwise through a zipper: `d_zip` followed by
  *        a map, without materialising the pairs.
@@ -311,16 +323,18 @@ size_t   d_zip(const void* _left,
  * @param[in]  _context     context forwarded to `_zipper`; may be NULL.
  * @return the number of outputs written; 0 if the parameters were unusable.
  */
-size_t   d_zip_with(const void* _left,
-                    size_t      _left_size,
-                    const void* _right,
-                    size_t      _right_size,
-                    size_t      _count,
-                    void*       _out_array,
-                    size_t      _out_size,
-                    size_t      _capacity,
-                    fn_zipper   _zipper,
-                    void*       _context);
+size_t d_zip_with(
+    const void* _left,
+    size_t      _left_size,
+    const void* _right,
+    size_t      _right_size,
+    size_t      _count,
+    void*       _out_array,
+    size_t      _out_size,
+    size_t      _capacity,
+    fn_zipper   _zipper,
+    void*       _context
+);
 
 // 2.4    Expansion and slicing
 //------------------------------------------------------------------------------
@@ -346,14 +360,16 @@ size_t   d_zip_with(const void* _left,
  *         expander reports beyond what it was offered is clamped; 0 if the
  *         parameters were unusable.
  */
-size_t   d_flat_map(const void* _elements,
-                    size_t      _count,
-                    size_t      _element_size,
-                    fn_expander _expander,
-                    void*       _context,
-                    void*       _out_array,
-                    size_t      _out_size,
-                    size_t      _capacity);
+size_t d_flat_map(
+    const void* _elements,
+    size_t      _count,
+    size_t      _element_size,
+    fn_expander _expander,
+    void*       _context,
+    void*       _out_array,
+    size_t      _out_size,
+    size_t      _capacity
+);
 /**
  * @brief Copies the half-open index range [`_begin`, `_end`) into a
  *        destination.
@@ -374,13 +390,15 @@ size_t   d_flat_map(const void* _elements,
  * @return the number of elements written; 0 for a request that copies nothing
  *         or whose parameters were unusable.
  */
-size_t   d_slice(const void* _elements,
-                 size_t      _count,
-                 size_t      _element_size,
-                 size_t      _begin,
-                 size_t      _end,
-                 void*       _out_array,
-                 size_t      _capacity);
+size_t d_slice(
+    const void* _elements,
+    size_t      _count,
+    size_t      _element_size,
+    size_t      _begin,
+    size_t      _end,
+    void*       _out_array,
+    size_t      _capacity
+);
 
 // 2.5    Distinctness
 //------------------------------------------------------------------------------
@@ -403,12 +421,14 @@ size_t   d_slice(const void* _elements,
  * @return `true` if the state was initialised; `false` if the parameters were
  *         unusable, in which case `_state` is untouched.
  */
-bool     d_distinct_state_init(struct d_distinct_state* _state,
-                               void*                    _seen,
-                               size_t                   _capacity,
-                               size_t                   _element_size,
-                               fn_binary_predicate      _equals,
-                               void*                    _context);
+bool d_distinct_state_init(
+    struct dj_distinct_state* _state,
+    void*                     _seen,
+    size_t                    _capacity,
+    size_t                    _element_size,
+    fn_binary_predicate       _equals,
+    void*                     _context
+);
 /**
  * @brief Copies the first occurrence of each distinct element into a
  *        destination, in source order.
@@ -431,11 +451,13 @@ bool     d_distinct_state_init(struct d_distinct_state* _state,
  * @pre `_out_array` does not overlap `_elements`.
  * @return the number of elements written; 0 if the parameters were unusable.
  */
-size_t   d_distinct(const void*              _elements,
-                    size_t                   _count,
-                    struct d_distinct_state* _state,
-                    void*                    _out_array,
-                    size_t                   _out_capacity);
+size_t d_distinct(
+    const void*               _elements,
+    size_t                    _count,
+    struct dj_distinct_state* _state,
+    void*                     _out_array,
+    size_t                    _out_capacity
+);
 
 // 2.6    Searching
 //------------------------------------------------------------------------------
@@ -451,11 +473,13 @@ size_t   d_distinct(const void*              _elements,
  * @return a pointer into `_elements` to the last satisfying element; NULL if
  *         there is none, or if the parameters were unusable.
  */
-void*    d_find_last(const void*  _elements,
-                     size_t       _count,
-                     size_t       _element_size,
-                     fn_predicate _predicate,
-                     void*        _context);
+void* d_find_last(
+    const void*  _elements,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _predicate,
+    void*        _context
+);
 /**
  * @brief Reports the index of the first element satisfying a predicate.
  *
@@ -472,12 +496,14 @@ void*    d_find_last(const void*  _elements,
  *         the parameters were unusable, in which case `_out_index` is
  *         untouched.
  */
-bool     d_index_of(const void*  _elements,
-                    size_t       _count,
-                    size_t       _element_size,
-                    fn_predicate _predicate,
-                    void*        _context,
-                    size_t*      _out_index);
+bool d_index_of(
+    const void*  _elements,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _predicate,
+    void*        _context,
+    size_t*      _out_index
+);
 /**
  * @brief Reports the index of the last element satisfying a predicate,
  *        searching from the end.
@@ -492,12 +518,14 @@ bool     d_index_of(const void*  _elements,
  *         the parameters were unusable, in which case `_out_index` is
  *         untouched.
  */
-bool     d_last_index_of(const void*  _elements,
-                         size_t       _count,
-                         size_t       _element_size,
-                         fn_predicate _predicate,
-                         void*        _context,
-                         size_t*      _out_index);
+bool d_last_index_of(
+    const void*  _elements,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _predicate,
+    void*        _context,
+    size_t*      _out_index
+);
 
 
 //==============================================================================
@@ -525,12 +553,14 @@ bool     d_last_index_of(const void*  _elements,
  * @return `true` if the binding was initialised; `false` if the parameters were
  *         unusable, in which case `_state` is untouched.
  */
-bool     d_flat_map_state_init(struct d_flat_map_state* _state,
-                               fn_expander              _expander,
-                               void*                    _context,
-                               void*                    _scratch,
-                               size_t                   _capacity,
-                               size_t                   _out_size);
+bool d_flat_map_state_init(
+    struct dj_flat_map_state* _state,
+    fn_expander               _expander,
+    void*                     _context,
+    void*                     _scratch,
+    size_t                    _capacity,
+    size_t                    _out_size
+);
 
 // 3.2    Stage factories
 //------------------------------------------------------------------------------
@@ -547,8 +577,9 @@ bool     d_flat_map_state_init(struct d_flat_map_state* _state,
  * @pre `_state` outlives every drive of a chain holding the stage.
  * @return the stage, by value.
  */
-struct d_transducer_stage d_transducer_distinct(
-                              struct d_distinct_state* _state);
+struct dj_transducer_stage d_transducer_distinct(
+    struct dj_distinct_state* _state
+);
 /**
  * @brief Builds a stage that expands each value into zero or more outputs and
  *        passes them on in turn.
@@ -563,8 +594,9 @@ struct d_transducer_stage d_transducer_distinct(
  * @pre `_state` outlives every drive of a chain holding the stage.
  * @return the stage, by value.
  */
-struct d_transducer_stage d_transducer_flat_map(
-                              struct d_flat_map_state* _state);
+struct dj_transducer_stage d_transducer_flat_map(
+    struct dj_flat_map_state* _state
+);
 
 
 //==============================================================================
@@ -576,14 +608,14 @@ struct d_transducer_stage d_transducer_flat_map(
 
 // 4.1    Binding layouts
 //------------------------------------------------------------------------------
-D_STATIC_ASSERT(offsetof(struct d_flat_map_state, context) ==
+D_STATIC_ASSERT(offsetof(struct dj_flat_map_state, context) ==
                     sizeof(fn_expander),
-                "d_flat_map_state layout drift");
-D_STATIC_ASSERT(offsetof(struct d_distinct_state, capacity) == sizeof(void*),
-                "d_distinct_state layout drift");
-D_STATIC_ASSERT(offsetof(struct d_comparator_binding, context) ==
+                "dj_flat_map_state layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_distinct_state, capacity) == sizeof(void*),
+                "dj_distinct_state layout drift");
+D_STATIC_ASSERT(offsetof(struct dj_comparator_binding, context) ==
                     sizeof(fn_function_comparator),
-                "d_comparator_binding layout drift");
+                "dj_comparator_binding layout drift");
 
 
 #endif  // RE_STD_HAS_INT64

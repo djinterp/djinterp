@@ -26,13 +26,9 @@ d_tests_sa_string_fn_strdup
   - creates independent copy
   - handles strings with special characters
 */
-struct d_test_object*
-d_tests_sa_string_fn_strdup
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strdup(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char*                 dup1;
     char*                 dup2;
     char*                 dup3;
@@ -134,13 +130,9 @@ d_tests_sa_string_fn_strndup
   - handles zero count
   - truncates at specified length
 */
-struct d_test_object*
-d_tests_sa_string_fn_strndup
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strndup(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char*                 dup1;
     char*                 dup2;
     char*                 dup3;
@@ -232,13 +224,9 @@ d_tests_sa_string_fn_duplication_all
   - d_strdup
   - d_strndup
 */
-struct d_test_object*
-d_tests_sa_string_fn_duplication_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_duplication_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("String Duplication", 2);
@@ -272,13 +260,9 @@ d_tests_sa_string_fn_strcasecmp
   - handles empty strings
   - handles mixed alphanumeric
 */
-struct d_test_object*
-d_tests_sa_string_fn_strcasecmp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strcasecmp(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   result;
     bool                  test_identical;
     bool                  test_case_diff;
@@ -367,13 +351,9 @@ d_tests_sa_string_fn_strncasecmp
   - handles NULL inputs
   - case-insensitive within n chars
 */
-struct d_test_object*
-d_tests_sa_string_fn_strncasecmp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_strncasecmp(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   result;
     bool                  test_n_chars;
     bool                  test_ignore_beyond_n;
@@ -447,13 +427,9 @@ d_tests_sa_string_fn_case_comparison_all
   - d_strcasecmp
   - d_strncasecmp
 */
-struct d_test_object*
-d_tests_sa_string_fn_case_comparison_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_string_fn_case_comparison_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Case-Insensitive Comparison", 2);

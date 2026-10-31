@@ -4,8 +4,7 @@
 #include <stddef.h>  // NULL
 
 
-struct d_git_history*
-d_git_read(
+struct dj_git_history* d_git_read(
     const char* _root
 )
 {
@@ -14,12 +13,11 @@ d_git_read(
     return NULL;
 }
 
-bool
-d_git_build(
-    const struct d_git_history* _history,
-    struct d_node_tree*         _tree,
-    uint32_t                    _file,
-    const char*                 _relative
+bool d_git_build(
+    const struct dj_git_history* _history,
+    struct dj_node_tree*         _tree,
+    uint32_t                     _file,
+    const char*                  _relative
 )
 {
     (void)_history;
@@ -30,9 +28,8 @@ d_git_build(
     return false;
 }
 
-void
-d_git_free(
-    struct d_git_history* _history
+void d_git_free(
+    struct dj_git_history* _history
 )
 {
     (void)_history;

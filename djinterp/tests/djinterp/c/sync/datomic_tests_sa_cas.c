@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "datomic_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -21,14 +21,12 @@ d_tests_sa_datomic_compare_exchange_strong_int
   - CAS fails when expected does not match
   - expected is updated to current value on failure
 */
-bool
-d_tests_sa_datomic_compare_exchange_strong_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_strong_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          expected;
 
     result = true;
@@ -76,14 +74,12 @@ d_tests_sa_datomic_compare_exchange_weak_int
   - weak CAS eventually succeeds (may spuriously fail)
   - value is correct after successful weak CAS
 */
-bool
-d_tests_sa_datomic_compare_exchange_weak_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_weak_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          expected;
     bool         cas_result;
     int          attempts;
@@ -119,14 +115,12 @@ d_tests_sa_datomic_compare_exchange_strong_uint
   Tests the following:
   - CAS succeeds for unsigned int
 */
-bool
-d_tests_sa_datomic_compare_exchange_strong_uint
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_strong_uint(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_uint val;
+    dj_atomic_uint val;
     unsigned int  expected;
 
     result = true;
@@ -151,14 +145,12 @@ d_tests_sa_datomic_compare_exchange_strong_long
   Tests the following:
   - CAS succeeds for long
 */
-bool
-d_tests_sa_datomic_compare_exchange_strong_long
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_strong_long(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_long val;
+    dj_atomic_long val;
     long          expected;
 
     result = true;
@@ -183,14 +175,12 @@ d_tests_sa_datomic_compare_exchange_strong_llong
   Tests the following:
   - CAS succeeds for long long
 */
-bool
-d_tests_sa_datomic_compare_exchange_strong_llong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_strong_llong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_llong val;
+    dj_atomic_llong val;
     long long      expected;
 
     result = true;
@@ -215,14 +205,12 @@ d_tests_sa_datomic_compare_exchange_strong_ptr
   Tests the following:
   - CAS succeeds for pointer
 */
-bool
-d_tests_sa_datomic_compare_exchange_strong_ptr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_strong_ptr(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_ptr val;
+    dj_atomic_ptr val;
     int          dummy1;
     int          dummy2;
     void*        expected;
@@ -251,14 +239,12 @@ d_tests_sa_datomic_compare_exchange_strong_size
   Tests the following:
   - CAS succeeds for size_t
 */
-bool
-d_tests_sa_datomic_compare_exchange_strong_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_strong_size(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_size_t val;
+    dj_atomic_size_t val;
     size_t          expected;
 
     result = true;
@@ -286,15 +272,13 @@ d_tests_sa_datomic_compare_exchange_explicit
   - weak CAS with explicit ordering eventually succeeds
   - ptr CAS with explicit ordering works
 */
-bool
-d_tests_sa_datomic_compare_exchange_explicit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_explicit(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
-    d_atomic_ptr pval;
+    dj_atomic_int val;
+    dj_atomic_ptr pval;
     int          expected;
     int          dummy1;
     int          dummy2;
@@ -388,10 +372,8 @@ d_tests_sa_datomic_compare_exchange_all
   - weak CAS for int
   - explicit memory order variants
 */
-bool
-d_tests_sa_datomic_compare_exchange_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_compare_exchange_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

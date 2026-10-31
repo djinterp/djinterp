@@ -36,8 +36,8 @@ TABLE OF CONTENTS
     2.  Literals
 */
 
-#ifndef BITWISEDOM_CLEX_HPP
-#define BITWISEDOM_CLEX_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_CLEX_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_CLEX_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -49,7 +49,7 @@ TABLE OF CONTENTS
 #include <string_view>  // std::string_view
 #include <vector>       // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./bits.hpp"   // u64
 #include "./sheet.hpp"  // standard, data_model
@@ -126,7 +126,9 @@ struct c_token
 
     // is
     //   whether the token is the punctuator spelled _spelling.
-    D_NODISCARD bool is(const char* _spelling) const
+    D_NODISCARD bool is(
+        const char* _spelling
+    ) const
     {
         return ( (kind == c_class::punctuator) &&
                  (text == _spelling) );
@@ -134,13 +136,17 @@ struct c_token
 
     // named
     //   whether the token is the identifier _name.
-    D_NODISCARD bool named(const char* _name) const
+    D_NODISCARD bool named(
+        const char* _name
+    ) const
     {
         return ( (kind == c_class::identifier) &&
                  (text == _name) );
     }
 
-    D_NODISCARD bool has(unsigned _flag) const
+    D_NODISCARD bool has(
+        unsigned _flag
+    ) const
     {
         return ((flags & _flag) != 0);
     }
@@ -175,14 +181,18 @@ struct c_lexed
  * @return every token, in order, and the errors the scanner raised. An
  *         ill-formed construct is a token of class other.
  */
-D_NODISCARD c_lexed lex_c(std::string_view _text,
-                          standard         _level,
-                          bool             _comments);
+D_NODISCARD c_lexed lex_c(
+    std::string_view _text,
+    standard         _level,
+    bool             _comments
+);
 
 // spelled
 //   tokens written back as text: one space where the source had whitespace
 // before a token, none elsewhere -- the spelling `#` gives an argument.
-D_NODISCARD std::string spelled(const std::vector<c_token>& _tokens);
+D_NODISCARD std::string spelled(
+    const std::vector<c_token>& _tokens
+);
 
 // 2.2    Literals
 //------------------------------------------------------------------------------
@@ -226,13 +236,19 @@ struct c_literal
  * @param[in] _model  the target, for the width of `wchar_t`.
  * @return the literal, or `ok == false` and the decoder's error.
  */
-D_NODISCARD c_literal decode_literal(const c_token& _token,
-                                     standard       _level,
-                                     data_model     _model);
+D_NODISCARD c_literal decode_literal(
+    const c_token& _token,
+    standard       _level,
+    data_model     _model
+);
 
 // levels -- a standard's djinterp level (its year), and whether it is C++
-D_NODISCARD unsigned  lex_level(standard _level);
-D_NODISCARD bool      cpp_level(standard _level);
+D_NODISCARD unsigned lex_level(
+    standard _level
+);
+D_NODISCARD bool cpp_level(
+    standard _level
+);
 
 
 }  // namespace bitwisedom
@@ -240,4 +256,4 @@ D_NODISCARD bool      cpp_level(standard _level);
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_CLEX_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_CLEX_HPP

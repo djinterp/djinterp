@@ -1,0 +1,561 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\inc\djinterp\core\
+├── 📁 binary
+│   ├── 📄 decode.hpp
+│   ├── 📄 decode_options.hpp
+│   ├── 📄 encode.hpp
+│   └── 📄 encode_options.hpp
+├── 📁 cli
+│   ├── 📄 cli.hpp
+│   ├── 📄 cli_render.hpp
+│   └── 📄 cli_string.hpp
+├── 📁 container
+│   ├── 📁 arena
+│   │   ├── 📁 tree
+│   │   │   ├── 📄 arena_tree.hpp
+│   │   │   ├── 📄 arena_tree_concepts.hpp
+│   │   │   └── 📄 arena_tree_traits.hpp
+│   │   ├── 📄 arena.hpp
+│   │   ├── 📄 arena_concepts.hpp
+│   │   └── 📄 arena_traits.hpp
+│   ├── 📁 array
+│   │   ├── 📄 array.hpp
+│   │   ├── 📄 array_concepts.hpp
+│   │   ├── 📄 array_iterator.hpp
+│   │   ├── 📄 array_option_view.hpp
+│   │   ├── 📄 array_options.hpp
+│   │   ├── 📄 array_traits.hpp
+│   │   ├── 📄 atomic_array.hpp
+│   │   ├── 📄 cow_array.hpp
+│   │   ├── 📄 rcu_array.hpp
+│   │   └── 📄 threadsafe_array.hpp
+│   ├── 📁 buffer
+│   │   ├── 📄 buffer.hpp
+│   │   ├── 📄 byte_buffer.hpp
+│   │   └── 📄 text_buffer.hpp
+│   ├── 📁 concepts
+│   │   ├── 📄 bounded_container_concepts.hpp
+│   │   ├── 📄 concepts.hpp
+│   │   ├── 📄 concurrency_strategy_concepts.hpp
+│   │   ├── 📄 concurrency_strategy_tag_concepts.hpp
+│   │   ├── 📄 constexpr_container_concepts.hpp
+│   │   ├── 📄 constexpr_iterator_concepts.hpp
+│   │   ├── 📄 container_comparison_concepts.hpp
+│   │   ├── 📄 container_conversion_concepts.hpp
+│   │   ├── 📄 container_copy_merge_concepts.hpp
+│   │   ├── 📄 container_filter_concepts.hpp
+│   │   ├── 📄 container_memory_concepts.hpp
+│   │   ├── 📄 container_multiplicity_concepts.hpp
+│   │   ├── 📄 container_overlay_concepts.hpp
+│   │   ├── 📄 container_storage_concepts.hpp
+│   │   ├── 📄 container_transform_concepts.hpp
+│   │   ├── 📄 element_relation_concepts.hpp
+│   │   ├── 📄 flat_container_concepts.hpp
+│   │   ├── 📄 hierarchical_container_concepts.hpp
+│   │   ├── 📄 hierarchical_iterator_concepts.hpp
+│   │   ├── 📄 iterable_container_concepts.hpp
+│   │   ├── 📄 iterator_category_concepts.hpp
+│   │   ├── 📄 lifetime_concepts.hpp
+│   │   ├── 📄 lock_policy_concepts.hpp
+│   │   ├── 📄 memory_discipline_concepts.hpp
+│   │   ├── 📄 mutable_container_concepts.hpp
+│   │   ├── 📄 node_container_concepts.hpp
+│   │   ├── 📄 observational_comparison_concepts.hpp
+│   │   ├── 📄 ordered_container_concepts.hpp
+│   │   ├── 📄 read_only_container_concepts.hpp
+│   │   ├── 📄 read_write_container_concepts.hpp
+│   │   ├── 📄 runtime_container_concepts.hpp
+│   │   ├── 📄 sorted_container_concepts.hpp
+│   │   ├── 📄 storage_concepts.hpp
+│   │   ├── 📄 threadsafe_container_concepts.hpp
+│   │   └── 📄 write_only_container_concepts.hpp
+│   ├── 📁 graph
+│   │   ├── 📄 graph.hpp
+│   │   ├── 📄 graph_common.hpp
+│   │   ├── 📄 graph_concepts.hpp
+│   │   ├── 📄 graph_traits.hpp
+│   │   └── 📄 math_common.hpp
+│   ├── 📁 iterator
+│   │   ├── 📁 tree
+│   │   │   ├── 📄 linked_tree_iterator.hpp
+│   │   │   └── 📄 tree_iterator.hpp
+│   │   ├── 📄 constexpr_iterator.hpp
+│   │   ├── 📄 constexpr_iterator_concepts.hpp
+│   │   ├── 📄 constexpr_iterator_traits.hpp
+│   │   ├── 📄 container_iterator.hpp
+│   │   ├── 📄 flat_iterator.hpp
+│   │   ├── 📄 flat_iterator_traits.hpp
+│   │   ├── 📄 hierarchical_iterator.hpp
+│   │   ├── 📄 hierarchical_iterator_traits.hpp
+│   │   ├── 📄 iterator_category_traits.hpp
+│   │   ├── 📄 iterator_traits.hpp
+│   │   └── 📄 path_iterator.hpp
+│   ├── 📁 list
+│   │   ├── 📁 linked
+│   │   │   ├── 📄 linked_list.hpp
+│   │   │   ├── 📄 linked_list_concepts.hpp
+│   │   │   ├── 📄 linked_list_iterator.hpp
+│   │   │   └── 📄 linked_list_traits.hpp
+│   │   ├── 📄 list.hpp
+│   │   ├── 📄 list_concepts.hpp
+│   │   └── 📄 list_traits.hpp
+│   ├── 📁 map
+│   │   ├── 📄 enum_map.hpp
+│   │   ├── 📄 enum_map_traits.hpp
+│   │   ├── 📄 map.hpp
+│   │   ├── 📄 map_concepts.hpp
+│   │   ├── 📄 map_traits.hpp
+│   │   └── 📄 multimap.hpp
+│   ├── 📁 matrix
+│   │   ├── 📄 matrix.hpp
+│   │   └── 📄 matrix_iterator.hpp
+│   ├── 📁 node
+│   │   ├── 📄 linked_node.hpp
+│   │   ├── 📄 node_common.hpp
+│   │   ├── 📄 node_iterator.hpp
+│   │   └── 📄 poly_tree.hpp
+│   ├── 📁 registry
+│   │   ├── 📄 bounded_registry.hpp
+│   │   ├── 📄 fixed_registry.hpp
+│   │   ├── 📄 hierarchical_registry.hpp
+│   │   ├── 📄 option_registry.hpp
+│   │   ├── 📄 registry.hpp
+│   │   └── 📄 registry_update.hpp
+│   ├── 📁 set
+│   │   ├── 📄 multiset.hpp
+│   │   └── 📄 set.hpp
+│   ├── 📁 stack
+│   │   └── 📄 stack.hpp
+│   ├── 📁 table
+│   │   ├── 📄 constrained_table.hpp
+│   │   ├── 📄 fixed_table.hpp
+│   │   ├── 📄 keyed_table.hpp
+│   │   ├── 📄 sorted_table.hpp
+│   │   ├── 📄 static_table.hpp
+│   │   ├── 📄 table.hpp
+│   │   ├── 📄 table_base.hpp
+│   │   ├── 📄 table_builder.hpp
+│   │   ├── 📄 table_layout.hpp
+│   │   ├── 📄 table_metadata.hpp
+│   │   ├── 📄 table_model.hpp
+│   │   ├── 📄 table_options.hpp
+│   │   ├── 📄 table_parser.hpp
+│   │   ├── 📄 table_shape.hpp
+│   │   └── 📄 table_template.hpp
+│   ├── 📁 traits
+│   │   ├── 📄 bounded_container_traits.hpp
+│   │   ├── 📄 concurrency_strategy_traits.hpp
+│   │   ├── 📄 constexpr_container_traits.hpp
+│   │   ├── 📄 container_comparison_traits.hpp
+│   │   ├── 📄 container_conversion_traits.hpp
+│   │   ├── 📄 container_copy_merge_traits.hpp
+│   │   ├── 📄 container_filter_traits.hpp
+│   │   ├── 📄 container_memory_traits.hpp
+│   │   ├── 📄 container_multiplicity_traits.hpp
+│   │   ├── 📄 container_overlay_traits.hpp
+│   │   ├── 📄 container_storage_traits.hpp
+│   │   ├── 📄 container_traits.hpp
+│   │   ├── 📄 container_transform_traits.hpp
+│   │   ├── 📄 element_relation_traits.hpp
+│   │   ├── 📄 flat_container_traits.hpp
+│   │   ├── 📄 hierarchical_container_traits.hpp
+│   │   ├── 📄 iterable_container_traits.hpp
+│   │   ├── 📄 mutable_container_traits.hpp
+│   │   ├── 📄 node_container_traits.hpp
+│   │   ├── 📄 observational_comparison_traits.hpp
+│   │   ├── 📄 ordered_container_traits.hpp
+│   │   ├── 📄 read_only_container_traits.hpp
+│   │   ├── 📄 read_write_container_traits.hpp
+│   │   ├── 📄 runtime_container_traits.hpp
+│   │   ├── 📄 sorted_container_traits.hpp
+│   │   ├── 📄 threadsafe_container_traits.hpp
+│   │   └── 📄 write_only_container_traits.hpp
+│   ├── 📁 tree
+│   │   ├── 📁 avl
+│   │   │   └── 📄 AVLtree.hpp
+│   │   ├── 📁 file
+│   │   │   ├── 📄 file_attributes.hpp
+│   │   │   ├── 📄 file_tree.hpp
+│   │   │   ├── 📄 file_tree_apple.hpp
+│   │   │   ├── 📄 file_tree_bsd.hpp
+│   │   │   ├── 📄 file_tree_common.hpp
+│   │   │   ├── 📄 file_tree_concepts.hpp
+│   │   │   ├── 📄 file_tree_filter.hpp
+│   │   │   ├── 📄 file_tree_ios.hpp
+│   │   │   ├── 📄 file_tree_linux.hpp
+│   │   │   ├── 📄 file_tree_path.hpp
+│   │   │   ├── 📄 file_tree_posix.hpp
+│   │   │   ├── 📄 file_tree_traits.hpp
+│   │   │   ├── 📄 file_tree_windows.hpp
+│   │   │   └── 📄 fs_os.hpp
+│   │   ├── 📁 nary
+│   │   │   ├── 📄 nary_tree.hpp
+│   │   │   ├── 📄 nary_tree_concepts.hpp
+│   │   │   ├── 📄 nary_tree_iterator.hpp
+│   │   │   ├── 📄 nary_tree_node.hpp
+│   │   │   └── 📄 nary_tree_traits.hpp
+│   │   ├── 📁 radix
+│   │   │   ├── 📄 binary_radix_tree.hpp
+│   │   │   ├── 📄 radix_tree_common.hpp
+│   │   │   ├── 📄 radix_tree_traits.hpp
+│   │   │   └── 📄 text_radix_tree.hpp
+│   │   ├── 📄 tree_container.hpp
+│   │   └── 📄 tree_path.hpp
+│   ├── 📁 vector
+│   │   └── 📄 vector.hpp
+│   ├── 📄 container_decode.hpp
+│   ├── 📄 container_encode.hpp
+│   ├── 📄 container_metadata.hpp
+│   ├── 📄 container_options.hpp
+│   ├── 📄 container_overlay.hpp
+│   ├── 📄 container_path.hpp
+│   ├── 📄 content_equality.hpp
+│   ├── 📄 node_container.hpp
+│   ├── 📄 ordered_container.hpp
+│   ├── 📄 read_only_container.hpp
+│   ├── 📄 read_write_container.hpp
+│   ├── 📄 sequential_container.hpp
+│   ├── 📄 sorted_container.hpp
+│   ├── 📄 threadsafe_container.hpp
+│   └── 📄 write_only_container.hpp
+├── 📁 db
+│   ├── 📁 arangodb
+│   │   ├── 📄 arango_table.hpp
+│   │   └── 📄 arangodb.hpp
+│   ├── 📁 cassandra
+│   │   ├── 📄 cassandra.hpp
+│   │   └── 📄 cassandra_table.hpp
+│   ├── 📁 db2
+│   │   ├── 📄 db2.hpp
+│   │   └── 📄 db2_table.hpp
+│   ├── 📁 dynamodb
+│   │   ├── 📄 dynamodb.hpp
+│   │   └── 📄 dynamodb_table.hpp
+│   ├── 📁 mariadb
+│   │   ├── 📄 mariadb.hpp
+│   │   └── 📄 mariadb_table.hpp
+│   ├── 📁 mongodb
+│   │   ├── 📄 mongo_table.hpp
+│   │   ├── 📄 mongodb.hpp
+│   │   └── 📄 mongodb_table.hpp
+│   ├── 📁 mysql
+│   │   ├── 📄 mysql.hpp
+│   │   ├── 📄 mysql_common.hpp
+│   │   ├── 📄 mysql_common_table.hpp
+│   │   └── 📄 mysql_table.hpp
+│   ├── 📁 oracle
+│   │   ├── 📄 oracle.hpp
+│   │   └── 📄 oracle_table.hpp
+│   ├── 📁 postgres
+│   │   ├── 📄 postgres.hpp
+│   │   └── 📄 postgres_table.hpp
+│   ├── 📁 redis
+│   │   ├── 📄 redis.hpp
+│   │   └── 📄 redis_table.hpp
+│   ├── 📁 sqlite
+│   │   ├── 📄 sqlite.hpp
+│   │   └── 📄 sqlite_table.hpp
+│   ├── 📄 database.hpp
+│   ├── 📄 database_common.hpp
+│   ├── 📄 database_connection.hpp
+│   ├── 📄 database_connection_template.hpp
+│   ├── 📄 database_table.hpp
+│   └── 📄 database_table_render.hpp
+├── 📁 env
+│   └── 📄 env_printer.hpp
+├── 📁 event
+│   ├── 📄 event.hpp
+│   ├── 📄 event_common.hpp
+│   ├── 📄 event_dispatcher.hpp
+│   ├── 📄 event_handler.hpp
+│   ├── 📄 event_registry.hpp
+│   └── 📄 event_table.hpp
+├── 📁 fs
+│   ├── 📄 dfile.hpp
+│   ├── 📄 dfile_common.hpp
+│   ├── 📄 dfile_descriptor.hpp
+│   ├── 📄 dfile_fs.hpp
+│   ├── 📄 dfile_metadata.hpp
+│   ├── 📄 dfile_path.hpp
+│   ├── 📄 dfile_stream.hpp
+│   ├── 📄 file.hpp
+│   ├── 📄 file_common.hpp
+│   ├── 📄 file_dir.hpp
+│   ├── 📄 file_expected.hpp
+│   ├── 📄 file_link.hpp
+│   ├── 📄 file_ops.hpp
+│   ├── 📄 file_path.hpp
+│   ├── 📄 file_pipe.hpp
+│   ├── 📄 file_recursive.hpp
+│   ├── 📄 file_space.hpp
+│   ├── 📄 file_stat.hpp
+│   ├── 📄 file_stream.hpp
+│   └── 📄 file_temp.hpp
+├── 📁 functional
+│   ├── 📄 accumulator.hpp
+│   ├── 📄 alternative.hpp
+│   ├── 📄 applicative.hpp
+│   ├── 📄 bifunctor.hpp
+│   ├── 📄 cofree.hpp
+│   ├── 📄 comonad.hpp
+│   ├── 📄 comparator.hpp
+│   ├── 📄 compose.hpp
+│   ├── 📄 consumer.hpp
+│   ├── 📄 contravariant.hpp
+│   ├── 📄 curry.hpp
+│   ├── 📄 extractor.hpp
+│   ├── 📄 filter.hpp
+│   ├── 📄 fn_builder.hpp
+│   ├── 📄 foldable.hpp
+│   ├── 📄 free.hpp
+│   ├── 📄 function_traits.hpp
+│   ├── 📄 functional_common.hpp
+│   ├── 📄 functor.hpp
+│   ├── 📄 interpolate.hpp
+│   ├── 📄 maybe.hpp
+│   ├── 📄 monad.hpp
+│   ├── 📄 monoid.hpp
+│   ├── 📄 pipeline.hpp
+│   ├── 📄 polynomial.hpp
+│   ├── 📄 predicate.hpp
+│   ├── 📄 producer.hpp
+│   ├── 📄 profunctor.hpp
+│   ├── 📄 recursion.hpp
+│   ├── 📄 reduce.hpp
+│   ├── 📄 result.hpp
+│   ├── 📄 semigroup.hpp
+│   ├── 📄 structural_traits.hpp
+│   ├── 📄 transducer.hpp
+│   ├── 📄 traversable.hpp
+│   ├── 📄 value_list.hpp
+│   └── 📄 view.hpp
+├── 📁 memory
+│   ├── 📁 pool
+│   │   ├── 📄 pool.hpp
+│   │   ├── 📄 pool_allocator.hpp
+│   │   └── 📄 pool_traits.hpp
+│   ├── 📄 allocator_memory_strategy.hpp
+│   ├── 📄 memory_strategy_concepts.hpp
+│   ├── 📄 memory_strategy_traits.hpp
+│   ├── 📄 monotonic_byte_arena.hpp
+│   ├── 📄 pool_memory_strategy.hpp
+│   └── 📄 static_buffer_strategy.hpp
+├── 📁 meta
+│   ├── 📁 concepts
+│   │   ├── 📄 lifetime_concepts.hpp
+│   │   ├── 📄 lock_policy_concepts.hpp
+│   │   ├── 📄 memory_discipline_concepts.hpp
+│   │   └── 📄 storage_concepts.hpp
+│   ├── 📁 stl
+│   │   ├── 📄 cpp_named03.hpp
+│   │   ├── 📄 cpp_named11.hpp
+│   │   ├── 📄 cpp_named14.hpp
+│   │   ├── 📄 cpp_named17.hpp
+│   │   ├── 📄 cpp_named20.hpp
+│   │   ├── 📄 cpp_named23.hpp
+│   │   ├── 📄 cpp_named26.hpp
+│   │   └── 📄 cpp_named98.hpp
+│   ├── 📄 bsearch.hpp
+│   ├── 📄 byte_size.hpp
+│   ├── 📄 carrier.hpp
+│   ├── 📄 concepts.hpp
+│   ├── 📄 dtuple.hpp
+│   ├── 📄 dtuple_wrap_partition.hpp
+│   ├── 📄 fixed_string.hpp
+│   ├── 📄 flat.hpp
+│   ├── 📄 hierarchical.hpp
+│   ├── 📄 kv_pair.hpp
+│   ├── 📄 lifetime.hpp
+│   ├── 📄 lookup.hpp
+│   ├── 📄 member_traits.hpp
+│   ├── 📄 member_types.hpp
+│   ├── 📄 memory_discipline.hpp
+│   ├── 📄 multiplicity.hpp
+│   ├── 📄 override.hpp
+│   ├── 📄 pack_element.hpp
+│   ├── 📄 passthrough.hpp
+│   ├── 📄 read_only.hpp
+│   ├── 📄 read_write.hpp
+│   ├── 📄 storage.hpp
+│   ├── 📄 trait_detect.hpp
+│   ├── 📄 tuple_partition.hpp
+│   ├── 📄 type_traits.hpp
+│   ├── 📄 value_list.hpp
+│   └── 📄 write_only.hpp
+├── 📁 option
+│   ├── 📄 option.hpp
+│   ├── 📄 option_builder.hpp
+│   ├── 📄 option_compose.hpp
+│   ├── 📄 option_diff.hpp
+│   ├── 📄 option_factory.hpp
+│   ├── 📄 option_generator.hpp
+│   ├── 📄 option_override.hpp
+│   ├── 📄 option_set.hpp
+│   ├── 📄 option_set_compare.hpp
+│   └── 📄 optionator.hpp
+├── 📁 paradigm
+│   ├── 📁 adapter
+│   │   └── 📄 adapter.hpp
+│   ├── 📁 match
+│   │   └── 📄 match.hpp
+│   ├── 📁 mediator
+│   │   └── 📄 mediator.hpp
+│   ├── 📁 momento
+│   │   └── 📄 memento.hpp
+│   ├── 📁 observer
+│   │   └── 📄 observer.hpp
+│   ├── 📁 path
+│   │   └── 📄 path.hpp
+│   ├── 📁 pattern
+│   │   └── 📄 pattern.hpp
+│   ├── 📁 publisher
+│   │   └── 📄 publisher.hpp
+│   ├── 📁 sequence
+│   │   └── 📄 sequence.hpp
+│   ├── 📁 template
+│   │   └── 📄 template.hpp
+│   └── 📁 visitor
+│       └── 📄 visitor.hpp
+├── 📁 sync
+│   ├── 📄 atomic.hpp
+│   ├── 📄 concurrency_strategy_tags.hpp
+│   ├── 📄 condvar.hpp
+│   ├── 📄 cow.hpp
+│   ├── 📄 hazard_pointer.hpp
+│   ├── 📄 lock_guard.hpp
+│   ├── 📄 lock_policy.hpp
+│   ├── 📄 lock_policy_c.hpp
+│   ├── 📄 rcu.hpp
+│   ├── 📄 reclamation_common.hpp
+│   ├── 📄 sync_common.hpp
+│   └── 📄 threadsafe.hpp
+├── 📁 text
+│   ├── 📁 css
+│   │   ├── 📁 less
+│   │   │   ├── 📄 less.hpp
+│   │   │   ├── 📄 less_template.hpp
+│   │   │   ├── 📄 less_template_concepts.hpp
+│   │   │   └── 📄 less_template_traits.hpp
+│   │   ├── 📁 sass
+│   │   │   ├── 📄 sass.hpp
+│   │   │   ├── 📄 sass_printer.hpp
+│   │   │   └── 📄 sass_template.hpp
+│   │   ├── 📄 css.hpp
+│   │   ├── 📄 css_printer.hpp
+│   │   └── 📄 css_template.hpp
+│   ├── 📁 html
+│   │   ├── 📄 html.hpp
+│   │   ├── 📄 html_dialect.hpp
+│   │   ├── 📄 html_printer.hpp
+│   │   ├── 📄 html_string_template.hpp
+│   │   ├── 📄 html_template.hpp
+│   │   ├── 📄 html_template_concepts.hpp
+│   │   └── 📄 html_template_traits.hpp
+│   ├── 📁 markdown
+│   │   ├── 📄 markdown.hpp
+│   │   ├── 📄 markdown_template.hpp
+│   │   ├── 📄 markdown_template_concepts.hpp
+│   │   └── 📄 markdown_template_traits.hpp
+│   ├── 📁 xml
+│   │   ├── 📄 xml.hpp
+│   │   ├── 📄 xml_dialect.hpp
+│   │   ├── 📄 xml_string_template.hpp
+│   │   └── 📄 xml_template.hpp
+│   ├── 📄 font.hpp
+│   ├── 📄 markup_string_template.hpp
+│   ├── 📄 printer.hpp
+│   ├── 📄 section.hpp
+│   ├── 📄 text_align.hpp
+│   ├── 📄 text_pattern.hpp
+│   ├── 📄 text_template.hpp
+│   └── 📄 writer.hpp
+├── 📁 util
+│   ├── 📁 color
+│   │   ├── 📄 color.hpp
+│   │   ├── 📄 color_cie_lab.hpp
+│   │   ├── 📄 color_cmyk.hpp
+│   │   ├── 📄 color_common.hpp
+│   │   ├── 📄 color_convert.hpp
+│   │   ├── 📄 color_hsl.hpp
+│   │   ├── 📄 color_hsv.hpp
+│   │   ├── 📄 color_rgb.hpp
+│   │   └── 📄 color_ycbcr.hpp
+│   ├── 📁 counter
+│   │   ├── 📄 atomic_counter.hpp
+│   │   ├── 📄 counter.hpp
+│   │   └── 📄 mutex_counter.hpp
+│   ├── 📁 document
+│   │   ├── 📁 layout
+│   │   │   ├── 📄 layout.hpp
+│   │   │   ├── 📄 layout_build.hpp
+│   │   │   ├── 📄 layout_interpret.hpp
+│   │   │   ├── 📄 layout_parse.hpp
+│   │   │   └── 📄 layout_spec.hpp
+│   │   ├── 📁 templates
+│   │   │   ├── 📄 document_attributes.hpp
+│   │   │   ├── 📄 document_dialect.hpp
+│   │   │   ├── 📄 document_renderer.hpp
+│   │   │   ├── 📄 document_table.hpp
+│   │   │   ├── 📄 markdown_document_renderer.hpp
+│   │   │   ├── 📄 markup_document_renderer.hpp
+│   │   │   ├── 📄 table_model_dialect.hpp
+│   │   │   ├── 📄 table_model_render.hpp
+│   │   │   └── 📄 title_page.hpp
+│   │   ├── 📄 cofree_recursive.hpp
+│   │   ├── 📄 document.hpp
+│   │   ├── 📄 document_bundle.hpp
+│   │   ├── 📄 document_format.hpp
+│   │   ├── 📄 document_format_policy.hpp
+│   │   ├── 📄 document_template.hpp
+│   │   ├── 📄 document_writer.hpp
+│   │   ├── 📄 layout.hpp
+│   │   ├── 📄 layout_build.hpp
+│   │   ├── 📄 layout_interpret.hpp
+│   │   ├── 📄 layout_parse.hpp
+│   │   ├── 📄 layout_spec.hpp
+│   │   ├── 📄 report_dialect.hpp
+│   │   └── 📄 report_surfaces.hpp
+│   ├── 📁 lookup
+│   │   ├── 📄 lookup.hpp
+│   │   ├── 📄 lookup_sentinels.hpp
+│   │   └── 📄 lookup_traits.hpp
+│   ├── 📁 metadata
+│   │   ├── 📄 metadata_concepts.hpp
+│   │   └── 📄 metadata_traits.hpp
+│   ├── 📁 output
+│   │   └── 📄 output_packaging.hpp
+│   ├── 📁 pdf
+│   │   ├── 📄 pdf.hpp
+│   │   ├── 📄 pdf_backend.hpp
+│   │   ├── 📄 pdf_builtin_backend.hpp
+│   │   ├── 📄 pdf_canvas.hpp
+│   │   ├── 📄 pdf_canvas_document_renderer.hpp
+│   │   ├── 📄 pdf_document.hpp
+│   │   ├── 📄 pdf_document_renderer.hpp
+│   │   ├── 📄 pdf_metrics.hpp
+│   │   ├── 📄 pdf_options.hpp
+│   │   ├── 📄 pdf_primitives.hpp
+│   │   ├── 📄 pdf_printer.hpp
+│   │   ├── 📄 pdf_template.hpp
+│   │   └── 📄 pdf_template_traits.hpp
+│   ├── 📁 sort
+│   │   ├── 📄 bubble_sort.hpp
+│   │   ├── 📄 heap_sort.hpp
+│   │   ├── 📄 insertion_sort.hpp
+│   │   ├── 📄 merge_sort.hpp
+│   │   ├── 📄 quick_sort.hpp
+│   │   ├── 📄 selection_sort.hpp
+│   │   ├── 📄 sort.hpp
+│   │   ├── 📄 sort_common.hpp
+│   │   ├── 📄 sort_dispatch.hpp
+│   │   ├── 📄 sort_monoid.hpp
+│   │   └── 📄 sort_view.hpp
+│   ├── 📁 timer
+│   │   ├── 📄 mutex_timer.hpp
+│   │   └── 📄 timer.hpp
+│   ├── 📄 archive.hpp
+│   ├── 📄 archive_options.hpp
+│   ├── 📄 compress.hpp
+│   ├── 📄 compress_options.hpp
+│   ├── 📄 git.hpp
+│   └── 📄 table_index.hpp
+└── 📄 djinterp.hpp

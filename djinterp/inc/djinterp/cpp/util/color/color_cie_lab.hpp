@@ -1,0 +1,190 @@
+/*******************************************************************************
+* djinterp [cpp]                                               color_cie_lab.hpp
+*
+*   C++ ergonomic layer for the CIE XYZ and CIE L*a*b* color models. Both
+* wrappers derive from their shared-kernel PODs (color_lab.h) without adding
+* state. XYZ is the device-independent hub through which L*a*b* converts, so
+* the two types are grouped together here. Construction, comparison,
+* validation, and clamping forward to the C kernel; conversions are supplied
+* by the color_convert facade.
+*
+*
+* path:      /inc/djinterp/cpp/util/color/color_cie_lab.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    cie_xyz
+      -------
+      a. model_tag, value_type, channels
+      b. constructors / converting constructor
+      c.    operator==
+            d. is_valid / clamp
+
+II.   cie_lab
+      -------
+      a. model_tag, value_type, channels
+      b. constructors / converting constructor
+      c.    operator==
+            d. is_valid / clamp
+*/
+
+#ifndef DJINTERP_UTIL_COLOR_COLOR_CIE_LAB_HPP
+#define DJINTERP_UTIL_COLOR_COLOR_CIE_LAB_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../../c/util/color/color_lab.h"
+#include "./color_common.hpp"
+
+
+NS_DJINTERP
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                        I.   cie_xyz                                     ///
+///////////////////////////////////////////////////////////////////////////////
+
+// cie_xyz
+//   struct: CIE 1931 XYZ color model. Wraps dj_color_xyz with
+// constexpr construction and self-operations.
+struct cie_xyz : dj_color_xyz
+{
+    using model_tag  = cie_xyz_tag;
+    using value_type = channel_t;
+
+    // cie_xyz (default)
+    //   constructor: zeroed.
+    D_CONSTEXPR cie_xyz()
+        : dj_color_xyz{ value_type(0), value_type(0), value_type(0) }
+    {}
+
+    // cie_xyz (parameterized)
+    //   constructor: from raw tristimulus values.
+    D_CONSTEXPR cie_xyz(
+        value_type _x,
+        value_type _y,
+        value_type _z
+    )
+        : dj_color_xyz{ _x, _y, _z }
+    {}
+
+    // cie_xyz (converting)
+    //   constructor: wraps a kernel-produced POD result.
+    D_CONSTEXPR cie_xyz(
+        const dj_color_xyz& _pod
+    )
+        : dj_color_xyz(_pod)
+    {}
+
+    // operator==
+    //   compare: exact channel equality.
+    D_CONSTEXPR
+    bool operator==(
+        const cie_xyz& _other
+    ) const
+    {
+        return ( (x == _other.x) &&
+                 (y == _other.y) &&
+                 (z == _other.z) );
+    }
+
+    // is_valid
+    //   query: all tristimulus values non-negative.
+    D_CONSTEXPR_INLINE
+    bool is_valid() const
+    {
+        return d_color_xyz_is_valid(*this);
+    }
+
+    // clamp
+    //   transform: tristimulus values made non-negative.
+    D_CONSTEXPR_INLINE
+    cie_xyz clamp() const
+    {
+        return d_color_xyz_clamp(*this);
+    }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                        II.   cie_lab                                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+// cie_lab
+//   struct: CIE L*a*b* color model. Wraps dj_color_lab with
+// constexpr construction and self-operations.
+struct cie_lab : dj_color_lab
+{
+    using model_tag  = cie_lab_tag;
+    using value_type = channel_t;
+
+    // cie_lab (default)
+    //   constructor: zeroed (black).
+    D_CONSTEXPR cie_lab()
+        : dj_color_lab{ value_type(0), value_type(0), value_type(0) }
+    {}
+
+    // cie_lab (parameterized)
+    //   constructor: from raw channels.
+    D_CONSTEXPR cie_lab(
+        value_type _l,
+        value_type _a,
+        value_type _b
+    )
+        : dj_color_lab{ _l, _a, _b }
+    {}
+
+    // cie_lab (converting)
+    //   constructor: wraps a kernel-produced POD result.
+    D_CONSTEXPR cie_lab(
+        const dj_color_lab& _pod
+    )
+        : dj_color_lab(_pod)
+    {}
+
+    // operator==
+    //   compare: exact channel equality.
+    D_CONSTEXPR
+    bool operator==(
+        const cie_lab& _other
+    ) const
+    {
+        return ( (l == _other.l) &&
+                 (a == _other.a) &&
+                 (b == _other.b) );
+    }
+
+    // is_valid
+    //   query: L* within [0, 100].
+    D_CONSTEXPR_INLINE
+    bool is_valid() const
+    {
+        return d_color_lab_is_valid(*this);
+    }
+
+    // clamp
+    //   transform: L* to [0, 100], a*/b* to [-128, 127].
+    D_CONSTEXPR_INLINE
+    cie_lab clamp() const
+    {
+        return d_color_lab_clamp(*this);
+    }
+};
+
+
+NS_END  // djinterp
+
+#endif  // floor, for now
+
+#endif  // DJINTERP_UTIL_COLOR_COLOR_CIE_LAB_HPP

@@ -40,7 +40,7 @@
 #include "../../../../../inc/djinterp/config/c/db/mariadb/cfg_mariadb_connection.h"  // D_INTERNAL_MARIADB, the timeout
 #include "./mariadb_internal.h"  // mysql.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, uint64_t
 
 
 #if (D_INTERNAL_MARIADB == 1)
@@ -60,7 +60,7 @@ static const char d_internal_mariadb_tls_reason[] =
 // d_internal_mariadb_plain
 //   setting: no TLS, for the second connection d_mariadb_cancel_start makes
 // where the client cannot carry TLS without blocking.
-static const struct d_mariadb_setting d_internal_mariadb_plain =
+static const struct dj_mariadb_setting d_internal_mariadb_plain =
 {
     D_MARIADB_SETTING_SSL_MODE,
     (unsigned long)D_MARIADB_SSL_DISABLED,
@@ -75,8 +75,8 @@ PATCH; 0 when the text does not start with a digit, and missing parts read as
 0. Each part stops growing at 100000, and minor and patch at 99 in the sum, so
 a garbled string can neither overflow nor carry into the next part.
 */
-static unsigned long
-d_internal_mariadb_parse_version(
+static
+unsigned long d_internal_mariadb_parse_version(
     const char* _text
 )
 {
@@ -115,9 +115,9 @@ otherwise. MariaDB long sent "5.5.5-" before its true version, for clients
 that would not believe a major version past 5; libmysqlclient passes it on,
 so the string is read past it here.
 */
-static void
-d_internal_mariadb_describe(
-    struct d_mariadb* _db
+static
+void d_internal_mariadb_describe(
+    struct dj_mariadb* _db
 )
 {
     const char* const info = mysql_get_server_info(_db->native);
@@ -151,9 +151,9 @@ d_internal_mariadb_note_charset
 has: kept for a reset, which returns the session to it. A name too long to
 keep is kept as none, which a reset reads as different from any.
 */
-static void
-d_internal_mariadb_note_charset(
-    struct d_mariadb* _db
+static
+void d_internal_mariadb_note_charset(
+    struct dj_mariadb* _db
 )
 {
     const char* const name   = mysql_character_set_name(_db->native);
@@ -175,13 +175,13 @@ d_internal_mariadb_wrap
   A new handle around a connection, which learns the server's flavor and
 version, and the character set its session began with, at once.
 */
-static struct d_mariadb*
-d_internal_mariadb_wrap(
+static
+struct dj_mariadb* d_internal_mariadb_wrap(
     MYSQL* _native,
     bool   _owned
 )
 {
-    struct d_mariadb* const db = (struct d_mariadb*)malloc(sizeof(*db));
+    struct dj_mariadb* const db = (struct dj_mariadb*)malloc(sizeof(*db));
 
     // the handle's memory
     if (!db)
@@ -216,14 +216,14 @@ d_internal_mariadb_keep_init_commands
 terminated, one after another in one block: what the client ran once
 connected, and a reset runs again.
 */
-static bool
-d_internal_mariadb_keep_init_commands(
-    struct d_mariadb*               _db,
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count
+static
+bool d_internal_mariadb_keep_init_commands(
+    struct dj_mariadb*               _db,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count
 )
 {
-    struct d_internal_db_buffer kept  = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer kept  = { NULL, 0u, 0u };
     size_t                      found = 0u;
 
     // each init command's text, terminated
@@ -258,10 +258,10 @@ named none, or one a CHARSET setting or a native setting of
 MYSQL_SET_CHARSET_NAME gives, which replaces the layer's as the client
 applies the settings after it.
 */
-static bool
-d_internal_mariadb_names_charset(
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count
+static
+bool d_internal_mariadb_names_charset(
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count
 )
 {
     bool named = (D_INTERNAL_MARIADB_CHARSET[0] != '\0');
@@ -269,7 +269,7 @@ d_internal_mariadb_names_charset(
     // a setting that names one
     for (size_t i = 0u; i < _count; ++i)
     {
-        const struct d_mariadb_setting* const setting = &_settings[i];
+        const struct dj_mariadb_setting* const setting = &_settings[i];
         const char* const                     name    =
             (setting->name == D_MARIADB_SETTING_CHARSET)
                 ? setting->text
@@ -294,9 +294,9 @@ d_internal_mariadb_named_charset
   The character set a connect named, as the client now holds it, for SET
 NAMES; "" for none.
 */
-static const char*
-d_internal_mariadb_named_charset(
-    const struct d_mariadb* _db
+static
+const char* d_internal_mariadb_named_charset(
+    const struct dj_mariadb* _db
 )
 {
     const char* const name = (_db->charset_named)
@@ -311,8 +311,8 @@ d_internal_mariadb_refused
   mysql_options refuses only an option the client does not know, without an
 error number; that is read as the unknown error.
 */
-static int
-d_internal_mariadb_refused(
+static
+int d_internal_mariadb_refused(
     MYSQL* _native
 )
 {
@@ -324,8 +324,8 @@ d_internal_mariadb_refused(
 d_internal_mariadb_configure
   An unknown character set is reported by the connect itself.
 */
-static int
-d_internal_mariadb_configure(
+static
+int d_internal_mariadb_configure(
     MYSQL* _native
 )
 {
@@ -351,8 +351,8 @@ d_internal_mariadb_configure(
 d_internal_mariadb_ssl_mode
   libmysqlclient's own modes, one for one.
 */
-static int
-d_internal_mariadb_ssl_mode(
+static
+int d_internal_mariadb_ssl_mode(
     MYSQL*        _native,
     unsigned long _mode
 )
@@ -389,11 +389,11 @@ d_internal_mariadb_ssl_mode(
  *                      MYSQL_OPT_SSL_VERIFY_SERVER_CERT.
  * @return 0, or the client's refusal.
  */
-static int
-d_internal_mariadb_tls_switches(
-    MYSQL*                  _native,
-    d_internal_mariadb_flag _enforce,
-    d_internal_mariadb_flag _verify
+static
+int d_internal_mariadb_tls_switches(
+    MYSQL*                   _native,
+    dj_internal_mariadb_flag _enforce,
+    dj_internal_mariadb_flag _verify
 )
 {
     return ( (mysql_options(_native, MYSQL_OPT_SSL_ENFORCE, &_enforce) ==
@@ -415,8 +415,8 @@ told not to, refusing a server without TLS. Every mode sets both, so that
 each means the same with either. With TLS on and the check off, either
 connects without TLS to a server that has none: the layer's PREFERRED.
 */
-static int
-d_internal_mariadb_ssl_mode(
+static
+int d_internal_mariadb_ssl_mode(
     MYSQL*        _native,
     unsigned long _mode
 )
@@ -452,8 +452,8 @@ d_internal_mariadb_ssl_mode
   A libmysqlclient older than 5.7.11 has neither the modes nor the switches:
 only its default can be had.
 */
-static int
-d_internal_mariadb_ssl_mode(
+static
+int d_internal_mariadb_ssl_mode(
     MYSQL*        _native,
     unsigned long _mode
 )
@@ -479,8 +479,8 @@ d_internal_mariadb_max_packet
 (D_INTERNAL_MARIADB_MAX_PACKET), which a size_t always holds; 0 leaves the
 client's own.
 */
-static int
-d_internal_mariadb_max_packet(
+static
+int d_internal_mariadb_max_packet(
     MYSQL*        _native,
     unsigned long _bytes
 )
@@ -514,10 +514,10 @@ d_internal_mariadb_tls_text
 (D_INTERNAL_MARIADB_TLS_VERSION), or TLS 1.3's cipher suites, by
 libmysqlclient's alone (D_INTERNAL_MARIADB_TLS_CIPHERSUITES).
 */
-static int
-d_internal_mariadb_tls_text(
-    MYSQL*                          _native,
-    const struct d_mariadb_setting* _setting
+static
+int d_internal_mariadb_tls_text(
+    MYSQL*                           _native,
+    const struct dj_mariadb_setting* _setting
 )
 {
     int refused = 0;
@@ -559,14 +559,14 @@ d_internal_mariadb_cleartext
   libmysqlclient's switch (D_INTERNAL_MARIADB_CLEARTEXT_SWITCH); MariaDB's
 clients have nothing to switch.
 */
-static int
-d_internal_mariadb_cleartext(
+static
+int d_internal_mariadb_cleartext(
     MYSQL*        _native,
     unsigned long _allowed
 )
 {
 #if (D_INTERNAL_MARIADB_CLEARTEXT_SWITCH == 1)
-    const d_internal_mariadb_flag allowed = (_allowed != 0ul) ? 1 : 0;
+    const dj_internal_mariadb_flag allowed = (_allowed != 0ul) ? 1 : 0;
 
     return (mysql_options(_native,
                           MYSQL_ENABLE_CLEARTEXT_PLUGIN,
@@ -588,14 +588,14 @@ d_internal_mariadb_public_key_ask
 Connector/C asks whatever it is told, so it can only be allowed to; and
 libmysqlclient before 8.0.3 never asks, so it can only be forbidden to.
 */
-static int
-d_internal_mariadb_public_key_ask(
+static
+int d_internal_mariadb_public_key_ask(
     MYSQL*        _native,
     unsigned long _allowed
 )
 {
 #if (D_INTERNAL_MARIADB_PUBLIC_KEY_ASK == 1)
-    const d_internal_mariadb_flag allowed = (_allowed != 0ul) ? 1 : 0;
+    const dj_internal_mariadb_flag allowed = (_allowed != 0ul) ? 1 : 0;
 
     return (mysql_options(_native,
                           MYSQL_OPT_GET_SERVER_PUBLIC_KEY,
@@ -620,7 +620,7 @@ by the setting's name; d_internal_mariadb_set asks only for those.
 */
 static enum mysql_option
 d_internal_mariadb_setting_option(
-    enum d_mariadb_setting_name _name
+    enum dj_mariadb_setting_name _name
 )
 {
     switch (_name)
@@ -649,12 +649,12 @@ CLIENT_MULTI_STATEMENTS is refused: the layer turns that mode on for
 d_mariadb_exec_script alone, and runs one statement at a time otherwise. A
 mode that insists on TLS sets `_tls`, for the check once connected.
 */
-static int
-d_internal_mariadb_set(
-    MYSQL*                          _native,
-    const struct d_mariadb_setting* _setting,
-    unsigned long*                  _flags,
-    bool*                           _tls
+static
+int d_internal_mariadb_set(
+    MYSQL*                           _native,
+    const struct dj_mariadb_setting* _setting,
+    unsigned long*                   _flags,
+    bool*                            _tls
 )
 {
     const enum mysql_option option  =
@@ -786,9 +786,9 @@ default character set for the session, silently, while the client believes
 it has the one asked for, and text in any other character set is mangled.
 With every other pairing the handshake carries it.
 */
-static bool
-d_internal_mariadb_loses_charset(
-    const struct d_mariadb* _db
+static
+bool d_internal_mariadb_loses_charset(
+    const struct dj_mariadb* _db
 )
 {
     return ( (D_ENV_MYSQL_COMMON_IS_MARIADB == 0)        &&
@@ -802,10 +802,10 @@ d_internal_mariadb_set_names
   mysql_set_character_set's SET NAMES, which the client then records; it is
 a query, which takes any attributes set for the next one.
 */
-static int
-d_internal_mariadb_set_names(
-    struct d_mariadb* _db,
-    const char*       _charset
+static
+int d_internal_mariadb_set_names(
+    struct dj_mariadb* _db,
+    const char*        _charset
 )
 {
     const int result = (mysql_set_character_set(_db->native, _charset) == 0)
@@ -824,10 +824,10 @@ d_internal_mariadb_settle_charset
 connected (d_internal_mariadb_loses_charset). A change of user is a
 handshake too, and is settled the same way.
 */
-static int
-d_internal_mariadb_settle_charset(
-    struct d_mariadb* _db,
-    const char*       _charset
+static
+int d_internal_mariadb_settle_charset(
+    struct dj_mariadb* _db,
+    const char*        _charset
 )
 {
     const char* const charset = (_charset) ? _charset : "";
@@ -849,10 +849,10 @@ now: MariaDB's reset returns the session to the one it began with, which the
 handshake gave it unless it lost it; MySQL's returns it to the server's
 global default, whatever the handshake said (seen with 8.0.46).
 */
-static bool
-d_internal_mariadb_reset_keeps(
-    const struct d_mariadb* _db,
-    const char*             _name
+static
+bool d_internal_mariadb_reset_keeps(
+    const struct dj_mariadb* _db,
+    const char*              _name
 )
 {
     return ( (_db->flavor != D_MARIADB_FLAVOR_MYSQL)    &&
@@ -867,9 +867,9 @@ d_internal_mariadb_restore_charset
 now, which a program may have changed since. The client's is set again
 wherever the two can differ.
 */
-static int
-d_internal_mariadb_restore_charset(
-    struct d_mariadb* _db
+static
+int d_internal_mariadb_restore_charset(
+    struct dj_mariadb* _db
 )
 {
     const char* const name   = mysql_character_set_name(_db->native);
@@ -898,8 +898,8 @@ connection loses, and the layer's for a refusal of its own -- TLS that a
 mode insisted on and did not get, the numbers the layer returns itself, a
 setting it refused; NULL when memory runs out.
 */
-static char*
-d_internal_mariadb_reason(
+static
+char* d_internal_mariadb_reason(
     MYSQL* _native,
     int    _result
 )
@@ -938,12 +938,12 @@ d_internal_mariadb_hold
 init commands its settings gave, its character set settled; on a failure no
 handle, and the connection still the caller's to close.
 */
-static int
-d_internal_mariadb_hold(
-    MYSQL*                          _native,
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count,
-    struct d_mariadb**              _db
+static
+int d_internal_mariadb_hold(
+    MYSQL*                           _native,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db
 )
 {
     *_db = d_internal_mariadb_wrap(_native, true);
@@ -990,10 +990,9 @@ d_internal_mariadb_hold(
 d_mariadb_connect
   d_mariadb_connect_with, with no settings.
 */
-int
-d_mariadb_connect(
-    const struct d_mariadb_options* _options,
-    struct d_mariadb**              _db
+int d_mariadb_connect(
+    const struct dj_mariadb_options* _options,
+    struct dj_mariadb**              _db
 )
 {
     return d_mariadb_connect_with(_options, NULL, 0u, _db, NULL);
@@ -1006,8 +1005,8 @@ server's public key file's name (MYSQL_SERVER_PUBLIC_KEY), which it copies
 when set and lets go only when set again -- to NULL here. libmysqlclient
 frees its own.
 */
-static void
-d_internal_mariadb_close_native(
+static
+void d_internal_mariadb_close_native(
     MYSQL* _native
 )
 {
@@ -1027,16 +1026,15 @@ settings in order -- connected, wrapped, and its character set settled, in
 that order; a failure at any step closes what was made, after its error
 number and its reason are read, since closing would lose them.
 */
-int
-d_mariadb_connect_with(
-    const struct d_mariadb_options* _options,
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count,
-    struct d_mariadb**              _db,
-    char**                          _message
+int d_mariadb_connect_with(
+    const struct dj_mariadb_options* _options,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db,
+    char**                           _message
 )
 {
-    static const struct d_mariadb_options defaults =
+    static const struct dj_mariadb_options defaults =
     {
         NULL, NULL, NULL, NULL, 0u, NULL
     };
@@ -1063,7 +1061,7 @@ d_mariadb_connect_with(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    const struct d_mariadb_options* const options = (_options) ? _options
+    const struct dj_mariadb_options* const options = (_options) ? _options
                                                                : &defaults;
     MYSQL* const                          native  = mysql_init(NULL);
 
@@ -1137,11 +1135,10 @@ d_mariadb_adopt
   The connection is wrapped as it is: none of d_mariadb_connect's set-up is
 applied, since the program chose its own.
 */
-int
-d_mariadb_adopt(
-    void*              _native,
-    bool               _owned,
-    struct d_mariadb** _db
+int d_mariadb_adopt(
+    void*               _native,
+    bool                _owned,
+    struct dj_mariadb** _db
 )
 {
     // parameter validation
@@ -1176,9 +1173,8 @@ with nothing to send; on a connection the handle does not own they tell the
 server, as finalizing would. That connection is told to drop the attributes,
 whose values it would point into.
 */
-int
-d_mariadb_close(
-    struct d_mariadb* _db
+int d_mariadb_close(
+    struct dj_mariadb* _db
 )
 {
     // accept NULL, as free does
@@ -1225,12 +1221,11 @@ a reset returns to, and which the servers d_internal_mariadb_loses_charset
 knows of may not have, so it is settled as at connecting -- the client's
 current one, which a program may have changed since.
 */
-int
-d_mariadb_change_user(
-    struct d_mariadb* _db,
-    const char*       _user,
-    const char*       _password,
-    const char*       _database
+int d_mariadb_change_user(
+    struct dj_mariadb* _db,
+    const char*        _user,
+    const char*        _password,
+    const char*        _database
 )
 {
     // parameter validation
@@ -1279,9 +1274,8 @@ does not read the reset's reply for the server's status, which would still
 say a transaction is open, so a statement that changes nothing, DO 0, has
 the server send it again.
 */
-int
-d_mariadb_reset_connection(
-    struct d_mariadb* _db
+int d_mariadb_reset_connection(
+    struct dj_mariadb* _db
 )
 {
     // parameter validation
@@ -1355,9 +1349,8 @@ d_mariadb_ping
   The client's ping, which does not reconnect: both clients leave automatic
 reconnection off unless a program turns it on.
 */
-int
-d_mariadb_ping(
-    struct d_mariadb* _db
+int d_mariadb_ping(
+    struct dj_mariadb* _db
 )
 {
     // parameter validation
@@ -1388,9 +1381,8 @@ d_mariadb_ping(
 d_mariadb_connection_id
   The id the server gave the connection when it connected.
 */
-unsigned long
-d_mariadb_connection_id(
-    const struct d_mariadb* _db
+unsigned long d_mariadb_connection_id(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? mysql_thread_id(_db->native) : 0ul;
@@ -1403,13 +1395,12 @@ copy is the caller's. For a failure both clients answer their error message
 rather than the NULL they document, so the error number decides: a command
 clears it when it starts.
 */
-int
-d_mariadb_server_status(
-    struct d_mariadb* _db,
-    char**            _status
+int d_mariadb_server_status(
+    struct dj_mariadb* _db,
+    char**             _status
 )
 {
-    struct d_internal_db_buffer copy = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer copy = { NULL, 0u, 0u };
 
     // parameter validation
     if ( (!_db) ||
@@ -1457,9 +1448,8 @@ d_mariadb_server_status(
 d_mariadb_last_insert_id
   As the server reported it with the last statement.
 */
-uint64_t
-d_mariadb_last_insert_id(
-    const struct d_mariadb* _db
+uint64_t d_mariadb_last_insert_id(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? (uint64_t)mysql_insert_id(_db->native) : 0u;
@@ -1470,9 +1460,8 @@ d_mariadb_changes
   mysql_affected_rows answers its all-ones value for a failure; no real count
 comes near INT64_MAX.
 */
-int64_t
-d_mariadb_changes(
-    const struct d_mariadb* _db
+int64_t d_mariadb_changes(
+    const struct dj_mariadb* _db
 )
 {
     // no handle, no statement
@@ -1490,9 +1479,8 @@ d_mariadb_changes(
 d_mariadb_warning_count
   As the server reported it with the last statement.
 */
-unsigned
-d_mariadb_warning_count(
-    const struct d_mariadb* _db
+unsigned d_mariadb_warning_count(
+    const struct dj_mariadb* _db
 )
 {
     return (_db) ? mysql_warning_count(_db->native) : 0u;
@@ -1510,11 +1498,10 @@ passes to either. An option a client cannot read back is its 1, which
 libmysqlclient explains with no error at all, so the layer answers on its
 own, and the connection's latest failure is Connector/C's 2054 then.
 */
-int
-d_mariadb_get_option(
-    const struct d_mariadb* _db,
-    int                     _option,
-    void*                   _value
+int d_mariadb_get_option(
+    const struct dj_mariadb* _db,
+    int                      _option,
+    void*                    _value
 )
 {
     // parameter validation
@@ -1537,11 +1524,10 @@ d_mariadb_get_option(
 d_mariadb_get_option
   A client before mysql_get_option reads nothing back: D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_option(
-    const struct d_mariadb* _db,
-    int                     _option,
-    void*                   _value
+int d_mariadb_get_option(
+    const struct dj_mariadb* _db,
+    int                      _option,
+    void*                    _value
 )
 {
     (void)_option;
@@ -1570,9 +1556,8 @@ multi-statement mode must go off is left to the operation, which turns it
 off as a step where the client can -- libmysqlclient cannot, and does it
 here, waiting.
 */
-int
-d_internal_mariadb_tidy(
-    struct d_mariadb* _db
+int d_internal_mariadb_tidy(
+    struct dj_mariadb* _db
 )
 {
     // a run, or a call under way, holds the connection
@@ -1607,14 +1592,13 @@ stage `_stage` begins it, where it is on, and `_stage` + 1 reads its
 answer. Answers D_DB_WAIT, 0 once off -- or never on -- or the client's
 error number.
 */
-int
-d_internal_mariadb_mode_off(
-    struct d_mariadb*    _db,
-    int                  _stage,
-    struct d_db_pending* _pending
+int d_internal_mariadb_mode_off(
+    struct dj_mariadb*    _db,
+    int                   _stage,
+    struct dj_db_pending* _pending
 )
 {
-    struct d_internal_mariadb_async* const async = _db->async;
+    struct dj_internal_mariadb_async* const async = _db->async;
 
     // off already
     if (!_db->multi_statements)
@@ -1655,13 +1639,13 @@ it, the server described, the session's character set noted, then SET NAMES
 run where the handshake lost it (d_internal_mariadb_loses_charset); 2, that
 run.
 */
-static int
-d_internal_mariadb_connect_advance(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+static
+int d_internal_mariadb_connect_advance(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
-    struct d_internal_mariadb_async* const async  = _db->async;
+    struct dj_internal_mariadb_async* const async  = _db->async;
     MYSQL* const                           native = _db->native;
 
     // past the connect: SET NAMES's run
@@ -1739,11 +1723,11 @@ d_internal_mariadb_connect_failed
 the client's connection closes, which loses it; then the handle, its record
 and its init commands freed.
 */
-static int
-d_internal_mariadb_connect_failed(
-    struct d_mariadb* _db,
-    int               _result,
-    char**            _message
+static
+int d_internal_mariadb_connect_failed(
+    struct dj_mariadb* _db,
+    int                _result,
+    char**             _message
 )
 {
     if (_message)
@@ -1767,20 +1751,20 @@ it, before connecting: its init commands kept, its record made with copies of
 what the connect needs. 0 and the handle; a failure, nothing left behind, the
 reason where wanted.
 */
-static int
-d_internal_mariadb_connect_setup(
-    const struct d_mariadb_options* _options,
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count,
-    struct d_mariadb**              _db,
-    char**                          _message
+static
+int d_internal_mariadb_connect_setup(
+    const struct dj_mariadb_options* _options,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db,
+    char**                           _message
 )
 {
-    static const struct d_mariadb_options defaults =
+    static const struct dj_mariadb_options defaults =
     {
         NULL, NULL, NULL, NULL, 0u, NULL
     };
-    const struct d_mariadb_options* const options = (_options) ? _options
+    const struct dj_mariadb_options* const options = (_options) ? _options
                                                                : &defaults;
     unsigned long                         flags   = CLIENT_MULTI_RESULTS;
     bool                                  tls     = false;
@@ -1806,7 +1790,7 @@ d_internal_mariadb_connect_setup(
         result = d_internal_mariadb_set(native, &_settings[i], &flags, &tls);
     }
 
-    struct d_mariadb* const made = (result == 0)
+    struct dj_mariadb* const made = (result == 0)
                                        ? d_internal_mariadb_wrap(native, true)
                                        : NULL;
 
@@ -1831,7 +1815,7 @@ d_internal_mariadb_connect_setup(
     made->charset_named = d_internal_mariadb_names_charset(_settings,
                                                            _count);
 
-    struct d_internal_mariadb_async* const async =
+    struct dj_internal_mariadb_async* const async =
         (d_internal_mariadb_keep_init_commands(made, _settings, _count))
             ? d_internal_mariadb_async_get(made)
             : NULL;
@@ -1878,11 +1862,10 @@ d_internal_mariadb_connect_setup(
 d_mariadb_connect_start
   d_mariadb_connect_with_start, with no settings.
 */
-int
-d_mariadb_connect_start(
-    const struct d_mariadb_options* _options,
-    struct d_mariadb**              _db,
-    struct d_db_pending*            _pending
+int d_mariadb_connect_start(
+    const struct dj_mariadb_options* _options,
+    struct dj_mariadb**              _db,
+    struct dj_db_pending*            _pending
 )
 {
     return d_mariadb_connect_with_start(_options,
@@ -1900,17 +1883,16 @@ begun; a connect that fails at once leaves nothing behind. The handle is set
 up before the TLS it would ask for is judged, since only the client, given
 every setting, can say (d_internal_mariadb_tls_blocks_connect).
 */
-int
-d_mariadb_connect_with_start(
-    const struct d_mariadb_options* _options,
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count,
-    struct d_mariadb**              _db,
-    struct d_db_pending*            _pending,
-    char**                          _message
+int d_mariadb_connect_with_start(
+    const struct dj_mariadb_options* _options,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db,
+    struct dj_db_pending*            _pending,
+    char**                           _message
 )
 {
-    struct d_mariadb* made = NULL;
+    struct dj_mariadb* made = NULL;
 
     // nothing yet, whatever follows
     if (_message)
@@ -1989,12 +1971,11 @@ d_mariadb_connect_with_start(
 d_mariadb_connect_continue
   The connect driven; a failure leaves nothing behind but its reason.
 */
-int
-d_mariadb_connect_continue(
-    struct d_mariadb**   _db,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_mariadb_connect_continue(
+    struct dj_mariadb**   _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     // nothing yet, whatever follows
@@ -2031,13 +2012,13 @@ d_internal_mariadb_ping_advance
   0, the ping begun; 1, its answer. A ping changes nothing, whatever the
 client read.
 */
-static int
-d_internal_mariadb_ping_advance(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+static
+int d_internal_mariadb_ping_advance(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
-    struct d_internal_mariadb_async* const async = _db->async;
+    struct dj_internal_mariadb_async* const async = _db->async;
 
     // the ping begun
     if (async->stage == 0)
@@ -2068,19 +2049,19 @@ did not read the server's status (stage 5 its run); 6, the next init
 command run (stage 7 its run), until none is left; 8, the character set set
 again where the session's can differ (stage 9 its answer).
 */
-static int
-d_internal_mariadb_reset_advance(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+static
+int d_internal_mariadb_reset_advance(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
-    struct d_internal_mariadb_async* const async  = _db->async;
+    struct dj_internal_mariadb_async* const async  = _db->async;
     MYSQL* const                           native = _db->native;
     int                                    result = 0;
 
     for (;;)
     {
-        enum d_internal_mariadb_step step = D_INTERNAL_MARIADB_STEP_NONE;
+        enum dj_internal_mariadb_step step = D_INTERNAL_MARIADB_STEP_NONE;
         const char*                  run  = NULL;
 
         switch (async->stage)
@@ -2226,13 +2207,13 @@ dropped, the new session's character set noted, and settled where the
 handshake lost it -- which never happens with MariaDB's client, the only
 one that changes user without blocking.
 */
-static int
-d_internal_mariadb_user_advance(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+static
+int d_internal_mariadb_user_advance(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
-    struct d_internal_mariadb_async* const async = _db->async;
+    struct dj_internal_mariadb_async* const async = _db->async;
 
     if (async->stage < 2)
     {
@@ -2277,13 +2258,12 @@ d_internal_mariadb_start_on
 make the call without blocking, the connection free, and the record; then
 the operation begun.
 */
-static int
-d_internal_mariadb_start_on(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending,
-    bool                 _client_can,
-    int                (*_advance)(struct d_mariadb*,
-                                   struct d_db_pending*)
+static
+int d_internal_mariadb_start_on(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending,
+    bool                  _client_can,
+    int (*_advance)(struct dj_mariadb*, struct dj_db_pending*)
 )
 {
     // nothing pending yet, whatever follows
@@ -2323,13 +2303,12 @@ d_internal_mariadb_continue_on
   What every continuation on a connection checks: the arguments, and the
 operation under way the one it continues; then the operation driven.
 */
-static int
-d_internal_mariadb_continue_on(
-    struct d_mariadb*    _db,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    int                (*_advance)(struct d_mariadb*,
-                                   struct d_db_pending*)
+static
+int d_internal_mariadb_continue_on(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    int (*_advance)(struct dj_mariadb*, struct dj_db_pending*)
 )
 {
     // parameter validation: that operation under way
@@ -2348,10 +2327,9 @@ d_internal_mariadb_continue_on(
 d_mariadb_ping_start
   MariaDB's client alone pings without blocking.
 */
-int
-d_mariadb_ping_start(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+int d_mariadb_ping_start(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
     return d_internal_mariadb_start_on(_db,
@@ -2364,11 +2342,10 @@ d_mariadb_ping_start(
 d_mariadb_ping_continue
   The ping driven.
 */
-int
-d_mariadb_ping_continue(
-    struct d_mariadb*    _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_mariadb_ping_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     return d_internal_mariadb_continue_on(_db,
@@ -2382,10 +2359,9 @@ d_mariadb_reset_connection_start
   MariaDB's client alone resets without blocking, and a server that has the
 command.
 */
-int
-d_mariadb_reset_connection_start(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+int d_mariadb_reset_connection_start(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
     // a server without the command
@@ -2410,11 +2386,10 @@ d_mariadb_reset_connection_start(
 d_mariadb_reset_connection_continue
   The reset and what follows it, driven.
 */
-int
-d_mariadb_reset_connection_continue(
-    struct d_mariadb*    _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_mariadb_reset_connection_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     return d_internal_mariadb_continue_on(_db,
@@ -2428,13 +2403,12 @@ d_mariadb_change_user_start
   The user's name, password and database copied for the client, which reads
 them while it waits; MariaDB's client alone changes user without blocking.
 */
-int
-d_mariadb_change_user_start(
-    struct d_mariadb*    _db,
-    const char*          _user,
-    const char*          _password,
-    const char*          _database,
-    struct d_db_pending* _pending
+int d_mariadb_change_user_start(
+    struct dj_mariadb*    _db,
+    const char*           _user,
+    const char*           _password,
+    const char*           _database,
+    struct dj_db_pending* _pending
 )
 {
     // nothing pending yet, whatever follows
@@ -2463,7 +2437,7 @@ d_mariadb_change_user_start(
         return tidied;
     }
 
-    struct d_internal_mariadb_async* const async =
+    struct dj_internal_mariadb_async* const async =
         d_internal_mariadb_async_get(_db);
 
     // the record, and the copies
@@ -2484,11 +2458,10 @@ d_mariadb_change_user_start(
 d_mariadb_change_user_continue
   The change of user driven.
 */
-int
-d_mariadb_change_user_continue(
-    struct d_mariadb*    _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_mariadb_change_user_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     return d_internal_mariadb_continue_on(_db,
@@ -2504,13 +2477,13 @@ d_internal_mariadb_canceller_options
   Where the connection reached, as the client keeps it: host, port, socket,
 user and password, for a second connection; the database is not needed.
 */
-static struct d_mariadb_options
-d_internal_mariadb_canceller_options(
-    const struct d_mariadb* _db
+static
+struct dj_mariadb_options d_internal_mariadb_canceller_options(
+    const struct dj_mariadb* _db
 )
 {
     const MYSQL* const       native  = _db->native;
-    struct d_mariadb_options options =
+    struct dj_mariadb_options options =
     {
         NULL, NULL, NULL, NULL, 0u, NULL
     };
@@ -2528,10 +2501,10 @@ d_internal_mariadb_canceller_options(
 d_internal_mariadb_kill_text
   KILL QUERY and the connection's id, into the record's text.
 */
-static bool
-d_internal_mariadb_kill_text(
-    struct d_internal_mariadb_async* _async,
-    unsigned long                    _id
+static
+bool d_internal_mariadb_kill_text(
+    struct dj_internal_mariadb_async* _async,
+    unsigned long                     _id
 )
 {
     free(_async->text);
@@ -2555,13 +2528,13 @@ d_internal_mariadb_cancel_advance
 10, KILL QUERY run, with the id the request was started for, kept in the
 record's `command`.
 */
-static int
-d_internal_mariadb_cancel_advance(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+static
+int d_internal_mariadb_cancel_advance(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
-    struct d_internal_mariadb_async* const async = _db->async;
+    struct dj_internal_mariadb_async* const async = _db->async;
 
     // the connection first
     if (async->stage < 10)
@@ -2590,13 +2563,12 @@ d_internal_mariadb_cancel_advance(
 d_mariadb_cancel
   A second connection, KILL QUERY with the first's id, closed again.
 */
-int
-d_mariadb_cancel(
-    struct d_mariadb* _db,
-    char**            _message
+int d_mariadb_cancel(
+    struct dj_mariadb* _db,
+    char**             _message
 )
 {
-    struct d_mariadb* canceller = NULL;
+    struct dj_mariadb* canceller = NULL;
 
     // nothing yet, whatever follows
     if (_message)
@@ -2610,7 +2582,7 @@ d_mariadb_cancel(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    const struct d_mariadb_options options =
+    const struct dj_mariadb_options options =
         d_internal_mariadb_canceller_options(_db);
 
     int result = d_mariadb_connect_with(&options,
@@ -2646,15 +2618,14 @@ client cannot carry TLS without blocking, a connection under TLS is refused,
 and the canceller of one without TLS goes without it too, as the layer's
 default would ask for it.
 */
-int
-d_mariadb_cancel_start(
-    struct d_mariadb*    _db,
-    struct d_mariadb**   _canceller,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_mariadb_cancel_start(
+    struct dj_mariadb*    _db,
+    struct dj_mariadb**   _canceller,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
-    struct d_mariadb* made = NULL;
+    struct dj_mariadb* made = NULL;
 
     // nothing yet, whatever follows
     if (_message)
@@ -2701,7 +2672,7 @@ d_mariadb_cancel_start(
     // such a client's second connection without TLS, as the first is
     const bool                     bare    =
         (!d_mariadb_client_nonblocking_tls());
-    const struct d_mariadb_options options =
+    const struct dj_mariadb_options options =
         d_internal_mariadb_canceller_options(_db);
     const int                      setup   =
         d_internal_mariadb_connect_setup(&options,
@@ -2746,12 +2717,11 @@ d_mariadb_cancel_start(
 d_mariadb_cancel_continue
   The canceller driven; done, it is closed, whatever the outcome.
 */
-int
-d_mariadb_cancel_continue(
-    struct d_mariadb**   _canceller,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_mariadb_cancel_continue(
+    struct dj_mariadb**   _canceller,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     // nothing yet, whatever follows
@@ -2806,10 +2776,9 @@ d_mariadb_connect
   Without a client there is no connection to make: D_DB_UNSUPPORTED, and the
 handle NULL, as a failure leaves it.
 */
-int
-d_mariadb_connect(
-    const struct d_mariadb_options* _options,
-    struct d_mariadb**              _db
+int d_mariadb_connect(
+    const struct dj_mariadb_options* _options,
+    struct dj_mariadb**              _db
 )
 {
     (void)_options;
@@ -2829,13 +2798,12 @@ d_mariadb_connect_with
 handle and the reason NULL, as a failure leaves them -- this build's reason
 is the result itself.
 */
-int
-d_mariadb_connect_with(
-    const struct d_mariadb_options* _options,
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count,
-    struct d_mariadb**              _db,
-    char**                          _message
+int d_mariadb_connect_with(
+    const struct dj_mariadb_options* _options,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db,
+    char**                           _message
 )
 {
     (void)_options;
@@ -2861,11 +2829,10 @@ d_mariadb_adopt
   Without a client there is no connection to make: D_DB_UNSUPPORTED, and the
 handle NULL, as a failure leaves it.
 */
-int
-d_mariadb_adopt(
-    void*              _native,
-    bool               _owned,
-    struct d_mariadb** _db
+int d_mariadb_adopt(
+    void*               _native,
+    bool                _owned,
+    struct dj_mariadb** _db
 )
 {
     (void)_native;
@@ -2885,9 +2852,8 @@ d_mariadb_close
   Without a client no handle exists: NULL closes as it always does, and
 anything else is no handle.
 */
-int
-d_mariadb_close(
-    struct d_mariadb* _db
+int d_mariadb_close(
+    struct dj_mariadb* _db
 )
 {
     return (_db) ? D_DB_UNSUPPORTED : D_DB_OK;
@@ -2897,12 +2863,11 @@ d_mariadb_close(
 d_mariadb_change_user
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_change_user(
-    struct d_mariadb* _db,
-    const char*       _user,
-    const char*       _password,
-    const char*       _database
+int d_mariadb_change_user(
+    struct dj_mariadb* _db,
+    const char*        _user,
+    const char*        _password,
+    const char*        _database
 )
 {
     (void)_db;
@@ -2917,9 +2882,8 @@ d_mariadb_change_user(
 d_mariadb_reset_connection
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_reset_connection(
-    struct d_mariadb* _db
+int d_mariadb_reset_connection(
+    struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -2931,9 +2895,8 @@ d_mariadb_reset_connection(
 d_mariadb_ping
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_ping(
-    struct d_mariadb* _db
+int d_mariadb_ping(
+    struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -2945,9 +2908,8 @@ d_mariadb_ping(
 d_mariadb_connection_id
   Without a client there is nothing to count: 0.
 */
-unsigned long
-d_mariadb_connection_id(
-    const struct d_mariadb* _db
+unsigned long d_mariadb_connection_id(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -2959,10 +2921,9 @@ d_mariadb_connection_id(
 d_mariadb_server_status
   Without a client, D_DB_UNSUPPORTED, and nothing written.
 */
-int
-d_mariadb_server_status(
-    struct d_mariadb* _db,
-    char**            _status
+int d_mariadb_server_status(
+    struct dj_mariadb* _db,
+    char**             _status
 )
 {
     (void)_db;
@@ -2975,9 +2936,8 @@ d_mariadb_server_status(
 d_mariadb_last_insert_id
   Without a client there are no rows: 0.
 */
-uint64_t
-d_mariadb_last_insert_id(
-    const struct d_mariadb* _db
+uint64_t d_mariadb_last_insert_id(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -2989,9 +2949,8 @@ d_mariadb_last_insert_id(
 d_mariadb_changes
   Without a client there are no rows: 0.
 */
-int64_t
-d_mariadb_changes(
-    const struct d_mariadb* _db
+int64_t d_mariadb_changes(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -3003,9 +2962,8 @@ d_mariadb_changes(
 d_mariadb_warning_count
   Without a client there is nothing to count: 0.
 */
-unsigned
-d_mariadb_warning_count(
-    const struct d_mariadb* _db
+unsigned d_mariadb_warning_count(
+    const struct dj_mariadb* _db
 )
 {
     (void)_db;
@@ -3017,11 +2975,10 @@ d_mariadb_warning_count(
 d_mariadb_get_option
   Without a client there are no options: D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_get_option(
-    const struct d_mariadb* _db,
-    int                     _option,
-    void*                   _value
+int d_mariadb_get_option(
+    const struct dj_mariadb* _db,
+    int                      _option,
+    void*                    _value
 )
 {
     (void)_db;
@@ -3036,11 +2993,11 @@ d_internal_mariadb_nothing_pending
   What a start or continuation leaves without a client: nothing pending, no
 handle, no reason. D_DB_UNSUPPORTED.
 */
-static int
-d_internal_mariadb_nothing_pending(
-    struct d_db_pending* _pending,
-    struct d_mariadb**   _made,
-    char**               _message
+static
+int d_internal_mariadb_nothing_pending(
+    struct dj_db_pending* _pending,
+    struct dj_mariadb**   _made,
+    char**                _message
 )
 {
     if (_pending)
@@ -3069,11 +3026,10 @@ d_internal_mariadb_nothing_pending(
 d_mariadb_connect_start
   Without a client there is no connection to start: D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_connect_start(
-    const struct d_mariadb_options* _options,
-    struct d_mariadb**              _db,
-    struct d_db_pending*            _pending
+int d_mariadb_connect_start(
+    const struct dj_mariadb_options* _options,
+    struct dj_mariadb**              _db,
+    struct dj_db_pending*            _pending
 )
 {
     (void)_options;
@@ -3085,14 +3041,13 @@ d_mariadb_connect_start(
 d_mariadb_connect_with_start
   Without a client there is no connection to start: D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_connect_with_start(
-    const struct d_mariadb_options* _options,
-    const struct d_mariadb_setting* _settings,
-    size_t                          _count,
-    struct d_mariadb**              _db,
-    struct d_db_pending*            _pending,
-    char**                          _message
+int d_mariadb_connect_with_start(
+    const struct dj_mariadb_options* _options,
+    const struct dj_mariadb_setting* _settings,
+    size_t                           _count,
+    struct dj_mariadb**              _db,
+    struct dj_db_pending*            _pending,
+    char**                           _message
 )
 {
     (void)_options;
@@ -3107,12 +3062,11 @@ d_mariadb_connect_continue
   Without a client no connection was started: D_DB_UNSUPPORTED, the handle
 left as it is.
 */
-int
-d_mariadb_connect_continue(
-    struct d_mariadb**   _db,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_mariadb_connect_continue(
+    struct dj_mariadb**   _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     (void)_db;
@@ -3125,13 +3079,12 @@ d_mariadb_connect_continue(
 d_mariadb_change_user_start
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_change_user_start(
-    struct d_mariadb*    _db,
-    const char*          _user,
-    const char*          _password,
-    const char*          _database,
-    struct d_db_pending* _pending
+int d_mariadb_change_user_start(
+    struct dj_mariadb*    _db,
+    const char*           _user,
+    const char*           _password,
+    const char*           _database,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -3146,10 +3099,9 @@ d_mariadb_change_user_start(
 d_mariadb_reset_connection_start
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_reset_connection_start(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+int d_mariadb_reset_connection_start(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -3161,10 +3113,9 @@ d_mariadb_reset_connection_start(
 d_mariadb_ping_start
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_ping_start(
-    struct d_mariadb*    _db,
-    struct d_db_pending* _pending
+int d_mariadb_ping_start(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -3176,11 +3127,10 @@ d_mariadb_ping_start(
 d_mariadb_change_user_continue
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_change_user_continue(
-    struct d_mariadb*    _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_mariadb_change_user_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -3193,11 +3143,10 @@ d_mariadb_change_user_continue(
 d_mariadb_reset_connection_continue
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_reset_connection_continue(
-    struct d_mariadb*    _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_mariadb_reset_connection_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -3210,11 +3159,10 @@ d_mariadb_reset_connection_continue(
 d_mariadb_ping_continue
   Without a client, D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_ping_continue(
-    struct d_mariadb*    _db,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_mariadb_ping_continue(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
     (void)_db;
@@ -3227,10 +3175,9 @@ d_mariadb_ping_continue(
 d_mariadb_cancel
   Without a client there is nothing to cancel: D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_cancel(
-    struct d_mariadb* _db,
-    char**            _message
+int d_mariadb_cancel(
+    struct dj_mariadb* _db,
+    char**             _message
 )
 {
     (void)_db;
@@ -3243,12 +3190,11 @@ d_mariadb_cancel_start
   Without a client there is nothing to cancel: D_DB_UNSUPPORTED, no
 request.
 */
-int
-d_mariadb_cancel_start(
-    struct d_mariadb*    _db,
-    struct d_mariadb**   _canceller,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_mariadb_cancel_start(
+    struct dj_mariadb*    _db,
+    struct dj_mariadb**   _canceller,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     (void)_db;
@@ -3260,12 +3206,11 @@ d_mariadb_cancel_start(
 d_mariadb_cancel_continue
   Without a client no request was started: D_DB_UNSUPPORTED.
 */
-int
-d_mariadb_cancel_continue(
-    struct d_mariadb**   _canceller,
-    unsigned             _events,
-    struct d_db_pending* _pending,
-    char**               _message
+int d_mariadb_cancel_continue(
+    struct dj_mariadb**   _canceller,
+    unsigned              _events,
+    struct dj_db_pending* _pending,
+    char**                _message
 )
 {
     (void)_canceller;

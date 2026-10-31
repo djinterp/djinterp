@@ -56,16 +56,14 @@ const int RANK_LLONG = 5;
 const long STEP_LIMIT  = 2000000;
 const int  DEPTH_LIMIT = 400;
 
-int
-long_bits(
+int long_bits(
     data_model _model
 )
 {
     return (_model == data_model::lp64) ? 64 : 32;
 }
 
-int
-rank_bits(
+int rank_bits(
     int        _rank,
     data_model _model
 )
@@ -83,8 +81,7 @@ rank_bits(
     return 64;
 }
 
-std::string
-rank_name(
+std::string rank_name(
     int      _rank,
     bool     _signed,
     standard _level
@@ -115,8 +112,7 @@ rank_name(
     return _signed ? "long long" : "unsigned long long";
 }
 
-c_type
-make_type(
+c_type make_type(
     int                _rank,
     bool               _signed,
     const c_settings&  _settings,
@@ -138,8 +134,7 @@ make_type(
 
 // mask_of
 //   the low _bits bits.
-u64
-mask_of(
+u64 mask_of(
     int _bits
 )
 {
@@ -147,8 +142,7 @@ mask_of(
                          : ((u64(1) << _bits) - 1u);
 }
 
-u64
-type_max(
+u64 type_max(
     const c_type& _type
 )
 {
@@ -161,8 +155,7 @@ type_max(
                            : mask_of(_type.bits);
 }
 
-i64
-type_min(
+i64 type_min(
     const c_type& _type
 )
 {
@@ -178,8 +171,7 @@ type_min(
 // make_value
 //   a value of a type from its bits: cut to the width, and sign-extended
 // when the type is signed; a bool is 0 or 1.
-c_value
-make_value(
+c_value make_value(
     const c_type& _type,
     u64           _raw
 )
@@ -211,8 +203,7 @@ make_value(
 
 // value_text
 //   a value as a number: signed or unsigned as its type is.
-std::string
-value_text(
+std::string value_text(
     const c_value& _value
 )
 {
@@ -222,8 +213,7 @@ value_text(
 
 // fits
 //   whether a value is one a type can hold.
-bool
-fits(
+bool fits(
     const c_value& _value,
     const c_type&  _type
 )
@@ -248,8 +238,7 @@ fits(
 //   the type one of the standard typedef names stands for, by the data
 // model: <stdint.h>'s, <stddef.h>'s, and the character types C makes
 // typedefs of and C++ keywords.
-bool
-typedef_type(
+bool typedef_type(
     const std::string& _name,
     const c_settings&  _settings,
     c_type&            _out
@@ -324,8 +313,7 @@ typedef_type(
 // usual
 //   the usual arithmetic conversions' common type, of operands already
 // promoted. A result the same as an operand keeps that operand's name.
-c_type
-usual(
+c_type usual(
     const c_type&     _left,
     const c_type&     _right,
     const c_settings& _settings
@@ -361,8 +349,7 @@ usual(
 // promoted
 //   the integer promotions: anything of lower rank than int becomes int,
 // which holds every value of every narrower type here.
-c_type
-promoted(
+c_type promoted(
     const c_type&     _type,
     const c_settings& _settings
 )
@@ -381,8 +368,7 @@ literal_type
 value. The list depends on the suffix and on whether it is written in
 decimal, which only ever looks for signed types.
 */
-bool
-literal_type(
+bool literal_type(
     const c_literal&  _literal,
     const c_settings& _settings,
     c_type&           _out,
@@ -451,8 +437,7 @@ literal_type(
 // is_reserved_name
 //   a name the implementation keeps: an underscore and a capital, or two
 // underscores at the start.
-bool
-is_reserved_name(
+bool is_reserved_name(
     const std::string& _name
 )
 {
@@ -465,8 +450,7 @@ is_reserved_name(
 // looks_like_macro
 //   a name written as macros are: capitals, digits and underscores, with
 // at least two letters.
-bool
-looks_like_macro(
+bool looks_like_macro(
     const std::string& _name
 )
 {
@@ -501,8 +485,7 @@ standard_text
 data model decides the 64-bit types' suffixes and the pointer-sized types,
 and the language and level decide <stdbool.h> and the version macros.
 */
-std::string
-standard_text(
+std::string standard_text(
     const c_settings& _settings
 )
 {
@@ -658,8 +641,7 @@ standard_text(
 //   type: the macros a token may no longer be replaced by, as sorted ids.
 using hideset = std::vector<int>;
 
-hideset
-hs_union(
+hideset hs_union(
     const hideset& _a,
     const hideset& _b
 )
@@ -673,8 +655,7 @@ hs_union(
     return out;
 }
 
-hideset
-hs_intersect(
+hideset hs_intersect(
     const hideset& _a,
     const hideset& _b
 )
@@ -688,8 +669,7 @@ hs_intersect(
     return out;
 }
 
-bool
-hs_has(
+bool hs_has(
     const hideset& _set,
     int            _id
 )
@@ -722,8 +702,7 @@ struct invocation
 
 // trimmed
 //   tokens spelled, without the space the first one may lead with.
-std::string
-trimmed(
+std::string trimmed(
     const std::vector<xtok>& _tokens
 )
 {
@@ -750,8 +729,7 @@ trimmed(
 
 // set_leading
 //   gives a token, or takes from it, the space before it.
-void
-set_leading(
+void set_leading(
     c_token& _token,
     bool     _space
 )
@@ -1025,7 +1003,8 @@ private:
 
     // push_front
     //   tokens put back on top of the work, first on top.
-    static void push_front(
+    static
+    void push_front(
         std::vector<xtok>&  _work,
         std::vector<xtok>&& _tokens
     )
@@ -1139,7 +1118,8 @@ private:
     except that a variadic macro's last argument takes the rest, commas and
     all.
     */
-    static bool collect(
+    static
+    bool collect(
         const c_macro&                  _macro,
         std::vector<xtok>&              _work,
         std::vector<std::vector<xtok>>& _args,
@@ -1194,10 +1174,11 @@ private:
 
     // arity
     //   whether the arguments are as many as the macro takes.
-    static bool arity(
-        const c_macro&                        _macro,
-        std::vector<std::vector<xtok>>&       _args,
-        std::string&                          _problem
+    static
+    bool arity(
+        const c_macro&                  _macro,
+        std::vector<std::vector<xtok>>& _args,
+        std::string&                    _problem
     )
     {
         const std::size_t named = _macro.params.size();
@@ -1289,7 +1270,8 @@ private:
     // param_index
     //   which parameter a body token names, or -1; the variadic part is
     // the one past the named ones.
-    static int param_index(
+    static
+    int param_index(
         const c_macro& _macro,
         const c_token& _token
     )
@@ -1320,7 +1302,8 @@ private:
     // stringized
     //   `#` applied to an argument: its spelling as a string literal, the
     // quotes and backslashes of its literals escaped.
-    static xtok stringized(
+    static
+    xtok stringized(
         const std::vector<xtok>& _arg,
         const c_token&           _hash,
         int                      _record
@@ -3435,7 +3418,8 @@ private:
     not fit the type, which C calls undefined. 64-bit overflow is caught
     before it can happen; a narrower type's is caught in 64 bits.
     */
-    static bool signed_op(
+    static
+    bool signed_op(
         char          _which,
         i64           _a,
         i64           _b,
@@ -3706,8 +3690,7 @@ private:
 
 // as_xtoks
 //   scanned tokens as the expander's, comments left out.
-std::vector<xtok>
-as_xtoks(
+std::vector<xtok> as_xtoks(
     const std::vector<c_token>& _tokens
 )
 {
@@ -3728,8 +3711,7 @@ as_xtoks(
     return out;
 }
 
-std::string
-spelled_x(
+std::string spelled_x(
     const std::vector<xtok>& _tokens
 )
 {
@@ -3741,8 +3723,7 @@ spelled_x(
 // 5.  SUGGESTIONS
 //==============================================================================
 
-std::vector<std::string>
-words_of(
+std::vector<std::string> words_of(
     const std::string& _name
 )
 {
@@ -3776,8 +3757,7 @@ words_of(
 
 // edit_distance
 //   Levenshtein's, with a swap of two neighbours counted as one edit.
-int
-edit_distance(
+int edit_distance(
     const std::string& _a,
     const std::string& _b
 )
@@ -3821,8 +3801,7 @@ edit_distance(
 // abbreviates
 //   whether _short is an abbreviation of _long: its first letter, and the
 // rest of its letters in order.
-bool
-abbreviates(
+bool abbreviates(
     const std::string& _short,
     const std::string& _long
 )
@@ -3851,8 +3830,7 @@ abbreviates(
 // related
 //   what replacing one word by another costs: nothing for the same word,
 // half for a mistyping or an abbreviation, and too much for any other.
-double
-related(
+double related(
     const std::string& _a,
     const std::string& _b
 )
@@ -3880,8 +3858,7 @@ related(
 // distance
 //   two names compared a word at a time; a word added or left out costs
 // 0.6.
-double
-distance(
+double distance(
     const std::vector<std::string>& _a,
     const std::vector<std::string>& _b
 )
@@ -3922,8 +3899,7 @@ distance(
 // THE PUBLIC FACE
 //==============================================================================
 
-std::string
-c_diagnostic::text() const
+std::string c_diagnostic::text() const
 {
     std::string out;
 
@@ -3935,8 +3911,7 @@ c_diagnostic::text() const
     return out.empty() ? message : out + ": " + message;
 }
 
-const c_diagnostic*
-c_result::first(
+const c_diagnostic* c_result::first(
     c_level _level
 ) const
 {
@@ -3951,8 +3926,7 @@ c_result::first(
     return nullptr;
 }
 
-bool
-read_params(
+bool read_params(
     const std::string& _text,
     c_macro&           _macro,
     std::string&       _error
@@ -4053,8 +4027,7 @@ read_params(
     return true;
 }
 
-std::string
-params_text(
+std::string params_text(
     const c_macro& _macro
 )
 {
@@ -4076,16 +4049,14 @@ params_text(
     return out;
 }
 
-std::string
-type_text(
+std::string type_text(
     const c_type& _type
 )
 {
     return _type.name;
 }
 
-c_value
-constant_value(
+c_value constant_value(
     u64               _value,
     bool              _negative,
     bool              _decimal,
@@ -4137,8 +4108,7 @@ c_env::c_env(
     return;
 }
 
-const c_settings&
-c_env::settings() const
+const c_settings& c_env::settings() const
 {
     return m_settings;
 }
@@ -4149,8 +4119,7 @@ define
 checked as a compiler checks one: what # may stand before, where ## may
 not stand, and where __VA_ARGS__ and __VA_OPT__ belong.
 */
-bool
-c_env::define(
+bool c_env::define(
     c_macro      _macro,
     std::string& _error
 )
@@ -4228,16 +4197,14 @@ c_env::define(
     return true;
 }
 
-bool
-c_env::undefine(
+bool c_env::undefine(
     const std::string& _name
 )
 {
     return (m_macros.erase(_name) > 0);
 }
 
-const c_macro*
-c_env::find(
+const c_macro* c_env::find(
     const std::string& _name
 ) const
 {
@@ -4246,8 +4213,7 @@ c_env::find(
     return (found == m_macros.end()) ? nullptr : &found->second;
 }
 
-bool
-c_env::is_standard(
+bool c_env::is_standard(
     const std::string& _name
 ) const
 {
@@ -4255,8 +4221,7 @@ c_env::is_standard(
             m_standard.end());
 }
 
-std::vector<std::string>
-c_env::names() const
+std::vector<std::string> c_env::names() const
 {
     std::vector<std::string> out;
 
@@ -4268,8 +4233,7 @@ c_env::names() const
     return out;
 }
 
-c_result
-c_env::evaluate(
+c_result c_env::evaluate(
     std::string_view _text,
     const c_scope&   _scope
 ) const
@@ -4309,8 +4273,7 @@ c_env::evaluate(
     return result;
 }
 
-c_result
-c_env::condition(
+c_result c_env::condition(
     std::string_view _text
 ) const
 {
@@ -4355,8 +4318,7 @@ c_env::condition(
     return result;
 }
 
-std::string
-c_env::expand(
+std::string c_env::expand(
     std::string_view _text
 ) const
 {
@@ -4374,8 +4336,7 @@ calls in its body counted against the macros they call, the names in
 capitals nothing defines, and the operators that would bind to the
 surroundings of an unparenthesized body.
 */
-std::vector<c_diagnostic>
-c_env::lint(
+std::vector<c_diagnostic> c_env::lint(
     const c_macro& _macro,
     const c_scope& _scope
 ) const
@@ -4611,15 +4572,13 @@ c_branches::c_branches(
     : m_env(_env)
 {}
 
-bool
-c_branches::live() const
+bool c_branches::live() const
 {
     return ( (m_stack.empty()) ||
              ( (m_stack.back().outer) && (m_stack.back().taken) ) );
 }
 
-std::size_t
-c_branches::depth() const
+std::size_t c_branches::depth() const
 {
     return m_stack.size();
 }
@@ -4629,8 +4588,7 @@ c_branches::decide
   An #if's or #elif's condition: true, false, or -- resting on a name
 nothing defines -- assumed true and noted.
 */
-bool
-c_branches::decide(
+bool c_branches::decide(
     const std::vector<c_token>& _line,
     int                         _number,
     std::vector<std::string>&   _notes
@@ -4666,8 +4624,7 @@ c_branches::decide(
              (result.value.bits != 0) );
 }
 
-bool
-c_branches::feed(
+bool c_branches::feed(
     const std::vector<c_token>& _line,
     int                         _number,
     std::vector<std::string>&   _notes
@@ -4785,8 +4742,7 @@ read_define
 '(' follows the name with no space between -- its parameters, then its
 body.
 */
-bool
-read_define(
+bool read_define(
     const std::vector<c_token>& _line,
     c_macro&                    _macro,
     std::size_t&                _body,
@@ -4869,8 +4825,7 @@ directive_lines
   A text's directives: for each `#` that starts a line, the tokens of the
 same directive after it, and the line it is on.
 */
-std::vector<std::pair<int, std::vector<c_token>>>
-directive_lines(
+std::vector<std::pair<int, std::vector<c_token>>> directive_lines(
     const std::vector<c_token>& _tokens
 )
 {
@@ -4914,8 +4869,7 @@ run_directives
 right; #define and #undef act only in a branch taken. Everything else in
 the text is passed over.
 */
-int
-run_directives(
+int run_directives(
     c_env&                    _env,
     std::string_view          _text,
     std::vector<std::string>& _notes
@@ -4983,8 +4937,7 @@ run_directives(
     return defined;
 }
 
-std::vector<std::string>
-suggest(
+std::vector<std::string> suggest(
     const std::string&              _name,
     const std::vector<std::string>& _candidates
 )

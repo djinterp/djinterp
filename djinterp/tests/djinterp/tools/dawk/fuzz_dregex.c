@@ -39,8 +39,8 @@ Parameter(s):
 Return:
   A pseudo-random 64-bit value.
 */
-static uint64_t
-d_fuzz_next(void)
+static
+uint64_t d_fuzz_next(void)
 {
     g_state ^= (g_state << 13);
     g_state ^= (g_state >> 7);
@@ -59,8 +59,8 @@ Parameter(s):
 Return:
   A value in the range [0, _bound).
 */
-static unsigned
-d_fuzz_below(
+static
+unsigned d_fuzz_below(
     unsigned _bound
 )
 {
@@ -80,8 +80,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_fuzz_atom(
+static
+void d_fuzz_atom(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -101,8 +101,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_fuzz_branch(
+static
+void d_fuzz_branch(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -180,8 +180,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_fuzz_alternation(
+static
+void d_fuzz_alternation(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -206,8 +206,8 @@ d_fuzz_alternation(
 }
 
 
-static void
-d_fuzz_atom(
+static
+void d_fuzz_atom(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -289,8 +289,7 @@ Parameter(s):
 Return:
   Zero when every comparison agreed, and one otherwise.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
@@ -360,8 +359,8 @@ main(
         regex_t   oracle;
         const int oracle_status = regcomp(&oracle, pattern, REG_EXTENDED);
 
-        enum d_regex_status status = D_REGEX_OK;
-        struct d_regex*     regex  = d_regex_compile(pattern, &status);
+        enum dj_regex_status status = D_REGEX_OK;
+        struct dj_regex*     regex  = d_regex_compile(pattern, &status);
 
         // both must accept the pattern before the results can be compared
         if ((oracle_status != 0) || (!regex))
@@ -391,13 +390,13 @@ main(
         const bool oracle_found =
             (regexec(&oracle, subject, slots, oracle_groups, 0) == 0);
 
-        struct d_regex_match groups[D_REGEX_GROUP_MAX + 1];
+        struct dj_regex_match groups[D_REGEX_GROUP_MAX + 1];
         bool found = false;
 
         // FASTONLY builds compare only the overall extent, which is what the
         // interpreter uses everywhere except gensub
 #ifdef FASTONLY
-        struct d_regex_match overall = { 0, 0 };
+        struct dj_regex_match overall = { 0, 0 };
 
         found = d_regex_search(regex, subject, subject_length, 0, &overall);
         groups[0].start  = found ? overall.start : D_REGEX_NO_MATCH;
@@ -405,7 +404,7 @@ main(
 
         const size_t compare_slots = 1u;
 #else
-        const enum d_regex_status pass = d_regex_search_groups(regex,
+        const enum dj_regex_status pass = d_regex_search_groups(regex,
                                                                subject,
                                                                subject_length,
                                                                0,

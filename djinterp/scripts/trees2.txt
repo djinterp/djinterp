@@ -1,0 +1,1480 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\
+├── 📁 .config
+│   └── 📁 .msvs
+│       └── 📁 testing
+│           └── 📁 djinterp
+│               └── 📁 c
+│                   ├── 📁 container
+│                   │   ├── 📁 array
+│                   │   │   ├── 📁 djinterp-c-container-array-common-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-container-array-common-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-array-common-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   ├── 📁 djinterp-c-container-array-filter-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-container-array-filter-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-array-filter-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   ├── 📁 djinterp-c-container-array-tests-sa-all
+│                   │   │   │   ├── 📄 djinterp-c-container-array-tests-sa-all.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-array-tests-sa-all.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   └── 📁 djinterp-c-container-circular-array-tests-sa
+│                   │   │       ├── 📄 djinterp-c-container-circular-array-tests-sa.sln
+│                   │   │       ├── 📄 djinterp-c-container-circular-array-tests-sa.vcxproj
+│                   │   │       └── 📄 main.c
+│                   │   ├── 📁 buffer
+│                   │   │   ├── 📁 djinterp-c-buffer-circular-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-buffer-circular-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-buffer-circular-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   ├── 📁 djinterp-c-buffer-common-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-buffer-common-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-buffer-common-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   ├── 📁 djinterp-c-container-buffer-common-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-container-buffer-common-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-buffer-common-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   └── 📁 djinterp-c-container-text-buffer-tests-sa
+│                   │   │       ├── 📁 djinterp.301242de
+│                   │   │       │   └── 📁 x64
+│                   │   │       │       └── 📁 Debug
+│                   │   │       │           └── 📁 djinterp.301242de.tlog
+│                   │   │       │               └── 📄 unsuccessfulbuild
+│                   │   │       ├── 📄 djinterp-c-container-text-buffer-tests-sa.sln
+│                   │   │       ├── 📄 djinterp-c-container-text-buffer-tests-sa.vcxproj
+│                   │   │       └── 📄 main.c
+│                   │   ├── 📁 map
+│                   │   │   ├── 📁 djinterp-c-container-enum-map-entry-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-container-enum-map-entry-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-enum-map-entry-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   ├── 📁 djinterp-c-container-map-tests-sa-all
+│                   │   │   │   ├── 📄 djinterp-c-container-map-tests-sa-all.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-map-tests-sa-all.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   └── 📁 djinterp-c-container-min-enum-map-tests-sa
+│                   │   │       ├── 📄 djinterp-c-container-min-enum-map-tests-sa.sln
+│                   │   │       ├── 📄 djinterp-c-container-min-enum-map-tests-sa.vcxproj
+│                   │   │       └── 📄 main.c
+│                   │   ├── 📁 registry
+│                   │   │   ├── 📁 djinterp-c-container-registry-common-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-container-registry-common-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-registry-common-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   ├── 📁 djinterp-c-container-registry-tests-sa
+│                   │   │   │   ├── 📄 djinterp-c-container-registry-tests-sa.sln
+│                   │   │   │   ├── 📄 djinterp-c-container-registry-tests-sa.vcxproj
+│                   │   │   │   └── 📄 main.c
+│                   │   │   └── 📁 djinterp-c-container-registry-tests-sa-all
+│                   │   │       ├── 📄 djinterp-c-container-registry-tests-sa-all.sln
+│                   │   │       ├── 📄 djinterp-c-container-registry-tests-sa-all.vcxproj
+│                   │   │       └── 📄 main.c
+│                   │   └── 📁 vector
+│                   │       ├── 📁 djinterp-c-container-ptr-vector-tests-sa
+│                   │       │   ├── 📄 djinterp-c-container-ptr-vector-tests-sa.sln
+│                   │       │   ├── 📄 djinterp-c-container-ptr-vector-tests-sa.vcxproj
+│                   │       │   └── 📄 main.c
+│                   │       ├── 📁 djinterp-c-container-vector-common-tests-sa
+│                   │       │   ├── 📄 djinterp-c-container-vector-common-tests-sa.sln
+│                   │       │   ├── 📄 djinterp-c-container-vector-common-tests-sa.vcxproj
+│                   │       │   └── 📄 main.c
+│                   │       └── 📁 djinterp-c-container-vector-tests-sa
+│                   │           ├── 📄 djinterp-c-container-vector-tests-sa.sln
+│                   │           ├── 📄 djinterp-c-container-vector-tests-sa.vcxproj
+│                   │           └── 📄 main.c
+│                   ├── 📁 core
+│                   │   ├── 📁 djinterp-c-datomic-tests-sa
+│                   │   │   ├── 📄 djinterp-c-datomic-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-datomic-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-dfile-tests-sa
+│                   │   │   ├── 📄 djinterp-c-dfile-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-dfile-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-dio-tests-sa
+│                   │   │   ├── 📄 djinterp-c-dio-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-dio-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-dmacro-tests-sa
+│                   │   │   ├── 📄 djinterp-c-dmacro-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-dmacro-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-dmemory-tests-sa
+│                   │   │   ├── 📄 djinterp-c-dmemory-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-dmemory-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-dmutex-tests-sa
+│                   │   │   ├── 📄 djinterp-c-dmutex-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-dmutex-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-dstring-tests-sa
+│                   │   │   ├── 📄 djinterp-c-dstring-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-dstring-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-dtime-tests-sa
+│                   │   │   ├── 📄 djinterp-c-dtime-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-dtime-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-env-tests-sa
+│                   │   │   ├── 📄 djinterp-c-env-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-env-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-header-tests-sa
+│                   │   │   ├── 📄 djinterp-c-header-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-header-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-string-fn-tests-sa
+│                   │   │   ├── 📄 djinterp-c-string-fn-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-string-fn-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-tests-all
+│                   │   │   ├── 📄 djinterp-c-tests-all.sln
+│                   │   │   ├── 📄 djinterp-c-tests-all.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   └── 📁 djinterp-type-traits-tests
+│                   │       └── 📄 djinterp-core-type-traits-tests.vcxproj
+│                   ├── 📁 event
+│                   │   ├── 📁 djinterp-c-event-handler-tests-sa
+│                   │   │   ├── 📄 djinterp-c-event-handler-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-event-handler-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-event-table-common-tests-sa
+│                   │   │   ├── 📄 djinterp-c-event-table-common-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-event-table-common-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-event-table-tests-sa
+│                   │   │   ├── 📄 djinterp-c-event-table-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-event-table-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-event-tests-sa
+│                   │   │   ├── 📄 djinterp-c-event-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-event-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   └── 📁 djinterp-c-event-tests-sa-all
+│                   │       ├── 📄 djinterp-c-event-tests-sa-all.sln
+│                   │       ├── 📄 djinterp-c-event-tests-sa-all.vcxproj
+│                   │       └── 📄 main.c
+│                   ├── 📁 functional
+│                   │   ├── 📁 djinterp-c-functional-common-tests-sa
+│                   │   │   ├── 📄 djinterp-c-functional-common-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-functional-common-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-functional-compose-tests-sa
+│                   │   │   ├── 📄 djinterp-c-functional-compose-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-functional-compose-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-functional-filter-tests-sa
+│                   │   │   ├── 📄 djinterp-c-functional-filter-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-functional-filter-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-functional-fn-builder-tests-sa
+│                   │   │   ├── 📄 djinterp-c-functional-fn-builder-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-functional-fn-builder-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-functional-pipeline-tests-sa
+│                   │   │   ├── 📄 djinterp-c-functional-pipeline-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-functional-pipeline-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-functional-predicate-tests-sa
+│                   │   │   ├── 📄 djinterp-c-functional-predicate-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-functional-predicate-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   └── 📁 djinterp-c-functional-tests-sa-all
+│                   │       ├── 📄 djinterp-c-functional-tests-sa-all.sln
+│                   │       ├── 📄 djinterp-c-functional-tests-sa-all.vcxproj
+│                   │       └── 📄 main.c
+│                   ├── 📁 math
+│                   │   ├── 📁 djinterp-math-interval
+│                   │   │   └── 📁 djinterp-math-interval-tests
+│                   │   │       └── 📄 djinterp-math-interval-tests.vcxproj
+│                   │   ├── 📁 djinterp-math-interval-c-tests
+│                   │   │   └── 📄 djinterp-math-interval-c-tests.vcxproj
+│                   │   ├── 📁 djinterp-math-interval-tree-c-tests
+│                   │   │   └── 📄 djinterp-math-interval-tree-c-tests.vcxproj
+│                   │   └── 📁 djinterp-maths-tests
+│                   │       ├── 📄 djinterp-maths-tests.sln
+│                   │       ├── 📄 djinterp-maths-tests.vcxproj
+│                   │       └── 📄 main.c
+│                   ├── 📁 meta
+│                   │   ├── 📁 djinterp-c-meta-type-info-tests-sa
+│                   │   │   ├── 📄 djinterp-c-meta-type-info-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-meta-type-info-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-tuple-manip-tests
+│                   │   │   └── 📄 djinterp-utility-tuple-tests.vcxproj
+│                   │   ├── 📁 djinterp-tuple-tests
+│                   │   │   └── 📄 djinterp-tuple-tests.vcxproj
+│                   │   └── 📁 djinterp-tuple-util-tests
+│                   │       └── 📄 djinterp-utility-core-tests.vcxproj
+│                   ├── 📁 sync
+│                   │   ├── 📁 container
+│                   │   │   └── 📁 array
+│                   │   │       ├── 📁 djinterp-atomic-ring-buffer-c-tests
+│                   │   │       │   ├── 📄 djinterp-atomic-ring-buffer-c-tests.sln
+│                   │   │       │   ├── 📄 djinterp-atomic-ring-buffer-c-tests.vcxproj
+│                   │   │       │   └── 📄 main.c
+│                   │   │       └── 📁 djinterp-mutex-ring-buffer-c-tests
+│                   │   │           ├── 📁 Debug-x64
+│                   │   │           │   └── 📁 djinterp.aacf4ba1.tlog
+│                   │   │           │       └── 📄 unsuccessfulbuild
+│                   │   │           ├── 📄 djinterp-mutex-ring-buffer-c-tests.sln
+│                   │   │           ├── 📄 djinterp-mutex-ring-buffer-c-tests.vcxproj
+│                   │   │           └── 📄 main.c
+│                   │   └── 📁 event
+│                   │       ├── 📁 djinterp-c-event-table-mt-tests-sa
+│                   │       │   ├── 📄 djinterp-c-event-table-mt-tests-sa.sln
+│                   │       │   ├── 📄 djinterp-c-event-table-mt-tests-sa.vcxproj
+│                   │       │   └── 📄 main.c
+│                   │       └── 📁 djinterp-event-handler-mutex-c-tests
+│                   │           ├── 📄 djinterp-event-handler-mutex-c-tests.sln
+│                   │           ├── 📄 djinterp-event-handler-mutex-c-tests.vcxproj
+│                   │           └── 📄 main.c
+│                   ├── 📁 test
+│                   │   ├── 📁 djinterp-c-test-assert-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-assert-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-assert-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-block-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-block-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-block-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-handler-tests-sa
+│                   │   │   ├── 📁 djinterp.dfb5b3a3
+│                   │   │   │   └── 📁 x64
+│                   │   │   │       └── 📁 Debug
+│                   │   │   │           └── 📁 djinterp.dfb5b3a3.tlog
+│                   │   │   │               └── 📄 unsuccessfulbuild
+│                   │   │   ├── 📄 djinterp-c-test-handler-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-handler-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-module-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-module-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-module-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-printer-tests-sa
+│                   │   │   ├── 📁 djinterp.5acbd053
+│                   │   │   │   └── 📁 x64
+│                   │   │   │       └── 📁 Debug
+│                   │   │   │           └── 📁 djinterp.5acbd053.tlog
+│                   │   │   │               └── 📄 unsuccessfulbuild
+│                   │   │   ├── 📄 djinterp-c-test-printer-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-printer-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-session-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-session-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-session-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-test-cli-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-test-cli-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-test-cli-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-test-common-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-test-common-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-test-common-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-test-config-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-test-config-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-test-config-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-test-cvar-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-test-cvar-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-test-cvar-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-tests-sa
+│                   │   │   ├── 📁 djinterp.c9253327
+│                   │   │   │   └── 📁 x64
+│                   │   │   │       └── 📁 Debug
+│                   │   │   │           └── 📁 djinterp.c9253327.tlog
+│                   │   │   │               └── 📄 unsuccessfulbuild
+│                   │   │   ├── 📄 djinterp-c-test-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   ├── 📁 djinterp-c-test-test-standalone-tests-sa
+│                   │   │   ├── 📄 djinterp-c-test-test-standalone-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-test-test-standalone-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   └── 📁 djinterp-c-test-tree-tests-sa
+│                   │       ├── 📄 djinterp-c-test-tree-tests-sa.sln
+│                   │       ├── 📄 djinterp-c-test-tree-tests-sa.vcxproj
+│                   │       └── 📄 main.c
+│                   ├── 📁 text
+│                   │   ├── 📁 djinterp-c-text-str-interp-tests-sa
+│                   │   │   ├── 📄 djinterp-c-text-str-interp-tests-sa.sln
+│                   │   │   ├── 📄 djinterp-c-text-str-interp-tests-sa.vcxproj
+│                   │   │   └── 📄 main.c
+│                   │   └── 📁 djinterp-c-text-text-template-tests-sa
+│                   │       ├── 📄 djinterp-c-text-text-template-tests-sa.sln
+│                   │       ├── 📄 djinterp-c-text-text-template-tests-sa.vcxproj
+│                   │       └── 📄 main.c
+│                   └── 📁 util
+│                       ├── 📁 cli
+│                       │   └── 📁 djinterp-c-util-cli-options-tests-sa
+│                       │       ├── 📄 djinterp-c-util-cli-options-tests-sa.sln
+│                       │       ├── 📄 djinterp-c-util-cli-options-tests-sa.vcxproj
+│                       │       └── 📄 main.c
+│                       ├── 📁 color
+│                       │   └── 📁 djinterp-c-utility-color-cmyk-tests
+│                       │       ├── 📄 djinterp-c-utility-color-cmyk-tests.sln
+│                       │       ├── 📄 djinterp-c-utility-color-cmyk-tests.vcxproj
+│                       │       └── 📄 main.c
+│                       ├── 📁 djinterp-buffer-linked-tests
+│                       │   └── 📄 djinterp-buffer-linked-tests.vcxproj
+│                       ├── 📁 djinterp-buffer-tests
+│                       │   ├── 📄 djinterp-buffer-tests.vcxproj
+│                       │   └── 📄 main.c
+│                       ├── 📁 djinterp-text-buffer-tests
+│                       │   └── 📄 djinterp-text-buffer-tests.vcxproj
+│                       ├── 📁 djinterp-tuple-map-tests
+│                       │   └── 📄 djinterp-tuple-map-tests.vcxproj
+│                       ├── 📁 djinterp-util-interval-tests
+│                       │   └── 📄 djinterp-util-interval-tests.vcxproj
+│                       ├── 📁 djinterp-utility-array-tests
+│                       │   └── 📄 djinterp-utility-array-tests.vcxproj
+│                       ├── 📁 djinterp-util-string-tests
+│                       │   ├── 📄 djinterp-util-string-tests.vcxproj
+│                       │   └── 📄 main.c
+│                       ├── 📁 djinterp-variadic-tests
+│                       │   └── 📄 djinterp-variadic-tests.vcxproj
+│                       └── 📁 text
+│                           ├── 📁 djinterp-c-text-output-tests
+│                           │   ├── 📄 djinterp-c-text-output-tests.sln
+│                           │   ├── 📄 djinterp-c-text-output-tests.vcxproj
+│                           │   └── 📄 main.c
+│                           └── 📁 djinterp-c-text-tests
+│                               ├── 📁 djinterp.2d20ba39
+│                               │   └── 📁 x64
+│                               │       └── 📁 Debug
+│                               │           └── 📁 djinterp.2d20ba39.tlog
+│                               │               └── 📄 unsuccessfulbuild
+│                               ├── 📄 djinterp-c-text-tests.sln
+│                               ├── 📄 djinterp-c-text-tests.vcxproj
+│                               └── 📄 main.c
+├── 📁 inc
+│   └── 📁 djinterp
+│       ├── 📁 c
+│       │   ├── 📁 container
+│       │   │   ├── 📁 array
+│       │   │   │   ├── 📄 array.h
+│       │   │   │   ├── 📄 array_common.h
+│       │   │   │   ├── 📄 array_filter.h
+│       │   │   │   ├── 📄 byte_array.h
+│       │   │   │   ├── 📄 circular_array.h
+│       │   │   │   └── 📄 ptr_array.h
+│       │   │   ├── 📁 buffer
+│       │   │   │   ├── 📄 buffer_common.h
+│       │   │   │   └── 📄 text_buffer.h
+│       │   │   ├── 📁 map
+│       │   │   │   ├── 📄 enum_map_entry.h
+│       │   │   │   ├── 📄 map.h
+│       │   │   │   └── 📄 min_enum_map.h
+│       │   │   ├── 📁 registry
+│       │   │   │   ├── 📄 registry.h
+│       │   │   │   └── 📄 registry_common.h
+│       │   │   ├── 📁 vector
+│       │   │   │   ├── 📄 ptr_vector.h
+│       │   │   │   ├── 📄 vector.h
+│       │   │   │   └── 📄 vector_common.h
+│       │   │   └── 📄 container.h
+│       │   ├── 📁 core
+│       │   │   ├── 📁 config
+│       │   │   │   ├── 📁 container
+│       │   │   │   │   ├── 📁 array
+│       │   │   │   │   │   └── 📄 array_config.h
+│       │   │   │   │   ├── 📁 iterator
+│       │   │   │   │   │   └── 📄 container_iterator_config.h
+│       │   │   │   │   ├── 📁 registry
+│       │   │   │   │   │   └── 📄 registry_config.h
+│       │   │   │   │   └── 📄 container_config.h
+│       │   │   │   ├── 📁 event
+│       │   │   │   │   └── 📄 event_config.h
+│       │   │   │   ├── 📁 functional
+│       │   │   │   │   └── 📄 functional_config.h
+│       │   │   │   ├── 📁 test
+│       │   │   │   │   └── 📄 test_config.h
+│       │   │   │   ├── 📁 text
+│       │   │   │   │   └── 📄 text_config.h
+│       │   │   │   ├── 📁 util
+│       │   │   │   │   └── 📁 cli
+│       │   │   │   │       └── 📄 cli_option_config.h
+│       │   │   │   ├── 📄 dmacro_config.h
+│       │   │   │   └── 📄 env_config.h
+│       │   │   ├── 📁 env
+│       │   │   │   ├── 📁 db
+│       │   │   │   │   └── 📄 env_db.h
+│       │   │   │   ├── 📁 ui
+│       │   │   │   │   └── 📄 env_curses.h
+│       │   │   │   └── 📄 env_c_lib.h
+│       │   │   └── 📁 macro
+│       │   │       ├── 📄 for_each_1_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_1_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_1_tuple_comma128.h
+│       │   │       ├── 📄 for_each_1_tuple_comma256.h
+│       │   │       ├── 📄 for_each_1_tuple_comma512.h
+│       │   │       ├── 📄 for_each_1_tuple_comma64.h
+│       │   │       ├── 📄 for_each_1_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_1_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_1_tuple_sep128.h
+│       │   │       ├── 📄 for_each_1_tuple_sep256.h
+│       │   │       ├── 📄 for_each_1_tuple_sep512.h
+│       │   │       ├── 📄 for_each_1_tuple_sep64.h
+│       │   │       ├── 📄 for_each_10_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_10_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_10_tuple_comma128.h
+│       │   │       ├── 📄 for_each_10_tuple_comma256.h
+│       │   │       ├── 📄 for_each_10_tuple_comma512.h
+│       │   │       ├── 📄 for_each_10_tuple_comma64.h
+│       │   │       ├── 📄 for_each_10_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_10_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_10_tuple_sep128.h
+│       │   │       ├── 📄 for_each_10_tuple_sep256.h
+│       │   │       ├── 📄 for_each_10_tuple_sep512.h
+│       │   │       ├── 📄 for_each_10_tuple_sep64.h
+│       │   │       ├── 📄 for_each_11_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_11_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_11_tuple_comma128.h
+│       │   │       ├── 📄 for_each_11_tuple_comma256.h
+│       │   │       ├── 📄 for_each_11_tuple_comma512.h
+│       │   │       ├── 📄 for_each_11_tuple_comma64.h
+│       │   │       ├── 📄 for_each_11_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_11_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_11_tuple_sep128.h
+│       │   │       ├── 📄 for_each_11_tuple_sep256.h
+│       │   │       ├── 📄 for_each_11_tuple_sep512.h
+│       │   │       ├── 📄 for_each_11_tuple_sep64.h
+│       │   │       ├── 📄 for_each_12_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_12_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_12_tuple_comma128.h
+│       │   │       ├── 📄 for_each_12_tuple_comma256.h
+│       │   │       ├── 📄 for_each_12_tuple_comma512.h
+│       │   │       ├── 📄 for_each_12_tuple_comma64.h
+│       │   │       ├── 📄 for_each_12_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_12_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_12_tuple_sep128.h
+│       │   │       ├── 📄 for_each_12_tuple_sep256.h
+│       │   │       ├── 📄 for_each_12_tuple_sep512.h
+│       │   │       ├── 📄 for_each_12_tuple_sep64.h
+│       │   │       ├── 📄 for_each_13_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_13_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_13_tuple_comma128.h
+│       │   │       ├── 📄 for_each_13_tuple_comma256.h
+│       │   │       ├── 📄 for_each_13_tuple_comma512.h
+│       │   │       ├── 📄 for_each_13_tuple_comma64.h
+│       │   │       ├── 📄 for_each_13_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_13_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_13_tuple_sep128.h
+│       │   │       ├── 📄 for_each_13_tuple_sep256.h
+│       │   │       ├── 📄 for_each_13_tuple_sep512.h
+│       │   │       ├── 📄 for_each_13_tuple_sep64.h
+│       │   │       ├── 📄 for_each_14_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_14_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_14_tuple_comma128.h
+│       │   │       ├── 📄 for_each_14_tuple_comma256.h
+│       │   │       ├── 📄 for_each_14_tuple_comma512.h
+│       │   │       ├── 📄 for_each_14_tuple_comma64.h
+│       │   │       ├── 📄 for_each_14_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_14_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_14_tuple_sep128.h
+│       │   │       ├── 📄 for_each_14_tuple_sep256.h
+│       │   │       ├── 📄 for_each_14_tuple_sep512.h
+│       │   │       ├── 📄 for_each_14_tuple_sep64.h
+│       │   │       ├── 📄 for_each_15_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_15_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_15_tuple_comma128.h
+│       │   │       ├── 📄 for_each_15_tuple_comma256.h
+│       │   │       ├── 📄 for_each_15_tuple_comma512.h
+│       │   │       ├── 📄 for_each_15_tuple_comma64.h
+│       │   │       ├── 📄 for_each_15_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_15_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_15_tuple_sep128.h
+│       │   │       ├── 📄 for_each_15_tuple_sep256.h
+│       │   │       ├── 📄 for_each_15_tuple_sep512.h
+│       │   │       ├── 📄 for_each_15_tuple_sep64.h
+│       │   │       ├── 📄 for_each_16_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_16_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_16_tuple_comma128.h
+│       │   │       ├── 📄 for_each_16_tuple_comma256.h
+│       │   │       ├── 📄 for_each_16_tuple_comma512.h
+│       │   │       ├── 📄 for_each_16_tuple_comma64.h
+│       │   │       ├── 📄 for_each_16_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_16_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_16_tuple_sep128.h
+│       │   │       ├── 📄 for_each_16_tuple_sep256.h
+│       │   │       ├── 📄 for_each_16_tuple_sep512.h
+│       │   │       ├── 📄 for_each_16_tuple_sep64.h
+│       │   │       ├── 📄 for_each_2_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_2_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_2_tuple_comma128.h
+│       │   │       ├── 📄 for_each_2_tuple_comma256.h
+│       │   │       ├── 📄 for_each_2_tuple_comma512.h
+│       │   │       ├── 📄 for_each_2_tuple_comma64.h
+│       │   │       ├── 📄 for_each_2_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_2_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_2_tuple_sep128.h
+│       │   │       ├── 📄 for_each_2_tuple_sep256.h
+│       │   │       ├── 📄 for_each_2_tuple_sep512.h
+│       │   │       ├── 📄 for_each_2_tuple_sep64.h
+│       │   │       ├── 📄 for_each_3_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_3_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_3_tuple_comma128.h
+│       │   │       ├── 📄 for_each_3_tuple_comma256.h
+│       │   │       ├── 📄 for_each_3_tuple_comma512.h
+│       │   │       ├── 📄 for_each_3_tuple_comma64.h
+│       │   │       ├── 📄 for_each_3_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_3_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_3_tuple_sep128.h
+│       │   │       ├── 📄 for_each_3_tuple_sep256.h
+│       │   │       ├── 📄 for_each_3_tuple_sep512.h
+│       │   │       ├── 📄 for_each_3_tuple_sep64.h
+│       │   │       ├── 📄 for_each_4_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_4_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_4_tuple_comma128.h
+│       │   │       ├── 📄 for_each_4_tuple_comma256.h
+│       │   │       ├── 📄 for_each_4_tuple_comma512.h
+│       │   │       ├── 📄 for_each_4_tuple_comma64.h
+│       │   │       ├── 📄 for_each_4_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_4_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_4_tuple_sep128.h
+│       │   │       ├── 📄 for_each_4_tuple_sep256.h
+│       │   │       ├── 📄 for_each_4_tuple_sep512.h
+│       │   │       ├── 📄 for_each_4_tuple_sep64.h
+│       │   │       ├── 📄 for_each_5_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_5_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_5_tuple_comma128.h
+│       │   │       ├── 📄 for_each_5_tuple_comma256.h
+│       │   │       ├── 📄 for_each_5_tuple_comma512.h
+│       │   │       ├── 📄 for_each_5_tuple_comma64.h
+│       │   │       ├── 📄 for_each_5_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_5_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_5_tuple_sep128.h
+│       │   │       ├── 📄 for_each_5_tuple_sep256.h
+│       │   │       ├── 📄 for_each_5_tuple_sep512.h
+│       │   │       ├── 📄 for_each_5_tuple_sep64.h
+│       │   │       ├── 📄 for_each_6_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_6_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_6_tuple_comma128.h
+│       │   │       ├── 📄 for_each_6_tuple_comma256.h
+│       │   │       ├── 📄 for_each_6_tuple_comma512.h
+│       │   │       ├── 📄 for_each_6_tuple_comma64.h
+│       │   │       ├── 📄 for_each_6_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_6_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_6_tuple_sep128.h
+│       │   │       ├── 📄 for_each_6_tuple_sep256.h
+│       │   │       ├── 📄 for_each_6_tuple_sep512.h
+│       │   │       ├── 📄 for_each_6_tuple_sep64.h
+│       │   │       ├── 📄 for_each_7_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_7_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_7_tuple_comma128.h
+│       │   │       ├── 📄 for_each_7_tuple_comma256.h
+│       │   │       ├── 📄 for_each_7_tuple_comma512.h
+│       │   │       ├── 📄 for_each_7_tuple_comma64.h
+│       │   │       ├── 📄 for_each_7_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_7_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_7_tuple_sep128.h
+│       │   │       ├── 📄 for_each_7_tuple_sep256.h
+│       │   │       ├── 📄 for_each_7_tuple_sep512.h
+│       │   │       ├── 📄 for_each_7_tuple_sep64.h
+│       │   │       ├── 📄 for_each_8_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_8_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_8_tuple_comma128.h
+│       │   │       ├── 📄 for_each_8_tuple_comma256.h
+│       │   │       ├── 📄 for_each_8_tuple_comma512.h
+│       │   │       ├── 📄 for_each_8_tuple_comma64.h
+│       │   │       ├── 📄 for_each_8_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_8_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_8_tuple_sep128.h
+│       │   │       ├── 📄 for_each_8_tuple_sep256.h
+│       │   │       ├── 📄 for_each_8_tuple_sep512.h
+│       │   │       ├── 📄 for_each_8_tuple_sep64.h
+│       │   │       ├── 📄 for_each_9_tuple_comma_mvc.h
+│       │   │       ├── 📄 for_each_9_tuple_comma1024.h
+│       │   │       ├── 📄 for_each_9_tuple_comma128.h
+│       │   │       ├── 📄 for_each_9_tuple_comma256.h
+│       │   │       ├── 📄 for_each_9_tuple_comma512.h
+│       │   │       ├── 📄 for_each_9_tuple_comma64.h
+│       │   │       ├── 📄 for_each_9_tuple_sep_mvc.h
+│       │   │       ├── 📄 for_each_9_tuple_sep1024.h
+│       │   │       ├── 📄 for_each_9_tuple_sep128.h
+│       │   │       ├── 📄 for_each_9_tuple_sep256.h
+│       │   │       ├── 📄 for_each_9_tuple_sep512.h
+│       │   │       ├── 📄 for_each_9_tuple_sep64.h
+│       │   │       ├── 📄 for_each_comma_mvc.h
+│       │   │       ├── 📄 for_each_comma1024.h
+│       │   │       ├── 📄 for_each_comma128.h
+│       │   │       ├── 📄 for_each_comma256.h
+│       │   │       ├── 📄 for_each_comma512.h
+│       │   │       ├── 📄 for_each_comma64.h
+│       │   │       ├── 📄 for_each_data_separator_mvc.h
+│       │   │       ├── 📄 for_each_data_separator1024.h
+│       │   │       ├── 📄 for_each_data_separator128.h
+│       │   │       ├── 📄 for_each_data_separator256.h
+│       │   │       ├── 📄 for_each_data_separator512.h
+│       │   │       ├── 📄 for_each_data_separator64.h
+│       │   │       ├── 📄 for_each_msvc.h
+│       │   │       ├── 📄 for_each_mvc.h
+│       │   │       ├── 📄 for_each_pair_msvc.h
+│       │   │       ├── 📄 for_each_pair_mvc.h
+│       │   │       ├── 📄 for_each_pair_separator_mvc.h
+│       │   │       ├── 📄 for_each_pair_separator1024.h
+│       │   │       ├── 📄 for_each_pair_separator128.h
+│       │   │       ├── 📄 for_each_pair_separator256.h
+│       │   │       ├── 📄 for_each_pair_separator512.h
+│       │   │       ├── 📄 for_each_pair_separator64.h
+│       │   │       ├── 📄 for_each_pair1024.h
+│       │   │       ├── 📄 for_each_pair128.h
+│       │   │       ├── 📄 for_each_pair256.h
+│       │   │       ├── 📄 for_each_pair512.h
+│       │   │       ├── 📄 for_each_pair64.h
+│       │   │       ├── 📄 for_each_separator_mvc.h
+│       │   │       ├── 📄 for_each_separator1024.h
+│       │   │       ├── 📄 for_each_separator128.h
+│       │   │       ├── 📄 for_each_separator256.h
+│       │   │       ├── 📄 for_each_separator512.h
+│       │   │       ├── 📄 for_each_separator64.h
+│       │   │       ├── 📄 for_each_triple_mvc.h
+│       │   │       ├── 📄 for_each_triple_separator_mvc.h
+│       │   │       ├── 📄 for_each_triple_separator1024.h
+│       │   │       ├── 📄 for_each_triple_separator128.h
+│       │   │       ├── 📄 for_each_triple_separator256.h
+│       │   │       ├── 📄 for_each_triple_separator512.h
+│       │   │       ├── 📄 for_each_triple_separator64.h
+│       │   │       ├── 📄 for_each_triple1024.h
+│       │   │       ├── 📄 for_each_triple128.h
+│       │   │       ├── 📄 for_each_triple256.h
+│       │   │       ├── 📄 for_each_triple512.h
+│       │   │       ├── 📄 for_each_triple64.h
+│       │   │       ├── 📄 for_each1024.h
+│       │   │       ├── 📄 for_each128.h
+│       │   │       ├── 📄 for_each256.h
+│       │   │       ├── 📄 for_each512.h
+│       │   │       ├── 📄 for_each64.h
+│       │   │       ├── 📄 inc_mvc.h
+│       │   │       ├── 📄 inc1024.h
+│       │   │       ├── 📄 inc128.h
+│       │   │       ├── 📄 inc256.h
+│       │   │       ├── 📄 inc512.h
+│       │   │       ├── 📄 inc64.h
+│       │   │       ├── 📄 varg_count_mvc.h
+│       │   │       ├── 📄 varg_count1024.h
+│       │   │       ├── 📄 varg_count128.h
+│       │   │       ├── 📄 varg_count256.h
+│       │   │       ├── 📄 varg_count512.h
+│       │   │       ├── 📄 varg_count64.h
+│       │   │       ├── 📄 varg_get_arg_mvc.h
+│       │   │       ├── 📄 varg_get_arg1024.h
+│       │   │       ├── 📄 varg_get_arg128.h
+│       │   │       ├── 📄 varg_get_arg256.h
+│       │   │       ├── 📄 varg_get_arg512.h
+│       │   │       ├── 📄 varg_get_arg64.h
+│       │   │       ├── 📄 varg_has_args_mvc.h
+│       │   │       ├── 📄 varg_has_args1024.h
+│       │   │       ├── 📄 varg_has_args128.h
+│       │   │       ├── 📄 varg_has_args256.h
+│       │   │       ├── 📄 varg_has_args512.h
+│       │   │       └── 📄 varg_has_args64.h
+│       │   ├── 📁 event
+│       │   │   ├── 📄 event.h
+│       │   │   ├── 📄 event_handler.h
+│       │   │   ├── 📄 event_table.h
+│       │   │   └── 📄 event_table_common.h
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 compose.h
+│       │   │   ├── 📄 filter.h
+│       │   │   ├── 📄 fn_builder.h
+│       │   │   ├── 📄 functional.h
+│       │   │   ├── 📄 functional_common.h
+│       │   │   ├── 📄 pipeline.h
+│       │   │   └── 📄 predicate.h
+│       │   ├── 📁 test
+│       │   │   ├── 📄 assert.h
+│       │   │   ├── 📄 dtest
+│       │   │   ├── 📄 test.h
+│       │   │   ├── 📄 test_block.h
+│       │   │   ├── 📄 test_cli.h
+│       │   │   ├── 📄 test_common.h
+│       │   │   ├── 📄 test_config.h
+│       │   │   ├── 📄 test_cvar.h
+│       │   │   ├── 📄 test_handler.h
+│       │   │   ├── 📄 test_module.h
+│       │   │   ├── 📄 test_printer.h
+│       │   │   ├── 📄 test_session.h
+│       │   │   ├── 📄 test_standalone.h
+│       │   │   └── 📄 test_stats.h
+│       │   ├── 📁 text
+│       │   │   ├── 📁 symbol
+│       │   │   │   ├── 📁 emoji
+│       │   │   │   │   ├── 📄 emoji.h
+│       │   │   │   │   └── 📄 emoji_flags.h
+│       │   │   │   ├── 📄 ascii.h
+│       │   │   │   ├── 📄 box_drawing.h
+│       │   │   │   ├── 📄 emoji.h
+│       │   │   │   └── 📄 math_symbols.h
+│       │   │   ├── 📁 unicode
+│       │   │   │   └── 📄 unicode.h
+│       │   │   ├── 📄 str_interp.h
+│       │   │   ├── 📄 text_lineup.h
+│       │   │   └── 📄 text_template.h
+│       │   ├── 📁 util
+│       │   │   ├── 📁 cli
+│       │   │   │   └── 📄 cli_option.h
+│       │   │   └── 📄 iterator.h
+│       │   ├── 📄 datomic.h
+│       │   ├── 📄 dconfig.h
+│       │   ├── 📄 derror.h
+│       │   ├── 📄 dfile.h
+│       │   ├── 📄 dio.h
+│       │   ├── 📄 djinterp.h
+│       │   ├── 📄 dmacro.h
+│       │   ├── 📄 dmemory.h
+│       │   ├── 📄 dmutex.h
+│       │   ├── 📄 dstring.h
+│       │   ├── 📄 dtime.h
+│       │   ├── 📄 env.h
+│       │   ├── 📄 string_fn.h
+│       │   └── 📄 type_info.h
+│       ├── 📁 core
+│       │   ├── 📁 container
+│       │   │   ├── 📁 array
+│       │   │   │   ├── 📄 array.hpp
+│       │   │   │   ├── 📄 array_iterator.hpp
+│       │   │   │   ├── 📄 fixed_array.hpp
+│       │   │   │   └── 📄 static_array.hpp
+│       │   │   ├── 📁 graph
+│       │   │   │   └── 📄 graph.hpp
+│       │   │   ├── 📁 list
+│       │   │   │   ├── 📄 doubly_linked_list.hpp
+│       │   │   │   ├── 📄 linked_list.hpp
+│       │   │   │   └── 📄 list.hpp
+│       │   │   ├── 📁 map
+│       │   │   │   ├── 📄 map.hpp
+│       │   │   │   └── 📄 multimap.hpp
+│       │   │   ├── 📁 matrix
+│       │   │   │   ├── 📄 matrix.hpp
+│       │   │   │   └── 📄 matrix_iterator.hpp
+│       │   │   ├── 📁 node
+│       │   │   │   ├── 📄 node.hpp
+│       │   │   │   ├── 📄 node_allocator.hpp
+│       │   │   │   ├── 📄 node_concepts.hpp
+│       │   │   │   └── 📄 node_traits.hpp
+│       │   │   ├── 📁 registry
+│       │   │   │   ├── 📄 registry.hpp
+│       │   │   │   └── 📄 registry_traits.hpp
+│       │   │   ├── 📁 set
+│       │   │   │   ├── 📄 multiset.hpp
+│       │   │   │   └── 📄 set.hpp
+│       │   │   ├── 📁 stack
+│       │   │   │   └── 📄 stack.hpp
+│       │   │   ├── 📁 table
+│       │   │   │   ├── 📄 table.hpp
+│       │   │   │   └── 📄 table_traits.hpp
+│       │   │   ├── 📁 tree
+│       │   │   │   ├── 📁 avl
+│       │   │   │   │   └── 📄 AVLtree.hpp
+│       │   │   │   ├── 📄 nary_tree.hpp
+│       │   │   │   ├── 📄 tree.hpp
+│       │   │   │   └── 📄 tree_path.hpp
+│       │   │   ├── 📁 vector
+│       │   │   │   └── 📄 vector.hpp
+│       │   │   ├── 📄 container.hpp
+│       │   │   ├── 📄 container_concepts.hpp
+│       │   │   ├── 📄 container_iterator.hpp
+│       │   │   ├── 📄 container_traits.hpp
+│       │   │   ├── 📄 container_traits_inference.hpp
+│       │   │   ├── 📄 djinterp_container_traits.hpp
+│       │   │   ├── 📄 edge.hpp
+│       │   │   ├── 📄 iterator_traits - Copy.hpp
+│       │   │   ├── 📄 iterator_traits.hpp
+│       │   │   ├── 📄 static_container.hpp
+│       │   │   ├── 📄 stl_array_structural_traits.hpp
+│       │   │   ├── 📄 stl_container_concepts.hpp
+│       │   │   ├── 📄 stl_container_traits.hpp
+│       │   │   ├── 📄 stl_traits.hpp
+│       │   │   └── 📄 tuple.hpp
+│       │   ├── 📁 core
+│       │   │   └── 📁 env
+│       │   │       ├── 📄 env_cpp_features.h
+│       │   │       └── 📄 env_cpp98.h
+│       │   ├── 📁 database
+│       │   │   ├── 📄 database_common.hpp
+│       │   │   └── 📄 database_traits.hpp
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 compose.hpp
+│       │   │   ├── 📄 filter.hpp
+│       │   │   ├── 📄 fn_builder.hpp
+│       │   │   ├── 📄 functional_algorithms.hpp
+│       │   │   ├── 📄 functional_all.hpp
+│       │   │   ├── 📄 pipeline.hpp
+│       │   │   └── 📄 predicate_combinators.hpp
+│       │   ├── 📁 math
+│       │   │   ├── 📄 constant.hpp
+│       │   │   ├── 📄 expression.hpp
+│       │   │   ├── 📄 interval.hpp
+│       │   │   ├── 📄 interval_traits.hpp
+│       │   │   ├── 📄 math.hpp
+│       │   │   ├── 📄 math_common.hpp
+│       │   │   ├── 📄 math_traits.hpp
+│       │   │   ├── 📄 numeric_compare.hpp
+│       │   │   └── 📄 value.hpp
+│       │   ├── 📁 meta
+│       │   │   ├── 📄 options_parser.hpp
+│       │   │   ├── 📄 path.hpp
+│       │   │   ├── 📄 sequence.hpp
+│       │   │   ├── 📄 std_concepts.hpp
+│       │   │   ├── 📄 tuple_manip.hpp
+│       │   │   └── 📄 tuple_util.hpp
+│       │   ├── 📁 util
+│       │   │   ├── 📄 interval.hpp
+│       │   │   └── 📄 tuple_map.hpp
+│       │   ├── 📄 concepts.hpp
+│       │   ├── 📄 dtuple.hpp
+│       │   ├── 📄 feature.hpp
+│       │   ├── 📄 iterator.hpp
+│       │   └── 📄 type_traits.hpp
+│       ├── 📁 parse
+│       │   ├── 📁 grammar
+│       │   │   ├── 📄 parse_abnf.h
+│       │   │   ├── 📄 parse_bnf.h
+│       │   │   ├── 📄 parse_bnf_common.h
+│       │   │   └── 📄 parse_ebnf.h
+│       │   ├── 📄 parse.h
+│       │   └── 📄 parse_runtime.h
+│       └── 📁 parsegen
+│           └── 📄 parsegen.hpp
+├── 📁 src
+│   └── 📁 djinterp
+│       ├── 📁 c
+│       │   ├── 📁 container
+│       │   │   ├── 📁 array
+│       │   │   │   ├── 📄 array.c
+│       │   │   │   ├── 📄 array_common.c
+│       │   │   │   ├── 📄 array_filter.c
+│       │   │   │   ├── 📄 circular_array.c
+│       │   │   │   └── 📄 ptr_array.c
+│       │   │   ├── 📁 buffer
+│       │   │   │   ├── 📄 buffer_common.c
+│       │   │   │   └── 📄 text_buffer.c
+│       │   │   ├── 📁 map
+│       │   │   │   ├── 📄 enum_map_entry.c
+│       │   │   │   ├── 📄 map.c
+│       │   │   │   └── 📄 min_enum_map.c
+│       │   │   ├── 📁 registry
+│       │   │   │   ├── 📄 registry.c
+│       │   │   │   └── 📄 registry_common.c
+│       │   │   ├── 📁 vector
+│       │   │   │   ├── 📄 ptr_vector.c
+│       │   │   │   ├── 📄 vector.c
+│       │   │   │   └── 📄 vector_common.c
+│       │   │   └── 📄 container.c
+│       │   ├── 📁 core
+│       │   │   └── 📁 env
+│       │   │       └── 📄 env_curses.c
+│       │   ├── 📁 event
+│       │   │   ├── 📄 event.c
+│       │   │   ├── 📄 event_handler.c
+│       │   │   ├── 📄 event_table.c
+│       │   │   └── 📄 event_table_common.c
+│       │   ├── 📁 functional
+│       │   │   ├── 📄 compose.c
+│       │   │   ├── 📄 filter.c
+│       │   │   ├── 📄 fn_builder.c
+│       │   │   ├── 📄 functional.c
+│       │   │   ├── 📄 functional_common.c
+│       │   │   ├── 📄 pipeline.c
+│       │   │   └── 📄 predicate.c
+│       │   ├── 📁 test
+│       │   │   ├── 📄 assert.c
+│       │   │   ├── 📄 debug.c
+│       │   │   ├── 📄 dtest.c
+│       │   │   ├── 📄 test.c
+│       │   │   ├── 📄 test_block.c
+│       │   │   ├── 📄 test_cli.c
+│       │   │   ├── 📄 test_common.c
+│       │   │   ├── 📄 test_config.c
+│       │   │   ├── 📄 test_cvar.c
+│       │   │   ├── 📄 test_handler.c
+│       │   │   ├── 📄 test_module.c
+│       │   │   ├── 📄 test_printer.c
+│       │   │   ├── 📄 test_session.c
+│       │   │   ├── 📄 test_standalone.c
+│       │   │   └── 📄 test_stats.c
+│       │   ├── 📁 text
+│       │   │   ├── 📄 str_interp.c
+│       │   │   ├── 📄 text_lineup.c
+│       │   │   └── 📄 text_template.c
+│       │   ├── 📁 util
+│       │   │   ├── 📁 cli
+│       │   │   │   └── 📄 cli_option.c
+│       │   │   └── 📄 iterator.c
+│       │   ├── 📄 datomic.c
+│       │   ├── 📄 dconfig.c
+│       │   ├── 📄 dfile.c
+│       │   ├── 📄 dio.c
+│       │   ├── 📄 djinterp.c
+│       │   ├── 📄 dmemory.c
+│       │   ├── 📄 dmutex.c
+│       │   ├── 📄 dstring.c
+│       │   ├── 📄 dtime.c
+│       │   ├── 📄 env.c
+│       │   └── 📄 string_fn.c
+│       └── 📁 core
+│           ├── 📁 container
+│           │   ├── 📁 array
+│           │   │   ├── 📄 array.cpp
+│           │   │   ├── 📄 array_iterator.cpp
+│           │   │   ├── 📄 fixed_array.cpp
+│           │   │   └── 📄 static_array.cpp
+│           │   ├── 📁 graph
+│           │   │   └── 📄 graph.cpp
+│           │   ├── 📁 list
+│           │   │   ├── 📄 linked_list.cpp
+│           │   │   └── 📄 list.cpp
+│           │   ├── 📁 map
+│           │   │   ├── 📄 map.cpp
+│           │   │   └── 📄 multimap.cpp
+│           │   ├── 📁 set
+│           │   │   ├── 📄 multiset.cpp
+│           │   │   └── 📄 set.cpp
+│           │   ├── 📁 table
+│           │   │   └── 📄 table.cpp
+│           │   ├── 📁 tree
+│           │   │   ├── 📁 avl
+│           │   │   │   └── 📄 AVLtree.cpp
+│           │   │   └── 📄 tree.cpp
+│           │   ├── 📁 vector
+│           │   │   └── 📄 vector.cpp
+│           │   ├── 📄 container.cpp
+│           │   ├── 📄 container_concepts.cpp
+│           │   ├── 📄 container_iterator.cpp
+│           │   ├── 📄 container_traits.cpp
+│           │   ├── 📄 edge.cpp
+│           │   ├── 📄 node.cpp
+│           │   └── 📄 tuple.cpp
+│           ├── 📁 math
+│           │   ├── 📄 interval.cpp
+│           │   ├── 📄 math.cpp
+│           │   ├── 📄 math_concepts.cpp
+│           │   ├── 📄 math_traits.cpp
+│           │   └── 📄 numeric_compare.cpp
+│           ├── 📁 meta
+│           │   ├── 📄 tuple_manip.cpp
+│           │   └── 📄 tuple_util.cpp
+│           ├── 📁 test
+│           │   ├── 📄 test.cpp
+│           │   └── 📄 test_block.cpp
+│           ├── 📁 util
+│           │   ├── 📄 interval.cpp
+│           │   └── 📄 tuple_map.cpp
+│           ├── 📄 concepts.cpp
+│           └── 📄 type_traits.cpp
+└── 📁 tests
+    └── 📁 djinterp
+        ├── 📁 c
+        │   ├── 📁 container
+        │   │   ├── 📁 array
+        │   │   │   ├── 📄 array_common_tests_sa.c
+        │   │   │   ├── 📄 array_common_tests_sa.h
+        │   │   │   ├── 📄 array_common_tests_sa_free.c
+        │   │   │   ├── 📄 array_common_tests_sa_init.c
+        │   │   │   ├── 📄 array_common_tests_sa_manip.c
+        │   │   │   ├── 📄 array_common_tests_sa_util.c
+        │   │   │   ├── 📄 array_filter_tests_sa.c
+        │   │   │   ├── 📄 array_filter_tests_sa.h
+        │   │   │   ├── 📄 array_filter_tests_sa_builder.c
+        │   │   │   ├── 📄 array_filter_tests_sa_chain.c
+        │   │   │   ├── 📄 array_filter_tests_sa_fixtures.c
+        │   │   │   ├── 📄 array_filter_tests_sa_in_place.c
+        │   │   │   ├── 📄 array_filter_tests_sa_macros.c
+        │   │   │   ├── 📄 array_filter_tests_sa_query.c
+        │   │   │   ├── 📄 array_filter_tests_sa_result.c
+        │   │   │   ├── 📄 array_filter_tests_sa_result_mgmt.c
+        │   │   │   ├── 📄 array_filter_tests_sa_single_op.c
+        │   │   │   ├── 📄 array_tests_sa.c
+        │   │   │   ├── 📄 array_tests_sa.h
+        │   │   │   ├── 📄 array_tests_sa_creation.c
+        │   │   │   ├── 📄 array_tests_sa_creation_s.c
+        │   │   │   ├── 📄 array_tests_sa_helpers.c
+        │   │   │   ├── 📄 array_tests_sa_integration.c
+        │   │   │   ├── 📄 array_tests_sa_manip.c
+        │   │   │   ├── 📄 array_tests_sa_memory.c
+        │   │   │   ├── 📄 byte_array_tests_sa.c
+        │   │   │   ├── 📄 byte_array_tests_sa.h
+        │   │   │   ├── 📄 byte_array_tests_sa_1d.c
+        │   │   │   ├── 📄 byte_array_tests_sa_2d.c
+        │   │   │   ├── 📄 byte_array_tests_sa_expansion.c
+        │   │   │   ├── 📄 byte_array_tests_sa_extraction.c
+        │   │   │   ├── 📄 byte_array_tests_sa_jagged.c
+        │   │   │   ├── 📄 circular_array_tests_sa.c
+        │   │   │   ├── 📄 circular_array_tests_sa.h
+        │   │   │   ├── 📄 circular_array_tests_sa_access.c
+        │   │   │   ├── 📄 circular_array_tests_sa_bulk.c
+        │   │   │   ├── 📄 circular_array_tests_sa_constructor.c
+        │   │   │   ├── 📄 circular_array_tests_sa_modification.c
+        │   │   │   ├── 📄 circular_array_tests_sa_query.c
+        │   │   │   ├── 📄 circular_array_tests_sa_search.c
+        │   │   │   ├── 📄 circular_array_tests_sa_utility.c
+        │   │   │   ├── 📄 ptr_array_tests_sa.c
+        │   │   │   ├── 📄 ptr_array_tests_sa.h
+        │   │   │   ├── 📄 ptr_array_tests_sa_constructor.c
+        │   │   │   ├── 📄 ptr_array_tests_sa_destructor.c
+        │   │   │   └── 📄 ptr_array_tests_sa_element.c
+        │   │   ├── 📁 buffer
+        │   │   │   ├── 📄 buffer_common_tests_sa.c
+        │   │   │   ├── 📄 buffer_common_tests_sa.h
+        │   │   │   ├── 📄 buffer_common_tests_sa_access.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_capacity.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_chunked.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_copy.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_destruction.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_init.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_insert.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_ordering.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_removal.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_search.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_state.c
+        │   │   │   ├── 📄 buffer_common_tests_sa_validation.c
+        │   │   │   ├── 📄 text_buffer_tests_sa.c
+        │   │   │   ├── 📄 text_buffer_tests_sa.h
+        │   │   │   ├── 📄 text_buffer_tests_sa_access.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_append_mode.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_capacity.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_comparison.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_conversion.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_creation.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_filter.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_memory.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_modification.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_search.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_string_ops.c
+        │   │   │   ├── 📄 text_buffer_tests_sa_text_processing.c
+        │   │   │   └── 📄 text_buffer_tests_sa_utility.c
+        │   │   ├── 📁 map
+        │   │   │   ├── 📄 enum_map_entry_tests_sa.c
+        │   │   │   ├── 📄 enum_map_entry_tests_sa.h
+        │   │   │   ├── 📄 enum_map_tests_sa.c
+        │   │   │   ├── 📄 enum_map_tests_sa.h
+        │   │   │   ├── 📄 min_enum_map_tests_sa.c
+        │   │   │   ├── 📄 min_enum_map_tests_sa.h
+        │   │   │   ├── 📄 min_enum_map_tests_sa_core.c
+        │   │   │   └── 📄 min_enum_map_tests_sa_memory.c
+        │   │   ├── 📁 registry
+        │   │   │   ├── 📄 registry_common_tests_sa.c
+        │   │   │   ├── 📄 registry_common_tests_sa.h
+        │   │   │   ├── 📄 registry_common_tests_sa_schema.c
+        │   │   │   ├── 📄 registry_common_tests_sa_strcmp.c
+        │   │   │   ├── 📄 registry_tests_sa.c
+        │   │   │   ├── 📄 registry_tests_sa.h
+        │   │   │   ├── 📄 registry_tests_sa_aliases.c
+        │   │   │   ├── 📄 registry_tests_sa_common.c
+        │   │   │   ├── 📄 registry_tests_sa_comparison.c
+        │   │   │   ├── 📄 registry_tests_sa_constructors.c
+        │   │   │   ├── 📄 registry_tests_sa_destructor.c
+        │   │   │   ├── 📄 registry_tests_sa_iterators.c
+        │   │   │   ├── 📄 registry_tests_sa_lookup.c
+        │   │   │   ├── 📄 registry_tests_sa_lookup_maint.c
+        │   │   │   ├── 📄 registry_tests_sa_queries.c
+        │   │   │   ├── 📄 registry_tests_sa_row_manipulation.c
+        │   │   │   └── 📄 registry_tests_sa_utility.c
+        │   │   ├── 📁 vector
+        │   │   │   ├── 📄 ptr_vector_tests_sa.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa.h
+        │   │   │   ├── 📄 ptr_vector_tests_sa_access.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_append.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_capacity.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_constructor.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_destructor.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_element.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_iteration.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_query.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_resize.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_search.c
+        │   │   │   ├── 📄 ptr_vector_tests_sa_utility.c
+        │   │   │   ├── 📄 vector_common_tests_sa.c
+        │   │   │   ├── 📄 vector_common_tests_sa.h
+        │   │   │   ├── 📄 vector_common_tests_sa_access.c
+        │   │   │   ├── 📄 vector_common_tests_sa_append.c
+        │   │   │   ├── 📄 vector_common_tests_sa_capacity.c
+        │   │   │   ├── 📄 vector_common_tests_sa_cleanup.c
+        │   │   │   ├── 📄 vector_common_tests_sa_element.c
+        │   │   │   ├── 📄 vector_common_tests_sa_init.c
+        │   │   │   ├── 📄 vector_common_tests_sa_query.c
+        │   │   │   ├── 📄 vector_common_tests_sa_resize.c
+        │   │   │   ├── 📄 vector_common_tests_sa_utility.c
+        │   │   │   ├── 📄 vector_tests_sa.c
+        │   │   │   ├── 📄 vector_tests_sa.h
+        │   │   │   ├── 📄 vector_tests_sa_access.c
+        │   │   │   ├── 📄 vector_tests_sa_append.c
+        │   │   │   ├── 📄 vector_tests_sa_capacity.c
+        │   │   │   ├── 📄 vector_tests_sa_constructor.c
+        │   │   │   ├── 📄 vector_tests_sa_destructor.c
+        │   │   │   ├── 📄 vector_tests_sa_element.c
+        │   │   │   ├── 📄 vector_tests_sa_query.c
+        │   │   │   ├── 📄 vector_tests_sa_resize.c
+        │   │   │   ├── 📄 vector_tests_sa_search.c
+        │   │   │   └── 📄 vector_tests_sa_utility.c
+        │   │   ├── 📄 container_tests_sa.c
+        │   │   └── 📄 container_tests_sa.h
+        │   ├── 📁 event
+        │   │   ├── 📄 event_handler_tests_sa.c
+        │   │   ├── 📄 event_handler_tests_sa.h
+        │   │   ├── 📄 event_handler_tests_sa_advanced.c
+        │   │   ├── 📄 event_handler_tests_sa_creation.c
+        │   │   ├── 📄 event_handler_tests_sa_events.c
+        │   │   ├── 📄 event_handler_tests_sa_listeners.c
+        │   │   ├── 📄 event_handler_tests_sa_queries.c
+        │   │   ├── 📄 event_table_common_tests_sa.c
+        │   │   ├── 📄 event_table_common_tests_sa.h
+        │   │   ├── 📄 event_table_common_tests_sa_advanced.c
+        │   │   ├── 📄 event_table_common_tests_sa_constants.c
+        │   │   ├── 📄 event_table_common_tests_sa_hash.c
+        │   │   ├── 📄 event_table_common_tests_sa_node.c
+        │   │   ├── 📄 event_table_common_tests_sa_prime.c
+        │   │   ├── 📄 event_table_common_tests_sa_stats.c
+        │   │   ├── 📄 event_table_tests_sa.c
+        │   │   ├── 📄 event_table_tests_sa.h
+        │   │   ├── 📄 event_table_tests_sa_advanced.c
+        │   │   ├── 📄 event_table_tests_sa_creation.c
+        │   │   ├── 📄 event_table_tests_sa_iterator.c
+        │   │   ├── 📄 event_table_tests_sa_management.c
+        │   │   ├── 📄 event_table_tests_sa_operations.c
+        │   │   ├── 📄 event_table_tests_sa_stats.c
+        │   │   ├── 📄 event_tests_sa.c
+        │   │   ├── 📄 event_tests_sa.h
+        │   │   ├── 📄 event_tests_sa_compare.c
+        │   │   ├── 📄 event_tests_sa_constants.c
+        │   │   ├── 📄 event_tests_sa_event_new.c
+        │   │   ├── 📄 event_tests_sa_find.c
+        │   │   ├── 📄 event_tests_sa_free.c
+        │   │   └── 📄 event_tests_sa_listener_new.c
+        │   ├── 📁 functional
+        │   │   ├── 📄 compose_tests_sa.c
+        │   │   ├── 📄 compose_tests_sa.h
+        │   │   ├── 📄 compose_tests_sa_helpers.h
+        │   │   ├── 📄 compose_tests_sa_macro.c
+        │   │   ├── 📄 compose_tests_sa_partial.c
+        │   │   ├── 📄 compose_tests_sa_transformer.c
+        │   │   ├── 📄 filter_tests_sa.c
+        │   │   ├── 📄 filter_tests_sa.h
+        │   │   ├── 📄 filter_tests_sa_builder.c
+        │   │   ├── 📄 filter_tests_sa_chain.c
+        │   │   ├── 📄 filter_tests_sa_combinators.c
+        │   │   ├── 📄 filter_tests_sa_execution.c
+        │   │   ├── 📄 filter_tests_sa_iterator.c
+        │   │   ├── 📄 filter_tests_sa_macros.c
+        │   │   ├── 📄 filter_tests_sa_operations.c
+        │   │   ├── 📄 filter_tests_sa_utility.c
+        │   │   ├── 📄 fn_builder_tests_sa.c
+        │   │   ├── 📄 fn_builder_tests_sa.h
+        │   │   ├── 📄 fn_builder_tests_sa_cleanup.c
+        │   │   ├── 📄 fn_builder_tests_sa_creation.c
+        │   │   ├── 📄 fn_builder_tests_sa_execution.c
+        │   │   ├── 📄 fn_builder_tests_sa_operations.c
+        │   │   ├── 📄 functional_common_tests_sa.c
+        │   │   ├── 📄 functional_common_tests_sa.h
+        │   │   ├── 📄 functional_common_tests_sa_comparison.c
+        │   │   ├── 📄 functional_common_tests_sa_constant.c
+        │   │   ├── 📄 functional_common_tests_sa_fold.c
+        │   │   ├── 📄 functional_common_tests_sa_higher_order.c
+        │   │   ├── 📄 functional_common_tests_sa_identity.c
+        │   │   ├── 📄 functional_common_tests_sa_iteration.c
+        │   │   ├── 📄 functional_common_tests_sa_predicate.c
+        │   │   ├── 📄 functional_common_tests_sa_quantifier.c
+        │   │   ├── 📄 functional_common_tests_sa_utility.c
+        │   │   ├── 📄 pipeline_tests_sa.c
+        │   │   ├── 📄 pipeline_tests_sa.h
+        │   │   ├── 📄 pipeline_tests_sa_creation.c
+        │   │   ├── 📄 pipeline_tests_sa_finalization.c
+        │   │   ├── 📄 pipeline_tests_sa_operations.c
+        │   │   ├── 📄 predicate_tests_sa.c
+        │   │   ├── 📄 predicate_tests_sa.h
+        │   │   ├── 📄 predicate_tests_sa_constructor.c
+        │   │   ├── 📄 predicate_tests_sa_eval.c
+        │   │   ├── 📄 predicate_tests_sa_helpers.h
+        │   │   └── 📄 predicate_tests_sa_macro.c
+        │   ├── 📁 test
+        │   │   ├── 📄 assert_tests_sa.c
+        │   │   ├── 📄 assert_tests_sa.h
+        │   │   ├── 📄 assert_tests_sa_advanced.c
+        │   │   ├── 📄 assert_tests_sa_array.c
+        │   │   ├── 📄 assert_tests_sa_compare.c
+        │   │   ├── 📄 assert_tests_sa_core.c
+        │   │   ├── 📄 assert_tests_sa_null.c
+        │   │   ├── 📄 assert_tests_sa_string.c
+        │   │   ├── 📄 assert_tests_sa_utility.c
+        │   │   ├── 📄 test_block_tests_sa.c
+        │   │   ├── 📄 test_block_tests_sa.h
+        │   │   ├── 📄 test_common_tests_sa.c
+        │   │   ├── 📄 test_common_tests_sa.h
+        │   │   ├── 📄 test_common_tests_sa_arg.c
+        │   │   ├── 📄 test_common_tests_sa_discriminator.c
+        │   │   ├── 📄 test_common_tests_sa_fn.c
+        │   │   ├── 📄 test_common_tests_sa_fn_wrapper.c
+        │   │   ├── 📄 test_common_tests_sa_lifecycle.c
+        │   │   ├── 📄 test_common_tests_sa_macro.c
+        │   │   ├── 📄 test_common_tests_sa_symbols.c
+        │   │   ├── 📄 test_common_tests_sa_test_fn.c
+        │   │   ├── 📄 test_common_tests_sa_type.c
+        │   │   ├── 📄 test_config_tests_sa.c
+        │   │   ├── 📄 test_config_tests_sa.h
+        │   │   ├── 📄 test_config_tests_sa_combinations.c
+        │   │   ├── 📄 test_config_tests_sa_defaults.c
+        │   │   ├── 📄 test_config_tests_sa_enums.c
+        │   │   ├── 📄 test_config_tests_sa_flag_macros.c
+        │   │   ├── 📄 test_config_tests_sa_getters.c
+        │   │   ├── 📄 test_config_tests_sa_key_lookup.c
+        │   │   ├── 📄 test_config_tests_sa_lifecycle.c
+        │   │   ├── 📄 test_config_tests_sa_masks.c
+        │   │   ├── 📄 test_config_tests_sa_modes.c
+        │   │   ├── 📄 test_config_tests_sa_semantic.c
+        │   │   ├── 📄 test_config_tests_sa_setters.c
+        │   │   ├── 📄 test_config_tests_sa_struct.c
+        │   │   ├── 📄 test_config_tests_sa_utility_macros.c
+        │   │   ├── 📄 test_cvar_tests_sa.c
+        │   │   ├── 📄 test_cvar_tests_sa.h
+        │   │   ├── 📄 test_cvar_tests_sa_aliases.c
+        │   │   ├── 📄 test_cvar_tests_sa_defaults.c
+        │   │   ├── 📄 test_cvar_tests_sa_find.c
+        │   │   ├── 📄 test_cvar_tests_sa_get_set.c
+        │   │   ├── 📄 test_cvar_tests_sa_init.c
+        │   │   ├── 📄 test_cvar_tests_sa_predicates.c
+        │   │   ├── 📄 test_cvar_tests_sa_reset.c
+        │   │   ├── 📄 test_cvar_tests_sa_row_flags.c
+        │   │   ├── 📄 test_cvar_tests_sa_row_struct.c
+        │   │   ├── 📄 test_cvar_tests_sa_table_integrity.c
+        │   │   ├── 📄 test_cvar_tests_sa_typed_macros.c
+        │   │   ├── 📄 test_cvar_tests_sa_valid_arg.c
+        │   │   ├── 📄 test_cvar_tests_sa_value_union.c
+        │   │   ├── 📄 test_handler_tests_sa.c
+        │   │   ├── 📄 test_handler_tests_sa.h
+        │   │   ├── 📄 test_module_tests_sa.c
+        │   │   ├── 📄 test_module_tests_sa.h
+        │   │   ├── 📄 test_printer_tests_sa.c
+        │   │   ├── 📄 test_printer_tests_sa.h
+        │   │   ├── 📄 test_session_tests_sa.c
+        │   │   ├── 📄 test_session_tests_sa.h
+        │   │   ├── 📄 test_standalone_tests_sa.c
+        │   │   ├── 📄 test_standalone_tests_sa.h
+        │   │   ├── 📄 test_standalone_tests_sa_assert_fn.c
+        │   │   ├── 📄 test_standalone_tests_sa_assertion.c
+        │   │   ├── 📄 test_standalone_tests_sa_constant.c
+        │   │   ├── 📄 test_standalone_tests_sa_counter.c
+        │   │   ├── 📄 test_standalone_tests_sa_failure.c
+        │   │   ├── 📄 test_standalone_tests_sa_fn_ptr.c
+        │   │   ├── 📄 test_standalone_tests_sa_global.c
+        │   │   ├── 📄 test_standalone_tests_sa_note.c
+        │   │   ├── 📄 test_standalone_tests_sa_object.c
+        │   │   ├── 📄 test_standalone_tests_sa_options.c
+        │   │   ├── 📄 test_standalone_tests_sa_results.c
+        │   │   ├── 📄 test_standalone_tests_sa_runner.c
+        │   │   ├── 📄 test_standalone_tests_sa_runner_fn.c
+        │   │   ├── 📄 test_standalone_tests_sa_runner_struct.c
+        │   │   ├── 📄 test_standalone_tests_sa_template.c
+        │   │   ├── 📄 test_standalone_tests_sa_utility.c
+        │   │   ├── 📄 test_tests_sa.c
+        │   │   ├── 📄 test_tests_sa.h
+        │   │   ├── 📄 test_tests_sa_child_mgmt.c
+        │   │   ├── 📄 test_tests_sa_construction.c
+        │   │   ├── 📄 test_tests_sa_destruction.c
+        │   │   ├── 📄 test_tests_sa_enum.c
+        │   │   ├── 📄 test_tests_sa_execution.c
+        │   │   ├── 📄 test_tests_sa_fn_wrapper.c
+        │   │   ├── 📄 test_tests_sa_stage_enum.c
+        │   │   ├── 📄 test_tests_sa_stage_hooks.c
+        │   │   ├── 📄 test_tests_sa_utility.c
+        │   │   └── 📄 test_tests_sa_validate_args.c
+        │   ├── 📁 util
+        │   │   └── 📁 cli
+        │   │       ├── 📄 cli_unix.c
+        │   │       ├── 📄 cli_unix.h
+        │   │       ├── 📄 main_cli_option.c
+        │   │       ├── 📄 main_cli_unix.c
+        │   │       ├── 📄 test_cli_option_sa.c
+        │   │       ├── 📄 test_cli_option_sa.h
+        │   │       ├── 📄 test_cli_unix_sa.c
+        │   │       ├── 📄 test_cli_unix_sa.h
+        │   │       ├── 📄 test_common_tests_sa.c
+        │   │       ├── 📄 test_common_tests_sa.h
+        │   │       └── 📄 test_common_tests_sa_cli_option.c
+        │   ├── 📄 datomic_tests_sa.c
+        │   ├── 📄 datomic_tests_sa.h
+        │   ├── 📄 datomic_tests_sa_cas.c
+        │   ├── 📄 datomic_tests_sa_exchange.c
+        │   ├── 📄 datomic_tests_sa_fence.c
+        │   ├── 📄 datomic_tests_sa_fetch.c
+        │   ├── 📄 datomic_tests_sa_flag.c
+        │   ├── 📄 datomic_tests_sa_init.c
+        │   ├── 📄 datomic_tests_sa_load.c
+        │   ├── 📄 datomic_tests_sa_null.c
+        │   ├── 📄 datomic_tests_sa_store.c
+        │   ├── 📄 dfile_tests_sa.c
+        │   ├── 📄 dfile_tests_sa.h
+        │   ├── 📄 dfile_tests_sa_binary.c
+        │   ├── 📄 dfile_tests_sa_desc.c
+        │   ├── 📄 dfile_tests_sa_dir.c
+        │   ├── 📄 dfile_tests_sa_large.c
+        │   ├── 📄 dfile_tests_sa_lock.c
+        │   ├── 📄 dfile_tests_sa_meta.c
+        │   ├── 📄 dfile_tests_sa_null.c
+        │   ├── 📄 dfile_tests_sa_open.c
+        │   ├── 📄 dfile_tests_sa_ops.c
+        │   ├── 📄 dfile_tests_sa_path.c
+        │   ├── 📄 dfile_tests_sa_pipe.c
+        │   ├── 📄 dfile_tests_sa_symlink.c
+        │   ├── 📄 dfile_tests_sa_sync.c
+        │   ├── 📄 dfile_tests_sa_temp.c
+        │   ├── 📄 dfile_tests_sa_util.c
+        │   ├── 📄 dio_tests_sa.c
+        │   ├── 📄 dio_tests_sa.h
+        │   ├── 📄 dio_tests_sa_char_string_io.c
+        │   ├── 📄 dio_tests_sa_error_handling.c
+        │   ├── 📄 dio_tests_sa_file_positioning.c
+        │   ├── 📄 dio_tests_sa_formatted_input.c
+        │   ├── 📄 dio_tests_sa_formatted_output.c
+        │   ├── 📄 djinterp_tests_sa.c
+        │   ├── 📄 djinterp_tests_sa.h
+        │   ├── 📄 djinterp_tests_sa_array.c
+        │   ├── 📄 djinterp_tests_sa_boolean.c
+        │   ├── 📄 djinterp_tests_sa_edge.c
+        │   ├── 📄 djinterp_tests_sa_function_ptr.c
+        │   ├── 📄 djinterp_tests_sa_index.c
+        │   ├── 📄 djinterp_tests_sa_index_macros.c
+        │   ├── 📄 dmacro_tests_sa.c
+        │   ├── 📄 dmacro_tests_sa.h
+        │   ├── 📄 dmacro_tests_sa_arg_count.c
+        │   ├── 📄 dmacro_tests_sa_array_util.c
+        │   ├── 📄 dmacro_tests_sa_boolean.c
+        │   ├── 📄 dmacro_tests_sa_config.c
+        │   ├── 📄 dmacro_tests_sa_eval.c
+        │   ├── 📄 dmacro_tests_sa_for_each.c
+        │   ├── 📄 dmacro_tests_sa_iter_adv.c
+        │   ├── 📄 dmacro_tests_sa_iter_core.c
+        │   ├── 📄 dmacro_tests_sa_member.c
+        │   ├── 📄 dmacro_tests_sa_pair_idx.c
+        │   ├── 📄 dmacro_tests_sa_ptr_array.c
+        │   ├── 📄 dmacro_tests_sa_selection.c
+        │   ├── 📄 dmacro_tests_sa_static_assert.c
+        │   ├── 📄 dmacro_tests_sa_token_manip.c
+        │   ├── 📄 dmacro_tests_sa_utility.c
+        │   ├── 📄 dmemory_tests_sa.c
+        │   ├── 📄 dmemory_tests_sa.h
+        │   ├── 📄 dmemory_tests_sa_copy.c
+        │   ├── 📄 dmemory_tests_sa_dup.c
+        │   ├── 📄 dmemory_tests_sa_runner.c
+        │   ├── 📄 dmemory_tests_sa_special.c
+        │   ├── 📄 dmutex_tests_sa.c
+        │   ├── 📄 dmutex_tests_sa.h
+        │   ├── 📄 dmutex_tests_sa_cond.c
+        │   ├── 📄 dmutex_tests_sa_mutex_basic.c
+        │   ├── 📄 dmutex_tests_sa_mutex_recursive.c
+        │   ├── 📄 dmutex_tests_sa_rwlock.c
+        │   ├── 📄 dmutex_tests_sa_sync.c
+        │   ├── 📄 dmutex_tests_sa_thread_ops.c
+        │   ├── 📄 dmutex_tests_sa_tss.c
+        │   ├── 📄 dmutex_tests_sa_utility.c
+        │   ├── 📄 dstring_tests_sa.c
+        │   ├── 📄 dstring_tests_sa.h
+        │   ├── 📄 dstring_tests_sa_access.c
+        │   ├── 📄 dstring_tests_sa_capacity.c
+        │   ├── 📄 dstring_tests_sa_case_conv.c
+        │   ├── 📄 dstring_tests_sa_compare.c
+        │   ├── 📄 dstring_tests_sa_concat.c
+        │   ├── 📄 dstring_tests_sa_copy.c
+        │   ├── 📄 dstring_tests_sa_creation.c
+        │   ├── 📄 dstring_tests_sa_dup.c
+        │   ├── 📄 dstring_tests_sa_error.c
+        │   ├── 📄 dstring_tests_sa_format.c
+        │   ├── 📄 dstring_tests_sa_join.c
+        │   ├── 📄 dstring_tests_sa_manip.c
+        │   ├── 📄 dstring_tests_sa_modify.c
+        │   ├── 📄 dstring_tests_sa_reverse.c
+        │   ├── 📄 dstring_tests_sa_search.c
+        │   ├── 📄 dstring_tests_sa_token.c
+        │   ├── 📄 dstring_tests_sa_trim.c
+        │   ├── 📄 dstring_tests_sa_util.c
+        │   ├── 📄 dtime_tests_sa.c
+        │   ├── 📄 dtime_tests_sa.h
+        │   ├── 📄 dtime_tests_sa_arith.c
+        │   ├── 📄 dtime_tests_sa_convert.c
+        │   ├── 📄 dtime_tests_sa_highres.c
+        │   ├── 📄 dtime_tests_sa_monotonic.c
+        │   ├── 📄 dtime_tests_sa_norm.c
+        │   ├── 📄 dtime_tests_sa_null.c
+        │   ├── 📄 dtime_tests_sa_sleep.c
+        │   ├── 📄 dtime_tests_sa_strtime.c
+        │   ├── 📄 dtime_tests_sa_tz.c
+        │   ├── 📄 env_tests_sa.c
+        │   ├── 📄 env_tests_sa.h
+        │   ├── 📄 env_tests_sa_arch.c
+        │   ├── 📄 env_tests_sa_build.c
+        │   ├── 📄 env_tests_sa_cfg.c
+        │   ├── 📄 env_tests_sa_compiler.c
+        │   ├── 📄 env_tests_sa_lang.c
+        │   ├── 📄 env_tests_sa_os.c
+        │   ├── 📄 env_tests_sa_posix.c
+        │   ├── 📄 env_tests_sa_pp_limits.c
+        │   ├── 📄 env_tests_sa_stdlib.c
+        │   ├── 📄 ssize64_tests_sa.c
+        │   ├── 📄 ssize64_tests_sa.h
+        │   ├── 📄 string_fn_tests_sa.c
+        │   ├── 📄 string_fn_tests_sa.h
+        │   ├── 📄 string_fn_tests_sa_cmp_n.c
+        │   ├── 📄 string_fn_tests_sa_copy.c
+        │   ├── 📄 string_fn_tests_sa_count.c
+        │   ├── 📄 string_fn_tests_sa_dup.c
+        │   ├── 📄 string_fn_tests_sa_error.c
+        │   ├── 📄 string_fn_tests_sa_index.c
+        │   ├── 📄 string_fn_tests_sa_manip.c
+        │   ├── 📄 string_fn_tests_sa_prefix.c
+        │   ├── 📄 string_fn_tests_sa_validate.c
+        │   └── 📄 test_env_config.h
+        └── 📁 core
+            ├── 📁 container
+            │   ├── 📁 array
+            │   │   ├── 📄 array_iterator_tests.cpp
+            │   │   ├── 📄 array_tests.cpp
+            │   │   ├── 📄 fixed_array_tests.cpp
+            │   │   └── 📄 static_array_tests.cpp
+            │   ├── 📁 debug
+            │   │   ├── 📁 container
+            │   │   │   ├── 📄 debug_container_traits.cpp
+            │   │   │   └── 📄 debug_contiguous_iterator_traits.cpp
+            │   │   └── 📄 debug_container_traits.cpp
+            │   ├── 📁 graph
+            │   │   └── 📄 djinterp-graph-tests.cpp
+            │   ├── 📁 list
+            │   │   └── 📄 djinterp-list-tests.cpp
+            │   ├── 📁 map
+            │   │   ├── 📄 djinterp-map-tests.cpp
+            │   │   └── 📄 djinterp-multimap-tests.cpp
+            │   ├── 📁 set
+            │   │   ├── 📄 djinterp-multiset-tests.cpp
+            │   │   └── 📄 djinterp-set-tests.cpp
+            │   ├── 📁 table
+            │   │   └── 📄 table_tests.cpp
+            │   ├── 📁 vector
+            │   │   └── 📄 djinterp-vector-tests.cpp
+            │   ├── 📄 container_concepts_tests.cpp
+            │   ├── 📄 container_iterator_tests.cpp
+            │   ├── 📄 container_tests.cpp
+            │   ├── 📄 container_traits_tests.cpp
+            │   ├── 📄 edge_tests.cpp
+            │   ├── 📄 node_concepts_tests.cpp
+            │   ├── 📄 node_tests.cpp
+            │   ├── 📄 node_traits_tests.cpp
+            │   ├── 📄 stl_traits.cpp
+            │   └── 📄 tuple_tests.cpp
+            ├── 📁 core
+            │   └── 📄 test_cpp_features.cpp
+            ├── 📁 math
+            │   └── 📄 djinterp-iterval-tests.cpp
+            ├── 📁 meta
+            │   ├── 📄 tuple_manip_tests.cpp
+            │   └── 📄 tuple_util_tests.cpp
+            ├── 📁 util
+            │   ├── 📄 interval_tests.cpp
+            │   └── 📄 tuple_map_tests.cpp
+            ├── 📄 concepts_tests.cpp
+            ├── 📄 djinterp_core_tests.cpp
+            ├── 📄 iterator_tests.cpp
+            ├── 📄 test_array_structural_traits.cpp
+            ├── 📄 test_stl_type_alias_traits.cpp
+            └── 📄 type_traits_tests.cpp

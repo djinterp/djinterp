@@ -40,9 +40,8 @@ Parameter(s):
 Return:
   true on an exact match, false otherwise.
 */
-static bool
-d_fs_file_has
-(
+static
+bool d_fs_file_has(
     const char* _path,
     const char* _want
 )
@@ -72,9 +71,8 @@ d_fs_file_has
  * XI.a  d_file_remove
  *****************************************************************************/
 
-static void
-d_fs_tests_ops_remove
-(
+static
+void d_fs_tests_ops_remove(
     dtest_suite* _suite
 )
 {
@@ -111,9 +109,8 @@ d_fs_tests_ops_remove
  * XI.b  d_file_unlink
  *****************************************************************************/
 
-static void
-d_fs_tests_ops_unlink
-(
+static
+void d_fs_tests_ops_unlink(
     dtest_suite* _suite
 )
 {
@@ -144,9 +141,8 @@ d_fs_tests_ops_unlink
  * XI.c  d_file_rename
  *****************************************************************************/
 
-static void
-d_fs_tests_ops_rename
-(
+static
+void d_fs_tests_ops_rename(
     dtest_suite* _suite
 )
 {
@@ -201,9 +197,8 @@ d_fs_tests_ops_rename
  * XI.d  d_file_copy
  *****************************************************************************/
 
-static void
-d_fs_tests_ops_copy_file
-(
+static
+void d_fs_tests_ops_copy_file(
     dtest_suite* _suite
 )
 {
@@ -269,9 +264,7 @@ d_fs_tests_ops_copy_file
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_ops
-(
+void d_fs_tests_ops(
     dtest_suite* _suite
 )
 {

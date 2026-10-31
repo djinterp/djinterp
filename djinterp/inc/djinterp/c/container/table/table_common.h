@@ -43,7 +43,7 @@
 // djinterp
 #include "../../djinterp.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // uint32_t, uint64_t,
+#include "../../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t,
                                                  // UINT32_MAX, UINT64_MAX
 
 
@@ -79,7 +79,7 @@ D_EXTERN_C_BEGIN
 
 // D_CFG_TABLE_EXTENT_64
 //   brief: opt in to 64-bit stored extents. Off by default: 32-bit extents
-// give a 24-byte d_table, a compact wire form, and a ceiling of 4294967295
+// give a 24-byte dj_table, a compact wire form, and a ceiling of 4294967295
 // rows and columns. It does not affect the width of any index parameter, which
 // is always size_t, so turning it on changes the representation and nothing
 // else. Inherits D_CFG_CONTAINER_ALL, then off, per the cascade container.h
@@ -148,7 +148,7 @@ D_EXTERN_C_BEGIN
 #define D_TABLE_EXTENT_FITS(_value) \
     ((size_t)(_value) <= (size_t)D_INTERNAL_TABLE_EXTENT_MAX)
 
-// d_table_status
+// dj_table_status
 //   enum: the outcome of a table operation. The FORMAL failures (a domain
 // violation, a rectangularity violation) and the MECHANICAL ones (out of room,
 // allocation refused, null argument) are distinct codes because they are
@@ -164,7 +164,7 @@ D_EXTERN_C_BEGIN
 // carrier of functional_types (which exists in C++ at
 // core/functional/result.hpp and has no C form yet), so the migration is
 // deferred, not declined.
-enum d_table_status
+enum dj_table_status
 {
     // -- success ------------------------------------------------------------
     D_TABLE_STATUS_OK                = 0,
@@ -207,8 +207,12 @@ enum d_table_status
 #define D_TABLE_STATUS_IS_MECHANICAL(_s) \
     ( (int)(_s) >= D_TABLE_STATUS_MECHANICAL_FLOOR )
 
-const char* d_table_status_name(enum d_table_status _status);
-const char* d_table_status_message(enum d_table_status _status);
+const char* d_table_status_name(
+    enum dj_table_status _status
+);
+const char* d_table_status_message(
+    enum dj_table_status _status
+);
 
 D_EXTERN_C_END
 

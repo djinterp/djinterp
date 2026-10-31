@@ -9,7 +9,7 @@
 *
 *   THIS IS THE CONTROL POINT. An arena, a pool and a slab all differ in how
 * they SUBDIVIDE memory; none of them differs in where memory comes from,
-* because all three take a d_mem_source. A caller that wants every byte to
+* because all three take a dj_mem_source. A caller that wants every byte to
 * come from a static array passes the buffer source; one that wants to prove a
 * subsystem allocates nothing passes the null source; one that wants to know
 * what a subsystem costs wraps its real source in the counting source and
@@ -31,7 +31,7 @@
 *      than rounded, because a silently rounded alignment is a corruption the
 *      caller will be blamed for.
 *   4. a source is STATELESS OR OWNS ITS STATE. The vtable is shared; the
-*      context is the instance. Copying a d_mem_source copies a reference to
+*      context is the instance. Copying a dj_mem_source copies a reference to
 *      the context, never the context -- so two copies of a buffer source
 *      share one buffer, which is the intent.
 *
@@ -50,12 +50,12 @@ TABLE OF CONTENTS
 =================
 I.    PROTOCOL
       --------
-      a. struct d_mem_source_vtable
-      b. struct d_mem_source
+      a. struct dj_mem_source_vtable
+      b. struct dj_mem_source
 II.   BUILT-IN SOURCE STATE
       ---------------------
-      a. struct d_mem_buffer_source
-      b. struct d_mem_counting_source
+      a. struct dj_mem_buffer_source
+      b. struct dj_mem_counting_source
 III.  SOURCE CONSTRUCTION
       -------------------
       a. d_mem_source_none / _default / _system / _null
@@ -81,7 +81,7 @@ VI.   COUNTING SOURCE QUERIES
 
 // djinterp
 #include "./mem_common.h"
-#include "../../config/core/memory/cfg_mem_source.h"
+#include "../../config/c/memory/cfg_mem_source.h"
 
 
 D_EXTERN_C_BEGIN
@@ -91,7 +91,7 @@ D_EXTERN_C_BEGIN
 ///                        I.   PROTOCOL                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_mem_source_vtable
+// dj_mem_source_vtable
 //   struct: the operation table of a byte source. One instance per source
 // KIND, shared by every source of that kind; the per-instance state lives in
 // the context pointer beside it.
@@ -104,22 +104,22 @@ D_EXTERN_C_BEGIN
 // block, so these pointer types carry C language linkage. A C++ source should
 // give its slot functions extern "C" linkage too. Every mainstream compiler
 // accepts the mismatch; the standard does not require it to.
-struct d_mem_source_vtable
+struct dj_mem_source_vtable
 {
     // allocate
     //   returns _bytes bytes aligned to _align, or NULL. A request of zero
     // bytes returns NULL and is not an error.
     void*      (*allocate)(void*      _context,
-                           d_mem_size _bytes,
-                           d_mem_size _align);
+                           dj_mem_size _bytes,
+                           dj_mem_size _align);
 
     // release
     //   returns a block previously produced by allocate. _bytes and _align
     // MUST match the values that produced it.
     void       (*release)(void*      _context,
                           void*      _ptr,
-                          d_mem_size _bytes,
-                          d_mem_size _align);
+                          dj_mem_size _bytes,
+                          dj_mem_size _align);
 
 #if (D_INTERNAL_MEM_SOURCE_REALLOC == 1)
     // reallocate
@@ -128,16 +128,16 @@ struct d_mem_source_vtable
     // applies -- so a source opts in per instance, not per build.
     void*      (*reallocate)(void*      _context,
                              void*      _ptr,
-                             d_mem_size _old_bytes,
-                             d_mem_size _new_bytes,
-                             d_mem_size _align);
+                             dj_mem_size _old_bytes,
+                             dj_mem_size _new_bytes,
+                             dj_mem_size _align);
 #endif
 
 #if (D_INTERNAL_MEM_SOURCE_MAX_SIZE == 1)
     // max_size
     //   the largest single request this source could satisfy. May be NULL,
     // meaning unbounded.
-    d_mem_size (*max_size)(const void* _context);
+    dj_mem_size (*max_size)(const void* _context);
 #endif
 
 #if (D_INTERNAL_MEM_SOURCE_NAMED == 1)
@@ -147,16 +147,16 @@ struct d_mem_source_vtable
 #endif
 };
 
-// d_mem_source
+// dj_mem_source
 //   struct: a byte source -- an operation table plus the instance state it
 // operates on. Two pointers, copied by value, referring to shared state.
-//   A ZEROED d_mem_source IS THE "UNSET" SOURCE, not a broken one. Every
+//   A ZEROED dj_mem_source IS THE "UNSET" SOURCE, not a broken one. Every
 // configuration struct in this subframework can therefore be zero-initialised
 // and still mean something sensible: d_mem_source_resolve turns an unset
 // source into the configured default.
-struct d_mem_source
+struct dj_mem_source
 {
-    const struct d_mem_source_vtable* vtable;
+    const struct dj_mem_source_vtable* vtable;
     void*                             context;
 };
 
@@ -167,7 +167,7 @@ struct d_mem_source
 
 #if (D_INTERNAL_MEM_SOURCE_BUFFER == 1)
 
-// d_mem_buffer_source
+// dj_mem_buffer_source
 //   struct: the state of a source that vends from memory the caller already
 // owns. Monotonic by construction -- it has no free list, because a source
 // that hands whole regions to an arena or a pool is asked for a handful of
@@ -177,96 +177,132 @@ struct d_mem_source
 // actually arises: an allocator that asks for a region, finds it cannot use
 // it, and hands it straight back. That is one comparison, not a data
 // structure.
-struct d_mem_buffer_source
+struct dj_mem_buffer_source
 {
     char*      base;         // the caller's buffer
-    d_mem_size capacity;     // its length in bytes
-    d_mem_size used;         // bytes handed out so far
-    d_mem_size last_offset;  // offset of the most recent block, for pop-back
-    d_mem_size last_size;    // its size, or 0 when there is no popable block
+    dj_mem_size capacity;     // its length in bytes
+    dj_mem_size used;         // bytes handed out so far
+    dj_mem_size last_offset;  // offset of the most recent block, for pop-back
+    dj_mem_size last_size;    // its size, or 0 when there is no popable block
 };
 
 #endif  // D_INTERNAL_MEM_SOURCE_BUFFER
 
 #if (D_INTERNAL_MEM_SOURCE_COUNTER == 1)
 
-// d_mem_counting_source
+// dj_mem_counting_source
 //   struct: the state of a source that forwards to another and accounts for
 // what passes through. A DECORATOR: it is a source, it holds a source, and
 // anything that takes a source takes it without knowing.
 //   This is how a caller answers "what does this subsystem cost" without
 // instrumenting the subsystem: wrap the source it was going to be given,
 // hand it the wrapper, read the block afterwards.
-struct d_mem_counting_source
+struct dj_mem_counting_source
 {
-    struct d_mem_source upstream;
-    struct d_mem_stats  stats;
+    struct dj_mem_source upstream;
+    struct dj_mem_stats  stats;
 };
 
 #endif  // D_INTERNAL_MEM_SOURCE_COUNTER
 
 
 // I.    source construction
-struct d_mem_source d_mem_source_none(void);
-struct d_mem_source d_mem_source_default(void);
+struct dj_mem_source d_mem_source_none(void);
+struct dj_mem_source d_mem_source_default(void);
 #if (D_INTERNAL_MEM_SOURCE_SYSTEM == 1)
-struct d_mem_source d_mem_source_system(void);
+struct dj_mem_source d_mem_source_system(void);
 #endif
 #if (D_INTERNAL_MEM_SOURCE_NULL == 1)
-struct d_mem_source d_mem_source_null(void);
+struct dj_mem_source d_mem_source_null(void);
 #endif
 #if (D_INTERNAL_MEM_SOURCE_BUFFER == 1)
-enum d_mem_status   d_mem_buffer_source_init(struct d_mem_buffer_source* _state,
-                                             void*                       _buffer,
-                                             d_mem_size                  _bytes);
-struct d_mem_source d_mem_source_buffer(struct d_mem_buffer_source* _state);
+enum dj_mem_status d_mem_buffer_source_init(
+    struct dj_mem_buffer_source* _state,
+    void*                        _buffer,
+    dj_mem_size                  _bytes
+);
+struct dj_mem_source d_mem_source_buffer(
+    struct dj_mem_buffer_source* _state
+);
 #endif
 #if (D_INTERNAL_MEM_SOURCE_COUNTER == 1)
-enum d_mem_status   d_mem_counting_source_init(struct d_mem_counting_source* _state,
-                                               struct d_mem_source           _upstream);
-struct d_mem_source d_mem_source_counting(struct d_mem_counting_source* _state);
+enum dj_mem_status d_mem_counting_source_init(
+    struct dj_mem_counting_source* _state,
+    struct dj_mem_source           _upstream
+);
+struct dj_mem_source d_mem_source_counting(
+    struct dj_mem_counting_source* _state
+);
 #endif
 
 // II.   source operations
-bool                d_mem_source_is_valid(const struct d_mem_source* _source);
-struct d_mem_source d_mem_source_resolve(const struct d_mem_source* _source);
-const char*         d_mem_source_name(const struct d_mem_source* _source);
-void*               d_mem_source_allocate(const struct d_mem_source* _source,
-                                          d_mem_size                 _bytes,
-                                          d_mem_size                 _align);
-enum d_mem_status   d_mem_source_allocate_ex(const struct d_mem_source* _source,
-                                             d_mem_size                 _bytes,
-                                             d_mem_size                 _align,
-                                             struct d_mem_block*        _out);
-void                d_mem_source_release(const struct d_mem_source* _source,
-                                         void*                      _ptr,
-                                         d_mem_size                 _bytes,
-                                         d_mem_size                 _align);
-void                d_mem_source_release_block(const struct d_mem_source* _source,
-                                               struct d_mem_block*        _block,
-                                               d_mem_size                 _align);
-void*               d_mem_source_reallocate(const struct d_mem_source* _source,
-                                            void*                      _ptr,
-                                            d_mem_size                 _old_bytes,
-                                            d_mem_size                 _new_bytes,
-                                            d_mem_size                 _align);
-enum d_mem_status   d_mem_source_reallocate_ex(const struct d_mem_source* _source,
-                                               d_mem_size                 _new_bytes,
-                                               d_mem_size                 _align,
-                                               struct d_mem_block*        _block);
-d_mem_size          d_mem_source_max_size(const struct d_mem_source* _source);
+bool d_mem_source_is_valid(
+    const struct dj_mem_source* _source
+);
+struct dj_mem_source d_mem_source_resolve(
+    const struct dj_mem_source* _source
+);
+const char* d_mem_source_name(
+    const struct dj_mem_source* _source
+);
+void* d_mem_source_allocate(
+    const struct dj_mem_source* _source,
+    dj_mem_size                 _bytes,
+    dj_mem_size                 _align
+);
+enum dj_mem_status d_mem_source_allocate_ex(
+    const struct dj_mem_source* _source,
+    dj_mem_size                 _bytes,
+    dj_mem_size                 _align,
+    struct dj_mem_block*        _out
+);
+void d_mem_source_release(
+    const struct dj_mem_source* _source,
+    void*                       _ptr,
+    dj_mem_size                 _bytes,
+    dj_mem_size                 _align
+);
+void d_mem_source_release_block(
+    const struct dj_mem_source* _source,
+    struct dj_mem_block*        _block,
+    dj_mem_size                 _align
+);
+void* d_mem_source_reallocate(
+    const struct dj_mem_source* _source,
+    void*                       _ptr,
+    dj_mem_size                 _old_bytes,
+    dj_mem_size                 _new_bytes,
+    dj_mem_size                 _align
+);
+enum dj_mem_status d_mem_source_reallocate_ex(
+    const struct dj_mem_source* _source,
+    dj_mem_size                 _new_bytes,
+    dj_mem_size                 _align,
+    struct dj_mem_block*        _block
+);
+dj_mem_size d_mem_source_max_size(
+    const struct dj_mem_source* _source
+);
 
 // III.  buffer source queries
 #if (D_INTERNAL_MEM_SOURCE_BUFFER == 1)
-d_mem_size          d_mem_buffer_source_used(const struct d_mem_buffer_source* _state);
-d_mem_size          d_mem_buffer_source_remaining(const struct d_mem_buffer_source* _state);
-void                d_mem_buffer_source_reset(struct d_mem_buffer_source* _state);
+dj_mem_size d_mem_buffer_source_used(
+    const struct dj_mem_buffer_source* _state
+);
+dj_mem_size d_mem_buffer_source_remaining(
+    const struct dj_mem_buffer_source* _state
+);
+void d_mem_buffer_source_reset(
+    struct dj_mem_buffer_source* _state
+);
 #endif
 
 // IV.   counting source queries
 #if (D_INTERNAL_MEM_SOURCE_COUNTER == 1)
-enum d_mem_status   d_mem_counting_source_stats(const struct d_mem_counting_source* _state,
-                                                struct d_mem_stats*                 _out);
+enum dj_mem_status d_mem_counting_source_stats(
+    const struct dj_mem_counting_source* _state,
+    struct dj_mem_stats*                 _out
+);
 #endif
 
 
@@ -276,22 +312,22 @@ enum d_mem_status   d_mem_counting_source_stats(const struct d_mem_counting_sour
 
 #if (D_INTERNAL_MEM_ASSERT_LAYOUT == 1)
 
-D_STATIC_ASSERT(offsetof(struct d_mem_source, vtable) == 0,
-                "d_mem_source.vtable must lead the struct");
+D_STATIC_ASSERT(offsetof(struct dj_mem_source, vtable) == 0,
+                "dj_mem_source.vtable must lead the struct");
 
-D_STATIC_ASSERT(sizeof(struct d_mem_source) ==
+D_STATIC_ASSERT(sizeof(struct dj_mem_source) ==
                     (2 * sizeof(void*)),
-                "d_mem_source must be exactly two pointers");
+                "dj_mem_source must be exactly two pointers");
 
-D_STATIC_ASSERT(offsetof(struct d_mem_source_vtable, allocate) == 0,
-                "d_mem_source_vtable.allocate must lead the vtable");
+D_STATIC_ASSERT(offsetof(struct dj_mem_source_vtable, allocate) == 0,
+                "dj_mem_source_vtable.allocate must lead the vtable");
 
 #endif  // D_INTERNAL_MEM_ASSERT_LAYOUT
 
 #if (D_INTERNAL_MEM_ASSERT_SIZES == 1) && (D_INTERNAL_MEM_SOURCE_BUFFER == 1)
 
-D_STATIC_ASSERT(sizeof(struct d_mem_buffer_source) == 40,
-                "d_mem_buffer_source layout drift (LP64, native counter)");
+D_STATIC_ASSERT(sizeof(struct dj_mem_buffer_source) == 40,
+                "dj_mem_buffer_source layout drift (LP64, native counter)");
 
 #endif  // D_INTERNAL_MEM_ASSERT_SIZES
 

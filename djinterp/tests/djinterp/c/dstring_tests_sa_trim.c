@@ -31,14 +31,10 @@ d_tests_sa_dstring_trim
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_trim
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trim(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -198,14 +194,10 @@ d_tests_sa_dstring_trim_left
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_trim_left
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trim_left(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -344,14 +336,10 @@ d_tests_sa_dstring_trim_right
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_trim_right
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trim_right(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -492,14 +480,10 @@ d_tests_sa_dstring_trim_chars
   - NULL string handling
   - NULL chars handling
 */
-struct d_test_object*
-d_tests_sa_dstring_trim_chars
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trim_chars(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     bool                  result;
     size_t                idx;
 
@@ -674,15 +658,11 @@ d_tests_sa_dstring_trimmed
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_trimmed
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trimmed(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      result_str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      result_str;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_trimmed", 6);
@@ -825,15 +805,11 @@ d_tests_sa_dstring_trimmed_left
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_trimmed_left
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trimmed_left(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      result_str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      result_str;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_trimmed_left", 6);
@@ -976,15 +952,11 @@ d_tests_sa_dstring_trimmed_right
   - empty string handling
   - NULL string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_trimmed_right
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trimmed_right(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      result_str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      result_str;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_trimmed_right", 6);
@@ -1128,13 +1100,9 @@ d_tests_sa_dstring_trim_all
   - in-place trimming functions (trim, trim_left, trim_right, trim_chars)
   - non-modifying trimming functions (trimmed, trimmed_left, trimmed_right)
 */
-struct d_test_object*
-d_tests_sa_dstring_trim_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_trim_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Trimming Functions", 7);

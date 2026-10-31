@@ -24,8 +24,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -47,8 +47,8 @@ d_tests_check(
 d_tests_same
   Whether a span holds exactly a string.
 */
-static bool
-d_tests_same(
+static
+bool d_tests_same(
     const char* _span,
     size_t      _length,
     const char* _expected
@@ -71,8 +71,8 @@ d_tests_scan
   - CDATA is text, taken as it stands
   - the end is reported, and keeps being reported
 */
-static void
-d_tests_scan(void)
+static
+void d_tests_scan(void)
 {
     static const char part[] =
         "<?xml version=\"1.0\"?>\n"
@@ -83,8 +83,8 @@ d_tests_scan(void)
         "<![CDATA[a<b>&amp;]]>"
         "</sld>";
 
-    struct d_xml       xml;
-    struct d_xml_token token;
+    struct dj_xml       xml;
+    struct dj_xml_token token;
     const char*        value  = NULL;
     size_t             length = 0;
 
@@ -177,8 +177,8 @@ d_tests_errors
   - markup that is not well formed is an error, and stays one
   - an attribute without a quoted value is not read, nor any after it
 */
-static void
-d_tests_errors(void)
+static
+void d_tests_errors(void)
 {
     static const char* const broken[] =
     {
@@ -192,8 +192,8 @@ d_tests_errors(void)
         "<?pi never closed"
     };
 
-    struct d_xml       xml;
-    struct d_xml_token token;
+    struct dj_xml       xml;
+    struct dj_xml_token token;
     bool               all = true;
 
     printf("errors\n");
@@ -242,8 +242,8 @@ d_tests_decode
   - decimal and hexadecimal references, written as UTF-8
   - what is no reference is copied as it stands
 */
-static void
-d_tests_decode(void)
+static
+void d_tests_decode(void)
 {
     char   out[64];
     size_t length = 0;
@@ -284,8 +284,7 @@ d_tests_decode(void)
 main
   Runs the checks.
 */
-int
-main(void)
+int main(void)
 {
     d_tests_scan();
     d_tests_errors();

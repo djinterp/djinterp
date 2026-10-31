@@ -106,8 +106,8 @@ d_internal_file_open_head
   The length of a mode proper: the characters before any encoding, which glibc
 and the Windows CRT both spell after a comma (",ccs=UTF-8").
 */
-static size_t
-d_internal_file_open_head(
+static
+size_t d_internal_file_open_head(
     const char* _mode
 )
 {
@@ -123,8 +123,8 @@ d_internal_file_open_names
 D_INTERNAL_OPEN_NAMES_* bits: 'b', 't', and the target's close-on-exec
 character.
 */
-static int
-d_internal_file_open_names(
+static
+int d_internal_file_open_names(
     const char* _mode,
     size_t      _head
 )
@@ -160,8 +160,8 @@ mode string longer than the buffer is malformed, and fopen rejects it with a
 better error than could be invented here. So the result is _buf or _mode,
 and never NULL.
 */
-static const char*
-d_internal_file_open_mode(
+static
+const char* d_internal_file_open_mode(
     const char* _mode,
     char*       _buf,
     size_t      _bufsize,
@@ -223,8 +223,8 @@ platform declined a buffer size would turn a tuning preference into an outage.
 The argument is returned as given, NULL included, so that an open expression
 can be wrapped in it.
 */
-static FILE*
-d_internal_file_open_configure(
+static
+FILE* d_internal_file_open_configure(
     FILE* _stream
 )
 {
@@ -253,8 +253,8 @@ d_internal_file_open_configure
   This build leaves a stream's buffering to stdio; the argument is returned as
 given.
 */
-static FILE*
-d_internal_file_open_configure(
+static
+FILE* d_internal_file_open_configure(
     FILE* _stream
 )
 {
@@ -271,10 +271,10 @@ d_internal_file_open_raw
 backend choice is made once rather than per entry point. This build shares the
 file through _fsopen, with the sharing mode it was configured for.
 */
-static FILE*
-d_internal_file_open_raw(
-    const d_internal_file_nchar_t* _filename,
-    const d_internal_file_nchar_t* _mode
+static
+FILE* d_internal_file_open_raw(
+    const dj_internal_file_nchar_t* _filename,
+    const dj_internal_file_nchar_t* _mode
 )
 {
     return D_INTERNAL_OPEN_FSOPEN(_filename,
@@ -292,10 +292,10 @@ fopen_s, which reports through its return value; that is normalized to the
 fopen contract -- NULL, with the code in errno -- so every caller has one
 failure shape.
 */
-static FILE*
-d_internal_file_open_raw(
-    const d_internal_file_nchar_t* _filename,
-    const d_internal_file_nchar_t* _mode
+static
+FILE* d_internal_file_open_raw(
+    const dj_internal_file_nchar_t* _filename,
+    const dj_internal_file_nchar_t* _mode
 )
 {
     FILE*     result = NULL;
@@ -322,10 +322,10 @@ d_internal_file_open_raw
 backend choice is made once rather than per entry point. This build uses
 plain fopen.
 */
-static FILE*
-d_internal_file_open_raw(
-    const d_internal_file_nchar_t* _filename,
-    const d_internal_file_nchar_t* _mode
+static
+FILE* d_internal_file_open_raw(
+    const dj_internal_file_nchar_t* _filename,
+    const dj_internal_file_nchar_t* _mode
 )
 {
     return D_INTERNAL_OPEN_FOPEN(_filename,
@@ -341,11 +341,11 @@ d_internal_file_open_reraw
   freopen_s, its return value normalized to the freopen contract as
 d_internal_file_open_raw normalizes fopen_s.
 */
-static FILE*
-d_internal_file_open_reraw(
-    const d_internal_file_nchar_t* _filename,
-    const d_internal_file_nchar_t* _mode,
-    FILE*                          _stream
+static
+FILE* d_internal_file_open_reraw(
+    const dj_internal_file_nchar_t* _filename,
+    const dj_internal_file_nchar_t* _mode,
+    FILE*                           _stream
 )
 {
     FILE*     result = NULL;
@@ -371,11 +371,11 @@ d_internal_file_open_reraw(
 d_internal_file_open_reraw
   Plain freopen.
 */
-static FILE*
-d_internal_file_open_reraw(
-    const d_internal_file_nchar_t* _filename,
-    const d_internal_file_nchar_t* _mode,
-    FILE*                          _stream
+static
+FILE* d_internal_file_open_reraw(
+    const dj_internal_file_nchar_t* _filename,
+    const dj_internal_file_nchar_t* _mode,
+    FILE*                           _stream
 )
 {
     return D_INTERNAL_OPEN_FREOPEN(_filename,
@@ -392,15 +392,15 @@ then opened (d_internal_file_open_raw). A mode that will not convert is no
 mode the platform takes, and fails with EINVAL, as fopen fails a malformed
 one; a path that will not convert fails with the conversion's reason.
 */
-static FILE*
-d_internal_file_open_named(
+static
+FILE* d_internal_file_open_named(
     const char* _filename,
     const char* _mode
 )
 {
-    d_internal_file_nchar_t mode_buf[D_INTERNAL_OPEN_MODE_NATIVE] = {0};
-    struct d_internal_file_native held = {0};
-    const d_internal_file_nchar_t* const mode =
+    dj_internal_file_nchar_t mode_buf[D_INTERNAL_OPEN_MODE_NATIVE] = {0};
+    struct dj_internal_file_native held = {0};
+    const dj_internal_file_nchar_t* const mode =
         d_internal_file_to_native_text(_mode,
                                        mode_buf,
                                        D_INTERNAL_OPEN_MODE_NATIVE);
@@ -413,7 +413,7 @@ d_internal_file_open_named(
         return NULL;
     }
 
-    const d_internal_file_nchar_t* const name =
+    const dj_internal_file_nchar_t* const name =
         d_internal_file_native_of(&held,
                                   _filename);
 
@@ -438,20 +438,20 @@ d_internal_file_open_renamed
 as a failed one does, so the caller meets one contract: failure ends the
 stream.
 */
-static FILE*
-d_internal_file_open_renamed(
+static
+FILE* d_internal_file_open_renamed(
     const char* _filename,
     const char* _mode,
     FILE*       _stream
 )
 {
-    d_internal_file_nchar_t mode_buf[D_INTERNAL_OPEN_MODE_NATIVE] = {0};
-    struct d_internal_file_native held = {0};
-    const d_internal_file_nchar_t* const mode =
+    dj_internal_file_nchar_t mode_buf[D_INTERNAL_OPEN_MODE_NATIVE] = {0};
+    struct dj_internal_file_native held = {0};
+    const dj_internal_file_nchar_t* const mode =
         d_internal_file_to_native_text(_mode,
                                        mode_buf,
                                        D_INTERNAL_OPEN_MODE_NATIVE);
-    const d_internal_file_nchar_t* const name =
+    const dj_internal_file_nchar_t* const name =
         (mode) ? d_internal_file_native_of(&held,
                                            _filename)
                : NULL;
@@ -490,8 +490,8 @@ d_internal_file_open_translation
 for 't' -- and leaves it alone when the mode names neither. The result is 0,
 or -1 with errno set.
 */
-static int
-d_internal_file_open_translation(
+static
+int d_internal_file_open_translation(
     int         _fd,
     const char* _mode
 )
@@ -530,8 +530,8 @@ stream is flushed and made binary when the mode names 'b' -- the build's
 default included -- and text otherwise, and keeps everything else. A refusal
 closes the stream, as a failed reopen does.
 */
-static FILE*
-d_internal_file_open_in_place(
+static
+FILE* d_internal_file_open_in_place(
     const char* _mode,
     FILE*       _stream
 )
@@ -567,8 +567,8 @@ and ignores the mode's 'b' or 't': a mode that names one -- the build's
 default included -- is applied to the descriptor first
 (d_internal_file_open_translation), so the stream does what the mode says.
 */
-static FILE*
-d_internal_file_open_adopt(
+static
+FILE* d_internal_file_open_adopt(
     int         _fd,
     const char* _mode
 )
@@ -593,8 +593,8 @@ d_internal_file_open_in_place
   freopen with a null path, which changes the stream's mode in place as far as
 the platform allows.
 */
-static FILE*
-d_internal_file_open_in_place(
+static
+FILE* d_internal_file_open_in_place(
     const char* _mode,
     FILE*       _stream
 )
@@ -610,8 +610,8 @@ d_internal_file_open_in_place(
 d_internal_file_open_adopt
   POSIX fdopen, which has no translation to apply.
 */
-static FILE*
-d_internal_file_open_adopt(
+static
+FILE* d_internal_file_open_adopt(
     int         _fd,
     const char* _mode
 )
@@ -634,8 +634,7 @@ d_file_open_stream
 through the backend call this build selected, and the new stream is given the
 configured buffering.
 */
-FILE*
-d_file_open_stream(
+FILE* d_file_open_stream(
     const char* _filename,
     const char* _mode
 )
@@ -683,8 +682,7 @@ d_file_open_stream_s
 else can fail. A failed open that left errno clear is reported as ENOENT
 rather than as success.
 */
-int
-d_file_open_stream_s(
+int d_file_open_stream_s(
     FILE**      _stream,
     const char* _filename,
     const char* _mode
@@ -733,8 +731,7 @@ a file, the platform's change of mode in place (d_internal_file_open_in_place).
 The C contract makes failure destructive -- the original stream is closed
 whether or not the reopen succeeds -- and the failure notice says so.
 */
-FILE*
-d_file_reopen_stream(
+FILE* d_file_reopen_stream(
     const char* _filename,
     const char* _mode,
     FILE*       _stream
@@ -787,8 +784,7 @@ d_file_reopen_stream_s
 anything else can fail. A failed reopen that left errno clear is reported as
 ENOENT rather than as success.
 */
-int
-d_file_reopen_stream_s(
+int d_file_reopen_stream_s(
     FILE**      _newstream,
     const char* _filename,
     const char* _mode,
@@ -838,8 +834,7 @@ d_file_open_stream_fd
   The ISO C backend has no descriptors to adopt, so this cannot be emulated --
 only reported, as ENOSYS.
 */
-FILE*
-d_file_open_stream_fd(
+FILE* d_file_open_stream_fd(
     int         _fd,
     const char* _mode
 )
@@ -864,8 +859,7 @@ translation is applied to the descriptor (d_internal_file_open_adopt); not
 close-on-exec, which belongs to the descriptor. The new stream is given the
 same configured buffering as any other open.
 */
-FILE*
-d_file_open_stream_fd(
+FILE* d_file_open_stream_fd(
     int         _fd,
     const char* _mode
 )
@@ -915,8 +909,7 @@ d_file_close_stream
 across callers -- and fclose's failure mode is worth surfacing: a buffered
 write that could not be flushed is reported here, at close, and nowhere else.
 */
-int
-d_file_close_stream(
+int d_file_close_stream(
     FILE* _stream
 )
 {

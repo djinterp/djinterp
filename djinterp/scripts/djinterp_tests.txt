@@ -1,0 +1,515 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\tests\djinterp\
+├── 📁 core
+│   ├── 📁 container
+│   │   ├── 📁 array
+│   │   │   ├── 📄 array_core_tests.cpp
+│   │   │   ├── 📄 array_options_alias_tests.cpp
+│   │   │   ├── 📄 array_options_core_tests.cpp
+│   │   │   ├── 📄 array_options_edge_tests.cpp
+│   │   │   ├── 📄 array_options_factory_tests.cpp
+│   │   │   ├── 📄 array_tests.hpp
+│   │   │   ├── 📄 atomic_array_core_tests.cpp
+│   │   │   ├── 📄 cow_array_core_tests.cpp
+│   │   │   └── 📄 threadsafe_array_core_tests.cpp
+│   │   ├── 📁 buffer
+│   │   │   ├── 📄 buffer_tests.hpp
+│   │   │   ├── 📄 buffer_tests_buffer_base_lifecycle.cpp
+│   │   │   ├── 📄 buffer_tests_buffer_base_read.cpp
+│   │   │   ├── 📄 buffer_tests_buffer_base_state.cpp
+│   │   │   ├── 📄 buffer_tests_buffer_base_write.cpp
+│   │   │   ├── 📄 buffer_tests_cursor_policies.cpp
+│   │   │   ├── 📄 buffer_tests_defaults.cpp
+│   │   │   ├── 📄 buffer_tests_enums.cpp
+│   │   │   ├── 📄 buffer_tests_growth_policies.cpp
+│   │   │   └── 📄 buffer_tests_policy_selection.cpp
+│   │   ├── 📁 graph
+│   │   │   └── 📄 djinterp-graph-tests.cpp
+│   │   ├── 📁 list
+│   │   │   └── 📄 djinterp-list-tests.cpp
+│   │   ├── 📁 map
+│   │   │   ├── 📄 djinterp-map-tests.cpp
+│   │   │   └── 📄 djinterp-multimap-tests.cpp
+│   │   ├── 📁 set
+│   │   │   ├── 📄 djinterp-multiset-tests.cpp
+│   │   │   └── 📄 djinterp-set-tests.cpp
+│   │   ├── 📁 table
+│   │   │   ├── 📄 table_common_tests.hpp
+│   │   │   ├── 📄 table_common_tests_for_each_index.cpp
+│   │   │   ├── 📄 table_common_tests_leaf_detectors.cpp
+│   │   │   ├── 📄 table_common_tests_predicates.cpp
+│   │   │   ├── 📄 table_common_tests_table_base.cpp
+│   │   │   ├── 📄 table_common_tests_table_rank.cpp
+│   │   │   ├── 📄 table_common_tests_tags.cpp
+│   │   │   ├── 📄 table_layout_tests.hpp
+│   │   │   ├── 📄 table_layout_tests_axes.cpp
+│   │   │   ├── 📄 table_layout_tests_cell.cpp
+│   │   │   ├── 📄 table_layout_tests_construction.cpp
+│   │   │   ├── 📄 table_layout_tests_descriptors.cpp
+│   │   │   ├── 📄 table_layout_tests_free_functions.cpp
+│   │   │   ├── 📄 table_layout_tests_iteration.cpp
+│   │   │   ├── 📄 table_layout_tests_keys_tags.cpp
+│   │   │   ├── 📄 table_layout_tests_mutation.cpp
+│   │   │   ├── 📄 table_layout_tests_queries.cpp
+│   │   │   ├── 📄 table_layout_tests_static_descriptors.cpp
+│   │   │   ├── 📄 table_layout_tests_static_specialization.cpp
+│   │   │   ├── 📄 table_layout_tests_storage_policy.cpp
+│   │   │   ├── 📄 table_tests.hpp
+│   │   │   ├── 📄 table_tests_aliases.cpp
+│   │   │   ├── 📄 table_tests_axes.cpp
+│   │   │   ├── 📄 table_tests_capacity.cpp
+│   │   │   ├── 📄 table_tests_classification.cpp
+│   │   │   ├── 📄 table_tests_construction.cpp
+│   │   │   ├── 📄 table_tests_detection.cpp
+│   │   │   ├── 📄 table_tests_element_access.cpp
+│   │   │   ├── 📄 table_tests_iteration.cpp
+│   │   │   ├── 📄 table_tests_mutation.cpp
+│   │   │   └── 📄 table_tests_underlying.cpp
+│   │   ├── 📁 traits
+│   │   │   └── 📄 test_observational_comparison.cpp
+│   │   └── 📁 vector
+│   │       └── 📄 djinterp-vector-tests.cpp
+│   ├── 📁 event
+│   │   ├── 📄 event_common_tests.hpp
+│   │   ├── 📄 event_common_tests_concepts.cpp
+│   │   ├── 📄 event_common_tests_detection.cpp
+│   │   ├── 📄 event_common_tests_index_apply.cpp
+│   │   ├── 📄 event_common_tests_macros.cpp
+│   │   ├── 📄 event_common_tests_traits.cpp
+│   │   ├── 📄 event_common_tests_verdict.cpp
+│   │   ├── 📄 event_dispatcher_tests.hpp
+│   │   ├── 📄 event_dispatcher_tests_concepts.cpp
+│   │   ├── 📄 event_dispatcher_tests_dispatcher_defer.cpp
+│   │   ├── 📄 event_dispatcher_tests_dispatcher_dispatch.cpp
+│   │   ├── 📄 event_dispatcher_tests_drive.cpp
+│   │   ├── 📄 event_dispatcher_tests_queue.cpp
+│   │   ├── 📄 event_dispatcher_tests_traits.cpp
+│   │   ├── 📄 event_handler_tests.hpp
+│   │   ├── 📄 event_handler_tests_concepts.cpp
+│   │   ├── 📄 event_handler_tests_handler_id.cpp
+│   │   ├── 📄 event_handler_tests_invocation.cpp
+│   │   ├── 📄 event_handler_tests_monoid.cpp
+│   │   ├── 📄 event_handler_tests_traits.cpp
+│   │   ├── 📄 event_registry_tests.hpp
+│   │   ├── 📄 event_registry_tests_bind_dispatch.cpp
+│   │   ├── 📄 event_registry_tests_compile.cpp
+│   │   ├── 📄 event_registry_tests_fused_step.cpp
+│   │   ├── 📄 event_registry_tests_management.cpp
+│   │   ├── 📄 event_registry_tests_results.cpp
+│   │   ├── 📄 event_registry_tests_run.cpp
+│   │   ├── 📄 event_table_tests.hpp
+│   │   ├── 📄 event_table_tests_buckets.cpp
+│   │   ├── 📄 event_table_tests_concepts.cpp
+│   │   ├── 📄 event_table_tests_core.cpp
+│   │   ├── 📄 event_table_tests_merge_clear.cpp
+│   │   ├── 📄 event_table_tests_stats.cpp
+│   │   ├── 📄 event_table_tests_storage.cpp
+│   │   └── 📄 event_table_tests_traits.cpp
+│   ├── 📁 functional
+│   │   ├── 📄 accumulator_tests.hpp
+│   │   ├── 📄 accumulator_tests_boxed.cpp
+│   │   ├── 📄 accumulator_tests_collectors.cpp
+│   │   ├── 📄 accumulator_tests_combinators.cpp
+│   │   ├── 📄 accumulator_tests_combine.cpp
+│   │   ├── 📄 accumulator_tests_positional.cpp
+│   │   ├── 📄 accumulator_tests_predicates.cpp
+│   │   ├── 📄 accumulator_tests_primitive.cpp
+│   │   ├── 📄 accumulator_tests_reducers.cpp
+│   │   ├── 📄 accumulator_tests_statistics.cpp
+│   │   ├── 📄 accumulator_tests_traits.cpp
+│   │   ├── 📄 alternative_tests.hpp
+│   │   ├── 📄 alternative_tests_aempty.cpp
+│   │   ├── 📄 alternative_tests_alt.cpp
+│   │   ├── 📄 alternative_tests_asum.cpp
+│   │   ├── 📄 alternative_tests_protocol.cpp
+│   │   ├── 📄 applicative_tests.hpp
+│   │   ├── 📄 applicative_tests_ap.cpp
+│   │   ├── 📄 applicative_tests_applicable.cpp
+│   │   ├── 📄 applicative_tests_lift_a2.cpp
+│   │   ├── 📄 applicative_tests_protocol.cpp
+│   │   ├── 📄 applicative_tests_pure.cpp
+│   │   ├── 📄 bifunctor_tests.hpp
+│   │   ├── 📄 bifunctor_tests_bimap.cpp
+│   │   ├── 📄 bifunctor_tests_instances.cpp
+│   │   ├── 📄 bifunctor_tests_onesided.cpp
+│   │   ├── 📄 bifunctor_tests_protocol.cpp
+│   │   ├── 📄 comparator_tests.hpp
+│   │   ├── 📄 comparator_tests_combinators.cpp
+│   │   ├── 📄 comparator_tests_pipeline.cpp
+│   │   ├── 📄 comparator_tests_predicates.cpp
+│   │   ├── 📄 comparator_tests_primitive.cpp
+│   │   ├── 📄 comparator_tests_traits.cpp
+│   │   ├── 📄 compose_tests.hpp
+│   │   ├── 📄 compose_tests_composition.cpp
+│   │   ├── 📄 compose_tests_fix.cpp
+│   │   ├── 📄 compose_tests_memoize.cpp
+│   │   ├── 📄 compose_tests_partial.cpp
+│   │   ├── 📄 compose_tests_tap.cpp
+│   │   ├── 📄 compose_tests_traits.cpp
+│   │   ├── 📄 compose_tests_variadic.cpp
+│   │   ├── 📄 consumer_tests.hpp
+│   │   ├── 📄 consumer_tests_adapters.cpp
+│   │   ├── 📄 consumer_tests_branching.cpp
+│   │   ├── 📄 consumer_tests_erasure.cpp
+│   │   ├── 📄 consumer_tests_flow.cpp
+│   │   ├── 📄 consumer_tests_primitives.cpp
+│   │   ├── 📄 consumer_tests_tee.cpp
+│   │   ├── 📄 consumer_tests_traits.cpp
+│   │   ├── 📄 curry_tests.hpp
+│   │   ├── 📄 curry_tests_combinators.cpp
+│   │   ├── 📄 curry_tests_curry.cpp
+│   │   ├── 📄 curry_tests_flip.cpp
+│   │   ├── 📄 curry_tests_internal.cpp
+│   │   ├── 📄 curry_tests_predicate_traits.cpp
+│   │   ├── 📄 curry_tests_uncurry.cpp
+│   │   ├── 📄 extractor_tests.hpp
+│   │   ├── 📄 extractor_tests_combinators.cpp
+│   │   ├── 📄 extractor_tests_drivers.cpp
+│   │   ├── 📄 extractor_tests_pipeline.cpp
+│   │   ├── 📄 extractor_tests_primitive.cpp
+│   │   ├── 📄 extractor_tests_traits.cpp
+│   │   ├── 📄 filter_tests.hpp
+│   │   ├── 📄 filter_tests_builder.cpp
+│   │   ├── 📄 filter_tests_chain.cpp
+│   │   ├── 📄 filter_tests_combinators.cpp
+│   │   ├── 📄 filter_tests_filterable.cpp
+│   │   ├── 📄 filter_tests_iterator.cpp
+│   │   ├── 📄 filter_tests_result.cpp
+│   │   ├── 📄 filter_tests_traits.cpp
+│   │   ├── 📄 filter_tests_typed.cpp
+│   │   ├── 📄 fn_builder_tests.hpp
+│   │   ├── 📄 fn_builder_tests_boxed.cpp
+│   │   ├── 📄 fn_builder_tests_creation.cpp
+│   │   ├── 📄 fn_builder_tests_execute.cpp
+│   │   ├── 📄 fn_builder_tests_reorder.cpp
+│   │   ├── 📄 fn_builder_tests_terminal.cpp
+│   │   ├── 📄 fn_builder_tests_traits.cpp
+│   │   ├── 📄 fn_builder_tests_transform.cpp
+│   │   ├── 📄 foldable_tests.hpp
+│   │   ├── 📄 foldable_tests_collect.cpp
+│   │   ├── 📄 foldable_tests_fold_left.cpp
+│   │   ├── 📄 foldable_tests_fold_map.cpp
+│   │   ├── 📄 foldable_tests_fold_right.cpp
+│   │   ├── 📄 foldable_tests_predicates.cpp
+│   │   ├── 📄 foldable_tests_protocol.cpp
+│   │   ├── 📄 interpolate_tests.hpp
+│   │   ├── 📄 interpolate_tests_brace.cpp
+│   │   ├── 📄 interpolate_tests_builder.cpp
+│   │   ├── 📄 interpolate_tests_composition.cpp
+│   │   ├── 📄 interpolate_tests_concepts.cpp
+│   │   ├── 📄 interpolate_tests_engine.cpp
+│   │   ├── 📄 interpolate_tests_piece.cpp
+│   │   ├── 📄 interpolate_tests_prepared.cpp
+│   │   ├── 📄 interpolate_tests_recursive.cpp
+│   │   ├── 📄 interpolate_tests_replay.cpp
+│   │   ├── 📄 interpolate_tests_resolution.cpp
+│   │   ├── 📄 interpolate_tests_resolvers.cpp
+│   │   ├── 📄 interpolate_tests_sigil.cpp
+│   │   ├── 📄 interpolate_tests_sink.cpp
+│   │   ├── 📄 maybe_tests.hpp
+│   │   ├── 📄 maybe_tests_combinators.cpp
+│   │   ├── 📄 maybe_tests_equality.cpp
+│   │   ├── 📄 maybe_tests_factories.cpp
+│   │   ├── 📄 maybe_tests_free.cpp
+│   │   ├── 📄 maybe_tests_lifetime.cpp
+│   │   ├── 📄 maybe_tests_monad_traits.cpp
+│   │   ├── 📄 maybe_tests_monadic.cpp
+│   │   ├── 📄 maybe_tests_traits.cpp
+│   │   ├── 📄 monad_tests.hpp
+│   │   ├── 📄 monad_tests_composition.cpp
+│   │   ├── 📄 monad_tests_operations.cpp
+│   │   ├── 📄 monad_tests_pipeline.cpp
+│   │   ├── 📄 monad_tests_protocol.cpp
+│   │   ├── 📄 monad_tests_traits.cpp
+│   │   ├── 📄 pipeline_tests.hpp
+│   │   ├── 📄 pipeline_tests_accessors.cpp
+│   │   ├── 📄 pipeline_tests_aggregate.cpp
+│   │   ├── 📄 pipeline_tests_creation.cpp
+│   │   ├── 📄 pipeline_tests_errors.cpp
+│   │   ├── 📄 pipeline_tests_factory.cpp
+│   │   ├── 📄 pipeline_tests_query.cpp
+│   │   ├── 📄 pipeline_tests_slicing.cpp
+│   │   ├── 📄 pipeline_tests_traits.cpp
+│   │   ├── 📄 pipeline_tests_transform.cpp
+│   │   ├── 📄 predicate_tests.hpp
+│   │   ├── 📄 predicate_tests_behavioral.cpp
+│   │   ├── 📄 predicate_tests_binary.cpp
+│   │   ├── 📄 predicate_tests_nand_nor.cpp
+│   │   ├── 📄 predicate_tests_not.cpp
+│   │   ├── 📄 predicate_tests_traits.cpp
+│   │   ├── 📄 predicate_tests_variadic.cpp
+│   │   ├── 📄 producer_tests.hpp
+│   │   ├── 📄 producer_tests_adapters.cpp
+│   │   ├── 📄 producer_tests_generators.cpp
+│   │   ├── 📄 producer_tests_step.cpp
+│   │   ├── 📄 producer_tests_terminals.cpp
+│   │   ├── 📄 producer_tests_traits.cpp
+│   │   ├── 📄 result_tests.hpp
+│   │   ├── 📄 result_tests_combinators.cpp
+│   │   ├── 📄 result_tests_conversions.cpp
+│   │   ├── 📄 result_tests_equality.cpp
+│   │   ├── 📄 result_tests_factories.cpp
+│   │   ├── 📄 result_tests_free.cpp
+│   │   ├── 📄 result_tests_lifetime.cpp
+│   │   ├── 📄 result_tests_monad_traits.cpp
+│   │   ├── 📄 result_tests_traits.cpp
+│   │   ├── 📄 result_tests_transform.cpp
+│   │   ├── 📄 transducer_tests.hpp
+│   │   ├── 📄 transducer_tests_composition.cpp
+│   │   ├── 📄 transducer_tests_core.cpp
+│   │   ├── 📄 transducer_tests_core2.cpp
+│   │   ├── 📄 transducer_tests_drivers.cpp
+│   │   ├── 📄 transducer_tests_state.cpp
+│   │   ├── 📄 transducer_tests_traits.cpp
+│   │   ├── 📄 view_tests.hpp
+│   │   ├── 📄 view_tests_adapters_basic.cpp
+│   │   ├── 📄 view_tests_adapters_combining.cpp
+│   │   ├── 📄 view_tests_fundamental.cpp
+│   │   ├── 📄 view_tests_pipeline.cpp
+│   │   ├── 📄 view_tests_source.cpp
+│   │   ├── 📄 view_tests_terminal.cpp
+│   │   └── 📄 view_tests_traits.cpp
+│   ├── 📁 memory
+│   │   └── 📁 pool
+│   │       ├── 📄 pool_tests.hpp
+│   │       ├── 📄 pool_tests_accounting.cpp
+│   │       ├── 📄 pool_tests_acquire_release.cpp
+│   │       ├── 📄 pool_tests_block_policies.cpp
+│   │       ├── 📄 pool_tests_capacity.cpp
+│   │       ├── 📄 pool_tests_construction.cpp
+│   │       ├── 📄 pool_tests_default_aliases.cpp
+│   │       ├── 📄 pool_tests_enums.cpp
+│   │       ├── 📄 pool_tests_generational.cpp
+│   │       ├── 📄 pool_tests_geometry.cpp
+│   │       ├── 📄 pool_tests_growth.cpp
+│   │       ├── 📄 pool_tests_policy_selection.cpp
+│   │       └── 📄 pool_tests_release_policies.cpp
+│   ├── 📁 meta
+│   │   ├── 📄 carrier_tests.hpp
+│   │   ├── 📄 carrier_tests_concepts.cpp
+│   │   ├── 📄 carrier_tests_detection.cpp
+│   │   ├── 📄 carrier_tests_type.cpp
+│   │   ├── 📄 carrier_tests_value.cpp
+│   │   ├── 📄 concepts_tests.hpp
+│   │   ├── 📄 concepts_tests_composite.cpp
+│   │   ├── 📄 concepts_tests_container.cpp
+│   │   ├── 📄 concepts_tests_fundamental.cpp
+│   │   ├── 📄 concepts_tests_invocable.cpp
+│   │   ├── 📄 concepts_tests_logical.cpp
+│   │   ├── 📄 concepts_tests_macros.cpp
+│   │   ├── 📄 concepts_tests_numeric.cpp
+│   │   ├── 📄 concepts_tests_pack.cpp
+│   │   ├── 📄 concepts_tests_properties.cpp
+│   │   ├── 📄 concepts_tests_rules.cpp
+│   │   ├── 📄 concepts_tests_std_reexports.cpp
+│   │   ├── 📄 concepts_tests_templates.cpp
+│   │   ├── 📄 concepts_tests_tuple.cpp
+│   │   ├── 📄 dtuple_tests.hpp
+│   │   ├── 📄 dtuple_tests_2d.cpp
+│   │   ├── 📄 dtuple_tests_access.cpp
+│   │   ├── 📄 dtuple_tests_construction.cpp
+│   │   ├── 📄 dtuple_tests_counting.cpp
+│   │   ├── 📄 dtuple_tests_homogeneity.cpp
+│   │   ├── 📄 dtuple_tests_modifiers.cpp
+│   │   ├── 📄 dtuple_tests_pack.cpp
+│   │   ├── 📄 dtuple_tests_relations.cpp
+│   │   ├── 📄 dtuple_tests_selection.cpp
+│   │   ├── 📄 dtuple_tests_splitting.cpp
+│   │   ├── 📄 dtuple_tests_transformation.cpp
+│   │   ├── 📄 dtuple_tests_utilities.cpp
+│   │   ├── 📄 type_traits_tests.hpp
+│   │   ├── 📄 type_traits_tests_arity.cpp
+│   │   ├── 📄 type_traits_tests_callable.cpp
+│   │   ├── 📄 type_traits_tests_cpp20.cpp
+│   │   ├── 📄 type_traits_tests_cpp23.cpp
+│   │   ├── 📄 type_traits_tests_detection.cpp
+│   │   ├── 📄 type_traits_tests_evaluate.cpp
+│   │   ├── 📄 type_traits_tests_logical.cpp
+│   │   ├── 📄 type_traits_tests_macros_core.cpp
+│   │   ├── 📄 type_traits_tests_macros_member.cpp
+│   │   ├── 📄 type_traits_tests_macros_op.cpp
+│   │   ├── 📄 type_traits_tests_macros_spec.cpp
+│   │   ├── 📄 type_traits_tests_rules.cpp
+│   │   ├── 📄 type_traits_tests_template.cpp
+│   │   ├── 📄 type_traits_tests_traits.cpp
+│   │   └── 📄 type_traits_tests_tuple.cpp
+│   ├── 📁 option
+│   │   ├── 📄 option_builder_tests.hpp
+│   │   ├── 📄 option_builder_tests_lift.cpp
+│   │   ├── 📄 option_builder_tests_pipeline.cpp
+│   │   ├── 📄 option_builder_tests_wrap.cpp
+│   │   ├── 📄 option_compose_tests.hpp
+│   │   ├── 📄 option_compose_tests_compose.cpp
+│   │   ├── 📄 option_compose_tests_defopt.cpp
+│   │   ├── 📄 option_compose_tests_with_option.cpp
+│   │   ├── 📄 option_compose_tests_with_options.cpp
+│   │   ├── 📄 option_diff_tests.hpp
+│   │   ├── 📄 option_diff_tests_ct_keys.cpp
+│   │   ├── 📄 option_diff_tests_ct_merge.cpp
+│   │   ├── 📄 option_diff_tests_ct_values.cpp
+│   │   ├── 📄 option_diff_tests_rt_keys.cpp
+│   │   ├── 📄 option_diff_tests_rt_merge.cpp
+│   │   ├── 📄 option_diff_tests_rt_values.cpp
+│   │   ├── 📄 option_override_tests.hpp
+│   │   ├── 📄 option_override_tests_engine.cpp
+│   │   ├── 📄 option_override_tests_helpers.cpp
+│   │   ├── 📄 option_override_tests_lazy.cpp
+│   │   ├── 📄 option_override_tests_merge.cpp
+│   │   ├── 📄 option_override_tests_policies.cpp
+│   │   ├── 📄 option_set_compare_tests.hpp
+│   │   ├── 📄 option_set_compare_tests_carriers.cpp
+│   │   ├── 📄 option_set_compare_tests_congruity.cpp
+│   │   ├── 📄 option_set_compare_tests_keylist.cpp
+│   │   ├── 📄 option_set_compare_tests_value_eq.cpp
+│   │   ├── 📄 option_set_tests.hpp
+│   │   ├── 📄 option_set_tests_checks.cpp
+│   │   ├── 📄 option_set_tests_concepts.cpp
+│   │   ├── 📄 option_set_tests_core.cpp
+│   │   ├── 📄 option_set_tests_expand.cpp
+│   │   ├── 📄 option_set_tests_queries.cpp
+│   │   ├── 📄 option_set_tests_values.cpp
+│   │   ├── 📄 option_tests.hpp
+│   │   ├── 📄 option_tests_concepts.cpp
+│   │   ├── 📄 option_tests_core.cpp
+│   │   ├── 📄 option_tests_is_option.cpp
+│   │   └── 📄 option_tests_sentinels.cpp
+│   ├── 📁 util
+│   │   ├── 📁 counter
+│   │   │   ├── 📄 counter_tests.hpp
+│   │   │   ├── 📄 counter_tests_accessors.cpp
+│   │   │   ├── 📄 counter_tests_children.cpp
+│   │   │   ├── 📄 counter_tests_constructors.cpp
+│   │   │   ├── 📄 counter_tests_observed.cpp
+│   │   │   └── 📄 counter_tests_operations.cpp
+│   │   └── 📁 timer
+│   │       ├── 📄 timer_tests.hpp
+│   │       ├── 📄 timer_tests_accessors.cpp
+│   │       ├── 📄 timer_tests_children.cpp
+│   │       ├── 📄 timer_tests_constructors.cpp
+│   │       ├── 📄 timer_tests_observed.cpp
+│   │       └── 📄 timer_tests_operations.cpp
+│   ├── 📄 djinterp_tests.hpp
+│   ├── 📄 djinterp_tests_abs_value.cpp
+│   ├── 📄 djinterp_tests_clean.cpp
+│   ├── 📄 djinterp_tests_constexpr_swap.cpp
+│   ├── 📄 djinterp_tests_macros.cpp
+│   ├── 📄 djinterp_tests_repeat.cpp
+│   ├── 📄 djinterp_tests_resolve_self.cpp
+│   ├── 📄 djinterp_tests_runner.cpp
+│   ├── 📄 djinterp_tests_self.cpp
+│   ├── 📄 djinterp_tests_void_t.cpp
+│   ├── 📄 test_document_bundle.cpp
+│   ├── 📄 test_document_harness.cpp
+│   ├── 📄 test_output_harness.cpp
+│   ├── 📄 test_section.cpp
+│   └── 📄 test_section_edges.cpp
+├── 📁 math
+│   ├── 📄 djinterp-iterval-tests.cpp
+│   ├── 📄 test.cpp
+│   ├── 📄 test_calc.cpp
+│   ├── 📄 test_constants_values.cpp
+│   ├── 📄 test_functional.cpp
+│   └── 📄 test_interval_traits.cpp
+├── 📁 restd
+│   └── 📁 any
+│       ├── 📄 restd_any_tests.cpp
+│       ├── 📄 restd_any_tests.hpp
+│       ├── 📄 restd_any_tests_main.cpp
+│       ├── 📄 test_any_cast.cpp
+│       ├── 📄 test_constexpr.cpp
+│       ├── 📄 test_construction.cpp
+│       ├── 📄 test_edge_cases.cpp
+│       ├── 📄 test_make_any.cpp
+│       ├── 📄 test_modifiers.cpp
+│       ├── 📄 test_observers.cpp
+│       ├── 📄 test_retrieval.cpp
+│       └── 📄 test_std_compat.cpp
+└── 📁 test
+    ├── 📄 test_builder_tests.hpp
+    ├── 📄 test_builder_tests_assertions.cpp
+    ├── 📄 test_builder_tests_events.cpp
+    ├── 📄 test_builder_tests_inline_ops.cpp
+    ├── 📄 test_builder_tests_kinds_summary.cpp
+    ├── 📄 test_builder_tests_run.cpp
+    ├── 📄 test_builder_tests_structure.cpp
+    ├── 📄 test_callable_tests.hpp
+    ├── 📄 test_callable_tests_binding.cpp
+    ├── 📄 test_callable_tests_composition.cpp
+    ├── 📄 test_callable_tests_invocation.cpp
+    ├── 📄 test_callable_tests_transform.cpp
+    ├── 📄 test_common_tests.hpp
+    ├── 📄 test_common_tests_constexpr.cpp
+    ├── 📄 test_common_tests_event.cpp
+    ├── 📄 test_common_tests_main.cpp
+    ├── 📄 test_common_tests_status.cpp
+    ├── 📄 test_common_tests_type_id.cpp
+    ├── 📄 test_container_tests.hpp
+    ├── 📄 test_container_tests_concepts.cpp
+    ├── 📄 test_container_tests_contract.cpp
+    ├── 📄 test_container_tests_element.cpp
+    ├── 📄 test_container_tests_probes.cpp
+    ├── 📄 test_context_tests.hpp
+    ├── 📄 test_context_tests_builders.cpp
+    ├── 📄 test_context_tests_context.cpp
+    ├── 📄 test_counter_tests.hpp
+    ├── 📄 test_counter_tests_accessors.cpp
+    ├── 📄 test_counter_tests_children.cpp
+    ├── 📄 test_counter_tests_construction.cpp
+    ├── 📄 test_counter_tests_events.cpp
+    ├── 📄 test_counter_tests_observed.cpp
+    ├── 📄 test_counter_tests_operations.cpp
+    ├── 📄 test_handler_tests.hpp
+    ├── 📄 test_handler_tests_counters.cpp
+    ├── 📄 test_handler_tests_dispatch.cpp
+    ├── 📄 test_handler_tests_result.cpp
+    ├── 📄 test_handler_tests_session.cpp
+    ├── 📄 test_handler_tests_walk.cpp
+    ├── 📄 test_kind_tests.hpp
+    ├── 📄 test_kind_tests_detection.cpp
+    ├── 📄 test_kind_tests_factory.cpp
+    ├── 📄 test_kind_tests_main.cpp
+    ├── 📄 test_kind_tests_queries.cpp
+    ├── 📄 test_kind_tests_record.cpp
+    ├── 📄 test_kind_tests_set_construction.cpp
+    ├── 📄 test_kind_tests_set_contains.cpp
+    ├── 📄 test_kind_tests_set_surface.cpp
+    ├── 📄 test_object_tests.hpp
+    ├── 📄 test_object_tests_aliases.cpp
+    ├── 📄 test_object_tests_construction.cpp
+    ├── 📄 test_object_tests_factory.cpp
+    ├── 📄 test_object_tests_main.cpp
+    ├── 📄 test_object_tests_metadata.cpp
+    ├── 📄 test_object_tests_metadata_access.cpp
+    ├── 📄 test_object_tests_mutation.cpp
+    ├── 📄 test_object_tests_object.cpp
+    ├── 📄 test_object_tests_protocol.cpp
+    ├── 📄 test_options_tests.hpp
+    ├── 📄 test_options_tests_enums.cpp
+    ├── 📄 test_options_tests_option_set.cpp
+    ├── 📄 test_options_tests_predicate.cpp
+    ├── 📄 test_options_tests_route_resolve.cpp
+    ├── 📄 test_runner_tests.hpp
+    ├── 📄 test_runner_tests_facade.cpp
+    ├── 📄 test_runner_tests_helpers.cpp
+    ├── 📄 test_runner_tests_render.cpp
+    ├── 📄 test_runner_tests_show_route.cpp
+    ├── 📄 test_session_tests.hpp
+    ├── 📄 test_session_tests_accessors.cpp
+    ├── 📄 test_session_tests_construction.cpp
+    ├── 📄 test_session_tests_run.cpp
+    ├── 📄 test_session_tests_state.cpp
+    ├── 📄 test_session_tests_verdict.cpp
+    ├── 📄 test_timer_tests.hpp
+    ├── 📄 test_timer_tests_accessors.cpp
+    ├── 📄 test_timer_tests_children.cpp
+    ├── 📄 test_timer_tests_construction.cpp
+    ├── 📄 test_timer_tests_events.cpp
+    ├── 📄 test_timer_tests_observed.cpp
+    ├── 📄 test_timer_tests_operations.cpp
+    ├── 📄 test_tree_tests.hpp
+    ├── 📄 test_tree_tests_add_root.cpp
+    ├── 📄 test_tree_tests_append_child.cpp
+    ├── 📄 test_tree_tests_construction.cpp
+    ├── 📄 test_tree_tests_counting.cpp
+    ├── 📄 test_tree_tests_detection.cpp
+    ├── 📄 test_tree_tests_forwarding.cpp
+    └── 📄 test_tree_tests_rank_validation.cpp

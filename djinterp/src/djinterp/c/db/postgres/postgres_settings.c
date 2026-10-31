@@ -34,7 +34,7 @@
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
 #include "./postgres_internal.h"  // libpq-fe.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_POSTGRES == 1)
@@ -44,7 +44,7 @@
 //==============================================================================
 
 // d_internal_postgres_levels
-//   table: each d_postgres_isolation as SQL writes it, in the enum's order,
+//   table: each dj_postgres_isolation as SQL writes it, in the enum's order,
 // which is also how the server reports it, in lowercase.
 static const char* const d_internal_postgres_levels[] =
 {
@@ -68,20 +68,20 @@ static const char* const d_internal_postgres_reported_levels[] =
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_levels) /
                   sizeof(d_internal_postgres_levels[0])) ==
                  ((size_t)D_POSTGRES_ISOLATION_SERIALIZABLE + 1u),
-                 "every d_postgres_isolation has a spelling" );
+                 "every dj_postgres_isolation has a spelling" );
 
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_reported_levels) /
                   sizeof(d_internal_postgres_reported_levels[0])) ==
                  ((size_t)D_POSTGRES_ISOLATION_SERIALIZABLE + 1u),
-                 "every d_postgres_isolation has a reported spelling" );
+                 "every dj_postgres_isolation has a reported spelling" );
 
 /*
 d_internal_postgres_set_timeout
   SET of a timeout, a number of milliseconds, which is the unit both take
 without one; the server's own bound is INT_MAX.
 */
-static int
-d_internal_postgres_set_timeout(
+static
+int d_internal_postgres_set_timeout(
     PGconn*     _db,
     const char* _name,
     unsigned    _milliseconds
@@ -105,8 +105,8 @@ d_internal_postgres_set_timeout(
 d_internal_postgres_get_timeout
   pg_settings gives the setting in its unit, milliseconds, as text.
 */
-static int
-d_internal_postgres_get_timeout(
+static
+int d_internal_postgres_get_timeout(
     PGconn*     _db,
     const char* _name,
     unsigned*   _milliseconds
@@ -150,8 +150,8 @@ d_internal_postgres_reported
   A copy of a parameter the server reports to libpq, in memory the caller
 releases with d_db_free; a lost connection reports nothing.
 */
-static int
-d_internal_postgres_reported(
+static
+int d_internal_postgres_reported(
     PGconn*     _db,
     const char* _name,
     char**      _value
@@ -193,8 +193,8 @@ d_internal_postgres_reported(
 d_internal_postgres_set_config
   set_config(name, value, false): for the session, name and value quoted.
 */
-static int
-d_internal_postgres_set_config(
+static
+int d_internal_postgres_set_config(
     PGconn*     _db,
     const char* _name,
     const char* _value
@@ -220,8 +220,8 @@ d_internal_postgres_set_config(
 d_internal_postgres_current_setting
   current_setting(name), copied out; an unknown name is the server's 42704.
 */
-static int
-d_internal_postgres_current_setting(
+static
+int d_internal_postgres_current_setting(
     PGconn*     _db,
     const char* _name,
     char**      _value
@@ -269,8 +269,7 @@ d_internal_postgres_current_setting(
 d_postgres_set_search_path
   The list as one value, which the server parses as it parses SET's.
 */
-int
-d_postgres_set_search_path(
+int d_postgres_set_search_path(
     struct pg_conn* _db,
     const char*     _path
 )
@@ -282,8 +281,7 @@ d_postgres_set_search_path(
 d_postgres_get_search_path
   As the server holds it, "$user", public by default.
 */
-int
-d_postgres_get_search_path(
+int d_postgres_get_search_path(
     struct pg_conn* _db,
     char**          _path
 )
@@ -297,8 +295,7 @@ d_postgres_get_search_path(
 d_postgres_set_statement_timeout
   statement_timeout, in milliseconds.
 */
-int
-d_postgres_set_statement_timeout(
+int d_postgres_set_statement_timeout(
     struct pg_conn* _db,
     unsigned        _milliseconds
 )
@@ -312,8 +309,7 @@ d_postgres_set_statement_timeout(
 d_postgres_get_statement_timeout
   statement_timeout, in milliseconds.
 */
-int
-d_postgres_get_statement_timeout(
+int d_postgres_get_statement_timeout(
     struct pg_conn* _db,
     unsigned*       _milliseconds
 )
@@ -327,8 +323,7 @@ d_postgres_get_statement_timeout(
 d_postgres_set_lock_timeout
   lock_timeout, in milliseconds.
 */
-int
-d_postgres_set_lock_timeout(
+int d_postgres_set_lock_timeout(
     struct pg_conn* _db,
     unsigned        _milliseconds
 )
@@ -340,8 +335,7 @@ d_postgres_set_lock_timeout(
 d_postgres_get_lock_timeout
   lock_timeout, in milliseconds.
 */
-int
-d_postgres_get_lock_timeout(
+int d_postgres_get_lock_timeout(
     struct pg_conn* _db,
     unsigned*       _milliseconds
 )
@@ -358,7 +352,7 @@ d_postgres_set_isolation_level
 int
 d_postgres_set_isolation_level(
     struct pg_conn*           _db,
-    enum d_postgres_isolation _level
+    enum dj_postgres_isolation _level
 )
 {
     // parameter validation
@@ -383,7 +377,7 @@ layer does not know is not one of the enum's.
 int
 d_postgres_get_isolation_level(
     struct pg_conn*            _db,
-    enum d_postgres_isolation* _level
+    enum dj_postgres_isolation* _level
 )
 {
     char* value = NULL;
@@ -411,7 +405,7 @@ d_postgres_get_isolation_level(
     {
         if (strcmp(value, d_internal_postgres_reported_levels[i]) == 0)
         {
-            *_level = (enum d_postgres_isolation)i;
+            *_level = (enum dj_postgres_isolation)i;
             result  = 0;
 
             break;
@@ -430,8 +424,7 @@ d_postgres_set_client_encoding
   set_config, after which the server reports the new encoding to libpq,
 which quotes values for it from then on.
 */
-int
-d_postgres_set_client_encoding(
+int d_postgres_set_client_encoding(
     struct pg_conn* _db,
     const char*     _encoding
 )
@@ -449,8 +442,7 @@ d_postgres_set_client_encoding(
 d_postgres_get_client_encoding
   libpq's copy of what the server last reported.
 */
-int
-d_postgres_get_client_encoding(
+int d_postgres_get_client_encoding(
     struct pg_conn* _db,
     char**          _encoding
 )
@@ -462,8 +454,7 @@ d_postgres_get_client_encoding(
 d_postgres_set_time_zone
   set_config of TimeZone, which takes a zone's name or an offset.
 */
-int
-d_postgres_set_time_zone(
+int d_postgres_set_time_zone(
     struct pg_conn* _db,
     const char*     _zone
 )
@@ -481,8 +472,7 @@ d_postgres_set_time_zone(
 d_postgres_get_time_zone
   libpq's copy of what the server last reported.
 */
-int
-d_postgres_get_time_zone(
+int d_postgres_get_time_zone(
     struct pg_conn* _db,
     char**          _zone
 )
@@ -496,8 +486,7 @@ d_postgres_get_time_zone(
 d_postgres_set_parameter
   set_config(name, value, false).
 */
-int
-d_postgres_set_parameter(
+int d_postgres_set_parameter(
     struct pg_conn* _db,
     const char*     _name,
     const char*     _value
@@ -510,8 +499,7 @@ d_postgres_set_parameter(
 d_postgres_get_parameter
   current_setting(name).
 */
-int
-d_postgres_get_parameter(
+int d_postgres_get_parameter(
     struct pg_conn* _db,
     const char*     _name,
     char**          _value
@@ -533,8 +521,7 @@ d_postgres_get_parameter(
 d_postgres_set_search_path
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_set_search_path(
+int d_postgres_set_search_path(
     struct pg_conn* _db,
     const char*     _path
 )
@@ -549,8 +536,7 @@ d_postgres_set_search_path(
 d_postgres_get_search_path
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_get_search_path(
+int d_postgres_get_search_path(
     struct pg_conn* _db,
     char**          _path
 )
@@ -565,8 +551,7 @@ d_postgres_get_search_path(
 d_postgres_set_statement_timeout
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_set_statement_timeout(
+int d_postgres_set_statement_timeout(
     struct pg_conn* _db,
     unsigned        _milliseconds
 )
@@ -581,8 +566,7 @@ d_postgres_set_statement_timeout(
 d_postgres_get_statement_timeout
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_get_statement_timeout(
+int d_postgres_get_statement_timeout(
     struct pg_conn* _db,
     unsigned*       _milliseconds
 )
@@ -597,8 +581,7 @@ d_postgres_get_statement_timeout(
 d_postgres_set_lock_timeout
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_set_lock_timeout(
+int d_postgres_set_lock_timeout(
     struct pg_conn* _db,
     unsigned        _milliseconds
 )
@@ -613,8 +596,7 @@ d_postgres_set_lock_timeout(
 d_postgres_get_lock_timeout
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_get_lock_timeout(
+int d_postgres_get_lock_timeout(
     struct pg_conn* _db,
     unsigned*       _milliseconds
 )
@@ -632,7 +614,7 @@ d_postgres_set_isolation_level
 int
 d_postgres_set_isolation_level(
     struct pg_conn*           _db,
-    enum d_postgres_isolation _level
+    enum dj_postgres_isolation _level
 )
 {
     (void)_db;
@@ -648,7 +630,7 @@ d_postgres_get_isolation_level
 int
 d_postgres_get_isolation_level(
     struct pg_conn*            _db,
-    enum d_postgres_isolation* _level
+    enum dj_postgres_isolation* _level
 )
 {
     (void)_db;
@@ -661,8 +643,7 @@ d_postgres_get_isolation_level(
 d_postgres_set_client_encoding
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_set_client_encoding(
+int d_postgres_set_client_encoding(
     struct pg_conn* _db,
     const char*     _encoding
 )
@@ -677,8 +658,7 @@ d_postgres_set_client_encoding(
 d_postgres_get_client_encoding
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_get_client_encoding(
+int d_postgres_get_client_encoding(
     struct pg_conn* _db,
     char**          _encoding
 )
@@ -693,8 +673,7 @@ d_postgres_get_client_encoding(
 d_postgres_set_time_zone
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_set_time_zone(
+int d_postgres_set_time_zone(
     struct pg_conn* _db,
     const char*     _zone
 )
@@ -709,8 +688,7 @@ d_postgres_set_time_zone(
 d_postgres_get_time_zone
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_get_time_zone(
+int d_postgres_get_time_zone(
     struct pg_conn* _db,
     char**          _zone
 )
@@ -725,8 +703,7 @@ d_postgres_get_time_zone(
 d_postgres_set_parameter
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_set_parameter(
+int d_postgres_set_parameter(
     struct pg_conn* _db,
     const char*     _name,
     const char*     _value
@@ -743,8 +720,7 @@ d_postgres_set_parameter(
 d_postgres_get_parameter
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_get_parameter(
+int d_postgres_get_parameter(
     struct pg_conn* _db,
     const char*     _name,
     char**          _value

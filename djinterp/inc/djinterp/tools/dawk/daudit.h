@@ -36,9 +36,9 @@
 // 1.1    Enumerations
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_audit_kind
+// dj_audit_kind
 //   enum: what a repair is allowed to change.
-enum d_audit_kind
+enum dj_audit_kind
 {
     D_AUDIT_GEOMETRY = 0,  // whitespace only; every non-blank run identical
     D_AUDIT_FILL,          // a rule's fill run resized; nothing else changes
@@ -50,13 +50,13 @@ enum d_audit_kind
 // 1.2    Records
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_audit_claim
+// dj_audit_claim
 //   struct: a repair's statement of what it changed.  `expect` is the text
 // the repair believed sat at `head` for `run` bytes; checking it against the
 // line on disk is what catches a node whose geometry has gone stale.
-struct d_audit_claim
+struct dj_audit_claim
 {
-    enum d_audit_kind  kind;
+    enum dj_audit_kind  kind;
     size_t             head;      // 0-based start of the run
     size_t             run;       // its length on the line before
     const char*        expect;    // what the run should read; NULL to skip
@@ -75,10 +75,12 @@ struct d_audit_claim
 
 // 2.1    Verification
 //------------------------------------------------------------------------------
-bool d_audit_verify(const char*                 _before,
-                    const char*                 _after,
-                    const struct d_audit_claim* _claim,
-                    const char**                _out_reason);
+bool d_audit_verify(
+    const char*                  _before,
+    const char*                  _after,
+    const struct dj_audit_claim* _claim,
+    const char**                 _out_reason
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DAUDIT_H

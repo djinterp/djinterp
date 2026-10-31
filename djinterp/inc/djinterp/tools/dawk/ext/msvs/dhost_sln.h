@@ -34,7 +34,7 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Extension
-         1.  d_host_sln
+         1.  dj_host_sln
 2.  OPERATIONS
     ----------
     1.  The extension
@@ -46,7 +46,7 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>     // bool
 // djinterp
-#include "../../dinterp.h"  // d_awk_interp
+#include "../../dinterp.h"  // dj_awk_interp
 
 
 //==============================================================================
@@ -57,10 +57,10 @@ TABLE OF CONTENTS
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_sln
+// dj_host_sln
 //   struct: the extension's state behind the sln_* functions: the solutions
 //   open and the last failure.  Layout is private.
-struct d_host_sln;
+struct dj_host_sln;
 
 
 //==============================================================================
@@ -117,10 +117,14 @@ struct d_host_sln;
 // and `\` alike; a folder may be written "tools/dawk" or "/tools/dawk/".
 // A number that names nothing reads as "" or 0, and changes nothing,
 // giving -1.
-struct d_host_sln* d_host_sln_new(void);
-void               d_host_sln_free(struct d_host_sln* _host);
-bool               d_host_sln_install(struct d_host_sln*   _host,
-                                      struct d_awk_interp* _interp);
+struct dj_host_sln* d_host_sln_new(void);
+void d_host_sln_free(
+    struct dj_host_sln* _host
+);
+bool d_host_sln_install(
+    struct dj_host_sln*   _host,
+    struct dj_awk_interp* _interp
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_MSVS_DHOST_SLN_H

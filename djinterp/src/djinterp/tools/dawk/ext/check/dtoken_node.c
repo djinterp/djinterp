@@ -29,9 +29,9 @@
 #include <string.h>   // memcpy, memset, strlen
 
 // djinterp
-#include "../../../../../../inc/djinterp/parse/syntax/syntax_group.h"  // grouping
-#include "../../../../../../inc/djinterp/parse/syntax/syntax_item.h"   // items
-#include "../../../../../../inc/djinterp/parse/c/storage.h"            // d_parse_grow
+#include "../../../../../../inc/djinterp/c/modules/parse/syntax/syntax_group.h"  // grouping
+#include "../../../../../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"   // items
+#include "../../../../../../inc/djinterp/c/modules/parse/storage.h"            // d_parse_grow
 
 // the recognizer grows its arrays and has no fixed-storage mode
 #if (D_INTERNAL_PARSE_HEAP != 1)
@@ -81,27 +81,27 @@
 // d_internal_build
 //   struct: the state of one build.  `node_of` and `depth` are parallel to
 //   the token array, as `parent` and `match` are in the grouping.
-struct d_internal_build
+struct dj_internal_build
 {
-    struct d_node_tree*        tree;
-    const struct d_source*     source;
-    struct d_lexer*            lexer;
-    struct d_token*            tokens;
+    struct dj_node_tree*        tree;
+    const struct dj_source*     source;
+    struct dj_lexer*            lexer;
+    struct dj_token*            tokens;
     size_t                     count;
-    struct d_syntax_groups     groups;
+    struct dj_syntax_groups     groups;
     uint32_t*                  node_of;
     uint32_t*                  depth;
     char*                      spelling;
     uint32_t                   spelling_size;
-    struct d_token_node_stats* stats;
+    struct dj_token_node_stats* stats;
 
-    struct d_syntax_items      items;
+    struct dj_syntax_items      items;
     uint32_t*                  item_node;   // per item: its node
     uint32_t*                  head_of;     // per token: first item begun there
     uint32_t*                  next_start;  // per item: next begun at its token
     uint8_t*                   declarator;  // per token: a declared name
 
-    const struct d_lex_dialect* dialect;    // the language being read
+    const struct dj_lex_dialect* dialect;    // the language being read
 
     uint32_t*                  cond_macro;  // per open conditional: its macro
     uint8_t*                   cond_kind;   // per open conditional: its form
@@ -115,7 +115,7 @@ struct d_internal_build
 // d_internal_fn_facts
 //   struct: what a function definition's body shows, gathered in one scan of
 //   it for the guide's size tripwires and its conditional-compilation rule.
-struct d_internal_fn_facts
+struct dj_internal_fn_facts
 {
     uint32_t  lines;     // first line to closing brace, inclusive
     uint32_t  nesting;   // deepest brace level inside the body
@@ -140,10 +140,10 @@ struct d_internal_fn_facts
  * @param[in]     _token  the token to spell.
  * @return the spelling's length, or (size_t)-1 when the buffer could not grow.
  */
-static size_t
-d_internal_spell(
-    struct d_internal_build* _build,
-    const struct d_token*    _token
+static
+size_t d_internal_spell(
+    struct dj_internal_build* _build,
+    const struct dj_token*    _token
 )
 {
     const uint32_t rewritten = D_TOKEN_FLAG_SPLICED | D_TOKEN_FLAG_TRIGRAPH;
@@ -204,8 +204,8 @@ d_internal_spell(
  * @param[in] _length  its length.
  * @return the width of the first line, in bytes.
  */
-static size_t
-d_internal_first_line_width(
+static
+size_t d_internal_first_line_width(
     const char* _text,
     size_t      _length
 )
@@ -230,8 +230,8 @@ d_internal_first_line_width(
  * @param[in,out] _buffer  receives the name.
  * @param[in]     _size    the buffer's size.
  */
-static void
-d_internal_kind_attribute(
+static
+void d_internal_kind_attribute(
     int    _kind,
     char*  _buffer,
     size_t _size
@@ -273,8 +273,8 @@ d_internal_kind_attribute(
  * @param[in] _length  its length.
  * @return "upper", "lower", "mixed", or "none".
  */
-static const char*
-d_internal_case_of(
+static
+const char* d_internal_case_of(
     const char* _text,
     size_t      _length
 )
@@ -316,12 +316,12 @@ d_internal_case_of(
  * @param[in]     _name   the attribute's name.
  * @param[in]     _value  its value.
  */
-static void
-d_internal_number(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    const char*         _name,
-    size_t              _value
+static
+void d_internal_number(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    const char*          _name,
+    size_t               _value
 )
 {
     char text[D_INTERNAL_NUMBER_MAX];
@@ -340,11 +340,11 @@ d_internal_number(
  * @param[in]     _node   the node.
  * @param[in]     _flags  the token's D_TOKEN_FLAG_* bits.
  */
-static void
-d_internal_flag_attributes(
-    struct d_node_tree* _tree,
-    uint32_t            _node,
-    uint32_t            _flags
+static
+void d_internal_flag_attributes(
+    struct dj_node_tree* _tree,
+    uint32_t             _node,
+    uint32_t             _flags
 )
 {
     static const struct
@@ -385,8 +385,8 @@ d_internal_flag_attributes(
  * @param[in] _kind  the token's kind.
  * @return the type name.
  */
-static const char*
-d_internal_type_of(
+static
+const char* d_internal_type_of(
     int _kind
 )
 {
@@ -423,15 +423,15 @@ d_internal_type_of(
  * @param[in]     _token  the token the node stands for.
  * @param[in]     _width  the spelling's width on its first line.
  */
-static void
-d_internal_geometry(
-    struct d_node_tree*   _tree,
-    uint32_t              _node,
-    const struct d_token* _token,
-    size_t                _width
+static
+void d_internal_geometry(
+    struct dj_node_tree*   _tree,
+    uint32_t               _node,
+    const struct dj_token* _token,
+    size_t                 _width
 )
 {
-    struct d_node* const node = d_node_at(_tree, _node);
+    struct dj_node* const node = d_node_at(_tree, _node);
 
     if (!node)
     {
@@ -462,11 +462,11 @@ d_internal_geometry(
  * @return `true` if the directive before it tests the same name, `false`
  *         otherwise.
  */
-static bool
-d_internal_define_guarded(
-    const struct d_internal_build* _build,
-    uint32_t                       _at,
-    uint32_t                       _macro
+static
+bool d_internal_define_guarded(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at,
+    uint32_t                        _macro
 )
 {
     uint32_t prev = _at;
@@ -504,12 +504,12 @@ d_internal_define_guarded(
         return false;
     }
 
-    const struct d_token* const defined = &_build->tokens[_macro];
+    const struct dj_token* const defined = &_build->tokens[_macro];
 
     // the line before must test this very name
     for (uint32_t at = hash + 1u; at <= _build->groups.match[hash]; ++at)
     {
-        const struct d_token* const tested = &_build->tokens[at];
+        const struct dj_token* const tested = &_build->tokens[at];
 
         if ( ((tested->flags & D_TOKEN_FLAG_MACRO_NAME) != 0u) &&
              (tested->span.length == defined->span.length)                &&
@@ -551,13 +551,13 @@ d_internal_define_guarded(
  * @return `true` if an open `#ifndef` tests this very name and is still in
  *         its first branch, `false` otherwise.
  */
-static bool
-d_internal_define_under_guard(
-    const struct d_internal_build* _build,
-    uint32_t                       _macro
+static
+bool d_internal_define_under_guard(
+    const struct dj_internal_build* _build,
+    uint32_t                        _macro
 )
 {
-    const struct d_token* const defined = &_build->tokens[_macro];
+    const struct dj_token* const defined = &_build->tokens[_macro];
 
     for (uint32_t level = _build->cond_depth; level > 0u; --level)
     {
@@ -592,11 +592,11 @@ d_internal_define_under_guard(
  * @param[in] _word   the spelling to compare against.
  * @return `true` if the name is spelled exactly `_word`, `false` otherwise.
  */
-static bool
-d_internal_directive_is(
-    const struct d_internal_build* _build,
-    uint32_t                       _name,
-    const char*                    _word
+static
+bool d_internal_directive_is(
+    const struct dj_internal_build* _build,
+    uint32_t                        _name,
+    const char*                     _word
 )
 {
     const size_t length = strlen(_word);
@@ -622,11 +622,11 @@ d_internal_directive_is(
  * @return `true` if the macro's spelling occurs in the comment with no
  *         identifier character on either side, `false` otherwise.
  */
-static bool
-d_internal_comment_names(
-    const struct d_internal_build* _build,
-    uint32_t                       _comment,
-    uint32_t                       _macro
+static
+bool d_internal_comment_names(
+    const struct dj_internal_build* _build,
+    uint32_t                        _comment,
+    uint32_t                        _macro
 )
 {
     const char* const text   = _build->source->text +
@@ -668,10 +668,10 @@ d_internal_comment_names(
  * @param[in] _at     the token's index.
  * @return the count; for the first token, the lines above it.
  */
-static uint32_t
-d_internal_blank_before(
-    const struct d_internal_build* _build,
-    uint32_t                       _at
+static
+uint32_t d_internal_blank_before(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at
 )
 {
     const uint32_t line     = _build->tokens[_at].span.line;
@@ -690,11 +690,11 @@ d_internal_blank_before(
  * @param[in]     _node   the node.
  * @param[in]     _at     the index of the token it begins with.
  */
-static void
-d_internal_blank_attribute(
-    struct d_internal_build* _build,
-    uint32_t                 _node,
-    uint32_t                 _at
+static
+void d_internal_blank_attribute(
+    struct dj_internal_build* _build,
+    uint32_t                  _node,
+    uint32_t                  _at
 )
 {
     const uint32_t blank = d_internal_blank_before(_build, _at);
@@ -723,12 +723,12 @@ d_internal_blank_attribute(
  * @return `true` if some line of the comment holds the name and nothing
  *         else, or names a family the name belongs to (`PREFIX<...>`).
  */
-static bool
-d_internal_comment_line_is(
-    const struct d_internal_build* _build,
-    uint32_t                       _at,
-    const char*                    _name,
-    size_t                         _length
+static
+bool d_internal_comment_line_is(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at,
+    const char*                     _name,
+    size_t                          _length
 )
 {
     const char* const text = _build->source->text +
@@ -829,19 +829,19 @@ d_internal_comment_line_is(
  * @param[in] _length  the name's length.
  * @return `true` if a comment of the run has a line that is the name.
  */
-static bool
-d_internal_documented(
-    const struct d_internal_build* _build,
-    uint32_t                       _first,
-    const char*                    _name,
-    size_t                         _length
+static
+bool d_internal_documented(
+    const struct dj_internal_build* _build,
+    uint32_t                        _first,
+    const char*                     _name,
+    size_t                          _length
 )
 {
     uint32_t line = _build->tokens[_first].span.line;
 
     for (uint32_t at = _first; at > 0u; --at)
     {
-        const struct d_token* const comment = &_build->tokens[at - 1u];
+        const struct dj_token* const comment = &_build->tokens[at - 1u];
 
         // the run ends at anything but a whole-line comment just above
         if ( (comment->kind != D_TOKEN_COMMENT)                        ||
@@ -873,15 +873,15 @@ d_internal_documented(
  * @param[in] _at     the declared name's token.
  * @return `true` if a top-level `=` follows before the declarator ends.
  */
-static bool
-d_internal_initialized(
-    const struct d_internal_build* _build,
-    uint32_t                       _at
+static
+bool d_internal_initialized(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at
 )
 {
     for (uint32_t at = _at + 1u; at < (uint32_t)_build->count; ++at)
     {
-        const struct d_token* const token   = &_build->tokens[at];
+        const struct dj_token* const token   = &_build->tokens[at];
         const char* const           spelled = d_token_spelling(token->kind);
 
         if (token->kind == D_TOKEN_COMMENT)
@@ -929,8 +929,8 @@ d_internal_initialized(
  * @param[out] _out_length  receives the stem's length.
  * @return the stem's first character.
  */
-static const char*
-d_internal_stem(
+static
+const char* d_internal_stem(
     const char* _path,
     size_t      _length,
     size_t*     _out_length
@@ -974,11 +974,11 @@ d_internal_stem(
  * @param[in]     _parent  the node to add beneath.
  * @return the node, or D_DSS_NO_INDEX.
  */
-static uint32_t
-d_internal_emit_directive(
-    struct d_internal_build* _build,
-    uint32_t                 _at,
-    uint32_t                 _parent
+static
+uint32_t d_internal_emit_directive(
+    struct dj_internal_build* _build,
+    uint32_t                  _at,
+    uint32_t                  _parent
 )
 {
     const uint32_t last =
@@ -993,7 +993,7 @@ d_internal_emit_directive(
     // read the line before writing anything
     for (uint32_t at = _at + 1u; at <= last; ++at)
     {
-        const struct d_token* const token = &_build->tokens[at];
+        const struct dj_token* const token = &_build->tokens[at];
 
         if ( (name == D_SYNTAX_NONE) &&
              ((token->flags & D_TOKEN_FLAG_DIRECTIVE_NAME) != 0u) )
@@ -1020,7 +1020,7 @@ d_internal_emit_directive(
         return D_DSS_NO_INDEX;
     }
 
-    struct d_node_tree* const tree = _build->tree;
+    struct dj_node_tree* const tree = _build->tree;
     const size_t              none = (size_t)-1;
 
     if (name != D_SYNTAX_NONE)
@@ -1222,8 +1222,8 @@ d_internal_emit_directive(
     d_internal_blank_attribute(_build, node, _at);
 
     // the directive spans its line, from the `#` to its last token
-    const struct d_token* const first = &_build->tokens[_at];
-    const struct d_token* const end   = &_build->tokens[last];
+    const struct dj_token* const first = &_build->tokens[_at];
+    const struct dj_token* const end   = &_build->tokens[last];
     size_t                      width = 1u;
 
     if (end->span.line == first->span.line)
@@ -1251,16 +1251,16 @@ d_internal_emit_directive(
  * @param[in]     _parent  the node to add beneath.
  * @return the node, or D_DSS_NO_INDEX.
  */
-static uint32_t
-d_internal_emit_group(
-    struct d_internal_build* _build,
-    uint32_t                 _at,
-    uint32_t                 _parent
+static
+uint32_t d_internal_emit_group(
+    struct dj_internal_build* _build,
+    uint32_t                  _at,
+    uint32_t                  _parent
 )
 {
-    const struct d_token* const token = &_build->tokens[_at];
+    const struct dj_token* const token = &_build->tokens[_at];
     const uint32_t              close = _build->groups.match[_at];
-    struct d_node_tree* const   tree  = _build->tree;
+    struct dj_node_tree* const   tree  = _build->tree;
 
     const uint32_t node = d_node_add(tree, _parent, "group");
 
@@ -1282,7 +1282,7 @@ d_internal_emit_group(
 
     if (close != D_SYNTAX_NONE)
     {
-        const struct d_token* const closer = &_build->tokens[close];
+        const struct dj_token* const closer = &_build->tokens[close];
 
         d_internal_number(tree, node, "close-line",   closer->span.line);
         d_internal_number(tree, node, "close-column", closer->span.column);
@@ -1360,18 +1360,18 @@ d_internal_emit_group(
  * @return the level of the earliest row giving the spelling that kind, a
  *         year such as 2011; 0 if the table has no such row.
  */
-static unsigned
-d_internal_keyword_since(
-    const struct d_internal_build* _build,
-    int                            _kind
+static
+unsigned d_internal_keyword_since(
+    const struct dj_internal_build* _build,
+    int                             _kind
 )
 {
-    const struct d_lex_dialect* const dialect = _build->dialect;
+    const struct dj_lex_dialect* const dialect = _build->dialect;
     unsigned                          since   = 0u;
 
     for (size_t at = 0u; (dialect) && (at < dialect->keyword_count); ++at)
     {
-        const struct d_lex_keyword* const row = &dialect->keywords[at];
+        const struct dj_lex_keyword* const row = &dialect->keywords[at];
 
         if ( (row->kind == _kind)                         &&
              (row->since != D_LEX_NEVER)                  &&
@@ -1395,13 +1395,13 @@ d_internal_keyword_since(
  * @return `true` for `//====`, `//----`, `// ====` and `//////`, each at
  *         least ten characters long.
  */
-static bool
-d_internal_comment_is_rule(
-    const struct d_internal_build* _build,
-    uint32_t                       _at
+static
+bool d_internal_comment_is_rule(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at
 )
 {
-    const struct d_token* const token = &_build->tokens[_at];
+    const struct dj_token* const token = &_build->tokens[_at];
 
     if ( (token->kind != D_TOKEN_COMMENT) ||
          ((token->flags & D_TOKEN_FLAG_COMMENT_LINE) == 0u) )
@@ -1450,8 +1450,8 @@ d_internal_comment_is_rule(
  * @return its value, from 1 to 399; 0 when the letters are no numeral, or
  *         spell one in a way it is not written (`IIII`, `VX`, `IC`).
  */
-static unsigned
-d_internal_roman_value(
+static
+unsigned d_internal_roman_value(
     const char* _text
 )
 {
@@ -1502,10 +1502,10 @@ d_internal_roman_value(
  *         no delimiter: the shape a heading shares with the others of its
  *         list.
  */
-static char
-d_internal_rule_above(
-    const struct d_internal_build* _build,
-    uint32_t                       _at
+static
+char d_internal_rule_above(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at
 )
 {
     if ( (_at == 0u)                                          ||
@@ -1516,7 +1516,7 @@ d_internal_rule_above(
         return '\0';
     }
 
-    const struct d_token* const rule = &_build->tokens[_at - 1u];
+    const struct dj_token* const rule = &_build->tokens[_at - 1u];
     const char* const           text = _build->source->text +
                                        rule->span.offset;
     size_t                      size = rule->span.length;
@@ -1544,8 +1544,8 @@ d_internal_rule_above(
  *         or three slashes, a space, letters, a period and then a space or
  *         its end.
  */
-static size_t
-d_internal_ordinal_span(
+static
+size_t d_internal_ordinal_span(
     const char* _text,
     size_t      _size,
     size_t*     _out_first,
@@ -1612,15 +1612,15 @@ d_internal_ordinal_span(
  * @return the count of letters, or 0 when the token is not a line comment
  *         that opens with such an ordinal.
  */
-static size_t
-d_internal_letter_ordinal(
-    const struct d_internal_build* _build,
-    uint32_t                       _at,
-    char*                          _out,
-    char*                          _out_rule
+static
+size_t d_internal_letter_ordinal(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at,
+    char*                           _out,
+    char*                           _out_rule
 )
 {
-    const struct d_token* const token = &_build->tokens[_at];
+    const struct dj_token* const token = &_build->tokens[_at];
     size_t                      first = 0u;
     bool                        apart = false;
 
@@ -1668,11 +1668,11 @@ d_internal_letter_ordinal(
  *                     is none.
  * @return that heading's token, or `_at` itself when there is none.
  */
-static uint32_t
-d_internal_ordinal_before(
-    const struct d_internal_build* _build,
-    uint32_t                       _at,
-    char*                          _out
+static
+uint32_t d_internal_ordinal_before(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at,
+    char*                           _out
 )
 {
     char own[D_INTERNAL_ORDINAL_MAX + 1u] = "";
@@ -1730,11 +1730,11 @@ d_internal_ordinal_before(
  * @return the value; 0 for a letter and for a token that opens with no
  *         ordinal in letters.
  */
-static unsigned
-d_internal_ordinal_value(
-    const struct d_internal_build* _build,
-    uint32_t                       _at,
-    unsigned                       _depth
+static
+unsigned d_internal_ordinal_value(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at,
+    unsigned                        _depth
 )
 {
     char own[D_INTERNAL_ORDINAL_MAX + 1u]    = "";
@@ -1785,10 +1785,10 @@ d_internal_ordinal_value(
  *         space or its end, and d_internal_ordinal_value counts the letter
  *         as none of a numeral; `false` otherwise.
  */
-static bool
-d_internal_ordinal_is_letter(
-    const struct d_internal_build* _build,
-    uint32_t                       _at
+static
+bool d_internal_ordinal_is_letter(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at
 )
 {
     char own[D_INTERNAL_ORDINAL_MAX + 1u] = "";
@@ -1813,14 +1813,14 @@ d_internal_ordinal_is_letter(
  *                        subsection, item or entry) and `numeral` (decimal
  *                        or roman).
  */
-static void
-d_internal_comment_marker(
-    struct d_internal_build* _build,
-    uint32_t                 _at,
-    uint32_t                 _node
+static
+void d_internal_comment_marker(
+    struct dj_internal_build* _build,
+    uint32_t                  _at,
+    uint32_t                  _node
 )
 {
-    const struct d_token* const token = &_build->tokens[_at];
+    const struct dj_token* const token = &_build->tokens[_at];
     const char* const           text  = _build->source->text +
                                         token->span.offset;
     size_t                      size  = token->span.length;
@@ -1986,16 +1986,16 @@ d_internal_comment_marker(
  *                        numerals is decided as it is for a heading, by the
  *                        entry before at the same indentation.
  */
-static void
-d_internal_comment_toc(
-    struct d_internal_build* _build,
-    uint32_t                 _at,
-    uint32_t                 _node
+static
+void d_internal_comment_toc(
+    struct dj_internal_build* _build,
+    uint32_t                  _at,
+    uint32_t                  _node
 )
 {
     static const char heading[] = "TABLE OF CONTENTS";
 
-    const struct d_token* const token = &_build->tokens[_at];
+    const struct dj_token* const token = &_build->tokens[_at];
     const char* const           text  = _build->source->text +
                                         token->span.offset;
     const size_t                size  = token->span.length;
@@ -2151,15 +2151,15 @@ d_internal_comment_toc(
  * @param[in]     _parent  the node to add beneath.
  * @return the node, or D_DSS_NO_INDEX.
  */
-static uint32_t
-d_internal_emit_leaf(
-    struct d_internal_build* _build,
-    uint32_t                 _at,
-    uint32_t                 _parent
+static
+uint32_t d_internal_emit_leaf(
+    struct dj_internal_build* _build,
+    uint32_t                  _at,
+    uint32_t                  _parent
 )
 {
-    const struct d_token* const token  = &_build->tokens[_at];
-    struct d_node_tree* const   tree   = _build->tree;
+    const struct dj_token* const token  = &_build->tokens[_at];
+    struct dj_node_tree* const   tree   = _build->tree;
     const size_t                length = d_internal_spell(_build, token);
 
     // the spelling could not be held
@@ -2280,10 +2280,10 @@ d_internal_emit_leaf(
  * @param[in] _opener  the parameter group's opening token index.
  * @return the parameter count; zero for `()` and `(void)`.
  */
-static uint32_t
-d_internal_param_count(
-    const struct d_internal_build* _build,
-    uint32_t                       _opener
+static
+uint32_t d_internal_param_count(
+    const struct dj_internal_build* _build,
+    uint32_t                        _opener
 )
 {
     const uint32_t end = (_opener == D_SYNTAX_NONE)
@@ -2301,7 +2301,7 @@ d_internal_param_count(
 
     for (uint32_t at = _opener + 1u; at < end; ++at)
     {
-        const struct d_token* const token = &_build->tokens[at];
+        const struct dj_token* const token = &_build->tokens[at];
 
         // only the group's own children separate its parameters
         if ( (_build->groups.parent[at] != _opener) ||
@@ -2344,14 +2344,14 @@ d_internal_param_count(
  * @param[in]  _k          the function definition's item index.
  * @param[out] _out_facts  receives the facts.
  */
-static void
-d_internal_fn_facts(
-    const struct d_internal_build* _build,
-    uint32_t                       _k,
-    struct d_internal_fn_facts*    _out_facts
+static
+void d_internal_fn_facts(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k,
+    struct dj_internal_fn_facts*    _out_facts
 )
 {
-    const struct d_syntax_item* const item = &_build->items.items[_k];
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
     const uint32_t                    body = item->body;
 
     memset(_out_facts, 0, sizeof(*_out_facts));
@@ -2401,13 +2401,13 @@ d_internal_fn_facts(
  * @return `struct`, `union`, `enum` or `class`, or `NULL` if none stands at the
  *         typedef's own level.
  */
-static const char*
-d_internal_hidden_tag(
-    const struct d_internal_build* _build,
-    uint32_t                       _k
+static
+const char* d_internal_hidden_tag(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
 )
 {
-    const struct d_syntax_item* const item = &_build->items.items[_k];
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
 
     for (uint32_t at = item->first; at <= item->last; ++at)
     {
@@ -2443,10 +2443,10 @@ d_internal_hidden_tag(
  * @return the first parameter's `D_SYNTAX_ITEM_FLAG_*` bits, or zero when the
  *         list holds no parameter item.
  */
-static uint16_t
-d_internal_first_param_flags(
-    const struct d_internal_build* _build,
-    uint32_t                       _opener
+static
+uint16_t d_internal_first_param_flags(
+    const struct dj_internal_build* _build,
+    uint32_t                        _opener
 )
 {
     // no group, or one that never closed
@@ -2495,22 +2495,22 @@ d_internal_first_param_flags(
  *                        parameter); and `return-tag` when the block holds
  *                        `@return` or `@retval`.
  */
-static void
-d_internal_contract(
-    struct d_internal_build* _build,
-    uint32_t                 _k,
-    uint32_t                 _node
+static
+void d_internal_contract(
+    struct dj_internal_build* _build,
+    uint32_t                  _k,
+    uint32_t                  _node
 )
 {
-    const struct d_syntax_item* const item = &_build->items.items[_k];
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
 
     if (item->first == 0u)
     {
         return;
     }
 
-    const struct d_token* const first   = &_build->tokens[item->first];
-    const struct d_token* const comment = &_build->tokens[item->first - 1u];
+    const struct dj_token* const first   = &_build->tokens[item->first];
+    const struct dj_token* const comment = &_build->tokens[item->first - 1u];
 
     if ( (comment->kind != D_TOKEN_COMMENT)                         ||
          ((comment->flags & D_TOKEN_FLAG_COMMENT_LINE) != 0u)       ||
@@ -2658,7 +2658,7 @@ d_internal_contract(
 
     for (size_t which = 0u; which < named; ++which)
     {
-        const struct d_token* const name   = &_build->tokens[names[which]];
+        const struct dj_token* const name   = &_build->tokens[names[which]];
         const char* const           spelt  = _build->source->text +
                                              name->span.offset;
         bool                        tagged = false;
@@ -2703,16 +2703,16 @@ d_internal_contract(
  * @param[in] _k      the function's item index.
  * @param[in] _node   the function's node.
  */
-static void
-d_internal_fn_attributes(
-    struct d_internal_build* _build,
-    uint32_t                 _k,
-    uint32_t                 _node
+static
+void d_internal_fn_attributes(
+    struct dj_internal_build* _build,
+    uint32_t                  _k,
+    uint32_t                  _node
 )
 {
-    const struct d_syntax_item* const item = &_build->items.items[_k];
-    struct d_node_tree* const         tree = _build->tree;
-    struct d_internal_fn_facts        facts;
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+    struct dj_node_tree* const         tree = _build->tree;
+    struct dj_internal_fn_facts        facts;
 
     d_internal_fn_facts(_build, _k, &facts);
 
@@ -2807,11 +2807,11 @@ d_internal_fn_attributes(
  * @param[in] _k      the item's index.
  * @param[in] _node   the item's node.
  */
-static void
-d_internal_decl_attributes(
-    struct d_internal_build* _build,
-    uint32_t                 _k,
-    uint32_t                 _node
+static
+void d_internal_decl_attributes(
+    struct dj_internal_build* _build,
+    uint32_t                  _k,
+    uint32_t                  _node
 )
 {
     static const struct
@@ -2827,8 +2827,8 @@ d_internal_decl_attributes(
         { D_SYNTAX_ITEM_FLAG_DETACHED,   "detached"   }
     };
 
-    const struct d_syntax_item* const item = &_build->items.items[_k];
-    struct d_node_tree* const         tree = _build->tree;
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+    struct dj_node_tree* const         tree = _build->tree;
 
     if (item->kind == D_SYNTAX_ITEM_TYPEDEF)
     {
@@ -2890,16 +2890,16 @@ d_internal_decl_attributes(
  * @param[in]     _parent  the node to add beneath.
  * @return the node, or `D_DSS_NO_INDEX` if it could not be added.
  */
-static uint32_t
-d_internal_emit_item(
-    struct d_internal_build* _build,
-    uint32_t                 _k,
-    uint32_t                 _parent
+static
+uint32_t d_internal_emit_item(
+    struct dj_internal_build* _build,
+    uint32_t                  _k,
+    uint32_t                  _parent
 )
 {
-    const struct d_syntax_item* const item  = &_build->items.items[_k];
-    const struct d_token* const       first = &_build->tokens[item->first];
-    struct d_node_tree* const         tree  = _build->tree;
+    const struct dj_syntax_item* const item  = &_build->items.items[_k];
+    const struct dj_token* const       first = &_build->tokens[item->first];
+    struct dj_node_tree* const         tree  = _build->tree;
     const size_t                      none  = (size_t)-1;
 
     const uint32_t node = d_node_add(tree,
@@ -3007,7 +3007,7 @@ d_internal_emit_item(
     }
 
     // shown as its name, or as the token it begins with
-    const struct d_token* const shown =
+    const struct dj_token* const shown =
         (item->name != D_SYNTAX_NONE) ? &_build->tokens[item->name] : first;
     const size_t length = d_internal_spell(_build, shown);
 
@@ -3042,11 +3042,11 @@ d_internal_emit_item(
  * @param[in] _root   the node the tree hangs from.
  * @return the containing node.
  */
-static uint32_t
-d_internal_container(
-    const struct d_internal_build* _build,
-    uint32_t                       _at,
-    uint32_t                       _root
+static
+uint32_t d_internal_container(
+    const struct dj_internal_build* _build,
+    uint32_t                        _at,
+    uint32_t                        _root
 )
 {
     const uint32_t group = _build->groups.parent[_at];
@@ -3081,14 +3081,14 @@ d_internal_container(
  * @param[in] _root   the node the tree hangs from.
  * @return the containing node.
  */
-static uint32_t
-d_internal_item_container(
-    const struct d_internal_build* _build,
-    uint32_t                       _k,
-    uint32_t                       _root
+static
+uint32_t d_internal_item_container(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k,
+    uint32_t                        _root
 )
 {
-    const struct d_syntax_item* const item = &_build->items.items[_k];
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
 
     if ( (item->parent != D_SYNTAX_NONE) &&
          (_build->item_node[item->parent] != D_DSS_NO_INDEX) )
@@ -3117,9 +3117,9 @@ d_internal_item_container(
  *
  * @param[in,out] _build  the build, its arrays allocated.
  */
-static void
-d_internal_prepare(
-    struct d_internal_build* _build
+static
+void d_internal_prepare(
+    struct dj_internal_build* _build
 )
 {
     for (uint32_t at = 0u; at < (uint32_t)_build->count; ++at)
@@ -3140,7 +3140,7 @@ d_internal_prepare(
 
     for (uint32_t k = 0u; k < (uint32_t)_build->items.count; ++k)
     {
-        const struct d_syntax_item* const item = &_build->items.items[k];
+        const struct dj_syntax_item* const item = &_build->items.items[k];
 
         _build->item_node[k]  = D_DSS_NO_INDEX;
         _build->next_start[k] = D_SYNTAX_NONE;
@@ -3176,9 +3176,9 @@ d_internal_prepare(
  * @param[in,out] _build  the build to fill.
  * @return `true` if the source was lexed, `false` if memory ran out.
  */
-static bool
-d_internal_lex_all(
-    struct d_internal_build* _build
+static
+bool d_internal_lex_all(
+    struct dj_internal_build* _build
 )
 {
     uint32_t capacity = 0u;
@@ -3191,11 +3191,11 @@ d_internal_lex_all(
             return false;
         }
 
-        struct d_token* const grown =
+        struct dj_token* const grown =
             d_parse_grow(_build->tokens,
                          &capacity,
                          (uint32_t)_build->count + 1u,
-                         (uint32_t)sizeof(struct d_token),
+                         (uint32_t)sizeof(struct dj_token),
                          1);
 
         // grow before the array is full, so the next token always fits
@@ -3223,9 +3223,9 @@ d_internal_lex_all(
  *
  * @param[in,out] _build  the build to release.
  */
-static void
-d_internal_release(
-    struct d_internal_build* _build
+static
+void d_internal_release(
+    struct dj_internal_build* _build
 )
 {
     d_lex_destroy(_build->lexer);
@@ -3253,18 +3253,17 @@ d_internal_release(
 d_token_node_build
   Lexes, groups and emits a source beneath a parent node.
 */
-uint32_t
-d_token_node_build(
-    struct d_node_tree*              _tree,
-    uint32_t                         _parent,
-    const struct d_lex_dialect*      _dialect,
-    const struct d_token_node_input* _input,
-    struct d_token_node_stats*       _out_stats
+uint32_t d_token_node_build(
+    struct dj_node_tree*              _tree,
+    uint32_t                          _parent,
+    const struct dj_lex_dialect*      _dialect,
+    const struct dj_token_node_input* _input,
+    struct dj_token_node_stats*       _out_stats
 )
 {
-    struct d_token_node_stats scratch;
-    struct d_internal_build   build;
-    struct d_parse_diag_sink  counter;
+    struct dj_token_node_stats scratch;
+    struct dj_internal_build   build;
+    struct dj_parse_diag_sink  counter;
 
     // parameter validation first
     if ( (!_tree)          ||
@@ -3275,7 +3274,7 @@ d_token_node_build(
         return D_DSS_NO_INDEX;
     }
 
-    const struct d_source* const source = _input->source;
+    const struct dj_source* const source = _input->source;
 
     memset(&build, 0, sizeof(build));
     memset(&scratch, 0, sizeof(scratch));
@@ -3297,7 +3296,7 @@ d_token_node_build(
                            NULL,
                            0u);
 
-    struct d_parse_diag_sink* const sink   = _input->sink ? _input->sink
+    struct dj_parse_diag_sink* const sink   = _input->sink ? _input->sink
                                                          : &counter;
     const uint32_t                  before =
         d_parse_diag_tally(sink,
@@ -3393,7 +3392,7 @@ d_token_node_build(
 
     for (uint32_t at = 0u; at < (uint32_t)build.count; ++at)
     {
-        const struct d_token* const token = &build.tokens[at];
+        const struct dj_token* const token = &build.tokens[at];
 
         // the items that begin here come first, outermost first
         for (uint32_t k = build.head_of[at];

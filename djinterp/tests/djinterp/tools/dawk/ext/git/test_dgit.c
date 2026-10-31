@@ -41,8 +41,8 @@
 #include <time.h>    // clock
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_doc.h"   // d_git_doc
-#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_text.h"  // d_git_text
+#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_doc.h"   // dj_git_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/git/dgit_text.h"  // dj_git_text
 
 
 static int g_checks = 0;
@@ -58,8 +58,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -82,8 +82,8 @@ d_tests_is
   Counts one check that a text is the one expected, and shows both when it
 is not.
 */
-static void
-d_tests_is(
+static
+void d_tests_is(
     const char* _got,
     const char* _want,
     const char* _what
@@ -109,8 +109,8 @@ d_tests_is(
 d_tests_span_is
   Counts one check that a span of a text is the one expected.
 */
-static void
-d_tests_span_is(
+static
+void d_tests_span_is(
     const char* _text,
     size_t      _start,
     size_t      _end,
@@ -143,8 +143,8 @@ d_tests_span_is(
 d_tests_count_is
   Counts one check that a number is the one expected.
 */
-static void
-d_tests_count_is(
+static
+void d_tests_count_is(
     size_t      _got,
     size_t      _want,
     const char* _what
@@ -170,9 +170,9 @@ d_tests_read
 */
 static bool
 d_tests_read(
-    struct d_git_text*   _text,
+    struct dj_git_text*   _text,
     const char*          _source,
-    enum d_git_text_kind _kind,
+    enum dj_git_text_kind _kind,
     const char*          _what
 )
 {
@@ -190,8 +190,8 @@ d_tests_read(
 d_tests_load
   A file's bytes, allocated and terminated; NULL when it cannot be read.
 */
-static char*
-d_tests_load(
+static
+char* d_tests_load(
     const char* _path,
     size_t*     _out_length
 )
@@ -252,8 +252,8 @@ d_tests_put
   Writes bytes to a file, its directories made first; false when it
 cannot.
 */
-static bool
-d_tests_put(
+static
+bool d_tests_put(
     const char* _path,
     const void* _bytes,
     size_t      _length
@@ -279,8 +279,8 @@ d_tests_put(
 d_tests_put_text
   Writes a text to a file beneath a directory.
 */
-static bool
-d_tests_put_text(
+static
+bool d_tests_put_text(
     const char* _directory,
     const char* _name,
     const char* _text
@@ -303,8 +303,8 @@ d_tests_put_text(
 d_tests_kinds
   Files' kinds by their names, and by the names a program gives.
 */
-static void
-d_tests_kinds(void)
+static
+void d_tests_kinds(void)
 {
     puts("kinds");
     d_tests_check(d_git_text_kind_of("a/b/.gitignore") == D_GIT_TEXT_IGNORE,
@@ -350,13 +350,13 @@ d_tests_ignore_file
 `\#` and `\!` literal, `!` negating, a trailing `/` for directories,
 trailing blanks trimmed unless escaped, leading blanks kept.
 */
-static void
-d_tests_ignore_file(void)
+static
+void d_tests_ignore_file(void)
 {
     static const char source[] =
         "# comment\n\\#hash\n!keep.o\n*.o\nbuild/\n/root.txt\ndoc/*.md\n"
         "trail\\ \nspaces   \n\\!bang\n  lead\n#\n\n!\n";
-    struct d_git_text text;
+    struct dj_git_text text;
 
     puts("ignore files");
 
@@ -412,15 +412,15 @@ d_tests_attribute_file
   An attribute file's patterns and states, its macros, a quoted pattern,
 and the lines git refuses: a negated pattern, an invalid name.
 */
-static void
-d_tests_attribute_file(void)
+static
+void d_tests_attribute_file(void)
 {
     static const char source[] =
         "# c\n*.c text diff=cpp -merge !eol\n[attr]bin -diff -merge -text\n"
         "*.png bin\n\"sp ace.txt\" eol=crlf\n!neg.txt text\n"
         "bad.txt 9bad\n*.md\n  \t*.h   text\n\"unterminated text\n"
         "dir/ text\n[attr]bad!name x\n";
-    struct d_git_text text;
+    struct dj_git_text text;
 
     puts("attribute files");
 
@@ -431,8 +431,8 @@ d_tests_attribute_file(void)
         return;
     }
 
-    const struct d_git_text_pattern* const c = &text.patterns[0];
-    const struct d_git_text_attribute*     states =
+    const struct dj_git_text_pattern* const c = &text.patterns[0];
+    const struct dj_git_text_attribute*     states =
         &text.attributes[c->first_attribute];
 
     d_tests_count_is(text.pattern_count, 9u, "nine patterns and macros");
@@ -479,8 +479,8 @@ quoted and escaped, the old [a.B] form, a name alone, quoted values,
 comments after values, escapes, a continued value, and an entry after a
 header on its line.
 */
-static void
-d_tests_config_file(void)
+static
+void d_tests_config_file(void)
 {
     static const char source[] =
         "; top\n[Core]\n\tBare = false\n\tEditor = \"vim -f\" ; c\n\tflag\n"
@@ -493,7 +493,7 @@ d_tests_config_file(void)
     static const char* const values[] = {
         "false", "vim -f", NULL, "x y", "q\"uote tail", "v", "a\tb\nc\\d",
         " lead" };
-    struct d_git_text text;
+    struct dj_git_text text;
     char              what[128];
 
     puts("configurations");
@@ -551,10 +551,10 @@ d_tests_config_file(void)
 }
 
 
-// d_tests_refusal
+// dj_tests_refusal
 //   struct: a configuration git refuses, and the line its fatal error
 //   names.
-struct d_tests_refusal
+struct dj_tests_refusal
 {
     const char* text;
     size_t      line;
@@ -567,10 +567,10 @@ d_tests_config_refusals
 on -- one past the last when a header runs into the end, or a line's end
 follows a subsection's closing quote, as git counts them.
 */
-static void
-d_tests_config_refusals(void)
+static
+void d_tests_config_refusals(void)
 {
-    static const struct d_tests_refusal refusals[] =
+    static const struct dj_tests_refusal refusals[] =
     {
         { "[s]\n[bad\n",           2u }, { "[s]\n[bad",            3u },
         { "[s \"l\"]\n[bad\n",     2u }, { "[a]\n[b \n",           2u },
@@ -589,7 +589,7 @@ d_tests_config_refusals(void)
     for (size_t at = 0u; at < (sizeof(refusals) / sizeof(refusals[0]));
          ++at)
     {
-        struct d_git_text text;
+        struct dj_git_text text;
         char              want[64];
 
         (void)snprintf(what, sizeof(what), "refusal %lu reads",
@@ -620,10 +620,10 @@ d_tests_config_marks
   A byte-order mark read past and kept; lines ending in \r\n read as lines,
 and the file said to be written so.
 */
-static void
-d_tests_config_marks(void)
+static
+void d_tests_config_marks(void)
 {
-    struct d_git_text text;
+    struct dj_git_text text;
 
     // a mark, then \r\n endings
     if (d_tests_read(&text, "\xef\xbb\xbf[a]\r\n\tb = c\r\n",
@@ -645,19 +645,19 @@ d_tests_config_marks(void)
 //==============================================================================
 
 
-// d_tests_wild
+// dj_tests_wild
 //   struct: one of wildmatch's vectors: whether the pattern matches the
 //   text with D_GIT_TEXT_PATHNAME, with it and D_GIT_TEXT_CASEFOLD, with
 //   neither, and with D_GIT_TEXT_CASEFOLD alone, each '1' or '0' -- as git's
 //   own wildmatch answered them.
-struct d_tests_wild
+struct dj_tests_wild
 {
     const char* want;
     const char* pattern;
     const char* text;
 };
 
-static const struct d_tests_wild d_tests_wilds[] =
+static const struct dj_tests_wild d_tests_wilds[] =
 {
     { "1111", "main.c", "main.c" },
     { "0000", "main.c", "main.h" },
@@ -799,8 +799,8 @@ d_tests_wildmatch
 against long texts, which git's wildmatch abandons early rather than
 trying every way, so they take no time at all.
 */
-static void
-d_tests_wildmatch(void)
+static
+void d_tests_wildmatch(void)
 {
     static const unsigned flags[4] = {
         D_GIT_TEXT_PATHNAME, D_GIT_TEXT_PATHNAME | D_GIT_TEXT_CASEFOLD, 0u,
@@ -815,7 +815,7 @@ d_tests_wildmatch(void)
     // each vector, under each flag
     for (size_t at = 0u; at < count; ++at)
     {
-        const struct d_tests_wild* const wild = &d_tests_wilds[at];
+        const struct dj_tests_wild* const wild = &d_tests_wilds[at];
 
         // each flag
         for (size_t mode = 0u; mode < 4u; ++mode)
@@ -866,11 +866,11 @@ d_tests_wildmatch(void)
 //==============================================================================
 
 
-// d_tests_decision
+// dj_tests_decision
 //   struct: a path asked about, whether it is a directory, and what git
 //   check-ignore -v --no-index said decides it: the scope, from 0, and the
 //   line, from 1, 0 for nothing.
-struct d_tests_decision
+struct dj_tests_decision
 {
     const char* path;
     bool        directory;
@@ -884,14 +884,14 @@ d_tests_scope
   A scope of a lookup: a file's records, the directory it is in, and
 whether its macros count.
 */
-static struct d_git_text_scope
-d_tests_scope(
-    const struct d_git_text* _text,
-    const char*              _base,
-    bool                     _macros
+static
+struct dj_git_text_scope d_tests_scope(
+    const struct dj_git_text* _text,
+    const char*               _base,
+    bool                      _macros
 )
 {
-    struct d_git_text_scope scope;
+    struct dj_git_text_scope scope;
 
     scope.text   = _text;
     scope.base   = _base;
@@ -908,10 +908,10 @@ sub/.gitignore -- each path decided as git check-ignore decided it: the
 last pattern that matches, in the last scope that has one; a directory
 above ignored deciding for what is below it, a negation there too.
 */
-static void
-d_tests_ignoring(void)
+static
+void d_tests_ignoring(void)
 {
-    static const struct d_tests_decision decisions[] =
+    static const struct dj_tests_decision decisions[] =
     {
         { "a.log",         false, 1u, 1u }, { "keep.log",      false, 1u, 2u },
         { "sub/keep.log",  false, 2u, 2u }, { "sub/x.log",     false, 1u, 1u },
@@ -923,7 +923,7 @@ d_tests_ignoring(void)
         { "sub/local/f",   false, 2u, 3u }, { "sub/local",     true,  2u, 3u },
         { "A.LOG",         false, 0u, 0u }, { "build",         false, 0u, 0u }
     };
-    struct d_git_text texts[3];
+    struct dj_git_text texts[3];
     bool              read = true;
     char              what[128];
 
@@ -940,7 +940,7 @@ d_tests_ignoring(void)
                            D_GIT_TEXT_IGNORE, "sub/.gitignore reads")) &&
              (read) );
 
-    const struct d_git_text_scope scopes[3] = {
+    const struct dj_git_text_scope scopes[3] = {
         d_tests_scope(&texts[0], "", false),
         d_tests_scope(&texts[1], "", false),
         d_tests_scope(&texts[2], "sub", false) };
@@ -950,11 +950,11 @@ d_tests_ignoring(void)
          ( (read) && (at < (sizeof(decisions) / sizeof(decisions[0]))) );
          ++at)
     {
-        const struct d_tests_decision* const decision = &decisions[at];
-        const struct d_git_text_query        query    = {
+        const struct dj_tests_decision* const decision = &decisions[at];
+        const struct dj_git_text_query        query    = {
             decision->path, strlen(decision->path), decision->directory,
             false };
-        struct d_git_text_match              match;
+        struct dj_git_text_match              match;
         const bool decided = d_git_text_ignored(scopes, 3u, &query, &match);
         const size_t line  = (decided)
                              ? texts[match.scope].patterns[match.pattern].line
@@ -969,8 +969,8 @@ d_tests_ignoring(void)
                          (line == decision->line) ), what);
     }
 
-    const struct d_git_text_query folded = { "A.LOG", 5u, false, true };
-    struct d_git_text_match       match;
+    const struct dj_git_text_query folded = { "A.LOG", 5u, false, true };
+    struct dj_git_text_match       match;
 
     d_tests_check( (read) &&
                    (d_git_text_ignored(scopes, 3u, &folded, &match)) &&
@@ -992,18 +992,18 @@ d_tests_attribute_values
   Gives a path's attributes as git check-attr -a writes them, a line each,
 ordered by name.
 */
-static void
-d_tests_attribute_values(
-    const struct d_git_text_scope* _scopes,
-    size_t                         _count,
-    const char*                    _path,
-    char*                          _out,
-    size_t                         _capacity
+static
+void d_tests_attribute_values(
+    const struct dj_git_text_scope* _scopes,
+    size_t                          _count,
+    const char*                     _path,
+    char*                           _out,
+    size_t                          _capacity
 )
 {
-    const struct d_git_text_query query = { _path, strlen(_path), false,
+    const struct dj_git_text_query query = { _path, strlen(_path), false,
                                             false };
-    struct d_git_text_values      values;
+    struct dj_git_text_values      values;
     size_t                        used  = 0u;
 
     _out[0] = '\0';
@@ -1014,7 +1014,7 @@ d_tests_attribute_values(
         // each, as check-attr writes it
         for (size_t at = 0u; at < values.count; ++at)
         {
-            const struct d_git_text_value* const value = &values.items[at];
+            const struct dj_git_text_value* const value = &values.items[at];
             const int written = snprintf(
                 &_out[used], _capacity - used, "%.*s: %.*s\n",
                 (int)value->name_length, value->name,
@@ -1045,8 +1045,8 @@ last line deciding, macros expanding where they are set, `!` leaving an
 attribute unspecified, git's own binary macro, and a macro outside the
 top refused.
 */
-static void
-d_tests_attributing(void)
+static
+void d_tests_attributing(void)
 {
     static const char* const paths[] = {
         "a.c", "sub/a.c", "special.c", "x.bin", "w.x", "sub/w.y" };
@@ -1057,7 +1057,7 @@ d_tests_attributing(void)
         "binary: set\ndiff: unset\nmerge: unset\ntext: unset\n",
         "foo: set\nrootmac: set\n",
         "submac: set\n" };
-    struct d_git_text texts[4];
+    struct dj_git_text texts[4];
     bool              read = true;
     char              got[512];
 
@@ -1078,7 +1078,7 @@ d_tests_attributing(void)
                            "info/attributes reads")) &&
              (read) );
 
-    const struct d_git_text_scope scopes[4] = {
+    const struct dj_git_text_scope scopes[4] = {
         d_tests_scope(&texts[0], "", true),
         d_tests_scope(&texts[1], "", true),
         d_tests_scope(&texts[2], "sub", false),
@@ -1110,10 +1110,10 @@ d_tests_attributing(void)
 d_tests_keys
   Keys as git compares them, and the keys git refuses.
 */
-static void
-d_tests_keys(void)
+static
+void d_tests_keys(void)
 {
-    struct d_git_buffer key;
+    struct dj_git_buffer key;
     size_t              section    = 0u;
     size_t              subsection = 0u;
 
@@ -1154,8 +1154,8 @@ d_tests_keys(void)
 d_tests_values
   Values as git reads booleans and numbers.
 */
-static void
-d_tests_values(void)
+static
+void d_tests_values(void)
 {
     static const char* const trues[]  = { "true", "Yes", "ON", "1", "-2",
                                           NULL };
@@ -1203,8 +1203,8 @@ d_tests_quoting
   Values, subsections and paths quoted as git writes them, and text read
 from C's quotes.
 */
-static void
-d_tests_quoting(void)
+static
+void d_tests_quoting(void)
 {
     static const char* const values[][2] = {
         { "plain",       "plain" },
@@ -1217,7 +1217,7 @@ d_tests_quoting(void)
         { "back\\slash", "back\\\\slash" },
         { "nl\nline",    "nl\\nline" },
         { "",            "" } };
-    struct d_git_buffer quoted;
+    struct dj_git_buffer quoted;
     size_t              used = 0u;
 
     memset(&quoted, 0, sizeof(quoted));
@@ -1266,9 +1266,9 @@ d_tests_quoting(void)
 //==============================================================================
 
 
-// d_tests_edit_kind
+// dj_tests_edit_kind
 //   enum: which of git config's changes an edit is.
-enum d_tests_edit_kind
+enum dj_tests_edit_kind
 {
     D_TESTS_SET = 0,
     D_TESTS_ADD,
@@ -1283,9 +1283,9 @@ enum d_tests_edit_kind
 //   git config's on purpose: a value set keeps a comment after it and the
 //   name as written, which git config rewrites, and a file of \r\n endings
 //   gets one on a line added, where git config writes \n.
-struct d_tests_edit
+struct dj_tests_edit
 {
-    enum d_tests_edit_kind kind;
+    enum dj_tests_edit_kind kind;
     bool                   kept;
     const char*            name;
     const char*            value;
@@ -1293,7 +1293,7 @@ struct d_tests_edit
     const char*            after;
 };
 
-static const struct d_tests_edit d_tests_edits[] =
+static const struct dj_tests_edit d_tests_edits[] =
 {
     { D_TESTS_SET, true, "core.editor", "vim",
       "[core]\n\tbare = false\n",
@@ -1450,10 +1450,10 @@ static const struct d_tests_edit d_tests_edits[] =
 d_tests_edit_one
   An edit made to a configuration of its text; whether it was kept.
 */
-static bool
-d_tests_edit_one(
-    struct d_git_doc*          _doc,
-    const struct d_tests_edit* _edit
+static
+bool d_tests_edit_one(
+    struct dj_git_doc*          _doc,
+    const struct dj_tests_edit* _edit
 )
 {
     // a table of the edits
@@ -1481,8 +1481,8 @@ taken away with its comments; values and subsections quoted; the old
 section form, a continued value, \r\n endings and a mark kept; and each
 refusal leaving the text as it was.
 */
-static void
-d_tests_config_edits(void)
+static
+void d_tests_config_edits(void)
 {
     const size_t count = sizeof(d_tests_edits) / sizeof(d_tests_edits[0]);
     char         what[128];
@@ -1493,8 +1493,8 @@ d_tests_config_edits(void)
     // each edit
     for (size_t at = 0u; at < count; ++at)
     {
-        const struct d_tests_edit* const edit = &d_tests_edits[at];
-        struct d_git_doc* const          doc  =
+        const struct dj_tests_edit* const edit = &d_tests_edits[at];
+        struct dj_git_doc* const          doc  =
             d_git_doc_make("config", D_GIT_TEXT_CONFIG, edit->before,
                            strlen(edit->before), why, sizeof(why));
 
@@ -1531,16 +1531,16 @@ d_tests_config_edits(void)
 d_tests_make
   A document of a text, the check named failing when it cannot be made.
 */
-static struct d_git_doc*
+static struct dj_git_doc*
 d_tests_make(
     const char*          _path,
-    enum d_git_text_kind _kind,
+    enum dj_git_text_kind _kind,
     const char*          _text,
     const char*          _what
 )
 {
     char                    why[256];
-    struct d_git_doc* const doc = d_git_doc_make(_path, _kind, _text,
+    struct dj_git_doc* const doc = d_git_doc_make(_path, _kind, _text,
                                                  strlen(_text), why,
                                                  sizeof(why));
 
@@ -1556,10 +1556,10 @@ d_tests_line_edits
 it made; a line's ending kept as the file's; a change that would merge two
 lines, or make a pattern of another's comment, refused.
 */
-static void
-d_tests_line_edits(void)
+static
+void d_tests_line_edits(void)
 {
-    struct d_git_doc* const doc = d_tests_make(".gitignore",
+    struct dj_git_doc* const doc = d_tests_make(".gitignore",
                                                D_GIT_TEXT_IGNORE,
                                                "*.o\r\nbuild/\r\n",
                                                "an ignore file is made");
@@ -1600,10 +1600,10 @@ d_tests_state_edits
   States set on a pattern's line -- one of the name replaced, another
 added -- and taken off; a name git refuses refused.
 */
-static void
-d_tests_state_edits(void)
+static
+void d_tests_state_edits(void)
 {
-    struct d_git_doc* const doc = d_tests_make(".gitattributes",
+    struct dj_git_doc* const doc = d_tests_make(".gitattributes",
                                                D_GIT_TEXT_ATTRIBUTES,
                                                "*.c text diff=cpp\n"
                                                "*.png -text -diff\n",
@@ -1645,10 +1645,10 @@ d_tests_entry_edits
 a change to an entry that would move the next into another section
 refused.
 */
-static void
-d_tests_entry_edits(void)
+static
+void d_tests_entry_edits(void)
 {
-    struct d_git_doc* const doc = d_tests_make("config", D_GIT_TEXT_CONFIG,
+    struct dj_git_doc* const doc = d_tests_make("config", D_GIT_TEXT_CONFIG,
                                                "[a]\n\tx = 1\n\tx = 2\n"
                                                "\ty = 3\n",
                                                "a configuration is made");
@@ -1685,14 +1685,14 @@ d_tests_saving
   A document saved, its directories made; saved again unchanged; read back
 from its file; a file that is not there not read.
 */
-static void
-d_tests_saving(
+static
+void d_tests_saving(
     const char* _directory
 )
 {
     char                    path[1024];
     char                    why[256];
-    struct d_git_doc* const doc = d_tests_make("", D_GIT_TEXT_CONFIG,
+    struct dj_git_doc* const doc = d_tests_make("", D_GIT_TEXT_CONFIG,
                                                "\xef\xbb\xbf[a]\n\tb = 1\n",
                                                "a marked file is made");
 
@@ -1712,7 +1712,7 @@ d_tests_saving(
                       == D_GIT_SAVE_UNCHANGED, "saved again: unchanged");
     d_git_doc_free(doc);
 
-    struct d_git_doc* const back = d_git_doc_read(path, D_GIT_TEXT_OTHER, why,
+    struct dj_git_doc* const back = d_git_doc_read(path, D_GIT_TEXT_OTHER, why,
                                                   sizeof(why));
 
     d_tests_check( (back) &&
@@ -1736,14 +1736,14 @@ d_tests_saving(
 //==============================================================================
 
 
-// d_tests_world
+// dj_tests_world
 //   struct: a repository the checks build: its work tree, its directory,
 //   and the repository open on it.
-struct d_tests_world
+struct dj_tests_world
 {
     char               top[1024];
     char               git_dir[1040];
-    struct d_git_repo* repo;
+    struct dj_git_repo* repo;
 };
 
 
@@ -1751,8 +1751,8 @@ struct d_tests_world
 d_tests_adler
   Adler-32, as zlib ends a stream with it.
 */
-static uint32_t
-d_tests_adler(
+static
+uint32_t d_tests_adler(
     const unsigned char* _bytes,
     size_t               _length
 )
@@ -1776,8 +1776,8 @@ d_tests_stored
   Bytes as a zlib stream of stored blocks, as deflate writes what it does
 not compress; allocated, NULL when memory runs out.
 */
-static unsigned char*
-d_tests_stored(
+static
+unsigned char* d_tests_stored(
     const unsigned char* _bytes,
     size_t               _length,
     size_t*              _out_length
@@ -1829,12 +1829,12 @@ d_tests_stored(
 d_tests_object_path
   The loose file of an object's name: objects/xx/yyyy...
 */
-static void
-d_tests_object_path(
-    const struct d_tests_world* _world,
-    const struct d_git_oid*     _oid,
-    char*                       _out,
-    size_t                      _capacity
+static
+void d_tests_object_path(
+    const struct dj_tests_world* _world,
+    const struct dj_git_oid*     _oid,
+    char*                        _out,
+    size_t                       _capacity
 )
 {
     char hex[(2u * D_GIT_OID_MOST) + 1u];
@@ -1854,11 +1854,11 @@ its name, from its type and content.
 */
 static bool
 d_tests_object(
-    struct d_tests_world*  _world,
-    enum d_git_object_type _type,
+    struct dj_tests_world*  _world,
+    enum dj_git_object_type _type,
     const void*            _content,
     size_t                 _length,
-    struct d_git_oid*      _out
+    struct dj_git_oid*      _out
 )
 {
     char                 header[64];
@@ -1896,13 +1896,13 @@ d_tests_object(
 d_tests_blob
   A blob of a text, written; its name.
 */
-static struct d_git_oid
-d_tests_blob(
-    struct d_tests_world* _world,
-    const char*           _text
+static
+struct dj_git_oid d_tests_blob(
+    struct dj_tests_world* _world,
+    const char*            _text
 )
 {
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
 
     memset(&oid, 0, sizeof(oid));
     d_tests_check(d_tests_object(_world, D_GIT_OBJECT_BLOB, _text,
@@ -1912,13 +1912,13 @@ d_tests_blob(
 }
 
 
-// d_tests_entry
+// dj_tests_entry
 //   struct: one entry a tree the checks write holds.
-struct d_tests_entry
+struct dj_tests_entry
 {
     const char*      mode;
     const char*      name;
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
 };
 
 
@@ -1926,17 +1926,17 @@ struct d_tests_entry
 d_tests_tree
   A tree of entries, given in git's order, written; its name.
 */
-static struct d_git_oid
-d_tests_tree(
-    struct d_tests_world*       _world,
-    const struct d_tests_entry* _entries,
-    size_t                      _count
+static
+struct dj_git_oid d_tests_tree(
+    struct dj_tests_world*       _world,
+    const struct dj_tests_entry* _entries,
+    size_t                       _count
 )
 {
     const size_t     hash = d_git_repo_hash_size(_world->repo);
     unsigned char    content[2048];
     size_t           used = 0u;
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
 
     memset(&oid, 0, sizeof(oid));
 
@@ -1963,19 +1963,19 @@ d_tests_tree(
 d_tests_commit
   A commit of a tree, with parents, at a time, written; its name.
 */
-static struct d_git_oid
-d_tests_commit(
-    struct d_tests_world*   _world,
-    const struct d_git_oid* _tree,
-    const struct d_git_oid* _parents,
-    size_t                  _count,
-    long                    _time
+static
+struct dj_git_oid d_tests_commit(
+    struct dj_tests_world*   _world,
+    const struct dj_git_oid* _tree,
+    const struct dj_git_oid* _parents,
+    size_t                   _count,
+    long                     _time
 )
 {
     char             content[2048];
     char             hex[(2u * D_GIT_OID_MOST) + 1u];
     size_t           used = 0u;
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
 
     memset(&oid, 0, sizeof(oid));
     d_git_repo_hex(_world->repo, _tree, hex);
@@ -2008,12 +2008,12 @@ d_tests_world_make
   A repository's bones beneath a directory -- .git/HEAD on main, its
 config, its objects -- and the repository opened on them.
 */
-static bool
-d_tests_world_make(
-    struct d_tests_world* _world,
-    const char*           _directory,
-    const char*           _name,
-    const char*           _config
+static
+bool d_tests_world_make(
+    struct dj_tests_world* _world,
+    const char*            _directory,
+    const char*            _name,
+    const char*            _config
 )
 {
     char why[512];
@@ -2061,9 +2061,9 @@ d_tests_world_make(
 d_tests_world_reopen
   The repository opened again, to read what was written since.
 */
-static bool
-d_tests_world_reopen(
-    struct d_tests_world* _world
+static
+bool d_tests_world_reopen(
+    struct dj_tests_world* _world
 )
 {
     char why[512];
@@ -2080,12 +2080,12 @@ d_tests_world_reopen(
 d_tests_ref
   A loose ref written: a name in hex, or text of its own.
 */
-static void
-d_tests_ref(
-    struct d_tests_world*   _world,
-    const char*             _name,
-    const struct d_git_oid* _oid,
-    const char*             _text
+static
+void d_tests_ref(
+    struct dj_tests_world*   _world,
+    const char*              _name,
+    const struct dj_git_oid* _oid,
+    const char*              _text
 )
 {
     char line[256];
@@ -2113,8 +2113,8 @@ d_tests_ref(
 d_tests_put_u32, d_tests_put_u16
   A number written big-endian, as the index holds its numbers.
 */
-static void
-d_tests_put_u32(
+static
+void d_tests_put_u32(
     unsigned char* _out,
     uint32_t       _value
 )
@@ -2128,8 +2128,8 @@ d_tests_put_u32(
 }
 
 
-static void
-d_tests_put_u16(
+static
+void d_tests_put_u16(
     unsigned char* _out,
     uint32_t       _value
 )
@@ -2141,14 +2141,14 @@ d_tests_put_u16(
 }
 
 
-// d_tests_staged
+// dj_tests_staged
 //   struct: one entry of an index the checks write: its path, mode,
 //   object and size.
-struct d_tests_staged
+struct dj_tests_staged
 {
     const char*      path;
     uint32_t         mode;
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
     uint32_t         size;
 };
 
@@ -2159,11 +2159,11 @@ d_tests_index
 data but sizes, so git compares each file's content, and a checksum of
 zeros, which git reads as none.
 */
-static bool
-d_tests_index(
-    struct d_tests_world*        _world,
-    const struct d_tests_staged* _entries,
-    size_t                       _count
+static
+bool d_tests_index(
+    struct dj_tests_world*        _world,
+    const struct dj_tests_staged* _entries,
+    size_t                        _count
 )
 {
     const size_t  hash = d_git_repo_hash_size(_world->repo);
@@ -2204,18 +2204,18 @@ d_tests_index(
 //==============================================================================
 
 
-// d_tests_hash
+// dj_tests_hash
 //   struct: what git hash-object names a blob of n `x`s, in SHA-1 and in
 //   SHA-256 -- lengths whose headers bring the hashed bytes to either side
 //   of a block's end.
-struct d_tests_hash
+struct dj_tests_hash
 {
     size_t      length;
     const char* sha1;
     const char* sha256;
 };
 
-static const struct d_tests_hash d_tests_hashes[] =
+static const struct dj_tests_hash d_tests_hashes[] =
 {
     { 0u,       "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
       "473a0f4c3be8a93681a267e3b1e9a7dcda1185436fe141f7749120a303721813" },
@@ -2244,10 +2244,10 @@ static const struct d_tests_hash d_tests_hashes[] =
 d_tests_hashing
   Blobs named as git names them, in a repository of each hash.
 */
-static void
-d_tests_hashing(
-    const struct d_tests_world* _sha1,
-    const struct d_tests_world* _sha256
+static
+void d_tests_hashing(
+    const struct dj_tests_world* _sha1,
+    const struct dj_tests_world* _sha256
 )
 {
     char* const x = malloc(1000000u);
@@ -2269,7 +2269,7 @@ d_tests_hashing(
          at < (sizeof(d_tests_hashes) / sizeof(d_tests_hashes[0]));
          ++at)
     {
-        struct d_git_oid oid;
+        struct dj_git_oid oid;
 
         d_git_repo_hash_object(_sha1->repo, D_GIT_OBJECT_BLOB, x,
                                d_tests_hashes[at].length, &oid);
@@ -2364,8 +2364,8 @@ d_tests_vector_content
   What each deflated vector holds: "hello\n"; eighty numbered lines; three
 hundred bytes, each seven more than the last; "abc" five hundred times.
 */
-static char*
-d_tests_vector_content(
+static
+char* d_tests_vector_content(
     size_t  _vector,
     size_t* _out_length
 )
@@ -2423,9 +2423,9 @@ blocks flushed between -- read back whole; one whose check is wrong, one
 cut short, and one whose content is not its name's, each refused.
   Long as the checks are many, each a line or two.
 */
-static void
-d_tests_inflating(
-    struct d_tests_world* _world
+static
+void d_tests_inflating(
+    struct dj_tests_world* _world
 )
 {
     static const char* const names[4] = {
@@ -2445,8 +2445,8 @@ d_tests_inflating(
     // each vector, written where its name says, and read
     for (size_t at = 0u; at < 4u; ++at)
     {
-        struct d_git_oid    oid;
-        struct d_git_object object;
+        struct dj_git_oid    oid;
+        struct dj_git_object object;
         size_t              length  = 0u;
         char* const         content = d_tests_vector_content(at, &length);
 
@@ -2464,8 +2464,8 @@ d_tests_inflating(
         free(content);
     }
 
-    struct d_git_oid    hello;
-    struct d_git_object object;
+    struct dj_git_oid    hello;
+    struct dj_git_object object;
 
     (void)d_git_repo_parse_hex(_world->repo, names[0], &hello);
     d_tests_object_path(_world, &hello, path, sizeof(path));
@@ -2496,19 +2496,19 @@ d_tests_inflating(
 }
 
 
-// d_tests_history
+// dj_tests_history
 //   struct: the history the checks build: five commits, c4 a merge of c2
 //   and c3, their trees, an annotated tag, and the blobs they hold.
-struct d_tests_history
+struct dj_tests_history
 {
-    struct d_git_oid commits[5];
-    struct d_git_oid trees[5];
-    struct d_git_oid tag;
-    struct d_git_oid one;
-    struct d_git_oid two;
-    struct d_git_oid b;
-    struct d_git_oid e;
-    struct d_git_oid d;
+    struct dj_git_oid commits[5];
+    struct dj_git_oid trees[5];
+    struct dj_git_oid tag;
+    struct dj_git_oid one;
+    struct dj_git_oid two;
+    struct dj_git_oid b;
+    struct dj_git_oid e;
+    struct dj_git_oid d;
 };
 
 
@@ -2520,14 +2520,14 @@ side at c3, the tag lw at c1, loose; old at c1 and the annotated v1, of c2,
 packed, v1 with what it peels to; HEAD on main.
   Long as the history's objects and refs are each written in turn.
 */
-static bool
-d_tests_history_make(
-    struct d_tests_world*   _world,
-    struct d_tests_history* _out
+static
+bool d_tests_history_make(
+    struct dj_tests_world*   _world,
+    struct dj_tests_history* _out
 )
 {
-    struct d_tests_entry entries[3];
-    struct d_git_oid     parents[2];
+    struct dj_tests_entry entries[3];
+    struct dj_git_oid     parents[2];
     char                 text[1024];
     char                 hex[(2u * D_GIT_OID_MOST) + 1u];
     char                 peeled[(2u * D_GIT_OID_MOST) + 1u];
@@ -2597,14 +2597,14 @@ d_tests_history_make(
 d_tests_names_of
   Whether an object's name is the one expected, the check named.
 */
-static void
-d_tests_names_of(
-    struct d_tests_world*   _world,
-    const char*             _revision,
-    const struct d_git_oid* _want
+static
+void d_tests_names_of(
+    struct dj_tests_world*   _world,
+    const char*              _revision,
+    const struct dj_git_oid* _want
 )
 {
-    struct d_git_oid got;
+    struct dj_git_oid got;
     char             what[256];
     const bool       found = d_git_repo_rev(_world->repo, _revision, &got);
 
@@ -2623,13 +2623,13 @@ d_tests_revisions
 packed tag peeled, parents and ancestors, a merge's second parent, a
 tree's path, a short name, and what it refuses.
 */
-static void
-d_tests_revisions(
-    struct d_tests_world*         _world,
-    const struct d_tests_history* _history
+static
+void d_tests_revisions(
+    struct dj_tests_world*         _world,
+    const struct dj_tests_history* _history
 )
 {
-    struct d_git_oid oid;
+    struct dj_git_oid oid;
     char             hex[(2u * D_GIT_OID_MOST) + 1u];
     char             name[(2u * D_GIT_OID_MOST) + 16u];
 
@@ -2680,16 +2680,16 @@ d_tests_log_is
   Whether a walk gives the commits expected, by their indices, newest
 first.
 */
-static void
-d_tests_log_is(
-    struct d_tests_world*           _world,
-    const struct d_tests_history*   _history,
-    const struct d_git_log_options* _options,
-    const char*                     _want,
-    const char*                     _what
+static
+void d_tests_log_is(
+    struct dj_tests_world*           _world,
+    const struct dj_tests_history*   _history,
+    const struct dj_git_log_options* _options,
+    const char*                      _want,
+    const char*                      _what
 )
 {
-    struct d_git_oids oids;
+    struct dj_git_oids oids;
     char              got[64];
     size_t            used = 0u;
 
@@ -2729,16 +2729,16 @@ d_tests_walks
 one excluded and all it reaches; first parents only; a path's history,
 simplified through the parent a merge is the same as; the most given.
 */
-static void
-d_tests_walks(
-    struct d_tests_world*         _world,
-    const struct d_tests_history* _history
+static
+void d_tests_walks(
+    struct dj_tests_world*         _world,
+    const struct dj_tests_history* _history
 )
 {
     static const char* const all[]     = { "HEAD" };
     static const char* const ranged[]  = { "HEAD", "^side" };
     static const char* const tagged[]  = { "v1", "side" };
-    struct d_git_log_options options;
+    struct dj_git_log_options options;
 
     memset(&options, 0, sizeof(options));
     options.revisions      = all;
@@ -2772,13 +2772,13 @@ d_tests_walks(
 d_tests_bases
   Merge bases, as git merge-base --all gives them.
 */
-static void
-d_tests_bases(
-    struct d_tests_world*         _world,
-    const struct d_tests_history* _history
+static
+void d_tests_bases(
+    struct dj_tests_world*         _world,
+    const struct dj_tests_history* _history
 )
 {
-    struct d_git_oids oids;
+    struct dj_git_oids oids;
 
     d_tests_check( (d_git_repo_merge_base(_world->repo, &_history->commits[1],
                                           &_history->commits[2], &oids)) &&
@@ -2810,16 +2810,16 @@ d_tests_objects
 people and message, a tag's, and a name made short.
   Long as the checks are many, each a line or two.
 */
-static void
-d_tests_objects(
-    struct d_tests_world*         _world,
-    const struct d_tests_history* _history
+static
+void d_tests_objects(
+    struct dj_tests_world*         _world,
+    const struct dj_tests_history* _history
 )
 {
-    struct d_git_object     object;
-    struct d_git_tree_entry entry;
-    struct d_git_commit     commit;
-    struct d_git_tag        tag;
+    struct dj_git_object     object;
+    struct dj_git_tree_entry entry;
+    struct dj_git_commit     commit;
+    struct dj_git_tag        tag;
     size_t                  at    = 0u;
     char                    names[64];
     char                    hex[(2u * D_GIT_OID_MOST) + 1u];
@@ -2905,17 +2905,17 @@ d_tests_refs
   Refs loose and packed, sorted; one followed through HEAD; what a packed
 tag peels to; and HEAD's branch.
 */
-static void
-d_tests_refs(
-    struct d_tests_world*         _world,
-    const struct d_tests_history* _history
+static
+void d_tests_refs(
+    struct dj_tests_world*         _world,
+    const struct dj_tests_history* _history
 )
 {
     static const char* const names[] = {
         "refs/heads/main", "refs/heads/side", "refs/tags/lw",
         "refs/tags/old", "refs/tags/v1" };
-    struct d_git_refs refs;
-    struct d_git_oid  oid;
+    struct dj_git_refs refs;
+    struct dj_git_oid  oid;
     char*             target = NULL;
     size_t            listed = 0u;
 
@@ -2971,15 +2971,15 @@ d_tests_refs(
 d_tests_status_is
   Whether status gives the lines expected, each "XY path\n".
 */
-static void
-d_tests_status_is(
-    struct d_tests_world*              _world,
-    const struct d_git_status_options* _options,
-    const char*                        _want,
-    const char*                        _what
+static
+void d_tests_status_is(
+    struct dj_tests_world*              _world,
+    const struct dj_git_status_options* _options,
+    const char*                         _want,
+    const char*                         _what
 )
 {
-    struct d_git_status status;
+    struct dj_git_status status;
     char                got[1024];
     size_t              used = 0u;
 
@@ -3019,16 +3019,16 @@ ignored, and an untracked directory; status in each mode, as git status
 repository's own files; settings by scope.
   Long as the work tree is written and then read, each check a line or two.
 */
-static void
-d_tests_work_tree(
-    struct d_tests_world*         _world,
-    const struct d_tests_history* _history
+static
+void d_tests_work_tree(
+    struct dj_tests_world*         _world,
+    const struct dj_tests_history* _history
 )
 {
-    struct d_tests_staged       staged[3];
-    struct d_git_status_options options;
-    struct d_git_ignore_match   match;
-    struct d_git_text_values    values;
+    struct dj_tests_staged       staged[3];
+    struct dj_git_status_options options;
+    struct dj_git_ignore_match   match;
+    struct dj_git_text_values    values;
 
     puts("the work tree");
     staged[0].path = "a.txt";
@@ -3090,7 +3090,7 @@ d_tests_work_tree(
     d_tests_check(!d_git_repo_ignored(_world->repo, "u.txt", &match),
                   "u.txt not ignored");
 
-    const struct d_git_text_value* eol = NULL;
+    const struct dj_git_text_value* eol = NULL;
 
     d_tests_check( (d_git_repo_attributes(_world->repo, "d/e.txt",
                                           &values)) &&
@@ -3110,9 +3110,9 @@ d_tests_settings
 scope; and opening from a directory within, and through a file naming
 the repository.
 */
-static void
-d_tests_settings(
-    struct d_tests_world* _world
+static
+void d_tests_settings(
+    struct dj_tests_world* _world
 )
 {
     bool         set   = false;
@@ -3143,7 +3143,7 @@ d_tests_settings(
                    "core.bare read as a boolean");
     (void)snprintf(path, sizeof(path), "%s/new", _world->top);
 
-    struct d_git_repo* const within = d_git_repo_open(path, why, sizeof(why));
+    struct dj_git_repo* const within = d_git_repo_open(path, why, sizeof(why));
 
     d_tests_check( (within) &&
                    (strcmp(d_git_repo_git_dir(within),
@@ -3154,7 +3154,7 @@ d_tests_settings(
     (void)snprintf(why, sizeof(why), "gitdir: %s\n", _world->git_dir);
     (void)d_tests_put_text(path, ".git", why);
 
-    struct d_git_repo* const linked = d_git_repo_open(path, why, sizeof(why));
+    struct dj_git_repo* const linked = d_git_repo_open(path, why, sizeof(why));
 
     d_tests_check( (linked) &&
                    (strcmp(d_git_repo_git_dir(linked),
@@ -3170,14 +3170,14 @@ d_tests_settings(
 d_tests_repository
   A repository of each hash built beneath a directory, and read.
 */
-static void
-d_tests_repository(
+static
+void d_tests_repository(
     const char* _directory
 )
 {
-    struct d_tests_world   sha1;
-    struct d_tests_world   sha256;
-    struct d_tests_history history;
+    struct dj_tests_world   sha1;
+    struct dj_tests_world   sha256;
+    struct dj_tests_history history;
 
     // the repositories made
     if ( (!d_tests_world_make(&sha1, _directory, "repo",
@@ -3220,9 +3220,9 @@ d_tests_repository(
 //==============================================================================
 
 
-// d_tests_counts
+// dj_tests_counts
 //   struct: what a corpus or fuzz run has read, done and found wrong.
-struct d_tests_counts
+struct dj_tests_counts
 {
     size_t files;
     size_t records;
@@ -3234,23 +3234,23 @@ struct d_tests_counts
     size_t failed;
 };
 
-// d_tests_fn_file
+// dj_tests_fn_file
 //   type: what a walk does with each file of a kind git reads.
-typedef void (*d_tests_fn_file)(const char*            _path,
-                                struct d_tests_counts* _counts);
+typedef void (*dj_tests_fn_file)(const char*            _path,
+                                struct dj_tests_counts* _counts);
 
-// d_tests_fn_repo
+// dj_tests_fn_repo
 //   type: what a walk does with each repository it finds.
-typedef void (*d_tests_fn_repo)(const char*            _path,
-                                struct d_tests_counts* _counts);
+typedef void (*dj_tests_fn_repo)(const char*            _path,
+                                struct dj_tests_counts* _counts);
 
 
 /*
 d_tests_compare_names
   Names in byte order, for qsort.
 */
-static int
-d_tests_compare_names(
+static
+int d_tests_compare_names(
     const void* _left,
     const void* _right
 )
@@ -3264,8 +3264,8 @@ d_tests_show
   A text, its control bytes escaped, for a failure's reader; shown only
 when DGIT_VERBOSE is set.
 */
-static void
-d_tests_show(
+static
+void d_tests_show(
     const char* _label,
     const char* _text,
     size_t      _length
@@ -3309,11 +3309,11 @@ d_tests_show(
 d_tests_fail
   A failure in a corpus or fuzz run, said and counted.
 */
-static void
-d_tests_fail(
-    struct d_tests_counts* _counts,
-    const char*            _path,
-    const char*            _what
+static
+void d_tests_fail(
+    struct dj_tests_counts* _counts,
+    const char*             _path,
+    const char*             _what
 )
 {
     printf("  FAIL  %s: %s\n", _path, _what);
@@ -3330,12 +3330,12 @@ d_tests_walk
 given to `_repo` -- its own files given to `_file` too.
   Long as each kind of name is told apart in one loop.
 */
-static void
-d_tests_walk(
-    const char*            _directory,
-    d_tests_fn_file        _file,
-    d_tests_fn_repo        _repo,
-    struct d_tests_counts* _counts
+static
+void d_tests_walk(
+    const char*             _directory,
+    dj_tests_fn_file        _file,
+    dj_tests_fn_repo        _repo,
+    struct dj_tests_counts* _counts
 )
 {
     char** names = NULL;
@@ -3416,10 +3416,10 @@ ending past its last line's end only where a `\` joined the end of the
 text to it -- and a configuration's entries within their sections.
   Long as each kind of record is proved in its own loop.
 */
-static bool
-d_tests_sound(
-    const struct d_git_text* _text,
-    const char**             _why
+static
+bool d_tests_sound(
+    const struct dj_git_text* _text,
+    const char**              _why
 )
 {
     size_t at = 0u;
@@ -3427,7 +3427,7 @@ d_tests_sound(
     // each line begins where the last one's ending ends
     for (size_t line = 0u; line < _text->line_count; ++line)
     {
-        const struct d_git_text_line* const record = &_text->lines[line];
+        const struct dj_git_text_line* const record = &_text->lines[line];
 
         // in order, its parts within it
         if ( (record->start != at) ||
@@ -3454,7 +3454,7 @@ d_tests_sound(
     // each pattern on its line, within it
     for (size_t p = 0u; p < _text->pattern_count; ++p)
     {
-        const struct d_git_text_pattern* const pattern = &_text->patterns[p];
+        const struct dj_git_text_pattern* const pattern = &_text->patterns[p];
 
         // its line holds it
         if ( (pattern->line >= _text->line_count) ||
@@ -3473,7 +3473,7 @@ d_tests_sound(
     // each entry in order, within its lines and its section
     for (size_t e = 0u; e < _text->entry_count; ++e)
     {
-        const struct d_git_text_entry* const entry = &_text->entries[e];
+        const struct dj_git_text_entry* const entry = &_text->entries[e];
 
         // its lines, its span and its section
         if ( (entry->last_line < entry->line) ||
@@ -3498,11 +3498,11 @@ d_tests_sound(
 d_tests_same_text
   Whether a document's text is these bytes.
 */
-static bool
-d_tests_same_text(
-    const struct d_git_doc* _doc,
-    const char*             _bytes,
-    size_t                  _length
+static
+bool d_tests_same_text(
+    const struct dj_git_doc* _doc,
+    const char*              _bytes,
+    size_t                   _length
 )
 {
     size_t            length = 0u;
@@ -3520,17 +3520,17 @@ the first's text past a byte-order mark -- which must be kept and change
 nothing.
   Long as the file is read, proved and its lines set, each a step.
 */
-static void
-d_tests_corpus_file(
-    const char*            _path,
-    struct d_tests_counts* _counts
+static
+void d_tests_corpus_file(
+    const char*             _path,
+    struct dj_tests_counts* _counts
 )
 {
     char                    why[256];
     const char*             unsound = NULL;
     size_t                  length  = 0u;
     char* const             bytes   = d_tests_load(_path, &length);
-    struct d_git_doc* const doc     = d_git_doc_read(_path, D_GIT_TEXT_OTHER,
+    struct dj_git_doc* const doc     = d_git_doc_read(_path, D_GIT_TEXT_OTHER,
                                                      why, sizeof(why));
 
     _counts->files++;
@@ -3550,7 +3550,7 @@ d_tests_corpus_file(
         d_tests_fail(_counts, _path, "the document is not the file");
     }
 
-    const struct d_git_text* const text  = (doc) ? d_git_doc_records(doc)
+    const struct dj_git_text* const text  = (doc) ? d_git_doc_records(doc)
                                                  : NULL;
     const size_t                   lines = (text) ? text->line_count : 0u;
 
@@ -3563,8 +3563,8 @@ d_tests_corpus_file(
            (text->broken == D_GIT_TEXT_NONE) );
          ++at)
     {
-        struct d_git_buffer               line;
-        const struct d_git_text_line* const record =
+        struct dj_git_buffer               line;
+        const struct dj_git_text_line* const record =
             &d_git_doc_records(doc)->lines[at];
         const size_t                        from   =
             ( (at == 0u) && (d_git_doc_records(doc)->bom) ) ? 3u
@@ -3601,19 +3601,19 @@ d_tests_corpus_tree
 more objects.
   Long as a tree's entries are read and proved in one loop.
 */
-static void
-d_tests_corpus_tree(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _tree,
-    struct d_tests_counts*  _counts,
-    size_t*                 _left,
-    const char*             _path
+static
+void d_tests_corpus_tree(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _tree,
+    struct dj_tests_counts*  _counts,
+    size_t*                  _left,
+    const char*              _path
 )
 {
-    struct d_git_object     tree;
-    struct d_git_tree_entry entry;
+    struct dj_git_object     tree;
+    struct dj_git_tree_entry entry;
     size_t                  at = 0u;
-    struct d_git_oid        named;
+    struct dj_git_oid        named;
 
     // a tree read, its name its content's
     if (!d_git_repo_read(_repo, _tree, &tree))
@@ -3637,7 +3637,7 @@ d_tests_corpus_tree(
     while ( (*_left > 0u) &&
             (d_git_repo_tree_next(_repo, &tree, &at, &entry)) )
     {
-        struct d_git_object blob;
+        struct dj_git_object blob;
 
         --*_left;
 
@@ -3685,17 +3685,17 @@ objects read, to fifty thousand; and its index and status read.
   Long as the refs, the history, the trees and the status are each read in
 turn.
 */
-static void
-d_tests_corpus_repo(
-    const char*            _path,
-    struct d_tests_counts* _counts
+static
+void d_tests_corpus_repo(
+    const char*             _path,
+    struct dj_tests_counts* _counts
 )
 {
     char                     why[512];
-    struct d_git_repo* const repo  = d_git_repo_open(_path, why, sizeof(why));
-    struct d_git_refs        refs;
-    struct d_git_log_options options;
-    struct d_git_oids        commits;
+    struct dj_git_repo* const repo  = d_git_repo_open(_path, why, sizeof(why));
+    struct dj_git_refs        refs;
+    struct dj_git_log_options options;
+    struct dj_git_oids        commits;
     size_t                   left  = 50000u;
 
     memset(&refs, 0, sizeof(refs));
@@ -3741,8 +3741,8 @@ d_tests_corpus_repo(
     // each commit, parsed, and its tree read
     for (size_t at = 0u; ( (at < commits.count) && (left > 0u) ); ++at)
     {
-        struct d_git_object object;
-        struct d_git_commit commit;
+        struct dj_git_object object;
+        struct dj_git_commit commit;
 
         memset(&commit, 0, sizeof(commit));
 
@@ -3762,8 +3762,8 @@ d_tests_corpus_repo(
         d_git_object_release(&object);
     }
 
-    struct d_git_status_options status_options;
-    struct d_git_status         status;
+    struct dj_git_status_options status_options;
+    struct dj_git_status         status;
 
     memset(&status_options, 0, sizeof(status_options));
     memset(&status, 0, sizeof(status));
@@ -3799,8 +3799,8 @@ d_tests_random
   A number below `_below`, from a generator of a fixed sequence, so a seed
 replays a run.
 */
-static size_t
-d_tests_random(
+static
+size_t d_tests_random(
     size_t _below
 )
 {
@@ -3815,8 +3815,8 @@ d_tests_random(
 d_tests_random_text
   Text of fragments git's files are made of, a few at random.
 */
-static void
-d_tests_random_text(
+static
+void d_tests_random_text(
     char*  _out,
     size_t _capacity,
     bool   _lines
@@ -3851,14 +3851,14 @@ d_tests_random_text(
 }
 
 
-// d_tests_snapshot
+// dj_tests_snapshot
 //   struct: a document's text and its lines' kinds, before a change.
-struct d_tests_snapshot
+struct dj_tests_snapshot
 {
     char*                      text;
     size_t                     length;
-    enum d_git_text_line_kind* kinds;
-    struct d_git_text_line*    lines;
+    enum dj_git_text_line_kind* kinds;
+    struct dj_git_text_line*    lines;
     size_t                     count;
 };
 
@@ -3867,13 +3867,13 @@ struct d_tests_snapshot
 d_tests_snap, d_tests_snap_free
   A document's text and lines, copied; and let go of.
 */
-static bool
-d_tests_snap(
-    const struct d_git_doc*  _doc,
-    struct d_tests_snapshot* _out
+static
+bool d_tests_snap(
+    const struct dj_git_doc*  _doc,
+    struct dj_tests_snapshot* _out
 )
 {
-    const struct d_git_text* const text   = d_git_doc_records(_doc);
+    const struct dj_git_text* const text   = d_git_doc_records(_doc);
     size_t                         length = 0u;
     const char* const              bytes  = d_git_doc_text(_doc, &length);
 
@@ -3907,9 +3907,9 @@ d_tests_snap(
 }
 
 
-static void
-d_tests_snap_free(
-    struct d_tests_snapshot* _snap
+static
+void d_tests_snap_free(
+    struct dj_tests_snapshot* _snap
 )
 {
     free(_snap->text);
@@ -3925,16 +3925,16 @@ d_tests_same_line
 its kind -- its ending aside, which a line added after one without gives
 it.
 */
-static bool
-d_tests_same_line(
-    const struct d_tests_snapshot* _before,
-    size_t                         _old,
-    const struct d_git_doc*        _after,
-    size_t                         _new
+static
+bool d_tests_same_line(
+    const struct dj_tests_snapshot* _before,
+    size_t                          _old,
+    const struct dj_git_doc*        _after,
+    size_t                          _new
 )
 {
-    const struct d_git_text_line* const old    = &_before->lines[_old];
-    const struct d_git_text_line* const now    =
+    const struct dj_git_text_line* const old    = &_before->lines[_old];
+    const struct dj_git_text_line* const now    =
         &d_git_doc_records(_after)->lines[_new];
     const char* const                   text   = d_git_doc_text(_after, NULL);
     const size_t                        length = old->end - old->start;
@@ -3951,12 +3951,12 @@ d_tests_splice_kept
   Of a splice kept, whether every line wholly before it, and every line
 wholly after it, reads as it did.
 */
-static bool
-d_tests_splice_kept(
-    const struct d_tests_snapshot* _before,
-    const struct d_git_doc*        _after,
-    size_t                         _start,
-    size_t                         _end
+static
+bool d_tests_splice_kept(
+    const struct dj_tests_snapshot* _before,
+    const struct dj_git_doc*        _after,
+    size_t                          _start,
+    size_t                          _end
 )
 {
     const size_t count = d_git_doc_records(_after)->line_count;
@@ -3999,13 +3999,13 @@ d_tests_fresh
   Whether a document's records are what reading its text afresh gives:
 its lines, their kinds, and as many patterns, sections and entries.
 */
-static bool
-d_tests_fresh(
-    const struct d_git_doc* _doc
+static
+bool d_tests_fresh(
+    const struct dj_git_doc* _doc
 )
 {
-    const struct d_git_text* const records = d_git_doc_records(_doc);
-    struct d_git_text              fresh;
+    const struct dj_git_text* const records = d_git_doc_records(_doc);
+    struct dj_git_text              fresh;
     char                           why[256];
     size_t                         length  = 0u;
     const char* const              text    = d_git_doc_text(_doc, &length);
@@ -4041,12 +4041,12 @@ d_tests_fuzz_change
 added or unset, or a state set or taken off; whether it was kept, and the
 span a splice replaced.
 */
-static bool
-d_tests_fuzz_change(
-    struct d_git_doc* _doc,
-    size_t*           _out_start,
-    size_t*           _out_end,
-    bool*             _out_splice
+static
+bool d_tests_fuzz_change(
+    struct dj_git_doc* _doc,
+    size_t*            _out_start,
+    size_t*            _out_end,
+    bool*              _out_splice
 )
 {
     static const char* const keys[] = { "a.b", "a.k", "core.bare",
@@ -4085,7 +4085,7 @@ d_tests_fuzz_change(
                                       d_git_doc_records(_doc)->pattern_count
                                       + 1u),
                             names[d_tests_random(4u)],
-                            (enum d_git_text_state)d_tests_random(4u), "lf");
+                            (enum dj_git_text_state)d_tests_random(4u), "lf");
         default: return d_git_doc_remove_state(
                             _doc, d_tests_random(
                                       d_git_doc_records(_doc)->pattern_count
@@ -4106,14 +4106,14 @@ says why.
 static void
 d_tests_fuzz_text(
     const char*            _name,
-    enum d_git_text_kind   _kind,
+    enum dj_git_text_kind   _kind,
     const char*            _source,
     size_t                 _length,
-    struct d_tests_counts* _counts
+    struct dj_tests_counts* _counts
 )
 {
     char              why[256];
-    struct d_git_doc* doc = d_git_doc_make(_name, _kind, _source, _length,
+    struct dj_git_doc* doc = d_git_doc_make(_name, _kind, _source, _length,
                                            why, sizeof(why));
 
     size_t            failed = _counts->failed;
@@ -4123,7 +4123,7 @@ d_tests_fuzz_text(
     // each change, the text begun again when it grows long
     for (size_t round = 0u; ( (doc) && (round < 300u) ); ++round)
     {
-        struct d_tests_snapshot before;
+        struct dj_tests_snapshot before;
         size_t                  start   = 0u;
         size_t                  end     = 0u;
         const char*             unsound = NULL;
@@ -4203,10 +4203,10 @@ d_tests_fuzz_text(
 d_tests_fuzz_file
   Random changes to a file's text, held in memory; nothing is written.
 */
-static void
-d_tests_fuzz_file(
-    const char*            _path,
-    struct d_tests_counts* _counts
+static
+void d_tests_fuzz_file(
+    const char*             _path,
+    struct dj_tests_counts* _counts
 )
 {
     size_t      length = 0u;
@@ -4232,9 +4232,9 @@ d_tests_fuzz_file(
 d_tests_fuzz_seeds
   Random changes to texts of each kind of the checks' own.
 */
-static void
-d_tests_fuzz_seeds(
-    struct d_tests_counts* _counts
+static
+void d_tests_fuzz_seeds(
+    struct dj_tests_counts* _counts
 )
 {
     static const char* const ignores[] = {
@@ -4279,13 +4279,13 @@ d_tests_print_path
 control byte, a quote, a backslash or a byte past ASCII -- or, with
 `_space`, a blank.
 */
-static void
-d_tests_print_path(
+static
+void d_tests_print_path(
     const char* _path,
     bool        _space
 )
 {
-    struct d_git_buffer quoted;
+    struct dj_git_buffer quoted;
 
     memset(&quoted, 0, sizeof(quoted));
     (void)d_git_text_quote_path(&quoted, _path, strlen(_path));
@@ -4313,11 +4313,11 @@ d_tests_print_path(
 d_tests_print_oid
   A name in hex, and what follows it.
 */
-static void
-d_tests_print_oid(
-    const struct d_git_repo* _repo,
-    const struct d_git_oid*  _oid,
-    const char*              _after
+static
+void d_tests_print_oid(
+    const struct dj_git_repo* _repo,
+    const struct dj_git_oid*  _oid,
+    const char*               _after
 )
 {
     char hex[(2u * D_GIT_OID_MOST) + 1u];
@@ -4333,18 +4333,18 @@ d_tests_print_oid(
 d_tests_oracle_names
   rev and short: each revision's name in hex, whole or short, or FAIL.
 */
-static int
-d_tests_oracle_names(
-    struct d_git_repo* _repo,
-    char**             _args,
-    int                _count,
-    bool               _short
+static
+int d_tests_oracle_names(
+    struct dj_git_repo* _repo,
+    char**              _args,
+    int                 _count,
+    bool                _short
 )
 {
     // each revision
     for (int at = 0; at < _count; ++at)
     {
-        struct d_git_oid oid;
+        struct dj_git_oid oid;
         char             hex[(2u * D_GIT_OID_MOST) + 1u];
 
         // named, and shortened if asked
@@ -4373,9 +4373,9 @@ d_tests_oracle_check
 --batch-check writes it -- name, type, size -- BADHASH after one whose
 content is not its name's, "missing" for one not read.
 */
-static int
-d_tests_oracle_check(
-    struct d_git_repo* _repo
+static
+int d_tests_oracle_check(
+    struct dj_git_repo* _repo
 )
 {
     char line[256];
@@ -4383,9 +4383,9 @@ d_tests_oracle_check(
     // each name, a line
     while (fgets(line, (int)sizeof(line), stdin))
     {
-        struct d_git_oid    oid;
-        struct d_git_oid    named;
-        struct d_git_object object;
+        struct dj_git_oid    oid;
+        struct dj_git_oid    named;
+        struct dj_git_object object;
 
         line[strcspn(line, "\r\n")] = '\0';
 
@@ -4416,15 +4416,15 @@ d_tests_oracle_log
   log: the commits revisions reach, as git rev-list gives them --
 --first-parent, -n most, and -- path among the arguments.
 */
-static int
-d_tests_oracle_log(
-    struct d_git_repo* _repo,
-    char**             _args,
-    int                _count
+static
+int d_tests_oracle_log(
+    struct dj_git_repo* _repo,
+    char**              _args,
+    int                 _count
 )
 {
-    struct d_git_log_options options;
-    struct d_git_oids        oids;
+    struct dj_git_log_options options;
+    struct dj_git_oids        oids;
     const char**             revisions = malloc(((size_t)_count + 1u)
                                                 * sizeof(*revisions));
 
@@ -4482,16 +4482,16 @@ d_tests_oracle_log(
 d_tests_oracle_tree
   ls-tree [-r] name: a tree's entries, as git ls-tree writes them.
 */
-static void
-d_tests_oracle_tree(
-    struct d_git_repo*      _repo,
-    const struct d_git_oid* _tree,
-    const char*             _prefix,
-    bool                    _deep
+static
+void d_tests_oracle_tree(
+    struct dj_git_repo*      _repo,
+    const struct dj_git_oid* _tree,
+    const char*              _prefix,
+    bool                     _deep
 )
 {
-    struct d_git_object     tree;
-    struct d_git_tree_entry entry;
+    struct dj_git_object     tree;
+    struct dj_git_tree_entry entry;
     size_t                  at = 0u;
     char                    path[4096];
 
@@ -4542,12 +4542,12 @@ ls-files -s; check-ignore -v --non-matching; check-attr -a, ordered by
 name; status --porcelain --no-renames, with -uall, -uno, --ignored.
   Long as four commands are answered here, each a few lines.
 */
-static int
-d_tests_oracle_work(
-    struct d_git_repo* _repo,
-    const char*        _command,
-    char**             _args,
-    int                _count
+static
+int d_tests_oracle_work(
+    struct dj_git_repo* _repo,
+    const char*         _command,
+    char**              _args,
+    int                 _count
 )
 {
     // ls-files -s: each entry
@@ -4559,7 +4559,7 @@ d_tests_oracle_work(
         for (size_t at = 0u; ( (count != D_GIT_REPO_NONE) && (at < count) );
              ++at)
         {
-            const struct d_git_index_entry* const entry =
+            const struct dj_git_index_entry* const entry =
                 d_git_repo_index_entry(_repo, at);
 
             printf("%06o ", (unsigned)entry->mode);
@@ -4579,8 +4579,8 @@ d_tests_oracle_work(
              (strcmp(_command, "check-attr") == 0) ) );
          ++at)
     {
-        struct d_git_ignore_match match;
-        struct d_git_text_values  values;
+        struct dj_git_ignore_match match;
+        struct dj_git_text_values  values;
 
         // what decides whether it is ignored, or its attributes
         if (_command[6] == 'i')
@@ -4605,7 +4605,7 @@ d_tests_oracle_work(
         // each attribute said
         for (size_t v = 0u; v < values.count; ++v)
         {
-            const struct d_git_text_value* const value = &values.items[v];
+            const struct dj_git_text_value* const value = &values.items[v];
 
             printf("%s: %.*s: ", _args[at], (int)value->name_length,
                    value->name);
@@ -4628,15 +4628,15 @@ d_tests_oracle_work(
 d_tests_oracle_status
   status: as git status --porcelain --no-renames writes it.
 */
-static int
-d_tests_oracle_status(
-    struct d_git_repo* _repo,
-    char**             _args,
-    int                _count
+static
+int d_tests_oracle_status(
+    struct dj_git_repo* _repo,
+    char**              _args,
+    int                 _count
 )
 {
-    struct d_git_status_options options;
-    struct d_git_status         status;
+    struct dj_git_status_options options;
+    struct dj_git_status         status;
 
     memset(&options, 0, sizeof(options));
 
@@ -4681,10 +4681,10 @@ d_tests_oracle_config
 config-file path: a file's entries as git config -f path --list does, or
 the line git refuses.
 */
-static int
-d_tests_oracle_config(
-    struct d_git_repo* _repo,
-    const char*        _file
+static
+int d_tests_oracle_config(
+    struct dj_git_repo* _repo,
+    const char*         _file
 )
 {
     static const char* const scopes[] = { "system", "global", "local",
@@ -4697,7 +4697,7 @@ d_tests_oracle_config(
         // each, in git's order
         for (size_t at = 0u; at < d_git_repo_settings(_repo); ++at)
         {
-            const struct d_git_setting* const setting =
+            const struct dj_git_setting* const setting =
                 d_git_repo_setting(_repo, at);
 
             printf("%s\t%s%s%s\n", scopes[setting->scope], setting->key,
@@ -4708,9 +4708,9 @@ d_tests_oracle_config(
         return 0;
     }
 
-    struct d_git_doc* const doc = d_git_doc_read(_file, D_GIT_TEXT_CONFIG,
+    struct dj_git_doc* const doc = d_git_doc_read(_file, D_GIT_TEXT_CONFIG,
                                                  why, sizeof(why));
-    const struct d_git_text* const text = (doc) ? d_git_doc_records(doc)
+    const struct dj_git_text* const text = (doc) ? d_git_doc_records(doc)
                                                 : NULL;
 
     // a file read to its end, or the line git refuses
@@ -4746,8 +4746,8 @@ cat-check, cat, log, merge-base, ls-tree [-r], ls-files, check-ignore,
 check-attr, status, refs, config-list, config-file.
   Long as a dispatch on the command is.
 */
-static int
-d_tests_oracle(
+static
+int d_tests_oracle(
     const char* _path,
     const char* _command,
     char**      _args,
@@ -4755,14 +4755,14 @@ d_tests_oracle(
 )
 {
     char                     why[512];
-    struct d_git_repo* const repo = (strcmp(_command, "config-file") == 0)
+    struct dj_git_repo* const repo = (strcmp(_command, "config-file") == 0)
                                     ? NULL
                                     : d_git_repo_open(_path, why, sizeof(why));
-    struct d_git_oid         oid;
-    struct d_git_oid         other;
-    struct d_git_object      object;
-    struct d_git_oids        oids;
-    struct d_git_refs        refs;
+    struct dj_git_oid         oid;
+    struct dj_git_oid         other;
+    struct dj_git_object      object;
+    struct dj_git_oids        oids;
+    struct dj_git_refs        refs;
     int                      status = 0;
 
     memset(&object, 0, sizeof(object));
@@ -4892,13 +4892,12 @@ main
 directories, with --fuzz random changes, and with --oracle git's answers.
   Long as each mode is a few lines.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
 {
-    struct d_tests_counts counts;
+    struct dj_tests_counts counts;
 
     memset(&counts, 0, sizeof(counts));
 

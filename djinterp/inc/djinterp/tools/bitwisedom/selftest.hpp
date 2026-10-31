@@ -26,8 +26,8 @@ TABLE OF CONTENTS
     1.  self_test
 */
 
-#ifndef BITWISEDOM_SELFTEST_HPP
-#define BITWISEDOM_SELFTEST_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_SELFTEST_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_SELFTEST_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -36,7 +36,7 @@ TABLE OF CONTENTS
 // std
 #include <string>  // std::string
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./resolve.hpp"  // resolution
 #include "./sheet.hpp"    // sheet
@@ -68,9 +68,11 @@ namespace bitwisedom
  *                         includes it.
  * @return the self-test's text.
  */
-D_NODISCARD std::string  self_test(const sheet&       _sheet,
-                                   const resolution&  _resolution,
-                                   const std::string& _header);
+D_NODISCARD std::string self_test(
+    const sheet&       _sheet,
+    const resolution&  _resolution,
+    const std::string& _header
+);
 
 
 }  // namespace bitwisedom
@@ -78,4 +80,4 @@ D_NODISCARD std::string  self_test(const sheet&       _sheet,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_SELFTEST_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_SELFTEST_HPP

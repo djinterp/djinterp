@@ -1,0 +1,241 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\tests\djinterp\core\container\
+├── 📁 array
+│   ├── 📄 array_core_tests.cpp
+│   ├── 📄 array_options_alias_tests.cpp
+│   ├── 📄 array_options_core_tests.cpp
+│   ├── 📄 array_options_edge_tests.cpp
+│   ├── 📄 array_options_factory_tests.cpp
+│   ├── 📄 array_tests.hpp
+│   ├── 📄 atomic_array_core_tests.cpp
+│   ├── 📄 cow_array_core_tests.cpp
+│   └── 📄 threadsafe_array_core_tests.cpp
+├── 📁 buffer
+│   ├── 📄 buffer_tests.hpp
+│   ├── 📄 buffer_tests_buffer_base_lifecycle.cpp
+│   ├── 📄 buffer_tests_buffer_base_read.cpp
+│   ├── 📄 buffer_tests_buffer_base_state.cpp
+│   ├── 📄 buffer_tests_buffer_base_write.cpp
+│   ├── 📄 buffer_tests_cursor_policies.cpp
+│   ├── 📄 buffer_tests_defaults.cpp
+│   ├── 📄 buffer_tests_enums.cpp
+│   ├── 📄 buffer_tests_growth_policies.cpp
+│   └── 📄 buffer_tests_policy_selection.cpp
+├── 📁 graph
+│   └── 📄 djinterp-graph-tests.cpp
+├── 📁 list
+│   └── 📄 djinterp-list-tests.cpp
+├── 📁 map
+│   ├── 📄 djinterp-map-tests.cpp
+│   └── 📄 djinterp-multimap-tests.cpp
+├── 📁 set
+│   ├── 📄 djinterp-multiset-tests.cpp
+│   └── 📄 djinterp-set-tests.cpp
+├── 📁 table
+│   ├── 📄 test_table_builder.cpp
+│   ├── 📄 test_table_builder_options.cpp
+│   ├── 📄 test_table_layout.cpp
+│   ├── 📄 test_table_model.cpp
+│   ├── 📄 test_table_option_partition.cpp
+│   ├── 📄 test_table_options.cpp
+│   ├── 📄 test_table_parser.cpp
+│   ├── 📄 test_table_shape.cpp
+│   ├── 📄 test_table_template.cpp
+│   └── 📄 test_table_transpose.cpp
+├── 📁 traits
+│   ├── 📄 bounded_container_traits_tests.hpp
+│   ├── 📄 bounded_container_traits_tests_capacity.cpp
+│   ├── 📄 bounded_container_traits_tests_domain.cpp
+│   ├── 📄 bounded_container_traits_tests_robustness.cpp
+│   ├── 📄 bounded_container_traits_tests_signals.cpp
+│   ├── 📄 bounded_container_traits_tests_snapshot.cpp
+│   ├── 📄 bounded_container_traits_tests_stdlib.cpp
+│   ├── 📄 bounded_container_traits_tests_summary.cpp
+│   ├── 📄 constexpr_container_traits_tests.hpp
+│   ├── 📄 constexpr_container_traits_tests_classification.cpp
+│   ├── 📄 constexpr_container_traits_tests_hazards.cpp
+│   ├── 📄 constexpr_container_traits_tests_lifetime.cpp
+│   ├── 📄 constexpr_container_traits_tests_robustness.cpp
+│   ├── 📄 constexpr_container_traits_tests_signals.cpp
+│   ├── 📄 constexpr_container_traits_tests_snapshot.cpp
+│   ├── 📄 constexpr_container_traits_tests_stdlib.cpp
+│   ├── 📄 container_comparison_traits_tests.hpp
+│   ├── 📄 container_comparison_traits_tests_content.cpp
+│   ├── 📄 container_comparison_traits_tests_discipline.cpp
+│   ├── 📄 container_comparison_traits_tests_laws.cpp
+│   ├── 📄 container_comparison_traits_tests_profile.cpp
+│   ├── 📄 container_comparison_traits_tests_realization.cpp
+│   ├── 📄 container_comparison_traits_tests_relations.cpp
+│   ├── 📄 container_comparison_traits_tests_robustness.cpp
+│   ├── 📄 container_comparison_traits_tests_stdlib.cpp
+│   ├── 📄 container_conversion_traits_tests.hpp
+│   ├── 📄 container_conversion_traits_tests_aggregate.cpp
+│   ├── 📄 container_conversion_traits_tests_classification.cpp
+│   ├── 📄 container_conversion_traits_tests_concerns.cpp
+│   ├── 📄 container_conversion_traits_tests_construction_path.cpp
+│   ├── 📄 container_conversion_traits_tests_paths.cpp
+│   ├── 📄 container_conversion_traits_tests_robustness.cpp
+│   ├── 📄 container_conversion_traits_tests_stdlib.cpp
+│   ├── 📄 container_conversion_traits_tests_tier.cpp
+│   ├── 📄 container_conversion_traits_tests_view.cpp
+│   ├── 📄 container_copy_merge_traits_tests.hpp
+│   ├── 📄 container_copy_merge_traits_tests_class.cpp
+│   ├── 📄 container_copy_merge_traits_tests_copy.cpp
+│   ├── 📄 container_copy_merge_traits_tests_discipline.cpp
+│   ├── 📄 container_copy_merge_traits_tests_merge_kind.cpp
+│   ├── 📄 container_copy_merge_traits_tests_prerequisites.cpp
+│   ├── 📄 container_copy_merge_traits_tests_provisos.cpp
+│   ├── 📄 container_filter_traits_tests.hpp
+│   ├── 📄 container_filter_traits_tests_capability.cpp
+│   ├── 📄 container_filter_traits_tests_classification.cpp
+│   ├── 📄 container_filter_traits_tests_preservation.cpp
+│   ├── 📄 container_filter_traits_tests_result_type.cpp
+│   ├── 📄 container_filter_traits_tests_stage.cpp
+│   ├── 📄 container_filter_traits_tests_strategy.cpp
+│   ├── 📄 container_memory_strategy_tests.hpp
+│   ├── 📄 container_memory_strategy_tests_container.cpp
+│   ├── 📄 container_memory_traits_tests.hpp
+│   ├── 📄 container_memory_traits_tests_alias_detection.cpp
+│   ├── 📄 container_memory_traits_tests_classification.cpp
+│   ├── 📄 container_memory_traits_tests_consistency.cpp
+│   ├── 📄 container_memory_traits_tests_discipline.cpp
+│   ├── 📄 container_memory_traits_tests_predicates.cpp
+│   ├── 📄 container_multiplicity_traits_tests.hpp
+│   ├── 📄 container_multiplicity_traits_tests_classification.cpp
+│   ├── 📄 container_multiplicity_traits_tests_predicates.cpp
+│   ├── 📄 container_multiplicity_traits_tests_signals.cpp
+│   ├── 📄 container_multiplicity_traits_tests_verdict.cpp
+│   ├── 📄 container_overlay_traits_tests.hpp
+│   ├── 📄 container_overlay_traits_tests_algebra.cpp
+│   ├── 📄 container_overlay_traits_tests_canonical.cpp
+│   ├── 📄 container_overlay_traits_tests_classification.cpp
+│   ├── 📄 container_overlay_traits_tests_overlay_of.cpp
+│   ├── 📄 container_overlay_traits_tests_signals.cpp
+│   ├── 📄 container_overlay_traits_tests_vocabulary.cpp
+│   ├── 📄 container_storage_traits_tests.hpp
+│   ├── 📄 container_storage_traits_tests_classification.cpp
+│   ├── 📄 container_storage_traits_tests_duration.cpp
+│   ├── 📄 container_storage_traits_tests_entailment.cpp
+│   ├── 📄 container_storage_traits_tests_predicates.cpp
+│   ├── 📄 container_storage_traits_tests_signals.cpp
+│   ├── 📄 container_traits_tests.hpp
+│   ├── 📄 container_traits_tests_array.cpp
+│   ├── 📄 container_traits_tests_bounds.cpp
+│   ├── 📄 container_traits_tests_classification.cpp
+│   ├── 📄 container_traits_tests_constexpr_traits.cpp
+│   ├── 📄 container_traits_tests_lifetime.cpp
+│   ├── 📄 container_traits_tests_method_detection.cpp
+│   ├── 📄 container_traits_tests_multiplicity.cpp
+│   ├── 📄 container_traits_tests_storage.cpp
+│   ├── 📄 container_traits_tests_underlying.cpp
+│   ├── 📄 container_transform_traits_tests.hpp
+│   ├── 📄 container_transform_traits_tests_capability.cpp
+│   ├── 📄 container_transform_traits_tests_classification.cpp
+│   ├── 📄 container_transform_traits_tests_preservation.cpp
+│   ├── 📄 container_transform_traits_tests_result.cpp
+│   ├── 📄 container_transform_traits_tests_stage.cpp
+│   ├── 📄 container_transform_traits_tests_strategy.cpp
+│   ├── 📄 element_relation_traits_tests.hpp
+│   ├── 📄 element_relation_traits_tests_container.cpp
+│   ├── 📄 element_relation_traits_tests_cross.cpp
+│   ├── 📄 element_relation_traits_tests_degree.cpp
+│   ├── 📄 element_relation_traits_tests_element.cpp
+│   ├── 📄 flat_container_traits_tests.hpp
+│   ├── 📄 flat_container_traits_tests_aggregate.cpp
+│   ├── 📄 flat_container_traits_tests_classification.cpp
+│   ├── 📄 hierarchical_container_traits_tests.hpp
+│   ├── 📄 hierarchical_container_traits_tests_aggregate.cpp
+│   ├── 📄 hierarchical_container_traits_tests_depth.cpp
+│   ├── 📄 hierarchical_container_traits_tests_kind.cpp
+│   ├── 📄 hierarchical_container_traits_tests_signals.cpp
+│   ├── 📄 hierarchical_container_traits_tests_verdict.cpp
+│   ├── 📄 iterable_container_traits_tests.hpp
+│   ├── 📄 iterable_container_traits_tests_aggregate.cpp
+│   ├── 📄 iterable_container_traits_tests_classification.cpp
+│   ├── 📄 iterable_container_traits_tests_detection.cpp
+│   ├── 📄 iterable_container_traits_tests_mode.cpp
+│   ├── 📄 iterable_container_traits_tests_mode_algebra.cpp
+│   ├── 📄 mutable_container_traits_tests.hpp
+│   ├── 📄 mutable_container_traits_tests_access.cpp
+│   ├── 📄 mutable_container_traits_tests_aggregate.cpp
+│   ├── 📄 mutable_container_traits_tests_grade.cpp
+│   ├── 📄 mutable_container_traits_tests_signals.cpp
+│   ├── 📄 mutable_container_traits_tests_umbrellas.cpp
+│   ├── 📄 node_container_traits_tests.hpp
+│   ├── 📄 node_container_traits_tests_classification.cpp
+│   ├── 📄 node_container_traits_tests_entry_point.cpp
+│   ├── 📄 node_container_traits_tests_identity.cpp
+│   ├── 📄 node_container_traits_tests_node_type.cpp
+│   ├── 📄 node_container_traits_tests_ownership_detect.cpp
+│   ├── 📄 node_container_traits_tests_ownership_model.cpp
+│   ├── 📄 observational_comparison_traits_tests.hpp
+│   ├── 📄 observational_comparison_traits_tests_level_algebra.cpp
+│   ├── 📄 observational_comparison_traits_tests_level_of.cpp
+│   ├── 📄 observational_comparison_traits_tests_probes.cpp
+│   ├── 📄 observational_comparison_traits_tests_shared_level.cpp
+│   ├── 📄 observational_comparison_traits_tests_stage.cpp
+│   ├── 📄 ordered_container_traits_tests.hpp
+│   ├── 📄 ordered_container_traits_tests_layout.cpp
+│   ├── 📄 ordered_container_traits_tests_order_axis.cpp
+│   ├── 📄 ordered_container_traits_tests_ordering_kind.cpp
+│   ├── 📄 read_only_container_traits_tests.hpp
+│   ├── 📄 read_only_container_traits_tests_lattice.cpp
+│   ├── 📄 read_only_container_traits_tests_predicate.cpp
+│   ├── 📄 read_write_container_traits_tests.hpp
+│   ├── 📄 read_write_container_traits_tests_capability_bits.cpp
+│   ├── 📄 read_write_container_traits_tests_class.cpp
+│   ├── 📄 read_write_container_traits_tests_classification.cpp
+│   ├── 📄 read_write_container_traits_tests_predicate_and_tag.cpp
+│   ├── 📄 read_write_container_traits_tests_read_surface.cpp
+│   ├── 📄 read_write_container_traits_tests_write_surface.cpp
+│   ├── 📄 runtime_container_traits_tests.hpp
+│   ├── 📄 runtime_container_traits_tests_class.cpp
+│   ├── 📄 runtime_container_traits_tests_classification.cpp
+│   ├── 📄 runtime_container_traits_tests_signals.cpp
+│   ├── 📄 sorted_container_traits_tests.hpp
+│   ├── 📄 sorted_container_traits_tests_class.cpp
+│   ├── 📄 sorted_container_traits_tests_classification.cpp
+│   ├── 📄 sorted_container_traits_tests_predicates.cpp
+│   ├── 📄 sorted_container_traits_tests_signals.cpp
+│   ├── 📄 write_only_container_traits_tests.hpp
+│   ├── 📄 write_only_container_traits_tests_lattice.cpp
+│   └── 📄 write_only_container_traits_tests_predicate.cpp
+├── 📁 vector
+│   └── 📄 djinterp-vector-tests.cpp
+├── 📄 container_metadata_tests.hpp
+├── 📄 container_metadata_tests_binding.cpp
+├── 📄 container_metadata_tests_construction.cpp
+├── 📄 container_metadata_tests_detection.cpp
+├── 📄 container_metadata_tests_factory.cpp
+├── 📄 container_metadata_tests_payload.cpp
+├── 📄 ordered_container_tests.hpp
+├── 📄 ordered_container_tests_algorithms.cpp
+├── 📄 ordered_container_tests_base.cpp
+├── 📄 ordered_container_tests_classifiers.cpp
+├── 📄 read_only_container_tests.hpp
+├── 📄 read_only_container_tests_adaptivity.cpp
+├── 📄 read_only_container_tests_construction.cpp
+├── 📄 read_only_container_tests_observation.cpp
+├── 📄 read_only_container_tests_runner.cpp
+├── 📄 read_only_container_tests_seal.cpp
+├── 📄 read_only_container_tests_traits.cpp
+├── 📄 read_write_container_tests.hpp
+├── 📄 read_write_container_tests_adaptivity.cpp
+├── 📄 read_write_container_tests_construction.cpp
+├── 📄 read_write_container_tests_element_access.cpp
+├── 📄 read_write_container_tests_mutation.cpp
+├── 📄 read_write_container_tests_observation.cpp
+├── 📄 read_write_container_tests_runner.cpp
+├── 📄 read_write_container_tests_traits.cpp
+├── 📄 sequential_container_tests.hpp
+├── 📄 sequential_container_tests_algorithms.cpp
+├── 📄 sequential_container_tests_base.cpp
+├── 📄 sequential_container_tests_traits.cpp
+├── 📄 sorted_container_tests.hpp
+├── 📄 sorted_container_tests_gating.cpp
+├── 📄 sorted_container_tests_range.cpp
+├── 📄 write_only_container_tests.hpp
+├── 📄 write_only_container_tests_append.cpp
+├── 📄 write_only_container_tests_construction.cpp
+├── 📄 write_only_container_tests_metadata.cpp
+├── 📄 write_only_container_tests_seal.cpp
+└── 📄 write_only_container_tests_traits.cpp

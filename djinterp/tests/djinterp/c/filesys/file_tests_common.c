@@ -47,9 +47,8 @@ Parameter(s):
 Return:
   true iff _got is non-NULL and equal to _want.
 */
-static bool
-d_fs_name_is
-(
+static
+bool d_fs_name_is(
     const char* _got,
     const char* _want
 )
@@ -69,11 +68,10 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_fs_notify_counter
-(
-    const struct d_file_notice* _notice,
-    void*                       _context
+static
+void d_fs_notify_counter(
+    const struct dj_file_notice* _notice,
+    void*                        _context
 )
 {
     (void)_notice;
@@ -91,9 +89,8 @@ d_fs_notify_counter
  * I.a  d_file_backend_name
  *****************************************************************************/
 
-static void
-d_fs_tests_common_backend_name
-(
+static
+void d_fs_tests_common_backend_name(
     dtest_suite* _suite
 )
 {
@@ -115,9 +112,8 @@ d_fs_tests_common_backend_name
  * I.b  d_file_notify_level_name
  *****************************************************************************/
 
-static void
-d_fs_tests_common_level_name
-(
+static
+void d_fs_tests_common_level_name(
     dtest_suite* _suite
 )
 {
@@ -153,9 +149,8 @@ d_fs_tests_common_level_name
  * I.c  handler management and delivery
  *****************************************************************************/
 
-static void
-d_fs_tests_common_notify
-(
+static
+void d_fs_tests_common_notify(
     dtest_suite* _suite
 )
 {
@@ -223,9 +218,8 @@ d_fs_tests_common_notify
  * I.d  d_file_notify_default_handler
  *****************************************************************************/
 
-static void
-d_fs_tests_common_default_handler
-(
+static
+void d_fs_tests_common_default_handler(
     dtest_suite* _suite
 )
 {
@@ -233,7 +227,7 @@ d_fs_tests_common_default_handler
     // case in this function is a validation case, so with checking off
     // there is nothing left here to declare it for.
     #if D_FILE_VALIDATE_IS_ACTIVE
-    struct d_file_notice notice;
+    struct dj_file_notice notice;
     #endif
 
     dtest_block(_suite, "d_file_notify_default_handler");
@@ -293,9 +287,7 @@ d_fs_tests_common_default_handler
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_common
-(
+void d_fs_tests_common(
     dtest_suite* _suite
 )
 {

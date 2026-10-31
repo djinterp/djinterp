@@ -7,7 +7,7 @@
 * short flags (-xvf), next-arg consumption, stop token (--), and edge cases.
 *
 *
-* path:      /tests/util/cli_unix/main.c
+* path:      /tests/djinterp/c/util/cli/main_cli_unix.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.26
 ******************************************************************************/
@@ -27,14 +27,12 @@ Parameter(s):
 Return:
   0 on success, 1 on failure.
 */
-int
-main
-(
+int main(
     int   _argc,
     char* _argv[]
 )
 {
-    struct d_test_sa_runner runner;
+    struct dj_test_sa_runner runner;
     int                     exit_code;
 
     (void)_argc;

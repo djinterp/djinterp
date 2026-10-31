@@ -25,8 +25,8 @@ d_internal_functional_valid
   The shared argument test: a callback, and an array whenever there is
 anything to visit in it.
 */
-static bool
-d_internal_functional_valid(
+static
+bool d_internal_functional_valid(
     const void* _input,
     size_t      _count,
     size_t      _element_size,
@@ -42,8 +42,8 @@ d_internal_functional_valid(
 d_internal_functional_at
   The address of element _i.
 */
-static const void*
-d_internal_functional_at(
+static
+const void* d_internal_functional_at(
     const void* _input,
     size_t      _i,
     size_t      _element_size
@@ -58,8 +58,7 @@ d_functional_identity_transformer
 reads it from the context: `_context` must point to a size_t holding it.
 Without one there is nothing it can safely copy, and it fails.
 */
-bool
-d_functional_identity_transformer(
+bool d_functional_identity_transformer(
     const void* _input,
     void*       _output,
     void*       _context
@@ -85,8 +84,7 @@ d_functional_identity_predicate
   The element as its own truth value, for arrays of bool; a missing element
 is false.
 */
-bool
-d_functional_identity_predicate(
+bool d_functional_identity_predicate(
     const void* _element,
     void*       _context
 )
@@ -97,8 +95,7 @@ d_functional_identity_predicate(
              (*(const bool*)_element) );
 }
 
-bool
-d_functional_constant_true(
+bool d_functional_constant_true(
     const void* _element,
     void*       _context
 )
@@ -109,8 +106,7 @@ d_functional_constant_true(
     return true;
 }
 
-bool
-d_functional_constant_false(
+bool d_functional_constant_false(
     const void* _element,
     void*       _context
 )
@@ -126,8 +122,8 @@ d_internal_functional_order
   -1, 0 or 1 for the pointers' order, used when either is missing: a missing
 operand sorts first, and two missing ones are equal.
 */
-static int
-d_internal_functional_order(
+static
+int d_internal_functional_order(
     const void* _a,
     const void* _b
 )
@@ -140,8 +136,7 @@ d_internal_functional_order(
     return (!_a) ? -1 : 1;
 }
 
-int
-d_functional_compare_int(
+int d_functional_compare_int(
     const void* _a,
     const void* _b,
     void*       _context
@@ -167,8 +162,7 @@ d_functional_compare_double
   A total order: NaN sorts after every number and equals another NaN, so a
 sort over doubles that contain NaN still terminates and is deterministic.
 */
-int
-d_functional_compare_double(
+int d_functional_compare_double(
     const void* _a,
     const void* _b,
     void*       _context
@@ -198,8 +192,7 @@ d_functional_compare_double(
     return (a < b) ? -1 : ((a > b) ? 1 : 0);
 }
 
-int
-d_functional_compare_size_t(
+int d_functional_compare_size_t(
     const void* _a,
     const void* _b,
     void*       _context
@@ -220,8 +213,7 @@ d_functional_compare_size_t(
     return (a < b) ? -1 : ((a > b) ? 1 : 0);
 }
 
-bool
-d_functional_equal_int(
+bool d_functional_equal_int(
     const void* _a,
     const void* _b,
     void*       _context
@@ -230,8 +222,7 @@ d_functional_equal_int(
     return (d_functional_compare_int(_a, _b, _context) == 0);
 }
 
-bool
-d_functional_equal_size_t(
+bool d_functional_equal_size_t(
     const void* _a,
     const void* _b,
     void*       _context
@@ -245,8 +236,7 @@ d_functional_is_null
   For arrays of pointers: the element holds a NULL pointer. A missing element
 counts as null too.
 */
-bool
-d_functional_is_null(
+bool d_functional_is_null(
     const void* _element,
     void*       _context
 )
@@ -257,8 +247,7 @@ d_functional_is_null(
              (*(const void* const*)_element == NULL) );
 }
 
-bool
-d_functional_is_not_null(
+bool d_functional_is_not_null(
     const void* _element,
     void*       _context
 )
@@ -271,8 +260,7 @@ d_functional_map
   Output elements have the input's size; a transformer that fails stops the
 map where it failed, and the elements already written stay written.
 */
-bool
-d_functional_map(
+bool d_functional_map(
     const void*    _input,
     void*          _output,
     size_t         _count,
@@ -305,8 +293,7 @@ d_functional_map(
     return true;
 }
 
-bool
-d_functional_fold_left(
+bool d_functional_fold_left(
     const void*    _input,
     size_t         _count,
     size_t         _element_size,
@@ -339,8 +326,7 @@ d_functional_fold_left(
     return true;
 }
 
-bool
-d_functional_fold_right(
+bool d_functional_fold_right(
     const void*    _input,
     size_t         _count,
     size_t         _element_size,
@@ -373,8 +359,7 @@ d_functional_fold_right(
     return true;
 }
 
-void
-d_functional_for_each(
+void d_functional_for_each(
     void*       _input,
     size_t      _count,
     size_t      _element_size,
@@ -400,8 +385,7 @@ d_functional_for_each(
     return;
 }
 
-void
-d_functional_for_each_const(
+void d_functional_for_each_const(
     const void*       _input,
     size_t            _count,
     size_t            _element_size,
@@ -432,8 +416,7 @@ d_functional_all
   Vacuously true for no elements; false for invalid arguments, since nothing
 was shown to hold.
 */
-bool
-d_functional_all(
+bool d_functional_all(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,
@@ -463,8 +446,7 @@ d_functional_all(
     return true;
 }
 
-bool
-d_functional_any(
+bool d_functional_any(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,
@@ -483,8 +465,7 @@ d_functional_any(
 d_functional_none
   Vacuously true for no elements; false for invalid arguments, as for all.
 */
-bool
-d_functional_none(
+bool d_functional_none(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,
@@ -508,8 +489,7 @@ d_functional_none(
                                  _context) == NULL);
 }
 
-size_t
-d_functional_count_if(
+size_t d_functional_count_if(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,
@@ -541,8 +521,7 @@ d_functional_count_if(
     return matches;
 }
 
-void*
-d_functional_find_if(
+void* d_functional_find_if(
     const void*  _input,
     size_t       _count,
     size_t       _element_size,

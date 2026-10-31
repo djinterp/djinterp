@@ -21,16 +21,22 @@
 #include <stdbool.h>  // bool
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
+#include "./dnode.h"  // dj_node_tree
 
-struct d_git_history;
+struct dj_git_history;
 
-struct d_git_history* d_git_read(const char* _root);
-bool                  d_git_build(const struct d_git_history* _history,
-                                  struct d_node_tree*         _tree,
-                                  uint32_t                    _file,
-                                  const char*                 _relative);
-void                  d_git_free(struct d_git_history* _history);
+struct dj_git_history* d_git_read(
+    const char* _root
+);
+bool d_git_build(
+    const struct dj_git_history* _history,
+    struct dj_node_tree*         _tree,
+    uint32_t                     _file,
+    const char*                  _relative
+);
+void d_git_free(
+    struct dj_git_history* _history
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DGIT_H

@@ -28,8 +28,8 @@
 d_internal_is_blank
   A line of nothing but spaces, tabs and its own terminator.
 */
-static bool
-d_internal_is_blank(
+static
+bool d_internal_is_blank(
     const char* _text
 )
 {
@@ -52,16 +52,16 @@ d_internal_attribute
   A node's attribute by name: the value's text, or NULL when the node has no
 such attribute.
 */
-static const char*
-d_internal_attribute(
-    const struct d_node_tree* _tree,
-    const struct d_node*      _node,
-    const char*               _name
+static
+const char* d_internal_attribute(
+    const struct dj_node_tree* _tree,
+    const struct dj_node*      _node,
+    const char*                _name
 )
 {
     for (uint32_t which = 0u; which < _node->attribute_count; ++which)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, _node->first_attribute + which);
 
         if ( (attribute) &&
@@ -79,8 +79,8 @@ d_internal_refused
   Says which repair was not made and why, as dcheck's own refusals are said,
 and counts it.
 */
-static void
-d_internal_refused(
+static
+void d_internal_refused(
     size_t*     _refused,
     const char* _path,
     uint32_t    _line,
@@ -102,16 +102,16 @@ d_internal_refused(
 /*
 d_internal_order
   Last line first; on one line, what rewrites it before what moves it, which
-is the order of d_repair_kind.
+is the order of dj_repair_kind.
 */
-static int
-d_internal_order(
+static
+int d_internal_order(
     const void* _a,
     const void* _b
 )
 {
-    const struct d_repair_edit* const a = _a;
-    const struct d_repair_edit* const b = _b;
+    const struct dj_repair_edit* const a = _a;
+    const struct dj_repair_edit* const b = _b;
 
     // the later line is made first
     if (a->line != b->line)
@@ -127,8 +127,8 @@ d_internal_opens_line
   Reports whether a line, as the file now stands, begins at a column: that
 is, whether the node noted there is still there and is first on its line.
 */
-static bool
-d_internal_opens_line(
+static
+bool d_internal_opens_line(
     const char* _path,
     uint32_t    _line,
     uint32_t    _column
@@ -160,10 +160,10 @@ read and found empty, so nothing but white space can be lost; each removal
 is of the line just above, which is where the next empty one sits once the
 one before it is gone.
 */
-static size_t
-d_internal_apply_blanks(
-    const char*                 _path,
-    const struct d_repair_edit* _edit
+static
+size_t d_internal_apply_blanks(
+    const char*                  _path,
+    const struct dj_repair_edit* _edit
 )
 {
     char     text[D_BANNER_LINE_MAX] = "";
@@ -221,8 +221,8 @@ its neighbours' comments stand in: the include above or below it, when
 that one carries a summary. 0 when neither does, and the comment goes two
 spaces after the line's text.
 */
-static size_t
-d_internal_summary_column(
+static
+size_t d_internal_summary_column(
     const char* _path,
     uint32_t    _line
 )
@@ -257,8 +257,8 @@ characters by it is left, since a repair may not buy one rule with another
 measures. The audit is asked as well as the check here, since it is the
 gate every repair of dcheck's passes.
 */
-static size_t
-d_internal_apply_comment(
+static
+size_t d_internal_apply_comment(
     const char* _path,
     uint32_t    _line,
     const char* _words,
@@ -268,7 +268,7 @@ d_internal_apply_comment(
 {
     char                 before[D_BANNER_LINE_MAX] = "";
     char                 after[D_BANNER_LINE_MAX]  = "";
-    struct d_audit_claim claim                     = { 0 };
+    struct dj_audit_claim claim                     = { 0 };
     const char*          why                       = NULL;
 
     if (!d_edit_read_line(_path, _line, before, sizeof(before)))
@@ -318,11 +318,11 @@ d_internal_apply_comment(
 //   constant: the most lines a parameter list may run over.
 #define D_INTERNAL_REGION_LINES 32
 
-// d_internal_region
+// dj_internal_region
 //   struct: a parameter list as it stands in the file: its lines' text,
 // joined by line feeds; where each line begins in that text; and where its
 // two brackets are.
-struct d_internal_region
+struct dj_internal_region
 {
     char    text[D_INTERNAL_REGION_MAX];
     size_t  begins[D_INTERNAL_REGION_LINES];
@@ -332,17 +332,17 @@ struct d_internal_region
 
 // d_internal_writer
 //   struct: a text being written, and how much of it is.
-struct d_internal_writer
+struct dj_internal_writer
 {
     char    text[D_INTERNAL_REGION_MAX];
     size_t  used;
 };
 
-// d_internal_parts
+// dj_internal_parts
 //   struct: the parameters found in a region: where each begins and how
 // long it is, where its name begins within it (0 when it has none to split
 // at), the longest type among them, and whether every one has a name.
-struct d_internal_parts
+struct dj_internal_parts
 {
     size_t  start[D_REPAIR_PARAM_MAX];
     size_t  length[D_REPAIR_PARAM_MAX];
@@ -358,12 +358,12 @@ finds its brackets in it. `_pair` is the two brackets expected. Fails when
 the run is too long, a line cannot be read, or the brackets are not where
 the edit says.
 */
-static bool
-d_internal_read_region(
-    const char*                 _path,
-    const struct d_repair_edit* _edit,
-    const char*                 _pair,
-    struct d_internal_region*   _out
+static
+bool d_internal_read_region(
+    const char*                  _path,
+    const struct dj_repair_edit* _edit,
+    const char*                  _pair,
+    struct dj_internal_region*   _out
 )
 {
     const uint32_t lines = (_edit->close_line - _edit->line) + 1u;
@@ -417,8 +417,8 @@ d_internal_same_run
 spaces nor line feeds, in the same order: what a repair of layout must
 leave as it found.
 */
-static bool
-d_internal_same_run(
+static
+bool d_internal_same_run(
     const char* _a,
     const char* _b
 )
@@ -457,12 +457,12 @@ NULL, appends `_length` spaces. With `_words` set, each run of spaces in the
 text becomes one: a parameter's own spacing was for the column it stood in,
 which it is leaving.
 */
-static bool
-d_internal_put(
-    struct d_internal_writer* _out,
-    const char*               _text,
-    size_t                    _length,
-    bool                      _words
+static
+bool d_internal_put(
+    struct dj_internal_writer* _out,
+    const char*                _text,
+    size_t                     _length,
+    bool                       _words
 )
 {
     for (size_t at = 0u; at < _length; ++at)
@@ -500,12 +500,12 @@ moved goes under its owner, and a head left `} else` above it would be laid
 out as nothing else in the tree is. The `}` must stand `_indent` spaces in,
 where the moving brace is going, or the head is written as it stands.
 */
-static bool
-d_internal_put_head(
-    struct d_internal_writer* _out,
-    const char*               _head,
-    size_t                    _length,
-    uint32_t                  _indent
+static
+bool d_internal_put_head(
+    struct dj_internal_writer* _out,
+    const char*                _head,
+    size_t                     _length,
+    uint32_t                   _indent
 )
 {
     size_t brace = 0u;
@@ -546,15 +546,15 @@ read as it did when the edit was noted -- the brace at its column, nothing
 after it, something before it -- or the edit is dropped for the next pass to
 measure again. What is written is checked first.
 */
-static size_t
-d_internal_apply_split(
-    const char*                 _path,
-    const struct d_repair_edit* _edit,
-    size_t*                     _refused
+static
+size_t d_internal_apply_split(
+    const char*                  _path,
+    const struct dj_repair_edit* _edit,
+    size_t*                      _refused
 )
 {
     char                     before[D_BANNER_LINE_MAX] = "";
-    struct d_internal_writer fresh                     = { "", 0u };
+    struct dj_internal_writer fresh                     = { "", 0u };
 
     if (!d_edit_read_line(_path, _edit->line, before, sizeof(before)))
     {
@@ -607,12 +607,12 @@ d_internal_apply_split(
 d_internal_offset
   Where a line and column of the file fall in a region's text.
 */
-static size_t
-d_internal_offset(
-    const struct d_internal_region* _region,
-    const struct d_repair_edit*     _edit,
-    uint32_t                        _line,
-    uint32_t                        _column
+static
+size_t d_internal_offset(
+    const struct dj_internal_region* _region,
+    const struct dj_repair_edit*     _edit,
+    uint32_t                         _line,
+    uint32_t                         _column
 )
 {
     return _region->begins[_line - _edit->line] + _column - 1u;
@@ -625,12 +625,12 @@ that ends it, or to the list's `)` for the last, with the comma and the
 space around it left off. Fails when the parameter runs over a line's end,
 since joining its lines is more than moving it.
 */
-static bool
-d_internal_part(
-    const struct d_internal_region* _region,
-    const struct d_repair_edit*     _edit,
-    uint32_t                        _which,
-    struct d_internal_parts*        _out
+static
+bool d_internal_part(
+    const struct dj_internal_region* _region,
+    const struct dj_repair_edit*     _edit,
+    uint32_t                         _which,
+    struct dj_internal_parts*        _out
 )
 {
     const char* const text  = _region->text;
@@ -678,11 +678,11 @@ d_internal_measure
 type and inside its own text. Names go in one column only when every
 parameter has one to split at; the column is a space past the longest type.
 */
-static bool
-d_internal_measure(
-    const struct d_internal_region* _region,
-    const struct d_repair_edit*     _edit,
-    struct d_internal_parts*        _out
+static
+bool d_internal_measure(
+    const struct dj_internal_region* _region,
+    const struct dj_repair_edit*     _edit,
+    struct dj_internal_parts*        _out
 )
 {
     _out->widest = 0u;
@@ -724,13 +724,13 @@ d_internal_put_part
   Writes one parameter on a line of its own, one level in from the
 function: its type, then its name in the names' column when they have one.
 */
-static bool
-d_internal_put_part(
-    const struct d_internal_region* _region,
-    const struct d_internal_parts*  _parts,
-    uint32_t                        _which,
-    size_t                          _indent,
-    struct d_internal_writer*       _out
+static
+bool d_internal_put_part(
+    const struct dj_internal_region* _region,
+    const struct dj_internal_parts*  _parts,
+    uint32_t                         _which,
+    size_t                           _indent,
+    struct dj_internal_writer*       _out
 )
 {
     const char* const text = _region->text + _parts->start[_which];
@@ -766,14 +766,14 @@ on a line of its own, and the `)` under the function with whatever followed
 it. A parameter with no name to split at -- a function pointer, whose name
 is inside its own brackets -- leaves every name a space from its type.
 */
-static bool
-d_internal_lay_out(
-    const struct d_internal_region* _region,
-    const struct d_repair_edit*     _edit,
-    struct d_internal_writer*       _out
+static
+bool d_internal_lay_out(
+    const struct dj_internal_region* _region,
+    const struct dj_repair_edit*     _edit,
+    struct dj_internal_writer*       _out
 )
 {
-    struct d_internal_parts parts = { { 0 }, { 0 }, { 0 }, 0u, true };
+    struct dj_internal_parts parts = { { 0 }, { 0 }, { 0 }, 0u, true };
 
     if ( (!d_internal_measure(_region, _edit, &parts)) ||
          (!d_internal_put(_out, _region->text, _region->open + 1u, false)) )
@@ -807,15 +807,15 @@ directive or a quoted text is left, since moving its lines might move what a
 comment is beside or what a quote holds. What is written is checked first:
 the same characters, in the same order, but for spaces and line ends.
 */
-static size_t
-d_internal_apply_layout(
-    const char*                 _path,
-    const struct d_repair_edit* _edit,
-    size_t*                     _refused
+static
+size_t d_internal_apply_layout(
+    const char*                  _path,
+    const struct dj_repair_edit* _edit,
+    size_t*                      _refused
 )
 {
-    struct d_internal_region region = { "", { 0 }, 0u, 0u };
-    struct d_internal_writer fresh  = { "", 0u };
+    struct dj_internal_region region = { "", { 0 }, 0u, 0u };
+    struct dj_internal_writer fresh  = { "", 0u };
 
     if ( (!d_internal_opens_line(_path, _edit->owner_line,
                                  _edit->indent + 1u))        ||
@@ -869,15 +869,15 @@ with nothing between them become `{}`, followed by whatever followed the
 line of text is the brace rule's to move first -- and there must be nothing
 between the two but space.
 */
-static size_t
-d_internal_apply_join(
-    const char*                 _path,
-    const struct d_repair_edit* _edit,
-    size_t*                     _refused
+static
+size_t d_internal_apply_join(
+    const char*                  _path,
+    const struct dj_repair_edit* _edit,
+    size_t*                      _refused
 )
 {
-    struct d_internal_region region = { "", { 0 }, 0u, 0u };
-    struct d_internal_writer fresh  = { "", 0u };
+    struct dj_internal_region region = { "", { 0 }, 0u, 0u };
+    struct dj_internal_writer fresh  = { "", 0u };
 
     if ( (!d_internal_opens_line(_path, _edit->line, _edit->column)) ||
          (!d_internal_read_region(_path, _edit, "{}", &region)) )
@@ -920,11 +920,11 @@ d_internal_put_held
 in from the braces: from where it begins to where the next does, or to the
 closing brace, with the space after it left off.
 */
-static bool
-d_internal_put_held(
-    const struct d_internal_region* _region,
-    const struct d_repair_edit*     _edit,
-    struct d_internal_writer*       _out
+static
+bool d_internal_put_held(
+    const struct dj_internal_region* _region,
+    const struct dj_repair_edit*     _edit,
+    struct dj_internal_writer*       _out
 )
 {
     for (uint32_t which = 0u; which < _edit->parts; ++which)
@@ -962,15 +962,15 @@ under the opening one with whatever followed it. A body that holds a
 comment is left, and so is one followed by another body on the same line,
 as `} else { ... }` is: each is more than this moves.
 */
-static size_t
-d_internal_apply_expand(
-    const char*                 _path,
-    const struct d_repair_edit* _edit,
-    size_t*                     _refused
+static
+size_t d_internal_apply_expand(
+    const char*                  _path,
+    const struct dj_repair_edit* _edit,
+    size_t*                      _refused
 )
 {
-    struct d_internal_region region = { "", { 0 }, 0u, 0u };
-    struct d_internal_writer fresh  = { "", 0u };
+    struct dj_internal_region region = { "", { 0 }, 0u, 0u };
+    struct dj_internal_writer fresh  = { "", 0u };
 
     if ( (_edit->close_line != _edit->line)                       ||
          (!d_internal_read_region(_path, _edit, "{}", &region))   ||
@@ -1021,16 +1021,16 @@ d_internal_apply_expand(
 d_internal_number_of
   A node's numeric attribute by name, or 0 when it has none.
 */
-static uint32_t
-d_internal_number_of(
-    const struct d_node_tree* _tree,
-    const struct d_node*      _node,
-    const char*               _name
+static
+uint32_t d_internal_number_of(
+    const struct dj_node_tree* _tree,
+    const struct dj_node*      _node,
+    const char*                _name
 )
 {
     for (uint32_t which = 0u; which < _node->attribute_count; ++which)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, _node->first_attribute + which);
 
         if ( (attribute) && (attribute->numeric) &&
@@ -1048,12 +1048,12 @@ d_internal_is
   Reports whether a node is of a type, and, when a name is given, carries
 that attribute.
 */
-static bool
-d_internal_is(
-    const struct d_node_tree* _tree,
-    const struct d_node*      _node,
-    const char*               _type,
-    const char*               _carrying
+static
+bool d_internal_is(
+    const struct dj_node_tree* _tree,
+    const struct dj_node*      _node,
+    const char*                _type,
+    const char*                _carrying
 )
 {
     if (strcmp(d_node_name(_tree, _node->type), _type) != 0)
@@ -1065,7 +1065,7 @@ d_internal_is(
          (_carrying) && (which < _node->attribute_count);
          ++which)
     {
-        const struct d_node_attribute* const attribute =
+        const struct dj_node_attribute* const attribute =
             d_node_attribute_at(_tree, _node->first_attribute + which);
 
         if ( (attribute) &&
@@ -1084,11 +1084,11 @@ d_internal_note_part
 its declared name stands when the name is the parameter's own child -- a
 function pointer's is a level further in, and is left unrecorded.
 */
-static void
-d_internal_note_part(
-    struct d_node_tree*   _tree,
-    const struct d_node*  _part,
-    struct d_repair_edit* _out
+static
+void d_internal_note_part(
+    struct dj_node_tree*   _tree,
+    const struct dj_node*  _part,
+    struct dj_repair_edit* _out
 )
 {
     const uint32_t which = _out->parts;
@@ -1100,7 +1100,7 @@ d_internal_note_part(
 
     for (uint32_t at = _part->first_child; at != D_DSS_NO_INDEX; )
     {
-        const struct d_node* const child = d_node_at(_tree, at);
+        const struct dj_node* const child = d_node_at(_tree, at);
 
         if (!child)
         {
@@ -1126,16 +1126,16 @@ d_internal_note_parts
   Records every parameter that is a group's own child, up to the most an
 edit can carry.
 */
-static void
-d_internal_note_parts(
-    struct d_node_tree*   _tree,
-    const struct d_node*  _group,
-    struct d_repair_edit* _out
+static
+void d_internal_note_parts(
+    struct dj_node_tree*   _tree,
+    const struct dj_node*  _group,
+    struct dj_repair_edit* _out
 )
 {
     for (uint32_t at = _group->first_child; at != D_DSS_NO_INDEX; )
     {
-        const struct d_node* const part = d_node_at(_tree, at);
+        const struct dj_node* const part = d_node_at(_tree, at);
 
         if (!part)
         {
@@ -1163,11 +1163,11 @@ that does not open its line, or stands in another column than its level
 gives: its column is what the list is laid out from, and a wrong one would
 only be copied into the lines written.
 */
-static bool
-d_internal_layout_from(
-    struct d_node_tree*   _tree,
-    const struct d_node*  _node,
-    struct d_repair_edit* _out
+static
+bool d_internal_layout_from(
+    struct dj_node_tree*   _tree,
+    const struct dj_node*  _node,
+    struct dj_repair_edit* _out
 )
 {
     const uint32_t level = d_internal_number_of(_tree, _node, "level");
@@ -1180,7 +1180,7 @@ d_internal_layout_from(
 
     for (uint32_t at = _node->first_child; at != D_DSS_NO_INDEX; )
     {
-        const struct d_node* const group = d_node_at(_tree, at);
+        const struct dj_node* const group = d_node_at(_tree, at);
 
         if (!group)
         {
@@ -1218,15 +1218,15 @@ d_internal_layout_from(
 d_internal_stated
   The rule's own `repair` declaration, or NULL when it states none.
 */
-static const struct d_dss_declaration*
-d_internal_stated(
-    const struct d_dss_sheet* _sheet,
-    const struct d_dss_rule*  _rule
+static
+const struct dj_dss_declaration* d_internal_stated(
+    const struct dj_dss_sheet* _sheet,
+    const struct dj_dss_rule*  _rule
 )
 {
     for (uint32_t which = 0u; which < _rule->declaration_count; ++which)
     {
-        const struct d_dss_declaration* const declaration =
+        const struct dj_dss_declaration* const declaration =
             d_dss_declaration_at(_sheet, _rule->first_declaration + which);
 
         if (strcmp(d_dss_text(_sheet, declaration->property), "repair") == 0)
@@ -1244,12 +1244,12 @@ d_internal_words
 name is the node's attribute that holds them. NULL when there are none, or
 more than an edit can carry.
 */
-static const char*
-d_internal_words(
-    const struct d_dss_sheet* _sheet,
-    const struct d_node_tree* _tree,
-    const struct d_node*      _node,
-    const struct d_dss_value* _what
+static
+const char* d_internal_words(
+    const struct dj_dss_sheet* _sheet,
+    const struct dj_node_tree* _tree,
+    const struct dj_node*      _node,
+    const struct dj_dss_value* _what
 )
 {
     const char* const words =
@@ -1276,14 +1276,14 @@ is a statement by itself owns its own brace and has no column to give but
 the brace's; when it stands after a case label on the label's line, it goes
 under the label. Any other is left.
 */
-static bool
-d_internal_owner_indent(
-    struct d_node_tree*  _tree,
-    const struct d_node* _node,
-    uint32_t*            _out_indent
+static
+bool d_internal_owner_indent(
+    struct dj_node_tree*  _tree,
+    const struct dj_node* _node,
+    uint32_t*             _out_indent
 )
 {
-    const struct d_node* const owner = d_node_at(_tree, _node->parent);
+    const struct dj_node* const owner = d_node_at(_tree, _node->parent);
 
     if ( (!owner) || (owner->line == 0u) || (owner->start_column == 0u) ||
          (strcmp(d_node_name(_tree, owner->type), "group") == 0)        ||
@@ -1301,14 +1301,14 @@ d_internal_owner_indent(
         return true;
     }
 
-    const struct d_node* const around = d_node_at(_tree, owner->parent);
-    const struct d_node*       before = NULL;
+    const struct dj_node* const around = d_node_at(_tree, owner->parent);
+    const struct dj_node*       before = NULL;
 
     // what stands just before the block, among its siblings
     for (uint32_t at = around ? around->first_child : D_DSS_NO_INDEX;
          at != D_DSS_NO_INDEX; )
     {
-        const struct d_node* const sibling = d_node_at(_tree, at);
+        const struct dj_node* const sibling = d_node_at(_tree, at);
 
         if ( (!sibling) || (sibling == owner) )
         {
@@ -1336,11 +1336,11 @@ d_internal_brace_from
 is on a later line is moved; one whose partner is on its own line has what
 is between them noted, to be laid out under it.
 */
-static bool
-d_internal_brace_from(
-    struct d_node_tree*   _tree,
-    const struct d_node*  _node,
-    struct d_repair_edit* _out
+static
+bool d_internal_brace_from(
+    struct dj_node_tree*   _tree,
+    const struct dj_node*  _node,
+    struct dj_repair_edit* _out
 )
 {
     _out->kind         = D_REPAIR_SPLIT;
@@ -1362,7 +1362,7 @@ d_internal_brace_from(
 
     for (uint32_t at = _node->first_child; at != D_DSS_NO_INDEX; )
     {
-        const struct d_node* const part = d_node_at(_tree, at);
+        const struct dj_node* const part = d_node_at(_tree, at);
 
         if ( (!part) || (part->line != _node->line) ||
              (_out->parts == D_REPAIR_PARAM_MAX) )
@@ -1384,14 +1384,14 @@ d_internal_third_is
   Whether the third value of a `repair` declaration is a given word: what
 may follow a `trailing-comment`'s words.
 */
-static bool
-d_internal_third_is(
-    const struct d_dss_sheet*       _sheet,
-    const struct d_dss_declaration* _stated,
-    const char*                     _word
+static
+bool d_internal_third_is(
+    const struct dj_dss_sheet*       _sheet,
+    const struct dj_dss_declaration* _stated,
+    const char*                      _word
 )
 {
-    const struct d_dss_value* const third =
+    const struct dj_dss_value* const third =
         (_stated->value_count > 2u)
         ? d_dss_value_at(_sheet, _stated->first_value + 2u)
         : NULL;
@@ -1406,13 +1406,13 @@ d_internal_comment_from
   Turns `repair: trailing-comment` into an edit: the comment's words, from
 the declaration or from the node. Nothing is noted when there are none.
 */
-static bool
-d_internal_comment_from(
-    const struct d_dss_sheet* _sheet,
-    const struct d_node_tree* _tree,
-    const struct d_node*      _node,
-    const struct d_dss_value* _what,
-    struct d_repair_edit*     _out
+static
+bool d_internal_comment_from(
+    const struct dj_dss_sheet* _sheet,
+    const struct dj_node_tree* _tree,
+    const struct dj_node*      _node,
+    const struct dj_dss_value* _what,
+    struct dj_repair_edit*     _out
 )
 {
     const char* const words = d_internal_words(_sheet, _tree, _node, _what);
@@ -1434,11 +1434,11 @@ d_internal_join_from
 where the tree says its partner does. Nothing is noted for a pair already
 on one line.
 */
-static bool
-d_internal_join_from(
-    const struct d_node_tree* _tree,
-    const struct d_node*      _node,
-    struct d_repair_edit*     _out
+static
+bool d_internal_join_from(
+    const struct dj_node_tree* _tree,
+    const struct dj_node*      _node,
+    struct dj_repair_edit*     _out
 )
 {
     _out->kind         = D_REPAIR_JOIN;
@@ -1456,18 +1456,18 @@ is an item -- a statement, a definition, a type -- whose own column says
 where the brace goes; a compound statement standing by itself has no such
 owner and is left.
 */
-static bool
-d_internal_edit_from(
-    const struct d_dss_sheet*       _sheet,
-    struct d_node_tree*             _tree,
-    const struct d_node*            _node,
-    const struct d_dss_declaration* _stated,
-    struct d_repair_edit*           _out
+static
+bool d_internal_edit_from(
+    const struct dj_dss_sheet*       _sheet,
+    struct dj_node_tree*             _tree,
+    const struct dj_node*            _node,
+    const struct dj_dss_declaration* _stated,
+    struct dj_repair_edit*           _out
 )
 {
-    const struct d_dss_value* const how  =
+    const struct dj_dss_value* const how  =
         d_dss_value_at(_sheet, _stated->first_value);
-    const struct d_dss_value* const what =
+    const struct dj_dss_value* const what =
         (_stated->value_count > 1u)
         ? d_dss_value_at(_sheet, _stated->first_value + 1u)
         : NULL;
@@ -1522,11 +1522,11 @@ d_internal_comment_lines
 block comment counted to the line that closes it. 0 for a node that is no
 such comment.
 */
-static uint32_t
-d_internal_comment_lines(
-    const struct d_node_tree* _tree,
-    const struct d_node*      _node,
-    uint32_t                  _column
+static
+uint32_t d_internal_comment_lines(
+    const struct dj_node_tree* _tree,
+    const struct dj_node*      _node,
+    uint32_t                   _column
 )
 {
     if ( (!d_internal_is(_tree, _node, "comment", "line-start")) ||
@@ -1556,19 +1556,19 @@ above an item, in the item's column, speaks of the item.
 another column than what it speaks of, and no rule would say so: a comment
 has no level.
 */
-static uint32_t
-d_internal_comments_above(
-    struct d_node_tree*  _tree,
-    const struct d_node* _node
+static
+uint32_t d_internal_comments_above(
+    struct dj_node_tree*  _tree,
+    const struct dj_node* _node
 )
 {
-    const struct d_node* const around = d_node_at(_tree, _node->parent);
+    const struct dj_node* const around = d_node_at(_tree, _node->parent);
     uint32_t                   first  = 0u;
 
     for (uint32_t at = around ? around->first_child : D_DSS_NO_INDEX;
          at != D_DSS_NO_INDEX; )
     {
-        const struct d_node* const sibling = d_node_at(_tree, at);
+        const struct dj_node* const sibling = d_node_at(_tree, at);
 
         if ( (!sibling) || (sibling == _node) )
         {
@@ -1600,18 +1600,18 @@ its column -- when what follows them is not in that column, or nothing
 follows: they close what the item began. When what follows them is in the
 item's column they are that one's, and move when it does.
 */
-static uint32_t
-d_internal_comments_below(
-    struct d_node_tree*  _tree,
-    const struct d_node* _node,
-    uint32_t             _last
+static
+uint32_t d_internal_comments_below(
+    struct dj_node_tree*  _tree,
+    const struct dj_node* _node,
+    uint32_t              _last
 )
 {
     uint32_t below = 0u;
 
     for (uint32_t at = _node->next_sibling; at != D_DSS_NO_INDEX; )
     {
-        const struct d_node* const sibling = d_node_at(_tree, at);
+        const struct dj_node* const sibling = d_node_at(_tree, at);
 
         if (!sibling)
         {
@@ -1653,20 +1653,20 @@ for a person:
     four columns; what stands 25 from where its level puts it was put
     there to line up with something.
 */
-static bool
-d_internal_shift_from(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    const struct d_node*      _node,
-    const struct d_dss_rule*  _rule,
-    struct d_repair_edit*     _out
+static
+bool d_internal_shift_from(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    const struct dj_node*      _node,
+    const struct dj_dss_rule*  _rule,
+    struct dj_repair_edit*     _out
 )
 {
     for (uint32_t which = 0u; which < _rule->declaration_count; ++which)
     {
-        const struct d_dss_declaration* const declaration =
+        const struct dj_dss_declaration* const declaration =
             d_dss_declaration_at(_sheet, _rule->first_declaration + which);
-        const struct d_dss_value* const       column      =
+        const struct dj_dss_value* const       column      =
             (declaration->value_count > 0u)
             ? d_dss_value_at(_sheet, declaration->first_value)
             : NULL;
@@ -1700,10 +1700,10 @@ d_internal_shift_from(
     return false;
 }
 
-// d_internal_move
+// dj_internal_move
 //   struct: a shift as it will be made: the lines that move, how far, the
 // node whose children the item is one of, and whether the lines may move.
-struct d_internal_move
+struct dj_internal_move
 {
     uint32_t  first;
     uint32_t  last;
@@ -1720,11 +1720,11 @@ already listed is passed over: its lines move with the item around it, or
 stay with it, and the next pass measures it again. `_moves` has room for
 one move an edit; how many it was given is returned.
 */
-static size_t
-d_internal_gather_moves(
-    const struct d_repair_plan* _plan,
-    const char*                 _path,
-    struct d_internal_move*     _moves
+static
+size_t d_internal_gather_moves(
+    const struct dj_repair_plan* _plan,
+    const char*                  _path,
+    struct dj_internal_move*     _moves
 )
 {
     size_t   count   = 0u;
@@ -1733,7 +1733,7 @@ d_internal_gather_moves(
     // the plan is in order last line first
     for (size_t at = _plan->count; at > 0u; --at)
     {
-        const struct d_repair_edit* const edit = &_plan->edits[at - 1u];
+        const struct dj_repair_edit* const edit = &_plan->edits[at - 1u];
 
         if ( (edit->kind != D_REPAIR_SHIFT) || (edit->line <= covered) )
         {
@@ -1742,7 +1742,7 @@ d_internal_gather_moves(
 
         covered = edit->close_line;
 
-        struct d_internal_move* const move = &_moves[count];
+        struct dj_internal_move* const move = &_moves[count];
 
         move->first = edit->open_line;
         move->last  = edit->close_line;
@@ -1768,13 +1768,13 @@ as far are left with it, so that what stood in one column still does: a
 `case` label is not moved away from the one statement under it that has no
 room to follow.
 */
-static size_t
-d_internal_apply_shifts(
-    const struct d_repair_plan* _plan,
-    const char*                 _path
+static
+size_t d_internal_apply_shifts(
+    const struct dj_repair_plan* _plan,
+    const char*                  _path
 )
 {
-    struct d_internal_move* const moves =
+    struct dj_internal_move* const moves =
         malloc(_plan->count * sizeof(*moves));
     size_t                        done  = 0u;
 
@@ -1815,9 +1815,8 @@ d_internal_apply_shifts(
 d_repair_plan_init
   Empty, with no storage yet.
 */
-void
-d_repair_plan_init(
-    struct d_repair_plan* _plan
+void d_repair_plan_init(
+    struct dj_repair_plan* _plan
 )
 {
     _plan->edits    = NULL;
@@ -1831,9 +1830,8 @@ d_repair_plan_init(
 d_repair_plan_clear
   Forgets the edits and keeps the storage for the next file.
 */
-void
-d_repair_plan_clear(
-    struct d_repair_plan* _plan
+void d_repair_plan_clear(
+    struct dj_repair_plan* _plan
 )
 {
     _plan->count = 0u;
@@ -1845,9 +1843,8 @@ d_repair_plan_clear(
 d_repair_plan_free
   Releases the storage; the plan is empty again and may be reused.
 */
-void
-d_repair_plan_free(
-    struct d_repair_plan* _plan
+void d_repair_plan_free(
+    struct dj_repair_plan* _plan
 )
 {
     free(_plan->edits);
@@ -1860,13 +1857,12 @@ d_repair_plan_free(
 d_repair_stated
   The rule's own `repair` declaration is there and says something.
 */
-bool
-d_repair_stated(
-    const struct d_dss_sheet* _sheet,
-    const struct d_dss_rule*  _rule
+bool d_repair_stated(
+    const struct dj_dss_sheet* _sheet,
+    const struct dj_dss_rule*  _rule
 )
 {
-    const struct d_dss_declaration* const stated = d_internal_stated(_sheet,
+    const struct dj_dss_declaration* const stated = d_internal_stated(_sheet,
                                                                      _rule);
 
     return ( (stated != NULL) && (stated->value_count > 0u) );
@@ -1877,19 +1873,18 @@ d_repair_plan_note
   Finds the rule's `repair`, has it turned into an edit, and keeps the edit,
 growing the plan's storage by doubling when it is full.
 */
-bool
-d_repair_plan_note(
-    struct d_repair_plan*     _plan,
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    const struct d_dss_rule*  _rule
+bool d_repair_plan_note(
+    struct dj_repair_plan*     _plan,
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const struct dj_dss_rule*  _rule
 )
 {
-    const struct d_node* const            node   = d_node_at(_tree, _node);
-    const struct d_dss_declaration* const stated = d_internal_stated(_sheet,
+    const struct dj_node* const            node   = d_node_at(_tree, _node);
+    const struct dj_dss_declaration* const stated = d_internal_stated(_sheet,
                                                                      _rule);
-    struct d_repair_edit                  edit   = { 0 };
+    struct dj_repair_edit                  edit   = { 0 };
 
     if ( (!node) || (node->line == 0u) || (!stated) ||
          (stated->value_count == 0u) )
@@ -1897,7 +1892,7 @@ d_repair_plan_note(
         return false;
     }
 
-    const struct d_dss_value* const how = d_dss_value_at(_sheet,
+    const struct dj_dss_value* const how = d_dss_value_at(_sheet,
                                                          stated->first_value);
 
     // a shift is told by the rule's own column; the rest by their words
@@ -1920,7 +1915,7 @@ d_repair_plan_note(
         const size_t                capacity = (_plan->capacity == 0u)
                                              ? 64u
                                              : (_plan->capacity * 2u);
-        struct d_repair_edit* const grown    =
+        struct dj_repair_edit* const grown    =
             realloc(_plan->edits, capacity * sizeof(*grown));
 
         if (!grown)
@@ -1943,11 +1938,11 @@ d_internal_apply_one
   Makes one edit of a kind that is made beside others, and reports how many
 lines it changed.
 */
-static size_t
-d_internal_apply_one(
-    const char*                 _path,
-    const struct d_repair_edit* _edit,
-    size_t*                     _refused
+static
+size_t d_internal_apply_one(
+    const char*                  _path,
+    const struct dj_repair_edit* _edit,
+    size_t*                      _refused
 )
 {
     if (_edit->kind == D_REPAIR_BLANKS)
@@ -1983,9 +1978,9 @@ d_internal_apply_one(
 d_internal_has_shift
   Whether a plan holds a shift.
 */
-static bool
-d_internal_has_shift(
-    const struct d_repair_plan* _plan
+static
+bool d_internal_has_shift(
+    const struct dj_repair_plan* _plan
 )
 {
     for (size_t at = 0u; at < _plan->count; ++at)
@@ -2010,13 +2005,12 @@ pass, against the columns as they then stand. Where no shift could be made
 nothing has moved, and the rest are made now: a file with a shift that can
 never be made would otherwise have nothing else repaired, on any pass.
 */
-size_t
-d_repair_plan_apply(
-    struct d_repair_plan* _plan,
-    const char*           _path,
-    const uint32_t*       _touched,
-    size_t                _touched_count,
-    size_t*               _refused
+size_t d_repair_plan_apply(
+    struct dj_repair_plan* _plan,
+    const char*            _path,
+    const uint32_t*        _touched,
+    size_t                 _touched_count,
+    size_t*                _refused
 )
 {
     size_t done = 0u;
@@ -2040,7 +2034,7 @@ d_repair_plan_apply(
 
     for (size_t at = 0u; at < _plan->count; ++at)
     {
-        const struct d_repair_edit* const edit = &_plan->edits[at];
+        const struct dj_repair_edit* const edit = &_plan->edits[at];
         bool                              skip =
             ( (edit->kind == D_REPAIR_SHIFT)                 ||
               ( (at > 0u)                                    &&

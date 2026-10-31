@@ -15,7 +15,7 @@
 #include <stdbool.h>  // bool, true, false
 #include <stddef.h>   // size_t
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*
@@ -26,8 +26,7 @@ factor` bounds the loop without the overflow `factor * factor` could hit. The
 search stops rather than wraps; when no prime at or above _n fits in a size_t
 the result is 0, which no caller can mistake for a bucket count.
 */
-size_t
-d_event_next_prime(
+size_t d_event_next_prime(
     size_t _n
 )
 {

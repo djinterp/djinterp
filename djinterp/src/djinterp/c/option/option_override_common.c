@@ -25,12 +25,12 @@
 // The engine has already sized `_out_value` to the cell's own width, so the
 // hooks never check it.
 
-static int32_t
-elect(
-    const struct d_option* _from,
-    const unsigned char*   _from_values,
-    struct d_option*       _out,
-    const void**           _out_bytes
+static
+int32_t elect(
+    const struct dj_option* _from,
+    const unsigned char*    _from_values,
+    struct dj_option*       _out,
+    const void**            _out_bytes
 )
 {
     *_out = *_from;
@@ -47,74 +47,74 @@ elect(
     return D_OPTION_KEEP;
 }
 
-static int32_t
-take_delta(
-    const struct d_option* _base,
-    const unsigned char*   _base_values,
-    const struct d_option* _delta,
-    const unsigned char*   _delta_values,
-    struct d_option*       _out,
-    const void**           _out_bytes,
-    void*                  _context
+static
+int32_t take_delta(
+    const struct dj_option* _base,
+    const unsigned char*    _base_values,
+    const struct dj_option* _delta,
+    const unsigned char*    _delta_values,
+    struct dj_option*       _out,
+    const void**            _out_bytes,
+    void*                   _context
 )
 {
     (void)_base; (void)_base_values; (void)_context;
     return elect(_delta, _delta_values, _out, _out_bytes);
 }
 
-static int32_t
-take_base(
-    const struct d_option* _base,
-    const unsigned char*   _base_values,
-    const struct d_option* _delta,
-    const unsigned char*   _delta_values,
-    struct d_option*       _out,
-    const void**           _out_bytes,
-    void*                  _context
+static
+int32_t take_base(
+    const struct dj_option* _base,
+    const unsigned char*    _base_values,
+    const struct dj_option* _delta,
+    const unsigned char*    _delta_values,
+    struct dj_option*       _out,
+    const void**            _out_bytes,
+    void*                   _context
 )
 {
     (void)_delta; (void)_delta_values; (void)_context;
     return elect(_base, _base_values, _out, _out_bytes);
 }
 
-static int32_t
-keep_single(
-    const struct d_option* _option,
-    const unsigned char*   _values,
-    struct d_option*       _out,
-    const void**           _out_bytes,
-    void*                  _context
+static
+int32_t keep_single(
+    const struct dj_option* _option,
+    const unsigned char*    _values,
+    struct dj_option*       _out,
+    const void**            _out_bytes,
+    void*                   _context
 )
 {
     (void)_context;
     return elect(_option, _values, _out, _out_bytes);
 }
 
-static int32_t
-drop_single(
-    const struct d_option* _option,
-    const unsigned char*   _values,
-    struct d_option*       _out,
-    const void**           _out_bytes,
-    void*                  _context
+static
+int32_t drop_single(
+    const struct dj_option* _option,
+    const unsigned char*    _values,
+    struct dj_option*       _out,
+    const void**            _out_bytes,
+    void*                   _context
 )
 {
     (void)_option; (void)_values; (void)_out; (void)_out_bytes; (void)_context;
     return D_OPTION_DROP;
 }
 
-static int32_t
-reject_single(
-    const struct d_option* _option,
-    const unsigned char*   _values,
-    struct d_option*       _out,
-    const void**           _out_bytes,
-    void*                  _context
+static
+int32_t reject_single(
+    const struct dj_option* _option,
+    const unsigned char*    _values,
+    struct dj_option*       _out,
+    const void**            _out_bytes,
+    void*                   _context
 )
 {
     (void)_option; (void)_values; (void)_out; (void)_out_bytes; (void)_context;
 
-    //   C++ `strict_subset` fires a static_assert here. C reports a FORMAL
+    //   C++ `DStrictSubset` fires a static_assert here. C reports a FORMAL
     // status, so a caller inspecting the range learns the merge was ill-formed
     // rather than under-provisioned. Same invariant, different enforcement
     // tier -- goal 2 permits exactly this.
@@ -126,9 +126,8 @@ reject_single(
 // II.  THE NAMED POLICIES
 // ===========================================================================
 
-bool
-d_option_policy_is_valid(
-    const struct d_option_policy* _policy
+bool d_option_policy_is_valid(
+    const struct dj_option_policy* _policy
 )
 {
     if (_policy == NULL)
@@ -144,10 +143,9 @@ d_option_policy_is_valid(
              (_policy->on_delta_only != NULL) );
 }
 
-struct d_option_policy
-d_option_policy_replace(void)
+struct dj_option_policy d_option_policy_replace(void)
 {
-    struct d_option_policy policy;
+    struct dj_option_policy policy;
 
     policy.on_both       = &take_delta;
     policy.on_base_only  = &keep_single;
@@ -157,10 +155,9 @@ d_option_policy_replace(void)
     return policy;
 }
 
-struct d_option_policy
-d_option_policy_keep(void)
+struct dj_option_policy d_option_policy_keep(void)
 {
-    struct d_option_policy policy;
+    struct dj_option_policy policy;
 
     policy.on_both       = &take_base;
     policy.on_base_only  = &keep_single;
@@ -170,10 +167,9 @@ d_option_policy_keep(void)
     return policy;
 }
 
-struct d_option_policy
-d_option_policy_subset(void)
+struct dj_option_policy d_option_policy_subset(void)
 {
-    struct d_option_policy policy;
+    struct dj_option_policy policy;
 
     policy.on_both       = &take_delta;
     policy.on_base_only  = &keep_single;
@@ -183,10 +179,9 @@ d_option_policy_subset(void)
     return policy;
 }
 
-struct d_option_policy
-d_option_policy_strict(void)
+struct dj_option_policy d_option_policy_strict(void)
 {
-    struct d_option_policy policy;
+    struct dj_option_policy policy;
 
     policy.on_both       = &take_delta;
     policy.on_base_only  = &keep_single;
@@ -196,10 +191,9 @@ d_option_policy_strict(void)
     return policy;
 }
 
-struct d_option_policy
-d_option_policy_filter(void)
+struct dj_option_policy d_option_policy_filter(void)
 {
-    struct d_option_policy policy;
+    struct dj_option_policy policy;
 
     policy.on_both       = &take_delta;
     policy.on_base_only  = &drop_single;
@@ -209,8 +203,7 @@ d_option_policy_filter(void)
     return policy;
 }
 
-struct d_option_policy
-d_option_merge_mode_policy(
+struct dj_option_policy d_option_merge_mode_policy(
     int32_t _mode
 )
 {
@@ -229,9 +222,8 @@ d_option_merge_mode_policy(
 // III. THE ALGEBRAIC LAWS
 // ===========================================================================
 
-bool
-d_option_set_is_identity(
-    const struct d_option_set* _set
+bool d_option_set_is_identity(
+    const struct dj_option_set* _set
 )
 {
     //   the monoid identity is the EMPTY SET. Named rather than open-coded as
@@ -240,13 +232,12 @@ d_option_set_is_identity(
     return d_option_set_empty(_set);
 }
 
-bool
-d_option_set_commutes(
-    const struct d_option_set* _lhs,
-    const struct d_option_set* _rhs,
-    fn_option_project          _project,
-    fn_binary_predicate        _compare,
-    void*                      _context
+bool d_option_set_commutes(
+    const struct dj_option_set* _lhs,
+    const struct dj_option_set* _rhs,
+    fn_option_project           _project,
+    fn_binary_predicate         _compare,
+    void*                       _context
 )
 {
     //   body-options.tex: A (+) B == B (+) A if and only if A ~ B. Implemented
@@ -263,12 +254,12 @@ d_option_set_commutes(
 
 //   emit: run one verdict into the output set. The cell says what to add; the
 // borrowed pointer says where its bytes are.
-static struct d_option_result
-emit(
-    struct d_option_set*   _out,
-    int32_t                _verdict,
-    const struct d_option* _cell,
-    const void*            _bytes
+static
+struct dj_option_result emit(
+    struct dj_option_set*   _out,
+    int32_t                 _verdict,
+    const struct dj_option* _cell,
+    const void*             _bytes
 )
 {
     if (D_OPTION_VERDICT_IS_ERROR(_verdict))
@@ -284,17 +275,16 @@ emit(
     return d_option_set_add_cell(_out, _cell, _bytes);
 }
 
-struct d_option_result
-d_option_set_override(
-    struct d_option_set*          _out,
-    const struct d_option_set*    _base,
-    const struct d_option_set*    _delta,
-    const struct d_option_policy* _policy
+struct dj_option_result d_option_set_override(
+    struct dj_option_set*          _out,
+    const struct dj_option_set*    _base,
+    const struct dj_option_set*    _delta,
+    const struct dj_option_policy* _policy
 )
 {
     uint32_t        i;
     uint32_t        j;
-    struct d_option scratch;
+    struct dj_option scratch;
 
     if ((_out == NULL) || (_base == NULL) || (_delta == NULL))
     {
@@ -318,7 +308,7 @@ d_option_set_override(
     //   pass one: every key the base has.
     for (i = 0u; i < _base->count; ++i)
     {
-        struct d_option_result written;
+        struct dj_option_result written;
         int32_t                verdict;
         const void*            bytes;
 
@@ -360,7 +350,7 @@ d_option_set_override(
     // C++ engine needs its SFINAE laziness wrapper and C needs nothing.
     for (i = 0u; i < _delta->count; ++i)
     {
-        struct d_option_result written;
+        struct dj_option_result written;
         int32_t                verdict;
         const void*            bytes;
 
@@ -389,11 +379,10 @@ d_option_set_override(
     return d_option_ok(_out->count);
 }
 
-struct d_option_result
-d_option_set_merge(
-    struct d_option_set*       _target,
-    const struct d_option_set* _delta,
-    int32_t                    _mode
+struct dj_option_result d_option_set_merge(
+    struct dj_option_set*       _target,
+    const struct dj_option_set* _delta,
+    int32_t                     _mode
 )
 {
     uint32_t i;
@@ -409,7 +398,7 @@ d_option_set_merge(
 
     for (i = 0u; i < _delta->count; ++i)
     {
-        const struct d_option* incoming = &_delta->options[i];
+        const struct dj_option* incoming = &_delta->options[i];
 
         if (d_option_set_find(_target, incoming->key, &j))
         {
@@ -425,7 +414,7 @@ d_option_set_merge(
 
             if (slot != NULL)
             {
-                struct d_option_result written =
+                struct dj_option_result written =
                     d_option_write(&_target->options[j], _target->values,
                                    slot, (size_t)incoming->value_size);
 
@@ -442,7 +431,7 @@ d_option_set_merge(
             //   in EVERY mode a new key is inserted, which is what makes this
             // the in-place shape of the same engine rather than a variant of
             // it.
-            struct d_option_result added =
+            struct dj_option_result added =
                 d_option_set_add_cell(_target, incoming,
                                       d_option_slot_const(incoming,
                                                           _delta->values));
@@ -459,19 +448,18 @@ d_option_set_merge(
     return d_option_ok(touched);
 }
 
-struct d_option_result
-d_option_set_compose(
-    struct d_option_set*          _out,
-    struct d_option_set*          _scratch,
-    const struct d_option_set*    _base,
-    const struct d_option_set**   _deltas,
-    uint32_t                      _count,
-    const struct d_option_policy* _policy
+struct dj_option_result d_option_set_compose(
+    struct dj_option_set*          _out,
+    struct dj_option_set*          _scratch,
+    const struct dj_option_set*    _base,
+    const struct dj_option_set**   _deltas,
+    uint32_t                       _count,
+    const struct dj_option_policy* _policy
 )
 {
     uint32_t             i;
-    struct d_option_set* target;
-    struct d_option_set* spare;
+    struct dj_option_set* target;
+    struct dj_option_set* spare;
 
     if ((_out == NULL) || (_scratch == NULL) || (_base == NULL))
     {
@@ -490,7 +478,7 @@ d_option_set_compose(
     spare  = _scratch;
 
     {
-        struct d_option_result seeded =
+        struct dj_option_result seeded =
             d_option_set_override(target, _base, _base,
                                   _policy);
 
@@ -502,8 +490,8 @@ d_option_set_compose(
 
     for (i = 0u; i < _count; ++i)
     {
-        struct d_option_result stepped;
-        struct d_option_set*   swap;
+        struct dj_option_result stepped;
+        struct dj_option_set*   swap;
 
         if (_deltas[i] == NULL)
         {
@@ -528,7 +516,7 @@ d_option_set_compose(
     // the answer in _out, so copy it back only when it is not already there.
     if (target != _out)
     {
-        struct d_option_result copied =
+        struct dj_option_result copied =
             d_option_set_override(_out, target, target, _policy);
 
         if (!copied.is_ok)

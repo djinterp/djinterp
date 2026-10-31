@@ -1,0 +1,3612 @@
+/*******************************************************************************
+* djinterp [cpp]                                                        view.hpp
+*
+* Lazy, pull-based views and a pipeline operator for functional dataflow (C++).
+*   A view is a non-owning, lazily-evaluated wrapper around a sequence of
+* values. Views compose via operator| to form a pipeline: each adapter in
+* the chain transforms its input view into a new view without eagerly
+* materializing intermediate results. The pipeline only does work when
+* something forces it: iteration, a terminal operator like to_vector(), or
+* a count().
+*
+*   View composition is the connective tissue of the functional module. It
+* lets producers, transformers, filters, and accumulators be chained
+* together in a single expression that reads top-to-bottom, with full
+* compile-time type checking and no runtime overhead beyond an iterator
+* tag.
+*
+*   The pipeline operator | is overloaded for (view | adapter), where
+* `adapter` is a factory object built by one of the functions in
+* `namespace views`.  It also accepts a container on the left, which is
+* implicitly lifted to a DRefView first.
+*
+* USAGE:
+*   std::vector<int> v = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+*
+*   auto result = v                                         |
+*                 filter([](int x) { return x % 2 == 0; })  |
+*                 transform([](int x) { return x * x; })    |
+*                 take(3)                                   |
+*                 to_vector();
+*   // result == { 4, 16, 36 }
+*
+*   // infinite source + bounded sink
+*   auto fibs = iota(0)   |
+*               take(20)  |
+*               to_vector();
+*
+*   // enumerate
+*   for (auto&& p : v | enumerate())
+*   {
+*       std::cout << p.first << ": " << p.second << '\n';
+*   }
+*
+*
+* path:      /inc/djinterp/cpp/functional/view.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    VIEW BASE AND TRAITS
+      --------------------
+      1.    DViewBase                              (CRTP marker)
+      2.    is_view<T>                             (SFINAE detector)
+      3.    has_begin_end<T>                        (container-like detector)
+
+II.   FUNDAMENTAL VIEWS
+      -----------------
+      1.    DRefView<Container>                   (non-owning wrap)
+      2.    DOwningView<Container>                (by-value capture)
+      3.    DIteratorPairView<Iterator>                (raw iterator pair)
+
+III.  SOURCE VIEWS (no input)
+      -----------------------
+      1.    iota_view<Int>                        (infinite numeric source)
+      2.    DRepeatView<Type>                     (infinite same-value source)
+      3.    DGenerateView<F>                      (call f() forever)
+      4.    DEmptyView<Type>                      (zero-element source)
+      5.    DSingleView<Type>                     (one-element source)
+
+IV.   ADAPTER VIEWS
+      -------------
+      1.    DTransformView<V, F>
+      2.    DFilterView<V, P>
+      3.    DTakeView<V>
+      4.    DDropView<V>
+      5.    DTakeWhileView<V, P>
+      6.    DDropWhileView<V, P>
+      7.    DEnumerateView<V>                     (yields (size_t, T))
+      8.    DZipView<V1, V2>                     (pairs from two views)
+      9.    DConcatView<V1, V2>                  (sequence)
+      10.   DReverseView<V>                       (bidirectional req'd)
+      11.   DChunkView<V>                         (groups of N as vector<T>)
+      12.   DStrideView<V>                        (every N-th element)
+
+V.    ADAPTER FACTORIES   (namespace views)
+      -------------------------------------
+      1.    transform(f), filter(p)
+      2.    take(n), drop(n), take_while(p), drop_while(p)
+      3.    enumerate(), zip(other)
+      4.    concat(other), reverse()
+      5.    chunk(n), stride(n)
+      6.    iota(start) / iota(start, end)
+      7.    repeat(value) / repeat_n(value, n)
+      8.    generate(f), empty<T>(), single(v)
+
+VI.   PIPELINE OPERATORS
+      ------------------
+      1.    operator|(view, adapter)
+      2.    operator|(container, adapter)
+
+VII.  TERMINAL OPERATORS
+      ------------------
+      1.    to_vector()
+      2.    to<C>()
+      3.    count()
+      4.    fold(init, f)
+      5.    for_each(f)
+      6.    reduce(f)                              (fold w/o init using first)
+      7.    any_of(p), all_of(p), none_of(p)
+      8.    find_if(p)
+      9.    min_element(), max_element()
+
+VIII. VIEW SFINAE STRUCTURAL TRAITS & CONCEPTS
+      ----------------------------------------
+      1.    view_value_type<V>                     (element-type extractor)
+      2.    is_pipeable_to_view<T>                 (view OR container)
+      3.    is_view_v / has_begin_end_v /
+
+      is_adapter_v / is_terminal_v /
+
+      is_pipeable_to_view_v                  (variable-template shorthands)
+      4.    view_type / view_adapter / view_terminal /
+
+      pipeable_to_view                       (C++20 concept parallels)
+*/
+
+#ifndef DJINTERP_FUNCTIONAL_VIEW_HPP
+#define DJINTERP_FUNCTIONAL_VIEW_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <cstddef>
+#include <iterator>
+#include <type_traits>
+#include <utility>
+#include <vector>
+// djinterp
+#include "../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
+#include "./functor.hpp"
+#include "./foldable.hpp"
+
+
+NS_DJINTERP
+
+//   DUAL DOMAIN (boundary).  A view is a lazy, iterator-based pipeline over a
+// runtime sequence; forcing it - iteration, to_vector(), count() - is a RUNTIME
+// act.  COMPOSITION lifts to compile time: the operator| chain that assembles a
+// view is built from D_CONSTEXPR-constructible adapter objects (see the ctors
+// throughout this file), so the pipeline shape is fixed during translation even
+// though the traversal that does the work runs later.  A view is therefore the
+// value-domain RUNTIME face of the dataflow.  The COMPILE-TIME face of the very
+// same map / filter / take vocabulary is the reduction substrate: reduce_ct and
+// the unfold_ct driver folding a DValueList (see reduce.hpp and producer.hpp),
+// with transducers as the bridge that lets one transformation chain target
+// either face without being rewritten.
+
+///////////////////////////////////////////////////////////////////////////////
+///             I.    VIEW BASE AND TRAITS                                  ///
+///////////////////////////////////////////////////////////////////////////////
+
+// DViewBase
+//   struct: CRTP marker that all view types inherit from. Allows
+// SFINAE-based detection via is_view<T> without an intrusive trait.
+// Empty by design; views supply their own iterator interface.
+template<typename Derived>
+struct DViewBase
+{};
+
+
+NS_INTERNAL
+    // is_view_helper
+    //   helper: detects if Type publicly inherits DViewBase<Type>.
+    // SFINAE-based: the test() overload taking DViewBase<Type>* is
+    // chosen when Type derives from DViewBase<Type>; otherwise the
+    // ellipsis overload wins.
+    template<typename Type>
+    struct is_view_helper
+    {
+    private:
+        template<typename U>
+        static
+        std::true_type test(
+            const DViewBase<U>*
+        );
+        static
+        std::false_type test(
+            ...
+        );
+
+    public:
+        using type = decltype(test(static_cast<Type*>(nullptr)));
+    };
+
+NS_END  // internal
+
+
+// is_view
+//   trait: true if Type is (or inherits from) a DViewBase
+// specialization. Used to SFINAE-constrain operator| so it only
+// fires on views (and, separately, containers).
+template<typename Type>
+struct is_view
+    : internal::is_view_helper<typename std::decay<Type>::type>::type
+{};
+
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    static constexpr bool is_view_v = is_view<Type>::value;
+#endif
+
+
+NS_INTERNAL
+    // has_begin_end_helper
+    //   helper: SFINAE-detects whether Type has std::begin/std::end.
+    // Used to identify "container-like" types for implicit lifting to
+    // DRefView in the pipeline operator.
+    template<typename Type>
+    struct has_begin_end_helper
+    {
+    private:
+        template<typename U>
+        static auto test(int) -> decltype(
+            std::begin(std::declval<U&>()),
+            std::end(std::declval<U&>()),
+            std::true_type{});
+
+        template<typename>
+        static
+        std::false_type test(
+            ...
+        );
+
+    public:
+        using type = decltype(test<Type>(0));
+    };
+
+NS_END  // internal
+
+
+// has_begin_end
+//   trait: detects container-like types (anything supporting
+// std::begin/std::end).
+template<typename Type>
+struct has_begin_end
+    : internal::has_begin_end_helper<typename std::decay<Type>::type>::type
+{};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             II.   FUNDAMENTAL VIEWS                                     ///
+///////////////////////////////////////////////////////////////////////////////
+
+// DRefView
+//   class: non-owning view over a container. Stores a pointer to the
+// underlying container; iteration delegates to the container's
+// own iterators. The container must outlive any DRefView referring
+// to it.
+template<typename Container>
+class DRefView : public DViewBase<DRefView<Container>>
+{
+public:
+    using container_type  = Container;
+    using iterator        = typename Container::const_iterator;
+    using const_iterator  = iterator;
+    using value_type      = typename Container::value_type;
+    using reference       = typename Container::const_reference;
+    using size_type       = typename Container::size_type;
+
+    explicit D_CONSTEXPR DRefView(
+        const Container& _container
+    ) noexcept
+        : m_container(&_container)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return m_container->begin();
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return m_container->end();
+    }
+
+private:
+    const Container* m_container;
+};
+
+
+// DOwningView
+//   class: by-value view that takes ownership of a container. Used
+// when a temporary or rvalue is piped into the view machinery and
+// the underlying data must survive the expression.
+template<typename Container>
+class DOwningView : public DViewBase<DOwningView<Container>>
+{
+public:
+    using container_type  = Container;
+    using iterator        = typename Container::const_iterator;
+    using const_iterator  = iterator;
+    using value_type      = typename Container::value_type;
+    using reference       = typename Container::const_reference;
+    using size_type       = typename Container::size_type;
+
+    template<typename ContainerFwd>
+    explicit D_CONSTEXPR DOwningView(
+        ContainerFwd&& _container
+    )
+        : m_container(std::forward<ContainerFwd>(_container))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return m_container.begin();
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return m_container.end();
+    }
+
+private:
+    Container m_container;
+};
+
+
+// DIteratorPairView
+//   class: view defined by a pair of iterators (begin, end). Useful
+// for adapting arbitrary iterator ranges (e.g. from a third-party
+// container or a substring of a sequence) to the view machinery.
+template<typename Iterator>
+class DIteratorPairView : public DViewBase<DIteratorPairView<Iterator>>
+{
+public:
+    using iterator       = Iterator;
+    using const_iterator = Iterator;
+    using value_type     = typename std::iterator_traits<Iterator>::value_type;
+    using reference      = typename std::iterator_traits<Iterator>::reference;
+
+    D_CONSTEXPR
+    DIteratorPairView(
+        Iterator _first,
+        Iterator _last
+    )
+        : m_first(_first),
+          m_last(_last)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return m_first;
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return m_last;
+    }
+
+private:
+    Iterator m_first;
+    Iterator m_last;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             III.  SOURCE VIEWS                                          ///
+///////////////////////////////////////////////////////////////////////////////
+
+NS_INTERNAL
+    // DIotaIterator
+    //   helper: forward iterator over a half-open numeric range, or
+    // an infinite ascending sequence when no end sentinel is given.
+    // For the infinite variant, the "end" iterator stores a sentinel
+    // flag and compares unequal to any in-range iterator.
+    template<typename Int>
+    class DIotaIterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = Int;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = const Int*;
+        using reference         = Int;
+
+        D_CONSTEXPR
+        DIotaIterator()
+            : m_value(Int()),
+              m_end(Int()),
+              m_has_end(false),
+              m_is_end(true)
+        {}
+
+        D_CONSTEXPR DIotaIterator(
+            Int _value,
+            bool _is_end
+        )
+            : m_value(_value),
+              m_end(Int()),
+              m_has_end(false),
+              m_is_end(_is_end)
+        {}
+
+        D_CONSTEXPR DIotaIterator(
+            Int _value,
+            Int _end,
+            bool _is_end
+        )
+            : m_value(_value),
+              m_end(_end),
+              m_has_end(true),
+              m_is_end(_is_end)
+        {}
+
+        D_CONSTEXPR
+        Int operator*() const
+        {
+            return m_value;
+        }
+
+        DIotaIterator& operator++()
+        {
+            ++m_value;
+
+            if (m_has_end && !(m_value < m_end))
+            {
+                m_is_end = true;
+            }
+
+            return *this;
+        }
+
+        DIotaIterator operator++(
+            int
+        )
+        {
+            DIotaIterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const DIotaIterator& _other
+        ) const
+        {
+            return ( (m_is_end == _other.m_is_end) &&
+                     ( m_is_end || (m_value == _other.m_value) ) );
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const DIotaIterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        Int m_value;
+        Int m_end;
+        bool m_has_end;
+        bool m_is_end;
+    };
+
+NS_END  // internal
+
+
+// iota_view
+//   class: view over a numeric range, either bounded
+// [_start, _end) or infinite [_start, ...). The infinite variant
+// becomes finite when combined with take or take_while.
+template<typename Int>
+class iota_view : public DViewBase<iota_view<Int>>
+{
+public:
+    using iterator       = internal::DIotaIterator<Int>;
+    using const_iterator = iterator;
+    using value_type     = Int;
+    using reference      = Int;
+
+    // constructor (bounded)
+    D_CONSTEXPR
+    iota_view(
+        Int _start,
+        Int _end
+    )
+        : m_start(_start)
+        , m_end(_end)
+        , m_has_end(true)
+    {}
+
+    // constructor (infinite)
+    explicit D_CONSTEXPR
+    iota_view(
+        Int _start
+    )
+        : m_start(_start)
+        , m_end(Int())
+        , m_has_end(false)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        if (m_has_end)
+        {
+            return iterator(m_start, m_end, !(m_start < m_end));
+        }
+
+        return iterator(m_start, false);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        if (m_has_end)
+        {
+            return iterator(m_end, m_end, true);
+        }
+
+        return iterator(Int(), true);
+    }
+
+private:
+    Int m_start;
+    Int m_end;
+    bool m_has_end;
+};
+
+
+NS_INTERNAL
+    // DRepeatIterator
+    //   helper: iterator that emits the same stored value forever (or
+    // until a count is reached). For the unbounded variant the end
+    // iterator is a sentinel that never compares equal to a live one.
+    template<typename Type>
+    class DRepeatIterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = Type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = const Type*;
+        using reference         = const Type&;
+
+        D_CONSTEXPR
+        DRepeatIterator()
+            : m_value(Type()),
+              m_remaining(0),
+              m_has_bound(false),
+              m_is_end(true)
+        {}
+
+        D_CONSTEXPR
+        DRepeatIterator(
+            Type           _value,
+            std::size_t _remaining,
+            bool        _has_bound,
+            bool        _is_end
+        )
+            : m_value(std::move(_value)),
+              m_remaining(_remaining),
+              m_has_bound(_has_bound),
+              m_is_end(_is_end)
+        {}
+
+        D_CONSTEXPR
+        const Type& operator*() const
+        {
+            return m_value;
+        }
+
+        DRepeatIterator& operator++()
+        {
+            if (m_has_bound)
+            {
+                if (m_remaining > 0)
+                {
+                    --m_remaining;
+                }
+
+                if (m_remaining == 0)
+                {
+                    m_is_end = true;
+                }
+            }
+
+            return *this;
+        }
+
+        DRepeatIterator operator++(
+            int
+        )
+        {
+            DRepeatIterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const DRepeatIterator& _other
+        ) const
+        {
+            return (m_is_end == _other.m_is_end);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const DRepeatIterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        Type           m_value;
+        std::size_t m_remaining;
+        bool        m_has_bound;
+        bool        m_is_end;
+    };
+
+NS_END  // internal
+
+
+// DRepeatView
+//   class: view that yields the same value indefinitely, or a
+// bounded number of copies if _n is supplied.
+template<typename Type>
+class DRepeatView : public DViewBase<DRepeatView<Type>>
+{
+public:
+    using iterator       = internal::DRepeatIterator<Type>;
+    using const_iterator = iterator;
+    using value_type     = Type;
+    using reference      = const Type&;
+
+    // constructor (infinite)
+    explicit D_CONSTEXPR
+    DRepeatView(
+        Type _value
+    )
+        : m_value(std::move(_value)),
+          m_n(0),
+          m_has_bound(false)
+    {}
+
+    // constructor (bounded)
+    D_CONSTEXPR
+    DRepeatView(
+        Type        _value,
+        std::size_t _n
+    )
+        : m_value(std::move(_value)),
+          m_n(_n),
+          m_has_bound(true)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        if (m_has_bound)
+        {
+            return iterator(m_value, m_n, true, (m_n == 0));
+        }
+
+        return iterator(m_value, 0, false, false);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_value, 0, m_has_bound, true);
+    }
+
+private:
+    Type           m_value;
+    std::size_t m_n;
+    bool        m_has_bound;
+};
+
+
+NS_INTERNAL
+    // DGenerateIterator
+    //   helper: iterator that invokes a nullary function on each
+    // dereference (well, on each advance) and caches the result.
+    // Treated as infinite; pair with take or take_while to bound.
+    template<typename F>
+    class DGenerateIterator
+    {
+    public:
+        using value_type        = typename std::decay<decltype(
+            std::declval<F&>()())>::type;
+        using iterator_category = std::input_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = const value_type*;
+        using reference         = const value_type&;
+
+        // end-sentinel constructor
+        D_CONSTEXPR
+        DGenerateIterator()
+            : m_fn_ptr(nullptr)
+            , m_cached()
+            , m_is_end(true)
+        {}
+
+        // live constructor
+        explicit
+        DGenerateIterator(
+            F& _fn
+        )
+            : m_fn_ptr(&_fn)
+            , m_cached(_fn())
+            , m_is_end(false)
+        {}
+
+        const value_type& operator*() const
+        {
+            return m_cached;
+        }
+
+        DGenerateIterator& operator++()
+        {
+            m_cached = (*m_fn_ptr)();
+
+            return *this;
+        }
+
+        DGenerateIterator operator++(
+            int
+        )
+        {
+            DGenerateIterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const DGenerateIterator& _other
+        ) const
+        {
+            return (m_is_end == _other.m_is_end);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const DGenerateIterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        F*        m_fn_ptr;
+        value_type m_cached;
+        bool       m_is_end;
+    };
+
+NS_END  // internal
+
+
+// DGenerateView
+//   class: infinite view in which every position is computed by
+// calling a stored nullary function. The function is held mutably
+// so generators with internal state (e.g. random number engines)
+// work correctly.
+template<typename F>
+class DGenerateView : public DViewBase<DGenerateView<F>>
+{
+public:
+    using iterator       = internal::DGenerateIterator<F>;
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = const value_type&;
+
+    template<typename FFwd>
+    explicit D_CONSTEXPR
+    DGenerateView(
+        FFwd&& _fn
+    )
+        : m_fn(std::forward<FFwd>(_fn))
+    {}
+
+    iterator begin()
+    {
+        return iterator(m_fn);
+    }
+
+    iterator end() const
+    {
+        return iterator{};
+    }
+
+    // const begin/end are not provided since the function is invoked
+    // on advance, mutating its state. Callers that need const access
+    // should materialize via to_vector() first.
+
+private:
+    mutable F m_fn;
+};
+
+
+// DEmptyView
+//   class: view containing zero elements. Iterator type is a trivial
+// sentinel that always compares equal to itself.
+template<typename Type>
+class DEmptyView : public DViewBase<DEmptyView<Type>>
+{
+public:
+    using value_type     = Type;
+    using reference      = const Type&;
+
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = Type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = const Type*;
+        using reference         = const Type&;
+
+        // not D_CONSTEXPR: unreachable precondition-violation path that
+        // returns a reference to a function-local static, which is not
+        // permitted in a constexpr function before C++23. (fixed 2026-05-30)
+        const Type& operator*() const
+        {
+            static const Type sentinel = Type();
+
+            return sentinel;
+        }
+
+        iterator& operator++()
+        {
+            return *this;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator&
+        ) const
+        {
+            return true;
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator&
+        ) const
+        {
+            return false;
+        }
+    };
+
+    using const_iterator = iterator;
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator{};
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator{};
+    }
+};
+
+
+// DSingleView
+//   class: view containing exactly one element. The element is
+// stored by value.
+template<typename Type>
+class DSingleView : public DViewBase<DSingleView<Type>>
+{
+public:
+    using value_type = Type;
+    using reference  = const Type&;
+
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = Type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = const Type*;
+        using reference         = const Type&;
+
+        D_CONSTEXPR iterator()
+            : m_ptr(nullptr),
+              m_is_end(true)
+        {}
+
+        D_CONSTEXPR explicit iterator(
+            const Type* _ptr
+        )
+            : m_ptr(_ptr),
+              m_is_end(false)
+        {}
+
+        D_CONSTEXPR
+        const Type& operator*() const
+        {
+            return *m_ptr;
+        }
+
+        iterator& operator++()
+        {
+            m_is_end = true;
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return (m_is_end == _other.m_is_end);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        const Type* m_ptr;
+        bool      m_is_end;
+    };
+
+    using const_iterator = iterator;
+
+    explicit D_CONSTEXPR
+    DSingleView(
+        Type _value
+    )
+        : m_value(std::move(_value))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(&m_value);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator{};
+    }
+
+private:
+    Type m_value;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             IV.   ADAPTER VIEWS                                         ///
+///////////////////////////////////////////////////////////////////////////////
+
+// DTransformView
+//   class: lazy view that applies Function to each element of an
+// inner view. The function is invoked on dereference; values are
+// not cached, so the function should be cheap and pure for
+// repeated reads.
+template<typename View,
+         typename Function>
+class DTransformView
+    : public DViewBase<DTransformView<View, Function>>
+{
+public:
+    class iterator
+    {
+    public:
+        using inner_iterator    = typename View::const_iterator;
+        using inner_reference   = typename std::iterator_traits<inner_iterator>::reference;
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = typename std::decay<decltype(std::declval<const Function&>()(std::declval<inner_reference>()))>::type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void;
+        using reference         = value_type;
+
+        D_CONSTEXPR
+        iterator(
+            inner_iterator   _iterator,
+            const Function* _fn
+        )
+            : m_it(_iterator),
+              m_fn(_fn)
+        {}
+
+        D_CONSTEXPR
+        value_type operator*() const
+        {
+            return (*m_fn)(*m_it);
+        }
+
+        iterator& operator++()
+        {
+            ++m_it;
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++m_it;
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return (m_it == _other.m_it);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return (m_it != _other.m_it);
+        }
+
+    private:
+        inner_iterator   m_it;
+        const Function* m_fn;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = value_type;
+
+    template<typename VFwd,
+             typename FFwd>
+    D_CONSTEXPR DTransformView(
+        VFwd&& _view,
+        FFwd&& _function
+    )
+        : m_view(std::forward<VFwd>(_view)),
+          m_function(std::forward<FFwd>(_function))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(m_view.begin(), &m_function);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_view.end(), &m_function);
+    }
+
+private:
+    View      m_view;
+    Function m_function;
+};
+
+
+// DFilterView
+//   class: lazy view that yields only those elements of an inner
+// view satisfying Predicate. Advancement scans through the inner
+// iterator until a match is found (or end is reached).
+template<typename View,
+         typename Predicate>
+class DFilterView
+    : public DViewBase<DFilterView<View, Predicate>>
+{
+public:
+    class iterator
+    {
+    public:
+        using inner_iterator    = typename View::const_iterator;
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = typename std::iterator_traits<inner_iterator>::value_type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = typename std::iterator_traits<inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<inner_iterator>::reference;
+
+        iterator(
+            inner_iterator    _iterator,
+            inner_iterator    _end,
+            const Predicate* _predicate
+        )
+            : m_it(_iterator),
+              m_end(_end),
+              m_predicate(_predicate)
+        {
+            advance_to_match();
+        }
+
+        D_NODISCARD reference operator*() const
+        {
+            return *m_it;
+        }
+
+        iterator& operator++()
+        {
+            ++m_it;
+            advance_to_match();
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return (m_it == _other.m_it);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return (m_it != _other.m_it);
+        }
+
+    private:
+        // advance_to_match
+        //   skip non-matching elements; called from the constructor
+        // and from each ++ to maintain the invariant that *m_it
+        // satisfies the predicate (or m_it == m_end).
+        void advance_to_match()
+        {
+            while ( (m_it != m_end) &&
+                    !(*m_predicate)(*m_it) )
+            {
+                ++m_it;
+            }
+
+            return;
+        }
+
+        inner_iterator    m_it;
+        inner_iterator    m_end;
+        const Predicate* m_predicate;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = typename iterator::reference;
+
+    template<typename VFwd,
+             typename PFwd>
+    D_CONSTEXPR DFilterView(
+        VFwd&& _view,
+        PFwd&& _predicate
+    )
+        : m_view(std::forward<VFwd>(_view)),
+          m_predicate(std::forward<PFwd>(_predicate))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(m_view.begin(), m_view.end(), &m_predicate);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_view.end(), m_view.end(), &m_predicate);
+    }
+
+private:
+    View       m_view;
+    Predicate m_predicate;
+};
+
+
+// DTakeView
+//   class: lazy view that yields at most _n elements from an inner
+// view. The iterator carries a remaining counter; when it reaches
+// zero, the iterator compares equal to end().
+template<typename View>
+class DTakeView
+    : public DViewBase<DTakeView<View>>
+{
+public:
+    class iterator
+    {
+    public:
+        using inner_iterator    = typename View::const_iterator;
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = typename std::iterator_traits<inner_iterator>::value_type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = typename std::iterator_traits<inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<inner_iterator>::reference;
+
+        D_CONSTEXPR
+        iterator(
+            inner_iterator _iterator,
+            inner_iterator _end,
+            std::size_t    _remaining
+        )
+            : m_it(_iterator),
+              m_end(_end),
+              m_remaining(_remaining)
+        {}
+
+        D_NODISCARD reference operator*() const
+        {
+            return *m_it;
+        }
+
+        iterator& operator++()
+        {
+            if (m_remaining > 0)
+            {
+                ++m_it;
+                --m_remaining;
+            }
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return ( ( (m_remaining == 0) || (m_it == m_end) )
+                  ?  ( (_other.m_remaining == 0)  ||
+                          (_other.m_it == _other.m_end) )
+                  :   ( (m_it == _other.m_it)     &&
+                        (m_remaining == _other.m_remaining) ) );
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        inner_iterator m_it;
+        inner_iterator m_end;
+        std::size_t    m_remaining;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = typename iterator::reference;
+
+    template<typename VFwd>
+    D_CONSTEXPR DTakeView(
+        VFwd&&     _view,
+        std::size_t _n
+    )
+        : m_view(std::forward<VFwd>(_view)),
+          m_n(_n)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(m_view.begin(), m_view.end(), m_n);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_view.end(), m_view.end(), 0);
+    }
+
+private:
+    View        m_view;
+    std::size_t m_n;
+};
+
+
+// DDropView
+//   class: lazy view that skips the first _n elements of an inner
+// view and yields the rest. The begin() call advances the iterator
+// _n times eagerly (at most once per view instance, on each
+// begin() call).
+template<typename View>
+class DDropView : public DViewBase<DDropView<View>>
+{
+public:
+    using iterator       = typename View::const_iterator;
+    using const_iterator = iterator;
+    using value_type     = typename std::iterator_traits<iterator>::value_type;
+    using reference      = typename std::iterator_traits<
+        iterator>::reference;
+
+    template<typename VFwd>
+    D_CONSTEXPR DDropView(
+        VFwd&&     _view,
+        std::size_t _n
+    )
+        : m_view(std::forward<VFwd>(_view)),
+          m_n(_n)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        iterator it = m_view.begin();
+        iterator e  = m_view.end();
+        std::size_t i = 0;
+
+        while ((i < m_n) && (it != e))
+        {
+            ++it;
+            ++i;
+        }
+
+        return it;
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return m_view.end();
+    }
+
+private:
+    View        m_view;
+    std::size_t m_n;
+};
+
+
+// DTakeWhileView
+//   class: lazy view that yields elements while Predicate holds,
+// then stops. The iterator caches a "done" flag and short-circuits
+// further reads once the predicate has failed.
+template<typename View,
+         typename Predicate>
+class DTakeWhileView
+    : public DViewBase<DTakeWhileView<View, Predicate>>
+{
+public:
+    class iterator
+    {
+    public:
+        using inner_iterator    = typename View::const_iterator;
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = typename std::iterator_traits<inner_iterator>::value_type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = typename std::iterator_traits<inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<inner_iterator>::reference;
+
+        iterator(
+            inner_iterator    _iterator,
+            inner_iterator    _end,
+            const Predicate* _predicate,
+            bool              _is_end
+        )
+            : m_it(_iterator),
+              m_end(_end),
+              m_predicate(_predicate),
+              m_is_end(_is_end)
+        {
+            recheck();
+        }
+
+        D_NODISCARD reference operator*() const
+        {
+            return *m_it;
+        }
+
+        iterator& operator++()
+        {
+            ++m_it;
+            recheck();
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return ( (m_is_end == _other.m_is_end) &&
+                     ( m_is_end || (m_it == _other.m_it) ) );
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        // recheck
+        //   updates m_is_end based on the current position: true
+        // if the inner iterator is at end, or if the predicate
+        // currently fails.
+        void recheck()
+        {
+            if (m_is_end)
+            {
+                return;
+            }
+
+            if (m_it == m_end)
+            {
+                m_is_end = true;
+
+                return;
+            }
+
+            if (!(*m_predicate)(*m_it))
+            {
+                m_is_end = true;
+            }
+
+            return;
+        }
+
+        inner_iterator    m_it;
+        inner_iterator    m_end;
+        const Predicate* m_predicate;
+        bool              m_is_end;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = typename iterator::reference;
+
+    template<typename VFwd,
+             typename PFwd>
+    D_CONSTEXPR
+    DTakeWhileView(
+        VFwd&& _view,
+        PFwd&& _predicate
+    )
+        : m_view(std::forward<VFwd>(_view)),
+          m_predicate(std::forward<PFwd>(_predicate))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(
+            m_view.begin(),
+            m_view.end(),
+            &m_predicate,
+            false);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(
+            m_view.end(),
+            m_view.end(),
+            &m_predicate,
+            true);
+    }
+
+private:
+    View       m_view;
+    Predicate m_predicate;
+};
+
+
+// DDropWhileView
+//   class: lazy view that skips initial elements satisfying
+// Predicate, then yields all subsequent elements unconditionally.
+// begin() performs the skip eagerly on each call.
+template<typename View,
+         typename Predicate>
+class DDropWhileView
+    : public DViewBase<DDropWhileView<View, Predicate>>
+{
+public:
+    using iterator       = typename View::const_iterator;
+    using const_iterator = iterator;
+    using value_type     = typename std::iterator_traits<iterator>::value_type;
+    using reference      = typename std::iterator_traits<iterator>::reference;
+
+    template<typename VFwd,
+             typename PFwd>
+    D_CONSTEXPR
+    DDropWhileView(
+        VFwd&& _view,
+        PFwd&& _predicate
+    )
+        : m_view(std::forward<VFwd>(_view)),
+          m_predicate(std::forward<PFwd>(_predicate))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        iterator it = m_view.begin();
+        iterator e  = m_view.end();
+
+        while ((it != e) && m_predicate(*it))
+        {
+            ++it;
+        }
+
+        return it;
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return m_view.end();
+    }
+
+private:
+    View       m_view;
+    Predicate m_predicate;
+};
+
+
+// DEnumerateView
+//   class: lazy view that yields std::pair<size_t, T> where the
+// first element is the zero-based index. Useful for iterating with
+// an index variable in the same expression.
+template<typename View>
+class DEnumerateView : public DViewBase<DEnumerateView<View>>
+{
+public:
+    using inner_iterator  = typename View::const_iterator;
+    using inner_reference = typename std::iterator_traits<
+        inner_iterator>::reference;
+    using inner_value     = typename std::iterator_traits<
+        inner_iterator>::value_type;
+
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = std::pair<std::size_t, inner_value>;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void;
+        using reference         = value_type;
+
+        D_CONSTEXPR
+        iterator(
+            inner_iterator _iterator,
+            std::size_t    _index
+        )
+            : m_it(_iterator)
+            , m_index(_index)
+        {}
+
+        D_NODISCARD value_type operator*() const
+        {
+            return value_type(m_index, *m_it);
+        }
+
+        iterator& operator++()
+        {
+            ++m_it;
+            ++m_index;
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return (m_it == _other.m_it);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return (m_it != _other.m_it);
+        }
+
+    private:
+        inner_iterator m_it;
+        std::size_t    m_index;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = value_type;
+
+    template<typename VFwd>
+    explicit D_CONSTEXPR DEnumerateView(
+        VFwd&& _view
+    )
+        : m_view(std::forward<VFwd>(_view))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(m_view.begin(), 0);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_view.end(), 0);
+    }
+
+private:
+    View m_view;
+};
+
+
+// DZipView
+//   class: lazy view that yields pairs of elements from two inner
+// views, in lockstep. Exhausts as soon as either inner view is
+// exhausted.
+template<typename V1,
+         typename V2>
+class DZipView : public DViewBase<DZipView<V1, V2>>
+{
+public:
+    using inner_iterator_1 = typename V1::const_iterator;
+    using inner_iterator_2 = typename V2::const_iterator;
+    using inner_value_1    = typename std::iterator_traits<inner_iterator_1>::value_type;
+    using inner_value_2    = typename std::iterator_traits<inner_iterator_2>::value_type;
+
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = std::pair<inner_value_1, inner_value_2>;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void;
+        using reference         = value_type;
+
+        D_CONSTEXPR
+        iterator(
+            inner_iterator_1 _iterator1,
+            inner_iterator_1 _end1,
+            inner_iterator_2 _iterator2,
+            inner_iterator_2 _end2
+        )
+            : m_it1(_iterator1),
+              m_end1(_end1),
+              m_it2(_iterator2),
+              m_end2(_end2)
+        {}
+
+        D_NODISCARD value_type operator*() const
+        {
+            return value_type(*m_it1, *m_it2);
+        }
+
+        iterator& operator++()
+        {
+            ++m_it1;
+            ++m_it2;
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        // equality compares true once *either* side is at end.
+        // This lets a single end iterator stand in for both possible
+        // exhaustion conditions.
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return ( ( (m_it1 == m_end1) || (m_it2 == m_end2) ) &&
+                     ( (_other.m_it1 == _other.m_end1) ||
+                       (_other.m_it2 == _other.m_end2) ) );
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        inner_iterator_1 m_it1;
+        inner_iterator_1 m_end1;
+        inner_iterator_2 m_it2;
+        inner_iterator_2 m_end2;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = value_type;
+
+    template<typename V1Fwd,
+             typename V2Fwd>
+    D_CONSTEXPR
+    DZipView(
+        V1Fwd&& _v1,
+        V2Fwd&& _v2
+    )
+        : m_v1(std::forward<V1Fwd>(_v1)),
+          m_v2(std::forward<V2Fwd>(_v2))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(
+            m_v1.begin(), m_v1.end(),
+            m_v2.begin(), m_v2.end());
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(
+            m_v1.end(), m_v1.end(),
+            m_v2.end(), m_v2.end());
+    }
+
+private:
+    V1 m_v1;
+    V2 m_v2;
+};
+
+
+// DConcatView
+//   class: lazy view that yields all elements of the first inner
+// view, then all elements of the second. Both inner views must
+// have the same value_type (or compatible).
+template<typename V1,
+         typename V2>
+class DConcatView : public DViewBase<DConcatView<V1, V2>>
+{
+public:
+    using inner_iterator_1 = typename V1::const_iterator;
+    using inner_iterator_2 = typename V2::const_iterator;
+    using inner_value_1    = typename std::iterator_traits<
+        inner_iterator_1>::value_type;
+
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = inner_value_1;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void;
+        using reference         = value_type;
+
+        D_CONSTEXPR
+        iterator(
+            inner_iterator_1 _iterator1,
+            inner_iterator_1 _end1,
+            inner_iterator_2 _iterator2,
+            inner_iterator_2 _end2,
+            bool             _in_second
+        )
+            : m_it1(_iterator1),
+              m_end1(_end1),
+              m_it2(_iterator2),
+              m_end2(_end2),
+              m_in_second( (_in_second) ||
+                           (_iterator1 == _end1))
+        {}
+
+        D_NODISCARD value_type operator*() const
+        {
+            if (m_in_second)
+            {
+                return *m_it2;
+            }
+
+            return *m_it1;
+        }
+
+        iterator& operator++()
+        {
+            if (m_in_second)
+            {
+                ++m_it2;
+            }
+            else
+            {
+                ++m_it1;
+
+                if (m_it1 == m_end1)
+                {
+                    m_in_second = true;
+                }
+            }
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR_CPP14
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            // both exhausted iff (in second and at end of second)
+            const bool a_done = m_in_second && (m_it2 == m_end2);
+            const bool b_done = _other.m_in_second
+                                && (_other.m_it2 == _other.m_end2);
+
+            if (a_done && b_done)
+            {
+                return true;
+            }
+
+            if (a_done || b_done)
+            {
+                return false;
+            }
+
+            return ( (m_in_second == _other.m_in_second) &&
+                     ( m_in_second
+                       ? (m_it2 == _other.m_it2)
+                       : (m_it1 == _other.m_it1) ) );
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        inner_iterator_1 m_it1;
+        inner_iterator_1 m_end1;
+        inner_iterator_2 m_it2;
+        inner_iterator_2 m_end2;
+        bool             m_in_second;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = value_type;
+
+    template<typename V1Fwd,
+             typename V2Fwd>
+    D_CONSTEXPR
+    DConcatView(
+        V1Fwd&& _v1,
+        V2Fwd&& _v2
+    )
+        : m_v1(std::forward<V1Fwd>(_v1)),
+          m_v2(std::forward<V2Fwd>(_v2))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(
+            m_v1.begin(), m_v1.end(),
+            m_v2.begin(), m_v2.end(),
+            false);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(
+            m_v1.end(), m_v1.end(),
+            m_v2.end(), m_v2.end(),
+            true);
+    }
+
+private:
+    V1 m_v1;
+    V2 m_v2;
+};
+
+// DReverseView
+//   class: lazy view that yields the elements of an inner view in
+// reverse order. Requires bidirectional inner iterators (this is a
+// compile-time requirement enforced by the use of operator-- on
+// the inner iterator).
+template<typename View>
+class DReverseView : public DViewBase<DReverseView<View>>
+{
+public:
+    using inner_iterator = typename View::const_iterator;
+
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = typename std::iterator_traits<
+            inner_iterator>::value_type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = typename std::iterator_traits<
+            inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<
+            inner_iterator>::reference;
+
+        D_CONSTEXPR
+        iterator(
+            inner_iterator _iterator,
+            inner_iterator _begin,
+            bool           _is_end
+        )
+            : m_it(_iterator),
+             m_begin(_begin),
+             m_is_end(_is_end)
+        {}
+
+        D_NODISCARD reference operator*() const
+        {
+            inner_iterator prev = m_it;
+            --prev;
+
+            return *prev;
+        }
+
+        iterator& operator++()
+        {
+            --m_it;
+
+            if (m_it == m_begin)
+            {
+                m_is_end = true;
+            }
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return (m_is_end == _other.m_is_end);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        inner_iterator m_it;
+        inner_iterator m_begin;
+        bool           m_is_end;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = typename iterator::reference;
+
+    template<typename VFwd>
+    explicit D_CONSTEXPR
+    DReverseView(
+        VFwd&& _view
+    )
+        : m_view(std::forward<VFwd>(_view))
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(m_view.end(), m_view.begin(),
+                        m_view.begin() == m_view.end());
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_view.begin(), m_view.begin(), true);
+    }
+
+private:
+    View m_view;
+};
+
+
+// DChunkView
+//   class: lazy view that yields successive groups of N elements
+// as std::vector<T>. The final group may have fewer than N
+// elements if the inner view's length is not a multiple of N.
+template<typename View>
+class DChunkView : public DViewBase<DChunkView<View>>
+{
+public:
+    using inner_iterator = typename View::const_iterator;
+    using inner_value    = typename std::iterator_traits<
+        inner_iterator>::value_type;
+
+    class iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = std::vector<inner_value>;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void;
+        using reference         = value_type;
+
+        iterator(
+            inner_iterator _iterator,
+            inner_iterator _end,
+            std::size_t    _chunk_size
+        )
+            : m_it(_iterator)
+            , m_end(_end)
+            , m_chunk_size(_chunk_size < 1 ? 1 : _chunk_size)
+            , m_current()
+        {
+            load();
+        }
+
+        D_NODISCARD const value_type& operator*() const
+        {
+            return m_current;
+        }
+
+        iterator& operator++()
+        {
+            load();
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return ( m_current.empty() && _other.m_current.empty() &&
+                     (m_it == _other.m_it) );
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return !(*this == _other);
+        }
+
+    private:
+        // load
+        //   pulls up to m_chunk_size elements from the underlying
+        // iterator into m_current. If no elements are available,
+        // m_current is left empty, which signals end-of-stream.
+        void load()
+        {
+            m_current.clear();
+
+            for (std::size_t i = 0;
+                 (i < m_chunk_size) && (m_it != m_end);
+                 ++i)
+            {
+                m_current.push_back(*m_it);
+                ++m_it;
+            }
+
+            return;
+        }
+
+        inner_iterator m_it;
+        inner_iterator m_end;
+        std::size_t    m_chunk_size;
+        value_type     m_current;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = value_type;
+
+    template<typename VFwd>
+    D_CONSTEXPR
+    DChunkView(
+        VFwd&&     _view,
+        std::size_t _chunk_size
+    )
+        : m_view(std::forward<VFwd>(_view))
+        , m_chunk_size(_chunk_size)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(m_view.begin(), m_view.end(), m_chunk_size);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_view.end(), m_view.end(), m_chunk_size);
+    }
+
+private:
+    View        m_view;
+    std::size_t m_chunk_size;
+};
+
+
+// DStrideView
+//   class: lazy view that yields every N-th element of an inner
+// view, starting with the first. N == 1 yields every element;
+// N == 0 is treated as N == 1 to avoid divide-by-zero issues.
+template<typename View>
+class DStrideView : public DViewBase<DStrideView<View>>
+{
+public:
+    class iterator
+    {
+    public:
+        using inner_iterator    = typename View::const_iterator;
+        using iterator_category = std::input_iterator_tag;
+        using value_type        = typename std::iterator_traits<
+            inner_iterator>::value_type;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = typename std::iterator_traits<
+            inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<
+            inner_iterator>::reference;
+
+        D_CONSTEXPR
+        iterator(
+            inner_iterator _iterator,
+            inner_iterator _end,
+            std::size_t    _stride
+        )
+            : m_it(_iterator)
+            , m_end(_end)
+            , m_stride(_stride < 1 ? 1 : _stride)
+        {}
+
+        D_NODISCARD reference operator*() const
+        {
+            return *m_it;
+        }
+
+        iterator& operator++()
+        {
+            for (std::size_t i = 0;
+                 (i < m_stride) && (m_it != m_end);
+                 ++i)
+            {
+                ++m_it;
+            }
+
+            return *this;
+        }
+
+        iterator operator++(
+            int
+        )
+        {
+            iterator tmp(*this);
+            ++(*this);
+
+            return tmp;
+        }
+
+        D_CONSTEXPR
+        bool operator==(
+            const iterator& _other
+        ) const
+        {
+            return (m_it == _other.m_it);
+        }
+
+        D_CONSTEXPR
+        bool operator!=(
+            const iterator& _other
+        ) const
+        {
+            return (m_it != _other.m_it);
+        }
+
+    private:
+        inner_iterator m_it;
+        inner_iterator m_end;
+        std::size_t    m_stride;
+    };
+
+    using const_iterator = iterator;
+    using value_type     = typename iterator::value_type;
+    using reference      = typename iterator::reference;
+
+    template<typename VFwd>
+    D_CONSTEXPR
+    DStrideView(
+        VFwd&&     _view,
+        std::size_t _stride
+    )
+        : m_view(std::forward<VFwd>(_view))
+        , m_stride(_stride)
+    {}
+
+    D_NODISCARD iterator begin() const
+    {
+        return iterator(m_view.begin(), m_view.end(), m_stride);
+    }
+
+    D_NODISCARD iterator end() const
+    {
+        return iterator(m_view.end(), m_view.end(), m_stride);
+    }
+
+private:
+    View        m_view;
+    std::size_t m_stride;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             V.    ADAPTER FACTORIES                                     ///
+///////////////////////////////////////////////////////////////////////////////
+
+NS_INTERNAL
+    // Adapter factories return lightweight "adapter" objects that hold
+    // the parameters of a future view but not the input view itself.
+    // When piped with a view via operator|, the adapter constructs
+    // the appropriate concrete view from the LHS view plus its stored
+    // arguments. This is the standard ranges-style pattern.
+
+    // DTransformAdapter
+    //   helper: stores a transform function for later application.
+    template<typename Function>
+    class DTransformAdapter
+    {
+    public:
+        template<typename FFwd>
+        D_CONSTEXPR
+        explicit DTransformAdapter(
+            FFwd&& _function
+        )
+            : m_function(std::forward<FFwd>(_function))
+        {}
+
+        // apply
+        //   constructs a DTransformView over the supplied LHS view.
+        template<typename View>
+        D_CONSTEXPR
+        DTransformView<typename std::decay<View>::type, Function> apply(
+            View&& _view
+        ) const
+        {
+            return DTransformView<
+                typename std::decay<View>::type, Function>(
+                    std::forward<View>(_view), m_function);
+        }
+
+    private:
+        Function m_function;
+    };
+
+    // DFilterAdapter
+    //   helper: stores a predicate for later application.
+    template<typename Predicate>
+    class DFilterAdapter
+    {
+    public:
+        template<typename PFwd>
+        D_CONSTEXPR
+        explicit DFilterAdapter(
+            PFwd&& _predicate
+        )
+            : m_predicate(std::forward<PFwd>(_predicate))
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DFilterView<typename std::decay<View>::type, Predicate> apply(
+            View&& _view
+        ) const
+        {
+            return DFilterView<
+                typename std::decay<View>::type, Predicate>(
+                    std::forward<View>(_view), m_predicate);
+        }
+
+    private:
+        Predicate m_predicate;
+    };
+
+    // DTakeAdapter
+    template<typename = void>
+    class take_adapter_t
+    {
+    public:
+        explicit D_CONSTEXPR
+        take_adapter_t(
+            std::size_t _n
+        )
+            : m_n(_n)
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DTakeView<typename std::decay<View>::type>
+        apply(
+            View&& _view
+        ) const
+        {
+            return DTakeView<typename std::decay<View>::type>(
+                std::forward<View>(_view), m_n);
+        }
+
+    private:
+        std::size_t m_n;
+    };
+    using DTakeAdapter = take_adapter_t<>;
+
+    // DDropAdapter
+    template<typename = void>
+    class drop_adapter_t
+    {
+    public:
+        explicit D_CONSTEXPR
+        drop_adapter_t(
+            std::size_t _n
+        )
+            : m_n(_n)
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DDropView<typename std::decay<View>::type>
+        apply(
+            View&& _view
+        ) const
+        {
+            return DDropView<typename std::decay<View>::type>(
+                std::forward<View>(_view), m_n);
+        }
+
+    private:
+        std::size_t m_n;
+    };
+    using DDropAdapter = drop_adapter_t<>;
+
+    // DTakeWhileAdapter
+    template<typename Predicate>
+    class DTakeWhileAdapter
+    {
+    public:
+        template<typename PFwd>
+        D_CONSTEXPR explicit DTakeWhileAdapter(
+            PFwd&& _predicate
+        )
+            : m_predicate(std::forward<PFwd>(_predicate))
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DTakeWhileView<typename std::decay<View>::type, Predicate> apply(
+            View&& _view
+        ) const
+        {
+            return DTakeWhileView<
+                typename std::decay<View>::type, Predicate>(
+                    std::forward<View>(_view), m_predicate);
+        }
+
+    private:
+        Predicate m_predicate;
+    };
+
+    // DDropWhileAdapter
+    template<typename Predicate>
+    class DDropWhileAdapter
+    {
+    public:
+        template<typename PFwd>
+        D_CONSTEXPR explicit DDropWhileAdapter(
+            PFwd&& _predicate
+        )
+            : m_predicate(std::forward<PFwd>(_predicate))
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DDropWhileView<typename std::decay<View>::type, Predicate> apply(
+            View&& _view
+        ) const
+        {
+            return DDropWhileView<
+                typename std::decay<View>::type, Predicate>(
+                    std::forward<View>(_view), m_predicate);
+        }
+
+    private:
+        Predicate m_predicate;
+    };
+
+    // DEnumerateAdapter
+    struct DEnumerateAdapter
+    {
+        template<typename View>
+        D_CONSTEXPR
+        DEnumerateView<typename std::decay<View>::type> apply(
+            View&& _view
+        ) const
+        {
+            return DEnumerateView<typename std::decay<View>::type>(
+                std::forward<View>(_view));
+        }
+    };
+
+    // DZipAdapter
+    template<typename Other>
+    class DZipAdapter
+    {
+    public:
+        template<typename OFwd>
+        D_CONSTEXPR explicit DZipAdapter(
+            OFwd&& _other
+        )
+            : m_other(std::forward<OFwd>(_other))
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DZipView<typename std::decay<View>::type, Other> apply(
+            View&& _view
+        ) const
+        {
+            return DZipView<
+                typename std::decay<View>::type, Other>(
+                    std::forward<View>(_view), m_other);
+        }
+
+    private:
+        Other m_other;
+    };
+
+    // DConcatAdapter
+    template<typename Other>
+    class DConcatAdapter
+    {
+    public:
+        template<typename OFwd>
+        D_CONSTEXPR
+        explicit DConcatAdapter(
+            OFwd&& _other
+        )
+            : m_other(std::forward<OFwd>(_other))
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DConcatView<typename std::decay<View>::type, Other> apply(
+            View&& _view
+        ) const
+        {
+            return DConcatView<
+                typename std::decay<View>::type, Other>(
+                    std::forward<View>(_view), m_other);
+        }
+
+    private:
+        Other m_other;
+    };
+
+    // DReverseAdapter
+    struct DReverseAdapter
+    {
+        template<typename View>
+        D_CONSTEXPR
+        DReverseView<typename std::decay<View>::type> apply(
+            View&& _view
+        ) const
+        {
+            return DReverseView<typename std::decay<View>::type>(
+                std::forward<View>(_view));
+        }
+    };
+
+    // DChunkAdapter
+    template<typename = void>
+    class chunk_adapter_t
+    {
+    public:
+        explicit D_CONSTEXPR
+        chunk_adapter_t(
+            std::size_t _n
+        )
+            : m_n(_n)
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DChunkView<typename std::decay<View>::type>
+        apply(
+            View&& _view
+        ) const
+        {
+            return DChunkView<typename std::decay<View>::type>(
+                std::forward<View>(_view), m_n);
+        }
+
+    private:
+        std::size_t m_n;
+    };
+    using DChunkAdapter = chunk_adapter_t<>;
+
+    // DStrideAdapter
+    template<typename = void>
+    class stride_adapter_t
+    {
+    public:
+        explicit D_CONSTEXPR
+        stride_adapter_t(
+            std::size_t _n
+        )
+            : m_n(_n)
+        {}
+
+        template<typename View>
+        D_CONSTEXPR
+        DStrideView<typename std::decay<View>::type>
+        apply(
+            View&& _view
+        ) const
+        {
+            return DStrideView<typename std::decay<View>::type>(
+                std::forward<View>(_view), m_n);
+        }
+
+    private:
+        std::size_t m_n;
+    };
+    using DStrideAdapter = stride_adapter_t<>;
+
+
+    // is_adapter_helper
+    //   helper: SFINAE detection for "has apply method that accepts
+    // a view". Used to constrain operator| to adapter RHS.
+    template<typename Type>
+    struct is_adapter_helper
+    {
+    private:
+        template<typename U>
+        static auto test(int) -> decltype(
+            std::declval<const U&>().apply(
+                std::declval<DSingleView<int>>()),
+            std::true_type{});
+
+        template<typename>
+        static
+        std::false_type test(
+            ...
+        );
+
+    public:
+        using type = decltype(test<Type>(0));
+    };
+
+NS_END  // internal
+
+
+// is_adapter
+//   trait: true if Type has an apply(view) method whose result is
+// itself a view. The apply-returns-a-view requirement is what
+// distinguishes an adapter from a terminal (which also has apply()
+// but returns a non-view); making them mutually exclusive is required
+// so that `view | to_vector()` is not ambiguous between the adapter
+// and terminal operator| overloads. (fixed 2026-05-30)
+NS_INTERNAL
+    template<typename Type>
+    struct apply_result_is_view_helper
+    {
+    private:
+        template<typename U>
+        static
+        auto test(
+            int
+        ) -> typename std::enable_if< is_view<decltype( std::declval<const U&>().apply( std::declval<DSingleView<int>>()))>::value, std::true_type>::type;
+
+        template<typename>
+        static
+        std::false_type test(
+            ...
+        );
+
+    public:
+        using type = decltype(test<Type>(0));
+    };
+NS_END  // internal
+
+template<typename Type>
+struct is_adapter
+    : internal::apply_result_is_view_helper<
+          typename std::decay<Type>::type>::type
+{};
+
+
+// transform
+//   function: adapter factory for DTransformView. Returns an
+// adapter that, when piped onto a view, yields a lazy view of
+// _fn(x) for each x in the input.
+template<typename Function>
+D_CONSTEXPR
+internal::DTransformAdapter<typename std::decay<Function>::type> transform(
+    Function&& _function
+)
+{
+    return internal::DTransformAdapter<
+        typename std::decay<Function>::type>(
+            std::forward<Function>(_function));
+}
+
+
+// filter
+//   function: adapter factory for DFilterView. The resulting
+// view yields only inputs satisfying _predicate.
+template<typename Predicate>
+D_CONSTEXPR
+internal::DFilterAdapter<typename std::decay<Predicate>::type> filter(
+    Predicate&& _predicate
+)
+{
+    return internal::DFilterAdapter<
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_predicate));
+}
+
+
+// take
+//   function: adapter factory for DTakeView. The resulting view
+// yields at most _n elements from the input.
+inline
+internal::DTakeAdapter take(
+    std::size_t _n
+)
+{
+    return internal::DTakeAdapter(_n);
+}
+
+
+// drop
+//   function: adapter factory for DDropView. The resulting view
+// skips the first _n elements of the input.
+inline
+internal::DDropAdapter drop(
+    std::size_t _n
+)
+{
+    return internal::DDropAdapter(_n);
+}
+
+
+// take_while
+//   function: adapter factory for DTakeWhileView.
+template<typename Predicate>
+D_CONSTEXPR
+internal::DTakeWhileAdapter<typename std::decay<Predicate>::type> take_while(
+    Predicate&& _predicate
+)
+{
+    return internal::DTakeWhileAdapter<
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_predicate));
+}
+
+
+// drop_while
+//   function: adapter factory for DDropWhileView.
+template<typename Predicate>
+D_CONSTEXPR
+internal::DDropWhileAdapter<typename std::decay<Predicate>::type> drop_while(
+    Predicate&& _predicate
+)
+{
+    return internal::DDropWhileAdapter<
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_predicate));
+}
+
+
+// enumerate
+//   function: adapter factory for DEnumerateView. Pairs every
+// element with its zero-based index.
+inline
+internal::DEnumerateAdapter enumerate()
+{
+    return internal::DEnumerateAdapter{};
+}
+
+
+// zip
+//   function: adapter factory for DZipView. Pairs elements of
+// the LHS view with elements of _other in lockstep.
+template<typename Other>
+D_CONSTEXPR
+internal::DZipAdapter<typename std::decay<Other>::type> zip(
+    Other&& _other
+)
+{
+    return internal::DZipAdapter<
+        typename std::decay<Other>::type>(
+            std::forward<Other>(_other));
+}
+
+
+// concat
+//   function: adapter factory for DConcatView. Yields all of
+// the LHS view, then all of _other.
+template<typename Other>
+D_CONSTEXPR
+internal::DConcatAdapter<typename std::decay<Other>::type> concat(
+    Other&& _other
+)
+{
+    return internal::DConcatAdapter<
+        typename std::decay<Other>::type>(
+            std::forward<Other>(_other));
+}
+
+
+// reverse
+//   function: adapter factory for DReverseView. Requires the
+// LHS view's iterator to be bidirectional.
+inline
+internal::DReverseAdapter reverse()
+{
+    return internal::DReverseAdapter{};
+}
+
+
+// chunk
+//   function: adapter factory for DChunkView. Groups elements
+// into vectors of size _n; the final group may be shorter.
+inline
+internal::DChunkAdapter chunk(
+    std::size_t _n
+)
+{
+    return internal::DChunkAdapter(_n);
+}
+
+
+// stride
+//   function: adapter factory for DStrideView. Yields every
+// _n-th element, starting with the first.
+inline
+internal::DStrideAdapter stride(
+    std::size_t _n
+)
+{
+    return internal::DStrideAdapter(_n);
+}
+
+
+// iota (bounded)
+//   function: builds an iota_view over [_start, _end).
+template<typename Int>
+D_CONSTEXPR
+iota_view<Int> iota(
+    Int _start,
+    Int _end
+)
+{
+    return iota_view<Int>(_start, _end);
+}
+
+
+// iota (unbounded)
+//   function: builds an infinite iota_view starting at _start.
+// Pair with take or take_while to bound.
+template<typename Int>
+D_CONSTEXPR
+iota_view<Int> iota(
+    Int _start
+)
+{
+    return iota_view<Int>(_start);
+}
+
+// repeat (unbounded)
+//   function: builds an infinite view yielding _value forever.
+template<typename Type>
+D_CONSTEXPR
+DRepeatView<typename std::decay<Type>::type> repeat(
+    Type&& _value
+)
+{
+    return DRepeatView<typename std::decay<Type>::type>(
+        std::forward<Type>(_value));
+}
+
+
+// repeat_n
+//   function: builds a view that yields _value exactly _n times.
+template<typename Type>
+D_CONSTEXPR
+DRepeatView<typename std::decay<Type>::type> repeat_n(
+    Type&&      _value,
+    std::size_t _n
+)
+{
+    return DRepeatView<typename std::decay<Type>::type>(
+        std::forward<Type>(_value), _n);
+}
+
+
+// generate
+//   function: builds an infinite view that, on each advance,
+// invokes _fn to produce the next value. Useful for random,
+// time-based, or external-state sources.
+template<typename F>
+D_CONSTEXPR
+DGenerateView<typename std::decay<F>::type> generate(
+    F&& _fn
+)
+{
+    return DGenerateView<typename std::decay<F>::type>(
+        std::forward<F>(_fn));
+}
+
+
+// empty
+//   function: builds an DEmptyView of the given type.
+template<typename Type>
+D_CONSTEXPR
+DEmptyView<Type> empty()
+{
+    return DEmptyView<Type>{};
+}
+
+
+// single
+//   function: builds a DSingleView containing one element.
+template<typename Type>
+D_CONSTEXPR
+DSingleView<typename std::decay<Type>::type> single(
+    Type&& _value
+)
+{
+    return DSingleView<typename std::decay<Type>::type>(
+        std::forward<Type>(_value));
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             VI.   PIPELINE OPERATORS                                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+// operator| (view | adapter)
+//   forwards the view to the adapter's apply method, yielding a
+// new view of the appropriate concrete type. SFINAE-constrained
+// to view LHS and adapter RHS so that the operator does not
+// accidentally fire on unrelated types.
+template<typename View,
+         typename Adapter,
+         typename std::enable_if<
+             is_view<View>::value && is_adapter<Adapter>::value,
+             int>::type = 0>
+D_CONSTEXPR
+auto operator|(
+    View&&    _view,
+    Adapter&& _adapter
+) -> decltype(_adapter.apply(std::forward<View>(_view)))
+{
+    return _adapter.apply(std::forward<View>(_view));
+}
+
+
+// operator| (container | adapter)
+//   lifts a container to a DRefView, then forwards to the
+// adapter. SFINAE-constrained so that the operator only fires
+// when the LHS is container-like but NOT already a view.
+template<typename Container,
+         typename Adapter,
+         typename std::enable_if<
+             ( has_begin_end<Container>::value &&
+               !is_view<Container>::value     &&
+               is_adapter<Adapter>::value ),
+             int>::type = 0>
+D_CONSTEXPR
+auto operator|(
+    const Container& _container,
+    Adapter&&        _adapter
+) -> decltype(_adapter.apply(
+       DRefView<typename std::decay<Container>::type>(_container)))
+{
+    return _adapter.apply(
+        DRefView<typename std::decay<Container>::type>(_container));
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             VII.  TERMINAL OPERATORS                                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+NS_INTERNAL
+    // DToVectorTerminal
+    //   helper: drains a view by iteration into a std::vector.
+    struct DToVectorTerminal
+    {
+        template<typename View>
+        auto apply(
+            const View& _view
+        ) const -> std::vector<typename View::value_type>
+        {
+            std::vector<typename View::value_type> result;
+
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                result.push_back(*it);
+            }
+
+            return result;
+        }
+    };
+
+    // DToContainerTerminal
+    //   helper: drains a view into an explicitly-typed container.
+    // The container must support push_back (or a free-standing
+    // insert(end(), x) shim, not implemented here).
+    template<typename Container>
+    struct DToContainerTerminal
+    {
+        template<typename View>
+        Container apply(
+            const View& _view
+        ) const
+        {
+            Container result;
+
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                result.push_back(*it);
+            }
+
+            return result;
+        }
+    };
+
+    // DCountTerminal
+    //   helper: drains a view, returning element count.
+    struct DCountTerminal
+    {
+        template<typename View>
+        std::size_t apply(
+            const View& _view
+        ) const
+        {
+            std::size_t n = 0;
+
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                ++n;
+            }
+
+            return n;
+        }
+    };
+
+    // DFoldTerminal
+    //   helper: drains a view through a binary step function.
+    template<typename Init,
+             typename Step>
+    class DFoldTerminal
+    {
+    public:
+        template<typename IFwd,
+                 typename SFwd>
+        D_CONSTEXPR
+        DFoldTerminal(
+            IFwd&& _init,
+            SFwd&& _step
+        )
+            : m_init(std::forward<IFwd>(_init)),
+              m_step(std::forward<SFwd>(_step))
+        {}
+
+        template<typename View>
+        Init apply(
+            const View& _view
+        ) const
+        {
+            Init acc = m_init;
+
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                acc = m_step(acc, *it);
+            }
+
+            return acc;
+        }
+
+    private:
+        Init m_init;
+        Step m_step;
+    };
+
+    // DForEachTerminal
+    //   helper: applies a consumer to every element.
+    template<typename Consumer>
+    class DForEachTerminal
+    {
+    public:
+        template<typename CFwd>
+        D_CONSTEXPR explicit DForEachTerminal(
+            CFwd&& _consumer
+        )
+            : m_consumer(std::forward<CFwd>(_consumer))
+        {}
+
+        template<typename View>
+        void apply(
+            const View& _view
+        ) const
+        {
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                m_consumer(*it);
+            }
+
+            return;
+        }
+
+    private:
+        Consumer m_consumer;
+    };
+
+    // DAnyOfTerminal / DAllOfTerminal / DNoneOfTerminal
+    //   helpers: short-circuit predicate drains.
+    template<typename Predicate>
+    class DAnyOfTerminal
+    {
+    public:
+        template<typename PFwd>
+        D_CONSTEXPR
+        explicit DAnyOfTerminal(
+            PFwd&& _predicate
+        )
+            : m_predicate(std::forward<PFwd>(_predicate))
+        {}
+
+        template<typename View>
+        bool apply(
+            const View& _view
+        ) const
+        {
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                if (m_predicate(*it))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+    private:
+        Predicate m_predicate;
+    };
+
+    template<typename Predicate>
+    class DAllOfTerminal
+    {
+    public:
+        template<typename PFwd>
+        D_CONSTEXPR
+        explicit DAllOfTerminal(
+            PFwd&& _predicate
+        )
+            : m_predicate(std::forward<PFwd>(_predicate))
+        {}
+
+        template<typename View>
+        bool apply(
+            const View& _view
+        ) const
+        {
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                if (!m_predicate(*it))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+    private:
+        Predicate m_predicate;
+    };
+
+    template<typename Predicate>
+    class DNoneOfTerminal
+    {
+    public:
+        template<typename PFwd>
+        D_CONSTEXPR
+        explicit DNoneOfTerminal(
+            PFwd&& _predicate
+        )
+            : m_predicate(std::forward<PFwd>(_predicate))
+        {}
+
+        template<typename View>
+        bool apply(
+            const View& _view
+        ) const
+        {
+            for (auto it = _view.begin(); it != _view.end(); ++it)
+            {
+                if (m_predicate(*it))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+    private:
+        Predicate m_predicate;
+    };
+
+    // is_terminal_helper
+    //   helper: SFINAE detection for terminal operator types. A
+    // terminal has an apply(view) method returning a non-view value.
+    template<typename Type>
+    struct is_terminal_helper
+    {
+    private:
+        template<typename U>
+        static auto test(int) -> decltype(
+            std::declval<const U&>().apply(
+                std::declval<DSingleView<int>>()),
+            std::true_type{});
+
+        template<typename>
+        static
+        std::false_type test(
+            ...
+        );
+
+    public:
+        using type = decltype(test<Type>(0));
+    };
+
+NS_END  // internal
+
+
+// is_terminal
+//   trait: detects terminal operator types. A terminal has an
+// apply(view) whose result is a non-view value (e.g. to_vector ->
+// std::vector). Defined as the exact complement of is_adapter so the
+// adapter and terminal operator| overloads never both match.
+// (fixed 2026-05-30)
+template<typename Type>
+struct is_terminal
+    : std::integral_constant<bool,
+          internal::is_terminal_helper<
+              typename std::decay<Type>::type>::type::value
+          && !is_adapter<Type>::value>
+{};
+
+
+// operator| (view | terminal)  and  (container | terminal)
+//   drives a view (or a container, lifted to a DRefView) into a
+// terminal operator such as to_vector()/to<C>()/count(). These were
+// documented -- `(some_view) | to_vector()` -- but never implemented;
+// only the adapter pipe overloads existed, so terminals could not be
+// piped at all. Constrained on is_terminal, which is now the exact
+// complement of is_adapter, so there is no overlap with the adapter
+// overloads. (added 2026-05-30)
+template<typename View,
+         typename Terminal,
+         typename std::enable_if<
+             is_view<View>::value && is_terminal<Terminal>::value,
+             int>::type = 0>
+D_CONSTEXPR
+auto operator|(
+    View&&     _view,
+    Terminal&& _terminal
+) -> decltype(_terminal.apply(std::forward<View>(_view)))
+{
+    return _terminal.apply(std::forward<View>(_view));
+}
+
+template<typename Container,
+         typename Terminal,
+         typename std::enable_if<
+             ( has_begin_end<Container>::value &&
+               !is_view<Container>::value      &&
+               is_terminal<Terminal>::value ),
+             int>::type = 0>
+D_CONSTEXPR
+auto operator|(
+    const Container& _container,
+    Terminal&&       _terminal
+) -> decltype(_terminal.apply(
+       DRefView<typename std::decay<Container>::type>(_container)))
+{
+    return _terminal.apply(
+        DRefView<typename std::decay<Container>::type>(_container));
+}
+
+
+// to_vector
+//   function: terminal operator that drains a view into a
+// std::vector<value_type>. Usage:
+//     auto v = (some_view) | to_vector();
+inline
+internal::DToVectorTerminal to_vector()
+{
+    return internal::DToVectorTerminal{};
+}
+
+
+// to
+//   function: terminal operator that drains a view into an
+// explicitly-typed container Container. The container must
+// support push_back. Usage:
+//     auto s = (some_view) | to<std::deque<int>>();
+template<typename Container>
+D_CONSTEXPR
+internal::DToContainerTerminal<Container> to()
+{
+    return internal::DToContainerTerminal<Container>{};
+}
+
+
+// count
+//   function: terminal operator that returns the number of
+// elements in a view. Iterates through all elements; views over
+// random-access containers do NOT short-circuit.
+inline
+internal::DCountTerminal count()
+{
+    return internal::DCountTerminal{};
+}
+
+
+// fold
+//   function: terminal operator that drains a view through a
+// binary step function starting from _init. Equivalent to
+// std::accumulate.
+template<typename Init,
+         typename Step>
+D_CONSTEXPR
+internal::DFoldTerminal<typename std::decay<Init>::type,
+                       typename std::decay<Step>::type>
+fold(
+    Init&& _init,
+    Step&& _step
+)
+{
+    return internal::DFoldTerminal<
+        typename std::decay<Init>::type,
+        typename std::decay<Step>::type>(
+            std::forward<Init>(_init),
+            std::forward<Step>(_step));
+}
+
+
+// for_each
+//   function: terminal operator that applies a consumer to each
+// element of a view. Returns void.
+template<typename Consumer>
+D_CONSTEXPR
+internal::DForEachTerminal<typename std::decay<Consumer>::type> for_each(
+    Consumer&& _consumer
+)
+{
+    return internal::DForEachTerminal<
+        typename std::decay<Consumer>::type>(
+            std::forward<Consumer>(_consumer));
+}
+
+
+// any_of (terminal)
+//   function: terminal operator that returns true iff at least one
+// element of the view satisfies _predicate. Short-circuits on
+// first match.
+template<typename Predicate>
+D_CONSTEXPR
+internal::DAnyOfTerminal<typename std::decay<Predicate>::type> any_of(
+    Predicate&& _predicate
+)
+{
+    return internal::DAnyOfTerminal<
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_predicate));
+}
+
+
+// all_of (terminal)
+//   function: terminal operator that returns true iff every
+// element of the view satisfies _predicate. Vacuously true for
+// empty views.
+template<typename Predicate>
+D_CONSTEXPR
+internal::DAllOfTerminal<typename std::decay<Predicate>::type> all_of(
+    Predicate&& _predicate
+)
+{
+    return internal::DAllOfTerminal<
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_predicate));
+}
+
+
+// none_of (terminal)
+//   function: terminal operator that returns true iff no element
+// of the view satisfies _predicate.
+template<typename Predicate>
+D_CONSTEXPR
+internal::DNoneOfTerminal<typename std::decay<Predicate>::type> none_of(
+    Predicate&& _predicate
+)
+{
+    return internal::DNoneOfTerminal<
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_predicate));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///             VIII. VIEW SFINAE STRUCTURAL TRAITS & CONCEPTS              ///
+///////////////////////////////////////////////////////////////////////////////
+//   Extensions to the detection vocabulary introduced piecewise above
+// (is_view / has_begin_end in section I, is_adapter / is_terminal alongside
+// the factories).  Gathered here, after every view, adapter, and terminal is
+// defined, so the value-type extractor and the C++20 concepts can see the
+// whole protocol.  Each predicate reduces to a `static constexpr bool value`;
+// view_value_type yields a `::type`.  The concepts close the section.
+
+NS_INTERNAL
+    // DViewValueTypeHelper
+    //   helper: primary has no members (soft failure for non-views); the
+    // void_t-guarded specialization exposes View::value_type when present.
+    template<typename AlwaysVoid,
+             typename View>
+    struct DViewValueTypeHelper
+    {};
+
+    template<typename View>
+    struct DViewValueTypeHelper<
+        void_t<typename View::value_type>,
+        View>
+    {
+        using type = typename View::value_type;
+    };
+
+NS_END  // internal
+
+
+// view_value_type
+//   trait: the element type a view yields, i.e. View::value_type.
+// SFINAE-friendly: has a `::type` only when View exposes value_type
+// (every view in this header does; non-views resolve cleanly to no
+// member rather than a hard error).
+template<typename View>
+struct view_value_type
+{
+    using type = typename internal::DViewValueTypeHelper<
+        void, typename std::decay<View>::type>::type;
+};
+
+// view_value_type_t
+//   alias: shorthand for view_value_type<View>::type.
+template<typename View>
+using view_value_type_t = typename view_value_type<View>::type;
+
+
+// is_pipeable_to_view
+//   trait: true if Type may appear on the left of operator| as a
+// pipeline source -- either it is already a view, or it is a
+// container-like type (has begin/end) that the pipeline implicitly
+// lifts to a DRefView. This is exactly the disjunction the operator|
+// overloads accept on the left-hand side.
+template<typename Type>
+struct is_pipeable_to_view
+    : std::integral_constant<bool,
+          is_view<Type>::value || has_begin_end<Type>::value>
+{
+};
+
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+// variable-template shorthands. is_view_v is defined with is_view in
+// section I; the remaining detectors gain their _v forms here.
+template<typename Type>
+static constexpr bool has_begin_end_v = has_begin_end<Type>::value;
+
+template<typename Type>
+static constexpr bool is_adapter_v = is_adapter<Type>::value;
+
+template<typename Type>
+static constexpr bool is_terminal_v = is_terminal<Type>::value;
+
+template<typename Type>
+static constexpr bool is_pipeable_to_view_v =
+    is_pipeable_to_view<Type>::value;
+#endif
+
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// view_type
+//   concept: satisfied by any view (a type deriving from DViewBase).
+// The C++20 parallel of is_view. Named view_type to avoid colliding
+// with the views factory namespace and to mirror maybe_type /
+// result_type in the sibling modules.
+template<typename Type>
+concept view_type = is_view<Type>::value;
+
+// view_adapter
+//   concept: satisfied by a pipeline adapter -- a type whose apply(view)
+// yields another view. The C++20 parallel of is_adapter.
+template<typename Type>
+concept view_adapter = is_adapter<Type>::value;
+
+// view_terminal
+//   concept: satisfied by a terminal operator -- a type whose
+// apply(view) yields a non-view. The C++20 parallel of is_terminal.
+template<typename Type>
+concept view_terminal = is_terminal<Type>::value;
+
+// pipeable_to_view
+//   concept: satisfied by any valid pipeline source (a view or a
+// container-like type). The C++20 parallel of is_pipeable_to_view.
+template<typename Type>
+concept pipeable_to_view = is_pipeable_to_view<Type>::value;
+#endif
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             VIII.  FUNCTOR INSTANCE                                     ///
+///////////////////////////////////////////////////////////////////////////////
+//   A view is a Functor: transform is its map. This teaches the generic
+// functor_map (functor.hpp) to drive a view through the one canonical name, so
+// the same call that maps a maybe / result / producer also maps a view. A
+// view's mapped type is DTransformView<V, F> -- it depends on the mapping
+// function F, so there is no single F<U> to rebind; the result type is named
+// directly. Keyed on is_view, mutually exclusive with the monad bridge in
+// functor.hpp (a view is not a monad) and the producer instance.
+
+template<typename View>
+struct functor_traits<
+    View,
+    typename std::enable_if<is_view<View>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename view_value_type<View>::type;
+
+    // map
+    //   functorial map via DTransformView (the engine behind
+    // transform). Lazy: no element is evaluated until the resulting
+    // view is iterated or forced by a terminal.
+    template<typename ViewArg,
+             typename Function>
+    static D_CONSTEXPR
+    DTransformView<typename std::decay<ViewArg>::type,
+                   typename std::decay<Function>::type>
+    map(
+        ViewArg&&  _view,
+        Function&& _function
+    )
+    {
+        return DTransformView<
+            typename std::decay<ViewArg>::type,
+            typename std::decay<Function>::type>(
+                std::forward<ViewArg>(_view),
+                std::forward<Function>(_function));
+    }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             IX.   FOLDABLE INSTANCE                                     ///
+///////////////////////////////////////////////////////////////////////////////
+//   A view is a Foldable: its elements are collapsed by iterating the lazy
+// pipeline once and threading the reducer through them. This teaches the
+// generic fold_left (foldable.hpp) -- and therefore fold_to_vector,
+// fold_length, fold_any, fold_all, fold_right, ... -- to drive a view through
+// the one canonical name. Keyed on is_view so the single instance covers every
+// view type; mutually exclusive with the maybe / result / producer instances
+// (a view is none of those). Forcing the fold is a runtime act, so an infinite
+// source must be bounded (take / take_while) before folding.
+
+template<typename View>
+struct foldable_traits<
+    View,
+    typename std::enable_if<is_view<View>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename view_value_type<View>::type;
+
+    // fold_left
+    //   strict left fold by iterating the view; the accumulator is threaded
+    // by move so collecting folds stay O(n). D_CONSTEXPR -- a view is not a
+    // literal type before C++20.
+    template<typename Accumulator,
+             typename Function>
+    static D_CONSTEXPR_CPP14
+    Accumulator fold_left(
+        const View& _view,
+        Accumulator _init,
+        Function    _function
+    )
+    {
+        for (auto _it = _view.begin(); _it != _view.end(); ++_it)
+        {
+            _init = _function(std::move(_init), *_it);
+        }
+
+        return _init;
+    }
+};
+
+
+NS_END  // djinterp
+
+#endif  // floor, for now
+
+
+#endif  // DJINTERP_FUNCTIONAL_VIEW_HPP

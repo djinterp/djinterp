@@ -46,22 +46,22 @@
 
 /*
 d_cf_result_error
-  Internal: constructs an error d_contiguous_filter_result.
+  Internal: constructs an error dj_contiguous_filter_result.
 
 Parameter(s):
   _status:       error status code (must be < 0).
   _element_size: element size to record in the result.
 Return:
-  d_contiguous_filter_result with NULL data, count 0, and the given status.
+  dj_contiguous_filter_result with NULL data, count 0, and the given status.
 */
-static struct d_contiguous_filter_result
+static struct dj_contiguous_filter_result
 d_cf_result_error
 (
-    enum d_filter_result_type _status,
+    enum dj_filter_result_type _status,
     size_t                    _element_size
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
 
     res.data           = NULL;
     res.count          = 0;
@@ -75,20 +75,19 @@ d_cf_result_error
 
 /*
 d_cf_result_empty
-  Internal: constructs an empty (non-error) d_contiguous_filter_result.
+  Internal: constructs an empty (non-error) dj_contiguous_filter_result.
 
 Parameter(s):
   _element_size: element size to record in the result.
 Return:
-  d_contiguous_filter_result with NULL data, count 0, and EMPTY status.
+  dj_contiguous_filter_result with NULL data, count 0, and EMPTY status.
 */
-static struct d_contiguous_filter_result
-d_cf_result_empty
-(
+static
+struct dj_contiguous_filter_result d_cf_result_empty(
     size_t _element_size
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
 
     res.data           = NULL;
     res.count          = 0;
@@ -111,18 +110,17 @@ Parameter(s):
   _start:        index of first element to copy.
   _out_count:    number of elements to copy.
 Return:
-  d_contiguous_filter_result owning the new buffer, or a NO_MEMORY error.
+  dj_contiguous_filter_result owning the new buffer, or a NO_MEMORY error.
 */
-static struct d_contiguous_filter_result
-d_cf_copy_range
-(
+static
+struct dj_contiguous_filter_result d_cf_copy_range(
     const void* _elements,
     size_t      _element_size,
     size_t      _start,
     size_t      _out_count
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
 
     res.source_indices = NULL;
     res.element_size   = _element_size;
@@ -175,11 +173,9 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to take.
 Return:
-  d_contiguous_filter_result owning a copy of the first min(_n, _count) elements.
+  dj_contiguous_filter_result owning a copy of the first min(_n, _count) elements.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_take_first
-(
+struct dj_contiguous_filter_result d_contiguous_filter_take_first(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -216,11 +212,9 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to take from the end.
 Return:
-  d_contiguous_filter_result owning a copy of the last min(_n, _count) elements.
+  dj_contiguous_filter_result owning a copy of the last min(_n, _count) elements.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_take_last
-(
+struct dj_contiguous_filter_result d_contiguous_filter_take_last(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -259,18 +253,16 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            step interval (must be > 0).
 Return:
-  d_contiguous_filter_result owning a copy of every _n-th element.
+  dj_contiguous_filter_result owning a copy of every _n-th element.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_take_nth
-(
+struct dj_contiguous_filter_result d_contiguous_filter_take_nth(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
     size_t      _n
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
     size_t                       out_count;
     size_t                       src;
     size_t                       dst;
@@ -331,12 +323,10 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_contiguous_filter_result owning a copy of the first element, or empty if
+  dj_contiguous_filter_result owning a copy of the first element, or empty if
   the source is empty.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_head
-(
+struct dj_contiguous_filter_result d_contiguous_filter_head(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
@@ -355,12 +345,10 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_contiguous_filter_result owning a copy of the last element, or empty if
+  dj_contiguous_filter_result owning a copy of the last element, or empty if
   the source is empty.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_tail
-(
+struct dj_contiguous_filter_result d_contiguous_filter_tail(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
@@ -384,11 +372,9 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to skip from the front.
 Return:
-  d_contiguous_filter_result owning a copy of elements [_n .. _count).
+  dj_contiguous_filter_result owning a copy of elements [_n .. _count).
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_skip_first
-(
+struct dj_contiguous_filter_result d_contiguous_filter_skip_first(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -421,11 +407,9 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to skip from the end.
 Return:
-  d_contiguous_filter_result owning a copy of elements [0 .. _count - _n).
+  dj_contiguous_filter_result owning a copy of elements [0 .. _count - _n).
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_skip_last
-(
+struct dj_contiguous_filter_result d_contiguous_filter_skip_last(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -457,11 +441,9 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_contiguous_filter_result owning elements [0 .. _count - 1).
+  dj_contiguous_filter_result owning elements [0 .. _count - 1).
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_init
-(
+struct dj_contiguous_filter_result d_contiguous_filter_init(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
@@ -480,11 +462,9 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_contiguous_filter_result owning elements [1 .. _count).
+  dj_contiguous_filter_result owning elements [1 .. _count).
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_rest
-(
+struct dj_contiguous_filter_result d_contiguous_filter_rest(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
@@ -510,11 +490,9 @@ Parameter(s):
   _start:        start index (inclusive).
   _end:          end index (exclusive).
 Return:
-  d_contiguous_filter_result owning a copy of the selected range.
+  dj_contiguous_filter_result owning a copy of the selected range.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_range
-(
+struct dj_contiguous_filter_result d_contiguous_filter_range(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -562,11 +540,9 @@ Parameter(s):
   _end:          end index (exclusive).
   _step:         step interval (must be > 0).
 Return:
-  d_contiguous_filter_result owning a copy of the selected elements.
+  dj_contiguous_filter_result owning a copy of the selected elements.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_slice
-(
+struct dj_contiguous_filter_result d_contiguous_filter_slice(
     const void* _elements,
     size_t      _count,
     size_t      _element_size,
@@ -575,7 +551,7 @@ d_contiguous_filter_slice
     size_t      _step
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
     size_t                       clamped_end;
     size_t                       range_len;
     size_t                       out_count;
@@ -659,11 +635,9 @@ Parameter(s):
   _test:         predicate function.
   _context:      opaque context passed to the predicate.
 Return:
-  d_contiguous_filter_result owning a copy of all matching elements.
+  dj_contiguous_filter_result owning a copy of all matching elements.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_where
-(
+struct dj_contiguous_filter_result d_contiguous_filter_where(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -671,7 +645,7 @@ d_contiguous_filter_where
     void*        _context
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
     size_t                       match_count;
     size_t                       i;
     size_t                       dst;
@@ -751,11 +725,9 @@ Parameter(s):
   _test:         predicate function; elements that FAIL are kept.
   _context:      opaque context passed to the predicate.
 Return:
-  d_contiguous_filter_result owning a copy of all non-matching elements.
+  dj_contiguous_filter_result owning a copy of all non-matching elements.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_where_not
-(
+struct dj_contiguous_filter_result d_contiguous_filter_where_not(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -763,7 +735,7 @@ d_contiguous_filter_where_not
     void*        _context
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
     size_t                       match_count;
     size_t                       i;
     size_t                       dst;
@@ -849,11 +821,9 @@ Parameter(s):
   _indices:      array of indices to select.
   _index_count:  number of indices.
 Return:
-  d_contiguous_filter_result owning copies of the selected elements.
+  dj_contiguous_filter_result owning copies of the selected elements.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_at_indices
-(
+struct dj_contiguous_filter_result d_contiguous_filter_at_indices(
     const void*   _elements,
     size_t        _count,
     size_t        _element_size,
@@ -861,7 +831,7 @@ d_contiguous_filter_at_indices
     size_t        _index_count
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
     size_t                       valid_count;
     size_t                       i;
     size_t                       dst;
@@ -947,18 +917,16 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _comparator:   three-way comparator for element equality (0 == equal).
 Return:
-  d_contiguous_filter_result owning a deduplicated copy.
+  dj_contiguous_filter_result owning a deduplicated copy.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_distinct
-(
+struct dj_contiguous_filter_result d_contiguous_filter_distinct(
     const void*            _elements,
     size_t                 _count,
     size_t                 _element_size,
     fn_function_comparator _comparator
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
     size_t                       unique_count;
     size_t                       i;
     size_t                       j;
@@ -1040,17 +1008,15 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_contiguous_filter_result owning a reversed copy.
+  dj_contiguous_filter_result owning a reversed copy.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_reverse
-(
+struct dj_contiguous_filter_result d_contiguous_filter_reverse(
     const void* _elements,
     size_t      _count,
     size_t      _element_size
 )
 {
-    struct d_contiguous_filter_result res = {0};
+    struct dj_contiguous_filter_result res = {0};
     size_t                       i;
 
     if (!_elements)
@@ -1106,9 +1072,7 @@ Parameter(s):
 Return:
   New count of surviving elements.
 */
-size_t
-d_contiguous_filter_in_place
-(
+size_t d_contiguous_filter_in_place(
     void*        _elements,
     size_t       _count,
     size_t       _element_size,
@@ -1160,9 +1124,7 @@ Parameter(s):
 Return:
   New count of surviving elements.
 */
-size_t
-d_contiguous_filter_in_place_not
-(
+size_t d_contiguous_filter_in_place_not(
     void*        _elements,
     size_t       _count,
     size_t       _element_size,
@@ -1215,9 +1177,7 @@ Parameter(s):
 Return:
   min(_n, _count).
 */
-size_t
-d_contiguous_filter_in_place_take_first
-(
+size_t d_contiguous_filter_in_place_take_first(
     void*  _elements,
     size_t _count,
     size_t _element_size,
@@ -1247,9 +1207,7 @@ Parameter(s):
 Return:
   New count after shifting (_count - _n, or 0 if _n >= _count).
 */
-size_t
-d_contiguous_filter_in_place_skip_first
-(
+size_t d_contiguous_filter_in_place_skip_first(
     void*  _elements,
     size_t _count,
     size_t _element_size,
@@ -1295,9 +1253,7 @@ Parameter(s):
 Return:
   New count of unique elements.
 */
-size_t
-d_contiguous_filter_in_place_distinct
-(
+size_t d_contiguous_filter_in_place_distinct(
     void*                  _elements,
     size_t                 _count,
     size_t                 _element_size,
@@ -1361,8 +1317,8 @@ d_contiguous_filter_in_place_distinct
 
 /*
 d_cf_apply_single_op
-  Internal: applies a single d_filter_operation to contiguous data, producing
-  a new d_contiguous_filter_result.  Used as the inner step of chain execution.
+  Internal: applies a single dj_filter_operation to contiguous data, producing
+  a new dj_contiguous_filter_result.  Used as the inner step of chain execution.
 
 Parameter(s):
   _elements:     source array.
@@ -1370,15 +1326,14 @@ Parameter(s):
   _element_size: element size in bytes.
   _op:           filter operation to apply.
 Return:
-  d_contiguous_filter_result for the single operation.
+  dj_contiguous_filter_result for the single operation.
 */
-static struct d_contiguous_filter_result
-d_cf_apply_single_op
-(
-    const void*                      _elements,
-    size_t                           _count,
-    size_t                           _element_size,
-    const struct d_filter_operation* _op
+static
+struct dj_contiguous_filter_result d_cf_apply_single_op(
+    const void*                       _elements,
+    size_t                            _count,
+    size_t                            _element_size,
+    const struct dj_filter_operation* _op
 )
 {
     if (!_op)
@@ -1489,19 +1444,17 @@ Parameter(s):
   _element_size: element size in bytes.
   _chain:        chain of operations to apply.
 Return:
-  d_contiguous_filter_result for the final output.
+  dj_contiguous_filter_result for the final output.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_apply_chain
-(
-    const void*                  _elements,
-    size_t                       _count,
-    size_t                       _element_size,
-    const struct d_filter_chain* _chain
+struct dj_contiguous_filter_result d_contiguous_filter_apply_chain(
+    const void*                   _elements,
+    size_t                        _count,
+    size_t                        _element_size,
+    const struct dj_filter_chain* _chain
 )
 {
-    struct d_contiguous_filter_result current = {0};
-    struct d_contiguous_filter_result next = {0};
+    struct dj_contiguous_filter_result current = {0};
+    struct dj_contiguous_filter_result next = {0};
     const void*                  input_data;
     size_t                       input_count;
     size_t                       i;
@@ -1577,20 +1530,18 @@ Parameter(s):
   _combo:        union combinator containing multiple chains.
   _comparator:   comparator for deduplication.
 Return:
-  d_contiguous_filter_result owning the union of all chain outputs.
+  dj_contiguous_filter_result owning the union of all chain outputs.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_apply_union
-(
-    const void*                  _elements,
-    size_t                       _count,
-    size_t                       _element_size,
-    const struct d_filter_union* _combo,
-    fn_function_comparator       _comparator
+struct dj_contiguous_filter_result d_contiguous_filter_apply_union(
+    const void*                   _elements,
+    size_t                        _count,
+    size_t                        _element_size,
+    const struct dj_filter_union* _combo,
+    fn_function_comparator        _comparator
 )
 {
-    struct d_contiguous_filter_result* chain_results = NULL;
-    struct d_contiguous_filter_result  merged = {0};
+    struct dj_contiguous_filter_result* chain_results = NULL;
+    struct dj_contiguous_filter_result  merged = {0};
     size_t                        total;
     size_t                        pos;
     size_t                        i;
@@ -1608,9 +1559,9 @@ d_contiguous_filter_apply_union
     }
 
     // apply each chain independently
-    chain_results = (struct d_contiguous_filter_result*)
+    chain_results = (struct dj_contiguous_filter_result*)
                     calloc(_combo->count,
-                             sizeof(struct d_contiguous_filter_result));
+                             sizeof(struct dj_contiguous_filter_result));
 
     if (!chain_results)
     {
@@ -1695,20 +1646,18 @@ Parameter(s):
   _combo:        intersection combinator.
   _comparator:   comparator for element equality.
 Return:
-  d_contiguous_filter_result owning the intersection.
+  dj_contiguous_filter_result owning the intersection.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_apply_intersection
-(
-    const void*                         _elements,
-    size_t                              _count,
-    size_t                              _element_size,
-    const struct d_filter_intersection* _combo,
-    fn_function_comparator              _comparator
+struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
+    const void*                          _elements,
+    size_t                               _count,
+    size_t                               _element_size,
+    const struct dj_filter_intersection* _combo,
+    fn_function_comparator               _comparator
 )
 {
-    struct d_contiguous_filter_result* chain_results = NULL;
-    struct d_contiguous_filter_result  result = {0};
+    struct dj_contiguous_filter_result* chain_results = NULL;
+    struct dj_contiguous_filter_result  result = {0};
     size_t                        i;
     size_t                        j;
     size_t                        k;
@@ -1729,9 +1678,9 @@ d_contiguous_filter_apply_intersection
     }
 
     // apply each chain
-    chain_results = (struct d_contiguous_filter_result*)
+    chain_results = (struct dj_contiguous_filter_result*)
                     calloc(_combo->count,
-                             sizeof(struct d_contiguous_filter_result));
+                             sizeof(struct dj_contiguous_filter_result));
 
     if (!chain_results)
     {
@@ -1836,21 +1785,19 @@ Parameter(s):
   _diff:         difference combinator (contains include and exclude chains).
   _comparator:   comparator for element equality.
 Return:
-  d_contiguous_filter_result owning A minus B.
+  dj_contiguous_filter_result owning A minus B.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_apply_difference
-(
-    const void*                       _elements,
-    size_t                            _count,
-    size_t                            _element_size,
-    const struct d_filter_difference* _diff,
-    fn_function_comparator            _comparator
+struct dj_contiguous_filter_result d_contiguous_filter_apply_difference(
+    const void*                        _elements,
+    size_t                             _count,
+    size_t                             _element_size,
+    const struct dj_filter_difference* _diff,
+    fn_function_comparator             _comparator
 )
 {
-    struct d_contiguous_filter_result result_a = {0};
-    struct d_contiguous_filter_result result_b = {0};
-    struct d_contiguous_filter_result result = {0};
+    struct dj_contiguous_filter_result result_a = {0};
+    struct dj_contiguous_filter_result result_b = {0};
+    struct dj_contiguous_filter_result result = {0};
     size_t                       out_count;
     size_t                       i;
     size_t                       j;
@@ -1956,9 +1903,7 @@ Parameter(s):
 Return:
   Number of elements for which _test returns true.
 */
-size_t
-d_contiguous_filter_count_where
-(
+size_t d_contiguous_filter_count_where(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -2003,9 +1948,7 @@ Parameter(s):
 Return:
   true if any element matches, false otherwise.
 */
-bool
-d_contiguous_filter_any_match
-(
+bool d_contiguous_filter_any_match(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -2048,9 +1991,7 @@ Parameter(s):
 Return:
   true if all elements match, false otherwise.
 */
-bool
-d_contiguous_filter_all_match
-(
+bool d_contiguous_filter_all_match(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -2098,9 +2039,7 @@ Parameter(s):
 Return:
   true if no elements match, false otherwise.
 */
-bool
-d_contiguous_filter_none_match
-(
+bool d_contiguous_filter_none_match(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -2127,9 +2066,7 @@ Parameter(s):
 Return:
   Pointer into _elements, or NULL if no match.
 */
-void*
-d_contiguous_filter_find_first
-(
+void* d_contiguous_filter_find_first(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -2174,9 +2111,7 @@ Parameter(s):
 Return:
   Pointer into _elements, or NULL if no match.
 */
-void*
-d_contiguous_filter_find_last
-(
+void* d_contiguous_filter_find_last(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -2223,10 +2158,8 @@ Parameter(s):
 Return:
   The internal data pointer, or NULL if _result is NULL or has no data.
 */
-void*
-d_contiguous_filter_result_data
-(
-    const struct d_contiguous_filter_result* _result
+void* d_contiguous_filter_result_data(
+    const struct dj_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2247,10 +2180,8 @@ Parameter(s):
 Return:
   Number of elements, or 0 if _result is NULL.
 */
-size_t
-d_contiguous_filter_result_count
-(
-    const struct d_contiguous_filter_result* _result
+size_t d_contiguous_filter_result_count(
+    const struct dj_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2271,10 +2202,8 @@ Parameter(s):
 Return:
   true if OK, false on error or NULL.
 */
-bool
-d_contiguous_filter_result_ok
-(
-    const struct d_contiguous_filter_result* _result
+bool d_contiguous_filter_result_ok(
+    const struct dj_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2297,11 +2226,9 @@ Parameter(s):
 Return:
   The data pointer (caller must free), or NULL.
 */
-void*
-d_contiguous_filter_result_release
-(
-    struct d_contiguous_filter_result* _result,
-    size_t*                            _out_count
+void* d_contiguous_filter_result_release(
+    struct dj_contiguous_filter_result* _result,
+    size_t*                             _out_count
 )
 {
     void* data;
@@ -2341,10 +2268,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_contiguous_filter_result_free
-(
-    struct d_contiguous_filter_result* _result
+void d_contiguous_filter_result_free(
+    struct dj_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2386,19 +2311,17 @@ Parameter(s):
   _count:        number of elements.
   _element_size: element size in bytes.
 Return:
-  d_contiguous_filter_result for the composed operation.
+  dj_contiguous_filter_result for the composed operation.
 */
-struct d_contiguous_filter_result
-d_contiguous_filter_apply_builder
-(
-    struct d_filter_builder* _builder,
-    const void*              _elements,
-    size_t                   _count,
-    size_t                   _element_size
+struct dj_contiguous_filter_result d_contiguous_filter_apply_builder(
+    struct dj_filter_builder* _builder,
+    const void*               _elements,
+    size_t                    _count,
+    size_t                    _element_size
 )
 {
-    struct d_filter_chain*       chain;
-    struct d_contiguous_filter_result result = {0};
+    struct dj_filter_chain*       chain;
+    struct dj_contiguous_filter_result result = {0};
 
     if (!_builder)
     {

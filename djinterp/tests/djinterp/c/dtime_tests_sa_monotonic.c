@@ -31,13 +31,9 @@ d_tests_sa_dtime_monotonic_time_ms
   - tracks elapsed time accurately
   - handles system load gracefully
 */
-struct d_test_object*
-d_tests_sa_dtime_monotonic_time_ms
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_ms(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int64_t               t1;
     int64_t               t2;
     int64_t               t3;
@@ -188,13 +184,9 @@ d_tests_sa_dtime_monotonic_time_us
   - relationship with d_monotonic_time_ms is correct
   - handles rapid successive calls
 */
-struct d_test_object*
-d_tests_sa_dtime_monotonic_time_us
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_us(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int64_t               t1;
     int64_t               t2;
     int64_t               t3;
@@ -389,13 +381,9 @@ d_tests_sa_dtime_monotonic_time_ns
   - relationship with d_monotonic_time_us is correct
   - handles potential overflow gracefully
 */
-struct d_test_object*
-d_tests_sa_dtime_monotonic_time_ns
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_ns(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int64_t               t1;
     int64_t               t2;
     int64_t               t3;
@@ -579,13 +567,9 @@ d_tests_sa_dtime_monotonic_time_all
   - d_monotonic_time_us
   - d_monotonic_time_ns
 */
-struct d_test_object*
-d_tests_sa_dtime_monotonic_time_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_monotonic_time_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("IX. Monotonic Time Utilities", 3);

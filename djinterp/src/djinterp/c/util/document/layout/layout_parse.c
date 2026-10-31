@@ -28,12 +28,15 @@
    parameter, with the error filled in on the way out.  That is the same
    control flow with the carrier unrolled, not a different design.
 */
-static int32_t parse_block_helper(struct d_layout_parse_state*   _state,
-                                  const struct d_layout_grammar* _grammar,
-                                  struct d_layout_arena*         _tree_arena,
-                                  struct d_layout_parse_arena*   _parse_arena,
-                                  struct d_cofree**              _out_node,
-                                  struct d_layout_parse_error*   _error);
+static
+int32_t parse_block_helper(
+    struct dj_layout_parse_state*   _state,
+    const struct dj_layout_grammar* _grammar,
+    struct dj_layout_arena*         _tree_arena,
+    struct dj_layout_parse_arena*   _parse_arena,
+    struct dj_cofree**              _out_node,
+    struct dj_layout_parse_error*   _error
+);
 
 
 /*
@@ -52,15 +55,14 @@ Parameter(s):
 Return:
   always 0, so callers may `return fail_helper(...)`.
 */
-static int32_t
-fail_helper
-(
-    struct d_layout_parse_error* _error,
-    int32_t                      _status,
-    size_t                       _offset,
-    const char*                  _message,
-    const char*                  _token,
-    size_t                       _token_length
+static
+int32_t fail_helper(
+    struct dj_layout_parse_error* _error,
+    int32_t                       _status,
+    size_t                        _offset,
+    const char*                   _message,
+    const char*                   _token,
+    size_t                        _token_length
 )
 {
     if (_error)
@@ -92,9 +94,8 @@ Parameter(s):
 Return:
   1 when they are the same word, 0 otherwise.
 */
-static int32_t
-keyword_equals_helper
-(
+static
+int32_t keyword_equals_helper(
     const char* _span,
     size_t      _span_length,
     const char* _keyword
@@ -134,12 +135,11 @@ Parameter(s):
 Return:
   the NUL-terminated copy, or NULL when the region is full.
 */
-static const char*
-arena_copy_helper
-(
-    struct d_layout_parse_arena* _arena,
-    const char*                  _begin,
-    size_t                       _length
+static
+const char* arena_copy_helper(
+    struct dj_layout_parse_arena* _arena,
+    const char*                   _begin,
+    size_t                        _length
 )
 {
     char*  _out  = 0;
@@ -191,12 +191,10 @@ Return:
   nothing.  A NULL _state is ignored rather than trapped, matching
   d_layout_arena_rewind.
 */
-void
-d_layout_parse_state_init
-(
-    struct d_layout_parse_state* _state,
-    const char*                  _data,
-    size_t                       _length
+void d_layout_parse_state_init(
+    struct dj_layout_parse_state* _state,
+    const char*                   _data,
+    size_t                        _length
 )
 {
     if (!_state)
@@ -220,10 +218,8 @@ Parameter(s):
 Return:
   the count, saturating at 0 rather than wrapping when offset has passed length.
 */
-size_t
-d_layout_parse_remaining
-(
-    const struct d_layout_parse_state* _state
+size_t d_layout_parse_remaining(
+    const struct dj_layout_parse_state* _state
 )
 {
     if (!_state)
@@ -246,10 +242,8 @@ Return:
   1 at end (and for a NULL cursor, which has nothing left by definition),
   0 otherwise.
 */
-int32_t
-d_layout_parse_at_end
-(
-    const struct d_layout_parse_state* _state
+int32_t d_layout_parse_at_end(
+    const struct dj_layout_parse_state* _state
 )
 {
     if (!_state)
@@ -270,10 +264,8 @@ Return:
   the pointer, or NULL at end -- the C++ side's contract, kept so that a caller
   porting between the two does not discover a different sentinel.
 */
-const char*
-d_layout_parse_current
-(
-    const struct d_layout_parse_state* _state
+const char* d_layout_parse_current(
+    const struct dj_layout_parse_state* _state
 )
 {
     if (d_layout_parse_at_end(_state))
@@ -299,11 +291,9 @@ Parameter(s):
 Return:
   nothing.
 */
-void
-d_layout_parse_advance
-(
-    struct d_layout_parse_state* _state,
-    size_t                       _count
+void d_layout_parse_advance(
+    struct dj_layout_parse_state* _state,
+    size_t                        _count
 )
 {
     if (!_state)
@@ -335,9 +325,7 @@ Parameter(s):
 Return:
   a static literal; "unknown" for anything out of range, never NULL.
 */
-const char*
-d_layout_parse_status_name
-(
+const char* d_layout_parse_status_name(
     int32_t _status
 )
 {
@@ -375,12 +363,10 @@ Parameter(s):
 Return:
   the row, or NULL when the keyword is not a block construct.
 */
-const struct d_layout_block_word*
-d_layout_grammar_block_for
-(
-    const struct d_layout_grammar* _grammar,
-    const char*                    _keyword,
-    size_t                         _keyword_length
+const struct dj_layout_block_word* d_layout_grammar_block_for(
+    const struct dj_layout_grammar* _grammar,
+    const char*                     _keyword,
+    size_t                          _keyword_length
 )
 {
     size_t _i = 0;
@@ -414,12 +400,10 @@ Parameter(s):
 Return:
   the row, or NULL when the keyword is not a leaf construct.
 */
-const struct d_layout_leaf_word*
-d_layout_grammar_leaf_for
-(
-    const struct d_layout_grammar* _grammar,
-    const char*                    _keyword,
-    size_t                         _keyword_length
+const struct dj_layout_leaf_word* d_layout_grammar_leaf_for(
+    const struct dj_layout_grammar* _grammar,
+    const char*                     _keyword,
+    size_t                          _keyword_length
 )
 {
     size_t _i = 0;
@@ -465,14 +449,12 @@ Parameter(s):
 Return:
   1 when the arena is usable, 0 otherwise.
 */
-int32_t
-d_layout_parse_arena_init
-(
-    struct d_layout_parse_arena* _arena,
-    struct d_doc_attr*           _attrs,
-    size_t                       _attr_capacity,
-    char*                        _text,
-    size_t                       _text_capacity
+int32_t d_layout_parse_arena_init(
+    struct dj_layout_parse_arena* _arena,
+    struct dj_doc_attr*           _attrs,
+    size_t                        _attr_capacity,
+    char*                         _text,
+    size_t                        _text_capacity
 )
 {
     if (!_arena)
@@ -511,10 +493,8 @@ Parameter(s):
 Return:
   nothing.
 */
-void
-d_layout_parse_arena_rewind
-(
-    struct d_layout_parse_arena* _arena
+void d_layout_parse_arena_rewind(
+    struct dj_layout_parse_arena* _arena
 )
 {
     if (!_arena)
@@ -548,9 +528,7 @@ Parameter(s):
 Return:
   1 when in the class, 0 otherwise.
 */
-int32_t
-d_layout_parse_is_space
-(
+int32_t d_layout_parse_is_space(
     char _c
 )
 {
@@ -558,9 +536,7 @@ d_layout_parse_is_space
              (_c == '\n') || (_c == '\r') ) ? 1 : 0;
 }
 
-int32_t
-d_layout_parse_is_ident
-(
+int32_t d_layout_parse_is_ident(
     char _c
 )
 {
@@ -578,10 +554,8 @@ Parameter(s):
 Return:
   nothing.
 */
-void
-d_layout_parse_skip_spaces
-(
-    struct d_layout_parse_state* _state
+void d_layout_parse_skip_spaces(
+    struct dj_layout_parse_state* _state
 )
 {
     while (!d_layout_parse_at_end(_state))
@@ -613,11 +587,9 @@ Parameter(s):
 Return:
   the run's length; 0 when no identifier is present.
 */
-size_t
-d_layout_parse_scan_identifier
-(
-    struct d_layout_parse_state* _state,
-    const char**                 _out_begin
+size_t d_layout_parse_scan_identifier(
+    struct dj_layout_parse_state* _state,
+    const char**                  _out_begin
 )
 {
     size_t _start = 0;
@@ -668,12 +640,10 @@ Return:
   opened and NOTHING WAS CONSUMED, which is how the caller distinguishes an
   absent optional argument from a malformed one.
 */
-const char*
-d_layout_parse_scan_string
-(
-    struct d_layout_parse_state* _state,
-    struct d_layout_parse_arena* _arena,
-    int32_t*                     _out_status
+const char* d_layout_parse_scan_string(
+    struct dj_layout_parse_state* _state,
+    struct dj_layout_parse_arena* _arena,
+    int32_t*                      _out_status
 )
 {
     size_t      _start = 0;
@@ -748,9 +718,8 @@ Return:
   side's shape: its two ifs and a trailing return, not a switch with a default
   that traps.
 */
-static struct d_layout_atom
-make_leaf_atom_helper
-(
+static
+struct dj_layout_atom make_leaf_atom_helper(
     int32_t     _kind,
     const char* _arg
 )
@@ -797,20 +766,19 @@ Return:
   1 on success, 0 on a key with '=' but no valid quoted value, or on either
   arena region running out.
 */
-static int32_t
-scan_attributes_helper
-(
-    struct d_layout_parse_state*   _state,
-    const struct d_layout_grammar* _grammar,
-    struct d_layout_parse_arena*   _arena,
-    struct d_doc_attributes*       _out_bag,
-    size_t*                        _out_first,
-    struct d_layout_parse_error*   _error
+static
+int32_t scan_attributes_helper(
+    struct dj_layout_parse_state*   _state,
+    const struct dj_layout_grammar* _grammar,
+    struct dj_layout_parse_arena*   _arena,
+    struct dj_doc_attributes*       _out_bag,
+    size_t*                         _out_first,
+    struct dj_layout_parse_error*   _error
 )
 {
     size_t             _first = 0;
     size_t             _count = 0;
-    struct d_doc_attr* _run   = 0;
+    struct dj_doc_attr* _run   = 0;
 
     (void)_grammar;
 
@@ -946,18 +914,17 @@ Parameter(s):
 Return:
   1 on success, 0 otherwise.
 */
-static int32_t
-parse_block_sequence_helper
-(
-    struct d_layout_parse_state*   _state,
-    const struct d_layout_grammar* _grammar,
-    struct d_layout_arena*         _tree_arena,
-    struct d_layout_parse_arena*   _parse_arena,
-    int32_t                        _braced,
-    struct d_cofree*               _children,
-    size_t                         _child_capacity,
-    size_t*                        _out_count,
-    struct d_layout_parse_error*   _error
+static
+int32_t parse_block_sequence_helper(
+    struct dj_layout_parse_state*   _state,
+    const struct dj_layout_grammar* _grammar,
+    struct dj_layout_arena*         _tree_arena,
+    struct dj_layout_parse_arena*   _parse_arena,
+    int32_t                         _braced,
+    struct dj_cofree*               _children,
+    size_t                          _child_capacity,
+    size_t*                         _out_count,
+    struct dj_layout_parse_error*   _error
 )
 {
     size_t _count = 0;
@@ -983,7 +950,7 @@ parse_block_sequence_helper
 
     for (;;)
     {
-        struct d_cofree* _block = 0;
+        struct dj_cofree* _block = 0;
 
         d_layout_parse_skip_spaces(_state);
 
@@ -1060,15 +1027,14 @@ Parameter(s):
 Return:
   1 on success, 0 otherwise.
 */
-static int32_t
-parse_block_helper
-(
-    struct d_layout_parse_state*   _state,
-    const struct d_layout_grammar* _grammar,
-    struct d_layout_arena*         _tree_arena,
-    struct d_layout_parse_arena*   _parse_arena,
-    struct d_cofree**              _out_node,
-    struct d_layout_parse_error*   _error
+static
+int32_t parse_block_helper(
+    struct dj_layout_parse_state*   _state,
+    const struct dj_layout_grammar* _grammar,
+    struct dj_layout_arena*         _tree_arena,
+    struct dj_layout_parse_arena*   _parse_arena,
+    struct dj_cofree**              _out_node,
+    struct dj_layout_parse_error*   _error
 )
 {
     size_t                            _start       = 0;
@@ -1076,9 +1042,9 @@ parse_block_helper
     size_t                            _key_length  = 0;
     const char*                       _arg         = 0;
     int32_t                           _arg_status  = D_LAYOUT_PARSE_SUCCESS;
-    struct d_doc_attributes           _bag;
-    const struct d_layout_leaf_word*  _leaf        = 0;
-    const struct d_layout_block_word* _block       = 0;
+    struct dj_doc_attributes           _bag;
+    const struct dj_layout_leaf_word*  _leaf        = 0;
+    const struct dj_layout_block_word* _block       = 0;
     const char*                       _arg_key     = 0;
     size_t                            _attr_first  = 0;
 
@@ -1088,7 +1054,7 @@ parse_block_helper
     //   The bound is stated here rather than taken as a parameter because it
     // must be a constant expression; a caller needing more nests a document
     // construct, which is what the root op is for.
-    struct d_cofree                   _children[D_LAYOUT_PARSE_MAX_SIBLINGS];
+    struct dj_cofree                   _children[D_LAYOUT_PARSE_MAX_SIBLINGS];
     size_t                            _child_count = 0;
 
     if ( (!_state) || (!_grammar) || (!_out_node) )
@@ -1192,7 +1158,7 @@ parse_block_helper
         ++_parse_arena->attr_used;
 
         {
-            struct d_doc_attr* _run = _parse_arena->attrs + _attr_first;
+            struct dj_doc_attr* _run = _parse_arena->attrs + _attr_first;
 
             _bag = d_doc_attributes_canonicalise(_run, _bag.count + 1u);
 
@@ -1252,20 +1218,18 @@ Parameter(s):
 Return:
   1 on success, 0 otherwise.
 */
-int32_t
-d_layout_parse_document
-(
-    struct d_layout_parse_state*   _state,
-    const struct d_layout_grammar* _grammar,
-    struct d_layout_arena*         _tree_arena,
-    struct d_layout_parse_arena*   _parse_arena,
-    struct d_cofree**              _out_tree,
-    struct d_layout_parse_error*   _error
+int32_t d_layout_parse_document(
+    struct dj_layout_parse_state*   _state,
+    const struct dj_layout_grammar* _grammar,
+    struct dj_layout_arena*         _tree_arena,
+    struct dj_layout_parse_arena*   _parse_arena,
+    struct dj_cofree**              _out_tree,
+    struct dj_layout_parse_error*   _error
 )
 {
-    struct d_cofree         _children[D_LAYOUT_PARSE_MAX_SIBLINGS];
+    struct dj_cofree         _children[D_LAYOUT_PARSE_MAX_SIBLINGS];
     size_t                  _child_count = 0;
-    struct d_doc_attributes _empty       = D_DOC_ATTRIBUTES_EMPTY;
+    struct dj_doc_attributes _empty       = D_DOC_ATTRIBUTES_EMPTY;
 
     if ( (!_state) || (!_grammar) || (!_tree_arena) ||
          (!_parse_arena) || (!_out_tree) )
@@ -1332,18 +1296,16 @@ Return:
   1 on success, 0 otherwise.  A NULL source is a failure rather than an empty
   document, because the two are different mistakes and only one is deliberate.
 */
-int32_t
-d_layout_parse_source
-(
-    const char*                    _source,
-    const struct d_layout_grammar* _grammar,
-    struct d_layout_arena*         _tree_arena,
-    struct d_layout_parse_arena*   _parse_arena,
-    struct d_cofree**              _out_tree,
-    struct d_layout_parse_error*   _error
+int32_t d_layout_parse_source(
+    const char*                     _source,
+    const struct dj_layout_grammar* _grammar,
+    struct dj_layout_arena*         _tree_arena,
+    struct dj_layout_parse_arena*   _parse_arena,
+    struct dj_cofree**              _out_tree,
+    struct dj_layout_parse_error*   _error
 )
 {
-    struct d_layout_parse_state _state;
+    struct dj_layout_parse_state _state;
 
     if (!_source)
     {

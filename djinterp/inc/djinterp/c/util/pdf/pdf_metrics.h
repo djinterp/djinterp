@@ -54,7 +54,7 @@
 #include "../../djinterp.h"
 #include "./pdf_primitives.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
@@ -65,58 +65,74 @@ D_EXTERN_C_BEGIN
 // agree and a literal gives no way to say so.
 #define D_PDF_COURIER_ADVANCE  600
 
-// d_pdf_wrap_line
+// dj_pdf_wrap_line
 //   type: one produced line, as a BORROWED span into the input. Spans rather
 // than copies, because wrapping a paragraph would otherwise allocate one string
 // per line in a tier that promises no allocation. The spans point into the
 // caller's text and are invalidated by anything that moves it.
-struct d_pdf_wrap_line
+struct dj_pdf_wrap_line
 {
     const char* begin;
     size_t      length;
 };
 
 // I.   tables
-const short* d_pdf_width_table_for(int32_t _font);
+const short* d_pdf_width_table_for(
+    int32_t _font
+);
 
 // II.  glyph advance
-int32_t d_pdf_glyph_advance_em(int32_t _font,
-                               int32_t _code);
-double  d_pdf_glyph_width(int32_t _font,
-                          int32_t _code,
-                          double  _size);
+int32_t d_pdf_glyph_advance_em(
+    int32_t _font,
+    int32_t _code
+);
+double d_pdf_glyph_width(
+    int32_t _font,
+    int32_t _code,
+    double  _size
+);
 
 // III. string width
-double d_pdf_text_width(int32_t     _font,
-                        const char* _text,
-                        size_t      _length,
-                        double      _size);
-double d_pdf_text_width_z(int32_t     _font,
-                          const char* _text,
-                          double      _size);
+double d_pdf_text_width(
+    int32_t     _font,
+    const char* _text,
+    size_t      _length,
+    double      _size
+);
+double d_pdf_text_width_z(
+    int32_t     _font,
+    const char* _text,
+    double      _size
+);
 
 // IV.  fitting and truncation
-size_t d_pdf_fit_char_count(int32_t     _font,
-                            const char* _text,
-                            size_t      _length,
-                            double      _size,
-                            double      _max_width);
-size_t d_pdf_truncate_ellipsis(int32_t     _font,
-                               const char* _text,
-                               size_t      _length,
-                               double      _size,
-                               double      _max_width,
-                               char*       _out,
-                               size_t      _out_capacity);
+size_t d_pdf_fit_char_count(
+    int32_t     _font,
+    const char* _text,
+    size_t      _length,
+    double      _size,
+    double      _max_width
+);
+size_t d_pdf_truncate_ellipsis(
+    int32_t     _font,
+    const char* _text,
+    size_t      _length,
+    double      _size,
+    double      _max_width,
+    char*       _out,
+    size_t      _out_capacity
+);
 
 // V.   word wrapping
-size_t d_pdf_wrap_to_width(int32_t                 _font,
-                           const char*             _text,
-                           size_t                  _length,
-                           double                  _size,
-                           double                  _max_width,
-                           struct d_pdf_wrap_line* _out,
-                           size_t                  _out_capacity);
+size_t d_pdf_wrap_to_width(
+    int32_t                  _font,
+    const char*              _text,
+    size_t                   _length,
+    double                   _size,
+    double                   _max_width,
+    struct dj_pdf_wrap_line* _out,
+    size_t                   _out_capacity
+);
 
 D_EXTERN_C_END
 

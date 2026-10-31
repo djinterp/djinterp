@@ -25,13 +25,9 @@ d_tests_dfile_mkdir
   - returns error for existing directory
   - returns error for NULL path
 */
-struct d_test_object*
-d_tests_dfile_mkdir
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_mkdir(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_create;
@@ -90,13 +86,9 @@ d_tests_dfile_mkdir_p
   - succeeds for existing directory
   - returns error for NULL path
 */
-struct d_test_object*
-d_tests_dfile_mkdir_p
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_mkdir_p(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     char                  parent_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
@@ -161,13 +153,9 @@ d_tests_dfile_rmdir
   - returns error for nonexistent directory
   - returns error for NULL path
 */
-struct d_test_object*
-d_tests_dfile_rmdir
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_rmdir(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_remove;
@@ -226,15 +214,11 @@ d_tests_dfile_opendir_readdir_closedir
   - closes directory
   - returns NULL for nonexistent directory
 */
-struct d_test_object*
-d_tests_dfile_opendir_readdir_closedir
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_opendir_readdir_closedir(void)
 {
-    struct d_test_object* group;
-    struct d_dir_t*       dir;
-    struct d_dirent_t*    entry;
+    struct dj_test_object* group;
+    struct dj_dir_t*       dir;
+    struct dj_dirent_t*    entry;
     int                   close_result;
     bool                  test_open;
     bool                  test_read;
@@ -311,15 +295,11 @@ d_tests_dfile_rewinddir
   Tests the following:
   - rewinds and can re-read first entries
 */
-struct d_test_object*
-d_tests_dfile_rewinddir
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_rewinddir(void)
 {
-    struct d_test_object* group;
-    struct d_dir_t*       dir;
-    struct d_dirent_t*    entry;
+    struct dj_test_object* group;
+    struct dj_dir_t*       dir;
+    struct dj_dirent_t*    entry;
     char                  first_name[260];
     bool                  test_rewind;
     size_t                idx;
@@ -382,13 +362,9 @@ d_tests_dfile_directory_operations_all
   - d_dir_open/d_dir_read/d_dir_close
   - d_dir_rewind
 */
-struct d_test_object*
-d_tests_dfile_directory_operations_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_directory_operations_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("X. Directory Operations", 5);

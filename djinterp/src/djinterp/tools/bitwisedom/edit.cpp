@@ -48,8 +48,7 @@ judge
 put it; a symbol's macro name must be a C identifier and no other symbol's.
 The issues the copy finds with the row go with it.
 */
-void
-judge(
+void judge(
     trial& _trial
 )
 {
@@ -106,8 +105,7 @@ shown_places
   Where each row is shown, by its id, with the grid sorting by a key: the
 sheet copied, its sort set, and display_order's places read off.
 */
-std::map<int, std::size_t>
-shown_places(
+std::map<int, std::size_t> shown_places(
     const sheet& _sheet,
     sort_key     _key,
     bool         _descending
@@ -136,8 +134,7 @@ holds_rows
   Whether a parent can take a row: the sheet's own rows, a group or a range,
 or a symbol, beside which insert_row puts it.
 */
-bool
-holds_rows(
+bool holds_rows(
     const sheet& _sheet,
     int          _parent
 )
@@ -154,8 +151,7 @@ unique_name
   Every row's own name gathered once, then the first of _base, _base_2,
 _base_3 that none has.
 */
-std::string
-unique_name(
+std::string unique_name(
     const sheet&       _sheet,
     const std::string& _base
 )
@@ -183,8 +179,7 @@ unique_name(
 fresh_name
   The kind's base, made unique.
 */
-std::string
-fresh_name(
+std::string fresh_name(
     const sheet& _sheet,
     row_kind     _kind,
     def_kind     _def
@@ -204,8 +199,7 @@ fresh_name(
 range_choices
   The ranges, in the tree's order.
 */
-std::vector<int>
-range_choices(
+std::vector<int> range_choices(
     const sheet& _sheet
 )
 {
@@ -228,8 +222,7 @@ range_choices(
 container_choices
   The sheet's own rows, then each row that can contain others.
 */
-std::vector<int>
-container_choices(
+std::vector<int> container_choices(
     const sheet& _sheet
 )
 {
@@ -251,8 +244,7 @@ container_choices(
 place_bit
   next_free_bit, and where it finds none, the range's own lowest bit.
 */
-int
-place_bit(
+int place_bit(
     const sheet& _sheet,
     int          _parent
 )
@@ -278,8 +270,7 @@ place_bit(
 try_insert
   The copy, the row in it, the copy resolved and the row judged.
 */
-trial
-try_insert(
+trial try_insert(
     const sheet& _sheet,
     int          _parent,
     int          _index,
@@ -302,8 +293,7 @@ try_insert(
     return made;
 }
 
-trial
-try_insert(
+trial try_insert(
     const sheet&           _sheet,
     int                    _parent,
     int                    _index,
@@ -333,8 +323,7 @@ try_change
   The copy, the row's fields replaced in it -- its id and its rows kept --
 the copy resolved and the row judged.
 */
-trial
-try_change(
+trial try_change(
     const sheet& _sheet,
     int          _id,
     const row&   _row
@@ -400,8 +389,7 @@ duplicate_rows
 symbol's id just after it, and a group's at the end of it, as the window's
 Duplicate always has.
 */
-std::vector<int>
-duplicate_rows(
+std::vector<int> duplicate_rows(
     sheet&                  _sheet,
     const std::vector<int>& _ids
 )
@@ -436,8 +424,7 @@ duplicate_rows(
 remove_rows
   Each row, then the rules over them alone, then the special rows settled.
 */
-int
-remove_rows(
+int remove_rows(
     sheet&                  _sheet,
     const std::vector<int>& _ids
 )
@@ -462,8 +449,7 @@ remove_rows(
 move_by
   A swap with the sibling `_step` away, when there is one.
 */
-bool
-move_by(
+bool move_by(
     sheet& _sheet,
     int    _id,
     int    _step
@@ -510,8 +496,7 @@ sort_rows
 there by its id, and every group's rows -- the sheet's own among them --
 stably put in those places.
 */
-int
-sort_rows(
+int sort_rows(
     sheet&   _sheet,
     sort_key _key,
     bool     _descending

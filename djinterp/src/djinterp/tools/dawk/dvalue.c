@@ -31,13 +31,13 @@
 // 1.1    Scalars
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_awk_value
+// dj_awk_value
 //   struct: one cell.  `tag` decides comparison; `has_text` and `has_number`
 //   are cache validity flags and say nothing about the tag, so a NUMBER may
 //   carry a cached rendering and a STRING a cached numeric value.
-struct d_awk_value
+struct dj_awk_value
 {
-    enum d_awk_value_tag tag;
+    enum dj_awk_value_tag tag;
     double               number;
     char*                text;
     size_t               length;
@@ -45,34 +45,34 @@ struct d_awk_value
     bool                 has_number;
     bool                 has_text;
     void*                object;
-    d_awk_fn_extern_text resolve;
+    dj_awk_fn_extern_text resolve;
     void*                user;
-    struct d_awk_array*  array;
+    struct dj_awk_array*  array;
 };
 
 // 1.2    Arrays
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_internal_entry
+// dj_internal_entry
 //   struct: one array element.  A deleted entry keeps its slot with a NULL
 //   key, so an index handed out as an iteration cursor stays valid.
-struct d_internal_entry
+struct dj_internal_entry
 {
     char*               key;
     size_t              length;
     size_t              hash;
     size_t              next;
-    struct d_awk_value* value;
+    struct dj_awk_value* value;
 };
 
 // 1.2.2
-// d_awk_array
+// dj_awk_array
 //   struct: chained hash over an insertion-ordered entry vector.  Iteration
 //   walks the vector, so a cursor is an index and deletion during a walk is
 //   safe.
-struct d_awk_array
+struct dj_awk_array
 {
-    struct d_internal_entry* entries;
+    struct dj_internal_entry* entries;
     size_t                   entry_count;
     size_t                   entry_capacity;
     size_t*                  buckets;
@@ -110,8 +110,8 @@ Return:
   - true, if a number was consumed, or
   - false, otherwise.
 */
-static bool
-d_internal_scan(
+static
+bool d_internal_scan(
     const char* _text,
     size_t      _length,
     double*     _out_number,
@@ -236,8 +236,7 @@ Return:
   - true, if the whole string is a numeric string, or
   - false, otherwise.
 */
-bool
-d_awk_looks_numeric(
+bool d_awk_looks_numeric(
     const char* _text,
     size_t      _length,
     double*     _out_number
@@ -285,8 +284,7 @@ Parameter(s):
 Return:
   The value of the prefix, or zero when there is none.
 */
-double
-d_awk_text_to_number(
+double d_awk_text_to_number(
     const char* _text,
     size_t      _length
 )
@@ -315,8 +313,7 @@ Parameter(s):
 Return:
   The number of bytes written, excluding the terminator.
 */
-size_t
-d_awk_number_to_text(
+size_t d_awk_number_to_text(
     double      _number,
     const char* _format,
     char*       _buffer,
@@ -390,11 +387,11 @@ Return:
   - true, if the text was stored, or
   - false, if the buffer could not be grown.
 */
-static bool
-d_internal_store_text(
-    struct d_awk_value* _value,
-    const char*         _text,
-    size_t              _length
+static
+bool d_internal_store_text(
+    struct dj_awk_value* _value,
+    const char*          _text,
+    size_t               _length
 )
 {
     // grow the buffer when the text and its terminator do not fit
@@ -435,10 +432,9 @@ Parameter(s):
 Return:
   The new value, or NULL on failure.
 */
-struct d_awk_value*
-d_awk_value_new(void)
+struct dj_awk_value* d_awk_value_new(void)
 {
-    return calloc(1, sizeof(struct d_awk_value));
+    return calloc(1, sizeof(struct dj_awk_value));
 }
 
 
@@ -454,9 +450,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_value_free(
-    struct d_awk_value* _value
+void d_awk_value_free(
+    struct dj_awk_value* _value
 )
 {
     if (_value)
@@ -478,9 +473,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_value_set_uninit(
-    struct d_awk_value* _value
+void d_awk_value_set_uninit(
+    struct dj_awk_value* _value
 )
 {
     if (_value)
@@ -509,10 +503,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_value_set_number(
-    struct d_awk_value* _value,
-    double              _number
+void d_awk_value_set_number(
+    struct dj_awk_value* _value,
+    double               _number
 )
 {
     if (_value)
@@ -540,11 +533,10 @@ Return:
   - true, if the assignment succeeded, or
   - false, otherwise.
 */
-bool
-d_awk_value_set_string(
-    struct d_awk_value* _value,
-    const char*         _text,
-    size_t              _length
+bool d_awk_value_set_string(
+    struct dj_awk_value* _value,
+    const char*          _text,
+    size_t               _length
 )
 {
     // parameter validation first
@@ -585,11 +577,10 @@ Return:
   - true, if the assignment succeeded, or
   - false, otherwise.
 */
-bool
-d_awk_value_set_input(
-    struct d_awk_value* _value,
-    const char*         _text,
-    size_t              _length
+bool d_awk_value_set_input(
+    struct dj_awk_value* _value,
+    const char*          _text,
+    size_t               _length
 )
 {
     // the text is stored first, whatever the test then decides
@@ -624,12 +615,11 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_value_set_extern(
-    struct d_awk_value*  _value,
-    void*                _object,
-    d_awk_fn_extern_text _text,
-    void*                _user
+void d_awk_value_set_extern(
+    struct dj_awk_value*  _value,
+    void*                 _object,
+    dj_awk_fn_extern_text _text,
+    void*                 _user
 )
 {
     if (_value)
@@ -657,10 +647,9 @@ Return:
   - true, if the assignment succeeded, or
   - false, otherwise.
 */
-bool
-d_awk_value_set_array(
-    struct d_awk_value* _value,
-    struct d_awk_array* _array
+bool d_awk_value_set_array(
+    struct dj_awk_value* _value,
+    struct dj_awk_array* _array
 )
 {
     // parameter validation first
@@ -691,10 +680,9 @@ Return:
   - true, if the copy succeeded, or
   - false, otherwise.
 */
-bool
-d_awk_value_copy(
-    struct d_awk_value*       _target,
-    const struct d_awk_value* _source
+bool d_awk_value_copy(
+    struct dj_awk_value*       _target,
+    const struct dj_awk_value* _source
 )
 {
     // parameter validation first
@@ -709,7 +697,7 @@ d_awk_value_copy(
         return true;
     }
 
-    const enum d_awk_value_tag tag = _source->tag;
+    const enum dj_awk_value_tag tag = _source->tag;
 
     d_awk_value_set_uninit(_target);
 
@@ -744,9 +732,9 @@ Parameter(s):
 Return:
   The tag, or D_AWK_VAL_UNINIT when the value is NULL.
 */
-enum d_awk_value_tag
+enum dj_awk_value_tag
 d_awk_value_tag_of(
-    const struct d_awk_value* _value
+    const struct dj_awk_value* _value
 )
 {
     return _value ? _value->tag : D_AWK_VAL_UNINIT;
@@ -762,9 +750,8 @@ Parameter(s):
 Return:
   The array, or NULL when the value does not refer to one.
 */
-struct d_awk_array*
-d_awk_value_array_of(
-    const struct d_awk_value* _value
+struct dj_awk_array* d_awk_value_array_of(
+    const struct dj_awk_value* _value
 )
 {
     // parameter validation first
@@ -790,9 +777,9 @@ Parameter(s):
 Return:
   The tag governing conversion and comparison.
 */
-static enum d_awk_value_tag
+static enum dj_awk_value_tag
 d_internal_effective_tag(
-    struct d_awk_value* _value
+    struct dj_awk_value* _value
 )
 {
     // only an extern value needs resolving
@@ -836,10 +823,10 @@ Return:
   - true, if the text was stored, or
   - false, if memory ran out.
 */
-static bool
-d_internal_render_number(
-    struct d_awk_value* _value,
-    const char*         _format
+static
+bool d_internal_render_number(
+    struct dj_awk_value* _value,
+    const char*          _format
 )
 {
     char   local[64];
@@ -902,11 +889,10 @@ Parameter(s):
 Return:
   The text, never NULL.
 */
-const char*
-d_awk_value_text(
-    struct d_awk_value* _value,
-    const char*         _format,
-    size_t*             _out_length
+const char* d_awk_value_text(
+    struct dj_awk_value* _value,
+    const char*          _format,
+    size_t*              _out_length
 )
 {
     static const char empty[] = "";
@@ -989,9 +975,8 @@ Parameter(s):
 Return:
   The number, which is zero for text carrying no numeric prefix.
 */
-double
-d_awk_value_number(
-    struct d_awk_value* _value
+double d_awk_value_number(
+    struct dj_awk_value* _value
 )
 {
     // parameter validation first
@@ -1036,9 +1021,8 @@ Return:
   - true, if the value is true in awk's sense, or
   - false, otherwise.
 */
-bool
-d_awk_value_is_true(
-    struct d_awk_value* _value
+bool d_awk_value_is_true(
+    struct dj_awk_value* _value
 )
 {
     // parameter validation first
@@ -1047,7 +1031,7 @@ d_awk_value_is_true(
         return false;
     }
 
-    const enum d_awk_value_tag tag = d_internal_effective_tag(_value);
+    const enum dj_awk_value_tag tag = d_internal_effective_tag(_value);
 
     // an uninitialised value is false in both senses
     if (tag == D_AWK_VAL_UNINIT)
@@ -1092,11 +1076,10 @@ Return:
   A negative value, zero, or a positive value as the left operand orders
   before, equal to, or after the right.
 */
-int
-d_awk_value_compare(
-    struct d_awk_value* _left,
-    struct d_awk_value* _right,
-    const char*         _format
+int d_awk_value_compare(
+    struct dj_awk_value* _left,
+    struct dj_awk_value* _right,
+    const char*          _format
 )
 {
     // parameter validation first
@@ -1105,8 +1088,8 @@ d_awk_value_compare(
         return (_left == _right) ? 0 : ((_left) ? 1 : -1);
     }
 
-    const enum d_awk_value_tag left  = d_internal_effective_tag(_left);
-    const enum d_awk_value_tag right = d_internal_effective_tag(_right);
+    const enum dj_awk_value_tag left  = d_internal_effective_tag(_left);
+    const enum dj_awk_value_tag right = d_internal_effective_tag(_right);
 
     const bool left_numeric  = ( (left == D_AWK_VAL_NUMBER)  ||
                                  (left == D_AWK_VAL_STRNUM)  ||
@@ -1177,8 +1160,8 @@ Parameter(s):
 Return:
   The hash.
 */
-static size_t
-d_internal_hash(
+static
+size_t d_internal_hash(
     const char* _key,
     size_t      _length
 )
@@ -1207,10 +1190,10 @@ Return:
   - true, if the index was rebuilt, or
   - false, otherwise.
 */
-static bool
-d_internal_rehash(
-    struct d_awk_array* _array,
-    size_t              _count
+static
+bool d_internal_rehash(
+    struct dj_awk_array* _array,
+    size_t               _count
 )
 {
     size_t* buckets = malloc(_count * sizeof(*buckets));
@@ -1234,7 +1217,7 @@ d_internal_rehash(
     // relink every live entry into its new bucket
     for (size_t at = 0; at < _array->entry_count; ++at)
     {
-        struct d_internal_entry* entry = &_array->entries[at];
+        struct dj_internal_entry* entry = &_array->entries[at];
 
         // a deleted entry keeps its slot but leaves the index
         if (!entry->key)
@@ -1261,10 +1244,9 @@ Parameter(s):
 Return:
   The new array, or NULL on failure.
 */
-struct d_awk_array*
-d_awk_array_new(void)
+struct dj_awk_array* d_awk_array_new(void)
 {
-    struct d_awk_array* array = calloc(1, sizeof(*array));
+    struct dj_awk_array* array = calloc(1, sizeof(*array));
 
     // abandon the allocation when the handle could not be held
     if (!array)
@@ -1292,9 +1274,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_array_clear(
-    struct d_awk_array* _array
+void d_awk_array_clear(
+    struct dj_awk_array* _array
 )
 {
     if (_array)
@@ -1329,9 +1310,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_awk_array_free(
-    struct d_awk_array* _array
+void d_awk_array_free(
+    struct dj_awk_array* _array
 )
 {
     if (_array)
@@ -1355,9 +1335,8 @@ Parameter(s):
 Return:
   The element count, or zero when the array is NULL.
 */
-size_t
-d_awk_array_count(
-    const struct d_awk_array* _array
+size_t d_awk_array_count(
+    const struct dj_awk_array* _array
 )
 {
     return _array ? _array->live : 0;
@@ -1379,11 +1358,10 @@ Parameter(s):
 Return:
   The element, or NULL when it is absent.
 */
-struct d_awk_value*
-d_awk_array_find(
-    const struct d_awk_array* _array,
-    const char*               _key,
-    size_t                    _length
+struct dj_awk_value* d_awk_array_find(
+    const struct dj_awk_array* _array,
+    const char*                _key,
+    size_t                     _length
 )
 {
     // parameter validation first
@@ -1398,7 +1376,7 @@ d_awk_array_find(
     // walk the chain until the key is found or it ends
     while (cursor != D_INTERNAL_NONE)
     {
-        const struct d_internal_entry* entry = &_array->entries[cursor];
+        const struct dj_internal_entry* entry = &_array->entries[cursor];
 
         if ( (entry->key)                                        &&
              (entry->hash == hash)                               &&
@@ -1427,14 +1405,13 @@ Parameter(s):
 Return:
   The element, or NULL when it could not be created.
 */
-struct d_awk_value*
-d_awk_array_lookup(
-    struct d_awk_array* _array,
-    const char*         _key,
-    size_t              _length
+struct dj_awk_value* d_awk_array_lookup(
+    struct dj_awk_array* _array,
+    const char*          _key,
+    size_t               _length
 )
 {
-    struct d_awk_value* existing = d_awk_array_find(_array, _key, _length);
+    struct dj_awk_value* existing = d_awk_array_find(_array, _key, _length);
 
     // an existing element is returned as it stands
     if (existing)
@@ -1455,7 +1432,7 @@ d_awk_array_lookup(
                               ? 8u
                               : (_array->entry_capacity * 2u);
 
-        struct d_internal_entry* grown =
+        struct dj_internal_entry* grown =
             realloc(_array->entries, capacity * sizeof(*grown));
 
         // report the failure rather than creating a partial element
@@ -1484,7 +1461,7 @@ d_awk_array_lookup(
 
     key[_length] = '\0';
 
-    struct d_awk_value* value = d_awk_value_new();
+    struct dj_awk_value* value = d_awk_value_new();
 
     // report the failure rather than creating a valueless element
     if (!value)
@@ -1528,11 +1505,10 @@ Return:
   - true, if an element was removed, or
   - false, if none was present.
 */
-bool
-d_awk_array_delete(
-    struct d_awk_array* _array,
-    const char*         _key,
-    size_t              _length
+bool d_awk_array_delete(
+    struct dj_awk_array* _array,
+    const char*          _key,
+    size_t               _length
 )
 {
     // parameter validation first
@@ -1549,7 +1525,7 @@ d_awk_array_delete(
     // walk the chain, remembering the predecessor so it can be relinked
     while (cursor != D_INTERNAL_NONE)
     {
-        struct d_internal_entry* entry = &_array->entries[cursor];
+        struct dj_internal_entry* entry = &_array->entries[cursor];
 
         if ( (entry->key)                                        &&
              (entry->hash == hash)                               &&
@@ -1601,13 +1577,12 @@ Return:
   - true, if an element was produced, or
   - false, at the end of the walk.
 */
-bool
-d_awk_array_next(
-    const struct d_awk_array* _array,
-    size_t*                   _cursor,
-    const char**              _out_key,
-    size_t*                   _out_length,
-    struct d_awk_value**      _out_value
+bool d_awk_array_next(
+    const struct dj_awk_array* _array,
+    size_t*                    _cursor,
+    const char**               _out_key,
+    size_t*                    _out_length,
+    struct dj_awk_value**      _out_value
 )
 {
     // parameter validation first
@@ -1619,7 +1594,7 @@ d_awk_array_next(
     // skip the slots left behind by deleted elements
     while (*_cursor < _array->entry_count)
     {
-        const struct d_internal_entry* entry = &_array->entries[*_cursor];
+        const struct dj_internal_entry* entry = &_array->entries[*_cursor];
 
         (*_cursor)++;
 
@@ -1668,8 +1643,7 @@ Return:
   result at or above `_capacity` means the buffer was too small and the
   contents are truncated.
 */
-size_t
-d_awk_subscript_join(
+size_t d_awk_subscript_join(
     char*              _buffer,
     size_t             _capacity,
     const char* const* _parts,

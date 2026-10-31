@@ -10,7 +10,7 @@
 // djinterp
 #include "./compose_tests_sa.h"
 #include "./compose_tests_sa_helpers.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -21,35 +21,50 @@
 
 // plain_double
 //   helper: plain typed function that doubles an int.
-static int plain_double(int _x)
+static
+int plain_double(
+    int _x
+)
 {
     return _x * 2;
 }
 
 // plain_add_10
 //   helper: plain typed function that adds 10 to an int.
-static int plain_add_10(int _x)
+static
+int plain_add_10(
+    int _x
+)
 {
     return _x + 10;
 }
 
 // plain_negate
 //   helper: plain typed function that negates an int.
-static int plain_negate(int _x)
+static
+int plain_negate(
+    int _x
+)
 {
     return -_x;
 }
 
 // plain_is_positive
 //   helper: plain boolean function that returns true if int > 0.
-static bool plain_is_positive(int _x)
+static
+bool plain_is_positive(
+    int _x
+)
 {
     return (_x > 0);
 }
 
 // plain_is_even
 //   helper: plain boolean function that returns true if int is even.
-static bool plain_is_even(int _x)
+static
+bool plain_is_even(
+    int _x
+)
 {
     return (_x % 2 == 0);
 }
@@ -97,7 +112,7 @@ d_tests_sa_compose_macro_compose_fn
 bool
 d_tests_sa_compose_macro_compose_fn
 (
-    struct d_test_counter* _counter
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -219,16 +234,14 @@ d_tests_sa_compose_macro_make_composable
   - zero and negative boundary values
   - wrappers work with d_functional_compose_new
 */
-bool
-d_tests_sa_compose_macro_make_composable
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_macro_make_composable(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
     int                            input;
     int                            output;
-    struct d_composed_transformer* composed;
+    struct dj_composed_transformer* composed;
 
     result = true;
 
@@ -340,10 +353,8 @@ d_tests_sa_compose_macro_make_predicate_from
   - odd value with is_even predicate
   - context parameter is ignored (passed as NULL)
 */
-bool
-d_tests_sa_compose_macro_make_predicate_from
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_macro_make_predicate_from(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -423,10 +434,8 @@ d_tests_sa_compose_macro_make_predicate_from
 d_tests_sa_compose_macro_all
   Aggregation function that runs all macro tests.
 */
-bool
-d_tests_sa_compose_macro_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_compose_macro_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -29,13 +29,9 @@ d_tests_enum_map_entry_basic_macros
   - D_ENUM_KEY_ENTRY (legacy) works identically
   - entries are properly initialized
 */
-struct d_test_object*
-d_tests_enum_map_entry_basic_macros
-(
-    void
-)
+struct dj_test_object* d_tests_enum_map_entry_basic_macros(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   test_int = 42;
     char*                 test_str = "hello";
     bool                  test_correct_key;
@@ -47,29 +43,29 @@ d_tests_enum_map_entry_basic_macros
     size_t                idx;
 
     // test 1: correct key
-    struct d_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &test_int);
+    struct dj_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &test_int);
     test_correct_key = (e1.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_RED);
 
     // test 2: correct value
     test_correct_value = (e1.value == (void*)&test_int);
 
     // test 3: NULL value
-    struct d_enum_map_entry e2 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, NULL);
+    struct dj_enum_map_entry e2 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, NULL);
     test_null_value = (e2.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN) && (e2.value == NULL);
 
     // test 4: various pointer types
-    struct d_enum_map_entry e3 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE, test_str);
+    struct dj_enum_map_entry e3 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE, test_str);
     test_pointer_types = (e3.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE) &&
                          (e3.value == (void*)test_str) &&
                          (strcmp((char*)e3.value, "hello") == 0);
 
     // test 5: legacy alias D_ENUM_KEY_ENTRY
-    struct d_enum_map_entry e4 = D_ENUM_KEY_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW, &test_int);
+    struct dj_enum_map_entry e4 = D_ENUM_KEY_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW, &test_int);
     test_legacy_alias = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
                         (e4.value == (void*)&test_int);
 
     // test 6: properly initialized (no garbage)
-    struct d_enum_map_entry e5 = D_ENUM_ENTRY(0, NULL);
+    struct dj_enum_map_entry e5 = D_ENUM_ENTRY(0, NULL);
     test_initialized = (e5.key == 0) && (e5.value == NULL);
 
     // build result tree
@@ -120,13 +116,9 @@ d_tests_enum_map_entry_typed_macros
   - negative integers handled correctly
   - string literals accessible
 */
-struct d_test_object*
-d_tests_enum_map_entry_typed_macros
-(
-    void
-)
+struct dj_test_object* d_tests_enum_map_entry_typed_macros(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_str_entry;
     bool                  test_int_entry;
     bool                  test_null_entry;
@@ -137,36 +129,36 @@ d_tests_enum_map_entry_typed_macros
     size_t                idx;
 
     // test 1: D_ENUM_ENTRY_STR
-    struct d_enum_map_entry e1 = D_ENUM_ENTRY_STR(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, "red");
+    struct dj_enum_map_entry e1 = D_ENUM_ENTRY_STR(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, "red");
     test_str_entry = (e1.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_RED) &&
                      (e1.value != NULL) &&
                      (strcmp((char*)e1.value, "red") == 0);
 
     // test 2: D_ENUM_ENTRY_INT
-    struct d_enum_map_entry e2 = D_ENUM_ENTRY_INT(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, 42);
+    struct dj_enum_map_entry e2 = D_ENUM_ENTRY_INT(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, 42);
     test_int_entry = (e2.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN) &&
                      ((intptr_t)e2.value == 42);
 
     // test 3: D_ENUM_ENTRY_NULL
-    struct d_enum_map_entry e3 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
+    struct dj_enum_map_entry e3 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
     test_null_entry = (e3.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE) && (e3.value == NULL);
 
     // test 4: D_ENUM_ENTRY_SELF
-    struct d_enum_map_entry e4 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW);
+    struct dj_enum_map_entry e4 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW);
     test_self_entry = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
                       ((intptr_t)e4.value == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
                       (e4.key == (intptr_t)e4.value);
 
     // test 5: integer value preservation
-    struct d_enum_map_entry e5 = D_ENUM_ENTRY_INT(100, 999);
+    struct dj_enum_map_entry e5 = D_ENUM_ENTRY_INT(100, 999);
     test_int_preservation = (e5.key == 100) && ((intptr_t)e5.value == 999);
 
     // test 6: negative integers
-    struct d_enum_map_entry e6 = D_ENUM_ENTRY_INT(-5, -100);
+    struct dj_enum_map_entry e6 = D_ENUM_ENTRY_INT(-5, -100);
     test_negative_int = (e6.key == -5) && ((intptr_t)e6.value == -100);
 
     // test 7: string literals accessible
-    struct d_enum_map_entry e7 = D_ENUM_ENTRY_STR(200, "Hello, World!");
+    struct dj_enum_map_entry e7 = D_ENUM_ENTRY_STR(200, "Hello, World!");
     test_str_accessible = (e7.key == 200) &&
                           (strcmp((char*)e7.value, "Hello, World!") == 0) &&
                           (strlen((char*)e7.value) == 13);
@@ -217,13 +209,9 @@ d_tests_enum_map_entry_creation_all
   - Basic entry macros
   - Typed entry macros
 */
-struct d_test_object*
-d_tests_enum_map_entry_creation_all
-(
-    void
-)
+struct dj_test_object* d_tests_enum_map_entry_creation_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Entry Creation Macros", 2);
@@ -257,13 +245,9 @@ d_tests_enum_map_entry_comparison_macros
   - D_ENUM_ENTRY_EQ requires both to match
   - handles NULL values in comparisons
 */
-struct d_test_object*
-d_tests_enum_map_entry_comparison_macros
-(
-    void
-)
+struct dj_test_object* d_tests_enum_map_entry_comparison_macros(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   val1 = 42;
     int                   val2 = 99;
     bool                  test_key_eq_true;
@@ -276,36 +260,36 @@ d_tests_enum_map_entry_comparison_macros
     size_t                idx;
 
     // test 1: D_ENUM_ENTRY_KEY_EQ returns true for same key
-    struct d_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
-    struct d_enum_map_entry e2 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val2);
+    struct dj_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
+    struct dj_enum_map_entry e2 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val2);
     test_key_eq_true = D_ENUM_ENTRY_KEY_EQ(e1, e2);
 
     // test 2: D_ENUM_ENTRY_KEY_EQ returns false for different keys
-    struct d_enum_map_entry e3 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, &val1);
+    struct dj_enum_map_entry e3 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, &val1);
     test_key_eq_false = !D_ENUM_ENTRY_KEY_EQ(e1, e3);
 
     // test 3: D_ENUM_ENTRY_VAL_EQ returns true for same value
-    struct d_enum_map_entry e4 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE, &val1);
-    struct d_enum_map_entry e5 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW, &val1);
+    struct dj_enum_map_entry e4 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE, &val1);
+    struct dj_enum_map_entry e5 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW, &val1);
     test_val_eq_true = D_ENUM_ENTRY_VAL_EQ(e4, e5);
 
     // test 4: D_ENUM_ENTRY_VAL_EQ returns false for different values
-    struct d_enum_map_entry e6 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_PURPLE, &val2);
+    struct dj_enum_map_entry e6 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_PURPLE, &val2);
     test_val_eq_false = !D_ENUM_ENTRY_VAL_EQ(e4, e6);
 
     // test 5: D_ENUM_ENTRY_EQ returns true when both match
-    struct d_enum_map_entry e7 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
-    struct d_enum_map_entry e8 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
+    struct dj_enum_map_entry e7 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
+    struct dj_enum_map_entry e8 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
     test_entry_eq_true = D_ENUM_ENTRY_EQ(e7, e8);
 
     // test 6: D_ENUM_ENTRY_EQ requires both to match
-    struct d_enum_map_entry e9 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val2);   // same key, diff value
-    struct d_enum_map_entry e10 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, &val1); // diff key, same value
+    struct dj_enum_map_entry e9 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val2);   // same key, diff value
+    struct dj_enum_map_entry e10 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, &val1); // diff key, same value
     test_entry_eq_requires_both = !D_ENUM_ENTRY_EQ(e7, e9) && !D_ENUM_ENTRY_EQ(e7, e10);
 
     // test 7: handles NULL values
-    struct d_enum_map_entry e11 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
-    struct d_enum_map_entry e12 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
+    struct dj_enum_map_entry e11 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
+    struct dj_enum_map_entry e12 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
     test_null_values = D_ENUM_ENTRY_EQ(e11, e12);
 
     // build result tree
@@ -358,13 +342,9 @@ d_tests_enum_map_entry_sentinel_macros
   - D_ENUM_ENTRY_IS_SENTINEL returns false for normal entries
   - multiple sentinels are equal
 */
-struct d_test_object*
-d_tests_enum_map_entry_sentinel_macros
-(
-    void
-)
+struct dj_test_object* d_tests_enum_map_entry_sentinel_macros(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     int                   dummy = 42;
     bool                  test_creates_sentinel;
     bool                  test_detects_sentinel;
@@ -375,7 +355,7 @@ d_tests_enum_map_entry_sentinel_macros
     size_t                idx;
 
     // test 1: D_ENUM_ENTRY_SENTINEL creates sentinel
-    struct d_enum_map_entry sent = D_ENUM_ENTRY_SENTINEL;
+    struct dj_enum_map_entry sent = D_ENUM_ENTRY_SENTINEL;
     test_creates_sentinel = (sent.key == D_ENUM_MAP_SENTINEL_KEY) &&
                            (sent.value == NULL);
 
@@ -389,15 +369,15 @@ d_tests_enum_map_entry_sentinel_macros
     test_sentinel_value = (sent.value == NULL);
 
     // test 5: D_ENUM_ENTRY_IS_SENTINEL returns false for normal entries
-    struct d_enum_map_entry normal1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &dummy);
-    struct d_enum_map_entry normal2 = D_ENUM_ENTRY_NULL(0);
-    struct d_enum_map_entry normal3 = D_ENUM_ENTRY_INT(INT_MAX, 42);
+    struct dj_enum_map_entry normal1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &dummy);
+    struct dj_enum_map_entry normal2 = D_ENUM_ENTRY_NULL(0);
+    struct dj_enum_map_entry normal3 = D_ENUM_ENTRY_INT(INT_MAX, 42);
     test_false_for_normal = !D_ENUM_ENTRY_IS_SENTINEL(normal1) &&
                            !D_ENUM_ENTRY_IS_SENTINEL(normal2) &&
                            !D_ENUM_ENTRY_IS_SENTINEL(normal3);
 
     // test 6: multiple sentinels are equal
-    struct d_enum_map_entry sent2 = D_ENUM_ENTRY_SENTINEL;
+    struct dj_enum_map_entry sent2 = D_ENUM_ENTRY_SENTINEL;
     test_multiple_sentinels = D_ENUM_ENTRY_EQ(sent, sent2);
 
     // build result tree
@@ -447,13 +427,9 @@ d_tests_enum_map_entry_run_all
   Note: This only tests the macros and entry structure.
   Map operations (min_enum_map) are tested separately.
 */
-struct d_test_object*
-d_tests_enum_map_entry_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_enum_map_entry_run_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     // create master test group

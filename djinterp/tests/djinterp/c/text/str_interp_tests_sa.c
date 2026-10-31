@@ -19,11 +19,7 @@
 d_tests_sa_str_interp_setup
   Sets up test environment for string interpolation tests.
 */
-bool
-d_tests_sa_str_interp_setup
-(
-    void
-)
+bool d_tests_sa_str_interp_setup(void)
 {
     /* no specific setup needed; present for consistency */
 
@@ -34,11 +30,7 @@ d_tests_sa_str_interp_setup
 d_tests_sa_str_interp_teardown
   Cleans up test environment.
 */
-bool
-d_tests_sa_str_interp_teardown
-(
-    void
-)
+bool d_tests_sa_str_interp_teardown(void)
 {
     /* no specific teardown needed; present for consistency */
 
@@ -60,13 +52,9 @@ d_tests_sa_str_interp_run_all
   - Convenience functions (quick)
   - Utility functions (error_string)
 */
-struct d_test_object*
-d_tests_sa_str_interp_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_run_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  setup_ok;
     size_t                idx;
 

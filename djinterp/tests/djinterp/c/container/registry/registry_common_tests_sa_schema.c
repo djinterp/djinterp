@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -24,7 +24,7 @@
         (_key),                            \
         NULL,                              \
         (uint16_t)(_enum_key),             \
-        (d_type_info64)0,                  \
+        (dj_type_info64)0,                  \
         NULL,                              \
         NULL                               \
     }
@@ -38,21 +38,19 @@ d_tests_sa_registry_schema_max_enum_key_single
   - works with enum_key = 0
   - works with enum_key = 42
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_single
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_single(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema_zero[] =
+    struct dj_registry_schema_row schema_zero[] =
     {
         D_TEST_SCHEMA_ROW("key_zero", 0)
     };
 
-    struct d_registry_schema_row schema_nonzero[] =
+    struct dj_registry_schema_row schema_nonzero[] =
     {
         D_TEST_SCHEMA_ROW("key_fortytwo", 42)
     };
@@ -86,16 +84,14 @@ d_tests_sa_registry_schema_max_enum_key_multiple
   - correctly finds maximum among multiple different values
   - handles non-contiguous enum_key values
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_multiple
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_multiple(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_a", 5),
         D_TEST_SCHEMA_ROW("key_b", 10),
@@ -124,16 +120,14 @@ d_tests_sa_registry_schema_max_enum_key_first_is_max
   Tests the following:
   - correctly identifies max when it appears first
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_first_is_max
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_first_is_max(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_first", 100),
         D_TEST_SCHEMA_ROW("key_second", 50),
@@ -161,16 +155,14 @@ d_tests_sa_registry_schema_max_enum_key_last_is_max
   Tests the following:
   - correctly identifies max when it appears last
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_last_is_max
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_last_is_max(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_first", 10),
         D_TEST_SCHEMA_ROW("key_second", 25),
@@ -198,16 +190,14 @@ d_tests_sa_registry_schema_max_enum_key_middle_is_max
   Tests the following:
   - correctly identifies max when it appears in the middle
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_middle_is_max
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_middle_is_max(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_first", 10),
         D_TEST_SCHEMA_ROW("key_second", 100),
@@ -234,10 +224,8 @@ d_tests_sa_registry_schema_max_enum_key_null_schema
   Tests the following:
   - NULL schema returns 0
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_null_schema
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_null_schema(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
@@ -263,16 +251,14 @@ d_tests_sa_registry_schema_max_enum_key_zero_count
   Tests the following:
   - count=0 returns 0 even with valid schema pointer
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_zero_count
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_zero_count(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_a", 100),
         D_TEST_SCHEMA_ROW("key_b", 200)
@@ -298,16 +284,14 @@ d_tests_sa_registry_schema_max_enum_key_all_same
   Tests the following:
   - correctly returns the common value when all keys are identical
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_all_same
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_all_same(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_a", 42),
         D_TEST_SCHEMA_ROW("key_b", 42),
@@ -335,16 +319,14 @@ d_tests_sa_registry_schema_max_enum_key_max_uint16
   Tests the following:
   - correctly handles UINT16_MAX (65535)
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_max_uint16
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_max_uint16(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_small", 100),
         D_TEST_SCHEMA_ROW("key_max", UINT16_MAX),
@@ -371,16 +353,14 @@ d_tests_sa_registry_schema_max_enum_key_zero_keys
   Tests the following:
   - correctly returns 0 when all keys are 0
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_zero_keys
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_zero_keys(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("key_a", 0),
         D_TEST_SCHEMA_ROW("key_b", 0),
@@ -408,17 +388,15 @@ d_tests_sa_registry_schema_max_enum_key_sparse
   - handles large gaps between enum_key values
   - typical cvar/registry usage pattern with aliases sharing enum_keys
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_sparse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_sparse(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
     uint16_t max_key;
 
     // simulate registry schema with aliases (same enum_key, different keys)
-    struct d_registry_schema_row schema[] =
+    struct dj_registry_schema_row schema[] =
     {
         D_TEST_SCHEMA_ROW("sv_maxplayers",     0),
         D_TEST_SCHEMA_ROW("maxplayers",        0),    // alias for sv_maxplayers
@@ -450,10 +428,8 @@ d_tests_sa_registry_schema_max_enum_key_sparse
 d_tests_sa_registry_schema_max_enum_key_all
   Aggregation function that runs all d_registry_schema_max_enum_key tests.
 */
-bool
-d_tests_sa_registry_schema_max_enum_key_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_schema_max_enum_key_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -17,27 +17,27 @@
 #include <stddef.h>   // size_t, NULL
 
 
-// the index arithmetic below depends on both of these properties of d_index
-D_STATIC_ASSERT((d_index)-1 < 0,
-                "d_index must be a signed type: every index function below "
+// the index arithmetic below depends on both of these properties of dj_index
+D_STATIC_ASSERT((dj_index)-1 < 0,
+                "dj_index must be a signed type: every index function below "
                 "branches on its sign");
-D_STATIC_ASSERT(sizeof(d_index) <= sizeof(size_t),
-                "d_index must be no wider than size_t: index magnitudes are "
+D_STATIC_ASSERT(sizeof(dj_index) <= sizeof(size_t),
+                "dj_index must be no wider than size_t: index magnitudes are "
                 "converted to size_t without a range check");
 
 /*
 d_internal_index_magnitude
   Returns the exact magnitude of an index that every caller has already found
-to be negative, including the most negative d_index.
+to be negative, including the most negative dj_index.
   The obvious expression (size_t)(-_index) is undefined for the most negative
-d_index because its positive value is not representable in the signed type.
+dj_index because its positive value is not representable in the signed type.
 The expression below first moves the value one step toward zero, negates that
 representable value, and restores the final unit in the unsigned domain, where
 the width assertion above guarantees that it fits.
 */
-D_STATIC size_t
-d_internal_index_magnitude(
-    d_index _index
+D_STATIC
+size_t d_internal_index_magnitude(
+    dj_index _index
 )
 {
     return ((size_t)(-(_index + 1))) + (size_t)1;
@@ -46,14 +46,13 @@ d_internal_index_magnitude(
 /*
 d_index_is_valid
   Signed and unsigned comparisons are performed only after the sign is known,
-so that a negative d_index is never converted to a large size_t before the range
+so that a negative dj_index is never converted to a large size_t before the range
 test. The two branches differ only in `<` against `<=`, which is where the
 asymmetric limits documented on the declaration come from.
 */
-bool
-d_index_is_valid(
-    d_index _index,
-    size_t  _count
+bool d_index_is_valid(
+    dj_index _index,
+    size_t   _count
 )
 {
     // non-negative indices map directly to zero-based offsets
@@ -71,12 +70,11 @@ d_index_convert_fast
   In the negative case, the conversion to size_t and the addition to _count
 both use well-defined unsigned modular arithmetic, so the sum wraps to _count
 minus the magnitude of _index with no signed intermediate that could overflow,
-even for the most negative d_index.
+even for the most negative dj_index.
 */
-size_t
-d_index_convert_fast(
-    d_index _index,
-    size_t  _count
+size_t d_index_convert_fast(
+    dj_index _index,
+    size_t   _count
 )
 {
     // non-negative indices are already zero-based offsets
@@ -95,11 +93,10 @@ d_index_convert_safe
 checked and unchecked conversions cannot drift apart. The destination is written
 only after every check has passed, which is what leaves it untouched on failure.
 */
-bool
-d_index_convert_safe(
-    d_index _index,
-    size_t  _count,
-    size_t* _destination
+bool d_index_convert_safe(
+    dj_index _index,
+    size_t   _count,
+    size_t*  _destination
 )
 {
     // validate the destination pointer

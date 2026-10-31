@@ -9,13 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./event_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // d_tests_sa_event_free_dummy_cb
 //   helper: minimal callback for listener construction in destructor tests.
-static void
-d_tests_sa_event_free_dummy_cb(void* _args)
+static
+void d_tests_sa_event_free_dummy_cb(
+    void* _args
+)
 {
     (void)_args;
 
@@ -29,10 +31,8 @@ d_tests_sa_event_free_null
   Tests the following:
   - d_event_free(NULL) does not crash
 */
-bool
-d_tests_sa_event_free_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_free_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -56,14 +56,12 @@ d_tests_sa_event_free_basic
   Tests the following:
   - Event from d_event_new is freed without crash
 */
-bool
-d_tests_sa_event_free_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_free_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
 
     result = true;
     ev     = d_event_new(100);
@@ -89,14 +87,12 @@ d_tests_sa_event_free_with_context
   - Context data is still accessible after event is freed
   - d_event_free only frees the event struct itself
 */
-bool
-d_tests_sa_event_free_with_context
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_free_with_context(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
+    struct dj_event* ev;
     int             val;
 
     result = true;
@@ -124,16 +120,14 @@ d_tests_sa_event_free_sequential
   Tests the following:
   - Multiple sequential frees do not crash
 */
-bool
-d_tests_sa_event_free_sequential
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_free_sequential(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* a;
-    struct d_event* b;
-    struct d_event* c;
+    struct dj_event* a;
+    struct dj_event* b;
+    struct dj_event* c;
 
     result = true;
     a      = d_event_new(1);
@@ -170,10 +164,8 @@ d_tests_sa_event_listener_free_null
   Tests the following:
   - d_event_listener_free(NULL) does not crash
 */
-bool
-d_tests_sa_event_listener_free_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_free_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -197,14 +189,12 @@ d_tests_sa_event_listener_free_enabled
   Tests the following:
   - Enabled listener from d_event_listener_new is freed
 */
-bool
-d_tests_sa_event_listener_free_enabled
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_free_enabled(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new(
@@ -232,14 +222,12 @@ d_tests_sa_event_listener_free_disabled
   Tests the following:
   - Disabled listener from d_event_listener_new is freed
 */
-bool
-d_tests_sa_event_listener_free_disabled
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_free_disabled(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new(
@@ -267,14 +255,12 @@ d_tests_sa_event_listener_free_default
   Tests the following:
   - Default listener is freed without crash
 */
-bool
-d_tests_sa_event_listener_free_default
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_free_default(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new_default(
@@ -301,16 +287,14 @@ d_tests_sa_event_listener_free_sequential
   Tests the following:
   - Mixed enabled/disabled/default listeners freed sequentially
 */
-bool
-d_tests_sa_event_listener_free_sequential
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_free_sequential(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* a;
-    struct d_event_listener* b;
-    struct d_event_listener* c;
+    struct dj_event_listener* a;
+    struct dj_event_listener* b;
+    struct dj_event_listener* c;
 
     result = true;
     a      = d_event_listener_new(40, (fn_callback)d_tests_sa_event_free_dummy_cb, true);
@@ -345,10 +329,8 @@ d_tests_sa_event_listener_free_sequential
 d_tests_sa_event_free_all
   Runs all destructor tests.
 */
-bool
-d_tests_sa_event_free_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_free_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

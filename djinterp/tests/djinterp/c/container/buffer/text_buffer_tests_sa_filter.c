@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -20,17 +20,17 @@
  *   `const struct d_filter_expr*` which no longer exists in filter.h.
  *
  *   These tests assume text_buffer.h will be updated to use:
- *       const struct d_filter_chain* _chain
+ *       const struct dj_filter_chain* _chain
  *   in place of:
  *       const struct d_filter_expr* _expression
  *
  *   The updated signatures would be:
- *     d_text_buffer_filter(buffer, chain)          -> struct d_text_buffer*
+ *     d_text_buffer_filter(buffer, chain)          -> struct dj_text_buffer*
  *     d_text_buffer_filter_in_place(buffer, chain) -> bool
  *     d_text_buffer_filter_indices(buffer, chain,
  *                                  out_idx, out_count) -> bool
  *     d_text_buffer_count_matching(buffer, chain)  -> size_t
- *     d_text_buffer_filter_chunked(buffer, chain)  -> struct d_text_buffer*
+ *     d_text_buffer_filter_chunked(buffer, chain)  -> struct dj_text_buffer*
  *
  *   If a different replacement type is chosen, update these tests
  *   accordingly.  The test logic itself (NULL checks, content
@@ -51,9 +51,8 @@
 pred_is_uppercase
   Predicate: returns true if the character is uppercase A-Z.
 */
-D_STATIC bool
-pred_is_uppercase
-(
+D_STATIC
+bool pred_is_uppercase(
     const void* _element
 )
 {
@@ -74,9 +73,8 @@ pred_is_vowel
   Predicate: returns true if the character is a vowel (a/e/i/o/u,
   case-insensitive).
 */
-D_STATIC bool
-pred_is_vowel
-(
+D_STATIC
+bool pred_is_vowel(
     const void* _element
 )
 {
@@ -103,9 +101,8 @@ pred_is_vowel
 pred_is_digit
   Predicate: returns true if the character is a digit 0-9.
 */
-D_STATIC bool
-pred_is_digit
-(
+D_STATIC
+bool pred_is_digit(
     const void* _element
 )
 {
@@ -128,17 +125,16 @@ pred_is_digit
 
 /*
 build_where_chain
-  Creates a d_filter_chain containing a single WHERE operation
+  Creates a dj_filter_chain containing a single WHERE operation
   using the supplied predicate.  Caller must free with
   d_filter_chain_free().
 */
-D_STATIC struct d_filter_chain*
-build_where_chain
-(
+D_STATIC
+struct dj_filter_chain* build_where_chain(
     fn_predicate _test
 )
 {
-    struct d_filter_chain* chain;
+    struct dj_filter_chain* chain;
 
     chain = d_filter_chain_new();
 
@@ -166,16 +162,14 @@ d_tests_sa_text_buffer_filter
   - empty result when no characters match
   - all characters match returns full copy
 */
-bool
-d_tests_sa_text_buffer_filter
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_filter(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_text_buffer*  buffer;
-    struct d_text_buffer*  filtered;
-    struct d_filter_chain* chain;
+    struct dj_text_buffer*  buffer;
+    struct dj_text_buffer*  filtered;
+    struct dj_filter_chain* chain;
 
     result = true;
 
@@ -345,15 +339,13 @@ d_tests_sa_text_buffer_filter_in_place
   - length is updated correctly
   - empty result when no characters match
 */
-bool
-d_tests_sa_text_buffer_filter_in_place
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_filter_in_place(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_text_buffer*  buffer;
-    struct d_filter_chain* chain;
+    struct dj_text_buffer*  buffer;
+    struct dj_filter_chain* chain;
 
     result = true;
 
@@ -458,16 +450,14 @@ d_tests_sa_text_buffer_filter_indices
   - out_count is set correctly
   - caller must free returned index array
 */
-bool
-d_tests_sa_text_buffer_filter_indices
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_filter_indices(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_text_buffer*  buffer;
-    struct d_filter_chain* chain;
-    d_index*               indices;
+    struct dj_text_buffer*  buffer;
+    struct dj_filter_chain* chain;
+    dj_index*               indices;
     size_t                 count;
 
     result  = true;
@@ -640,15 +630,13 @@ d_tests_sa_text_buffer_count_matching
   - returns 0 when no characters match
   - returns full length when all characters match
 */
-bool
-d_tests_sa_text_buffer_count_matching
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_count_matching(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_text_buffer*  buffer;
-    struct d_filter_chain* chain;
+    struct dj_text_buffer*  buffer;
+    struct dj_filter_chain* chain;
     size_t                 count;
 
     result = true;
@@ -781,16 +769,14 @@ d_tests_sa_text_buffer_filter_chunked
   - original buffer unchanged
   - total length of returned buffer (primary + chunks) is correct
 */
-bool
-d_tests_sa_text_buffer_filter_chunked
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_filter_chunked(
+    struct dj_test_counter* _counter
 )
 {
     bool                   result;
-    struct d_text_buffer*  buffer;
-    struct d_text_buffer*  filtered;
-    struct d_filter_chain* chain;
+    struct dj_text_buffer*  buffer;
+    struct dj_text_buffer*  filtered;
+    struct dj_filter_chain* chain;
 
     result = true;
 
@@ -941,10 +927,8 @@ d_tests_sa_text_buffer_filter_chunked
 d_tests_sa_text_buffer_filter_all
   Aggregation function that runs all filter tests.
 */
-bool
-d_tests_sa_text_buffer_filter_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_text_buffer_filter_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

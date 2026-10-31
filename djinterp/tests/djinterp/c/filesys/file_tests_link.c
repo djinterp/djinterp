@@ -33,11 +33,8 @@ API being present does not guarantee the privilege to use it.
 Return:
   true if a probe link was created (and cleaned up), false otherwise.
 */
-static bool
-d_fs_symlinks_creatable
-(
-    void
-)
+static
+bool d_fs_symlinks_creatable(void)
 {
     static int cached = -1;  // -1 unknown, 0 no, 1 yes
     char       target[D_FS_TEST_PATH_BUF];
@@ -66,9 +63,7 @@ d_fs_symlinks_creatable
 }
 
 
-void
-d_fs_tests_link
-(
+void d_fs_tests_link(
     dtest_suite* _suite
 )
 {

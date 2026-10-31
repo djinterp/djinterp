@@ -38,8 +38,8 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Documents
-         1.  d_cmake_doc
-         2.  d_cmake_saved
+         1.  dj_cmake_doc
+         2.  dj_cmake_saved
 2.  OPERATIONS
     ----------
     1.  Documents
@@ -56,7 +56,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>   // bool
 #include <stddef.h>    // size_t
 // djinterp
-#include "./dcmake.h"  // d_cmake
+#include "./dcmake.h"  // dj_cmake
 
 
 //==============================================================================
@@ -67,15 +67,15 @@ TABLE OF CONTENTS
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_cmake_doc
+// dj_cmake_doc
 //   struct: one file's text, its records, and why the last change failed.
 //   Layout is private.
-struct d_cmake_doc;
+struct dj_cmake_doc;
 
 // 1.1.2
-// d_cmake_saved
+// dj_cmake_saved
 //   enum: what saving did.
-enum d_cmake_saved
+enum dj_cmake_saved
 {
     D_CMAKE_SAVE_FAILED = 0,
     D_CMAKE_SAVE_WRITTEN,
@@ -101,33 +101,51 @@ enum d_cmake_saved
  * @return the document, or `NULL` when the file cannot be read, does not
  *         read as CMake, or memory runs out.
  */
-struct d_cmake_doc*   d_cmake_doc_read(const char* _path,
-                                       char*       _problem,
-                                       size_t      _capacity);
+struct dj_cmake_doc* d_cmake_doc_read(
+    const char* _path,
+    char*       _problem,
+    size_t      _capacity
+);
 // d_cmake_doc_make makes a document of a text, to be saved to `_path`; the
 // caller frees it with d_cmake_doc_free, and it is `NULL` when the text does
 // not read as CMake, `_problem` saying why.
-struct d_cmake_doc*   d_cmake_doc_make(const char* _path,
-                                       const char* _text,
-                                       size_t      _length,
-                                       char*       _problem,
-                                       size_t      _capacity);
-void                  d_cmake_doc_free(struct d_cmake_doc* _doc);
+struct dj_cmake_doc* d_cmake_doc_make(
+    const char* _path,
+    const char* _text,
+    size_t      _length,
+    char*       _problem,
+    size_t      _capacity
+);
+void d_cmake_doc_free(
+    struct dj_cmake_doc* _doc
+);
 // What a document holds: its records, as of its last change; its path, how
 // many changes it has taken, why the last change failed, and its text.
 // d_cmake_doc_changed says where the last change kept was: the text before
 // it from `start` to `old_end` is the text now from `start` to `new_end`,
 // and all else is as it was; false before any change.
-const struct d_cmake* d_cmake_doc_records(const struct d_cmake_doc* _doc);
-const char*           d_cmake_doc_path(const struct d_cmake_doc* _doc);
-size_t                d_cmake_doc_changes(const struct d_cmake_doc* _doc);
-bool                  d_cmake_doc_changed(const struct d_cmake_doc* _doc,
-                                          size_t* _out_start,
-                                          size_t* _out_old_end,
-                                          size_t* _out_new_end);
-const char*           d_cmake_doc_problem(const struct d_cmake_doc* _doc);
-const char*           d_cmake_doc_text(const struct d_cmake_doc* _doc,
-                                       size_t*                   _out_length);
+const struct dj_cmake* d_cmake_doc_records(
+    const struct dj_cmake_doc* _doc
+);
+const char* d_cmake_doc_path(
+    const struct dj_cmake_doc* _doc
+);
+size_t d_cmake_doc_changes(
+    const struct dj_cmake_doc* _doc
+);
+bool d_cmake_doc_changed(
+    const struct dj_cmake_doc* _doc,
+    size_t*                    _out_start,
+    size_t*                    _out_old_end,
+    size_t*                    _out_new_end
+);
+const char* d_cmake_doc_problem(
+    const struct dj_cmake_doc* _doc
+);
+const char* d_cmake_doc_text(
+    const struct dj_cmake_doc* _doc,
+    size_t*                    _out_length
+);
 
 // 2.2    Changes
 //------------------------------------------------------------------------------
@@ -144,11 +162,13 @@ const char*           d_cmake_doc_text(const struct d_cmake_doc* _doc,
  * @return `true` if the change was kept; `false` otherwise, with
  *         d_cmake_doc_problem saying why, and the file as it was.
  */
-bool                  d_cmake_doc_splice(struct d_cmake_doc* _doc,
-                                         size_t              _start,
-                                         size_t              _end,
-                                         const char*         _text,
-                                         size_t              _length);
+bool d_cmake_doc_splice(
+    struct dj_cmake_doc* _doc,
+    size_t               _start,
+    size_t               _end,
+    const char*          _text,
+    size_t               _length
+);
 
 // 2.3    Arguments
 //------------------------------------------------------------------------------
@@ -165,18 +185,24 @@ bool                  d_cmake_doc_splice(struct d_cmake_doc* _doc,
 // Each is refused for a nested parenthesis, and wherever two arguments would
 // run together; each gives `true` if the change was kept, and `false`
 // otherwise, d_cmake_doc_problem saying why.
-bool                  d_cmake_doc_set_argument(struct d_cmake_doc* _doc,
-                                               size_t              _command,
-                                               size_t              _argument,
-                                               const char*         _text);
-bool                  d_cmake_doc_insert_argument(struct d_cmake_doc* _doc,
-                                                  size_t _command,
-                                                  size_t _argument,
-                                                  const char* _text,
-                                                  bool        _after);
-bool                  d_cmake_doc_remove_argument(struct d_cmake_doc* _doc,
-                                                  size_t _command,
-                                                  size_t _argument);
+bool d_cmake_doc_set_argument(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    size_t               _argument,
+    const char*          _text
+);
+bool d_cmake_doc_insert_argument(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    size_t               _argument,
+    const char*          _text,
+    bool                 _after
+);
+bool d_cmake_doc_remove_argument(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    size_t               _argument
+);
 
 // 2.4    Commands
 //------------------------------------------------------------------------------
@@ -196,25 +222,35 @@ bool                  d_cmake_doc_remove_argument(struct d_cmake_doc* _doc,
 //                                and the comments among them
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_cmake_doc_problem saying why.
-bool                  d_cmake_doc_set_name(struct d_cmake_doc* _doc,
-                                           size_t              _command,
-                                           const char*         _name);
-bool                  d_cmake_doc_set_command(struct d_cmake_doc* _doc,
-                                              size_t              _command,
-                                              const char*         _text);
-bool                  d_cmake_doc_insert_commands(struct d_cmake_doc* _doc,
-                                                  size_t      _before,
-                                                  const char* _text);
-bool                  d_cmake_doc_remove_commands(struct d_cmake_doc* _doc,
-                                                  size_t _first,
-                                                  size_t _last);
+bool d_cmake_doc_set_name(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    const char*          _name
+);
+bool d_cmake_doc_set_command(
+    struct dj_cmake_doc* _doc,
+    size_t               _command,
+    const char*          _text
+);
+bool d_cmake_doc_insert_commands(
+    struct dj_cmake_doc* _doc,
+    size_t               _before,
+    const char*          _text
+);
+bool d_cmake_doc_remove_commands(
+    struct dj_cmake_doc* _doc,
+    size_t               _first,
+    size_t               _last
+);
 // d_cmake_doc_indent writes the indentation a command inserted before
 // command `_before` takes -- as d_cmake_doc_insert_commands takes it -- into
 // `_out`, which holds `_capacity` bytes, and gives its length.
-size_t                d_cmake_doc_indent(const struct d_cmake_doc* _doc,
-                                         size_t                    _before,
-                                         char*                     _out,
-                                         size_t                    _capacity);
+size_t d_cmake_doc_indent(
+    const struct dj_cmake_doc* _doc,
+    size_t                     _before,
+    char*                      _out,
+    size_t                     _capacity
+);
 
 // 2.5    Saving
 //------------------------------------------------------------------------------
@@ -227,10 +263,12 @@ size_t                d_cmake_doc_indent(const struct d_cmake_doc* _doc,
  * @param[in]     _capacity  the size of `_problem`.
  * @return what saving did.
  */
-enum d_cmake_saved    d_cmake_doc_save(struct d_cmake_doc* _doc,
-                                       const char*         _path,
-                                       char*               _problem,
-                                       size_t              _capacity);
+enum dj_cmake_saved d_cmake_doc_save(
+    struct dj_cmake_doc* _doc,
+    const char*          _path,
+    char*                _problem,
+    size_t               _capacity
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_CMAKE_DCMAKE_DOC_H

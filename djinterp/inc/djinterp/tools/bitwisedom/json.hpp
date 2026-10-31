@@ -26,8 +26,8 @@ TABLE OF CONTENTS
     1.  parse_json, write_json
 */
 
-#ifndef BITWISEDOM_JSON_HPP
-#define BITWISEDOM_JSON_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_JSON_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_JSON_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -38,7 +38,7 @@ TABLE OF CONTENTS
 #include <string_view>  // std::string_view
 #include <vector>       // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./bits.hpp"  // u64, i64
 
@@ -86,24 +86,46 @@ struct json_value
     std::vector<json_member> members;
 
     // makers -- one per kind
-    D_NODISCARD static json_value boolean(bool _flag);
-    D_NODISCARD static json_value number(i64 _number);
-    D_NODISCARD static json_value real(double _number);
-    D_NODISCARD static json_value string(const std::string& _text);
+    D_NODISCARD static json_value boolean(
+        bool _flag
+    );
+    D_NODISCARD static json_value number(
+        i64 _number
+    );
+    D_NODISCARD static json_value real(
+        double _number
+    );
+    D_NODISCARD static json_value string(
+        const std::string& _text
+    );
     D_NODISCARD static json_value array();
     D_NODISCARD static json_value object();
 
     // members -- find returns nullptr for a missing key or a non-object
-    D_NODISCARD const json_value* find(const std::string& _key) const;
-    void        set(const std::string& _key,
-                    json_value         _value);
-    void        push(json_value _value);
+    D_NODISCARD const json_value* find(
+        const std::string& _key
+    ) const;
+    void set(
+        const std::string& _key,
+        json_value         _value
+    );
+    void push(
+        json_value _value
+    );
 
     // readers -- each returns _fallback for the wrong kind or a bad number
-    D_NODISCARD bool         as_bool(bool _fallback) const;
-    D_NODISCARD i64          as_int(i64 _fallback) const;
-    D_NODISCARD double       as_real(double _fallback) const;
-    D_NODISCARD std::string  as_string(const std::string& _fallback) const;
+    D_NODISCARD bool as_bool(
+        bool _fallback
+    ) const;
+    D_NODISCARD i64 as_int(
+        i64 _fallback
+    ) const;
+    D_NODISCARD double as_real(
+        double _fallback
+    ) const;
+    D_NODISCARD std::string as_string(
+        const std::string& _fallback
+    ) const;
 };
 
 // 1.1.4
@@ -132,10 +154,14 @@ struct json_member
  * @param[out] _error  what is wrong, with its line and column, when not.
  * @return `true` if the text was one JSON value.
  */
-D_NODISCARD bool         parse_json(std::string_view _text,
-                                    json_value&      _value,
-                                    std::string&     _error);
-D_NODISCARD std::string  write_json(const json_value& _value);
+D_NODISCARD bool parse_json(
+    std::string_view _text,
+    json_value&      _value,
+    std::string&     _error
+);
+D_NODISCARD std::string write_json(
+    const json_value& _value
+);
 
 
 }  // namespace bitwisedom
@@ -143,4 +169,4 @@ D_NODISCARD std::string  write_json(const json_value& _value);
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_JSON_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_JSON_HPP

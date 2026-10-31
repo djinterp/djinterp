@@ -36,7 +36,7 @@
 #include "../../../../../inc/djinterp/env/c/env_vendor_attributes.h"  // D_THREAD_LOCAL
 #include "../db_internal.h"  // buffers, builders, formatting, numbers
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_POSTGRES == 1)
@@ -51,11 +51,11 @@
 #define D_INTERNAL_POSTGRES_COPY_REFUSAL                                       \
     "COPY with the client is not supported through the djinterp layer"
 
-// d_internal_postgres_kind
+// dj_internal_postgres_kind
 //   struct: where pg_catalog keeps one kind of object, as a SELECT of its
 // names through the conditions every lookup of the kind needs. The aliases
 // are fixed: n for the namespace, t for an owning table.
-struct d_internal_postgres_kind
+struct dj_internal_postgres_kind
 {
     const char* select;   // the SELECT, through its fixed conditions
     const char* name;     // its name column
@@ -65,11 +65,11 @@ struct d_internal_postgres_kind
 };
 
 // d_internal_postgres_kinds
-//   table: each d_internal_postgres_object's kind, in the enum's order.
+//   table: each dj_internal_postgres_object's kind, in the enum's order.
 // relkind 'p' and 'I', a partitioned table and index, arrived with 10 and
 // 11, and are simply absent before. A listing leaves out the system's
 // schemas, and the indexes a primary key, UNIQUE or EXCLUDE constraint owns.
-static const struct d_internal_postgres_kind d_internal_postgres_kinds[] =
+static const struct dj_internal_postgres_kind d_internal_postgres_kinds[] =
 {
     { "SELECT d.datname FROM pg_catalog.pg_database d WHERE TRUE",
       "d.datname", false, NULL, NULL },
@@ -114,14 +114,13 @@ static const struct d_internal_postgres_kind d_internal_postgres_kinds[] =
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_kinds) /
                   sizeof(d_internal_postgres_kinds[0])) ==
                  ((size_t)D_INTERNAL_POSTGRES_TRIGGER + 1u),
-                 "every d_internal_postgres_object has a kind" );
+                 "every dj_internal_postgres_object has a kind" );
 
 /*
 d_internal_postgres_copying
   Whether a result is the start of a COPY, which waits on the client.
 */
-bool
-d_internal_postgres_copying(
+bool d_internal_postgres_copying(
     ExecStatusType _status
 )
 {
@@ -135,8 +134,8 @@ d_internal_postgres_abandon_copy
   One COPY ended from the client's side: what the server sends is read and
 dropped, and what it waits for is refused, which fails the COPY.
 */
-static void
-d_internal_postgres_abandon_copy(
+static
+void d_internal_postgres_abandon_copy(
     PGconn*        _db,
     ExecStatusType _status
 )
@@ -169,8 +168,7 @@ d_internal_postgres_pipelined
   PQpipelineStatus is libpq 14's: the header must declare it and the library
 loaded have it.
 */
-bool
-d_internal_postgres_pipelined(
+bool d_internal_postgres_pipelined(
     const PGconn* _db
 )
 {
@@ -189,8 +187,7 @@ d_internal_postgres_end_copy
   Every COPY the SQL starts is abandoned, and every result after them read,
 until libpq has none left and the connection takes a statement again.
 */
-void
-d_internal_postgres_end_copy(
+void d_internal_postgres_end_copy(
     PGconn*        _db,
     ExecStatusType _status
 )
@@ -236,8 +233,8 @@ d_internal_postgres_end_copy(
  *         D_DB_UNSUPPORTED for a COPY with the client, ended.
  * @post On success with `_result`, the caller frees `*_result` with PQclear.
  */
-static int
-d_internal_postgres_execute(
+static
+int d_internal_postgres_execute(
     PGconn*     _db,
     const char* _sql,
     PGresult**  _result
@@ -264,8 +261,8 @@ d_internal_postgres_execute(
  *                     success.
  * @return 0, D_DB_NOT_FOUND for no row, or 53200 when memory ran out.
  */
-static int
-d_internal_postgres_first_value(
+static
+int d_internal_postgres_first_value(
     PGresult* _rows,
     char**    _value
 )
@@ -312,8 +309,8 @@ d_internal_postgres_read_int64
 an exponent, is truncated toward zero, as C converts one, when it fits. Both
 bounds are powers of two, which a double holds exactly.
 */
-static int
-d_internal_postgres_read_int64(
+static
+int d_internal_postgres_read_int64(
     const char* _text,
     int64_t*    _value
 )
@@ -352,8 +349,8 @@ d_internal_postgres_read_bool
   The server writes a boolean as t or f, whatever DateStyle or locale say; a
 NULL reads as false.
 */
-static int
-d_internal_postgres_read_bool(
+static
+int d_internal_postgres_read_bool(
     const char* _text,
     bool*       _value
 )
@@ -384,13 +381,13 @@ d_internal_postgres_collect
 freed whatever happens. A result is in memory whole, so reading it cannot
 fail part way.
 */
-static int
-d_internal_postgres_collect(
-    PGresult*              _rows,
-    struct d_db_name_list* _names
+static
+int d_internal_postgres_collect(
+    PGresult*               _rows,
+    struct dj_db_name_list* _names
 )
 {
-    struct d_internal_db_names builder =
+    struct dj_internal_db_names builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u
     };
@@ -433,8 +430,8 @@ d_internal_postgres_collect(
  */
 static bool
 d_internal_postgres_path_ok(
-    enum d_internal_postgres_object        _object,
-    const struct d_internal_postgres_path* _path,
+    enum dj_internal_postgres_object        _object,
+    const struct dj_internal_postgres_path* _path,
     bool                                   _named
 )
 {
@@ -473,19 +470,19 @@ d_internal_postgres_path_ok(
  *
  * A schema's own name is a schema, matched as one, "pg_temp" included.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_postgres_place(
     PGconn*                                _db,
-    struct d_internal_db_buffer*           _sql,
-    enum d_internal_postgres_object        _object,
-    const struct d_internal_postgres_path* _path
+    struct dj_internal_db_buffer*           _sql,
+    enum dj_internal_postgres_object        _object,
+    const struct dj_internal_postgres_path* _path
 )
 {
-    const struct d_internal_postgres_kind* const kind =
+    const struct dj_internal_postgres_kind* const kind =
         &d_internal_postgres_kinds[_object];
-    const struct d_internal_db_quoting           quoting =
+    const struct dj_internal_db_quoting           quoting =
         d_internal_postgres_quoting(_db);
-    enum d_internal_db_format_status             status  =
+    enum dj_internal_db_format_status             status  =
         (kind->scoped)
             ? d_internal_postgres_match_schema(_db, _sql, _path->schema)
             : D_INTERNAL_DB_FORMAT_OK;
@@ -534,17 +531,17 @@ d_internal_postgres_place(
 static int
 d_internal_postgres_lookup(
     PGconn*                                _db,
-    enum d_internal_postgres_object        _object,
-    const struct d_internal_postgres_path* _path,
+    enum dj_internal_postgres_object        _object,
+    const struct dj_internal_postgres_path* _path,
     PGresult**                             _rows
 )
 {
-    const struct d_internal_postgres_kind* const kind =
+    const struct dj_internal_postgres_kind* const kind =
         &d_internal_postgres_kinds[_object];
-    const struct d_internal_db_quoting           quoting =
+    const struct dj_internal_db_quoting           quoting =
         d_internal_postgres_quoting(_db);
-    struct d_internal_db_buffer                  sql     = { NULL, 0u, 0u };
-    enum d_internal_db_format_status             status  =
+    struct dj_internal_db_buffer                  sql     = { NULL, 0u, 0u };
+    enum dj_internal_db_format_status             status  =
         d_internal_db_format(&sql, &quoting, "%s", kind->select);
 
     // where the object is
@@ -600,8 +597,8 @@ d_internal_postgres_lookup(
  * was, and the savepoint is released either way; any other failure leaves
  * the transaction failed, as a failing statement does.
  */
-static int
-d_internal_postgres_settle(
+static
+int d_internal_postgres_settle(
     PGconn* _db,
     int     _result,
     int     _tolerated,
@@ -644,8 +641,7 @@ carry the statement, or pipeline mode refuses a call that waits; a failure
 it detects itself, a lost connection among them, carries no SQLSTATE, so the
 connection's state says which.
 */
-int
-d_internal_postgres_result(
+int d_internal_postgres_result(
     const PGconn*   _db,
     const PGresult* _result
 )
@@ -698,8 +694,7 @@ d_internal_postgres_take
   A COPY waits on the client, which the layer is not: it is ended, with every
 result after it, so that the connection takes a statement again.
 */
-int
-d_internal_postgres_take(
+int d_internal_postgres_take(
     PGconn*    _db,
     PGresult*  _result,
     PGresult** _out
@@ -741,7 +736,7 @@ the connection's encoding -- is the caller's argument.
 */
 int
 d_internal_postgres_format_result(
-    enum d_internal_db_format_status _state
+    enum dj_internal_db_format_status _state
 )
 {
     switch (_state)
@@ -774,8 +769,7 @@ d_internal_postgres_answer
   One mark a thread: a connection is used by one thread at a time, and its
 next call either marks again or is heard.
 */
-int
-d_internal_postgres_answer(
+int d_internal_postgres_answer(
     const PGconn* _db,
     int           _result
 )
@@ -786,8 +780,7 @@ d_internal_postgres_answer(
     return _result;
 }
 
-void
-d_internal_postgres_heard(
+void d_internal_postgres_heard(
     const PGconn* _db
 )
 {
@@ -801,8 +794,7 @@ d_internal_postgres_heard(
     return;
 }
 
-bool
-d_internal_postgres_answered(
+bool d_internal_postgres_answered(
     const PGconn* _db,
     int           _result
 )
@@ -818,8 +810,7 @@ d_internal_postgres_answered(
 d_internal_postgres_answer
   Without thread-local storage there is nowhere to keep a mark.
 */
-int
-d_internal_postgres_answer(
+int d_internal_postgres_answer(
     const PGconn* _db,
     int           _result
 )
@@ -829,8 +820,7 @@ d_internal_postgres_answer(
     return _result;
 }
 
-void
-d_internal_postgres_heard(
+void d_internal_postgres_heard(
     const PGconn* _db
 )
 {
@@ -844,8 +834,7 @@ d_internal_postgres_answered
   Without a mark, each code the layer may give is taken for its own, the
 connection's message being possibly older.
 */
-bool
-d_internal_postgres_answered(
+bool d_internal_postgres_answered(
     const PGconn* _db,
     int           _result
 )
@@ -873,8 +862,7 @@ begins with, would read such results away without a word; the layer answers
 first. libpq reports PQTRANS_UNKNOWN for a lost connection, which the call
 then finds out for itself.
 */
-int
-d_internal_postgres_ready(
+int d_internal_postgres_ready(
     const PGconn* _db
 )
 {
@@ -897,10 +885,7 @@ d_internal_postgres_now
   libpq 17's own clock, where the header and the library loaded both have
 it; time() before.
 */
-double
-d_internal_postgres_now(
-    void
-)
+double d_internal_postgres_now(void)
 {
 #if defined(LIBPQ_HAS_SOCKET_POLL)
     // libpq 17's own clock, where the library loaded has it too
@@ -919,14 +904,13 @@ d_internal_postgres_pend
 unsigned can count; a deadline already passed is 0, a wait that ends at
 once.
 */
-int
-d_internal_postgres_pend(
-    int                  _socket,
-    unsigned             _events,
-    struct d_db_pending* _pending
+int d_internal_postgres_pend(
+    int                   _socket,
+    unsigned              _events,
+    struct dj_db_pending* _pending
 )
 {
-    _pending->socket     = (_socket >= 0) ? (d_db_socket)_socket
+    _pending->socket     = (_socket >= 0) ? (dj_db_socket)_socket
                                           : D_DB_SOCKET_NONE;
     _pending->events     = _events;
     _pending->timeout_ms = 0u;
@@ -961,9 +945,8 @@ d_internal_postgres_pend(
 d_internal_postgres_settled
   Every field as a finished call leaves it.
 */
-void
-d_internal_postgres_settled(
-    struct d_db_pending* _pending
+void d_internal_postgres_settled(
+    struct dj_db_pending* _pending
 )
 {
     _pending->socket     = D_DB_SOCKET_NONE;
@@ -981,8 +964,7 @@ d_internal_postgres_nonblocking_on
 nothing is when a send begins; it refuses a lost connection, which the send
 then finds for itself.
 */
-bool
-d_internal_postgres_nonblocking_on(
+bool d_internal_postgres_nonblocking_on(
     PGconn* _db
 )
 {
@@ -997,12 +979,11 @@ for trouble. libpq's mode goes back to blocking only once everything is
 written, while the command still waits for its results, so that libpq
 clears no failure's message in turning it.
 */
-int
-d_internal_postgres_flush(
-    PGconn*              _db,
-    unsigned             _events,
-    bool                 _turned_on,
-    struct d_db_pending* _pending
+int d_internal_postgres_flush(
+    PGconn*               _db,
+    unsigned              _events,
+    bool                  _turned_on,
+    struct dj_db_pending* _pending
 )
 {
     // the server's own writing, read first, so that it can go on reading
@@ -1052,10 +1033,9 @@ then says whether PQgetResult would. libpq reads the end of the results too
 -- its ReadyForQuery -- before it answers NULL, so the end can be waited for
 as a result is.
 */
-int
-d_internal_postgres_arrived(
-    PGconn*              _db,
-    struct d_db_pending* _pending
+int d_internal_postgres_arrived(
+    PGconn*               _db,
+    struct dj_db_pending* _pending
 )
 {
     // what the server has sent
@@ -1085,8 +1065,7 @@ d_internal_postgres_name_ok
   The server refuses an empty name itself, but a caller passing one has
 almost certainly made a mistake, and the layer says so first.
 */
-bool
-d_internal_postgres_name_ok(
+bool d_internal_postgres_name_ok(
     const char* _name
 )
 {
@@ -1099,8 +1078,7 @@ d_internal_postgres_schema_ok
   NULL is the documented way to say the current schema; an empty name is
 never one.
 */
-bool
-d_internal_postgres_schema_ok(
+bool d_internal_postgres_schema_ok(
     const char* _schema
 )
 {
@@ -1117,11 +1095,10 @@ PostgreSQL takes from a client, so doubling every one is safe without
 knowing the connection's. The name is copied a run at a time, each run
 ending at a double quote, which is then doubled.
 */
-bool
-d_internal_postgres_quote_name(
-    void*                        _context,
-    struct d_internal_db_buffer* _out,
-    const char*                  _name
+bool d_internal_postgres_quote_name(
+    void*                         _context,
+    struct dj_internal_db_buffer* _out,
+    const char*                   _name
 )
 {
     const size_t length_before = _out->length;
@@ -1165,11 +1142,10 @@ releases of February 2025 it refuses text that is not valid in the
 encoding; an older one quotes it, and the server, which checks the encoding
 of every statement, refuses the statement instead.
 */
-bool
-d_internal_postgres_quote_value(
-    void*                        _context,
-    struct d_internal_db_buffer* _out,
-    const char*                  _text
+bool d_internal_postgres_quote_value(
+    void*                         _context,
+    struct dj_internal_db_buffer* _out,
+    const char*                   _text
 )
 {
     PGconn* const db     = (PGconn*)_context;
@@ -1193,12 +1169,11 @@ d_internal_postgres_quoting
   Both quoting functions, with the connection as the context the value's
 needs.
 */
-struct d_internal_db_quoting
-d_internal_postgres_quoting(
+struct dj_internal_db_quoting d_internal_postgres_quoting(
     PGconn* _db
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
     {
         d_internal_postgres_quote_value,
         d_internal_postgres_quote_name,
@@ -1215,8 +1190,7 @@ d_internal_postgres_target
   current_schema() is NULL when no schema of the search path exists, which is
 3F000, as the server says it for an unqualified CREATE.
 */
-int
-d_internal_postgres_target(
+int d_internal_postgres_target(
     PGconn*      _db,
     const char*  _schema,
     const char** _use,
@@ -1264,8 +1238,7 @@ d_internal_postgres_target(
 d_internal_postgres_clause
   A flag's words, or nothing, for a %s in a statement.
 */
-const char*
-d_internal_postgres_clause(
+const char* d_internal_postgres_clause(
     unsigned    _flags,
     unsigned    _flag,
     const char* _words
@@ -1284,8 +1257,7 @@ d_internal_postgres_clause(
 d_internal_postgres_send
   The last result is the caller's only when it holds rows.
 */
-int
-d_internal_postgres_send(
+int d_internal_postgres_send(
     PGconn*     _db,
     const char* _sql,
     PGresult**  _rows
@@ -1326,16 +1298,15 @@ d_internal_postgres_vrun
   The statement is formatted with the connection's quoting, sent, and
 released.
 */
-int
-d_internal_postgres_vrun(
+int d_internal_postgres_vrun(
     PGconn*     _db,
     PGresult**  _rows,
     const char* _format,
     va_list     _args
 )
 {
-    struct d_internal_db_buffer        sql     = { NULL, 0u, 0u };
-    const struct d_internal_db_quoting quoting =
+    struct dj_internal_db_buffer        sql     = { NULL, 0u, 0u };
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
 
     // nothing yet, whatever follows
@@ -1364,8 +1335,7 @@ d_internal_postgres_vrun(
 d_internal_postgres_run
   The variadic face of d_internal_postgres_vrun.
 */
-int
-d_internal_postgres_run(
+int d_internal_postgres_run(
     PGconn*     _db,
     PGresult**  _rows,
     const char* _format,
@@ -1389,8 +1359,7 @@ d_internal_postgres_run(
 d_internal_postgres_vquery
   The first value of the last result, copied out before the result is freed.
 */
-int
-d_internal_postgres_vquery(
+int d_internal_postgres_vquery(
     PGconn*     _db,
     char**      _value,
     const char* _format,
@@ -1413,8 +1382,7 @@ d_internal_postgres_vquery(
 d_internal_postgres_query
   The variadic face of d_internal_postgres_vquery.
 */
-int
-d_internal_postgres_query(
+int d_internal_postgres_query(
     PGconn*     _db,
     char**      _value,
     const char* _format,
@@ -1436,8 +1404,7 @@ d_internal_postgres_query(
 d_internal_postgres_vquery_int64
   The value as text, as the protocol sends it, then read as an integer.
 */
-int
-d_internal_postgres_vquery_int64(
+int d_internal_postgres_vquery_int64(
     PGconn*     _db,
     int64_t*    _value,
     const char* _format,
@@ -1470,8 +1437,7 @@ d_internal_postgres_vquery_int64(
 d_internal_postgres_query_int64
   The variadic face of d_internal_postgres_vquery_int64.
 */
-int
-d_internal_postgres_query_int64(
+int d_internal_postgres_query_int64(
     PGconn*     _db,
     int64_t*    _value,
     const char* _format,
@@ -1496,8 +1462,7 @@ d_internal_postgres_vquery_double
 server writes a double's NaN and infinities as words, which are not numbers
 here.
 */
-int
-d_internal_postgres_vquery_double(
+int d_internal_postgres_vquery_double(
     PGconn*     _db,
     double*     _value,
     const char* _format,
@@ -1533,8 +1498,7 @@ d_internal_postgres_vquery_double(
 d_internal_postgres_vquery_bool
   As d_internal_postgres_vquery_int64, reading t or f.
 */
-int
-d_internal_postgres_vquery_bool(
+int d_internal_postgres_vquery_bool(
     PGconn*     _db,
     bool*       _value,
     const char* _format,
@@ -1567,8 +1531,7 @@ d_internal_postgres_vquery_bool(
 d_internal_postgres_query_bool
   The variadic face of d_internal_postgres_vquery_bool.
 */
-int
-d_internal_postgres_query_bool(
+int d_internal_postgres_query_bool(
     PGconn*     _db,
     bool*       _value,
     const char* _format,
@@ -1592,16 +1555,15 @@ d_internal_postgres_vchanges
   The statement's command tag carries its count -- INSERT 0 3, UPDATE 2 --
 which PQcmdTuples isolates; a statement that counts nothing has "".
 */
-int
-d_internal_postgres_vchanges(
+int d_internal_postgres_vchanges(
     PGconn*     _db,
     int64_t*    _changes,
     const char* _format,
     va_list     _args
 )
 {
-    struct d_internal_db_buffer        sql     = { NULL, 0u, 0u };
-    const struct d_internal_db_quoting quoting =
+    struct dj_internal_db_buffer        sql     = { NULL, 0u, 0u };
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
     PGresult*                          last    = NULL;
     int64_t                            count   = 0;
@@ -1650,7 +1612,7 @@ d_internal_postgres_oid_type
   The OIDs are fixed: the built-in types' have never changed, and every
 release keeps them.
 */
-enum d_db_type
+enum dj_db_type
 d_internal_postgres_oid_type(
     Oid _oid
 )
@@ -1720,8 +1682,7 @@ d_internal_postgres_oid_name
   As format_type writes each name; asking the server for the rest would cost
 a round trip a row of metadata does not justify.
 */
-const char*
-d_internal_postgres_oid_name(
+const char* d_internal_postgres_oid_name(
     Oid _oid
 )
 {
@@ -1779,12 +1740,12 @@ d_internal_postgres_oid_name(
  * PostgreSQL spells them, which db_internal's reader refuses. A bytea's text
  * is decoded by libpq, which reads both the hex and the escape format.
  */
-static bool
-d_internal_postgres_rows_value(
-    struct d_internal_db_rows* _rows,
-    Oid                        _oid,
-    const char*                _text,
-    size_t                     _length
+static
+bool d_internal_postgres_rows_value(
+    struct dj_internal_db_rows* _rows,
+    Oid                         _oid,
+    const char*                 _text,
+    size_t                      _length
 )
 {
     // SQL NULL
@@ -1883,13 +1844,12 @@ it, and the result freed once every value is copied. Rows a few at a time
 come as results of their own -- one row's, or a chunk's (libpq 17) -- each
 described as the whole result would be.
 */
-int
-d_internal_postgres_collect_rows(
-    PGresult*         _result,
-    struct d_db_rows* _rows
+int d_internal_postgres_collect_rows(
+    PGresult*          _result,
+    struct dj_db_rows* _rows
 )
 {
-    struct d_internal_db_rows builder =
+    struct dj_internal_db_rows builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
     };
@@ -1918,8 +1878,8 @@ d_internal_postgres_holds_rows
   Whether a result's status is one of rows -- all of them, one, or a chunk --
 rather than a command's, which has no columns.
 */
-static bool
-d_internal_postgres_holds_rows(
+static
+bool d_internal_postgres_holds_rows(
     const PGresult* _result
 )
 {
@@ -1939,10 +1899,9 @@ d_internal_postgres_describe_columns
   Each column, described once, from the result's own description, which a
 single row's result and the zero-row result that ends a run both carry.
 */
-bool
-d_internal_postgres_describe_columns(
-    const PGresult*            _result,
-    struct d_internal_db_rows* _builder
+bool d_internal_postgres_describe_columns(
+    const PGresult*             _result,
+    struct dj_internal_db_rows* _builder
 )
 {
     // a command's result has no columns
@@ -1972,10 +1931,9 @@ d_internal_postgres_describe_columns(
 d_internal_postgres_keep_rows
   Each row, value by value, as the builder's columns describe them.
 */
-bool
-d_internal_postgres_keep_rows(
-    const PGresult*            _result,
-    struct d_internal_db_rows* _builder
+bool d_internal_postgres_keep_rows(
+    const PGresult*             _result,
+    struct dj_internal_db_rows* _builder
 )
 {
     // a command's result has no rows
@@ -2014,20 +1972,19 @@ d_internal_postgres_tolerate
 statement, so a CREATE costs one round trip either way, and one more to
 release the savepoint, or to roll back to it and release it.
 */
-int
-d_internal_postgres_tolerate(
+int d_internal_postgres_tolerate(
     PGconn*     _db,
     int         _tolerated,
     const char* _format,
     ...
 )
 {
-    struct d_internal_db_buffer        sql     = { NULL, 0u, 0u };
-    const struct d_internal_db_quoting quoting =
+    struct dj_internal_db_buffer        sql     = { NULL, 0u, 0u };
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
     const bool                         guarded =
         (PQtransactionStatus(_db) == PQTRANS_INTRANS);
-    enum d_internal_db_format_status   status  =
+    enum dj_internal_db_format_status   status  =
         (guarded) ? d_internal_db_format(&sql,
                                          &quoting,
                                          "SAVEPOINT d_postgres_tolerate; ")
@@ -2071,8 +2028,8 @@ d_internal_postgres_has
 int
 d_internal_postgres_has(
     PGconn*                                _db,
-    enum d_internal_postgres_object        _object,
-    const struct d_internal_postgres_path* _path,
+    enum dj_internal_postgres_object        _object,
+    const struct dj_internal_postgres_path* _path,
     bool*                                  _exists
 )
 {
@@ -2115,9 +2072,9 @@ d_internal_postgres_list
 int
 d_internal_postgres_list(
     PGconn*                                _db,
-    enum d_internal_postgres_object        _object,
-    const struct d_internal_postgres_path* _path,
-    struct d_db_name_list*                 _names
+    enum dj_internal_postgres_object        _object,
+    const struct dj_internal_postgres_path* _path,
+    struct dj_db_name_list*                 _names
 )
 {
     PGresult* rows = NULL;
@@ -2130,7 +2087,7 @@ d_internal_postgres_list(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    const struct d_internal_postgres_path listing =
+    const struct dj_internal_postgres_path listing =
     {
         _path->schema, _path->table, NULL
     };
@@ -2156,14 +2113,14 @@ schema, whose real name is pg_temp_ and a number, and whose oid
 pg_my_temp_schema() gives -- 0, matching nothing, before the session makes
 one.
 */
-enum d_internal_db_format_status
+enum dj_internal_db_format_status
 d_internal_postgres_match_schema(
     PGconn*                      _db,
-    struct d_internal_db_buffer* _sql,
+    struct dj_internal_db_buffer* _sql,
     const char*                  _schema
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
 
     // the current schema, or the temporary one
@@ -2193,6 +2150,6 @@ d_internal_postgres_match_schema(
 
 // an ISO C translation unit must declare something; built as stubs, the
 // layer has no plumbing
-typedef int d_internal_postgres_no_plumbing;
+typedef int dj_internal_postgres_no_plumbing;
 
 #endif  // D_INTERNAL_POSTGRES

@@ -1,0 +1,1122 @@
+/*******************************************************************************
+* djinterp [cpp]                                            event_dispatcher.hpp
+*
+* The facade:
+*   The unified front end of the event system. DEventDispatcher composes an
+* DEventRegistry (typed subscription and dispatch) with an DEventQueue
+* (deferred delivery), and adds the bridge to the fused evaluation path. It is
+* the one type most users name: bind a handler, fire an event now or queue it
+* for later, process the queue, merge subsystems, or compile a static word
+* into a fused step.
+*
+*   This header is the C++ successor to event_handler.hpp; the facade is
+* renamed event_handler -> DEventDispatcher to free the word "handler" for the
+* step primitive, and fire() now returns the enriched DDispatchResult rather
+* than a bare count. It absorbs the former event_handler_traits.hpp and
+* event_handler_concepts.hpp.
+*
+* FORMAL CORRESPONDENCE ("Definition of an Event"):
+*   immediate fire        delta_rho at once   -- fire<Event>(...)
+*   queue       q in Sigma-hat*               -- DEventQueue
+*   enqueue     q . (e,a)  (right concat)      -- queue<Event>(...)
+*   process     fold of delta_rho over q,      -- process / process_all
+*               rho read at processing time
+*               (deferral coherence: fire == enqueue-then-process)
+*   merge       rho (+) rho'                    -- merge(other)
+*   fused drive hat-h over a trace             -- drive(step, first, last)
+*   coherence   fused == erased (static rho)    -- see drive's COHERENCE LAW
+*
+* PORTABLE ACROSS:
+*   C++11, C++14, C++17, C++20, C++23, C++26
+*
+*
+* path:      /inc/djinterp/cpp/event/event_dispatcher.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+
+#ifndef DJINTERP_EVENT_EVENT_DISPATCHER_HPP
+#define DJINTERP_EVENT_EVENT_DISPATCHER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
+#include <cstddef>
+#include <functional>
+#include <memory>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
+// djinterp
+#include "../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
+#include "./event_registry.hpp"
+
+
+NS_DJINTERP
+
+
+// =========================================================================
+// I.   INTERNAL QUEUE SUPPORT
+// =========================================================================
+
+NS_INTERNAL
+
+    // dispatch_tuple_impl
+    //   function: unpacks a payload tuple and forwards its elements to the
+    // registry's typed dispatch.
+    template<typename Event,
+             typename Tuple,
+             std::size_t... I>
+    DDispatchResult dispatch_tuple_impl(
+        DEventRegistry& _reg,
+        Tuple&          _payload,
+        index_sequence<I...>
+    )
+    {
+        return _reg.template dispatch<Event>(std::get<I>(_payload)...);
+    }
+
+    // dispatch_tuple
+    //   function: dispatches an occurrence held as a payload tuple through
+    // the registry (the registry being read at call time).
+    template<typename Event,
+             typename Tuple>
+    DDispatchResult dispatch_tuple(
+        DEventRegistry& _reg,
+        Tuple&          _payload
+    )
+    {
+        return dispatch_tuple_impl<Event>(
+            _reg, _payload,
+            make_index_sequence<std::tuple_size<Tuple>::value>{});
+    }
+
+    // DErasedEvent
+    //   struct: a type-erased queued occurrence. `type_key` records the
+    // originating event type (kappa) for inspection; `replay` re-dispatches
+    // the captured payload against whatever registry is supplied at
+    // processing time.
+    struct DErasedEvent
+    {
+        std::size_t                          type_key;
+        std::function<void(DEventRegistry&)> replay;
+    };
+
+NS_END  // internal
+
+
+// =========================================================================
+// II.  EVENT QUEUE
+// =========================================================================
+
+// DEventQueue
+//   class: a word of deferred occurrences (q in Sigma-hat*). enqueue appends
+// an occurrence with its payload captured by value; process folds dispatch
+// over a prefix of the word, reading the supplied registry at processing
+// time (delivery-time binding). Occurrences enqueued re-entrantly during
+// processing land after the current prefix and are deferred to a later
+// process() call.
+class DEventQueue
+{
+private:
+    using queue_type = std::vector<internal::DErasedEvent>;
+
+public:
+    DEventQueue()
+    {
+    };
+
+    // ---- enqueue (right concatenation) ----
+
+    // enqueue
+    //   appends an occurrence of Event, capturing its payload by value. The
+    // registry is not consulted here; binding happens at processing time.
+    template<typename Event,
+             typename... Args>
+    void enqueue(
+        Args&&... _args
+    )
+    {
+        using payload_t = typename event_traits<clean_t<Event>>::payload_type;
+
+        // capture the payload by value in a shared_ptr so the replay closure
+        // remains copyable (a std::function requirement) regardless of the
+        // payload's own copy semantics
+        auto payload_ptr = std::make_shared<payload_t>(
+            std::forward<Args>(_args)...);
+
+        internal::DErasedEvent ev;
+        ev.type_key = internal::type_key<clean_t<Event>>();
+        ev.replay =
+            [payload_ptr](DEventRegistry& _reg)
+            {
+                internal::dispatch_tuple<Event>(_reg, *payload_ptr);
+            };
+
+        m_queue.push_back(std::move(ev));
+    }
+
+    // ---- process (the deferred fold) ----
+
+    // process
+    //   dispatches up to _max queued occurrences (0 means all currently
+    // queued) against _registry, in order, then drops the processed prefix.
+    // The registry is read here, at processing time.
+    //
+    //   The prefix to process is moved into an isolated local batch and
+    // removed from the queue *before* any replay runs, so a handler that
+    // enqueues re-entrantly during processing cannot reallocate or
+    // invalidate the occurrences currently being replayed. Such re-entrant
+    // enqueues land in the queue and are deferred to a later call.
+    // returns: the number of occurrences processed.
+    std::size_t process(
+        DEventRegistry& _registry,
+        std::size_t     _max = 0
+    )
+    {
+        std::size_t available = m_queue.size();
+        std::size_t limit     =
+            ( (_max == 0) || (_max > available) )
+                ? available
+                : _max;
+
+        if (limit == 0)
+        {
+            return 0;
+        }
+
+        // detach the prefix from the live queue into a stable local batch
+        std::vector<internal::DErasedEvent> batch;
+        batch.reserve(limit);
+
+        for (std::size_t i = 0; i < limit; ++i)
+        {
+            batch.push_back(std::move(m_queue[i]));
+        }
+
+        m_queue.erase(m_queue.begin(),
+                      m_queue.begin() + static_cast<std::ptrdiff_t>(limit));
+
+        // fold over the detached batch; re-entrant enqueues mutate m_queue,
+        // never this batch
+        for (std::size_t i = 0; i < batch.size(); ++i)
+        {
+            batch[i].replay(_registry);
+        }
+
+        return limit;
+    };
+
+    // process_all
+    //   dispatches all currently queued occurrences against _registry.
+    // returns: the number of occurrences processed.
+    std::size_t process_all(
+        DEventRegistry& _registry
+    )
+    {
+        return process(_registry, 0);
+    };
+
+    // ---- queue state ----
+
+    // pending
+    //   returns the number of occurrences currently queued.
+    std::size_t pending() const
+    {
+        return m_queue.size();
+    };
+
+    // empty
+    //   returns true if no occurrences are queued.
+    bool empty() const
+    {
+        return m_queue.empty();
+    };
+
+    // clear
+    //   discards all queued occurrences without dispatching them.
+    void clear()
+    {
+        m_queue.clear();
+    };
+
+private:
+    queue_type m_queue;
+};
+
+
+// =========================================================================
+// III. EVENT DISPATCHER (the facade)
+// =========================================================================
+
+// DEventDispatcher
+//   class: the unified event front end, composing an DEventRegistry and an
+// DEventQueue. Binding, masking, and queries delegate to the registry;
+// deferred delivery delegates to the queue; the queue is always processed
+// against this dispatcher's own registry.
+class DEventDispatcher
+{
+public:
+    DEventDispatcher()
+    {
+    };
+
+    // ---- binding ----
+
+    // bind
+    //   registers a handler for Event (compatibility checked at compile
+    // time by the registry).
+    // returns: a DHandlerId handle for later management.
+    template<typename Event,
+             typename Callable>
+    DHandlerId bind(
+        Callable&& _fn
+    )
+    {
+        return m_registry.template bind<Event>(
+            std::forward<Callable>(_fn));
+    }
+
+    // unbind
+    //   removes the handler identified by _id.
+    bool unbind(
+        DHandlerId _id
+    )
+    {
+        return m_registry.unbind(_id);
+    };
+
+    // enable
+    //   enables the handler identified by _id.
+    bool enable(
+        DHandlerId _id
+    )
+    {
+        return m_registry.enable(_id);
+    };
+
+    // disable
+    //   disables the handler identified by _id.
+    bool disable(
+        DHandlerId _id
+    )
+    {
+        return m_registry.disable(_id);
+    };
+
+    // is_enabled
+    //   queries whether the handler identified by _id is enabled.
+    bool is_enabled(
+        DHandlerId _id
+    ) const
+    {
+        return m_registry.is_enabled(_id);
+    };
+
+    // contains
+    //   queries whether the handler identified by _id exists.
+    bool contains(
+        DHandlerId _id
+    ) const
+    {
+        return m_registry.contains(_id);
+    };
+
+    // ---- immediate dispatch ----
+
+    // fire
+    //   dispatches an occurrence of Event immediately against the registry.
+    // returns: the enriched (count, verdict) DDispatchResult.
+    template<typename Event,
+             typename... Args>
+    DDispatchResult fire(
+        Args&&... _args
+    )
+    {
+        return m_registry.template dispatch<Event>(
+            std::forward<Args>(_args)...);
+    }
+
+    // ---- deferred dispatch ----
+
+    // queue
+    //   enqueues an occurrence of Event for later processing (its payload
+    // captured by value).
+    template<typename Event,
+             typename... Args>
+    void queue(
+        Args&&... _args
+    )
+    {
+        m_queue.template enqueue<Event>(
+            std::forward<Args>(_args)...);
+    }
+
+    // process
+    //   processes up to _max queued occurrences (0 means all) against this
+    // dispatcher's registry.
+    // returns: the number of occurrences processed.
+    std::size_t process(
+        std::size_t _max = 0
+    )
+    {
+        return m_queue.process(m_registry, _max);
+    };
+
+    // process_all
+    //   processes all queued occurrences against this dispatcher's registry.
+    // returns: the number of occurrences processed.
+    std::size_t process_all()
+    {
+        return m_queue.process_all(m_registry);
+    };
+
+    // ---- run and stage ----
+
+    // run
+    //   runs a homogeneous trace of Event occurrences immediately (the
+    // outer fold). See DEventRegistry::run.
+    template<typename Event,
+             typename InputIt>
+    run_result run(
+        InputIt _first,
+        InputIt _last
+    )
+    {
+        return m_registry.template run<Event>(_first, _last);
+    }
+
+    // compile
+    //   stages the static effective word for Event into a single closed
+    // DFusedStep (the staging operation). See DEventRegistry::compile.
+    template<typename Event>
+    DFusedStep<Event> compile() const
+    {
+        return m_registry.template compile<Event>();
+    }
+
+    // ---- merge ----
+
+    // merge
+    //   merges _other's registry into this one by pointwise concatenation.
+    // returns: the number of handlers merged in.
+    std::size_t merge(
+        const DEventDispatcher& _other
+    )
+    {
+        return m_registry.merge(_other.m_registry);
+    };
+
+    // ---- typed queries ----
+
+    // handler_count_for
+    //   returns the number of handlers for a specific event type.
+    template<typename Event>
+    std::size_t handler_count_for() const
+    {
+        return m_registry.template handler_count_for<Event>();
+    }
+
+    // has_handlers_for
+    //   returns true if any handler is registered for the given event type.
+    template<typename Event>
+    bool has_handlers_for() const
+    {
+        return m_registry.template has_handlers_for<Event>();
+    }
+
+    // ---- aggregate queries ----
+
+    // handler_count
+    //   returns the total number of registered handlers.
+    std::size_t handler_count() const
+    {
+        return m_registry.handler_count();
+    };
+
+    // enabled_count
+    //   returns the number of enabled handlers.
+    std::size_t enabled_count() const
+    {
+        return m_registry.enabled_count();
+    };
+
+    // pending_events
+    //   returns the number of occurrences currently queued.
+    std::size_t pending_events() const
+    {
+        return m_queue.pending();
+    };
+
+    // ---- component access ----
+
+    // registry
+    //   returns a reference to the underlying DEventRegistry.
+    DEventRegistry& registry()
+    {
+        return m_registry;
+    };
+
+    const DEventRegistry& registry() const
+    {
+        return m_registry;
+    };
+
+    // events
+    //   returns a reference to the underlying DEventQueue.
+    DEventQueue& events()
+    {
+        return m_queue;
+    };
+
+    const DEventQueue& events() const
+    {
+        return m_queue;
+    };
+
+    // table
+    //   returns a reference to the underlying DEventTable.
+    DEventTable& table()
+    {
+        return m_registry.table();
+    };
+
+    const DEventTable& table() const
+    {
+        return m_registry.table();
+    };
+
+private:
+    DEventRegistry m_registry;
+    DEventQueue    m_queue;
+};
+
+
+// =========================================================================
+// IV.  FUSED DRIVE (the fused path's outer fold)
+// =========================================================================
+
+// DDriveResult
+//   struct: aggregate result of driving a trace through a fused step. The
+// fused path is deliberately not instrumented per handler (that is the
+// erased dispatch's role); only occurrence and consume counts are reported.
+struct DDriveResult
+{
+    std::size_t occurrences;
+    std::size_t consumed_count;
+};
+
+// drive
+//   runs a homogeneous trace through a precompiled DFusedStep as a single
+// loop -- the fused path's outer fold. Each element of [_first, _last) must
+// be (convertible to) the event's payload tuple; it is copied per occurrence.
+//
+// COHERENCE LAW: for a registry rho held fixed (no bind/unbind/enable/disable
+// between the snapshot and the runs), the fused and erased paths agree --
+//
+//     auto step = dispatcher.compile<E>();
+//     drive(step, first, last).occurrences     == run<E>(first, last).occurrences
+//     drive(step, first, last).consumed_count  == run<E>(first, last).consumed_count
+//
+// with identical per-occurrence handler side effects in identical order. This
+// is the operational form of the fused/erased coherence proposition and the
+// contract any fused build must preserve.
+template<typename Event,
+         typename InputIt>
+DDriveResult drive(
+    const DFusedStep<Event>& _step,
+    InputIt                  _first,
+    InputIt                  _last
+)
+{
+    using payload_t = typename DFusedStep<Event>::payload_type;
+
+    DDriveResult agg;
+    agg.occurrences    = 0;
+    agg.consumed_count = 0;
+
+    for (; _first != _last; ++_first)
+    {
+        payload_t payload(*_first);
+        verdict   outcome = _step.run_one(payload);
+
+        ++agg.occurrences;
+
+        if (consumed(outcome))
+        {
+            ++agg.consumed_count;
+        }
+    }
+
+    return agg;
+}
+
+
+// =========================================================================
+// V.   STRUCTURAL DETECTION HELPERS
+// =========================================================================
+
+NS_INTERNAL
+
+    // ---- management op detection ----
+
+    // has_dispatcher_unbind
+    //   trait: detects unbind(DHandlerId) returning bool.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_unbind
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_unbind<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<Dispatcher&>().unbind(
+                    std::declval<DHandlerId>())),
+                bool
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // has_dispatcher_enable
+    //   trait: detects enable(DHandlerId) returning bool.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_enable
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_enable<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<Dispatcher&>().enable(
+                    std::declval<DHandlerId>())),
+                bool
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // has_dispatcher_disable
+    //   trait: detects disable(DHandlerId) returning bool.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_disable
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_disable<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<Dispatcher&>().disable(
+                    std::declval<DHandlerId>())),
+                bool
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // has_dispatcher_is_enabled
+    //   trait: detects is_enabled(DHandlerId) const returning bool.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_is_enabled
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_is_enabled<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<const Dispatcher&>().is_enabled(
+                    std::declval<DHandlerId>())),
+                bool
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // has_dispatcher_contains
+    //   trait: detects contains(DHandlerId) const returning bool.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_contains
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_contains<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<const Dispatcher&>().contains(
+                    std::declval<DHandlerId>())),
+                bool
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // ---- count op detection ----
+
+    // has_dispatcher_handler_count
+    //   trait: detects handler_count() const returning size_t.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_handler_count
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_handler_count<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<const Dispatcher&>().handler_count()),
+                std::size_t
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // has_dispatcher_enabled_count
+    //   trait: detects enabled_count() const returning size_t.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_enabled_count
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_enabled_count<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<const Dispatcher&>().enabled_count()),
+                std::size_t
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // has_dispatcher_pending_events
+    //   trait: detects pending_events() const returning size_t.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_pending_events
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_pending_events<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<const Dispatcher&>().pending_events()),
+                std::size_t
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // ---- queue op detection ----
+
+    // has_dispatcher_process
+    //   trait: detects process(size_t) returning size_t.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_process
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_process<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<Dispatcher&>().process(
+                    std::declval<std::size_t>())),
+                std::size_t
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // has_dispatcher_process_all
+    //   trait: detects process_all() returning size_t.
+    template<typename Dispatcher,
+             typename = void>
+    struct has_dispatcher_process_all
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher>
+    struct has_dispatcher_process_all<Dispatcher,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<Dispatcher&>().process_all()),
+                std::size_t
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // ---- typed op detection ----
+
+    // dispatcher_has_bind_impl
+    //   trait: detects bind<Event>(callable) returning DHandlerId.
+    template<typename Dispatcher,
+             typename Event,
+             typename Callable,
+             typename = void>
+    struct dispatcher_has_bind_impl
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher,
+             typename Event,
+             typename Callable>
+    struct dispatcher_has_bind_impl<Dispatcher, Event, Callable,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<Dispatcher&>().template bind<Event>(
+                    std::declval<Callable>())),
+                DHandlerId
+            >::value
+        >::type>
+    {
+        static constexpr bool value = true;
+    };
+
+    // dispatcher_has_fire_impl
+    //   trait: detects fire<Event>(args...) returning DDispatchResult.
+    template<typename Dispatcher,
+             typename Event,
+             typename Void,
+             typename... Args>
+    struct dispatcher_has_fire_impl
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher,
+             typename Event,
+             typename... Args>
+    struct dispatcher_has_fire_impl<Dispatcher, Event,
+        typename std::enable_if<
+            std::is_same<
+                decltype(std::declval<Dispatcher&>().template fire<Event>(
+                    std::declval<Args>()...)),
+                DDispatchResult
+            >::value
+        >::type,
+        Args...>
+    {
+        static constexpr bool value = true;
+    };
+
+    // dispatcher_has_queue_impl
+    //   trait: detects queue<Event>(args...) as a well-formed expression.
+    template<typename Dispatcher,
+             typename Event,
+             typename Void,
+             typename... Args>
+    struct dispatcher_has_queue_impl
+    {
+        static constexpr bool value = false;
+    };
+
+    template<typename Dispatcher,
+             typename Event,
+             typename... Args>
+    struct dispatcher_has_queue_impl<Dispatcher, Event,
+        decltype(static_cast<void>(
+            std::declval<Dispatcher&>().template queue<Event>(
+                std::declval<Args>()...)
+        )),
+        Args...>
+    {
+        static constexpr bool value = true;
+    };
+
+NS_END  // internal
+
+
+// =========================================================================
+// VI.  EVENT DISPATCHER TRAITS
+// =========================================================================
+
+// event_dispatcher_traits
+//   trait: compile-time structural detection for types that satisfy the
+// event dispatcher facade interface. Validates the management, count, and
+// queue operations expected of a dispatcher.
+//
+// note: structural check only; semantic contracts are not verified.
+template<typename Dispatcher>
+struct event_dispatcher_traits
+{
+    // ---- management detection ----
+
+    // has_unbind
+    //   constant: true if unbind(DHandlerId) --> bool.
+    static constexpr bool has_unbind =
+        internal::has_dispatcher_unbind<clean_t<Dispatcher>>::value;
+
+    // has_enable
+    //   constant: true if enable(DHandlerId) --> bool.
+    static constexpr bool has_enable =
+        internal::has_dispatcher_enable<clean_t<Dispatcher>>::value;
+
+    // has_disable
+    //   constant: true if disable(DHandlerId) --> bool.
+    static constexpr bool has_disable =
+        internal::has_dispatcher_disable<clean_t<Dispatcher>>::value;
+
+    // has_is_enabled
+    //   constant: true if is_enabled(DHandlerId) const --> bool.
+    static constexpr bool has_is_enabled =
+        internal::has_dispatcher_is_enabled<clean_t<Dispatcher>>::value;
+
+    // has_contains
+    //   constant: true if contains(DHandlerId) const --> bool.
+    static constexpr bool has_contains =
+        internal::has_dispatcher_contains<clean_t<Dispatcher>>::value;
+
+    // ---- count detection ----
+
+    // has_handler_count
+    //   constant: true if handler_count() const --> size_t.
+    static constexpr bool has_handler_count =
+        internal::has_dispatcher_handler_count<clean_t<Dispatcher>>::value;
+
+    // has_enabled_count
+    //   constant: true if enabled_count() const --> size_t.
+    static constexpr bool has_enabled_count =
+        internal::has_dispatcher_enabled_count<clean_t<Dispatcher>>::value;
+
+    // has_pending_events
+    //   constant: true if pending_events() const --> size_t.
+    static constexpr bool has_pending_events =
+        internal::has_dispatcher_pending_events<clean_t<Dispatcher>>::value;
+
+    // ---- queue detection ----
+
+    // has_process
+    //   constant: true if process(size_t) --> size_t.
+    static constexpr bool has_process =
+        internal::has_dispatcher_process<clean_t<Dispatcher>>::value;
+
+    // has_process_all
+    //   constant: true if process_all() --> size_t.
+    static constexpr bool has_process_all =
+        internal::has_dispatcher_process_all<clean_t<Dispatcher>>::value;
+
+    // ---- composite detection ----
+
+    // is_event_dispatcher
+    //   constant: true if Dispatcher provides the full facade interface.
+    static constexpr bool is_event_dispatcher =
+        ( has_unbind         &&
+          has_enable         &&
+          has_disable        &&
+          has_is_enabled     &&
+          has_contains       &&
+          has_handler_count  &&
+          has_enabled_count  &&
+          has_pending_events &&
+          has_process        &&
+          has_process_all );
+};
+
+
+// typed dispatcher detection (exposed for use in concepts and static_assert)
+
+// event_dispatcher_has_bind
+//   trait: true if Dispatcher exposes bind<Event>(Callable) -> DHandlerId.
+template<typename Dispatcher,
+         typename Event,
+         typename Callable>
+struct event_dispatcher_has_bind
+{
+    static constexpr bool value =
+        internal::dispatcher_has_bind_impl<
+            clean_t<Dispatcher>, Event, Callable>::value;
+};
+
+// event_dispatcher_has_fire
+//   trait: true if Dispatcher exposes fire<Event>(Args...) ->
+// DDispatchResult.
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
+struct event_dispatcher_has_fire
+{
+    static constexpr bool value =
+        internal::dispatcher_has_fire_impl<
+            clean_t<Dispatcher>, Event, void, Args...>::value;
+};
+
+// event_dispatcher_has_queue
+//   trait: true if Dispatcher exposes queue<Event>(Args...) as a
+// well-formed expression.
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
+struct event_dispatcher_has_queue
+{
+    static constexpr bool value =
+        internal::dispatcher_has_queue_impl<
+            clean_t<Dispatcher>, Event, void, Args...>::value;
+};
+
+
+// =========================================================================
+// VII. CONCEPT CONSTRAINTS (C++20+)
+// =========================================================================
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+// ---- core dispatcher concepts ----
+
+// is_event_dispatcher_type
+//   concept: constrains types satisfying the event dispatcher facade
+// structural requirements.
+template<typename Dispatcher>
+concept is_event_dispatcher_type =
+    event_dispatcher_traits<clean_t<Dispatcher>>::is_event_dispatcher;
+
+// event_dispatcher_type
+//   concept: readable spelling of is_event_dispatcher_type.
+template<typename Type>
+concept event_dispatcher_type =
+    is_event_dispatcher_type<clean_t<Type>>;
+
+// non_event_dispatcher_type
+//   concept: constrains types that are not event dispatchers.
+template<typename Type>
+concept non_event_dispatcher_type =
+    !event_dispatcher_type<Type>;
+
+// processing_event_dispatcher_type
+//   concept: constrains dispatchers exposing process(size_t).
+template<typename Type>
+concept processing_event_dispatcher_type =
+    event_dispatcher_type<Type> &&
+    event_dispatcher_traits<clean_t<Type>>::has_process;
+
+// draining_event_dispatcher_type
+//   concept: constrains dispatchers exposing process_all().
+template<typename Type>
+concept draining_event_dispatcher_type =
+    event_dispatcher_type<Type> &&
+    event_dispatcher_traits<clean_t<Type>>::has_process_all;
+
+
+// ---- typed capability concepts ----
+
+// event_dispatcher_bindable_to
+//   concept: constrains (dispatcher, callable, event) triples where the
+// callable is a valid handler for the event and the dispatcher can bind it.
+template<typename Dispatcher,
+         typename Callable,
+         typename Event>
+concept event_dispatcher_bindable_to =
+    event_dispatcher_type<Dispatcher> &&
+    handler_for<Callable, Event> &&
+    event_dispatcher_has_bind<clean_t<Dispatcher>, Event, Callable>::value;
+
+// event_dispatcher_fireable_for
+//   concept: constrains (dispatcher, event, args...) where the dispatcher
+// can fire the event with those arguments.
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
+concept event_dispatcher_fireable_for =
+    event_dispatcher_type<Dispatcher> &&
+    is_event<clean_t<Event>> &&
+    event_dispatcher_has_fire<clean_t<Dispatcher>, Event, Args...>::value;
+
+// event_dispatcher_queueable_for
+//   concept: constrains (dispatcher, event, args...) where the dispatcher
+// can queue the event with those arguments.
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
+concept event_dispatcher_queueable_for =
+    event_dispatcher_type<Dispatcher> &&
+    is_event<clean_t<Event>> &&
+    event_dispatcher_has_queue<clean_t<Dispatcher>, Event, Args...>::value;
+
+
+// ---- composite capability concepts ----
+
+// firing_event_dispatcher_for
+//   concept: a dispatcher that can both bind a handler for Event and fire
+// that event with Args.
+template<typename Dispatcher,
+         typename Callable,
+         typename Event,
+         typename... Args>
+concept firing_event_dispatcher_for =
+    event_dispatcher_bindable_to<Dispatcher, Callable, Event> &&
+    event_dispatcher_fireable_for<Dispatcher, Event, Args...>;
+
+// queueing_event_dispatcher_for
+//   concept: a dispatcher that can both bind a handler for Event and queue
+// that event with Args.
+template<typename Dispatcher,
+         typename Callable,
+         typename Event,
+         typename... Args>
+concept queueing_event_dispatcher_for =
+    event_dispatcher_bindable_to<Dispatcher, Callable, Event> &&
+    event_dispatcher_queueable_for<Dispatcher, Event, Args...>;
+
+// full_event_dispatcher_for
+//   concept: a dispatcher that can bind a handler for Event and both fire
+// and queue that event with Args.
+template<typename Dispatcher,
+         typename Callable,
+         typename Event,
+         typename... Args>
+concept full_event_dispatcher_for =
+    event_dispatcher_bindable_to<Dispatcher, Callable, Event> &&
+    event_dispatcher_fireable_for<Dispatcher, Event, Args...> &&
+    event_dispatcher_queueable_for<Dispatcher, Event, Args...>;
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
+NS_END  // djinterp
+
+#endif  // floor, for now
+
+
+#endif  // DJINTERP_EVENT_EVENT_DISPATCHER_HPP

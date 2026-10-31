@@ -12,7 +12,7 @@
 
 
 /******************************************************************************
- * SECTION II: d_string_array OPERATIONS
+ * SECTION II: dj_string_array OPERATIONS
  *****************************************************************************/
 
 /*
@@ -27,16 +27,12 @@ d_tests_sa_text_lineup_string_array_new
   - elements pointer may be NULL when capacity is 0
   - handles large capacity without returning NULL
 */
-struct d_test_object*
-d_tests_sa_text_lineup_string_array_new
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_string_array_new(void)
 {
-    struct d_test_object*  group;
-    struct d_string_array* arr_normal;
-    struct d_string_array* arr_zero;
-    struct d_string_array* arr_large;
+    struct dj_test_object*  group;
+    struct dj_string_array* arr_normal;
+    struct dj_string_array* arr_zero;
+    struct dj_string_array* arr_large;
     bool                   test_not_null;
     bool                   test_count_zero;
     bool                   test_elements_not_null;
@@ -121,14 +117,10 @@ d_tests_sa_text_lineup_string_array_reserve
   - count is unchanged after growth
   - after growth, capacity >= min_capacity
 */
-struct d_test_object*
-d_tests_sa_text_lineup_string_array_reserve
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_string_array_reserve(void)
 {
-    struct d_test_object*  group;
-    struct d_string_array* arr;
+    struct dj_test_object*  group;
+    struct dj_string_array* arr;
     bool                   result;
     size_t                 old_cap;
     bool                   test_sufficient_true;
@@ -240,14 +232,10 @@ d_tests_sa_text_lineup_string_array_append
   - auto-grows when count reaches capacity
   - successive appends produce the correct element order
 */
-struct d_test_object*
-d_tests_sa_text_lineup_string_array_append
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_string_array_append(void)
 {
-    struct d_test_object*  group;
-    struct d_string_array* arr;
+    struct dj_test_object*  group;
+    struct dj_string_array* arr;
     bool                   result;
     bool                   test_accessible;
     bool                   test_is_copy;
@@ -408,14 +396,10 @@ d_tests_sa_text_lineup_string_array_generate_series
   - step == 0 returns NULL
   - inverted range (start > end with positive step) returns NULL
 */
-struct d_test_object*
-d_tests_sa_text_lineup_string_array_generate_series
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_string_array_generate_series(void)
 {
-    struct d_test_object*  group;
-    struct d_string_array* arr;
+    struct dj_test_object*  group;
+    struct dj_string_array* arr;
     bool                   test_count;
     bool                   test_first;
     bool                   test_last;
@@ -594,15 +578,11 @@ d_tests_sa_text_lineup_string_array_generate_series_capacity
   - additional_capacity of 0 behaves identically to generate_series
   - step == 0 still returns NULL
 */
-struct d_test_object*
-d_tests_sa_text_lineup_string_array_generate_series_capacity
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_string_array_generate_series_capacity(void)
 {
-    struct d_test_object*  group;
-    struct d_string_array* arr;
-    struct d_string_array* arr_ref;
+    struct dj_test_object*  group;
+    struct dj_string_array* arr;
+    struct dj_string_array* arr_ref;
     bool                   test_same_elements;
     bool                   test_extra_capacity;
     bool                   test_count;
@@ -723,7 +703,7 @@ d_tests_sa_text_lineup_string_array_generate_series_capacity
 
 /*
 d_tests_sa_text_lineup_string_array_all
-  Runs all d_string_array tests (Section II).
+  Runs all dj_string_array tests (Section II).
   Tests the following:
   - d_string_array_new
   - d_string_array_reserve
@@ -731,16 +711,12 @@ d_tests_sa_text_lineup_string_array_all
   - d_string_array_generate_series
   - d_string_array_generate_series_capacity
 */
-struct d_test_object*
-d_tests_sa_text_lineup_string_array_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_lineup_string_array_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
-    group = d_test_object_new_interior("d_string_array Operations", 5);
+    group = d_test_object_new_interior("dj_string_array Operations", 5);
 
     if (!group)
     {

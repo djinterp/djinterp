@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                     dstring_tests_sa_reverse.c
 *
-*   Unit tests for d_string reversal functions:
+*   Unit tests for dj_string reversal functions:
 *     - d_string_reverse
 *     - d_string_reversed
 *
@@ -45,14 +45,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_reverse
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_reverse(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     bool                  result;
     char                  original[256];
@@ -387,15 +383,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_reversed
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_reversed(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
-    struct d_string*      reversed;
+    struct dj_test_object* group;
+    struct dj_string*      str;
+    struct dj_string*      reversed;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("d_string_reversed", 14);
@@ -424,7 +416,7 @@ d_tests_sa_dstring_reversed
         group->elements[child_idx++] = D_ASSERT_NOT_NULL(
             "empty_returns_non_null",
             reversed,
-            "reversed empty string should return valid d_string"
+            "reversed empty string should return valid dj_string"
         );
 
         if (reversed)
@@ -732,13 +724,9 @@ Parameter(s):
 Return:
   Test object containing all reversal test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_reversal_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_reversal_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
     group     = d_test_object_new_interior("`dstring` reversal", 2);

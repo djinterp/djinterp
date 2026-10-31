@@ -20,7 +20,7 @@
 #include "../../djinterp.h"
 #include "../../dmacro.h"  // D_VARG_COUNT, D_EVAL, D_UNPACK
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // uint8_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // uint8_t
 
 
 // endian-aware byte extraction macros

@@ -9,13 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./event_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 // d_tests_sa_event_lnew_dummy_cb
 //   helper: minimal callback for listener construction tests.
-static void
-d_tests_sa_event_lnew_dummy_cb(void* _args)
+static
+void d_tests_sa_event_lnew_dummy_cb(
+    void* _args
+)
 {
     (void)_args;
 
@@ -24,8 +26,10 @@ d_tests_sa_event_lnew_dummy_cb(void* _args)
 
 // d_tests_sa_event_lnew_dummy_cb_alt
 //   helper: second distinct callback for fn pointer comparison tests.
-static void
-d_tests_sa_event_lnew_dummy_cb_alt(void* _args)
+static
+void d_tests_sa_event_lnew_dummy_cb_alt(
+    void* _args
+)
 {
     (void)_args;
 
@@ -39,10 +43,8 @@ d_tests_sa_event_listener_new_null_cb
   Tests the following:
   - NULL callback returns NULL
 */
-bool
-d_tests_sa_event_listener_new_null_cb
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_new_null_cb(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -65,14 +67,12 @@ d_tests_sa_event_listener_new_enabled
   - Returns non-NULL
   - id, fn, enabled are set correctly
 */
-bool
-d_tests_sa_event_listener_new_enabled
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_new_enabled(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new(
@@ -109,14 +109,12 @@ d_tests_sa_event_listener_new_disabled
   - Returns non-NULL
   - enabled is false
 */
-bool
-d_tests_sa_event_listener_new_disabled
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_new_disabled(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new(
@@ -151,14 +149,12 @@ d_tests_sa_event_listener_new_ids
   - Zero id is accepted
   - Negative id is accepted
 */
-bool
-d_tests_sa_event_listener_new_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_new_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
 
@@ -204,15 +200,13 @@ d_tests_sa_event_listener_new_distinct
   - Distinct pointers returned
   - Different fn pointers stored correctly
 */
-bool
-d_tests_sa_event_listener_new_distinct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_new_distinct(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* a;
-    struct d_event_listener* b;
+    struct dj_event_listener* a;
+    struct dj_event_listener* b;
 
     result = true;
     a      = d_event_listener_new(
@@ -259,10 +253,8 @@ d_tests_sa_event_listener_default_null_cb
   Tests the following:
   - NULL callback returns NULL
 */
-bool
-d_tests_sa_event_listener_default_null_cb
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_default_null_cb(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -286,14 +278,12 @@ d_tests_sa_event_listener_default_valid
   - id and fn are set correctly
   - enabled defaults to true
 */
-bool
-d_tests_sa_event_listener_default_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_default_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
     lis    = d_event_listener_new_default(
@@ -329,14 +319,12 @@ d_tests_sa_event_listener_default_ids
   - Zero id accepted, enabled defaults to true
   - Negative id accepted
 */
-bool
-d_tests_sa_event_listener_default_ids
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_default_ids(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* lis;
+    struct dj_event_listener* lis;
 
     result = true;
 
@@ -379,15 +367,13 @@ d_tests_sa_event_listener_default_distinct
   Tests the following:
   - Distinct pointers and different ids
 */
-bool
-d_tests_sa_event_listener_default_distinct
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_default_distinct(
+    struct dj_test_counter* _counter
 )
 {
     bool                     result;
-    struct d_event_listener* a;
-    struct d_event_listener* b;
+    struct dj_event_listener* a;
+    struct dj_event_listener* b;
 
     result = true;
     a      = d_event_listener_new_default(
@@ -422,19 +408,17 @@ d_tests_sa_event_listener_default_distinct
 
 /*
 d_tests_sa_event_listener_constructor_all
-  Runs all d_event_listener constructor tests.
+  Runs all dj_event_listener constructor tests.
 */
-bool
-d_tests_sa_event_listener_constructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_event_listener_constructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
 
     result = true;
 
-    printf("\n  [SECTION] d_event_listener Constructors\n");
+    printf("\n  [SECTION] dj_event_listener Constructors\n");
     printf("  -------------------------------------------\n");
 
     result = d_tests_sa_event_listener_new_null_cb(_counter)      && result;

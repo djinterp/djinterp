@@ -40,9 +40,9 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Documents
-         1.  d_make_doc
-         2.  d_make_saved
-         3.  d_make_part
+         1.  dj_make_doc
+         2.  dj_make_saved
+         3.  dj_make_part
 2.  OPERATIONS
     ----------
     1.  Documents
@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 // djinterp
-#include "./dmake.h"  // d_make, d_make_dialect, d_make_problem
+#include "./dmake.h"  // dj_make, dj_make_dialect, dj_make_problem
 
 
 //==============================================================================
@@ -72,15 +72,15 @@ TABLE OF CONTENTS
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_make_doc
+// dj_make_doc
 //   struct: one file's text, its make, its records, and why the last change
 //   failed.  Layout is private.
-struct d_make_doc;
+struct dj_make_doc;
 
 // 1.1.2
-// d_make_saved
+// dj_make_saved
 //   enum: what saving did.
-enum d_make_saved
+enum dj_make_saved
 {
     D_MAKE_SAVE_FAILED = 0,
     D_MAKE_SAVE_WRITTEN,
@@ -88,9 +88,9 @@ enum d_make_saved
 };
 
 // 1.1.3
-// d_make_part
+// dj_make_part
 //   enum: a part of a statement a change names.
-enum d_make_part
+enum dj_make_part
 {
     D_MAKE_PART_TEXT = 0,    // the statement's text, as dmake.h has it
     D_MAKE_PART_NAME,        // an assignment's, a define's, an undefine's
@@ -120,9 +120,11 @@ enum d_make_part
  * @return the document, or `NULL` when the file cannot be read, does not
  *         read as its make reads one, or memory runs out.
  */
-struct d_make_doc*   d_make_doc_read(const char*            _path,
-                                     enum d_make_dialect    _dialect,
-                                     struct d_make_problem* _problem);
+struct dj_make_doc* d_make_doc_read(
+    const char*             _path,
+    enum dj_make_dialect    _dialect,
+    struct dj_make_problem* _problem
+);
 /**
  * @brief Makes a document of a text, to be saved to a path.
  *
@@ -135,27 +137,43 @@ struct d_make_doc*   d_make_doc_read(const char*            _path,
  * @return the document, or `NULL` when the text does not read as its make
  *         reads one, or memory runs out.
  */
-struct d_make_doc*   d_make_doc_make(const char*            _path,
-                                     const char*            _text,
-                                     size_t                 _length,
-                                     enum d_make_dialect    _dialect,
-                                     struct d_make_problem* _problem);
-void                 d_make_doc_free(struct d_make_doc* _doc);
+struct dj_make_doc* d_make_doc_make(
+    const char*             _path,
+    const char*             _text,
+    size_t                  _length,
+    enum dj_make_dialect    _dialect,
+    struct dj_make_problem* _problem
+);
+void d_make_doc_free(
+    struct dj_make_doc* _doc
+);
 // What a document holds: its records, as of its last change; its path, how
 // many changes it has taken, why the last change failed, and its text.
 // d_make_doc_changed says where the last change kept was: the text before
 // it from `start` to `old_end` is the text now from `start` to `new_end`,
 // and all else is as it was; false before any change.
-const struct d_make* d_make_doc_records(const struct d_make_doc* _doc);
-const char*          d_make_doc_path(const struct d_make_doc* _doc);
-size_t               d_make_doc_changes(const struct d_make_doc* _doc);
-bool                 d_make_doc_changed(const struct d_make_doc* _doc,
-                                        size_t*                  _out_start,
-                                        size_t* _out_old_end,
-                                        size_t* _out_new_end);
-const char*          d_make_doc_problem(const struct d_make_doc* _doc);
-const char*          d_make_doc_text(const struct d_make_doc* _doc,
-                                     size_t*                  _out_length);
+const struct dj_make* d_make_doc_records(
+    const struct dj_make_doc* _doc
+);
+const char* d_make_doc_path(
+    const struct dj_make_doc* _doc
+);
+size_t d_make_doc_changes(
+    const struct dj_make_doc* _doc
+);
+bool d_make_doc_changed(
+    const struct dj_make_doc* _doc,
+    size_t*                   _out_start,
+    size_t*                   _out_old_end,
+    size_t*                   _out_new_end
+);
+const char* d_make_doc_problem(
+    const struct dj_make_doc* _doc
+);
+const char* d_make_doc_text(
+    const struct dj_make_doc* _doc,
+    size_t*                   _out_length
+);
 
 // 2.2    Changes
 //------------------------------------------------------------------------------
@@ -172,11 +190,13 @@ const char*          d_make_doc_text(const struct d_make_doc* _doc,
  * @return `true` if the change was kept; `false` otherwise, with
  *         d_make_doc_problem saying why, and the file as it was.
  */
-bool                 d_make_doc_splice(struct d_make_doc* _doc,
-                                       size_t             _start,
-                                       size_t             _end,
-                                       const char*        _text,
-                                       size_t             _length);
+bool d_make_doc_splice(
+    struct dj_make_doc* _doc,
+    size_t              _start,
+    size_t              _end,
+    const char*         _text,
+    size_t              _length
+);
 
 // 2.3    Parts
 //------------------------------------------------------------------------------
@@ -188,10 +208,12 @@ bool                 d_make_doc_splice(struct d_make_doc* _doc,
 // d_make_doc_problem saying why: a part the statement has not, an operator
 // its make does not read, text that would read as more or other than the
 // part.
-bool                 d_make_doc_set(struct d_make_doc* _doc,
-                                    size_t             _statement,
-                                    enum d_make_part   _part,
-                                    const char*        _text);
+bool d_make_doc_set(
+    struct dj_make_doc* _doc,
+    size_t              _statement,
+    enum dj_make_part   _part,
+    const char*         _text
+);
 
 // 2.4    Words
 //------------------------------------------------------------------------------
@@ -206,20 +228,26 @@ bool                 d_make_doc_set(struct d_make_doc* _doc,
 //                           the `|` with the last order-only one
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_make_doc_problem saying why: a rule left with no target is refused.
-bool                 d_make_doc_set_word(struct d_make_doc* _doc,
-                                         size_t             _statement,
-                                         enum d_make_part   _part,
-                                         size_t             _word,
-                                         const char*        _text);
-bool                 d_make_doc_insert_word(struct d_make_doc* _doc,
-                                            size_t             _statement,
-                                            enum d_make_part   _part,
-                                            size_t             _place,
-                                            const char*        _text);
-bool                 d_make_doc_remove_word(struct d_make_doc* _doc,
-                                            size_t             _statement,
-                                            enum d_make_part   _part,
-                                            size_t             _word);
+bool d_make_doc_set_word(
+    struct dj_make_doc* _doc,
+    size_t              _statement,
+    enum dj_make_part   _part,
+    size_t              _word,
+    const char*         _text
+);
+bool d_make_doc_insert_word(
+    struct dj_make_doc* _doc,
+    size_t              _statement,
+    enum dj_make_part   _part,
+    size_t              _place,
+    const char*         _text
+);
+bool d_make_doc_remove_word(
+    struct dj_make_doc* _doc,
+    size_t              _statement,
+    enum dj_make_part   _part,
+    size_t              _word
+);
 
 // 2.5    Commands
 //------------------------------------------------------------------------------
@@ -231,12 +259,16 @@ bool                 d_make_doc_remove_word(struct d_make_doc* _doc,
 //   d_make_doc_remove_command  recipe line `_statement` goes, with its line
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_make_doc_problem saying why. A command's text is set with d_make_doc_set.
-bool                 d_make_doc_add_command(struct d_make_doc* _doc,
-                                            size_t             _rule,
-                                            size_t             _place,
-                                            const char*        _text);
-bool                 d_make_doc_remove_command(struct d_make_doc* _doc,
-                                               size_t             _statement);
+bool d_make_doc_add_command(
+    struct dj_make_doc* _doc,
+    size_t              _rule,
+    size_t              _place,
+    const char*         _text
+);
+bool d_make_doc_remove_command(
+    struct dj_make_doc* _doc,
+    size_t              _statement
+);
 
 // 2.6    Statements
 //------------------------------------------------------------------------------
@@ -251,15 +283,21 @@ bool                 d_make_doc_remove_command(struct d_make_doc* _doc,
 //                                 lines and the comments among them
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_make_doc_problem saying why.
-bool                 d_make_doc_insert_statements(struct d_make_doc* _doc,
-                                                  size_t      _before,
-                                                  const char* _text);
-bool                 d_make_doc_set_statement(struct d_make_doc* _doc,
-                                              size_t             _statement,
-                                              const char*        _text);
-bool                 d_make_doc_remove_statements(struct d_make_doc* _doc,
-                                                  size_t             _first,
-                                                  size_t             _last);
+bool d_make_doc_insert_statements(
+    struct dj_make_doc* _doc,
+    size_t              _before,
+    const char*         _text
+);
+bool d_make_doc_set_statement(
+    struct dj_make_doc* _doc,
+    size_t              _statement,
+    const char*         _text
+);
+bool d_make_doc_remove_statements(
+    struct dj_make_doc* _doc,
+    size_t              _first,
+    size_t              _last
+);
 
 // 2.7    Saving
 //------------------------------------------------------------------------------
@@ -272,9 +310,11 @@ bool                 d_make_doc_remove_statements(struct d_make_doc* _doc,
  *                          `NULL`.
  * @return what saving did.
  */
-enum d_make_saved    d_make_doc_save(struct d_make_doc*     _doc,
-                                     const char*            _path,
-                                     struct d_make_problem* _problem);
+enum dj_make_saved d_make_doc_save(
+    struct dj_make_doc*     _doc,
+    const char*             _path,
+    struct dj_make_problem* _problem
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_MAKE_DMAKE_DOC_H

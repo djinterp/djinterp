@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./ptr_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -17,9 +17,8 @@
  *****************************************************************************/
 
 // helper comparator for int pointer values
-static int
-int_ptr_comparator
-(
+static
+int int_ptr_comparator(
     const void* _a,
     const void* _b
 )
@@ -47,14 +46,12 @@ d_tests_sa_ptr_array_new
   - creation with positive initial size
   - array structure is properly initialized
 */
-bool
-d_tests_sa_ptr_array_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
 
     result = true;
 
@@ -126,14 +123,12 @@ d_tests_sa_ptr_array_new_default_size
   - creation with default capacity
   - array structure is properly initialized
 */
-bool
-d_tests_sa_ptr_array_new_default_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new_default_size(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
 
     result = true;
 
@@ -175,14 +170,12 @@ d_tests_sa_ptr_array_new_from_arr
   - valid source array is copied correctly
   - element pointers are preserved (shallow copy)
 */
-bool
-d_tests_sa_ptr_array_new_from_arr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new_from_arr(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[3];
     const void*          source[3];
 
@@ -272,14 +265,12 @@ d_tests_sa_ptr_array_new_from_args
   - creation with multiple arguments
   - element pointers are correctly stored
 */
-bool
-d_tests_sa_ptr_array_new_from_args
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new_from_args(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr;
+    struct dj_ptr_array*  arr;
     int                  values[4];
 
     result = true;
@@ -365,15 +356,13 @@ d_tests_sa_ptr_array_new_copy
   - copy has same count as original
   - copy has same element pointers (shallow copy)
 */
-bool
-d_tests_sa_ptr_array_new_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  original;
-    struct d_ptr_array*  copy;
+    struct dj_ptr_array*  original;
+    struct dj_ptr_array*  copy;
     int                  values[3];
 
     result = true;
@@ -450,16 +439,14 @@ d_tests_sa_ptr_array_new_merge
   - merge with multiple arrays
   - merge with NULL array in list (should be skipped)
 */
-bool
-d_tests_sa_ptr_array_new_merge
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new_merge(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  arr1;
-    struct d_ptr_array*  arr2;
-    struct d_ptr_array*  merged;
+    struct dj_ptr_array*  arr1;
+    struct dj_ptr_array*  arr2;
+    struct dj_ptr_array*  merged;
     int                  values1[2];
     int                  values2[3];
 
@@ -591,15 +578,13 @@ d_tests_sa_ptr_array_new_slice
   - out-of-bounds start index
   - start at end returns empty array
 */
-bool
-d_tests_sa_ptr_array_new_slice
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new_slice(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  original;
-    struct d_ptr_array*  slice;
+    struct dj_ptr_array*  original;
+    struct dj_ptr_array*  slice;
     int                  values[5];
 
     result = true;
@@ -713,15 +698,13 @@ d_tests_sa_ptr_array_new_slice_range
   - single element range
   - invalid range (end before start)
 */
-bool
-d_tests_sa_ptr_array_new_slice_range
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_new_slice_range(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_array*  original;
-    struct d_ptr_array*  slice;
+    struct dj_ptr_array*  original;
+    struct dj_ptr_array*  slice;
     int                  values[5];
 
     result = true;
@@ -854,10 +837,8 @@ d_tests_sa_ptr_array_new_slice_range
 d_tests_sa_ptr_array_constructor_all
   Aggregation function that runs all constructor tests.
 */
-bool
-d_tests_sa_ptr_array_constructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_array_constructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

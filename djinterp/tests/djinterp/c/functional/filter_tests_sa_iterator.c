@@ -9,14 +9,18 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPER PREDICATES
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -32,7 +36,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -63,15 +71,13 @@ d_tests_sa_filter_iterator_create
   - creation with zero element_size returns NULL
   - free NULL safety
 */
-bool
-d_tests_sa_filter_iterator_create
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_iterator_create(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_iterator*  iter;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_iterator*  iter;
     int                        input[6];
 
     result   = true;
@@ -309,15 +315,13 @@ d_tests_sa_filter_iterator_traverse
   - iterator over all-matching input yields all elements
   - iterator over no-matching input is immediately exhausted
 */
-bool
-d_tests_sa_filter_iterator_traverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_iterator_traverse(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_iterator*  iter;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_iterator*  iter;
     int                        input[6];
     int                        all_odd[3];
     const int*                 elem;
@@ -472,15 +476,13 @@ d_tests_sa_filter_iterator_reset
   - reset on fresh iterator is a no-op (still works)
   - reset NULL does not crash
 */
-bool
-d_tests_sa_filter_iterator_reset
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_iterator_reset(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_iterator*  iter;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_iterator*  iter;
     int                        input[6];
     const int*                 elem;
     int                        first_pass[3];
@@ -641,15 +643,13 @@ d_tests_sa_filter_iterator_edge
   - single-element input with matching predicate
   - single-element input with non-matching predicate
 */
-bool
-d_tests_sa_filter_iterator_edge
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_iterator_edge(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_filter_chain*     chain;
-    struct d_filter_iterator*  iter;
+    struct dj_filter_chain*     chain;
+    struct dj_filter_iterator*  iter;
     int                        input[5];
     int                        single[1];
     const int*                 elem;
@@ -849,10 +849,8 @@ d_tests_sa_filter_iterator_edge
 d_tests_sa_filter_iterator_all
   Aggregation function that runs all iterator interface tests.
 */
-bool
-d_tests_sa_filter_iterator_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_iterator_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

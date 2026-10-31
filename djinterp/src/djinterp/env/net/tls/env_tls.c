@@ -40,8 +40,8 @@ linked, since only the driver kit declares it; the cast goes through a
 function type without parameters, which -Wcast-function-type accepts. A
 process whose ntdll lacks it is older than any Windows with TLS 1.3.
 */
-static int
-d_env_tls_internal_schannel_has_tls1_3(void)
+static
+int d_env_tls_internal_schannel_has_tls1_3(void)
 {
     const HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
 
@@ -76,8 +76,8 @@ d_env_tls_internal_schannel_has_tls1_3(void)
 d_env_tls_internal_schannel_has_tls1_3
   File-local: Schannel is Windows's alone, and absent here.
 */
-static int
-d_env_tls_internal_schannel_has_tls1_3(void)
+static
+int d_env_tls_internal_schannel_has_tls1_3(void)
 {
     return 0;
 }
@@ -89,8 +89,7 @@ d_env_tls_backend_has_tls1_3
   Every library but Schannel answers with its build's flag, so a caller asks
 one question whichever library it holds.
 */
-int
-d_env_tls_backend_has_tls1_3(
+int d_env_tls_backend_has_tls1_3(
     int _backend
 )
 {

@@ -4,7 +4,7 @@
 *   Implementation of Unix CLI convention parsing.
 *
 *
-* path:      /src/c/util/cli_unix.c
+* path:      /tests/djinterp/c/util/cli/cli_unix.c
 * link(s):   cli_option.h
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.23
 ******************************************************************************/
@@ -25,7 +25,7 @@
 
 /*
 d_cli_unix_parse
-  Parses argc/argv using Unix conventions against a d_string_cli_entry
+  Parses argc/argv using Unix conventions against a dj_string_cli_entry
 table. Delegates all lookup to d_cli_find from cli_option.h.
 
 Processing rules for each argv element (starting from index 1):
@@ -60,7 +60,7 @@ Unrecognized keys (no match in table) are silently skipped.
 If _on_match is NULL, all matches are silently consumed.
 
 Parameter(s):
-  _entries:  array of d_string_cli_entry structs (bare keys, no operators)
+  _entries:  array of dj_string_cli_entry structs (bare keys, no operators)
   _count:    number of entries
   _argc:     argument count from main
   _argv:     argument vector from main
@@ -69,10 +69,8 @@ Parameter(s):
 Return:
   true if parsing completed, false if a handler stopped it.
 */
-bool
-d_cli_unix_parse
-(
-    const struct d_string_cli_entry* _entries,
+bool d_cli_unix_parse(
+    const struct dj_string_cli_entry* _entries,
     size_t                            _count,
     int                               _argc,
     char*                             _argv[],

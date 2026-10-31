@@ -40,7 +40,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_temp.h"    // d_internal_file_temp_create
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_io.h"  // D_INTERNAL_FILE_READ_*, _WRITE_*
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint64_t, SIZE_MAX
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // uint64_t, SIZE_MAX
 
 
 // the large-file interface this source needs (file_common.h, 6.4.1)
@@ -74,8 +74,8 @@ size, and a short transfer stays a normal documented outcome rather than a
 platform quirk that surfaces on one target. Read and write pass different
 limits because they are tuned separately; the rule itself lives once.
 */
-static size_t
-d_internal_file_io_clamp(
+static
+size_t d_internal_file_io_clamp(
     size_t _count,
     size_t _limit
 )
@@ -110,8 +110,8 @@ d_internal_file_io_clamp(
 d_internal_io_read
   The CRT's _read, asked for no more than it can carry.
 */
-static ssize_t
-d_internal_io_read(
+static
+ssize_t d_internal_io_read(
     int    _fd,
     void*  _buf,
     size_t _count
@@ -128,8 +128,8 @@ d_internal_io_read(
 d_internal_io_write
   The CRT's _write, offered no more than it can carry.
 */
-static ssize_t
-d_internal_io_write(
+static
+ssize_t d_internal_io_write(
     int         _fd,
     const void* _buf,
     size_t      _count
@@ -148,14 +148,14 @@ d_internal_io_write(
 d_internal_io_seek
   The CRT's 64-bit seek.
 */
-static d_off64_t
-d_internal_io_seek(
-    int       _fd,
-    d_off64_t _offset,
-    int       _whence
+static
+dj_off64_t d_internal_io_seek(
+    int        _fd,
+    dj_off64_t _offset,
+    int        _whence
 )
 {
-    return (d_off64_t)_lseeki64(_fd,
+    return (dj_off64_t)_lseeki64(_fd,
                                 (__int64)_offset,
                                 _whence);
 }
@@ -173,8 +173,8 @@ d_internal_io_seek(
 d_internal_io_read
   read(2), asked for no more than it is defined for.
 */
-static ssize_t
-d_internal_io_read(
+static
+ssize_t d_internal_io_read(
     int    _fd,
     void*  _buf,
     size_t _count
@@ -190,8 +190,8 @@ d_internal_io_read(
 d_internal_io_write
   write(2), offered no more than it is defined for.
 */
-static ssize_t
-d_internal_io_write(
+static
+ssize_t d_internal_io_write(
     int         _fd,
     const void* _buf,
     size_t      _count
@@ -209,14 +209,14 @@ d_internal_io_write(
 d_internal_io_seek
   lseek(2), whose off_t is 64-bit in this build (file_common.h, 6.4.1).
 */
-static d_off64_t
-d_internal_io_seek(
-    int       _fd,
-    d_off64_t _offset,
-    int       _whence
+static
+dj_off64_t d_internal_io_seek(
+    int        _fd,
+    dj_off64_t _offset,
+    int        _whence
 )
 {
-    return (d_off64_t)lseek(_fd,
+    return (dj_off64_t)lseek(_fd,
                             (off_t)_offset,
                             _whence);
 }
@@ -232,12 +232,12 @@ d_internal_io_pread
   pread(2), which reads at the offset without touching the shared position --
 atomic against every other user of the descriptor.
 */
-static ssize_t
-d_internal_io_pread(
-    int       _fd,
-    void*     _buf,
-    size_t    _count,
-    d_off64_t _offset
+static
+ssize_t d_internal_io_pread(
+    int        _fd,
+    void*      _buf,
+    size_t     _count,
+    dj_off64_t _offset
 )
 {
     return pread(_fd,
@@ -255,15 +255,15 @@ d_internal_io_pread
 since another user of the descriptor can move it in between, and said so at
 info severity. The read's errno survives the seek back.
 */
-static ssize_t
-d_internal_io_pread(
-    int       _fd,
-    void*     _buf,
-    size_t    _count,
-    d_off64_t _offset
+static
+ssize_t d_internal_io_pread(
+    int        _fd,
+    void*      _buf,
+    size_t     _count,
+    dj_off64_t _offset
 )
 {
-    const d_off64_t saved = d_internal_io_seek(_fd,
+    const dj_off64_t saved = d_internal_io_seek(_fd,
                                                0,
                                                SEEK_CUR);
 
@@ -303,12 +303,12 @@ d_internal_io_pread(
 d_internal_io_pwrite
   pwrite(2), which writes at the offset without touching the shared position.
 */
-static ssize_t
-d_internal_io_pwrite(
+static
+ssize_t d_internal_io_pwrite(
     int         _fd,
     const void* _buf,
     size_t      _count,
-    d_off64_t   _offset
+    dj_off64_t  _offset
 )
 {
     return pwrite(_fd,
@@ -325,15 +325,15 @@ d_internal_io_pwrite
   pwrite emulated as d_internal_io_pread emulates pread: not atomic, and said
 so at info severity.
 */
-static ssize_t
-d_internal_io_pwrite(
+static
+ssize_t d_internal_io_pwrite(
     int         _fd,
     const void* _buf,
     size_t      _count,
-    d_off64_t   _offset
+    dj_off64_t  _offset
 )
 {
-    const d_off64_t saved = d_internal_io_seek(_fd,
+    const dj_off64_t saved = d_internal_io_seek(_fd,
                                                0,
                                                SEEK_CUR);
 
@@ -378,8 +378,8 @@ file, so it reads ahead aggressively instead of inferring the pattern one
 fault at a time. Advisory in the strictest sense: a failure changes nothing
 about correctness and is not reported.
 */
-static void
-d_internal_file_read_hint(
+static
+void d_internal_file_read_hint(
     FILE* _stream
 )
 {
@@ -403,8 +403,8 @@ d_internal_file_read_hint(
 d_internal_file_read_hint
   This build gives the kernel no read-ahead advice.
 */
-static void
-d_internal_file_read_hint(
+static
+void d_internal_file_read_hint(
     FILE* _stream
 )
 {
@@ -435,14 +435,14 @@ position, and a remainder that seems empty is distrusted the same way. The
 result is 1 when *_size holds a length to trust, and 0 when the source must
 be read until EOF instead.
 */
-static int
-d_internal_file_read_size_hint(
+static
+int d_internal_file_read_size_hint(
     FILE*   _stream,
     size_t* _size
 )
 {
     const int         fd = d_file_descriptor_stream(_stream);
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // a stream with no descriptor, or one that cannot be measured, is read
     // until EOF instead
@@ -462,7 +462,7 @@ d_internal_file_read_size_hint(
         return 0;
     }
 
-    const d_off64_t position = d_file_tell_stream64(_stream);
+    const dj_off64_t position = d_file_tell_stream64(_stream);
 
     // what lies past the position is the length; nothing past it is as
     // little to be believed as a size of zero
@@ -495,8 +495,8 @@ and the same distrust applies: no length, or an apparently empty remainder,
 means "read until EOF and find out". The result is 1 when *_size holds a
 length to trust, and 0 otherwise.
 */
-static int
-d_internal_file_read_size_hint(
+static
+int d_internal_file_read_size_hint(
     FILE*   _stream,
     size_t* _size
 )
@@ -548,8 +548,8 @@ next read finds end of file, 0 when there is more -- the byte that said so
 is pushed back, so the stream is as it was -- and -1 when that read fails,
 which fgetc's EOF alone cannot tell from the end.
 */
-static int
-d_internal_file_read_ends(
+static
+int d_internal_file_read_ends(
     FILE* _stream
 )
 {
@@ -576,8 +576,8 @@ reports the failure -- with _code, the module's own, or with 0 for the
 platform's errno; or EIO, when a stream's error indicator is set and errno is
 not, so that a failure never reads as errno 0.
 */
-static void*
-d_internal_file_read_fail(
+static
+void* d_internal_file_read_fail(
     void*       _buffer,
     int         _code,
     const char* _message
@@ -606,8 +606,8 @@ d_internal_file_read_finish
 terminates -- the buffer was allocated with the byte for it -- and reports
 its size.
 */
-static void*
-d_internal_file_read_finish(
+static
+void* d_internal_file_read_finish(
     char*   _buffer,
     size_t  _used,
     size_t* _size
@@ -637,8 +637,8 @@ translates line endings and delivers fewer, and a file that shrank since it
 was measured has fewer to give; only an error is. A file that grew is read
 to the length it had.
 */
-static void*
-d_internal_file_read_sized(
+static
+void* d_internal_file_read_sized(
     FILE*   _stream,
     size_t  _length,
     size_t* _size
@@ -698,8 +698,8 @@ read ceiling -- the whole point of the ceiling is not to attempt the
 allocation -- so a source the ceiling admits always fits. Without a ceiling
 a doubling that would overflow, terminator included, is refused with 0.
 */
-static size_t
-d_internal_file_read_next(
+static
+size_t d_internal_file_read_next(
     size_t _capacity
 )
 {
@@ -725,8 +725,8 @@ and one that does not fails with EFBIG, as a measured file does. The result
 is 0 when the source ended, and -1 on failure, when the buffer is freed and
 the failure reported.
 */
-static int
-d_internal_file_read_full(
+static
+int d_internal_file_read_full(
     FILE* _stream,
     char* _buffer
 )
@@ -758,8 +758,8 @@ the buffer grew, 0 when the source ended at the ceiling, and -1 on failure,
 when the buffer is freed and the failure reported. A failed realloc frees the
 block it left valid.
 */
-static int
-d_internal_file_read_grow(
+static
+int d_internal_file_read_grow(
     FILE*   _stream,
     char**  _buffer,
     size_t* _capacity
@@ -815,8 +815,8 @@ to fail a read that has succeeded -- and so does an empty read with no
 terminator, which would ask the allocator for zero bytes: realloc may free
 the block for that and return NULL, which is not a declined shrink.
 */
-static char*
-d_internal_file_read_shrink(
+static
+char* d_internal_file_read_shrink(
     char*  _buffer,
     size_t _used,
     size_t _capacity
@@ -844,10 +844,8 @@ d_internal_file_read_first
   The first allocation for a source that cannot be measured:
 D_CFG_FILE_READ_GROW_INITIAL, or the read ceiling when that is smaller.
 */
-static size_t
-d_internal_file_read_first(
-    void
-)
+static
+size_t d_internal_file_read_first(void)
 {
     const size_t initial = (size_t)D_INTERNAL_FILE_READ_GROW_INITIAL;
     const size_t ceiling = D_INTERNAL_IO_READ_CEILING;
@@ -870,8 +868,8 @@ and -1 on a read error, when the buffer is freed and the failure reported. A
 short read from an unsized source means EOF or an error, and ferror is the
 only way to tell them apart.
 */
-static int
-d_internal_file_read_some(
+static
+int d_internal_file_read_some(
     FILE*   _stream,
     char*   _buffer,
     size_t  _capacity,
@@ -916,8 +914,8 @@ data. The buffer starts at d_internal_file_read_first and grows by
 d_internal_file_read_grow; each read (d_internal_file_read_some) says whether
 there may be more. The helpers free the buffer when they fail.
 */
-static void*
-d_internal_file_read_unsized(
+static
+void* d_internal_file_read_unsized(
     FILE*   _stream,
     size_t* _size
 )
@@ -976,8 +974,8 @@ refused with ESPIPE -- unless one read finds it empty
 entry does, and is no reason to fail. It reads as the empty buffer every
 empty source reads as.
 */
-static void*
-d_internal_file_read_unsized(
+static
+void* d_internal_file_read_unsized(
     FILE*   _stream,
     size_t* _size
 )
@@ -1026,8 +1024,8 @@ d_internal_file_read_refuse
 module's own, or with 0 the platform's errno -- or EIO, so that a failure
 never reads as success.
 */
-static int
-d_internal_file_read_refuse(
+static
+int d_internal_file_read_refuse(
     int         _code,
     const char* _path,
     const char* _message
@@ -1057,8 +1055,8 @@ read to capacity, and filling the buffer exactly is accepted only when the
 next read finds end of file (d_internal_file_read_ends). The result is 0 or
 an errno-style code: ERANGE when the source does not fit.
 */
-static int
-d_internal_file_read_into(
+static
+int d_internal_file_read_into(
     FILE*       _stream,
     char*       _buf,
     size_t      _capacity,
@@ -1118,8 +1116,8 @@ loops, a clamped chunk at a time. A pass that moves nothing is a real error;
 without that check a stream that keeps returning 0 would spin forever. errno
 is left as the platform set it.
 */
-static int
-d_internal_file_write_stream(
+static
+int d_internal_file_write_stream(
     FILE*       _stream,
     const void* _data,
     size_t      _size
@@ -1162,8 +1160,8 @@ sync nor the reservation is available. The close counts, since it is where a
 buffered write finally reports failure; but the first failure is the one
 reported.
 */
-static int
-d_internal_io_store(
+static
+int d_internal_io_store(
     const char* _path,
     const void* _data,
     size_t      _size,
@@ -1209,8 +1207,8 @@ this platform (d_internal_file_sync_raw): F_FULLFSYNC on Apple's systems,
 whose fsync stops short of the drive's cache, under cfg_file_sync.h's
 choices.
 */
-static int
-d_internal_io_sync_fd(
+static
+int d_internal_io_sync_fd(
     int _fd
 )
 {
@@ -1224,8 +1222,8 @@ d_internal_io_sync_fd
   This build does not wait for durable storage, so there is nothing to do:
 success means the kernel has the data.
 */
-static int
-d_internal_io_sync_fd(
+static
+int d_internal_io_sync_fd(
     int _fd
 )
 {
@@ -1244,8 +1242,8 @@ d_internal_io_prealloc
 of growing the file a write at a time. Advisory: a refusal is not reported,
 since the writing that follows meets the same shortage and reports it.
 */
-static void
-d_internal_io_prealloc(
+static
+void d_internal_io_prealloc(
     int    _fd,
     size_t _size
 )
@@ -1267,8 +1265,8 @@ d_internal_io_prealloc(
 d_internal_io_prealloc
   This build reserves nothing up front.
 */
-static void
-d_internal_io_prealloc(
+static
+void d_internal_io_prealloc(
     int    _fd,
     size_t _size
 )
@@ -1288,8 +1286,8 @@ durable storage, onto the device. d_file_write_full_fd moves everything or
 fails, so its count is compared in size_t: a buffer past SSIZE_MAX comes back
 as the same bits, and -1 is never a size a buffer can have.
 */
-static int
-d_internal_io_fill(
+static
+int d_internal_io_fill(
     int         _fd,
     const void* _data,
     size_t      _size
@@ -1315,8 +1313,8 @@ close counts -- some filesystems, NFS among them, report a failed write only
 there -- but the first failure is the one reported: the close's only when
 everything before it went through.
 */
-static int
-d_internal_io_finish(
+static
+int d_internal_io_finish(
     int _fd,
     int _result
 )
@@ -1343,8 +1341,8 @@ exists keeps its permission bits, since it keeps its inode. A known size is
 reserved first when the build asks and the file is rewritten -- a reservation
 from offset 0 means nothing to an append.
 */
-static int
-d_internal_io_store(
+static
+int d_internal_io_store(
     const char* _path,
     const void* _data,
     size_t      _size,
@@ -1389,8 +1387,8 @@ path's own (d_path_dirname). A platform that cannot sync a directory says so
 with EINVAL or EBADF, as PostgreSQL found, and that is taken as done: there is
 nothing more to do there.
 */
-static int
-d_internal_io_sync_dir(
+static
+int d_internal_io_sync_dir(
     const char* _path
 )
 {
@@ -1439,8 +1437,8 @@ d_internal_io_sync_dir
 Windows, where the C runtime cannot sync a directory and a replacement's
 MoveFileEx write-through is all there is.
 */
-static int
-d_internal_io_sync_dir(
+static
+int d_internal_io_sync_dir(
     const char* _path
 )
 {
@@ -1458,8 +1456,8 @@ synced, when the build asks (d_internal_io_sync_dir). A failure there is a
 failure of the call, although the file is written: what the caller was
 promised is that it would survive a crash, and that is no longer certain.
 */
-static int
-d_internal_io_settle(
+static
+int d_internal_io_settle(
     const char* _path,
     const char* _fn
 )
@@ -1493,8 +1491,8 @@ temp directory, deliberately: rename is only atomic within a filesystem, and
 /tmp is very often a different one. A name that would not fit fails rather
 than being truncated.
 */
-static int
-d_internal_io_temp_name(
+static
+int d_internal_io_temp_name(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
@@ -1532,8 +1530,8 @@ d_internal_io_kept_bits
   Nothing to keep on Windows: its one permission, the read-only attribute,
 makes MoveFileEx refuse the replacement anyway. The result is always -1.
 */
-static int
-d_internal_io_kept_bits(
+static
+int d_internal_io_kept_bits(
     const char* _path
 )
 {
@@ -1546,8 +1544,8 @@ d_internal_io_kept_bits(
 d_internal_io_restore_bits
   Nothing to restore on Windows (d_internal_io_kept_bits).
 */
-static void
-d_internal_io_restore_bits(
+static
+void d_internal_io_restore_bits(
     int _fd,
     int _bits
 )
@@ -1578,18 +1576,18 @@ moment. So the move is retried first, on git's schedule -- a yield, then 1,
 10, 20 and 40 ms -- and a refusal that outlasts it, like every other failure,
 is translated as every Win32 failure here is: in use is EACCES.
 */
-static int
-d_internal_io_promote(
+static
+int d_internal_io_promote(
     const char* _temp,
     const char* _target
 )
 {
-    struct d_internal_file_native        temp_held   = {0};
-    struct d_internal_file_native        target_held = {0};
-    const d_internal_file_nchar_t* const temp =
+    struct dj_internal_file_native        temp_held   = {0};
+    struct dj_internal_file_native        target_held = {0};
+    const dj_internal_file_nchar_t* const temp =
         d_internal_file_native_of(&temp_held,
                                   _temp);
-    const d_internal_file_nchar_t* const target =
+    const dj_internal_file_nchar_t* const target =
         (temp) ? d_internal_file_native_of(&target_held,
                                            _target)
                : NULL;
@@ -1646,8 +1644,8 @@ there is none to keep: no file, or not a regular one -- a directory fails at
 the rename. stat follows a link, so a link at the path lends the replacement
 its file's bits.
 */
-static int
-d_internal_io_kept_bits(
+static
+int d_internal_io_kept_bits(
     const char* _path
 )
 {
@@ -1673,8 +1671,8 @@ a file that already had them. A filesystem that refuses -- FAT, some network
 mounts -- leaves it owner-only: narrower than the file it replaces, never
 wider.
 */
-static void
-d_internal_io_restore_bits(
+static
+void d_internal_io_restore_bits(
     int _fd,
     int _bits
 )
@@ -1693,8 +1691,8 @@ d_internal_io_restore_bits(
 d_internal_io_promote
   POSIX rename already replaces the target atomically.
 */
-static int
-d_internal_io_promote(
+static
+int d_internal_io_promote(
     const char* _temp,
     const char* _target
 )
@@ -1719,14 +1717,14 @@ d_internal_io_discard
 failure that stopped it. Its name was made by d_file_open in this build's
 text, so it converts as it did then.
 */
-static void
-d_internal_io_discard(
+static
+void d_internal_io_discard(
     const char* _temp
 )
 {
     const int                            saved_errno = errno;
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const temp =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const temp =
         d_internal_file_native_of(&held,
                                   _temp);
 
@@ -1752,8 +1750,8 @@ keeps them, or for a new target D_CFG_FILE_WRITE_CREATE_MODE under the umask;
 it is synced before it is closed, when the build asks. A replacement that
 failed is removed.
 */
-static int
-d_internal_io_stage(
+static
+int d_internal_io_stage(
     const char* _path,
     char*       _temp,
     const void* _data,
@@ -1799,8 +1797,8 @@ promotion, because a rename that beats its own data to the device can publish
 an empty file; and after it the directory is synced, because the rename is
 only an entry there.
 */
-static int
-d_internal_io_write_all_in(
+static
+int d_internal_io_write_all_in(
     const char* _path,
     const void* _data,
     size_t      _size,
@@ -1858,16 +1856,16 @@ d_internal_io_write_all_in(
 d_internal_io_write_all
   d_internal_io_write_all's work is d_internal_io_write_all_in; this keeps the
 room it builds a path in, on the heap where that is 32 KiB
-(d_internal_file_path).
+(dj_internal_file_path).
 */
-static int
-d_internal_io_write_all(
+static
+int d_internal_io_write_all(
     const char* _path,
     const void* _data,
     size_t      _size
 )
 {
-    struct d_internal_file_path temp_held = {0};
+    struct dj_internal_file_path temp_held = {0};
     char* const temp = d_internal_file_path_room(&temp_held);
 
     // d_internal_file_path_room has set errno, and reported the failure
@@ -1895,8 +1893,8 @@ d_internal_io_write_all
   Rewrites the target in place, through its own name (d_internal_io_store):
 a reader arriving mid-call sees a truncated file, and a crash can leave one.
 */
-static int
-d_internal_io_write_all(
+static
+int d_internal_io_write_all(
     const char* _path,
     const void* _data,
     size_t      _size
@@ -1934,8 +1932,7 @@ d_file_read_fd
   The ISO C backend has no descriptors, and none can be emulated, so this only
 reports ENOSYS.
 */
-ssize_t
-d_file_read_fd(
+ssize_t d_file_read_fd(
     int    _fd,
     void*  _buf,
     size_t _count
@@ -1961,8 +1958,7 @@ more than one platform call carries (d_internal_io_read) -- retried across
 interruptions. A zero-length request returns 0 without calling the platform,
 and needs no buffer, as read(2) needs none.
 */
-ssize_t
-d_file_read_fd(
+ssize_t d_file_read_fd(
     int    _fd,
     void*  _buf,
     size_t _count
@@ -2021,8 +2017,7 @@ data -- a signal, a pipe boundary, a socket's buffer -- so code that wants N
 bytes has to loop. This is that loop, written once; end of file ends it
 early with whatever was collected.
 */
-ssize_t
-d_file_read_full_fd(
+ssize_t d_file_read_full_fd(
     int    _fd,
     void*  _buf,
     size_t _count
@@ -2077,12 +2072,11 @@ d_file_pread_fd64
   The ISO C backend has no descriptors, and none can be emulated, so this only
 reports ENOSYS.
 */
-ssize_t
-d_file_pread_fd64(
-    int       _fd,
-    void*     _buf,
-    size_t    _count,
-    d_off64_t _offset
+ssize_t d_file_pread_fd64(
+    int        _fd,
+    void*      _buf,
+    size_t     _count,
+    dj_off64_t _offset
 )
 {
     (void)_fd;
@@ -2105,12 +2099,11 @@ d_file_pread_fd64
 of the same descriptor. Where it does not -- Windows among them -- the read
 is emulated by seeking there and back (d_internal_io_pread), which is not.
 */
-ssize_t
-d_file_pread_fd64(
-    int       _fd,
-    void*     _buf,
-    size_t    _count,
-    d_off64_t _offset
+ssize_t d_file_pread_fd64(
+    int        _fd,
+    void*      _buf,
+    size_t     _count,
+    dj_off64_t _offset
 )
 {
     // parameter validation
@@ -2173,8 +2166,7 @@ d_file_write_fd
   The ISO C backend has no descriptors, and none can be emulated, so this only
 reports ENOSYS.
 */
-ssize_t
-d_file_write_fd(
+ssize_t d_file_write_fd(
     int         _fd,
     const void* _buf,
     size_t      _count
@@ -2200,8 +2192,7 @@ no more than one platform call carries (d_internal_io_write) -- retried
 across interruptions. A zero-length request returns 0 without calling the
 platform, and needs no buffer.
 */
-ssize_t
-d_file_write_fd(
+ssize_t d_file_write_fd(
     int         _fd,
     const void* _buf,
     size_t      _count
@@ -2261,8 +2252,7 @@ news. Unlike the read side, running out of room is a failure here, not a
 graceful end: a partial write is a corrupt file. A pass that moves nothing
 without an error fails with EIO, because looping on it would hang.
 */
-ssize_t
-d_file_write_full_fd(
+ssize_t d_file_write_full_fd(
     int         _fd,
     const void* _buf,
     size_t      _count
@@ -2322,12 +2312,11 @@ d_file_pwrite_fd64
   The ISO C backend has no descriptors, and none can be emulated, so this only
 reports ENOSYS.
 */
-ssize_t
-d_file_pwrite_fd64(
+ssize_t d_file_pwrite_fd64(
     int         _fd,
     const void* _buf,
     size_t      _count,
-    d_off64_t   _offset
+    dj_off64_t  _offset
 )
 {
     (void)_fd;
@@ -2351,12 +2340,11 @@ users of the same descriptor. Where it does not -- Windows among them -- the
 write is emulated by seeking there and back (d_internal_io_pwrite), which is
 not.
 */
-ssize_t
-d_file_pwrite_fd64(
+ssize_t d_file_pwrite_fd64(
     int         _fd,
     const void* _buf,
     size_t      _count,
-    d_off64_t   _offset
+    dj_off64_t  _offset
 )
 {
     // parameter validation
@@ -2421,8 +2409,7 @@ reads in its own mode: a text-mode one delivers translated bytes, fewer than
 it measured, and that is not a failure. The read-ahead hint goes first; it is
 advisory and never fails the read.
 */
-void*
-d_file_read_all_stream(
+void* d_file_read_all_stream(
     FILE*   _stream,
     size_t* _size
 )
@@ -2466,8 +2453,7 @@ the returned size disagree with the file's own on exactly one platform -- and
 hands the stream to d_file_read_all_stream. The close must not overwrite the
 read's errno, which is the code the caller is about to look at.
 */
-void*
-d_file_read_all(
+void* d_file_read_all(
     const char* _path,
     size_t*     _size
 )
@@ -2518,8 +2504,7 @@ back a prefix is how a caller ends up parsing half a config file
 a byte of the caller's buffer, and the close must not overwrite the read's
 errno.
 */
-int
-d_file_read_all_into(
+int d_file_read_all_into(
     const char* _path,
     void*       _buf,
     size_t      _bufsize,
@@ -2586,8 +2571,7 @@ every platform -- and are synced, with their directory, when the build asks.
 The ISO C backend writes through a stream instead, and creates with the
 platform's default mode.
 */
-int
-d_file_write_all(
+int d_file_write_all(
     const char* _path,
     const void* _data,
     size_t      _size
@@ -2622,8 +2606,7 @@ extended cannot be replaced. Otherwise as d_file_write_all's rewrite: through
 the file's own name, a new file created with D_CFG_FILE_WRITE_CREATE_MODE,
 and the file and its directory synced when the build asks.
 */
-int
-d_file_append_all(
+int d_file_append_all(
     const char* _path,
     const void* _data,
     size_t      _size
@@ -2671,34 +2654,32 @@ d_file_append_all(
 d_file_pread_fd32
   Widens the offset and reads; nothing comes back that needs narrowing.
 */
-ssize_t
-d_file_pread_fd32(
-    int       _fd,
-    void*     _buf,
-    size_t    _count,
-    d_off32_t _offset
+ssize_t d_file_pread_fd32(
+    int        _fd,
+    void*      _buf,
+    size_t     _count,
+    dj_off32_t _offset
 )
 {
     return d_file_pread_fd64(_fd,
                              _buf,
                              _count,
-                             (d_off64_t)_offset);
+                             (dj_off64_t)_offset);
 }
 
 /*
 d_file_pwrite_fd32
   Widens the offset and writes; nothing comes back that needs narrowing.
 */
-ssize_t
-d_file_pwrite_fd32(
+ssize_t d_file_pwrite_fd32(
     int         _fd,
     const void* _buf,
     size_t      _count,
-    d_off32_t   _offset
+    dj_off32_t  _offset
 )
 {
     return d_file_pwrite_fd64(_fd,
                               _buf,
                               _count,
-                              (d_off64_t)_offset);
+                              (dj_off64_t)_offset);
 }

@@ -20,7 +20,7 @@
 #if !defined(_MSC_VER)
 
 #include "./byte_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -31,10 +31,8 @@ d_tests_sa_byte_array_jagged_basic
     - Each row has its own length prefix
     - Layout: [nrows:1][row0_len:1][row0_data...][row1_len:1]...
 */
-bool
-d_tests_sa_byte_array_jagged_basic
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_jagged_basic(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -97,10 +95,8 @@ d_tests_sa_byte_array_jagged_layout
     - Multiple rows with different lengths
     - 1-byte elements
 */
-bool
-d_tests_sa_byte_array_jagged_layout
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_jagged_layout(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -221,10 +217,8 @@ d_tests_sa_byte_array_jagged_ex
     - Custom row length size
     - Custom element size
 */
-bool
-d_tests_sa_byte_array_jagged_ex
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_jagged_ex(
+    struct dj_test_counter* _counter
 )
 {
     bool    result;
@@ -368,10 +362,8 @@ d_tests_sa_byte_array_jagged_ex
 d_tests_sa_byte_array_jagged_all
     Aggregation function that runs all jagged array builder tests.
 */
-bool
-d_tests_sa_byte_array_jagged_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_byte_array_jagged_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

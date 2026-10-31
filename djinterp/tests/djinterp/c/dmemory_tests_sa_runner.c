@@ -19,11 +19,7 @@
 d_tests_sa_dmemory_setup
   Sets up test environment for memory tests.
 */
-bool
-d_tests_sa_dmemory_setup
-(
-    void
-)
+bool d_tests_sa_dmemory_setup(void)
 {
     // no specific setup needed for memory tests
     // this function is here for consistency and potential future use
@@ -36,11 +32,7 @@ d_tests_sa_dmemory_setup
 d_tests_sa_dmemory_teardown
   Cleans up test environment.
 */
-bool
-d_tests_sa_dmemory_teardown
-(
-    void
-)
+bool d_tests_sa_dmemory_teardown(void)
 {
     // no specific teardown needed for memory tests
     // this function is here for consistency and potential future use
@@ -53,9 +45,7 @@ d_tests_sa_dmemory_teardown
 d_tests_sa_dmemory_fill_pattern
   Fills a buffer with a repeating byte pattern.
 */
-void
-d_tests_sa_dmemory_fill_pattern
-(
+void d_tests_sa_dmemory_fill_pattern(
     void*       _buffer,
     size_t      _size,
     const void* _pattern,
@@ -92,9 +82,7 @@ d_tests_sa_dmemory_fill_pattern
 d_tests_sa_dmemory_verify_pattern
   Verifies a buffer contains expected pattern.
 */
-bool
-d_tests_sa_dmemory_verify_pattern
-(
+bool d_tests_sa_dmemory_verify_pattern(
     const void*   _buffer,
     size_t        _size,
     unsigned char _pattern
@@ -127,9 +115,7 @@ d_tests_sa_dmemory_verify_pattern
 d_tests_sa_dmemory_compare_buffers
   Compares two memory buffers byte-by-byte.
 */
-bool
-d_tests_sa_dmemory_compare_buffers
-(
+bool d_tests_sa_dmemory_compare_buffers(
     const void* _buf1,
     const void* _buf2,
     size_t      _size
@@ -182,13 +168,9 @@ d_tests_sa_dmemory_run_all
   - Overlapping memory
   - Performance tests
 */
-struct d_test_object*
-d_tests_sa_dmemory_run_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dmemory_run_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  setup_success;
     size_t                idx;
 

@@ -3,7 +3,7 @@
 *
 *   Implementation unit for arena.h. Carries the region geometry, the growth
 * policy, the bump path, mark and rewind, and the operation table that presents
-* an arena as a d_mem_source.
+* an arena as a dj_mem_source.
 *
 *
 * path:      /src/djinterp/c/memory/arena.c
@@ -48,12 +48,12 @@ Return:
 requested at _align, this offset lands the payload on an _align boundary
 without any further arithmetic at allocation time.
 */
-static d_mem_size
-d_internal_arena_payload_offset(
-    d_mem_size _align
+static
+dj_mem_size d_internal_arena_payload_offset(
+    dj_mem_size _align
 )
 {
-    return d_mem_align_up((d_mem_size)sizeof(struct d_arena_region), _align);
+    return d_mem_align_up((dj_mem_size)sizeof(struct dj_arena_region), _align);
 }
 
 
@@ -67,10 +67,10 @@ Parameter(s):
 Return:
   A pointer to the first payload byte.
 */
-static char*
-d_internal_arena_payload(
-    struct d_arena_region* _region,
-    d_mem_size             _align
+static
+char* d_internal_arena_payload(
+    struct dj_arena_region* _region,
+    dj_mem_size             _align
 )
 {
     return ( (char*)_region +
@@ -92,13 +92,13 @@ Parameter(s):
 Return:
   The block size in bytes, or 0 if the computation would overflow.
 */
-static d_mem_size
-d_internal_arena_block_bytes(
-    d_mem_size _capacity,
-    d_mem_size _align
+static
+dj_mem_size d_internal_arena_block_bytes(
+    dj_mem_size _capacity,
+    dj_mem_size _align
 )
 {
-    d_mem_size offset;
+    dj_mem_size offset;
 
     offset = d_internal_arena_payload_offset(_align);
 
@@ -107,7 +107,7 @@ d_internal_arena_block_bytes(
         return 0;
     }
 
-    return (d_mem_size)(offset + _capacity);
+    return (dj_mem_size)(offset + _capacity);
 }
 
 
@@ -125,9 +125,9 @@ Return:
     - the instance has a first region already, or
   - false, otherwise.
 */
-static bool
-d_internal_arena_can_grow(
-    const struct d_arena* _arena
+static
+bool d_internal_arena_can_grow(
+    const struct dj_arena* _arena
 )
 {
 #if (D_INTERNAL_ARENA_CHAIN == 1)
@@ -153,9 +153,9 @@ Return:
   The instance's policy where the policy is a field, or the compile-time
 policy where it is pinned.
 */
-static enum d_arena_growth
+static enum dj_arena_growth
 d_internal_arena_growth_policy(
-    const struct d_arena* _arena
+    const struct dj_arena* _arena
 )
 {
 #if (D_INTERNAL_ARENA_GROWTH_RUNTIME == 1)
@@ -163,7 +163,7 @@ d_internal_arena_growth_policy(
 #else
     D_MEM_UNUSED(_arena);
 
-    return (enum d_arena_growth)D_INTERNAL_ARENA_GROWTH;
+    return (enum dj_arena_growth)D_INTERNAL_ARENA_GROWTH;
 #endif
 }
 
@@ -189,14 +189,14 @@ Parameter(s):
 Return:
   The payload capacity to request, or 0 when the budget cannot cover _needed.
 */
-static d_mem_size
-d_internal_arena_next_capacity(
-    const struct d_arena* _arena,
-    d_mem_size            _needed
+static
+dj_mem_size d_internal_arena_next_capacity(
+    const struct dj_arena* _arena,
+    dj_mem_size            _needed
 )
 {
-    d_mem_size proposed;
-    d_mem_size budget;
+    dj_mem_size proposed;
+    dj_mem_size budget;
 
     proposed = _arena->next_bytes;
     budget   = 0;
@@ -228,7 +228,7 @@ d_internal_arena_next_capacity(
             return 0;
         }
 
-        budget = (d_mem_size)(_arena->max_bytes - _arena->capacity);
+        budget = (dj_mem_size)(_arena->max_bytes - _arena->capacity);
 
         if (proposed > budget)
         {
@@ -263,13 +263,13 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_arena_advance_next_bytes(
-    struct d_arena* _arena,
-    d_mem_size      _just_taken
+static
+void d_internal_arena_advance_next_bytes(
+    struct dj_arena* _arena,
+    dj_mem_size      _just_taken
 )
 {
-    d_mem_size next;
+    dj_mem_size next;
 
     next = _just_taken;
 
@@ -284,7 +284,7 @@ d_internal_arena_advance_next_bytes(
             if (!d_mem_add_would_overflow(next,
                                           D_INTERNAL_ARENA_GROWTH_STEP))
             {
-                next = (d_mem_size)(next + D_INTERNAL_ARENA_GROWTH_STEP);
+                next = (dj_mem_size)(next + D_INTERNAL_ARENA_GROWTH_STEP);
             }
             break;
 
@@ -293,7 +293,7 @@ d_internal_arena_advance_next_bytes(
             if (!d_mem_mul_would_overflow(next,
                                           D_INTERNAL_ARENA_GROWTH_NUM))
             {
-                next = (d_mem_size)((next * D_INTERNAL_ARENA_GROWTH_NUM) /
+                next = (dj_mem_size)((next * D_INTERNAL_ARENA_GROWTH_NUM) /
                                     D_INTERNAL_ARENA_GROWTH_DEN);
             }
             break;
@@ -329,7 +329,7 @@ Parameter(s):
   _needed: the payload bytes the new region must be able to satisfy.
 Return:
   D_MEM_OK on success, D_MEM_ERR_OVERFLOW when the geometry would not fit in a
-d_mem_size, or D_MEM_ERR_EXHAUSTED when this arena may not grow, when its
+dj_mem_size, or D_MEM_ERR_EXHAUSTED when this arena may not grow, when its
 budget forbids it, or when the upstream refused.
   NOTE that an arena which may not grow reports EXHAUSTED rather than
 UNSUPPORTED. The caller asked for an allocation, not for growth, and "there is
@@ -337,16 +337,16 @@ no more room" is exhaustion however the room came to run out --
 D_MEM_ERR_UNSUPPORTED is reserved for an OPERATION the configuration forbids,
 such as releasing an individual block back to an arena.
 */
-static enum d_mem_status
+static enum dj_mem_status
 d_internal_arena_grow(
-    struct d_arena* _arena,
-    d_mem_size      _needed
+    struct dj_arena* _arena,
+    dj_mem_size      _needed
 )
 {
-    d_mem_size             capacity;
-    d_mem_size             block_bytes;
+    dj_mem_size             capacity;
+    dj_mem_size             block_bytes;
     void*                  block;
-    struct d_arena_region* region;
+    struct dj_arena_region* region;
 
     if (!d_internal_arena_can_grow(_arena))
     {
@@ -376,7 +376,7 @@ d_internal_arena_grow(
         return D_MEM_ERR_EXHAUSTED;
     }
 
-    region           = (struct d_arena_region*)block;
+    region           = (struct dj_arena_region*)block;
     region->capacity = capacity;
     region->used     = 0;
 
@@ -397,14 +397,14 @@ d_internal_arena_grow(
     _arena->tail    = region;
     _arena->current = region;
     _arena->region_count =
-        (d_mem_size)(_arena->region_count + 1);
+        (dj_mem_size)(_arena->region_count + 1);
 
     d_internal_arena_advance_next_bytes(_arena, capacity);
 #else
     _arena->head = region;
 #endif
 
-    _arena->capacity = (d_mem_size)(_arena->capacity + capacity);
+    _arena->capacity = (dj_mem_size)(_arena->capacity + capacity);
 
 #if (D_INTERNAL_MEM_STATS == 1)
     d_mem_stats_on_reserve(&_arena->stats, block_bytes);
@@ -428,19 +428,19 @@ Return:
   A pointer to the payload, or NULL when the current region cannot satisfy the
 request (which is not an error -- the caller then grows).
 */
-static void*
-d_internal_arena_bump(
-    struct d_arena* _arena,
-    d_mem_size      _bytes,
-    d_mem_size      _align
+static
+void* d_internal_arena_bump(
+    struct dj_arena* _arena,
+    dj_mem_size      _bytes,
+    dj_mem_size      _align
 )
 {
-    struct d_arena_region* region;
+    struct dj_arena_region* region;
     char*                  base;
-    d_mem_size             lead;
-    d_mem_size             padding;
-    d_mem_size             start;
-    d_mem_size             span;
+    dj_mem_size             lead;
+    dj_mem_size             padding;
+    dj_mem_size             start;
+    dj_mem_size             span;
     char*                  payload;
 
     region = D_INTERNAL_ARENA_CURRENT(_arena);
@@ -453,7 +453,7 @@ d_internal_arena_bump(
     base    = d_internal_arena_payload(region, _arena->align);
     lead    = D_INTERNAL_ARENA_LEAD(_align);
     padding = d_mem_align_padding(
-                  (d_mem_size)(uintptr_t)(base + region->used),
+                  (dj_mem_size)(uintptr_t)(base + region->used),
                   _align);
 
     if (d_mem_add_would_overflow(region->used, padding))
@@ -461,19 +461,19 @@ d_internal_arena_bump(
         return NULL;
     }
 
-    start = (d_mem_size)(region->used + padding);
+    start = (dj_mem_size)(region->used + padding);
 
     // the span is the leading guard, the payload, and the trailing guard.
     // Both guards are zero-width when redzones are off, so this arithmetic
     // is the same expression in every configuration
     if (d_mem_add_would_overflow(_bytes, lead) ||
-        d_mem_add_would_overflow((d_mem_size)(_bytes + lead),
+        d_mem_add_would_overflow((dj_mem_size)(_bytes + lead),
                                  D_MEM_REDZONE_BYTES))
     {
         return NULL;
     }
 
-    span = (d_mem_size)(_bytes + lead + D_MEM_REDZONE_BYTES);
+    span = (dj_mem_size)(_bytes + lead + D_MEM_REDZONE_BYTES);
 
     if (d_mem_add_would_overflow(start, span))
     {
@@ -481,13 +481,13 @@ d_internal_arena_bump(
     }
 
     // the only comparison on the hot path
-    if ((d_mem_size)(start + span) > region->capacity)
+    if ((dj_mem_size)(start + span) > region->capacity)
     {
         return NULL;
     }
 
     payload      = base + (size_t)start + (size_t)lead;
-    region->used = (d_mem_size)(start + span);
+    region->used = (dj_mem_size)(start + span);
 
     return (void*)payload;
 }
@@ -510,16 +510,15 @@ Parameter(s):
 Return:
   A zeroed configuration, which names the configured defaults throughout.
 */
-struct d_arena_config
-d_arena_config_default(void)
+struct dj_arena_config d_arena_config_default(void)
 {
-    struct d_arena_config config;
+    struct dj_arena_config config;
 
     config.source        = d_mem_source_none();
     config.initial_bytes = 0;
     config.max_bytes     = 0;
     config.align         = 0;
-    config.growth        = (enum d_arena_growth)D_INTERNAL_ARENA_GROWTH;
+    config.growth        = (enum dj_arena_growth)D_INTERNAL_ARENA_GROWTH;
 
     return config;
 }
@@ -541,14 +540,14 @@ Return:
   D_MEM_OK on success, D_MEM_ERR_NULL when _arena is NULL, or
 D_MEM_ERR_INVALID when the configuration names an inadmissible alignment.
 */
-enum d_mem_status
+enum dj_mem_status
 d_arena_init(
-    struct d_arena*              _arena,
-    const struct d_arena_config* _config
+    struct dj_arena*              _arena,
+    const struct dj_arena_config* _config
 )
 {
-    struct d_arena_config config;
-    d_mem_size            align;
+    struct dj_arena_config config;
+    dj_mem_size            align;
 
     D_MEM_REQUIRE(_arena != NULL, D_MEM_ERR_NULL);
 
@@ -627,20 +626,20 @@ Return:
   D_MEM_OK on success, D_MEM_ERR_NULL when a pointer argument is NULL, or
 D_MEM_ERR_INVALID when the buffer is too small to hold a region.
 */
-enum d_mem_status
+enum dj_mem_status
 d_arena_init_buffer(
-    struct d_arena* _arena,
+    struct dj_arena* _arena,
     void*           _buffer,
-    d_mem_size      _bytes
+    dj_mem_size      _bytes
 )
 {
-    enum d_mem_status      status;
-    struct d_arena_config  config;
+    enum dj_mem_status      status;
+    struct dj_arena_config  config;
     char*                  start;
     char*                  end;
-    d_mem_size             header_pad;
-    d_mem_size             offset;
-    struct d_arena_region* region;
+    dj_mem_size             header_pad;
+    dj_mem_size             offset;
+    struct dj_arena_region* region;
 
     D_MEM_REQUIRE(_arena != NULL, D_MEM_ERR_NULL);
     D_MEM_REQUIRE(_buffer != NULL, D_MEM_ERR_NULL);
@@ -661,7 +660,7 @@ d_arena_init_buffer(
 
     // the caller's buffer carries no alignment promise, so the header is
     // placed at the first suitably aligned address inside it
-    header_pad = d_mem_align_padding((d_mem_size)(uintptr_t)start,
+    header_pad = d_mem_align_padding((dj_mem_size)(uintptr_t)start,
                                      _arena->align);
     offset     = d_internal_arena_payload_offset(_arena->align);
 
@@ -671,13 +670,13 @@ d_arena_init_buffer(
     }
 
     // the buffer must hold the alignment padding, the header, and a payload
-    if ((d_mem_size)(header_pad + offset) >= _bytes)
+    if ((dj_mem_size)(header_pad + offset) >= _bytes)
     {
         return D_MEM_ERR_INVALID;
     }
 
-    region           = (struct d_arena_region*)(start + (size_t)header_pad);
-    region->capacity = (d_mem_size)(end -
+    region           = (struct dj_arena_region*)(start + (size_t)header_pad);
+    region->capacity = (dj_mem_size)(end -
                                     (start + (size_t)header_pad +
                                      (size_t)offset));
     region->used     = 0;
@@ -717,12 +716,11 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_arena_reset(
-    struct d_arena* _arena
+void d_arena_reset(
+    struct dj_arena* _arena
 )
 {
-    struct d_arena_region* region;
+    struct dj_arena_region* region;
 
     if (!_arena)
     {
@@ -777,15 +775,14 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_arena_trim(
-    struct d_arena* _arena
+void d_arena_trim(
+    struct dj_arena* _arena
 )
 {
 #if (D_INTERNAL_ARENA_CHAIN == 1)
-    struct d_arena_region* region;
-    struct d_arena_region* next;
-    d_mem_size             block_bytes;
+    struct dj_arena_region* region;
+    struct dj_arena_region* next;
+    dj_mem_size             block_bytes;
 
     if ( (!_arena) || (!_arena->head) )
     {
@@ -801,7 +798,7 @@ d_arena_trim(
                                                    _arena->align);
 
         _arena->capacity =
-            (d_mem_size)(_arena->capacity - region->capacity);
+            (dj_mem_size)(_arena->capacity - region->capacity);
 
 #if (D_INTERNAL_MEM_STATS == 1)
         d_mem_stats_on_unreserve(&_arena->stats, block_bytes);
@@ -842,14 +839,13 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_arena_release(
-    struct d_arena* _arena
+void d_arena_release(
+    struct dj_arena* _arena
 )
 {
-    struct d_arena_region* region;
-    struct d_arena_region* next;
-    d_mem_size             block_bytes;
+    struct dj_arena_region* region;
+    struct dj_arena_region* next;
+    dj_mem_size             block_bytes;
     bool                   foreign_head;
 
     if (!_arena)
@@ -924,14 +920,13 @@ Return:
 D_CFG_MEM_ZERO_ON_ALLOC) bytes, or NULL if the arena could neither satisfy the
 request nor grow to satisfy it.
 */
-void*
-d_arena_allocate(
-    struct d_arena* _arena,
-    d_mem_size      _bytes,
-    d_mem_size      _align
+void* d_arena_allocate(
+    struct dj_arena* _arena,
+    dj_mem_size      _bytes,
+    dj_mem_size      _align
 )
 {
-    struct d_mem_block block;
+    struct dj_mem_block block;
 
     if (d_arena_allocate_ex(_arena, _bytes, _align, &block) != D_MEM_OK)
     {
@@ -960,18 +955,18 @@ Return:
 inadmissible alignment, D_MEM_ERR_OVERFLOW, or D_MEM_ERR_EXHAUSTED when the
 arena is full and may not (or could not) grow.
 */
-enum d_mem_status
+enum dj_mem_status
 d_arena_allocate_ex(
-    struct d_arena*     _arena,
-    d_mem_size          _bytes,
-    d_mem_size          _align,
-    struct d_mem_block* _out
+    struct dj_arena*     _arena,
+    dj_mem_size          _bytes,
+    dj_mem_size          _align,
+    struct dj_mem_block* _out
 )
 {
-    d_mem_size        align;
-    d_mem_size        needed;
+    dj_mem_size        align;
+    dj_mem_size        needed;
     void*             payload;
-    enum d_mem_status status;
+    enum dj_mem_status status;
 
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
     D_MEM_REQUIRE(_arena != NULL, D_MEM_ERR_NULL);
@@ -1001,13 +996,13 @@ d_arena_allocate_ex(
 
         if (d_mem_add_would_overflow(needed, D_INTERNAL_ARENA_LEAD(align)) ||
             d_mem_add_would_overflow(
-                (d_mem_size)(needed + D_INTERNAL_ARENA_LEAD(align)),
-                (d_mem_size)(D_MEM_REDZONE_BYTES + align)))
+                (dj_mem_size)(needed + D_INTERNAL_ARENA_LEAD(align)),
+                (dj_mem_size)(D_MEM_REDZONE_BYTES + align)))
         {
             return D_MEM_ERR_OVERFLOW;
         }
 
-        needed = (d_mem_size)(needed +
+        needed = (dj_mem_size)(needed +
                               D_INTERNAL_ARENA_LEAD(align) +
                               D_MEM_REDZONE_BYTES +
                               align);
@@ -1063,15 +1058,14 @@ Parameter(s):
 Return:
   A pointer to the array storage, or NULL on overflow or exhaustion.
 */
-void*
-d_arena_allocate_array(
-    struct d_arena* _arena,
-    d_mem_size      _count,
-    d_mem_size      _element_size,
-    d_mem_size      _align
+void* d_arena_allocate_array(
+    struct dj_arena* _arena,
+    dj_mem_size      _count,
+    dj_mem_size      _element_size,
+    dj_mem_size      _align
 )
 {
-    d_mem_size total;
+    dj_mem_size total;
 
     if (d_mem_mul_checked(_count, _element_size, &total) != D_MEM_OK)
     {
@@ -1094,12 +1088,11 @@ Parameter(s):
 Return:
   A pointer to the copy, or NULL on failure.
 */
-void*
-d_arena_duplicate(
-    struct d_arena* _arena,
-    const void*     _source,
-    d_mem_size      _bytes,
-    d_mem_size      _align
+void* d_arena_duplicate(
+    struct dj_arena* _arena,
+    const void*      _source,
+    dj_mem_size      _bytes,
+    dj_mem_size      _align
 )
 {
     void* copy;
@@ -1136,14 +1129,13 @@ Return:
 character array needs nothing more and a stricter alignment would waste
 padding on the commonest allocation an arena sees.
 */
-char*
-d_arena_duplicate_string(
-    struct d_arena* _arena,
-    const char*     _text
+char* d_arena_duplicate_string(
+    struct dj_arena* _arena,
+    const char*      _text
 )
 {
     size_t     length;
-    d_mem_size bytes;
+    dj_mem_size bytes;
     void*      copy;
 
     if (!_text)
@@ -1153,12 +1145,12 @@ d_arena_duplicate_string(
 
     length = strlen(_text);
 
-    if ((d_mem_size)length > (d_mem_size)(D_MEM_SIZE_MAX - 1))
+    if ((dj_mem_size)length > (dj_mem_size)(D_MEM_SIZE_MAX - 1))
     {
         return NULL;
     }
 
-    bytes = (d_mem_size)(length + 1);
+    bytes = (dj_mem_size)(length + 1);
     copy  = d_arena_allocate(_arena, bytes, 1);
 
     if (copy)
@@ -1190,19 +1182,18 @@ Return:
   A pointer to the enlarged allocation, or NULL on failure. On failure the
 original is untouched.
 */
-void*
-d_arena_extend(
-    struct d_arena* _arena,
-    void*           _ptr,
-    d_mem_size      _old_bytes,
-    d_mem_size      _new_bytes,
-    d_mem_size      _align
+void* d_arena_extend(
+    struct dj_arena* _arena,
+    void*            _ptr,
+    dj_mem_size      _old_bytes,
+    dj_mem_size      _new_bytes,
+    dj_mem_size      _align
 )
 {
-    struct d_arena_region* region;
+    struct dj_arena_region* region;
     char*                  base;
-    d_mem_size             offset;
-    d_mem_size             delta;
+    dj_mem_size             offset;
+    dj_mem_size             delta;
     void*                  moved;
 
     if ( (!_arena) || (!_ptr) || (_new_bytes < _old_bytes) )
@@ -1224,14 +1215,14 @@ d_arena_extend(
          (_arena->last_size == _old_bytes) )
     {
         base   = d_internal_arena_payload(region, _arena->align);
-        offset = (d_mem_size)((char*)_ptr - base);
-        delta  = (d_mem_size)(_new_bytes - _old_bytes);
+        offset = (dj_mem_size)((char*)_ptr - base);
+        delta  = (dj_mem_size)(_new_bytes - _old_bytes);
 
         if ( (offset + _old_bytes + D_MEM_REDZONE_BYTES == region->used) &&
              (!d_mem_add_would_overflow(region->used, delta)) &&
-             ((d_mem_size)(region->used + delta) <= region->capacity) )
+             ((dj_mem_size)(region->used + delta) <= region->capacity) )
         {
-            region->used = (d_mem_size)(region->used + delta);
+            region->used = (dj_mem_size)(region->used + delta);
 
             d_mem_prepare((void*)((char*)_ptr + (size_t)_old_bytes), delta);
             d_mem_redzone_write(_ptr, _new_bytes);
@@ -1274,17 +1265,16 @@ Return:
   - true, if the allocation was the most recent and has been reclaimed, or
   - false, if it was not, in which case nothing happened.
 */
-bool
-d_arena_pop_last(
-    struct d_arena* _arena,
-    void*           _ptr,
-    d_mem_size      _bytes
+bool d_arena_pop_last(
+    struct dj_arena* _arena,
+    void*            _ptr,
+    dj_mem_size      _bytes
 )
 {
-    struct d_arena_region* region;
+    struct dj_arena_region* region;
     char*                  base;
-    d_mem_size             offset;
-    d_mem_size             lead;
+    dj_mem_size             offset;
+    dj_mem_size             lead;
 
     if ( (!_arena) || (!_ptr) )
     {
@@ -1301,7 +1291,7 @@ d_arena_pop_last(
     }
 
     base   = d_internal_arena_payload(region, _arena->align);
-    offset = (d_mem_size)((char*)_ptr - base);
+    offset = (dj_mem_size)((char*)_ptr - base);
     lead   = D_INTERNAL_ARENA_LEAD(_arena->align);
 
     // the allocation must still be the last thing in the region
@@ -1316,7 +1306,7 @@ d_arena_pop_last(
     // alignment padding before it is not recovered, which is correct -- the
     // padding belongs to whatever preceded the allocation
     region->used = (offset >= lead)
-        ? (d_mem_size)(offset - lead)
+        ? (dj_mem_size)(offset - lead)
         : 0;
 
     _arena->last_ptr  = NULL;
@@ -1349,12 +1339,11 @@ Return:
   A mark. Marks nest: taking several and rewinding to them in reverse order
 gives a stack discipline with no per-allocation bookkeeping at all.
 */
-struct d_arena_mark
-d_arena_mark_get(
-    const struct d_arena* _arena
+struct dj_arena_mark d_arena_mark_get(
+    const struct dj_arena* _arena
 )
 {
-    struct d_arena_mark mark;
+    struct dj_arena_mark mark;
 
     mark.region = NULL;
     mark.used   = 0;
@@ -1388,15 +1377,15 @@ D_MEM_ERR_FOREIGN when validation is on and the mark does not name a region
 this arena owns. An empty mark (from a never-allocated arena) rewinds to
 empty, which is the correct reading of it.
 */
-enum d_mem_status
+enum dj_mem_status
 d_arena_rewind(
-    struct d_arena*     _arena,
-    struct d_arena_mark _mark
+    struct dj_arena*     _arena,
+    struct dj_arena_mark _mark
 )
 {
 #if ( (D_INTERNAL_ARENA_VALIDATE_MARKS == 1) ||                               \
       (D_INTERNAL_ARENA_CHAIN == 1) )
-    struct d_arena_region* region;
+    struct dj_arena_region* region;
 #endif
 #if (D_INTERNAL_ARENA_VALIDATE_MARKS == 1)
     bool                   found;
@@ -1446,7 +1435,7 @@ d_arena_rewind(
         d_mem_poison_free(
             (void*)(d_internal_arena_payload(_mark.region, _arena->align) +
                     (size_t)_mark.used),
-            (d_mem_size)(_mark.region->used - _mark.used));
+            (dj_mem_size)(_mark.region->used - _mark.used));
     }
 
     _mark.region->used = _mark.used;
@@ -1494,9 +1483,8 @@ Return:
   - false, otherwise. Note that a freshly initialized arena with no region yet
 is valid: it has simply not been asked for anything.
 */
-bool
-d_arena_is_valid(
-    const struct d_arena* _arena
+bool d_arena_is_valid(
+    const struct dj_arena* _arena
 )
 {
     if (!_arena)
@@ -1519,13 +1507,12 @@ Parameter(s):
 Return:
   The consumed byte count, or 0 when _arena is NULL.
 */
-d_mem_size
-d_arena_used(
-    const struct d_arena* _arena
+dj_mem_size d_arena_used(
+    const struct dj_arena* _arena
 )
 {
-    struct d_arena_region* region;
-    d_mem_size             total;
+    struct dj_arena_region* region;
+    dj_mem_size             total;
 
     if (!_arena)
     {
@@ -1537,7 +1524,7 @@ d_arena_used(
 
     while (region)
     {
-        total = (d_mem_size)(total + region->used);
+        total = (dj_mem_size)(total + region->used);
 
 #if (D_INTERNAL_ARENA_CHAIN == 1)
         region = region->next;
@@ -1560,9 +1547,8 @@ Return:
   The capacity in bytes, or 0 when _arena is NULL. This does NOT include the
 per-region headers, which are overhead rather than capacity.
 */
-d_mem_size
-d_arena_capacity(
-    const struct d_arena* _arena
+dj_mem_size d_arena_capacity(
+    const struct dj_arena* _arena
 )
 {
     if (!_arena)
@@ -1588,12 +1574,11 @@ Return:
   The bytes left in the current region, ignoring any alignment padding a
 future request may need, or 0 when _arena is NULL or has no region.
 */
-d_mem_size
-d_arena_remaining(
-    const struct d_arena* _arena
+dj_mem_size d_arena_remaining(
+    const struct dj_arena* _arena
 )
 {
-    struct d_arena_region* region;
+    struct dj_arena_region* region;
 
     if (!_arena)
     {
@@ -1607,7 +1592,7 @@ d_arena_remaining(
         return 0;
     }
 
-    return (d_mem_size)(region->capacity - region->used);
+    return (dj_mem_size)(region->capacity - region->used);
 }
 
 
@@ -1621,9 +1606,8 @@ Return:
   The region count, or 0 when _arena is NULL. An unchained arena reports 0 or
 1, which is the honest answer rather than a special case.
 */
-d_mem_size
-d_arena_region_count(
-    const struct d_arena* _arena
+dj_mem_size d_arena_region_count(
+    const struct dj_arena* _arena
 )
 {
     if (!_arena)
@@ -1635,8 +1619,8 @@ d_arena_region_count(
     return _arena->region_count;
 #else
     return (_arena->head)
-        ? (d_mem_size)1
-        : (d_mem_size)0;
+        ? (dj_mem_size)1
+        : (dj_mem_size)0;
 #endif
 }
 
@@ -1654,10 +1638,10 @@ D_MEM_ERR_UNSUPPORTED when this build carries no accounting -- in which case
 _out is zeroed rather than left undefined, so a caller may print it either
 way.
 */
-enum d_mem_status
+enum dj_mem_status
 d_arena_stats(
-    const struct d_arena* _arena,
-    struct d_mem_stats*   _out
+    const struct dj_arena* _arena,
+    struct dj_mem_stats*   _out
 )
 {
     D_MEM_REQUIRE(_out != NULL, D_MEM_ERR_NULL);
@@ -1692,14 +1676,13 @@ Return:
   - true, if _ptr lies within the payload of some region of this arena, or
   - false, otherwise.
 */
-bool
-d_arena_owns(
-    const struct d_arena* _arena,
-    const void*           _ptr
+bool d_arena_owns(
+    const struct dj_arena* _arena,
+    const void*            _ptr
 )
 {
-    struct d_arena_region* region;
-    struct d_mem_block     block;
+    struct dj_arena_region* region;
+    struct dj_mem_block     block;
 
     if ( (!_arena) || (!_ptr) )
     {
@@ -1743,17 +1726,17 @@ d_internal_arena_source_allocate
   The arena-as-source allocate slot.
 
 Parameter(s):
-  _context: the struct d_arena; must not be NULL.
+  _context: the struct dj_arena; must not be NULL.
   _bytes:   the request size.
   _align:   the required alignment.
 Return:
   A pointer into the arena, or NULL.
 */
-static void*
-d_internal_arena_source_allocate(
-    void*      _context,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void* d_internal_arena_source_allocate(
+    void*       _context,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
     if (!_context)
@@ -1761,7 +1744,7 @@ d_internal_arena_source_allocate(
         return NULL;
     }
 
-    return d_arena_allocate((struct d_arena*)_context, _bytes, _align);
+    return d_arena_allocate((struct dj_arena*)_context, _bytes, _align);
 }
 
 
@@ -1774,19 +1757,19 @@ popping is exact and free. That covers the case an allocator drawing from an
 arena actually hits: taking a region, finding it unusable, handing it back.
 
 Parameter(s):
-  _context: the struct d_arena; may be NULL.
+  _context: the struct dj_arena; may be NULL.
   _ptr:     the block; may be NULL.
   _bytes:   the size it was allocated with.
   _align:   unused.
 Return:
   none.
 */
-static void
-d_internal_arena_source_release(
-    void*      _context,
-    void*      _ptr,
-    d_mem_size _bytes,
-    d_mem_size _align
+static
+void d_internal_arena_source_release(
+    void*       _context,
+    void*       _ptr,
+    dj_mem_size _bytes,
+    dj_mem_size _align
 )
 {
     D_MEM_UNUSED(_align);
@@ -1794,7 +1777,7 @@ d_internal_arena_source_release(
 #if (D_INTERNAL_ARENA_LAST_ALLOC == 1)
     if ( (_context) && (_ptr) )
     {
-        (void)d_arena_pop_last((struct d_arena*)_context, _ptr, _bytes);
+        (void)d_arena_pop_last((struct dj_arena*)_context, _ptr, _bytes);
     }
 #else
     D_MEM_UNUSED(_context);
@@ -1813,7 +1796,7 @@ d_internal_arena_source_max_size
   The arena-as-source max_size slot.
 
 Parameter(s):
-  _context: the struct d_arena; may be NULL.
+  _context: the struct dj_arena; may be NULL.
 Return:
   An UPPER BOUND on the next satisfiable request: what is left in the current
 region for an arena that cannot grow, and the remaining budget (or the
@@ -1821,19 +1804,19 @@ upstream's own ceiling) for one that can. Upper bounds are what a growth
 policy wants -- it is deciding how large a step to attempt, and an exact
 answer would cost a walk.
 */
-static d_mem_size
-d_internal_arena_source_max_size(
+static
+dj_mem_size d_internal_arena_source_max_size(
     const void* _context
 )
 {
-    const struct d_arena* arena;
+    const struct dj_arena* arena;
 
     if (!_context)
     {
         return 0;
     }
 
-    arena = (const struct d_arena*)_context;
+    arena = (const struct dj_arena*)_context;
 
     if (!d_internal_arena_can_grow(arena))
     {
@@ -1847,7 +1830,7 @@ d_internal_arena_source_max_size(
             return d_arena_remaining(arena);
         }
 
-        return (d_mem_size)(arena->max_bytes - arena->capacity);
+        return (dj_mem_size)(arena->max_bytes - arena->capacity);
     }
 
     return d_mem_source_max_size(&arena->source);
@@ -1858,7 +1841,7 @@ d_internal_arena_source_max_size(
 
 // d_internal_arena_source_vtable
 //   constant: the operation table that presents an arena as a byte source.
-static const struct d_mem_source_vtable d_internal_arena_source_vtable =
+static const struct dj_mem_source_vtable d_internal_arena_source_vtable =
 {
     d_internal_arena_source_allocate,
     d_internal_arena_source_release
@@ -1892,12 +1875,11 @@ Parameter(s):
 Return:
   A source backed by the arena.
 */
-struct d_mem_source
-d_arena_as_source(
-    struct d_arena* _arena
+struct dj_mem_source d_arena_as_source(
+    struct dj_arena* _arena
 )
 {
-    struct d_mem_source source;
+    struct dj_mem_source source;
 
     source.vtable  = NULL;
     source.context = NULL;

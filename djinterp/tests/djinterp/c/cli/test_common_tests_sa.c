@@ -11,10 +11,8 @@
 d_tests_sa_test_common_run_all
   Module-level aggregation function that runs all test_common tests.
 */
-bool
-d_tests_sa_test_common_run_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_test_common_run_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -26,13 +26,9 @@
    - d_memset_s with NULL destination
    - proper error codes returned
  */
-struct d_test_object*
-    d_tests_sa_dmemory_null_params_all
-    (
-        void
-    )
+struct dj_test_object* d_tests_sa_dmemory_null_params_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         buffer[100];
     void* result_ptr;
     int                   result_int;
@@ -119,13 +115,9 @@ struct d_test_object*
    - exact buffer fits
    - power-of-two sizes
  */
-struct d_test_object*
-    d_tests_sa_dmemory_boundary_conditions_all
-    (
-        void
-    )
+struct dj_test_object* d_tests_sa_dmemory_boundary_conditions_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         src[1024];
     unsigned char         dst[1024];
     unsigned char         single_src;
@@ -257,13 +249,9 @@ struct d_test_object*
    - odd-sized transfers
    - cache-line boundaries
  */
-struct d_test_object*
-    d_tests_sa_dmemory_alignment_all
-    (
-        void
-    )
+struct dj_test_object* d_tests_sa_dmemory_alignment_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     // Use aligned buffers (MSVC compatible)
 #ifdef _MSC_VER
     __declspec(align(16)) unsigned char buffer[256];
@@ -410,13 +398,9 @@ struct d_test_object*
    - adjacent buffers
    - warning: memcpy behavior with overlap is undefined
  */
-struct d_test_object*
-    d_tests_sa_dmemory_overlap_all
-    (
-        void
-    )
+struct dj_test_object* d_tests_sa_dmemory_overlap_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char         buffer[256];
     unsigned char         expected[256];
     void* result;
@@ -530,13 +514,9 @@ struct d_test_object*
    - pattern filling performance
    - Note: these are basic functional tests, not true benchmarks
  */
-struct d_test_object*
-    d_tests_sa_dmemory_performance_all
-    (
-        void
-    )
+struct dj_test_object* d_tests_sa_dmemory_performance_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     unsigned char* large_src;
     unsigned char* large_dst;
     unsigned char         small_src[16];

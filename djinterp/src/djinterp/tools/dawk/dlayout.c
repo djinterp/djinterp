@@ -46,20 +46,20 @@ d_internal_first_value
   Returns the first value term of the first declaration of `_property` in the
 first rule that matches `_node`, or NULL.
 */
-static const struct d_dss_value*
-d_internal_first_value(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    const char*               _property
+static
+const struct dj_dss_value* d_internal_first_value(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const char*                _property
 )
 {
-    const struct d_dss_value* found = NULL;
+    const struct dj_dss_value* found = NULL;
     size_t                    best  = 0;
 
     for (size_t at = 0; at < d_dss_rule_count(_sheet); ++at)
     {
-        const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+        const struct dj_dss_rule* const rule = d_dss_rule_at(_sheet, at);
 
         // a rule that cannot beat the one already found is not matched at all
         if ((found) && (!d_dss_outranks(_sheet, at, best)))
@@ -74,7 +74,7 @@ d_internal_first_value(
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
-            const struct d_dss_declaration* const declaration =
+            const struct dj_dss_declaration* const declaration =
                 d_dss_declaration_at(_sheet, rule->first_declaration + which);
 
             if (strcmp(d_dss_text(_sheet, declaration->property),
@@ -95,15 +95,14 @@ d_internal_first_value(
 }
 
 
-const char*
-d_layout_computed(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    const char*               _property
+const char* d_layout_computed(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const char*                _property
 )
 {
-    const struct d_dss_value* const value =
+    const struct dj_dss_value* const value =
         d_internal_first_value(_sheet, _tree, _node, _property);
 
     if ((!value) || (value->text == D_DSS_NO_INDEX))
@@ -115,16 +114,15 @@ d_layout_computed(
 }
 
 
-double
-d_layout_computed_number(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    const char*               _property,
-    double                    _default
+double d_layout_computed_number(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const char*                _property,
+    double                     _default
 )
 {
-    const struct d_dss_value* const value =
+    const struct dj_dss_value* const value =
         d_internal_first_value(_sheet, _tree, _node, _property);
 
     if ((!value) || (value->kind != D_DSS_VALUE_NUMBER))
@@ -140,12 +138,12 @@ d_layout_computed_number(
 d_internal_is
   Reports whether a node's computed `display` is `_want`.
 */
-static bool
-d_internal_is(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _node,
-    const char*               _want
+static
+bool d_internal_is(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _node,
+    const char*                _want
 )
 {
     const char* const display = d_layout_computed(_sheet, _tree, _node,
@@ -157,7 +155,7 @@ d_internal_is(
 
 // d_internal_row
 //   struct: one row's cells, in order, as node indices.
-struct d_internal_row
+struct dj_internal_row
 {
     uint32_t  node;
     uint32_t  cells[D_LAYOUT_COLUMN_MAX];
@@ -171,15 +169,15 @@ d_internal_collect
 row count, or zero when the table is empty or too wide to lay out.  The
 caller frees `*_out_rows`.
 */
-static size_t
-d_internal_collect(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _table,
-    struct d_internal_row**   _out_rows
+static
+size_t d_internal_collect(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _table,
+    struct dj_internal_row**   _out_rows
 )
 {
-    struct d_node* const table = d_node_at(_tree, _table);
+    struct dj_node* const table = d_node_at(_tree, _table);
 
     *_out_rows = NULL;
 
@@ -234,8 +232,8 @@ d_internal_collect(
         return 0;
     }
 
-    struct d_internal_row* const rows = calloc(count,
-                                               sizeof(struct d_internal_row));
+    struct dj_internal_row* const rows = calloc(count,
+                                               sizeof(struct dj_internal_row));
 
     if (!rows)
     {
@@ -269,7 +267,7 @@ d_internal_collect(
              cell != D_DSS_NO_INDEX;
              cell = d_node_at(_tree, cell)->next_sibling)
         {
-            const struct d_node* const cell_node = d_node_at(_tree, cell);
+            const struct dj_node* const cell_node = d_node_at(_tree, cell);
 
             // an absent cell has no geometry to align
             if ((!cell_node->present) ||
@@ -302,13 +300,13 @@ cell does; column k starts at the largest (start of k-1 plus width of the
 cell in k-1 plus gap of k), over the rows that have a cell in column k.
 Returns the column count.
 */
-static uint32_t
-d_internal_columns(
-    const struct d_dss_sheet*    _sheet,
-    struct d_node_tree*          _tree,
-    const struct d_internal_row* _rows,
-    size_t                       _row_count,
-    uint32_t                     _out_start[D_LAYOUT_COLUMN_MAX]
+static
+uint32_t d_internal_columns(
+    const struct dj_dss_sheet*    _sheet,
+    struct dj_node_tree*          _tree,
+    const struct dj_internal_row* _rows,
+    size_t                        _row_count,
+    uint32_t                      _out_start[D_LAYOUT_COLUMN_MAX]
 )
 {
     uint32_t columns = 0;
@@ -330,7 +328,7 @@ d_internal_columns(
             continue;
         }
 
-        const struct d_node* const first = d_node_at(_tree,
+        const struct dj_node* const first = d_node_at(_tree,
                                                      _rows[row].cells[0]);
 
         if (first->start_column > _out_start[0])
@@ -353,7 +351,7 @@ d_internal_columns(
 
             const uint32_t cell = _rows[row].cells[column];
 
-            const struct d_node* const previous =
+            const struct dj_node* const previous =
                 d_node_at(_tree, _rows[row].cells[column - 1u]);
 
             // `min-gap` is the guide's "at least"; `gap` is CSS's exact gap
@@ -438,15 +436,14 @@ d_internal_columns(
 }
 
 
-bool
-d_layout_table_holds(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _table,
-    bool*                     _out_evaluated
+bool d_layout_table_holds(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _table,
+    bool*                      _out_evaluated
 )
 {
-    struct d_internal_row* rows  = NULL;
+    struct dj_internal_row* rows  = NULL;
     const size_t           count = d_internal_collect(_sheet, _tree, _table,
                                                       &rows);
 
@@ -488,14 +485,14 @@ d_internal_rebuild
 original line is exactly its cells separated by whitespace.  Returns false
 when the proof fails or the result would not fit.
 */
-static bool
-d_internal_rebuild(
-    struct d_node_tree*          _tree,
-    const struct d_internal_row* _row,
-    const uint32_t               _start[D_LAYOUT_COLUMN_MAX],
-    const char*                  _line,
-    char*                        _out,
-    size_t                       _out_size
+static
+bool d_internal_rebuild(
+    struct dj_node_tree*          _tree,
+    const struct dj_internal_row* _row,
+    const uint32_t                _start[D_LAYOUT_COLUMN_MAX],
+    const char*                   _line,
+    char*                         _out,
+    size_t                        _out_size
 )
 {
     const size_t length = strlen(_line);
@@ -505,7 +502,7 @@ d_internal_rebuild(
 
     for (uint32_t cell = 0; cell < _row->cell_count; ++cell)
     {
-        const struct d_node* const node = d_node_at(_tree, _row->cells[cell]);
+        const struct dj_node* const node = d_node_at(_tree, _row->cells[cell]);
 
         const size_t from = node->start_column - 1u;
 
@@ -537,7 +534,7 @@ d_internal_rebuild(
 
     for (uint32_t cell = 0; cell < _row->cell_count; ++cell)
     {
-        const struct d_node* const node = d_node_at(_tree, _row->cells[cell]);
+        const struct dj_node* const node = d_node_at(_tree, _row->cells[cell]);
 
         const size_t to = _start[cell] - 1u;
 
@@ -564,13 +561,12 @@ d_internal_rebuild(
 }
 
 
-bool
-d_layout_table_repair(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _table,
-    const char*               _path,
-    const char**              _out_refusal
+bool d_layout_table_repair(
+    const struct dj_dss_sheet* _sheet,
+    struct dj_node_tree*       _tree,
+    uint32_t                   _table,
+    const char*                _path,
+    const char**               _out_refusal
 )
 {
     if (_out_refusal)
@@ -578,7 +574,7 @@ d_layout_table_repair(
         *_out_refusal = NULL;
     }
 
-    struct d_internal_row* rows  = NULL;
+    struct dj_internal_row* rows  = NULL;
     const size_t           count = d_internal_collect(_sheet, _tree, _table,
                                                       &rows);
 
@@ -617,7 +613,7 @@ d_layout_table_repair(
 #ifndef D_AUDIT_DISABLED
         // the rebuild proved the input lossless; this checks the output
         // independently -- a table may move text and may not change it
-        struct d_audit_claim audit;
+        struct dj_audit_claim audit;
         const char*          why = NULL;
 
         memset(&audit, 0, sizeof(audit));

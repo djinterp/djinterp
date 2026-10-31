@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "array_filter_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -27,10 +27,8 @@ d_tests_sa_array_filter_count_where
   - Empty array returns 0
   - NULL input returns 0
 */
-bool
-d_tests_sa_array_filter_count_where
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_count_where(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -133,10 +131,8 @@ d_tests_sa_array_filter_any_match
   - Returns false for empty array
   - Edge: single matching element
 */
-bool
-d_tests_sa_array_filter_any_match
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_any_match(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -210,10 +206,8 @@ d_tests_sa_array_filter_all_match
   - Returns false when at least one doesn't match
   - Returns true for empty array (vacuous truth)
 */
-bool
-d_tests_sa_array_filter_all_match
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_all_match(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -287,10 +281,8 @@ d_tests_sa_array_filter_none_match
   - Returns false when at least one matches
   - Returns true for empty array
 */
-bool
-d_tests_sa_array_filter_none_match
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_none_match(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -349,10 +341,8 @@ d_tests_sa_array_filter_find_first
   - Returns NULL for empty array
   - Returns NULL for NULL input
 */
-bool
-d_tests_sa_array_filter_find_first
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_find_first(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -444,10 +434,8 @@ d_tests_sa_array_filter_find_last
   - Returns correct pointer
   - Returns NULL when no match
 */
-bool
-d_tests_sa_array_filter_find_last
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_find_last(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -509,10 +497,8 @@ d_tests_sa_array_filter_find_last
 d_tests_sa_array_filter_query_all
   Aggregation function that runs all query function tests.
 */
-bool
-d_tests_sa_array_filter_query_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_array_filter_query_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

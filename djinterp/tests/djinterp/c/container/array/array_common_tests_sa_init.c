@@ -22,7 +22,7 @@
 *   - Normal operation with valid inputs
 *   - Edge cases (zero size, empty arrays, boundary conditions)
 *   - Invalid input handling (NULL pointers, invalid parameters)
-*   - d_index negative indexing support where applicable
+*   - dj_index negative indexing support where applicable
 *
 *
 * path:      /tests/djinterp/c/container/array/array_common_tests_sa_init.c
@@ -33,7 +33,7 @@
 
 // djinterp
 #include "./array_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -51,10 +51,8 @@ d_tests_sa_array_common_init_sized
   - proper count initialization (starts at 0, not size)
   - large allocation handling
 */
-bool
-d_tests_sa_array_common_init_sized
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_sized(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -231,10 +229,8 @@ d_tests_sa_array_common_init_from_array
   - proper memory allocation and element copying
   - data integrity after copy
 */
-bool
-d_tests_sa_array_common_init_from_array
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_from_array(
+    struct dj_test_counter* _test_info
 )
 {
     const int source[] = { 1, 2, 3, 4, 5 };
@@ -388,10 +384,8 @@ d_tests_sa_array_common_init_from_args
   - proper memory allocation and element setting
   - different number of arguments
 */
-bool
-d_tests_sa_array_common_init_from_args
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_from_args(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -555,10 +549,8 @@ d_tests_sa_array_common_init_copy
   - verification that it works as alias to init_from_array
   - data integrity after copy
 */
-bool
-d_tests_sa_array_common_init_copy
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_copy(
+    struct dj_test_counter* _test_info
 )
 {
     const int source[] = { 100, 200, 300 };
@@ -664,14 +656,12 @@ d_tests_sa_array_common_init_copy_reverse
   Tests the following:
   - copying elements in reverse order with positive indices
   - copying elements in reverse order with negative indices
-  - proper d_index validation and conversion
+  - proper dj_index validation and conversion
   - invalid index handling (start > end, out of bounds)
   - NULL source handling
 */
-bool
-d_tests_sa_array_common_init_copy_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_copy_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     const int source[] = { 1, 2, 3, 4, 5 };
@@ -892,13 +882,11 @@ d_tests_sa_array_common_init_copy_range
   Tests the following:
   - copying a range with positive indices
   - copying a range with negative indices
-  - proper d_index validation and conversion
+  - proper dj_index validation and conversion
   - invalid index handling
 */
-bool
-d_tests_sa_array_common_init_copy_range
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_copy_range(
+    struct dj_test_counter* _test_info
 )
 {
     const int source[] = { 10, 20, 30, 40, 50 };
@@ -1104,10 +1092,8 @@ d_tests_sa_array_common_init_copy_range_reverse
   - copying a range in reverse with negative indices
   - verification as alias to init_copy_reverse
 */
-bool
-d_tests_sa_array_common_init_copy_range_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_copy_range_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     const int source[] = { 10, 20, 30, 40, 50 };
@@ -1224,10 +1210,8 @@ d_tests_sa_array_common_init_fill
   - handling NULL value
   - different fill values
 */
-bool
-d_tests_sa_array_common_init_fill
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_fill(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -1417,10 +1401,8 @@ d_tests_sa_array_common_init_slice
   - invalid parameter handling
   Note: This function operates on arrays of pointers (void**).
 */
-bool
-d_tests_sa_array_common_init_slice
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_slice(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -1611,10 +1593,8 @@ d_tests_sa_array_common_init_slice_reverse
   - verification as wrapper for init_copy_reverse
   Note: This function operates on arrays of pointers (void**).
 */
-bool
-d_tests_sa_array_common_init_slice_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_slice_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -1699,13 +1679,11 @@ d_tests_sa_array_common_init_slice_range
   Tests the following:
   - slicing a range with positive indices
   - slicing a range with negative indices
-  - proper d_index validation and conversion
+  - proper dj_index validation and conversion
   Note: This function operates on arrays of pointers (void**).
 */
-bool
-d_tests_sa_array_common_init_slice_range
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_slice_range(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -1830,13 +1808,11 @@ d_tests_sa_array_common_init_slice_range_reverse
   Tests the following:
   - slicing a range in reverse order with positive indices
   - slicing a range in reverse order with negative indices
-  - proper d_index validation and conversion
+  - proper dj_index validation and conversion
   Note: This function operates on arrays of pointers (void**).
 */
-bool
-d_tests_sa_array_common_init_slice_range_reverse
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_init_slice_range_reverse(
+    struct dj_test_counter* _test_info
 )
 {
     bool   test_result;
@@ -1973,10 +1949,8 @@ Return:
   - true, if all initialization tests passed, or
   - false, if any test failed.
 */
-bool
-d_tests_sa_array_common_run_init_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_common_run_init_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result;

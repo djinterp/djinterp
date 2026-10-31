@@ -25,9 +25,9 @@ I.    PLATFORM DETECTION AND INCLUDES
 
 II.   TYPE DEFINITIONS
       ----------------
-      1.    Atomic integer types      (d_atomic_int .. d_atomic_size_t)
-      2.    Atomic pointer and flag   (d_atomic_ptr, d_atomic_flag)
-      3.    Memory order              (d_memory_order, D_MEMORY_ORDER_*)
+      1.    Atomic integer types      (dj_atomic_int .. dj_atomic_size_t)
+      2.    Atomic pointer and flag   (dj_atomic_ptr, dj_atomic_flag)
+      3.    Memory order              (dj_memory_order, D_MEMORY_ORDER_*)
       4.    Initializers              (D_ATOMIC_VAR_INIT, D_ATOMIC_FLAG_INIT)
 
 III.  TYPE REGISTRY AND DECLARATION STAMPS
@@ -70,7 +70,7 @@ XI.   MEMORY ORDERING AND FENCES
 // djinterp
 #include "../djinterp.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // fixed-width types, for users
+#include "../../../re_std/c/cstdint/dstdint.h"  // fixed-width types, for users
 
 
 
@@ -154,45 +154,45 @@ D_EXTERN_C_BEGIN
 
 // II.   Type definitions
 
-// d_atomic_int / _uint / _long / _ulong / _llong / _ullong / _size_t
+// dj_atomic_int / _uint / _long / _ulong / _llong / _ullong / _size_t
 //   type: the atomic counterpart of each integer width. On a C11/C++11
 // backend these alias the standard atomic_* types; on the Windows and
 // __sync_* fallbacks they are `volatile` scalars whose atomicity is supplied
 // by the operation functions rather than the type.
 
-// d_atomic_ptr
+// dj_atomic_ptr
 //   type: an atomic pointer. Declared apart from the integer widths because
 // it supports no arithmetic or bitwise operations.
 
-// d_atomic_flag
+// dj_atomic_flag
 //   type: the one type guaranteed lock-free on every backend. Test-and-set
 // and clear are its only operations.
 
-// d_memory_order
+// dj_memory_order
 //   type: the ordering argument taken by every _explicit function. Aliases
 // the standard memory_order on a C11/C++11 backend; elsewhere it is an enum
 // with the same six enumerators in the same order.
 #if D_ATOMIC_USE_STDATOMIC
-    typedef atomic_int     d_atomic_int;
-    typedef atomic_uint    d_atomic_uint;
-    typedef atomic_long    d_atomic_long;
-    typedef atomic_ulong   d_atomic_ulong;
-    typedef atomic_llong   d_atomic_llong;
-    typedef atomic_ullong  d_atomic_ullong;
-    typedef atomic_size_t  d_atomic_size_t;
-    typedef atomic_flag    d_atomic_flag;
+    typedef atomic_int     dj_atomic_int;
+    typedef atomic_uint    dj_atomic_uint;
+    typedef atomic_long    dj_atomic_long;
+    typedef atomic_ulong   dj_atomic_ulong;
+    typedef atomic_llong   dj_atomic_llong;
+    typedef atomic_ullong  dj_atomic_ullong;
+    typedef atomic_size_t  dj_atomic_size_t;
+    typedef atomic_flag    dj_atomic_flag;
 
     // D_ATOMIC_PTR_TYPE
     //   macro: spells the atomic form of a pointer to T. Only meaningful on
-    // the stdatomic backend; the fallbacks use d_atomic_ptr directly.
+    // the stdatomic backend; the fallbacks use dj_atomic_ptr directly.
     #ifdef __cplusplus
         #define D_ATOMIC_PTR_TYPE(T) std::atomic<T*>
     #else
         #define D_ATOMIC_PTR_TYPE(T) _Atomic(T*)
     #endif
-    typedef D_ATOMIC_PTR_TYPE(void) d_atomic_ptr;
+    typedef D_ATOMIC_PTR_TYPE(void) dj_atomic_ptr;
 
-    typedef memory_order d_memory_order;
+    typedef memory_order dj_memory_order;
 
     // D_MEMORY_ORDER_*
     //   macro: the six orderings, spelled so callers never name the
@@ -205,20 +205,20 @@ D_EXTERN_C_BEGIN
     #define D_MEMORY_ORDER_SEQ_CST memory_order_seq_cst
 
 #elif D_ATOMIC_USE_WINDOWS
-    typedef volatile long               d_atomic_int;
-    typedef volatile unsigned long      d_atomic_uint;
-    typedef volatile long               d_atomic_long;
-    typedef volatile unsigned long      d_atomic_ulong;
+    typedef volatile long               dj_atomic_int;
+    typedef volatile unsigned long      dj_atomic_uint;
+    typedef volatile long               dj_atomic_long;
+    typedef volatile unsigned long      dj_atomic_ulong;
     #if D_ENV_HAS_LONG_LONG
         D_LONG_LONG_DIAG_PUSH
-        typedef volatile long long          d_atomic_llong;
-        typedef volatile unsigned long long d_atomic_ullong;
+        typedef volatile long long          dj_atomic_llong;
+        typedef volatile unsigned long long dj_atomic_ullong;
         D_LONG_LONG_DIAG_POP
     #endif  // `long long`: absent under ISO strict C++98
-    typedef volatile size_t             d_atomic_size_t;
-    typedef volatile void*              d_atomic_ptr;
+    typedef volatile size_t             dj_atomic_size_t;
+    typedef volatile void*              dj_atomic_ptr;
 
-    typedef struct { volatile long value; } d_atomic_flag;
+    typedef struct { volatile long value; } dj_atomic_flag;
 
     typedef enum {
         D_MEMORY_ORDER_RELAXED = 0,
@@ -227,23 +227,23 @@ D_EXTERN_C_BEGIN
         D_MEMORY_ORDER_RELEASE = 3,
         D_MEMORY_ORDER_ACQ_REL = 4,
         D_MEMORY_ORDER_SEQ_CST = 5
-    } d_memory_order;
+    } dj_memory_order;
 
 #else
-    typedef volatile int                d_atomic_int;
-    typedef volatile unsigned int       d_atomic_uint;
-    typedef volatile long               d_atomic_long;
-    typedef volatile unsigned long      d_atomic_ulong;
+    typedef volatile int                dj_atomic_int;
+    typedef volatile unsigned int       dj_atomic_uint;
+    typedef volatile long               dj_atomic_long;
+    typedef volatile unsigned long      dj_atomic_ulong;
     #if D_ENV_HAS_LONG_LONG
         D_LONG_LONG_DIAG_PUSH
-        typedef volatile long long          d_atomic_llong;
-        typedef volatile unsigned long long d_atomic_ullong;
+        typedef volatile long long          dj_atomic_llong;
+        typedef volatile unsigned long long dj_atomic_ullong;
         D_LONG_LONG_DIAG_POP
     #endif  // `long long`: absent under ISO strict C++98
-    typedef volatile size_t             d_atomic_size_t;
-    typedef volatile void*              d_atomic_ptr;
+    typedef volatile size_t             dj_atomic_size_t;
+    typedef volatile void*              dj_atomic_ptr;
 
-    typedef struct { volatile int value; } d_atomic_flag;
+    typedef struct { volatile int value; } dj_atomic_flag;
 
     typedef enum {
         D_MEMORY_ORDER_RELAXED = 0,
@@ -252,7 +252,7 @@ D_EXTERN_C_BEGIN
         D_MEMORY_ORDER_RELEASE = 3,
         D_MEMORY_ORDER_ACQ_REL = 4,
         D_MEMORY_ORDER_SEQ_CST = 5
-    } d_memory_order;
+    } dj_memory_order;
 
 #endif  // D_ATOMIC_USE_STDATOMIC
 
@@ -287,8 +287,8 @@ D_EXTERN_C_BEGIN
 // between D_LONG_LONG_DIAG_PUSH and _POP.
 #if D_ENV_HAS_LONG_LONG
     #define D_INTERNAL_ATOMIC_LONG_LONG_TYPES(X)                              \
-        X(llong,  long long,          d_atomic_llong,  0LL)                   \
-        X(ullong, unsigned long long, d_atomic_ullong, 0ULL)
+        X(llong,  long long,          dj_atomic_llong,  0LL)                   \
+        X(ullong, unsigned long long, dj_atomic_ullong, 0ULL)
 #else
     #define D_INTERNAL_ATOMIC_LONG_LONG_TYPES(X)
 #endif  // D_ENV_HAS_LONG_LONG
@@ -298,12 +298,12 @@ D_EXTERN_C_BEGIN
 // for every integer-width atomic type. Pointer atomics are excluded
 // because they lack arithmetic and bitwise operations.
 #define D_ATOMIC_INTEGER_TYPES(X)                                         \
-    X(int,    int,                d_atomic_int,    0)                     \
-    X(uint,   unsigned int,       d_atomic_uint,   0U)                    \
-    X(long,   long,               d_atomic_long,   0L)                    \
-    X(ulong,  unsigned long,      d_atomic_ulong,  0UL)                   \
+    X(int,    int,                dj_atomic_int,    0)                     \
+    X(uint,   unsigned int,       dj_atomic_uint,   0U)                    \
+    X(long,   long,               dj_atomic_long,   0L)                    \
+    X(ulong,  unsigned long,      dj_atomic_ulong,  0UL)                   \
     D_INTERNAL_ATOMIC_LONG_LONG_TYPES(X)                                  \
-    X(size,   size_t,             d_atomic_size_t, (size_t)0)
+    X(size,   size_t,             dj_atomic_size_t, (size_t)0)
 
 
 // D_INTERNAL_ATOMIC_DECL_*
@@ -317,19 +317,19 @@ D_EXTERN_C_BEGIN
 #define D_INTERNAL_ATOMIC_DECL_LOAD(sfx, vtype, atype, zero)           \
     vtype d_atomic_load_##sfx(const atype* _obj);                      \
     vtype d_atomic_load_##sfx##_explicit(const atype* _obj,            \
-                                         d_memory_order _order);
+                                         dj_memory_order _order);
 
 #define D_INTERNAL_ATOMIC_DECL_STORE(sfx, vtype, atype, zero)          \
     void  d_atomic_store_##sfx(atype* _obj, vtype _value);             \
     void  d_atomic_store_##sfx##_explicit(atype* _obj,                 \
                                           vtype _value,                \
-                                          d_memory_order _order);
+                                          dj_memory_order _order);
 
 #define D_INTERNAL_ATOMIC_DECL_EXCHANGE(sfx, vtype, atype, zero)       \
     vtype d_atomic_exchange_##sfx(atype* _obj, vtype _value);          \
     vtype d_atomic_exchange_##sfx##_explicit(atype* _obj,              \
                                              vtype _value,             \
-                                             d_memory_order _order);
+                                             dj_memory_order _order);
 
 #define D_INTERNAL_ATOMIC_DECL_CAS(sfx, vtype, atype, zero)            \
     bool  d_atomic_compare_exchange_strong_##sfx(                       \
@@ -338,10 +338,10 @@ D_EXTERN_C_BEGIN
               atype* _obj, vtype* _expected, vtype _desired);           \
     bool  d_atomic_compare_exchange_strong_##sfx##_explicit(            \
               atype* _obj, vtype* _expected, vtype _desired,            \
-              d_memory_order _success, d_memory_order _failure);        \
+              dj_memory_order _success, dj_memory_order _failure);        \
     bool  d_atomic_compare_exchange_weak_##sfx##_explicit(              \
               atype* _obj, vtype* _expected, vtype _desired,            \
-              d_memory_order _success, d_memory_order _failure);
+              dj_memory_order _success, dj_memory_order _failure);
 
 #define D_INTERNAL_ATOMIC_DECL_FETCH(sfx, vtype, atype, zero)          \
     vtype d_atomic_fetch_add_##sfx(atype* _obj, vtype _arg);           \
@@ -350,76 +350,94 @@ D_EXTERN_C_BEGIN
     vtype d_atomic_fetch_xor_##sfx(atype* _obj, vtype _arg);           \
     vtype d_atomic_fetch_and_##sfx(atype* _obj, vtype _arg);           \
     vtype d_atomic_fetch_add_##sfx##_explicit(atype* _obj,             \
-              vtype _arg, d_memory_order _order);                       \
+              vtype _arg, dj_memory_order _order);                       \
     vtype d_atomic_fetch_sub_##sfx##_explicit(atype* _obj,             \
-              vtype _arg, d_memory_order _order);                       \
+              vtype _arg, dj_memory_order _order);                       \
     vtype d_atomic_fetch_or_##sfx##_explicit(atype* _obj,              \
-              vtype _arg, d_memory_order _order);                       \
+              vtype _arg, dj_memory_order _order);                       \
     vtype d_atomic_fetch_xor_##sfx##_explicit(atype* _obj,             \
-              vtype _arg, d_memory_order _order);                       \
+              vtype _arg, dj_memory_order _order);                       \
     vtype d_atomic_fetch_and_##sfx##_explicit(atype* _obj,             \
-              vtype _arg, d_memory_order _order);
+              vtype _arg, dj_memory_order _order);
 
 
 // IV.   Atomic flag operations
 
-bool               d_atomic_flag_test_and_set(d_atomic_flag* _flag);
-bool               d_atomic_flag_test_and_set_explicit(d_atomic_flag* _flag,
-                                                       d_memory_order _order);
-void               d_atomic_flag_clear(d_atomic_flag* _flag);
-void               d_atomic_flag_clear_explicit(d_atomic_flag* _flag,
-                                                d_memory_order _order);
+bool d_atomic_flag_test_and_set(
+    dj_atomic_flag* _flag
+);
+bool d_atomic_flag_test_and_set_explicit(
+    dj_atomic_flag* _flag,
+    dj_memory_order _order
+);
+void d_atomic_flag_clear(
+    dj_atomic_flag* _flag
+);
+void d_atomic_flag_clear_explicit(
+    dj_atomic_flag* _flag,
+    dj_memory_order _order
+);
 // the stamps below spell `long long` for the llong rows
 D_LONG_LONG_DIAG_PUSH
 
 // V.    Atomic initialization
 
 D_ATOMIC_INTEGER_TYPES(D_INTERNAL_ATOMIC_DECL_INIT)
-void               d_atomic_init_ptr(d_atomic_ptr* _obj,
+void               d_atomic_init_ptr(dj_atomic_ptr* _obj,
                                      void*         _value);
 // VI.   Atomic load operations
 
 D_ATOMIC_INTEGER_TYPES(D_INTERNAL_ATOMIC_DECL_LOAD)
-void*              d_atomic_load_ptr(const d_atomic_ptr* _obj);
-void*              d_atomic_load_ptr_explicit(const d_atomic_ptr* _obj,
-                                              d_memory_order      _order);
+void*              d_atomic_load_ptr(const dj_atomic_ptr* _obj);
+void* d_atomic_load_ptr_explicit(
+    const dj_atomic_ptr* _obj,
+    dj_memory_order      _order
+);
 // VII.  Atomic store operations
 
 D_ATOMIC_INTEGER_TYPES(D_INTERNAL_ATOMIC_DECL_STORE)
-void               d_atomic_store_ptr(d_atomic_ptr* _obj,
+void               d_atomic_store_ptr(dj_atomic_ptr* _obj,
                                       void*         _value);
-void               d_atomic_store_ptr_explicit(d_atomic_ptr*  _obj,
-                                               void*          _value,
-                                               d_memory_order _order);
+void d_atomic_store_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void*           _value,
+    dj_memory_order _order
+);
 // VIII. Atomic exchange operations
 
 D_ATOMIC_INTEGER_TYPES(D_INTERNAL_ATOMIC_DECL_EXCHANGE)
-void*              d_atomic_exchange_ptr(d_atomic_ptr* _obj,
+void*              d_atomic_exchange_ptr(dj_atomic_ptr* _obj,
                                          void*         _value);
-void*              d_atomic_exchange_ptr_explicit(d_atomic_ptr*  _obj,
-                                                  void*          _value,
-                                                  d_memory_order _order);
+void* d_atomic_exchange_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void*           _value,
+    dj_memory_order _order
+);
 // IX.   Atomic compare-and-exchange
 
 D_ATOMIC_INTEGER_TYPES(D_INTERNAL_ATOMIC_DECL_CAS)
-bool               d_atomic_compare_exchange_strong_ptr(d_atomic_ptr* _obj,
+bool               d_atomic_compare_exchange_strong_ptr(dj_atomic_ptr* _obj,
                                                         void**        _expected,
                                                         void*         _desired);
-bool               d_atomic_compare_exchange_weak_ptr(d_atomic_ptr* _obj,
-                                                      void**        _expected,
-                                                      void*         _desired);
-bool               d_atomic_compare_exchange_strong_ptr_explicit(
-                       d_atomic_ptr*  _obj,
-                       void**         _expected,
-                       void*          _desired,
-                       d_memory_order _success,
-                       d_memory_order _failure);
-bool               d_atomic_compare_exchange_weak_ptr_explicit(
-                       d_atomic_ptr*  _obj,
-                       void**         _expected,
-                       void*          _desired,
-                       d_memory_order _success,
-                       d_memory_order _failure);
+bool d_atomic_compare_exchange_weak_ptr(
+    dj_atomic_ptr* _obj,
+    void**         _expected,
+    void*          _desired
+);
+bool d_atomic_compare_exchange_strong_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void**          _expected,
+    void*           _desired,
+    dj_memory_order _success,
+    dj_memory_order _failure
+);
+bool d_atomic_compare_exchange_weak_ptr_explicit(
+    dj_atomic_ptr*  _obj,
+    void**          _expected,
+    void*           _desired,
+    dj_memory_order _success,
+    dj_memory_order _failure
+);
 // X.    Atomic fetch-and-modify operations
 
 D_ATOMIC_INTEGER_TYPES(D_INTERNAL_ATOMIC_DECL_FETCH)
@@ -429,12 +447,16 @@ D_LONG_LONG_DIAG_POP
 
 // XI.   Memory ordering and fences
 
-void               d_atomic_thread_fence(d_memory_order _order);
-void               d_atomic_signal_fence(d_memory_order _order);
-bool               d_atomic_is_lock_free_1(void);
-bool               d_atomic_is_lock_free_2(void);
-bool               d_atomic_is_lock_free_4(void);
-bool               d_atomic_is_lock_free_8(void);
+void d_atomic_thread_fence(
+    dj_memory_order _order
+);
+void d_atomic_signal_fence(
+    dj_memory_order _order
+);
+bool d_atomic_is_lock_free_1(void);
+bool d_atomic_is_lock_free_2(void);
+bool d_atomic_is_lock_free_4(void);
+bool d_atomic_is_lock_free_8(void);
 
 
 D_EXTERN_C_END

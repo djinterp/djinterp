@@ -66,7 +66,7 @@
 // djinterp
 #include "../djinterp.h"  // D_EXTERN_C_BEGIN, D_NODISCARD
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
 //==============================================================================
@@ -113,37 +113,47 @@ D_EXTERN_C_BEGIN
 // d_memcpy
 //   function: copies _amount bytes from _source to _destination, as memcpy;
 // returns _destination.
-void*   d_memcpy(  void*       _destination,
-                   const void* _source,
-                   size_t      _amount);
+void* d_memcpy(
+    void*       _destination,
+    const void* _source,
+    size_t      _amount
+);
 
 // d_memcpy_s
 //   function: copies _amount bytes when they fit in _destination_size, as
 // Annex K's memcpy_s. Returns 0, or EINVAL for a null pointer, or ERANGE when
 // the copy does not fit; after a failure with a destination, it is cleared.
-int     d_memcpy_s(void*       _destination,
-                   size_t      _destination_size,
-                   const void* _source,
-                   size_t      _amount);
+int d_memcpy_s(
+    void*       _destination,
+    size_t      _destination_size,
+    const void* _source,
+    size_t      _amount
+);
 
 // d_memdup
 //   function: a malloc'd copy of _size bytes of _source, which the caller
 // frees; NULL for a null _source or a failed allocation.
 D_NODISCARD
-void*   d_memdup(  const void* _source,
-                   size_t      _size);
+void* d_memdup(
+    const void* _source,
+    size_t      _size
+);
 
 // d_memdup_s
 //   function: d_memdup through d_memcpy_s; NULL as well for a zero _size.
 D_NODISCARD
-void*   d_memdup_s(const void* _source,
-                   size_t      _size);
+void* d_memdup_s(
+    const void* _source,
+    size_t      _size
+);
 
 // d_memset
 //   function: sets _amount bytes of _ptr to _value, as memset; returns _ptr.
-void*   d_memset(  void*       _ptr,
-                   int         _value,
-                   size_t      _amount);
+void* d_memset(
+    void*  _ptr,
+    int    _value,
+    size_t _amount
+);
 
 // d_memset_s
 //   function: sets the first min(_count, _destination_size) bytes of
@@ -151,10 +161,12 @@ void*   d_memset(  void*       _ptr,
 // remove, as Annex K's memset_s. Returns 0, or EINVAL for a null destination
 // or a size above D_MEMORY_RSIZE_MAX, or ERANGE when _count exceeds
 // _destination_size, after filling the whole destination.
-int     d_memset_s(void*       _destination,
-                   size_t      _destination_size,
-                   int         _ch,
-                   size_t      _count);
+int d_memset_s(
+    void*  _destination,
+    size_t _destination_size,
+    int    _ch,
+    size_t _count
+);
 
 D_EXTERN_C_END
 

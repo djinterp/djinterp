@@ -15,7 +15,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    d_color_ycbcr          (POD)
+I.    dj_color_ycbcr          (POD)
       ----------------------------
 
 II.   d_color_ycbcr_make
@@ -46,9 +46,9 @@ IV.   d_color_ycbcr_clamp
 D_COLOR_NS_OPEN
 
 
-// d_color_ycbcr
+// dj_color_ycbcr
 //   POD: YCbCr color; Y in [0, 1], Cb and Cr in [-0.5, 0.5].
-struct d_color_ycbcr
+struct dj_color_ycbcr
 {
     float y;
     float cb;
@@ -64,16 +64,16 @@ Parameter(s):
   _cb: blue-difference chroma in [-0.5, 0.5].
   _cr: red-difference  chroma in [-0.5, 0.5].
 Return:
-  A d_color_ycbcr with the given channels.
+  A dj_color_ycbcr with the given channels.
 */
-D_COLOR_FN struct d_color_ycbcr
-d_color_ycbcr_make(
+D_COLOR_FN
+struct dj_color_ycbcr d_color_ycbcr_make(
     float _y,
     float _cb,
     float _cr
 )
 {
-    return D_COLOR_LITERAL(d_color_ycbcr, _y, _cb, _cr);
+    return D_COLOR_LITERAL(dj_color_ycbcr, _y, _cb, _cr);
 }
 
 /*
@@ -85,9 +85,9 @@ Parameter(s):
 Return:
   true if Y in [0, 1] and Cb, Cr in [-0.5, 0.5], false otherwise.
 */
-D_COLOR_FN bool
-d_color_ycbcr_is_valid(
-    struct d_color_ycbcr _ycbcr
+D_COLOR_FN
+bool d_color_ycbcr_is_valid(
+    struct dj_color_ycbcr _ycbcr
 )
 {
     return ( (_ycbcr.y  >=  0.0f) && (_ycbcr.y  <= 1.0f) &&
@@ -102,11 +102,11 @@ d_color_ycbcr_clamp
 Parameter(s):
   _ycbcr: color to clamp.
 Return:
-  A d_color_ycbcr with channels constrained to canonical ranges.
+  A dj_color_ycbcr with channels constrained to canonical ranges.
 */
-D_COLOR_FN struct d_color_ycbcr
-d_color_ycbcr_clamp(
-    struct d_color_ycbcr _ycbcr
+D_COLOR_FN
+struct dj_color_ycbcr d_color_ycbcr_clamp(
+    struct dj_color_ycbcr _ycbcr
 )
 {
     return d_color_ycbcr_make(

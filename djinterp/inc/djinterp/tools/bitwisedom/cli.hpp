@@ -3,7 +3,7 @@
 *
 * bitwisedom's command line.
 *   `bitwisedom COMMAND ...` reads, writes and changes sheets without the
-* window, as GRAMMAR.md (parse/cli/, section 10) sets out: gen, check, show,
+* window, as GRAMMAR.md (tools/cli/, section 10) sets out: gen, check, show,
 * decode, eval, convert and examples read a sheet; new, import, add,
 * remove, rename, move, set, get and op make or change one; gui opens the
 * window, a module the program loads only then. The program is made with
@@ -12,14 +12,14 @@
 *   `bitwisedom-gen` is the generator's command line from before: the same
 * work as `bitwisedom gen`, under the options it always took, so that build
 * scripts written for it run unchanged.
-*   The window, which is built apart from djinterp (build/ui), takes its
-* SHEET operands through window_sheet_of, by the commands' rules, so that
-* `bitwisedom gui` refuses what they refuse, in their words.
+*   The window, which is built apart from djinterp (build/cmake/config/ui),
+* takes its SHEET operands through window_sheet_of, by the commands' rules, so
+* that `bitwisedom gui` refuses what they refuse, in their words.
 *
 * path:      /inc/djinterp/tools/bitwisedom/cli.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -35,8 +35,8 @@ TABLE OF CONTENTS
     2.  window_sheet_of
 */
 
-#ifndef BITWISEDOM_CLI_HPP
-#define BITWISEDOM_CLI_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_CLI_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_CLI_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -45,12 +45,10 @@ TABLE OF CONTENTS
 // std
 #include <string>  // std::string
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 
 
 namespace djinterp
-{
-namespace parse
 {
 namespace cli
 {
@@ -58,7 +56,6 @@ namespace cli
 class program;
 
 }  // namespace cli
-}  // namespace parse
 }  // namespace djinterp
 
 
@@ -81,8 +78,10 @@ namespace bitwisedom
  * @return the status main returns: 0 done, 1 done and the answer is no, 2
  *         trouble (GRAMMAR.md, section 8).
  */
-D_NODISCARD int  run_cli(int                _argc,
-                         const char* const* _argv);
+D_NODISCARD int run_cli(
+    int                _argc,
+    const char* const* _argv
+);
 
 // 1.1.2
 // run_gen_front
@@ -95,8 +94,10 @@ D_NODISCARD int  run_cli(int                _argc,
  * @param[in] _argv  the arguments, `_argv[0]` the program's path.
  * @return the status main returns, as `bitwisedom gen`'s.
  */
-D_NODISCARD int  run_gen_front(int                _argc,
-                               const char* const* _argv);
+D_NODISCARD int run_gen_front(
+    int                _argc,
+    const char* const* _argv
+);
 
 
 //==============================================================================
@@ -129,9 +130,11 @@ struct window_sheet
  * @param[out] _sheet    the example or the file.
  * @return `true` if the window can open it; `false`, having said why.
  */
-D_NODISCARD bool  window_sheet_of(::djinterp::parse::cli::program& _program,
-                                  const std::string&               _operand,
-                                  window_sheet&                    _sheet);
+D_NODISCARD bool window_sheet_of(
+    ::djinterp::cli::program& _program,
+    const std::string&        _operand,
+    window_sheet&             _sheet
+);
 
 
 }  // namespace bitwisedom
@@ -139,4 +142,4 @@ D_NODISCARD bool  window_sheet_of(::djinterp::parse::cli::program& _program,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_CLI_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_CLI_HPP

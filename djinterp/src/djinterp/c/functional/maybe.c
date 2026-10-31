@@ -23,15 +23,13 @@ Parameter(s):
 Return:
   A view by value.
 */
-struct d_maybe
-d_maybe_view
-(
+struct dj_maybe d_maybe_view(
     bool*  _has_value,
     void*  _value,
     size_t _value_size
 )
 {
-    struct d_maybe maybe;
+    struct dj_maybe maybe;
 
     maybe.has_value  = _has_value;
     maybe.value      = _value;
@@ -51,10 +49,8 @@ Return:
   - true, if the view points at a tag and a slot of non-zero width, or
   - false, otherwise.
 */
-bool
-d_maybe_is_valid
-(
-    const struct d_maybe* _maybe
+bool d_maybe_is_valid(
+    const struct dj_maybe* _maybe
 )
 {
     // a NULL view is not valid
@@ -81,11 +77,9 @@ Return:
   - true, if the value was stored, or
   - false, if the parameters were unusable.
 */
-bool
-d_maybe_just
-(
-    struct d_maybe* _maybe,
-    const void*     _value
+bool d_maybe_just(
+    struct dj_maybe* _maybe,
+    const void*      _value
 )
 {
     // an unusable request stores nothing
@@ -114,10 +108,8 @@ Return:
   - true, if the cell was marked empty, or
   - false, if the view was unusable.
 */
-bool
-d_maybe_nothing
-(
-    struct d_maybe* _maybe
+bool d_maybe_nothing(
+    struct dj_maybe* _maybe
 )
 {
     // an unusable view cannot be marked
@@ -142,10 +134,8 @@ Return:
   - true, if the cell holds a value, or
   - false, if it is empty or the view was unusable.
 */
-bool
-d_maybe_is_just
-(
-    const struct d_maybe* _maybe
+bool d_maybe_is_just(
+    const struct dj_maybe* _maybe
 )
 {
     // an unusable view reads as empty, so callers fail safe
@@ -170,10 +160,8 @@ Return:
   - true, if the cell is empty or the view was unusable, or
   - false, if it holds a value.
 */
-bool
-d_maybe_is_nothing
-(
-    const struct d_maybe* _maybe
+bool d_maybe_is_nothing(
+    const struct dj_maybe* _maybe
 )
 {
     // an unusable view reads as empty
@@ -199,12 +187,10 @@ Return:
   - true, if the held value was written, or
   - false, if the fallback was written or the parameters were unusable.
 */
-bool
-d_maybe_value_or
-(
-    const struct d_maybe* _maybe,
-    void*                 _out,
-    const void*           _fallback
+bool d_maybe_value_or(
+    const struct dj_maybe* _maybe,
+    void*                  _out,
+    const void*            _fallback
 )
 {
     // without a destination there is nothing to answer into
@@ -251,13 +237,11 @@ Return:
   - true, if the output cell was left definite, or
   - false, if the parameters were unusable.
 */
-bool
-d_maybe_map
-(
-    const struct d_maybe* _in,
-    struct d_maybe*       _out,
-    fn_transformer        _transform,
-    void*                 _context
+bool d_maybe_map(
+    const struct dj_maybe* _in,
+    struct dj_maybe*       _out,
+    fn_transformer         _transform,
+    void*                  _context
 )
 {
     // an unusable request leaves the destination alone
@@ -301,13 +285,11 @@ Return:
   - true, if the output cell was left definite, or
   - false, if the parameters were unusable.
 */
-bool
-d_maybe_bind
-(
-    const struct d_maybe* _in,
-    struct d_maybe*       _out,
-    fn_kleisli            _arrow,
-    void*                 _context
+bool d_maybe_bind(
+    const struct dj_maybe* _in,
+    struct dj_maybe*       _out,
+    fn_kleisli             _arrow,
+    void*                  _context
 )
 {
     // an unusable request leaves the destination alone
@@ -343,12 +325,10 @@ Return:
   - true, if a value was held and admitted, or
   - false, otherwise.
 */
-bool
-d_maybe_filter
-(
-    struct d_maybe* _maybe,
-    fn_predicate    _predicate,
-    void*           _context
+bool d_maybe_filter(
+    struct dj_maybe* _maybe,
+    fn_predicate     _predicate,
+    void*            _context
 )
 {
     // an unusable request leaves the cell alone
@@ -389,15 +369,13 @@ Return:
   - true, if the result holds a value, or
   - false, if both alternatives were empty or the parameters were unusable.
 */
-bool
-d_maybe_alt
-(
-    const struct d_maybe* _first,
-    const struct d_maybe* _second,
-    struct d_maybe*       _out
+bool d_maybe_alt(
+    const struct dj_maybe* _first,
+    const struct dj_maybe* _second,
+    struct dj_maybe*       _out
 )
 {
-    const struct d_maybe* chosen;
+    const struct dj_maybe* chosen;
 
     // an unusable destination cannot hold either alternative
     if (!d_maybe_is_valid(_out))
@@ -447,10 +425,8 @@ Return:
   - true, if the cell was marked empty, or
   - false, if the view was unusable.
 */
-bool
-d_maybe_aempty
-(
-    struct d_maybe* _out
+bool d_maybe_aempty(
+    struct dj_maybe* _out
 )
 {
     return d_maybe_nothing(_out);
@@ -460,7 +436,7 @@ d_maybe_aempty
 d_maybe_drive
   The Foldable instance, expressed over the tier 1 spine: pushes the cell's 0
 or 1 elements through an ordinary reducer. Every fold, quantifier and
-transducer chain already written against `d_reducer` therefore works on a maybe
+transducer chain already written against `dj_reducer` therefore works on a maybe
 without modification.
 
 Parameter(s):
@@ -470,12 +446,10 @@ Parameter(s):
 Return:
   The number of elements delivered: 1 for a held value, 0 otherwise.
 */
-size_t
-d_maybe_drive
-(
-    const struct d_maybe*    _maybe,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state
+size_t d_maybe_drive(
+    const struct dj_maybe*    _maybe,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state
 )
 {
     // an empty cell is an empty sequence, not an error
@@ -507,13 +481,11 @@ Return:
   - true, if a held value was folded, or
   - false, if the cell was empty or the parameters were unusable.
 */
-bool
-d_maybe_fold
-(
-    const struct d_maybe* _maybe,
-    void*                 _accumulator,
-    fn_fold               _step,
-    void*                 _context
+bool d_maybe_fold(
+    const struct dj_maybe* _maybe,
+    void*                  _accumulator,
+    fn_fold                _step,
+    void*                  _context
 )
 {
     // an empty cell leaves the accumulator exactly as it was
@@ -541,11 +513,9 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the cell is empty or unusable.
 */
-struct d_producer
-d_maybe_producer
-(
-    struct d_producer_array_state* _state,
-    const struct d_maybe*          _maybe
+struct dj_producer d_maybe_producer(
+    struct dj_producer_array_state* _state,
+    const struct dj_maybe*          _maybe
 )
 {
     // an empty cell presents as the empty producer

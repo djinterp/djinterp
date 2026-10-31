@@ -22,9 +22,8 @@ Parameter(s):
 Return:
   Always false.
 */
-static bool
-d_internal_producer_next_empty
-(
+static
+bool d_internal_producer_next_empty(
     void* _state,
     void* _out
 )
@@ -40,21 +39,20 @@ d_internal_producer_next_array
   Emits the elements of a contiguous array in order.
 
 Parameter(s):
-  _state: the `d_producer_array_state` to advance.
+  _state: the `dj_producer_array_state` to advance.
   _out:   destination for the emitted element.
 Return:
   A boolean value corresponding to either:
   - true, if an element was written to `_out`, or
   - false, if the array is exhausted or the parameters are unusable.
 */
-static bool
-d_internal_producer_next_array
-(
+static
+bool d_internal_producer_next_array(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_array_state* state;
+    struct dj_producer_array_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -63,7 +61,7 @@ d_internal_producer_next_array
         return false;
     }
 
-    state = (struct d_producer_array_state*)_state;
+    state = (struct dj_producer_array_state*)_state;
 
     // exhaustion is the ordinary end of the array
     if (state->remaining == 0)
@@ -84,7 +82,7 @@ d_internal_producer_next_range
   Emits successive `intmax_t` values of a half-open range.
 
 Parameter(s):
-  _state: the `d_producer_range_state` to advance.
+  _state: the `dj_producer_range_state` to advance.
   _out:   destination for the emitted value.
 Return:
   A boolean value corresponding to either:
@@ -92,14 +90,13 @@ Return:
   - false, if the range is exhausted, the step is zero, or the parameters are
     unusable.
 */
-static bool
-d_internal_producer_next_range
-(
+static
+bool d_internal_producer_next_range(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_range_state* state;
+    struct dj_producer_range_state* state;
     intmax_t*                     out;
 
     // a NULL state or destination is a caller error
@@ -109,7 +106,7 @@ d_internal_producer_next_range
         return false;
     }
 
-    state = (struct d_producer_range_state*)_state;
+    state = (struct dj_producer_range_state*)_state;
     out   = (intmax_t*)_out;
 
     // a zero step would never terminate, so it emits nothing at all
@@ -138,21 +135,20 @@ d_internal_producer_next_repeat
 without end.
 
 Parameter(s):
-  _state: the `d_producer_repeat_state` to advance.
+  _state: the `dj_producer_repeat_state` to advance.
   _out:   destination for the emitted value.
 Return:
   A boolean value corresponding to either:
   - true, if a value was written to `_out`, or
   - false, if the bound is spent or the parameters are unusable.
 */
-static bool
-d_internal_producer_next_repeat
-(
+static
+bool d_internal_producer_next_repeat(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_repeat_state* state;
+    struct dj_producer_repeat_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -161,7 +157,7 @@ d_internal_producer_next_repeat
         return false;
     }
 
-    state = (struct d_producer_repeat_state*)_state;
+    state = (struct dj_producer_repeat_state*)_state;
 
     // a spent bound, or nothing to copy, ends the producer
     if ( (state->remaining == 0) ||
@@ -186,21 +182,20 @@ d_internal_producer_next_generate
   Emits whatever an `fn_producer` callback writes, until it reports failure.
 
 Parameter(s):
-  _state: the `d_producer_generate_state` carrying the callback.
+  _state: the `dj_producer_generate_state` carrying the callback.
   _out:   destination for the emitted value.
 Return:
   A boolean value corresponding to either:
   - true, if the callback produced a value, or
   - false, otherwise.
 */
-static bool
-d_internal_producer_next_generate
-(
+static
+bool d_internal_producer_next_generate(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_generate_state* state;
+    struct dj_producer_generate_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -209,7 +204,7 @@ d_internal_producer_next_generate
         return false;
     }
 
-    state = (struct d_producer_generate_state*)_state;
+    state = (struct dj_producer_generate_state*)_state;
 
     // an unset callback produces nothing
     if (!state->generate)
@@ -227,21 +222,20 @@ value lives in caller-owned scratch, so the transform never aliases its own
 input and output.
 
 Parameter(s):
-  _state: the `d_producer_iterate_state` to advance.
+  _state: the `dj_producer_iterate_state` to advance.
   _out:   destination for the emitted value.
 Return:
   A boolean value corresponding to either:
   - true, if a value was written to `_out`, or
   - false, if the transform failed or the parameters are unusable.
 */
-static bool
-d_internal_producer_next_iterate
-(
+static
+bool d_internal_producer_next_iterate(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_iterate_state* state;
+    struct dj_producer_iterate_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -250,7 +244,7 @@ d_internal_producer_next_iterate
         return false;
     }
 
-    state = (struct d_producer_iterate_state*)_state;
+    state = (struct dj_producer_iterate_state*)_state;
 
     // without scratch or a step there is no sequence to walk
     if ( (!state->current) ||
@@ -285,7 +279,7 @@ d_internal_producer_next_take
   Passes through at most a fixed number of values from an inner producer.
 
 Parameter(s):
-  _state: the `d_producer_take_state` to advance.
+  _state: the `dj_producer_take_state` to advance.
   _out:   destination for the emitted value.
 Return:
   A boolean value corresponding to either:
@@ -293,14 +287,13 @@ Return:
   - false, if the bound is spent, the inner producer is exhausted, or the
     parameters are unusable.
 */
-static bool
-d_internal_producer_next_take
-(
+static
+bool d_internal_producer_next_take(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_take_state* state;
+    struct dj_producer_take_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -309,7 +302,7 @@ d_internal_producer_next_take
         return false;
     }
 
-    state = (struct d_producer_take_state*)_state;
+    state = (struct dj_producer_take_state*)_state;
 
     // a spent bound or a missing inner producer ends the sequence
     if ( (state->remaining == 0) ||
@@ -338,21 +331,20 @@ d_internal_producer_next_drop
 the rest through.
 
 Parameter(s):
-  _state: the `d_producer_drop_state` to advance.
+  _state: the `dj_producer_drop_state` to advance.
   _out:   destination for the emitted value.
 Return:
   A boolean value corresponding to either:
   - true, if a value was passed through, or
   - false, if the inner producer is exhausted or the parameters are unusable.
 */
-static bool
-d_internal_producer_next_drop
-(
+static
+bool d_internal_producer_next_drop(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_drop_state* state;
+    struct dj_producer_drop_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -361,7 +353,7 @@ d_internal_producer_next_drop
         return false;
     }
 
-    state = (struct d_producer_drop_state*)_state;
+    state = (struct dj_producer_drop_state*)_state;
 
     // a missing inner producer ends the sequence
     if ( (!state->inner)       ||
@@ -391,21 +383,20 @@ d_internal_producer_next_concat
   Emits every value of the first producer, then every value of the second.
 
 Parameter(s):
-  _state: the `d_producer_concat_state` to advance.
+  _state: the `dj_producer_concat_state` to advance.
   _out:   destination for the emitted value.
 Return:
   A boolean value corresponding to either:
   - true, if a value was emitted from either producer, or
   - false, if both are exhausted or the parameters are unusable.
 */
-static bool
-d_internal_producer_next_concat
-(
+static
+bool d_internal_producer_next_concat(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_concat_state* state;
+    struct dj_producer_concat_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -414,7 +405,7 @@ d_internal_producer_next_concat
         return false;
     }
 
-    state = (struct d_producer_concat_state*)_state;
+    state = (struct dj_producer_concat_state*)_state;
 
     // drain the first producer before touching the second
     if (!state->first_done)
@@ -446,7 +437,7 @@ d_internal_producer_next_filter
   Pulls until the inner producer yields a value the predicate admits.
 
 Parameter(s):
-  _state: the `d_producer_filter_state` to advance.
+  _state: the `dj_producer_filter_state` to advance.
   _out:   destination for the admitted value.
 Return:
   A boolean value corresponding to either:
@@ -454,14 +445,13 @@ Return:
   - false, if the inner producer exhausted first or the parameters are
     unusable.
 */
-static bool
-d_internal_producer_next_filter
-(
+static
+bool d_internal_producer_next_filter(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_filter_state* state;
+    struct dj_producer_filter_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -470,7 +460,7 @@ d_internal_producer_next_filter
         return false;
     }
 
-    state = (struct d_producer_filter_state*)_state;
+    state = (struct dj_producer_filter_state*)_state;
 
     // without an inner producer or a predicate nothing can be admitted
     if ( (!state->inner)       ||
@@ -498,7 +488,7 @@ d_internal_producer_next_transform
 lands in caller-owned scratch so the transform's input and output never alias.
 
 Parameter(s):
-  _state: the `d_producer_transform_state` to advance.
+  _state: the `dj_producer_transform_state` to advance.
   _out:   destination for the mapped value.
 Return:
   A boolean value corresponding to either:
@@ -506,14 +496,13 @@ Return:
   - false, if the inner producer exhausted, the transform failed, or the
     parameters are unusable.
 */
-static bool
-d_internal_producer_next_transform
-(
+static
+bool d_internal_producer_next_transform(
     void* _state,
     void* _out
 )
 {
-    struct d_producer_transform_state* state;
+    struct dj_producer_transform_state* state;
 
     // a NULL state or destination is a caller error
     if ( (!_state) ||
@@ -522,7 +511,7 @@ d_internal_producer_next_transform
         return false;
     }
 
-    state = (struct d_producer_transform_state*)_state;
+    state = (struct dj_producer_transform_state*)_state;
 
     // without an inner producer, a transform, or scratch there is no mapping
     if ( (!state->inner)       ||
@@ -554,15 +543,13 @@ Parameter(s):
 Return:
   A producer by value.
 */
-struct d_producer
-d_producer_make
-(
+struct dj_producer d_producer_make(
     fn_producer_next _next,
     void*            _state,
     size_t           _value_size
 )
 {
-    struct d_producer producer;
+    struct dj_producer producer;
 
     producer.next       = _next;
     producer.state      = _state;
@@ -582,10 +569,8 @@ Return:
   - true, if the producer is non-NULL and its step is set, or
   - false, otherwise.
 */
-bool
-d_producer_is_valid
-(
-    const struct d_producer* _producer
+bool d_producer_is_valid(
+    const struct dj_producer* _producer
 )
 {
     // a NULL producer is not valid
@@ -607,9 +592,7 @@ Parameter(s):
 Return:
   A producer by value that always reports exhaustion.
 */
-struct d_producer
-d_producer_empty
-(
+struct dj_producer d_producer_empty(
     size_t _value_size
 )
 {
@@ -629,12 +612,10 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_single
-(
-    struct d_producer_repeat_state* _state,
-    const void*                     _value,
-    size_t                          _value_size
+struct dj_producer d_producer_single(
+    struct dj_producer_repeat_state* _state,
+    const void*                      _value,
+    size_t                           _value_size
 )
 {
     return d_producer_repeat_n(_state, _value, _value_size, 1);
@@ -653,13 +634,11 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_from_array
-(
-    struct d_producer_array_state* _state,
-    const void*                    _elements,
-    size_t                         _count,
-    size_t                         _element_size
+struct dj_producer d_producer_from_array(
+    struct dj_producer_array_state* _state,
+    const void*                     _elements,
+    size_t                          _count,
+    size_t                          _element_size
 )
 {
     // an unusable request degrades to the empty producer
@@ -692,13 +671,11 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if `_state` is NULL.
 */
-struct d_producer
-d_producer_range
-(
-    struct d_producer_range_state* _state,
-    intmax_t                       _start,
-    intmax_t                       _end,
-    intmax_t                       _step
+struct dj_producer d_producer_range(
+    struct dj_producer_range_state* _state,
+    intmax_t                        _start,
+    intmax_t                        _end,
+    intmax_t                        _step
 )
 {
     // without state there is nowhere to hold the cursor
@@ -727,12 +704,10 @@ Parameter(s):
 Return:
   A producer by value.
 */
-struct d_producer
-d_producer_iota
-(
-    struct d_producer_range_state* _state,
-    intmax_t                       _start,
-    intmax_t                       _end
+struct dj_producer d_producer_iota(
+    struct dj_producer_range_state* _state,
+    intmax_t                        _start,
+    intmax_t                        _end
 )
 {
     return d_producer_range(_state, _start, _end, 1);
@@ -751,12 +726,10 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_repeat
-(
-    struct d_producer_repeat_state* _state,
-    const void*                     _value,
-    size_t                          _value_size
+struct dj_producer d_producer_repeat(
+    struct dj_producer_repeat_state* _state,
+    const void*                      _value,
+    size_t                           _value_size
 )
 {
     return d_producer_repeat_n(_state,
@@ -777,13 +750,11 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_repeat_n
-(
-    struct d_producer_repeat_state* _state,
-    const void*                     _value,
-    size_t                          _value_size,
-    size_t                          _count
+struct dj_producer d_producer_repeat_n(
+    struct dj_producer_repeat_state* _state,
+    const void*                      _value,
+    size_t                           _value_size,
+    size_t                           _count
 )
 {
     // an unusable request degrades to the empty producer
@@ -816,13 +787,11 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_generate
-(
-    struct d_producer_generate_state* _state,
-    fn_producer                       _generate,
-    void*                             _context,
-    size_t                            _value_size
+struct dj_producer d_producer_generate(
+    struct dj_producer_generate_state* _state,
+    fn_producer                        _generate,
+    void*                              _context,
+    size_t                             _value_size
 )
 {
     // an unusable request degrades to the empty producer
@@ -854,14 +823,12 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_iterate
-(
-    struct d_producer_iterate_state* _state,
-    void*                            _seed,
-    size_t                           _value_size,
-    fn_transformer                   _step,
-    void*                            _context
+struct dj_producer d_producer_iterate(
+    struct dj_producer_iterate_state* _state,
+    void*                             _seed,
+    size_t                            _value_size,
+    fn_transformer                    _step,
+    void*                             _context
 )
 {
     // an unusable request degrades to the empty producer
@@ -896,12 +863,10 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_take_n
-(
-    struct d_producer_take_state* _state,
-    struct d_producer*            _inner,
-    size_t                        _count
+struct dj_producer d_producer_take_n(
+    struct dj_producer_take_state* _state,
+    struct dj_producer*            _inner,
+    size_t                         _count
 )
 {
     // an unusable request degrades to the empty producer
@@ -930,12 +895,10 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_drop_n
-(
-    struct d_producer_drop_state* _state,
-    struct d_producer*            _inner,
-    size_t                        _count
+struct dj_producer d_producer_drop_n(
+    struct dj_producer_drop_state* _state,
+    struct dj_producer*            _inner,
+    size_t                         _count
 )
 {
     // an unusable request degrades to the empty producer
@@ -966,12 +929,10 @@ Return:
   A producer by value; the empty producer if the parameters are unusable or the
 value sizes disagree.
 */
-struct d_producer
-d_producer_concat
-(
-    struct d_producer_concat_state* _state,
-    struct d_producer*              _first,
-    struct d_producer*              _second
+struct dj_producer d_producer_concat(
+    struct dj_producer_concat_state* _state,
+    struct dj_producer*              _first,
+    struct dj_producer*              _second
 )
 {
     // both sides must exist and agree on the emitted value size
@@ -1004,13 +965,11 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_filter
-(
-    struct d_producer_filter_state* _state,
-    struct d_producer*              _inner,
-    fn_predicate                    _predicate,
-    void*                           _context
+struct dj_producer d_producer_filter(
+    struct dj_producer_filter_state* _state,
+    struct dj_producer*              _inner,
+    fn_predicate                     _predicate,
+    void*                            _context
 )
 {
     // an unusable request degrades to the empty producer
@@ -1044,15 +1003,13 @@ Parameter(s):
 Return:
   A producer by value; the empty producer if the parameters are unusable.
 */
-struct d_producer
-d_producer_transform
-(
-    struct d_producer_transform_state* _state,
-    struct d_producer*                 _inner,
-    fn_transformer                     _transform,
-    void*                              _context,
-    void*                              _scratch,
-    size_t                             _value_size
+struct dj_producer d_producer_transform(
+    struct dj_producer_transform_state* _state,
+    struct dj_producer*                 _inner,
+    fn_transformer                      _transform,
+    void*                               _context,
+    void*                               _scratch,
+    size_t                              _value_size
 )
 {
     // an unusable request degrades to the empty producer
@@ -1083,17 +1040,15 @@ Parameter(s):
   _producer: the producer to pull from.
   _out:      destination buffer of at least `_producer->value_size` bytes.
 Return:
-  A `d_producer_step` whose `has_value` reports whether a value was written and
+  A `dj_producer_step` whose `has_value` reports whether a value was written and
 whose `value` aliases `_out` when it was.
 */
-struct d_producer_step
-d_producer_pull
-(
-    struct d_producer* _producer,
-    void*              _out
+struct dj_producer_step d_producer_pull(
+    struct dj_producer* _producer,
+    void*               _out
 )
 {
-    struct d_producer_step step;
+    struct dj_producer_step step;
 
     step.has_value = false;
     step.value     = NULL;
@@ -1129,13 +1084,11 @@ Parameter(s):
 Return:
   The number of values delivered to the reducer.
 */
-size_t
-d_producer_drive
-(
-    struct d_producer*       _producer,
-    const struct d_reducer*  _reducer,
-    struct d_reducing_state* _state,
-    void*                    _scratch
+size_t d_producer_drive(
+    struct dj_producer*       _producer,
+    const struct dj_reducer*  _reducer,
+    struct dj_reducing_state* _state,
+    void*                     _scratch
 )
 {
     size_t delivered;
@@ -1179,12 +1132,10 @@ Parameter(s):
 Return:
   The number of values written to `_out_array`.
 */
-size_t
-d_producer_collect
-(
-    struct d_producer* _producer,
-    void*              _out_array,
-    size_t             _capacity
+size_t d_producer_collect(
+    struct dj_producer* _producer,
+    void*               _out_array,
+    size_t              _capacity
 )
 {
     unsigned char* cursor;
@@ -1228,18 +1179,16 @@ Parameter(s):
 Return:
   The number of values handed to the consumer.
 */
-size_t
-d_producer_for_each
-(
-    struct d_producer* _producer,
-    fn_consumer_const  _consume,
-    void*              _context,
-    void*              _scratch
+size_t d_producer_for_each(
+    struct dj_producer* _producer,
+    fn_consumer_const   _consume,
+    void*               _context,
+    void*               _scratch
 )
 {
-    struct d_consumer_binding binding;
-    struct d_reducer          reducer;
-    struct d_reducing_state   state;
+    struct dj_consumer_binding binding;
+    struct dj_reducer          reducer;
+    struct dj_reducing_state   state;
 
     // an unusable request consumes nothing
     if (!_consume)
@@ -1270,19 +1219,17 @@ Parameter(s):
 Return:
   The number of values folded.
 */
-size_t
-d_producer_fold
-(
-    struct d_producer* _producer,
-    void*              _accumulator,
-    fn_fold            _step,
-    void*              _context,
-    void*              _scratch
+size_t d_producer_fold(
+    struct dj_producer* _producer,
+    void*               _accumulator,
+    fn_fold             _step,
+    void*               _context,
+    void*               _scratch
 )
 {
-    struct d_fold_binding   binding;
-    struct d_reducer        reducer;
-    struct d_reducing_state state;
+    struct dj_fold_binding   binding;
+    struct dj_reducer        reducer;
+    struct dj_reducing_state state;
 
     // an unusable request folds nothing
     if ( (!_step)        ||
@@ -1315,12 +1262,10 @@ Parameter(s):
 Return:
   A producer by value emitting all of `_first` then all of `_second`.
 */
-struct d_producer
-d_producer_alt
-(
-    struct d_producer_concat_state* _state,
-    struct d_producer*              _first,
-    struct d_producer*              _second
+struct dj_producer d_producer_alt(
+    struct dj_producer_concat_state* _state,
+    struct dj_producer*              _first,
+    struct dj_producer*              _second
 )
 {
     return d_producer_concat(_state, _first, _second);
@@ -1337,9 +1282,7 @@ Parameter(s):
 Return:
   A producer by value that always reports exhaustion.
 */
-struct d_producer
-d_producer_aempty
-(
+struct dj_producer d_producer_aempty(
     size_t _value_size
 )
 {

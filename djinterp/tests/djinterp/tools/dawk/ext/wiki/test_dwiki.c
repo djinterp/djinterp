@@ -36,7 +36,7 @@
 #include <string.h>  // strcmp, strlen, strstr, memcmp, memcpy, memset
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                 // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/ext/wiki/dwiki_doc.h"  // d_wiki_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/wiki/dwiki_doc.h"  // dj_wiki_doc
 
 
 static int g_checks = 0;
@@ -52,8 +52,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -76,8 +76,8 @@ d_tests_is
   Counts one check that a text is the one expected, and shows both when it
 is not.
 */
-static void
-d_tests_is(
+static
+void d_tests_is(
     const char* _got,
     const char* _want,
     const char* _what
@@ -103,8 +103,8 @@ d_tests_is(
 d_tests_count_is
   Counts one check that a number is the one expected.
 */
-static void
-d_tests_count_is(
+static
+void d_tests_count_is(
     size_t      _got,
     size_t      _want,
     const char* _what
@@ -130,9 +130,9 @@ d_tests_read
 */
 static bool
 d_tests_read(
-    struct d_wiki*      _wiki,
+    struct dj_wiki*      _wiki,
     const char*         _text,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     const char*         _what
 )
 {
@@ -158,10 +158,10 @@ d_tests_link_to
   The first link whose target, as written, is the one named; D_WIKI_NONE
 for none.
 */
-static size_t
-d_tests_link_to(
-    const struct d_wiki* _wiki,
-    const char*          _target
+static
+size_t d_tests_link_to(
+    const struct dj_wiki* _wiki,
+    const char*           _target
 )
 {
     // each link, in the page's order
@@ -183,10 +183,10 @@ d_tests_link_to(
 d_tests_template_named
   The first template of the name; D_WIKI_NONE for none.
 */
-static size_t
-d_tests_template_named(
-    const struct d_wiki* _wiki,
-    const char*          _name
+static
+size_t d_tests_template_named(
+    const struct dj_wiki* _wiki,
+    const char*           _name
 )
 {
     // each template, in the page's order
@@ -207,12 +207,12 @@ d_tests_template_named(
 d_tests_slice_is
   Whether the text between two offsets of a page is the text expected.
 */
-static bool
-d_tests_slice_is(
-    const struct d_wiki* _wiki,
-    size_t               _start,
-    size_t               _end,
-    const char*          _want
+static
+bool d_tests_slice_is(
+    const struct dj_wiki* _wiki,
+    size_t                _start,
+    size_t                _end,
+    const char*           _want
 )
 {
     return ( (_start != D_WIKI_NONE) &&
@@ -228,14 +228,14 @@ d_tests_content_is
   Whether a block's content, its lines without their markers, is the text
 expected.
 */
-static bool
-d_tests_content_is(
-    const struct d_wiki* _wiki,
-    size_t               _block,
-    const char*          _want
+static
+bool d_tests_content_is(
+    const struct dj_wiki* _wiki,
+    size_t                _block,
+    const char*           _want
 )
 {
-    struct d_wiki_buffer content = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer content = { NULL, 0u, 0u, false };
     bool                 same    = false;
 
     // a block's content, when it has any
@@ -260,8 +260,8 @@ d_tests_content_is(
 d_tests_dialects
   Dialects by a file's extension and by name, and their names.
 */
-static void
-d_tests_dialects(void)
+static
+void d_tests_dialects(void)
 {
     puts("dialects");
 
@@ -303,7 +303,7 @@ d_tests_name_is
 static void
 d_tests_name_is(
     const char*         _path,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     const char*         _want
 )
 {
@@ -325,7 +325,7 @@ d_tests_file_is
 static void
 d_tests_file_is(
     const char*         _name,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     const char*         _want
 )
 {
@@ -347,11 +347,11 @@ d_tests_key_is
 static void
 d_tests_key_is(
     const char*         _name,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     const char*         _want
 )
 {
-    struct d_wiki_buffer key = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer key = { NULL, 0u, 0u, false };
     char                 what[160];
 
     (void)d_wiki_page_key(&key, _name, _dialect);
@@ -371,11 +371,11 @@ d_tests_anchor_is
 static void
 d_tests_anchor_is(
     const char*         _title,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     const char*         _want
 )
 {
-    struct d_wiki_buffer anchor = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer anchor = { NULL, 0u, 0u, false };
     char                 what[160];
 
     (void)d_wiki_anchor(&anchor, _dialect, _title);
@@ -392,8 +392,8 @@ d_tests_anchor_is(
 d_tests_names
   Pages' names from their files and back, keys and anchors.
 */
-static void
-d_tests_names(void)
+static
+void d_tests_names(void)
 {
     puts("names");
 
@@ -501,9 +501,9 @@ d_tests_markdown_blocks
   The blocks of g_markdown: front matter, headings of both kinds, code of
 both kinds, a quote, a list within a list, a table, and a comment.
 */
-static void
-d_tests_markdown_blocks(
-    const struct d_wiki* _wiki
+static
+void d_tests_markdown_blocks(
+    const struct dj_wiki* _wiki
 )
 {
     size_t kinds[D_WIKI_METADATA + 1];
@@ -548,7 +548,7 @@ d_tests_markdown_blocks(
     // the inner item within the outer
     for (size_t at = 0; at < _wiki->block_count; ++at)
     {
-        const struct d_wiki_block* const block = &_wiki->blocks[at];
+        const struct dj_wiki_block* const block = &_wiki->blocks[at];
 
         // an item within another
         if ( (block->kind == D_WIKI_ITEM) &&
@@ -572,9 +572,9 @@ d_tests_markdown_headings
 GitHub makes them, a repeated title's made unique, and the sections'
 nesting.
 */
-static void
-d_tests_markdown_headings(
-    const struct d_wiki* _wiki
+static
+void d_tests_markdown_headings(
+    const struct dj_wiki* _wiki
 )
 {
     d_tests_count_is(_wiki->heading_count, 4u, "4 headings");
@@ -629,9 +629,9 @@ d_tests_markdown_headings(
 d_tests_markdown_links
   The links of g_markdown, of every form, each with where it leads.
 */
-static void
-d_tests_markdown_links(
-    const struct d_wiki* _wiki
+static
+void d_tests_markdown_links(
+    const struct dj_wiki* _wiki
 )
 {
     size_t at = d_tests_link_to(_wiki, "Usage");
@@ -736,10 +736,10 @@ d_tests_markdown
   g_markdown read, record by record; and what is odd about a page kept as
 its problems.
 */
-static void
-d_tests_markdown(void)
+static
+void d_tests_markdown(void)
 {
-    struct d_wiki wiki;
+    struct dj_wiki wiki;
 
     puts("reading Markdown");
 
@@ -833,9 +833,9 @@ d_tests_mediawiki_links
   The links of g_mediawiki: internal, with a trail and a label; external
 and bare; images and categories; and none where there are none.
 */
-static void
-d_tests_mediawiki_links(
-    const struct d_wiki* _wiki
+static
+void d_tests_mediawiki_links(
+    const struct dj_wiki* _wiki
 )
 {
     size_t at = d_tests_link_to(_wiki, "thing");
@@ -890,9 +890,9 @@ d_tests_mediawiki_links(
 d_tests_mediawiki_templates
   The templates of g_mediawiki, each of its kind, with its arguments.
 */
-static void
-d_tests_mediawiki_templates(
-    const struct d_wiki* _wiki
+static
+void d_tests_mediawiki_templates(
+    const struct dj_wiki* _wiki
 )
 {
     const size_t infobox = d_tests_template_named(_wiki, "Infobox");
@@ -914,7 +914,7 @@ d_tests_mediawiki_templates(
     if ( (tmpl != D_WIKI_NONE) &&
          (_wiki->templates[tmpl].argument_count == 3u) )
     {
-        const struct d_wiki_argument* const first =
+        const struct dj_wiki_argument* const first =
             &_wiki->arguments[_wiki->templates[tmpl].first_argument];
 
         d_tests_is(first[0].key, "1", "a first positional argument is 1");
@@ -952,10 +952,10 @@ d_tests_mediawiki_templates(
 d_tests_kind_of
   The kind of the first template of a name, or -1 for none.
 */
-static int
-d_tests_kind_of(
-    const struct d_wiki* _wiki,
-    const char*          _name
+static
+int d_tests_kind_of(
+    const struct dj_wiki* _wiki,
+    const char*           _name
 )
 {
     const size_t at = d_tests_template_named(_wiki, _name);
@@ -970,10 +970,10 @@ d_tests_mediawiki_magic
 own case, a function before its `:`, the prefixes taken off, comments
 gone.
 */
-static void
-d_tests_mediawiki_magic(void)
+static
+void d_tests_mediawiki_magic(void)
 {
-    struct d_wiki wiki;
+    struct dj_wiki wiki;
 
     // each kind, by MediaWiki's words
     if (d_tests_read(&wiki, "{{PAGENAME}} {{pagename}} {{lc:X}} "
@@ -1012,10 +1012,10 @@ d_tests_mediawiki_headings
   Headings as MediaWiki's preprocessor and finalizeHeadings make them: the
 anchors, told apart; which are the page's own; and those that are none.
 */
-static void
-d_tests_mediawiki_headings(void)
+static
+void d_tests_mediawiki_headings(void)
 {
-    struct d_wiki wiki;
+    struct dj_wiki wiki;
 
     // anchors told apart without ASCII's case, each number one not taken
     if (d_tests_read(&wiki, "== a ==\n== A ==\n== a_2 ==\n== b ==\n"
@@ -1077,10 +1077,10 @@ d_tests_mediawiki_headings(void)
 d_tests_mediawiki_urls
   URLs ended as MediaWiki ends them, and titles read as it reads them.
 */
-static void
-d_tests_mediawiki_urls(void)
+static
+void d_tests_mediawiki_urls(void)
 {
-    struct d_wiki wiki;
+    struct dj_wiki wiki;
 
     // what ends a URL
     if (d_tests_read(&wiki, "http://e.example/x''y''\n\n"
@@ -1137,10 +1137,10 @@ d_tests_mediawiki_urls(void)
 d_tests_mediawiki_images
   An image's link=, its caption's URLs, and a gallery's lines.
 */
-static void
-d_tests_mediawiki_images(void)
+static
+void d_tests_mediawiki_images(void)
 {
-    struct d_wiki wiki;
+    struct dj_wiki wiki;
 
     // link=, a caption shown, a gallery
     if (d_tests_read(&wiki, "[[File:A.png|link=Page Z|thumb|cap "
@@ -1185,10 +1185,10 @@ d_tests_mediawiki
   g_mediawiki read, record by record; a redirect; and what is odd kept as
 problems.
 */
-static void
-d_tests_mediawiki(void)
+static
+void d_tests_mediawiki(void)
 {
-    struct d_wiki wiki;
+    struct dj_wiki wiki;
 
     puts("reading MediaWiki's");
 
@@ -1268,12 +1268,12 @@ d_tests_mediawiki(void)
 d_tests_written_is
   Counts one check of what a writer wrote, and frees it.
 */
-static void
-d_tests_written_is(
-    bool                  _written,
-    struct d_wiki_buffer* _out,
-    const char*           _want,
-    const char*           _what
+static
+void d_tests_written_is(
+    bool                   _written,
+    struct dj_wiki_buffer* _out,
+    const char*            _want,
+    const char*            _what
 )
 {
     d_tests_check(_written, _what);
@@ -1291,14 +1291,14 @@ label.
 */
 static void
 d_tests_link_reads(
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     const char*         _page,
     const char*         _anchor,
     const char*         _label
 )
 {
-    struct d_wiki_buffer out  = { NULL, 0u, 0u, false };
-    struct d_wiki        wiki;
+    struct dj_wiki_buffer out  = { NULL, 0u, 0u, false };
+    struct dj_wiki        wiki;
     char                 what[200];
     bool                 same = false;
 
@@ -1333,12 +1333,12 @@ with no link.
 */
 static void
 d_tests_escape_reads(
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     const char*         _text
 )
 {
-    struct d_wiki_buffer out  = { NULL, 0u, 0u, false };
-    struct d_wiki        wiki;
+    struct dj_wiki_buffer out  = { NULL, 0u, 0u, false };
+    struct dj_wiki        wiki;
     char                 what[200];
     bool                 same = false;
 
@@ -1368,11 +1368,11 @@ d_tests_escape_reads(
 d_tests_writing_markdown
   Markdown's writers.
 */
-static void
-d_tests_writing_markdown(void)
+static
+void d_tests_writing_markdown(void)
 {
-    const enum d_wiki_dialect d   = D_WIKI_MARKDOWN;
-    struct d_wiki_buffer      out = { NULL, 0u, 0u, false };
+    const enum dj_wiki_dialect d   = D_WIKI_MARKDOWN;
+    struct dj_wiki_buffer      out = { NULL, 0u, 0u, false };
 
     d_tests_written_is(d_wiki_write_heading(&out, d, 2u, "Usage"), &out,
                        "## Usage\n", "a heading");
@@ -1440,11 +1440,11 @@ d_tests_writing_markdown(void)
 d_tests_writing_mediawiki
   MediaWiki's writers.
 */
-static void
-d_tests_writing_mediawiki(void)
+static
+void d_tests_writing_mediawiki(void)
 {
-    const enum d_wiki_dialect d   = D_WIKI_MEDIAWIKI;
-    struct d_wiki_buffer      out = { NULL, 0u, 0u, false };
+    const enum dj_wiki_dialect d   = D_WIKI_MEDIAWIKI;
+    struct dj_wiki_buffer      out = { NULL, 0u, 0u, false };
 
     d_tests_written_is(d_wiki_write_heading(&out, d, 2u, "Usage"), &out,
                        "== Usage ==\n", "a heading");
@@ -1510,11 +1510,11 @@ d_tests_toc
   A table of contents: the top headings, a level deeper than the one before
 at most, each a link to its anchor.
 */
-static void
-d_tests_toc(void)
+static
+void d_tests_toc(void)
 {
-    struct d_wiki        wiki;
-    struct d_wiki_buffer out = { NULL, 0u, 0u, false };
+    struct dj_wiki        wiki;
+    struct dj_wiki_buffer out = { NULL, 0u, 0u, false };
 
     puts("tables of contents");
 
@@ -1556,13 +1556,13 @@ d_tests_changed
   Counts one check of a change: kept or refused as expected, and the page's
 text after it.  A refused change must leave the text as it was.
 */
-static void
-d_tests_changed(
-    struct d_wiki_doc* _doc,
-    bool               _kept,
-    bool               _want_kept,
-    const char*        _want,
-    const char*        _what
+static
+void d_tests_changed(
+    struct dj_wiki_doc* _doc,
+    bool                _kept,
+    bool                _want_kept,
+    const char*         _want,
+    const char*         _what
 )
 {
     size_t            length = 0;
@@ -1591,14 +1591,14 @@ d_tests_changed(
 d_tests_doc_make
   A document of a text that must read.
 */
-static struct d_wiki_doc*
-d_tests_doc_make(
+static
+struct dj_wiki_doc* d_tests_doc_make(
     const char* _path,
     const char* _text
 )
 {
     char                     why[256];
-    struct d_wiki_doc* const doc = d_wiki_doc_make(_path, _text, strlen(_text),
+    struct dj_wiki_doc* const doc = d_wiki_doc_make(_path, _text, strlen(_text),
                                                    D_WIKI_OTHER, why,
                                                    sizeof(why));
 
@@ -1638,9 +1638,9 @@ d_tests_doc_markdown_links
   A Markdown page's links changed: each form, a label added, a reference's
 definition, and a link undone.
 */
-static void
-d_tests_doc_markdown_links(
-    struct d_wiki_doc* _doc
+static
+void d_tests_doc_markdown_links(
+    struct dj_wiki_doc* _doc
 )
 {
     d_tests_changed(_doc, d_wiki_doc_set_link(_doc, 0u, "New-Page", NULL),
@@ -1703,9 +1703,9 @@ d_tests_doc_markdown_sections
   A Markdown page's sections changed: a body, a title, one inserted, one
 removed, a region added and set; and refusals, each leaving the page.
 */
-static void
-d_tests_doc_markdown_sections(
-    struct d_wiki_doc* _doc
+static
+void d_tests_doc_markdown_sections(
+    struct dj_wiki_doc* _doc
 )
 {
     const char* const head = "# Title\n\nIntro a link and [[Added|New Page]]"
@@ -1772,10 +1772,10 @@ d_tests_doc_mediawiki
   A MediaWiki page's links, templates' arguments, regions and sections
 changed.
 */
-static void
-d_tests_doc_mediawiki(void)
+static
+void d_tests_doc_mediawiki(void)
 {
-    struct d_wiki_doc* doc  = d_tests_doc_make("t.mediawiki",
+    struct dj_wiki_doc* doc  = d_tests_doc_make("t.mediawiki",
                                                "{{Infobox\n| name = x\n"
                                                "| site = [[Old]]\n}}\n"
                                                "'''B''' [[Old]]s and"
@@ -1852,10 +1852,10 @@ d_tests_doc_endings
   A page's CR LF endings, given to what a change writes, and its byte-order
 mark kept.
 */
-static void
-d_tests_doc_endings(void)
+static
+void d_tests_doc_endings(void)
 {
-    struct d_wiki_doc* const doc = d_tests_doc_make("c.md",
+    struct dj_wiki_doc* const doc = d_tests_doc_make("c.md",
                                                     "\xef\xbb\xbf# A\r\n\r\n"
                                                     "text\r\n\r\n## B\r\n\r\n"
                                                     "b\r\n");
@@ -1886,15 +1886,15 @@ d_tests_doc_save
   A document saved beneath a directory: the directories it needs made, then
 written only when it would change, and read back as it was saved.
 */
-static void
-d_tests_doc_save(
+static
+void d_tests_doc_save(
     const char* _directory
 )
 {
     char               path[512];
     char               why[256];
-    struct d_wiki_doc* doc  = NULL;
-    struct d_wiki_doc* back = NULL;
+    struct dj_wiki_doc* doc  = NULL;
+    struct dj_wiki_doc* back = NULL;
     size_t             a    = 0;
     size_t             b    = 0;
 
@@ -1969,12 +1969,12 @@ d_tests_doc_save(
 d_tests_documents
   The documents: every change of both dialects, line endings, saving.
 */
-static void
-d_tests_documents(
+static
+void d_tests_documents(
     const char* _directory
 )
 {
-    struct d_wiki_doc* const doc = d_tests_doc_make("t.md", g_doc_page);
+    struct dj_wiki_doc* const doc = d_tests_doc_make("t.md", g_doc_page);
 
     puts("documents");
 
@@ -1999,9 +1999,9 @@ d_tests_documents(
 //==============================================================================
 
 
-// d_tests_counts
+// dj_tests_counts
 //   struct: what a corpus or fuzz run counted.
-struct d_tests_counts
+struct dj_tests_counts
 {
     size_t pages;
     size_t records;
@@ -2016,8 +2016,8 @@ struct d_tests_counts
 d_tests_load
   A file's bytes, allocated and terminated; NULL when it does not read.
 */
-static char*
-d_tests_load(
+static
+char* d_tests_load(
     const char* _path,
     size_t*     _out_length
 )
@@ -2079,15 +2079,15 @@ d_tests_sound_blocks
 block that holds it, a level deeper, its segments within it, and on the
 line its start is.
 */
-static const char*
-d_tests_sound_blocks(
-    const struct d_wiki* _wiki
+static
+const char* d_tests_sound_blocks(
+    const struct dj_wiki* _wiki
 )
 {
     // each block
     for (size_t at = 0; at < _wiki->block_count; ++at)
     {
-        const struct d_wiki_block* const block = &_wiki->blocks[at];
+        const struct dj_wiki_block* const block = &_wiki->blocks[at];
 
         // within the text, in order
         if ( (block->start > block->end) ||
@@ -2123,7 +2123,7 @@ d_tests_sound_blocks(
         // its segments, in order, within its lines
         for (size_t s = 0; s < block->segment_count; ++s)
         {
-            const struct d_wiki_segment* const segment =
+            const struct dj_wiki_segment* const segment =
                 &_wiki->segments[block->first_segment + s];
 
             // each segment within the block's lines
@@ -2148,15 +2148,15 @@ d_tests_sound_blocks(
 d_tests_sound_headings
   Whether a page's headings are sound, and the sections made from them.
 */
-static const char*
-d_tests_sound_headings(
-    const struct d_wiki* _wiki
+static
+const char* d_tests_sound_headings(
+    const struct dj_wiki* _wiki
 )
 {
     // each heading, in order, its title within it
     for (size_t at = 0; at < _wiki->heading_count; ++at)
     {
-        const struct d_wiki_heading* const heading = &_wiki->headings[at];
+        const struct dj_wiki_heading* const heading = &_wiki->headings[at];
 
         // its title within it, at a level there is, in order
         if ( (heading->start > heading->title_start) ||
@@ -2182,7 +2182,7 @@ d_tests_sound_headings(
     // each section after the lead
     for (size_t at = 1; at < _wiki->section_count; ++at)
     {
-        const struct d_wiki_section* const section = &_wiki->sections[at];
+        const struct dj_wiki_section* const section = &_wiki->sections[at];
 
         // within its parent, in order
         if ( (section->start < _wiki->sections[at - 1u].start) ||
@@ -2210,15 +2210,15 @@ d_tests_sound_links
   Whether a page's links are sound: in order, within the text, their parts
 within them, within their templates, and on the lines they say.
 */
-static const char*
-d_tests_sound_links(
-    const struct d_wiki* _wiki
+static
+const char* d_tests_sound_links(
+    const struct dj_wiki* _wiki
 )
 {
     // each link
     for (size_t at = 0; at < _wiki->link_count; ++at)
     {
-        const struct d_wiki_link* const link   = &_wiki->links[at];
+        const struct dj_wiki_link* const link   = &_wiki->links[at];
         size_t                          column = 0;
 
         // within the text, in order, with every text it has
@@ -2274,15 +2274,15 @@ d_tests_sound_links(
 d_tests_sound_templates
   Whether a page's templates, their arguments and its regions are sound.
 */
-static const char*
-d_tests_sound_templates(
-    const struct d_wiki* _wiki
+static
+const char* d_tests_sound_templates(
+    const struct dj_wiki* _wiki
 )
 {
     // each template, its arguments within it
     for (size_t at = 0; at < _wiki->template_count; ++at)
     {
-        const struct d_wiki_template* const tmpl = &_wiki->templates[at];
+        const struct dj_wiki_template* const tmpl = &_wiki->templates[at];
 
         // within the text and its parent
         if ( (tmpl->start > tmpl->name_start) ||
@@ -2302,7 +2302,7 @@ d_tests_sound_templates(
         // each argument
         for (size_t a = 0; a < tmpl->argument_count; ++a)
         {
-            const struct d_wiki_argument* const argument =
+            const struct dj_wiki_argument* const argument =
                 &_wiki->arguments[tmpl->first_argument + a];
 
             // within its template
@@ -2320,7 +2320,7 @@ d_tests_sound_templates(
     // each region, its markers about its text
     for (size_t at = 0; at < _wiki->region_count; ++at)
     {
-        const struct d_wiki_region* const region = &_wiki->regions[at];
+        const struct dj_wiki_region* const region = &_wiki->regions[at];
 
         // its markers about its text
         if ( (region->begin >= region->content) ||
@@ -2350,17 +2350,17 @@ d_tests_sound_templates(
 d_tests_corpus_file
   One page read and proved sound, and its document made of its bytes.
 */
-static void
-d_tests_corpus_file(
-    const char*            _path,
-    struct d_tests_counts* _counts
+static
+void d_tests_corpus_file(
+    const char*             _path,
+    struct dj_tests_counts* _counts
 )
 {
     size_t             length = 0;
     char* const        text   = d_tests_load(_path, &length);
-    struct d_wiki      wiki;
+    struct dj_wiki      wiki;
     const char*        wrong  = NULL;
-    struct d_wiki_doc* doc    = NULL;
+    struct dj_wiki_doc* doc    = NULL;
 
     // a page that cannot be loaded is a failure of its own
     if (!text)
@@ -2425,8 +2425,8 @@ d_tests_corpus_file(
 d_tests_compare_names
   Two names, for qsort, in byte order.
 */
-static int
-d_tests_compare_names(
+static
+int d_tests_compare_names(
     const void* _left,
     const void* _right
 )
@@ -2435,10 +2435,10 @@ d_tests_compare_names(
 }
 
 
-// d_tests_fn_page
+// dj_tests_fn_page
 //   function: what a walk does with each page it finds.
-typedef void (*d_tests_fn_page)(const char*            _path,
-                                struct d_tests_counts* _counts);
+typedef void (*dj_tests_fn_page)(const char*            _path,
+                                struct dj_tests_counts* _counts);
 
 
 /*
@@ -2446,11 +2446,11 @@ d_tests_walk
   Every page under a directory, in name order, given to `_each`: a file
 whose extension is a dialect's, past names that begin with `.`.
 */
-static void
-d_tests_walk(
-    const char*            _directory,
-    d_tests_fn_page        _each,
-    struct d_tests_counts* _counts
+static
+void d_tests_walk(
+    const char*             _directory,
+    dj_tests_fn_page        _each,
+    struct dj_tests_counts* _counts
 )
 {
     char** names = NULL;
@@ -2517,8 +2517,8 @@ d_tests_random
   A number below `_below`, from a generator of the test's own, so a seed
 makes the same changes on every system.
 */
-static size_t
-d_tests_random(
+static
+size_t d_tests_random(
     size_t _below
 )
 {
@@ -2557,8 +2557,8 @@ static const char* const g_snippets[] =
 d_tests_pick
   One of an array's texts, at random.
 */
-static const char*
-d_tests_pick(
+static
+const char* d_tests_pick(
     const char* const* _texts,
     size_t             _count
 )
@@ -2573,13 +2573,13 @@ d_tests_try
 template's argument, or a splice of the text.  Gives whether it was kept,
 and its name.
 */
-static bool
-d_tests_try(
-    struct d_wiki_doc* _doc,
-    const char**       _out_name
+static
+bool d_tests_try(
+    struct dj_wiki_doc* _doc,
+    const char**        _out_name
 )
 {
-    const struct d_wiki* const wiki     = d_wiki_doc_records(_doc);
+    const struct dj_wiki* const wiki     = d_wiki_doc_records(_doc);
     const size_t               links    = wiki->link_count;
     const size_t               sections = wiki->section_count;
     const size_t               t        = sizeof(g_texts) / sizeof(g_texts[0]);
@@ -2671,10 +2671,10 @@ d_tests_try(
 }
 
 
-// d_tests_change
+// dj_tests_change
 //   struct: where a change was: the old text's `start` to `old_end` is the
 //   new text's `start` to `new_end`.
-struct d_tests_change
+struct dj_tests_change
 {
     size_t start;
     size_t old_end;
@@ -2687,13 +2687,13 @@ d_tests_same_record
   Whether the `_a`-th record of a kind, 0 to 3 -- blocks, headings, links,
 templates -- of the old page is the `_b`-th of the new, moved by `_shift`.
 */
-static bool
-d_tests_same_record(
-    int                  _kind,
-    const struct d_wiki* _old,
-    const struct d_wiki* _new,
-    const size_t         _which[2],
-    ptrdiff_t            _shift
+static
+bool d_tests_same_record(
+    int                   _kind,
+    const struct dj_wiki* _old,
+    const struct dj_wiki* _new,
+    const size_t          _which[2],
+    ptrdiff_t             _shift
 )
 {
     const size_t a = _which[0];
@@ -2702,8 +2702,8 @@ d_tests_same_record(
     // a block: its kind, its span, its depth and its level
     if (_kind == 0)
     {
-        const struct d_wiki_block* const x = &_old->blocks[a];
-        const struct d_wiki_block* const y = &_new->blocks[b];
+        const struct dj_wiki_block* const x = &_old->blocks[a];
+        const struct dj_wiki_block* const y = &_new->blocks[b];
 
         return ( (x->kind == y->kind) &&
                  ((ptrdiff_t)x->start + _shift == (ptrdiff_t)y->start) &&
@@ -2714,8 +2714,8 @@ d_tests_same_record(
     // a heading: its level, its span and its title
     if (_kind == 1)
     {
-        const struct d_wiki_heading* const x = &_old->headings[a];
-        const struct d_wiki_heading* const y = &_new->headings[b];
+        const struct dj_wiki_heading* const x = &_old->headings[a];
+        const struct dj_wiki_heading* const y = &_new->headings[b];
 
         return ( (x->level == y->level) &&
                  ((ptrdiff_t)x->start + _shift == (ptrdiff_t)y->start) &&
@@ -2727,8 +2727,8 @@ d_tests_same_record(
     // where it leads
     if (_kind == 2)
     {
-        const struct d_wiki_link* const x = &_old->links[a];
-        const struct d_wiki_link* const y = &_new->links[b];
+        const struct dj_wiki_link* const x = &_old->links[a];
+        const struct dj_wiki_link* const y = &_new->links[b];
 
         return ( (x->form == y->form) &&
                  ((ptrdiff_t)x->start + _shift == (ptrdiff_t)y->start) &&
@@ -2754,13 +2754,13 @@ d_tests_span_of
   Where a record of a kind, 0 to 3, begins and ends; and how many a page
 has, for an index past them.
 */
-static size_t
-d_tests_span_of(
-    int                  _kind,
-    const struct d_wiki* _wiki,
-    size_t               _index,
-    size_t*              _out_start,
-    size_t*              _out_end
+static
+size_t d_tests_span_of(
+    int                   _kind,
+    const struct dj_wiki* _wiki,
+    size_t                _index,
+    size_t*               _out_start,
+    size_t*               _out_end
 )
 {
     const size_t count = (_kind == 0) ? _wiki->block_count
@@ -2792,13 +2792,13 @@ d_tests_next_outside
 `_start` -- and moves `*_at` past it.  A record that ends where the change
 begins is before it.  Gives D_WIKI_NONE when there is no more.
 */
-static size_t
-d_tests_next_outside(
-    int                  _kind,
-    const struct d_wiki* _wiki,
-    size_t*              _at,
-    size_t               _start,
-    size_t               _end
+static
+size_t d_tests_next_outside(
+    int                   _kind,
+    const struct dj_wiki* _wiki,
+    size_t*               _at,
+    size_t                _start,
+    size_t                _end
 )
 {
     size_t first = 0;
@@ -2827,12 +2827,12 @@ d_tests_outside_same
   Whether every record of a kind outside what a change changed is the old
 page's: the same before it, and the same moved after it.
 */
-static bool
-d_tests_outside_same(
-    int                          _kind,
-    const struct d_wiki*         _old,
-    const struct d_wiki*         _new,
-    const struct d_tests_change* _change
+static
+bool d_tests_outside_same(
+    int                           _kind,
+    const struct dj_wiki*         _old,
+    const struct dj_wiki*         _new,
+    const struct dj_tests_change* _change
 )
 {
     const ptrdiff_t shift = (ptrdiff_t)_change->new_end -
@@ -2884,16 +2884,16 @@ d_tests_verify
 it changed is the old page's, its records are those of its text read
 afresh, and every record outside the change is the old page's.
 */
-static const char*
-d_tests_verify(
-    const struct d_wiki*     _old,
-    const struct d_wiki_doc* _doc
+static
+const char* d_tests_verify(
+    const struct dj_wiki*     _old,
+    const struct dj_wiki_doc* _doc
 )
 {
     size_t               length  = 0;
     const char* const    text    = d_wiki_doc_text(_doc, &length);
-    const struct d_wiki* held    = d_wiki_doc_records(_doc);
-    struct d_wiki        fresh;
+    const struct dj_wiki* held    = d_wiki_doc_records(_doc);
+    struct dj_wiki        fresh;
     size_t               start   = 0;
     size_t               old_end = 0;
     size_t               new_end = 0;
@@ -2925,9 +2925,9 @@ d_tests_verify(
     // the document's records, then the old page's outside the change
     for (int kind = 0; ( (kind < 4) && (!wrong) ); ++kind)
     {
-        const struct d_tests_change whole   = { length + 1u, length + 1u,
+        const struct dj_tests_change whole   = { length + 1u, length + 1u,
                                                 length + 1u };
-        const struct d_tests_change changed = { start, old_end, new_end };
+        const struct dj_tests_change changed = { start, old_end, new_end };
 
         // all of the document's records are before a change past the end
         if (!d_tests_outside_same(kind, held, &fresh, &whole))
@@ -2954,13 +2954,13 @@ d_tests_fuzz_file
   Random changes to one page: each refused one proved to leave the page as
 it was, each kept one proved sound.
 */
-static void
-d_tests_fuzz_file(
-    const char*            _path,
-    struct d_tests_counts* _counts
+static
+void d_tests_fuzz_file(
+    const char*             _path,
+    struct dj_tests_counts* _counts
 )
 {
-    struct d_wiki_doc* const doc = d_wiki_doc_read(_path, D_WIKI_OTHER, NULL,
+    struct dj_wiki_doc* const doc = d_wiki_doc_read(_path, D_WIKI_OTHER, NULL,
                                                    0u);
 
     // a page that cannot be read is a failure of its own
@@ -2980,7 +2980,7 @@ d_tests_fuzz_file(
         size_t            length = 0;
         const char* const now    = d_wiki_doc_text(doc, &length);
         char* const       before = malloc(length + 1u);
-        struct d_wiki     old;
+        struct dj_wiki     old;
         const char*       name   = "";
         const char*       wrong  = NULL;
         bool              kept   = false;
@@ -3049,8 +3049,8 @@ d_tests_fuzz_file(
 d_tests_json
   Prints a text as a JSON string; `_length` of it, or to its end for -1.
 */
-static void
-d_tests_json(
+static
+void d_tests_json(
     const char* _text,
     size_t      _length
 )
@@ -3117,15 +3117,15 @@ static const char* const g_targets_named[] =
 d_tests_dump_blocks
   Prints a page's blocks and headings.
 */
-static void
-d_tests_dump_blocks(
-    const struct d_wiki* _wiki
+static
+void d_tests_dump_blocks(
+    const struct dj_wiki* _wiki
 )
 {
     // each block, a code block's content and language too
     for (size_t at = 0; at < _wiki->block_count; ++at)
     {
-        const struct d_wiki_block* const block = &_wiki->blocks[at];
+        const struct dj_wiki_block* const block = &_wiki->blocks[at];
 
         printf("{\"t\":\"block\",\"kind\":\"%s\",\"line\":%lu,"
                "\"end_line\":%lu,\"depth\":%lu", g_block_kinds[block->kind],
@@ -3135,7 +3135,7 @@ d_tests_dump_blocks(
         // a code block's content and language
         if (block->kind == D_WIKI_CODE)
         {
-            struct d_wiki_buffer content = { NULL, 0u, 0u, false };
+            struct dj_wiki_buffer content = { NULL, 0u, 0u, false };
 
             (void)d_wiki_content(_wiki, at, &content);
             fputs(",\"content\":", stdout);
@@ -3157,7 +3157,7 @@ d_tests_dump_blocks(
     // each heading
     for (size_t at = 0; at < _wiki->heading_count; ++at)
     {
-        const struct d_wiki_heading* const heading = &_wiki->headings[at];
+        const struct dj_wiki_heading* const heading = &_wiki->headings[at];
 
         printf("{\"t\":\"heading\",\"level\":%lu,\"line\":%lu,\"top\":%d,"
                "\"start\":%lu,\"end\":%lu,\"title\":",
@@ -3178,15 +3178,15 @@ d_tests_dump_blocks(
 d_tests_dump_links
   Prints a page's links and templates.
 */
-static void
-d_tests_dump_links(
-    const struct d_wiki* _wiki
+static
+void d_tests_dump_links(
+    const struct dj_wiki* _wiki
 )
 {
     // each link
     for (size_t at = 0; at < _wiki->link_count; ++at)
     {
-        const struct d_wiki_link* const link = &_wiki->links[at];
+        const struct dj_wiki_link* const link = &_wiki->links[at];
 
         printf("{\"t\":\"link\",\"form\":\"%s\",\"to\":\"%s\","
                "\"embedded\":%d,\"line\":%lu,\"column\":%lu,"
@@ -3209,7 +3209,7 @@ d_tests_dump_links(
     // each template, with its arguments
     for (size_t at = 0; at < _wiki->template_count; ++at)
     {
-        const struct d_wiki_template* const tmpl = &_wiki->templates[at];
+        const struct dj_wiki_template* const tmpl = &_wiki->templates[at];
 
         const size_t body = (tmpl->argument_count > 0u)
                                 ? _wiki->arguments[tmpl->first_argument].start
@@ -3228,7 +3228,7 @@ d_tests_dump_links(
         // each argument, by key and value
         for (size_t a = 0; a < tmpl->argument_count; ++a)
         {
-            const struct d_wiki_argument* const argument =
+            const struct dj_wiki_argument* const argument =
                 &_wiki->arguments[tmpl->first_argument + a];
 
             fputs( (a > 0u) ? ",{\"key\":" : "{\"key\":", stdout);
@@ -3251,18 +3251,18 @@ d_tests_dump
   Prints a page's records, one to a line, as JSON: its blocks, headings,
 links, templates, regions and problems.
 */
-static int
-d_tests_dump(
+static
+int d_tests_dump(
     const char* _path,
     const char* _dialect
 )
 {
     size_t                    length  = 0;
     char* const               text    = d_tests_load(_path, &length);
-    const enum d_wiki_dialect dialect = (_dialect)
+    const enum dj_wiki_dialect dialect = (_dialect)
                                             ? d_wiki_dialect_named(_dialect)
                                             : d_wiki_dialect_of(_path);
-    struct d_wiki             wiki;
+    struct dj_wiki             wiki;
     char                      why[256];
 
     // a page that cannot be loaded or read
@@ -3312,13 +3312,12 @@ main
   The unit checks; with --corpus every page under the directories, with
 --fuzz random changes to them, and with --dump a page's records.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
 {
-    struct d_tests_counts counts;
+    struct dj_tests_counts counts;
 
     memset(&counts, 0, sizeof(counts));
 

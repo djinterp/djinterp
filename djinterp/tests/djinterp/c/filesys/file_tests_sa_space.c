@@ -25,14 +25,11 @@ quotas and by container limits, and on the machine this suite was written on
 the gap was 233 GiB -- 249 free against 10 available. A program sizing a write
 off `free` would have overcommitted by that much.
 */
-static struct d_test_object*
-d_tests_file_space_query
-(
-    void
-)
+static
+struct dj_test_object* d_tests_file_space_query(void)
 {
-    struct d_test_object* items[D_TEST_FILE_MAX_ASSERTS];
-    struct d_space_t      sp;
+    struct dj_test_object* items[D_TEST_FILE_MAX_ASSERTS];
+    struct dj_space_t      sp;
     size_t                idx;
 
     idx = 0;
@@ -79,13 +76,9 @@ d_tests_file_space_query
 d_tests_file_space_all
   Runs every file_space test.
 */
-struct d_test_object*
-d_tests_file_space_all
-(
-    void
-)
+struct dj_test_object* d_tests_file_space_all(void)
 {
-    struct d_test_object* items[2];
+    struct dj_test_object* items[2];
     size_t                idx;
 
     idx = 0;

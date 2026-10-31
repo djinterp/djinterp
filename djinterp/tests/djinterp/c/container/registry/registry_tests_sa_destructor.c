@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,9 +18,8 @@
 
 static int g_row_free_count = 0;
 
-static void
-test_row_free
-(
+static
+void test_row_free(
     void* _row
 )
 {
@@ -44,14 +43,12 @@ d_tests_sa_registry_free
   - calls row_free for each row when OWNS_ROWS flag is set
   - does not free rows/lookup for static registries (only the struct)
 */
-bool
-d_tests_sa_registry_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_free(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -144,10 +141,8 @@ d_tests_sa_registry_free
 d_tests_sa_registry_destructor_all
   Aggregation function that runs all destructor tests.
 */
-bool
-d_tests_sa_registry_destructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_destructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

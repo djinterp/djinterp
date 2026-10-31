@@ -33,8 +33,8 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 #include <stdint.h>   // uint32_t
 // djinterp
-#include "../../dnode.h"    // d_node_tree
-#include "./dtoken_node.h"  // d_token_node_stats
+#include "../../dnode.h"    // dj_node_tree
+#include "./dtoken_node.h"  // dj_token_node_stats
 
 
 //==============================================================================
@@ -45,7 +45,9 @@ TABLE OF CONTENTS
 // 1.1    Building
 //------------------------------------------------------------------------------
 // whether a path names C or C++ source or a header, by its extension
-bool         d_ext_source_accepts(const char* _path);
+bool d_ext_source_accepts(
+    const char* _path
+);
 /**
  * @brief Reports whether a file's text carries the generator marker.
  *
@@ -57,8 +59,10 @@ bool         d_ext_source_accepts(const char* _path);
  * @param[in] _length  its length in bytes.
  * @return `true` if the marker is present, `false` otherwise.
  */
-bool         d_ext_source_generated(const char* _text,
-                                    size_t      _length);
+bool d_ext_source_generated(
+    const char* _text,
+    size_t      _length
+);
 /**
  * @brief Reads a C or C++ file and builds its source tree beneath a file node.
  *
@@ -79,10 +83,12 @@ bool         d_ext_source_generated(const char* _text,
  *         `D_DSS_NO_INDEX` when the file was not read, was generated, or is
  *         not C or C++.
  */
-uint32_t     d_ext_source_build(struct d_node_tree*        _tree,
-                                uint32_t                   _file,
-                                const char*                _path,
-                                struct d_token_node_stats* _out_stats);
+uint32_t d_ext_source_build(
+    struct dj_node_tree*        _tree,
+    uint32_t                    _file,
+    const char*                 _path,
+    struct dj_token_node_stats* _out_stats
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_CHECK_DEXT_SOURCE_H

@@ -15,7 +15,7 @@
 *******************************************************************************/
 // djinterp
 #include "./env_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -36,13 +36,11 @@ Parameter(s):
 Return:
   true if all tests passed, false otherwise
 */
-bool
-d_tests_sa_env_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_env_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool cfg_result;
     bool lang_result;
     bool posix_result;
@@ -58,7 +56,7 @@ d_tests_sa_env_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){ 0, 0, 0, 0 };
+    module_counter = (struct dj_test_counter){ 0, 0, 0, 0 };
 
     printf("\n");
     printf("================================================================================\n");

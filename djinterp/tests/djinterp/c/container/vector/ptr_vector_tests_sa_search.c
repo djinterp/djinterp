@@ -12,12 +12,15 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_search_test_values[] = {10, 20, 30, 20, 50, 20};
 
-static int
-int_ptr_comparator(const void* _a, const void* _b)
+static
+int int_ptr_comparator(
+    const void* _a,
+    const void* _b
+)
 {
     int val_a, val_b;
     if (!_a && !_b) return 0;
@@ -29,14 +32,12 @@ int_ptr_comparator(const void* _a, const void* _b)
 }
 
 
-bool
-d_tests_sa_ptr_vector_find
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_find(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int                  search_val;
 
     result = true;
@@ -76,14 +77,12 @@ d_tests_sa_ptr_vector_find
 }
 
 
-bool
-d_tests_sa_ptr_vector_find_last
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_find_last(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int                  search_val;
 
     result = true;
@@ -123,14 +122,12 @@ d_tests_sa_ptr_vector_find_last
 }
 
 
-bool
-d_tests_sa_ptr_vector_find_ptr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_find_ptr(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int                  other_val;
 
     result = true;
@@ -167,14 +164,12 @@ d_tests_sa_ptr_vector_find_ptr
 }
 
 
-bool
-d_tests_sa_ptr_vector_contains
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_contains(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int                  search_val;
 
     result = true;
@@ -213,14 +208,12 @@ d_tests_sa_ptr_vector_contains
 }
 
 
-bool
-d_tests_sa_ptr_vector_contains_ptr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_contains_ptr(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int                  other_val;
 
     result = true;
@@ -250,14 +243,12 @@ d_tests_sa_ptr_vector_contains_ptr
 }
 
 
-bool
-d_tests_sa_ptr_vector_count_value
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_count_value(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     int                  search_val;
 
     result = true;
@@ -304,10 +295,8 @@ d_tests_sa_ptr_vector_count_value
 }
 
 
-bool
-d_tests_sa_ptr_vector_search_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_search_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

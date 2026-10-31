@@ -38,31 +38,41 @@
 #include "../../../../inc/djinterp/c/functional/monoid.h"
 
 
-// d_test_tally
+// dj_test_tally
 //   struct: the running count of conformance assertions and their outcomes.
-struct d_test_tally
+struct dj_test_tally
 {
     size_t checked;     // assertions attempted
     size_t passed;      // assertions that held
 };
 
-// d_test_probe
+// dj_test_probe
 //   struct: observation state passed as a callable's context.
 // `calls` counts invocations, which is how short-circuiting and latching are
 // measured rather than assumed; `target` is the operand a comparing predicate
 // tests against.
-struct d_test_probe
+struct dj_test_probe
 {
     size_t   calls;     // how many times the callable ran
     intmax_t target;    // the value a comparing predicate tests against
 };
 
 // I.     conformance groups
-bool     d_tests_semigroup_laws(struct d_test_tally* _tally);
-bool     d_tests_fold_and_quantifiers(struct d_test_tally* _tally);
-bool     d_tests_producer_protocol(struct d_test_tally* _tally);
-bool     d_tests_transducer_composition(struct d_test_tally* _tally);
-bool     d_tests_cost_and_layout(struct d_test_tally* _tally);
+bool d_tests_semigroup_laws(
+    struct dj_test_tally* _tally
+);
+bool d_tests_fold_and_quantifiers(
+    struct dj_test_tally* _tally
+);
+bool d_tests_producer_protocol(
+    struct dj_test_tally* _tally
+);
+bool d_tests_transducer_composition(
+    struct dj_test_tally* _tally
+);
+bool d_tests_cost_and_layout(
+    struct dj_test_tally* _tally
+);
 
 
 #endif  // DJINTERP_C_TEST_FUNCTIONAL_LAWS_

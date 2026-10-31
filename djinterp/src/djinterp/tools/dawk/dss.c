@@ -7,7 +7,7 @@
 * so the file reads against the .peg line for line and a grammar change has
 * one place to land.
 *   Storage is a bump arena and an open-addressed intern table, both local to
-* this translation unit.  The repository's d_arena and d_string_intern do the
+* this translation unit.  The repository's dj_arena and d_string_intern do the
 * same jobs better, and swapping to them is mechanical once the env include
 * graph admits them; until then this file stays C11 with no dependency.
 *
@@ -30,9 +30,9 @@
 //==============================================================================
 
 
-// d_internal_vector
+// dj_internal_vector
 //   struct: a growable array of fixed-size records, addressed by index.
-struct d_internal_vector
+struct dj_internal_vector
 {
     unsigned char*  data;
     size_t          stride;
@@ -40,10 +40,10 @@ struct d_internal_vector
     size_t          capacity;
 };
 
-// d_internal_intern
+// dj_internal_intern
 //   struct: text to identifier.  Identifiers index `offsets`, which index
 // `text`; the bucket array is open-addressed with a power-of-two mask.
-struct d_internal_intern
+struct dj_internal_intern
 {
     char*      text;
     size_t     text_used;
@@ -57,24 +57,24 @@ struct d_internal_intern
     size_t     bucket_mask;
 };
 
-// d_dss_sheet
+// dj_dss_sheet
 //   struct: every array the parse produced, plus the intern table they
 // refer into.
-struct d_dss_sheet
+struct dj_dss_sheet
 {
-    struct d_internal_intern  intern;
+    struct dj_internal_intern  intern;
 
-    struct d_internal_vector  simples;
-    struct d_internal_vector  compounds;
-    struct d_internal_vector  steps;
-    struct d_internal_vector  selectors;
-    struct d_internal_vector  values;
-    struct d_internal_vector  declarations;
-    struct d_internal_vector  rules;
-    struct d_internal_vector  at_rules;
-    struct d_internal_vector  warnings;
+    struct dj_internal_vector  simples;
+    struct dj_internal_vector  compounds;
+    struct dj_internal_vector  steps;
+    struct dj_internal_vector  selectors;
+    struct dj_internal_vector  values;
+    struct dj_internal_vector  declarations;
+    struct dj_internal_vector  rules;
+    struct dj_internal_vector  at_rules;
+    struct dj_internal_vector  warnings;
 
-    struct d_symbol_table*    symbols;  // borrowed; NULL until bound
+    struct dj_symbol_table*    symbols;  // borrowed; NULL until bound
 };
 
 // D_INTERNAL_COMPOUND_MAX, D_INTERNAL_STEP_MAX, D_INTERNAL_LIST_MAX
@@ -93,10 +93,10 @@ d_internal_vector_push
   Appends one record, doubling the allocation when it is full.  Returns the
 index of the record, or D_DSS_NO_INDEX when the growth failed.
 */
-static uint32_t
-d_internal_vector_push(
-    struct d_internal_vector* _vector,
-    const void*               _record
+static
+uint32_t d_internal_vector_push(
+    struct dj_internal_vector* _vector,
+    const void*                _record
 )
 {
     if (_vector->count == _vector->capacity)
@@ -135,8 +135,8 @@ d_internal_hash
   FNV-1a over a counted string.  The table is small and the keys are short
 identifiers, so a stronger hash would buy nothing measurable.
 */
-static uint32_t
-d_internal_hash(
+static
+uint32_t d_internal_hash(
     const char* _text,
     size_t      _length
 )
@@ -158,10 +158,10 @@ d_internal_intern_text
   Returns the stored text for an identifier.  Every stored string carries a
 terminator, so the result is usable as a C string.
 */
-static const char*
-d_internal_intern_text(
-    const struct d_internal_intern* _table,
-    uint32_t                        _id
+static
+const char* d_internal_intern_text(
+    const struct dj_internal_intern* _table,
+    uint32_t                         _id
 )
 {
     if ((!_table->offsets) || (_id >= _table->count))
@@ -177,9 +177,9 @@ d_internal_intern_text(
 d_internal_intern_grow
   Rebuilds the bucket array at twice its size and refiles every identifier.
 */
-static bool
-d_internal_intern_grow(
-    struct d_internal_intern* _table
+static
+bool d_internal_intern_grow(
+    struct dj_internal_intern* _table
 )
 {
     const size_t grown = (_table->bucket_mask == 0)
@@ -227,11 +227,11 @@ d_internal_intern_add
 Equal text always yields the same identifier, which is what lets the matcher
 compare names as integers.
 */
-static uint32_t
-d_internal_intern_add(
-    struct d_internal_intern* _table,
-    const char*               _text,
-    size_t                    _length
+static
+uint32_t d_internal_intern_add(
+    struct dj_internal_intern* _table,
+    const char*                _text,
+    size_t                     _length
 )
 {
     // the first insertion sizes the table
@@ -325,10 +325,10 @@ d_internal_intern_add(
 //==============================================================================
 
 
-// d_internal_parser
+// dj_internal_parser
 //   struct: the cursor over the sheet text, the sheet being built, and the
 // error slot that a failure fills.
-struct d_internal_parser
+struct dj_internal_parser
 {
     const char*          text;
     size_t               length;
@@ -336,10 +336,10 @@ struct d_internal_parser
     uint32_t             line;
     uint32_t             line_start;
 
-    struct d_dss_sheet*  sheet;
-    struct d_dss_error*  error;
+    struct dj_dss_sheet*  sheet;
+    struct dj_dss_error*  error;
     bool                 failed;
-    uint8_t              dialect;  // d_dss_dialect
+    uint8_t              dialect;  // dj_dss_dialect
 };
 
 
@@ -349,10 +349,10 @@ d_internal_fail
 that the report names the place the parse actually went wrong rather than the
 place it finally gave up.
 */
-static bool
-d_internal_fail(
-    struct d_internal_parser* _parser,
-    const char*               _message
+static
+bool d_internal_fail(
+    struct dj_internal_parser* _parser,
+    const char*                _message
 )
 {
     if (!_parser->failed)
@@ -378,8 +378,8 @@ d_internal_is_name_start
 subsystem such as /3d from being spelled as a type selector, and it is
 enforced here rather than discovered later.
 */
-static bool
-d_internal_is_name_start(
+static
+bool d_internal_is_name_start(
     char _c
 )
 {
@@ -392,8 +392,8 @@ d_internal_is_name_start(
 /*
 d_internal_is_name_char
 */
-static bool
-d_internal_is_name_char(
+static
+bool d_internal_is_name_char(
     char _c
 )
 {
@@ -406,9 +406,9 @@ d_internal_skip
   Consumes blanks, newlines and `#` comments.  Newlines are counted so that a
 declaration can name its own line in a report.
 */
-static void
-d_internal_skip(
-    struct d_internal_parser* _parser
+static
+void d_internal_skip(
+    struct dj_internal_parser* _parser
 )
 {
     while (_parser->at < _parser->length)
@@ -472,9 +472,9 @@ d_internal_skip(
 d_internal_peek
   The character at the cursor, or NUL at the end of input.
 */
-static char
-d_internal_peek(
-    const struct d_internal_parser* _parser
+static
+char d_internal_peek(
+    const struct dj_internal_parser* _parser
 )
 {
     if (_parser->at >= _parser->length)
@@ -490,10 +490,10 @@ d_internal_peek(
 d_internal_eat
   Consumes a literal when it is present and reports whether it was.
 */
-static bool
-d_internal_eat(
-    struct d_internal_parser* _parser,
-    const char*               _literal
+static
+bool d_internal_eat(
+    struct dj_internal_parser* _parser,
+    const char*                _literal
 )
 {
     const size_t length = strlen(_literal);
@@ -520,9 +520,9 @@ d_internal_name
 hyphens permitted only when a name character follows.  Returns the interned
 identifier, or D_DSS_NO_INDEX when no name is present.
 */
-static uint32_t
-d_internal_name(
-    struct d_internal_parser* _parser
+static
+uint32_t d_internal_name(
+    struct dj_internal_parser* _parser
 )
 {
     if (!d_internal_is_name_start(d_internal_peek(_parser)))
@@ -565,9 +565,9 @@ d_internal_string
   Reads a double-quoted STRING and interns its body with escapes resolved to
 the escaped character, which is what the grammar's `Escape <- "\\" .` means.
 */
-static uint32_t
-d_internal_string(
-    struct d_internal_parser* _parser
+static
+uint32_t d_internal_string(
+    struct dj_internal_parser* _parser
 )
 {
     if (d_internal_peek(_parser) != '"')
@@ -648,9 +648,12 @@ d_internal_string(
 //==============================================================================
 
 
-static bool d_internal_value_list(struct d_internal_parser* _parser,
-                                  uint32_t*                 _out_first,
-                                  uint32_t*                 _out_count);
+static
+bool d_internal_value_list(
+    struct dj_internal_parser* _parser,
+    uint32_t*                  _out_first,
+    uint32_t*                  _out_count
+);
 
 
 /*
@@ -658,10 +661,10 @@ d_internal_number
   Reads a DECIMAL with an optional magnitude suffix.  The suffix multiplies
 rather than annotating, so [size>=4k] compares against 4096.
 */
-static bool
-d_internal_number(
-    struct d_internal_parser* _parser,
-    double*                   _out_number
+static
+bool d_internal_number(
+    struct dj_internal_parser* _parser,
+    double*                    _out_number
 )
 {
     const char* const start = _parser->text + _parser->at;
@@ -714,10 +717,10 @@ d_internal_attribute
   Reads `[name]` or `[name OP value]`.  Operators are tried longest first, so
 `>=` is never read as `>` followed by a value beginning with `=`.
 */
-static bool
-d_internal_attribute(
-    struct d_internal_parser* _parser,
-    struct d_dss_simple*      _out_simple
+static
+bool d_internal_attribute(
+    struct dj_internal_parser* _parser,
+    struct dj_dss_simple*      _out_simple
 )
 {
     d_internal_skip(_parser);
@@ -841,13 +844,13 @@ d_internal_warn
 dropped: it is advice, and running out of memory for it must not fail the
 sheet.
 */
-static void
-d_internal_warn(
-    struct d_internal_parser* _parser,
-    const char*               _message
+static
+void d_internal_warn(
+    struct dj_internal_parser* _parser,
+    const char*                _message
 )
 {
-    struct d_dss_warning warning;
+    struct dj_dss_warning warning;
 
     warning.line    = _parser->line;
     warning.column  = (uint32_t)(_parser->at - _parser->line_start) + 1u;
@@ -859,10 +862,13 @@ d_internal_warn(
 }
 
 
-static bool d_internal_selector_list(struct d_internal_parser* _parser,
-                                     bool                      _relative,
-                                     uint32_t*                 _out_first,
-                                     uint32_t*                 _out_count);
+static
+bool d_internal_selector_list(
+    struct dj_internal_parser* _parser,
+    bool                       _relative,
+    uint32_t*                  _out_first,
+    uint32_t*                  _out_count
+);
 
 
 /*
@@ -871,11 +877,11 @@ d_internal_nth
 either part optional and spaces around the sign, as Selectors Level 4 writes
 it.  `n` alone is 1n+0.
 */
-static bool
-d_internal_nth(
-    struct d_internal_parser* _parser,
-    int32_t*                  _out_a,
-    int32_t*                  _out_b
+static
+bool d_internal_nth(
+    struct dj_internal_parser* _parser,
+    int32_t*                   _out_a,
+    int32_t*                   _out_b
 )
 {
     long a = 0;
@@ -989,10 +995,10 @@ list for :not and :is, a relative one for :has, An+B for :nth-child and
 :nth-last-child.  Any other name taking an argument is refused here, where
 the sheet's author can see it, rather than matching nothing later.
 */
-static bool
-d_internal_pseudo_arguments(
-    struct d_internal_parser* _parser,
-    struct d_dss_simple*      _simple
+static
+bool d_internal_pseudo_arguments(
+    struct dj_internal_parser* _parser,
+    struct dj_dss_simple*      _simple
 )
 {
     const char* const name = d_internal_intern_text(&_parser->sheet->intern,
@@ -1046,19 +1052,19 @@ every other simple a suffix.  The simples are gathered and stored together at
 the end, because a pseudo-class argument stores simples of its own and a
 compound's must be one contiguous run.
 */
-static bool
-d_internal_compound(
-    struct d_internal_parser* _parser,
-    uint32_t*                 _out_compound
+static
+bool d_internal_compound(
+    struct dj_internal_parser* _parser,
+    uint32_t*                  _out_compound
 )
 {
-    struct d_dss_simple   gathered[D_INTERNAL_COMPOUND_MAX];
-    struct d_dss_compound compound;
+    struct dj_dss_simple   gathered[D_INTERNAL_COMPOUND_MAX];
+    struct dj_dss_compound compound;
     uint32_t              count = 0;
 
     while (!_parser->failed)
     {
-        struct d_dss_simple simple;
+        struct dj_dss_simple simple;
 
         memset(&simple, 0, sizeof(simple));
 
@@ -1174,14 +1180,14 @@ descendant combinator and asks for a `[y]` inside the `a[x]`, which is almost
 never meant: a compound was broken across a line.  The parser warns; writing
 `*[y]` says the descendant is intended and silences it.
 */
-static bool
-d_internal_selector(
-    struct d_internal_parser* _parser,
-    uint32_t*                 _out_selector
+static
+bool d_internal_selector(
+    struct dj_internal_parser* _parser,
+    uint32_t*                  _out_selector
 )
 {
-    struct d_dss_step     gathered[D_INTERNAL_STEP_MAX];
-    struct d_dss_selector selector;
+    struct dj_dss_step     gathered[D_INTERNAL_STEP_MAX];
+    struct dj_dss_selector selector;
     uint32_t              count = 0;
 
     d_internal_skip(_parser);
@@ -1198,7 +1204,7 @@ d_internal_selector(
 
         d_internal_skip(_parser);
 
-        struct d_dss_step step;
+        struct dj_dss_step step;
 
         step.combinator = D_DSS_COMBINATOR_DESCENDANT;
 
@@ -1286,12 +1292,12 @@ leading combinator, inside :has() -- and stores them as one contiguous run.
 Each selector is stored as it is read, and nested lists store theirs in
 between, so the list's records are copied to the end once all are read.
 */
-static bool
-d_internal_selector_list(
-    struct d_internal_parser* _parser,
-    bool                      _relative,
-    uint32_t*                 _out_first,
-    uint32_t*                 _out_count
+static
+bool d_internal_selector_list(
+    struct dj_internal_parser* _parser,
+    bool                       _relative,
+    uint32_t*                  _out_first,
+    uint32_t*                  _out_count
 )
 {
     uint32_t read[D_INTERNAL_LIST_MAX];
@@ -1341,8 +1347,8 @@ d_internal_selector_list(
 
     for (uint32_t at = 0; at < count; ++at)
     {
-        struct d_dss_selector copy =
-            *(const struct d_dss_selector*)(_parser->sheet->selectors.data +
+        struct dj_dss_selector copy =
+            *(const struct dj_dss_selector*)(_parser->sheet->selectors.data +
                                             (read[at] *
                                              _parser->sheet->selectors.stride));
 
@@ -1365,16 +1371,16 @@ d_internal_value
 arguments are a further value list, which is the only recursion here and is
 bounded by the source's own nesting.
 */
-static bool
-d_internal_value(
-    struct d_internal_parser* _parser,
-    struct d_dss_value*       _out_value,
-    bool*                     _out_present
+static
+bool d_internal_value(
+    struct dj_internal_parser* _parser,
+    struct dj_dss_value*       _out_value,
+    bool*                      _out_present
 )
 {
     d_internal_skip(_parser);
 
-    struct d_dss_value value;
+    struct dj_dss_value value;
 
     memset(&value, 0, sizeof(value));
 
@@ -1494,14 +1500,14 @@ d_internal_value_list
 first index and a count; a nested call therefore has to complete before the
 caller records its own range, which the recursion already guarantees.
 */
-static bool
-d_internal_value_list(
-    struct d_internal_parser* _parser,
-    uint32_t*                 _out_first,
-    uint32_t*                 _out_count
+static
+bool d_internal_value_list(
+    struct dj_internal_parser* _parser,
+    uint32_t*                  _out_first,
+    uint32_t*                  _out_count
 )
 {
-    struct d_dss_value* terms    = NULL;
+    struct dj_dss_value* terms    = NULL;
     uint32_t            count    = 0;
     uint32_t            capacity = 0;
 
@@ -1517,7 +1523,7 @@ d_internal_value_list(
         }
 
         bool               present = false;
-        struct d_dss_value term;
+        struct dj_dss_value term;
 
         if (!d_internal_value(_parser, &term, &present))
         {
@@ -1534,8 +1540,8 @@ d_internal_value_list(
         {
             const uint32_t grown = (capacity == 0) ? 8u : (capacity * 2u);
 
-            struct d_dss_value* const data =
-                realloc(terms, grown * sizeof(struct d_dss_value));
+            struct dj_dss_value* const data =
+                realloc(terms, grown * sizeof(struct dj_dss_value));
 
             if (!data)
             {
@@ -1588,10 +1594,10 @@ d_internal_declaration
 optional blanks, a colon that is not a second colon.  Anything else is left
 for the caller to try as a rule.
 */
-static bool
-d_internal_declaration(
-    struct d_internal_parser* _parser,
-    bool*                     _out_present
+static
+bool d_internal_declaration(
+    struct dj_internal_parser* _parser,
+    bool*                      _out_present
 )
 {
     d_internal_skip(_parser);
@@ -1629,7 +1635,7 @@ d_internal_declaration(
 
     ++_parser->at;
 
-    struct d_dss_declaration declaration;
+    struct dj_dss_declaration declaration;
 
     declaration.property = property;
     declaration.line     = mark_line;
@@ -1667,11 +1673,11 @@ d_internal_block
 this subset, so a block that holds one is rejected with its own message
 rather than a generic parse failure.
 */
-static bool
-d_internal_block(
-    struct d_internal_parser* _parser,
-    uint32_t*                 _out_first,
-    uint32_t*                 _out_count
+static
+bool d_internal_block(
+    struct dj_internal_parser* _parser,
+    uint32_t*                  _out_first,
+    uint32_t*                  _out_count
 )
 {
     if (!d_internal_eat(_parser, "{"))
@@ -1729,12 +1735,12 @@ d_internal_at_rule
 interned text because its meaning belongs to whoever registered the at-rule,
 not to the parser.
 */
-static bool
-d_internal_at_rule(
-    struct d_internal_parser* _parser
+static
+bool d_internal_at_rule(
+    struct dj_internal_parser* _parser
 )
 {
-    struct d_dss_at_rule at_rule;
+    struct dj_dss_at_rule at_rule;
 
     at_rule.line      = _parser->line;
     at_rule.prelude   = D_DSS_NO_INDEX;
@@ -1810,12 +1816,12 @@ d_internal_at_rule(
 d_internal_style_rule
   Reads a comma-separated selector list followed by a declaration block.
 */
-static bool
-d_internal_style_rule(
-    struct d_internal_parser* _parser
+static
+bool d_internal_style_rule(
+    struct dj_internal_parser* _parser
 )
 {
-    struct d_dss_rule rule;
+    struct dj_dss_rule rule;
 
     rule.line           = _parser->line;
     rule.layer          = 0;
@@ -1853,8 +1859,8 @@ d_internal_pseudo_kind
   Resolves a pseudo-class name once, at parse, so the matcher switches on an
 integer instead of comparing text for every node.
 */
-static uint8_t
-d_internal_pseudo_kind(
+static
+uint8_t d_internal_pseudo_kind(
     const char* _name
 )
 {
@@ -1896,14 +1902,14 @@ count in the middle place, types and pseudo-elements in the last; :is, :not
 and :has count as their most specific argument (Selectors 4).  DSS has no id
 selector, so the first place is always zero.  Each place saturates at 1023.
 */
-static uint32_t
-d_internal_specificity(
-    const struct d_dss_sheet* _sheet,
-    uint32_t                  _selector,
-    uint32_t                  _depth
+static
+uint32_t d_internal_specificity(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _selector,
+    uint32_t                   _depth
 )
 {
-    const struct d_dss_selector* const selector =
+    const struct dj_dss_selector* const selector =
         d_dss_selector_at(_sheet, _selector);
 
     if ( (!selector) || (_depth > 64u) )
@@ -1920,12 +1926,12 @@ d_internal_specificity(
             ? selector->head
             : d_dss_step_at(_sheet, selector->first_step + part - 1u)
                   ->compound;
-        const struct d_dss_compound* const compound =
+        const struct dj_dss_compound* const compound =
             d_dss_compound_at(_sheet, compound_index);
 
         for (uint32_t k = 0u; (compound) && (k < compound->simple_count); ++k)
         {
-            const struct d_dss_simple* const simple =
+            const struct dj_dss_simple* const simple =
                 d_dss_simple_at(_sheet, compound->first_simple + k);
 
             if ( (simple->kind == D_DSS_SIMPLE_TYPE) ||
@@ -1970,14 +1976,14 @@ d_internal_finish
   The facts a parsed sheet can know without a symbol table: each
 pseudo-class's kind and each selector's specificity.  Symbols start unbound.
 */
-static void
-d_internal_finish(
-    struct d_dss_sheet* _sheet
+static
+void d_internal_finish(
+    struct dj_dss_sheet* _sheet
 )
 {
     for (size_t at = 0u; at < _sheet->simples.count; ++at)
     {
-        struct d_dss_simple* const simple = (struct d_dss_simple*)
+        struct dj_dss_simple* const simple = (struct dj_dss_simple*)
             (_sheet->simples.data + (at * _sheet->simples.stride));
 
         simple->symbol = D_DSS_NO_INDEX;
@@ -1989,14 +1995,14 @@ d_internal_finish(
 
     for (size_t at = 0u; at < _sheet->declarations.count; ++at)
     {
-        ((struct d_dss_declaration*)
+        ((struct dj_dss_declaration*)
             (_sheet->declarations.data +
              (at * _sheet->declarations.stride)))->symbol = D_DSS_NO_INDEX;
     }
 
     for (size_t at = 0u; at < _sheet->selectors.count; ++at)
     {
-        ((struct d_dss_selector*)
+        ((struct dj_dss_selector*)
             (_sheet->selectors.data + (at * _sheet->selectors.stride)))
             ->specificity = d_internal_specificity(_sheet, (uint32_t)at, 0u);
     }
@@ -2011,10 +2017,9 @@ d_dss_bind
 pseudo-class names, properties -- gets its symbol in the shared table.  A
 sheet binds once; binding again to another table rebinds it.
 */
-bool
-d_dss_bind(
-    struct d_dss_sheet*    _sheet,
-    struct d_symbol_table* _symbols
+bool d_dss_bind(
+    struct dj_dss_sheet*    _sheet,
+    struct dj_symbol_table* _symbols
 )
 {
     if ( (!_sheet) || (!_symbols) )
@@ -2024,7 +2029,7 @@ d_dss_bind(
 
     for (size_t at = 0u; at < _sheet->simples.count; ++at)
     {
-        struct d_dss_simple* const simple = (struct d_dss_simple*)
+        struct dj_dss_simple* const simple = (struct dj_dss_simple*)
             (_sheet->simples.data + (at * _sheet->simples.stride));
 
         if ( (simple->kind != D_DSS_SIMPLE_UNIVERSAL) &&
@@ -2043,8 +2048,8 @@ d_dss_bind(
 
     for (size_t at = 0u; at < _sheet->declarations.count; ++at)
     {
-        struct d_dss_declaration* const declaration =
-            (struct d_dss_declaration*)
+        struct dj_dss_declaration* const declaration =
+            (struct dj_dss_declaration*)
             (_sheet->declarations.data + (at * _sheet->declarations.stride));
         const char* const property = d_dss_text(_sheet, declaration->property);
 
@@ -2063,9 +2068,8 @@ d_dss_bind(
 }
 
 
-struct d_symbol_table*
-d_dss_symbols(
-    const struct d_dss_sheet* _sheet
+struct dj_symbol_table* d_dss_symbols(
+    const struct dj_dss_sheet* _sheet
 )
 {
     return _sheet ? _sheet->symbols : NULL;
@@ -2076,11 +2080,10 @@ d_dss_symbols(
 d_dss_parse
   The DSS dialect; see d_dss_parse_ex.
 */
-struct d_dss_sheet*
-d_dss_parse(
-    const char*         _text,
-    size_t              _length,
-    struct d_dss_error* _out_error
+struct dj_dss_sheet* d_dss_parse(
+    const char*          _text,
+    size_t               _length,
+    struct dj_dss_error* _out_error
 )
 {
     return d_dss_parse_ex(_text, _length, NULL, _out_error);
@@ -2092,12 +2095,11 @@ d_dss_parse
   Parses a sheet.  Returns NULL on failure with `_out_error` filled; the
 partially built sheet is released, so a caller never sees half a parse.
 */
-struct d_dss_sheet*
-d_dss_parse_ex(
-    const char*                 _text,
-    size_t                      _length,
-    const struct d_dss_options* _options,
-    struct d_dss_error*         _out_error
+struct dj_dss_sheet* d_dss_parse_ex(
+    const char*                  _text,
+    size_t                       _length,
+    const struct dj_dss_options* _options,
+    struct dj_dss_error*         _out_error
 )
 {
     // parameter validation first
@@ -2113,24 +2115,24 @@ d_dss_parse_ex(
         _out_error->message = NULL;
     }
 
-    struct d_dss_sheet* const sheet = calloc(1u, sizeof(*sheet));
+    struct dj_dss_sheet* const sheet = calloc(1u, sizeof(*sheet));
 
     if (!sheet)
     {
         return NULL;
     }
 
-    sheet->simples.stride      = sizeof(struct d_dss_simple);
-    sheet->compounds.stride    = sizeof(struct d_dss_compound);
-    sheet->steps.stride        = sizeof(struct d_dss_step);
-    sheet->selectors.stride    = sizeof(struct d_dss_selector);
-    sheet->values.stride       = sizeof(struct d_dss_value);
-    sheet->declarations.stride = sizeof(struct d_dss_declaration);
-    sheet->rules.stride        = sizeof(struct d_dss_rule);
-    sheet->at_rules.stride     = sizeof(struct d_dss_at_rule);
-    sheet->warnings.stride     = sizeof(struct d_dss_warning);
+    sheet->simples.stride      = sizeof(struct dj_dss_simple);
+    sheet->compounds.stride    = sizeof(struct dj_dss_compound);
+    sheet->steps.stride        = sizeof(struct dj_dss_step);
+    sheet->selectors.stride    = sizeof(struct dj_dss_selector);
+    sheet->values.stride       = sizeof(struct dj_dss_value);
+    sheet->declarations.stride = sizeof(struct dj_dss_declaration);
+    sheet->rules.stride        = sizeof(struct dj_dss_rule);
+    sheet->at_rules.stride     = sizeof(struct dj_dss_at_rule);
+    sheet->warnings.stride     = sizeof(struct dj_dss_warning);
 
-    struct d_internal_parser parser;
+    struct dj_internal_parser parser;
 
     parser.text       = _text;
     parser.length     = _length;
@@ -2174,9 +2176,8 @@ d_dss_parse_ex(
 d_dss_warning_count
   Reports how many warnings the parse recorded.
 */
-size_t
-d_dss_warning_count(
-    const struct d_dss_sheet* _sheet
+size_t d_dss_warning_count(
+    const struct dj_dss_sheet* _sheet
 )
 {
     return _sheet ? _sheet->warnings.count : 0u;
@@ -2187,10 +2188,9 @@ d_dss_warning_count(
 d_dss_warning_at
   Reports one recorded warning, or NULL past the end.
 */
-const struct d_dss_warning*
-d_dss_warning_at(
-    const struct d_dss_sheet* _sheet,
-    size_t                    _at
+const struct dj_dss_warning* d_dss_warning_at(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _at
 )
 {
     if ( (!_sheet) ||
@@ -2199,7 +2199,7 @@ d_dss_warning_at(
         return NULL;
     }
 
-    return (const struct d_dss_warning*)(_sheet->warnings.data +
+    return (const struct dj_dss_warning*)(_sheet->warnings.data +
                                          (_at * _sheet->warnings.stride));
 }
 
@@ -2208,9 +2208,8 @@ d_dss_warning_at(
 d_dss_free
   Releases the sheet and everything it owns.
 */
-void
-d_dss_free(
-    struct d_dss_sheet* _sheet
+void d_dss_free(
+    struct dj_dss_sheet* _sheet
 )
 {
     if (_sheet)
@@ -2240,10 +2239,10 @@ d_dss_free(
 d_internal_at
   Returns the record at an index, or NULL when the index is out of range.
 */
-static const void*
-d_internal_at(
-    const struct d_internal_vector* _vector,
-    uint32_t                        _at
+static
+const void* d_internal_at(
+    const struct dj_internal_vector* _vector,
+    uint32_t                         _at
 )
 {
     if (_at >= _vector->count)
@@ -2255,62 +2254,80 @@ d_internal_at(
 }
 
 
-size_t
-d_dss_rule_count(const struct d_dss_sheet* _sheet)
+size_t d_dss_rule_count(
+    const struct dj_dss_sheet* _sheet
+)
 {
     return _sheet ? _sheet->rules.count : 0u;
 }
 
-const struct d_dss_rule*
-d_dss_rule_at(const struct d_dss_sheet* _sheet, size_t _at)
+const struct dj_dss_rule* d_dss_rule_at(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->rules, (uint32_t)_at) : NULL;
 }
 
-size_t
-d_dss_at_rule_count(const struct d_dss_sheet* _sheet)
+size_t d_dss_at_rule_count(
+    const struct dj_dss_sheet* _sheet
+)
 {
     return _sheet ? _sheet->at_rules.count : 0u;
 }
 
-const struct d_dss_at_rule*
-d_dss_at_rule_at(const struct d_dss_sheet* _sheet, size_t _at)
+const struct dj_dss_at_rule* d_dss_at_rule_at(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->at_rules, (uint32_t)_at) : NULL;
 }
 
-const struct d_dss_selector*
-d_dss_selector_at(const struct d_dss_sheet* _sheet, uint32_t _at)
+const struct dj_dss_selector* d_dss_selector_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->selectors, _at) : NULL;
 }
 
-const struct d_dss_compound*
-d_dss_compound_at(const struct d_dss_sheet* _sheet, uint32_t _at)
+const struct dj_dss_compound* d_dss_compound_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->compounds, _at) : NULL;
 }
 
-const struct d_dss_step*
-d_dss_step_at(const struct d_dss_sheet* _sheet, uint32_t _at)
+const struct dj_dss_step* d_dss_step_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->steps, _at) : NULL;
 }
 
-const struct d_dss_simple*
-d_dss_simple_at(const struct d_dss_sheet* _sheet, uint32_t _at)
+const struct dj_dss_simple* d_dss_simple_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->simples, _at) : NULL;
 }
 
-const struct d_dss_declaration*
-d_dss_declaration_at(const struct d_dss_sheet* _sheet, uint32_t _at)
+const struct dj_dss_declaration* d_dss_declaration_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->declarations, _at) : NULL;
 }
 
-const struct d_dss_value*
-d_dss_value_at(const struct d_dss_sheet* _sheet, uint32_t _at)
+const struct dj_dss_value* d_dss_value_at(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _at
+)
 {
     return _sheet ? d_internal_at(&_sheet->values, _at) : NULL;
 }
@@ -2319,15 +2336,18 @@ d_dss_value_at(const struct d_dss_sheet* _sheet, uint32_t _at)
 d_dss_set_rule_layer
   Sets a rule's cascade layer rank.  Higher ranks win.
 */
-bool
-d_dss_set_rule_layer(struct d_dss_sheet* _sheet, size_t _at, uint32_t _layer)
+bool d_dss_set_rule_layer(
+    struct dj_dss_sheet* _sheet,
+    size_t               _at,
+    uint32_t             _layer
+)
 {
     if ((!_sheet) || (_at >= _sheet->rules.count))
     {
         return false;
     }
 
-    ((struct d_dss_rule*)_sheet->rules.data)[_at].layer = _layer;
+    ((struct dj_dss_rule*)_sheet->rules.data)[_at].layer = _layer;
 
     return true;
 }
@@ -2341,11 +2361,14 @@ layer at zero -- which is what the driver leaves them as unless layers are in
 force -- this is exactly first match wins.  Every lookup that picks one
 declaration goes through here, so there is one definition of "wins".
 */
-bool
-d_dss_outranks(const struct d_dss_sheet* _sheet, size_t _a, size_t _b)
+bool d_dss_outranks(
+    const struct dj_dss_sheet* _sheet,
+    size_t                     _a,
+    size_t                     _b
+)
 {
-    const struct d_dss_rule* const a = d_dss_rule_at(_sheet, _a);
-    const struct d_dss_rule* const b = d_dss_rule_at(_sheet, _b);
+    const struct dj_dss_rule* const a = d_dss_rule_at(_sheet, _a);
+    const struct dj_dss_rule* const b = d_dss_rule_at(_sheet, _b);
 
     if ((!a) || (!b))
     {
@@ -2361,8 +2384,10 @@ d_dss_outranks(const struct d_dss_sheet* _sheet, size_t _a, size_t _b)
 }
 
 
-const char*
-d_dss_text(const struct d_dss_sheet* _sheet, uint32_t _id)
+const char* d_dss_text(
+    const struct dj_dss_sheet* _sheet,
+    uint32_t                   _id
+)
 {
     return _sheet ? d_internal_intern_text(&_sheet->intern, _id) : "";
 }

@@ -2,7 +2,7 @@
 * djinterp [test]                                              file_tests_stat.c
 *
 *   VIII. METADATA (file_stat) -- interrogating a path or descriptor. The whole
-* d_stat_t is checked for the fields that matter: st_size against the fixture's
+* dj_stat_t is checked for the fields that matter: st_size against the fixture's
 * exact length, st_mode through the portable S_ISREG / S_ISDIR macros, and the
 * deliberately-renamed st_modified (NOT st_mtime, which glibc and macOS both
 * macro-hijack) for a plausible timestamp. d_file_stat_fd and d_file_size_stream are
@@ -29,14 +29,13 @@
  * VIII.a  d_file_stat
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_stat
-(
+static
+void d_fs_tests_stat_stat(
     dtest_suite* _suite
 )
 {
     char            path[D_FS_TEST_PATH_BUF];
-    struct d_stat_t st;
+    struct dj_stat_t st;
     size_t          expect;
     bool            described;
 
@@ -83,14 +82,13 @@ d_fs_tests_stat_stat
  * VIII.b  d_file_stat_nofollow
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_lstat
-(
+static
+void d_fs_tests_stat_lstat(
     dtest_suite* _suite
 )
 {
     char            path[D_FS_TEST_PATH_BUF];
-    struct d_stat_t st;
+    struct dj_stat_t st;
     size_t          expect;
 
     dtest_block(_suite, "d_file_stat_nofollow");
@@ -121,15 +119,14 @@ d_fs_tests_stat_lstat
  * VIII.c  d_file_stat_fd
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_fstat
-(
+static
+void d_fs_tests_stat_fstat(
     dtest_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
     char            path[D_FS_TEST_PATH_BUF];
-    struct d_stat_t st;
+    struct dj_stat_t st;
     int             fd;
     size_t          expect;
     bool            described;
@@ -175,7 +172,7 @@ d_fs_tests_stat_fstat
     dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     {
-        struct d_stat_t st;
+        struct dj_stat_t st;
         D_FS_CHECK(_suite, d_file_stat_fd(0, &st) == -1);
     }
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -187,9 +184,8 @@ d_fs_tests_stat_fstat
  * VIII.d  d_file_access
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_access
-(
+static
+void d_fs_tests_stat_access(
     dtest_suite* _suite
 )
 {
@@ -219,14 +215,13 @@ d_fs_tests_stat_access
  * VIII.e  d_file_chmod
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_chmod
-(
+static
+void d_fs_tests_stat_chmod(
     dtest_suite* _suite
 )
 {
     char            path[D_FS_TEST_PATH_BUF];
-    struct d_stat_t st;
+    struct dj_stat_t st;
     bool            applied;
 
     dtest_block(_suite, "d_file_chmod");
@@ -274,9 +269,8 @@ d_fs_tests_stat_chmod
  * VIII.f  d_file_size
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_file_size
-(
+static
+void d_fs_tests_stat_file_size(
     dtest_suite* _suite
 )
 {
@@ -306,9 +300,8 @@ d_fs_tests_stat_file_size
  * VIII.g  d_file_size_stream
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_file_size_stream
-(
+static
+void d_fs_tests_stat_file_size_stream(
     dtest_suite* _suite
 )
 {
@@ -354,9 +347,8 @@ d_fs_tests_stat_file_size_stream
  * VIII.h  d_file_exists / d_file_is_regular / d_dir_exists
  *****************************************************************************/
 
-static void
-d_fs_tests_stat_predicates
-(
+static
+void d_fs_tests_stat_predicates(
     dtest_suite* _suite
 )
 {
@@ -407,9 +399,7 @@ d_fs_tests_stat_predicates
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_stat
-(
+void d_fs_tests_stat(
     dtest_suite* _suite
 )
 {

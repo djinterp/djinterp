@@ -36,8 +36,8 @@ TABLE OF CONTENTS
     1.  Constants
          1.  D_NINJA_VERSION
     2.  Loading
-         1.  d_ninja_options
-         2.  d_ninja_graph
+         1.  dj_ninja_options
+         2.  dj_ninja_graph
 2.  OPERATIONS
     ----------
     1.  Loading
@@ -55,7 +55,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>   // bool
 #include <stddef.h>    // size_t
 // djinterp
-#include "./dninja.h"  // d_ninja_section
+#include "./dninja.h"  // dj_ninja_section
 
 
 //==============================================================================
@@ -74,12 +74,12 @@ TABLE OF CONTENTS
 // 1.2    Loading
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_ninja_options
+// dj_ninja_options
 //   struct: how a build is loaded: the directory ninja runs in, which the
 //   paths of the manifest and of its includes are read from, NULL or "" for
 //   the process's; the version of ninja acted as, NULL for D_NINJA_VERSION;
 //   and whether paths and escaping are Windows'.
-struct d_ninja_options
+struct dj_ninja_options
 {
     const char* directory;
     const char* version;
@@ -87,10 +87,10 @@ struct d_ninja_options
 };
 
 // 1.2.2
-// d_ninja_graph
+// dj_ninja_graph
 //   struct: a build loaded: its files, scopes, rules, pools, edges and
 //   nodes, and its defaults.  Layout is private.
-struct d_ninja_graph;
+struct dj_ninja_graph;
 
 
 //==============================================================================
@@ -113,20 +113,25 @@ struct d_ninja_graph;
  * @return the build, or `NULL` when ninja would not load it, or memory ran
  *         out.
  */
-struct d_ninja_graph* d_ninja_load(const char*                   _path,
-                                   const struct d_ninja_options* _options,
-                                   char*                         _problem,
-                                   size_t                        _capacity);
+struct dj_ninja_graph* d_ninja_load(
+    const char*                    _path,
+    const struct dj_ninja_options* _options,
+    char*                          _problem,
+    size_t                         _capacity
+);
 // d_ninja_load_text loads a build from a manifest's text, named `_path`;
 // what it includes is read from disk.
-struct d_ninja_graph* d_ninja_load_text(const char*      _path,
-                                        const char*      _text,
-                                        size_t           _length,
-                                        const struct d_ninja_options*
-                                                         _options,
-                                        char*            _problem,
-                                        size_t           _capacity);
-void                  d_ninja_graph_free(struct d_ninja_graph* _graph);
+struct dj_ninja_graph* d_ninja_load_text(
+    const char*                    _path,
+    const char*                    _text,
+    size_t                         _length,
+    const struct dj_ninja_options* _options,
+    char*                          _problem,
+    size_t                         _capacity
+);
+void d_ninja_graph_free(
+    struct dj_ninja_graph* _graph
+);
 
 // 2.2    Edges
 //------------------------------------------------------------------------------
@@ -135,21 +140,35 @@ void                  d_ninja_graph_free(struct d_ninja_graph* _graph);
 // D_NINJA_IMPLICIT, D_NINJA_ORDER_ONLY and D_NINJA_VALIDATION, each an array
 // the build owns; an edge's pool is "" for the default.  Its file and line
 // are the build statement's.
-size_t                d_ninja_edge_count(const struct d_ninja_graph* _graph);
-const char*           d_ninja_edge_rule(const struct d_ninja_graph* _graph,
-                                        size_t                      _edge);
-bool                  d_ninja_edge_phony(const struct d_ninja_graph* _graph,
-                                         size_t                      _edge);
-size_t                d_ninja_edge_nodes(const struct d_ninja_graph* _graph,
-                                         size_t               _edge,
-                                         enum d_ninja_section _section,
-                                         const size_t**       _out_nodes);
-const char*           d_ninja_edge_pool(const struct d_ninja_graph* _graph,
-                                        size_t                      _edge);
-const char*           d_ninja_edge_file(const struct d_ninja_graph* _graph,
-                                        size_t                      _edge);
-size_t                d_ninja_edge_line(const struct d_ninja_graph* _graph,
-                                        size_t                      _edge);
+size_t d_ninja_edge_count(
+    const struct dj_ninja_graph* _graph
+);
+const char* d_ninja_edge_rule(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
+);
+bool d_ninja_edge_phony(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
+);
+size_t d_ninja_edge_nodes(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge,
+    enum dj_ninja_section        _section,
+    const size_t**               _out_nodes
+);
+const char* d_ninja_edge_pool(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
+);
+const char* d_ninja_edge_file(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
+);
+size_t d_ninja_edge_line(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge
+);
 /**
  * @brief Evaluates a binding of an edge as ninja's EdgeEnv does.
  *
@@ -166,13 +185,14 @@ size_t                d_ninja_edge_line(const struct d_ninja_graph* _graph,
  * @return the value, "" for a binding the edge has nowhere, or `NULL` for
  *         a cycle or memory that ran out.
  */
-char*                 d_ninja_edge_binding(
-                          const struct d_ninja_graph* _graph,
-                          size_t                      _edge,
-                          const char*                 _name,
-                          bool                        _escape,
-                          char*                       _problem,
-                          size_t                      _capacity);
+char* d_ninja_edge_binding(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge,
+    const char*                  _name,
+    bool                         _escape,
+    char*                        _problem,
+    size_t                       _capacity
+);
 
 // 2.3    Nodes
 //------------------------------------------------------------------------------
@@ -181,32 +201,46 @@ char*                 d_ninja_edge_binding(
 // out-edges are the edges it is an input of, and its validation edges
 // those it validates; each array is the node's.  d_ninja_node_find finds
 // a node by a path, made canonical first; D_NINJA_NONE for none.
-size_t                d_ninja_node_count(const struct d_ninja_graph* _graph);
-const char*           d_ninja_node_path(const struct d_ninja_graph* _graph,
-                                        size_t                      _node);
-size_t                d_ninja_node_in_edge(const struct d_ninja_graph* _graph,
-                                           size_t                      _node);
-size_t                d_ninja_node_out_edges(
-                          const struct d_ninja_graph* _graph,
-                          size_t                      _node,
-                          const size_t**              _out_edges);
-size_t                d_ninja_node_validation_edges(
-                          const struct d_ninja_graph* _graph,
-                          size_t                      _node,
-                          const size_t**              _out_edges);
-size_t                d_ninja_node_find(const struct d_ninja_graph* _graph,
-                                        const char*                 _path,
-                                        size_t                      _length);
+size_t d_ninja_node_count(
+    const struct dj_ninja_graph* _graph
+);
+const char* d_ninja_node_path(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node
+);
+size_t d_ninja_node_in_edge(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node
+);
+size_t d_ninja_node_out_edges(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node,
+    const size_t**               _out_edges
+);
+size_t d_ninja_node_validation_edges(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _node,
+    const size_t**               _out_edges
+);
+size_t d_ninja_node_find(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _path,
+    size_t                       _length
+);
 
 // 2.4    Targets
 //------------------------------------------------------------------------------
 // The defaults the manifest names, in its order; the roots, every output
 // no edge takes as an input, in edge order, as ninja's RootNodes finds
 // them.  Each array is the build's.
-size_t                d_ninja_defaults(const struct d_ninja_graph* _graph,
-                                       const size_t**              _out_nodes);
-size_t                d_ninja_roots(const struct d_ninja_graph* _graph,
-                                    const size_t**              _out_nodes);
+size_t d_ninja_defaults(
+    const struct dj_ninja_graph* _graph,
+    const size_t**               _out_nodes
+);
+size_t d_ninja_roots(
+    const struct dj_ninja_graph* _graph,
+    const size_t**               _out_nodes
+);
 
 // 2.5    Rules, pools and variables
 //------------------------------------------------------------------------------
@@ -216,33 +250,53 @@ size_t                d_ninja_roots(const struct d_ninja_graph* _graph,
 // the caller to free.  The pools, the two ninja defines first -- "" and
 // console -- then the manifest's.  d_ninja_variable gives a variable of
 // the top scope, "" for none, for the caller to free.
-size_t                d_ninja_rule_count(const struct d_ninja_graph* _graph);
-const char*           d_ninja_rule_name(const struct d_ninja_graph* _graph,
-                                        size_t                      _rule);
-char*                 d_ninja_rule_binding(
-                          const struct d_ninja_graph* _graph,
-                          size_t                      _rule,
-                          const char*                 _name);
-size_t                d_ninja_pool_count(const struct d_ninja_graph* _graph);
-const char*           d_ninja_pool_name(const struct d_ninja_graph* _graph,
-                                        size_t                      _pool);
-int                   d_ninja_pool_depth(const struct d_ninja_graph* _graph,
-                                         size_t                      _pool);
-char*                 d_ninja_variable(const struct d_ninja_graph* _graph,
-                                       const char*                 _name);
+size_t d_ninja_rule_count(
+    const struct dj_ninja_graph* _graph
+);
+const char* d_ninja_rule_name(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _rule
+);
+char* d_ninja_rule_binding(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _rule,
+    const char*                  _name
+);
+size_t d_ninja_pool_count(
+    const struct dj_ninja_graph* _graph
+);
+const char* d_ninja_pool_name(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _pool
+);
+int d_ninja_pool_depth(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _pool
+);
+char* d_ninja_variable(
+    const struct dj_ninja_graph* _graph,
+    const char*                  _name
+);
 
 // 2.6    Files and warnings
 //------------------------------------------------------------------------------
 // The files read, the manifest first, then each include and subninja in
 // the order read; the warnings ninja would print as it loaded, in its
 // words.
-size_t                d_ninja_file_count(const struct d_ninja_graph* _graph);
-const char*           d_ninja_file_path(const struct d_ninja_graph* _graph,
-                                        size_t                      _file);
-size_t                d_ninja_warning_count(
-                          const struct d_ninja_graph* _graph);
-const char*           d_ninja_warning(const struct d_ninja_graph* _graph,
-                                      size_t                      _warning);
+size_t d_ninja_file_count(
+    const struct dj_ninja_graph* _graph
+);
+const char* d_ninja_file_path(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _file
+);
+size_t d_ninja_warning_count(
+    const struct dj_ninja_graph* _graph
+);
+const char* d_ninja_warning(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _warning
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_NINJA_DNINJA_EVAL_H

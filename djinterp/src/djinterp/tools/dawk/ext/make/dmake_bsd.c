@@ -50,12 +50,12 @@
 // 1.1    The reader
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_bsd
+// dj_internal_bsd
 //   struct: where bmake's parse loop stands: whether a rule is above, and
 //   the last branch of each conditional open.
-struct d_internal_bsd
+struct dj_internal_bsd
 {
-    struct d_make_reader* reader;
+    struct dj_make_reader* reader;
     const char*           text;
     bool                  in_rule;
     size_t*               opens;
@@ -76,8 +76,8 @@ struct d_internal_bsd
  * @param[in] _byte  the byte.
  * @return `true` for A to Z and a to z.
  */
-static bool
-d_internal_is_alpha(
+static
+bool d_internal_is_alpha(
     char _byte
 )
 {
@@ -98,8 +98,8 @@ d_internal_is_alpha(
  * @param[in] _word  the word.
  * @return `true` if the word is there, and no letter follows it.
  */
-static bool
-d_internal_token(
+static
+bool d_internal_token(
     const char* _text,
     size_t      _at,
     size_t      _end,
@@ -124,8 +124,8 @@ d_internal_token(
  * @param[in] _prefix  the text sought.
  * @return `true` if it is there.
  */
-static bool
-d_internal_prefix(
+static
+bool d_internal_prefix(
     const char* _text,
     size_t      _at,
     size_t      _end,
@@ -148,8 +148,8 @@ d_internal_prefix(
  * @param[in] _end   where the line ends.
  * @return `true` if a blank is there or the line ends there.
  */
-static bool
-d_internal_blank_or_end(
+static
+bool d_internal_blank_or_end(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -171,8 +171,8 @@ d_internal_blank_or_end(
  * A backslash escapes the byte after it, so `\#` is no comment and `\\#`
  * is; a `#` after `[` is the `:[#]` modifier's, and no comment.
  */
-static size_t
-d_internal_comment_at(
+static
+size_t d_internal_comment_at(
     const char* _text,
     size_t      _start,
     size_t      _end
@@ -208,8 +208,8 @@ d_internal_comment_at(
  * @param[in] _stops  the bytes sought.
  * @return its place, or `_end`.
  */
-static size_t
-d_internal_raw_find(
+static
+size_t d_internal_raw_find(
     const char* _text,
     size_t      _start,
     size_t      _end,
@@ -252,12 +252,12 @@ d_internal_raw_find(
  * Long as Parse_IsVar's one loop, whose cases -- blanks, brackets, operators
  * -- stay together so the order of its tests is bmake's.
  */
-static bool
-d_internal_is_var(
-    const char*         _text,
-    size_t              _start,
-    size_t              _end,
-    struct d_make_span* _out
+static
+bool d_internal_is_var(
+    const char*          _text,
+    size_t               _start,
+    size_t               _end,
+    struct dj_make_span* _out
 )
 {
     size_t at    = d_make_skip_blanks(_text, _start, _end);
@@ -358,10 +358,10 @@ d_internal_is_var(
  */
 static size_t
 d_internal_record(
-    struct d_internal_bsd*    _bsd,
-    const struct d_make_line* _line,
-    enum d_make_kind          _kind,
-    struct d_make_span        _word,
+    struct dj_internal_bsd*    _bsd,
+    const struct dj_make_line* _line,
+    enum dj_make_kind          _kind,
+    struct dj_make_span        _word,
     size_t                    _comment
 )
 {
@@ -373,7 +373,7 @@ d_internal_record(
         return index;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_bsd->reader->make->statements[index];
     const size_t                   start     = d_make_skip_blanks(_bsd->text,
                                                                   _word.end,
@@ -407,10 +407,10 @@ d_internal_record(
  * Its word is the blanks that lead it and the run of `@`, `-` and `+`
  * after them; the rest is the command, comments and all.
  */
-static bool
-d_internal_command(
-    struct d_internal_bsd*    _bsd,
-    const struct d_make_line* _line
+static
+bool d_internal_command(
+    struct dj_internal_bsd*    _bsd,
+    const struct dj_make_line* _line
 )
 {
     const char* const text  = _bsd->text;
@@ -427,7 +427,7 @@ d_internal_command(
         flags++;
     }
 
-    const struct d_make_span word  = { _line->start, flags };
+    const struct dj_make_span word  = { _line->start, flags };
     const size_t             index = d_internal_record(_bsd,
                                                        _line,
                                                        D_MAKE_RECIPE,
@@ -464,12 +464,12 @@ d_internal_command(
  * @return 0 for no conditional; 1 for an if; 2 for an elif; 3 for an
  *         else; 4 for an endif.
  */
-static int
-d_internal_conditional_word(
-    const char*         _text,
-    size_t              _at,
-    size_t              _end,
-    struct d_make_span* _word
+static
+int d_internal_conditional_word(
+    const char*          _text,
+    size_t               _at,
+    size_t               _end,
+    struct dj_make_span* _word
 )
 {
     static const char* const forms[] = { "def", "ndef", "make", "nmake" };
@@ -542,13 +542,13 @@ d_internal_conditional_word(
  * Long as counting's two halves, opening one and continuing one, kept
  * together as Cond_EvalLine keeps them.
  */
-static bool
-d_internal_conditional(
-    struct d_internal_bsd*    _bsd,
-    const struct d_make_line* _line,
-    int                       _which,
-    struct d_make_span        _word,
-    size_t                    _comment
+static
+bool d_internal_conditional(
+    struct dj_internal_bsd*    _bsd,
+    const struct dj_make_line* _line,
+    int                        _which,
+    struct dj_make_span        _word,
+    size_t                     _comment
 )
 {
     static const char* const lacking[] =
@@ -575,7 +575,7 @@ d_internal_conditional(
         return false;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_bsd->reader->make->statements[index];
 
     // a table of the two: an if opens one; the rest continue it
@@ -627,10 +627,10 @@ d_internal_conditional(
  * @param[in] _line  the line.
  * @return 1 for a `.for`, -1 for an `.endfor`, 0 for neither.
  */
-static int
-d_internal_loop_line(
-    const char*               _text,
-    const struct d_make_line* _line
+static
+int d_internal_loop_line(
+    const char*                _text,
+    const struct dj_make_line* _line
 )
 {
     // a line not led by `.`
@@ -673,11 +673,11 @@ d_internal_loop_line(
  * Long as one pass over the body, its lines numbered as bmake numbers them
  * while their conditionals are counted.
  */
-static bool
-d_internal_loop_scope(
-    struct d_internal_bsd* _bsd,
-    size_t                 _first,
-    size_t                 _close
+static
+bool d_internal_loop_scope(
+    struct dj_internal_bsd* _bsd,
+    size_t                  _first,
+    size_t                  _close
 )
 {
     static const char* const lacking[] =
@@ -685,7 +685,7 @@ d_internal_loop_scope(
         "", "", "if-less elif", "if-less else", "if-less endif"
     };
 
-    const struct d_make_line* const lines  = _bsd->reader->make->lines.lines;
+    const struct dj_make_line* const lines  = _bsd->reader->make->lines.lines;
     const char* const               text   = _bsd->text;
     size_t                          open   = 0;
     size_t                          number = lines[_first].line;
@@ -693,8 +693,8 @@ d_internal_loop_scope(
     // each line of the body led by `.`
     for (size_t index = _first + 1u; index < _close; index++)
     {
-        const struct d_make_line* const line    = &lines[index];
-        struct d_make_span              word;
+        const struct dj_make_line* const line    = &lines[index];
+        struct dj_make_span              word;
         const size_t                    comment = d_internal_comment_at(
                                                       text,
                                                       line->start,
@@ -775,16 +775,16 @@ d_internal_loop_scope(
  * Long as a loop's parts and its body, each a few lines: the variables to
  * `in`, the values after it, and the lines to the `.endfor`.
  */
-static bool
-d_internal_loop(
-    struct d_internal_bsd* _bsd,
-    size_t*                _index,
-    struct d_make_span     _word,
-    size_t                 _comment
+static
+bool d_internal_loop(
+    struct dj_internal_bsd* _bsd,
+    size_t*                 _index,
+    struct dj_make_span     _word,
+    size_t                  _comment
 )
 {
-    const struct d_make_lines* const lines = &_bsd->reader->make->lines;
-    const struct d_make_line* const  first = &lines->lines[*_index];
+    const struct dj_make_lines* const lines = &_bsd->reader->make->lines;
+    const struct dj_make_line* const  first = &lines->lines[*_index];
     const char* const                text  = _bsd->text;
     size_t                           depth = 1;
     size_t                           close = *_index;
@@ -797,7 +797,7 @@ d_internal_loop(
                                                      &lines->lines[close]));
     }
 
-    const struct d_make_line* const end     = &lines->lines[lines->count - 1u];
+    const struct dj_make_line* const end     = &lines->lines[lines->count - 1u];
     const bool                      counted = ( (end->next > end->end) ||
                                                 ( (end->start < end->end) &&
                                                   (text[end->start] !=
@@ -831,10 +831,10 @@ d_internal_loop(
         return false;
     }
 
-    struct d_make_statement* const   statement =
+    struct dj_make_statement* const   statement =
         &_bsd->reader->make->statements[index];
-    const struct d_make_line* const  last      = &lines->lines[close];
-    const struct d_make_span         header    = statement->text;
+    const struct dj_make_line* const  last      = &lines->lines[close];
+    const struct dj_make_span         header    = statement->text;
     size_t                           at        = header.start;
 
     // the variables, to the word `in`
@@ -913,8 +913,8 @@ d_internal_directive_word(
     const char*         _text,
     size_t              _at,
     size_t              _end,
-    struct d_make_span* _word,
-    enum d_make_kind*   _kind
+    struct dj_make_span* _word,
+    enum dj_make_kind*   _kind
 )
 {
     const size_t lead = ( (_at < _end) &&
@@ -984,22 +984,22 @@ d_internal_directive_word(
  * @param[out]    _taken    receives whether the line was a directive.
  * @return `true`; `false` when bmake refuses it or memory runs out.
  */
-static bool
-d_internal_dot(
-    struct d_internal_bsd* _bsd,
-    size_t*                _index,
-    size_t                 _comment,
-    bool*                  _taken
+static
+bool d_internal_dot(
+    struct dj_internal_bsd* _bsd,
+    size_t*                 _index,
+    size_t                  _comment,
+    bool*                   _taken
 )
 {
-    const struct d_make_line* const line =
+    const struct dj_make_line* const line =
         &_bsd->reader->make->lines.lines[*_index];
     const char* const               text = _bsd->text;
     const size_t                    at   = d_make_skip_blanks(text,
                                                               line->start + 1u,
                                                               _comment);
-    struct d_make_span              word;
-    enum d_make_kind                kind  = D_MAKE_DIRECTIVE;
+    struct dj_make_span              word;
+    enum dj_make_kind                kind  = D_MAKE_DIRECTIVE;
     const int                       which = d_internal_conditional_word(
                                                 text,
                                                 at,
@@ -1053,19 +1053,19 @@ d_internal_dot(
  * Its name runs from the line's first byte that is not a blank to the
  * first blank outside a bracket, or the operator, as Parse_DoVar has it.
  */
-static bool
-d_internal_assignment(
-    struct d_internal_bsd*    _bsd,
-    const struct d_make_line* _line,
-    struct d_make_span        _op,
-    size_t                    _comment
+static
+bool d_internal_assignment(
+    struct dj_internal_bsd*    _bsd,
+    const struct dj_make_line* _line,
+    struct dj_make_span        _op,
+    size_t                     _comment
 )
 {
     const char* const        text  = _bsd->text;
     const size_t             name  = d_make_skip_blanks(text,
                                                         _line->start,
                                                         _op.start);
-    const struct d_make_span empty = { name, name };
+    const struct dj_make_span empty = { name, name };
     const size_t             index = d_internal_record(_bsd,
                                                        _line,
                                                        D_MAKE_ASSIGNMENT,
@@ -1078,7 +1078,7 @@ d_internal_assignment(
         return false;
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_bsd->reader->make->statements[index];
     size_t                         end       = name;
     long                           depth     = 0;
@@ -1115,11 +1115,11 @@ d_internal_assignment(
  * @param[in]     _comment  where its comment starts, or its end.
  * @return `true`; `false` when memory runs out.
  */
-static bool
-d_internal_dependency(
-    struct d_internal_bsd*    _bsd,
-    const struct d_make_line* _line,
-    size_t                    _comment
+static
+bool d_internal_dependency(
+    struct dj_internal_bsd*    _bsd,
+    const struct dj_make_line* _line,
+    size_t                     _comment
 )
 {
     const char* const        text  = _bsd->text;
@@ -1127,7 +1127,7 @@ d_internal_dependency(
                                                         _line->start,
                                                         _comment);
     const size_t             op    = d_make_find(text, at, _comment, ":!");
-    const struct d_make_span empty = { at, at };
+    const struct dj_make_span empty = { at, at };
     const size_t             index = d_internal_record(
                                          _bsd,
                                          _line,
@@ -1145,7 +1145,7 @@ d_internal_dependency(
         return (index != D_MAKE_NONE);
     }
 
-    struct d_make_statement* const statement =
+    struct dj_make_statement* const statement =
         &_bsd->reader->make->statements[index];
     const size_t                   after     =
         ( (text[op] == ':') &&
@@ -1187,14 +1187,14 @@ d_internal_dependency(
  * System V's include, gmake's export, an assignment, an indented command,
  * and a dependency.
  */
-static bool
-d_internal_line(
-    struct d_internal_bsd* _bsd,
-    size_t*                _index,
-    size_t                 _comment
+static
+bool d_internal_line(
+    struct dj_internal_bsd* _bsd,
+    size_t*                 _index,
+    size_t                  _comment
 )
 {
-    const struct d_make_line* const line =
+    const struct dj_make_line* const line =
         &_bsd->reader->make->lines.lines[*_index];
     const char* const               text = _bsd->text;
     bool                            taken = false;
@@ -1225,7 +1225,7 @@ d_internal_line(
         word = d_make_word_end(text, start, _comment);
     }
 
-    const struct d_make_span words = { start, word };
+    const struct dj_make_span words = { start, word };
 
     // an include or an export
     if ( (word > start) &&
@@ -1243,7 +1243,7 @@ d_internal_line(
                                   _comment) != D_MAKE_NONE);
     }
 
-    struct d_make_span op;
+    struct dj_make_span op;
 
     // an assignment
     if (d_internal_is_var(text, start, _comment, &op))
@@ -1273,24 +1273,23 @@ line 0, as bmake names it.
   Long as the parse loop's three readings of a line and the check at the
 end, each a few lines.
 */
-bool
-d_make_read_bsd(
-    struct d_make_reader* _reader
+bool d_make_read_bsd(
+    struct dj_make_reader* _reader
 )
 {
-    struct d_internal_bsd bsd;
+    struct dj_internal_bsd bsd;
 
     memset(&bsd, 0, sizeof(bsd));
     bsd.reader = _reader;
     bsd.text   = _reader->make->text;
 
-    const struct d_make_lines* const lines = &_reader->make->lines;
+    const struct dj_make_lines* const lines = &_reader->make->lines;
     bool                             read  = true;
 
     // each logical line, while reading goes on
     for (size_t index = 0; (read) && (index < lines->count); index++)
     {
-        const struct d_make_line* const line    = &lines->lines[index];
+        const struct dj_make_line* const line    = &lines->lines[index];
         const size_t                    first   = d_make_skip_blanks(
                                                       bsd.text,
                                                       line->start,

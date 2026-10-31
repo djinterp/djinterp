@@ -9,13 +9,11 @@
 *******************************************************************************/
 // djinterp
 #include "./djinterp_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
-bool
-d_tests_sa_constants_success_failure
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_constants_success_failure(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Implement
@@ -23,10 +21,8 @@ d_tests_sa_constants_success_failure
     return true;
 }
 
-bool
-d_tests_sa_constants_enabled_disabled
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_constants_enabled_disabled(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Implement
@@ -34,10 +30,8 @@ d_tests_sa_constants_enabled_disabled
     return true;
 }
 
-bool
-d_tests_sa_macro_is_enabled
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_is_enabled(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Implement (see djinterp_comprehensive_tests_part1.c for example)
@@ -45,10 +39,8 @@ d_tests_sa_macro_is_enabled
     return true;
 }
 
-bool
-d_tests_sa_macro_is_disabled
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_macro_is_disabled(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Implement (see djinterp_comprehensive_tests_part1.c for example)
@@ -56,17 +48,15 @@ d_tests_sa_macro_is_disabled
     return true;
 }
 
-bool
-d_tests_sa_boolean_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_boolean_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n========================================\n");
     printf("  BOOLEAN CONSTANT/MACRO TESTS\n");
     printf("========================================\n");
 
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     d_tests_sa_constants_success_failure(&module_counter);
     d_tests_sa_constants_enabled_disabled(&module_counter);

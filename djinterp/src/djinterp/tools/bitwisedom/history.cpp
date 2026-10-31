@@ -19,8 +19,7 @@
 namespace bitwisedom
 {
 
-void
-history::record(
+void history::record(
     const sheet&       _before,
     const std::string& _key
 )
@@ -46,8 +45,7 @@ history::record(
     return;
 }
 
-bool
-history::undo(
+bool history::undo(
     sheet& _current
 )
 {
@@ -64,8 +62,7 @@ history::undo(
     return true;
 }
 
-bool
-history::redo(
+bool history::redo(
     sheet& _current
 )
 {
@@ -82,16 +79,14 @@ history::redo(
     return true;
 }
 
-void
-history::seal()
+void history::seal()
 {
     m_key.clear();
 
     return;
 }
 
-void
-history::clear()
+void history::clear()
 {
     m_undo.clear();
     m_redo.clear();
@@ -100,20 +95,17 @@ history::clear()
     return;
 }
 
-bool
-history::can_undo() const
+bool history::can_undo() const
 {
     return !m_undo.empty();
 }
 
-bool
-history::can_redo() const
+bool history::can_redo() const
 {
     return !m_redo.empty();
 }
 
-std::size_t
-history::depth() const
+std::size_t history::depth() const
 {
     return m_undo.size();
 }

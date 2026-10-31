@@ -22,9 +22,8 @@
 
 // pred_always_true
 //   helper: predicate that always returns true regardless of input.
-D_STATIC bool
-pred_always_true
-(
+D_STATIC
+bool pred_always_true(
     const void* _element,
     void*       _context
 )
@@ -37,9 +36,8 @@ pred_always_true
 
 // pred_always_false
 //   helper: predicate that always returns false regardless of input.
-D_STATIC bool
-pred_always_false
-(
+D_STATIC
+bool pred_always_false(
     const void* _element,
     void*       _context
 )
@@ -53,9 +51,8 @@ pred_always_false
 // pred_is_even
 //   helper: predicate that returns true if the int element is even.
 // Returns false if _element is NULL.
-D_STATIC bool
-pred_is_even
-(
+D_STATIC
+bool pred_is_even(
     const void* _element,
     void*       _context
 )
@@ -77,9 +74,8 @@ pred_is_even
 // pred_is_odd
 //   helper: predicate that returns true if the int element is odd.
 // Returns false if _element is NULL.
-D_STATIC bool
-pred_is_odd
-(
+D_STATIC
+bool pred_is_odd(
     const void* _element,
     void*       _context
 )
@@ -101,9 +97,8 @@ pred_is_odd
 // pred_is_positive
 //   helper: predicate that returns true if the int element is > 0.
 // Returns false if _element is NULL.
-D_STATIC bool
-pred_is_positive
-(
+D_STATIC
+bool pred_is_positive(
     const void* _element,
     void*       _context
 )
@@ -125,9 +120,8 @@ pred_is_positive
 // pred_is_negative
 //   helper: predicate that returns true if the int element is < 0.
 // Returns false if _element is NULL.
-D_STATIC bool
-pred_is_negative
-(
+D_STATIC
+bool pred_is_negative(
     const void* _element,
     void*       _context
 )
@@ -150,9 +144,8 @@ pred_is_negative
 //   helper: predicate that returns true if the int element exceeds the
 // int threshold provided through _context. Returns false if either
 // _element or _context is NULL.
-D_STATIC bool
-pred_greater_than_threshold
-(
+D_STATIC
+bool pred_greater_than_threshold(
     const void* _element,
     void*       _context
 )

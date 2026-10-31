@@ -9,7 +9,7 @@
 * compositing), 8-bit and hex (de)serialization, luminance, contrast,
 * grayscale, inversion, interpolation, and blackbody temperature.
 *
-*   Convention: `d_color_rgb` holds LINEAR RGB in [0, 1]. sRGB-encoded
+*   Convention: `dj_color_rgb` holds LINEAR RGB in [0, 1]. sRGB-encoded
 * values are produced/consumed by the gamma routines and by the 8-bit/hex
 * paths (which gamma-encode). Routines that touch only arithmetic are
 * constexpr (D_COLOR_FN); routines that call <math.h> transcendentals are
@@ -27,12 +27,12 @@ TABLE OF CONTENTS
 =================
 I.    POD TYPES
       ---------
-      a. d_color_rgb
-      b. d_color_rgba
-      c.    d_color_rgba_premul
-            d. d_color_rgb_u8
-            e. d_color_rgba_u8
-            f. d_color_rgb_hex, d_color_rgba_hex
+      a. dj_color_rgb
+      b. dj_color_rgba
+      c.    dj_color_rgba_premul
+            d. dj_color_rgb_u8
+            e. dj_color_rgba_u8
+            f. dj_color_rgb_hex, dj_color_rgba_hex
 
 II.   CONSTRUCTION
       ------------
@@ -97,7 +97,7 @@ VIII. OPERATIONS
 #include "../../djinterp.h"
 #include "./color_common.h"
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // uint8_t, uint32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t
 
 D_COLOR_NS_OPEN
 
@@ -106,18 +106,18 @@ D_COLOR_NS_OPEN
 ///                       I.   POD TYPES                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_color_rgb
+// dj_color_rgb
 //   POD: linear RGB color, channels in [0, 1].
-struct d_color_rgb
+struct dj_color_rgb
 {
     float r;
     float g;
     float b;
 };
 
-// d_color_rgba
+// dj_color_rgba
 //   POD: linear RGB with straight (non-premultiplied) alpha.
-struct d_color_rgba
+struct dj_color_rgba
 {
     float r;
     float g;
@@ -125,9 +125,9 @@ struct d_color_rgba
     float a;
 };
 
-// d_color_rgba_premul
+// dj_color_rgba_premul
 //   POD: linear RGB with premultiplied alpha.
-struct d_color_rgba_premul
+struct dj_color_rgba_premul
 {
     float r;
     float g;
@@ -135,18 +135,18 @@ struct d_color_rgba_premul
     float a;
 };
 
-// d_color_rgb_u8
+// dj_color_rgb_u8
 //   POD: 8-bit-per-channel sRGB-encoded RGB.
-struct d_color_rgb_u8
+struct dj_color_rgb_u8
 {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 };
 
-// d_color_rgba_u8
+// dj_color_rgba_u8
 //   POD: 8-bit-per-channel sRGB-encoded RGBA.
-struct d_color_rgba_u8
+struct dj_color_rgba_u8
 {
     uint8_t r;
     uint8_t g;
@@ -154,13 +154,13 @@ struct d_color_rgba_u8
     uint8_t a;
 };
 
-// d_color_rgb_hex
+// dj_color_rgb_hex
 //   type: 0x00RRGGBB packed sRGB color.
-typedef uint32_t d_color_rgb_hex;
+typedef uint32_t dj_color_rgb_hex;
 
-// d_color_rgba_hex
+// dj_color_rgba_hex
 //   type: 0xRRGGBBAA packed sRGB color.
-typedef uint32_t d_color_rgba_hex;
+typedef uint32_t dj_color_rgba_hex;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -176,16 +176,16 @@ Parameter(s):
   _g: green channel.
   _b: blue  channel.
 Return:
-  A d_color_rgb with the given channels.
+  A dj_color_rgb with the given channels.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_make(
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_make(
     float _r,
     float _g,
     float _b
 )
 {
-    return D_COLOR_LITERAL(d_color_rgb, _r, _g, _b);
+    return D_COLOR_LITERAL(dj_color_rgb, _r, _g, _b);
 }
 
 /*
@@ -198,17 +198,17 @@ Parameter(s):
   _b: blue  channel.
   _a: alpha channel.
 Return:
-  A d_color_rgba with the given channels.
+  A dj_color_rgba with the given channels.
 */
-D_COLOR_FN struct d_color_rgba
-d_color_rgba_make(
+D_COLOR_FN
+struct dj_color_rgba d_color_rgba_make(
     float _r,
     float _g,
     float _b,
     float _a
 )
 {
-    return D_COLOR_LITERAL(d_color_rgba, _r, _g, _b, _a);
+    return D_COLOR_LITERAL(dj_color_rgba, _r, _g, _b, _a);
 }
 
 /*
@@ -221,17 +221,17 @@ Parameter(s):
   _b: premultiplied blue  channel.
   _a: alpha channel.
 Return:
-  A d_color_rgba_premul with the given channels.
+  A dj_color_rgba_premul with the given channels.
 */
-D_COLOR_FN struct d_color_rgba_premul
-d_color_rgba_premul_make(
+D_COLOR_FN
+struct dj_color_rgba_premul d_color_rgba_premul_make(
     float _r,
     float _g,
     float _b,
     float _a
 )
 {
-    return D_COLOR_LITERAL(d_color_rgba_premul, _r, _g, _b, _a);
+    return D_COLOR_LITERAL(dj_color_rgba_premul, _r, _g, _b, _a);
 }
 
 /*
@@ -243,16 +243,16 @@ Parameter(s):
   _g: green channel [0, 255].
   _b: blue  channel [0, 255].
 Return:
-  A d_color_rgb_u8 with the given channels.
+  A dj_color_rgb_u8 with the given channels.
 */
-D_COLOR_FN struct d_color_rgb_u8
-d_color_rgb_u8_make(
+D_COLOR_FN
+struct dj_color_rgb_u8 d_color_rgb_u8_make(
     uint8_t _r,
     uint8_t _g,
     uint8_t _b
 )
 {
-    return D_COLOR_LITERAL(d_color_rgb_u8, _r, _g, _b);
+    return D_COLOR_LITERAL(dj_color_rgb_u8, _r, _g, _b);
 }
 
 /*
@@ -265,17 +265,17 @@ Parameter(s):
   _b: blue  channel [0, 255].
   _a: alpha channel [0, 255].
 Return:
-  A d_color_rgba_u8 with the given channels.
+  A dj_color_rgba_u8 with the given channels.
 */
-D_COLOR_FN struct d_color_rgba_u8
-d_color_rgba_u8_make(
+D_COLOR_FN
+struct dj_color_rgba_u8 d_color_rgba_u8_make(
     uint8_t _r,
     uint8_t _g,
     uint8_t _b,
     uint8_t _a
 )
 {
-    return D_COLOR_LITERAL(d_color_rgba_u8, _r, _g, _b, _a);
+    return D_COLOR_LITERAL(dj_color_rgba_u8, _r, _g, _b, _a);
 }
 
 
@@ -292,9 +292,9 @@ Parameter(s):
 Return:
   true if every channel is in range, false otherwise.
 */
-D_COLOR_FN bool
-d_color_rgb_is_valid(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+bool d_color_rgb_is_valid(
+    struct dj_color_rgb _rgb
 )
 {
     return ( (_rgb.r >= 0.0f) && (_rgb.r <= 1.0f) &&
@@ -311,9 +311,9 @@ Parameter(s):
 Return:
   true if every channel is in range, false otherwise.
 */
-D_COLOR_FN bool
-d_color_rgba_is_valid(
-    struct d_color_rgba _rgba
+D_COLOR_FN
+bool d_color_rgba_is_valid(
+    struct dj_color_rgba _rgba
 )
 {
     return ( (_rgba.r >= 0.0f) && (_rgba.r <= 1.0f) &&
@@ -329,11 +329,11 @@ d_color_rgb_clamp
 Parameter(s):
   _rgb: color to clamp.
 Return:
-  A d_color_rgb with channels constrained to [0, 1].
+  A dj_color_rgb with channels constrained to [0, 1].
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_clamp(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_clamp(
+    struct dj_color_rgb _rgb
 )
 {
     return d_color_rgb_make(
@@ -350,11 +350,11 @@ d_color_rgba_clamp
 Parameter(s):
   _rgba: color to clamp.
 Return:
-  A d_color_rgba with channels constrained to [0, 1].
+  A dj_color_rgba with channels constrained to [0, 1].
 */
-D_COLOR_FN struct d_color_rgba
-d_color_rgba_clamp(
-    struct d_color_rgba _rgba
+D_COLOR_FN
+struct dj_color_rgba d_color_rgba_clamp(
+    struct dj_color_rgba _rgba
 )
 {
     return d_color_rgba_make(
@@ -379,8 +379,8 @@ Parameter(s):
 Return:
   The corresponding linear component in [0, 1].
 */
-D_COLOR_FN_RT float
-d_color_srgb_to_linear_component(
+D_COLOR_FN_RT
+float d_color_srgb_to_linear_component(
     float _component
 )
 {
@@ -401,8 +401,8 @@ Parameter(s):
 Return:
   The corresponding sRGB component in [0, 1].
 */
-D_COLOR_FN_RT float
-d_color_linear_to_srgb_component(
+D_COLOR_FN_RT
+float d_color_linear_to_srgb_component(
     float _component
 )
 {
@@ -421,11 +421,11 @@ d_color_rgb_from_srgb
 Parameter(s):
   _srgb: sRGB color, channels in [0, 1].
 Return:
-  A linear d_color_rgb.
+  A linear dj_color_rgb.
 */
-D_COLOR_FN_RT struct d_color_rgb
-d_color_rgb_from_srgb(
-    struct d_color_rgb _srgb
+D_COLOR_FN_RT
+struct dj_color_rgb d_color_rgb_from_srgb(
+    struct dj_color_rgb _srgb
 )
 {
     return d_color_rgb_make(
@@ -442,11 +442,11 @@ d_color_rgb_to_srgb
 Parameter(s):
   _linear: linear color, channels in [0, 1].
 Return:
-  An sRGB-encoded d_color_rgb.
+  An sRGB-encoded dj_color_rgb.
 */
-D_COLOR_FN_RT struct d_color_rgb
-d_color_rgb_to_srgb(
-    struct d_color_rgb _linear
+D_COLOR_FN_RT
+struct dj_color_rgb d_color_rgb_to_srgb(
+    struct dj_color_rgb _linear
 )
 {
     return d_color_rgb_make(
@@ -469,12 +469,12 @@ Parameter(s):
   _rgb:   source color.
   _alpha: alpha value in [0, 1].
 Return:
-  A d_color_rgba combining _rgb and _alpha.
+  A dj_color_rgba combining _rgb and _alpha.
 */
-D_COLOR_FN struct d_color_rgba
-d_color_rgba_from_rgb(
-    struct d_color_rgb _rgb,
-    float       _alpha
+D_COLOR_FN
+struct dj_color_rgba d_color_rgba_from_rgb(
+    struct dj_color_rgb _rgb,
+    float               _alpha
 )
 {
     return d_color_rgba_make(_rgb.r, _rgb.g, _rgb.b, _alpha);
@@ -487,11 +487,11 @@ d_color_rgb_from_rgba
 Parameter(s):
   _rgba: source color.
 Return:
-  A d_color_rgb with _rgba's color channels.
+  A dj_color_rgb with _rgba's color channels.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_from_rgba(
-    struct d_color_rgba _rgba
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_from_rgba(
+    struct dj_color_rgba _rgba
 )
 {
     return d_color_rgb_make(_rgba.r, _rgba.g, _rgba.b);
@@ -504,11 +504,11 @@ d_color_rgba_premultiply
 Parameter(s):
   _rgba: straight-alpha color.
 Return:
-  A d_color_rgba_premul with color channels scaled by alpha.
+  A dj_color_rgba_premul with color channels scaled by alpha.
 */
-D_COLOR_FN struct d_color_rgba_premul
-d_color_rgba_premultiply(
-    struct d_color_rgba _rgba
+D_COLOR_FN
+struct dj_color_rgba_premul d_color_rgba_premultiply(
+    struct dj_color_rgba _rgba
 )
 {
     return d_color_rgba_premul_make(
@@ -527,11 +527,11 @@ d_color_rgba_unpremultiply
 Parameter(s):
   _premul: premultiplied-alpha color.
 Return:
-  A straight-alpha d_color_rgba.
+  A straight-alpha dj_color_rgba.
 */
-D_COLOR_FN struct d_color_rgba
-d_color_rgba_unpremultiply(
-    struct d_color_rgba_premul _premul
+D_COLOR_FN
+struct dj_color_rgba d_color_rgba_unpremultiply(
+    struct dj_color_rgba_premul _premul
 )
 {
     if (_premul.a < D_COLOR_EPSILON)
@@ -556,12 +556,12 @@ Parameter(s):
   _src: source color (premultiplied).
   _dst: destination color (premultiplied).
 Return:
-  The composited d_color_rgba_premul.
+  The composited dj_color_rgba_premul.
 */
-D_COLOR_FN struct d_color_rgba_premul
-d_color_rgba_blend_over(
-    struct d_color_rgba_premul _src,
-    struct d_color_rgba_premul _dst
+D_COLOR_FN
+struct dj_color_rgba_premul d_color_rgba_blend_over(
+    struct dj_color_rgba_premul _src,
+    struct dj_color_rgba_premul _dst
 )
 {
     float one_minus_src_a = 1.0f - _src.a;
@@ -582,16 +582,16 @@ Parameter(s):
   _src: source color (straight alpha).
   _dst: destination color (straight alpha).
 Return:
-  The composited straight-alpha d_color_rgba.
+  The composited straight-alpha dj_color_rgba.
 */
-D_COLOR_FN struct d_color_rgba
-d_color_rgba_blend_over_straight(
-    struct d_color_rgba _src,
-    struct d_color_rgba _dst
+D_COLOR_FN
+struct dj_color_rgba d_color_rgba_blend_over_straight(
+    struct dj_color_rgba _src,
+    struct dj_color_rgba _dst
 )
 {
-    struct d_color_rgba_premul src_premul = d_color_rgba_premultiply(_src);
-    struct d_color_rgba_premul dst_premul = d_color_rgba_premultiply(_dst);
+    struct dj_color_rgba_premul src_premul = d_color_rgba_premultiply(_src);
+    struct dj_color_rgba_premul dst_premul = d_color_rgba_premultiply(_dst);
 
     return d_color_rgba_unpremultiply(
         d_color_rgba_blend_over(src_premul, dst_premul)
@@ -610,14 +610,14 @@ d_color_rgb_from_u8
 Parameter(s):
   _u8: 8-bit sRGB color.
 Return:
-  A linear d_color_rgb.
+  A linear dj_color_rgb.
 */
-D_COLOR_FN_RT struct d_color_rgb
-d_color_rgb_from_u8(
-    struct d_color_rgb_u8 _u8
+D_COLOR_FN_RT
+struct dj_color_rgb d_color_rgb_from_u8(
+    struct dj_color_rgb_u8 _u8
 )
 {
-    struct d_color_rgb srgb = d_color_rgb_make(
+    struct dj_color_rgb srgb = d_color_rgb_make(
         _u8.r / 255.0f,
         _u8.g / 255.0f,
         _u8.b / 255.0f
@@ -633,14 +633,14 @@ d_color_rgb_to_u8
 Parameter(s):
   _rgb: linear color.
 Return:
-  An 8-bit sRGB d_color_rgb_u8.
+  An 8-bit sRGB dj_color_rgb_u8.
 */
-D_COLOR_FN_RT struct d_color_rgb_u8
-d_color_rgb_to_u8(
-    struct d_color_rgb _rgb
+D_COLOR_FN_RT
+struct dj_color_rgb_u8 d_color_rgb_to_u8(
+    struct dj_color_rgb _rgb
 )
 {
-    struct d_color_rgb srgb = d_color_rgb_to_srgb(_rgb);
+    struct dj_color_rgb srgb = d_color_rgb_to_srgb(_rgb);
 
     return d_color_rgb_u8_make(
         (uint8_t)(d_color_clamp_01(srgb.r) * 255.0f + 0.5f),
@@ -657,15 +657,15 @@ d_color_rgba_from_u8
 Parameter(s):
   _u8: 8-bit sRGB RGBA color.
 Return:
-  A linear straight-alpha d_color_rgba.
+  A linear straight-alpha dj_color_rgba.
 */
-D_COLOR_FN_RT struct d_color_rgba
-d_color_rgba_from_u8(
-    struct d_color_rgba_u8 _u8
+D_COLOR_FN_RT
+struct dj_color_rgba d_color_rgba_from_u8(
+    struct dj_color_rgba_u8 _u8
 )
 {
-    struct d_color_rgb_u8 rgb_u8 = d_color_rgb_u8_make(_u8.r, _u8.g, _u8.b);
-    struct d_color_rgb    rgb    = d_color_rgb_from_u8(rgb_u8);
+    struct dj_color_rgb_u8 rgb_u8 = d_color_rgb_u8_make(_u8.r, _u8.g, _u8.b);
+    struct dj_color_rgb    rgb    = d_color_rgb_from_u8(rgb_u8);
 
     return d_color_rgba_from_rgb(rgb, _u8.a / 255.0f);
 }
@@ -677,15 +677,15 @@ d_color_rgba_to_u8
 Parameter(s):
   _rgba: linear straight-alpha color.
 Return:
-  An 8-bit sRGB d_color_rgba_u8.
+  An 8-bit sRGB dj_color_rgba_u8.
 */
-D_COLOR_FN_RT struct d_color_rgba_u8
-d_color_rgba_to_u8(
-    struct d_color_rgba _rgba
+D_COLOR_FN_RT
+struct dj_color_rgba_u8 d_color_rgba_to_u8(
+    struct dj_color_rgba _rgba
 )
 {
-    struct d_color_rgb    rgb    = d_color_rgb_make(_rgba.r, _rgba.g, _rgba.b);
-    struct d_color_rgb_u8 rgb_u8 = d_color_rgb_to_u8(rgb);
+    struct dj_color_rgb    rgb    = d_color_rgb_make(_rgba.r, _rgba.g, _rgba.b);
+    struct dj_color_rgb_u8 rgb_u8 = d_color_rgb_to_u8(rgb);
 
     return d_color_rgba_u8_make(
         rgb_u8.r,
@@ -707,14 +707,14 @@ d_color_rgb_from_hex
 Parameter(s):
   _hex: packed sRGB color.
 Return:
-  A linear d_color_rgb.
+  A linear dj_color_rgb.
 */
-D_COLOR_FN_RT struct d_color_rgb
-d_color_rgb_from_hex(
-    d_color_rgb_hex _hex
+D_COLOR_FN_RT
+struct dj_color_rgb d_color_rgb_from_hex(
+    dj_color_rgb_hex _hex
 )
 {
-    struct d_color_rgb_u8 rgb_u8 = d_color_rgb_u8_make(
+    struct dj_color_rgb_u8 rgb_u8 = d_color_rgb_u8_make(
         (uint8_t)((_hex >> 16) & 0xFFu),
         (uint8_t)((_hex >>  8) & 0xFFu),
         (uint8_t)( _hex        & 0xFFu)
@@ -732,16 +732,16 @@ Parameter(s):
 Return:
   The packed sRGB color.
 */
-D_COLOR_FN_RT d_color_rgb_hex
-d_color_rgb_to_hex(
-    struct d_color_rgb _rgb
+D_COLOR_FN_RT
+dj_color_rgb_hex d_color_rgb_to_hex(
+    struct dj_color_rgb _rgb
 )
 {
-    struct d_color_rgb_u8 rgb_u8 = d_color_rgb_to_u8(_rgb);
+    struct dj_color_rgb_u8 rgb_u8 = d_color_rgb_to_u8(_rgb);
 
-    return ( ((d_color_rgb_hex)rgb_u8.r << 16) |
-             ((d_color_rgb_hex)rgb_u8.g <<  8) |
-              (d_color_rgb_hex)rgb_u8.b );
+    return ( ((dj_color_rgb_hex)rgb_u8.r << 16) |
+             ((dj_color_rgb_hex)rgb_u8.g <<  8) |
+              (dj_color_rgb_hex)rgb_u8.b );
 }
 
 /*
@@ -751,14 +751,14 @@ d_color_rgba_from_hex
 Parameter(s):
   _hex: packed sRGB color.
 Return:
-  A linear straight-alpha d_color_rgba.
+  A linear straight-alpha dj_color_rgba.
 */
-D_COLOR_FN_RT struct d_color_rgba
-d_color_rgba_from_hex(
-    d_color_rgba_hex _hex
+D_COLOR_FN_RT
+struct dj_color_rgba d_color_rgba_from_hex(
+    dj_color_rgba_hex _hex
 )
 {
-    struct d_color_rgba_u8 rgba_u8 = d_color_rgba_u8_make(
+    struct dj_color_rgba_u8 rgba_u8 = d_color_rgba_u8_make(
         (uint8_t)((_hex >> 24) & 0xFFu),
         (uint8_t)((_hex >> 16) & 0xFFu),
         (uint8_t)((_hex >>  8) & 0xFFu),
@@ -777,17 +777,17 @@ Parameter(s):
 Return:
   The packed sRGB color.
 */
-D_COLOR_FN_RT d_color_rgba_hex
-d_color_rgba_to_hex(
-    struct d_color_rgba _rgba
+D_COLOR_FN_RT
+dj_color_rgba_hex d_color_rgba_to_hex(
+    struct dj_color_rgba _rgba
 )
 {
-    struct d_color_rgba_u8 rgba_u8 = d_color_rgba_to_u8(_rgba);
+    struct dj_color_rgba_u8 rgba_u8 = d_color_rgba_to_u8(_rgba);
 
-    return ( ((d_color_rgba_hex)rgba_u8.r << 24) |
-             ((d_color_rgba_hex)rgba_u8.g << 16) |
-             ((d_color_rgba_hex)rgba_u8.b <<  8) |
-              (d_color_rgba_hex)rgba_u8.a );
+    return ( ((dj_color_rgba_hex)rgba_u8.r << 24) |
+             ((dj_color_rgba_hex)rgba_u8.g << 16) |
+             ((dj_color_rgba_hex)rgba_u8.b <<  8) |
+              (dj_color_rgba_hex)rgba_u8.a );
 }
 
 /*
@@ -800,13 +800,13 @@ Parameter(s):
 Return:
   true on a valid "#RRGGBB" string, false otherwise.
 */
-D_COLOR_FN_RT bool
-d_color_rgb_from_hex_string(
-    const char*  _str,
-    struct d_color_rgb* _out_rgb
+D_COLOR_FN_RT
+bool d_color_rgb_from_hex_string(
+    const char*          _str,
+    struct dj_color_rgb* _out_rgb
 )
 {
-    d_color_rgb_hex hex = 0;
+    dj_color_rgb_hex hex = 0;
     int             i   = 0;
 
     if ( (_str == NULL) || (_out_rgb == NULL) )
@@ -844,7 +844,7 @@ d_color_rgb_from_hex_string(
             return false;
         }
 
-        hex = (hex << 4) | (d_color_rgb_hex)digit;
+        hex = (hex << 4) | (dj_color_rgb_hex)digit;
     }
 
     *_out_rgb = d_color_rgb_from_hex(hex);
@@ -862,13 +862,13 @@ Parameter(s):
 Return:
   true on a valid "#RRGGBBAA" string, false otherwise.
 */
-D_COLOR_FN_RT bool
-d_color_rgba_from_hex_string(
-    const char*   _str,
-    struct d_color_rgba* _out_rgba
+D_COLOR_FN_RT
+bool d_color_rgba_from_hex_string(
+    const char*           _str,
+    struct dj_color_rgba* _out_rgba
 )
 {
-    d_color_rgba_hex hex = 0;
+    dj_color_rgba_hex hex = 0;
     int              i   = 0;
 
     if ( (_str == NULL) || (_out_rgba == NULL) )
@@ -906,7 +906,7 @@ d_color_rgba_from_hex_string(
             return false;
         }
 
-        hex = (hex << 4) | (d_color_rgba_hex)digit;
+        hex = (hex << 4) | (dj_color_rgba_hex)digit;
     }
 
     *_out_rgba = d_color_rgba_from_hex(hex);
@@ -924,12 +924,12 @@ Parameter(s):
 Return:
   The packed color, or 0 if the string is invalid.
 */
-D_COLOR_FN_RT d_color_rgb_hex
-d_color_rgb_hex_from_string(
+D_COLOR_FN_RT
+dj_color_rgb_hex d_color_rgb_hex_from_string(
     const char* _str
 )
 {
-    struct d_color_rgb rgb = d_color_rgb_make(0.0f, 0.0f, 0.0f);
+    struct dj_color_rgb rgb = d_color_rgb_make(0.0f, 0.0f, 0.0f);
 
     if (d_color_rgb_from_hex_string(_str, &rgb))
     {
@@ -953,9 +953,9 @@ Parameter(s):
 Return:
   Luminance in [0, 1].
 */
-D_COLOR_FN float
-d_color_rgb_luminance(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+float d_color_rgb_luminance(
+    struct dj_color_rgb _rgb
 )
 {
     return ( 0.2126729f * _rgb.r +
@@ -972,9 +972,9 @@ Parameter(s):
 Return:
   Luminance in [0, 1].
 */
-D_COLOR_FN float
-d_color_rgba_luminance(
-    struct d_color_rgba _rgba
+D_COLOR_FN
+float d_color_rgba_luminance(
+    struct dj_color_rgba _rgba
 )
 {
     return ( 0.2126729f * _rgba.r +
@@ -992,10 +992,10 @@ Parameter(s):
 Return:
   Contrast ratio in [1, 21].
 */
-D_COLOR_FN float
-d_color_rgb_contrast_ratio(
-    struct d_color_rgb _a,
-    struct d_color_rgb _b
+D_COLOR_FN
+float d_color_rgb_contrast_ratio(
+    struct dj_color_rgb _a,
+    struct dj_color_rgb _b
 )
 {
     float l1 = d_color_rgb_luminance(_a) + 0.05f;
@@ -1011,11 +1011,11 @@ d_color_rgb_to_grayscale
 Parameter(s):
   _rgb: linear color.
 Return:
-  A neutral-gray d_color_rgb.
+  A neutral-gray dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_to_grayscale(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_to_grayscale(
+    struct dj_color_rgb _rgb
 )
 {
     float lum = d_color_rgb_luminance(_rgb);
@@ -1030,11 +1030,11 @@ d_color_rgb_invert
 Parameter(s):
   _rgb: linear color.
 Return:
-  The inverted d_color_rgb.
+  The inverted dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_invert(
-    struct d_color_rgb _rgb
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_invert(
+    struct dj_color_rgb _rgb
 )
 {
     return d_color_rgb_make(
@@ -1053,13 +1053,13 @@ Parameter(s):
   _b: end color   (returned at _t = 1).
   _t: interpolation factor.
 Return:
-  The interpolated d_color_rgb.
+  The interpolated dj_color_rgb.
 */
-D_COLOR_FN struct d_color_rgb
-d_color_rgb_lerp(
-    struct d_color_rgb _a,
-    struct d_color_rgb _b,
-    float       _t
+D_COLOR_FN
+struct dj_color_rgb d_color_rgb_lerp(
+    struct dj_color_rgb _a,
+    struct dj_color_rgb _b,
+    float               _t
 )
 {
     float u = 1.0f - _t;
@@ -1080,13 +1080,13 @@ Parameter(s):
   _b: end color   (returned at _t = 1).
   _t: interpolation factor.
 Return:
-  The interpolated d_color_rgba.
+  The interpolated dj_color_rgba.
 */
-D_COLOR_FN struct d_color_rgba
-d_color_rgba_lerp(
-    struct d_color_rgba _a,
-    struct d_color_rgba _b,
-    float        _t
+D_COLOR_FN
+struct dj_color_rgba d_color_rgba_lerp(
+    struct dj_color_rgba _a,
+    struct dj_color_rgba _b,
+    float                _t
 )
 {
     float u = 1.0f - _t;
@@ -1107,10 +1107,10 @@ d_color_rgb_from_temperature
 Parameter(s):
   _kelvin: color temperature in kelvin (roughly 1000-40000).
 Return:
-  The approximate linear d_color_rgb.
+  The approximate linear dj_color_rgb.
 */
-D_COLOR_FN_RT struct d_color_rgb
-d_color_rgb_from_temperature(
+D_COLOR_FN_RT
+struct dj_color_rgb d_color_rgb_from_temperature(
     float _kelvin
 )
 {

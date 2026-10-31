@@ -23,7 +23,7 @@
 *   maps to Interlocked* or __sync_* with the same cost.
 *
 * DEPENDENCIES:
-*   datomic.h   -- d_atomic_flag, test_and_set, clear, memory orders
+*   datomic.h   -- dj_atomic_flag, test_and_set, clear, memory orders
 *   dmutex.h    -- d_thread_hardware_concurrency (re-exported)
 *
 *
@@ -38,11 +38,11 @@ TABLE OF CONTENTS
 =================
 I.    THREAD SAFETY LEVEL (C ENUM)
       ----------------------------
-      1.    d_thread_safety_levels
+      1.    dj_thread_safety_levels
 
 II.   SPINLOCK TYPE
       -------------
-      1.    d_spinlock_t
+      1.    dj_spinlock_t
       2.    D_SPINLOCK_INIT
 
 III.  SPINLOCK OPERATIONS (STATIC INLINE)
@@ -72,10 +72,10 @@ D_EXTERN_C_BEGIN
 // containers can classify their synchronization guarantee
 // through the same vocabulary as the C++ trait system.
 
-// d_thread_safety_levels
+// dj_thread_safety_levels
 //   enum: synchronization guarantee classification. Mirrors the C++
 // thread_safety_level enum class in lock_policy.hpp.
-enum d_thread_safety_levels
+enum dj_thread_safety_levels
 {
     D_THREAD_SAFETY_NONE         = 0,
     D_THREAD_SAFETY_ATOMIC_ONLY  = 1,
@@ -93,18 +93,18 @@ enum d_thread_safety_levels
 // a full mutex (kernel transition, wait queue) is
 // disproportionate.
 
-// d_spinlock_t
-//   type: inline spinlock backed by d_atomic_flag. A single atomic flag with
+// dj_spinlock_t
+//   type: inline spinlock backed by dj_atomic_flag. A single atomic flag with
 // acquire/release semantics -- the lightest mutex there is.
-struct d_spinlock
+struct dj_spinlock
 {
-    d_atomic_flag flag;
+    dj_atomic_flag flag;
 };
 
-typedef struct d_spinlock d_spinlock_t;
+typedef struct dj_spinlock dj_spinlock_t;
 
 // D_SPINLOCK_INIT
-//   macro: static initializer for a d_spinlock_t.
+//   macro: static initializer for a dj_spinlock_t.
 #define D_SPINLOCK_INIT                                                       \
     {                                                                         \
         D_ATOMIC_FLAG_INIT                                                    \
@@ -121,8 +121,10 @@ typedef struct d_spinlock d_spinlock_t;
 // d_spinlock_init
 //   function: runtime initialization of a spinlock.
 // Equivalent to D_SPINLOCK_INIT for stack/heap spinlocks.
-static inline void
-d_spinlock_init(d_spinlock_t* _lock)
+static inline
+void d_spinlock_init(
+    dj_spinlock_t* _lock
+)
 {
     d_atomic_flag_clear(&_lock->flag);
 
@@ -133,8 +135,10 @@ d_spinlock_init(d_spinlock_t* _lock)
 //   function: acquires the spinlock, spinning until the
 // flag is cleared. Uses acquire ordering so that all
 // memory operations after the lock are visible.
-static inline void
-d_spinlock_lock(d_spinlock_t* _lock)
+static inline
+void d_spinlock_lock(
+    dj_spinlock_t* _lock
+)
 {
     while (d_atomic_flag_test_and_set_explicit(
         &_lock->flag, D_MEMORY_ORDER_ACQUIRE))
@@ -150,8 +154,10 @@ d_spinlock_lock(d_spinlock_t* _lock)
 //   function: attempts to acquire the spinlock without
 // blocking. Returns D_MUTEX_SUCCESS (0) if acquired,
 // D_MUTEX_BUSY (-2) if already held.
-static inline int
-d_spinlock_trylock(d_spinlock_t* _lock)
+static inline
+int d_spinlock_trylock(
+    dj_spinlock_t* _lock
+)
 {
     if (d_atomic_flag_test_and_set_explicit(
             &_lock->flag, D_MEMORY_ORDER_ACQUIRE))
@@ -166,8 +172,10 @@ d_spinlock_trylock(d_spinlock_t* _lock)
 //   function: releases the spinlock. Uses release
 // ordering so that all memory operations before the
 // unlock are visible to the next acquirer.
-static inline void
-d_spinlock_unlock(d_spinlock_t* _lock)
+static inline
+void d_spinlock_unlock(
+    dj_spinlock_t* _lock
+)
 {
     d_atomic_flag_clear_explicit(
         &_lock->flag, D_MEMORY_ORDER_RELEASE);

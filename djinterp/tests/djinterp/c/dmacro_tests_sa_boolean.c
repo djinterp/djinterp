@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -25,10 +25,8 @@ d_tests_sa_dmacro_probe_check
   - D_PROBE creates detectable probe pattern
   - D_CHECK_IMPL correctly extracts the second argument
 */
-bool
-d_tests_sa_dmacro_probe_check
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_probe_check(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -133,10 +131,8 @@ d_tests_sa_dmacro_is_paren
   - D_IS_PAREN works with empty parentheses
   - D_IS_PAREN works with nested parentheses
 */
-bool
-d_tests_sa_dmacro_is_paren
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_is_paren(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -254,10 +250,8 @@ d_tests_sa_dmacro_if_macros
   - D_IF_1_ELSE discards the else clause
   - D_IF_0_ELSE expands the else clause
 */
-bool
-d_tests_sa_dmacro_if_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_if_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -346,10 +340,8 @@ d_tests_sa_dmacro_iif_macros
   - D_IIF(0) selects the second argument
   - D_IIF_0 and D_IIF_1 work directly
 */
-bool
-d_tests_sa_dmacro_iif_macros
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_iif_macros(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -455,10 +447,8 @@ d_tests_sa_dmacro_not_compl
   - D_COMPL(0) returns 1
   - D_COMPL(1) returns 0
 */
-bool
-d_tests_sa_dmacro_not_compl
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_not_compl(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -584,10 +574,8 @@ d_tests_sa_dmacro_bool_macro
   - D_BOOL(non-zero) returns 1
   - D_BOOL normalizes any truthy value to 1
 */
-bool
-d_tests_sa_dmacro_bool_macro
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_bool_macro(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -698,10 +686,8 @@ d_tests_sa_dmacro_and_or
   - D_OR truth table (00->0, 01->1, 10->1, 11->1)
   - D_AND and D_OR work with normalized inputs
 */
-bool
-d_tests_sa_dmacro_and_or
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_and_or(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -875,13 +861,11 @@ d_tests_sa_dmacro_boolean_all
   - D_BOOL
   - D_AND and D_OR
 */
-bool
-d_tests_sa_dmacro_boolean_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_boolean_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  probe_check_result;
     bool                  is_paren_result;
     bool                  if_macros_result;
@@ -896,7 +880,7 @@ d_tests_sa_dmacro_boolean_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

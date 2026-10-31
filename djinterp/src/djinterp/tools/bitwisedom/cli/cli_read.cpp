@@ -67,8 +67,7 @@ const char* const INDENT = "    ";
 // hex_of
 //   bits as the command line writes a value: 0x and upper-case digits, as
 // many as the sheet's width needs.
-std::string
-hex_of(
+std::string hex_of(
     const wide& _bits,
     int         _width
 )
@@ -81,8 +80,7 @@ hex_of(
 // binary_of
 //   bits as 0b and binary digits, highest first, `_` every four from the
 // lowest -- a form the command line reads back.
-std::string
-binary_of(
+std::string binary_of(
     const wide& _bits
 )
 {
@@ -100,8 +98,7 @@ binary_of(
 
 // kind_word
 //   a row's kind as the command line names it.
-const char*
-kind_word(
+const char* kind_word(
     const resolved_row& _row
 )
 {
@@ -125,8 +122,7 @@ kind_word(
 
 // date_valid
 //   whether a date is a banner's: YYYY.MM.DD.
-bool
-date_valid(
+bool date_valid(
     const std::string& _date
 )
 {
@@ -148,8 +144,7 @@ date_valid(
 // date_given
 //   the banner's date: --date's, checked, or today's; a usage error, said,
 // for one that is not a date.
-int
-date_given(
+int date_given(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _date,
@@ -174,8 +169,7 @@ date_given(
 
 // file_name_of
 //   a path's last part, as a header names itself.
-std::string
-file_name_of(
+std::string file_name_of(
     const std::string& _path
 )
 {
@@ -186,8 +180,7 @@ file_name_of(
 
 // write_or_say
 //   a file written whole, or the error of not writing it; true when written.
-bool
-write_or_say(
+bool write_or_say(
     kit::program&      _program,
     const std::string& _path,
     const std::string& _text,
@@ -208,8 +201,7 @@ write_or_say(
 // json_or_text
 //   whether --format asked for JSON; false, with `_status` the usage error
 // said, for a word it does not take.
-bool
-json_or_text(
+bool json_or_text(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _format,
@@ -234,8 +226,7 @@ word_given
 given; and for a word it does not take, -1 with `_status` the usage error
 said. Nothing is looked at once `_status` says a mistake was found.
 */
-int
-word_given(
+int word_given(
     kit::program&                   _program,
     kit::command                    _command,
     const char*                     _option,
@@ -265,8 +256,7 @@ apply_settings
 before any is applied; then a C++ level means a C++ header, as it always
 has.
 */
-int
-apply_settings(
+int apply_settings(
     kit::program&      _program,
     kit::command       _command,
     const gen_request& _request,
@@ -329,8 +319,7 @@ struct counts
 
 // count_issues
 //   a resolution's issues, counted.
-counts
-count_issues(
+counts count_issues(
     const resolution& _resolution
 )
 {
@@ -348,8 +337,7 @@ count_issues(
 
 // issue_object
 //   an issue as JSON.
-json_value
-issue_object(
+json_value issue_object(
     const resolution& _resolution,
     const issue&      _issue
 )
@@ -374,8 +362,7 @@ issue_object(
 
 // sheet_object
 //   a sheet's issues as check's JSON gives them.
-json_value
-sheet_object(
+json_value sheet_object(
     const std::string& _operand,
     const resolution&  _resolution,
     const counts&      _found
@@ -404,8 +391,7 @@ check_one
 object added to the JSON; trouble for one that cannot be read, no for one
 with errors.
 */
-int
-check_one(
+int check_one(
     kit::program&      _program,
     const std::string& _operand,
     bool               _json,
@@ -446,8 +432,7 @@ run_check
   Every sheet, one that cannot be read said and passed over: trouble, the
 worst of the answers, comes first, then no.
 */
-int
-run_check(
+int run_check(
     kit::program&        _program,
     kit::command         _command,
     const check_request& _request
@@ -491,8 +476,7 @@ struct show_request
 // value_text
 //   the integer C knows a row by, as the command line writes one: in hex at
 // the sheet's width; a wide sheet's as wide_constant gives it; "-" for none.
-std::string
-value_text(
+std::string value_text(
     const sheet&        _sheet,
     const resolved_row& _row
 )
@@ -520,8 +504,7 @@ value_text(
 
 // bits_text
 //   the bits a row sets or lives in, as a person reads them.
-std::string
-bits_text(
+std::string bits_text(
     const resolved_row& _row
 )
 {
@@ -541,8 +524,7 @@ bits_text(
 
 // row_object
 //   a row as show's JSON gives it.
-json_value
-row_object(
+json_value row_object(
     const sheet&        _sheet,
     const resolved_row& _row
 )
@@ -570,8 +552,7 @@ run_show
   The rows in the sheet's own order, each indented under its group: its
 name, kind, bits and value, and its error where it has one.
 */
-int
-run_show(
+int run_show(
     kit::program&       _program,
     kit::command        _command,
     const show_request& _request
@@ -639,8 +620,7 @@ struct decoded
 values_named
   The names a range's values have where the field holds what it holds.
 */
-std::vector<std::string>
-values_named(
+std::vector<std::string> values_named(
     const resolution&   _resolution,
     const resolved_row& _range,
     const wide&         _field
@@ -669,8 +649,7 @@ decode_range
   A range's field in the value -- a line and an object -- unless it is zero
 and zero has no name, which says nothing.
 */
-void
-decode_range(
+void decode_range(
     const resolution&   _resolution,
     const resolved_row& _range,
     const wide&         _value,
@@ -715,8 +694,7 @@ decode_row
   One symbol that resolved: a bit set, a range's field, or a literal or an
 expression the whole value is.
 */
-void
-decode_row(
+void decode_row(
     const resolution&   _resolution,
     const resolved_row& _row,
     const wide&         _value,
@@ -758,8 +736,7 @@ decode_value
   Each symbol that resolved, decoded; then the symbols equal to the whole,
 and the bits no bit or range covers.
 */
-decoded
-decode_value(
+decoded decode_value(
     const resolution& _resolution,
     const wide&       _value
 )
@@ -800,8 +777,7 @@ decode_value(
 decoded_object
   What decode_value found, as decode's JSON gives it.
 */
-json_value
-decoded_object(
+json_value decoded_object(
     const decoded& _found,
     const wide&    _value,
     int            _width
@@ -826,8 +802,7 @@ read_values
   Every VALUE read before anything is decoded, so a mistake in the last is
 found before any output.
 */
-bool
-read_values(
+bool read_values(
     kit::program&                   _program,
     kit::command                    _command,
     const std::vector<std::string>& _texts,
@@ -859,8 +834,7 @@ run_decode
 it, or all of them as JSON; the answer is no when any sets a bit no symbol
 names.
 */
-int
-run_decode(
+int run_decode(
     kit::program&         _program,
     kit::command          _command,
     const decode_request& _request
@@ -926,8 +900,7 @@ symbol_bits
 symbol has it -- as row_named takes them, but quietly, the evaluator saying
 what went wrong.
 */
-bool
-symbol_bits(
+bool symbol_bits(
     const resolution&  _resolution,
     const std::string& _name,
     wide&              _value,
@@ -971,8 +944,7 @@ width: its object for the JSON, and its text -- hex, decimal while it fits
 64 bits, binary, and the bits it sets -- or the error of one that does not
 evaluate, said, and false.
 */
-bool
-eval_one(
+bool eval_one(
     kit::program&      _program,
     const std::string& _text,
     const wide_lookup& _lookup,
@@ -1028,8 +1000,7 @@ run_eval
   Each expression evaluated in turn, its text written as it is found, or
 all of them as JSON; the answer is no when any does not evaluate.
 */
-int
-run_eval(
+int run_eval(
     kit::program&       _program,
     kit::command        _command,
     const eval_request& _request
@@ -1094,8 +1065,7 @@ struct convert_request
 run_convert
   The sheet in another shape, whole, to a file or the output.
 */
-int
-run_convert(
+int run_convert(
     kit::program&          _program,
     kit::command           _command,
     const convert_request& _request
@@ -1144,8 +1114,7 @@ struct examples_request
 examples_object
   Every example, as examples' JSON gives them.
 */
-json_value
-examples_object(
+json_value examples_object(
     const std::vector<example_info>& _all
 )
 {
@@ -1171,8 +1140,7 @@ examples_text
 the first of each comes: a heading, then a line for each, its width
 right-aligned -- one table, so every shelf's columns line up.
 */
-std::string
-examples_text(
+std::string examples_text(
     const std::vector<example_info>& _all
 )
 {
@@ -1213,8 +1181,7 @@ examples_text(
 run_examples
   The built-in examples, as text or as JSON.
 */
-int
-run_examples(
+int run_examples(
     kit::program&           _program,
     kit::command            _command,
     const examples_request& _request
@@ -1243,8 +1210,7 @@ gen_files
   The files beside the header -- the bitfield and the export -- each asked
 for; false, the error said and `_status` set, at the first not written.
 */
-bool
-gen_files(
+bool gen_files(
     kit::program&      _program,
     kit::command       _command,
     const gen_request& _request,
@@ -1269,8 +1235,7 @@ gen_write
 file was asked for alone -- then the self-test, which includes the header
 by its file's name.
 */
-int
-gen_write(
+int gen_write(
     kit::program&      _program,
     kit::command       _command,
     const gen_request& _request,
@@ -1316,8 +1281,7 @@ add_gen_options
   The options bitwisedom-gen took, each bound to the request, and described
 as help and the grammar say them.
 */
-void
-add_gen_options(
+void add_gen_options(
     kit::command _command,
     gen_request& _request
 )
@@ -1372,8 +1336,7 @@ run_gen
 over it, its issues; then the files, the header named for the file it goes
 to.
 */
-int
-run_gen(
+int run_gen(
     kit::program&      _program,
     kit::command       _command,
     const gen_request& _request
@@ -1433,8 +1396,7 @@ namespace
 define_gen_check
   gen and check.
 */
-void
-define_gen_check(
+void define_gen_check(
     kit::program& _program
 )
 {
@@ -1476,8 +1438,7 @@ define_gen_check(
 define_show_decode
   show and decode.
 */
-void
-define_show_decode(
+void define_show_decode(
     kit::program& _program
 )
 {
@@ -1520,8 +1481,7 @@ define_show_decode(
 define_eval_convert
   eval and convert.
 */
-void
-define_eval_convert(
+void define_eval_convert(
     kit::program& _program
 )
 {
@@ -1574,8 +1534,7 @@ define_eval_convert(
 define_examples
   examples.
 */
-void
-define_examples(
+void define_examples(
     kit::program& _program
 )
 {
@@ -1602,8 +1561,7 @@ add_read_commands
   Each command with its request, owned by its work, so it lives as long as
 the program and every option bound to it.
 */
-void
-add_read_commands(
+void add_read_commands(
     kit::program& _program
 )
 {

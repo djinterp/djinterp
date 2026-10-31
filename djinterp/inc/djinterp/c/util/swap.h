@@ -34,9 +34,11 @@ D_EXTERN_C_BEGIN
 
 
 // I.     byte-wise exchange
-void    d_memswap(void*  _first,
-                  void*  _second,
-                  size_t _size);
+void d_memswap(
+    void*  _first,
+    void*  _second,
+    size_t _size
+);
 
 
 D_EXTERN_C_END

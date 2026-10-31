@@ -77,9 +77,9 @@
 // Enumerations
 // =============================================================================
 
-// d_text_template_binding_type
+// dj_text_template_binding_type
 //   enum: the type of value a binding maps to.
-enum d_text_template_binding_type
+enum dj_text_template_binding_type
 {
     // binding maps a key to a plain string value
     D_TEXT_TEMPLATE_BINDING_STRING,
@@ -96,9 +96,9 @@ enum d_text_template_binding_type
     D_TEXT_TEMPLATE_BINDING_LIST
 };
 
-// d_text_template_error
+// dj_text_template_error
 //   enum: error codes returned by text template functions.
-enum d_text_template_error
+enum dj_text_template_error
 {
     D_TEXT_TEMPLATE_SUCCESS = 0,
     D_TEXT_TEMPLATE_ERROR_NULL_PARAM,
@@ -127,7 +127,7 @@ enum d_text_template_error
 // Function Types
 // =============================================================================
 
-// d_text_template_fn
+// dj_text_template_fn
 //   function pointer: a user-supplied callback invoked at render time for
 // function bindings. The function receives an opaque context pointer and must
 // allocate and return the replacement string through `_out_result`. The caller
@@ -139,17 +139,17 @@ enum d_text_template_error
 //
 // Return:
 //   D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
-typedef enum d_text_template_error(*d_text_template_fn)(void*  _context,
+typedef enum dj_text_template_error(*dj_text_template_fn)(void*  _context,
                                                         char** _out_result);
 
-// struct d_text_template
+// struct dj_text_template
 //   forward declaration: the list callback below takes a pointer to one,
 // and a struct first named inside a parameter list has prototype scope --
 // it would be a different type from the struct defined further down.
-struct d_text_template;
+struct dj_text_template;
 
 
-// d_text_template_list_fn
+// dj_text_template_list_fn
 //   function pointer: a per-item callback invoked during list binding
 // rendering. Called once for each item (index 0 through _count - 1).
 // The callback's job is to bind domain-specific keys onto `_item_template`;
@@ -175,9 +175,9 @@ struct d_text_template;
 //   iteration) onto `_item_template`. Bound values must remain valid until
 //   the callback returns -- the renderer will render the sub-template
 //   immediately after the callback.
-typedef bool (*d_text_template_list_fn)(size_t                  _index,
+typedef bool (*dj_text_template_list_fn)(size_t                  _index,
                                         size_t                  _count,
-                                        struct d_text_template* _item_template,
+                                        struct dj_text_template* _item_template,
                                         void*                   _context);
 
 
@@ -185,7 +185,7 @@ typedef bool (*d_text_template_list_fn)(size_t                  _index,
 // Structures
 // =============================================================================
 
-// d_text_template_marker_config
+// dj_text_template_marker_config
 //   struct: configuration for the prefix and suffix marker strings used to
 // delimit specifier keys within a template string.
 //
@@ -193,7 +193,7 @@ typedef bool (*d_text_template_list_fn)(size_t                  _index,
 // held by the template struct; they are freed when the template is freed
 // or when new markers are set. Implemented using d_strdup / d_strndup
 // from string_fn.h.
-struct d_text_template_marker_config
+struct dj_text_template_marker_config
 {
     // prefix string placed before a key (e.g., "%", "{{", "${")
     // heap-allocated; NULL only before initialization
@@ -210,7 +210,7 @@ struct d_text_template_marker_config
     size_t suffix_length;
 };
 
-// d_text_template_list_options
+// dj_text_template_list_options
 //   struct: configuration for list binding rendering behavior. Passed to
 // `d_text_template_bind_list()`. All fields have sensible defaults when
 // the struct is zero-initialized or when NULL is passed as the options
@@ -222,7 +222,7 @@ struct d_text_template_marker_config
 //   - _number starts at 1 (1-based)
 //   - _number is zero-padded to the digit width of count
 //   - pad character is '0'
-struct d_text_template_list_options
+struct dj_text_template_list_options
 {
     // string inserted between consecutive rendered items; NULL or empty
     // string means no separator is inserted
@@ -249,13 +249,13 @@ struct d_text_template_list_options
 };
 
 
-// d_text_template_binding
+// dj_text_template_binding
 //   struct: a single binding that associates a key name with a string value,
 // a nested text template, a user-supplied function, or a list iteration.
 //
 //   The key is a heap-allocated sized string (using d_strdup from
 // string_fn.h). String values are also heap-allocated sized strings.
-struct d_text_template_binding
+struct dj_text_template_binding
 {
     // the key name for this binding (heap-allocated via d_strdup)
     char*  key;
@@ -264,7 +264,7 @@ struct d_text_template_binding
     size_t key_length;
 
     // type of this binding (string, template, function, or list)
-    enum d_text_template_binding_type type;
+    enum dj_text_template_binding_type type;
 
     // the bound value (interpreted according to `type`)
     union
@@ -279,13 +279,13 @@ struct d_text_template_binding
 
         // for D_TEXT_TEMPLATE_BINDING_TEMPLATE:
         //   pointer to another template (not owned; caller manages lifetime)
-        struct d_text_template* tmpl;
+        struct dj_text_template* tmpl;
 
         // for D_TEXT_TEMPLATE_BINDING_FUNCTION:
         //   callback + context (context not owned; caller manages lifetime)
         struct
         {
-            d_text_template_fn fn;
+            dj_text_template_fn fn;
             void*              context;
         } function;
 
@@ -297,7 +297,7 @@ struct d_text_template_binding
             // the item template rendered once per iteration; not owned
             // by the binding -- caller must keep it alive until after
             // the parent template is rendered
-            struct d_text_template* item_template;
+            struct dj_text_template* item_template;
 
             // number of items to iterate; the callback is invoked
             // exactly this many times (0 through count - 1)
@@ -305,7 +305,7 @@ struct d_text_template_binding
 
             // per-item callback that binds domain-specific keys onto
             // item_template before each render pass
-            d_text_template_list_fn bind_fn;
+            dj_text_template_list_fn bind_fn;
 
             // opaque context pointer passed to bind_fn on each call;
             // not owned by the binding
@@ -314,29 +314,29 @@ struct d_text_template_binding
             // rendering options: separator, empty text, number padding;
             // these are copied from the options struct at bind time, so
             // the caller's options struct need not outlive the bind call
-            struct d_text_template_list_options options;
+            struct dj_text_template_list_options options;
         } list;
     } value;
 };
 
-// d_text_template
+// dj_text_template
 //   struct: a text template with marker configuration and a dynamically-
 // allocated array of bindings that map keys to string values, nested
 // templates, user-supplied functions, or list iterations. Uses a
-// d_str_interp_context internally for the actual substitution pass.
+// dj_str_interp_context internally for the actual substitution pass.
 //
 //   The binding array grows automatically via d_memcpy / d_memdup_s from
 // dmemory.h when capacity is exceeded. Key lookups use d_strequals from
 // string_fn.h for length-aware comparison.
-struct d_text_template
+struct dj_text_template
 {
     // marker configuration (prefix/suffix sized strings, heap-allocated)
-    struct d_text_template_marker_config marker;
+    struct dj_text_template_marker_config marker;
 
     // dynamically-allocated array of bindings (heap-allocated via
     // dmemory.h; grown by doubling when binding_count reaches
     // binding_capacity)
-    struct d_text_template_binding* bindings;
+    struct dj_text_template_binding* bindings;
 
     // number of currently registered bindings
     size_t                          binding_count;
@@ -357,67 +357,143 @@ struct d_text_template
 // =============================================================================
 // Template Lifecycle
 // =============================================================================
-struct d_text_template* d_text_template_new(void);
-struct d_text_template* d_text_template_new_with_markers(const char* _prefix, const char* _suffix);
-void                    d_text_template_free(struct d_text_template* _template);
-void                    d_text_template_clear(struct d_text_template* _template);
+struct dj_text_template* d_text_template_new(void);
+struct dj_text_template* d_text_template_new_with_markers(
+    const char* _prefix,
+    const char* _suffix
+);
+void d_text_template_free(
+    struct dj_text_template* _template
+);
+void d_text_template_clear(
+    struct dj_text_template* _template
+);
 
 
 // =============================================================================
 // Marker Configuration
 // =============================================================================
-enum d_text_template_error d_text_template_set_markers(struct d_text_template* _template, const char* _prefix, const char* _suffix);
-const char*                d_text_template_get_prefix(const struct d_text_template* _template);
-const char*                d_text_template_get_suffix(const struct d_text_template* _template);
+enum dj_text_template_error d_text_template_set_markers(
+    struct dj_text_template* _template,
+    const char*              _prefix,
+    const char*              _suffix
+);
+const char* d_text_template_get_prefix(
+    const struct dj_text_template* _template
+);
+const char* d_text_template_get_suffix(
+    const struct dj_text_template* _template
+);
 
 
 // =============================================================================
 // Nesting Depth Configuration
 // =============================================================================
-enum d_text_template_error d_text_template_set_max_depth(struct d_text_template* _template, size_t _depth);
-size_t                     d_text_template_get_max_depth(const struct d_text_template* _template);
+enum dj_text_template_error d_text_template_set_max_depth(
+    struct dj_text_template* _template,
+    size_t                   _depth
+);
+size_t d_text_template_get_max_depth(
+    const struct dj_text_template* _template
+);
 
 
 // =============================================================================
 // Binding Management
 // =============================================================================
-enum d_text_template_error d_text_template_bind_string(struct d_text_template* _template, const char* _key, const char* _value);
-enum d_text_template_error d_text_template_bind_string_n(struct d_text_template* _template, const char* _key, size_t _key_length, const char* _value, size_t _value_length);
-enum d_text_template_error d_text_template_bind_template(struct d_text_template* _template, const char* _key, struct d_text_template* _nested);
-enum d_text_template_error d_text_template_bind_function(struct d_text_template* _template, const char* _key, d_text_template_fn _fn, void* _context);
-enum d_text_template_error d_text_template_bind_list(struct d_text_template*                    _template,
-                                                     const char*                                _key,
-                                                     struct d_text_template*                    _item_template,
-                                                     size_t                                     _count,
-                                                     d_text_template_list_fn                    _bind_fn,
-                                                     void*                                      _context,
-                                                     const struct d_text_template_list_options* _options
+enum dj_text_template_error d_text_template_bind_string(
+    struct dj_text_template* _template,
+    const char*              _key,
+    const char*              _value
 );
-enum d_text_template_error d_text_template_unbind(struct d_text_template* _template, const char* _key);
-enum d_text_template_error d_text_template_update_string(struct d_text_template* _template, const char* _key, const char* _value);
-bool                       d_text_template_has_binding(const struct d_text_template* _template, const char* _key);
-size_t                     d_text_template_binding_count(const struct d_text_template* _template);
+enum dj_text_template_error d_text_template_bind_string_n(
+    struct dj_text_template* _template,
+    const char*              _key,
+    size_t                   _key_length,
+    const char*              _value,
+    size_t                   _value_length
+);
+enum dj_text_template_error d_text_template_bind_template(
+    struct dj_text_template* _template,
+    const char*              _key,
+    struct dj_text_template* _nested
+);
+enum dj_text_template_error d_text_template_bind_function(
+    struct dj_text_template* _template,
+    const char*              _key,
+    dj_text_template_fn      _fn,
+    void*                    _context
+);
+enum dj_text_template_error d_text_template_bind_list(
+    struct dj_text_template*                    _template,
+    const char*                                 _key,
+    struct dj_text_template*                    _item_template,
+    size_t                                      _count,
+    dj_text_template_list_fn                    _bind_fn,
+    void*                                       _context,
+    const struct dj_text_template_list_options* _options
+);
+enum dj_text_template_error d_text_template_unbind(
+    struct dj_text_template* _template,
+    const char*              _key
+);
+enum dj_text_template_error d_text_template_update_string(
+    struct dj_text_template* _template,
+    const char*              _key,
+    const char*              _value
+);
+bool d_text_template_has_binding(
+    const struct dj_text_template* _template,
+    const char*                    _key
+);
+size_t d_text_template_binding_count(
+    const struct dj_text_template* _template
+);
 
 
 // =============================================================================
 // Rendering (Template Expansion)
 // =============================================================================
-enum d_text_template_error d_text_template_render(const struct d_text_template* _template, const char* _format, char* _buffer, size_t _buffer_size);
-enum d_text_template_error d_text_template_render_alloc(const struct d_text_template* _template, const char* _format, char** _result);
-enum d_text_template_error d_text_template_render_length(const struct d_text_template* _template, const char* _format, size_t* _length);
+enum dj_text_template_error d_text_template_render(
+    const struct dj_text_template* _template,
+    const char*                    _format,
+    char*                          _buffer,
+    size_t                         _buffer_size
+);
+enum dj_text_template_error d_text_template_render_alloc(
+    const struct dj_text_template* _template,
+    const char*                    _format,
+    char**                         _result
+);
+enum dj_text_template_error d_text_template_render_length(
+    const struct dj_text_template* _template,
+    const char*                    _format,
+    size_t*                        _length
+);
 
 
 // =============================================================================
 // Key Wrapping Utility
 // =============================================================================
-enum d_text_template_error d_text_template_wrap_keys(const struct d_text_template* _template, const char* _input, char* _buffer, size_t _buffer_size);
-enum d_text_template_error d_text_template_wrap_keys_alloc(const struct d_text_template* _template, const char* _input, char** _result);
+enum dj_text_template_error d_text_template_wrap_keys(
+    const struct dj_text_template* _template,
+    const char*                    _input,
+    char*                          _buffer,
+    size_t                         _buffer_size
+);
+enum dj_text_template_error d_text_template_wrap_keys_alloc(
+    const struct dj_text_template* _template,
+    const char*                    _input,
+    char**                         _result
+);
 
 
 // =============================================================================
 // Utility Functions
 // =============================================================================
-const char* d_text_template_error_string(enum d_text_template_error _error);
+const char* d_text_template_error_string(
+    enum dj_text_template_error _error
+);
 
 
 #endif  // DJINTERP_C_TEXT_TEXT_TEMPLATE_H

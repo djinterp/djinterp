@@ -21,7 +21,7 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Extension
-         1.  d_host_msvs
+         1.  dj_host_msvs
 2.  OPERATIONS
     ----------
     1.  The extension
@@ -33,7 +33,7 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>     // bool
 // djinterp
-#include "../../dinterp.h"  // d_awk_interp
+#include "../../dinterp.h"  // dj_awk_interp
 
 
 //==============================================================================
@@ -44,10 +44,10 @@ TABLE OF CONTENTS
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_msvs
+// dj_host_msvs
 //   struct: the two parts, and the last failure of the msvs_* functions.
 //   Layout is private.
-struct d_host_msvs;
+struct dj_host_msvs;
 
 
 //==============================================================================
@@ -73,10 +73,14 @@ struct d_host_msvs;
 //   msvs_kind(path)              what Visual Studio file its name says it
 //                                is: solution, project, filters, user,
 //                                props or other
-struct d_host_msvs* d_host_msvs_new(void);
-void                d_host_msvs_free(struct d_host_msvs* _host);
-bool                d_host_msvs_install(struct d_host_msvs*  _host,
-                                        struct d_awk_interp* _interp);
+struct dj_host_msvs* d_host_msvs_new(void);
+void d_host_msvs_free(
+    struct dj_host_msvs* _host
+);
+bool d_host_msvs_install(
+    struct dj_host_msvs*  _host,
+    struct dj_awk_interp* _interp
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_MSVS_DHOST_MSVS_H

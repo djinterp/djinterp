@@ -124,11 +124,11 @@
     const void* wrapper_name = (const void*)func_name
 
 
-// d_composed_transformer
+// dj_composed_transformer
 //   struct: composition of two transformers (f . g).
 // context1 and context2 are forwarded to first and second respectively,
 // and may be NULL.
-struct d_composed_transformer
+struct dj_composed_transformer
 {
     fn_transformer first;     // applied first (g)
     fn_transformer second;    // applied second (f)
@@ -139,23 +139,43 @@ struct d_composed_transformer
 };
 
 // i.    transformer composition
-struct d_composed_transformer* d_functional_compose_new(fn_transformer _first, void* _context1, fn_transformer _second, void* _context2, size_t _temp_size);
-bool                           d_functional_compose_apply(const struct d_composed_transformer* _composed, const void* _input, void* _output);
-void                           d_functional_compose_free(struct d_composed_transformer* _composed);
+struct dj_composed_transformer* d_functional_compose_new(
+    fn_transformer _first,
+    void*          _context1,
+    fn_transformer _second,
+    void*          _context2,
+    size_t         _temp_size
+);
+bool d_functional_compose_apply(
+    const struct dj_composed_transformer* _composed,
+    const void*                           _input,
+    void*                                 _output
+);
+void d_functional_compose_free(
+    struct dj_composed_transformer* _composed
+);
 
 
-// d_partial_consumer
+// dj_partial_consumer
 //   struct: partially applied consumer with bound context.
-struct d_partial_consumer
+struct dj_partial_consumer
 {
     fn_consumer consumer;
     void*       context;
 };
 
 // ii.   partial application operations
-struct d_partial_consumer* d_functional_partial_consumer_new(fn_consumer _consumer, void* _context);
-void                       d_functional_partial_consumer_apply(const struct d_partial_consumer* _partial, void* _element);
-void                       d_functional_partial_consumer_free(struct d_partial_consumer* _partial);
+struct dj_partial_consumer* d_functional_partial_consumer_new(
+    fn_consumer _consumer,
+    void*       _context
+);
+void d_functional_partial_consumer_apply(
+    const struct dj_partial_consumer* _partial,
+    void*                             _element
+);
+void d_functional_partial_consumer_free(
+    struct dj_partial_consumer* _partial
+);
 
 
 #endif  // DJINTERP_C_FUNCTIONAL_COMPOSE_H

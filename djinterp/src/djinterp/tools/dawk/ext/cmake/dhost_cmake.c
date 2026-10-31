@@ -19,10 +19,10 @@
 #include <stdlib.h>  // malloc, realloc, calloc, free
 #include <string.h>  // memcpy, strcmp, strlen
 // djinterp
-#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"                 // d_awk_host_function
+#include "../../../../../../inc/djinterp/tools/dawk/dhost.h"                 // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"                // d_awk_value_text
-#include "../../../../../../inc/djinterp/tools/dawk/ext/cmake/dcmake.h"      // d_cmake
-#include "../../../../../../inc/djinterp/tools/dawk/ext/cmake/dcmake_doc.h"  // d_cmake_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/cmake/dcmake.h"      // dj_cmake
+#include "../../../../../../inc/djinterp/tools/dawk/ext/cmake/dcmake_doc.h"  // dj_cmake_doc
 
 
 //==============================================================================
@@ -33,11 +33,11 @@
 // 1.1    Extension
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_host_cmake
+// dj_host_cmake
 //   struct: the files, open or closed, and the last failure.
-struct d_host_cmake
+struct dj_host_cmake
 {
-    struct d_cmake_doc** files;
+    struct dj_cmake_doc** files;
     size_t               file_count;
     size_t               file_capacity;
     char                 error[512];
@@ -60,18 +60,18 @@ d_internal_text, d_internal_index
   An argument's text, and an argument as an index from 1: a value below 1,
 or not a number, is 0.
 */
-static const char*
-d_internal_text(
-    struct d_awk_value* _value
+static
+const char* d_internal_text(
+    struct dj_awk_value* _value
 )
 {
     return d_awk_value_text(_value, NULL, NULL);
 }
 
 
-static size_t
-d_internal_index(
-    struct d_awk_value* _value
+static
+size_t d_internal_index(
+    struct dj_awk_value* _value
 )
 {
     const double number = d_awk_value_number(_value);
@@ -90,9 +90,9 @@ d_internal_index(
 d_internal_copy_arg
   An argument's text, copied, as the next argument's may be read over it.
 */
-static char*
-d_internal_copy_arg(
-    struct d_awk_value* _value
+static
+char* d_internal_copy_arg(
+    struct dj_awk_value* _value
 )
 {
     size_t            length = 0;
@@ -115,11 +115,11 @@ d_internal_fail
   Gives -1 for a failure a program can recover from, cmake_error() saying
 why.
 */
-static bool
-d_internal_fail(
-    struct d_host_cmake* _host,
-    struct d_awk_value*  _out,
-    const char*          _why
+static
+bool d_internal_fail(
+    struct dj_host_cmake* _host,
+    struct dj_awk_value*  _out,
+    const char*           _why
 )
 {
     // a reason already given stays; another is copied
@@ -144,10 +144,10 @@ d_internal_set_text, d_internal_set_input, d_internal_set_number
   Gives a string; text of the file, which compares as a number when it
 looks like one, as a field does; or a number.
 */
-static bool
-d_internal_set_text(
-    struct d_awk_value* _out,
-    const char*         _text
+static
+bool d_internal_set_text(
+    struct dj_awk_value* _out,
+    const char*          _text
 )
 {
     return d_awk_value_set_string(_out, (_text) ? _text : "",
@@ -155,21 +155,21 @@ d_internal_set_text(
 }
 
 
-static bool
-d_internal_set_input(
-    struct d_awk_value* _out,
-    const char*         _text,
-    size_t              _length
+static
+bool d_internal_set_input(
+    struct dj_awk_value* _out,
+    const char*          _text,
+    size_t               _length
 )
 {
     return d_awk_value_set_input(_out, _text, _length);
 }
 
 
-static bool
-d_internal_set_number(
-    struct d_awk_value* _out,
-    double              _number
+static
+bool d_internal_set_number(
+    struct dj_awk_value* _out,
+    double               _number
 )
 {
     d_awk_value_set_number(_out, _number);
@@ -182,10 +182,10 @@ d_internal_set_number(
 d_internal_file
   The file a handle names, or NULL, cmake_error() saying why.
 */
-static struct d_cmake_doc*
-d_internal_file(
-    struct d_host_cmake* _host,
-    struct d_awk_value*  _handle
+static
+struct dj_cmake_doc* d_internal_file(
+    struct dj_host_cmake* _host,
+    struct dj_awk_value*  _handle
 )
 {
     const size_t handle = d_internal_index(_handle);
@@ -209,8 +209,8 @@ d_internal_file(
 d_internal_field
   A field's place among a table of names; `_count` for none.
 */
-static size_t
-d_internal_field(
+static
+size_t d_internal_field(
     const char*        _field,
     const char* const* _names,
     size_t             _count
@@ -234,11 +234,11 @@ d_internal_field(
 d_internal_unknown_field
   Gives "" for a field not known, cmake_error() saying so.
 */
-static bool
-d_internal_unknown_field(
-    struct d_host_cmake* _host,
-    struct d_awk_value*  _out,
-    const char*          _field
+static
+bool d_internal_unknown_field(
+    struct dj_host_cmake* _host,
+    struct dj_awk_value*  _out,
+    const char*           _field
 )
 {
     (void)snprintf(_host->error, sizeof(_host->error), "no field %s",
@@ -253,12 +253,12 @@ d_internal_changed
   Gives 1 for a change kept, or -1 for one refused, the document saying
 why.
 */
-static bool
-d_internal_changed(
-    struct d_host_cmake*      _host,
-    struct d_awk_value*       _out,
-    const struct d_cmake_doc* _doc,
-    bool                      _ok
+static
+bool d_internal_changed(
+    struct dj_host_cmake*      _host,
+    struct dj_awk_value*       _out,
+    const struct dj_cmake_doc* _doc,
+    bool                       _ok
 )
 {
     // refused: the document says why
@@ -276,11 +276,11 @@ d_internal_value_of
   An argument's value, allocated for the caller to free; NULL when memory
 runs out.
 */
-static char*
-d_internal_value_of(
-    const struct d_cmake*          _cmake,
-    const struct d_cmake_argument* _argument,
-    size_t*                        _out_length
+static
+char* d_internal_value_of(
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    size_t*                         _out_length
 )
 {
     char* const value = malloc((_argument->end - _argument->start) + 1u);
@@ -300,12 +300,12 @@ d_internal_lines
   Items terminated one after another, given as lines: each terminator but
 the last a line's end.
 */
-static bool
-d_internal_lines(
-    struct d_awk_value* _out,
-    char*               _items,
-    size_t              _used,
-    size_t              _count
+static
+bool d_internal_lines(
+    struct dj_awk_value* _out,
+    char*                _items,
+    size_t               _used,
+    size_t               _count
 )
 {
     // each terminator between two items
@@ -332,11 +332,11 @@ d_internal_lines(
 d_internal_add_file
   Keeps a file, and gives its handle.
 */
-static bool
-d_internal_add_file(
-    struct d_host_cmake* _host,
-    struct d_awk_value*  _out,
-    struct d_cmake_doc*  _doc
+static
+bool d_internal_add_file(
+    struct dj_host_cmake* _host,
+    struct dj_awk_value*  _out,
+    struct dj_cmake_doc*  _doc
 )
 {
     // room for one more
@@ -344,7 +344,7 @@ d_internal_add_file(
     {
         const size_t         wanted = (_host->file_capacity > 0u)
                                           ? (_host->file_capacity * 2u) : 8u;
-        struct d_cmake_doc** grown  = realloc(_host->files,
+        struct dj_cmake_doc** grown  = realloc(_host->files,
                                               wanted * sizeof(*grown));
 
         // a file that cannot be kept is freed, and the handle not given
@@ -369,24 +369,24 @@ d_internal_add_file(
 cmake_open(path), cmake_new(path[, text])
   A file from disk, or of a text.
 */
-static bool
-d_internal_cmake_open(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_open(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host = _user;
+    struct dj_host_cmake* const host = _user;
     char                       why[512];
 
     (void)_count;
     (void)_problem;
     (void)_capacity;
 
-    struct d_cmake_doc* const doc = d_cmake_doc_read(d_internal_text(_args[0]),
+    struct dj_cmake_doc* const doc = d_cmake_doc_read(d_internal_text(_args[0]),
                                                      why, sizeof(why));
 
     // why it did not read
@@ -399,17 +399,17 @@ d_internal_cmake_open(
 }
 
 
-static bool
-d_internal_cmake_new(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_new(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host = _user;
+    struct dj_host_cmake* const host = _user;
     char* const                path = d_internal_copy_arg(_args[0]);
     char                       why[512];
 
@@ -427,7 +427,7 @@ d_internal_cmake_new(
                                            ? d_awk_value_text(_args[1], NULL,
                                                               &length)
                                            : "";
-    struct d_cmake_doc* const doc    = d_cmake_doc_make(path, text, length,
+    struct dj_cmake_doc* const doc    = d_cmake_doc_make(path, text, length,
                                                         why, sizeof(why));
 
     free(path);
@@ -445,18 +445,18 @@ d_internal_cmake_new(
 /*
 cmake_save(f[, path]), cmake_close(f), cmake_error()
 */
-static bool
-d_internal_cmake_save(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_save(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host = _user;
-    struct d_cmake_doc* const  doc  = d_internal_file(host, _args[0]);
+    struct dj_host_cmake* const host = _user;
+    struct dj_cmake_doc* const  doc  = d_internal_file(host, _args[0]);
     char                       why[512];
 
     (void)_problem;
@@ -468,7 +468,7 @@ d_internal_cmake_save(
         return d_internal_fail(host, _out, host->error);
     }
 
-    const enum d_cmake_saved saved = d_cmake_doc_save(
+    const enum dj_cmake_saved saved = d_cmake_doc_save(
                                          doc,
                                          (_count > 1u)
                                              ? d_internal_text(_args[1])
@@ -486,17 +486,17 @@ d_internal_cmake_save(
 }
 
 
-static bool
-d_internal_cmake_close(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_close(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host   = _user;
+    struct dj_host_cmake* const host   = _user;
     const size_t               handle = d_internal_index(_args[0]);
 
     (void)_count;
@@ -518,17 +518,17 @@ d_internal_cmake_close(
 }
 
 
-static bool
-d_internal_cmake_error(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_error(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host = _user;
+    struct dj_host_cmake* const host = _user;
 
     (void)_args;
     (void)_count;
@@ -539,9 +539,9 @@ d_internal_cmake_error(
 }
 
 
-// d_internal_about
+// dj_internal_about
 //   enum: what cmake_path ... cmake_comments give of a file.
-enum d_internal_about
+enum dj_internal_about
 {
     D_INTERNAL_ABOUT_PATH = 0,
     D_INTERNAL_ABOUT_TEXT,
@@ -559,13 +559,13 @@ d_internal_file_fact
 static bool
 d_internal_file_fact(
     void*                 _user,
-    struct d_awk_value*   _handle,
-    struct d_awk_value*   _out,
-    enum d_internal_about _about
+    struct dj_awk_value*   _handle,
+    struct dj_awk_value*   _out,
+    enum dj_internal_about _about
 )
 {
-    struct d_host_cmake* const      host = _user;
-    const struct d_cmake_doc* const doc  = d_internal_file(host, _handle);
+    struct dj_host_cmake* const      host = _user;
+    const struct dj_cmake_doc* const doc  = d_internal_file(host, _handle);
 
     // a handle to no file
     if (!doc)
@@ -575,7 +575,7 @@ d_internal_file_fact(
 
     size_t                      length  = 0;
     const char* const           text    = d_cmake_doc_text(doc, &length);
-    const struct d_cmake* const records = d_cmake_doc_records(doc);
+    const struct dj_cmake* const records = d_cmake_doc_records(doc);
 
     // a table of what is asked
     switch (_about)
@@ -612,14 +612,14 @@ d_internal_file_fact(
 cmake_path(f), cmake_text(f), cmake_changes(f), cmake_generated(f),
 cmake_commands(f), cmake_comments(f)
 */
-static bool
-d_internal_cmake_path(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_path(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -630,14 +630,14 @@ d_internal_cmake_path(
 }
 
 
-static bool
-d_internal_cmake_text(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_text(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -648,14 +648,14 @@ d_internal_cmake_text(
 }
 
 
-static bool
-d_internal_cmake_changes(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_changes(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -667,14 +667,14 @@ d_internal_cmake_changes(
 }
 
 
-static bool
-d_internal_cmake_generated(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_generated(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -686,14 +686,14 @@ d_internal_cmake_generated(
 }
 
 
-static bool
-d_internal_cmake_commands(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_commands(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -705,14 +705,14 @@ d_internal_cmake_commands(
 }
 
 
-static bool
-d_internal_cmake_comments(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_comments(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -734,15 +734,15 @@ d_internal_command_at
   The command a handle and an index name, and its file, or NULL,
 cmake_error() saying why.
 */
-static const struct d_cmake_command*
-d_internal_command_at(
-    struct d_host_cmake* _host,
-    struct d_awk_value*  _handle,
-    struct d_awk_value*  _index,
-    struct d_cmake_doc** _out_doc
+static
+const struct dj_cmake_command* d_internal_command_at(
+    struct dj_host_cmake* _host,
+    struct dj_awk_value*  _handle,
+    struct dj_awk_value*  _index,
+    struct dj_cmake_doc** _out_doc
 )
 {
-    struct d_cmake_doc* const doc = d_internal_file(_host, _handle);
+    struct dj_cmake_doc* const doc = d_internal_file(_host, _handle);
 
     // a handle to no file
     if (!doc)
@@ -750,7 +750,7 @@ d_internal_command_at(
         return NULL;
     }
 
-    const struct d_cmake* const records = d_cmake_doc_records(doc);
+    const struct dj_cmake* const records = d_cmake_doc_records(doc);
     const size_t                n       = d_internal_index(_index);
 
     // a command the file has
@@ -773,11 +773,11 @@ d_internal_command_at(
 d_internal_indent_of
   The blanks a command's line begins with.
 */
-static bool
-d_internal_indent_of(
-    const struct d_cmake*         _cmake,
-    const struct d_cmake_command* _command,
-    struct d_awk_value*           _out
+static
+bool d_internal_indent_of(
+    const struct dj_cmake*         _cmake,
+    const struct dj_cmake_command* _command,
+    struct dj_awk_value*           _out
 )
 {
     size_t line = _command->start;
@@ -807,13 +807,13 @@ d_internal_command_field
   One field of a command.
   Long as it is a table of the fields, each a line or two.
 */
-static bool
-d_internal_command_field(
-    struct d_host_cmake*          _host,
-    const struct d_cmake*         _cmake,
-    const struct d_cmake_command* _command,
-    const char*                   _field,
-    struct d_awk_value*           _out
+static
+bool d_internal_command_field(
+    struct dj_host_cmake*          _host,
+    const struct dj_cmake*         _cmake,
+    const struct dj_cmake_command* _command,
+    const char*                    _field,
+    struct dj_awk_value*           _out
 )
 {
     static const char* const fields[] =
@@ -883,17 +883,17 @@ d_internal_command_field(
 /*
 cmake_command(f, n, field), cmake_name(f, n), cmake_args(f, n)
 */
-static bool
-d_internal_command_common(
-    void*                _user,
-    struct d_awk_value** _args,
-    struct d_awk_value*  _out,
-    const char*          _field
+static
+bool d_internal_command_common(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    struct dj_awk_value*  _out,
+    const char*           _field
 )
 {
-    struct d_host_cmake* const          host    = _user;
-    struct d_cmake_doc*                 doc     = NULL;
-    const struct d_cmake_command* const command =
+    struct dj_host_cmake* const          host    = _user;
+    struct dj_cmake_doc*                 doc     = NULL;
+    const struct dj_cmake_command* const command =
         d_internal_command_at(host, _args[0], _args[1], &doc);
 
     // a command the file has
@@ -907,14 +907,14 @@ d_internal_command_common(
 }
 
 
-static bool
-d_internal_cmake_command(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_command(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     char* const field = d_internal_copy_arg(_args[2]);
@@ -937,14 +937,14 @@ d_internal_cmake_command(
 }
 
 
-static bool
-d_internal_cmake_name(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_name(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -955,14 +955,14 @@ d_internal_cmake_name(
 }
 
 
-static bool
-d_internal_cmake_args(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_args(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -978,18 +978,18 @@ cmake_find(f, name[, after])
   The first command after `after` -- 0, the start, by default -- whose name
 is `name`, as CMake compares names.
 */
-static bool
-d_internal_cmake_find(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_find(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const      host = _user;
-    const struct d_cmake_doc* const doc  = d_internal_file(host, _args[0]);
+    struct dj_host_cmake* const      host = _user;
+    const struct dj_cmake_doc* const doc  = d_internal_file(host, _args[0]);
     char* const                     name = d_internal_copy_arg(_args[1]);
 
     (void)_problem;
@@ -1005,7 +1005,7 @@ d_internal_cmake_find(
                                                  : host->error);
     }
 
-    const struct d_cmake* const records = d_cmake_doc_records(doc);
+    const struct dj_cmake* const records = d_cmake_doc_records(doc);
     const size_t                after   = (_count > 2u)
                                               ? d_internal_index(_args[2])
                                               : 0u;
@@ -1039,14 +1039,14 @@ d_internal_argument_at
   The argument a handle and two indices name, and its file, or NULL,
 cmake_error() saying why.
 */
-static const struct d_cmake_argument*
-d_internal_argument_at(
-    struct d_host_cmake* _host,
-    struct d_awk_value** _args,
-    struct d_cmake_doc** _out_doc
+static
+const struct dj_cmake_argument* d_internal_argument_at(
+    struct dj_host_cmake* _host,
+    struct dj_awk_value** _args,
+    struct dj_cmake_doc** _out_doc
 )
 {
-    const struct d_cmake_command* const command =
+    const struct dj_cmake_command* const command =
         d_internal_command_at(_host, _args[0], _args[1], _out_doc);
 
     // a command the file has
@@ -1068,7 +1068,7 @@ d_internal_argument_at(
         return NULL;
     }
 
-    const struct d_cmake* const records = d_cmake_doc_records(*_out_doc);
+    const struct dj_cmake* const records = d_cmake_doc_records(*_out_doc);
 
     return &records->arguments[command->first_argument + k - 1u];
 }
@@ -1080,12 +1080,12 @@ d_internal_items
 bracket one's value, whole; an unquoted one's text divided as a list, its
 empty items dropped.
 */
-static bool
-d_internal_items(
-    struct d_host_cmake*           _host,
-    const struct d_cmake*          _cmake,
-    const struct d_cmake_argument* _argument,
-    struct d_awk_value*            _out
+static
+bool d_internal_items(
+    struct dj_host_cmake*           _host,
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    struct dj_awk_value*            _out
 )
 {
     const size_t span   = _argument->end - _argument->start;
@@ -1132,12 +1132,12 @@ d_internal_items(
 d_internal_argument_value
   An argument's value, as text of the file.
 */
-static bool
-d_internal_argument_value(
-    struct d_host_cmake*           _host,
-    const struct d_cmake*          _cmake,
-    const struct d_cmake_argument* _argument,
-    struct d_awk_value*            _out
+static
+bool d_internal_argument_value(
+    struct dj_host_cmake*           _host,
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    struct dj_awk_value*            _out
 )
 {
     size_t      length = 0;
@@ -1162,13 +1162,13 @@ d_internal_argument_field
   One field of an argument.
   Long as it is a table of the fields, each a line or two.
 */
-static bool
-d_internal_argument_field(
-    struct d_host_cmake*           _host,
-    const struct d_cmake*          _cmake,
-    const struct d_cmake_argument* _argument,
-    const char*                    _field,
-    struct d_awk_value*            _out
+static
+bool d_internal_argument_field(
+    struct dj_host_cmake*           _host,
+    const struct dj_cmake*          _cmake,
+    const struct dj_cmake_argument* _argument,
+    const char*                     _field,
+    struct dj_awk_value*            _out
 )
 {
     static const char* const fields[] =
@@ -1224,21 +1224,21 @@ d_internal_argument_field(
 /*
 cmake_arg(f, n, k[, field]), cmake_value(f, n, k)
 */
-static bool
-d_internal_cmake_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host  = _user;
+    struct dj_host_cmake* const host  = _user;
     char* const                field = (_count > 3u)
                                            ? d_internal_copy_arg(_args[3])
                                            : NULL;
-    struct d_cmake_doc*        doc   = NULL;
+    struct dj_cmake_doc*        doc   = NULL;
 
     // the field's name, copied, as the others are read over it
     if ( (_count > 3u) &&
@@ -1249,7 +1249,7 @@ d_internal_cmake_arg(
         return false;
     }
 
-    const struct d_cmake_argument* const argument =
+    const struct dj_cmake_argument* const argument =
         d_internal_argument_at(host, _args, &doc);
 
     // an argument the command has
@@ -1270,24 +1270,24 @@ d_internal_cmake_arg(
 }
 
 
-static bool
-d_internal_cmake_value(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_value(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host = _user;
-    struct d_cmake_doc*        doc  = NULL;
+    struct dj_host_cmake* const host = _user;
+    struct dj_cmake_doc*        doc  = NULL;
 
     (void)_count;
     (void)_problem;
     (void)_capacity;
 
-    const struct d_cmake_argument* const argument =
+    const struct dj_cmake_argument* const argument =
         d_internal_argument_at(host, _args, &doc);
 
     // an argument the command has
@@ -1305,24 +1305,24 @@ d_internal_cmake_value(
 cmake_find_arg(f, n, value[, after])
   The first argument of command n after `after` whose value is `value`.
 */
-static bool
-d_internal_cmake_find_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_find_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host   = _user;
+    struct dj_host_cmake* const host   = _user;
     char* const                wanted = d_internal_copy_arg(_args[2]);
-    struct d_cmake_doc*        doc    = NULL;
+    struct dj_cmake_doc*        doc    = NULL;
 
     (void)_problem;
     (void)_capacity;
 
-    const struct d_cmake_command* const command =
+    const struct dj_cmake_command* const command =
         d_internal_command_at(host, _args[0], _args[1], &doc);
 
     // a command the file has, and the value copied
@@ -1335,7 +1335,7 @@ d_internal_cmake_find_arg(
                                                      : host->error);
     }
 
-    const struct d_cmake* const records = d_cmake_doc_records(doc);
+    const struct dj_cmake* const records = d_cmake_doc_records(doc);
     const size_t                after   = (_count > 3u)
                                               ? d_internal_index(_args[3])
                                               : 0u;
@@ -1347,7 +1347,7 @@ d_internal_cmake_find_arg(
          (found == 0u) && (!failed) && (k < command->argument_count);
          ++k)
     {
-        const struct d_cmake_argument* const argument =
+        const struct dj_cmake_argument* const argument =
             &records->arguments[command->first_argument + k];
         size_t                               length   = 0;
         char* const                          value    =
@@ -1381,11 +1381,11 @@ d_internal_body
 comment's within its brackets, a newline directly after the opening one
 dropped, as a bracket argument drops it.
 */
-static bool
-d_internal_body(
-    const struct d_cmake*         _cmake,
-    const struct d_cmake_comment* _comment,
-    struct d_awk_value*           _out
+static
+bool d_internal_body(
+    const struct dj_cmake*         _cmake,
+    const struct dj_cmake_comment* _comment,
+    struct dj_awk_value*           _out
 )
 {
     const char* const text   = &_cmake->text[_comment->start];
@@ -1433,15 +1433,15 @@ d_internal_comment_at
   The comment a handle and an index name, or NULL, cmake_error() saying
 why.
 */
-static const struct d_cmake_comment*
-d_internal_comment_at(
-    struct d_host_cmake*   _host,
-    struct d_awk_value*    _handle,
-    struct d_awk_value*    _index,
-    const struct d_cmake** _out_records
+static
+const struct dj_cmake_comment* d_internal_comment_at(
+    struct dj_host_cmake*   _host,
+    struct dj_awk_value*    _handle,
+    struct dj_awk_value*    _index,
+    const struct dj_cmake** _out_records
 )
 {
-    const struct d_cmake_doc* const doc = d_internal_file(_host, _handle);
+    const struct dj_cmake_doc* const doc = d_internal_file(_host, _handle);
 
     // a handle to no file
     if (!doc)
@@ -1449,7 +1449,7 @@ d_internal_comment_at(
         return NULL;
     }
 
-    const struct d_cmake* const records = d_cmake_doc_records(doc);
+    const struct dj_cmake* const records = d_cmake_doc_records(doc);
     const size_t                index   = d_internal_index(_index);
 
     // a comment the file has
@@ -1472,14 +1472,14 @@ d_internal_comment_at(
 cmake_comment(f, i, field)
   Long as it is a table of the fields, each a line or two.
 */
-static bool
-d_internal_cmake_comment(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_comment(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     static const char* const fields[] =
@@ -1487,14 +1487,14 @@ d_internal_cmake_comment(
         "text", "body", "line", "column", "end_line", "bracket", "trailing",
         "command"
     };
-    struct d_host_cmake* const host    = _user;
-    const struct d_cmake*      records = NULL;
+    struct dj_host_cmake* const host    = _user;
+    const struct dj_cmake*      records = NULL;
 
     (void)_count;
     (void)_problem;
     (void)_capacity;
 
-    const struct d_cmake_comment* const comment =
+    const struct dj_cmake_comment* const comment =
         d_internal_comment_at(host, _args[0], _args[1], &records);
 
     // a comment the file has
@@ -1558,9 +1558,9 @@ d_internal_less_one
   An index from 1 as an index from 0; one that names nothing, 0 here, is
 past any the file has.
 */
-static size_t
-d_internal_less_one(
-    struct d_awk_value* _value
+static
+size_t d_internal_less_one(
+    struct dj_awk_value* _value
 )
 {
     const size_t index = d_internal_index(_value);
@@ -1571,7 +1571,7 @@ d_internal_less_one(
 
 // d_internal_edit
 //   enum: the changes cmake_set_arg ... cmake_remove_command make.
-enum d_internal_edit
+enum dj_internal_edit
 {
     D_INTERNAL_SET_ARG = 0,
     D_INTERNAL_INSERT_ARG,
@@ -1591,7 +1591,7 @@ or 0 for a change with none.
 */
 static size_t
 d_internal_edit_text(
-    enum d_internal_edit _edit
+    enum dj_internal_edit _edit
 )
 {
     // a table of the changes and where their texts are
@@ -1624,9 +1624,9 @@ d_internal_edit_doc
 */
 static bool
 d_internal_edit_doc(
-    struct d_cmake_doc*  _doc,
-    enum d_internal_edit _edit,
-    struct d_awk_value** _args,
+    struct dj_cmake_doc*  _doc,
+    enum dj_internal_edit _edit,
+    struct dj_awk_value** _args,
     size_t               _count,
     const char*          _text
 )
@@ -1683,15 +1683,15 @@ d_internal_edit
 static bool
 d_internal_edit(
     void*                _user,
-    struct d_awk_value** _args,
+    struct dj_awk_value** _args,
     size_t               _count,
-    struct d_awk_value*  _out,
-    enum d_internal_edit _edit
+    struct dj_awk_value*  _out,
+    enum dj_internal_edit _edit
 )
 {
-    struct d_host_cmake* const host  = _user;
+    struct dj_host_cmake* const host  = _user;
     const size_t               which = d_internal_edit_text(_edit);
-    struct d_cmake_doc* const  doc   = d_internal_file(host, _args[0]);
+    struct dj_cmake_doc* const  doc   = d_internal_file(host, _args[0]);
 
     // a handle to no file
     if (!doc)
@@ -1724,14 +1724,14 @@ cmake_insert_after(f, n, k, text), cmake_remove_arg(f, n, k),
 cmake_set_name(f, n, name), cmake_set_command(f, n, text),
 cmake_insert_command(f, n, text), cmake_remove_command(f, n[, last])
 */
-static bool
-d_internal_cmake_set_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_set_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1741,14 +1741,14 @@ d_internal_cmake_set_arg(
 }
 
 
-static bool
-d_internal_cmake_insert_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_insert_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1759,14 +1759,14 @@ d_internal_cmake_insert_arg(
 }
 
 
-static bool
-d_internal_cmake_insert_after(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_insert_after(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1777,14 +1777,14 @@ d_internal_cmake_insert_after(
 }
 
 
-static bool
-d_internal_cmake_remove_arg(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_remove_arg(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1795,14 +1795,14 @@ d_internal_cmake_remove_arg(
 }
 
 
-static bool
-d_internal_cmake_set_name(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_set_name(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1812,14 +1812,14 @@ d_internal_cmake_set_name(
 }
 
 
-static bool
-d_internal_cmake_set_command(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_set_command(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1830,14 +1830,14 @@ d_internal_cmake_set_command(
 }
 
 
-static bool
-d_internal_cmake_insert_command(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_insert_command(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1848,14 +1848,14 @@ d_internal_cmake_insert_command(
 }
 
 
-static bool
-d_internal_cmake_remove_command(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_remove_command(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_problem;
@@ -1876,13 +1876,13 @@ d_internal_written
   Gives a text a writer made, and frees it; -1, cmake_error() saying why,
 for one it could not make.
 */
-static bool
-d_internal_written(
-    struct d_host_cmake* _host,
-    struct d_awk_value*  _out,
-    char*                _text,
-    size_t               _length,
-    const char*          _why
+static
+bool d_internal_written(
+    struct dj_host_cmake* _host,
+    struct dj_awk_value*  _out,
+    char*                 _text,
+    size_t                _length,
+    const char*           _why
 )
 {
     // a value that could not be written so
@@ -1906,10 +1906,10 @@ D_CMAKE_UNQUOTED with `_any`.
 */
 static bool
 d_internal_write_one(
-    struct d_host_cmake*       _host,
-    struct d_awk_value*        _value,
-    struct d_awk_value*        _out,
-    enum d_cmake_argument_kind _kind,
+    struct dj_host_cmake*       _host,
+    struct dj_awk_value*        _value,
+    struct dj_awk_value*        _out,
+    enum dj_cmake_argument_kind _kind,
     bool                       _any
 )
 {
@@ -1932,14 +1932,14 @@ d_internal_write_one(
 /*
 cmake_quote(value), cmake_bracket(value), cmake_argument(value)
 */
-static bool
-d_internal_cmake_quote(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_quote(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1950,14 +1950,14 @@ d_internal_cmake_quote(
 }
 
 
-static bool
-d_internal_cmake_bracket(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_bracket(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1969,14 +1969,14 @@ d_internal_cmake_bracket(
 }
 
 
-static bool
-d_internal_cmake_argument(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_argument(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     (void)_count;
@@ -1992,8 +1992,8 @@ d_internal_cmake_argument(
 d_internal_join_call
   The name, `(`, the values a space apart, and `)`; each value is freed.
 */
-static char*
-d_internal_join_call(
+static
+char* d_internal_join_call(
     const char* _name,
     size_t      _name_length,
     char**      _values,
@@ -2054,17 +2054,17 @@ cmake_call(name[, value ...])
   A command of values, each written as plainly as it can be, a space
 apart.
 */
-static bool
-d_internal_cmake_call(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_call(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host = _user;
+    struct dj_host_cmake* const host = _user;
     char*                      values[D_INTERNAL_CALL_VALUES];
     size_t                     lengths[D_INTERNAL_CALL_VALUES];
     size_t                     made = 0;
@@ -2118,22 +2118,22 @@ d_internal_cmake_call(
 cmake_unquote(text)
   The value of a text read as the one argument of a command.
 */
-static bool
-d_internal_cmake_unquote(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_unquote(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
-    struct d_host_cmake* const host    = _user;
+    struct dj_host_cmake* const host    = _user;
     size_t                     length  = 0;
     const char* const          text    = d_awk_value_text(_args[0], NULL,
                                                           &length);
     char* const                wrapped = malloc(length + 4u);
-    struct d_cmake             cmake;
+    struct dj_cmake             cmake;
 
     (void)_count;
     (void)_problem;
@@ -2184,14 +2184,14 @@ d_internal_cmake_unquote(
 cmake_split(list[, keep])
   The items, a line each.
 */
-static bool
-d_internal_cmake_split(
-    void*                _user,
-    struct d_awk_value** _args,
-    size_t               _count,
-    struct d_awk_value*  _out,
-    char*                _problem,
-    size_t               _capacity
+static
+bool d_internal_cmake_split(
+    void*                 _user,
+    struct dj_awk_value** _args,
+    size_t                _count,
+    struct dj_awk_value*  _out,
+    char*                 _problem,
+    size_t                _capacity
 )
 {
     size_t            length = 0;
@@ -2228,12 +2228,12 @@ d_internal_cmake_split(
 d_internal_functions
   The extension's host functions, as a program calls them.
 */
-static const struct d_awk_host_function*
-d_internal_functions(
+static
+const struct dj_awk_host_function* d_internal_functions(
     size_t* _out_count
 )
 {
-    static const struct d_awk_host_function functions[] =
+    static const struct dj_awk_host_function functions[] =
     {
         { "cmake_open",           1u, 1u,  d_internal_cmake_open           },
         { "cmake_new",            1u, 2u,  d_internal_cmake_new            },
@@ -2276,16 +2276,14 @@ d_internal_functions(
 }
 
 
-struct d_host_cmake*
-d_host_cmake_new(void)
+struct dj_host_cmake* d_host_cmake_new(void)
 {
-    return calloc(1u, sizeof(struct d_host_cmake));
+    return calloc(1u, sizeof(struct dj_host_cmake));
 }
 
 
-void
-d_host_cmake_free(
-    struct d_host_cmake* _host
+void d_host_cmake_free(
+    struct dj_host_cmake* _host
 )
 {
     // freeing nothing is allowed
@@ -2307,14 +2305,13 @@ d_host_cmake_free(
 }
 
 
-bool
-d_host_cmake_install(
-    struct d_host_cmake* _host,
-    struct d_awk_interp* _interp
+bool d_host_cmake_install(
+    struct dj_host_cmake* _host,
+    struct dj_awk_interp* _interp
 )
 {
     size_t                                  count     = 0;
-    const struct d_awk_host_function* const functions =
+    const struct dj_awk_host_function* const functions =
         d_internal_functions(&count);
 
     // parameter validation first

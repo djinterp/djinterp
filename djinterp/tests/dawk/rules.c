@@ -37,7 +37,7 @@
 
 // d_internal_finding
 //   struct: one line of output, kept so the whole file's can be sorted.
-struct d_internal_finding
+struct dj_internal_finding
 {
     uint32_t  line;
     uint32_t  column;
@@ -50,8 +50,8 @@ d_internal_by_position(
     const void* _b
 )
 {
-    const struct d_internal_finding* a = _a;
-    const struct d_internal_finding* b = _b;
+    const struct dj_internal_finding* a = _a;
+    const struct dj_internal_finding* b = _b;
 
     if (a->line != b->line)
     {
@@ -133,8 +133,8 @@ main(
     size_t      sheet_length = 0u;
     char* const sheet_text   = d_internal_slurp(_argv[1], &sheet_length);
 
-    struct d_dss_error   error;
-    struct d_dss_sheet*  sheet = sheet_text
+    struct dj_dss_error   error;
+    struct dj_dss_sheet*  sheet = sheet_text
                                ? d_dss_parse(sheet_text, sheet_length, &error)
                                : NULL;
 
@@ -145,7 +145,7 @@ main(
         return 2;
     }
 
-    struct d_symbol_table* const symbols = d_symbol_table_new();
+    struct dj_symbol_table* const symbols = d_symbol_table_new();
     uint32_t                     bad_line = 0u;
     const char*                  bad_name = NULL;
     const char*                  bad_why  = NULL;
@@ -182,13 +182,13 @@ main(
             continue;
         }
 
-        struct d_source source;
+        struct dj_source source;
 
         d_source_init(&source, text, length, _argv[arg]);
         (void)d_source_skip_bom(&source);
 
-        struct d_token_node_input input = { &source, NULL };
-        struct d_node_tree* const tree = d_node_tree_new_shared(symbols);
+        struct dj_token_node_input input = { &source, NULL };
+        struct dj_node_tree* const tree = d_node_tree_new_shared(symbols);
 
         const uint32_t file = d_ext_cpp_accepts(_argv[arg])
             ? d_ext_cpp_build(tree, D_DSS_NO_INDEX, 0, &input, NULL)
@@ -203,14 +203,14 @@ main(
         const size_t               count    = d_node_count(tree);
         size_t                     found    = 0u;
         size_t                     capacity = 64u;
-        struct d_internal_finding* findings =
+        struct dj_internal_finding* findings =
             malloc(capacity * sizeof(*findings));
 
         for (uint32_t node = 0u; (findings) && (node < (uint32_t)count); ++node)
         {
             for (size_t at = 0u; at < rules; ++at)
             {
-                const struct d_dss_rule* const rule =
+                const struct dj_dss_rule* const rule =
                     d_dss_rule_at(sheet, (uint32_t)at);
 
                 if (!d_match_rule(sheet, tree, node, rule))
@@ -221,7 +221,7 @@ main(
                 for (uint32_t which = 0u; which < rule->declaration_count;
                      ++which)
                 {
-                    const struct d_dss_declaration* const declaration =
+                    const struct dj_dss_declaration* const declaration =
                         d_dss_declaration_at(sheet,
                                              rule->first_declaration + which);
                     bool       evaluated = false;
@@ -242,7 +242,7 @@ main(
                     {
                         capacity *= 2u;
 
-                        struct d_internal_finding* const grown =
+                        struct dj_internal_finding* const grown =
                             realloc(findings, capacity * sizeof(*findings));
 
                         if (!grown)
@@ -253,11 +253,11 @@ main(
                         findings = grown;
                     }
 
-                    const struct d_node* const  at_node = d_node_at(tree,
+                    const struct dj_node* const  at_node = d_node_at(tree,
                                                                     node);
                     const char* const           property =
                         d_dss_text(sheet, declaration->property);
-                    const struct d_dss_value* const value =
+                    const struct dj_dss_value* const value =
                         d_dss_value_at(sheet, declaration->first_value);
 
                     findings[found].line   = at_node->line;

@@ -9,15 +9,14 @@
 *******************************************************************************/
 // djinterp
 #include "./pipeline_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * TEST HELPER: int transformer (triples each element)
  *****************************************************************************/
-static bool
-test_helper_triple_int
-(
+static
+bool test_helper_triple_int(
     const void* _input,
     void*       _output,
     void*       _context
@@ -43,13 +42,11 @@ d_tests_sa_pipeline_end
   - caller takes ownership of data after end
   - end after map returns the mapped buffer
 */
-bool
-d_tests_sa_pipeline_end
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_end(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
+    struct dj_functional_pipeline pipe;
     int                          data[] = { 5, 10, 15, 20 };
     void*                        result;
     size_t                       out_count;
@@ -85,7 +82,7 @@ d_tests_sa_pipeline_end
 
     // ---- error pipeline ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -219,13 +216,11 @@ d_tests_sa_pipeline_free
   - free sets data to NULL, count to 0, owns_data to false
   - double-free safety: freeing an already-freed pipeline is safe
 */
-bool
-d_tests_sa_pipeline_free
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_free(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_functional_pipeline pipe;
+    struct dj_functional_pipeline pipe;
     int                          data[] = { 1, 2, 3 };
     bool                         all_passed;
 
@@ -312,7 +307,7 @@ d_tests_sa_pipeline_free
 
     // ---- free error pipeline ----
     {
-        struct d_functional_pipeline err_pipe;
+        struct dj_functional_pipeline err_pipe;
 
         err_pipe.data         = NULL;
         err_pipe.element_size = sizeof(int);
@@ -331,7 +326,7 @@ d_tests_sa_pipeline_free
 
     // ---- free after map (owns allocated buffer) ----
     {
-        struct d_functional_pipeline mapped;
+        struct dj_functional_pipeline mapped;
         int                          src[] = { 10, 20 };
 
         pipe   = d_functional_pipeline_begin(src,
@@ -367,10 +362,8 @@ d_tests_sa_pipeline_finalization_all
   - d_functional_pipeline_end
   - d_functional_pipeline_free
 */
-bool
-d_tests_sa_pipeline_finalization_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_pipeline_finalization_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

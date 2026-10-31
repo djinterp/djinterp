@@ -32,10 +32,10 @@
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_PTR_VECTOR_INIT
-//   macro: brace initializer for a stack-allocated `d_ptr_vector`. Sets both
+//   macro: brace initializer for a stack-allocated `dj_ptr_vector`. Sets both
 // `count` and `capacity` to the number of variadic arguments, so the vector
 // starts full; growing it requires storage the macro did not allocate.
-//   Usage: struct d_ptr_vector vec = D_PTR_VECTOR_INIT(Item, {"a",1},
+//   Usage: struct dj_ptr_vector vec = D_PTR_VECTOR_INIT(Item, {"a",1},
 // {"b",2});
 #define D_PTR_VECTOR_INIT(element_type, ...)                              \
     {                                                                     \
@@ -47,10 +47,10 @@
     }
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
-// d_ptr_vector
+// dj_ptr_vector
 //   struct: a dynamic array optimized for storing pointers. Does not require
 // element_size since all elements are sizeof(void*).
-struct d_ptr_vector
+struct dj_ptr_vector
 {
     size_t count;
     void** elements;
@@ -61,122 +61,222 @@ struct d_ptr_vector
 // constructor functions
 // I.    creation and initialization
 // I.    creation and initialization
-struct d_ptr_vector* d_ptr_vector_new(size_t _initial_capacity);
-struct d_ptr_vector* d_ptr_vector_new_default(void);
-struct d_ptr_vector* d_ptr_vector_new_from_array(const void** _source,
-                                                 size_t       _count);
-struct d_ptr_vector* d_ptr_vector_new_from_args(size_t _arg_count,
-                                                ...);
-struct d_ptr_vector* d_ptr_vector_new_copy(const struct d_ptr_vector* _other);
-struct d_ptr_vector* d_ptr_vector_new_fill(size_t _count,
-                                           void*  _value);
-struct d_ptr_vector* d_ptr_vector_new_merge(size_t _count,
-                                            ...);
+struct dj_ptr_vector* d_ptr_vector_new(
+    size_t _initial_capacity
+);
+struct dj_ptr_vector* d_ptr_vector_new_default(void);
+struct dj_ptr_vector* d_ptr_vector_new_from_array(
+    const void** _source,
+    size_t       _count
+);
+struct dj_ptr_vector* d_ptr_vector_new_from_args(
+    size_t _arg_count,
+    ...
+);
+struct dj_ptr_vector* d_ptr_vector_new_copy(
+    const struct dj_ptr_vector* _other
+);
+struct dj_ptr_vector* d_ptr_vector_new_fill(
+    size_t _count,
+    void*  _value
+);
+struct dj_ptr_vector* d_ptr_vector_new_merge(
+    size_t _count,
+    ...
+);
 
 // II.   element access
-bool   d_ptr_vector_push_back(struct d_ptr_vector* _ptr_vector,
-                              void*                _value);
-bool   d_ptr_vector_push_front(struct d_ptr_vector* _ptr_vector,
-                               void*                _value);
-void*  d_ptr_vector_pop_back(struct d_ptr_vector* _ptr_vector);
-void*  d_ptr_vector_pop_front(struct d_ptr_vector* _ptr_vector);
-void*  d_ptr_vector_at(const struct d_ptr_vector* _ptr_vector,
-                       d_index                    _index);
-void*  d_ptr_vector_front(const struct d_ptr_vector* _ptr_vector);
-void*  d_ptr_vector_back(const struct d_ptr_vector* _ptr_vector);
-void** d_ptr_vector_data(const struct d_ptr_vector* _ptr_vector);
-void*  d_ptr_vector_get(const struct d_ptr_vector* _ptr_vector,
-                        d_index                    _index);
-bool   d_ptr_vector_set(struct d_ptr_vector* _ptr_vector,
-                        d_index              _index,
-                        void*                _value);
+bool d_ptr_vector_push_back(
+    struct dj_ptr_vector* _ptr_vector,
+    void*                 _value
+);
+bool d_ptr_vector_push_front(
+    struct dj_ptr_vector* _ptr_vector,
+    void*                 _value
+);
+void* d_ptr_vector_pop_back(
+    struct dj_ptr_vector* _ptr_vector
+);
+void* d_ptr_vector_pop_front(
+    struct dj_ptr_vector* _ptr_vector
+);
+void* d_ptr_vector_at(
+    const struct dj_ptr_vector* _ptr_vector,
+    dj_index                    _index
+);
+void* d_ptr_vector_front(
+    const struct dj_ptr_vector* _ptr_vector
+);
+void* d_ptr_vector_back(
+    const struct dj_ptr_vector* _ptr_vector
+);
+void** d_ptr_vector_data(
+    const struct dj_ptr_vector* _ptr_vector
+);
+void* d_ptr_vector_get(
+    const struct dj_ptr_vector* _ptr_vector,
+    dj_index                    _index
+);
+bool d_ptr_vector_set(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index,
+    void*                 _value
+);
 
 // III.  insertion and removal
-bool  d_ptr_vector_insert(struct d_ptr_vector* _ptr_vector,
-                          d_index              _index,
-                          void*                _value);
-bool  d_ptr_vector_insert_range(struct d_ptr_vector* _ptr_vector,
-                                d_index              _index,
-                                const void**         _source,
-                                size_t               _count);
-bool  d_ptr_vector_erase(struct d_ptr_vector* _ptr_vector,
-                         d_index              _index);
-bool  d_ptr_vector_erase_range(struct d_ptr_vector* _ptr_vector,
-                               d_index              _start,
-                               d_index              _end);
-void* d_ptr_vector_remove(struct d_ptr_vector* _ptr_vector,
-                          d_index              _index);
-bool  d_ptr_vector_append(struct d_ptr_vector* _ptr_vector,
-                          const void**         _source,
-                          size_t               _count);
-bool  d_ptr_vector_append_vector(struct d_ptr_vector*       _destination,
-                                 const struct d_ptr_vector* _source);
-bool  d_ptr_vector_prepend(struct d_ptr_vector* _ptr_vector,
-                           const void**         _source,
-                           size_t               _count);
-bool  d_ptr_vector_prepend_vector(struct d_ptr_vector*       _destination,
-                                  const struct d_ptr_vector* _source);
+bool d_ptr_vector_insert(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index,
+    void*                 _value
+);
+bool d_ptr_vector_insert_range(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index,
+    const void**          _source,
+    size_t                _count
+);
+bool d_ptr_vector_erase(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index
+);
+bool d_ptr_vector_erase_range(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _start,
+    dj_index              _end
+);
+void* d_ptr_vector_remove(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index
+);
+bool d_ptr_vector_append(
+    struct dj_ptr_vector* _ptr_vector,
+    const void**          _source,
+    size_t                _count
+);
+bool d_ptr_vector_append_vector(
+    struct dj_ptr_vector*       _destination,
+    const struct dj_ptr_vector* _source
+);
+bool d_ptr_vector_prepend(
+    struct dj_ptr_vector* _ptr_vector,
+    const void**          _source,
+    size_t                _count
+);
+bool d_ptr_vector_prepend_vector(
+    struct dj_ptr_vector*       _destination,
+    const struct dj_ptr_vector* _source
+);
 
 // IV.   search
-ssize_t d_ptr_vector_find(const struct d_ptr_vector* _ptr_vector,
-                          const void*                _value,
-                          fn_comparator              _comparator);
-ssize_t d_ptr_vector_find_last(const struct d_ptr_vector* _ptr_vector,
-                               const void*                _value,
-                               fn_comparator              _comparator);
-ssize_t d_ptr_vector_find_ptr(const struct d_ptr_vector* _ptr_vector,
-                              const void*                _ptr);
-bool    d_ptr_vector_contains(const struct d_ptr_vector* _ptr_vector,
-                              const void*                _value,
-                              fn_comparator              _comparator);
-bool    d_ptr_vector_contains_ptr(const struct d_ptr_vector* _ptr_vector,
-                                  const void*                _ptr);
-size_t  d_ptr_vector_count_value(const struct d_ptr_vector* _ptr_vector,
-                                 const void*                _value,
-                                 fn_comparator              _comparator);
+ssize_t d_ptr_vector_find(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
+);
+ssize_t d_ptr_vector_find_last(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
+);
+ssize_t d_ptr_vector_find_ptr(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _ptr
+);
+bool d_ptr_vector_contains(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
+);
+bool d_ptr_vector_contains_ptr(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _ptr
+);
+size_t d_ptr_vector_count_value(
+    const struct dj_ptr_vector* _ptr_vector,
+    const void*                 _value,
+    fn_comparator               _comparator
+);
 
 // V.    capacity and state queries
-bool   d_ptr_vector_ensure_capacity(struct d_ptr_vector* _ptr_vector,
-                                    size_t               _required);
-bool   d_ptr_vector_is_empty(const struct d_ptr_vector* _ptr_vector);
-bool   d_ptr_vector_is_full(const struct d_ptr_vector* _ptr_vector);
-size_t d_ptr_vector_size(const struct d_ptr_vector* _ptr_vector);
-size_t d_ptr_vector_capacity(const struct d_ptr_vector* _ptr_vector);
+bool d_ptr_vector_ensure_capacity(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _required
+);
+bool d_ptr_vector_is_empty(
+    const struct dj_ptr_vector* _ptr_vector
+);
+bool d_ptr_vector_is_full(
+    const struct dj_ptr_vector* _ptr_vector
+);
+size_t d_ptr_vector_size(
+    const struct dj_ptr_vector* _ptr_vector
+);
+size_t d_ptr_vector_capacity(
+    const struct dj_ptr_vector* _ptr_vector
+);
 
 // VI.   iteration
-void d_ptr_vector_foreach(struct d_ptr_vector* _ptr_vector,
-                          fn_apply             _apply_fn);
+void d_ptr_vector_foreach(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_apply              _apply_fn
+);
 
 // VII.  mutation and reordering
-bool d_ptr_vector_reserve(struct d_ptr_vector* _ptr_vector,
-                          size_t               _new_capacity);
-void d_ptr_vector_clear(struct d_ptr_vector* _ptr_vector);
-bool d_ptr_vector_resize(struct d_ptr_vector* _ptr_vector,
-                         size_t               _new_count);
-bool d_ptr_vector_resize_fill(struct d_ptr_vector* _ptr_vector,
-                              size_t               _new_count,
-                              void*                _fill_value);
-bool d_ptr_vector_swap(struct d_ptr_vector* _ptr_vector,
-                       d_index              _index_a,
-                       d_index              _index_b);
-bool d_ptr_vector_reverse(struct d_ptr_vector* _ptr_vector);
-void d_ptr_vector_sort(struct d_ptr_vector* _ptr_vector,
-                       fn_comparator        _comparator);
-void d_ptr_vector_clear_deep(struct d_ptr_vector* _ptr_vector,
-                             fn_free              _free_fn);
+bool d_ptr_vector_reserve(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _new_capacity
+);
+void d_ptr_vector_clear(
+    struct dj_ptr_vector* _ptr_vector
+);
+bool d_ptr_vector_resize(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _new_count
+);
+bool d_ptr_vector_resize_fill(
+    struct dj_ptr_vector* _ptr_vector,
+    size_t                _new_count,
+    void*                 _fill_value
+);
+bool d_ptr_vector_swap(
+    struct dj_ptr_vector* _ptr_vector,
+    dj_index              _index_a,
+    dj_index              _index_b
+);
+bool d_ptr_vector_reverse(
+    struct dj_ptr_vector* _ptr_vector
+);
+void d_ptr_vector_sort(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_comparator         _comparator
+);
+void d_ptr_vector_clear_deep(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_free               _free_fn
+);
 
 // VIII. conversion and reporting
-bool d_ptr_vector_shrink_to_fit(struct d_ptr_vector* _ptr_vector);
-bool d_ptr_vector_copy_to(const struct d_ptr_vector* _ptr_vector,
-                          void**                     _destination,
-                          size_t                     _dest_capacity);
+bool d_ptr_vector_shrink_to_fit(
+    struct dj_ptr_vector* _ptr_vector
+);
+bool d_ptr_vector_copy_to(
+    const struct dj_ptr_vector* _ptr_vector,
+    void**                      _destination,
+    size_t                      _dest_capacity
+);
 
 // IX.   operations
-size_t d_ptr_vector_available(const struct d_ptr_vector* _ptr_vector);
+size_t d_ptr_vector_available(
+    const struct dj_ptr_vector* _ptr_vector
+);
 
 // X.    destruction
-void d_ptr_vector_free(struct d_ptr_vector* _ptr_vector);
-void d_ptr_vector_free_deep(struct d_ptr_vector* _ptr_vector,
-                            fn_free              _free_fn);
+void d_ptr_vector_free(
+    struct dj_ptr_vector* _ptr_vector
+);
+void d_ptr_vector_free_deep(
+    struct dj_ptr_vector* _ptr_vector,
+    fn_free               _free_fn
+);
 
 #endif  // DJINTERP_C_CONTAINER_VECTOR_PTR_VECTOR_H

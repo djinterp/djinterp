@@ -12,7 +12,7 @@
 
 // djinterp
 #include "./ptr_vector_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 static int g_util_test_values[] = {50, 10, 40, 20, 30};
 
@@ -22,8 +22,11 @@ static int g_util_test_values[] = {50, 10, 40, 20, 30};
  *   When qsort operates on void*[] array, the comparator receives void**
  *   (pointers to elements of the array, which are themselves void*).
  */
-static int
-int_ptr_comparator(const void* _a, const void* _b)
+static
+int int_ptr_comparator(
+    const void* _a,
+    const void* _b
+)
 {
     const void* ptr_a;
     const void* ptr_b;
@@ -45,14 +48,12 @@ int_ptr_comparator(const void* _a, const void* _b)
 }
 
 
-bool
-d_tests_sa_ptr_vector_swap
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_swap(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -101,14 +102,12 @@ d_tests_sa_ptr_vector_swap
 }
 
 
-bool
-d_tests_sa_ptr_vector_reverse
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_reverse(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -157,14 +156,12 @@ d_tests_sa_ptr_vector_reverse
 }
 
 
-bool
-d_tests_sa_ptr_vector_sort
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_sort(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
 
     result = true;
 
@@ -214,14 +211,12 @@ d_tests_sa_ptr_vector_sort
 }
 
 
-bool
-d_tests_sa_ptr_vector_copy_to
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_copy_to(
+    struct dj_test_counter* _counter
 )
 {
     bool                 result;
-    struct d_ptr_vector* vec;
+    struct dj_ptr_vector* vec;
     void*                dest[10];
 
     result = true;
@@ -266,10 +261,8 @@ d_tests_sa_ptr_vector_copy_to
 }
 
 
-bool
-d_tests_sa_ptr_vector_utility_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_ptr_vector_utility_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

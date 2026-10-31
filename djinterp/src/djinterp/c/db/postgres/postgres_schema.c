@@ -31,12 +31,12 @@
 #include <stddef.h>  // size_t, NULL
 #include <stdlib.h>  // free
 // djinterp
-#include "../../../../../inc/djinterp/c/db/db_common.h"  // d_db_column, flags
+#include "../../../../../inc/djinterp/c/db/db_common.h"  // dj_db_column, flags
 #include "../db_internal.h"  // buffers, builders, formatting, numbers
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
 #include "./postgres_internal.h"  // libpq-fe.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // INT64_MAX, int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // INT64_MAX, int64_t
 
 
 // as its header: below the 64-bit floor there is nothing to define
@@ -49,7 +49,7 @@
 //==============================================================================
 
 // D_INTERNAL_POSTGRES_COLUMN_FLAGS
-//   constant: every flag a struct d_db_column may carry.
+//   constant: every flag a struct dj_db_column may carry.
 #define D_INTERNAL_POSTGRES_COLUMN_FLAGS                                       \
     (D_DB_COLUMN_PRIMARY_KEY    |                                              \
      D_DB_COLUMN_AUTO_INCREMENT |                                              \
@@ -61,11 +61,11 @@
 // ordinary and partitioned, views, materialized views and foreign tables.
 #define D_INTERNAL_POSTGRES_DESCRIBED "('r', 'p', 'v', 'm', 'f')"
 
-// d_internal_postgres_spelling
-//   struct: how one d_db_type is declared.
-struct d_internal_postgres_spelling
+// dj_internal_postgres_spelling
+//   struct: how one dj_db_type is declared.
+struct dj_internal_postgres_spelling
 {
-    enum d_db_type type;   // the type
+    enum dj_db_type type;   // the type
     const char*    sized;  // with a size, as a format taking it; NULL where
                            // the size is not read
     const char*    plain;  // without one
@@ -73,7 +73,7 @@ struct d_internal_postgres_spelling
 
 // d_internal_postgres_spellings
 //   table: postgres_schema.h's mapping, but for numeric's two numbers.
-static const struct d_internal_postgres_spelling
+static const struct dj_internal_postgres_spelling
 d_internal_postgres_spellings[] =
 {
     { D_DB_TYPE_BOOLEAN,        NULL,              " boolean"          },
@@ -98,17 +98,17 @@ d_internal_postgres_spellings[] =
  * @param[in,out] _sql     the definition so far.
  * @param[in]     _column  the column.
  * @return as d_internal_db_format; BAD for NONE without type_sql, a numeric
- *         scale without a size, or a type outside enum d_db_type, which
+ *         scale without a size, or a type outside enum dj_db_type, which
  *         leaves the buffer to the caller.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_postgres_append_type(
     PGconn*                      _db,
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _column
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _column
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
     const size_t count = sizeof(d_internal_postgres_spellings) /
                          sizeof(d_internal_postgres_spellings[0]);
@@ -135,7 +135,7 @@ d_internal_postgres_append_type(
 
     for (size_t i = 0u; i < count; ++i)
     {
-        const struct d_internal_postgres_spelling* const spelling =
+        const struct dj_internal_postgres_spelling* const spelling =
             &d_internal_postgres_spellings[i];
 
         // the type's row: sized or plain
@@ -169,15 +169,15 @@ d_internal_postgres_append_type(
  * AUTO_INCREMENT is an identity column, BY DEFAULT so that a value can still
  * be given; the server makes it NOT NULL itself.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_postgres_append_column(
     PGconn*                      _db,
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _column,
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _column,
     bool                         _key
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
     const unsigned                     flags   = _column->flags;
 
@@ -189,7 +189,7 @@ d_internal_postgres_append_column(
     }
 
     const char* const dflt   = _column->default_sql;
-    enum d_internal_db_format_status status =
+    enum dj_internal_db_format_status status =
         d_internal_db_format(_sql, &quoting, "%I", _column->name);
 
     // the type, then the constraints
@@ -232,11 +232,11 @@ d_internal_postgres_append_column(
  *         sole primary key, or key places that are not sound
  *         (d_internal_db_key_places_ok).
  */
-static bool
-d_internal_postgres_count_keys(
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    size_t*                   _keys
+static
+bool d_internal_postgres_count_keys(
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    size_t*                    _keys
 )
 {
     size_t keys           = 0u;
@@ -281,19 +281,19 @@ d_internal_postgres_count_keys(
  * A sole key is written on its column; a composite one as a table
  * constraint after the columns.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_postgres_build_definition(
     PGconn*                      _db,
-    struct d_internal_db_buffer* _sql,
-    const struct d_db_column*    _columns,
+    struct dj_internal_db_buffer* _sql,
+    const struct dj_db_column*    _columns,
     size_t                       _count
 )
 {
-    const struct d_internal_db_quoting quoting   =
+    const struct dj_internal_db_quoting quoting   =
         d_internal_postgres_quoting(_db);
     size_t                             keys      = 0u;
     const char*                        separator = ", PRIMARY KEY (";
-    enum d_internal_db_format_status   status    =
+    enum dj_internal_db_format_status   status    =
         (d_internal_postgres_count_keys(_columns, _count, &keys))
             ? D_INTERNAL_DB_FORMAT_OK
             : D_INTERNAL_DB_FORMAT_BAD;
@@ -342,8 +342,8 @@ d_internal_postgres_create_table
   CREATE TABLE once the definition is settled, in the schema named or the
 current one, asked for.
 */
-static int
-d_internal_postgres_create_table(
+static
+int d_internal_postgres_create_table(
     PGconn*     _db,
     const char* _schema,
     const char* _table,
@@ -384,8 +384,8 @@ d_internal_postgres_on_table
 and before another: DROP TABLE, ALTER TABLE ... and their kin. The schema
 is settled first.
 */
-static int
-d_internal_postgres_on_table(
+static
+int d_internal_postgres_on_table(
     PGconn*     _db,
     const char* _schema,
     const char* _object,
@@ -423,8 +423,8 @@ d_internal_postgres_verbatim
 goes between its parentheses: it begins, past any space, with "(" or the
 keyword USING.
 */
-static bool
-d_internal_postgres_verbatim(
+static
+bool d_internal_postgres_verbatim(
     const char* _columns
 )
 {
@@ -476,17 +476,17 @@ d_internal_postgres_verbatim(
  * The row is name, type, default, NOT NULL as t or f, the 1-based place in
  * the primary key, 0 for none, and whether the column is generated, t or f.
  */
-static bool
-d_internal_postgres_add_column_info(
-    const PGresult*               _rows,
-    int                           _row,
-    struct d_internal_db_columns* _columns
+static
+bool d_internal_postgres_add_column_info(
+    const PGresult*                _rows,
+    int                            _row,
+    struct dj_internal_db_columns* _columns
 )
 {
     int64_t                       place    = 0;
     const bool                    numbered =
         d_internal_db_parse_integer(PQgetvalue(_rows, _row, 4), &place);
-    const struct d_db_column_info info     =
+    const struct dj_db_column_info info     =
     {
         PQgetvalue(_rows, _row, 0),
         PQgetvalue(_rows, _row, 1),
@@ -518,15 +518,15 @@ d_internal_postgres_add_column_info(
  * indkey, an int2vector, whose subscripts start at 0, so array_position
  * would read one short.
  */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_postgres_columns_sql(
     PGconn*                      _db,
-    struct d_internal_db_buffer* _sql,
+    struct dj_internal_db_buffer* _sql,
     const char*                  _schema,
     const char*                  _table
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
     const bool                         has_generated =
         d_postgres_server_at_least(_db, 12u, 0u);
@@ -536,7 +536,7 @@ d_internal_postgres_columns_sql(
     const char* const                  computed  =
         (has_generated) ? "a.attgenerated <> ''"
                         : "false";
-    enum d_internal_db_format_status   status  = d_internal_db_format(
+    enum dj_internal_db_format_status   status  = d_internal_db_format(
         _sql,
         &quoting,
         "SELECT a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod), "
@@ -575,18 +575,18 @@ d_internal_postgres_described
   Whether a table or view with no columns exists at all, which a description
 of no rows leaves open.
 */
-static int
-d_internal_postgres_described(
+static
+int d_internal_postgres_described(
     PGconn*     _db,
     const char* _schema,
     const char* _table,
     bool*       _exists
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
-    struct d_internal_db_buffer        sql     = { NULL, 0u, 0u };
-    enum d_internal_db_format_status   status  = d_internal_db_format(
+    struct dj_internal_db_buffer        sql     = { NULL, 0u, 0u };
+    enum dj_internal_db_format_status   status  = d_internal_db_format(
         &sql,
         &quoting,
         "SELECT 1 FROM pg_catalog.pg_class t "
@@ -624,16 +624,16 @@ d_internal_postgres_read_columns
   Each row into the builder, then the list; no rows is an empty list for a
 table that exists, and D_DB_NOT_FOUND for one that does not.
 */
-static int
-d_internal_postgres_read_columns(
-    PGconn*                  _db,
-    PGresult*                _rows,
-    const char*              _schema,
-    const char*              _table,
-    struct d_db_column_list* _columns
+static
+int d_internal_postgres_read_columns(
+    PGconn*                   _db,
+    PGresult*                 _rows,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
 )
 {
-    struct d_internal_db_columns builder =
+    struct dj_internal_db_columns builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u
     };
@@ -681,18 +681,18 @@ d_internal_postgres_relation_sql
   A SELECT of one relation of a kind in a schema, as a lookup writes it, with
 what to select written by the caller: nextval(c.oid), say.
 */
-static enum d_internal_db_format_status
+static enum dj_internal_db_format_status
 d_internal_postgres_relation_sql(
     PGconn*                      _db,
-    struct d_internal_db_buffer* _sql,
+    struct dj_internal_db_buffer* _sql,
     const char*                  _select,
     const char*                  _schema,
     const char*                  _name
 )
 {
-    const struct d_internal_db_quoting quoting =
+    const struct dj_internal_db_quoting quoting =
         d_internal_postgres_quoting(_db);
-    enum d_internal_db_format_status   status  = d_internal_db_format(
+    enum dj_internal_db_format_status   status  = d_internal_db_format(
         _sql,
         &quoting,
         "SELECT %s FROM pg_catalog.pg_class c "
@@ -716,8 +716,7 @@ d_internal_postgres_relation_sql(
 d_postgres_has_table
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_table(
+bool d_postgres_has_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table
@@ -733,15 +732,14 @@ d_postgres_has_table(
 d_postgres_has_table_s
   A row of pg_class, an ordinary or partitioned table, in the schema.
 */
-int
-d_postgres_has_table_s(
+int d_postgres_has_table_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { _schema, NULL, _table };
+    const struct dj_internal_postgres_path path = { _schema, NULL, _table };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_TABLE,
@@ -758,17 +756,16 @@ column it refuses never reaches the server. Six parameters, one past the
 guide's tripwire: they are the statement's own parts, and the array's
 length rides with it, as C passes every array.
 */
-int
-d_postgres_create_table(
-    struct pg_conn*           _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    unsigned                  _flags
+int d_postgres_create_table(
+    struct pg_conn*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
 )
 {
-    struct d_internal_db_buffer definition = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer definition = { NULL, 0u, 0u };
 
     // parameter validation
     if ( (!_db)                                        ||
@@ -806,8 +803,7 @@ d_postgres_create_table(
 d_postgres_create_table_sql
   The caller's definition as written.
 */
-int
-d_postgres_create_table_sql(
+int d_postgres_create_table_sql(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -836,8 +832,7 @@ d_postgres_create_table_sql(
 d_postgres_drop_table
   The server's own DROP TABLE [IF EXISTS] ... [CASCADE].
 */
-int
-d_postgres_drop_table(
+int d_postgres_drop_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -870,8 +865,7 @@ d_postgres_rename_table
   RENAME TO takes an unqualified name: a table cannot move between schemas
 by renaming.
 */
-int
-d_postgres_rename_table(
+int d_postgres_rename_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -915,8 +909,7 @@ d_postgres_truncate_table
   RESTART IDENTITY restarts the sequences the table's columns own, as the
 other layers' truncation restarts their counters.
 */
-int
-d_postgres_truncate_table(
+int d_postgres_truncate_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table
@@ -941,8 +934,7 @@ d_postgres_truncate_table(
 d_postgres_count_rows
   count(*), a bigint, read exactly.
 */
-int
-d_postgres_count_rows(
+int d_postgres_count_rows(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -985,14 +977,13 @@ d_postgres_count_rows(
 d_postgres_list_tables
   pg_class's ordinary and partitioned tables in the schema, in byte order.
 */
-int
-d_postgres_list_tables(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_postgres_list_tables(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { _schema, NULL, NULL };
+    const struct dj_internal_postgres_path path = { _schema, NULL, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_TABLE,
@@ -1010,8 +1001,7 @@ d_postgres_list_tables(
 d_postgres_has_column
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_column(
+bool d_postgres_has_column(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -1032,8 +1022,7 @@ d_postgres_has_column(
 d_postgres_has_column_s
   A row of pg_attribute, the system's columns and dropped ones aside.
 */
-int
-d_postgres_has_column_s(
+int d_postgres_has_column_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -1041,7 +1030,7 @@ d_postgres_has_column_s(
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { _schema, _table, _column };
+    const struct dj_internal_postgres_path path = { _schema, _table, _column };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_COLUMN,
@@ -1056,15 +1045,14 @@ d_postgres_add_column
   The column is written as create_table writes one, its own PRIMARY KEY
 flag on it, then appended as SQL.
 */
-int
-d_postgres_add_column(
-    struct pg_conn*           _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_postgres_add_column(
+    struct pg_conn*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
-    struct d_internal_db_buffer definition = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer definition = { NULL, 0u, 0u };
     size_t                      keys       = 0u;
 
     // parameter validation
@@ -1098,8 +1086,7 @@ d_postgres_add_column(
 d_postgres_add_column_sql
   ALTER TABLE ... ADD COLUMN, the caller's definition as written.
 */
-int
-d_postgres_add_column_sql(
+int d_postgres_add_column_sql(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -1140,8 +1127,7 @@ d_postgres_add_column_sql(
 d_postgres_rename_column
   RENAME COLUMN, which every supported server has.
 */
-int
-d_postgres_rename_column(
+int d_postgres_rename_column(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -1186,8 +1172,7 @@ d_postgres_rename_column(
 d_postgres_drop_column
   DROP COLUMN, which the server allows on a table's last column too.
 */
-int
-d_postgres_drop_column(
+int d_postgres_drop_column(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -1231,15 +1216,14 @@ d_postgres_list_columns
   One statement describes every column; d_internal_postgres_read_columns
 tells an empty table from a missing one.
 */
-int
-d_postgres_list_columns(
-    struct pg_conn*          _db,
-    const char*              _schema,
-    const char*              _table,
-    struct d_db_column_list* _columns
+int d_postgres_list_columns(
+    struct pg_conn*           _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
 )
 {
-    struct d_internal_db_buffer sql  = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer sql  = { NULL, 0u, 0u };
     PGresult*                   rows = NULL;
 
     // parameter validation
@@ -1286,8 +1270,7 @@ d_postgres_list_columns(
 d_postgres_has_index
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_index(
+bool d_postgres_has_index(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index
@@ -1303,15 +1286,14 @@ d_postgres_has_index(
 d_postgres_has_index_s
   A row of pg_class, an index, ordinary or partitioned, in the schema.
 */
-int
-d_postgres_has_index_s(
+int d_postgres_has_index_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index,
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { _schema, NULL, _index };
+    const struct dj_internal_postgres_path path = { _schema, NULL, _index };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_INDEX,
@@ -1327,8 +1309,7 @@ d_postgres_create_index
 key goes in parentheses, unless it is the rest of the statement. Six
 parameters, one past the guide's tripwire: each is a part of the statement.
 */
-int
-d_postgres_create_index(
+int d_postgres_create_index(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index,
@@ -1388,8 +1369,7 @@ d_postgres_create_index(
 d_postgres_drop_index
   The server's own DROP INDEX [CONCURRENTLY] [IF EXISTS] ... [CASCADE].
 */
-int
-d_postgres_drop_index(
+int d_postgres_drop_index(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index,
@@ -1432,15 +1412,14 @@ d_postgres_list_indexes
   pg_class's indexes in the schema, or on one table, those a constraint owns
 left out, in byte order.
 */
-int
-d_postgres_list_indexes(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_postgres_list_indexes(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { _schema, _table, NULL };
+    const struct dj_internal_postgres_path path = { _schema, _table, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_INDEX,
@@ -1458,8 +1437,7 @@ d_postgres_list_indexes(
 d_postgres_has_view
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_view(
+bool d_postgres_has_view(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view
@@ -1475,15 +1453,14 @@ d_postgres_has_view(
 d_postgres_has_view_s
   A row of pg_class, a view, in the schema.
 */
-int
-d_postgres_has_view_s(
+int d_postgres_has_view_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view,
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { _schema, NULL, _view };
+    const struct dj_internal_postgres_path path = { _schema, NULL, _view };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_VIEW,
@@ -1498,8 +1475,7 @@ d_postgres_create_view
   CREATE VIEW has no IF NOT EXISTS; the layer reads 42P07, a relation of the
 name, as success. OR REPLACE is the server's own.
 */
-int
-d_postgres_create_view(
+int d_postgres_create_view(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view,
@@ -1555,8 +1531,7 @@ d_postgres_create_view(
 d_postgres_drop_view
   The server's own DROP VIEW [IF EXISTS] ... [CASCADE].
 */
-int
-d_postgres_drop_view(
+int d_postgres_drop_view(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view,
@@ -1588,14 +1563,13 @@ d_postgres_drop_view(
 d_postgres_list_views
   pg_class's views in the schema, in byte order.
 */
-int
-d_postgres_list_views(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_postgres_list_views(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { _schema, NULL, NULL };
+    const struct dj_internal_postgres_path path = { _schema, NULL, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_VIEW,
@@ -1613,8 +1587,7 @@ d_postgres_list_views(
 d_postgres_has_trigger
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_trigger(
+bool d_postgres_has_trigger(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -1635,8 +1608,7 @@ d_postgres_has_trigger(
 d_postgres_has_trigger_s
   A row of pg_trigger on the table, PostgreSQL's own triggers aside.
 */
-int
-d_postgres_has_trigger_s(
+int d_postgres_has_trigger_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -1644,7 +1616,7 @@ d_postgres_has_trigger_s(
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { _schema, _table, _trigger };
+    const struct dj_internal_postgres_path path = { _schema, _table, _trigger };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_TRIGGER,
@@ -1659,8 +1631,7 @@ d_postgres_create_trigger
   CREATE TRIGGER has no IF NOT EXISTS; the layer reads 42710, a trigger of
 the name on that table, as success. OR REPLACE is the server's own, from 14.
 */
-int
-d_postgres_create_trigger(
+int d_postgres_create_trigger(
     struct pg_conn* _db,
     const char*     _trigger,
     const char*     _definition,
@@ -1706,8 +1677,7 @@ d_postgres_create_trigger(
 d_postgres_drop_trigger
   The server's own DROP TRIGGER [IF EXISTS] ... ON ... [CASCADE].
 */
-int
-d_postgres_drop_trigger(
+int d_postgres_drop_trigger(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -1760,15 +1730,14 @@ d_postgres_list_triggers
   pg_trigger's rows on the schema's tables, or one table's, PostgreSQL's own
 aside, in byte order.
 */
-int
-d_postgres_list_triggers(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_postgres_list_triggers(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { _schema, _table, NULL };
+    const struct dj_internal_postgres_path path = { _schema, _table, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_TRIGGER,
@@ -1786,8 +1755,7 @@ d_postgres_list_triggers(
 d_postgres_has_sequence
   The _s form, with every failure read as "no".
 */
-bool
-d_postgres_has_sequence(
+bool d_postgres_has_sequence(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence
@@ -1806,15 +1774,14 @@ d_postgres_has_sequence(
 d_postgres_has_sequence_s
   A row of pg_class, a sequence, in the schema.
 */
-int
-d_postgres_has_sequence_s(
+int d_postgres_has_sequence_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
     bool*           _exists
 )
 {
-    const struct d_internal_postgres_path path = { _schema, NULL, _sequence };
+    const struct dj_internal_postgres_path path = { _schema, NULL, _sequence };
 
     return d_internal_postgres_has(_db,
                                    D_INTERNAL_POSTGRES_SEQUENCE,
@@ -1828,8 +1795,7 @@ d_postgres_has_sequence_s(
 d_postgres_create_sequence
   The server's own CREATE SEQUENCE [IF NOT EXISTS].
 */
-int
-d_postgres_create_sequence(
+int d_postgres_create_sequence(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
@@ -1859,8 +1825,7 @@ d_postgres_create_sequence(
 d_postgres_drop_sequence
   The server's own DROP SEQUENCE [IF EXISTS] ... [CASCADE].
 */
-int
-d_postgres_drop_sequence(
+int d_postgres_drop_sequence(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
@@ -1892,14 +1857,13 @@ d_postgres_drop_sequence(
 d_postgres_list_sequences
   pg_class's sequences in the schema, in byte order.
 */
-int
-d_postgres_list_sequences(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_postgres_list_sequences(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
-    const struct d_internal_postgres_path path = { _schema, NULL, NULL };
+    const struct dj_internal_postgres_path path = { _schema, NULL, NULL };
 
     return d_internal_postgres_list(_db,
                                     D_INTERNAL_POSTGRES_SEQUENCE,
@@ -1915,15 +1879,14 @@ d_postgres_next_value
 missing sequence is no row -- D_DB_NOT_FOUND -- rather than a failure that
 would leave a transaction failed.
 */
-int
-d_postgres_next_value(
+int d_postgres_next_value(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
     int64_t*        _value
 )
 {
-    struct d_internal_db_buffer sql = { NULL, 0u, 0u };
+    struct dj_internal_db_buffer sql = { NULL, 0u, 0u };
 
     // parameter validation
     if ( (!_db)                                    ||
@@ -1964,8 +1927,7 @@ under a savepoint there, rolled back to for that failure. A failed
 transaction refuses everything, the savepoint included, so it is answered
 at once with the code the server would send.
 */
-int
-d_postgres_last_value(
+int d_postgres_last_value(
     struct pg_conn* _db,
     int64_t*        _value
 )
@@ -2053,8 +2015,7 @@ d_postgres_last_value(
 d_postgres_has_table
   Without libpq, false.
 */
-bool
-d_postgres_has_table(
+bool d_postgres_has_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table
@@ -2072,8 +2033,7 @@ d_postgres_has_table_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_table_s(
+int d_postgres_has_table_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2097,14 +2057,13 @@ d_postgres_has_table_s(
 d_postgres_create_table
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_table(
-    struct pg_conn*           _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _columns,
-    size_t                    _count,
-    unsigned                  _flags
+int d_postgres_create_table(
+    struct pg_conn*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _columns,
+    size_t                     _count,
+    unsigned                   _flags
 )
 {
     (void)_db;
@@ -2121,8 +2080,7 @@ d_postgres_create_table(
 d_postgres_create_table_sql
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_table_sql(
+int d_postgres_create_table_sql(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2143,8 +2101,7 @@ d_postgres_create_table_sql(
 d_postgres_drop_table
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_table(
+int d_postgres_drop_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2163,8 +2120,7 @@ d_postgres_drop_table(
 d_postgres_rename_table
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_rename_table(
+int d_postgres_rename_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2183,8 +2139,7 @@ d_postgres_rename_table(
 d_postgres_truncate_table
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_truncate_table(
+int d_postgres_truncate_table(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table
@@ -2201,8 +2156,7 @@ d_postgres_truncate_table(
 d_postgres_count_rows
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_count_rows(
+int d_postgres_count_rows(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2221,11 +2175,10 @@ d_postgres_count_rows(
 d_postgres_list_tables
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_tables(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_postgres_list_tables(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2239,8 +2192,7 @@ d_postgres_list_tables(
 d_postgres_has_column
   Without libpq, false.
 */
-bool
-d_postgres_has_column(
+bool d_postgres_has_column(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2260,8 +2212,7 @@ d_postgres_has_column_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_column_s(
+int d_postgres_has_column_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2287,12 +2238,11 @@ d_postgres_has_column_s(
 d_postgres_add_column
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_add_column(
-    struct pg_conn*           _db,
-    const char*               _schema,
-    const char*               _table,
-    const struct d_db_column* _column
+int d_postgres_add_column(
+    struct pg_conn*            _db,
+    const char*                _schema,
+    const char*                _table,
+    const struct dj_db_column* _column
 )
 {
     (void)_db;
@@ -2307,8 +2257,7 @@ d_postgres_add_column(
 d_postgres_add_column_sql
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_add_column_sql(
+int d_postgres_add_column_sql(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2327,8 +2276,7 @@ d_postgres_add_column_sql(
 d_postgres_rename_column
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_rename_column(
+int d_postgres_rename_column(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2349,8 +2297,7 @@ d_postgres_rename_column(
 d_postgres_drop_column
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_column(
+int d_postgres_drop_column(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _table,
@@ -2369,12 +2316,11 @@ d_postgres_drop_column(
 d_postgres_list_columns
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_columns(
-    struct pg_conn*          _db,
-    const char*              _schema,
-    const char*              _table,
-    struct d_db_column_list* _columns
+int d_postgres_list_columns(
+    struct pg_conn*           _db,
+    const char*               _schema,
+    const char*               _table,
+    struct dj_db_column_list* _columns
 )
 {
     (void)_db;
@@ -2389,8 +2335,7 @@ d_postgres_list_columns(
 d_postgres_has_index
   Without libpq, false.
 */
-bool
-d_postgres_has_index(
+bool d_postgres_has_index(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index
@@ -2408,8 +2353,7 @@ d_postgres_has_index_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_index_s(
+int d_postgres_has_index_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index,
@@ -2433,8 +2377,7 @@ d_postgres_has_index_s(
 d_postgres_create_index
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_index(
+int d_postgres_create_index(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index,
@@ -2457,8 +2400,7 @@ d_postgres_create_index(
 d_postgres_drop_index
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_index(
+int d_postgres_drop_index(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _index,
@@ -2477,12 +2419,11 @@ d_postgres_drop_index(
 d_postgres_list_indexes
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_indexes(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_postgres_list_indexes(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2497,8 +2438,7 @@ d_postgres_list_indexes(
 d_postgres_has_view
   Without libpq, false.
 */
-bool
-d_postgres_has_view(
+bool d_postgres_has_view(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view
@@ -2516,8 +2456,7 @@ d_postgres_has_view_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_view_s(
+int d_postgres_has_view_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view,
@@ -2541,8 +2480,7 @@ d_postgres_has_view_s(
 d_postgres_create_view
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_view(
+int d_postgres_create_view(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view,
@@ -2563,8 +2501,7 @@ d_postgres_create_view(
 d_postgres_drop_view
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_view(
+int d_postgres_drop_view(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _view,
@@ -2583,11 +2520,10 @@ d_postgres_drop_view(
 d_postgres_list_views
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_views(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_postgres_list_views(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2601,8 +2537,7 @@ d_postgres_list_views(
 d_postgres_has_trigger
   Without libpq, false.
 */
-bool
-d_postgres_has_trigger(
+bool d_postgres_has_trigger(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -2622,8 +2557,7 @@ d_postgres_has_trigger_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_trigger_s(
+int d_postgres_has_trigger_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -2649,8 +2583,7 @@ d_postgres_has_trigger_s(
 d_postgres_create_trigger
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_trigger(
+int d_postgres_create_trigger(
     struct pg_conn* _db,
     const char*     _trigger,
     const char*     _definition,
@@ -2669,8 +2602,7 @@ d_postgres_create_trigger(
 d_postgres_drop_trigger
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_trigger(
+int d_postgres_drop_trigger(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _trigger,
@@ -2691,12 +2623,11 @@ d_postgres_drop_trigger(
 d_postgres_list_triggers
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_triggers(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    const char*            _table,
-    struct d_db_name_list* _names
+int d_postgres_list_triggers(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    const char*             _table,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2711,8 +2642,7 @@ d_postgres_list_triggers(
 d_postgres_has_sequence
   Without libpq, false.
 */
-bool
-d_postgres_has_sequence(
+bool d_postgres_has_sequence(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence
@@ -2730,8 +2660,7 @@ d_postgres_has_sequence_s
   Without libpq there is nothing to look in: D_DB_UNSUPPORTED,
 and the answer false, as a failure leaves it.
 */
-int
-d_postgres_has_sequence_s(
+int d_postgres_has_sequence_s(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
@@ -2755,8 +2684,7 @@ d_postgres_has_sequence_s(
 d_postgres_create_sequence
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_create_sequence(
+int d_postgres_create_sequence(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
@@ -2775,8 +2703,7 @@ d_postgres_create_sequence(
 d_postgres_drop_sequence
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_drop_sequence(
+int d_postgres_drop_sequence(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
@@ -2795,11 +2722,10 @@ d_postgres_drop_sequence(
 d_postgres_list_sequences
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_list_sequences(
-    struct pg_conn*        _db,
-    const char*            _schema,
-    struct d_db_name_list* _names
+int d_postgres_list_sequences(
+    struct pg_conn*         _db,
+    const char*             _schema,
+    struct dj_db_name_list* _names
 )
 {
     (void)_db;
@@ -2813,8 +2739,7 @@ d_postgres_list_sequences(
 d_postgres_next_value
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_next_value(
+int d_postgres_next_value(
     struct pg_conn* _db,
     const char*     _schema,
     const char*     _sequence,
@@ -2833,8 +2758,7 @@ d_postgres_next_value(
 d_postgres_last_value
   Without libpq, D_DB_UNSUPPORTED.
 */
-int
-d_postgres_last_value(
+int d_postgres_last_value(
     struct pg_conn* _db,
     int64_t*        _value
 )

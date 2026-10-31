@@ -15,7 +15,7 @@
 
 // djinterp
 #include "../djinterp.h"                                // framework root
-#include "../../config/core/container/cfg_container.h"  // D_CFG_CONTAINER_*
+#include "../../config/c/container/cfg_container.h"  // D_CFG_CONTAINER_*
 
 // ===========================================================================
 // 0.   CONTAINER CONFIGURATION

@@ -44,16 +44,16 @@
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_wiki_doc
+// dj_wiki_doc
 //   struct: the page: its path, dialect, text and records, the changes it
 //   has taken, and why the last failed.
-struct d_wiki_doc
+struct dj_wiki_doc
 {
     char*               path;
-    enum d_wiki_dialect dialect;
+    enum dj_wiki_dialect dialect;
     char*               text;
     size_t              length;
-    struct d_wiki       records;
+    struct dj_wiki       records;
     size_t              changes;
     size_t              start;
     size_t              old_end;
@@ -63,28 +63,28 @@ struct d_wiki_doc
 };
 
 // 1.1.2
-// d_internal_candidate
+// dj_internal_candidate
 //   struct: a change not yet kept: the new text and its records, and where
 //   the splice stands in the old text and in the new.
-struct d_internal_candidate
+struct dj_internal_candidate
 {
     char*         text;
     size_t        length;
-    struct d_wiki records;
+    struct dj_wiki records;
     size_t        start;
     size_t        old_end;
     size_t        new_end;
 };
 
 // 1.1.3
-// d_internal_kept
+// dj_internal_kept
 //   struct: the page as it was before a change, to go back to, and where
 //   the change before that was.
-struct d_internal_kept
+struct dj_internal_kept
 {
     char*         text;
     size_t        length;
-    struct d_wiki records;
+    struct dj_wiki records;
     size_t        changes;
     size_t        start;
     size_t        old_end;
@@ -92,10 +92,10 @@ struct d_internal_kept
 };
 
 // 1.1.4
-// d_internal_span
+// dj_internal_span
 //   struct: bytes of the text, `start` to `end`, and what is written in
 //   their place: NULL for nothing.
-struct d_internal_span
+struct dj_internal_span
 {
     size_t      start;
     size_t      end;
@@ -103,19 +103,19 @@ struct d_internal_span
 };
 
 // 1.1.5
-// d_internal_link_change
+// dj_internal_link_change
 //   struct: a change to a link: the link as it was, whether it is a
 //   reference, the destination and the label asked for -- NULL for one
 //   left as it is -- what each is written as, and where the label goes.
-struct d_internal_link_change
+struct dj_internal_link_change
 {
-    struct d_wiki_link     link;
+    struct dj_wiki_link     link;
     bool                   refers;
     const char*            target;
     const char*            label;
-    struct d_wiki_buffer   target_text;
-    struct d_wiki_buffer   label_text;
-    struct d_internal_span label_span;
+    struct dj_wiki_buffer   target_text;
+    struct dj_wiki_buffer   label_text;
+    struct dj_internal_span label_span;
 };
 
 
@@ -128,8 +128,8 @@ struct d_internal_link_change
 d_internal_read_file
   A file's bytes, terminated; NULL when it cannot be read.
 */
-static char*
-d_internal_read_file(
+static
+char* d_internal_read_file(
     const char* _path,
     size_t*     _out_length
 )
@@ -204,8 +204,8 @@ d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
   Whether a byte separates a path's parts -- `/` and `\` -- a directory
 made, 0 when it is, and whether a path is a directory.
 */
-static bool
-d_internal_is_separator(
+static
+bool d_internal_is_separator(
     char _c
 )
 {
@@ -213,8 +213,8 @@ d_internal_is_separator(
 }
 
 
-static int
-d_internal_make_directory(
+static
+int d_internal_make_directory(
     const char* _path
 )
 {
@@ -222,8 +222,8 @@ d_internal_make_directory(
 }
 
 
-static bool
-d_internal_is_directory(
+static
+bool d_internal_is_directory(
     const char* _path
 )
 {
@@ -240,8 +240,8 @@ d_internal_is_separator, d_internal_make_directory, d_internal_is_directory
   Whether a byte separates a path's parts -- `/` -- a directory made, 0
 when it is, and whether a path is a directory.
 */
-static bool
-d_internal_is_separator(
+static
+bool d_internal_is_separator(
     char _c
 )
 {
@@ -249,8 +249,8 @@ d_internal_is_separator(
 }
 
 
-static int
-d_internal_make_directory(
+static
+int d_internal_make_directory(
     const char* _path
 )
 {
@@ -258,8 +258,8 @@ d_internal_make_directory(
 }
 
 
-static bool
-d_internal_is_directory(
+static
+bool d_internal_is_directory(
     const char* _path
 )
 {
@@ -276,8 +276,8 @@ d_internal_is_directory(
 d_internal_make_parents
   Every directory a file's path names that is missing.
 */
-static bool
-d_internal_make_parents(
+static
+bool d_internal_make_parents(
     const char* _path
 )
 {
@@ -330,8 +330,8 @@ d_internal_make_parents(
 d_internal_write_file
   Writes a file beside its target, then renames it over the target.
 */
-static bool
-d_internal_write_file(
+static
+bool d_internal_write_file(
     const char* _path,
     const char* _text,
     size_t      _length,
@@ -407,18 +407,18 @@ d_internal_write_file(
 //==============================================================================
 
 
-struct d_wiki_doc*
+struct dj_wiki_doc*
 d_wiki_doc_make(
     const char*         _path,
     const char*         _text,
     size_t              _length,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     char*               _problem,
     size_t              _capacity
 )
 {
     const char* const         path = (_path) ? _path : "";
-    struct d_wiki_doc* const  doc  = calloc(1u, sizeof(*doc));
+    struct dj_wiki_doc* const  doc  = calloc(1u, sizeof(*doc));
 
     // the document, its path and its text
     if (!doc)
@@ -467,10 +467,10 @@ d_wiki_doc_make(
 }
 
 
-struct d_wiki_doc*
+struct dj_wiki_doc*
 d_wiki_doc_read(
     const char*         _path,
-    enum d_wiki_dialect _dialect,
+    enum dj_wiki_dialect _dialect,
     char*               _problem,
     size_t              _capacity
 )
@@ -488,7 +488,7 @@ d_wiki_doc_read(
         return NULL;
     }
 
-    struct d_wiki_doc* const doc = d_wiki_doc_make(_path, text, length,
+    struct dj_wiki_doc* const doc = d_wiki_doc_make(_path, text, length,
                                                    _dialect, _problem,
                                                    _capacity);
 
@@ -498,9 +498,8 @@ d_wiki_doc_read(
 }
 
 
-void
-d_wiki_doc_free(
-    struct d_wiki_doc* _doc
+void d_wiki_doc_free(
+    struct dj_wiki_doc* _doc
 )
 {
     // freeing nothing is allowed
@@ -518,48 +517,44 @@ d_wiki_doc_free(
 }
 
 
-const struct d_wiki*
-d_wiki_doc_records(
-    const struct d_wiki_doc* _doc
+const struct dj_wiki* d_wiki_doc_records(
+    const struct dj_wiki_doc* _doc
 )
 {
     return &_doc->records;
 }
 
 
-const char*
-d_wiki_doc_path(
-    const struct d_wiki_doc* _doc
+const char* d_wiki_doc_path(
+    const struct dj_wiki_doc* _doc
 )
 {
     return _doc->path;
 }
 
 
-enum d_wiki_dialect
+enum dj_wiki_dialect
 d_wiki_doc_dialect(
-    const struct d_wiki_doc* _doc
+    const struct dj_wiki_doc* _doc
 )
 {
     return _doc->dialect;
 }
 
 
-size_t
-d_wiki_doc_changes(
-    const struct d_wiki_doc* _doc
+size_t d_wiki_doc_changes(
+    const struct dj_wiki_doc* _doc
 )
 {
     return _doc->changes;
 }
 
 
-bool
-d_wiki_doc_changed(
-    const struct d_wiki_doc* _doc,
-    size_t*                  _out_start,
-    size_t*                  _out_old_end,
-    size_t*                  _out_new_end
+bool d_wiki_doc_changed(
+    const struct dj_wiki_doc* _doc,
+    size_t*                   _out_start,
+    size_t*                   _out_old_end,
+    size_t*                   _out_new_end
 )
 {
     // nothing changed yet
@@ -577,19 +572,17 @@ d_wiki_doc_changed(
 }
 
 
-const char*
-d_wiki_doc_problem(
-    const struct d_wiki_doc* _doc
+const char* d_wiki_doc_problem(
+    const struct dj_wiki_doc* _doc
 )
 {
     return _doc->problem;
 }
 
 
-const char*
-d_wiki_doc_text(
-    const struct d_wiki_doc* _doc,
-    size_t*                  _out_length
+const char* d_wiki_doc_text(
+    const struct dj_wiki_doc* _doc,
+    size_t*                   _out_length
 )
 {
     // its length, when asked for
@@ -606,10 +599,10 @@ d_wiki_doc_text(
 d_internal_fail
   Says why a change failed, and gives false.
 */
-static bool
-d_internal_fail(
-    struct d_wiki_doc* _doc,
-    const char*        _why
+static
+bool d_internal_fail(
+    struct dj_wiki_doc* _doc,
+    const char*         _why
 )
 {
     (void)snprintf(_doc->problem, sizeof(_doc->problem), "%s", _why);
@@ -628,8 +621,8 @@ d_internal_moved
   A place in the old text as it is in the new: moved by `_shift` when it is
 after the splice; D_WIKI_NONE stays itself.
 */
-static size_t
-d_internal_moved(
+static
+size_t d_internal_moved(
     size_t    _at,
     ptrdiff_t _shift
 )
@@ -639,8 +632,8 @@ d_internal_moved(
 }
 
 
-static bool
-d_internal_same_text(
+static
+bool d_internal_same_text(
     const char* _left,
     const char* _right
 )
@@ -654,17 +647,17 @@ d_internal_same_block, d_internal_same_heading, d_internal_same_link,
 d_internal_same_template, d_internal_same_region
   Whether a record of the old text is one of the new, moved by `_shift`.
 */
-static bool
-d_internal_same_block(
-    const struct d_wiki* _old,
-    size_t               _left,
-    const struct d_wiki* _new,
-    size_t               _right,
-    ptrdiff_t            _shift
+static
+bool d_internal_same_block(
+    const struct dj_wiki* _old,
+    size_t                _left,
+    const struct dj_wiki* _new,
+    size_t                _right,
+    ptrdiff_t             _shift
 )
 {
-    const struct d_wiki_block* const a = &_old->blocks[_left];
-    const struct d_wiki_block* const b = &_new->blocks[_right];
+    const struct dj_wiki_block* const a = &_old->blocks[_left];
+    const struct dj_wiki_block* const b = &_new->blocks[_right];
 
     return ( (a->kind == b->kind) &&
              (d_internal_moved(a->start, _shift) == b->start) &&
@@ -678,17 +671,17 @@ d_internal_same_block(
 }
 
 
-static bool
-d_internal_same_heading(
-    const struct d_wiki* _old,
-    size_t               _left,
-    const struct d_wiki* _new,
-    size_t               _right,
-    ptrdiff_t            _shift
+static
+bool d_internal_same_heading(
+    const struct dj_wiki* _old,
+    size_t                _left,
+    const struct dj_wiki* _new,
+    size_t                _right,
+    ptrdiff_t             _shift
 )
 {
-    const struct d_wiki_heading* const a = &_old->headings[_left];
-    const struct d_wiki_heading* const b = &_new->headings[_right];
+    const struct dj_wiki_heading* const a = &_old->headings[_left];
+    const struct dj_wiki_heading* const b = &_new->headings[_right];
 
     return ( (a->level == b->level) &&
              (a->top == b->top) &&
@@ -701,17 +694,17 @@ d_internal_same_heading(
 }
 
 
-static bool
-d_internal_same_link(
-    const struct d_wiki* _old,
-    size_t               _left,
-    const struct d_wiki* _new,
-    size_t               _right,
-    ptrdiff_t            _shift
+static
+bool d_internal_same_link(
+    const struct dj_wiki* _old,
+    size_t                _left,
+    const struct dj_wiki* _new,
+    size_t                _right,
+    ptrdiff_t             _shift
 )
 {
-    const struct d_wiki_link* const a = &_old->links[_left];
-    const struct d_wiki_link* const b = &_new->links[_right];
+    const struct dj_wiki_link* const a = &_old->links[_left];
+    const struct dj_wiki_link* const b = &_new->links[_right];
 
     // a reference's destination is its definition's, which may have changed
     return ( (a->form == b->form) &&
@@ -734,17 +727,17 @@ d_internal_same_link(
 }
 
 
-static bool
-d_internal_same_template(
-    const struct d_wiki* _old,
-    size_t               _left,
-    const struct d_wiki* _new,
-    size_t               _right,
-    ptrdiff_t            _shift
+static
+bool d_internal_same_template(
+    const struct dj_wiki* _old,
+    size_t                _left,
+    const struct dj_wiki* _new,
+    size_t                _right,
+    ptrdiff_t             _shift
 )
 {
-    const struct d_wiki_template* const a = &_old->templates[_left];
-    const struct d_wiki_template* const b = &_new->templates[_right];
+    const struct dj_wiki_template* const a = &_old->templates[_left];
+    const struct dj_wiki_template* const b = &_new->templates[_right];
 
     // the template, then each of its arguments
     if ( (a->kind != b->kind) ||
@@ -761,9 +754,9 @@ d_internal_same_template(
     // each argument, moved as the template is
     for (size_t index = 0; index < a->argument_count; ++index)
     {
-        const struct d_wiki_argument* const x =
+        const struct dj_wiki_argument* const x =
             &_old->arguments[a->first_argument + index];
-        const struct d_wiki_argument* const y =
+        const struct dj_wiki_argument* const y =
             &_new->arguments[b->first_argument + index];
 
         // where it is, and its key
@@ -781,17 +774,17 @@ d_internal_same_template(
 }
 
 
-static bool
-d_internal_same_region(
-    const struct d_wiki* _old,
-    size_t               _left,
-    const struct d_wiki* _new,
-    size_t               _right,
-    ptrdiff_t            _shift
+static
+bool d_internal_same_region(
+    const struct dj_wiki* _old,
+    size_t                _left,
+    const struct dj_wiki* _new,
+    size_t                _right,
+    ptrdiff_t             _shift
 )
 {
-    const struct d_wiki_region* const a = &_old->regions[_left];
-    const struct d_wiki_region* const b = &_new->regions[_right];
+    const struct dj_wiki_region* const a = &_old->regions[_left];
+    const struct dj_wiki_region* const b = &_new->regions[_right];
 
     return ( (d_internal_same_text(a->name, b->name)) &&
              (d_internal_moved(a->begin, _shift) == b->begin) &&
@@ -804,18 +797,18 @@ d_internal_same_region(
 // 4.1    Kinds of record
 //------------------------------------------------------------------------------
 // 4.1.1
-// d_internal_fn_same
+// dj_internal_fn_same
 //   function: whether a record of the old text is one of the new.
-typedef bool (*d_internal_fn_same)(const struct d_wiki* _old,
+typedef bool (*dj_internal_fn_same)(const struct dj_wiki* _old,
                                    size_t               _left,
-                                   const struct d_wiki* _new,
+                                   const struct dj_wiki* _new,
                                    size_t               _right,
                                    ptrdiff_t            _shift);
 
 // 4.1.2
-// d_internal_fn_span
+// dj_internal_fn_span
 //   function: where a record of a kind begins and ends, by its index.
-typedef void (*d_internal_fn_span)(const struct d_wiki* _wiki,
+typedef void (*dj_internal_fn_span)(const struct dj_wiki* _wiki,
                                    size_t               _index,
                                    size_t*              _out_start,
                                    size_t*              _out_end);
@@ -824,30 +817,30 @@ typedef void (*d_internal_fn_span)(const struct d_wiki* _wiki,
 // d_internal_kind
 //   struct: a kind of record: its name, how many a page has, its span,
 //   and its comparison.
-struct d_internal_kind
+struct dj_internal_kind
 {
     const char*        name;
-    size_t             (*count)(const struct d_wiki* _wiki);
-    d_internal_fn_span span;
-    d_internal_fn_same same;
+    size_t             (*count)(const struct dj_wiki* _wiki);
+    dj_internal_fn_span span;
+    dj_internal_fn_same same;
 };
 
 
-static size_t
-d_internal_block_count(
-    const struct d_wiki* _wiki
+static
+size_t d_internal_block_count(
+    const struct dj_wiki* _wiki
 )
 {
     return _wiki->block_count;
 }
 
 
-static void
-d_internal_block_span(
-    const struct d_wiki* _wiki,
-    size_t               _index,
-    size_t*              _out_start,
-    size_t*              _out_end
+static
+void d_internal_block_span(
+    const struct dj_wiki* _wiki,
+    size_t                _index,
+    size_t*               _out_start,
+    size_t*               _out_end
 )
 {
     *_out_start = _wiki->blocks[_index].start;
@@ -857,21 +850,21 @@ d_internal_block_span(
 }
 
 
-static size_t
-d_internal_heading_count(
-    const struct d_wiki* _wiki
+static
+size_t d_internal_heading_count(
+    const struct dj_wiki* _wiki
 )
 {
     return _wiki->heading_count;
 }
 
 
-static void
-d_internal_heading_span(
-    const struct d_wiki* _wiki,
-    size_t               _index,
-    size_t*              _out_start,
-    size_t*              _out_end
+static
+void d_internal_heading_span(
+    const struct dj_wiki* _wiki,
+    size_t                _index,
+    size_t*               _out_start,
+    size_t*               _out_end
 )
 {
     *_out_start = _wiki->headings[_index].start;
@@ -881,21 +874,21 @@ d_internal_heading_span(
 }
 
 
-static size_t
-d_internal_link_count(
-    const struct d_wiki* _wiki
+static
+size_t d_internal_link_count(
+    const struct dj_wiki* _wiki
 )
 {
     return _wiki->link_count;
 }
 
 
-static void
-d_internal_link_span(
-    const struct d_wiki* _wiki,
-    size_t               _index,
-    size_t*              _out_start,
-    size_t*              _out_end
+static
+void d_internal_link_span(
+    const struct dj_wiki* _wiki,
+    size_t                _index,
+    size_t*               _out_start,
+    size_t*               _out_end
 )
 {
     *_out_start = _wiki->links[_index].start;
@@ -905,21 +898,21 @@ d_internal_link_span(
 }
 
 
-static size_t
-d_internal_template_count(
-    const struct d_wiki* _wiki
+static
+size_t d_internal_template_count(
+    const struct dj_wiki* _wiki
 )
 {
     return _wiki->template_count;
 }
 
 
-static void
-d_internal_template_span(
-    const struct d_wiki* _wiki,
-    size_t               _index,
-    size_t*              _out_start,
-    size_t*              _out_end
+static
+void d_internal_template_span(
+    const struct dj_wiki* _wiki,
+    size_t                _index,
+    size_t*               _out_start,
+    size_t*               _out_end
 )
 {
     *_out_start = _wiki->templates[_index].start;
@@ -929,21 +922,21 @@ d_internal_template_span(
 }
 
 
-static size_t
-d_internal_region_count(
-    const struct d_wiki* _wiki
+static
+size_t d_internal_region_count(
+    const struct dj_wiki* _wiki
 )
 {
     return _wiki->region_count;
 }
 
 
-static void
-d_internal_region_span(
-    const struct d_wiki* _wiki,
-    size_t               _index,
-    size_t*              _out_start,
-    size_t*              _out_end
+static
+void d_internal_region_span(
+    const struct dj_wiki* _wiki,
+    size_t                _index,
+    size_t*               _out_start,
+    size_t*               _out_end
 )
 {
     *_out_start = _wiki->regions[_index].begin;
@@ -958,14 +951,14 @@ d_internal_next_outside
   The next record of a kind, from `*_at`, that lies wholly before `_start`
 or, `_after`, wholly from `_end` on: D_WIKI_NONE when there is no more.
 */
-static size_t
-d_internal_next_outside(
-    const struct d_internal_kind* _kind,
-    const struct d_wiki*          _wiki,
-    size_t*                       _at,
-    bool                          _after,
-    size_t                        _start,
-    size_t                        _end
+static
+size_t d_internal_next_outside(
+    const struct dj_internal_kind* _kind,
+    const struct dj_wiki*          _wiki,
+    size_t*                        _at,
+    bool                           _after,
+    size_t                         _start,
+    size_t                         _end
 )
 {
     const size_t count = _kind->count(_wiki);
@@ -997,12 +990,12 @@ d_internal_outside_same
 same before it, and the same moved after it.  Gives the line of the first
 that is not.
 */
-static bool
-d_internal_outside_same(
-    const struct d_internal_kind*      _kind,
-    const struct d_wiki*               _old,
-    const struct d_internal_candidate* _candidate,
-    size_t*                            _out_line
+static
+bool d_internal_outside_same(
+    const struct dj_internal_kind*      _kind,
+    const struct dj_wiki*               _old,
+    const struct dj_internal_candidate* _candidate,
+    size_t*                             _out_line
 )
 {
     const ptrdiff_t shift = (ptrdiff_t)_candidate->new_end -
@@ -1078,12 +1071,12 @@ d_internal_outside_same(
 d_internal_with_endings
   Text with each line feed written as the page ends its lines.
 */
-static bool
-d_internal_with_endings(
-    const struct d_wiki_doc* _doc,
-    const char*              _text,
-    size_t                   _length,
-    struct d_wiki_buffer*    _out
+static
+bool d_internal_with_endings(
+    const struct dj_wiki_doc* _doc,
+    const char*               _text,
+    size_t                    _length,
+    struct dj_wiki_buffer*    _out
 )
 {
     // each byte, a lone line feed after a carriage return on a CRLF page
@@ -1106,9 +1099,9 @@ d_internal_with_endings(
 }
 
 
-static void
-d_internal_discard(
-    struct d_internal_candidate* _candidate
+static
+void d_internal_discard(
+    struct dj_internal_candidate* _candidate
 )
 {
     d_wiki_release(&_candidate->records);
@@ -1124,17 +1117,17 @@ d_internal_try
   Makes a candidate of a splice, and keeps it only if the page outside it
 reads as it did.
 */
-static bool
-d_internal_try(
-    struct d_wiki_doc*           _doc,
-    size_t                       _start,
-    size_t                       _end,
-    const char*                  _text,
-    size_t                       _length,
-    struct d_internal_candidate* _out
+static
+bool d_internal_try(
+    struct dj_wiki_doc*           _doc,
+    size_t                        _start,
+    size_t                        _end,
+    const char*                   _text,
+    size_t                        _length,
+    struct dj_internal_candidate* _out
 )
 {
-    static const struct d_internal_kind kinds[] =
+    static const struct dj_internal_kind kinds[] =
     {
         { "block",    d_internal_block_count,    d_internal_block_span,
           d_internal_same_block    },
@@ -1147,7 +1140,7 @@ d_internal_try(
         { "region",   d_internal_region_count,   d_internal_region_span,
           d_internal_same_region   }
     };
-    struct d_wiki_buffer insert = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer insert = { NULL, 0u, 0u, false };
     char                 why[256];
 
     memset(_out, 0, sizeof(*_out));
@@ -1232,10 +1225,10 @@ d_internal_compose
   Where a change was, made one with the splice after it: the first byte
 either replaced, and, in the text after both, past the last either wrote.
 */
-static void
-d_internal_compose(
-    struct d_wiki_doc*                 _doc,
-    const struct d_internal_candidate* _candidate
+static
+void d_internal_compose(
+    struct dj_wiki_doc*                 _doc,
+    const struct dj_internal_candidate* _candidate
 )
 {
     const ptrdiff_t first  = (ptrdiff_t)_doc->new_end -
@@ -1270,11 +1263,11 @@ page was goes to `_kept`, or is freed.  A change kept to `_kept` is the
 first splice of two, counted with the second, and where it was made one
 with where the second is.
 */
-static void
-d_internal_commit(
-    struct d_wiki_doc*           _doc,
-    struct d_internal_candidate* _candidate,
-    struct d_internal_kept*      _kept
+static
+void d_internal_commit(
+    struct dj_wiki_doc*           _doc,
+    struct dj_internal_candidate* _candidate,
+    struct dj_internal_kept*      _kept
 )
 {
     // what the page was
@@ -1322,10 +1315,10 @@ d_internal_commit(
 d_internal_restore, d_internal_release_kept
   Goes back to what the page was, or lets it go.
 */
-static void
-d_internal_restore(
-    struct d_wiki_doc*      _doc,
-    struct d_internal_kept* _kept
+static
+void d_internal_restore(
+    struct dj_wiki_doc*      _doc,
+    struct dj_internal_kept* _kept
 )
 {
     d_wiki_release(&_doc->records);
@@ -1344,9 +1337,9 @@ d_internal_restore(
 }
 
 
-static void
-d_internal_release_kept(
-    struct d_internal_kept* _kept
+static
+void d_internal_release_kept(
+    struct dj_internal_kept* _kept
 )
 {
     // nothing kept is nothing to let go
@@ -1363,16 +1356,15 @@ d_internal_release_kept(
 }
 
 
-bool
-d_wiki_doc_splice(
-    struct d_wiki_doc* _doc,
-    size_t             _start,
-    size_t             _end,
-    const char*        _text,
-    size_t             _length
+bool d_wiki_doc_splice(
+    struct dj_wiki_doc* _doc,
+    size_t              _start,
+    size_t              _end,
+    const char*         _text,
+    size_t              _length
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1398,16 +1390,16 @@ d_wiki_doc_splice(
 d_internal_raw_is
   Whether a span of a text is the bytes given, line endings aside.
 */
-static bool
-d_internal_raw_is(
-    const struct d_wiki_doc* _doc,
-    const char*              _text,
-    size_t                   _start,
-    size_t                   _end,
-    const char*              _wanted
+static
+bool d_internal_raw_is(
+    const struct dj_wiki_doc* _doc,
+    const char*               _text,
+    size_t                    _start,
+    size_t                    _end,
+    const char*               _wanted
 )
 {
-    struct d_wiki_buffer wanted = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer wanted = { NULL, 0u, 0u, false };
     bool                 same   = false;
 
     // spans not written are not the text
@@ -1442,9 +1434,9 @@ d_internal_find_link_at
 */
 static size_t
 d_internal_find_link_at(
-    const struct d_wiki* _wiki,
+    const struct dj_wiki* _wiki,
     size_t               _start,
-    enum d_wiki_form     _form
+    enum dj_wiki_form     _form
 )
 {
     // each link; the one that starts there in the form
@@ -1468,15 +1460,15 @@ d_internal_two_spans
 second, keeping what is between them; a span with no text written is not
 replaced.
 */
-static bool
-d_internal_two_spans(
-    struct d_wiki_doc*            _doc,
-    const struct d_internal_span* _a,
-    const struct d_internal_span* _b,
-    struct d_internal_candidate*  _out
+static
+bool d_internal_two_spans(
+    struct dj_wiki_doc*            _doc,
+    const struct dj_internal_span* _a,
+    const struct dj_internal_span* _b,
+    struct dj_internal_candidate*  _out
 )
 {
-    struct d_wiki_buffer middle = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer middle = { NULL, 0u, 0u, false };
 
     // one span, or both, in order
     if (!_a->text)
@@ -1526,16 +1518,16 @@ d_internal_label_change
 a label added to [[...]] before its page in Gollum's order, or after it
 in MediaWiki's; a label "" taking the label and its `|` away.
 */
-static bool
-d_internal_label_change(
-    struct d_wiki_doc*        _doc,
-    const struct d_wiki_link* _link,
-    const char*               _label,
-    struct d_internal_span*   _out_span,
-    struct d_wiki_buffer*     _out
+static
+bool d_internal_label_change(
+    struct dj_wiki_doc*        _doc,
+    const struct dj_wiki_link* _link,
+    const char*                _label,
+    struct dj_internal_span*   _out_span,
+    struct dj_wiki_buffer*     _out
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_doc->dialect);
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_doc->dialect);
     const bool                        wiki   = (_link->form ==
                                                 D_WIKI_FORM_WIKI);
     const bool                        gollum = (_doc->dialect ==
@@ -1615,19 +1607,19 @@ d_internal_link_texts
 definition's, and its label, with where the label goes.  Gives whether
 both can be written in the link's form, the document saying why not.
 */
-static bool
-d_internal_link_texts(
-    struct d_wiki_doc*             _doc,
-    struct d_internal_link_change* _change
+static
+bool d_internal_link_texts(
+    struct dj_wiki_doc*             _doc,
+    struct dj_internal_link_change* _change
 )
 {
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_doc->dialect);
-    const struct d_wiki_link* const   link   = &_change->link;
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_doc->dialect);
+    const struct dj_wiki_link* const   link   = &_change->link;
 
     // what the destination is written as, in its place or its definition's
     if (_change->target)
     {
-        const struct d_wiki_link* const holder =
+        const struct dj_wiki_link* const holder =
             (_change->refers)
                 ? ( (link->definition != D_WIKI_NONE)
                         ? &_doc->records.links[link->definition] : NULL )
@@ -1672,19 +1664,19 @@ d_internal_link_splices
 label; or, for a reference given both, its label here first, kept to
 `_kept` to go back to, then its destination in its definition.
 */
-static bool
-d_internal_link_splices(
-    struct d_wiki_doc*             _doc,
-    struct d_internal_link_change* _change,
-    struct d_internal_kept*        _kept,
-    struct d_internal_candidate*   _out
+static
+bool d_internal_link_splices(
+    struct dj_wiki_doc*             _doc,
+    struct dj_internal_link_change* _change,
+    struct dj_internal_kept*        _kept,
+    struct dj_internal_candidate*   _out
 )
 {
     const bool             both   = (_change->refers) &&
                                     (_change->target) &&
                                     (_change->label);
-    struct d_internal_span target = { 0u, 0u, NULL };
-    struct d_internal_span label  = _change->label_span;
+    struct dj_internal_span target = { 0u, 0u, NULL };
+    struct dj_internal_span label  = _change->label_span;
 
     // a reference's label here and its destination in its definition: two
     if (both)
@@ -1703,7 +1695,7 @@ d_internal_link_splices(
     // where the destination is written: here, or in the definition now
     if (_change->target)
     {
-        const struct d_wiki_link* const holder =
+        const struct dj_wiki_link* const holder =
             (_change->refers)
                 ? &_doc->records.links[_change->link.definition]
                 : &_change->link;
@@ -1726,15 +1718,15 @@ d_internal_link_reads_back
 by the splice, with as many links on the page, leading where it was told
 and showing the label it was given.
 */
-static bool
-d_internal_link_reads_back(
-    const struct d_wiki_doc*             _doc,
-    const struct d_internal_link_change* _change,
-    const struct d_internal_candidate*   _candidate
+static
+bool d_internal_link_reads_back(
+    const struct dj_wiki_doc*             _doc,
+    const struct dj_internal_link_change* _change,
+    const struct dj_internal_candidate*   _candidate
 )
 {
-    const struct d_wiki_link* const link  = &_change->link;
-    const struct d_wiki* const      now   = &_candidate->records;
+    const struct dj_wiki_link* const link  = &_change->link;
+    const struct dj_wiki* const      now   = &_candidate->records;
     const size_t                    moved = (link->start >= _candidate->old_end)
                                                 ? (link->start +
                                                    _candidate->new_end -
@@ -1778,17 +1770,16 @@ d_internal_link_reads_back(
 }
 
 
-bool
-d_wiki_doc_set_link(
-    struct d_wiki_doc* _doc,
-    size_t             _link,
-    const char*        _target,
-    const char*        _label
+bool d_wiki_doc_set_link(
+    struct dj_wiki_doc* _doc,
+    size_t              _link,
+    const char*         _target,
+    const char*         _label
 )
 {
-    struct d_internal_candidate   candidate;
-    struct d_internal_kept        kept;
-    struct d_internal_link_change change;
+    struct dj_internal_candidate   candidate;
+    struct dj_internal_kept        kept;
+    struct dj_internal_link_change change;
     bool                          ok = false;
 
     // parameter validation first
@@ -1843,13 +1834,12 @@ d_wiki_doc_set_link(
 }
 
 
-bool
-d_wiki_doc_unlink(
-    struct d_wiki_doc* _doc,
-    size_t             _link
+bool d_wiki_doc_unlink(
+    struct dj_wiki_doc* _doc,
+    size_t              _link
 )
 {
-    struct d_wiki_buffer text = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer text = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -1858,8 +1848,8 @@ d_wiki_doc_unlink(
         return (_doc) && (d_internal_fail(_doc, "no link of that number"));
     }
 
-    const struct d_wiki_driver* const driver = d_wiki_driver_of(_doc->dialect);
-    const struct d_wiki_link          link   = _doc->records.links[_link];
+    const struct dj_wiki_driver* const driver = d_wiki_driver_of(_doc->dialect);
+    const struct dj_wiki_link          link   = _doc->records.links[_link];
     const char* const                 page   = _doc->text;
 
     // a definition is used by its references; HTML's link closes elsewhere
@@ -1919,7 +1909,7 @@ d_wiki_doc_unlink(
 
     (void)d_wiki_buffer_add(&text, "", 0u);
 
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
     const size_t                before = _doc->records.link_count;
     bool                        ok     = (!text.failed) &&
                                          (d_internal_try(_doc, link.start,
@@ -1956,8 +1946,8 @@ d_wiki_doc_unlink(
 d_internal_trimmed_length
   The length of text without the line endings at its end.
 */
-static size_t
-d_internal_trimmed_length(
+static
+size_t d_internal_trimmed_length(
     const char* _text
 )
 {
@@ -1978,10 +1968,10 @@ d_internal_trimmed_length(
 d_internal_ends_line
   Whether the text before an offset ends a line, or there is none.
 */
-static bool
-d_internal_ends_line(
-    const struct d_wiki_doc* _doc,
-    size_t                   _at
+static
+bool d_internal_ends_line(
+    const struct dj_wiki_doc* _doc,
+    size_t                    _at
 )
 {
     const size_t begin = (_doc->records.bom) ? 3u : 0u;
@@ -1996,10 +1986,10 @@ d_internal_ends_line(
 d_internal_blank_before
   Whether the line before an offset is blank, or there is none.
 */
-static bool
-d_internal_blank_before(
-    const struct d_wiki_doc* _doc,
-    size_t                   _at
+static
+bool d_internal_blank_before(
+    const struct dj_wiki_doc* _doc,
+    size_t                    _at
 )
 {
     const size_t begin = (_doc->records.bom) ? 3u : 0u;
@@ -2044,15 +2034,15 @@ d_internal_body_text
 it had one, the text, a line ending, and a blank line before what heading
 follows.
 */
-static bool
-d_internal_body_text(
-    const struct d_wiki_doc* _doc,
-    size_t                   _section,
-    const char*              _text,
-    struct d_wiki_buffer*    _out
+static
+bool d_internal_body_text(
+    const struct dj_wiki_doc* _doc,
+    size_t                    _section,
+    const char*               _text,
+    struct dj_wiki_buffer*    _out
 )
 {
-    const struct d_wiki_section* const section = &_doc->records.sections[
+    const struct dj_wiki_section* const section = &_doc->records.sections[
                                                      _section];
     const size_t                       length  = d_internal_trimmed_length(
                                                      _text);
@@ -2106,15 +2096,14 @@ d_internal_body_text(
 }
 
 
-bool
-d_wiki_doc_set_body(
-    struct d_wiki_doc* _doc,
-    size_t             _section,
-    const char*        _text
+bool d_wiki_doc_set_body(
+    struct dj_wiki_doc* _doc,
+    size_t              _section,
+    const char*         _text
 )
 {
-    struct d_internal_candidate candidate;
-    struct d_wiki_buffer        body = { NULL, 0u, 0u, false };
+    struct dj_internal_candidate candidate;
+    struct dj_wiki_buffer        body = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -2123,7 +2112,7 @@ d_wiki_doc_set_body(
         return (_doc) && (d_internal_fail(_doc, "no section of that number"));
     }
 
-    const struct d_wiki_section section = _doc->records.sections[_section];
+    const struct dj_wiki_section section = _doc->records.sections[_section];
     const size_t                count   = _doc->records.section_count;
 
     // the body as written, its blank lines kept
@@ -2164,15 +2153,15 @@ d_internal_headings_spaced
 heading at the top that has a line after it does, or, on a page with none,
 as Markdown is written and MediaWiki's is not.
 */
-static bool
-d_internal_headings_spaced(
-    const struct d_wiki_doc* _doc
+static
+bool d_internal_headings_spaced(
+    const struct dj_wiki_doc* _doc
 )
 {
     // each heading at the top, until one has a line after it
     for (size_t index = 0; index < _doc->records.heading_count; ++index)
     {
-        const struct d_wiki_heading* const heading =
+        const struct dj_wiki_heading* const heading =
             &_doc->records.headings[index];
         size_t                             at      = heading->end;
 
@@ -2215,19 +2204,19 @@ it and a blank line before what heading follows; `_heading` says the text
 must begin with a heading at the span's start, and `_added` how many
 sections more the page must have after.
 */
-static bool
-d_internal_section_change(
-    struct d_wiki_doc* _doc,
-    size_t             _start,
-    size_t             _end,
-    const char*        _text,
-    bool               _heading,
-    long               _added
+static
+bool d_internal_section_change(
+    struct dj_wiki_doc* _doc,
+    size_t              _start,
+    size_t              _end,
+    const char*         _text,
+    bool                _heading,
+    long                _added
 )
 {
-    struct d_internal_candidate candidate;
-    struct d_wiki_buffer        text    = { NULL, 0u, 0u, false };
-    struct d_wiki_buffer        prefix  = { NULL, 0u, 0u, false };
+    struct dj_internal_candidate candidate;
+    struct dj_wiki_buffer        text    = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer        prefix  = { NULL, 0u, 0u, false };
     const size_t                length  = d_internal_trimmed_length(_text);
     const bool                  follows = (_end < _doc->length);
 
@@ -2304,10 +2293,10 @@ d_internal_section_change(
 d_internal_subsections
   How many sections a section holds, below it.
 */
-static size_t
-d_internal_subsections(
-    const struct d_wiki* _wiki,
-    size_t               _section
+static
+size_t d_internal_subsections(
+    const struct dj_wiki* _wiki,
+    size_t                _section
 )
 {
     size_t count = 0;
@@ -2328,11 +2317,10 @@ d_internal_subsections(
 }
 
 
-bool
-d_wiki_doc_set_section(
-    struct d_wiki_doc* _doc,
-    size_t             _section,
-    const char*        _text
+bool d_wiki_doc_set_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _section,
+    const char*         _text
 )
 {
     // parameter validation first
@@ -2348,7 +2336,7 @@ d_wiki_doc_set_section(
         return d_wiki_doc_set_body(_doc, 0u, _text);
     }
 
-    const struct d_wiki_section section = _doc->records.sections[_section];
+    const struct dj_wiki_section section = _doc->records.sections[_section];
     const size_t                held    = d_internal_subsections(
                                               &_doc->records, _section);
     const char* const           text    = (_text) ? _text : "";
@@ -2360,9 +2348,9 @@ d_wiki_doc_set_section(
     }
 
     // the sections the text makes are counted when it is read
-    struct d_wiki        sections;
+    struct dj_wiki        sections;
     char                 why[128];
-    struct d_wiki_buffer probe = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer probe = { NULL, 0u, 0u, false };
     long                 made  = 0;
 
     (void)d_wiki_buffer_add_text(&probe, text);
@@ -2386,14 +2374,13 @@ d_wiki_doc_set_section(
 }
 
 
-bool
-d_wiki_doc_rename_section(
-    struct d_wiki_doc* _doc,
-    size_t             _section,
-    const char*        _title
+bool d_wiki_doc_rename_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _section,
+    const char*         _title
 )
 {
-    struct d_wiki_buffer title = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer title = { NULL, 0u, 0u, false };
 
     // parameter validation first; the lead has no heading to retitle
     if ( (!_doc) ||
@@ -2403,7 +2390,7 @@ d_wiki_doc_rename_section(
         return (_doc) && (d_internal_fail(_doc, "no heading of that number"));
     }
 
-    const struct d_wiki_heading heading = _doc->records.headings[
+    const struct dj_wiki_heading heading = _doc->records.headings[
                                               _doc->records.sections[_section]
                                                   .heading];
     const size_t                count   = _doc->records.section_count;
@@ -2426,7 +2413,7 @@ d_wiki_doc_rename_section(
 
     (void)d_wiki_buffer_add(&title, "", 0u);
 
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
     bool                        ok = (!title.failed) &&
                                      (d_internal_try(_doc, heading.title_start,
                                                      heading.title_end,
@@ -2438,7 +2425,7 @@ d_wiki_doc_rename_section(
     // the heading at its level still, and the sections as they were
     if (ok)
     {
-        const struct d_wiki_section* const now =
+        const struct dj_wiki_section* const now =
             &candidate.records.sections[_section];
 
         // the same heading, at the same place and level
@@ -2462,16 +2449,15 @@ d_wiki_doc_rename_section(
 }
 
 
-bool
-d_wiki_doc_insert_section(
-    struct d_wiki_doc* _doc,
-    size_t             _before,
-    size_t             _level,
-    const char*        _title,
-    const char*        _body
+bool d_wiki_doc_insert_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _before,
+    size_t              _level,
+    const char*         _title,
+    const char*         _body
 )
 {
-    struct d_wiki_buffer text = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer text = { NULL, 0u, 0u, false };
 
     // parameter validation first: before a section, or after the last
     if ( (!_doc) ||
@@ -2520,13 +2506,12 @@ d_wiki_doc_insert_section(
 }
 
 
-bool
-d_wiki_doc_remove_section(
-    struct d_wiki_doc* _doc,
-    size_t             _section
+bool d_wiki_doc_remove_section(
+    struct dj_wiki_doc* _doc,
+    size_t              _section
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -2541,7 +2526,7 @@ d_wiki_doc_remove_section(
         return d_wiki_doc_set_body(_doc, 0u, "");
     }
 
-    const struct d_wiki_section section = _doc->records.sections[_section];
+    const struct dj_wiki_section section = _doc->records.sections[_section];
     const size_t                held    = d_internal_subsections(
                                               &_doc->records, _section);
     const size_t                count   = _doc->records.section_count;
@@ -2577,12 +2562,12 @@ d_wiki_doc_remove_section(
 d_internal_region_holds
   Whether a region of the candidate holds the text asked.
 */
-static bool
-d_internal_region_holds(
-    const struct d_wiki_doc*           _doc,
-    const struct d_internal_candidate* _candidate,
-    const char*                        _name,
-    const char*                        _text
+static
+bool d_internal_region_holds(
+    const struct dj_wiki_doc*           _doc,
+    const struct dj_internal_candidate* _candidate,
+    const char*                         _name,
+    const char*                         _text
 )
 {
     const size_t index = d_wiki_find_region(&_candidate->records, _name);
@@ -2600,10 +2585,10 @@ d_internal_region_holds(
 d_internal_region_text
   A region's text as it is written: a line ending after it.
 */
-static bool
-d_internal_region_text(
-    const char*           _text,
-    struct d_wiki_buffer* _out
+static
+bool d_internal_region_text(
+    const char*            _text,
+    struct dj_wiki_buffer* _out
 )
 {
     const size_t length = strlen(_text);
@@ -2623,15 +2608,14 @@ d_internal_region_text(
 }
 
 
-bool
-d_wiki_doc_set_region(
-    struct d_wiki_doc* _doc,
-    const char*        _name,
-    const char*        _text
+bool d_wiki_doc_set_region(
+    struct dj_wiki_doc* _doc,
+    const char*         _name,
+    const char*         _text
 )
 {
-    struct d_internal_candidate candidate;
-    struct d_wiki_buffer        text = { NULL, 0u, 0u, false };
+    struct dj_internal_candidate candidate;
+    struct dj_wiki_buffer        text = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -2648,7 +2632,7 @@ d_wiki_doc_set_region(
         return d_internal_fail(_doc, "no region of that name");
     }
 
-    const struct d_wiki_region region = _doc->records.regions[index];
+    const struct dj_wiki_region region = _doc->records.regions[index];
     const size_t               count  = _doc->records.region_count;
     bool                       ok     = (d_internal_region_text(
                                              (_text) ? _text : "", &text)) &&
@@ -2679,17 +2663,16 @@ d_wiki_doc_set_region(
 }
 
 
-bool
-d_wiki_doc_add_region(
-    struct d_wiki_doc* _doc,
-    const char*        _name,
-    const char*        _text,
-    size_t             _section
+bool d_wiki_doc_add_region(
+    struct dj_wiki_doc* _doc,
+    const char*         _name,
+    const char*         _text,
+    size_t              _section
 )
 {
-    struct d_internal_candidate candidate;
-    struct d_wiki_buffer        text    = { NULL, 0u, 0u, false };
-    struct d_wiki_buffer        content = { NULL, 0u, 0u, false };
+    struct dj_internal_candidate candidate;
+    struct dj_wiki_buffer        text    = { NULL, 0u, 0u, false };
+    struct dj_wiki_buffer        content = { NULL, 0u, 0u, false };
 
     // parameter validation first: a name no region has, a section there is
     if ( (!_doc) ||
@@ -2810,15 +2793,14 @@ d_wiki_doc_add_region(
 }
 
 
-bool
-d_wiki_doc_remove_region(
-    struct d_wiki_doc* _doc,
-    const char*        _name,
-    bool               _keep
+bool d_wiki_doc_remove_region(
+    struct dj_wiki_doc* _doc,
+    const char*         _name,
+    bool                _keep
 )
 {
-    struct d_internal_candidate candidate;
-    struct d_wiki_buffer        text = { NULL, 0u, 0u, false };
+    struct dj_internal_candidate candidate;
+    struct dj_wiki_buffer        text = { NULL, 0u, 0u, false };
 
     // parameter validation first
     if ( (!_doc) ||
@@ -2835,7 +2817,7 @@ d_wiki_doc_remove_region(
         return d_internal_fail(_doc, "no region of that name");
     }
 
-    const struct d_wiki_region region = _doc->records.regions[index];
+    const struct dj_wiki_region region = _doc->records.regions[index];
     const size_t               count  = _doc->records.region_count;
 
     // its text, kept, or nothing
@@ -2880,14 +2862,14 @@ d_wiki_doc_remove_region(
 d_internal_find_argument
   The last argument of a template of a key; D_WIKI_NONE for none.
 */
-static size_t
-d_internal_find_argument(
-    const struct d_wiki* _wiki,
-    size_t               _template,
-    const char*          _key
+static
+size_t d_internal_find_argument(
+    const struct dj_wiki* _wiki,
+    size_t                _template,
+    const char*           _key
 )
 {
-    const struct d_wiki_template* const tmpl  = &_wiki->templates[_template];
+    const struct dj_wiki_template* const tmpl  = &_wiki->templates[_template];
     size_t                              found = D_WIKI_NONE;
 
     // the last of the key wins, as MediaWiki reads it
@@ -2910,16 +2892,16 @@ d_internal_argument_reads
   Whether a candidate's template at a start has an argument of a key whose
 value, trimmed, is the value asked, trimmed.
 */
-static bool
-d_internal_argument_reads(
-    const struct d_internal_candidate* _candidate,
-    size_t                             _start,
-    const char*                        _key,
-    const char*                        _value,
-    bool                               _present
+static
+bool d_internal_argument_reads(
+    const struct dj_internal_candidate* _candidate,
+    size_t                              _start,
+    const char*                         _key,
+    const char*                         _value,
+    bool                                _present
 )
 {
-    const struct d_wiki* const records = &_candidate->records;
+    const struct dj_wiki* const records = &_candidate->records;
 
     // the template that starts there
     for (size_t index = 0; index < records->template_count; ++index)
@@ -2987,16 +2969,15 @@ d_internal_argument_reads(
 }
 
 
-bool
-d_wiki_doc_set_argument(
-    struct d_wiki_doc* _doc,
-    size_t             _template,
-    const char*        _key,
-    const char*        _value
+bool d_wiki_doc_set_argument(
+    struct dj_wiki_doc* _doc,
+    size_t              _template,
+    const char*         _key,
+    const char*         _value
 )
 {
-    struct d_internal_candidate candidate;
-    struct d_wiki_buffer        text = { NULL, 0u, 0u, false };
+    struct dj_internal_candidate candidate;
+    struct dj_wiki_buffer        text = { NULL, 0u, 0u, false };
     size_t                      start = 0;
     size_t                      end   = 0;
 
@@ -3009,7 +2990,7 @@ d_wiki_doc_set_argument(
         return (_doc) && (d_internal_fail(_doc, "no template of that number"));
     }
 
-    const struct d_wiki_template tmpl     = _doc->records.templates[_template];
+    const struct dj_wiki_template tmpl     = _doc->records.templates[_template];
     const char* const            value    = (_value) ? _value : "";
     const size_t                 argument = d_internal_find_argument(
                                                 &_doc->records, _template,
@@ -3018,7 +2999,7 @@ d_wiki_doc_set_argument(
     // an argument there: its value, the space about a named one kept
     if (argument != D_WIKI_NONE)
     {
-        const struct d_wiki_argument* const given =
+        const struct dj_wiki_argument* const given =
             &_doc->records.arguments[argument];
 
         start = given->value_start;
@@ -3053,7 +3034,7 @@ d_wiki_doc_set_argument(
         // the next number, and whether the arguments stand a line each
         for (size_t index = 0; index < tmpl.argument_count; ++index)
         {
-            const struct d_wiki_argument* const given =
+            const struct dj_wiki_argument* const given =
                 &_doc->records.arguments[tmpl.first_argument + index];
 
             numbered += (given->name_start == D_WIKI_NONE) ? 1u : 0u;
@@ -3113,14 +3094,13 @@ d_wiki_doc_set_argument(
 }
 
 
-bool
-d_wiki_doc_remove_argument(
-    struct d_wiki_doc* _doc,
-    size_t             _template,
-    const char*        _key
+bool d_wiki_doc_remove_argument(
+    struct dj_wiki_doc* _doc,
+    size_t              _template,
+    const char*         _key
 )
 {
-    struct d_internal_candidate candidate;
+    struct dj_internal_candidate candidate;
 
     // parameter validation first
     if ( (!_doc) ||
@@ -3130,7 +3110,7 @@ d_wiki_doc_remove_argument(
         return (_doc) && (d_internal_fail(_doc, "no template of that number"));
     }
 
-    const struct d_wiki_template tmpl     = _doc->records.templates[_template];
+    const struct dj_wiki_template tmpl     = _doc->records.templates[_template];
     const size_t                 argument = d_internal_find_argument(
                                                 &_doc->records, _template,
                                                 _key);
@@ -3142,7 +3122,7 @@ d_wiki_doc_remove_argument(
                                      "key");
     }
 
-    const struct d_wiki_argument given = _doc->records.arguments[argument];
+    const struct dj_wiki_argument given = _doc->records.arguments[argument];
     const bool                   first = (argument == tmpl.first_argument) &&
                                          (tmpl.kind == D_WIKI_FUNCTION);
 
@@ -3184,9 +3164,9 @@ d_wiki_doc_remove_argument(
 //==============================================================================
 
 
-enum d_wiki_saved
+enum dj_wiki_saved
 d_wiki_doc_save(
-    struct d_wiki_doc* _doc,
+    struct dj_wiki_doc* _doc,
     const char*        _path,
     char*              _problem,
     size_t             _capacity

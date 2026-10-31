@@ -79,8 +79,10 @@ D_EXTERN_C_BEGIN
  *         returns -1 with errno EWOULDBLOCK, EAGAIN or EACCES -- an answer,
  *         not a fault. A filesystem that cannot lock at all is ENOLCK.
  */
-int d_file_lock_fd(int _fd,
-                   int _operation);
+int d_file_lock_fd(
+    int _fd,
+    int _operation
+);
 /**
  * @brief Takes or releases an advisory lock through the stream that owns the
  *        file.
@@ -92,8 +94,10 @@ int d_file_lock_fd(int _fd,
  * @param[in] _operation  as for d_file_lock_fd.
  * @return 0, or -1 on failure with errno set.
  */
-int d_file_lock_stream(FILE* _stream,
-                       int   _operation);
+int d_file_lock_stream(
+    FILE* _stream,
+    int   _operation
+);
 
 
 D_EXTERN_C_END

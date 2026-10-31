@@ -33,7 +33,7 @@
 #include "../../../../inc/djinterp/c/filesys/file_path.h"    // d_path_root_length
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_stat.h"  // D_INTERNAL_FILE_STAT_*
 // re_std
-#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, int64_t,
+#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, int64_t,
                                                      // uint32_t, uint64_t,
                                                      // INT32_MAX, UINT32_MAX
 // posix
@@ -88,10 +88,10 @@ metadata-change time at all, so st_changed stays 0 -- substituting the
 creation time there is exactly the conflation the field names exist to
 prevent.
 */
-static void
-d_internal_stat_fill_times(
+static
+void d_internal_stat_fill_times(
     const struct _stat64* _native,
-    struct d_stat64_t*    _out
+    struct dj_stat64_t*   _out
 )
 {
     _out->st_modified = (int64_t)_native->st_mtime;
@@ -115,10 +115,10 @@ d_internal_stat_fill_nsec
   The sub-second parts as POSIX.1-2008 spells them: st_mtim and its kin are
 struct timespec.
 */
-static void
-d_internal_stat_fill_nsec(
-    const struct stat* _native,
-    struct d_stat64_t* _out
+static
+void d_internal_stat_fill_nsec(
+    const struct stat*  _native,
+    struct dj_stat64_t* _out
 )
 {
     _out->st_modified_nsec = (uint32_t)_native->st_mtim.tv_nsec;
@@ -135,10 +135,10 @@ d_internal_stat_fill_nsec
   The sub-second parts as macOS spells them, having got there before POSIX
 under another name.
 */
-static void
-d_internal_stat_fill_nsec(
-    const struct stat* _native,
-    struct d_stat64_t* _out
+static
+void d_internal_stat_fill_nsec(
+    const struct stat*  _native,
+    struct dj_stat64_t* _out
 )
 {
     _out->st_modified_nsec = (uint32_t)_native->st_mtimespec.tv_nsec;
@@ -155,10 +155,10 @@ d_internal_stat_fill_nsec
   The sub-second parts as Darwin spells them for a build at a POSIX level
 without _DARWIN_C_SOURCE: a long of nanoseconds beside each time_t.
 */
-static void
-d_internal_stat_fill_nsec(
-    const struct stat* _native,
-    struct d_stat64_t* _out
+static
+void d_internal_stat_fill_nsec(
+    const struct stat*  _native,
+    struct dj_stat64_t* _out
 )
 {
     _out->st_modified_nsec = (uint32_t)_native->st_mtimensec;
@@ -175,10 +175,10 @@ d_internal_stat_fill_nsec
   Whole seconds only, by the platform or by D_CFG_FILE_STAT_NSEC: the
 sub-second fields stay 0.
 */
-static void
-d_internal_stat_fill_nsec(
-    const struct stat* _native,
-    struct d_stat64_t* _out
+static
+void d_internal_stat_fill_nsec(
+    const struct stat*  _native,
+    struct dj_stat64_t* _out
 )
 {
     (void)_native;
@@ -201,10 +201,10 @@ at: a member of its own at a POSIX level, and a name for st_birthtimespec's
 seconds otherwise. FreeBSD names its st_birthtim member at every level, and
 st_birthtime only where its BSD names are visible.
 */
-static void
-d_internal_stat_fill_birth(
-    const struct stat* _native,
-    struct d_stat64_t* _out
+static
+void d_internal_stat_fill_birth(
+    const struct stat*  _native,
+    struct dj_stat64_t* _out
 )
 {
 #if (D_INTERNAL_FILE_STAT_BSD_BIRTH == 1)
@@ -223,10 +223,10 @@ d_internal_stat_fill_birth
   stat(2) has no creation time to read here -- on Linux only statx reports
 one -- so st_created stays 0.
 */
-static void
-d_internal_stat_fill_birth(
-    const struct stat* _native,
-    struct d_stat64_t* _out
+static
+void d_internal_stat_fill_birth(
+    const struct stat*  _native,
+    struct dj_stat64_t* _out
 )
 {
     (void)_native;
@@ -240,14 +240,14 @@ d_internal_stat_fill_birth(
 /*
 d_internal_stat_fill_times
   POSIX: st_mtime and friends are MACROS here, not members -- the whole reason
-d_stat64_t's fields are named st_modified. Reading them off the platform's
+dj_stat64_t's fields are named st_modified. Reading them off the platform's
 struct is fine; declaring fields by those names is not. The sub-second parts
 and the creation time are read as the build spells them.
 */
-static void
-d_internal_stat_fill_times(
-    const struct stat* _native,
-    struct d_stat64_t* _out
+static
+void d_internal_stat_fill_times(
+    const struct stat*  _native,
+    struct dj_stat64_t* _out
 )
 {
     _out->st_modified = (int64_t)_native->st_mtime;
@@ -275,10 +275,10 @@ but it can say which member to read. The output is zeroed first, so every
 field the platform cannot answer reads 0 rather than whatever was on the
 caller's stack.
 */
-static void
-d_internal_stat_fill(
+static
+void d_internal_stat_fill(
     const D_INTERNAL_STAT_NATIVE* _native,
-    struct d_stat64_t*            _out
+    struct dj_stat64_t*           _out
 )
 {
     memset(_out,
@@ -310,8 +310,8 @@ d_internal_stat_unix_time
   A FILETIME -- 100-nanosecond ticks since 1601 -- in Unix seconds. A zeroed
 one, which no file has, reads 0.
 */
-static int64_t
-d_internal_stat_unix_time(
+static
+int64_t d_internal_stat_unix_time(
     FILETIME _time
 )
 {
@@ -334,10 +334,10 @@ S_IFLNK, with the link's own times and link count -- where _stat64 would
 follow it. Its size reads 0. Returns 1 for such a link, and 0 for anything
 else, which _stat64 then describes.
 */
-static int
-d_internal_stat_native_link(
-    const char*        _path,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native_link(
+    const char*         _path,
+    struct dj_stat64_t* _out
 )
 {
     BY_HANDLE_FILE_INFORMATION info = {0};
@@ -372,8 +372,8 @@ d_internal_stat_trim
 root, and never the one separator a root such as "\\\\server\\share\\" ends
 in.
 */
-static size_t
-d_internal_stat_trim(
+static
+size_t d_internal_stat_trim(
     const char* _path,
     size_t      _length
 )
@@ -422,14 +422,14 @@ d_internal_stat_native
   The CRT's _stat64 on one path, translated; the path in the platform's text
 first (d_internal_file_to_native).
 */
-static int
-d_internal_stat_native(
-    const char*        _path,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native(
+    const char*         _path,
+    struct dj_stat64_t* _out
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -463,12 +463,12 @@ d_internal_stat_native_dir
 needs, and answered as POSIX answers it: the path must then name a directory,
 so "file.txt\\" fails with ENOTDIR.
 */
-static int
-d_internal_stat_native_dir_in(
-    const char*        _path,
-    size_t             _length,
-    struct d_stat64_t* _out,
-    char*              _name_room
+static
+int d_internal_stat_native_dir_in(
+    const char*         _path,
+    size_t              _length,
+    struct dj_stat64_t* _out,
+    char*               _name_room
 )
 {
     char* const name = _name_room;
@@ -510,16 +510,16 @@ d_internal_stat_native_dir_in(
 d_internal_stat_native_dir
   d_internal_stat_native_dir's work is d_internal_stat_native_dir_in; this
 keeps the room it builds a path in, on the heap where that is 32 KiB
-(d_internal_file_path).
+(dj_internal_file_path).
 */
-static int
-d_internal_stat_native_dir(
-    const char*        _path,
-    size_t             _length,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native_dir(
+    const char*         _path,
+    size_t              _length,
+    struct dj_stat64_t* _out
 )
 {
-    struct d_internal_file_path name_held = {0};
+    struct dj_internal_file_path name_held = {0};
     char* const name = d_internal_file_path_room(&name_held);
 
     // d_internal_file_path_room has set errno, and reported the failure
@@ -549,11 +549,11 @@ separator is handled as POSIX handles one, since msvcrt's _stat64 fails
 "C:\\dir\\" with ENOENT (d_internal_stat_native_dir) -- and like POSIX it
 reaches through a link, whatever _follow says.
 */
-static int
-d_internal_stat_native_path(
-    const char*        _path,
-    int                _follow,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native_path(
+    const char*         _path,
+    int                 _follow,
+    struct dj_stat64_t* _out
 )
 {
     const size_t length  = strlen(_path);
@@ -586,10 +586,10 @@ d_internal_stat_native_path(
 d_internal_stat_native_fd
   The CRT's _fstat64 on a descriptor, translated.
 */
-static int
-d_internal_stat_native_fd(
-    int                _fd,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native_fd(
+    int                 _fd,
+    struct dj_stat64_t* _out
 )
 {
     struct _stat64 native = {0};
@@ -611,8 +611,8 @@ d_internal_stat_native_fd(
 d_internal_stat_fileno
   The CRT's spelling of fileno.
 */
-static int
-d_internal_stat_fileno(
+static
+int d_internal_stat_fileno(
     FILE* _stream
 )
 {
@@ -627,14 +627,14 @@ d_internal_stat_access
 for it on a file that exists would report a failure, a worse answer than the
 one Windows can give.
 */
-static int
-d_internal_stat_access(
+static
+int d_internal_stat_access(
     const char* _path,
     int         _mode
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -657,14 +657,14 @@ d_internal_stat_chmod
   The CRT's _chmod, which maps the mode onto the read-only attribute and
 discards everything else without complaint.
 */
-static int
-d_internal_stat_chmod(
+static
+int d_internal_stat_chmod(
     const char* _path,
     uint32_t    _mode
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -688,11 +688,11 @@ d_internal_stat_chmod(
 d_internal_stat_native_path
   stat resolves a symbolic link; lstat describes the link itself.
 */
-static int
-d_internal_stat_native_path(
-    const char*        _path,
-    int                _follow,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native_path(
+    const char*         _path,
+    int                 _follow,
+    struct dj_stat64_t* _out
 )
 {
     struct stat native = {0};
@@ -719,10 +719,10 @@ d_internal_stat_native_path(
 d_internal_stat_native_fd
   fstat on a descriptor, translated.
 */
-static int
-d_internal_stat_native_fd(
-    int                _fd,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native_fd(
+    int                 _fd,
+    struct dj_stat64_t* _out
 )
 {
     struct stat native = {0};
@@ -744,8 +744,8 @@ d_internal_stat_native_fd(
 d_internal_stat_fileno
   POSIX fileno.
 */
-static int
-d_internal_stat_fileno(
+static
+int d_internal_stat_fileno(
     FILE* _stream
 )
 {
@@ -758,8 +758,8 @@ d_internal_stat_fileno(
 d_internal_stat_access
   access(2), which checks the real user rather than the effective one.
 */
-static int
-d_internal_stat_access(
+static
+int d_internal_stat_access(
     const char* _path,
     int         _mode
 )
@@ -772,8 +772,8 @@ d_internal_stat_access(
 d_internal_stat_chmod
   chmod(2).
 */
-static int
-d_internal_stat_chmod(
+static
+int d_internal_stat_chmod(
     const char* _path,
     uint32_t    _mode
 )
@@ -791,11 +791,11 @@ file, so this reports ENOSYS -- the ISO C backend's answer, which is the only
 backend such a build can have. Every query is built on it, so each one says
 the same; the predicates answer no.
 */
-static int
-d_internal_stat_native_path(
-    const char*        _path,
-    int                _follow,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_native_path(
+    const char*         _path,
+    int                 _follow,
+    struct dj_stat64_t* _out
 )
 {
     (void)_path;
@@ -811,8 +811,8 @@ d_internal_stat_native_path(
 d_internal_stat_access
   No platform API to ask, so ENOSYS (d_internal_stat_native_path).
 */
-static int
-d_internal_stat_access(
+static
+int d_internal_stat_access(
     const char* _path,
     int         _mode
 )
@@ -829,8 +829,8 @@ d_internal_stat_access(
 d_internal_stat_chmod
   No platform API to ask, so ENOSYS (d_internal_stat_native_path).
 */
-static int
-d_internal_stat_chmod(
+static
+int d_internal_stat_chmod(
     const char* _path,
     uint32_t    _mode
 )
@@ -859,10 +859,8 @@ static int d_internal_stat_statx_ok = 1;
 d_internal_stat_statx_on
   Whether statx is still worth asking.
 */
-static int
-d_internal_stat_statx_on(
-    void
-)
+static
+int d_internal_stat_statx_on(void)
 {
     return __atomic_load_n(&d_internal_stat_statx_ok,
                            __ATOMIC_RELAXED);
@@ -873,10 +871,8 @@ d_internal_stat_statx_off
   Stops asking statx for the life of the process, and reports whether this
 call is the one that did.
 */
-static int
-d_internal_stat_statx_off(
-    void
-)
+static
+int d_internal_stat_statx_off(void)
 {
     return __atomic_exchange_n(&d_internal_stat_statx_ok,
                                0,
@@ -890,10 +886,8 @@ d_internal_stat_statx_on
   No memo in this build (D_INTERNAL_FILE_STAT_STATX_MEMO): statx is asked
 every time, and a refusal costs one failed call per stat.
 */
-static int
-d_internal_stat_statx_on(
-    void
-)
+static
+int d_internal_stat_statx_on(void)
 {
     return 1;
 }
@@ -902,10 +896,8 @@ d_internal_stat_statx_on(
 d_internal_stat_statx_off
   Nothing is remembered without atomics (d_internal_stat_statx_on).
 */
-static int
-d_internal_stat_statx_off(
-    void
-)
+static
+int d_internal_stat_statx_off(void)
 {
     return 0;
 }
@@ -914,7 +906,7 @@ d_internal_stat_statx_off(
 
 /*
 d_internal_stat_statx
-  Fills d_stat64_t from Linux statx(2). The reason this exists is btime: the
+  Fills dj_stat64_t from Linux statx(2). The reason this exists is btime: the
 creation time is in the inode, and stat() has no field to hand it back in.
 statx does, and returns in one syscall what stat reports in pieces. It is
 asked as stat(2) asks, without automounting the last component
@@ -928,12 +920,12 @@ path -- statx hands back sub-second and birth times whether or not the build
 asked for them, and a query macro that says no while the fields say yes is a
 lie the caller cannot defend against.
 */
-static int
-d_internal_stat_statx(
-    int                _dirfd,
-    const char*        _path,
-    int                _flags,
-    struct d_stat64_t* _out
+static
+int d_internal_stat_statx(
+    int                 _dirfd,
+    const char*         _path,
+    int                 _flags,
+    struct dj_stat64_t* _out
 )
 {
     struct statx stx = {0};
@@ -962,7 +954,7 @@ d_internal_stat_statx(
     _out->st_changed  = (int64_t)stx.stx_ctime.tv_sec;
 
     // statx splits the device into major and minor; recombined, st_dev means
-    // what stat's opaque dev_t means, and d_stat64_t stays one type
+    // what stat's opaque dev_t means, and dj_stat64_t stays one type
     _out->st_dev = (uint64_t)makedev(stx.stx_dev_major,
                                      stx.stx_dev_minor);
 
@@ -990,8 +982,8 @@ d_internal_stat_refused
 without it, EPERM from a sandbox that filters it -- rather than answering
 about the path.
 */
-static int
-d_internal_stat_refused(
+static
+int d_internal_stat_refused(
     int _error
 )
 {
@@ -1007,8 +999,8 @@ again in this process. A stat that failed as well leaves statx alone: the
 file itself was refused, as a FUSE filesystem may refuse one file, and that
 says nothing about the next one.
 */
-static int
-d_internal_stat_settle(
+static
+int d_internal_stat_settle(
     int         _result,
     int         _refusal,
     const char* _fn
@@ -1044,12 +1036,12 @@ d_internal_stat_lookup_path
 the call itself is refused. Any other statx failure is a real answer about a
 real path and is returned as it is.
 */
-static int
-d_internal_stat_lookup_path(
-    const char*        _path,
-    int                _follow,
-    struct d_stat64_t* _out,
-    const char*        _fn
+static
+int d_internal_stat_lookup_path(
+    const char*         _path,
+    int                 _follow,
+    struct dj_stat64_t* _out,
+    const char*         _fn
 )
 {
     int refusal = 0;
@@ -1092,11 +1084,11 @@ d_internal_stat_lookup_fd
 itself (AT_EMPTY_PATH), so the creation time a path reports is the one its
 open file reports too, and fstat where statx is refused.
 */
-static int
-d_internal_stat_lookup_fd(
-    int                _fd,
-    struct d_stat64_t* _out,
-    const char*        _fn
+static
+int d_internal_stat_lookup_fd(
+    int                 _fd,
+    struct dj_stat64_t* _out,
+    const char*         _fn
 )
 {
     int refusal = 0;
@@ -1136,12 +1128,12 @@ d_internal_stat_lookup_fd(
 d_internal_stat_lookup_path
   No statx in this build: the platform's stat, and nothing to fall back from.
 */
-static int
-d_internal_stat_lookup_path(
-    const char*        _path,
-    int                _follow,
-    struct d_stat64_t* _out,
-    const char*        _fn
+static
+int d_internal_stat_lookup_path(
+    const char*         _path,
+    int                 _follow,
+    struct dj_stat64_t* _out,
+    const char*         _fn
 )
 {
     (void)_fn;
@@ -1157,11 +1149,11 @@ d_internal_stat_lookup_path(
 d_internal_stat_lookup_fd
   No statx in this build: the platform's fstat.
 */
-static int
-d_internal_stat_lookup_fd(
-    int                _fd,
-    struct d_stat64_t* _out,
-    const char*        _fn
+static
+int d_internal_stat_lookup_fd(
+    int                 _fd,
+    struct dj_stat64_t* _out,
+    const char*         _fn
 )
 {
     (void)_fn;
@@ -1179,8 +1171,8 @@ d_internal_stat_absent
   Whether a failure means only that nothing is there: ENOENT, or ENOTDIR for
 a component on the way that is not a directory.
 */
-static int
-d_internal_stat_absent(
+static
+int d_internal_stat_absent(
     int _error
 )
 {
@@ -1196,12 +1188,12 @@ D_INTERNAL_STAT_FOLLOW, D_INTERNAL_STAT_PROBE, both or neither. A failure is
 reported as an error, except a probe's "nothing there", which is the answer
 it asked for.
 */
-static int
-d_internal_stat_path(
-    const char*        _path,
-    struct d_stat64_t* _out,
-    int                _how,
-    const char*        _fn
+static
+int d_internal_stat_path(
+    const char*         _path,
+    struct dj_stat64_t* _out,
+    int                 _how,
+    const char*         _fn
 )
 {
     const int follow = ((_how & D_INTERNAL_STAT_FOLLOW) != 0);
@@ -1240,10 +1232,9 @@ d_dir_exists on a link to a directory says yes. Whether it follows is
 D_INTERNAL_FILE_STAT_FOLLOW, so a build can make every query here stop at the
 link instead.
 */
-int
-d_file_stat64(
-    const char*        _path,
-    struct d_stat64_t* _buf
+int d_file_stat64(
+    const char*         _path,
+    struct dj_stat64_t* _buf
 )
 {
     // parameter validation
@@ -1272,10 +1263,9 @@ d_file_stat_nofollow64
 D_CFG_FILE_STAT_FOLLOW_SYMLINKS. On Windows, where _stat64 follows every
 reparse point, a link is described without it (d_internal_stat_native_link).
 */
-int
-d_file_stat_nofollow64(
-    const char*        _path,
-    struct d_stat64_t* _buf
+int d_file_stat_nofollow64(
+    const char*         _path,
+    struct dj_stat64_t* _buf
 )
 {
     // parameter validation
@@ -1304,10 +1294,9 @@ d_file_stat_nofollow64(
 d_file_stat_fd64
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_stat_fd64(
-    int                _fd,
-    struct d_stat64_t* _buf
+int d_file_stat_fd64(
+    int                 _fd,
+    struct dj_stat64_t* _buf
 )
 {
     (void)_fd;
@@ -1328,10 +1317,9 @@ d_file_stat_fd64
 fstat otherwise -- and the same translation every path query uses, so the
 two answers agree field for field.
 */
-int
-d_file_stat_fd64(
-    int                _fd,
-    struct d_stat64_t* _buf
+int d_file_stat_fd64(
+    int                 _fd,
+    struct dj_stat64_t* _buf
 )
 {
     // parameter validation
@@ -1374,8 +1362,7 @@ both layouts, so there is nothing to narrow and nothing that can overflow. It
 asks what a path is, and "nothing" is one of the answers, so a missing path
 fails without a notice.
 */
-int
-d_file_mode(
+int d_file_mode(
     const char* _path,
     uint32_t*   _mode
 )
@@ -1394,7 +1381,7 @@ d_file_mode(
                             "output is NULL",
                             -1);
 
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // d_internal_stat_path reports any failure but absence
     if (d_internal_stat_path(_path,
@@ -1414,8 +1401,7 @@ d_file_mode(
 d_file_mode_nofollow
   d_file_mode without following a final link, so a link describes itself.
 */
-int
-d_file_mode_nofollow(
+int d_file_mode_nofollow(
     const char* _path,
     uint32_t*   _mode
 )
@@ -1434,7 +1420,7 @@ d_file_mode_nofollow(
                             "output is NULL",
                             -1);
 
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // d_internal_stat_path reports any failure but absence
     if (d_internal_stat_path(_path,
@@ -1458,8 +1444,7 @@ the CRT would take it to its invalid-parameter handler, which by default ends
 the process. A refusal is reported at info severity, because "no" is the
 answer this function exists to give.
 */
-int
-d_file_access(
+int d_file_access(
     const char* _path,
     int         _mode
 )
@@ -1499,8 +1484,7 @@ d_file_chmod
   chmod, or the CRT's _chmod, which maps the mode onto the read-only attribute
 and discards everything else without complaint (d_internal_stat_chmod).
 */
-int
-d_file_chmod(
+int d_file_chmod(
     const char* _path,
     uint32_t    _mode
 )
@@ -1536,8 +1520,7 @@ it produces kilobytes -- the right answer to "what size does this file
 report" and the wrong one to "how many bytes will I get". d_file_read_all
 answers the second by distrusting a reported zero.
 */
-int64_t
-d_file_size64(
+int64_t d_file_size64(
     const char* _path
 )
 {
@@ -1549,7 +1532,7 @@ d_file_size64(
                             "path is NULL",
                             -1);
 
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // d_file_stat64 has already reported the failure
     if (d_file_stat64(_path,
@@ -1567,8 +1550,7 @@ d_file_size64(
 d_file_size_stream64
   The ISO C backend has no descriptors to ask, so this only reports ENOSYS.
 */
-int64_t
-d_file_size_stream64(
+int64_t d_file_size_stream64(
     FILE* _stream
 )
 {
@@ -1590,8 +1572,7 @@ the position, fail on a pipe, and on a Windows text-mode stream report a
 length that disagrees with what a read will actually produce. What the
 stream still buffers is not the file's yet, so it is not counted.
 */
-int64_t
-d_file_size_stream64(
+int64_t d_file_size_stream64(
     FILE* _stream
 )
 {
@@ -1615,7 +1596,7 @@ d_file_size_stream64(
                              -1);
     }
 
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // d_file_stat_fd64 has already reported the failure
     if (d_file_stat_fd64(fd,
@@ -1635,12 +1616,11 @@ d_file_exists
 asked a yes/no, and "no" is a meaningful answer rather than an error -- as it
 is for a path that is not there, which raises no notice.
 */
-int
-d_file_exists(
+int d_file_exists(
     const char* _path
 )
 {
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // a NULL path does not exist
     if (!_path)
@@ -1665,12 +1645,11 @@ d_file_is_regular
   Regular specifically: a directory, device, FIFO or socket all answer 0, and
 so does a dangling symlink, which has nothing to follow to.
 */
-int
-d_file_is_regular(
+int d_file_is_regular(
     const char* _path
 )
 {
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // a NULL path is not a regular file
     if (!_path)
@@ -1695,12 +1674,11 @@ d_dir_exists
   One stat, as d_file_stat64 asks, so a symbolic link to a directory counts as
 a directory.
 */
-int
-d_dir_exists(
+int d_dir_exists(
     const char* _path
 )
 {
-    struct d_stat64_t st = {0};
+    struct dj_stat64_t st = {0};
 
     // a NULL path is not a directory
     if (!_path)
@@ -1729,8 +1707,8 @@ d_internal_stat_fits_int32
   1 when a signed 64-bit value has a 32-bit twin: between INT32_MIN and
 INT32_MAX, so a time before 1901 overflows as surely as one after 2038.
 */
-static int
-d_internal_stat_fits_int32(
+static
+int d_internal_stat_fits_int32(
     int64_t _value
 )
 {
@@ -1740,17 +1718,17 @@ d_internal_stat_fits_int32(
 
 /*
 d_internal_stat_narrow
-  Copies a d_stat64_t into the 32-bit layout, or fails with EOVERFLOW when any
+  Copies a dj_stat64_t into the 32-bit layout, or fails with EOVERFLOW when any
 value does not fit -- checked before anything is written, so the output is
 the whole answer or the zeroes the caller already put there. Only the fields
 that are 64-bit in the wide layout need a check; the rest are 32-bit in both.
 */
-static int
-d_internal_stat_narrow(
-    const struct d_stat64_t* _wide,
-    struct d_stat32_t*       _out,
-    const char*              _fn,
-    const char*              _path
+static
+int d_internal_stat_narrow(
+    const struct dj_stat64_t* _wide,
+    struct dj_stat32_t*       _out,
+    const char*               _fn,
+    const char*               _path
 )
 {
     // referenced only by the notification path, which may be compiled out
@@ -1770,7 +1748,7 @@ d_internal_stat_narrow(
                              _fn,
                              _path,
                              "a size, time, device or inode number exceeds "
-                             "d_stat32_t",
+                             "dj_stat32_t",
                              -1);
     }
 
@@ -1797,10 +1775,9 @@ d_file_stat32
   d_file_stat64, narrowed. The output is zeroed first, so a failure of any
 kind -- the stat's or the narrowing's -- leaves no stale value behind.
 */
-int
-d_file_stat32(
-    const char*        _path,
-    struct d_stat32_t* _buf
+int d_file_stat32(
+    const char*         _path,
+    struct dj_stat32_t* _buf
 )
 {
     // parameter validation
@@ -1817,7 +1794,7 @@ d_file_stat32(
                             "output buffer is NULL",
                             -1);
 
-    struct d_stat64_t wide = {0};
+    struct dj_stat64_t wide = {0};
 
     memset(_buf,
            0,
@@ -1840,10 +1817,9 @@ d_file_stat32(
 d_file_stat_nofollow32
   d_file_stat_nofollow64, narrowed, zeroing first as d_file_stat32 does.
 */
-int
-d_file_stat_nofollow32(
-    const char*        _path,
-    struct d_stat32_t* _buf
+int d_file_stat_nofollow32(
+    const char*         _path,
+    struct dj_stat32_t* _buf
 )
 {
     // parameter validation
@@ -1860,7 +1836,7 @@ d_file_stat_nofollow32(
                             "output buffer is NULL",
                             -1);
 
-    struct d_stat64_t wide = {0};
+    struct dj_stat64_t wide = {0};
 
     memset(_buf,
            0,
@@ -1884,10 +1860,9 @@ d_file_stat_fd32
   d_file_stat_fd64, narrowed, zeroing first as d_file_stat32 does. On the ISO
 C backend the 64-bit twin's ENOSYS passes straight through.
 */
-int
-d_file_stat_fd32(
-    int                _fd,
-    struct d_stat32_t* _buf
+int d_file_stat_fd32(
+    int                 _fd,
+    struct dj_stat32_t* _buf
 )
 {
     // parameter validation
@@ -1898,7 +1873,7 @@ d_file_stat_fd32(
                             "output buffer is NULL",
                             -1);
 
-    struct d_stat64_t wide = {0};
+    struct dj_stat64_t wide = {0};
 
     memset(_buf,
            0,
@@ -1922,8 +1897,7 @@ d_file_size32
   d_file_size64, narrowed: a size past INT32_MAX fails with EOVERFLOW, since
 -1 must stay free to mean failure.
 */
-int32_t
-d_file_size32(
+int32_t d_file_size32(
     const char* _path
 )
 {
@@ -1952,8 +1926,7 @@ d_file_size32(
 d_file_size_stream32
   d_file_size_stream64, narrowed as d_file_size32 is.
 */
-int32_t
-d_file_size_stream32(
+int32_t d_file_size_stream32(
     FILE* _stream
 )
 {

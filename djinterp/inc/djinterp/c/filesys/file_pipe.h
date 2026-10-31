@@ -77,8 +77,10 @@ D_EXTERN_C_BEGIN
  * @post Close the stream with d_pipe_close -- never fclose, which does not
  *       reap the child.
  */
-FILE* d_pipe_open(const char* _command,
-                  const char* _mode);
+FILE* d_pipe_open(
+    const char* _command,
+    const char* _mode
+);
 /**
  * @brief Closes a pipe and waits for the child to finish.
  *
@@ -91,7 +93,9 @@ FILE* d_pipe_open(const char* _command,
  *         on Windows -- or -1 if the wait failed.
  * @post `_stream` is closed and must not be used again.
  */
-int   d_pipe_close(FILE* _stream);
+int d_pipe_close(
+    FILE* _stream
+);
 /**
  * @brief Decodes what d_pipe_close returned into the command's exit code, in
  *        the shell's vocabulary.
@@ -101,7 +105,9 @@ int   d_pipe_close(FILE* _stream);
  *         `_status` reports a failed wait, and any other status unchanged;
  *         on Windows the exit code itself, whatever its sign.
  */
-int   d_pipe_exit_code(int _status);
+int d_pipe_exit_code(
+    int _status
+);
 
 
 D_EXTERN_C_END

@@ -67,7 +67,7 @@ TABLE OF CONTENTS
 #include <cstddef>                   // std::size_t
 #include <cstdio>                    // std::FILE
 // djinterp
-#include "../djinterp.hpp"           // NS_DJINTERP, NS_END
+#include "../cpp/djinterp.hpp"           // NS_DJINTERP, NS_END
 #include "./env.h"                   // D_ENV_*
 #include "./cpp/env_cpp_features.h"  // D_ENV_CPP_FEATURE_*
 
@@ -120,8 +120,8 @@ NS_DJINTERP
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_language(
+inline
+std::size_t print_env_language(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -174,8 +174,8 @@ print_env_language(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_compiler(
+inline
+std::size_t print_env_compiler(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -246,8 +246,8 @@ print_env_compiler(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_os(
+inline
+std::size_t print_env_os(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -307,8 +307,8 @@ print_env_os(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_arch(
+inline
+std::size_t print_env_arch(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -358,8 +358,8 @@ print_env_arch(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_posix(
+inline
+std::size_t print_env_posix(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -417,8 +417,8 @@ print_env_posix(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_pp_limits(
+inline
+std::size_t print_env_pp_limits(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -464,8 +464,8 @@ print_env_pp_limits(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_build(
+inline
+std::size_t print_env_build(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -525,8 +525,8 @@ print_env_build(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_c_features(
+inline
+std::size_t print_env_c_features(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -608,8 +608,8 @@ print_env_c_features(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_cpp_feature_line(
+inline
+std::size_t print_env_cpp_feature_line(
     Target&     _target,
     const char* _name,
     const char* _desc,
@@ -648,8 +648,8 @@ print_env_cpp_feature_line(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_cpp_features_lang_cpp11(
+inline
+std::size_t print_env_cpp_features_lang_cpp11(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -701,8 +701,8 @@ print_env_cpp_features_lang_cpp11(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env_cpp_features_aggregate(
+inline
+std::size_t print_env_cpp_features_aggregate(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -778,8 +778,8 @@ print_env_cpp_features_aggregate(
  * @return the number of characters written, as print.hpp's writers count them.
  */
 template<typename Target>
-inline std::size_t
-print_env(
+inline
+std::size_t print_env(
     Target&     _target,
     std::size_t _indent = 0
 )
@@ -854,8 +854,8 @@ print_env(
  *                         entries are indented one level further.
  * @return the number of characters written, as print.hpp's writers count them.
  */
-inline std::size_t
-print_env_language(
+inline
+std::size_t print_env_language(
     std::FILE*  _target,
     std::size_t _indent = 0
 )
@@ -893,8 +893,8 @@ print_env_language(
  *                         entries are indented one level further.
  * @return the number of characters written, as print.hpp's writers count them.
  */
-inline std::size_t
-print_env_compiler(
+inline
+std::size_t print_env_compiler(
     std::FILE*  _target,
     std::size_t _indent = 0
 )
@@ -937,8 +937,8 @@ print_env_compiler(
  *                         entries are indented one level further.
  * @return the number of characters written, as print.hpp's writers count them.
  */
-inline std::size_t
-print_env_os(
+inline
+std::size_t print_env_os(
     std::FILE*  _target,
     std::size_t _indent = 0
 )
@@ -975,8 +975,8 @@ print_env_os(
  *                         entries are indented one level further.
  * @return the number of characters written, as print.hpp's writers count them.
  */
-inline std::size_t
-print_env(
+inline
+std::size_t print_env(
     std::FILE*  _target,
     std::size_t _indent = 0
 )

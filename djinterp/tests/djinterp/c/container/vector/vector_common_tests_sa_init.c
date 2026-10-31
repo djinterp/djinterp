@@ -9,16 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./vector_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * HELPER COMPARATOR FOR INT TESTS
  *****************************************************************************/
 
-static int
-int_comparator
-(
+static
+int int_comparator(
     const void* _a,
     const void* _b
 )
@@ -42,10 +41,8 @@ d_tests_sa_vector_common_init
   - memory allocation success verification
   - correct count and capacity initialization
 */
-bool
-d_tests_sa_vector_common_init
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_init(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -229,10 +226,8 @@ d_tests_sa_vector_common_init_from_array
   - correct element copying verification
   - capacity calculation (should include growth room)
 */
-bool
-d_tests_sa_vector_common_init_from_array
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_init_from_array(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -413,10 +408,8 @@ d_tests_sa_vector_common_init_from_args
   - successful initialization with pointer-sized elements
   - capacity calculation verification
 */
-bool
-d_tests_sa_vector_common_init_from_args
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_init_from_args(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -460,10 +453,8 @@ d_tests_sa_vector_common_init_copy
   - capacity preservation from source
   - element copying verification
 */
-bool
-d_tests_sa_vector_common_init_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_init_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -678,10 +669,8 @@ d_tests_sa_vector_common_init_fill
   - successful fill initialization
   - all elements match fill value verification
 */
-bool
-d_tests_sa_vector_common_init_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_init_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -908,10 +897,8 @@ d_tests_sa_vector_common_init_all
   - d_vector_common_init_copy
   - d_vector_common_init_fill
 */
-bool
-d_tests_sa_vector_common_init_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_vector_common_init_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

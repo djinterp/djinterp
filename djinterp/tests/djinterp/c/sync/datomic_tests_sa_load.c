@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "datomic_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -19,14 +19,12 @@ d_tests_sa_datomic_load_int
   - d_atomic_load_int returns the initialized value
   - d_atomic_load_int returns updated value after store
 */
-bool
-d_tests_sa_datomic_load_int
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_int(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
 
     result = true;
 
@@ -55,14 +53,12 @@ d_tests_sa_datomic_load_uint
   Tests the following:
   - d_atomic_load_uint returns the initialized value
 */
-bool
-d_tests_sa_datomic_load_uint
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_uint(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_uint val;
+    dj_atomic_uint val;
 
     result = true;
 
@@ -83,14 +79,12 @@ d_tests_sa_datomic_load_long
   Tests the following:
   - d_atomic_load_long returns the initialized value
 */
-bool
-d_tests_sa_datomic_load_long
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_long(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_long val;
+    dj_atomic_long val;
 
     result = true;
 
@@ -111,14 +105,12 @@ d_tests_sa_datomic_load_ulong
   Tests the following:
   - d_atomic_load_ulong returns the initialized value
 */
-bool
-d_tests_sa_datomic_load_ulong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_ulong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_ulong val;
+    dj_atomic_ulong val;
 
     result = true;
 
@@ -139,14 +131,12 @@ d_tests_sa_datomic_load_llong
   Tests the following:
   - d_atomic_load_llong returns the initialized value
 */
-bool
-d_tests_sa_datomic_load_llong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_llong(
+    struct dj_test_counter* _counter
 )
 {
     bool           result;
-    d_atomic_llong val;
+    dj_atomic_llong val;
 
     result = true;
 
@@ -167,14 +157,12 @@ d_tests_sa_datomic_load_ullong
   Tests the following:
   - d_atomic_load_ullong returns the initialized value
 */
-bool
-d_tests_sa_datomic_load_ullong
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_ullong(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_ullong val;
+    dj_atomic_ullong val;
 
     result = true;
 
@@ -195,14 +183,12 @@ d_tests_sa_datomic_load_ptr
   Tests the following:
   - d_atomic_load_ptr returns the initialized pointer
 */
-bool
-d_tests_sa_datomic_load_ptr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_ptr(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_ptr val;
+    dj_atomic_ptr val;
     int          dummy;
 
     result = true;
@@ -225,14 +211,12 @@ d_tests_sa_datomic_load_size
   Tests the following:
   - d_atomic_load_size returns the initialized value
 */
-bool
-d_tests_sa_datomic_load_size
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_size(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_atomic_size_t val;
+    dj_atomic_size_t val;
 
     result = true;
 
@@ -255,14 +239,12 @@ d_tests_sa_datomic_load_explicit
   - d_atomic_load_int_explicit with acquire ordering
   - d_atomic_load_int_explicit with seq_cst ordering
 */
-bool
-d_tests_sa_datomic_load_explicit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_explicit(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
 
     result = true;
 
@@ -299,10 +281,8 @@ d_tests_sa_datomic_load_all
   - all types: int, uint, long, ulong, llong, ullong, ptr, size
   - explicit memory order variants
 */
-bool
-d_tests_sa_datomic_load_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_load_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

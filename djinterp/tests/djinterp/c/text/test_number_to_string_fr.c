@@ -12,7 +12,11 @@
 // djinterp
 #include "../../../../inc/djinterp/c/text/number_to_string_fr.h"
 
-static void show(int64_t value, unsigned flags)
+static
+void show(
+    int64_t  value,
+    unsigned flags
+)
 {
     char buf[NTS_FR_I64_BUFFER_SIZE];
 

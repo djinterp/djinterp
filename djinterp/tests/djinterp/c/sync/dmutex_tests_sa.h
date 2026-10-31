@@ -25,115 +25,209 @@
 #include "../../../../inc/djinterp/c/sync/dmutex.h"
 #include "../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../inc/djinterp/c/dtime.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * III. BASIC MUTEX OPERATION TESTS
  *****************************************************************************/
-bool d_tests_sa_mutex_init(struct d_test_counter* _counter);
-bool d_tests_sa_mutex_destroy(struct d_test_counter* _counter);
-bool d_tests_sa_mutex_lock(struct d_test_counter* _counter);
-bool d_tests_sa_mutex_trylock(struct d_test_counter* _counter);
-bool d_tests_sa_mutex_unlock(struct d_test_counter* _counter);
-bool d_tests_sa_mutex_timedlock(struct d_test_counter* _counter);
+bool d_tests_sa_mutex_init(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_mutex_destroy(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_mutex_lock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_mutex_trylock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_mutex_unlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_mutex_timedlock(
+    struct dj_test_counter* _counter
+);
 
 // III. aggregation function
-bool d_tests_sa_mutex_basic_all(struct d_test_counter* _counter);
+bool d_tests_sa_mutex_basic_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * III-B. RECURSIVE MUTEX OPERATION TESTS
  *****************************************************************************/
-bool d_tests_sa_recursive_mutex_init(struct d_test_counter* _counter);
-bool d_tests_sa_recursive_mutex_destroy(struct d_test_counter* _counter);
-bool d_tests_sa_recursive_mutex_lock(struct d_test_counter* _counter);
-bool d_tests_sa_recursive_mutex_trylock(struct d_test_counter* _counter);
-bool d_tests_sa_recursive_mutex_unlock(struct d_test_counter* _counter);
-bool d_tests_sa_recursive_mutex_reentrant(struct d_test_counter* _counter);
+bool d_tests_sa_recursive_mutex_init(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_recursive_mutex_destroy(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_recursive_mutex_lock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_recursive_mutex_trylock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_recursive_mutex_unlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_recursive_mutex_reentrant(
+    struct dj_test_counter* _counter
+);
 
 // III-B. aggregation function
-bool d_tests_sa_mutex_recursive_all(struct d_test_counter* _counter);
+bool d_tests_sa_mutex_recursive_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IV. THREAD OPERATION TESTS
  *****************************************************************************/
-bool d_tests_sa_thread_create_join(struct d_test_counter* _counter);
-bool d_tests_sa_thread_detach(struct d_test_counter* _counter);
-bool d_tests_sa_thread_current(struct d_test_counter* _counter);
-bool d_tests_sa_thread_equal(struct d_test_counter* _counter);
-bool d_tests_sa_thread_yield(struct d_test_counter* _counter);
-bool d_tests_sa_thread_sleep(struct d_test_counter* _counter);
+bool d_tests_sa_thread_create_join(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_thread_detach(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_thread_current(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_thread_equal(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_thread_yield(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_thread_sleep(
+    struct dj_test_counter* _counter
+);
 
 // IV.  aggregation function
-bool d_tests_sa_thread_ops_all(struct d_test_counter* _counter);
+bool d_tests_sa_thread_ops_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IV-B. THREAD-SPECIFIC STORAGE TESTS
  *****************************************************************************/
-bool d_tests_sa_tss_create_delete(struct d_test_counter* _counter);
-bool d_tests_sa_tss_get_set(struct d_test_counter* _counter);
-bool d_tests_sa_tss_per_thread(struct d_test_counter* _counter);
+bool d_tests_sa_tss_create_delete(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_tss_get_set(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_tss_per_thread(
+    struct dj_test_counter* _counter
+);
 
 // IV-B. aggregation function
-bool d_tests_sa_tss_all(struct d_test_counter* _counter);
+bool d_tests_sa_tss_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * V. CONDITION VARIABLE TESTS
  *****************************************************************************/
-bool d_tests_sa_cond_init_destroy(struct d_test_counter* _counter);
-bool d_tests_sa_cond_signal(struct d_test_counter* _counter);
-bool d_tests_sa_cond_broadcast(struct d_test_counter* _counter);
-bool d_tests_sa_cond_wait(struct d_test_counter* _counter);
-bool d_tests_sa_cond_timedwait(struct d_test_counter* _counter);
+bool d_tests_sa_cond_init_destroy(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_cond_signal(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_cond_broadcast(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_cond_wait(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_cond_timedwait(
+    struct dj_test_counter* _counter
+);
 
 // V.   aggregation function
-bool d_tests_sa_cond_all(struct d_test_counter* _counter);
+bool d_tests_sa_cond_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * VI. READ-WRITE LOCK TESTS
  *****************************************************************************/
-bool d_tests_sa_rwlock_init_destroy(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_rdlock(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_wrlock(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_tryrdlock(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_trywrlock(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_unlock(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_timedrdlock(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_timedwrlock(struct d_test_counter* _counter);
-bool d_tests_sa_rwlock_concurrent_readers(struct d_test_counter* _counter);
+bool d_tests_sa_rwlock_init_destroy(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_rdlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_wrlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_tryrdlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_trywrlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_unlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_timedrdlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_timedwrlock(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_rwlock_concurrent_readers(
+    struct dj_test_counter* _counter
+);
 
 // VI.  aggregation function
-bool d_tests_sa_rwlock_all(struct d_test_counter* _counter);
+bool d_tests_sa_rwlock_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * VII. SYNCHRONIZATION PRIMITIVE TESTS
  *****************************************************************************/
-bool d_tests_sa_call_once(struct d_test_counter* _counter);
-bool d_tests_sa_call_once_concurrent(struct d_test_counter* _counter);
+bool d_tests_sa_call_once(
+    struct dj_test_counter* _counter
+);
+bool d_tests_sa_call_once_concurrent(
+    struct dj_test_counter* _counter
+);
 
 // VII. aggregation function
-bool d_tests_sa_sync_all(struct d_test_counter* _counter);
+bool d_tests_sa_sync_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * IX. UTILITY FUNCTION TESTS
  *****************************************************************************/
-bool d_tests_sa_hardware_concurrency(struct d_test_counter* _counter);
+bool d_tests_sa_hardware_concurrency(
+    struct dj_test_counter* _counter
+);
 
 // IX.  aggregation function
-bool d_tests_sa_utility_all(struct d_test_counter* _counter);
+bool d_tests_sa_utility_all(
+    struct dj_test_counter* _counter
+);
 
 
 /******************************************************************************
  * MODULE-LEVEL AGGREGATION
  *****************************************************************************/
-bool d_tests_sa_dmutex_run_all(struct d_test_counter* _counter);
+bool d_tests_sa_dmutex_run_all(
+    struct dj_test_counter* _counter
+);
 
 
 #endif  // DJINTERP_TESTS_DMUTEX_STANDALONE_

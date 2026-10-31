@@ -39,8 +39,7 @@ namespace
 
 // has
 //   whether an object has a member.
-bool
-has(
+bool has(
     const json_value&  _object,
     const std::string& _key
 )
@@ -50,8 +49,7 @@ has(
 
 // text_of
 //   a member that is a string, or the fallback.
-std::string
-text_of(
+std::string text_of(
     const json_value&  _object,
     const std::string& _key,
     const std::string& _fallback
@@ -66,8 +64,7 @@ text_of(
 
 // bits_text
 //   a span as a bitfield writes it: lowest..highest.
-std::string
-bits_text(
+std::string bits_text(
     int _lsb,
     int _width
 )
@@ -79,8 +76,7 @@ bits_text(
 // integer_value
 //   a number as JSON: past 2^53, which a reader in doubles would round, as
 // a string of its digits, which the readers here take as well.
-json_value
-integer_value(
+json_value integer_value(
     i64 _number
 )
 {
@@ -97,8 +93,7 @@ integer_value(
 
 // level_word
 //   a language level as the command line names it: c99, cpp17.
-std::string
-level_word(
+std::string level_word(
     standard _level
 )
 {
@@ -282,7 +277,8 @@ private:
 
     // integer
     //   a JSON number, or a string C would read as an integer.
-    static bool integer(
+    static
+    bool integer(
         const json_value& _value,
         i64&              _out
     )
@@ -1030,8 +1026,7 @@ private:
 
 // differences
 //   the members of an object that a default one does not have the same.
-json_value
-differences(
+json_value differences(
     const json_value& _object,
     const json_value& _default
 )
@@ -1171,7 +1166,8 @@ private:
 
     // maybe
     //   a string member, when it is not empty.
-    static void maybe(
+    static
+    void maybe(
         json_value&        _object,
         const char*        _key,
         const std::string& _text
@@ -1187,7 +1183,8 @@ private:
 
     // common
     //   the keys every row may have, where they are not the defaults.
-    static void common(
+    static
+    void common(
         json_value& _object,
         const row&  _row
     )
@@ -1232,7 +1229,8 @@ private:
     // value_entry
     //   a value as its range's "values" hold it: its number alone, where
     // nothing else is said of it.
-    static json_value value_entry(
+    static
+    json_value value_entry(
         const row& _row
     )
     {
@@ -1424,8 +1422,7 @@ symbol_object
   One row as it resolves: what it is, where it sits, its bits and value,
 the integer C knows it by, and what is wrong with it.
 */
-json_value
-symbol_object(
+json_value symbol_object(
     const sheet&                    _sheet,
     const resolved_row&             _row,
     const row&                      _source,
@@ -1574,8 +1571,7 @@ symbol_object(
 }  // anonymous namespace
 
 
-json_read
-read_json_sheet(
+json_read read_json_sheet(
     std::string_view _text
 )
 {
@@ -1655,8 +1651,7 @@ read_json_sheet(
     return out;
 }
 
-std::string
-write_bitfield(
+std::string write_bitfield(
     const sheet& _sheet
 )
 {
@@ -1665,8 +1660,7 @@ write_bitfield(
     return writer.run();
 }
 
-std::string
-write_export(
+std::string write_export(
     const sheet&      _sheet,
     const resolution& _resolution,
     const generated&  _header

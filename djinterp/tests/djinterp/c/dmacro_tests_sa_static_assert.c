@@ -14,7 +14,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -51,10 +51,8 @@ d_tests_sa_dmacro_assert_same_size
   - Compile-time assertions at file scope work
   - Runtime verification of size relationships
 */
-bool
-d_tests_sa_dmacro_assert_same_size
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_assert_same_size(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -146,18 +144,18 @@ d_tests_sa_dmacro_assert_same_size
     }
 
     // test with struct types
-    struct d_size_test_a { int x; int y; };
-    struct d_size_test_b { int a; int b; };
+    struct dj_size_test_a { int x; int y; };
+    struct dj_size_test_b { int a; int b; };
 
     // these should be same size (both 2 ints)
-    if (!d_assert_standalone(sizeof(struct d_size_test_a) == sizeof(struct d_size_test_b),
+    if (!d_assert_standalone(sizeof(struct dj_size_test_a) == sizeof(struct dj_size_test_b),
                              "two structs with same layout have same size",
                              "struct size comparison",
                              _test_info))
     {
         all_assertions_passed = false;
         printf("%s    struct a: %zu, struct b: %zu\n",
-               D_INDENT, sizeof(struct d_size_test_a), sizeof(struct d_size_test_b));
+               D_INDENT, sizeof(struct dj_size_test_a), sizeof(struct dj_size_test_b));
     }
 
     // update test counter
@@ -186,13 +184,11 @@ d_tests_sa_dmacro_static_assert_all
   Tests the following:
   - D_ASSERT_SAME_SIZE for type size validation
 */
-bool
-d_tests_sa_dmacro_static_assert_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_static_assert_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  assert_result;
     bool                  overall_result;
 
@@ -201,7 +197,7 @@ d_tests_sa_dmacro_static_assert_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

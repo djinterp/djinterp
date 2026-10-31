@@ -6,7 +6,7 @@
 *
 * WHAT A FACE IS ALLOWED TO BE.
 *   Everything here expands to a call into `option_common.h` or to a brace
-* initialiser for `struct d_option`. Nothing computes an answer the core does
+* initialiser for `struct dj_option`. Nothing computes an answer the core does
 * not already compute. If a macro below were deleted, every program using it
 * could be rewritten by hand against the core -- longer, but identical. That
 * is the test a face has to pass, and it is the same test the C++ face passes
@@ -54,7 +54,7 @@
 #include "../meta/type_info.h"
 #include "./option_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -98,7 +98,7 @@ D_EXTERN_C_BEGIN
 ///////////////////////////////////////////////////////////////////////////////
 
 // D_OPTION_CELL
-//   macro: a `struct d_option` initialiser for a key of type `KT` carrying a
+//   macro: a `struct dj_option` initialiser for a key of type `KT` carrying a
 // value of type `VT`, at a given offset. The offset is normally assigned by
 // `d_option_set_add`, so this form is for STATIC tables -- a schema laid out
 // at translation time, which is the C analogue of what the C++ face computes
@@ -116,7 +116,7 @@ D_EXTERN_C_BEGIN
 #define D_OPTION_CELL_UNARY(key, KT)                                          \
     D_OPTION_INIT(D_OPTION_KEY(key),                                          \
                   D_OPTION_TYPE(KT),                                          \
-                  (d_type_info16)0,                                           \
+                  (dj_type_info16)0,                                           \
                   0u,                                                         \
                   0u,                                                         \
                   D_OPTION_FLAG_UNARY)

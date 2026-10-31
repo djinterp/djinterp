@@ -32,13 +32,9 @@ d_tests_sa_dtime_timespec_normalize
   - handles edge case at exactly 1 billion nanoseconds
   - result tv_nsec is always in [0, 999999999]
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_normalize
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_normalize(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     bool                  test_positive_overflow;
     bool                  test_negative_nsec;
@@ -236,13 +232,9 @@ d_tests_sa_dtime_timespec_is_valid
   - returns false for NULL parameter
   - consistent results for same input
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_is_valid
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_is_valid(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     struct timespec       ts;
     int                   result;
     bool                  test_valid_normalized;
@@ -430,13 +422,9 @@ d_tests_sa_dtime_timespec_normalization_all
   - d_timespec_normalize
   - d_timespec_is_valid
 */
-struct d_test_object*
-d_tests_sa_dtime_timespec_normalization_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dtime_timespec_normalization_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("X. Timespec Normalization", 2);

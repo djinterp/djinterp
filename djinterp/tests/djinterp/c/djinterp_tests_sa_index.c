@@ -9,17 +9,15 @@
 *******************************************************************************/
 // djinterp
 #include "./djinterp_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
  * d_index_convert_fast() TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_index_convert_fast_basic
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_fast_basic(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -27,10 +25,8 @@ d_tests_sa_index_convert_fast_basic
     return true;
 }
 
-bool
-d_tests_sa_index_convert_fast_edge_cases
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_fast_edge_cases(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -38,10 +34,8 @@ d_tests_sa_index_convert_fast_edge_cases
     return true;
 }
 
-bool
-d_tests_sa_index_convert_fast_large_arrays
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_fast_large_arrays(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -49,14 +43,12 @@ d_tests_sa_index_convert_fast_large_arrays
     return true;
 }
 
-bool
-d_tests_sa_index_convert_fast_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_fast_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing d_index_convert_fast() ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     d_tests_sa_index_convert_fast_basic(&module_counter);
     d_tests_sa_index_convert_fast_edge_cases(&module_counter);
@@ -76,10 +68,8 @@ d_tests_sa_index_convert_fast_all
  * d_index_convert_safe() TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_index_convert_safe_valid
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_safe_valid(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -87,10 +77,8 @@ d_tests_sa_index_convert_safe_valid
     return true;
 }
 
-bool
-d_tests_sa_index_convert_safe_invalid
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_safe_invalid(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -98,10 +86,8 @@ d_tests_sa_index_convert_safe_invalid
     return true;
 }
 
-bool
-d_tests_sa_index_convert_safe_null_handling
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_safe_null_handling(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -109,14 +95,12 @@ d_tests_sa_index_convert_safe_null_handling
     return true;
 }
 
-bool
-d_tests_sa_index_convert_safe_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_convert_safe_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing d_index_convert_safe() ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     d_tests_sa_index_convert_safe_valid(&module_counter);
     d_tests_sa_index_convert_safe_invalid(&module_counter);
@@ -136,10 +120,8 @@ d_tests_sa_index_convert_safe_all
  * d_index_is_valid() TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_index_is_valid_positive
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_is_valid_positive(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -147,10 +129,8 @@ d_tests_sa_index_is_valid_positive
     return true;
 }
 
-bool
-d_tests_sa_index_is_valid_negative
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_is_valid_negative(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -158,10 +138,8 @@ d_tests_sa_index_is_valid_negative
     return true;
 }
 
-bool
-d_tests_sa_index_is_valid_boundary
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_is_valid_boundary(
+    struct dj_test_counter* _test_info
 )
 {
     // TODO: Port from djinterp_type_tests_sa.c
@@ -169,14 +147,12 @@ d_tests_sa_index_is_valid_boundary
     return true;
 }
 
-bool
-d_tests_sa_index_is_valid_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_is_valid_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n--- Testing d_index_is_valid() ---\n");
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     d_tests_sa_index_is_valid_positive(&module_counter);
     d_tests_sa_index_is_valid_negative(&module_counter);
@@ -193,20 +169,18 @@ d_tests_sa_index_is_valid_all
 
 
 /******************************************************************************
- * COMPREHENSIVE d_index FUNCTION TESTS
+ * COMPREHENSIVE dj_index FUNCTION TESTS
  *****************************************************************************/
 
-bool
-d_tests_sa_index_functions_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_index_functions_all(
+    struct dj_test_counter* _test_info
 )
 {
     printf("\n========================================\n");
-    printf("  d_index FUNCTION TESTS\n");
+    printf("  dj_index FUNCTION TESTS\n");
     printf("========================================\n");
 
-    struct d_test_counter module_counter = {0, 0, 0, 0};
+    struct dj_test_counter module_counter = {0, 0, 0, 0};
 
     // Run all index function tests
     d_tests_sa_index_convert_fast_all(&module_counter);
@@ -221,7 +195,7 @@ d_tests_sa_index_functions_all
 
     bool all_passed = (module_counter.tests_passed == module_counter.tests_total);
 
-    printf("\n--- d_index Function Tests Summary ---\n");
+    printf("\n--- dj_index Function Tests Summary ---\n");
     printf("  Assertions: %zu/%zu passed (%.1f%%)\n",
            module_counter.assertions_passed, module_counter.assertions_total,
            (module_counter.assertions_total > 0) ?

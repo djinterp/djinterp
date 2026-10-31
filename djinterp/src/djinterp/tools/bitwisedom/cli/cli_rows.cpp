@@ -15,7 +15,7 @@
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_rows.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 #include "./cli_internal.hpp"  // corresponding header
 
@@ -54,8 +54,7 @@ rows_named
   Every ROW operand's row, by id, each once, in the order named; false, the
 usage error said, at the first that names none.
 */
-bool
-rows_named(
+bool rows_named(
     kit::program&                   _program,
     kit::command                    _command,
     const resolution&               _resolution,
@@ -108,8 +107,7 @@ run_duplicate
 it: just after it -- a group's or a range's copy last in it -- named as it
 is with _COPY after, made unique.
 */
-int
-run_duplicate(
+int run_duplicate(
     kit::program&       _program,
     kit::command        _command,
     const rows_request& _request
@@ -152,8 +150,7 @@ run_remove
   Every row found first -- one that is not stops it, nothing removed -- then
 all of them, and everything in them.
 */
-int
-run_remove(
+int run_remove(
     kit::program&       _program,
     kit::command        _command,
     const rows_request& _request
@@ -200,8 +197,7 @@ struct rename_request
 run_rename
   The model's rename, which rewrites every reference, or says why not.
 */
-int
-run_rename(
+int run_rename(
     kit::program&         _program,
     kit::command          _command,
     const rename_request& _request
@@ -266,8 +262,7 @@ struct move_request
 place_in
   A row's group and its place among the group's rows.
 */
-bool
-place_in(
+bool place_in(
     sheet& _sheet,
     int    _id,
     int&   _parent,
@@ -298,8 +293,7 @@ move_beside
 as the window's tree drops a row. Returns where it went, as a note says it;
 "" -- the error said -- when it could not go there.
 */
-std::string
-move_beside(
+std::string move_beside(
     kit::program&       _program,
     kit::command        _command,
     const move_request& _request,
@@ -352,8 +346,7 @@ run_move
   One step up or down among its group's rows, or beside another row, or
 into a group.
 */
-int
-run_move(
+int run_move(
     kit::program&       _program,
     kit::command        _command,
     const move_request& _request
@@ -429,8 +422,7 @@ sort_words
   The keys rows sort by, as the setting names them, less the sheet's own
 order, which is no sort.
 */
-std::vector<std::string>
-sort_words()
+std::vector<std::string> sort_words()
 {
     const sheet_setting*     setting = find_sheet_setting(SORT_SETTING);
     std::vector<std::string> out;
@@ -450,8 +442,7 @@ run_sort
   The key given -- or, without one, the order the window shows the rows
 in, and its way round -- and the model's sort_rows.
 */
-int
-run_sort(
+int run_sort(
     kit::program&       _program,
     kit::command        _command,
     const sort_request& _request
@@ -525,8 +516,7 @@ struct get_request
 unknown_setting
   The usage error of a path no setting has, with the nearest that one has.
 */
-int
-unknown_setting(
+int unknown_setting(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _path
@@ -554,8 +544,7 @@ set_one
   One KEY=VALUE applied to the sheet in memory, and said; a usage error for
 anything else.
 */
-int
-set_one(
+int set_one(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _setting,
@@ -606,8 +595,7 @@ run_set
   Each KEY=VALUE applied in turn -- the first mistake stops it, nothing
 written -- then the sheet stored.
 */
-int
-run_set(
+int run_set(
     kit::program&      _program,
     kit::command       _command,
     const set_request& _request
@@ -644,8 +632,7 @@ settings_asked
 every setting, without a KEY; false, the usage error said, at a KEY no
 setting has.
 */
-bool
-settings_asked(
+bool settings_asked(
     kit::program&                      _program,
     kit::command                       _command,
     const std::vector<std::string>&    _keys,
@@ -682,8 +669,7 @@ run_get
   The settings asked for as KEY=VALUE lines; one KEY alone, its value alone,
 for a script to take; or as JSON.
 */
-int
-run_get(
+int run_get(
     kit::program&      _program,
     kit::command       _command,
     const get_request& _request
@@ -744,8 +730,7 @@ struct op_request
 
 // word_of
 //   a name as a word: lower case, each run of anything else one `_`.
-std::string
-word_of(
+std::string word_of(
     const char* _name
 )
 {
@@ -773,8 +758,7 @@ word_of(
 
 // op_words
 //   the operations' words, in op_kind's order: shift_left ... toggle_bit.
-std::vector<std::string>
-op_words()
+std::vector<std::string> op_words()
 {
     std::vector<std::string> out;
 
@@ -792,8 +776,7 @@ op_operation
 integer where it takes one; a usage error for a word it is not, an operand
 it lacks, or one it does not take.
 */
-int
-op_operation(
+int op_operation(
     kit::program&     _program,
     kit::command      _command,
     const op_request& _request,
@@ -839,8 +822,7 @@ op_table
   Each row's bits before and after, what it lost and gained, and how its
 definition is rewritten; the probe's, asked for, last.
 */
-std::string
-op_table(
+std::string op_table(
     const op_preview& _preview,
     const resolution& _resolution,
     int               _width,
@@ -892,8 +874,7 @@ run_op
 named -- as a table; with --apply, each target's definition rewritten and
 the sheet stored, the table said about it.
 */
-int
-run_op(
+int run_op(
     kit::program&     _program,
     kit::command      _command,
     const op_request& _request
@@ -938,7 +919,7 @@ run_op(
     }
 
     // the sheet is the result; the table is said about it
-    if ( _request.where.dry_run ||
+    if ( _request.where.edit.dry_run() ||
          (_program.verbosity() > 0) )
     {
         say(_program, shown);
@@ -960,8 +941,7 @@ run_op(
 
 // add_rows
 //   definition: the ROW operands of duplicate and remove.
-void
-add_rows(
+void add_rows(
     kit::command              _command,
     std::vector<std::string>& _rows
 )
@@ -979,8 +959,7 @@ add_rows(
 define_duplicate_remove
   duplicate and remove: rows named, copied or taken out.
 */
-void
-define_duplicate_remove(
+void define_duplicate_remove(
     kit::program& _program
 )
 {
@@ -994,9 +973,9 @@ define_duplicate_remove(
         });
 
     copy.group(CHANGING);
-    add_sheet(copy, copies->sheet);
+    add_sheet(_program, copy, copies->where, copies->sheet);
     add_rows(copy, copies->rows);
-    add_destination(copy, copies->where);
+    add_destination(_program, copy, copies->where);
 
     const auto   gone   = std::make_shared<rows_request>();
     kit::command remove = _program.add_command(
@@ -1008,9 +987,9 @@ define_duplicate_remove(
         });
 
     remove.group(CHANGING);
-    add_sheet(remove, gone->sheet);
+    add_sheet(_program, remove, gone->where, gone->sheet);
     add_rows(remove, gone->rows);
-    add_destination(remove, gone->where);
+    add_destination(_program, remove, gone->where);
 
     return;
 }
@@ -1019,8 +998,7 @@ define_duplicate_remove(
 define_rename
   rename: a row's own name, every reference following.
 */
-void
-define_rename(
+void define_rename(
     kit::program& _program
 )
 {
@@ -1034,13 +1012,13 @@ define_rename(
         });
 
     made.group(CHANGING);
-    add_sheet(made, request->sheet);
+    add_sheet(_program, made, request->where, request->sheet);
     made.add_option("ROW", request->row, "the row, as remove names one")
         .required();
     made.add_option("NAME", request->name,
                     "its new name, its own, without the affixes")
         .required();
-    add_destination(made, request->where);
+    add_destination(_program, made, request->where);
 
     return;
 }
@@ -1049,8 +1027,7 @@ define_rename(
 define_move
   move: one of five places.
 */
-void
-define_move(
+void define_move(
     kit::program& _program
 )
 {
@@ -1064,7 +1041,7 @@ define_move(
         });
 
     made.group(CHANGING);
-    add_sheet(made, request->sheet);
+    add_sheet(_program, made, request->where, request->sheet);
     made.add_option("ROW", request->row, "the row, as remove names one")
         .required();
     made.add_flag("--up", request->up, "one place up among its group's rows")
@@ -1081,7 +1058,7 @@ define_move(
     made.add_option("--into", request->into, "last in a group or a range")
         .type_name("ROW")
         .group("Where");
-    add_destination(made, request->where);
+    add_destination(_program, made, request->where);
 
     return;
 }
@@ -1090,8 +1067,7 @@ define_move(
 define_sort
   sort: the order rows are shown in, made the sheet's own.
 */
-void
-define_sort(
+void define_sort(
     kit::program& _program
 )
 {
@@ -1105,14 +1081,14 @@ define_sort(
         });
 
     made.group(CHANGING);
-    add_sheet(made, request->sheet);
+    add_sheet(_program, made, request->where, request->sheet);
     made.add_option("KEY", request->key,
                     "what to sort by: " + word_list(sort_words()) +
                     "; groups first among their rows (default: the order "
                     "the window shows them in, " + SORT_SETTING + ")");
     made.add_flag("--descending", request->descending,
                   "from the last to the first: Z to A, the largest first");
-    add_destination(made, request->where);
+    add_destination(_program, made, request->where);
 
     return;
 }
@@ -1121,8 +1097,7 @@ define_sort(
 define_set_get
   set and get: the settings, by the paths the window's Options show.
 */
-void
-define_set_get(
+void define_set_get(
     kit::program& _program
 )
 {
@@ -1136,11 +1111,11 @@ define_set_get(
         });
 
     set.group(CHANGING);
-    add_sheet(set, sets->sheet);
+    add_sheet(_program, set, sets->where, sets->sheet);
     set.add_option("SETTING", sets->settings,
                    "KEY=VALUE: gen.level=c11, grid.lines=false")
        .required();
-    add_destination(set, sets->where);
+    add_destination(_program, set, sets->where);
 
     const auto   gets = std::make_shared<get_request>();
     kit::command get  = _program.add_command(
@@ -1165,8 +1140,7 @@ define_set_get(
 define_op
   op: an operation over rows, previewed or applied.
 */
-void
-define_op(
+void define_op(
     kit::program& _program
 )
 {
@@ -1181,7 +1155,7 @@ define_op(
         });
 
     made.group(CHANGING);
-    add_sheet(made, request->sheet);
+    add_sheet(_program, made, request->where, request->sheet);
     made.add_option("OPERATION", request->operation, word_list(op_words()))
         .required();
     made.add_option("OPERAND", request->operand,
@@ -1194,7 +1168,7 @@ define_op(
     made.add_flag("--apply", request->apply,
                   "rewrite each row's definition, and write the sheet back; "
                   "the table goes to standard error, with -v or -n");
-    add_destination(made, request->where);
+    add_destination(_program, made, request->where);
 
     return;
 }
@@ -1207,8 +1181,7 @@ add_row_commands
   duplicate, remove, rename, move, sort, set, get and op, in the order the
 grammar lists them.
 */
-void
-add_row_commands(
+void add_row_commands(
     kit::program& _program
 )
 {

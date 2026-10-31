@@ -26,15 +26,11 @@ d_tests_dfile_stat
   - returns -1 for nonexistent file
   - returns -1 for NULL path
 */
-struct d_test_object*
-d_tests_dfile_stat
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_stat(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
-    struct d_stat_t       st;
+    struct dj_stat_t       st;
     int                   result;
     bool                  test_existing;
     bool                  test_valid_size;
@@ -95,15 +91,11 @@ d_tests_dfile_fstat
   - populates stat structure
   - returns -1 for invalid fd
 */
-struct d_test_object*
-d_tests_dfile_fstat
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_fstat(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
-    struct d_stat_t       st;
+    struct dj_stat_t       st;
     int                   fd;
     int                   result;
     bool                  test_valid_fd;
@@ -164,15 +156,11 @@ d_tests_dfile_lstat
   - returns 0 for existing file
   - returns -1 for nonexistent file
 */
-struct d_test_object*
-d_tests_dfile_lstat
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_lstat(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
-    struct d_stat_t       st;
+    struct dj_stat_t       st;
     int                   result;
     bool                  test_existing;
     bool                  test_nonexistent;
@@ -219,13 +207,9 @@ d_tests_dfile_access
   - returns 0 for readable file with R_OK
   - returns -1 for nonexistent file
 */
-struct d_test_object*
-d_tests_dfile_access
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_access(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_exists;
@@ -281,13 +265,9 @@ d_tests_dfile_chmod
   - actually changes permissions
   - returns -1 for nonexistent file
 */
-struct d_test_object*
-d_tests_dfile_chmod
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_chmod(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_change;
@@ -339,13 +319,9 @@ d_tests_dfile_file_size
   - returns -1 for nonexistent file
   - returns -1 for NULL path
 */
-struct d_test_object*
-d_tests_dfile_file_size
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_file_size(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int64_t               size;
     bool                  test_correct_size;
@@ -400,13 +376,9 @@ d_tests_dfile_file_size_stream
   - returns correct size for valid stream
   - returns -1 for NULL stream
 */
-struct d_test_object*
-d_tests_dfile_file_size_stream
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_file_size_stream(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     FILE*                 file;
     int64_t               size;
@@ -462,13 +434,9 @@ d_tests_dfile_file_exists
   - returns 0 for nonexistent file
   - returns 0 for NULL path
 */
-struct d_test_object*
-d_tests_dfile_file_exists
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_file_exists(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_exists;
@@ -524,13 +492,9 @@ d_tests_dfile_is_file
   - returns 0 for directory
   - returns 0 for nonexistent path
 */
-struct d_test_object*
-d_tests_dfile_is_file
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_is_file(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_regular_file;
@@ -586,13 +550,9 @@ d_tests_dfile_is_dir
   - returns 0 for regular file
   - returns 0 for nonexistent path
 */
-struct d_test_object*
-d_tests_dfile_is_dir
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_is_dir(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     char                  path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
     int                   result;
     bool                  test_directory;
@@ -655,13 +615,9 @@ d_tests_dfile_metadata_all
   - d_file_is_regular
   - d_dir_exists
 */
-struct d_test_object*
-d_tests_dfile_metadata_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_metadata_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("IX. File Metadata", 10);

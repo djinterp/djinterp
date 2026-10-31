@@ -19,9 +19,17 @@ static bool eq(const void*a,const void*b,void*x){(void)x;return *(const intmax_t
 static bool even(const void*e,void*x){(void)x;return (*(const intmax_t*)e%2)==0;}
 static int cmp3(const void*a,const void*b,void*x){(void)x;intmax_t l=*(const intmax_t*)a,r=*(const intmax_t*)b;return (l<r)?-1:((l>r)?1:0);}
 static bool add(const void*a,const void*b,void*o,void*x){(void)x;*(intmax_t*)o=*(const intmax_t*)a+*(const intmax_t*)b;return true;}
-static size_t dup2(const void*e,void*out,size_t cap,void*x){(void)x;if(cap<2)return 0;
+static
+size_t dup2(
+    const void* e,
+    void*       out,
+    size_t      cap,
+    void*       x
+)
+{(void)x;if(cap<2)return 0;
   ((intmax_t*)out)[0]=*(const intmax_t*)e;((intmax_t*)out)[1]=*(const intmax_t*)e;return 2;}
-int main(void){
+int main(void)
+{
   intmax_t a[8],b[8],o[32],seen[16],scr[8];size_t n,i;
   printf("djinterp [functional] sequence conformance (tier 1 completion)\n");
   /* reverse */
@@ -48,7 +56,7 @@ int main(void){
   ck(d_is_sorted(a,0,sizeof(intmax_t),lt,NULL),"empty is vacuously sorted");
   ck(d_is_sorted(a,1,sizeof(intmax_t),lt,NULL),"one element is vacuously sorted");
   /* comparator bridge */
-  {struct d_comparator_binding cb; cb.compare=cmp3; cb.context=NULL;
+  {struct dj_comparator_binding cb; cb.compare=cmp3; cb.context=NULL;
    a[0]=3;a[1]=1;a[2]=2;
    d_sorted(a,3,sizeof(intmax_t),d_precedes_from_comparator,&cb);
    ck(a[0]==1&&a[2]==3,"three-way comparator bridges to the bool ordering");}
@@ -73,7 +81,7 @@ int main(void){
   ck(d_slice(a,8,sizeof(intmax_t),5,2,o,32)==0,"an inverted slice yields nothing");
   ck(d_slice(a,8,sizeof(intmax_t),2,99,o,32)==6,"slice clips to the array");
   /* distinct */
-  {struct d_distinct_state st;
+  {struct dj_distinct_state st;
    a[0]=1;a[1]=2;a[2]=1;a[3]=3;a[4]=2;a[5]=3;
    d_distinct_state_init(&st,seen,16,sizeof(intmax_t),eq,NULL);
    n=d_distinct(a,6,&st,o,32);
@@ -89,7 +97,7 @@ int main(void){
    ck(!d_index_of(a,3,sizeof(intmax_t),even,NULL,&idx),"index_of reports absence");
    ck(d_find_last(a,3,sizeof(intmax_t),even,NULL)==NULL,"find_last reports absence");}
   /* transducer stages */
-  {struct d_transducer_stage st[2];struct d_flat_map_state fm;struct d_distinct_state ds;size_t w=0;
+  {struct dj_transducer_stage st[2];struct dj_flat_map_state fm;struct dj_distinct_state ds;size_t w=0;
    for(i=0;i<3;i++)a[i]=(intmax_t)i+1;
    d_flat_map_state_init(&fm,dup2,NULL,scr,8,sizeof(intmax_t));
    st[0]=d_transducer_flat_map(&fm);

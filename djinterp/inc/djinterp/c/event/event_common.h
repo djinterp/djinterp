@@ -14,12 +14,12 @@
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
 *   alphabet   Sigma            -- the open set of declared event summands
-*   event type e                -- one summand, named by a d_event_key
+*   event type e                -- one summand, named by a dj_event_key
 *   erasure    kappa : T_e -> K -- d_event_key_of_name / the declared key
-*   key set    K                -- d_event_key (uint64_t)
-*   payload    A_e              -- struct d_event_payload (bytes + arity)
-*   occurrence (e, a)           -- struct d_event_occurrence
-*   verdict    P = {pass,consume} -- enum d_verdict; consume is the left zero
+*   key set    K                -- dj_event_key (uint64_t)
+*   payload    A_e              -- struct dj_event_payload (bytes + arity)
+*   occurrence (e, a)           -- struct dj_event_occurrence
+*   verdict    P = {pass,consume} -- enum dj_verdict; consume is the left zero
 *                                    of handler sequencing (event_handler_
 *                                    common.h)
 *
@@ -52,9 +52,9 @@
 // djinterp
 #include "../djinterp.h"
 #include "../dmacro.h"
-#include "../../config/core/event/cfg_event_common.h"
+#include "../../config/c/event/cfg_event_common.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t, uint32_t, uint64_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -71,34 +71,34 @@ D_EXTERN_C_BEGIN
 ///        I.    IDENTITY SCALARS                                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_event_key
+// dj_event_key
 //   type: the image of the erasure kappa : T_e -> K. Names one summand of the
 // alphabet Sigma. Fixed at 64 bits for byte-level determinacy: the width is
 // part of the wire format, so it is not configurable.
-typedef uint64_t d_event_key;
+typedef uint64_t dj_event_key;
 
-// d_handler_id
+// dj_handler_id
 //   type: the named letter of a registry word -- the handle returned by bind
 // and consumed by unbind, enable, and disable. Zero is the null sentinel.
-typedef uint64_t d_handler_id;
+typedef uint64_t dj_handler_id;
 
-// d_event_id
-//   type: retired spelling of d_event_key, retained so existing call sites
+// dj_event_id
+//   type: retired spelling of dj_event_key, retained so existing call sites
 // compile. NOTE: the pre-core spelling was `D_EVENT_ID_TYPE` defaulting to
 // `int`; the key is now unconditionally 64-bit and D_EVENT_ID_TYPE is no
 // longer honoured. Narrowing conversions at existing call sites are the
 // migration cost.
-typedef d_event_key d_event_id;
+typedef dj_event_key dj_event_id;
 
 // D_HANDLER_ID_NULL
 //   constant: the invalid handler id. bind never returns it; every query
 // against it fails.
-#define D_HANDLER_ID_NULL           ((d_handler_id)0)
+#define D_HANDLER_ID_NULL           ((dj_handler_id)0)
 
 // D_EVENT_KEY_NONE
 //   constant: the key that names no summand of Sigma. Reserved; never
 // produced by d_event_key_of_name.
-#define D_EVENT_KEY_NONE            ((d_event_key)0)
+#define D_EVENT_KEY_NONE            ((dj_event_key)0)
 
 // D_EVENT_INDEX_NONE
 //   constant: the null entry index in the table's chains. Chains link by
@@ -116,12 +116,12 @@ typedef d_event_key d_event_id;
 // underlying type is implementation-defined in C, and a byte-determinate
 // record may not depend on that choice.
 
-// d_verdict
+// dj_verdict
 //   enum: the two-point verdict set P returned by every handler step. `pass`
 // lets dispatch continue to the next letter of the effective word; `consume`
 // cuts off the remainder for the current occurrence. In the handler monoid
 // `consume` is the left zero and the unit `skip` always yields `pass`.
-enum d_verdict
+enum dj_verdict
 {
     D_VERDICT_PASS    = 0,
     D_VERDICT_CONSUME = 1
@@ -136,8 +136,10 @@ enum d_verdict
 // d_verdict_consumed
 //   function: true if the verdict code halts propagation. The function form
 // exists for use as a value; the macro exists for use in a hot loop.
-D_STATIC_INLINE bool
-d_verdict_consumed(int32_t _verdict)
+D_STATIC_INLINE
+bool d_verdict_consumed(
+    int32_t _verdict
+)
 {
     return D_VERDICT_IS_CONSUMED(_verdict);
 }
@@ -152,7 +154,7 @@ d_verdict_consumed(int32_t _verdict)
 // is carried because the queue must copy the payload by value in order to
 // defer it, and a byte copy is the only copy available in C.
 
-// d_event_payload
+// dj_event_payload
 //   struct: a view of one occurrence's payload block. `data` is borrowed and
 // caller-owned for immediate dispatch; the queue copies the bytes.
 //   INVARIANT: the block pointed to by `data` must be a standard-layout
@@ -160,7 +162,7 @@ d_verdict_consumed(int32_t _verdict)
 // an admissible block: libstdc++ stores its elements in reverse declaration
 // order, so a C++ payload lowered as a tuple cannot be read by C. See
 // AGENT_README.md section 5, "things that are defects, not tradeoffs".
-struct d_event_payload
+struct dj_event_payload
 {
     void*    data;   // borrowed pointer to the packed payload block
     size_t   size;   // size of the block in bytes; 0 for an empty payload
@@ -168,13 +170,13 @@ struct d_event_payload
     uint32_t flags;  // reserved; must be 0
 };
 
-// d_event_occurrence
+// dj_event_occurrence
 //   struct: the pair (e, a) -- one occurrence of one event type, carrying its
 // payload. This is what a queue slot rehydrates to and what dispatch consumes.
-struct d_event_occurrence
+struct dj_event_occurrence
 {
-    d_event_key            key;
-    struct d_event_payload payload;
+    dj_event_key            key;
+    struct dj_event_payload payload;
 };
 
 // D_EVENT_PAYLOAD_EMPTY
@@ -187,12 +189,14 @@ struct d_event_occurrence
 
 // d_event_payload_make
 //   function: builds a payload view over a caller-owned block.
-D_STATIC_INLINE struct d_event_payload
-d_event_payload_make(void*    _data,
-                     size_t   _size,
-                     uint32_t _arity)
+D_STATIC_INLINE
+struct dj_event_payload d_event_payload_make(
+    void*    _data,
+    size_t   _size,
+    uint32_t _arity
+)
 {
-    struct d_event_payload payload;
+    struct dj_event_payload payload;
 
     payload.data  = _data;
     payload.size  = _size;
@@ -204,11 +208,13 @@ d_event_payload_make(void*    _data,
 
 // d_event_occurrence_make
 //   function: builds an occurrence from a key and a payload view.
-D_STATIC_INLINE struct d_event_occurrence
-d_event_occurrence_make(d_event_key            _key,
-                        struct d_event_payload _payload)
+D_STATIC_INLINE
+struct dj_event_occurrence d_event_occurrence_make(
+    dj_event_key            _key,
+    struct dj_event_payload _payload
+)
 {
-    struct d_event_occurrence occurrence;
+    struct dj_event_occurrence occurrence;
 
     occurrence.key     = _key;
     occurrence.payload = _payload;
@@ -245,8 +251,10 @@ d_event_occurrence_make(d_event_key            _key,
 //   function: kappa for a named event summand -- FNV-1a-64 over the name's
 // bytes. Never returns D_EVENT_KEY_NONE: a name that hashes to zero is
 // remapped to 1, so the reserved value stays reserved.
-D_STATIC_INLINE d_event_key
-d_event_key_of_name(const char* _name)
+D_STATIC_INLINE
+dj_event_key d_event_key_of_name(
+    const char* _name
+)
 {
     uint64_t hash;
     size_t   i;
@@ -267,7 +275,7 @@ d_event_key_of_name(const char* _name)
         ++i;
     }
 
-    return (d_event_key)((hash == 0u) ? 1u : hash);
+    return (dj_event_key)((hash == 0u) ? 1u : hash);
 }
 
 // d_event_key_hash
@@ -275,9 +283,11 @@ d_event_key_of_name(const char* _name)
 // its bytes, so the bucket assignment is identical on big- and little-endian
 // hosts -- a byte-wise hash makes cross-key iteration order platform
 // dependent, and iteration order is observable in a statistics dump.
-D_STATIC_INLINE size_t
-d_event_key_hash(d_event_key _key,
-                 size_t      _bucket_count)
+D_STATIC_INLINE
+size_t d_event_key_hash(
+    dj_event_key _key,
+    size_t       _bucket_count
+)
 {
     uint64_t mixed;
 
@@ -300,7 +310,9 @@ d_event_key_hash(d_event_key _key,
 // d_event_next_prime
 //   function: the smallest prime greater than or equal to _n, used to size a
 // bucket array. Carried over from the pre-core table unchanged.
-size_t d_event_next_prime(size_t _n);
+size_t d_event_next_prime(
+    size_t _n
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -486,13 +498,13 @@ size_t d_event_next_prime(size_t _n);
         return D_STRINGIFY(_name);                                            \
     }                                                                         \
                                                                               \
-    D_STATIC_INLINE d_event_key                                               \
+    D_STATIC_INLINE dj_event_key                                               \
     D_CONCAT(d_event_key_, _name)(void)                                       \
     {                                                                         \
         return D_INTERNAL_EVENT_KEY_EXPR(_name);                              \
     }                                                                         \
                                                                               \
-    D_STATIC_INLINE struct d_event_payload                                    \
+    D_STATIC_INLINE struct dj_event_payload                                    \
     D_CONCAT(d_event_view_, _name)(D_EVENT_PAYLOAD_TYPE(_name)* _block)       \
     {                                                                         \
         return d_event_payload_make(                                          \
@@ -521,7 +533,7 @@ size_t d_event_next_prime(size_t _n);
         return D_STRINGIFY(_name);                                            \
     }                                                                         \
                                                                               \
-    D_STATIC_INLINE d_event_key                                               \
+    D_STATIC_INLINE dj_event_key                                               \
     D_CONCAT(d_event_key_, _name)(void)                                       \
     {                                                                         \
         return D_INTERNAL_EVENT_KEY_EXPR(_name);                              \
@@ -561,10 +573,10 @@ size_t d_event_next_prime(size_t _n);
 // mechanical: the arena is full. D_EVENT_ERR_KEY is formal: the key names no
 // summand of the alphabet in force.
 
-// d_event_status
+// dj_event_status
 //   enum: outcome of a table or queue operation. Pinned values; stored as
 // int32_t wherever a record carries one.
-enum d_event_status
+enum dj_event_status
 {
     D_EVENT_OK           =  0,
     D_EVENT_ERR_NULL     = -1,  // a required argument was NULL
@@ -587,23 +599,23 @@ enum d_event_status
 
 #if (D_INTERNAL_EVENT_ASSERT_SIZES == 1)
 
-    D_STATIC_ASSERT(sizeof(struct d_event_payload) == 24,
-                    "d_event_payload layout drift");
-    D_STATIC_ASSERT(sizeof(struct d_event_occurrence) == 32,
-                    "d_event_occurrence layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_payload) == 24,
+                    "dj_event_payload layout drift");
+    D_STATIC_ASSERT(sizeof(struct dj_event_occurrence) == 32,
+                    "dj_event_occurrence layout drift");
 
 #endif  // D_INTERNAL_EVENT_ASSERT_SIZES
 
 #if (D_INTERNAL_EVENT_ASSERT_LAYOUT == 1)
 
-D_STATIC_ASSERT(sizeof(d_event_key) == 8,
-                "d_event_key must be exactly 64 bits (wire format)");
-D_STATIC_ASSERT(sizeof(d_handler_id) == 8,
-                "d_handler_id must be exactly 64 bits (wire format)");
-D_STATIC_ASSERT(offsetof(struct d_event_payload, data) == 0,
-                "d_event_payload field drift");
-D_STATIC_ASSERT(offsetof(struct d_event_occurrence, key) == 0,
-                "d_event_occurrence field drift");
+D_STATIC_ASSERT(sizeof(dj_event_key) == 8,
+                "dj_event_key must be exactly 64 bits (wire format)");
+D_STATIC_ASSERT(sizeof(dj_handler_id) == 8,
+                "dj_handler_id must be exactly 64 bits (wire format)");
+D_STATIC_ASSERT(offsetof(struct dj_event_payload, data) == 0,
+                "dj_event_payload field drift");
+D_STATIC_ASSERT(offsetof(struct dj_event_occurrence, key) == 0,
+                "dj_event_occurrence field drift");
 D_STATIC_ASSERT((int)D_VERDICT_PASS == 0,
                 "verdict pass must be 0 (pinned; wire format)");
 D_STATIC_ASSERT((int)D_VERDICT_CONSUME == 1,

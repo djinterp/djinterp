@@ -117,7 +117,7 @@ TABLE OF CONTENTS
 // 2.1.1
 // D_ENV_SSL_BACKEND
 //   value: the preferred TLS library, as a D_ENV_TLS_BACKEND_* identifier.
-// The kernel's enum d_ssl_backend uses the same values, and ssl.c asserts it.
+// The kernel's enum dj_ssl_backend uses the same values, and ssl.c asserts it.
 #ifndef D_ENV_SSL_BACKEND
     #define D_ENV_SSL_BACKEND D_ENV_TLS_BACKEND
 #endif  // D_ENV_SSL_BACKEND

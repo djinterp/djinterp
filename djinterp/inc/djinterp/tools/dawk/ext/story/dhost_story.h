@@ -25,15 +25,15 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Model
-         1.  d_story
-         2.  d_story_media_kind
+         1.  dj_story
+         2.  dj_story_media_kind
          3.  D_STORY_NONE
     2.  Drivers
-         1.  d_story_driver
+         1.  dj_story_driver
     3.  Results
-         1.  d_story_result
+         1.  dj_story_result
     4.  Extension
-         1.  d_host_story
+         1.  dj_host_story
 2.  OPERATIONS
     ----------
     1.  Building, for drivers
@@ -51,7 +51,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>     // bool
 #include <stddef.h>      // size_t
 // djinterp
-#include "../../dinterp.h"  // d_awk_interp
+#include "../../dinterp.h"  // dj_awk_interp
 
 
 //==============================================================================
@@ -62,15 +62,15 @@ TABLE OF CONTENTS
 // 1.1    Model
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_story
+// dj_story
 //   struct: one story read from a file, its driver, and the changes made to
 //   it since.  Layout is private.
-struct d_story;
+struct dj_story;
 
 // 1.1.2
-// d_story_media_kind
+// dj_story_media_kind
 //   enum: what a media file is, by its name's extension.
-enum d_story_media_kind
+enum dj_story_media_kind
 {
     D_STORY_MEDIA_OTHER = 0,
     D_STORY_MEDIA_AUDIO,
@@ -86,7 +86,7 @@ enum d_story_media_kind
 // 1.2    Drivers
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_story_driver
+// dj_story_driver
 //   struct: one format.  `claims` says whether a file is the format's, from
 //   its name; `open` reads it into the story through the builders below and
 //   keeps whatever it needs in `*_out_state`; `replace` takes a media file's
@@ -94,11 +94,11 @@ enum d_story_media_kind
 //   the state.  The three that can fail write why into `_problem`.  Slides
 //   are numbered from 1 in story order, and media are named as the format
 //   names them, which for a package is the path within it.
-struct d_story_driver
+struct dj_story_driver
 {
     const char* name;
     bool        (*claims)(const char* _path);
-    bool        (*open)(struct d_story* _story,
+    bool        (*open)(struct dj_story* _story,
                         const char*     _path,
                         void**          _out_state,
                         char*           _problem,
@@ -119,11 +119,11 @@ struct d_story_driver
 // 1.3    Results
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_story_result
+// dj_story_result
 //   enum: what a replacement came to.  D_STORY_ABSENT is a slide or an audio
 //   index that is not there, which a rule matching every file meets often and
 //   which is not a failure.
-enum d_story_result
+enum dj_story_result
 {
     D_STORY_REPLACED = 0,
     D_STORY_ABSENT,
@@ -133,10 +133,10 @@ enum d_story_result
 // 1.4    Extension
 //------------------------------------------------------------------------------
 // 1.4.1
-// d_host_story
+// dj_host_story
 //   struct: the extension's state behind the story_* functions: the drivers
 //   it knows, the story open, the last failure.  Layout is private.
-struct d_host_story;
+struct dj_host_story;
 
 
 //==============================================================================
@@ -152,18 +152,24 @@ struct d_host_story;
 // it holds in the slide's own order; a media file named twice is one file
 // used twice.  Both return D_STORY_NONE when memory runs out, and `open`
 // then fails.
-size_t      d_story_add_slide(struct d_story* _story,
-                              const char*     _name,
-                              size_t          _scene,
-                              size_t          _number);
-size_t      d_story_add_media(struct d_story* _story,
-                              size_t          _slide,
-                              const char*     _media);
+size_t d_story_add_slide(
+    struct dj_story* _story,
+    const char*      _name,
+    size_t           _scene,
+    size_t           _number
+);
+size_t d_story_add_media(
+    struct dj_story* _story,
+    size_t           _slide,
+    const char*      _media
+);
 // d_story_note records something a reader of the result should know that is
 // not a failure -- an order inferred, a checksum not found -- for
 // story_notes() to give the program; notes accumulate, one per line.
-bool        d_story_note(struct d_story* _story,
-                         const char*     _note);
+bool d_story_note(
+    struct dj_story* _story,
+    const char*      _note
+);
 
 // 2.2    Opening and saving
 //------------------------------------------------------------------------------
@@ -179,17 +185,21 @@ bool        d_story_note(struct d_story* _story,
  * @return the story, or `NULL` when no driver claims the file or the one that
  *         does cannot read it.
  */
-struct d_story* d_story_open(const char*                         _path,
-                             const struct d_story_driver* const* _drivers,
-                             size_t                              _count,
-                             char*                               _problem,
-                             size_t                              _capacity);
+struct dj_story* d_story_open(
+    const char*                          _path,
+    const struct dj_story_driver* const* _drivers,
+    size_t                               _count,
+    char*                                _problem,
+    size_t                               _capacity
+);
 /**
  * @brief Releases a story, discarding unsaved changes.
  *
  * @param[in] _story  the story; may be `NULL`.
  */
-void        d_story_free(struct d_story* _story);
+void d_story_free(
+    struct dj_story* _story
+);
 /**
  * @brief Writes the story, with every change, to another file.
  *
@@ -199,13 +209,21 @@ void        d_story_free(struct d_story* _story);
  * @param[in]     _capacity  the size of `_problem`.
  * @return `true` if it was written; `false` otherwise.
  */
-bool        d_story_save(struct d_story* _story,
-                         const char*     _path,
-                         char*           _problem,
-                         size_t          _capacity);
-size_t      d_story_changes(const struct d_story* _story);
-const char* d_story_driver_name(const struct d_story* _story);
-const char* d_story_notes(const struct d_story* _story);
+bool d_story_save(
+    struct dj_story* _story,
+    const char*      _path,
+    char*            _problem,
+    size_t           _capacity
+);
+size_t d_story_changes(
+    const struct dj_story* _story
+);
+const char* d_story_driver_name(
+    const struct dj_story* _story
+);
+const char* d_story_notes(
+    const struct dj_story* _story
+);
 
 // 2.3    Slides
 //------------------------------------------------------------------------------
@@ -214,24 +232,38 @@ const char* d_story_notes(const struct d_story* _story);
 // eighth; "S.N" is slide N of scene S, as Storyline shows it; anything else is
 // the first slide of that name.  It gives 0 for a key that names no slide, and
 // each accessor gives "" or 0 for a slide that is not there.
-size_t      d_story_slide_count(const struct d_story* _story);
-size_t      d_story_resolve(const struct d_story* _story,
-                            const char*           _key);
-const char* d_story_slide_name(const struct d_story* _story,
-                               size_t                _slide);
-size_t      d_story_slide_scene(const struct d_story* _story,
-                                size_t                _slide);
-size_t      d_story_slide_number(const struct d_story* _story,
-                                 size_t                _slide);
+size_t d_story_slide_count(
+    const struct dj_story* _story
+);
+size_t d_story_resolve(
+    const struct dj_story* _story,
+    const char*            _key
+);
+const char* d_story_slide_name(
+    const struct dj_story* _story,
+    size_t                 _slide
+);
+size_t d_story_slide_scene(
+    const struct dj_story* _story,
+    size_t                 _slide
+);
+size_t d_story_slide_number(
+    const struct dj_story* _story,
+    size_t                 _slide
+);
 
 // 2.4    Media
 //------------------------------------------------------------------------------
 // A slide's audio is numbered from 1 in the slide's order.
-size_t      d_story_audio_count(const struct d_story* _story,
-                                size_t                _slide);
-const char* d_story_audio_name(const struct d_story* _story,
-                               size_t                _slide,
-                               size_t                _audio);
+size_t d_story_audio_count(
+    const struct dj_story* _story,
+    size_t                 _slide
+);
+const char* d_story_audio_name(
+    const struct dj_story* _story,
+    size_t                 _slide,
+    size_t                 _audio
+);
 /**
  * @brief Replaces one audio file of a slide with the bytes of another file.
  *
@@ -247,12 +279,14 @@ const char* d_story_audio_name(const struct d_story* _story,
  * @return D_STORY_REPLACED; D_STORY_ABSENT when the slide or the audio is not
  *         there; D_STORY_FAILED otherwise.
  */
-enum d_story_result d_story_replace_audio(struct d_story* _story,
-                                          size_t          _slide,
-                                          size_t          _audio,
-                                          const char*     _source,
-                                          char*           _problem,
-                                          size_t          _capacity);
+enum dj_story_result d_story_replace_audio(
+    struct dj_story* _story,
+    size_t           _slide,
+    size_t           _audio,
+    const char*      _source,
+    char*            _problem,
+    size_t           _capacity
+);
 
 // 2.5    Rules
 //------------------------------------------------------------------------------
@@ -278,25 +312,33 @@ enum d_story_result d_story_replace_audio(struct d_story* _story,
  * @return `true` when the expression compiled, matched or not; `false`
  *         otherwise.
  */
-bool        d_story_match(const char* _expression,
-                          const char* _path,
-                          size_t      _group,
-                          char*       _key,
-                          size_t      _key_size,
-                          char*       _problem,
-                          size_t      _capacity);
+bool d_story_match(
+    const char* _expression,
+    const char* _path,
+    size_t      _group,
+    char*       _key,
+    size_t      _key_size,
+    char*       _problem,
+    size_t      _capacity
+);
 
 // 2.6    The extension
 //------------------------------------------------------------------------------
 // d_host_story_install adds the story_* functions to an interpreter, which
 // then calls into the extension until it is freed; the extension outlives the
 // interpreter.  Drivers are borrowed, and asked in the order they were added.
-struct d_host_story* d_host_story_new(void);
-void        d_host_story_free(struct d_host_story* _host);
-bool        d_host_story_add_driver(struct d_host_story*         _host,
-                                    const struct d_story_driver* _driver);
-bool        d_host_story_install(struct d_host_story* _host,
-                                 struct d_awk_interp* _interp);
+struct dj_host_story* d_host_story_new(void);
+void d_host_story_free(
+    struct dj_host_story* _host
+);
+bool d_host_story_add_driver(
+    struct dj_host_story*         _host,
+    const struct dj_story_driver* _driver
+);
+bool d_host_story_install(
+    struct dj_host_story* _host,
+    struct dj_awk_interp* _interp
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_STORY_DHOST_STORY_H

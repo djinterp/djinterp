@@ -18,12 +18,11 @@
 // I.   STATUS
 // ===========================================================================
 
-struct d_option_result
-d_option_ok(
+struct dj_option_result d_option_ok(
     uint32_t _value
 )
 {
-    struct d_option_result result;
+    struct dj_option_result result;
 
     result.is_ok         = true;
     result.payload.value = _value;
@@ -31,12 +30,11 @@ d_option_ok(
     return result;
 }
 
-struct d_option_result
-d_option_fail(
+struct dj_option_result d_option_fail(
     int32_t _status
 )
 {
-    struct d_option_result result;
+    struct dj_option_result result;
 
     result.is_ok         = false;
     result.payload.error = _status;
@@ -44,9 +42,8 @@ d_option_fail(
     return result;
 }
 
-int32_t
-d_option_result_status(
-    const struct d_option_result* _result
+int32_t d_option_result_status(
+    const struct dj_option_result* _result
 )
 {
     if (_result == NULL)
@@ -61,7 +58,7 @@ d_option_result_status(
 
 const char*
 d_option_status_name(
-    enum d_option_status _status
+    enum dj_option_status _status
 )
 {
     switch (_status)
@@ -86,7 +83,7 @@ d_option_status_name(
 
 const char*
 d_option_status_message(
-    enum d_option_status _status
+    enum dj_option_status _status
 )
 {
     switch (_status)
@@ -127,17 +124,16 @@ d_option_status_message(
 // II.  THE CELL
 // ===========================================================================
 
-struct d_option
-d_option_make(
-    uint64_t      _key,
-    d_type_info16 _key_type,
-    d_type_info16 _value_type,
-    uint32_t      _value_offset,
-    uint32_t      _value_size,
-    uint32_t      _flags
+struct dj_option d_option_make(
+    uint64_t       _key,
+    dj_type_info16 _key_type,
+    dj_type_info16 _value_type,
+    uint32_t       _value_offset,
+    uint32_t       _value_size,
+    uint32_t       _flags
 )
 {
-    struct d_option option;
+    struct dj_option option;
 
     option.key          = _key;
     option.value_offset = _value_offset;
@@ -149,19 +145,17 @@ d_option_make(
     return option;
 }
 
-struct d_option
-d_option_make_unary(
-    uint64_t      _key,
-    d_type_info16 _key_type
+struct dj_option d_option_make_unary(
+    uint64_t       _key,
+    dj_type_info16 _key_type
 )
 {
-    return d_option_make(_key, _key_type, (d_type_info16)0,
+    return d_option_make(_key, _key_type, (dj_type_info16)0,
                          0u, 0u, D_OPTION_FLAG_UNARY);
 }
 
-bool
-d_option_is_valid(
-    const struct d_option* _option
+bool d_option_is_valid(
+    const struct dj_option* _option
 )
 {
     if (_option == NULL)
@@ -185,36 +179,32 @@ d_option_is_valid(
     return (_option->value_size > 0u);
 }
 
-bool
-d_option_is_unary(
-    const struct d_option* _option
+bool d_option_is_unary(
+    const struct dj_option* _option
 )
 {
     return ( (_option != NULL) &&
              ((_option->flags & D_OPTION_FLAG_UNARY) != 0u) );
 }
 
-bool
-d_option_is_assigned(
-    const struct d_option* _option
+bool d_option_is_assigned(
+    const struct dj_option* _option
 )
 {
     return ( (_option != NULL) &&
              ((_option->flags & D_OPTION_FLAG_ASSIGNED) != 0u) );
 }
 
-bool
-d_option_has_interned_key(
-    const struct d_option* _option
+bool d_option_has_interned_key(
+    const struct dj_option* _option
 )
 {
     return ( (_option != NULL) &&
              ((_option->flags & D_OPTION_FLAG_INTERNED_KEY) != 0u) );
 }
 
-uint32_t
-d_option_value_size(
-    const struct d_option* _option
+uint32_t d_option_value_size(
+    const struct dj_option* _option
 )
 {
     return ( (_option != NULL) ? _option->value_size : 0u );
@@ -225,20 +215,19 @@ d_option_value_size(
 // III. ORDERING -- KEY ONLY
 // ===========================================================================
 
-int
-d_option_key_less(
+int d_option_key_less(
     const void* _lhs,
     const void* _rhs,
     void*       _context
 )
 {
-    const struct d_option* lhs;
-    const struct d_option* rhs;
+    const struct dj_option* lhs;
+    const struct dj_option* rhs;
 
     (void)_context;
 
-    lhs = (const struct d_option*)_lhs;
-    rhs = (const struct d_option*)_rhs;
+    lhs = (const struct dj_option*)_lhs;
+    rhs = (const struct dj_option*)_rhs;
 
     if ((lhs == NULL) || (rhs == NULL))
     {
@@ -255,10 +244,9 @@ d_option_key_less(
     return ( (lhs->key > rhs->key) ? 1 : 0 );
 }
 
-bool
-d_option_key_eq(
-    const struct d_option* _lhs,
-    const struct d_option* _rhs
+bool d_option_key_eq(
+    const struct dj_option* _lhs,
+    const struct dj_option* _rhs
 )
 {
     if ((_lhs == NULL) || (_rhs == NULL))
@@ -274,14 +262,13 @@ d_option_key_eq(
 // IV.  THE CARRIER AND THE PROJECTION
 // ===========================================================================
 
-struct d_option_carrier
-d_option_project_value(
-    const struct d_option* _option,
-    const unsigned char*   _values,
-    void*                  _context
+struct dj_option_carrier d_option_project_value(
+    const struct dj_option* _option,
+    const unsigned char*    _values,
+    void*                   _context
 )
 {
-    struct d_option_carrier carrier;
+    struct dj_option_carrier carrier;
 
     (void)_context;
 
@@ -307,12 +294,11 @@ d_option_project_value(
     return carrier;
 }
 
-bool
-d_option_carrier_eq(
-    const struct d_option_carrier* _lhs,
-    const struct d_option_carrier* _rhs,
-    fn_binary_predicate            _compare,
-    void*                          _context
+bool d_option_carrier_eq(
+    const struct dj_option_carrier* _lhs,
+    const struct dj_option_carrier* _rhs,
+    fn_binary_predicate             _compare,
+    void*                           _context
 )
 {
     if ((_lhs == NULL) || (_rhs == NULL))
@@ -347,20 +333,19 @@ d_option_carrier_eq(
 // V.   IDENTITY -- KEY AND VALUE
 // ===========================================================================
 
-bool
-d_option_value_eq(
-    const struct d_option* _lhs,
-    const unsigned char*   _lhs_values,
-    const struct d_option* _rhs,
-    const unsigned char*   _rhs_values,
-    fn_option_project      _project,
-    fn_binary_predicate    _compare,
-    void*                  _context
+bool d_option_value_eq(
+    const struct dj_option* _lhs,
+    const unsigned char*    _lhs_values,
+    const struct dj_option* _rhs,
+    const unsigned char*    _rhs_values,
+    fn_option_project       _project,
+    fn_binary_predicate     _compare,
+    void*                   _context
 )
 {
     fn_option_project       project;
-    struct d_option_carrier lhs_carrier;
-    struct d_option_carrier rhs_carrier;
+    struct dj_option_carrier lhs_carrier;
+    struct dj_option_carrier rhs_carrier;
 
     //   NULL selects pi = id, which is a documented default rather than a
     // silent one -- see option_common.h section V.
@@ -372,15 +357,14 @@ d_option_value_eq(
     return d_option_carrier_eq(&lhs_carrier, &rhs_carrier, _compare, _context);
 }
 
-bool
-d_option_eq(
-    const struct d_option* _lhs,
-    const unsigned char*   _lhs_values,
-    const struct d_option* _rhs,
-    const unsigned char*   _rhs_values,
-    fn_option_project      _project,
-    fn_binary_predicate    _compare,
-    void*                  _context
+bool d_option_eq(
+    const struct dj_option* _lhs,
+    const unsigned char*    _lhs_values,
+    const struct dj_option* _rhs,
+    const unsigned char*    _rhs_values,
+    fn_option_project       _project,
+    fn_binary_predicate     _compare,
+    void*                   _context
 )
 {
     if (!d_option_key_eq(_lhs, _rhs))
@@ -397,10 +381,9 @@ d_option_eq(
 // VI.  SLOT ACCESS
 // ===========================================================================
 
-void*
-d_option_slot(
-    const struct d_option* _option,
-    unsigned char*         _values
+void* d_option_slot(
+    const struct dj_option* _option,
+    unsigned char*          _values
 )
 {
     if ( (_option == NULL) ||
@@ -413,10 +396,9 @@ d_option_slot(
     return (void*)(_values + _option->value_offset);
 }
 
-const void*
-d_option_slot_const(
-    const struct d_option* _option,
-    const unsigned char*   _values
+const void* d_option_slot_const(
+    const struct dj_option* _option,
+    const unsigned char*    _values
 )
 {
     if ( (_option == NULL) ||
@@ -429,12 +411,11 @@ d_option_slot_const(
     return (const void*)(_values + _option->value_offset);
 }
 
-struct d_option_result
-d_option_read(
-    const struct d_option* _option,
-    const unsigned char*   _values,
-    void*                  _out,
-    size_t                 _out_size
+struct dj_option_result d_option_read(
+    const struct dj_option* _option,
+    const unsigned char*    _values,
+    void*                   _out,
+    size_t                  _out_size
 )
 {
     const void* slot;
@@ -468,12 +449,11 @@ d_option_read(
     return d_option_ok((uint32_t)_out_size);
 }
 
-struct d_option_result
-d_option_write(
-    struct d_option* _option,
-    unsigned char*   _values,
-    const void*      _value,
-    size_t           _value_size
+struct dj_option_result d_option_write(
+    struct dj_option* _option,
+    unsigned char*    _values,
+    const void*       _value,
+    size_t            _value_size
 )
 {
     void* slot;

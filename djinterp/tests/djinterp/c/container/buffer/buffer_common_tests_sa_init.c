@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./buffer_common_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -25,10 +25,8 @@ d_tests_sa_buffer_common_init_sized
   - count is set to zero after init
   - capacity matches requested value
 */
-bool
-d_tests_sa_buffer_common_init_sized
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_init_sized(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -150,10 +148,8 @@ d_tests_sa_buffer_common_init_from_data
   - extra capacity is honoured
   - count and capacity set correctly
 */
-bool
-d_tests_sa_buffer_common_init_from_data
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_init_from_data(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -278,10 +274,8 @@ d_tests_sa_buffer_common_init_copy
   - successful copy initialization
   - copied data matches source
 */
-bool
-d_tests_sa_buffer_common_init_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_init_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -351,10 +345,8 @@ d_tests_sa_buffer_common_init_fill
   - successful fill with single value
   - all elements match fill value
 */
-bool
-d_tests_sa_buffer_common_init_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_init_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool   result;
@@ -451,10 +443,8 @@ d_tests_sa_buffer_common_init_fill
 d_tests_sa_buffer_common_init_all
   Aggregation function that runs all initialization tests.
 */
-bool
-d_tests_sa_buffer_common_init_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_buffer_common_init_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

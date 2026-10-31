@@ -122,7 +122,12 @@ static const nts_fr_word g_magnitude_ordinals[] =
     NTS_FR_WORD("trillionième")
 };
 
-static void nts_fr_term(char* dst, size_t dst_cap, size_t total)
+static
+void nts_fr_term(
+    char*  dst,
+    size_t dst_cap,
+    size_t total
+)
 {
     if (dst_cap == 0u) {
         return;
@@ -135,7 +140,14 @@ static void nts_fr_term(char* dst, size_t dst_cap, size_t total)
     }
 }
 
-static void nts_fr_put_mem(char* dst, size_t dst_cap, size_t* total, const char* s, size_t n)
+static
+void nts_fr_put_mem(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    const char* s,
+    size_t      n
+)
 {
     size_t off = *total;
 
@@ -150,12 +162,24 @@ static void nts_fr_put_mem(char* dst, size_t dst_cap, size_t* total, const char*
     *total = off + n;
 }
 
-static void nts_fr_put_word(char* dst, size_t dst_cap, size_t* total, nts_fr_word w)
+static
+void nts_fr_put_word(
+    char*       dst,
+    size_t      dst_cap,
+    size_t*     total,
+    nts_fr_word w
+)
 {
     nts_fr_put_mem(dst, dst_cap, total, w.s, w.len);
 }
 
-static void nts_fr_put_char(char* dst, size_t dst_cap, size_t* total, char c)
+static
+void nts_fr_put_char(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total,
+    char    c
+)
 {
     size_t off = *total;
 
@@ -166,22 +190,44 @@ static void nts_fr_put_char(char* dst, size_t dst_cap, size_t* total, char c)
     *total = off + 1u;
 }
 
-static void nts_fr_put_space(char* dst, size_t dst_cap, size_t* total)
+static
+void nts_fr_put_space(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total
+)
 {
     nts_fr_put_char(dst, dst_cap, total, ' ');
 }
 
-static void nts_fr_put_joiner(char* dst, size_t dst_cap, size_t* total, unsigned flags)
+static
+void nts_fr_put_joiner(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned flags
+)
 {
     nts_fr_put_char(dst, dst_cap, total, (flags & NTS_FR_FLAG_HYPHENS) ? '-' : ' ');
 }
 
-static void nts_fr_put_et(char* dst, size_t dst_cap, size_t* total)
+static
+void nts_fr_put_et(
+    char*   dst,
+    size_t  dst_cap,
+    size_t* total
+)
 {
     nts_fr_put_mem(dst, dst_cap, total, " et ", 4u);
 }
 
-static void nts_fr_put_group_connector(char* dst, size_t dst_cap, size_t* total, unsigned flags)
+static
+void nts_fr_put_group_connector(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned flags
+)
 {
     if (flags & NTS_FR_FLAG_COMMAS) {
         nts_fr_put_mem(dst, dst_cap, total, ", ", 2u);
@@ -191,25 +237,36 @@ static void nts_fr_put_group_connector(char* dst, size_t dst_cap, size_t* total,
     nts_fr_put_space(dst, dst_cap, total);
 }
 
-static void nts_fr_put_quatre_vingt_base(char* dst, size_t dst_cap, size_t* total, unsigned flags)
+static
+void nts_fr_put_quatre_vingt_base(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned flags
+)
 {
     nts_fr_put_word(dst, dst_cap, total, g_units[4]);
     nts_fr_put_joiner(dst, dst_cap, total, flags);
     nts_fr_put_mem(dst, dst_cap, total, "vingt", 5u);
 }
 
-static uint64_t nts_fr_abs_i64(int64_t value)
+static
+uint64_t nts_fr_abs_i64(
+    int64_t value
+)
 {
     uint64_t u = (uint64_t)value;
     return (value < 0) ? (UINT64_C(0) - u) : u;
 }
 
-static void nts_fr_parse_sub100_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value,
-    unsigned    flags)
+static
+void nts_fr_parse_sub100_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value,
+    unsigned flags
+)
 {
     unsigned tens;
     unsigned ones;
@@ -269,12 +326,14 @@ static void nts_fr_parse_sub100_cardinal(
     nts_fr_parse_sub100_cardinal(dst, dst_cap, total, value - 80u, flags);
 }
 
-static void nts_fr_parse_sub100_ordinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value,
-    unsigned    flags)
+static
+void nts_fr_parse_sub100_ordinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value,
+    unsigned flags
+)
 {
     unsigned tens;
     unsigned ones;
@@ -344,12 +403,14 @@ static void nts_fr_parse_sub100_ordinal(
     nts_fr_parse_sub100_ordinal(dst, dst_cap, total, value - 80u, flags);
 }
 
-static void nts_fr_parse_triplet_cardinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value,
-    unsigned    flags)
+static
+void nts_fr_parse_triplet_cardinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value,
+    unsigned flags
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -385,12 +446,14 @@ static void nts_fr_parse_triplet_cardinal(
     nts_fr_parse_sub100_cardinal(dst, dst_cap, total, rem, flags);
 }
 
-static void nts_fr_parse_triplet_ordinal(
-    char*       dst,
-    size_t      dst_cap,
-    size_t*     total,
-    unsigned    value,
-    unsigned    flags)
+static
+void nts_fr_parse_triplet_ordinal(
+    char*    dst,
+    size_t   dst_cap,
+    size_t*  total,
+    unsigned value,
+    unsigned flags
+)
 {
     unsigned hundreds;
     unsigned rem;
@@ -426,7 +489,12 @@ static void nts_fr_parse_triplet_ordinal(
     nts_fr_parse_sub100_ordinal(dst, dst_cap, total, rem, flags);
 }
 
-size_t nts_fr_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_fr_cardinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     size_t total = 0u;
     uint64_t mag;
@@ -497,7 +565,12 @@ size_t nts_fr_cardinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fl
     return total;
 }
 
-size_t nts_fr_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_fr_ordinal_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     size_t total = 0u;
     uint64_t mag;
@@ -606,7 +679,12 @@ size_t nts_fr_ordinal_i64(char* dst, size_t dst_cap, int64_t value, unsigned fla
     return total;
 }
 
-size_t nts_fr_ordinal_abbrev_i64(char* dst, size_t dst_cap, int64_t value, unsigned flags)
+size_t nts_fr_ordinal_abbrev_i64(
+    char*    dst,
+    size_t   dst_cap,
+    int64_t  value,
+    unsigned flags
+)
 {
     size_t total = 0u;
     uint64_t mag = nts_fr_abs_i64(value);

@@ -28,9 +28,7 @@ Parameter(s):
 Return:
   Pointer to newly allocated integer, or NULL on failure.
 */
-int*
-d_test_min_enum_map_create_int
-(
+int* d_test_min_enum_map_create_int(
     int _value
 )
 {
@@ -53,9 +51,7 @@ Parameter(s):
 Return:
   Pointer to newly allocated string, or NULL on failure.
 */
-char*
-d_test_min_enum_map_create_string
-(
+char* d_test_min_enum_map_create_string(
     const char* _str
 )
 {
@@ -94,15 +90,11 @@ d_tests_min_enum_map_new
   - map is ready for use
   - multiple maps can be created
 */
-struct d_test_object*
-d_tests_min_enum_map_new
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_new(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map1;
-    struct d_min_enum_map* map2;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map1;
+    struct dj_min_enum_map* map2;
     bool                   test_allocation;
     bool                   test_entries_null;
     bool                   test_count_zero;
@@ -207,14 +199,10 @@ d_tests_min_enum_map_put
   - maintains sorted order
   - grows capacity when needed
 */
-struct d_test_object*
-d_tests_min_enum_map_put
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_put(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   value1;
     int*                   value2;
     int*                   value3;
@@ -441,14 +429,10 @@ d_tests_min_enum_map_get
   - retrieves correct value among many
   - handles NULL values correctly
 */
-struct d_test_object*
-d_tests_min_enum_map_get
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_get(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   value1;
     int*                   value2;
     void*                  result;
@@ -588,14 +572,10 @@ d_tests_min_enum_map_contains
   - distinguishes NULL value from missing key
   - works after removals
 */
-struct d_test_object*
-d_tests_min_enum_map_contains
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_contains(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   value1;
     bool                   result;
     bool                   test_null_map;
@@ -717,14 +697,10 @@ d_tests_min_enum_map_count
   - updates after clear
   - handles updates (no count change)
 */
-struct d_test_object*
-d_tests_min_enum_map_count
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_count(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   value1;
     size_t                 count;
     bool                   test_null_map;
@@ -861,14 +837,10 @@ d_tests_min_enum_map_remove
   - handles removal from end
   - handles removal from beginning
 */
-struct d_test_object*
-d_tests_min_enum_map_remove
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_remove(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* map;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* map;
     int*                   value1;
     bool                   result;
     bool                   test_null_map;
@@ -1040,15 +1012,11 @@ d_tests_min_enum_map_new_copy
   - copy is independent (modifying copy doesn't affect original)
   - original is independent (modifying original doesn't affect copy)
 */
-struct d_test_object*
-d_tests_min_enum_map_new_copy
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_new_copy(void)
 {
-    struct d_test_object*  group;
-    struct d_min_enum_map* original;
-    struct d_min_enum_map* copy;
+    struct dj_test_object*  group;
+    struct dj_min_enum_map* original;
+    struct dj_min_enum_map* copy;
     int*                   value1;
     int*                   value2;
     int*                   value3;
@@ -1249,13 +1217,9 @@ d_tests_min_enum_map_core_all
   - d_min_enum_map_count
   - d_min_enum_map_remove
 */
-struct d_test_object*
-d_tests_min_enum_map_core_all
-(
-    void
-)
+struct dj_test_object* d_tests_min_enum_map_core_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Core Map Operations", 7);

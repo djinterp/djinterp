@@ -19,18 +19,14 @@ d_str_interp_context_new
 Parameter(s):
   none.
 Return:
-  A pointer to a newly allocated d_str_interp_context, or NULL if allocation
+  A pointer to a newly allocated dj_str_interp_context, or NULL if allocation
 failed.
 */
-struct d_str_interp_context*
-d_str_interp_context_new
-(
-    void
-)
+struct dj_str_interp_context* d_str_interp_context_new(void)
 {
-    struct d_str_interp_context* context;
+    struct dj_str_interp_context* context;
 
-    context = malloc(sizeof(struct d_str_interp_context));
+    context = malloc(sizeof(struct dj_str_interp_context));
 
     // check if allocation succeeded
     if (!context)
@@ -59,10 +55,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_str_interp_context_free
-(
-    struct d_str_interp_context* _context
+void d_str_interp_context_free(
+    struct dj_str_interp_context* _context
 )
 {
     size_t i;
@@ -98,10 +92,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_str_interp_context_clear
-(
-    struct d_str_interp_context* _context
+void d_str_interp_context_clear(
+    struct dj_str_interp_context* _context
 )
 {
     size_t i;
@@ -143,11 +135,10 @@ Parameter(s):
 Return:
   The index of the specifier if found, or -1 if not found.
 */
-static int
-d_internal_interp_find_specifier
-(
-    const struct d_str_interp_context* _context,
-    const char*                        _name
+static
+int d_internal_interp_find_specifier(
+    const struct dj_str_interp_context* _context,
+    const char*                         _name
 )
 {
     size_t i;
@@ -181,12 +172,11 @@ Parameter(s):
 Return:
   The index of the specifier if found, or -1 if not found.
 */
-static int
-d_internal_interp_find_specifier_n
-(
-    const struct d_str_interp_context* _context,
-    const char*                        _name,
-    size_t                             _name_length
+static
+int d_internal_interp_find_specifier_n(
+    const struct dj_str_interp_context* _context,
+    const char*                         _name,
+    size_t                              _name_length
 )
 {
     size_t i;
@@ -221,10 +211,10 @@ Return:
   - D_STR_INTERP_ERROR_TOO_MANY_SPECIFIERS if limit reached,
   - D_STR_INTERP_ERROR_ALLOCATION_FAILED if memory allocation fails.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp_add_specifier
 (
-    struct d_str_interp_context* _context,
+    struct dj_str_interp_context* _context,
     const char*                  _name,
     const char*                  _value
 )
@@ -268,17 +258,17 @@ Return:
   - D_STR_INTERP_ERROR_TOO_MANY_SPECIFIERS if limit reached,
   - D_STR_INTERP_ERROR_ALLOCATION_FAILED if memory allocation fails.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp_add_specifier_n
 (
-    struct d_str_interp_context* _context,
+    struct dj_str_interp_context* _context,
     const char*                  _name,
     size_t                       _name_length,
     const char*                  _value,
     size_t                       _value_length
 )
 {
-    struct d_str_interp_specifier* spec;
+    struct dj_str_interp_specifier* spec;
     char*                          name_copy;
     char*                          value_copy;
     int                            existing;
@@ -358,10 +348,10 @@ Return:
   - D_STR_INTERP_ERROR_NULL_PARAM if any parameter is NULL,
   - D_STR_INTERP_ERROR_SPECIFIER_NOT_FOUND if specifier doesn't exist.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp_remove_specifier
 (
-    struct d_str_interp_context* _context,
+    struct dj_str_interp_context* _context,
     const char*                  _name
 )
 {
@@ -402,7 +392,7 @@ d_str_interp_remove_specifier
     // clear the last slot and decrement count
     memset(&_context->specifiers[_context->specifier_count - 1],
            0,
-           sizeof(struct d_str_interp_specifier));
+           sizeof(struct dj_str_interp_specifier));
     _context->specifier_count--;
 
     return D_STR_INTERP_SUCCESS;
@@ -422,10 +412,10 @@ Return:
   - D_STR_INTERP_ERROR_SPECIFIER_NOT_FOUND if specifier doesn't exist,
   - D_STR_INTERP_ERROR_ALLOCATION_FAILED if memory allocation fails.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp_update_specifier
 (
-    struct d_str_interp_context* _context,
+    struct dj_str_interp_context* _context,
     const char*                  _name,
     const char*                  _value
 )
@@ -433,7 +423,7 @@ d_str_interp_update_specifier
     int                            index;
     size_t                         value_len;
     char*                          value_copy;
-    struct d_str_interp_specifier* spec;
+    struct dj_str_interp_specifier* spec;
 
     // validate parameters
     if ( (!_context) ||
@@ -486,11 +476,9 @@ Parameter(s):
 Return:
   The value string if found, or NULL if not found or parameters are invalid.
 */
-const char*
-d_str_interp_get_specifier
-(
-    const struct d_str_interp_context* _context,
-    const char*                        _name
+const char* d_str_interp_get_specifier(
+    const struct dj_str_interp_context* _context,
+    const char*                         _name
 )
 {
     int index;
@@ -522,11 +510,9 @@ Parameter(s):
 Return:
   true if the specifier exists, false otherwise.
 */
-bool
-d_str_interp_has_specifier
-(
-    const struct d_str_interp_context* _context,
-    const char*                        _name
+bool d_str_interp_has_specifier(
+    const struct dj_str_interp_context* _context,
+    const char*                         _name
 )
 {
     // validate parameters
@@ -553,13 +539,12 @@ Return:
   The index of the matching specifier, or -1 if none match. When multiple
 specifiers could match at the same position, the longest match wins.
 */
-static int
-d_internal_interp_match_at
-(
-    const struct d_str_interp_context* _context,
-    const char*                        _input,
-    size_t                             _pos,
-    size_t                             _input_len
+static
+int d_internal_interp_match_at(
+    const struct dj_str_interp_context* _context,
+    const char*                         _input,
+    size_t                              _pos,
+    size_t                              _input_len
 )
 {
     size_t remaining;
@@ -612,10 +597,10 @@ Parameter(s):
 Return:
   D_STR_INTERP_SUCCESS on success, or an appropriate error code.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp_length
 (
-    const struct d_str_interp_context* _context,
+    const struct dj_str_interp_context* _context,
     const char*                        _input,
     size_t*                            _length
 )
@@ -677,10 +662,10 @@ Parameter(s):
 Return:
   D_STR_INTERP_SUCCESS on success, or an appropriate error code.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp
 (
-    const struct d_str_interp_context* _context,
+    const struct dj_str_interp_context* _context,
     char*                              _buffer,
     size_t                             _buffer_size,
     const char*                        _input
@@ -691,7 +676,7 @@ d_str_interp
     size_t              input_len;
     size_t              required_len;
     int                 spec_index;
-    enum d_str_interp_error err;
+    enum dj_str_interp_error err;
 
     // validate parameters
     if ( (!_context) ||
@@ -767,17 +752,17 @@ Parameter(s):
 Return:
   D_STR_INTERP_SUCCESS on success, or an appropriate error code.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp_alloc
 (
-    const struct d_str_interp_context* _context,
+    const struct dj_str_interp_context* _context,
     const char*                        _input,
     char**                             _result
 )
 {
     size_t              len;
     char*               buffer;
-    enum d_str_interp_error err;
+    enum dj_str_interp_error err;
 
     // validate parameters
     if ( (!_context) ||
@@ -835,7 +820,7 @@ Parameter(s):
 Return:
   D_STR_INTERP_SUCCESS on success, or an appropriate error code.
 */
-enum d_str_interp_error
+enum dj_str_interp_error
 d_str_interp_quick
 (
     char*        _buffer,
@@ -845,9 +830,9 @@ d_str_interp_quick
     const char** _values
 )
 {
-    struct d_str_interp_context* context;
+    struct dj_str_interp_context* context;
     size_t                      i;
-    enum d_str_interp_error     err;
+    enum dj_str_interp_error     err;
 
     // validate parameters
     if ( (!_buffer) ||
@@ -904,7 +889,7 @@ Return:
 const char*
 d_str_interp_error_string
 (
-    enum d_str_interp_error _error
+    enum dj_str_interp_error _error
 )
 {
     switch (_error)

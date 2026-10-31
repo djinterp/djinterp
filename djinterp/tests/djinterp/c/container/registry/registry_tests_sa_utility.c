@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,14 +23,12 @@ d_tests_sa_registry_reserve
   - grows capacity to at least requested amount
   - existing data preserved after growth
 */
-bool
-d_tests_sa_registry_reserve
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_reserve(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     size_t             old_cap;
 
@@ -104,14 +102,12 @@ d_tests_sa_registry_reserve_lookup_fn
   - capacity already sufficient returns true
   - grows lookup capacity
 */
-bool
-d_tests_sa_registry_reserve_lookup_fn
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_reserve_lookup_fn(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
 
     result = true;
 
@@ -173,14 +169,12 @@ d_tests_sa_registry_shrink_to_fit
   - data and lookup still valid after shrink
   - empty registry shrink succeeds
 */
-bool
-d_tests_sa_registry_shrink_to_fit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_shrink_to_fit(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -267,14 +261,12 @@ d_tests_sa_registry_freeze
   - frozen registry rejects add, remove, set
   - double-freeze is idempotent
 */
-bool
-d_tests_sa_registry_freeze
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_freeze(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -343,14 +335,12 @@ d_tests_sa_registry_thaw
   - operations resume after thaw
   - thaw on non-frozen is idempotent
 */
-bool
-d_tests_sa_registry_thaw
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_thaw(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -413,14 +403,12 @@ d_tests_sa_registry_get_all_keys
   - caller must free the returned array
   - NULL out_count pointer does not crash
 */
-bool
-d_tests_sa_registry_get_all_keys
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_get_all_keys(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     const char**       keys;
     size_t             count;
@@ -494,10 +482,8 @@ d_tests_sa_registry_get_all_keys
 d_tests_sa_registry_utility_all
   Aggregation function that runs all utility tests.
 */
-bool
-d_tests_sa_registry_utility_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_utility_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

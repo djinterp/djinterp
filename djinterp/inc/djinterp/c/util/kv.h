@@ -14,7 +14,7 @@
 *
 * which is the offset only when the compiler inserted no padding between the
 * two members. For the records this framework actually holds, it does.
-* `struct d_test_kv` is { uint32_t key; void* value; } -- key at 0, value at
+* `struct dj_test_kv` is { uint32_t key; void* value; } -- key at 0, value at
 * 8 -- and sizeof(uint32_t) is 4. The macro read four bytes of padding and the
 * top half of the pointer, returned something plausible, and compiled clean:
 *
@@ -28,7 +28,7 @@
 * defined for standard-layout types in both. One spelling therefore serves a C
 * static initialiser and the C++ face's `lower()` alike, and neither language
 * has to know the other's notation. That is what makes section I the bridge
-* between `d_option`'s value column and `registry.hpp`'s _KeyProj / _ValueProj.
+* between `dj_option`'s value column and `registry.hpp`'s _KeyProj / _ValueProj.
 *
 *   THE PACKED FORMS SURVIVE, UNDER A NAME THAT SAYS SO. A wire format, a
 * serialised row, a hand-built byte buffer -- these genuinely have no padding,
@@ -65,13 +65,13 @@
 * includer used or not.
 *
 *
-* path:      /inc/djinterp/c/meta/kv.h
+* path:      /inc/djinterp/c/util/kv.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.05
 ******************************************************************************/
 
-#ifndef DJINTERP_C_KV_
-#define DJINTERP_C_KV_ 1
+#ifndef DJINTERP_C_UTIL_KV_H
+#define DJINTERP_C_UTIL_KV_H 1
 
 // std
 #include <stddef.h>
@@ -84,16 +84,16 @@
 
 D_EXTERN_C_BEGIN
 
-// d_kv_field
+// dj_kv_field
 //   struct: where a datum sits inside a record, how wide it is, and what its
 // bytes mean. The offset is relative to a base the CALLER supplies; this
 // struct never holds one, which is what lets one descriptor address a cell, a
 // value block, or a mapped file.
-struct d_kv_field
+struct dj_kv_field
 {
     uint32_t      offset;   // bytes from the caller's base
     uint32_t      size;     // width of the datum, in bytes
-    d_type_info16 type;     // what the bytes mean; 0 when untyped
+    dj_type_info16 type;     // what the bytes mean; 0 when untyped
     uint16_t      flags;    // D_KV_FLAG_*; reserved bits written zero
 };
 
@@ -135,7 +135,7 @@ struct d_kv_field
 #define D_KV_FIELD_OF(record, member, info)                                    \
 {                                                                              \
     D_KV_OFFSET(record, member), D_KV_WIDTH(record, member),                   \
-    (d_type_info16)(info), D_KV_FLAG_NONE                                      \
+    (dj_type_info16)(info), D_KV_FLAG_NONE                                      \
 }
 
 // D_KV_FIELD_OF_SIGNED
@@ -143,14 +143,14 @@ struct d_kv_field
 #define D_KV_FIELD_OF_SIGNED(record, member, info)                             \
 {                                                                              \
     D_KV_OFFSET(record, member), D_KV_WIDTH(record, member),                   \
-    (d_type_info16)(info), D_KV_FLAG_SIGNED                                    \
+    (dj_type_info16)(info), D_KV_FLAG_SIGNED                                    \
 }
 
 // D_KV_FIELD_INIT
 //   macro: the empty descriptor -- width zero, which every operation below
 // reads as "there is nothing there". Spelled once so no call site invents a
 // second spelling of an absent column.
-#define D_KV_FIELD_INIT     { 0u, 0u, (d_type_info16)0, D_KV_FLAG_NONE }
+#define D_KV_FIELD_INIT     { 0u, 0u, (dj_type_info16)0, D_KV_FLAG_NONE }
 
 // D_KV_ASSERT_PACKED
 //   macro: a compile-time check that two members really are adjacent with no
@@ -170,15 +170,14 @@ struct d_kv_field
 // d_kv_field_make
 //   function: a descriptor from loose parts, for a layout discovered at run
 // time rather than declared in a struct.
-D_NODISCARD D_INLINE struct d_kv_field
-d_kv_field_make(
-    uint32_t      _offset,
-    uint32_t      _size,
-    d_type_info16 _type,
-    uint16_t      _flags
+D_NODISCARD D_INLINE struct dj_kv_field d_kv_field_make(
+    uint32_t       _offset,
+    uint32_t       _size,
+    dj_type_info16 _type,
+    uint16_t       _flags
 )
 {
-    struct d_kv_field field;
+    struct dj_kv_field field;
 
     field.offset = _offset;
     field.size   = _size;
@@ -192,12 +191,11 @@ d_kv_field_make(
 //   function: convert type_info_common.h's descriptor to this one. The two are
 // NOT merged, for the reason the file header gives: that triple is part of a
 // serialised descriptor format and widening it would change the format.
-D_NODISCARD D_INLINE struct d_kv_field
-d_kv_field_from_struct_field(
-    const struct d_type_struct_field* _field
+D_NODISCARD D_INLINE struct dj_kv_field d_kv_field_from_struct_field(
+    const struct dj_type_struct_field* _field
 )
 {
-    struct d_kv_field result = D_KV_FIELD_INIT;
+    struct dj_kv_field result = D_KV_FIELD_INIT;
 
     // a null descriptor describes nothing, which is the empty field
     if (!_field)
@@ -217,9 +215,8 @@ d_kv_field_from_struct_field(
 // d_kv_field_is_empty
 //   function: a zero-width descriptor, which is the same answer as "this
 // record has no such datum" -- what a unary option's value column is.
-D_NODISCARD D_INLINE bool
-d_kv_field_is_empty(
-    const struct d_kv_field* _field
+D_NODISCARD D_INLINE bool d_kv_field_is_empty(
+    const struct dj_kv_field* _field
 )
 {
     return ( (!_field) ||
@@ -228,9 +225,8 @@ d_kv_field_is_empty(
 
 // d_kv_field_is_signed
 //   function: whether the descriptor says its bytes are a signed integer.
-D_NODISCARD D_INLINE bool
-d_kv_field_is_signed(
-    const struct d_kv_field* _field
+D_NODISCARD D_INLINE bool d_kv_field_is_signed(
+    const struct dj_kv_field* _field
 )
 {
     return ( (_field != NULL) &&
@@ -242,10 +238,9 @@ d_kv_field_is_signed(
 // _KeyDisjoint arrived at by arithmetic instead of by declaration: its cases
 // (A) and (B) are two disjoint fields, and case (C) -- the whole-record value
 // -- is a value field that contains the key field.
-D_NODISCARD D_INLINE bool
-d_kv_disjoint(
-    const struct d_kv_field* _lhs,
-    const struct d_kv_field* _rhs
+D_NODISCARD D_INLINE bool d_kv_disjoint(
+    const struct dj_kv_field* _lhs,
+    const struct dj_kv_field* _rhs
 )
 {
     uint64_t lhs_end;
@@ -274,8 +269,7 @@ d_kv_disjoint(
 // function. `(_offset + _size) <= _capacity` in 32-bit arithmetic answers
 // "yes, it fits" for an offset near UINT32_MAX, which is the bounds check
 // failing in exactly the case a bounds check exists for.
-D_NODISCARD D_INLINE bool
-d_kv_fits(
+D_NODISCARD D_INLINE bool d_kv_fits(
     uint32_t _offset,
     uint32_t _size,
     uint32_t _capacity
@@ -286,10 +280,9 @@ d_kv_fits(
 
 // d_kv_field_fits
 //   function: the same question asked of a descriptor.
-D_NODISCARD D_INLINE bool
-d_kv_field_fits(
-    const struct d_kv_field* _field,
-    uint32_t                 _capacity
+D_NODISCARD D_INLINE bool d_kv_field_fits(
+    const struct dj_kv_field* _field,
+    uint32_t                  _capacity
 )
 {
     // an absent field cannot fit, because there is nothing to place
@@ -308,8 +301,7 @@ d_kv_field_fits(
 //   A NON-POWER-OF-TWO ALIGNMENT IS RETURNED UNCHANGED rather than producing a
 // wrong answer: there is nothing sensible to round to, and a silent adjustment
 // would be worse than none.
-D_NODISCARD D_INLINE uint32_t
-d_kv_align_up(
+D_NODISCARD D_INLINE uint32_t d_kv_align_up(
     uint32_t _offset,
     uint32_t _align
 )
@@ -331,8 +323,7 @@ d_kv_align_up(
 // d_kv_at
 //   function: the address of a field within a base. NULL when the base is
 // null, so the result can be tested rather than the arguments.
-D_NODISCARD D_INLINE void*
-d_kv_at(
+D_NODISCARD D_INLINE void* d_kv_at(
     void*    _base,
     uint32_t _offset
 )
@@ -348,8 +339,7 @@ d_kv_at(
 
 // d_kv_at_const
 //   function: the const form of d_kv_at.
-D_NODISCARD D_INLINE const void*
-d_kv_at_const(
+D_NODISCARD D_INLINE const void* d_kv_at_const(
     const void* _base,
     uint32_t    _offset
 )
@@ -375,8 +365,7 @@ d_kv_at_const(
 //   function: read _size bytes as an unsigned value, widened to the carrier.
 // Zero for a null base, a width outside 1..8, or a read that would leave the
 // record -- the same answer as "there is nothing there".
-D_NODISCARD D_INLINE uint64_t
-d_kv_load_unsigned(
+D_NODISCARD D_INLINE uint64_t d_kv_load_unsigned(
     const void* _base,
     uint32_t    _offset,
     uint32_t    _size,
@@ -416,8 +405,7 @@ d_kv_load_unsigned(
 // sign bit and arithmetic-shifting back is the familiar spelling and its right
 // shift is implementation-defined; this form is defined by the standard at
 // every width.
-D_NODISCARD D_INLINE int64_t
-d_kv_load_signed(
+D_NODISCARD D_INLINE int64_t d_kv_load_signed(
     const void* _base,
     uint32_t    _offset,
     uint32_t    _size,
@@ -446,8 +434,7 @@ d_kv_load_signed(
 // previous header let a caller ask for four bytes of a pointer on a 64-bit
 // target and returned the half-initialised result without complaint. A pointer
 // is not width-configurable data, so this reads sizeof(void*) or nothing.
-D_NODISCARD D_INLINE const void*
-d_kv_load_pointer(
+D_NODISCARD D_INLINE const void* d_kv_load_pointer(
     const void* _base,
     uint32_t    _offset,
     uint32_t    _capacity
@@ -476,8 +463,7 @@ d_kv_load_pointer(
 // REFUSED rather than truncated -- the same choice d_option_write makes about
 // a width mismatch, and for the same reason: a truncating write reads as
 // success and is discovered as corrupt data much later.
-D_NODISCARD D_INLINE bool
-d_kv_store_unsigned(
+D_NODISCARD D_INLINE bool d_kv_store_unsigned(
     void*    _base,
     uint32_t _offset,
     uint32_t _size,
@@ -523,8 +509,7 @@ d_kv_store_unsigned(
 //   function: the signed counterpart. The range test is against the slot's
 // two's-complement bounds, so a value that would change sign on narrowing is
 // refused rather than stored.
-D_NODISCARD D_INLINE bool
-d_kv_store_signed(
+D_NODISCARD D_INLINE bool d_kv_store_signed(
     void*    _base,
     uint32_t _offset,
     uint32_t _size,
@@ -571,8 +556,7 @@ d_kv_store_signed(
 //   function: copy opaque bytes out. _out_size must EQUAL the slot width; a
 // mismatch is a refusal rather than a partial copy, which is what
 // d_option_read already promises about its own out-parameter.
-D_NODISCARD D_INLINE bool
-d_kv_read(
+D_NODISCARD D_INLINE bool d_kv_read(
     const void* _base,
     uint32_t    _offset,
     uint32_t    _size,
@@ -601,8 +585,7 @@ d_kv_read(
 // d_kv_write
 //   function: copy opaque bytes in, under the same width contract as
 // d_kv_read.
-D_NODISCARD D_INLINE bool
-d_kv_write(
+D_NODISCARD D_INLINE bool d_kv_write(
     void*       _base,
     uint32_t    _offset,
     uint32_t    _size,
@@ -631,12 +614,12 @@ d_kv_write(
 
 // V.     descriptor-driven access
 //   The same operations addressed by a stored descriptor rather than by loose
-// arguments. This is the form a container holds: `d_registry` keeps one key
+// arguments. This is the form a container holds: `dj_registry` keeps one key
 // field and one value field for every row it owns, which is what lets it offer
 // a generic get and set at all.
 //   A CELL PROJECTS, A CONTAINER STORES. A descriptor that is the same for
 // every element belongs on the container; one that varies per element and sits
-// in a hot, scanned array is built on demand instead, so `d_option` returns
+// in a hot, scanned array is built on demand instead, so `dj_option` returns
 // one by value and its cell stays 24 bytes with its exact layout assertions
 // intact.
 
@@ -645,11 +628,10 @@ d_kv_write(
 // descriptor's D_KV_FLAG_SIGNED says. The result is int64_t because it must
 // carry either; an unsigned 64-bit slot at its top end is the one value this
 // cannot represent, and such a slot is read with d_kv_load_unsigned directly.
-D_NODISCARD D_INLINE int64_t
-d_kv_field_load(
-    const struct d_kv_field* _field,
-    const void*              _base,
-    uint32_t                 _capacity
+D_NODISCARD D_INLINE int64_t d_kv_field_load(
+    const struct dj_kv_field* _field,
+    const void*               _base,
+    uint32_t                  _capacity
 )
 {
     // an absent column reads as zero, not as an error
@@ -675,13 +657,12 @@ d_kv_field_load(
 
 // d_kv_field_read
 //   function: opaque copy out through a descriptor.
-D_NODISCARD D_INLINE bool
-d_kv_field_read(
-    const struct d_kv_field* _field,
-    const void*              _base,
-    uint32_t                 _capacity,
-    void*                    _out,
-    size_t                   _out_size
+D_NODISCARD D_INLINE bool d_kv_field_read(
+    const struct dj_kv_field* _field,
+    const void*               _base,
+    uint32_t                  _capacity,
+    void*                     _out,
+    size_t                    _out_size
 )
 {
     // an absent column has nothing to copy
@@ -700,13 +681,12 @@ d_kv_field_read(
 
 // d_kv_field_write
 //   function: opaque copy in through a descriptor.
-D_NODISCARD D_INLINE bool
-d_kv_field_write(
-    const struct d_kv_field* _field,
-    void*                    _base,
-    uint32_t                 _capacity,
-    const void*              _in,
-    size_t                   _in_size
+D_NODISCARD D_INLINE bool d_kv_field_write(
+    const struct dj_kv_field* _field,
+    void*                     _base,
+    uint32_t                  _capacity,
+    const void*               _in,
+    size_t                    _in_size
 )
 {
     // an absent column has nowhere to copy to
@@ -864,7 +844,7 @@ d_kv_field_write(
                                                                                \
     D_NODISCARD D_INLINE type                                                  \
     d_kv_##name##_field(                                                       \
-        const struct d_kv_field* _field,                                       \
+        const struct dj_kv_field* _field,                                       \
         const void*              _base,                                        \
         uint32_t                 _capacity                                     \
     )                                                                          \
@@ -899,7 +879,7 @@ d_kv_field_write(
                                                                                \
     D_NODISCARD D_INLINE type                                                  \
     d_kv_##name##_field(                                                       \
-        const struct d_kv_field* _field,                                       \
+        const struct dj_kv_field* _field,                                       \
         const void*              _base,                                        \
         uint32_t                 _capacity                                     \
     )                                                                          \
@@ -934,39 +914,39 @@ D_KV_DEFINE_SIGNED(int64_t, i64)
 // dialects. This header is compiled by both, so these fire in both and drift
 // becomes a compile error rather than a wire-format bug.
 
-D_STATIC_ASSERT(sizeof(struct d_kv_field) == 12,
-                "d_kv_field layout drift: expected 12 bytes");
-D_STATIC_ASSERT(offsetof(struct d_kv_field, offset) == 0,
-                "d_kv_field layout drift: offset must lead");
-D_STATIC_ASSERT(offsetof(struct d_kv_field, size) == 4,
-                "d_kv_field layout drift: size");
-D_STATIC_ASSERT(offsetof(struct d_kv_field, type) == 8,
-                "d_kv_field layout drift: type");
-D_STATIC_ASSERT(offsetof(struct d_kv_field, flags) == 10,
-                "d_kv_field layout drift: flags");
+D_STATIC_ASSERT(sizeof(struct dj_kv_field) == 12,
+                "dj_kv_field layout drift: expected 12 bytes");
+D_STATIC_ASSERT(offsetof(struct dj_kv_field, offset) == 0,
+                "dj_kv_field layout drift: offset must lead");
+D_STATIC_ASSERT(offsetof(struct dj_kv_field, size) == 4,
+                "dj_kv_field layout drift: size");
+D_STATIC_ASSERT(offsetof(struct dj_kv_field, type) == 8,
+                "dj_kv_field layout drift: type");
+D_STATIC_ASSERT(offsetof(struct dj_kv_field, flags) == 10,
+                "dj_kv_field layout drift: flags");
 
 //   NO INTERIOR PADDING. The exact offsets above already imply it, but the sum
-// is stated separately so that a build which changes d_type_info16's width
+// is stated separately so that a build which changes dj_type_info16's width
 // fails with the reason rather than with four offsets at once.
-D_STATIC_ASSERT(sizeof(struct d_kv_field) ==
+D_STATIC_ASSERT(sizeof(struct dj_kv_field) ==
                     ( sizeof(uint32_t) + sizeof(uint32_t) +
-                      sizeof(d_type_info16) + sizeof(uint16_t) ),
-                "d_kv_field: a member width has introduced padding");
+                      sizeof(dj_type_info16) + sizeof(uint16_t) ),
+                "dj_kv_field: a member width has introduced padding");
 
 //   THE DESCRIPTOR MUST DESCRIBE WHAT type_info CAN. A field narrower than
-// d_type_struct_field's would silently truncate a converted descriptor, so the
+// dj_type_struct_field's would silently truncate a converted descriptor, so the
 // relation is asserted rather than assumed.
-D_STATIC_ASSERT(sizeof(((struct d_kv_field*)0)->size) >=
-                    sizeof(((struct d_type_struct_field*)0)->size),
-                "d_kv_field: size is narrower than d_type_struct_field's");
+D_STATIC_ASSERT(sizeof(((struct dj_kv_field*)0)->size) >=
+                    sizeof(((struct dj_type_struct_field*)0)->size),
+                "dj_kv_field: size is narrower than dj_type_struct_field's");
 
 //   THE FLAG SET IS CLOSED. The mask is only meaningful while every defined
 // flag sits inside it.
 D_STATIC_ASSERT((D_KV_FLAG_SIGNED & D_KV_FLAG_MASK) == D_KV_FLAG_SIGNED,
-                "d_kv_field: a flag has escaped D_KV_FLAG_MASK");
+                "dj_kv_field: a flag has escaped D_KV_FLAG_MASK");
 
 
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_KV_
+#endif  // DJINTERP_C_UTIL_KV_H

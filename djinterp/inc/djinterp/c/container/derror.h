@@ -187,7 +187,7 @@ Freed twice                                         free, deep_free             
 Storage NULL while count > 0                        every access                               integrity.invariant                     broken
 Count above capacity; ring head or tail outside it  vector, circular                           integrity.invariant                     broken
 Element size is zero                                creation, every call                       quantity.size {B}                       rejected
-Element size differs from the array's own           every d_array call (size passed per call)  type.mismatch                           rejected
+Element size differs from the array's own           every dj_array call (size passed per call)  type.mismatch                           rejected
 Element sizes differ between two arrays             insert_array, prepend_array, merge         type.mismatch                           rejected
 (count + k) × element size overflows size_t         creation, append, insert, resize           quantity.size {A}                       rejected
 Capacity rounding overflows                         calc_capacity                              quantity.size {A}                       rejected
@@ -210,7 +210,7 @@ NULL array among merge arguments                    new_merge                   
 Varargs count doesn't match the arguments           new_from_args, new_merge                   quantity.arity                          undetectable in C
 ```
 
-**Indexing errors.** For a `d_index`, −1 is the last element and −n the first, so
+**Indexing errors.** For a `dj_index`, −1 is the last element and −n the first, so
 the valid access indices are [−n, n−1].
 
 ```text
@@ -225,17 +225,17 @@ Insertion into an empty array                        insert                  —
 Insertion index beyond the append slot               insert                  position.index {A}                          rejected
 Swap with an invalid index                           swap                    position.index / from_end, ARG names which  rejected
 Swap of an index with itself                         swap                    —                                           ok, E: no-op
-Negative d_index cast to size_t                      filter calls            position.index {A}                          rejected
+Negative dj_index cast to size_t                      filter calls            position.index {A}                          rejected
 Index list entry out of bounds                       filter at_indices       position.index {A}                          rejected
 Index list NULL with a nonzero count                 filter at_indices       argument.null                               rejected
 Typed read at an unaligned byte offset               byte buffers            position.misaligned                         rejected
-Count beyond what d_index can address (> SSIZE_MAX)  32-bit byte arrays      position.index {A}                          rejected
+Count beyond what dj_index can address (> SSIZE_MAX)  32-bit byte arrays      position.index {A}                          rejected
 Not-found sentinel used as an index                  find → get              lookup.not_found {B}                        soft
 Index held across a mutation                         callers                 handle.stale                                undetectable
 Resolved from a negative index                       any                     position.from_end {W}                       note
 ```
 
-**Range errors.** `d_array` ranges are inclusive `d_index` pairs; filter ranges
+**Range errors.** `dj_array` ranges are inclusive `dj_index` pairs; filter ranges
 are half-open `size_t`.
 
 ```text

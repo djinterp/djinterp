@@ -2647,9 +2647,17 @@
      ( sizeof((const uint32_t[]){ __VA_ARGS__ }) / sizeof(uint32_t) ) ) )
 
 
-size_t      d_text_emoji_utf8_encode(uint32_t _cp, char* _out);
-const char* d_text_emoji_utf8(uint32_t _cp);
-const char* d_text_emoji_utf8_seq(const uint32_t* _cps, size_t _length);
+size_t d_text_emoji_utf8_encode(
+    uint32_t _cp,
+    char*    _out
+);
+const char* d_text_emoji_utf8(
+    uint32_t _cp
+);
+const char* d_text_emoji_utf8_seq(
+    const uint32_t* _cps,
+    size_t          _length
+);
 
 
 #endif  // DJINTERP_C_TEXT_SYMBOL_EMOJI_H

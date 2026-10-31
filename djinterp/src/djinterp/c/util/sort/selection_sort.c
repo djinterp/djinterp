@@ -32,17 +32,17 @@ Return:
   D_SORT_STATUS_OK on success, otherwise the formal status from d_sort_verify
 describing what is wrong with the request.
 */
-enum d_sort_status
+enum dj_sort_status
 d_selection_sort
 (
     void*                           _base,
     size_t                          _count,
     size_t                          _elem_size,
-    const struct d_sort_comparator* _comparator,
-    enum d_sort_order               _order
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
 )
 {
-    enum d_sort_status status;
+    enum dj_sort_status status;
 
     status = d_sort_verify(_base, _count, _elem_size, _comparator);
 

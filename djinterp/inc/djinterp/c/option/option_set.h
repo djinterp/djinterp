@@ -51,7 +51,7 @@
 #include "./option_set_common.h"
 #include "./option.h"
 // re_std
-#include "../../../re_std/cstdint/dstdint.h"  // int32_t, uint32_t
+#include "../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
 // declares only where the build can spell one. Below it -- ISO strict C++98
@@ -89,7 +89,7 @@ D_EXTERN_C_BEGIN
 //
 //     D_OPTION_SET_DECLARE_SCHEMA(window_storage, WINDOW_OPTIONS);
 //     struct window_storage raw = D_OPTION_SET_STORAGE_INIT;
-//     struct d_option_set   set = D_OPTION_SET_VIEW(raw);
+//     struct dj_option_set   set = D_OPTION_SET_VIEW(raw);
 //     D_OPTION_SET_INIT_SCHEMA(&set, WINDOW_OPTIONS);
 //
 //   Automatic storage throughout. No allocator is involved at any step, which
@@ -150,7 +150,7 @@ D_EXTERN_C_BEGIN
                                  SCHEMA)                                    \
     do                                                                      \
     {                                                                       \
-        struct d_option_set* D_INTERNAL_OS_TARGET = (set);                  \
+        struct dj_option_set* D_INTERNAL_OS_TARGET = (set);                  \
                                                                             \
         d_option_set_clear(D_INTERNAL_OS_TARGET);                           \
         SCHEMA(D_OPTION_SCHEMA_ADD_ROW)                                     \
@@ -161,14 +161,18 @@ D_EXTERN_C_BEGIN
 //   function: lower D_OPTION_FLAG_ASSIGNED across the set, declaring its
 // current contents to be the baseline. Called at the end of schema
 // initialisation so that "assigned" thereafter means "changed by a caller".
-void     d_option_set_mark_pristine(struct d_option_set* _set);
+void d_option_set_mark_pristine(
+    struct dj_option_set* _set
+);
 
 // d_option_set_is_pristine
 //   function: whether no column has been assigned since the last
 // `d_option_set_mark_pristine`. One walk over a flat table -- the same fold
 // the archive core uses to answer the same question about its knobs, rather
 // than a comparison against a second set that has to be constructed first.
-bool     d_option_set_is_pristine(const struct d_option_set* _set);
+bool d_option_set_is_pristine(
+    const struct dj_option_set* _set
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -178,10 +182,10 @@ bool     d_option_set_is_pristine(const struct d_option_set* _set);
 // D_OPTION_GET
 //   macro: read a key's value into a typed lvalue. The width comes from the
 // destination, so it cannot disagree with it. Yields the
-// `struct d_option_result` the core returned, so a formal failure is still
+// `struct dj_option_result` the core returned, so a formal failure is still
 // distinguishable from a mechanical one.
 //
-//     struct d_option_result r = D_OPTION_GET(&set, win_opt_width, w);
+//     struct dj_option_result r = D_OPTION_GET(&set, win_opt_width, w);
 #define D_OPTION_GET(set, key, dest)                                        \
     d_option_set_get((set),                                                 \
                      D_OPTION_KEY(key),                                     \
@@ -210,8 +214,10 @@ bool     d_option_set_is_pristine(const struct d_option_set* _set);
 // d_option_result_status_of
 //   function: the status carried by a result value, for use in expressions
 // where taking its address is not possible. The pointer form is
-// `d_option_status` in option_common.h.
-int32_t  d_option_result_status_of(struct d_option_result _result);
+// `dj_option_status` in option_common.h.
+int32_t d_option_result_status_of(
+    struct dj_option_result _result
+);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,7 +226,7 @@ int32_t  d_option_result_status_of(struct d_option_result _result);
 
 // D_OPTION_SET_FOREACH
 //   macro: walk a set in declaration order, binding `cell` to each
-// `const struct d_option*` and `idx` to its index.
+// `const struct dj_option*` and `idx` to its index.
 //
 //     D_OPTION_SET_FOREACH(&set, cell, i)
 //     {
@@ -233,7 +239,7 @@ int32_t  d_option_result_status_of(struct d_option_result _result);
 // than the loop it replaces.
 #define D_OPTION_SET_FOREACH(set, cell, idx)                                 \
     for (uint32_t idx = 0u; idx < d_option_set_size(set); ++idx)             \
-        for (const struct d_option* cell =                                   \
+        for (const struct dj_option* cell =                                   \
                  d_option_set_at_const((set), idx);                          \
              cell != NULL;                                                   \
              cell = NULL)

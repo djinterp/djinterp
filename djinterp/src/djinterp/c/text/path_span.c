@@ -24,18 +24,18 @@
 #define D_INTERNAL_PATH_SELF  1
 #define D_INTERNAL_PATH_UP    2
 
-// d_internal_path_chain
+// dj_internal_path_chain
 //   struct: one or two paths read as one, the second's labels after the
 // first's -- what a join renders.
-struct d_internal_path_chain
+struct dj_internal_path_chain
 {
-    const struct d_path_span* part[2];
+    const struct dj_path_span* part[2];
     size_t                    count;
 };
 
-// d_internal_path_at
+// dj_internal_path_at
 //   struct: a place in a chain: the part, and the cursor within it.
-struct d_internal_path_at
+struct dj_internal_path_at
 {
     size_t part;
     size_t cursor;
@@ -48,8 +48,8 @@ struct d_internal_path_at
  * @param[in] _set  NUL-terminated characters, or NULL for none.
  * @return true when `_c` is in `_set`, never for the NUL that ends it.
  */
-static bool
-d_internal_path_in(
+static
+bool d_internal_path_in(
     char        _c,
     const char* _set
 )
@@ -65,8 +65,8 @@ d_internal_path_in(
  * @param[in] _c  the character.
  * @return its lower case, or `_c` for anything but an ASCII capital.
  */
-static char
-d_internal_path_fold(
+static
+char d_internal_path_fold(
     char _c
 )
 {
@@ -85,12 +85,12 @@ d_internal_path_fold(
  * @param[in] _grammar  the grammar; may be NULL.
  * @return true when they read alike.
  */
-static bool
-d_internal_path_same(
-    const char*                  _a,
-    const char*                  _b,
-    size_t                       _length,
-    const struct d_path_grammar* _grammar
+static
+bool d_internal_path_same(
+    const char*                   _a,
+    const char*                   _b,
+    size_t                        _length,
+    const struct dj_path_grammar* _grammar
 )
 {
     const char* const separators = (_grammar) ? _grammar->separators : NULL;
@@ -122,10 +122,10 @@ d_internal_path_same(
  * @param[in] _b  another.
  * @return true when their anchors read alike by `_a`'s grammar.
  */
-static bool
-d_internal_path_same_anchor(
-    const struct d_path_span* _a,
-    const struct d_path_span* _b
+static
+bool d_internal_path_same_anchor(
+    const struct dj_path_span* _a,
+    const struct dj_path_span* _b
 )
 {
     return ( (_a->anchor == _b->anchor) &&
@@ -135,14 +135,13 @@ d_internal_path_same_anchor(
                                    _a->grammar)) );
 }
 
-struct d_path_span
-d_path_span_of(
-    const char*                  _text,
-    size_t                       _length,
-    const struct d_path_grammar* _grammar
+struct dj_path_span d_path_span_of(
+    const char*                   _text,
+    size_t                        _length,
+    const struct dj_path_grammar* _grammar
 )
 {
-    struct d_path_span span = { NULL, 0, 0, 0, NULL };
+    struct dj_path_span span = { NULL, 0, 0, 0, NULL };
 
     // no text, or no way to read it: the empty span
     if ( (!_text) ||
@@ -195,11 +194,10 @@ d_path_span_next
 end starts from there, and the separators before a label are skipped, so a
 run of them frames one boundary and no empty label is ever handed out.
 */
-bool
-d_path_span_next(
-    const struct d_path_span* _span,
-    size_t*                   _cursor,
-    struct d_path_label*      _label
+bool d_path_span_next(
+    const struct dj_path_span* _span,
+    size_t*                    _cursor,
+    struct dj_path_label*      _label
 )
 {
     // nothing to step through
@@ -250,9 +248,8 @@ d_path_span_next(
     return true;
 }
 
-size_t
-d_path_span_level(
-    const struct d_path_span* _span
+size_t d_path_span_level(
+    const struct dj_path_span* _span
 )
 {
     size_t cursor = 0;
@@ -269,21 +266,19 @@ d_path_span_level(
     return level;
 }
 
-bool
-d_path_span_is_anchored(
-    const struct d_path_span* _span
+bool d_path_span_is_anchored(
+    const struct dj_path_span* _span
 )
 {
     return ( (_span != NULL) &&
              (_span->anchor > 0) );
 }
 
-struct d_path_label
-d_path_span_anchor(
-    const struct d_path_span* _span
+struct dj_path_label d_path_span_anchor(
+    const struct dj_path_span* _span
 )
 {
-    struct d_path_label anchor = { NULL, 0 };
+    struct dj_path_label anchor = { NULL, 0 };
 
     // the run the anchor takes, where there is one
     if ( (_span) &&
@@ -296,13 +291,12 @@ d_path_span_anchor(
     return anchor;
 }
 
-struct d_path_label
-d_path_span_last(
-    const struct d_path_span* _span
+struct dj_path_label d_path_span_last(
+    const struct dj_path_span* _span
 )
 {
-    struct d_path_label last   = { NULL, 0 };
-    struct d_path_label label  = { NULL, 0 };
+    struct dj_path_label last   = { NULL, 0 };
+    struct dj_path_label label  = { NULL, 0 };
     size_t              cursor = 0;
 
     // the last label the path hands out
@@ -316,12 +310,11 @@ d_path_span_last(
     return last;
 }
 
-struct d_path_label
-d_path_span_rest(
-    const struct d_path_span* _span
+struct dj_path_label d_path_span_rest(
+    const struct dj_path_span* _span
 )
 {
-    struct d_path_label rest = { NULL, 0 };
+    struct dj_path_label rest = { NULL, 0 };
 
     // what follows the path proper, where anything does
     if ( (_span) &&
@@ -339,12 +332,11 @@ d_path_span_parent
   The parent is the text up to where the last label starts: the separators
 before it stay, and are read as the boundary they are.
 */
-struct d_path_span
-d_path_span_parent(
-    const struct d_path_span* _span
+struct dj_path_span d_path_span_parent(
+    const struct dj_path_span* _span
 )
 {
-    struct d_path_span parent = { NULL, 0, 0, 0, NULL };
+    struct dj_path_span parent = { NULL, 0, 0, 0, NULL };
 
     // nothing has no parent
     if (!_span)
@@ -352,7 +344,7 @@ d_path_span_parent(
         return parent;
     }
 
-    const struct d_path_label last = d_path_span_last(_span);
+    const struct dj_path_label last = d_path_span_last(_span);
 
     parent        = *_span;
     parent.length = (last.text) ? (size_t)(last.text - _span->text)
@@ -362,11 +354,10 @@ d_path_span_parent(
     return parent;
 }
 
-bool
-d_path_label_equal(
-    struct d_path_label          _a,
-    struct d_path_label          _b,
-    const struct d_path_grammar* _grammar
+bool d_path_label_equal(
+    struct dj_path_label          _a,
+    struct dj_path_label          _b,
+    const struct dj_path_grammar* _grammar
 )
 {
     return ( (_a.length == _b.length) &&
@@ -377,10 +368,9 @@ d_path_label_equal(
                                      _grammar)) ) );
 }
 
-size_t
-d_path_span_meet(
-    const struct d_path_span* _a,
-    const struct d_path_span* _b
+size_t d_path_span_meet(
+    const struct dj_path_span* _a,
+    const struct dj_path_span* _b
 )
 {
     // paths in different anchors are in different spaces
@@ -393,8 +383,8 @@ d_path_span_meet(
         return D_PATH_SPAN_NO_MEET;
     }
 
-    struct d_path_label a        = { NULL, 0 };
-    struct d_path_label b        = { NULL, 0 };
+    struct dj_path_label a        = { NULL, 0 };
+    struct dj_path_label b        = { NULL, 0 };
     size_t              cursor_a = 0;
     size_t              cursor_b = 0;
     size_t              level    = 0;
@@ -410,10 +400,9 @@ d_path_span_meet(
     return level;
 }
 
-bool
-d_path_span_starts_with(
-    const struct d_path_span* _span,
-    const struct d_path_span* _prefix
+bool d_path_span_starts_with(
+    const struct dj_path_span* _span,
+    const struct dj_path_span* _prefix
 )
 {
     const size_t meet = d_path_span_meet(_span,
@@ -431,11 +420,11 @@ d_path_span_starts_with(
  * @param[out]    _label  receives the label.
  * @return true for a label, false past the last.
  */
-static bool
-d_internal_path_chain_next(
-    const struct d_internal_path_chain* _chain,
-    struct d_internal_path_at*          _at,
-    struct d_path_label*                _label
+static
+bool d_internal_path_chain_next(
+    const struct dj_internal_path_chain* _chain,
+    struct dj_internal_path_at*          _at,
+    struct dj_path_label*                _label
 )
 {
     // this part's next label, or the next part's first
@@ -463,10 +452,10 @@ d_internal_path_chain_next(
  * @param[in] _dots   whether the grammar reads dot labels.
  * @return D_INTERNAL_PATH_LABEL, D_INTERNAL_PATH_SELF or D_INTERNAL_PATH_UP.
  */
-static int
-d_internal_path_kind(
-    struct d_path_label _label,
-    bool                _dots
+static
+int d_internal_path_kind(
+    struct dj_path_label _label,
+    bool                 _dots
 )
 {
     // only a grammar that reads them has dot labels
@@ -497,14 +486,14 @@ d_internal_path_kind(
  * @return true when the labels after it, read as brackets -- a label opens,
  *         a ".." closes -- close the one it opens.
  */
-static bool
-d_internal_path_folded(
-    const struct d_internal_path_chain* _chain,
-    struct d_internal_path_at           _after,
-    bool                                _dots
+static
+bool d_internal_path_folded(
+    const struct dj_internal_path_chain* _chain,
+    struct dj_internal_path_at           _after,
+    bool                                 _dots
 )
 {
-    struct d_path_label label = { NULL, 0 };
+    struct dj_path_label label = { NULL, 0 };
     size_t              depth = 0;
 
     // a ".." with no label of its own to close closes this one
@@ -542,8 +531,8 @@ d_internal_path_folded(
  * @param[in]     _text    the run.
  * @param[in]     _length  its length.
  */
-static void
-d_internal_path_put(
+static
+void d_internal_path_put(
     char*       _buf,
     size_t      _size,
     size_t*     _out,
@@ -573,15 +562,15 @@ has few labels, and the alternative is a stack the caller would pay for. The
 ".." that folds a label counts the labels still open before it, and one with
 none stays in a relative path and goes from an anchored one.
 */
-static size_t
-d_internal_path_render(
-    const struct d_internal_path_chain* _chain,
-    const struct d_path_span*           _anchor,
-    char*                               _buf,
-    size_t                              _size
+static
+size_t d_internal_path_render(
+    const struct dj_internal_path_chain* _chain,
+    const struct dj_path_span*           _anchor,
+    char*                                _buf,
+    size_t                               _size
 )
 {
-    const struct d_path_grammar* const grammar  = _anchor->grammar;
+    const struct dj_path_grammar* const grammar  = _anchor->grammar;
     const bool                         dots     = ( (grammar->flags &
                                                      D_PATH_GRAMMAR_DOT_LABELS)
                                                     != 0u );
@@ -594,8 +583,8 @@ d_internal_path_render(
                                                     (!d_internal_path_in(
                                                         edge,
                                                         grammar->separators)) );
-    struct d_internal_path_at          at       = { 0, 0 };
-    struct d_path_label                label    = { NULL, 0 };
+    struct dj_internal_path_at          at       = { 0, 0 };
+    struct dj_path_label                label    = { NULL, 0 };
     size_t                             out      = 0;
     size_t                             written  = 0;
     size_t                             open     = 0;
@@ -660,11 +649,10 @@ d_internal_path_render(
     return out;
 }
 
-size_t
-d_path_span_render(
-    const struct d_path_span* _span,
-    char*                     _buf,
-    size_t                    _size
+size_t d_path_span_render(
+    const struct dj_path_span* _span,
+    char*                      _buf,
+    size_t                     _size
 )
 {
     // an empty span renders as nothing
@@ -681,7 +669,7 @@ d_path_span_render(
         return 0;
     }
 
-    const struct d_internal_path_chain chain = { { _span, NULL }, 1 };
+    const struct dj_internal_path_chain chain = { { _span, NULL }, 1 };
 
     return d_internal_path_render(&chain,
                                   _span,
@@ -689,12 +677,11 @@ d_path_span_render(
                                   _size);
 }
 
-size_t
-d_path_span_render_join(
-    const struct d_path_span* _base,
-    const struct d_path_span* _more,
-    char*                     _buf,
-    size_t                    _size
+size_t d_path_span_render_join(
+    const struct dj_path_span* _base,
+    const struct dj_path_span* _more,
+    char*                      _buf,
+    size_t                     _size
 )
 {
     // an anchored path is taken from nothing but its anchor
@@ -709,7 +696,7 @@ d_path_span_render_join(
                                   _size);
     }
 
-    const struct d_internal_path_chain chain = { { _base, _more }, 2 };
+    const struct dj_internal_path_chain chain = { { _base, _more }, 2 };
 
     return d_internal_path_render(&chain,
                                   _base,

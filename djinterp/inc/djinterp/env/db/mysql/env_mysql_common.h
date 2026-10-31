@@ -147,8 +147,8 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../env.h"                                            // D_ENV_OS_ID
-#include "../../../config/core/env/db/mariadb/cfg_env_mariadb.h"  // settings
-#include "../../../config/core/env/db/mysql/cfg_env_mysql.h"      // settings
+#include "../../../config/env/db/mariadb/cfg_env_mariadb.h"  // settings
+#include "../../../config/env/db/mysql/cfg_env_mysql.h"      // settings
 
 
 //==============================================================================

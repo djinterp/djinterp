@@ -6,24 +6,23 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // shared data for signal/wait tests
-struct d_test_cond_signal_data
+struct dj_test_cond_signal_data
 {
-    d_mutex_t* mtx;
-    d_cond_t*  cond;
+    dj_mutex_t* mtx;
+    dj_cond_t*  cond;
     bool       ready;
     int        value;
 };
 
 // helper: waiter thread that blocks until ready is set
-static void*
-d_test_cond_waiter
-(
+static
+void* d_test_cond_waiter(
     void* _arg
 )
 {
-    struct d_test_cond_signal_data* data;
+    struct dj_test_cond_signal_data* data;
 
-    data = (struct d_test_cond_signal_data*)_arg;
+    data = (struct dj_test_cond_signal_data*)_arg;
 
     d_mutex_lock(data->mtx);
 
@@ -40,24 +39,23 @@ d_test_cond_waiter
 }
 
 // shared data for broadcast tests
-struct d_test_cond_broadcast_data
+struct dj_test_cond_broadcast_data
 {
-    d_mutex_t*   mtx;
-    d_cond_t*    cond;
+    dj_mutex_t*   mtx;
+    dj_cond_t*    cond;
     bool         ready;
     volatile int woken_count;
 };
 
 // helper: broadcast waiter thread
-static void*
-d_test_cond_broadcast_waiter
-(
+static
+void* d_test_cond_broadcast_waiter(
     void* _arg
 )
 {
-    struct d_test_cond_broadcast_data* data;
+    struct dj_test_cond_broadcast_data* data;
 
-    data = (struct d_test_cond_broadcast_data*)_arg;
+    data = (struct dj_test_cond_broadcast_data*)_arg;
 
     d_mutex_lock(data->mtx);
 
@@ -74,16 +72,15 @@ d_test_cond_broadcast_waiter
 }
 
 // helper: signaler thread for timedwait test
-static void*
-d_test_cond_timedwait_signaler
-(
+static
+void* d_test_cond_timedwait_signaler(
     void* _arg
 )
 {
-    struct d_test_cond_signal_data* data;
+    struct dj_test_cond_signal_data* data;
     struct timespec                 sleep_dur;
 
-    data = (struct d_test_cond_signal_data*)_arg;
+    data = (struct dj_test_cond_signal_data*)_arg;
 
     // wait briefly then signal
     sleep_dur.tv_sec  = 0;
@@ -112,14 +109,12 @@ d_tests_sa_cond_init_destroy
   - successful destroy returns D_MUTEX_SUCCESS
   - multiple condition variables can be initialized
 */
-bool
-d_tests_sa_cond_init_destroy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_cond_init_destroy(
+    struct dj_test_counter* _counter
 )
 {
     bool     result;
-    d_cond_t cond;
+    dj_cond_t cond;
     int      rc;
 
     result = true;
@@ -145,8 +140,8 @@ d_tests_sa_cond_init_destroy
 
     // test 3: multiple init/destroy cycles
     {
-        d_cond_t cond_a;
-        d_cond_t cond_b;
+        dj_cond_t cond_a;
+        dj_cond_t cond_b;
         int      rc_a;
         int      rc_b;
 
@@ -182,17 +177,15 @@ d_tests_sa_cond_signal
   - signal wakes one waiting thread
   - signaled thread resumes and sees updated state
 */
-bool
-d_tests_sa_cond_signal
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_cond_signal(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    d_mutex_t                      mtx;
-    d_cond_t                       cond;
-    struct d_test_cond_signal_data shared;
-    d_thread_t                     thd;
+    dj_mutex_t                      mtx;
+    dj_cond_t                       cond;
+    struct dj_test_cond_signal_data shared;
+    dj_thread_t                     thd;
     int                            rc;
     struct timespec                sleep_dur;
 
@@ -219,7 +212,7 @@ d_tests_sa_cond_signal
     shared.ready = false;
     shared.value = 0;
 
-    rc = d_thread_create(&thd, (d_thread_func_t)d_test_cond_waiter, &shared);
+    rc = d_thread_create(&thd, (dj_thread_func_t)d_test_cond_waiter, &shared);
 
     if (rc == D_MUTEX_SUCCESS)
     {
@@ -265,17 +258,15 @@ d_tests_sa_cond_broadcast
   - broadcast returns D_MUTEX_SUCCESS
   - broadcast wakes all waiting threads
 */
-bool
-d_tests_sa_cond_broadcast
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_cond_broadcast(
+    struct dj_test_counter* _counter
 )
 {
     bool                              result;
-    d_mutex_t                         mtx;
-    d_cond_t                          cond;
-    struct d_test_cond_broadcast_data shared;
-    d_thread_t                        threads[4];
+    dj_mutex_t                         mtx;
+    dj_cond_t                          cond;
+    struct dj_test_cond_broadcast_data shared;
+    dj_thread_t                        threads[4];
     int                               rc;
     int                               i;
     int                               created;
@@ -310,7 +301,7 @@ d_tests_sa_cond_broadcast
     for (i = 0; i < 4; i++)
     {
         rc = d_thread_create(&threads[i],
-                                 (d_thread_func_t)d_test_cond_broadcast_waiter,
+                                 (dj_thread_func_t)d_test_cond_broadcast_waiter,
                              &shared);
 
         if (rc == D_MUTEX_SUCCESS)
@@ -367,17 +358,15 @@ d_tests_sa_cond_wait
   - wait reacquires the mutex after being signaled
   - wait with predicate loop pattern works correctly
 */
-bool
-d_tests_sa_cond_wait
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_cond_wait(
+    struct dj_test_counter* _counter
 )
 {
     bool                           result;
-    d_mutex_t                      mtx;
-    d_cond_t                       cond;
-    struct d_test_cond_signal_data shared;
-    d_thread_t                     thd;
+    dj_mutex_t                      mtx;
+    dj_cond_t                       cond;
+    struct dj_test_cond_signal_data shared;
+    dj_thread_t                     thd;
     int                            rc;
     struct timespec                sleep_dur;
 
@@ -404,7 +393,7 @@ d_tests_sa_cond_wait
     shared.ready = false;
     shared.value = 0;
 
-    rc = d_thread_create(&thd, (d_thread_func_t)d_test_cond_waiter, &shared);
+    rc = d_thread_create(&thd, (dj_thread_func_t)d_test_cond_waiter, &shared);
 
     if (rc == D_MUTEX_SUCCESS)
     {
@@ -453,15 +442,13 @@ d_tests_sa_cond_timedwait
   - timedwait returns D_MUTEX_TIMEDOUT when not signaled
   - timedwait returns D_MUTEX_SUCCESS when signaled before timeout
 */
-bool
-d_tests_sa_cond_timedwait
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_cond_timedwait(
+    struct dj_test_counter* _counter
 )
 {
     bool            result;
-    d_mutex_t       mtx;
-    d_cond_t        cond;
+    dj_mutex_t       mtx;
+    dj_cond_t        cond;
     int             rc;
     struct timespec timeout;
 
@@ -501,8 +488,8 @@ d_tests_sa_cond_timedwait
 
     // test 2: timedwait succeeds when signaled in time
     {
-        struct d_test_cond_signal_data shared;
-        d_thread_t                     thd;
+        struct dj_test_cond_signal_data shared;
+        dj_thread_t                     thd;
 
         shared.mtx   = &mtx;
         shared.cond  = &cond;
@@ -510,7 +497,7 @@ d_tests_sa_cond_timedwait
         shared.value = 0;
 
         rc = d_thread_create(&thd,
-                                 (d_thread_func_t)d_test_cond_timedwait_signaler,
+                                 (dj_thread_func_t)d_test_cond_timedwait_signaler,
                              &shared);
 
         if (rc == D_MUTEX_SUCCESS)
@@ -553,10 +540,8 @@ d_tests_sa_cond_timedwait
 d_tests_sa_cond_all
   Aggregation function that runs all condition variable tests.
 */
-bool
-d_tests_sa_cond_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_cond_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

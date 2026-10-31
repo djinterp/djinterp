@@ -29,8 +29,8 @@
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                    // d_fs_names
 #include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"                // d_text_read, d_text_write
-#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_doc.h"   // d_ninja_doc
-#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_eval.h"  // d_ninja_graph
+#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_doc.h"   // dj_ninja_doc
+#include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_eval.h"  // dj_ninja_graph
 
 
 static int g_checks = 0;
@@ -46,8 +46,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -69,8 +69,8 @@ d_tests_check(
 d_tests_is
   Whether a text is the text expected; a difference is printed.
 */
-static bool
-d_tests_is(
+static
+bool d_tests_is(
     const char* _got,
     const char* _expected
 )
@@ -94,10 +94,10 @@ d_tests_value
   A value of a reading, unparsed, in a buffer the next call writes over;
 "" for none.
 */
-static const char*
-d_tests_value(
-    const struct d_ninja* _ninja,
-    size_t                _value
+static
+const char* d_tests_value(
+    const struct dj_ninja* _ninja,
+    size_t                 _value
 )
 {
     static char text[4096];
@@ -110,7 +110,7 @@ d_tests_value(
         return text;
     }
 
-    const struct d_ninja_value* const value = &_ninja->values[_value];
+    const struct dj_ninja_value* const value = &_ninja->values[_value];
 
     // a value too long for the buffer is not one a test writes
     if ((((value->end - value->start) * 2u) + 1u) > sizeof(text))
@@ -128,12 +128,12 @@ d_tests_value(
 d_tests_span_is
   Whether a span of a reading's text is a text.
 */
-static bool
-d_tests_span_is(
-    const struct d_ninja* _ninja,
-    size_t                _start,
-    size_t                _end,
-    const char*           _expected
+static
+bool d_tests_span_is(
+    const struct dj_ninja* _ninja,
+    size_t                 _start,
+    size_t                 _end,
+    const char*            _expected
 )
 {
     return ( ((_end - _start) == strlen(_expected)) &&
@@ -148,14 +148,14 @@ text.
 */
 static bool
 d_tests_path_is(
-    const struct d_ninja* _ninja,
+    const struct dj_ninja* _ninja,
     size_t                _n,
     size_t                _k,
-    enum d_ninja_section  _section,
+    enum dj_ninja_section  _section,
     const char*           _expected
 )
 {
-    const struct d_ninja_statement* const statement = &_ninja->statements[_n];
+    const struct dj_ninja_statement* const statement = &_ninja->statements[_n];
 
     // a path the statement has
     if (_k >= statement->path_count)
@@ -163,7 +163,7 @@ d_tests_path_is(
         return false;
     }
 
-    const struct d_ninja_path* const path =
+    const struct dj_ninja_path* const path =
         &_ninja->paths[statement->first_path + _k];
 
     return ( (path->section == _section) &&
@@ -175,16 +175,16 @@ d_tests_path_is(
 d_tests_binding_is
   Whether binding `_k` of statement `_n` has a name and unparses as a text.
 */
-static bool
-d_tests_binding_is(
-    const struct d_ninja* _ninja,
-    size_t                _n,
-    size_t                _k,
-    const char*           _name,
-    const char*           _expected
+static
+bool d_tests_binding_is(
+    const struct dj_ninja* _ninja,
+    size_t                 _n,
+    size_t                 _k,
+    const char*            _name,
+    const char*            _expected
 )
 {
-    const struct d_ninja_statement* const statement = &_ninja->statements[_n];
+    const struct dj_ninja_statement* const statement = &_ninja->statements[_n];
 
     // a binding the statement has
     if (_k >= statement->binding_count)
@@ -192,7 +192,7 @@ d_tests_binding_is(
         return false;
     }
 
-    const struct d_ninja_binding* const binding =
+    const struct dj_ninja_binding* const binding =
         &_ninja->bindings[statement->first_binding + _k];
 
     return ( (d_tests_span_is(_ninja, binding->name_start, binding->name_end,
@@ -205,13 +205,13 @@ d_tests_binding_is(
 d_tests_doc
   A document of a text that must read.
 */
-static struct d_ninja_doc*
-d_tests_doc(
+static
+struct dj_ninja_doc* d_tests_doc(
     const char* _text
 )
 {
     char                      why[256];
-    struct d_ninja_doc* const doc = d_ninja_doc_make("t.ninja", _text,
+    struct dj_ninja_doc* const doc = d_ninja_doc_make("t.ninja", _text,
                                                      strlen(_text), why,
                                                      sizeof(why));
 
@@ -230,10 +230,10 @@ d_tests_doc(
 d_tests_text_is
   Whether a document's text is the text expected; a difference is printed.
 */
-static bool
-d_tests_text_is(
-    const struct d_ninja_doc* _doc,
-    const char*               _expected
+static
+bool d_tests_text_is(
+    const struct dj_ninja_doc* _doc,
+    const char*                _expected
 )
 {
     size_t            length = 0;
@@ -257,11 +257,11 @@ d_tests_kept
   Whether a change was kept, and the document holds the text expected; why
 it was refused is printed.
 */
-static bool
-d_tests_kept(
-    const struct d_ninja_doc* _doc,
-    bool                      _kept,
-    const char*               _expected
+static
+bool d_tests_kept(
+    const struct dj_ninja_doc* _doc,
+    bool                       _kept,
+    const char*                _expected
 )
 {
     // a refusal says why
@@ -279,12 +279,12 @@ d_tests_kept(
 d_tests_refused
   Whether a change was refused, the document unchanged and saying why.
 */
-static bool
-d_tests_refused(
-    const struct d_ninja_doc* _doc,
-    bool                      _kept,
-    const char*               _before,
-    const char*               _why
+static
+bool d_tests_refused(
+    const struct dj_ninja_doc* _doc,
+    bool                       _kept,
+    const char*                _before,
+    const char*                _why
 )
 {
     const bool said = (strstr(d_ninja_doc_problem(_doc), _why) != NULL);
@@ -307,8 +307,8 @@ d_tests_load
 includes read from a directory; NULL when it would not load, `_problem`
 saying why.
 */
-static struct d_ninja_graph*
-d_tests_load(
+static
+struct dj_ninja_graph* d_tests_load(
     const char* _text,
     const char* _version,
     const char* _directory,
@@ -316,7 +316,7 @@ d_tests_load(
     size_t      _capacity
 )
 {
-    struct d_ninja_options options;
+    struct dj_ninja_options options;
 
     options.directory = _directory;
     options.version   = _version;
@@ -332,12 +332,12 @@ d_tests_load(
 d_tests_nodes_are
   Whether a list of nodes is the paths expected, a space between each.
 */
-static bool
-d_tests_nodes_are(
-    const struct d_ninja_graph* _graph,
-    const size_t*               _nodes,
-    size_t                      _count,
-    const char*                 _expected
+static
+bool d_tests_nodes_are(
+    const struct dj_ninja_graph* _graph,
+    const size_t*                _nodes,
+    size_t                       _count,
+    const char*                  _expected
 )
 {
     char   text[1024];
@@ -367,9 +367,9 @@ d_tests_section_is
 */
 static bool
 d_tests_section_is(
-    const struct d_ninja_graph* _graph,
+    const struct dj_ninja_graph* _graph,
     size_t                      _edge,
-    enum d_ninja_section        _section,
+    enum dj_ninja_section        _section,
     const char*                 _expected
 )
 {
@@ -384,13 +384,13 @@ d_tests_section_is(
 d_tests_binding_of
   Whether a binding of an edge evaluates as expected; the text is freed.
 */
-static bool
-d_tests_binding_of(
-    const struct d_ninja_graph* _graph,
-    size_t                      _edge,
-    const char*                 _name,
-    bool                        _escape,
-    const char*                 _expected
+static
+bool d_tests_binding_of(
+    const struct dj_ninja_graph* _graph,
+    size_t                       _edge,
+    const char*                  _name,
+    bool                         _escape,
+    const char*                  _expected
 )
 {
     char        why[256];
@@ -418,8 +418,8 @@ d_tests_reading
   - comments, at the top and among a statement's bindings
   - the version a file requires, a continued line, and CR LF endings
 */
-static void
-d_tests_reading(void)
+static
+void d_tests_reading(void)
 {
     static const char text[] =
         "# top\n"
@@ -437,7 +437,7 @@ d_tests_reading(void)
         "default a.o\n"
         "include rules.ninja\n"
         "subninja sub/build.ninja\n";
-    struct d_ninja ninja;
+    struct dj_ninja ninja;
     const bool     read = d_ninja_read(&ninja, text, sizeof(text) - 1u, NULL,
                                        0u);
 
@@ -453,7 +453,7 @@ d_tests_reading(void)
         return;
     }
 
-    const struct d_ninja_statement* const s = ninja.statements;
+    const struct dj_ninja_statement* const s = ninja.statements;
 
     d_tests_check( (s[0].kind == D_NINJA_VARIABLE) &&
                    (ninja.major == 1) && (ninja.minor == 10),
@@ -548,8 +548,8 @@ d_tests_reader_refusals
   - what ninja's parser refuses of a file alone is refused, on the line
     ninja names, in its words
 */
-static void
-d_tests_reader_refusals(void)
+static
+void d_tests_reader_refusals(void)
 {
     static const struct
     {
@@ -584,7 +584,7 @@ d_tests_reader_refusals(void)
     // each case refused where and as ninja refuses it
     for (size_t at = 0; at < (sizeof(cases) / sizeof(cases[0])); ++at)
     {
-        struct d_ninja ninja;
+        struct dj_ninja ninja;
         char           what[160];
         const bool     read = d_ninja_read(&ninja, cases[at].text,
                                            strlen(cases[at].text), NULL, 0u);
@@ -598,7 +598,7 @@ d_tests_reader_refusals(void)
         d_ninja_release(&ninja);
     }
 
-    struct d_ninja ninja;
+    struct dj_ninja ninja;
     char           why[192];
     const bool     read = d_ninja_read(&ninja, "x\n", 2u, why, sizeof(why));
 
@@ -619,8 +619,8 @@ d_tests_writers
   - a path made canonical, and written into a command as ninja writes it
   - names, and the names a rule may bind
 */
-static void
-d_tests_writers(void)
+static
+void d_tests_writers(void)
 {
     char*  out    = NULL;
     size_t length = 0;
@@ -698,8 +698,8 @@ d_tests_loading
     and what they validate
   - defaults, roots, rules, pools, variables and files
 */
-static void
-d_tests_loading(void)
+static
+void d_tests_loading(void)
 {
     static const char text[] =
         "cflags = -g\n"
@@ -716,7 +716,7 @@ d_tests_loading(void)
         "build gen: phony\n"
         "default all\n";
     char                        why[512];
-    struct d_ninja_graph* const graph = d_tests_load(text, NULL, NULL, why,
+    struct dj_ninja_graph* const graph = d_tests_load(text, NULL, NULL, why,
                                                      sizeof(why));
     const size_t*               nodes = NULL;
 
@@ -841,8 +841,8 @@ d_tests_load_refusals
   - what a version of ninja reads differently from another
   - a warning for a file that asks for an older ninja
 */
-static void
-d_tests_load_refusals(void)
+static
+void d_tests_load_refusals(void)
 {
     static const struct
     {
@@ -892,7 +892,7 @@ d_tests_load_refusals(void)
     for (size_t at = 0; at < (sizeof(cases) / sizeof(cases[0])); ++at)
     {
         char                        why[512];
-        struct d_ninja_graph* const graph = d_tests_load(cases[at].text,
+        struct dj_ninja_graph* const graph = d_tests_load(cases[at].text,
                                                          cases[at].version,
                                                          NULL, why,
                                                          sizeof(why));
@@ -904,7 +904,7 @@ d_tests_load_refusals(void)
     }
 
     char                  why[512];
-    struct d_ninja_graph* graph = d_tests_load("pool p\n  depth = x\n",
+    struct dj_ninja_graph* graph = d_tests_load("pool p\n  depth = x\n",
                                                "1.11.1", NULL, why,
                                                sizeof(why));
 
@@ -947,8 +947,8 @@ d_tests_load_refusals(void)
 d_tests_put
   Writes a file under a directory, its own directories made.
 */
-static void
-d_tests_put(
+static
+void d_tests_put(
     const char* _directory,
     const char* _name,
     const char* _text
@@ -979,8 +979,8 @@ d_tests_scopes
   - a manifest loaded from disk, and one that is not there
   Long as the three files are written before the checks.
 */
-static void
-d_tests_scopes(
+static
+void d_tests_scopes(
     const char* _work
 )
 {
@@ -998,13 +998,13 @@ d_tests_scopes(
     d_tests_put(directory, "inc.ninja", "w = inc\nv = changed\n");
     d_tests_put(directory, "sub/build.ninja", "v = sub\nbuild sub.txt: echo\n");
 
-    struct d_ninja_options options;
+    struct dj_ninja_options options;
 
     options.directory = directory;
     options.version   = NULL;
     options.win32     = false;
 
-    struct d_ninja_graph* const graph = d_ninja_load("build.ninja", &options,
+    struct dj_ninja_graph* const graph = d_ninja_load("build.ninja", &options,
                                                      why, sizeof(why));
 
     d_tests_check(graph != NULL, "a manifest with an include and a subninja");
@@ -1036,7 +1036,7 @@ d_tests_scopes(
                    "three files read, in order, and an edge's file");
     d_ninja_graph_free(graph);
 
-    struct d_ninja_graph* const none = d_ninja_load("nothere.ninja",
+    struct dj_ninja_graph* const none = d_ninja_load("nothere.ninja",
                                                     &options, why,
                                                     sizeof(why));
 
@@ -1046,7 +1046,7 @@ d_tests_scopes(
                    "a manifest that is not there, as ninja says it");
     d_tests_put(directory, "bad.ninja", "include gone.ninja\n");
 
-    struct d_ninja_graph* const bad = d_ninja_load("bad.ninja", &options, why,
+    struct dj_ninja_graph* const bad = d_ninja_load("bad.ninja", &options, why,
                                                    sizeof(why));
 
     d_tests_check( (!bad) &&
@@ -1070,8 +1070,8 @@ d_tests_documents
   - its path, its text, its changes, and where the last change was
   - a raw splice kept, and ones refused for what they do outside them
 */
-static void
-d_tests_documents(void)
+static
+void d_tests_documents(void)
 {
     static const char before[] = "a = 1\nbuild x: phony\ny = 2\n";
     char              why[256];
@@ -1085,7 +1085,7 @@ d_tests_documents(void)
                                     "newline")),
                    "a text ninja refuses makes no document, and says why");
 
-    struct d_ninja_doc* const doc = d_tests_doc(before);
+    struct dj_ninja_doc* const doc = d_tests_doc(before);
 
     // what follows needs the document
     if (!doc)
@@ -1136,8 +1136,8 @@ d_tests_values
   - each refused where the statement has none, or the text is no name,
     or reads as more than was asked
 */
-static void
-d_tests_values(void)
+static
+void d_tests_values(void)
 {
     static const char before[] =
         "cflags = -O2\n"
@@ -1146,7 +1146,7 @@ d_tests_values(void)
         "  command = cc $cflags -c $in -o $out\n"
         "build a.o: cc a.c\n"
         "default a.o\n";
-    struct d_ninja_doc* const doc = d_tests_doc(before);
+    struct dj_ninja_doc* const doc = d_tests_doc(before);
 
     // what follows needs the document
     if (!doc)
@@ -1235,8 +1235,8 @@ d_tests_bindings
   - every binding of a name removed
   - each refused where ninja would refuse it
 */
-static void
-d_tests_bindings(void)
+static
+void d_tests_bindings(void)
 {
     static const char before[] =
         "rule cc\n"
@@ -1247,7 +1247,7 @@ d_tests_bindings(void)
         "  x = 1\n"
         "  cflags = -O1\n"
         "n = 1\n";
-    struct d_ninja_doc* doc = d_tests_doc(before);
+    struct dj_ninja_doc* doc = d_tests_doc(before);
 
     // what follows needs the document
     if (!doc)
@@ -1369,12 +1369,12 @@ d_tests_paths
   - each refused where the statement has no such place, or ninja would
     read the text as other paths, or a build or a default is left empty
 */
-static void
-d_tests_paths(void)
+static
+void d_tests_paths(void)
 {
     static const struct
     {
-        enum d_ninja_section section;
+        enum dj_ninja_section section;
         size_t               place;
         const char*          text;
         const char*          after;
@@ -1394,7 +1394,7 @@ d_tests_paths(void)
     // each insertion, into a build of its own
     for (size_t at = 0; at < (sizeof(inserts) / sizeof(inserts[0])); ++at)
     {
-        struct d_ninja_doc* const doc = d_tests_doc("build a.o: cc a.c\n");
+        struct dj_ninja_doc* const doc = d_tests_doc("build a.o: cc a.c\n");
         char                      what[128];
 
         (void)snprintf(what, sizeof(what), "a path inserted: %s",
@@ -1409,7 +1409,7 @@ d_tests_paths(void)
         d_ninja_doc_free(doc);
     }
 
-    struct d_ninja_doc* doc = d_tests_doc("build a.o: phony\n");
+    struct dj_ninja_doc* doc = d_tests_doc("build a.o: phony\n");
 
     d_tests_check( (doc) &&
                    (d_tests_kept(doc, d_ninja_doc_insert_path(
@@ -1516,11 +1516,11 @@ d_tests_statements
   - each refused where the text is no statements, or the kind not the one
     replaced
 */
-static void
-d_tests_statements(void)
+static
+void d_tests_statements(void)
 {
     static const char before[] = "a = 1\n\n# about b\n# more\nb = 2\n";
-    struct d_ninja_doc* doc    = d_tests_doc(before);
+    struct dj_ninja_doc* doc    = d_tests_doc(before);
 
     // what follows needs the document
     if (!doc)
@@ -1609,15 +1609,15 @@ d_tests_saving
   - a document saved, its directories made; not written again unchanged
   - saved after a change, and to another path; read back as it was saved
 */
-static void
-d_tests_saving(
+static
+void d_tests_saving(
     const char* _work
 )
 {
     char                path[1024];
     char                other[1024];
     char                why[256];
-    struct d_ninja_doc* doc = NULL;
+    struct dj_ninja_doc* doc = NULL;
 
     (void)snprintf(path, sizeof(path), "%s/ninja/saved/deep/build.ninja",
                    _work);
@@ -1647,7 +1647,7 @@ d_tests_saving(
                     D_NINJA_SAVE_WRITTEN),
                    "  ...written after a change, and to another path");
 
-    struct d_ninja_doc* const back = d_ninja_doc_read(other, why,
+    struct dj_ninja_doc* const back = d_ninja_doc_read(other, why,
                                                       sizeof(why));
 
     d_tests_check( (back) &&
@@ -1671,7 +1671,7 @@ d_tests_saving(
 
 // d_tests_fuzz
 //   struct: a fuzz run: its random state, its rounds, and what it found.
-struct d_tests_fuzz
+struct dj_tests_fuzz
 {
     unsigned long state;
     unsigned long rounds;
@@ -1686,10 +1686,10 @@ struct d_tests_fuzz
 d_tests_random
   A number below a bound, from the run's state.
 */
-static size_t
-d_tests_random(
-    struct d_tests_fuzz* _fuzz,
-    size_t               _bound
+static
+size_t d_tests_random(
+    struct dj_tests_fuzz* _fuzz,
+    size_t                _bound
 )
 {
     _fuzz->state = (_fuzz->state * 1103515245ul + 12345ul) & 0x7fffffffUL;
@@ -1702,11 +1702,11 @@ d_tests_random(
 d_tests_pick
   One of a list of texts, at random.
 */
-static const char*
-d_tests_pick(
-    struct d_tests_fuzz* _fuzz,
-    const char* const*   _texts,
-    size_t               _count
+static
+const char* d_tests_pick(
+    struct dj_tests_fuzz* _fuzz,
+    const char* const*    _texts,
+    size_t                _count
 )
 {
     return _texts[d_tests_random(_fuzz, _count)];
@@ -1718,10 +1718,10 @@ d_tests_one_change
   One change at random, of each kind the document takes.
   Long as it is a table of the changes, each a call.
 */
-static bool
-d_tests_one_change(
-    struct d_ninja_doc*  _doc,
-    struct d_tests_fuzz* _fuzz
+static
+bool d_tests_one_change(
+    struct dj_ninja_doc*  _doc,
+    struct dj_tests_fuzz* _fuzz
 )
 {
     static const char* const texts[] =
@@ -1774,7 +1774,7 @@ d_tests_one_change(
 
         case 5:
             return d_ninja_doc_insert_path(
-                       _doc, n, (enum d_ninja_section)d_tests_random(_fuzz,
+                       _doc, n, (enum dj_ninja_section)d_tests_random(_fuzz,
                                                                      8u),
                        d_tests_random(_fuzz, 3u), text);
 
@@ -1813,16 +1813,16 @@ d_tests_same_statement
 the same kind, with as many paths and bindings, each path in the same
 section.
 */
-static bool
-d_tests_same_statement(
-    const struct d_ninja* _old,
-    size_t                _a,
-    const struct d_ninja* _new,
-    size_t                _b
+static
+bool d_tests_same_statement(
+    const struct dj_ninja* _old,
+    size_t                 _a,
+    const struct dj_ninja* _new,
+    size_t                 _b
 )
 {
-    const struct d_ninja_statement* const a = &_old->statements[_a];
-    const struct d_ninja_statement* const b = &_new->statements[_b];
+    const struct dj_ninja_statement* const a = &_old->statements[_a];
+    const struct dj_ninja_statement* const b = &_new->statements[_b];
 
     // the same bytes, kind and counts
     if ( ((a->end - a->start) != (b->end - b->start)) ||
@@ -1857,13 +1857,13 @@ change, found here afresh: as many wholly before `_start` in each, and
 wholly after its end in each, each the same.
   Long as the statements and then the comments are placed and compared.
 */
-static bool
-d_tests_same_outside(
-    const struct d_ninja* _old,
-    const struct d_ninja* _new,
-    size_t                _start,
-    size_t                _old_end,
-    size_t                _new_end
+static
+bool d_tests_same_outside(
+    const struct dj_ninja* _old,
+    const struct dj_ninja* _new,
+    size_t                 _start,
+    size_t                 _old_end,
+    size_t                 _new_end
 )
 {
     size_t before = 0;
@@ -1956,8 +1956,8 @@ d_tests_same_outside(
     {
         const bool   inside = ( (at >= first) && (at < old_c) );
         const size_t other  = (at < first) ? at : (at - old_c + new_c);
-        const struct d_ninja_comment* const a = &_old->comments[at];
-        const struct d_ninja_comment* const b = &_new->comments[other];
+        const struct dj_ninja_comment* const a = &_old->comments[at];
+        const struct dj_ninja_comment* const b = &_new->comments[other];
 
         // one the change cut is the change's to answer for
         if ( (!inside) &&
@@ -1979,12 +1979,12 @@ d_tests_fuzz_holds
 before and after where it was are the text's own, and so are the
 statements outside it; refused, the text as it was.
 */
-static bool
-d_tests_fuzz_holds(
-    const struct d_ninja_doc* _doc,
-    bool                      _kept,
-    const char*               _before,
-    size_t                    _before_length
+static
+bool d_tests_fuzz_holds(
+    const struct dj_ninja_doc* _doc,
+    bool                       _kept,
+    const char*                _before,
+    size_t                     _before_length
 )
 {
     size_t            length  = 0;
@@ -2000,8 +2000,8 @@ d_tests_fuzz_holds(
                  (memcmp(text, _before, length) == 0) );
     }
 
-    struct d_ninja old;
-    struct d_ninja now;
+    struct dj_ninja old;
+    struct dj_ninja now;
 
     // each released whether or not it was read
     memset(&old, 0, sizeof(old));
@@ -2036,14 +2036,14 @@ d_tests_fuzz_holds(
 d_tests_fuzz_file
   Makes the run's changes to one file.
 */
-static void
-d_tests_fuzz_file(
-    const char*          _path,
-    struct d_tests_fuzz* _fuzz
+static
+void d_tests_fuzz_file(
+    const char*           _path,
+    struct dj_tests_fuzz* _fuzz
 )
 {
     char                      why[256];
-    struct d_ninja_doc* const doc = d_ninja_doc_read(_path, why, sizeof(why));
+    struct dj_ninja_doc* const doc = d_ninja_doc_read(_path, why, sizeof(why));
 
     // a file that does not read is the reader's to answer for
     if (!doc)
@@ -2094,8 +2094,8 @@ d_tests_fuzz_file(
 d_tests_is_ninja
   Whether a file name is a Ninja file's: *.ninja.
 */
-static bool
-d_tests_is_ninja(
+static
+bool d_tests_is_ninja(
     const char* _name
 )
 {
@@ -2110,10 +2110,10 @@ d_tests_is_ninja(
 d_tests_fuzz_walk
   Every Ninja file under a directory, in name order.
 */
-static void
-d_tests_fuzz_walk(
-    const char*          _directory,
-    struct d_tests_fuzz* _fuzz
+static
+void d_tests_fuzz_walk(
+    const char*           _directory,
+    struct dj_tests_fuzz* _fuzz
 )
 {
     char** names = NULL;
@@ -2164,8 +2164,7 @@ main
 process is in; with --fuzz, changes at random to every Ninja file under a
 directory.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
@@ -2174,7 +2173,7 @@ main(
     if ( (argc > 2) &&
          (strcmp(argv[1], "--fuzz") == 0) )
     {
-        struct d_tests_fuzz fuzz;
+        struct dj_tests_fuzz fuzz;
 
         memset(&fuzz, 0, sizeof(fuzz));
         fuzz.state  = (argc > 3) ? strtoul(argv[3], NULL, 10) : 1ul;

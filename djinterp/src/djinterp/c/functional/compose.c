@@ -25,8 +25,7 @@ d_functional_compose_new
 intermediate value lives in a block of `_temp_size` bytes, which must hold
 whatever `_first` writes.
 */
-struct d_composed_transformer*
-d_functional_compose_new(
+struct dj_composed_transformer* d_functional_compose_new(
     fn_transformer _first,
     void*          _context1,
     fn_transformer _second,
@@ -42,7 +41,7 @@ d_functional_compose_new(
         return NULL;
     }
 
-    struct d_composed_transformer* const composed = malloc(sizeof(*composed));
+    struct dj_composed_transformer* const composed = malloc(sizeof(*composed));
 
     if (!composed)
     {
@@ -67,11 +66,10 @@ d_functional_compose_new(
     return composed;
 }
 
-bool
-d_functional_compose_apply(
-    const struct d_composed_transformer* _composed,
-    const void*                          _input,
-    void*                                _output
+bool d_functional_compose_apply(
+    const struct dj_composed_transformer* _composed,
+    const void*                           _input,
+    void*                                 _output
 )
 {
     // nothing to apply
@@ -89,9 +87,8 @@ d_functional_compose_apply(
                                 _composed->context2)) );
 }
 
-void
-d_functional_compose_free(
-    struct d_composed_transformer* _composed
+void d_functional_compose_free(
+    struct dj_composed_transformer* _composed
 )
 {
     // nothing to release
@@ -106,8 +103,7 @@ d_functional_compose_free(
     return;
 }
 
-struct d_partial_consumer*
-d_functional_partial_consumer_new(
+struct dj_partial_consumer* d_functional_partial_consumer_new(
     fn_consumer _consumer,
     void*       _context
 )
@@ -118,7 +114,7 @@ d_functional_partial_consumer_new(
         return NULL;
     }
 
-    struct d_partial_consumer* const partial = malloc(sizeof(*partial));
+    struct dj_partial_consumer* const partial = malloc(sizeof(*partial));
 
     if (partial)
     {
@@ -129,10 +125,9 @@ d_functional_partial_consumer_new(
     return partial;
 }
 
-void
-d_functional_partial_consumer_apply(
-    const struct d_partial_consumer* _partial,
-    void*                            _element
+void d_functional_partial_consumer_apply(
+    const struct dj_partial_consumer* _partial,
+    void*                             _element
 )
 {
     // apply the bound consumer with its bound context
@@ -144,9 +139,8 @@ d_functional_partial_consumer_apply(
     return;
 }
 
-void
-d_functional_partial_consumer_free(
-    struct d_partial_consumer* _partial
+void d_functional_partial_consumer_free(
+    struct dj_partial_consumer* _partial
 )
 {
     free(_partial);

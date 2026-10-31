@@ -27,15 +27,15 @@
 d_internal_cell
   Adds a cell node measured at `[_from, _from + _width)` on the line.
 */
-static void
-d_internal_cell(
-    struct d_node_tree* _tree,
-    uint32_t            _row,
-    const char*         _type,
-    const char*         _line,
-    size_t              _from,
-    size_t              _width,
-    uint32_t            _line_number
+static
+void d_internal_cell(
+    struct dj_node_tree* _tree,
+    uint32_t             _row,
+    const char*          _type,
+    const char*          _line,
+    size_t               _from,
+    size_t               _width,
+    uint32_t             _line_number
 )
 {
     const uint32_t cell = d_node_add(_tree, _row, _type);
@@ -45,7 +45,7 @@ d_internal_cell(
         return;
     }
 
-    struct d_node* const node = d_node_at(_tree, cell);
+    struct dj_node* const node = d_node_at(_tree, cell);
 
     node->line         = _line_number;
     node->start_column = (uint32_t)(_from + 1u);
@@ -63,13 +63,13 @@ d_internal_row
   Parses one include line into its cells.  Returns false when the line does
 not have the shape of an include row, in which case no cells are added.
 */
-static bool
-d_internal_row(
-    struct d_node_tree* _tree,
-    uint32_t            _row,
-    const char*         _line,
-    size_t              _length,
-    uint32_t            _line_number
+static
+bool d_internal_row(
+    struct dj_node_tree* _tree,
+    uint32_t             _row,
+    const char*          _line,
+    size_t               _length,
+    uint32_t             _line_number
 )
 {
     size_t at = strlen("#include");
@@ -150,11 +150,10 @@ d_internal_row(
 }
 
 
-uint32_t
-d_include_build(
-    struct d_node_tree* _tree,
-    uint32_t            _file,
-    const char*         _path
+uint32_t d_include_build(
+    struct dj_node_tree* _tree,
+    uint32_t             _file,
+    const char*          _path
 )
 {
     // parameter validation first

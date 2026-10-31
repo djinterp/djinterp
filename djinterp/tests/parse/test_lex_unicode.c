@@ -11,9 +11,9 @@
 *******************************************************************************/
 // unit tests: UTF-8 validation, identifier sets, UCNs, NFC, end positions,
 // code-point columns, and the scanner's diagnostic channel
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
-#include "../../inc/djinterp/parse/lex/lex_unicode.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/lex/lex_unicode.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -45,16 +45,16 @@ TABLE OF CONTENTS
     1.  Constants
          1.  D_MAKE_NONE
     2.  Kinds
-         1.  d_make_dialect
-         2.  d_make_kind
+         1.  dj_make_dialect
+         2.  dj_make_kind
     3.  Records
-         1.  d_make_line
-         2.  d_make_lines
-         3.  d_make_span
-         4.  d_make_statement
-         5.  d_make_comment
-         6.  d_make
-         7.  d_make_problem
+         1.  dj_make_line
+         2.  dj_make_lines
+         3.  dj_make_span
+         4.  dj_make_statement
+         5.  dj_make_comment
+         6.  dj_make
+         7.  dj_make_problem
 2.  OPERATIONS
     ----------
     1.  Dialects
@@ -87,9 +87,9 @@ TABLE OF CONTENTS
 // 1.2    Kinds
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_make_dialect
+// dj_make_dialect
 //   enum: the make a file is read as.
-enum d_make_dialect
+enum dj_make_dialect
 {
     D_MAKE_GNU = 0,  // GNU make 4.3
     D_MAKE_POSIX,    // POSIX.1-2024 make, as pdpmake reads it
@@ -98,9 +98,9 @@ enum d_make_dialect
 };
 
 // 1.2.2
-// d_make_kind
+// dj_make_kind
 //   enum: what a statement is.
-enum d_make_kind
+enum dj_make_kind
 {
     D_MAKE_ASSIGNMENT = 0,  // name op value, perhaps for targets
     D_MAKE_DEFINE,          // define name [op], its lines, endef
@@ -119,13 +119,13 @@ enum d_make_kind
 // one past its last; `line` is the line it starts on, from 1.
 
 // 1.3.1
-// d_make_line
+// dj_make_line
 //   struct: one logical line: from its first byte to the end of its last
 //   physical line, that line's ending no part of it, and the continuations
 //   between, each a backslash and a line ending, all part of it.  `next` is
 //   past the last line ending, where the next line starts; `end_line` is
 //   the physical line it ends on.
-struct d_make_line
+struct dj_make_line
 {
     size_t start;
     size_t end;
@@ -135,34 +135,34 @@ struct d_make_line
 };
 
 // 1.3.2
-// d_make_lines
+// dj_make_lines
 //   struct: a file's logical lines, in order.  The text is the caller's,
 //   borrowed while the lines are used; the array is the reader's, released
 //   with d_make_lines_release.  The last line counts though no newline ends
 //   it, and an empty text has none; `crlf` is whether the first line ending
 //   is CR LF.
-struct d_make_lines
+struct dj_make_lines
 {
     const char*         text;
     size_t              length;
-    enum d_make_dialect dialect;
-    struct d_make_line* lines;
+    enum dj_make_dialect dialect;
+    struct dj_make_line* lines;
     size_t              count;
     bool                crlf;
 };
 
 // 1.3.3
-// d_make_span
+// dj_make_span
 //   struct: a part of a statement, `start` to `end`.  A part a statement
 //   does not have is empty, and stands where it would be written.
-struct d_make_span
+struct dj_make_span
 {
     size_t start;
     size_t end;
 };
 
 // 1.3.4
-// d_make_statement
+// dj_make_statement
 //   struct: one statement, from its first byte past its last line ending.
 //   Its parts, by kind:
 //     modifiers  an assignment's, a define's or an undefine's words before
@@ -193,35 +193,35 @@ struct d_make_span
 //   the `else` after an `if`, the `endif` after an `else` -- D_MAKE_NONE for
 //   an `endif`.  `orphan` marks a recipe's line with no rule above it, which
 //   make refuses where no rule is live.
-struct d_make_statement
+struct dj_make_statement
 {
-    enum d_make_kind   kind;
+    enum dj_make_kind   kind;
     size_t             start;
     size_t             end;
     size_t             line;
     size_t             end_line;
-    struct d_make_span modifiers;
-    struct d_make_span word;
-    struct d_make_span targets;
-    struct d_make_span colon;
-    struct d_make_span pattern;
-    struct d_make_span name;
-    struct d_make_span separator;
-    struct d_make_span text;
-    struct d_make_span order_only;
-    struct d_make_span recipe;
-    struct d_make_span body;
+    struct dj_make_span modifiers;
+    struct dj_make_span word;
+    struct dj_make_span targets;
+    struct dj_make_span colon;
+    struct dj_make_span pattern;
+    struct dj_make_span name;
+    struct dj_make_span separator;
+    struct dj_make_span text;
+    struct dj_make_span order_only;
+    struct dj_make_span recipe;
+    struct dj_make_span body;
     size_t             depth;
     size_t             next_branch;
     bool               orphan;
 };
 
 // 1.3.5
-// d_make_comment
+// dj_make_comment
 //   struct: one comment, its `#` to the end of its logical line, its
 //   continuations among it.  `within` is the statement whose line it ends,
 //   or D_MAKE_NONE for a line that holds only the comment.
-struct d_make_comment
+struct dj_make_comment
 {
     size_t start;
     size_t end;
@@ -230,31 +230,31 @@ struct d_make_comment
 };
 
 // 1.3.6
-// d_make
+// dj_make
 //   struct: one file read.  The text is the caller's, borrowed while the
 //   records are used; the arrays are the reader's, in source order, and are
 //   released with d_make_release.  When reading fails, `error_line` and
 //   `error` say where and why, in make's words, and the records hold what
 //   was read before.
-struct d_make
+struct dj_make
 {
     const char*              text;
     size_t                   length;
-    enum d_make_dialect      dialect;
-    struct d_make_lines      lines;
-    struct d_make_statement* statements;
+    enum dj_make_dialect      dialect;
+    struct dj_make_lines      lines;
+    struct dj_make_statement* statements;
     size_t                   statement_count;
-    struct d_make_comment*   comments;
+    struct dj_make_comment*   comments;
     size_t                   comment_count;
     size_t                   error_line;
     char                     error[192];
 };
 
 // 1.3.7
-// d_make_problem
+// dj_make_problem
 //   struct: why a file could not be read, or a change made or a file
 //   saved: "line L: ..." in its make's words, or the system's.
-struct d_make_problem
+struct dj_make_problem
 {
     char text[256];
 };
@@ -276,11 +276,17 @@ struct d_make_problem
 // or a call of one of its functions, `$(call ...`, GNU. A file with none of
 // these is GNU's when an assignment by `:=` or a pattern rule suggests it,
 // as POSIX mode refuses both, and POSIX's otherwise.
-const char*         d_make_dialect_name(enum d_make_dialect _dialect);
-bool                d_make_dialect_of(const char*          _name,
-                                      enum d_make_dialect* _out);
-enum d_make_dialect d_make_guess(const char* _text,
-                                 size_t      _length);
+const char* d_make_dialect_name(
+    enum dj_make_dialect _dialect
+);
+bool d_make_dialect_of(
+    const char*           _name,
+    enum dj_make_dialect* _out
+);
+enum dj_make_dialect d_make_guess(
+    const char* _text,
+    size_t      _length
+);
 
 // 2.2    Lines
 //------------------------------------------------------------------------------
@@ -295,17 +301,23 @@ enum d_make_dialect d_make_guess(const char* _text,
  * @param[in]  _dialect  the make whose joining of lines is followed.
  * @return `true` if the lines were read; `false` when memory runs out.
  */
-bool                d_make_lines_read(struct d_make_lines* _out,
-                                      const char*          _text,
-                                      size_t               _length,
-                                      enum d_make_dialect  _dialect);
-void                d_make_lines_release(struct d_make_lines* _lines);
+bool d_make_lines_read(
+    struct dj_make_lines* _out,
+    const char*           _text,
+    size_t                _length,
+    enum dj_make_dialect  _dialect
+);
+void d_make_lines_release(
+    struct dj_make_lines* _lines
+);
 // d_make_continues reports whether a physical line, from `_start` to
 // `_end`, its ending no part of it, continues on the next in a make.
-bool                d_make_continues(const char*         _text,
-                                     size_t              _start,
-                                     size_t              _end,
-                                     enum d_make_dialect _dialect);
+bool d_make_continues(
+    const char*          _text,
+    size_t               _start,
+    size_t               _end,
+    enum dj_make_dialect _dialect
+);
 
 // 2.3    Reading
 //------------------------------------------------------------------------------
@@ -324,15 +336,21 @@ bool                d_make_continues(const char*         _text,
  *                        may be `NULL`.
  * @return `true` if the whole text was read; `false` otherwise.
  */
-bool                d_make_read(struct d_make*         _out,
-                                const char*            _text,
-                                size_t                 _length,
-                                enum d_make_dialect    _dialect,
-                                struct d_make_problem* _problem);
-void                d_make_release(struct d_make* _make);
+bool d_make_read(
+    struct dj_make*         _out,
+    const char*             _text,
+    size_t                  _length,
+    enum dj_make_dialect    _dialect,
+    struct dj_make_problem* _problem
+);
+void d_make_release(
+    struct dj_make* _make
+);
 // d_make_line_of gives the physical line, from 1, that holds a place.
-size_t              d_make_line_of(const struct d_make* _make,
-                                   size_t               _at);
+size_t d_make_line_of(
+    const struct dj_make* _make,
+    size_t                _at
+);
 
 // 2.4    Names and references
 //------------------------------------------------------------------------------
@@ -342,18 +360,24 @@ size_t              d_make_line_of(const struct d_make* _make,
 // the `$` at `_at`, as make finds its end: `$(` and `${` closed by the
 // bracket that matches, brackets of the same kind counted and others not,
 // or the line's end, `_end`, for one never closed; `$x` and `$$` two bytes.
-const char*         d_make_kind_name(enum d_make_kind _kind);
-size_t              d_make_reference_end(const char* _text,
-                                         size_t      _at,
-                                         size_t      _end);
+const char* d_make_kind_name(
+    enum dj_make_kind _kind
+);
+size_t d_make_reference_end(
+    const char* _text,
+    size_t      _at,
+    size_t      _end
+);
 // d_make_words gives the words of a part, as make splits a list of
 // targets or prerequisites: at blanks, a continuation among them, outside
 // every reference, so `$(a b)` is one word; up to `_room` words' places go
 // to `_out`, which may be `NULL`, and how many there are is returned.
-size_t              d_make_words(const struct d_make* _make,
-                                 struct d_make_span   _span,
-                                 struct d_make_span*  _out,
-                                 size_t               _room);
+size_t d_make_words(
+    const struct dj_make* _make,
+    struct dj_make_span   _span,
+    struct dj_make_span*  _out,
+    size_t                _room
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_MAKE_DMAKE_H

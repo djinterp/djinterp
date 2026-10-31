@@ -38,8 +38,8 @@ TABLE OF CONTENTS
 1.  TYPES
     -----
     1.  Documents
-         1.  d_ninja_doc
-         2.  d_ninja_saved
+         1.  dj_ninja_doc
+         2.  dj_ninja_saved
 2.  OPERATIONS
     ----------
     1.  Documents
@@ -58,7 +58,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>   // bool
 #include <stddef.h>    // size_t
 // djinterp
-#include "./dninja.h"  // d_ninja
+#include "./dninja.h"  // dj_ninja
 
 
 //==============================================================================
@@ -69,15 +69,15 @@ TABLE OF CONTENTS
 // 1.1    Documents
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_ninja_doc
+// dj_ninja_doc
 //   struct: one file's text, its records, and why the last change failed.
 //   Layout is private.
-struct d_ninja_doc;
+struct dj_ninja_doc;
 
 // 1.1.2
-// d_ninja_saved
+// dj_ninja_saved
 //   enum: what saving did.
-enum d_ninja_saved
+enum dj_ninja_saved
 {
     D_NINJA_SAVE_FAILED = 0,
     D_NINJA_SAVE_WRITTEN,
@@ -103,33 +103,51 @@ enum d_ninja_saved
  * @return the document, or `NULL` when the file cannot be read, does not
  *         read as Ninja, or memory runs out.
  */
-struct d_ninja_doc*   d_ninja_doc_read(const char* _path,
-                                       char*       _problem,
-                                       size_t      _capacity);
+struct dj_ninja_doc* d_ninja_doc_read(
+    const char* _path,
+    char*       _problem,
+    size_t      _capacity
+);
 // d_ninja_doc_make makes a document of a text, to be saved to `_path`; the
 // caller frees it with d_ninja_doc_free, and it is `NULL` when the text does
 // not read as Ninja, `_problem` saying why.
-struct d_ninja_doc*   d_ninja_doc_make(const char* _path,
-                                       const char* _text,
-                                       size_t      _length,
-                                       char*       _problem,
-                                       size_t      _capacity);
-void                  d_ninja_doc_free(struct d_ninja_doc* _doc);
+struct dj_ninja_doc* d_ninja_doc_make(
+    const char* _path,
+    const char* _text,
+    size_t      _length,
+    char*       _problem,
+    size_t      _capacity
+);
+void d_ninja_doc_free(
+    struct dj_ninja_doc* _doc
+);
 // What a document holds: its records, as of its last change; its path, how
 // many changes it has taken, why the last change failed, and its text.
 // d_ninja_doc_changed says where the last change kept was: the text before
 // it from `start` to `old_end` is the text now from `start` to `new_end`,
 // and all else is as it was; false before any change.
-const struct d_ninja* d_ninja_doc_records(const struct d_ninja_doc* _doc);
-const char*           d_ninja_doc_path(const struct d_ninja_doc* _doc);
-size_t                d_ninja_doc_changes(const struct d_ninja_doc* _doc);
-bool                  d_ninja_doc_changed(const struct d_ninja_doc* _doc,
-                                          size_t* _out_start,
-                                          size_t* _out_old_end,
-                                          size_t* _out_new_end);
-const char*           d_ninja_doc_problem(const struct d_ninja_doc* _doc);
-const char*           d_ninja_doc_text(const struct d_ninja_doc* _doc,
-                                       size_t*                   _out_length);
+const struct dj_ninja* d_ninja_doc_records(
+    const struct dj_ninja_doc* _doc
+);
+const char* d_ninja_doc_path(
+    const struct dj_ninja_doc* _doc
+);
+size_t d_ninja_doc_changes(
+    const struct dj_ninja_doc* _doc
+);
+bool d_ninja_doc_changed(
+    const struct dj_ninja_doc* _doc,
+    size_t*                    _out_start,
+    size_t*                    _out_old_end,
+    size_t*                    _out_new_end
+);
+const char* d_ninja_doc_problem(
+    const struct dj_ninja_doc* _doc
+);
+const char* d_ninja_doc_text(
+    const struct dj_ninja_doc* _doc,
+    size_t*                    _out_length
+);
 
 // 2.2    Changes
 //------------------------------------------------------------------------------
@@ -146,11 +164,13 @@ const char*           d_ninja_doc_text(const struct d_ninja_doc* _doc,
  * @return `true` if the change was kept; `false` otherwise, with
  *         d_ninja_doc_problem saying why, and the file as it was.
  */
-bool                  d_ninja_doc_splice(struct d_ninja_doc* _doc,
-                                         size_t              _start,
-                                         size_t              _end,
-                                         const char*         _text,
-                                         size_t              _length);
+bool d_ninja_doc_splice(
+    struct dj_ninja_doc* _doc,
+    size_t               _start,
+    size_t               _end,
+    const char*          _text,
+    size_t               _length
+);
 
 // 2.3    Values and names
 //------------------------------------------------------------------------------
@@ -161,12 +181,16 @@ bool                  d_ninja_doc_splice(struct d_ninja_doc* _doc,
 //                          rule a build uses
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_ninja_doc_problem saying why.
-bool                  d_ninja_doc_set_value(struct d_ninja_doc* _doc,
-                                            size_t              _statement,
-                                            const char*         _text);
-bool                  d_ninja_doc_set_name(struct d_ninja_doc* _doc,
-                                           size_t              _statement,
-                                           const char*         _name);
+bool d_ninja_doc_set_value(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _text
+);
+bool d_ninja_doc_set_name(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _name
+);
 
 // 2.4    Bindings
 //------------------------------------------------------------------------------
@@ -179,13 +203,17 @@ bool                  d_ninja_doc_set_name(struct d_ninja_doc* _doc,
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_ninja_doc_problem saying why: a rule or a pool refuses a binding ninja
 // would refuse of it.
-bool                  d_ninja_doc_set_binding(struct d_ninja_doc* _doc,
-                                              size_t              _statement,
-                                              const char*         _name,
-                                              const char*         _text);
-bool                  d_ninja_doc_remove_binding(struct d_ninja_doc* _doc,
-                                                 size_t      _statement,
-                                                 const char* _name);
+bool d_ninja_doc_set_binding(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _name,
+    const char*          _text
+);
+bool d_ninja_doc_remove_binding(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _name
+);
 
 // 2.5    Paths
 //------------------------------------------------------------------------------
@@ -202,18 +230,24 @@ bool                  d_ninja_doc_remove_binding(struct d_ninja_doc* _doc,
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_ninja_doc_problem saying why: a build left with no output, or a
 // default with no target, is refused, as ninja refuses one.
-bool                  d_ninja_doc_set_path(struct d_ninja_doc* _doc,
-                                           size_t              _statement,
-                                           size_t              _path,
-                                           const char*         _text);
-bool                  d_ninja_doc_insert_path(struct d_ninja_doc* _doc,
-                                              size_t _statement,
-                                              enum d_ninja_section _section,
-                                              size_t               _place,
-                                              const char*          _text);
-bool                  d_ninja_doc_remove_path(struct d_ninja_doc* _doc,
-                                              size_t _statement,
-                                              size_t _path);
+bool d_ninja_doc_set_path(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    size_t               _path,
+    const char*          _text
+);
+bool d_ninja_doc_insert_path(
+    struct dj_ninja_doc*  _doc,
+    size_t                _statement,
+    enum dj_ninja_section _section,
+    size_t                _place,
+    const char*           _text
+);
+bool d_ninja_doc_remove_path(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    size_t               _path
+);
 
 // 2.6    Statements
 //------------------------------------------------------------------------------
@@ -228,15 +262,21 @@ bool                  d_ninja_doc_remove_path(struct d_ninja_doc* _doc,
 //                                  lines and the comments among them
 // Each gives `true` if the change was kept, and `false` otherwise,
 // d_ninja_doc_problem saying why.
-bool                  d_ninja_doc_insert_statements(struct d_ninja_doc* _doc,
-                                                    size_t      _before,
-                                                    const char* _text);
-bool                  d_ninja_doc_set_statement(struct d_ninja_doc* _doc,
-                                                size_t              _statement,
-                                                const char*         _text);
-bool                  d_ninja_doc_remove_statements(struct d_ninja_doc* _doc,
-                                                    size_t _first,
-                                                    size_t _last);
+bool d_ninja_doc_insert_statements(
+    struct dj_ninja_doc* _doc,
+    size_t               _before,
+    const char*          _text
+);
+bool d_ninja_doc_set_statement(
+    struct dj_ninja_doc* _doc,
+    size_t               _statement,
+    const char*          _text
+);
+bool d_ninja_doc_remove_statements(
+    struct dj_ninja_doc* _doc,
+    size_t               _first,
+    size_t               _last
+);
 
 // 2.7    Saving
 //------------------------------------------------------------------------------
@@ -249,10 +289,12 @@ bool                  d_ninja_doc_remove_statements(struct d_ninja_doc* _doc,
  * @param[in]     _capacity  the size of `_problem`.
  * @return what saving did.
  */
-enum d_ninja_saved    d_ninja_doc_save(struct d_ninja_doc* _doc,
-                                       const char*         _path,
-                                       char*               _problem,
-                                       size_t              _capacity);
+enum dj_ninja_saved d_ninja_doc_save(
+    struct dj_ninja_doc* _doc,
+    const char*          _path,
+    char*                _problem,
+    size_t               _capacity
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_EXT_NINJA_DNINJA_DOC_H

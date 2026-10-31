@@ -46,8 +46,7 @@ windowed
 model's write takes, each part the payload leaves out the setting's own,
 as it was.
 */
-setting
-windowed(
+setting windowed(
     const sheet_setting& _model
 )
 {
@@ -131,8 +130,7 @@ windowed(
 
 // make_settings
 //   the window's table: the model's, entry for entry, in its order.
-std::vector<setting>
-make_settings()
+std::vector<setting> make_settings()
 {
     std::vector<setting> out;
 
@@ -149,16 +147,14 @@ make_settings()
 }  // anonymous namespace
 
 
-const std::vector<setting>&
-settings()
+const std::vector<setting>& settings()
 {
     static const std::vector<setting> table = make_settings();
 
     return table;
 }
 
-const setting*
-find_setting(
+const setting* find_setting(
     const std::string& _path
 )
 {
@@ -189,8 +185,7 @@ const int ADD_KIND_OF[ADD_KINDS] = { 0, 1, 2, 3, 4, 5, -1 };
 // env_flag
 //   one of the window's settings over a bool.
 template<typename Reach>
-env_setting
-env_flag(
+env_setting env_flag(
     const char* _path,
     const char* _label,
     const char* _help,
@@ -220,8 +215,7 @@ env_flag(
 // choices: _get reads it as the choice's index, and _set writes one.
 template<typename Get,
          typename Set>
-env_setting
-env_choice(
+env_setting env_choice(
     const char*              _path,
     const char*              _label,
     std::vector<std::string> _choices,
@@ -255,8 +249,7 @@ env_choice(
     return made;
 }
 
-std::vector<env_setting>
-make_environment()
+std::vector<env_setting> make_environment()
 {
     std::vector<env_setting> out;
     std::vector<std::string> themes;
@@ -424,8 +417,7 @@ make_environment()
 
 // colour_payload
 //   a packed colour as the payload a color_field posts.
-option_set
-colour_payload(
+option_set colour_payload(
     rgba _colour
 )
 {
@@ -441,8 +433,7 @@ colour_payload(
 
 // json_of
 //   a setting's value, read as a number, as a settings file writes it.
-json_value
-json_of(
+json_value json_of(
     setting_kind _kind,
     double       _value
 )
@@ -472,8 +463,7 @@ json_of(
 // payload_of
 //   a value a settings file holds as the payload a "set" of a setting of
 // that kind posts; false for a value of another kind.
-bool
-payload_of(
+bool payload_of(
     setting_kind      _kind,
     const json_value& _value,
     option_set&       _payload
@@ -544,32 +534,28 @@ payload_of(
 }  // anonymous namespace
 
 
-const char*
-add_kind_name(
+const char* add_kind_name(
     int _index
 )
 {
     return ADD_KIND_NAMES[std::clamp(_index, 0, ADD_KINDS - 1)];
 }
 
-int
-add_kind_of(
+int add_kind_of(
     int _index
 )
 {
     return ADD_KIND_OF[std::clamp(_index, 0, ADD_KINDS - 1)];
 }
 
-const std::vector<env_setting>&
-environment_settings()
+const std::vector<env_setting>& environment_settings()
 {
     static const std::vector<env_setting> table = make_environment();
 
     return table;
 }
 
-const env_setting*
-find_env_setting(
+const env_setting* find_env_setting(
     const std::string& _path
 )
 {
@@ -584,8 +570,7 @@ find_env_setting(
     return nullptr;
 }
 
-bool
-is_environment(
+bool is_environment(
     const std::string& _path
 )
 {
@@ -594,16 +579,14 @@ is_environment(
     return (_path.compare(0, head.size(), head) == 0);
 }
 
-bool
-is_preference(
+bool is_preference(
     const setting& _setting
 )
 {
     return bitwisedom::is_preference(_setting.path);
 }
 
-std::string
-write_settings(
+std::string write_settings(
     const shell_state& _shell,
     const sheet&       _sheet
 )
@@ -639,8 +622,7 @@ write_settings(
     return write_json(root) + "\n";
 }
 
-bool
-read_settings(
+bool read_settings(
     const std::string&          _text,
     std::vector<setting_value>& _values,
     std::string&                _error

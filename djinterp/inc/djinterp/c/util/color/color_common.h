@@ -72,7 +72,7 @@ III.  SCALAR HELPERS
 */
 
 #ifdef __cplusplus
-    #include "../../../djinterp.hpp"
+    #include "../../djinterp_cpp.h"
 
     #define D_COLOR_NS_OPEN         NS_DJINTERP
     #define D_COLOR_NS_CLOSE        NS_END
@@ -148,8 +148,8 @@ Parameter(s):
 Return:
   The maximum of _a, _b, and _c.
 */
-D_COLOR_FN float
-d_color_max3(
+D_COLOR_FN
+float d_color_max3(
     float _a,
     float _b,
     float _c
@@ -180,8 +180,8 @@ Parameter(s):
 Return:
   The minimum of _a, _b, and _c.
 */
-D_COLOR_FN float
-d_color_min3(
+D_COLOR_FN
+float d_color_min3(
     float _a,
     float _b,
     float _c
@@ -210,8 +210,8 @@ Parameter(s):
 Return:
   _value constrained to [0, 1].
 */
-D_COLOR_FN float
-d_color_clamp_01(
+D_COLOR_FN
+float d_color_clamp_01(
     float _value
 )
 {
@@ -238,8 +238,8 @@ Parameter(s):
 Return:
   _value constrained to [_min, _max].
 */
-D_COLOR_FN float
-d_color_clamp_range(
+D_COLOR_FN
+float d_color_clamp_range(
     float _value,
     float _min,
     float _max
@@ -270,8 +270,8 @@ Return:
   The remainder of _x / _y with the sign of _x.
 */
 D_LONG_LONG_DIAG_PUSH
-D_COLOR_FN float
-d_color_fmodf(
+D_COLOR_FN
+float d_color_fmodf(
     float _x,
     float _y
 )
@@ -295,8 +295,8 @@ Parameter(s):
 Return:
   |_x|.
 */
-D_COLOR_FN float
-d_color_fabsf(
+D_COLOR_FN
+float d_color_fabsf(
     float _x
 )
 {

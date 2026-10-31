@@ -33,7 +33,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.h"     // framework root
 #include "./postgres_common.h"  // pg_conn, the layer's results and flags
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: this header's
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
@@ -69,16 +69,20 @@ D_EXTERN_C_BEGIN
  *         transaction); or D_DB_INVALID_ARGUMENT for a `NULL` connection, an
  *         empty name, a schema without a table, or another flag.
  */
-int    d_postgres_vacuum(struct pg_conn* _db,
-                         const char*     _schema,
-                         const char*     _table,
-                         unsigned        _flags) D_NOTHROW;
+int d_postgres_vacuum(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    unsigned        _flags
+) D_NOTHROW;
 // analyze -- updates the planner's statistics for a table, or, with _table
 // NULL (and _schema then NULL too), for every table of the database. 0, the
 // SQLSTATE of a failure (42P01, no such table), or D_DB_INVALID_ARGUMENT.
-int    d_postgres_analyze(struct pg_conn* _db,
-                          const char*     _schema,
-                          const char*     _table) D_NOTHROW;
+int d_postgres_analyze(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table
+) D_NOTHROW;
 
 // 1.2    Indexes and checkpoints
 //------------------------------------------------------------------------------
@@ -88,15 +92,19 @@ int    d_postgres_analyze(struct pg_conn* _db,
 // table), D_DB_UNSUPPORTED for D_POSTGRES_CONCURRENTLY before PostgreSQL 12,
 // or D_DB_INVALID_ARGUMENT for a NULL argument, an empty name or another
 // flag.
-int    d_postgres_reindex(struct pg_conn* _db,
-                          const char*     _schema,
-                          const char*     _table,
-                          unsigned        _flags) D_NOTHROW;
+int d_postgres_reindex(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    unsigned        _flags
+) D_NOTHROW;
 // checkpoint -- writes every changed page to disk at once, as CHECKPOINT
 // does, which needs a superuser, or from PostgreSQL 15 the pg_checkpoint
 // role. 0, the SQLSTATE of a failure (42501, no privilege), or
 // D_DB_INVALID_ARGUMENT for NULL.
-int    d_postgres_checkpoint(struct pg_conn* _db) D_NOTHROW;
+int d_postgres_checkpoint(
+    struct pg_conn* _db
+) D_NOTHROW;
 
 // 1.3    Sizes
 //------------------------------------------------------------------------------
@@ -106,13 +114,17 @@ int    d_postgres_checkpoint(struct pg_conn* _db) D_NOTHROW;
 // pg_database_size() does, NULL meaning the current one. 0, D_DB_NOT_FOUND
 // for a table or database that does not exist, the SQLSTATE of a failure
 // (42501, no privilege to see another database's), or D_DB_INVALID_ARGUMENT.
-int    d_postgres_table_size(struct pg_conn* _db,
-                             const char*     _schema,
-                             const char*     _table,
-                             int64_t*        _bytes) D_NOTHROW;
-int    d_postgres_database_size(struct pg_conn* _db,
-                                const char*     _name,
-                                int64_t*        _bytes) D_NOTHROW;
+int d_postgres_table_size(
+    struct pg_conn* _db,
+    const char*     _schema,
+    const char*     _table,
+    int64_t*        _bytes
+) D_NOTHROW;
+int d_postgres_database_size(
+    struct pg_conn* _db,
+    const char*     _name,
+    int64_t*        _bytes
+) D_NOTHROW;
 
 
 D_EXTERN_C_END

@@ -22,12 +22,15 @@
 * driver headers, and D_CFG_ENV_MONGO_CUSTOM switches the driver to manual
 * detection. This header also includes env_db.h, for the base database
 * detection.
+*   Without a driver or a server version, every macro sections 5 to 19
+* define is defined as 0 (decision 92), so that #if and code may read each
+* whatever the build.
 *
 *
 * path:      /inc/djinterp/env/db/mongodb/env_mongodb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.28
 *******************************************************************************/
 
 /*
@@ -97,6 +100,7 @@ TABLE OF CONTENTS
          17. D_ENV_MONGO_HAS_AGGREGATE
          18. D_ENV_MONGO_HAS_COUNT_DOCUMENTS
          19. D_ENV_MONGO_HAS_WATCH
+         20. D_ENV_MONGO_HAS_CLIENT_BULK_WRITE
 8.  BSON TYPE SYSTEM
     ----------------
     1.  BSON types
@@ -247,7 +251,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_MONGODB_ENV_MONGODB_H 1
 
 // djinterp
-#include "../../../config/core/env/db/mongodb/cfg_env_mongodb.h"  // config
+#include "../../../config/env/db/mongodb/cfg_env_mongodb.h"  // config
 #include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 
@@ -392,10 +396,14 @@ TABLE OF CONTENTS
 #define D_ENV_MONGO_SERVER_4_4         40400
 #define D_ENV_MONGO_SERVER_5_0         50000
 #define D_ENV_MONGO_SERVER_5_1         50100
+#define D_ENV_MONGO_SERVER_5_3         50300
 #define D_ENV_MONGO_SERVER_6_0         60000
 #define D_ENV_MONGO_SERVER_7_0         70000
 #define D_ENV_MONGO_SERVER_7_1         70100
 #define D_ENV_MONGO_SERVER_8_0         80000
+#define D_ENV_MONGO_SERVER_8_2         80200
+#define D_ENV_MONGO_SERVER_8_3         80300
+#define D_ENV_MONGO_SERVER_9_0         90000
 
 // 3.2    Detected driver
 //------------------------------------------------------------------------------
@@ -494,6 +502,12 @@ TABLE OF CONTENTS
     #elif defined(D_ENV_MONGO_DETECTED_SERVER_VERSION)
         #define D_ENV_MONGO_SERVER_VERSION_ID                                  \
             D_ENV_MONGO_DETECTED_SERVER_VERSION
+    #elif defined(D_ENV_MONGO_DETECTED_SERVER_9_0)
+        #define D_ENV_MONGO_SERVER_VERSION_ID D_ENV_MONGO_SERVER_9_0
+    #elif defined(D_ENV_MONGO_DETECTED_SERVER_8_3)
+        #define D_ENV_MONGO_SERVER_VERSION_ID D_ENV_MONGO_SERVER_8_3
+    #elif defined(D_ENV_MONGO_DETECTED_SERVER_8_2)
+        #define D_ENV_MONGO_SERVER_VERSION_ID D_ENV_MONGO_SERVER_8_2
     #elif defined(D_ENV_MONGO_DETECTED_SERVER_8_0)
         #define D_ENV_MONGO_SERVER_VERSION_ID D_ENV_MONGO_SERVER_8_0
     #elif defined(D_ENV_MONGO_DETECTED_SERVER_7_0)
@@ -593,7 +607,8 @@ TABLE OF CONTENTS
     // 5.3.1
     // D_ENV_MONGO_IS_<SERIES>
     //   macro: 1 if the target server version is in that release series, 3.6
-    // to 8.0; D_ENV_MONGO_IS_8_0 also covers every later release.
+    // to 9.0, each major with the minor releases after it (8.0 with 8.2 and
+    // 8.3); D_ENV_MONGO_IS_9_0 also covers every later release.
     #define D_ENV_MONGO_IS_3_6                                                 \
         D_ENV_MONGO_SERVER_IN_RANGE(3, 6, 0, 4, 0, 0)
     #define D_ENV_MONGO_IS_4_0                                                 \
@@ -609,7 +624,9 @@ TABLE OF CONTENTS
     #define D_ENV_MONGO_IS_7_0                                                 \
         D_ENV_MONGO_SERVER_IN_RANGE(7, 0, 0, 8, 0, 0)
     #define D_ENV_MONGO_IS_8_0                                                 \
-        D_ENV_MONGO_SERVER_AT_LEAST(8, 0, 0)
+        D_ENV_MONGO_SERVER_IN_RANGE(8, 0, 0, 9, 0, 0)
+    #define D_ENV_MONGO_IS_9_0                                                 \
+        D_ENV_MONGO_SERVER_AT_LEAST(9, 0, 0)
 
 
 //==============================================================================
@@ -748,9 +765,10 @@ TABLE OF CONTENTS
     // 7.1.12
     // D_ENV_MONGO_HAS_CLIENT_ENCRYPTION
     //   feature: mongoc_client_encryption_t API for client-side field-
-    // level encryption (CSFLE). Requires driver 1.14+.
+    // level encryption (CSFLE). Requires driver 1.16+, the release whose
+    // NEWS adds it and whose tag first ships mongoc-client-side-encryption.h.
     #define D_ENV_MONGO_HAS_CLIENT_ENCRYPTION                                  \
-        D_ENV_MONGO_DRIVER_AT_LEAST(1, 14, 0)
+        D_ENV_MONGO_DRIVER_AT_LEAST(1, 16, 0)
 
     // 7.1.13
     // D_ENV_MONGO_HAS_BULK_WRITE
@@ -789,10 +807,20 @@ TABLE OF CONTENTS
 
     // 7.1.19
     // D_ENV_MONGO_HAS_WATCH
-    //   feature: mongoc_collection_watch (change stream helper).
-    // Requires driver 1.11+.
+    //   feature: mongoc_client_watch and mongoc_database_watch, change
+    // streams over a deployment or a database. Requires driver 1.11+;
+    // mongoc_collection_watch is 1.9's (D_ENV_MONGO_HAS_CHANGE_STREAM_API).
     #define D_ENV_MONGO_HAS_WATCH                                              \
         D_ENV_MONGO_DRIVER_AT_LEAST(1, 11, 0)
+
+    // 7.1.20
+    // D_ENV_MONGO_HAS_CLIENT_BULK_WRITE
+    //   feature: mongoc_bulkwrite_t, one bulk write across collections over
+    // the server's bulkWrite command. Requires driver 1.28+ (the first tag
+    // with mongoc-bulkwrite.h); the command itself is server 8.0's
+    // (D_ENV_MONGO_HAS_BULK_WRITE_COMMAND).
+    #define D_ENV_MONGO_HAS_CLIENT_BULK_WRITE                                  \
+        D_ENV_MONGO_DRIVER_AT_LEAST(1, 28, 0)
 
 
 //==============================================================================
@@ -989,11 +1017,12 @@ TABLE OF CONTENTS
 
     // 9.1.15
     // D_ENV_MONGO_HAS_INDEX_COLUMNSTORE
-    //   feature: columnstore indexes (columnar analytics index,
-    // experimental). Introduced in MongoDB 6.0 (behind feature flag),
-    // improved in 7.0.
-    #define D_ENV_MONGO_HAS_INDEX_COLUMNSTORE                                  \
-        D_ENV_MONGO_SERVER_AT_LEAST(7, 0, 0)
+    //   feature: columnstore indexes (a columnar analytics index). Never in
+    // a release a deployment can use: 6.0 to 8.0 keep it behind a feature
+    // flag ("under development", code 238, from 7.0.34 and 8.0.23), and 8.3
+    // no longer knows the type (67). Always 0; kept so that code reading it
+    // still compiles.
+    #define D_ENV_MONGO_HAS_INDEX_COLUMNSTORE 0
 
     // 9.1.16
     // D_ENV_MONGO_HAS_COLLATION
@@ -1080,9 +1109,10 @@ TABLE OF CONTENTS
     // 10.1.10
     // D_ENV_MONGO_HAS_AGG_FILL
     //   feature: $fill stage (populate null and missing field values).
-    // Introduced in MongoDB 5.1.
+    // Introduced in MongoDB 5.3: 5.1.1 does not know the stage, 5.3.2 runs
+    // it.
     #define D_ENV_MONGO_HAS_AGG_FILL                                           \
-        D_ENV_MONGO_SERVER_AT_LEAST(5, 1, 0)
+        D_ENV_MONGO_SERVER_AT_LEAST(5, 3, 0)
 
     // 10.1.11
     // D_ENV_MONGO_HAS_AGG_DOCUMENTS
@@ -1215,10 +1245,11 @@ TABLE OF CONTENTS
 
     // 12.1.5
     // D_ENV_MONGO_HAS_CHANGE_STREAMS_SPLIT_EVENTS
-    //   feature: split large change events into fragments.
-    // Introduced in MongoDB 7.0.
+    //   feature: split large change events into fragments
+    // ($changeStreamSplitLargeEvent). Introduced in MongoDB 7.0, and in 6.0
+    // from 6.0.9: 6.0.16 runs the stage, 5.3.2 does not know it.
     #define D_ENV_MONGO_HAS_CHANGE_STREAMS_SPLIT_EVENTS                        \
-        D_ENV_MONGO_SERVER_AT_LEAST(7, 0, 0)
+        D_ENV_MONGO_SERVER_AT_LEAST(6, 0, 9)
 
 
 //==============================================================================
@@ -1632,17 +1663,180 @@ TABLE OF CONTENTS
 
     // 19.1.4
     // D_ENV_MONGO_REMOVED_WIRE_PROTOCOL_OP_QUERY
-    //   status: 1 if legacy OP_QUERY / OP_INSERT / OP_UPDATE / OP_DELETE
-    // wire protocol opcodes are removed (6.0+ for most, fully in 7.0).
+    //   status: 1 if the legacy OP_QUERY, OP_GET_MORE, OP_INSERT,
+    // OP_UPDATE, OP_DELETE and OP_KILL_CURSORS opcodes are removed, OP_QUERY
+    // kept only for the handshake: from 5.1, which refuses the 4.2 shell's
+    // legacy write mode where 5.0.3 takes it.
     #define D_ENV_MONGO_REMOVED_WIRE_PROTOCOL_OP_QUERY                         \
-        D_ENV_MONGO_SERVER_AT_LEAST(7, 0, 0)
+        D_ENV_MONGO_SERVER_AT_LEAST(5, 1, 0)
 
     // 19.1.5
     // D_ENV_MONGO_DEPRECATED_TEXT_INDEX
-    //   status: 1 if legacy $text / text indexes are deprecated in
-    // favor of Atlas Search (7.0+).
-    #define D_ENV_MONGO_DEPRECATED_TEXT_INDEX                                  \
-        D_ENV_MONGO_SERVER_AT_LEAST(7, 0, 0)
+    //   status: 1 if text indexes and $text are deprecated. No release
+    // deprecates them, 9.0 included (its compatibility notes name neither),
+    // and every server from 5.0 to 8.3 creates one, so 0; kept so that code
+    // reading it still compiles.
+    #define D_ENV_MONGO_DEPRECATED_TEXT_INDEX 0
+
+
+#else
+    // decision 92 of the register: without a driver or a server
+    // version, every macro sections 5 to 19 define is defined, as 0,
+    // the comparisons for any version among them, so that #if and
+    // code may read each whatever the build; a flag a build may
+    // pre-define keeps its value
+    #define D_ENV_MONGO_DRIVER_AT_LEAST(major, minor, patch) 0
+    #define D_ENV_MONGO_SERVER_AT_LEAST(major, minor, patch) 0
+    #define D_ENV_MONGO_SERVER_BELOW(major, minor, patch) 0
+    #define D_ENV_MONGO_SERVER_IN_RANGE(min_maj, min_min, min_pat,             \
+                                        max_maj, max_min, max_pat) 0
+    #define D_ENV_MONGO_IS_3_6 0
+    #define D_ENV_MONGO_IS_4_0 0
+    #define D_ENV_MONGO_IS_4_2 0
+    #define D_ENV_MONGO_IS_4_4 0
+    #define D_ENV_MONGO_IS_5_0 0
+    #define D_ENV_MONGO_IS_6_0 0
+    #define D_ENV_MONGO_IS_7_0 0
+    #define D_ENV_MONGO_IS_8_0 0
+    #define D_ENV_MONGO_IS_9_0 0
+    #ifndef D_ENV_MONGO_IS_ENTERPRISE
+        #define D_ENV_MONGO_IS_ENTERPRISE 0
+    #endif  // D_ENV_MONGO_IS_ENTERPRISE
+    #define D_ENV_MONGO_IS_COMMUNITY 0
+    #ifndef D_ENV_MONGO_IS_ATLAS
+        #define D_ENV_MONGO_IS_ATLAS 0
+    #endif  // D_ENV_MONGO_IS_ATLAS
+    #define D_ENV_MONGO_LICENSE_IS_SSPL 0
+    #define D_ENV_MONGO_HAS_LIBMONGOC 0
+    #define D_ENV_MONGO_HAS_LIBBSON 0
+    #define D_ENV_MONGO_HAS_CONNECTION_POOL 0
+    #define D_ENV_MONGO_HAS_URI_PARSING 0
+    #ifndef D_ENV_MONGO_HAS_SRV_DISCOVERY
+        #define D_ENV_MONGO_HAS_SRV_DISCOVERY 0
+    #endif  // D_ENV_MONGO_HAS_SRV_DISCOVERY
+    #define D_ENV_MONGO_HAS_SESSION_API 0
+    #define D_ENV_MONGO_HAS_CHANGE_STREAM_API 0
+    #define D_ENV_MONGO_HAS_TRANSACTION_API 0
+    #define D_ENV_MONGO_HAS_VERSIONED_API 0
+    #define D_ENV_MONGO_HAS_SDAM_MONITORING 0
+    #define D_ENV_MONGO_HAS_COMMAND_MONITORING 0
+    #define D_ENV_MONGO_HAS_CLIENT_ENCRYPTION 0
+    #define D_ENV_MONGO_HAS_BULK_WRITE 0
+    #define D_ENV_MONGO_HAS_GRIDFS 0
+    #define D_ENV_MONGO_HAS_GRIDFS_BUCKET 0
+    #define D_ENV_MONGO_HAS_FIND_AND_MODIFY 0
+    #define D_ENV_MONGO_HAS_AGGREGATE 0
+    #define D_ENV_MONGO_HAS_COUNT_DOCUMENTS 0
+    #define D_ENV_MONGO_HAS_WATCH 0
+    #define D_ENV_MONGO_HAS_CLIENT_BULK_WRITE 0
+    #define D_ENV_MONGO_HAS_BSON_DOUBLE 0
+    #define D_ENV_MONGO_HAS_BSON_STRING 0
+    #define D_ENV_MONGO_HAS_BSON_DOCUMENT 0
+    #define D_ENV_MONGO_HAS_BSON_ARRAY 0
+    #define D_ENV_MONGO_HAS_BSON_BINARY 0
+    #define D_ENV_MONGO_HAS_BSON_OBJECTID 0
+    #define D_ENV_MONGO_HAS_BSON_BOOL 0
+    #define D_ENV_MONGO_HAS_BSON_DATETIME 0
+    #define D_ENV_MONGO_HAS_BSON_NULL 0
+    #define D_ENV_MONGO_HAS_BSON_REGEX 0
+    #define D_ENV_MONGO_HAS_BSON_INT32 0
+    #define D_ENV_MONGO_HAS_BSON_INT64 0
+    #define D_ENV_MONGO_HAS_BSON_TIMESTAMP 0
+    #define D_ENV_MONGO_HAS_BSON_DECIMAL128 0
+    #define D_ENV_MONGO_HAS_BSON_MINKEY_MAXKEY 0
+    #define D_ENV_MONGO_HAS_INDEX_BTREE 0
+    #define D_ENV_MONGO_HAS_INDEX_COMPOUND 0
+    #define D_ENV_MONGO_HAS_INDEX_UNIQUE 0
+    #define D_ENV_MONGO_HAS_INDEX_SPARSE 0
+    #define D_ENV_MONGO_HAS_INDEX_HASHED 0
+    #define D_ENV_MONGO_HAS_INDEX_TEXT 0
+    #define D_ENV_MONGO_HAS_INDEX_2DSPHERE 0
+    #define D_ENV_MONGO_HAS_INDEX_2D 0
+    #define D_ENV_MONGO_HAS_INDEX_TTL 0
+    #define D_ENV_MONGO_HAS_INDEX_PARTIAL 0
+    #define D_ENV_MONGO_HAS_INDEX_WILDCARD 0
+    #define D_ENV_MONGO_HAS_INDEX_COMPOUND_WILDCARD 0
+    #define D_ENV_MONGO_HAS_INDEX_HIDDEN 0
+    #define D_ENV_MONGO_HAS_INDEX_CLUSTERED 0
+    #define D_ENV_MONGO_HAS_INDEX_COLUMNSTORE 0
+    #define D_ENV_MONGO_HAS_COLLATION 0
+    #define D_ENV_MONGO_HAS_AGGREGATE_PIPELINE 0
+    #define D_ENV_MONGO_HAS_AGG_LOOKUP 0
+    #define D_ENV_MONGO_HAS_AGG_LOOKUP_PIPELINE 0
+    #define D_ENV_MONGO_HAS_AGG_GRAPH_LOOKUP 0
+    #define D_ENV_MONGO_HAS_AGG_FACET 0
+    #define D_ENV_MONGO_HAS_AGG_MERGE 0
+    #define D_ENV_MONGO_HAS_AGG_UNION_WITH 0
+    #define D_ENV_MONGO_HAS_AGG_SET_WINDOW_FIELDS 0
+    #define D_ENV_MONGO_HAS_AGG_DENSIFY 0
+    #define D_ENV_MONGO_HAS_AGG_FILL 0
+    #define D_ENV_MONGO_HAS_AGG_DOCUMENTS 0
+    #define D_ENV_MONGO_HAS_AGG_OUT 0
+    #define D_ENV_MONGO_HAS_AGG_BUCKET 0
+    #define D_ENV_MONGO_HAS_AGG_ACCUMULATOR 0
+    #define D_ENV_MONGO_HAS_AGG_FUNCTION 0
+    #define D_ENV_MONGO_HAS_AGG_PERCENTILE 0
+    #define D_ENV_MONGO_HAS_SINGLE_DOC_ATOMICITY 0
+    #define D_ENV_MONGO_HAS_REPLICA_SET_TXN 0
+    #define D_ENV_MONGO_HAS_DISTRIBUTED_TXN 0
+    #define D_ENV_MONGO_HAS_RETRYABLE_WRITES 0
+    #define D_ENV_MONGO_HAS_RETRYABLE_READS 0
+    #define D_ENV_MONGO_HAS_CAUSAL_CONSISTENCY 0
+    #define D_ENV_MONGO_HAS_CHANGE_STREAMS 0
+    #define D_ENV_MONGO_HAS_CHANGE_STREAMS_DB 0
+    #define D_ENV_MONGO_HAS_CHANGE_STREAMS_CLUSTER 0
+    #define D_ENV_MONGO_HAS_CHANGE_STREAMS_PRE_POST_IMAGE 0
+    #define D_ENV_MONGO_HAS_CHANGE_STREAMS_SPLIT_EVENTS 0
+    #define D_ENV_MONGO_HAS_REPLICA_SET 0
+    #define D_ENV_MONGO_HAS_WRITE_CONCERN 0
+    #define D_ENV_MONGO_HAS_READ_CONCERN 0
+    #define D_ENV_MONGO_HAS_READ_CONCERN_SNAPSHOT 0
+    #define D_ENV_MONGO_HAS_READ_PREFERENCE 0
+    #define D_ENV_MONGO_HAS_HEDGED_READS 0
+    #define D_ENV_MONGO_HAS_SHARDING 0
+    #define D_ENV_MONGO_HAS_ZONE_SHARDING 0
+    #define D_ENV_MONGO_HAS_RESHARDING 0
+    #define D_ENV_MONGO_HAS_CONFIGSVR_AS_REPLICASET 0
+    #define D_ENV_MONGO_HAS_EMBEDDED_CONFIG 0
+    #define D_ENV_MONGO_HAS_EXPR_IN_FIND 0
+    #define D_ENV_MONGO_HAS_JSON_SCHEMA 0
+    #define D_ENV_MONGO_HAS_SCHEMA_VALIDATION 0
+    #define D_ENV_MONGO_HAS_VERSIONED_API_SERVER 0
+    #define D_ENV_MONGO_HAS_SAMPLE 0
+    #define D_ENV_MONGO_HAS_UPDATE_ARRAY_FILTERS 0
+    #define D_ENV_MONGO_HAS_UPDATE_PIPELINE 0
+    #define D_ENV_MONGO_HAS_BULK_WRITE_COMMAND 0
+    #define D_ENV_MONGO_HAS_TIME_SERIES 0
+    #define D_ENV_MONGO_HAS_TIME_SERIES_SECONDARY_INDEX 0
+    #define D_ENV_MONGO_HAS_TIME_SERIES_UPDATE_DELETE 0
+    #define D_ENV_MONGO_HAS_AUTH_SCRAM_SHA1 0
+    #define D_ENV_MONGO_HAS_AUTH_SCRAM_SHA256 0
+    #define D_ENV_MONGO_HAS_AUTH_X509 0
+    #define D_ENV_MONGO_HAS_AUTH_LDAP 0
+    #define D_ENV_MONGO_HAS_AUTH_KERBEROS 0
+    #define D_ENV_MONGO_HAS_AUTH_OIDC 0
+    #define D_ENV_MONGO_HAS_SSL 0
+    #define D_ENV_MONGO_HAS_ENCRYPTION_AT_REST 0
+    #define D_ENV_MONGO_HAS_CSFLE 0
+    #define D_ENV_MONGO_HAS_QUERYABLE_ENCRYPTION 0
+    #define D_ENV_MONGO_HAS_AUDIT_LOG 0
+    #define D_ENV_MONGO_HAS_RBAC 0
+    #define D_ENV_MONGO_HAS_ATLAS_SEARCH 0
+    #define D_ENV_MONGO_HAS_ATLAS_VECTOR_SEARCH 0
+    #define D_ENV_MONGO_HAS_ATLAS_DATA_LAKE 0
+    #define D_ENV_MONGO_HAS_ATLAS_TRIGGERS 0
+    #define D_ENV_MONGO_HAS_ATLAS_ONLINE_ARCHIVE 0
+    #define D_ENV_MONGO_HAS_MODERN_TRANSACTIONS 0
+    #define D_ENV_MONGO_HAS_MODERN_AGGREGATION 0
+    #define D_ENV_MONGO_HAS_MODERN_CHANGE_STREAMS 0
+    #define D_ENV_MONGO_HAS_MODERN_SECURITY 0
+    #define D_ENV_MONGO_HAS_MODERN_SHARDING 0
+    #define D_ENV_MONGO_IS_FULLY_MODERN 0
+    #define D_ENV_MONGO_REMOVED_MMAPV1 0
+    #define D_ENV_MONGO_REMOVED_MASTER_SLAVE 0
+    #define D_ENV_MONGO_DEPRECATED_COUNT 0
+    #define D_ENV_MONGO_REMOVED_WIRE_PROTOCOL_OP_QUERY 0
+    #define D_ENV_MONGO_DEPRECATED_TEXT_INDEX 0
 
 
 #endif  // D_ENV_MONGO_DETECTED

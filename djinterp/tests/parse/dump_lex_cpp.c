@@ -9,7 +9,7 @@
 * author(s): TBA                                                    created: TBA
 *                                                            revised: 2026.09.22
 *******************************************************************************/
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

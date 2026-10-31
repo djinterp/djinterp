@@ -32,15 +32,11 @@ d_tests_sa_str_interp_interp
   - returns ERROR_BUFFER_TOO_SMALL when buffer is insufficient
   - handles adjacent specifiers with no gap
 */
-struct d_test_object*
-d_tests_sa_str_interp_interp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_interp(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
-    enum d_str_interp_error      err;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
+    enum dj_str_interp_error      err;
     char                         buf[D_TEST_INTERP_BUFFER_SIZE];
     bool                         test_single;
     bool                         test_multiple;
@@ -300,15 +296,11 @@ d_tests_sa_str_interp_alloc
   - handles value longer than name (expansion)
   - handles value shorter than name (contraction)
 */
-struct d_test_object*
-d_tests_sa_str_interp_alloc
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_alloc(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
-    enum d_str_interp_error      err;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
+    enum dj_str_interp_error      err;
     char*                        result;
     bool                         test_correct;
     bool                         test_null_term;
@@ -491,15 +483,11 @@ d_tests_sa_str_interp_length
   - returns ERROR_NULL_PARAM for NULL inputs
   - handles multiple replacements in length sum
 */
-struct d_test_object*
-d_tests_sa_str_interp_length
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_length(void)
 {
-    struct d_test_object*        group;
-    struct d_str_interp_context* ctx;
-    enum d_str_interp_error      err;
+    struct dj_test_object*        group;
+    struct dj_str_interp_context* ctx;
+    enum dj_str_interp_error      err;
     size_t                       len;
     bool                         test_simple;
     bool                         test_empty;
@@ -632,13 +620,9 @@ d_tests_sa_str_interp_interp_all
   - d_str_interp_alloc
   - d_str_interp_length
 */
-struct d_test_object*
-d_tests_sa_str_interp_interp_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_str_interp_interp_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Interpolation Functions", 3);

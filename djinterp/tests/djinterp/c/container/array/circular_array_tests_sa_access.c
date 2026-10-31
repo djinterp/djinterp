@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./circular_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -26,14 +26,12 @@ d_tests_sa_circular_array_get
   - get with out of bounds index returns NULL
   - get works with wraparound
 */
-bool
-d_tests_sa_circular_array_get
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_get(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30, 40, 50};
     int*                      elem;
 
@@ -163,14 +161,12 @@ d_tests_sa_circular_array_set
   - set on empty array returns failure
   - set with out of bounds returns failure
 */
-bool
-d_tests_sa_circular_array_set
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_set(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {10, 20, 30};
     int                       new_value = 99;
     int*                      elem;
@@ -252,14 +248,12 @@ d_tests_sa_circular_array_front
   - front returns first element
   - front doesn't modify array
 */
-bool
-d_tests_sa_circular_array_front
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_front(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {100, 200, 300};
     int*                      elem;
 
@@ -323,14 +317,12 @@ d_tests_sa_circular_array_back
   - back returns last element
   - back works with wraparound
 */
-bool
-d_tests_sa_circular_array_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {100, 200, 300, 400};
     int*                      elem;
 
@@ -408,14 +400,12 @@ d_tests_sa_circular_array_peek
   - peek returns front element (same as front)
   - peek doesn't modify array
 */
-bool
-d_tests_sa_circular_array_peek
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_peek(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {100, 200, 300};
     int*                      elem;
 
@@ -480,14 +470,12 @@ d_tests_sa_circular_array_peek_back
   - peek_back returns last element
   - peek_back doesn't modify array
 */
-bool
-d_tests_sa_circular_array_peek_back
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_peek_back(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       values[] = {100, 200, 300};
     int*                      elem;
 
@@ -547,10 +535,8 @@ d_tests_sa_circular_array_peek_back
 d_tests_sa_circular_array_access_all
   Aggregation function that runs all element access tests.
 */
-bool
-d_tests_sa_circular_array_access_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_access_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

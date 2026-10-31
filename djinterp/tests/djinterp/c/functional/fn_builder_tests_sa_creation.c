@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./fn_builder_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -24,14 +24,12 @@ d_tests_sa_fn_builder_new
   - capacity is positive (initial capacity pre-allocated)
   - two separate builders are independent allocations
 */
-bool
-d_tests_sa_fn_builder_new
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_new(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
-    struct d_fn_builder* builder2;
+    struct dj_fn_builder* builder;
+    struct dj_fn_builder* builder2;
     bool                 all_passed;
 
     all_passed = true;
@@ -103,10 +101,8 @@ d_tests_sa_fn_builder_creation_all
   Tests the following:
   - d_fn_builder_new
 */
-bool
-d_tests_sa_fn_builder_creation_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_creation_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

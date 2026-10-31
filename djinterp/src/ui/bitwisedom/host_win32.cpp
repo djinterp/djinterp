@@ -22,12 +22,13 @@
 *   The window's class is registered under the module's own handle, since
 * the module, not the program, holds its procedure; and a window that
 * cannot be opened is said through the module's program, as an error that
-* ends the run in trouble.
+* ends the run in trouble. The window's version names the host as Win32
+* and Direct3D 11, whose feature level is chosen only when the window opens.
 *
 * path:      /src/ui/bitwisedom/host_win32.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 #include "../../../inc/ui/bitwisedom/host.hpp"  // corresponding header
 // windows
@@ -47,23 +48,26 @@
 #include <imgui_impl_dx11.h>   // the Direct3D 11 renderer backend
 #include <imgui_impl_win32.h>  // the Win32 platform backend
 // djinterp
-#include <djinterp/parse/cli/cli.hpp>  // program, severity, exit statuses
+#include <djinterp/tools/cli/cli.hpp>  // program, severity, exit statuses
 // bitwisedom
 #include "../../../inc/ui/bitwisedom/app.hpp"    // app, preferences_path
 #include "../../../inc/ui/bitwisedom/theme.hpp"  // dpi_scale
 
 
 // the backend's message handler, which its header declares commented out
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND   _window,
-                                                             UINT   _message,
-                                                             WPARAM _w,
-                                                             LPARAM _l);
+extern
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
+    HWND   _window,
+    UINT   _message,
+    WPARAM _w,
+    LPARAM _l
+);
 
 
 namespace
 {
 
-namespace kit = ::djinterp::parse::cli;
+namespace kit = ::djinterp::cli;
 
 using bitwisedom::gui::app;
 using bitwisedom::gui::window_options;
@@ -85,16 +89,14 @@ struct device
     UINT                    resize_h  = 0;
 };
 
-device&
-the_device()
+device& the_device()
 {
     static device state;
 
     return state;
 }
 
-void
-create_target()
+void create_target()
 {
     device&          d    = the_device();
     ID3D11Texture2D* back = nullptr;
@@ -110,8 +112,7 @@ create_target()
     return;
 }
 
-void
-release_target()
+void release_target()
 {
     device& d = the_device();
 
@@ -185,8 +186,7 @@ create_device(
     return result;
 }
 
-void
-destroy_device()
+void destroy_device()
 {
     device& d = the_device();
 
@@ -215,8 +215,7 @@ destroy_device()
 
 // dropped
 //   the files dropped on the window since the last frame, as UTF-8 paths.
-std::vector<std::string>&
-dropped()
+std::vector<std::string>& dropped()
 {
     static std::vector<std::string> held;
 
@@ -225,8 +224,7 @@ dropped()
 
 // utf8_of
 //   a wide string as UTF-8.
-std::string
-utf8_of(
+std::string utf8_of(
     const std::wstring& _wide
 )
 {
@@ -254,8 +252,7 @@ utf8_of(
 take_drop
   Each file dropped, its path kept for the loop to open.
 */
-void
-take_drop(
+void take_drop(
     HDROP _drop
 )
 {
@@ -276,8 +273,7 @@ take_drop(
     return;
 }
 
-LRESULT WINAPI
-window_procedure(
+LRESULT WINAPI window_procedure(
     HWND   _window,
     UINT   _message,
     WPARAM _w,
@@ -354,8 +350,7 @@ cannot_open
   The window could not be opened: said, with the code that says why;
 trouble.
 */
-int
-cannot_open(
+int cannot_open(
     const kit::program& _program,
     const char*         _what,
     unsigned long       _code
@@ -441,8 +436,7 @@ start_imgui
   ImGui's context and backends, and the fonts at the display's scale. The
 window keeps its own settings file, so ImGui keeps none.
 */
-void
-start_imgui(
+void start_imgui(
     HWND  _window,
     float _scale
 )
@@ -466,8 +460,7 @@ start_imgui(
 take_messages
   The messages waiting, dispatched: false once the window has gone.
 */
-bool
-take_messages()
+bool take_messages()
 {
     bool running = true;
     MSG  message;
@@ -493,8 +486,7 @@ drawn while the window is hidden, but a short sleep; the swap chain resized
 to the window first if it changed; then the app between NewFrame and
 Render, drawn over the theme's background and presented.
 */
-void
-draw_frame(
+void draw_frame(
     app& _app
 )
 {
@@ -556,8 +548,7 @@ run_frames
 frames until the window has gone -- closed by the user, or by the app
 quitting.
 */
-void
-run_frames(
+void run_frames(
     HWND                  _window,
     const window_options& _options
 )
@@ -591,10 +582,19 @@ window_features
   WARP is Direct3D's; a screenshot would read Direct3D's back buffer, which
 this host does not.
 */
-int
-bitwisedom::gui::window_features()
+int bitwisedom::gui::window_features()
 {
     return static_cast<int>(window_feature_warp);
+}
+
+/*
+window_host
+  The window system and the API; the device, and so its feature level, is
+made only when the window opens.
+*/
+std::string bitwisedom::gui::window_host()
+{
+    return "Win32, Direct3D 11";
 }
 
 /*
@@ -603,8 +603,7 @@ run_window
 primary monitor's -- the class registered, the window opened and run, and
 everything let go in the order it was made.
 */
-int
-bitwisedom::gui::run_window(
+int bitwisedom::gui::run_window(
     kit::program&         _program,
     const window_options& _options
 )

@@ -35,13 +35,9 @@ d_tests_sa_text_template_error_string
   - LIST_ITEM_RENDER_FAILED string contains "list"
   - returns non-NULL for unknown/invalid error code
 */
-struct d_test_object*
-d_tests_sa_text_template_error_string
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_error_string(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     const char*           s_success;
     const char*           s_null;
     const char*           s_buffer;
@@ -85,7 +81,7 @@ d_tests_sa_text_template_error_string
     s_func        = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_FUNCTION_FAILED);
     s_list_cb     = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_LIST_CALLBACK_FAILED);
     s_list_render = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_LIST_ITEM_RENDER_FAILED);
-    s_unknown     = d_text_template_error_string((enum d_text_template_error)999);
+    s_unknown     = d_text_template_error_string((enum dj_text_template_error)999);
 
     // test 1: all non-NULL
     test_all_non_null = ( (s_success     != NULL) &&
@@ -293,13 +289,9 @@ d_tests_sa_text_template_utility_all
   Tests the following:
   - d_text_template_error_string
 */
-struct d_test_object*
-d_tests_sa_text_template_utility_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_text_template_utility_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Utility Functions", 1);

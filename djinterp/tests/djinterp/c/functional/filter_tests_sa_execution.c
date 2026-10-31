@@ -9,14 +9,18 @@
 *******************************************************************************/
 // djinterp
 #include "./filter_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPER PREDICATES
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool pred_is_even(const void* _element, void* _context)
+static
+bool pred_is_even(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -32,7 +36,11 @@ static bool pred_is_even(const void* _element, void* _context)
     return (*value % 2 == 0);
 }
 
-static bool pred_is_positive(const void* _element, void* _context)
+static
+bool pred_is_positive(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
 
@@ -48,7 +56,11 @@ static bool pred_is_positive(const void* _element, void* _context)
     return (*value > 0);
 }
 
-static bool pred_greater_than_context(const void* _element, void* _context)
+static
+bool pred_greater_than_context(
+    const void* _element,
+    void*       _context
+)
 {
     const int* value;
     const int* threshold;
@@ -65,7 +77,12 @@ static bool pred_greater_than_context(const void* _element, void* _context)
     return (*value > *threshold);
 }
 
-static int cmp_int(const void* _a, const void* _b, void* _context)
+static
+int cmp_int(
+    const void* _a,
+    const void* _b,
+    void*       _context
+)
 {
     const int* a;
     const int* b;
@@ -95,15 +112,13 @@ d_tests_sa_filter_apply_operation
   - zero count returns empty result
   - zero element_size returns error result
 */
-bool
-d_tests_sa_filter_apply_operation
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_apply_operation(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_filter_operation* op;
-    struct d_filter_result*   res;
+    struct dj_filter_operation* op;
+    struct dj_filter_result*   res;
     int                       input[5] = {10,20,30,40,50};
     int*                      elems;
 
@@ -386,14 +401,12 @@ d_tests_sa_filter_apply_chain
   - NULL input returns error result
   - zero count returns empty result
 */
-bool
-d_tests_sa_filter_apply_chain
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_apply_chain(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_chain*   chain;
-    struct d_filter_result*  res;
+    struct dj_filter_chain*   chain;
+    struct dj_filter_result*  res;
     int                      input[6] = { 1,2,3,4,5,6 };
     int*                     elems;
     bool                     result;
@@ -655,18 +668,16 @@ d_tests_sa_filter_apply_combinators
   - NULL combinator returns error
   - empty combinator returns appropriate result
 */
-bool
-d_tests_sa_filter_apply_combinators
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_apply_combinators(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_union*        u;
-    struct d_filter_intersection* inter;
-    struct d_filter_difference*   diff;
-    struct d_filter_chain*        chain_even;
-    struct d_filter_chain*        chain_positive;
-    struct d_filter_result*       res;
+    struct dj_filter_union*        u;
+    struct dj_filter_intersection* inter;
+    struct dj_filter_difference*   diff;
+    struct dj_filter_chain*        chain_even;
+    struct dj_filter_chain*        chain_positive;
+    struct dj_filter_result*       res;
     int                           input[6] = { -4, -1, 0, 3, 4, 7 };
     int*                          elems;
     size_t                        i;
@@ -898,13 +909,11 @@ d_tests_sa_filter_counting
   - none_match returns false when some match
   - NULL chain returns 0/false for each
 */
-bool
-d_tests_sa_filter_counting
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_counting(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_chain*  chain;
+    struct dj_filter_chain*  chain;
     int                     mixed[6] = { 1,2,3,4,5,6 };
     int                     all_even[4] = {2,4,6,8};
     int                     all_odd[3] = {1,3,5};
@@ -1070,13 +1079,11 @@ d_tests_sa_filter_get_indices
   - zero count returns NULL
   - NULL out_count returns NULL
 */
-bool
-d_tests_sa_filter_get_indices
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_get_indices(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_chain*  chain;
+    struct dj_filter_chain*  chain;
     size_t*                 indices;
     size_t                  out_count;
     int                     input[6] = { 1,2,3,4,5,6 };
@@ -1226,14 +1233,12 @@ d_tests_sa_filter_in_place
   - NULL array returns 0
   - zero count returns 0
 */
-bool
-d_tests_sa_filter_in_place
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_in_place(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_filter_chain*  chain;
+    struct dj_filter_chain*  chain;
     int                     data[6] = { 1,2,3,4,5,6 };
     size_t                  new_count;
 
@@ -1398,14 +1403,12 @@ d_tests_sa_filter_result_free
   - freeing result with no allocations does not crash
   - freeing NULL pointer does not crash
 */
-bool
-d_tests_sa_filter_result_free
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_result_free(
+    struct dj_test_counter* _counter
 )
 {
-    struct d_filter_operation* op;
-    struct d_filter_result*    res;
+    struct dj_filter_operation* op;
+    struct dj_filter_result*    res;
     int                        input[3] = { 10,20,30 };
     bool                       result;
 
@@ -1486,14 +1489,12 @@ d_tests_sa_filter_matches_element
   - NULL element returns false
   - zero element_size returns false
 */
-bool
-d_tests_sa_filter_matches_element
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_matches_element(
+    struct dj_test_counter* _counter
 )
 {
     bool                    result;
-    struct d_filter_chain*  chain;
+    struct dj_filter_chain*  chain;
     int                     even_val;
     int                     odd_val;
     int                     neg_even;
@@ -1537,7 +1538,7 @@ d_tests_sa_filter_matches_element
 
     if (chain)
     {
-        struct d_filter_operation* op_wn;
+        struct dj_filter_operation* op_wn;
 
         op_wn = d_filter_where_not(pred_is_even);
         d_filter_chain_add(chain, op_wn);
@@ -1732,10 +1733,8 @@ d_tests_sa_filter_matches_element
 d_tests_sa_filter_execution_all
   Aggregation function that runs all execution and application tests.
 */
-bool
-d_tests_sa_filter_execution_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_filter_execution_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

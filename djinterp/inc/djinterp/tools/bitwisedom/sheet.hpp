@@ -64,8 +64,8 @@ TABLE OF CONTENTS
     4.  Special rows
 */
 
-#ifndef BITWISEDOM_SHEET_HPP
-#define BITWISEDOM_SHEET_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_SHEET_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_SHEET_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -76,11 +76,11 @@ TABLE OF CONTENTS
 #include <string>      // std::string
 #include <vector>      // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./bits.hpp"  // u64, i64, encoding
 // re_std
-#include "re_std/cstdint/cstdint.hpp"  // re_std::uint32_t
+#include "re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint32_t
 
 
 namespace bitwisedom
@@ -311,27 +311,43 @@ enum class special_place : int
 using rgba = re_std::uint32_t;
 
 // colour helpers -- packing, unpacking, and the automatic palette
-D_NODISCARD rgba   make_rgba(float _r,
-                             float _g,
-                             float _b,
-                             float _a);
-D_NODISCARD float  channel(rgba _colour,
-                           int  _index);
-D_NODISCARD rgba   with_alpha(rgba  _colour,
-                              float _alpha);
-D_NODISCARD rgba   from_hsv(float _h,
-                            float _s,
-                            float _v,
-                            float _a);
-D_NODISCARD rgba   palette_colour(int   _palette,
-                                  int   _index,
-                                  float _saturation,
-                                  float _value);
-D_NODISCARD rgba   or_else(rgba _colour,
-                           rgba _automatic);
-D_NODISCARD std::string  rgba_text(rgba _colour);
-D_NODISCARD bool         parse_rgba(const std::string& _text,
-                                    rgba&              _colour);
+D_NODISCARD rgba make_rgba(
+    float _r,
+    float _g,
+    float _b,
+    float _a
+);
+D_NODISCARD float channel(
+    rgba _colour,
+    int  _index
+);
+D_NODISCARD rgba with_alpha(
+    rgba  _colour,
+    float _alpha
+);
+D_NODISCARD rgba from_hsv(
+    float _h,
+    float _s,
+    float _v,
+    float _a
+);
+D_NODISCARD rgba palette_colour(
+    int   _palette,
+    int   _index,
+    float _saturation,
+    float _value
+);
+D_NODISCARD rgba or_else(
+    rgba _colour,
+    rgba _automatic
+);
+D_NODISCARD std::string rgba_text(
+    rgba _colour
+);
+D_NODISCARD bool parse_rgba(
+    const std::string& _text,
+    rgba&              _colour
+);
 
 
 //==============================================================================
@@ -392,8 +408,10 @@ struct row
 
 
 // A group or range can contain nested rows; all other symbols are leaves.
-inline bool
-can_contain(const row& _row)
+inline
+bool can_contain(
+    const row& _row
+)
 {
     return (_row.kind == row_kind::group) ||
            ((_row.kind == row_kind::symbol) &&
@@ -535,8 +553,12 @@ const int SCHEME_COUNT = 5;
 
 // theme_name / scheme_name
 //   the name a menu shows.
-D_NODISCARD const char*  theme_name(int _theme);
-D_NODISCARD const char*  scheme_name(int _scheme);
+D_NODISCARD const char* theme_name(
+    int _theme
+);
+D_NODISCARD const char* scheme_name(
+    int _scheme
+);
 
 // 3.2.2
 // colour_settings
@@ -585,8 +607,10 @@ struct scheme_colours
 // scheme_for
 //   a scheme's colours for a theme; out-of-range numbers are held to the
 // nearest.
-D_NODISCARD scheme_colours  scheme_for(int _theme,
-                                       int _scheme);
+D_NODISCARD scheme_colours scheme_for(
+    int _theme,
+    int _scheme
+);
 
 // 3.2.4
 // look
@@ -601,10 +625,12 @@ struct look
 // make_look
 //   colours and a grid with what they leave automatic filled in from a
 // theme and a scheme.
-D_NODISCARD look  make_look(const colour_settings& _colours,
-                            const grid_settings&   _grid,
-                            int                    _theme,
-                            int                    _scheme);
+D_NODISCARD look make_look(
+    const colour_settings& _colours,
+    const grid_settings&   _grid,
+    int                    _theme,
+    int                    _scheme
+);
 
 // 3.3    Generator
 //------------------------------------------------------------------------------
@@ -733,30 +759,50 @@ struct sheet
 // construction -- a sheet with its root group, default lines and templates;
 // and File > New's document: that sheet holding an editable full-width
 // range named root, with no fill, and in it one bit, FLAG, at bit 0
-D_NODISCARD sheet  make_sheet(const std::string& _title,
-                              int                _width);
-D_NODISCARD sheet  make_document(const std::string& _title,
-                                 int                _width);
-void               reset_view(sheet& _sheet);
-void               automatic_colours(sheet& _sheet);
-D_NODISCARD look   make_look(const sheet& _sheet,
-                             int          _theme,
-                             int          _scheme);
-D_NODISCARD std::vector<macro_template>  default_templates();
-D_NODISCARD std::vector<macro_template>  default_wide_templates();
+D_NODISCARD sheet make_sheet(
+    const std::string& _title,
+    int                _width
+);
+D_NODISCARD sheet make_document(
+    const std::string& _title,
+    int                _width
+);
+void reset_view(
+    sheet& _sheet
+);
+void automatic_colours(
+    sheet& _sheet
+);
+D_NODISCARD look make_look(
+    const sheet& _sheet,
+    int          _theme,
+    int          _scheme
+);
+D_NODISCARD std::vector<macro_template> default_templates();
+D_NODISCARD std::vector<macro_template> default_wide_templates();
 
 // word_bits
 //   a wide sheet's array words, in bits: 8, 16, 32 or 64.
-D_NODISCARD int    word_bits(const sheet& _sheet);
-D_NODISCARD int    applies_bit(def_kind _kind);
+D_NODISCARD int word_bits(
+    const sheet& _sheet
+);
+D_NODISCARD int applies_bit(
+    def_kind _kind
+);
 
 // lookup -- by id; nullptr when no row has it (the root has id 0)
-D_NODISCARD row*        find_row(sheet& _sheet,
-                                 int    _id);
-D_NODISCARD const row*  find_row(const sheet& _sheet,
-                                 int          _id);
-D_NODISCARD row*        parent_of(sheet& _sheet,
-                                  int    _id);
+D_NODISCARD row* find_row(
+    sheet& _sheet,
+    int    _id
+);
+D_NODISCARD const row* find_row(
+    const sheet& _sheet,
+    int          _id
+);
+D_NODISCARD row* parent_of(
+    sheet& _sheet,
+    int    _id
+);
 
 // row_index
 //   class: every row of a sheet by its id, found at once. find_row walks
@@ -766,18 +812,25 @@ D_NODISCARD row*        parent_of(sheet& _sheet,
 class row_index
 {
 public:
-    explicit row_index(const sheet& _sheet);
+    explicit
+    row_index(
+        const sheet& _sheet
+    );
 
     // the row with an id; nullptr when no row has it
-    D_NODISCARD const row*  find(int _id) const;
+    D_NODISCARD const row* find(
+        int _id
+    ) const;
 
 private:
     std::vector<const row*> m_rows;  // by id
 };
 
 // walking -- depth first, parents before children; _depth starts at 0
-void  walk(const sheet&                                          _sheet,
-           const std::function<void(const row&, const row&, int)>& _visit);
+void walk(
+    const sheet& _sheet,
+    const std::function<void(const row&, const row&, int)>& _visit
+);
 
 /**
  * @brief Inserts a row into a group.
@@ -790,10 +843,12 @@ void  walk(const sheet&                                          _sheet,
  * @post   Pointers and references into _sheet's rows are invalid.
  * @return the new row's id, or 0 if _parent names no row.
  */
-int   insert_row(sheet&      _sheet,
-                 int         _parent,
-                 int         _index,
-                 const row&  _row);
+int insert_row(
+    sheet&     _sheet,
+    int        _parent,
+    int        _index,
+    const row& _row
+);
 
 /**
  * @brief Removes a row, and everything in it, from the sheet.
@@ -803,8 +858,10 @@ int   insert_row(sheet&      _sheet,
  * @post   Pointers and references into _sheet's rows are invalid.
  * @return `true` if a row was removed.
  */
-bool  remove_row(sheet& _sheet,
-                 int    _id);
+bool remove_row(
+    sheet& _sheet,
+    int    _id
+);
 
 /**
  * @brief Moves a row to a new place in the tree.
@@ -816,10 +873,12 @@ bool  remove_row(sheet& _sheet,
  * @post   Pointers and references into _sheet's rows are invalid.
  * @return `true` if it moved: not into itself, nor into its own subtree.
  */
-bool  move_row(sheet& _sheet,
-               int    _id,
-               int    _parent,
-               int    _index);
+bool move_row(
+    sheet& _sheet,
+    int    _id,
+    int    _parent,
+    int    _index
+);
 
 /**
  * @brief Opens or closes a group and every group within it, as the tree
@@ -832,17 +891,23 @@ bool  move_row(sheet& _sheet,
  * @param[in]     _open   true to open them, false to close them.
  * @return how many groups were changed: 0 when each already was so.
  */
-int   open_groups(sheet& _sheet,
-                  int    _id,
-                  bool   _open);
+int open_groups(
+    sheet& _sheet,
+    int    _id,
+    bool   _open
+);
 
 // allocation -- the lowest bit a group's bit and range rows leave free
-D_NODISCARD int  next_free_bit(const sheet& _sheet,
-                               int          _group);
+D_NODISCARD int next_free_bit(
+    const sheet& _sheet,
+    int          _group
+);
 
 // macros -- whether a macro row takes arguments: it has parameters, or is
 // marked callable
-D_NODISCARD bool function_like(const row& _row);
+D_NODISCARD bool function_like(
+    const row& _row
+);
 
 
 // 4.3    What the grid shows
@@ -876,23 +941,35 @@ struct cell_shows
 
 // parts -- a rule's setting of one part, and the grid's own: -1 as the
 // sheet says, 0 hidden, 1 shown; and what a cell_shows says of it
-D_NODISCARD int   rule_part(const display_rule& _rule,
-                            shown_part          _part);
-int&              rule_part(display_rule& _rule,
-                            shown_part    _part);
-D_NODISCARD bool  grid_shows(const grid_settings& _grid,
-                             shown_part           _part);
-bool&             grid_shows(grid_settings& _grid,
-                             shown_part     _part);
-D_NODISCARD bool  shows(const cell_shows& _cell,
-                        shown_part        _part);
+D_NODISCARD int rule_part(
+    const display_rule& _rule,
+    shown_part          _part
+);
+int& rule_part(
+    display_rule& _rule,
+    shown_part    _part
+);
+D_NODISCARD bool grid_shows(
+    const grid_settings& _grid,
+    shown_part           _part
+);
+bool& grid_shows(
+    grid_settings& _grid,
+    shown_part     _part
+);
+D_NODISCARD bool shows(
+    const cell_shows& _cell,
+    shown_part        _part
+);
 
 // lineage
 //   a row's id, then those of the groups and ranges it is in, innermost
 // first -- the root's excluded: what a rule over rows is matched against,
 // so one over a group covers every row in it.
-D_NODISCARD std::vector<int>  lineage(const sheet& _sheet,
-                                      int          _id);
+D_NODISCARD std::vector<int> lineage(
+    const sheet& _sheet,
+    int          _id
+);
 
 /**
  * @brief The rules over any of a row's cells, in order: for shown_at, which
@@ -902,9 +979,10 @@ D_NODISCARD std::vector<int>  lineage(const sheet& _sheet,
  * @param[in] _lineage  the row's lineage.
  * @return the rules, pointing into _grid.
  */
-D_NODISCARD std::vector<const display_rule*>  rules_over(
+D_NODISCARD std::vector<const display_rule*> rules_over(
     const grid_settings&    _grid,
-    const std::vector<int>& _lineage);
+    const std::vector<int>& _lineage
+);
 
 /**
  * @brief What a cell of a row shows -- one bit's, or a column's of several:
@@ -918,10 +996,12 @@ D_NODISCARD std::vector<const display_rule*>  rules_over(
  * @param[in] _msb   its highest.
  * @return what it shows.
  */
-D_NODISCARD cell_shows  shown_at(const grid_settings&                    _grid,
-                                 const std::vector<const display_rule*>& _over,
-                                 int                                     _lsb,
-                                 int                                     _msb);
+D_NODISCARD cell_shows shown_at(
+    const grid_settings&                    _grid,
+    const std::vector<const display_rule*>& _over,
+    int                                     _lsb,
+    int                                     _msb
+);
 
 /**
  * @brief Sets whether a region of the grid shows a part: the last rule, if
@@ -941,13 +1021,15 @@ D_NODISCARD cell_shows  shown_at(const grid_settings&                    _grid,
  *                        setting and every other rule's taken back first,
  *                        and _value taken as 1.
  */
-void  set_shown(grid_settings&          _grid,
-                const std::vector<int>& _rows,
-                int                     _lsb,
-                int                     _msb,
-                shown_part              _part,
-                int                     _value,
-                bool                    _only);
+void set_shown(
+    grid_settings&          _grid,
+    const std::vector<int>& _rows,
+    int                     _lsb,
+    int                     _msb,
+    shown_part              _part,
+    int                     _value,
+    bool                    _only
+);
 
 /**
  * @brief Drops from the grid's rules the rows a sheet no longer has, and a
@@ -956,15 +1038,21 @@ void  set_shown(grid_settings&          _grid,
  * @param[in,out] _sheet  the sheet.
  * @return how many rules were changed or dropped.
  */
-int   prune_rules(sheet& _sheet);
+int prune_rules(
+    sheet& _sheet
+);
 
 // 4.4    Special rows
 //------------------------------------------------------------------------------
 // 4.4.1
 // special_name
 //   the name a kind of special row is listed by: "probe", "usage".
-D_NODISCARD const char*  special_name(special_kind _kind);
-D_NODISCARD const char*  place_name(special_place _place);
+D_NODISCARD const char* special_name(
+    special_kind _kind
+);
+D_NODISCARD const char* place_name(
+    special_place _place
+);
 
 /**
  * @brief Keeps the grid's special rows whole: one of each kind at least --
@@ -976,13 +1064,19 @@ D_NODISCARD const char*  place_name(special_place _place);
  * @param[in,out] _sheet  the sheet.
  * @return whether anything was changed.
  */
-bool  settle_specials(sheet& _sheet);
+bool settle_specials(
+    sheet& _sheet
+);
 
 // lookup -- by id; nullptr when no special row has it
-D_NODISCARD special_row*        find_special(grid_settings& _grid,
-                                             int            _id);
-D_NODISCARD const special_row*  find_special(const grid_settings& _grid,
-                                             int                  _id);
+D_NODISCARD special_row* find_special(
+    grid_settings& _grid,
+    int            _id
+);
+D_NODISCARD const special_row* find_special(
+    const grid_settings& _grid,
+    int                  _id
+);
 
 /**
  * @brief Adds a special row of a kind's, just after another, or at the
@@ -994,9 +1088,11 @@ D_NODISCARD const special_row*  find_special(const grid_settings& _grid,
  *                       pinned at the bottom, last.
  * @return its id.
  */
-int   add_special(grid_settings& _grid,
-                  special_kind   _kind,
-                  int            _like);
+int add_special(
+    grid_settings& _grid,
+    special_kind   _kind,
+    int            _like
+);
 
 /**
  * @brief Removes a special row. The last of its kind stays, hidden with its
@@ -1006,8 +1102,10 @@ int   add_special(grid_settings& _grid,
  * @param[in]     _id    the special row.
  * @return whether it went, or its kind was hidden.
  */
-bool  remove_special(grid_settings& _grid,
-                     int            _id);
+bool remove_special(
+    grid_settings& _grid,
+    int            _id
+);
 
 /**
  * @brief Moves a special row: pinned at the top or the bottom, or among the
@@ -1024,12 +1122,14 @@ bool  remove_special(grid_settings& _grid,
  *                         0 for last.
  * @return whether it moved.
  */
-bool  place_special(grid_settings& _grid,
-                    int            _id,
-                    special_place  _place,
-                    int            _parent,
-                    int            _before,
-                    int            _ahead);
+bool place_special(
+    grid_settings& _grid,
+    int            _id,
+    special_place  _place,
+    int            _parent,
+    int            _before,
+    int            _ahead
+);
 
 
 }  // namespace bitwisedom
@@ -1037,4 +1137,4 @@ bool  place_special(grid_settings& _grid,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_SHEET_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_SHEET_HPP

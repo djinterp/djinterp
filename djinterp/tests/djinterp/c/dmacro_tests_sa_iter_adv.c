@@ -14,7 +14,7 @@
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
-#include "../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -31,10 +31,8 @@ This test verifies the concept manually.
   - Adjacent pair iteration concept (sliding window)
   - Computing differences between consecutive elements
 */
-bool
-d_tests_sa_dmacro_adjacent_pair
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_adjacent_pair(
+    struct dj_test_counter* _test_info
 )
 {
     bool   all_assertions_passed;
@@ -150,13 +148,11 @@ d_tests_sa_dmacro_advanced_iter_all
   Tests the following sections:
   - D_FOR_EACH_ADJACENT_PAIR sliding window iteration
 */
-bool
-d_tests_sa_dmacro_advanced_iter_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_dmacro_advanced_iter_all(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_test_counter module_counter;
+    struct dj_test_counter module_counter;
     bool                  adjacent_result;
     bool                  overall_result;
 
@@ -165,7 +161,7 @@ d_tests_sa_dmacro_advanced_iter_all
         return false;
     }
 
-    module_counter = (struct d_test_counter){0, 0, 0, 0};
+    module_counter = (struct dj_test_counter){0, 0, 0, 0};
 
     printf("\n");
     printf("=========================================");

@@ -267,7 +267,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_ORACLE_ENV_ORACLE_H 1
 
 // djinterp
-#include "../../../config/core/env/db/oracle/cfg_env_oracle.h"  // config
+#include "../../../config/env/db/oracle/cfg_env_oracle.h"  // config
 #include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 

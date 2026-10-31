@@ -41,8 +41,8 @@ static int g_failed = 0;
 d_tests_check
   Counts one check, and names it when it fails.
 */
-static void
-d_tests_check(
+static
+void d_tests_check(
     bool        _condition,
     const char* _what
 )
@@ -64,8 +64,8 @@ d_tests_check(
 d_tests_starts
   Whether a text begins with another.
 */
-static bool
-d_tests_starts(
+static
+bool d_tests_starts(
     const char* _text,
     const char* _start
 )
@@ -80,9 +80,9 @@ d_tests_read
 */
 static bool
 d_tests_read(
-    struct d_msvs*   _msvs,
+    struct dj_msvs*   _msvs,
     const char*      _text,
-    enum d_msvs_kind _kind,
+    enum dj_msvs_kind _kind,
     const char*      _what
 )
 {
@@ -107,12 +107,12 @@ d_tests_read(
 d_tests_attribute_is
   Whether an element's attribute decodes to the text expected.
 */
-static bool
-d_tests_attribute_is(
-    const struct d_msvs* _msvs,
-    size_t               _element,
-    const char*          _name,
-    const char*          _expected
+static
+bool d_tests_attribute_is(
+    const struct dj_msvs* _msvs,
+    size_t                _element,
+    const char*           _name,
+    const char*           _expected
 )
 {
     size_t start  = 0;
@@ -138,11 +138,11 @@ d_tests_attribute_is(
 d_tests_text_is
   Whether an element's text decodes to the text expected.
 */
-static bool
-d_tests_text_is(
-    const struct d_msvs* _msvs,
-    size_t               _element,
-    const char*          _expected
+static
+bool d_tests_text_is(
+    const struct dj_msvs* _msvs,
+    size_t                _element,
+    const char*           _expected
 )
 {
     char value[512];
@@ -166,8 +166,8 @@ d_tests_kinds
   Tests the following:
   - every kind by its name's ending, in any case
 */
-static void
-d_tests_kinds(void)
+static
+void d_tests_kinds(void)
 {
     printf("kinds\n");
 
@@ -197,8 +197,8 @@ d_tests_tree
   - a byte-order mark and CR LF, kept as facts
   - attributes raw and decoded, and text decoded as XML decodes it
 */
-static void
-d_tests_tree(void)
+static
+void d_tests_tree(void)
 {
     static const char text[] =
         "\xEF\xBB\xBF<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
@@ -212,13 +212,13 @@ d_tests_tree(void)
         "  </PropertyGroup>\r\n"
         "</Project>\r\n";
 
-    struct d_msvs msvs;
+    struct dj_msvs msvs;
 
     printf("tree\n");
 
     if (d_tests_read(&msvs, text, D_MSVS_PROJECT, "a project"))
     {
-        const struct d_msvs_element* const e = msvs.elements;
+        const struct dj_msvs_element* const e = msvs.elements;
 
         d_tests_check( (msvs.element_count == 5u) && (msvs.bom) &&
                        (msvs.crlf) && (msvs.xml) &&
@@ -273,8 +273,8 @@ d_tests_platforms_alone
   Whether a .slnx naming platforms alone, as Visual Studio writes one for a
 new C++ project, builds Debug and Release on each.
 */
-static bool
-d_tests_platforms_alone(void)
+static
+bool d_tests_platforms_alone(void)
 {
     static const char text[] =
         "<Solution>\r\n"
@@ -285,7 +285,7 @@ d_tests_platforms_alone(void)
         "  <Project Path=\"a.vcxproj\" Id=\"a9da23ff-789e-488c-8c20-"
         "ff468f17ac7d\" />\r\n"
         "</Solution>\r\n";
-    struct d_msvs msvs;
+    struct dj_msvs msvs;
     const bool    read = d_msvs_read(&msvs, text, strlen(text),
                                      D_MSVS_SOLUTION, NULL, 0u);
     const bool    four = (read) && (msvs.configuration_count == 4u) &&
@@ -304,8 +304,8 @@ d_tests_slnx
   - projects at the top and in folders, named, typed, with dependencies
   - the configurations, each build type on each platform
 */
-static void
-d_tests_slnx(void)
+static
+void d_tests_slnx(void)
 {
     static const char text[] =
         "<Solution>\n"
@@ -320,20 +320,20 @@ d_tests_slnx(void)
         "    <BuildDependency Project=\"lib/lib.vcxproj\" />\n"
         "    <Build Solution=\"Release|*\" Project=\"false\" />\n"
         "  </Project>\n"
-        "  <Folder Name=\"/tools/\">\n"
+        "  <Folder Name=\"/scripts/\">\n"
         "    <Project Path=\"lib\\lib.vcxproj\" DisplayName=\"The &amp; "
         "Lib\" />\n"
         "    <File Path=\"readme.md\" />\n"
         "  </Folder>\n"
         "</Solution>\n";
 
-    struct d_msvs msvs;
+    struct dj_msvs msvs;
 
     printf("slnx\n");
 
     if (d_tests_read(&msvs, text, D_MSVS_SOLUTION, "a .slnx"))
     {
-        const struct d_msvs_project* const p = msvs.projects;
+        const struct dj_msvs_project* const p = msvs.projects;
 
         d_tests_check( (msvs.project_count == 2u) &&
                        (strcmp(p[0].name, "app") == 0) &&
@@ -344,7 +344,7 @@ d_tests_slnx(void)
                        (strcmp(p[0].folder, "") == 0) && (p[0].line == 8u),
                        "a project at the top");
         d_tests_check( (strcmp(p[1].name, "The & Lib") == 0) &&
-                       (strcmp(p[1].folder, "/tools/") == 0) &&
+                       (strcmp(p[1].folder, "/scripts/") == 0) &&
                        (strcmp(p[1].type, "") == 0) &&
                        (strcmp(p[1].id, "") == 0),
                        "a project in a folder, by its display name");
@@ -361,7 +361,7 @@ d_tests_slnx(void)
         d_tests_check(d_tests_platforms_alone(),
                       "platforms alone are built as Debug and Release");
         d_tests_check( (msvs.folder_count == 1u) &&
-                       (strcmp(msvs.folders[0].path, "/tools/") == 0) &&
+                       (strcmp(msvs.folders[0].path, "/scripts/") == 0) &&
                        (d_msvs_is(&msvs,
                                   &msvs.elements[msvs.folders[0].element],
                                   "Folder")) &&
@@ -389,8 +389,8 @@ d_tests_sln
   - a .sln's projects, its folders, nested, and its dependencies by path
   - its configurations
 */
-static void
-d_tests_sln(void)
+static
+void d_tests_sln(void)
 {
     static const char text[] =
         "\r\n"
@@ -432,13 +432,13 @@ d_tests_sln(void)
         "\tEndGlobalSection\r\n"
         "EndGlobal\r\n";
 
-    struct d_msvs msvs;
+    struct dj_msvs msvs;
 
     printf("sln\n");
 
     if (d_tests_read(&msvs, text, D_MSVS_SOLUTION, "a .sln"))
     {
-        const struct d_msvs_project* const p = msvs.projects;
+        const struct dj_msvs_project* const p = msvs.projects;
 
         d_tests_check( (!msvs.xml) && (msvs.crlf) &&
                        (msvs.project_count == 2u) &&
@@ -461,7 +461,7 @@ d_tests_sln(void)
                        (strcmp(msvs.configurations[1], "Release|x64") == 0),
                        "the configurations");
         d_tests_check( (msvs.folder_count == 2u) &&
-                       (strcmp(msvs.folders[0].path, "/tools/") == 0) &&
+                       (strcmp(msvs.folders[0].path, "/scripts/") == 0) &&
                        (strcmp(msvs.folders[1].path, "/tools/dawk/") == 0) &&
                        (strcmp(msvs.folders[1].id,
                                "44444444-0000-0000-0000-000000000004") == 0),
@@ -514,8 +514,8 @@ d_tests_writing
     separator
   - escaping, of text and of an attribute's value in either quotes
 */
-static void
-d_tests_writing(void)
+static
+void d_tests_writing(void)
 {
     char guid[37];
     char seed[201];
@@ -600,8 +600,8 @@ d_tests_conditions
   - other conditions, and none
   - matching a tested configuration against one named
 */
-static void
-d_tests_conditions(void)
+static
+void d_tests_conditions(void)
 {
     char tested[64];
 
@@ -657,21 +657,21 @@ d_tests_refusals
   Tests the following:
   - each refusal, with the line and column it is reported at
 */
-static void
-d_tests_refusals(void)
+static
+void d_tests_refusals(void)
 {
-    // d_tests_refusal
+    // dj_tests_refusal
     //   struct: a text the reader must refuse, its kind, where, and why.
-    struct d_tests_refusal
+    struct dj_tests_refusal
     {
         const char*      text;
-        enum d_msvs_kind kind;
+        enum dj_msvs_kind kind;
         size_t           line;
         size_t           column;
         const char*      words;
     };
 
-    static const struct d_tests_refusal refusals[] =
+    static const struct dj_tests_refusal refusals[] =
     {
         { "<Project>\n  <A></B>\n</Project>", D_MSVS_PROJECT, 2u, 6u,
           "</B> ends <A>" },
@@ -737,7 +737,7 @@ d_tests_refusals(void)
 
     for (size_t at = 0; at < (sizeof(refusals) / sizeof(refusals[0])); ++at)
     {
-        struct d_msvs msvs;
+        struct dj_msvs msvs;
         char          why[256];
         char          what[320];
         const bool    read = d_msvs_read(&msvs, refusals[at].text,
@@ -773,7 +773,7 @@ d_tests_refusals(void)
 
 // d_tests_corpus
 //   struct: what a corpus run counted.
-struct d_tests_corpus
+struct dj_tests_corpus
 {
     size_t files;
     size_t kinds[6];
@@ -791,10 +791,10 @@ element, or lines from Project( to past EndProject; each section's lines
 from GlobalSection( to past EndGlobalSection, within Global.  Returns why
 not, or NULL.
 */
-static const char*
-d_tests_sound_solution(
-    const struct d_msvs* _msvs,
-    size_t*              _where
+static
+const char* d_tests_sound_solution(
+    const struct dj_msvs* _msvs,
+    size_t*               _where
 )
 {
     const char* const text = _msvs->text;
@@ -841,7 +841,7 @@ d_tests_sound_solution(
     // every section's lines
     for (size_t which = 0; which < _msvs->section_count; ++which)
     {
-        const struct d_msvs_section* const section = &_msvs->sections[which];
+        const struct dj_msvs_section* const section = &_msvs->sections[which];
 
         *_where = section->start;
 
@@ -870,10 +870,10 @@ d_tests_sound
 places, its end tag repeating its name, its children in order, its line
 the one its offset gives.  Returns why not, or NULL.
 */
-static const char*
-d_tests_sound(
-    const struct d_msvs* _msvs,
-    size_t*              _where
+static
+const char* d_tests_sound(
+    const struct dj_msvs* _msvs,
+    size_t*               _where
 )
 {
     const char* const text = _msvs->text;
@@ -883,7 +883,7 @@ d_tests_sound(
     // every element, in document order
     for (size_t which = 0; which < _msvs->element_count; ++which)
     {
-        const struct d_msvs_element* const e = &_msvs->elements[which];
+        const struct dj_msvs_element* const e = &_msvs->elements[which];
 
         *_where = e->start;
 
@@ -943,15 +943,15 @@ d_tests_sound(
 d_tests_corpus_file
   Reads one file and proves the reading sound.
 */
-static void
-d_tests_corpus_file(
-    const char*            _path,
-    struct d_tests_corpus* _counts
+static
+void d_tests_corpus_file(
+    const char*             _path,
+    struct dj_tests_corpus* _counts
 )
 {
     size_t                 length = 0;
     char* const            text   = d_text_read(_path, &length);
-    const enum d_msvs_kind kind   = d_msvs_kind_of(_path);
+    const enum dj_msvs_kind kind   = d_msvs_kind_of(_path);
     char                   why[256];
 
     _counts->files++;
@@ -966,7 +966,7 @@ d_tests_corpus_file(
         return;
     }
 
-    struct d_msvs msvs;
+    struct dj_msvs msvs;
     size_t        where   = 0;
     const bool    read    = d_msvs_read(&msvs, text, length, kind, why,
                                         sizeof(why));
@@ -1000,10 +1000,10 @@ d_tests_corpus_file(
 d_tests_corpus_walk
   Every Visual Studio file under a directory, in name order.
 */
-static void
-d_tests_corpus_walk(
-    const char*            _directory,
-    struct d_tests_corpus* _counts
+static
+void d_tests_corpus_walk(
+    const char*             _directory,
+    struct dj_tests_corpus* _counts
 )
 {
     char** names = NULL;
@@ -1055,8 +1055,8 @@ d_tests_print_escaped
   Prints a value as xml_tree.py does: a backslash, a quote, a tab, a CR and
 an LF escaped, and nothing else.
 */
-static void
-d_tests_print_escaped(
+static
+void d_tests_print_escaped(
     const char* _text
 )
 {
@@ -1080,7 +1080,7 @@ d_tests_print_escaped(
 
 // d_tests_attribute
 //   struct: one attribute, decoded, for printing in name order.
-struct d_tests_attribute
+struct dj_tests_attribute
 {
     char* name;
     char* value;
@@ -1091,14 +1091,14 @@ struct d_tests_attribute
 d_tests_compare_attributes
   Name order, by bytes.
 */
-static int
-d_tests_compare_attributes(
+static
+int d_tests_compare_attributes(
     const void* _left,
     const void* _right
 )
 {
-    return strcmp(((const struct d_tests_attribute*)_left)->name,
-                  ((const struct d_tests_attribute*)_right)->name);
+    return strcmp(((const struct dj_tests_attribute*)_left)->name,
+                  ((const struct dj_tests_attribute*)_right)->name);
 }
 
 
@@ -1108,8 +1108,8 @@ d_tests_dump
 attributes in name order but for namespace declarations, and, for one
 holding no element, its text.
 */
-static int
-d_tests_dump(
+static
+int d_tests_dump(
     const char* _path
 )
 {
@@ -1125,7 +1125,7 @@ d_tests_dump(
         return 1;
     }
 
-    struct d_msvs msvs;
+    struct dj_msvs msvs;
     const bool    read = d_msvs_read(&msvs, text, length,
                                      d_msvs_kind_of(_path), why,
                                      sizeof(why));
@@ -1133,7 +1133,7 @@ d_tests_dump(
     // each element of the tree, as Python's printer prints it
     for (size_t at = 0; (read) && (at < msvs.element_count); ++at)
     {
-        const struct d_msvs_element* const e = &msvs.elements[at];
+        const struct dj_msvs_element* const e = &msvs.elements[at];
         const char*                        name = &text[e->name];
         size_t                             span = e->name_length;
         const char* const colon = memchr(name, ':', span);
@@ -1147,7 +1147,7 @@ d_tests_dump(
 
         printf("%lu %.*s", (unsigned long)e->depth, (int)span, name);
 
-        struct d_tests_attribute attributes[64];
+        struct dj_tests_attribute attributes[64];
         size_t                   count = 0;
         const char*              raw   = &text[e->attributes];
         size_t                   walk  = 0;
@@ -1252,8 +1252,7 @@ main
   The unit checks; with --corpus every Visual Studio file under the
 directories, and with --dump a file's element tree.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )
@@ -1262,7 +1261,7 @@ main(
     if ( (argc > 2) &&
          (strcmp(argv[1], "--corpus") == 0) )
     {
-        struct d_tests_corpus counts;
+        struct dj_tests_corpus counts;
 
         memset(&counts, 0, sizeof(counts));
 

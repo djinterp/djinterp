@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_et_adv_cb
 //   helper: minimal callback for listener construction.
-static void
-d_tests_sa_et_adv_cb(size_t _count, void** _args)
+static
+void d_tests_sa_et_adv_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -35,15 +38,13 @@ d_tests_sa_et_integration
   - All 10 elements found after insert
   - count reflects removals after removing 5
 */
-bool
-d_tests_sa_et_integration
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_integration(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   listeners[10];
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   listeners[10];
     int                        i;
     bool                       all_found;
 
@@ -111,15 +112,13 @@ d_tests_sa_et_stress
   - count reaches 100 after all insertions
   - All 100 elements remain accessible by lookup
 */
-bool
-d_tests_sa_et_stress
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_stress(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   listeners[100];
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   listeners[100];
     int                        i;
     int                        found_count;
 
@@ -179,17 +178,15 @@ d_tests_sa_et_collision
   - All 3 elements accessible despite likely hash collisions
   - count is correct
 */
-bool
-d_tests_sa_et_collision
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_collision(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   l1;
-    struct d_event_listener*   l2;
-    struct d_event_listener*   l3;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   l1;
+    struct dj_event_listener*   l2;
+    struct dj_event_listener*   l3;
     bool                       all_found;
 
     result = true;
@@ -249,15 +246,13 @@ d_tests_sa_et_auto_resize
   Tests the following:
   - Table size grows beyond initial after enough inserts
 */
-bool
-d_tests_sa_et_auto_resize
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_auto_resize(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   listeners[10];
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   listeners[10];
     size_t                     initial_size;
     int                        i;
 
@@ -299,10 +294,8 @@ d_tests_sa_et_auto_resize
 d_tests_sa_et_advanced_all
   Runs all integration, stress, and edge case tests.
 */
-bool
-d_tests_sa_et_advanced_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_advanced_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

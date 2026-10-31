@@ -11,10 +11,8 @@ d_tests_sa_datomic_null_load
   - d_atomic_load_size(NULL) returns zero
   - d_atomic_load_int_explicit(NULL, ...) returns zero
 */
-bool
-d_tests_sa_datomic_null_load
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_load(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -63,10 +61,8 @@ d_tests_sa_datomic_null_store
   - d_atomic_store_llong(NULL, ...) does not crash
   - d_atomic_store_int_explicit(NULL, ...) does not crash
 */
-bool
-d_tests_sa_datomic_null_store
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_store(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -96,10 +92,8 @@ d_tests_sa_datomic_null_exchange
   - d_atomic_exchange_llong(NULL, ...) returns zero
   - d_atomic_exchange_int_explicit(NULL, ...) returns zero
 */
-bool
-d_tests_sa_datomic_null_exchange
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_exchange(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -137,14 +131,12 @@ d_tests_sa_datomic_null_cas
   - CAS with both NULL obj and expected returns false
   - d_atomic_compare_exchange_strong_int_explicit(NULL, ...) false
 */
-bool
-d_tests_sa_datomic_null_cas
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_cas(
+    struct dj_test_counter* _counter
 )
 {
     bool         result;
-    d_atomic_int val;
+    dj_atomic_int val;
     int          expected;
 
     result = true;
@@ -206,10 +198,8 @@ d_tests_sa_datomic_null_fetch
   - d_atomic_fetch_and_int(NULL, ...) returns zero
   - d_atomic_fetch_add_int_explicit(NULL, ...) returns zero
 */
-bool
-d_tests_sa_datomic_null_fetch
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_fetch(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -265,10 +255,8 @@ d_tests_sa_datomic_null_flag
   - d_atomic_flag_test_and_set_explicit(NULL, ...) returns false
   - d_atomic_flag_clear_explicit(NULL, ...) does not crash
 */
-bool
-d_tests_sa_datomic_null_flag
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_flag(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -320,10 +308,8 @@ d_tests_sa_datomic_null_ptr
   - d_atomic_load_ptr_explicit(NULL, ...) returns NULL
   - d_atomic_exchange_ptr_explicit(NULL, ...) returns NULL
 */
-bool
-d_tests_sa_datomic_null_ptr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_ptr(
+    struct dj_test_counter* _counter
 )
 {
     bool  result;
@@ -386,10 +372,8 @@ d_tests_sa_datomic_null_all
   Tests the following:
   - null load, store, exchange, CAS, fetch, flag, and pointer ops
 */
-bool
-d_tests_sa_datomic_null_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_null_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

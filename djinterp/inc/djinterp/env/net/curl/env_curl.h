@@ -66,7 +66,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env_net.h"  // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
-#include "../../../config/core/env/net/curl/cfg_env_curl.h"  // D_CFG_ENV_CURL_*
+#include "../../../config/env/net/curl/cfg_env_curl.h"  // D_CFG_ENV_CURL_*
 
 
 //==============================================================================

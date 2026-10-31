@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./event_table_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -18,8 +18,11 @@
 
 // d_tests_sa_et_cb
 //   helper: minimal callback for listener construction in table tests.
-static void
-d_tests_sa_et_cb(size_t _count, void** _args)
+static
+void d_tests_sa_et_cb(
+    size_t _count,
+    void** _args
+)
 {
     (void)_count;
     (void)_args;
@@ -38,14 +41,12 @@ d_tests_sa_et_new_valid
   - enabled_count is 0
   - buckets is non-NULL
 */
-bool
-d_tests_sa_et_new_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_new_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new(50);
@@ -79,14 +80,12 @@ d_tests_sa_et_new_zero
   Tests the following:
   - Uses default size, returns non-NULL with size > 0
 */
-bool
-d_tests_sa_et_new_zero
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_new_zero(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new(0);
@@ -111,14 +110,12 @@ d_tests_sa_et_new_small
   Tests the following:
   - Rounds up to at least prime >= 2
 */
-bool
-d_tests_sa_et_new_small
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_new_small(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new(1);
@@ -143,14 +140,12 @@ d_tests_sa_et_new_large
   Tests the following:
   - Creates table with size >= 1000
 */
-bool
-d_tests_sa_et_new_large
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_new_large(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new(1000);
@@ -177,14 +172,12 @@ d_tests_sa_et_new_default
   - size >= D_EVENT_HASH_TABLE_DEFAULT_SIZE
   - count and enabled_count both 0
 */
-bool
-d_tests_sa_et_new_default
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_new_default(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new_default();
@@ -221,14 +214,12 @@ d_tests_sa_et_free_valid
   Tests the following:
   - Freeing a valid table does not crash
 */
-bool
-d_tests_sa_et_free_valid
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_free_valid(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
+    struct dj_event_hash_table* table;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -253,10 +244,8 @@ d_tests_sa_et_free_null
   Tests the following:
   - free(NULL) does not crash
 */
-bool
-d_tests_sa_et_free_null
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_free_null(
+    struct dj_test_counter* _counter
 )
 {
     bool result;
@@ -281,15 +270,13 @@ d_tests_sa_et_free_with_elements
   - Freeing a populated table does not crash
   - Listeners survive table free (managed externally)
 */
-bool
-d_tests_sa_et_free_with_elements
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_free_with_elements(
+    struct dj_test_counter* _counter
 )
 {
     bool                       result;
-    struct d_event_hash_table* table;
-    struct d_event_listener*   lis;
+    struct dj_event_hash_table* table;
+    struct dj_event_listener*   lis;
 
     result = true;
     table  = d_event_hash_table_new(10);
@@ -325,10 +312,8 @@ d_tests_sa_et_free_with_elements
 d_tests_sa_et_creation_all
   Runs all creation and destruction tests.
 */
-bool
-d_tests_sa_et_creation_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_et_creation_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

@@ -26,16 +26,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_map
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_map(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -78,16 +77,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_filter
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_filter(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -125,16 +123,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_filter_not
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_filter_not(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -174,16 +171,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_take
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_take(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -227,16 +223,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_drop
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_drop(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -273,16 +268,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_take_while
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_take_while(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -327,16 +321,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_drop_while
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_drop_while(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -376,16 +369,15 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_internal_transducer_step_tap
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+static
+void d_internal_transducer_step_tap(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
-    struct d_transducer_stage* stage;
+    struct dj_transducer_stage* stage;
 
     // a NULL chain or state is a caller error
     if ( (!_transducer) ||
@@ -415,16 +407,15 @@ transducer chain indistinguishable from a plain reducer to every driver.
 Parameter(s):
   _state:   the reducing state.
   _element: the incoming value.
-  _context: the `d_transducer` whose head receives the value.
+  _context: the `dj_transducer` whose head receives the value.
 Return:
   none.
 */
-static void
-d_internal_transducer_entry_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_transducer_entry_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
     // a NULL chain is a caller error
@@ -433,7 +424,7 @@ d_internal_transducer_entry_step
         return;
     }
 
-    d_transducer_emit((struct d_transducer*)_context, 0, _state, _element);
+    d_transducer_emit((struct dj_transducer*)_context, 0, _state, _element);
 
     return;
 }
@@ -446,19 +437,18 @@ silently once the array is full.
 Parameter(s):
   _state:   the reducing state; unused, since the sink carries its own.
   _element: the value to append.
-  _context: the `d_array_sink` being filled.
+  _context: the `dj_array_sink` being filled.
 Return:
   none.
 */
-static void
-d_internal_array_sink_step
-(
-    struct d_reducing_state* _state,
-    const void*              _element,
-    void*                    _context
+static
+void d_internal_array_sink_step(
+    struct dj_reducing_state* _state,
+    const void*               _element,
+    void*                     _context
 )
 {
-    struct d_array_sink* sink;
+    struct dj_array_sink* sink;
 
     (void)_state;
 
@@ -469,7 +459,7 @@ d_internal_array_sink_step
         return;
     }
 
-    sink = (struct d_array_sink*)_context;
+    sink = (struct dj_array_sink*)_context;
 
     // a full sink records the loss instead of writing out of bounds
     if (sink->remaining == 0)
@@ -497,13 +487,10 @@ Parameter(s):
 Return:
   A stage by value with all fields cleared.
 */
-static struct d_transducer_stage
-d_internal_transducer_stage_blank
-(
-    void
-)
+static
+struct dj_transducer_stage d_internal_transducer_stage_blank(void)
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage.step               = NULL;
     stage.callable.predicate = NULL;
@@ -529,15 +516,13 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_map
-(
+struct dj_transducer_stage d_transducer_map(
     fn_transformer _transform,
     void*          _context,
     void*          _scratch
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -559,14 +544,12 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_filter
-(
+struct dj_transducer_stage d_transducer_filter(
     fn_predicate _predicate,
     void*        _context
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -587,14 +570,12 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_filter_not
-(
+struct dj_transducer_stage d_transducer_filter_not(
     fn_predicate _predicate,
     void*        _context
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -615,13 +596,11 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_take
-(
+struct dj_transducer_stage d_transducer_take(
     size_t _count
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -640,13 +619,11 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_drop
-(
+struct dj_transducer_stage d_transducer_drop(
     size_t _count
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -666,14 +643,12 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_take_while
-(
+struct dj_transducer_stage d_transducer_take_while(
     fn_predicate _predicate,
     void*        _context
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -694,14 +669,12 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_drop_while
-(
+struct dj_transducer_stage d_transducer_drop_while(
     fn_predicate _predicate,
     void*        _context
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -722,14 +695,12 @@ Parameter(s):
 Return:
   A stage by value.
 */
-struct d_transducer_stage
-d_transducer_tap
-(
+struct dj_transducer_stage d_transducer_tap(
     fn_consumer_const _consume,
     void*             _context
 )
 {
-    struct d_transducer_stage stage;
+    struct dj_transducer_stage stage;
 
     stage = d_internal_transducer_stage_blank();
 
@@ -755,13 +726,11 @@ Return:
   - true, if the chain was initialised, or
   - false, if the parameters were unusable.
 */
-bool
-d_transducer_init
-(
-    struct d_transducer*       _transducer,
-    struct d_transducer_stage* _stages,
-    size_t                     _count,
-    struct d_reducer           _sink
+bool d_transducer_init(
+    struct dj_transducer*       _transducer,
+    struct dj_transducer_stage* _stages,
+    size_t                      _count,
+    struct dj_reducer           _sink
 )
 {
     // a chain needs somewhere to live and stages if it claims to have any
@@ -790,10 +759,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_transducer_reset
-(
-    struct d_transducer* _transducer
+void d_transducer_reset(
+    struct dj_transducer* _transducer
 )
 {
     size_t index;
@@ -827,10 +794,8 @@ Return:
   - true, if the chain is drivable, or
   - false, otherwise.
 */
-bool
-d_transducer_is_valid
-(
-    const struct d_transducer* _transducer
+bool d_transducer_is_valid(
+    const struct dj_transducer* _transducer
 )
 {
     size_t index;
@@ -868,13 +833,11 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_transducer_emit
-(
-    struct d_transducer*     _transducer,
-    size_t                   _index,
-    struct d_reducing_state* _state,
-    const void*              _element
+void d_transducer_emit(
+    struct dj_transducer*     _transducer,
+    size_t                    _index,
+    struct dj_reducing_state* _state,
+    const void*               _element
 )
 {
     // a latched state stops the chain wherever it currently is
@@ -920,10 +883,8 @@ Parameter(s):
 Return:
   A reducer by value; an invalid reducer if `_transducer` is NULL.
 */
-struct d_reducer
-d_transducer_into_reducer
-(
-    struct d_transducer* _transducer
+struct dj_reducer d_transducer_into_reducer(
+    struct dj_transducer* _transducer
 )
 {
     // a NULL chain has nothing to wrap
@@ -949,13 +910,11 @@ Return:
   - true, if the sink was initialised, or
   - false, if the parameters were unusable.
 */
-bool
-d_array_sink_init
-(
-    struct d_array_sink* _sink,
-    void*                _out_array,
-    size_t               _capacity,
-    size_t               _element_size
+bool d_array_sink_init(
+    struct dj_array_sink* _sink,
+    void*                 _out_array,
+    size_t                _capacity,
+    size_t                _element_size
 )
 {
     // an unusable request leaves the sink untouched
@@ -984,10 +943,8 @@ Parameter(s):
 Return:
   A reducer by value; an invalid reducer if `_sink` is NULL.
 */
-struct d_reducer
-d_reducer_from_array_sink
-(
-    struct d_array_sink* _sink
+struct dj_reducer d_reducer_from_array_sink(
+    struct dj_array_sink* _sink
 )
 {
     // a NULL sink has nowhere to append
@@ -1013,17 +970,15 @@ Return:
   The number of input elements delivered to the chain, which may be fewer than
 `_count` if a stage latched termination.
 */
-size_t
-d_transduce_array
-(
-    struct d_transducer*     _transducer,
-    struct d_reducing_state* _state,
-    const void*              _elements,
-    size_t                   _count,
-    size_t                   _element_size
+size_t d_transduce_array(
+    struct dj_transducer*     _transducer,
+    struct dj_reducing_state* _state,
+    const void*               _elements,
+    size_t                    _count,
+    size_t                    _element_size
 )
 {
-    struct d_reducer reducer;
+    struct dj_reducer reducer;
 
     // an undrivable chain consumes nothing
     if (!d_transducer_is_valid(_transducer))
@@ -1053,16 +1008,14 @@ Parameter(s):
 Return:
   The number of values pulled from the producer.
 */
-size_t
-d_transduce_producer
-(
-    struct d_transducer*     _transducer,
-    struct d_producer*       _producer,
-    struct d_reducing_state* _state,
-    void*                    _scratch
+size_t d_transduce_producer(
+    struct dj_transducer*     _transducer,
+    struct dj_producer*       _producer,
+    struct dj_reducing_state* _state,
+    void*                     _scratch
 )
 {
-    struct d_reducer reducer;
+    struct dj_reducer reducer;
 
     // an undrivable chain consumes nothing
     if (!d_transducer_is_valid(_transducer))
@@ -1092,22 +1045,20 @@ Parameter(s):
 Return:
   The number of input elements consumed.
 */
-size_t
-d_transduce_into_array
-(
-    struct d_transducer_stage* _stages,
-    size_t                     _stage_count,
-    const void*                _elements,
-    size_t                     _count,
-    size_t                     _element_size,
-    void*                      _out_array,
-    size_t                     _capacity,
-    size_t*                    _out_written
+size_t d_transduce_into_array(
+    struct dj_transducer_stage* _stages,
+    size_t                      _stage_count,
+    const void*                 _elements,
+    size_t                      _count,
+    size_t                      _element_size,
+    void*                       _out_array,
+    size_t                      _capacity,
+    size_t*                     _out_written
 )
 {
-    struct d_array_sink     sink;
-    struct d_transducer     transducer;
-    struct d_reducing_state state;
+    struct dj_array_sink     sink;
+    struct dj_transducer     transducer;
+    struct dj_reducing_state state;
     size_t                  consumed;
 
     // report nothing written up front, so every early exit is consistent
@@ -1161,18 +1112,16 @@ Parameter(s):
 Return:
   The number of values pulled from the producer.
 */
-size_t
-d_transduce_producer_to_consumer
-(
-    struct d_transducer* _transducer,
-    struct d_producer*   _producer,
-    fn_consumer_const    _consume,
-    void*                _context,
-    void*                _scratch
+size_t d_transduce_producer_to_consumer(
+    struct dj_transducer* _transducer,
+    struct dj_producer*   _producer,
+    fn_consumer_const     _consume,
+    void*                 _context,
+    void*                 _scratch
 )
 {
-    struct d_consumer_binding binding;
-    struct d_reducing_state   state;
+    struct dj_consumer_binding binding;
+    struct dj_reducing_state   state;
 
     // an unusable request consumes nothing
     if ( (!_transducer) ||
@@ -1209,9 +1158,7 @@ Return:
   The number of values written to `_out_array`, which never exceeds the lesser
 of `_count` and `_capacity`.
 */
-size_t
-d_filter_into_array
-(
+size_t d_filter_into_array(
     const void*  _elements,
     size_t       _count,
     size_t       _element_size,
@@ -1221,7 +1168,7 @@ d_filter_into_array
     size_t       _capacity
 )
 {
-    struct d_transducer_stage stages[1];
+    struct dj_transducer_stage stages[1];
     size_t                    written;
 
     // an unusable request writes nothing
@@ -1261,9 +1208,7 @@ Parameter(s):
 Return:
   The number of input elements consumed.
 */
-size_t
-d_filter_to_consumer
-(
+size_t d_filter_to_consumer(
     const void*       _elements,
     size_t            _count,
     size_t            _element_size,
@@ -1273,10 +1218,10 @@ d_filter_to_consumer
     void*             _consumer_context
 )
 {
-    struct d_transducer_stage stages[1];
-    struct d_consumer_binding binding;
-    struct d_transducer       transducer;
-    struct d_reducing_state   state;
+    struct dj_transducer_stage stages[1];
+    struct dj_consumer_binding binding;
+    struct dj_transducer       transducer;
+    struct dj_reducing_state   state;
 
     // an unusable request consumes nothing
     if ( (!_predicate) ||

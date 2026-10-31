@@ -45,8 +45,8 @@ TABLE OF CONTENTS
     3.  setting_values
 */
 
-#ifndef BITWISEDOM_SETTINGS_HPP
-#define BITWISEDOM_SETTINGS_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_SETTINGS_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_SETTINGS_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -57,7 +57,7 @@ TABLE OF CONTENTS
 #include <string>      // std::string
 #include <vector>      // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./sheet.hpp"  // sheet, rgba
 
@@ -133,16 +133,19 @@ struct sheet_setting
 // sheet_settings / find_sheet_setting
 //   functions: the table, in the order the window's panels list it; and
 // one entry by its path, nullptr when no setting has it.
-D_NODISCARD const std::vector<sheet_setting>&  sheet_settings();
-D_NODISCARD const sheet_setting*               find_sheet_setting(
-                                                   const std::string& _path);
+D_NODISCARD const std::vector<sheet_setting>& sheet_settings();
+D_NODISCARD const sheet_setting* find_sheet_setting(
+    const std::string& _path
+);
 
 // 2.1.3
 // is_preference
 //   predicate: whether a setting is a preference -- how a sheet is drawn and
 // written, which a settings file carries from sheet to sheet -- rather than
 // its content: its title, width, affixes and names are its own.
-D_NODISCARD bool  is_preference(const std::string& _path);
+D_NODISCARD bool is_preference(
+    const std::string& _path
+);
 
 
 //==============================================================================
@@ -154,8 +157,10 @@ D_NODISCARD bool  is_preference(const std::string& _path);
 // setting_text
 //   function: a setting's value as text: true or false, a number, a word,
 // #RRGGBBAA, the text itself, or auto, the theme's and scheme's choice.
-D_NODISCARD std::string  setting_text(const sheet_setting& _setting,
-                                      const sheet&         _sheet);
+D_NODISCARD std::string setting_text(
+    const sheet_setting& _setting,
+    const sheet&         _sheet
+);
 
 // 3.1.2
 // set_setting
@@ -178,17 +183,21 @@ D_NODISCARD std::string  setting_text(const sheet_setting& _setting,
  *         was, for a value of the wrong form or outside the setting's
  *         bounds.
  */
-D_NODISCARD bool  set_setting(sheet&               _sheet,
-                              const sheet_setting& _setting,
-                              const std::string&   _value,
-                              std::string&         _error);
+D_NODISCARD bool set_setting(
+    sheet&               _sheet,
+    const sheet_setting& _setting,
+    const std::string&   _value,
+    std::string&         _error
+);
 
 // 3.1.3
 // setting_values
 //   function: what values a setting takes, as help and a refusal say it:
 // "true or false", "an integer from 2 to 32", "lsb0 or msb0", "a number
 // from 0 to 1, or auto".
-D_NODISCARD std::string  setting_values(const sheet_setting& _setting);
+D_NODISCARD std::string setting_values(
+    const sheet_setting& _setting
+);
 
 
 }  // namespace bitwisedom
@@ -196,4 +205,4 @@ D_NODISCARD std::string  setting_values(const sheet_setting& _setting);
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_SETTINGS_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_SETTINGS_HPP

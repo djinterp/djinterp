@@ -69,8 +69,8 @@ d_internal_desc_takes_mode
 argument: O_CREAT, or Linux's O_TMPFILE, which is several bits that must all
 be present.
 */
-static int
-d_internal_desc_takes_mode(
+static
+int d_internal_desc_takes_mode(
     int _flags
 )
 {
@@ -87,8 +87,8 @@ d_internal_desc_mode
 with mode 0 almost certainly forgot the argument rather than intending a file
 nobody can open, so it becomes D_CFG_FILE_DESC_CREATE_MODE, with a warning.
 */
-static int
-d_internal_desc_mode(
+static
+int d_internal_desc_mode(
     int         _mode,
     const char* _path
 )
@@ -142,8 +142,8 @@ closing a hole the caller would otherwise have to remember at every call site:
                   and the caller cannot tell why.
   A caller who asked for any text mode is left in it.
 */
-static int
-d_internal_desc_flags(
+static
+int d_internal_desc_flags(
     int _flags
 )
 {
@@ -165,15 +165,15 @@ d_internal_desc_open
 the build's text (d_internal_file_to_native): a path that will not convert
 fails here, with its reason in errno.
 */
-static int
-d_internal_desc_open(
+static
+int d_internal_desc_open(
     const char* _path,
     int         _flags,
     int         _mode
 )
 {
-    struct d_internal_file_native        held = {0};
-    const d_internal_file_nchar_t* const path =
+    struct dj_internal_file_native        held = {0};
+    const dj_internal_file_nchar_t* const path =
         d_internal_file_native_of(&held,
                                   _path);
 
@@ -198,8 +198,8 @@ d_internal_desc_fileno
 program without a console asks about stdout -- is not -1 and sets no errno;
 both are put right here.
 */
-static int
-d_internal_desc_fileno(
+static
+int d_internal_desc_fileno(
     FILE* _stream
 )
 {
@@ -224,8 +224,8 @@ FD_CLOEXEC. A console's handle is left as it is, since Windows before 8
 cannot change one -- as Python leaves it. A copy that cannot be kept back is
 closed, and the dup fails with the reason.
 */
-static int
-d_internal_desc_noinherit(
+static
+int d_internal_desc_noinherit(
     int _fd
 )
 {
@@ -255,8 +255,8 @@ d_internal_desc_dup
   The CRT's _dup, its copy kept from a child process when the build asks
 (d_internal_desc_noinherit).
 */
-static int
-d_internal_desc_dup(
+static
+int d_internal_desc_dup(
     int _fd
 )
 {
@@ -270,8 +270,8 @@ d_internal_desc_dup2
   The CRT's _dup2, which reports success as 0 rather than the new descriptor;
 normalized to the POSIX contract, so callers have one shape to test.
 */
-static int
-d_internal_desc_dup2(
+static
+int d_internal_desc_dup2(
     int _fd,
     int _fd2
 )
@@ -284,8 +284,8 @@ d_internal_desc_dup2(
 d_internal_desc_close
   The CRT's _close.
 */
-static int
-d_internal_desc_close(
+static
+int d_internal_desc_close(
     int _fd
 )
 {
@@ -300,8 +300,8 @@ d_internal_desc_flags
 the open. Setting it afterwards with fcntl leaves a window in which another
 thread's fork+exec inherits the descriptor.
 */
-static int
-d_internal_desc_flags(
+static
+int d_internal_desc_flags(
     int _flags
 )
 {
@@ -312,8 +312,8 @@ d_internal_desc_flags(
 d_internal_desc_open
   POSIX open, which takes the mode as a mode_t.
 */
-static int
-d_internal_desc_open(
+static
+int d_internal_desc_open(
     const char* _path,
     int         _flags,
     int         _mode
@@ -329,8 +329,8 @@ d_internal_desc_fileno
   POSIX fileno, which already answers -1 with EBADF for a stream that has no
 descriptor.
 */
-static int
-d_internal_desc_fileno(
+static
+int d_internal_desc_fileno(
     FILE* _stream
 )
 {
@@ -347,8 +347,8 @@ followed by a dup silently yields an inheritable descriptor. F_DUPFD_CLOEXEC
 is atomic; a kernel too old to know that command gets dup plus FD_CLOEXEC
 instead, which leaves a brief window but still ends in the right state.
 */
-static int
-d_internal_desc_dup(
+static
+int d_internal_desc_dup(
     int _fd
 )
 {
@@ -387,8 +387,8 @@ d_internal_desc_dup
   POSIX dup, whose copy is inheritable: the build does not ask otherwise, or
 the platform cannot do it atomically.
 */
-static int
-d_internal_desc_dup(
+static
+int d_internal_desc_dup(
     int _fd
 )
 {
@@ -401,8 +401,8 @@ d_internal_desc_dup(
 d_internal_desc_dup2
   POSIX dup2, which already returns the new descriptor.
 */
-static int
-d_internal_desc_dup2(
+static
+int d_internal_desc_dup2(
     int _fd,
     int _fd2
 )
@@ -415,8 +415,8 @@ d_internal_desc_dup2(
 d_internal_desc_close
   POSIX close.
 */
-static int
-d_internal_desc_close(
+static
+int d_internal_desc_close(
     int _fd
 )
 {
@@ -438,8 +438,7 @@ d_file_open
   The ISO C backend has no descriptors, and none can be emulated, so this only
 reports ENOSYS.
 */
-int
-d_file_open(
+int d_file_open(
     const char* _path,
     int         _flags,
     ...
@@ -459,8 +458,7 @@ d_file_open(
 d_file_descriptor_stream
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_descriptor_stream(
+int d_file_descriptor_stream(
     FILE* _stream
 )
 {
@@ -477,8 +475,7 @@ d_file_descriptor_stream(
 d_file_dup_fd
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_dup_fd(
+int d_file_dup_fd(
     int _fd
 )
 {
@@ -495,8 +492,7 @@ d_file_dup_fd(
 d_file_dup2_fd
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_dup2_fd(
+int d_file_dup2_fd(
     int _fd,
     int _fd2
 )
@@ -515,8 +511,7 @@ d_file_dup2_fd(
 d_file_close_fd
   The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
-int
-d_file_close_fd(
+int d_file_close_fd(
     int _fd
 )
 {
@@ -540,8 +535,7 @@ the flags may create (d_internal_desc_takes_mode: O_TMPFILE as well as
 O_CREAT), and a mode of 0 is taken for a forgotten argument and replaced
 (d_internal_desc_mode); the two cases cannot be told apart.
 */
-int
-d_file_open(
+int d_file_open(
     const char* _path,
     int         _flags,
     ...
@@ -597,8 +591,7 @@ d_file_descriptor_stream
 ownership of what is returned. A stream with no descriptor answers -1 with
 EBADF on every platform (d_internal_desc_fileno).
 */
-int
-d_file_descriptor_stream(
+int d_file_descriptor_stream(
     FILE* _stream
 )
 {
@@ -618,8 +611,7 @@ d_file_dup_fd
   The copy is kept from a child process when the build asks
 (d_internal_desc_dup), where the platform's own dup would clear that.
 */
-int
-d_file_dup_fd(
+int d_file_dup_fd(
     int _fd
 )
 {
@@ -655,8 +647,7 @@ d_file_dup2_fd
 to install a descriptor on 0, 1 or 2 for a child to inherit, and forcing the
 flag would defeat the call.
 */
-int
-d_file_dup2_fd(
+int d_file_dup2_fd(
     int _fd,
     int _fd2
 )
@@ -702,8 +693,7 @@ just opened onto the same number -- a use-after-free with a file handle. POSIX
 2008 made the state unspecified precisely because implementations disagreed.
 Closing once and reporting the error is the only defensible behaviour.
 */
-int
-d_file_close_fd(
+int d_file_close_fd(
     int _fd
 )
 {

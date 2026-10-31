@@ -34,9 +34,8 @@ Return:
   - 1, if the product is representable in a size_t, or
   - 0, if the product would overflow.
 */
-static int
-d_table_internal_bytes_for
-(
+static
+int d_table_internal_bytes_for(
     size_t  _rows,
     size_t  _cols,
     size_t  _cell_size,
@@ -91,19 +90,19 @@ Parameter(s):
   _needed: the byte count the buffer must reach.
   _alloc:  the caller's storage strategy; may allocate nothing.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the buffer already held _needed bytes or was grown, or
   - D_TABLE_STATUS_CAPACITY, if the buffer was too small and the strategy could
     not grow it, or
   - D_TABLE_STATUS_NO_MEMORY, if the strategy refused, or
   - D_TABLE_STATUS_OVERFLOW, if the grown size would overflow.
 */
-static enum d_table_status
+static enum dj_table_status
 d_table_internal_ensure_bytes
 (
-    struct d_table*             _table,
+    struct dj_table*             _table,
     size_t                      _needed,
-    const struct d_table_alloc* _alloc
+    const struct dj_table_alloc* _alloc
 )
 {
     size_t         held;
@@ -172,13 +171,12 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_table_internal_fill_cells
-(
-    struct d_table* _table,
-    unsigned char*  _at,
-    size_t          _count,
-    const void*     _value
+static
+void d_table_internal_fill_cells(
+    struct dj_table* _table,
+    unsigned char*   _at,
+    size_t           _count,
+    const void*      _value
 )
 {
     size_t width;
@@ -244,11 +242,9 @@ Return:
     same cells in use, or
   - 0, otherwise.
 */
-int
-d_table_bytes_equal
-(
-    const struct d_table* _a,
-    const struct d_table* _b
+int d_table_bytes_equal(
+    const struct dj_table* _a,
+    const struct dj_table* _b
 )
 {
     size_t bytes;
@@ -298,10 +294,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_table_clear
-(
-    struct d_table* _table
+void d_table_clear(
+    struct dj_table* _table
 )
 {
     if (_table)
@@ -321,15 +315,15 @@ Parameter(s):
   _table: the table to narrow.
   _at:    the column to remove.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the column was removed, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_DOMAIN, if _at was not a valid column index.
 */
-enum d_table_status
+enum dj_table_status
 d_table_erase_column
 (
-    struct d_table* _table,
+    struct dj_table* _table,
     size_t          _at
 )
 {
@@ -404,15 +398,15 @@ Parameter(s):
   _table: the table to erase from.
   _at:    the row to remove.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the row was removed, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_DOMAIN, if _at was not a valid row index.
 */
-enum d_table_status
+enum dj_table_status
 d_table_erase_row
 (
-    struct d_table* _table,
+    struct dj_table* _table,
     size_t          _at
 )
 {
@@ -463,14 +457,14 @@ Parameter(s):
   _table: the table to overwrite.
   _value: the cell to replicate; null means zeroed cells.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the cells were written, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null.
 */
-enum d_table_status
+enum dj_table_status
 d_table_fill
 (
-    struct d_table* _table,
+    struct dj_table* _table,
     const void*     _value
 )
 {
@@ -500,7 +494,7 @@ Parameter(s):
   _height: the number of cells in _column.
   _alloc:  the caller's storage strategy.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the column was inserted, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_DOMAIN, if _at exceeded the column count, or
@@ -509,17 +503,17 @@ Return:
     D_TABLE_STATUS_OVERFLOW, per
     d_table_internal_ensure_bytes.
 */
-enum d_table_status
+enum dj_table_status
 d_table_insert_column
 (
-    struct d_table*             _table,
+    struct dj_table*             _table,
     size_t                      _at,
     const void*                 _column,
     size_t                      _height,
-    const struct d_table_alloc* _alloc
+    const struct dj_table_alloc* _alloc
 )
 {
-    enum d_table_status     status;
+    enum dj_table_status     status;
     size_t                  needed;
     size_t                  width;
     size_t                  old_stride;
@@ -648,7 +642,7 @@ Parameter(s):
   _width: the number of cells in _row.
   _alloc: the caller's storage strategy.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the row was inserted, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_DOMAIN, if _at exceeded the row count, or
@@ -657,17 +651,17 @@ Return:
     D_TABLE_STATUS_OVERFLOW, per
     d_table_internal_ensure_bytes.
 */
-enum d_table_status
+enum dj_table_status
 d_table_insert_row
 (
-    struct d_table*             _table,
+    struct dj_table*             _table,
     size_t                      _at,
     const void*                 _row,
     size_t                      _width,
-    const struct d_table_alloc* _alloc
+    const struct dj_table_alloc* _alloc
 )
 {
-    enum d_table_status status;
+    enum dj_table_status status;
     size_t              needed;
     size_t              stride;
     unsigned char*      seat;
@@ -760,15 +754,15 @@ d_table_pop_row
 Parameter(s):
   _table: the table to shorten.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if a row was removed, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_DOMAIN, if the table had no rows.
 */
-enum d_table_status
+enum dj_table_status
 d_table_pop_row
 (
-    struct d_table* _table
+    struct dj_table* _table
 )
 {
     if (!_table)
@@ -794,15 +788,15 @@ Parameter(s):
   _width: the number of cells in _row.
   _alloc: the caller's storage strategy.
 Return:
-  A d_table_status value, per d_table_insert_row.
+  A dj_table_status value, per d_table_insert_row.
 */
-enum d_table_status
+enum dj_table_status
 d_table_push_row
 (
-    struct d_table*             _table,
+    struct dj_table*             _table,
     const void*                 _row,
     size_t                      _width,
-    const struct d_table_alloc* _alloc
+    const struct dj_table_alloc* _alloc
 )
 {
     if (!_table)
@@ -826,11 +820,9 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_table_release
-(
-    struct d_table*             _table,
-    const struct d_table_alloc* _alloc
+void d_table_release(
+    struct dj_table*             _table,
+    const struct dj_table_alloc* _alloc
 )
 {
     if (!_table)
@@ -866,19 +858,19 @@ Parameter(s):
   _rows:  the row count to make room for.
   _alloc: the caller's storage strategy.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the room exists or was made, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_OVERFLOW, if the byte count would overflow, or
   - D_TABLE_STATUS_CAPACITY or D_TABLE_STATUS_NO_MEMORY, per
     d_table_internal_ensure_bytes.
 */
-enum d_table_status
+enum dj_table_status
 d_table_reserve_rows
 (
-    struct d_table*             _table,
+    struct dj_table*             _table,
     size_t                      _rows,
-    const struct d_table_alloc* _alloc
+    const struct dj_table_alloc* _alloc
 )
 {
     size_t needed;
@@ -924,24 +916,24 @@ Parameter(s):
   _fill:  the cell new positions take; null means zeroed cells.
   _alloc: the caller's storage strategy.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the table was reshaped, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_CAPACITY, D_TABLE_STATUS_NO_MEMORY, or
     D_TABLE_STATUS_OVERFLOW, per
     d_table_internal_ensure_bytes.
 */
-enum d_table_status
+enum dj_table_status
 d_table_resize
 (
-    struct d_table*             _table,
+    struct dj_table*             _table,
     size_t                      _rows,
     size_t                      _cols,
     const void*                 _fill,
-    const struct d_table_alloc* _alloc
+    const struct dj_table_alloc* _alloc
 )
 {
-    enum d_table_status     status;
+    enum dj_table_status     status;
     size_t                  needed;
     size_t                  width;
     size_t                  old_stride;
@@ -1054,15 +1046,15 @@ Parameter(s):
   _b:       the other row index.
   _scratch: a buffer of at least one row's bytes, or null.
 Return:
-  A d_table_status value corresponding to either:
+  A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the rows were exchanged, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
   - D_TABLE_STATUS_DOMAIN, if either index was not a valid row index.
 */
-enum d_table_status
+enum dj_table_status
 d_table_swap_rows
 (
-    struct d_table* _table,
+    struct dj_table* _table,
     size_t          _a,
     size_t          _b,
     void*           _scratch
@@ -1148,12 +1140,10 @@ Parameter(s):
   _cell_size:      the size, in bytes, of a single cell.
   _capacity_bytes: the size, in bytes, of the buffer at `_cells`.
 Return:
-  A `d_table` viewing the caller's buffer. The table borrows the storage and
+  A `dj_table` viewing the caller's buffer. The table borrows the storage and
   never owns it.
 */
-D_NODISCARD D_INLINE_DEF struct d_table
-d_table_over
-(
+D_NODISCARD D_INLINE_DEF struct dj_table d_table_over(
     void*         _cells,
     const size_t* _extents,
     uint32_t      _rank,
@@ -1161,7 +1151,7 @@ d_table_over
     size_t        _capacity_bytes
 )
 {
-    struct d_table result;
+    struct dj_table result;
     uint32_t       r;
 
     result.cells     = (unsigned char*)_cells;
@@ -1194,11 +1184,9 @@ Parameter(s):
   _cell_size:    the size, in bytes, of a single cell.
   _row_capacity: the number of rows the buffer can hold.
 Return:
-  A rank-2 `d_table` viewing the caller's buffer.
+  A rank-2 `dj_table` viewing the caller's buffer.
 */
-D_NODISCARD D_INLINE_DEF struct d_table
-d_table_over2
-(
+D_NODISCARD D_INLINE_DEF struct dj_table d_table_over2(
     void*  _cells,
     size_t _rows,
     size_t _cols,
@@ -1225,12 +1213,10 @@ Parameter(s):
   _cols:      the trailing extent the empty table is shaped to.
   _cell_size: the size, in bytes, of a single cell.
 Return:
-  A `d_table` with no cells but a settled column count, so a later fill need not
+  A `dj_table` with no cells but a settled column count, so a later fill need not
   restate the shape.
 */
-D_NODISCARD D_INLINE_DEF struct d_table
-d_table_empty_of
-(
+D_NODISCARD D_INLINE_DEF struct dj_table d_table_empty_of(
     size_t _cols,
     size_t _cell_size
 )
@@ -1250,10 +1236,8 @@ Return:
   The number of leading slices the buffer can hold at the current shape, or 0
   when the table is zero-width.
 */
-D_NODISCARD size_t
-d_table_row_capacity
-(
-    const struct d_table* _table
+D_NODISCARD size_t d_table_row_capacity(
+    const struct dj_table* _table
 )
 {
     size_t stride;
@@ -1282,10 +1266,8 @@ Return:
   Nonzero when the table's rank, extents and capacity are mutually consistent, 0
   when any of them contradicts the others.
 */
-D_NODISCARD int
-d_table_holds_invariant
-(
-    const struct d_table* _table
+D_NODISCARD int d_table_holds_invariant(
+    const struct dj_table* _table
 )
 {
     // a rank beyond the cap cannot be addressed at all
@@ -1316,13 +1298,13 @@ Parameter(s):
   _column: the trailing coordinate.
   _out:    destination for the cell's bytes; must not be NULL.
 Return:
-  A `d_table_status`: success when the cell was copied out, or the status naming
+  A `dj_table_status`: success when the cell was copied out, or the status naming
   why it could not be.
 */
-D_NODISCARD enum d_table_status
+D_NODISCARD enum dj_table_status
 d_table_get
 (
-    const struct d_table* _table,
+    const struct dj_table* _table,
     size_t                _row,
     size_t                _column,
     void*                 _out
@@ -1361,13 +1343,13 @@ Parameter(s):
   _column: the trailing coordinate.
   _value:  source bytes for the cell; must not be NULL.
 Return:
-  A `d_table_status`: success when the cell was written, or the status naming
+  A `dj_table_status`: success when the cell was written, or the status naming
   why it could not be.
 */
-D_NODISCARD enum d_table_status
+D_NODISCARD enum dj_table_status
 d_table_set
 (
-    struct d_table* _table,
+    struct dj_table* _table,
     size_t          _row,
     size_t          _column,
     const void*     _value
@@ -1404,10 +1386,8 @@ Parameter(s):
 Return:
   Nonzero when the strategy can reallocate, 0 when it is absent or fixed-size.
 */
-D_NODISCARD D_INLINE_DEF int
-d_table_alloc_can_grow
-(
-    const struct d_table_alloc* _alloc
+D_NODISCARD D_INLINE_DEF int d_table_alloc_can_grow(
+    const struct dj_table_alloc* _alloc
 )
 {
     return ( (_alloc != NULL) &&

@@ -13,7 +13,7 @@
 
 // djinterp
 #include "./array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,14 +23,12 @@ d_tests_sa_array_free
   - freeing allocated array
   - handling NULL safely
 */
-bool
-d_tests_sa_array_free
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_free(
+    struct dj_test_counter* _test_info
 )
 {
     bool            test_result = true;
-    struct d_array* arr;
+    struct dj_array* arr;
 
     printf("Testing `d_array_free`...\n");
 
@@ -75,14 +73,12 @@ d_tests_sa_array_s_free
   - freeing allocated array
   - handling NULL safely
 */
-bool
-d_tests_sa_array_s_free
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_s_free(
+    struct dj_test_counter* _test_info
 )
 {
     bool              test_result = true;
-    struct d_array_s* arr;
+    struct dj_array_s* arr;
 
     printf("Testing `d_array_s_free`...\n");
 
@@ -131,10 +127,8 @@ d_tests_sa_array_s_free
 d_tests_sa_array_run_memory_tests
   Runs all memory management tests.
 */
-bool
-d_tests_sa_array_run_memory_tests
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_array_run_memory_tests(
+    struct dj_test_counter* _test_info
 )
 {
     bool overall_result = true;

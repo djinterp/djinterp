@@ -28,7 +28,7 @@ Return:
 const char*
 d_table_status_message
 (
-    enum d_table_status _status
+    enum dj_table_status _status
 )
 {
     switch (_status)
@@ -67,7 +67,7 @@ Return:
 const char*
 d_table_status_name
 (
-    enum d_table_status _status
+    enum dj_table_status _status
 )
 {
     switch (_status)

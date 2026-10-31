@@ -17,8 +17,16 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-struct d_color_ycbcr d_color_ycbcr_make(float _y, float _cb, float _cr);
-bool d_color_ycbcr_is_valid(struct d_color_ycbcr _ycbcr);
-struct d_color_ycbcr d_color_ycbcr_clamp(struct d_color_ycbcr _ycbcr);
+struct dj_color_ycbcr d_color_ycbcr_make(
+    float _y,
+    float _cb,
+    float _cr
+);
+bool d_color_ycbcr_is_valid(
+    struct dj_color_ycbcr _ycbcr
+);
+struct dj_color_ycbcr d_color_ycbcr_clamp(
+    struct dj_color_ycbcr _ycbcr
+);
 
 #endif  // D_COLOR_HEADER_ONLY

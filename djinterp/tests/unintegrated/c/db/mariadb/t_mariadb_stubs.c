@@ -8,7 +8,7 @@
 * all proves the stubs need neither mysql.h nor a library.
 *
 *   Build (from the repo root), at any language level from C99, with no client
-* -- or let ci/check_db_mariadb.sh do it, given `stubs`:
+* -- or let scripts/ci/check_db_mariadb.sh do it, given `stubs`:
 *     cc -std=c99 -Wall -Wextra -Werror -Iinc -DD_CFG_MARIADB=0              \
 *        src/djinterp/c/db/db_*.c src/djinterp/c/db/mariadb/mariadb_*.c       \
 *        tests/unintegrated/c/db/mariadb/t_mariadb_stubs.c -o t_mariadb_stubs
@@ -25,7 +25,7 @@
 // djinterp
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb.h"  // unit under test
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, uint64_t
 
 
 //==============================================================================
@@ -46,8 +46,8 @@ static int g_marker = 0;
 d_tests_mariadb_stubs_expect
   Counts one check, and prints it when it fails.
 */
-static void
-d_tests_mariadb_stubs_expect(
+static
+void d_tests_mariadb_stubs_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -93,12 +93,10 @@ d_tests_mariadb_stubs_common
   - no native handle; no error; the layer's own results keep their messages,
     D_DB_UNSUPPORTED saying why
 */
-static void
-d_tests_mariadb_stubs_common(
-    void
-)
+static
+void d_tests_mariadb_stubs_common(void)
 {
-    struct d_mariadb* const db = (struct d_mariadb*)(void*)&g_marker;
+    struct dj_mariadb* const db = (struct dj_mariadb*)(void*)&g_marker;
 
     printf("mariadb_common\n");
 
@@ -118,7 +116,7 @@ d_tests_mariadb_stubs_common(
          ++f)
     {
         D_TESTS_MARIADB_STUBS_CHECK(
-            !d_mariadb_supports(db, (enum d_mariadb_feature)f));
+            !d_mariadb_supports(db, (enum dj_mariadb_feature)f));
     }
 
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_native(db) == NULL);
@@ -151,16 +149,14 @@ d_tests_mariadb_stubs_connection
   - changing user, resetting and ping fail; ids, counts and warnings are 0;
     no option reads back
 */
-static void
-d_tests_mariadb_stubs_connection(
-    void
-)
+static
+void d_tests_mariadb_stubs_connection(void)
 {
-    struct d_mariadb* const db      = (struct d_mariadb*)(void*)&g_marker;
-    struct d_mariadb*       made    = db;
-    const struct d_mariadb_options options = { "localhost", NULL, NULL, NULL,
+    struct dj_mariadb* const db      = (struct dj_mariadb*)(void*)&g_marker;
+    struct dj_mariadb*       made    = db;
+    const struct dj_mariadb_options options = { "localhost", NULL, NULL, NULL,
                                                0u, NULL };
-    const struct d_mariadb_setting setting = { D_MARIADB_SETTING_COMPRESS, 1ul,
+    const struct dj_mariadb_setting setting = { D_MARIADB_SETTING_COMPRESS, 1ul,
                                                NULL, NULL };
     char*                          status  = (char*)(void*)&g_marker;
     unsigned int                   number  = 0u;
@@ -206,9 +202,9 @@ d_tests_mariadb_stubs_connection(
 d_tests_mariadb_stubs_pending
   Whether a pending call was left as a finished one leaves it.
 */
-static bool
-d_tests_mariadb_stubs_pending(
-    const struct d_db_pending* _pending
+static
+bool d_tests_mariadb_stubs_pending(
+    const struct dj_db_pending* _pending
 )
 {
     return ( (_pending->socket == D_DB_SOCKET_NONE) &&
@@ -230,19 +226,17 @@ blocking, and the blocking cancel.
     prepare's start leaves no statement
   - the blocking cancel is D_DB_UNSUPPORTED, no reason
 */
-static void
-d_tests_mariadb_stubs_nonblocking(
-    void
-)
+static
+void d_tests_mariadb_stubs_nonblocking(void)
 {
-    struct d_mariadb* const        marker   =
-        (struct d_mariadb*)(void*)&g_marker;
-    struct d_mariadb*              db       = marker;
+    struct dj_mariadb* const        marker   =
+        (struct dj_mariadb*)(void*)&g_marker;
+    struct dj_mariadb*              db       = marker;
     char*                          reason   = (char*)(void*)&g_marker;
-    struct d_db_pending            pending;
-    struct d_db_rows               rows     = { 7u, 7u, NULL, NULL };
+    struct dj_db_pending            pending;
+    struct dj_db_rows               rows     = { 7u, 7u, NULL, NULL };
     int64_t                        changes  = 7;
-    const struct d_mariadb_setting brief[1] =
+    const struct dj_mariadb_setting brief[1] =
     {
         { D_MARIADB_SETTING_CONNECT_TIMEOUT, 2ul, NULL, NULL }
     };
@@ -328,9 +322,9 @@ d_tests_mariadb_stubs_nonblocking(
 
     // statements
     {
-        struct d_mariadb_statement* const statement =
-            (struct d_mariadb_statement*)(void*)&g_marker;
-        struct d_mariadb_statement*       made      = statement;
+        struct dj_mariadb_statement* const statement =
+            (struct dj_mariadb_statement*)(void*)&g_marker;
+        struct dj_mariadb_statement*       made      = statement;
 
         memset(&pending, 0x5a, sizeof(pending));
         D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_prepare_start(marker,
@@ -408,16 +402,14 @@ d_tests_mariadb_stubs_query
   - quoting gives NULL
   - setting and clearing query attributes are D_DB_UNSUPPORTED
 */
-static void
-d_tests_mariadb_stubs_query(
-    void
-)
+static
+void d_tests_mariadb_stubs_query(void)
 {
-    struct d_mariadb* const db     = (struct d_mariadb*)(void*)&g_marker;
+    struct dj_mariadb* const db     = (struct dj_mariadb*)(void*)&g_marker;
     int64_t                 number = 7;
     double                  real   = 7.0;
     char*                   text   = (char*)(void*)&g_marker;
-    struct d_db_rows        rows   = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows        rows   = { 7u, 7u, NULL, NULL };
 
     printf("mariadb_query\n");
 
@@ -469,31 +461,29 @@ d_tests_mariadb_stubs_statement
   - every bind, clear and run is D_DB_UNSUPPORTED, the count and the rows
     untouched; so is every cursor call
 */
-static void
-d_tests_mariadb_stubs_statement(
-    void
-)
+static
+void d_tests_mariadb_stubs_statement(void)
 {
-    struct d_mariadb* const     db        =
-        (struct d_mariadb*)(void*)&g_marker;
-    struct d_mariadb_statement* statement =
-        (struct d_mariadb_statement*)(void*)&g_marker;
+    struct dj_mariadb* const     db        =
+        (struct dj_mariadb*)(void*)&g_marker;
+    struct dj_mariadb_statement* statement =
+        (struct dj_mariadb_statement*)(void*)&g_marker;
     int64_t                     changes   = 7;
-    struct d_db_rows            rows      = { 7u, 7u, NULL, NULL };
+    struct dj_db_rows            rows      = { 7u, 7u, NULL, NULL };
 
     printf("mariadb_statement\n");
 
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_prepare(db, &statement, "SELECT 1"));
     D_TESTS_MARIADB_STUBS_CHECK(statement == NULL);
-    statement = (struct d_mariadb_statement*)(void*)&g_marker;
+    statement = (struct dj_mariadb_statement*)(void*)&g_marker;
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_preparef(db, &statement, "SELECT %d", 1));
     D_TESTS_MARIADB_STUBS_CHECK(statement == NULL);
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_prepare(db, NULL, "SELECT 1"));
 
-    statement = (struct d_mariadb_statement*)(void*)&g_marker;
+    statement = (struct dj_mariadb_statement*)(void*)&g_marker;
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_finalize(NULL) == 0);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_parameter_count(statement) == 0u);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_statement_connection(statement) ==
@@ -531,13 +521,11 @@ d_tests_mariadb_stubs_database
   - the predicates answer no, and the _s form writes it
   - everything else is D_DB_UNSUPPORTED, its outputs untouched
 */
-static void
-d_tests_mariadb_stubs_database(
-    void
-)
+static
+void d_tests_mariadb_stubs_database(void)
 {
-    struct d_mariadb* const db      = (struct d_mariadb*)(void*)&g_marker;
-    struct d_db_name_list   names   = { 3u, NULL };
+    struct dj_mariadb* const db      = (struct dj_mariadb*)(void*)&g_marker;
+    struct dj_db_name_list   names   = { 3u, NULL };
     char*                   current = (char*)(void*)&g_marker;
     bool                    exists  = true;
 
@@ -567,16 +555,14 @@ d_tests_mariadb_stubs_tables
   - the predicates answer no, and the _s forms write it
   - everything else is D_DB_UNSUPPORTED, its outputs untouched
 */
-static void
-d_tests_mariadb_stubs_tables(
-    void
-)
+static
+void d_tests_mariadb_stubs_tables(void)
 {
-    struct d_mariadb* const  db      = (struct d_mariadb*)(void*)&g_marker;
-    const struct d_db_column column  = { "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u,
+    struct dj_mariadb* const  db      = (struct dj_mariadb*)(void*)&g_marker;
+    const struct dj_db_column column  = { "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u,
                                          0u, NULL, 0u };
-    struct d_db_name_list    names   = { 3u, NULL };
-    struct d_db_column_list  columns = { 3u, NULL };
+    struct dj_db_name_list    names   = { 3u, NULL };
+    struct dj_db_column_list  columns = { 3u, NULL };
     int64_t                  count   = 7;
     bool                     exists  = true;
 
@@ -629,13 +615,11 @@ d_tests_mariadb_stubs_objects
   - the predicates answer no, and the _s forms write it
   - everything else is D_DB_UNSUPPORTED, its outputs untouched
 */
-static void
-d_tests_mariadb_stubs_objects(
-    void
-)
+static
+void d_tests_mariadb_stubs_objects(void)
 {
-    struct d_mariadb* const db     = (struct d_mariadb*)(void*)&g_marker;
-    struct d_db_name_list   names  = { 3u, NULL };
+    struct dj_mariadb* const db     = (struct dj_mariadb*)(void*)&g_marker;
+    struct dj_db_name_list   names  = { 3u, NULL };
     bool                    exists = true;
 
     printf("mariadb_schema: indexes, views and triggers\n");
@@ -685,12 +669,10 @@ d_tests_mariadb_stubs_transaction
   Tests the following:
   - every verb is D_DB_UNSUPPORTED; no transaction is open
 */
-static void
-d_tests_mariadb_stubs_transaction(
-    void
-)
+static
+void d_tests_mariadb_stubs_transaction(void)
 {
-    struct d_mariadb* const db = (struct d_mariadb*)(void*)&g_marker;
+    struct dj_mariadb* const db = (struct dj_mariadb*)(void*)&g_marker;
 
     printf("mariadb_transaction\n");
 
@@ -715,17 +697,15 @@ d_tests_mariadb_stubs_settings
     untouched
   - the session's changes are D_DB_UNSUPPORTED, the list untouched
 */
-static void
-d_tests_mariadb_stubs_settings(
-    void
-)
+static
+void d_tests_mariadb_stubs_settings(void)
 {
-    struct d_mariadb* const  db      = (struct d_mariadb*)(void*)&g_marker;
+    struct dj_mariadb* const  db      = (struct dj_mariadb*)(void*)&g_marker;
     bool                     enabled = true;
-    enum d_mariadb_isolation level   = D_MARIADB_ISOLATION_SERIALIZABLE;
+    enum dj_mariadb_isolation level   = D_MARIADB_ISOLATION_SERIALIZABLE;
     unsigned                 seconds = 7u;
     char*                    text    = (char*)(void*)&g_marker;
-    struct d_db_name_list    entries = { 7u, NULL };
+    struct dj_db_name_list    entries = { 7u, NULL };
 
     printf("mariadb_settings\n");
 
@@ -769,12 +749,10 @@ d_tests_mariadb_stubs_maintenance
   Tests the following:
   - every operation is D_DB_UNSUPPORTED, its answer untouched
 */
-static void
-d_tests_mariadb_stubs_maintenance(
-    void
-)
+static
+void d_tests_mariadb_stubs_maintenance(void)
 {
-    struct d_mariadb* const db       = (struct d_mariadb*)(void*)&g_marker;
+    struct dj_mariadb* const db       = (struct dj_mariadb*)(void*)&g_marker;
     bool                    ok       = true;
     uint64_t                checksum = 7u;
 
@@ -797,10 +775,7 @@ main
   Runs every test and reports; the exit status is 0 only if every check
 passed.
 */
-int
-main(
-    void
-)
+int main(void)
 {
     d_tests_mariadb_stubs_common();
     d_tests_mariadb_stubs_connection();

@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./circular_array_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -26,14 +26,12 @@ d_tests_sa_circular_array_new
   - overflow protection
   - proper initialization of all fields
 */
-bool
-d_tests_sa_circular_array_new
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_new(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
 
     result = true;
 
@@ -121,14 +119,12 @@ d_tests_sa_circular_array_new_default_capacity
   - creation with default capacity
   - zero element_size returns NULL
 */
-bool
-d_tests_sa_circular_array_new_default_capacity
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_new_default_capacity(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
 
     result = true;
 
@@ -179,14 +175,12 @@ d_tests_sa_circular_array_new_from_arr
   - NULL source returns NULL
   - zero source count returns NULL
 */
-bool
-d_tests_sa_circular_array_new_from_arr
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_new_from_arr(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       test_data[] = {10, 20, 30, 40, 50};
     int*                      data_ptr;
 
@@ -303,14 +297,12 @@ d_tests_sa_circular_array_new_from_args
   - arguments limited by capacity
   - zero arg count returns NULL
 */
-bool
-d_tests_sa_circular_array_new_from_args
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_new_from_args(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int*                      data_ptr;
 
     result = true;
@@ -382,15 +374,13 @@ d_tests_sa_circular_array_new_copy
   - NULL source returns NULL
   - copy has independent memory
 */
-bool
-d_tests_sa_circular_array_new_copy
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_new_copy(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  source;
-    struct d_circular_array*  copy;
+    struct dj_circular_array*  source;
+    struct dj_circular_array*  copy;
     int                       values[5] = {10, 20, 30, 40, 50};
     int*                      data_ptr;
 
@@ -535,15 +525,13 @@ d_tests_sa_circular_array_new_copy_resized
   - copy with smaller capacity (truncates)
   - NULL source returns NULL
 */
-bool
-d_tests_sa_circular_array_new_copy_resized
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_new_copy_resized(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  source;
-    struct d_circular_array*  copy;
+    struct dj_circular_array*  source;
+    struct dj_circular_array*  copy;
     int                       values[5] = {10, 20, 30, 40, 50};
 
     result = true;
@@ -620,14 +608,12 @@ d_tests_sa_circular_array_new_fill
   - NULL fill value returns NULL
   - zero capacity returns NULL
 */
-bool
-d_tests_sa_circular_array_new_fill
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_new_fill(
+    struct dj_test_counter* _counter
 )
 {
     bool                      result;
-    struct d_circular_array*  arr;
+    struct dj_circular_array*  arr;
     int                       fill_value = 42;
     int*                      data_ptr;
 
@@ -683,10 +669,8 @@ d_tests_sa_circular_array_new_fill
 d_tests_sa_circular_array_constructor_all
   Aggregation function that runs all constructor tests.
 */
-bool
-d_tests_sa_circular_array_constructor_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_circular_array_constructor_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

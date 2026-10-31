@@ -18,9 +18,7 @@
 // djinterp
 #include "file_tests.h"
 
-int
-main
-(
+int main(
     int    _argc,
     char** _argv
 )

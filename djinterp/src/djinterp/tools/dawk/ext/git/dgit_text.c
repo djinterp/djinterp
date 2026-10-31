@@ -24,7 +24,7 @@
 #include <stdlib.h>  // malloc, realloc, free, qsort
 #include <string.h>  // memchr, memcmp, memcpy, memset, strlen
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint64_t,
+#include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, uint64_t,
                                                      // INT64_MAX
 
 
@@ -59,10 +59,10 @@
 d_internal_room
   Room in a buffer for `_more` bytes and a terminator.
 */
-static bool
-d_internal_room(
-    struct d_git_buffer* _buffer,
-    size_t               _more
+static
+bool d_internal_room(
+    struct dj_git_buffer* _buffer,
+    size_t                _more
 )
 {
     // a buffer that has failed stays failed
@@ -100,11 +100,10 @@ d_internal_room(
 }
 
 
-bool
-d_git_buffer_add(
-    struct d_git_buffer* _buffer,
-    const char*          _text,
-    size_t               _length
+bool d_git_buffer_add(
+    struct dj_git_buffer* _buffer,
+    const char*           _text,
+    size_t                _length
 )
 {
     // there must be room for the text
@@ -126,10 +125,9 @@ d_git_buffer_add(
 }
 
 
-bool
-d_git_buffer_add_text(
-    struct d_git_buffer* _buffer,
-    const char*          _text
+bool d_git_buffer_add_text(
+    struct dj_git_buffer* _buffer,
+    const char*           _text
 )
 {
     return d_git_buffer_add(_buffer,
@@ -138,19 +136,17 @@ d_git_buffer_add_text(
 }
 
 
-bool
-d_git_buffer_add_char(
-    struct d_git_buffer* _buffer,
-    char                 _byte
+bool d_git_buffer_add_char(
+    struct dj_git_buffer* _buffer,
+    char                  _byte
 )
 {
     return d_git_buffer_add(_buffer, &_byte, 1u);
 }
 
 
-char*
-d_git_buffer_take(
-    struct d_git_buffer* _buffer
+char* d_git_buffer_take(
+    struct dj_git_buffer* _buffer
 )
 {
     // a failed buffer gives nothing, and is emptied
@@ -175,9 +171,8 @@ d_git_buffer_take(
 }
 
 
-void
-d_git_buffer_free(
-    struct d_git_buffer* _buffer
+void d_git_buffer_free(
+    struct dj_git_buffer* _buffer
 )
 {
     free(_buffer->text);
@@ -192,8 +187,8 @@ d_internal_grow
   Room in an array of records for one more, its capacity doubled when it is
 full; `_size` is a record's.
 */
-static bool
-d_internal_grow(
+static
+bool d_internal_grow(
     void**  _items,
     size_t  _count,
     size_t* _capacity,
@@ -227,11 +222,11 @@ d_internal_store
   Keeps `_length` bytes, terminated, among a file's strings, and gives
 their offset; D_GIT_TEXT_NONE when memory runs out.
 */
-static size_t
-d_internal_store(
-    struct d_git_text* _text,
-    const char*        _bytes,
-    size_t             _length
+static
+size_t d_internal_store(
+    struct dj_git_text* _text,
+    const char*         _bytes,
+    size_t              _length
 )
 {
     // the strings grow by doubling, as a buffer does
@@ -278,11 +273,11 @@ d_internal_store(
 d_internal_problem
   Keeps a problem, on line `_line`.
 */
-static bool
-d_internal_problem(
-    struct d_git_text* _text,
-    size_t             _line,
-    const char*        _what
+static
+bool d_internal_problem(
+    struct dj_git_text* _text,
+    size_t              _line,
+    const char*         _what
 )
 {
     // room for one more problem
@@ -315,17 +310,17 @@ d_internal_problem(
 //==============================================================================
 
 
-// d_internal_kind_name
+// dj_internal_kind_name
 //   struct: a name a file of a kind has, or a program gives the kind.
-struct d_internal_kind_name
+struct dj_internal_kind_name
 {
     const char*          name;
-    enum d_git_text_kind kind;
+    enum dj_git_text_kind kind;
 };
 
 // d_internal_file_names
 //   constant: the names a file's kind is known by.
-static const struct d_internal_kind_name d_internal_file_names[] =
+static const struct dj_internal_kind_name d_internal_file_names[] =
 {
     { ".gitignore",      D_GIT_TEXT_IGNORE     },
     { "exclude",         D_GIT_TEXT_IGNORE     },
@@ -342,7 +337,7 @@ static const struct d_internal_kind_name d_internal_file_names[] =
 
 // d_internal_kind_words
 //   constant: the names a program gives a kind, besides a file's.
-static const struct d_internal_kind_name d_internal_kind_words[] =
+static const struct dj_internal_kind_name d_internal_kind_words[] =
 {
     { "gitignore",     D_GIT_TEXT_IGNORE     },
     { "gitattributes", D_GIT_TEXT_ATTRIBUTES },
@@ -355,8 +350,8 @@ static const struct d_internal_kind_name d_internal_kind_words[] =
 d_internal_same_folded
   Whether two texts are alike in ASCII's letters of either case.
 */
-static bool
-d_internal_same_folded(
+static
+bool d_internal_same_folded(
     const char* _left,
     const char* _right
 )
@@ -390,9 +385,9 @@ d_internal_kind_in
   The kind a table names a name, in any case; D_GIT_TEXT_OTHER when it
 does not.
 */
-static enum d_git_text_kind
+static enum dj_git_text_kind
 d_internal_kind_in(
-    const struct d_internal_kind_name* _table,
+    const struct dj_internal_kind_name* _table,
     size_t                             _count,
     const char*                        _name
 )
@@ -411,7 +406,7 @@ d_internal_kind_in(
 }
 
 
-enum d_git_text_kind
+enum dj_git_text_kind
 d_git_text_kind_of(
     const char* _path
 )
@@ -442,7 +437,7 @@ d_git_text_kind_of(
 }
 
 
-enum d_git_text_kind
+enum dj_git_text_kind
 d_git_text_kind_named(
     const char* _name
 )
@@ -453,7 +448,7 @@ d_git_text_kind_named(
         return D_GIT_TEXT_OTHER;
     }
 
-    const enum d_git_text_kind word =
+    const enum dj_git_text_kind word =
         d_internal_kind_in(d_internal_kind_words,
                            sizeof(d_internal_kind_words)
                                / sizeof(d_internal_kind_words[0]),
@@ -471,7 +466,7 @@ d_git_text_kind_named(
 
 const char*
 d_git_text_kind_name(
-    enum d_git_text_kind _kind
+    enum dj_git_text_kind _kind
 )
 {
     // each kind's own name
@@ -504,9 +499,9 @@ the ending, as git counts it: a `\r` alone is text. A last line with no
 ending is a line; a text that ends with an ending has no empty line after
 it. Every line starts BLANK, for the reader of its kind to say otherwise.
 */
-static bool
-d_internal_split(
-    struct d_git_text* _text
+static
+bool d_internal_split(
+    struct dj_git_text* _text
 )
 {
     size_t start = 0u;
@@ -548,7 +543,7 @@ d_internal_split(
             return false;
         }
 
-        struct d_git_text_line* const line = &_text->lines[_text->line_count];
+        struct dj_git_text_line* const line = &_text->lines[_text->line_count];
 
         line->start   = start;
         line->end     = end;
@@ -569,10 +564,10 @@ d_internal_split(
 d_internal_line_text
   Where a line's text begins, past a byte-order mark on the first.
 */
-static size_t
-d_internal_line_text(
-    const struct d_git_text* _text,
-    size_t                   _line
+static
+size_t d_internal_line_text(
+    const struct dj_git_text* _text,
+    size_t                    _line
 )
 {
     const size_t start = _text->lines[_line].start;
@@ -595,11 +590,11 @@ git matches as `_length` bytes from `_bytes` -- a trailing `/` among them,
 taken off here as git takes it -- and marks the line a pattern's or, for
 a macro, a macro's.
 */
-static bool
-d_internal_add_pattern(
-    struct d_git_text*               _text,
-    const struct d_git_text_pattern* _pattern,
-    const char*                      _bytes
+static
+bool d_internal_add_pattern(
+    struct dj_git_text*               _text,
+    const struct dj_git_text_pattern* _pattern,
+    const char*                       _bytes
 )
 {
     // room for one more pattern
@@ -611,7 +606,7 @@ d_internal_add_pattern(
         return false;
     }
 
-    struct d_git_text_pattern record = *_pattern;
+    struct dj_git_text_pattern record = *_pattern;
 
     // a trailing slash: the pattern matches only a directory
     if ( (!record.macro)         &&
@@ -651,8 +646,8 @@ d_internal_trimmed
 spaces is cut, unless a backslash escapes its first, or a backslash ends
 the line, which leaves every space before it.
 */
-static size_t
-d_internal_trimmed(
+static
+size_t d_internal_trimmed(
     const char* _text,
     size_t      _start,
     size_t      _end
@@ -698,10 +693,10 @@ d_internal_read_ignore_line
 pattern -- even white space other than spaces. A pattern ends at a NUL, as
 git's C string does, and a `\r` that ends the file is the ending git adds.
 */
-static bool
-d_internal_read_ignore_line(
-    struct d_git_text* _text,
-    size_t             _line
+static
+bool d_internal_read_ignore_line(
+    struct dj_git_text* _text,
+    size_t              _line
 )
 {
     const size_t      start = d_internal_line_text(_text, _line);
@@ -745,7 +740,7 @@ d_internal_read_ignore_line(
     }
 
     const bool                negated = (_text->text[start] == '!');
-    struct d_git_text_pattern pattern;
+    struct dj_git_text_pattern pattern;
 
     memset(&pattern, 0, sizeof(pattern));
     pattern.line            = _line;
@@ -770,8 +765,8 @@ d_internal_read_ignore_line(
 d_internal_blank
   Whether a byte is one git's attribute lines are apart by.
 */
-static bool
-d_internal_blank(
+static
+bool d_internal_blank(
     char _byte
 )
 {
@@ -786,8 +781,8 @@ d_internal_blank(
 d_internal_skip_blanks, d_internal_skip_token
   Past the blanks from `_at`, and past the bytes that are not.
 */
-static size_t
-d_internal_skip_blanks(
+static
+size_t d_internal_skip_blanks(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -804,8 +799,8 @@ d_internal_skip_blanks(
 }
 
 
-static size_t
-d_internal_skip_token(
+static
+size_t d_internal_skip_token(
     const char* _text,
     size_t      _at,
     size_t      _end
@@ -827,8 +822,8 @@ d_internal_attribute_name
   Whether `_length` bytes are an attribute's name to git: letters, digits,
 `-`, `.` and `_`, not beginning with `-`.
 */
-static bool
-d_internal_attribute_name(
+static
+bool d_internal_attribute_name(
     const char* _name,
     size_t      _length
 )
@@ -868,12 +863,12 @@ d_internal_parse_state
 state unset, its value unread, as git leaves it. False for a name git
 refuses.
 */
-static bool
-d_internal_parse_state(
-    const char*                  _text,
-    size_t                       _at,
-    size_t                       _end,
-    struct d_git_text_attribute* _out
+static
+bool d_internal_parse_state(
+    const char*                   _text,
+    size_t                        _at,
+    size_t                        _end,
+    struct dj_git_text_attribute* _out
 )
 {
     const char* const equals = memchr(&_text[_at], '=', _end - _at);
@@ -920,12 +915,12 @@ d_internal_parse_states
 file's first free attribute on; false, with nothing kept, when one has a
 name git refuses -- `_refused` then says so -- or memory runs out.
 */
-static bool
-d_internal_parse_states(
-    struct d_git_text* _text,
-    size_t             _at,
-    size_t             _end,
-    bool*              _refused
+static
+bool d_internal_parse_states(
+    struct dj_git_text* _text,
+    size_t              _at,
+    size_t              _end,
+    bool*               _refused
 )
 {
     const size_t first = _text->attribute_count;
@@ -975,11 +970,11 @@ d_internal_parse_states(
 d_internal_refuse
   Marks a line one git reads no rule from, and says why.
 */
-static bool
-d_internal_refuse(
-    struct d_git_text* _text,
-    size_t             _line,
-    const char*        _why
+static
+bool d_internal_refuse(
+    struct dj_git_text* _text,
+    size_t              _line,
+    const char*         _why
 )
 {
     _text->lines[_line].kind = D_GIT_TEXT_REFUSED;
@@ -988,17 +983,17 @@ d_internal_refuse(
 }
 
 
-// d_internal_attribute_line
+// dj_internal_attribute_line
 //   struct: what an attribute line's first token is: `start` to `end` as
 //   written, `states` where its states begin, and the pattern git
 //   matches, unquoted when it is quoted, in `pattern`.
-struct d_internal_attribute_line
+struct dj_internal_attribute_line
 {
     size_t              start;
     size_t              end;
     size_t              states;
     bool                quoted;
-    struct d_git_buffer pattern;
+    struct dj_git_buffer pattern;
 };
 
 
@@ -1008,12 +1003,12 @@ d_internal_attribute_head
 quotes when it begins with one and they are sound, otherwise up to the
 first blank.
 */
-static bool
-d_internal_attribute_head(
-    const struct d_git_text*          _text,
-    size_t                            _at,
-    size_t                            _end,
-    struct d_internal_attribute_line* _out
+static
+bool d_internal_attribute_head(
+    const struct dj_git_text*          _text,
+    size_t                             _at,
+    size_t                             _end,
+    struct dj_internal_attribute_line* _out
 )
 {
     size_t used = 0u;
@@ -1051,12 +1046,12 @@ d_internal_attribute_macro
   Keeps an attribute line's macro, "[attr]name" and the states after it.
 The name follows the prefix, past any blanks a quoted token holds.
 */
-static bool
-d_internal_attribute_macro(
-    struct d_git_text*                      _text,
-    size_t                                  _line,
-    const struct d_internal_attribute_line* _head,
-    size_t                                  _end
+static
+bool d_internal_attribute_macro(
+    struct dj_git_text*                      _text,
+    size_t                                   _line,
+    const struct dj_internal_attribute_line* _head,
+    size_t                                   _end
 )
 {
     const char* const pattern = _head->pattern.text;
@@ -1084,7 +1079,7 @@ d_internal_attribute_macro(
                : false;
     }
 
-    struct d_git_text_pattern macro;
+    struct dj_git_text_pattern macro;
 
     memset(&macro, 0, sizeof(macro));
     macro.line            = _line;
@@ -1105,12 +1100,12 @@ d_internal_attribute_pattern
   Keeps an attribute line's pattern and its states. A negated pattern git
 refuses, as it does a state of a name it does not allow.
 */
-static bool
-d_internal_attribute_pattern(
-    struct d_git_text*                      _text,
-    size_t                                  _line,
-    const struct d_internal_attribute_line* _head,
-    size_t                                  _end
+static
+bool d_internal_attribute_pattern(
+    struct dj_git_text*                      _text,
+    size_t                                   _line,
+    const struct dj_internal_attribute_line* _head,
+    size_t                                   _end
 )
 {
     const size_t first   = _text->attribute_count;
@@ -1136,7 +1131,7 @@ d_internal_attribute_pattern(
                                  "attributes");
     }
 
-    struct d_git_text_pattern pattern;
+    struct dj_git_text_pattern pattern;
 
     memset(&pattern, 0, sizeof(pattern));
     pattern.line            = _line;
@@ -1163,10 +1158,10 @@ ignored, a first token that begins "[attr]" and is longer a macro, and
 any other a pattern. A line ends at a NUL, as git's C string does.
   Long as parse_attr_line is, which it follows.
 */
-static bool
-d_internal_read_attribute_line(
-    struct d_git_text* _text,
-    size_t             _line
+static
+bool d_internal_read_attribute_line(
+    struct dj_git_text* _text,
+    size_t              _line
 )
 {
     const size_t      start = d_internal_line_text(_text, _line);
@@ -1200,7 +1195,7 @@ d_internal_read_attribute_line(
                                  "ignoring overly long attributes line");
     }
 
-    struct d_internal_attribute_line head;
+    struct dj_internal_attribute_line head;
 
     memset(&head, 0, sizeof(head));
 
@@ -1238,11 +1233,11 @@ d_internal_read_attribute_line(
 //==============================================================================
 
 
-// d_internal_cursor
+// dj_internal_cursor
 //   struct: a place in a configuration's text, read as git's
 //   get_next_char reads it: `at` the next byte, `eof` once the end has
 //   been read.
-struct d_internal_cursor
+struct dj_internal_cursor
 {
     const char* text;
     size_t      length;
@@ -1250,17 +1245,17 @@ struct d_internal_cursor
     bool        eof;
 };
 
-// d_internal_config
+// dj_internal_config
 //   struct: a configuration being read: the section it is in, its prefix
 //   as keys begin with it, where reading stopped -- D_GIT_TEXT_NONE until
 //   it does -- the line's end the last value read ended at, whether git
 //   counts the line past the one it stopped on, and whether memory ran
 //   out.
-struct d_internal_config
+struct dj_internal_config
 {
-    struct d_git_text*       text;
-    struct d_internal_cursor cursor;
-    struct d_git_buffer      prefix;
+    struct dj_git_text*       text;
+    struct dj_internal_cursor cursor;
+    struct dj_git_buffer      prefix;
     size_t                   section;
     size_t                   error;
     size_t                   stop;
@@ -1275,10 +1270,10 @@ d_internal_next
 `\r` alone as itself, and the end as `\n`, with `eof` set. `_where`
 receives the place of its first byte -- the end's is the text's length.
 */
-static int
-d_internal_next(
-    struct d_internal_cursor* _cursor,
-    size_t*                   _where
+static
+int d_internal_next(
+    struct dj_internal_cursor* _cursor,
+    size_t*                    _where
 )
 {
     *_where = _cursor->at;
@@ -1314,8 +1309,8 @@ d_internal_space, d_internal_alpha, d_internal_keychar, d_internal_lower
   Git's own classes, which no locale moves: its white space is a space,
 `\t`, `\n` and `\r`; a key's bytes are ASCII's letters and digits and `-`.
 */
-static bool
-d_internal_space(
+static
+bool d_internal_space(
     int _c
 )
 {
@@ -1326,8 +1321,8 @@ d_internal_space(
 }
 
 
-static bool
-d_internal_alpha(
+static
+bool d_internal_alpha(
     int _c
 )
 {
@@ -1336,8 +1331,8 @@ d_internal_alpha(
 }
 
 
-static bool
-d_internal_keychar(
+static
+bool d_internal_keychar(
     int _c
 )
 {
@@ -1347,8 +1342,8 @@ d_internal_keychar(
 }
 
 
-static char
-d_internal_lower(
+static
+char d_internal_lower(
     int _c
 )
 {
@@ -1360,10 +1355,10 @@ d_internal_lower(
 d_internal_stop
   Reading stops at `_where`: git refuses the line it is on.
 */
-static bool
-d_internal_stop(
-    struct d_internal_config* _config,
-    size_t                    _where
+static
+bool d_internal_stop(
+    struct dj_internal_config* _config,
+    size_t                     _where
 )
 {
     _config->error = _where;
@@ -1376,11 +1371,11 @@ d_internal_stop(
 d_internal_add_text
   Adds to a buffer, noting memory that ran out.
 */
-static bool
-d_internal_add_text(
-    struct d_internal_config* _config,
-    struct d_git_buffer*      _buffer,
-    char                      _byte
+static
+bool d_internal_add_text(
+    struct dj_internal_config* _config,
+    struct dj_git_buffer*      _buffer,
+    char                       _byte
 )
 {
     // memory that ran out stops the reading
@@ -1403,11 +1398,11 @@ itself, and `]` straight after the closing quote. `_c` is the blank that
 ended the name, at the name's end.
   Long as get_extended_base_var is, which it follows step by step.
 */
-static bool
-d_internal_subsection(
-    struct d_internal_config*  _config,
-    int                        _c,
-    struct d_git_text_section* _section
+static
+bool d_internal_subsection(
+    struct dj_internal_config*  _config,
+    int                         _c,
+    struct dj_git_text_section* _section
 )
 {
     size_t where = _section->name_end;
@@ -1492,13 +1487,13 @@ d_internal_subsection(
 d_internal_keep_section
   Keeps a section's header once read, and makes it the one entries are in.
 */
-static bool
-d_internal_keep_section(
-    struct d_internal_config*  _config,
-    struct d_git_text_section* _section
+static
+bool d_internal_keep_section(
+    struct dj_internal_config*  _config,
+    struct dj_git_text_section* _section
 )
 {
-    struct d_git_text* const text = _config->text;
+    struct dj_git_text* const text = _config->text;
 
     // room for one more section
     if (!d_internal_grow((void**)&text->sections,
@@ -1541,13 +1536,13 @@ or blanks and a quoted subsection. A header with no name at all is
 refused.
   Long as get_base_var is, which it follows.
 */
-static bool
-d_internal_config_section(
-    struct d_internal_config* _config,
-    size_t                    _open
+static
+bool d_internal_config_section(
+    struct dj_internal_config* _config,
+    size_t                     _open
 )
 {
-    struct d_git_text_section section;
+    struct dj_git_text_section section;
 
     memset(&section, 0, sizeof(section));
     section.start      = _open;
@@ -1624,8 +1619,8 @@ d_internal_escape
   What a `\` and the byte after it are in a value: `\t`, `\b`, `\n`, `\\`
 and `\"`; -1 for any other, which git refuses.
 */
-static int
-d_internal_escape(
+static
+int d_internal_escape(
     int _c
 )
 {
@@ -1656,9 +1651,9 @@ d_internal_escape(
 //   struct: a value being read: its text as git reads it, where it is
 //   written, whether a quote is open, a comment begun, and how many
 //   blanks wait to be written as spaces before the next byte.
-struct d_internal_value
+struct dj_internal_value
 {
-    struct d_git_buffer text;
+    struct dj_git_buffer text;
     size_t              start;
     size_t              end;
     bool                quoted;
@@ -1673,12 +1668,12 @@ d_internal_value_byte
   One byte of a value that is written: the blanks before it, as spaces,
 then the byte -- an escape's meaning, a quote's toggling, or itself.
 */
-static bool
-d_internal_value_byte(
-    struct d_internal_config* _config,
-    struct d_internal_value*  _value,
-    int                       _c,
-    size_t                    _where
+static
+bool d_internal_value_byte(
+    struct dj_internal_config* _config,
+    struct dj_internal_value*  _value,
+    int                        _c,
+    size_t                     _where
 )
 {
     _value->continued = false;
@@ -1751,13 +1746,13 @@ end inside quotes refused.
   Long as parse_value is, which it follows: quotes, comments, blanks,
 escapes and continued lines.
 */
-static bool
-d_internal_config_value(
-    struct d_internal_config* _config,
-    struct d_git_text_entry*  _entry
+static
+bool d_internal_config_value(
+    struct dj_internal_config* _config,
+    struct dj_git_text_entry*  _entry
 )
 {
-    struct d_internal_value value;
+    struct dj_internal_value value;
 
     memset(&value, 0, sizeof(value));
     value.start = D_GIT_TEXT_NONE;
@@ -1861,15 +1856,15 @@ name -- or the name alone before any section, as git makes it -- and
 counts it among its section's.
   Long as the key is made, the entry kept and its section told, each a step.
 */
-static bool
-d_internal_keep_entry(
-    struct d_internal_config* _config,
-    struct d_git_text_entry*  _entry,
-    struct d_git_buffer*      _name
+static
+bool d_internal_keep_entry(
+    struct dj_internal_config* _config,
+    struct dj_git_text_entry*  _entry,
+    struct dj_git_buffer*      _name
 )
 {
-    struct d_git_text* const text = _config->text;
-    struct d_git_buffer      key;
+    struct dj_git_text* const text = _config->text;
+    struct dj_git_buffer      key;
 
     memset(&key, 0, sizeof(key));
 
@@ -1921,7 +1916,7 @@ d_internal_keep_entry(
     // the section counts its entries, which follow one another
     if (_config->section != D_GIT_TEXT_NONE)
     {
-        struct d_git_text_section* const section =
+        struct dj_git_text_section* const section =
             &text->sections[_config->section];
 
         section->first_entry = (section->entry_count == 0u)
@@ -1944,15 +1939,15 @@ get_value reads it: the name's letters, digits and `-`, kept in lower
 case, then spaces and tabs, then the line's end -- a name alone -- or `=`
 and a value.
 */
-static bool
-d_internal_config_entry(
-    struct d_internal_config* _config,
-    size_t                    _start,
-    int                       _first
+static
+bool d_internal_config_entry(
+    struct dj_internal_config* _config,
+    size_t                     _start,
+    int                        _first
 )
 {
-    struct d_git_text_entry entry;
-    struct d_git_buffer     name;
+    struct dj_git_text_entry entry;
+    struct dj_git_buffer     name;
     size_t                  where = 0u;
     int                     c     = 0;
 
@@ -2018,9 +2013,9 @@ d_internal_partial_mark
 first byte that is not the mark's is; git counts a line past it when that
 byte is a line's end, or the text's.
 */
-static void
-d_internal_partial_mark(
-    struct d_internal_config* _config
+static
+void d_internal_partial_mark(
+    struct dj_internal_config* _config
 )
 {
     const char* const mark  = D_INTERNAL_BOM;
@@ -2050,12 +2045,12 @@ else refused. A byte-order mark is read past; part of one is refused.
   Long as git_parse_source is, which it follows: the mark, comments,
 sections and entries.
 */
-static void
-d_internal_config_walk(
-    struct d_internal_config* _config
+static
+void d_internal_config_walk(
+    struct dj_internal_config* _config
 )
 {
-    struct d_git_text* const text = _config->text;
+    struct dj_git_text* const text = _config->text;
     bool                     comment = false;
     const size_t             bom     = strlen(D_INTERNAL_BOM);
 
@@ -2138,9 +2133,9 @@ refused.
   Long as each line's kind is decided from the records over it, a step for
 each.
 */
-static void
-d_internal_config_lines(
-    struct d_git_text* _text
+static
+void d_internal_config_lines(
+    struct dj_git_text* _text
 )
 {
     // a header's line
@@ -2157,7 +2152,7 @@ d_internal_config_lines(
     // an entry's lines, a header's line holding one among them
     for (size_t at = 0u; at < _text->entry_count; ++at)
     {
-        const struct d_git_text_entry* const entry = &_text->entries[at];
+        const struct dj_git_text_entry* const entry = &_text->entries[at];
 
         // each line it spans
         for (size_t line = entry->line; line <= entry->last_line; ++line)
@@ -2175,7 +2170,7 @@ d_internal_config_lines(
     // the rest are comments, blanks, or refused; each is in a section
     for (size_t line = 0u; line < _text->line_count; ++line)
     {
-        struct d_git_text_line* const record = &_text->lines[line];
+        struct dj_git_text_line* const record = &_text->lines[line];
 
         section = (record->section != D_GIT_TEXT_NONE)
                   ? record->section
@@ -2221,12 +2216,12 @@ d_internal_read_config
   Reads a configuration, then tells its lines what they are. Where git
 would stop reading, so does this, and the line is a problem.
 */
-static bool
-d_internal_read_config(
-    struct d_git_text* _text
+static
+bool d_internal_read_config(
+    struct dj_git_text* _text
 )
 {
-    struct d_internal_config config;
+    struct dj_internal_config config;
 
     memset(&config, 0, sizeof(config));
     config.text          = _text;
@@ -2279,10 +2274,10 @@ d_internal_read_config(
 
 bool
 d_git_text_read(
-    struct d_git_text*   _out,
+    struct dj_git_text*   _out,
     const char*          _text,
     size_t               _length,
-    enum d_git_text_kind _kind,
+    enum dj_git_text_kind _kind,
     char*                _problem,
     size_t               _capacity
 )
@@ -2334,9 +2329,8 @@ d_git_text_read(
 }
 
 
-void
-d_git_text_release(
-    struct d_git_text* _text
+void d_git_text_release(
+    struct dj_git_text* _text
 )
 {
     // nothing to release
@@ -2364,10 +2358,9 @@ d_git_text_release(
 //==============================================================================
 
 
-const char*
-d_git_text_string(
-    const struct d_git_text* _text,
-    size_t                   _offset
+const char* d_git_text_string(
+    const struct dj_git_text* _text,
+    size_t                    _offset
 )
 {
     // no string there
@@ -2387,10 +2380,9 @@ d_git_text_line_of
   A binary search: the lines are in order, and each begins where the one
 before it ends. An offset at the text's end is on its last line.
 */
-size_t
-d_git_text_line_of(
-    const struct d_git_text* _text,
-    size_t                   _offset
+size_t d_git_text_line_of(
+    const struct dj_git_text* _text,
+    size_t                    _offset
 )
 {
     // no lines, no line
@@ -2428,10 +2420,10 @@ d_git_text_line_of(
 //==============================================================================
 
 
-// d_internal_wild
+// dj_internal_wild
 //   struct: a wildmatch in progress: the pattern from its start to its
 //   end, the text to its end, and the flags.
-struct d_internal_wild
+struct dj_internal_wild
 {
     const unsigned char* pattern;
     const unsigned char* pattern_end;
@@ -2445,8 +2437,8 @@ d_internal_at
   The byte at `_at`, or 0 at or past `_end`: what a C string's terminator
 would be, where git's wildmatch reads one.
 */
-static unsigned char
-d_internal_at(
+static
+unsigned char d_internal_at(
     const unsigned char* _at,
     const unsigned char* _end
 )
@@ -2460,8 +2452,8 @@ d_internal_fold, d_internal_upper_of, d_internal_is_upper,
 d_internal_is_lower
   ASCII's letters, in the case wildmatch compares them in.
 */
-static unsigned char
-d_internal_fold(
+static
+unsigned char d_internal_fold(
     unsigned char _c
 )
 {
@@ -2469,8 +2461,8 @@ d_internal_fold(
 }
 
 
-static unsigned char
-d_internal_upper_of(
+static
+unsigned char d_internal_upper_of(
     unsigned char _c
 )
 {
@@ -2478,8 +2470,8 @@ d_internal_upper_of(
 }
 
 
-static bool
-d_internal_is_upper(
+static
+bool d_internal_is_upper(
     unsigned char _c
 )
 {
@@ -2487,8 +2479,8 @@ d_internal_is_upper(
 }
 
 
-static bool
-d_internal_is_lower(
+static
+bool d_internal_is_lower(
     unsigned char _c
 )
 {
@@ -2500,8 +2492,8 @@ d_internal_is_lower(
 d_internal_glob_special
   Whether a byte is one git's glob treats specially: `*`, `?`, `[`, `\`.
 */
-static bool
-d_internal_glob_special(
+static
+bool d_internal_glob_special(
     unsigned char _c
 )
 {
@@ -2512,10 +2504,10 @@ d_internal_glob_special(
 }
 
 
-// d_internal_class
+// dj_internal_class
 //   struct: one of the classes wildmatch knows, [:name:], and whether a
 //   byte is in it.
-struct d_internal_class
+struct dj_internal_class
 {
     const char* name;
     bool      (*holds)(unsigned char _c);
@@ -2527,8 +2519,8 @@ d_internal_class_alnum ... d_internal_class_xdigit
   The classes as git's own ctype has them, which no locale moves: ASCII
 only, white space without `\v` and `\f`, and blanks the space and tab.
 */
-static bool
-d_internal_class_alpha(
+static
+bool d_internal_class_alpha(
     unsigned char _c
 )
 {
@@ -2537,8 +2529,8 @@ d_internal_class_alpha(
 }
 
 
-static bool
-d_internal_class_digit(
+static
+bool d_internal_class_digit(
     unsigned char _c
 )
 {
@@ -2546,8 +2538,8 @@ d_internal_class_digit(
 }
 
 
-static bool
-d_internal_class_alnum(
+static
+bool d_internal_class_alnum(
     unsigned char _c
 )
 {
@@ -2556,8 +2548,8 @@ d_internal_class_alnum(
 }
 
 
-static bool
-d_internal_class_blank(
+static
+bool d_internal_class_blank(
     unsigned char _c
 )
 {
@@ -2566,8 +2558,8 @@ d_internal_class_blank(
 }
 
 
-static bool
-d_internal_class_cntrl(
+static
+bool d_internal_class_cntrl(
     unsigned char _c
 )
 {
@@ -2576,8 +2568,8 @@ d_internal_class_cntrl(
 }
 
 
-static bool
-d_internal_class_graph(
+static
+bool d_internal_class_graph(
     unsigned char _c
 )
 {
@@ -2585,8 +2577,8 @@ d_internal_class_graph(
 }
 
 
-static bool
-d_internal_class_print(
+static
+bool d_internal_class_print(
     unsigned char _c
 )
 {
@@ -2594,8 +2586,8 @@ d_internal_class_print(
 }
 
 
-static bool
-d_internal_class_punct(
+static
+bool d_internal_class_punct(
     unsigned char _c
 )
 {
@@ -2604,8 +2596,8 @@ d_internal_class_punct(
 }
 
 
-static bool
-d_internal_class_space(
+static
+bool d_internal_class_space(
     unsigned char _c
 )
 {
@@ -2616,8 +2608,8 @@ d_internal_class_space(
 }
 
 
-static bool
-d_internal_class_xdigit(
+static
+bool d_internal_class_xdigit(
     unsigned char _c
 )
 {
@@ -2630,7 +2622,7 @@ d_internal_class_xdigit(
 // d_internal_classes
 //   constant: the classes wildmatch knows, but upper and lower, which
 //   case folding changes.
-static const struct d_internal_class d_internal_classes[] =
+static const struct dj_internal_class d_internal_classes[] =
 {
     { "alnum",  d_internal_class_alnum  },
     { "alpha",  d_internal_class_alpha  },
@@ -2650,9 +2642,12 @@ static const struct d_internal_class d_internal_classes[] =
 //   past it, the pattern and text moved.
 #define D_INTERNAL_GO_ON 2
 
-static int d_internal_wild_match(const struct d_internal_wild* _wild,
-                                 const unsigned char*          _p,
-                                 const unsigned char*          _t);
+static
+int d_internal_wild_match(
+    const struct dj_internal_wild* _wild,
+    const unsigned char*           _p,
+    const unsigned char*           _t
+);
 
 
 /*
@@ -2662,8 +2657,8 @@ d_internal_named_class
 Folding makes [:upper:] hold the lower case too; [:lower:] holds what
 folding has already made lower.
 */
-static int
-d_internal_named_class(
+static
+int d_internal_named_class(
     const unsigned char* _name,
     size_t               _length,
     unsigned char        _tc,
@@ -2704,11 +2699,11 @@ d_internal_named_class(
 }
 
 
-// d_internal_bracket
+// dj_internal_bracket
 //   struct: a [class] being read: the pattern's place, its byte, the one
 //   before it -- 0 when a range or a class has just ended -- the text's
 //   byte, and whether it has matched.
-struct d_internal_bracket
+struct dj_internal_bracket
 {
     const unsigned char* p;
     unsigned char        pc;
@@ -2723,10 +2718,10 @@ d_internal_bracket_range
   A range, a-z, from the byte before the `-`: the text's byte in it, or,
 folded, its upper case in it.
 */
-static int
-d_internal_bracket_range(
-    const struct d_internal_wild* _wild,
-    struct d_internal_bracket*    _bracket
+static
+int d_internal_bracket_range(
+    const struct dj_internal_wild* _wild,
+    struct dj_internal_bracket*    _bracket
 )
 {
     _bracket->pc = d_internal_at(++_bracket->p, _wild->pattern_end);
@@ -2767,10 +2762,10 @@ d_internal_bracket_class
   A [:name:] within brackets. Without its closing ":]" the `[` is a byte
 like any other, and reading goes on from the `:` after it.
 */
-static int
-d_internal_bracket_class(
-    const struct d_internal_wild* _wild,
-    struct d_internal_bracket*    _bracket
+static
+int d_internal_bracket_class(
+    const struct dj_internal_wild* _wild,
+    struct dj_internal_bracket*    _bracket
 )
 {
     const unsigned char* const name = _bracket->p + 2;
@@ -2826,10 +2821,10 @@ d_internal_bracket_item
   One item within brackets, at the bracket's byte: an escaped byte, a
 range, a [:class:], or a byte.
 */
-static int
-d_internal_bracket_item(
-    const struct d_internal_wild* _wild,
-    struct d_internal_bracket*    _bracket
+static
+int d_internal_bracket_item(
+    const struct dj_internal_wild* _wild,
+    struct dj_internal_bracket*    _bracket
 )
 {
     const unsigned char next = d_internal_at(_bracket->p + 1,
@@ -2883,14 +2878,14 @@ first is a byte of it, and the first `]` after that closes it. With
 D_GIT_TEXT_PATHNAME no class matches a `/`. Going on, `*_p` is left at
 the closing `]`.
 */
-static int
-d_internal_wild_bracket(
-    const struct d_internal_wild* _wild,
-    const unsigned char**         _p,
-    unsigned char                 _tc
+static
+int d_internal_wild_bracket(
+    const struct dj_internal_wild* _wild,
+    const unsigned char**          _p,
+    unsigned char                  _tc
 )
 {
-    struct d_internal_bracket bracket;
+    struct dj_internal_bracket bracket;
 
     memset(&bracket, 0, sizeof(bracket));
     bracket.p  = *_p;
@@ -2947,12 +2942,12 @@ d_internal_star_slashes
 `_after`, are a `**` that matches directories: at the pattern's start or
 after a `/`, and at its end or before a `/`.
 */
-static bool
-d_internal_star_slashes(
-    const struct d_internal_wild* _wild,
-    const unsigned char*          _start,
-    const unsigned char*          _second,
-    const unsigned char*          _after
+static
+bool d_internal_star_slashes(
+    const struct dj_internal_wild* _wild,
+    const unsigned char*           _start,
+    const unsigned char*           _second,
+    const unsigned char*           _after
 )
 {
     const unsigned char after = d_internal_at(_after, _wild->pattern_end);
@@ -2975,12 +2970,12 @@ takes no `/`, and a search that reaches one hands back to the nearest
 `**`.
   Long as dowild's handling of a `*` is, which it follows step by step.
 */
-static int
-d_internal_star_scan(
-    const struct d_internal_wild* _wild,
-    const unsigned char*          _p,
-    const unsigned char*          _t,
-    bool                          _slashes
+static
+int d_internal_star_scan(
+    const struct dj_internal_wild* _wild,
+    const unsigned char*           _p,
+    const unsigned char*           _t,
+    bool                           _slashes
 )
 {
     const bool    fold = ((_wild->flags & D_GIT_TEXT_CASEFOLD) != 0u);
@@ -3055,12 +3050,12 @@ any number of directories -- none among them, tried first. A star that
 ends the pattern takes the rest of the text; one before a `/` the rest of
 the name, the match going on past the slash, `*_p` and `*_t` moved.
 */
-static int
-d_internal_wild_star(
-    const struct d_internal_wild* _wild,
-    const unsigned char*          _start,
-    const unsigned char**         _p,
-    const unsigned char**         _t
+static
+int d_internal_wild_star(
+    const struct dj_internal_wild* _wild,
+    const unsigned char*           _start,
+    const unsigned char**          _p,
+    const unsigned char**          _t
 )
 {
     const bool           pathname = ((_wild->flags & D_GIT_TEXT_PATHNAME)
@@ -3135,11 +3130,11 @@ first fails it. `_p` is where this match's pattern begins, which a `**`
 is measured from.
   Long as dowild's loop is, which it follows.
 */
-static int
-d_internal_wild_match(
-    const struct d_internal_wild* _wild,
-    const unsigned char*          _p,
-    const unsigned char*          _t
+static
+int d_internal_wild_match(
+    const struct dj_internal_wild* _wild,
+    const unsigned char*           _p,
+    const unsigned char*           _t
 )
 {
     const unsigned char* const start = _p;
@@ -3211,8 +3206,8 @@ d_internal_wild_match(
 d_internal_end_at_nul
   Where text of `_length` bytes ends as a C string would: at its first NUL.
 */
-static size_t
-d_internal_end_at_nul(
+static
+size_t d_internal_end_at_nul(
     const char* _text,
     size_t      _length
 )
@@ -3224,8 +3219,7 @@ d_internal_end_at_nul(
 }
 
 
-bool
-d_git_text_wildmatch(
+bool d_git_text_wildmatch(
     const char* _pattern,
     size_t      _pattern_length,
     const char* _text,
@@ -3242,7 +3236,7 @@ d_git_text_wildmatch(
 
     const unsigned char* const pattern = (const unsigned char*)_pattern;
     const unsigned char* const text    = (const unsigned char*)_text;
-    struct d_internal_wild     wild;
+    struct dj_internal_wild     wild;
 
     wild.pattern     = pattern;
     wild.pattern_end = pattern + d_internal_end_at_nul(_pattern,
@@ -3259,8 +3253,8 @@ d_internal_same_bytes
   Whether `_length` bytes are alike, in either case of ASCII's letters
 when `_icase` says so, as git's fspathncmp compares them.
 */
-static bool
-d_internal_same_bytes(
+static
+bool d_internal_same_bytes(
     const char* _left,
     const char* _right,
     size_t      _length,
@@ -3293,8 +3287,8 @@ d_internal_simple_length
   How many bytes a pattern begins with that are not glob-special, as git's
 simple_length counts them, but no more than its length.
 */
-static size_t
-d_internal_simple_length(
+static
+size_t d_internal_simple_length(
     const char* _pattern,
     size_t      _length
 )
@@ -3318,10 +3312,10 @@ d_internal_below
   Whether a path is below a scope's base: always, for the top's; for
 another, when it begins with the base and a `/`.
 */
-static bool
-d_internal_below(
-    const char*                    _base,
-    const struct d_git_text_query* _query
+static
+bool d_internal_below(
+    const char*                     _base,
+    const struct dj_git_text_query* _query
 )
 {
     const size_t length = (_base) ? strlen(_base) : 0u;
@@ -3343,12 +3337,12 @@ d_internal_match_pathname
 the pattern begins with first and the rest by wildmatch -- so a `**` the
 literal part ends at counts as the pattern's beginning, as it does in git.
 */
-static bool
-d_internal_match_pathname(
-    const char*                    _pattern,
-    size_t                         _length,
-    size_t                         _base,
-    const struct d_git_text_query* _query
+static
+bool d_internal_match_pathname(
+    const char*                     _pattern,
+    size_t                          _length,
+    size_t                          _base,
+    const struct dj_git_text_query* _query
 )
 {
     size_t       prefix  = d_internal_simple_length(_pattern, _length);
@@ -3402,11 +3396,10 @@ d_internal_match_pathname(
 }
 
 
-bool
-d_git_text_matches(
-    const struct d_git_text_scope* _scope,
-    size_t                         _pattern,
-    const struct d_git_text_query* _query
+bool d_git_text_matches(
+    const struct dj_git_text_scope* _scope,
+    size_t                          _pattern,
+    const struct dj_git_text_query* _query
 )
 {
     // a pattern of the scope's, and a path
@@ -3420,7 +3413,7 @@ d_git_text_matches(
         return false;
     }
 
-    const struct d_git_text_pattern* const pattern =
+    const struct dj_git_text_pattern* const pattern =
         &_scope->text->patterns[_pattern];
 
     // a macro matches nothing; a directory's pattern only a directory; and
@@ -3473,18 +3466,18 @@ d_internal_last_match
   The last pattern that matches a path, in the last scope that has one,
 as git's last_matching_pattern_from_lists finds it.
 */
-static bool
-d_internal_last_match(
-    const struct d_git_text_scope* _scopes,
-    size_t                         _count,
-    const struct d_git_text_query* _query,
-    struct d_git_text_match*       _out
+static
+bool d_internal_last_match(
+    const struct dj_git_text_scope* _scopes,
+    size_t                          _count,
+    const struct dj_git_text_query* _query,
+    struct dj_git_text_match*       _out
 )
 {
     // the highest scope first
     for (size_t scope = _count; scope-- > 0u;)
     {
-        const struct d_git_text* const text = _scopes[scope].text;
+        const struct dj_git_text* const text = _scopes[scope].text;
 
         // a scope with nothing in it
         if (!text)
@@ -3517,12 +3510,12 @@ d_internal_normal_query
   A query whose path has no trailing `/`: one it had says it is a
 directory's.
 */
-static struct d_git_text_query
-d_internal_normal_query(
-    const struct d_git_text_query* _query
+static
+struct dj_git_text_query d_internal_normal_query(
+    const struct dj_git_text_query* _query
 )
 {
-    struct d_git_text_query query = *_query;
+    struct dj_git_text_query query = *_query;
 
     // trailing slashes say a directory
     while ( (query.length > 0u) &&
@@ -3544,12 +3537,11 @@ negated pattern -- decides for the path. A scope applies to a directory
 only when the directory is below the scope's base, so a directory's own
 .gitignore never decides for the directory.
 */
-bool
-d_git_text_ignored(
-    const struct d_git_text_scope* _scopes,
-    size_t                         _count,
-    const struct d_git_text_query* _query,
-    struct d_git_text_match*       _out
+bool d_git_text_ignored(
+    const struct dj_git_text_scope* _scopes,
+    size_t                          _count,
+    const struct dj_git_text_query* _query,
+    struct dj_git_text_match*       _out
 )
 {
     // something to ask, and somewhere to answer
@@ -3560,7 +3552,7 @@ d_git_text_ignored(
         return false;
     }
 
-    const struct d_git_text_query query = d_internal_normal_query(_query);
+    const struct dj_git_text_query query = d_internal_normal_query(_query);
 
     memset(_out, 0, sizeof(*_out));
     _out->scope   = D_GIT_TEXT_NONE;
@@ -3575,7 +3567,7 @@ d_git_text_ignored(
             continue;
         }
 
-        struct d_git_text_query directory = query;
+        struct dj_git_text_query directory = query;
 
         directory.length    = at;
         directory.directory = true;
@@ -3612,16 +3604,16 @@ d_git_text_ignored(
 //   constant: the attributes git knows before reading any file.
 #define D_INTERNAL_BUILTIN "[attr]binary -diff -merge -text\n"
 
-// d_internal_attrs
+// dj_internal_attrs
 //   struct: a path's attributes being found: the scopes, git's own first,
 //   and what has been decided -- unspecified among it, which lines below
 //   do not override.
-struct d_internal_attrs
+struct dj_internal_attrs
 {
-    const struct d_git_text_scope* scopes;
+    const struct dj_git_text_scope* scopes;
     size_t                         count;
-    const struct d_git_text_query* query;
-    struct d_git_text_values       decided;
+    const struct dj_git_text_query* query;
+    struct dj_git_text_values       decided;
     bool                           failed;
 };
 
@@ -3631,11 +3623,11 @@ d_internal_decided_of
   The index of an attribute among those decided, by name -- names compare
 exactly -- or D_GIT_TEXT_NONE.
 */
-static size_t
-d_internal_decided_of(
-    const struct d_git_text_values* _values,
-    const char*                     _name,
-    size_t                          _length
+static
+size_t d_internal_decided_of(
+    const struct dj_git_text_values* _values,
+    const char*                      _name,
+    size_t                           _length
 )
 {
     // each decided so far
@@ -3658,19 +3650,19 @@ d_internal_macro_of
   The macro of a name that counts, as git's determine_macros finds it: the
 last defined, in the highest scope that allows macros; false when none is.
 */
-static bool
-d_internal_macro_of(
-    const struct d_internal_attrs* _attrs,
-    const char*                    _name,
-    size_t                         _length,
-    size_t*                        _out_scope,
-    size_t*                        _out_pattern
+static
+bool d_internal_macro_of(
+    const struct dj_internal_attrs* _attrs,
+    const char*                     _name,
+    size_t                          _length,
+    size_t*                         _out_scope,
+    size_t*                         _out_pattern
 )
 {
     // the highest scope first
     for (size_t scope = _attrs->count; scope-- > 0u;)
     {
-        const struct d_git_text* const text = _attrs->scopes[scope].text;
+        const struct dj_git_text* const text = _attrs->scopes[scope].text;
 
         // a scope whose macros count
         if ( (!text) ||
@@ -3682,7 +3674,7 @@ d_internal_macro_of(
         // its last macro first
         for (size_t pattern = text->pattern_count; pattern-- > 0u;)
         {
-            const struct d_git_text_pattern* const record =
+            const struct dj_git_text_pattern* const record =
                 &text->patterns[pattern];
 
             // a macro of the name
@@ -3712,20 +3704,20 @@ what the macro says, the same way.
   Long as fill's walk over the scopes and their lines, the last first, is,
 macros and all.
 */
-static void
-d_internal_decide(
-    struct d_internal_attrs* _attrs,
-    size_t                   _scope,
-    size_t                   _pattern
+static
+void d_internal_decide(
+    struct dj_internal_attrs* _attrs,
+    size_t                    _scope,
+    size_t                    _pattern
 )
 {
-    const struct d_git_text* const         text   = _attrs->scopes[_scope].text;
-    const struct d_git_text_pattern* const record = &text->patterns[_pattern];
+    const struct dj_git_text* const         text   = _attrs->scopes[_scope].text;
+    const struct dj_git_text_pattern* const record = &text->patterns[_pattern];
 
     // the line's states, its last first
     for (size_t at = record->attribute_count; at-- > 0u;)
     {
-        const struct d_git_text_attribute* const state =
+        const struct dj_git_text_attribute* const state =
             &text->attributes[record->first_attribute + at];
         const char* const name   = &text->text[state->name_start];
         const size_t      length = state->name_end - state->name_start;
@@ -3748,7 +3740,7 @@ d_internal_decide(
             return;
         }
 
-        struct d_git_text_value* const value =
+        struct dj_git_text_value* const value =
             &_attrs->decided.items[_attrs->decided.count];
 
         value->name         = name;
@@ -3788,14 +3780,14 @@ d_internal_decide(
 d_internal_compare_values
   Orders attributes by name, as bytes, a shorter name first.
 */
-static int
-d_internal_compare_values(
+static
+int d_internal_compare_values(
     const void* _left,
     const void* _right
 )
 {
-    const struct d_git_text_value* const left  = _left;
-    const struct d_git_text_value* const right = _right;
+    const struct dj_git_text_value* const left  = _left;
+    const struct dj_git_text_value* const right = _right;
     const size_t shorter = (left->name_length < right->name_length)
                            ? left->name_length
                            : right->name_length;
@@ -3818,16 +3810,16 @@ d_internal_fill
   Walks the scopes, highest first, each pattern of a scope the path is
 below, its last first, and decides from each that matches.
 */
-static void
-d_internal_fill(
-    struct d_internal_attrs* _attrs
+static
+void d_internal_fill(
+    struct dj_internal_attrs* _attrs
 )
 {
     // the highest scope first
     for (size_t scope = _attrs->count;
          ( (scope-- > 0u) && (!_attrs->failed) );)
     {
-        const struct d_git_text* const text = _attrs->scopes[scope].text;
+        const struct dj_git_text* const text = _attrs->scopes[scope].text;
 
         // a scope with nothing in it
         if (!text)
@@ -3857,9 +3849,9 @@ d_internal_fill(
 d_internal_keep_specified
   Leaves among the decided only what is specified, ordered by name.
 */
-static void
-d_internal_keep_specified(
-    struct d_git_text_values* _values
+static
+void d_internal_keep_specified(
+    struct dj_git_text_values* _values
 )
 {
     size_t kept = 0u;
@@ -3896,12 +3888,11 @@ d_git_text_attributes
 the scopes are copied after it, and the scope a value names is the
 caller's index.
 */
-bool
-d_git_text_attributes(
-    const struct d_git_text_scope* _scopes,
-    size_t                         _count,
-    const struct d_git_text_query* _query,
-    struct d_git_text_values*      _out
+bool d_git_text_attributes(
+    const struct dj_git_text_scope* _scopes,
+    size_t                          _count,
+    const struct dj_git_text_query* _query,
+    struct dj_git_text_values*      _out
 )
 {
     // somewhere to answer, and a path
@@ -3914,9 +3905,9 @@ d_git_text_attributes(
 
     memset(_out, 0, sizeof(*_out));
 
-    struct d_git_text_scope* const scopes =
+    struct dj_git_text_scope* const scopes =
         malloc((_count + 1u) * sizeof(*scopes));
-    struct d_git_text              builtin;
+    struct dj_git_text              builtin;
     char                           problem[64];
 
     memset(&builtin, 0, sizeof(builtin));
@@ -3946,8 +3937,8 @@ d_git_text_attributes(
         memcpy(&scopes[1], _scopes, _count * sizeof(*scopes));
     }
 
-    const struct d_git_text_query query = d_internal_normal_query(_query);
-    struct d_internal_attrs       attrs;
+    const struct dj_git_text_query query = d_internal_normal_query(_query);
+    struct dj_internal_attrs       attrs;
 
     memset(&attrs, 0, sizeof(attrs));
     attrs.scopes = scopes;
@@ -3963,9 +3954,8 @@ d_git_text_attributes(
 }
 
 
-void
-d_git_text_values_release(
-    struct d_git_text_values* _values
+void d_git_text_values_release(
+    struct dj_git_text_values* _values
 )
 {
     // nothing to release
@@ -3981,10 +3971,9 @@ d_git_text_values_release(
 }
 
 
-const struct d_git_text_value*
-d_git_text_value_of(
-    const struct d_git_text_values* _values,
-    const char*                     _name
+const struct dj_git_text_value* d_git_text_value_of(
+    const struct dj_git_text_values* _values,
+    const char*                      _name
 )
 {
     // nothing to look in, or for
@@ -4011,10 +4000,9 @@ d_git_text_key
 name past the last, and what is between them the subsection, left as it
 is but for a newline, which git refuses.
 */
-bool
-d_git_text_key(
-    struct d_git_buffer* _out,
-    const char*          _key
+bool d_git_text_key(
+    struct dj_git_buffer* _out,
+    const char*           _key
 )
 {
     // a key to read
@@ -4072,8 +4060,7 @@ d_git_text_key(
 }
 
 
-void
-d_git_text_key_parts(
+void d_git_text_key_parts(
     const char* _key,
     size_t*     _out_section,
     size_t*     _out_subsection
@@ -4092,11 +4079,10 @@ d_git_text_key_parts(
 }
 
 
-size_t
-d_git_text_find_entry(
-    const struct d_git_text* _text,
-    const char*              _key,
-    size_t                   _after
+size_t d_git_text_find_entry(
+    const struct dj_git_text* _text,
+    const char*               _key,
+    size_t                    _after
 )
 {
     // somewhere to look, and something to look for
@@ -4123,11 +4109,10 @@ d_git_text_find_entry(
 }
 
 
-size_t
-d_git_text_find_section(
-    const struct d_git_text* _text,
-    const char*              _prefix,
-    size_t                   _after
+size_t d_git_text_find_section(
+    const struct dj_git_text* _text,
+    const char*               _prefix,
+    size_t                    _after
 )
 {
     // somewhere to look, and something to look for
@@ -4157,7 +4142,7 @@ d_git_text_find_section(
 // d_internal_number
 //   struct: a number being read as strtoimax reads one: its sign, its
 //   magnitude, and where reading stopped.
-struct d_internal_number
+struct dj_internal_number
 {
     bool        negative;
     uint64_t    magnitude;
@@ -4171,8 +4156,8 @@ struct d_internal_number
 d_internal_digit_of
   A digit's worth in a base, or -1 for a byte that is not one of its.
 */
-static int
-d_internal_digit_of(
+static
+int d_internal_digit_of(
     char     _c,
     unsigned _base
 )
@@ -4192,12 +4177,12 @@ d_internal_read_number
 then 0x and hex, 0 and octal, or decimal. A magnitude past 64 bits is an
 overflow.
 */
-static struct d_internal_number
-d_internal_read_number(
+static
+struct dj_internal_number d_internal_read_number(
     const char* _text
 )
 {
-    struct d_internal_number number;
+    struct dj_internal_number number;
     const char*              at   = _text;
     unsigned                 base = 10u;
 
@@ -4261,8 +4246,8 @@ d_internal_unit
   The factor git's units give: none 1, k 1024, m 1024^2, g 1024^3, in
 either case; 0 for anything else.
 */
-static uint64_t
-d_internal_unit(
+static
+uint64_t d_internal_unit(
     const char* _unit
 )
 {
@@ -4291,8 +4276,8 @@ d_internal_scaled
 than `_most`: false for no number, a unit git does not know, or one too
 large.
 */
-static bool
-d_internal_scaled(
+static
+bool d_internal_scaled(
     const char* _value,
     uint64_t    _most,
     int64_t*    _out
@@ -4305,7 +4290,7 @@ d_internal_scaled(
         return false;
     }
 
-    const struct d_internal_number number = d_internal_read_number(_value);
+    const struct dj_internal_number number = d_internal_read_number(_value);
     const uint64_t                 factor = (number.read)
                                             ? d_internal_unit(number.end)
                                             : 0u;
@@ -4327,8 +4312,7 @@ d_internal_scaled(
 }
 
 
-bool
-d_git_text_int(
+bool d_git_text_int(
     const char* _value,
     int64_t*    _out
 )
@@ -4337,8 +4321,7 @@ d_git_text_int(
 }
 
 
-bool
-d_git_text_bool(
+bool d_git_text_bool(
     const char* _value,
     bool*       _out
 )
@@ -4395,10 +4378,9 @@ d_git_text_quote_value
 that what is written reads back as the value: a `\r` outside quotes is a
 blank to git.
 */
-bool
-d_git_text_quote_value(
-    struct d_git_buffer* _out,
-    const char*          _value
+bool d_git_text_quote_value(
+    struct dj_git_buffer* _out,
+    const char*           _value
 )
 {
     const char*  value  = (_value) ? _value : "";
@@ -4462,10 +4444,9 @@ d_git_text_quote_value(
 }
 
 
-bool
-d_git_text_quote_subsection(
-    struct d_git_buffer* _out,
-    const char*          _subsection
+bool d_git_text_quote_subsection(
+    struct dj_git_buffer* _out,
+    const char*           _subsection
 )
 {
     // each byte, a quote or backslash escaped
@@ -4490,8 +4471,8 @@ d_internal_must_quote
   Whether a byte of a path makes git quote it: a control byte, a quote, a
 backslash, or a byte past ASCII.
 */
-static bool
-d_internal_must_quote(
+static
+bool d_internal_must_quote(
     unsigned char _c
 )
 {
@@ -4506,10 +4487,10 @@ d_internal_must_quote(
 d_internal_quote_byte
   One byte of a quoted path: C's escape for it, or three octal digits.
 */
-static void
-d_internal_quote_byte(
-    struct d_git_buffer* _out,
-    unsigned char        _c
+static
+void d_internal_quote_byte(
+    struct dj_git_buffer* _out,
+    unsigned char         _c
 )
 {
     static const char letters[] = "abtnvfr";
@@ -4538,11 +4519,10 @@ d_internal_quote_byte(
 }
 
 
-bool
-d_git_text_quote_path(
-    struct d_git_buffer* _out,
-    const char*          _path,
-    size_t               _length
+bool d_git_text_quote_path(
+    struct dj_git_buffer* _out,
+    const char*           _path,
+    size_t                _length
 )
 {
     bool quote = false;
@@ -4590,8 +4570,8 @@ d_internal_unescape
 `\` at `*_at`, which it moves past; -1 for one git refuses: an unknown
 letter, or octal not three digits from 0 to 3.
 */
-static int
-d_internal_unescape(
+static
+int d_internal_unescape(
     const char* _text,
     size_t      _length,
     size_t*     _at
@@ -4644,12 +4624,11 @@ d_internal_unescape(
 }
 
 
-bool
-d_git_text_unquote(
-    struct d_git_buffer* _out,
-    const char*          _text,
-    size_t               _length,
-    size_t*              _used
+bool d_git_text_unquote(
+    struct dj_git_buffer* _out,
+    const char*           _text,
+    size_t                _length,
+    size_t*               _used
 )
 {
     // quoted text begins with a quote

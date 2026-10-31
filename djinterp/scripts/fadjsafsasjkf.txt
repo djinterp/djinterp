@@ -1,0 +1,38 @@
+﻿D:\sam\code\projects\frameworks\djinterp\release\build\cmake\config\testing\djinterp\core\memory\
+├── 📁 allocator_memory_strategy
+│   ├── 📄 allocator_memory_strategy_tests_runner.cpp
+│   └── 📄 CMakeLists.txt
+├── 📁 memory_all
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 memory_strategy_all_tests_runner.cpp
+├── 📁 memory_strategy_concepts
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 memory_strategy_concepts_tests_runner.cpp
+├── 📁 memory_strategy_traits
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 memory_strategy_traits_tests_runner.cpp
+├── 📁 monotonic_byte_arena
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 monotonic_byte_arena_tests_runner.cpp
+├── 📁 pool
+│   ├── 📁 pool
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 pool_tests_runner.cpp
+│   ├── 📁 pool_all
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 pool_all_tests_runner.cpp
+│   ├── 📁 pool_allocator
+│   │   ├── 📄 CMakeLists.txt
+│   │   └── 📄 pool_allocator_tests_runner.cpp
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 pool_tests_runner.cpp
+├── 📁 pool_allocator
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 pool_allocator_tests_runner.cpp
+├── 📁 pool_memory_strategy
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 pool_memory_strategy_tests_runner.cpp
+├── 📁 static_buffer_strategy
+│   ├── 📄 CMakeLists.txt
+│   └── 📄 static_buffer_strategy_tests_runner.cpp
+└── 📄 CMakeLists.txt

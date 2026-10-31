@@ -10,8 +10,8 @@
 *                                                            revised: 2026.09.22
 *******************************************************************************/
 // corpus driver: lex every file given and report totals and defects
-#include "../../inc/djinterp/parse/lang/c/lex_c.h"
-#include "../../inc/djinterp/parse/lang/cpp/lex_cpp.h"
+#include "../../inc/djinterp/c/modules/parse/lang/c/lex_c.h"
+#include "../../inc/djinterp/c/modules/parse/lang/cpp/lex_cpp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

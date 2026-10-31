@@ -20,8 +20,8 @@
 *
 *   ONE ALGORITHM, TWO ADAPTERS:
 *   The buffer form of every transform is defined as the sink form driven
-* against a d_pack_buffer_sink, and the measure pass is the sink form driven
-* against a d_pack_counting_sink.  So measuring, producing and overflowing all
+* against a dj_pack_buffer_sink, and the measure pass is the sink form driven
+* against a dj_pack_counting_sink.  So measuring, producing and overflowing all
 * run the same encoder and cannot disagree about a byte count -- the failure
 * mode a separate "compute the size" path always eventually develops.
 *
@@ -101,7 +101,7 @@ Return:
 */
 const char*
 d_pack_status_name(
-    enum d_pack_status _status
+    enum dj_pack_status _status
 )
 {
     switch (_status)
@@ -135,7 +135,7 @@ Return:
 */
 const char*
 d_pack_status_message(
-    enum d_pack_status _status
+    enum dj_pack_status _status
 )
 {
     switch (_status)
@@ -195,7 +195,7 @@ d_pack_status_message(
 // =============================================================================
 
 // d_internal_codec_names
-//   table: the codec names, indexed by d_codec_id.  A table rather than a
+//   table: the codec names, indexed by dj_codec_id.  A table rather than a
 // switch because d_codec_id_from_name walks it in the reverse direction, and
 // one table cannot disagree with itself the way two switches can.
 static const char* const d_internal_codec_names[D_CODEC_ID_COUNT] =
@@ -204,7 +204,7 @@ static const char* const d_internal_codec_names[D_CODEC_ID_COUNT] =
 };
 
 // d_internal_codec_suffixes
-//   table: the conventional file suffix for each codec, indexed by d_codec_id.
+//   table: the conventional file suffix for each codec, indexed by dj_codec_id.
 // `store` and raw `deflate` have none: neither is a file format, and inventing
 // a suffix for them would let a caller write a file no tool can identify.
 static const char* const d_internal_codec_suffixes[D_CODEC_ID_COUNT] =
@@ -223,7 +223,7 @@ Return:
 */
 const char*
 d_codec_id_name(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     if (!D_CODEC_ID_IS_VALID(_codec))
@@ -245,7 +245,7 @@ Return:
 */
 const char*
 d_codec_suffix(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     if (!D_CODEC_ID_IS_VALID(_codec))
@@ -273,7 +273,7 @@ Return:
 int
 d_codec_id_from_name(
     const char*      _name,
-    enum d_codec_id* _out_codec
+    enum dj_codec_id* _out_codec
 )
 {
     int i;
@@ -288,7 +288,7 @@ d_codec_id_from_name(
     {
         if (strcmp(_name, d_internal_codec_names[i]) == 0)
         {
-            *_out_codec = (enum d_codec_id)i;
+            *_out_codec = (enum dj_codec_id)i;
 
             return 1;
         }
@@ -347,7 +347,7 @@ d_codec_id_from_name(
 
 // d_internal_knob_names
 //   table: the qualified name of each knob ("zstd.window_log"), indexed by
-// d_compress_knob.  These are the strings a diff report prints and the strings
+// dj_compress_knob.  These are the strings a diff report prints and the strings
 // a CLI or config file binds against, so they are the knobs' external
 // identity and must not be reworded casually.
 static const char* const d_internal_knob_names[D_COMPRESS_KNOB_COUNT] =
@@ -372,7 +372,7 @@ static const char* const d_internal_knob_names[D_COMPRESS_KNOB_COUNT] =
 };
 
 // d_internal_knob_codecs
-//   table: which codec each knob belongs to, indexed by d_compress_knob.  The
+//   table: which codec each knob belongs to, indexed by dj_compress_knob.  The
 // generic `level` belongs to no single codec and is recorded as STORE, which
 // is the identity codec and therefore the one "applies to everything" answer
 // that is not a lie.
@@ -419,7 +419,7 @@ Return:
 */
 const char*
 d_compress_knob_name(
-    enum d_compress_knob _knob
+    enum dj_compress_knob _knob
 )
 {
     if ( ((int)_knob < 0) ||
@@ -433,7 +433,7 @@ d_compress_knob_name(
 
 /*
 d_compress_knob_offset
-  The knob's byte offset within a d_compress_options.
+  The knob's byte offset within a dj_compress_options.
 
   There is no stored offset table, because there does not need to be one: the
 struct is asserted in the header to be exactly fifty int32_t with no padding,
@@ -447,7 +447,7 @@ Return:
 */
 size_t
 d_compress_knob_offset(
-    enum d_compress_knob _knob
+    enum dj_compress_knob _knob
 )
 {
     if ( ((int)_knob < 0) ||
@@ -469,9 +469,9 @@ Return:
   The owning codec, or D_CODEC_ID_STORE for the generic effort and for an
 out-of-range index.
 */
-enum d_codec_id
+enum dj_codec_id
 d_compress_knob_codec(
-    enum d_compress_knob _knob
+    enum dj_compress_knob _knob
 )
 {
     if ( ((int)_knob < 0) ||
@@ -480,7 +480,7 @@ d_compress_knob_codec(
         return D_CODEC_ID_STORE;
     }
 
-    return (enum d_codec_id)d_internal_knob_codecs[(int)_knob];
+    return (enum dj_codec_id)d_internal_knob_codecs[(int)_knob];
 }
 
 /*
@@ -498,7 +498,7 @@ Return:
 int
 d_compress_knob_from_name(
     const char*           _name,
-    enum d_compress_knob* _out_knob
+    enum dj_compress_knob* _out_knob
 )
 {
     int i;
@@ -513,7 +513,7 @@ d_compress_knob_from_name(
     {
         if (strcmp(_name, d_internal_knob_names[i]) == 0)
         {
-            *_out_knob = (enum d_compress_knob)i;
+            *_out_knob = (enum dj_compress_knob)i;
 
             return 1;
         }
@@ -542,8 +542,8 @@ out-of-range index.
 */
 int32_t
 d_compress_options_knob_get(
-    const struct d_compress_options* _options,
-    enum d_compress_knob             _knob
+    const struct dj_compress_options* _options,
+    enum dj_compress_knob             _knob
 )
 {
     int32_t value;
@@ -575,8 +575,8 @@ Return:
 */
 int
 d_compress_options_knob_set(
-    struct d_compress_options* _options,
-    enum d_compress_knob       _knob,
+    struct dj_compress_options* _options,
+    enum dj_compress_knob       _knob,
     int32_t                    _value
 )
 {
@@ -610,9 +610,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_compress_options_init(
-    struct d_compress_options* _options
+void d_compress_options_init(
+    struct dj_compress_options* _options
 )
 {
     int i;
@@ -625,7 +624,7 @@ d_compress_options_init(
     for (i = 0; i < D_COMPRESS_KNOB_COUNT; ++i)
     {
         (void)d_compress_options_knob_set(_options,
-                                          (enum d_compress_knob)i,
+                                          (enum dj_compress_knob)i,
                                           D_COMPRESS_KNOB_UNSET);
     }
 
@@ -650,10 +649,9 @@ Return:
 equals a non-null one, even a pristine one -- absence and pristine are
 different answers.
 */
-int
-d_compress_options_equal(
-    const struct d_compress_options* _a,
-    const struct d_compress_options* _b
+int d_compress_options_equal(
+    const struct dj_compress_options* _a,
+    const struct dj_compress_options* _b
 )
 {
     int i;
@@ -666,7 +664,7 @@ d_compress_options_equal(
 
     for (i = 0; i < D_COMPRESS_KNOB_COUNT; ++i)
     {
-        enum d_compress_knob k = (enum d_compress_knob)i;
+        enum dj_compress_knob k = (enum dj_compress_knob)i;
 
         if (d_compress_options_knob_get(_a, k) !=
             d_compress_options_knob_get(_b, k))
@@ -687,9 +685,8 @@ Parameter(s):
 Return:
   1 when every knob is still UNSET, 0 otherwise.
 */
-int
-d_compress_options_are_default(
-    const struct d_compress_options* _options
+int d_compress_options_are_default(
+    const struct dj_compress_options* _options
 )
 {
     int i;
@@ -701,7 +698,7 @@ d_compress_options_are_default(
 
     for (i = 0; i < D_COMPRESS_KNOB_COUNT; ++i)
     {
-        if (d_compress_options_knob_get(_options, (enum d_compress_knob)i) !=
+        if (d_compress_options_knob_get(_options, (enum dj_compress_knob)i) !=
             D_COMPRESS_KNOB_UNSET)
         {
             return 0;
@@ -730,9 +727,9 @@ Return:
 */
 size_t
 d_compress_options_diff(
-    const struct d_compress_options* _a,
-    const struct d_compress_options* _b,
-    enum d_compress_knob*            _out_knobs,
+    const struct dj_compress_options* _a,
+    const struct dj_compress_options* _b,
+    enum dj_compress_knob*            _out_knobs,
     size_t                           _out_capacity
 )
 {
@@ -747,7 +744,7 @@ d_compress_options_diff(
 
     for (i = 0; i < D_COMPRESS_KNOB_COUNT; ++i)
     {
-        enum d_compress_knob k = (enum d_compress_knob)i;
+        enum dj_compress_knob k = (enum dj_compress_knob)i;
 
         if (d_compress_options_knob_get(_a, k) !=
             d_compress_options_knob_get(_b, k))
@@ -789,7 +786,7 @@ d_compress_options_diff(
 // table stores UNSET rather than 0.
 
 // d_internal_knob_defaults
-//   table: the resolved value of each knob, indexed by d_compress_knob.
+//   table: the resolved value of each knob, indexed by dj_compress_knob.
 static const int32_t d_internal_knob_defaults[D_COMPRESS_KNOB_COUNT] =
 {
     D_COMPRESS_LEVEL_DEFAULT,                       // level
@@ -845,7 +842,7 @@ Return:
 */
 int32_t
 d_compress_resolve_level(
-    enum d_codec_id _codec,
+    enum dj_codec_id _codec,
     int32_t         _generic_level
 )
 {
@@ -929,11 +926,11 @@ Return:
 */
 static int
 d_internal_codec_owns_knob(
-    enum d_codec_id      _codec,
-    enum d_compress_knob _knob
+    enum dj_codec_id      _codec,
+    enum dj_compress_knob _knob
 )
 {
-    enum d_codec_id owner = d_compress_knob_codec(_knob);
+    enum dj_codec_id owner = d_compress_knob_codec(_knob);
 
     if (owner == _codec)
     {
@@ -972,14 +969,14 @@ Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_INVALID_ARGUMENT for a null _out or an
 unknown codec.
 */
-enum d_pack_status
+enum dj_pack_status
 d_compress_options_resolve(
-    enum d_codec_id                  _codec,
-    const struct d_compress_options* _in,
-    struct d_compress_options*       _out
+    enum dj_codec_id                  _codec,
+    const struct dj_compress_options* _in,
+    struct dj_compress_options*       _out
 )
 {
-    struct d_compress_options work;
+    struct dj_compress_options work;
     int                       i;
 
     if ( (_out == NULL) ||
@@ -1009,7 +1006,7 @@ d_compress_options_resolve(
 
     for (i = 0; i < D_COMPRESS_KNOB_COUNT; ++i)
     {
-        enum d_compress_knob k = (enum d_compress_knob)i;
+        enum dj_compress_knob k = (enum dj_compress_knob)i;
 
         if (k == D_COMPRESS_KNOB_LEVEL)
         {
@@ -1037,7 +1034,7 @@ d_compress_options_resolve(
         case D_CODEC_ID_BROTLI:
         case D_CODEC_ID_BZIP2:
         {
-            enum d_compress_knob own = D_COMPRESS_KNOB_ZSTD_LEVEL;
+            enum dj_compress_knob own = D_COMPRESS_KNOB_ZSTD_LEVEL;
 
             if (_codec == D_CODEC_ID_LZ4)
             {
@@ -1076,11 +1073,11 @@ d_compress_options_resolve(
     return D_PACK_STATUS_OK;
 }
 
-// d_internal_knob_range
+// dj_internal_knob_range
 //   struct: one knob's permitted interval, for the validation table below.
-struct d_internal_knob_range
+struct dj_internal_knob_range
 {
-    enum d_compress_knob    knob;
+    enum dj_compress_knob    knob;
     int32_t                 low;
     int32_t                 high;
 };
@@ -1091,7 +1088,7 @@ struct d_internal_knob_range
 // because its range is a backend detail (dict_size, job_size) or because the
 // value is a member of a constant set the caller cannot mistype without also
 // mistyping the enumerator.
-static const struct d_internal_knob_range
+static const struct dj_internal_knob_range
 d_internal_knob_ranges[] =
 {
     { D_COMPRESS_KNOB_LEVEL,                  0,   9 },
@@ -1128,11 +1125,11 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_INVALID_ARGUMENT naming the offender.
 */
-enum d_pack_status
+enum dj_pack_status
 d_compress_options_validate(
-    enum d_codec_id                  _codec,
-    const struct d_compress_options* _options,
-    enum d_compress_knob*            _out_offender
+    enum dj_codec_id                  _codec,
+    const struct dj_compress_options* _options,
+    enum dj_compress_knob*            _out_offender
 )
 {
     size_t n = sizeof(d_internal_knob_ranges) /
@@ -1199,7 +1196,7 @@ Return:
 */
 int
 d_codec_is_available(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     return ( d_codec_can_compress(_codec) &&
@@ -1222,7 +1219,7 @@ Return:
 */
 int
 d_codec_can_compress(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     switch (_codec)
@@ -1282,7 +1279,7 @@ Return:
 */
 int
 d_codec_can_decompress(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     if (_codec == D_CODEC_ID_BROTLI)
@@ -1304,7 +1301,7 @@ Return:
 */
 int
 d_codec_backend_id(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     switch (_codec)
@@ -1369,7 +1366,7 @@ library, and "none" for a codec this build cannot perform.
 */
 const char*
 d_codec_backend_name(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     if (_codec == D_CODEC_ID_STORE)
@@ -1396,7 +1393,7 @@ Return:
 */
 size_t
 d_codec_available_list(
-    enum d_codec_id* _out_codecs,
+    enum dj_codec_id* _out_codecs,
     size_t           _out_capacity
 )
 {
@@ -1405,14 +1402,14 @@ d_codec_available_list(
 
     for (i = 0; i < D_CODEC_ID_COUNT; ++i)
     {
-        if (!d_codec_is_available((enum d_codec_id)i))
+        if (!d_codec_is_available((enum dj_codec_id)i))
         {
             continue;
         }
         if ( (_out_codecs != NULL) &&
              (found < _out_capacity) )
         {
-            _out_codecs[found] = (enum d_codec_id)i;
+            _out_codecs[found] = (enum dj_codec_id)i;
         }
 
         ++found;
@@ -1437,7 +1434,7 @@ Return:
 */
 int
 d_codec_signature_length(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     switch (_codec)
@@ -1476,7 +1473,7 @@ Return:
 */
 int
 d_codec_signature_matches(
-    enum d_codec_id _codec,
+    enum dj_codec_id _codec,
     const void*     _data,
     size_t          _size
 )
@@ -1562,10 +1559,10 @@ int
 d_codec_detect(
     const void*      _data,
     size_t           _size,
-    enum d_codec_id* _out_codec
+    enum dj_codec_id* _out_codec
 )
 {
-    static const enum d_codec_id order[] =
+    static const enum dj_codec_id order[] =
     {
         D_CODEC_ID_XZ,   D_CODEC_ID_ZSTD, D_CODEC_ID_LZ4,
         D_CODEC_ID_GZIP, D_CODEC_ID_BZIP2, D_CODEC_ID_ZLIB
@@ -1614,8 +1611,7 @@ Parameter(s):
 Return:
   The running CRC-32.
 */
-uint32_t
-d_pack_crc32(
+uint32_t d_pack_crc32(
     uint32_t    _seed,
     const void* _data,
     size_t      _size
@@ -1652,13 +1648,13 @@ d_pack_crc32(
 // VIII. SINK ADAPTERS
 // =============================================================================
 
-// d_internal_tee
+// dj_internal_tee
 //   struct: the context of a sink that counts the bytes passing through it and
 // forwards them to an inner sink.  Lets a transform report its own output size
 // without requiring the caller's sink to be countable.
-struct d_internal_tee
+struct dj_internal_tee
 {
-    struct d_pack_sink  inner;
+    struct dj_pack_sink  inner;
     size_t              total;
 };
 
@@ -1667,20 +1663,20 @@ d_internal_count_write
   The counting sink's write: accept everything, record the total.
 
 Parameter(s):
-  _context: a struct d_pack_counting_sink.
+  _context: a struct dj_pack_counting_sink.
   _data:    ignored.
   _size:    the byte count to add.
 Return:
   _size always -- a counting sink never refuses.
 */
-static size_t
-d_internal_count_write(
+static
+size_t d_internal_count_write(
     void*       _context,
     const void* _data,
     size_t      _size
 )
 {
-    struct d_pack_counting_sink* c = (struct d_pack_counting_sink*)_context;
+    struct dj_pack_counting_sink* c = (struct dj_pack_counting_sink*)_context;
 
     (void)_data;
 
@@ -1702,20 +1698,20 @@ exact size to grow to: the encoder runs to completion, the sink knows the full
 requirement, and the caller retries once rather than measuring separately.
 
 Parameter(s):
-  _context: a struct d_pack_buffer_sink.
+  _context: a struct dj_pack_buffer_sink.
   _data:    the bytes offered.
   _size:    how many.
 Return:
   _size always; the caller checks `overflow` rather than the return.
 */
-static size_t
-d_internal_buffer_write(
+static
+size_t d_internal_buffer_write(
     void*       _context,
     const void* _data,
     size_t      _size
 )
 {
-    struct d_pack_buffer_sink* b = (struct d_pack_buffer_sink*)_context;
+    struct dj_pack_buffer_sink* b = (struct dj_pack_buffer_sink*)_context;
 
     if (b == NULL)
     {
@@ -1751,9 +1747,8 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_pack_counting_sink_init(
-    struct d_pack_counting_sink* _counter
+void d_pack_counting_sink_init(
+    struct dj_pack_counting_sink* _counter
 )
 {
     if (_counter != NULL)
@@ -1775,11 +1770,10 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_pack_buffer_sink_init(
-    struct d_pack_buffer_sink* _sink,
-    void*                      _buffer,
-    size_t                     _capacity
+void d_pack_buffer_sink_init(
+    struct dj_pack_buffer_sink* _sink,
+    void*                       _buffer,
+    size_t                      _capacity
 )
 {
     if (_sink == NULL)
@@ -1805,12 +1799,11 @@ Parameter(s):
 Return:
   The bound sink.
 */
-struct d_pack_sink
-d_pack_sink_from_counter(
-    struct d_pack_counting_sink* _counter
+struct dj_pack_sink d_pack_sink_from_counter(
+    struct dj_pack_counting_sink* _counter
 )
 {
-    struct d_pack_sink s;
+    struct dj_pack_sink s;
 
     s.write   = &d_internal_count_write;
     s.context = _counter;
@@ -1827,12 +1820,11 @@ Parameter(s):
 Return:
   The bound sink.
 */
-struct d_pack_sink
-d_pack_sink_from_buffer(
-    struct d_pack_buffer_sink* _buffer
+struct dj_pack_sink d_pack_sink_from_buffer(
+    struct dj_pack_buffer_sink* _buffer
 )
 {
-    struct d_pack_sink s;
+    struct dj_pack_sink s;
 
     s.write   = &d_internal_buffer_write;
     s.context = _buffer;
@@ -1850,20 +1842,20 @@ socket, or a growable buffer, and none of them is obliged to be countable; the
 tee makes the count the transform's own business.
 
 Parameter(s):
-  _context: a struct d_internal_tee.
+  _context: a struct dj_internal_tee.
   _data:    the bytes offered.
   _size:    how many.
 Return:
   What the inner sink accepted, so a short write still propagates.
 */
-static size_t
-d_internal_tee_write(
+static
+size_t d_internal_tee_write(
     void*       _context,
     const void* _data,
     size_t      _size
 )
 {
-    struct d_internal_tee* t = (struct d_internal_tee*)_context;
+    struct dj_internal_tee* t = (struct dj_internal_tee*)_context;
     size_t                 taken;
 
     if ( (t == NULL) ||
@@ -1888,13 +1880,13 @@ Parameter(s):
 Return:
   A sink that counts and forwards.
 */
-static struct d_pack_sink
-d_internal_tee_bind(
-    struct d_internal_tee* _tee,
-    struct d_pack_sink     _inner
+static
+struct dj_pack_sink d_internal_tee_bind(
+    struct dj_internal_tee* _tee,
+    struct dj_pack_sink     _inner
 )
 {
-    struct d_pack_sink s;
+    struct dj_pack_sink s;
 
     _tee->inner = _inner;
     _tee->total = 0u;
@@ -1908,7 +1900,7 @@ d_internal_tee_bind(
 /*
 d_internal_emit
   Push bytes to a sink, mapping a refusal onto this module's status vocabulary.
-The one place a sink failure becomes a d_pack_status.
+The one place a sink failure becomes a dj_pack_status.
 
 Parameter(s):
   _sink: the destination.
@@ -1917,9 +1909,9 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_SINK_ERROR.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_emit(
-    struct d_pack_sink _sink,
+    struct dj_pack_sink _sink,
     const void*        _data,
     size_t             _size
 )
@@ -1961,11 +1953,11 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or the sink's failure.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_store_compress(
     const void*        _in,
     size_t             _in_size,
-    struct d_pack_sink _sink
+    struct dj_pack_sink _sink
 )
 {
     return d_internal_emit(_sink, _in, _in_size);
@@ -1991,8 +1983,8 @@ Parameter(s):
 Return:
   The same address, without const.
 */
-static void*
-d_internal_unconst(
+static
+void* d_internal_unconst(
     const void* _p
 )
 {
@@ -2024,8 +2016,8 @@ Return:
 */
 static int
 d_internal_zlib_window_bits(
-    enum d_codec_id                  _codec,
-    const struct d_compress_options* _options
+    enum dj_codec_id                  _codec,
+    const struct dj_compress_options* _options
 )
 {
     int32_t bits = d_compress_options_knob_get(
@@ -2063,18 +2055,18 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or a mechanical status describing the failure.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_zlib_compress(
-    enum d_codec_id                  _codec,
+    enum dj_codec_id                  _codec,
     const void*                      _in,
     size_t                           _in_size,
-    const struct d_compress_options* _options,
-    struct d_pack_sink               _sink
+    const struct dj_compress_options* _options,
+    struct dj_pack_sink               _sink
 )
 {
     unsigned char      stage[D_INTERNAL_CHUNK];
     z_stream           zs;
-    enum d_pack_status status = D_PACK_STATUS_OK;
+    enum dj_pack_status status = D_PACK_STATUS_OK;
     int                rc;
 
     memset(&zs, 0, sizeof(zs));
@@ -2144,17 +2136,17 @@ Return:
   D_PACK_STATUS_OK; D_PACK_STATUS_CORRUPT_INPUT when the stream is malformed;
 D_PACK_STATUS_TRUNCATED_INPUT when it ends early.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_zlib_decompress(
-    enum d_codec_id    _codec,
+    enum dj_codec_id    _codec,
     const void*        _in,
     size_t             _in_size,
-    struct d_pack_sink _sink
+    struct dj_pack_sink _sink
 )
 {
     unsigned char      stage[D_INTERNAL_CHUNK];
     z_stream           zs;
-    enum d_pack_status status = D_PACK_STATUS_OK;
+    enum dj_pack_status status = D_PACK_STATUS_OK;
     int                rc;
 
     memset(&zs, 0, sizeof(zs));
@@ -2240,20 +2232,20 @@ Return:
 cannot perform yields D_PACK_STATUS_UNAVAILABLE, which is a formal answer and
 not an error -- see facade_roundtrip_ok in test_compress.hpp.
 */
-enum d_pack_status
+enum dj_pack_status
 d_compress_to_sink(
-    enum d_codec_id                  _codec,
+    enum dj_codec_id                  _codec,
     const void*                      _in,
     size_t                           _in_size,
-    const struct d_compress_options* _options,
-    struct d_pack_sink               _sink,
+    const struct dj_compress_options* _options,
+    struct dj_pack_sink               _sink,
     size_t*                          _out_size
 )
 {
-    struct d_internal_tee     tally;
-    struct d_pack_sink        counted;
-    struct d_compress_options resolved;
-    enum d_pack_status        status;
+    struct dj_internal_tee     tally;
+    struct dj_pack_sink        counted;
+    struct dj_compress_options resolved;
+    enum dj_pack_status        status;
 
     if ( ((_in == NULL) && (_in_size != 0u)) ||
          (_sink.write == NULL) )
@@ -2333,16 +2325,16 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or a status describing the failure.
 */
-enum d_pack_status
+enum dj_pack_status
 d_decompress_to_sink(
-    enum d_codec_id    _codec,
+    enum dj_codec_id    _codec,
     const void*        _in,
     size_t             _in_size,
-    struct d_pack_sink _sink,
+    struct dj_pack_sink _sink,
     size_t*            _out_size
 )
 {
-    enum d_pack_status status;
+    enum dj_pack_status status;
 
     if ( ((_in == NULL) && (_in_size != 0u)) ||
          (_sink.write == NULL) )
@@ -2377,8 +2369,8 @@ d_decompress_to_sink(
         case D_CODEC_ID_ZLIB:
         case D_CODEC_ID_GZIP:
         {
-            struct d_internal_tee tally;
-            struct d_pack_sink    counted =
+            struct dj_internal_tee tally;
+            struct dj_pack_sink    counted =
                 d_internal_tee_bind(&tally, _sink);
 
             status = d_internal_zlib_decompress(_codec, _in, _in_size,
@@ -2423,21 +2415,21 @@ Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL with *_out_size carrying the
 requirement, or a status from the transform.
 */
-static enum d_pack_status
+static enum dj_pack_status
 d_internal_run_to_buffer(
     int                              _compressing,
-    enum d_codec_id                  _codec,
+    enum dj_codec_id                  _codec,
     const void*                      _in,
     size_t                           _in_size,
-    const struct d_compress_options* _options,
+    const struct dj_compress_options* _options,
     void*                            _out,
     size_t                           _out_cap,
     size_t*                          _out_size
 )
 {
-    struct d_pack_buffer_sink dest;
-    struct d_pack_sink        sink;
-    enum d_pack_status        status;
+    struct dj_pack_buffer_sink dest;
+    struct dj_pack_sink        sink;
+    enum dj_pack_status        status;
 
     if (_out_size == NULL)
     {
@@ -2495,12 +2487,12 @@ Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL with the requirement in
 *_out_size, or a status describing the failure.
 */
-enum d_pack_status
+enum dj_pack_status
 d_compress(
-    enum d_codec_id                  _codec,
+    enum dj_codec_id                  _codec,
     const void*                      _in,
     size_t                           _in_size,
-    const struct d_compress_options* _options,
+    const struct dj_compress_options* _options,
     void*                            _out,
     size_t                           _out_capacity,
     size_t*                          _out_size
@@ -2525,9 +2517,9 @@ Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_BUFFER_TOO_SMALL with the requirement in
 *_out_size, or a status describing the failure.
 */
-enum d_pack_status
+enum dj_pack_status
 d_decompress(
-    enum d_codec_id _codec,
+    enum dj_codec_id _codec,
     const void*     _in,
     size_t          _in_size,
     void*           _out,
@@ -2561,11 +2553,11 @@ Parameter(s):
 Return:
   D_PACK_STATUS_OK, or D_PACK_STATUS_INVALID_ARGUMENT.
 */
-enum d_pack_status
+enum dj_pack_status
 d_compress_bound(
-    enum d_codec_id                  _codec,
+    enum dj_codec_id                  _codec,
     size_t                           _in_size,
-    const struct d_compress_options* _options,
+    const struct dj_compress_options* _options,
     size_t*                          _out_bound
 )
 {

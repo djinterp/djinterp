@@ -227,7 +227,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env.h"  // D_ENV_OS_ID, D_ENV_LANG_USING_CPP
-#include "../../config/core/env/os/cfg_env_linux.h"  // D_CFG_ENV_LINUX_MUSL
+#include "../../config/env/os/cfg_env_linux.h"  // D_CFG_ENV_LINUX_MUSL
 // linux
 #if ( (defined(__linux__)) &&                                                  \
       (defined(__has_include)) )
@@ -1646,27 +1646,29 @@ const char* d_env_linux_get_libc_version(void);
  * @param[in] _syscall_nr  the system call's number, from <sys/syscall.h>.
  * @return `1` if the system call is supported, `0` otherwise.
  */
-int         d_env_linux_has_syscall(long _syscall_nr);
+int d_env_linux_has_syscall(
+    long _syscall_nr
+);
 /**
  * @brief Tests at runtime whether io_uring is available, by probing the
  *        io_uring_setup system call.
  *
  * @return `1` if io_uring is supported, `0` otherwise.
  */
-int         d_env_linux_has_io_uring(void);
+int d_env_linux_has_io_uring(void);
 /**
  * @brief Detects the active cgroup version at runtime.
  *
  * @return `2` for cgroups v2 (unified), `1` for cgroups v1, or `0` if
  *         detection fails.
  */
-int         d_env_linux_get_cgroup_version(void);
+int d_env_linux_get_cgroup_version(void);
 /**
  * @brief Prints detailed information about the detected Linux environment:
  *        kernel version, distribution, C library, security features, and
  *        available APIs.
  */
-void        d_env_linux_print_info(void);
+void d_env_linux_print_info(void);
 
 #if D_ENV_LANG_USING_CPP
     }

@@ -21,40 +21,32 @@
 
 #if D_MUTEX_HAS_C11_THREADS
 
-int
-d_mutex_init
-(
-    d_mutex_t* _mutex
+int d_mutex_init(
+    dj_mutex_t* _mutex
 )
 {
     int result = mtx_init(_mutex, mtx_plain);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_destroy
-(
-    d_mutex_t* _mutex
+int d_mutex_destroy(
+    dj_mutex_t* _mutex
 )
 {
     mtx_destroy(_mutex);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_mutex_lock
-(
-    d_mutex_t* _mutex
+int d_mutex_lock(
+    dj_mutex_t* _mutex
 )
 {
     int result = mtx_lock(_mutex);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_trylock
-(
-    d_mutex_t* _mutex
+int d_mutex_trylock(
+    dj_mutex_t* _mutex
 )
 {
     int result = mtx_trylock(_mutex);
@@ -66,20 +58,16 @@ d_mutex_trylock
         return D_MUTEX_ERROR;
 }
 
-int
-d_mutex_unlock
-(
-    d_mutex_t* _mutex
+int d_mutex_unlock(
+    dj_mutex_t* _mutex
 )
 {
     int result = mtx_unlock(_mutex);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_timedlock
-(
-    d_mutex_t*              _mutex,
+int d_mutex_timedlock(
+    dj_mutex_t*            _mutex,
     const struct timespec* _timeout
 )
 {
@@ -94,40 +82,32 @@ d_mutex_timedlock
 
 #elif D_MUTEX_HAS_PTHREAD
 
-int
-d_mutex_init
-(
-    d_mutex_t* _mutex
+int d_mutex_init(
+    dj_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_init(_mutex, NULL);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_destroy
-(
-    d_mutex_t* _mutex
+int d_mutex_destroy(
+    dj_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_destroy(_mutex);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_lock
-(
-    d_mutex_t* _mutex
+int d_mutex_lock(
+    dj_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_lock(_mutex);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_trylock
-(
-    d_mutex_t* _mutex
+int d_mutex_trylock(
+    dj_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_trylock(_mutex);
@@ -139,20 +119,16 @@ d_mutex_trylock
         return D_MUTEX_ERROR;
 }
 
-int
-d_mutex_unlock
-(
-    d_mutex_t* _mutex
+int d_mutex_unlock(
+    dj_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_unlock(_mutex);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_timedlock
-(
-    d_mutex_t*              _mutex,
+int d_mutex_timedlock(
+    dj_mutex_t*            _mutex,
     const struct timespec* _timeout
 )
 {
@@ -188,10 +164,8 @@ d_mutex_timedlock
 
 #elif D_MUTEX_HAS_WINDOWS_THREADS
 
-int
-d_mutex_init
-(
-    d_mutex_t* _mutex
+int d_mutex_init(
+    dj_mutex_t* _mutex
 )
 {
     _mutex->handle = CreateMutex(NULL, FALSE, NULL);
@@ -199,30 +173,24 @@ d_mutex_init
     return (_mutex->handle != NULL) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_destroy
-(
-    d_mutex_t* _mutex
+int d_mutex_destroy(
+    dj_mutex_t* _mutex
 )
 {
     BOOL result = CloseHandle(_mutex->handle);
     return result ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_lock
-(
-    d_mutex_t* _mutex
+int d_mutex_lock(
+    dj_mutex_t* _mutex
 )
 {
     DWORD result = WaitForSingleObject(_mutex->handle, INFINITE);
     return (result == WAIT_OBJECT_0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_trylock
-(
-    d_mutex_t* _mutex
+int d_mutex_trylock(
+    dj_mutex_t* _mutex
 )
 {
     DWORD result = WaitForSingleObject(_mutex->handle, 0);
@@ -234,20 +202,16 @@ d_mutex_trylock
         return D_MUTEX_ERROR;
 }
 
-int
-d_mutex_unlock
-(
-    d_mutex_t* _mutex
+int d_mutex_unlock(
+    dj_mutex_t* _mutex
 )
 {
     BOOL result = ReleaseMutex(_mutex->handle);
     return result ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_mutex_timedlock
-(
-    d_mutex_t*              _mutex,
+int d_mutex_timedlock(
+    dj_mutex_t*            _mutex,
     const struct timespec* _timeout
 )
 {
@@ -270,40 +234,32 @@ d_mutex_timedlock
 // Recursive mutex operations
 #if D_MUTEX_HAS_C11_THREADS
 
-int
-d_recursive_mutex_init
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_init(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = mtx_init(_mutex, mtx_recursive);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_recursive_mutex_destroy
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_destroy(
+    dj_recursive_mutex_t* _mutex
 )
 {
     mtx_destroy(_mutex);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_recursive_mutex_lock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_lock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = mtx_lock(_mutex);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_recursive_mutex_trylock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_trylock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = mtx_trylock(_mutex);
@@ -315,10 +271,8 @@ d_recursive_mutex_trylock
         return D_MUTEX_ERROR;
 }
 
-int
-d_recursive_mutex_unlock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_unlock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = mtx_unlock(_mutex);
@@ -327,10 +281,8 @@ d_recursive_mutex_unlock
 
 #elif D_MUTEX_HAS_PTHREAD
 
-int
-d_recursive_mutex_init
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_init(
+    dj_recursive_mutex_t* _mutex
 )
 {
     pthread_mutexattr_t attr;
@@ -341,30 +293,24 @@ d_recursive_mutex_init
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_recursive_mutex_destroy
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_destroy(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_destroy(_mutex);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_recursive_mutex_lock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_lock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_lock(_mutex);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_recursive_mutex_trylock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_trylock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_trylock(_mutex);
@@ -376,10 +322,8 @@ d_recursive_mutex_trylock
         return D_MUTEX_ERROR;
 }
 
-int
-d_recursive_mutex_unlock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_unlock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     int result = pthread_mutex_unlock(_mutex);
@@ -388,50 +332,40 @@ d_recursive_mutex_unlock
 
 #elif D_MUTEX_HAS_WINDOWS_THREADS
 
-int
-d_recursive_mutex_init
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_init(
+    dj_recursive_mutex_t* _mutex
 )
 {
     InitializeCriticalSection(_mutex);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_recursive_mutex_destroy
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_destroy(
+    dj_recursive_mutex_t* _mutex
 )
 {
     DeleteCriticalSection(_mutex);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_recursive_mutex_lock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_lock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     EnterCriticalSection(_mutex);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_recursive_mutex_trylock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_trylock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     BOOL result = TryEnterCriticalSection(_mutex);
     return result ? D_MUTEX_SUCCESS : D_MUTEX_BUSY;
 }
 
-int
-d_recursive_mutex_unlock
-(
-    d_recursive_mutex_t* _mutex
+int d_recursive_mutex_unlock(
+    dj_recursive_mutex_t* _mutex
 )
 {
     LeaveCriticalSection(_mutex);
@@ -447,11 +381,9 @@ d_recursive_mutex_unlock
 
 #if D_MUTEX_HAS_C11_THREADS
 
-int
-d_thread_create
-(
-    d_thread_t*      _thread,
-    d_thread_func_t _func,
+int d_thread_create(
+    dj_thread_t*     _thread,
+    dj_thread_func_t _func,
     void*            _arg
 )
 {
@@ -459,48 +391,36 @@ d_thread_create
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_thread_join
-(
-    d_thread_t           _thread,
-    d_thread_result_t* _result
+int d_thread_join(
+    dj_thread_t         _thread,
+    dj_thread_result_t* _result
 )
 {
     int result = thrd_join(_thread, _result);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_thread_detach
-(
-    d_thread_t _thread
+int d_thread_detach(
+    dj_thread_t _thread
 )
 {
     int result = thrd_detach(_thread);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-void
-d_thread_exit
-(
-    d_thread_result_t _result
+void d_thread_exit(
+    dj_thread_result_t _result
 )
 {
     thrd_exit(_result);
 }
 
-void
-d_thread_yield
-(
-    void
-)
+void d_thread_yield(void)
 {
     thrd_yield();
 }
 
-int
-d_thread_sleep
-(
+int d_thread_sleep(
     const struct timespec* _duration,
     struct timespec*       _remaining
 )
@@ -509,20 +429,14 @@ d_thread_sleep
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-d_thread_t
-d_thread_current
-(
-    void
-)
+dj_thread_t d_thread_current(void)
 {
     return thrd_current();
 }
 
-int
-d_thread_equal
-(
-    d_thread_t _t1,
-    d_thread_t _t2
+int d_thread_equal(
+    dj_thread_t _t1,
+    dj_thread_t _t2
 )
 {
     return thrd_equal(_t1, _t2);
@@ -532,33 +446,30 @@ d_thread_equal
 
 // Wrapper structure for pthread to handle return value conversion
 typedef struct {
-    d_thread_func_t func;
+    dj_thread_func_t func;
     void*           arg;
-} d_pthread_wrapper_arg_t;
+} dj_pthread_wrapper_arg_t;
 
-static void*
-d_pthread_wrapper
-(
+static
+void* d_pthread_wrapper(
     void* _arg
 )
 {
-    d_pthread_wrapper_arg_t* wrapper = (d_pthread_wrapper_arg_t*)_arg;
-    d_thread_func_t func = wrapper->func;
+    dj_pthread_wrapper_arg_t* wrapper = (dj_pthread_wrapper_arg_t*)_arg;
+    dj_thread_func_t func = wrapper->func;
     void* arg = wrapper->arg;
     free(wrapper);
     return func(arg);
 }
 
-int
-d_thread_create
-(
-    d_thread_t*      _thread,
-    d_thread_func_t _func,
+int d_thread_create(
+    dj_thread_t*     _thread,
+    dj_thread_func_t _func,
     void*            _arg
 )
 {
-    d_pthread_wrapper_arg_t* wrapper =
-        (d_pthread_wrapper_arg_t*)malloc(sizeof(d_pthread_wrapper_arg_t));
+    dj_pthread_wrapper_arg_t* wrapper =
+        (dj_pthread_wrapper_arg_t*)malloc(sizeof(dj_pthread_wrapper_arg_t));
     if (wrapper == NULL)
         return D_MUTEX_NOMEM;
 
@@ -574,41 +485,31 @@ d_thread_create
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_thread_join
-(
-    d_thread_t           _thread,
-    d_thread_result_t* _result
+int d_thread_join(
+    dj_thread_t         _thread,
+    dj_thread_result_t* _result
 )
 {
     int result = pthread_join(_thread, _result);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_thread_detach
-(
-    d_thread_t _thread
+int d_thread_detach(
+    dj_thread_t _thread
 )
 {
     int result = pthread_detach(_thread);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-void
-d_thread_exit
-(
-    d_thread_result_t _result
+void d_thread_exit(
+    dj_thread_result_t _result
 )
 {
     pthread_exit(_result);
 }
 
-void
-d_thread_yield
-(
-    void
-)
+void d_thread_yield(void)
 {
     #ifdef _POSIX_PRIORITY_SCHEDULING
         sched_yield();
@@ -619,9 +520,7 @@ d_thread_yield
     #endif
 }
 
-int
-d_thread_sleep
-(
+int d_thread_sleep(
     const struct timespec* _duration,
     struct timespec*       _remaining
 )
@@ -630,20 +529,14 @@ d_thread_sleep
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-d_thread_t
-d_thread_current
-(
-    void
-)
+dj_thread_t d_thread_current(void)
 {
     return pthread_self();
 }
 
-int
-d_thread_equal
-(
-    d_thread_t _t1,
-    d_thread_t _t2
+int d_thread_equal(
+    dj_thread_t _t1,
+    dj_thread_t _t2
 )
 {
     return pthread_equal(_t1, _t2);
@@ -653,18 +546,17 @@ d_thread_equal
 
 // Wrapper structure for Windows threads
 typedef struct {
-    d_thread_func_t func;
+    dj_thread_func_t func;
     void*           arg;
-} d_win_thread_wrapper_arg_t;
+} dj_win_thread_wrapper_arg_t;
 
-static unsigned int __stdcall
-d_win_thread_wrapper
-(
+static
+unsigned int __stdcall d_win_thread_wrapper(
     void* _arg
 )
 {
-    d_win_thread_wrapper_arg_t* wrapper = (d_win_thread_wrapper_arg_t*)_arg;
-    d_thread_func_t func = wrapper->func;
+    dj_win_thread_wrapper_arg_t* wrapper = (dj_win_thread_wrapper_arg_t*)_arg;
+    dj_thread_func_t func = wrapper->func;
     void* arg = wrapper->arg;
     free(wrapper);
 
@@ -672,16 +564,14 @@ d_win_thread_wrapper
     return (unsigned int)(uintptr_t)result;
 }
 
-int
-d_thread_create
-(
-    d_thread_t*      _thread,
-    d_thread_func_t _func,
+int d_thread_create(
+    dj_thread_t*     _thread,
+    dj_thread_func_t _func,
     void*            _arg
 )
 {
-    d_win_thread_wrapper_arg_t* wrapper =
-        (d_win_thread_wrapper_arg_t*)malloc(sizeof(d_win_thread_wrapper_arg_t));
+    dj_win_thread_wrapper_arg_t* wrapper =
+        (dj_win_thread_wrapper_arg_t*)malloc(sizeof(dj_win_thread_wrapper_arg_t));
     if (wrapper == NULL)
         return D_MUTEX_NOMEM;
 
@@ -699,11 +589,9 @@ d_thread_create
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_thread_join
-(
-    d_thread_t           _thread,
-    d_thread_result_t* _result
+int d_thread_join(
+    dj_thread_t         _thread,
+    dj_thread_result_t* _result
 )
 {
     DWORD wait_result = WaitForSingleObject(_thread.handle, INFINITE);
@@ -721,37 +609,27 @@ d_thread_join
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_thread_detach
-(
-    d_thread_t _thread
+int d_thread_detach(
+    dj_thread_t _thread
 )
 {
     BOOL result = CloseHandle(_thread.handle);
     return result ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-void
-d_thread_exit
-(
-    d_thread_result_t _result
+void d_thread_exit(
+    dj_thread_result_t _result
 )
 {
     _endthreadex((unsigned int)(uintptr_t)_result);
 }
 
-void
-d_thread_yield
-(
-    void
-)
+void d_thread_yield(void)
 {
     SwitchToThread();
 }
 
-int
-d_thread_sleep
-(
+int d_thread_sleep(
     const struct timespec* _duration,
     struct timespec*       _remaining
 )
@@ -768,23 +646,17 @@ d_thread_sleep
     return D_MUTEX_SUCCESS;
 }
 
-d_thread_t
-d_thread_current
-(
-    void
-)
+dj_thread_t d_thread_current(void)
 {
-    d_thread_t thread;
+    dj_thread_t thread;
     thread.handle = GetCurrentThread();
     thread.id = GetCurrentThreadId();
     return thread;
 }
 
-int
-d_thread_equal
-(
-    d_thread_t _t1,
-    d_thread_t _t2
+int d_thread_equal(
+    dj_thread_t _t1,
+    dj_thread_t _t2
 )
 {
     return (_t1.id == _t2.id);
@@ -796,41 +668,33 @@ d_thread_equal
 // Thread-specific storage operations
 #if D_MUTEX_HAS_C11_THREADS
 
-int
-d_tss_create
-(
-    d_tss_t*      _key,
-    d_tss_dtor_t _dtor
+int d_tss_create(
+    dj_tss_t*     _key,
+    dj_tss_dtor_t _dtor
 )
 {
     int result = tss_create(_key, _dtor);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_tss_delete
-(
-    d_tss_t _key
+int d_tss_delete(
+    dj_tss_t _key
 )
 {
     tss_delete(_key);
     return D_MUTEX_SUCCESS;
 }
 
-void*
-d_tss_get
-(
-    d_tss_t _key
+void* d_tss_get(
+    dj_tss_t _key
 )
 {
     return tss_get(_key);
 }
 
-int
-d_tss_set
-(
-    d_tss_t _key,
-    void*   _value
+int d_tss_set(
+    dj_tss_t _key,
+    void*    _value
 )
 {
     int result = tss_set(_key, _value);
@@ -839,41 +703,33 @@ d_tss_set
 
 #elif D_MUTEX_HAS_PTHREAD
 
-int
-d_tss_create
-(
-    d_tss_t*      _key,
-    d_tss_dtor_t _dtor
+int d_tss_create(
+    dj_tss_t*     _key,
+    dj_tss_dtor_t _dtor
 )
 {
     int result = pthread_key_create(_key, _dtor);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_tss_delete
-(
-    d_tss_t _key
+int d_tss_delete(
+    dj_tss_t _key
 )
 {
     int result = pthread_key_delete(_key);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-void*
-d_tss_get
-(
-    d_tss_t _key
+void* d_tss_get(
+    dj_tss_t _key
 )
 {
     return pthread_getspecific(_key);
 }
 
-int
-d_tss_set
-(
-    d_tss_t _key,
-    void*   _value
+int d_tss_set(
+    dj_tss_t _key,
+    void*    _value
 )
 {
     int result = pthread_setspecific(_key, _value);
@@ -882,11 +738,9 @@ d_tss_set
 
 #elif D_MUTEX_HAS_WINDOWS_THREADS
 
-int
-d_tss_create
-(
-    d_tss_t*      _key,
-    d_tss_dtor_t _dtor
+int d_tss_create(
+    dj_tss_t*     _key,
+    dj_tss_dtor_t _dtor
 )
 {
     (void)_dtor;  // Windows doesn't support destructors in TLS
@@ -894,30 +748,24 @@ d_tss_create
     return (*_key != TLS_OUT_OF_INDEXES) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_tss_delete
-(
-    d_tss_t _key
+int d_tss_delete(
+    dj_tss_t _key
 )
 {
     BOOL result = TlsFree(_key);
     return result ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-void*
-d_tss_get
-(
-    d_tss_t _key
+void* d_tss_get(
+    dj_tss_t _key
 )
 {
     return TlsGetValue(_key);
 }
 
-int
-d_tss_set
-(
-    d_tss_t _key,
-    void*   _value
+int d_tss_set(
+    dj_tss_t _key,
+    void*    _value
 )
 {
     BOOL result = TlsSetValue(_key, _value);
@@ -933,62 +781,50 @@ d_tss_set
 
 #if D_MUTEX_HAS_C11_THREADS
 
-int
-d_cond_init
-(
-    d_cond_t* _cond
+int d_cond_init(
+    dj_cond_t* _cond
 )
 {
     int result = cnd_init(_cond);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_destroy
-(
-    d_cond_t* _cond
+int d_cond_destroy(
+    dj_cond_t* _cond
 )
 {
     cnd_destroy(_cond);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_signal
-(
-    d_cond_t* _cond
+int d_cond_signal(
+    dj_cond_t* _cond
 )
 {
     int result = cnd_signal(_cond);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_broadcast
-(
-    d_cond_t* _cond
+int d_cond_broadcast(
+    dj_cond_t* _cond
 )
 {
     int result = cnd_broadcast(_cond);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_wait
-(
-    d_cond_t*  _cond,
-    d_mutex_t* _mutex
+int d_cond_wait(
+    dj_cond_t*  _cond,
+    dj_mutex_t* _mutex
 )
 {
     int result = cnd_wait(_cond, _mutex);
     return (result == thrd_success) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_timedwait
-(
-    d_cond_t*               _cond,
-    d_mutex_t*              _mutex,
+int d_cond_timedwait(
+    dj_cond_t*             _cond,
+    dj_mutex_t*            _mutex,
     const struct timespec* _timeout
 )
 {
@@ -1003,62 +839,50 @@ d_cond_timedwait
 
 #elif D_MUTEX_HAS_PTHREAD
 
-int
-d_cond_init
-(
-    d_cond_t* _cond
+int d_cond_init(
+    dj_cond_t* _cond
 )
 {
     int result = pthread_cond_init(_cond, NULL);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_destroy
-(
-    d_cond_t* _cond
+int d_cond_destroy(
+    dj_cond_t* _cond
 )
 {
     int result = pthread_cond_destroy(_cond);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_signal
-(
-    d_cond_t* _cond
+int d_cond_signal(
+    dj_cond_t* _cond
 )
 {
     int result = pthread_cond_signal(_cond);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_broadcast
-(
-    d_cond_t* _cond
+int d_cond_broadcast(
+    dj_cond_t* _cond
 )
 {
     int result = pthread_cond_broadcast(_cond);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_wait
-(
-    d_cond_t*  _cond,
-    d_mutex_t* _mutex
+int d_cond_wait(
+    dj_cond_t*  _cond,
+    dj_mutex_t* _mutex
 )
 {
     int result = pthread_cond_wait(_cond, _mutex);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_timedwait
-(
-    d_cond_t*               _cond,
-    d_mutex_t*              _mutex,
+int d_cond_timedwait(
+    dj_cond_t*             _cond,
+    dj_mutex_t*            _mutex,
     const struct timespec* _timeout
 )
 {
@@ -1073,51 +897,41 @@ d_cond_timedwait
 
 #elif D_MUTEX_HAS_WINDOWS_THREADS && D_MUTEX_HAS_WINDOWS_CONDITION_VARIABLE
 
-int
-d_cond_init
-(
-    d_cond_t* _cond
+int d_cond_init(
+    dj_cond_t* _cond
 )
 {
     InitializeConditionVariable(_cond);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_destroy
-(
-    d_cond_t* _cond
+int d_cond_destroy(
+    dj_cond_t* _cond
 )
 {
     (void)_cond;  // Windows condition variables don't need cleanup
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_signal
-(
-    d_cond_t* _cond
+int d_cond_signal(
+    dj_cond_t* _cond
 )
 {
     WakeConditionVariable(_cond);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_broadcast
-(
-    d_cond_t* _cond
+int d_cond_broadcast(
+    dj_cond_t* _cond
 )
 {
     WakeAllConditionVariable(_cond);
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_wait
-(
-    d_cond_t*  _cond,
-    d_mutex_t* _mutex
+int d_cond_wait(
+    dj_cond_t*  _cond,
+    dj_mutex_t* _mutex
 )
 {
     // Note: This assumes the mutex is a Windows mutex handle
@@ -1128,11 +942,9 @@ d_cond_wait
     return result ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_timedwait
-(
-    d_cond_t*               _cond,
-    d_mutex_t*              _mutex,
+int d_cond_timedwait(
+    dj_cond_t*             _cond,
+    dj_mutex_t*            _mutex,
     const struct timespec* _timeout
 )
 {
@@ -1153,10 +965,8 @@ d_cond_timedwait
 #elif D_MUTEX_HAS_WINDOWS_THREADS
 
 // Fallback condition variable implementation for older Windows
-int
-d_cond_init
-(
-    d_cond_t* _cond
+int d_cond_init(
+    dj_cond_t* _cond
 )
 {
     _cond->event = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -1165,10 +975,8 @@ d_cond_init
     return (_cond->event != NULL) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_cond_destroy
-(
-    d_cond_t* _cond
+int d_cond_destroy(
+    dj_cond_t* _cond
 )
 {
     CloseHandle(_cond->event);
@@ -1176,10 +984,8 @@ d_cond_destroy
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_signal
-(
-    d_cond_t* _cond
+int d_cond_signal(
+    dj_cond_t* _cond
 )
 {
     EnterCriticalSection(&_cond->waiters_count_lock);
@@ -1192,20 +998,16 @@ d_cond_signal
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_broadcast
-(
-    d_cond_t* _cond
+int d_cond_broadcast(
+    dj_cond_t* _cond
 )
 {
     return d_cond_signal(_cond);
 }
 
-int
-d_cond_wait
-(
-    d_cond_t*  _cond,
-    d_mutex_t* _mutex
+int d_cond_wait(
+    dj_cond_t*  _cond,
+    dj_mutex_t* _mutex
 )
 {
     EnterCriticalSection(&_cond->waiters_count_lock);
@@ -1223,11 +1025,9 @@ d_cond_wait
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_cond_timedwait
-(
-    d_cond_t*               _cond,
-    d_mutex_t*              _mutex,
+int d_cond_timedwait(
+    dj_cond_t*             _cond,
+    dj_mutex_t*            _mutex,
     const struct timespec* _timeout
 )
 {
@@ -1264,40 +1064,32 @@ d_cond_timedwait
 
 #if D_MUTEX_HAS_PTHREAD
 
-int
-d_rwlock_init
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_init(
+    struct dj_rwlock_t* _rwlock
 )
 {
     int result = pthread_rwlock_init(&_rwlock->rwlock, NULL);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_rwlock_destroy
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_destroy(
+    struct dj_rwlock_t* _rwlock
 )
 {
     int result = pthread_rwlock_destroy(&_rwlock->rwlock);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_rwlock_rdlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_rdlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     int result = pthread_rwlock_rdlock(&_rwlock->rwlock);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_rwlock_tryrdlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_tryrdlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     int result = pthread_rwlock_tryrdlock(&_rwlock->rwlock);
@@ -1309,20 +1101,16 @@ d_rwlock_tryrdlock
         return D_MUTEX_ERROR;
 }
 
-int
-d_rwlock_wrlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_wrlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     int result = pthread_rwlock_wrlock(&_rwlock->rwlock);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
-int
-d_rwlock_trywrlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_trywrlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     int result = pthread_rwlock_trywrlock(&_rwlock->rwlock);
@@ -1334,10 +1122,8 @@ d_rwlock_trywrlock
         return D_MUTEX_ERROR;
 }
 
-int
-d_rwlock_unlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_unlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     return (pthread_rwlock_unlock(&_rwlock->rwlock) == 0)
@@ -1345,10 +1131,8 @@ d_rwlock_unlock
         : D_MUTEX_ERROR;
 }
 
-int
-d_rwlock_timedrdlock
-(
-    struct d_rwlock_t*     _rwlock,
+int d_rwlock_timedrdlock(
+    struct dj_rwlock_t*    _rwlock,
     const struct timespec* _timeout
 )
 {
@@ -1374,10 +1158,8 @@ d_rwlock_timedrdlock
     #endif
 }
 
-int
-d_rwlock_timedwrlock
-(
-    struct d_rwlock_t*     _rwlock,
+int d_rwlock_timedwrlock(
+    struct dj_rwlock_t*    _rwlock,
     const struct timespec* _timeout
 )
 {
@@ -1406,10 +1188,8 @@ d_rwlock_timedwrlock
 #elif ( D_MUTEX_HAS_WINDOWS_THREADS &&  \
         D_MUTEX_HAS_WINDOWS_SRWLOCK )
 
-int
-d_rwlock_init
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_init(
+    struct dj_rwlock_t* _rwlock
 )
 {
     InitializeSRWLock(&_rwlock->srwlock);
@@ -1417,10 +1197,8 @@ d_rwlock_init
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_destroy
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_destroy(
+    struct dj_rwlock_t* _rwlock
 )
 {
     (void)_rwlock;  // SRW locks don't need cleanup
@@ -1428,10 +1206,8 @@ d_rwlock_destroy
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_rdlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_rdlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     AcquireSRWLockShared(&_rwlock->srwlock);
@@ -1439,10 +1215,8 @@ d_rwlock_rdlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_tryrdlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_tryrdlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     BOOLEAN result = TryAcquireSRWLockShared(&_rwlock->srwlock);
@@ -1452,10 +1226,8 @@ d_rwlock_tryrdlock
         : D_MUTEX_BUSY;
 }
 
-int
-d_rwlock_wrlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_wrlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     AcquireSRWLockExclusive(&_rwlock->srwlock);
@@ -1463,10 +1235,8 @@ d_rwlock_wrlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_trywrlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_trywrlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     BOOLEAN result = TryAcquireSRWLockExclusive(&_rwlock->srwlock);
@@ -1476,10 +1246,8 @@ d_rwlock_trywrlock
         : D_MUTEX_BUSY;
 }
 
-int
-d_rwlock_unlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_unlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     // Need to track whether we have read or write lock - limitation of API
@@ -1489,10 +1257,8 @@ d_rwlock_unlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_timedrdlock
-(
-    struct d_rwlock_t*     _rwlock,
+int d_rwlock_timedrdlock(
+    struct dj_rwlock_t*    _rwlock,
     const struct timespec* _timeout
 )
 {
@@ -1501,10 +1267,8 @@ d_rwlock_timedrdlock
     return d_rwlock_rdlock(_rwlock);
 }
 
-int
-d_rwlock_timedwrlock
-(
-    struct d_rwlock_t*     _rwlock,
+int d_rwlock_timedwrlock(
+    struct dj_rwlock_t*    _rwlock,
     const struct timespec* _timeout
 )
 {
@@ -1516,10 +1280,8 @@ d_rwlock_timedwrlock
 #else
 
 // Fallback implementation using mutex and condition variables
-int
-d_rwlock_init
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_init(
+    struct dj_rwlock_t* _rwlock
 )
 {
     d_mutex_init(&_rwlock->mutex);
@@ -1533,10 +1295,8 @@ d_rwlock_init
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_destroy
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_destroy(
+    struct dj_rwlock_t* _rwlock
 )
 {
     d_mutex_destroy(&_rwlock->mutex);
@@ -1546,10 +1306,8 @@ d_rwlock_destroy
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_rdlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_rdlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     d_mutex_lock(&_rwlock->mutex);
@@ -1566,10 +1324,8 @@ d_rwlock_rdlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_tryrdlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_tryrdlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     if (d_mutex_trylock(&_rwlock->mutex) != D_MUTEX_SUCCESS)
@@ -1588,10 +1344,8 @@ d_rwlock_tryrdlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_wrlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_wrlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     d_mutex_lock(&_rwlock->mutex);
@@ -1606,10 +1360,8 @@ d_rwlock_wrlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_trywrlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_trywrlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     if (d_mutex_trylock(&_rwlock->mutex) != D_MUTEX_SUCCESS)
@@ -1626,10 +1378,8 @@ d_rwlock_trywrlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_unlock
-(
-    struct d_rwlock_t* _rwlock
+int d_rwlock_unlock(
+    struct dj_rwlock_t* _rwlock
 )
 {
     d_mutex_lock(&_rwlock->mutex);
@@ -1653,10 +1403,8 @@ d_rwlock_unlock
     return D_MUTEX_SUCCESS;
 }
 
-int
-d_rwlock_timedrdlock
-(
-    struct d_rwlock_t*             _rwlock,
+int d_rwlock_timedrdlock(
+    struct dj_rwlock_t*    _rwlock,
     const struct timespec* _timeout
 )
 {
@@ -1664,10 +1412,8 @@ d_rwlock_timedrdlock
     return d_rwlock_rdlock(_rwlock);
 }
 
-int
-d_rwlock_timedwrlock
-(
-    struct d_rwlock_t*             _rwlock,
+int d_rwlock_timedwrlock(
+    struct dj_rwlock_t*    _rwlock,
     const struct timespec* _timeout
 )
 {
@@ -1684,11 +1430,9 @@ d_rwlock_timedwrlock
 
 #if D_MUTEX_HAS_C11_THREADS
 
-void
-d_call_once
-(
-    d_once_flag_t* _flag,
-    void         (*_func)(void)
+void d_call_once(
+    dj_once_flag_t* _flag,
+    void (*_func)(void)
 )
 {
     call_once(_flag, _func);
@@ -1696,11 +1440,9 @@ d_call_once
 
 #elif D_MUTEX_HAS_PTHREAD
 
-void
-d_call_once
-(
-    d_once_flag_t* _flag,
-    void         (*_func)(void)
+void d_call_once(
+    dj_once_flag_t* _flag,
+    void (*_func)(void)
 )
 {
     pthread_once(_flag, _func);
@@ -1708,9 +1450,8 @@ d_call_once
 
 #elif D_MUTEX_HAS_WINDOWS_THREADS
 
-static BOOL CALLBACK
-d_once_wrapper
-(
+static
+BOOL CALLBACK d_once_wrapper(
     PINIT_ONCE _init_once,
     PVOID      _parameter,
     PVOID*     _context
@@ -1723,11 +1464,9 @@ d_once_wrapper
     return TRUE;
 }
 
-void
-d_call_once
-(
-    d_once_flag_t* _flag,
-    void         (*_func)(void)
+void d_call_once(
+    dj_once_flag_t* _flag,
+    void (*_func)(void)
 )
 {
     InitOnceExecuteOnce(_flag, d_once_wrapper, _func, NULL);
@@ -1736,11 +1475,9 @@ d_call_once
 #else
 
 // Fallback using atomic operations
-void
-d_call_once
-(
-    d_once_flag_t* _flag,
-    void         (*_func)(void)
+void d_call_once(
+    dj_once_flag_t* _flag,
+    void (*_func)(void)
 )
 {
     // Simple but not entirely thread-safe fallback
@@ -1758,11 +1495,7 @@ d_call_once
 ///             IX.   UTILITY FUNCTIONS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-int
-d_thread_hardware_concurrency
-(
-    void
-)
+int d_thread_hardware_concurrency(void)
 {
     #if D_MUTEX_HAS_WINDOWS_THREADS
         SYSTEM_INFO sysinfo;

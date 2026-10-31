@@ -24,13 +24,9 @@ d_tests_dfile_null_params_all
   - various functions don't crash with NULL input
   - proper error codes or NULL returns for NULL params
 */
-struct d_test_object*
-d_tests_dfile_null_params_all
-(
-    void
-)
+struct dj_test_object* d_tests_dfile_null_params_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     bool                  test_fopen;
     bool                  test_stat;
     bool                  test_mkdir;

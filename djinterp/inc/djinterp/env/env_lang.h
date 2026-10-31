@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_ENV_LANG_H 1
 
 // djinterp
-#include "../config/core/env/cfg_env_lang.h"  // D_CFG_ENV_LANG_ENABLED
+#include "../config/env/cfg_env_lang.h"  // D_CFG_ENV_LANG_ENABLED
 
 
 //==============================================================================

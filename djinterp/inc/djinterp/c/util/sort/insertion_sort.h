@@ -59,11 +59,13 @@ D_EXTERN_C_BEGIN
 
 
 // I.     sorting
-enum d_sort_status d_insertion_sort(void*                           _base,
-                                    size_t                          _count,
-                                    size_t                          _elem_size,
-                                    const struct d_sort_comparator* _comparator,
-                                    enum d_sort_order               _order);
+enum dj_sort_status d_insertion_sort(
+    void*                            _base,
+    size_t                           _count,
+    size_t                           _elem_size,
+    const struct dj_sort_comparator* _comparator,
+    enum dj_sort_order               _order
+);
 
 
 D_EXTERN_C_END

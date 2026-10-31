@@ -9,17 +9,15 @@ d_tests_sa_datomic_flag_test_and_set
   - second test_and_set returns true (flag was set)
   - flag remains set on subsequent calls
 */
-bool
-d_tests_sa_datomic_flag_test_and_set
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_flag_test_and_set(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_flag flag;
+    dj_atomic_flag flag;
 
     result = true;
-    flag   = (d_atomic_flag)D_ATOMIC_FLAG_INIT;
+    flag   = (dj_atomic_flag)D_ATOMIC_FLAG_INIT;
 
     // initial test_and_set should return false
     result = d_assert_standalone(
@@ -52,17 +50,15 @@ d_tests_sa_datomic_flag_clear
   - flag can be cleared after being set
   - test_and_set returns false after clear
 */
-bool
-d_tests_sa_datomic_flag_clear
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_flag_clear(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_flag flag;
+    dj_atomic_flag flag;
 
     result = true;
-    flag   = (d_atomic_flag)D_ATOMIC_FLAG_INIT;
+    flag   = (dj_atomic_flag)D_ATOMIC_FLAG_INIT;
 
     // set the flag first
     d_atomic_flag_test_and_set(&flag);
@@ -87,17 +83,15 @@ d_tests_sa_datomic_flag_explicit
   - test_and_set_explicit with seq_cst ordering
   - clear_explicit with seq_cst ordering
 */
-bool
-d_tests_sa_datomic_flag_explicit
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_flag_explicit(
+    struct dj_test_counter* _counter
 )
 {
     bool          result;
-    d_atomic_flag flag;
+    dj_atomic_flag flag;
 
     result = true;
-    flag   = (d_atomic_flag)D_ATOMIC_FLAG_INIT;
+    flag   = (dj_atomic_flag)D_ATOMIC_FLAG_INIT;
 
     // test with explicit memory order
     result = d_assert_standalone(
@@ -124,10 +118,8 @@ d_tests_sa_datomic_flag_all
   Tests the following:
   - test_and_set, clear, explicit
 */
-bool
-d_tests_sa_datomic_flag_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_datomic_flag_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

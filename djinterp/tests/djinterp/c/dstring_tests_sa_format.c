@@ -17,7 +17,7 @@
 
 /*
 d_tests_sa_dstring_printf
-  Tests d_string_printf function (creates new formatted d_string).
+  Tests d_string_printf function (creates new formatted dj_string).
   Tests the following:
   - formatting with integer specifier
   - formatting with string specifier
@@ -27,14 +27,10 @@ d_tests_sa_dstring_printf
   - formatting with width and precision
   - NULL format string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_printf
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_printf(void)
 {
-    struct d_test_object* group;
-    struct d_string*      result;
+    struct dj_test_object* group;
+    struct dj_string*      result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_printf", 7);
@@ -112,21 +108,17 @@ d_tests_sa_dstring_printf
 
 /*
 d_tests_sa_dstring_vprintf
-  Tests d_string_vprintf function (creates new d_string from va_list).
+  Tests d_string_vprintf function (creates new dj_string from va_list).
   Note: This is tested indirectly through a helper function since we
   cannot directly construct a va_list in the test.
   Tests the following:
   - basic va_list formatting works (via wrapper)
   - NULL format string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_vprintf
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_vprintf(void)
 {
-    struct d_test_object* group;
-    struct d_string*      result;
+    struct dj_test_object* group;
+    struct dj_string*      result;
     size_t                idx;
 
     group = d_test_object_new_interior("d_string_vprintf", 2);
@@ -161,7 +153,7 @@ d_tests_sa_dstring_vprintf
 
 /*
 d_tests_sa_dstring_sprintf
-  Tests d_string_sprintf function (writes formatted string to existing d_string).
+  Tests d_string_sprintf function (writes formatted string to existing dj_string).
   Tests the following:
   - formatting into existing string
   - formatting overwrites previous content
@@ -171,14 +163,10 @@ d_tests_sa_dstring_sprintf
   - NULL destination handling
   - NULL format string handling
 */
-struct d_test_object*
-d_tests_sa_dstring_sprintf
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_sprintf(void)
 {
-    struct d_test_object* group;
-    struct d_string*      dest;
+    struct dj_test_object* group;
+    struct dj_string*      dest;
     int                   result;
     size_t                idx;
 
@@ -325,17 +313,13 @@ d_tests_sa_dstring_sprintf
 d_tests_sa_dstring_format_all
   Runs all formatted string function tests for dstring module.
   Tests the following:
-  - printf function (creates new formatted d_string)
-  - vprintf function (creates new d_string from va_list)
-  - sprintf function (writes formatted string to existing d_string)
+  - printf function (creates new formatted dj_string)
+  - vprintf function (creates new dj_string from va_list)
+  - sprintf function (writes formatted string to existing dj_string)
 */
-struct d_test_object*
-d_tests_sa_dstring_format_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_format_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                idx;
 
     group = d_test_object_new_interior("Formatted String Functions", 3);

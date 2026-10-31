@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./registry_tests_sa.h"
-#include "../../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /*
@@ -23,14 +23,12 @@ d_tests_sa_registry_rebuild_lookup
   - previous aliases are removed by rebuild
   - empty registry rebuild sets lookup_count to 0
 */
-bool
-d_tests_sa_registry_rebuild_lookup
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_rebuild_lookup(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
 
     result = true;
@@ -112,14 +110,12 @@ d_tests_sa_registry_sort_lookup
   - after sort, entries are in ascending key order
   - case-insensitive sort uses nocase comparison
 */
-bool
-d_tests_sa_registry_sort_lookup
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_sort_lookup(
+    struct dj_test_counter* _counter
 )
 {
     bool               result;
-    struct d_registry* reg;
+    struct dj_registry* reg;
     struct test_row    row;
     size_t             i;
     bool               sorted;
@@ -202,10 +198,8 @@ d_tests_sa_registry_sort_lookup
 d_tests_sa_registry_lookup_maint_all
   Aggregation function that runs all lookup maintenance tests.
 */
-bool
-d_tests_sa_registry_lookup_maint_all
-(
-    struct d_test_counter* _counter
+bool d_tests_sa_registry_lookup_maint_all(
+    struct dj_test_counter* _counter
 )
 {
     bool result;

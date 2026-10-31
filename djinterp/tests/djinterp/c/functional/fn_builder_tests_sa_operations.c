@@ -9,7 +9,7 @@
 *******************************************************************************/
 // djinterp
 #include "./fn_builder_tests_sa.h"
-#include "../../../../inc/djinterp/test/c/test_counter.h"
+#include "../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
 /******************************************************************************
@@ -20,9 +20,8 @@
 test_helper_double_int
   Transformer: multiplies each int by 2.
 */
-static bool
-test_helper_double_int
-(
+static
+bool test_helper_double_int(
     const void* _input,
     void*       _output,
     void*       _context
@@ -40,9 +39,8 @@ test_helper_double_int
 test_helper_add_ten
   Transformer: adds 10 to each int.
 */
-static bool
-test_helper_add_ten
-(
+static
+bool test_helper_add_ten(
     const void* _input,
     void*       _output,
     void*       _context
@@ -60,9 +58,8 @@ test_helper_add_ten
 test_helper_negate
   Transformer: negates each int.
 */
-static bool
-test_helper_negate
-(
+static
+bool test_helper_negate(
     const void* _input,
     void*       _output,
     void*       _context
@@ -80,9 +77,8 @@ test_helper_negate
 test_helper_is_even
   Predicate: returns true if the int is even.
 */
-static bool
-test_helper_is_even
-(
+static
+bool test_helper_is_even(
     const void* _element,
     void*       _context
 )
@@ -97,9 +93,8 @@ test_helper_is_even
 test_helper_is_positive
   Predicate: returns true if the int is > 0.
 */
-static bool
-test_helper_is_positive
-(
+static
+bool test_helper_is_positive(
     const void* _element,
     void*       _context
 )
@@ -122,14 +117,12 @@ d_tests_sa_fn_builder_map
   - both NULL returns NULL
   - NULL parameters do not modify a valid builder's state
 */
-bool
-d_tests_sa_fn_builder_map
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_map(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
-    struct d_fn_builder* result;
+    struct dj_fn_builder* builder;
+    struct dj_fn_builder* result;
     bool                 all_passed;
 
     all_passed = true;
@@ -225,14 +218,12 @@ d_tests_sa_fn_builder_filter
   - NULL parameters do not modify a valid builder's state
   - predicate_count is independent of transform_count
 */
-bool
-d_tests_sa_fn_builder_filter
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_filter(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
-    struct d_fn_builder* result;
+    struct dj_fn_builder* builder;
+    struct dj_fn_builder* result;
     bool                 all_passed;
 
     all_passed = true;
@@ -322,14 +313,12 @@ d_tests_sa_fn_builder_and_then
   - and_then with NULL transform returns NULL
   - and_then shares the same array as map
 */
-bool
-d_tests_sa_fn_builder_and_then
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_and_then(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
-    struct d_fn_builder* result;
+    struct dj_fn_builder* builder;
+    struct dj_fn_builder* result;
     bool                 all_passed;
 
     all_passed = true;
@@ -390,14 +379,12 @@ d_tests_sa_fn_builder_where
   - where with NULL predicate returns NULL
   - where shares the same array as filter
 */
-bool
-d_tests_sa_fn_builder_where
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_where(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
-    struct d_fn_builder* result;
+    struct dj_fn_builder* builder;
+    struct dj_fn_builder* result;
     bool                 all_passed;
 
     all_passed = true;
@@ -457,14 +444,12 @@ d_tests_sa_fn_builder_chaining
   - chain breaks on NULL return (NULL transform mid-chain)
   - chaining using return value directly works
 */
-bool
-d_tests_sa_fn_builder_chaining
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_chaining(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
-    struct d_fn_builder* result;
+    struct dj_fn_builder* builder;
+    struct dj_fn_builder* result;
     bool                 all_passed;
 
     all_passed = true;
@@ -576,14 +561,12 @@ d_tests_sa_fn_builder_grow
   - predicate array also grows correctly beyond initial capacity
   - mixed transforms and predicates both grow independently
 */
-bool
-d_tests_sa_fn_builder_grow
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_grow(
+    struct dj_test_counter* _test_info
 )
 {
-    struct d_fn_builder* builder;
-    struct d_fn_builder* result;
+    struct dj_fn_builder* builder;
+    struct dj_fn_builder* result;
     bool                 all_passed;
     size_t               i;
     size_t               initial_cap;
@@ -708,10 +691,8 @@ d_tests_sa_fn_builder_operations_all
   - fluent chaining patterns
   - internal grow mechanism
 */
-bool
-d_tests_sa_fn_builder_operations_all
-(
-    struct d_test_counter* _test_info
+bool d_tests_sa_fn_builder_operations_all(
+    struct dj_test_counter* _test_info
 )
 {
     bool all_passed;

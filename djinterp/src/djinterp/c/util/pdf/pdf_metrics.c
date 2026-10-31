@@ -18,7 +18,7 @@
 #include <stddef.h>  // size_t, NULL
 #include <string.h>  // memcpy, strlen
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 // the advance tables, per 1000 em, indexed by byte (WinAnsi)
@@ -383,8 +383,7 @@ static const short d_internal_pdf_zapf_dingbats_w[256] =
 };
 
 
-const short*
-d_pdf_width_table_for(
+const short* d_pdf_width_table_for(
     int32_t _font
 )
 {
@@ -421,8 +420,8 @@ d_internal_pdf_advance
 control range below 0x20, D_PDF_COURIER_ADVANCE otherwise -- for Courier and
 any face without a table.
 */
-static long
-d_internal_pdf_advance(
+static
+long d_internal_pdf_advance(
     const short*  _table,
     unsigned char _code
 )
@@ -439,8 +438,7 @@ d_internal_pdf_advance(
 d_pdf_glyph_advance_em
   A code outside 0..255 names no byte, and has no advance.
 */
-int32_t
-d_pdf_glyph_advance_em(
+int32_t d_pdf_glyph_advance_em(
     int32_t _font,
     int32_t _code
 )
@@ -455,8 +453,7 @@ d_pdf_glyph_advance_em(
                                            (unsigned char)_code);
 }
 
-double
-d_pdf_glyph_width(
+double d_pdf_glyph_width(
     int32_t _font,
     int32_t _code,
     double  _size
@@ -465,8 +462,7 @@ d_pdf_glyph_width(
     return (double)d_pdf_glyph_advance_em(_font, _code) * _size / 1000.0;
 }
 
-double
-d_pdf_text_width(
+double d_pdf_text_width(
     int32_t     _font,
     const char* _text,
     size_t      _length,
@@ -491,8 +487,7 @@ d_pdf_text_width(
     return (double)total * _size / 1000.0;
 }
 
-double
-d_pdf_text_width_z(
+double d_pdf_text_width_z(
     int32_t     _font,
     const char* _text,
     double      _size
@@ -514,8 +509,7 @@ that a prefix meets exactly: a differential over 5,600 random strings found
 difference in widths, advances or wrapping. This is the accurate side of the
 divergence pdf_metrics.h records for the width model.
 */
-size_t
-d_pdf_fit_char_count(
+size_t d_pdf_fit_char_count(
     int32_t     _font,
     const char* _text,
     size_t      _length,
@@ -557,8 +551,7 @@ fit. The return is the result's length. It is written, NUL-terminated, only
 when `_out` has room for all of it (`_out_capacity` greater than the length);
 otherwise nothing is written and the length says how much room to give.
 */
-size_t
-d_pdf_truncate_ellipsis(
+size_t d_pdf_truncate_ellipsis(
     int32_t     _font,
     const char* _text,
     size_t      _length,
@@ -614,13 +607,13 @@ d_pdf_truncate_ellipsis(
 d_internal_pdf_emit
   Records one line if there is room, and counts it either way.
 */
-static void
-d_internal_pdf_emit(
-    struct d_pdf_wrap_line* _out,
-    size_t                  _out_capacity,
-    size_t*                 _count,
-    const char*             _begin,
-    size_t                  _length
+static
+void d_internal_pdf_emit(
+    struct dj_pdf_wrap_line* _out,
+    size_t                   _out_capacity,
+    size_t*                  _count,
+    const char*              _begin,
+    size_t                   _length
 )
 {
     if ( (_out != NULL) &&
@@ -650,15 +643,14 @@ line starts it, so the spaces before it go with the line before.
 empty line); the first `_out_capacity` of them are written to `_out`, which
 may be NULL to count.
 */
-size_t
-d_pdf_wrap_to_width(
-    int32_t                 _font,
-    const char*             _text,
-    size_t                  _length,
-    double                  _size,
-    double                  _max_width,
-    struct d_pdf_wrap_line* _out,
-    size_t                  _out_capacity
+size_t d_pdf_wrap_to_width(
+    int32_t                  _font,
+    const char*              _text,
+    size_t                   _length,
+    double                   _size,
+    double                   _max_width,
+    struct dj_pdf_wrap_line* _out,
+    size_t                   _out_capacity
 )
 {
     const char* const text       = (_text != NULL) ? _text : "";

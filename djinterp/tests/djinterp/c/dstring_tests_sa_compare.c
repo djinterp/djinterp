@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                     dstring_tests_sa_compare.c
 *
-*   Unit tests for d_string comparison functions:
+*   Unit tests for dj_string comparison functions:
 *     - d_string_compare
 *     - d_string_compare_cstr
 *     - d_string_ncmp
@@ -51,15 +51,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_cmp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_cmp(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str1;
-    struct d_string*      str2;
+    struct dj_test_object* group;
+    struct dj_string*      str1;
+    struct dj_string*      str2;
     size_t                child_idx;
     int                   result;
 
@@ -341,30 +337,26 @@ d_tests_sa_dstring_cmp
 
 /*
 d_tests_sa_dstring_cmp_cstr
-  Tests d_string_compare_cstr() which compares a d_string with a C string.
+  Tests d_string_compare_cstr() which compares a dj_string with a C string.
 
 Test cases:
   1. Both NULL returns 0
-  2. d_string NULL returns negative
+  2. dj_string NULL returns negative
   3. C string NULL returns positive
   4. Equal strings
-  5. d_string less than C string
-  6. d_string greater than C string
-  7. Empty d_string vs empty C string
+  5. dj_string less than C string
+  6. dj_string greater than C string
+  7. Empty dj_string vs empty C string
 
 Parameter(s):
   (none)
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_cmp_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_cmp_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     int                   result;
 
@@ -381,15 +373,15 @@ d_tests_sa_dstring_cmp_cstr
     group->elements[child_idx++] = D_ASSERT_EQUAL(
         "both_null_returns_0",
         result, 0,
-        "comparing NULL d_string with NULL C string returns 0"
+        "comparing NULL dj_string with NULL C string returns 0"
     );
 
-    // test 2: d_string NULL returns negative
+    // test 2: dj_string NULL returns negative
     result = d_string_compare_cstr(NULL, "test");
     group->elements[child_idx++] = D_ASSERT_TRUE(
         "dstring_null_negative",
         result < 0,
-        "NULL d_string < non-NULL C string"
+        "NULL dj_string < non-NULL C string"
     );
 
     // test 3: C string NULL returns positive
@@ -402,7 +394,7 @@ d_tests_sa_dstring_cmp_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "cstr_null_positive",
             result > 0,
-            "non-NULL d_string > NULL C string"
+            "non-NULL dj_string > NULL C string"
         );
 
         d_string_free(str);
@@ -422,7 +414,7 @@ d_tests_sa_dstring_cmp_cstr
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "equal_returns_0",
             result, 0,
-            "equal d_string and C string should return 0"
+            "equal dj_string and C string should return 0"
         );
 
         d_string_free(str);
@@ -432,7 +424,7 @@ d_tests_sa_dstring_cmp_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE("eq_skip", false, "skip");
     }
 
-    // test 5: d_string less than C string
+    // test 5: dj_string less than C string
     str = d_string_new_from_cstr("AAA");
 
     if (str)
@@ -452,7 +444,7 @@ d_tests_sa_dstring_cmp_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE("lt_skip", false, "skip");
     }
 
-    // test 6: d_string greater than C string
+    // test 6: dj_string greater than C string
     str = d_string_new_from_cstr("ZZZ");
 
     if (str)
@@ -482,7 +474,7 @@ d_tests_sa_dstring_cmp_cstr
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "empty_vs_empty",
             result, 0,
-            "empty d_string equals empty C string"
+            "empty dj_string equals empty C string"
         );
 
         d_string_free(str);
@@ -557,15 +549,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncmp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncmp(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str1;
-    struct d_string*      str2;
+    struct dj_test_object* group;
+    struct dj_string*      str1;
+    struct dj_string*      str2;
     size_t                child_idx;
     int                   result;
 
@@ -763,7 +751,7 @@ d_tests_sa_dstring_ncmp
 
 /*
 d_tests_sa_dstring_ncmp_cstr
-  Tests d_string_ncmp_cstr() which compares up to n characters of a d_string
+  Tests d_string_ncmp_cstr() which compares up to n characters of a dj_string
   with a C string.
 
 Test cases:
@@ -777,14 +765,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncmp_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncmp_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     int                   result;
 
@@ -876,12 +860,12 @@ d_tests_sa_dstring_ncmp_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE("ngl_skip", false, "skip");
     }
 
-    // test 5: NULL d_string
+    // test 5: NULL dj_string
     result = d_string_ncmp_cstr(NULL, "test", 4);
     group->elements[child_idx++] = D_ASSERT_TRUE(
         "null_dstring",
         result < 0,
-        "NULL d_string < non-NULL C string"
+        "NULL dj_string < non-NULL C string"
     );
 
     // test 6: NULL C string
@@ -894,7 +878,7 @@ d_tests_sa_dstring_ncmp_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_cstr",
             result > 0,
-            "non-NULL d_string > NULL C string"
+            "non-NULL dj_string > NULL C string"
         );
 
         d_string_free(str);
@@ -929,15 +913,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_casecmp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_casecmp(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str1;
-    struct d_string*      str2;
+    struct dj_test_object* group;
+    struct dj_string*      str1;
+    struct dj_string*      str2;
     size_t                child_idx;
     int                   result;
 
@@ -1135,7 +1115,7 @@ d_tests_sa_dstring_casecmp
 
 /*
 d_tests_sa_dstring_casecmp_cstr
-  Tests d_string_casecmp_cstr() which compares a d_string with a C string
+  Tests d_string_casecmp_cstr() which compares a dj_string with a C string
   case-insensitively.
 
 Test cases:
@@ -1148,14 +1128,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_casecmp_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_casecmp_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     int                   result;
 
@@ -1207,12 +1183,12 @@ d_tests_sa_dstring_casecmp_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE("df_skip", false, "skip");
     }
 
-    // test 3: NULL d_string
+    // test 3: NULL dj_string
     result = d_string_casecmp_cstr(NULL, "test");
     group->elements[child_idx++] = D_ASSERT_TRUE(
         "null_dstring",
         result < 0,
-        "NULL d_string < non-NULL C string"
+        "NULL dj_string < non-NULL C string"
     );
 
     // test 4: NULL C string
@@ -1225,7 +1201,7 @@ d_tests_sa_dstring_casecmp_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_cstr",
             result > 0,
-            "non-NULL d_string > NULL C string"
+            "non-NULL dj_string > NULL C string"
         );
 
         d_string_free(str);
@@ -1267,15 +1243,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncasecmp
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncasecmp(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str1;
-    struct d_string*      str2;
+    struct dj_test_object* group;
+    struct dj_string*      str1;
+    struct dj_string*      str2;
     size_t                child_idx;
     int                   result;
 
@@ -1402,7 +1374,7 @@ d_tests_sa_dstring_ncasecmp
 /*
 d_tests_sa_dstring_ncasecmp_cstr
   Tests d_string_ncasecmp_cstr() which compares up to n characters of a
-  d_string with a C string case-insensitively.
+  dj_string with a C string case-insensitively.
 
 Test cases:
   1. Partial case insensitive equal
@@ -1413,14 +1385,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_ncasecmp_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_ncasecmp_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     int                   result;
 
@@ -1497,7 +1465,7 @@ d_tests_sa_dstring_ncasecmp_cstr
     group->elements[child_idx++] = D_ASSERT_TRUE(
         "null_dstring",
         result < 0,
-        "NULL d_string < non-NULL C string"
+        "NULL dj_string < non-NULL C string"
     );
 
     return group;
@@ -1525,15 +1493,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_equals
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_equals(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str1;
-    struct d_string*      str2;
+    struct dj_test_object* group;
+    struct dj_string*      str1;
+    struct dj_string*      str2;
     size_t                child_idx;
     bool                  result;
 
@@ -1719,12 +1683,12 @@ d_tests_sa_dstring_equals
 
 /*
 d_tests_sa_dstring_equals_cstr
-  Tests d_string_equals_cstr() which returns true if a d_string equals a
+  Tests d_string_equals_cstr() which returns true if a dj_string equals a
   C string.
 
 Test cases:
   1. Both NULL returns true
-  2. d_string NULL returns false
+  2. dj_string NULL returns false
   3. C string NULL returns false
   4. Equal strings
   5. Different strings
@@ -1735,14 +1699,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_equals_cstr
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_equals_cstr(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     bool                  result;
 
@@ -1759,15 +1719,15 @@ d_tests_sa_dstring_equals_cstr
     group->elements[child_idx++] = D_ASSERT_TRUE(
         "both_null_true",
         result,
-        "NULL d_string and NULL C string are equal"
+        "NULL dj_string and NULL C string are equal"
     );
 
-    // test 2: d_string NULL returns false
+    // test 2: dj_string NULL returns false
     result = d_string_equals_cstr(NULL, "test");
     group->elements[child_idx++] = D_ASSERT_FALSE(
         "dstring_null_false",
         result,
-        "NULL d_string != non-NULL C string"
+        "NULL dj_string != non-NULL C string"
     );
 
     // test 3: C string NULL returns false
@@ -1780,7 +1740,7 @@ d_tests_sa_dstring_equals_cstr
         group->elements[child_idx++] = D_ASSERT_FALSE(
             "cstr_null_false",
             result,
-            "non-NULL d_string != NULL C string"
+            "non-NULL dj_string != NULL C string"
         );
 
         d_string_free(str);
@@ -1860,7 +1820,7 @@ d_tests_sa_dstring_equals_cstr
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "empty_equal",
             result,
-            "empty d_string == empty C string"
+            "empty dj_string == empty C string"
         );
 
         d_string_free(str);
@@ -1895,15 +1855,11 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_equals_ignore_case
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_equals_ignore_case(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str1;
-    struct d_string*      str2;
+    struct dj_test_object* group;
+    struct dj_string*      str1;
+    struct dj_string*      str2;
     size_t                child_idx;
     bool                  result;
 
@@ -2049,7 +2005,7 @@ d_tests_sa_dstring_equals_ignore_case
 
 /*
 d_tests_sa_dstring_equals_cstr_ignore_case
-  Tests d_string_equals_cstr_ignore_case() which returns true if a d_string
+  Tests d_string_equals_cstr_ignore_case() which returns true if a dj_string
   equals a C string ignoring case.
 
 Test cases:
@@ -2062,14 +2018,10 @@ Parameter(s):
 Return:
   Test object containing all assertion results.
 */
-struct d_test_object*
-d_tests_sa_dstring_equals_cstr_ignore_case
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_equals_cstr_ignore_case(void)
 {
-    struct d_test_object* group;
-    struct d_string*      str;
+    struct dj_test_object* group;
+    struct dj_string*      str;
     size_t                child_idx;
     bool                  result;
 
@@ -2129,12 +2081,12 @@ d_tests_sa_dstring_equals_cstr_ignore_case
         "both NULL are equal"
     );
 
-    // test 4: d_string NULL
+    // test 4: dj_string NULL
     result = d_string_equals_cstr_ignore_case(NULL, "test");
     group->elements[child_idx++] = D_ASSERT_FALSE(
         "dstring_null_false",
         result,
-        "NULL d_string != non-NULL C string"
+        "NULL dj_string != non-NULL C string"
     );
 
     // test 5: C string NULL
@@ -2147,7 +2099,7 @@ d_tests_sa_dstring_equals_cstr_ignore_case
         group->elements[child_idx++] = D_ASSERT_FALSE(
             "cstr_null_false",
             result,
-            "non-NULL d_string != NULL C string"
+            "non-NULL dj_string != NULL C string"
         );
 
         d_string_free(str);
@@ -2175,16 +2127,12 @@ Parameter(s):
 Return:
   Test object containing all comparison test results.
 */
-struct d_test_object*
-d_tests_sa_dstring_compare_all
-(
-    void
-)
+struct dj_test_object* d_tests_sa_dstring_compare_all(void)
 {
-    struct d_test_object* group;
+    struct dj_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Comparison Functions", 12);
+    group     = d_test_object_new_interior("dj_string Comparison Functions", 12);
     child_idx = 0;
 
     if (!group)

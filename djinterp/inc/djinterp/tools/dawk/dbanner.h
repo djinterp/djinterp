@@ -27,7 +27,7 @@
 // std
 #include <stdint.h>  // uint32_t
 // djinterp
-#include "./dnode.h"  // d_node_tree
+#include "./dnode.h"  // dj_node_tree
 
 
 //==============================================================================
@@ -52,9 +52,11 @@
 
 // 2.1    Construction
 //------------------------------------------------------------------------------
-uint32_t d_banner_build(struct d_node_tree* _tree,
-                        const char*         _path,
-                        const char*         _root);
+uint32_t d_banner_build(
+    struct dj_node_tree* _tree,
+    const char*          _path,
+    const char*          _root
+);
 /**
  * @brief Adds a file node carrying `path` (relative to `_root`), `name` and
  *        `top`, the top-level directory.
@@ -64,9 +66,11 @@ uint32_t d_banner_build(struct d_node_tree* _tree,
  * @param[in]     _root  the root the walk began at.
  * @return the file node, or `D_DSS_NO_INDEX` when the tree refused it.
  */
-uint32_t d_banner_file(struct d_node_tree* _tree,
-                       const char*         _path,
-                       const char*         _root);
+uint32_t d_banner_file(
+    struct dj_node_tree* _tree,
+    const char*          _path,
+    const char*          _root
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DBANNER_H

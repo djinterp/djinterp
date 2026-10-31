@@ -17,22 +17,58 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-float d_color_hsl_hue_to_rgb(float _p, float _q, float _t);
-struct d_color_hsl d_color_convert_rgb_to_hsl(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_convert_hsl_to_rgb(struct d_color_hsl _hsl);
-struct d_color_hsv d_color_convert_rgb_to_hsv(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_convert_hsv_to_rgb(struct d_color_hsv _hsv);
-struct d_color_hsv d_color_convert_hsl_to_hsv(struct d_color_hsl _hsl);
-struct d_color_hsl d_color_convert_hsv_to_hsl(struct d_color_hsv _hsv);
-struct d_color_cmyk d_color_convert_rgb_to_cmyk(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_convert_cmyk_to_rgb(struct d_color_cmyk _cmyk);
-struct d_color_ycbcr d_color_convert_rgb_to_ycbcr(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_convert_ycbcr_to_rgb(struct d_color_ycbcr _ycbcr);
-struct d_color_xyz d_color_convert_rgb_to_xyz(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_convert_xyz_to_rgb(struct d_color_xyz _xyz);
-struct d_color_lab d_color_convert_xyz_to_lab(struct d_color_xyz _xyz);
-struct d_color_xyz d_color_convert_lab_to_xyz(struct d_color_lab _lab);
-struct d_color_lab d_color_convert_rgb_to_lab(struct d_color_rgb _rgb);
-struct d_color_rgb d_color_convert_lab_to_rgb(struct d_color_lab _lab);
+float d_color_hsl_hue_to_rgb(
+    float _p,
+    float _q,
+    float _t
+);
+struct dj_color_hsl d_color_convert_rgb_to_hsl(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_convert_hsl_to_rgb(
+    struct dj_color_hsl _hsl
+);
+struct dj_color_hsv d_color_convert_rgb_to_hsv(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_convert_hsv_to_rgb(
+    struct dj_color_hsv _hsv
+);
+struct dj_color_hsv d_color_convert_hsl_to_hsv(
+    struct dj_color_hsl _hsl
+);
+struct dj_color_hsl d_color_convert_hsv_to_hsl(
+    struct dj_color_hsv _hsv
+);
+struct dj_color_cmyk d_color_convert_rgb_to_cmyk(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_convert_cmyk_to_rgb(
+    struct dj_color_cmyk _cmyk
+);
+struct dj_color_ycbcr d_color_convert_rgb_to_ycbcr(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_convert_ycbcr_to_rgb(
+    struct dj_color_ycbcr _ycbcr
+);
+struct dj_color_xyz d_color_convert_rgb_to_xyz(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_convert_xyz_to_rgb(
+    struct dj_color_xyz _xyz
+);
+struct dj_color_lab d_color_convert_xyz_to_lab(
+    struct dj_color_xyz _xyz
+);
+struct dj_color_xyz d_color_convert_lab_to_xyz(
+    struct dj_color_lab _lab
+);
+struct dj_color_lab d_color_convert_rgb_to_lab(
+    struct dj_color_rgb _rgb
+);
+struct dj_color_rgb d_color_convert_lab_to_rgb(
+    struct dj_color_lab _lab
+);
 
 #endif  // D_COLOR_HEADER_ONLY

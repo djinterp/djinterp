@@ -49,9 +49,8 @@ Parameter(s):
 Return:
   _buf, holding the rewritten string.
 */
-static const char*
-d_fs_sep
-(
+static
+const char* d_fs_sep(
     char*       _buf,
     size_t      _n,
     const char* _tmpl
@@ -74,9 +73,8 @@ d_fs_sep
  * IX.a  d_path_dirname
  *****************************************************************************/
 
-static void
-d_fs_tests_path_dirname
-(
+static
+void d_fs_tests_path_dirname(
     dtest_suite* _suite
 )
 {
@@ -158,9 +156,8 @@ d_fs_tests_path_dirname
  * IX.b  d_path_basename
  *****************************************************************************/
 
-static void
-d_fs_tests_path_basename
-(
+static
+void d_fs_tests_path_basename(
     dtest_suite* _suite
 )
 {
@@ -225,9 +222,8 @@ d_fs_tests_path_basename
  * IX.c  d_path_extension
  *****************************************************************************/
 
-static void
-d_fs_tests_path_get_extension
-(
+static
+void d_fs_tests_path_get_extension(
     dtest_suite* _suite
 )
 {
@@ -275,9 +271,8 @@ d_fs_tests_path_get_extension
  * IX.d  d_path_stem
  *****************************************************************************/
 
-static void
-d_fs_tests_path_stem
-(
+static
+void d_fs_tests_path_stem(
     dtest_suite* _suite
 )
 {
@@ -321,9 +316,8 @@ d_fs_tests_path_stem
  * IX.e  d_path_join
  *****************************************************************************/
 
-static void
-d_fs_tests_path_join
-(
+static
+void d_fs_tests_path_join(
     dtest_suite* _suite
 )
 {
@@ -412,9 +406,8 @@ d_fs_tests_path_join
  * IX.f  d_path_is_absolute
  *****************************************************************************/
 
-static void
-d_fs_tests_path_is_absolute
-(
+static
+void d_fs_tests_path_is_absolute(
     dtest_suite* _suite
 )
 {
@@ -465,9 +458,8 @@ d_fs_tests_path_is_absolute
  * IX.g  d_path_root_length
  *****************************************************************************/
 
-static void
-d_fs_tests_path_root_length
-(
+static
+void d_fs_tests_path_root_length(
     dtest_suite* _suite
 )
 {
@@ -502,9 +494,8 @@ d_fs_tests_path_root_length
  * IX.h  d_path_normalize
  *****************************************************************************/
 
-static void
-d_fs_tests_path_normalize
-(
+static
+void d_fs_tests_path_normalize(
     dtest_suite* _suite
 )
 {
@@ -589,9 +580,7 @@ d_fs_tests_path_normalize
  * SECTION ENTRY POINT
  *****************************************************************************/
 
-void
-d_fs_tests_path
-(
+void d_fs_tests_path(
     dtest_suite* _suite
 )
 {

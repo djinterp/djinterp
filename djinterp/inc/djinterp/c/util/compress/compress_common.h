@@ -28,10 +28,10 @@
 *
 *   NO ALLOCATION, EVER:
 *   Nothing here allocates.  The C fork has no growable byte buffer yet (no
-* d_string, no d_vector), and inventing one inside a codec facade would put an
+* dj_string, no dj_vector), and inventing one inside a codec facade would put an
 * allocator in tier 0 where every other module would then inherit it.  Instead
 * every transform writes into caller-owned memory under the two-call protocol
-* below, or streams through a sink.  When d_string arrives it becomes one more
+* below, or streams through a sink.  When dj_string arrives it becomes one more
 * sink, and nothing in this header changes.
 *
 *   THE TWO-CALL BUFFER PROTOCOL:
@@ -56,7 +56,7 @@
 *   WHY NOT fn_write:
 *   djinterp.h's fn_write is `size_t (*)(char* const, size_t)` -- no context
 * pointer, so it cannot drive a growable buffer or a file handle without
-* global mutable state.  struct d_pack_sink carries a context and is otherwise
+* global mutable state.  struct dj_pack_sink carries a context and is otherwise
 * the same idea.
 *
 *   EVERY KNOB IS AN int32_t:
@@ -69,7 +69,7 @@
 * `opt.store_only = true`) continue to compile unchanged through the ordinary
 * integral conversion.
 *
-*   Consequently struct d_compress_options is exactly int32_t[50] with no
+*   Consequently struct dj_compress_options is exactly int32_t[50] with no
 * padding, which is asserted below and is what lets the knob table be a dense
 * offset table rather than fifty hand-written cases.
 *
@@ -102,7 +102,7 @@ TABLE OF CONTENTS
 1.  STATUS
     ------
     1.  Status codes
-         1.  d_pack_status
+         1.  dj_pack_status
          2.  D_PACK_STATUS_MECHANICAL_FLOOR
          3.  D_PACK_STATUS_IS_FORMAL
          4.  D_PACK_STATUS_IS_MECHANICAL
@@ -110,7 +110,7 @@ TABLE OF CONTENTS
 2.  CODEC IDENTITY
     --------------
     1.  Codec identifiers
-         1.  d_codec_id
+         1.  dj_codec_id
          2.  D_CODEC_ID_COUNT
          3.  D_CODEC_ID_IS_VALID
     2.  Codec names and suffixes
@@ -120,30 +120,30 @@ TABLE OF CONTENTS
          1.  D_COMPRESS_KNOB_UNSET
          2.  D_COMPRESS_LEVEL_*
     2.  Per-codec knob enumerations
-         1.  d_deflate_strategy
-         2.  d_lzma_check
-         3.  d_lzma_mode
-         4.  d_lzma_mf
-         5.  d_zstd_strategy
-         6.  d_lz4_block_size
-         7.  d_lz4_block_mode
-         8.  d_brotli_mode
+         1.  dj_deflate_strategy
+         2.  dj_lzma_check
+         3.  dj_lzma_mode
+         4.  dj_lzma_mf
+         5.  dj_zstd_strategy
+         6.  dj_lz4_block_size
+         7.  dj_lz4_block_mode
+         8.  dj_brotli_mode
 4.  OPTION LAYOUT
     -------------
     1.  Option blocks
-         1.  d_deflate_options
-         2.  d_bzip2_options
-         3.  d_lzma_options
-         4.  d_zstd_options
-         5.  d_lz4_options
-         6.  d_brotli_options
-         7.  d_compress_options
+         1.  dj_deflate_options
+         2.  dj_bzip2_options
+         3.  dj_lzma_options
+         4.  dj_zstd_options
+         5.  dj_lz4_options
+         6.  dj_brotli_options
+         7.  dj_compress_options
          8.  D_COMPRESS_OPTIONS_INIT
     2.  Layout assertions
 5.  THE KNOB TABLE
     --------------
     1.  Knob index
-         1.  d_compress_knob
+         1.  dj_compress_knob
          2.  D_COMPRESS_KNOB_COUNT
     2.  Knob access
 6.  OPTION OPERATIONS
@@ -167,9 +167,9 @@ TABLE OF CONTENTS
 #include <stddef.h>          // size_t, offsetof
 // djinterp
 #include "../../djinterp.h"  // framework root
-#include "../sink_common.h"  // d_pack_sink, d_pack_text/bytes
+#include "../sink_common.h"  // dj_pack_sink, dj_pack_text/bytes
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t, uint32_t, INT32_MIN
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t, INT32_MIN
 
 
 //   cfg_qualifiers.h lets a project take ownership of the D_EXTERN_C family by
@@ -200,10 +200,10 @@ D_EXTERN_C_BEGIN
 // 1.1    Status codes
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_pack_status
+// dj_pack_status
 //   enum: the result of any compress or archive operation.  Shared with
 // archive_common.h, which builds on this header.
-enum d_pack_status
+enum dj_pack_status
 {
     // -- success ------------------------------------------------------------
     D_PACK_STATUS_OK                = 0,
@@ -244,15 +244,19 @@ enum d_pack_status
 
 // 1.2    Status descriptions
 //------------------------------------------------------------------------------
-const char*        d_pack_status_name(enum d_pack_status _status);
-const char*        d_pack_status_message(enum d_pack_status _status);
+const char* d_pack_status_name(
+    enum dj_pack_status _status
+);
+const char* d_pack_status_message(
+    enum dj_pack_status _status
+);
 
 
 //==============================================================================
 // 2.  CODEC IDENTITY
 //==============================================================================
 //   Values are pinned explicitly and MUST NOT be reordered: document_bundle,
-// output_packaging and the DTest bridge all pass a d_codec_id by value, and
+// output_packaging and the DTest bridge all pass a dj_codec_id by value, and
 // test_packaging.hpp records that the neighbouring format enum already differs
 // in order from DTest's own.  An implicit ordering is one insertion away from
 // silently selecting the wrong codec.
@@ -260,11 +264,11 @@ const char*        d_pack_status_message(enum d_pack_status _status);
 // 2.1    Codec identifiers
 //------------------------------------------------------------------------------
 // 2.1.1
-// d_codec_id
+// dj_codec_id
 //   enum: the stream codecs this framework names.  `store` is the identity
 // transform and is always available, which is what keeps a store-only path
 // working on a build with no third-party codec at all.
-enum d_codec_id
+enum dj_codec_id
 {
     D_CODEC_ID_STORE    = 0,
     D_CODEC_ID_DEFLATE  = 1,
@@ -279,7 +283,7 @@ enum d_codec_id
 
 // 2.1.2
 // D_CODEC_ID_COUNT
-//   constant: the number of enumerators in d_codec_id.
+//   constant: the number of enumerators in dj_codec_id.
 #define D_CODEC_ID_COUNT    9
 
 // 2.1.3
@@ -291,10 +295,16 @@ enum d_codec_id
 
 // 2.2    Codec names and suffixes
 //------------------------------------------------------------------------------
-const char*        d_codec_id_name(enum d_codec_id _codec);
-const char*        d_codec_suffix(enum d_codec_id _codec);
-int                d_codec_id_from_name(const char*      _name,
-                                        enum d_codec_id* _out_codec);
+const char* d_codec_id_name(
+    enum dj_codec_id _codec
+);
+const char* d_codec_suffix(
+    enum dj_codec_id _codec
+);
+int d_codec_id_from_name(
+    const char*       _name,
+    enum dj_codec_id* _out_codec
+);
 
 
 //==============================================================================
@@ -328,10 +338,10 @@ int                d_codec_id_from_name(const char*      _name,
 // 3.2    Per-codec knob enumerations
 //------------------------------------------------------------------------------
 // 3.2.1
-// d_deflate_strategy
+// dj_deflate_strategy
 //   enum: DEFLATE strategy constants; values match zlib's Z_* so the mapping
 // to a zlib-family backend is the identity.
-enum d_deflate_strategy
+enum dj_deflate_strategy
 {
     D_DEFLATE_STRATEGY_DEFAULT      = 0,
     D_DEFLATE_STRATEGY_FILTERED     = 1,
@@ -341,10 +351,10 @@ enum d_deflate_strategy
 };
 
 // 3.2.2
-// d_lzma_check
+// dj_lzma_check
 //   enum: the integrity check an .xz container carries; values match liblzma's
 // LZMA_CHECK_*.
-enum d_lzma_check
+enum dj_lzma_check
 {
     D_LZMA_CHECK_NONE   = 0,
     D_LZMA_CHECK_CRC32  = 1,
@@ -353,18 +363,18 @@ enum d_lzma_check
 };
 
 // 3.2.3
-// d_lzma_mode
+// dj_lzma_mode
 //   enum: LZMA match-finder mode; values match liblzma's LZMA_MODE_*.
-enum d_lzma_mode
+enum dj_lzma_mode
 {
     D_LZMA_MODE_FAST   = 1,
     D_LZMA_MODE_NORMAL = 2
 };
 
 // 3.2.4
-// d_lzma_mf
+// dj_lzma_mf
 //   enum: LZMA match finder; values match liblzma's LZMA_MF_*.
-enum d_lzma_mf
+enum dj_lzma_mf
 {
     D_LZMA_MF_HC3 = 0x03,
     D_LZMA_MF_HC4 = 0x04,
@@ -374,9 +384,9 @@ enum d_lzma_mf
 };
 
 // 3.2.5
-// d_zstd_strategy
+// dj_zstd_strategy
 //   enum: Zstandard strategy; values match ZSTD_strategy.
-enum d_zstd_strategy
+enum dj_zstd_strategy
 {
     D_ZSTD_STRATEGY_FAST     = 1,
     D_ZSTD_STRATEGY_DFAST    = 2,
@@ -390,9 +400,9 @@ enum d_zstd_strategy
 };
 
 // 3.2.6
-// d_lz4_block_size
+// dj_lz4_block_size
 //   enum: LZ4 frame block-size selector; values match LZ4F_blockSizeID_t.
-enum d_lz4_block_size
+enum dj_lz4_block_size
 {
     D_LZ4_BLOCK_SIZE_DEFAULT = 0,
     D_LZ4_BLOCK_SIZE_64KB    = 4,
@@ -402,19 +412,19 @@ enum d_lz4_block_size
 };
 
 // 3.2.7
-// d_lz4_block_mode
+// dj_lz4_block_mode
 //   enum: whether LZ4 frame blocks may reference their predecessors; values
 // match LZ4F_blockMode_t.
-enum d_lz4_block_mode
+enum dj_lz4_block_mode
 {
     D_LZ4_BLOCK_MODE_LINKED      = 0,
     D_LZ4_BLOCK_MODE_INDEPENDENT = 1
 };
 
 // 3.2.8
-// d_brotli_mode
+// dj_brotli_mode
 //   enum: Brotli's input hint; values match BROTLI_MODE_*.
-enum d_brotli_mode
+enum dj_brotli_mode
 {
     D_BROTLI_MODE_GENERIC = 0,
     D_BROTLI_MODE_TEXT    = 1,
@@ -433,10 +443,10 @@ enum d_brotli_mode
 // 4.1    Option blocks
 //------------------------------------------------------------------------------
 // 4.1.1
-// d_deflate_options
+// dj_deflate_options
 //   struct: the DEFLATE tuning block (3 knobs).  `strategy` takes a
-// d_deflate_strategy value.
-struct d_deflate_options
+// dj_deflate_strategy value.
+struct dj_deflate_options
 {
     int32_t window_bits;
     int32_t mem_level;
@@ -444,9 +454,9 @@ struct d_deflate_options
 };
 
 // 4.1.2
-// d_bzip2_options
+// dj_bzip2_options
 //   struct: the bzip2 tuning block (4 knobs).  `small_decompress` is a flag.
-struct d_bzip2_options
+struct dj_bzip2_options
 {
     int32_t block_size_100k;
     int32_t work_factor;
@@ -455,11 +465,11 @@ struct d_bzip2_options
 };
 
 // 4.1.3
-// d_lzma_options
+// dj_lzma_options
 //   struct: the lzma / xz tuning block (11 knobs).  `check` takes a
-// d_lzma_check value, `mode` a d_lzma_mode, `mf` a d_lzma_mf; `extreme` is a
+// dj_lzma_check value, `mode` a dj_lzma_mode, `mf` a dj_lzma_mf; `extreme` is a
 // flag.
-struct d_lzma_options
+struct dj_lzma_options
 {
     int32_t extreme;
     int32_t check;
@@ -475,12 +485,12 @@ struct d_lzma_options
 };
 
 // 4.1.4
-// d_zstd_options
+// dj_zstd_options
 //   struct: the Zstandard tuning block (19 knobs).  `level` is zstd's OWN
-// level and is distinct from the generic effort in d_compress_options;
-// `strategy` takes a d_zstd_strategy value; the three *_flag members and
+// level and is distinct from the generic effort in dj_compress_options;
+// `strategy` takes a dj_zstd_strategy value; the three *_flag members and
 // `long_distance_matching` are flags.
-struct d_zstd_options
+struct dj_zstd_options
 {
     int32_t level;
     int32_t window_log;
@@ -504,11 +514,11 @@ struct d_zstd_options
 };
 
 // 4.1.5
-// d_lz4_options
+// dj_lz4_options
 //   struct: the LZ4 frame tuning block (7 knobs).  `block_size` takes a
-// d_lz4_block_size value and `block_mode` a d_lz4_block_mode; the remaining
+// dj_lz4_block_size value and `block_mode` a dj_lz4_block_mode; the remaining
 // four are flags.
-struct d_lz4_options
+struct dj_lz4_options
 {
     int32_t level;
     int32_t block_size;
@@ -520,10 +530,10 @@ struct d_lz4_options
 };
 
 // 4.1.6
-// d_brotli_options
-//   struct: the Brotli tuning block (5 knobs).  `mode` takes a d_brotli_mode
+// dj_brotli_options
+//   struct: the Brotli tuning block (5 knobs).  `mode` takes a dj_brotli_mode
 // value; `large_window` is a flag.
-struct d_brotli_options
+struct dj_brotli_options
 {
     int32_t quality;
     int32_t window_bits;
@@ -533,20 +543,20 @@ struct d_brotli_options
 };
 
 // 4.1.7
-// d_compress_options
+// dj_compress_options
 //   struct: the whole codec-tuning surface -- the generic effort plus every
 // per-codec block.  Plain data, no allocation, trivially copyable, and
 // byte-identical under C and C++.  A pristine set has every knob at
 // D_COMPRESS_KNOB_UNSET; see D_COMPRESS_OPTIONS_INIT.
-struct d_compress_options
+struct dj_compress_options
 {
     int32_t                     level;
-    struct d_deflate_options    deflate;
-    struct d_bzip2_options      bzip2;
-    struct d_lzma_options       lzma;
-    struct d_zstd_options       zstd;
-    struct d_lz4_options        lz4;
-    struct d_brotli_options     brotli;
+    struct dj_deflate_options    deflate;
+    struct dj_bzip2_options      bzip2;
+    struct dj_lzma_options       lzma;
+    struct dj_zstd_options       zstd;
+    struct dj_lz4_options        lz4;
+    struct dj_brotli_options     brotli;
 };
 
 // 4.1.8
@@ -554,7 +564,7 @@ struct d_compress_options
 //   macro: the pristine initialiser -- every knob UNSET.  Written as a nested
 // brace initialiser so a caller may declare a const option set at file scope
 // with no runtime step:
-//     static const struct d_compress_options k_opt = D_COMPRESS_OPTIONS_INIT;
+//     static const struct dj_compress_options k_opt = D_COMPRESS_OPTIONS_INIT;
 #define D_COMPRESS_OPTIONS_INIT                                                \
 {                                                                              \
     D_COMPRESS_KNOB_UNSET,                                                     \
@@ -586,46 +596,46 @@ struct d_compress_options
 // they hold on every data model rather than only on LP64, so there is no tier
 // on which they have to be relaxed.
 //
-//   The density assertion on d_compress_options is load-bearing beyond drift
+//   The density assertion on dj_compress_options is load-bearing beyond drift
 // detection: it is the proof that the knob table in section 5 can be a dense
 // offset table.  If a member of another type is ever added, the assertion
 // fires here rather than the table silently going stale.
 
-D_STATIC_ASSERT(sizeof(struct d_deflate_options) == (3 * sizeof(int32_t)),
-                "d_deflate_options: layout drift");
-D_STATIC_ASSERT(sizeof(struct d_bzip2_options) == (4 * sizeof(int32_t)),
-                "d_bzip2_options: layout drift");
-D_STATIC_ASSERT(sizeof(struct d_lzma_options) == (11 * sizeof(int32_t)),
-                "d_lzma_options: layout drift");
-D_STATIC_ASSERT(sizeof(struct d_zstd_options) == (19 * sizeof(int32_t)),
-                "d_zstd_options: layout drift");
-D_STATIC_ASSERT(sizeof(struct d_lz4_options) == (7 * sizeof(int32_t)),
-                "d_lz4_options: layout drift");
-D_STATIC_ASSERT(sizeof(struct d_brotli_options) == (5 * sizeof(int32_t)),
-                "d_brotli_options: layout drift");
-D_STATIC_ASSERT(sizeof(struct d_compress_options) == (50 * sizeof(int32_t)),
-                "d_compress_options: not densely packed; knob table is stale");
+D_STATIC_ASSERT(sizeof(struct dj_deflate_options) == (3 * sizeof(int32_t)),
+                "dj_deflate_options: layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_bzip2_options) == (4 * sizeof(int32_t)),
+                "dj_bzip2_options: layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_lzma_options) == (11 * sizeof(int32_t)),
+                "dj_lzma_options: layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_zstd_options) == (19 * sizeof(int32_t)),
+                "dj_zstd_options: layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_lz4_options) == (7 * sizeof(int32_t)),
+                "dj_lz4_options: layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_brotli_options) == (5 * sizeof(int32_t)),
+                "dj_brotli_options: layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_compress_options) == (50 * sizeof(int32_t)),
+                "dj_compress_options: not densely packed; knob table is stale");
 
-D_STATIC_ASSERT(offsetof(struct d_compress_options, level) == 0,
-                "d_compress_options: field drift at level");
-D_STATIC_ASSERT(offsetof(struct d_compress_options, deflate) ==
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, level) == 0,
+                "dj_compress_options: field drift at level");
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, deflate) ==
                 (1 * sizeof(int32_t)),
-                "d_compress_options: field drift at deflate");
-D_STATIC_ASSERT(offsetof(struct d_compress_options, bzip2) ==
+                "dj_compress_options: field drift at deflate");
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, bzip2) ==
                 (4 * sizeof(int32_t)),
-                "d_compress_options: field drift at bzip2");
-D_STATIC_ASSERT(offsetof(struct d_compress_options, lzma) ==
+                "dj_compress_options: field drift at bzip2");
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, lzma) ==
                 (8 * sizeof(int32_t)),
-                "d_compress_options: field drift at lzma");
-D_STATIC_ASSERT(offsetof(struct d_compress_options, zstd) ==
+                "dj_compress_options: field drift at lzma");
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, zstd) ==
                 (19 * sizeof(int32_t)),
-                "d_compress_options: field drift at zstd");
-D_STATIC_ASSERT(offsetof(struct d_compress_options, lz4) ==
+                "dj_compress_options: field drift at zstd");
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, lz4) ==
                 (38 * sizeof(int32_t)),
-                "d_compress_options: field drift at lz4");
-D_STATIC_ASSERT(offsetof(struct d_compress_options, brotli) ==
+                "dj_compress_options: field drift at lz4");
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, brotli) ==
                 (45 * sizeof(int32_t)),
-                "d_compress_options: field drift at brotli");
+                "dj_compress_options: field drift at brotli");
 
 
 //==============================================================================
@@ -648,7 +658,7 @@ D_STATIC_ASSERT(offsetof(struct d_compress_options, brotli) ==
 //   Because the struct is asserted to be exactly fifty int32_t with no padding,
 // the offset table is the IDENTITY -- knob k lives at byte offset
 // k * sizeof(int32_t), verified: D_COMPRESS_KNOB_ZSTD_WINDOW_LOG is 20 and
-// offsetof(struct d_compress_options, zstd.window_log) is 80.  So
+// offsetof(struct dj_compress_options, zstd.window_log) is 80.  So
 // d_compress_knob_offset needs no stored table and cannot fall out of step with
 // the struct; the density assertion in 4.2 is what makes that safe to
 // rely on, and if a member of another type is ever added the assertion fires
@@ -657,10 +667,10 @@ D_STATIC_ASSERT(offsetof(struct d_compress_options, brotli) ==
 // 5.1    Knob index
 //------------------------------------------------------------------------------
 // 5.1.1
-// d_compress_knob
-//   enum: a dense index over every knob of a d_compress_options, in
+// dj_compress_knob
+//   enum: a dense index over every knob of a dj_compress_options, in
 // declaration order.
-enum d_compress_knob
+enum dj_compress_knob
 {
     D_COMPRESS_KNOB_LEVEL                       = 0,
 
@@ -722,28 +732,38 @@ enum d_compress_knob
 
 // 5.1.2
 // D_COMPRESS_KNOB_COUNT
-//   constant: the number of knobs in a d_compress_options.  Asserted against
+//   constant: the number of knobs in a dj_compress_options.  Asserted against
 // the struct's size in 4.2.
 #define D_COMPRESS_KNOB_COUNT   50
 
 D_STATIC_ASSERT((D_COMPRESS_KNOB_BROTLI_LARGE_WINDOW + 1) ==
                 D_COMPRESS_KNOB_COUNT,
-                "d_compress_knob: index set is not dense");
+                "dj_compress_knob: index set is not dense");
 
 // 5.2    Knob access
 //------------------------------------------------------------------------------
-const char*        d_compress_knob_name(enum d_compress_knob _knob);
-size_t             d_compress_knob_offset(enum d_compress_knob _knob);
-enum d_codec_id    d_compress_knob_codec(enum d_compress_knob _knob);
-int                d_compress_knob_from_name(const char*           _name,
-                                             enum d_compress_knob* _out_knob);
-int32_t            d_compress_options_knob_get(
-                    const struct d_compress_options* _options,
-                    enum d_compress_knob             _knob);
-int                d_compress_options_knob_set(
-                    struct d_compress_options* _options,
-                    enum d_compress_knob       _knob,
-                    int32_t                    _value);
+const char* d_compress_knob_name(
+    enum dj_compress_knob _knob
+);
+size_t d_compress_knob_offset(
+    enum dj_compress_knob _knob
+);
+enum dj_codec_id d_compress_knob_codec(
+    enum dj_compress_knob _knob
+);
+int d_compress_knob_from_name(
+    const char*            _name,
+    enum dj_compress_knob* _out_knob
+);
+int32_t d_compress_options_knob_get(
+    const struct dj_compress_options* _options,
+    enum dj_compress_knob             _knob
+);
+int d_compress_options_knob_set(
+    struct dj_compress_options* _options,
+    enum dj_compress_knob       _knob,
+    int32_t                     _value
+);
 
 
 //==============================================================================
@@ -769,27 +789,36 @@ int                d_compress_options_knob_set(
 
 // 6.1    Option-set operations
 //------------------------------------------------------------------------------
-void               d_compress_options_init(struct d_compress_options* _options);
-int                d_compress_options_equal(
-                    const struct d_compress_options* _a,
-                    const struct d_compress_options* _b);
-int                d_compress_options_are_default(
-                    const struct d_compress_options* _options);
-size_t             d_compress_options_diff(
-                    const struct d_compress_options* _a,
-                    const struct d_compress_options* _b,
-                    enum d_compress_knob*            _out_knobs,
-                    size_t                           _out_capacity);
-enum d_pack_status d_compress_options_resolve(
-                    enum d_codec_id                  _codec,
-                    const struct d_compress_options* _in,
-                    struct d_compress_options*       _out);
-enum d_pack_status d_compress_options_validate(
-                    enum d_codec_id                  _codec,
-                    const struct d_compress_options* _options,
-                    enum d_compress_knob*            _out_offender);
-int32_t            d_compress_resolve_level(enum d_codec_id _codec,
-                                            int32_t         _generic_level);
+void d_compress_options_init(
+    struct dj_compress_options* _options
+);
+int d_compress_options_equal(
+    const struct dj_compress_options* _a,
+    const struct dj_compress_options* _b
+);
+int d_compress_options_are_default(
+    const struct dj_compress_options* _options
+);
+size_t d_compress_options_diff(
+    const struct dj_compress_options* _a,
+    const struct dj_compress_options* _b,
+    enum dj_compress_knob*            _out_knobs,
+    size_t                            _out_capacity
+);
+enum dj_pack_status d_compress_options_resolve(
+    enum dj_codec_id                  _codec,
+    const struct dj_compress_options* _in,
+    struct dj_compress_options*       _out
+);
+enum dj_pack_status d_compress_options_validate(
+    enum dj_codec_id                  _codec,
+    const struct dj_compress_options* _options,
+    enum dj_compress_knob*            _out_offender
+);
+int32_t d_compress_resolve_level(
+    enum dj_codec_id _codec,
+    int32_t          _generic_level
+);
 
 
 //==============================================================================
@@ -802,19 +831,31 @@ int32_t            d_compress_resolve_level(enum d_codec_id _codec,
 //
 //   d_codec_is_available is a function and not a macro because a build may
 // gain a codec through a runtime-loaded backend, and because a caller
-// switching over a runtime d_codec_id cannot use a preprocessor answer.  The
+// switching over a runtime dj_codec_id cannot use a preprocessor answer.  The
 // compile-time roll-ups in env_compress.h, which compress.h includes, remain
 // available for a caller that wants to omit code entirely rather than branch.
 
 // 7.1    Codec availability
 //------------------------------------------------------------------------------
-int                d_codec_is_available(enum d_codec_id _codec);
-int                d_codec_can_compress(enum d_codec_id _codec);
-int                d_codec_can_decompress(enum d_codec_id _codec);
-int                d_codec_backend_id(enum d_codec_id _codec);
-const char*        d_codec_backend_name(enum d_codec_id _codec);
-size_t             d_codec_available_list(enum d_codec_id* _out_codecs,
-                                          size_t           _out_capacity);
+int d_codec_is_available(
+    enum dj_codec_id _codec
+);
+int d_codec_can_compress(
+    enum dj_codec_id _codec
+);
+int d_codec_can_decompress(
+    enum dj_codec_id _codec
+);
+int d_codec_backend_id(
+    enum dj_codec_id _codec
+);
+const char* d_codec_backend_name(
+    enum dj_codec_id _codec
+);
+size_t d_codec_available_list(
+    enum dj_codec_id* _out_codecs,
+    size_t            _out_capacity
+);
 
 
 //==============================================================================
@@ -839,23 +880,31 @@ size_t             d_codec_available_list(enum d_codec_id* _out_codecs,
 
 // 8.1    Signatures and checksums
 //------------------------------------------------------------------------------
-int                d_codec_signature_matches(enum d_codec_id _codec,
-                                             const void*     _data,
-                                             size_t          _size);
-int                d_codec_signature_length(enum d_codec_id _codec);
-int                d_codec_detect(const void*      _data,
-                                  size_t           _size,
-                                  enum d_codec_id* _out_codec);
-uint32_t           d_pack_crc32(uint32_t    _seed,
-                                const void* _data,
-                                size_t      _size);
+int d_codec_signature_matches(
+    enum dj_codec_id _codec,
+    const void*      _data,
+    size_t           _size
+);
+int d_codec_signature_length(
+    enum dj_codec_id _codec
+);
+int d_codec_detect(
+    const void*       _data,
+    size_t            _size,
+    enum dj_codec_id* _out_codec
+);
+uint32_t d_pack_crc32(
+    uint32_t    _seed,
+    const void* _data,
+    size_t      _size
+);
 
 
 //==============================================================================
 // 9.  TRANSFORM LEAVES
 //==============================================================================
 //   The four transforms, each in a buffer form and a sink form.  The buffer
-// form is defined as the sink form against a d_pack_buffer_sink, so there is
+// form is defined as the sink form against a dj_pack_buffer_sink, so there is
 // one algorithm per codec.
 //
 //   BUFFER FORM contract, restated because it is the one thing a caller gets
@@ -876,36 +925,44 @@ uint32_t           d_pack_crc32(uint32_t    _seed,
 
 // 9.1    Bound, compress, and decompress
 //------------------------------------------------------------------------------
-enum d_pack_status d_compress_bound(
-                    enum d_codec_id                  _codec,
-                    size_t                           _in_size,
-                    const struct d_compress_options* _options,
-                    size_t*                          _out_bound);
-enum d_pack_status d_compress(enum d_codec_id                  _codec,
-                              const void*                      _in,
-                              size_t                           _in_size,
-                              const struct d_compress_options* _options,
-                              void*                            _out,
-                              size_t                           _out_capacity,
-                              size_t*                          _out_size);
-enum d_pack_status d_decompress(enum d_codec_id _codec,
-                                const void*     _in,
-                                size_t          _in_size,
-                                void*           _out,
-                                size_t          _out_capacity,
-                                size_t*         _out_size);
-enum d_pack_status d_compress_to_sink(
-                    enum d_codec_id                  _codec,
-                    const void*                      _in,
-                    size_t                           _in_size,
-                    const struct d_compress_options* _options,
-                    struct d_pack_sink               _sink,
-                    size_t*                          _out_size);
-enum d_pack_status d_decompress_to_sink(enum d_codec_id    _codec,
-                                        const void*        _in,
-                                        size_t             _in_size,
-                                        struct d_pack_sink _sink,
-                                        size_t*            _out_size);
+enum dj_pack_status d_compress_bound(
+    enum dj_codec_id                  _codec,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    size_t*                           _out_bound
+);
+enum dj_pack_status d_compress(
+    enum dj_codec_id                  _codec,
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    void*                             _out,
+    size_t                            _out_capacity,
+    size_t*                           _out_size
+);
+enum dj_pack_status d_decompress(
+    enum dj_codec_id _codec,
+    const void*      _in,
+    size_t           _in_size,
+    void*            _out,
+    size_t           _out_capacity,
+    size_t*          _out_size
+);
+enum dj_pack_status d_compress_to_sink(
+    enum dj_codec_id                  _codec,
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    struct dj_pack_sink               _sink,
+    size_t*                           _out_size
+);
+enum dj_pack_status d_decompress_to_sink(
+    enum dj_codec_id    _codec,
+    const void*         _in,
+    size_t              _in_size,
+    struct dj_pack_sink _sink,
+    size_t*             _out_size
+);
 
 
 D_EXTERN_C_END

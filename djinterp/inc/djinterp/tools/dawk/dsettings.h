@@ -40,9 +40,9 @@
 // 1.1    Enumerations
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_setting_kind
+// dj_setting_kind
 //   enum: the type of a setting's value.
-enum d_setting_kind
+enum dj_setting_kind
 {
     D_SETTING_BOOL = 0,   // true / false, and the usual spellings of each
     D_SETTING_INT,        // an integer within [minimum, maximum]
@@ -50,9 +50,9 @@ enum d_setting_kind
 };
 
 // 1.1.2
-// d_setting_source
+// dj_setting_source
 //   enum: where a value came from, in ascending standing.
-enum d_setting_source
+enum dj_setting_source
 {
     D_SETTING_DEFAULT = 0,
     D_SETTING_SHEET,
@@ -63,15 +63,15 @@ enum d_setting_source
 // 1.2    Records
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_setting_def
+// dj_setting_def
 //   struct: one setting's definition.  The name is the first member, as the
 // djinterp registry requires of its rows.  `unbuilt` lists values that are
 // ruled but not yet implemented; they are refused by name rather than
 // accepted and ignored.
-struct d_setting_def
+struct dj_setting_def
 {
     const char*          name;
-    enum d_setting_kind  kind;
+    enum dj_setting_kind  kind;
     const char*          fallback;   // the default, written as its text
     const char* const*   choices;    // ENUM: NULL-terminated
     const char* const*   unbuilt;    // ENUM: NULL-terminated, or NULL
@@ -82,9 +82,9 @@ struct d_setting_def
 };
 
 // 1.2.2
-// d_settings
+// dj_settings
 //   struct: the registry.
-struct d_settings;
+struct dj_settings;
 
 
 //==============================================================================
@@ -94,64 +94,93 @@ struct d_settings;
 
 // 2.1    Lifecycle and registration
 //------------------------------------------------------------------------------
-struct d_settings*   d_settings_new(void);
-void                 d_settings_free(struct d_settings* _settings);
-bool                 d_settings_register(struct d_settings*          _settings,
-                                         const struct d_setting_def* _defs,
-                                         size_t                      _count);
+struct dj_settings* d_settings_new(void);
+void d_settings_free(
+    struct dj_settings* _settings
+);
+bool d_settings_register(
+    struct dj_settings*          _settings,
+    const struct dj_setting_def* _defs,
+    size_t                       _count
+);
 
 // 2.2    Assignment
 //------------------------------------------------------------------------------
-bool                 d_settings_set(struct d_settings*    _settings,
-                                    const char*           _name,
-                                    const char*           _value,
-                                    enum d_setting_source _source,
-                                    char*                 _error,
-                                    size_t                _error_size);
-bool                 d_settings_apply(struct d_settings*    _settings,
-                                      const char*           _list,
-                                      enum d_setting_source _source,
-                                      char*                 _error,
-                                      size_t                _error_size);
+bool d_settings_set(
+    struct dj_settings*    _settings,
+    const char*            _name,
+    const char*            _value,
+    enum dj_setting_source _source,
+    char*                  _error,
+    size_t                 _error_size
+);
+bool d_settings_apply(
+    struct dj_settings*    _settings,
+    const char*            _list,
+    enum dj_setting_source _source,
+    char*                  _error,
+    size_t                 _error_size
+);
 
 // 2.3    Reading
 //------------------------------------------------------------------------------
-const char*          d_settings_text(const struct d_settings* _settings,
-                                     const char*              _name);
-long                 d_settings_int(const struct d_settings* _settings,
-                                    const char*              _name);
-bool                 d_settings_bool(const struct d_settings* _settings,
-                                     const char*              _name);
-bool                 d_settings_is(const struct d_settings* _settings,
-                                   const char*              _name,
-                                   const char*              _word);
-enum d_setting_source
-                     d_settings_source(const struct d_settings* _settings,
-                                       const char*              _name);
+const char* d_settings_text(
+    const struct dj_settings* _settings,
+    const char*               _name
+);
+long d_settings_int(
+    const struct dj_settings* _settings,
+    const char*               _name
+);
+bool d_settings_bool(
+    const struct dj_settings* _settings,
+    const char*               _name
+);
+bool d_settings_is(
+    const struct dj_settings* _settings,
+    const char*               _name,
+    const char*               _word
+);
+enum dj_setting_source d_settings_source(
+    const struct dj_settings* _settings,
+    const char*               _name
+);
 
 // 2.4    Listing
 //------------------------------------------------------------------------------
-size_t               d_settings_count(const struct d_settings* _settings);
-const struct d_setting_def*
-                     d_settings_def_at(const struct d_settings* _settings,
-                                       size_t                   _at);
-const char*          d_settings_value_at(const struct d_settings* _settings,
-                                         size_t                   _at);
-enum d_setting_source
-                     d_settings_source_at(const struct d_settings* _settings,
-                                          size_t                   _at);
-const char*          d_settings_source_name(enum d_setting_source _source);
+size_t d_settings_count(
+    const struct dj_settings* _settings
+);
+const struct dj_setting_def* d_settings_def_at(
+    const struct dj_settings* _settings,
+    size_t                    _at
+);
+const char* d_settings_value_at(
+    const struct dj_settings* _settings,
+    size_t                    _at
+);
+enum dj_setting_source d_settings_source_at(
+    const struct dj_settings* _settings,
+    size_t                    _at
+);
+const char* d_settings_source_name(
+    enum dj_setting_source _source
+);
 
 // 2.5    Command line
 //------------------------------------------------------------------------------
-int                  d_settings_take_option(struct d_settings* _settings,
-                                            int                _argc,
-                                            char**             _argv,
-                                            int*               _at,
-                                            char*              _error,
-                                            size_t             _error_size);
-void                 d_settings_describe(const struct d_settings* _settings,
-                                         FILE*                    _out);
+int d_settings_take_option(
+    struct dj_settings* _settings,
+    int                 _argc,
+    char**              _argv,
+    int*                _at,
+    char*               _error,
+    size_t              _error_size
+);
+void d_settings_describe(
+    const struct dj_settings* _settings,
+    FILE*                     _out
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DSETTINGS_H

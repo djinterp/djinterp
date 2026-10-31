@@ -69,9 +69,11 @@ D_EXTERN_C_BEGIN
  * @return a descriptor, or -1 on failure with errno set.
  * @post The caller owns the descriptor and releases it with d_file_close_fd.
  */
-int d_file_open(const char* _path,
-                int         _flags,
-                ...);
+int d_file_open(
+    const char* _path,
+    int         _flags,
+    ...
+);
 /**
  * @brief Returns the descriptor a stream is built on.
  *
@@ -83,7 +85,9 @@ int d_file_open(const char* _path,
  * @return the descriptor, or -1 on failure with errno set: EBADF for a stream
  *         with no descriptor, on Windows as elsewhere.
  */
-int d_file_descriptor_stream(FILE* _stream);
+int d_file_descriptor_stream(
+    FILE* _stream
+);
 
 // 1.2    Duplication
 //------------------------------------------------------------------------------
@@ -100,7 +104,9 @@ int d_file_descriptor_stream(FILE* _stream);
  * @post The caller owns the new descriptor and releases it with
  *       d_file_close_fd.
  */
-int d_file_dup_fd(int _fd);
+int d_file_dup_fd(
+    int _fd
+);
 /**
  * @brief Duplicates a descriptor onto a chosen number, closing whatever was
  *        open there.
@@ -113,8 +119,10 @@ int d_file_dup_fd(int _fd);
  * @param[in] _fd2  the descriptor number to install it onto.
  * @return `_fd2`, or -1 on failure with errno set.
  */
-int d_file_dup2_fd(int _fd,
-                   int _fd2);
+int d_file_dup2_fd(
+    int _fd,
+    int _fd2
+);
 
 // 1.3    Release
 //------------------------------------------------------------------------------
@@ -129,7 +137,9 @@ int d_file_dup2_fd(int _fd,
  * @return 0, or -1 on failure with errno set.
  * @post `_fd` is released whatever the result, and must not be used again.
  */
-int d_file_close_fd(int _fd);
+int d_file_close_fd(
+    int _fd
+);
 
 
 D_EXTERN_C_END

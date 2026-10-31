@@ -39,7 +39,7 @@ TABLE OF CONTENTS
     2.  Compile-time API choices
          1.  D_INTERNAL_MARIADB_ESCAPE_QUOTE
          2.  D_INTERNAL_MARIADB_LENGTH_MAX
-         3.  d_internal_mariadb_flag
+         3.  dj_internal_mariadb_flag
          4.  D_INTERNAL_MARIADB_SSL_SWITCHES
          5.  D_INTERNAL_MARIADB_RESET
          6.  D_INTERNAL_MARIADB_SESSION_TRACK
@@ -60,10 +60,10 @@ TABLE OF CONTENTS
     -------
     1.  The handle
          1.  D_INTERNAL_MARIADB_CHARSET_SIZE
-         2.  d_internal_mariadb_attribute
+         2.  dj_internal_mariadb_attribute
          3.  d_internal_mariadb_step
-         4.  d_internal_mariadb_async
-         5.  d_mariadb
+         4.  dj_internal_mariadb_async
+         5.  dj_mariadb
     2.  Result codes
          1.  D_INTERNAL_MARIADB_UNKNOWN_ERROR
          2.  D_INTERNAL_MARIADB_OUT_OF_MEMORY
@@ -88,8 +88,8 @@ TABLE OF CONTENTS
 5.  CATALOGUE
     ---------
     1.  Objects
-         1.  d_internal_mariadb_object
-         2.  d_internal_mariadb_path
+         1.  dj_internal_mariadb_object
+         2.  dj_internal_mariadb_path
     2.  Lookups
 */
 
@@ -105,9 +105,9 @@ TABLE OF CONTENTS
 #include "../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb_common.h"  // layer
 #include "../../../../../inc/djinterp/env/db/mariadb/env_mariadb.h"  // mysql.h
-#include "../db_internal.h"  // d_internal_db_buffer, the builders
+#include "../db_internal.h"  // dj_internal_db_buffer, the builders
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_MARIADB == 1)
@@ -157,15 +157,15 @@ TABLE OF CONTENTS
 #endif
 
 // 1.2.3
-// d_internal_mariadb_flag
+// dj_internal_mariadb_flag
 //   type: the client's one-byte truth value, as MYSQL_BIND points at it and
 // mysql_stmt_attr_set reads it: bool in libmysqlclient from 8.0, which
 // dropped the name my_bool, and my_bool, a char, in every other client.
 #if ( (D_ENV_MYSQL_COMMON_IS_ORACLE_MYSQL) &&                                  \
       (MYSQL_VERSION_ID >= 80000) )
-    typedef bool    d_internal_mariadb_flag;
+    typedef bool    dj_internal_mariadb_flag;
 #else
-    typedef my_bool d_internal_mariadb_flag;
+    typedef my_bool dj_internal_mariadb_flag;
 #endif
 
 // 1.2.4
@@ -405,10 +405,10 @@ TABLE OF CONTENTS
 #define D_INTERNAL_MARIADB_CHARSET_SIZE 64u
 
 // 2.1.2
-// d_internal_mariadb_attribute
+// dj_internal_mariadb_attribute
 //   struct: a query attribute the next query sends (mariadb_query.h): the
 // layer's copies, which the client's binds point into until it is sent.
-struct d_internal_mariadb_attribute
+struct dj_internal_mariadb_attribute
 {
     char*         name;    // the attribute's name, terminated
     char*         value;   // its value, terminated
@@ -419,7 +419,7 @@ struct d_internal_mariadb_attribute
 // d_internal_mariadb_step
 //   enum: the client calls a call that does not block is made of, each
 // begun once and continued until done (2.7).
-enum d_internal_mariadb_step
+enum dj_internal_mariadb_step
 {
     D_INTERNAL_MARIADB_STEP_NONE = 0,   // no client call under way
     D_INTERNAL_MARIADB_STEP_CONNECT,    // mysql_real_connect
@@ -445,15 +445,15 @@ enum d_internal_mariadb_step
 };
 
 // 2.1.4
-// d_internal_mariadb_async
+// dj_internal_mariadb_async
 //   struct: a call that does not block, under way on a connection: the
 // operation the program began, where it is, the client call it waits on,
 // what that call answered, and the copies of whatever the client reads again
 // while it waits. Made the first time a connection needs one.
-struct d_internal_mariadb_async
+struct dj_internal_mariadb_async
 {
-    int                        (*advance)(struct d_mariadb*    _db,
-                                          struct d_db_pending* _pending);
+    int                        (*advance)(struct dj_mariadb*    _db,
+                                          struct dj_db_pending* _pending);
                                             // the operation's next stage,
                                             // or NULL when none is under
                                             // way
@@ -461,16 +461,16 @@ struct d_internal_mariadb_async
     int                          sub;       // where a statement it runs to
                                             // its end is (2.7)
     int                          failure;   // its first failure, or 0
-    enum d_internal_mariadb_step step;      // the client call under way
+    enum dj_internal_mariadb_step step;      // the client call under way
     int                          status;    // MariaDB's client: what that
                                             // call waits for, MYSQL_WAIT_*
     int                          ret;       // its answer, an int
-    d_internal_mariadb_flag      flag;      // its answer, a truth value
+    dj_internal_mariadb_flag      flag;      // its answer, a truth value
     MYSQL*                       made;      // mysql_real_connect's answer
     MYSQL_RES*                   result;    // mysql_store_result's answer
     MYSQL_STMT*                  stmt;      // the client statement a
                                             // statement's call is on
-    struct d_mariadb_statement*  statement; // the layer's statement whose
+    struct dj_mariadb_statement*  statement; // the layer's statement whose
                                             // call it is; NULL for none
     char*                        text;      // SQL being sent, the layer's
                                             // copy
@@ -497,7 +497,7 @@ struct d_internal_mariadb_async
                                             // failure, read with the send
                                             // by libmysqlclient, for the
                                             // first result to give
-    struct d_db_rows*            rows;      // where the call under way
+    struct dj_db_rows*            rows;      // where the call under way
                                             // gives rows
     int64_t*                     changes;   // and the count
     int                          mode;      // what a statement's run gives:
@@ -505,7 +505,7 @@ struct d_internal_mariadb_async
     int64_t                      count;     // the count it read
     size_t                       max;       // the most rows a page takes
     size_t                       fetched;   // the rows it has
-    struct d_internal_db_rows    page;      // the rows a statement's call
+    struct dj_internal_db_rows    page;      // the rows a statement's call
                                             // has read, kept between waits
     size_t                       command;   // the init command a reset runs
                                             // next
@@ -514,10 +514,10 @@ struct d_internal_mariadb_async
 };
 
 // 2.1.5
-// d_mariadb
+// dj_mariadb
 //   struct: the definition mariadb_common.h declares: the client's
 // connection, and what the layer has learned of the server it reached.
-struct d_mariadb
+struct dj_mariadb
 {
     MYSQL*                native;            // the client's connection
     bool                  owned;             // closed along with the handle
@@ -528,7 +528,7 @@ struct d_mariadb
                                              // session's changes is the
                                              // reply to the layer's last
                                              // command (2.4)
-    enum d_mariadb_flavor flavor;            // the server's, by its version
+    enum dj_mariadb_flavor flavor;            // the server's, by its version
                                              // string
     unsigned long         version;           // the server's true version,
                                              // MAJOR*10000 + MINOR*100 +
@@ -560,23 +560,23 @@ struct d_mariadb
                                              // for a reset to run again; NULL
                                              // for none
     size_t                init_count;        // how many
-    struct d_internal_mariadb_attribute*
+    struct dj_internal_mariadb_attribute*
                           attributes;        // the next query's attributes;
                                              // NULL for none
     size_t                attribute_count;   // how many
-    struct d_mariadb_statement*
+    struct dj_mariadb_statement*
                           statements;        // the statements prepared on
                                              // it, which closing it leaves
                                              // only to be finalized (2.6)
-    struct d_mariadb_statement*
+    struct dj_mariadb_statement*
                           cursor;            // the statement whose run holds
                                              // the connection, its rows still
                                              // arriving; NULL for none
-    struct d_mariadb_statement*
+    struct dj_mariadb_statement*
                           retired;           // statements finalized while a
                                              // run held the connection, the
                                              // server told once it is free
-    struct d_internal_mariadb_async*
+    struct dj_internal_mariadb_async*
                           async;             // the call that does not
                                              // block, under way or last
                                              // made; NULL until one is
@@ -633,11 +633,15 @@ struct d_mariadb
 // _case_rule reads the server's lower_case_table_names once, and the copy the
 // handle keeps after that: 0 and the rule, or the client's error number for
 // the query that failed
-bool d_internal_mariadb_at_least(const struct d_mariadb* _db,
-                                 enum d_mariadb_flavor   _flavor,
-                                 unsigned long           _version);
-int  d_internal_mariadb_case_rule(struct d_mariadb* _db,
-                                  int*              _rule);
+bool d_internal_mariadb_at_least(
+    const struct dj_mariadb* _db,
+    enum dj_mariadb_flavor   _flavor,
+    unsigned long            _version
+);
+int d_internal_mariadb_case_rule(
+    struct dj_mariadb* _db,
+    int*               _rule
+);
 
 // 2.4    Replies
 //------------------------------------------------------------------------------
@@ -651,9 +655,13 @@ int  d_internal_mariadb_case_rule(struct d_mariadb* _db,
 // server says so; _rows_end_ok answers whether a result's rows end in one,
 // as they do where the client and the server agreed on CLIENT_DEPRECATE_EOF
 // (libmysqlclient from 5.7.5), and never through Connector/C
-void d_internal_mariadb_replied(struct d_mariadb* _db,
-                                bool              _ok);
-bool d_internal_mariadb_rows_end_ok(const struct d_mariadb* _db);
+void d_internal_mariadb_replied(
+    struct dj_mariadb* _db,
+    bool               _ok
+);
+bool d_internal_mariadb_rows_end_ok(
+    const struct dj_mariadb* _db
+);
 
 // 2.5    Query attributes
 //------------------------------------------------------------------------------
@@ -662,8 +670,12 @@ bool d_internal_mariadb_rows_end_ok(const struct d_mariadb* _db);
 // a query that never left drops them too), and the layer frees its copies;
 // _release frees the copies alone, for a reset, a change of user and a
 // close, which drop the client's binds themselves
-void d_internal_mariadb_attributes_sent(struct d_mariadb* _db);
-void d_internal_mariadb_attributes_release(struct d_mariadb* _db);
+void d_internal_mariadb_attributes_sent(
+    struct dj_mariadb* _db
+);
+void d_internal_mariadb_attributes_release(
+    struct dj_mariadb* _db
+);
 
 // 2.6    Statements
 //------------------------------------------------------------------------------
@@ -678,10 +690,16 @@ void d_internal_mariadb_attributes_release(struct d_mariadb* _db);
 // where `_read_rest` says, since a connection about to close needs nothing
 // read -- and leaves every statement prepared on the connection without it,
 // only to be finalized (mariadb_statement.c)
-int  d_internal_mariadb_idle(const struct d_mariadb* _db);
-void d_internal_mariadb_close_retired(struct d_mariadb* _db);
-void d_internal_mariadb_detach(struct d_mariadb* _db,
-                               bool              _read_rest);
+int d_internal_mariadb_idle(
+    const struct dj_mariadb* _db
+);
+void d_internal_mariadb_close_retired(
+    struct dj_mariadb* _db
+);
+void d_internal_mariadb_detach(
+    struct dj_mariadb* _db,
+    bool               _read_rest
+);
 
 // 2.7    Calls that do not block
 //------------------------------------------------------------------------------
@@ -707,24 +725,37 @@ void d_internal_mariadb_detach(struct d_mariadb* _db,
 // the client cannot make without blocking. _unpend leaves a pending call
 // as a finished one leaves it. _keep_text copies text into the record, NULL
 // kept as NULL; false when memory ran out.
-struct d_internal_mariadb_async*
-     d_internal_mariadb_async_get(struct d_mariadb* _db);
-void d_internal_mariadb_async_free(struct d_mariadb* _db);
-bool d_internal_mariadb_busy(const struct d_mariadb* _db);
-int  d_internal_mariadb_begin(struct d_mariadb*    _db,
-                              int                (*_advance)(
-                                                     struct d_mariadb*,
-                                                     struct d_db_pending*),
-                              struct d_db_pending* _pending);
-int  d_internal_mariadb_drive(struct d_mariadb*    _db,
-                              unsigned             _events,
-                              struct d_db_pending* _pending);
-int  d_internal_mariadb_step(struct d_mariadb*            _db,
-                             enum d_internal_mariadb_step _step,
-                             struct d_db_pending*         _pending);
-void d_internal_mariadb_unpend(struct d_db_pending* _pending);
-bool d_internal_mariadb_keep_text(char**      _to,
-                                  const char* _text);
+struct dj_internal_mariadb_async* d_internal_mariadb_async_get(
+    struct dj_mariadb* _db
+);
+void d_internal_mariadb_async_free(
+    struct dj_mariadb* _db
+);
+bool d_internal_mariadb_busy(
+    const struct dj_mariadb* _db
+);
+int d_internal_mariadb_begin(
+    struct dj_mariadb*    _db,
+    int (*_advance)( struct dj_mariadb*, struct dj_db_pending*),
+    struct dj_db_pending* _pending
+);
+int d_internal_mariadb_drive(
+    struct dj_mariadb*    _db,
+    unsigned              _events,
+    struct dj_db_pending* _pending
+);
+int d_internal_mariadb_step(
+    struct dj_mariadb*            _db,
+    enum dj_internal_mariadb_step _step,
+    struct dj_db_pending*         _pending
+);
+void d_internal_mariadb_unpend(
+    struct dj_db_pending* _pending
+);
+bool d_internal_mariadb_keep_text(
+    char**      _to,
+    const char* _text
+);
 // TLS a client cannot carry without blocking (d_mariadb_client_
 // nonblocking_tls false) -- _tls_blocks answers whether the connection uses
 // TLS so, which every start but a connect's refuses with D_DB_UNSUPPORTED;
@@ -734,8 +765,12 @@ bool d_internal_mariadb_keep_text(char**      _to,
 // certificate, an authority, a cipher or a fingerprint given, and an option
 // it cannot report, or a defaults file it reads while connecting, counts as
 // asking. Neither fails; both are false with a client that can.
-bool d_internal_mariadb_tls_blocks(const struct d_mariadb* _db);
-bool d_internal_mariadb_tls_blocks_connect(MYSQL* _native);
+bool d_internal_mariadb_tls_blocks(
+    const struct dj_mariadb* _db
+);
+bool d_internal_mariadb_tls_blocks_connect(
+    MYSQL* _native
+);
 // before an operation (mariadb_connection.c) -- _tidy does what
 // d_internal_mariadb_ready does before a command, without blocking: 2014
 // while a run or an operation holds the connection, else 0, the statement
@@ -744,10 +779,14 @@ bool d_internal_mariadb_tls_blocks_connect(MYSQL* _native);
 // it. _mode_off turns that mode off as a step where a failed script left it
 // on: stage `_stage` begins it and `_stage` + 1 reads its answer; it
 // answers D_DB_WAIT, 0 once off or never on, or the client's error number.
-int  d_internal_mariadb_tidy(struct d_mariadb* _db);
-int  d_internal_mariadb_mode_off(struct d_mariadb*    _db,
-                                 int                  _stage,
-                                 struct d_db_pending* _pending);
+int d_internal_mariadb_tidy(
+    struct dj_mariadb* _db
+);
+int d_internal_mariadb_mode_off(
+    struct dj_mariadb*    _db,
+    int                   _stage,
+    struct dj_db_pending* _pending
+);
 /**
  * @brief Runs SQL as d_internal_mariadb_send does, without blocking: the
  *        record's text sent, then every result it produces read and freed.
@@ -763,8 +802,10 @@ int  d_internal_mariadb_mode_off(struct d_mariadb*    _db,
  * its last result's end records whether the reply carried the session's
  * changes, as for any statement the layer runs.
  */
-int  d_internal_mariadb_run_async(struct d_mariadb*    _db,
-                                  struct d_db_pending* _pending);
+int d_internal_mariadb_run_async(
+    struct dj_mariadb*    _db,
+    struct dj_db_pending* _pending
+);
 
 
 //==============================================================================
@@ -778,26 +819,37 @@ int  d_internal_mariadb_run_async(struct d_mariadb*    _db,
 // empty name; _schema_ok for an empty one, NULL meaning the current database;
 // _variable_ok for anything but a letter or underscore followed by letters,
 // digits and underscores, the shape of every system variable's name
-bool d_internal_mariadb_name_ok(const char* _name);
-bool d_internal_mariadb_schema_ok(const char* _schema);
-bool d_internal_mariadb_variable_ok(const char* _name);
+bool d_internal_mariadb_name_ok(
+    const char* _name
+);
+bool d_internal_mariadb_schema_ok(
+    const char* _schema
+);
+bool d_internal_mariadb_variable_ok(
+    const char* _name
+);
 
 // 3.2    Quoting
 //------------------------------------------------------------------------------
-// quoting -- d_internal_db_quote_fn's for the servers: _quote_name writes a
+// quoting -- dj_internal_db_quote_fn's for the servers: _quote_name writes a
 // name in backquotes, any backquote doubled, and needs no connection;
 // _quote_value writes a value in single quotes, escaped by the client for the
 // connection `_context` points to. Each fails only for want of memory,
 // leaving the buffer's length as it was. _quoting gathers both, for
 // d_internal_db_format.
-bool d_internal_mariadb_quote_name(void*                        _context,
-                                   struct d_internal_db_buffer* _out,
-                                   const char*                  _name);
-bool d_internal_mariadb_quote_value(void*                        _context,
-                                    struct d_internal_db_buffer* _out,
-                                    const char*                  _text);
-struct d_internal_db_quoting
-     d_internal_mariadb_quoting(struct d_mariadb* _db);
+bool d_internal_mariadb_quote_name(
+    void*                         _context,
+    struct dj_internal_db_buffer* _out,
+    const char*                   _name
+);
+bool d_internal_mariadb_quote_value(
+    void*                         _context,
+    struct dj_internal_db_buffer* _out,
+    const char*                   _text
+);
+struct dj_internal_db_quoting d_internal_mariadb_quoting(
+    struct dj_mariadb* _db
+);
 
 
 //==============================================================================
@@ -815,7 +867,9 @@ struct d_internal_db_quoting
 // the layer's result for how formatting ended: 0, or
 // D_INTERNAL_MARIADB_OUT_OF_MEMORY, or D_DB_INVALID_ARGUMENT for a format or
 // value the formatter would not write
-int  d_internal_mariadb_format_result(enum d_internal_db_format_status _status);
+int d_internal_mariadb_format_result(
+    enum dj_internal_db_format_status _status
+);
 /**
  * @brief Readies the connection for the layer's next statement, undoing what
  *        a failure left so that its error would still read: closes a
@@ -828,7 +882,9 @@ int  d_internal_mariadb_format_result(enum d_internal_db_format_status _status);
  *         the connection, having done nothing; or the client's error number
  *         when the mode could not be turned off.
  */
-int  d_internal_mariadb_ready(struct d_mariadb* _db);
+int d_internal_mariadb_ready(
+    struct dj_mariadb* _db
+);
 /**
  * @brief Sends SQL as written and reads every result it produces.
  *
@@ -845,10 +901,12 @@ int  d_internal_mariadb_ready(struct d_mariadb* _db);
  * Every result after the first, which only a CALL or a script produces, is
  * read and discarded, so the connection is ready for the next statement.
  */
-int  d_internal_mariadb_send(struct d_mariadb* _db,
-                             const char*       _sql,
-                             size_t            _length,
-                             MYSQL_RES**       _rows);
+int d_internal_mariadb_send(
+    struct dj_mariadb* _db,
+    const char*        _sql,
+    size_t             _length,
+    MYSQL_RES**        _rows
+);
 /**
  * @brief Formats a statement and sends it, as d_internal_mariadb_send.
  *
@@ -858,15 +916,19 @@ int  d_internal_mariadb_send(struct d_mariadb* _db,
  * @param[in]  _args    the format's arguments.
  * @return as section 4 says.
  */
-int  d_internal_mariadb_vrun(struct d_mariadb* _db,
-                             MYSQL_RES**       _rows,
-                             const char*       _format,
-                             va_list           _args);
+int d_internal_mariadb_vrun(
+    struct dj_mariadb* _db,
+    MYSQL_RES**        _rows,
+    const char*        _format,
+    va_list            _args
+);
 // as d_internal_mariadb_vrun, taking the arguments directly
-int  d_internal_mariadb_run(struct d_mariadb* _db,
-                            MYSQL_RES**       _rows,
-                            const char*       _format,
-                            ...);
+int d_internal_mariadb_run(
+    struct dj_mariadb* _db,
+    MYSQL_RES**        _rows,
+    const char*        _format,
+    ...
+);
 
 // 4.2    Single values
 //------------------------------------------------------------------------------
@@ -878,26 +940,36 @@ int  d_internal_mariadb_run(struct d_mariadb* _db,
 // fraction truncated toward zero; _double rounds to the nearest double;
 // either reads text that is not a number, or not one the type can hold, as
 // D_DB_INVALID_ARGUMENT.
-int  d_internal_mariadb_vquery(struct d_mariadb* _db,
-                               char**            _value,
-                               const char*       _format,
-                               va_list           _args);
-int  d_internal_mariadb_query(struct d_mariadb* _db,
-                              char**            _value,
-                              const char*       _format,
-                              ...);
-int  d_internal_mariadb_vquery_int64(struct d_mariadb* _db,
-                                     int64_t*          _value,
-                                     const char*       _format,
-                                     va_list           _args);
-int  d_internal_mariadb_query_int64(struct d_mariadb* _db,
-                                    int64_t*          _value,
-                                    const char*       _format,
-                                    ...);
-int  d_internal_mariadb_vquery_double(struct d_mariadb* _db,
-                                      double*           _value,
-                                      const char*       _format,
-                                      va_list           _args);
+int d_internal_mariadb_vquery(
+    struct dj_mariadb* _db,
+    char**             _value,
+    const char*        _format,
+    va_list            _args
+);
+int d_internal_mariadb_query(
+    struct dj_mariadb* _db,
+    char**             _value,
+    const char*        _format,
+    ...
+);
+int d_internal_mariadb_vquery_int64(
+    struct dj_mariadb* _db,
+    int64_t*           _value,
+    const char*        _format,
+    va_list            _args
+);
+int d_internal_mariadb_query_int64(
+    struct dj_mariadb* _db,
+    int64_t*           _value,
+    const char*        _format,
+    ...
+);
+int d_internal_mariadb_vquery_double(
+    struct dj_mariadb* _db,
+    double*            _value,
+    const char*        _format,
+    va_list            _args
+);
 
 // 4.3    Rows
 //------------------------------------------------------------------------------
@@ -906,17 +978,23 @@ int  d_internal_mariadb_vquery_double(struct d_mariadb* _db,
 // construction; _rows_value adds one value, as the protocol sent it in text,
 // read as its field's type says: `_text` NULL for SQL NULL, and `_length` its
 // bytes. Each of the last two returns `true`, or `false` when memory ran out.
-enum d_db_type
-     d_internal_mariadb_field_type(const MYSQL_FIELD* _field);
-const char*
-     d_internal_mariadb_field_type_name(const MYSQL_FIELD* _field);
-bool d_internal_mariadb_rows_columns(struct d_internal_db_rows* _rows,
-                                     const MYSQL_FIELD*         _fields,
-                                     unsigned                   _count);
-bool d_internal_mariadb_rows_value(struct d_internal_db_rows* _rows,
-                                   const MYSQL_FIELD*         _field,
-                                   const char*                _text,
-                                   unsigned long              _length);
+enum dj_db_type d_internal_mariadb_field_type(
+    const MYSQL_FIELD* _field
+);
+const char* d_internal_mariadb_field_type_name(
+    const MYSQL_FIELD* _field
+);
+bool d_internal_mariadb_rows_columns(
+    struct dj_internal_db_rows* _rows,
+    const MYSQL_FIELD*          _fields,
+    unsigned                    _count
+);
+bool d_internal_mariadb_rows_value(
+    struct dj_internal_db_rows* _rows,
+    const MYSQL_FIELD*          _field,
+    const char*                 _text,
+    unsigned long               _length
+);
 /**
  * @brief Reads every row of a result into rows, and frees the result.
  *
@@ -928,8 +1006,10 @@ bool d_internal_mariadb_rows_value(struct d_internal_db_rows* _rows,
  * @post `_result` is freed whatever happens. On success the caller releases
  *       `_rows` with d_db_rows_free.
  */
-int  d_internal_mariadb_collect_rows(MYSQL_RES*        _result,
-                                     struct d_db_rows* _rows);
+int d_internal_mariadb_collect_rows(
+    MYSQL_RES*         _result,
+    struct dj_db_rows* _rows
+);
 
 
 //==============================================================================
@@ -947,9 +1027,9 @@ int  d_internal_mariadb_collect_rows(MYSQL_RES*        _result,
 // 5.1    Objects
 //------------------------------------------------------------------------------
 // 5.1.1
-// d_internal_mariadb_object
+// dj_internal_mariadb_object
 //   enum: what a lookup looks for.
-enum d_internal_mariadb_object
+enum dj_internal_mariadb_object
 {
     D_INTERNAL_MARIADB_DATABASE = 0,  // a database
     D_INTERNAL_MARIADB_TABLE,         // a base table, system-versioned or not
@@ -963,9 +1043,9 @@ enum d_internal_mariadb_object
 };
 
 // 5.1.2
-// d_internal_mariadb_path
+// dj_internal_mariadb_path
 //   struct: where an object is.
-struct d_internal_mariadb_path
+struct dj_internal_mariadb_path
 {
     const char* schema;  // its database; NULL: the current one
     const char* table;   // the table it belongs to: required for a column or
@@ -986,10 +1066,12 @@ struct d_internal_mariadb_path
  *         D_DB_INVALID_ARGUMENT for a `NULL` argument, a name that is `NULL`
  *         or empty, or a table missing where the object needs one.
  */
-int  d_internal_mariadb_has(struct d_mariadb*                     _db,
-                            enum d_internal_mariadb_object        _object,
-                            const struct d_internal_mariadb_path* _path,
-                            bool*                                 _exists);
+int d_internal_mariadb_has(
+    struct dj_mariadb*                     _db,
+    enum dj_internal_mariadb_object        _object,
+    const struct dj_internal_mariadb_path* _path,
+    bool*                                  _exists
+);
 /**
  * @brief Lists the objects of a kind, sorted by their names' bytes.
  *
@@ -1002,10 +1084,12 @@ int  d_internal_mariadb_has(struct d_mariadb*                     _db,
  *         d_internal_mariadb_has.
  * @post On success the caller releases `_names` with d_db_name_list_free.
  */
-int  d_internal_mariadb_list(struct d_mariadb*                     _db,
-                             enum d_internal_mariadb_object        _object,
-                             const struct d_internal_mariadb_path* _path,
-                             struct d_db_name_list*                _names);
+int d_internal_mariadb_list(
+    struct dj_mariadb*                     _db,
+    enum dj_internal_mariadb_object        _object,
+    const struct dj_internal_mariadb_path* _path,
+    struct dj_db_name_list*                _names
+);
 /**
  * @brief Appends a condition matching a column to a database's or table's
  *        name, as the server matches it.
@@ -1020,12 +1104,13 @@ int  d_internal_mariadb_list(struct d_mariadb*                     _db,
  * Writes ` AND column = name`, and with `_exact` also
  * ` AND HEX(column) = HEX(name)`.
  */
-enum d_internal_db_format_status
-     d_internal_mariadb_match(struct d_mariadb*            _db,
-                              struct d_internal_db_buffer* _sql,
-                              const char*                  _column,
-                              const char*                  _name,
-                              bool                         _exact);
+enum dj_internal_db_format_status d_internal_mariadb_match(
+    struct dj_mariadb*            _db,
+    struct dj_internal_db_buffer* _sql,
+    const char*                   _column,
+    const char*                   _name,
+    bool                          _exact
+);
 
 
 #endif  // D_INTERNAL_MARIADB

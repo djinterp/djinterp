@@ -34,7 +34,7 @@ TABLE OF CONTENTS
 1.  TYPES AND CONSTANTS
     -------------------
     1.  Types
-         1.  d_token_node_stats
+         1.  dj_token_node_stats
 2.  OPERATIONS
     ----------
     1.  Building
@@ -48,10 +48,10 @@ TABLE OF CONTENTS
 #include <stdint.h>  // uint32_t
 
 // djinterp
-#include "./dnode.h"                              // d_node_tree
-#include "../../parse/lex/lex_dialect.h"          // d_lex_dialect
-#include "../../parse/lex/lex_scan.h"             // d_lex_status
-#include "../../parse/source/source_reader.h"     // d_source
+#include "./dnode.h"                              // dj_node_tree
+#include "../../c/modules/parse/lex/lex_dialect.h"          // dj_lex_dialect
+#include "../../c/modules/parse/lex/lex_scan.h"             // dj_lex_status
+#include "../../c/modules/parse/source/source_reader.h"     // dj_source
 
 
 //==============================================================================
@@ -62,11 +62,11 @@ TABLE OF CONTENTS
 // 1.1    Types
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_token_node_stats
+// dj_token_node_stats
 //   struct: what a build produced and what it found wrong.  `lex_status` is
 //   the scanner's first latched error; `unbalanced` totals the three bracket
 //   counts from syntax_group.h, outside directives only.
-struct d_token_node_stats
+struct dj_token_node_stats
 {
     size_t             tokens;
     size_t             nodes;
@@ -75,7 +75,7 @@ struct d_token_node_stats
     size_t             comments;
     size_t             unbalanced;
     size_t             items;
-    enum d_lex_status  lex_status;
+    enum dj_lex_status  lex_status;
 };
 
 
@@ -105,11 +105,13 @@ struct d_token_node_stats
  * @param[out]    _out_stats  receives what was built; may be `NULL`.
  * @return the node the tree hangs from, or `D_DSS_NO_INDEX` on failure.
  */
-uint32_t     d_token_node_build(struct d_node_tree*         _tree,
-                                uint32_t                    _parent,
-                                const struct d_source*      _source,
-                                const struct d_lex_dialect* _dialect,
-                                struct d_token_node_stats*  _out_stats);
+uint32_t d_token_node_build(
+    struct dj_node_tree*         _tree,
+    uint32_t                     _parent,
+    const struct dj_source*      _source,
+    const struct dj_lex_dialect* _dialect,
+    struct dj_token_node_stats*  _out_stats
+);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DTOKEN_NODE_H

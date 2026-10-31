@@ -19,21 +19,19 @@
 * path:      /src/djinterp/c/event/event_table.c
 ******************************************************************************/
 
-struct d_event_hash_table*
-d_event_hash_table_new
-(
+struct dj_event_hash_table* d_event_hash_table_new(
     size_t _initial_size
 )
 {
     size_t prime_size;
-    struct d_event_hash_table* new_table;
+    struct dj_event_hash_table* new_table;
 
     if (_initial_size == 0)
     {
         _initial_size = D_EVENT_HASH_TABLE_DEFAULT_SIZE;
     }
 
-    new_table = malloc(sizeof(struct d_event_hash_table));
+    new_table = malloc(sizeof(struct dj_event_hash_table));
 
     if (!new_table)
     {
@@ -41,7 +39,7 @@ d_event_hash_table_new
     }
 
     prime_size = d_event_hash_next_prime(_initial_size);
-    new_table->buckets = calloc(prime_size, sizeof(struct d_event_hash_node*));
+    new_table->buckets = calloc(prime_size, sizeof(struct dj_event_hash_node*));
 
     if (!new_table->buckets)
     {
@@ -56,19 +54,13 @@ d_event_hash_table_new
     return new_table;
 }
 
-struct d_event_hash_table*
-d_event_hash_table_new_default
-(
-    void
-)
+struct dj_event_hash_table* d_event_hash_table_new_default(void)
 {
     return d_event_hash_table_new(D_EVENT_HASH_TABLE_DEFAULT_SIZE);
 }
 
-void
-d_event_hash_table_free
-(
-    struct d_event_hash_table* _table
+void d_event_hash_table_free(
+    struct dj_event_hash_table* _table
 )
 {
     if (!_table)
@@ -85,18 +77,16 @@ d_event_hash_table_free
 * CORE OPERATIONS
 ******************************************************************************/
 
-bool
-d_event_hash_table_insert
-(
-    struct d_event_hash_table* _table,
-    d_event_id                 _key,
-    struct d_event_listener*   _listener
+bool d_event_hash_table_insert(
+    struct dj_event_hash_table* _table,
+    dj_event_id                 _key,
+    struct dj_event_listener*   _listener
 )
 {
     bool was_enabled;
     size_t index;
-    struct d_event_hash_node* current;
-    struct d_event_hash_node* new_node;
+    struct dj_event_hash_node* current;
+    struct dj_event_hash_node* new_node;
 
     if (!_table || !_listener)
     {
@@ -159,15 +149,13 @@ d_event_hash_table_insert
     return true;
 }
 
-struct d_event_listener*
-d_event_hash_table_lookup
-(
-    const struct d_event_hash_table* _table,
-    d_event_id                       _key
+struct dj_event_listener* d_event_hash_table_lookup(
+    const struct dj_event_hash_table* _table,
+    dj_event_id                       _key
 )
 {
     size_t index;
-    struct d_event_hash_node* current;
+    struct dj_event_hash_node* current;
 
     if (!_table)
     {
@@ -190,16 +178,14 @@ d_event_hash_table_lookup
     return NULL;
 }
 
-bool
-d_event_hash_table_remove
-(
-    struct d_event_hash_table* _table,
-    d_event_id                 _key
+bool d_event_hash_table_remove(
+    struct dj_event_hash_table* _table,
+    dj_event_id                 _key
 )
 {
     size_t index;
-    struct d_event_hash_node* current;
-    struct d_event_hash_node* prev;
+    struct dj_event_hash_node* current;
+    struct dj_event_hash_node* prev;
 
     if (!_table)
     {
@@ -242,11 +228,9 @@ d_event_hash_table_remove
     return false;
 }
 
-bool
-d_event_hash_table_contains
-(
-    const struct d_event_hash_table* _table,
-    d_event_id                       _key
+bool d_event_hash_table_contains(
+    const struct dj_event_hash_table* _table,
+    dj_event_id                       _key
 )
 {
     return d_event_hash_table_lookup(_table, _key) != NULL;
@@ -256,37 +240,29 @@ d_event_hash_table_contains
 * TABLE MANAGEMENT
 ******************************************************************************/
 
-size_t
-d_event_hash_table_size
-(
-    const struct d_event_hash_table* _table
+size_t d_event_hash_table_size(
+    const struct dj_event_hash_table* _table
 )
 {
     return _table ? _table->size : 0;
 }
 
-size_t
-d_event_hash_table_count
-(
-    const struct d_event_hash_table* _table
+size_t d_event_hash_table_count(
+    const struct dj_event_hash_table* _table
 )
 {
     return _table ? _table->count : 0;
 }
 
-size_t
-d_event_hash_table_enabled_count
-(
-    const struct d_event_hash_table* _table
+size_t d_event_hash_table_enabled_count(
+    const struct dj_event_hash_table* _table
 )
 {
     return _table ? _table->enabled_count : 0;
 }
 
-double
-d_event_hash_table_load_factor
-(
-    const struct d_event_hash_table* _table
+double d_event_hash_table_load_factor(
+    const struct dj_event_hash_table* _table
 )
 {
     if (!_table || _table->size == 0)
@@ -297,16 +273,14 @@ d_event_hash_table_load_factor
     return (double)_table->count / (double)_table->size;
 }
 
-bool
-d_event_hash_table_resize
-(
-    struct d_event_hash_table* _table,
-    size_t                     _new_size
+bool d_event_hash_table_resize(
+    struct dj_event_hash_table* _table,
+    size_t                      _new_size
 )
 {
     size_t prime_new_size;
-    struct d_event_hash_node** new_buckets;
-    struct d_event_hash_node** old_buckets;
+    struct dj_event_hash_node** new_buckets;
+    struct dj_event_hash_node** old_buckets;
     size_t old_size;
 
     if (!_table)
@@ -315,7 +289,7 @@ d_event_hash_table_resize
     }
 
     prime_new_size = d_event_hash_next_prime(_new_size);
-    new_buckets = calloc(prime_new_size, sizeof(struct d_event_hash_node*));
+    new_buckets = calloc(prime_new_size, sizeof(struct dj_event_hash_node*));
 
     if (!new_buckets)
     {
@@ -331,11 +305,11 @@ d_event_hash_table_resize
 
     for (size_t i = 0; i < old_size; i++)
     {
-        struct d_event_hash_node* current = old_buckets[i];
+        struct dj_event_hash_node* current = old_buckets[i];
 
         while (current)
         {
-            struct d_event_hash_node* next = current->next;
+            struct dj_event_hash_node* next = current->next;
 
             // Rehash and insert into new table
             size_t new_index = d_event_hash_function(current->key, prime_new_size);
@@ -350,10 +324,8 @@ d_event_hash_table_resize
     return true;
 }
 
-void
-d_event_hash_table_clear
-(
-    struct d_event_hash_table* _table
+void d_event_hash_table_clear(
+    struct dj_event_hash_table* _table
 )
 {
     if (!_table)
@@ -363,11 +335,11 @@ d_event_hash_table_clear
 
     for (size_t i = 0; i < _table->size; i++)
     {
-        struct d_event_hash_node* current = _table->buckets[i];
+        struct dj_event_hash_node* current = _table->buckets[i];
 
         while (current)
         {
-            struct d_event_hash_node* next = current->next;
+            struct dj_event_hash_node* next = current->next;
             d_event_hash_node_free(current);
             current = next;
         }
@@ -383,20 +355,18 @@ d_event_hash_table_clear
 * ITERATOR IMPLEMENTATION
 ******************************************************************************/
 
-struct d_event_hash_iterator*
-d_event_hash_table_iterator_begin
-(
-    const struct d_event_hash_table* _table
+struct dj_event_hash_iterator* d_event_hash_table_iterator_begin(
+    const struct dj_event_hash_table* _table
 )
 {
-    struct d_event_hash_iterator* iter;
+    struct dj_event_hash_iterator* iter;
 
     if (!_table)
     {
         return NULL;
     }
 
-    iter = malloc(sizeof(struct d_event_hash_iterator));
+    iter = malloc(sizeof(struct dj_event_hash_iterator));
 
     if (!iter)
     {
@@ -421,23 +391,19 @@ d_event_hash_table_iterator_begin
     return iter;
 }
 
-bool
-d_event_hash_table_iterator_has_next
-(
-    struct d_event_hash_iterator* _iter
+bool d_event_hash_table_iterator_has_next(
+    struct dj_event_hash_iterator* _iter
 )
 {
     return _iter && _iter->table && _iter->current_node;
 }
 
-struct d_event_listener*
-d_event_hash_table_iterator_next
-(
-    struct d_event_hash_iterator* _iter,
-    d_event_id*                   _key_out
+struct dj_event_listener* d_event_hash_table_iterator_next(
+    struct dj_event_hash_iterator* _iter,
+    dj_event_id*                   _key_out
 )
 {
-    struct d_event_listener* result;
+    struct dj_event_listener* result;
 
     if (!d_event_hash_table_iterator_has_next(_iter))
     {
@@ -474,10 +440,8 @@ d_event_hash_table_iterator_next
     return result;
 }
 
-void
-d_event_hash_table_iterator_free
-(
-    struct d_event_hash_iterator* _iter
+void d_event_hash_table_iterator_free(
+    struct dj_event_hash_iterator* _iter
 )
 {
     if (_iter)
@@ -490,13 +454,11 @@ d_event_hash_table_iterator_free
 * STATISTICS
 ******************************************************************************/
 
-struct d_event_hash_stats
-d_event_hash_table_get_stats
-(
-    const struct d_event_hash_table* _table
+struct dj_event_hash_stats d_event_hash_table_get_stats(
+    const struct dj_event_hash_table* _table
 )
 {
-    struct d_event_hash_stats stats = {0};
+    struct dj_event_hash_stats stats = {0};
     size_t chain_lengths;
 
     if (!_table)
@@ -515,7 +477,7 @@ d_event_hash_table_get_stats
         if (_table->buckets[i])
         {
             size_t chain_length = 0;
-            struct d_event_hash_node* current = _table->buckets[i];
+            struct dj_event_hash_node* current = _table->buckets[i];
 
             stats.used_buckets++;
 

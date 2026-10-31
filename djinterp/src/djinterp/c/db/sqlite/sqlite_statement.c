@@ -30,7 +30,7 @@
 #include "../../../../../inc/djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // D_INTERNAL_SQLITE
 #include "./sqlite_internal.h"  // sqlite3.h, the floor, the plumbing
 // re_std
-#include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t
 
 
 #if (D_INTERNAL_SQLITE == 1)
@@ -47,8 +47,8 @@
  * @return SQLITE_OK, or SQLITE_RANGE for 0 or a number no int holds, which
  *         no statement has.
  */
-static int
-d_internal_sqlite_parameter(
+static
+int d_internal_sqlite_parameter(
     size_t _index,
     int*   _out
 )
@@ -74,8 +74,8 @@ d_internal_sqlite_parameter(
  * @return what SQLite's bind returns; SQLITE_TOOBIG for text whose length
  *         SQLite's int-sized bind cannot take.
  */
-static int
-d_internal_sqlite_bind_text(
+static
+int d_internal_sqlite_bind_text(
     sqlite3_stmt* _statement,
     int           _index,
     const char*   _text
@@ -109,8 +109,8 @@ d_internal_sqlite_bind_text(
  * @return what SQLite's bind returns; SQLITE_TOOBIG for a size SQLite's
  *         int-sized bind cannot take.
  */
-static int
-d_internal_sqlite_bind_blob(
+static
+int d_internal_sqlite_bind_blob(
     sqlite3_stmt* _statement,
     int           _index,
     const void*   _bytes,
@@ -143,8 +143,7 @@ d_sqlite_prepare
   sqlite_internal.c prepares the first statement and reads, without compiling
 it, whatever follows.
 */
-int
-d_sqlite_prepare(
+int d_sqlite_prepare(
     sqlite3*       _db,
     sqlite3_stmt** _statement,
     const char*    _sql
@@ -173,8 +172,7 @@ d_sqlite_preparef
   The format is checked before va_start, so a misuse returns without touching
 the arguments.
 */
-int
-d_sqlite_preparef(
+int d_sqlite_preparef(
     sqlite3*       _db,
     sqlite3_stmt** _statement,
     const char*    _format,
@@ -215,8 +213,7 @@ d_sqlite_finalize
   sqlite3_finalize answers with the failure of the statement's last step,
 which that step's own caller has already seen; finalizing itself cannot fail.
 */
-int
-d_sqlite_finalize(
+int d_sqlite_finalize(
     sqlite3_stmt* _statement
 )
 {
@@ -232,8 +229,7 @@ d_sqlite_parameter_count
   sqlite3_bind_parameter_count is the highest number, which ?NNN can make
 larger than the count of parameters written.
 */
-size_t
-d_sqlite_parameter_count(
+size_t d_sqlite_parameter_count(
     sqlite3_stmt* _statement
 )
 {
@@ -250,8 +246,7 @@ d_sqlite_parameter_count(
 d_sqlite_parameter_index
   SQLite matches the name with its prefix, exactly as written.
 */
-int
-d_sqlite_parameter_index(
+int d_sqlite_parameter_index(
     sqlite3_stmt* _statement,
     const char*   _name,
     size_t*       _index
@@ -282,8 +277,7 @@ d_sqlite_parameter_index(
 d_sqlite_statement_connection
   sqlite3_db_handle, NULL-safe.
 */
-sqlite3*
-d_sqlite_statement_connection(
+sqlite3* d_sqlite_statement_connection(
     sqlite3_stmt* _statement
 )
 {
@@ -300,8 +294,7 @@ d_sqlite_statement_connection(
 d_sqlite_bind_null
   sqlite3_bind_null, the number checked first.
 */
-int
-d_sqlite_bind_null(
+int d_sqlite_bind_null(
     sqlite3_stmt* _statement,
     size_t        _index
 )
@@ -324,8 +317,7 @@ d_sqlite_bind_null(
 d_sqlite_bind_bool
   SQLite has no boolean: 1 and 0, as its own TRUE and FALSE are.
 */
-int
-d_sqlite_bind_bool(
+int d_sqlite_bind_bool(
     sqlite3_stmt* _statement,
     size_t        _index,
     bool          _value
@@ -350,8 +342,7 @@ d_sqlite_bind_bool(
 d_sqlite_bind_int64
   sqlite3_bind_int64, the number checked first.
 */
-int
-d_sqlite_bind_int64(
+int d_sqlite_bind_int64(
     sqlite3_stmt* _statement,
     size_t        _index,
     int64_t       _value
@@ -377,8 +368,7 @@ d_sqlite_bind_int64(
 d_sqlite_bind_double
   sqlite3_bind_double, which stores a NaN as NULL.
 */
-int
-d_sqlite_bind_double(
+int d_sqlite_bind_double(
     sqlite3_stmt* _statement,
     size_t        _index,
     double        _value
@@ -403,8 +393,7 @@ d_sqlite_bind_double(
 d_sqlite_bind_text
   A NULL string binds NULL, as SQLite's own bind would.
 */
-int
-d_sqlite_bind_text(
+int d_sqlite_bind_text(
     sqlite3_stmt* _statement,
     size_t        _index,
     const char*   _text
@@ -435,8 +424,7 @@ d_sqlite_bind_blob
   A NULL pointer binds NULL, as SQLite's own bind would; a pointer to no
 bytes binds the empty BLOB.
 */
-int
-d_sqlite_bind_blob(
+int d_sqlite_bind_blob(
     sqlite3_stmt* _statement,
     size_t        _index,
     const void*   _bytes,
@@ -473,8 +461,7 @@ binds, does not refuse a statement part-way through a run: the run may still
 be reading the values it would release, so the layer refuses it, as the binds
 do.
 */
-int
-d_sqlite_clear_bindings(
+int d_sqlite_clear_bindings(
     sqlite3_stmt* _statement
 )
 {
@@ -505,8 +492,7 @@ d_sqlite_clear_bindings(
 d_sqlite_execute_update
   The count lands in a local first, so a failure writes nothing.
 */
-int
-d_sqlite_execute_update(
+int d_sqlite_execute_update(
     sqlite3_stmt* _statement,
     int64_t*      _changes
 )
@@ -537,10 +523,9 @@ d_sqlite_execute_update(
 d_sqlite_execute_query
   sqlite_internal.c's collector, which the rows query uses too.
 */
-int
-d_sqlite_execute_query(
-    sqlite3_stmt*     _statement,
-    struct d_db_rows* _rows
+int d_sqlite_execute_query(
+    sqlite3_stmt*      _statement,
+    struct dj_db_rows* _rows
 )
 {
     // parameter validation
@@ -560,8 +545,7 @@ d_sqlite_open_cursor
   A run is SQLite's own stepping: nothing is run before the first fetch, and
 a reset starts afresh.
 */
-int
-d_sqlite_open_cursor(
+int d_sqlite_open_cursor(
     sqlite3_stmt* _statement
 )
 {
@@ -583,14 +567,13 @@ no read lock outlives it; a fetch never steps further after the rows it was
 asked for, so the run goes on where it stopped. A failure drops what this
 fetch kept, and resets the statement too.
 */
-int
-d_sqlite_fetch_rows(
-    sqlite3_stmt*     _statement,
-    size_t            _max,
-    struct d_db_rows* _rows
+int d_sqlite_fetch_rows(
+    sqlite3_stmt*      _statement,
+    size_t             _max,
+    struct dj_db_rows* _rows
 )
 {
-    struct d_internal_db_rows builder =
+    struct dj_internal_db_rows builder =
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
     };
@@ -649,8 +632,7 @@ d_sqlite_fetch_rows(
 d_sqlite_close_cursor
   The reset ends the run; what it reports is the run's, already seen.
 */
-int
-d_sqlite_close_cursor(
+int d_sqlite_close_cursor(
     sqlite3_stmt* _statement
 )
 {
@@ -679,8 +661,7 @@ d_sqlite_prepare
   Without SQLite there is nothing to compile: D_DB_UNSUPPORTED, and the
 statement NULL, as a failed prepare leaves it.
 */
-int
-d_sqlite_prepare(
+int d_sqlite_prepare(
     struct sqlite3*       _db,
     struct sqlite3_stmt** _statement,
     const char*           _sql
@@ -702,8 +683,7 @@ d_sqlite_prepare(
 d_sqlite_preparef
   As d_sqlite_prepare.
 */
-int
-d_sqlite_preparef(
+int d_sqlite_preparef(
     struct sqlite3*       _db,
     struct sqlite3_stmt** _statement,
     const char*           _format,
@@ -726,8 +706,7 @@ d_sqlite_preparef(
 d_sqlite_finalize
   Without SQLite no statement exists, and releasing none succeeds.
 */
-int
-d_sqlite_finalize(
+int d_sqlite_finalize(
     struct sqlite3_stmt* _statement
 )
 {
@@ -740,8 +719,7 @@ d_sqlite_finalize(
 d_sqlite_parameter_count
   Without SQLite, 0.
 */
-size_t
-d_sqlite_parameter_count(
+size_t d_sqlite_parameter_count(
     struct sqlite3_stmt* _statement
 )
 {
@@ -754,8 +732,7 @@ d_sqlite_parameter_count(
 d_sqlite_parameter_index
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_parameter_index(
+int d_sqlite_parameter_index(
     struct sqlite3_stmt* _statement,
     const char*          _name,
     size_t*              _index
@@ -772,8 +749,7 @@ d_sqlite_parameter_index(
 d_sqlite_statement_connection
   Without SQLite, NULL.
 */
-struct sqlite3*
-d_sqlite_statement_connection(
+struct sqlite3* d_sqlite_statement_connection(
     struct sqlite3_stmt* _statement
 )
 {
@@ -786,8 +762,7 @@ d_sqlite_statement_connection(
 d_sqlite_bind_null
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_bind_null(
+int d_sqlite_bind_null(
     struct sqlite3_stmt* _statement,
     size_t               _index
 )
@@ -802,8 +777,7 @@ d_sqlite_bind_null(
 d_sqlite_bind_bool
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_bind_bool(
+int d_sqlite_bind_bool(
     struct sqlite3_stmt* _statement,
     size_t               _index,
     bool                 _value
@@ -820,8 +794,7 @@ d_sqlite_bind_bool(
 d_sqlite_bind_int64
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_bind_int64(
+int d_sqlite_bind_int64(
     struct sqlite3_stmt* _statement,
     size_t               _index,
     int64_t              _value
@@ -838,8 +811,7 @@ d_sqlite_bind_int64(
 d_sqlite_bind_double
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_bind_double(
+int d_sqlite_bind_double(
     struct sqlite3_stmt* _statement,
     size_t               _index,
     double               _value
@@ -856,8 +828,7 @@ d_sqlite_bind_double(
 d_sqlite_bind_text
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_bind_text(
+int d_sqlite_bind_text(
     struct sqlite3_stmt* _statement,
     size_t               _index,
     const char*          _text
@@ -874,8 +845,7 @@ d_sqlite_bind_text(
 d_sqlite_bind_blob
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_bind_blob(
+int d_sqlite_bind_blob(
     struct sqlite3_stmt* _statement,
     size_t               _index,
     const void*          _bytes,
@@ -894,8 +864,7 @@ d_sqlite_bind_blob(
 d_sqlite_clear_bindings
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_clear_bindings(
+int d_sqlite_clear_bindings(
     struct sqlite3_stmt* _statement
 )
 {
@@ -908,8 +877,7 @@ d_sqlite_clear_bindings(
 d_sqlite_execute_update
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_execute_update(
+int d_sqlite_execute_update(
     struct sqlite3_stmt* _statement,
     int64_t*             _changes
 )
@@ -924,10 +892,9 @@ d_sqlite_execute_update(
 d_sqlite_execute_query
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_execute_query(
+int d_sqlite_execute_query(
     struct sqlite3_stmt* _statement,
-    struct d_db_rows*    _rows
+    struct dj_db_rows*   _rows
 )
 {
     (void)_statement;
@@ -940,8 +907,7 @@ d_sqlite_execute_query(
 d_sqlite_open_cursor
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_open_cursor(
+int d_sqlite_open_cursor(
     struct sqlite3_stmt* _statement
 )
 {
@@ -954,11 +920,10 @@ d_sqlite_open_cursor(
 d_sqlite_fetch_rows
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_fetch_rows(
+int d_sqlite_fetch_rows(
     struct sqlite3_stmt* _statement,
     size_t               _max,
-    struct d_db_rows*    _rows
+    struct dj_db_rows*   _rows
 )
 {
     (void)_statement;
@@ -972,8 +937,7 @@ d_sqlite_fetch_rows(
 d_sqlite_close_cursor
   Without SQLite, D_DB_UNSUPPORTED.
 */
-int
-d_sqlite_close_cursor(
+int d_sqlite_close_cursor(
     struct sqlite3_stmt* _statement
 )
 {

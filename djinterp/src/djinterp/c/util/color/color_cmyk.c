@@ -17,8 +17,17 @@
 
 #ifndef D_COLOR_HEADER_ONLY
 
-struct d_color_cmyk d_color_cmyk_make(float _c, float _m, float _y, float _k);
-bool d_color_cmyk_is_valid(struct d_color_cmyk _cmyk);
-struct d_color_cmyk d_color_cmyk_clamp(struct d_color_cmyk _cmyk);
+struct dj_color_cmyk d_color_cmyk_make(
+    float _c,
+    float _m,
+    float _y,
+    float _k
+);
+bool d_color_cmyk_is_valid(
+    struct dj_color_cmyk _cmyk
+);
+struct dj_color_cmyk d_color_cmyk_clamp(
+    struct dj_color_cmyk _cmyk
+);
 
 #endif  /* D_COLOR_HEADER_ONLY */

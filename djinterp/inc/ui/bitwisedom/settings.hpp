@@ -73,8 +73,10 @@ struct setting
 
 // registry -- the table, made from the model's, and one entry by path
 // (nullptr when unknown)
-const std::vector<setting>&  settings();
-const setting*               find_setting(const std::string& _path);
+const std::vector<setting>& settings();
+const setting* find_setting(
+    const std::string& _path
+);
 
 // env_setting
 //   struct: one of the window's own settings, by a path under
@@ -107,22 +109,32 @@ const int ADD_KINDS = 7;
 // add_kind_name / add_kind_of
 //   a kind to add, by its place among ADD_KINDS: its name, and the kind
 // "edit.add" takes -- a def_kind's number, or -1 for a group.
-D_NODISCARD const char*  add_kind_name(int _index);
-D_NODISCARD int          add_kind_of(int _index);
+D_NODISCARD const char* add_kind_name(
+    int _index
+);
+D_NODISCARD int add_kind_of(
+    int _index
+);
 
 // registry -- the window's own table, and one entry by path
-const std::vector<env_setting>&  environment_settings();
-const env_setting*               find_env_setting(const std::string& _path);
+const std::vector<env_setting>& environment_settings();
+const env_setting* find_env_setting(
+    const std::string& _path
+);
 
 // is_environment
 //   whether a path names one of the window's own settings.
-D_NODISCARD bool  is_environment(const std::string& _path);
+D_NODISCARD bool is_environment(
+    const std::string& _path
+);
 
 // is_preference
 //   whether a sheet's setting is a preference a settings file carries --
 // how the sheet is drawn and written -- rather than its content: its
 // title, width, affixes and names are its own.
-D_NODISCARD bool  is_preference(const setting& _setting);
+D_NODISCARD bool is_preference(
+    const setting& _setting
+);
 
 // SETTINGS_FORMAT / SETTINGS_VERSION
 //   constants: what a settings file calls itself, and the newest version
@@ -147,8 +159,10 @@ struct setting_value
  * @param[in] _sheet  the sheet whose preferences are written.
  * @return the file's text: JSON, its settings by path.
  */
-D_NODISCARD std::string  write_settings(const shell_state& _shell,
-                                        const sheet&       _sheet);
+D_NODISCARD std::string write_settings(
+    const shell_state& _shell,
+    const sheet&       _sheet
+);
 
 /**
  * @brief Reads a settings file's text into the "set"s that apply it.
@@ -160,9 +174,11 @@ D_NODISCARD std::string  write_settings(const shell_state& _shell,
  * @param[out] _error   why the text is not a settings file, when it is not.
  * @return `true` if the text is a settings file.
  */
-D_NODISCARD bool  read_settings(const std::string&          _text,
-                                std::vector<setting_value>& _values,
-                                std::string&                _error);
+D_NODISCARD bool read_settings(
+    const std::string&          _text,
+    std::vector<setting_value>& _values,
+    std::string&                _error
+);
 
 }  // namespace gui
 }  // namespace bitwisedom

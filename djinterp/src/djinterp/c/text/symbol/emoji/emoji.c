@@ -21,7 +21,7 @@
 // djinterp
 #include "../../../../../../inc/djinterp/env/c/env_vendor_attributes.h"  // D_THREAD_LOCAL
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
+#include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 
 
 /*
@@ -31,8 +31,8 @@ d_internal_emoji_utf8_length
 UTF-8 cannot carry, or a value past U+10FFFF. The three public functions
 validate through this one test, so they refuse exactly the same values.
 */
-static size_t
-d_internal_emoji_utf8_length(
+static
+size_t d_internal_emoji_utf8_length(
     uint32_t _cp
 )
 {
@@ -72,8 +72,7 @@ are above 0x7F, and converting such a value to a signed char is
 implementation-defined, while storing an unsigned char into any object's
 bytes is not. Nothing is written until the code point has been validated.
 */
-size_t
-d_text_emoji_utf8_encode(
+size_t d_text_emoji_utf8_encode(
     uint32_t _cp,
     char*    _out
 )
@@ -133,8 +132,7 @@ previous result intact. The buffer is a function-local static with
 thread-local storage: each thread gets its own, and the pointer returned
 stays valid until that thread calls again.
 */
-const char*
-d_text_emoji_utf8(
+const char* d_text_emoji_utf8(
     uint32_t _cp
 )
 {
@@ -165,8 +163,7 @@ is known to fit, so a refused call leaves the previous result intact. The
 running total never exceeds D_EMOJI_SEQ_CAPACITY - 1, so the room left,
 D_EMOJI_SEQ_CAPACITY - total, cannot wrap.
 */
-const char*
-d_text_emoji_utf8_seq(
+const char* d_text_emoji_utf8_seq(
     const uint32_t* _cps,
     size_t          _length
 )

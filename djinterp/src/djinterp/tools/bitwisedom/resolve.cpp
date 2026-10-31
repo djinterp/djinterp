@@ -54,8 +54,9 @@ struct cascade
 //   Comma-separated exact tokens; ignore whitespace surrounding a token.
 // Match longest first, so an overlapping shorter token cannot hide a longer
 // one. Empty entries are ignored. A match removes the complete token.
-std::vector<std::string>
-trim_tokens(const std::string& _list)
+std::vector<std::string> trim_tokens(
+    const std::string& _list
+)
 {
     std::vector<std::string> tokens;
     std::size_t start = 0;
@@ -91,9 +92,11 @@ trim_tokens(const std::string& _list)
 
 // trim_end
 //   Strip boundary tokens repeatedly, but never characters inside a name.
-void
-trim_end(std::string& _name, const std::vector<std::string>& _tokens,
-         bool _left)
+void trim_end(
+    std::string&                    _name,
+    const std::vector<std::string>& _tokens,
+    bool                            _left
+)
 {
     bool again = true;
 
@@ -127,8 +130,10 @@ trim_end(std::string& _name, const std::vector<std::string>& _tokens,
 // trimmed_local
 //   The rules operate on each node's own name before affixes/ancestor names
 // are concatenated. This preserves separators that belong to those affixes.
-std::string
-trimmed_local(const sheet& _sheet, std::string _name)
+std::string trimmed_local(
+    const sheet& _sheet,
+    std::string  _name
+)
 {
     const auto both = trim_tokens(_sheet.trim_both);
     const auto left = trim_tokens(_sheet.trim_left);
@@ -153,8 +158,7 @@ enum class eval_state
 
 // span_text
 //   "bit n" or "bits a..b", for messages.
-std::string
-span_text(
+std::string span_text(
     int _lsb,
     int _width
 )
@@ -171,8 +175,7 @@ span_text(
 // bits_words
 //   a set of bits for a message: as hex in a sheet an integer holds, and
 // as its runs in a wider one.
-std::string
-bits_words(
+std::string bits_words(
     const wide& _bits,
     int         _width
 )
@@ -1039,7 +1042,8 @@ private:
     // speaks_c
     //   whether a body is an expression at all, rather than statements or
     // declarations, which a macro may well be and which have no value.
-    static bool speaks_c(
+    static
+    bool speaks_c(
         const std::vector<c_token>& _tokens
     )
     {
@@ -1078,7 +1082,8 @@ private:
     //   what an evaluation's diagnostic is on a row: a value-less macro is
     // not an error -- it is written as it is either way -- so the worst is a
     // warning, and a body that is simply not an integer is a note.
-    static severity severity_of(
+    static
+    severity severity_of(
         const c_diagnostic& _diagnostic
     )
     {
@@ -1502,8 +1507,7 @@ private:
 }  // anonymous namespace
 
 
-resolution
-resolve(
+resolution resolve(
     const sheet& _sheet
 )
 {
@@ -1511,8 +1515,7 @@ resolve(
     return resolve(_sheet, make_look(_sheet, 0, 0).colours);
 }
 
-resolution
-resolve(
+resolution resolve(
     const sheet&           _sheet,
     const colour_settings& _look
 )
@@ -1525,8 +1528,7 @@ resolve(
     return out;
 }
 
-c_constant
-wide_constant(
+c_constant wide_constant(
     const resolved_row& _row
 )
 {
@@ -1584,8 +1586,7 @@ wide_constant(
     return out;
 }
 
-int
-find_name(
+int find_name(
     const resolution&  _resolution,
     const std::string& _name,
     int                _from,
@@ -1646,8 +1647,7 @@ find_name(
     return 0;
 }
 
-std::string
-macro_body(
+std::string macro_body(
     const resolution&         _resolution,
     const row&                _macro,
     std::vector<std::string>* _unknown
@@ -1711,8 +1711,7 @@ macro_body(
     return out;
 }
 
-bool
-is_identifier(
+bool is_identifier(
     const std::string& _name
 )
 {
@@ -1735,8 +1734,7 @@ is_identifier(
     return true;
 }
 
-bool
-is_reserved(
+bool is_reserved(
     const std::string& _name
 )
 {
@@ -1757,8 +1755,7 @@ namespace
 
 // folded
 //   a text compared without regard to case, then with it: -1, 0 or 1.
-int
-folded(
+int folded(
     const std::string& _a,
     const std::string& _b
 )
@@ -1786,8 +1783,7 @@ folded(
 
 // numeric
 //   two sets of bits compared as the numbers they are: -1, 0 or 1.
-int
-numeric(
+int numeric(
     const wide& _a,
     const wide& _b
 )
@@ -1813,8 +1809,7 @@ numeric(
 // sheet's order. _known says whether the key says anything of a row: a row
 // it says nothing of comes after one it does, whichever way the rows are
 // sorted.
-int
-ordered(
+int ordered(
     sort_key            _key,
     const resolved_row& _a,
     const row*          _a_row,
@@ -1948,8 +1943,7 @@ ordered(
 }  // anonymous namespace
 
 
-std::vector<std::size_t>
-display_order(
+std::vector<std::size_t> display_order(
     const sheet&      _sheet,
     const resolution& _resolution
 )

@@ -25,9 +25,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_test_af_fill_sequential
-(
+void d_test_af_fill_sequential(
     int*   _arr,
     size_t _count
 )
@@ -60,9 +58,7 @@ Parameter(s):
 Return:
   none.
 */
-void
-d_test_af_fill_with_duplicates
-(
+void d_test_af_fill_with_duplicates(
     int*   _arr,
     size_t _count
 )
@@ -97,9 +93,7 @@ Parameter(s):
 Return:
   true if *_element is divisible by 2, false otherwise.
 */
-bool
-d_test_af_is_even
-(
+bool d_test_af_is_even(
     const void* _element,
     void*       _context
 )
@@ -125,9 +119,7 @@ Parameter(s):
 Return:
   true if *_element > 0, false otherwise.
 */
-bool
-d_test_af_is_positive
-(
+bool d_test_af_is_positive(
     const void* _element,
     void*       _context
 )
@@ -154,9 +146,7 @@ Parameter(s):
 Return:
   true if *_element > *(int*)_context, false otherwise.
 */
-bool
-d_test_af_is_greater_than
-(
+bool d_test_af_is_greater_than(
     const void* _element,
     void*       _context
 )
@@ -181,9 +171,7 @@ Parameter(s):
 Return:
   true.
 */
-bool
-d_test_af_always_true
-(
+bool d_test_af_always_true(
     const void* _element,
     void*       _context
 )
@@ -205,9 +193,7 @@ Parameter(s):
 Return:
   false.
 */
-bool
-d_test_af_always_false
-(
+bool d_test_af_always_false(
     const void* _element,
     void*       _context
 )
@@ -230,9 +216,7 @@ Parameter(s):
 Return:
   negative if *_a < *_b, 0 if equal, positive if *_a > *_b.
 */
-int
-d_test_af_compare_int
-(
+int d_test_af_compare_int(
     const void* _a,
     const void* _b,
     void*       _context

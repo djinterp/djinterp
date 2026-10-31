@@ -36,8 +36,8 @@ TABLE OF CONTENTS
     2.  Literals and names
 */
 
-#ifndef BITWISEDOM_CODEGEN_HPP
-#define BITWISEDOM_CODEGEN_HPP 1
+#ifndef DJINTERP_TOOLS_BITWISEDOM_CODEGEN_HPP
+#define DJINTERP_TOOLS_BITWISEDOM_CODEGEN_HPP 1
 
 // FLOOR: below C++17 this file is empty, rather than an error.
 #include "djinterp/env/env.h"  // D_ENV_LANG_*
@@ -47,7 +47,7 @@ TABLE OF CONTENTS
 #include <string>  // std::string
 #include <vector>  // std::vector
 // djinterp
-#include "djinterp/djinterp.hpp"  // framework root
+#include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
 #include "./resolve.hpp"  // resolution
 #include "./sheet.hpp"    // sheet, gen_settings
@@ -93,9 +93,11 @@ struct generated
  * @return the header's text and the generator's notes. Symbols in error,
  *         and rows not marked for emission, are left out.
  */
-D_NODISCARD generated generate(const sheet&       _sheet,
-                               const resolution&  _resolution,
-                               const std::string& _date);
+D_NODISCARD generated generate(
+    const sheet&       _sheet,
+    const resolution&  _resolution,
+    const std::string& _date
+);
 
 /**
  * @brief Writes some of a sheet's rows as code to paste elsewhere.
@@ -110,17 +112,27 @@ D_NODISCARD generated generate(const sheet&       _sheet,
  * @param[in] _rows        the rows; a group stands for everything in it.
  * @return the code and the generator's notes.
  */
-D_NODISCARD generated generate_code(const sheet&            _sheet,
-                                    const resolution&       _resolution,
-                                    const std::vector<int>& _rows);
+D_NODISCARD generated generate_code(
+    const sheet&            _sheet,
+    const resolution&       _resolution,
+    const std::vector<int>& _rows
+);
 
 // 2.2    Literals and names
 //------------------------------------------------------------------------------
 // levels -- what a language level may spell
-D_NODISCARD const char*  standard_name(standard _level);
-D_NODISCARD bool         is_cpp(standard _level);
-D_NODISCARD bool         has_binary_literals(standard _level);
-D_NODISCARD bool         has_long_long(standard _level);
+D_NODISCARD const char* standard_name(
+    standard _level
+);
+D_NODISCARD bool is_cpp(
+    standard _level
+);
+D_NODISCARD bool has_binary_literals(
+    standard _level
+);
+D_NODISCARD bool has_long_long(
+    standard _level
+);
 
 /**
  * @brief Writes one number as a C integer literal.
@@ -136,14 +148,18 @@ D_NODISCARD bool         has_long_long(standard _level);
  *                     fewer than the value needs.
  * @return the literal, prefix and suffix included.
  */
-D_NODISCARD std::string  format_literal(u64          _value,
-                                        int          _width,
-                                        radix        _radix,
-                                        int_suffix   _suffix,
-                                        const sheet& _sheet,
-                                        bool         _pad,
-                                        int          _digits = 0);
-D_NODISCARD std::string  derive_guard(const std::string& _file_name);
+D_NODISCARD std::string format_literal(
+    u64          _value,
+    int          _width,
+    radix        _radix,
+    int_suffix   _suffix,
+    const sheet& _sheet,
+    bool         _pad,
+    int          _digits = 0
+);
+D_NODISCARD std::string derive_guard(
+    const std::string& _file_name
+);
 
 /**
  * @brief The prefix of a wide sheet's array macros.
@@ -157,14 +173,18 @@ D_NODISCARD std::string  derive_guard(const std::string& _file_name);
  * @param[in] _sheet  the sheet.
  * @return the prefix.
  */
-D_NODISCARD std::string  bitset_prefix(const sheet& _sheet);
+D_NODISCARD std::string bitset_prefix(
+    const sheet& _sheet
+);
 
 /**
  * @brief Emit one elementary #define per resolvable symbol.
  *        This is the initial, deliberately plain .h/.hpp export.
  */
-D_NODISCARD std::string generate_simple_defines(const sheet& _sheet,
-                                                const resolution& _resolved);
+D_NODISCARD std::string generate_simple_defines(
+    const sheet&      _sheet,
+    const resolution& _resolved
+);
 
 
 }  // namespace bitwisedom
@@ -172,4 +192,4 @@ D_NODISCARD std::string generate_simple_defines(const sheet& _sheet,
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // BITWISEDOM_CODEGEN_HPP
+#endif  // DJINTERP_TOOLS_BITWISEDOM_CODEGEN_HPP

@@ -19,7 +19,7 @@
 // std
 #include <string.h>  // memcpy, memmove, memset
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t,
+#include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint8_t, uint32_t,
                                                      // uint64_t
 
 
@@ -51,8 +51,8 @@ static const uint32_t d_internal_sha256_k[64] =
 d_internal_rotl, d_internal_rotr, d_internal_big
   A word rotated left or right, and four bytes read big-endian.
 */
-static uint32_t
-d_internal_rotl(
+static
+uint32_t d_internal_rotl(
     uint32_t _word,
     unsigned _by
 )
@@ -61,8 +61,8 @@ d_internal_rotl(
 }
 
 
-static uint32_t
-d_internal_rotr(
+static
+uint32_t d_internal_rotr(
     uint32_t _word,
     unsigned _by
 )
@@ -71,8 +71,8 @@ d_internal_rotr(
 }
 
 
-static uint32_t
-d_internal_big(
+static
+uint32_t d_internal_big(
     const uint8_t* _bytes
 )
 {
@@ -88,8 +88,8 @@ d_internal_sha1_round
   The function and constant of SHA-1's round `_round`, applied: f(b, c, d)
 plus k, by the round's quarter.
 */
-static uint32_t
-d_internal_sha1_round(
+static
+uint32_t d_internal_sha1_round(
     unsigned _round,
     uint32_t _b,
     uint32_t _c,
@@ -119,8 +119,8 @@ d_internal_sha1_block
   One block compressed into SHA-1's state: the schedule of 80 words, then
 80 rounds.
 */
-static void
-d_internal_sha1_block(
+static
+void d_internal_sha1_block(
     uint32_t*      _state,
     const uint8_t* _block
 )
@@ -173,8 +173,8 @@ d_internal_sha256_block
   One block compressed into SHA-256's state: the schedule of 64 words,
 then 64 rounds.
 */
-static void
-d_internal_sha256_block(
+static
+void d_internal_sha256_block(
     uint32_t*      _state,
     const uint8_t* _block
 )
@@ -237,10 +237,10 @@ d_internal_sha256_block(
 d_internal_compress
   A full block compressed, by the hash's kind.
 */
-static void
-d_internal_compress(
-    struct d_git_hash* _hash,
-    const uint8_t*     _block
+static
+void d_internal_compress(
+    struct dj_git_hash* _hash,
+    const uint8_t*      _block
 )
 {
     // each kind its own compression
@@ -259,7 +259,7 @@ d_internal_compress(
 
 size_t
 d_git_hash_size(
-    enum d_git_hash_kind _kind
+    enum dj_git_hash_kind _kind
 )
 {
     return (_kind == D_GIT_HASH_SHA256) ? 32u : 20u;
@@ -268,8 +268,8 @@ d_git_hash_size(
 
 void
 d_git_hash_begin(
-    struct d_git_hash*   _hash,
-    enum d_git_hash_kind _kind
+    struct dj_git_hash*   _hash,
+    enum dj_git_hash_kind _kind
 )
 {
     static const uint32_t sha1[5]   = { 0x67452301u, 0xefcdab89u, 0x98badcfeu,
@@ -295,11 +295,10 @@ d_git_hash_begin(
 }
 
 
-void
-d_git_hash_feed(
-    struct d_git_hash* _hash,
-    const void*        _bytes,
-    size_t             _length
+void d_git_hash_feed(
+    struct dj_git_hash* _hash,
+    const void*         _bytes,
+    size_t              _length
 )
 {
     const uint8_t* bytes = _bytes;
@@ -329,10 +328,9 @@ d_git_hash_feed(
 }
 
 
-void
-d_git_hash_end(
-    struct d_git_hash* _hash,
-    uint8_t*           _out
+void d_git_hash_end(
+    struct dj_git_hash* _hash,
+    uint8_t*            _out
 )
 {
     const uint64_t bits = _hash->fed * 8u;

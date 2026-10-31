@@ -2677,26 +2677,22 @@ static const unsigned char cousine_regular_compressed_data[37630] =
     2,0,131,0,131,33,36,0,199,254,176,223,131,12,43,189,118,137,36,0,0,0,0,201,111,45,196,5,250,86,44,41,149,
 };
 
-const void*
-interface_data()
+const void* interface_data()
 {
     return roboto_medium_compressed_data;
 }
 
-int
-interface_size()
+int interface_size()
 {
     return static_cast<int>(roboto_medium_compressed_size);
 }
 
-const void*
-mono_data()
+const void* mono_data()
 {
     return cousine_regular_compressed_data;
 }
 
-int
-mono_size()
+int mono_size()
 {
     return static_cast<int>(cousine_regular_compressed_size);
 }

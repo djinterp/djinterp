@@ -97,7 +97,7 @@ VI.   AVAILABLE-CODEC ITERATION
 // djinterp
 #include "./compress_common.h"  // kernel this is notation over
 // re_std
-#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 // =============================================================================
@@ -124,11 +124,11 @@ VI.   AVAILABLE-CODEC ITERATION
 
 // D_PACK_TRY
 //   macro: evaluate _expr and return its status from the enclosing function
-// unless it succeeded.  The enclosing function must return enum d_pack_status.
+// unless it succeeded.  The enclosing function must return enum dj_pack_status.
 #define D_PACK_TRY(_expr)                                                      \
     do                                                                         \
     {                                                                          \
-        enum d_pack_status d_internal_s = (_expr);                             \
+        enum dj_pack_status d_internal_s = (_expr);                             \
                                                                                \
         if (d_internal_s != D_PACK_STATUS_OK)                                  \
         {                                                                      \
@@ -175,7 +175,7 @@ VI.   AVAILABLE-CODEC ITERATION
 //   WHY THESE ARE FUNCTIONS AND NOT MACROS.  The obvious spelling is a compound
 // literal with designated initialisers -- roughly
 // `#define D_COMPRESS_TUNED(...)
-//      ((struct d_compress_options){ __VA_ARGS__ })`.
+//      ((struct dj_compress_options){ __VA_ARGS__ })`.
 //   It is wrong, and silently.  C zero-initialises every member a designated
 // initialiser does not name, so D_COMPRESS_TUNED(.zstd.workers = 4) would set
 // the other forty-nine knobs to 0 rather than leaving them UNSET -- and 0 is a
@@ -188,29 +188,29 @@ VI.   AVAILABLE-CODEC ITERATION
 //
 //   For tuning a knob with no named builder, declare and assign -- two lines,
 // and unambiguous:
-//       struct d_compress_options opt = D_COMPRESS_OPTIONS_INIT;
+//       struct dj_compress_options opt = D_COMPRESS_OPTIONS_INIT;
 //       opt.zstd.workers = 4;
 
 // d_compress_options_of
 //   function: a pristine option set as an expression.  The base every builder
 // below starts from, and useful alone for a call site that wants to be explicit
 // that it is requesting the core's defaults rather than passing NULL.
-D_INLINE struct d_compress_options
-d_compress_options_of(void)
+D_INLINE
+struct dj_compress_options d_compress_options_of(void)
 {
-    struct d_compress_options opt = D_COMPRESS_OPTIONS_INIT;
+    struct dj_compress_options opt = D_COMPRESS_OPTIONS_INIT;
 
     return opt;
 }
 
 // d_compress_at_level
 //   function: a pristine set with the generic effort at _level.
-D_INLINE struct d_compress_options
-d_compress_at_level(
+D_INLINE
+struct dj_compress_options d_compress_at_level(
     int32_t _level
 )
 {
-    struct d_compress_options opt = D_COMPRESS_OPTIONS_INIT;
+    struct dj_compress_options opt = D_COMPRESS_OPTIONS_INIT;
 
     opt.level = _level;
 
@@ -223,13 +223,13 @@ d_compress_at_level(
 // two a call site actually consults -- the same pairing zstd_level_options
 // provides on the C++ side.  A codec with no private level leaves the set
 // pristine.
-D_INLINE struct d_compress_options
+D_INLINE struct dj_compress_options
 d_compress_at_codec_level(
-    enum d_codec_id _codec,
+    enum dj_codec_id _codec,
     int32_t         _level
 )
 {
-    struct d_compress_options opt = D_COMPRESS_OPTIONS_INIT;
+    struct dj_compress_options opt = D_COMPRESS_OPTIONS_INIT;
 
     switch (_codec)
     {
@@ -269,10 +269,10 @@ d_compress_at_codec_level(
 // either way, and only a byte comparison across runs reveals the difference.
 //   The gzip header's own timestamp is a CONTAINER knob and is cleared through
 // archive.h's d_archive_reproducible, not here.
-D_INLINE struct d_compress_options
-d_compress_reproducible(void)
+D_INLINE
+struct dj_compress_options d_compress_reproducible(void)
 {
-    struct d_compress_options opt = D_COMPRESS_OPTIONS_INIT;
+    struct dj_compress_options opt = D_COMPRESS_OPTIONS_INIT;
 
     opt.zstd.workers = 0;
     opt.lzma.threads = 1;
@@ -295,7 +295,7 @@ d_compress_reproducible(void)
 // III. CODEC NAMING
 // =============================================================================
 //   One argument, two spellings.  D_CODEC(gzip) is the enumerator;
-// D_CODEC("gz") is the string.  Both resolve to an enum d_codec_id, so the
+// D_CODEC("gz") is the string.  Both resolve to an enum dj_codec_id, so the
 // call sites below take either.
 //
 //   The string form matters more than it looks: a codec choice that arrives
@@ -317,12 +317,12 @@ d_compress_reproducible(void)
 // to store when the name is unknown.  A fallback rather than a diagnostic
 // because this is an expression: a caller needing to DETECT a bad name calls
 // d_codec_id_from_name, which reports it.
-D_INLINE enum d_codec_id
+D_INLINE enum dj_codec_id
 d_internal_codec_from_any(
     const char* _name
 )
 {
-    enum d_codec_id codec = D_CODEC_ID_STORE;
+    enum dj_codec_id codec = D_CODEC_ID_STORE;
 
     (void)d_codec_id_from_name(_name, &codec);
 
@@ -332,16 +332,16 @@ d_internal_codec_from_any(
 // d_internal_codec_identity
 //   function: the enumerator arm of D_CODEC -- the identity, present so both
 // arms of the _Generic are function calls and the macro has one shape.
-D_INLINE enum d_codec_id
+D_INLINE enum dj_codec_id
 d_internal_codec_identity(
-    enum d_codec_id _codec
+    enum dj_codec_id _codec
 )
 {
     return _codec;
 }
 
 // D_CODEC
-//   macro: an enum d_codec_id from either an enumerator or a codec name.
+//   macro: an enum dj_codec_id from either an enumerator or a codec name.
 #define D_CODEC(_x)                                                            \
     _Generic((_x),                                                             \
              char*:       d_internal_codec_from_any,                           \
@@ -447,9 +447,9 @@ d_internal_codec_identity(
 // D_FOR_EACH_CODEC
 //   macro: iterate _var over every codec the framework names, present or not.
 #define D_FOR_EACH_CODEC(_var)                                                 \
-    for (enum d_codec_id _var = D_CODEC_ID_STORE;                              \
+    for (enum dj_codec_id _var = D_CODEC_ID_STORE;                              \
          (int)_var < D_CODEC_ID_COUNT;                                         \
-         _var = (enum d_codec_id)((int)_var + 1))
+         _var = (enum dj_codec_id)((int)_var + 1))
 
 // D_FOR_EACH_AVAILABLE_CODEC
 //   macro: iterate _var over only the codecs this build can perform.  Skips
