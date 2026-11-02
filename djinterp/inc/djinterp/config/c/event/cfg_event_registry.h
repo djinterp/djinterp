@@ -8,7 +8,7 @@
 * word and it IS the event system; a build without it is not a smaller event
 * subframework, it is not one.
 *
-*   targets:  core/event/event_registry_common.h, event_registry.hpp
+*   targets:  c/event/event_registry_common.h, cpp/event/event_registry.hpp
 *             ->  D_INTERNAL_EVENT_REGISTRY_RUN, _STAGING, _STAGING_ALLOC,
 *                 _MERGE
 *   requires: cfg_common.h; cfg_event_common.h; cfg_event_table.h
@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/config/c/event/cfg_event_registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_REGISTRY_H

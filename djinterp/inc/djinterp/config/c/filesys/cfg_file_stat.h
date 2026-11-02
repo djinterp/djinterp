@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_stat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -56,6 +56,7 @@ TABLE OF CONTENTS
 #define DJINTERP_CONFIG_C_FILESYS_CFG_FILE_STAT_H 1
 
 // djinterp
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "cfg_file_common.h"  // shared filesys knobs, D_CFG_IS_BOOL
 
 
@@ -214,9 +215,13 @@ TABLE OF CONTENTS
 // against one that says yes and lies.
 //   Windows' CRT ctime IS creation, Apple's systems expose st_birthtime, and
 // Linux now qualifies through statx. One term per delivery mechanism, in one
-// place -- FreeBSD and NetBSD through their stat (D_INTERNAL_FILE_STAT_BSD_BIRTH,
-// 2026.10.21); OpenBSD and DragonFly record no creation time, and get no term
-// that would say they do.
+// place -- FreeBSD and NetBSD through their stat
+// (D_INTERNAL_FILE_STAT_BSD_BIRTH, 2026.10.21); OpenBSD and DragonFly record no
+// creation time, and get no term that would say they do.
+
+// D_INTERNAL_FILE_STAT_BSD_BIRTH
+//   internal: which BSD stat carries a creation time: 1 FreeBSD, 2 NetBSD,
+// 0 any other system.
 #if ( (defined(D_ENV_OS_ID)) &&                                                \
       (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_FREE) )
     #define D_INTERNAL_FILE_STAT_BSD_BIRTH 1

@@ -53,17 +53,24 @@
 *   Do not define the D_FILESYS_ENABLE_* macros yourself; set the
 *   D_CFG_FILESYS_* inputs and let this header derive them.
 *
+*   targets:  cpp/container/tree/file/file_attributes.hpp
+*             -> D_CFG_FILESYS_ALLOW_FOREIGN, D_FILESYS_ENABLE_*,
+*                D_FILESYS_NATIVE_*
+*   requires: cfg_common.h (D_CFG_IS_BOOL, user overrides); env/env.h
+*             (D_ENV_OS_ID, D_ENV_IS_OS_*)
+*
 *
 * path:      /inc/djinterp/config/cpp/container/tree/file/cfg_filesys.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CPP_CONTAINER_TREE_FILE_CFG_FILESYS_H
 #define DJINTERP_CONFIG_CPP_CONTAINER_TREE_FILE_CFG_FILESYS_H 1
 
 // djinterp
+#include "../../../../cfg_common.h"     // D_CFG_IS_BOOL, user overrides
 #include "../../../../../env/env.h"  // D_ENV_OS_ID, D_ENV_IS_OS_*
 
 
@@ -103,41 +110,75 @@
 #endif
 
 // --- per-OS -----------------------------------------------------------------
+//   Each permits one backend where it is foreign; the native one compiles
+// whatever these say (section II).
 
 // D_CFG_FILESYS_ALLOW_POSIX
-//   permits the portable POSIX baseline backend.
+//   backend: 1 permits the portable POSIX baseline backend.
 #ifndef D_CFG_FILESYS_ALLOW_POSIX
     #define D_CFG_FILESYS_ALLOW_POSIX 0
 #endif
 
 // D_CFG_FILESYS_ALLOW_LINUX
-//   permits the Linux backend.
+//   backend: 1 permits the Linux backend.
 #ifndef D_CFG_FILESYS_ALLOW_LINUX
     #define D_CFG_FILESYS_ALLOW_LINUX 0
 #endif
 
 // D_CFG_FILESYS_ALLOW_BSD
-//   permits the BSD-family backend.
+//   backend: 1 permits the BSD-family backend.
 #ifndef D_CFG_FILESYS_ALLOW_BSD
     #define D_CFG_FILESYS_ALLOW_BSD 0
 #endif
 
 // D_CFG_FILESYS_ALLOW_APPLE
-//   permits the macOS backend.
+//   backend: 1 permits the macOS backend.
 #ifndef D_CFG_FILESYS_ALLOW_APPLE
     #define D_CFG_FILESYS_ALLOW_APPLE 0
 #endif
 
 // D_CFG_FILESYS_ALLOW_IOS
-//   permits the iOS backend.
+//   backend: 1 permits the iOS backend.
 #ifndef D_CFG_FILESYS_ALLOW_IOS
     #define D_CFG_FILESYS_ALLOW_IOS 0
 #endif
 
 // D_CFG_FILESYS_ALLOW_WINDOWS
-//   permits the Win32 backend.
+//   backend: 1 permits the Win32 backend.
 #ifndef D_CFG_FILESYS_ALLOW_WINDOWS
     #define D_CFG_FILESYS_ALLOW_WINDOWS 0
+#endif
+
+// validation: #if reads each input as a number, so each must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_FOREIGN)
+    #error "D_CFG_FILESYS_ALLOW_FOREIGN must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_POSIX_FAMILY)
+    #error "D_CFG_FILESYS_ALLOW_POSIX_FAMILY must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_APPLE_FAMILY)
+    #error "D_CFG_FILESYS_ALLOW_APPLE_FAMILY must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_WINDOWS_FAMILY)
+    #error "D_CFG_FILESYS_ALLOW_WINDOWS_FAMILY must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_POSIX)
+    #error "D_CFG_FILESYS_ALLOW_POSIX must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_LINUX)
+    #error "D_CFG_FILESYS_ALLOW_LINUX must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_BSD)
+    #error "D_CFG_FILESYS_ALLOW_BSD must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_APPLE)
+    #error "D_CFG_FILESYS_ALLOW_APPLE must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_IOS)
+    #error "D_CFG_FILESYS_ALLOW_IOS must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILESYS_ALLOW_WINDOWS)
+    #error "D_CFG_FILESYS_ALLOW_WINDOWS must be 0 or 1"
 #endif
 
 

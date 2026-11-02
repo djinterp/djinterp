@@ -15,7 +15,7 @@
 * protocol is a narrower thing to implement when a caller supplies its own
 * source. That, rather than the bytes, is why the slots are optional.
 *
-*   targets:  core/memory/mem_source.h  ->  D_INTERNAL_MEM_SOURCE_SYSTEM,
+*   targets:  c/memory/mem_source.h  ->  D_INTERNAL_MEM_SOURCE_SYSTEM,
 *             D_INTERNAL_MEM_SOURCE_BUFFER, D_INTERNAL_MEM_SOURCE_NULL,
 *             D_INTERNAL_MEM_SOURCE_COUNTER, D_INTERNAL_MEM_SOURCE_REALLOC,
 *             D_INTERNAL_MEM_SOURCE_MAX_SIZE, D_INTERNAL_MEM_SOURCE_NAMED,
@@ -26,14 +26,16 @@
 * path:      /inc/djinterp/config/c/memory/cfg_mem_source.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_MEMORY_CFG_MEM_SOURCE_H
 #define DJINTERP_CONFIG_C_MEMORY_CFG_MEM_SOURCE_H 1
 
-// (0) subframework root first: it owns the aggregate, the presets, and the
-//     vocabulary knobs whose values the defaults below read.
+// (0) cfg_common.h first, as every config; then the subframework root: it
+//     owns the aggregate, the presets, and the vocabulary knobs whose values
+//     the defaults below read.
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "./cfg_mem_common.h"
 
 
@@ -179,7 +181,8 @@
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_MEM_SOURCE_ALIGNED_API)
-    #error "D_CFG_MEM_SOURCE_ALIGNED_API must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_MEM_SOURCE_ALIGNED_API must name one of its values; a "      \
+           "misspelled name would read as 0"
 #endif
 
 
@@ -206,7 +209,8 @@
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_MEM_SOURCE_DEFAULT)
-    #error "D_CFG_MEM_SOURCE_DEFAULT must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_MEM_SOURCE_DEFAULT must name one of its values; a "          \
+           "misspelled name would read as 0"
 #endif
 
 

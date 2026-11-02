@@ -63,7 +63,7 @@
 * path:      /inc/djinterp/cpp/container/table/table_builder.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.14
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -111,7 +111,10 @@ X.    concepts                   (C++20 analogs)
 // 2's rule). The owner's ruling: compile at every level first; port down only
 // where something needs it.
 #include "../../../env/env.h"  // D_ENV_LANG_*
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#include "../../../config/cpp/container/table/cfg_table.h"  // D_INTERNAL_TABLE_BUILDER
+// and empty, too, when D_CFG_TABLE_BUILDER compiles this layer out
+#if ( (D_ENV_LANG_IS_CPP11_OR_HIGHER) &&                                     \
+      (D_INTERNAL_TABLE_BUILDER) )
 
 // std
 #include <cstddef>
@@ -1009,16 +1012,20 @@ public:
     static D_CONSTEXPR table_strictness cell_count_strictness =
         cell_count_of<table_options_type>;
 
-    // shape_strictness -- which domain shapes the declaration admits.
+    // shape_strictness -- which domain shapes the declaration admits. Read,
+    // and not yet consulted: the cell count alone admits a row, and shape
+    // will decide what an admitted short row becomes (cfg_table.h, at
+    // D_CFG_TABLE_DEFAULT_SHAPE).
     static D_CONSTEXPR shape_policy shape_strictness =
         shape_of<table_options_type>;
 #else
-    // pre-C++17: no option surface; the fold runs at the default grades.
+    // pre-C++17: no option surface; the fold runs at the default grades,
+    // which cfg_table.h resolves (table_options.hpp, section II).
     static D_CONSTEXPR table_strictness cell_count_strictness =
-        table_strictness::exact;
+        default_cell_count;
 
     static D_CONSTEXPR shape_policy shape_strictness =
-        shape_policy::rectangular;
+        default_shape;
 #endif
 
     // --- the declaration, read back ---
@@ -1181,6 +1188,6 @@ concept TableBuilder = is_table_builder_v<Type>;
 
 NS_END  // djinterp
 
-#endif  // floor, for now
+#endif  // floor, for now; D_CFG_TABLE_BUILDER
 
 #endif  // DJINTERP_CONTAINER_TABLE_TABLE_BUILDER_HPP

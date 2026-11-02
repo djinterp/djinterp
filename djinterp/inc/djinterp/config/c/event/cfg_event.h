@@ -5,13 +5,13 @@
 * cfg_event_*.h in dependency order and computes the cross-cutting values that
 * no single one of them can, because each sees only its own dependencies.
 *
-*   Include this only from core/event/event.h, or from dconfig.h. A module
+*   Include this only from c/event/event.h, or from dconfig.h. A module
 * that needs one layer's config includes that layer's config; pulling the
 * umbrella from event_table_common.h would load the queue's defaults for a
 * caller who never included the queue, which is the demand-loading principle
 * going backwards.
 *
-*   targets:  core/event/event.h, event.hpp
+*   targets:  c/event/event.h, cpp/event/event.hpp
 *             ->  D_INTERNAL_EVENT_LAYOUT_ID, D_INTERNAL_EVENT_PROFILE
 *   requires: cfg_common.h; every cfg_event_*.h
 *
@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/config/c/event/cfg_event.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_H

@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -787,10 +787,10 @@ void d_arg_parser_set_output(
  *       `--` -- is replaced by the words of its file, split as
  *       d_arg_read_response_file splits them; those starting with `@` are
  *       replaced in turn, up to D_INTERNAL_ARG_PARSER_RESPONSE_DEPTH files
- *       deep, below which the parse fails with D_ARG_ERROR_FILE. A file that
- *       cannot be read leaves its argument as it is, as GCC does; so does an
- *       argument holding a NUL byte, which names no file. A file's words
- *       keep every byte they hold, a NUL among them, as a line's do in
+ *       deep, below which the parse fails with D_ARG_ERROR_TOO_DEEP. A file
+ *       that cannot be read leaves its argument as it is, as GCC does; so
+ *       does an argument holding a NUL byte, which names no file. A file's
+ *       words keep every byte they hold, a NUL among them, as a line's do in
  *       d_arg_parser_parse_line. Off at first.
  *
  * @param[in,out] _parser   the parser.

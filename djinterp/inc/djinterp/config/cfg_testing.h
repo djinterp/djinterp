@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/config/cfg_testing.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -142,6 +142,10 @@ TABLE OF CONTENTS
 #ifndef D_CFG_DEBUG_ASSERTS
     #define D_CFG_DEBUG_ASSERTS 1
 #endif  // D_CFG_DEBUG_ASSERTS
+// validation: the preset is this knob's only home, so it is checked here
+#if !D_CFG_IS_BOOL(D_CFG_DEBUG_ASSERTS)
+    #error "D_CFG_DEBUG_ASSERTS must be 0 or 1"
+#endif
 
 
 //==============================================================================

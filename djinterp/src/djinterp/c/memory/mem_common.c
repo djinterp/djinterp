@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/memory/mem_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/memory/mem_common.h"
@@ -937,6 +937,7 @@ d_mem_status_string(
         case D_MEM_ERR_FOREIGN:     return "foreign-pointer";
         case D_MEM_ERR_STALE:       return "stale-handle";
         case D_MEM_ERR_CORRUPT:     return "corrupt";
+        case D_MEM_ERR_RELEASED:    return "already-released";
         default:                    break;
     }
 

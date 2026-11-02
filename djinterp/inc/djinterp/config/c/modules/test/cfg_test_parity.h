@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_parity.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_TEST_CFG_TEST_PARITY_H
@@ -45,7 +45,8 @@ TABLE OF CONTENTS
       1.    Master switch              (D_CFG_TEST_PARITY)
       2.    What may be recorded       (D_CFG_TEST_PARITY_RECORD_*)
       3.    Sizes                      (D_CFG_TEST_PARITY_PATH_MAX)
-      4.    The wire grammar           (D_CFG_TEST_PARITY_DELIM, _ESCAPE, _VERSION)
+      4.    The wire grammar           (D_CFG_TEST_PARITY_DELIM, _ESCAPE,
+                                        _VERSION)
       5.    Strictness                 (D_CFG_TEST_PARITY_STRICT)
       6.    Validation of the knobs
       7.    Derived values             (D_INTERNAL_TEST_PARITY_*)
@@ -77,12 +78,12 @@ TABLE OF CONTENTS
 
 // D_CFG_TEST_PARITY_RECORD_FLOAT
 //   brief: record floating-point observations (1, the default).
-//   Set 0 while the framework's float-parity question is open. `framework_goals`
-// §13 does not yet settle whether the two forks must produce bit-identical
-// floats, and until it does, a suite that records them is asserting an answer
-// nobody has agreed to. The oracle writes floats in hexadecimal (`%a`) so that
-// a failure means the ARITHMETIC differed and never that the printing did --
-// which makes the question answerable, not answered.
+//   Set 0 while the framework's float-parity question is open.
+// `framework_goals` §13 does not yet settle whether the two forks must produce
+// bit-identical floats, and until it does, a suite that records them is
+// asserting an answer nobody has agreed to. The oracle writes floats in
+// hexadecimal (`%a`) so that a failure means the ARITHMETIC differed and never
+// that the printing did -- which makes the question answerable, not answered.
 //   With this off, float observations become `absent` rows carrying the reason,
 // so the suite stays green and the gap stays visible.
 #ifndef D_CFG_TEST_PARITY_RECORD_FLOAT
@@ -258,6 +259,10 @@ TABLE OF CONTENTS
 #   define D_INTERNAL_TEST_PARITY_BYTES 0
 #endif
 
+// D_INTERNAL_TEST_PARITY_STRICT
+//   internal: D_CFG_TEST_PARITY_STRICT as a strict 0/1: 1 fails the run on a
+// truncated path or a refused sink, 0 marks the row and goes on.  Unlike the
+// recording gates above it is not ANDed with the master switch.
 #if D_CFG_IS_ON(D_CFG_TEST_PARITY_STRICT)
 #   define D_INTERNAL_TEST_PARITY_STRICT 1
 #else

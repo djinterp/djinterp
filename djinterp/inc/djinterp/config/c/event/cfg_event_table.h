@@ -8,7 +8,7 @@
 * That is exactly what the localization rule forbids -- a default living in a
 * module header is a default nobody can override without editing the tree.
 *
-*   targets:  core/event/event_table_common.h, event_table.hpp
+*   targets:  c/event/event_table_common.h, cpp/event/event_table.hpp
 *             ->  D_INTERNAL_EVENT_TABLE_ALLOC, _STATS, _MERGE,
 *                 _ORDERED_ITERATION, _DEFAULT_BUCKETS, _DEFAULT_CAPACITY,
 *                 _LOAD_NUM, _LOAD_DEN, _GROWTH
@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/config/c/event/cfg_event_table.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_TABLE_H

@@ -5,15 +5,21 @@
 * graph up front. Use it when you want cross-cutting deductions applied
 * deterministically, or to precompile all configuration into a PCH.
 *
-*   You do NOT need this for normal use: each module pulls its own *_cfg.h,
-* which pulls dconfig_common.h -- so you only pay for the modules you include
-* (demand-loading). This umbrella is the opt-in "resolve everything" path.
+*   You do NOT need this for normal use: each module pulls its own
+* cfg_<module>.h, which pulls cfg_common.h -- so you only pay for the modules
+* you include (demand-loading). This umbrella is the opt-in "resolve
+* everything" path.
+*
+*   targets:  no module; a translation unit or a PCH that wants the whole
+*             graph resolved includes it once, early
+*   requires: cfg_common.h, then every cfg_*.h under config/, each after the
+*             configs it depends on
 *
 *
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -29,16 +35,17 @@
 #include "djinterp/config/env/cfg_env_os.h"        // env: OS
 #include "djinterp/config/env/cfg_env_compiler.h"  // env: compiler
 #include "djinterp/config/env/cfg_env_build.h"     // env: build type
-#include "djinterp/config/env/os/cfg_env_apple.h"  // env: Apple (env/os)
-#include "djinterp/config/env/os/cfg_env_linux.h"  // env: Linux (env/os)
-#include "djinterp/config/env/ui/cfg_env_qt.h"  // env: Qt (env/ui)
-#include "djinterp/config/env/net/tls/cfg_env_tls.h"  // env: TLS (env/net/tls)
-#include "djinterp/config/env/net/curl/cfg_env_curl.h"  // env: curl (env/net/curl)
-#include "djinterp/config/env/net/ssh/cfg_env_ssh.h"  // env: SSH (env/net/ssh)
-#include "djinterp/config/env/net/imap/cfg_env_imap.h"  // env: IMAP (env/net/imap)
-#include "djinterp/config/env/util/compress/cfg_env_compress.h"  // env: codecs
-#include "djinterp/config/env/util/compress/cfg_env_compress_link.h"  // env: auto-link
-#include "djinterp/config/env/util/archive/cfg_env_archive.h"  // env: archives
+#include "djinterp/config/env/os/cfg_env_apple.h"  // env: Apple
+#include "djinterp/config/env/os/cfg_env_linux.h"  // env: Linux
+#include "djinterp/config/env/ui/cfg_env_qt.h"     // env: Qt
+#include "djinterp/config/env/net/tls/cfg_env_tls.h"    // env: TLS
+#include "djinterp/config/env/net/curl/cfg_env_curl.h"  // env: curl
+#include "djinterp/config/env/net/ssh/cfg_env_ssh.h"    // env: SSH
+#include "djinterp/config/env/net/imap/cfg_env_imap.h"  // env: IMAP
+// env/util: the compression codecs, their link pragmas, the archive formats
+#include "djinterp/config/env/util/compress/cfg_env_compress.h"
+#include "djinterp/config/env/util/compress/cfg_env_compress_link.h"
+#include "djinterp/config/env/util/archive/cfg_env_archive.h"
 // env/db: the database family's switches, then each database's
 #include "djinterp/config/env/db/cfg_env_db.h"
 #include "djinterp/config/env/db/arangodb/cfg_env_arangodb.h"
@@ -53,19 +60,85 @@
 #include "djinterp/config/env/db/redis/cfg_env_redis.h"
 #include "djinterp/config/env/db/sqlite/cfg_env_sqlite.h"
 #include "cfg_qualifiers.h"      // storage / linkage qualifiers
-#include "djinterp/config/cpp/container/table/cfg_table.h"  // the table DSL subframework
-#include "djinterp/config/c/modules/parse/cfg_parse.h"        // the parse substrate
-#include "djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"  // the argument parser
-#include "djinterp/config/tools/cli/cfg_cli.h"      // the command-line kit
-#include "djinterp/config/c/modules/parsegen/cfg_parsegen.h"  // parser generation (after parse)
-#include "djinterp/config/c/modules/net/cfg_net.h"            // net foundation
-#include "djinterp/config/c/modules/net/curl/cfg_curl.h"      // libcurl binding
-#include "djinterp/config/c/modules/net/pop/cfg_pop.h"        // POP3 common kernel
-#include "djinterp/config/c/modules/net/ssh/cfg_ssh.h"        // SSH common kernel
-#include "djinterp/config/c/modules/net/ssl/cfg_ssl.h"        // SSL/TLS common kernel
-#include "djinterp/config/c/modules/net/starttls/cfg_starttls.h"  // STARTTLS upgrade
+// c/util: the variadic macro limits (compression and archives come later)
+#include "djinterp/config/c/util/cfg_dmacro.h"
+// c/memory: the shared knobs, the memory source, then each allocator
+#include "djinterp/config/c/memory/cfg_mem_common.h"
+#include "djinterp/config/c/memory/cfg_mem_source.h"
+#include "djinterp/config/c/memory/cfg_arena.h"
+#include "djinterp/config/c/memory/cfg_pool.h"
+// containers: the C family and its table, the C++ array, the table DSL
+#include "djinterp/config/c/container/cfg_container.h"
+#include "djinterp/config/c/container/table/cfg_table.h"
+#include "djinterp/config/cpp/container/array/cfg_array.h"
+#include "djinterp/config/cpp/container/table/cfg_table.h"
+// configs that define no knobs yet: the C++ iterators, registries,
+// functional and text modules, and the command-line options
+#include "djinterp/config/cpp/container/iterator/cfg_container_iterator.h"
+#include "djinterp/config/cpp/container/registry/cfg_registry.h"
+#include "djinterp/config/cpp/functional/cfg_functional.h"
+#include "djinterp/config/cpp/text/cfg_text.h"
+#include "djinterp/config/cpp/util/cli/cfg_cli_option.h"
+// c/event: the shared knobs, then each part's
+#include "djinterp/config/c/event/cfg_event_common.h"
+#include "djinterp/config/c/event/cfg_event.h"
+#include "djinterp/config/c/event/cfg_event_dispatcher.h"
+#include "djinterp/config/c/event/cfg_event_handler.h"
+#include "djinterp/config/c/event/cfg_event_registry.h"
+#include "djinterp/config/c/event/cfg_event_table.h"
+// c/filesys: the shared knobs, then each operation's
+#include "djinterp/config/c/filesys/cfg_file_common.h"
+#include "djinterp/config/c/filesys/cfg_file_desc.h"
+#include "djinterp/config/c/filesys/cfg_file_dir.h"
+#include "djinterp/config/c/filesys/cfg_file_io.h"
+#include "djinterp/config/c/filesys/cfg_file_link.h"
+#include "djinterp/config/c/filesys/cfg_file_lock.h"
+#include "djinterp/config/c/filesys/cfg_file_open.h"
+#include "djinterp/config/c/filesys/cfg_file_ops.h"
+#include "djinterp/config/c/filesys/cfg_file_path.h"
+#include "djinterp/config/c/filesys/cfg_file_pipe.h"
+#include "djinterp/config/c/filesys/cfg_file_seek.h"
+#include "djinterp/config/c/filesys/cfg_file_space.h"
+#include "djinterp/config/c/filesys/cfg_file_stat.h"
+#include "djinterp/config/c/filesys/cfg_file_sync.h"
+#include "djinterp/config/c/filesys/cfg_file_temp.h"
+// C++ filesys: the path, and the file tree
+#include "djinterp/config/cpp/filesys/cfg_file_path.h"
+#include "djinterp/config/cpp/container/tree/file/cfg_filesys.h"
+// C++ options
+#include "djinterp/config/cpp/option/cfg_option.h"
+// c/modules/test: the object and its parts (the printer comes later)
+#include "djinterp/config/c/modules/test/cfg_test_object.h"
+#include "djinterp/config/c/modules/test/cfg_test_metadata.h"
+#include "djinterp/config/c/modules/test/cfg_test_event.h"
+#include "djinterp/config/c/modules/test/cfg_test_counter.h"
+#include "djinterp/config/c/modules/test/cfg_test_timer.h"
+#include "djinterp/config/c/modules/test/cfg_test_parity.h"
+#include "djinterp/config/c/modules/test/cfg_test.h"
+// parse: the substrate, the argument parser, the command-line kit, then
+// parser generation, after parse
+#include "djinterp/config/c/modules/parse/cfg_parse.h"
+#include "djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"
+#include "djinterp/config/tools/cli/cfg_cli.h"
+#include "djinterp/config/c/modules/parsegen/cfg_parsegen.h"
+// net: the foundation, then the bindings, kernels and transports
+#include "djinterp/config/c/modules/net/cfg_net.h"            // foundation
+#include "djinterp/config/c/modules/net/curl/cfg_curl.h"      // libcurl
+#include "djinterp/config/c/modules/net/pop/cfg_pop.h"        // POP3
+#include "djinterp/config/c/modules/net/ssh/cfg_ssh.h"        // SSH
+#include "djinterp/config/c/modules/net/ssl/cfg_ssl.h"        // SSL/TLS
+#include "djinterp/config/c/modules/net/starttls/cfg_starttls.h"  // STARTTLS
 #include "djinterp/config/c/modules/net/tcp/cfg_tcp.h"        // TCP transport
 #include "djinterp/config/c/modules/net/http/cfg_http.h"      // HTTP
+#include "djinterp/config/c/modules/net/ftp/cfg_ftp.h"        // FTP
+#include "djinterp/config/c/modules/net/sftp/cfg_sftp.h"      // SFTP
+// compression, archives and the test printer include the platform's headers,
+// so they come after every config whose answer turns on what a unit included
+// first (cfg_file_common.h's path limits, cfg_mem_source.h's aligned API):
+// those resolve here as they do on their own
+#include "djinterp/config/c/util/compress/cfg_compress.h"
+#include "djinterp/config/c/util/archive/cfg_archive.h"
+#include "djinterp/config/c/modules/test/cfg_test_printer.h"
 // the SQLite layer, after env's SQLite config: resolving everything leaves
 // D_CFG_ENV_USING_SQLITE as env's config decided it, off unless set
 #include "djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // SQLite layer
@@ -78,13 +151,9 @@
 // D_CFG_ENV_USING_POSTGRESQL off unless set
 #include "djinterp/config/c/db/postgres/cfg_postgres_common.h"  // PostgreSQL
 #include "djinterp/config/c/db/postgres/cfg_postgres_connection.h"  // connects
-// the MongoDB layer, likewise after env's MongoDB config, which leaves
-// D_CFG_ENV_USING_MONGODB off unless set
-#include "djinterp/config/c/db/mongodb/cfg_mongodb_common.h"  // MongoDB layer
-#include "djinterp/config/c/db/mongodb/cfg_mongodb_connection.h"  // connects
 // the layers' C++ faces, which read nothing above
 #include "djinterp/config/cpp/db/cfg_db_face.h"  // the faces' format check
-// #include "core/<sub>/cfg_<sub>.h"  // <- add future subframeworks here
+// #include "<path>/cfg_<sub>.h"  // <- add future subframeworks here
 
 
 // ===========================================================================

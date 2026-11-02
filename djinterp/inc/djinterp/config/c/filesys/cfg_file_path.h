@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_path.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -62,6 +62,7 @@ TABLE OF CONTENTS
 #define DJINTERP_CONFIG_C_FILESYS_CFG_FILE_PATH_H 1
 
 // djinterp
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "cfg_file_common.h"  // shared filesys knobs, D_CFG_IS_BOOL
 
 
@@ -112,7 +113,8 @@ TABLE OF CONTENTS
 #endif  // D_CFG_FILE_PATH_SYNTAX
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_FILE_PATH_SYNTAX)
-    #error "D_CFG_FILE_PATH_SYNTAX must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_FILE_PATH_SYNTAX must name one of its values; a misspelled " \
+           "name would read as 0"
 #endif
 
 // 1.1.4

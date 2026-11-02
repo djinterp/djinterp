@@ -21,7 +21,8 @@
 *   zip, tar, gz, tar_gz, sevenzip (7z), rar
 *
 * availability:
-*   each format maps to D_ENV_ARCHIVE_CAN_{READ,WRITE}_* capability flags.
+*   each format maps to D_INTERNAL_ARCHIVE_CAN_{READ,WRITE}_*, cfg_archive.h's
+* capability flags: env's detection ANDed with the format knobs.
 *   Unavailable operations compile fine and return status_unavailable at
 *   runtime; query at compile time with format_traits<Format>::can_{read,write}.
 *   Note: RAR creation requires the proprietary rar/WinRAR tool; no library can
@@ -58,7 +59,7 @@
 * path:      /inc/djinterp/cpp/util/archive/archive.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_ARCHIVE_ARCHIVE_HPP
@@ -204,8 +205,8 @@ struct format_traits;
 template<>
 struct format_traits<formats::zip>
 {
-    enum { can_read  = (D_ENV_ARCHIVE_CAN_READ_ZIP  != 0) };
-    enum { can_write = (D_ENV_ARCHIVE_CAN_WRITE_ZIP != 0) };
+    enum { can_read  = (D_INTERNAL_ARCHIVE_CAN_READ_ZIP  != 0) };
+    enum { can_write = (D_INTERNAL_ARCHIVE_CAN_WRITE_ZIP != 0) };
     static format_id   id()   { return format_id_zip; }
     static const char* name() { return "zip"; }
 };
@@ -215,8 +216,8 @@ struct format_traits<formats::zip>
 template<>
 struct format_traits<formats::tar>
 {
-    enum { can_read  = (D_ENV_ARCHIVE_CAN_READ_TAR  != 0) };
-    enum { can_write = (D_ENV_ARCHIVE_CAN_WRITE_TAR != 0) };
+    enum { can_read  = (D_INTERNAL_ARCHIVE_CAN_READ_TAR  != 0) };
+    enum { can_write = (D_INTERNAL_ARCHIVE_CAN_WRITE_TAR != 0) };
     static format_id   id()   { return format_id_tar; }
     static const char* name() { return "tar"; }
 };
@@ -226,8 +227,8 @@ struct format_traits<formats::tar>
 template<>
 struct format_traits<formats::gz>
 {
-    enum { can_read  = (D_ENV_ARCHIVE_CAN_READ_GZ  != 0) };
-    enum { can_write = (D_ENV_ARCHIVE_CAN_WRITE_GZ != 0) };
+    enum { can_read  = (D_INTERNAL_ARCHIVE_CAN_READ_GZ  != 0) };
+    enum { can_write = (D_INTERNAL_ARCHIVE_CAN_WRITE_GZ != 0) };
     static format_id   id()   { return format_id_gz; }
     static const char* name() { return "gz"; }
 };
@@ -237,8 +238,8 @@ struct format_traits<formats::gz>
 template<>
 struct format_traits<formats::tar_gz>
 {
-    enum { can_read  = (D_ENV_ARCHIVE_CAN_READ_GZ   != 0) };
-    enum { can_write = (D_ENV_ARCHIVE_CAN_WRITE_TGZ != 0) };
+    enum { can_read  = (D_INTERNAL_ARCHIVE_CAN_READ_GZ   != 0) };
+    enum { can_write = (D_INTERNAL_ARCHIVE_CAN_WRITE_TGZ != 0) };
     static format_id   id()   { return format_id_tar_gz; }
     static const char* name() { return "tar.gz"; }
 };
@@ -248,8 +249,8 @@ struct format_traits<formats::tar_gz>
 template<>
 struct format_traits<formats::sevenzip>
 {
-    enum { can_read  = (D_ENV_ARCHIVE_CAN_READ_7Z  != 0) };
-    enum { can_write = (D_ENV_ARCHIVE_CAN_WRITE_7Z != 0) };
+    enum { can_read  = (D_INTERNAL_ARCHIVE_CAN_READ_7Z  != 0) };
+    enum { can_write = (D_INTERNAL_ARCHIVE_CAN_WRITE_7Z != 0) };
     static format_id   id()   { return format_id_sevenzip; }
     static const char* name() { return "7z"; }
 };
@@ -259,8 +260,8 @@ struct format_traits<formats::sevenzip>
 template<>
 struct format_traits<formats::rar>
 {
-    enum { can_read  = (D_ENV_ARCHIVE_CAN_READ_RAR  != 0) };
-    enum { can_write = (D_ENV_ARCHIVE_CAN_WRITE_RAR != 0) };
+    enum { can_read  = (D_INTERNAL_ARCHIVE_CAN_READ_RAR  != 0) };
+    enum { can_write = (D_INTERNAL_ARCHIVE_CAN_WRITE_RAR != 0) };
     static format_id   id()   { return format_id_rar; }
     static const char* name() { return "rar"; }
 };
@@ -382,7 +383,7 @@ bool format_is_readable()
 // VII. THROWING CONVENIENCE API
 // =============================================================================
 
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
 
 // DArchiveError
 //   class: exception thrown by the convenience API on failure.
@@ -445,7 +446,7 @@ entry_list extract(
     return out;
 }
 
-#endif  // D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#endif  // D_INTERNAL_COMPRESS_EXCEPTIONS
 
 
 NS_END  // djinterp

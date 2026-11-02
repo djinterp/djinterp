@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_timer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_TEST_CFG_TEST_TIMER_H
@@ -72,8 +72,15 @@
 #   error "D_CFG_TEST_TIMER_MAX_DEPTH must be at least 1"
 #endif
 
+// D_INTERNAL_TEST_TIMER_MAX_DEPTH
+//   internal: D_CFG_TEST_TIMER_MAX_DEPTH, passed through after validation.
 #define D_INTERNAL_TEST_TIMER_MAX_DEPTH D_CFG_TEST_TIMER_MAX_DEPTH
 
+// D_INTERNAL_TEST_TIMER_LIMIT / _EVENTS / _STRICT
+//   internal: strict 0/1 gates the timer kernel reads: the limit check
+// (D_CFG_TEST_TIMER_ENFORCE_LIMIT), the observer events
+// (D_CFG_TEST_TIMER_EVENTS) and the double-start/stop check
+// (D_CFG_TEST_TIMER_STRICT_STATE).  Each is forced on in a test build.
 #if ( D_CFG_IS_ON(D_CFG_TESTING) ||                                            \
       D_CFG_IS_ON(D_CFG_TEST_TIMER_ENFORCE_LIMIT) )
 #   define D_INTERNAL_TEST_TIMER_LIMIT 1

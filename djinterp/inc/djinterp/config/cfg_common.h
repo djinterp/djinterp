@@ -11,11 +11,18 @@
 *   Depends on nothing: it is the root; nothing in the framework sits below it
 * (in particular it does NOT include env.h -- env.h's own config includes this).
 *
+*   targets:  every cfg_*.h, which includes it first; env/env.h and
+*             env/net/ssh/env_ssh.h -> D_CFG_NORM, D_CFG_IS_ON / _OFF,
+*             D_CFG_IS_BOOL, D_CFG_IS_INT_LITERAL, D_CFG_TESTING
+*   requires: cfg_re_std.h (carries D_CFG_ENV_ISO_STRICT and
+*             D_CFG_TESTING into re_std); cfg_custom.h where it exists;
+*             cfg_testing.h in testing mode
+*
 *
 * path:      /inc/djinterp/config/cfg_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CFG_COMMON_H
@@ -116,14 +123,20 @@ TABLE OF CONTENTS
 //   internal: expand x one level, so a knob defined as a macro is followed to
 // its value, then paste that result onto the marker prefix.
 #define D_INTERNAL_CFG_LIT1_PROBE(x)      D_INTERNAL_CFG_LIT1_PROBE_(x)
+#define D_INTERNAL_CFG_LIT0_PROBE(x)      D_INTERNAL_CFG_LIT0_PROBE_(x)
+
+// D_INTERNAL_CFG_LIT1_PROBE_(_v) / D_INTERNAL_CFG_LIT0_PROBE_(_v)
+//   internal: the second step of each probe, which receives the value already
+// expanded and hands the marker prefix to the raw paste unexpanded (2. above).
 #define D_INTERNAL_CFG_LIT1_PROBE_(_v)                                        \
     D_INTERNAL_CFG_PASTE(D_INTERNAL_CFG_LIT1_, _v)
-#define D_INTERNAL_CFG_LIT0_PROBE(x)      D_INTERNAL_CFG_LIT0_PROBE_(x)
 #define D_INTERNAL_CFG_LIT0_PROBE_(_v)                                        \
     D_INTERNAL_CFG_PASTE(D_INTERNAL_CFG_LIT0_, _v)
 
-//   The landing pads: 1 for the literal probed, 0 for the other valid
-// spellings. Every other paste lands on nothing.
+// D_INTERNAL_CFG_LIT1_<V> / D_INTERNAL_CFG_LIT0_<V>
+//   internal: the landing pads: 1 for the literal probed, 0 for the other
+// valid spellings, the empty value among them. Every other paste lands on
+// nothing.
 #define D_INTERNAL_CFG_LIT1_1             1
 #define D_INTERNAL_CFG_LIT1_0             0
 #define D_INTERNAL_CFG_LIT1_              0
@@ -150,16 +163,18 @@ TABLE OF CONTENTS
     ( ( (D_CFG_NORM(x) == 0) || (D_CFG_NORM(x) == 1) ) &&                     \
       ( (D_CFG_IS_LITERAL_1(x)) || (D_CFG_IS_LITERAL_0(x)) ) )
 
-// D_INTERNAL_CFG_INT_PROBE(x)
-//   internal: as the literal probes, onto the integer marker prefix.
+// D_INTERNAL_CFG_INT_PROBE(x) / D_INTERNAL_CFG_INT_PROBE_(_v)
+//   internal: as the literal probes, onto the integer marker prefix; the
+// trailing-underscore form is the step that receives the expanded value.
 #define D_INTERNAL_CFG_INT_PROBE(x)       D_INTERNAL_CFG_INT_PROBE_(x)
 #define D_INTERNAL_CFG_INT_PROBE_(_v)                                         \
     D_INTERNAL_CFG_PASTE(D_INTERNAL_CFG_INT_, _v)
 
-//   The integer landing pads: the decimal literals 0 to 16, and 32 and 64 --
-// every value an enumerated knob in the tree takes. A family that needs
-// another value adds its pad here. The empty value lands too, reading as 0,
-// as it does for a boolean knob.
+// D_INTERNAL_CFG_INT_<N>
+//   internal: the integer landing pads: the decimal literals 0 to 16, and 32
+// and 64 -- every value an enumerated knob in the tree takes. A family that
+// needs another value adds its pad here. The empty value lands too, reading as
+// 0, as it does for a boolean knob.
 #define D_INTERNAL_CFG_INT_               1
 #define D_INTERNAL_CFG_INT_0              1
 #define D_INTERNAL_CFG_INT_1              1
@@ -214,6 +229,11 @@ TABLE OF CONTENTS
 // first. cfg_custom.h wins where both exist: it is the name the README
 // documents, and following the documentation should not be the case that
 // silently finds nothing.
+// D_CFG_CUSTOM_HEADER
+//   brief: the header the pickup includes, as a quoted name. Pre-define it to
+// point anywhere; unset, it is D_CFG_USER_HEADER where that is set, else
+// cfg_custom.h, else cfg_user.h, where __has_include finds one. Left
+// undefined when none is found, so the pickup is skipped.
 #if defined(D_CFG_USER_HEADER) && !defined(D_CFG_CUSTOM_HEADER)
 #  define D_CFG_CUSTOM_HEADER D_CFG_USER_HEADER
 #endif
@@ -228,6 +248,9 @@ TABLE OF CONTENTS
 #  endif
 #endif
 
+// D_INTERNAL_CFG_CUSTOM_APPLIED
+//   internal: 1 when the pickup included a custom header, 0 when there was
+// none; published as D_CFG_CUSTOM_IS_APPLIED (0.5).
 #ifdef D_CFG_CUSTOM_HEADER
 #  include D_CFG_CUSTOM_HEADER
 #  define D_INTERNAL_CFG_CUSTOM_APPLIED 1
@@ -259,8 +282,10 @@ TABLE OF CONTENTS
 // routinely. One name could not answer both questions.
 #define D_CFG_CUSTOM_IS_APPLIED         D_INTERNAL_CFG_CUSTOM_APPLIED
 
-#if D_CFG_IS_ON(D_CFG_CUSTOM) && (D_CFG_CUSTOM_IS_APPLIED == 0)
-#  error "D_CFG_CUSTOM is 1 but no custom configuration header was found. Put cfg_custom.h on the include path, point D_CFG_CUSTOM_HEADER at it, or set D_CFG_CUSTOM to 0."
+#if D_CFG_IS_ON(D_CFG_CUSTOM) && D_CFG_IS_OFF(D_CFG_CUSTOM_IS_APPLIED)
+#  error "D_CFG_CUSTOM is 1 but no custom configuration header was found. "    \
+         "Put cfg_custom.h on the include path, point D_CFG_CUSTOM_HEADER at " \
+         "it, or set D_CFG_CUSTOM to 0."
 #endif
 
 
@@ -287,6 +312,14 @@ TABLE OF CONTENTS
 // else. It is how cfg_testing.h tells this application from a direct include,
 // which it redirects here; asking whether this file is defined cannot, since
 // it stays defined long after this point.
+
+// D_CFG_TESTING_HEADER
+//   brief: the testing preset to apply, as a quoted name; "cfg_testing.h"
+// unless pre-defined to point at another. Read only in testing mode.
+
+// D_INTERNAL_CFG_APPLYING_TESTING_PRESET
+//   internal: 1 while the preset is being included from here, and undefined
+// everywhere else.
 #if D_CFG_IS_ON(D_CFG_TESTING) && !defined(D_CFG_NO_TESTING_PRESET)
 #  ifndef D_CFG_TESTING_HEADER
 #    define D_CFG_TESTING_HEADER "cfg_testing.h"
@@ -302,7 +335,8 @@ TABLE OF CONTENTS
 // -DD_TESTING=ON normalizes to 0: it would DISABLE testing mode, which is the
 // opposite of what was asked, and leave no trace of having done so.
 #if defined(D_TESTING) && !D_CFG_IS_BOOL(D_TESTING)
-#  error "D_TESTING must be 0 or 1. Spellings like ON / true / yes normalize to 0 and would silently DISABLE testing mode; use -DD_TESTING=1."
+#  error "D_TESTING must be 0 or 1. Spellings like ON / true / yes normalize " \
+         "to 0 and would silently DISABLE testing mode; use -DD_TESTING=1."
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_TESTING)
 #  error "D_CFG_TESTING must resolve to 0 or 1"

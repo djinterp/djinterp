@@ -7,13 +7,14 @@
 * libraries' own headers to read their versions (decision 105 of the
 * register, as decision 60 did for TLS).
 *   targets:  env/net/ssh/env_ssh.h -> D_CFG_ENV_SSH_PROBE_VERSION
+*             env/net/env_ssh.h, the older flat header -> the same
 *   requires: cfg_common.h (D_CFG_IS_BOOL)
 *
 *
 * path:      /inc/djinterp/config/env/net/ssh/cfg_env_ssh.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #ifndef DJINTERP_CONFIG_ENV_NET_SSH_CFG_ENV_SSH_H
 #define DJINTERP_CONFIG_ENV_NET_SSH_CFG_ENV_SSH_H 1

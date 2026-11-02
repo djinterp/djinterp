@@ -21,7 +21,7 @@
 *   Nothing else that includes the layer has mysql.h in scope, unless the
 * program asks for env's detection itself. Not the public headers: it spells
 * `long long`, which ISO C++98 refuses, and the two clients disagree on its
-* struct's tag. Not core/db: its mariadb_connection would meet Connector/C's
+* struct's tag. Not cpp/db: its mariadb_connection would meet Connector/C's
 * function of that name under `using namespace djinterp`, its mysql_ssl_mode
 * libmysqlclient's enum, and on Windows libmysqlclient's mysql.h brings
 * <windows.h>, and its min and max macros, with it.

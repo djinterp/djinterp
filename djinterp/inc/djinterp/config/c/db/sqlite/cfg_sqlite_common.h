@@ -17,7 +17,7 @@
 * includes dconfig.h first (which resolves env's config before this one),
 * stops at the layer's sources with an #error; it sets
 * D_CFG_ENV_USING_SQLITE=1 itself.
-*   Nothing else that includes the layer, core/db's sqlite_connection among
+*   Nothing else that includes the layer, cpp/db's sqlite_connection among
 * it, has sqlite3.h in scope, unless the program asks for env's detection
 * itself. The public headers never include it: it spells `long long`, which
 * ISO C++98 refuses, and the headers are meant to be consumable from C++98

@@ -41,7 +41,7 @@
 * path:      /inc/djinterp/c/event/event_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_C_EVENT_EVENT_COMMON_H
@@ -586,6 +586,20 @@ enum dj_event_status
     D_EVENT_ERR_KEY      = -5,  // formal: key names no summand of Sigma
     D_EVENT_ERR_STATE    = -6   // formal: operation undefined in this state
 };
+
+// D_EVENT_STRICT_ARG
+//   macro: what every null-argument branch does before it returns
+// D_EVENT_ERR_NULL. Under D_CFG_EVENT_STRICT_ARGS it asserts, so a malformed
+// call stops at the caller; otherwise it does nothing and the call is
+// reported. One spelling, two policies, no per-function #if -- the same shape
+// as memory's D_MEM_REQUIRE.
+#if (D_INTERNAL_EVENT_STRICT_ARGS == 1)
+#   include <assert.h>
+#   define D_EVENT_STRICT_ARG()                                               \
+        assert(!"a required argument was NULL (D_CFG_EVENT_STRICT_ARGS)")
+#else
+#   define D_EVENT_STRICT_ARG() ((void)0)
+#endif
 
 
 ///////////////////////////////////////////////////////////////////////////////

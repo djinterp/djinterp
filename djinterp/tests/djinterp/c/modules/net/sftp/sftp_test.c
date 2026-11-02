@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/c/modules/net/sftp/sftp_test.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 // std
 #include <errno.h>    // errno, EINTR
@@ -2957,7 +2957,8 @@ void t_sftp_errors_from_net(void)
                 { D_NET_ERROR_TOO_MANY_OPEN_FILES, D_SFTP_ERROR_TRANSPORT },
                 { D_NET_ERROR_OUT_OF_MEMORY, D_SFTP_ERROR_OUT_OF_MEMORY },
                 { D_NET_ERROR_UNKNOWN, D_SFTP_ERROR_TRANSPORT },
-                { D_NET_ERROR_PROTOCOL, D_SFTP_ERROR_TRANSPORT } };
+                { D_NET_ERROR_PROTOCOL, D_SFTP_ERROR_TRANSPORT },
+                { D_NET_ERROR_UNSUPPORTED, D_SFTP_ERROR_TRANSPORT } };
 
     for (size_t i = 0; i < sizeof MAP / sizeof MAP[0]; i++)
     {

@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -146,7 +146,7 @@ TABLE OF CONTENTS
 #include "../../cfg_common.h"  // D_CFG_IS_ON, D_CFG_NORM, D_CFG_TESTING
 #include "../../../env/env.h"  // D_ENV_* platform detection
 // re_std
-#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: the 64-bit floor
+#include "../../../../re_std/c/cstdint/dstdint.h"  // INT64_MAX: 64-bit floor
 
 
 //==============================================================================
@@ -225,7 +225,8 @@ TABLE OF CONTENTS
 #endif  // D_CFG_FILE_BACKEND
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_FILE_BACKEND)
-    #error "D_CFG_FILE_BACKEND must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_FILE_BACKEND must name one of its values; a misspelled "     \
+           "name would read as 0"
 #endif
 
 // 1.2.6
@@ -316,7 +317,8 @@ TABLE OF CONTENTS
 #endif  // D_CFG_FILE_NOTIFY_LEVEL
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_FILE_NOTIFY_LEVEL)
-    #error "D_CFG_FILE_NOTIFY_LEVEL must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_FILE_NOTIFY_LEVEL must name one of its values; a "           \
+           "misspelled name would read as 0"
 #endif
 
 // 1.4.3
@@ -909,9 +911,9 @@ TABLE OF CONTENTS
 //   Selection model. Every declaration that holds a file offset, a size, a
 // timestamp, an inode number or a capacity comes in two widths, each with a
 // fixed layout: a 32-bit twin (dj_stat32_t, d_file_stat32) and a 64-bit one
-// (dj_stat64_t, d_file_stat64). The unsuffixed name -- dj_stat_t, d_file_stat --
-// is an alias of one of them, and this chooses which. Both twins are declared
-// whatever it says, so code that needs one width names that twin.
+// (dj_stat64_t, d_file_stat64). The unsuffixed name -- dj_stat_t, d_file_stat
+// -- is an alias of one of them, and this chooses which. Both twins are
+// declared whatever it says, so code that needs one width names that twin.
 
 // 1.10.1
 // D_CFG_FILE_WIDTH_AUTO
@@ -932,7 +934,8 @@ TABLE OF CONTENTS
 #endif  // D_CFG_FILE_WIDTH
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_FILE_WIDTH)
-    #error "D_CFG_FILE_WIDTH must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_FILE_WIDTH must name one of its values; a misspelled name "  \
+           "would read as 0"
 #endif
 
 
@@ -991,6 +994,61 @@ TABLE OF CONTENTS
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_FILE_FADVISE)
     #error "D_CFG_FILE_FADVISE must be literally 0 or 1"
+#endif
+// the platform gates of 1.9, which a build may set as well
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_POSIX)
+    #error "D_CFG_FILE_HAS_POSIX must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_WIN32)
+    #error "D_CFG_FILE_HAS_WIN32 must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_FOPEN_S)
+    #error "D_CFG_FILE_HAS_FOPEN_S must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_FSEEKO)
+    #error "D_CFG_FILE_HAS_FSEEKO must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_MKSTEMP)
+    #error "D_CFG_FILE_HAS_MKSTEMP must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_REALPATH)
+    #error "D_CFG_FILE_HAS_REALPATH must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_SYMLINKS)
+    #error "D_CFG_FILE_HAS_SYMLINKS must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_PIPES)
+    #error "D_CFG_FILE_HAS_PIPES must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_FLOCK)
+    #error "D_CFG_FILE_HAS_FLOCK must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_PREAD)
+    #error "D_CFG_FILE_HAS_PREAD must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_COPY_FILE_RANGE)
+    #error "D_CFG_FILE_HAS_COPY_FILE_RANGE must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_FCOPYFILE)
+    #error "D_CFG_FILE_HAS_FCOPYFILE must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_STATX)
+    #error "D_CFG_FILE_HAS_STATX must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_FADVISE)
+    #error "D_CFG_FILE_HAS_FADVISE must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_FALLOCATE)
+    #error "D_CFG_FILE_HAS_FALLOCATE must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_BIRTHTIME)
+    #error "D_CFG_FILE_HAS_BIRTHTIME must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_TMPFILE)
+    #error "D_CFG_FILE_HAS_TMPFILE must be literally 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_FILE_HAS_CLOCK)
+    #error "D_CFG_FILE_HAS_CLOCK must be literally 0 or 1"
 #endif
 
 // selection knob: must name a backend that exists.

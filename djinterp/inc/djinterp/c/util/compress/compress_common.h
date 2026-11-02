@@ -93,7 +93,7 @@
 * path:      /inc/djinterp/c/util/compress/compress_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -167,6 +167,7 @@ TABLE OF CONTENTS
 #include <stddef.h>          // size_t, offsetof
 // djinterp
 #include "../../djinterp.h"  // framework root
+#include "../../../config/c/util/compress/cfg_compress.h"  // D_INTERNAL_COMPRESS_*
 #include "../sink_common.h"  // dj_pack_sink, dj_pack_text/bytes
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t, INT32_MIN
@@ -328,11 +329,12 @@ int d_codec_id_from_name(
 // D_COMPRESS_LEVEL_*
 //   constant: the generic effort scale, normalised across codecs.  A codec
 // whose native scale differs (brotli 0-11, zstd -7-22) is mapped onto it by
-// d_compress_resolve_level rather than by each call site.
+// d_compress_resolve_level rather than by each call site. The default is
+// D_CFG_COMPRESS_DEFAULT_LEVEL's, resolved in cfg_compress.h (6 unless set).
 #define D_COMPRESS_LEVEL_NONE       0
 #define D_COMPRESS_LEVEL_FASTEST    1
 #define D_COMPRESS_LEVEL_FAST       3
-#define D_COMPRESS_LEVEL_DEFAULT    6
+#define D_COMPRESS_LEVEL_DEFAULT    D_INTERNAL_COMPRESS_DEFAULT_LEVEL
 #define D_COMPRESS_LEVEL_BEST       9
 
 // 3.2    Per-codec knob enumerations

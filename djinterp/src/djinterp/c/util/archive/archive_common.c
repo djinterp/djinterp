@@ -45,7 +45,7 @@
 * path:      /src/djinterp/c/util/archive/archive_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -84,16 +84,26 @@ X.    TRANSFORMS
 #include <string.h>
 // djinterp
 #include "../../../../../inc/djinterp/c/util/archive/archive_common.h"
-#include "../../../../../inc/djinterp/env/util/archive/env_archive.h"  // D_ENV_ARCHIVE_CAN_*
+#include "../../../../../inc/djinterp/env/util/archive/env_archive.h"  // D_ENV_ARCHIVE_BACKEND_*
+// std, once the configuration has said whether the clock is read
+#if D_INTERNAL_ARCHIVE_USE_CLOCK
+    #include <time.h>  // time, for an entry with no mtime
+#endif
 
+
+// D_ARCHIVE_ZIP_EPOCH
+//   constant: 1980-01-01T00:00:00Z, the ZIP format's own epoch and therefore
+// the earliest instant both tar and zip can represent without a special case.
+// A ZIP timestamp before it is clamped to it.
+#define D_ARCHIVE_ZIP_EPOCH         315532800L
 
 // D_ARCHIVE_EPOCH_DEFAULT
-//   constant: the timestamp written for an entry whose mtime is 0.
-// 1980-01-01T00:00:00Z, which is the ZIP format's own epoch and therefore the
-// earliest instant both tar and zip can represent without a special case.
-// Pinned rather than taken from the clock: a container that embeds "now" is a
+//   constant: the timestamp written for an entry whose mtime is 0:
+// D_CFG_ARCHIVE_EPOCH, resolved in cfg_archive.h, which may not precede the
+// ZIP epoch and defaults to it. Pinned rather than taken from the clock under
+// D_CFG_ARCHIVE_REPRODUCIBLE (the default): a container that embeds "now" is a
 // container two identical runs cannot be compared byte for byte.
-#define D_ARCHIVE_EPOCH_DEFAULT     315532800L
+#define D_ARCHIVE_EPOCH_DEFAULT     D_INTERNAL_ARCHIVE_EPOCH
 
 // D_INTERNAL_TAR_BLOCK
 //   constant: the ustar record size.  Everything in a tar is a multiple of it.
@@ -1002,7 +1012,8 @@ d_archive_options_validate(
 d_format_is_readable
   Whether this build can read a format.
 
-  Answers from env_archive.h's roll-ups rather than from its own knowledge of
+  Answers from cfg_archive.h's D_INTERNAL_ARCHIVE_CAN_* -- env_archive.h's
+roll-ups, ANDed with the format knobs -- rather than from its own knowledge of
 which writers exist here.  That matters: the roll-ups already fold in
 D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP, so they are 1 by default now that the
 built-in writers are real -- and a project that sets those knobs to 0 is saying
@@ -1024,24 +1035,24 @@ d_format_is_readable(
     {
         case D_FORMAT_ID_ZIP:
         {
-            return D_ENV_ARCHIVE_CAN_READ_ZIP ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_READ_ZIP ? 1 : 0;
         }
         case D_FORMAT_ID_TAR:
         {
-            return D_ENV_ARCHIVE_CAN_READ_TAR ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_READ_TAR ? 1 : 0;
         }
         case D_FORMAT_ID_GZ:
         case D_FORMAT_ID_TAR_GZ:
         {
-            return D_ENV_ARCHIVE_CAN_READ_GZ ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_READ_GZ ? 1 : 0;
         }
         case D_FORMAT_ID_SEVENZIP:
         {
-            return D_ENV_ARCHIVE_CAN_READ_7Z ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_READ_7Z ? 1 : 0;
         }
         case D_FORMAT_ID_RAR:
         {
-            return D_ENV_ARCHIVE_CAN_READ_RAR ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_READ_RAR ? 1 : 0;
         }
     }
 
@@ -1071,27 +1082,27 @@ d_format_is_writable(
     {
         case D_FORMAT_ID_ZIP:
         {
-            return D_ENV_ARCHIVE_CAN_WRITE_ZIP ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_WRITE_ZIP ? 1 : 0;
         }
         case D_FORMAT_ID_TAR:
         {
-            return D_ENV_ARCHIVE_CAN_WRITE_TAR ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_WRITE_TAR ? 1 : 0;
         }
         case D_FORMAT_ID_GZ:
         {
-            return D_ENV_ARCHIVE_CAN_WRITE_GZ ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_WRITE_GZ ? 1 : 0;
         }
         case D_FORMAT_ID_TAR_GZ:
         {
-            return D_ENV_ARCHIVE_CAN_WRITE_TGZ ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_WRITE_TGZ ? 1 : 0;
         }
         case D_FORMAT_ID_SEVENZIP:
         {
-            return D_ENV_ARCHIVE_CAN_WRITE_7Z ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_WRITE_7Z ? 1 : 0;
         }
         case D_FORMAT_ID_RAR:
         {
-            return D_ENV_ARCHIVE_CAN_WRITE_RAR ? 1 : 0;
+            return D_INTERNAL_ARCHIVE_CAN_WRITE_RAR ? 1 : 0;
         }
     }
 
@@ -1202,9 +1213,23 @@ d_format_backend_id(
 {
     switch (_format)
     {
-        case D_FORMAT_ID_ZIP:      { return D_ENV_ARCHIVE_PREFERRED_ZIP; }
+        // D_CFG_ARCHIVE_PREFER_BUILTIN: the built-in writers even where a
+        // library was detected, which is what this kernel writes with
+        case D_FORMAT_ID_ZIP:
+        {
+            return ( (D_INTERNAL_ARCHIVE_PREFER_BUILTIN) &&
+                     (D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP) )
+                 ? D_ENV_ARCHIVE_BACKEND_BUILTIN
+                 : D_ENV_ARCHIVE_PREFERRED_ZIP;
+        }
         case D_FORMAT_ID_TAR:
-        case D_FORMAT_ID_TAR_GZ:   { return D_ENV_ARCHIVE_PREFERRED_TAR; }
+        case D_FORMAT_ID_TAR_GZ:
+        {
+            return ( (D_INTERNAL_ARCHIVE_PREFER_BUILTIN) &&
+                     (D_ENV_ARCHIVE_HAVE_BUILTIN_TAR) )
+                 ? D_ENV_ARCHIVE_BACKEND_BUILTIN
+                 : D_ENV_ARCHIVE_PREFERRED_TAR;
+        }
         case D_FORMAT_ID_GZ:       { return D_ENV_ARCHIVE_BACKEND_BUILTIN; }
         case D_FORMAT_ID_SEVENZIP: { return D_ENV_ARCHIVE_PREFERRED_7Z; }
         case D_FORMAT_ID_RAR:      { return D_ENV_ARCHIVE_PREFERRED_RAR_WRITE; }
@@ -1352,10 +1377,20 @@ int d_archive_entry_is_valid(
     {
         return 0;
     }
+#if D_INTERNAL_ARCHIVE_CHECK_ENTRY_NAMES
+    // D_CFG_ARCHIVE_CHECK_ENTRY_NAMES: no empty, absolute or `..` name
     if (!d_archive_entry_name_is_valid(_entry->name))
     {
         return 0;
     }
+#else
+    // the traversal guard is off; a name must still be there
+    if ( (_entry->name.data == NULL) ||
+         (_entry->name.length == 0u) )
+    {
+        return 0;
+    }
+#endif
     if ( (_entry->is_directory) &&
          (_entry->data.size != 0u) )
     {
@@ -1727,9 +1762,9 @@ void d_internal_dos_datetime(
     int64_t  d;
     int64_t  m;
 
-    if (_unix < D_ARCHIVE_EPOCH_DEFAULT)
+    if (_unix < D_ARCHIVE_ZIP_EPOCH)
     {
-        _unix = D_ARCHIVE_EPOCH_DEFAULT;
+        _unix = D_ARCHIVE_ZIP_EPOCH;
     }
 
     days = _unix / 86400;
@@ -1763,9 +1798,10 @@ Parameter(s):
   _entry:   the entry.
   _options: a resolved option set.
 Return:
-  The timestamp.  D_ARCHIVE_EPOCH_DEFAULT when the entry carries none or when
-the caller asked not to preserve it -- never the current time, which is what
-keeps two runs byte-identical.
+  The timestamp.  When the entry carries none or the caller asked not to
+preserve it: D_ARCHIVE_EPOCH_DEFAULT under D_CFG_ARCHIVE_REPRODUCIBLE, the
+default, which is what keeps two runs byte-identical; the current time when a
+build turns it off.
 */
 static
 int64_t d_internal_entry_mtime(
@@ -1773,14 +1809,19 @@ int64_t d_internal_entry_mtime(
     const struct dj_archive_options* _options
 )
 {
-    if ( (_options != NULL) &&
-         (_options->preserve_mtime == 0) )
-    {
-        return (int64_t)D_ARCHIVE_EPOCH_DEFAULT;
-    }
-    if ( (_entry == NULL) ||
+    if ( ( (_options != NULL) &&
+           (_options->preserve_mtime == 0) ) ||
+         (_entry == NULL) ||
          (_entry->mtime == 0) )
     {
+#if D_INTERNAL_ARCHIVE_USE_CLOCK
+        time_t now = time(NULL);
+
+        if (now != (time_t)-1)
+        {
+            return (int64_t)now;
+        }
+#endif
         return (int64_t)D_ARCHIVE_EPOCH_DEFAULT;
     }
 

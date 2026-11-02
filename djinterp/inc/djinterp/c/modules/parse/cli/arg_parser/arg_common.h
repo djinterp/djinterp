@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -123,8 +123,10 @@ TABLE OF CONTENTS
 // Every fallible call returns an `int` holding one of the statuses below:
 // D_ARG_OK, a completed request that ends the program successfully (help,
 // version), or an error. The errors are CLI11's, one for one, and each maps
-// to CLI11's exit code; the last three have no CLI11 counterpart because
-// CLI11 throws std::bad_alloc or misbehaves where this API reports.
+// to CLI11's exit code; the last four have no CLI11 counterpart because
+// CLI11 throws std::bad_alloc or misbehaves where this API reports, or, for
+// D_ARG_ERROR_TOO_DEEP (response files nested past
+// D_CFG_ARG_PARSER_RESPONSE_DEPTH), has no response files at all.
 
 
 // 1.1    Status codes
@@ -162,7 +164,8 @@ enum dj_arg_status
     D_ARG_ERROR_OUT_OF_MEMORY          = 23,
     D_ARG_ERROR_BAD_ARGUMENT           = 24,
     D_ARG_ERROR_UNSUPPORTED            = 25,
-    D_ARG_STATUS_COUNT                 = 26
+    D_ARG_ERROR_TOO_DEEP               = 26,
+    D_ARG_STATUS_COUNT                 = 27
 };
 
 // 1.1.2
@@ -170,7 +173,7 @@ enum dj_arg_status
 //   enum: CLI11's ExitCodes, numerically identical, so a program ported from
 // CLI11 exits with the codes its scripts already test for. The completed
 // requests exit with D_ARG_EXIT_SUCCESS; D_ARG_RUNTIME_ERROR exits with the
-// code its callback chose; the three errors CLI11 lacks exit with
+// code its callback chose; the four errors CLI11 lacks exit with
 // D_ARG_EXIT_BASE_CLASS.
 enum dj_arg_exit_code
 {

@@ -1,18 +1,26 @@
 /*******************************************************************************
 * djinterp [config]                                           cfg_env_postgres.h
 *
-* Per-module configuration for env_postgresql.h. Owns all
+* Per-module configuration for env_postgres.h. Owns all
 * D_CFG_ENV_POSTGRESQL_* defaults plus D_CFG_ENV_PG_CUSTOM and the
 * pre-defined-detection auto-activation logic for it.
 *
-*   Optionally pulls in dconfig.h for user-level central overrides when
-* D_CFG_CUSTOM is defined.
+*   User overrides arrive through cfg_common.h. It never includes the
+* dconfig.h umbrella: reached from here, that re-entered env detection
+* before it had finished.
+*
+*   targets:  env/db/postgres/env_postgres.h
+*             -> D_CFG_ENV_USING_POSTGRESQL, D_CFG_ENV_POSTGRESQL_C_PATH,
+*                _CPP_PATH, D_CFG_ENV_PG_CUSTOM
+*             c/db/postgres/cfg_postgres_common.h
+*             -> D_CFG_ENV_USING_POSTGRESQL, D_CFG_ENV_POSTGRESQL_C_PATH
+*   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *
 *
 * path:      /inc/djinterp/config/env/db/postgres/cfg_env_postgres.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*

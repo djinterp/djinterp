@@ -7,13 +7,14 @@
 * version headers libetpan, GNU SASL and VMime publish (decision 105 of the
 * register, as decision 60 did for TLS).
 *   targets:  env/net/imap/env_imap.h -> D_CFG_ENV_IMAP_PROBE_VERSION
+*             env/net/env_imap.h, the older flat header -> the same
 *   requires: cfg_common.h (D_CFG_IS_BOOL)
 *
 *
 * path:      /inc/djinterp/config/env/net/imap/cfg_env_imap.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #ifndef DJINTERP_CONFIG_ENV_NET_IMAP_CFG_ENV_IMAP_H
 #define DJINTERP_CONFIG_ENV_NET_IMAP_CFG_ENV_IMAP_H 1

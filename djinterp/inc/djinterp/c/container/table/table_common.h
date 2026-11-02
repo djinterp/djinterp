@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/container/table/table_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.01
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_TABLE_TABLE_COMMON_H
@@ -41,7 +41,9 @@
 // std
 #include <stddef.h>
 // djinterp
-#include "../../djinterp.h"
+#include "../../djinterp.h"                                  // framework root
+#include "../../../config/c/container/table/cfg_table.h"  // D_CFG_TABLE_*,
+                                                          // D_INTERNAL_TABLE_EXTENT
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t,
                                                  // UINT32_MAX, UINT64_MAX
@@ -77,60 +79,11 @@
 
 D_EXTERN_C_BEGIN
 
-// D_CFG_TABLE_EXTENT_64
-//   brief: opt in to 64-bit stored extents. Off by default: 32-bit extents
-// give a 24-byte dj_table, a compact wire form, and a ceiling of 4294967295
-// rows and columns. It does not affect the width of any index parameter, which
-// is always size_t, so turning it on changes the representation and nothing
-// else. Inherits D_CFG_CONTAINER_ALL, then off, per the cascade container.h
-// states. THIS KNOB LIVES HERE, NOT IN config/. container.h records the
-// migration -- "config/container/container_config.h is gone; its knobs live
-// here, in the subframework's own common header" -- so a table knob belongs in
-// the table's
-// own common header on the same idiom, and an earlier note in this file
-// promising to move it to cfg_table.h had the direction backwards.
-#ifndef D_CFG_TABLE_EXTENT_64
-#   if defined(D_CFG_CONTAINER_ALL)
-#       define D_CFG_TABLE_EXTENT_64        D_CFG_CONTAINER_ALL
-#   else
-#       define D_CFG_TABLE_EXTENT_64        0
-#   endif
-#endif
-
-#if !D_CFG_IS_BOOL(D_CFG_TABLE_EXTENT_64)
-#   error "D_CFG_TABLE_EXTENT_64 must be 0 or 1"
-#endif
-
-// D_INTERNAL_TABLE_EXTENT
-//   macro: the resolved spelling of a STORED extent -- a row count, a column
-// count, or a cell size, as it sits in a struct and on the wire. A macro
-// rather than a typedef because C must not hide what a type is, and because
-// the choice must be visible to the preprocessor where the structs below are
-// declared.
-#ifndef D_INTERNAL_TABLE_EXTENT
-#   if D_CFG_IS_ON(D_CFG_TABLE_EXTENT_64)
-#       define D_INTERNAL_TABLE_EXTENT      uint64_t
-#       define D_INTERNAL_TABLE_EXTENT_MAX  UINT64_MAX
-#   else
-#       define D_INTERNAL_TABLE_EXTENT      uint32_t
-#       define D_INTERNAL_TABLE_EXTENT_MAX  UINT32_MAX
-#   endif
-#endif
-
-// D_CFG_TABLE_MAX_RANK
-//   brief: the greatest rank k this build carries. A domain, an index and a
-// region each hold their coordinates INLINE, so the cap is what lets them be
-// returned by value, compared by value, and serialized without an allocator --
-// goals 3, "no hidden allocation", applied to the index space itself. Four
-// covers the row-and-column table (k = 2) and the usual tensor shapes with
-// room to spare; raise it where a build needs more and pay the bytes.
-#ifndef D_CFG_TABLE_MAX_RANK
-#   define D_CFG_TABLE_MAX_RANK         4
-#endif
-
-#if (D_CFG_TABLE_MAX_RANK < 1)
-#   error "D_CFG_TABLE_MAX_RANK must be at least 1"
-#endif
+// The table knobs -- D_CFG_TABLE_EXTENT_64, D_CFG_TABLE_MAX_RANK,
+// D_CFG_TABLE_STDLIB_ALLOC -- and the stored-extent type they resolve to,
+// D_INTERNAL_TABLE_EXTENT, live in config/c/container/table/cfg_table.h,
+// included above: a module reads its configuration, it does not derive it
+// (the config README's localization rule, which container.h follows too).
 
 // D_TABLE_MAX_RANK
 //   constant: the resolved cap. A rank beyond it is refused with

@@ -15,7 +15,7 @@
 * before this one mapped them.
 *   Backends: BSD sockets and Winsock 2, chosen by env_tcp.h. Without one, or
 * with D_CFG_TCP 0, the functions compile to stubs that report
-* D_NET_ERROR_NETWORK_DOWN. The Winsock backend starts Winsock itself, once,
+* D_NET_ERROR_UNSUPPORTED. The Winsock backend starts Winsock itself, once,
 * on first use.
 *   C99 or later; declarations have C linkage. Link tcp.c and net.c.
 *
@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/c/modules/net/tcp/tcp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -217,8 +217,9 @@ void d_tcp_socket_no_sigpipe(
  * @return D_NET_OK; D_NET_ERROR_MESSAGE_TOO_LARGE when the name and its
  *         terminator do not fit, `_buffer` then holding an empty string;
  *         D_NET_ERROR_INVALID_ARGUMENT for a NULL `_buffer` or a zero
- *         `_capacity`; D_NET_ERROR_NETWORK_DOWN from the stubs, or when
- *         Winsock cannot start; otherwise the mapped native error.
+ *         `_capacity`; D_NET_ERROR_UNSUPPORTED from the stubs;
+ *         D_NET_ERROR_NETWORK_DOWN when Winsock cannot start; otherwise the
+ *         mapped native error.
  */
 enum dj_net_error d_tcp_host_name(
     char*  _buffer,
@@ -294,7 +295,7 @@ enum dj_net_error d_tcp_connect(
  *                          recorded with it.
  * @return D_NET_OK; D_NET_ERROR_INVALID_ARGUMENT for a NULL
  *         connection, an invalid socket, or an unknown protocol, the socket
- *         then being closed; D_NET_ERROR_NETWORK_DOWN from the stubs.
+ *         then being closed; D_NET_ERROR_UNSUPPORTED from the stubs.
  */
 enum dj_net_error d_tcp_connection_adopt(
     struct dj_tcp_connection* _connection,

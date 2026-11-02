@@ -15,7 +15,7 @@
 * path:      /src/djinterp/c/modules/parse/cli/arg_parser/arg_argv_source.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_argv.h"  // corresponding header
 // std
@@ -704,8 +704,8 @@ int d_arg_internal_response_read(
  * @param[in,out] _walk   the walk.
  * @param[in]     _word   the argument: `@` and the path.
  * @param[in]     _depth  how many files deep it was met.
- * @return D_ARG_OK; D_ARG_ERROR_FILE, recorded, for a file nested too deep; or
- *         another failure, recorded.
+ * @return D_ARG_OK; D_ARG_ERROR_TOO_DEEP, recorded, for a file nested too
+ *         deep; or another failure, recorded.
  *
  * An `\@file` within the nesting allowed: its file's words read and each
  * expanded one level deeper, in place; a file too deep a failure.
@@ -724,7 +724,7 @@ int d_arg_internal_response_file(
     {
         return d_arg_internal_fail(&parser->command,
                                    NULL,
-                                   D_ARG_ERROR_FILE,
+                                   D_ARG_ERROR_TOO_DEEP,
                                    "%s: response files nest more than %d "
                                    "deep",
                                    _word.data + 1,

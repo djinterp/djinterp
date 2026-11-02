@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/config/c/modules/net/curl/cfg_curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -38,7 +38,8 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../../../cfg_common.h"                // D_CFG_IS_BOOL, D_CFG_NORM
-#include "../../../../../env/net/curl/env_curl.h"  // D_ENV_CURL_AVAILABLE, version
+#include "../../../../../env/net/curl/env_curl.h"  // D_ENV_CURL_AVAILABLE,
+                                                   // version
 
 
 //==============================================================================

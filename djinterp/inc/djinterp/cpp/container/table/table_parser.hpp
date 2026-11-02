@@ -61,7 +61,7 @@
 * path:      /inc/djinterp/cpp/container/table/table_parser.hpp
 * link(s):   ch-parsing.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -93,7 +93,10 @@ VI.   round_trip                  (the prism laws, as checkable predicates)
 // 2's rule). The owner's ruling: compile at every level first; port down only
 // where something needs it.
 #include "../../../env/env.h"  // D_ENV_LANG_*
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#include "../../../config/cpp/container/table/cfg_table.h"  // D_INTERNAL_TABLE_PARSER
+// and empty, too, when D_CFG_TABLE_PARSER compiles this layer out
+#if ( (D_ENV_LANG_IS_CPP11_OR_HIGHER) &&                                     \
+      (D_INTERNAL_TABLE_PARSER) )
 
 // std
 #include <cstddef>
@@ -770,6 +773,6 @@ D_NODISCARD bool survives_round_trip(
 
 NS_END  // djinterp
 
-#endif  // floor, for now
+#endif  // floor, for now; D_CFG_TABLE_PARSER
 
 #endif  // DJINTERP_CONTAINER_TABLE_TABLE_PARSER_HPP

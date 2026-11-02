@@ -5,17 +5,24 @@
 * defaults and the pre-defined-detection auto-activation logic for
 * D_CFG_ENV_SQLITE_CUSTOM.
 *
-*   Optionally pulls in dconfig.h for user-level central overrides when
-* D_CFG_CUSTOM is defined.
+*   User overrides arrive through cfg_common.h. It never includes the
+* dconfig.h umbrella: reached from here, that re-entered env detection
+* before it had finished.
 *
 *   NOTE: SQLite has no official C++ header in the standard distribution,
 * so only C_PATH is provided.
+*
+*   targets:  env/db/sqlite/env_sqlite.h -> D_CFG_ENV_USING_SQLITE,
+*             D_CFG_ENV_SQLITE_C_PATH, D_CFG_ENV_SQLITE_CUSTOM
+*             c/db/sqlite/cfg_sqlite_common.h -> D_CFG_ENV_USING_SQLITE,
+*             D_CFG_ENV_SQLITE_C_PATH
+*   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *
 *
 * path:      /inc/djinterp/config/env/db/sqlite/cfg_env_sqlite.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*

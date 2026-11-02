@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/modules/net/tcp/tcp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 // enable POSIX.1-2008 (getaddrinfo, poll, inet_ntop, gethostname) under a
 // strict C compiler, and Windows Vista's API (WSAPoll, InitOnceExecuteOnce)
@@ -3018,7 +3018,7 @@ d_tcp_connect(
     d_tcp_connection_init(_connection);
 
     return ( (_connection) &&
-             (_endpoint) ) ? D_NET_ERROR_NETWORK_DOWN
+             (_endpoint) ) ? D_NET_ERROR_UNSUPPORTED
                            : D_NET_ERROR_INVALID_ARGUMENT;
 }
 
@@ -3038,7 +3038,7 @@ d_tcp_connection_adopt(
 
     return ( (_connection) &&
              (_socket != D_TCP_SOCKET_INVALID) )
-               ? D_NET_ERROR_NETWORK_DOWN
+               ? D_NET_ERROR_UNSUPPORTED
                : D_NET_ERROR_INVALID_ARGUMENT;
 }
 
@@ -3126,7 +3126,7 @@ d_tcp_listen(
     d_tcp_listener_init(_listener);
 
     return ( (_listener) &&
-             (_endpoint) ) ? D_NET_ERROR_NETWORK_DOWN
+             (_endpoint) ) ? D_NET_ERROR_UNSUPPORTED
                            : D_NET_ERROR_INVALID_ARGUMENT;
 }
 
@@ -3205,7 +3205,7 @@ d_tcp_host_name(
 
     _buffer[0] = '\0';
 
-    return D_NET_ERROR_NETWORK_DOWN;
+    return D_NET_ERROR_UNSUPPORTED;
 }
 
 /*

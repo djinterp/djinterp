@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -81,7 +81,8 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../../../cfg_common.h"  // D_CFG_NORM, D_CFG_IS_BOOL,
                                   // D_CFG_IS_INT_LITERAL
-#include "../../../../../../env/parse/cli/arg_parser/env_arg_parser.h"  // D_ENV_ARG_*
+// D_ENV_ARG_*
+#include "../../../../../../env/parse/cli/arg_parser/env_arg_parser.h"
 
 
 //==============================================================================
@@ -287,8 +288,9 @@ TABLE OF CONTENTS
 // 1.4.5
 // D_CFG_ARG_PARSER_RESPONSE_DEPTH
 //   knob: how deeply response files may name further response files before
-// the parser reports the nesting as an error, which is also what stops a file
-// that names itself. From 1 to 64; default 8.
+// the parser reports the nesting as D_ARG_ERROR_TOO_DEEP (D_ARG_ERROR_FILE
+// until 2026.10.31, which said a file could not be read), which is also what
+// stops a file that names itself. From 1 to 64; default 8.
 #ifndef D_CFG_ARG_PARSER_RESPONSE_DEPTH
     #define D_CFG_ARG_PARSER_RESPONSE_DEPTH        8
 #endif  // D_CFG_ARG_PARSER_RESPONSE_DEPTH

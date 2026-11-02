@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/cpp/modules/net/net_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -203,7 +203,8 @@ struct io_error
         too_many_open_files = D_NET_ERROR_TOO_MANY_OPEN_FILES,
         out_of_memory       = D_NET_ERROR_OUT_OF_MEMORY,
         unknown             = D_NET_ERROR_UNKNOWN,
-        protocol            = D_NET_ERROR_PROTOCOL
+        protocol            = D_NET_ERROR_PROTOCOL,
+        unsupported         = D_NET_ERROR_UNSUPPORTED
     };
 };
 

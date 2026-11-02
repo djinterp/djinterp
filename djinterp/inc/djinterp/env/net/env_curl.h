@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/env/net/env_curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -67,6 +67,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "./env_net.h"  // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
+#include "../../config/env/net/curl/cfg_env_curl.h"  // D_CFG_ENV_CURL_*
 
 
 //==============================================================================
@@ -114,12 +115,11 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 2.1.1
 // D_CFG_ENV_CURL_PROBE_VERSION
-//   config: set 0 before inclusion to suppress the automatic
-// <curl/curlver.h> include (e.g. to keep detection from touching any curl
-// header). Version macros then fall back to "unknown" unless pre-defined.
-#ifndef D_CFG_ENV_CURL_PROBE_VERSION
-    #define D_CFG_ENV_CURL_PROBE_VERSION 1
-#endif  // D_CFG_ENV_CURL_PROBE_VERSION
+//   config: set 0 before inclusion to suppress the automatic <curl/curlver.h>
+// include (e.g. to keep detection from touching any curl header). Version
+// macros then fall back to "unknown" unless pre-defined. Its default lives in
+// config/env/net/curl/cfg_env_curl.h, the one this header shares with
+// curl/env_curl.h.
 
 // 2.1.2
 // <curl/curlver.h>

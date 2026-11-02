@@ -17,7 +17,7 @@
 * path:      /src/djinterp/c/event/event_dispatcher_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/event/event_dispatcher_common.h"  // corresponding header
 // std
@@ -181,6 +181,7 @@ int d_event_queue_init_fixed(
          ( (!_slots) && (_capacity > 0u) )    ||
          ( (!_bytes) && (_bytes_size > 0u) ) )
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -205,6 +206,7 @@ int d_event_queue_init(
     // the queue is required
     if (!_queue)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -341,6 +343,7 @@ int d_event_queue_enqueue(
     if ( (!_queue) ||
          ( (_payload.size > 0u) && (!_payload.data) ) )
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -572,6 +575,7 @@ int d_event_dispatcher_init_fixed(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -616,6 +620,7 @@ int d_event_dispatcher_init_fixed(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -648,6 +653,7 @@ int d_event_dispatcher_init(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -716,6 +722,7 @@ int d_event_dispatcher_bind(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -734,6 +741,7 @@ int d_event_dispatcher_unbind(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -748,6 +756,7 @@ int d_event_dispatcher_enable(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -762,6 +771,7 @@ int d_event_dispatcher_disable(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -812,6 +822,7 @@ int d_event_dispatcher_queue(
     // the dispatcher is required
     if (!_dispatcher)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -885,6 +896,7 @@ int d_event_dispatcher_compile(
     if ( (!_dispatcher) ||
          (!_word_out) )
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -917,6 +929,7 @@ int d_event_dispatcher_merge(
             *_merged_out = 0u;
         }
 
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 

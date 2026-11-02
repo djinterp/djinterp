@@ -3,7 +3,7 @@
 *
 *   Tests for the throwing convenience API - compress<Codec> / decompress<Codec>
 * and the DCompressionError type (compress.hpp section, gated on
-* D_ENV_COMPRESSION_HAS_EXCEPTIONS).  When exceptions are disabled in the build
+* D_INTERNAL_COMPRESS_EXCEPTIONS).  When exceptions are disabled in the build
 * the throwing API is not compiled, so every test here degrades to a trivial
 * pass; the declarations remain so the runner links unchanged.
 *
@@ -19,7 +19,7 @@
 * path:      /tests/djinterp/cpp/util/compress/compress_tests_throwing.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 // std
@@ -34,7 +34,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
 
 namespace
 {
@@ -66,7 +66,7 @@ namespace
     }
 }  // namespace
 
-#endif  // D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#endif  // D_INTERNAL_COMPRESS_EXCEPTIONS
 
 
 /*
@@ -81,7 +81,7 @@ tests_compress_throwing_success_matches_try
 */
 bool tests_compress_throwing_success_matches_try()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     byte_blob in = test::make_text(400);
     byte_blob via_try;
     byte_blob dec_try;
@@ -120,7 +120,7 @@ tests_compress_throwing_roundtrip
 */
 bool tests_compress_throwing_roundtrip()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     byte_blob in = test::make_text(2000);
 
     D_CP_CHECK(throwing_roundtrip_if_available<codecs::store>(in));
@@ -150,7 +150,7 @@ tests_compress_throwing_throws_on_failure
 */
 bool tests_compress_throwing_throws_on_failure()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     byte_blob      in = test::make_text(200);
     compress_options opt;
     bool             threw = false;
@@ -186,7 +186,7 @@ tests_compress_throwing_what_message
 */
 bool tests_compress_throwing_what_message()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     byte_blob      in = test::make_text(200);
     compress_options opt;
     bool             checked = false;
@@ -228,7 +228,7 @@ tests_compress_throwing_error_type
 */
 bool tests_compress_throwing_error_type()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     byte_blob      in = test::make_text(50);
     compress_options opt;
     bool             as_runtime   = false;
@@ -285,7 +285,7 @@ tests_compress_throwing_decompress_throws
 */
 bool tests_compress_throwing_decompress_throws()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     byte_blob garbage(64u, static_cast<char>(0xFF));
     bool        threw = false;
 

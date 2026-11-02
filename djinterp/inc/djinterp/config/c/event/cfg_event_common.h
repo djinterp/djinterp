@@ -19,8 +19,8 @@
 * that lived in one face would be a parity hazard; config that lives here is
 * not.
 *
-*   targets:  core/event/event.h, event_common.h, event_common.hpp,
-*             event_c.h  ->  D_INTERNAL_EVENT_ITERATION_DMACRO,
+*   targets:  c/event/event.h, event_common.h; cpp/event/event_common.hpp
+*             ->  D_INTERNAL_EVENT_ITERATION_DMACRO,
 *             D_INTERNAL_EVENT_ARITY_MAX, D_INTERNAL_EVENT_ASSERT_LAYOUT,
 *             D_INTERNAL_EVENT_ASSERT_SIZES, D_INTERNAL_EVENT_USE_CONCEPTS,
 *             D_INTERNAL_EVENT_KEY_FROM_NAME, D_INTERNAL_EVENT_VALIDATE
@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/config/c/event/cfg_event_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_COMMON_H
@@ -45,7 +45,7 @@
 // concepts feature. Whoever includes this file must already have loaded
 // djinterp.h, dmacro.h, and (in C++) djinterp.hpp, or both detections report
 // "absent" and the build silently takes a fallback tier it did not need.
-// core/event/event.h and every core/event module header load them first; if
+// c/event/event.h and every c/event module header load them first; if
 // you include this config directly, do the same.
 
 
@@ -157,7 +157,8 @@
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_EVENT_KEY_POLICY)
-    #error "D_CFG_EVENT_KEY_POLICY must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_EVENT_KEY_POLICY must name one of its values; a misspelled " \
+           "name would read as 0"
 #endif
 
 
@@ -236,7 +237,8 @@
 //   brief: 0 (default) makes the core tolerate a null argument and report it
 // through the return value -- D_EVENT_ERR_NULL, or the empty dispatch result.
 // 1 makes it a hard assertion instead, for a build that would rather find the
-// caller than absorb the mistake.
+// caller than absorb the mistake. The core reads it through D_EVENT_STRICT_ARG
+// (event_common.h), in every branch that returns D_EVENT_ERR_NULL.
 #ifndef D_CFG_EVENT_STRICT_ARGS
 #   define D_CFG_EVENT_STRICT_ARGS 0
 #endif
@@ -247,6 +249,11 @@
 // an invariant the C++ face checks with static_assert -- goals section 2,
 // "same invariant, three enforcement tiers". Follows D_CFG_TESTING, so a test
 // build gets the check and a release build does not pay for it.
+//   NOTHING READS IT YET. A queue or a dispatch sees a key and a payload view,
+// not the declaration the view was made from, so the core has no declared
+// size and arity to check against until a key-to-declaration record exists.
+// The static tier (the view constructors D_EVENT_DECLARE generates) holds
+// meanwhile.
 #ifndef D_CFG_EVENT_VALIDATE_PAYLOAD
 #   if D_CFG_IS_ON(D_CFG_TESTING)
 #       define D_CFG_EVENT_VALIDATE_PAYLOAD 1
@@ -294,6 +301,11 @@
 //  7.  VALIDATION
 // ===========================================================================
 
+#ifdef D_CFG_EVENT_ALL
+#   if !D_CFG_IS_ON(D_CFG_EVENT_ALL) && !D_CFG_IS_OFF(D_CFG_EVENT_ALL)
+#       error "D_CFG_EVENT_ALL must be 0 or 1"
+#   endif
+#endif  // D_CFG_EVENT_ALL
 #if !D_CFG_IS_ON(D_CFG_EVENT_PRESET_MINIMAL) &&                               \
     !D_CFG_IS_OFF(D_CFG_EVENT_PRESET_MINIMAL)
 #   error "D_CFG_EVENT_PRESET_MINIMAL must be 0 or 1"

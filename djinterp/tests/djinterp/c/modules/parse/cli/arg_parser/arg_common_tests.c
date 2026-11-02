@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/c/modules/parse/cli/arg_parser/arg_common_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "./arg_common_tests.h"  // corresponding header
 // std
@@ -56,7 +56,7 @@ struct dj_tests_arg_common_status_row
 
 // STATUS_ROWS
 //   constant: every status, as CLI11 names it, ends a process with it and
-// describes it; the three CLI11 lacks exit with its BaseClass code, 127.
+// describes it; the four CLI11 lacks exit with its BaseClass code, 127.
 static const struct dj_tests_arg_common_status_row STATUS_ROWS[] =
 {
     { D_ARG_OK,                           "OK",
@@ -110,7 +110,9 @@ static const struct dj_tests_arg_common_status_row STATUS_ROWS[] =
     { D_ARG_ERROR_BAD_ARGUMENT,           "BadArgument",
       127,                                "Bad argument" },
     { D_ARG_ERROR_UNSUPPORTED,            "Unsupported",
-      127,                                "Unsupported" }
+      127,                                "Unsupported" },
+    { D_ARG_ERROR_TOO_DEEP,               "TooDeep",
+      127,                                "Too deep" }
 };
 
 // STATUS_ROW_COUNT

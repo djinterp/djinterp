@@ -51,7 +51,7 @@
 * path:      /inc/djinterp/cpp/event/event_handler.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_EVENT_EVENT_HANDLER_HPP
@@ -72,6 +72,7 @@
 #include "../djinterp.hpp"
 #include "../meta/type_utility.hpp"  // clean_t
 #include "./event_common.hpp"
+#include "../../config/c/event/cfg_event_handler.h"  // D_INTERNAL_EVENT_HANDLER_GUARD
 // re_std
 #include "../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint64_t
 
@@ -177,7 +178,22 @@ NS_INTERNAL
         index_sequence<I...>
     )
     {
+#if (D_INTERNAL_EVENT_HANDLER_GUARD == 1)
+        // D_CFG_EVENT_HANDLER_GUARD_EXCEPTIONS: an exception escaping the
+        // handler becomes the pinned verdict instead of unwinding through the
+        // C fold that called this closure
+        try
+        {
+            return invoke_normalized(_h, std::get<I>(_payload)...);
+        }
+        catch (...)
+        {
+            return (D_INTERNAL_EVENT_HANDLER_GUARD_CODE == 1) ? verdict::consume
+                                                              : verdict::pass;
+        }
+#else
         return invoke_normalized(_h, std::get<I>(_payload)...);
+#endif
     }
 
 NS_END  // internal

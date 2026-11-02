@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/env/net/env_tls.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -95,6 +95,7 @@ TABLE OF CONTENTS
 #include "../env.h"     // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS,
                         // D_ENV_IS_OS_FLAG_IN_BLOCK
 #include "./env_net.h"  // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
+#include "../../config/env/net/tls/cfg_env_tls.h"  // D_CFG_ENV_TLS_*
 
 
 //==============================================================================
@@ -308,10 +309,8 @@ TABLE OF CONTENTS
 // D_CFG_ENV_TLS_PROBE_VERSION
 //   config: set 0 before inclusion to suppress the automatic
 // <openssl/opensslv.h> include. Version macros then fall back to "unknown"
-// unless pre-defined.
-#ifndef D_CFG_ENV_TLS_PROBE_VERSION
-    #define D_CFG_ENV_TLS_PROBE_VERSION 1
-#endif  // D_CFG_ENV_TLS_PROBE_VERSION
+// unless pre-defined. Its default lives in config/env/net/tls/cfg_env_tls.h,
+// the one this header shares with tls/env_tls.h.
 
 // 2.1.2
 // <openssl/opensslv.h>

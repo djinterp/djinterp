@@ -10,7 +10,7 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/test/test_printer.h"
-#include "../../../../../inc/djinterp/config/core/test/cfg_test.h"
+#include "../../../../../inc/djinterp/config/c/modules/test/cfg_test_printer.h"
 #include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 
 

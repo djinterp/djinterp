@@ -10,7 +10,7 @@
 * path:      /src/djinterp/c/modules/net/starttls/starttls.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/starttls/starttls.h"  // corresponding header
 // std
@@ -176,6 +176,7 @@ d_starttls_internal_tls_error(
         case D_SSL_ERROR_MALFORMED:
         case D_SSL_ERROR_NOT_FOUND:
         case D_SSL_ERROR_UNSUPPORTED:
+        case D_SSL_ERROR_INSECURE:
         case D_SSL_ERROR_CONFIG:
             return D_STARTTLS_ERROR_CONFIG;
         case D_SSL_ERROR_BUFFER_TOO_SMALL:
@@ -1742,6 +1743,7 @@ d_starttls_error_from_net(
         case D_NET_ERROR_ADDRESS_INVALID:
         case D_NET_ERROR_HOST_UNREACHABLE:
         case D_NET_ERROR_NETWORK_DOWN:
+        case D_NET_ERROR_UNSUPPORTED:
         case D_NET_ERROR_ACCESS_DENIED:
         case D_NET_ERROR_MESSAGE_TOO_LARGE:
         case D_NET_ERROR_TOO_MANY_OPEN_FILES:

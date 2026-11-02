@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/config/c/modules/net/tcp/cfg_tcp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -51,8 +51,9 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_TCP
 //   knob: 1 builds the socket backend env_tcp.h selected; 0 builds stubs,
-// whose operations report D_NET_ERROR_NETWORK_DOWN. Defaults to 1 where a
-// backend with poll was found.
+// whose operations report D_NET_ERROR_UNSUPPORTED (until 2026.10.31,
+// D_NET_ERROR_NETWORK_DOWN, which invited a retry that could never succeed).
+// Defaults to 1 where a backend with poll was found.
 #ifndef D_CFG_TCP
     #if ( (D_ENV_TCP_AVAILABLE) &&                                             \
           (D_ENV_TCP_HAS_POLL) )

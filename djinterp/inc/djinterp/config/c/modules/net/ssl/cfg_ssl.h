@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/config/c/modules/net/ssl/cfg_ssl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -77,9 +77,9 @@ TABLE OF CONTENTS
 
 // 1.1.2
 // D_CFG_SSL_PINS_MAX
-//   brief: how many certificate fingerprints one configuration may pin.
-// Default 4: the current certificate, its successor, and spares. Each pin
-// costs 32 bytes in every dj_ssl_config and dj_ssl_context. Must lie in [1, 64].
+//   brief: how many certificate fingerprints one configuration may pin. Default
+// 4: the current certificate, its successor, and spares. Each pin costs 32
+// bytes in every dj_ssl_config and dj_ssl_context. Must lie in [1, 64].
 #ifndef D_CFG_SSL_PINS_MAX
 #   define D_CFG_SSL_PINS_MAX 4
 #endif  // D_CFG_SSL_PINS_MAX
@@ -89,10 +89,12 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_CFG_SSL_ALLOW_LEGACY
 //   brief: permit TLS 1.0 and 1.1 as a configuration's minimum version (1),
-// or refuse such configurations with D_SSL_ERROR_UNSUPPORTED (0, the
-// default). RFC 8996 deprecates both versions. A build that must reach old
-// servers opts in here, and even then each configuration must ask for them
-// explicitly. SSL 3.0 is refused regardless (RFC 7568).
+// or refuse such configurations with D_SSL_ERROR_INSECURE (0, the default).
+// RFC 8996 deprecates both versions. A build that must reach old servers opts
+// in here, and even then each configuration must ask for them explicitly.
+// SSL 3.0 is refused regardless (RFC 7568), with the same code. (Until
+// 2026.10.31 both refusals reported D_SSL_ERROR_UNSUPPORTED, which says the
+// build cannot, not that it will not.)
 #ifndef D_CFG_SSL_ALLOW_LEGACY
 #   define D_CFG_SSL_ALLOW_LEGACY 0
 #endif  // D_CFG_SSL_ALLOW_LEGACY

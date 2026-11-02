@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/modules/net/smtp/smtp_client.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/smtp/smtp_client.h"  // corresponding header
 // std
@@ -2392,6 +2392,7 @@ d_internal_smtp_connect_error(
         case D_NET_ERROR_CONNECTION_ABORTED:
         case D_NET_ERROR_ADDRESS_IN_USE:
         case D_NET_ERROR_NETWORK_DOWN:
+        case D_NET_ERROR_UNSUPPORTED:
         case D_NET_ERROR_ACCESS_DENIED:
         case D_NET_ERROR_MESSAGE_TOO_LARGE:
         case D_NET_ERROR_TOO_MANY_OPEN_FILES:

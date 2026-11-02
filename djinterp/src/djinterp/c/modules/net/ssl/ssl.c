@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/modules/net/ssl/ssl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/ssl/ssl.h"  // corresponding header
 // std
@@ -248,6 +248,7 @@ d_ssl_error_name(
         case D_SSL_ERROR_VERIFY:           return "VERIFY";
         case D_SSL_ERROR_PROTOCOL:         return "PROTOCOL";
         case D_SSL_ERROR_TRUNCATED:        return "TRUNCATED";
+        case D_SSL_ERROR_INSECURE:         return "INSECURE";
         case D_SSL_ERROR_BUFFER_TOO_SMALL: return "BUFFER_TOO_SMALL";
         case D_SSL_ERROR_WOULD_BLOCK:      return "WOULD_BLOCK";
         case D_SSL_ERROR_TRANSPORT:        return "TRANSPORT";
@@ -318,6 +319,7 @@ d_ssl_error_to_net(
         case D_SSL_ERROR_OUT_OF_MEMORY:
             return D_NET_ERROR_OUT_OF_MEMORY;
         case D_SSL_ERROR_VERIFY:
+        case D_SSL_ERROR_INSECURE:
             return D_NET_ERROR_ACCESS_DENIED;
         case D_SSL_ERROR_NOT_FOUND:
         case D_SSL_ERROR_UNSUPPORTED:
@@ -2460,10 +2462,11 @@ d_internal_ssl_versions_ok(
     int minimum = (int)_config->min_version;
     int maximum = (int)_config->max_version;
 
+    // SSL 3.0 is refused as insecure whatever the build says (RFC 7568)
     if ( (minimum == (int)D_SSL_VERSION_SSL3) ||
          (maximum == (int)D_SSL_VERSION_SSL3) )
     {
-        return D_SSL_ERROR_UNSUPPORTED;
+        return D_SSL_ERROR_INSECURE;
     }
 
     if ( (!d_ssl_version_is_known(_config->min_version)) ||
@@ -2478,7 +2481,7 @@ d_internal_ssl_versions_ok(
     if ( (!D_INTERNAL_SSL_ALLOW_LEGACY) &&
          (minimum < (int)D_SSL_VERSION_TLS1_2) )
     {
-        return D_SSL_ERROR_UNSUPPORTED;
+        return D_SSL_ERROR_INSECURE;
     }
 
     return D_SSL_OK;

@@ -13,13 +13,14 @@
 * either way, at every level.
 *
 *   targets:  c/db/db_face.hpp -> D_INTERNAL_DB_FACE_FORMAT_CHECK
-*   requires: nothing; the knob is read only by C++, from C++20
+*   requires: cfg_common.h (user overrides, which must be seen before the
+*             default); the knob is read only by C++, from C++20
 *
 *
 * path:      /inc/djinterp/config/cpp/db/cfg_db_face.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -36,6 +37,9 @@ TABLE OF CONTENTS
 
 #ifndef DJINTERP_CONFIG_CPP_DB_CFG_DB_FACE_H
 #define DJINTERP_CONFIG_CPP_DB_CFG_DB_FACE_H 1
+
+// djinterp
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 
 
 //==============================================================================

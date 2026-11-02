@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_tests_api.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 // djinterp
@@ -74,7 +74,7 @@ success path.
 */
 bool tests_throwing_roundtrip()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     using namespace ::djinterp::formats;
 
     bool       _ok = true;
@@ -117,7 +117,7 @@ message names the format and the underlying status.
 */
 bool tests_throwing_error_on_create()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     using namespace ::djinterp::formats;
 
     bool       _ok = true;
@@ -160,7 +160,7 @@ tests_throwing_error_on_extract
 */
 bool tests_throwing_error_on_extract()
 {
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     using namespace ::djinterp::formats;
 
     bool            _ok = true;

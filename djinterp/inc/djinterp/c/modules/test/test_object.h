@@ -79,7 +79,7 @@
 * path:      /inc/djinterp/c/modules/test/test_object.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_C_TEST_TEST_OBJECT_H
@@ -134,7 +134,7 @@ enum dj_test_object_result
     D_TEST_OBJECT_OK        = 0,
     D_TEST_OBJECT_FULL      = 1,    // no room in the caller's row array
     D_TEST_OBJECT_INVALID   = 2,    // null argument, or a null key
-    D_TEST_OBJECT_REPLACED  = 3     // set() overwrote an existing key
+    D_TEST_OBJECT_REPLACED  = 3     // set() found the key, and replaced it
 };
 
 // D_TEST_OBJECT_RESULT_COUNT
@@ -144,6 +144,12 @@ enum dj_test_object_result
 //   REPLACED is reported rather than folded into OK because a suite that
 // sets the same metadata key twice is usually a builder bug, and a caller
 // counting them needs the distinction.  It is not an error.
+//   IT IS A NOTED CONDITION, NOT A KIND OF UPDATE (decided 2026.10.31).  The
+// condition is that the key already exists (content.exists, on the key), and
+// D_CFG_TEST_METADATA_REPLACE grades it: at 1 the row is replaced and the
+// condition is noted, as REPLACED; at 0 a second row is appended and the
+// condition is absorbed, as OK.  Both values answer one condition, so a code
+// built under the message-code rules carries one identity for both.
 
 
 // =============================================================================

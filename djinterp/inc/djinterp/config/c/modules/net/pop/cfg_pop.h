@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/config/c/modules/net/pop/cfg_pop.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -52,7 +52,8 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../../../cfg_common.h"              // D_CFG_IS_BOOL, D_CFG_NORM
-#include "../../../../../env/net/pop/env_pop.h"  // D_ENV_POP_CAN_*, D_ENV_POP_HAS_SASL
+#include "../../../../../env/net/pop/env_pop.h"  // D_ENV_POP_CAN_*,
+                                                 // D_ENV_POP_HAS_SASL
 
 
 //==============================================================================

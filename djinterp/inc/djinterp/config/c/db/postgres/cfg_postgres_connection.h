@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/config/c/db/postgres/cfg_postgres_connection.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -56,6 +56,7 @@ TABLE OF CONTENTS
 #define DJINTERP_CONFIG_C_DB_POSTGRES_CFG_POSTGRES_CONNECTION_H 1
 
 // djinterp
+#include "../../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "./cfg_postgres_common.h"  // the layer's shared configuration
 
 

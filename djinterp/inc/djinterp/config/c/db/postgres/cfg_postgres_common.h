@@ -17,7 +17,7 @@
 * libpq but sets that knob to 0, or includes dconfig.h first, stops at the
 * layer's sources with an #error; it sets D_CFG_ENV_USING_POSTGRESQL=1
 * itself.
-*   Nothing else that includes the layer, core/db's pg_connection among it,
+*   Nothing else that includes the layer, cpp/db's pg_connection among it,
 * has libpq-fe.h in scope, unless the program asks for env's detection
 * itself. The public headers never include it: on Windows it spells `long
 * long`, which ISO C++98 refuses. They name libpq's connection by its struct

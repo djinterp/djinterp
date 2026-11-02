@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/config/c/db/mariadb/cfg_mariadb_connection.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -39,6 +39,7 @@ TABLE OF CONTENTS
 #define DJINTERP_CONFIG_C_DB_MARIADB_CFG_MARIADB_CONNECTION_H 1
 
 // djinterp
+#include "../../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "./cfg_mariadb_common.h"  // the layer's shared configuration
 
 

@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/net/sftp/sftp_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/net/sftp/sftp_common.h"  // corresponding header
 // std
@@ -218,6 +218,7 @@ d_sftp_error_from_net(
         case D_NET_ERROR_ADDRESS_INVALID:
         case D_NET_ERROR_HOST_UNREACHABLE:
         case D_NET_ERROR_NETWORK_DOWN:
+        case D_NET_ERROR_UNSUPPORTED:
         case D_NET_ERROR_ACCESS_DENIED:
         case D_NET_ERROR_MESSAGE_TOO_LARGE:
         case D_NET_ERROR_TOO_MANY_OPEN_FILES:

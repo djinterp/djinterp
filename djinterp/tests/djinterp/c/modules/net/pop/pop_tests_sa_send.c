@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/modules/net/pop/pop_tests_sa_send.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "./pop_tests_sa.h"  // the suite
 // std
@@ -52,7 +52,8 @@ static const struct dj_tests_pop_from_net_case FROM_NET[] =
     { D_NET_ERROR_TOO_MANY_OPEN_FILES, D_POP_ERROR_TRANSPORT        },
     { D_NET_ERROR_OUT_OF_MEMORY,       D_POP_ERROR_TRANSPORT        },
     { D_NET_ERROR_UNKNOWN,             D_POP_ERROR_TRANSPORT        },
-    { D_NET_ERROR_PROTOCOL,            D_POP_ERROR_TRANSPORT        }
+    { D_NET_ERROR_PROTOCOL,            D_POP_ERROR_TRANSPORT        },
+    { D_NET_ERROR_UNSUPPORTED,         D_POP_ERROR_TRANSPORT        }
 };
 
 /*
@@ -85,7 +86,7 @@ bool d_tests_sa_pop_from_net(
 )
 {
     const size_t count  = sizeof(FROM_NET) / sizeof(FROM_NET[0]);
-    bool         table  = (count == (size_t)D_NET_ERROR_PROTOCOL + 1u);
+    bool         table  = (count == (size_t)D_NET_ERROR_UNSUPPORTED + 1u);
     bool         result = true;
 
     // each row, in the enum's order

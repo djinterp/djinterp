@@ -37,7 +37,7 @@
 * path:      /inc/djinterp/c/modules/net/ssl/ssl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -300,6 +300,10 @@ D_EXTERN_C_BEGIN
 //     TRUNCATED          the transport ended before the TLS stream did: the
 //                        peer hung up mid-handshake, or data may be missing.
 //     CLOSED             the orderly end: the peer sent close_notify.
+//     INSECURE           the configuration asks for a protocol version this
+//                        build refuses as insecure: SSL 3.0 always (RFC 7568),
+//                        TLS 1.0 and 1.1 unless D_CFG_SSL_ALLOW_LEGACY
+//                        (RFC 8996). Added 2026.10.31; it was UNSUPPORTED.
 //     WANT_READ          an engine needs more ciphertext. It passes only from
 //                        an engine to the kernel; no session call returns it.
 enum dj_ssl_error
@@ -318,6 +322,7 @@ enum dj_ssl_error
     D_SSL_ERROR_VERIFY           = 0x009,
     D_SSL_ERROR_PROTOCOL         = 0x00A,
     D_SSL_ERROR_TRUNCATED        = 0x00B,
+    D_SSL_ERROR_INSECURE         = 0x00C,
 
     // mechanical: the machinery ran short
     D_SSL_ERROR_BUFFER_TOO_SMALL = 0x100,
@@ -1188,8 +1193,9 @@ enum dj_ssl_error d_ssl_config_add_pin(
  *       - paths are non-empty, and cipher strings are printable ASCII.
  *
  * @param[in] _config  the configuration.
- * @return D_SSL_OK if valid; D_SSL_ERROR_UNSUPPORTED for a request
- *         this build refuses; D_SSL_ERROR_CONFIG for an
+ * @return D_SSL_OK if valid; D_SSL_ERROR_INSECURE for a protocol
+ *         version this build refuses as insecure; D_SSL_ERROR_UNSUPPORTED
+ *         for another request it refuses; D_SSL_ERROR_CONFIG for an
  *         inconsistent one; or D_SSL_ERROR_INVALID_ARGUMENT for a NULL
  *         `_config`, or a span in it with a NULL pointer and a nonzero size.
  */

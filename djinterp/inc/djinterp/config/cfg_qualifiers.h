@@ -28,11 +28,20 @@
 * D_CFG_IS_BOOL, which rejects the spellings D_CFG_NORM would silently read as
 * 0 (`yes`, `ON`, `2`, ...).
 *
+*   targets:  c/djinterp.h     -> D_INTERNAL_CFG_STATIC, _INLINE,
+*                                 _CONSTEXPR, _EXTERN_C,
+*                                 D_INTERNAL_QUAL_EXTERN_C_LINKAGE,
+*                                 D_INTERNAL_QUAL_TESTING
+*             c/djinterp_cpp.h -> D_INTERNAL_CFG_CONSTEXPR, _INLINE,
+*                                 D_INTERNAL_QUAL_STRIP_CONSTEXPR,
+*                                 D_CFG_TESTING_STRIP_CONSTEXPR
+*   requires: cfg_common.h (D_CFG_IS_BOOL, user overrides, D_CFG_TESTING)
+*
 *
 * path:      /inc/djinterp/config/cfg_qualifiers.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CFG_QUALIFIERS_H
@@ -144,7 +153,8 @@ TABLE OF CONTENTS
 //
 //     build                    symbol the linker sees
 //     C source,   C compiler   d_file_open_stream
-//     C++ source, LINKAGE=1    d_file_open_stream        (links against the C archive)
+//     C++ source, LINKAGE=1    d_file_open_stream        (links to the C
+//                                                        archive)
 //     C++ source, LINKAGE=0    _Z7d_fopenPKcS0_
 #ifndef D_CFG_EXTERN_C_LINKAGE
     #define D_CFG_EXTERN_C_LINKAGE          1
@@ -242,14 +252,15 @@ TABLE OF CONTENTS
 //   brief: effective enable for D_STATIC, folding in the master switch and the
 // active (normal vs testing) gate.
 #if D_INTERNAL_QUAL_TESTING
-    #if ( (D_CFG_DEFINE_QUALIFIERS == 1) &&                                    \
-          (D_CFG_TESTING_DEFINE_STATIC == 1) )
+    #if ( D_CFG_IS_ON(D_CFG_DEFINE_QUALIFIERS) &&                              \
+          D_CFG_IS_ON(D_CFG_TESTING_DEFINE_STATIC) )
         #define D_INTERNAL_CFG_STATIC       1
     #else
         #define D_INTERNAL_CFG_STATIC       0
     #endif
 #else
-    #if ( (D_CFG_DEFINE_QUALIFIERS == 1) && (D_CFG_DEFINE_STATIC == 1) )
+    #if ( D_CFG_IS_ON(D_CFG_DEFINE_QUALIFIERS) &&                              \
+          D_CFG_IS_ON(D_CFG_DEFINE_STATIC) )
         #define D_INTERNAL_CFG_STATIC       1
     #else
         #define D_INTERNAL_CFG_STATIC       0
@@ -260,14 +271,15 @@ TABLE OF CONTENTS
 //   brief: effective enable for D_INLINE / D_STATIC_INLINE (master + active
 // gate).
 #if D_INTERNAL_QUAL_TESTING
-    #if ( (D_CFG_DEFINE_QUALIFIERS == 1) &&                                    \
-          (D_CFG_TESTING_DEFINE_INLINE == 1) )
+    #if ( D_CFG_IS_ON(D_CFG_DEFINE_QUALIFIERS) &&                              \
+          D_CFG_IS_ON(D_CFG_TESTING_DEFINE_INLINE) )
         #define D_INTERNAL_CFG_INLINE       1
     #else
         #define D_INTERNAL_CFG_INLINE       0
     #endif
 #else
-    #if ( (D_CFG_DEFINE_QUALIFIERS == 1) && (D_CFG_DEFINE_INLINE == 1) )
+    #if ( D_CFG_IS_ON(D_CFG_DEFINE_QUALIFIERS) &&                              \
+          D_CFG_IS_ON(D_CFG_DEFINE_INLINE) )
         #define D_INTERNAL_CFG_INLINE       1
     #else
         #define D_INTERNAL_CFG_INLINE       0
@@ -277,7 +289,8 @@ TABLE OF CONTENTS
 // D_INTERNAL_CFG_CONSTEXPR
 //   brief: effective enable for the constexpr family.  Enabling is
 // mode-independent (stripping, below, is the test-mode behavior).
-#if ( (D_CFG_DEFINE_QUALIFIERS == 1) && (D_CFG_DEFINE_CONSTEXPR == 1) )
+#if ( D_CFG_IS_ON(D_CFG_DEFINE_QUALIFIERS) &&                                  \
+      D_CFG_IS_ON(D_CFG_DEFINE_CONSTEXPR) )
     #define D_INTERNAL_CFG_CONSTEXPR        1
 #else
     #define D_INTERNAL_CFG_CONSTEXPR        0
@@ -288,7 +301,7 @@ TABLE OF CONTENTS
 // and only if the strip config or the legacy D_TESTING_CONSTEXPR alias asks
 // for it.
 #if ( D_INTERNAL_QUAL_TESTING &&                                              \
-      ( (D_CFG_TESTING_STRIP_CONSTEXPR == 1) ||                               \
+      ( D_CFG_IS_ON(D_CFG_TESTING_STRIP_CONSTEXPR) ||                         \
         ( defined(D_TESTING_CONSTEXPR) && ((D_TESTING_CONSTEXPR + 0) == 1) ) ) )
     #define D_INTERNAL_QUAL_STRIP_CONSTEXPR 1
 #else
@@ -298,7 +311,8 @@ TABLE OF CONTENTS
 // D_INTERNAL_CFG_EXTERN_C
 //   brief: effective enable for the D_EXTERN_C family (master + toggle).
 // Mode-independent: linkage is not a thing test builds should differ on.
-#if ( (D_CFG_DEFINE_QUALIFIERS == 1) && (D_CFG_DEFINE_EXTERN_C == 1) )
+#if ( D_CFG_IS_ON(D_CFG_DEFINE_QUALIFIERS) &&                                  \
+      D_CFG_IS_ON(D_CFG_DEFINE_EXTERN_C) )
     #define D_INTERNAL_CFG_EXTERN_C         1
 #else
     #define D_INTERNAL_CFG_EXTERN_C         0
@@ -308,7 +322,7 @@ TABLE OF CONTENTS
 //   brief: 1 when the family must actually emit `extern "C"`.  ALWAYS 0 under
 // a C compiler -- there is no such thing to emit -- which is the property that
 // lets a shared header write D_EXTERN_C_BEGIN unconditionally.
-#if ( defined(__cplusplus) && (D_CFG_EXTERN_C_LINKAGE == 1) )
+#if ( defined(__cplusplus) && D_CFG_IS_ON(D_CFG_EXTERN_C_LINKAGE) )
     #define D_INTERNAL_QUAL_EXTERN_C_LINKAGE 1
 #else
     #define D_INTERNAL_QUAL_EXTERN_C_LINKAGE 0

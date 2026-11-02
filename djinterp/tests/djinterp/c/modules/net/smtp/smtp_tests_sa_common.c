@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/modules/net/smtp/smtp_tests_sa_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "./smtp_tests_sa.h"
 // std
@@ -934,7 +934,8 @@ static const struct dj_tests_smtp_from_net FROM_NET[] =
     { D_NET_ERROR_TOO_MANY_OPEN_FILES, D_SMTP_ERROR_TRANSPORT        },
     { D_NET_ERROR_OUT_OF_MEMORY,       D_SMTP_ERROR_OUT_OF_MEMORY    },
     { D_NET_ERROR_UNKNOWN,             D_SMTP_ERROR_TRANSPORT        },
-    { D_NET_ERROR_PROTOCOL,            D_SMTP_ERROR_PROTOCOL         }
+    { D_NET_ERROR_PROTOCOL,            D_SMTP_ERROR_PROTOCOL         },
+    { D_NET_ERROR_UNSUPPORTED,         D_SMTP_ERROR_TRANSPORT        }
 };
 
 /*
@@ -957,7 +958,7 @@ bool d_tests_sa_smtp_errors_from_net(
         D_SMTP_ERROR_PROTOCOL
     };
     const size_t count  = sizeof(FROM_NET) / sizeof(FROM_NET[0]);
-    bool         table  = (count == (size_t)D_NET_ERROR_PROTOCOL + 1u);
+    bool         table  = (count == (size_t)D_NET_ERROR_UNSUPPORTED + 1u);
     bool         back   = true;
     bool         result = true;
 
@@ -1026,6 +1027,7 @@ static const struct dj_tests_smtp_from_ssl FROM_SSL[] =
     { D_SSL_ERROR_VERIFY,           D_NET_OK, D_SMTP_ERROR_TLS           },
     { D_SSL_ERROR_PROTOCOL,         D_NET_OK, D_SMTP_ERROR_TLS           },
     { D_SSL_ERROR_TRUNCATED,        D_NET_OK, D_SMTP_ERROR_CLOSED        },
+    { D_SSL_ERROR_INSECURE,         D_NET_OK, D_SMTP_ERROR_TLS           },
     { D_SSL_ERROR_BUFFER_TOO_SMALL, D_NET_OK, D_SMTP_ERROR_TLS           },
     { D_SSL_ERROR_WOULD_BLOCK,      D_NET_OK, D_SMTP_ERROR_TRANSPORT     },
     { D_SSL_ERROR_TRANSPORT,        D_NET_OK, D_SMTP_ERROR_TRANSPORT     },

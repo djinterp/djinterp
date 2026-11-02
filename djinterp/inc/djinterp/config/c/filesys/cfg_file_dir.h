@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_dir.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.19
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -54,6 +54,7 @@ TABLE OF CONTENTS
 #define DJINTERP_CONFIG_C_FILESYS_CFG_FILE_DIR_H 1
 
 // djinterp
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "cfg_file_common.h"  // shared filesys knobs, D_CFG_IS_BOOL
 
 

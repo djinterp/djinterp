@@ -9,7 +9,7 @@
 * path:      /src/djinterp/c/modules/parse/cli/arg_parser/arg_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h"  // corresponding header
 // std
@@ -62,7 +62,8 @@ static const char* const STATUS_NAMES[] =
     "ParseError",             // D_ARG_ERROR_PARSE
     "OutOfMemory",            // D_ARG_ERROR_OUT_OF_MEMORY
     "BadArgument",            // D_ARG_ERROR_BAD_ARGUMENT
-    "Unsupported"             // D_ARG_ERROR_UNSUPPORTED
+    "Unsupported",            // D_ARG_ERROR_UNSUPPORTED
+    "TooDeep"                 // D_ARG_ERROR_TOO_DEEP
 };
 
 D_STATIC_ASSERT( (sizeof(STATUS_NAMES) / sizeof(STATUS_NAMES[0])) ==
@@ -100,7 +101,8 @@ static const int STATUS_EXIT_CODES[] =
     D_ARG_EXIT_INVALID_ERROR,           // D_ARG_ERROR_PARSE
     D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_OUT_OF_MEMORY
     D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_BAD_ARGUMENT
-    D_ARG_EXIT_BASE_CLASS               // D_ARG_ERROR_UNSUPPORTED
+    D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_UNSUPPORTED
+    D_ARG_EXIT_BASE_CLASS               // D_ARG_ERROR_TOO_DEEP
 };
 
 D_STATIC_ASSERT( (sizeof(STATUS_EXIT_CODES) /
@@ -145,7 +147,8 @@ static const char* const STATUS_MESSAGES[] =
     "Parse error",              // D_ARG_ERROR_PARSE
     "Out of memory",            // D_ARG_ERROR_OUT_OF_MEMORY
     "Bad argument",             // D_ARG_ERROR_BAD_ARGUMENT
-    "Unsupported"               // D_ARG_ERROR_UNSUPPORTED
+    "Unsupported",              // D_ARG_ERROR_UNSUPPORTED
+    "Too deep"                  // D_ARG_ERROR_TOO_DEEP
 };
 
 D_STATIC_ASSERT( (sizeof(STATUS_MESSAGES) /

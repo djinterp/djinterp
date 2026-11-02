@@ -42,7 +42,7 @@
 * path:      /src/djinterp/c/util/compress/compress_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -1021,6 +1021,22 @@ d_compress_options_resolve(
             continue;
         }
 
+        // a worker count is pinned under D_CFG_COMPRESS_PIN_THREADS, every
+        // other knob under D_CFG_COMPRESS_PIN_DEFAULTS; one left UNSET is the
+        // backend's to choose
+        if ( (k == D_COMPRESS_KNOB_LZMA_THREADS) ||
+             (k == D_COMPRESS_KNOB_ZSTD_WORKERS) )
+        {
+            if (!D_INTERNAL_COMPRESS_PIN_THREADS)
+            {
+                continue;
+            }
+        }
+        else if (!D_INTERNAL_COMPRESS_PIN_DEFAULTS)
+        {
+            continue;
+        }
+
         (void)d_compress_options_knob_set(&work, k,
                                           d_internal_knob_defaults[i]);
     }
@@ -1230,38 +1246,38 @@ d_codec_can_compress(
         }
         case D_CODEC_ID_DEFLATE:
         {
-            return D_ENV_COMPRESSION_HAVE_DEFLATE ? 1 : 0;
+            return D_INTERNAL_COMPRESS_DEFLATE ? 1 : 0;
         }
         case D_CODEC_ID_ZLIB:
         {
             // the zlib WRAPPER, not the raw stream: a provider can supply raw
             // DEFLATE without the RFC 1950 framing, so the two are separate
             // capability flags and compress.hpp already distinguishes them.
-            return D_ENV_COMPRESSION_HAVE_ZLIB_WRAP ? 1 : 0;
+            return D_INTERNAL_COMPRESS_ZLIB_WRAP ? 1 : 0;
         }
         case D_CODEC_ID_GZIP:
         {
-            return D_ENV_COMPRESSION_HAVE_GZIP_WRAP ? 1 : 0;
+            return D_INTERNAL_COMPRESS_GZIP_WRAP ? 1 : 0;
         }
         case D_CODEC_ID_BZIP2:
         {
-            return D_ENV_COMPRESSION_HAVE_BZIP2 ? 1 : 0;
+            return D_INTERNAL_COMPRESS_BZIP2 ? 1 : 0;
         }
         case D_CODEC_ID_XZ:
         {
-            return D_ENV_COMPRESSION_HAVE_LZMA ? 1 : 0;
+            return D_INTERNAL_COMPRESS_LZMA ? 1 : 0;
         }
         case D_CODEC_ID_ZSTD:
         {
-            return D_ENV_COMPRESSION_HAVE_ZSTD ? 1 : 0;
+            return D_INTERNAL_COMPRESS_ZSTD ? 1 : 0;
         }
         case D_CODEC_ID_LZ4:
         {
-            return D_ENV_COMPRESSION_HAVE_LZ4 ? 1 : 0;
+            return D_INTERNAL_COMPRESS_LZ4 ? 1 : 0;
         }
         case D_CODEC_ID_BROTLI:
         {
-            return D_ENV_COMPRESSION_HAVE_BROTLI_ENCODE ? 1 : 0;
+            return D_INTERNAL_COMPRESS_BROTLI_ENCODE ? 1 : 0;
         }
     }
 
@@ -1284,7 +1300,7 @@ d_codec_can_decompress(
 {
     if (_codec == D_CODEC_ID_BROTLI)
     {
-        return D_ENV_COMPRESSION_HAVE_BROTLI_DECODE ? 1 : 0;
+        return D_INTERNAL_COMPRESS_BROTLI_DECODE ? 1 : 0;
     }
 
     return d_codec_can_compress(_codec);
@@ -1313,39 +1329,43 @@ d_codec_backend_id(
         case D_CODEC_ID_DEFLATE:
         case D_CODEC_ID_ZLIB:
         {
-            return D_ENV_COMPRESSION_PREFERRED_DEFLATE;
+            return D_INTERNAL_COMPRESS_DEFLATE
+                 ? D_ENV_COMPRESSION_PREFERRED_DEFLATE
+                 : D_ENV_COMPRESSION_CODEC_NONE;
         }
         case D_CODEC_ID_GZIP:
         {
-            return D_ENV_COMPRESSION_PREFERRED_GZIP;
+            return D_INTERNAL_COMPRESS_GZIP_WRAP
+                 ? D_ENV_COMPRESSION_PREFERRED_GZIP
+                 : D_ENV_COMPRESSION_CODEC_NONE;
         }
         case D_CODEC_ID_BZIP2:
         {
-            return D_ENV_COMPRESSION_HAVE_BZIP2
+            return D_INTERNAL_COMPRESS_BZIP2
                  ? D_ENV_COMPRESSION_CODEC_BZIP2
                  : D_ENV_COMPRESSION_CODEC_NONE;
         }
         case D_CODEC_ID_XZ:
         {
-            return D_ENV_COMPRESSION_HAVE_LZMA
+            return D_INTERNAL_COMPRESS_LZMA
                  ? D_ENV_COMPRESSION_CODEC_LZMA
                  : D_ENV_COMPRESSION_CODEC_NONE;
         }
         case D_CODEC_ID_ZSTD:
         {
-            return D_ENV_COMPRESSION_HAVE_ZSTD
+            return D_INTERNAL_COMPRESS_ZSTD
                  ? D_ENV_COMPRESSION_CODEC_ZSTD
                  : D_ENV_COMPRESSION_CODEC_NONE;
         }
         case D_CODEC_ID_LZ4:
         {
-            return D_ENV_COMPRESSION_HAVE_LZ4
+            return D_INTERNAL_COMPRESS_LZ4
                  ? D_ENV_COMPRESSION_CODEC_LZ4
                  : D_ENV_COMPRESSION_CODEC_NONE;
         }
         case D_CODEC_ID_BROTLI:
         {
-            return D_ENV_COMPRESSION_HAVE_BROTLI
+            return D_INTERNAL_COMPRESS_BROTLI
                  ? D_ENV_COMPRESSION_CODEC_BROTLI
                  : D_ENV_COMPRESSION_CODEC_NONE;
         }
@@ -1926,7 +1946,8 @@ d_internal_emit(
 // IX.  BACKEND LEAVES
 // =============================================================================
 //   The only environment-dependent section.  Each codec is one compress leaf
-// and one decompress leaf, guarded by its env_compress.h flag; an absent codec
+// and one decompress leaf, guarded by its cfg_compress.h value -- detected AND
+// wanted -- so a codec the build excluded is not compiled; an absent codec
 // gets a stub returning D_PACK_STATUS_UNAVAILABLE.
 //
 //   Every leaf has the same signature and the same contract: consume the whole
@@ -1936,11 +1957,11 @@ d_internal_emit(
 //   STORE IS UNCONDITIONAL and comes first, because it is the codec that makes
 // a dependency-free build a working build rather than a broken one.
 
-// D_INTERNAL_CHUNK
-//   constant: the staging-buffer size a streaming leaf reads and writes in.
-// 64 KiB matches the chunk test_compress.hpp's large payloads are chosen to
-// exceed, so the multi-chunk path is exercised by the standard corpus.
-#define D_INTERNAL_CHUNK    (64u * 1024u)
+//   The staging-buffer size a streaming leaf reads and writes in is
+// D_INTERNAL_COMPRESS_CHUNK, D_CFG_COMPRESS_CHUNK resolved in cfg_compress.h.
+// Its default, 64 KiB, matches the chunk test_compress.hpp's large payloads
+// are chosen to exceed, so the multi-chunk path is exercised by the standard
+// corpus.
 
 /*
 d_internal_store_compress
@@ -1963,7 +1984,7 @@ d_internal_store_compress(
     return d_internal_emit(_sink, _in, _in_size);
 }
 
-#if D_ENV_COMPRESSION_HAVE_ZLIB || D_ENV_COMPRESSION_HAVE_ZLIBNG
+#if D_INTERNAL_COMPRESS_ZLIB_LEAF
 
 // zlib
 #include <zlib.h>
@@ -2064,7 +2085,7 @@ d_internal_zlib_compress(
     struct dj_pack_sink               _sink
 )
 {
-    unsigned char      stage[D_INTERNAL_CHUNK];
+    unsigned char      stage[D_INTERNAL_COMPRESS_CHUNK];
     z_stream           zs;
     enum dj_pack_status status = D_PACK_STATUS_OK;
     int                rc;
@@ -2144,7 +2165,7 @@ d_internal_zlib_decompress(
     struct dj_pack_sink _sink
 )
 {
-    unsigned char      stage[D_INTERNAL_CHUNK];
+    unsigned char      stage[D_INTERNAL_COMPRESS_CHUNK];
     z_stream           zs;
     enum dj_pack_status status = D_PACK_STATUS_OK;
     int                rc;
@@ -2268,12 +2289,16 @@ d_compress_to_sink(
         return status;
     }
 
+#if D_INTERNAL_COMPRESS_VALIDATE
+    // D_CFG_COMPRESS_VALIDATE: name an out-of-range knob here rather than let
+    // the backend fail on it
     status = d_compress_options_validate(_codec, &resolved, NULL);
 
     if (status != D_PACK_STATUS_OK)
     {
         return status;
     }
+#endif
 
     // interpose a tee so the produced size is always known, whatever the
     // caller's sink does with the bytes.
@@ -2286,7 +2311,7 @@ d_compress_to_sink(
             status = d_internal_store_compress(_in, _in_size, counted);
             break;
         }
-#if D_ENV_COMPRESSION_HAVE_ZLIB || D_ENV_COMPRESSION_HAVE_ZLIBNG
+#if D_INTERNAL_COMPRESS_ZLIB_LEAF
         case D_CODEC_ID_DEFLATE:
         case D_CODEC_ID_ZLIB:
         case D_CODEC_ID_GZIP:
@@ -2364,7 +2389,7 @@ d_decompress_to_sink(
 
             return status;
         }
-#if D_ENV_COMPRESSION_HAVE_ZLIB || D_ENV_COMPRESSION_HAVE_ZLIBNG
+#if D_INTERNAL_COMPRESS_ZLIB_LEAF
         case D_CODEC_ID_DEFLATE:
         case D_CODEC_ID_ZLIB:
         case D_CODEC_ID_GZIP:

@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_metadata.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.11
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_TEST_CFG_TEST_METADATA_H
@@ -70,6 +70,10 @@
 // default.  Off appends, which makes lookup depend on scan direction -- so
 // off is a compatibility escape hatch and not a supported configuration for a
 // build the oracle runs against.
+//   It grades one condition, the key already existing (content.exists): on,
+// set() notes it and returns D_TEST_OBJECT_REPLACED; off, set() absorbs it and
+// returns D_TEST_OBJECT_OK.  REPLACED is that noted outcome, not a plain kind
+// of success (decided 2026.10.31).
 //   UNCOVERED. The differential harness runs with this ON only; whether the off
 // path is supported or vestigial is still unrecorded.
 #ifndef D_CFG_TEST_METADATA_REPLACE
@@ -105,8 +109,14 @@
 // user knob, for the same reason cfg_test_counter.h forces its bounds check:
 // the oracle's whole job is to catch the case the knob would hide.
 
+// D_INTERNAL_TEST_METADATA_MAX
+//   internal: D_CFG_TEST_METADATA_MAX, passed through after validation.
 #define D_INTERNAL_TEST_METADATA_MAX    D_CFG_TEST_METADATA_MAX
 
+// D_INTERNAL_TEST_METADATA / _REPLACE
+//   internal: strict 0/1 gates: whether the metadata module is compiled, and
+// whether set() replaces an existing key's row.  Each is on in a test build
+// whatever its knob says.
 #if ( D_CFG_IS_ON(D_CFG_TESTING) || D_CFG_IS_ON(D_CFG_TEST_METADATA) )
 #   define D_INTERNAL_TEST_METADATA 1
 #else

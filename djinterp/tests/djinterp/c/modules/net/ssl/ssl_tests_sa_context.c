@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/modules/net/ssl/ssl_tests_sa_context.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "./ssl_tests_sa.h"  // corresponding header
 // std
@@ -181,7 +181,7 @@ bool d_tests_ssl_context_kernel(
                                   0)) &&
           (d_tests_ssl_refused_as(_counting,
                                   &ssl3,
-                                  D_SSL_ERROR_UNSUPPORTED,
+                                  D_SSL_ERROR_INSECURE,
                                   0)) );
 
     return d_tests_net_assert(refused,
@@ -259,7 +259,7 @@ d_tests_sa_ssl_contexts
     INVALID_ARGUMENT, and leave the context empty
   - a server without a certificate, half a certificate-and-key pair, an
     unknown role, and an unknown version floor are CONFIG, and SSL 3.0 is
-    UNSUPPORTED, each before the engine is asked
+    INSECURE (UNSUPPORTED until 2026.10.31), each before the engine is asked
   - an unreadable trust store, and a certificate with another's key, are
     the engine's CONFIG
   - a sound configuration is made with one call to the engine, and a

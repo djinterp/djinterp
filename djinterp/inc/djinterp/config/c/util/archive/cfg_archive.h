@@ -6,9 +6,9 @@
 * library, and how much of a container's content is allowed to come from the
 * machine it was built on.
 *
-*   targets:  core/util/archive_common.h -> D_INTERNAL_ARCHIVE_*
-*             core/util/archive.h        -> D_INTERNAL_ARCHIVE_*
-*             core/util/archive/archive.hpp      -> D_INTERNAL_ARCHIVE_TAR_GZ_STAGING
+*   targets:  c/util/archive/archive_common.h -> D_INTERNAL_ARCHIVE_*
+*                 (archive_common.c reads them through it)
+*             cpp/util/archive/archive.hpp    -> D_INTERNAL_ARCHIVE_CAN_*
 *   requires: cfg_common.h; cfg_compress.h (a container embeds a codec, so the
 *             codec cascade must resolve first); env/archive/env_archive.h
 *
@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/config/c/util/archive/cfg_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_UTIL_ARCHIVE_CFG_ARCHIVE_H
@@ -289,10 +289,11 @@ TABLE OF CONTENTS
 #   define D_INTERNAL_ARCHIVE_CHECK_ENTRY_NAMES 0
 #endif
 
-// D_INTERNAL_ARCHIVE_EPOCH
-//   brief: the timestamp an entry with no mtime records. Resolves to the pinned
-// epoch under D_CFG_ARCHIVE_REPRODUCIBLE and to 0 otherwise, where 0 is the
-// module's signal to read the clock.
+// D_INTERNAL_ARCHIVE_EPOCH / _USE_CLOCK
+//   brief: what an entry with no mtime records. Under
+// D_CFG_ARCHIVE_REPRODUCIBLE it is the pinned epoch, D_CFG_ARCHIVE_EPOCH, and
+// _USE_CLOCK is 0; otherwise _USE_CLOCK is 1 and the module reads the clock,
+// falling back to the epoch only if the clock fails.
 #if D_CFG_IS_ON(D_CFG_ARCHIVE_REPRODUCIBLE)
 #   define D_INTERNAL_ARCHIVE_EPOCH     D_CFG_ARCHIVE_EPOCH
 #   define D_INTERNAL_ARCHIVE_USE_CLOCK 0

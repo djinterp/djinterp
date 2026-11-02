@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/dmacro_tests_sa_config.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 // djinterp
 #include "./dmacro_tests_sa.h"
@@ -26,9 +26,9 @@
 d_tests_sa_dmacro_cfg_constants
   Tests the configuration constant definitions.
   Tests the following:
-  - D_CFG_DMACRO_VARG_DEFAULT is defined and equals 256
-  - D_CFG_DMACRO_VARG_MIN is defined and equals 64
-  - D_CFG_DMACRO_VARG_LIMIT is defined and equals 1024
+  - D_INTERNAL_DMACRO_VARG_DEFAULT is defined and equals 128
+  - D_INTERNAL_DMACRO_VARG_MIN is defined and equals 64
+  - D_INTERNAL_DMACRO_VARG_LIMIT is defined and equals 1024
   - variant constants are defined with correct values
   - constants are in ascending order
 */
@@ -49,27 +49,27 @@ bool d_tests_sa_dmacro_cfg_constants(
 
     printf("%s--- Testing Configuration Constants ---\n", D_INDENT);
 
-    // verify D_CFG_DMACRO_VARG_DEFAULT
-    if (!d_assert_standalone(D_CFG_DMACRO_VARG_DEFAULT == 128,
-                             "D_CFG_DMACRO_VARG_DEFAULT == 128",
+    // verify D_INTERNAL_DMACRO_VARG_DEFAULT
+    if (!d_assert_standalone(D_INTERNAL_DMACRO_VARG_DEFAULT == 128,
+                             "D_INTERNAL_DMACRO_VARG_DEFAULT == 128",
                              "default should be 128",
                              _test_info))
     {
         all_assertions_passed = false;
     }
 
-    // verify D_CFG_DMACRO_VARG_MIN
-    if (!d_assert_standalone(D_CFG_DMACRO_VARG_MIN == 64,
-                             "D_CFG_DMACRO_VARG_MIN == 64",
+    // verify D_INTERNAL_DMACRO_VARG_MIN
+    if (!d_assert_standalone(D_INTERNAL_DMACRO_VARG_MIN == 64,
+                             "D_INTERNAL_DMACRO_VARG_MIN == 64",
                              "minimum should be 64",
                              _test_info))
     {
         all_assertions_passed = false;
     }
 
-    // verify D_CFG_DMACRO_VARG_LIMIT
-    if (!d_assert_standalone(D_CFG_DMACRO_VARG_LIMIT == 1024,
-                             "D_CFG_DMACRO_VARG_LIMIT == 1024",
+    // verify D_INTERNAL_DMACRO_VARG_LIMIT
+    if (!d_assert_standalone(D_INTERNAL_DMACRO_VARG_LIMIT == 1024,
+                             "D_INTERNAL_DMACRO_VARG_LIMIT == 1024",
                              "limit should be 1024",
                              _test_info))
     {
@@ -118,7 +118,8 @@ bool d_tests_sa_dmacro_cfg_constants(
     }
 
     // verify constants are in ascending order
-    if (!d_assert_standalone(D_CFG_DMACRO_VARG_MIN < D_CFG_DMACRO_VARG_DEFAULT,
+    if (!d_assert_standalone(D_INTERNAL_DMACRO_VARG_MIN <
+                                 D_INTERNAL_DMACRO_VARG_DEFAULT,
                              "VARG_MIN < VARG_DEFAULT",
                              "min should be less than default",
                              _test_info))
@@ -126,7 +127,8 @@ bool d_tests_sa_dmacro_cfg_constants(
         all_assertions_passed = false;
     }
 
-    if (!d_assert_standalone(D_CFG_DMACRO_VARG_DEFAULT < D_CFG_DMACRO_VARG_LIMIT,
+    if (!d_assert_standalone(D_INTERNAL_DMACRO_VARG_DEFAULT <
+                                 D_INTERNAL_DMACRO_VARG_LIMIT,
                              "VARG_DEFAULT < VARG_LIMIT",
                              "default should be less than limit",
                              _test_info))
@@ -161,9 +163,9 @@ bool d_tests_sa_dmacro_cfg_constants(
 
     printf("%s    Constants: MIN=%d, DEFAULT=%d, LIMIT=%d\n",
            D_INDENT,
-           D_CFG_DMACRO_VARG_MIN,
-           D_CFG_DMACRO_VARG_DEFAULT,
-           D_CFG_DMACRO_VARG_LIMIT);
+           D_INTERNAL_DMACRO_VARG_MIN,
+           D_INTERNAL_DMACRO_VARG_DEFAULT,
+           D_INTERNAL_DMACRO_VARG_LIMIT);
 
     // update test counter
     if (all_assertions_passed)
@@ -238,22 +240,24 @@ bool d_tests_sa_dmacro_cfg_user_options(
     }
 
     // verify D_CFG_DMACRO_VARG_MAX is within valid range
-    if (!d_assert_standalone(varg_max_val >= D_CFG_DMACRO_VARG_MIN,
+    if (!d_assert_standalone(varg_max_val >= D_INTERNAL_DMACRO_VARG_MIN,
                              "D_CFG_DMACRO_VARG_MAX >= VARG_MIN",
                              "VARG_MAX should be at least minimum",
                              _test_info))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, Min: %d\n", D_INDENT, varg_max_val, D_CFG_DMACRO_VARG_MIN);
+        printf("%s    Got: %d, Min: %d\n", D_INDENT, varg_max_val,
+               D_INTERNAL_DMACRO_VARG_MIN);
     }
 
-    if (!d_assert_standalone(varg_max_val <= D_CFG_DMACRO_VARG_LIMIT,
+    if (!d_assert_standalone(varg_max_val <= D_INTERNAL_DMACRO_VARG_LIMIT,
                              "D_CFG_DMACRO_VARG_MAX <= VARG_LIMIT",
                              "VARG_MAX should not exceed limit",
                              _test_info))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, Limit: %d\n", D_INDENT, varg_max_val, D_CFG_DMACRO_VARG_LIMIT);
+        printf("%s    Got: %d, Limit: %d\n", D_INDENT, varg_max_val,
+               D_INTERNAL_DMACRO_VARG_LIMIT);
     }
 
     printf("%s    Options: OVERRIDE=%d, MSVC_COMPAT=%d, VARG_MAX=%d\n",
@@ -345,8 +349,8 @@ bool d_tests_sa_dmacro_cfg_effective_values(
     }
 
     // verify D_DMACRO_VARG_MAX is within limits
-    if (!d_assert_standalone(varg_max >= D_CFG_DMACRO_VARG_MIN &&
-                             varg_max <= D_CFG_DMACRO_VARG_LIMIT,
+    if (!d_assert_standalone(varg_max >= D_INTERNAL_DMACRO_VARG_MIN &&
+                             varg_max <= D_INTERNAL_DMACRO_VARG_LIMIT,
                              "D_DMACRO_VARG_MAX within [MIN, LIMIT]",
                              "effective VARG_MAX should be in valid range",
                              _test_info))
@@ -693,7 +697,8 @@ bool d_tests_sa_dmacro_cfg_env_integration(
     printf("%s    D_ENV_PP_MAX_MACRO_ARGS is NOT defined\n", D_INDENT);
 
     // without env detection, should use default or user-specified value
-    if (!d_assert_standalone(D_DMACRO_VARG_MAX == D_CFG_DMACRO_VARG_DEFAULT ||
+    if (!d_assert_standalone(D_DMACRO_VARG_MAX ==
+                                 D_INTERNAL_DMACRO_VARG_DEFAULT ||
                              D_DMACRO_VARG_MAX == D_CFG_DMACRO_VARG_MAX,
                              "VARG_MAX uses default/user value without env",
                              "should use configured value",

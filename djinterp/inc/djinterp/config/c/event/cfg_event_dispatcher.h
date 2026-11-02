@@ -13,7 +13,8 @@
 * to be stamped into anything serialized, so that disagreement is detected
 * rather than silently decoded.
 *
-*   targets:  core/event/event_dispatcher_common.h, event_dispatcher.hpp
+*   targets:  c/event/event_dispatcher_common.h,
+*             cpp/event/event_dispatcher.hpp
 *             ->  D_INTERNAL_EVENT_QUEUE, _QUEUE_ALLOC, _QUEUE_OVERFLOW,
 *                 _QUEUE_DEFAULT_CAPACITY, _QUEUE_DEFAULT_BYTES,
 *                 _DISPATCHER_MERGE
@@ -23,7 +24,7 @@
 * path:      /inc/djinterp/config/c/event/cfg_event_dispatcher.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_DISPATCHER_H
@@ -91,7 +92,8 @@
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_EVENT_QUEUE_OVERFLOW)
-    #error "D_CFG_EVENT_QUEUE_OVERFLOW must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_EVENT_QUEUE_OVERFLOW must name one of its values; a "        \
+           "misspelled name would read as 0"
 #endif
 
 

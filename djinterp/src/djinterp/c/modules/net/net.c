@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/net/net.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/net/net.h"  // corresponding header
 // std
@@ -350,6 +350,8 @@ d_net_error_string(
             return "host unreachable";
         case D_NET_ERROR_NETWORK_DOWN:
             return "network down";
+        case D_NET_ERROR_UNSUPPORTED:
+            return "unsupported";
         case D_NET_ERROR_ACCESS_DENIED:
             return "access denied";
         case D_NET_ERROR_INVALID_ARGUMENT:

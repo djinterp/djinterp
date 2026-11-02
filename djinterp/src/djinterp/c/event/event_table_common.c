@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/event/event_table_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/event/event_table_common.h"  // corresponding header
 // std
@@ -602,6 +602,7 @@ int d_event_table_init_fixed(
          (!_bucket_tail) ||
          (_bucket_count == 0u) )
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -643,6 +644,7 @@ int d_event_table_init(
     // the table itself is required
     if (!_table)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -849,6 +851,7 @@ int d_event_table_bind(
     // the table is required
     if (!_table)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -1291,6 +1294,7 @@ int d_event_table_merge(
     if ( (!_table) ||
          (!_other) )
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -1465,6 +1469,7 @@ int d_event_table_rehash(
     // the table is required
     if (!_table)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 
@@ -1555,6 +1560,7 @@ int d_event_table_reserve(
     // the table is required
     if (!_table)
     {
+        D_EVENT_STRICT_ARG();
         return D_EVENT_ERR_NULL;
     }
 

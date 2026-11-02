@@ -17,7 +17,7 @@
 * path:      /src/djinterp/c/memory/test/t_pool.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*   Pool conformance harness.
@@ -228,7 +228,7 @@ void test_free_list(void)
 #if (D_INTERNAL_POOL_DOUBLE_FREE_CHECK == 1)
     a = d_pool_at(&p, 5);
     CHECK(d_pool_release_slot(&p, a) == D_MEM_OK);
-    CHECK(d_pool_release_slot(&p, a) == D_MEM_ERR_CORRUPT);
+    CHECK(d_pool_release_slot(&p, a) == D_MEM_ERR_RELEASED);
 #else
     ++skipped;
 #endif

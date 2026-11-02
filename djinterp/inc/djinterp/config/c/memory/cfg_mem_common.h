@@ -28,8 +28,9 @@
 * that lived in one face would be a parity hazard; config that lives here is
 * not.
 *
-*   targets:  core/memory/mem_common.h, mem_source.h, arena.h, pool.h, slab.h,
-*             mem_common.hpp  ->  D_INTERNAL_MEM_SIZE_BITS,
+*   targets:  c/memory/mem_common.h, mem_source.h, arena.h, pool.h, slab.h
+*             (not in the tree yet); cpp/memory/mem_common.hpp  ->
+*             D_INTERNAL_MEM_SIZE_BITS,
 *             D_INTERNAL_MEM_STATS, D_INTERNAL_MEM_STATS_PEAK,
 *             D_INTERNAL_MEM_POISON, D_INTERNAL_MEM_REDZONE,
 *             D_INTERNAL_MEM_REDZONE_BYTES, D_INTERNAL_MEM_DEFAULT_ALIGN,
@@ -43,7 +44,7 @@
 * path:      /inc/djinterp/config/c/memory/cfg_mem_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_MEMORY_CFG_MEM_COMMON_H
@@ -183,7 +184,8 @@
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_MEM_SIZE_BITS)
-    #error "D_CFG_MEM_SIZE_BITS must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_MEM_SIZE_BITS must name one of its values; a misspelled "    \
+           "name would read as 0"
 #endif
 
 
@@ -431,6 +433,11 @@
 //  9.  VALIDATION
 // ===========================================================================
 
+#ifdef D_CFG_MEM_ALL
+#   if !D_CFG_IS_ON(D_CFG_MEM_ALL) && !D_CFG_IS_OFF(D_CFG_MEM_ALL)
+#       error "D_CFG_MEM_ALL must be 0 or 1"
+#   endif
+#endif  // D_CFG_MEM_ALL
 #if !D_CFG_IS_ON(D_CFG_MEM_PRESET_MINIMAL) &&                                 \
     !D_CFG_IS_OFF(D_CFG_MEM_PRESET_MINIMAL)
 #   error "D_CFG_MEM_PRESET_MINIMAL must be 0 or 1"
@@ -493,6 +500,10 @@
     !D_CFG_IS_OFF(D_CFG_MEM_ASSERT_LAYOUT)
 #   error "D_CFG_MEM_ASSERT_LAYOUT must be 0 or 1"
 #endif
+#if !D_CFG_IS_ON(D_CFG_MEM_ASSERT_SIZES_OFF_LP64) &&                          \
+    !D_CFG_IS_OFF(D_CFG_MEM_ASSERT_SIZES_OFF_LP64)
+#   error "D_CFG_MEM_ASSERT_SIZES_OFF_LP64 must be 0 or 1"
+#endif
 #if !D_CFG_IS_ON(D_CFG_MEM_HEADER_ONLY) && !D_CFG_IS_OFF(D_CFG_MEM_HEADER_ONLY)
 #   error "D_CFG_MEM_HEADER_ONLY must be 0 or 1"
 #endif
@@ -535,13 +546,14 @@
 // allocate path.
 #define D_INTERNAL_MEM_ZERO           D_CFG_NORM(D_CFG_MEM_ZERO_ON_ALLOC)
 
-// D_INTERNAL_MEM_POISON
+// D_INTERNAL_MEM_POISON / _POISON_ALLOC / _POISON_FREE
 //   brief: 1 when vended and released bytes should be filled with the poison
-// values. Resolved AGAINST zeroing here rather than in five modules: zeroing
-// is a contract the caller may rely on, poisoning is a diagnostic, so where
-// both are asked for the contract wins on the allocate edge. The release edge
-// is unaffected -- released bytes have no contract -- so poisoning on free
-// survives, which is where most of its value is.
+// values; _ALLOC and _FREE are the two edges apart. Resolved AGAINST zeroing
+// here rather than in five modules: zeroing is a contract the caller may rely
+// on, poisoning is a diagnostic, so where both are asked for the contract wins
+// on the allocate edge. The release edge is unaffected -- released bytes have
+// no contract -- so poisoning on free survives, which is where most of its
+// value is.
 #if D_CFG_IS_ON(D_CFG_MEM_POISON) && D_CFG_IS_OFF(D_CFG_MEM_ZERO_ON_ALLOC)
 #   define D_INTERNAL_MEM_POISON_ALLOC 1
 #else

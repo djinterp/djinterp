@@ -37,7 +37,7 @@
 * path:      /inc/djinterp/c/memory/mem_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -311,13 +311,20 @@ enum dj_mem_status
     // a generational handle names a slot that has since been reused
     D_MEM_ERR_STALE       = 7,
 
-    // a guard band was overwritten, or a slot was released twice
-    D_MEM_ERR_CORRUPT     = 8
+    // a guard band was overwritten, or an allocator's own bookkeeping no
+    // longer holds together (a free list that loops)
+    D_MEM_ERR_CORRUPT     = 8,
+
+    // the block was already released: a second release of one slot, caught
+    // where D_CFG_POOL_DOUBLE_FREE_CHECK compiles the check. Distinct from
+    // CORRUPT because nothing is broken yet -- the release is refused before
+    // it can thread the free list through itself
+    D_MEM_ERR_RELEASED    = 9
 };
 
 // D_MEM_STATUS_COUNT
 //   constant: the number of status values, so a caller may size a table.
-#define D_MEM_STATUS_COUNT          9
+#define D_MEM_STATUS_COUNT          10
 
 
 ///////////////////////////////////////////////////////////////////////////////

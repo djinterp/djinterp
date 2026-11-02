@@ -37,11 +37,18 @@
 * members. That is weaker, and it is weaker only where the strong form has
 * stopped being expressible.
 *
+*   targets:  c/option/option_common.h, which is to read
+*             D_CFG_OPTION_KEY_TYPE, _OFFSET_TYPE, _SIZE_TYPE and
+*             D_INTERNAL_OPTION_LAYOUT_IS_DEFAULT; it does not include
+*             this file yet
+*   requires: cfg_common.h (user overrides); re_std's cstdint/dstdint.h
+*             (the fixed-width types the widths name)
+*
 *
 * path:      /inc/djinterp/config/cpp/option/cfg_option.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.06
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CPP_OPTION_CFG_OPTION_H

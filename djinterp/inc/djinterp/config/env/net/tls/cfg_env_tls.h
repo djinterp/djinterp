@@ -9,13 +9,16 @@
 * library present or only the selected one.
 *   targets:  env/net/tls/env_tls.h -> D_CFG_ENV_TLS_PROBE_VERSION,
 *                                      D_CFG_ENV_TLS_PROBE_ALL
+*             env/net/env_tls.h, the older flat header that
+*                 cpp/modules/net/tls.hpp still includes
+*                 -> D_CFG_ENV_TLS_PROBE_VERSION
 *   requires: cfg_common.h (D_CFG_IS_BOOL)
 *
 *
 * path:      /inc/djinterp/config/env/net/tls/cfg_env_tls.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_ENV_NET_TLS_CFG_ENV_TLS_H

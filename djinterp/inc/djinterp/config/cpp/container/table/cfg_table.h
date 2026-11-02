@@ -3,49 +3,51 @@
 *
 *   Build-time configuration for the table DSL subframework -- the two
 * declaration front ends (table_builder, table_parser), the model they meet at,
-* and the templating layer over it.  This header owns every user-overridable knob
-* those modules answer to, validates it, and publishes the effective values they
-* consume; the modules themselves carry no resolution logic and read the answers.
+* and the templating layer over it.  This header owns every user-overridable
+* knob those modules answer to, validates it, and publishes the effective values
+* they consume; the modules themselves carry no resolution logic and read the
+* answers.
 *
-*   ONE FILE, NOT SEVEN.  The table DSL is seven headers but ONE subframework, and
-* its knobs are cross-cutting by nature: the default cell-count strictness is read
-* by DTableOptions (as the compile-time default), by table_parser (as the runtime
-* dialect's default), and by table_template (as the placeholder fit).  One knob,
-* one canonical default, one file -- splitting per header would put the same
-* default in three places, which is the drift the localization rule exists to
-* prevent.
+*   ONE FILE, NOT SEVEN.  The table DSL is seven headers but ONE subframework,
+* and its knobs are cross-cutting by nature: the default cell-count strictness
+* is read by DTableOptions (as the compile-time default), by table_parser (as
+* the runtime dialect's default), and by table_template (as the placeholder
+* fit).  One knob, one canonical default, one file -- splitting per header would
+* put the same default in three places, which is the drift the localization rule
+* exists to prevent.
 *
 *   TWO CONFIGURATION MODELS
 *     layer gate    D_CFG_TABLE_<LAYER> == 0 means "do not compile this layer".
-*                   The optional legs -- the text front end, the compose leg, the
-*                   templating -- so a project that only declares tables in types
-*                   pays for nothing else.
+*                   The optional legs -- the text front end, the compose leg,
+*                   the templating -- so a project that only declares tables
+*                   in types pays for nothing else.
 *     policy default D_CFG_TABLE_DEFAULT_<CATEGORY> selects the grade a category
 *                   assumes when a declaration names no option.  A small
-*                   documented enum, resolved here into the enumerator the module
-*                   pastes.
+*                   documented enum, resolved here into the enumerator the
+*                   module pastes.
 *
 *   All boolean knobs are strict 0/1; every enum knob is validated against its
 * range.  The shipped defaults fail loud and stay rectangular -- leniency is
 * opted into, never inherited.
 *
-*   targets:  core/container/table/table_options.hpp
+*   targets:  cpp/container/table/table_options.hpp
 *                 -> D_INTERNAL_TABLE_DEFAULT_* (the policy grades)
-*             core/container/table/table_model.hpp
+*             cpp/container/table/table_model.hpp
 *                 -> D_INTERNAL_TABLE_RENDER, D_INTERNAL_TABLE_DELIMITER, ...
-*             core/container/table/table_parser.hpp
+*             cpp/container/table/table_parser.hpp
 *                 -> D_INTERNAL_TABLE_PARSER + the dialect characters
-*             core/container/table/table_template.hpp
+*             cpp/container/table/table_template.hpp
 *                 -> D_INTERNAL_TABLE_TEMPLATE, D_INTERNAL_TABLE_ELLIPSIS, ...
-*             core/container/table/{table_shape,table_layout,table_builder}.hpp
+*             cpp/container/table/{table_shape,table_layout,table_builder}.hpp
 *                 -> D_INTERNAL_TABLE_CONCEPTS, D_INTERNAL_TABLE_STATIC_ASSERTS
-*   requires: cfg_common.h (D_CFG_IS_ON / D_CFG_NORM, D_CFG_TESTING, user pickup)
+*   requires: cfg_common.h (D_CFG_IS_ON / D_CFG_NORM, D_CFG_TESTING, user
+*             pickup)
 *
 *
 * path:      /inc/djinterp/config/cpp/container/table/cfg_table.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CPP_CONTAINER_TABLE_CFG_TABLE_H
@@ -111,8 +113,8 @@ TABLE OF CONTENTS
 // D_CFG_TABLE_ALL
 //   brief: aggregate fallback for every layer gate below.  Each gate's default
 // reads this when the gate itself is unset, so an individual override still
-// wins: individual > aggregate > hard default.  Unset by default (the gates then
-// take their own hard defaults).
+// wins: individual > aggregate > hard default.  Unset by default (the gates
+// then take their own hard defaults).
 // #ifndef D_CFG_TABLE_ALL
 //     #define D_CFG_TABLE_ALL 1
 // #endif
@@ -127,7 +129,8 @@ TABLE OF CONTENTS
 // tables in types never compiles the text machinery.
 
 // D_CFG_TABLE_BUILDER
-//   brief: compile the type DSL (table_builder's declarators and fold).  1 = on.
+//   brief: compile the type DSL (table_builder's declarators and fold).  1 =
+// on.
 #ifndef D_CFG_TABLE_BUILDER
 #   if defined(D_CFG_TABLE_ALL)
 #       define D_CFG_TABLE_BUILDER          D_CFG_TABLE_ALL
@@ -181,18 +184,18 @@ TABLE OF CONTENTS
 #endif
 
 // D_CFG_TABLE_STATIC_ASSERTS
-//   brief: compile the conformance assertions (a declared cover must be valid; a
-// row must fit its columns).  Keep 1: they are the DSL's diagnostics, and turning
-// them off buys nothing at runtime -- they are compile-time only.  0 exists for
-// bisecting a diagnostic that fires where it should not.
+//   brief: compile the conformance assertions (a declared cover must be valid;
+// a row must fit its columns).  Keep 1: they are the DSL's diagnostics, and
+// turning them off buys nothing at runtime -- they are compile-time only.  0
+// exists for bisecting a diagnostic that fires where it should not.
 #ifndef D_CFG_TABLE_STATIC_ASSERTS
 #   define D_CFG_TABLE_STATIC_ASSERTS       1
 #endif
 
 // --- 0.2b  Propagation: a layer that needs another turns it on -------------
-//   Guarded, so an explicit user value still wins; the default above has already
-// run, so this only ever upgrades an aggregate-off to on where a dependency
-// demands it.  The parser's round-trip laws (renders_to_same_text,
+//   Guarded, so an explicit user value still wins; the default above has
+// already run, so this only ever upgrades an aggregate-off to on where a
+// dependency demands it.  The parser's round-trip laws (renders_to_same_text,
 // survives_round_trip) call render, so the parser needs the compose leg.
 
 #if D_CFG_IS_ON(D_CFG_TABLE_PARSER)
@@ -207,7 +210,8 @@ TABLE OF CONTENTS
 // ================================================================
 //   The small enums the default knobs take.  Named so an override reads as
 // intent -- -DD_CFG_TABLE_DEFAULT_SHAPE=D_CFG_TABLE_SHAPE_JAGGED -- rather than
-// as a magic number.  These mirror the enumerators of table_options.hpp exactly.
+// as a magic number.  These mirror the enumerators of table_options.hpp
+// exactly.
 
 // D_CFG_TABLE_STRICTNESS_*
 //   brief: how a supplied count must match a required one.  exact = a mismatch
@@ -266,17 +270,28 @@ TABLE OF CONTENTS
 // section 0.7 and defines no default of its own.
 //
 //   The shipped values fail loud and stay rectangular.  That is deliberate: a
-// table that silently swallowed a short row would be a table you could not trust,
-// so leniency is opted into per declaration (or set here, once, per project).
+// table that silently swallowed a short row would be a table you could not
+// trust, so leniency is opted into per declaration (or set here, once, per
+// project).
 
 // D_CFG_TABLE_DEFAULT_CELL_COUNT
 //   brief: how strictly a row's width must match the declared columns.
+//   THIS KNOB ALONE ADMITS OR REFUSES A ROW OF ANOTHER WIDTH (decided
+// 2026.10.31): exact refuses it, truncate admits a surplus, pad a shortfall,
+// lenient either.  D_CFG_TABLE_DEFAULT_SHAPE never admits or refuses a row; it
+// decides what an admitted short row becomes.  So a declaration that wants
+// short rows kept says both -- allow_jagged with pad_counts or lenient_counts,
+// as table_options.hpp's own example does -- and allow_jagged alone, under
+// the exact default, still refuses a short row.  table_builder applies the
+// grade in widths_conform; table_parser's parse_grid_options::cell_count
+// starts from it.
 #ifndef D_CFG_TABLE_DEFAULT_CELL_COUNT
 #   define D_CFG_TABLE_DEFAULT_CELL_COUNT       D_CFG_TABLE_STRICTNESS_EXACT
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_CELL_COUNT)
-    #error "D_CFG_TABLE_DEFAULT_CELL_COUNT must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_CELL_COUNT must name one of its values; a "    \
+           "misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT
@@ -286,7 +301,8 @@ TABLE OF CONTENTS
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT)
-    #error "D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT must name one of its values; " \
+           "a misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE
@@ -296,17 +312,28 @@ TABLE OF CONTENTS
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE)
-    #error "D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE must name one of its "        \
+           "values; a misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_SHAPE
 //   brief: which domain shapes a declaration admits.
+//   WHAT AN ADMITTED ROW BECOMES, NOT WHETHER IT IS ADMITTED; that is
+// D_CFG_TABLE_DEFAULT_CELL_COUNT's alone (decided 2026.10.31).  Once shape is
+// enforced, a short row the cell count admits is filled to the width under
+// RECTANGULAR, kept short under JAGGED, and keeps its missing cells as holes
+// under SPARSE; a row the cell count refuses is refused under every shape.
+//   NOT ENFORCED YET.  table_builder reads it into shape_strictness and nothing
+// consults it, and parse_grid_options carries no shape, so today every
+// admitted row is realized rectangular: the table trio holds that invariant,
+// and a jagged table is a planned container of its own (table.hpp).
 #ifndef D_CFG_TABLE_DEFAULT_SHAPE
 #   define D_CFG_TABLE_DEFAULT_SHAPE            D_CFG_TABLE_SHAPE_RECTANGULAR
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_SHAPE)
-    #error "D_CFG_TABLE_DEFAULT_SHAPE must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_SHAPE must name one of its values; a "         \
+           "misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_HEADER
@@ -316,7 +343,8 @@ TABLE OF CONTENTS
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_HEADER)
-    #error "D_CFG_TABLE_DEFAULT_HEADER must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_HEADER must name one of its values; a "        \
+           "misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_DOMAIN
@@ -327,7 +355,8 @@ TABLE OF CONTENTS
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_DOMAIN)
-    #error "D_CFG_TABLE_DEFAULT_DOMAIN must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_DOMAIN must name one of its values; a "        \
+           "misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_TRIM
@@ -337,7 +366,8 @@ TABLE OF CONTENTS
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_TRIM)
-    #error "D_CFG_TABLE_DEFAULT_TRIM must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_TRIM must name one of its values; a "          \
+           "misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_PIPE
@@ -347,7 +377,8 @@ TABLE OF CONTENTS
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_PIPE)
-    #error "D_CFG_TABLE_DEFAULT_PIPE must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_PIPE must name one of its values; a "          \
+           "misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_ANCHOR
@@ -357,16 +388,17 @@ TABLE OF CONTENTS
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_ANCHOR)
-    #error "D_CFG_TABLE_DEFAULT_ANCHOR must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_TABLE_DEFAULT_ANCHOR must name one of its values; a "        \
+           "misspelled name would read as 0"
 #endif
 
 
 // ================================================================
 // 0.5  Dialect Characters
 // ================================================================
-//   What the text surface is spelled with.  Render and parse must agree on these
-// or the round trip cannot close, which is exactly why they are configured once
-// here rather than defaulted twice.
+//   What the text surface is spelled with.  Render and parse must agree on
+// these or the round trip cannot close, which is exactly why they are
+// configured once here rather than defaulted twice.
 
 // D_CFG_TABLE_DELIMITER
 //   brief: the cell delimiter.  Its POSITIONS carry the merge spans, so this is
@@ -403,8 +435,8 @@ TABLE OF CONTENTS
 // ================================================================
 // 0.6  Configuration Validation
 // ================================================================
-//   Cheap, and it catches a typo here rather than as a baffling grade downstream.
-// Booleans first, then each enum against its range.
+//   Cheap, and it catches a typo here rather than as a baffling grade
+// downstream. Booleans first, then each enum against its range.
 
 #if ( !D_CFG_IS_ON(D_CFG_TABLE_BUILDER) && !D_CFG_IS_OFF(D_CFG_TABLE_BUILDER) )
 #   error "D_CFG_TABLE_BUILDER must be 0 or 1"
@@ -415,10 +447,12 @@ TABLE OF CONTENTS
 #if ( !D_CFG_IS_ON(D_CFG_TABLE_PARSER) && !D_CFG_IS_OFF(D_CFG_TABLE_PARSER) )
 #   error "D_CFG_TABLE_PARSER must be 0 or 1"
 #endif
-#if ( !D_CFG_IS_ON(D_CFG_TABLE_TEMPLATE) && !D_CFG_IS_OFF(D_CFG_TABLE_TEMPLATE) )
+#if ( !D_CFG_IS_ON(D_CFG_TABLE_TEMPLATE) &&                                    \
+      !D_CFG_IS_OFF(D_CFG_TABLE_TEMPLATE) )
 #   error "D_CFG_TABLE_TEMPLATE must be 0 or 1"
 #endif
-#if ( !D_CFG_IS_ON(D_CFG_TABLE_CONCEPTS) && !D_CFG_IS_OFF(D_CFG_TABLE_CONCEPTS) )
+#if ( !D_CFG_IS_ON(D_CFG_TABLE_CONCEPTS) &&                                    \
+      !D_CFG_IS_OFF(D_CFG_TABLE_CONCEPTS) )
 #   error "D_CFG_TABLE_CONCEPTS must be 0 or 1"
 #endif
 #if ( !D_CFG_IS_ON(D_CFG_TABLE_STATIC_ASSERTS) && \
@@ -428,44 +462,47 @@ TABLE OF CONTENTS
 
 // a layer that needs another must not be left contradicting it
 #if ( D_CFG_IS_ON(D_CFG_TABLE_PARSER) && D_CFG_IS_OFF(D_CFG_TABLE_RENDER) )
-#   error "D_CFG_TABLE_PARSER requires D_CFG_TABLE_RENDER: the parser's "        \
-          "round-trip laws call render.  Either leave RENDER on, or turn the "   \
+#   error "D_CFG_TABLE_PARSER requires D_CFG_TABLE_RENDER: the parser's "      \
+          "round-trip laws call render.  Either leave RENDER on, or turn the " \
           "PARSER off."
 #endif
 
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_CELL_COUNT) < 0) ||                        \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_CELL_COUNT) < 0) ||                      \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_CELL_COUNT) > 3) )
-#   error "D_CFG_TABLE_DEFAULT_CELL_COUNT must be a D_CFG_TABLE_STRICTNESS_* value"
+#   error "D_CFG_TABLE_DEFAULT_CELL_COUNT must be a D_CFG_TABLE_STRICTNESS_* " \
+          "value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT) < 0) ||                   \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT) < 0) ||                 \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT) > 3) )
-#   error "D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT must be a D_CFG_TABLE_STRICTNESS_* value"
+#   error "D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT must be a "                     \
+          "D_CFG_TABLE_STRICTNESS_* value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE) < 0) ||                  \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE) < 0) ||                \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE) > 2) )
-#   error "D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE must be a D_CFG_TABLE_TYPE_* value"
+#   error "D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE must be a D_CFG_TABLE_TYPE_* " \
+          "value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_SHAPE) < 0) ||                             \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_SHAPE) < 0) ||                           \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_SHAPE) > 2) )
 #   error "D_CFG_TABLE_DEFAULT_SHAPE must be a D_CFG_TABLE_SHAPE_* value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_HEADER) < 0) ||                            \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_HEADER) < 0) ||                          \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_HEADER) > 2) )
 #   error "D_CFG_TABLE_DEFAULT_HEADER must be a D_CFG_TABLE_HEADER_* value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_DOMAIN) < 0) ||                            \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_DOMAIN) < 0) ||                          \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_DOMAIN) > 1) )
 #   error "D_CFG_TABLE_DEFAULT_DOMAIN must be a D_CFG_TABLE_DOMAIN_* value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_TRIM) < 0) ||                              \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_TRIM) < 0) ||                            \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_TRIM) > 1) )
 #   error "D_CFG_TABLE_DEFAULT_TRIM must be a D_CFG_TABLE_TRIM_* value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_PIPE) < 0) ||                              \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_PIPE) < 0) ||                            \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_PIPE) > 1) )
 #   error "D_CFG_TABLE_DEFAULT_PIPE must be a D_CFG_TABLE_PIPE_* value"
 #endif
-#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_ANCHOR) < 0) ||                            \
+#if ( (D_CFG_NORM(D_CFG_TABLE_DEFAULT_ANCHOR) < 0) ||                          \
       (D_CFG_NORM(D_CFG_TABLE_DEFAULT_ANCHOR) > 1) )
 #   error "D_CFG_TABLE_DEFAULT_ANCHOR must be a D_CFG_TABLE_ANCHOR_* value"
 #endif
@@ -517,10 +554,10 @@ TABLE OF CONTENTS
 //   brief: effective enable for the C++20 concept faces -- the knob AND the
 // language actually having concepts.  This is the whole reason the module can
 // read one symbol: the env detection is resolved here, not re-derived there.
-#if ( D_CFG_IS_ON(D_CFG_TABLE_CONCEPTS) &&                                       \
-      defined(D_ENV_LANG_IS_CPP20_OR_HIGHER) &&                                  \
-      (D_ENV_LANG_IS_CPP20_OR_HIGHER == 1) &&                                    \
-      defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                                \
+#if ( D_CFG_IS_ON(D_CFG_TABLE_CONCEPTS) &&                                     \
+      defined(D_ENV_LANG_IS_CPP20_OR_HIGHER) &&                                \
+      (D_ENV_LANG_IS_CPP20_OR_HIGHER == 1) &&                                  \
+      defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                              \
       (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1) )
 #   define D_INTERNAL_TABLE_CONCEPTS        1
 #else
@@ -530,9 +567,15 @@ TABLE OF CONTENTS
 // --- 0.7b  Effective policy defaults ---
 //   Resolved from the knob's integer into the ENUMERATOR the module pastes:
 //
-//       default_cell_count = table_strictness::D_INTERNAL_TABLE_DEFAULT_CELL_COUNT;
+//       default_cell_count =
+//           table_strictness::D_INTERNAL_TABLE_DEFAULT_CELL_COUNT;
 //
 // so table_options.hpp carries no mapping of its own -- it reads the answer.
+
+// D_INTERNAL_TABLE_DEFAULT_<CATEGORY>
+//   internal: the enumerator each D_CFG_TABLE_DEFAULT_<CATEGORY> names, spelled
+// as table_options.hpp's enum spells it (exact, rectangular, ...), for the
+// default_<category> constants there to paste.
 
 #if   (D_CFG_TABLE_DEFAULT_CELL_COUNT == D_CFG_TABLE_STRICTNESS_EXACT)
 #   define D_INTERNAL_TABLE_DEFAULT_CELL_COUNT          exact
@@ -604,7 +647,13 @@ TABLE OF CONTENTS
 
 // --- 0.7c  Effective dialect ---
 //   Pass-throughs today, but named as D_INTERNAL_* so the modules read one
-// vocabulary and a future derivation (a dialect preset, say) has somewhere to go.
+// vocabulary and a future derivation (a dialect preset, say) has somewhere to
+// go.
+
+// D_INTERNAL_TABLE_<CHARACTER>
+//   internal: the dialect characters as the modules read them --
+// D_INTERNAL_TABLE_DELIMITER, _PAD, _SEPARATOR_FILL, _ELLIPSIS and
+// _ITERATION_SIGIL, each its D_CFG_TABLE_* knob unchanged.
 
 #define D_INTERNAL_TABLE_DELIMITER          D_CFG_TABLE_DELIMITER
 #define D_INTERNAL_TABLE_PAD                D_CFG_TABLE_PAD

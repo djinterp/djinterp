@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/modules/net/net_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -272,9 +272,11 @@ typedef uint16_t dj_net_port;
 //       early or by the peer's goodbye, is CLOSED.
 //     - A refusal on security grounds -- credentials, a certificate, a host
 //       key, a policy -- is ACCESS_DENIED.
-//     - Everything else is UNKNOWN: a negative reply, something unsupported,
-//       a transfer the caller ended, a failure beneath the module whose cause
-//       it no longer holds.
+//     - A facility this build does not have -- no socket backend, so the
+//       stubs answer -- is UNSUPPORTED: no retry can help.
+//     - Everything else is UNKNOWN: a negative reply, a request the peer
+//       does not support, a transfer the caller ended, a failure beneath the
+//       module whose cause it no longer holds.
 //   The other way, a module that reads or writes through a connection takes
 // what the connection reports into its own errors with
 // d_<module>_error_from_net, again by the same rules in every module:
@@ -310,7 +312,8 @@ enum dj_net_error
     D_NET_ERROR_TOO_MANY_OPEN_FILES = 15,  // a descriptor limit was reached
     D_NET_ERROR_OUT_OF_MEMORY       = 16,  // an allocation failed
     D_NET_ERROR_UNKNOWN             = 17,  // anything else
-    D_NET_ERROR_PROTOCOL            = 18   // the exchange broke the protocol
+    D_NET_ERROR_PROTOCOL            = 18,  // the exchange broke the protocol
+    D_NET_ERROR_UNSUPPORTED         = 19   // this build has no backend for it
 };
 
 // 2.3    Transport vocabulary

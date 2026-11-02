@@ -10,11 +10,18 @@
 *   The defaults are the secure ones. Each knob that relaxes one says what it
 * gives up, and every default can still be changed per session at run time.
 *
+*   targets:  c/modules/net/ssh/ssh_common.h -> D_INTERNAL_SSH_SOCKET_HANDLE
+*             ssh_session.c, ssh_auth.c, ssh_libssh2.c -> D_CFG_SSH_LIBSSH2,
+*                 D_CFG_SSH_HOST_KEY_*, D_INTERNAL_SSH_*
+*   requires: cfg_common.h (D_CFG_IS_BOOL, user overrides); env/env.h,
+*             env/net/env_net.h and env/net/ssh/env_ssh.h (the platform
+*             and libssh2 facts the engine selection reads)
+*
 *
 * path:      /inc/djinterp/config/c/modules/net/ssh/cfg_ssh.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*

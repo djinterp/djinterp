@@ -9,7 +9,7 @@
 * path:      /src/djinterp/c/memory/pool.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/memory/pool.h"
@@ -529,8 +529,9 @@ void d_internal_pool_link_write(
 #if (D_INTERNAL_POOL_DOUBLE_FREE_CHECK == 1)
 
 /*
-d_internal_pool_is_free
-  Reports whether a slot index is already on the free list.
+d_internal_pool_free_check
+  Reports whether a slot index may go on the free list: whether it is there
+already, and whether the list still ends.
   O(free slots), which is why this is compiled only under the testing preset.
 Its value is that a double free otherwise threads the list through itself,
 after which two callers hold the same slot and the corruption surfaces
@@ -540,12 +541,12 @@ Parameter(s):
   _pool:  the pool; must not be NULL.
   _index: the slot index to look for.
 Return:
-  A boolean value corresponding to either:
-  - true, if the index is already on the free list, or
-  - false, otherwise.
+  D_MEM_OK when the index is not on the free list; D_MEM_ERR_RELEASED when it
+is; D_MEM_ERR_CORRUPT when the list holds more links than the pool has slots,
+which only a list already looped can.
 */
 static
-bool d_internal_pool_is_free(
+enum dj_mem_status d_internal_pool_free_check(
     const struct dj_pool* _pool,
     dj_pool_index         _index
 )
@@ -561,14 +562,14 @@ bool d_internal_pool_is_free(
     {
         if (cursor == _index)
         {
-            return true;
+            return D_MEM_ERR_RELEASED;
         }
 
         slot = d_internal_pool_slot_at(_pool, cursor);
 
         if (!slot)
         {
-            return false;
+            return D_MEM_OK;
         }
 
         cursor = d_internal_pool_link_read(_pool, slot);
@@ -579,11 +580,11 @@ bool d_internal_pool_is_free(
 
         if (guard > _pool->capacity)
         {
-            return true;
+            return D_MEM_ERR_CORRUPT;
         }
     }
 
-    return false;
+    return D_MEM_OK;
 }
 
 #endif  // D_INTERNAL_POOL_DOUBLE_FREE_CHECK
@@ -1243,9 +1244,10 @@ Parameter(s):
   _slot: the slot to return; may be NULL, which is a no-op reported as OK.
 Return:
   D_MEM_OK, D_MEM_ERR_NULL, D_MEM_ERR_UNSUPPORTED for a monotonic pool,
-D_MEM_ERR_FOREIGN when the pointer names no slot of this pool, or
-D_MEM_ERR_CORRUPT when a guard band was overwritten or the slot was already
-free.
+D_MEM_ERR_FOREIGN when the pointer names no slot of this pool,
+D_MEM_ERR_CORRUPT when a guard band was overwritten or the free list loops, or
+D_MEM_ERR_RELEASED when the slot was already free. The last two of the free
+list are found only where D_CFG_POOL_DOUBLE_FREE_CHECK compiles the walk.
 
   ON THE ORDER OF THE CHECKS. Ownership is established BEFORE anything reads
 the memory around the pointer, and that ordering is load-bearing rather than
@@ -1265,6 +1267,9 @@ d_pool_release_slot(
 #if (D_INTERNAL_POOL_FREE_LIST == 1)
     dj_pool_index index;
     void*        base;
+#endif
+#if (D_INTERNAL_POOL_DOUBLE_FREE_CHECK == 1)
+    enum dj_mem_status status;
 #endif
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
     dj_pool_generation* generation;
@@ -1301,9 +1306,11 @@ d_pool_release_slot(
     }
 
 #   if (D_INTERNAL_POOL_DOUBLE_FREE_CHECK == 1)
-    if (d_internal_pool_is_free(_pool, index))
+    status = d_internal_pool_free_check(_pool, index);
+
+    if (status != D_MEM_OK)
     {
-        return D_MEM_ERR_CORRUPT;
+        return status;
     }
 #   endif
 

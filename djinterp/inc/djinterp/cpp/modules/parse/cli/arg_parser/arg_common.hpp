@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/cli/arg_parser/arg_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -182,7 +182,8 @@ struct status_code
         parse_error            = D_ARG_ERROR_PARSE,
         out_of_memory          = D_ARG_ERROR_OUT_OF_MEMORY,
         bad_argument           = D_ARG_ERROR_BAD_ARGUMENT,
-        unsupported            = D_ARG_ERROR_UNSUPPORTED
+        unsupported            = D_ARG_ERROR_UNSUPPORTED,
+        too_deep               = D_ARG_ERROR_TOO_DEEP
     };
 };
 

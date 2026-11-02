@@ -20,7 +20,7 @@
 * is why this is a knob and not a policy argument: an arena that CAN chain
 * pays for the ability whether or not it uses it.
 *
-*   targets:  core/memory/arena.h, arena.c  ->  D_INTERNAL_ARENA_CHAIN,
+*   targets:  c/memory/arena.h, arena.c  ->  D_INTERNAL_ARENA_CHAIN,
 *             D_INTERNAL_ARENA_GROWTH_RUNTIME, D_INTERNAL_ARENA_GROWTH,
 *             D_INTERNAL_ARENA_REGION_BYTES, D_INTERNAL_ARENA_MAX_REGION,
 *             D_INTERNAL_ARENA_GROWTH_NUM, D_INTERNAL_ARENA_GROWTH_DEN,
@@ -33,14 +33,15 @@
 * path:      /inc/djinterp/config/c/memory/cfg_arena.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_MEMORY_CFG_ARENA_H
 #define DJINTERP_CONFIG_C_MEMORY_CFG_ARENA_H 1
 
-// (0) subframework root first, then the dependency whose defaults this file's
-//     own defaults read.
+// (0) cfg_common.h first, as every config; then the subframework root, then
+//     the dependency whose defaults this file's own defaults read.
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "./cfg_mem_common.h"
 #include "./cfg_mem_source.h"
 
@@ -107,7 +108,8 @@
 #endif
 
 #if !D_CFG_IS_INT_LITERAL(D_CFG_ARENA_GROWTH)
-    #error "D_CFG_ARENA_GROWTH must name one of its values; a misspelled name would read as 0"
+    #error "D_CFG_ARENA_GROWTH must name one of its values; a misspelled "     \
+           "name would read as 0"
 #endif
 
 // D_CFG_ARENA_GROWTH_RUNTIME

@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/c/modules/net/ftp/ftp_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -225,9 +225,10 @@ enum dj_net_error d_ftp_error_to_net(
  * their namesakes; a stream that ended or was lost -- CLOSED,
  * CONNECTION_RESET, CONNECTION_ABORTED -- is CLOSED; an address that names
  * no host -- ADDRESS_INVALID, HOST_UNREACHABLE -- is RESOLVE; a connection
- * refused -- CONNECTION_REFUSED, NETWORK_DOWN, ACCESS_DENIED -- is CONNECT;
- * PROTOCOL is MALFORMED; anything else, an unknown value included, is
- * UNKNOWN. d_ftp_error_to_net of a transport error comes back to it.
+ * refused -- CONNECTION_REFUSED, NETWORK_DOWN, ACCESS_DENIED -- is CONNECT,
+ * and so is UNSUPPORTED, a build with no socket backend; PROTOCOL is
+ * MALFORMED; anything else, an unknown value included, is UNKNOWN.
+ * d_ftp_error_to_net of a transport error comes back to it.
  *
  * @param[in] _error the connection's error.
  * @return the FTP error it is.

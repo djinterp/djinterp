@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/container/table/table_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -80,7 +80,10 @@ V.    interpolate_cells           ({key} per cell, via interpolate.hpp)
 // 2's rule). The owner's ruling: compile at every level first; port down only
 // where something needs it.
 #include "../../../env/env.h"  // D_ENV_LANG_*
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#include "../../../config/cpp/container/table/cfg_table.h"  // D_INTERNAL_TABLE_TEMPLATE
+// and empty, too, when D_CFG_TABLE_TEMPLATE compiles this layer out
+#if ( (D_ENV_LANG_IS_CPP11_OR_HIGHER) &&                                     \
+      (D_INTERNAL_TABLE_TEMPLATE) )
 
 // std
 #include <cstddef>
@@ -613,6 +616,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // floor, for now
+#endif  // floor, for now; D_CFG_TABLE_TEMPLATE
 
 #endif  // DJINTERP_CONTAINER_TABLE_TABLE_TEMPLATE_HPP

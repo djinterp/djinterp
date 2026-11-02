@@ -66,7 +66,7 @@
 * path:      /inc/djinterp/c/container/table/table.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.01
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -98,8 +98,7 @@ V.    iteration macros        (atomic order, row order, column order)
 #include "./table_layout.h"
 #include "./table_overlay.h"
 
-#if ( (!defined(D_CFG_TABLE_STDLIB_ALLOC)) ||                                  \
-      (D_CFG_IS_ON(D_CFG_TABLE_STDLIB_ALLOC)) )
+#if D_CFG_IS_ON(D_CFG_TABLE_STDLIB_ALLOC)
     // std
     #include <stdlib.h>
 #endif
@@ -112,13 +111,8 @@ D_EXTERN_C_BEGIN
 // I.   configuration
 // ===========================================================================
 
-// D_CFG_TABLE_STDLIB_ALLOC
-//   macro: whether the convenience strategy backed by realloc/free is offered.
-// On by default because naming a strategy is not hiding one; off for a
-// freestanding build, which then supplies its own and loses nothing else.
-#ifndef D_CFG_TABLE_STDLIB_ALLOC
-    #define D_CFG_TABLE_STDLIB_ALLOC    1
-#endif
+//   D_CFG_TABLE_STDLIB_ALLOC, which offers the realloc/free strategy below, is
+// resolved in config/c/container/table/cfg_table.h (through table_common.h).
 
 
 // ===========================================================================

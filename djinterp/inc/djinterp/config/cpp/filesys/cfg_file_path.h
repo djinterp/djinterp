@@ -1,14 +1,14 @@
 /*******************************************************************************
 * djinterp [config]                                              cfg_file_path.h
 *
-* Build-time configuration for core/filesys/file_path.hpp -- djinterp::path.
+* Build-time configuration for cpp/filesys/file_path.hpp -- djinterp::path.
 *   Two knobs, both read by that one header: whether a failed allocation
 * throws, and how much stack a lexical operation borrows before it allocates.
 * Plus the one language-feature gate the header needs, three-way comparison.
 *   The knobs lived in file_path.hpp itself until this directory existed, and
 * that header said they would move here together, unchanged, when it did.
 *
-*   targets:  core/filesys/file_path.hpp -> D_INTERNAL_PATH_THROW,
+*   targets:  cpp/filesys/file_path.hpp -> D_INTERNAL_PATH_THROW,
 *             D_INTERNAL_PATH_STACK_BUF, D_INTERNAL_PATH_HAS_SPACESHIP
 *   requires: cfg_common.h
 *
@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/config/cpp/filesys/cfg_file_path.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*

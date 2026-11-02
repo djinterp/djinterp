@@ -5,11 +5,13 @@
 * compiled in, how much determinism is bought at what cost, and the sizes the
 * kernel would otherwise hard-code.
 *
-*   targets:  core/util/compress_common.h -> D_INTERNAL_COMPRESS_*
-*             core/util/compress.h        -> D_INTERNAL_COMPRESS_*
-*             core/util/compress/compress.hpp      -> D_INTERNAL_COMPRESS_EXCEPTIONS
-*   requires: cfg_common.h (helpers, D_CFG_TESTING); env/compress/env_compress.h
-*             for the detection this cascade's environment layer reads
+*   targets:  c/util/compress/compress_common.h -> D_INTERNAL_COMPRESS_*
+*                 (compress_common.c reads them through it)
+*             cpp/util/compress/compress.hpp  -> D_INTERNAL_COMPRESS_*
+*             cpp/util/archive/archive.hpp    -> D_INTERNAL_COMPRESS_EXCEPTIONS
+*   requires: cfg_common.h (helpers, D_CFG_TESTING);
+*             env/util/compress/env_compress.h for the detection this cascade's
+*             environment layer reads
 *
 *   TWO LAYERS, AND THE DIFFERENCE MATTERS.  env_compress.h answers "is zlib
 * installed?"; this file answers "do we want it?".  Detection is a fact and
@@ -23,7 +25,7 @@
 * path:      /inc/djinterp/config/c/util/compress/cfg_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_UTIL_COMPRESS_CFG_COMPRESS_H
@@ -194,10 +196,16 @@ TABLE OF CONTENTS
 // Defaults from the compiler's exception support; set 0 to omit it even where
 // exceptions are enabled. The non-throwing try_* API is always present and is
 // unaffected, so turning this off narrows the surface rather than degrading it.
+//   Until 2026.10.31 compress.hpp decided this itself, as
+// D_ENV_COMPRESSION_HAS_EXCEPTIONS; a build that still sets that name gets it
+// as this knob's default, and reads the answer as
+// D_INTERNAL_COMPRESS_EXCEPTIONS, which is all that is defined now.
 #ifndef D_CFG_COMPRESS_EXCEPTIONS
-#   if ( defined(__cpp_exceptions) ||                                          \
-         defined(__EXCEPTIONS)     ||                                          \
-         defined(_CPPUNWIND) )
+#   if defined(D_ENV_COMPRESSION_HAS_EXCEPTIONS)
+#       define D_CFG_COMPRESS_EXCEPTIONS D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#   elif ( defined(__cpp_exceptions) ||                                        \
+           defined(__EXCEPTIONS)     ||                                        \
+           defined(_CPPUNWIND) )
 #       define D_CFG_COMPRESS_EXCEPTIONS 1
 #   else
 #       define D_CFG_COMPRESS_EXCEPTIONS 0
@@ -282,6 +290,17 @@ TABLE OF CONTENTS
     ( D_ENV_COMPRESSION_HAVE_BROTLI &&                                         \
       D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_BROTLI) )
 
+// D_INTERNAL_COMPRESS_BROTLI_ENCODE / _DECODE
+//   brief: the two halves of Brotli, each detected AND wanted. The C kernel
+// answers "can compress" and "can decompress" separately, so it reads one half
+// each; the knob governs both.
+#define D_INTERNAL_COMPRESS_BROTLI_ENCODE                                      \
+    ( D_ENV_COMPRESSION_HAVE_BROTLI_ENCODE &&                                  \
+      D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_BROTLI) )
+#define D_INTERNAL_COMPRESS_BROTLI_DECODE                                      \
+    ( D_ENV_COMPRESSION_HAVE_BROTLI_DECODE &&                                  \
+      D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_BROTLI) )
+
 // D_INTERNAL_COMPRESS_ZLIB_WRAP / _GZIP_WRAP
 //   brief: the two DEFLATE framings, which ride on the same provider and the
 // same enable -- there is no configuration in which a build has raw DEFLATE and
@@ -292,6 +311,14 @@ TABLE OF CONTENTS
 #define D_INTERNAL_COMPRESS_GZIP_WRAP                                          \
     ( D_ENV_COMPRESSION_HAVE_GZIP_WRAP &&                                      \
       D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_DEFLATE) )
+
+// D_INTERNAL_COMPRESS_ZLIB_LEAF
+//   brief: 1 when the C kernel compiles its zlib-family leaf: DEFLATE is wanted
+// and zlib or zlib-ng provides it. compress_common.c includes <zlib.h> under
+// it, so an excluded codec is neither compiled nor linked.
+#define D_INTERNAL_COMPRESS_ZLIB_LEAF                                          \
+    ( D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_DEFLATE) &&                             \
+      ( D_ENV_COMPRESSION_HAVE_ZLIB || D_ENV_COMPRESSION_HAVE_ZLIBNG ) )
 
 // D_INTERNAL_COMPRESS_PIN_THREADS / _PIN_DEFAULTS / _VALIDATE / _EXCEPTIONS
 //   brief: the determinism, validation and surface gates, normalised to a

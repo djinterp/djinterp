@@ -62,7 +62,7 @@
 * path:      /inc/djinterp/cpp/util/compress/compress.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_COMPRESS_COMPRESS_HPP
@@ -86,22 +86,12 @@
 #include "./compress_options.hpp"  // compress_options (full, codec-aware)
 
 
-// D_ENV_COMPRESSION_HAS_EXCEPTIONS
-//   macro: 1 if C++ exceptions are enabled in this translation unit. the
-// throwing convenience API is compiled only when this holds; the non-throwing
-// try_* API is always available. defined here, before the conditional include
-// below, so <stdexcept> is pulled in when needed.
-#ifndef D_ENV_COMPRESSION_HAS_EXCEPTIONS
-    #if ( defined(__cpp_exceptions) ||                                        \
-          defined(__EXCEPTIONS)     ||                                        \
-          defined(_CPPUNWIND) )
-        #define D_ENV_COMPRESSION_HAS_EXCEPTIONS 1
-    #else
-        #define D_ENV_COMPRESSION_HAS_EXCEPTIONS 0
-    #endif
-#endif
+//   The throwing convenience API is compiled only under
+// D_INTERNAL_COMPRESS_EXCEPTIONS: D_CFG_COMPRESS_EXCEPTIONS, which defaults from
+// the compiler's exception support, resolved in cfg_compress.h (through
+// compress_common.h). The non-throwing try_* API is always available.
 
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
     // std
     #include <stdexcept>
 #endif
@@ -268,7 +258,7 @@ struct codec_traits<codecs::store>
 template<>
 struct codec_traits<codecs::deflate>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_DEFLATE != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_DEFLATE != 0) };
     static DCodecId    id()   { return codec_id_deflate; }
     static const char* name() { return "deflate"; }
 };
@@ -278,7 +268,7 @@ struct codec_traits<codecs::deflate>
 template<>
 struct codec_traits<codecs::zlib>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_ZLIB_WRAP != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_ZLIB_WRAP != 0) };
     static DCodecId    id()   { return codec_id_zlib; }
     static const char* name() { return "zlib"; }
 };
@@ -288,7 +278,7 @@ struct codec_traits<codecs::zlib>
 template<>
 struct codec_traits<codecs::gzip>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_GZIP_WRAP != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_GZIP_WRAP != 0) };
     static DCodecId    id()   { return codec_id_gzip; }
     static const char* name() { return "gzip"; }
 };
@@ -298,7 +288,7 @@ struct codec_traits<codecs::gzip>
 template<>
 struct codec_traits<codecs::bzip2>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_BZIP2 != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_BZIP2 != 0) };
     static DCodecId    id()   { return codec_id_bzip2; }
     static const char* name() { return "bzip2"; }
 };
@@ -308,7 +298,7 @@ struct codec_traits<codecs::bzip2>
 template<>
 struct codec_traits<codecs::xz>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_LZMA != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_LZMA != 0) };
     static DCodecId    id()   { return codec_id_xz; }
     static const char* name() { return "xz"; }
 };
@@ -318,7 +308,7 @@ struct codec_traits<codecs::xz>
 template<>
 struct codec_traits<codecs::zstd>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_ZSTD != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_ZSTD != 0) };
     static DCodecId    id()   { return codec_id_zstd; }
     static const char* name() { return "zstd"; }
 };
@@ -328,7 +318,7 @@ struct codec_traits<codecs::zstd>
 template<>
 struct codec_traits<codecs::lz4>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_LZ4 != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_LZ4 != 0) };
     static DCodecId    id()   { return codec_id_lz4; }
     static const char* name() { return "lz4"; }
 };
@@ -338,7 +328,7 @@ struct codec_traits<codecs::lz4>
 template<>
 struct codec_traits<codecs::brotli>
 {
-    enum { is_available = (D_ENV_COMPRESSION_HAVE_BROTLI != 0) };
+    enum { is_available = (D_INTERNAL_COMPRESS_BROTLI != 0) };
     static DCodecId    id()   { return codec_id_brotli; }
     static const char* name() { return "brotli"; }
 };
@@ -443,7 +433,7 @@ bool codec_is_available()
 // VIII. THROWING CONVENIENCE API
 // =============================================================================
 
-#if D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#if D_INTERNAL_COMPRESS_EXCEPTIONS
 
 // DCompressionError
 //   class: exception thrown by the convenience API on failure.
@@ -506,7 +496,7 @@ byte_blob decompress(
     return out;
 }
 
-#endif  // D_ENV_COMPRESSION_HAS_EXCEPTIONS
+#endif  // D_INTERNAL_COMPRESS_EXCEPTIONS
 
 
 NS_END  // djinterp

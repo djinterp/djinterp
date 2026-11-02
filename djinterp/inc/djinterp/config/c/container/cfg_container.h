@@ -46,11 +46,17 @@
 *       #define D_CFG_CONTAINER_FILTER_VECTOR 0
 *       #include "container\array\vector.h"
 *
+*   targets:  c/container/container.h -> D_CFG_CONTAINER_FILTER,
+*                                        D_CFG_CONTAINER_ARRAY_FILTER
+*             the C table's and the C++ array's configs, which inherit
+*                 these aggregates
+*   requires: cfg_common.h (D_CFG_IS_BOOL, user overrides)
+*
 *
 * path:      /inc/djinterp/config/c/container/cfg_container.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.19
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_CONTAINER_CFG_CONTAINER_H
@@ -114,7 +120,8 @@
 // D_CFG_CONTAINER_FILTER_ASSOCIATIVE
 //   configuration: enable filter for associative (key-value) containers.
 // Applies to: dictionary, hash, map, table, registry.
-// Inherits from D_CFG_CONTAINER_FILTER.
+// Inherits from D_CFG_CONTAINER_FILTER. Nothing reads it yet: no filter
+// exists for these containers.
 #ifndef D_CFG_CONTAINER_FILTER_ASSOCIATIVE
     #define D_CFG_CONTAINER_FILTER_ASSOCIATIVE D_CFG_CONTAINER_FILTER
 #endif  // D_CFG_CONTAINER_FILTER_ASSOCIATIVE
@@ -122,7 +129,8 @@
 // D_CFG_CONTAINER_FILTER_LINKED
 //   configuration: enable filter for linked (pointer-based) containers.
 // Applies to: list, graph, tree, node.
-// Inherits from D_CFG_CONTAINER_FILTER.
+// Inherits from D_CFG_CONTAINER_FILTER. Nothing reads it yet: no filter
+// exists for these containers.
 #ifndef D_CFG_CONTAINER_FILTER_LINKED
     #define D_CFG_CONTAINER_FILTER_LINKED D_CFG_CONTAINER_FILTER
 #endif  // D_CFG_CONTAINER_FILTER_LINKED
@@ -130,7 +138,8 @@
 // D_CFG_CONTAINER_FILTER_SET
 //   configuration: enable filter for set-like containers.
 // Applies to: set.
-// Inherits from D_CFG_CONTAINER_FILTER.
+// Inherits from D_CFG_CONTAINER_FILTER. Nothing reads it yet: no filter
+// exists for these containers.
 #ifndef D_CFG_CONTAINER_FILTER_SET
     #define D_CFG_CONTAINER_FILTER_SET D_CFG_CONTAINER_FILTER
 #endif  // D_CFG_CONTAINER_FILTER_SET
@@ -146,7 +155,8 @@
 //   configuration: enable filter for ordered containers (those that maintain
 // insertion or sorted order).
 // Applies to: array, vector, list, stack.
-// Inherits from D_CFG_CONTAINER_FILTER.
+// Inherits from D_CFG_CONTAINER_FILTER. Nothing reads it yet: no filter
+// exists for these containers.
 #ifndef D_CFG_CONTAINER_FILTER_ORDERED
     #define D_CFG_CONTAINER_FILTER_ORDERED D_CFG_CONTAINER_FILTER
 #endif  // D_CFG_CONTAINER_FILTER_ORDERED
@@ -155,7 +165,8 @@
 //   configuration: enable filter for containers supporting O(1) indexed
 // access.
 // Applies to: array, vector, buffer, matrix, bit.
-// Inherits from D_CFG_CONTAINER_FILTER.
+// Inherits from D_CFG_CONTAINER_FILTER. Nothing reads it yet: no filter
+// exists for these containers.
 #ifndef D_CFG_CONTAINER_FILTER_INDEXED
     #define D_CFG_CONTAINER_FILTER_INDEXED D_CFG_CONTAINER_FILTER
 #endif  // D_CFG_CONTAINER_FILTER_INDEXED
@@ -163,10 +174,31 @@
 // D_CFG_CONTAINER_FILTER_HIERARCHICAL
 //   configuration: enable filter for hierarchical (tree-based) containers.
 // Applies to: tree, graph.
-// Inherits from D_CFG_CONTAINER_FILTER.
+// Inherits from D_CFG_CONTAINER_FILTER. Nothing reads it yet: no filter
+// exists for these containers.
 #ifndef D_CFG_CONTAINER_FILTER_HIERARCHICAL
     #define D_CFG_CONTAINER_FILTER_HIERARCHICAL D_CFG_CONTAINER_FILTER
 #endif  // D_CFG_CONTAINER_FILTER_HIERARCHICAL
+
+// validation: the category gates are booleans too
+#if !D_CFG_IS_BOOL(D_CFG_CONTAINER_FILTER_ASSOCIATIVE)
+    #error "D_CFG_CONTAINER_FILTER_ASSOCIATIVE must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_CONTAINER_FILTER_LINKED)
+    #error "D_CFG_CONTAINER_FILTER_LINKED must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_CONTAINER_FILTER_SET)
+    #error "D_CFG_CONTAINER_FILTER_SET must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_CONTAINER_FILTER_ORDERED)
+    #error "D_CFG_CONTAINER_FILTER_ORDERED must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_CONTAINER_FILTER_INDEXED)
+    #error "D_CFG_CONTAINER_FILTER_INDEXED must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_CONTAINER_FILTER_HIERARCHICAL)
+    #error "D_CFG_CONTAINER_FILTER_HIERARCHICAL must be 0 or 1"
+#endif
 
 
 ///////////////////////////////////////////////////////////////////////////////

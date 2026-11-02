@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/c/modules/net/ftp/ftp_test.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool, true, false
@@ -2177,6 +2177,7 @@ void t_errors_from_net(void)
               { D_NET_ERROR_HOST_UNREACHABLE, D_FTP_ERROR_RESOLVE },
               { D_NET_ERROR_CONNECTION_REFUSED, D_FTP_ERROR_CONNECT },
               { D_NET_ERROR_NETWORK_DOWN, D_FTP_ERROR_CONNECT },
+              { D_NET_ERROR_UNSUPPORTED, D_FTP_ERROR_CONNECT },
               { D_NET_ERROR_ACCESS_DENIED, D_FTP_ERROR_CONNECT },
               { D_NET_ERROR_PROTOCOL, D_FTP_ERROR_MALFORMED },
               { D_NET_ERROR_WOULD_BLOCK, D_FTP_ERROR_UNKNOWN },

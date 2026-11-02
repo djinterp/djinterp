@@ -16,7 +16,7 @@
 * path:      /tests/djinterp/c/modules/parse/cli/arg_parser/arg_argv_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "./arg_argv_tests.h"  // corresponding header
 // std
@@ -965,18 +965,18 @@ static const char RESPONSE_EXPAND_OWN[] =
     "E03 gnu [a @simple.rsp -- @simple.rsp]\n"
     "cmd app n=1 miss=[a|a|b|c|--|@simple.rsp] subs=[] order=[]\n"
     "E04 gnu [@deep1.rsp]\n"
-    "ERR FileError 103: deep9.rsp: response files nest more than 8 deep\n"
+    "ERR TooDeep 127: deep9.rsp: response files nest more than 8 deep\n"
     "cmd app n=0 miss=[] subs=[] order=[]\n"
     "E05 gnu [@deep4.rsp]\n"
     "cmd app n=1 miss=[bottom|d10|d9|d8|d7|d6|d5|d4] subs=[] order=[]\n"
     "E06 gnu [@deep3.rsp]\n"
-    "ERR FileError 103: deep11.rsp: response files nest more than 8 deep\n"
+    "ERR TooDeep 127: deep11.rsp: response files nest more than 8 deep\n"
     "cmd app n=0 miss=[] subs=[] order=[]\n"
     "E07 gnu [@self.rsp]\n"
-    "ERR FileError 103: self.rsp: response files nest more than 8 deep\n"
+    "ERR TooDeep 127: self.rsp: response files nest more than 8 deep\n"
     "cmd app n=0 miss=[] subs=[] order=[]\n"
     "E08 gnu [@selfat.rsp]\n"
-    "ERR FileError 103: selfat.rsp: response files nest more than 8 deep\n"
+    "ERR TooDeep 127: selfat.rsp: response files nest more than 8 deep\n"
     "cmd app n=0 miss=[] subs=[] order=[]\n"
     "E09 gnu [@adir x]\n"
     "cmd app n=1 miss=[@adir|x] subs=[] order=[]\n"
@@ -4754,7 +4754,7 @@ d_tests_arg_argv_response_expand_own
   Tests the following:
   - `--` ending expansion
   - files nested deeper than D_INTERNAL_ARG_PARSER_RESPONSE_DEPTH, a file naming
-    itself among them, refused as a FileError
+    itself among them, refused as TooDeep (a FileError until 2026.10.31)
   - a folder kept as an argument
   - files read by POSIX's and CLI11's rules, and refused where they break them
   - byte-order marks honoured by GNU's rules too, and broken UTF-16 repaired

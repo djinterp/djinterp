@@ -7,13 +7,14 @@
 * <curl/curlver.h> to read libcurl's version (decision 105 of the register,
 * as decision 60 did for TLS).
 *   targets:  env/net/curl/env_curl.h -> D_CFG_ENV_CURL_PROBE_VERSION
+*             env/net/env_curl.h, the older flat header -> the same
 *   requires: cfg_common.h (D_CFG_IS_BOOL)
 *
 *
 * path:      /inc/djinterp/config/env/net/curl/cfg_env_curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #ifndef DJINTERP_CONFIG_ENV_NET_CURL_CFG_ENV_CURL_H
 #define DJINTERP_CONFIG_ENV_NET_CURL_CFG_ENV_CURL_H 1

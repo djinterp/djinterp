@@ -28,7 +28,7 @@
 * decision applied to the one data structure in this subframework that has a
 * choice about it.
 *
-*   targets:  core/memory/pool.h, pool.c  ->  D_INTERNAL_POOL_FREE_LIST,
+*   targets:  c/memory/pool.h, pool.c  ->  D_INTERNAL_POOL_FREE_LIST,
 *             D_INTERNAL_POOL_GENERATIONAL, D_INTERNAL_POOL_INDEXED_LINKS,
 *             D_INTERNAL_POOL_INDEX_BITS, D_INTERNAL_POOL_GENERATION_BITS,
 *             D_INTERNAL_POOL_BLOCK_TABLE, D_INTERNAL_POOL_SLOTS_PER_BLOCK,
@@ -40,14 +40,15 @@
 * path:      /inc/djinterp/config/c/memory/cfg_pool.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_MEMORY_CFG_POOL_H
 #define DJINTERP_CONFIG_C_MEMORY_CFG_POOL_H 1
 
-// (0) subframework root first, then the dependency whose defaults this file's
-//     own defaults read.
+// (0) cfg_common.h first, as every config; then the subframework root, then
+//     the dependency whose defaults this file's own defaults read.
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "./cfg_mem_common.h"
 #include "./cfg_mem_source.h"
 
@@ -191,7 +192,9 @@
 
 // D_CFG_POOL_DOUBLE_FREE_CHECK
 //   brief: 1 walks the free list on every release to confirm the slot is not
-// already on it.
+// already on it; a slot that is gets D_MEM_ERR_RELEASED (D_MEM_ERR_CORRUPT
+// until 2026.10.31), and a list that loops gets D_MEM_ERR_CORRUPT. 0 releases
+// without looking.
 //   O(free slots) PER RELEASE -- this is a testing-mode check and nothing
 // else. Its value is that a double free into a free-list pool otherwise
 // produces a cycle in the list, after which two callers are handed the same

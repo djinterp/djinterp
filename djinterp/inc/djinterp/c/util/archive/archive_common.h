@@ -64,7 +64,7 @@
 * path:      /inc/djinterp/c/util/archive/archive_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -110,6 +110,7 @@ X.    TRANSFORM LEAVES          (create / measure / extract)
 // djinterp
 #include "../../djinterp.h"                  // D_STATIC_ASSERT, D_EXTERN_C_*
 #include "../compress/compress_common.h"  // status, sink, dj_compress_options
+#include "../../../config/c/util/archive/cfg_archive.h"  // D_INTERNAL_ARCHIVE_*
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 

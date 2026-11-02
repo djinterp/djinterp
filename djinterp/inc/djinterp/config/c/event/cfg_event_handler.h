@@ -5,7 +5,7 @@
 * combinators compile, which handler shapes are accepted, and whether the
 * erased shim guards against an escaping C++ exception.
 *
-*   targets:  core/event/event_handler_common.h, event_handler.hpp
+*   targets:  c/event/event_handler_common.h, cpp/event/event_handler.hpp
 *             ->  D_INTERNAL_EVENT_HANDLER_ADAPTER,
 *                 D_INTERNAL_EVENT_HANDLER_SEQ,
 *                 D_INTERNAL_EVENT_HANDLER_ALLOW_VOID,
@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/config/c/event/cfg_event_handler.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_HANDLER_H
@@ -135,10 +135,18 @@
     D_CFG_NORM(D_CFG_EVENT_HANDLER_ALLOW_VOID)
 
 // D_INTERNAL_EVENT_HANDLER_GUARD
-//   brief: 1 when the C++ erased shim should catch escaping exceptions. Read
-// by event_handler.hpp.
-#define D_INTERNAL_EVENT_HANDLER_GUARD                                        \
-    D_CFG_NORM(D_CFG_EVENT_HANDLER_GUARD_EXCEPTIONS)
+//   brief: 1 when the C++ erased shim should catch escaping exceptions: the
+// knob is on, and the translation unit has exceptions to catch -- a
+// -fno-exceptions build has no try, so there the knob changes nothing. Read
+// by event_handler.hpp's apply_handler.
+#if ( (D_CFG_IS_ON(D_CFG_EVENT_HANDLER_GUARD_EXCEPTIONS)) &&                  \
+      ( (defined(__cpp_exceptions)) ||                                        \
+        (defined(__EXCEPTIONS))     ||                                        \
+        (defined(_CPPUNWIND)) ) )
+#   define D_INTERNAL_EVENT_HANDLER_GUARD 1
+#else
+#   define D_INTERNAL_EVENT_HANDLER_GUARD 0
+#endif
 
 // D_INTERNAL_EVENT_HANDLER_GUARD_CODE
 //   brief: the pinned verdict code a guarded shim returns on an exception.

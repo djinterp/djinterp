@@ -5,14 +5,19 @@
 * defaults plus D_CFG_ENV_MONGO_CUSTOM and the pre-defined-detection
 * auto-activation logic for it.
 *
-*   Optionally pulls in dconfig.h for user-level central overrides when
-* D_CFG_CUSTOM is defined.
+*   User overrides arrive through cfg_common.h. It never includes the
+* dconfig.h umbrella: reached from here, that re-entered env detection
+* before it had finished.
+*
+*   targets:  env/db/mongodb/env_mongodb.h -> D_CFG_ENV_USING_MONGODB,
+*             D_CFG_ENV_MONGODB_C_PATH, _CPP_PATH, D_CFG_ENV_MONGO_CUSTOM
+*   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *
 *
 * path:      /inc/djinterp/config/env/db/mongodb/cfg_env_mongodb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.10.28
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*
@@ -101,11 +106,7 @@ TABLE OF CONTENTS
           (defined(D_ENV_MONGO_DETECTED_SERVER_6_0))     ||                    \
           (defined(D_ENV_MONGO_DETECTED_SERVER_7_0))     ||                    \
           (defined(D_ENV_MONGO_DETECTED_SERVER_8_0))     ||                    \
-          (defined(D_ENV_MONGO_DETECTED_SERVER_8_2))     ||                    \
-          (defined(D_ENV_MONGO_DETECTED_SERVER_8_3))     ||                    \
-          (defined(D_ENV_MONGO_DETECTED_SERVER_9_0))     ||                    \
-          (defined(D_ENV_MONGO_DETECTED_ENTERPRISE))     ||                    \
-          (defined(D_ENV_MONGO_DETECTED_ATLAS)) )
+          (defined(D_ENV_MONGO_DETECTED_ENTERPRISE)) )
         #define D_CFG_ENV_MONGO_CUSTOM 1
     #else
         #define D_CFG_ENV_MONGO_CUSTOM 0

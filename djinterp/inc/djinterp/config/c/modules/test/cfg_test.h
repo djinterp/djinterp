@@ -31,13 +31,14 @@
 * path:      /inc/djinterp/config/c/modules/test/cfg_test.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_TEST_CFG_TEST_H
 #define DJINTERP_CONFIG_C_TEST_CFG_TEST_H 1
 
 // djinterp
+#include "../../../cfg_common.h"  // D_CFG_* helpers, user overrides
 #include "cfg_test_object.h"
 #include "cfg_test_metadata.h"
 #include "cfg_test_event.h"

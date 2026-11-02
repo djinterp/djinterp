@@ -22,7 +22,7 @@
 #include "../../../../c/container/map/map.h"
 #include "../../../../c/container/map/enum_map_entry.h"
 #include "../../../../c/container/map/min_enum_map.h"
-#include "../../../c/modules/test/test_config.h"
+#include "../../../c/modules/test/cfg_test_printer.h"
 
 
 #if defined(D_CFG_TEST_USING_DTIME)

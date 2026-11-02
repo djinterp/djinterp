@@ -17,14 +17,14 @@
 *   THIS FILE DECLARES KNOBS.  IT DOES NOT DECLARE TYPES.  D_CFG_* originates
 * here with a default and a validation block; the typedef that turns it into a
 * type lives at the top of the module header that owns the type, where a reader
-* looking for dj_test_event_id finds it in the file that uses it.  A config header
-* that also typedefs is a second place to look for one answer.
+* looking for dj_test_event_id finds it in the file that uses it.  A config
+* header that also typedefs is a second place to look for one answer.
 *
 *
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_event.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.11
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_TEST_CFG_TEST_EVENT_H
@@ -108,6 +108,9 @@
 // user knob, for the same reason cfg_test_counter.h forces its bounds check:
 // the oracle's whole job is to catch the case the knob would hide.
 
+// D_INTERNAL_TEST_EVENT_MAX_LISTENERS
+//   internal: D_CFG_TEST_EVENT_MAX_LISTENERS, passed through after
+// validation.
 #define D_INTERNAL_TEST_EVENT_MAX_LISTENERS D_CFG_TEST_EVENT_MAX_LISTENERS
 
 //   NOTHING IS FORCED ON UNDER D_CFG_TESTING HERE, because there is nothing

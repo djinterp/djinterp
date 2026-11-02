@@ -5,14 +5,22 @@
 * defaults and the pre-defined-detection auto-activation logic for
 * D_CFG_ENV_MARIADB_CUSTOM.
 *
-*   Optionally pulls in dconfig.h for user-level central overrides when
-* D_CFG_CUSTOM is defined.
+*   User overrides arrive through cfg_common.h. It never includes the
+* dconfig.h umbrella: reached from here, that re-entered env detection
+* before it had finished.
+*
+*   targets:  env/db/mariadb/env_mariadb.h, through
+*             env/db/mysql/env_mysql_common.h -> D_CFG_ENV_USING_MARIADB,
+*             D_CFG_ENV_MARIADB_C_PATH, _CPP_PATH, _CUSTOM
+*             c/db/mariadb/cfg_mariadb_common.h -> D_CFG_ENV_USING_MARIADB,
+*             D_CFG_ENV_MARIADB_C_PATH
+*   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *
 *
 * path:      /inc/djinterp/config/env/db/mariadb/cfg_env_mariadb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*

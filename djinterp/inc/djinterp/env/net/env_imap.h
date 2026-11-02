@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/env/net/env_imap.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -130,6 +130,7 @@ TABLE OF CONTENTS
 #include "./env_net.h"   // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
 #include "./env_tls.h"   // D_ENV_TLS_AVAILABLE
 #include "./env_curl.h"  // D_ENV_CURL_AVAILABLE, D_ENV_CURL_VERSION_AT_LEAST
+#include "../../config/env/net/imap/cfg_env_imap.h"  // D_CFG_ENV_IMAP_*
 
 
 //==============================================================================
@@ -148,10 +149,9 @@ TABLE OF CONTENTS
 //   config: set 0 before inclusion to suppress the automatic version-header
 // includes below, so that detection touches no third-party header. Version
 // macros then fall back to "unknown" unless pre-defined, and VMime reports no
-// IMAP support, since its build configuration is where that is recorded.
-#ifndef D_CFG_ENV_IMAP_PROBE_VERSION
-    #define D_CFG_ENV_IMAP_PROBE_VERSION 1
-#endif  // D_CFG_ENV_IMAP_PROBE_VERSION
+// IMAP support, since its build configuration is where that is recorded. Its
+// default lives in config/env/net/imap/cfg_env_imap.h, the one this header
+// shares with imap/env_imap.h.
 
 
 //==============================================================================

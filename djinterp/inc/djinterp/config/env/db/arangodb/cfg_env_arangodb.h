@@ -5,17 +5,22 @@
 * D_CFG_ENV_ARANGODB_* defaults plus D_CFG_ENV_ARANGO_CUSTOM and the
 * pre-defined-detection auto-activation logic for it.
 *
-*   Optionally pulls in dconfig.h for user-level central overrides when
-* D_CFG_CUSTOM is defined.
+*   User overrides arrive through cfg_common.h. It never includes the
+* dconfig.h umbrella: reached from here, that re-entered env detection
+* before it had finished.
 *
 *   NOTE: ArangoDB has no canonical C client surface; only CPP_PATH is
 * provided (velocypack).
+*
+*   targets:  env/db/arangodb/env_arangodb.h -> D_CFG_ENV_USING_ARANGODB,
+*             D_CFG_ENV_ARANGODB_CPP_PATH, D_CFG_ENV_ARANGO_CUSTOM
+*   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *
 *
 * path:      /inc/djinterp/config/env/db/arangodb/cfg_env_arangodb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.01
 *******************************************************************************/
 
 /*

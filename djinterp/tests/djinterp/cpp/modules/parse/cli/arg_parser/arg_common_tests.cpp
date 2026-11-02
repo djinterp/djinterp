@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/modules/parse/cli/arg_parser/arg_common_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.19
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 #include "./arg_common_tests.hpp"  // corresponding header
 // std
@@ -63,7 +63,7 @@ const char EXIT_CODES[] =
 // module's own, as CLI11's enumerations are enum classes of values of their
 // own, where each of the face's is the C library's.
 const char VOCABULARY[] =
-    "93 enumerators, 0 not their C values\n";
+    "94 enumerators, 0 not their C values\n";
 
 // STATUSES
 //   constant: what the steps of d_tests_arg_cpp_common_statuses write: the
@@ -95,8 +95,9 @@ const char STATUSES[] =
     "OutOfMemory: code=23 exit=127 ok=0 error=1\n"
     "BadArgument: code=24 exit=127 ok=0 error=1\n"
     "Unsupported: code=25 exit=127 ok=0 error=1\n"
+    "TooDeep: code=26 exit=127 ok=0 error=1\n"
     "Error: code=-1 exit=127 ok=0 error=1\n"
-    "Error: code=26 exit=127 ok=0 error=1\n"
+    "Error: code=27 exit=127 ok=0 error=1\n"
     "made=OK coded==raw=1 coded!=made=1 coded==code=1 code==coded=1 "
     "code!=made=1 made==ok=1\n";
 
@@ -333,6 +334,8 @@ const DVocabularyRow VOCABULARY_ROWS[] =
       cli::status_code::bad_argument, D_ARG_ERROR_BAD_ARGUMENT },
     { "status_code::unsupported",
       cli::status_code::unsupported, D_ARG_ERROR_UNSUPPORTED },
+    { "status_code::too_deep",
+      cli::status_code::too_deep, D_ARG_ERROR_TOO_DEEP },
     { "exit_code::success", cli::exit_code::success, D_ARG_EXIT_SUCCESS },
     { "exit_code::incorrect_construction",
       cli::exit_code::incorrect_construction,

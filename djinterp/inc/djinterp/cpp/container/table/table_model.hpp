@@ -61,7 +61,7 @@
 * path:      /inc/djinterp/cpp/container/table/table_model.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.14
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -471,6 +471,10 @@ private:
     Metadata       m_metadata;   // headers + open key-value entries
 };
 
+
+// D_CFG_TABLE_RENDER compiles the compose leg; the parser's round-trip laws
+// need it, so cfg_table.h turns it on wherever the parser is on.
+#if D_INTERNAL_TABLE_RENDER
 
 // ===========================================================================
 // IV.  render
@@ -990,6 +994,8 @@ D_NODISCARD std::string render(
 
     return _out;
 }
+
+#endif  // D_INTERNAL_TABLE_RENDER
 
 
 // ===========================================================================
