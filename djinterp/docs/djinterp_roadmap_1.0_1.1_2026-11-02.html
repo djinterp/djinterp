@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>djinterp 1.0 and 1.1 Roadmap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* one reading column, wide tables in their own scroll boxes; the tokens are the
+   upgrade audit's and the config handoff's, the pages this plan sits beside */
+:root {
+  --bg: #fbfaf7; --fg: #1f2328; --dim: #5d6670; --line: #dcd8cf; --panel: #f2efe8;
+  --accent: #2f5d8a; --warn: #9a3412; --warn-bg: #fdebe0; --ok: #1d6b3a; --ok-bg: #e3f2e7;
+  --pre: #6b3b8a; --pre-bg: #efe6f5; --later: #5d6670; --later-bg: #ebe8e1;
+  --next: #2f5d8a; --next-bg: #e2ebf5;
+  --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17191c; --fg: #e6e3dc; --dim: #a3a9b1; --line: #343840; --panel: #20242a;
+    --accent: #8db4dd; --warn: #f4a37a; --warn-bg: #3a2418; --ok: #74c590; --ok-bg: #1c3024;
+    --pre: #c9a3e6; --pre-bg: #2e2238; --later: #b6bcc4; --later-bg: #2a2e34;
+    --next: #8db4dd; --next-bg: #1c2836;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17191c; --fg: #e6e3dc; --dim: #a3a9b1; --line: #343840; --panel: #20242a;
+  --accent: #8db4dd; --warn: #f4a37a; --warn-bg: #3a2418; --ok: #74c590; --ok-bg: #1c3024;
+  --pre: #c9a3e6; --pre-bg: #2e2238; --later: #b6bcc4; --later-bg: #2a2e34;
+    --next: #8db4dd; --next-bg: #1c2836;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--body); }
+main { max-width: 1000px; margin: 0 auto; padding-block: 28px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-size: 27px; margin: 0 0 4px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-size: 19.5px; margin: 40px 0 8px; padding-top: 18px; border-top: 1px solid var(--line);
+  text-wrap: balance; }
+h3 { font-size: 15.5px; margin: 22px 0 6px; }
+p, li { max-width: 76ch; }
+.meta { color: var(--dim); margin: 0 0 18px; }
+.lede { font-size: 16px; }
+.toc { font-size: 14px; color: var(--dim); }
+.toc a { white-space: nowrap; }
+a { color: var(--accent); }
+code { font: 13px/1.4 var(--mono); background: var(--panel); padding: 1px 4px;
+  border-radius: 3px; overflow-wrap: break-word; }
+td code { overflow-wrap: anywhere; }
+.wrap { overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border-bottom: 1px solid var(--line); padding: 7px 9px; vertical-align: top;
+  text-align: left; }
+th { background: var(--panel); font-size: 13px; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.c { white-space: nowrap; }
+td.z { color: var(--dim); }
+td.lo { color: var(--warn); font-weight: 600; }
+table.score { min-width: 900px; font-size: 14px; }
+th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.sep th { background: var(--bg); color: var(--dim); font-size: 12px; font-weight: 650;
+  letter-spacing: 0.06em; text-transform: uppercase; padding-top: 14px; }
+table.lanes { min-width: 1080px; font-size: 13.5px; }
+table.lanes td:first-child { white-space: nowrap; }
+table.lanes ul { margin: 0; padding-left: 16px; }
+table.lanes li { margin: 2px 0; }
+table.wide { min-width: 760px; font-size: 14px; }
+table.wide.gates { min-width: 960px; }
+table.cal td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chip { display: inline-block; font-size: 12px; font-weight: 650; border-radius: 10px;
+  padding: 1px 8px; white-space: nowrap; }
+.t-stable { color: var(--ok); background: var(--ok-bg); }
+.t-preview { color: var(--pre); background: var(--pre-bg); }
+.t-later { color: var(--later); background: var(--later-bg); }
+.t-next { color: var(--next); background: var(--next-bg); }
+.t-warn { color: var(--warn); background: var(--warn-bg); }
+.weeks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;
+  margin: 16px 0 6px; }
+.week { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0;
+  background: var(--panel); }
+.week h3 { margin: 0; font-size: 14.5px; }
+.week .d { color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+.week ul { margin: 6px 0 0; padding-left: 16px; font-size: 13.5px; }
+.week li { margin: 3px 0; }
+.week.rel { border-color: var(--accent); }
+.month { margin: 18px 0 -8px; font-size: 12px; font-weight: 650; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--dim); }
+@media (max-width: 760px) { .weeks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 440px) { .weeks { grid-template-columns: 1fr; } }
+dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 10px 0;
+  max-width: 86ch; }
+dl.facts dt { color: var(--dim); font-size: 13.5px; }
+dl.facts dd { margin: 0; min-width: 0; }
+@media (max-width: 640px) { dl.facts { grid-template-columns: 1fr; } dl.facts dt { margin-top: 6px; } }
+ol.decide > li { margin: 8px 0; }
+ol.decide .rec { color: var(--dim); }
+.brief { margin: 10px 0; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+.brief summary { cursor: pointer; }
+.bhead { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  margin: 6px 0; flex-wrap: wrap; }
+.brief pre { margin: 0; background: var(--panel); border-radius: 6px; padding: 10px 12px;
+  overflow-x: auto; font: 12.5px/1.5 var(--mono); white-space: pre; }
+button.copy { font: 13px var(--body); padding: 3px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+button.copy:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent);
+  outline-offset: 2px; }
+.dim { color: var(--dim); }
+.note { border-left: 3px solid var(--accent); padding: 2px 12px; margin: 12px 0; max-width: 80ch; }
+</style>
+</head>
+<body>
+<main>
+<h1>djinterp 1.0 and 1.1: the roadmap through December</h1>
+<p class="meta">2026.11.02 &middot; v1.0.0 on Monday 2026-11-30, by Tuesday 12-01 at the latest
+&middot; v1.1.0 on Wednesday 2026-12-30, by Thursday 12-31 &middot; eight lanes, A to H, on eight
+accounts (lane A is this one); the owner integrates &middot; a draft until the rulings of
+section 2</p>
+
+<p class="lede">Two releases. 1.0.0 ships on 30 November as a promise about a defined core, and
+1.1.0 ships on 30 December with the rest of your list. A month gives eight lanes about 32
+lane-weeks and the whole list is about 74, so each release has a stable tier, which the promises
+cover, and a preview tier that ships beside it. Two things still won't fit by the 31st: dsed and
+dgrep, which you marked as future, and math's Phases 6 to 8. This plan sets the dates, gives each
+lane its work for each month, turns each promise into a check that CI runs, and lists, in order,
+what to cut if a checkpoint slips.</p>
+
+<div class="month">November: 1.0.0</div>
+<div class="weeks">
+<div class="week"><h3>1 &middot; Foundations</h3><div class="d">Mon 2 to Sun 8</div><ul>
+<li>Tue 3: the owner's rulings; base-0</li><li>Fri 6: DTest 2.0's API frozen</li>
+<li>Fri 6: CI running on GitHub</li><li>Sun 8: checkpoint 1</li></ul></div>
+<div class="week"><h3>2 &middot; Build-out</h3><div class="d">Mon 9 to Sun 15</div><ul>
+<li>Tests at full speed in three lanes</li><li>Fri 13: interfaces frozen</li>
+<li>Sun 15: checkpoint 2, first cuts if needed</li></ul></div>
+<div class="week"><h3>3 &middot; Freeze</h3><div class="d">Mon 16 to Sun 22</div><ul>
+<li>Fri 20: feature freeze</li><li>Docs and API lists</li>
+<li>Sun 22: checkpoint 3, go or no-go for RC1</li></ul></div>
+<div class="week rel"><h3>4 &middot; Release</h3><div class="d">Mon 23 to Mon 30</div><ul>
+<li>Tue 24: RC1</li><li>Thu 26: Thanksgiving, no window</li>
+<li>Sat 28: RC2 if needed</li><li><b>Mon 30: v1.0.0</b></li></ul></div>
+</div>
+<div class="month">December: 1.1.0</div>
+<div class="weeks">
+<div class="week"><h3>5 &middot; Kickoff</h3><div class="d">Tue 1 to Sun 6</div><ul>
+<li>Tue 1: the December rulings; 1.1 starts from v1.0.0</li><li>Fri 4: 1.1's designs agreed</li>
+<li>Sun 6: checkpoint 4</li></ul></div>
+<div class="week"><h3>6 &middot; Build-out</h3><div class="d">Mon 7 to Sun 13</div><ul>
+<li>The interpreter, the adapters, desc</li><li>Fri 11: interfaces frozen</li>
+<li>Sun 13: checkpoint 5, cuts if needed</li></ul></div>
+<div class="week"><h3>7 &middot; Freeze</h3><div class="d">Mon 14 to Sun 20</div><ul>
+<li>Fri 18: feature freeze</li><li>Docs, man pages, API lists</li>
+<li>Sun 20: checkpoint 6, go or no-go for RC1</li></ul></div>
+<div class="week rel"><h3>8 &middot; Release</h3><div class="d">Mon 21 to Thu 31</div><ul>
+<li>Tue 22: RC1</li><li>Thu 24 and Fri 25: Christmas, no windows</li>
+<li>Tue 29: RC2 if needed</li><li><b>Wed 30: v1.1.0</b></li></ul></div>
+</div>
+
+<p class="toc">Sections: <a href="#scope">1 What 1.0 and 1.1 are</a> &middot; <a
+href="#decide">2 Rulings</a> &middot; <a href="#promises">3 The promises as gates</a> &middot; <a
+href="#calendar">4 Calendar</a> &middot; <a href="#lanes">5 Lanes</a> &middot; <a
+href="#handoffs">6 Hand-offs</a> &middot; <a href="#together">7 Working together</a> &middot; <a
+href="#tests">8 Tests</a> &middot; <a href="#cuts">9 Cuts</a> &middot; <a href="#risks">10
+Risks</a> &middot; <a href="#state">11 Where things stand</a> &middot; <a href="#briefs">12 Lane
+briefs</a></p>
+
+<h2 id="scope">1. What 1.0 and 1.1 are</h2>
+<p>Semantic versioning, with three kinds of module. A <b>stable</b> module's public API is frozen
+at its release's RC1 and stays source-compatible through 1.x; the promises are claimed for it, and its gates
+run in CI. A <b>preview</b> module ships in the same release, builds on every ladder level,
+is documented and tested, and may change in a minor release; its README and the release notes
+say so. <b>1.1</b> is a minor release a month after 1.0: it keeps 1.0's stable API, makes stable the
+preview modules whose gates are green, and adds what December builds.</p>
+<div class="wrap"><table class="wide"><thead><tr><th>Tier</th><th>Modules and work</th>
+<th>Why there</th></tr></thead><tbody>
+<tr><td><span class="chip t-stable">Stable in 1.0</span></td><td>The roots, env, config, re_std (the
+modules djinterp includes and those 1.0 adopts), memory, meta, sync, filesys, container,
+functional, paradigm, binary, util, text and the output stream, option (with the run-time
+machine environment and the djin registry), event and the log contract, test (DTest 2.0); parse's
+core (lexing, sources, diagnostics, expression core v2); net's foundation, TCP, TLS, URL and HTTP
+client; db's SQLite, MariaDB/MySQL and PostgreSQL layers; the cli module</td><td>Everything
+else stands on them, and each can be tested to the floor in four weeks</td></tr>
+<tr><td><span class="chip t-preview">Preview in 1.0</span></td><td>math (the language, values,
+complex numbers; Phases 0 to 3); parsegen and vparse; desc; net's servers and other protocols
+(FTP, SFTP, SSH, SMTP, IMAP, the web server); db's other vendors; jit; render; the tools (dawk,
+bitwisedom, the cli kit's programs) and the djinterp CLI with djins</td><td>Real and useful,
+but still moving, or too new to freeze on the 20th</td></tr>
+<tr><td><span class="chip t-next">1.1, Dec 30</span></td><td><b>Made stable:</b> desc, with
+describers for every stable module; djins, the registry's commands; parse's outer layers, parsegen
+and vparse; net's other protocols and servers and db's other vendors, where their gates are green;
+math's C core, if its gates hold. <b>New:</b> the djinterp interpreter and DSL (ruling 13), with awk
+modules run by dawk; logging in every stable module; the bison, flex and LLVM adapters; math's 5a,
+Phase 4 and Phase 5, as preview; dawk's lexer, macro generators and style rules, which replace the
+Python style check and generators; the scripts in dawk or the CLI; man pages and the wiki.
+<b>Optional, cut first:</b> Linux arm64 and FreeBSD as required platforms; Meson; the codebase
+manager</td><td>The rest of your list, sized to December</td></tr>
+<tr><td><span class="chip t-later">After 1.1</span></td><td>dsed and dgrep; math's Phases 6 to 8
+(precision, comparison, bignum) and its last two steps; the DSL's sed dialect; a C core for the
+interpreter, which its library needs before it can be stable; jit and render, which stay
+preview</td><td>You marked dsed and dgrep as future; math's remaining phases are about seven
+lane-weeks, and one lane does about four a month</td></tr>
+</tbody></table></div>
+
+<h3>Why it takes two releases, and a cut in each</h3>
+<p>Eight lanes for a month is about 32 lane-weeks. The estimates below are rough, made from the
+lanes' pace in October (the math lane made 41 chunks in 25 days; a step of its roadmap has lately
+taken three or four), and they are there to show the size of the gap, not to schedule it.</p>
+<div class="wrap"><table class="wide"><thead><tr><th>Work</th><th>The whole ask</th>
+<th>In 1.0</th><th>In 1.1</th><th>After 1.1</th></tr></thead><tbody>
+<tr><td>Tests: DTest 2.0, rewriting the old tests, new tests</td><td class="num">14</td>
+<td class="num">11.5</td><td class="num">2.5</td><td class="z">—</td></tr>
+<tr><td>Options, registry, desc, events, logging</td><td class="num">6</td><td class="num">3.5</td>
+<td class="num">2.5</td><td class="z">—</td></tr>
+<tr><td>Output stream into text</td><td class="num">2</td><td class="num">1</td>
+<td class="num">1</td><td class="z">—</td></tr>
+<tr><td>Parse: expression core, polish; parsegen, vparse, adapters</td><td class="num">10</td>
+<td class="num">3</td><td class="num">7</td><td class="z">—</td></tr>
+<tr><td>Math, to step 51</td><td class="num">14</td><td class="num">3</td><td class="num">4</td>
+<td>7: Phases 6 to 8</td></tr>
+<tr><td>Polish: db, net, container, re_std</td><td class="num">6</td><td class="num">3</td>
+<td class="num">3</td><td class="z">—</td></tr>
+<tr><td>djinterp CLI: interpreter, DSL, djins</td><td class="num">6</td><td class="num">1</td>
+<td class="num">5</td><td class="z">—</td></tr>
+<tr><td>Tools: dawk, dsed and dgrep, the codebase manager</td><td class="num">7</td>
+<td class="num">1</td><td class="num">4</td><td>2: dsed and dgrep</td></tr>
+<tr><td>Build, CI, platforms, release</td><td class="num">4.5</td><td class="num">3.5</td>
+<td class="num">1</td><td class="z">—</td></tr>
+<tr><td>Scripts in djinterp or dawk</td><td class="num">1.5</td><td class="num">0</td>
+<td class="num">1.5</td><td class="z">—</td></tr>
+<tr><td>Documentation: comments, READMEs, man pages, wiki</td><td class="num">3</td>
+<td class="num">1.5</td><td class="num">1.5</td><td class="z">—</td></tr>
+<tr><td>The second release: 1.0's fixes, 1.1's candidates</td><td class="num z">—</td>
+<td class="num z">—</td><td class="num">2</td><td class="z">—</td></tr>
+<tr><th>Total, lane-weeks</th><th class="num">74</th><th class="num">32</th><th class="num">35</th>
+<th>9</th></tr>
+</tbody></table></div>
+<p>Tests take the largest share of November, 11.5 of 32, as you expected. December asks for
+about 35 lane-weeks, the second release included, against about 32 and whatever lanes start early
+after 1.0's freeze (ruling 16). The optional items (the codebase manager, Meson, and the two more
+required platforms, about 2.5 lane-weeks) make up most of the difference, so they are scheduled
+last and cut first. Math's remaining phases come to about eleven lane-weeks, and one lane does
+about four a month, so Phases 6 to 8 wait for 2027 unless a second lane takes bignum (ruling
+14).</p>
+
+<h2 id="decide">2. Rulings</h2>
+<p>Each has a recommendation, and the plan assumes it. The first eleven are for Tuesday the 3rd,
+so base-0 and the lanes start from them; the other nine are for December and can wait until
+Tuesday 12-01.</p>
+<h3>For Tuesday the 3rd</h3>
+<ol class="decide">
+<li><b>1.0's tiers</b>, as section 1 sets them out. <span class="rec">Recommended: as
+proposed.</span></li>
+<li><b>One rule for the backlog.</b> About 180 items wait on a ruling across the lanes'
+registers: math 18 flagged and chunk 41's 7, the stream 7, the restructure 8 (their defaults
+ran), cli 5 questions and 63 taken as recommended, db 7, fs 19 taken, net 23 open and 9 for
+review, style 15. <span class="rec">Recommended: every lane's recommendation stands unless you
+overrule it by the next integration window; lanes bring you only the items that block
+them.</span></li>
+<li><b>The output stream and text: merge, don't absorb.</b> <span class="rec">Recommended: the
+kernel and its destinations stay below text, where the stream lane put them
+(<code>c/util/ostream</code>, <code>cpp/util/output</code>), because archive, compress, net,
+DTest and logging write bytes without needing text. The template language and number formatting
+move into text. Text's writers, printers and document renderers write onto the stream, as the
+stream lane's design (documents are producers, not destinations) has it.</span></li>
+<li><b>Platforms 1.0 requires.</b> <span class="rec">Recommended: Linux x86-64 (GCC 13 and
+later, Clang 18 and later), Windows x64 (MSVC 2022), macOS on arm64 (Apple Clang). Best-effort,
+not blocking: Linux arm64, FreeBSD, 32-bit x86.</span></li>
+<li><b>What "every level" means at C23 and C++23.</b> GCC 13's <code>-std=c2x</code> and
+<code>-std=c++23</code> report pre-standard version values, so env's C23 and C++23 tiers never
+switch on with it. <span class="rec">Recommended: C23 tiers verified with Clang 18 and GCC 15;
+C++23 tiers with Clang 18 and GCC 14; the ladders gain those compilers.</span></li>
+<li><b>Test floors.</b> <span class="rec">Recommended: every public header of a stable module
+has a DTest 2.0 suite; line coverage of at least 80% in the roots, memory, container, functional,
+option and the stream, and 60% in the other stable modules; a parity test for every C++ face of a
+C core; smoke suites for preview modules.</span></li>
+<li><b>What is public.</b> <span class="rec">Recommended: every header outside internal
+folders, and every name that is not <code>D_INTERNAL_*</code> or in an <code>internal</code>
+namespace, is public; 1.x keeps it source-compatible. The C status codes (v1) and the knob ids
+from config round 3 stay fixed for 1.x. Preview modules are exempt.</span></li>
+<li><b>Math's line.</b> <span class="rec">Recommended: Phases 0 to 3 (step 23, and step 24 if it
+lands by Friday the 13th), shipped as preview, with the release notes naming
+<code>expression.hpp</code>'s known wrong answers (ruling 14); 5a, Phase 4 and Phase 5 in 1.1; the
+rest in 2027.</span></li>
+<li><b>The djinterp CLI.</b> <span class="rec">Recommended: preview in 1.0 (djins over the cli
+kit and the registry); the interpreter and DSL in 1.1 (ruling 13).</span></li>
+<li><b>GitHub.</b> No workflow has run: the restructure's default (rs d) left
+<code>.github/</code> inside <code>djinterp/</code>. <span class="rec">Recommended: a private
+repository with <code>.github/</code> at its root this week, public at release if you want
+it.</span></li>
+<li><b>Windows and the calendar.</b> <span class="rec">Recommended: integration windows on
+Monday, Wednesday and Friday; base-0 on Tuesday the 3rd; RC1 on Tuesday the 24th, before
+Thanksgiving; lane A checks every base and keeps the punch list.</span></li>
+</ol>
+<h3>For December, by Tuesday 12-01</h3>
+<ol class="decide" start="12">
+<li><b>1.1's scope and date</b>, as section 1 sets them out: v1.1.0 on Wednesday 12-30, with
+Thursday 12-31 as the hard limit. <span class="rec">Recommended: as proposed.</span></li>
+<li><b>The djinterp CLI in 1.1.</b> Its command language has had a normative grammar since July
+(<code>parse/grammar/djinterp.peg</code>), and <code>functional_cli.hpp</code> already runs it in
+C++. <span class="rec">Recommended: the command language stable in 1.1 if its suites are green at
+the freeze, preview otherwise; the interpreter's library API preview, and C++ only until a C core
+gives it the C face the parity law asks for.</span></li>
+<li><b>Math in December.</b> <code>expression.hpp</code>'s own <code>sqrt</code>, <code>exp</code>
+and <code>sin</code> give wrong answers today (<code>sqrt(1e300)</code> is 7.89e269), and step 29,
+5a, fixes them. <span class="rec">Recommended: one lane: 5a first, then Phase 4, then Phase 5 as far
+as lands by Friday the 18th, all preview; a second lane for bignum (P2 to P4) only if a lane has
+finished its 1.1 work by checkpoint 5.</span></li>
+<li><b>1.0.x.</b> <span class="rec">Recommended: a 1.0.1 only for a broken stable gate, a security
+hole or lost data, made by lane A from the v1.0.0 tag and the fixes; every other fix ships in
+1.1.</span></li>
+<li><b>Starting 1.1 early.</b> <span class="rec">Recommended: from 1.0's feature freeze (Friday
+11-20), a lane whose 1.0 work is done may write its 1.1 design notes and prototypes; nothing for
+1.1 merges before v1.0.0 is tagged.</span></li>
+<li><b>Where the scripts go.</b> <code>scripts/</code> holds 17 PowerShell scripts, 10 Python ones
+(among them the macro generators behind the 266 headers in <code>scripts/gen</code>) and 37 loose
+text files. <span class="rec">Recommended: the generators, the style check and the text-processing
+scripts become dawk programs; <code>scripts/ci</code>'s drivers move to dawk, or to the djinterp
+CLI once its interpreter lands; the one-off helpers (the refactor, rename and layout scripts) and
+the loose text files retire.</span></li>
+<li><b>Platforms 1.1 requires.</b> <span class="rec">Recommended: Linux arm64 and FreeBSD join
+1.0's three; 32-bit x86 stays best-effort. Optional, as you marked them, and cut first.</span></li>
+<li><b>The codebase manager.</b> <span class="rec">Recommended: lane A builds its minimal form (a
+CLI that watches local changes, groups them by lane, runs the style check and queues proposed
+commits with messages) on the merge helper and dawk's checks; optional, and cut first.</span></li>
+<li><b>The holidays.</b> <span class="rec">Recommended: no windows on Thursday 12-24 and Friday
+12-25; RC1 on Tuesday 12-22; RC2 on Tuesday 12-29 only if needed; v1.1.0 on Wednesday
+12-30.</span></li>
+</ol>
+<p class="note">Your items 4 and 11 are the same item (make everything event expressible and
+loggable); it is planned once, in lane E.</p>
+
+<h2 id="promises">3. The promises as release gates</h2>
+<p>Your eight promises restate the framework's own goals (<code>docs/parity/framework_goals.md</code>),
+and its laws are the tests. A release claims a promise for its stable tier when the gate runs in CI
+and is green. One goal the list leaves out, equal functionality in C and C++, is the one the goals
+document ranks second, so it is added as a ninth. 1.1 keeps every gate of 1.0 and adds what its
+column says.</p>
+<div class="wrap"><table class="wide gates"><thead><tr><th>Promise</th><th>Goals</th><th>The gate
+for 1.0</th><th>1.1 adds</th><th>Today</th><th>Lane</th></tr></thead><tbody>
+<tr><td>1. Version portability, C99 to C23 and C++98 to C++26, with the best version of each
+feature at each level</td><td>&sect;5, the Tier law</td><td>Every stable unit compiles at every
+ladder level with GCC and Clang, plain and testing, under <code>-pedantic-errors
+-Werror=undef</code>, and with MSVC at its levels; each stable module's README lists its tiers;
+the upgrade audit's "do now" items are closed</td><td>The same for every module 1.1 makes stable;
+Phase 5's ports clear math's known failures as they land</td><td>C: 646 of 680 units at C99, C11,
+C17 and C23 alike. C++: 1,026 of 1,088 at C++17 to C++23 with GCC and Clang, 970 at C++98; of the
+units that drop out below C++17, all but 7 are the math lane's stale copies. Env's
+C23 and C++23 tiers switch on only with Clang here</td><td>A, all</td></tr>
+<tr><td>2. System, OS and architecture portability</td><td>&sect;5</td><td>CI green on Linux
+x86-64 (GCC, Clang), Windows x64 (MSVC) and macOS arm64; best-effort jobs on Linux arm64, FreeBSD
+and 32-bit x86</td><td>Linux arm64 and FreeBSD required (ruling 18)</td><td>No workflow has run on
+GitHub. Nothing has run on Windows, macOS or a BSD; the stream's Win32 console backend never
+has</td><td>A</td></tr>
+<tr><td>3. Control over every byte</td><td>&sect;4, the Layout and Cost laws</td><td>No
+unchecked size arithmetic in a stable module; every allocation goes through the memory strategies
+or a caller's buffer (a CI scan); shared types' <code>sizeof</code>, <code>offsetof</code> and
+<code>alignof</code> asserted in both languages; ASan and UBSan clean</td><td>The scans cover what
+1.1 makes stable; a build that switches desc and logging off with their knobs carries none of their
+code (a CI check)</td><td>119 allocation sizes multiplied unchecked, two of them confirmed heap
+overflows; 63 hand-written guards</td><td>A (the kit); C, D, H (the sites)</td></tr>
+<tr><td>4. Preprocessor, compile-time and run-time evaluation</td><td>&sect;9</td><td>A
+compile-time path gives the run-time path's answer; each stable module with compile-time APIs has
+static-assertion suites at every level</td><td>Math's compile-time face, as far as Phase 5
+lands</td><td>The trait engine's parity test; <code>__VA_OPT__</code> already walks two of dmacro's
+families</td><td>C, all</td></tr>
+<tr><td>5. Functional programming</td><td>&sect;6</td><td>The functional module stable in C and
+C++, its C++ face tested against the C core</td><td>The interpreter folds its pipelines through
+functional's <code>result</code> and <code>maybe</code></td><td>51 of functional's 58 headers have
+a direct test</td><td>C</td></tr>
+<tr><td>6. Imperative or functional syntax</td><td>&sect;6</td><td>Where a chain makes sense, a
+stable module offers its operations as calls and as a chain, "tested against each other"
+(&sect;6)</td><td>The DSL's sequences (<code>;</code>) and pipelines (<code>|</code>), each djin
+command tested in both</td><td><code>result</code> and <code>maybe</code> chain with
+<code>and_then</code>; builders in option and functional</td><td>All; A reviews in week 3</td></tr>
+<tr><td>7. Async or sequential</td><td>&sect;9</td><td>Where an operation waits (event dispatch,
+db, net I/O), both forms exist and both are tested</td><td>The same for the net servers and db
+vendors 1.1 makes stable</td><td>Event's queue is a build choice; db has an async layer; net has a
+reactor</td><td>E, H; C in December</td></tr>
+<tr><td>8. Optionally thread-safe</td><td>&sect;7</td><td>Each stable module with shared state
+has a <code>D_CFG_*_THREADSAFE</code> knob or says why not; a TSan job runs the thread-safe
+builds</td><td>TSan over what 1.1 makes stable; desc and the log thread-safe under their
+knobs</td><td>sync's policies; filesys's knob is planned (fs 4.4)</td><td>B and the owners; A
+(TSan)</td></tr>
+<tr><td>9. Equal functionality in C and C++ (added)</td><td>&sect;2, the Parity law</td><td>A
+differential test for every C++ face of a C core</td><td>desc, parsegen and djins in both
+languages, tested against each other; the interpreter's library waits for its C core (ruling
+13)</td><td>The stream and math lanes test this way; most modules do not yet</td><td>All</td></tr>
+</tbody></table></div>
+
+<h2 id="calendar">4. Calendar</h2>
+<p>Lanes deliver by 12:00 ET on Monday, Wednesday and Friday. The owner merges that afternoon and
+sends base-N; lane A runs the gates on it and posts the punch list by the next morning; each
+lane's next chunk starts on base-N. December keeps the same rhythm.</p>
+<div class="wrap"><table class="wide cal"><thead><tr><th>Date</th><th>What</th><th>Who</th>
+</tr></thead><tbody>
+<tr class="sep"><th colspan="3">November: 1.0.0</th></tr>
+<tr><td>Mon 11-02</td><td>This plan; each account gets its brief (section 12)</td><td>owner</td></tr>
+<tr><td>Tue 11-03</td><td>Rulings 1 to 11 (section 2). base-0: the restructured tree with math
+through chunk 41, the output stream of 10.29 and config round 3, through the restructure
+script</td><td>owner</td></tr>
+<tr><td>Wed 11-04</td><td>Window 1, base-1; the merge helper</td><td>owner, A</td></tr>
+<tr><td>Fri 11-06</td><td>Window 2. DTest 2.0's API frozen; CI running on GitHub (ladders,
+Windows, macOS); the checked-arithmetic kit; expression core v2's design agreed</td><td>B, A,
+F</td></tr>
+<tr><td>Sun 11-08</td><td>Checkpoint 1: each lane against its week 1; the test floors
+confirmed</td><td>all</td></tr>
+<tr><td>Mon 11-09 to Fri 11-13</td><td>Windows 3 to 5. Friday: interfaces frozen (the stream,
+option and the registry, the event and log contract, expression core v2)</td><td>D, E, F</td></tr>
+<tr><td>Sun 11-15</td><td>Checkpoint 2: cut trigger 1 (section 9)</td><td>owner</td></tr>
+<tr><td>Mon 11-16 to Fri 11-20</td><td>Windows 6 to 8. Friday: feature freeze; preview modules
+marked; READMEs and API lists drafted; a lane done with 1.0 may start its 1.1 design notes
+(ruling 16)</td><td>all</td></tr>
+<tr><td>Sun 11-22</td><td>Checkpoint 3: RC go or no-go; cut trigger 2</td><td>owner, A</td></tr>
+<tr><td>Mon 11-23</td><td>Window 9, fixes only</td><td>all</td></tr>
+<tr><td>Tue 11-24</td><td>RC1: <code>v1.0.0-rc.1</code></td><td>A, owner</td></tr>
+<tr><td>Wed 11-25</td><td>Window 10, fixes for RC1</td><td>all</td></tr>
+<tr><td>Thu 11-26</td><td>Thanksgiving; no window</td><td>—</td></tr>
+<tr><td>Fri 11-27</td><td>Window 11, fixes only; lane H's handoff notes for net, db and
+dawk</td><td>all, H</td></tr>
+<tr><td>Sat 11-28</td><td>RC2, only if RC1 needed changes</td><td>A, owner</td></tr>
+<tr><td>Sun 11-29</td><td>December's briefs, from 1.0's outcome</td><td>A</td></tr>
+<tr><td>Mon 11-30</td><td><b>v1.0.0</b></td><td>owner</td></tr>
+<tr class="sep"><th colspan="3">December: 1.1.0</th></tr>
+<tr><td>Tue 12-01</td><td>1.0.0's hard limit, if the 30th slipped. Rulings 12 to 20; 1.1 starts
+from the v1.0.0 tag: net and db open in lane C, dawk and the scripts in lane D, the interpreter in
+lane H</td><td>owner, all</td></tr>
+<tr><td>Wed 12-02</td><td>Window 12</td><td>owner</td></tr>
+<tr><td>Fri 12-04</td><td>Window 13. 1.1's designs agreed: the interpreter and DSL, the adapters,
+desc's describers, dawk's style rules; a 1.0.1, if ruling 15 calls for one</td><td>H, F, E, D;
+A</td></tr>
+<tr><td>Sun 12-06</td><td>Checkpoint 4: each lane against its first week of December</td>
+<td>all</td></tr>
+<tr><td>Mon 12-07 to Fri 12-11</td><td>Windows 14 to 16. Friday: interfaces frozen (desc, djins,
+the command language, the adapters' formats)</td><td>E, H, F</td></tr>
+<tr><td>Sun 12-13</td><td>Checkpoint 5: cut trigger 3</td><td>owner</td></tr>
+<tr><td>Mon 12-14 to Fri 12-18</td><td>Windows 17 to 19. Friday: feature freeze; READMEs, man
+pages and API lists, with what changed since 1.0</td><td>all</td></tr>
+<tr><td>Sun 12-20</td><td>Checkpoint 6: RC go or no-go; cut trigger 4</td><td>owner, A</td></tr>
+<tr><td>Mon 12-21</td><td>Window 20, fixes only</td><td>all</td></tr>
+<tr><td>Tue 12-22</td><td>RC1: <code>v1.1.0-rc.1</code></td><td>A, owner</td></tr>
+<tr><td>Wed 12-23</td><td>Window 21, fixes for RC1</td><td>all</td></tr>
+<tr><td>Thu 12-24 to Sun 12-27</td><td>Christmas; no windows</td><td>—</td></tr>
+<tr><td>Mon 12-28</td><td>Window 22, fixes only</td><td>all</td></tr>
+<tr><td>Tue 12-29</td><td>RC2, only if RC1 needed changes</td><td>A, owner</td></tr>
+<tr><td>Wed 12-30</td><td><b>v1.1.0</b></td><td>owner</td></tr>
+<tr><td>Thu 12-31</td><td>1.1.0's hard limit, if the 30th slips</td><td>owner</td></tr>
+</tbody></table></div>
+
+<h2 id="lanes">5. The lanes</h2>
+<p>Eight lanes, one per account, in both months. Each owns its directories, so most merges are
+unzips over base-N. In December net and db move from lane H to lane C, and dawk and the scripts to
+lane D, so that lane H can build the interpreter. Section 12 has each lane's brief to paste into
+its account.</p>
+<h3>November: 1.0</h3>
+<div class="wrap"><table class="lanes"><thead><tr><th>Lane</th><th>Owns</th><th>Week 1 (2 to 8)</th>
+<th>Week 2 (9 to 15)</th><th>Week 3 (16 to 22)</th><th>Week 4 (23 to 30)</th></tr></thead><tbody>
+<tr><td><b>A</b> Release and integration<br><span class="dim">this account</span></td>
+<td>build, .github, scripts/ci, top-level docs, dconfig.h, env's gaps</td>
+<td><ul><li>CI on GitHub</li><li>merge helper</li><li>checked-arithmetic kit; two overflow
+fixes</li><li>version header</li></ul></td>
+<td><ul><li>sanitizers, coverage, best-effort platforms</li><li>CMake presets, install,
+find_package</li><li>env gaps; byte scans</li></ul></td>
+<td><ul><li>API lists</li><li>release notes</li><li>README with the promises</li></ul></td>
+<td><ul><li>RC1, RC2</li><li>tag 1.0.0</li></ul></td></tr>
+<tr><td><b>B</b> DTest 2.0</td><td>the test modules; tests of root, env, re_std, memory, sync,
+filesys</td>
+<td><ul><li>C runner compiles</li><li>one test-option shape</li><li>API frozen Fri</li><li>converter;
+triage of 416 units</li></ul></td>
+<td><ul><li>suites: root, env, re_std</li></ul></td><td><ul><li>suites: memory, sync</li></ul></td>
+<td><ul><li>suites: filesys</li><li>DTest fixes</li></ul></td></tr>
+<tr><td><b>C</b> Containers, functional, meta</td><td>container, functional, meta, paradigm,
+binary</td>
+<td><ul><li>20 broken units</li><li>73 unchecked sizes</li><li>trait engine at C++20</li><li>handler_for
+rename</li></ul></td>
+<td><ul><li>suites: container</li></ul></td><td><ul><li>suites: container, meta</li></ul></td>
+<td><ul><li>suites: functional parity, paradigm, binary</li></ul></td></tr>
+<tr><td><b>D</b> Output and text</td><td>c/util, cpp/util, text</td>
+<td><ul><li>stream on base-0</li><li>templates into text</li><li>writers onto the stream</li><li>PDF
+decimal point</li></ul></td>
+<td><ul><li>text polish</li><li>12 unchecked sizes</li></ul></td>
+<td><ul><li>suites: text, util</li></ul></td><td><ul><li>suites: document, pdf</li><li>docs</li></ul></td></tr>
+<tr><td><b>E</b> Options and observability</td><td>option, event, env printer, message codes; new
+desc and log</td>
+<td><ul><li>option_env owned</li><li>djin registry</li><li>desc and log design</li></ul></td>
+<td><ul><li>desc core</li><li>event and log contract</li><li>APIs frozen Fri</li></ul></td>
+<td><ul><li>adoption in stable modules</li><li>event's tests</li></ul></td>
+<td><ul><li>suites, docs</li><li>registry for the CLI</li></ul></td></tr>
+<tr><td><b>F</b> Parse</td><td>parse, parsegen, vparse</td>
+<td><ul><li>expression core v2 design, agreed Fri</li></ul></td>
+<td><ul><li>core v2 built and tested</li><li>parse polish</li></ul></td>
+<td><ul><li>parsegen and vparse on v2</li><li>CLI grammar</li></ul></td>
+<td><ul><li>suites, docs</li><li>adapter design note</li></ul></td></tr>
+<tr><td><b>G</b> Math</td><td>math and its tests</td>
+<td><ul><li>chunks 42, 43: step 23 done</li><li>onto the new layout</li></ul></td>
+<td><ul><li>step 24 if it lands by Fri</li></ul></td>
+<td><ul><li>expression core v2 if green</li><li>tests into DTest 2.0</li></ul></td>
+<td><ul><li>docs; fixes</li></ul></td></tr>
+<tr><td><b>H</b> Net, db, dawk, CLI</td><td>net, db, dawk, the cli kit and module, dregex</td>
+<td><ul><li>ruling sheets</li><li>db workflows</li><li>broken units</li></ul></td>
+<td><ul><li>net and db polish, suites</li></ul></td>
+<td><ul><li>dawk's shared parts into the library</li><li>style rules (preview)</li></ul></td>
+<td><ul><li>CLI preview with djins</li><li>suites, docs</li></ul></td></tr>
+</tbody></table></div>
+
+<h3>December: 1.1</h3>
+<div class="wrap"><table class="lanes"><thead><tr><th>Lane</th><th>Takes on</th><th>Week 5 (1 to
+6)</th><th>Week 6 (7 to 13)</th><th>Week 7 (14 to 20)</th><th>Week 8 (21 to 31)</th></tr></thead>
+<tbody>
+<tr><td><b>A</b> Release and integration<br><span class="dim">this account</span></td>
+<td>the optional items</td>
+<td><ul><li>1.0's punch list; 1.0.1 if ruled</li><li>CI for 1.1's modules</li><li>Linux arm64,
+FreeBSD (optional)</li></ul></td>
+<td><ul><li>scripts/ci into dawk</li><li>the wiki's build</li><li>Meson (optional)</li></ul></td>
+<td><ul><li>the codebase manager (optional)</li><li>API changes since 1.0</li><li>release
+notes</li></ul></td>
+<td><ul><li>RC1, RC2</li><li>tag 1.1.0</li></ul></td></tr>
+<tr><td><b>B</b> DTest 2.0</td><td>parse's outer layers' suites</td>
+<td><ul><li>per-module coverage reports</li><li>the 1.1 floors</li></ul></td>
+<td><ul><li>suites: parse's outer layers, parsegen, vparse</li></ul></td>
+<td><ul><li>planted-fault trial on the core</li><li>suites for what 1.1 makes stable</li></ul></td>
+<td><ul><li>fixes</li></ul></td></tr>
+<tr><td><b>C</b> Containers, functional, meta</td><td>net and db, from H</td>
+<td><ul><li>net and db from H's notes</li><li>what each protocol and vendor lacks</li></ul></td>
+<td><ul><li>net's protocols and servers</li><li>db's other vendors</li></ul></td>
+<td><ul><li>chains and async forms (promises 6, 7)</li><li>suites</li></ul></td>
+<td><ul><li>fixes, docs</li></ul></td></tr>
+<tr><td><b>D</b> Output and text</td><td>dawk and the scripts, from H</td>
+<td><ul><li>the stream fully into text</li><li>dawk's lexer</li></ul></td>
+<td><ul><li>macro generators</li><li>style rules in CI beside the Python check</li></ul></td>
+<td><ul><li>scripts ported or retired</li><li>man page and wiki renderers</li></ul></td>
+<td><ul><li>fixes, docs</li></ul></td></tr>
+<tr><td><b>E</b> Options and observability</td><td>desc made stable</td>
+<td><ul><li>describers for the core</li><li>desc's levels, layers and formats</li></ul></td>
+<td><ul><li>describers for every stable module</li><li>APIs frozen Fri</li></ul></td>
+<td><ul><li>logging everywhere</li><li><code>--help</code> from desc</li></ul></td>
+<td><ul><li>suites, docs</li></ul></td></tr>
+<tr><td><b>F</b> Parse</td><td>the adapters</td>
+<td><ul><li>adapter designs, agreed Fri</li><li>the DSL's hooks on core v2</li></ul></td>
+<td><ul><li>bison and flex adapters</li></ul></td>
+<td><ul><li>LLVM adapter</li><li>parsegen and vparse made stable</li></ul></td>
+<td><ul><li>fixes, docs</li></ul></td></tr>
+<tr><td><b>G</b> Math</td><td>5a, Phases 4 and 5</td>
+<td><ul><li>5a: <code>expression.hpp</code>'s wrong answers</li><li>4a</li></ul></td>
+<td><ul><li>4b, 4c</li></ul></td>
+<td><ul><li>4d and Phase 5, as far as they land by Fri</li></ul></td>
+<td><ul><li>fixes; Phase 5 continues for 1.2</li></ul></td></tr>
+<tr><td><b>H</b> The djinterp CLI</td><td>the interpreter and DSL</td>
+<td><ul><li>design agreed Fri</li><li>djins through the interpreter</li></ul></td>
+<td><ul><li>sequences, pipelines, predicates</li><li>the command language frozen Fri</li></ul></td>
+<td><ul><li>awk modules run by dawk</li><li>suites</li></ul></td>
+<td><ul><li>fixes, man page, docs</li></ul></td></tr>
+</tbody></table></div>
+
+<h2 id="handoffs">6. Hand-offs between lanes</h2>
+<p>What one lane gives another, and by when. A late hand-off is what checkpoints look for first.</p>
+<div class="wrap"><table class="wide cal"><thead><tr><th>By</th><th>From</th><th>To</th><th>What</th>
+</tr></thead><tbody>
+<tr class="sep"><th colspan="4">November: 1.0.0</th></tr>
+<tr><td>Tue 11-03</td><td>owner</td><td>all</td><td>base-0 and the rulings</td></tr>
+<tr><td>Wed 11-04</td><td>A</td><td>owner</td><td>the merge helper</td></tr>
+<tr><td>Fri 11-06</td><td>B</td><td>all</td><td>DTest 2.0's API, migration guide and converter</td></tr>
+<tr><td>Fri 11-06</td><td>A</td><td>C, D, F, H</td><td><code>d_ckd_*</code>, for the unchecked sizes
+in their modules</td></tr>
+<tr><td>Fri 11-06</td><td>F</td><td>G, E, H</td><td>expression core v2's design and contract</td></tr>
+<tr><td>Fri 11-06</td><td>D</td><td>E</td><td>the stream on base-1, for desc and logging</td></tr>
+<tr><td>Fri 11-13</td><td>E</td><td>all; H</td><td>the event and log contract; the registry for
+djins</td></tr>
+<tr><td>Fri 11-13</td><td>F</td><td>G, H</td><td>expression core v2's code; the command grammar
+follows in week 3</td></tr>
+<tr><td>Fri 11-13</td><td>C</td><td>E</td><td>publisher's <code>handler_for</code> renamed</td></tr>
+<tr><td>Fri 11-20</td><td>all</td><td>A</td><td>READMEs with tier tables; public API lists</td></tr>
+<tr><td>Tue 11-24</td><td>A</td><td>owner</td><td>RC1 and its gate report</td></tr>
+<tr><td>Fri 11-27</td><td>H</td><td>C, D</td><td>handoff notes: net and db to C; dawk and the
+scripts to D</td></tr>
+<tr><td>Sun 11-29</td><td>A</td><td>all</td><td>December's briefs, from 1.0's outcome</td></tr>
+<tr class="sep"><th colspan="4">December: 1.1.0</th></tr>
+<tr><td>Tue 12-01</td><td>owner</td><td>all</td><td>v1.0.0 as December's base; rulings 12 to
+20</td></tr>
+<tr><td>Fri 12-04</td><td>F</td><td>H</td><td>the DSL's hooks on core v2</td></tr>
+<tr><td>Fri 12-04</td><td>E</td><td>H</td><td>the registry's command face, for djins</td></tr>
+<tr><td>Fri 12-04</td><td>H, F, E</td><td>all</td><td>the interpreter's and the DSL's design,
+agreed</td></tr>
+<tr><td>Fri 12-11</td><td>E</td><td>all</td><td>desc's describer kit, frozen, so every lane can
+describe its modules</td></tr>
+<tr><td>Fri 12-11</td><td>D</td><td>A</td><td>dawk's style rules, running in CI beside the Python
+check</td></tr>
+<tr><td>Fri 12-18</td><td>all</td><td>A</td><td>READMEs, man pages and API lists, with what
+changed since 1.0</td></tr>
+<tr><td>Tue 12-22</td><td>A</td><td>owner</td><td>RC1 and its gate report</td></tr>
+</tbody></table></div>
+
+<h2 id="together">7. How the lanes work together</h2>
+<dl class="facts">
+<dt>One base</dt><dd>Every lane works on the latest base-N from the restructured tree. From base-0
+on, nobody works on the old layout, so the math lane's 42 shims and the stream lane's old paths
+retire with it.</dd>
+<dt>Deliveries</dt><dd>One zip per delivery of the files changed or added, at their base-N
+paths, named <code>&lt;lane&gt;_&lt;yyyy.mm.dd&gt;.zip</code>, and a short handoff note: what is
+new, decisions with the lane's letter (A1, B1, ...; math keeps its S numbers), the checks run with
+their numbers, findings for other lanes, what is next.</dd>
+<dt>Ownership</dt><dd>A lane edits only its own directories (section 5). A change that another
+lane's directory needs goes as a request in the handoff note, and lane A routes it. Shared files
+have one owner: <code>dconfig.h</code>, the CMake roots, <code>.github/</code> and
+<code>DECISIONS.md</code> are A's; the message-code registry is E's.</dd>
+<dt>Before delivering</dt><dd>The style check on every changed file; the ladders on the lane's
+units at every level with GCC and Clang, plain and testing; its DTest suites; ASan and UBSan over
+them. Lane A's CI runs the same checks on every base.</dd>
+<dt>Decisions</dt><dd>A lane's decision stands unless the owner overrules it by the next window
+(the math lane's rule, made general). Lane A merges the registers into
+<code>docs/DECISIONS.md</code> weekly.</dd>
+<dt>Merges</dt><dd>The owner merges in the windows. Lane A's merge helper lays the zips over
+base-N in order, lists any file two zips touch, and runs the gates, so a window is mostly
+unzipping and reading one report.</dd>
+<dt>Continuity</dt><dd>Accounts hit usage limits and sessions reset, so each chunk is sized to
+end in a delivery, and each starts from the lane's last handoff note and its brief.</dd>
+<dt>Between releases</dt><dd>From 1.0's feature freeze, a lane whose 1.0 work is done may write its
+1.1 design notes and prototypes; nothing for 1.1 is merged before v1.0.0 is tagged. December
+starts from the v1.0.0 tag with the same windows. A fix to 1.0 also goes into 1.1; a 1.0.1 is made
+only under ruling 15.</dd>
+<dt>Changing lanes</dt><dd>In December net and db move from lane H to lane C, and dawk and the
+scripts to lane D. Lane H writes a handoff note for each by Friday 11-27, as a lane does at the
+end of any chunk, and lanes C and D start from those notes on Tuesday 12-01.</dd>
+</dl>
+
+<h2 id="tests">8. Tests: the largest share</h2>
+<dl class="facts">
+<dt>Today</dt><dd>2,188 test sources. 399 of 1,024 library headers (39%;
+the generated macro tables aside) are included directly by some test. Of the 1,309 C++ test
+units, 850 compile at C++17 and C++20; 416 fail at both (the test framework's API mid-rewrite,
+includes into a <code>core/</code> folder the tree no longer has); 12 break at C++20; 31 compile
+only at C++20. The C test runner has never compiled.</dd>
+<dt>The 1.0 target</dt><dd>The floors of ruling 6: every public header of a stable module has a
+DTest 2.0 suite that passes at every ladder level on the three required platforms; line coverage
+of at least 80% in the core, 60% elsewhere stable; a parity test for every C++ face; smoke suites
+for preview.</dd>
+<dt>The 1.1 target</dt><dd>Floors raised to 85% line coverage in the core and 70% elsewhere
+stable; every module 1.1 makes stable held to 1.0's floors; a planted-fault trial over the core
+modules, the math lane's method (plant one fault at a time and count what the suites catch),
+catching at least 90%.</dd>
+<dt>Who</dt><dd>B: roots, env, re_std, memory, sync, filesys. C: container, functional, meta,
+paradigm, binary. D: text, util, the stream. E: option, event, desc, log. F: parse. G: math. H:
+net, db, dawk. Every lane tests its own new code as it writes it. In December, B keeps the
+floors, runs the trial and writes the suites for parse's outer layers, parsegen and vparse; C
+tests net and db, D dawk, E desc and the log, F the adapters, H the interpreter.</dd>
+<dt>Order</dt><dd>First the 416 broken units and <code>tests/unintegrated</code>, converted; then
+untested stable headers by risk (allocation, parsing and I/O first); then coverage gaps.</dd>
+<dt>The C++20 breaks</dt><dd>Eight of the 12 are one defect: <code>event/event_handler.hpp</code>
+and <code>paradigm/publisher/publisher.hpp</code> both declare a concept
+<code>djinterp::handler_for</code>, with different parameters, so a unit that includes both stops
+compiling at C++20 (lanes C and E). Three are the test-option shape (lane B); one is a test that
+reads an undefined macro.</dd>
+</dl>
+
+<h2 id="cuts">9. Cuts, in order</h2>
+<p>Agreed now, so a slipping checkpoint costs a decision already made, not a debate. A cut from
+1.0 moves to 1.1; a cut from 1.1 moves to the release after it.</p>
+<h3>1.0</h3>
+<dl class="facts">
+<dt>Planned for 1.1</dt><dd>The codebase manager; the bison, flex and LLVM adapters; the scripts in
+djinterp or dawk (until then they stay Python, which runs on all three platforms); the wiki
+(READMEs ship); Meson; math's 5a, Phase 4 and Phase 5; FreeBSD and ARM as required platforms.
+dsed and dgrep come after 1.1.</dd>
+<dt>Trigger 1, Sun 11-15</dt><dd>If a lane is a week behind: dawk's style rules to 1.1 (CI keeps
+the Python style check); the CLI preview shrinks to a design note and a skeleton; math's step 24
+to 1.1.</dd>
+<dt>Trigger 2, Sun 11-22</dt><dd>If the RC gates are not green: logging's adoption past the core
+modules to 1.1; desc ships with fewer describers; coverage floors lowered for non-core stable
+modules; any net protocol or db vendor not green moves to preview.</dd>
+<dt>Never cut</dt><dd>The ladders on the required platforms; ASan and UBSan clean; the overflow
+fixes; DTest 2.0; the API freeze at RC1.</dd>
+</dl>
+<h3>1.1</h3>
+<dl class="facts">
+<dt>Planned after 1.1</dt><dd>dsed and dgrep; math's Phases 6 to 8 and its last two steps; the
+DSL's sed dialect; the interpreter's C core.</dd>
+<dt>Trigger 3, Sun 12-13</dt><dd>If a lane is a week behind: the optional items first (the
+codebase manager, Meson, and Linux arm64 and FreeBSD as required platforms), then the LLVM
+adapter, then the DSL's awk modules.</dd>
+<dt>Trigger 4, Sun 12-20</dt><dd>If the RC gates are not green: a module 1.1 meant to make stable
+stays preview until its gates are green; the command language ships as preview; the floors stay
+at 1.0's; scripts not yet ported stay Python.</dd>
+<dt>Never cut</dt><dd>1.0's gates, green on every base; source compatibility with 1.0's stable
+API; ASan and UBSan clean; nothing of desc or logging in a build that switches them off.</dd>
+</dl>
+
+<h2 id="risks">10. Risks</h2>
+<div class="wrap"><table class="wide"><thead><tr><th>Risk</th><th>Mitigation</th><th>Owner</th>
+</tr></thead><tbody>
+<tr><td>One integrator for eight lanes</td><td>Directory ownership, three windows a week, the
+merge helper, lane A's report on every base</td><td>A, owner</td></tr>
+<tr><td>DTest 2.0 slips, and the largest share of the work waits</td><td>Timeboxed to Friday the
+6th; lanes write against the frozen subset; where conversion lags, the standalone suites stay for
+1.0</td><td>B</td></tr>
+<tr><td>Two lanes on the old layout</td><td>base-0 on Tuesday through the restructure script;
+from then on, the new layout only</td><td>owner, G, D</td></tr>
+<tr><td>Expression core v2 unsettles math</td><td>The contract agreed by the 6th; math adopts it
+only if it is green in week 3, otherwise in 1.1</td><td>F, G</td></tr>
+<tr><td>No history on Windows or macOS</td><td>CI in week 1, fixes in week 2; best-effort
+platforms cannot block</td><td>A</td></tr>
+<tr><td>About 180 open rulings</td><td>Ruling 2: recommendations stand unless overruled</td>
+<td>owner</td></tr>
+<tr><td>Usage limits and session resets</td><td>Chunks that end in a delivery; handoff notes;
+the base-N cadence</td><td>all</td></tr>
+<tr><td>Thanksgiving week</td><td>RC1 on Tuesday the 24th; no window on Thursday</td><td>owner</td></tr>
+<tr><td>New ideas mid-month</td><td>Anything new waits for the release after the one in
+progress, unless it fixes a gate or replaces planned work of the same size</td><td>owner,
+A</td></tr>
+<tr><td>November's slips land on December</td><td>December starts with 1.0's punch list; anything
+cut from 1.0 goes to the top of December's list, and the optional items leave first</td><td>owner,
+A</td></tr>
+<tr><td>The interpreter is December's largest new design</td><td>Its grammar has been normative
+since July and <code>functional_cli.hpp</code> already runs it; the design is agreed by Friday
+12-04 with lanes F and E; the language is stable only if its suites are green at the freeze
+(ruling 13)</td><td>H, F</td></tr>
+<tr><td>Net, db and dawk change lanes</td><td>Handoff notes by Friday 11-27; lanes C and D start
+from them on Tuesday 12-01</td><td>H, C, D</td></tr>
+<tr><td>Christmas</td><td>RC1 on Tuesday the 22nd; no windows on the 24th and 25th; RC2 on the
+29th only if needed</td><td>owner</td></tr>
+<tr><td>Two releases in five weeks for one integrator</td><td>The same windows; a 1.0.1 only under
+ruling 15; the merge helper, and the codebase manager if it lands</td><td>owner, A</td></tr>
+</tbody></table></div>
+
+<h2 id="state">11. Where things stand</h2>
+<p>Measured on the restructured tree of 2026-10-31 with config round 3. "Headers with a test" counts
+headers that a test includes directly (under <code>tests/</code>, or the memory module's own
+harnesses); the C and C++ columns count units that compile alone at
+each level with GCC 13 under the ladders' flags, header by header (a C header also counts under
+C++). Shares below 25% are marked, and a second line under a tier says what 1.1 changes (section
+1).</p>
+<div class="wrap"><table class="score"><thead><tr><th>Module</th><th>Tier</th><th>Lane</th><th>Headers with a test</th><th>Share</th><th>C units, C99 to C23</th><th>C++ units, C++98 → C++23</th><th>Failing units</th><th>README</th></tr></thead><tbody><tr><td>root</td><td>stable</td><td class="c">A, B</td><td class="num">7/10</td><td class="num">70%</td><td class="num">14/14</td><td class="num">10/10</td><td class="num z">0</td><td class="c">partial</td></tr><tr><td>memory</td><td>stable</td><td class="c">B</td><td class="num">7/14</td><td class="num">50%</td><td class="num">14/14</td><td class="num">16/16</td><td class="num z">0</td><td class="c">yes</td></tr><tr><td>sync</td><td>stable</td><td class="c">B</td><td class="num">13/16</td><td class="num">81%</td><td class="num">7/7</td><td class="num">16/16</td><td class="num z">0</td><td class="c z">—</td></tr><tr><td>filesys</td><td>stable</td><td class="c">B</td><td class="num">16/29</td><td class="num">55%</td><td class="num">31/31</td><td class="num">29/29</td><td class="num z">0</td><td class="c z">—</td></tr><tr><td>test</td><td>stable</td><td class="c">B</td><td class="num">44/60</td><td class="num">73%</td><td class="num">22/40</td><td class="num">56 → 55/62</td><td class="num">C 18, C++ 7</td><td class="c">old</td></tr><tr><td>container</td><td>stable</td><td class="c">C</td><td class="num">66/213</td><td class="num">31%</td><td class="num">52/53</td><td class="num">221 → 222/234</td><td class="num">C 1, C++ 12</td><td class="c">yes</td></tr><tr><td>functional</td><td>stable</td><td class="c">C</td><td class="num">51/58</td><td class="num">88%</td><td class="num">40/40</td><td class="num">57 → 58/58</td><td class="num z">0</td><td class="c">yes</td></tr><tr><td>meta</td><td>stable</td><td class="c">C</td><td class="num">17/47</td><td class="num">36%</td><td class="num">5/5</td><td class="num">43/51</td><td class="num">C++ 8</td><td class="c z">—</td></tr><tr><td>paradigm</td><td>stable</td><td class="c">C</td><td class="num">10/12</td><td class="num">83%</td><td class="num z">—</td><td class="num">12/12</td><td class="num z">0</td><td class="c z">—</td></tr><tr><td>binary</td><td>stable</td><td class="c">C</td><td class="num">4/4</td><td class="num">100%</td><td class="num z">—</td><td class="num">4/4</td><td class="num z">0</td><td class="c z">—</td></tr><tr><td>util</td><td>stable</td><td class="c">D</td><td class="num">28/151</td><td class="num lo">19%</td><td class="num">106/111</td><td class="num">151 → 152/156</td><td class="num">C 5, C++ 4</td><td class="c">partial</td></tr><tr><td>text</td><td>stable</td><td class="c">D</td><td class="num">12/49</td><td class="num lo">24%</td><td class="num">26/27</td><td class="num">46 → 45/49</td><td class="num">C 1, C++ 4</td><td class="c z">—</td></tr><tr><td>option</td><td>stable</td><td class="c">E</td><td class="num">11/19</td><td class="num">58%</td><td class="num">14/14</td><td class="num">19/19</td><td class="num z">0</td><td class="c">yes</td></tr><tr><td>event</td><td>stable</td><td class="c">E</td><td class="num">4/12</td><td class="num">33%</td><td class="num">12/15</td><td class="num">12/12</td><td class="num">C 3</td><td class="c z">—</td></tr><tr><td>parse</td><td>core stable, rest preview<br><span class="dim">1.1: all stable</span></td><td class="c">F</td><td class="num">29/96</td><td class="num">30%</td><td class="num">91/92</td><td class="num">82 → 86/100</td><td class="num">C 1, C++ 14</td><td class="c">old</td></tr><tr><td>parsegen</td><td>preview<br><span class="dim">1.1: stable</span></td><td class="c">F</td><td class="num">15/19</td><td class="num">79%</td><td class="num">9/9</td><td class="num">27/28</td><td class="num">C++ 1</td><td class="c">partial</td></tr><tr><td>math</td><td>preview<br><span class="dim">1.1: C core stable if green</span></td><td class="c">G</td><td class="num">8/50</td><td class="num lo">16%</td><td class="num z">—</td><td class="num">2 → 53/56</td><td class="num">C++ 3</td><td class="c">yes</td></tr><tr><td>net</td><td>core stable, rest preview<br><span class="dim">1.1: green protocols, servers stable</span></td><td class="c">H, then C</td><td class="num">38/76</td><td class="num">50%</td><td class="num">113·113·113·112/117</td><td class="num">73/79</td><td class="num">C 4, C++ 6</td><td class="c z">—</td></tr><tr><td>db</td><td>3 vendors stable, rest preview<br><span class="dim">1.1: green vendors stable</span></td><td class="c">H, then C</td><td class="num">18/69</td><td class="num">26%</td><td class="num">68/69</td><td class="num">74/77</td><td class="num">C 1, C++ 3</td><td class="c">partial</td></tr><tr><td>cli</td><td>stable<br><span class="dim">1.1: adds the command language</span></td><td class="c">H</td><td class="num">1/4</td><td class="num">25%</td><td class="num">2/2</td><td class="num">4/4</td><td class="num z">0</td><td class="c">kit</td></tr><tr><td>jit</td><td>preview</td><td class="c">—</td><td class="num">0/10</td><td class="num lo">0%</td><td class="num">20/20</td><td class="num">10/10</td><td class="num z">0</td><td class="c z">—</td></tr><tr><td>render</td><td>preview</td><td class="c">—</td><td class="num">0/6</td><td class="num lo">0%</td><td class="num z">—</td><td class="num">6/6</td><td class="num z">0</td><td class="c z">—</td></tr></tbody></table></div>
+<p class="dim">C units read the same at C99, C11, C17 and C23. In the C++ column, "a → b" is the count
+at C++98 and at C++23. "Failing units" counts the C units that fail at every level and the C++
+units that fail at C++17, C++20 and C++23. A unit whose floor is above C++98 compiles to nothing below its floor, so it
+passes there even if it fails at its floor, and the count can fall as well as rise. The math row
+is the tree's stale copies; the lane's own work is not in this tree yet. The units that fail below C++17 for real are 7:
+<code>c/util/type_info_common.h</code>, <code>cpp/container/sync/concurrency_strategy_traits.hpp</code>, <code>cpp/functional/value_list.hpp</code>, <code>cpp/modules/parse/parsers/cpp/c.hpp</code>, <code>cpp/modules/parse/traversable.hpp</code>, <code>cpp/modules/parse/vparse/machine.hpp</code>, <code>cpp/modules/parse/vparse/peg.hpp</code>.</p>
+<h3>Lanes in flight, not yet in the tree</h3>
+<div class="wrap"><table class="wide"><thead><tr><th>Lane</th><th>Last delivery</th><th>State</th>
+<th>Into base-0</th></tr></thead><tbody>
+<tr><td>math98</td><td>chunk 41, 2026-11-01</td><td>23 of 51 steps; old paths, 42 shims to
+build on the new tree; 18 flagged decisions, and chunk 41's 7 open</td><td>through the
+restructure script</td></tr>
+<tr><td>Output stream</td><td>2026-10-29</td><td>the kernel, templates, option_env and the env
+printer; old paths; 7 items open for you</td><td>through the restructure script</td></tr>
+<tr><td>Config round 3</td><td>2026-11-01</td><td>on the restructured layout</td><td>as it is</td></tr>
+<tr><td>Upgrade audit</td><td>2026-11-01</td><td>findings, no code; its "do now" is lane A's
+week 1</td><td>—</td></tr>
+</tbody></table></div>
+
+<h2 id="briefs">12. Lane briefs</h2>
+<p>Paste the text for every lane, then the lane's own, into the first message of its account,
+with the lane's last handoff note if it has one. Each brief has a line on the lane's December work;
+December's full briefs come on Sunday 11-29, written from 1.0's outcome.</p>
+<div class="brief"><div class="bhead"><b>For every lane</b><button type="button" class="copy" data-for="b-pre">Copy</button></div><pre id="b-pre">djinterp v1.0.0, November 2026: lane brief
+
+You are one of eight lanes working in parallel toward djinterp v1.0.0, which
+ships Monday 2026-11-30. The owner, Samuel Neal-Blim, integrates every lane.
+v1.1.0 follows on Wednesday 2026-12-30 with the rest of the plan. Each brief
+says in one line what its lane does in December; December&#x27;s full briefs come
+on Sunday 11-29, written from 1.0&#x27;s outcome.
+
+Standing rules
+- Follow the project&#x27;s style guides (style_guide_c.md, style_guide_cpp.md)
+  and the dconfig readme. C99 floor; C++98 (ISO strict) up to C++26. D_CFG_*
+  knobs live in config/.../cfg_*.h; run-time choices are options.
+- Work on the newest base tree the owner sends (base-N: the restructured c/
+  and cpp/ layout). Edit only the directories your lane owns; a change that
+  another lane&#x27;s directory needs goes as a request in your handoff.
+- Commit nothing. CRLF line endings.
+- Deliver by 12:00 ET on a Monday, Wednesday or Friday: one zip of the files
+  you changed or added, at their paths in base-N, and a short handoff note:
+  what is new, your decisions (numbered with your lane&#x27;s letter), the checks
+  you ran with their numbers, findings for other lanes, what is next.
+- Before delivering: the style check on every changed file; the C and C++
+  ladders on your units at every level (C99, C11, C17, C23; C++98 strict,
+  C++98, C++11, 14, 17, 20, 23, 26) with GCC and Clang, plain and with
+  -DD_TESTING=1; your DTest suites; ASan and UBSan over them.
+- Your decisions stand unless the owner overrules them by the next window.
+- Dates: interfaces frozen Fri 11-13; feature freeze Fri 11-20; RC1 Tue
+  11-24; v1.0.0 Mon 11-30. After the freeze, fixes only; a lane whose 1.0
+  work is done may write its 1.1 design notes, but nothing for 1.1 merges
+  before v1.0.0 is tagged.
+- The promises (the roadmap&#x27;s section 3) are checked in CI on the stable
+  tier. Keep your stable modules&#x27; gates green.</pre></div><details class="brief"><summary><b>Lane A</b>: Release and integration <span class="dim">(this account)</span></summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-A">Copy</button></div><pre id="b-A">Lane A: release and integration (the account that wrote the roadmap)
+
+Mission: make 1.0 shippable: CI that checks the promises, the build, the
+platforms, help with the merges, and the release itself.
+Owns: build/, .github/ (at the repository root), scripts/ci/, the top-level
+docs (README, DECISIONS.md, release notes), config/dconfig.h, the version
+header, and env/ for the upgrade audit&#x27;s gaps.
+Week 1: gates and a punch list on base-0; CI running on GitHub (the C and
+C++ ladders with GCC and Clang, Windows with MSVC, macOS); a merge helper for
+the owner (lays lane zips over base-N in order, lists files two zips touch,
+runs the gates); the style check in scripts/ci for every lane; the
+checked-arithmetic kit (d_ckd_add, d_ckd_sub, d_ckd_mul over &lt;stdckdint.h&gt;,
+then the GCC/Clang builtins from env, then the division test) and the two
+heap-overflow fixes (d_array_common_init_fill, d_vector_common_reserve);
+D_DJINTERP_VERSION 1.0.0.
+Week 2: ASan, UBSan and TSan jobs and per-module coverage in CI; best-effort
+jobs (Linux arm64, FreeBSD, 32-bit); CMake presets, install and
+find_package(djinterp), pkg-config, the Ninja, Make and Visual Studio
+generators in CI; the audit&#x27;s env gaps (C23 library detection,
+D_NO_UNIQUE_ADDRESS&#x27;s MSVC order, D_UNREACHABLE&#x27;s C23 tier); the byte gates&#x27;
+scans (allocation outside the memory strategies, layout assertions).
+Week 3: the public API list of every stable module, frozen at RC1; release
+notes; the top-level README with the promises and the tiers; the docs index.
+Week 4: RC1 (Tue 24) and, if needed, RC2 (Sat 28); route fixes; tag v1.0.0;
+December&#x27;s briefs by Sun 29, from 1.0&#x27;s outcome.
+Done means: every gate in the roadmap&#x27;s section 3 runs in CI and is green on
+the stable tier on Linux, Windows and macOS.
+December (1.1): 1.0&#x27;s punch list, and a 1.0.1 only under ruling 15; CI for
+1.1&#x27;s modules; scripts/ci moved to dawk; the wiki&#x27;s build; Linux arm64 and
+FreeBSD as required platforms, Meson and the codebase manager (all three
+optional, and cut first); RC1 Tue 12-22, v1.1.0 Wed 12-30.
+Read first: the roadmap; the upgrade audit; docs/DECISIONS.md, section 4.</pre></details><details class="brief"><summary><b>Lane B</b>: DTest 2.0 and the core&#x27;s tests</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-B">Copy</button></div><pre id="b-B">Lane B: DTest 2.0 and the core&#x27;s tests
+
+Mission: finish the DTest revamp, freeze its API, and test the core.
+Owns: c/modules/test, cpp/modules/test, the test CMake leaves (with lane A),
+and the tests of root, env, re_std, memory, sync and filesys.
+Week 1: the revamp done. The C runner compiles and runs (it never has; about
+100 names it uses went in the rewrite). The C++ test module has one shape at
+every level: test_option_set is an option_set at C++20 and a plain struct
+below, which the C++ guide rules out, and three runner tests break at C++20
+on it. DTest 2.0&#x27;s API frozen Friday 11-06, with a migration guide and a
+converter for the old forms (the _sa standalone suites, tests/unintegrated).
+The 416 C++ test units that fail at C++17 and C++20 sorted three ways:
+convert, fix the path (includes into a core/ folder the tree no longer has),
+or a bug for the owning lane.
+Weeks 2 to 4: suites for root, env, re_std (the modules djinterp includes,
+and span, source_location, function_ref, move_only_function and numbers),
+memory, sync and filesys, to the coverage floor; DTest fixes for the other
+lanes within a day.
+Done means: every public header of those modules has a DTest 2.0 suite that
+passes at every ladder level on Linux, Windows and macOS.
+December (1.1): coverage past the floors (85% in the core, 70% elsewhere
+stable); suites for parse&#x27;s outer layers, parsegen and vparse, and for what
+1.1 makes stable; a planted-fault trial over the core modules.
+Read first: the roadmap&#x27;s sections 6 and 8; docs/djinterp_testing.md.</pre></details><details class="brief"><summary><b>Lane C</b>: Containers, functional and meta</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-C">Copy</button></div><pre id="b-C">Lane C: containers, functional and meta
+
+Mission: bring the core data structures and the functional layer to the
+stable tier, and test them.
+Owns: c/container, cpp/container, c/functional, cpp/functional, c/meta,
+cpp/meta, cpp/paradigm, cpp/binary.
+Week 1: the 12 C++ container units and 8 meta units that fail at every
+level (container/matrix is C++20 code with no gate; stack.hpp declares a
+concept named list and nothing includes it: gate or retire both); the 48
+unchecked allocation sizes in c/container and 25 in c/functional, with lane
+A&#x27;s d_ckd_mul; the trait engine&#x27;s expression shapes (D_TYPE_TRAIT_TRUE and
+DETECTED, 209 traits) given the requires form the five named shapes already
+have at C++20, under the parity test; paradigm&#x27;s publisher.hpp renames its
+concept handler_for, which collides with event&#x27;s at C++20 (agree it with
+lane E).
+Weeks 2 to 4: suites for container (134 of 185 C++ headers have no test that
+includes them), meta, functional (C and C++, with parity tests between
+them), paradigm and binary.
+Done means: no unchecked size arithmetic, and every public header tested, in
+the lane&#x27;s modules; a parity test for every C++ face of a C core.
+December (1.1): net and db, from lane H&#x27;s handoff note: the other protocols,
+servers and vendors made stable where their gates are green; the chain and
+async forms across the stable modules (promises 6 and 7).
+Read first: the roadmap; the upgrade audit, sections 2 and 3.</pre></details><details class="brief"><summary><b>Lane D</b>: The output stream and text</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-D">Copy</button></div><pre id="b-D">Lane D: the output stream and text
+
+Mission: land the output stream as the one path all output takes, and bring
+text and util to the stable tier.
+Owns: c/util (ostream, sink, archive, compress, pdf, color, sort, kv,
+lookup), cpp/util (output, document, pdf, archive, compress, color, counter,
+metadata, timer, sort, lookup), c/text, cpp/text.
+Week 1: the stream (the ostream lane&#x27;s delivery of 10.29) on base-0, after
+the owner&#x27;s restructure run; its template language and number formatting
+moved into text, the kernel left below it (the roadmap&#x27;s decision 3); text&#x27;s
+writer.hpp, printer.hpp and the document renderers written onto the stream,
+keeping the write failures they lose today; the PDF serializer on
+d_ostream_write_double (the decimal-point ruling); d_string_internal_grow&#x27;s
+overflow; the six stream harnesses into DTest 2.0 once it is frozen.
+Week 2: text polish (31 of 33 C++ text headers have no direct test; 4 C++
+units and 1 C unit fail at every level); the 12 unchecked allocation sizes
+in c/util.
+Weeks 3 and 4: suites for text, util, document and pdf; docs.
+Done means: logging, DTest, the env printer and documents all write through
+the stream; every public header in the lane&#x27;s modules tested.
+December (1.1): the stream fully into text; dawk and the scripts, from lane
+H&#x27;s handoff note: dawk&#x27;s lexer, the macro generators (C-Macro-Generator.ps1
+and the Python generators behind scripts/gen) and the style rules, which
+replace the Python style check; renderers for man pages and the wiki.
+Read first: the stream&#x27;s handoff (_handoffs/ostream_2026.10.28/README.md).</pre></details><details class="brief"><summary><b>Lane E</b>: Options, registry and observability</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-E">Copy</button></div><pre id="b-E">Lane E: options, the registry, desc, events and logging
+
+Mission: the control surface (compile-time knobs, run-time options, the
+djin registry) and observability (desc, events, logging, message codes).
+Owns: c/option, cpp/option, c/event, cpp/event, env/env_printer, the
+message-code registry (status codes v1), and the new desc and log modules.
+Week 1: take over option_env (the stream lane wrote it as the env printer&#x27;s
+machine): its name and place, d_option_set_remove and compaction in the
+option core, a C++ face (DOptionEnv, a scoped override); the djin registry:
+dawk&#x27;s dsettings rows (type, default, accepted values, where each value came
+from, did-you-mean) folded into option_env; design notes for desc and
+logging (facts first, text last, as desc.txt has it).
+Week 2: desc&#x27;s core (facts with a layer, an importance and a value; level,
+layers, format, limits and presets as option_env rows; C describers over the
+descriptors C already has, C++ describers as templates; rendering through
+the stream&#x27;s templates and the printer&#x27;s presets); the event and log
+contract (a log record is an event, a message code and desc facts, written
+as text or JSON); both APIs frozen Friday 11-13.
+Week 3: adoption in the stable modules (memory, filesys, option, test, db
+and net first); event&#x27;s tests (4 of its 12 headers have one); the
+handler_for clash, with lane C.
+Week 4: suites and docs; the registry under lane H&#x27;s CLI preview.
+Done means: every stable module can describe itself and log through one
+contract; options, the registry and events stable and tested; desc preview.
+December (1.1): desc made stable, with describers for every stable module;
+logging adopted everywhere; --help built from desc; the registry&#x27;s command
+face for lane H&#x27;s interpreter.
+Read first: desc.txt; the stream&#x27;s handoff, section 7 (option_env).</pre></details><details class="brief"><summary><b>Lane F</b>: Parse: expression core, parsegen, vparse</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-F">Copy</button></div><pre id="b-F">Lane F: parse, the expression core, parsegen and vparse
+
+Mission: an expression core rigorous enough for the CLI, math, text and
+parsegen, in C from C99 and in C++ from C++98; parsegen and vparse usable.
+Owns: c/modules/parse, cpp/modules/parse, c/modules/parsegen,
+cpp/modules/parsegen, tools/vparse.
+Week 1: the design of expression core v2: a C99 core (terms; a precedence
+parser with prefix, infix, postfix and mixfix roles; diagnostics at the
+character; folds; rendering) and a C++98 face over it, parity-tested;
+written against the math lane&#x27;s review of the shared climber (its decisions
+S190, S209 and S252) and the CLI&#x27;s needs; agreed with lanes G, E and H by
+Friday 11-06.
+Week 2: core v2 built and tested; parse polish (14 C++ units and 1 C unit
+fail at every level; 4 C++ units need a gate below C++11).
+Week 3: parsegen and vparse on core v2; the CLI&#x27;s command grammar (preview,
+with lane H).
+Week 4: suites (57 of 64 C++ parse headers have no direct test; the stable
+core first), docs; the bison, flex and LLVM adapters as a design note for
+1.1.
+Done means: core v2 stable, documented and tested in both languages;
+parsegen and vparse shipped as preview.
+December (1.1): the bison, flex and LLVM adapters; parsegen and vparse made
+stable; parse&#x27;s outer layers fixed as lane B&#x27;s suites find faults; the
+DSL&#x27;s hooks on core v2 for lane H.
+Read first: the math lane&#x27;s decisions S190, S209 and S252; parsegen&#x27;s
+FOUNDATION.md.</pre></details><details class="brief"><summary><b>Lane G</b>: Math <span class="dim">(the math98 lane, continuing)</span></summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-G">Copy</button></div><pre id="b-G">Lane G: math (the math98 lane, continuing)
+
+Mission: finish step 23, move the lane onto the restructured layout, and
+freeze math at a coherent preview for 1.0.
+Owns: math (the C core, the C++ faces, the expression language) and its
+tests.
+Week 1: chunks 42 and 43 (the five complex functions; matrices of complex
+numbers; S258 and S322): step 23 done. From base-0 on, the lane works on the
+restructured layout and its 42 shims retire.
+Week 2: step 24 (3f, quaternions) only if it lands by Friday 11-13;
+otherwise stabilization.
+Week 3: adopt lane F&#x27;s expression core v2 if it is green (S190&#x27;s
+alternative); otherwise keep the parser layer and schedule the move for 1.1.
+The lane&#x27;s harnesses and face tests into DTest 2.0.
+Week 4: README, comparison and roadmap brought to 1.0; fixes only.
+The 1.0 line: Phases 0 to 3 (through step 23, or 24); math ships as
+preview, and 1.0&#x27;s release notes name expression.hpp&#x27;s known wrong answers.
+December (1.1): 5a first (expression.hpp&#x27;s own sqrt, exp and sin give
+wrong answers today), then Phase 4, then Phase 5 as far as lands by Fri
+12-18; preview. Phases 6 to 8 are 2027.
+Read first: the lane&#x27;s HANDOFF.md and roadmap.md; the roadmap&#x27;s section 2.</pre></details><details class="brief"><summary><b>Lane H</b>: Net, databases, dawk and the CLI</summary><div class="bhead"><span class="dim">Paste after the text for every lane.</span><button type="button" class="copy" data-for="b-H">Copy</button></div><pre id="b-H">Lane H: net, databases, dawk and the djinterp CLI
+
+Mission: net and db to their 1.0 tiers; dawk&#x27;s shared parts into the
+library; a preview of the djinterp CLI.
+Owns: c/modules/net, cpp/modules/net, c/db, cpp/db, tools/dawk, tools/cli,
+c/cli, cpp/cli, and c/util/dregex as dawk&#x27;s common module.
+Week 1: ruling sheets, each item with a recommendation, for net&#x27;s 23 open
+items and db&#x27;s 7; the db workflows running on GitHub (with lane A); the units
+that fail at every level (net: 4 C, 6 C++; db: 1 C, 3 C++); cli.hpp&#x27;s
+D_CONSTEXPR_INLINE on variable templates (7 warnings at C++20) to
+D_CONSTEXPR_INLINE_VAR.
+Week 2: net and db polish and suites: db&#x27;s tests out of tests/unintegrated
+into DTest 2.0 (c/db: 3 of 32 headers have a direct test). Stable: net&#x27;s
+foundation, TCP, TLS, URL and HTTP client; db&#x27;s SQLite, MariaDB/MySQL and
+PostgreSQL layers. The rest ships as preview.
+Week 3: dawk&#x27;s common modules moved, not copied, into the library: dregex
+first (c/util/dregex.c is a copy whose own include points at a header that
+does not exist, and linking it beside dawk&#x27;s duplicates nine symbols), then
+symbol interning and text source and edit (into text, with lane D, which
+owns it); dawk on them; dawk&#x27;s style rules for djinterp (preview).
+Week 4: the djinterp CLI preview on the cli kit, lane E&#x27;s registry and lane
+F&#x27;s grammar: list, describe and set djins, and run the commands a djin
+registers; suites and docs. By Fri 11-27, handoff notes for net and db (to
+lane C) and for dawk and the scripts (to lane D), which change lanes in
+December.
+Done means: net&#x27;s and db&#x27;s stable parts tested on the three platforms; no
+duplicated dawk code in the library; the CLI preview documented.
+December (1.1): the djinterp interpreter and DSL (functional_cli.hpp&#x27;s spine
+on core v2, the grammar in parse/grammar/djinterp.peg), with djins run
+through it and awk modules run by dawk.
+Read first: docs/DECISIONS.md, sections 4.3 and 4.6; desc.txt (dawk).</pre></details>
+</main>
+<script>
+// copy a brief: the clipboard where the page may use it, otherwise select the
+// text so a key press copies it
+document.querySelectorAll('button.copy').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var pre = document.getElementById(b.getAttribute('data-for'));
+    var text = pre.textContent;
+    function select() {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      b.textContent = 'Selected: press Ctrl+C';
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () {
+        b.textContent = 'Copied';
+        setTimeout(function () { b.textContent = 'Copy'; }, 1600);
+      }, select);
+    } catch (e) { select(); }
+  });
+});
+</script>
+</body>
+</html>
