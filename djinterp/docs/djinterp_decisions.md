@@ -12,6 +12,8 @@ as of that day (branch `register/partials`, the step's handoff in
   outside the tree, runs past #120; numbers from #100 on are not in this
   file, and their statuses are not known here.
 
+**Part C**, added 2026.11.04: the backlog ruling of 2026.11.03 and 11.04, in which the owner ruled the 250 open items of the lanes' registers (the restructure, cli, db, net, filesys, the output stream, math and the style register), and his rulings that afternoon on the plan itself: the releases renumbered, the lanes, and the seven style items ruled twice. This is the file the roadmap to 1.0 and the lanes' briefs call `docs/DECISIONS.md`.
+
 Both parts are reproduced whole. What is added: this front matter, Part A's
 status column brought up to date with its section 7, and a status line
 opening each of Part B's decisions. Section numbers inside each part are
@@ -25,6 +27,7 @@ that part's own.
 4. Found, not decided
 5. Part A: the approved programme
 6. Part B: the register, #1 to #99
+7. Part C: the backlog ruling of 2026.11.03 and 11.04
 
 ## 1. Status at a glance
 
@@ -37,7 +40,7 @@ that part's own.
 | not started | 3.5 (three questions open) |
 | n/a, ongoing, standing | 2.7; 2.9; DTest |
 
-**Part B, the register**
+**Part B, the register** (as of 2026.10.04; every row has been ruled since, in Part C, but for #1, #5, #45, #58, #74, #92 and #96, which it did not cover)
 
 | Status | Decisions | Count |
 |---|---|---|
@@ -125,8 +128,8 @@ From the approved programme and its rounds:
    now includes, and its debug build does not compile (it calls two
    constants as functions).
 
-From the register: every entry Part B marks open, and anything numbered #100
-or later in the canonical register.
+From the register: none of #1 to #99 since the backlog ruling of 2026.11.03 and 11.04
+(Part C); anything numbered #100 or later in the canonical register.
 
 Not decisions, but the owner's to do: push, so the first CI run tests the
 ladders' baselines, and dispatch the six nightly portability jobs that have
@@ -443,7 +446,7 @@ changed; the whole ladders on the final tree are in the step's README.
 
 ## Part B. The register: decisions #1 to #99
 
-The owner's register, as copied into this tree on 2026.09.28 (`research/djinterp_decisions_merged1_copy.md`, titled "djinterp style-conformance work: decisions and handoff"), whole and in its own order. Each decision now opens with its status as of 2026.10.04; nothing else in it has changed, and its section numbers are its own. The canonical register, outside this tree, runs past #120: numbers from #100 on are not here.
+The owner's register, as copied into this tree on 2026.09.28 (`research/djinterp_decisions_merged1_copy.md`, titled "djinterp style-conformance work: decisions and handoff"), whole and in its own order. Each decision now opens with its status as of 2026.10.04; nothing else in it has changed, and its section numbers are its own. Since 2026.11.04 each decision the backlog ruling covered (Part C) also carries that ruling, right under its status. Where the status says settled and the ruling agrees with it, the work is done: what is left is to check it on the restructured tree and give it a test. Where the two disagreed, the owner ruled again on 11.04 (Part C, C.1). The canonical register, outside this tree, runs past #120: numbers from #100 on are not here.
 
 Handoff notes for an agent continuing the style-guide conformance pass over the
 djinterp C/C++ framework. It records the conventions the work follows, the
@@ -598,6 +601,11 @@ headers they don't use themselves.
 > `compress.h`, `archive_common.h` and `pdf_primitives.h` stop including
 > detection they don't use; a file that reads a `D_ENV_*` fact includes its env
 > header itself (`958aad8`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): 10.04's ruling stands (the owner,
+> 11.04 afternoon): no unnecessary includes; a file that reads a `D_ENV_*`
+> fact includes its env header itself. The register's first recommendation,
+> which the sheet's "agree" took, is set aside.
 
 - *Advantages (keep):* detection arrives with the module that needs it, and
   nothing else pays for it.
@@ -611,6 +619,8 @@ The old banner said it did; the current `env.h` doesn't.
 
 > **Status, 2026.10.04:** settled 2026.10.04: "opt-in": `env.h` includes no
 > per-OS header, and its banner says so (`cde4687`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (auto-include):* convenient.
 - *Disadvantages:* every file pays for about 240 macros.
@@ -624,6 +634,9 @@ decided here, since it includes `env_apple.h`.
 > **Status, 2026.10.04:** settled 2026.10.04: `env_apple.h` includes
 > `<Availability.h>` itself, on Apple, consistent with #2 and #3 (`7f5777a`); it
 > had worked only through `<unistd.h>`.
+>
+> **Ruled 2026.11.04** (lane A; after everything else): agreed, as the
+> register recommends; it matters once macOS is tested, after everything else.
 
 - *Option `env_apple.h`:* loads it only with Apple detection.
 - *Option `env_os.h`:* puts it in every Apple translation unit.
@@ -653,6 +666,8 @@ env layer.
 
 > **Status, 2026.10.04:** open, unchanged: `djinterp.h` still spells the vendor
 > forms itself.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (move them into `env_compiler.h`):* conformance, and all vendor
   spellings in one place.
@@ -671,6 +686,8 @@ It is 1 under C++ too, and `D_ENV_LANG_C_STANDARD` reads as C90 there, so
 
 > **Status, 2026.10.04:** settled 2026.10.04: "redefine it":
 > `D_ENV_LANG_USING_C` means compiling as C, 0 under C++ (`56cd674`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (redefine it as "compiling as C"):* the name becomes true.
 - *Disadvantages:* the printer is the only known user, but the tree may have
@@ -685,6 +702,11 @@ The POSIX detection fix includes it unconditionally.
 > `<unistd.h>` (`ea03a90`). At 0 the XSI version and the `_POSIX_*` options read
 > 0 unless a unit includes `<unistd.h>` first; `env.c` now includes `<stdio.h>`,
 > which it had reached through `<unistd.h>`.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): the switch stays, and its default
+> becomes 1 (the owner, 11.04 afternoon): `env_posix.h` includes `<unistd.h>`
+> unless a unit sets `D_CFG_ENV_POSIX_UNISTD` to 0, so POSIX detection no
+> longer depends on include order by default (lane A, in env).
 
 - *Advantages (an opt-out switch):* a file could avoid its declarations.
 - *Disadvantages:* opting out brings back the include-order bug.
@@ -699,6 +721,9 @@ convention.
 > `config/core/env/os/cfg_env_apple.h`, and read as 0 or 1 (`269aed9`); the old
 > `defined()` test turned it on even at 0. `D_ENV_PRINTER_INCLUDE_*` left with
 > `env_printer.hpp`.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, except for knob ids round 3
+> fixed for 1.x (ruling 7).
 
 - *Advantages (rename):* consistency. Defining the new name from the old
   whenever only the old is set would keep existing `-D` flags working, but
@@ -713,6 +738,9 @@ generic enough to collide.
 
 > **Status, 2026.10.04:** settled 2026.10.04: "rename": the four named, and four
 > siblings in the same headers, carry `D_INTERNAL_ENV_` (`6cbe581`).
+>
+> **Ruled 2026.11.04** (lane A, B; for 0.8): agreed, as the register
+> recommends.
 
 - *Advantages (rename):* conformance, and less collision risk.
 - *Disadvantages:* the implementation files, not yet seen, may use them.
@@ -726,6 +754,8 @@ generic enough to collide.
 > built defines the framework's own codes, not errno values, so it is not
 > pertinent; d_strerror_r asks the platform (strerror_r, glibc's GNU variant,
 > strerror_s), with the table as fallback (`c787f83`).
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): agreed, as the register recommends.
 
 - *Advantages (delegate to `strerror_r`, or `strerror_s` on Windows, with the
   table as fallback):* real messages.
@@ -739,6 +769,8 @@ case-conversion functions, follow the C locale through `tolower`/`isalpha`.
 
 > **Status, 2026.10.04:** settled 2026.10.04: "ascii only": string_fn's classes
 > and case folding (`a042abc`, wrapped in `5922876`).
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): agreed, as the register recommends.
 
 - *Advantages (ASCII-only):* deterministic across machines.
 - *Disadvantages:* 8-bit letters are no longer handled.
@@ -749,6 +781,8 @@ It writes NULs into the text without updating the size.
 
 > **Status, 2026.10.04:** settled 2026.10.04: "update size": the size follows
 > the text after the first call (`77ec2c5`).
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): agreed, as the register recommends.
 
 - *Advantages (set `size` to the first token's length):* size and text stay
   consistent.
@@ -760,6 +794,8 @@ It writes NULs into the text without updating the size.
 
 > **Status, 2026.10.04:** settled 2026.10.04: the precondition, plus a
 > debug-build assert (`6c97fcd`).
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): agreed, as the register recommends.
 
 - *Advantages (keep the documented precondition):* costs nothing, and ±292
   years is ample.
@@ -772,6 +808,8 @@ is missing.
 
 > **Status, 2026.10.04:** settled 2026.10.04: thrd_sleep where C11 threads
 > exist, POSIX sleep() where only it does, else ENOSYS (`27da03a`).
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): agreed, as the register recommends.
 
 - *Advantages (C11 `thrd_sleep` where threads exist, failing with `ENOSYS`
   otherwise):* compiles everywhere and reports honestly.
@@ -790,6 +828,9 @@ is missing.
 > elsewhere it stays undefined. `dtime.c`, `dmutex.h` and `c/fs/file.h` carry a
 > note (`f028dde`); "following your recommendation", reaffirmed in the second
 > batch.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> the ladders already pass -D_XOPEN_SOURCE=700.
 
 - *Advantages (build flags, `-D_XOPEN_SOURCE=700 -D_DEFAULT_SOURCE`):*
   respect the corresponding-header-first rule, and keep reserved names out of
@@ -804,6 +845,9 @@ the templates.
 
 > **Status, 2026.10.04:** settled by the downporting: `env_printer.hpp` was
 > retired (`58add73`, the owner's ruling in round 2).
+>
+> **Ruled 2026.11.04** (lane E; for 0.8): agreed if it still applies: the
+> stream lane rewrote the printer on 10.29; lane E checks first.
 
 - *Advantages (forward them to the templates through a small `FILE*`
   target):* one report everywhere.
@@ -814,6 +858,9 @@ the templates.
 
 > **Status, 2026.10.04:** settled by the downporting: `env_printer.hpp` was
 > retired (`58add73`, the owner's ruling in round 2).
+>
+> **Ruled 2026.11.04** (lane E; for 0.8): agreed if it still applies: the
+> stream lane rewrote the printer on 10.29; lane E checks first.
 
 - *Advantages (a feature-descriptor struct):* meets the five-parameter limit,
   and turns the C++ feature list into a table.
@@ -825,6 +872,12 @@ the templates.
 guide's 60.
 
 > **Status, 2026.10.04:** settled 2026.10.04: "keep as is".
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): the owner's words: "don't split,
+> since 60 line limit has been increased, correct?". The recommendation was
+> the register's. Settled 11-04: split d_string_split (113 lines) only;
+> d_string_replace_all_cstr (97) stays. The split must cost nothing: static
+> inline helpers, and a benchmark before and after.
 
 - *Advantages (split into helpers):* conforms, and is easier to test. The
   existing differential harness guards the change.
@@ -836,6 +889,9 @@ Several bugs found were undefined macros silently reading as 0 in `#if`.
 
 > **Status, 2026.10.04:** settled 2026.10.04: both guides' flag tables carry
 > `-Wundef` (`0accfda`); the fallout was cleared in the downporting (`205ed83`).
+>
+> **Ruled 2026.11.04** (lane A, owner; for 0.8): agreed: the ladders already
+> build with -Werror=undef; write it into the guides.
 
 - *Advantages:* catches that whole class of bug.
 - *Disadvantages:* some initial warnings to clear in the env headers.
@@ -861,39 +917,55 @@ Each changes behavior only where the current behavior is wrong. For every one:
     `d_index_is_valid`.
     *Status, 2026.10.04: settled 2026.10.04: the three macros call
     d_index_is_valid (`6c433bb`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 22. `dstring`: a `SIZE_MAX` count overflows in substr, erase, replace and
     replace_cstr. Clamp it to the remaining length, as `std::string` does with
     `npos`.
     *Status, 2026.10.04: settled 2026.10.04: clamped against what is left, so
     SIZE_MAX cannot wrap (`a8a474f`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 23. `dstring`: appending, inserting or copying a string into itself hits an
     overlapping `memcpy`. Handle the overlap.
     *Status, 2026.10.04: settled 2026.10.04: append, insert and assign take the
     string itself; the _s forms keep their precondition (`8c0eb5d`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 24. `d_string_split` returns a non-NULL array with a count of 0 for input that
     is only delimiters. Return NULL.
     *Status, 2026.10.04: settled 2026.10.04: no token, no array: *_tokens is
     NULL (`bb5ee58`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 25. `D_TIME_HAS_TIMEGM` is 0 on Linux and macOS, so both use the fallback,
     which, unlike `timegm`, doesn't normalize the `struct tm`.
     *Status, 2026.10.04: settled 2026.10.04: timegm wherever `<time.h>` declares
     it under the build's feature-test macros, and a fallback that normalizes
     (`b773090`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 26. Windows: the clock functions reset their frequency cache on every call,
     and the CPU-time clocks drop a carry.
     *Status, 2026.10.04: settled 2026.10.04: the frequency is cached, and the
     CPU times add as 64-bit counts (`8e81b88`); compile-checked with MinGW-w64
     only.*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 27. `d_strftime_s`'s MSVC branch calls a function that doesn't exist, behind a
     macro nothing defines. Delete the branch, and replace `D_ENV_MSC_VER` with
     the env layer's compiler-version macros.
     *Status, 2026.10.04: settled 2026.10.04: the strftime_s branch is gone, and
     timespec_get is detected by TIME_UTC instead of a compiler version
     (`68a4826`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 28. `d_timespec_cmp` returns -1 when either argument alone is NULL. Make NULL
     order first on both sides, so the ordering is safe for sorting.
     *Status, 2026.10.04: settled 2026.10.04: NULL orders first on both sides
     (`9812551`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 29. The `_TIMESPEC_DEFINED` shim for MSVC before 2015 defines a reserved name.
     Delete it; it is below the C11 floor anyway if #5 is taken.
     *Update (2026-09-28, #5):* the floor is C99, and the shim is below that
@@ -901,19 +973,26 @@ Each changes behavior only where the current behavior is wrong. For every one:
     from Visual Studio 2015 (1900) on. Still delete it.
     *Status, 2026.10.04: settled 2026.10.04: the pre-2015 MSVC shim is gone
     (`eb8e488`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 30. `d_strcasestr_index` misreads embedded NULs. Compare with the
     length-aware `d_strncasecmp_n` instead.
     *Status, 2026.10.04: settled 2026.10.04: compares through d_strncasecmp_n,
     embedded NULs included (`e5b1fb8`).*
+    *Ruled 2026.11.04 (lane B; for 0.8): agreed: fix it, as the register
+    recommends for 21 to 32.*
 31. `env_archive.h`'s stray `#include <archive.h>` fires only if the build
     pre-defines the detection macro. Delete it.
     *Status, 2026.10.04: settled 2026.10.04: the stray include is gone
     (`9ada003`).*
+    *Ruled 2026.11.04 (lane A; for 0.8): agreed, as the register recommends.*
 32. `env_printer.hpp`: `#ifdef __STDC_HOSTED__` should be `#if` (done in the
     converted file). `print_env` should also call the C++11 feature list when
     features are enabled, or the list should go.
     *Status, 2026.10.04: settled by the downporting: `env_printer.hpp` was
     retired (`58add73`, the owner's ruling in round 2).*
+    *Ruled 2026.11.04 (lane E; for 0.8): agreed if it still applies: the stream
+    lane rewrote the printer on 10.29; lane E checks first.*
 
 #### Style guide contradictions
 
@@ -930,6 +1009,14 @@ below would be applied to both.
 > readability, kept as neat as the padded form; i, the example is a sample
 > module, `c/foo/bar`. j, the banner spacing, stays as it is ("it's fine"). The
 > language floor was settled earlier (programme 4.9).
+>
+> **Ruled 2026.11.04** (lane owner, A; for 0.8): the owner's words: "ignore
+> the banners (for now): no C or C++ in banners, just their module. Contract
+> rule wins. Omit void @returns. Use decimal for 4th level ToC. Corresponding
+> header rule. Rename template params to omit leading _. Keep the closures
+> rule. Allow return type on its own line. Fix the example include guard. Keep
+> 2 blank lines. Language floor C99/C++98.". The recommendation was: Agree
+> with each pick; lane A edits the guides' text for you to approve.
 
 - *Advantages of resolving:* one rule per question, so conversions stop
   depending on which rule was read.
@@ -985,6 +1072,9 @@ as 0. Defining `_WIN32_WINNT=0x0A00` gives "Windows 10+" with all of them 1.
 > **Status, 2026.10.04:** settled 2026.10.04: "define `_WIN32_WINNT`", in the
 > build: both guides and `env_windows.h`'s banner say so, and the header never
 > sets one (`484007e`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - *Option (include `<sdkddkver.h>` in the header):* fixes it, but that header
   sets a default `_WIN32_WINNT`, so a file that defines its own afterwards gets
@@ -998,6 +1088,9 @@ as 0. Defining `_WIN32_WINNT=0x0A00` gives "Windows 10+" with all of them 1.
 
 > **Status, 2026.10.04:** settled 2026.10.04: "drop it": only
 > WINAPI_FAMILY_DESKTOP_APP counts as desktop (`86272bd`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> Cygwin as POSIX, with a Windows note.
 
 - *Advantages (drop it from the desktop test):* store apps classify
   correctly.
@@ -1009,6 +1102,8 @@ includes `<version>`, because it keys on `__cpp_lib_coroutine`.
 
 > **Status, 2026.10.04:** settled 2026.10.04: "require both": a Windows C++
 > build with `winrt/base.h` (`c3b980d`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (require Windows plus C++/WinRT's own header):* correct.
 - *Disadvantages:* none known.
@@ -1020,6 +1115,11 @@ the same header treats Cygwin as Windows.
 
 > **Status, 2026.10.04:** settled 2026.10.04: the GNU spellings for Windows on
 > ARM; Cygwin counts as Windows for bitness (`0216af1`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): no conflict (11.04 afternoon): the
+> platform is POSIX, as `env_os.h` already decides, since Cygwin's compilers
+> define neither `_WIN32` nor `_WIN64`; `env_windows.h`'s own facts (bitness,
+> ARM) still answer for a Cygwin build, and lane A adds a note saying so.
 
 - *Advantages (add the GNU spellings):* both targets detect correctly.
 - *Disadvantages:* someone must decide whether Cygwin counts as Windows for
@@ -1037,6 +1137,12 @@ buffer size that follows each `%s`, `%c` or `%[`. Reproduced: a correct
 > library's plain `vsscanf` or `vfscanf`, and the engine walks the arguments and
 > holds `%c`, `%s` and `%[` to a size_t size (`ccf0af6`). The typo
 > `D_STUDIO_HAS_SCANF_S` is gone.
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): 10.04's ruling stands (the owner,
+> 11.04 afternoon): the framework's own checked scanf engine stays, since it
+> already parses the format string itself; lane B tests it (correct calls,
+> sizes 0 and 1, `%[` sets, a size too small, 32- and 64-bit) instead of
+> replacing it with Annex K detection and a compile error.
 
 - *Advantages (detect support properly, via `__STDC_LIB_EXT1__` or `_MSC_VER`,
   and make the `_s` scanf wrappers a compile error where neither exists):*
@@ -1054,6 +1160,9 @@ including the header that declares them.** It gets them only through
 > **Status, 2026.10.04:** settled 2026.10.04: dio's stream positioning, which
 > only wrapped c/fs's, is removed, and with it dio's use of c/fs; the rest of
 > dio has no c/fs counterpart and stays (`a28c1ef`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - *Advantages (include the declaring header directly):* include-what-you-use,
   and no silent breakage if `dio.h` changes.
@@ -1066,6 +1175,9 @@ first flips io_uring, openat2, clone3 and the rest from 0 to 1.
 
 > **Status, 2026.10.04:** settled 2026.10.04: `env_linux.h` includes
 > `<linux/version.h>` behind __has_include (`2df9eab`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - *Advantages (include it behind `__has_include`):* order-independent.
   Unlike Windows' `<sdkddkver.h>`, it only defines macros and sets no defaults,
@@ -1079,6 +1191,9 @@ so the project's own guide forbids defining it.
 
 > **Status, 2026.10.04:** settled 2026.10.04: `D_CFG_ENV_LINUX_MUSL`, in
 > `cfg_env_linux.h`, replaces __MUSL__ (`8b9ba91`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> Cygwin as POSIX, with a Windows note.
 
 - *Option (guess by elimination: no glibc, no uClibc, no Bionic):* mislabels
   every other C library.
@@ -1095,6 +1210,9 @@ includes.** Measured effect of knowing the version: nothing changes on FreeBSD
 
 > **Status, 2026.10.04:** settled 2026.10.04: `<osreldate.h>` on FreeBSD,
 > `<sys/param.h>` on the others, behind __has_include (`aea72dc`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, and sooner: FreeBSD is
+> required from the start (ruling 4).
 
 - *Advantages (include per variant, behind `__has_include`):* order-independent,
   consistent with #4 and #40. `<osreldate.h>` on FreeBSD defines only
@@ -1111,6 +1229,9 @@ values.**
 > __is_target_os(xros), kept out of the macOS and iOS fallbacks; checked against
 > Apple's own `<TargetConditionals.h>` with clang 18, not yet with a visionOS
 > SDK (`5cb980e`).
+>
+> **Ruled 2026.11.04** (lane A; after everything else): agreed, as the
+> register recommends; it waits for Apple testing, after everything else.
 
 - With stand-in values (`TARGET_OS_IPHONE=1`, `TARGET_OS_VISION=1`,
   `TARGET_OS_IOS=0`), the fallback iOS branch fires, so visionOS also reports
@@ -1137,6 +1258,8 @@ unaffected.
 
 > **Status, 2026.10.04:** other sessions': net's: the owner's rulings of
 > 2026.10.04 are being carried out in the net session.
+>
+> **Ruled 2026.11.04** (lane H, A; for 0.8): agreed: (a).
 
 - *Option (a), fix the helper to pack by release line (3.x packing from 3.0 on,
   `(major << 28) | (minor << 20) | (patch << 12)` before):*
@@ -1160,6 +1283,8 @@ they can.
 
 > **Status, 2026.10.04:** other sessions': net's: the owner's rulings of
 > 2026.10.04 are being carried out in the net session.
+>
+> **Ruled 2026.11.04** (lane H, A; for 0.8): agreed: (c), TLS 1.3 first.
 
 - *Option (a), keep them OpenSSL-only (as now documented):*
   - *Advantages:* accurate for what they claim.
@@ -1192,6 +1317,9 @@ without spaces. With no Qt at all, `#ifdef QT_VERSION_CHECK` wrongly says Qt is
 present.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (replace it with a prefixed `D_ENV_QT_VERSION_CHECK`, parameters
   parenthesized, never defining Qt's name):* no clash in either include order,
@@ -1203,6 +1331,9 @@ present.
 even when linked.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (probe the version header automatically, with an opt-out
   switch, as curl and TLS do):* order-independent, and consistent with #4,
@@ -1220,6 +1351,9 @@ even when linked.
 detection can't be overridden.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (guard every macro):* consistency, and lets cross-builds and
   tests pin a Qt configuration. Costs nothing when unused.
@@ -1234,6 +1368,9 @@ Qt 4-era macro) is defined. Verified: a Qt 6 console application linking only
 QtCore reports `HAS_GUI=1`.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (key on `QT_GUI_LIB`, like every other module):* accurate and
   consistent, and Qt 4's qmake defines it too.
@@ -1254,6 +1391,9 @@ blocks fired and the System V answer won.
 **50. Where the Linux/macOS/BSD OS predicates live.**
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - *Advantages (add `D_ENV_IS_OS_LINUX`, `_MACOS`, `_BSD` to `env_os.h` beside
   `_WINDOWS`):* reads naturally, and any other file in the tree that assumed
@@ -1268,6 +1408,9 @@ Verified with real ncurses 6.4: plain `<curses.h>` reports `NCURSESW`, with
 the wide feature flag set.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (test the value):* correct type and feature flags.
 - *Disadvantages:* none, beyond anything relying on the wrong answer.
@@ -1279,6 +1422,9 @@ the wide feature flag set.
 them gives a redefinition warning.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (guard every macro):* the same override behavior as the rest of
   the env layer.
@@ -1290,6 +1436,9 @@ wide-character build, which classic PDCurses has too, so a wide PDCurses
 reports PDCursesMod and a narrow PDCursesMod reports PDCurses.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (use the version instead, believed to be 4.x for PDCursesMod
   and 3.x for classic PDCurses, with wide support as a feature flag):* correct
@@ -1319,6 +1468,9 @@ line still leaves 15.
 
 > **Status, 2026.10.04:** other sessions': net's: the owner's rulings of
 > 2026.10.04 are being carried out in the net session.
+>
+> **Ruled 2026.11.04** (lane H; for 0.9): agreed, with the guide's exception
+> added under #33.
 
 - *Advantages (convert):* literal conformance, matching every other header.
 - *Disadvantages:* trades rule 3 for another rule, either line length or
@@ -1333,6 +1485,9 @@ indent first.
 
 > **Status, 2026.10.04:** other sessions': net's: the owner's rulings of
 > 2026.10.04 are being carried out in the net session.
+>
+> **Ruled 2026.11.04** (lane H; C in December; for 0.9): agreed, as the
+> register recommends.
 
 - *Advantages (convert to `    #define`):* consistency.
 - *Disadvantages:* none; it's mechanical.
@@ -1346,6 +1501,9 @@ itself. The `D_CFG_` static assertions are documented and intentional.
 
 > **Status, 2026.10.04:** other sessions': net's: the owner's rulings of
 > 2026.10.04 are being carried out in the net session.
+>
+> **Ruled 2026.11.04** (lane H; C in December; for 0.9): agreed, as the
+> register recommends.
 
 - *Option (derive `D_INTERNAL_` values for the three in section 5):*
   - *Advantages:* the promise holds, and the module reads a single layer.
@@ -1362,6 +1520,11 @@ the second.
 
 > **Status, 2026.10.04:** other sessions': net's: the owner's rulings of
 > 2026.10.04 are being carried out in the net session.
+>
+> **Ruled 2026.11.04** (lane H; C in December; for 0.9): the owner's words:
+> "Don't split; 60 line limit has been increased, correct?". The
+> recommendation was the register's. Settled 11-04: no split (63 and 65 lines,
+> under 100).
 
 - *Advantages (extract a helper each):* meets the guide's limit with small,
   nameable helpers.
@@ -1407,6 +1570,11 @@ defines it, obtain that version and re-verify.
 > stays in `env_vendor_attributes.h`, which a user includes. STARTTLS is not in
 > this tree, and nothing uses the macro. The net session carries on from this
 > ruling for net's headers.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): 10.04's ruling stands with #64 (the
+> owner, 11.04 afternoon): `D_FORMAT_PRINTF` stays in
+> `env_vendor_attributes.h`, and `starttls.h` includes that header itself
+> (lane H).
 
 - *Advantages (add it to `djinterp.h` beside `D_NODISCARD`, pre-definable, as
   `__attribute__((format(printf, f, a)))` on GCC/clang and empty elsewhere):*
@@ -1435,6 +1603,9 @@ it reports `PROHIBITED=0` and `CAN_ALLOCATE_EXEC=1` unless `env_ios.h` was
 included first; with it, 1 and 0.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Option (a), include `env_ios.h` from `env_jit.h` on mobile Apple targets
   (`D_ENV_OS_ID == D_ENV_OS_FLAG_IOS`):*
@@ -1451,6 +1622,9 @@ included first; with it, 1 and 0.
 lacks the `D_INTERNAL_` prefix the guide asks of such macros.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Option (a), rename to `D_INTERNAL_ENV_JIT_IS_APPLE_FAMILY`:*
   - *Advantages:* conforms, and signals it isn't public API.
@@ -1470,6 +1644,15 @@ MAP_JIT with the allow-jit entitlement. `D_ENV_MOBILE_NO_DLOPEN` uses the same
 condition, so it likely has the same problem.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; after everything else): the owner's words: "I
+> was under the impression we were not prohibiting any JIT on any OS, but we
+> would note it? And perhaps add a warning?". The recommendation was the
+> register's: it waits for Apple testing, after everything else. Settled
+> 11-04: stop reporting Mac Catalyst as iOS (no-JIT, no-dlopen); the jit
+> module fails with a clear message naming the allow-jit entitlement when the
+> OS refuses executable memory; and a build-time warning where a target
+> refuses JIT. The owner wants the warning wherever one can be shown.
 
 - *Advantages (exclude Mac Catalyst from both flags):* correct JIT and
   `dlopen` availability for Catalyst apps.
@@ -1500,6 +1683,10 @@ the other twelve attributes no longer arrive through the root.
 > **Status, 2026.10.04:** settled 2026.10.04: (B) the root carries
 > `env_attributes.h`, with the one `D_NODISCARD` (`6a7b024`);
 > `env_vendor_attributes.h` stays opt-in and says so (`c54ed08`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): 10.04's ruling stands (the owner,
+> 11.04 afternoon): the root includes `env_attributes.h`, with its one
+> `D_NODISCARD`, and `env_vendor_attributes.h` stays opt-in.
 
 - *Advantages (restore both, and delete `djinterp.h`'s own `D_NODISCARD`):*
   the root again provides the attribute kit, as designed, and `D_NODISCARD`
@@ -1530,6 +1717,9 @@ under `-Wall -Wextra -Werror -pedantic`, 48 of 176 uses fail.
 > **Status, 2026.10.04:** settled by the downporting: no C++ `[[...]]` spelling
 > below the level that guarantees it; `D_CARRIES_DEPENDENCY` leaves GCC out;
 > `D_ASSUME`'s C++23 form needs `__has_cpp_attribute(assume)` (`b4db405`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - In C11/C17 and C++11–17, the `__has_*_attribute` "early support" probe
   picks `[[...]]` spellings that `-pedantic` rejects there. This hits
@@ -1558,6 +1748,8 @@ with the same logic. `env_lang.h`'s definition always wins, now that
 
 > **Status, 2026.10.04:** settled by the downporting: `D_DELETE` is
 > `env_lang.h`'s alone (`734547f`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (delete it from `env_attributes.h`):* one definition. It isn't
   an attribute, and `env_lang.h`'s "C++ helpers" is a natural home.
@@ -1570,6 +1762,8 @@ clang's `__builtin_assume`) never evaluates it, so side effects run on some
 compilers and not others.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (an unevaluated fallback, such as
   `((void)sizeof((expr) ? 1 : 0))`):* the same semantics everywhere, and the
@@ -1597,6 +1791,8 @@ Verified: under `-ffreestanding`, 40 of 53 flags still report library
 features, such as `fork`, sockets and `mmap`.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Option (a), gate only the library-dependent flags on
   `#if __STDC_HOSTED__`, defining them 0 otherwise:* leave ungated what a
@@ -1618,6 +1814,9 @@ zeros are right: VLAs, `<complex.h>`, `<tgmath.h>` and C11 threads are
 C-only. Others are wrong:
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - `STDINT_H`, `INTTYPES_H`, `SNPRINTF`, `FENV_H` and `UCHAR_H`: all in C++
   since C++11.
@@ -1640,6 +1839,9 @@ the SSE test doesn't. Simulated with MSVC's macro set: SSE=0, SSE2=1, though
 SSE2 implies SSE.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - *Advantages (add the x64 clause to the SSE test, since x64 guarantees both):*
   consistent and correct.
@@ -1659,6 +1861,10 @@ still produces 7. No rule that looks at one path alone avoids collisions.
 
 > **Status, 2026.10.04:** settled earlier: the guides keep the rule and say why
 > ("Why there are no exceptions"), before the downporting's rounds.
+>
+> **Ruled 2026.11.04** (lane A; done): the owner's words: "Merge repeated
+> segments unless there is a name collision!". The recommendation was the
+> register's: keep the rule.
 
 - *Advantages (collapse, keeping the full form only where it would collide):*
   shorter guards across 28% of headers.
@@ -1684,6 +1890,9 @@ those two share 5.6% of their tokens.
 > **Status, 2026.10.04:** settled by the downporting: the four flat
 > `parse/expression_*.hpp` copies were retired (`a094959`); `net/curl.hpp` is
 > net's and no longer in the tree.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, into retired/, after
+> checking against the restructure (rs 14).
 
 - *Advantages (retire all five):* removes dead code and half of #71's
   collisions, whichever way #71 goes. On the scratch copy: no new unresolved
@@ -1705,6 +1914,11 @@ pool_allocator as already migrated nested-over-flat.
 > **Status, 2026.10.04:** settled by the downporting: the other way from this
 > entry's pick: the owner's ruling of 2026.09.30 made the C-backed memory
 > generation canonical, and the nested pool stack was retired (`f5fa25f`).
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): 10.04's state stands (the owner,
+> 11.04 afternoon): the nested pool stack stays retired, as the owner's ruling
+> of 2026.09.30 made the C-backed memory canonical; ruling 5's record ("nested
+> over flat") is corrected by this line.
 
 - *Advantages (converge on nested):* one implementation, and ruling 5 becomes
   true.
@@ -1739,6 +1953,9 @@ configuration header.
 
 > **Status, 2026.10.04:** other sessions': net's, worked on in other sessions;
 > not audited here.
+>
+> **Ruled 2026.11.04** (lane H, A; for 0.8): agreed, as the register
+> recommends; dconfig.h is lane A's, so the two lanes do it together.
 
 - *Advantages (everything through `dconfig.h`):* one list of every module's
   knobs.
@@ -1758,6 +1975,9 @@ and macro prefixes are unspecified.
 
 > **Status, 2026.10.04:** open, unchanged: the subsystem table still has /3d and
 > no tools, ui or render row.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> the restructure made tools/ and ui/, so the banners and prefixes follow.
 
 - *Advantages (add the rows):* the guide describes the tree.
 - *Disadvantages:* none beyond the editing.
@@ -1770,6 +1990,9 @@ Ruling 22 renamed the directory and left the file's name, so the umbrella reads
 `render/render3d.hpp`.
 
 > **Status, 2026.10.04:** open, unchanged: `render/render3d.hpp` keeps its name.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed, as the register recommends;
+> preview modules, so December.
 
 - *Advantages (rename to `render/render.hpp`):* reads naturally, and matches
   `net/net.hpp` and `ui/ui.hpp`.
@@ -1789,6 +2012,12 @@ drop was caught only by recompiling those subsystems.
 > **Status, 2026.10.04:** settled by the downporting: in practice, by the
 > rounds' lane rule: one lane owns the root and the others send requests. The
 > growth check was never built.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): the owner's words: "It is a one-time
+> check though, correct? if so then yes". The recommendation was the
+> register's: a CI growth check on djinterp.hpp. Settled 11-04: do it: a CI
+> check, set up once, that fails a merge if djinterp.hpp loses a declaration
+> the base had.
 
 - *Advantages (one owning session; the others send additions, not whole
   files):* the file stops churning.
@@ -1811,6 +2040,11 @@ four fields directly, 690 times. Four files, chiefly `test_printer.c` and
 
 > **Status, 2026.10.04:** other sessions': DTest's, worked on in other sessions;
 > not audited here.
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): the owner's words: "I want a
+> test_counter/test_timer that derive as much as possible from counter.h/.c
+> and timer.h/.c (resp). With threadsafe versions of all. Add it to the DTest
+> todo". The recommendation was the register's: the field form.
 
 - *Advantages (write the API over the struct):* its constants read as
   selectors over the same four fields, so both forms can stand, and the four
@@ -1827,6 +2061,9 @@ diagnostic channels. The parse handoff's `ISSUES.md` A1 sets out the options
 and recommends a joint architecture.
 
 > **Status, 2026.10.04:** open, unchanged: parse and vparse both still exist.
+>
+> **Ruled 2026.11.04** (lane F; for 0.8): agreed: Decide it with expression
+> core v2 on Fri 11-06.
 
 - **Recommendation:** decide it as ISSUES A1, where it is argued in full. It
   appears here so this register is complete.
@@ -1840,6 +2077,8 @@ all 17 differ now.
 
 > **Status, 2026.10.04:** other sessions': DTest's, worked on in other sessions;
 > not audited here.
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): agreed: harvest the nine.
 
 - *Advantages (harvest the nine):* recovers any work the nested versions never
   got.
@@ -1857,6 +2096,8 @@ and a Roman-to-decimal ToC in `c/djinterp.h`.
 
 > **Status, 2026.10.04:** open, unchanged: `_retired/relay91_deferred_headers/`
 > is not in this tree; nothing to act on here.
+>
+> **Ruled 2026.11.04** (lane A; for 0.9): agreed: compare each first.
 
 - *Advantages (harvest):* recovers those improvements.
 - *Disadvantages:* this session has since rewritten several of the same files,
@@ -1877,6 +2118,8 @@ in that shared code. `re_std` already backports `void_t` and `enable_if_t`.
 > **Status, 2026.10.04:** settled by the downporting: superseded: the C++ floor
 > is C++98 with levels (programme 3.6, 4.9), and re_std supplies the library
 > types.
+>
+> **Ruled 2026.11.04** (lane A, B; done): agreed: a standing rule.
 
 - *Option (`re_std` always, for library types):* one spelling at every
   standard, and no env-layer branch at each use.
@@ -1898,6 +2141,9 @@ one comment block carrying both the contract and the mechanism.
 
 > **Status, 2026.10.04:** open, unchanged: neither guide says where a file-local
 > static function's contract goes.
+>
+> **Ruled 2026.11.04** (lane owner, A; for 0.8): agreed, as the register
+> recommends; it goes into the guide.
 
 - *Advantages:* closes a gap every source file with helpers runs into.
 - *Disadvantages:* none beyond the editing.
@@ -1942,6 +2188,9 @@ as 202100L, below `env_lang.h`'s 202302L threshold.
 
 > **Status, 2026.10.04:** open, unchanged: documented: `D_UNREACHABLE` still
 > does not include `<utility>`.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - *Advantages (include `<utility>` from the header, in the C++23 branch
   only):* the macro works wherever it is used, and keeps libstdc++'s
@@ -1964,6 +2213,8 @@ definitions", not "a strong definition wins". The same test fails
 MSVC has no x64 inline assembly to write a naked body in.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (expand `D_WEAK` to nothing on MSVC, as for an unknown
   compiler):* uses compile everywhere.
@@ -1985,6 +2236,8 @@ every file, so a simulated-compiler build fails at the first attribute with an
 MSVC spelling.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (key the spellings on the real compiler's predefines,
   `__GNUC__`, `__clang__` and `_MSC_VER`):* the spellings always match the
@@ -2005,6 +2258,8 @@ no `D_ENV_DETECTED_BUILD_*` override, none of `D_ENV_BUILD_DEBUG`,
 
 > **Status, 2026.10.04:** settled by the downporting: `env_build.h` reads the
 > switch `cfg_env.h` defines (`07dae62`).
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - `env_compress_link.h`'s debug-library block and `env_printer.hpp`'s build
   report are silently skipped.
@@ -2043,6 +2298,9 @@ alone sets 0 of its 84 library flags; after `<bits/stdc++.h>` it sets
 55.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends;
+> check it against base-0 first, since env changed after 09.28.
 
 - *Advantages (include `<version>` when `__has_include(<version>)` finds it):*
   the flags describe the library whatever the translation unit included
@@ -2057,6 +2315,11 @@ override it. `env_cpp_features.h` guards none of its 160 flags, so
 pre-defining one draws a redefinition warning, an error under `-Werror`.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): the owner's words: "As long as we
+> keep a D_CFG_ENV... equivalent for 'env' testing? What are you thoughts?".
+> The recommendation was the register's. Settled 11-04: guard the 160 flags
+> with #ifndef (the guards are the env-testing hook); no D_CFG knob per flag.
 
 - *Advantages (guard each flag):* consistent with the rest of env, and a
   build or test can switch a feature off.
@@ -2093,6 +2356,8 @@ freestanding implementation needn't provide either. `__has_include(<vector>)`
 is 1 there too, since the hosted headers are still on disk.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane A; for 0.8): agreed, as the register recommends.
 
 - *Advantages (gate the hosted-only headers on `__STDC_HOSTED__`, keeping
   `<new>`, `<typeinfo>`, `<exception>` and `<limits>`, which C++98 requires
@@ -2413,6 +2678,9 @@ Each `env/db` header puts its version comparisons and feature flags under
 > `D_CFG_IS_ON` and `D_CFG_IS_OFF`, and validated (`8c9679e`); the four configs
 > moved into `config/` (`a9d5811`); the eight stale copies retired (`7607cbb`);
 > `dconfig.h` lists all twelve (`a975b27`).
+>
+> **Ruled 2026.11.04** (lane C; for 0.9): agreed, with the other vendors in
+> December.
 
 - **The empty-setting failure:** the config README has modules test settings
   with `D_CFG_IS_ON`, so that an empty definition reads as off. None of the
@@ -2445,6 +2713,9 @@ only a standalone `env_db.h` with the flag pre-defined reports DynamoDB
 branch has this pattern.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane C; for 0.9): agreed: with db's chunk 6, the other
+> vendors, in December.
 
 - *Advantages (include `env_db.h` at the end of `env_dynamodb.h`, and test the
   flag's value rather than `defined()`):* `D_ENV_DB_ID` and `D_ENV_DB_NAME`
@@ -2461,6 +2732,10 @@ does.
 
 > **Status, 2026.10.04:** open; the tree already does what it recommends:
 > DynamoDB Local is left out, and the description says what the code does.
+>
+> **Ruled 2026.11.04** (lane C; for 0.9): the owner's words: "implement it, as
+> opt-in constants beside the opt-outs". The recommendation was the
+> register's: with the other vendors in December.
 
 - *Advantages (implement it, as opt-in constants beside the opt-outs):* a
   project testing against Local can declare what its Local build emulates.
@@ -2494,6 +2769,9 @@ implicit-results support (`has_oci_implicit_results`,
 No other name mangled this way turned up under `inc/`.
 
 > **Status, 2026.10.04:** open, unchanged: nothing in the tree addresses it yet.
+>
+> **Ruled 2026.11.04** (lane C; for 0.9): agreed, with the other vendors in
+> December.
 
 - *Advantages (rename it to `D_ENV_ORA_HAS_OCI_IMPLICIT_RESULTS`):*
   `oracle.hpp` gets the feature on Oracle 12.1 and later, as intended.
@@ -2516,6 +2794,9 @@ includes here), `test_config.h` for `cfg_test.h`, `container_config.h` for
 > in the memory module; the stale c/test sources, `database_common.hpp` and
 > `container_config.h` were retired. `test_config.h`, beside `cfg_test.h`, is
 > DTest's.
+>
+> **Ruled 2026.11.04** (lane B; for 0.8): agreed, as the register recommends;
+> check what the restructure already merged.
 
 - The two `dmemory.h` copies are not duplicates: `memory/dmemory.h` adds
   `<errno.h>` and `d_memdup`. Repointing is a merge of the two, not a
@@ -2547,6 +2828,8 @@ defined, the rule #86 cites.
 > **Status, 2026.10.04:** open; the tree already does what it recommends:
 > `D_THREAD_LOCAL` stays undefined where unavailable, beside
 > `D_THREAD_LOCAL_AVAILABLE`.
+>
+> **Ruled 2026.11.04** (lane A; done): agreed: keep it.
 
 - *Advantages (keep it):* a would-be thread-local variable fails to compile
   where it would otherwise be a silent data race.
@@ -2688,3 +2971,2421 @@ Converted files so far; each was verified behavior-identical to its original.
 **Still to do:**
 - `compress.h` (the C notation face), `archive_common.h` and `archive.h`, and
   `pdf_primitives.h`: full passes.
+
+---
+
+## Part C. The backlog ruling of 2026.11.03 and 11.04
+
+On 2026.11.03 the roadmap to 1.0 put every open item in the lanes' registers
+to the owner in one ruling sheet: 250 items, each with its options, their
+advantages and disadvantages, and a recommendation. He ruled all of them on
+11.03 and 11.04, 210 as recommended ("agreed") and 40 in his own words, which
+are quoted as he wrote them. The follow-up questions were settled on 11.04,
+and that afternoon he ruled on the plan itself (C.1). From then on, a lane's
+decisions stand unless he overrules them by the next merge window.
+
+Each item gives its register's text, where this tree has no other copy of it,
+then its ruling. The style register's texts are Part B's, and the math lane's
+are in `inc/djinterp/cpp/modules/math/decisions.md`, so for those this part
+gives the rulings alone. The ruling sheet's own export,
+`rulings_2026-11-04.json`, is in lane A's handoff kit of 11.04.
+
+The rulings were made before the releases were renumbered (C.1), and their
+words are kept: where a ruling says 0.9, read 0.8 (November), and where it
+says 1.0, read 0.9 (December). The release each item is "for" is given in the
+new numbering.
+
+### C.1 The rulings on the plan, 2026.11.04
+
+1. **The releases are renumbered, and only the numbers change.** v0.8.0 on Monday
+   11-30 is what the roadmap calls 0.9: the core with every gate green, cut from
+   whatever is green that day, with no feature freeze in November. v0.9.0 by
+   Wednesday 12-30, Thursday 12-31 at the latest, is what it calls 1.0:
+   interfaces frozen Friday 12-11, the feature freeze Friday 12-18, 0.9.0-rc.1 on
+   Tuesday 12-22, where the stable API freezes, and rc.2 on Tuesday 12-29 if
+   needed. Every other date and trigger stands. 1.0.0 comes after December, on a
+   date the owner sets. Between the two, 0.8.x patches and 0.9.0's release
+   candidates.
+2. **The lanes stay A to H**, one account each, with the math session apart: no
+   new accounts. Lane A's re-count of 11.04 (this week's rulings add 12 to 17.5
+   lane-weeks against 5 to spare, and the plan never counted lane A's
+   integration, 2.5 to 4 more) stands as the measure of the work; what does not
+   fit moves past 0.9 by the roadmap's triggers, this week's additions (native
+   HTTP/2 and the extra URL types first) among them.
+3. **No DNS module.** Name resolution stays `getaddrinfo` with Happy Eyeballs
+   (net #11).
+4. **rs g, DTest's place:** it stays where the restructure put it,
+   `c/modules/test` and `cpp/modules/test`, and lane B finishes its rewrite
+   there.
+5. **Seven style items ruled twice.** The sheet showed #2, #8, #37, #38, #59, #64
+   and #73 as open, with the register's first recommendations, though the owner
+   had ruled them on 2026.10.04 and the tree carries those rulings. Ruled again:
+   #2, #59 and #64 keep 10.04's include-what-you-use; #8 keeps its switch, with
+   the default flipped to 1; #38 keeps the framework's own checked scanf engine;
+   #73 keeps the nested pool stack retired. #37 did not conflict. Each one's line
+   in Part B says so.
+6. **Routed by lane A**, standing unless the owner overrules them:
+   `tools/bitwisedom` and `tools/ui` to lane G, since the cli rulings are about
+   its window; the C counter and timer that style #79 derives DTest's from, which
+   the tree does not have, to lane D, in `c/util`; the output stream's delivery
+   of 10.29, which is on the old layout, landed in four parts: lane D the stream
+   itself, lane E `option_env` and the env printer, lane A `dconfig.h`'s lines,
+   the `__cpp_impl_*` fix in env, the CTest leaves and its CI script, and lane H
+   db's one comment.
+
+### C.2 The restructure
+
+#### rs a. Bitwisedom's test recipe (`tests/djinterp/tools/bitwisedom/CMakeLists.txt` and its four `check_*.cmake`): into `build/cmake/config/testing/`?
+
+Options: tonight (three edits to its paths), or with the recipe refactor.
+
+Ran as its default: left where it is, the one CMake file outside `build/cmake/config/`.
+
+**Ruled** (lane A; for 0.8): agreed: Keep the default: leave it, and move it
+with the CMake refactor in lane A's week 2.
+
+#### rs b. When does the CMake recipe refactor happen?
+
+Options: after the merge, or partly tonight.
+
+Ran as its default: after the merge.
+
+**Ruled** (lane A; for 0.8): agreed: Keep the default: after the merge. Lane
+A's week 2 (presets, install, find_package) is the refactor.
+
+#### rs c. Where does a doc about a whole module go? (`parsegen/FOUNDATION.md` covers both languages)
+
+Options: the folder's majority language, or `docs/djinterp/parsegen/`.
+
+Ran as its default: the majority language.
+
+**Ruled** (lane A, D; for 0.9): agreed: Change it: whole-module docs go to
+docs/djinterp/<module>/, where the wiki will read them in December.
+
+#### rs e. The windows' build at `build/cmake/config/ui/`? (X1)
+
+Options: there; or `build/ui/` kept, a second exception beside `build/cmake/msvs/`.
+
+Ran as its default: `build/cmake/config/ui/`.
+
+**Ruled** (lane A; for 0.8): agreed: Keep the default: build/cmake/config/ui/,
+one rule with no second exception.
+
+#### rs f. uxoxo's two docs (`UNIFICATION_README.md`, `uxoxo_style_guide_cpp.md`)
+
+Options: together in `docs/uxoxo/`; or the style guide in a shared `docs/style/`.
+
+Ran as its default: together in `docs/uxoxo/`.
+
+**Ruled** (lane A; for 0.9): the owner's words: "remove them". The
+recommendation was: Keep the default: uxoxo's two docs together in
+docs/uxoxo/; its style guide is uxoxo's, not djinterp's.
+
+#### rs g. DTest under the restructure? (X4)
+
+Options: moved with the mechanical edits; or held at its old paths.
+
+Ran as its default: moved with the mechanical edits.
+
+**Ruled** (lane B; for 0.8): the owner asked "elaborate?" and, given it
+(holding DTest back would leave one module on the old layout and names after
+base-0, and lane B owns the rewrite now), ruled on 11.04: keep it moved. DTest
+stays at `c/modules/test` and `cpp/modules/test` (C.1).
+
+#### rs h. `docs/bitwisedom/` (X2)
+
+Options: left; or moved to `docs/djinterp/tools/bitwisedom/`, mirroring the code.
+
+Ran as its default: left.
+
+**Ruled** (lane A; for 0.9): agreed: Move it to
+docs/djinterp/tools/bitwisedom/ when the wiki's build starts, so the docs
+mirror the code; leave it until then.
+
+### C.3 cli: the open questions
+
+#### cli a. The style guide's limit of 60 lines a function
+
+Where it stands: under review; vparse's long functions wait on it, untouched.
+
+**Ruled** (lane owner, F; for 0.8): the owner's words: "make it 100". The
+recommendation was: Keep 60 lines, with named exceptions (state machines,
+tables, generated code) marked in a comment; vparse's long functions split or
+carry the exception.
+
+#### cli b. Whether the kit's CMake module gives `cl` `/Zc:preprocessor`
+
+Where it stands: wants `cl` itself at hand.
+
+**Ruled** (lane G, A; for 0.8): agreed: Yes: the kit's CMake module passes
+/Zc:preprocessor to cl. MSVC 2022, the required version, supports it, and
+djinterp's variadic macros need a conforming preprocessor.
+
+#### cli d. `env_compiler.h`'s MSVC versions
+
+Where it stands: env's owner (X18).
+
+**Ruled** (lane A; for 0.8): agreed: Lane A fills env_compiler.h's MSVC table
+through Visual Studio 2022 and checks it on the Windows job.
+
+#### cli e. uxoxo's tab bar: `IMGUI_DOCK_TAB_BAR_INSET` is 1 in uxoxo of 2026.10.25, not the overlay's 2
+
+Where it stands: uxoxo's.
+
+**Ruled** (lane A; for 0.9): the owner's words: "djinterp should be
+uxoxo-agnostic + completely ignorant of it. only guis for tools have it". The
+recommendation was: Follow uxoxo: the overlay takes uxoxo's inset of 1. It is
+a third-party UI value in a preview tool.
+
+### C.4 cli: the decisions taken
+
+#### cli-taken 13. What the module holds
+
+- **A. The module is self-contained**: the window's code and, statically,
+  the same core library and kit the program links; the program and the
+  module meet only at a C interface of two structures and one exported
+  function (`d_cli_plugin_entry`). For: works with every toolchain and
+  runtime -- MSVC's static runtime, MinGW, a renamed executable -- with
+  nothing exported from the program; the module is built with hidden
+  symbols, so its copy never binds to the program's. Against: the core's
+  code is in both files (on the order of a megabyte), though only one copy
+  runs at a time.
+- **B. The program exports its core and the module links against it**
+  (CMake's `ENABLE_EXPORTS`). For: no second copy. Against: on Windows
+  every core function needs `__declspec(dllexport)`, the module imports
+  from the executable by its file name -- so a renamed `bitwisedom.exe`
+  cannot load it without a delay-load hook, which MinGW lacks -- and an
+  executable exports at most 65,535 symbols; on Linux the program is linked
+  with `-rdynamic`.
+- **C. The core as a shared library** for both. For: conventional.
+  Against: the command-line program is no longer one file.
+
+The interface is the same under all three, so A can become B later
+without touching it.
+
+**Ruled** (lane G; done): the owner's words: "Allow CFG control knobs and
+options that specify for either, allowing capabaility for either and giving
+the user the most options/control. Would that work?". The recommendation was:
+Confirm A, as taken: The module is self-contained. Settled 11-04: a build
+option between A (self-contained, the default) and C (the core as a shared
+library); no B (Windows: a renamed program cannot load its modules; MinGW has
+no delay-load hook); no run-time option, since linking is fixed at build.
+
+#### cli-taken 14. Where the module is looked for
+
+- **A. `PROGRAM_PLUGIN_PATH`, then the program's directory, then
+  `../lib/PROGRAM/`** (GRAMMAR 7). For: a build tree, a Windows folder and
+  a POSIX installation, each with nothing to configure.
+- **B. The program's directory only.**
+
+**Ruled** (lane G; done): the owner's words: "Tentative A. Make sure a
+sensible default CFG knob and a runtime option are defined somewhere. Allow
+either?". The recommendation was: Confirm A, as taken: PROGRAM_PLUGIN_PATH,
+then the program's directory, then ../lib/PROGRAM/. Settled 11-04: as
+recommended: a build-time default search list in A's order (a knob),
+overridden at run time by PROGRAM_PLUGIN_PATH or an option.
+
+#### cli-taken 15. A module of another version
+
+- **A. Refused**, by name and with both versions; exit 2. For: the module
+  runs its own copy of the core (13), so a sheet saved by a newer window
+  could be one an older program cannot read.
+- **B. Loaded, with a warning.**
+
+**Ruled** (lane G; done): the owner's words: "Specify a strictness control
+knob + runtime option. Default to A, but configurable to either.". The
+recommendation was: Confirm A, as taken: Refused. Settled 11-04: as
+recommended: a knob whose default refuses (A), a run-time option to load with
+a warning instead; a module built to another ABI is always refused.
+
+#### cli-taken 16. Settings out of the window
+
+The window's settings registry -- every sheet setting by path, its label,
+kind, bounds and choices, and how to read and write it -- is the window's
+own today (`app/settings.cpp`), written against uxoxo's payloads.
+
+- **A. Move the sheet's half into the core**, values as a small variant of
+  the core's own, and give each choice a stable word -- the word the sheet
+  files already use where there is one (`lsb0`, `little`, `hex`) -- beside
+  its label. The window keeps its own half (`environment.*`) and converts
+  a payload to a value in one function. For: one vocabulary for the
+  window's Options, the CLI's `set`/`get` and the settings files.
+  Against: the window's settings code changes, and is proved only by its
+  smoke test, which needs uxoxo as of 10.20.
+- **B. `set`/`get` by the sheet file's own JSON paths.** For: no change to
+  the window. Against: a second vocabulary (`generator.level` beside the
+  window's `gen.level`).
+
+**Ruled** (lane G; done): the owner's words: "Define CFG control knobs and
+runtime option to either; allow the user to choose. Default = accept both?".
+The recommendation was: Confirm A, as taken: Move the sheet's half into the
+core. Settled 11-04: A (the sheet's settings registry in the core), and
+set/get take a registry name or fall back to the raw JSON path for anything
+the registry does not list; a knob sets the default (both), an option
+overrides it per run.
+
+#### cli-taken 17. The window's model helpers
+
+`unique_name`, `range_choices`, `container_choices`, and the checks the
+Add child field makes -- a name that is not an identifier, or another
+symbol's -- are declared in `app/app.hpp` but touch only a sheet.
+
+- **A. Move them into the core** (`edit.hpp`), where `add`, `rename` and
+  the window call them alike. For: one rule, one place.
+- **B. Leave them, and repeat them in the CLI.**
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Move them into the
+core.
+
+#### cli-taken 18. `bitwisedom-gen`
+
+- **A. Kept, as a front for `bitwisedom gen`**: its arguments, output and
+  exit statuses unchanged, so the build scripts and the 390 tests that
+  call it run as they did. For: nothing breaks. Against: a second program.
+- **B. Retired** for `bitwisedom gen`.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Kept, as a front for
+bitwisedom gen.
+
+#### cli-taken 21. The window's build
+
+- **A. `build/ui/bitwisedom` is a top-level build that includes djinterp's
+  bitwisedom build** (`add_subdirectory` into its own binary directory),
+  then uxoxo, then makes `bitwisedom-gui` with `d_cli_add_plugin`, named by
+  `bitwisedom_output` -- `bitwisedom-gui-linux64.so` beside
+  `bitwisedom-linux64` -- everything compiled position-independent. For:
+  one configure builds the program, the module and every test; djinterp's
+  build names uxoxo nowhere. Against: two builds' presets to keep alike.
+- **B. The window's build consumes an installed bitwisedom** (a package
+  config). Against: an install step before every window build, and the
+  module and program could drift apart in version, which 15 refuses.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: build/ui/bitwisedom is
+a top-level build that includes djinterp's bitwisedom build.
+
+#### cli-taken 22. Where uxoxo is looked for
+
+- **A. `UXOXO_ROOT` if given; else two directories above djinterp's root,
+  as `uxoxo/uxoxo-project`, then `uxoxo`**, the first that holds
+  `inc/uxoxo/element.hpp`; one not found names both places. For: the
+  owner's layout (`frameworks/djinterp/release` beside
+  `frameworks/uxoxo/uxoxo-project`) finds the path that was the default
+  before, and a flat checkout (`projects/uxoxo`) works too.
+- **B. Two above, as `uxoxo` only.** Against: not the owner's layout.
+
+**Ruled** (lane G; done): the owner's words: "Yes for A, specifically:
+preprocessor CFG define, or runtime option flag in the case of dynamic
+loading. Default = <roor>/inc/uxoxo/". The recommendation was: Confirm A, as
+taken: UXOXO_ROOT if given; else two directories above djinterp's root, as
+uxoxo/uxoxo-project, then uxoxo. Settled 11-04: as recommended: default to the
+sibling checkout (../uxoxo), UXOXO_ROOT to point elsewhere; build-time only
+(uxoxo is compiled into the GUI module, so nothing is looked up at run time).
+Not a copy inside djinterp (cli e).
+
+#### cli-taken 23. The window's includes of its own headers
+
+- **A. Relative paths**, as the style guide writes every include of the
+  project's own: `"./model.hpp"` between headers,
+  `"../../../inc/ui/bitwisedom/app.hpp"` from `src/` and `tests/`. For: the
+  window's headers stay the project's to warn about -- djinterp's `inc/` is
+  a SYSTEM include directory to these targets, and `<ui/bitwisedom/...>`
+  found through it would silence every warning in them. Against: long
+  lines; three include runs wrap their comments.
+- **B. `<ui/bitwisedom/...>`**, through `inc/`. Against: above.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Relative paths.
+
+#### cli-taken 24. What a host is given
+
+- **A. `run_window(program, window_options)`**, defined by each host
+  (`inc/ui/bitwisedom/host.hpp`): the module's run function reads the
+  command line and the host reads none, and says what it must through the
+  program -- a window that cannot open as an error and trouble, a
+  screenshot written as a `-v` note, one not written as the kit's file
+  error. `window_features()` says which testing options the host acts on,
+  so `--screenshot` and `--frames` are offered only by GLFW's host and
+  `--warp` only by Win32's. For: one command line for both hosts, each
+  option in the help only where it does something. Against: the hosts no
+  longer build as programs of their own.
+- **B. Each host keeps a `main` of its own**, and the module calls it with
+  argv. Against: two hand parsers of the same options, neither the
+  grammar's.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: run_window(program,
+window_options).
+
+#### cli-taken 25. The window's SHEETs
+
+- **A. Read by the commands' rules** (`bitwisedom::window_sheet_of`, beside
+  `read_source`): `example:NAME` checked by name, with the nearest; a file
+  read once to know it can be, and refused in the commands' words;
+  `-` refused as a usage error, since a window cannot read standard input.
+  Each is posted as the Examples menu and File > Open post one; the
+  session opens as it was left, the sheets named in front. For: what the
+  commands refuse, the window refuses, before any window opens. Against:
+  each file is read twice, once here.
+- **B. Every operand handed to the window**, which says what it cannot
+  open in its status bar. Against: a script sees exit 0 for a typo.
+
+**Ruled** (lane G; done): the owner's words: "Allow CFG knob and runtime
+option specifying by the user, giving them a choice. Default B. Would be it
+possible to fix the "against" of B?". The recommendation was: Confirm A, as
+taken: Read by the commands' rules. Settled 11-04: B by default (every operand
+handed to the window), with B's drawback fixed: the window writes what it
+could not open to standard error as it starts and exits 2 at close if any
+operand failed; a knob and an option choose A. 'The best of both worlds.'
+
+#### cli-taken 26. A console behind the window
+
+- **A. On Windows, a console this run alone holds is let go**
+  (`GetConsoleProcessList` says 1 -- a shortcut started the console
+  program) before the window opens; one shared with a terminal is kept.
+  For: no empty console stands behind the window. Against: what the window
+  says after that, from a shortcut, goes nowhere.
+- **B. A `bitwisedom-gui.exe` launcher** of the WIN32 subsystem. Against:
+  a second program, which 0.3 set aside.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: On Windows, a console
+this run alone holds is let go.
+
+#### cli-taken 27. The screenshot
+
+- **A. Written as the kit writes a file** -- whole or not at all, `-`
+  standard output -- and said only with `-v`. For: R20, and a pipe into a
+  converter. Against: the host used to say it every time.
+- **B. As before: `fopen`, and always said.**
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Written as the kit
+writes a file.
+
+#### cli-taken 28. Arguments taken again on Windows
+
+- **A. Only main's own** (R15): arguments that are the C runtime's
+  `__argc`/`__argv` -- as many, each the same text -- are taken again from
+  `GetCommandLineW()` in UTF-8; a module's, a test's, a list a program
+  made are parsed as given. For: a module is given the program's UTF-8
+  arguments, and the process's command line would be the program's.
+- **B. Always the process's command line.** Against: the module's command
+  line is not the process's.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Only main's own.
+
+#### cli-taken 29. Running out of memory
+
+- **A. The want of memory ends the run in trouble and says
+  `PROGRAM: error: out of memory`** -- never a different failure it made
+  look true (a module not found, a file that cannot be read); help,
+  version and a script that cannot be composed whole are not written in
+  part; a diagnostic that cannot be composed on the heap is composed in a
+  640-byte room on the stack, shortened, never lost. The allocation sweep
+  (`cli_sweep_tests.c`) refuses every allocation of 56 runs in turn,
+  10,083 refusals, and holds each run to the clean run's output or to
+  trouble that says why. For: the sweep found eight places that said the
+  wrong thing; it keeps them found. Against: the sweep links with
+  `--wrap`, so it runs where the linker has it (GNU ld, lld, MinGW).
+- **B. Out of memory is undefined.**
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The want of memory ends
+the run in trouble and says PROGRAM: error: out of memory.
+
+#### cli-taken 30. Output that is refused
+
+- **A. Help, version or a script the output refuses is trouble**:
+  `cannot write standard output: REASON`, the reason the system gave the
+  write. For: `prog --help > /dev/full` exits 2, as GNU programs do.
+- **B. 0, as written.**
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Help, version or a
+script the output refuses is trouble.
+
+#### cli-taken 31. Writing through a link
+
+- **A. The file the link names is written**, whole or not at all; a
+  dangling link is replaced by a file; any other failure to follow it --
+  no room, no permission, a loop -- is said, and the link left as it was.
+  A device, a pipe or a socket is written to, never renamed over. For: a
+  dotfile repository's links survive a write.
+- **B. The link replaced by a file.**
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The file the link names
+is written.
+
+#### cli-taken 32. A program not made whole
+
+- **A. `struct d_cli_program` keeps a status** -- `D_ARG_OK` while it is
+  whole, else init's failure or the want of memory keeping a command's
+  work -- and every run of a program not made whole ends in trouble and
+  says why (`prog: error: cannot add '-v,--verbose': short name '-v'
+  already used by '-v'`). So `main` makes everything, runs, and releases,
+  with no checks between; `kit::program::made()` says the same. For: a
+  definition error is found by the first run, in words. Against: one more
+  field.
+- **B. Every call returns a status the caller must check.**
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: struct d_cli_program
+keeps a status.
+
+#### cli-taken 33. `--name=`
+
+- **A. The empty value** (R7), as getopt_long gives it: the parser gains
+  `D_ARG_PARSER_EMPTY_VALUES` and `d_arg_parser_set_empty_values`, off at
+  first as CLI11 has it, and the kit turns it on for every program. For:
+  `--note=` clears a note and never takes the argument after it.
+- **B. CLI11's reading**, `--name=` as `--name` alone, which takes the
+  next argument as its value.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The empty value.
+
+#### cli-taken 37. What `--version -v` says
+
+- **A. The version's line, then a `KEY: VALUE` line for each thing known,
+  on standard output**, as `git version --build-options` gives them: the
+  files -- `program`, a module's own `module`, and `NAME module` for each
+  command that is a module -- then `compiler`, `language`, `system` and
+  `build`, the program's own lines, and `kit`. `-v` anywhere, `-q`
+  anywhere silencing it; composed whole before a byte is written, so a
+  want of memory is `out of memory` and 2 (29), and a refused output is
+  trouble (30). `build` is the environment layer's: `Debug` where `DEBUG`
+  or `_DEBUG` is defined or `NDEBUG` is not, else `Release` -- so CMake's
+  RelWithDebInfo says `Release`. For: the line a script reads is
+  unchanged, and the rest is what a bug report needs, pasted whole.
+  Against: it prints the program's path.
+- **B. `gcc -v`'s way: the build on standard error.** Against: R17 --
+  the build is what was asked for, the result.
+- **C. An option of its own, `--build-info`.** Against: one more
+  standard option, where section 6 already promised `--verbose`.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The version's line,
+then a KEY: VALUE line for each thing known, on standard output.
+
+#### cli-taken 38. Whose build it is
+
+- **A. `D_CLI_BUILD_INIT`, expanded in the program's own unit**, given to
+  `d_cli_program_set_build`; `kit::program`'s constructors expand it,
+  being inline, so a C++ program says its own build with nothing written.
+  The kit describes itself where its C is compiled (`d_cli_kit_build`),
+  the `kit` line. `d_cli_program_add_build` adds a program's own lines --
+  a key empty, or holding a colon or a line break, refused, and a value
+  empty or holding a line break; the want of memory kept in the program's
+  `status` (32). For: a C++20 program over a C99 kit says both, each
+  true. Against: a C program writes two lines, and one that does not says
+  only its file and the kit.
+- **B. The kit's build for the program's.** Against: wrong for every C++
+  program.
+- **C. A header CMake generates.** Against: the kit builds without CMake
+  (README, Building).
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: D_CLI_BUILD_INIT,
+expanded in the program's own unit.
+
+#### cli-taken 40. A module in its host's version
+
+- **A. Found, never loaded**: each command that is a module is looked for
+  as a run of it looks (`d_cli_plugin_find`), and named by the path it
+  would open, `not installed`, or `built without plugins`; the module's
+  own version is `PROGRAM NAME --version -v`, which names the program's
+  file and its own (the host the module's program keeps). For:
+  `--version` runs no module's code -- a window's GLFW, a GPU driver --
+  and a broken module cannot break it. Against: a module that would be
+  refused, another program's or version's, is named as found.
+- **B. Each module loaded, its record read.** Against: the above.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Found, never loaded.
+
+#### cli-taken 41. Where the warning of 5 is said
+
+A parse can go well and the run still end in a usage error: a command
+reached that has no work of its own -- `prog` alone, `prog group` -- is
+`a command is required`, said by the dispatch.
+
+- **A. Only where the run goes on to a command's work**: the warnings come
+  after the parse, before the work, and a run that will end in its usage
+  error says that alone. For: what comes before a failure is the failure;
+  as after a parse that failed (5's design), nothing else is said.
+  Against: `prog -v --level=1 --level=2` alone does not say the override,
+  and says the error instead.
+- **B. After every parse that went well**, the usage error after them.
+  Against: a warning about an option, then an error that the command
+  line was wrong.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Only where the run goes
+on to a command's work.
+
+#### cli-taken 42. A module's help, errors and abbreviations
+
+A program made with `D_CLI_PROGRAM_PARSER_HELP`,
+`D_CLI_PROGRAM_PLAIN_ERRORS` or (2026.10.24f) `D_CLI_PROGRAM_ABBREVIATIONS`
+runs a command that is a module, whose program is made from the host
+record (`d_cli_program_init_plugin`) with flags of its own.
+
+- **A. The host gives those flags to the module**: `d_cli_plugin_host`
+  gains `flags`, at its end, which the module's program joins to its own --
+  the three that shape how a program reads its command line and what it
+  writes, and no others (four from 2026.10.25, 50). The record grows as its ABI says a record grows, by
+  `size`: a module takes a record of the first size
+  (`D_CLI_PLUGIN_HOST_FIRST_SIZE`, before `flags`), without them, where it
+  took only one as large as its own before. For: `prog gui --frob` says its
+  error as `prog --frob` does, its help is laid out alike, and `prog gui
+  --verb` reads as `prog --verb`. Against: one more field crosses the
+  boundary.
+- **B. Each module chooses its own.** Against: one program, two shapes.
+
+Cases: the plugin suite's S05 to S08 (the flags taken, joined, not read
+from a record of the first size, a shorter record refused), U06 (the
+probe's report shows `flags=28`; `flags=60` from 2026.10.25), K09, K10 and
+K11.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The host gives those
+flags to the module.
+
+#### cli-taken 43. The usage line of `a command is required`
+
+The error of a run that reached a command with no work prints the
+command's usage line, which the formatter writes: the kit's as `Usage:
+...`, the parser's as the bare line between blank lines.
+
+- **A. The kit takes the line from either, without the blank lines around
+  it, and with `Usage: ` before it where it does not begin so**
+  (`d_cli_internal_usage_line`). For: the error reads the same in both
+  layouts. Against: none found; the kit's own line is unchanged.
+- **B. As the formatter writes it.** Against: blank lines inside an error,
+  and a usage line with no label.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The kit takes the line
+from either, without the blank lines around it, and with Usage: before it
+where it does not begin so.
+
+#### cli-taken 44. The parser's help under a want of memory
+
+The sweep's E34 (`prog help show` in the parser's layout) found the
+parser's help listing `-h, --help` twice when one allocation was refused,
+and exiting 0: the check of whether a fallthrough parent's option is
+shadowed by a subcommand's (`d_arg_internal_command_has_display`,
+`arg_command.c`) took a display name that could not be written for one
+that does not match. With the kit's layout the path is not taken.
+
+- **A. The check returns the failure** (`D_ARG_ERROR_OUT_OF_MEMORY`), its
+  answer through a pointer, and the collecting stops. For: the want of
+  memory is said, never written as wrong help (29). Against: a change to
+  the owner's parser, in one function and its one caller.
+- **B. Leave it.** Against: the above; E34 falls short.
+
+Proved: E34 fell short at one refusal of 335 before, none after; the
+parser's own script, its sweep among it, runs as before.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The check returns the
+failure.
+
+#### cli-taken 45. A hidden option and a prefix
+
+An option help does not show -- the kit's `--colour`, beside `--color` --
+is an option a prefix could begin, though no reader of the help would
+mean it: `--col` begins `--color` and `--colour` both.
+
+- **A. Counted only where no shown option is begun**: `--col` is
+  `--color`; `--colou`, which begins no shown option's name, is `--colour`.
+  For: an abbreviation of what help shows means what help shows, and a
+  hidden option added later never makes one ambiguous. Against: a rule
+  getopt_long does not have -- it counts entries that are one option
+  (`--color`, `--colour` in grep) as one, which the parser cannot know of
+  two options.
+- **B. Every option counted alike.** Against: `--col` ambiguous in every
+  program on the kit, for an option no help lists.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Counted only where no
+shown option is begun.
+
+#### cli-taken 46. What the kit takes of 12
+
+bitwisedom's rule held more than where a sheet goes: `-f`, which writes a
+change that brings errors, and a note for a dry run that names the change.
+
+- **A. The kit takes where the result goes, and no more**: the operand and
+  `-o`, `-n` and `-i`, their help, the place, and the write. The command
+  keeps its refusals -- bitwisedom's of a change that brings the sheet
+  errors, and of an example with nowhere to go back to, which it asks
+  `d_cli_edit_target` about -- and its words: what a dry run would have
+  changed is the command's to say. For: what makes a change refused, and
+  what it changed, are the command's knowledge; the kit's part is the same
+  in every program. Against: a command that wants `-f` defines it itself.
+- **B. The kit takes `-f` and the dry run's note too.** Against: `-f`
+  means nothing without the command's idea of an error, and a note the kit
+  composes could not name the change.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The kit takes where the
+result goes, and no more.
+
+#### cli-taken 47. The operand and the options, in two calls
+
+- **A. Two calls**, `d_cli_edit_add_operand` and `d_cli_edit_add_options`,
+  each made where the command's other definitions of its kind are. For: an
+  operand's place among the operands is the order they are read in --
+  bitwisedom's `add SHEET NAME` -- and the options' place is the order help
+  lists them, `-o` and `-n` before bitwisedom's `-f`, as its transcripts
+  have them. Against: two calls where one might do.
+- **B. One call for both.** Against: the operand would be added before or
+  after every other, and the options' place in help fixed.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Two calls.
+
+#### cli-taken 48. B's two places at once
+
+- **A. `-i` and `-o` exclude each other**, the parser's failure,
+  `--in-place excludes --out`, in either order. For: a command line that
+  asks for the file written in two places is a mistake, said before
+  anything is written. Against: none found; sed has no `-o`.
+- **B. `-o` wins.** Against: a `-i` given and silently not done.
+
+B's help lists `-i` first, the switch its rule turns on, and says of the
+operand "written to standard output, or with -i back where it was read".
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: -i and -o exclude each
+other.
+
+#### cli-taken 49. A file error for want of memory
+
+The sweep's F06 to F10 found that a command's read refused for memory --
+`d_cli_read_file` giving `ENOMEM` -- was said as `cannot read
+'target.txt': Cannot allocate memory`, which 29 forbids: the want of
+memory is said as `out of memory`, whatever was asked.
+
+- **A. `d_cli_file_error` says `ENOMEM` as `out of memory`**, for every
+  file and either stream. For: 29 holds for every program's files without
+  each command asking first; bitwisedom's reads among them. Against: the
+  file's name is not said; it is not what went wrong.
+- **B. Each command says it.** Against: every command, and one that
+  forgets says the wrong thing.
+
+Proved: with the old words planted in a copy of the tree, F06 to F10 fell
+short at two or three refusals each, and no other case; without, none.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: d_cli_file_error says
+ENOMEM as out of memory.
+
+#### cli-taken 50. A module's edit rule
+
+- **A. The host gives `D_CLI_PROGRAM_EDITS_TO_OUTPUT` to its modules**,
+  as it gives the flags of 42, through the host record's `flags`. For: a
+  command that is a module changes a file as the program's own commands
+  do. Against: none found. The probe now reports `flags=60` through
+  STYLED, which sets it.
+- **B. Each module chooses.** Against: one program, two rules.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The host gives
+D_CLI_PROGRAM_EDITS_TO_OUTPUT to its modules.
+
+#### cli-taken 51. What bitwisedom's commands do differently
+
+bitwisedom's own `-o` was a `std::string`, empty for not given, and its
+`-n` a `bool`.
+
+- **A. An `-o` given is given**: `-o ''` names a file, which cannot be
+  written, and is said so (`cannot write '': No such file or directory`);
+  before, it wrote the sheet back. `--dry-run=false` is off, as the `bool`
+  read it. For: one reading of a command line, the parser's. Against: one
+  change in what bitwisedom does, for a command line no one types; no
+  transcript has it, and every transcript is as it was.
+- **B. An empty `-o` as none.** Against: a rule of its own, in the kit.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: An -o given is given.
+
+#### cli-taken 52. Who reads a named operand
+
+- **A. The kit**, `d_cli_named_operand`, as it takes 12: the prefix and
+  its colon matched, the name given, and the warning of a file with the
+  operand's name in the kit's words. For: R13 is the grammar's, and every
+  program that names something other than a file reads it alike and says
+  the same warning -- vparse's, when it has such operands. Against: a
+  module of one call; bitwisedom keeps the prefix and what it names.
+- **B. bitwisedom alone**, in `read_source`. Against: the next program
+  writes it again, in other words.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: The kit.
+
+#### cli-taken 53. The prefix alone
+
+R13's grammar writes a named operand `prefix ":" 1*OCTET-NN`: a name of a
+byte or more. bitwisedom had read `example:` alone as an example with no
+name, and said `'' is not a built-in example`.
+
+- **A. As the grammar writes it**: `example:` alone is a file's name, read
+  as one -- `bitwisedom: error: cannot read 'example:': No such file or
+  directory` where there is none. For: one rule, the grammar's, which a
+  file named `example:` can rely on. Against: a slip of the name is told
+  less pointedly.
+- **B. An empty name is a named operand's**, the grammar changed to
+  `*OCTET-NN`. Against: the grammar bent for a message.
+
+Proved, old and new: 2026.10.25's bitwisedom, rebuilt from its own
+`cli_common.cpp`, says `'' is not a built-in example`, 2, for `check
+example:`; this drop's says `cannot read 'example:'`, 2. With a file named
+`example:uart_cr` there, `check example:uart_cr` read the example in
+silence before, and now says the warning first.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: As the grammar writes
+it.
+
+#### cli-taken 54. What has the operand's name
+
+- **A. Anything but a directory**, a link followed to what it names: a
+  file, or a device or a pipe, is warned of; a directory, or a link that
+  leads nowhere, is not. For: the warning is for something the user may
+  have meant to read, and no command reads a directory, or a link to
+  nothing, where it reads a sheet. Against: a directory of the name passes
+  in silence.
+- **B. Anything there.** Against: a warning that offers `./example:x`,
+  which no command could read.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Anything but a
+directory.
+
+#### cli-taken 55. vparse's `-q`
+
+The kit gives every program `-q`, "only errors on standard error", and a
+program's own options never reuse its names (GRAMMAR section 6). vparse's
+`check`, `match` and `compare` each had a `-q` that printed nothing, the
+status saying it all, as `grep -q` does; `run` and `replay` one that left
+out the run's headline.
+
+- **A. One `-q`, the kit's, which does both**: given anywhere -- before
+  the command or after it -- it keeps only errors on standard error, and
+  leaves out of what a command prints what its exit status says: all of
+  `check`'s, `match`'s and `compare`'s, and `run`'s and `replay`'s
+  headline. `match -q` still runs no input again to say where it stopped.
+  Each command's help says what its `-q` leaves out. For: every use of the
+  bundle's `-q` reads as it did, and `vparse -q match ...` too; `grep -q`
+  is the model for a command that answers. Against: `-q` means a little
+  more in vparse than in the grammar's table.
+- **B. The kit's `-q` alone**, standard error only; `>/dev/null` for the
+  rest, and `--no-trace` for `match`'s speed. Against: `run -q`'s parts
+  without their headline lost, and every script that used `-q` changed.
+- **C. Another name for vparse's**, `-s, --silent`. Against: two options
+  that both mean quiet.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: One -q, the kit's,
+which does both.
+
+#### cli-taken 56. A grammar refused
+
+The bundle said a refusal on standard output -- `check`'s verdict,
+`match`'s `NAME: SENTENCE`, the measures' -- or, for `compile`, on standard
+error without a program's name, and ended with 2 either way.
+
+- **A. Said as an error**, on standard error, in the kit's shape:
+  `vparse: error: NAME: SENTENCE`, the sentence the run's headline -- the
+  window's words -- its first letter in lower case and its full stop gone.
+  `check`, `compile`, `match` and the measures print nothing more but,
+  with `--format json`, their JSON, whose `error` member keeps the
+  headline as it was; `run` and `replay` print the run all the same, since
+  its parts show how far it got. Every exit with 2 then says why. For:
+  R17 (standard output holds the result, and a refusal is what is said
+  about it), the GNU shape (section 8), and `-q`, which keeps errors, no
+  longer hides one. Against: a script that read `check`'s refusal from
+  standard output reads it from standard error.
+- **B. As the bundle had it.** Against: trouble said on standard output,
+  and not said at all under `-q`.
+
+Not taken here: the place first, `expr.txt:3:7: error: ...`, where the
+reader says where it stopped. The run records the place as a byte offset,
+and the line and column are composed in the model's own words; giving them
+to the command line is a change to the model (START-HERE section 5).
+Nor `check`'s status for a refused grammar: 2, as the bundle had it,
+where section 11's sketch had 1; step 2 settles it with the section.
+(2026.10.26: 62 settles it, 1.)
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: Said as an error.
+
+#### cli-taken 57. What a command's help ends with
+
+The bundle's help ended, on every command, with CLI11's codes. The kit's
+root help ends with the three statuses; a command's ends with its footer,
+where it has one.
+
+- **A. What each command's status answers, in its footer**, with what its
+  `-q` leaves out (55); and on the root, that `@FILE` is read -- R14 has a
+  program that reads response files say so in its help, and the kit does
+  not say it for a program that sets the flag. For: GRAMMAR section 8, "a
+  command documents what it answers". Against: none found; the kit saying
+  `@FILE` itself, a line in the root's options as `gcc --help` has it, is
+  better still, and is the kit's to add (START-HERE section 5).
+- **B. Nothing**, the root's three statuses alone. Against: `match`'s 1
+  and `compare`'s 1 mean different things, and nothing would say which.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: What each command's
+status answers, in its footer.
+
+#### cli-taken 59. Files written
+
+- **A. Through the kit**: `compile -o FILE` and each of `corpus -o DIR`'s
+  files written whole or not at all (R20), `compile -o -` standard output;
+  their failures, and a file that cannot be read, said in the kit's words
+  -- `cannot write 'FILE': REASON`, `cannot read 'NAME': REASON` -- without
+  the bundle's `grammar: `, `input: `, `second: ` or `--output: ` before
+  them. A folder `corpus -o` cannot make is `cannot make 'DIR': REASON`.
+  For: R20 and section 8. Against: a corpus written in part, where a file
+  after the first cannot be, keeps the files before it (as it did).
+- **B. As the bundle wrote them**, a stream over the file. Against: a
+  failed write left a file in part.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Through the kit.
+
+#### cli-taken 60. vparse's program in the kit's program
+
+- **A. `cli::run` makes a `kit::program` over its parser, and its
+  context points to it**: the context a caller gives keeps `in`, `out` and
+  `err`, loses `main_arguments` -- the kit knows main's own arguments from
+  any others -- and gains `program`, which `run` sets in the copy its
+  commands are handed and through which they report and read `-q`. The
+  commands' work runs behind the kit's guard: a want of memory in it is
+  `vparse: error: out of memory`, 2. `main` catches what escapes before a
+  command runs the same way, and no longer flushes at the end: the kit's
+  sinks flush every write, and say there a write that failed. For: the
+  suite runs the program in-process as before. Against: a public field a
+  caller does not set.
+- **B. A context of the command line's own** beside the caller's.
+  Against: every handler's signature changed for one pointer.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: cli::run makes a
+kit::program over its parser, and its context points to it.
+
+#### cli-taken 62. `check`'s answer
+
+- **A. 1 for a refused grammar**, its reading stopped or the session's
+  refusal alike, the reason said as an error (56); 2 for trouble alone.
+  `check` asks whether the grammar is one the session accepts, and no is
+  its answer, as a sheet with errors is `bitwisedom check`'s 1; to every
+  other command a refused grammar is trouble, 2, since it could not do
+  what was asked. For: section 8's three statuses, read as bitwisedom
+  reads them; `vparse check g || ...` tells a refused grammar from a file
+  that is not there. Against: a script that took 2 for refused.
+- **B. 2, as the bundle had it.** Against: `check` never answers no.
+- **C. 1 for the session's refusal, 2 for a reading that stopped**, as
+  bitwisedom's 2 for a file that is not JSON. Against: a grammar's text
+  has no container a reading could fail apart from the grammar itself; a
+  grammar the reader cannot read is a grammar with an error.
+
+The section's row for trouble now says "a sheet or a grammar that is not
+one, to a command that does not judge it".
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: 1 for a refused
+grammar.
+
+#### cli-taken 63. The operands alone
+
+- **A. `-g, --grammar` and `-i, --input` dropped**: a grammar and an input
+  are operands, as bitwisedom's `SHEET` is, and a usage error names them
+  by the names the usage line gives -- `match: GRAMMAR is required`, as
+  section 8's example has it. For: the help says everything the command
+  takes, and the error says it in the help's words. Against: a script that
+  named the grammar with `-g` breaks: `the following argument was not
+  expected: -g`; vparse is not in production yet. The window keeps its
+  own `-g` and `-i` until it becomes `vparse gui`, whose options section 7
+  spells as the commands spell them.
+- **B. Both kept**, the kit's help taught to show an operand's names, and
+  its errors to name an operand by its usage name. Against: two ways to
+  give the same operand, for no case `--` does not cover.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: -g, --grammar and
+-i, --input dropped.
+
+#### cli-taken 64. `--memoize` and its values
+
+Section 4 has a list given by repeating its option, a comma-separated list
+"accepted where the help says so, never required"; R8 has an option given
+twice take the last. `--memoize` took one value, so that two rules could be
+named only as `Sum,Prod`.
+
+- **A. It collects its values**, one each time it is given, commas
+  accepted: `--memoize=Sum --memoize=Prod` is `--memoize=Sum,Prod`. The
+  values are folded in order: a name after names is added to them, and
+  anything else -- `none`, `all`, `auto`, or a name after one of those --
+  replaces what came before it, so that a word appended to a command line
+  still overrides (R8's reason). For: section 4 and R8 both kept. Against:
+  `--memoize=all --memoize=Sum` is `Sum`, not all of them -- the help says
+  so.
+- **B. One value, its list its own**, section 4 amended for an option
+  whose one value is a list. Against: the grammar bent for one option.
+
+`-p, --part` already collected its values, commas accepted; its help now
+says both.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: It collects its values.
+
+#### cli-taken 65. What help calls a value
+
+- **A. What the value is**: `--frontend=FRONTEND`, `--step-limit=STEPS`,
+  `--memoize=RULES`, `-p, --part=PART`, `--format=FORMAT`, `--walks=N` and
+  the other numbers, as bitwisedom's help writes `--format=FORMAT` and
+  `--word=BITS`. For: the help reads as the grammar's sections 10 and 11.
+  Against: none.
+- **B. The parser's types**, `TEXT` and `INT`, as the bundle had them.
+  Against: `--frontend=TEXT` says nothing a reader needs.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: What the value is.
+
+#### cli-taken 66. A command's name
+
+R1 had a command be "a lowercase verb"; section 10 itself lists
+`examples`, `new` and `op`, and vparse has `saved`, `bench` and `corpus`.
+
+- **A. R1 reads "a lowercase word -- a verb where one says what the
+  command does, and otherwise what it gives"**, and vparse's names stay.
+  For: the rule as both programs already keep it. Against: a looser rule.
+- **B. The rule kept, and the names changed** -- `saved` to `list`, say.
+  Against: names its lane chose and its README teaches, changed for a word
+  in a rule two programs already depart from.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: R1 reads "a
+lowercase word -- a verb where one says what the command does, and otherwise
+what it gives".
+
+#### cli-taken 67. `-q` in the grammar
+
+- **A. Section 6 says what 55 does**: `-q` keeps only errors on standard
+  error, and a command that answers a question may leave out of standard
+  output too what its exit status says, as `grep -q` does, its help then
+  saying so. The kit's README says how a command reads `-q`. For: vparse's
+  `-q` within the grammar, not beside it. Against: none found.
+- **B. 55 as vparse's own exception.** Against: a program on the kit that
+  answers questions finds the rule only in vparse's code.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: Section 6 says what
+55 does.
+
+#### cli-taken 68. The sketch's commands and options
+
+- **A. Section 11 as vparse is**: its nine commands in three tables --
+  judging, running and measuring a grammar -- each with what it answers;
+  the options a run takes; and the window, `vparse_gui` until it is
+  `vparse gui`. The sketch's `show`, `diff` and `runs`, and its
+  `--family`, `--table`, `--lookahead`, `--tokens`, `--skip`, `--peg`,
+  `--text=TEXT`, `--show`, `--steps` and `--save=DIR`, are gone: none
+  exists, in the command line or in the library it runs. For: a section
+  that describes the program. Against: the sketch's plan lost from the
+  grammar -- it is in this register's history, and the window's
+  `--family`-like choices are the library's to grow first.
+- **B. The sketch kept beside vparse as it is.** Against: a grammar that
+  documents options no program takes.
+
+Not done here, and in START-HERE section 5: R19 asks that a command's JSON
+be documented with the command, and vparse's is documented by its output
+alone. (2026.10.26b: 69 documents it.)
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: Section 11 as vparse
+is.
+
+#### cli-taken 69. vparse's JSON, documented and held
+
+- **A. A table an object in vparse's README, which the suite reads**:
+  under "JSON", a `#### ID` heading and a table of keys for each document
+  and each object within one -- `check`, `match`, `match.inputs[]`, ...,
+  `compare.differences[].first`, and the refusal the measures write --
+  nineteen in all. `tests_cli_json` reads the README (its path the build's
+  `VPARSE_README`), runs each command, and holds the object at each
+  table's path to its keys, in order and no more; every table must be
+  held to a run. For: R19's "documented with the command, and only grows"
+  made a test -- a key the code adds or renames, or the README drops or
+  reorders, fails, as four planted faults showed. Against: the suite reads
+  a document beside the code, and a table's prose is not tested, only its
+  keys.
+- **B. A JSON Schema file a document is validated against.** For: a
+  standard, and types checked. Against: a schema validator for a C++17
+  suite, and a second document beside the README a reader has to find.
+- **C. The README's tables alone, untested.** Against: they drift.
+
+Two things the tables now say plainly, as the code has them, which a later
+change may want to settle: `run`'s `input` is the input's *name* -- a text
+input quoted and clipped, `'12+3'` -- where `match.inputs[]`'s `input` is
+its argument, the text itself; and `corpus` writes `walks`, `depth` and
+`seed` but not `length`, `repeats` or `misses`.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: A table an object in
+vparse's README, which the suite reads.
+
+#### cli-taken 70. Where the window is, and what it is
+
+- **A. As bitwisedom's**: its headers in `inc/ui/vparse/`, its sources in
+  `src/ui/vparse/`, its suites in `tests/ui/vparse/`, and its build in
+  `build/ui/vparse/` -- a top-level build that adds djinterp's vparse
+  build within it, finds uxoxo two directories above djinterp's root or at
+  `UXOXO_ROOT`, and makes the module `vparse-gui`, named with the
+  program's tag beside it, `vparse-gui-linux64.so`; `vparse gui` is the
+  kit's plugin command (`add_plugin`). `main.cpp` became `plugin.cpp`, the
+  module's run function on the kit's program made from its host, its
+  frame loop as it was. `vparse_gui` is retired, and djinterp's vparse
+  build names no uxoxo: `VPARSE_BUILD_GUI`, `VPARSE_HOST`, `UXOXO_ROOT`
+  and `VPARSE_BUILD_UXOXO_TESTS` are gone from it, and the
+  `VPARSE_BUILD_WORKBENCH` they took a default from. For: the rulings, and
+  one shape for both programs. Against: a user of `vparse_gui` types
+  `vparse gui`; the window's build is a second build.
+- **B. The module made by djinterp's build**, uxoxo still looked for
+  there. Against: ruling 0.4.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: As bitwisedom's.
+
+#### cli-taken 71. The window's command line
+
+- **A. Spelled as the commands spell it** (section 7): `GRAMMAR` and
+  `INPUT` operands alone, without `-g` and `-i` (63); `-f, --frontend`,
+  `--ebnf`, `--root=DIR` as the commands have them; its own options with
+  their values named (65): `--load=DIR`, `--no-run`, `--font=FILE`,
+  `--font-size=PX`, `--size=WIDTHxHEIGHT`, and, under "Testing",
+  `--frames=N` and `--screenshot=FILE`. Gone: `--completion`, which the
+  program's `completion` command covers, and `--print` and `--part`, kept
+  since 2026.10.16 only to say where they went -- a retired program's
+  pointers. A grammar or an input that cannot be read is refused before
+  the window opens, `vparse: error: cannot read 'x': REASON` and 2, as
+  bitwisedom's window refuses a sheet (section 10); `vparse_gui` said so
+  and opened on its example. For: one reading of a command line, and a
+  status that says the window did not get what it was asked. Against: a
+  typo in a grammar's name no longer opens the window.
+- **B. As `vparse_gui` had it.** Against: section 7.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: Spelled as the
+commands spell it.
+
+#### cli-taken 72. The window's build's names
+
+- **A. `VPARSE_UI_HOST`, `VPARSE_UI_BUILD_TESTS`,
+  `VPARSE_UI_BUILD_UXOXO_TESTS`**, the window's build's own, beside
+  djinterp's build's `VPARSE_BUILD_TESTS` and the rest, which it sets for
+  the build it adds -- its tests on when the window's are, so that its one
+  `ctest` covers the program and what it stands on as before (35 tests).
+  djinterp's vparse build now adds its tests whenever `VPARSE_BUILD_TESTS`
+  is on, not only at the top level. For: no name means two things. Against:
+  bitwisedom's window build reuses `BITWISEDOM_HOST`'s spelling; vparse's
+  differs by `_UI`.
+- **B. The old names, `VPARSE_HOST`, in the window's build.** Against:
+  `VPARSE_BUILD_TESTS` would be both builds' at once.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: VPARSE_UI_HOST,
+VPARSE_UI_BUILD_TESTS, VPARSE_UI_BUILD_UXOXO_TESTS.
+
+#### cli-taken 75. The stand-in for `cl`, and a module
+
+`cl_standin/`, which configures and builds vparse as CMake does it for
+`cl`, linked programs and archives; the window is now a module, a DLL, and
+it had no rule for one.
+
+- **A. A rule for a module**, through the same `link` script with
+  `-shared`, and its README and toolchain giving the window's build a run
+  of its own. For: the window, too, is built along `cl`'s branches, as it
+  was. Against: none.
+- **B. The stand-in for vparse's build alone.** Against: it was the one
+  check of the window under `cl`'s branches.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: A rule for a module.
+
+#### cli-taken 76. How the window's build reads djinterp under `cl`
+
+djinterp's vparse build kept its `VPARSE_CL_READS` lists -- `/utf-8`,
+`/Zc:preprocessor`, `/Zc:__cplusplus`, `/permissive-`, `/EHsc` -- as
+variables of its own directory. The window's build adds it within its own,
+and applies vparse's functions to the window's targets and uxoxo's there,
+where the lists were empty: under the stand-in, the window's seven units
+and uxoxo's were compiled with `cl`'s traditional preprocessor, and under
+`cl` would have been without the other four, which `CompilerSetup.cmake`
+says every unit that includes djinterp's headers is given.
+
+- **A. The lists as internal cache entries**, seen in every directory, as
+  `VPARSE_VERSION_TEXT` is. For: one way of reading djinterp, as that file
+  has it; under the stand-in those eight units now say `traditional=0`.
+  Against: none.
+- **B. The window's build making its own lists.** Against: two copies to
+  keep in step.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: The lists as
+internal cache entries.
+
+#### cli-taken 77. What the runs of `vparse gui` hold
+
+A pattern ctest holds passes whatever the status, and the three runs of
+`vparse gui` were written so, as bitwisedom's window build's two are.
+
+- **A. The status and the words, both**, through `cmake/UiRun.cmake`,
+  which runs the command line -- through the emulator a cross build names
+  -- and fails unless both are as given: `--help` and `--version -v` 0, a
+  grammar that cannot be read 2. For: section 8's statuses are what a
+  script reads; a refusal planted to end 0, its error still said, matches
+  the pattern and fails the run. Against: a script of its own.
+- **B. The pattern alone.** Against: that refusal passes.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: The status and the
+words, both.
+
+#### cli-taken 78. Where the check of a run lives
+
+- **A. In the kit's CMake module**: `d_cli_add_test(<name> COMMAND
+  <program> [<argument>...] STATUS <status> [MATCHES <regex>]
+  [WORKING_DIRECTORY <directory>])`, beside `d_cli_add_plugin`, which
+  both windows' builds already use, and `DjinterpCliTest.cmake` beside it,
+  the script that runs the program. A target is run as `add_test` runs
+  one, through its emulator; the script is found through a global
+  property, since a project may include the module in one directory and
+  make its tests in another (76's trap). vparse's `UiRun.cmake` is
+  retired; bitwisedom's `gui_help` and `gui_unknown_example` are on it,
+  with a third run, `gui_version`, as vparse's window has. For: one check,
+  the kit's, as the statuses are (GRAMMAR section 8), for every program
+  on the kit; the README shows it on its own `hello`. Against: the kit's
+  module grows a function, and the README a paragraph.
+- **B. A copy of `UiRun.cmake` in bitwisedom's window build.** Against:
+  two copies to keep in step, and every other program on the kit without
+  one.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: In the kit's CMake
+module.
+
+#### cli-taken 79. What `run` and `corpus` add
+
+- **A. New keys, last**: `run` ends with `argument` -- the argument, as
+  `match.inputs[]`'s `input` is -- and `as_text`, after `parts`; `corpus`
+  ends with `length`, `repeats` and `misses`, after `inputs`. `input`
+  keeps its meaning (R19), and a new key comes after the ones there, as
+  the README's JSON section says. `replay` has neither of `run`'s: what it
+  replays came from a folder, not an argument. For: a script can read back
+  what it gave, and nothing it read before moves or changes. Against:
+  `run`'s two sit after its parts, far from `input`.
+- **B. `run`'s `input` made the argument.** Against: R19, a key keeps its
+  meaning.
+- **C. Each beside its kin** -- `argument` after `input`, the three after
+  `seed`. For: read together. Against: the README's rule that a new key
+  comes after the ones there, which a reader of a document in order may
+  lean on.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: New keys, last.
+
+#### cli-taken 80. A refusal's place, and one without
+
+- **A. The model gives it**: `refusal_of(run)` (`run.hpp`, 3.2.6) gives the
+  line and column where the notation reader stopped, and the headline's
+  sentence with the place taken out; the command line says it through the
+  kit's `d_cli_report_at` -- `g.vp:2:12: error: the grammar could not be
+  read: the reader stopped, inside ...`. Where there is no place -- the
+  EBNF reader, which says what it expected and not where; the reader's
+  step limit; a program that was not built -- it stays `vparse: error:
+  NAME: SENTENCE`. The headline, the run's `result` and the JSON's `error`
+  keep the place in their words (R19). For: the code that words a refusal
+  decides its place too; an editor links it. Against: a refusal has two
+  shapes, by whether it has a place.
+- **B. The command line parsing the place out of the headline.** Against:
+  words made an interface.
+- **C. A refusal without a place said file first, `NAME: error:
+  SENTENCE`.** For: one shape. Against: the GNU standards and GCC put the
+  file first with a line; with none, `vparse: error:` keeps the program's
+  name, as the kit's own file errors do.
+
+**Ruled** (lane F, G; done): agreed: Confirm A, as taken: The model gives it.
+
+#### cli-taken 81. What a module's path is joined with
+
+- **A. The platform's separator**: `\` on Windows -- `env_cli.h`'s
+  `D_ENV_CLI_PATH_SEPARATOR` -- between a directory and a module's name,
+  and in `..\lib\` from the program's own directory; `/` elsewhere.
+  `LoadLibraryExW`'s page asks that a path given it use backslashes, not
+  forward slashes. A directory as given -- in `PROGRAM_PLUGIN_PATH`, or
+  the program's own -- keeps its separators. For: the loader's contract.
+  Against: none.
+- **B. `/` kept**, as it loads under Wine. Against: the contract; a module
+  with DLLs of its own beside it was never tried on Windows itself.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The platform's
+separator.
+
+#### cli-taken 82. What the kit asks filesys
+
+filesys' predicates answer 0 "for any failure" by their contract. The kit
+asked `d_file_is_regular` whether a module was there, and
+`d_file_is_symlink` whether a name it writes is a link -- so a want of
+memory read as "no": a module not installed, which section 8 forbids
+saying for it, and a link replaced by a file, which `d_cli_write_file`
+promises never happens.
+
+- **A. The queries that say why**: `d_file_mode` and
+  `d_file_mode_nofollow`, ENOENT and ENOTDIR being "nothing there". A want
+  of memory looking for a module is said as one; a name that cannot be
+  asked what it is refuses the write, with the reason. For: section 8 and
+  the kit's promise kept, filesys as it is. Against: none.
+- **B. filesys' predicates made to report a want of memory.** Against:
+  their contract, and filesys is another lane's.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: The queries that say
+why.
+
+#### cli-taken 83. The pointer to help after a want of memory
+
+The kit's failure message ended every failure of a parse with `Try
+'PROGRAM --help' for more information.` -- a want of memory too: on
+Windows, the arguments' UTF-8 copies refused, which the parser records as
+its definition error, so that the parse ends before it starts.
+
+- **A. No pointer after a want of memory**, in the message composed whole
+  and in the one composed in a room of its own; the allocation sweep holds
+  it -- where the clean run had no trouble, a refused run says `out of
+  memory` and points at no help. For: help does not mend it. Against:
+  none.
+- **B. Kept.** Against: it points a user at help that cannot help.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: No pointer after a want
+of memory.
+
+#### cli-taken 84. Who says `@FILE`
+
+R14 has a program that reads response files say so in its help. The kit
+left that to the program, and vparse said it in its root's footer (57).
+
+- **A. The kit**: the root's page of a program that gives
+  `D_CLI_PROGRAM_RESPONSE_FILES` lists `@FILE  read more arguments from
+  FILE, in its place` among its options, before help and version, as `gcc
+  --help` lists `@<file>`; a command's page does not, and in the parser's
+  own layout (`D_CLI_PROGRAM_PARSER_HELP`) the program still says it.
+  vparse's footer keeps what is vparse's: how a file is split, and why it
+  reads one. For: every program on the kit says it, the same way. Against:
+  a line a program cannot word for itself.
+- **B. On every page.** Against: a line repeated on every command's page
+  for what is read anywhere on the command line.
+- **C. Each program, as before.** Against: R14 left for each program to
+  remember.
+
+**Ruled** (lane F, G; done): the owner's words: "B". The recommendation was:
+Confirm A, as taken: The kit.
+
+#### cli-taken 85. The stand-in's checks
+
+The stand-in for `cl` had CMake's checks archive and link nothing, so a
+check that asks whether something links always heard yes: the argument
+parser's leaf asks whether the linker wraps `malloc`, built its sweep
+under the stand-in, and the sweep did not link (2026.10.26c).
+
+- **A. Checks link, through the script `link`, as `cl`'s do**
+  (`cl_standin/toolchain.cmake`): every check answers as before but that
+  one, which now hears no, as under `cl`, and the leaf leaves its sweep
+  out. For: the stand-in configures what `cl` configures. Against: none
+  found.
+- **B. Checks archive, as before.** Against: a check about linking always
+  answered yes.
+
+**Ruled** (lane G; done): agreed: Confirm A, as taken: Checks link, through
+the script link, as cl's do.
+
+### C.5 db
+
+#### db 16. Streaming cursors
+
+Where it stands: a later chunk.
+
+**Ruled** (lane C; for 0.9): agreed: In December if lane C has room (it does,
+by the plan), as a preview API; otherwise after 1.0.
+
+#### db 17. Chunk 6: the seven other vendors
+
+Where it stands: waits, by the owner's ruling.
+
+**Ruled** (lane C; for 0.9): agreed: December, in lane C: the seven other
+vendors ship as preview where their gates are green (section 1).
+
+#### db 23. E1's macro lint
+
+Where it stands: its tool is not in this tree.
+
+**Ruled** (lane H; for 0.9): the owner's words: "lets move dawk up to asap".
+The recommendation was: Drop the separate macro lint: dawk's style rules take
+its job in December; the Python style check covers it until then.
+
+#### db 23, 26.1. D3: PostgreSQL 19.0
+
+Where it stands: once tagged.
+
+**Ruled** (lane H, C; for 0.9): agreed: CI tests the newest released
+PostgreSQL; 19.0 joins when it is tagged, if before the freeze.
+
+#### db MERGE 2.3. The 16 earlier deletions
+
+Where it stands: the owner's (X20).
+
+**Ruled** (lane A; for 0.8): agreed: Apply the 16 deletions at base-0 if the
+ladders stay green without them; lane A checks.
+
+#### db MERGE 3. Where `ci/`, `tools/`, the workflows and the lane's `_handoffs/` go
+
+Where it stands: `ci/` and `tools/` by rs 7; the workflows by rs d; `_handoffs/` stays local (rs 9).
+
+**Ruled** (lane A; for 0.8): the owner's words: "yes, but handoffs omitted
+from release". The recommendation was: Keep the defaults (ci/ and tools/ by rs
+7, _handoffs/ local), with the workflows at the repository's root (ruling 10).
+
+### C.6 net: questions 1 to 24
+
+#### net 1. The native HTTP backend's scope (part 2's 3a)
+
+Native HTTP always exists and curl is opt-in (decision 3); what the native
+backend covers is still open.
+
+- **A. HTTP/1.1 only, with HTTP/2 and 3 through curl.** For: one protocol,
+  small enough to be strict where request smuggling lives and fuzzed
+  exhaustively (items 8 and 9). Against: HTTP/2 or 3 needs the curl backend.
+- **B. HTTP/1.1 and HTTP/2 natively.** For: no dependency for HTTP/2.
+  Against: HPACK, stream multiplexing, and flow control roughly triple the
+  module, and it would trail curl's maturity for years.
+- **C. HTTP/1.1, 2, and 3 natively.** For: nothing beyond B. Against: HTTP/3
+  needs QUIC, a transport stack of its own over UDP and TLS 1.3.
+
+Recommended: **A**. HTTP/1.1 is the fallback every server speaks; HTTP/2 and
+3 are where curl's years of hardening matter most.
+
+**Ruled** (lane H; C in December; for 0.9): the owner's words: "C: all 3
+native". The recommendation was the register's: A, HTTP/1.1 natively, HTTP/2
+and 3 through curl. Settled 11-04: native HTTP/1.1 and HTTP/2 in 1.0 (HTTP/2
+about 3 to 4 lane-weeks); native HTTP/3 (QUIC) after 1.0, through curl until
+then.
+
+#### net 2. Content codings (part 2's 3b, revised)
+
+Part 2 asked about zlib. Since then: the framework already has a compression
+module, `c/util/compress`, with detection in `env/compress`, wrapping zlib
+(deflate and gzip), Brotli, zstd, LZ4, LZMA, and bzip2.
+
+- **A. Through `c/util/compress`, each coding optional.** The client
+  advertises exactly the codings whose libraries env detected (gzip,
+  deflate, br, zstd) and decodes what arrives; with none, it advertises none
+  and refuses a compressed body with a clear error. For: one binding per
+  library across the framework; Brotli and zstd, which servers increasingly
+  prefer, come free. Against: HTTP depends on another module's API and its
+  quality.
+- **B. Bind zlib in HTTP directly.** For: independence. Against: a second
+  zlib binding in the framework, and no Brotli or zstd.
+- **C. zlib required.** Against: a dependency for every HTTP user.
+- **D. No compression.** Against: servers that compress regardless of
+  `Accept-Encoding` become unreadable.
+
+Recommended: **A**, after reviewing `c/util/compress`'s streaming API: HTTP
+must decode as bytes arrive, not whole bodies. If the module cannot stream,
+fixing it there is better than working around it here.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: A, through c/util/compress
+once its streaming API is confirmed.
+
+#### net 3. TLS for HTTPS
+
+The TLS lane's merged work is a C++ header, `tls/tls.hpp`. The C foundation
+it planned (`tls.h`, `tls.c`, and `cfg_tls.h`, presenting a TLS session as a
+`d_net_connection`) was waiting for lane A's `net.h`, which has been in every
+overlay since 2026.09.28. Its handoff predates `TLS-REQUIREMENTS.md` and does
+not mention it. HTTPS in chunk 4 depends on that foundation.
+
+- **A. Wait for the TLS lane,** then review its C API against the
+  requirements (decision 1). For: decision 1 as made; the lane that owns the
+  SSL kernel builds the adapter to it. Against: HTTPS waits on another lane.
+- **B. Lane A builds the TLS C foundation.** For: no cross-lane wait.
+  Against: reverses decision 1, and duplicates the TLS lane's knowledge of
+  its kernel.
+- **C. Chunk 4's client runs over any `d_net_connection`,** as requirement R1
+  already asks TLS to provide. For: http:// works the day chunk 4 lands, and
+  https:// the day TLS does, with no change to the client. Against: none.
+
+Recommended: **C with A**. And tell the TLS lane now that its blocker is
+gone, pointing it at `TLS-REQUIREMENTS.md`.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: C with A, and unblock the
+TLS work now.
+
+#### net 4. The client's execution model (chunk 4)
+
+- **A. Blocking only,** as the retired client was. For: simplest. Against: a
+  thread per concurrent request, and no path to the reactor (decision 5).
+- **B. A sans-I/O core.** The HTTP/1.1 parser and serializer (chunk 3) and the
+  client's request state machine never perform I/O; they consume and produce
+  bytes. A blocking driver over `d_net_connection` ships in chunk 4, a
+  non-blocking one on the poller (decision 5) after it. For: one core for
+  both models; deterministic tests without sockets; the whole protocol
+  fuzzable. Against: two drivers to write, and more design up front.
+- **C. Asynchronous only,** by callbacks or C++20 coroutines. Against: C has
+  no coroutines, and blocking use becomes awkward everywhere.
+
+Recommended: **B**.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: B.
+
+#### net 5. Requests, responses, and bodies (chunk 4)
+
+`web.hpp`'s request and response hold whole bodies in `std::string`, and
+headers in a vector of pairs.
+
+- **A. Keep those aggregates.** For: no migration. Against: every body wholly
+  in memory, so a download is bounded by RAM; no streaming uploads; header
+  lookups linear, with case handled ad hoc.
+- **B. New types:** a message head (method or status, target, version,
+  fields), and bodies as streams, sources and sinks over the foundation's
+  stream algorithms, with whole-body conveniences on top. Fields are an
+  ordered list keeping each name's case and order, looked up without case.
+  For: streaming both ways; fields as RFC 9110 defines them, where order
+  matters (Set-Cookie). Against: consumers migrate (item 21).
+
+Recommended: **B**.
+
+**Ruled** (lane H; C in December; for 0.8): the owner's words: "retire web.hpp
+and distribute its funcionality to the appropriate modules". The
+recommendation was the register's: B.
+
+#### net 6. Errors across transport, TLS, and HTTP (chunk 4)
+
+`web.hpp`'s `transport_error` flattens transport, TLS, and protocol failures
+into one list.
+
+- **A. Keep `transport_error`.** Against: it cannot say which layer failed or
+  carry a TLS alert, and it duplicates `d_net_error`.
+- **B. One error record naming the failing layer:** a `d_net_error` for the
+  transport, requirement R7's TLS status for TLS, a `d_http_error` for the
+  protocol. The C++ layer maps it, and `transport_error` survives as an
+  alias computed from it during the transition. For: nothing lost, and each
+  layer keeps the taxonomy it already has. Against: a larger result type.
+- **C. C++ exceptions.** Against: the guide's exceptions policy, since
+  consumers build with `-fno-exceptions`.
+
+Recommended: **B**.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: B.
+
+#### net 7. Connections, redirects, and proxies (chunk 4)
+
+- **A. The retired client's behavior:** a new connection per request,
+  redirects followed with the usual method rewriting, no proxies. For: less
+  code. Against: a TCP and TLS handshake for every request; credentials sent
+  on across origins on redirect; unusable behind a proxy.
+- **B. Complete.** Keep-alive with a bounded per-origin pool: an idle timeout,
+  and a retry on a fresh connection only for idempotent requests that failed
+  on a reused one. Redirects per RFC 9110 (303 to GET; 307 and 308 keep method
+  and body; 301 and 302 to GET only for POST, as browsers do), capped, with
+  `Location` resolved by `net_url`, and Authorization, Proxy-Authorization,
+  and Cookie dropped when the origin changes. Proxies from configuration and
+  from `http_proxy`, `https_proxy`, and `no_proxy`, with CONNECT for https.
+  Cookies left to the application, through hooks. For: correct, safe, and
+  deployable. Against: more code, all of it testable on the sans-I/O core.
+
+Recommended: **B**.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: B.
+
+#### net 8. HTTP/1.1 parser strictness (chunk 3)
+
+Request smuggling lives in the gaps between parsers that disagree.
+
+- **A. Strict RFC 9112 everywhere:** refuse obsolete line folding, bare CR,
+  whitespace before a field's colon, Content-Length with Transfer-Encoding,
+  differing duplicate Content-Lengths, malformed chunk sizes, and anything
+  over `cfg_http.h`'s limits. For: nothing ambiguous gets through. Against: a
+  few old servers send folded lines or bare LF in responses.
+- **B. Lenient: "be liberal in what you accept."** Against: those are exactly
+  the disagreements smuggling exploits.
+- **C. A, plus two leniencies for responses only:** folded lines unfolded to a
+  space, and bare LF accepted as a line end; both off by default, and never
+  available for requests. For: interoperability where it is safe, strictness
+  where it matters. Against: two configuration knobs.
+
+Recommended: **C**.
+
+Built meanwhile, to fit every option: the strict core, which A and C share.
+The two leniencies are not built until this item is decided.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: C.
+
+#### net 9. Fuzzing the parser (chunk 3)
+
+clang's libFuzzer works in this environment (checked).
+
+- **A. libFuzzer harnesses with seed corpora:** a short run in each verify
+  script, longer runs in CI. For: finds crashes and sanitizer faults.
+  Against: misses a parser that is wrong without crashing.
+- **B. A, plus differential fuzzing** against an established parser (llhttp
+  or picohttpparser) as a test-only dependency: any input the two judge
+  differently is a finding. For: finds semantic disagreements, which is the
+  smuggling class itself. Against: a test-only dependency the build must
+  host (item 13).
+- **C. Property tests only.** Against: people do not guess the inputs fuzzers
+  find.
+
+Recommended: **B**: A from chunk 3's first day, the differential half once
+the build can host it.
+
+Done meanwhile, as both A and B begin: a libFuzzer harness for the head
+parsers, run for 20 seconds by `verify_http.sh`, and for two minutes (14.2
+million inputs, clean) at handoff. Its first runs already earned their keep:
+against the scan's first version it found, in seconds, a 19-byte head that
+got one verdict when parsed whole and another when fed in pieces, a
+disagreement that the table tests had missed. The fix judges every limit by
+the byte offset at which it is passed, and the find is now a regression
+case.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: B, fuzzing from day one,
+the differential half when the build can host it.
+
+#### net 10. Deadlines and timeouts (tcp's second round, TLS's R14, HTTP)
+
+- **A. Per-socket `SO_RCVTIMEO` and `SO_SNDTIMEO`.** For: simple. Against: a
+  limit per call, not per operation, so a slow drip of bytes never times out;
+  on Windows a timed-out socket may be left unusable.
+- **B. Absolute deadlines on a monotonic clock:** each read and write preceded
+  by a readiness wait (`poll`, `WSAPoll`, or the decision-5 poller) bounded
+  by the time left. For: one deadline spans resolution, connect, handshake,
+  and the whole exchange, identically on every platform. Against: a
+  readiness wait per I/O call.
+- **C. Both.** Against: two mechanisms that can disagree.
+
+Recommended: **B**.
+
+**Ruled** (lane H; C in December; for 0.8): the owner's words: "B but make
+amounts option specifiable (optionally) with good default values". The
+recommendation was the register's: B.
+
+#### net 11. Name resolution and Happy Eyeballs (tcp's second round)
+
+`getaddrinfo` can block for tens of seconds and has no timeout, and addresses
+are tried one after another.
+
+- **A. As now.** Against: unbounded hangs, and slow fallback when IPv6 is
+  broken.
+- **B. `getaddrinfo` on a helper thread under the deadline (item 10), and RFC
+  8305 Happy Eyeballs:** families interleaved, attempts staggered by 250 ms
+  over non-blocking connects, the first to succeed kept. For: portable,
+  bounded, fast on broken IPv6. Against: a thread per resolution; needs the
+  poller.
+- **C. B, with c-ares as an optional resolver,** detected by env like the
+  other dependencies. For: fully asynchronous, no threads. Against: another
+  optional dependency.
+- **D. A resolver of our own.** Against: a large, security-sensitive surface.
+
+Recommended: **B** now; **C** as an optional backend when a consumer needs
+thousands of concurrent resolutions.
+
+**Ruled** (lane H; C in December; for 0.9): agreed: B now, C as an optional
+backend later.
+
+#### net 12. Internationalized URLs
+
+URLs are strict RFC 3986, and hosts are ASCII. The tree has no Unicode
+normalization or case-mapping data: `lex_unicode_data.h` holds the lexer's
+identifier tables only.
+
+- **A. As now.** Against: a host like `bücher.example` is unreachable unless
+  the caller converts it.
+- **B. IDNA:** UTS #46 processing and Punycode (RFC 3492) in a `net_idna`
+  module, its tables generated from the Unicode data files by a script and
+  pinned to a Unicode version. For: complete. Against: tables in the hundreds
+  of kilobytes, and Unicode releases to track.
+- **C. A WHATWG-compatible lenient mode.** For: accepts what browsers accept.
+  Against: two parsers disagreeing about one string is the root of
+  URL-confusion attacks (SSRF, filter bypass); cleaning up typed input
+  belongs to applications.
+
+Recommended: **A with B**, B when the first consumer needs non-ASCII hosts;
+never C.
+
+**Ruled** (lane H; C in December; for 0.8): the owner's words: "allow multiple
+URL type(s); user-selectable; option-specifiable". The recommendation was the
+register's: A with B when a consumer needs non-ASCII hosts.
+
+#### net 13. Build system and CI (part 2's 9)
+
+Deferred on 2026.09.28 until the CMake rewrite. Every result so far comes
+from Linux x86-64. Awaiting registration: `net.c`, the four `net_url*`
+sources, `tcp.c` (with `ws2_32` on Windows), `http.c`, and their suites.
+
+- **A. Per-lane scripts, as now.** Against: nothing runs beyond Linux, and
+  there is no regression gate.
+- **B. CMake and a CI matrix:** optional components by env detection
+  (OpenSSL, libcurl, the compression libraries); CTest; Linux gcc and clang
+  with sanitizers and `-pedantic`; macOS clang; Windows MSVC and MinGW;
+  FreeBSD; the lanes' extra checks (bounds, stubs, censuses) as CI steps.
+  For: every platform the portability ruling names, on every change.
+  Against: CI to host and maintain.
+- **C. Makefiles.** Against: weak on Windows and MSVC.
+
+Recommended: **B**, on the rewritten CMake, with Windows and macOS runs
+required before a module counts as done, as the portability ruling implies.
+
+**Ruled** (lane H; C in December; for 0.8): agreed with B, on the CMake build,
+with ruling 4's platforms: Linux, Windows and FreeBSD required; macOS after
+everything else.
+
+#### net 14. Windows, before CI
+
+The Winsock branch is compiled and linked with MinGW but has never run. Wine
+9.0 installs here through apt (checked).
+
+- **A. Wait for CI (13).** Against: the Winsock code stays unexecuted.
+- **B. Run the MinGW-built net and tcp suites under Wine now.** For: the first
+  execution of the Winsock code, finding real bugs early. Against: Wine's
+  Winsock is an emulation, so a pass is evidence, not proof.
+- **C. Both.**
+
+Recommended: **C**.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: C; Windows CI arrives in
+week 1.
+
+#### net 15. Big-endian, macOS, and the BSDs
+
+No big-endian host has run anything, the frame codec included; macOS and the
+BSDs have never compiled the code. An s390x cross compiler (gcc 13.2) and
+qemu-user (8.2) install here through apt (checked).
+
+- **A. Wait for CI.**
+- **B. Build the suites for s390x and run them under qemu-user now;** macOS
+  and the BSDs through CI only, since macOS cannot legally be cross-compiled
+  here. For: byte-order bugs found now, cheaply and for certain. Against: an
+  emulated host.
+
+Recommended: **B**.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: Per ruling 4: FreeBSD now;
+macOS and big-endian after everything else.
+
+#### net 16. The test runtime
+
+`test_standalone.c` does not compile, so every lane links a private stand-in;
+and `dtime.h`, which `test_standalone.h` includes, needs POSIX's
+`struct timespec` in C99.
+
+- **A. Its owner fixes both, and the lanes drop their stand-ins.** For: one
+  tested runtime. Against: waits on that owner.
+- **B. Promote a lane's stand-in to the framework's runtime.** For:
+  immediate. Against: bypasses the owner's design.
+- **C. Leave it.** Against: every lane keeps a copy, and the copies drift.
+
+Recommended: **A**, first in the hygiene pass (19); B only if A cannot happen
+soon.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: A, which is DTest now
+(ruling 6).
+
+#### net 18. `re_std`
+
+Three findings, from `net_url.hpp`. Eleven includes in five iterator headers
+are `inc/`-rooted, so anything reaching `re_std::string_view` needs `-Iinc`.
+`basic_string_view.hpp` declares `_CharT` and `_Traits`, which the guide
+reserves. And its namespace is top-level, which the guide's table does not
+allow for.
+
+- **A. Its owner makes the eleven includes relative and renames the
+  parameters, and the guide states `re_std` as top-level (20).** For:
+  `net_url.hpp` then needs no `-Iinc` and passes `-Wreserved-identifier`, and
+  `http.hpp` can take views too (22). Against: waits on that owner.
+- **B. Lane A stops using `re_std`,** with a view type of its own or copies.
+  Against: a second view type in the framework, or an allocation on every
+  accessor.
+
+Recommended: **A**.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: A.
+
+#### net 19. Other defects outside lane A (part 2's 11)
+
+Still open: `decode.hpp`'s `_Bool`, and `encode.hpp`'s `_Sink` and `_Type`;
+`byte_buffer.hpp`'s C++17 floor, which holds `web.hpp` and `reactor.hpp` above
+the net layer's C++11; `verify/derive_guards.py` writing files when given
+`--help`; 34 includes resolving to nothing; 692 pre-existing lint findings in
+the files the relocation rewrites, and 14 comments naming pre-relocation
+paths; five env and config headers failing when compiled alone; and, in the
+TLS lane's SSL kernel, `alert_sent` left stale after a local shutdown.
+
+- **A. Owners fix them as they reach them.** Against: no one is reaching
+  most of them.
+- **B. One hygiene pass,** authorized to touch shared files, gated by the
+  unified linter (20) and proved by the census tools. For: the whole tree
+  conforming at once, provably without change of meaning. Against: a pass
+  across other owners' files.
+
+Recommended: **B**, once 20 has settled what conforming means, with 16 and 17
+first.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: B, after #20, with #16 and
+#17 first.
+
+#### net 21. `web.hpp`'s end
+
+What remains in it: byte aliases (the reason it needs C++17); `url_scheme`,
+`url_parts`, and `split_url`; percent-encoding and query-string helpers;
+header-list helpers; request, response, and `transport_error`. Its consumers
+are the curl lane and the Claude API client.
+
+- **A. Keep it permanently** as a compatibility header. Against: two
+  vocabularies forever, and its C++17 floor with them.
+- **B. After chunk 4, move what remains to its home and retire it:**
+  percent-encoding to `net_url`, where it already is; form encoding
+  (`application/x-www-form-urlencoded`) to `net/http`; header helpers to the
+  new field list (5); request, response, and errors to `net/http` (5, 6); the
+  curl lane and the Claude API client migrated, with the curl lane's
+  agreement; `web.hpp` to `_retired/`. For: one vocabulary. Against: a
+  migration touching another lane.
+- **C. B, with a release of `[[deprecated]]` aliases in between.** For: time
+  for users outside the tree. Against: matters only if such users exist.
+
+Recommended: **B**, by way of **C** if the framework has users outside this
+repository.
+
+**Ruled** (lane H; C in December; for 0.9): agreed: B; no outside users yet,
+so no deprecation path is needed.
+
+#### net 22. Views or strings in the C++ layers
+
+`net_url.hpp` returns `re_std` views; `http.hpp` takes `std::string`, so that
+`web.hpp`, which includes it, needs no `-Iinc` (18).
+
+- **A. Views everywhere, once 18's A is done.** For: no copies at the C++
+  boundary, and one convention. Against: waits on 18.
+- **B. Strings everywhere.** Against: an allocation on every URL accessor.
+- **C. Leave them mixed.** Against: two conventions in one subsystem.
+
+Recommended: **A**.
+
+**Ruled** (lane H; C in December; for 0.8): agreed: A.
+
+#### net 23. `server.hpp`
+
+It fails to compile (2 errors now, 9 against the baseline), includes itself,
+and nothing includes it. Decision 4 rebuilds the servers after the client.
+
+- **A. Leave it until the rebuild.** Against: a broken header in the tree.
+- **B. Retire it to `_retired/` now,** with a README, as the old client was.
+  For: every header in `net/` compiles. Against: none, since nothing uses it.
+- **C. Patch it to compile.** Against: effort on code decision 4 replaces.
+
+Recommended: **B**.
+
+**Ruled** (lane H; C in December; for 0.9): agreed: B.
+
+#### net 24. The gap without a native client
+
+From chunk 2 until chunk 4 there is no native HTTP client; the curl backend
+remains.
+
+- **A. Accept it,** as now. For: nothing in the tree used the old client.
+  Against: a user outside the tree would lose it for a while.
+- **B. Restore the old client under a temporary name until chunk 4.**
+  Against: revives code the new client replaces, over the old vocabulary.
+
+Recommended: **A**.
+
+**Ruled** (lane H; C in December; for 0.9): agreed: A.
+
+### C.7 net: the choices for review, E1 to E9
+
+#### net-E E1. URLs are strict RFC 3986 (item 12). Normalization removes dot segments only from absolute refere…
+
+- URLs are strict RFC 3986 (item 12). Normalization removes dot segments only
+  from absolute references, since in a relative one they carry meaning. When
+  a buffer is too small, resolution and normalization report a length that
+  suffices rather than the exact one, which only a second pass could know.
+
+**Ruled** (lane H; done): the owner's words: "Allow CFG control knobs and
+options to specify which; allow capability for both, should the user want
+either/both". The recommendation was: Confirm; document the reported length as
+an upper bound.
+
+#### net-E E2. The URL component is split into `net_url.h`, a private header, and four sources, with your leave…
+
+- The URL component is split into `net_url.h`, a private header, and four
+  sources, with your leave; the C++ `url` returns `re_std` views (22).
+
+**Ruled** (lane H; done): agreed: Confirm; the C++ views' lifetime goes in the
+header's comment.
+
+#### net-E E3. HTTP methods are case-sensitive, and only "HTTP/1.x" parses as a version on the wire, a higher m…
+
+- HTTP methods are case-sensitive, and only "HTTP/1.x" parses as a version on
+  the wire, a higher minor version as 1.1.
+
+**Ruled** (lane H; done): the owner's words: "Allow CFG control knobs and
+options that specify case-sensitivity/leniency; allow capabaility for
+either/both. Give the user the most options/control". The recommendation was:
+Confirm: RFC 9110 makes methods case-sensitive, and RFC 9112 reads a higher
+minor version as 1.1.
+
+#### net-E E4. 418's phrase is "I'm a teapot", though the registry lists 418 as unused.…
+
+- 418's phrase is "I'm a teapot", though the registry lists 418 as unused.
+
+**Ruled** (lane H; done): agreed: Confirm.
+
+#### net-E E5. `web.hpp` keeps its case-insensitive `method_from_string` and its own reason phrases until it re…
+
+- `web.hpp` keeps its case-insensitive `method_from_string` and its own reason
+  phrases until it retires (21).
+
+**Ruled** (lane H; done): agreed: Confirm; it ends when web.hpp retires (net
+#21, B).
+
+#### net-E E6. Requests and responses move with the client in chunk 4 (5); `cfg_http.h` and `env_http.h` arrive…
+
+- Requests and responses move with the client in chunk 4 (5); `cfg_http.h`
+  and `env_http.h` arrive with their first readers.
+
+**Ruled** (lane H; done): agreed: Confirm.
+
+#### net-E E7. The HTTP C++ layer lives in `djinterp::net` under `http_` names, as tcp's and tls's layers do.…
+
+- The HTTP C++ layer lives in `djinterp::net` under `http_` names, as tcp's
+  and tls's layers do.
+
+**Ruled** (lane H; done): agreed: Confirm.
+
+#### net-E E8. The HTTP/1.1 head parser is resumable: a small parser object keeps the scan position, so a peer …
+
+- The HTTP/1.1 head parser is resumable: a small parser object keeps the scan
+  position, so a peer sending one byte at a time costs no rescanning.
+
+**Ruled** (lane H; done): agreed: Confirm; check that the head has a size cap
+(431 past it).
+
+#### net-E E9. It skips empty lines before a request line (RFC 9112, 2.2), never before a status line; it accep…
+
+- It skips empty lines before a request line (RFC 9112, 2.2), never before
+  a status line; it accepts a status line with no space before an empty
+  reason, since a reason carries no meaning; and it validates targets and
+  Host with `net_url`, which gained `d_net_url_parse_authority` for them.
+
+**Ruled** (lane H; done): the owner's words: "Allow CFG control knobs and
+options that specify strictness; allow capabaility for either/both. Give the
+user the most options/control; default to the most sensible choice.". The
+recommendation was: Confirm.
+
+### C.8 filesys: the decisions taken
+
+#### fs-taken 1. The unsuffixed names (`d_stat_t`, `d_file_stat`) are lower-case object-like macros naming one twin
+
+Where: C guide, **Macro Names**.
+
+**Ruled** (lane B; done): the owner's words: "but they'll be dj_* after the
+style fix, correct?". The recommendation was: Confirm: the twin macros, as
+glibc's stat and MSVC's _stat name theirs; the guide's Macro Names exception
+stays. Answered: the type is already dj_stat_t in base-0 (a macro for
+dj_stat64_t or dj_stat32_t); the function macro d_file_stat keeps d_, as
+functions do. Owner: perfect.
+
+#### fs-taken 2. Large files and 64-bit time are asserted (`D_INTERNAL_FILE_ASSERT_LARGE_FILES`), never defined
+
+Large files and 64-bit time are asserted (`D_INTERNAL_FILE_ASSERT_LARGE_FILES`), never defined; a 32-bit POSIX build passes `-D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64`
+
+Where: `file_common.h` 6.4.1, C guide.
+
+**Ruled** (lane B, A; after everything else): agreed: Confirm, and export the
+two definitions from the CMake target when 32-bit builds are tested (after
+everything else).
+
+#### fs-taken 3. A gate names its platforms through the families of `cfg_file_common.h` 1.9.0, never `D_ENV_PLATFORM_*`
+
+Where: `cfg_file_common.h` 1.9.
+
+**Ruled** (lane B; done): agreed: Confirm.
+
+#### fs-taken 4. A build with neither POSIX nor Windows
+
+A build with neither POSIX nor Windows: ENOSYS from every call that needs the OS; the predicates answer no; ISO C streams still work
+
+Where: banners of `file_dir.h`, `file_stat.h`.
+
+**Ruled** (lane B, A; for 0.8): the owner's words: "Taken plus a
+configure-time message". The recommendation was: Confirm, and have CMake print
+a status line when the ISO C backend is chosen.
+
+#### fs-taken 5. `D_CFG_FILE_ASSERT_PARAMS` stays a placeholder: `cfg_testing.h` already ties it to the planned assertion subfr…
+
+`D_CFG_FILE_ASSERT_PARAMS` stays a placeholder: `cfg_testing.h` already ties it to the planned assertion subframework (`D_CFG_DEBUG_ASSERTS`), and a plain `assert()` would make every deliberate bad-argument test abort in a test build
+
+Where: `cfg_file_common.h` 1.3.3.
+
+**Ruled** (lane B, A; for 0.9): agreed: Confirm, and list the knob as reserved
+(no effect) in the 1.0 configuration docs, so no one sets it expecting checks.
+
+#### fs-taken 6. While the modules move to `D_CFG_FILE_WIDE_PATHS` part by part, it stays off and `cfg_file_common.h` 1.5.4 lis…
+
+While the modules move to `D_CFG_FILE_WIDE_PATHS` part by part, it stays off and `cfg_file_common.h` 1.5.4 lists those that take UTF-8 so far
+
+Where: `cfg_file_common.h` 1.5.4.
+
+**Ruled** (lane B; for 0.9): the owner's words: "Part 4 in December, on in
+1.0". The recommendation was: Confirm. Part 4, where your 10.19 ruling turns
+wide paths on, has no slot yet: do it in December if it fits by the interface
+freeze (Fri 12-11); if not, 1.0 ships them off and the default changes only in
+2.0, so 1.x never flips it. Settled 11-04 with #11: part 4 in the order that
+is easiest: finish the modules' UTF-8 (W-call) conversion and turn wide paths
+on, then long paths (the \\?\ prefix through GetFullPathNameW) over it; both
+on by default, as they cost nothing on short or ASCII paths; November if
+possible, by the interface freeze (Fri 12-11) at the latest.
+
+#### fs-taken 7. A conversion refuses text that is not UTF-8, and UTF-16 with a lone surrogate, with EILSEQ, rather than put U+…
+
+A conversion refuses text that is not UTF-8, and UTF-16 with a lone surrogate, with EILSEQ, rather than put U+FFFD, which names another file, in its place; a path whose UTF-16 form does not fit `D_FILE_PATH_MAX` is ENAMETOOLONG
+
+Where: `file_common.h` 6.6, `file_common.c`.
+
+**Ruled** (lane B; done): agreed: Confirm; WTF-8 for unpaired surrogates only
+if someone needs it, after 1.0.
+
+#### fs-taken 8. A mode that will not convert is EINVAL, as `fopen` fails a malformed one
+
+A mode that will not convert is EINVAL, as `fopen` fails a malformed one; a reopen that cannot start closes the stream, as a failed reopen does
+
+Where: `file_open.c`.
+
+**Ruled** (lane B; done): agreed: Confirm: it matches freopen, which callers
+know.
+
+#### fs-taken 9. Each module picks a call's A or W form once, by `D_INTERNAL_FILE_WIDE`, through a file-local macro (`D_INTERNA…
+
+Each module picks a call's A or W form once, by `D_INTERNAL_FILE_WIDE`, through a file-local macro (`D_INTERNAL_OPEN_FOPEN`, `D_INTERNAL_DESC_OPEN_CALL`, ...), not `<tchar.h>`, whose `_UNICODE` is a macro a source would have to define
+
+Where: `file_open.c`, `file_desc.c`, `file_common.c`.
+
+**Ruled** (lane B; done): agreed: Confirm.
+
+#### fs-taken 10. `D_CFG_FILE_THREADSAFE` is documented as having no effect until the thread-safe variant (4.1): the only state …
+
+`D_CFG_FILE_THREADSAFE` is documented as having no effect until the thread-safe variant (4.1): the only state between calls is the notice hook and `file_stat`'s atomic `statx` memo
+
+Where: `cfg_file_common.h` 1.7.3.
+
+**Ruled** (lane B, A; for 0.9): the owner's words: "Remove it until the
+variant exists". The recommendation was: Confirm, and list the knob as
+reserved (no effect) in the 1.0 configuration docs, as #5.
+
+#### fs-taken 11. `D_CFG_FILE_LONG_PATHS` is documented as what it does today -- 32767-character buffers, no `\\?\` prefix -- un…
+
+`D_CFG_FILE_LONG_PATHS` is documented as what it does today -- 32767-character buffers, no `\\?\` prefix -- until part 4 (4.1)
+
+Where: `cfg_file_common.h` 1.5.3.
+
+**Ruled** (lane B; for 0.9): the owner's words: "Part 4 now". The
+recommendation was: Confirm; the \\?\ prefix (your 10.19 ruling) comes with
+part 4, as #6 schedules it. Settled 11-04 with #6: see #6.
+
+#### fs-taken 12. An allocation ceiling past what `size_t` holds is no ceiling, in the allocator and in `file_io`'s read ceiling
+
+An allocation ceiling past what `size_t` holds is no ceiling, in the allocator and in `file_io`'s read ceiling; a negative one is a build error
+
+Where: `file_common.c`, `file_io.c`, `cfg_file_common.h` 1.6.4.
+
+**Ruled** (lane B; done): agreed: Confirm.
+
+#### fs-taken 13. Win32 reasons a caller can act on get their POSIX name from one table
+
+Win32 reasons a caller can act on get their POSIX name from one table; every other reason is EIO
+
+Where: `file_common.c`.
+
+**Ruled** (lane B; done): agreed: Confirm; a way to read the Win32 code itself
+can come after 1.0 if diagnostics need it.
+
+#### fs-taken 14. POSIX and NATIVE backends build the same code
+
+POSIX and NATIVE backends build the same code; only the ISO C backend changes behaviour
+
+Where: `cfg_file_common.h` 1.2.
+
+**Ruled** (lane B; done): the owner's words: "NATIVE uses OS extensions
+(openat2 and the like)". The recommendation was: Confirm.
+
+#### fs-taken 15. `d_path_resolve` takes its buffer's size, as `d_dir_get_current` does, and resolves into a buffer of its own f…
+
+`d_path_resolve` takes its buffer's size, as `d_dir_get_current` does, and resolves into a buffer of its own first, so the caller's may be any size; the NULL form allocates exactly the answer
+
+Where: `file_dir.h`, `file_dir.c`.
+
+**Ruled** (lane B; done): agreed: Confirm.
+
+#### fs-taken 16. Windows resolves with `GetFullPathNameA`, not the CRT's `_fullpath`, whose report of a buffer too small differ…
+
+Windows resolves with `GetFullPathNameA`, not the CRT's `_fullpath`, whose report of a buffer too small differs between runtimes
+
+Where: `file_dir.c`.
+
+**Ruled** (lane B; done): agreed: Confirm, with GetFullPathNameW once paths
+are wide.
+
+#### fs-taken 17. WASI builds on the ISO C backend, as env (which does not know it) leaves it
+
+WASI builds on the ISO C backend, as env (which does not know it) leaves it; the compiler's `__wasi__` names it, in `cfg_file_common.h` only, so env.h, shared with the other lanes, is untouched
+
+Where: `cfg_file_common.h` 1.9.0, 1.9.18, 1.9.19.
+
+**Ruled** (lane B; done): the owner's words: "D_ENV_PLATFORM_WASI in env.h".
+The recommendation was: Confirm for now; move WASI into env.h only when a
+second module needs it.
+
+#### fs-taken 18. The platform check gates pull requests (in `c-standards.yml`), not the nightly `portability.yml`: it is quick …
+
+The platform check gates pull requests (in `c-standards.yml`), not the nightly `portability.yml`: it is quick (about a minute and a half) and pinned (zig 0.16.0, wasmtime 49.0.0)
+
+Where: `ci/check_filesys_platforms.sh`.
+
+**Ruled** (lane B, A; for 0.8): agreed: Confirm: about 1.5 minutes a pull
+request is cheap even on the private repository's minutes; cache the zig and
+wasmtime downloads.
+
+#### fs-taken 19. The static assertions' fallbacks
+
+The static assertions' fallbacks: C's declares `extern char d_internal_static_assertion_failed[...]`, which C lets a program repeat, so it needs no unique name, with `D_MAYBE_UNUSED` for GCC's unused-variable warning at block scope (GCC's `-Wredundant-decls` and `-Wnested-externs`, which no build here enables, would flag it); C++98's stays a typedef, since only a typedef also stands in a class body, named by `__LINE__`, so two on one line of one class body would clash
+
+Where: `c/djinterp.h` 2.2, `re_std/config.hpp` 4.6.
+
+**Ruled** (lane A; done): agreed: Confirm; C11 and C++11 use the native static
+assertions, so the fallbacks only serve C99 and C++98.
+
+### C.9 The output stream
+
+#### stream 1. The decimal-point ruling, and step 6
+
+1. **The decimal-point ruling, and step 6.** Switching the PDF serializer to
+   `d_ostream_write_double` changes its bytes under non-C locales, which is the
+   point; both tiers move in one commit. Alongside it: a `save_to` slot on
+   `d_pdf_backend` (appended; its `size` field allows it), and whether
+   `writer.hpp`'s `string_sink`/`stream_sink` and `printer.hpp`'s
+   `file_printer` are re-expressed over the stream. Their `void` return is
+   where write failures are lost today; `DOutputStreamSink` already keeps them.
+
+**Ruled** (lane D; for 0.8): agreed: Yes to all of it: the PDF serializer on
+d_ostream_write_double (both tiers in one commit), save_to on d_pdf_backend,
+and writer.hpp's and printer.hpp's sinks over the stream. It is lane D's week
+1 (ruling 3).
+
+#### stream 2. Doubles, next
+
+2. **Doubles, next.** Shortest round-trip (Ryu, or `std::to_chars` in the
+   C++ face) is faster than `snprintf` and needs no locale at all. Until then,
+   a per-call locale (`newlocale`/`uselocale` where POSIX 2008 has them,
+   `_snprintf_l` on MSVC) would remove the rewrite's race with another
+   thread's `setlocale`. Key it on `newlocale`, not on the `_l` functions:
+   GLib's musl lesson.
+
+**Ruled** (lane D; for 0.8, then 0.9): agreed: A per-call locale (keyed on
+newlocale) in 0.9; shortest round-trip doubles in December if lane D has room,
+otherwise after 1.0.
+
+#### stream 3. Names
+
+3. **Names.** The C++ classes follow the C++ guide's `D` + PascalCase
+   (`DOutputStream`, ...). The C names (`d_ostream_*`) were placeholders in
+   10.07 and are kept.
+
+**Ruled** (lane D; for 0.8): agreed: C functions keep d_ostream_*; C types
+take dj_, the restructure's prefix; C++ keeps DOutputStream. Applied when the
+stream lands on base-0.
+
+#### stream 4. The guides and the tree disagree in three places
+
+4. **The guides and the tree disagree in three places**, and the new files
+   follow the tree:
+   - the C++ guide's layout (`c/core/`, `cpp/core/`) and banner tags
+     (`[cpp/core]`) describe a tree not yet migrated;
+   - it gives C types a `dj_` prefix, where the C guide and the tree use
+     `d_`;
+   - env's configuration is still under `config/core/env/`, though env moved
+     to the top of the tree; `cfg_env_printer.h` sits beside its siblings.
+
+**Ruled** (lane A, owner; for 0.8): agreed: The restructured tree is the
+reference: layout and the dj_ type prefix as the restructure made them; lane A
+brings the guides' text in line, with style #33.
+
+#### stream 5. Linking
+
+5. **Linking.** The stream's units are compiled into the test leaf, not
+   `djinterp_c_runtime`. The first library that needs them decides where they
+   live. The printer now also needs `ostream_template.c` and the option core
+   (`option_env.c`, `option_set_common.c`, `option_common.c`).
+
+**Ruled** (lane A, D; for 0.8): agreed: Into djinterp_c_runtime at base-0,
+with the template and option units: logging, DTest, desc and the printer all
+need them.
+
+#### stream 6. `option_env` is new in the options subframework
+
+6. **`option_env` is new in the options subframework,** written here because
+   the printer is its first machine. For that lane's session to review and
+   own: its name and place (`c/option/option_env.{h,c}`); unbinding and
+   compaction, done locally on the set's public fields, which could become
+   `d_option_set_remove` and a compacting pass in the core; a C++ face
+   (an owning `DOptionEnv<Bindings, Vars, Text>` and a scoped-override RAII
+   guard) to make it as effortless from C++ as from C; and whether a
+   program-wide root frame should exist, for every machine to inherit.
+
+**Ruled** (lane E; for 0.8): agreed: As the roadmap has it: lane E owns
+option_env from week 1, with d_option_set_remove and compaction in the core, a
+C++ face (DOptionEnv, a scoped override) and a program-wide root frame, which
+the djin registry becomes.
+
+#### stream 7. Templates are global
+
+7. **Templates are global.** A binding of a template variable in a section's
+   scope is not read: the program is compiled once. Per-section switches
+   (`cpp_features.compact=1` with `{?compact}...` in the template) do the
+   same job without a second program.
+
+**Ruled** (lane D; for 0.8): agreed: Keep templates global (compiled once),
+with per-section switches, and document it.
+
+### C.10 Math: the flagged decisions
+
+Each decision's text and review are the math lane's
+(`inc/djinterp/cpp/modules/math/decisions.md`, section 1 for the flagged ones,
+section 2 by record); the math session schedules each.
+
+- **S9** (the math session schedules it): agreed: std::bit_cast from C++20
+  where the builtin is missing.
+- **S15** (the math session schedules it): the owner's words: "yes, multiple
+  answers across levels". The recommendation was the review's: the library's
+  functions where <math.h> declares them, _c forms only where it does not.
+  Settled 11-04: the recommendation: the C library's functions wherever
+  <math.h> declares them, the _c forms only where it does not (one answer per
+  platform).
+- **S20** (the math session schedules it): agreed: the alternative, at its
+  small cost.
+- **S37** (the math session schedules it): agreed: as taken, with the SSE
+  advice kept prominent.
+- **S39** (the math session schedules it): agreed: the alternative, as S38
+  does for the roots.
+- **S130** (the math session schedules it): agreed: the interim stands; big
+  rationals arrive in P3.
+- **S190** (lane math, F; for 0.8): agreed: It is due before step 25 (4a), and
+  math is on step 24. Have math do 5a right after step 24, then decide S190 on
+  Fri 11-06 with lane F, against expression core v2's design: core v2 if its
+  parser holds postfix operators and calls (S209 and S252 follow), else the
+  language's own precedence parser; 4a starts on whichever you choose. If you
+  would rather math go straight from step 24 to 4a, decide today: the
+  language's own precedence parser, as its review recommends.
+- **S203** (the math session schedules it): agreed: gamma, erf and the rest
+  wait for their kernels; the math session places them.
+- **S209** (lane math, F; for 0.8): agreed: Follows S190, on whichever day you
+  settle it.
+- **S220** (the math session schedules it): agreed: the alternative, the
+  identities, with piecewise kept at one argument at least.
+- **S251** (the math session schedules it): agreed: declared domains, matrix
+  variables among them, at 4a.
+- **S252** (lane math, F; for 0.8): agreed: Follows S190, on whichever day you
+  settle it.
+- **S301** (the math session schedules it): agreed: scale project and reject
+  at the next step that touches vec.h.
+- **S306** (the math session schedules it): agreed: scale by a power of two
+  before the Jacobi sweeps, at the next step that touches them.
+- **S311** (the math session schedules it): agreed: the first alternative, the
+  balancing factors applied once at the end.
+
+### C.11 Math: chunk 41's decisions
+
+Each decision's text and review are the math lane's
+(`inc/djinterp/cpp/modules/math/decisions.md`, section 1 for the flagged ones,
+section 2 by record); the math session schedules each.
+
+- **S336** (the math session schedules it): the owner's words: "Plain in
+  complex types, _c as values": S336's second alternative, the plain forms in
+  a complex type and the `_c` forms as values, two answers for one
+  computation. The review recommended the decision as taken.
+- **S337** (the math session schedules it): agreed, as the review recommends.
+- **S338** (the math session schedules it): agreed, and say in the docs that
+  it differs from fmin.
+- **S339** (the math session schedules it): agreed, as the review recommends.
+- **S340** (the math session schedules it): the owner's words: "The option on
+  each evaluator": S340's second alternative, `real_results` as an option on
+  each function's evaluator, which takes the context, so every evaluator's
+  signature changes, the caller's tables' among them. The review recommended
+  the decision as taken. S272 follows it.
+- **S341** (the math session schedules it): agreed, and document the MATLAB
+  difference.
+
+### C.12 The style register, #2 to #99
+
+Each decision's text is Part B's, with this ruling under its status; here they
+are together, by number.
+
+- **#2** (lane A; for 0.8): 10.04's ruling stands (the owner, 11.04
+  afternoon): no unnecessary includes; a file that reads a `D_ENV_*` fact
+  includes its env header itself. The register's first recommendation, which
+  the sheet's "agree" took, is set aside.
+- **#3** (lane A; for 0.8): agreed, as the register recommends.
+- **#4** (lane A; after everything else): agreed, as the register recommends;
+  it matters once macOS is tested, after everything else.
+- **#6** (lane A; for 0.8): agreed, as the register recommends.
+- **#7** (lane A; for 0.8): agreed, as the register recommends.
+- **#8** (lane A; for 0.8): the switch stays, and its default becomes 1 (the
+  owner, 11.04 afternoon): `env_posix.h` includes `<unistd.h>` unless a unit
+  sets `D_CFG_ENV_POSIX_UNISTD` to 0, so POSIX detection no longer depends on
+  include order by default (lane A, in env).
+- **#9** (lane A; for 0.8): agreed, except for knob ids round 3 fixed for 1.x
+  (ruling 7).
+- **#10** (lane A, B; for 0.8): agreed, as the register recommends.
+- **#11** (lane B; for 0.8): agreed, as the register recommends.
+- **#12** (lane B; for 0.8): agreed, as the register recommends.
+- **#13** (lane B; for 0.8): agreed, as the register recommends.
+- **#14** (lane B; for 0.8): agreed, as the register recommends.
+- **#15** (lane B; for 0.8): agreed, as the register recommends.
+- **#16** (lane A; for 0.8): agreed, as the register recommends; the ladders
+  already pass -D_XOPEN_SOURCE=700.
+- **#17** (lane E; for 0.8): agreed if it still applies: the stream lane
+  rewrote the printer on 10.29; lane E checks first.
+- **#18** (lane E; for 0.8): agreed if it still applies: the stream lane
+  rewrote the printer on 10.29; lane E checks first.
+- **#19** (lane B; for 0.8): the owner's words: "don't split, since 60 line
+  limit has been increased, correct?". The recommendation was the register's.
+  Settled 11-04: split d_string_split (113 lines) only;
+  d_string_replace_all_cstr (97) stays. The split must cost nothing: static
+  inline helpers, and a benchmark before and after.
+- **#20** (lane A, owner; for 0.8): agreed: the ladders already build with
+  -Werror=undef; write it into the guides.
+- **#21** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#22** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#23** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#24** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#25** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#26** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#27** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#28** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#29** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#30** (lane B; for 0.8): agreed: fix it, as the register recommends for 21
+  to 32.
+- **#31** (lane A; for 0.8): agreed, as the register recommends.
+- **#32** (lane E; for 0.8): agreed if it still applies: the stream lane
+  rewrote the printer on 10.29; lane E checks first.
+- **#33** (lane owner, A; for 0.8): the owner's words: "ignore the banners
+  (for now): no C or C++ in banners, just their module. Contract rule wins.
+  Omit void @returns. Use decimal for 4th level ToC. Corresponding header
+  rule. Rename template params to omit leading _. Keep the closures rule.
+  Allow return type on its own line. Fix the example include guard. Keep 2
+  blank lines. Language floor C99/C++98.". The recommendation was: Agree with
+  each pick; lane A edits the guides' text for you to approve.
+- **#34** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#35** (lane A; for 0.9): agreed, as the register recommends; Cygwin as
+  POSIX, with a Windows note.
+- **#36** (lane A; for 0.8): agreed, as the register recommends.
+- **#37** (lane A; for 0.9): no conflict (11.04 afternoon): the platform is
+  POSIX, as `env_os.h` already decides, since Cygwin's compilers define
+  neither `_WIN32` nor `_WIN64`; `env_windows.h`'s own facts (bitness, ARM)
+  still answer for a Cygwin build, and lane A adds a note saying so.
+- **#38** (lane B; for 0.8): 10.04's ruling stands (the owner, 11.04
+  afternoon): the framework's own checked scanf engine stays, since it already
+  parses the format string itself; lane B tests it (correct calls, sizes 0 and
+  1, `%[` sets, a size too small, 32- and 64-bit) instead of replacing it with
+  Annex K detection and a compile error.
+- **#39** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#40** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#41** (lane A; for 0.9): agreed, as the register recommends; Cygwin as
+  POSIX, with a Windows note.
+- **#42** (lane A; for 0.8): agreed, and sooner: FreeBSD is required from the
+  start (ruling 4).
+- **#43** (lane A; after everything else): agreed, as the register recommends;
+  it waits for Apple testing, after everything else.
+- **#44** (lane H, A; for 0.8): agreed: (a).
+- **#46** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#47** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#48** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#49** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#50** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#51** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#52** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#53** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#54** (lane H; for 0.9): agreed, with the guide's exception added under
+  #33.
+- **#55** (lane H; C in December; for 0.9): agreed, as the register
+  recommends.
+- **#56** (lane H; C in December; for 0.9): agreed, as the register
+  recommends.
+- **#57** (lane H; C in December; for 0.9): the owner's words: "Don't split;
+  60 line limit has been increased, correct?". The recommendation was the
+  register's. Settled 11-04: no split (63 and 65 lines, under 100).
+- **#59** (lane A; for 0.8): 10.04's ruling stands with #64 (the owner, 11.04
+  afternoon): `D_FORMAT_PRINTF` stays in `env_vendor_attributes.h`, and
+  `starttls.h` includes that header itself (lane H).
+- **#60** (lane H, A; for 0.8): agreed: (c), TLS 1.3 first.
+- **#61** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#62** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#63** (lane A; after everything else): the owner's words: "I was under the
+  impression we were not prohibiting any JIT on any OS, but we would note it?
+  And perhaps add a warning?". The recommendation was the register's: it waits
+  for Apple testing, after everything else. Settled 11-04: stop reporting Mac
+  Catalyst as iOS (no-JIT, no-dlopen); the jit module fails with a clear
+  message naming the allow-jit entitlement when the OS refuses executable
+  memory; and a build-time warning where a target refuses JIT. The owner wants
+  the warning wherever one can be shown.
+- **#64** (lane A; for 0.8): 10.04's ruling stands (the owner, 11.04
+  afternoon): the root includes `env_attributes.h`, with its one
+  `D_NODISCARD`, and `env_vendor_attributes.h` stays opt-in.
+- **#65** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#66** (lane A; for 0.8): agreed, as the register recommends.
+- **#67** (lane A; for 0.8): agreed, as the register recommends.
+- **#68** (lane A; for 0.8): agreed, as the register recommends.
+- **#69** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#70** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#71** (lane A; done): the owner's words: "Merge repeated segments unless
+  there is a name collision!". The recommendation was the register's: keep the
+  rule.
+- **#72** (lane A; for 0.8): agreed, into retired/, after checking against the
+  restructure (rs 14).
+- **#73** (lane B; for 0.8): 10.04's state stands (the owner, 11.04
+  afternoon): the nested pool stack stays retired, as the owner's ruling of
+  2026.09.30 made the C-backed memory canonical; ruling 5's record ("nested
+  over flat") is corrected by this line.
+- **#75** (lane H, A; for 0.8): agreed, as the register recommends; dconfig.h
+  is lane A's, so the two lanes do it together.
+- **#76** (lane A; for 0.8): agreed, as the register recommends; the
+  restructure made tools/ and ui/, so the banners and prefixes follow.
+- **#77** (lane A; for 0.9): agreed, as the register recommends; preview
+  modules, so December.
+- **#78** (lane A; for 0.8): the owner's words: "It is a one-time check
+  though, correct? if so then yes". The recommendation was the register's: a
+  CI growth check on djinterp.hpp. Settled 11-04: do it: a CI check, set up
+  once, that fails a merge if djinterp.hpp loses a declaration the base had.
+- **#79** (lane B; for 0.8): the owner's words: "I want a
+  test_counter/test_timer that derive as much as possible from counter.h/.c
+  and timer.h/.c (resp). With threadsafe versions of all. Add it to the DTest
+  todo". The recommendation was the register's: the field form.
+- **#80** (lane F; for 0.8): agreed: Decide it with expression core v2 on Fri
+  11-06.
+- **#81** (lane B; for 0.8): agreed: harvest the nine.
+- **#82** (lane A; for 0.9): agreed: compare each first.
+- **#83** (lane A, B; done): agreed: a standing rule.
+- **#84** (lane owner, A; for 0.8): agreed, as the register recommends; it
+  goes into the guide.
+- **#85** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#86** (lane A; for 0.8): agreed, as the register recommends.
+- **#87** (lane A; for 0.8): agreed, as the register recommends.
+- **#88** (lane A; for 0.8): agreed, as the register recommends.
+- **#89** (lane A; for 0.8): agreed, as the register recommends; check it
+  against base-0 first, since env changed after 09.28.
+- **#90** (lane A; for 0.8): the owner's words: "As long as we keep a
+  D_CFG_ENV... equivalent for 'env' testing? What are you thoughts?". The
+  recommendation was the register's. Settled 11-04: guard the 160 flags with
+  #ifndef (the guards are the env-testing hook); no D_CFG knob per flag.
+- **#91** (lane A; for 0.8): agreed, as the register recommends.
+- **#93** (lane C; for 0.9): agreed, with the other vendors in December.
+- **#94** (lane C; for 0.9): agreed: with db's chunk 6, the other vendors, in
+  December.
+- **#95** (lane C; for 0.9): the owner's words: "implement it, as opt-in
+  constants beside the opt-outs". The recommendation was the register's: with
+  the other vendors in December.
+- **#97** (lane C; for 0.9): agreed, with the other vendors in December.
+- **#98** (lane B; for 0.8): agreed, as the register recommends; check what
+  the restructure already merged.
+- **#99** (lane A; done): agreed: keep it.
