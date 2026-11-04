@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expression/expression_parse.hpp
 * link(s):   ch-parsing.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 
 /*
@@ -155,7 +155,8 @@ NS_INTERNAL
     //   helper: a failed parse_result carrying a parse_error.
     template<typename Result>
     D_NODISCARD
-    parse::parse_result<Result> expr_error(
+    parse::parse_result<Result>
+    expr_error(
         parse::DParseStatus _status,
         std::size_t         _offset,
         const std::string&  _message
@@ -211,7 +212,7 @@ NS_INTERNAL
         {
             return expr_error<expr_t>(
                 parse::DParseStatusEndOfInput,
-                _state.offset(),
+                _state.offset,
                 "expected an expression");
         }
 
@@ -243,7 +244,7 @@ NS_INTERNAL
             {
                 return expr_error<expr_t>(
                     parse::DParseStatusMalformed,
-                    _state.offset(),
+                    _state.offset,
                     "expected a closing bracket");
             }
 
@@ -279,7 +280,7 @@ NS_INTERNAL
 
         return expr_error<expr_t>(
             parse::DParseStatusMalformed,
-            _state.offset(),
+            _state.offset,
             "unexpected token in expression");
     }
 
@@ -430,7 +431,7 @@ parse_expression
     {
         return internal::expr_error<expr_t>(
             parse::DParseStatusMalformed,
-            _state.offset(),
+            _state.offset,
             "unexpected trailing tokens after expression");
     }
 

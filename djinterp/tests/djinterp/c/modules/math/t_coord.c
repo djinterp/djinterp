@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                      t_coord.c
+* djinterp [c/math]                                                    t_coord.c
 *
 *   Conformance harness for c/math/coord.h, all three families. The library
 * forms against the coordinate headers' former formulas, written out here in
@@ -12,7 +12,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_coord.c -o t_coord -lm
+*        tests/djinterp/c/math/t_coord.c -o t_coord -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_coord.c
@@ -31,8 +31,8 @@ static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 8675309u;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -57,8 +57,8 @@ void d_tests_expect(
 #define D_TESTS_EXPECT(ok, what)                                              \
     d_tests_expect((ok), (what), __LINE__)
 
-static
-double d_tests_random(void)
+static double
+d_tests_random(void)
 {
     g_state = (g_state * 1103515245u) + 12345u;
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       t_decomposition_face.cpp
+* djinterp [cpp/math]                                   t_decomposition_face.cpp
 *
 *   Tests for linear_algebra/decomposition.hpp, at every level from C++98,
 * per family: LU of a known matrix -- its factors, P A = L U, determinant,
@@ -10,7 +10,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_decomposition_face.cpp -o t -lm
+*         tests/djinterp/math/linear_algebra/t_decomposition_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_decomposition_face.cpp
@@ -30,7 +30,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -56,11 +57,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -71,11 +69,10 @@ namespace
     template<typename    T,
              std::size_t R,
              std::size_t C>
-    bool d_tests_near_m(
-        const la::matrix<T, R, C>& _a,
-        const la::matrix<T, R, C>& _b,
-        T                          _tol
-    )
+    bool
+    d_tests_near_m(const la::matrix<T, R, C>& _a,
+                   const la::matrix<T, R, C>& _b,
+                   T                          _tol)
     {
         for (std::size_t i = 0; i < R; ++i)
         {
@@ -92,9 +89,8 @@ namespace
     }
 
     template<typename T>
-    void d_tests_family(
-        T _tol
-    )
+    void
+    d_tests_family(T _tol)
     {
         typedef la::matrix<T, 3, 3> m3;
         typedef la::vector<T, 3>    v3;
@@ -171,8 +167,8 @@ namespace
 }  // namespace
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-constexpr
-double d_tests_constexpr_det()
+constexpr double
+d_tests_constexpr_det()
 {
     const double e[4] = { 3, 1, 2, 4 };
 
@@ -184,7 +180,8 @@ static_assert(d_tests_constexpr_det() == 10.0,
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-6f);
     d_tests_family<double>(1e-15);

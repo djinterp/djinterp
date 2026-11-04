@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expression/expression_static.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 
 /*
@@ -88,7 +88,7 @@ VII.  DETECTION                              (is_static_expr / _leaf / _apply)
 #include "./expression.hpp"
 // re_std
 #include "../../../../../re_std/cpp/utility/make_integer_sequence.hpp"  // re_std::index_sequence,
-                                                              // make_index_sequence
+                                                                        // make_index_sequence
 
 
 NS_DJINTERP
@@ -117,8 +117,9 @@ public:
     }
 
 protected:
-    // only derived nodes construct the base
-    static_expr() {}
+    // only derived nodes construct the base; constexpr, so that every node
+    // is a literal type and a static term can be a constant
+    D_CONSTEXPR static_expr() {}
 };
 
 
@@ -263,7 +264,9 @@ private:
 template<typename Atom>
 D_NODISCARD
 D_CONSTEXPR
-static_leaf<typename std::decay<Atom>::type> make_static_leaf(
+static_leaf<typename std::decay<Atom>::type>
+make_static_leaf
+(
     const Atom& _atom
 )
 {
@@ -277,7 +280,9 @@ template<typename OpTag,
          typename... Operands>
 D_NODISCARD
 D_CONSTEXPR_CPP14
-static_apply<OpTag, typename std::decay<Operands>::type...> make_static_apply(
+static_apply<OpTag, typename std::decay<Operands>::type...>
+make_static_apply
+(
     const Operands&... _operands
 )
 {
@@ -331,11 +336,10 @@ template<typename Result,
          typename OnLeaf,
          typename OnApply>
 D_CONSTEXPR_CPP14
-Result static_evaluate(
-    const static_leaf<Atom>& _leaf,
-    OnLeaf                   _on_leaf,
-    OnApply                  _on_apply
-);
+Result
+static_evaluate(const static_leaf<Atom>& _leaf,
+                OnLeaf                     _on_leaf,
+                OnApply                    _on_apply);
 
 template<typename Result,
          typename OpTag,
@@ -343,11 +347,10 @@ template<typename Result,
          typename OnLeaf,
          typename OnApply>
 D_CONSTEXPR_CPP14
-Result static_evaluate(
-    const static_apply<OpTag, Operands...>& _apply,
-    OnLeaf                                  _on_leaf,
-    OnApply                                 _on_apply
-);
+Result
+static_evaluate(const static_apply<OpTag, Operands...>& _apply,
+                OnLeaf                                     _on_leaf,
+                OnApply                                    _on_apply);
 
 
 NS_INTERNAL
@@ -364,13 +367,18 @@ NS_INTERNAL
              typename OnApply,
              std::size_t... Indices>
     D_CONSTEXPR_CPP14
-    Result static_evaluate_apply(
+    Result
+    static_evaluate_apply(
         const static_apply<OpTag, Operands...>& _apply,
-        OnLeaf                                  _on_leaf,
-        OnApply                                 _on_apply,
+        OnLeaf                                    _on_leaf,
+        OnApply                                   _on_apply,
         re_std::index_sequence<Indices...>
     )
     {
+        // a nullary application folds no operand, and so never calls the
+        // leaf handler: used here, so no build warns of it
+        static_cast<void>(_on_leaf);
+
         std::array<Result, sizeof...(Operands)> _results = {{
             ::djinterp::static_evaluate<Result>(
                 std::get<Indices>(_apply.operands()),
@@ -410,10 +418,12 @@ template<typename Result,
          typename OnLeaf,
          typename OnApply>
 D_CONSTEXPR_CPP14
-Result static_evaluate(
+Result
+static_evaluate
+(
     const static_apply<OpTag, Operands...>& _apply,
-    OnLeaf                                  _on_leaf,
-    OnApply                                 _on_apply
+    OnLeaf                                    _on_leaf,
+    OnApply                                   _on_apply
 )
 {
     return internal::static_evaluate_apply<Result>(
@@ -440,18 +450,16 @@ template<typename OpId,
          typename Atom,
          typename LeafAtom>
 D_NODISCARD
-expression<OpId, Atom> reify(
-    const static_leaf<LeafAtom>& _leaf
-);
+expression<OpId, Atom>
+reify(const static_leaf<LeafAtom>& _leaf);
 
 template<typename OpId,
          typename Atom,
          typename OpTag,
          typename... Operands>
 D_NODISCARD
-expression<OpId, Atom> reify(
-    const static_apply<OpTag, Operands...>& _apply
-);
+expression<OpId, Atom>
+reify(const static_apply<OpTag, Operands...>& _apply);
 
 
 NS_INTERNAL
@@ -464,7 +472,8 @@ NS_INTERNAL
              typename... Operands,
              std::size_t... Indices>
     D_NODISCARD
-    expression<OpId, Atom> reify_apply(
+    expression<OpId, Atom>
+    reify_apply(
         const static_apply<OpTag, Operands...>& _apply,
         re_std::index_sequence<Indices...>
     )
@@ -493,7 +502,9 @@ template<typename OpId,
          typename Atom,
          typename LeafAtom>
 D_NODISCARD
-expression<OpId, Atom> reify(
+expression<OpId, Atom>
+reify
+(
     const static_leaf<LeafAtom>& _leaf
 )
 {
@@ -506,7 +517,9 @@ template<typename OpId,
          typename OpTag,
          typename... Operands>
 D_NODISCARD
-expression<OpId, Atom> reify(
+expression<OpId, Atom>
+reify
+(
     const static_apply<OpTag, Operands...>& _apply
 )
 {

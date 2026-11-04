@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                t_exponential.c
+* djinterp [c/math]                                              t_exponential.c
 *
 *   Conformance harness for c/math/exponential.h. For float, exp_c and log_c
 * must be the correctly rounded result -- the long double library's, rounded
@@ -44,12 +44,12 @@
 * that all seven functions are constant expressions, for every family, with
 * the bits they have at run time. It needs no 64-bit integer -- its random
 * numbers come from math_tests_random.h, the same in every build -- so that
-* ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32 bits, builds
+* ISO-strict C++98 on a 32-bit target, where d_math_umax has 32 bits, builds
 * it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_exponential.c -o t_exponential -lm
+*        tests/djinterp/c/math/t_exponential.c -o t_exponential -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_exponential.c
@@ -104,8 +104,8 @@ static double      (*volatile g_expm1)(double)           = expm1;
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     long double _value,
@@ -132,18 +132,15 @@ void d_tests_expect(
     d_tests_expect((ok), (what), (long double)(value), __LINE__)
 
 // a uniform double in [0, 1), from 53 random bits
-static
-double d_tests_unit(void)
+static double
+d_tests_unit(void)
 {
     return (double)d_tests_top(53) * DBL_EPSILON / 2.0;
 }
 
 // bit-for-bit, NaN equal to NaN, -0 distinct from +0
-static
-bool d_tests_same_f(
-    float _a,
-    float _b
-)
+static bool
+d_tests_same_f(float _a, float _b)
 {
     uint32_t a = 0u;
     uint32_t b = 0u;
@@ -154,21 +151,15 @@ bool d_tests_same_f(
     return ((a == b) || (isnan(_a) && isnan(_b)));
 }
 
-static
-bool d_tests_same_d(
-    double _a,
-    double _b
-)
+static bool
+d_tests_same_d(double _a, double _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_ld(
-    long double _a,
-    long double _b
-)
+static bool
+d_tests_same_ld(long double _a, long double _b)
 {
     // signbit's value is any nonzero for a negative: glibc's gives 1 for a
     // constant it folds and 512 for a long double at run time
@@ -179,13 +170,8 @@ bool d_tests_same_ld(
 // the distance of _got from _want in units of _want's last place, the
 // subnormals' spacing below the normal range; an infinity or NaN is 0 from
 // its like and 1e30 from anything else
-static
-double d_tests_ulps(
-    long double _got,
-    long double _want,
-    int         _mant,
-    int         _emin
-)
+static double
+d_tests_ulps(long double _got, long double _want, int _mant, int _emin)
 {
     long double scale = 0.0L;
     long double diff  = 0.0L;
@@ -215,12 +201,8 @@ double d_tests_ulps(
 //   one float: exp_c and log_c against the long double library's result,
 // rounded to float, which is the correctly rounded one wherever long double
 // has eleven bits more than float; and within an ulp of expf and logf.
-static
-void d_tests_float_one(
-    float _x,
-    bool  _exp,
-    bool  _log
-)
+static void
+d_tests_float_one(float _x, bool _exp, bool _log)
 {
     if (_exp)
     {
@@ -246,10 +228,8 @@ void d_tests_float_one(
     return;
 }
 
-static
-void d_tests_float(
-    bool _exhaustive
-)
+static void
+d_tests_float(bool _exhaustive)
 {
     const uint32_t step = _exhaustive ? 1u : 211u;
     uint32_t       bits = 0u;
@@ -295,12 +275,8 @@ void d_tests_float(
 //   one float: exp2_c, log2_c and log10_c against the long double library's
 // results, rounded to float; and within an ulp of exp2f and log2f, two of
 // log10f (glibc's is not always within one).
-static
-void d_tests_float_base_one(
-    float _x,
-    bool  _exp2,
-    bool  _logs
-)
+static void
+d_tests_float_base_one(float _x, bool _exp2, bool _logs)
 {
     if (_exp2)
     {
@@ -330,10 +306,8 @@ void d_tests_float_base_one(
     return;
 }
 
-static
-void d_tests_float_bases(
-    bool _exhaustive
-)
+static void
+d_tests_float_bases(bool _exhaustive)
 {
     const uint32_t step = _exhaustive ? 1u : 1009u;
     uint32_t       bits = 0u;
@@ -398,8 +372,8 @@ void d_tests_float_bases(
 // d_tests_double
 //   exp_c and log_c within an ulp of exp and log over random arguments;
 // prints how many differ at all, and the largest difference.
-static
-void d_tests_double(void)
+static void
+d_tests_double(void)
 {
     double worst_exp = 0.0;
     double worst_log = 0.0;
@@ -461,8 +435,8 @@ void d_tests_double(void)
 // the exponential's range, values whose long double result lies on a
 // double's rounding midpoint, the logarithm's edges; and the library's
 // values across eight thousand doubles about each threshold.
-static
-void d_tests_double_edges(void)
+static void
+d_tests_double_edges(void)
 {
     // x and exp(x), correctly rounded
     static const double exps[][2] = {
@@ -542,8 +516,8 @@ void d_tests_double_edges(void)
 //   exp2_c, log2_c and log10_c within three ulps of exp2, log2 and log10
 // over random arguments; prints how many differ at all, and the largest
 // difference.
-static
-void d_tests_double_bases(void)
+static void
+d_tests_double_bases(void)
 {
     double worst[3] = { 0.0, 0.0, 0.0 };
     long   diff[3]  = { 0, 0, 0 };
@@ -611,8 +585,8 @@ void d_tests_double_bases(void)
 //   the correctly rounded values, from a 400-bit computation (the values are
 // tools/edge_values7.py's); the ends of exp2's range; and the powers of 2
 // and of 10, exactly.
-static
-void d_tests_double_base_edges(void)
+static void
+d_tests_double_base_edges(void)
 {
     // x and 2^x, correctly rounded
     static const double exp2s[][2] = {
@@ -733,8 +707,8 @@ void d_tests_double_base_edges(void)
     return;
 }
 
-static
-void d_tests_long_double(void)
+static void
+d_tests_long_double(void)
 {
     double worst_exp = 0.0;
     double worst_log = 0.0;
@@ -800,8 +774,8 @@ void d_tests_long_double(void)
 // d_tests_long_double_bases
 //   exp2_c, log2_c and log10_c within three ulps of exp2l, log2l and log10l
 // over random arguments; the powers of 2 and of 10 exactly.
-static
-void d_tests_long_double_bases(void)
+static void
+d_tests_long_double_bases(void)
 {
     double      worst[3] = { 0.0, 0.0, 0.0 };
     long        i        = 0;
@@ -894,8 +868,8 @@ void d_tests_long_double_bases(void)
 
 // d_tests_specials
 //   NaN, the infinities, the zeros and the domain's edges, every family.
-static
-void d_tests_specials(void)
+static void
+d_tests_specials(void)
 {
     const double    inf          = (double)HUGE_VAL;
     volatile double one_and_half = 1.5;
@@ -1061,8 +1035,8 @@ void d_tests_specials(void)
 
 // d_tests_ref_point
 //   a reference's point, m 2^e, exactly.
-static
-long double d_tests_ref_point(
+static long double
+d_tests_ref_point(
     long _m,
     int  _e
 )
@@ -1076,10 +1050,10 @@ long double d_tests_ref_point(
 // double (d_tests_kernels_wide), rounded once more -- and the plain
 // form, the C library's (before C++11, _c), within 3; the largest distances
 // printed.
-static
-void d_tests_log1p_expm1_refs(void)
+static void
+d_tests_log1p_expm1_refs(void)
 {
-    const struct dj_tests_real_ref* const tables[2] = { g_ref_log1p,
+    const struct d_tests_real_ref* const tables[2] = { g_ref_log1p,
                                                        g_ref_expm1 };
     const size_t      counts[2] = { D_TESTS_COUNT(g_ref_log1p),
                                     D_TESTS_COUNT(g_ref_expm1) };
@@ -1093,7 +1067,7 @@ void d_tests_log1p_expm1_refs(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct dj_tests_real_ref* r = &tables[k][i];
+            const struct d_tests_real_ref* r = &tables[k][i];
             const long double    x      = d_tests_ref_point(r->m, r->e);
             const size_t         length = strlen(r->value);
             const float          xf     = (float)x;
@@ -1177,8 +1151,8 @@ void d_tests_log1p_expm1_refs(void)
 // d_tests_wide_point
 //   a full-width point, (_m[0] 2^48 + _m[1] 2^24 + _m[2]) 2^_e, exactly: each
 // limb's term is exact, and each sum a prefix of the point's bits.
-static
-long double d_tests_wide_point(
+static long double
+d_tests_wide_point(
     const long* _m,
     int         _e
 )
@@ -1196,10 +1170,10 @@ long double d_tests_wide_point(
 // largest distances printed. exp's core takes expm1's series, and is held to
 // the same bound. A long double narrower than 64 bits takes no such point
 // exactly, and is left out.
-static
-void d_tests_kernels_wide(void)
+static void
+d_tests_kernels_wide(void)
 {
-    const struct dj_tests_real_wide* const tables[3] = { g_wide_log1p,
+    const struct d_tests_real_wide* const tables[3] = { g_wide_log1p,
                                                         g_wide_expm1,
                                                         g_wide_exp };
     const size_t      counts[3] = { D_TESTS_COUNT(g_wide_log1p),
@@ -1221,7 +1195,7 @@ void d_tests_kernels_wide(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct dj_tests_real_wide* r = &tables[k][i];
+            const struct d_tests_real_wide* r = &tables[k][i];
             const long double    x = d_tests_wide_point(r->m, r->e);
             long double          wl     = 0.0L;
             double               offset = 0.0;
@@ -1283,8 +1257,8 @@ void d_tests_kernels_wide(void)
 // long double library's rounded to float, and the plain the C library's,
 // bit for bit, as double's. Long double: 100,000 each, within 3 ulps of the
 // library's.
-static
-void d_tests_log1p_expm1_random(void)
+static void
+d_tests_log1p_expm1_random(void)
 {
     double   worst[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
     long     i        = 0;
@@ -1430,8 +1404,8 @@ void d_tests_log1p_expm1_random(void)
 // own, of -1 -inf, below -1 and of -inf NaN, of +inf +inf; expm1 of the
 // zeros their own, of -inf -1, of +inf and past the overflow +inf, far below
 // 0 -1; a subnormal its own for both; NaN to NaN.
-static
-void d_tests_log1p_expm1_specials(void)
+static void
+d_tests_log1p_expm1_specials(void)
 {
     const long double inf  = (long double)HUGE_VAL;
     volatile float    minf = 1.0e-45f;
@@ -1511,8 +1485,8 @@ void d_tests_log1p_expm1_specials(void)
 
 // d_tests_overloads
 //   compiled as C++: one name for every family, chosen by argument type.
-static
-void d_tests_overloads(void)
+static void
+d_tests_overloads(void)
 {
     D_TESTS_EXPECT( (d_tests_same_f(d_math_exp_c(0.25f),
                                     d_math_f_exp_c(0.25f))) &&
@@ -1648,8 +1622,8 @@ static_assert(d_math_d_expm1_c(710.0) > DBL_MAX, "expm1_c overflows");
 // d_tests_constant_evaluation
 //   the constants are the run time's results, bit for bit: the arguments
 // are read through volatiles, so the calls below are not folded.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     volatile float       one_f  = 1.0f;
     volatile double      one_d  = 1.0;
@@ -1736,10 +1710,8 @@ void d_tests_constant_evaluation(void)
 
 #endif  // C++14
 
-int main(
-    int    _argc,
-    char** _argv
-)
+int
+main(int _argc, char** _argv)
 {
     const bool exhaustive = (_argc > 1) &&
                             (strcmp(_argv[1], "exhaustive") == 0);

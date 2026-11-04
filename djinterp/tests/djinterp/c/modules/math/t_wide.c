@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                       t_wide.c
+* djinterp [c/math]                                                     t_wide.c
 *
 *   Conformance harness for the wide integers (c/math/wide.h): every kernel
 * against an exact reference of the harness's own, naturals of 640 bits in
@@ -37,7 +37,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_wide.c -o t_wide -lm
+*        tests/djinterp/c/math/t_wide.c -o t_wide -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_wide.c
@@ -99,18 +99,18 @@ static unsigned long g_state    = 1618033UL;
 // 1.1    Naturals
 //------------------------------------------------------------------------------
 
-// dj_tests_nat
+// d_tests_nat
 //   struct: a natural below 2^640.
-struct dj_tests_nat
+struct d_tests_nat
 {
     unsigned long limb[D_TESTS_NAT_LIMBS];  // 16 bits each, the low first
 };
 
 // d_tests_nat_length
 //   the limbs _x needs: 0 for 0.
-static
-int d_tests_nat_length(
-    const struct dj_tests_nat* _x
+static int
+d_tests_nat_length(
+    const struct d_tests_nat* _x
 )
 {
     int n = D_TESTS_NAT_LIMBS;
@@ -124,9 +124,9 @@ int d_tests_nat_length(
     return n;
 }
 
-static
-bool d_tests_nat_is_zero(
-    const struct dj_tests_nat* _x
+static bool
+d_tests_nat_is_zero(
+    const struct d_tests_nat* _x
 )
 {
     return (d_tests_nat_length(_x) == 0);
@@ -134,12 +134,12 @@ bool d_tests_nat_is_zero(
 
 // d_tests_nat_of
 //   _x, below 2^32, as a natural.
-static
-struct dj_tests_nat d_tests_nat_of(
+static struct d_tests_nat
+d_tests_nat_of(
     unsigned long _x
 )
 {
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
 
     result.limb[0] = _x & 0xFFFFUL;
     result.limb[1] = (_x >> 16) & 0xFFFFUL;
@@ -149,13 +149,13 @@ struct dj_tests_nat d_tests_nat_of(
 
 // d_tests_nat_of_umax
 //   _x as a natural, sixteen bits at a time.
-static
-struct dj_tests_nat d_tests_nat_of_umax(
-    dj_math_umax _x
+static struct d_tests_nat
+d_tests_nat_of_umax(
+    d_math_umax _x
 )
 {
-    struct dj_tests_nat result = { { 0UL } };
-    dj_math_umax        rest   = _x;
+    struct d_tests_nat result = { { 0UL } };
+    d_math_umax        rest   = _x;
     int                i      = 0;
 
     while (rest != 0u)
@@ -170,12 +170,12 @@ struct dj_tests_nat d_tests_nat_of_umax(
 
 // d_tests_nat_pow2
 //   2^_k, _k below 640.
-static
-struct dj_tests_nat d_tests_nat_pow2(
+static struct d_tests_nat
+d_tests_nat_pow2(
     int _k
 )
 {
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
 
     result.limb[_k / 16] = 1UL << (_k % 16);
 
@@ -184,10 +184,10 @@ struct dj_tests_nat d_tests_nat_pow2(
 
 // d_tests_nat_cmp
 //   -1, 0 or 1 as _a is below, equal to or above _b.
-static
-int d_tests_nat_cmp(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b
+static int
+d_tests_nat_cmp(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b
 )
 {
     int i = D_TESTS_NAT_LIMBS;
@@ -207,9 +207,9 @@ int d_tests_nat_cmp(
 
 // d_tests_nat_bits
 //   the bits _x needs: 0 for 0.
-static
-int d_tests_nat_bits(
-    const struct dj_tests_nat* _x
+static int
+d_tests_nat_bits(
+    const struct d_tests_nat* _x
 )
 {
     const int n = d_tests_nat_length(_x);
@@ -236,10 +236,10 @@ int d_tests_nat_bits(
 
 // d_tests_nat_bit
 //   bit _i of _x, 0 or 1.
-static
-unsigned long d_tests_nat_bit(
-    const struct dj_tests_nat* _x,
-    int                        _i
+static unsigned long
+d_tests_nat_bit(
+    const struct d_tests_nat* _x,
+    int                       _i
 )
 {
     return (_x->limb[_i / 16] >> (_i % 16)) & 1UL;
@@ -247,13 +247,13 @@ unsigned long d_tests_nat_bit(
 
 // d_tests_nat_add
 //   _a + _b.
-static
-struct dj_tests_nat d_tests_nat_add(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b
+static struct d_tests_nat
+d_tests_nat_add(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b
 )
 {
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     unsigned long      carry  = 0UL;
     int                i      = 0;
 
@@ -275,13 +275,13 @@ struct dj_tests_nat d_tests_nat_add(
 
 // d_tests_nat_sub
 //   _a - _b, _a at least _b.
-static
-struct dj_tests_nat d_tests_nat_sub(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b
+static struct d_tests_nat
+d_tests_nat_sub(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b
 )
 {
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     unsigned long      borrow = 0UL;
     int                i      = 0;
 
@@ -304,17 +304,17 @@ struct dj_tests_nat d_tests_nat_sub(
 // d_tests_nat_mul
 //   _a * _b: the schoolbook product into twice the limbs, whose high half
 // must be 0.
-static
-struct dj_tests_nat d_tests_nat_mul(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b
+static struct d_tests_nat
+d_tests_nat_mul(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b
 )
 {
     const int na = d_tests_nat_length(_a);
     const int nb = d_tests_nat_length(_b);
 
     unsigned long      wide[2 * D_TESTS_NAT_LIMBS] = { 0UL };
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     int                i      = 0;
     int                j      = 0;
 
@@ -351,17 +351,17 @@ struct dj_tests_nat d_tests_nat_mul(
 
 // d_tests_nat_shl
 //   _x * 2^_k, _k at least 0.
-static
-struct dj_tests_nat d_tests_nat_shl(
-    const struct dj_tests_nat* _x,
-    int                        _k
+static struct d_tests_nat
+d_tests_nat_shl(
+    const struct d_tests_nat* _x,
+    int                       _k
 )
 {
     const int whole = _k / 16;
     const int part  = _k % 16;
     const int bits  = d_tests_nat_bits(_x);
 
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     int                i      = 0;
 
     if ( (bits > 0) &&
@@ -394,16 +394,16 @@ struct dj_tests_nat d_tests_nat_shl(
 
 // d_tests_nat_shr
 //   _x / 2^_k, rounded down, _k at least 0.
-static
-struct dj_tests_nat d_tests_nat_shr(
-    const struct dj_tests_nat* _x,
-    int                        _k
+static struct d_tests_nat
+d_tests_nat_shr(
+    const struct d_tests_nat* _x,
+    int                       _k
 )
 {
     const int whole = _k / 16;
     const int part  = _k % 16;
 
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     int                i      = 0;
 
     for (i = 0; i < D_TESTS_NAT_LIMBS; ++i)
@@ -430,9 +430,9 @@ struct dj_tests_nat d_tests_nat_shr(
 
 // d_tests_nat_zeros
 //   the 0 bits below _x's lowest 1; _x not 0.
-static
-int d_tests_nat_zeros(
-    const struct dj_tests_nat* _x
+static int
+d_tests_nat_zeros(
+    const struct d_tests_nat* _x
 )
 {
     int i = 0;
@@ -454,16 +454,16 @@ int d_tests_nat_zeros(
 //   _a / _b, _b not 0, into *_q and *_r: long division a bit at a time, from
 // _a's top bit down; the remainder is doubled, the next bit brought down,
 // and _b taken away where it goes.
-static
-void d_tests_nat_divmod(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b,
-    struct dj_tests_nat*       _q,
-    struct dj_tests_nat*       _r
+static void
+d_tests_nat_divmod(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b,
+    struct d_tests_nat*       _q,
+    struct d_tests_nat*       _r
 )
 {
-    struct dj_tests_nat q = { { 0UL } };
-    struct dj_tests_nat r = { { 0UL } };
+    struct d_tests_nat q = { { 0UL } };
+    struct d_tests_nat r = { { 0UL } };
     int                i = d_tests_nat_bits(_a);
 
     while (i > 0)
@@ -500,15 +500,15 @@ void d_tests_nat_divmod(
 //   the greatest common divisor of _a and _b, binary (Stein): the common
 // factors of 2 set aside, the smaller odd number taken from the larger, and
 // the difference's own factors of 2 removed, until it is 0.
-static
-struct dj_tests_nat d_tests_nat_gcd(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b
+static struct d_tests_nat
+d_tests_nat_gcd(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b
 )
 {
-    struct dj_tests_nat u     = *_a;
-    struct dj_tests_nat v     = *_b;
-    struct dj_tests_nat swap  = { { 0UL } };
+    struct d_tests_nat u     = *_a;
+    struct d_tests_nat v     = *_b;
+    struct d_tests_nat swap  = { { 0UL } };
     int                shift = 0;
     int                zu    = 0;
     int                zv    = 0;
@@ -547,21 +547,21 @@ struct dj_tests_nat d_tests_nat_gcd(
 
 // d_tests_nat_of_text
 //   the digits of _text, all of them, as a natural.
-static
-struct dj_tests_nat d_tests_nat_of_text(
+static struct d_tests_nat
+d_tests_nat_of_text(
     const char* _text
 )
 {
-    const struct dj_tests_nat ten = d_tests_nat_of(10UL);
+    const struct d_tests_nat ten = d_tests_nat_of(10UL);
 
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     size_t             i      = 0u;
 
     for (i = 0u; _text[i] != '\0'; ++i)
     {
-        const struct dj_tests_nat digit =
+        const struct d_tests_nat digit =
             d_tests_nat_of((unsigned long)(_text[i] - '0'));
-        const struct dj_tests_nat tens = d_tests_nat_mul(&result, &ten);
+        const struct d_tests_nat tens = d_tests_nat_mul(&result, &ten);
 
         result = d_tests_nat_add(&tens, &digit);
     }
@@ -572,13 +572,13 @@ struct dj_tests_nat d_tests_nat_of_text(
 // d_tests_nat_text
 //   _x in decimal into _buffer, at least D_TESTS_TEXT characters, returned:
 // a digit at a time, the lowest first, by division by ten.
-static
-const char* d_tests_nat_text(
-    const struct dj_tests_nat* _x,
-    char*                      _buffer
+static const char*
+d_tests_nat_text(
+    const struct d_tests_nat* _x,
+    char*                     _buffer
 )
 {
-    struct dj_tests_nat rest  = *_x;
+    struct d_tests_nat rest  = *_x;
     char               digits[D_TESTS_TEXT];
     int                count = 0;
     int                at    = 0;
@@ -616,25 +616,25 @@ const char* d_tests_nat_text(
 // 1.2    Integers
 //------------------------------------------------------------------------------
 
-// dj_tests_int
+// d_tests_int
 //   struct: an integer, a natural and a sign.
-struct dj_tests_int
+struct d_tests_int
 {
-    struct dj_tests_nat mag;       // the magnitude
+    struct d_tests_nat mag;       // the magnitude
     bool               negative;  // below zero; never for 0
 };
 
-static const struct dj_tests_int g_none = { { { 0UL } }, false };
+static const struct d_tests_int g_none = { { { 0UL } }, false };
 
 // d_tests_int_make
 //   _mag with the sign _negative gives it; 0 is never negative.
-static
-struct dj_tests_int d_tests_int_make(
-    struct dj_tests_nat _mag,
-    bool                _negative
+static struct d_tests_int
+d_tests_int_make(
+    struct d_tests_nat _mag,
+    bool               _negative
 )
 {
-    struct dj_tests_int result = g_none;
+    struct d_tests_int result = g_none;
 
     result.mag      = _mag;
     result.negative = ( (_negative) &&
@@ -643,18 +643,18 @@ struct dj_tests_int d_tests_int_make(
     return result;
 }
 
-static
-struct dj_tests_int d_tests_int_neg(
-    const struct dj_tests_int* _x
+static struct d_tests_int
+d_tests_int_neg(
+    const struct d_tests_int* _x
 )
 {
     return d_tests_int_make(_x->mag, !_x->negative);
 }
 
-static
-struct dj_tests_int d_tests_int_add(
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b
+static struct d_tests_int
+d_tests_int_add(
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b
 )
 {
     // like signs: the magnitudes add
@@ -675,10 +675,10 @@ struct dj_tests_int d_tests_int_add(
                             _b->negative);
 }
 
-static
-struct dj_tests_int d_tests_int_mul(
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b
+static struct d_tests_int
+d_tests_int_mul(
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b
 )
 {
     return d_tests_int_make(d_tests_nat_mul(&_a->mag, &_b->mag),
@@ -687,9 +687,9 @@ struct dj_tests_int d_tests_int_mul(
 
 // d_tests_int_sign
 //   -1, 0 or 1.
-static
-int d_tests_int_sign(
-    const struct dj_tests_int* _x
+static int
+d_tests_int_sign(
+    const struct d_tests_int* _x
 )
 {
     if (d_tests_nat_is_zero(&_x->mag))
@@ -700,10 +700,10 @@ int d_tests_int_sign(
     return (_x->negative) ? -1 : 1;
 }
 
-static
-int d_tests_int_cmp(
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b
+static int
+d_tests_int_cmp(
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b
 )
 {
     const int a_sign = d_tests_int_sign(_a);
@@ -721,10 +721,10 @@ int d_tests_int_cmp(
 // d_tests_int_same
 //   whether _a and _b are one integer with one sign flag: a negative 0 is not
 // 0 here.
-static
-bool d_tests_int_same(
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b
+static bool
+d_tests_int_same(
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b
 )
 {
     return ( (_a->negative == _b->negative) &&
@@ -734,16 +734,16 @@ bool d_tests_int_same(
 // d_tests_int_divmod
 //   _a / _b, _b not 0, truncated: the quotient toward zero, the remainder
 // with _a's sign.
-static
-void d_tests_int_divmod(
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b,
-    struct dj_tests_int*       _q,
-    struct dj_tests_int*       _r
+static void
+d_tests_int_divmod(
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b,
+    struct d_tests_int*       _q,
+    struct d_tests_int*       _r
 )
 {
-    struct dj_tests_nat q = { { 0UL } };
-    struct dj_tests_nat r = { { 0UL } };
+    struct d_tests_nat q = { { 0UL } };
+    struct d_tests_nat r = { { 0UL } };
 
     d_tests_nat_divmod(&_a->mag, &_b->mag, &q, &r);
     *_q = d_tests_int_make(q, (_a->negative != _b->negative));
@@ -754,9 +754,9 @@ void d_tests_int_divmod(
 
 // d_tests_int_fits
 //   whether |_x| is below 2^256.
-static
-bool d_tests_int_fits(
-    const struct dj_tests_int* _x
+static bool
+d_tests_int_fits(
+    const struct d_tests_int* _x
 )
 {
     return (d_tests_nat_bits(&_x->mag) <= 256);
@@ -764,10 +764,10 @@ bool d_tests_int_fits(
 
 // d_tests_int_text
 //   _x in decimal, its sign first, into _buffer, returned.
-static
-const char* d_tests_int_text(
-    const struct dj_tests_int* _x,
-    char*                      _buffer
+static const char*
+d_tests_int_text(
+    const struct d_tests_int* _x,
+    char*                     _buffer
 )
 {
     if (_x->negative)
@@ -783,13 +783,13 @@ const char* d_tests_int_text(
 
 // d_tests_int_of_imax
 //   _x as an integer.
-static
-struct dj_tests_int d_tests_int_of_imax(
-    dj_math_imax _x
+static struct d_tests_int
+d_tests_int_of_imax(
+    d_math_imax _x
 )
 {
-    const dj_math_umax magnitude = (_x < 0) ? ((dj_math_umax)0 - (dj_math_umax)_x)
-                                           : (dj_math_umax)_x;
+    const d_math_umax magnitude = (_x < 0) ? ((d_math_umax)0 - (d_math_umax)_x)
+                                           : (d_math_umax)_x;
 
     return d_tests_int_make(d_tests_nat_of_umax(magnitude), (_x < 0));
 }
@@ -800,8 +800,8 @@ struct dj_tests_int d_tests_int_of_imax(
 
 // d_tests_random16
 //   16 bits from the generator: the high half of its state.
-static
-unsigned long d_tests_random16(void)
+static unsigned long
+d_tests_random16(void)
 {
     g_state = ((g_state * 1103515245UL) + 12345UL) & 0xFFFFFFFFUL;
 
@@ -810,8 +810,8 @@ unsigned long d_tests_random16(void)
 
 // d_tests_random_below
 //   a draw below _n, at most 65536.
-static
-int d_tests_random_below(
+static int
+d_tests_random_below(
     int _n
 )
 {
@@ -821,13 +821,13 @@ int d_tests_random_below(
 // d_tests_random_nat
 //   a natural of _bits bits, its top one set: random limbs, or, where _runs,
 // runs of ones and zeros, each up to 48 long.
-static
-struct dj_tests_nat d_tests_random_nat(
+static struct d_tests_nat
+d_tests_random_nat(
     int  _bits,
     bool _runs
 )
 {
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     unsigned long      bit    = 0UL;
     int                run    = 0;
     int                i      = 0;
@@ -877,8 +877,8 @@ struct dj_tests_nat d_tests_random_nat(
 // d_tests_random_int
 //   an integer of either sign: a full 256 bits one time in eight, at most 16
 // bits one in eight, otherwise of any length up to 256; one in four in runs.
-static
-struct dj_tests_int d_tests_random_int(void)
+static struct d_tests_int
+d_tests_random_int(void)
 {
     const int  pick     = d_tests_random_below(8);
     const int  bits     = (pick == 0) ? 256
@@ -903,8 +903,8 @@ struct dj_tests_int d_tests_random_int(void)
 // d_tests_count
 //   counts a check: true when it failed and is among the first few failures,
 // which are reported in full.
-static
-bool d_tests_count(
+static bool
+d_tests_count(
     bool _ok
 )
 {
@@ -922,13 +922,13 @@ bool d_tests_count(
 
 // d_tests_expect
 //   counts a check, and reports the first few failures with their operands.
-static
-void d_tests_expect(
-    bool                       _ok,
-    const char*                _what,
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b,
-    int                        _line
+static void
+d_tests_expect(
+    bool                      _ok,
+    const char*               _what,
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b,
+    int                       _line
 )
 {
     char text[2][D_TESTS_TEXT];
@@ -954,12 +954,12 @@ void d_tests_expect(
 
 // d_tests_of_wide
 //   the unit's integer as the reference's, its sign flag as it is.
-static
-struct dj_tests_int d_tests_of_wide(
-    struct dj_math_wide _x
+static struct d_tests_int
+d_tests_of_wide(
+    struct d_math_wide _x
 )
 {
-    struct dj_tests_int result = g_none;
+    struct d_tests_int result = g_none;
     int                i      = 0;
     int                k      = 0;
 
@@ -979,12 +979,12 @@ struct dj_tests_int d_tests_of_wide(
 
 // d_tests_to_wide
 //   _x, below 2^256 in magnitude, as the unit's integer.
-static
-struct dj_math_wide d_tests_to_wide(
-    const struct dj_tests_int* _x
+static struct d_math_wide
+d_tests_to_wide(
+    const struct d_tests_int* _x
 )
 {
-    struct dj_math_wide result = { { 0u }, false };
+    struct d_math_wide result = { { 0u }, false };
     int                i      = 0;
     int                k      = 0;
 
@@ -998,7 +998,7 @@ struct dj_math_wide d_tests_to_wide(
                     (_x->mag.limb[(i * D_TESTS_PIECES) + k] << (16 * k));
         }
 
-        result.limb[i] = (dj_math_wide_limb)value;
+        result.limb[i] = (d_math_wide_limb)value;
     }
 
     result.negative = _x->negative;
@@ -1008,13 +1008,13 @@ struct dj_math_wide d_tests_to_wide(
 
 // d_tests_nat_of_limbs, d_tests_limbs_of
 //   _n of the unit's limbs as a natural, and back.
-static
-struct dj_tests_nat d_tests_nat_of_limbs(
-    const dj_math_wide_limb* _x,
-    int                      _n
+static struct d_tests_nat
+d_tests_nat_of_limbs(
+    const d_math_wide_limb* _x,
+    int                     _n
 )
 {
-    struct dj_tests_nat result = { { 0UL } };
+    struct d_tests_nat result = { { 0UL } };
     int                i      = 0;
     int                k      = 0;
 
@@ -1030,11 +1030,11 @@ struct dj_tests_nat d_tests_nat_of_limbs(
     return result;
 }
 
-static
-void d_tests_limbs_of(
-    const struct dj_tests_nat* _x,
-    dj_math_wide_limb*         _out,
-    int                        _n
+static void
+d_tests_limbs_of(
+    const struct d_tests_nat* _x,
+    d_math_wide_limb*         _out,
+    int                       _n
 )
 {
     int i = 0;
@@ -1049,7 +1049,7 @@ void d_tests_limbs_of(
             value = value | (_x->limb[(i * D_TESTS_PIECES) + k] << (16 * k));
         }
 
-        _out[i] = (dj_math_wide_limb)value;
+        _out[i] = (d_math_wide_limb)value;
     }
 
     return;
@@ -1057,9 +1057,9 @@ void d_tests_limbs_of(
 
 // d_tests_wide_valid
 //   whether _x is in the one form, by the harness's own test: no negative 0.
-static
-bool d_tests_wide_valid(
-    struct dj_math_wide _x
+static bool
+d_tests_wide_valid(
+    struct d_math_wide _x
 )
 {
     int i = 0;
@@ -1082,10 +1082,10 @@ bool d_tests_wide_valid(
 
 // d_tests_wide_same
 //   whether _a and _b hold the same limbs and sign.
-static
-bool d_tests_wide_same(
-    const struct dj_math_wide* _a,
-    const struct dj_math_wide* _b
+static bool
+d_tests_wide_same(
+    const struct d_math_wide* _a,
+    const struct d_math_wide* _b
 )
 {
     int i = 0;
@@ -1104,15 +1104,15 @@ bool d_tests_wide_same(
 // d_tests_marker
 //   what a destination holds before a kernel runs: a pattern in every limb,
 // and negative. A kernel that refuses must leave it.
-static
-struct dj_math_wide d_tests_marker(void)
+static struct d_math_wide
+d_tests_marker(void)
 {
-    struct dj_math_wide result = { { 0u }, true };
+    struct d_math_wide result = { { 0u }, true };
     int                i      = 0;
 
     for (i = 0; i < D_TESTS_N; ++i)
     {
-        result.limb[i] = (dj_math_wide_limb)(0xA5A5A5A5UL >> (32 - D_TESTS_H));
+        result.limb[i] = (d_math_wide_limb)(0xA5A5A5A5UL >> (32 - D_TESTS_H));
     }
 
     return result;
@@ -1124,17 +1124,17 @@ struct dj_math_wide d_tests_marker(void)
 // and the destination as it was.
 static void
 d_tests_result(
-    enum dj_math_wide_status   _status,
-    const struct dj_math_wide* _out,
-    const struct dj_tests_int* _exact,
+    enum d_math_wide_status   _status,
+    const struct d_math_wide* _out,
+    const struct d_tests_int* _exact,
     const char*               _what,
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b,
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b,
     int                       _line
 )
 {
-    const struct dj_math_wide marker = d_tests_marker();
-    const struct dj_tests_int got    = d_tests_of_wide(*_out);
+    const struct d_math_wide marker = d_tests_marker();
+    const struct d_tests_int got    = d_tests_of_wide(*_out);
 
     if (d_tests_int_fits(_exact))
     {
@@ -1159,10 +1159,10 @@ d_tests_result(
 // d_tests_layout
 //   the limbs: half a word, as many as 256 bits need; the text's room; and
 // a negative 0, made by hand, not in the one form.
-static
-void d_tests_layout(void)
+static void
+d_tests_layout(void)
 {
-    struct dj_math_wide negative_zero = { { 0u }, true };
+    struct d_math_wide negative_zero = { { 0u }, true };
 
     D_TESTS_EXPECT( (!d_math_wide_is_valid(negative_zero)) &&
                     (!d_tests_wide_valid(negative_zero)),
@@ -1170,10 +1170,10 @@ void d_tests_layout(void)
 
     D_TESTS_EXPECT( (D_MATH_WIDE_BITS == 256u) &&
                     ((D_MATH_WIDE_LIMBS * D_MATH_WIDE_LIMB_BITS) == 256u) &&
-                    ((sizeof(dj_math_wide_limb) * CHAR_BIT) ==
+                    ((sizeof(d_math_wide_limb) * CHAR_BIT) ==
                      D_MATH_WIDE_LIMB_BITS) &&
-                    ((2u * sizeof(dj_math_wide_limb)) ==
-                     sizeof(dj_math_umax)) &&
+                    ((2u * sizeof(d_math_wide_limb)) ==
+                     sizeof(d_math_umax)) &&
                     (D_MATH_WIDE_TEXT_SIZE == 80u),
                     "the layout", &g_none, &g_none );
 
@@ -1191,23 +1191,23 @@ void d_tests_layout(void)
 // exponent at least 0, and their distances compared exactly.
 
 
-// dj_tests_parts
+// d_tests_parts
 //   struct: a value as m 2^e.
-struct dj_tests_parts
+struct d_tests_parts
 {
-    struct dj_tests_nat mantissa;  // m
+    struct d_tests_nat mantissa;  // m
     int                exponent;  // e
 };
 
 // d_tests_parts_of
 //   _value, positive and finite, of a type of _precision bits, as m 2^e.
-static
-struct dj_tests_parts d_tests_parts_of(
+static struct d_tests_parts
+d_tests_parts_of(
     long double _value,
     int         _precision
 )
 {
-    struct dj_tests_parts result   = { { { 0UL } }, 0 };
+    struct d_tests_parts result   = { { { 0UL } }, 0 };
     int                  exponent = 0;
     long double          rest     = ldexpl(frexpl(_value, &exponent),
                                            _precision);
@@ -1232,13 +1232,13 @@ struct dj_tests_parts d_tests_parts_of(
 // d_tests_past
 //   2^MAX_EXP as m 2^e: the value past a type's largest finite one, which
 // IEEE 754 rounds to an infinity where it is the nearer.
-static
-struct dj_tests_parts d_tests_past(
+static struct d_tests_parts
+d_tests_past(
     int _precision,
     int _max_exp
 )
 {
-    struct dj_tests_parts result = { { { 0UL } }, 0 };
+    struct d_tests_parts result = { { { 0UL } }, 0 };
 
     result.mantissa = d_tests_nat_pow2(_precision - 1);
     result.exponent = _max_exp - _precision + 1;
@@ -1250,13 +1250,13 @@ struct dj_tests_parts d_tests_past(
 //   the least natural a type of _precision bits rounds to an infinity:
 // 2^MAX_EXP - 2^(MAX_EXP - P - 1), the largest finite value and half its
 // last place; 0 where that is past the reference, and past every operand.
-static
-struct dj_tests_nat d_tests_threshold(
+static struct d_tests_nat
+d_tests_threshold(
     int _precision,
     int _max_exp
 )
 {
-    const struct dj_tests_nat none = { { 0UL } };
+    const struct d_tests_nat none = { { 0UL } };
 
     if (_max_exp >= D_TESTS_NAT_BITS)
     {
@@ -1264,8 +1264,8 @@ struct dj_tests_nat d_tests_threshold(
     }
 
     {
-        const struct dj_tests_nat top  = d_tests_nat_pow2(_max_exp);
-        const struct dj_tests_nat half =
+        const struct d_tests_nat top  = d_tests_nat_pow2(_max_exp);
+        const struct d_tests_nat half =
             d_tests_nat_pow2(_max_exp - _precision - 1);
 
         return d_tests_nat_sub(&top, &half);
@@ -1274,10 +1274,10 @@ struct dj_tests_nat d_tests_threshold(
 
 // d_tests_place
 //   m 2^(e + _s), e + _s at least 0.
-static
-struct dj_tests_nat d_tests_place(
-    const struct dj_tests_parts* _v,
-    int                          _s
+static struct d_tests_nat
+d_tests_place(
+    const struct d_tests_parts* _v,
+    int                         _s
 )
 {
     return d_tests_nat_shl(&_v->mantissa, _v->exponent + _s);
@@ -1285,10 +1285,10 @@ struct dj_tests_nat d_tests_place(
 
 // d_tests_gap
 //   |_a - _b|.
-static
-struct dj_tests_nat d_tests_gap(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b
+static struct d_tests_nat
+d_tests_gap(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b
 )
 {
     return (d_tests_nat_cmp(_a, _b) >= 0) ? d_tests_nat_sub(_a, _b)
@@ -1298,13 +1298,13 @@ struct dj_tests_nat d_tests_gap(
 // d_tests_nearest
 //   whether _r is the nearest the positive natural _n of the three, _r,
 // _below and _above, ties to even, and _direction how _r stands to _n.
-static
-bool d_tests_nearest(
-    const struct dj_tests_nat*   _n,
-    const struct dj_tests_parts* _r,
-    const struct dj_tests_parts* _below,
-    const struct dj_tests_parts* _above,
-    int                          _direction
+static bool
+d_tests_nearest(
+    const struct d_tests_nat*   _n,
+    const struct d_tests_parts* _r,
+    const struct d_tests_parts* _below,
+    const struct d_tests_parts* _above,
+    int                         _direction
 )
 {
     const int lower = (_below->exponent < _r->exponent) ? _below->exponent
@@ -1312,13 +1312,13 @@ bool d_tests_nearest(
     const int least = (_above->exponent < lower) ? _above->exponent : lower;
     const int scale = (least < 0) ? -least : 0;
 
-    const struct dj_tests_nat n     = d_tests_nat_shl(_n, scale);
-    const struct dj_tests_nat r     = d_tests_place(_r, scale);
-    const struct dj_tests_nat below = d_tests_place(_below, scale);
-    const struct dj_tests_nat above = d_tests_place(_above, scale);
-    const struct dj_tests_nat at    = d_tests_gap(&n, &r);
-    const struct dj_tests_nat to_b  = d_tests_gap(&n, &below);
-    const struct dj_tests_nat to_a  = d_tests_gap(&n, &above);
+    const struct d_tests_nat n     = d_tests_nat_shl(_n, scale);
+    const struct d_tests_nat r     = d_tests_place(_r, scale);
+    const struct d_tests_nat below = d_tests_place(_below, scale);
+    const struct d_tests_nat above = d_tests_place(_above, scale);
+    const struct d_tests_nat at    = d_tests_gap(&n, &r);
+    const struct d_tests_nat to_b  = d_tests_gap(&n, &below);
+    const struct d_tests_nat to_a  = d_tests_gap(&n, &above);
     const int  versus_below = d_tests_nat_cmp(&at, &to_b);
     const int  versus_above = d_tests_nat_cmp(&at, &to_a);
     const bool even         = ((_r->mantissa.limb[0] & 1UL) == 0UL);
@@ -1336,16 +1336,16 @@ bool d_tests_nearest(
 // exactly; past the type's range, an infinity of _x's sign, above it; and
 // otherwise the nearest value of _x's sign, the direction turned with it.
 
-static
-bool d_tests_check_f(
-    const struct dj_tests_int* _x,
-    float                      _r,
-    int                        _direction
+static bool
+d_tests_check_f(
+    const struct d_tests_int* _x,
+    float                     _r,
+    int                       _direction
 )
 {
     const int                sign      = (_x->negative) ? -1 : 1;
     const float              magnitude = (_x->negative) ? -_r : _r;
-    const struct dj_tests_nat threshold =
+    const struct d_tests_nat threshold =
         d_tests_threshold(FLT_MANT_DIG, FLT_MAX_EXP);
 
     if (d_tests_nat_is_zero(&_x->mag))
@@ -1370,11 +1370,11 @@ bool d_tests_check_f(
     {
         const float below = nextafterf(magnitude, 0.0f);
         const float above = nextafterf(magnitude, FLT_MAX);
-        const struct dj_tests_parts r_parts =
+        const struct d_tests_parts r_parts =
             d_tests_parts_of((long double)magnitude, FLT_MANT_DIG);
-        const struct dj_tests_parts b_parts =
+        const struct d_tests_parts b_parts =
             d_tests_parts_of((long double)below, FLT_MANT_DIG);
-        const struct dj_tests_parts a_parts =
+        const struct d_tests_parts a_parts =
             (above > magnitude)
                 ? d_tests_parts_of((long double)above, FLT_MANT_DIG)
                 : d_tests_past(FLT_MANT_DIG, FLT_MAX_EXP);
@@ -1384,16 +1384,16 @@ bool d_tests_check_f(
     }
 }
 
-static
-bool d_tests_check_d(
-    const struct dj_tests_int* _x,
-    double                     _r,
-    int                        _direction
+static bool
+d_tests_check_d(
+    const struct d_tests_int* _x,
+    double                    _r,
+    int                       _direction
 )
 {
     const int                sign      = (_x->negative) ? -1 : 1;
     const double             magnitude = (_x->negative) ? -_r : _r;
-    const struct dj_tests_nat threshold =
+    const struct d_tests_nat threshold =
         d_tests_threshold(DBL_MANT_DIG, DBL_MAX_EXP);
 
     if (d_tests_nat_is_zero(&_x->mag))
@@ -1418,11 +1418,11 @@ bool d_tests_check_d(
     {
         const double below = nextafter(magnitude, 0.0);
         const double above = nextafter(magnitude, DBL_MAX);
-        const struct dj_tests_parts r_parts =
+        const struct d_tests_parts r_parts =
             d_tests_parts_of((long double)magnitude, DBL_MANT_DIG);
-        const struct dj_tests_parts b_parts =
+        const struct d_tests_parts b_parts =
             d_tests_parts_of((long double)below, DBL_MANT_DIG);
-        const struct dj_tests_parts a_parts =
+        const struct d_tests_parts a_parts =
             (above > magnitude)
                 ? d_tests_parts_of((long double)above, DBL_MANT_DIG)
                 : d_tests_past(DBL_MANT_DIG, DBL_MAX_EXP);
@@ -1432,16 +1432,16 @@ bool d_tests_check_d(
     }
 }
 
-static
-bool d_tests_check_ld(
-    const struct dj_tests_int* _x,
-    long double                _r,
-    int                        _direction
+static bool
+d_tests_check_ld(
+    const struct d_tests_int* _x,
+    long double               _r,
+    int                       _direction
 )
 {
     const int                sign      = (_x->negative) ? -1 : 1;
     const long double        magnitude = (_x->negative) ? -_r : _r;
-    const struct dj_tests_nat threshold =
+    const struct d_tests_nat threshold =
         d_tests_threshold(LDBL_MANT_DIG, LDBL_MAX_EXP);
 
     if (d_tests_nat_is_zero(&_x->mag))
@@ -1466,11 +1466,11 @@ bool d_tests_check_ld(
     {
         const long double below = nextafterl(magnitude, 0.0L);
         const long double above = nextafterl(magnitude, LDBL_MAX);
-        const struct dj_tests_parts r_parts =
+        const struct d_tests_parts r_parts =
             d_tests_parts_of(magnitude, LDBL_MANT_DIG);
-        const struct dj_tests_parts b_parts =
+        const struct d_tests_parts b_parts =
             d_tests_parts_of(below, LDBL_MANT_DIG);
-        const struct dj_tests_parts a_parts =
+        const struct d_tests_parts a_parts =
             (above > magnitude)
                 ? d_tests_parts_of(above, LDBL_MANT_DIG)
                 : d_tests_past(LDBL_MANT_DIG, LDBL_MAX_EXP);
@@ -1487,19 +1487,19 @@ bool d_tests_check_ld(
 // Magnitudes, each with both signs: those taken in pairs, and more taken
 // alone. Every magnitude is below 2^256.
 
-static struct dj_tests_int g_pairs[D_TESTS_PAIRS_MAX];
+static struct d_tests_int g_pairs[D_TESTS_PAIRS_MAX];
 static int                g_pair_count = 0;
-static struct dj_tests_int g_ones[D_TESTS_ONES_MAX];
+static struct d_tests_int g_ones[D_TESTS_ONES_MAX];
 static int                g_one_count  = 0;
 static bool               g_lists_held = true;
 
 // d_tests_operand
 //   _mag, with both signs, among the operands taken alone, and, where _pair,
 // among those taken in pairs; a magnitude past 2^256 - 1 is left out.
-static
-void d_tests_operand(
-    struct dj_tests_nat _mag,
-    bool                _pair
+static void
+d_tests_operand(
+    struct d_tests_nat _mag,
+    bool               _pair
 )
 {
     int sign = 0;
@@ -1511,7 +1511,7 @@ void d_tests_operand(
 
     for (sign = 0; sign < 2; ++sign)
     {
-        const struct dj_tests_int x = d_tests_int_make(_mag, (sign == 1));
+        const struct d_tests_int x = d_tests_int_make(_mag, (sign == 1));
 
         // 0 once
         if ( (sign == 1) &&
@@ -1544,14 +1544,14 @@ void d_tests_operand(
 
 // d_tests_about
 //   2^_k + _delta, _delta from -2 to 2.
-static
-struct dj_tests_nat d_tests_about(
+static struct d_tests_nat
+d_tests_about(
     int _k,
     int _delta
 )
 {
-    const struct dj_tests_nat power = d_tests_nat_pow2(_k);
-    const struct dj_tests_nat delta =
+    const struct d_tests_nat power = d_tests_nat_pow2(_k);
+    const struct d_tests_nat delta =
         d_tests_nat_of((unsigned long)((_delta < 0) ? -_delta : _delta));
 
     return (_delta < 0) ? d_tests_nat_sub(&power, &delta)
@@ -1560,17 +1560,17 @@ struct dj_tests_nat d_tests_about(
 
 // d_tests_shifted
 //   (2^_p + _c) 2^_k + _d, _c and _d from -1 to 3.
-static
-struct dj_tests_nat d_tests_shifted(
+static struct d_tests_nat
+d_tests_shifted(
     int _p,
     int _c,
     int _k,
     int _d
 )
 {
-    const struct dj_tests_nat base  = d_tests_about(_p, _c);
-    const struct dj_tests_nat moved = d_tests_nat_shl(&base, _k);
-    const struct dj_tests_nat delta =
+    const struct d_tests_nat base  = d_tests_about(_p, _c);
+    const struct d_tests_nat moved = d_tests_nat_shl(&base, _k);
+    const struct d_tests_nat delta =
         d_tests_nat_of((unsigned long)((_d < 0) ? -_d : _d));
 
     return (_d < 0) ? d_tests_nat_sub(&moved, &delta)
@@ -1579,8 +1579,8 @@ struct dj_tests_nat d_tests_shifted(
 
 // d_tests_build_operands
 //   the lists.
-static
-void d_tests_build_operands(void)
+static void
+d_tests_build_operands(void)
 {
     static const unsigned long s_small[] =
     {
@@ -1599,10 +1599,10 @@ void d_tests_build_operands(void)
 
     const int precision[3] = { FLT_MANT_DIG, DBL_MANT_DIG, LDBL_MANT_DIG };
 
-    struct dj_tests_nat pattern = { { 0UL } };
-    struct dj_tests_nat ten     = d_tests_nat_of(1UL);
-    const struct dj_tests_nat ten_1 = d_tests_nat_of(10UL);
-    const struct dj_tests_nat one   = d_tests_nat_of(1UL);
+    struct d_tests_nat pattern = { { 0UL } };
+    struct d_tests_nat ten     = d_tests_nat_of(1UL);
+    const struct d_tests_nat ten_1 = d_tests_nat_of(10UL);
+    const struct d_tests_nat one   = d_tests_nat_of(1UL);
     size_t i = 0u;
     size_t j = 0u;
     int    k = 0;
@@ -1635,8 +1635,8 @@ void d_tests_build_operands(void)
     d_tests_operand(d_tests_nat_shl(&pattern, 1), true);
 
     {
-        const struct dj_tests_nat low  = d_tests_about(128, -1);
-        const struct dj_tests_nat high = d_tests_nat_shl(&low, 128);
+        const struct d_tests_nat low  = d_tests_about(128, -1);
+        const struct d_tests_nat high = d_tests_nat_shl(&low, 128);
 
         d_tests_operand(high, true);
     }
@@ -1691,9 +1691,9 @@ void d_tests_build_operands(void)
     // the float's range: its largest finite value, the least that rounds
     // to an infinity, and their neighbours
     {
-        const struct dj_tests_nat largest =
+        const struct d_tests_nat largest =
             d_tests_shifted(FLT_MANT_DIG, -1, FLT_MAX_EXP - FLT_MANT_DIG, 0);
-        const struct dj_tests_nat threshold =
+        const struct d_tests_nat threshold =
             d_tests_threshold(FLT_MANT_DIG, FLT_MAX_EXP);
 
         d_tests_operand(largest, false);
@@ -1709,8 +1709,8 @@ void d_tests_build_operands(void)
     {
         for (i = 1u; i < (size_t)k; i = i + 37u)
         {
-            const struct dj_tests_nat top = d_tests_nat_pow2(k);
-            const struct dj_tests_nat cut = d_tests_nat_pow2((int)i);
+            const struct d_tests_nat top = d_tests_nat_pow2(k);
+            const struct d_tests_nat cut = d_tests_nat_pow2((int)i);
 
             d_tests_operand(d_tests_nat_sub(&top, &cut), false);
         }
@@ -1728,36 +1728,36 @@ void d_tests_build_operands(void)
 
 // d_tests_conversions
 //   _x to the family's integers and rationals, and back.
-static
-void d_tests_conversions(
-    const struct dj_tests_int* _x,
-    struct dj_math_wide        _w
+static void
+d_tests_conversions(
+    const struct d_tests_int* _x,
+    struct d_math_wide        _w
 )
 {
-    const struct dj_math_wide marker = d_tests_marker();
-    const struct dj_tests_nat most   =
-        d_tests_nat_of_umax((dj_math_umax)D_MATH_IMAX_MAX);
-    const struct dj_tests_nat one    = d_tests_nat_of(1UL);
-    const struct dj_tests_nat least  = d_tests_nat_add(&most, &one);
-    const struct dj_tests_nat most_u = d_tests_nat_of_umax(D_MATH_UMAX_MAX);
+    const struct d_math_wide marker = d_tests_marker();
+    const struct d_tests_nat most   =
+        d_tests_nat_of_umax((d_math_umax)D_MATH_IMAX_MAX);
+    const struct d_tests_nat one    = d_tests_nat_of(1UL);
+    const struct d_tests_nat least  = d_tests_nat_add(&most, &one);
+    const struct d_tests_nat most_u = d_tests_nat_of_umax(D_MATH_UMAX_MAX);
     const bool fits_i = (_x->negative)
                             ? (d_tests_nat_cmp(&_x->mag, &least) <= 0)
                             : (d_tests_nat_cmp(&_x->mag, &most) <= 0);
     const bool fits_u = ( (!_x->negative) &&
                           (d_tests_nat_cmp(&_x->mag, &most_u) <= 0) );
 
-    dj_math_imax             value_i  = 12345;
-    dj_math_umax             value_u  = 12345u;
-    struct dj_rational       rational = { 12345, 7 };
-    struct dj_math_wide      back     = marker;
-    enum dj_math_wide_status status   = D_MATH_WIDE_OK;
+    d_math_imax             value_i  = 12345;
+    d_math_umax             value_u  = 12345u;
+    struct d_rational       rational = { 12345, 7 };
+    struct d_math_wide      back     = marker;
+    enum d_math_wide_status status   = D_MATH_WIDE_OK;
 
-    // to dj_math_imax, and back by from_imax
+    // to d_math_imax, and back by from_imax
     status = d_math_wide_to_imax(&value_i, _w);
 
     if (fits_i)
     {
-        const struct dj_tests_int got = d_tests_int_of_imax(value_i);
+        const struct d_tests_int got = d_tests_int_of_imax(value_i);
 
         back = d_math_wide_from_imax(value_i);
         D_TESTS_EXPECT( (status == D_MATH_WIDE_OK) &&
@@ -1772,12 +1772,12 @@ void d_tests_conversions(
                         "to_imax outside the family", _x, &g_none );
     }
 
-    // to dj_math_umax, and back by from_umax
+    // to d_math_umax, and back by from_umax
     status = d_math_wide_to_umax(&value_u, _w);
 
     if (fits_u)
     {
-        const struct dj_tests_nat got = d_tests_nat_of_umax(value_u);
+        const struct d_tests_nat got = d_tests_nat_of_umax(value_u);
 
         back = d_math_wide_from_umax(value_u);
         D_TESTS_EXPECT( (status == D_MATH_WIDE_OK) &&
@@ -1797,7 +1797,7 @@ void d_tests_conversions(
 
     if (fits_i)
     {
-        const struct dj_tests_int got = d_tests_int_of_imax(rational.num);
+        const struct d_tests_int got = d_tests_int_of_imax(rational.num);
 
         back = marker;
         D_TESTS_EXPECT( (status == D_MATH_WIDE_OK) &&
@@ -1822,10 +1822,10 @@ void d_tests_conversions(
 // d_tests_floating
 //   _x to float, double and long double, each with its direction and
 // without.
-static
-void d_tests_floating(
-    const struct dj_tests_int* _x,
-    struct dj_math_wide        _w
+static void
+d_tests_floating(
+    const struct d_tests_int* _x,
+    struct d_math_wide        _w
 )
 {
     int               dir_f  = 7;
@@ -1857,19 +1857,19 @@ void d_tests_floating(
 // d_tests_text_one
 //   _x's text: the reference's digits, its length, and read back, also with
 // a plus sign or leading zeros.
-static
-void d_tests_text_one(
-    const struct dj_tests_int* _x,
-    struct dj_math_wide        _w
+static void
+d_tests_text_one(
+    const struct d_tests_int* _x,
+    struct d_math_wide        _w
 )
 {
-    const struct dj_math_wide marker = d_tests_marker();
+    const struct d_math_wide marker = d_tests_marker();
 
     char                    expect[D_TESTS_TEXT];
     char                    text[D_MATH_WIDE_TEXT_SIZE + 8u];
     char                    padded[D_MATH_WIDE_TEXT_SIZE + 64u];
-    struct dj_math_wide      back   = marker;
-    enum dj_math_wide_status status = D_MATH_WIDE_OK;
+    struct d_math_wide      back   = marker;
+    enum d_math_wide_status status = D_MATH_WIDE_OK;
     size_t                  length = 0u;
     size_t                  digits = 0u;
     size_t                  at     = 0u;
@@ -1917,23 +1917,23 @@ void d_tests_text_one(
 
 // d_tests_rationals
 //   from_rational: an integer's, and a fraction's refused.
-static
-void d_tests_rationals(void)
+static void
+d_tests_rationals(void)
 {
-    static const dj_math_imax s_fractions[][2] =
+    static const d_math_imax s_fractions[][2] =
     {
         { 1, 2 }, { -1, 2 }, { 7, 3 }, { -22, 7 }, { 1, 1000 }
     };
 
-    const struct dj_math_wide marker = d_tests_marker();
+    const struct d_math_wide marker = d_tests_marker();
 
-    struct dj_math_wide      out    = marker;
-    enum dj_math_wide_status status = D_MATH_WIDE_OK;
+    struct d_math_wide      out    = marker;
+    enum d_math_wide_status status = D_MATH_WIDE_OK;
     size_t                  i      = 0u;
 
     for (i = 0u; i < (sizeof(s_fractions) / sizeof(s_fractions[0])); ++i)
     {
-        struct dj_rational r = { 0, 1 };
+        struct d_rational r = { 0, 1 };
 
         r.num  = s_fractions[i][0];
         r.den  = s_fractions[i][1];
@@ -1946,9 +1946,9 @@ void d_tests_rationals(void)
 
     // the family's ends, over 1
     {
-        struct dj_rational r = { D_MATH_IMAX_MIN, 1 };
-        struct dj_tests_int got  = g_none;
-        struct dj_tests_int want = d_tests_int_of_imax(D_MATH_IMAX_MIN);
+        struct d_rational r = { D_MATH_IMAX_MIN, 1 };
+        struct d_tests_int got  = g_none;
+        struct d_tests_int want = d_tests_int_of_imax(D_MATH_IMAX_MIN);
 
         out    = marker;
         status = d_math_wide_from_rational(&out, r);
@@ -1972,19 +1972,19 @@ void d_tests_rationals(void)
 
 // d_tests_one
 //   every check of one operand.
-static
-void d_tests_one(
-    const struct dj_tests_int* _x
+static void
+d_tests_one(
+    const struct d_tests_int* _x
 )
 {
-    const struct dj_math_wide w         = d_tests_to_wide(_x);
-    const struct dj_tests_int back      = d_tests_of_wide(w);
-    const struct dj_tests_int minus     = d_tests_int_neg(_x);
-    const struct dj_tests_int magnitude = d_tests_int_make(_x->mag, false);
-    const struct dj_math_wide neg       = d_math_wide_neg(w);
-    const struct dj_math_wide absolute  = d_math_wide_abs(w);
-    const struct dj_tests_int neg_got   = d_tests_of_wide(neg);
-    const struct dj_tests_int abs_got   = d_tests_of_wide(absolute);
+    const struct d_math_wide w         = d_tests_to_wide(_x);
+    const struct d_tests_int back      = d_tests_of_wide(w);
+    const struct d_tests_int minus     = d_tests_int_neg(_x);
+    const struct d_tests_int magnitude = d_tests_int_make(_x->mag, false);
+    const struct d_math_wide neg       = d_math_wide_neg(w);
+    const struct d_math_wide absolute  = d_math_wide_abs(w);
+    const struct d_tests_int neg_got   = d_tests_of_wide(neg);
+    const struct d_tests_int abs_got   = d_tests_of_wide(absolute);
 
     // the harness's own conversions
     D_TESTS_EXPECT(d_tests_int_same(&back, _x),
@@ -2007,10 +2007,10 @@ void d_tests_one(
 
     // the gcd with 0, and with -x: |x|
     {
-        const struct dj_math_wide zero = d_math_wide_from_imax(0);
-        const struct dj_math_wide g0   = d_math_wide_gcd(w, zero);
-        const struct dj_math_wide g1   = d_math_wide_gcd(zero, w);
-        const struct dj_math_wide g2   = d_math_wide_gcd(w, neg);
+        const struct d_math_wide zero = d_math_wide_from_imax(0);
+        const struct d_math_wide g0   = d_math_wide_gcd(w, zero);
+        const struct d_math_wide g1   = d_math_wide_gcd(zero, w);
+        const struct d_math_wide g2   = d_math_wide_gcd(w, neg);
 
         D_TESTS_EXPECT( (d_tests_wide_same(&g0, &absolute)) &&
                         (d_tests_wide_same(&g1, &absolute)) &&
@@ -2033,24 +2033,24 @@ void d_tests_one(
 // d_tests_two
 //   every check of a pair: the sum, the difference, the product, the
 // quotient and remainder, the order, and, where _gcd, the gcd.
-static
-void d_tests_two(
-    const struct dj_tests_int* _a,
-    const struct dj_tests_int* _b,
-    bool                       _gcd
+static void
+d_tests_two(
+    const struct d_tests_int* _a,
+    const struct d_tests_int* _b,
+    bool                      _gcd
 )
 {
-    const struct dj_math_wide a       = d_tests_to_wide(_a);
-    const struct dj_math_wide b       = d_tests_to_wide(_b);
-    const struct dj_math_wide marker  = d_tests_marker();
-    const struct dj_tests_int minus_b = d_tests_int_neg(_b);
+    const struct d_math_wide a       = d_tests_to_wide(_a);
+    const struct d_math_wide b       = d_tests_to_wide(_b);
+    const struct d_math_wide marker  = d_tests_marker();
+    const struct d_tests_int minus_b = d_tests_int_neg(_b);
     const int                order   = d_tests_int_cmp(_a, _b);
 
-    struct dj_math_wide      out        = marker;
-    struct dj_math_wide      rest       = marker;
-    struct dj_tests_int      exact      = g_none;
-    struct dj_tests_int      exact_rest = g_none;
-    enum dj_math_wide_status status     = D_MATH_WIDE_OK;
+    struct d_math_wide      out        = marker;
+    struct d_math_wide      rest       = marker;
+    struct d_tests_int      exact      = g_none;
+    struct d_tests_int      exact_rest = g_none;
+    enum d_math_wide_status status     = D_MATH_WIDE_OK;
 
     // a + b, a - b, a * b
     exact  = d_tests_int_add(_a, _b);
@@ -2071,7 +2071,7 @@ void d_tests_two(
     // a / b: by 0, a pole, or 0/0 invalid, nothing stored
     if (d_tests_nat_is_zero(&_b->mag))
     {
-        const enum dj_math_wide_status want =
+        const enum d_math_wide_status want =
             (d_tests_nat_is_zero(&_a->mag)) ? D_MATH_WIDE_INVALID
                                             : D_MATH_WIDE_POLE;
 
@@ -2090,8 +2090,8 @@ void d_tests_two(
 
         // the reference's own: a = q b + r, |r| below |b|
         {
-            const struct dj_tests_int product = d_tests_int_mul(&exact, _b);
-            const struct dj_tests_int whole   =
+            const struct d_tests_int product = d_tests_int_mul(&exact, _b);
+            const struct d_tests_int whole   =
                 d_tests_int_add(&product, &exact_rest);
 
             D_TESTS_EXPECT( (d_tests_int_same(&whole, _a)) &&
@@ -2100,8 +2100,8 @@ void d_tests_two(
         }
 
         {
-            struct dj_tests_int got_q = g_none;
-            struct dj_tests_int got_r = g_none;
+            struct d_tests_int got_q = g_none;
+            struct d_tests_int got_r = g_none;
 
             out    = marker;
             rest   = marker;
@@ -2139,9 +2139,9 @@ void d_tests_two(
     // the gcd, never negative
     if (_gcd)
     {
-        const struct dj_tests_int want =
+        const struct d_tests_int want =
             d_tests_int_make(d_tests_nat_gcd(&_a->mag, &_b->mag), false);
-        const struct dj_tests_int got =
+        const struct d_tests_int got =
             d_tests_of_wide(d_math_wide_gcd(a, b));
 
         D_TESTS_EXPECT(d_tests_int_same(&got, &want), "gcd", _a, _b);
@@ -2160,18 +2160,18 @@ void d_tests_two(
 // worth, so that normalizing shifts it back, and up by whole limbs. The
 // guess two too large, which only the second limb's test brings to one.
 // Then runs of ones over runs of ones, and divisors whose top limb is 1.
-static
-int d_tests_division_cases(
-    struct dj_tests_nat* _a,
-    struct dj_tests_nat* _b,
-    int                  _bits,
-    int                  _capacity
+static int
+d_tests_division_cases(
+    struct d_tests_nat* _a,
+    struct d_tests_nat* _b,
+    int                 _bits,
+    int                 _capacity
 )
 {
     const int  h      = D_TESTS_H;
     const int  most   = _bits / h;
     const int  t[3]   = { 0, 1, h - 1 };
-    const struct dj_tests_nat one = d_tests_nat_of(1UL);
+    const struct d_tests_nat one = d_tests_nat_of(1UL);
     int        count  = 0;
     int        k      = 0;
     int        m      = 0;
@@ -2183,7 +2183,7 @@ int d_tests_division_cases(
     {
         for (i = 0; i < 3; ++i)
         {
-            const struct dj_tests_nat half =
+            const struct d_tests_nat half =
                 d_tests_nat_pow2((k * h) - t[i] - 1);
 
             if (count < _capacity)
@@ -2202,19 +2202,19 @@ int d_tests_division_cases(
         {
             for (i = 0; i < 3; ++i)
             {
-                struct dj_tests_nat a = { { 0UL } };
-                struct dj_tests_nat b = { { 0UL } };
+                struct d_tests_nat a = { { 0UL } };
+                struct d_tests_nat b = { { 0UL } };
                 const unsigned long low =
                     (z == 0) ? 0UL
                              : ( (z == 1) ? 1UL
                                           : ( (h == 16) ? 0xFFFFUL
                                                         : 0xFFFFFFFFUL ) );
-                const struct dj_tests_nat top_a = d_tests_nat_pow2(h - 1);
-                const struct dj_tests_nat next_a =
+                const struct d_tests_nat top_a = d_tests_nat_pow2(h - 1);
+                const struct d_tests_nat next_a =
                     d_tests_about(h, -2);
-                const struct dj_tests_nat next_b =
+                const struct d_tests_nat next_b =
                     d_tests_about(h, -1);
-                struct dj_tests_nat part = { { 0UL } };
+                struct d_tests_nat part = { { 0UL } };
 
                 // a = [low, b - 2, b/2], b = [b - 1, b/2], in limbs of h
                 a = d_tests_nat_shl(&top_a, 2 * h);
@@ -2246,13 +2246,13 @@ int d_tests_division_cases(
     // divisor of b/2, b/2 + 1, b - 1
     for (m = 0; (m + 4) <= most; ++m)
     {
-        const struct dj_tests_nat half      = d_tests_nat_pow2(h - 1);
-        const struct dj_tests_nat half_less = d_tests_about(h - 1, -1);
-        const struct dj_tests_nat half_more = d_tests_about(h - 1, 1);
-        const struct dj_tests_nat full      = d_tests_about(h, -1);
-        struct dj_tests_nat       a         = { { 0UL } };
-        struct dj_tests_nat       b         = { { 0UL } };
-        struct dj_tests_nat       part      = { { 0UL } };
+        const struct d_tests_nat half      = d_tests_nat_pow2(h - 1);
+        const struct d_tests_nat half_less = d_tests_about(h - 1, -1);
+        const struct d_tests_nat half_more = d_tests_about(h - 1, 1);
+        const struct d_tests_nat full      = d_tests_about(h, -1);
+        struct d_tests_nat       a         = { { 0UL } };
+        struct d_tests_nat       b         = { { 0UL } };
+        struct d_tests_nat       part      = { { 0UL } };
 
         a    = d_tests_nat_shl(&half_less, 3 * h);
         part = d_tests_nat_shl(&half, 2 * h);
@@ -2282,12 +2282,12 @@ int d_tests_division_cases(
                 continue;
             }
 
-            const struct dj_tests_nat top_k = d_tests_nat_pow2(
+            const struct d_tests_nat top_k = d_tests_nat_pow2(
                 (k * h < _bits) ? (k * h) : _bits);
-            const struct dj_tests_nat top_i = d_tests_nat_pow2(i * h);
-            const struct dj_tests_nat ones_k = d_tests_nat_sub(&top_k, &one);
-            const struct dj_tests_nat ones_i = d_tests_nat_sub(&top_i, &one);
-            const struct dj_tests_nat low_i  = d_tests_nat_pow2((i - 1) * h);
+            const struct d_tests_nat top_i = d_tests_nat_pow2(i * h);
+            const struct d_tests_nat ones_k = d_tests_nat_sub(&top_k, &one);
+            const struct d_tests_nat ones_i = d_tests_nat_sub(&top_i, &one);
+            const struct d_tests_nat low_i  = d_tests_nat_pow2((i - 1) * h);
 
             if ((count + 1) < _capacity)
             {
@@ -2306,8 +2306,8 @@ int d_tests_division_cases(
 
 // d_tests_pairs
 //   each pair of the operands taken in pairs.
-static
-void d_tests_pairs(void)
+static void
+d_tests_pairs(void)
 {
     int i = 0;
     int j = 0;
@@ -2325,11 +2325,11 @@ void d_tests_pairs(void)
 
 // d_tests_divisions
 //   the constructed divisions, with every sign.
-static
-void d_tests_divisions(void)
+static void
+d_tests_divisions(void)
 {
-    static struct dj_tests_nat s_a[D_TESTS_DIVISIONS_MAX];
-    static struct dj_tests_nat s_b[D_TESTS_DIVISIONS_MAX];
+    static struct d_tests_nat s_a[D_TESTS_DIVISIONS_MAX];
+    static struct d_tests_nat s_b[D_TESTS_DIVISIONS_MAX];
 
     int i     = 0;
     int j     = 0;
@@ -2344,8 +2344,8 @@ void d_tests_divisions(void)
     {
         for (j = 0; j < 4; ++j)
         {
-            const struct dj_tests_int a = d_tests_int_make(s_a[i], (j & 1) != 0);
-            const struct dj_tests_int b = d_tests_int_make(s_b[i], (j & 2) != 0);
+            const struct d_tests_int a = d_tests_int_make(s_a[i], (j & 1) != 0);
+            const struct d_tests_int b = d_tests_int_make(s_b[i], (j & 2) != 0);
 
             d_tests_two(&a, &b, (j == 0));
         }
@@ -2357,8 +2357,8 @@ void d_tests_divisions(void)
 // d_tests_random
 //   pairs drawn at random, each also taken alone, and how often a product
 // fit and how often it did not.
-static
-void d_tests_random(void)
+static void
+d_tests_random(void)
 {
     long t    = 0;
     long over = 0;
@@ -2367,9 +2367,9 @@ void d_tests_random(void)
     // each result, and how often each answer came
     for (t = 0; t < D_TESTS_TRIALS; ++t)
     {
-        const struct dj_tests_int a       = d_tests_random_int();
-        const struct dj_tests_int b       = d_tests_random_int();
-        const struct dj_tests_int product = d_tests_int_mul(&a, &b);
+        const struct d_tests_int a       = d_tests_random_int();
+        const struct d_tests_int b       = d_tests_random_int();
+        const struct d_tests_int product = d_tests_int_mul(&a, &b);
 
         d_tests_two(&a, &b, true);
         d_tests_one(&a);
@@ -2404,14 +2404,14 @@ static void
 d_tests_text_status(
     const char*             _text,
     size_t                  _length,
-    enum dj_math_wide_status _want,
+    enum d_math_wide_status _want,
     const char*             _what
 )
 {
-    const struct dj_math_wide marker = d_tests_marker();
+    const struct d_math_wide marker = d_tests_marker();
 
-    struct dj_math_wide            out    = marker;
-    const enum dj_math_wide_status status =
+    struct d_math_wide            out    = marker;
+    const enum d_math_wide_status status =
         d_math_wide_from_text(&out, _text, _length);
 
     if (d_tests_count( (status == _want) &&
@@ -2428,12 +2428,12 @@ d_tests_text_status(
 //   _x's text into every room from 0 to two past its length: its whole
 // length returned each time, as much as fits written, then the NUL, and
 // nothing after.
-static
-void d_tests_capacity(
-    const struct dj_tests_int* _x
+static void
+d_tests_capacity(
+    const struct d_tests_int* _x
 )
 {
-    const struct dj_math_wide w = d_tests_to_wide(_x);
+    const struct d_math_wide w = d_tests_to_wide(_x);
 
     char   expect[D_TESTS_TEXT];
     char   buffer[D_MATH_WIDE_TEXT_SIZE + 8u];
@@ -2492,8 +2492,8 @@ void d_tests_capacity(
 
 // d_tests_text
 //   texts refused and accepted, and texts cut short.
-static
-void d_tests_text(void)
+static void
+d_tests_text(void)
 {
     static const char* const s_syntax[] =
     {
@@ -2512,9 +2512,9 @@ void d_tests_text(void)
         "13129639935";
 
     char                    text[600];
-    struct dj_math_wide      out    = d_tests_marker();
-    struct dj_tests_int      x      = g_none;
-    enum dj_math_wide_status status = D_MATH_WIDE_OK;
+    struct d_math_wide      out    = d_tests_marker();
+    struct d_tests_int      x      = g_none;
+    enum d_math_wide_status status = D_MATH_WIDE_OK;
     size_t                  i      = 0u;
     size_t                  n      = 0u;
 
@@ -2579,7 +2579,7 @@ void d_tests_text(void)
     status = d_math_wide_from_text(&out, text, n);
     x      = d_tests_of_wide(out);
     {
-        const struct dj_tests_int want =
+        const struct d_tests_int want =
             d_tests_int_make(d_tests_nat_of_text(s_top), false);
 
         D_TESTS_EXPECT( (status == D_MATH_WIDE_OK) &&
@@ -2611,7 +2611,7 @@ void d_tests_text(void)
     status = d_math_wide_from_text(&out, "12345", 3u);
     x      = d_tests_of_wide(out);
     {
-        const struct dj_tests_int want =
+        const struct d_tests_int want =
             d_tests_int_make(d_tests_nat_of(123UL), false);
 
         D_TESTS_EXPECT( (status == D_MATH_WIDE_OK) &&
@@ -2623,8 +2623,8 @@ void d_tests_text(void)
     status = d_math_wide_from_text(&out, "-12x", 3u);
     x      = d_tests_of_wide(out);
     {
-        const struct dj_tests_nat twelve = d_tests_nat_of(12UL);
-        const struct dj_tests_int want   = d_tests_int_make(twelve, true);
+        const struct d_tests_nat twelve = d_tests_nat_of(12UL);
+        const struct d_tests_int want   = d_tests_int_make(twelve, true);
 
         D_TESTS_EXPECT( (status == D_MATH_WIDE_OK) &&
                         (d_tests_int_same(&x, &want)),
@@ -2642,9 +2642,9 @@ void d_tests_text(void)
 
     // the longest text: 79 characters, and the NUL
     {
-        const struct dj_tests_nat top  = d_tests_nat_of_text(s_top);
-        const struct dj_tests_int most = d_tests_int_make(top, true);
-        const struct dj_math_wide w    = d_tests_to_wide(&most);
+        const struct d_tests_nat top  = d_tests_nat_of_text(s_top);
+        const struct d_tests_int most = d_tests_int_make(top, true);
+        const struct d_math_wide w    = d_tests_to_wide(&most);
 
         D_TESTS_EXPECT( (d_math_wide_to_text(NULL, 0u, w) + 1u) ==
                         D_MATH_WIDE_TEXT_SIZE,
@@ -2669,10 +2669,10 @@ void d_tests_text(void)
 // d_tests_random_limbs
 //   _n limbs: random, from runs of ones, or each one of the limbs that test
 // Knuth's estimate (0, 1, 2, b/2 - 1, b/2, b/2 + 1, b - 2, b - 1).
-static
-void d_tests_random_limbs(
-    dj_math_wide_limb* _x,
-    int                _n
+static void
+d_tests_random_limbs(
+    d_math_wide_limb* _x,
+    int               _n
 )
 {
     const int mode = d_tests_random_below(3);
@@ -2684,10 +2684,10 @@ void d_tests_random_limbs(
         for (i = 0; i < _n; ++i)
         {
             const int         kind  = d_tests_random_below(8);
-            const dj_math_umax half  =
-                (dj_math_umax)1 << (D_MATH_WIDE_LIMB_BITS - 1u);
-            const dj_math_umax full  = D_INTERNAL_MATH_WIDE_LIMB_MASK;
-            dj_math_umax       value = 0u;
+            const d_math_umax half  =
+                (d_math_umax)1 << (D_MATH_WIDE_LIMB_BITS - 1u);
+            const d_math_umax full  = D_INTERNAL_MATH_WIDE_LIMB_MASK;
+            d_math_umax       value = 0u;
 
             switch (kind)
             {
@@ -2701,14 +2701,14 @@ void d_tests_random_limbs(
                 default: value = full;        break;
             }
 
-            _x[i] = (dj_math_wide_limb)value;
+            _x[i] = (d_math_wide_limb)value;
         }
 
         return;
     }
 
     {
-        const struct dj_tests_nat x =
+        const struct d_tests_nat x =
             d_tests_random_nat(d_tests_random_below((_n * D_TESTS_H) + 1),
                                (mode == 1));
 
@@ -2721,17 +2721,17 @@ void d_tests_random_limbs(
 // d_tests_kernel_report
 //   counts a check of a kernel, and reports the first failures with two
 // naturals.
-static
-void d_tests_kernel_report(
-    bool                       _ok,
-    const char*                _what,
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b,
-    int                        _line
+static void
+d_tests_kernel_report(
+    bool                      _ok,
+    const char*               _what,
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b,
+    int                       _line
 )
 {
-    const struct dj_tests_int a = d_tests_int_make(*_a, false);
-    const struct dj_tests_int b = d_tests_int_make(*_b, false);
+    const struct d_tests_int a = d_tests_int_make(*_a, false);
+    const struct d_tests_int b = d_tests_int_make(*_b, false);
 
     d_tests_expect(_ok, _what, &a, &b, _line);
 
@@ -2743,33 +2743,33 @@ void d_tests_kernel_report(
 
 // d_tests_kernel_sums
 //   add and sub, at a random length, and in place.
-static
-void d_tests_kernel_sums(void)
+static void
+d_tests_kernel_sums(void)
 {
     const int n = 1 + d_tests_random_below(D_TESTS_KERNEL_LIMBS);
 
-    dj_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1]   = { 0u };
-    dj_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1]   = { 0u };
-    dj_math_wide_limb out[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
-    dj_math_wide_limb carry = 0u;
+    d_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1]   = { 0u };
+    d_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1]   = { 0u };
+    d_math_wide_limb out[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
+    d_math_wide_limb carry = 0u;
 
     d_tests_random_limbs(a, n);
     d_tests_random_limbs(b, n);
     out[n] = 0x5Au;
 
     {
-        const struct dj_tests_nat x     = d_tests_nat_of_limbs(a, n);
-        const struct dj_tests_nat y     = d_tests_nat_of_limbs(b, n);
-        const struct dj_tests_nat sum   = d_tests_nat_add(&x, &y);
-        const struct dj_tests_nat top   = d_tests_nat_pow2(n * D_TESTS_H);
+        const struct d_tests_nat x     = d_tests_nat_of_limbs(a, n);
+        const struct d_tests_nat y     = d_tests_nat_of_limbs(b, n);
+        const struct d_tests_nat sum   = d_tests_nat_add(&x, &y);
+        const struct d_tests_nat top   = d_tests_nat_pow2(n * D_TESTS_H);
         const bool               above = (d_tests_nat_cmp(&sum, &top) >= 0);
-        const struct dj_tests_nat low   =
+        const struct d_tests_nat low   =
             (above) ? d_tests_nat_sub(&sum, &top) : sum;
         const bool               below = (d_tests_nat_cmp(&x, &y) < 0);
-        const struct dj_tests_nat diff  =
+        const struct d_tests_nat diff  =
             (below) ? d_tests_nat_add(&x, &top) : x;
-        const struct dj_tests_nat wrap  = d_tests_nat_sub(&diff, &y);
-        struct dj_tests_nat       got   = { { 0UL } };
+        const struct d_tests_nat wrap  = d_tests_nat_sub(&diff, &y);
+        struct d_tests_nat       got   = { { 0UL } };
 
         carry = d_internal_math_wide_add(out, a, b, (size_t)n);
         got   = d_tests_nat_of_limbs(out, n);
@@ -2819,18 +2819,18 @@ void d_tests_kernel_sums(void)
 // d_tests_kernel_products
 //   mul, mul_1, shl, shr and divmod_1, at random lengths, and in place where
 // allowed.
-static
-void d_tests_kernel_products(void)
+static void
+d_tests_kernel_products(void)
 {
     const int na = d_tests_random_below(D_TESTS_N + 1);
     const int nb = d_tests_random_below(D_TESTS_N + 1);
     const int n  = 1 + d_tests_random_below(D_TESTS_KERNEL_LIMBS);
 
-    dj_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1]         = { 0u };
-    dj_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1]         = { 0u };
-    dj_math_wide_limb out[(2 * D_TESTS_KERNEL_LIMBS) + 1] = { 0u };
-    dj_math_wide_limb m[2]                                = { 0u, 0u };
-    dj_math_wide_limb result = 0u;
+    d_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1]         = { 0u };
+    d_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1]         = { 0u };
+    d_math_wide_limb out[(2 * D_TESTS_KERNEL_LIMBS) + 1] = { 0u };
+    d_math_wide_limb m[2]                                = { 0u, 0u };
+    d_math_wide_limb result = 0u;
     unsigned         s      = 0u;
 
     d_tests_random_limbs(a, na);
@@ -2839,10 +2839,10 @@ void d_tests_kernel_products(void)
 
     // the product of two lengths, its limbs past them untouched
     {
-        const struct dj_tests_nat x    = d_tests_nat_of_limbs(a, na);
-        const struct dj_tests_nat y    = d_tests_nat_of_limbs(b, nb);
-        const struct dj_tests_nat want = d_tests_nat_mul(&x, &y);
-        struct dj_tests_nat       got  = { { 0UL } };
+        const struct d_tests_nat x    = d_tests_nat_of_limbs(a, na);
+        const struct d_tests_nat y    = d_tests_nat_of_limbs(b, nb);
+        const struct d_tests_nat want = d_tests_nat_mul(&x, &y);
+        struct d_tests_nat       got  = { { 0UL } };
 
         d_internal_math_wide_mul(out, a, (size_t)na, b, (size_t)nb);
         got = d_tests_nat_of_limbs(out, na + nb);
@@ -2856,14 +2856,14 @@ void d_tests_kernel_products(void)
     d_tests_random_limbs(m, 2);
     out[n] = 0x5Au;
     {
-        const struct dj_tests_nat x     = d_tests_nat_of_limbs(a, n);
-        const struct dj_tests_nat by    = d_tests_nat_of_limbs(m, 1);
-        const struct dj_tests_nat plus  = d_tests_nat_of_limbs(m + 1, 1);
-        const struct dj_tests_nat part  = d_tests_nat_mul(&x, &by);
-        const struct dj_tests_nat want  = d_tests_nat_add(&part, &plus);
-        struct dj_tests_nat       got   = { { 0UL } };
-        struct dj_tests_nat       carry = { { 0UL } };
-        struct dj_tests_nat       whole = { { 0UL } };
+        const struct d_tests_nat x     = d_tests_nat_of_limbs(a, n);
+        const struct d_tests_nat by    = d_tests_nat_of_limbs(m, 1);
+        const struct d_tests_nat plus  = d_tests_nat_of_limbs(m + 1, 1);
+        const struct d_tests_nat part  = d_tests_nat_mul(&x, &by);
+        const struct d_tests_nat want  = d_tests_nat_add(&part, &plus);
+        struct d_tests_nat       got   = { { 0UL } };
+        struct d_tests_nat       carry = { { 0UL } };
+        struct d_tests_nat       whole = { { 0UL } };
 
         result = d_internal_math_wide_mul_1(out, a, (size_t)n, m[0], m[1]);
         got    = d_tests_nat_of_limbs(out, n);
@@ -2885,12 +2885,12 @@ void d_tests_kernel_products(void)
     s = (unsigned)d_tests_random_below(D_TESTS_H);
     out[n] = 0x5Au;
     {
-        const struct dj_tests_nat x    = d_tests_nat_of_limbs(a, n);
-        const struct dj_tests_nat up   = d_tests_nat_shl(&x, (int)s);
-        const struct dj_tests_nat down = d_tests_nat_shr(&x, (int)s);
-        const struct dj_tests_nat by   = d_tests_nat_of((unsigned long)s);
-        struct dj_tests_nat       got  = { { 0UL } };
-        struct dj_tests_nat       top  = { { 0UL } };
+        const struct d_tests_nat x    = d_tests_nat_of_limbs(a, n);
+        const struct d_tests_nat up   = d_tests_nat_shl(&x, (int)s);
+        const struct d_tests_nat down = d_tests_nat_shr(&x, (int)s);
+        const struct d_tests_nat by   = d_tests_nat_of((unsigned long)s);
+        struct d_tests_nat       got  = { { 0UL } };
+        struct d_tests_nat       top  = { { 0UL } };
 
         result = d_internal_math_wide_shl(out, a, (size_t)n, s);
         got    = d_tests_nat_of_limbs(out, n);
@@ -2912,16 +2912,16 @@ void d_tests_kernel_products(void)
         d_internal_math_wide_shr(out, out, (size_t)n, s);
         got = d_tests_nat_of_limbs(out, n);
         {
-            const struct dj_tests_nat range =
+            const struct d_tests_nat range =
                 d_tests_nat_pow2((n * D_TESTS_H) - (int)s);
-            struct dj_tests_nat       kept  = x;
+            struct d_tests_nat       kept  = x;
 
             // the bits shifted out at the top are lost in place
             if (d_tests_nat_cmp(&x, &range) >= 0)
             {
-                const struct dj_tests_nat q = d_tests_nat_shr(&x,
+                const struct d_tests_nat q = d_tests_nat_shr(&x,
                     (n * D_TESTS_H) - (int)s);
-                const struct dj_tests_nat cut = d_tests_nat_shl(&q,
+                const struct d_tests_nat cut = d_tests_nat_shl(&q,
                     (n * D_TESTS_H) - (int)s);
 
                 kept = d_tests_nat_sub(&x, &cut);
@@ -2935,15 +2935,15 @@ void d_tests_kernel_products(void)
     // divided by a limb, not 0; in place
     d_tests_random_limbs(a, n);
     d_tests_random_limbs(m, 1);
-    m[0] = (m[0] == 0u) ? (dj_math_wide_limb)7u : m[0];
+    m[0] = (m[0] == 0u) ? (d_math_wide_limb)7u : m[0];
     out[n] = 0x5Au;
     {
-        const struct dj_tests_nat x    = d_tests_nat_of_limbs(a, n);
-        const struct dj_tests_nat by   = d_tests_nat_of_limbs(m, 1);
-        struct dj_tests_nat       q    = { { 0UL } };
-        struct dj_tests_nat       r    = { { 0UL } };
-        struct dj_tests_nat       got  = { { 0UL } };
-        struct dj_tests_nat       rest = { { 0UL } };
+        const struct d_tests_nat x    = d_tests_nat_of_limbs(a, n);
+        const struct d_tests_nat by   = d_tests_nat_of_limbs(m, 1);
+        struct d_tests_nat       q    = { { 0UL } };
+        struct d_tests_nat       r    = { { 0UL } };
+        struct d_tests_nat       got  = { { 0UL } };
+        struct d_tests_nat       rest = { { 0UL } };
 
         d_tests_nat_divmod(&x, &by, &q, &r);
         result = d_internal_math_wide_divmod_1(out, a, (size_t)n, m[0]);
@@ -2970,25 +2970,25 @@ void d_tests_kernel_products(void)
 // the quotient and remainder, the limbs past them and past the work
 // untouched; then again with the quotient in _a's limbs and the remainder
 // in _b's.
-static
-void d_tests_kernel_divide(
-    const struct dj_tests_nat* _a,
-    const struct dj_tests_nat* _b,
-    int                        _na,
-    int                        _nb
+static void
+d_tests_kernel_divide(
+    const struct d_tests_nat* _a,
+    const struct d_tests_nat* _b,
+    int                       _na,
+    int                       _nb
 )
 {
     const int nq = _na - _nb + 1;
 
-    dj_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1]          = { 0u };
-    dj_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1]          = { 0u };
-    dj_math_wide_limb q[D_TESTS_KERNEL_LIMBS + 2]          = { 0u };
-    dj_math_wide_limb r[D_TESTS_KERNEL_LIMBS + 2]          = { 0u };
-    dj_math_wide_limb work[(2 * D_TESTS_KERNEL_LIMBS) + 2] = { 0u };
-    struct dj_tests_nat want_q = { { 0UL } };
-    struct dj_tests_nat want_r = { { 0UL } };
-    struct dj_tests_nat got_q  = { { 0UL } };
-    struct dj_tests_nat got_r  = { { 0UL } };
+    d_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1]          = { 0u };
+    d_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1]          = { 0u };
+    d_math_wide_limb q[D_TESTS_KERNEL_LIMBS + 2]          = { 0u };
+    d_math_wide_limb r[D_TESTS_KERNEL_LIMBS + 2]          = { 0u };
+    d_math_wide_limb work[(2 * D_TESTS_KERNEL_LIMBS) + 2] = { 0u };
+    struct d_tests_nat want_q = { { 0UL } };
+    struct d_tests_nat want_r = { { 0UL } };
+    struct d_tests_nat got_q  = { { 0UL } };
+    struct d_tests_nat got_r  = { { 0UL } };
 
     d_tests_limbs_of(_a, a, _na);
     d_tests_limbs_of(_b, b, _nb);
@@ -3021,28 +3021,28 @@ void d_tests_kernel_divide(
 // d_tests_kernel_round
 //   _x, not 0, of _n limbs, rounded to _precision bits, by the criterion
 // above.
-static
-void d_tests_kernel_round(
-    const struct dj_tests_nat* _x,
-    int                        _n,
-    int                        _precision
+static void
+d_tests_kernel_round(
+    const struct d_tests_nat* _x,
+    int                       _n,
+    int                       _precision
 )
 {
-    dj_math_wide_limb x[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
-    const struct dj_tests_nat precision =
+    d_math_wide_limb x[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
+    const struct d_tests_nat precision =
         d_tests_nat_of((unsigned long)_precision);
-    struct dj_internal_rational_rounded r = { { 0u, 0u }, 0, 0 };
+    struct d_internal_rational_rounded r = { { 0u, 0u }, 0, 0 };
     bool ok = false;
 
     d_tests_limbs_of(_x, x, _n);
     r = d_internal_math_wide_round(x, (size_t)_n, (unsigned)_precision);
 
     {
-        const struct dj_tests_nat hi = d_tests_nat_of_umax(r.mantissa.hi);
-        const struct dj_tests_nat lo = d_tests_nat_of_umax(r.mantissa.lo);
-        const struct dj_tests_nat up =
+        const struct d_tests_nat hi = d_tests_nat_of_umax(r.mantissa.hi);
+        const struct d_tests_nat lo = d_tests_nat_of_umax(r.mantissa.lo);
+        const struct d_tests_nat up =
             d_tests_nat_shl(&hi, (int)D_INTERNAL_RATIONAL_WORD_BITS);
-        const struct dj_tests_nat m    = d_tests_nat_add(&up, &lo);
+        const struct d_tests_nat m    = d_tests_nat_add(&up, &lo);
         const int                bits = d_tests_nat_bits(_x);
 
         // P bits, the top one set
@@ -3051,7 +3051,7 @@ void d_tests_kernel_round(
         // no more bits than P: exact, moved up
         if (bits <= _precision)
         {
-            const struct dj_tests_nat moved =
+            const struct d_tests_nat moved =
                 d_tests_nat_shl(_x, _precision - bits);
 
             ok = ( (ok) &&
@@ -3068,11 +3068,11 @@ void d_tests_kernel_round(
         else
         {
             const int                place = bits - _precision;
-            const struct dj_tests_nat value = d_tests_nat_shl(&m, r.exponent);
-            const struct dj_tests_nat gap   = d_tests_gap(_x, &value);
-            const struct dj_tests_nat twice = d_tests_nat_shl(&gap, 1);
-            const struct dj_tests_nat unit  = d_tests_nat_pow2(place);
-            const struct dj_tests_nat units = d_tests_nat_shr(&value, place);
+            const struct d_tests_nat value = d_tests_nat_shl(&m, r.exponent);
+            const struct d_tests_nat gap   = d_tests_gap(_x, &value);
+            const struct d_tests_nat twice = d_tests_nat_shl(&gap, 1);
+            const struct d_tests_nat unit  = d_tests_nat_pow2(place);
+            const struct d_tests_nat units = d_tests_nat_shr(&value, place);
             const int                versus = d_tests_nat_cmp(&twice, &unit);
             const bool               even  = ((units.limb[0] & 1UL) == 0UL);
 
@@ -3092,11 +3092,11 @@ void d_tests_kernel_round(
 // d_tests_kernels
 //   each kernel at random lengths, the constructed divisions at every length
 // up to 512 bits, and rounding at every precision two words hold.
-static
-void d_tests_kernels(void)
+static void
+d_tests_kernels(void)
 {
-    static struct dj_tests_nat s_a[D_TESTS_DIVISIONS_MAX];
-    static struct dj_tests_nat s_b[D_TESTS_DIVISIONS_MAX];
+    static struct d_tests_nat s_a[D_TESTS_DIVISIONS_MAX];
+    static struct d_tests_nat s_b[D_TESTS_DIVISIONS_MAX];
 
     const int width     = (int)D_INTERNAL_RATIONAL_WORD_BITS;
     const int precision[8] =
@@ -3110,8 +3110,8 @@ void d_tests_kernels(void)
 
     for (t = 0; t < D_TESTS_KERNEL_TRIALS; ++t)
     {
-        dj_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
-        dj_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
+        d_math_wide_limb a[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
+        d_math_wide_limb b[D_TESTS_KERNEL_LIMBS + 1] = { 0u };
         const int        na = 1 + d_tests_random_below(D_TESTS_KERNEL_LIMBS);
         const int        nb = 1 + d_tests_random_below(na);
         const int        p  = precision[d_tests_random_below(8)];
@@ -3122,21 +3122,21 @@ void d_tests_kernels(void)
         // a division: the divisor's top limb not 0
         d_tests_random_limbs(a, na);
         d_tests_random_limbs(b, nb);
-        b[nb - 1] = (b[nb - 1] == 0u) ? (dj_math_wide_limb)1u : b[nb - 1];
+        b[nb - 1] = (b[nb - 1] == 0u) ? (d_math_wide_limb)1u : b[nb - 1];
         {
-            const struct dj_tests_nat x = d_tests_nat_of_limbs(a, na);
-            const struct dj_tests_nat y = d_tests_nat_of_limbs(b, nb);
+            const struct d_tests_nat x = d_tests_nat_of_limbs(a, na);
+            const struct d_tests_nat y = d_tests_nat_of_limbs(b, nb);
 
             d_tests_kernel_divide(&x, &y, na, nb);
         }
 
         // a rounding: not 0, to a precision two words hold
         d_tests_random_limbs(a, na);
-        a[na - 1] = (a[na - 1] == 0u) ? (dj_math_wide_limb)3u : a[na - 1];
+        a[na - 1] = (a[na - 1] == 0u) ? (d_math_wide_limb)3u : a[na - 1];
 
         if (p <= (2 * width))
         {
-            const struct dj_tests_nat x = d_tests_nat_of_limbs(a, na);
+            const struct d_tests_nat x = d_tests_nat_of_limbs(a, na);
 
             d_tests_kernel_round(&x, na, p);
         }
@@ -3172,10 +3172,10 @@ void d_tests_kernels(void)
 
         for (k = 0; (p + 2 + k) <= 512; k = k + 61)
         {
-            const struct dj_tests_nat tie   = d_tests_shifted(p, 1, k, 0);
-            const struct dj_tests_nat tie_3 = d_tests_shifted(p, 3, k, 0);
-            const struct dj_tests_nat ones  = d_tests_shifted(p + 1, -1, k, 0);
-            const struct dj_tests_nat exact = d_tests_shifted(p, -1, k, 0);
+            const struct d_tests_nat tie   = d_tests_shifted(p, 1, k, 0);
+            const struct d_tests_nat tie_3 = d_tests_shifted(p, 3, k, 0);
+            const struct d_tests_nat ones  = d_tests_shifted(p + 1, -1, k, 0);
+            const struct d_tests_nat exact = d_tests_shifted(p, -1, k, 0);
 
             d_tests_kernel_round(&tie,
                                  (d_tests_nat_bits(&tie) + D_TESTS_H - 1) /
@@ -3211,13 +3211,13 @@ void d_tests_kernels(void)
 
 // d_tests_constexpr_text
 //   a literal's integer.
-static constexpr
-struct dj_math_wide d_tests_constexpr_text(
+static constexpr struct d_math_wide
+d_tests_constexpr_text(
     const char* _text,
     size_t      _length
 )
 {
-    struct dj_math_wide out = { { 0u }, false };
+    struct d_math_wide out = { { 0u }, false };
 
     (void)d_math_wide_from_text(&out, _text, _length);
 
@@ -3226,10 +3226,10 @@ struct dj_math_wide d_tests_constexpr_text(
 
 // d_tests_constexpr_product
 //   (2^128 - 1)(2^128 + 1).
-static constexpr
-struct dj_math_wide d_tests_constexpr_product()
+static constexpr struct d_math_wide
+d_tests_constexpr_product()
 {
-    struct dj_math_wide out = { { 0u }, false };
+    struct d_math_wide out = { { 0u }, false };
 
     (void)d_math_wide_mul(&out,
                           D_TESTS_CX_TEXT(
@@ -3242,10 +3242,10 @@ struct dj_math_wide d_tests_constexpr_product()
 
 // d_tests_constexpr_overflow
 //   (2^256 - 1) + 1's status.
-static constexpr enum dj_math_wide_status
+static constexpr enum d_math_wide_status
 d_tests_constexpr_overflow()
 {
-    struct dj_math_wide out = { { 0u }, false };
+    struct d_math_wide out = { { 0u }, false };
 
     return d_math_wide_add(&out,
                            D_TESTS_CX_TEXT(
@@ -3256,10 +3256,10 @@ d_tests_constexpr_overflow()
 
 // d_tests_constexpr_quotient, d_tests_constexpr_remainder
 //   (2^256 - 1) / (10^38 + 7), and -(3^160) / 7.
-static constexpr
-struct dj_math_wide d_tests_constexpr_quotient()
+static constexpr struct d_math_wide
+d_tests_constexpr_quotient()
 {
-    struct dj_math_wide q = { { 0u }, false };
+    struct d_math_wide q = { { 0u }, false };
 
     (void)d_math_wide_divmod(&q, NULL,
                              D_TESTS_CX_TEXT(
@@ -3271,10 +3271,10 @@ struct dj_math_wide d_tests_constexpr_quotient()
     return q;
 }
 
-static constexpr
-struct dj_math_wide d_tests_constexpr_remainder()
+static constexpr struct d_math_wide
+d_tests_constexpr_remainder()
 {
-    struct dj_math_wide r = { { 0u }, false };
+    struct d_math_wide r = { { 0u }, false };
 
     (void)d_math_wide_divmod(NULL, &r,
                              D_TESTS_CX_TEXT(
@@ -3287,8 +3287,8 @@ struct dj_math_wide d_tests_constexpr_remainder()
 
 // d_tests_constexpr_gcd
 //   gcd(3 2^200, 9 2^100).
-static constexpr
-struct dj_math_wide d_tests_constexpr_gcd()
+static constexpr struct d_math_wide
+d_tests_constexpr_gcd()
 {
     return d_math_wide_gcd(
         D_TESTS_CX_TEXT("482081413277697082662588627702348780756660898134"
@@ -3299,8 +3299,8 @@ struct dj_math_wide d_tests_constexpr_gcd()
 // d_tests_constexpr_d, d_tests_constexpr_f, d_tests_constexpr_ld
 //   2^256 - 1 to double, 2^128 to float, -(2^64 + 1) to long double, and
 // each one's direction.
-static constexpr
-double d_tests_constexpr_d()
+static constexpr double
+d_tests_constexpr_d()
 {
     return d_math_wide_to_d(
         D_TESTS_CX_TEXT("115792089237316195423570985008687907853"
@@ -3308,8 +3308,8 @@ double d_tests_constexpr_d()
         NULL);
 }
 
-static constexpr
-int d_tests_constexpr_d_direction()
+static constexpr int
+d_tests_constexpr_d_direction()
 {
     int direction = 7;
 
@@ -3321,21 +3321,21 @@ int d_tests_constexpr_d_direction()
     return direction;
 }
 
-static constexpr
-float d_tests_constexpr_f()
+static constexpr float
+d_tests_constexpr_f()
 {
     return d_math_wide_to_f(
         D_TESTS_CX_TEXT("340282366920938463463374607431768211456"), NULL);
 }
 
-static constexpr
-long double d_tests_constexpr_ld()
+static constexpr long double
+d_tests_constexpr_ld()
 {
     return d_math_wide_to_ld(D_TESTS_CX_TEXT("-18446744073709551617"), NULL);
 }
 
-static constexpr
-int d_tests_constexpr_ld_direction()
+static constexpr int
+d_tests_constexpr_ld_direction()
 {
     int direction = 7;
 
@@ -3347,20 +3347,20 @@ int d_tests_constexpr_ld_direction()
 
 // d_tests_constexpr_syntax
 //   "12a"'s status.
-static constexpr enum dj_math_wide_status
+static constexpr enum d_math_wide_status
 d_tests_constexpr_syntax()
 {
-    struct dj_math_wide out = { { 0u }, false };
+    struct d_math_wide out = { { 0u }, false };
 
     return d_math_wide_from_text(&out, "12a", 3u);
 }
 
 // d_tests_constexpr_least
 //   the family's least, there and back.
-static constexpr
-dj_math_imax d_tests_constexpr_least()
+static constexpr d_math_imax
+d_tests_constexpr_least()
 {
-    dj_math_imax out = 0;
+    d_math_imax out = 0;
 
     (void)d_math_wide_to_imax(&out, d_math_wide_from_imax(D_MATH_IMAX_MIN));
 
@@ -3406,16 +3406,16 @@ static_assert(d_tests_constexpr_least() == D_MATH_IMAX_MIN,
 
 // d_tests_constant_evaluation
 //   the same at run time.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
-    const struct dj_math_wide top =
+    const struct d_math_wide top =
         D_TESTS_CX_TEXT("115792089237316195423570985008687907853"
                         "269984665640564039457584007913129639935");
-    const struct dj_math_wide product   = d_tests_constexpr_product();
-    const struct dj_math_wide quotient  = d_tests_constexpr_quotient();
-    const struct dj_math_wide remainder = d_tests_constexpr_remainder();
-    const struct dj_math_wide gcd       = d_tests_constexpr_gcd();
+    const struct d_math_wide product   = d_tests_constexpr_product();
+    const struct d_math_wide quotient  = d_tests_constexpr_quotient();
+    const struct d_math_wide remainder = d_tests_constexpr_remainder();
+    const struct d_math_wide gcd       = d_tests_constexpr_gcd();
     const bool ld_ok = (LDBL_MANT_DIG >= 65)
         ? ( (d_tests_constexpr_ld() == -18446744073709551617.0L) &&
             (d_tests_constexpr_ld_direction() == 0) )
@@ -3446,7 +3446,8 @@ void d_tests_constant_evaluation(void)
 #endif  // C++14
 
 
-int main(void)
+int
+main(void)
 {
     int i = 0;
 

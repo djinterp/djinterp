@@ -39,11 +39,9 @@
 #ifndef RE_STD_ARRAY_ARRAY_COMPARE_HPP
 #define RE_STD_ARRAY_ARRAY_COMPARE_HPP 1
 
-// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
-// (README rule 5; re_std omits rather than degrades). The owner's ruling:
-// compile at every level first; port to C++98 only where something needs it.
+// FROM C++98: re_std::array is C++98's now (array.hpp), and its
+// comparisons with it; the three-way comparison stays C++20's.
 #include "../../config.hpp"  // RE_STD_* configuration
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -164,7 +162,6 @@ operator>=(
 
 }  // re_std
 
-#endif  // floor, for now
 
 
 #endif  // RE_STD_ARRAY_ARRAY_COMPARE_HPP

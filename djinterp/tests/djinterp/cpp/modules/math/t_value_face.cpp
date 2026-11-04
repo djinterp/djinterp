@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [test]                                               t_value_face.cpp
+* djinterp [cpp/math]                                           t_value_face.cpp
 *
 *   Tests for math/value.hpp at every level from C++98, against the C core
 * (c/math/value.h), which t_value.c checks against an exact reference:
 *   - every constructor gives the C core's value, field for field: the
-*     integer types at their ends, the unsigned ones past dj_math_imax (G2),
-*     the floating-point types, bool, the error codes, dj_rational, ratio,
+*     integer types at their ends, the unsigned ones past d_math_imax (G2),
+*     the floating-point types, bool, the error codes, d_rational, ratio,
 *     none, an inline value, and a C value copied or adopted;
 *   - the queries and every to() overload, written or left as they were;
 *   - every operation, its assignment form, unary -, + and abs, on every
@@ -29,7 +29,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/cpp/modules/math/t_value_face.cpp -o t_value_face -lm
+*         tests/djinterp/math/t_value_face.cpp -o t_value_face -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_value_face.cpp
@@ -57,19 +57,12 @@
 // the wide integer's boxes come from the harness, which counts them and
 // refuses one where asked: its two knobs, set before value_wide.h is first
 // included
-void* d_tests_allocate(
-    std::size_t _size
-);
-void d_tests_give_back(
-    void* _box
-);
+void* d_tests_allocate(std::size_t _size);
+void  d_tests_give_back(void* _box);
 #define D_CFG_MATH_VALUE_WIDE_MALLOC(_size) d_tests_allocate(_size)
 #define D_CFG_MATH_VALUE_WIDE_FREE(_ptr)    d_tests_give_back(_ptr)
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/math/value_wide.h"  // a real boxed kind
-#if (defined(__cplusplus))
-    #include "../../../../../inc/re_std/cpp/cfloat/cfloat.hpp"
-#endif
 
 
 namespace
@@ -99,7 +92,8 @@ namespace
 
 // d_tests_allocate
 //   a box's storage, counted; none where the next is to be refused.
-void* d_tests_allocate(
+void*
+d_tests_allocate(
     std::size_t _size
 )
 {
@@ -126,7 +120,8 @@ void* d_tests_allocate(
 
 // d_tests_give_back
 //   a box given back, counted.
-void d_tests_give_back(
+void
+d_tests_give_back(
     void* _box
 )
 {
@@ -150,9 +145,10 @@ namespace
 
     // d_tests_text
     //   _x as text, into _buffer (at least 120 characters), returned.
-    const char* d_tests_text(
-        const dj_math_value& _x,
-        char*                _buffer
+    const char*
+    d_tests_text(
+        const d_math_value& _x,
+        char*               _buffer
     )
     {
         char digits[D_MATH_WIDE_TEXT_SIZE];
@@ -195,12 +191,13 @@ namespace
     // d_tests_expect
     //   counts a check, and reports the first few failures with two values
     // that show what was checked, and where.
-    void d_tests_expect(
-        bool                 _ok,
-        const char*          _what,
-        const dj_math_value& _a,
-        const dj_math_value& _b,
-        int                  _line
+    void
+    d_tests_expect(
+        bool                _ok,
+        const char*         _what,
+        const d_math_value& _a,
+        const d_math_value& _b,
+        int                 _line
     )
     {
         char text[2][120];
@@ -228,7 +225,8 @@ namespace
 
     // d_tests_none
     //   none, for a report with nothing to show.
-    dj_math_value d_tests_none()
+    d_math_value
+    d_tests_none()
     {
         return d_math_value_none();
     }
@@ -241,7 +239,8 @@ namespace
     // d_tests_same_real
     //   two long doubles the same: equal, a zero's sign included, or both
     // NaN.
-    bool d_tests_same_real(
+    bool
+    d_tests_same_real(
         long double _a,
         long double _b
     )
@@ -266,9 +265,10 @@ namespace
     //   two C values the same: an inline one field for field; a boxed one,
     // each in a box of its own, under the same table, with the same flags
     // and an equal value.
-    bool d_tests_same(
-        const dj_math_value& _a,
-        const dj_math_value& _b
+    bool
+    d_tests_same(
+        const d_math_value& _a,
+        const d_math_value& _b
     )
     {
         // boxed: the table, the flags, the value
@@ -296,9 +296,10 @@ namespace
     // d_tests_identical
     //   two C values the very same: inline, field for field; boxed, the same
     // box under the same table.
-    bool d_tests_identical(
-        const dj_math_value& _a,
-        const dj_math_value& _b
+    bool
+    d_tests_identical(
+        const d_math_value& _a,
+        const d_math_value& _b
     )
     {
         return ( (d_tests_same(_a, _b)) &&
@@ -307,11 +308,12 @@ namespace
 
     // d_tests_holders
     //   how many values hold the box of a wide integer's value.
-    std::size_t d_tests_holders(
-        const dj_math_value& _x
+    std::size_t
+    d_tests_holders(
+        const d_math_value& _x
     )
     {
-        return static_cast<const dj_internal_math_value_wide_box*>(
+        return static_cast<const d_internal_math_value_wide_box*>(
             _x.box)->holders;
     }
 
@@ -322,13 +324,14 @@ namespace
 
     const int MAX_OPERANDS = 64;
 
-    dj_math_value      g_operands[MAX_OPERANDS];
+    d_math_value      g_operands[MAX_OPERANDS];
     int               g_operand_count = 0;
-    dj_math_boxed_kind g_counted;
+    d_math_boxed_kind g_counted;
 
     // d_tests_counted_retain, d_tests_counted_release
     //   the wide integer's retain and release, each call counted.
-    void d_tests_counted_retain(
+    void
+    d_tests_counted_retain(
         void* _box
     )
     {
@@ -338,7 +341,8 @@ namespace
         return;
     }
 
-    void d_tests_counted_release(
+    void
+    d_tests_counted_release(
         void* _box
     )
     {
@@ -350,11 +354,12 @@ namespace
 
     // d_tests_wide
     //   the wide integer of a decimal text.
-    dj_math_wide d_tests_wide(
+    d_math_wide
+    d_tests_wide(
         const char* _digits
     )
     {
-        dj_math_wide x = d_math_wide_from_imax(0);
+        d_math_wide x = d_math_wide_from_imax(0);
 
         (void)d_math_wide_from_text(&x, _digits, std::strlen(_digits));
 
@@ -363,7 +368,8 @@ namespace
 
     // d_tests_wide_value
     //   a wide integer as a C value, the caller's to give back.
-    dj_math_value d_tests_wide_value(
+    d_math_value
+    d_tests_wide_value(
         const char* _digits
     )
     {
@@ -372,11 +378,12 @@ namespace
 
     // d_tests_counted_value
     //   the same under the counted copy of the table.
-    dj_math_value d_tests_counted_value(
+    d_math_value
+    d_tests_counted_value(
         const char* _digits
     )
     {
-        dj_math_value made = d_tests_wide_value(_digits);
+        d_math_value made = d_tests_wide_value(_digits);
 
         made.type = &g_counted;
 
@@ -385,8 +392,9 @@ namespace
 
     // d_tests_flagged
     //   _x flagged inexact.
-    dj_math_value d_tests_flagged(
-        dj_math_value _x
+    d_math_value
+    d_tests_flagged(
+        d_math_value _x
     )
     {
         _x.flags = _x.flags | D_MATH_VALUE_FLAG_INEXACT;
@@ -396,8 +404,9 @@ namespace
 
     // d_tests_add
     //   _x to the operands.
-    void d_tests_add(
-        const dj_math_value& _x
+    void
+    d_tests_add(
+        const d_math_value& _x
     )
     {
         // while there is room
@@ -415,12 +424,13 @@ namespace
     // rationals about the family's ends; floats, doubles and long doubles,
     // zeros, infinities and NaNs among them; and two flagged values. Then
     // 12 wide integers, 3 of them under the counted table.
-    void d_tests_make_operands()
+    void
+    d_tests_make_operands()
     {
-        const dj_math_imax most  = D_MATH_IMAX_MAX;
-        const dj_math_imax least = D_MATH_IMAX_MIN;
+        const d_math_imax most  = D_MATH_IMAX_MAX;
+        const d_math_imax least = D_MATH_IMAX_MIN;
         const int         half  =
-            static_cast<int>(sizeof(dj_math_imax) * CHAR_BIT / 2u);
+            static_cast<int>(sizeof(d_math_imax) * CHAR_BIT / 2u);
         const float       f_inf = std::numeric_limits<float>::infinity();
         const float       f_nan = std::numeric_limits<float>::quiet_NaN();
         const double      d_inf = std::numeric_limits<double>::infinity();
@@ -440,7 +450,7 @@ namespace
         for (code = 1; code <= 5; ++code)
         {
             d_tests_add(d_math_value_from_error(
-                static_cast<dj_math_value_error>(code)));
+                static_cast<d_math_value_error>(code)));
         }
 
         // integers
@@ -453,7 +463,7 @@ namespace
         d_tests_add(d_math_value_from_int(most));
         d_tests_add(d_math_value_from_int(least));
         d_tests_add(d_math_value_from_int(most - 1));
-        d_tests_add(d_math_value_from_int(static_cast<dj_math_imax>(1) << half));
+        d_tests_add(d_math_value_from_int(static_cast<d_math_imax>(1) << half));
 
         // rationals
         d_tests_add(d_math_value_from_ratio(1, 2));
@@ -518,7 +528,8 @@ namespace
 
     // d_tests_release_operands
     //   every operand given back.
-    void d_tests_release_operands()
+    void
+    d_tests_release_operands()
     {
         int i = 0;
 
@@ -534,8 +545,9 @@ namespace
 
     // d_tests_inline_of
     //   an inline C value as an inline_value, through value's to().
-    dm::inline_value d_tests_inline_of(
-        const dj_math_value& _x
+    dm::inline_value
+    d_tests_inline_of(
+        const d_math_value& _x
     )
     {
         dm::inline_value result;
@@ -552,10 +564,11 @@ namespace
 
     // d_tests_constructed
     //   a value and an inline value both _want, field for field, and alike.
-    void d_tests_constructed(
+    void
+    d_tests_constructed(
         const dm::value&        _made,
         const dm::inline_value& _made_inline,
-        const dj_math_value&    _want,
+        const d_math_value&     _want,
         const char*             _what
     )
     {
@@ -568,9 +581,10 @@ namespace
 
     // d_tests_construction
     //   every constructor, against the C core's.
-    void d_tests_construction()
+    void
+    d_tests_construction()
     {
-        const dj_math_imax most = D_MATH_IMAX_MAX;
+        const d_math_imax most = D_MATH_IMAX_MAX;
 
         // none
         d_tests_constructed(dm::value(), dm::inline_value(),
@@ -589,7 +603,7 @@ namespace
                             d_math_value_from_int(LONG_MIN), "long's least");
         d_tests_constructed(dm::value(most), dm::inline_value(most),
                             d_math_value_from_int(most),
-                            "dj_math_imax's greatest");
+                            "d_math_imax's greatest");
 
         // promoted: char, short, unsigned char
         d_tests_constructed(dm::value('A'), dm::inline_value('A'),
@@ -645,7 +659,7 @@ namespace
             d_math_value_from_d(std::numeric_limits<double>::quiet_NaN()),
             "a double NaN");
 
-        // bool, the error codes, dj_rational
+        // bool, the error codes, d_rational
         d_tests_constructed(dm::value(true), dm::inline_value(true),
                             d_math_value_from_bool(true), "true");
         d_tests_constructed(dm::value(false), dm::inline_value(false),
@@ -655,17 +669,17 @@ namespace
                             d_math_value_from_error(D_MATH_VALUE_ERROR_POLE),
                             "an error code");
         {
-            const dj_rational three_quarters = { 3, 4 };
-            const dj_rational six_over_one   = { 6, 1 };
+            const d_rational three_quarters = { 3, 4 };
+            const d_rational six_over_one   = { 6, 1 };
 
             d_tests_constructed(dm::value(three_quarters),
                                 dm::inline_value(three_quarters),
                                 d_math_value_from_rational(three_quarters),
-                                "a dj_rational");
+                                "a d_rational");
             d_tests_constructed(dm::value(six_over_one),
                                 dm::inline_value(six_over_one),
                                 d_math_value_from_rational(six_over_one),
-                                "a whole dj_rational");
+                                "a whole d_rational");
         }
 
         // ratio, reduced, whole, and over 0
@@ -701,7 +715,7 @@ namespace
 
         // a C value: copied, or adopted
         {
-            const dj_math_value c_value = d_math_value_from_ratio(5, 7);
+            const d_math_value c_value = d_math_value_from_ratio(5, 7);
             const dm::value    copied(c_value);
             const dm::value    adopted = dm::value::adopt(c_value);
 
@@ -722,9 +736,10 @@ namespace
     // d_tests_queries
     //   _made's queries, against value.h's on _x.
     template<typename Made>
-    bool d_tests_queries(
-        const Made&          _made,
-        const dj_math_value& _x
+    bool
+    d_tests_queries(
+        const Made&         _made,
+        const d_math_value& _x
     )
     {
         return ( (_made.kind() == _x.kind) &&
@@ -740,27 +755,28 @@ namespace
     //   _made's to() overloads, against value.h's on _x: the same answer,
     // and the same value written, or the sentinel left.
     template<typename Made>
-    bool d_tests_conversions(
-        const Made&          _made,
-        const dj_math_value& _x
+    bool
+    d_tests_conversions(
+        const Made&         _made,
+        const d_math_value& _x
     )
     {
         const float       f_sentinel  = -123.0f;
         const double      d_sentinel  = -123.0;
         const long double ld_sentinel = -123.0L;
-        const dj_rational  r_sentinel  = { -123, 7 };
+        const d_rational  r_sentinel  = { -123, 7 };
 
         float              f       = f_sentinel;
         double             d       = d_sentinel;
         long double        ld      = ld_sentinel;
-        dj_rational         r       = r_sentinel;
-        dj_math_imax        n       = -123;
+        d_rational         r       = r_sentinel;
+        d_math_imax        n       = -123;
         bool               truth   = false;
-        dj_math_value_error error   = D_MATH_VALUE_ERROR_RANGE;
+        d_math_value_error error   = D_MATH_VALUE_ERROR_RANGE;
         float              want_f  = f_sentinel;
         double             want_d  = d_sentinel;
         long double        want_ld = ld_sentinel;
-        dj_rational         want_r  = r_sentinel;
+        d_rational         want_r  = r_sentinel;
 
         const bool to_f  = _made.to(f);
         const bool to_d  = _made.to(d);
@@ -793,7 +809,7 @@ namespace
                  (to_b == c_b) &&
                  (truth == (c_b ? (_x.code != 0) : false)) &&
                  (to_e == c_e) &&
-                 (error == (c_e ? static_cast<dj_math_value_error>(_x.code)
+                 (error == (c_e ? static_cast<d_math_value_error>(_x.code)
                                 : D_MATH_VALUE_ERROR_RANGE)) );
     }
 
@@ -801,8 +817,9 @@ namespace
     //   _x alone: as a value (and an inline value, where inline), its
     // queries and conversions; -x, +x and |x| as value.h's; and the box
     // held as before.
-    void d_tests_one(
-        const dj_math_value& _x
+    void
+    d_tests_one(
+        const d_math_value& _x
     )
     {
         const bool        boxed   = (_x.kind == D_MATH_VALUE_BOXED);
@@ -812,8 +829,8 @@ namespace
         {
             const dm::value  x(_x);
             dm::inline_value as_inline;
-            dj_math_value     neg = d_math_value_neg(_x);
-            dj_math_value     abs_x = d_math_value_abs(_x);
+            d_math_value     neg = d_math_value_neg(_x);
+            d_math_value     abs_x = d_math_value_abs(_x);
 
             // a copy of a C value: the same box, held once more
             D_TESTS_EXPECT( (d_tests_identical(x.c_value(), _x)) &&
@@ -872,10 +889,11 @@ namespace
 
     // d_tests_c_op
     //   _a _op _b by value.h: 0 +, 1 -, 2 *, 3 /.
-    dj_math_value d_tests_c_op(
-        int                  _op,
-        const dj_math_value& _a,
-        const dj_math_value& _b
+    d_math_value
+    d_tests_c_op(
+        int                 _op,
+        const d_math_value& _a,
+        const d_math_value& _b
     )
     {
         // by operation
@@ -895,10 +913,11 @@ namespace
         }
     }
 
-    // dj_tests_op, d_tests_op_assign
+    // d_tests_op, d_tests_op_assign
     //   _a _op _b by the face, as an operator, and as its assignment form.
     template<typename Value>
-    Value dj_tests_op(
+    Value
+    d_tests_op(
         int          _op,
         const Value& _a,
         const Value& _b
@@ -922,7 +941,8 @@ namespace
     }
 
     template<typename Value>
-    Value d_tests_op_assign(
+    Value
+    d_tests_op_assign(
         int          _op,
         const Value& _a,
         const Value& _b
@@ -956,10 +976,11 @@ namespace
     // d_tests_comparisons
     //   _a against _b by the face, as value.h orders them.
     template<typename Value>
-    bool d_tests_comparisons(
-        const Value&        _a,
-        const Value&        _b,
-        dj_math_value_order _order
+    bool
+    d_tests_comparisons(
+        const Value&       _a,
+        const Value&       _b,
+        d_math_value_order _order
     )
     {
         bool ok = ( (_a.compare(_b) == _order) &&
@@ -995,9 +1016,10 @@ namespace
     //   _a and _b: each operation, as an operator and its assignment form,
     // against value.h's, for value and, both inline, inline_value; the
     // comparisons; and the operands' boxes held as before, nothing left.
-    void d_tests_two(
-        const dj_math_value& _a,
-        const dj_math_value& _b
+    void
+    d_tests_two(
+        const d_math_value& _a,
+        const d_math_value& _b
     )
     {
         const bool        a_boxed   = (_a.kind == D_MATH_VALUE_BOXED);
@@ -1014,10 +1036,10 @@ namespace
 
             for (op = 0; op < 4; ++op)
             {
-                dj_math_value want = d_tests_c_op(op, _a, _b);
+                d_math_value want = d_tests_c_op(op, _a, _b);
 
                 {
-                    const dm::value made        = dj_tests_op(op, a, b);
+                    const dm::value made        = d_tests_op(op, a, b);
                     const dm::value made_assign = d_tests_op_assign(op, a, b);
 
                     D_TESTS_EXPECT(d_tests_same(made.c_value(), want),
@@ -1033,7 +1055,7 @@ namespace
                     const dm::inline_value ia = d_tests_inline_of(_a);
                     const dm::inline_value ib = d_tests_inline_of(_b);
 
-                    D_TESTS_EXPECT( (d_tests_same(dj_tests_op(op, ia,
+                    D_TESTS_EXPECT( (d_tests_same(d_tests_op(op, ia,
                                                              ib).c_value(),
                                                   want)) &&
                                     (d_tests_same(d_tests_op_assign(op, ia,
@@ -1073,7 +1095,8 @@ namespace
 
     // d_tests_pairs
     //   every operand alone, and every ordered pair.
-    void d_tests_pairs()
+    void
+    d_tests_pairs()
     {
         int i = 0;
         int j = 0;
@@ -1101,14 +1124,16 @@ namespace
 
     // d_tests_type
     //   which face type a result is: 1 a value, 2 an inline value.
-    int d_tests_type(
+    int
+    d_tests_type(
         const dm::value&
     )
     {
         return 1;
     }
 
-    int d_tests_type(
+    int
+    d_tests_type(
         const dm::inline_value&
     )
     {
@@ -1119,12 +1144,13 @@ namespace
     //   an int, a double or an inline value meeting a value or an inline
     // value: converted to it, which type each result is, and value.h's
     // result.
-    void d_tests_mixed()
+    void
+    d_tests_mixed()
     {
         const dm::value        v     = dm::value::ratio(1, 2);
         const dm::inline_value iv    = 3;
-        const dj_math_value     half  = d_math_value_from_ratio(1, 2);
-        const dj_math_value     three = d_math_value_from_int(3);
+        const d_math_value     half  = d_math_value_from_ratio(1, 2);
+        const d_math_value     three = d_math_value_from_int(3);
 
         // the types
         D_TESTS_EXPECT( (d_tests_type(iv + 1) == 2) &&
@@ -1142,14 +1168,14 @@ namespace
 
         // the results
         {
-            dj_math_value sum   = d_math_value_add(half, three);
-            dj_math_value diff  = d_math_value_sub(d_math_value_from_int(1),
+            d_math_value sum   = d_math_value_add(half, three);
+            d_math_value diff  = d_math_value_sub(d_math_value_from_int(1),
                                                   half);
-            dj_math_value prod  = d_math_value_mul(d_math_value_from_d(2.0),
+            d_math_value prod  = d_math_value_mul(d_math_value_from_d(2.0),
                                                   half);
-            dj_math_value quot  = d_math_value_div(three,
+            d_math_value quot  = d_math_value_div(three,
                                                   d_math_value_from_int(4));
-            dj_math_value large = d_math_value_add(
+            d_math_value large = d_math_value_add(
                 d_math_value_from_uint(D_MATH_UMAX_MAX), half);
 
             D_TESTS_EXPECT( (d_tests_same((v + iv).c_value(), sum)) &&
@@ -1197,7 +1223,8 @@ namespace
     // d_tests_calls
     //   whether the counted table was called _retains and _releases times
     // since _since_retains and _since_releases.
-    bool d_tests_calls(
+    bool
+    d_tests_calls(
         long _since_retains,
         long _since_releases,
         long _retains,
@@ -1211,7 +1238,8 @@ namespace
     // d_tests_copies
     //   a copy retains once; a value destroyed releases once; adopt neither;
     // a C value copied retains once; detach hands the hold over.
-    void d_tests_copies()
+    void
+    d_tests_copies()
     {
         long retains  = g_retains;
         long releases = g_releases;
@@ -1247,7 +1275,7 @@ namespace
         releases = g_releases;
         {
             dm::value    held(five.c_value());
-            dj_math_value detached = d_math_value_none();
+            d_math_value detached = d_math_value_none();
 
             D_TESTS_EXPECT( (d_tests_calls(retains, releases, 1, 0)) &&
                             (d_tests_holders(five.c_value()) == 2u),
@@ -1277,7 +1305,8 @@ namespace
     // d_tests_assignments
     //   copy assignment: the new value retained, the old released, and a
     // value assigned itself held as before.
-    void d_tests_assignments()
+    void
+    d_tests_assignments()
     {
         const dm::value five =
             dm::value::adopt(d_tests_counted_value("5"));
@@ -1385,7 +1414,8 @@ namespace
     // d_tests_moves_and_swaps
     //   from C++11 a move neither retains nor releases, and leaves none;
     // swap does neither at any level.
-    void d_tests_moves_and_swaps()
+    void
+    d_tests_moves_and_swaps()
     {
         const dm::value five =
             dm::value::adopt(d_tests_counted_value("5"));
@@ -1476,7 +1506,8 @@ namespace
     // d_tests_containers
     //   a std::vector of values holds each box once per element, gives each
     // back as it goes, and from C++11 moves rather than copies as it grows.
-    void d_tests_containers()
+    void
+    d_tests_containers()
     {
         const dm::value five =
             dm::value::adopt(d_tests_counted_value("5"));
@@ -1522,7 +1553,8 @@ namespace
     // d_tests_operations_hold
     //   an operation leaves its operands' holders as they were, and its
     // result is a box of its own, given back when it is destroyed.
-    void d_tests_operations_hold()
+    void
+    d_tests_operations_hold()
     {
         const dm::value five =
             dm::value::adopt(d_tests_counted_value("5"));
@@ -1554,14 +1586,15 @@ namespace
     // d_tests_refused
     //   where the kind has no storage for a result: a memory error, as
     // value.h's own, and nothing left; a copy needs none.
-    void d_tests_refused()
+    void
+    d_tests_refused()
     {
         const dm::value big =
             dm::value::adopt(d_tests_wide_value("18446744073709551617"));
         const long      live = g_live;
 
         {
-            dj_math_value want = d_math_value_none();
+            d_math_value want = d_math_value_none();
 
             g_refuse_next = true;
             want          = d_math_value_add(big.c_value(),
@@ -1601,7 +1634,8 @@ namespace
 
     // d_tests_ownership
     //   ownership, each part above.
-    void d_tests_ownership()
+    void
+    d_tests_ownership()
     {
         d_tests_copies();
         d_tests_assignments();
@@ -1623,16 +1657,16 @@ namespace
 
     // d_tests_ce_sum
     //   1/3 + 1/6.
-    constexpr
-    dm::inline_value d_tests_ce_sum()
+    constexpr dm::inline_value
+    d_tests_ce_sum()
     {
         return dm::inline_value::ratio(1, 3) + dm::inline_value::ratio(1, 6);
     }
 
     // d_tests_ce_assign
     //   2, times 0.5, less 3, in place: the double -2.
-    constexpr
-    dm::inline_value d_tests_ce_assign()
+    constexpr dm::inline_value
+    d_tests_ce_assign()
     {
         dm::inline_value x = 2;
 
@@ -1643,27 +1677,27 @@ namespace
     }
 
     // d_tests_ce_past
-    //   dj_math_imax's greatest, plus 1: G2's long double.
-    constexpr
-    dm::inline_value d_tests_ce_past()
+    //   d_math_imax's greatest, plus 1: G2's long double.
+    constexpr dm::inline_value
+    d_tests_ce_past()
     {
         return dm::inline_value(D_MATH_IMAX_MAX) + 1;
     }
 
     // d_tests_ce_whole
-    //   6/3's dj_math_imax.
-    constexpr
-    dj_math_imax d_tests_ce_whole()
+    //   6/3's d_math_imax.
+    constexpr d_math_imax
+    d_tests_ce_whole()
     {
-        dj_math_imax whole = 0;
+        d_math_imax whole = 0;
 
         return (dm::inline_value::ratio(6, 3).to(whole)) ? whole : -1;
     }
 
     // d_tests_ce_unsigned
-    //   dj_math_umax's greatest: G2's long double.
-    constexpr
-    dm::inline_value d_tests_ce_unsigned()
+    //   d_math_umax's greatest: G2's long double.
+    constexpr dm::inline_value
+    d_tests_ce_unsigned()
     {
         return dm::inline_value(D_MATH_UMAX_MAX);
     }
@@ -1683,11 +1717,11 @@ static_assert( (d_tests_ce_assign().kind() == D_MATH_VALUE_DOUBLE) &&
                "the assignment forms in a constant expression");
 static_assert( (d_tests_ce_past().kind() == D_MATH_VALUE_LONG_DOUBLE) &&
                (d_tests_ce_past().flags() == D_MATH_VALUE_FLAG_INEXACT),
-               "past dj_math_imax, G2's flagged long double");
+               "past d_math_imax, G2's flagged long double");
 static_assert(d_tests_ce_whole() == 2, "to() in a constant expression");
 static_assert( (d_tests_ce_unsigned().kind() == D_MATH_VALUE_LONG_DOUBLE) &&
                (d_tests_ce_unsigned().flags() == D_MATH_VALUE_FLAG_INEXACT),
-               "an unsigned past dj_math_imax, G2's flagged long double");
+               "an unsigned past d_math_imax, G2's flagged long double");
 static_assert( (dm::inline_value(1) < dm::inline_value(1.5)) &&
                (abs(dm::inline_value(-3)) == 3) &&
                ((-dm::inline_value::ratio(1, 2)).compare(0) ==
@@ -1709,8 +1743,8 @@ namespace
     // d_tests_ce_value
     //   a value's copies, moves, swap and assignment form, as a constant
     // expression: 3/2.
-    constexpr
-    dm::value d_tests_ce_value()
+    constexpr dm::value
+    d_tests_ce_value()
     {
         dm::value x = 1;
         dm::value y = x;
@@ -1726,11 +1760,11 @@ namespace
 
     // d_tests_ce_detach
     //   a value detached: its C value, and none left.
-    constexpr
-    bool d_tests_ce_detach()
+    constexpr bool
+    d_tests_ce_detach()
     {
         dm::value          x       = 7;
-        const dj_math_value held    = x.detach();
+        const d_math_value held    = x.detach();
         dm::inline_value   inlined;
 
         return ( (held.kind == D_MATH_VALUE_INTEGER) &&
@@ -1782,8 +1816,8 @@ static_assert( (std::is_trivially_destructible<dm::inline_value>::value) &&
 static_assert( (std::is_convertible<int, dm::value>::value) &&
                (std::is_convertible<dm::inline_value, dm::value>::value) &&
                (!std::is_convertible<dm::value, dm::inline_value>::value) &&
-               (!std::is_convertible<dj_math_value, dm::value>::value) &&
-               (std::is_constructible<dm::value, dj_math_value>::value),
+               (!std::is_convertible<d_math_value, dm::value>::value) &&
+               (std::is_constructible<dm::value, d_math_value>::value),
                "the conversions, implicit and explicit (C++11)");
 #endif
 
@@ -1791,7 +1825,8 @@ namespace
 {
     // d_tests_constant_evaluation
     //   the constant expressions, at run time.
-    void d_tests_constant_evaluation()
+    void
+    d_tests_constant_evaluation()
     {
 #if ( D_ENV_LANG_IS_CPP14_OR_HIGHER &&                                        \
       !D_QUAL_CONSTEXPR_IS_STRIPPED )
@@ -1819,7 +1854,8 @@ namespace
 }  // namespace
 
 
-int main()
+int
+main()
 {
     g_counted         = *d_math_value_wide_kind();
     g_counted.retain  = d_tests_counted_retain;

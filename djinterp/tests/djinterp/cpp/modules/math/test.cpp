@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/math/test.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.03
 *******************************************************************************/
 // std
 #include <array>
@@ -80,7 +80,7 @@ int main()
     constexpr auto f2 =
           constant(2.0)
         * exp(-r2 / (constant(2.0) * squared(constant(1.25))))
-        * sin( dot(value(vec3{0.2, 0.7, -0.4}), p)
+        * sin( dot(constant(vec3{0.2, 0.7, -0.4}), p)
                - constant(0.75) * t
                + constant(PI_OVER_6) )
         + sqrt(squared(x) + squared(y)) / (constant(1.0) + abs(z));

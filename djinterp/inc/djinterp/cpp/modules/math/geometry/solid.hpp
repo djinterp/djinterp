@@ -51,23 +51,23 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 #include "./geometry_common.hpp"                  // is_surface
 #include "./ray.hpp"                              // internal::ray_isect
 #include "./surface.hpp"                          // the surfaces
 // re_std
-#include "../../../../../re_std/cpp/array/array.hpp"        // re_std::array
+#include "../../../../../re_std/cpp/array/array.hpp"  // re_std::array
 // std and re_std, from C++11 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <array>                              // std::array
     #include <tuple>                              // std::tuple, std::get
     #include "../../../../../re_std/cpp/utility/integer_sequence.hpp"       // index_
-                                                                  // sequence
+                                                                            // sequence
     #include "../../../../../re_std/cpp/utility/make_integer_sequence.hpp"  // make_
-                                                                  // index_
-                                                                  // sequence
+                                                                            // index_
+                                                                            // sequence
 #endif
 
 
@@ -82,8 +82,8 @@ NS_INTERNAL
     // _v1, _v2) ahead of it (Moller-Trumbore, epsilon 1e-9): the boundary
     // crossing a containment count adds up.
     template<typename T>
-    D_CONSTEXPR_CPP14
-    bool solid_ray_hits(
+    D_CONSTEXPR_CPP14 bool
+    solid_ray_hits(
         const linalg::vector<T, 3>& _origin,
         const linalg::vector<T, 3>& _v0,
         const linalg::vector<T, 3>& _v1,
@@ -112,7 +112,8 @@ NS_INTERNAL
     template<std::size_t Samples,
              typename    System,
              typename    Surface>
-    std::size_t solid_surface_hits(
+    std::size_t
+    solid_surface_hits(
         const Surface&                     _surf,
         const typename System::point_type& _origin
     )
@@ -242,10 +243,8 @@ struct triangle_mesh
     // contains
     //   whether _p lies inside: the +x ray from it crosses the boundary an
     // odd number of times.
-    D_CONSTEXPR_CPP14
-    bool contains(
-        const point_type& _p
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    contains(const point_type& _p) const D_NOEXCEPT
     {
         const point_type p    = System::to_cartesian(_p);
         std::size_t      hits = 0;
@@ -265,8 +264,8 @@ struct triangle_mesh
 
     // closed_form_surface_area
     //   the sum of the faces' areas, |(v1 - v0) x (v2 - v0)| / 2 each.
-    D_CONSTEXPR_CPP14
-    value_type closed_form_surface_area() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    closed_form_surface_area() const D_NOEXCEPT
     {
         value_type total = static_cast<value_type>(0);
 
@@ -288,8 +287,8 @@ struct triangle_mesh
 
     // closed_form_volume
     //   |Σ v0 · (v1 x v2)| / 6, by the divergence theorem.
-    D_CONSTEXPR_CPP14
-    value_type closed_form_volume() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    closed_form_volume() const D_NOEXCEPT
     {
         value_type sum = static_cast<value_type>(0);
 
@@ -313,8 +312,8 @@ struct triangle_mesh
     // closed_form_centroid
     //   the volume-weighted centre of the faces' tetrahedra from the origin;
     // the first vertex for a mesh of no volume.
-    D_CONSTEXPR_CPP14
-    point_type closed_form_centroid() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 point_type
+    closed_form_centroid() const D_NOEXCEPT
     {
         point_type cx_acc;
         value_type volume_sum = static_cast<value_type>(0);
@@ -400,7 +399,8 @@ struct parametric_volume
         : m_boundary(_b)
     {}
 
-    const boundary_type& boundary() const D_NOEXCEPT
+    const boundary_type&
+    boundary() const D_NOEXCEPT
     {
         return m_boundary;
     }
@@ -410,18 +410,16 @@ struct parametric_volume
     // sampled as Samples x Samples quads, are odd (Samples 32 by default;
     // contains<N>(p) for another).
     template<std::size_t Samples>
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return ((internal::solid_surface_hits<Samples, coordinate_system>(
                      m_boundary, coordinate_system::to_cartesian(_p)) % 2)
                 == 1);
     }
 
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return contains<32>(_p);
     }
@@ -554,7 +552,8 @@ struct shape_from_surfaces
         : m_surfaces(_s...)
     {}
 
-    const surfaces_type& surfaces() const noexcept
+    const surfaces_type&
+    surfaces() const noexcept
     {
         return m_surfaces;
     }
@@ -563,9 +562,8 @@ struct shape_from_surfaces
     //   whether _p lies inside: the +x ray's crossings of every surface,
     // each sampled as SamplesPerSurface squared quads, are odd in sum.
     template<std::size_t SamplesPerSurface>
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return ((count_hits<SamplesPerSurface>(
                      coordinate_system::to_cartesian(_p),
@@ -573,9 +571,8 @@ struct shape_from_surfaces
                  2) == 1);
     }
 
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return contains<16>(_p);
     }
@@ -585,8 +582,9 @@ private:
     //   the crossings of each surface, in order, summed.
     template<std::size_t SPS,
              std::size_t... Is>
-    std::size_t count_hits(
-        const point_type& _origin,
+    std::size_t
+    count_hits(
+        const point_type&             _origin,
         re_std::index_sequence<Is...>
     ) const
     {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          t_measure_3d_face.cpp
+* djinterp [cpp/math]                                      t_measure_3d_face.cpp
 *
 *   Tests for geometry/measure_3d.hpp, at every level from C++98, per family:
 * a flat bilinear patch's area by the iterated Simpson rule against a
@@ -9,7 +9,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/geometry/t_measure_3d_face.cpp -o t -lm
+*         tests/djinterp/math/geometry/t_measure_3d_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_measure_3d_face.cpp
@@ -30,7 +30,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -56,11 +57,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -89,10 +87,8 @@ namespace
         T parameter_min_v() const { return T(0); }
         T parameter_max_v() const { return dm::two_pi_of<T>(); }
 
-        point_type at(
-            T _u,
-            T _v
-        ) const
+        point_type
+        at(T _u, T _v) const
         {
             return point_type(m_r * std::sin(_u) * std::cos(_v),
                               m_r * std::sin(_u) * std::sin(_v),
@@ -101,9 +97,8 @@ namespace
     };
 
     template<typename T>
-    void d_tests_family(
-        T _tol
-    )
+    void
+    d_tests_family(T _tol)
     {
         typedef dm::cartesian<3, T>      car;
         typedef typename car::point_type p3;
@@ -155,7 +150,8 @@ namespace
 }  // namespace
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-5f);
     d_tests_family<double>(1e-13);

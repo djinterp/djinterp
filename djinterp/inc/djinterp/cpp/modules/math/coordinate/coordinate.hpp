@@ -71,7 +71,7 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 #include "./cartesian.hpp"                        // cartesian
 #include "./cylindrical.hpp"                      // cylindrical
@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 #include "./spherical.hpp"                        // spherical
 // re_std
 #include "../../../../../re_std/cpp/type_traits/integral_constant.hpp"  // integral_
-                                                              // constant
+                                                                        // constant
 #include "../../../../../re_std/cpp/type_traits/is_same.hpp"            // is_same
 
 
@@ -119,52 +119,48 @@ struct coord_point
         : data(_p)
     {}
 
-    D_CONSTEXPR
-    value_type operator[](
-        std::size_t _i
-    ) const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    operator[](std::size_t _i) const D_NOEXCEPT
     {
         return data[_i];
     }
 
-    D_CONSTEXPR_CPP14
-    value_type& operator[](
-        std::size_t _i
-    ) D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type&
+    operator[](std::size_t _i) D_NOEXCEPT
     {
         return data[_i];
     }
 
-    D_CONSTEXPR
-    const point_type& raw() const D_NOEXCEPT
+    D_CONSTEXPR const point_type&
+    raw() const D_NOEXCEPT
     {
         return data;
     }
 
-    D_CONSTEXPR_CPP14
-    point_type& raw() D_NOEXCEPT
+    D_CONSTEXPR_CPP14 point_type&
+    raw() D_NOEXCEPT
     {
         return data;
     }
 
     // scale_factors, jacobian
     //   the system's, at this point.
-    D_CONSTEXPR_CPP14
-    vector_type scale_factors() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector_type
+    scale_factors() const D_NOEXCEPT
     {
         return System::scale_factors(data);
     }
 
-    D_CONSTEXPR_CPP14
-    value_type jacobian() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    jacobian() const D_NOEXCEPT
     {
         return System::jacobian(data);
     }
 
     // to_cartesian
     //   this point in the Cartesian system of its dimension.
-    D_CONSTEXPR_CPP14
-    coord_point<cartesian<System::dimension, value_type> > to_cartesian() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 coord_point<cartesian<System::dimension, value_type> >
+    to_cartesian() const D_NOEXCEPT
     {
         return coord_point<cartesian<System::dimension, value_type> >(
             System::to_cartesian(data));
@@ -207,10 +203,8 @@ NS_INTERNAL
     {
         typedef typename System::point_type point_type;
 
-        static D_CONSTEXPR
-        point_type convert(
-            const point_type& _point
-        ) D_NOEXCEPT
+        static D_CONSTEXPR point_type
+        convert(const point_type& _point) D_NOEXCEPT
         {
             return _point;
         }
@@ -222,10 +216,8 @@ NS_INTERNAL
         typedef typename cylindrical<Type>::point_type from_point;
         typedef typename spherical<Type>::point_type   to_point;
 
-        static D_CONSTEXPR_CPP20
-        to_point convert(
-            const from_point& _point
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP20 to_point
+        convert(const from_point& _point) D_NOEXCEPT
         {
             return cylindrical<Type>::to_spherical(_point);
         }
@@ -237,10 +229,8 @@ NS_INTERNAL
         typedef typename spherical<Type>::point_type   from_point;
         typedef typename cylindrical<Type>::point_type to_point;
 
-        static D_CONSTEXPR_CPP20
-        to_point convert(
-            const from_point& _point
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP20 to_point
+        convert(const from_point& _point) D_NOEXCEPT
         {
             return spherical<Type>::to_cylindrical(_point);
         }
@@ -267,18 +257,14 @@ struct coord_convert
                     "coord_convert: dimension mismatch between coordinate "
                     "systems.");
 
-    static D_CONSTEXPR_CPP14
-    to_point convert(
-        const from_point& _point
-    ) D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 to_point
+    convert(const from_point& _point) D_NOEXCEPT
     {
         return internal::convert_impl<From, To>::convert(_point);
     }
 
-    static D_CONSTEXPR_CPP14
-    coord_point<To> convert(
-        const coord_point<From>& _point
-    ) D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 coord_point<To>
+    convert(const coord_point<From>& _point) D_NOEXCEPT
     {
         return coord_point<To>(
             internal::convert_impl<From, To>::convert(_point.raw()));
@@ -293,20 +279,16 @@ struct coord_convert
 // coord_point; named for a raw point).
 template<typename To,
          typename From>
-D_CONSTEXPR_CPP14
-coord_point<To> coord_cast(
-    const coord_point<From>& _point
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 coord_point<To>
+coord_cast(const coord_point<From>& _point) D_NOEXCEPT
 {
     return coord_convert<From, To>::convert(_point);
 }
 
 template<typename To,
          typename From>
-D_CONSTEXPR_CPP14
-typename To::point_type coord_cast(
-    const typename From::point_type& _point
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 typename To::point_type
+coord_cast(const typename From::point_type& _point) D_NOEXCEPT
 {
     return coord_convert<From, To>::convert(_point);
 }
@@ -338,8 +320,8 @@ struct differential
 
     // line_element_squared
     //   ds² = Σ (h_i dq_i)².
-    static D_CONSTEXPR_CPP14
-    value_type line_element_squared(
+    static D_CONSTEXPR_CPP14 value_type
+    line_element_squared(
         const point_type&  _point,
         const vector_type& _dq
     ) D_NOEXCEPT
@@ -349,8 +331,8 @@ struct differential
 
     // line_element
     //   ds, the root of line_element_squared.
-    static D_CONSTEXPR_CPP14
-    value_type line_element(
+    static D_CONSTEXPR_CPP14 value_type
+    line_element(
         const point_type&  _point,
         const vector_type& _dq
     ) D_NOEXCEPT
@@ -360,18 +342,16 @@ struct differential
 
     // volume_element
     //   dV / (dq_1 ... dq_n) = J.
-    static D_CONSTEXPR_CPP14
-    value_type volume_element(
-        const point_type& _point
-    ) D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 value_type
+    volume_element(const point_type& _point) D_NOEXCEPT
     {
         return System::jacobian(_point);
     }
 
     // surface_element
     //   the product of every scale factor but _omit_axis's.
-    static D_CONSTEXPR_CPP14
-    value_type surface_element(
+    static D_CONSTEXPR_CPP14 value_type
+    surface_element(
         const point_type& _point,
         std::size_t       _omit_axis
     ) D_NOEXCEPT
@@ -392,8 +372,8 @@ struct differential
 
     // gradient_component
     //   (∇f)_axis = (∂f/∂q_axis) / h_axis; 0 where h_axis is.
-    static D_CONSTEXPR_CPP14
-    value_type gradient_component(
+    static D_CONSTEXPR_CPP14 value_type
+    gradient_component(
         const point_type& _point,
         std::size_t       _axis,
         value_type        _partial_derivative
@@ -408,10 +388,8 @@ struct differential
 
     // divergence_prefactor
     //   1 / J; 0 where J is.
-    static D_CONSTEXPR_CPP14
-    value_type divergence_prefactor(
-        const point_type& _point
-    ) D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 value_type
+    divergence_prefactor(const point_type& _point) D_NOEXCEPT
     {
         const value_type j = System::jacobian(_point);
 
@@ -422,10 +400,8 @@ struct differential
 
     // laplacian_scale
     //   J / h_i² per axis; 0 where h_i is.
-    static D_CONSTEXPR_CPP14
-    vector_type laplacian_scale(
-        const point_type& _point
-    ) D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 vector_type
+    laplacian_scale(const point_type& _point) D_NOEXCEPT
     {
         const vector_type h = System::scale_factors(_point);
         const value_type  j = System::jacobian(_point);
@@ -473,16 +449,10 @@ NS_INTERNAL
         {};
 
         template<typename U>
-        static
-        yes test(
-            probe<U>*
-        );
+        static yes test(probe<U>*);
 
         template<typename U>
-        static
-        no test(
-            ...
-        );
+        static no test(...);
 
     public:
         enum

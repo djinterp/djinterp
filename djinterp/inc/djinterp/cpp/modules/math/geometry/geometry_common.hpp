@@ -75,14 +75,14 @@ TABLE OF CONTENTS
 #include <cstddef>                                // std::size_t
 #include <limits>                                 // std::numeric_limits
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
-#include "../../../meta/trait_detect.hpp"       // D_TYPE_TRAIT_HAS_STATIC_
+#include "../../../djinterp.hpp"                  // framework root
+#include "../../../meta/trait_detect.hpp"         // D_TYPE_TRAIT_HAS_STATIC_
                                                   // MEMBER
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 // re_std
 #include "../../../../../re_std/cpp/type_traits/integral_constant.hpp"  // integral_
-                                                              // constant
+                                                                        // constant
 // std, from C++11 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <array>                              // std::array
@@ -180,16 +180,11 @@ NS_INTERNAL
     {
     private:
         template<typename U>
-        static
-        geometry_probe_yes test(
-            geometry_probe_size<sizeof( (static_cast<const U*>(0)->closed_form_surface_area(), 0))>*
-        );
+        static geometry_probe_yes test(geometry_probe_size<sizeof(
+            (static_cast<const U*>(0)->closed_form_surface_area(), 0))>*);
 
         template<typename U>
-        static
-        geometry_probe_no test(
-            ...
-        );
+        static geometry_probe_no test(...);
 
     public:
         enum
@@ -203,16 +198,11 @@ NS_INTERNAL
     {
     private:
         template<typename U>
-        static
-        geometry_probe_yes test(
-            geometry_probe_size<sizeof( (static_cast<const U*>(0)->closed_form_length(), 0))>*
-        );
+        static geometry_probe_yes test(geometry_probe_size<sizeof(
+            (static_cast<const U*>(0)->closed_form_length(), 0))>*);
 
         template<typename U>
-        static
-        geometry_probe_no test(
-            ...
-        );
+        static geometry_probe_no test(...);
 
     public:
         enum
@@ -226,16 +216,11 @@ NS_INTERNAL
     {
     private:
         template<typename U>
-        static
-        geometry_probe_yes test(
-            geometry_probe_size<sizeof( (static_cast<const U*>(0)->closed_form_perimeter(), 0))>*
-        );
+        static geometry_probe_yes test(geometry_probe_size<sizeof(
+            (static_cast<const U*>(0)->closed_form_perimeter(), 0))>*);
 
         template<typename U>
-        static
-        geometry_probe_no test(
-            ...
-        );
+        static geometry_probe_no test(...);
 
     public:
         enum
@@ -249,16 +234,11 @@ NS_INTERNAL
     {
     private:
         template<typename U>
-        static
-        geometry_probe_yes test(
-            geometry_probe_size<sizeof( (static_cast<const U*>(0)->closed_form_area(), 0))>*
-        );
+        static geometry_probe_yes test(geometry_probe_size<sizeof(
+            (static_cast<const U*>(0)->closed_form_area(), 0))>*);
 
         template<typename U>
-        static
-        geometry_probe_no test(
-            ...
-        );
+        static geometry_probe_no test(...);
 
     public:
         enum
@@ -272,16 +252,11 @@ NS_INTERNAL
     {
     private:
         template<typename U>
-        static
-        geometry_probe_yes test(
-            geometry_probe_size<sizeof( (static_cast<const U*>(0)->closed_form_volume(), 0))>*
-        );
+        static geometry_probe_yes test(geometry_probe_size<sizeof(
+            (static_cast<const U*>(0)->closed_form_volume(), 0))>*);
 
         template<typename U>
-        static
-        geometry_probe_no test(
-            ...
-        );
+        static geometry_probe_no test(...);
 
     public:
         enum
@@ -295,16 +270,11 @@ NS_INTERNAL
     {
     private:
         template<typename U>
-        static
-        geometry_probe_yes test(
-            geometry_probe_size<sizeof( (static_cast<const U*>(0)->closed_form_centroid(), 0))>*
-        );
+        static geometry_probe_yes test(geometry_probe_size<sizeof(
+            (static_cast<const U*>(0)->closed_form_centroid(), 0))>*);
 
         template<typename U>
-        static
-        geometry_probe_no test(
-            ...
-        );
+        static geometry_probe_no test(...);
 
     public:
         enum
@@ -395,8 +365,8 @@ D_INLINE_VAR D_CONSTEXPR_VAR bool has_closed_form_centroid_v =
 //   function: the point a fraction _t of the way from _a to _b along the
 // straight (Cartesian) line, a + t (b - a), in _a and _b's system.
 template<typename System>
-D_CONSTEXPR_CPP14
-typename System::point_type cartesian_lerp(
+D_CONSTEXPR_CPP14 typename System::point_type
+cartesian_lerp(
     const typename System::point_type& _a,
     const typename System::point_type& _b,
     typename System::value_type        _t
@@ -419,8 +389,8 @@ typename System::point_type cartesian_lerp(
 // cartesian_distance
 //   function: the straight-line distance between two points of a system.
 template<typename System>
-D_CONSTEXPR_CPP14
-typename System::value_type cartesian_distance(
+D_CONSTEXPR_CPP14 typename System::value_type
+cartesian_distance(
     const typename System::point_type& _a,
     const typename System::point_type& _b
 ) D_NOEXCEPT
@@ -435,8 +405,8 @@ typename System::value_type cartesian_distance(
 // template does not convert its arguments, so the overloads are spelled).
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type cartesian_dot(
+D_CONSTEXPR_CPP14 Type
+cartesian_dot(
     const linalg::vector<Type, N>& _a,
     const linalg::vector<Type, N>& _b
 ) D_NOEXCEPT
@@ -445,8 +415,8 @@ Type cartesian_dot(
 }
 
 template<typename Type>
-D_CONSTEXPR_CPP14
-linalg::vector<Type, 3> cartesian_cross_3(
+D_CONSTEXPR_CPP14 linalg::vector<Type, 3>
+cartesian_cross_3(
     const linalg::vector<Type, 3>& _a,
     const linalg::vector<Type, 3>& _b
 ) D_NOEXCEPT
@@ -455,8 +425,8 @@ linalg::vector<Type, 3> cartesian_cross_3(
 }
 
 template<typename Type>
-D_CONSTEXPR_CPP14
-linalg::vector<Type, 3> cartesian_sub_3(
+D_CONSTEXPR_CPP14 linalg::vector<Type, 3>
+cartesian_sub_3(
     const linalg::vector<Type, 3>& _a,
     const linalg::vector<Type, 3>& _b
 ) D_NOEXCEPT
@@ -466,8 +436,8 @@ linalg::vector<Type, 3> cartesian_sub_3(
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type cartesian_dot(
+D_CONSTEXPR_CPP14 Type
+cartesian_dot(
     const std::array<Type, N>& _a,
     const std::array<Type, N>& _b
 ) D_NOEXCEPT
@@ -476,8 +446,8 @@ Type cartesian_dot(
 }
 
 template<typename Type>
-D_CONSTEXPR_CPP14
-linalg::vector<Type, 3> cartesian_cross_3(
+D_CONSTEXPR_CPP14 linalg::vector<Type, 3>
+cartesian_cross_3(
     const std::array<Type, 3>& _a,
     const std::array<Type, 3>& _b
 ) D_NOEXCEPT
@@ -486,8 +456,8 @@ linalg::vector<Type, 3> cartesian_cross_3(
 }
 
 template<typename Type>
-D_CONSTEXPR_CPP14
-linalg::vector<Type, 3> cartesian_sub_3(
+D_CONSTEXPR_CPP14 linalg::vector<Type, 3>
+cartesian_sub_3(
     const std::array<Type, 3>& _a,
     const std::array<Type, 3>& _b
 ) D_NOEXCEPT
@@ -639,7 +609,8 @@ NS_INTERNAL
     // (at least 2, rounded up to even).
     template<typename Func,
              typename ValueType>
-    ValueType simpson_composite(
+    ValueType
+    simpson_composite(
         Func        _f,
         ValueType   _a,
         ValueType   _b,
@@ -670,7 +641,8 @@ NS_END  // internal
 // with _n intervals (default 64).
 template<typename Func,
          typename ValueType>
-ValueType integrate_simpson(
+ValueType
+integrate_simpson(
     Func        _f,
     ValueType   _a,
     ValueType   _b,
@@ -689,22 +661,22 @@ ValueType integrate_simpson(
 // pi_of, two_pi_of, half_pi_of
 //   function: π, 2π and π/2 in Value, at every level.
 template<typename Value>
-D_CONSTEXPR
-Value pi_of() D_NOEXCEPT
+D_CONSTEXPR Value
+pi_of() D_NOEXCEPT
 {
     return static_cast<Value>(3.14159265358979323846L);
 }
 
 template<typename Value>
-D_CONSTEXPR
-Value two_pi_of() D_NOEXCEPT
+D_CONSTEXPR Value
+two_pi_of() D_NOEXCEPT
 {
     return static_cast<Value>(2) * pi_of<Value>();
 }
 
 template<typename Value>
-D_CONSTEXPR
-Value half_pi_of() D_NOEXCEPT
+D_CONSTEXPR Value
+half_pi_of() D_NOEXCEPT
 {
     return pi_of<Value>() / static_cast<Value>(2);
 }

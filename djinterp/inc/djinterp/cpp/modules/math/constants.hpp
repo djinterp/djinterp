@@ -60,8 +60,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                       // std::size_t
 // djinterp
-#include "../../djinterp.hpp"               // framework root
-#include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_HAS_STATIC_MEMBER
+#include "../../djinterp.hpp"            // framework root
+#include "../../meta/trait_detect.hpp"    // D_TYPE_TRAIT_HAS_STATIC_MEMBER
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
     #include "./expression.hpp"          // expression_base
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -69,10 +69,10 @@ TABLE OF CONTENTS
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"                // re_std::intmax_t
 #include "../../../../re_std/cpp/type_traits/enable_if.hpp"          // enable_if
 #include "../../../../re_std/cpp/type_traits/integral_constant.hpp"  // integral_
-                                                           // constant
+                                                                     // constant
 #include "../../../../re_std/cpp/type_traits/is_arithmetic.hpp"      // is_arithmetic
 #include "../../../../re_std/cpp/type_traits/is_floating_point.hpp"  // is_floating_
-                                                           // point
+                                                                     // point
 #include "../../../../re_std/cpp/type_traits/is_integral.hpp"        // is_integral
 
 
@@ -414,18 +414,16 @@ struct number_base
 
     // max_digit
     //   query: the largest digit, radix - 1.
-    static D_CONSTEXPR
-    value_type max_digit() D_NOEXCEPT
+    static D_CONSTEXPR value_type
+    max_digit() D_NOEXCEPT
     {
         return static_cast<value_type>(Radix - 1);
     }
 
     // is_valid_digit
     //   query: whether _digit is a digit of this base, 0 to radix - 1.
-    static D_CONSTEXPR
-    bool is_valid_digit(
-        value_type _digit
-    ) D_NOEXCEPT
+    static D_CONSTEXPR bool
+    is_valid_digit(value_type _digit) D_NOEXCEPT
     {
         return ( (_digit >= 0) &&
                  (static_cast<std::size_t>(_digit) < Radix) );
@@ -517,12 +515,8 @@ NS_INTERNAL
     //   function: declared only, for sizeof: a pointer to an object or a
     // function answers yes, a pointer to member no.
     template<typename Pointee>
-    constants_probe_yes constants_static_probe(
-        Pointee*
-    );
-    constants_probe_no constants_static_probe(
-        ...
-    );
+    constants_probe_yes constants_static_probe(Pointee*);
+    constants_probe_no  constants_static_probe(...);
 
     // constants_names_radix ... constants_names_denominator
     //   helper: whether Type names a radix, numerator or denominator.

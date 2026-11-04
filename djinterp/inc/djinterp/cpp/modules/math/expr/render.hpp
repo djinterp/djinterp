@@ -33,14 +33,19 @@
 * decimal number, and in brackets where its literal is anything else. One a
 * fold made, with no literal, is written exactly where it is exact: an
 * integer, 42, or a fraction, (1/3), in brackets where negative, (-5); the
-* least dj_math_imax, whose magnitude no literal of the family has, as
+* least d_math_imax, whose magnitude no literal of the family has, as
 * (-9223372036854775807 - 1) with 64-bit words. A float, double or long double
 * is written as the shortest decimal that reads back to it in its type, 0.1,
 * (-2.5), 1e+30. What has no literal of the language is written by a name: inf
 * and nan, true and false, none, and an error as domain_error, pole_error,
 * range_error, invalid_error or memory_error. A matrix a fold made is written
 * as a literal of its elements, each as a number with no literal is:
-* [1, (1/2); (-3), 0.25].
+* [1, (1/2); (-3), 0.25]. A complex number is written as a sum, in brackets,
+* as a negative number is, wherever it stands: its real part, then + or -,
+* then its imaginary part's magnitude times im, (3 + 4 * im), (1/2 - 3/4 *
+* im), (1.5 - 0 * im), each part as above but bare, so that it reads back
+* with implied multiplication off, as it is by default (S196), or on
+* (S330).
 *   THE ROUND TRIP. expr_parse reads the text of any term it made back as
 * that term, every literal kept: roadmap Phase 2's round trip. A number a
 * fold made reads back as the same number, a term of its value: exactly,
@@ -48,18 +53,22 @@
 * type, where it is a float, a double or a long double; and a boolean as
 * the constant true or false, whose value it is; a matrix as a literal,
 * whose value is the matrix where its elements are exact, and of the same
-* numbers in their type otherwise.
+* numbers in their type otherwise; and a complex number as a sum, whose
+* value is the number where its parts are exact, and in its type
+* otherwise, its signed zeros among them, as a fold in math::complex<T>
+* computes it (step 23's second part).
 *   STEPS. Step 14 (2b) filled expr_render for numbers, names and the
 * arithmetic, step 15 (2c) for calls and the factorial, step 16 (2d) for
 * relations, logic and piecewise, step 19 (3a) for the literals and matrix
-* values, and step 20 (3b) for indexing and the transpose.
+* values, step 20 (3b) for indexing and the transpose, and step 23 (3e)
+* for complex numbers.
 * A term made by default, which is no term, is written as the empty string.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/render.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -103,6 +112,7 @@ TABLE OF CONTENTS
 #include "../../parse/expression/expression_render.hpp"  // render
 #include "../math_common.hpp"                             // NS_MATH
 #include "../value.hpp"                                   // value
+#include "./complex.hpp"                                  // expr_is_complex
 #include "./matrix.hpp"                                   // expr_is_matrix
 #include "./operator.hpp"                                 // expr_signature
 #include "./term.hpp"                                     // expr_term
@@ -126,14 +136,14 @@ NS_INTERNAL
     // Whole numbers
     //   function: a whole number's decimal digits, a - before a negative
     // one's, by the ASCII digits, so that no locale changes them.
-    inline
-    std::string expr_digits(
-        dj_math_imax _n
+    inline std::string
+    expr_digits(
+        d_math_imax _n
     )
     {
-        dj_math_umax left   = ( (_n < 0)
-                                   ? (dj_math_umax(0) - dj_math_umax(_n))
-                                   : dj_math_umax(_n) );
+        d_math_umax left   = ( (_n < 0)
+                                   ? (d_math_umax(0) - d_math_umax(_n))
+                                   : d_math_umax(_n) );
         std::string digits;
 
         // the digits, the last first
@@ -150,15 +160,15 @@ NS_INTERNAL
 
     // expr_signed_text
     //   function: a whole number's text that reads back as it: its digits,
-    // a - before a negative one's; for the least dj_math_imax, whose
+    // a - before a negative one's; for the least d_math_imax, whose
     // magnitude is past the family, the next one less 1.
-    inline
-    std::string expr_signed_text(
-        dj_math_imax _n
+    inline std::string
+    expr_signed_text(
+        d_math_imax _n
     )
     {
         // the least: its magnitude no literal of the family
-        if (_n == std::numeric_limits<dj_math_imax>::min())
+        if (_n == std::numeric_limits<d_math_imax>::min())
         {
             return expr_digits(_n + 1) + " - 1";
         }
@@ -173,7 +183,8 @@ NS_INTERNAL
     // significant digits, as std::ostream writes them in the classic
     // locale, which every reader of the text shares.
     template<typename Type>
-    std::string expr_shortest(
+    std::string
+    expr_shortest(
         Type _x
     )
     {
@@ -206,7 +217,8 @@ NS_INTERNAL
     // reads back, in brackets where negative, -0 among them; inf and nan by
     // name.
     template<typename Type>
-    std::string expr_floating_text(
+    std::string
+    expr_floating_text(
         Type _x
     )
     {
@@ -236,12 +248,12 @@ NS_INTERNAL
 
     // expr_error_text
     //   function: an error by name.
-    inline
-    std::string expr_error_text(
+    inline std::string
+    expr_error_text(
         const value& _x
     )
     {
-        dj_math_value_error code = D_MATH_VALUE_ERROR_DOMAIN;
+        d_math_value_error code = D_MATH_VALUE_ERROR_DOMAIN;
 
         static_cast<void>(_x.to(code));
 
@@ -263,12 +275,12 @@ NS_INTERNAL
     // expr_boxed_text
     //   function: a boxed number as its kind writes it, in brackets where
     // negative.
-    inline
-    std::string expr_boxed_text(
+    inline std::string
+    expr_boxed_text(
         const value& _x
     )
     {
-        const dj_math_value& held   = _x.c_value();
+        const d_math_value& held   = _x.c_value();
         const std::size_t   length = held.type->text(D_NULLPTR, 0, held);
         std::string         text(length + 1, '\0');
 
@@ -285,15 +297,137 @@ NS_INTERNAL
         return text;
     }
 
-    // expr_number_text
-    //   function: a number with no literal, by kind; a matrix as a literal
-    // of its elements, each by kind.
-    inline
-    std::string expr_number_text(
+    // expr_complex_render
+    //   function: a complex number as a sum, in brackets, (3 + 4 * im), as
+    // the banner says: its real part, then + or -, then its imaginary part's
+    // magnitude times im; a part that is the least d_math_imax, or a
+    // fraction of it, whose magnitude no literal of the family has, is
+    // added as it is, in brackets, + ((-9223372036854775807 - 1)/3) * im.
+
+    // expr_signed_floating
+    //   function: a float, a double or a long double as a sum's operand: the
+    // shortest decimal that reads back, a - before a negative one, -0 among
+    // them; inf, -inf and nan by name.
+    template<typename Type>
+    std::string
+    expr_signed_floating(
+        Type _x
+    )
+    {
+        // what has no literal
+        if (std::isnan(_x))
+        {
+            return "nan";
+        }
+
+        if (std::isinf(_x))
+        {
+            return ( (_x < Type(0)) ? "-inf" : "inf" );
+        }
+
+        return ( (std::signbit(_x)) ? ("-" + expr_shortest(-_x))
+                                    : expr_shortest(_x) );
+    }
+
+    // expr_complex_part_render
+    //   function: a part as a sum's operand, with no bracket of its own: an
+    // integer as expr_signed_text writes it; a fraction n/d, a - before a
+    // negative one, its least numerator in brackets; a boxed part its
+    // kind's text; a floating-point one by expr_signed_floating.
+    inline std::string
+    expr_complex_part_render(
         const value& _x
     )
     {
-        dj_rational  exact = { 0, 1 };
+        d_rational  exact = { 0, 1 };
+        float       f     = 0.0f;
+        double      d     = 0.0;
+        long double ld    = 0.0L;
+
+        // an exact number of the family
+        if (_x.to(exact))
+        {
+            if (exact.den == 1)
+            {
+                return expr_signed_text(exact.num);
+            }
+
+            return ( (exact.num == std::numeric_limits<d_math_imax>::min())
+                         ? ("(" + expr_signed_text(exact.num) + ")/" +
+                            expr_digits(exact.den))
+                         : (expr_digits(exact.num) + "/" +
+                            expr_digits(exact.den)) );
+        }
+
+        // by kind: the floating-point numbers, then a boxed one's text
+        switch (_x.kind())
+        {
+            case D_MATH_VALUE_FLOAT:
+                static_cast<void>(_x.to(f));
+
+                return expr_signed_floating(f);
+
+            case D_MATH_VALUE_DOUBLE:
+                static_cast<void>(_x.to(d));
+
+                return expr_signed_floating(d);
+
+            case D_MATH_VALUE_LONG_DOUBLE:
+                static_cast<void>(_x.to(ld));
+
+                return expr_signed_floating(ld);
+
+            default:
+                break;
+        }
+
+        const d_math_value& held   = _x.c_value();
+        const std::size_t   length = held.type->text(D_NULLPTR, 0, held);
+        std::string         text(length + 1, '\0');
+
+        static_cast<void>(held.type->text(&text[0], length + 1, held));
+        text.resize(length);
+
+        return text;
+    }
+
+    inline std::string
+    expr_complex_render(
+        const value& _x
+    )
+    {
+        const expr_complex_parts parts = expr_complex_parts_of(_x.c_value());
+        const std::string        re    = expr_complex_part_render(parts.re);
+        const std::string        im    = expr_complex_part_render(parts.im);
+
+        // a negative part of a literal: its magnitude subtracted
+        if ( (!im.empty()) &&
+             (im[0] == '-') &&
+             (im.find(' ') == std::string::npos) &&
+             (im.find('(') == std::string::npos) )
+        {
+            return "(" + re + " - " + im.substr(1) + " * im)";
+        }
+
+        // a part of no literal's magnitude, added as it is
+        if ( (!im.empty()) &&
+             (im[0] == '-') )
+        {
+            return "(" + re + " + (" + im + ") * im)";
+        }
+
+        return "(" + re + " + " + im + " * im)";
+    }
+
+    // expr_number_text
+    //   function: a number with no literal, by kind; a matrix as a literal
+    // of its elements, each by kind; a complex number as a sum.
+    inline std::string
+    expr_number_text(
+        const value& _x
+    )
+    {
+        d_rational  exact = { 0, 1 };
         bool        truth = false;
         float       f     = 0.0f;
         double      d     = 0.0;
@@ -353,6 +487,12 @@ NS_INTERNAL
                 break;
         }
 
+        // a complex number: a sum, in brackets
+        if (expr_is_complex(_x))
+        {
+            return expr_complex_render(_x);
+        }
+
         // a boxed number: its kind's text
         if (!_x.to(exact))
         {
@@ -368,7 +508,7 @@ NS_INTERNAL
         }
 
         // a fraction, in brackets; the least numerator in its own
-        if (exact.num == std::numeric_limits<dj_math_imax>::min())
+        if (exact.num == std::numeric_limits<d_math_imax>::min())
         {
             return "((" + expr_signed_text(exact.num) + ")/" +
                    expr_digits(exact.den) + ")";
@@ -383,8 +523,8 @@ NS_INTERNAL
     //   function: an atom as text: a variable's or a constant's name; a
     // number's literal, bare where it is one unsigned decimal number and in
     // brackets otherwise; a number with no literal by expr_number_text.
-    inline
-    std::string expr_atom_text(
+    inline std::string
+    expr_atom_text(
         const expr_atom& _atom
     )
     {
@@ -436,7 +576,8 @@ NS_INTERNAL
         // describe
         //   a call's descriptor, spelled as its function; any other
         // operator's, the table's.
-        D_NODISCARD const operator_descriptor* describe(
+        D_NODISCARD const operator_descriptor*
+        describe(
             const expr_op& _op
         ) const
         {
@@ -462,8 +603,8 @@ NS_INTERNAL
     // branches: its arguments two by two, each pair the arguments of a call
     // of when, and an odd last one the argument of a call of otherwise; the
     // term the renderer writes, which parse.hpp reads back as _term.
-    inline
-    expr_term expr_branches(
+    inline expr_term
+    expr_branches(
         const expr_term& _term
     )
     {
@@ -522,8 +663,8 @@ NS_INTERNAL
     // vector; and an index's operand, in round brackets where it is no
     // leaf, call, literal, index or postfix operator's, then its indices
     // between square brackets, apart by commas. Each node is visited once.
-    inline
-    expr_term expr_literals(
+    inline expr_term
+    expr_literals(
         const expr_term&             _term,
         const expr_render_signature& _signature
     );
@@ -531,8 +672,8 @@ NS_INTERNAL
     // expr_element_text
     //   function: one element of a literal as text: its literals written
     // first, then the whole rendered.
-    inline
-    std::string expr_element_text(
+    inline std::string
+    expr_element_text(
         const expr_term&             _element,
         const expr_render_signature& _signature
     )
@@ -546,8 +687,8 @@ NS_INTERNAL
 
     // expr_row_text
     //   function: a row's elements as text, apart by commas.
-    inline
-    std::string expr_row_text(
+    inline std::string
+    expr_row_text(
         const std::vector<expr_term>& _elements,
         const expr_render_signature&  _signature
     )
@@ -569,8 +710,8 @@ NS_INTERNAL
     // call, a literal, an index, or a postfix operator's, the factorial's or
     // the transpose's, each of which reads back as one operand before the
     // indices; any other is wrapped in round brackets.
-    inline
-    bool expr_bare_operand(
+    inline bool
+    expr_bare_operand(
         const expr_term& _operand
     )
     {
@@ -591,8 +732,8 @@ NS_INTERNAL
                  (kind == expr_op_kind::transpose) );
     }
 
-    inline
-    expr_term expr_literals(
+    inline expr_term
+    expr_literals(
         const expr_term&             _term,
         const expr_render_signature& _signature
     )
@@ -678,7 +819,8 @@ NS_END  // internal
  * @return the text, which expr_parse reads back as _term where expr_parse
  *         made _term; the empty string for a term made by default.
  */
-D_NODISCARD inline std::string expr_render(
+D_NODISCARD inline std::string
+expr_render(
     const expr_term& _term
 )
 {

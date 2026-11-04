@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                       t_quat.c
+* djinterp [c/math]                                                     t_quat.c
 *
 *   Conformance harness for c/math/quat.h, all three families: the algebra
 * against the quaternion headers' former formulas written out here in the
@@ -12,7 +12,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_quat.c -o t_quat -lm
+*        tests/djinterp/c/math/t_quat.c -o t_quat -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_quat.c
@@ -31,8 +31,8 @@ static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 1234567u;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -60,8 +60,8 @@ void d_tests_expect(
 // a value in [-4, 4) with a random fraction, stored, so that it is a
 // double: clang on x87 hands inlined code the quotient's 64-bit register
 // value otherwise
-static
-double d_tests_random(void)
+static double
+d_tests_random(void)
 {
     volatile double value = 0.0;
 

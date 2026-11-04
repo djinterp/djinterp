@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 t_elementary.c
+* djinterp [c/math]                                               t_elementary.c
 *
 *   Conformance harness for c/math/elementary.h. sqrt_c must be the C
 * library's sqrt, bit for bit: every float in [1, 4) -- every mantissa the
@@ -28,7 +28,7 @@
 * arguments whose long double result lands on a double's rounding midpoint.
 *
 *   sqrt_settle_digits, the root's last bit settled in digits of 16 bits --
-* sqrt_c's for a double where dj_math_umax has 32 bits -- is called directly,
+* sqrt_c's for a double where d_math_umax has 32 bits -- is called directly,
 * so that every build checks it: the library's root from Newton's root and
 * from a place and two either side, at every sixteenth float in [1, 4), and
 * at 250,000 random doubles there and 50,000 squares and their neighbours;
@@ -48,11 +48,11 @@
 * constant expressions, at huge arguments too, with the bits they have at
 * run time. It needs no 64-bit integer -- its random numbers come from
 * math_tests_random.h, the same in every build -- so that ISO-strict C++98
-* on a 32-bit target, where dj_math_umax has 32 bits, builds it too.
+* on a 32-bit target, where d_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_elementary.c -o t_elementary -lm
+*        tests/djinterp/c/math/t_elementary.c -o t_elementary -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_elementary.c
@@ -99,8 +99,8 @@ static long double (*volatile g_acosl)(long double)       = acosl;
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     long double _value,
@@ -127,11 +127,8 @@ void d_tests_expect(
     d_tests_expect((ok), (what), (long double)(value), __LINE__)
 
 // bit-for-bit, NaN equal to NaN, -0 distinct from +0
-static
-bool d_tests_same_f(
-    float _a,
-    float _b
-)
+static bool
+d_tests_same_f(float _a, float _b)
 {
     uint32_t a = 0u;
     uint32_t b = 0u;
@@ -142,21 +139,15 @@ bool d_tests_same_f(
     return ((a == b) || (isnan(_a) && isnan(_b)));
 }
 
-static
-bool d_tests_same_d(
-    double _a,
-    double _b
-)
+static bool
+d_tests_same_d(double _a, double _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_ld(
-    long double _a,
-    long double _b
-)
+static bool
+d_tests_same_ld(long double _a, long double _b)
 {
     // signbit's value is any nonzero for a negative: glibc's gives 1 for a
     // constant it folds and 512 for a long double at run time
@@ -164,10 +155,8 @@ bool d_tests_same_ld(
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-void d_tests_sqrt_float(
-    bool _exhaustive
-)
+static void
+d_tests_sqrt_float(bool _exhaustive)
 {
     const uint32_t step = _exhaustive ? 1u : 37u;
     uint32_t       bits = 0u;
@@ -200,8 +189,8 @@ void d_tests_sqrt_float(
     return;
 }
 
-static
-void d_tests_sqrt_double(void)
+static void
+d_tests_sqrt_double(void)
 {
     long   i  = 0;
     double p2 = DBL_MIN * DBL_EPSILON;
@@ -253,8 +242,8 @@ void d_tests_sqrt_double(void)
     return;
 }
 
-static
-void d_tests_sqrt_long_double(void)
+static void
+d_tests_sqrt_long_double(void)
 {
     long i = 0;
 
@@ -288,12 +277,8 @@ void d_tests_sqrt_long_double(void)
 // subnormals' spacing below the normal range (the format told by its
 // precision); an infinity or NaN is 0 from its like and 1e30 from anything
 // else
-static
-double d_tests_ulps(
-    long double _got,
-    long double _want,
-    int         _mant
-)
+static double
+d_tests_ulps(long double _got, long double _want, int _mant)
 {
     const int   emin  = (_mant == FLT_MANT_DIG) ? (FLT_MIN_EXP - 1)
                       : (_mant == DBL_MANT_DIG) ? (DBL_MIN_EXP - 1)
@@ -320,10 +305,8 @@ double d_tests_ulps(
 // or every one: the long double library's result rounded to float -- the
 // correctly rounded one wherever long double has eleven bits more than
 // float -- and within an ulp of asinf and acosf; NaN past +-1.
-static
-void d_tests_arcs_float(
-    bool _exhaustive
-)
+static void
+d_tests_arcs_float(bool _exhaustive)
 {
     const uint32_t step = _exhaustive ? 1u : 1009u;
     uint32_t       bits = 0u;
@@ -363,8 +346,8 @@ void d_tests_arcs_float(
 // +-1, where the cathetus sqrt(1 - x^2) is small, and a third from 2^-2
 // down to the least subnormal, either sign; prints how many differ at all,
 // and the largest difference.
-static
-void d_tests_arcs_double(void)
+static void
+d_tests_arcs_double(void)
 {
     double worst_s = 0.0;
     double worst_c = 0.0;
@@ -434,8 +417,8 @@ void d_tests_arcs_double(void)
 // the subnormal; and the arguments whose result, rounded to long double,
 // lies on a double's midpoint. asin_c is checked with x negated too, which
 // negates the result.
-static
-void d_tests_arcs_edges(void)
+static void
+d_tests_arcs_edges(void)
 {
     // x and asin(x), correctly rounded
     static const double sines[][2] = {
@@ -512,8 +495,8 @@ void d_tests_arcs_edges(void)
 //   asin_c within an ulp of asinl and acos_c within two of acosl (glibc's
 // acosl is 1.54 ulps off near 1, where acos_c is within half of one) at
 // half a million arguments, every bit random, drawn as for double.
-static
-void d_tests_arcs_long_double(void)
+static void
+d_tests_arcs_long_double(void)
 {
     // the exponents from 2^-2 to a long double's least subnormal, and to
     // 2^-P
@@ -575,8 +558,8 @@ void d_tests_arcs_long_double(void)
 // +-pi/2 at +-1; acos_c gives pi/2 at the zeros and the subnormals, a zero
 // at 1 and pi at -1. Float and double against pi and pi/2, rounded; long
 // double against asinl and acosl.
-static
-void d_tests_arcs_specials(void)
+static void
+d_tests_arcs_specials(void)
 {
     // for each kind of argument -- 0 a zero, 1 the least subnormal, 2 one,
     // 3 the next value past one, 4 infinity, 5 NaN -- the kinds of asin's
@@ -646,8 +629,8 @@ void d_tests_arcs_specials(void)
 // and two for long double, below 2^20, over small, moderate and large
 // arguments and the multiples of pi/2 the reduction must not lose; the
 // largest error is printed. (d_tests_trig_far goes on from 2^20.)
-static
-void d_tests_trig(void)
+static void
+d_tests_trig(void)
 {
     double worst[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
     long   i        = 0;
@@ -717,10 +700,8 @@ void d_tests_trig(void)
 //   sin_c and cos_c from 2^20 to the largest finite value, every family,
 // within an ulp of sin and cos (two for long double); every float pattern in
 // 2003, the correctly rounded value; and the double edges, exact.
-static
-void d_tests_trig_far(
-    bool _exhaustive
-)
+static void
+d_tests_trig_far(bool _exhaustive)
 {
     // x, sin x, cos x, correctly rounded, from a 400-bit computation (the
     // slice's tools/edge_values.py)
@@ -878,10 +859,8 @@ void d_tests_trig_far(
 // d_tests_newton_f, d_tests_newton_d
 //   the root sqrt_unit's Newton iteration gives _m in [1, 4), stored so that
 // it is a value of the family.
-static
-float d_tests_newton_f(
-    float _m
-)
+static float
+d_tests_newton_f(float _m)
 {
     volatile float root = 0.6f + (0.4f * _m);
     int            i    = 0;
@@ -894,10 +873,8 @@ float d_tests_newton_f(
     return root;
 }
 
-static
-double d_tests_newton_d(
-    double _m
-)
+static double
+d_tests_newton_d(double _m)
 {
     volatile double root = 0.6 + (0.4 * _m);
     int             i    = 0;
@@ -912,8 +889,8 @@ double d_tests_newton_d(
 
 // d_tests_sqrt_digits
 //   sqrt_settle_digits -- the last bit settled in digits of 16 bits, which
-// sqrt_unit takes where two dj_math_umax limbs do not hold (2^(P+1))^2: a
-// double where dj_math_umax has 32 bits -- called directly, so that every
+// sqrt_unit takes where two d_math_umax limbs do not hold (2^(P+1))^2: a
+// double where d_math_umax has 32 bits -- called directly, so that every
 // build checks it: the library's root, bit for bit, settled from Newton's
 // root and from it a place and two either side. For float, every sixteenth
 // float in [1, 4), and every sixty-fourth from the places either side; for
@@ -921,8 +898,8 @@ double d_tests_newton_d(
 // 2) and their neighbours, whose roots lie about half a place from those
 // values. It draws after the earlier checks, so that their draws are as
 // they were.
-static
-void d_tests_sqrt_digits(void)
+static void
+d_tests_sqrt_digits(void)
 {
     float m     = 1.0f;
     long  i     = 0;
@@ -1033,8 +1010,8 @@ void d_tests_sqrt_digits(void)
 // positive finite pattern in 4093; for double and long double, 500,000 and
 // 200,000 random positive values, every exponent. It draws last, so that
 // the earlier draws are as they were.
-static
-void d_tests_plain_roots(void)
+static void
+d_tests_plain_roots(void)
 {
     uint32_t bits = 0u;
     long     i    = 0;
@@ -1082,11 +1059,8 @@ void d_tests_plain_roots(void)
 // d_tests_moved_f, d_tests_moved_d
 //   _root moved _places places, up where _places is above 0 and down where it
 // is below, stored so that it is a value of the family.
-static
-float d_tests_moved_f(
-    float _root,
-    int   _places
-)
+static float
+d_tests_moved_f(float _root, int _places)
 {
     volatile float moved = _root;
     int            i     = 0;
@@ -1099,11 +1073,8 @@ float d_tests_moved_f(
     return moved;
 }
 
-static
-double d_tests_moved_d(
-    double _root,
-    int    _places
-)
+static double
+d_tests_moved_d(double _root, int _places)
 {
     volatile double moved = _root;
     int             i     = 0;
@@ -1120,10 +1091,8 @@ double d_tests_moved_d(
 //   whether sqrt_settle_digits gives the library's root of _m from that root
 // moved 0 to 4 places either way: the whole reach of its loops, four steps
 // up and four down.
-static
-bool d_tests_reach_f(
-    float _m
-)
+static bool
+d_tests_reach_f(float _m)
 {
     volatile float stored = g_sqrtf(_m);
     const float    root   = stored;
@@ -1143,10 +1112,8 @@ bool d_tests_reach_f(
     return all;
 }
 
-static
-bool d_tests_reach_d(
-    double _m
-)
+static bool
+d_tests_reach_d(double _m)
 {
     volatile double stored = g_sqrt(_m);
     const double    root   = stored;
@@ -1175,8 +1142,8 @@ bool d_tests_reach_d(
 // it, 2 and the value below it, 2.25, the value below 4, and starts of 2 and
 // past it, which the settle takes as the largest root below 2. It draws
 // last, so that the earlier draws are as they were.
-static
-void d_tests_sqrt_reach(void)
+static void
+d_tests_sqrt_reach(void)
 {
     const float  edges_f[6]  = { 1.0f, 1.0000001f, 1.9999999f, 2.0f, 2.25f,
                                  3.9999998f };
@@ -1238,8 +1205,8 @@ void d_tests_sqrt_reach(void)
 
 // d_tests_overloads
 //   compiled as C++: one name for every family, chosen by argument type.
-static
-void d_tests_overloads(void)
+static void
+d_tests_overloads(void)
 {
     D_TESTS_EXPECT( (d_tests_same_f(d_math_sqrt_c(2.0f),
                                     d_math_f_sqrt_c(2.0f))) &&
@@ -1324,7 +1291,7 @@ static_assert(d_math_asin_c(0.5f) > (float)0.5235f,
               "the C++ overloads of asin, float");
 
 // and the last bit of a root settled in digits of 16 bits, which a double
-// takes where dj_math_umax has 32 bits: from a place either side
+// takes where d_math_umax has 32 bits: from a place either side
 static constexpr double      g_csettle_d  =
     d_internal_math_d_sqrt_settle_digits(2.0, 1.414213562373095);
 static constexpr float       g_csettle_f  =
@@ -1344,8 +1311,8 @@ static_assert(d_internal_math_f_sqrt_settle_digits(3.0f, 1.7320509f) ==
 // d_tests_constant_evaluation
 //   the constants are the run time's results, bit for bit: the arguments
 // are read through volatiles, so the calls below are not folded.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     volatile float       fmax  = FLT_MAX;
     volatile double      e22   = 1e22;
@@ -1399,10 +1366,8 @@ void d_tests_constant_evaluation(void)
 
 #endif  // C++14
 
-int main(
-    int    _argc,
-    char** _argv
-)
+int
+main(int _argc, char** _argv)
 {
     const bool exhaustive = (_argc > 1) &&
                             (strcmp(_argv[1], "exhaustive") == 0);

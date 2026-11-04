@@ -11,14 +11,14 @@
 * In the language each is a call that binds a variable of its own, as
 * sum(f, k, a, b), whose shape in the function table (function.hpp) this step
 * decides; and infinite series, with their convergence, are its to add.
-*   STEPS. Step 24 (4c) fills every entry. Until then each answers
+*   STEPS. Step 27 (4c) fills every entry. Until then each answers
 * expr_status::not_yet.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/series.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 /*
@@ -47,10 +47,7 @@ TABLE OF CONTENTS
 // std
 #include <string>  // std::string
 // djinterp
-#include "../../../../c/modules/math/math_common.h"  // dj_math_imax
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
+#include "../../../../c/modules/math/math_common.h"  // d_math_imax
 #include "../math_common.hpp"           // NS_MATH
 #include "./evaluate.hpp"               // expr_bindings
 #include "./expr_common.hpp"            // expr_result, expr_floating
@@ -74,7 +71,7 @@ NS_MATH
  * @brief The sum of a term over an index from one integer to another, in
  *        float, double or long double.
  *
- * @note Until step 24 (4c) a stub: it answers expr_status::not_yet.
+ * @note Until step 27 (4c) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the term summed.
  * @param[in] _index     the index variable's name.
@@ -85,11 +82,12 @@ NS_MATH
  * @return the sum, 0 for no term; or an error the typed fold gives.
  */
 template<typename Type>
-D_NODISCARD expr_result<Type> expr_sum(
+D_NODISCARD expr_result<Type>
+expr_sum(
     const expr_term&     _term,
     const std::string&   _index,
-    dj_math_imax         _from,
-    dj_math_imax         _to,
+    d_math_imax          _from,
+    d_math_imax          _to,
     const expr_bindings& _bindings = expr_bindings()
 )
 {
@@ -103,7 +101,7 @@ D_NODISCARD expr_result<Type> expr_sum(
     static_cast<void>(_bindings);
 
     return internal::expr_not_yet<Type>(
-        "expr_sum<Type>: not yet (step 24, 4c)");
+        "expr_sum<Type>: not yet (step 27, 4c)");
 }
 
 // 1.1.2
@@ -112,7 +110,7 @@ D_NODISCARD expr_result<Type> expr_sum(
  * @brief The product of a term over an index from one integer to another,
  *        in float, double or long double.
  *
- * @note Until step 24 (4c) a stub: it answers expr_status::not_yet.
+ * @note Until step 27 (4c) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the term multiplied.
  * @param[in] _index     the index variable's name.
@@ -123,11 +121,12 @@ D_NODISCARD expr_result<Type> expr_sum(
  * @return the product, 1 for no term; or an error the typed fold gives.
  */
 template<typename Type>
-D_NODISCARD expr_result<Type> expr_product(
+D_NODISCARD expr_result<Type>
+expr_product(
     const expr_term&     _term,
     const std::string&   _index,
-    dj_math_imax         _from,
-    dj_math_imax         _to,
+    d_math_imax          _from,
+    d_math_imax          _to,
     const expr_bindings& _bindings = expr_bindings()
 )
 {
@@ -142,7 +141,7 @@ D_NODISCARD expr_result<Type> expr_product(
     static_cast<void>(_bindings);
 
     return internal::expr_not_yet<Type>(
-        "expr_product<Type>: not yet (step 24, 4c)");
+        "expr_product<Type>: not yet (step 27, 4c)");
 }
 
 // 1.1.3
@@ -151,7 +150,7 @@ D_NODISCARD expr_result<Type> expr_product(
  * @brief The limit of a term as a variable nears a point, numerically, in
  *        float, double or long double.
  *
- * @note Until step 24 (4c) a stub: it answers expr_status::not_yet.
+ * @note Until step 27 (4c) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the term.
  * @param[in] _variable  the variable.
@@ -161,7 +160,8 @@ D_NODISCARD expr_result<Type> expr_product(
  *         or an error the typed fold gives.
  */
 template<typename Type>
-D_NODISCARD expr_result<Type> expr_limit(
+D_NODISCARD expr_result<Type>
+expr_limit(
     const expr_term&     _term,
     const std::string&   _variable,
     Type                 _point,
@@ -178,7 +178,7 @@ D_NODISCARD expr_result<Type> expr_limit(
     static_cast<void>(_bindings);
 
     return internal::expr_not_yet<Type>(
-        "expr_limit<Type>: not yet (step 24, 4c)");
+        "expr_limit<Type>: not yet (step 27, 4c)");
 }
 
 
@@ -194,7 +194,7 @@ D_NODISCARD expr_result<Type> expr_limit(
 /**
  * @brief The Taylor polynomial of a term in a variable about a point.
  *
- * @note Until step 24 (4c) a stub: it answers expr_status::not_yet.
+ * @note Until step 27 (4c) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the term.
  * @param[in] _variable  the variable.
@@ -202,7 +202,8 @@ D_NODISCARD expr_result<Type> expr_limit(
  * @param[in] _order     the polynomial's degree.
  * @return the polynomial, simplified; or an error the derivative gives.
  */
-D_NODISCARD inline expr_result<expr_term> expr_taylor(
+D_NODISCARD inline expr_result<expr_term>
+expr_taylor(
     const expr_term&   _term,
     const std::string& _variable,
     const expr_term&   _point,
@@ -215,7 +216,7 @@ D_NODISCARD inline expr_result<expr_term> expr_taylor(
     static_cast<void>(_order);
 
     return internal::expr_not_yet<expr_term>(
-        "expr_taylor: not yet (step 24, 4c)");
+        "expr_taylor: not yet (step 27, 4c)");
 }
 
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   t_interval.c
+* djinterp [c/math]                                                 t_interval.c
 *
 *   Conformance harness for the interval kernels (c/math/interval.h): every
 * kernel of both families checked against a brute-force reference -- the
@@ -12,7 +12,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -Wall -Wextra -Werror -pedantic-errors -Iinc                 \
-*        tests/djinterp/c/modules/math/t_interval.c -o t_interval
+*        tests/djinterp/c/math/t_interval.c -o t_interval
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_interval.c
@@ -37,8 +37,8 @@
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_interval_expect(
+static void
+d_tests_interval_expect(
     bool        _ok,
     const char* _what,
     long        _a,
@@ -65,9 +65,9 @@ void d_tests_interval_expect(
 #define D_TESTS_EXPECT(ok, what, a, b)                                        \
     d_tests_interval_expect((ok), (what), (long)(a), (long)(b), __LINE__)
 
-// dj_tests_reference
+// d_tests_reference
 //   an interval's members, found by testing each integer in its bounds.
-struct dj_tests_reference
+struct d_tests_reference
 {
     long   members[D_TESTS_SPAN];
     size_t count;
@@ -75,13 +75,13 @@ struct dj_tests_reference
     long   inclusive_upper;
 };
 
-static
-void d_tests_reference_build(
-    struct dj_tests_reference* _ref,
-    long                       _lower,
-    long                       _upper,
-    unsigned                   _bounds,
-    long                       _step
+static void
+d_tests_reference_build(
+    struct d_tests_reference* _ref,
+    long                      _lower,
+    long                      _upper,
+    unsigned                  _bounds,
+    long                      _step
 )
 {
     long candidate = 0;
@@ -108,10 +108,10 @@ void d_tests_reference_build(
     return;
 }
 
-static
-bool d_tests_reference_has(
-    const struct dj_tests_reference* _ref,
-    long                             _value
+static bool
+d_tests_reference_has(
+    const struct d_tests_reference* _ref,
+    long                            _value
 )
 {
     size_t i = 0u;
@@ -129,8 +129,8 @@ bool d_tests_reference_has(
 
 // d_tests_real_contains
 //   whether the real interval holds _twice_x / 2.
-static
-bool d_tests_real_contains(
+static bool
+d_tests_real_contains(
     long     _lower,
     long     _upper,
     unsigned _bounds,
@@ -147,8 +147,8 @@ bool d_tests_real_contains(
     return (left && right);
 }
 
-static
-bool d_tests_close(
+static bool
+d_tests_close(
     long double _got,
     long double _want
 )
@@ -160,25 +160,25 @@ bool d_tests_close(
 
 // d_tests_interval_one
 //   every single-interval kernel of both families against the reference.
-static
-void d_tests_interval_one(
+static void
+d_tests_interval_one(
     long     _lower,
     long     _upper,
     unsigned _bounds,
     long     _step
 )
 {
-    struct dj_tests_reference     ref;
-    const struct dj_interval_imax iv  = d_interval_imax_make(_lower,
+    struct d_tests_reference     ref;
+    const struct d_interval_imax iv  = d_interval_imax_make(_lower,
                                                             _upper,
                                                             _bounds,
                                                             _step);
     const long                   off = 64;   // shifts the window to >= 0
-    const struct dj_interval_umax uv  = d_interval_umax_make(
-                                           (dj_math_umax)(_lower + off),
-                                           (dj_math_umax)(_upper + off),
+    const struct d_interval_umax uv  = d_interval_umax_make(
+                                           (d_math_umax)(_lower + off),
+                                           (d_math_umax)(_upper + off),
                                            _bounds,
-                                           (dj_math_umax)_step);
+                                           (d_math_umax)_step);
     long   value = 0;
     size_t i     = 0u;
 
@@ -247,7 +247,7 @@ void d_tests_interval_one(
                            "imax empty clamp", _lower, value);
             D_TESTS_EXPECT( (long)d_interval_umax_clamp(
                                 uv,
-                                (dj_math_umax)(value + off)) - off == want,
+                                (d_math_umax)(value + off)) - off == want,
                             "umax empty clamp", _lower, value);
         }
     }
@@ -255,7 +255,7 @@ void d_tests_interval_one(
     // every value in a window around the bounds
     for (value = D_TESTS_LOW - 4; value <= D_TESTS_HIGH + 4; ++value)
     {
-        const dj_math_umax uvalue    = (dj_math_umax)(value + off);
+        const d_math_umax uvalue    = (d_math_umax)(value + off);
         const bool        member    = d_tests_reference_has(&ref, value);
         const bool        in_bounds =
             d_tests_real_contains(_lower, _upper, _bounds, 2 * value);
@@ -428,8 +428,8 @@ void d_tests_interval_one(
 // d_tests_interval_pair
 //   both overlap kernels of both families, for one pair, against the
 // reference: integer ranges for overlaps, the real line for the other.
-static
-void d_tests_interval_pair(
+static void
+d_tests_interval_pair(
     long     _al,
     long     _ah,
     unsigned _ab,
@@ -438,8 +438,8 @@ void d_tests_interval_pair(
     unsigned _bb
 )
 {
-    struct dj_tests_reference ra;
-    struct dj_tests_reference rb;
+    struct d_tests_reference ra;
+    struct d_tests_reference rb;
     bool                     real  = false;
     long                     twice = 0;
 
@@ -461,16 +461,16 @@ void d_tests_interval_pair(
         }
     }
 
-    const struct dj_interval_imax ia = d_interval_imax_make(_al, _ah, _ab, 0);
-    const struct dj_interval_imax ib = d_interval_imax_make(_bl, _bh, _bb, 0);
-    const struct dj_interval_umax ua =
-        d_interval_umax_make((dj_math_umax)(_al + 8),
-                             (dj_math_umax)(_ah + 8),
+    const struct d_interval_imax ia = d_interval_imax_make(_al, _ah, _ab, 0);
+    const struct d_interval_imax ib = d_interval_imax_make(_bl, _bh, _bb, 0);
+    const struct d_interval_umax ua =
+        d_interval_umax_make((d_math_umax)(_al + 8),
+                             (d_math_umax)(_ah + 8),
                              _ab,
                              0u);
-    const struct dj_interval_umax ub =
-        d_interval_umax_make((dj_math_umax)(_bl + 8),
-                             (dj_math_umax)(_bh + 8),
+    const struct d_interval_umax ub =
+        d_interval_umax_make((d_math_umax)(_bl + 8),
+                             (d_math_umax)(_bh + 8),
                              _bb,
                              0u);
     const long tag_a = (_al * 100) + _ah;
@@ -491,8 +491,8 @@ void d_tests_interval_pair(
 // d_tests_interval_pairs
 //   both overlap kernels, for every pair of continuous intervals with bounds
 // in a smaller window.
-static
-void d_tests_interval_pairs(void)
+static void
+d_tests_interval_pairs(void)
 {
     long     lows[128];
     long     highs[128];
@@ -538,10 +538,10 @@ void d_tests_interval_pairs(void)
 // [-4, 4], each bound open or closed, steps 0 to 3, against the reference's
 // member sets; then lattices far apart and wide, where a careless product
 // would overflow.
-static
-void d_tests_interval_intersects(void)
+static void
+d_tests_interval_intersects(void)
 {
-    struct dj_tests_reference refs[1024];
+    struct d_tests_reference refs[1024];
     long                     lows[1024];
     long                     highs[1024];
     unsigned                 kinds[1024];
@@ -579,28 +579,28 @@ void d_tests_interval_intersects(void)
 
     for (a = 0u; a < count; ++a)
     {
-        const struct dj_interval_imax ia = d_interval_imax_make(lows[a],
+        const struct d_interval_imax ia = d_interval_imax_make(lows[a],
                                                                highs[a],
                                                                kinds[a],
                                                                steps[a]);
-        const struct dj_interval_umax ua =
-            d_interval_umax_make((dj_math_umax)(lows[a] + 8),
-                                 (dj_math_umax)(highs[a] + 8),
+        const struct d_interval_umax ua =
+            d_interval_umax_make((d_math_umax)(lows[a] + 8),
+                                 (d_math_umax)(highs[a] + 8),
                                  kinds[a],
-                                 (dj_math_umax)steps[a]);
+                                 (d_math_umax)steps[a]);
         size_t b = 0u;
 
         for (b = 0u; b < count; ++b)
         {
-            const struct dj_interval_imax ib = d_interval_imax_make(lows[b],
+            const struct d_interval_imax ib = d_interval_imax_make(lows[b],
                                                                    highs[b],
                                                                    kinds[b],
                                                                    steps[b]);
-            const struct dj_interval_umax ub =
-                d_interval_umax_make((dj_math_umax)(lows[b] + 8),
-                                     (dj_math_umax)(highs[b] + 8),
+            const struct d_interval_umax ub =
+                d_interval_umax_make((d_math_umax)(lows[b] + 8),
+                                     (d_math_umax)(highs[b] + 8),
                                      kinds[b],
-                                     (dj_math_umax)steps[b]);
+                                     (d_math_umax)steps[b]);
             bool   shared = false;
             size_t i      = 0u;
 
@@ -637,9 +637,9 @@ void d_tests_interval_intersects(void)
 
     // across the whole signed family, with steps whose product overflows
     {
-        const dj_math_imax lo  = D_MATH_IMAX_MIN;
-        const dj_math_imax hi  = D_MATH_IMAX_MAX;
-        const dj_math_imax big = (dj_math_imax)(D_MATH_IMAX_MAX / 3);
+        const d_math_imax lo  = D_MATH_IMAX_MIN;
+        const d_math_imax hi  = D_MATH_IMAX_MAX;
+        const d_math_imax big = (d_math_imax)(D_MATH_IMAX_MAX / 3);
 
         D_TESTS_EXPECT(d_interval_imax_intersects(
                            d_interval_imax_make(lo, hi, D_INTERVAL_CLOSED, big),
@@ -668,27 +668,27 @@ void d_tests_interval_intersects(void)
 // inverse against its definition -- and intersects over random lattices
 // with steps up to 60 against brute force: periods the window above never
 // reaches.
-static
-void d_tests_interval_number_theory(void)
+static void
+d_tests_interval_number_theory(void)
 {
     unsigned long state = 12345u;
     long          i     = 0;
 
     for (i = 0; i < 200000; ++i)
     {
-        dj_math_umax a = 0u;
-        dj_math_umax b = 0u;
-        dj_math_umax m = 0u;
+        d_math_umax a = 0u;
+        d_math_umax b = 0u;
+        d_math_umax m = 0u;
 
         // three values below 2^31, so a * b is exact in 64 bits
         state = (state * 1103515245u) + 12345u;
-        a     = (dj_math_umax)((state >> 1) & 0x7FFFFFFFu);
+        a     = (d_math_umax)((state >> 1) & 0x7FFFFFFFu);
         state = (state * 1103515245u) + 12345u;
-        b     = (dj_math_umax)((state >> 1) & 0x7FFFFFFFu);
+        b     = (d_math_umax)((state >> 1) & 0x7FFFFFFFu);
         state = (state * 1103515245u) + 12345u;
-        m     = (dj_math_umax)(((state >> 1) & 0x7FFFFFFFu) | 1u);
+        m     = (d_math_umax)(((state >> 1) & 0x7FFFFFFFu) | 1u);
 
-        if (sizeof(dj_math_umax) >= 8u)
+        if (sizeof(d_math_umax) >= 8u)
         {
             D_TESTS_EXPECT(d_internal_interval_mulmod(a, b, m) == (a * b) % m,
                            "mulmod", (long)a, (long)m);
@@ -697,7 +697,7 @@ void d_tests_interval_number_theory(void)
         // where a and m are coprime, a * inverse = 1 modulo m
         if (d_internal_interval_gcd(a, m) == 1u)
         {
-            const dj_math_umax inv = d_internal_interval_inverse(a, m);
+            const d_math_umax inv = d_internal_interval_inverse(a, m);
 
             D_TESTS_EXPECT( (m == 1u) ||
                             (d_internal_interval_mulmod(a, inv, m) == 1u),
@@ -707,15 +707,15 @@ void d_tests_interval_number_theory(void)
 
     // every small modulus exhaustively: the reduction's boundaries
     {
-        dj_math_umax m = 1u;
+        d_math_umax m = 1u;
 
         for (m = 1u; m <= 64u; ++m)
         {
-            dj_math_umax a = 0u;
+            d_math_umax a = 0u;
 
             for (a = 0u; a < 3u * m; ++a)
             {
-                dj_math_umax b = 0u;
+                d_math_umax b = 0u;
 
                 for (b = 0u; b < 3u * m; ++b)
                 {
@@ -741,19 +741,19 @@ void d_tests_interval_number_theory(void)
 #if defined(__SIZEOF_INT128__)
     for (i = 0; i < 200000; ++i)
     {
-        __extension__ typedef unsigned __int128 dj_tests_u128;
+        __extension__ typedef unsigned __int128 d_tests_u128;
 
-        const dj_math_umax  a     = ((dj_math_umax)rand() << 33) ^
-                                   (dj_math_umax)rand();
-        const dj_math_umax  b     = ((dj_math_umax)rand() << 35) ^
-                                   (dj_math_umax)rand();
-        const dj_math_umax  m     = (((dj_math_umax)rand() << 34) ^
-                                    (dj_math_umax)rand()) | 1u;
-        const dj_tests_u128 exact = ((dj_tests_u128)a * (dj_tests_u128)b) %
-                                   (dj_tests_u128)m;
+        const d_math_umax  a     = ((d_math_umax)rand() << 33) ^
+                                   (d_math_umax)rand();
+        const d_math_umax  b     = ((d_math_umax)rand() << 35) ^
+                                   (d_math_umax)rand();
+        const d_math_umax  m     = (((d_math_umax)rand() << 34) ^
+                                    (d_math_umax)rand()) | 1u;
+        const d_tests_u128 exact = ((d_tests_u128)a * (d_tests_u128)b) %
+                                   (d_tests_u128)m;
 
         D_TESTS_EXPECT(d_internal_interval_mulmod(a, b, m) ==
-                       (dj_math_umax)exact,
+                       (d_math_umax)exact,
                        "mulmod at full width", (long)i, 0);
     }
 #endif  // __SIZEOF_INT128__
@@ -804,25 +804,25 @@ void d_tests_interval_number_theory(void)
 // d_tests_interval_extremes
 //   the families' ends, where a difference taken in the signed type would
 // overflow and a count would not fit.
-static
-void d_tests_interval_extremes(void)
+static void
+d_tests_interval_extremes(void)
 {
-    const dj_math_imax lo = D_MATH_IMAX_MIN;
-    const dj_math_imax hi = D_MATH_IMAX_MAX;
-    const struct dj_interval_imax all =
+    const d_math_imax lo = D_MATH_IMAX_MIN;
+    const d_math_imax hi = D_MATH_IMAX_MAX;
+    const struct d_interval_imax all =
         d_interval_imax_make(lo, hi, D_INTERVAL_CLOSED, 0);
-    const struct dj_interval_imax all_open =
+    const struct d_interval_imax all_open =
         d_interval_imax_make(lo, hi, D_INTERVAL_OPEN, 0);
-    const struct dj_interval_imax wide_step =
+    const struct d_interval_imax wide_step =
         d_interval_imax_make(lo, hi, D_INTERVAL_CLOSED, hi);
-    const struct dj_interval_umax uall =
+    const struct d_interval_umax uall =
         d_interval_umax_make(0u, D_MATH_UMAX_MAX, D_INTERVAL_CLOSED, 0u);
-    const struct dj_interval_umax utop =
+    const struct d_interval_umax utop =
         d_interval_umax_make(D_MATH_UMAX_MAX - 2u, D_MATH_UMAX_MAX,
                              D_INTERVAL_RIGHT_OPEN, 0u);
     char text[96];
 
-    // the whole family has one member more than dj_math_umax counts
+    // the whole family has one member more than d_math_umax counts
     D_TESTS_EXPECT(d_interval_imax_count(all) == D_MATH_UMAX_MAX,
                    "imax full count saturates", 0, 0);
     D_TESTS_EXPECT(d_interval_umax_count(uall) == D_MATH_UMAX_MAX,
@@ -858,10 +858,10 @@ void d_tests_interval_extremes(void)
     // the family's minimum is written with its sign
     (void)d_interval_imax_format(text, sizeof(text), all);
     D_TESTS_EXPECT( strcmp(text,
-                           (sizeof(dj_math_imax) == 8u)
+                           (sizeof(d_math_imax) == 8u)
                                ? "[-9223372036854775808, 9223372036854775807]"
                                : "[-2147483648, 2147483647]") == 0,
-                    "imax format extremes", (long)sizeof(dj_math_imax), 0);
+                    "imax format extremes", (long)sizeof(d_math_imax), 0);
 
     // a short buffer is filled and terminated, and the length still reported
     {
@@ -877,7 +877,8 @@ void d_tests_interval_extremes(void)
     return;
 }
 
-int main(void)
+int
+main(void)
 {
     long lower = 0;
 

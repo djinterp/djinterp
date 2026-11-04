@@ -57,13 +57,13 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../coordinate/coordinate.hpp"           // cartesian
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 #include "./geometry_common.hpp"                  // the geometry's basics
 #include "./solid.hpp"                            // triangle_mesh
 // re_std
-#include "../../../../../re_std/cpp/array/array.hpp"        // re_std::array
+#include "../../../../../re_std/cpp/array/array.hpp"  // re_std::array
 
 
 NS_DJINTERP
@@ -82,7 +82,8 @@ NS_INTERNAL
     // vertex sum.
     template<typename    T,
              std::size_t V>
-    re_std::array<std::size_t, 3> outward_triangle(
+    re_std::array<std::size_t, 3>
+    outward_triangle(
         const re_std::array<linalg::vector<T, 3>, V>& _verts,
         std::size_t                                   _i,
         std::size_t                                   _j,
@@ -110,7 +111,8 @@ NS_INTERNAL
     template<typename    T,
              std::size_t V,
              std::size_t F>
-    re_std::array<re_std::array<std::size_t, 3>, F> orient_triangles(
+    re_std::array<re_std::array<std::size_t, 3>, F>
+    orient_triangles(
         const re_std::array<linalg::vector<T, 3>, V>&          _verts,
         const re_std::array<re_std::array<std::size_t, 3>, F>& _raw
     ) D_NOEXCEPT
@@ -139,9 +141,8 @@ NS_END  // internal
 // tetrahedron_mesh
 //   the regular tetrahedron inscribed in a sphere of radius _radius.
 template<typename T>
-triangle_mesh<cartesian<3, T>, 4, 4> tetrahedron_mesh(
-    T _radius = static_cast<T>(1)
-)
+triangle_mesh<cartesian<3, T>, 4, 4>
+tetrahedron_mesh(T _radius = static_cast<T>(1))
 {
     typedef triangle_mesh<cartesian<3, T>, 4, 4> mesh_type;
     typedef typename mesh_type::point_type point_type;
@@ -170,8 +171,8 @@ triangle_mesh<cartesian<3, T>, 4, 4> tetrahedron_mesh(
 // tetrahedron_mesh
 //   the same in double, unit radius: the call with no arguments, which
 // C++98 cannot give the template a default type for.
-inline
-triangle_mesh<cartesian<3, double>, 4, 4> tetrahedron_mesh()
+inline triangle_mesh<cartesian<3, double>, 4, 4>
+tetrahedron_mesh()
 {
     return tetrahedron_mesh<double>(1.0);
 }
@@ -185,9 +186,8 @@ triangle_mesh<cartesian<3, double>, 4, 4> tetrahedron_mesh()
 //   the cube inscribed in a sphere of radius _radius, each square face split
 // into two triangles.
 template<typename T>
-triangle_mesh<cartesian<3, T>, 8, 12> hexahedron_mesh(
-    T _radius = static_cast<T>(1)
-)
+triangle_mesh<cartesian<3, T>, 8, 12>
+hexahedron_mesh(T _radius = static_cast<T>(1))
 {
     typedef triangle_mesh<cartesian<3, T>, 8, 12> mesh_type;
     typedef typename mesh_type::point_type point_type;
@@ -222,8 +222,8 @@ triangle_mesh<cartesian<3, T>, 8, 12> hexahedron_mesh(
 // hexahedron_mesh
 //   the same in double, unit radius: the call with no arguments, which
 // C++98 cannot give the template a default type for.
-inline
-triangle_mesh<cartesian<3, double>, 8, 12> hexahedron_mesh()
+inline triangle_mesh<cartesian<3, double>, 8, 12>
+hexahedron_mesh()
 {
     return hexahedron_mesh<double>(1.0);
 }
@@ -237,9 +237,8 @@ triangle_mesh<cartesian<3, double>, 8, 12> hexahedron_mesh()
 //   the regular octahedron inscribed in a sphere of radius _radius (the
 // vertices sit on the axes).
 template<typename T>
-triangle_mesh<cartesian<3, T>, 6, 8> octahedron_mesh(
-    T _radius = static_cast<T>(1)
-)
+triangle_mesh<cartesian<3, T>, 6, 8>
+octahedron_mesh(T _radius = static_cast<T>(1))
 {
     typedef triangle_mesh<cartesian<3, T>, 6, 8> mesh_type;
     typedef typename mesh_type::point_type point_type;
@@ -269,8 +268,8 @@ triangle_mesh<cartesian<3, T>, 6, 8> octahedron_mesh(
 // octahedron_mesh
 //   the same in double, unit radius: the call with no arguments, which
 // C++98 cannot give the template a default type for.
-inline
-triangle_mesh<cartesian<3, double>, 6, 8> octahedron_mesh()
+inline triangle_mesh<cartesian<3, double>, 6, 8>
+octahedron_mesh()
 {
     return octahedron_mesh<double>(1.0);
 }
@@ -284,9 +283,8 @@ triangle_mesh<cartesian<3, double>, 6, 8> octahedron_mesh()
 //   the regular icosahedron inscribed in a sphere of radius _radius.  The
 // twelve vertices are the cyclic permutations of (0, +/-1, +/-phi).
 template<typename T>
-triangle_mesh<cartesian<3, T>, 12, 20> icosahedron_mesh(
-    T _radius = static_cast<T>(1)
-)
+triangle_mesh<cartesian<3, T>, 12, 20>
+icosahedron_mesh(T _radius = static_cast<T>(1))
 {
     typedef triangle_mesh<cartesian<3, T>, 12, 20> mesh_type;
     typedef typename mesh_type::point_type point_type;
@@ -333,8 +331,8 @@ triangle_mesh<cartesian<3, T>, 12, 20> icosahedron_mesh(
 // icosahedron_mesh
 //   the same in double, unit radius: the call with no arguments, which
 // C++98 cannot give the template a default type for.
-inline
-triangle_mesh<cartesian<3, double>, 12, 20> icosahedron_mesh()
+inline triangle_mesh<cartesian<3, double>, 12, 20>
+icosahedron_mesh()
 {
     return icosahedron_mesh<double>(1.0);
 }
@@ -350,9 +348,8 @@ triangle_mesh<cartesian<3, double>, 12, 20> icosahedron_mesh()
 // cyclic permutations of (0, +/-1/phi, +/-phi).  Each of the twelve
 // pentagonal faces is fan-triangulated into three triangles (36 total).
 template<typename T>
-triangle_mesh<cartesian<3, T>, 20, 36> dodecahedron_mesh(
-    T _radius = static_cast<T>(1)
-)
+triangle_mesh<cartesian<3, T>, 20, 36>
+dodecahedron_mesh(T _radius = static_cast<T>(1))
 {
     typedef triangle_mesh<cartesian<3, T>, 20, 36> mesh_type;
     typedef typename mesh_type::point_type point_type;
@@ -453,8 +450,8 @@ triangle_mesh<cartesian<3, T>, 20, 36> dodecahedron_mesh(
 // dodecahedron_mesh
 //   the same in double, unit radius: the call with no arguments, which
 // C++98 cannot give the template a default type for.
-inline
-triangle_mesh<cartesian<3, double>, 20, 36> dodecahedron_mesh()
+inline triangle_mesh<cartesian<3, double>, 20, 36>
+dodecahedron_mesh()
 {
     return dodecahedron_mesh<double>(1.0);
 }

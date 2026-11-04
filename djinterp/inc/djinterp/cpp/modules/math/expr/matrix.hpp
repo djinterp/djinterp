@@ -2,40 +2,47 @@
 * djinterp [cpp/math]                                                 matrix.hpp
 *
 * Vectors and matrices as values of the run-time expression language;
-* roadmap Phase 3, 3a to 3c.
+* roadmap Phase 3, 3a to 3c, and matrices of complex numbers, 3e's third
+* part.
 *   THE KIND (3a) is a boxed kind of the value layer, as the wide integer is
-* (c/math/value_wide.h), so that value.h meets it without change: its table
-* is written here, in C++, from C++11, as the language that makes matrices is
+* (c/math/value_wide.h), so that value.h meets it without change: its table is
+* written here, in C++, from C++11, as the language that makes matrices is
 * (S237). It is one kind, "matrix", of the rank 1000, past every number's, so
-* that in an operation of a matrix and a number the matrix's table handles
-* it; a matrix is no number (S238). It keeps each element as it is given: as
-* a dense array of float, double or long double where every element is one of
-* those, in the widest one's type, to which each widens exactly; and as
-* math::values, each of its own kind, where any element is exact or boxed. So
-* no element is rounded by being put in a matrix, and a matrix of exact
-* numbers is exact (S239). A vector is a matrix of one row or one column:
-* expr_vector's, a vector literal's, is one row (S240). An element is a
-* number: an element's error passes, the first, and an element that is no
+* that in an operation of a matrix and a number the matrix's table handles it;
+* a matrix is no number (S238). It keeps each element as it is given: as a
+* dense array of float, double or long double where every element is one of
+* those, in the widest one's type, to which each widens exactly, or of
+* math::complex of the widest type where any element is a complex number of
+* such parts, a real element x then x + 0i (S348); and as math::values, each
+* of its own kind, where any element is exact or boxed, an exact complex
+* number among them. So no element is rounded by being put in a matrix, and a
+* matrix of exact numbers is exact (S239). A vector is a matrix of one row or
+* one column: expr_vector's, a vector literal's, is one row (S240). An element
+* is a number: an element's error passes, the first, and an element that is no
 * number, a boolean, none or a matrix, is a domain error, as in arithmetic; a
 * matrix has a row and a column at least (S241), or is the empty matrix, of
 * neither, 0 by 0 (S260). A matrix compares equal to a matrix of its shape
-* whose elements are equal, place by place, and stands in no order
-* otherwise (S242). A vector literal [1, 2, 3] and a matrix literal
-* [1, 2; 3, 4] make one (parse.hpp, evaluate.hpp), [] the empty one; this
-* header makes and reads them in C++.
+* whose elements are equal, place by place, and stands in no order otherwise
+* (S242). A vector literal [1, 2, 3] and a matrix literal [1, 2; 3, 4] make
+* one (parse.hpp, evaluate.hpp), [] the empty one; this header makes and reads
+* them in C++.
 *   THE OPERATORS (3b) are the value's own, through the kind's table: A + B
-* and A - B of one shape, -A, A * s, s * A and A / s of a matrix and a
-* number, and A * B where A's columns are B's rows; any other operation on a
-* matrix is a domain error, A + s, s / A and A / B among them, and so is one
-* of shapes that do not fit; a 1 by 1 matrix stays a matrix (S246). Each is
-* computed by linear algebra's kernels, a dense matrix's by the C core's
-* vec.h and mat.h in the wider type, one holding values by the generic path
-* in the value's own arithmetic, exact wherever its elements are (S247).
-* Beside them, the transpose A'; A ^ n of a square matrix and a whole n, by
-* repeated squaring as the C core's d_mat_power squares (S248, S262), A ^ 0
-* the identity and A ^ (-n) the inverse's power (S259); and indexing, from
-* 1: A[i, j] an element, v[i] a vector's, A[i] another matrix's row i, an
-* index any whole number, exact or not (S249).
+* and A - B of one shape, -A, A * s, s * A and A / s of a matrix and a number,
+* and A * B where A's columns are B's rows; any other operation on a matrix is
+* a domain error, A + s, s / A and A / B among them, and so is one of shapes
+* that do not fit; a 1 by 1 matrix stays a matrix (S246). Each is computed by
+* linear algebra's kernels, a dense matrix's by the C core's vec.h and mat.h
+* in the wider type, one holding values by the generic path in the value's own
+* arithmetic, exact wherever its elements are (S247); a dense complex one's in
+* the wider type, complex where either operand is, element by element by
+* math::complex's operators, a real operand's element or a real scalar taken
+* as itself (C99's G.5), a product's each element summed from 0 in order, as
+* the face's kernels sum it (S349). Beside them, the conjugate transpose A'
+* (S273); A ^ n of a square matrix and a whole n, by repeated squaring as the
+* C core's d_mat_power squares (S248, S262), A ^ 0 the identity and A ^ (-n)
+* the inverse's power (S259); and indexing, from 1: A[i, j] an element, v[i] a
+* vector's, A[i] another matrix's row i, an index any whole number, exact or
+* not (S249).
 *   BLOCKS. A literal's elements are blocks (S261): a row's numbers and
 * matrices stand beside one another, each of the first's rows, and a
 * matrix's rows one above another, each of the first's columns, so that
@@ -47,20 +54,41 @@
 * kernels, a solution by the elimination of [A | B] (S257); in a dense type
 * by the C core's, LU with partial pivoting, Gauss-Jordan and the
 * eigenvalues' Jacobi and Francis's double-shift QR (S257, S258, S269), the
-* norm scaled where its squares would leave the range (S256).
-* An exact matrix's eigenvalues are found in long double and each made
-* exact where it is rational, as a root of its characteristic polynomial;
-* a complex pair is a domain error while no value is complex (S45).
+* norm scaled where its squares would leave the range (S256); a matrix of
+* complex numbers' in the widest of its elements' types, by cmat.h's LU,
+* Gauss-Jordan and elimination of [A | B] where dense (S351). norm is of the
+* moduli, and dot(a, b) sums conj(a_i) b_i (S273, S351).
+*   EIGENVALUES are every one a matrix has, complex where it is (S352): a real
+* matrix's as before, by Jacobi where it is symmetric and otherwise by
+* Francis's double-shift QR, and where that finds a complex pair, all of them
+* by decomp.h's d_decomp_eigen, each pair exactly conjugate, complex
+* throughout; a Hermitian matrix's real, by cmat.h's Jacobi with complex
+* rotations; any other complex matrix's by cmat.h's d_cmat_eigen. An exact
+* matrix's are found in long double and each made exact where it is a Gaussian
+* rational, as a root of its characteristic polynomial. A spectrum ascends by
+* real part, then by imaginary part; one of a real matrix that is complex is a
+* domain error under expr_context's real_results (S340). Each solver is given
+* 30 QR steps a row, and at least 1000, the budget every matrix had before,
+* under which one of 700 rows ran out.
+*   COMPLEX NUMBERS (complex.hpp) are matrices' elements from step 23's
+* third part (S273, S348). A' conjugates each, as a complex number's z' is
+* its conjugate (S333), and transpose(A) does not; real, imag, conj and arg
+* of a matrix are its elements', and complex(A, B) of two matrices of one
+* shape the matrix of complex(a_ij, b_ij) (S350).
 *   STEPS. Step 19 (3a) filled the kind, expr_matrix, expr_vector,
 * expr_is_matrix, expr_shape_of and expr_element; step 20 (3b) filled
 * expr_transpose and the kind's arithmetic, powers and indexing; step 21
-* (3c) filled the functions, the empty matrix, blocks and negative powers.
+* (3c) filled the functions, the empty matrix, blocks and negative powers;
+* step 23 (3e) a complex number's transpose, and in its third part, chunk
+* 43, matrices of complex numbers: their storage, arithmetic and
+* transposes, the parts of a matrix, complex(A, B), linear algebra's
+* functions of them, and complex eigenvalues.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.02
 *******************************************************************************/
 
 /*
@@ -107,6 +135,7 @@ TABLE OF CONTENTS
     3.  The transpose
          1.  expr_transpose
          2.  expr_transpose_value
+         3.  expr_matrix_each, expr_matrix_complex_of
     4.  Blocks
          1.  expr_matrix_beside, expr_matrix_stacked
     5.  The functions
@@ -140,19 +169,21 @@ TABLE OF CONTENTS
 #include <string>     // std::string, std::to_string
 #include <vector>     // std::vector
 // djinterp
-#include "../../../../c/modules/math/decomp.h"                  // d_decomp_lu, _lu_det,
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
-                                                  // _lu_solve, _eigenvalues,
-                                                  // _sym_eigen
-#include "../../../../c/modules/math/elementary.h"              // d_math_sqrt
-#include "../../../../c/modules/math/value.h"                   // dj_math_boxed_kind,
-                                                  // d_math_value_cmp
-#include "../linear_algebra/linalg_common.hpp"    // linalg_kernel
-#include "../math_common.hpp"                     // NS_MATH
-#include "../value.hpp"                           // value
-#include "./expr_common.hpp"                      // expr_result
+#include "../../../../c/modules/math/cmat.h"        // d_cmat_determinant,
+                                                    // _inverse, _solve,
+                                                    // _eigen, _hermitian_eigen
+#include "../../../../c/modules/math/decomp.h"      // d_decomp_lu, _lu_det,
+                                                    // _lu_solve, _eigenvalues,
+                                                    // _sym_eigen
+#include "../../../../c/modules/math/elementary.h"  // d_math_sqrt
+#include "../../../../c/modules/math/value.h"       // d_math_boxed_kind,
+                                                    // d_math_value_cmp
+#include "../linear_algebra/linalg_common.hpp"      // linalg_kernel
+#include "../math_common.hpp"                       // NS_MATH
+#include "../value.hpp"                             // value
+#include "./complex.hpp"                            // expr_is_complex,
+                                                    // expr_conj
+#include "./expr_common.hpp"                        // expr_result
 
 
 NS_DJINTERP
@@ -192,8 +223,8 @@ struct expr_shape
 
 // operator==, operator!= (expr_shape)
 //   function: two shapes are equal when their rows and columns are.
-inline
-bool operator==(
+inline bool
+operator==(
     const expr_shape& _a,
     const expr_shape& _b
 ) D_NOEXCEPT
@@ -202,8 +233,8 @@ bool operator==(
              (_a.columns == _b.columns) );
 }
 
-inline
-bool operator!=(
+inline bool
+operator!=(
     const expr_shape& _a,
     const expr_shape& _b
 ) D_NOEXCEPT
@@ -233,14 +264,57 @@ NS_INTERNAL
     // 2.1.2
     // expr_matrix_storage
     //   enum: how a matrix holds its elements: as values, each of its own
-    // kind; or dense, as floats, doubles or long doubles (S239).
+    // kind; or dense, as floats, doubles or long doubles (S239), or as
+    // complex numbers of them, math::complex<T>, the C core's struct, row by
+    // row as LAPACK lays a complex matrix out but by rows (S273, S348).
+    // Each complex storage lies 3 past its parts' real one.
     enum class expr_matrix_storage
     {
-        values       = 1,   // math::values, each a number of its own kind
-        floats       = 2,   // a dense array of float
-        doubles      = 3,   // of double
-        long_doubles = 4    // of long double
+        values               = 1,   // math::values, each a number of its own
+                                    // kind
+        floats               = 2,   // a dense array of float
+        doubles              = 3,   // of double
+        long_doubles         = 4,   // of long double
+        complex_floats       = 5,   // of math::complex<float>
+        complex_doubles      = 6,   // of math::complex<double>
+        complex_long_doubles = 7    // of math::complex<long double>
     };
+
+    // expr_storage_is_complex, expr_storage_real_of, expr_storage_complex_of
+    //   functions: whether a storage holds complex numbers; a dense
+    // storage's real type, a complex one's parts' and a real one's own; and
+    // the complex storage of a dense one's type. Values are values in each.
+    D_CONSTEXPR inline bool
+    expr_storage_is_complex(
+        expr_matrix_storage _storage
+    ) D_NOEXCEPT
+    {
+        return (static_cast<int>(_storage) >
+                static_cast<int>(expr_matrix_storage::long_doubles));
+    }
+
+    D_CONSTEXPR inline expr_matrix_storage
+    expr_storage_real_of(
+        expr_matrix_storage _storage
+    ) D_NOEXCEPT
+    {
+        return ( expr_storage_is_complex(_storage)
+                     ? static_cast<expr_matrix_storage>(
+                           static_cast<int>(_storage) - 3)
+                     : _storage );
+    }
+
+    D_CONSTEXPR inline expr_matrix_storage
+    expr_storage_complex_of(
+        expr_matrix_storage _storage
+    ) D_NOEXCEPT
+    {
+        return ( ( (_storage == expr_matrix_storage::values) ||
+                   (expr_storage_is_complex(_storage)) )
+                     ? _storage
+                     : static_cast<expr_matrix_storage>(
+                           static_cast<int>(_storage) + 3) );
+    }
 
     // 2.1.3
     // expr_matrix_box
@@ -249,13 +323,16 @@ NS_INTERNAL
     // names, the others empty. A box is made with one holder.
     struct expr_matrix_box
     {
-        std::size_t              holders;
-        expr_shape               shape;
-        expr_matrix_storage      storage;
-        std::vector<value>       values;
-        std::vector<float>       floats;
-        std::vector<double>      doubles;
-        std::vector<long double> long_doubles;
+        std::size_t                              holders;
+        expr_shape                               shape;
+        expr_matrix_storage                      storage;
+        std::vector<value>                       values;
+        std::vector<float>                       floats;
+        std::vector<double>                      doubles;
+        std::vector<long double>                 long_doubles;
+        std::vector<math::complex<float> >       complex_floats;
+        std::vector<math::complex<double> >      complex_doubles;
+        std::vector<math::complex<long double> > complex_long_doubles;
 
         expr_matrix_box(
             const expr_shape&   _shape,
@@ -267,7 +344,10 @@ NS_INTERNAL
               values(),
               floats(),
               doubles(),
-              long_doubles()
+              long_doubles(),
+              complex_floats(),
+              complex_doubles(),
+              complex_long_doubles()
         {}
     };
 
@@ -278,9 +358,9 @@ NS_INTERNAL
     // _index, row by row, as a value, of the box alone, and of the matrix,
     // a dense element with the matrix's flags, as a dense box keeps none of
     // its own; and every element, row by row.
-    inline
-    bool expr_matrix_held(
-        const dj_math_value& _x
+    inline bool
+    expr_matrix_held(
+        const d_math_value& _x
     )
     {
         return ( (_x.kind == D_MATH_VALUE_BOXED) &&
@@ -288,16 +368,16 @@ NS_INTERNAL
                  (_x.type->rank == expr_matrix_rank) );
     }
 
-    inline
-    const expr_matrix_box& expr_matrix_box_of(
-        const dj_math_value& _x
+    inline const expr_matrix_box&
+    expr_matrix_box_of(
+        const d_math_value& _x
     )
     {
         return *static_cast<const expr_matrix_box*>(_x.box);
     }
 
-    inline
-    value expr_matrix_at(
+    inline value
+    expr_matrix_at(
         const expr_matrix_box& _box,
         std::size_t            _index
     )
@@ -314,6 +394,15 @@ NS_INTERNAL
             case expr_matrix_storage::long_doubles:
                 return value(_box.long_doubles[_index]);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_complex_of(_box.complex_floats[_index]);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_complex_of(_box.complex_doubles[_index]);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_complex_of(_box.complex_long_doubles[_index]);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -322,8 +411,8 @@ NS_INTERNAL
         return _box.values[_index];
     }
 
-    inline
-    value expr_matrix_element_of(
+    inline value
+    expr_matrix_element_of(
         const value& _a,
         std::size_t  _place
     )
@@ -336,7 +425,7 @@ NS_INTERNAL
         if ( (a.storage != expr_matrix_storage::values) &&
              (_a.flags() != 0u) )
         {
-            dj_math_value held = element.detach();
+            d_math_value held = element.detach();
 
             held.flags |= _a.flags();
             element     = value::adopt(held);
@@ -345,8 +434,8 @@ NS_INTERNAL
         return element;
     }
 
-    inline
-    std::vector<value> expr_matrix_elements(
+    inline std::vector<value>
+    expr_matrix_elements(
         const value& _matrix
     )
     {
@@ -367,35 +456,36 @@ NS_END  // internal
 
 // 2.2    Its entries
 //------------------------------------------------------------------------------
-// value.h's dj_math_boxed_kind entries, each given values of the kind as that
+// value.h's d_math_boxed_kind entries, each given values of the kind as that
 // header says: one operand a matrix, neither an error, a boolean or none.
 NS_INTERNAL
 
     // 2.2.1
     // expr_matrix_retain, expr_matrix_release
     //   functions: one holder more of _box, and one fewer; the last release
-    // gives the box back.
-    inline
-    void expr_matrix_retain(
+    // gives the box back. Counted by value.h's d_math_boxed_hold and
+    // d_math_boxed_unhold, atomically wherever the compiler can (S134), so
+    // that a matrix may be copied and given back in several threads at
+    // once; a box never changes once it is made.
+    inline void
+    expr_matrix_retain(
         void* _box
     )
     {
-        ++static_cast<expr_matrix_box*>(_box)->holders;
+        d_math_boxed_hold(&static_cast<expr_matrix_box*>(_box)->holders);
 
         return;
     }
 
-    inline
-    void expr_matrix_release(
+    inline void
+    expr_matrix_release(
         void* _box
     )
     {
         expr_matrix_box* box = static_cast<expr_matrix_box*>(_box);
 
-        --box->holders;
-
         // the last holder: the box given back
-        if (box->holders == 0)
+        if (d_math_boxed_unhold(&box->holders))
         {
             delete box;
         }
@@ -414,22 +504,22 @@ NS_INTERNAL
     // divided by a matrix, a matrix by a matrix, and two matrices of shapes
     // the operation does not take (S246). Storage that cannot be had is
     // D_MATH_VALUE_ERROR_MEMORY, as value.h asks, and nothing throws.
-    inline
-    value expr_matrix_negated(
+    inline value
+    expr_matrix_negated(
         const value& _a
     );
 
-    inline
-    value expr_matrix_operation(
-        dj_math_value_op _op,
-        const value&     _a,
-        const value&     _b
+    inline value
+    expr_matrix_operation(
+        d_math_value_op _op,
+        const value&    _a,
+        const value&    _b
     );
 
-    inline
-    dj_math_value expr_matrix_unary(
-        dj_math_value_op _op,
-        dj_math_value    _x
+    inline d_math_value
+    expr_matrix_unary(
+        d_math_value_op _op,
+        d_math_value    _x
     )
     {
         // |A|: no operation of a matrix's
@@ -449,11 +539,11 @@ NS_INTERNAL
         }
     }
 
-    inline
-    dj_math_value expr_matrix_binary(
-        dj_math_value_op _op,
-        dj_math_value    _a,
-        dj_math_value    _b
+    inline d_math_value
+    expr_matrix_binary(
+        d_math_value_op _op,
+        d_math_value    _a,
+        d_math_value    _b
     )
     {
         // the operation, or no storage for it
@@ -475,10 +565,10 @@ NS_INTERNAL
     // are matrices of one shape whose elements are equal, place by place, by
     // value.h's exact order, whatever their storage; unordered otherwise, as
     // a matrix has no order, and stands in none with a number (S242).
-    inline
-    dj_math_value_order expr_matrix_cmp(
-        dj_math_value _a,
-        dj_math_value _b
+    inline d_math_value_order
+    expr_matrix_cmp(
+        d_math_value _a,
+        d_math_value _b
     )
     {
         // not two matrices, or two of two shapes
@@ -512,12 +602,12 @@ NS_INTERNAL
     //   function: a matrix as an inline number: never, as a matrix is no
     // number; false, and *_out as it was. (value.h asks no kind that is no
     // number to convert; the entry must be set all the same.)
-    inline
-    bool expr_matrix_convert(
-        dj_math_value*     _out,
-        int*               _direction,
-        dj_math_value      _x,
-        dj_math_value_kind _to
+    inline bool
+    expr_matrix_convert(
+        d_math_value*     _out,
+        int*              _direction,
+        d_math_value      _x,
+        d_math_value_kind _to
     )
     {
         static_cast<void>(_out);
@@ -539,13 +629,13 @@ NS_INTERNAL
     // characters, the closing NUL among them; the whole text's length
     // returned, as value.h asks. (The language writes a matrix by
     // render.hpp.)
-    inline
-    std::string expr_matrix_element_text(
+    inline std::string
+    expr_matrix_element_text(
         const value& _x
     )
     {
         std::ostringstream out;
-        dj_rational         exact = { 0, 1 };
+        d_rational         exact = { 0, 1 };
         float              f     = 0.0f;
         double             d     = 0.0;
         long double        ld    = 0.0L;
@@ -568,7 +658,7 @@ NS_INTERNAL
         // a boxed number: its kind's text
         if (_x.kind() == D_MATH_VALUE_BOXED)
         {
-            const dj_math_value& held   = _x.c_value();
+            const d_math_value& held   = _x.c_value();
             const std::size_t   length = held.type->text(D_NULLPTR,
                                                          0,
                                                          held);
@@ -607,11 +697,11 @@ NS_INTERNAL
         return out.str();
     }
 
-    inline
-    std::size_t expr_matrix_text(
-        char*         _buffer,
-        std::size_t   _size,
-        dj_math_value _x
+    inline std::size_t
+    expr_matrix_text(
+        char*        _buffer,
+        std::size_t  _size,
+        d_math_value _x
     )
     {
         const expr_matrix_box& box  = expr_matrix_box_of(_x);
@@ -656,12 +746,13 @@ NS_INTERNAL
     // 2.3.1
     // expr_matrix_kind
     //   function: the kind's table: its name, "matrix", its rank, no trait,
-    // as a matrix is no number, and its entries; one for the program, as an
-    // inline function's static is.
-    inline
-    const dj_math_boxed_kind* expr_matrix_kind()
+    // as a matrix is no number, and its entries, with no exact entry, as no
+    // matrix is a number; one for the program, as an inline function's
+    // static is.
+    inline const d_math_boxed_kind*
+    expr_matrix_kind()
     {
-        static const dj_math_boxed_kind table = {
+        static const d_math_boxed_kind table = {
             "matrix",
             expr_matrix_rank,
             0u,
@@ -671,7 +762,8 @@ NS_INTERNAL
             &expr_matrix_binary,
             &expr_matrix_cmp,
             &expr_matrix_convert,
-            &expr_matrix_text
+            &expr_matrix_text,
+            D_NULLPTR
         };
 
         return &table;
@@ -681,13 +773,13 @@ NS_INTERNAL
     // expr_matrix_adopt
     //   function: a value of the kind holding _box, with _flags; the box's
     // one holder becomes the value's.
-    inline
-    value expr_matrix_adopt(
+    inline value
+    expr_matrix_adopt(
         expr_matrix_box* _box,
         unsigned         _flags
     )
     {
-        dj_math_value held = d_internal_math_value_blank(D_MATH_VALUE_BOXED,
+        d_math_value held = d_internal_math_value_blank(D_MATH_VALUE_BOXED,
                                                         _flags);
 
         held.type = expr_matrix_kind();
@@ -701,7 +793,8 @@ NS_INTERNAL
     // wider than Type, each widened exactly to Type, into the dense array
     // _dense.
     template<typename Type>
-    void expr_matrix_fill(
+    void
+    expr_matrix_fill(
         std::vector<Type>&        _dense,
         const std::vector<value>& _elements
     )
@@ -720,13 +813,39 @@ NS_INTERNAL
         return;
     }
 
+    // expr_matrix_fill_complex
+    //   function: _elements, each a number whose parts are floats, doubles
+    // or long doubles no wider than Type, or a real one x, as x + 0i, each
+    // widened exactly to math::complex<Type>, into _dense (S348).
+    template<typename Type>
+    void
+    expr_matrix_fill_complex(
+        std::vector<math::complex<Type> >& _dense,
+        const std::vector<value>&          _elements
+    )
+    {
+        _dense.reserve(_elements.size());
+
+        // in order
+        for (std::size_t i = 0; i < _elements.size(); ++i)
+        {
+            math::complex<Type> z;
+
+            static_cast<void>(expr_complex_to(_elements[i],
+                                              z));
+            _dense.push_back(z);
+        }
+
+        return;
+    }
+
     // expr_matrix_kind_storage
     //   function: the dense storage of an element of the kind _kind: an
     // inline float's, double's or long double's own type; values for any
     // other kind, exact or boxed.
-    inline
-    expr_matrix_storage expr_matrix_kind_storage(
-        dj_math_value_kind _kind
+    inline expr_matrix_storage
+    expr_matrix_kind_storage(
+        d_math_value_kind _kind
     ) D_NOEXCEPT
     {
         return ( (_kind == D_MATH_VALUE_FLOAT)
@@ -738,23 +857,74 @@ NS_INTERNAL
                      : expr_matrix_storage::values );
     }
 
+    // expr_matrix_element_storage
+    //   function: the dense storage of an element: an inline float's,
+    // double's or long double's own type; a complex number of such parts,
+    // their complex storage (S348); values for any other number, exact or
+    // boxed, an exact complex number among them.
+    inline expr_matrix_storage
+    expr_matrix_element_storage(
+        const value& _x
+    )
+    {
+        // a complex number: its parts' type, complex, where they are dense
+        if (expr_is_complex(_x))
+        {
+            const expr_matrix_storage parts = expr_matrix_kind_storage(
+                expr_complex_type_of(_x.c_value()));
+
+            return expr_storage_complex_of(parts);
+        }
+
+        return expr_matrix_kind_storage(_x.kind());
+    }
+
+    // expr_matrix_wider
+    //   function: the storage two dense storages' elements are kept in
+    // together: values where either is; the wider of their types, of
+    // complex numbers where either is (S348).
+    inline expr_matrix_storage
+    expr_matrix_wider(
+        expr_matrix_storage _a,
+        expr_matrix_storage _b
+    )
+    {
+        // values, where either is
+        if ( (_a == expr_matrix_storage::values) ||
+             (_b == expr_matrix_storage::values) )
+        {
+            return expr_matrix_storage::values;
+        }
+
+        const expr_matrix_storage a     = expr_storage_real_of(_a);
+        const expr_matrix_storage b     = expr_storage_real_of(_b);
+        const expr_matrix_storage wider = ( (a > b) ? a : b );
+
+        return ( ( (expr_storage_is_complex(_a)) ||
+                   (expr_storage_is_complex(_b)) )
+                     ? expr_storage_complex_of(wider)
+                     : wider );
+    }
+
     // expr_matrix_storage_of
     //   function: the storage that keeps each of _elements, numbers, one at
     // least, as it is: the widest one's type where each is a float, a double
-    // or a long double, to which each widens exactly; values where any is
-    // exact or boxed (S239).
-    inline
-    expr_matrix_storage expr_matrix_storage_of(
+    // or a long double, to which each widens exactly, or a complex number of
+    // such parts, the widest type's complex numbers where any is, a real
+    // element x then x + 0i (S348); values where any is exact or boxed
+    // (S239).
+    inline expr_matrix_storage
+    expr_matrix_storage_of(
         const std::vector<value>& _elements
     )
     {
         expr_matrix_storage widest = expr_matrix_storage::floats;
 
-        // the widest element's type, while each is an inline floating one
+        // the widest element's type, while each is a dense one
         for (std::size_t i = 0; i < _elements.size(); ++i)
         {
             const expr_matrix_storage storage =
-                expr_matrix_kind_storage(_elements[i].kind());
+                expr_matrix_element_storage(_elements[i]);
 
             // an exact element, or a boxed one: values
             if (storage == expr_matrix_storage::values)
@@ -762,7 +932,8 @@ NS_INTERNAL
                 return expr_matrix_storage::values;
             }
 
-            widest = ( (storage > widest) ? storage : widest );
+            widest = expr_matrix_wider(widest,
+                                       storage);
         }
 
         return widest;
@@ -789,13 +960,16 @@ NS_END  // internal
  *                       rows.
  * @param[in] _elements  its elements, row by row, each a number.
  * @return the matrix, a value of its own, each element kept as it is given
- *         (S239), carrying every flag they do, of values where it has none;
- *         the first element that is an error, where one is; a domain error,
+ *         (S239), dense, real or complex, where every element is a float, a
+ *         double, a long double or a complex number of such parts (S348),
+ *         carrying every flag they do, of values where it has none; the
+ *         first element that is an error, where one is; a domain error,
  *         where an element is no number (S241); or bad_shape, where the
- *         shape has no row or no column but not neither, or _elements
- *         holds other than _rows * _columns.
+ *         shape has no row or no column but not neither, or _elements holds
+ *         other than _rows * _columns.
  */
-D_NODISCARD inline expr_result<value> expr_matrix(
+D_NODISCARD inline expr_result<value>
+expr_matrix(
     std::size_t               _rows,
     std::size_t               _columns,
     const std::vector<value>& _elements
@@ -878,6 +1052,21 @@ D_NODISCARD inline expr_result<value> expr_matrix(
                                        _elements);
             break;
 
+        case internal::expr_matrix_storage::complex_floats:
+            internal::expr_matrix_fill_complex(box->complex_floats,
+                                               _elements);
+            break;
+
+        case internal::expr_matrix_storage::complex_doubles:
+            internal::expr_matrix_fill_complex(box->complex_doubles,
+                                               _elements);
+            break;
+
+        case internal::expr_matrix_storage::complex_long_doubles:
+            internal::expr_matrix_fill_complex(box->complex_long_doubles,
+                                               _elements);
+            break;
+
         case internal::expr_matrix_storage::values:
         default:
             box->values = _elements;
@@ -898,7 +1087,8 @@ D_NODISCARD inline expr_result<value> expr_matrix(
  * @return the vector, a matrix of 1 by the elements' number, as expr_matrix
  *         gives it; of no element, the empty matrix, 0 by 0 (S260).
  */
-D_NODISCARD inline expr_result<value> expr_vector(
+D_NODISCARD inline expr_result<value>
+expr_vector(
     const std::vector<value>& _elements
 )
 {
@@ -911,7 +1101,8 @@ D_NODISCARD inline expr_result<value> expr_vector(
 // expr_is_matrix
 //   function: whether a value is a vector or a matrix: a value of the kind,
 // by its rank.
-D_NODISCARD inline bool expr_is_matrix(
+D_NODISCARD inline bool
+expr_is_matrix(
     const value& _value
 )
 {
@@ -926,7 +1117,8 @@ D_NODISCARD inline bool expr_is_matrix(
  * @param[in] _value  the value.
  * @return its shape; or bad_shape, where it is no matrix.
  */
-D_NODISCARD inline expr_result<expr_shape> expr_shape_of(
+D_NODISCARD inline expr_result<expr_shape>
+expr_shape_of(
     const value& _value
 )
 {
@@ -955,7 +1147,8 @@ D_NODISCARD inline expr_result<expr_shape> expr_shape_of(
  *         double or a long double of its dense array; or bad_shape, where
  *         the value is no matrix or has no such place.
  */
-D_NODISCARD inline expr_result<value> expr_element(
+D_NODISCARD inline expr_result<value>
+expr_element(
     const value& _value,
     std::size_t  _row,
     std::size_t  _column
@@ -1014,8 +1207,8 @@ NS_INTERNAL
     // expr_matrix_storage_for
     //   function: the dense storage of Type.
     template<typename Type>
-    D_CONSTEXPR
-    expr_matrix_storage expr_matrix_storage_for();
+    D_CONSTEXPR expr_matrix_storage
+    expr_matrix_storage_for();
 
     template<>
     D_CONSTEXPR expr_matrix_storage
@@ -1038,10 +1231,32 @@ NS_INTERNAL
         return expr_matrix_storage::long_doubles;
     }
 
+    template<>
+    D_CONSTEXPR expr_matrix_storage
+    expr_matrix_storage_for<math::complex<float> >()
+    {
+        return expr_matrix_storage::complex_floats;
+    }
+
+    template<>
+    D_CONSTEXPR expr_matrix_storage
+    expr_matrix_storage_for<math::complex<double> >()
+    {
+        return expr_matrix_storage::complex_doubles;
+    }
+
+    template<>
+    D_CONSTEXPR expr_matrix_storage
+    expr_matrix_storage_for<math::complex<long double> >()
+    {
+        return expr_matrix_storage::complex_long_doubles;
+    }
+
     // expr_matrix_array
     //   function: a box's dense array of Type.
     template<typename Type>
-    std::vector<Type>& expr_matrix_array(
+    std::vector<Type>&
+    expr_matrix_array(
         expr_matrix_box& _box
     );
 
@@ -1072,11 +1287,39 @@ NS_INTERNAL
         return _box.long_doubles;
     }
 
+    template<>
+    inline std::vector<math::complex<float> >&
+    expr_matrix_array<math::complex<float> >(
+        expr_matrix_box& _box
+    )
+    {
+        return _box.complex_floats;
+    }
+
+    template<>
+    inline std::vector<math::complex<double> >&
+    expr_matrix_array<math::complex<double> >(
+        expr_matrix_box& _box
+    )
+    {
+        return _box.complex_doubles;
+    }
+
+    template<>
+    inline std::vector<math::complex<long double> >&
+    expr_matrix_array<math::complex<long double> >(
+        expr_matrix_box& _box
+    )
+    {
+        return _box.complex_long_doubles;
+    }
+
     // expr_matrix_widened
     //   function: _from's elements, each widened exactly to Type.
     template<typename Type,
              typename From>
-    std::vector<Type> expr_matrix_widened(
+    std::vector<Type>
+    expr_matrix_widened(
         const std::vector<From>& _from
     )
     {
@@ -1099,7 +1342,8 @@ NS_INTERNAL
     // floats, its own; of doubles, its own or a float box's widened; of
     // long doubles, its own or a narrower box's widened.
     template<typename Type>
-    std::vector<Type> expr_matrix_dense_as(
+    std::vector<Type>
+    expr_matrix_dense_as(
         const expr_matrix_box& _box
     );
 
@@ -1140,11 +1384,125 @@ NS_INTERNAL
                      : _box.long_doubles );
     }
 
+    // expr_matrix_complex_as
+    //   function: a dense box's elements as math::complex<Type>, Type no
+    // narrower than its parts' type: a complex box's each part widened
+    // exactly, and a real box's x as x + 0i (S348).
+    template<typename Type,
+             typename From>
+    void
+    expr_matrix_complex_from(
+        std::vector<math::complex<Type> >&       _out,
+        const std::vector<math::complex<From> >& _from
+    )
+    {
+        _out.reserve(_from.size());
+
+        // each part widened
+        for (std::size_t i = 0; i < _from.size(); ++i)
+        {
+            _out.push_back(math::complex<Type>(
+                static_cast<Type>(_from[i].real()),
+                static_cast<Type>(_from[i].imag())));
+        }
+
+        return;
+    }
+
+    template<typename Type,
+             typename From>
+    void
+    expr_matrix_complex_from(
+        std::vector<math::complex<Type> >& _out,
+        const std::vector<From>&           _from
+    )
+    {
+        _out.reserve(_from.size());
+
+        // x + 0i
+        for (std::size_t i = 0; i < _from.size(); ++i)
+        {
+            _out.push_back(math::complex<Type>(static_cast<Type>(_from[i]),
+                                               Type(0)));
+        }
+
+        return;
+    }
+
+    template<typename Type>
+    std::vector<math::complex<Type> >
+    expr_matrix_complex_as(
+        const expr_matrix_box& _box
+    )
+    {
+        std::vector<math::complex<Type> > out;
+
+        // by storage, each no wider than Type
+        switch (_box.storage)
+        {
+            case expr_matrix_storage::floats:
+                expr_matrix_complex_from(out, _box.floats);
+                break;
+
+            case expr_matrix_storage::doubles:
+                expr_matrix_complex_from(out, _box.doubles);
+                break;
+
+            case expr_matrix_storage::long_doubles:
+                expr_matrix_complex_from(out, _box.long_doubles);
+                break;
+
+            case expr_matrix_storage::complex_floats:
+                expr_matrix_complex_from(out, _box.complex_floats);
+                break;
+
+            case expr_matrix_storage::complex_doubles:
+                expr_matrix_complex_from(out, _box.complex_doubles);
+                break;
+
+            // complex long doubles; a box of values, which no caller
+            // passes, none, its complex long doubles being none
+            case expr_matrix_storage::complex_long_doubles:
+            default:
+                expr_matrix_complex_from(out, _box.complex_long_doubles);
+                break;
+        }
+
+        return out;
+    }
+
+    template<>
+    inline std::vector<math::complex<float> >
+    expr_matrix_dense_as<math::complex<float> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_complex_as<float>(_box);
+    }
+
+    template<>
+    inline std::vector<math::complex<double> >
+    expr_matrix_dense_as<math::complex<double> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_complex_as<double>(_box);
+    }
+
+    template<>
+    inline std::vector<math::complex<long double> >
+    expr_matrix_dense_as<math::complex<long double> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_complex_as<long double>(_box);
+    }
+
     // expr_matrix_values_of
     //   function: a matrix's elements, row by row, as values, a dense
     // one's each with the matrix's flags, so that none is lost (G2).
-    inline
-    std::vector<value> expr_matrix_values_of(
+    inline std::vector<value>
+    expr_matrix_values_of(
         const value& _a
     )
     {
@@ -1168,7 +1526,8 @@ NS_INTERNAL
     //   function: a matrix of _shape holding _dense, which it takes, with
     // _flags.
     template<typename Type>
-    value expr_matrix_of_dense(
+    value
+    expr_matrix_of_dense(
         const expr_shape&  _shape,
         std::vector<Type>& _dense,
         unsigned           _flags
@@ -1188,8 +1547,8 @@ NS_INTERNAL
     //   function: a matrix of _shape of _elements, by expr_matrix: the first
     // element that is an error, where one is; a domain error, where one is
     // no number; and otherwise each kept as it is (S239).
-    inline
-    value expr_matrix_of_values(
+    inline value
+    expr_matrix_of_values(
         const expr_shape&         _shape,
         const std::vector<value>& _elements
     )
@@ -1203,32 +1562,306 @@ NS_INTERNAL
                               : value(D_MATH_VALUE_ERROR_DOMAIN) );
     }
 
+    // expr_matrix_side
+    //   struct: a dense operand of complex arithmetic in Type: its
+    // elements as Type where it is real, and as math::complex<Type> where it
+    // is complex, the other array empty, so that a real operand is taken as
+    // itself, as C99's G.5 takes one (S349).
+    template<typename Type>
+    struct expr_matrix_side
+    {
+        bool                              complex;
+        std::vector<Type>                 real;
+        std::vector<math::complex<Type> > z;
+    };
+
+    template<typename Type>
+    expr_matrix_side<Type>
+    expr_matrix_side_of(
+        const expr_matrix_box& _box
+    )
+    {
+        expr_matrix_side<Type> side;
+
+        side.complex = expr_storage_is_complex(_box.storage);
+
+        // as it is held
+        if (side.complex)
+        {
+            side.z = expr_matrix_complex_as<Type>(_box);
+        }
+        else
+        {
+            side.real = expr_matrix_dense_as<Type>(_box);
+        }
+
+        return side;
+    }
+
+    // expr_matrix_combined
+    //   function: _x + _y, or _x - _y where _minus, either real or
+    // complex, by math::complex's operators, cplx.h's: a real operand
+    // taken as itself.
+    template<typename Type,
+             typename X,
+             typename Y>
+    math::complex<Type>
+    expr_matrix_combined(
+        const X& _x,
+        const Y& _y,
+        bool     _minus
+    )
+    {
+        return ( _minus ? math::complex<Type>(_x - _y)
+                        : math::complex<Type>(_x + _y) );
+    }
+
+    // expr_matrix_sum_complex
+    //   function: A + B, or A - B where _minus, of one shape, dense, one of
+    // them complex at least, in math::complex<Type>, element by element, a
+    // real operand's element taken as itself (S349).
+    template<typename Type>
+    value
+    expr_matrix_sum_complex(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        bool                   _minus,
+        unsigned               _flags
+    )
+    {
+        typedef math::complex<Type> complex_type;
+
+        const expr_matrix_side<Type> a = expr_matrix_side_of<Type>(_a);
+        const expr_matrix_side<Type> b = expr_matrix_side_of<Type>(_b);
+        const std::size_t            n = (_a.shape.rows * _a.shape.columns);
+        std::vector<complex_type>    out(n);
+
+        // element by element, each side as it is held
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            out[i] = ( (a.complex)
+                           ? ( (b.complex)
+                                   ? expr_matrix_combined<Type>(a.z[i],
+                                                                b.z[i],
+                                                                _minus)
+                                   : expr_matrix_combined<Type>(a.z[i],
+                                                                b.real[i],
+                                                                _minus) )
+                           : expr_matrix_combined<Type>(a.real[i],
+                                                        b.z[i],
+                                                        _minus) );
+        }
+
+        return expr_matrix_of_dense<complex_type>(_a.shape,
+                                                  out,
+                                                  _flags);
+    }
+
+    // expr_matrix_scaled_complex
+    //   function: each element of a dense A times _number, or divided by it
+    // where _divide, A or the number complex, in math::complex<Type>: the
+    // number its nearest there, a real one as itself, by math::complex's
+    // operators, cplx.h's (S349).
+    template<typename Type,
+             typename X,
+             typename Y>
+    math::complex<Type>
+    expr_matrix_by(
+        const X& _x,
+        const Y& _y,
+        bool     _divide
+    )
+    {
+        return ( _divide ? math::complex<Type>(_x / _y)
+                         : math::complex<Type>(_x * _y) );
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_scaled_complex(
+        const expr_matrix_box& _a,
+        const value&           _number,
+        bool                   _divide,
+        unsigned               _flags
+    )
+    {
+        typedef math::complex<Type> complex_type;
+
+        const expr_matrix_side<Type> a       = expr_matrix_side_of<Type>(_a);
+        const bool                   complex = expr_is_complex(_number);
+        const std::size_t            n       = ( _a.shape.rows *
+                                                 _a.shape.columns );
+        std::vector<complex_type>    out(n);
+        complex_type                 z;
+        Type                         x = Type(0);
+
+        // the number, its nearest, real or complex
+        if (complex)
+        {
+            static_cast<void>(expr_complex_to(_number,
+                                              z));
+        }
+        else
+        {
+            static_cast<void>(_number.to(x));
+        }
+
+        // element by element, each side as it is held
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            out[i] = ( (a.complex)
+                           ? ( (complex)
+                                   ? expr_matrix_by<Type>(a.z[i],
+                                                          z,
+                                                          _divide)
+                                   : expr_matrix_by<Type>(a.z[i],
+                                                          x,
+                                                          _divide) )
+                           : expr_matrix_by<Type>(a.real[i],
+                                                  z,
+                                                  _divide) );
+        }
+
+        return expr_matrix_of_dense<complex_type>(_a.shape,
+                                                  out,
+                                                  _flags);
+    }
+
+    // expr_matrix_product_complex
+    //   function: A * B, dense, one of them complex at least, in
+    // math::complex<Type>: each element a row's products with a column's,
+    // a real operand's element taken as itself, summed in order from 0, as
+    // the kernels' product sums a math::complex<T> matrix's (S349).
+    template<typename Type,
+             typename X,
+             typename Y>
+    void
+    expr_matrix_multiplied(
+        std::vector<math::complex<Type> >& _out,
+        const std::vector<X>&              _a,
+        const std::vector<Y>&              _b,
+        std::size_t                        _rows,
+        std::size_t                        _inner,
+        std::size_t                        _columns
+    )
+    {
+        // each row by each column
+        for (std::size_t i = 0; i < _rows; ++i)
+        {
+            for (std::size_t j = 0; j < _columns; ++j)
+            {
+                math::complex<Type> sum;
+
+                for (std::size_t k = 0; k < _inner; ++k)
+                {
+                    sum += (_a[(i * _inner) + k] * _b[(k * _columns) + j]);
+                }
+
+                _out[(i * _columns) + j] = sum;
+            }
+        }
+
+        return;
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_product_complex(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        unsigned               _flags
+    )
+    {
+        typedef math::complex<Type> complex_type;
+
+        const expr_matrix_side<Type> a = expr_matrix_side_of<Type>(_a);
+        const expr_matrix_side<Type> b = expr_matrix_side_of<Type>(_b);
+        const std::size_t            rows    = _a.shape.rows;
+        const std::size_t            inner   = _a.shape.columns;
+        const std::size_t            columns = _b.shape.columns;
+        std::vector<complex_type>    out(rows * columns);
+
+        // each side as it is held
+        if ( (a.complex) &&
+             (b.complex) )
+        {
+            expr_matrix_multiplied<Type>(out, a.z, b.z, rows, inner, columns);
+        }
+        else if (a.complex)
+        {
+            expr_matrix_multiplied<Type>(out, a.z, b.real, rows, inner,
+                                         columns);
+        }
+        else
+        {
+            expr_matrix_multiplied<Type>(out, a.real, b.z, rows, inner,
+                                         columns);
+        }
+
+        return expr_matrix_of_dense<complex_type>(expr_shape(rows,
+                                                             columns),
+                                                  out,
+                                                  _flags);
+    }
+
+    // expr_matrix_reordered_complex
+    //   function: -A, or A's transpose, conjugated where _conjugate, or
+    // neither, of a complex dense A in math::complex<Type>: each element
+    // negated by cplx.h's negation, or moved and conjugated by its conj.
+    template<typename Type>
+    value
+    expr_matrix_reordered_complex(
+        const expr_matrix_box& _a,
+        bool                   _negate,
+        bool                   _transpose,
+        bool                   _conjugate,
+        unsigned               _flags
+    )
+    {
+        typedef math::complex<Type> complex_type;
+
+        const std::vector<complex_type> a       =
+            expr_matrix_complex_as<Type>(_a);
+        const std::size_t               rows    = _a.shape.rows;
+        const std::size_t               columns = _a.shape.columns;
+        std::vector<complex_type>       out(a.size());
+
+        // each element to its place
+        for (std::size_t i = 0; i < rows; ++i)
+        {
+            for (std::size_t j = 0; j < columns; ++j)
+            {
+                const complex_type& x     = a[(i * columns) + j];
+                const std::size_t   place = ( _transpose
+                                                  ? ((j * rows) + i)
+                                                  : ((i * columns) + j) );
+
+                out[place] = ( _negate ? complex_type(-x)
+                             : _conjugate ? complex_type(conj(x))
+                                          : x );
+            }
+        }
+
+        return expr_matrix_of_dense<complex_type>(
+            ( _transpose ? expr_shape(columns,
+                                      rows)
+                         : _a.shape ),
+            out,
+            _flags);
+    }
+
     // 3.2.2
     // The dense type
     //   functions: the storage two matrices' arithmetic is computed in, and
-    // a matrix's and a number's: the wider of two dense types; a number's
-    // own, a float's, a double's or a long double's, or an exact number's,
-    // which takes the matrix's, as the tower converts an exact number to
-    // the inexact one's type; and values, where either holds values or the
-    // number is a boxed inexact one, which handles each element itself.
-    inline
-    expr_matrix_storage expr_matrix_wider(
-        expr_matrix_storage _a,
-        expr_matrix_storage _b
-    )
-    {
-        // values, where either is
-        if ( (_a == expr_matrix_storage::values) ||
-             (_b == expr_matrix_storage::values) )
-        {
-            return expr_matrix_storage::values;
-        }
-
-        return ( (_a > _b) ? _a : _b );
-    }
-
-    inline
-    expr_matrix_storage expr_matrix_number_storage(
+    // a matrix's and a number's: the wider of two dense types, complex where
+    // either is (expr_matrix_wider, 2.1.4); a number's own, a float's, a
+    // double's or a long double's, or a complex number's of such parts; or
+    // an exact number's, which takes the matrix's, as the tower converts an
+    // exact number to the inexact one's type, complex where it is; and
+    // values, where either holds values or the number is a boxed inexact
+    // one, which handles each element itself.
+    inline expr_matrix_storage
+    expr_matrix_number_storage(
         const value& _number
     )
     {
@@ -1246,6 +1879,15 @@ NS_INTERNAL
 
             default:
                 break;
+        }
+
+        // a complex number: of its parts' type, complex; an exact one the
+        // matrix's type, complex
+        if (expr_is_complex(_number))
+        {
+            return ( _number.is_exact()
+                         ? expr_matrix_storage::complex_floats
+                         : expr_matrix_element_storage(_number) );
         }
 
         // an exact number below the float in the tower: the matrix's type
@@ -1267,7 +1909,8 @@ NS_INTERNAL
     // expr_matrix_sum_in
     //   function: A + B, or A - B where _minus, both dense, in Type.
     template<typename Type>
-    value expr_matrix_sum_in(
+    value
+    expr_matrix_sum_in(
         const expr_matrix_box& _a,
         const expr_matrix_box& _b,
         bool                   _minus,
@@ -1304,8 +1947,8 @@ NS_INTERNAL
     // expr_matrix_sum
     //   function: A + B, or A - B where _minus, of two matrices of one shape;
     // a domain error for two shapes.
-    inline
-    value expr_matrix_sum(
+    inline value
+    expr_matrix_sum(
         const value& _a,
         const value& _b,
         bool         _minus
@@ -1343,6 +1986,24 @@ NS_INTERNAL
                                                        _minus,
                                                        flags);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_sum_complex<float>(a,
+                                                      b,
+                                                      _minus,
+                                                      flags);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_sum_complex<double>(a,
+                                                       b,
+                                                       _minus,
+                                                       flags);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_sum_complex<long double>(a,
+                                                            b,
+                                                            _minus,
+                                                            flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -1379,7 +2040,8 @@ NS_INTERNAL
     // where _divide, in Type, the number converted to Type as the tower
     // converts it.
     template<typename Type>
-    value expr_matrix_scaled_in(
+    value
+    expr_matrix_scaled_in(
         const expr_matrix_box& _a,
         const value&           _number,
         bool                   _divide,
@@ -1419,8 +2081,8 @@ NS_INTERNAL
     //   function: each element of A times _number, or divided by it where
     // _divide; a number's product with A is A's with it, as the product of
     // two numbers does not hang on their order.
-    inline
-    value expr_matrix_scaled(
+    inline value
+    expr_matrix_scaled(
         const value& _a,
         const value& _number,
         bool         _divide
@@ -1450,6 +2112,24 @@ NS_INTERNAL
                                                           _number,
                                                           _divide,
                                                           flags);
+
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_scaled_complex<float>(a,
+                                                         _number,
+                                                         _divide,
+                                                         flags);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_scaled_complex<double>(a,
+                                                          _number,
+                                                          _divide,
+                                                          flags);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_scaled_complex<long double>(a,
+                                                               _number,
+                                                               _divide,
+                                                               flags);
 
             case expr_matrix_storage::values:
             default:
@@ -1484,7 +2164,8 @@ NS_INTERNAL
     // expr_matrix_negated_in
     //   function: -A, dense, in its own type.
     template<typename Type>
-    value expr_matrix_negated_in(
+    value
+    expr_matrix_negated_in(
         const expr_matrix_box& _a,
         unsigned               _flags
     )
@@ -1503,8 +2184,8 @@ NS_INTERNAL
                                           _flags);
     }
 
-    inline
-    value expr_matrix_negated(
+    inline value
+    expr_matrix_negated(
         const value& _a
     )
     {
@@ -1524,6 +2205,20 @@ NS_INTERNAL
             case expr_matrix_storage::long_doubles:
                 return expr_matrix_negated_in<long double>(a,
                                                            _a.flags());
+
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_reordered_complex<float>(a, true, false,
+                                                            false,
+                                                            _a.flags());
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_reordered_complex<double>(a, true, false,
+                                                             false,
+                                                             _a.flags());
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_reordered_complex<long double>(
+                    a, true, false, false, _a.flags());
 
             case expr_matrix_storage::values:
             default:
@@ -1549,7 +2244,8 @@ NS_INTERNAL
     // A's rows' products with B's columns, by the kernels' product; a domain
     // error otherwise.
     template<typename Type>
-    value expr_matrix_product_in(
+    value
+    expr_matrix_product_in(
         const expr_matrix_box& _a,
         const expr_matrix_box& _b,
         unsigned               _flags
@@ -1576,8 +2272,8 @@ NS_INTERNAL
                                           _flags);
     }
 
-    inline
-    value expr_matrix_product(
+    inline value
+    expr_matrix_product(
         const value& _a,
         const value& _b
     )
@@ -1611,6 +2307,21 @@ NS_INTERNAL
                                                            b,
                                                            flags);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_product_complex<float>(a,
+                                                          b,
+                                                          flags);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_product_complex<double>(a,
+                                                           b,
+                                                           flags);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_product_complex<long double>(a,
+                                                                b,
+                                                                flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -1637,12 +2348,13 @@ NS_INTERNAL
     // 3.2.5
     // expr_matrix_operation
     //   function: _a _op _b, one of them a matrix, as the kind's binary entry
-    // computes it (2.2.2).
-    inline
-    value expr_matrix_operation(
-        dj_math_value_op _op,
-        const value&     _a,
-        const value&     _b
+    // computes it (2.2.2), a complex number among the numbers it takes
+    // (S349).
+    inline value
+    expr_matrix_operation(
+        d_math_value_op _op,
+        const value&    _a,
+        const value&    _b
     )
     {
         const bool a = expr_matrix_held(_a.c_value());
@@ -1681,10 +2393,13 @@ NS_INTERNAL
 
     // 3.2.6
     // The transpose
-    //   function: A', the matrix of A's columns as its rows, by the kernels'
-    // transpose, each element as it is.
+    //   function: A's transpose, the matrix of A's columns as its rows, by
+    // the kernels' transpose, each element as it is; or, where _conjugate,
+    // the conjugate transpose, A', each complex element conjugated and each
+    // real one as it is (S273, S350).
     template<typename Type>
-    value expr_matrix_transposed_in(
+    value
+    expr_matrix_transposed_in(
         const expr_matrix_box& _a,
         unsigned               _flags
     )
@@ -1707,9 +2422,10 @@ NS_INTERNAL
                                           _flags);
     }
 
-    inline
-    value expr_matrix_transposed(
-        const value& _a
+    inline value
+    expr_matrix_transposed(
+        const value& _a,
+        bool         _conjugate = true
     )
     {
         const expr_matrix_box& a = expr_matrix_box_of(_a.c_value());
@@ -1729,6 +2445,20 @@ NS_INTERNAL
                 return expr_matrix_transposed_in<long double>(a,
                                                               _a.flags());
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_reordered_complex<float>(a, false, true,
+                                                            _conjugate,
+                                                            _a.flags());
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_reordered_complex<double>(a, false, true,
+                                                             _conjugate,
+                                                             _a.flags());
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_reordered_complex<long double>(
+                    a, false, true, _conjugate, _a.flags());
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -1736,8 +2466,15 @@ NS_INTERNAL
 
         typedef linalg::internal::linalg_kernel<value> kernel;
 
-        const std::vector<value> x = expr_matrix_values_of(_a);
-        std::vector<value>       out(x.size());
+        std::vector<value> x = expr_matrix_values_of(_a);
+        std::vector<value> out(x.size());
+
+        // each complex element conjugated, where asked
+        for (std::size_t i = 0; ( (_conjugate) && (i < x.size()) ); ++i)
+        {
+            x[i] = ( expr_is_complex(x[i]) ? expr_conj(x[i])
+                                           : x[i] );
+        }
 
         kernel::transpose(out.data(),
                           x.data(),
@@ -1766,13 +2503,13 @@ NS_INTERNAL
 
     // expr_flagged
     //   function: _x with _flags as well as its own.
-    inline
-    value expr_flagged(
+    inline value
+    expr_flagged(
         const value& _x,
         unsigned     _flags
     )
     {
-        dj_math_value held = value(_x).detach();
+        d_math_value held = value(_x).detach();
 
         held.flags |= _flags;
 
@@ -1782,8 +2519,8 @@ NS_INTERNAL
     // expr_matrix_flags_of
     //   function: every flag a matrix's elements carry: a dense one's, the
     // matrix's own; one of values, each element's and the matrix's.
-    inline
-    unsigned expr_matrix_flags_of(
+    inline unsigned
+    expr_matrix_flags_of(
         const value& _a
     )
     {
@@ -1801,8 +2538,8 @@ NS_INTERNAL
 
     // expr_matrix_all_exact
     //   function: whether a matrix holds values, each exact.
-    inline
-    bool expr_matrix_all_exact(
+    inline bool
+    expr_matrix_all_exact(
         const value& _a
     )
     {
@@ -1825,12 +2562,41 @@ NS_INTERNAL
         return true;
     }
 
+    // expr_matrix_has_complex
+    //   function: whether a matrix holds a complex number: a complex dense
+    // one, or one of values of which one is.
+    inline bool
+    expr_matrix_has_complex(
+        const value& _a
+    )
+    {
+        const expr_matrix_box& a = expr_matrix_box_of(_a.c_value());
+
+        // a dense one, by its storage
+        if (a.storage != expr_matrix_storage::values)
+        {
+            return expr_storage_is_complex(a.storage);
+        }
+
+        // values: whether any is a complex number
+        for (std::size_t i = 0; i < a.values.size(); ++i)
+        {
+            if (expr_is_complex(a.values[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // expr_matrix_algebra_storage
     //   function: the storage a matrix's square algebra is computed in: a
     // dense matrix's own; values for one of exact values, or of a boxed
-    // inexact one; otherwise the widest inline inexact element's type.
-    inline
-    expr_matrix_storage expr_matrix_algebra_storage(
+    // inexact one; otherwise the widest inexact element's type, of complex
+    // numbers where any element, exact or not, is one (S351).
+    inline expr_matrix_storage
+    expr_matrix_algebra_storage(
         const value& _a
     )
     {
@@ -1843,12 +2609,16 @@ NS_INTERNAL
             return a.storage;
         }
 
-        // the widest inline inexact element's, each exact one taken to it;
-        // a boxed inexact one: values
+        // the widest inline inexact element's, complex where an element is,
+        // each exact one taken to it; a boxed inexact one: values
+        bool complex = false;
+
         for (std::size_t i = 0; i < a.values.size(); ++i)
         {
             const expr_matrix_storage storage =
-                expr_matrix_kind_storage(a.values[i].kind());
+                expr_matrix_element_storage(a.values[i]);
+
+            complex = ( (complex) || (expr_is_complex(a.values[i])) );
 
             if (a.values[i].is_exact())
             {
@@ -1860,10 +2630,38 @@ NS_INTERNAL
                 return expr_matrix_storage::values;
             }
 
-            widest = ( (storage > widest) ? storage : widest );
+            widest = ( (widest == expr_matrix_storage::values)
+                           ? storage
+                           : expr_matrix_wider(widest,
+                                               storage) );
         }
 
-        return widest;
+        return ( (complex) ? expr_storage_complex_of(widest)
+                           : widest );
+    }
+
+    // expr_matrix_nearest
+    //   functions: a number's nearest float, double or long double, and its
+    // nearest math::complex<T>, a real one's x + 0i.
+    template<typename Type>
+    bool
+    expr_matrix_nearest(
+        const value& _x,
+        Type&        _out
+    )
+    {
+        return _x.to(_out);
+    }
+
+    template<typename Type>
+    bool
+    expr_matrix_nearest(
+        const value&         _x,
+        math::complex<Type>& _out
+    )
+    {
+        return expr_complex_to(_x,
+                               _out);
     }
 
     // expr_matrix_dense_of
@@ -1871,7 +2669,8 @@ NS_INTERNAL
     // than its algebra's: a dense one's widened exactly, and the nearest
     // Type of each of a matrix of values.
     template<typename Type>
-    std::vector<Type> expr_matrix_dense_of(
+    std::vector<Type>
+    expr_matrix_dense_of(
         const value& _a
     )
     {
@@ -1890,19 +2689,193 @@ NS_INTERNAL
         // each element its nearest Type
         for (std::size_t i = 0; i < a.values.size(); ++i)
         {
-            Type x = Type(0);
+            Type x = Type();
 
-            static_cast<void>(a.values[i].to(x));
+            static_cast<void>(expr_matrix_nearest(a.values[i],
+                                                  x));
             dense.push_back(x);
         }
 
         return dense;
     }
 
+    // expr_matrix_cores, expr_matrix_of_cores
+    //   functions: math::complex<Type>s as the C core's structs, which
+    // cmat.h's kernels take, and back.
+    template<typename Type>
+    std::vector<typename math::complex<Type>::core_type>
+    expr_matrix_cores(
+        const std::vector<math::complex<Type> >& _z
+    )
+    {
+        std::vector<typename math::complex<Type>::core_type> cores;
+
+        cores.reserve(_z.size());
+
+        // in order
+        for (std::size_t i = 0; i < _z.size(); ++i)
+        {
+            cores.push_back(_z[i].c_value());
+        }
+
+        return cores;
+    }
+
+    template<typename Type>
+    std::vector<math::complex<Type> >
+    expr_matrix_of_cores(
+        const std::vector<typename math::complex<Type>::core_type>& _cores
+    )
+    {
+        std::vector<math::complex<Type> > z;
+
+        z.reserve(_cores.size());
+
+        // in order
+        for (std::size_t i = 0; i < _cores.size(); ++i)
+        {
+            z.push_back(math::complex<Type>(_cores[i]));
+        }
+
+        return z;
+    }
+
+    // expr_complex_flagged_of
+    //   function: the value of a math::complex<Type>, with _flags.
+    template<typename Type>
+    value
+    expr_complex_flagged_of(
+        const math::complex<Type>& _z,
+        unsigned                   _flags
+    )
+    {
+        return expr_flagged(expr_complex_of(_z),
+                            _flags);
+    }
+
+    // expr_matrix_det_complex, expr_matrix_inverse_complex,
+    // expr_matrix_trace_complex, expr_matrix_solve_complex
+    //   functions: det(A), inv(A), trace(A) and solve(A, B) of A, B or both
+    // of complex numbers, in math::complex<Type>, each other element x as x
+    // + 0i: cmat.h's LU with partial pivoting by |re| + |im|, its
+    // Gauss-Jordan inverse and its elimination of [A | B], as LAPACK's
+    // zgetrf, zgetri and zgesv, each product and quotient cplx.h's (S269,
+    // S351); a pole for a singular A; the trace by the kernels', from 0.
+    template<typename Type>
+    value
+    expr_matrix_det_complex(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        typedef typename math::complex<Type>::core_type core_type;
+
+        const std::vector<core_type> a = expr_matrix_cores<Type>(
+            expr_matrix_dense_of<math::complex<Type> >(_a));
+        std::vector<core_type>       scratch(_n * _n);
+
+        return expr_complex_flagged_of(
+            math::complex<Type>(d_cmat_determinant(a.data(),
+                                                   scratch.data(),
+                                                   _n)),
+            expr_matrix_flags_of(_a));
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_inverse_complex(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        typedef typename math::complex<Type>::core_type core_type;
+
+        const std::vector<core_type> a = expr_matrix_cores<Type>(
+            expr_matrix_dense_of<math::complex<Type> >(_a));
+        std::vector<core_type>       out(_n * _n);
+        std::vector<core_type>       scratch(_n * _n);
+
+        // singular: a pole
+        if (!d_cmat_inverse(out.data(),
+                            scratch.data(),
+                            a.data(),
+                            _n))
+        {
+            return value(D_MATH_VALUE_ERROR_POLE);
+        }
+
+        std::vector<math::complex<Type> > inverse =
+            expr_matrix_of_cores<Type>(out);
+
+        return expr_matrix_of_dense<math::complex<Type> >(
+            expr_shape(_n,
+                       _n),
+            inverse,
+            expr_matrix_flags_of(_a));
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_trace_complex(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        typedef linalg::internal::linalg_kernel<math::complex<Type> > kernel;
+
+        const std::vector<math::complex<Type> > a =
+            expr_matrix_dense_of<math::complex<Type> >(_a);
+
+        return expr_complex_flagged_of(kernel::trace(a.data(),
+                                                     _n),
+                                       _a.flags());
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_solve_complex(
+        const value&      _a,
+        const value&      _b,
+        std::size_t       _n,
+        std::size_t       _columns,
+        const expr_shape& _shape
+    )
+    {
+        typedef typename math::complex<Type>::core_type core_type;
+
+        const std::vector<core_type> a = expr_matrix_cores<Type>(
+            expr_matrix_dense_of<math::complex<Type> >(_a));
+        const std::vector<core_type> b = expr_matrix_cores<Type>(
+            expr_matrix_dense_of<math::complex<Type> >(_b));
+        std::vector<core_type>       x(_n * _columns);
+        std::vector<core_type>       scratch(_n * _n);
+
+        // singular: a pole
+        if (!d_cmat_solve(x.data(),
+                          scratch.data(),
+                          a.data(),
+                          b.data(),
+                          _n,
+                          _columns))
+        {
+            return value(D_MATH_VALUE_ERROR_POLE);
+        }
+
+        std::vector<math::complex<Type> > solution =
+            expr_matrix_of_cores<Type>(x);
+
+        return expr_matrix_of_dense<math::complex<Type> >(
+            _shape,
+            solution,
+            ( expr_matrix_flags_of(_a) |
+              expr_matrix_flags_of(_b) ));
+    }
+
     // expr_matrix_inverse_in
     //   function: A's inverse, of _n rows, in Type, or a pole.
     template<typename Type>
-    value expr_matrix_inverse_in(
+    value
+    expr_matrix_inverse_in(
         const value& _a,
         std::size_t  _n
     )
@@ -1928,8 +2901,8 @@ NS_INTERNAL
                                           expr_matrix_flags_of(_a));
     }
 
-    inline
-    value expr_matrix_inverse(
+    inline value
+    expr_matrix_inverse(
         const value& _a
     )
     {
@@ -1956,6 +2929,18 @@ NS_INTERNAL
             case expr_matrix_storage::long_doubles:
                 return expr_matrix_inverse_in<long double>(_a,
                                                            n);
+
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_inverse_complex<float>(_a,
+                                                          n);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_inverse_complex<double>(_a,
+                                                           n);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_inverse_complex<long double>(_a,
+                                                                n);
 
             case expr_matrix_storage::values:
             default:
@@ -1994,7 +2979,8 @@ NS_INTERNAL
     // dense power is the C core's, bit for bit (S262). A domain error for any
     // other A or n.
     template<typename Type>
-    value expr_matrix_identity_in(
+    value
+    expr_matrix_identity_in(
         std::size_t _size,
         unsigned    _flags
     )
@@ -2012,8 +2998,8 @@ NS_INTERNAL
                                           _flags);
     }
 
-    inline
-    value expr_matrix_identity(
+    inline value
+    expr_matrix_identity(
         const value& _a
     )
     {
@@ -2052,14 +3038,14 @@ NS_INTERNAL
                                      out);
     }
 
-    inline
-    value expr_matrix_power(
+    inline value
+    expr_matrix_power(
         const value& _a,
         const value& _exponent
     )
     {
-        const dj_math_imax most     = std::numeric_limits<dj_math_imax>::max();
-        dj_math_imax       exponent = 0;
+        const d_math_imax most     = std::numeric_limits<d_math_imax>::max();
+        d_math_imax       exponent = 0;
         long double       real     = 0.0L;
         value             base     = _a;
 
@@ -2091,12 +3077,12 @@ NS_INTERNAL
                  (!(real > -9.0e18L)) ||
                  (!(real < 9.0e18L)) ||
                  (real != static_cast<long double>(
-                              static_cast<dj_math_imax>(real))) )
+                              static_cast<d_math_imax>(real))) )
             {
                 return value(D_MATH_VALUE_ERROR_DOMAIN);
             }
 
-            exponent = static_cast<dj_math_imax>(real);
+            exponent = static_cast<d_math_imax>(real);
             base     = expr_matrix_scaled(_a,
                                           ( (_exponent - _exponent) +
                                             value(1) ),
@@ -2126,7 +3112,7 @@ NS_INTERNAL
             return expr_matrix_identity(base);
         }
 
-        dj_math_imax top   = 1;
+        d_math_imax top   = 1;
         value       power = base;
 
         // the exponent's highest bit
@@ -2137,7 +3123,7 @@ NS_INTERNAL
 
         // each bit below it: the power squared, then times A on the left
         // where the bit is 1; an error, where one is made
-        for (dj_math_imax bit = (top / 2); bit > 0; bit /= 2)
+        for (d_math_imax bit = (top / 2); bit > 0; bit /= 2)
         {
             power = expr_matrix_product(power,
                                         power);
@@ -2173,14 +3159,14 @@ NS_INTERNAL
     // expr_matrix_place
     //   function: whether _index is a whole number from 1 to _count, and if
     // so it less 1, from 0, in _place.
-    inline
-    bool expr_matrix_place(
+    inline bool
+    expr_matrix_place(
         const value& _index,
         std::size_t  _count,
         std::size_t& _place
     )
     {
-        dj_math_imax whole = 0;
+        d_math_imax whole = 0;
         long double real  = 0.0L;
 
         // an exact whole number
@@ -2216,8 +3202,8 @@ NS_INTERNAL
 
     // expr_matrix_row_of
     //   function: A's row _row, a matrix of one row, each element as it is.
-    inline
-    value expr_matrix_row_of(
+    inline value
+    expr_matrix_row_of(
         const value& _a,
         std::size_t  _row
     )
@@ -2240,8 +3226,8 @@ NS_INTERNAL
                                      row);
     }
 
-    inline
-    value expr_matrix_index(
+    inline value
+    expr_matrix_index(
         const std::vector<value>& _operands
     )
     {
@@ -2308,16 +3294,23 @@ NS_END  // internal
 // 3.3.1
 // expr_transpose
 /**
- * @brief A matrix value's transpose, A'.
+ * @brief A matrix value's conjugate transpose, the language's A', or its
+ *        transpose.
  *
- * @param[in] _value  the matrix.
- * @return the transpose, the matrix of its columns as its rows, each element
- *         as it is, a value of its own; or bad_shape, where the value is no
- *         matrix. (The language's A' of a number is the number itself, and
- *         of an error the error: evaluate.hpp.)
+ * @param[in] _value      the matrix.
+ * @param[in] _conjugate  true, the default, for A', the conjugate
+ *                        transpose (S273); false for transpose(A).
+ * @return the matrix of its columns as its rows, each complex element
+ *         conjugated where _conjugate and every other as it is, a value of
+ *         its own; or bad_shape, where the value is no matrix. (The
+ *         language's A' of a real number is the number itself, of a complex
+ *         number its conjugate, and of an error the error:
+ *         expr_transpose_value.)
  */
-D_NODISCARD inline expr_result<value> expr_transpose(
-    const value& _value
+D_NODISCARD inline expr_result<value>
+expr_transpose(
+    const value& _value,
+    bool         _conjugate = true
 )
 {
     // no matrix
@@ -2329,25 +3322,38 @@ D_NODISCARD inline expr_result<value> expr_transpose(
                        "expr_transpose: the value is no matrix"));
     }
 
-    return ok<value, expr_error>(internal::expr_matrix_transposed(_value));
+    return ok<value, expr_error>(internal::expr_matrix_transposed(_value,
+                                                                  _conjugate));
 }
 
 NS_INTERNAL
 
     // 3.3.2
     // expr_transpose_value
-    //   function: the language's A' as a value: a matrix's transpose; a
-    // number itself, as a number is its own transpose, and an error itself;
-    // a domain error for a boolean or none.
-    inline
-    value expr_transpose_value(
-        const value& _value
+    //   function: the language's A' as a value, or, where _conjugate is
+    // false, its transpose(A): a matrix's conjugate transpose, or its
+    // transpose; a complex number's conjugate, as A' is the conjugate
+    // transpose (S273), or itself; a real number itself, as a number is its
+    // own transpose, and an error itself; a domain error for a boolean or
+    // none.
+    inline value
+    expr_transpose_value(
+        const value& _value,
+        bool         _conjugate = true
     )
     {
-        // a matrix: its transpose
+        // a matrix: its conjugate transpose, or its transpose
         if (expr_is_matrix(_value))
         {
-            return expr_matrix_transposed(_value);
+            return expr_matrix_transposed(_value,
+                                          _conjugate);
+        }
+
+        // a complex number: its conjugate, or itself
+        if (expr_is_complex(_value))
+        {
+            return ( _conjugate ? expr_conj(_value)
+                                : _value );
         }
 
         // a number, or an error: itself
@@ -2358,6 +3364,83 @@ NS_INTERNAL
         }
 
         return value(D_MATH_VALUE_ERROR_DOMAIN);
+    }
+
+NS_END  // internal
+
+// 3.3.3
+// expr_matrix_each, expr_matrix_complex_of
+//   functions: the language's real, imag, conj and arg of a matrix, each
+// element's by complex.hpp's function _f, and complex(A, B) of two matrices
+// of one shape, each pair's, as MATLAB's, NumPy's and Julia's are element
+// by element (S350): the matrix of the results, as expr_matrix keeps them,
+// dense where each is; an element's error passes, the first. complex(A, B)
+// of a matrix and a number, or of two shapes, is a domain error, as A + b
+// is (S246).
+NS_INTERNAL
+
+    inline value
+    expr_matrix_each(
+        const value& _a,
+        value      (*_f)(const value&)
+    )
+    {
+        const std::vector<value> x = expr_matrix_values_of(_a);
+        std::vector<value>       out;
+
+        out.reserve(x.size());
+
+        // element by element
+        for (std::size_t i = 0; i < x.size(); ++i)
+        {
+            out.push_back(_f(x[i]));
+        }
+
+        return expr_matrix_of_values(expr_matrix_box_of(_a.c_value()).shape,
+                                     out);
+    }
+
+    inline value
+    expr_matrix_complex_of(
+        const value& _a,
+        const value& _b
+    )
+    {
+        // an error passes, the first
+        if (_a.kind() == D_MATH_VALUE_ERROR)
+        {
+            return _a;
+        }
+
+        if (_b.kind() == D_MATH_VALUE_ERROR)
+        {
+            return _b;
+        }
+
+        // two matrices of one shape
+        if ( (!expr_matrix_held(_a.c_value())) ||
+             (!expr_matrix_held(_b.c_value())) ||
+             (expr_matrix_box_of(_a.c_value()).shape !=
+                  expr_matrix_box_of(_b.c_value()).shape) )
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        const std::vector<value> re = expr_matrix_values_of(_a);
+        const std::vector<value> im = expr_matrix_values_of(_b);
+        std::vector<value>       made;
+
+        made.reserve(re.size());
+
+        // pair by pair
+        for (std::size_t i = 0; i < re.size(); ++i)
+        {
+            made.push_back(expr_complex(re[i],
+                                        im[i]));
+        }
+
+        return expr_matrix_of_values(expr_matrix_box_of(_a.c_value()).shape,
+                                     made);
     }
 
 NS_END  // internal
@@ -2379,8 +3462,8 @@ NS_INTERNAL
 
     // expr_block_shape
     //   function: a block's shape: a matrix's, or a number's 1 by 1.
-    inline
-    expr_shape expr_block_shape(
+    inline expr_shape
+    expr_block_shape(
         const value& _block
     )
     {
@@ -2395,8 +3478,8 @@ NS_INTERNAL
     // _out, which passes before any shape is asked of them. What is no
     // number and no matrix, a boolean or none, is a block of 1 by 1 whose
     // element expr_matrix refuses, a domain error, as it refuses any.
-    inline
-    bool expr_blocks_fail(
+    inline bool
+    expr_blocks_fail(
         const std::vector<value>& _blocks,
         value&                    _out
     )
@@ -2418,8 +3501,8 @@ NS_INTERNAL
     // expr_block_elements
     //   function: a block's elements, row by row: a matrix's, each dense
     // one's with its flags, or the number itself.
-    inline
-    std::vector<value> expr_block_elements(
+    inline std::vector<value>
+    expr_block_elements(
         const value& _block
     )
     {
@@ -2431,8 +3514,8 @@ NS_INTERNAL
 
     // expr_matrix_beside
     //   function: a row of blocks, beside one another.
-    inline
-    value expr_matrix_beside(
+    inline value
+    expr_matrix_beside(
         const std::vector<value>& _blocks
     )
     {
@@ -2491,8 +3574,8 @@ NS_INTERNAL
 
     // expr_matrix_stacked
     //   function: rows of blocks, each a row's value, one above another.
-    inline
-    value expr_matrix_stacked(
+    inline value
+    expr_matrix_stacked(
         const std::vector<value>& _rows
     )
     {
@@ -2569,15 +3652,16 @@ NS_INTERNAL
     // 3.5.1
     // Operands
     //   functions: whether an operand passes as it is: an error, the first,
-    // or what is no number and no matrix, a domain error, into _out; a
+    // or what is no number and no matrix, or a complex number until step
+    // 23's third part (S331), a domain error, into _out; a
     // shape in words; a vector's number of elements, of a matrix of one row
     // or one column, or the empty matrix, and npos for any other shape; and
     // a scalar computed in Type, stored so that the x87 rounds it to Type,
     // with the flags given.
     D_CONSTEXPR_VAR std::size_t expr_no_vector = static_cast<std::size_t>(-1);
 
-    inline
-    bool expr_matrix_passes(
+    inline bool
+    expr_matrix_passes(
         const value* _x,
         std::size_t  _count,
         value&       _out
@@ -2609,8 +3693,8 @@ NS_INTERNAL
         return false;
     }
 
-    inline
-    std::string expr_shape_text(
+    inline std::string
+    expr_shape_text(
         const expr_shape& _shape
     )
     {
@@ -2618,8 +3702,8 @@ NS_INTERNAL
                std::to_string(_shape.columns);
     }
 
-    inline
-    std::size_t expr_vector_length(
+    inline std::size_t
+    expr_vector_length(
         const expr_shape& _shape
     )
     {
@@ -2636,7 +3720,8 @@ NS_INTERNAL
     }
 
     template<typename Type>
-    value expr_rounded(
+    value
+    expr_rounded(
         Type     _x,
         unsigned _flags
     )
@@ -2657,7 +3742,8 @@ NS_INTERNAL
     //   function: det(A), of _n rows, in Type: LU with partial pivoting,
     // the parity times U's diagonal.
     template<typename Type>
-    value expr_matrix_det_in(
+    value
+    expr_matrix_det_in(
         const value& _a,
         std::size_t  _n
     )
@@ -2677,8 +3763,8 @@ NS_INTERNAL
                                   expr_matrix_flags_of(_a));
     }
 
-    inline
-    value expr_matrix_det(
+    inline value
+    expr_matrix_det(
         const value& _a
     )
     {
@@ -2723,6 +3809,18 @@ NS_INTERNAL
                 return expr_matrix_det_in<long double>(_a,
                                                        n);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_det_complex<float>(_a,
+                                                      n);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_det_complex<double>(_a,
+                                                       n);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_det_complex<long double>(_a,
+                                                            n);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -2742,8 +3840,8 @@ NS_INTERNAL
     // expr_matrix_inv
     //   function: inv(A): A's inverse, a pole where A is singular (3.2.7);
     // of a number, its reciprocal.
-    inline
-    value expr_matrix_inv(
+    inline value
+    expr_matrix_inv(
         const value& _a
     )
     {
@@ -2766,7 +3864,8 @@ NS_INTERNAL
     //   function: trace(A), the sum of A's diagonal, A square, by the
     // kernels' trace, in A's dense type or on its values.
     template<typename Type>
-    value expr_matrix_trace_in(
+    value
+    expr_matrix_trace_in(
         const value& _a,
         std::size_t  _n
     )
@@ -2780,8 +3879,8 @@ NS_INTERNAL
                                   _a.flags());
     }
 
-    inline
-    value expr_matrix_trace(
+    inline value
+    expr_matrix_trace(
         const value& _a
     )
     {
@@ -2826,6 +3925,18 @@ NS_INTERNAL
                 return expr_matrix_trace_in<long double>(_a,
                                                          n);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_trace_complex<float>(_a,
+                                                        n);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_trace_complex<double>(_a,
+                                                         n);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_trace_complex<long double>(_a,
+                                                              n);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -2845,7 +3956,8 @@ NS_INTERNAL
     // and each of B's columns solved by it; a pole for a singular A. X is of
     // _shape.
     template<typename Type>
-    value expr_matrix_solve_in(
+    value
+    expr_matrix_solve_in(
         const value&      _a,
         const value&      _b,
         std::size_t       _n,
@@ -2898,8 +4010,8 @@ NS_INTERNAL
 
     // expr_matrix_solve
     //   function: solve(A, B): X for A X = B; of a number a, B / a.
-    inline
-    value expr_matrix_solve(
+    inline value
+    expr_matrix_solve(
         const value& _a,
         const value& _b
     )
@@ -2954,13 +4066,20 @@ NS_INTERNAL
                 (!expr_matrix_all_exact(_b)) ) );
 
         // by the type it is computed in: the wider of A's and B's, an
-        // exact one taking the other's
-        switch ( generic ? expr_matrix_storage::values
-                         : ( (expr_matrix_all_exact(_a))
-                                 ? expr_matrix_algebra_storage(_b)
-                                 : ( (expr_matrix_all_exact(_b))
-                                         ? expr_matrix_algebra_storage(_a)
-                                         : storage ) ) )
+        // exact one taking the other's, of complex numbers where either
+        // holds one (S351)
+        const expr_matrix_storage chosen =
+            ( generic ? expr_matrix_storage::values
+                      : ( (expr_matrix_all_exact(_a))
+                              ? expr_matrix_algebra_storage(_b)
+                              : ( (expr_matrix_all_exact(_b))
+                                      ? expr_matrix_algebra_storage(_a)
+                                      : storage ) ) );
+
+        switch ( ( (expr_matrix_has_complex(_a)) ||
+                   (expr_matrix_has_complex(_b)) )
+                     ? expr_storage_complex_of(chosen)
+                     : chosen )
         {
             case expr_matrix_storage::floats:
                 return expr_matrix_solve_in<float>(_a,
@@ -2982,6 +4101,27 @@ NS_INTERNAL
                                                          n,
                                                          columns,
                                                          shape);
+
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_solve_complex<float>(_a,
+                                                        _b,
+                                                        n,
+                                                        columns,
+                                                        shape);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_solve_complex<double>(_a,
+                                                         _b,
+                                                         n,
+                                                         columns,
+                                                         shape);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_solve_complex<long double>(_a,
+                                                              _b,
+                                                              n,
+                                                              columns,
+                                                              shape);
 
             case expr_matrix_storage::values:
             default:
@@ -3027,8 +4167,8 @@ NS_INTERNAL
     // of one length, row or column, their elements' products summed;
     // cross(a, b), two vectors of 3 elements, their vector product, of a's
     // shape.
-    inline
-    value expr_matrix_root(
+    inline value
+    expr_matrix_root(
         const value& _x
     )
     {
@@ -3070,7 +4210,8 @@ NS_INTERNAL
     // at most Type's largest value, and at least the root of its least
     // normal value over its epsilon.
     template<typename Type>
-    bool expr_norm_in_range(
+    bool
+    expr_norm_in_range(
         Type _norm
     )
     {
@@ -3087,7 +4228,8 @@ NS_INTERNAL
     // squares leaves the range, as this layer did around it until chunk 38
     // (S256), the same bits.
     template<typename Type>
-    Type expr_norm_scaled(
+    Type
+    expr_norm_scaled(
         const std::vector<Type>& _x
     )
     {
@@ -3098,7 +4240,8 @@ NS_INTERNAL
     }
 
     template<typename Type>
-    value expr_matrix_norm_in(
+    value
+    expr_matrix_norm_in(
         const value& _a
     )
     {
@@ -3107,12 +4250,81 @@ NS_INTERNAL
             _a.flags());
     }
 
+    // expr_matrix_parts_of
+    //   function: a matrix's elements' parts, in Type, each element's real
+    // part and then its imaginary part, a real one's 0: so that the norm of
+    // a matrix of complex numbers, the root of the sum of their moduli's
+    // squares, is the scaled norm of its parts (S351).
+    template<typename Type>
+    std::vector<Type>
+    expr_matrix_parts_of(
+        const value& _a
+    )
+    {
+        const std::vector<math::complex<Type> > z =
+            expr_matrix_dense_of<math::complex<Type> >(_a);
+        std::vector<Type>                       parts;
+
+        parts.reserve(2 * z.size());
+
+        // each element's two parts
+        for (std::size_t i = 0; i < z.size(); ++i)
+        {
+            parts.push_back(z[i].real());
+            parts.push_back(z[i].imag());
+        }
+
+        return parts;
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_norm_complex(
+        const value& _a
+    )
+    {
+        return expr_rounded<Type>(
+            expr_norm_scaled<Type>(expr_matrix_parts_of<Type>(_a)),
+            _a.flags());
+    }
+
+    // expr_matrix_moduli_squared
+    //   function: the sum, on values, of a matrix's elements' squared moduli,
+    // re^2 + im^2 of a complex one and x^2 of a real one, from 0 in order:
+    // exact for exact elements (S351).
+    inline value
+    expr_matrix_moduli_squared(
+        const std::vector<value>& _x
+    )
+    {
+        value sum(0);
+
+        // element by element
+        for (std::size_t i = 0; i < _x.size(); ++i)
+        {
+            if (expr_is_complex(_x[i]))
+            {
+                const value re = expr_real(_x[i]);
+                const value im = expr_imag(_x[i]);
+
+                sum = (sum + ((re * re) + (im * im)));
+            }
+            else
+            {
+                sum = (sum + (_x[i] * _x[i]));
+            }
+        }
+
+        return sum;
+    }
+
     // expr_norm_rescued
     //   function: _norm, a norm of values in Type, or, out of
     // expr_norm_in_range's range, A's norm scaled, in Type, each element its
     // nearest there, with _norm's flags.
     template<typename Type>
-    value expr_norm_rescued(
+    value
+    expr_norm_rescued(
         const value& _a,
         const value& _norm
     )
@@ -3125,12 +4337,14 @@ NS_INTERNAL
                      ? _norm
                      : expr_rounded<Type>(
                            expr_norm_scaled<Type>(
-                               expr_matrix_dense_of<Type>(_a)),
+                               ( expr_matrix_has_complex(_a)
+                                     ? expr_matrix_parts_of<Type>(_a)
+                                     : expr_matrix_dense_of<Type>(_a) )),
                            _norm.flags()) );
     }
 
-    inline
-    value expr_matrix_norm(
+    inline value
+    expr_matrix_norm(
         const value& _a
     )
     {
@@ -3161,6 +4375,15 @@ NS_INTERNAL
             case expr_matrix_storage::long_doubles:
                 return expr_matrix_norm_in<long double>(_a);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_norm_complex<float>(_a);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_norm_complex<double>(_a);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_norm_complex<long double>(_a);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -3170,8 +4393,10 @@ NS_INTERNAL
 
         const std::vector<value> x    = expr_matrix_values_of(_a);
         const value              norm = expr_matrix_root(
-                                            kernel::norm_squared(x.data(),
-                                                                 x.size()));
+            expr_matrix_has_complex(_a)
+                ? expr_matrix_moduli_squared(x)
+                : kernel::norm_squared(x.data(),
+                                       x.size()));
 
         // in floating point, scaled where a square overflowed or underflowed
         switch (norm.kind())
@@ -3196,7 +4421,8 @@ NS_INTERNAL
     }
 
     template<typename Type>
-    value expr_matrix_dot_in(
+    value
+    expr_matrix_dot_in(
         const expr_matrix_box& _a,
         const expr_matrix_box& _b,
         unsigned               _flags
@@ -3213,8 +4439,93 @@ NS_INTERNAL
                                   _flags);
     }
 
-    inline
-    value expr_matrix_dot(
+    // expr_matrix_dot_complex
+    //   function: dot(a, b) of dense vectors, one complex at least, in
+    // math::complex<Type>: the sum from 0, in order, of conj(a_i) b_i, a
+    // real element taken as itself, its conjugate itself (S351), as
+    // Julia's dot, NumPy's vdot and BLAS's zdotc conjugate a.
+    template<typename Type>
+    const Type&
+    expr_matrix_conjugate_of(
+        const Type& _x
+    )
+    {
+        return _x;
+    }
+
+    template<typename Type>
+    math::complex<Type>
+    expr_matrix_conjugate_of(
+        const math::complex<Type>& _z
+    )
+    {
+        return conj(_z);
+    }
+
+    template<typename Type,
+             typename X,
+             typename Y>
+    math::complex<Type>
+    expr_matrix_conjugate_dot(
+        const std::vector<X>& _a,
+        const std::vector<Y>& _b
+    )
+    {
+        math::complex<Type> sum;
+
+        // in order
+        for (std::size_t i = 0; i < _a.size(); ++i)
+        {
+            sum += (expr_matrix_conjugate_of(_a[i]) * _b[i]);
+        }
+
+        return sum;
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_dot_complex(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        unsigned               _flags
+    )
+    {
+        const expr_matrix_side<Type> a = expr_matrix_side_of<Type>(_a);
+        const expr_matrix_side<Type> b = expr_matrix_side_of<Type>(_b);
+
+        // each side as it is held
+        return expr_complex_flagged_of(
+            ( (a.complex)
+                  ? ( (b.complex)
+                          ? expr_matrix_conjugate_dot<Type>(a.z, b.z)
+                          : expr_matrix_conjugate_dot<Type>(a.z, b.real) )
+                  : expr_matrix_conjugate_dot<Type>(a.real, b.z) ),
+            _flags);
+    }
+
+    // expr_matrix_dot_values
+    //   function: dot(a, b) on values: the sum from 0, in order, of
+    // conj(a_i) b_i, exact for exact elements.
+    inline value
+    expr_matrix_dot_values(
+        const std::vector<value>& _a,
+        const std::vector<value>& _b
+    )
+    {
+        value sum(0);
+
+        // in order
+        for (std::size_t i = 0; i < _a.size(); ++i)
+        {
+            sum = (sum + (( expr_is_complex(_a[i]) ? expr_conj(_a[i])
+                                                   : _a[i] ) * _b[i]));
+        }
+
+        return sum;
+    }
+
+    inline value
+    expr_matrix_dot(
         const value& _a,
         const value& _b
     )
@@ -3236,7 +4547,8 @@ NS_INTERNAL
         if ( (!a_matrix) &&
              (!b_matrix) )
         {
-            return (_a * _b);
+            return ( ( expr_is_complex(_a) ? expr_conj(_a)
+                                           : _a ) * _b );
         }
 
         // two vectors of one length
@@ -3277,6 +4589,21 @@ NS_INTERNAL
                                                        b,
                                                        flags);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_dot_complex<float>(a,
+                                                      b,
+                                                      flags);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_dot_complex<double>(a,
+                                                       b,
+                                                       flags);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_dot_complex<long double>(a,
+                                                            b,
+                                                            flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -3287,13 +4614,22 @@ NS_INTERNAL
         const std::vector<value> y = expr_matrix_values_of(_a);
         const std::vector<value> z = expr_matrix_values_of(_b);
 
+        // of complex numbers: conj(a_i) b_i; of real ones, the kernels'
+        if ( (expr_matrix_has_complex(_a)) ||
+             (expr_matrix_has_complex(_b)) )
+        {
+            return expr_matrix_dot_values(y,
+                                          z);
+        }
+
         return kernel::dot(y.data(),
                            z.data(),
                            length);
     }
 
     template<typename Type>
-    value expr_matrix_cross_in(
+    value
+    expr_matrix_cross_in(
         const expr_matrix_box& _a,
         const expr_matrix_box& _b,
         unsigned               _flags
@@ -3314,8 +4650,61 @@ NS_INTERNAL
                                           _flags);
     }
 
-    inline
-    value expr_matrix_cross(
+    // expr_matrix_cross_complex
+    //   function: cross(a, b) of dense 3-vectors, one complex at least, in
+    // math::complex<Type>, nothing conjugated (S273): a_2 b_3 - a_3 b_2,
+    // a_3 b_1 - a_1 b_3, a_1 b_2 - a_2 b_1, a real element taken as itself.
+    template<typename Type,
+             typename X,
+             typename Y>
+    void
+    expr_matrix_crossed(
+        std::vector<math::complex<Type> >& _out,
+        const std::vector<X>&              _a,
+        const std::vector<Y>&              _b
+    )
+    {
+        _out[0] = math::complex<Type>((_a[1] * _b[2]) - (_a[2] * _b[1]));
+        _out[1] = math::complex<Type>((_a[2] * _b[0]) - (_a[0] * _b[2]));
+        _out[2] = math::complex<Type>((_a[0] * _b[1]) - (_a[1] * _b[0]));
+
+        return;
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_cross_complex(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        unsigned               _flags
+    )
+    {
+        const expr_matrix_side<Type>      a = expr_matrix_side_of<Type>(_a);
+        const expr_matrix_side<Type>      b = expr_matrix_side_of<Type>(_b);
+        std::vector<math::complex<Type> > out(3);
+
+        // each side as it is held
+        if ( (a.complex) &&
+             (b.complex) )
+        {
+            expr_matrix_crossed<Type>(out, a.z, b.z);
+        }
+        else if (a.complex)
+        {
+            expr_matrix_crossed<Type>(out, a.z, b.real);
+        }
+        else
+        {
+            expr_matrix_crossed<Type>(out, a.real, b.z);
+        }
+
+        return expr_matrix_of_dense<math::complex<Type> >(_a.shape,
+                                                          out,
+                                                          _flags);
+    }
+
+    inline value
+    expr_matrix_cross(
         const value& _a,
         const value& _b
     )
@@ -3365,6 +4754,21 @@ NS_INTERNAL
                                                          b,
                                                          flags);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_cross_complex<float>(a,
+                                                        b,
+                                                        flags);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_cross_complex<double>(a,
+                                                         b,
+                                                         flags);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_cross_complex<long double>(a,
+                                                              b,
+                                                              flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -3386,26 +4790,47 @@ NS_INTERNAL
 
     // 3.5.4
     // Eigenvalues
-    //   functions: eig(A), A square: its eigenvalues, ascending, as a
-    // vector of one row (S258). In A's algebra type: a symmetric A's by the
+    //   functions: eig(A), A square: every eigenvalue, as a vector of one
+    // row (S258, S352). In A's algebra type: a real symmetric A's by the
     // cyclic Jacobi method, on A scaled exactly by a power of two to a
     // largest magnitude in [1, 2), to its Frobenius norm times the type's
-    // epsilon; any other A's by Hessenberg QR with Wilkinson's shifts, the C
-    // core's; NaNs, of A's type, where A holds a NaN or an infinity; and a
-    // domain error where they are not all found real, as a complex pair has
-    // no value yet (S45). An exact A's are found so in long double, and each
-    // made exact where it is rational: A's characteristic polynomial,
-    // Faddeev and LeVerrier's, exactly; each eigenvalue's nearest multiple
-    // of 1/d, d the least common multiple of A's elements' denominators,
-    // which every rational eigenvalue is; and each such one a root, the
-    // polynomial divided by it once for each, so that a repeated eigenvalue
-    // is found as often as it is repeated.
+    // epsilon, and any other real A's by Francis's double-shift QR, the C
+    // core's, ascending where each is real, and otherwise every one, complex,
+    // by decomp.h's d_decomp_eigen; a Hermitian A's real, by cmat.h's
+    // Jacobi method with complex rotations, and any other complex A's by
+    // cmat.h's d_cmat_eigen, ascending by real part, then by imaginary
+    // part; NaNs, of A's type, where A holds a NaN or an infinity; and a
+    // domain error where they are not each found, the solvers given
+    // expr_eigen_budget's steps. An exact A's are found so in long double,
+    // and each made exact where it is a Gaussian rational: A's
+    // characteristic polynomial, Faddeev and LeVerrier's, exactly; each
+    // eigenvalue's nearest number of parts that are multiples of 1/d, d the
+    // least common multiple of A's parts' denominators, which every
+    // Gaussian rational eigenvalue is; and each such one a root, the
+    // polynomial divided by it as often as it divides, so that a repeated
+    // eigenvalue is found as often as it is repeated.
+
+    // expr_eigen_budget
+    //   function: the QR steps an _n by _n matrix's eigenvalues are given in
+    // all: 30 a row, some ten times what Francis's QR takes, and at least
+    // the 1000 every matrix was given until chunk 43, under which one of
+    // 700 rows ran out (S352). A matrix that converges within either takes
+    // the same steps, so the same bits.
+    D_CONSTEXPR inline std::size_t
+    expr_eigen_budget(
+        std::size_t _n
+    ) D_NOEXCEPT
+    {
+        return ( ((30u * _n) > 1000u) ? (30u * _n)
+                                      : static_cast<std::size_t>(1000u) );
+    }
 
     // expr_matrix_eigenvalues_in
     //   function: the eigenvalues of the _n by _n _a, in Type, ascending,
     // into _values; whether they are all found real.
     template<typename Type>
-    bool expr_matrix_eigenvalues_in(
+    bool
+    expr_matrix_eigenvalues_in(
         std::vector<Type>  _a,
         std::size_t        _n,
         std::vector<Type>& _values
@@ -3451,7 +4876,7 @@ NS_INTERNAL
             return d_decomp_eigenvalues(_a.data(),
                                         _n,
                                         _values.data(),
-                                        1000,
+                                        expr_eigen_budget(_n),
                                         Type(0));
         }
 
@@ -3497,20 +4922,211 @@ NS_INTERNAL
         return true;
     }
 
+    // expr_matrix_spectrum_in
+    //   function: every eigenvalue of the real _n by _n _a, in
+    // math::complex<Type>, into _values, as decomp.h's d_decomp_eigen
+    // finds them: ascending by real part, then by imaginary part, a pair
+    // exactly conjugate, a real one's imaginary part +0 (S273); whether
+    // each was found.
     template<typename Type>
-    value expr_matrix_eig_in(
+    bool
+    expr_matrix_spectrum_in(
+        std::vector<Type>                  _a,
+        std::size_t                        _n,
+        std::vector<math::complex<Type> >& _values
+    )
+    {
+        typedef typename math::complex<Type>::core_type core_type;
+
+        std::vector<core_type> found(_n);
+        std::vector<Type>      work(_n + 1);
+        const bool             all = d_decomp_eigen(_a.data(),
+                                                    _n,
+                                                    found.data(),
+                                                    D_NULLPTR,
+                                                    work.data(),
+                                                    D_NULLPTR,
+                                                    expr_eigen_budget(_n),
+                                                    Type(0));
+
+        _values = expr_matrix_of_cores<Type>(found);
+
+        return all;
+    }
+
+    // expr_matrix_complex_spectrum_in
+    //   function: every eigenvalue of the complex _n by _n _a, in
+    // math::complex<Type>, into _values: a Hermitian A's, A^H = A exactly,
+    // by cmat.h's cyclic Jacobi method with complex rotations, on A scaled
+    // exactly by a power of two to a largest part in [1, 2), to its
+    // Frobenius norm times Type's epsilon, real and ascending, into _real,
+    // with _hermitian set; any other A's by cmat.h's d_cmat_eigen, LAPACK's
+    // zgeev's path, ascending by real part, then by imaginary part (S273,
+    // S352); NaNs where A holds a NaN or an infinity. Whether each was
+    // found.
+    template<typename Type>
+    bool
+    expr_matrix_complex_spectrum_in(
+        const std::vector<math::complex<Type> >& _a,
+        std::size_t                              _n,
+        std::vector<math::complex<Type> >&       _values,
+        std::vector<Type>&                       _real,
+        bool&                                    _hermitian
+    )
+    {
+        typedef typename math::complex<Type>::core_type core_type;
+
+        Type largest = Type(0);
+
+        _hermitian = true;
+        _values.assign(_n, math::complex<Type>());
+
+        // a NaN or an infinity: NaNs
+        for (std::size_t i = 0; i < _a.size(); ++i)
+        {
+            const Type re = std::fabs(_a[i].real());
+            const Type im = std::fabs(_a[i].imag());
+
+            if ( (!(re <= std::numeric_limits<Type>::max())) ||
+                 (!(im <= std::numeric_limits<Type>::max())) )
+            {
+                const Type nan = std::numeric_limits<Type>::quiet_NaN();
+
+                _hermitian = false;
+                _values.assign(_n, math::complex<Type>(nan, nan));
+
+                return true;
+            }
+
+            largest = ( (re > largest) ? re : largest );
+            largest = ( (im > largest) ? im : largest );
+        }
+
+        // Hermitian: each pair the other's conjugate, the diagonal real
+        for (std::size_t i = 0; i < _n; ++i)
+        {
+            for (std::size_t j = i; j < _n; ++j)
+            {
+                const math::complex<Type>& x = _a[(i * _n) + j];
+                const math::complex<Type>& y = _a[(j * _n) + i];
+
+                _hermitian = ( (_hermitian) &&
+                               (x.real() == y.real()) &&
+                               (x.imag() == -y.imag()) );
+            }
+        }
+
+        std::vector<core_type> a = expr_matrix_cores<Type>(_a);
+
+        // any other: cmat.h's general path, which scales A itself
+        if (!_hermitian)
+        {
+            std::vector<core_type> found(_n);
+            std::vector<Type>      rwork((2 * _n) + 1);
+            const bool             all = d_cmat_eigen(a.data(),
+                                                      _n,
+                                                      found.data(),
+                                                      D_NULLPTR,
+                                                      D_NULLPTR,
+                                                      rwork.data(),
+                                                      D_NULLPTR,
+                                                      expr_eigen_budget(_n),
+                                                      Type(0));
+
+            _values = expr_matrix_of_cores<Type>(found);
+
+            return all;
+        }
+
+        _real.assign(_n,
+                     Type(0));
+
+        // the zero matrix's are its zeros
+        if (largest == Type(0))
+        {
+            return true;
+        }
+
+        int  exponent = 0;
+        Type scale    = Type(1);
+
+        static_cast<void>(std::frexp(largest,
+                                     &exponent));
+        scale = std::ldexp(Type(1),
+                           1 - exponent);
+
+        std::vector<Type> parts;
+
+        // scaled exactly, and its parts for the norm
+        for (std::size_t i = 0; i < a.size(); ++i)
+        {
+            a[i].part[0] *= scale;
+            a[i].part[1] *= scale;
+            parts.push_back(a[i].part[0]);
+            parts.push_back(a[i].part[1]);
+        }
+
+        std::vector<core_type> vectors(_n * _n);
+        const Type             threshold =
+            ( std::numeric_limits<Type>::epsilon() *
+              expr_norm_scaled<Type>(parts) );
+
+        // the identity, to receive the eigenvectors
+        for (std::size_t i = 0; i < _n; ++i)
+        {
+            for (std::size_t j = 0; j < _n; ++j)
+            {
+                vectors[(i * _n) + j].part[0] = ( (i == j) ? Type(1)
+                                                           : Type(0) );
+                vectors[(i * _n) + j].part[1] = Type(0);
+            }
+        }
+
+        d_cmat_hermitian_eigen(a.data(),
+                               _real.data(),
+                               vectors.data(),
+                               _n,
+                               threshold);
+
+        // back to A's scale, exactly
+        for (std::size_t i = 0; i < _n; ++i)
+        {
+            _real[i] = std::ldexp(_real[i],
+                                  exponent - 1);
+        }
+
+        return true;
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_eig_in(
         const value& _a,
         std::size_t  _n
     )
     {
         std::vector<Type> values;
 
-        // not all real: a domain error
+        // not all real: every eigenvalue, complex throughout (S352)
         if (!expr_matrix_eigenvalues_in<Type>(expr_matrix_dense_of<Type>(_a),
                                               _n,
                                               values))
         {
-            return value(D_MATH_VALUE_ERROR_DOMAIN);
+            std::vector<math::complex<Type> > spectrum;
+
+            // not each found: a domain error
+            if (!expr_matrix_spectrum_in<Type>(expr_matrix_dense_of<Type>(_a),
+                                               _n,
+                                               spectrum))
+            {
+                return value(D_MATH_VALUE_ERROR_DOMAIN);
+            }
+
+            return expr_matrix_of_dense<math::complex<Type> >(
+                expr_shape(1,
+                           _n),
+                spectrum,
+                expr_matrix_flags_of(_a));
         }
 
         return expr_matrix_of_dense<Type>(expr_shape(1,
@@ -3519,13 +5135,55 @@ NS_INTERNAL
                                           expr_matrix_flags_of(_a));
     }
 
+    // expr_matrix_eig_complex
+    //   function: eig(A) of a complex A, in math::complex<Type>: a
+    // Hermitian one's real, of Type, any other's complex (S352); a domain
+    // error where they are not each found.
+    template<typename Type>
+    value
+    expr_matrix_eig_complex(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        std::vector<math::complex<Type> > spectrum;
+        std::vector<Type>                 real;
+        bool                              hermitian = false;
+
+        // not each found: a domain error
+        if (!expr_matrix_complex_spectrum_in<Type>(
+                 expr_matrix_dense_of<math::complex<Type> >(_a),
+                 _n,
+                 spectrum,
+                 real,
+                 hermitian))
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        // Hermitian: real
+        if (hermitian)
+        {
+            return expr_matrix_of_dense<Type>(expr_shape(1,
+                                                         _n),
+                                              real,
+                                              expr_matrix_flags_of(_a));
+        }
+
+        return expr_matrix_of_dense<math::complex<Type> >(
+            expr_shape(1,
+                       _n),
+            spectrum,
+            expr_matrix_flags_of(_a));
+    }
+
     // expr_char_poly
     //   function: the characteristic polynomial of the _n by _n _a, det(x I
     // - A), its coefficients from x^0's to x^n's, into _c, by Faddeev and
     // LeVerrier: M_1 = I, c_(n - k) = -trace(A M_k) / k, M_(k + 1) = A M_k
     // + c_(n - k) I; whether each is exact.
-    inline
-    bool expr_char_poly(
+    inline bool
+    expr_char_poly(
         const std::vector<value>& _a,
         std::size_t               _n,
         std::vector<value>&       _c
@@ -3557,7 +5215,7 @@ NS_INTERNAL
 
             _c[_n - k] = ( value(0) -
                            ( trace /
-                             value(static_cast<dj_math_imax>(k)) ) );
+                             value(static_cast<d_math_imax>(k)) ) );
 
             // an inexact coefficient, the exact arithmetic past its range
             if (!_c[_n - k].is_exact())
@@ -3579,8 +5237,8 @@ NS_INTERNAL
     // expr_poly_at, expr_poly_divided
     //   functions: the polynomial _c at _x, by Horner's rule; and _c
     // divided by x - _x, of which _x is a root, by synthetic division.
-    inline
-    value expr_poly_at(
+    inline value
+    expr_poly_at(
         const std::vector<value>& _c,
         const value&              _x
     )
@@ -3596,8 +5254,8 @@ NS_INTERNAL
         return at;
     }
 
-    inline
-    std::vector<value> expr_poly_divided(
+    inline std::vector<value>
+    expr_poly_divided(
         const std::vector<value>& _c,
         const value&              _x
     )
@@ -3620,19 +5278,19 @@ NS_INTERNAL
     //   function: the least common multiple of the denominators of _a,
     // exact rationals of the family, into _lcm; false where one is none, or
     // the multiple passes the exact integers.
-    inline
-    bool expr_denominators_lcm(
+    inline bool
+    expr_denominators_lcm(
         const std::vector<value>& _a,
-        dj_math_imax&             _lcm
+        d_math_imax&              _lcm
     )
     {
         _lcm = 1;
 
         for (std::size_t i = 0; i < _a.size(); ++i)
         {
-            dj_rational  q      = { 0, 1 };
-            dj_math_imax common = _lcm;
-            dj_math_imax other  = 0;
+            d_rational  q      = { 0, 1 };
+            d_math_imax common = _lcm;
+            d_math_imax other  = 0;
 
             if (!_a[i].to(q))
             {
@@ -3644,14 +5302,14 @@ NS_INTERNAL
             // the greatest common divisor, by Euclid's algorithm
             while (other != 0)
             {
-                const dj_math_imax rest = (common % other);
+                const d_math_imax rest = (common % other);
 
                 common = other;
                 other  = rest;
             }
 
             if ( (_lcm / common) >
-                 (std::numeric_limits<dj_math_imax>::max() / q.den) )
+                 (std::numeric_limits<d_math_imax>::max() / q.den) )
             {
                 return false;
             }
@@ -3662,76 +5320,228 @@ NS_INTERNAL
         return true;
     }
 
+    // expr_parts_denominators_lcm
+    //   function: the least common multiple of the denominators of the
+    // parts of _a, exact numbers, real or complex, into _lcm; false where
+    // one is none, or the multiple passes the exact integers.
+    inline bool
+    expr_parts_denominators_lcm(
+        const std::vector<value>& _a,
+        d_math_imax&              _lcm
+    )
+    {
+        std::vector<value> parts;
+
+        // each element's parts, a real one itself
+        for (std::size_t i = 0; i < _a.size(); ++i)
+        {
+            if (expr_is_complex(_a[i]))
+            {
+                parts.push_back(expr_real(_a[i]));
+                parts.push_back(expr_imag(_a[i]));
+            }
+            else
+            {
+                parts.push_back(_a[i]);
+            }
+        }
+
+        return expr_denominators_lcm(parts,
+                                     _lcm);
+    }
+
+    // expr_gaussian_candidate
+    //   function: the number nearest _z whose parts are multiples of 1/_lcm,
+    // exactly: the complex number of those parts, or the real one where the
+    // imaginary part comes to 0; false where a part's multiple passes the
+    // exact integers.
+    inline bool
+    expr_gaussian_candidate(
+        const math::complex<long double>& _z,
+        d_math_imax                       _lcm,
+        value&                            _out
+    )
+    {
+        const long double re = std::floor((_z.real() *
+                                           static_cast<long double>(_lcm)) +
+                                          0.5L);
+        const long double im = std::floor((_z.imag() *
+                                           static_cast<long double>(_lcm)) +
+                                          0.5L);
+
+        // each multiple within the exact integers
+        if (!( (re > -9.0e18L) &&
+               (re < 9.0e18L) &&
+               (im > -9.0e18L) &&
+               (im < 9.0e18L) ))
+        {
+            return false;
+        }
+
+        const value real_part = ( value(static_cast<d_math_imax>(re)) /
+                                  value(_lcm) );
+        const value imag_part = ( value(static_cast<d_math_imax>(im)) /
+                                  value(_lcm) );
+
+        _out = ( (im == 0.0L) ? real_part
+                              : expr_complex(real_part,
+                                             imag_part) );
+
+        return true;
+    }
+
+    // expr_eigenvalue_before
+    //   function: whether the eigenvalue _x comes before _y: by real part,
+    // then by imaginary part, in value.h's exact order, a real one's
+    // imaginary part 0 (S273).
+    inline bool
+    expr_eigenvalue_before(
+        const value& _x,
+        const value& _y
+    )
+    {
+        const value xr = expr_real(_x);
+        const value yr = expr_real(_y);
+
+        // by real part, then by imaginary part
+        if (!(xr == yr))
+        {
+            return (xr < yr);
+        }
+
+        return (expr_imag(_x) < expr_imag(_y));
+    }
+
     // expr_matrix_eig_exact
-    //   function: an exact A's eigenvalues, found in long double, each made
-    // exact where it is rational, ascending; a domain error where they are
-    // not all found real, unless each is a rational root, as a repeated
-    // one may be found as a complex pair's real part twice.
-    inline
-    value expr_matrix_eig_exact(
+    //   function: an exact A's eigenvalues (S258, S352). Each is found in
+    // long double, as a dense A's of real or complex elements is, a real
+    // A's real where each is found real and every one otherwise; and each
+    // made exact where it is a Gaussian rational, a rational among them: A's
+    // characteristic polynomial, Faddeev and LeVerrier's, exactly; each
+    // eigenvalue's nearest number of parts that are multiples of 1/d, d the
+    // least common multiple of A's parts' denominators, which every Gaussian
+    // rational eigenvalue is, d A's characteristic polynomial being monic
+    // over the Gaussian integers; and each such one a root, the polynomial
+    // divided by it once for each, so that a repeated eigenvalue is found as
+    // often as it is repeated. A spectrum found real, or each of whose
+    // eigenvalues is a rational, is real, ascending; any other is in the
+    // order of expr_eigenvalue_before, each inexact one a complex long
+    // double, a real one's imaginary part +0; a domain error where they are
+    // not each found.
+    inline value
+    expr_matrix_eig_exact(
         const value& _a,
         std::size_t  _n
     )
     {
-        const std::vector<value> a = expr_matrix_values_of(_a);
-        std::vector<long double> found;
+        typedef math::complex<long double> complex_ld;
+
+        const std::vector<value> a         = expr_matrix_values_of(_a);
+        const bool               complex_a = expr_matrix_has_complex(_a);
+        std::vector<long double> found_real;
+        std::vector<complex_ld>  found;
         std::vector<value>       poly;
-        std::vector<value>       eigenvalues;
+        std::vector<value>       eigenvalues(_n);
         std::vector<bool>        made(_n,
                                       false);
-        dj_math_imax              lcm   = 1;
-        std::size_t              exact = 0;
-        const bool               real  =
-            expr_matrix_eigenvalues_in<long double>(
+        d_math_imax              lcm       = 1;
+        std::size_t              exact     = 0;
+        bool                     real      = false;
+        bool                     all       = true;
+
+        // found in long double: a real A's real, where they are, else
+        // every one; a complex A's, a Hermitian one's real
+        if (complex_a)
+        {
+            all = expr_matrix_complex_spectrum_in<long double>(
+                expr_matrix_dense_of<complex_ld>(_a),
+                _n,
+                found,
+                found_real,
+                real);
+        }
+        else
+        {
+            real = expr_matrix_eigenvalues_in<long double>(
                 expr_matrix_dense_of<long double>(_a),
                 _n,
-                found);
+                found_real);
 
-        for (std::size_t i = 0; i < _n; ++i)
-        {
-            eigenvalues.push_back(value(found[i]));
+            // a complex pair: every one, complex
+            if (!real)
+            {
+                all = expr_matrix_spectrum_in<long double>(
+                    expr_matrix_dense_of<long double>(_a),
+                    _n,
+                    found);
+            }
         }
 
-        // each rational root its nearest found eigenvalue's, as often as
-        // it is a root: the nearest multiple of 1/lcm of each found
+        // not each found: a domain error
+        if (!all)
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        // each as found: a real one real, where all are
+        if (real)
+        {
+            found.clear();
+        }
+
+        // each eigenvalue as found, in long double
+        for (std::size_t i = 0; i < _n; ++i)
+        {
+            if (real)
+            {
+                found.push_back(complex_ld(found_real[i],
+                                           0.0L));
+                eigenvalues[i] = value(found_real[i]);
+            }
+            else
+            {
+                eigenvalues[i] = expr_complex_of(found[i]);
+            }
+        }
+
+        // each Gaussian rational root its nearest found eigenvalue's, as
+        // often as it is a root
         if ( (expr_char_poly(a,
                              _n,
                              poly)) &&
-             (expr_denominators_lcm(a,
-                                    lcm)) )
+             (expr_parts_denominators_lcm(a,
+                                          lcm)) )
         {
+            // each found eigenvalue's candidate
             for (std::size_t i = 0; i < _n; ++i)
             {
-                const long double scaled =
-                    std::floor((found[i] * static_cast<long double>(lcm)) +
-                               0.5L);
+                value candidate;
 
-                if (!( (scaled > -9.0e18L) &&
-                       (scaled < 9.0e18L) ))
+                if (!expr_gaussian_candidate(found[i],
+                                             lcm,
+                                             candidate))
                 {
                     continue;
                 }
-
-                const value candidate =
-                    ( value(static_cast<dj_math_imax>(scaled)) /
-                      value(lcm) );
 
                 // a root, once for each time it divides the polynomial
                 while ( (poly.size() > 1) &&
                         (expr_poly_at(poly,
                                       candidate) == value(0)) )
                 {
+                    complex_ld  q;
                     std::size_t nearest = _n;
                     long double gap     = 0.0L;
-                    long double q       = 0.0L;
 
-                    static_cast<void>(candidate.to(q));
+                    static_cast<void>(expr_complex_to(candidate,
+                                                      q));
 
+                    // the nearest found one not yet made exact
                     for (std::size_t k = 0; k < _n; ++k)
                     {
-                        const long double d = ( (found[k] > q)
-                                                    ? (found[k] - q)
-                                                    : (q - found[k]) );
+                        const long double d =
+                            ( std::fabs(found[k].real() - q.real()) +
+                              std::fabs(found[k].imag() - q.imag()) );
 
                         if ( (!made[k]) &&
                              ( (nearest == _n) ||
@@ -3751,28 +5561,40 @@ NS_INTERNAL
             }
         }
 
-        // not all real, nor each exact: a domain error
-        if ( (!real) &&
-             (exact < _n) )
+        bool rational = (exact == _n);
+
+        // each exact and real: a real spectrum
+        for (std::size_t i = 0; ( (rational) && (i < _n) ); ++i)
         {
-            return value(D_MATH_VALUE_ERROR_DOMAIN);
+            rational = (!expr_is_complex(eigenvalues[i]));
         }
 
-        std::stable_sort(eigenvalues.begin(),
-                         eigenvalues.end(),
-                         [](const value& _x,
-                            const value& _y) -> bool
-                         {
-                             return (_x < _y);
-                         });
+        // a real spectrum: ascending
+        if ( (real) ||
+             (rational) )
+        {
+            std::stable_sort(eigenvalues.begin(),
+                             eigenvalues.end(),
+                             [](const value& _x,
+                                const value& _y) -> bool
+                             {
+                                 return (_x < _y);
+                             });
+        }
+        else
+        {
+            std::stable_sort(eigenvalues.begin(),
+                             eigenvalues.end(),
+                             &expr_eigenvalue_before);
+        }
 
         return expr_matrix_of_values(expr_shape( ( (_n == 0) ? 0 : 1 ),
                                                 _n),
                                      eigenvalues);
     }
 
-    inline
-    value expr_matrix_eig(
+    inline value
+    expr_matrix_eig(
         const value& _a
     )
     {
@@ -3817,6 +5639,18 @@ NS_INTERNAL
                 return expr_matrix_eig_in<long double>(_a,
                                                        n);
 
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_eig_complex<float>(_a,
+                                                      n);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_eig_complex<double>(_a,
+                                                       n);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_eig_complex<long double>(_a,
+                                                            n);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -3826,16 +5660,19 @@ NS_INTERNAL
         return ( expr_matrix_all_exact(_a)
                      ? expr_matrix_eig_exact(_a,
                                              n)
-                     : expr_matrix_eig_in<long double>(_a,
-                                                       n) );
+                     : ( expr_matrix_has_complex(_a)
+                             ? expr_matrix_eig_complex<long double>(_a,
+                                                                    n)
+                             : expr_matrix_eig_in<long double>(_a,
+                                                               n) ) );
     }
 
     // 3.5.5
     // expr_function_shape
     //   function: where an operand's shape is one the function _name does
     // not take, the message of its bad_shape; else an empty one.
-    inline
-    std::string expr_function_shape(
+    inline std::string
+    expr_function_shape(
         const char*  _name,
         const value& _a,
         const value* _b
@@ -3916,8 +5753,8 @@ NS_INTERNAL
 
     // expr_function_result
     //   function: _answer, or bad_shape of _message where it is not empty.
-    inline
-    expr_result<value> expr_function_result(
+    inline expr_result<value>
+    expr_function_result(
         const std::string& _message,
         const value&       _answer
     )
@@ -3941,16 +5778,21 @@ NS_END  // internal
  * @param[in] _matrix  the matrix, or a number.
  * @return expr_det: the determinant; expr_inv: the inverse, a pole where
  *         the matrix is singular; expr_trace: the sum of the diagonal;
- *         expr_norm: a vector's Euclidean norm, a matrix's Frobenius norm;
- *         expr_eig: the eigenvalues, ascending, a vector of one row, a
- *         domain error where they are not all real. Exact for an exact
- *         matrix, each eigenvalue where it is rational; in a dense one's
- *         type otherwise (S257, S258). Of a number: itself, its
- *         reciprocal, itself, its magnitude, itself. An error passes; a
- *         boolean or none is a domain error. bad_shape, where the matrix
- *         is not square, for each but expr_norm.
+ *         expr_norm: a vector's Euclidean norm, a matrix's Frobenius norm,
+ *         of the elements' moduli; expr_eig: every eigenvalue, a vector
+ *         of one row, ascending by real part, then by imaginary part,
+ *         complex where any is, a Hermitian matrix's real, a domain error
+ *         where they are not each found, or are complex for a real matrix
+ *         under real_results (S352). Exact for an exact matrix, each
+ *         eigenvalue where it is a Gaussian rational; in a dense one's
+ *         type otherwise, complex where any element is (S257, S258,
+ *         S351). Of a number: itself, its reciprocal, itself, its
+ *         magnitude, itself. An error passes; a boolean or none is a
+ *         domain error. bad_shape, where the matrix is not square, for
+ *         each but expr_norm.
  */
-D_NODISCARD inline expr_result<value> expr_det(
+D_NODISCARD inline expr_result<value>
+expr_det(
     const value& _matrix
 )
 {
@@ -3961,7 +5803,8 @@ D_NODISCARD inline expr_result<value> expr_det(
         internal::expr_matrix_det(_matrix));
 }
 
-D_NODISCARD inline expr_result<value> expr_inv(
+D_NODISCARD inline expr_result<value>
+expr_inv(
     const value& _matrix
 )
 {
@@ -3972,7 +5815,8 @@ D_NODISCARD inline expr_result<value> expr_inv(
         internal::expr_matrix_inv(_matrix));
 }
 
-D_NODISCARD inline expr_result<value> expr_trace(
+D_NODISCARD inline expr_result<value>
+expr_trace(
     const value& _matrix
 )
 {
@@ -3983,14 +5827,16 @@ D_NODISCARD inline expr_result<value> expr_trace(
         internal::expr_matrix_trace(_matrix));
 }
 
-D_NODISCARD inline expr_result<value> expr_norm(
+D_NODISCARD inline expr_result<value>
+expr_norm(
     const value& _matrix
 )
 {
     return ok<value, expr_error>(internal::expr_matrix_norm(_matrix));
 }
 
-D_NODISCARD inline expr_result<value> expr_eig(
+D_NODISCARD inline expr_result<value>
+expr_eig(
     const value& _matrix
 )
 {
@@ -4008,18 +5854,21 @@ D_NODISCARD inline expr_result<value> expr_eig(
  *
  * @param[in] _a  the first: a vector, a matrix, or a number.
  * @param[in] _b  the second.
- * @return expr_dot: two vectors' elements' products summed, of one length,
- *         each a row or a column, or two numbers' product; expr_cross: two
- *         vectors of 3 elements' vector product, of _a's shape; expr_solve:
- *         the X for which _a X = _b, _a square and _b of its rows, or a
- *         vector of as many elements, X then of _b's shape, a pole where
- *         _a is singular; of a number _a, _b / _a. Exact for exact
- *         operands, otherwise in their wider dense type (S257). An error
+ * @return expr_dot: the sum of conj(a_i) b_i over two vectors of one
+ *         length, each a row or a column, a real a_i itself (S273, S351),
+ *         or conj(a) b of two numbers; expr_cross: two vectors of 3
+ *         elements' vector product, of _a's shape, conjugating nothing;
+ *         expr_solve: the X for which _a X = _b, _a square and _b of its
+ *         rows, or a vector of as many elements, X then of _b's shape, a
+ *         pole where _a is singular; of a number _a, _b / _a. Exact for
+ *         exact operands, otherwise in their wider dense type, complex
+ *         where either holds a complex number (S257, S351). An error
  *         passes, the first; a boolean or none is a domain error; bad_shape
  *         for shapes the function does not take, a vector and a number
  *         among them.
  */
-D_NODISCARD inline expr_result<value> expr_dot(
+D_NODISCARD inline expr_result<value>
+expr_dot(
     const value& _a,
     const value& _b
 )
@@ -4032,7 +5881,8 @@ D_NODISCARD inline expr_result<value> expr_dot(
                                   _b));
 }
 
-D_NODISCARD inline expr_result<value> expr_cross(
+D_NODISCARD inline expr_result<value>
+expr_cross(
     const value& _a,
     const value& _b
 )
@@ -4045,7 +5895,8 @@ D_NODISCARD inline expr_result<value> expr_cross(
                                     _b));
 }
 
-D_NODISCARD inline expr_result<value> expr_solve(
+D_NODISCARD inline expr_result<value>
+expr_solve(
     const value& _matrix,
     const value& _right
 )

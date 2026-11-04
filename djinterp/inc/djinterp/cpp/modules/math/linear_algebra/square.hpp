@@ -22,6 +22,9 @@
 *   cofactor_matrix(m)              - matrix of cofactors
 *   adjugate(m)                     - transpose of the cofactor matrix
 *   is_orthogonal(m [, tol])        - test M^T M == I
+*   is_unitary(m [, tol])           - test M^H M == I, of a matrix of
+*                                     math::complex<T>; of a real one,
+*                                     is_orthogonal (S354)
 *
 * DESIGN NOTES:
 *   - determinant uses the Bareiss fraction-free algorithm: a single code path
@@ -47,7 +50,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/square.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.02
 *******************************************************************************/
 
 /*
@@ -67,9 +70,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                 // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"      // framework root
-#include "./linalg_common.hpp"     // internal::linalg_kernel,
-                                   // internal::abs_c
+#include "../../../djinterp.hpp"   // framework root
+#include "./linalg_common.hpp"     // internal::linalg_kernel
 #include "../number_traits.hpp"    // number_traits
 #include "./matrix.hpp"            // matrix
 #include "./vector.hpp"            // vector
@@ -90,10 +92,8 @@ namespace linalg
 //   function: det(_m), by Bareiss's fraction-free elimination.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-Type determinant(
-    const matrix<Type, N, N>& _m
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+determinant(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     Type scratch[N * N] = { Type() };
 
@@ -104,35 +104,37 @@ Type determinant(
 //   function: short alias for determinant.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-Type det(
-    const matrix<Type, N, N>& _m
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+det(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     return determinant(_m);
 }
 
 // is_invertible
-//   function: true when |det(_m)| exceeds _tol.
+//   function: true when det(_m)'s magnitude exceeds _tol: |det(_m)| for a
+// real type, |re| + |im| for a complex one (number_traits); _tol given
+// none, the type's tolerance, as default_tolerance gives it.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-bool is_invertible(
-    const matrix<Type, N, N>& _m,
-    Type                      _tol = default_tolerance<Type>()
+D_CONSTEXPR_CPP14 bool
+is_invertible(
+    const matrix<Type, N, N>&                    _m,
+    typename number_traits<Type>::magnitude_type _tol =
+        number_traits<Type>::tolerance()
 ) D_NOEXCEPT
 {
-    return (internal::abs_c(determinant(_m)) > _tol);
+    return (number_traits<Type>::magnitude(determinant(_m)) > _tol);
 }
 
 // is_singular
 //   function: complement of is_invertible.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-bool is_singular(
-    const matrix<Type, N, N>& _m,
-    Type                      _tol = default_tolerance<Type>()
+D_CONSTEXPR_CPP14 bool
+is_singular(
+    const matrix<Type, N, N>&                    _m,
+    typename number_traits<Type>::magnitude_type _tol =
+        number_traits<Type>::tolerance()
 ) D_NOEXCEPT
 {
     return !is_invertible(_m, _tol);
@@ -145,10 +147,8 @@ bool is_singular(
 // exact, as a math::value's are, whose inverse is then exact.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N, N> inverse(
-    const matrix<Type, N, N>& _m
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, N, N>
+inverse(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     D_STATIC_ASSERT((!number_traits<Type>::is_integer),
                     "inverse: an integer element type has no integer "
@@ -169,10 +169,8 @@ matrix<Type, N, N> inverse(
 //   function: short alias for inverse.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N, N> inv(
-    const matrix<Type, N, N>& _m
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, N, N>
+inv(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     return inverse(_m);
 }
@@ -188,8 +186,8 @@ matrix<Type, N, N> inv(
 //   function: the (N-1)x(N-1) block with row _row and column _col removed.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N - 1, N - 1> submatrix(
+D_CONSTEXPR_CPP14 matrix<Type, N - 1, N - 1>
+submatrix(
     const matrix<Type, N, N>& _m,
     std::size_t               _row,
     std::size_t               _col
@@ -212,8 +210,8 @@ matrix<Type, N - 1, N - 1> submatrix(
 //   function: the determinant of submatrix(_m, _row, _col).
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-Type minor(
+D_CONSTEXPR_CPP14 Type
+minor(
     const matrix<Type, N, N>& _m,
     std::size_t               _row,
     std::size_t               _col
@@ -228,8 +226,8 @@ Type minor(
 //   function: (-1)^(_row + _col) * minor(_m, _row, _col).
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-Type cofactor(
+D_CONSTEXPR_CPP14 Type
+cofactor(
     const matrix<Type, N, N>& _m,
     std::size_t               _row,
     std::size_t               _col
@@ -250,10 +248,8 @@ Type cofactor(
 //   function: the matrix whose (i, j) entry is cofactor(_m, i, j).
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N, N> cofactor_matrix(
-    const matrix<Type, N, N>& _m
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, N, N>
+cofactor_matrix(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     D_STATIC_ASSERT((N >= 2), "cofactor_matrix: requires dimension >= 2.");
 
@@ -273,10 +269,8 @@ matrix<Type, N, N> cofactor_matrix(
 //   function: the transpose of the cofactor matrix; A * adj(A) = det(A) * I.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N, N> adjugate(
-    const matrix<Type, N, N>& _m
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, N, N>
+adjugate(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     D_STATIC_ASSERT((N >= 2), "adjugate: requires dimension >= 2.");
 
@@ -303,8 +297,8 @@ matrix<Type, N, N> adjugate(
 // none, within is_identity's own (S157).
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-bool is_orthogonal(
+D_CONSTEXPR_CPP14 bool
+is_orthogonal(
     const matrix<Type, N, N>& _m
 ) D_NOEXCEPT
 {
@@ -313,13 +307,95 @@ bool is_orthogonal(
 
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-bool is_orthogonal(
-    const matrix<Type, N, N>& _m,
-    Type                      _tol
+D_CONSTEXPR_CPP14 bool
+is_orthogonal(
+    const matrix<Type, N, N>&                    _m,
+    typename number_traits<Type>::magnitude_type _tol
 ) D_NOEXCEPT
 {
     return _m.transposed().times(_m).is_identity(_tol);
+}
+
+// is_unitary
+//   function: true when _m^H * _m, its conjugate transpose times it,
+// equals the identity within _tol, given none within is_identity's own
+// (S157); of a real matrix is_orthogonal (S322, S354).
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 bool
+is_unitary(
+    const matrix<Type, N, N>& _m
+) D_NOEXCEPT
+{
+    return is_orthogonal(_m);
+}
+
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 bool
+is_unitary(
+    const matrix<Type, N, N>&                    _m,
+    typename number_traits<Type>::magnitude_type _tol
+) D_NOEXCEPT
+{
+    return is_orthogonal(_m,
+                         _tol);
+}
+
+NS_INTERNAL
+
+    // linalg_adjoint_times
+    //   function: _m^H * _m, each entry the sum from 0, in order, of
+    // conj(m_ki) m_kj.
+    template<typename    Type,
+             std::size_t N>
+    D_CONSTEXPR_CPP14 matrix<complex<Type>, N, N>
+    linalg_adjoint_times(
+        const matrix<complex<Type>, N, N>& _m
+    ) D_NOEXCEPT
+    {
+        matrix<complex<Type>, N, N> out;
+
+        // each entry, row i of m^H by column j of m
+        for (std::size_t i = 0; i < N; ++i)
+        {
+            for (std::size_t j = 0; j < N; ++j)
+            {
+                complex<Type> sum;
+
+                for (std::size_t k = 0; k < N; ++k)
+                {
+                    sum += (conj(_m(k, i)) * _m(k, j));
+                }
+
+                out(i, j) = sum;
+            }
+        }
+
+        return out;
+    }
+
+NS_END  // internal
+
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 bool
+is_unitary(
+    const matrix<complex<Type>, N, N>& _m
+) D_NOEXCEPT
+{
+    return internal::linalg_adjoint_times(_m).is_identity();
+}
+
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 bool
+is_unitary(
+    const matrix<complex<Type>, N, N>& _m,
+    Type                               _tol
+) D_NOEXCEPT
+{
+    return internal::linalg_adjoint_times(_m).is_identity(_tol);
 }
 
 

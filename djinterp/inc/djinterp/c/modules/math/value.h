@@ -12,7 +12,7 @@
 *
 *   THE TOWER. An operation on two exact numbers is exact: integers stay
 * integers, a quotient is a rational, and a rational whose denominator comes
-* to 1 is an integer. Where an exact result does not fit dj_math_imax, it is
+* to 1 is an integer. Where an exact result does not fit d_math_imax, it is
 * kept as the long double nearest it, and the value is flagged
 * D_MATH_VALUE_FLAG_INEXACT (roadmap gate G2, until bignum). An exact number
 * with an inexact one is converted, correctly rounded, to the inexact one's
@@ -30,13 +30,16 @@
 *
 *   BOXED KINDS. A kind that is not inline (a wide integer, and later
 * bignum's kinds, complex numbers, vectors and matrices) registers by filling
-* in a table, struct dj_math_boxed_kind: its name; its rank, which is its place
-* in the tower and its own; whether it is a number, and whether an exact one;
-* and its operations: retain and release, arithmetic, comparison, conversion
-* and text. A value of such a kind is D_MATH_VALUE_BOXED, with type pointing
-* to the table and box to the kind's storage. Since each value carries its
-* kind's table, there is no list of kinds and no global state, and a new
-* kind changes neither this header nor the inline kinds' code.
+* in a table, struct d_math_boxed_kind: its name; its rank, which is its place
+* in the tower and its own; whether it is a number, and whether an exact one,
+* each of its values or each as it asks; and its operations: retain and
+* release, arithmetic, comparison, conversion, text and, for a kind whose
+* values are exact or not one by one, as a complex number's parts are
+* (S266), exactness. A value of such a kind is D_MATH_VALUE_BOXED, with
+* type pointing to the table and box to the kind's storage. Since each
+* value carries its kind's table, there is no list of kinds and no global
+* state, and a new kind changes neither this header nor the inline kinds'
+* code.
 *   In an operation with a boxed operand, the operand higher in the tower
 * handles it. A boxed kind handles it through its table. An inline number
 * handles it by converting the boxed operand to its own kind, through the
@@ -50,6 +53,12 @@
 * to give back with d_math_value_release, which does nothing more for an
 * inline kind. Operands are lent: an operation never keeps or releases one.
 * d_math_value_retain makes a copy, which is released in its turn.
+*   HOLDERS. A kind counts the values that hold a box with d_math_boxed_hold
+* and d_math_boxed_unhold, atomically wherever the compiler can
+* (cfg_value.h, S134), so that values may be copied and given back in
+* several threads at once; D_MATH_BOXED_HOLDERS_ATOMIC says whether they
+* are. A box's contents never change once it is made, so its holders may
+* read it at once.
 *
 *   ONE TEXT, BOTH LANGUAGES. Every function is a header inline in C and
 * below C++14, and from C++14 a constant expression for the inline kinds
@@ -61,7 +70,7 @@
 * path:      /inc/djinterp/c/modules/math/value.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 
 /*
@@ -70,25 +79,27 @@ TABLE OF CONTENTS
 1.  LAYOUT
     ------
     1.  Kinds and errors
-         1.  dj_math_value_kind
-         2.  dj_math_value_error
-         3.  dj_math_value_order
+         1.  d_math_value_kind
+         2.  d_math_value_error
+         3.  d_math_value_order
          4.  D_MATH_VALUE_FLAG_INEXACT
     2.  The tower and the operations
          1.  D_MATH_VALUE_RANK_INTEGER to D_MATH_VALUE_RANK_LONG_DOUBLE
-         2.  dj_math_value_op
+         2.  d_math_value_op
     3.  The value
-         1.  dj_math_value
+         1.  d_math_value
     4.  Boxed kinds
          1.  D_MATH_BOXED_NUMBER, D_MATH_BOXED_EXACT
-         2.  dj_math_boxed_retain_fn to dj_math_boxed_text_fn
-         3.  dj_math_boxed_kind
+         2.  d_math_boxed_retain_fn to d_math_boxed_exact_fn
+         3.  d_math_boxed_kind
+         4.  D_MATH_BOXED_HOLDERS_ATOMIC
 2.  CONSTRUCTION
     ------------
     1.  None, errors and booleans
     2.  Exact numbers
     3.  Floating-point numbers
     4.  d_math_value_retain, d_math_value_release
+    5.  d_math_boxed_hold, d_math_boxed_unhold
 3.  QUERIES AND CONVERSIONS
     -----------------------
     1.  d_math_value_is_number, d_math_value_is_exact
@@ -114,8 +125,13 @@ TABLE OF CONTENTS
 #include <float.h>           // LDBL_MANT_DIG, LDBL_MAX
 #include <stddef.h>          // size_t, NULL
 // djinterp
-#include "./math_common.h"   // D_MATH_FN, dj_math_imax, dj_math_umax
-#include "./rational.h"      // dj_rational, its kernels and conversions
+#include "./math_common.h"   // D_MATH_FN, d_math_imax, d_math_umax
+#include "./rational.h"      // d_rational, its kernels and conversions
+#include "../../../config/c/modules/math/cfg_value.h"  // D_INTERNAL_MATH_VALUE_HOLDERS
+// MSVC's interlocked functions, where they count the holders
+#if (D_INTERNAL_MATH_VALUE_HOLDERS >= 2)
+    #include <intrin.h>      // _InterlockedIncrement, _InterlockedDecrement
+#endif
 
 
 //==============================================================================
@@ -126,10 +142,10 @@ TABLE OF CONTENTS
 // 1.1    Kinds and errors
 //------------------------------------------------------------------------------
 // 1.1.1
-// dj_math_value_kind
+// d_math_value_kind
 //   enum: what a value holds. The numbers come in the tower's order, so the
 // wider of two inexact kinds is the greater.
-enum dj_math_value_kind
+enum d_math_value_kind
 {
     D_MATH_VALUE_NONE        = 0,  // no value
     D_MATH_VALUE_ERROR       = 1,  // an error, in code
@@ -144,9 +160,9 @@ enum dj_math_value_kind
 };
 
 // 1.1.2
-// dj_math_value_error
+// d_math_value_error
 //   enum: why there is no number.
-enum dj_math_value_error
+enum d_math_value_error
 {
     D_MATH_VALUE_ERROR_DOMAIN  = 1,  // an operand outside the operation's
                                      // domain: a boolean or none in arithmetic
@@ -157,9 +173,9 @@ enum dj_math_value_error
 };
 
 // 1.1.3
-// dj_math_value_order
+// d_math_value_order
 //   enum: how one value stands to another.
-enum dj_math_value_order
+enum d_math_value_order
 {
     D_MATH_VALUE_LESS      = -1,  // below
     D_MATH_VALUE_EQUAL     = 0,   // the same
@@ -171,7 +187,7 @@ enum dj_math_value_order
 // 1.1.4
 // D_MATH_VALUE_FLAG_INEXACT
 //   constant: the flag of a value that an exact operation should have given
-// exactly, but whose result did not fit dj_math_imax and is the long double
+// exactly, but whose result did not fit d_math_imax and is the long double
 // nearest it instead (G2); and of every value computed from one.
 #define D_MATH_VALUE_FLAG_INEXACT  1u
 
@@ -193,9 +209,9 @@ enum dj_math_value_order
 #define D_MATH_VALUE_RANK_LONG_DOUBLE  500
 
 // 1.2.2
-// dj_math_value_op
+// d_math_value_op
 //   enum: an operation, as a boxed kind's table is asked for it.
-enum dj_math_value_op
+enum d_math_value_op
 {
     D_MATH_VALUE_OP_ADD = 0,  // a + b
     D_MATH_VALUE_OP_SUB = 1,  // a - b
@@ -208,21 +224,21 @@ enum dj_math_value_op
 // 1.3    The value
 //------------------------------------------------------------------------------
 // 1.3.1
-// dj_math_value
+// d_math_value
 //   struct: a value of any kind. kind says which field holds it; the others
 // hold 0 (exact 0/1, type and box NULL), so a value has one representation.
-struct dj_math_boxed_kind;
+struct d_math_boxed_kind;
 
-struct dj_math_value
+struct d_math_value
 {
-    enum dj_math_value_kind          kind;   // what the value is
+    enum d_math_value_kind          kind;   // what the value is
     unsigned                        flags;  // D_MATH_VALUE_FLAG_*
     int                             code;   // a boolean, 0 or 1; or an error
-    struct dj_rational               exact;  // an integer, as n/1; or a
+    struct d_rational               exact;  // an integer, as n/1; or a
                                             // rational, in the one form
     long double                     real;   // a float, double or long
                                             // double's value, held exactly
-    const struct dj_math_boxed_kind* type;   // a boxed value's kind: its table
+    const struct d_math_boxed_kind* type;   // a boxed value's kind: its table
     void*                           box;    // a boxed value's storage
 };
 
@@ -232,12 +248,15 @@ struct dj_math_value
 // D_MATH_BOXED_NUMBER, D_MATH_BOXED_EXACT
 //   constants: a boxed kind's traits. A number stands in the tower and
 // converts to the inline numbers; an exact number is exact, as an integer
-// or a rational is. A kind with neither, as a vector, is no number.
+// or a rational is. A kind with neither, as a vector, is no number. A kind
+// that is a number but not exact in all its values says which are by its
+// exact entry, as a complex number of exact parts is exact and one of
+// doubles is not; with no such entry, none of its values is exact.
 #define D_MATH_BOXED_NUMBER  1u
 #define D_MATH_BOXED_EXACT   2u
 
 // 1.4.2
-// dj_math_boxed_retain_fn to dj_math_boxed_text_fn
+// d_math_boxed_retain_fn to d_math_boxed_text_fn
 //   types: a boxed kind's entries. Each is given values of its kind, as
 // below, and every entry must be set.
 //   retain and release: one holder more of _box, and one fewer; the last
@@ -253,54 +272,76 @@ struct dj_math_value
 //   convert: a number of this kind as an inline number of kind _to, into
 // *_out, and true. For D_MATH_VALUE_INTEGER and D_MATH_VALUE_RATIONAL, its
 // exact value, an integer or a rational in the one form, where it is one
-// that fits dj_math_imax, with *_direction 0; otherwise false. For
+// that fits d_math_imax, with *_direction 0; otherwise false. For
 // D_MATH_VALUE_FLOAT, _DOUBLE and _LONG_DOUBLE, the nearest value of that
 // type, ties to even, an infinity past the largest; *_direction is -1, 0 or
 // 1 as it is below, equal to or above the number (0 for a NaN).
 //   text: _x as text, into _buffer: at most _size characters, the closing NUL
 // among them (nothing where _size is 0). It returns the whole text's length
 // without the NUL, whatever _size is, as snprintf does.
-typedef void (*dj_math_boxed_retain_fn)(void* _box);
-typedef void (*dj_math_boxed_release_fn)(void* _box);
-typedef struct dj_math_value (*dj_math_boxed_unary_fn)(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _x);
-typedef struct dj_math_value (*dj_math_boxed_binary_fn)(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b);
-typedef enum dj_math_value_order (*dj_math_boxed_cmp_fn)(
-    struct dj_math_value _a,
-    struct dj_math_value _b);
-typedef bool (*dj_math_boxed_convert_fn)(
-    struct dj_math_value*   _out,
+//   exact: whether _x, a number of this kind, is exact. The one entry that
+// may be NULL: a kind whose traits say D_MATH_BOXED_EXACT is exact in all
+// its values, and one that is a number without that trait and without this
+// entry in none; the entry is asked only of a number of neither.
+typedef void (*d_math_boxed_retain_fn)(void* _box);
+typedef void (*d_math_boxed_release_fn)(void* _box);
+typedef struct d_math_value (*d_math_boxed_unary_fn)(
+    enum d_math_value_op _op,
+    struct d_math_value  _x);
+typedef struct d_math_value (*d_math_boxed_binary_fn)(
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b);
+typedef enum d_math_value_order (*d_math_boxed_cmp_fn)(
+    struct d_math_value _a,
+    struct d_math_value _b);
+typedef bool (*d_math_boxed_convert_fn)(
+    struct d_math_value*   _out,
     int*                   _direction,
-    struct dj_math_value    _x,
-    enum dj_math_value_kind _to);
-typedef size_t (*dj_math_boxed_text_fn)(
+    struct d_math_value    _x,
+    enum d_math_value_kind _to);
+typedef size_t (*d_math_boxed_text_fn)(
     char*               _buffer,
     size_t              _size,
-    struct dj_math_value _x);
+    struct d_math_value _x);
+typedef bool (*d_math_boxed_exact_fn)(
+    struct d_math_value _x);
 
 // 1.4.3
-// dj_math_boxed_kind
+// d_math_boxed_kind
 //   struct: a boxed kind's table, which is its registration. A kind's rank is
 // its own: no two kinds share one, so a kind knows its values by their rank,
 // whichever translation unit's copy of the table they point to. It is not
-// an inline number's rank either.
-struct dj_math_boxed_kind
+// an inline number's rank either. exact is last, so that a table written
+// before it, with one initializer fewer, holds NULL there, as C and C++
+// initialize a member no initializer names.
+struct d_math_boxed_kind
 {
     const char*             name;     // the kind's name: "wide integer"
     int                     rank;     // its place in the tower
     unsigned                traits;   // D_MATH_BOXED_*
-    dj_math_boxed_retain_fn  retain;   // one holder more
-    dj_math_boxed_release_fn release;  // one holder fewer
-    dj_math_boxed_unary_fn   unary;    // -x, |x|
-    dj_math_boxed_binary_fn  binary;   // a + b, a - b, a * b, a / b
-    dj_math_boxed_cmp_fn     cmp;      // how a stands to b
-    dj_math_boxed_convert_fn convert;  // to an inline number
-    dj_math_boxed_text_fn    text;     // as text
+    d_math_boxed_retain_fn  retain;   // one holder more
+    d_math_boxed_release_fn release;  // one holder fewer
+    d_math_boxed_unary_fn   unary;    // -x, |x|
+    d_math_boxed_binary_fn  binary;   // a + b, a - b, a * b, a / b
+    d_math_boxed_cmp_fn     cmp;      // how a stands to b
+    d_math_boxed_convert_fn convert;  // to an inline number
+    d_math_boxed_text_fn    text;     // as text
+    d_math_boxed_exact_fn   exact;    // whether a value is exact, or NULL
 };
+
+// 1.4.4
+// D_MATH_BOXED_HOLDERS_ATOMIC
+//   constant: 1 where d_math_boxed_hold and d_math_boxed_unhold count a
+// box's holders atomically, so that values may be copied and given back in
+// several threads at once; 0 where they count plainly, by the knob
+// D_CFG_MATH_VALUE_ATOMIC_HOLDERS or for a compiler with no atomic
+// operations on an integer (cfg_value.h).
+#if (D_INTERNAL_MATH_VALUE_HOLDERS != 0)
+    #define D_MATH_BOXED_HOLDERS_ATOMIC  1
+#else
+    #define D_MATH_BOXED_HOLDERS_ATOMIC  0
+#endif
 
 
 //==============================================================================
@@ -310,13 +351,13 @@ struct dj_math_boxed_kind
 // d_internal_math_value_blank
 //   a value of kind _kind with _flags and every field 0: what each
 // construction starts from.
-D_MATH_FN struct dj_math_value
+D_MATH_FN struct d_math_value
 d_internal_math_value_blank(
-    enum dj_math_value_kind _kind,
+    enum d_math_value_kind _kind,
     unsigned               _flags
 )
 {
-    struct dj_math_value result = { D_MATH_VALUE_NONE, 0u, 0, { 0, 1 }, 0.0L,
+    struct d_math_value result = { D_MATH_VALUE_NONE, 0u, 0, { 0, 1 }, 0.0L,
                                    NULL, NULL };
 
     result.kind  = _kind;
@@ -329,18 +370,18 @@ d_internal_math_value_blank(
 // 2.1    None, errors and booleans
 //------------------------------------------------------------------------------
 
-D_MATH_FN
-struct dj_math_value d_math_value_none(void)
+D_MATH_FN struct d_math_value
+d_math_value_none(void)
 {
     return d_internal_math_value_blank(D_MATH_VALUE_NONE, 0u);
 }
 
-D_MATH_FN struct dj_math_value
+D_MATH_FN struct d_math_value
 d_math_value_from_error(
-    enum dj_math_value_error _error
+    enum d_math_value_error _error
 )
 {
-    struct dj_math_value result =
+    struct d_math_value result =
         d_internal_math_value_blank(D_MATH_VALUE_ERROR, 0u);
 
     result.code = (int)_error;
@@ -348,12 +389,12 @@ d_math_value_from_error(
     return result;
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_from_bool(
+D_MATH_FN struct d_math_value
+d_math_value_from_bool(
     bool _truth
 )
 {
-    struct dj_math_value result =
+    struct d_math_value result =
         d_internal_math_value_blank(D_MATH_VALUE_BOOLEAN, 0u);
 
     result.code = (_truth) ? 1 : 0;
@@ -364,12 +405,12 @@ struct dj_math_value d_math_value_from_bool(
 // 2.2    Exact numbers
 //------------------------------------------------------------------------------
 
-D_MATH_FN
-struct dj_math_value d_math_value_from_int(
-    dj_math_imax _n
+D_MATH_FN struct d_math_value
+d_math_value_from_int(
+    d_math_imax _n
 )
 {
-    struct dj_math_value result =
+    struct d_math_value result =
         d_internal_math_value_blank(D_MATH_VALUE_INTEGER, 0u);
 
     result.exact.num = _n;
@@ -381,14 +422,14 @@ struct dj_math_value d_math_value_from_int(
 //   the value of the exact result _r, with _flags: an integer where its
 // denominator is 1, a rational where it fits otherwise, and where it does
 // not, the long double nearest it, flagged inexact (G2).
-D_MATH_FN
-struct dj_math_value d_internal_math_value_from_ratio(
-    struct dj_internal_rational_ratio _r,
-    unsigned                          _flags
+D_MATH_FN struct d_math_value
+d_internal_math_value_from_ratio(
+    struct d_internal_rational_ratio _r,
+    unsigned                         _flags
 )
 {
-    struct dj_rational   packed = { 0, 1 };
-    struct dj_math_value result =
+    struct d_rational   packed = { 0, 1 };
+    struct d_math_value result =
         d_internal_math_value_blank(D_MATH_VALUE_RATIONAL, _flags);
 
     // past the family: the nearest long double
@@ -414,12 +455,12 @@ struct dj_math_value d_internal_math_value_from_ratio(
 }
 
 // d_math_value_from_uint
-//   _n exactly: an integer where it fits dj_math_imax; past D_MATH_IMAX_MAX,
+//   _n exactly: an integer where it fits d_math_imax; past D_MATH_IMAX_MAX,
 // the long double nearest it, flagged inexact, as any exact result too wide
-// for dj_math_imax is (G2).
-D_MATH_FN
-struct dj_math_value d_math_value_from_uint(
-    dj_math_umax _n
+// for d_math_imax is (G2).
+D_MATH_FN struct d_math_value
+d_math_value_from_uint(
+    d_math_umax _n
 )
 {
     return d_internal_math_value_from_ratio(
@@ -430,14 +471,14 @@ struct dj_math_value d_math_value_from_uint(
 //   _num / _den, exactly: an integer or a rational, in the one form. Over 0,
 // a pole, or invalid for 0 / 0; and D_MATH_IMAX_MIN / -1, which does not
 // fit, the long double nearest it, flagged inexact.
-D_MATH_FN
-struct dj_math_value d_math_value_from_ratio(
-    dj_math_imax _num,
-    dj_math_imax _den
+D_MATH_FN struct d_math_value
+d_math_value_from_ratio(
+    d_math_imax _num,
+    d_math_imax _den
 )
 {
-    const dj_math_umax n = d_internal_rational_magnitude(_num);
-    const dj_math_umax d = d_internal_rational_magnitude(_den);
+    const d_math_umax n = d_internal_rational_magnitude(_num);
+    const d_math_umax d = d_internal_rational_magnitude(_den);
 
     // over 0
     if (_den == 0)
@@ -446,16 +487,16 @@ struct dj_math_value d_math_value_from_ratio(
                                               : D_MATH_VALUE_ERROR_POLE);
     }
 
-    const dj_math_umax g = d_internal_rational_gcd(n, d);
+    const d_math_umax g = d_internal_rational_gcd(n, d);
 
     return d_internal_math_value_from_ratio(
         d_internal_rational_ratio_of(((_num < 0) != (_den < 0)), n / g, d / g),
         0u);
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_from_rational(
-    struct dj_rational _x
+D_MATH_FN struct d_math_value
+d_math_value_from_rational(
+    struct d_rational _x
 )
 {
     return d_math_value_from_ratio(_x.num, _x.den);
@@ -464,12 +505,12 @@ struct dj_math_value d_math_value_from_rational(
 // 2.3    Floating-point numbers
 //------------------------------------------------------------------------------
 
-D_MATH_FN
-struct dj_math_value d_math_value_from_f(
+D_MATH_FN struct d_math_value
+d_math_value_from_f(
     float _x
 )
 {
-    struct dj_math_value result =
+    struct d_math_value result =
         d_internal_math_value_blank(D_MATH_VALUE_FLOAT, 0u);
 
     result.real = (long double)_x;
@@ -477,12 +518,12 @@ struct dj_math_value d_math_value_from_f(
     return result;
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_from_d(
+D_MATH_FN struct d_math_value
+d_math_value_from_d(
     double _x
 )
 {
-    struct dj_math_value result =
+    struct d_math_value result =
         d_internal_math_value_blank(D_MATH_VALUE_DOUBLE, 0u);
 
     result.real = (long double)_x;
@@ -490,12 +531,12 @@ struct dj_math_value d_math_value_from_d(
     return result;
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_from_ld(
+D_MATH_FN struct d_math_value
+d_math_value_from_ld(
     long double _x
 )
 {
-    struct dj_math_value result =
+    struct d_math_value result =
         d_internal_math_value_blank(D_MATH_VALUE_LONG_DOUBLE, 0u);
 
     result.real = _x;
@@ -510,9 +551,9 @@ struct dj_math_value d_math_value_from_ld(
 // box, where it is boxed, and leaves *_x none; NULL is ignored. For an
 // inline kind, neither does more.
 
-D_MATH_FN
-struct dj_math_value d_math_value_retain(
-    struct dj_math_value _x
+D_MATH_FN struct d_math_value
+d_math_value_retain(
+    struct d_math_value _x
 )
 {
     // a box: one holder more
@@ -524,9 +565,9 @@ struct dj_math_value d_math_value_retain(
     return _x;
 }
 
-D_MATH_FN
-void d_math_value_release(
-    struct dj_math_value* _x
+D_MATH_FN void
+d_math_value_release(
+    struct d_math_value* _x
 )
 {
     // nothing to release
@@ -546,6 +587,53 @@ void d_math_value_release(
     return;
 }
 
+// 2.5    d_math_boxed_hold, d_math_boxed_unhold
+//------------------------------------------------------------------------------
+// A boxed kind's count of the values that hold a box, for its retain and
+// release entries. hold adds one holder to *_holders. unhold takes one away
+// and says whether it was the last, when the box is to be given back. Each
+// is atomic where D_MATH_BOXED_HOLDERS_ATOMIC is 1: hold relaxed, as a new
+// holder already holds the box through another; unhold with acquire and
+// release, so that every holder's reads of the box come before the last
+// one gives it back, as shared_ptr's count is kept. Neither is a constant
+// expression; a box lives at run time.
+
+D_MATH_FN_RT void
+d_math_boxed_hold(
+    size_t* _holders
+)
+{
+#if (D_INTERNAL_MATH_VALUE_HOLDERS == 1)
+    (void)__atomic_fetch_add(_holders, (size_t)1u, __ATOMIC_RELAXED);
+#elif (D_INTERNAL_MATH_VALUE_HOLDERS == 2)
+    (void)_InterlockedIncrement((volatile long*)_holders);
+#elif (D_INTERNAL_MATH_VALUE_HOLDERS == 3)
+    (void)_InterlockedIncrement64((volatile __int64*)_holders);
+#else
+    *_holders = *_holders + 1u;
+#endif
+
+    return;
+}
+
+D_MATH_FN_RT bool
+d_math_boxed_unhold(
+    size_t* _holders
+)
+{
+#if (D_INTERNAL_MATH_VALUE_HOLDERS == 1)
+    return (__atomic_sub_fetch(_holders, (size_t)1u, __ATOMIC_ACQ_REL) == 0u);
+#elif (D_INTERNAL_MATH_VALUE_HOLDERS == 2)
+    return (_InterlockedDecrement((volatile long*)_holders) == 0);
+#elif (D_INTERNAL_MATH_VALUE_HOLDERS == 3)
+    return (_InterlockedDecrement64((volatile __int64*)_holders) == 0);
+#else
+    *_holders = *_holders - 1u;
+
+    return (*_holders == 0u);
+#endif
+}
+
 
 //==============================================================================
 // 3.  QUERIES AND CONVERSIONS
@@ -554,11 +642,12 @@ void d_math_value_release(
 
 // 3.1    d_math_value_is_number, d_math_value_is_exact
 //------------------------------------------------------------------------------
-// A boxed value is a number, or an exact one, as its kind's traits say.
+// A boxed value is a number as its kind's traits say, and an exact one as
+// they say for all its values, or as its exact entry says for it.
 
-D_MATH_FN
-bool d_math_value_is_number(
-    struct dj_math_value _x
+D_MATH_FN bool
+d_math_value_is_number(
+    struct d_math_value _x
 )
 {
     // boxed: its kind's traits
@@ -571,16 +660,26 @@ bool d_math_value_is_number(
              (_x.kind <= D_MATH_VALUE_LONG_DOUBLE) );
 }
 
-D_MATH_FN
-bool d_math_value_is_exact(
-    struct dj_math_value _x
+D_MATH_FN bool
+d_math_value_is_exact(
+    struct d_math_value _x
 )
 {
-    // boxed: its kind's traits
+    // boxed: no number; then its kind's traits, or its own exactness
     if (_x.kind == D_MATH_VALUE_BOXED)
     {
-        return ( ((_x.type->traits & D_MATH_BOXED_NUMBER) != 0u) &&
-                 ((_x.type->traits & D_MATH_BOXED_EXACT) != 0u) );
+        if ((_x.type->traits & D_MATH_BOXED_NUMBER) == 0u)
+        {
+            return false;
+        }
+
+        if ((_x.type->traits & D_MATH_BOXED_EXACT) != 0u)
+        {
+            return true;
+        }
+
+        return ( (_x.type->exact != NULL) &&
+                 (_x.type->exact(_x)) );
     }
 
     return ( (_x.kind == D_MATH_VALUE_INTEGER) ||
@@ -595,9 +694,9 @@ bool d_math_value_is_exact(
 // "float", "double", "long double", or a boxed kind's own ("unknown" for a
 // kind out of range).
 
-D_MATH_FN
-int d_math_value_rank(
-    struct dj_math_value _x
+D_MATH_FN int
+d_math_value_rank(
+    struct d_math_value _x
 )
 {
     // by kind
@@ -626,9 +725,9 @@ int d_math_value_rank(
     }
 }
 
-D_MATH_FN
-const char* d_math_value_kind_name(
-    struct dj_math_value _x
+D_MATH_FN const char*
+d_math_value_kind_name(
+    struct d_math_value _x
 )
 {
     // by kind
@@ -677,12 +776,12 @@ const char* d_math_value_kind_name(
 // taken them already.
 D_MATH_FN bool
 d_internal_math_value_unbox(
-    struct dj_math_value*   _x,
+    struct d_math_value*   _x,
     int*                   _direction,
-    enum dj_math_value_kind _to
+    enum d_math_value_kind _to
 )
 {
-    struct dj_math_value converted = d_math_value_none();
+    struct d_math_value converted = d_math_value_none();
 
     *_direction = 0;
 
@@ -707,10 +806,10 @@ d_internal_math_value_unbox(
 // nearest value, ties to even; an inexact one as C converts it; a boxed one
 // as its kind converts it to that type.
 
-D_MATH_FN
-bool d_math_value_to_f(
-    float*               _out,
-    struct dj_math_value _x
+D_MATH_FN bool
+d_math_value_to_f(
+    float*              _out,
+    struct d_math_value _x
 )
 {
     int direction = 0;
@@ -734,10 +833,10 @@ bool d_math_value_to_f(
     return true;
 }
 
-D_MATH_FN
-bool d_math_value_to_d(
-    double*              _out,
-    struct dj_math_value _x
+D_MATH_FN bool
+d_math_value_to_d(
+    double*             _out,
+    struct d_math_value _x
 )
 {
     int direction = 0;
@@ -761,10 +860,10 @@ bool d_math_value_to_d(
     return true;
 }
 
-D_MATH_FN
-bool d_math_value_to_ld(
-    long double*         _out,
-    struct dj_math_value _x
+D_MATH_FN bool
+d_math_value_to_ld(
+    long double*        _out,
+    struct d_math_value _x
 )
 {
     int direction = 0;
@@ -792,12 +891,12 @@ bool d_math_value_to_ld(
 // 3.5    d_math_value_to_rational
 //------------------------------------------------------------------------------
 // an exact _x into *_out, and true; false, and *_out as it was, otherwise.
-// A boxed exact number converts where its kind gives it as a dj_rational.
+// A boxed exact number converts where its kind gives it as a d_rational.
 
-D_MATH_FN
-bool d_math_value_to_rational(
-    struct dj_rational*  _out,
-    struct dj_math_value _x
+D_MATH_FN bool
+d_math_value_to_rational(
+    struct d_rational*  _out,
+    struct d_math_value _x
 )
 {
     int direction = 0;
@@ -837,27 +936,27 @@ bool d_math_value_to_rational(
 // d_internal_math_value_as_f, _as_d, _as_ld
 //   a number of a kind at most the type's: exact, correctly rounded; a
 // narrower float kind, exactly.
-D_MATH_FN
-float d_internal_math_value_as_f(
-    struct dj_math_value _x
+D_MATH_FN float
+d_internal_math_value_as_f(
+    struct d_math_value _x
 )
 {
     return d_math_value_is_exact(_x) ? d_rational_to_f(_x.exact)
                                      : (float)_x.real;
 }
 
-D_MATH_FN
-double d_internal_math_value_as_d(
-    struct dj_math_value _x
+D_MATH_FN double
+d_internal_math_value_as_d(
+    struct d_math_value _x
 )
 {
     return d_math_value_is_exact(_x) ? d_rational_to_d(_x.exact)
                                      : (double)_x.real;
 }
 
-D_MATH_FN
-long double d_internal_math_value_as_ld(
-    struct dj_math_value _x
+D_MATH_FN long double
+d_internal_math_value_as_ld(
+    struct d_math_value _x
 )
 {
     return d_math_value_is_exact(_x) ? d_rational_to_ld(_x.exact)
@@ -868,7 +967,7 @@ long double d_internal_math_value_as_ld(
 //   _a _op _b in the type, one rounding.
 D_MATH_FN float
 d_internal_math_value_op_f(
-    enum dj_math_value_op _op,
+    enum d_math_value_op _op,
     float                _a,
     float                _b
 )
@@ -898,7 +997,7 @@ d_internal_math_value_op_f(
 
 D_MATH_FN double
 d_internal_math_value_op_d(
-    enum dj_math_value_op _op,
+    enum d_math_value_op _op,
     double               _a,
     double               _b
 )
@@ -928,7 +1027,7 @@ d_internal_math_value_op_d(
 
 D_MATH_FN long double
 d_internal_math_value_op_ld(
-    enum dj_math_value_op _op,
+    enum d_math_value_op _op,
     long double          _a,
     long double          _b
 )
@@ -960,20 +1059,20 @@ d_internal_math_value_op_ld(
 //   _a _op _b for two exact numbers, exactly: through rational.h's sums and
 // products, whose results come back whole, fitting or not. Over exact 0, a
 // pole, or invalid for 0 / 0.
-D_MATH_FN struct dj_math_value
+D_MATH_FN struct d_math_value
 d_internal_math_value_exact_op(
-    enum dj_math_value_op _op,
-    struct dj_rational    _a,
-    struct dj_rational    _b,
+    enum d_math_value_op _op,
+    struct d_rational    _a,
+    struct d_rational    _b,
     unsigned             _flags
 )
 {
-    const dj_math_umax an = d_internal_rational_magnitude(_a.num);
-    const dj_math_umax ad = (dj_math_umax)_a.den;
-    const dj_math_umax bn = d_internal_rational_magnitude(_b.num);
-    const dj_math_umax bd = (dj_math_umax)_b.den;
+    const d_math_umax an = d_internal_rational_magnitude(_a.num);
+    const d_math_umax ad = (d_math_umax)_a.den;
+    const d_math_umax bn = d_internal_rational_magnitude(_b.num);
+    const d_math_umax bd = (d_math_umax)_b.den;
 
-    struct dj_math_value result = d_math_value_none();
+    struct d_math_value result = d_math_value_none();
 
     // a sum, or a difference: the second term's sign turned
     if ( (_op == D_MATH_VALUE_OP_ADD) ||
@@ -1021,10 +1120,10 @@ d_internal_math_value_exact_op(
 // of them boxed: the boxed operand's, where its rank is at least the
 // other's, which for two of one rank is one kind; NULL where the other is
 // an inline number of a higher rank.
-D_MATH_FN
-const struct dj_math_boxed_kind* d_internal_math_value_handler(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+D_MATH_FN const struct d_math_boxed_kind*
+d_internal_math_value_handler(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     const int a_rank = d_math_value_rank(_a);
@@ -1048,9 +1147,9 @@ const struct dj_math_boxed_kind* d_internal_math_value_handler(
 
 // d_internal_math_value_is_other
 //   whether _x is none, an error or a boolean: no number, and not boxed.
-D_MATH_FN
-bool d_internal_math_value_is_other(
-    struct dj_math_value _x
+D_MATH_FN bool
+d_internal_math_value_is_other(
+    struct d_math_value _x
 )
 {
     return ( (_x.kind == D_MATH_VALUE_NONE)  ||
@@ -1068,16 +1167,16 @@ bool d_internal_math_value_is_other(
 // boxed operand that does not convert is a domain error.
 D_MATH_FN bool
 d_internal_math_value_boxed_binary(
-    struct dj_math_value* _result,
-    enum dj_math_value_op _op,
-    struct dj_math_value* _a,
-    struct dj_math_value* _b
+    struct d_math_value* _result,
+    enum d_math_value_op _op,
+    struct d_math_value* _a,
+    struct d_math_value* _b
 )
 {
     const unsigned flags = _a->flags | _b->flags;
 
-    const struct dj_math_boxed_kind* handler   = NULL;
-    struct dj_math_value*            low       = NULL;
+    const struct d_math_boxed_kind* handler   = NULL;
+    struct d_math_value*            low       = NULL;
     int                             direction = 0;
 
     // a boolean or none: outside the domain
@@ -1122,16 +1221,16 @@ d_internal_math_value_boxed_binary(
 // none is a domain error; two exact numbers stay exact; otherwise the
 // operation is done in the wider of the inexact kinds, an exact operand
 // converted to it.
-D_MATH_FN struct dj_math_value
+D_MATH_FN struct d_math_value
 d_internal_math_value_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
     const unsigned flags = _a.flags | _b.flags;
 
-    struct dj_math_value result = d_math_value_none();
+    struct d_math_value result = d_math_value_none();
 
     // an error operand, the first of two
     if ( (_a.kind == D_MATH_VALUE_ERROR) ||
@@ -1205,14 +1304,14 @@ d_internal_math_value_binary(
 
 // d_internal_math_value_unary
 //   -_x where _negate, else |_x|.
-D_MATH_FN
-struct dj_math_value d_internal_math_value_unary(
-    bool                 _negate,
-    struct dj_math_value _x
+D_MATH_FN struct d_math_value
+d_internal_math_value_unary(
+    bool                _negate,
+    struct d_math_value _x
 )
 {
     const bool          below  = (_x.exact.num < 0);
-    struct dj_math_value result = _x;
+    struct d_math_value result = _x;
 
     // an error passes through
     if (_x.kind == D_MATH_VALUE_ERROR)
@@ -1247,7 +1346,7 @@ struct dj_math_value d_internal_math_value_unary(
             d_internal_rational_ratio_of(
                 (_negate) ? (!below) : false,
                 d_internal_rational_magnitude(_x.exact.num),
-                (dj_math_umax)_x.exact.den),
+                (d_math_umax)_x.exact.den),
             _x.flags);
     }
 
@@ -1268,17 +1367,17 @@ struct dj_math_value d_internal_math_value_unary(
     return result;
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_neg(
-    struct dj_math_value _x
+D_MATH_FN struct d_math_value
+d_math_value_neg(
+    struct d_math_value _x
 )
 {
     return d_internal_math_value_unary(true, _x);
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_abs(
-    struct dj_math_value _x
+D_MATH_FN struct d_math_value
+d_math_value_abs(
+    struct d_math_value _x
 )
 {
     return d_internal_math_value_unary(false, _x);
@@ -1287,37 +1386,37 @@ struct dj_math_value d_math_value_abs(
 // 4.3    d_math_value_add, d_math_value_sub, d_math_value_mul, d_math_value_div
 //------------------------------------------------------------------------------
 
-D_MATH_FN
-struct dj_math_value d_math_value_add(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+D_MATH_FN struct d_math_value
+d_math_value_add(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return d_internal_math_value_binary(D_MATH_VALUE_OP_ADD, _a, _b);
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_sub(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+D_MATH_FN struct d_math_value
+d_math_value_sub(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return d_internal_math_value_binary(D_MATH_VALUE_OP_SUB, _a, _b);
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_mul(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+D_MATH_FN struct d_math_value
+d_math_value_mul(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return d_internal_math_value_binary(D_MATH_VALUE_OP_MUL, _a, _b);
 }
 
-D_MATH_FN
-struct dj_math_value d_math_value_div(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+D_MATH_FN struct d_math_value
+d_math_value_div(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return d_internal_math_value_binary(D_MATH_VALUE_OP_DIV, _a, _b);
@@ -1334,9 +1433,9 @@ struct dj_math_value d_math_value_div(
 
 // d_internal_math_value_turn
 //   the order seen from the other side.
-D_MATH_FN enum dj_math_value_order
+D_MATH_FN enum d_math_value_order
 d_internal_math_value_turn(
-    enum dj_math_value_order _order
+    enum d_math_value_order _order
 )
 {
     return (_order == D_MATH_VALUE_LESS)
@@ -1348,7 +1447,7 @@ d_internal_math_value_turn(
 // d_internal_math_value_cmp_real
 //   _a against _b, two values of floating-point types held as long doubles,
 // so compared exactly.
-D_MATH_FN enum dj_math_value_order
+D_MATH_FN enum d_math_value_order
 d_internal_math_value_cmp_real(
     long double _a,
     long double _b
@@ -1376,19 +1475,19 @@ d_internal_math_value_cmp_real(
 // where it rounds to |_f| itself, the rounding's direction is the order,
 // reversed. |_r| lies between 2^(1-w) and 2^(w-1), so its rounding is a
 // normal long double.
-D_MATH_FN enum dj_math_value_order
+D_MATH_FN enum d_math_value_order
 d_internal_math_value_cmp_exact(
-    struct dj_rational _r,
+    struct d_rational _r,
     long double       _f
 )
 {
     const int r_sign = d_rational_sign(_r);
     const int f_sign = (_f > 0.0L) ? 1 : ((_f < 0.0L) ? -1 : 0);
 
-    struct dj_internal_rational_wide    n       = { 0u, 0u };
-    struct dj_internal_rational_wide    d       = { 0u, 0u };
-    struct dj_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
-    enum dj_math_value_order            order   = D_MATH_VALUE_EQUAL;
+    struct d_internal_rational_wide    n       = { 0u, 0u };
+    struct d_internal_rational_wide    d       = { 0u, 0u };
+    struct d_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
+    enum d_math_value_order            order   = D_MATH_VALUE_EQUAL;
     long double                        near    = 0.0L;
     long double                        far     = 0.0L;
 
@@ -1417,7 +1516,7 @@ d_internal_math_value_cmp_exact(
     else
     {
         n.lo    = d_internal_rational_magnitude(_r.num);
-        d.lo    = (dj_math_umax)_r.den;
+        d.lo    = (d_math_umax)_r.den;
         rounded = d_internal_rational_round(n, d, (unsigned)LDBL_MANT_DIG);
         near    = d_internal_rational_build_ld(false, rounded);
 
@@ -1447,10 +1546,10 @@ d_internal_math_value_cmp_exact(
 //   _a against _b, neither boxed: numbers by value, exactly, across kinds, a
 // NaN unordered; booleans false below true; none equal to none; errors, and
 // unlike kinds, unordered.
-D_MATH_FN enum dj_math_value_order
+D_MATH_FN enum d_math_value_order
 d_internal_math_value_cmp_inline(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     // two numbers
@@ -1461,7 +1560,7 @@ d_internal_math_value_cmp_inline(
         if ( (d_math_value_is_exact(_a)) &&
              (d_math_value_is_exact(_b)) )
         {
-            return (enum dj_math_value_order)d_rational_cmp(_a.exact, _b.exact);
+            return (enum d_math_value_order)d_rational_cmp(_a.exact, _b.exact);
         }
 
         if (d_math_value_is_exact(_a))
@@ -1505,16 +1604,16 @@ d_internal_math_value_cmp_inline(
 // with its value: in an exact kind, exactly; otherwise as the nearest long
 // double, and where that equals the inline number, the rounding's direction
 // gives the order: a value rounded up is below its rounding.
-D_MATH_FN enum dj_math_value_order
+D_MATH_FN enum d_math_value_order
 d_internal_math_value_cmp_boxed(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
-    const struct dj_math_boxed_kind* handler   = NULL;
-    struct dj_math_value*            low       = NULL;
+    const struct d_math_boxed_kind* handler   = NULL;
+    struct d_math_value*            low       = NULL;
     int                             direction = 0;
-    enum dj_math_value_order         order     = D_MATH_VALUE_UNORDERED;
+    enum d_math_value_order         order     = D_MATH_VALUE_UNORDERED;
 
     // none, an error or a boolean
     if ( (d_internal_math_value_is_other(_a)) ||
@@ -1562,10 +1661,10 @@ d_internal_math_value_cmp_boxed(
 // unordered; booleans false below true; none equal to none; errors, and
 // unlike kinds, unordered; a boxed value as above. eq is cmp's EQUAL.
 
-D_MATH_FN enum dj_math_value_order
+D_MATH_FN enum d_math_value_order
 d_math_value_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     // a boxed operand
@@ -1578,10 +1677,10 @@ d_math_value_cmp(
     return d_internal_math_value_cmp_inline(_a, _b);
 }
 
-D_MATH_FN
-bool d_math_value_eq(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+D_MATH_FN bool
+d_math_value_eq(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return (d_math_value_cmp(_a, _b) == D_MATH_VALUE_EQUAL);

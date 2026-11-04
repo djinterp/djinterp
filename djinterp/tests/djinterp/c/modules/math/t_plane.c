@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                      t_plane.c
+* djinterp [c/math]                                                    t_plane.c
 *
 *   Conformance harness for c/math/plane.h, all three families: each kernel
 * against the 2D shape header's former formulas, written out here in the
@@ -11,7 +11,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_plane.c -o t_plane -lm
+*        tests/djinterp/c/math/t_plane.c -o t_plane -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_plane.c
@@ -29,8 +29,8 @@ static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 1732050u;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -55,8 +55,8 @@ void d_tests_expect(
 #define D_TESTS_EXPECT(ok, what)                                              \
     d_tests_expect((ok), (what), __LINE__)
 
-static
-double d_tests_random(void)
+static double
+d_tests_random(void)
 {
     g_state = (g_state * 1103515245u) + 12345u;
 

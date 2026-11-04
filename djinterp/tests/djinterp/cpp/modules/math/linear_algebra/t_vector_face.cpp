@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              t_vector_face.cpp
+* djinterp [cpp/math]                                          t_vector_face.cpp
 *
 *   Tests for linear_algebra/vector.hpp, at every level from C++98. The
 * compile-time half -- the traits, the families, and from C++14 (C++20 for an
@@ -21,7 +21,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_vector_face.cpp -o t_vector -lm
+*         tests/djinterp/math/linear_algebra/t_vector_face.cpp -o t_vector -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_vector_face.cpp
@@ -67,7 +67,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -95,10 +96,8 @@ namespace
     // the same once each is stored: on x87 a value in a register can carry
     // excess precision its twin does not
     template<typename Float>
-    bool d_tests_same(
-        Float _a,
-        Float _b
-    )
+    bool
+    d_tests_same(Float _a, Float _b)
     {
         volatile Float a = _a;
         volatile Float b = _b;
@@ -108,7 +107,8 @@ namespace
 
     unsigned long g_state = 2463534242u;
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -119,7 +119,8 @@ namespace
     // d_tests_generic_parity
     //   a t_real vector (the generic path) against a double one (the C
     // core), every operation, bit for bit.
-    void d_tests_generic_parity()
+    void
+    d_tests_generic_parity()
     {
         for (int trial = 0; trial < 20000; ++trial)
         {
@@ -195,7 +196,8 @@ namespace
     // d_tests_family
     //   one C family against the formulas and the C library.
     template<typename Type>
-    void d_tests_family()
+    void
+    d_tests_family()
     {
         const vector<Type, 3> a(static_cast<Type>(1),
                                 static_cast<Type>(2),
@@ -269,7 +271,8 @@ namespace
         double operator()(double _acc, double _c) const { return _acc + _c; }
     };
 
-    void d_tests_generic_integers()
+    void
+    d_tests_generic_integers()
     {
         const vector<int, 2> v(3, 4);
 
@@ -292,9 +295,8 @@ namespace
         return;
     }
 
-    double d_tests_point_sum(
-        const vector<double, 3>& _p
-    )
+    double
+    d_tests_point_sum(const vector<double, 3>& _p)
     {
         double s = 0.0;
 
@@ -311,7 +313,8 @@ namespace
     // d_tests_point_duty
     //   a vector as the geometry subframework's point: from an array of
     // components implicitly, iterated with begin and end.
-    void d_tests_point_duty()
+    void
+    d_tests_point_duty()
     {
         const double      raw[3] = { 1.0, 2.0, 3.0 };
         vector<double, 3> p      = raw;
@@ -333,7 +336,8 @@ namespace
     }
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    void d_tests_cpp11()
+    void
+    d_tests_cpp11()
     {
         // as a std::array point was written, and where one is taken
         const vector<double, 3>     braced = {{ 1.0, 2.0, 2.0 }};
@@ -404,7 +408,8 @@ static_assert(vector<double, 2>(1, 0).angle_to(vector<double, 2>(0, 1)) >
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_generic_parity();
     d_tests_family<float>();

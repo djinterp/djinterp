@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             t_surface_face.cpp
+* djinterp [cpp/math]                                         t_surface_face.cpp
 *
 *   Tests for geometry/surface.hpp, at every level from C++98: a triangle's
 * corners at (0,0), (1,0), (0,1) and its area and normal; a unit square's
@@ -10,7 +10,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/geometry/t_surface_face.cpp -o t_surface -lm
+*         tests/djinterp/math/geometry/t_surface_face.cpp -o t_surface -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_surface_face.cpp
@@ -30,7 +30,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -66,11 +67,8 @@ namespace
             double operator[](std::size_t _i) const { return c[_i]; }
         };
 
-        static
-        point evaluate(
-            double _u,
-            double _v
-        )
+        static point
+        evaluate(double _u, double _v)
         {
             point p;
 
@@ -86,10 +84,8 @@ namespace
     struct t_unit_sphere
     {
         template<typename Tuple>
-        static
-        double evaluate(
-            const Tuple& _t
-        )
+        static double
+        evaluate(const Tuple& _t)
         {
             return (std::get<0>(_t) * std::get<0>(_t)) +
                    (std::get<1>(_t) * std::get<1>(_t)) +
@@ -99,7 +95,8 @@ namespace
 #endif
 
     template<typename T>
-    void d_tests_family()
+    void
+    d_tests_family()
     {
         typedef dm::cartesian<3, T>  car;
         typedef typename car::point_type p3;
@@ -152,7 +149,8 @@ D_STATIC_ASSERT((dm::is_surface<dm::bilinear_patch<> >::value),
                 "a bilinear patch is a surface");
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>();
     d_tests_family<double>();

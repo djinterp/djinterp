@@ -81,11 +81,11 @@ III.  DEDUCTION GUIDE (C++17+)
 #ifndef RE_STD_ARRAY_ARRAY_HPP
 #define RE_STD_ARRAY_ARRAY_HPP 1
 
-// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
-// (README rule 5; re_std omits rather than degrades). The owner's ruling:
-// compile at every level first; port to C++98 only where something needs it.
+// FROM C++98: the owner's ruling was to port a header to C++98 where
+// something needs it, and math's geometry, whose floor is C++98, keeps its
+// fixed collections in re_std::array. The array was written as an aggregate
+// on every tier; only the deduction guide is C++17's.
 #include "../../config.hpp"  // RE_STD_* configuration
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -552,7 +552,6 @@ array(Type, Rest...)
 
 }  // re_std
 
-#endif  // floor, for now
 
 
 #endif  // RE_STD_ARRAY_ARRAY_HPP

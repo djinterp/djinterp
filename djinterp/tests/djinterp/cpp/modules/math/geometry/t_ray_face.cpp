@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 t_ray_face.cpp
+* djinterp [cpp/math]                                             t_ray_face.cpp
 *
 *   Tests for geometry/ray.hpp, at every level from C++98: points along a
 * ray; the box test as the C core's -- the answer and the parameters -- for
@@ -9,7 +9,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/geometry/t_ray_face.cpp -o t_ray -lm
+*         tests/djinterp/math/geometry/t_ray_face.cpp -o t_ray -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_ray_face.cpp
@@ -29,7 +29,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -56,7 +57,8 @@ namespace
 
     unsigned long g_state = 4242u;
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -65,7 +67,8 @@ namespace
     }
 
     template<typename T>
-    void d_tests_family()
+    void
+    d_tests_family()
     {
         typedef dm::ray<T>                ray_t;
         typedef typename ray_t::point_type point;
@@ -121,7 +124,8 @@ namespace
         return;
     }
 
-    void d_tests_generic()
+    void
+    d_tests_generic()
     {
         // an integer ray, through double: from (-5, 0, 0) along +x into the
         // unit box
@@ -145,7 +149,8 @@ namespace
     }
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    void d_tests_cpp11()
+    void
+    d_tests_cpp11()
     {
         const dm::ray<double>       r({{ -5.0, 0.25, 0.25 }},
                                       {{ 1.0, 0.0, 0.0 }});
@@ -172,8 +177,8 @@ namespace
 }  // namespace
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-constexpr
-double dj_tests_entry()
+constexpr double
+d_tests_entry()
 {
     const djinterp::math::ray<double> r(
         djinterp::math::ray<double>::point_type(-3.0, 0.0, 0.0),
@@ -191,12 +196,13 @@ double dj_tests_entry()
                : -1.0;
 }
 
-static_assert(dj_tests_entry() == 2.0,
+static_assert(d_tests_entry() == 2.0,
               "a box test as a constant expression, from C++14");
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>();
     d_tests_family<double>();

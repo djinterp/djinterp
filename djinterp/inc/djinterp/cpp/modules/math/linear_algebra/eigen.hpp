@@ -7,8 +7,8 @@
 *   - the cyclic Jacobi method for symmetric matrices (all eigenvalues plus an
 *     orthonormal set of eigenvectors) -- the robust, fully featured path;
 *   - power iteration for the single dominant eigenpair;
-*   - the shifted QR algorithm with deflation for the real eigenvalues of a
-*     general matrix.
+*   - the shifted QR algorithm with deflation for the eigenvalues of a
+*     general matrix, real or complex, and their eigenvectors.
 *
 * PROVIDED TYPES / FUNCTIONS:
 *   symmetric_eigen<T, N>            - A = V L V^T for symmetric A (Jacobi)
@@ -18,10 +18,10 @@
 *     power_iteration(A [, iters, tol]) value() eigenvector()
 *   eigenvalue_set<T, N>             - eigenvalues plus a convergence flag
 *     eigenvalues_qr(A [, iters, tol])  values() converged()
-*   general_eigen<T, N>              - real eigenvalues + eigenvectors (any A)
-*     eigen_general(A [, iters, tol])   eigenvalues() eigenvectors()
-*                                        eigenvalue(i) eigenvector(i)
-*                                        converged()
+*   general_eigen<T, N>              - eigenvalues + eigenvectors (any A),
+*     eigen_general(A [, iters, tol])   as math::complex<T>: eigenvalues()
+*                                        eigenvectors() eigenvalue(i)
+*                                        eigenvector(i) converged() is_real()
 *
 * DESIGN NOTES:
 *   - All routines require a floating-point element type.
@@ -43,17 +43,24 @@
 *     budget ran out, or where the matrix holds a NaN or an infinity (every
 *     eigenvalue NaN). Eigenvalues only: general_eigen adds a vector for
 *     each, eigen_symmetric an orthonormal set for a symmetric matrix.
-*   - general_eigen's eigenvectors come from the real Schur form by back-
-*     substitution, as LAPACK's dtrevc (decomp.h's d_decomp_eigen): unit
-*     length, the largest entry positive, independent for a repeated
-*     eigenvalue where the matrix has independent ones.
+*   - general_eigen gives every eigenvalue and an eigenvector for each as
+*     math::complex<T> (S308), decomp.h's d_decomp_eigen's, as LAPACK's
+*     dgeev: the eigenvalues ascending by real part, then by imaginary
+*     part, a pair exactly conjugate, their real parts eigenvalues_qr's bit
+*     for bit; the eigenvectors from the real Schur form by back-
+*     substitution, as dtrevc: unit length, the entry of largest modulus
+*     real and positive, a pair's conjugate, independent for a repeated
+*     eigenvalue where the matrix has independent ones. converged() is
+*     false only where not every eigenvalue was found, every vector then
+*     NaNs, as the driver gives them.
 *   - The result objects' getters return core value types, so they chain with
 *     the fluent members, e.g. eigen_symmetric(A).eigenvector(0).normalized().
 *
 * A FACE OVER THE C CORE:
-*   The symmetric Jacobi sweeps and their sort, the general eigenvalues and
-* the general solver's inverse iteration are c/math/decomp.h's; power
-* iteration is the vector and matrix faces' operations. The square roots are
+*   The symmetric Jacobi sweeps and their sort, and the general eigenvalues
+* and eigenvectors, are c/math/decomp.h's, the complex numbers that hold
+* them c/math/cplx.h's (math::complex); power iteration is the vector and
+* matrix faces' operations. The square roots are
 * the element type's, correctly rounded: the C library's below C++14, the _c
 * form from C++14, and from C++20 whichever std::is_constant_evaluated asks
 * for. The general eigenvalues and eigenvectors are found on the matrix
@@ -65,7 +72,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/eigen.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 /*
@@ -93,7 +100,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
+#include "../complex.hpp"                          // complex
 #include "./decomposition.hpp"                    // decomp_roots,
                                                   // decomp_requires_float
 #include "./linalg_common.hpp"                    // default_tolerance
@@ -163,30 +171,26 @@ public:
                                              threshold);
     }
 
-    D_CONSTEXPR_CPP14
-    vector_type eigenvalues() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector_type
+    eigenvalues() const D_NOEXCEPT
     {
         return vector_type(m_values);
     }
 
-    D_CONSTEXPR_CPP14
-    matrix_type eigenvectors() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 matrix_type
+    eigenvectors() const D_NOEXCEPT
     {
         return matrix_type(m_vectors);
     }
 
-    D_CONSTEXPR
-    T eigenvalue(
-        size_type _i
-    ) const D_NOEXCEPT
+    D_CONSTEXPR T
+    eigenvalue(size_type _i) const D_NOEXCEPT
     {
         return m_values[_i];
     }
 
-    D_CONSTEXPR_CPP14
-    vector_type eigenvector(
-        size_type _i
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector_type
+    eigenvector(size_type _i) const D_NOEXCEPT
     {
         vector_type v;
 
@@ -210,8 +214,8 @@ private:
 //   function: the symmetric eigendecomposition of _a.
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-symmetric_eigen<T, N> eigen_symmetric(
+D_CONSTEXPR_CPP14 symmetric_eigen<T, N>
+eigen_symmetric(
     const matrix<T, N, N>& _a,
     T                      _tol = default_tolerance<T>()
 ) D_NOEXCEPT
@@ -247,14 +251,14 @@ public:
           m_vector(_vector)
     {}
 
-    D_CONSTEXPR
-    T value() const D_NOEXCEPT
+    D_CONSTEXPR T
+    value() const D_NOEXCEPT
     {
         return m_value;
     }
 
-    D_CONSTEXPR
-    vector_type eigenvector() const D_NOEXCEPT
+    D_CONSTEXPR vector_type
+    eigenvector() const D_NOEXCEPT
     {
         return m_vector;
     }
@@ -273,11 +277,11 @@ private:
 // _tol or _max_iter steps; the value as the Rayleigh quotient.
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-eigenpair<T, N> power_iteration(
+D_CONSTEXPR_CPP14 eigenpair<T, N>
+power_iteration(
     const matrix<T, N, N>& _a,
     std::size_t            _max_iter = 1000,
-    T                      _tol = default_tolerance<T>()
+    T                      _tol      = default_tolerance<T>()
 ) D_NOEXCEPT
 {
     (void)internal::decomp_requires_float<T>::ok;
@@ -351,14 +355,14 @@ public:
           m_converged(_converged)
     {}
 
-    D_CONSTEXPR
-    vector_type values() const D_NOEXCEPT
+    D_CONSTEXPR vector_type
+    values() const D_NOEXCEPT
     {
         return m_values;
     }
 
-    D_CONSTEXPR
-    bool converged() const D_NOEXCEPT
+    D_CONSTEXPR bool
+    converged() const D_NOEXCEPT
     {
         return m_converged;
     }
@@ -382,11 +386,11 @@ private:
 // or an infinity (every eigenvalue NaN).
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-eigenvalue_set<T, N> eigenvalues_qr(
+D_CONSTEXPR_CPP14 eigenvalue_set<T, N>
+eigenvalues_qr(
     const matrix<T, N, N>& _a,
     std::size_t            _max_iter = 1000,
-    T                      _tol = static_cast<T>(0)
+    T                      _tol      = static_cast<T>(0)
 ) D_NOEXCEPT
 {
     (void)internal::decomp_requires_float<T>::ok;
@@ -410,15 +414,21 @@ eigenvalue_set<T, N> eigenvalues_qr(
 //------------------------------------------------------------------------------
 // 3.3.1
 // general_eigen
-//   class: the real eigenvalues of a general matrix, eigenvalues_qr's bit
-// for bit, and an eigenvector for each, decomp.h's d_decomp_eigen's, from the
-// real Schur form by back-substitution, as LAPACK's dtrevc (S269, S49's
-// recommendation): unit length, the largest entry positive; a repeated
-// eigenvalue of a matrix with independent vectors gets independent ones.
-// Where there is no vector to find (a NaN or an infinity, an iteration that
-// fails) the column stays the identity's, and so it does for each of a
-// complex pair (converged() false), whose complex vectors come with
-// math::complex in chunk 39.
+//   class: the eigenvalues of a general real matrix and an eigenvector for
+// each, as complex numbers (S308), decomp.h's d_decomp_eigen's, as LAPACK's
+// dgeev finds them (S269, S49's recommendation): the eigenvalues ascending
+// by real part, then by imaginary part, a complex pair exactly conjugate
+// and side by side, a real eigenvalue's imaginary part +0, the real parts
+// eigenvalues_qr's bit for bit; each eigenvector from the real Schur form
+// by back-substitution, as dtrevc, of unit length with its entry of
+// largest modulus real and positive (the first among equals), a real
+// eigenvalue's real and a pair's conjugate; a repeated eigenvalue of a
+// matrix with independent vectors gets independent ones. converged() is
+// false where not every eigenvalue was found (a NaN or an infinity in the
+// matrix, or the step budget spent): the eigenvalues then decomp.h's, those
+// found and the rest the diagonal's, or every one a NaN, and every vector's
+// every entry a NaN, as the driver gives them. is_real() says whether every
+// eigenvalue is real.
 template<typename    T,
          std::size_t N>
 class general_eigen
@@ -429,93 +439,102 @@ class general_eigen
                     "general_eigen: dimension must be at least 1.");
 
 public:
-    typedef T               value_type;
-    typedef std::size_t     size_type;
-    typedef vector<T, N>    vector_type;
-    typedef matrix<T, N, N> matrix_type;
+    typedef T                         value_type;
+    typedef complex<T>                complex_type;
+    typedef std::size_t               size_type;
+    typedef vector<complex<T>, N>     vector_type;
+    typedef matrix<complex<T>, N, N>  matrix_type;
 
     D_CONSTEXPR_CPP14 explicit
     general_eigen(
-        const matrix_type& _a,
-        std::size_t        _max_iter = 1000,
-        T                  _tol      = static_cast<T>(0)
+        const matrix<T, N, N>& _a,
+        std::size_t            _max_iter = 1000,
+        T                      _tol      = static_cast<T>(0)
     ) D_NOEXCEPT
         : m_values(),
-          m_vectors(matrix_type::identity()),
+          m_vectors(),
           m_converged(false)
     {
-        typedef typename internal::decomp_complex<T>::type complex_type;
+        typedef typename internal::decomp_complex<T>::type core_type;
 
-        const T*     entries          = _a.data();
-        T            work[N * N]      = {};
-        T            scratch[N * (N + 4)] = {};
-        std::size_t  perm[N]          = {};
-        complex_type values[N]        = {};
-        complex_type vectors[N * N]   = {};
-        bool         found            = false;
+        const T*    entries              = _a.data();
+        T           work[N * N]          = {};
+        T           scratch[N * (N + 4)] = {};
+        std::size_t perm[N]              = {};
+        core_type   values[N]            = {};
+        core_type   vectors[N * N]       = {};
 
+        // A, which the driver consumes
         for (size_type i = 0; i < (N * N); ++i)
         {
             work[i] = entries[i];
         }
 
-        found       = internal::decomp_roots<T>::eigen(work, N, values,
+        m_converged = internal::decomp_roots<T>::eigen(work, N, values,
                                                        vectors, scratch,
                                                        perm, _max_iter,
                                                        _tol);
-        m_converged = found;
 
+        // every eigenvalue, as the driver gives it
         for (size_type idx = 0; idx < N; ++idx)
         {
-            const bool real = (values[idx].part[1] == static_cast<T>(0));
+            m_values[idx] = complex_type(values[idx]);
+        }
 
-            m_values[idx] = values[idx].part[0];
-            m_converged   = (m_converged && real);
-
-            // a real eigenvalue's vector, where one was found; else e_idx
-            if ( (found) &&
-                 (real) )
-            {
-                for (size_type r = 0; r < N; ++r)
-                {
-                    m_vectors(r, idx) = vectors[(r * N) + idx].part[0];
-                }
-            }
+        // every vector's every entry, as the driver gives it, column k % N
+        // the vector of eigenvalue k % N: NaNs where not every eigenvalue
+        // was found
+        for (size_type k = 0; k < (N * N); ++k)
+        {
+            m_vectors(k / N, k % N) = complex_type(vectors[k]);
         }
     }
 
-    D_CONSTEXPR
-    vector_type eigenvalues() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector_type
+    eigenvalues() const D_NOEXCEPT
     {
         return m_values;
     }
 
-    D_CONSTEXPR
-    matrix_type eigenvectors() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 matrix_type
+    eigenvectors() const D_NOEXCEPT
     {
         return m_vectors;
     }
 
-    D_CONSTEXPR
-    T eigenvalue(
-        size_type _i
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 complex_type
+    eigenvalue(size_type _i) const D_NOEXCEPT
     {
         return m_values[_i];
     }
 
-    D_CONSTEXPR_CPP14
-    vector_type eigenvector(
-        size_type _i
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector_type
+    eigenvector(size_type _i) const D_NOEXCEPT
     {
         return m_vectors.col(_i);
     }
 
-    D_CONSTEXPR
-    bool converged() const D_NOEXCEPT
+    D_CONSTEXPR bool
+    converged() const D_NOEXCEPT
     {
         return m_converged;
+    }
+
+    // whether every eigenvalue is real: its imaginary part 0.
+    D_CONSTEXPR_CPP14 bool
+    is_real() const D_NOEXCEPT
+    {
+        // each eigenvalue in turn
+        for (size_type idx = 0; idx < N; ++idx)
+        {
+            // one off the real line: not every one is real
+            if (!(m_values[idx].imag() == static_cast<T>(0)))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 private:
@@ -531,11 +550,11 @@ private:
 //   function: the general eigendecomposition of _a.
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-general_eigen<T, N> eigen_general(
+D_CONSTEXPR_CPP14 general_eigen<T, N>
+eigen_general(
     const matrix<T, N, N>& _a,
     std::size_t            _max_iter = 1000,
-    T                      _tol = static_cast<T>(0)
+    T                      _tol      = static_cast<T>(0)
 ) D_NOEXCEPT
 {
     return general_eigen<T, N>(_a, _max_iter, _tol);

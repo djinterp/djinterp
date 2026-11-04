@@ -68,7 +68,7 @@ TABLE OF CONTENTS
 #include <cstddef>                                // std::size_t
 #include <limits>                                 // std::numeric_limits
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "./decomposition.hpp"                    // internal::decomp_roots
 #include "./linalg_common.hpp"                    // default_tolerance
 #include "./matrix.hpp"                           // matrix, multiply
@@ -140,38 +140,36 @@ public:
         internal::decomp_roots<T>::svd(work, m_u, m_s, m_v, M, N, _tol);
     }
 
-    D_CONSTEXPR_CPP14
-    u_type u() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 u_type
+    u() const D_NOEXCEPT
     {
         return u_type(m_u);
     }
 
-    D_CONSTEXPR_CPP14
-    values_type singular_values() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 values_type
+    singular_values() const D_NOEXCEPT
     {
         return values_type(m_s);
     }
 
-    D_CONSTEXPR_CPP14
-    v_type v() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 v_type
+    v() const D_NOEXCEPT
     {
         return v_type(m_v);
     }
 
     // sigma
     //   the singular values on a diagonal.
-    D_CONSTEXPR_CPP14
-    sigma_type sigma() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 sigma_type
+    sigma() const D_NOEXCEPT
     {
         return sigma_type::diagonal(values_type(m_s));
     }
 
     // rank
     //   how many singular values exceed _rcond times the largest.
-    D_CONSTEXPR_CPP14
-    size_type rank(
-        T _rcond = default_tolerance<T>()
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 size_type
+    rank(T _rcond = default_tolerance<T>()) const D_NOEXCEPT
     {
         const T   cutoff = _rcond * m_s[0];
         size_type r      = 0;
@@ -190,8 +188,8 @@ public:
     // condition_number
     //   the largest singular value over the smallest; infinity for a
     // singular matrix.
-    D_CONSTEXPR_CPP14
-    T condition_number() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 T
+    condition_number() const D_NOEXCEPT
     {
         return (m_s[N - 1] > static_cast<T>(0))
                    ? (m_s[0] / m_s[N - 1])
@@ -212,8 +210,8 @@ private:
 template<typename    T,
          std::size_t M,
          std::size_t N>
-D_CONSTEXPR_CPP14
-svd_decomposition<T, M, N> svd(
+D_CONSTEXPR_CPP14 svd_decomposition<T, M, N>
+svd(
     const matrix<T, M, N>& _a,
     T                      _tol = default_tolerance<T>()
 ) D_NOEXCEPT
@@ -272,8 +270,8 @@ NS_INTERNAL
              std::size_t N>
     struct pinv_impl<T, M, N, false>
     {
-        static D_CONSTEXPR_CPP14
-        matrix<T, N, M> compute(
+        static D_CONSTEXPR_CPP14 matrix<T, N, M>
+        compute(
             const matrix<T, M, N>& _a,
             T                      _rcond
         ) D_NOEXCEPT
@@ -291,8 +289,8 @@ NS_END  // internal
 template<typename    T,
          std::size_t M,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<T, N, M> pseudoinverse(
+D_CONSTEXPR_CPP14 matrix<T, N, M>
+pseudoinverse(
     const matrix<T, M, N>& _a,
     T                      _rcond = default_tolerance<T>()
 ) D_NOEXCEPT
@@ -305,8 +303,8 @@ matrix<T, N, M> pseudoinverse(
 template<typename    T,
          std::size_t M,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<T, N, M> pinv(
+D_CONSTEXPR_CPP14 matrix<T, N, M>
+pinv(
     const matrix<T, M, N>& _a,
     T                      _rcond = default_tolerance<T>()
 ) D_NOEXCEPT

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   t_rational.c
+* djinterp [c/math]                                                 t_rational.c
 *
 *   Conformance harness for the rational kernels (c/math/rational.h): every
 * kernel against an exact reference, whose integers are 256 bits in 16-bit
@@ -8,7 +8,7 @@
 *   A result a kernel stores must be in the one form (a positive denominator,
 * no common factor) and equal the exact value, by cross-multiplication; being
 * stored at all, it fits. An overflow must be one: the exact value, reduced by
-* its greatest common divisor, must lie outside dj_math_imax, and the
+* its greatest common divisor, must lie outside d_math_imax, and the
 * destination must be as it was. A pole or an invalid result must be the case
 * that calls for it, the destination again as it was. A comparison must agree
 * with the exact cross products.
@@ -32,7 +32,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_rational.c -o t_rational
+*        tests/djinterp/c/math/t_rational.c -o t_rational
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_rational.c
@@ -54,7 +54,7 @@
 #define D_TESTS_MOST    D_MATH_IMAX_MAX
 #define D_TESTS_LEAST   D_MATH_IMAX_MIN
 #define D_TESTS_HALF                                                           \
-    ((dj_math_imax)((dj_math_umax)1 << D_INTERNAL_RATIONAL_HALF_BITS))
+    ((d_math_imax)((d_math_umax)1 << D_INTERNAL_RATIONAL_HALF_BITS))
 
 // the pairs drawn at random, and the draws for the double-width helpers
 #define D_TESTS_TRIALS       40000L
@@ -69,8 +69,8 @@ static long g_failures = 0;
 // d_tests_count
 //   counts a check: true when it failed and is among the first few failures,
 // which are reported in full.
-static
-bool d_tests_count(
+static bool
+d_tests_count(
     bool _ok
 )
 {
@@ -90,13 +90,13 @@ bool d_tests_count(
 // d_tests_expect
 //   counts a check on rationals, and reports the first few failures with
 // their operands.
-static
-void d_tests_expect(
-    bool               _ok,
-    const char*        _what,
-    struct dj_rational _a,
-    struct dj_rational _b,
-    int                _line
+static void
+d_tests_expect(
+    bool              _ok,
+    const char*       _what,
+    struct d_rational _a,
+    struct d_rational _b,
+    int               _line
 )
 {
     char text[4][24];
@@ -117,13 +117,13 @@ void d_tests_expect(
 // d_tests_expect_words
 //   counts a check on words, and reports the first few failures with their
 // operands.
-static
-void d_tests_expect_words(
-    bool         _ok,
-    const char*  _what,
-    dj_math_umax _a,
-    dj_math_umax _b,
-    int          _line
+static void
+d_tests_expect_words(
+    bool        _ok,
+    const char* _what,
+    d_math_umax _a,
+    d_math_umax _b,
+    int         _line
 )
 {
     char text[2][24];
@@ -142,13 +142,13 @@ void d_tests_expect_words(
 // d_tests_expect_wide
 //   counts a check on a ratio of two-word integers, and reports the first
 // few failures with it, each word in decimal, the high word first.
-static
-void d_tests_expect_wide(
-    bool                             _ok,
-    const char*                      _what,
-    struct dj_internal_rational_wide _n,
-    struct dj_internal_rational_wide _d,
-    int                              _line
+static void
+d_tests_expect_wide(
+    bool                            _ok,
+    const char*                     _what,
+    struct d_internal_rational_wide _n,
+    struct d_internal_rational_wide _d,
+    int                             _line
 )
 {
     char text[4][24];
@@ -181,19 +181,19 @@ void d_tests_expect_wide(
 
 // d_tests_marker
 //   what a destination holds before a kernel runs.
-static
-struct dj_rational d_tests_marker(void)
+static struct d_rational
+d_tests_marker(void)
 {
-    struct dj_rational marker = { D_TESTS_MARKER, 0 };
+    struct d_rational marker = { D_TESTS_MARKER, 0 };
 
     return marker;
 }
 
 // d_tests_untouched
 //   whether _x still holds the marker.
-static
-bool d_tests_untouched(
-    struct dj_rational _x
+static bool
+d_tests_untouched(
+    struct d_rational _x
 )
 {
     return ( (_x.num == D_TESTS_MARKER) &&
@@ -206,9 +206,9 @@ bool d_tests_untouched(
 // it, or an overflow that is one, _out untouched.
 static bool
 d_tests_answer_ok(
-    enum dj_rational_status _status,
-    struct dj_rational      _out,
-    struct dj_tests_exact   _want
+    enum d_rational_status _status,
+    struct d_rational      _out,
+    struct d_tests_exact   _want
 )
 {
     // stored: the one form, and the exact value
@@ -237,7 +237,7 @@ static long g_overflowed = 0;
 
 static void
 d_tests_tally(
-    enum dj_rational_status _status
+    enum d_rational_status _status
 )
 {
     g_stored     += (_status == D_RATIONAL_OK) ? 1L : 0L;
@@ -248,20 +248,20 @@ d_tests_tally(
 
 // d_tests_check_sum
 //   add, or sub where _subtract, on (_a, _b).
-static
-void d_tests_check_sum(
-    struct dj_rational _a,
-    struct dj_rational _b,
-    bool               _subtract
+static void
+d_tests_check_sum(
+    struct d_rational _a,
+    struct d_rational _b,
+    bool              _subtract
 )
 {
-    const struct dj_tests_exact a    = d_tests_exact_of(_a.num, _a.den);
-    const struct dj_tests_exact b    = d_tests_exact_of(_b.num, _b.den);
-    const struct dj_tests_exact want =
+    const struct d_tests_exact a    = d_tests_exact_of(_a.num, _a.den);
+    const struct d_tests_exact b    = d_tests_exact_of(_b.num, _b.den);
+    const struct d_tests_exact want =
         d_tests_exact_add(a, _subtract ? d_tests_exact_neg(b) : b);
 
-    struct dj_rational            out    = d_tests_marker();
-    const enum dj_rational_status status = _subtract
+    struct d_rational            out    = d_tests_marker();
+    const enum d_rational_status status = _subtract
                                               ? d_rational_sub(&out, _a, _b)
                                               : d_rational_add(&out, _a, _b);
 
@@ -274,15 +274,15 @@ void d_tests_check_sum(
 
 // d_tests_check_product
 //   mul, or div where _divide, on (_a, _b).
-static
-void d_tests_check_product(
-    struct dj_rational _a,
-    struct dj_rational _b,
-    bool               _divide
+static void
+d_tests_check_product(
+    struct d_rational _a,
+    struct d_rational _b,
+    bool              _divide
 )
 {
-    struct dj_rational            out    = d_tests_marker();
-    const enum dj_rational_status status = _divide
+    struct d_rational            out    = d_tests_marker();
+    const enum d_rational_status status = _divide
                                               ? d_rational_div(&out, _a, _b)
                                               : d_rational_mul(&out, _a, _b);
 
@@ -290,7 +290,7 @@ void d_tests_check_product(
     if ( (_divide) &&
          (_b.num == 0) )
     {
-        const enum dj_rational_status want = (_a.num == 0)
+        const enum d_rational_status want = (_a.num == 0)
                                                 ? D_RATIONAL_INVALID
                                                 : D_RATIONAL_POLE;
 
@@ -301,9 +301,9 @@ void d_tests_check_product(
         return;
     }
 
-    const struct dj_tests_exact a    = d_tests_exact_of(_a.num, _a.den);
-    const struct dj_tests_exact b    = d_tests_exact_of(_b.num, _b.den);
-    const struct dj_tests_exact want =
+    const struct d_tests_exact a    = d_tests_exact_of(_a.num, _a.den);
+    const struct d_tests_exact b    = d_tests_exact_of(_b.num, _b.den);
+    const struct d_tests_exact want =
         d_tests_exact_mul(a, _divide ? d_tests_exact_inv(b) : b);
 
     d_tests_tally(status);
@@ -315,10 +315,10 @@ void d_tests_check_product(
 
 // d_tests_check_compare
 //   cmp and eq on (_a, _b).
-static
-void d_tests_check_compare(
-    struct dj_rational _a,
-    struct dj_rational _b
+static void
+d_tests_check_compare(
+    struct d_rational _a,
+    struct d_rational _b
 )
 {
     const int want = d_tests_exact_cmp(d_tests_exact_of(_a.num, _a.den),
@@ -334,21 +334,21 @@ void d_tests_check_compare(
 // d_tests_check_unary
 //   neg, abs and inv of _x, its sign, and the integer and one-form tests:
 // one check.
-static
-void d_tests_check_unary(
-    struct dj_rational _x
+static void
+d_tests_check_unary(
+    struct d_rational _x
 )
 {
-    const struct dj_tests_exact x    = d_tests_exact_of(_x.num, _x.den);
+    const struct d_tests_exact x    = d_tests_exact_of(_x.num, _x.den);
     const int                  sign = (_x.num > 0) ? 1
                                                    : ((_x.num < 0) ? -1 : 0);
 
-    struct dj_rational            negated    = d_tests_marker();
-    struct dj_rational            absolute   = d_tests_marker();
-    struct dj_rational            inverse    = d_tests_marker();
-    const enum dj_rational_status neg_status = d_rational_neg(&negated, _x);
-    const enum dj_rational_status abs_status = d_rational_abs(&absolute, _x);
-    const enum dj_rational_status inv_status = d_rational_inv(&inverse, _x);
+    struct d_rational            negated    = d_tests_marker();
+    struct d_rational            absolute   = d_tests_marker();
+    struct d_rational            inverse    = d_tests_marker();
+    const enum d_rational_status neg_status = d_rational_neg(&negated, _x);
+    const enum d_rational_status abs_status = d_rational_abs(&absolute, _x);
+    const enum d_rational_status inv_status = d_rational_inv(&inverse, _x);
 
     const bool neg_ok =
         d_tests_answer_ok(neg_status, negated, d_tests_exact_neg(x));
@@ -376,15 +376,15 @@ void d_tests_check_unary(
 
 // d_tests_check_make
 //   d_rational_make(_num, _den) against the exact quotient.
-static
-void d_tests_check_make(
-    dj_math_imax _num,
-    dj_math_imax _den
+static void
+d_tests_check_make(
+    d_math_imax _num,
+    d_math_imax _den
 )
 {
-    const struct dj_rational      args   = { _num, _den };
-    struct dj_rational            out    = d_tests_marker();
-    const enum dj_rational_status status = d_rational_make(&out, _num, _den);
+    const struct d_rational      args   = { _num, _den };
+    struct d_rational            out    = d_tests_marker();
+    const enum d_rational_status status = d_rational_make(&out, _num, _den);
 
     // over zero: a pole, or invalid for 0/0, and nothing stored
     if (_den == 0)
@@ -406,10 +406,10 @@ void d_tests_check_make(
 
 // d_tests_check_pair
 //   every binary kernel on (_a, _b).
-static
-void d_tests_check_pair(
-    struct dj_rational _a,
-    struct dj_rational _b
+static void
+d_tests_check_pair(
+    struct d_rational _a,
+    struct d_rational _b
 )
 {
     d_tests_check_sum(_a, _b, false);
@@ -432,8 +432,8 @@ static unsigned long g_state = 2718281UL;
 
 // d_tests_random16
 //   16 bits from the generator: the high half of its state.
-static
-unsigned long d_tests_random16(void)
+static unsigned long
+d_tests_random16(void)
 {
     g_state = ((g_state * 1103515245UL) + 12345UL) & 0xFFFFFFFFUL;
 
@@ -441,20 +441,20 @@ unsigned long d_tests_random16(void)
 }
 
 // d_tests_random_bits
-//   a dj_math_umax below 2^_bits, _bits at most the word's, every value
+//   a d_math_umax below 2^_bits, _bits at most the word's, every value
 // alike.
-static
-dj_math_umax d_tests_random_bits(
+static d_math_umax
+d_tests_random_bits(
     unsigned _bits
 )
 {
-    dj_math_umax value = 0u;
+    d_math_umax value = 0u;
     unsigned    have  = 0u;
 
     // sixteen bits at a time, then the excess shifted away
     while (have < _bits)
     {
-        value = (value << 16) | (dj_math_umax)d_tests_random16();
+        value = (value << 16) | (d_math_umax)d_tests_random16();
         have  = have + 16u;
     }
 
@@ -464,11 +464,11 @@ dj_math_umax d_tests_random_bits(
 // d_tests_random_word
 //   one time in four a word with its top bit set; otherwise one below 2^n,
 // n from 1 to w.
-static
-dj_math_umax d_tests_random_word(void)
+static d_math_umax
+d_tests_random_word(void)
 {
     const unsigned    width = D_INTERNAL_RATIONAL_WORD_BITS;
-    const dj_math_umax top   = (dj_math_umax)1 << (width - 1u);
+    const d_math_umax top   = (d_math_umax)1 << (width - 1u);
 
     // the top bit set
     if ((d_tests_random16() & 3UL) == 0UL)
@@ -482,25 +482,25 @@ dj_math_umax d_tests_random_word(void)
 // d_tests_random_rational
 //   a numerator below 2^n, either sign, over a denominator below 2^m, each
 // length drawn up to the family's, reduced by the harness's own gcd.
-static
-struct dj_rational d_tests_random_rational(void)
+static struct d_rational
+d_tests_random_rational(void)
 {
     const unsigned    width = D_INTERNAL_RATIONAL_WORD_BITS;
     const unsigned    nbits = (unsigned)(d_tests_random16() % width);
     const unsigned    dbits =
         1u + (unsigned)(d_tests_random16() % (width - 1u));
-    const dj_math_umax n     = d_tests_random_bits(nbits);
-    const dj_math_umax drawn = d_tests_random_bits(dbits);
+    const d_math_umax n     = d_tests_random_bits(nbits);
+    const d_math_umax drawn = d_tests_random_bits(dbits);
     const bool        neg   = ((d_tests_random16() & 1UL) != 0UL);
 
     // a zero denominator drawn is taken as 1
-    const dj_math_umax d = (drawn == 0u) ? 1u : drawn;
-    const dj_math_umax g = d_tests_gcd(n, d);
+    const d_math_umax d = (drawn == 0u) ? 1u : drawn;
+    const d_math_umax g = d_tests_gcd(n, d);
 
-    struct dj_rational result = { 0, 1 };
+    struct d_rational result = { 0, 1 };
 
-    result.num = neg ? -(dj_math_imax)(n / g) : (dj_math_imax)(n / g);
-    result.den = (dj_math_imax)(d / g);
+    result.num = neg ? -(d_math_imax)(n / g) : (d_math_imax)(n / g);
+    result.den = (d_math_imax)(d / g);
 
     return result;
 }
@@ -520,48 +520,48 @@ struct dj_rational d_tests_random_rational(void)
 // sub_wide on the two full products; and divmod_wide of the first by the
 // divisor, its quotient times the divisor plus its remainder giving the
 // product back, the remainder below the divisor.
-static
-void d_tests_wide(void)
+static void
+d_tests_wide(void)
 {
     long trial = 0;
 
     // each draw
     for (trial = 0; trial < D_TESTS_WIDE_TRIALS; ++trial)
     {
-        const dj_math_umax a     = d_tests_random_word();
-        const dj_math_umax b     = d_tests_random_word();
-        const dj_math_umax c     = d_tests_random_word();
-        const dj_math_umax e     = d_tests_random_word();
-        const dj_math_umax drawn = d_tests_random_word();
-        const dj_math_umax d     = (drawn == 0u) ? 1u : drawn;
+        const d_math_umax a     = d_tests_random_word();
+        const d_math_umax b     = d_tests_random_word();
+        const d_math_umax c     = d_tests_random_word();
+        const d_math_umax e     = d_tests_random_word();
+        const d_math_umax drawn = d_tests_random_word();
+        const d_math_umax d     = (drawn == 0u) ? 1u : drawn;
 
         // the helpers' answers
-        const struct dj_internal_rational_wide p =
+        const struct d_internal_rational_wide p =
             d_internal_rational_mul_wide(a, b);
-        const struct dj_internal_rational_wide q =
+        const struct d_internal_rational_wide q =
             d_internal_rational_mul_wide(c, e);
-        const struct dj_internal_rational_wide p_half =
+        const struct d_internal_rational_wide p_half =
             d_internal_rational_mul_wide(a >> 1, b >> 1);
-        const struct dj_internal_rational_wide q_half =
+        const struct d_internal_rational_wide q_half =
             d_internal_rational_mul_wide(c >> 1, e >> 1);
-        const struct dj_internal_rational_wide sum =
+        const struct d_internal_rational_wide sum =
             d_internal_rational_add_wide(p_half, q_half);
         const int order = d_internal_rational_cmp_wide(p, q);
-        const struct dj_internal_rational_wide difference =
+        const struct d_internal_rational_wide difference =
             (order >= 0) ? d_internal_rational_sub_wide(p, q)
                          : d_internal_rational_sub_wide(q, p);
-        const struct dj_internal_rational_divmod split =
+        const struct d_internal_rational_divmod split =
             d_internal_rational_divmod_wide(p, d);
 
         // the reference's
-        const struct dj_tests_big exact_p = d_tests_big_of_product(a, b);
-        const struct dj_tests_big exact_q = d_tests_big_of_product(c, e);
-        const struct dj_tests_big halves  =
+        const struct d_tests_big exact_p = d_tests_big_of_product(a, b);
+        const struct d_tests_big exact_q = d_tests_big_of_product(c, e);
+        const struct d_tests_big halves  =
             d_tests_big_add(d_tests_big_of_wide(p_half),
                             d_tests_big_of_wide(q_half));
-        const struct dj_tests_big gap     = d_tests_big_abs(
+        const struct d_tests_big gap     = d_tests_big_abs(
             d_tests_big_add(exact_p, d_tests_big_neg(exact_q)));
-        const struct dj_tests_big back    = d_tests_big_add(
+        const struct d_tests_big back    = d_tests_big_add(
             d_tests_big_mul(d_tests_big_of_wide(split.quotient),
                             d_tests_big_of_umax(d, false)),
             d_tests_big_of_umax(split.remainder, false));
@@ -602,17 +602,17 @@ void d_tests_wide(void)
 //   whether the rounding _r of the positive ratio _n / _d says rightly which
 // way it went: its direction the sign of m * 2^e less _n / _d, compared
 // exactly, as m * _d * 2^(e + s) against _n * 2^s.
-static
-bool d_tests_direction_ok(
-    struct dj_tests_big                 _n,
-    struct dj_tests_big                 _d,
-    struct dj_internal_rational_rounded _r
+static bool
+d_tests_direction_ok(
+    struct d_tests_big                 _n,
+    struct d_tests_big                 _d,
+    struct d_internal_rational_rounded _r
 )
 {
     const int                shift  = (_r.exponent < 0) ? -_r.exponent : 0;
-    const struct dj_tests_big m      = d_tests_big_of_wide(_r.mantissa);
-    const struct dj_tests_big exact  = d_tests_big_shl(_n, shift);
-    const struct dj_tests_big result =
+    const struct d_tests_big m      = d_tests_big_of_wide(_r.mantissa);
+    const struct d_tests_big exact  = d_tests_big_shl(_n, shift);
+    const struct d_tests_big result =
         d_tests_big_shl(d_tests_big_mul(m, _d), _r.exponent + shift);
 
     return (d_tests_big_cmp_mag(result, exact) == _r.direction);
@@ -621,20 +621,20 @@ bool d_tests_direction_ok(
 // d_tests_directions_ok
 //   d_tests_direction_ok for the ratio _n / _d of words, rounded to each of
 // the three precisions.
-static
-bool d_tests_directions_ok(
-    dj_math_umax _n,
-    dj_math_umax _d
+static bool
+d_tests_directions_ok(
+    d_math_umax _n,
+    d_math_umax _d
 )
 {
-    const struct dj_tests_big n         = d_tests_big_of_umax(_n, false);
-    const struct dj_tests_big d         = d_tests_big_of_umax(_d, false);
+    const struct d_tests_big n         = d_tests_big_of_umax(_n, false);
+    const struct d_tests_big d         = d_tests_big_of_umax(_d, false);
     const unsigned           widths[3] = { (unsigned)FLT_MANT_DIG,
                                            (unsigned)DBL_MANT_DIG,
                                            (unsigned)LDBL_MANT_DIG };
 
-    struct dj_internal_rational_wide wn = { 0u, 0u };
-    struct dj_internal_rational_wide wd = { 0u, 0u };
+    struct d_internal_rational_wide wn = { 0u, 0u };
+    struct d_internal_rational_wide wd = { 0u, 0u };
     bool                            ok = true;
     int                             i  = 0;
 
@@ -655,9 +655,9 @@ bool d_tests_directions_ok(
 //   d_rational_to_f, _to_d and _to_ld on _x, one check: each the nearest
 // value of its type, ties to even, and 0 as +0; and the rounding's direction
 // right at each precision.
-static
-void d_tests_check_to_float(
-    struct dj_rational _x
+static void
+d_tests_check_to_float(
+    struct d_rational _x
 )
 {
     const float       f  = d_rational_to_f(_x);
@@ -678,15 +678,15 @@ void d_tests_check_to_float(
         return;
     }
 
-    const struct dj_tests_big n   = d_tests_big_abs(d_tests_big_of(_x.num));
-    const struct dj_tests_big den = d_tests_big_of(_x.den);
+    const struct d_tests_big n   = d_tests_big_abs(d_tests_big_of(_x.num));
+    const struct d_tests_big den = d_tests_big_of(_x.den);
     const bool               neg = (_x.num < 0);
 
     D_TESTS_EXPECT( (d_tests_nearest_f(neg, n, den, f)) &&
                     (d_tests_nearest_d(neg, n, den, d)) &&
                     (d_tests_nearest_ld(neg, n, den, ld)) &&
                     (d_tests_directions_ok(d_tests_magnitude(_x.num),
-                                           (dj_math_umax)_x.den)),
+                                           (d_math_umax)_x.den)),
                     "to_f, to_d, to_ld", _x, _x);
 
     return;
@@ -695,17 +695,17 @@ void d_tests_check_to_float(
 // d_tests_check_wide_to_ld
 //   d_internal_rational_wide_to_ld on -(_n / _d) where _negative, else
 // _n / _d: the nearest long double, ties to even, and 0 as +0.
-static
-void d_tests_check_wide_to_ld(
-    bool                             _negative,
-    struct dj_internal_rational_wide _n,
-    struct dj_internal_rational_wide _d
+static void
+d_tests_check_wide_to_ld(
+    bool                            _negative,
+    struct d_internal_rational_wide _n,
+    struct d_internal_rational_wide _d
 )
 {
     const long double        r =
         d_internal_rational_wide_to_ld(_negative, _n, _d);
-    const struct dj_tests_big n = d_tests_big_of_wide(_n);
-    const struct dj_tests_big d = d_tests_big_of_wide(_d);
+    const struct d_tests_big n = d_tests_big_of_wide(_n);
+    const struct d_tests_big d = d_tests_big_of_wide(_d);
 
     // 0: +0, whatever the sign asked for
     if (d_tests_big_is_zero(n))
@@ -729,13 +729,13 @@ void d_tests_check_wide_to_ld(
 
 // d_tests_wide_of
 //   _high * 2^w + _low.
-static
-struct dj_internal_rational_wide d_tests_wide_of(
-    dj_math_umax _high,
-    dj_math_umax _low
+static struct d_internal_rational_wide
+d_tests_wide_of(
+    d_math_umax _high,
+    d_math_umax _low
 )
 {
-    struct dj_internal_rational_wide result = { 0u, 0u };
+    struct d_internal_rational_wide result = { 0u, 0u };
 
     result.hi = _high;
     result.lo = _low;
@@ -745,8 +745,8 @@ struct dj_internal_rational_wide d_tests_wide_of(
 
 // d_tests_power
 //   2^_k, for _k below 2w, in two words.
-static
-struct dj_internal_rational_wide d_tests_power(
+static struct d_internal_rational_wide
+d_tests_power(
     unsigned _k
 )
 {
@@ -755,21 +755,21 @@ struct dj_internal_rational_wide d_tests_power(
     // the high word's bit, or the low word's
     if (_k >= width)
     {
-        return d_tests_wide_of((dj_math_umax)1 << (_k - width), 0u);
+        return d_tests_wide_of((d_math_umax)1 << (_k - width), 0u);
     }
 
-    return d_tests_wide_of(0u, (dj_math_umax)1 << _k);
+    return d_tests_wide_of(0u, (d_math_umax)1 << _k);
 }
 
 // d_tests_plus
 //   _x + _k, for a small _k and an _x that leaves room for it.
-static
-struct dj_internal_rational_wide d_tests_plus(
-    struct dj_internal_rational_wide _x,
-    dj_math_umax                     _k
+static struct d_internal_rational_wide
+d_tests_plus(
+    struct d_internal_rational_wide _x,
+    d_math_umax                     _k
 )
 {
-    struct dj_internal_rational_wide result = _x;
+    struct d_internal_rational_wide result = _x;
 
     result.lo = _x.lo + _k;
 
@@ -784,15 +784,15 @@ struct dj_internal_rational_wide d_tests_plus(
 
 // d_tests_check_known_ratio
 //   the conversions of _n / _d, both nonzero: as a two-word ratio, either
-// sign; and where both terms fit dj_math_imax, as a rational, reduced by the
+// sign; and where both terms fit d_math_imax, as a rational, reduced by the
 // harness's own gcd, either sign.
-static
-void d_tests_check_known_ratio(
-    struct dj_internal_rational_wide _n,
-    struct dj_internal_rational_wide _d
+static void
+d_tests_check_known_ratio(
+    struct d_internal_rational_wide _n,
+    struct d_internal_rational_wide _d
 )
 {
-    const dj_math_umax most = (dj_math_umax)D_TESTS_MOST;
+    const d_math_umax most = (d_math_umax)D_TESTS_MOST;
 
     d_tests_check_wide_to_ld(false, _n, _d);
     d_tests_check_wide_to_ld(true, _n, _d);
@@ -803,12 +803,12 @@ void d_tests_check_known_ratio(
          (_n.lo <= most) &&
          (_d.lo <= most) )
     {
-        const dj_math_umax g = d_tests_gcd(_n.lo, _d.lo);
+        const d_math_umax g = d_tests_gcd(_n.lo, _d.lo);
 
-        struct dj_rational x = { 0, 1 };
+        struct d_rational x = { 0, 1 };
 
-        x.num = (dj_math_imax)(_n.lo / g);
-        x.den = (dj_math_imax)(_d.lo / g);
+        x.num = (d_math_imax)(_n.lo / g);
+        x.den = (d_math_imax)(_d.lo / g);
         d_tests_check_to_float(x);
         x.num = -x.num;
         d_tests_check_to_float(x);
@@ -822,19 +822,19 @@ void d_tests_check_known_ratio(
 // can reach: the ties 2^P + 1, down to 2^P, and 2^P + 3, up to 2^P + 4, and
 // (2^P + 1) / 2; 2^(P + 1) / (2^(P + 1) + 1), whose mantissa is all ones and
 // rounds up to 1; then the two-word ratios' ends, and 0.
-static
-void d_tests_to_float_known(void)
+static void
+d_tests_to_float_known(void)
 {
     const unsigned width        = D_INTERNAL_RATIONAL_WORD_BITS;
     const unsigned precisions[] = { (unsigned)FLT_MANT_DIG,
                                     (unsigned)DBL_MANT_DIG,
                                     (unsigned)LDBL_MANT_DIG };
-    const struct dj_internal_rational_wide one  = d_tests_wide_of(0u, 1u);
-    const struct dj_internal_rational_wide two  = d_tests_wide_of(0u, 2u);
-    const struct dj_internal_rational_wide zero = d_tests_wide_of(0u, 0u);
-    const struct dj_internal_rational_wide full =
+    const struct d_internal_rational_wide one  = d_tests_wide_of(0u, 1u);
+    const struct d_internal_rational_wide two  = d_tests_wide_of(0u, 2u);
+    const struct d_internal_rational_wide zero = d_tests_wide_of(0u, 0u);
+    const struct d_internal_rational_wide full =
         d_tests_wide_of(D_MATH_UMAX_MAX, D_MATH_UMAX_MAX);
-    const struct dj_internal_rational_wide half =
+    const struct d_internal_rational_wide half =
         d_tests_power((2u * width) - 1u);
 
     int i = 0;
@@ -874,13 +874,13 @@ void d_tests_to_float_known(void)
 // d_tests_random_wide
 //   a two-word integer below 2^b, b drawn from _least to 2w; or one time in
 // four, all 2w bits with the top one set.
-static
-struct dj_internal_rational_wide d_tests_random_wide(
+static struct d_internal_rational_wide
+d_tests_random_wide(
     unsigned _least
 )
 {
     const unsigned    width = D_INTERNAL_RATIONAL_WORD_BITS;
-    const dj_math_umax top   = (dj_math_umax)1 << (width - 1u);
+    const d_math_umax top   = (d_math_umax)1 << (width - 1u);
     const unsigned    bits  =
         _least + (unsigned)(d_tests_random16() % ((2u * width) + 1u - _least));
 
@@ -904,17 +904,17 @@ struct dj_internal_rational_wide d_tests_random_wide(
 // d_tests_to_float_wide
 //   D_TESTS_WIDE_TRIALS two-word ratios drawn at random, either sign, each
 // to long double.
-static
-void d_tests_to_float_wide(void)
+static void
+d_tests_to_float_wide(void)
 {
     long trial = 0;
 
     // each draw; a zero denominator is taken as 1
     for (trial = 0; trial < D_TESTS_WIDE_TRIALS; ++trial)
     {
-        const struct dj_internal_rational_wide n = d_tests_random_wide(0u);
-        const struct dj_internal_rational_wide drawn = d_tests_random_wide(1u);
-        const struct dj_internal_rational_wide d =
+        const struct d_internal_rational_wide n = d_tests_random_wide(0u);
+        const struct d_internal_rational_wide drawn = d_tests_random_wide(1u);
+        const struct d_internal_rational_wide d =
             ( (drawn.hi == 0u) &&
               (drawn.lo == 0u) ) ? d_tests_wide_of(0u, 1u) : drawn;
         const bool negative = ((d_tests_random16() & 1UL) != 0UL);
@@ -931,20 +931,20 @@ void d_tests_to_float_wide(void)
 //==============================================================================
 
 // d_tests_known
-//   results worth naming: sums whose cross terms pass dj_math_imax, and a
+//   results worth naming: sums whose cross terms pass d_math_imax, and a
 // word, while the sum fits; the ends' overflows; a destination that is also
 // an operand; and from_int.
-static
-void d_tests_known(void)
+static void
+d_tests_known(void)
 {
-    const struct dj_rational third  = { 1, 3 };
-    const struct dj_rational sixth  = { 1, 6 };
-    const struct dj_rational most_3 = { D_TESTS_MOST, 3 };
-    const struct dj_rational most_6 = { D_TESTS_MOST, 6 };
-    const struct dj_rational most   = d_rational_from_int(D_TESTS_MOST);
-    const struct dj_rational least  = d_rational_from_int(D_TESTS_LEAST);
+    const struct d_rational third  = { 1, 3 };
+    const struct d_rational sixth  = { 1, 6 };
+    const struct d_rational most_3 = { D_TESTS_MOST, 3 };
+    const struct d_rational most_6 = { D_TESTS_MOST, 6 };
+    const struct d_rational most   = d_rational_from_int(D_TESTS_MOST);
+    const struct d_rational least  = d_rational_from_int(D_TESTS_LEAST);
 
-    struct dj_rational out = d_tests_marker();
+    struct d_rational out = d_tests_marker();
 
     // from_int: n/1, at the ends too
     D_TESTS_EXPECT( (most.num == D_TESTS_MOST) &&
@@ -959,7 +959,7 @@ void d_tests_known(void)
                     (out.den == 2),
                     "1/3 + 1/6 is 1/2", third, sixth);
 
-    // MAX/6 + MAX/6 = MAX/3: the cross term, 2 MAX, passes dj_math_imax
+    // MAX/6 + MAX/6 = MAX/3: the cross term, 2 MAX, passes d_math_imax
     D_TESTS_EXPECT( (d_rational_add(&out, most_6, most_6) == D_RATIONAL_OK) &&
                     (out.num == D_TESTS_MOST) &&
                     (out.den == 3),
@@ -1003,13 +1003,13 @@ void d_tests_known(void)
 //   every numerator over every denominator in [-12, 12]: make, and the
 // one-form test against the harness's own; then every rational among them,
 // on its own and with each.
-static
-void d_tests_small(void)
+static void
+d_tests_small(void)
 {
-    struct dj_rational values[25 * 12];
+    struct d_rational values[25 * 12];
     int               count = 0;
-    dj_math_imax       num   = 0;
-    dj_math_imax       den   = 0;
+    d_math_imax       num   = 0;
+    d_math_imax       den   = 0;
     int               i     = 0;
     int               j     = 0;
 
@@ -1018,7 +1018,7 @@ void d_tests_small(void)
     {
         for (num = -12; num <= 12; ++num)
         {
-            const struct dj_rational r = { num, den };
+            const struct d_rational r = { num, den };
 
             D_TESTS_EXPECT(d_rational_is_valid(r) == d_tests_in_one_form(r),
                            "is_valid", r, r);
@@ -1052,11 +1052,11 @@ void d_tests_small(void)
 //   the family's ends, their neighbours and the values around 2^(w/2): each
 // on its own and with each; and make on each numerator over each
 // denominator, either sign, and over each numerator.
-static
-void d_tests_extremes(void)
+static void
+d_tests_extremes(void)
 {
     // each in the one form
-    static const dj_math_imax terms[][2] = {
+    static const d_math_imax terms[][2] = {
         // small values
         { 0, 1 },  { 1, 1 },  { -1, 1 },  { 2, 1 },  { -2, 1 },
         { 1, 2 },  { -1, 2 }, { 1, 3 },   { 1, 6 },
@@ -1090,14 +1090,14 @@ void d_tests_extremes(void)
     // each on its own, and with each
     for (i = 0; i < count; ++i)
     {
-        const struct dj_rational a = { terms[i][0], terms[i][1] };
+        const struct d_rational a = { terms[i][0], terms[i][1] };
 
         d_tests_check_unary(a);
         d_tests_check_to_float(a);
 
         for (j = 0; j < count; ++j)
         {
-            const struct dj_rational b = { terms[j][0], terms[j][1] };
+            const struct d_rational b = { terms[j][0], terms[j][1] };
 
             d_tests_check_pair(a, b);
             d_tests_check_make(terms[i][0], terms[j][1]);
@@ -1113,20 +1113,20 @@ void d_tests_extremes(void)
 //   D_TESTS_TRIALS pairs drawn at random, and each first term on its own;
 // then, that the draws reach both answers often: a tenth of the sums and
 // products at least stored, and as many overflowed.
-static
-void d_tests_random(void)
+static void
+d_tests_random(void)
 {
     const long              stored_before     = g_stored;
     const long              overflowed_before = g_overflowed;
-    const struct dj_rational none              = { 0, 1 };
+    const struct d_rational none              = { 0, 1 };
 
     long trial = 0;
 
     // each pair, and its first term on its own
     for (trial = 0; trial < D_TESTS_TRIALS; ++trial)
     {
-        const struct dj_rational a = d_tests_random_rational();
-        const struct dj_rational b = d_tests_random_rational();
+        const struct d_rational a = d_tests_random_rational();
+        const struct d_rational b = d_tests_random_rational();
 
         d_tests_check_unary(a);
         d_tests_check_to_float(a);
@@ -1155,12 +1155,12 @@ void d_tests_random(void)
 
 // d_tests_constexpr_sum
 //   1/3 + 1/6.
-static constexpr
-struct dj_rational d_tests_constexpr_sum()
+static constexpr struct d_rational
+d_tests_constexpr_sum()
 {
-    struct dj_rational out   = { 0, 1 };
-    struct dj_rational third = { 1, 3 };
-    struct dj_rational sixth = { 1, 6 };
+    struct d_rational out   = { 0, 1 };
+    struct d_rational third = { 1, 3 };
+    struct d_rational sixth = { 1, 6 };
 
     (void)d_rational_add(&out, third, sixth);
 
@@ -1169,12 +1169,12 @@ struct dj_rational d_tests_constexpr_sum()
 
 // d_tests_constexpr_wide
 //   MAX/3 + MAX/6, whose cross term, 3 MAX, passes a word.
-static constexpr
-struct dj_rational d_tests_constexpr_wide()
+static constexpr struct d_rational
+d_tests_constexpr_wide()
 {
-    struct dj_rational out    = { 0, 1 };
-    struct dj_rational most_3 = { 0, 1 };
-    struct dj_rational most_6 = { 0, 1 };
+    struct d_rational out    = { 0, 1 };
+    struct d_rational most_3 = { 0, 1 };
+    struct d_rational most_6 = { 0, 1 };
 
     (void)d_rational_make(&most_3, D_TESTS_MOST, 3);
     (void)d_rational_make(&most_6, D_TESTS_MOST, 6);
@@ -1186,11 +1186,11 @@ struct dj_rational d_tests_constexpr_wide()
 // d_tests_constexpr_order
 //   MAX/(MAX - 1) against (MAX - 1)/(MAX - 2), by cross products of two
 // words.
-static constexpr
-int d_tests_constexpr_order()
+static constexpr int
+d_tests_constexpr_order()
 {
-    struct dj_rational a = { 0, 1 };
-    struct dj_rational b = { 0, 1 };
+    struct d_rational a = { 0, 1 };
+    struct d_rational b = { 0, 1 };
 
     (void)d_rational_make(&a, D_TESTS_MOST, D_TESTS_MOST - 1);
     (void)d_rational_make(&b, D_TESTS_MOST - 1, D_TESTS_MOST - 2);
@@ -1200,39 +1200,39 @@ int d_tests_constexpr_order()
 
 // d_tests_constexpr_overflow
 //   -MIN's status.
-static constexpr enum dj_rational_status
+static constexpr enum d_rational_status
 d_tests_constexpr_overflow()
 {
-    struct dj_rational out = { 0, 1 };
+    struct d_rational out = { 0, 1 };
 
     return d_rational_neg(&out, d_rational_from_int(D_TESTS_LEAST));
 }
 
 // d_tests_constexpr_third_f, d_tests_constexpr_third_d
 //   1/3 to the nearest float and double.
-static constexpr
-float d_tests_constexpr_third_f()
+static constexpr float
+d_tests_constexpr_third_f()
 {
-    struct dj_rational third = { 1, 3 };
+    struct d_rational third = { 1, 3 };
 
     return d_rational_to_f(third);
 }
 
-static constexpr
-double d_tests_constexpr_third_d()
+static constexpr double
+d_tests_constexpr_third_d()
 {
-    struct dj_rational third = { 1, 3 };
+    struct d_rational third = { 1, 3 };
 
     return d_rational_to_d(third);
 }
 
 // d_tests_constexpr_wide_ld
 //   -(3 / 4), a two-word ratio, to long double.
-static constexpr
-long double d_tests_constexpr_wide_ld()
+static constexpr long double
+d_tests_constexpr_wide_ld()
 {
-    struct dj_internal_rational_wide three = { 0u, 3u };
-    struct dj_internal_rational_wide four  = { 0u, 4u };
+    struct d_internal_rational_wide three = { 0u, 3u };
+    struct d_internal_rational_wide four  = { 0u, 4u };
 
     return d_internal_rational_wide_to_ld(true, three, four);
 }
@@ -1256,11 +1256,11 @@ static_assert(d_tests_constexpr_wide_ld() == -0.75L,
 
 // d_tests_constant_evaluation
 //   the same at run time.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
-    const struct dj_rational sum  = d_tests_constexpr_sum();
-    const struct dj_rational wide = d_tests_constexpr_wide();
+    const struct d_rational sum  = d_tests_constexpr_sum();
+    const struct d_rational wide = d_tests_constexpr_wide();
 
     D_TESTS_EXPECT( (sum.num == 1) &&
                     (sum.den == 2) &&
@@ -1279,9 +1279,10 @@ void d_tests_constant_evaluation(void)
 #endif  // C++14
 
 
-int main(void)
+int
+main(void)
 {
-    const struct dj_rational none = { 0, 1 };
+    const struct d_rational none = { 0, 1 };
 
     d_tests_known();
     d_tests_wide();

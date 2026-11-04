@@ -122,8 +122,8 @@ NS_INTERNAL
     // equal: of one kind, and then errors of one code, values equal by
     // value.h's exact order, or two NaNs, which that order leaves unordered.
     // So 1 and 1.0 differ, of two kinds, and 0.0 and -0.0 are the same.
-    inline
-    bool expr_same_number(
+    inline bool
+    expr_same_number(
         const value& _a,
         const value& _b
     )
@@ -137,8 +137,8 @@ NS_INTERNAL
         // two errors, by their codes
         if (_a.kind() == D_MATH_VALUE_ERROR)
         {
-            dj_math_value_error code_a = D_MATH_VALUE_ERROR_DOMAIN;
-            dj_math_value_error code_b = D_MATH_VALUE_ERROR_DOMAIN;
+            d_math_value_error code_a = D_MATH_VALUE_ERROR_DOMAIN;
+            d_math_value_error code_b = D_MATH_VALUE_ERROR_DOMAIN;
 
             static_cast<void>(_a.to(code_a));
             static_cast<void>(_b.to(code_b));
@@ -162,8 +162,8 @@ NS_END  // internal
 // operator==, operator!= (expr_atom)
 //   function: two atoms are equal when their kinds and texts are, and their
 // numbers are the same number.
-inline
-bool operator==(
+inline bool
+operator==(
     const expr_atom& _a,
     const expr_atom& _b
 )
@@ -173,8 +173,8 @@ bool operator==(
              (internal::expr_same_number(_a.number, _b.number)) );
 }
 
-inline
-bool operator!=(
+inline bool
+operator!=(
     const expr_atom& _a,
     const expr_atom& _b
 )
@@ -208,8 +208,8 @@ typedef expression<expr_op, expr_atom> expr_term;
 // Leaves
 //   a number made by a fold, with no literal; a number as it was written;
 // a variable; a named constant.
-inline
-expr_term expr_number(
+inline expr_term
+expr_number(
     const value& _number
 )
 {
@@ -217,8 +217,8 @@ expr_term expr_number(
         expr_atom(expr_atom_kind::number, _number, std::string()));
 }
 
-inline
-expr_term expr_number(
+inline expr_term
+expr_number(
     const value&       _number,
     const std::string& _literal
 )
@@ -227,8 +227,8 @@ expr_term expr_number(
         expr_atom(expr_atom_kind::number, _number, _literal));
 }
 
-inline
-expr_term expr_variable(
+inline expr_term
+expr_variable(
     const std::string& _name
 )
 {
@@ -236,8 +236,8 @@ expr_term expr_variable(
         expr_atom(expr_atom_kind::variable, value(), _name));
 }
 
-inline
-expr_term expr_constant(
+inline expr_term
+expr_constant(
     const std::string& _name
 )
 {
@@ -249,16 +249,16 @@ expr_term expr_constant(
 // Applications
 //   an operator applied to no operand, to one, to two, or to any number of
 // them; and a call of a function, by name, on its arguments.
-inline
-expr_term expr_application(
+inline expr_term
+expr_application(
     const expr_op& _op
 )
 {
     return expr_apply<expr_op, expr_atom>(_op);
 }
 
-inline
-expr_term expr_application(
+inline expr_term
+expr_application(
     const expr_op&   _op,
     const expr_term& _operand
 )
@@ -266,8 +266,8 @@ expr_term expr_application(
     return expr_apply<expr_op, expr_atom>(_op, _operand);
 }
 
-inline
-expr_term expr_application(
+inline expr_term
+expr_application(
     const expr_op&   _op,
     const expr_term& _left,
     const expr_term& _right
@@ -276,8 +276,8 @@ expr_term expr_application(
     return expr_apply<expr_op, expr_atom>(_op, _left, _right);
 }
 
-inline
-expr_term expr_application(
+inline expr_term
+expr_application(
     const expr_op&                _op,
     const std::vector<expr_term>& _operands
 )
@@ -285,8 +285,8 @@ expr_term expr_application(
     return expr_apply<expr_op, expr_atom>(_op, _operands);
 }
 
-inline
-expr_term expr_call(
+inline expr_term
+expr_call(
     const std::string&            _function,
     const std::vector<expr_term>& _arguments
 )
@@ -301,8 +301,8 @@ expr_term expr_call(
 // operands, where it is an application. expr_atom_of asks a leaf, and
 // expr_op_of and expr_operands_of an application, as parse/expression's
 // observers do.
-inline
-bool expr_is_number(
+inline bool
+expr_is_number(
     const expr_term& _term
 )
 {
@@ -311,8 +311,8 @@ bool expr_is_number(
                   expr_atom_kind::number) );
 }
 
-inline
-bool expr_is_variable(
+inline bool
+expr_is_variable(
     const expr_term& _term
 )
 {
@@ -321,8 +321,8 @@ bool expr_is_variable(
                   expr_atom_kind::variable) );
 }
 
-inline
-bool expr_is_constant(
+inline bool
+expr_is_constant(
     const expr_term& _term
 )
 {
@@ -331,32 +331,32 @@ bool expr_is_constant(
                   expr_atom_kind::constant) );
 }
 
-inline
-bool expr_is_application(
+inline bool
+expr_is_application(
     const expr_term& _term
 )
 {
     return !is_leaf<expr_op, expr_atom>(_term);
 }
 
-inline
-const expr_atom& expr_atom_of(
+inline const expr_atom&
+expr_atom_of(
     const expr_term& _term
 )
 {
     return atom_of<expr_op, expr_atom>(_term);
 }
 
-inline
-const expr_op& expr_op_of(
+inline const expr_op&
+expr_op_of(
     const expr_term& _term
 )
 {
     return operator_of<expr_op, expr_atom>(_term);
 }
 
-inline
-const std::vector<expr_term>& expr_operands_of(
+inline const std::vector<expr_term>&
+expr_operands_of(
     const expr_term& _term
 )
 {

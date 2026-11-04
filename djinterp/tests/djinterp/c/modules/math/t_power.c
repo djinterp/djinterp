@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                      t_power.c
+* djinterp [c/math]                                                    t_power.c
 *
 *   Conformance harness for c/math/power.h. cbrt_c must be the correctly
 * rounded cube root. For float that is checked exactly: |x| must lie strictly
@@ -58,12 +58,12 @@
 * that cbrt_c, pow_c and hypot_c are constant expressions, for every family,
 * with the bits they have at run time. It needs no 64-bit integer -- its
 * random numbers come from math_tests_random.h, the same in every build --
-* so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
+* so that ISO-strict C++98 on a 32-bit target, where d_math_umax has 32
 * bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_power.c -o t_power -lm
+*        tests/djinterp/c/math/t_power.c -o t_power -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_power.c
@@ -101,8 +101,8 @@ static long double (*volatile g_hypotl)(long double,
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     long double _value,
@@ -129,18 +129,15 @@ void d_tests_expect(
     d_tests_expect((ok), (what), (long double)(value), __LINE__)
 
 // a uniform double in [0, 1), from 53 random bits
-static
-double d_tests_unit(void)
+static double
+d_tests_unit(void)
 {
     return (double)d_tests_top(53) * DBL_EPSILON / 2.0;
 }
 
 // bit-for-bit, NaN equal to NaN, -0 distinct from +0
-static
-bool d_tests_same_f(
-    float _a,
-    float _b
-)
+static bool
+d_tests_same_f(float _a, float _b)
 {
     uint32_t a = 0u;
     uint32_t b = 0u;
@@ -151,21 +148,15 @@ bool d_tests_same_f(
     return ((a == b) || (isnan(_a) && isnan(_b)));
 }
 
-static
-bool d_tests_same_d(
-    double _a,
-    double _b
-)
+static bool
+d_tests_same_d(double _a, double _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_ld(
-    long double _a,
-    long double _b
-)
+static bool
+d_tests_same_ld(long double _a, long double _b)
 {
     // signbit's value is any nonzero for a negative: glibc's gives 1 for a
     // constant it folds and 512 for a long double at run time
@@ -176,13 +167,8 @@ bool d_tests_same_ld(
 // the distance of _got from _want in units of _want's last place, the
 // subnormals' spacing below the normal range; an infinity or NaN is 0 from
 // its like and 1e30 from anything else
-static
-double d_tests_ulps(
-    long double _got,
-    long double _want,
-    int         _mant,
-    int         _emin
-)
+static double
+d_tests_ulps(long double _got, long double _want, int _mant, int _emin)
 {
     long double scale = 0.0L;
     long double diff  = 0.0L;
@@ -214,13 +200,10 @@ double d_tests_ulps(
 // double, _mid^3 is exact as Dekker's pair, its high part within a factor of
 // 2 of _a, so that their difference is exact too (Sterbenz's lemma), and the
 // one rounding left keeps the sign.
-static
-int d_tests_cube_sign(
-    long double _a,
-    long double _mid
-)
+static int
+d_tests_cube_sign(long double _a, long double _mid)
 {
-    const struct dj_internal_math_ld_pair cube =
+    const struct d_internal_math_ld_pair cube =
         d_internal_math_ld_product_exact(_mid, _mid * _mid);
     const long double diff = (cube.high - _a) + cube.low;
 
@@ -231,11 +214,8 @@ int d_tests_cube_sign(
 //   whether _r is the correctly rounded cube root of _x: |_x| strictly
 // between the cubes of the midpoints about |_r| -- half the gap above it,
 // and half the gap below it, which is half as wide at a power of 2.
-static
-bool d_tests_cbrt_correct_f(
-    float _x,
-    float _r
-)
+static bool
+d_tests_cbrt_correct_f(float _x, float _r)
 {
     long double a     = 0.0L;
     long double r     = 0.0L;
@@ -273,10 +253,8 @@ bool d_tests_cbrt_correct_f(
 // d_tests_float_one
 //   one float: cbrt_c correctly rounded, by the exact check, and within an
 // ulp of cbrtf.
-static
-void d_tests_float_one(
-    float _x
-)
+static void
+d_tests_float_one(float _x)
 {
     const float r = d_math_f_cbrt_c(_x);
 
@@ -288,10 +266,8 @@ void d_tests_float_one(
     return;
 }
 
-static
-void d_tests_float(
-    bool _exhaustive
-)
+static void
+d_tests_float(bool _exhaustive)
 {
     const uint32_t step = _exhaustive ? 1u : 509u;
     uint32_t       bits = 0u;
@@ -352,8 +328,8 @@ void d_tests_float(
 // d_tests_double
 //   cbrt_c within three ulps of cbrt over random arguments; prints how many
 // differ at all, and the largest difference.
-static
-void d_tests_double(void)
+static void
+d_tests_double(void)
 {
     double worst = 0.0;
     long   diff  = 0;
@@ -392,8 +368,8 @@ void d_tests_double(void)
 // d_tests_double_edges
 //   the correctly rounded roots, from a 400-bit computation (the values are
 // tools/edge_values7.py's), each negated too; and the perfect cubes.
-static
-void d_tests_double_edges(void)
+static void
+d_tests_double_edges(void)
 {
     // x and cbrt(x), correctly rounded
     static const double roots[][2] = {
@@ -471,8 +447,8 @@ void d_tests_double_edges(void)
     return;
 }
 
-static
-void d_tests_long_double(void)
+static void
+d_tests_long_double(void)
 {
     double worst = 0.0;
     long   i     = 0;
@@ -525,8 +501,8 @@ void d_tests_long_double(void)
 // that (t + h)^3 is exact in any long double, against that cube and the
 // long doubles either side of it -- 0, -1 and 1 -- where the approximation
 // lies within its error bound of 0 and the exact sum decides.
-static
-void d_tests_cube_sign_exact(void)
+static void
+d_tests_cube_sign_exact(void)
 {
     int j = 0;
 
@@ -559,8 +535,8 @@ void d_tests_cube_sign_exact(void)
 
 // d_tests_specials
 //   NaN, the zeros, the infinities, the subnormals, every family.
-static
-void d_tests_specials(void)
+static void
+d_tests_specials(void)
 {
     const double    inf   = (double)HUGE_VAL;
     volatile double ten   = 10.0;
@@ -625,8 +601,8 @@ void d_tests_specials(void)
 // a little over half a double's last place of x^y -- where that lies past
 // 2^-44 of x^y from a float's midpoint, as it does at all but about one
 // argument in a hundred million: then true, the float in *_want.
-static
-bool d_tests_pow_reference_f(
+static bool
+d_tests_pow_reference_f(
     float  _x,
     float  _y,
     float* _want
@@ -688,8 +664,8 @@ bool d_tests_pow_reference_f(
 // normal x and y putting x^y anywhere in range; 2, an integer y from 2 to
 // 40 and x of either sign; 3, x within 2^-40 of 1 and y large; 4, x^y
 // subnormal; 5, x subnormal and y in (0, 1].
-static
-void d_tests_pow_args(
+static void
+d_tests_pow_args(
     int          _range,
     int          _emin,
     int          _emax,
@@ -762,8 +738,8 @@ void d_tests_pow_args(
 // it decides (d_tests_pow_reference_f), and within two ulps of powf: a
 // million argument pairs, in six ranges; with _exhaustive, besides, every
 // positive float to the powers 2.5 and -0.3.
-static
-void d_tests_pow_float(
+static void
+d_tests_pow_float(
     bool _exhaustive
 )
 {
@@ -844,8 +820,8 @@ void d_tests_pow_float(
 //   pow_c within two ulps of pow -- glibc's is within a little over half an
 // ulp -- at two million argument pairs in six ranges; how many differ at all
 // printed.
-static
-void d_tests_pow_double(void)
+static void
+d_tests_pow_double(void)
 {
     double worst = 0.0;
     long   diff  = 0;
@@ -886,8 +862,8 @@ void d_tests_pow_double(void)
 // computation (tools/edge_values8.py): the midpoints, the exact powers, the
 // powers of 2 at both ends of the range, the subnormal midpoints, about 1,
 // and arguments whose power lies within a millionth of an ulp of a midpoint.
-static
-void d_tests_pow_edges(void)
+static void
+d_tests_pow_edges(void)
 {
     // x, y and x^y, correctly rounded
     static const double powers_d[][3] = {
@@ -1046,13 +1022,13 @@ void d_tests_pow_edges(void)
 // double's remainder, exact where q is the rounded quotient -- and the
 // comparison in long double, which cannot misjudge: 1/r never lies on a
 // midpoint, nor nearer one than 2^-54 of its last place.
-static
-bool d_tests_reciprocal_d(
+static bool
+d_tests_reciprocal_d(
     double _r,
     double _q
 )
 {
-    const struct dj_internal_math_ld_pair p =
+    const struct d_internal_math_ld_pair p =
         d_internal_math_ld_product_exact((long double)_q, (long double)_r);
     const long double rest  = (1.0L - p.high) - p.low;
     const long double above = ( (long double)nextafter(_q, DBL_MAX) -
@@ -1074,8 +1050,8 @@ bool d_tests_reciprocal_d(
 // x^2, x^3 and x^-1 where the result is exact or on a midpoint, against the
 // product or quotient rounded once by the hardware; 2^n at every n; and the
 // powers of 3, 5 and 10 the type holds.
-static
-void d_tests_pow_exact(void)
+static void
+d_tests_pow_exact(void)
 {
     long i = 0;
     int  n = 0;
@@ -1192,8 +1168,8 @@ void d_tests_pow_exact(void)
 // rounded once by the multiplication; (1 - e/2)^y and (1 + e)^y, e long
 // double's epsilon, whose second-order term decides; and the square root,
 // the reciprocal, the least subnormal and half of it.
-static
-void d_tests_pow_long_double(void)
+static void
+d_tests_pow_long_double(void)
 {
     const long double e     = LDBL_EPSILON;
     const long double below = 1.0L - (e / 2.0L);
@@ -1363,8 +1339,8 @@ void d_tests_pow_long_double(void)
 
 // d_tests_pow_specials
 //   every family's special values; the plain form, the library's.
-static
-void d_tests_pow_specials(void)
+static void
+d_tests_pow_specials(void)
 {
     volatile double ten   = 10.0;
     volatile double third = 0.3;
@@ -1392,8 +1368,8 @@ void d_tests_pow_specials(void)
 // 2^-(P + 4), where the smaller stops mattering; 3, both subnormal; 4, x in
 // the top binade; 5, integers below 2^(P/2 + 2) in a random binade -- many
 // exact results among them. Either sign, either order.
-static
-void d_tests_hypot_args(
+static void
+d_tests_hypot_args(
     int          _range,
     int          _emin,
     int          _emax,
@@ -1475,8 +1451,8 @@ void d_tests_hypot_args(
 // exact; m^2 - s exact where the two lie within a factor of 2 of each other
 // (Sterbenz's lemma), and past s_lo by far where they do not; so the one
 // rounding left keeps the sign.
-static
-int d_tests_hypot_sign_f(
+static int
+d_tests_hypot_sign_f(
     long double _a,
     long double _b,
     long double _m
@@ -1498,8 +1474,8 @@ int d_tests_hypot_sign_f(
 // -- the one above past the root, or on it with _r even, and the one below
 // short of it, or on it with _r even. +inf where the root lies on or past
 // the midpoint above FLT_MAX; and C's special values.
-static
-bool d_tests_hypot_correct_f(
+static bool
+d_tests_hypot_correct_f(
     float _x,
     float _y,
     float _r
@@ -1567,8 +1543,8 @@ bool d_tests_hypot_correct_f(
 // hypotf: a million argument pairs in six ranges; with _exhaustive,
 // besides, every positive float with 1 and with the float nearest 3/4 of
 // it.
-static
-void d_tests_hypot_float(
+static void
+d_tests_hypot_float(
     bool _exhaustive
 )
 {
@@ -1630,8 +1606,8 @@ void d_tests_hypot_float(
 // pairs of integers below 2^26 in a random binade, whose squares' sum is
 // exact in a double, the square root of that sum: sqrt_c's, correctly
 // rounded.
-static
-void d_tests_hypot_double(void)
+static void
+d_tests_hypot_double(void)
 {
     long differ = 0;
     long i      = 0;
@@ -1710,8 +1686,8 @@ void d_tests_hypot_double(void)
 // about 2^-(P/2) and 2^-(P + 2) of the larger; subnormal results and
 // results about the least normal value; hypot(x, x) at the ends. Long
 // double's table is its format's: a double's, an x87's or a quad's.
-static
-void d_tests_hypot_edges(void)
+static void
+d_tests_hypot_edges(void)
 {
     static const double floats[][6] = {
         { 16776945.0, 0, 94231.0, 3, 1049617.0, 4 },
@@ -2077,8 +2053,8 @@ void d_tests_hypot_edges(void)
 //   hypot_c within an ulp of hypotl at a million argument pairs in six
 // ranges, how many differ printed; and at pairs of integers below 2^(P/2 -
 // 1), whose squares' sum is exact in any long double, sqrt_c of that sum.
-static
-void d_tests_hypot_long_double(void)
+static void
+d_tests_hypot_long_double(void)
 {
     const int half   = (LDBL_MANT_DIG / 2) - 1;
     long      differ = 0;
@@ -2130,8 +2106,8 @@ void d_tests_hypot_long_double(void)
 // t + h their hypotenuse, a^2 + b^2 is (t + h)^2 exactly -- 0 -- and with b
 // a last place either way, -1 or 1: where the approximation lies within
 // its bound and the exact sum decides.
-static
-void d_tests_hypot_sign(void)
+static void
+d_tests_hypot_sign(void)
 {
     // legs and hypotenuse, each over 2^4: 4-3-5, 12-5-13, 15-8-17,
     // 21-20-29, 24-7-25
@@ -2149,14 +2125,14 @@ void d_tests_hypot_sign(void)
         const long double b = legs[k][1] / 16.0L;
         const long double m = legs[k][2] / 16.0L;
         // the squares as Dekker's pairs, b's and its neighbours'
-        const struct dj_internal_math_ld_pair a2 =
+        const struct d_internal_math_ld_pair a2 =
             d_internal_math_ld_product_exact(a, a);
-        const struct dj_internal_math_ld_pair b2 =
+        const struct d_internal_math_ld_pair b2 =
             d_internal_math_ld_product_exact(b, b);
-        const struct dj_internal_math_ld_pair up =
+        const struct d_internal_math_ld_pair up =
             d_internal_math_ld_product_exact(d_math_ld_next_up(b),
                                              d_math_ld_next_up(b));
-        const struct dj_internal_math_ld_pair down =
+        const struct d_internal_math_ld_pair down =
             d_internal_math_ld_product_exact(d_math_ld_next_down(b),
                                              d_math_ld_next_down(b));
 
@@ -2223,8 +2199,8 @@ void d_tests_hypot_sign(void)
 // d_tests_hypot_specials
 //   every family's special values; the plain form, the library's, but in
 // C++ before C++11, which has no hypot, where it is hypot_c.
-static
-void d_tests_hypot_specials(void)
+static void
+d_tests_hypot_specials(void)
 {
     volatile double ten   = 10.0;
     volatile double third = 0.3;
@@ -2259,8 +2235,8 @@ void d_tests_hypot_specials(void)
 
 // d_tests_overloads
 //   compiled as C++: one name for every family, chosen by argument type.
-static
-void d_tests_overloads(void)
+static void
+d_tests_overloads(void)
 {
     D_TESTS_EXPECT( (d_tests_same_f(d_math_cbrt_c(3.0f),
                                     d_math_f_cbrt_c(3.0f))) &&
@@ -2398,8 +2374,8 @@ static_assert(d_math_d_hypot_c((double)NAN, -(double)HUGE_VAL) ==
 // d_tests_constant_evaluation
 //   the constants are the run time's results, bit for bit: the arguments
 // are read through volatiles, so the calls below are not folded.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     volatile float       three_f = 3.0f;
     volatile double      ten_d   = 10.0;
@@ -2469,10 +2445,8 @@ void d_tests_constant_evaluation(void)
 
 #endif  // C++14
 
-int main(
-    int    _argc,
-    char** _argv
-)
+int
+main(int _argc, char** _argv)
 {
     const bool exhaustive = (_argc > 1) &&
                             (strcmp(_argv[1], "exhaustive") == 0);

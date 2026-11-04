@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     t_geometry_common_face.cpp
+* djinterp [cpp/math]                                 t_geometry_common_face.cpp
 *
 *   Tests for geometry/geometry_common.hpp, at every level from C++98: the
 * detection traits on types that have, lack, and set false their flags and
@@ -11,7 +11,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/geometry/t_geometry_common_face.cpp -o t -lm
+*         tests/djinterp/math/geometry/t_geometry_common_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_geometry_common_face.cpp
@@ -31,7 +31,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -87,11 +88,8 @@ namespace
     };
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -99,7 +97,8 @@ namespace
                  (d >= -_tol) );
     }
 
-    void d_tests_traits()
+    void
+    d_tests_traits()
     {
         D_TESTS_EXPECT( (dm::is_edge<t_edge>::value) &&
                         (!dm::is_edge<t_shape>::value) &&
@@ -122,7 +121,8 @@ namespace
         return;
     }
 
-    void d_tests_helpers()
+    void
+    d_tests_helpers()
     {
         typedef dm::polar<double>      pol;
         typedef dm::cartesian<3>       car;
@@ -184,7 +184,8 @@ namespace
     }
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    void d_tests_cpp11()
+    void
+    d_tests_cpp11()
     {
         const std::array<double, 3> a = {{ 1.0, 0.0, 0.0 }};
         const std::array<double, 3> b = {{ 0.0, 1.0, 0.0 }};
@@ -210,7 +211,8 @@ static_assert(dm::is_edge_v<t_edge>, "is_edge_v (C++14)");
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_traits();
     d_tests_helpers();

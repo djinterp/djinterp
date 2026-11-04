@@ -9,6 +9,16 @@
 * vector's own array, which the constant dimension unrolls; for any other
 * element type, the generic path (linalg_common.hpp).
 *
+* VECTORS OF COMPLEX NUMBERS (S322, S354):
+*   A vector of math::complex<T> adds, scales and takes dot, the bilinear
+* sum of a_i b_i, as any other; vdot(a, b) is the inner product, the sum of
+* conj(a_i) b_i, as Julia's dot and NumPy's vdot; norm, length and
+* norm_squared are of the moduli, a T, the C core's scaled norm and sum of
+* squares of the 2N parts; normalize divides by that norm, and distance is
+* the norm of the difference. Angles and the fluent members that take a
+* root stay refused at compile time, as no order of the complex numbers is
+* a field's.
+*
 * TWO SPELLINGS (see linalg_common.hpp):
 *   fluent      v.normalized().scaled(2.0).dot(w)
 *   procedural  dot(scale(normalize(v), 2.0), w)
@@ -37,7 +47,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/vector.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.02
 *******************************************************************************/
 
 /*
@@ -50,6 +60,7 @@ TABLE OF CONTENTS
     --------------
     1.  Operators
     2.  Procedural spellings
+    3.  Vectors of complex numbers
 3.  CONVENIENCE ALIASES
     -------------------
 */
@@ -60,7 +71,7 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                     // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"          // framework root
+#include "../../../djinterp.hpp"       // framework root
 #include "./linalg_common.hpp"         // internal::linalg_kernel,
                                        // default_tolerance
 #include "../number_traits.hpp"        // number_traits
@@ -98,6 +109,9 @@ private:
 public:
     typedef Type        value_type;
     typedef std::size_t size_type;
+    // the type of a tolerance: number_traits' magnitude, Type itself for a
+    // real number, its real type for a complex one
+    typedef typename number_traits<Type>::magnitude_type magnitude_type;
     typedef Type*       iterator;
     typedef const Type* const_iterator;
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -288,17 +302,15 @@ public:
     // ---- named factories --------------------------------------------------
 
     // zeros: the zero vector.
-    static D_CONSTEXPR
-    vector zeros() D_NOEXCEPT
+    static D_CONSTEXPR vector
+    zeros() D_NOEXCEPT
     {
         return vector();
     }
 
     // filled: every component equal to _value.
-    static D_CONSTEXPR_CPP14
-    vector filled(
-        Type _value
-    ) D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 vector
+    filled(Type _value) D_NOEXCEPT
     {
         vector v;
 
@@ -309,10 +321,8 @@ public:
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // from_array: build from a std::array of components (C++11).
-    static D_CONSTEXPR_CPP14
-    vector from_array(
-        const array_type& _components
-    ) D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 vector
+    from_array(const array_type& _components) D_NOEXCEPT
     {
         return vector(_components);
     }
@@ -337,8 +347,8 @@ public:
 
     // basis: the I-th standard basis vector (1 at I, 0 elsewhere).
     template<std::size_t I>
-    static D_CONSTEXPR_CPP14
-    vector basis() D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 vector
+    basis() D_NOEXCEPT
     {
         D_STATIC_ASSERT((I < N),
                         "vector::basis: the index must be below the "
@@ -353,87 +363,83 @@ public:
 
     // ---- size / access ----------------------------------------------------
 
-    static D_CONSTEXPR
-    size_type size() D_NOEXCEPT
+    static D_CONSTEXPR size_type
+    size() D_NOEXCEPT
     {
         return N;
     }
 
-    D_CONSTEXPR
-    const Type& operator[](
-        size_type _i
-    ) const D_NOEXCEPT
+    D_CONSTEXPR const Type&
+    operator[](size_type _i) const D_NOEXCEPT
     {
         return m_data[_i];
     }
 
-    D_CONSTEXPR_CPP14
-    Type& operator[](
-        size_type _i
-    ) D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type&
+    operator[](size_type _i) D_NOEXCEPT
     {
         return m_data[_i];
     }
 
-    D_CONSTEXPR
-    const Type* data() const D_NOEXCEPT
+    D_CONSTEXPR const Type*
+    data() const D_NOEXCEPT
     {
         return m_data;
     }
 
     // ---- iteration: the components, in order --------------------------------
 
-    D_CONSTEXPR_CPP14
-    iterator begin() D_NOEXCEPT
+    D_CONSTEXPR_CPP14 iterator
+    begin() D_NOEXCEPT
     {
         return m_data;
     }
 
-    D_CONSTEXPR_CPP14
-    iterator end() D_NOEXCEPT
+    D_CONSTEXPR_CPP14 iterator
+    end() D_NOEXCEPT
     {
         return m_data + N;
     }
 
-    D_CONSTEXPR
-    const_iterator begin() const D_NOEXCEPT
+    D_CONSTEXPR const_iterator
+    begin() const D_NOEXCEPT
     {
         return m_data;
     }
 
-    D_CONSTEXPR
-    const_iterator end() const D_NOEXCEPT
+    D_CONSTEXPR const_iterator
+    end() const D_NOEXCEPT
     {
         return m_data + N;
     }
 
     // named component accessors (only valid for sufficiently wide vectors).
-    D_CONSTEXPR_CPP14
-    Type x() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    x() const D_NOEXCEPT
     {
         D_STATIC_ASSERT((N >= 1), "vector::x: requires dimension >= 1.");
 
         return m_data[0];
     }
 
-    D_CONSTEXPR_CPP14
-    Type y() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    y() const D_NOEXCEPT
     {
         D_STATIC_ASSERT((N >= 2), "vector::y: requires dimension >= 2.");
 
         return m_data[1];
     }
 
-    D_CONSTEXPR_CPP14
-    Type z() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    z() const D_NOEXCEPT
     {
         D_STATIC_ASSERT((N >= 3), "vector::z: requires dimension >= 3.");
 
         return m_data[2];
     }
 
-    D_CONSTEXPR_CPP14
-    Type w() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    w() const D_NOEXCEPT
     {
         D_STATIC_ASSERT((N >= 4), "vector::w: requires dimension >= 4.");
 
@@ -441,8 +447,8 @@ public:
     }
 
     // with: a copy with component _i replaced by _value (immutable set).
-    D_CONSTEXPR_CPP14
-    vector with(
+    D_CONSTEXPR_CPP14 vector
+    with(
         size_type _i,
         Type      _value
     ) const D_NOEXCEPT
@@ -456,10 +462,8 @@ public:
 
     // ---- element-wise arithmetic (fluent) ---------------------------------
 
-    D_CONSTEXPR_CPP14
-    vector plus(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    plus(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
@@ -468,10 +472,8 @@ public:
         return v;
     }
 
-    D_CONSTEXPR_CPP14
-    vector minus(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    minus(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
@@ -480,10 +482,8 @@ public:
         return v;
     }
 
-    D_CONSTEXPR_CPP14
-    vector scaled(
-        Type _s
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    scaled(Type _s) const D_NOEXCEPT
     {
         vector v;
 
@@ -492,10 +492,8 @@ public:
         return v;
     }
 
-    D_CONSTEXPR_CPP14
-    vector divided(
-        Type _s
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    divided(Type _s) const D_NOEXCEPT
     {
         vector v;
 
@@ -504,8 +502,8 @@ public:
         return v;
     }
 
-    D_CONSTEXPR_CPP14
-    vector negated() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    negated() const D_NOEXCEPT
     {
         vector v;
 
@@ -515,10 +513,8 @@ public:
     }
 
     // hadamard: component-wise (Schur) product.
-    D_CONSTEXPR_CPP14
-    vector hadamard(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    hadamard(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
@@ -529,19 +525,15 @@ public:
 
     // ---- products, norms, geometry ----------------------------------------
 
-    D_CONSTEXPR_CPP14
-    Type dot(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    dot(const vector& _o) const D_NOEXCEPT
     {
         return kernel::dot(m_data, _o.m_data, N);
     }
 
     // cross: 3-vector cross product (compile error if N != 3).
-    D_CONSTEXPR_CPP14
-    vector cross(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    cross(const vector& _o) const D_NOEXCEPT
     {
         D_STATIC_ASSERT((N == 3), "vector::cross: only defined for 3-vectors.");
 
@@ -552,20 +544,20 @@ public:
         return v;
     }
 
-    D_CONSTEXPR_CPP14
-    Type norm_squared() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    norm_squared() const D_NOEXCEPT
     {
         return kernel::norm_squared(m_data, N);
     }
 
-    D_CONSTEXPR_CPP14
-    Type norm() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    norm() const D_NOEXCEPT
     {
         return kernel::norm(m_data, N);
     }
 
-    D_CONSTEXPR_CPP14
-    Type length() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    length() const D_NOEXCEPT
     {
         return norm();
     }
@@ -573,8 +565,8 @@ public:
     // normalized: this vector over its norm; the zero vector stays zero;
     // for the C core's types, scaled first where a sum of squares would
     // leave the range (S256).
-    D_CONSTEXPR_CPP14
-    vector normalized() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    normalized() const D_NOEXCEPT
     {
         vector v;
 
@@ -585,45 +577,37 @@ public:
 
     // is_unit: whether the norm is within _tol of 1; given none, within
     // four of its epsilons of 1 (S157).
-    D_CONSTEXPR_CPP14
-    bool is_unit() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    is_unit() const D_NOEXCEPT
     {
         const Type n = norm();
 
         return is_unit(internal::linalg_tolerance(&n, &n, 1, true));
     }
 
-    D_CONSTEXPR_CPP14
-    bool is_unit(
-        Type _tol
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    is_unit(magnitude_type _tol) const D_NOEXCEPT
     {
         return ( number_traits<Type>::magnitude(norm() -
                                                 number_traits<Type>::one()) <=
                  _tol );
     }
 
-    D_CONSTEXPR_CPP14
-    Type distance_squared(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    distance_squared(const vector& _o) const D_NOEXCEPT
     {
         return kernel::distance_squared(m_data, _o.m_data, N);
     }
 
-    D_CONSTEXPR_CPP14
-    Type distance(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    distance(const vector& _o) const D_NOEXCEPT
     {
         return kernel::distance(m_data, _o.m_data, N);
     }
 
     // projected_onto: the component along _o; onto the zero vector, zero.
-    D_CONSTEXPR_CPP14
-    vector projected_onto(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    projected_onto(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
@@ -633,10 +617,8 @@ public:
     }
 
     // rejected_from: what is left once the component along _o is removed.
-    D_CONSTEXPR_CPP14
-    vector rejected_from(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector
+    rejected_from(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
@@ -648,10 +630,8 @@ public:
     // cos_angle: the cosine of the angle to _o; 0 when either is zero; for
     // the C core's types, scaled where the norms' product would leave the
     // range (S256).
-    D_CONSTEXPR_CPP14
-    Type cos_angle(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    cos_angle(const vector& _o) const D_NOEXCEPT
     {
         return kernel::cos_angle(m_data, _o.m_data, N);
     }
@@ -660,10 +640,8 @@ public:
     // 1] so rounding past 1 gives 0. The C library's arc-cosine at run time,
     // a constant expression from C++20; for a type the C core does not
     // hold, through double, by its number_traits.
-    D_CONSTEXPR_CPP20
-    Type angle_to(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 Type
+    angle_to(const vector& _o) const D_NOEXCEPT
     {
         const Type c   = cos_angle(_o);
         const Type one = number_traits<Type>::one();
@@ -676,8 +654,8 @@ public:
     }
 
     // lerp: (1 - t) this + t _o, each product rounded apart.
-    D_CONSTEXPR_CPP14
-    vector lerp(
+    D_CONSTEXPR_CPP14 vector
+    lerp(
         const vector& _o,
         Type          _t
     ) const D_NOEXCEPT
@@ -693,10 +671,8 @@ public:
 
     // map: a new vector with _fn applied to each component.
     template<typename Fn>
-    D_CONSTEXPR_CPP14
-    vector map(
-        Fn _fn
-    ) const
+    D_CONSTEXPR_CPP14 vector
+    map(Fn _fn) const
     {
         vector v;
 
@@ -711,8 +687,8 @@ public:
     // reduce: a left fold of the components from _init.
     template<typename Acc,
              typename Fn>
-    D_CONSTEXPR_CPP14
-    Acc reduce(
+    D_CONSTEXPR_CPP14 Acc
+    reduce(
         Acc _init,
         Fn  _fn
     ) const
@@ -729,26 +705,26 @@ public:
 
     // ---- reductions --------------------------------------------------------
 
-    D_CONSTEXPR_CPP14
-    Type sum() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    sum() const D_NOEXCEPT
     {
         return kernel::sum(m_data, N);
     }
 
-    D_CONSTEXPR_CPP14
-    Type product() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    product() const D_NOEXCEPT
     {
         return kernel::product(m_data, N);
     }
 
-    D_CONSTEXPR_CPP14
-    Type min_coeff() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    min_coeff() const D_NOEXCEPT
     {
         return kernel::min(m_data, N);
     }
 
-    D_CONSTEXPR_CPP14
-    Type max_coeff() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 Type
+    max_coeff() const D_NOEXCEPT
     {
         return kernel::max(m_data, N);
     }
@@ -756,10 +732,8 @@ public:
     // equals: every component within _tol of _o's; given none, within four
     // of the largest epsilon the components carry times their largest
     // magnitude, exactly where they are exact (S157, S158).
-    D_CONSTEXPR_CPP14
-    bool equals(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    equals(const vector& _o) const D_NOEXCEPT
     {
         return kernel::equals(m_data,
                               _o.m_data,
@@ -770,20 +744,18 @@ public:
                               N);
     }
 
-    D_CONSTEXPR_CPP14
-    bool equals(
-        const vector& _o,
-        Type          _tol
+    D_CONSTEXPR_CPP14 bool
+    equals(
+        const vector&  _o,
+        magnitude_type _tol
     ) const D_NOEXCEPT
     {
         return kernel::equals(m_data, _o.m_data, _tol, N);
     }
 
     // equal_to: every component == _o's (operator== spells it).
-    D_CONSTEXPR_CPP14
-    bool equal_to(
-        const vector& _o
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    equal_to(const vector& _o) const D_NOEXCEPT
     {
         return kernel::equal(m_data, _o.m_data, N);
     }
@@ -805,8 +777,8 @@ private:
 
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> operator+(
+D_CONSTEXPR_CPP14 vector<Type, N>
+operator+(
     const vector<Type, N>& _a,
     const vector<Type, N>& _b
 ) D_NOEXCEPT
@@ -816,8 +788,8 @@ vector<Type, N> operator+(
 
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> operator-(
+D_CONSTEXPR_CPP14 vector<Type, N>
+operator-(
     const vector<Type, N>& _a,
     const vector<Type, N>& _b
 ) D_NOEXCEPT
@@ -827,8 +799,8 @@ vector<Type, N> operator-(
 
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> operator-(
+D_CONSTEXPR_CPP14 vector<Type, N>
+operator-(
     const vector<Type, N>& _a
 ) D_NOEXCEPT
 {
@@ -879,8 +851,8 @@ operator/(
 
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-bool operator==(
+D_CONSTEXPR_CPP14 bool
+operator==(
     const vector<Type, N>& _a,
     const vector<Type, N>& _b
 ) D_NOEXCEPT
@@ -890,8 +862,8 @@ bool operator==(
 
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-bool operator!=(
+D_CONSTEXPR_CPP14 bool
+operator!=(
     const vector<Type, N>& _a,
     const vector<Type, N>& _b
 ) D_NOEXCEPT
@@ -904,134 +876,99 @@ bool operator!=(
 // Each delegates to its member; see the member for the meaning.
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type dot(
-    const vector<Type, N>& _a,
-    const vector<Type, N>& _b
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+dot(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.dot(_b);
 }
 
 template<typename Type>
-D_CONSTEXPR_CPP14
-vector<Type, 3> cross(
-    const vector<Type, 3>& _a,
-    const vector<Type, 3>& _b
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, 3>
+cross(const vector<Type, 3>& _a, const vector<Type, 3>& _b) D_NOEXCEPT
 {
     return _a.cross(_b);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type norm(
-    const vector<Type, N>& _v
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+norm(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.norm();
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type length(
-    const vector<Type, N>& _v
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+length(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.norm();
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type norm_squared(
-    const vector<Type, N>& _v
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+norm_squared(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.norm_squared();
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> normalize(
-    const vector<Type, N>& _v
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, N>
+normalize(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.normalized();
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> scale(
-    const vector<Type, N>& _v,
-    Type                   _s
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, N>
+scale(const vector<Type, N>& _v, Type _s) D_NOEXCEPT
 {
     return _v.scaled(_s);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type distance(
-    const vector<Type, N>& _a,
-    const vector<Type, N>& _b
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+distance(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.distance(_b);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP20
-Type angle(
-    const vector<Type, N>& _a,
-    const vector<Type, N>& _b
-) D_NOEXCEPT
+D_CONSTEXPR_CPP20 Type
+angle(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.angle_to(_b);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type cos_angle(
-    const vector<Type, N>& _a,
-    const vector<Type, N>& _b
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+cos_angle(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.cos_angle(_b);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> project(
-    const vector<Type, N>& _v,
-    const vector<Type, N>& _onto
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, N>
+project(const vector<Type, N>& _v, const vector<Type, N>& _onto) D_NOEXCEPT
 {
     return _v.projected_onto(_onto);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> reject(
-    const vector<Type, N>& _v,
-    const vector<Type, N>& _from
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, N>
+reject(const vector<Type, N>& _v, const vector<Type, N>& _from) D_NOEXCEPT
 {
     return _v.rejected_from(_from);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> hadamard(
-    const vector<Type, N>& _a,
-    const vector<Type, N>& _b
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, N>
+hadamard(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.hadamard(_b);
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> lerp(
+D_CONSTEXPR_CPP14 vector<Type, N>
+lerp(
     const vector<Type, N>& _a,
     const vector<Type, N>& _b,
     Type                   _t
@@ -1041,17 +978,15 @@ vector<Type, N> lerp(
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-Type sum(
-    const vector<Type, N>& _v
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 Type
+sum(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.sum();
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-bool approx_equal(
+D_CONSTEXPR_CPP14 bool
+approx_equal(
     const vector<Type, N>& _a,
     const vector<Type, N>& _b
 ) D_NOEXCEPT
@@ -1060,14 +995,133 @@ bool approx_equal(
 }
 
 template<typename Type, std::size_t N>
-D_CONSTEXPR_CPP14
-bool approx_equal(
-    const vector<Type, N>& _a,
-    const vector<Type, N>& _b,
-    Type                   _tol
+D_CONSTEXPR_CPP14 bool
+approx_equal(
+    const vector<Type, N>&                       _a,
+    const vector<Type, N>&                       _b,
+    typename number_traits<Type>::magnitude_type _tol
 ) D_NOEXCEPT
 {
     return _a.equals(_b, _tol);
+}
+
+
+// 2.3    Vectors of complex numbers
+//------------------------------------------------------------------------------
+// A vector of math::complex<T>'s inner product and norms (S322, S354). dot
+// stays the bilinear sum of a_i b_i, the matrix product's row by column;
+// vdot(a, b) is the sum of conj(a_i) b_i, from 0 in order, as Julia's dot,
+// NumPy's vdot and BLAS's zdotc conjugate a, the language's dot's bits for
+// a dense vector (expr/matrix.hpp), and of a real vector its dot; norm,
+// length and norm_squared are of the moduli, a T: the C core's scaled norm,
+// and sum of squares, of the 2N parts, re and im in turn, so that a norm
+// the type holds is never an infinity or 0 for a square that overflowed or
+// underflowed; normalize divides each component by the norm, as a real
+// number (G.5); distance is the norm of the difference. Angles stay
+// refused at compile time, as no order of the complex numbers is a field's.
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+vdot(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
+{
+    return _a.dot(_b);
+}
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 complex<Type>
+vdot(
+    const vector<complex<Type>, N>& _a,
+    const vector<complex<Type>, N>& _b
+) D_NOEXCEPT
+{
+    complex<Type> sum;
+
+    // in order, from 0
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        sum += (conj(_a[i]) * _b[i]);
+    }
+
+    return sum;
+}
+
+NS_INTERNAL
+
+    // linalg_parts_of
+    //   function: a complex vector's 2N parts, re and im in turn, into
+    // _parts.
+    template<typename Type, std::size_t N>
+    D_CONSTEXPR_CPP14 void
+    linalg_parts_of(
+        const vector<complex<Type>, N>& _v,
+        Type*                           _parts
+    ) D_NOEXCEPT
+    {
+        // each component's two parts, in turn
+        for (std::size_t i = 0; i < N; ++i)
+        {
+            _parts[2 * i]       = _v[i].real();
+            _parts[(2 * i) + 1] = _v[i].imag();
+        }
+
+        return;
+    }
+
+NS_END  // internal
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+norm(const vector<complex<Type>, N>& _v) D_NOEXCEPT
+{
+    Type parts[2 * N] = {};
+
+    internal::linalg_parts_of(_v, parts);
+
+    return internal::linalg_kernel<Type>::norm(parts, 2 * N);
+}
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+length(const vector<complex<Type>, N>& _v) D_NOEXCEPT
+{
+    return norm(_v);
+}
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+norm_squared(const vector<complex<Type>, N>& _v) D_NOEXCEPT
+{
+    Type parts[2 * N] = {};
+
+    internal::linalg_parts_of(_v, parts);
+
+    return internal::linalg_kernel<Type>::norm_squared(parts, 2 * N);
+}
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 vector<complex<Type>, N>
+normalize(const vector<complex<Type>, N>& _v) D_NOEXCEPT
+{
+    const Type               n = norm(_v);
+    vector<complex<Type>, N> out;
+
+    // each component over the norm, a real divisor
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        out[i] = (_v[i] / n);
+    }
+
+    return out;
+}
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+distance(
+    const vector<complex<Type>, N>& _a,
+    const vector<complex<Type>, N>& _b
+) D_NOEXCEPT
+{
+    return norm(vector<complex<Type>, N>(_a - _b));
 }
 
 

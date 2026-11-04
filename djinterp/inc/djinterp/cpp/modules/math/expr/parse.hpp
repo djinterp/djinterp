@@ -135,11 +135,8 @@ TABLE OF CONTENTS
 #include <string>   // std::string
 #include <vector>   // std::vector
 // djinterp
-#include "../../../../c/modules/math/literal.h"                         // literal_to_value
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
-#include "../../../functional/maybe.hpp"                // maybe, just
+#include "../../../../c/modules/math/literal.h"           // literal_to_value
+#include "../../../functional/maybe.hpp"                  // maybe, just
 #include "../../parse/expression/expression_ops.hpp"      // evaluate
 #include "../../parse/expression/expression_parse.hpp"    // parse_expression
 #include "../math_common.hpp"                             // NS_MATH
@@ -220,8 +217,8 @@ NS_INTERNAL
     // expression_grammar takes them: its atom, its operator, and whether it
     // opens a bracket, and whether it closes one, which no token it is given
     // does: each group is an atom by then (S215).
-    inline
-    maybe<expr_atom> expr_atom_of_token(
+    inline maybe<expr_atom>
+    expr_atom_of_token(
         const expr_parse_token& _token
     )
     {
@@ -234,8 +231,8 @@ NS_INTERNAL
         return nothing<expr_atom>();
     }
 
-    inline
-    maybe<expr_op> expr_op_of_token(
+    inline maybe<expr_op>
+    expr_op_of_token(
         const expr_parse_token& _token
     )
     {
@@ -248,8 +245,8 @@ NS_INTERNAL
         return nothing<expr_op>();
     }
 
-    inline
-    bool expr_is_bracket_token(
+    inline bool
+    expr_is_bracket_token(
         const expr_parse_token& _token
     )
     {
@@ -271,8 +268,8 @@ NS_INTERNAL
 
     // expr_parse_unexpected
     //   function: the error for a token no role fits, at its offset.
-    inline
-    expr_error expr_parse_unexpected(
+    inline expr_error
+    expr_parse_unexpected(
         const std::string& _text,
         std::size_t        _at
     )
@@ -288,8 +285,8 @@ NS_INTERNAL
     // is indexing, and a * stands between it and an operand where
     // multiplication is implied: an atom, a close, round or square, a
     // closing bar, the factorial or the transpose.
-    inline
-    bool expr_ends_operand(
+    inline bool
+    expr_ends_operand(
         const std::vector<expr_parse_token>& _done
     )
     {
@@ -314,8 +311,8 @@ NS_INTERNAL
     //   function: with implied multiplication on, a * before an operand
     // that starts at _token, where an operand ends before it: never between
     // two numbers.
-    inline
-    void expr_imply_product(
+    inline void
+    expr_imply_product(
         std::vector<expr_parse_token>& _done,
         const expr_token&              _token,
         const expr_syntax&             _syntax
@@ -342,8 +339,8 @@ NS_INTERNAL
     // expr_role_of_number
     //   function: a number token as an atom: its text one unsigned decimal
     // number, its value read exactly, and the text kept as its literal.
-    inline
-    expr_result<expr_parse_token> expr_role_of_number(
+    inline expr_result<expr_parse_token>
+    expr_role_of_number(
         const expr_token& _token
     )
     {
@@ -354,7 +351,7 @@ NS_INTERNAL
                 expr_parse_unexpected(_token.text, _token.offset));
         }
 
-        dj_math_value exact = d_math_value_none();
+        d_math_value exact = d_math_value_none();
 
         // a decimal number is a literal: its value, exact where it can be
         static_cast<void>(d_math_literal_to_value(&exact,
@@ -374,8 +371,8 @@ NS_INTERNAL
 
     // expr_word_of
     //   function: the operator a name spells, mod, and, or or not, or none.
-    inline
-    expr_op_kind expr_word_of(
+    inline expr_op_kind
+    expr_word_of(
         const std::string& _text
     )
     {
@@ -390,8 +387,8 @@ NS_INTERNAL
     //   function: a name token as the operator mod, and, or or not; as a
     // call's function, before an open round bracket; as a constant, where
     // the standard constant table has the name; and as a variable otherwise.
-    inline
-    expr_result<expr_parse_token> expr_role_of_name(
+    inline expr_result<expr_parse_token>
+    expr_role_of_name(
         const expr_token& _token,
         const expr_token* _next
     )
@@ -434,8 +431,8 @@ NS_INTERNAL
 
     // expr_relation_of
     //   function: the relation a symbol spells, = != < <= > >=, or none.
-    inline
-    expr_op_kind expr_relation_of(
+    inline expr_op_kind
+    expr_relation_of(
         const std::string& _text
     )
     {
@@ -455,8 +452,8 @@ NS_INTERNAL
     // the climber judges; and where _bars, G5's bars, are on, a bar, closing
     // where an operand ends before it and _bar_inside, a bar being the
     // innermost group open, and opening otherwise.
-    inline
-    expr_result<expr_parse_token> expr_role_of_symbol(
+    inline expr_result<expr_parse_token>
+    expr_role_of_symbol(
         const expr_token&                    _token,
         const std::vector<expr_parse_token>& _done,
         bool                                 _bar_inside,
@@ -524,8 +521,8 @@ NS_INTERNAL
     // where no operand ends before it, and after one opens the operand's
     // indices, never an implied product (S243); ] closes either; any other
     // text no bracket.
-    inline
-    expr_result<expr_parse_token> expr_role_of_bracket(
+    inline expr_result<expr_parse_token>
+    expr_role_of_bracket(
         const expr_token&                    _token,
         const std::vector<expr_parse_token>& _done
     )
@@ -563,8 +560,8 @@ NS_INTERNAL
     //   function: one token's role, by its kind; _next is the token after
     // it, or null for the last; _bar_inside whether a bar is the innermost
     // group open.
-    inline
-    expr_result<expr_parse_token> expr_role_of(
+    inline expr_result<expr_parse_token>
+    expr_role_of(
         const expr_token&                    _token,
         const expr_token*                    _next,
         const std::vector<expr_parse_token>& _done,
@@ -617,8 +614,8 @@ NS_INTERNAL
     //   function: whether a role starts an operand, so that a * may stand
     // before it: an atom, an open bracket, a call's function, an opening
     // bar; and a literal's open, which no operand's end stands before.
-    inline
-    bool expr_starts_operand(
+    inline bool
+    expr_starts_operand(
         expr_parse_role _role
     )
     {
@@ -632,8 +629,8 @@ NS_INTERNAL
     // expr_is_opener, expr_is_closer
     //   functions: whether a role opens a group, a bracket, round or square,
     // a literal's or indices', or a bar; and whether it closes one.
-    inline
-    bool expr_is_opener(
+    inline bool
+    expr_is_opener(
         expr_parse_role _role
     )
     {
@@ -643,8 +640,8 @@ NS_INTERNAL
                  (_role == expr_parse_role::index_open) );
     }
 
-    inline
-    bool expr_is_closer(
+    inline bool
+    expr_is_closer(
         expr_parse_role _role
     )
     {
@@ -656,8 +653,8 @@ NS_INTERNAL
     // expr_closes
     //   function: whether a closer's role closes an opener's: ) a (, ] a [,
     // a literal's or indices', and a closing bar an opening one.
-    inline
-    bool expr_closes(
+    inline bool
+    expr_closes(
         expr_parse_role _closer,
         expr_parse_role _opener
     )
@@ -676,8 +673,8 @@ NS_INTERNAL
     // asks; the groups open, round or bars, followed so that a bar knows
     // whether it closes. An end token ends the tokens, and any token after
     // one is unexpected.
-    inline
-    expr_result<std::vector<expr_parse_token> > expr_roles(
+    inline expr_result<std::vector<expr_parse_token> >
+    expr_roles(
         const std::vector<expr_token>& _tokens,
         const expr_syntax&             _syntax
     )
@@ -757,8 +754,8 @@ NS_INTERNAL
     // open where a bracket closes, or a round bracket where a square one
     // does.
 
-    inline
-    expr_result<std::vector<std::size_t> > expr_match_groups(
+    inline expr_result<std::vector<std::size_t> >
+    expr_match_groups(
         const std::vector<expr_parse_token>& _tokens
     )
     {
@@ -836,8 +833,8 @@ NS_INTERNAL
     // and indexing, A[i, j], a postfix operator tighter than every other, so
     // that -v[1] is -(v[1]), A'[1] is (A')[1] and x ^ v[1] is x ^ (v[1]); its
     // indices are put back after the climb (expr_put_parts).
-    inline
-    const expr_signature& expr_parsing_signature()
+    inline const expr_signature&
+    expr_parsing_signature()
     {
         static const expr_signature table =
             expr_signature(expr_signature::standard()).define(
@@ -851,8 +848,8 @@ NS_INTERNAL
         return table;
     }
 
-    inline
-    expr_result<expr_term> expr_climb(
+    inline expr_result<expr_term>
+    expr_climb(
         const std::vector<expr_parse_token>& _tokens,
         const expr_parse_token*              _closer,
         std::size_t                          _end
@@ -907,8 +904,8 @@ NS_INTERNAL
 
     // expr_is_relation
     //   function: whether an operator is a relation, = != < <= > >=.
-    inline
-    bool expr_is_relation(
+    inline bool
+    expr_is_relation(
         const expr_op& _op
     )
     {
@@ -926,8 +923,8 @@ NS_INTERNAL
     // chains joined, and its links, left to right, joined by and, which is
     // left-associative. Each node is visited once, so that a chain of n
     // links costs n.
-    inline
-    expr_term expr_join_chains(
+    inline expr_term
+    expr_join_chains(
         const expr_term& _term
     )
     {
@@ -1056,8 +1053,8 @@ NS_INTERNAL
     // leaves a number, and none of its nodes a literal. A variable, or a
     // constant, may be bound to a matrix; an operator, a call or indexing of
     // numbers alone gives a number or an error.
-    inline
-    bool expr_surely_scalar(
+    inline bool
+    expr_surely_scalar(
         const expr_term& _term
     )
     {
@@ -1089,8 +1086,8 @@ NS_INTERNAL
     // expr_row_surely_scalar
     //   function: whether each of a literal's row's elements is surely no
     // matrix (expr_surely_scalar).
-    inline
-    bool expr_row_surely_scalar(
+    inline bool
+    expr_row_surely_scalar(
         const std::vector<expr_term>& _row
     )
     {
@@ -1109,8 +1106,8 @@ NS_INTERNAL
     //   function: the mark a group's stand-in carries in the climb, "\x01",
     // which no text has: an atom's name, and the start of an index
     // operator's function, the group's number after it.
-    inline
-    std::string expr_group_mark()
+    inline std::string
+    expr_group_mark()
     {
         return std::string(1,
                            '\x01');
@@ -1118,8 +1115,8 @@ NS_INTERNAL
 
     // expr_elements_text
     //   function: a number of elements in words: 1 element, 2 elements.
-    inline
-    std::string expr_elements_text(
+    inline std::string
+    expr_elements_text(
         std::size_t _count
     )
     {
@@ -1131,8 +1128,8 @@ NS_INTERNAL
     //   function: a literal's term, of its rows: the term vector of its one
     // row's elements; or, where a semicolon parts its rows, the term matrix
     // of its rows, each the term row of its elements.
-    inline
-    expr_term expr_literal_of(
+    inline expr_term
+    expr_literal_of(
         const std::vector<std::vector<expr_term> >& _rows
     )
     {
@@ -1159,8 +1156,8 @@ NS_INTERNAL
     // expr_keep_first
     //   function: _error kept as the first, where no error was kept yet;
     // the passes meet errors left to right.
-    inline
-    void expr_keep_first(
+    inline void
+    expr_keep_first(
         bool&             _failed,
         expr_error&       _first,
         const expr_error& _error
@@ -1178,8 +1175,8 @@ NS_INTERNAL
     // expr_is_branch
     //   function: whether a name is a branch of piecewise's, when or
     // otherwise.
-    inline
-    bool expr_is_branch(
+    inline bool
+    expr_is_branch(
         const std::string& _name
     )
     {
@@ -1194,8 +1191,8 @@ NS_INTERNAL
     // arguments it does not take, unexpected_token for an otherwise before
     // the last argument, or for an argument that is no branch. _last is
     // whether the argument is the last.
-    inline
-    bool expr_add_branch(
+    inline bool
+    expr_add_branch(
         std::vector<expr_term>& _arguments,
         const expr_term&        _argument,
         const expr_parse_token& _at,
@@ -1259,8 +1256,8 @@ NS_INTERNAL
 
     // expr_keep_error
     //   function: _error kept as the range's first, where it has none yet.
-    D_NOINLINE inline
-    void expr_keep_error(
+    D_NOINLINE inline void
+    expr_keep_error(
         expr_range_state& _state,
         const expr_error& _error
     )
@@ -1275,8 +1272,8 @@ NS_INTERNAL
     // expr_misplaced_branch
     //   function: a when or an otherwise, _token, anywhere but as a whole
     // argument of piecewise: the error unexpected_token, kept at its place.
-    D_NOINLINE inline
-    void expr_misplaced_branch(
+    D_NOINLINE inline void
+    expr_misplaced_branch(
         expr_range_state&       _state,
         const expr_parse_token& _token
     )
@@ -1296,8 +1293,8 @@ NS_INTERNAL
     // element into the row being read; piecewise's argument, a branch, into
     // its arguments, else its error kept; any other into the arguments.
     // _last is whether it is the group's last.
-    D_NOINLINE inline
-    void expr_take_argument(
+    D_NOINLINE inline void
+    expr_take_argument(
         expr_group_reading&           _reading,
         expr_range_state&             _state,
         const expr_result<expr_term>& _argument,
@@ -1345,8 +1342,8 @@ NS_INTERNAL
     // elements as the first, parsed or not, or a bad shape at _at, while
     // blocks of matrices have their shapes only as values (S261); and past
     // a semicolon, another row begun.
-    D_NOINLINE inline
-    void expr_end_row(
+    D_NOINLINE inline void
+    expr_end_row(
         expr_group_reading&     _reading,
         expr_range_state&       _state,
         const expr_parse_token& _at,
@@ -1391,8 +1388,8 @@ NS_INTERNAL
     // climb reads: the call; abs of what bars hold; the literal; what
     // brackets hold; and indices, of one index or two, else wrong_arity at
     // the open bracket, as the term index of them alone.
-    D_NOINLINE inline
-    void expr_end_group(
+    D_NOINLINE inline void
+    expr_end_group(
         expr_range_state&         _state,
         const expr_parse_token&   _token,
         expr_parse_role           _kind,
@@ -1445,7 +1442,7 @@ NS_INTERNAL
                               _token.offset);
 
         atom.atom = expr_atom(expr_atom_kind::variable,
-                              value(static_cast<dj_math_imax>(index)),
+                              value(static_cast<d_math_imax>(index)),
                               expr_group_mark());
         _state.flat.push_back(atom);
 
@@ -1456,8 +1453,8 @@ NS_INTERNAL
     //   function: _term with each atom that stands for a group put back as
     // its term, of _parts, and each operator index that stands for indices
     // as the term index of its operand and the indices.
-    inline
-    expr_term expr_put_parts(
+    inline expr_term
+    expr_put_parts(
         const expr_term&              _term,
         const std::vector<expr_term>& _parts
     )
@@ -1467,7 +1464,7 @@ NS_INTERNAL
             // a leaf: a group's term, or itself
             [&_parts](const expr_atom& _atom) -> expr_term
             {
-                dj_math_imax index = 0;
+                d_math_imax index = 0;
 
                 // an atom that stands for a group
                 if ( (_atom.kind == expr_atom_kind::variable) &&
@@ -1522,8 +1519,8 @@ NS_INTERNAL
     // where _closer is null. _branch is whether the tokens are an argument
     // of piecewise, where a branch may stand, whole. Of an argument's error
     // and the climb's, the further left is given.
-    inline
-    expr_result<expr_term> expr_parse_range(
+    inline expr_result<expr_term>
+    expr_parse_range(
         const std::vector<expr_parse_token>& _tokens,
         const std::vector<std::size_t>&      _match,
         std::size_t                          _first,
@@ -1539,8 +1536,8 @@ NS_INTERNAL
     // arguments, elements or indices parsed in turn; the index after its
     // close returned. _first, _last and _branch are its range's, for a
     // branch of piecewise, which stands only as a whole argument of it.
-    D_NOINLINE inline
-    std::size_t expr_read_group(
+    D_NOINLINE inline std::size_t
+    expr_read_group(
         const std::vector<expr_parse_token>& _tokens,
         const std::vector<std::size_t>&      _match,
         std::size_t                          _at,
@@ -1654,8 +1651,8 @@ NS_INTERNAL
     // chains joined, where a relation stands in it, and its groups put back,
     // where it has any: each a walk of the whole term, which a text of
     // neither, as a long sum, does without.
-    D_NOINLINE inline
-    expr_result<expr_term> expr_finish_range(
+    D_NOINLINE inline expr_result<expr_term>
+    expr_finish_range(
         const expr_range_state& _state,
         const expr_parse_token* _closer,
         std::size_t             _end
@@ -1694,8 +1691,8 @@ NS_INTERNAL
         return ok<expr_term, expr_error>(term);
     }
 
-    inline
-    expr_result<expr_term> expr_parse_range(
+    inline expr_result<expr_term>
+    expr_parse_range(
         const std::vector<expr_parse_token>& _tokens,
         const std::vector<std::size_t>&      _match,
         std::size_t                          _first,
@@ -1743,8 +1740,8 @@ NS_INTERNAL
     // expr_parse_at
     //   function: the passes over the tokens, _end the offset of the text's
     // end.
-    inline
-    expr_result<expr_term> expr_parse_at(
+    inline expr_result<expr_term>
+    expr_parse_at(
         const std::vector<expr_token>& _tokens,
         const expr_syntax&             _syntax,
         std::size_t                    _end
@@ -1793,7 +1790,8 @@ NS_END  // internal
  *         missing_operand, unbalanced, wrong_arity or bad_shape, at the
  *         offset of its token, the end being past the last token's text.
  */
-D_NODISCARD inline expr_result<expr_term> expr_parse_tokens(
+D_NODISCARD inline expr_result<expr_term>
+expr_parse_tokens(
     const std::vector<expr_token>& _tokens,
     const expr_syntax&             _syntax = expr_syntax()
 )
@@ -1828,7 +1826,8 @@ D_NODISCARD inline expr_result<expr_term> expr_parse_tokens(
  *         unbalanced, wrong_arity or bad_shape, at its place in _text, the
  *         end being _text's length.
  */
-D_NODISCARD inline expr_result<expr_term> expr_parse(
+D_NODISCARD inline expr_result<expr_term>
+expr_parse(
     const std::string& _text,
     const expr_syntax& _syntax = expr_syntax()
 )

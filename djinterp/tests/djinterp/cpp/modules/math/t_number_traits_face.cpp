@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       t_number_traits_face.cpp
+* djinterp [cpp/math]                                   t_number_traits_face.cpp
 *
 *   Tests for math/number_traits.hpp at every level from C++98, and for the
 * linear-algebra subframework over number types the C core does not hold:
@@ -25,7 +25,7 @@
 *     inverse the identity, and its solution by elimination exactly the
 *     inverse's times B (S257); inexact values solved and inverted with
 *     each pivot the entry of largest magnitude; wide integers past
-*     dj_math_imax, every box given back;
+*     d_math_imax, every box given back;
 *   - the same over t_ratio, an exact rational type of the test's own,
 *     which joins by specializing number_traits, as a bignum would, a
 *     comparison given no tolerance taking its author's;
@@ -37,7 +37,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/cpp/modules/math/t_number_traits_face.cpp -o t_number_traits -lm
+*         tests/djinterp/math/t_number_traits_face.cpp -o t_number_traits -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_number_traits_face.cpp
@@ -45,11 +45,11 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
 *                                                            revised: 2026.10.30
 *******************************************************************************/
-#include "../../../../../inc/djinterp/cpp/modules/math/number_traits.hpp"   // tested
-#include "../../../../../inc/djinterp/cpp/modules/math/value.hpp"           // its value classes
+#include "../../../../../inc/djinterp/cpp/modules/math/number_traits.hpp"  // tested
+#include "../../../../../inc/djinterp/cpp/modules/math/value.hpp"  // its value classes
 #include "../../../../../inc/djinterp/cpp/modules/math/linear_algebra/square.hpp"  // determinant,
-                                                                 // inverse
-#include "../../../../../inc/djinterp/cpp/modules/math/linear_algebra/solve.hpp"   // solve
+                                                                                   // inverse
+#include "../../../../../inc/djinterp/cpp/modules/math/linear_algebra/solve.hpp"  // solve
 // std
 #include <cfloat>   // FLT_EPSILON, DBL_EPSILON, LDBL_EPSILON
 #include <climits>  // INT_MAX, INT_MIN, LONG_MAX, UINT_MAX, ...
@@ -62,19 +62,12 @@
 
 // the wide integer's boxes come from the test, which counts them: its two
 // knobs, set before value_wide.h is first included
-void* d_tests_allocate(
-    std::size_t _size
-);
-void d_tests_give_back(
-    void* _box
-);
+void* d_tests_allocate(std::size_t _size);
+void  d_tests_give_back(void* _box);
 #define D_CFG_MATH_VALUE_WIDE_MALLOC(_size) d_tests_allocate(_size)
 #define D_CFG_MATH_VALUE_WIDE_FREE(_ptr)    d_tests_give_back(_ptr)
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/math/value_wide.h"  // a boxed kind
-#if (defined(__cplusplus))
-    #include "../../../../../inc/re_std/cpp/cfloat/cfloat.hpp"
-#endif
 
 
 namespace
@@ -97,7 +90,8 @@ namespace
 
 // d_tests_allocate
 //   a box's storage, counted.
-void* d_tests_allocate(
+void*
+d_tests_allocate(
     std::size_t _size
 )
 {
@@ -115,7 +109,8 @@ void* d_tests_allocate(
 
 // d_tests_give_back
 //   a box given back, counted.
-void d_tests_give_back(
+void
+d_tests_give_back(
     void* _box
 )
 {
@@ -139,7 +134,8 @@ namespace
 
     // d_tests_expect
     //   one check, reported where it fails.
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -167,7 +163,8 @@ namespace
     // d_tests_same_real
     //   two floating-point numbers the same once stored: equal, or both NaN.
     template<typename Real>
-    bool d_tests_same_real(
+    bool
+    d_tests_same_real(
         Real _a,
         Real _b
     )
@@ -183,10 +180,11 @@ namespace
     // d_tests_is
     //   a value of _kind equal to _want: the kind, and value.h's order.
     template<typename Value>
-    bool d_tests_is(
-        const Value&       _x,
-        dj_math_value_kind _kind,
-        const Value&       _want
+    bool
+    d_tests_is(
+        const Value&     _x,
+        d_math_value_kind _kind,
+        const Value&     _want
     )
     {
         return ( (_x.kind() == _kind) &&
@@ -245,38 +243,22 @@ namespace
         t_real& operator+=(const t_real& _o) { v += _o.v; return *this; }
         t_real& operator*=(const t_real& _o) { v *= _o.v; return *this; }
 
-        friend
-        t_real operator+(
-            t_real _a,
-            t_real _b
-        )
+        friend t_real operator+(t_real _a, t_real _b)
         {
             return t_real(_a.v + _b.v);
         }
 
-        friend
-        t_real operator-(
-            t_real _a,
-            t_real _b
-        )
+        friend t_real operator-(t_real _a, t_real _b)
         {
             return t_real(_a.v - _b.v);
         }
 
-        friend
-        t_real operator*(
-            t_real _a,
-            t_real _b
-        )
+        friend t_real operator*(t_real _a, t_real _b)
         {
             return t_real(_a.v * _b.v);
         }
 
-        friend
-        t_real operator/(
-            t_real _a,
-            t_real _b
-        )
+        friend t_real operator/(t_real _a, t_real _b)
         {
             return t_real(_a.v / _b.v);
         }
@@ -340,92 +322,57 @@ namespace
             }
         }
 
-        t_ratio& operator+=(
-            const t_ratio& _o
-        )
+        t_ratio& operator+=(const t_ratio& _o)
         {
             *this = t_ratio((num * _o.den) + (_o.num * den), den * _o.den);
 
             return *this;
         }
 
-        t_ratio& operator*=(
-            const t_ratio& _o
-        )
+        t_ratio& operator*=(const t_ratio& _o)
         {
             *this = t_ratio(num * _o.num, den * _o.den);
 
             return *this;
         }
 
-        friend
-        t_ratio operator+(
-            t_ratio        _a,
-            const t_ratio& _b
-        )
+        friend t_ratio operator+(t_ratio _a, const t_ratio& _b)
         {
             return _a += _b;
         }
 
-        friend
-        t_ratio operator*(
-            t_ratio        _a,
-            const t_ratio& _b
-        )
+        friend t_ratio operator*(t_ratio _a, const t_ratio& _b)
         {
             return _a *= _b;
         }
 
-        friend
-        t_ratio operator-(
-            const t_ratio& _a
-        )
+        friend t_ratio operator-(const t_ratio& _a)
         {
             return t_ratio(-_a.num, _a.den);
         }
 
-        friend
-        t_ratio operator-(
-            const t_ratio& _a,
-            const t_ratio& _b
-        )
+        friend t_ratio operator-(const t_ratio& _a, const t_ratio& _b)
         {
             return _a + (-_b);
         }
 
-        friend
-        t_ratio operator/(
-            const t_ratio& _a,
-            const t_ratio& _b
-        )
+        friend t_ratio operator/(const t_ratio& _a, const t_ratio& _b)
         {
             return t_ratio(_a.num * _b.den, _a.den * _b.num);
         }
 
-        friend
-        bool operator==(
-            const t_ratio& _a,
-            const t_ratio& _b
-        )
+        friend bool operator==(const t_ratio& _a, const t_ratio& _b)
         {
             return ( (_a.num == _b.num) &&
                      (_a.den == _b.den) );
         }
 
-        friend
-        bool operator<(
-            const t_ratio& _a,
-            const t_ratio& _b
-        )
+        friend bool operator<(const t_ratio& _a, const t_ratio& _b)
         {
             return ((_a.num * _b.den) < (_b.num * _a.den));
         }
 
-        friend
-        bool operator>(
-            const t_ratio& _a,
-            const t_ratio& _b
-        )
+        friend bool operator>(const t_ratio& _a, const t_ratio& _b)
         {
             return (_b < _a);
         }
@@ -478,9 +425,7 @@ namespace
             return (w * w) + (x * x) + (y * y) + (z * z);
         }
 
-        t_quat& operator+=(
-            const t_quat& _o
-        )
+        t_quat& operator+=(const t_quat& _o)
         {
             w = w + _o.w;
             x = x + _o.x;
@@ -490,38 +435,23 @@ namespace
             return *this;
         }
 
-        friend
-        t_quat operator+(
-            t_quat        _a,
-            const t_quat& _b
-        )
+        friend t_quat operator+(t_quat _a, const t_quat& _b)
         {
             return _a += _b;
         }
 
-        friend
-        t_quat operator-(
-            const t_quat& _a
-        )
+        friend t_quat operator-(const t_quat& _a)
         {
             return t_quat(-_a.w, -_a.x, -_a.y, -_a.z);
         }
 
-        friend
-        t_quat operator-(
-            const t_quat& _a,
-            const t_quat& _b
-        )
+        friend t_quat operator-(const t_quat& _a, const t_quat& _b)
         {
             return _a + (-_b);
         }
 
         // Hamilton's product, _a on the left
-        friend
-        t_quat operator*(
-            const t_quat& _a,
-            const t_quat& _b
-        )
+        friend t_quat operator*(const t_quat& _a, const t_quat& _b)
         {
             return t_quat(
                 (_a.w * _b.w) - (_a.x * _b.x) - (_a.y * _b.y) - (_a.z * _b.z),
@@ -532,22 +462,14 @@ namespace
 
         // _a _b^-1, _b^-1 its conjugate over its squared norm; the kernels
         // divide only 1 by a pivot where products do not commute
-        friend
-        t_quat operator/(
-            const t_quat& _a,
-            const t_quat& _b
-        )
+        friend t_quat operator/(const t_quat& _a, const t_quat& _b)
         {
             const t_ratio n = _b.norm_squared();
 
             return _a * t_quat(_b.w / n, -_b.x / n, -_b.y / n, -_b.z / n);
         }
 
-        friend
-        bool operator==(
-            const t_quat& _a,
-            const t_quat& _b
-        )
+        friend bool operator==(const t_quat& _a, const t_quat& _b)
         {
             return ( (_a.w == _b.w) &&
                      (_a.x == _b.x) &&
@@ -579,36 +501,36 @@ struct number_traits<t_ratio>
     static const bool is_commutative = true;
     static const bool is_ordered     = true;
 
-    static
-    t_ratio zero()
+    static t_ratio
+    zero()
     {
         return t_ratio(0);
     }
 
-    static
-    t_ratio one()
+    static t_ratio
+    one()
     {
         return t_ratio(1);
     }
 
-    static
-    t_ratio abs(
+    static t_ratio
+    abs(
         const t_ratio& _x
     )
     {
         return (_x.num < 0) ? -_x : _x;
     }
 
-    static
-    double to_double(
+    static double
+    to_double(
         const t_ratio& _x
     )
     {
         return static_cast<double>(_x.num) / static_cast<double>(_x.den);
     }
 
-    static
-    t_ratio from_double(
+    static t_ratio
+    from_double(
         double _x
     )
     {
@@ -619,8 +541,8 @@ struct number_traits<t_ratio>
                        65536L);
     }
 
-    static
-    t_ratio sqrt(
+    static t_ratio
+    sqrt(
         const t_ratio& _x
     )
     {
@@ -640,36 +562,36 @@ struct number_traits<t_ratio>
         return from_double(std::sqrt(to_double(_x)));
     }
 
-    static
-    t_ratio magnitude(
+    static t_ratio
+    magnitude(
         const t_ratio& _x
     )
     {
         return abs(_x);
     }
 
-    static
-    t_ratio epsilon()
+    static t_ratio
+    epsilon()
     {
         return t_ratio(0);
     }
 
-    static
-    t_ratio epsilon(
+    static t_ratio
+    epsilon(
         const t_ratio& _x
     )
     {
         return (static_cast<void>(_x), t_ratio(0));
     }
 
-    static
-    t_ratio tolerance()
+    static t_ratio
+    tolerance()
     {
         return t_ratio(1L, 1000L);
     }
 
-    static
-    t_ratio tolerance(
+    static t_ratio
+    tolerance(
         const t_ratio& _a,
         const t_ratio& _b
     )
@@ -695,48 +617,48 @@ struct number_traits<t_quat>
     static const bool is_commutative = false;
     static const bool is_ordered     = false;
 
-    static
-    t_quat zero()
+    static t_quat
+    zero()
     {
         return t_quat(0);
     }
 
-    static
-    t_quat one()
+    static t_quat
+    one()
     {
         return t_quat(1);
     }
 
-    static
-    t_ratio magnitude(
+    static t_ratio
+    magnitude(
         const t_quat& _x
     )
     {
         return _x.norm_squared();
     }
 
-    static
-    t_ratio epsilon()
+    static t_ratio
+    epsilon()
     {
         return t_ratio(0);
     }
 
-    static
-    t_ratio epsilon(
+    static t_ratio
+    epsilon(
         const t_quat& _x
     )
     {
         return (static_cast<void>(_x), t_ratio(0));
     }
 
-    static
-    t_ratio tolerance()
+    static t_ratio
+    tolerance()
     {
         return t_ratio(0);
     }
 
-    static
-    t_ratio tolerance(
+    static t_ratio
+    tolerance(
         const t_quat& _a,
         const t_quat& _b
     )
@@ -758,7 +680,8 @@ namespace
     // d_tests_integer_traits
     //   an integer type's traits, at its ends.
     template<typename Type>
-    void d_tests_integer_traits(
+    void
+    d_tests_integer_traits(
         const char* _name,
         bool        _signed
     )
@@ -831,7 +754,8 @@ namespace
     // d_tests_floating_traits
     //   a floating-point type's traits; its root the C library's.
     template<typename Type>
-    void d_tests_floating_traits(
+    void
+    d_tests_floating_traits(
         const char* _name
     )
     {
@@ -906,7 +830,8 @@ namespace
 
     // d_tests_arithmetic_traits
     //   every arithmetic type's traits.
-    void d_tests_arithmetic_traits()
+    void
+    d_tests_arithmetic_traits()
     {
         d_tests_integer_traits<signed char>("signed char's traits", true);
         d_tests_integer_traits<unsigned char>("unsigned char's traits",
@@ -931,7 +856,8 @@ namespace
 
     // d_tests_primary_traits
     //   the primary template, over t_real: made from an int, through double.
-    void d_tests_primary_traits()
+    void
+    d_tests_primary_traits()
     {
         typedef dm::number_traits<t_real> traits;
 
@@ -1002,7 +928,8 @@ namespace
     // d_tests_value_traits
     //   one class's traits.
     template<typename Value>
-    void d_tests_value_traits(
+    void
+    d_tests_value_traits(
         const char* _name
     )
     {
@@ -1128,9 +1055,10 @@ namespace
     // d_tests_wide_root
     //   a wide integer's root: past the family, through the long double; of
     // a negative one, none.
-    void d_tests_wide_root()
+    void
+    d_tests_wide_root()
     {
-        dj_math_wide w = d_math_wide_from_imax(1);
+        d_math_wide w = d_math_wide_from_imax(1);
 
         // 2^200
         for (int i = 0; i < 200; ++i)
@@ -1200,7 +1128,8 @@ namespace
     //   common_number<A, B> against the type a + b has.
     template<typename A,
              typename B>
-    void d_tests_common_pair()
+    void
+    d_tests_common_pair()
     {
         typedef typename dm::common_number<A, B>::type common;
 
@@ -1233,8 +1162,8 @@ namespace
              typename Tail>
     struct d_tests_pairs_with<A, d_tests_list<Head, Tail> >
     {
-        static
-        void run()
+        static void
+        run()
         {
             d_tests_common_pair<A, Head>();
             d_tests_pairs_with<A, Tail>::run();
@@ -1260,8 +1189,8 @@ namespace
              typename All>
     struct d_tests_all_pairs<d_tests_list<Head, Tail>, All>
     {
-        static
-        void run()
+        static void
+        run()
         {
             d_tests_pairs_with<Head, All>::run();
             d_tests_all_pairs<Tail, All>::run();
@@ -1273,7 +1202,8 @@ namespace
     // against the operators' types.
     template<typename Value,
              typename A>
-    void d_tests_value_pair()
+    void
+    d_tests_value_pair()
     {
         typedef typename dm::common_number<Value, A>::type left;
         typedef typename dm::common_number<A, Value>::type right;
@@ -1290,7 +1220,8 @@ namespace
 
     // d_tests_common_number
     //   every pair.
-    void d_tests_common_number()
+    void
+    d_tests_common_number()
     {
         const dm::inline_value iv = 1;
         const dm::value        v  = 1;
@@ -1335,7 +1266,8 @@ namespace
     //   the n x n Hilbert matrix, 1 / (i + j + 1), in Type, by Make.
     template<typename Type,
              std::size_t N>
-    la::matrix<Type, N, N> d_tests_hilbert(
+    la::matrix<Type, N, N>
+    d_tests_hilbert(
         Type (*_ratio)(long, long)
     )
     {
@@ -1353,7 +1285,8 @@ namespace
         return la::matrix<Type, N, N>(entries);
     }
 
-    dm::value d_tests_value_ratio(
+    dm::value
+    d_tests_value_ratio(
         long _n,
         long _d
     )
@@ -1361,7 +1294,8 @@ namespace
         return dm::value::ratio(_n, _d);
     }
 
-    t_ratio d_tests_t_ratio(
+    t_ratio
+    d_tests_t_ratio(
         long _n,
         long _d
     )
@@ -1374,7 +1308,8 @@ namespace
     // 64 bits: its determinant, 1 / 2160 and 1 / 6048000, and its inverse,
     // whose entries are integers, exactly; and the product the identity.
     template<typename Type>
-    void d_tests_hilbert_exact(
+    void
+    d_tests_hilbert_exact(
         Type (*_ratio)(long, long),
         bool        _four,
         const char* _name
@@ -1448,7 +1383,8 @@ namespace
     // d_tests_value_vectors
     //   vectors of values: zero by default, exact arithmetic, exact norms
     // where the norm is a rational.
-    void d_tests_value_vectors()
+    void
+    d_tests_value_vectors()
     {
         typedef la::vector<dm::value, 3> v3;
         typedef la::vector<dm::value, 2> v2;
@@ -1519,7 +1455,8 @@ namespace
 
     // d_tests_value_matrices
     //   matrices of values, and the Hilbert matrix.
-    void d_tests_value_matrices()
+    void
+    d_tests_value_matrices()
     {
         typedef la::matrix<dm::value, 2, 2> m2;
 
@@ -1542,7 +1479,7 @@ namespace
                         "a matrix of values: exact");
 
         d_tests_hilbert_exact<dm::value>(d_tests_value_ratio,
-                                         (sizeof(dj_math_imax) >= 8u),
+                                         (sizeof(d_math_imax) >= 8u),
                                          "the Hilbert matrix of values");
 
         // inexact values on the generic path: each pivot the entry of
@@ -1583,14 +1520,15 @@ namespace
     }
 
     // d_tests_wide_vectors
-    //   wide integers in a vector: the dot product past dj_math_imax, exact,
+    //   wide integers in a vector: the dot product past d_math_imax, exact,
     // and every box given back once the vectors are.
-    void d_tests_wide_vectors()
+    void
+    d_tests_wide_vectors()
     {
         const long live = g_live;
 
         {
-            dj_math_wide w = d_math_wide_from_imax(1);
+            d_math_wide w = d_math_wide_from_imax(1);
 
             // 2^100
             for (int i = 0; i < 100; ++i)
@@ -1611,7 +1549,7 @@ namespace
                             (a.cross(b).x() == 4 - 6) &&
                             (a.cross(b).y() == (2 * big) - (4 * big)),
                             "wide integers in a vector: exact past "
-                            "dj_math_imax");
+                            "d_math_imax");
         }
 
         D_TESTS_EXPECT( (g_live == live),
@@ -1627,7 +1565,8 @@ namespace
 
     // d_tests_ratio_algebra
     //   vectors and matrices of t_ratio, which only its traits make known.
-    void d_tests_ratio_algebra()
+    void
+    d_tests_ratio_algebra()
     {
         typedef la::vector<t_ratio, 3>      v3;
         typedef la::vector<t_ratio, 2>      v2;
@@ -1679,7 +1618,8 @@ namespace
 
     // d_tests_q
     //   the quaternion w + x i + y j + z k of integers.
-    t_quat d_tests_q(
+    t_quat
+    d_tests_q(
         int _w,
         int _x,
         int _y,
@@ -1694,7 +1634,8 @@ namespace
     // inverse and solution keep each product in its order (S269) -- with
     // the order wrong, A A^-1, A^-1 A and A X all miss -- the first pivot
     // a row swap, by the squared norm.
-    void d_tests_quaternion_algebra()
+    void
+    d_tests_quaternion_algebra()
     {
         typedef la::matrix<t_quat, 3, 3> q33;
         typedef la::matrix<t_quat, 3, 2> q32;
@@ -1770,8 +1711,8 @@ namespace
 
     // d_tests_ce_dot
     //   (1, 2, 3) . (4, 5, 6), of inline values.
-    constexpr
-    dm::inline_value d_tests_ce_dot()
+    constexpr dm::inline_value
+    d_tests_ce_dot()
     {
         return la::vector<dm::inline_value, 3>(1, 2, 3)
             .dot(la::vector<dm::inline_value, 3>(4, 5, 6));
@@ -1779,16 +1720,16 @@ namespace
 
     // d_tests_ce_norm
     //   the norm of (3, 4), exactly 5.
-    constexpr
-    dm::inline_value d_tests_ce_norm()
+    constexpr dm::inline_value
+    d_tests_ce_norm()
     {
         return la::vector<dm::inline_value, 2>(3, 4).norm();
     }
 
     // d_tests_ce_zero
     //   a vector of inline values made by default: the integer 0.
-    constexpr
-    bool d_tests_ce_zero()
+    constexpr bool
+    d_tests_ce_zero()
     {
         return ( (la::vector<dm::inline_value, 3>().y() == 0) &&
                  (la::vector<dm::inline_value, 3>().y().kind() ==
@@ -1798,8 +1739,8 @@ namespace
     // d_tests_ce_hilbert
     //   the Hilbert matrix of order 3 of inline values: 1 / its
     // determinant, and its inverse's middle entry.
-    constexpr
-    dm::inline_value d_tests_ce_hilbert(
+    constexpr dm::inline_value
+    d_tests_ce_hilbert(
         bool _inverse
     )
     {
@@ -1845,8 +1786,8 @@ namespace
 {
     // d_tests_ce_value_norm
     //   the norm of (5, 12) of values, exactly 13.
-    constexpr
-    dm::value d_tests_ce_value_norm()
+    constexpr dm::value
+    d_tests_ce_value_norm()
     {
         return la::vector<dm::value, 2>(5, 12).norm();
     }
@@ -1891,7 +1832,8 @@ namespace
 {
     // d_tests_constant_evaluation
     //   the constant expressions, at run time.
-    void d_tests_constant_evaluation()
+    void
+    d_tests_constant_evaluation()
     {
 #if ( D_ENV_LANG_IS_CPP14_OR_HIGHER &&                                        \
       !D_QUAL_CONSTEXPR_IS_STRIPPED )
@@ -1913,7 +1855,8 @@ namespace
 }  // namespace
 
 
-int main()
+int
+main()
 {
     d_tests_arithmetic_traits();
     d_tests_primary_traits();

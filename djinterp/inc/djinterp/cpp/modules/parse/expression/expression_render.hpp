@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expression/expression_render.hpp
 * link(s):   ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 
 /*
@@ -107,10 +107,8 @@ NS_INTERNAL
     // is_word_char
     //   helper: whether a character is word-like ([A-Za-z0-9_]) -- used to
     // decide whether a spelling needs a space against its operand.
-    inline
-    bool is_word_char(
-        char _c
-    )
+    inline bool
+    is_word_char(char _c)
     {
         return ( (_c >= 'a' && _c <= 'z') ||
                  (_c >= 'A' && _c <= 'Z') ||
@@ -120,18 +118,14 @@ NS_INTERNAL
 
     // ends_word / starts_word
     //   helpers: whether a spelling ends / starts with a word-like char.
-    inline
-    bool ends_word(
-        const std::string& _s
-    )
+    inline bool
+    ends_word(const std::string& _s)
     {
         return (!_s.empty()) && is_word_char(_s[_s.size() - 1]);
     }
 
-    inline
-    bool starts_word(
-        const std::string& _s
-    )
+    inline bool
+    starts_word(const std::string& _s)
     {
         return (!_s.empty()) && is_word_char(_s[0]);
     }
@@ -142,8 +136,8 @@ NS_INTERNAL
     // child that binds tighter never needs parentheses; one that binds
     // looser always does; at equal precedence it depends on the side the
     // operator associates toward.
-    inline
-    bool needs_parens(
+    inline bool
+    needs_parens(
         const render_carrier& _child,
         int                   _parent_precedence,
         associativity         _assoc,
@@ -184,8 +178,8 @@ NS_INTERNAL
 
     // wrap
     //   helper: a child's text, parenthesized iff the rule demands.
-    inline
-    std::string wrap(
+    inline std::string
+    wrap(
         const render_carrier& _child,
         int                   _parent_precedence,
         associativity         _assoc,
@@ -205,8 +199,8 @@ NS_INTERNAL
     //   helper: the unambiguous functional form  head(a, b, ...)  -- the
     // fallback layout, and itself a primary (atomic), so it never needs
     // outer parentheses.
-    inline
-    render_carrier render_functional(
+    inline render_carrier
+    render_functional(
         const std::string&                 _head,
         const std::vector<render_carrier>& _children
     )
@@ -247,14 +241,16 @@ template<typename OpId,
          typename Signature,
          typename AtomRenderer>
 D_NODISCARD
-std::string render(
+std::string
+render
+(
     const expression<OpId, Atom>& _expression,
-    const Signature&              _signature,
-    AtomRenderer                  _atom_renderer
+    const Signature&               _signature,
+    AtomRenderer                    _atom_renderer
 )
 {
     internal::render_carrier _result =
-        evaluate<internal::render_carrier>(
+        evaluate<internal::render_carrier, OpId, Atom>(
             _expression,
             // on_leaf -- the atom's own text, atomic
             [_atom_renderer](const Atom& _atom) -> internal::render_carrier

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               t_solve_face.cpp
+* djinterp [cpp/math]                                           t_solve_face.cpp
 *
 *   Tests for linear_algebra/solve.hpp, at every level from C++98, per
 * family: forward and back substitution on known triangular systems; solve
@@ -10,7 +10,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_solve_face.cpp -o t -lm
+*         tests/djinterp/math/linear_algebra/t_solve_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_solve_face.cpp
@@ -30,7 +30,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -56,11 +57,10 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename T, std::size_t N>
-    bool d_tests_near_v(
-        const la::vector<T, N>& _a,
-        const la::vector<T, N>& _b,
-        T                       _tol
-    )
+    bool
+    d_tests_near_v(const la::vector<T, N>& _a,
+                   const la::vector<T, N>& _b,
+                   T                       _tol)
     {
         for (std::size_t i = 0; i < N; ++i)
         {
@@ -77,9 +77,8 @@ namespace
     }
 
     template<typename T>
-    void d_tests_family(
-        T _tol
-    )
+    void
+    d_tests_family(T _tol)
     {
         typedef la::matrix<T, 3, 3> m3;
         typedef la::vector<T, 3>    v3;
@@ -144,8 +143,8 @@ namespace
 }  // namespace
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-constexpr
-double d_tests_constexpr_solve()
+constexpr double
+d_tests_constexpr_solve()
 {
     const double e[4] = { 2, 1, 1, 3 };
 
@@ -161,7 +160,8 @@ static_assert( (d_tests_constexpr_solve() > 1.4 - 1e-12) &&
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-6f);
     d_tests_family<double>(1e-15);

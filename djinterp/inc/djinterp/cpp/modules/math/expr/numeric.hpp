@@ -10,14 +10,14 @@
 * quotient over the same fold, its step chosen for T. Where the symbolic
 * derivative (derivative.hpp) exists, evaluating it is the exact way; this is
 * the way for any term.
-*   STEPS. Step 23 (4b) fills both entries. Until then each answers
+*   STEPS. Step 26 (4b) fills both entries. Until then each answers
 * expr_status::not_yet.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/numeric.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 /*
@@ -79,7 +79,7 @@ enum class expr_quadrature
  * @brief The definite integral of a term in a variable, in float, double or
  *        long double.
  *
- * @note Until step 23 (4b) a stub: it answers expr_status::not_yet.
+ * @note Until step 26 (4b) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the integrand.
  * @param[in] _variable  the variable of integration.
@@ -91,13 +91,14 @@ enum class expr_quadrature
  *         or no_convergence, where an adaptive rule meets its limit.
  */
 template<typename Type>
-D_NODISCARD expr_result<Type> expr_integrate(
+D_NODISCARD expr_result<Type>
+expr_integrate(
     const expr_term&     _term,
     const std::string&   _variable,
     Type                 _from,
     Type                 _to,
     const expr_bindings& _bindings = expr_bindings(),
-    expr_quadrature      _rule = expr_quadrature::romberg
+    expr_quadrature      _rule     = expr_quadrature::romberg
 )
 {
     D_STATIC_ASSERT(internal::expr_floating<Type>::value,
@@ -112,7 +113,7 @@ D_NODISCARD expr_result<Type> expr_integrate(
     static_cast<void>(_rule);
 
     return internal::expr_not_yet<Type>(
-        "expr_integrate<Type>: not yet (step 23, 4b)");
+        "expr_integrate<Type>: not yet (step 26, 4b)");
 }
 
 // 1.2.2
@@ -121,7 +122,7 @@ D_NODISCARD expr_result<Type> expr_integrate(
  * @brief The derivative of a term by a variable at a point, numerically,
  *        in float, double or long double.
  *
- * @note Until step 23 (4b) a stub: it answers expr_status::not_yet.
+ * @note Until step 26 (4b) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the term.
  * @param[in] _variable  the variable.
@@ -130,7 +131,8 @@ D_NODISCARD expr_result<Type> expr_integrate(
  * @return the derivative at _point; or an error the typed fold gives.
  */
 template<typename Type>
-D_NODISCARD expr_result<Type> expr_derivative_at(
+D_NODISCARD expr_result<Type>
+expr_derivative_at(
     const expr_term&     _term,
     const std::string&   _variable,
     Type                 _point,
@@ -147,7 +149,7 @@ D_NODISCARD expr_result<Type> expr_derivative_at(
     static_cast<void>(_bindings);
 
     return internal::expr_not_yet<Type>(
-        "expr_derivative_at<Type>: not yet (step 23, 4b)");
+        "expr_derivative_at<Type>: not yet (step 26, 4b)");
 }
 
 

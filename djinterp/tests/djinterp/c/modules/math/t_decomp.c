@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                     t_decomp.c
+* djinterp [c/math]                                                   t_decomp.c
 *
 *   Conformance harness for c/math/decomp.h, all three families: LU, its
 * solve and determinant, triangular substitution and Q^T b against the
@@ -34,13 +34,19 @@
 * Schur form quasi-triangular with standard blocks, the Schur vectors
 * eigenvectors of it, each part's two forms alike; matrices with known
 * answers at the range's ends; and the Jacobi tangent past 2^(EMAX/2),
-* sym_eigen's and the SVD's. The largest measures are printed. From C++14,
+* sym_eigen's and the SVD's. The largest measures are printed. Then the
+* guards, each path the parts take at the range's ends and at nearly
+* singular systems reached on purpose: dlaln2's and dlanv2's every branch,
+* the scaled norms, the reflector below the safe minimum, the exceptional
+* shifts, the vectors' scalings and a vector underflowing, balancing across
+* the range -- D^-1 P^T A P D exactly where no entry passes below the least
+* normal on the way -- and the _c forms of the tangent. From C++14,
 * the driver of a 3-by-3 matrix with a complex pair, and sym_eigen at a
 * threshold of 0, as constant expressions with the run time's bits.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_decomp.c -o t_decomp -lm
+*        tests/djinterp/c/math/t_decomp.c -o t_decomp -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_decomp.c
@@ -57,15 +63,15 @@
 #include "../../../../../inc/djinterp/c/modules/math/decimal.h"  // d_math_decimal_to_ld
 #include "../../../../../inc/djinterp/c/modules/math/decomp.h"   // unit under test
 #include "../../../../../inc/djinterp/c/modules/math/mat.h"      // d_mat_*_solve
-#include "./math_tests_eig_refs.h"                    // the references
+#include "./math_tests_eig_refs.h"                               // the references
 
 
 static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 2236067u;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -90,8 +96,8 @@ void d_tests_expect(
 #define D_TESTS_EXPECT(ok, what)                                              \
     d_tests_expect((ok), (what), __LINE__)
 
-static
-double d_tests_random(void)
+static double
+d_tests_random(void)
 {
     g_state = (g_state * 1103515245u) + 12345u;
 
@@ -100,8 +106,8 @@ double d_tests_random(void)
 
 // d_tests_point
 //   m 2^e, exactly, as the references give an entry.
-static
-long double d_tests_point(
+static long double
+d_tests_point(
     long _m,
     int  _e
 )
@@ -111,8 +117,8 @@ long double d_tests_point(
 
 // d_tests_text
 //   the decimal _text, a reference's, rounded to long double by decimal.h.
-static
-long double d_tests_text(
+static long double
+d_tests_text(
     const char* _text
 )
 {
@@ -878,7 +884,7 @@ d_tests_residual_##S(const T* _a, size_t _n, const long double* _vr,           \
                                                                                \
 /* the case's matrix in the family, exactly */                                 \
 static void                                                                    \
-d_tests_case_##S(const struct dj_tests_eig_case* _c, T* _a)                     \
+d_tests_case_##S(const struct d_tests_eig_case* _c, T* _a)                     \
 {                                                                              \
     int k;                                                                     \
     for (k = 0; k < _c->n * _c->n; ++k)                                        \
@@ -907,7 +913,7 @@ d_tests_eigen_both_##S(const T* _a, size_t _n, struct d_cplx_##S* _v,          \
 }                                                                              \
                                                                                \
 static void                                                                    \
-d_tests_schur_case_##S(const struct dj_tests_eig_case* _c)                      \
+d_tests_schur_case_##S(const struct d_tests_eig_case* _c)                      \
 {                                                                              \
     const size_t n = (size_t)_c->n;                                            \
     const long double eps = (long double)EPS;                                  \
@@ -975,7 +981,7 @@ d_tests_schur_case_##S(const struct dj_tests_eig_case* _c)                      
         size_t pick = 0;                                                       \
         for (m = 0; m < n; ++m)                                                \
         {                                                                      \
-            const struct dj_tests_eig_value* r = &g_eig_values[_c->value + m];  \
+            const struct d_tests_eig_value* r = &g_eig_values[_c->value + m];  \
             long double dr, di, d;                                             \
             if (used[m]) continue;                                             \
             dr = (long double)v[k].part[0] - d_tests_text(r->re);              \
@@ -1358,6 +1364,804 @@ D_TESTS_SCHUR_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MAX_EXP, 3000,
                      d_internal_math_ld_pow2(LDBL_MAX_EXP - 1), LDBL_MIN,
                      32, 32, 8)
 
+// D_TESTS_GUARD_FAMILY
+//   stamps, for one family, d_tests_guard_<S>: the paths dgeev's parts take
+// at the range's ends and at nearly singular systems, each reached on
+// purpose and checked -- dlaln2's small systems, dlanv2's blocks of two,
+// the scaled norms, the reflector below the safe minimum, a NaN's hypot and
+// the parts of order 0, a subnormal matrix, Hessenberg matrices found to
+// need the exceptional shifts, the Schur vectors' scalings and a vector
+// underflowing, balancing across the range, the Jacobi tangent's _c forms
+// at run time, and paths of earlier chunks'. TMIN is the family's least
+// normal number and EMAX its largest exponent.
+#define D_TESTS_GUARD_FAMILY(T, S, EPS, TMIN, EMAX)                            \
+/* a case of dlaln2's: (T - w I) X = scale B, 1 by 1 or 2 by 2 */              \
+struct d_tests_solve_##S                                                       \
+{                                                                              \
+    size_t na, nw;                                                             \
+    T      smin, t[4], br[2], bi[2], wr, wi;                                   \
+    bool   scaled;                                                             \
+};                                                                             \
+                                                                               \
+/* whether _x is finite */                                                     \
+static bool                                                                    \
+d_tests_finite_##S(T _x)                                                       \
+{                                                                              \
+    return (_x - _x) == (T)0;                                                  \
+}                                                                              \
+                                                                               \
+/* the n-by-n _h's Schur form, both forms, Z from the identity: the two */     \
+/* alike, converged, quasi-triangular with standard blocks, Z          */      \
+/* orthogonal and Z T Z^T _h to 8 n epsilons                            */     \
+static bool                                                                    \
+d_tests_guard_schur_##S(const T* _h, size_t _n)                                \
+{                                                                              \
+    T t[144], tc[144], z[144], zc[144];                                        \
+    struct d_cplx_##S v[12], vc[12];                                           \
+    long double norm = d_tests_fro_ld_##S(_h, _n), worst;                      \
+    bool ok, okc, form;                                                        \
+    size_t i, j;                                                               \
+    memcpy(t, _h, sizeof(T) * _n * _n);                                        \
+    memcpy(tc, _h, sizeof(T) * _n * _n);                                       \
+    for (i = 0; i < _n * _n; ++i)                                              \
+        z[i] = zc[i] = ((i / _n) == (i % _n)) ? (T)1 : (T)0;                   \
+    ok  = d_decomp_##S##_schur(t, _n, 0, _n - 1, z, v, 1000u, (T)0);           \
+    okc = d_decomp_##S##_schur_c(tc, _n, 0, _n - 1, zc, vc, 1000u, (T)0);      \
+    form = (ok == okc);                                                        \
+    for (i = 0; i < _n * _n; ++i)                                              \
+        form = form && d_tests_same_##S(t[i], tc[i]) &&                        \
+               d_tests_same_##S(z[i], zc[i]);                                  \
+    for (i = 0; i < _n; ++i) form = form && d_tests_csame_##S(v[i], vc[i]);    \
+    for (i = 0; i < _n; ++i)                                                   \
+        for (j = 0; j + 1 < i; ++j) ok = ok && (t[i * _n + j] == (T)0);        \
+    for (i = 0; i + 1 < _n; ++i)                                               \
+        if (t[(i + 1) * _n + i] != (T)0)                                       \
+        {                                                                      \
+            const T up = t[i * _n + i + 1], lo = t[(i + 1) * _n + i];          \
+            ok = ok && (t[i * _n + i] == t[(i + 1) * _n + i + 1]) &&           \
+                 (((up < (T)0) && (lo > (T)0)) ||                              \
+                  ((up > (T)0) && (lo < (T)0))) &&                             \
+                 ((i + 2 >= _n) || (t[(i + 2) * _n + i + 1] == (T)0));         \
+        }                                                                      \
+    if (norm == 0.0L) norm = 1.0L;                                             \
+    worst = d_tests_orthogonality_##S(z, _n) /                                 \
+            ((long double)EPS * (long double)_n);                              \
+    if (d_tests_similar_##S(z, t, _h, _n) /                                    \
+        ((long double)EPS * (long double)_n * norm) > worst)                   \
+        worst = d_tests_similar_##S(z, t, _h, _n) /                            \
+                ((long double)EPS * (long double)_n * norm);                   \
+    return form && ok && (worst <= 8.0L);                                      \
+}                                                                              \
+                                                                               \
+/* the quasi-triangular n-by-n _t's eigenvectors, both forms, Z the */         \
+/* identity: the two alike, each column's largest magnitude 1, and  */         \
+/* each vector's residual within 32 epsilons of |T|_F               */         \
+static bool                                                                    \
+d_tests_guard_vectors_##S(const T* _t, size_t _n)                              \
+{                                                                              \
+    T vr[144], vrc[144], work[36], workc[36], one[12];                         \
+    long double norm = d_tests_fro_ld_##S(_t, _n), worst = 0.0L;               \
+    bool ok = true;                                                            \
+    size_t i, k;                                                               \
+    for (i = 0; i < _n * _n; ++i)                                              \
+        vr[i] = vrc[i] = ((i / _n) == (i % _n)) ? (T)1 : (T)0;                 \
+    for (i = 0; i < _n; ++i) one[i] = (T)1;                                    \
+    d_decomp_##S##_schur_vectors(_t, _n, vr, work);                            \
+    d_decomp_##S##_schur_vectors_c(_t, _n, vrc, workc);                        \
+    for (i = 0; i < _n * _n; ++i)                                              \
+        ok = ok && d_tests_same_##S(vr[i], vrc[i]) &&                          \
+             (d_tests_abs_##S(vr[i]) <= (T)1);                                 \
+    for (k = 0; k < _n; )                                                      \
+    {                                                                          \
+        long double vre[12], vim[12], lr, li = 0.0L, res;                      \
+        const bool pair = (k + 1 < _n) && (_t[(k + 1) * _n + k] != (T)0);      \
+        lr = (long double)_t[k * _n + k];                                      \
+        if (pair)                                                              \
+            li = d_math_ld_sqrt((long double)                                  \
+                                d_tests_abs_##S(_t[k * _n + k + 1])) *         \
+                 d_math_ld_sqrt((long double)                                  \
+                                d_tests_abs_##S(_t[(k + 1) * _n + k]));        \
+        for (i = 0; i < _n; ++i)                                               \
+        {                                                                      \
+            vre[i] = (long double)vr[i * _n + k];                              \
+            vim[i] = pair ? (long double)vr[i * _n + k + 1] : 0.0L;            \
+        }                                                                      \
+        res = d_tests_residual_##S(_t, _n, vre, vim, lr, li, one, norm);       \
+        if (res > worst) worst = res;                                          \
+        k += pair ? 2 : 1;                                                     \
+    }                                                                          \
+    return ok && (worst <= 32.0L);                                             \
+}                                                                              \
+                                                                               \
+/* the 2-by-2 block, both forms of the standard form: alike; cs^2 + */         \
+/* sn^2 one; R^T A R the block to 8 epsilons of |A|_F; upper        */         \
+/* triangular, or equal diagonals and off-diagonals of opposite     */         \
+/* signs; its values the block's. Measured in units of the block's  */         \
+/* largest magnitude, so that nothing leaves long double's range    */         \
+static bool                                                                    \
+d_tests_guard_pair_##S(T _a, T _b, T _c, T _d)                                 \
+{                                                                              \
+    T a = _a, b = _b, c = _c, d = _d, cs, sn;                                  \
+    T a2 = _a, b2 = _b, c2 = _c, d2 = _d, cs2, sn2;                            \
+    struct d_cplx_##S v[2], v2[2];                                             \
+    long double in[4], out[4], m[4], r[4], err = 0.0L, norm = 0.0L;            \
+    long double unit = 0.0L, lc, ls;                                           \
+    volatile T im;                                                             \
+    bool ok;                                                                   \
+    size_t i;                                                                  \
+    d_internal_decomp_##S##_standard_pair(&a, &b, &c, &d, v, &cs, &sn);        \
+    d_internal_decomp_##S##_standard_pair_c(&a2, &b2, &c2, &d2, v2, &cs2,      \
+                                             &sn2);                            \
+    ok = d_tests_same_##S(a, a2) && d_tests_same_##S(b, b2) &&                 \
+         d_tests_same_##S(c, c2) && d_tests_same_##S(d, d2) &&                 \
+         d_tests_same_##S(cs, cs2) && d_tests_same_##S(sn, sn2) &&             \
+         d_tests_csame_##S(v[0], v2[0]) && d_tests_csame_##S(v[1], v2[1]);     \
+    lc = (long double)cs;                                                      \
+    ls = (long double)sn;                                                      \
+    r[0] = lc * lc + ls * ls - 1.0L;                                           \
+    ok = ok && (((r[0] < 0.0L) ? -r[0] : r[0]) <= 4.0L * (long double)EPS);    \
+    in[0] = (long double)_a; in[1] = (long double)_b;                          \
+    in[2] = (long double)_c; in[3] = (long double)_d;                          \
+    out[0] = (long double)a; out[1] = (long double)b;                          \
+    out[2] = (long double)c; out[3] = (long double)d;                          \
+    for (i = 0; i < 4; ++i)                                                    \
+        if (((in[i] < 0.0L) ? -in[i] : in[i]) > unit)                          \
+            unit = (in[i] < 0.0L) ? -in[i] : in[i];                            \
+    if (unit == 0.0L) unit = 1.0L;                                             \
+    for (i = 0; i < 4; ++i)                                                    \
+    {                                                                          \
+        in[i]  = in[i] / unit;                                                 \
+        out[i] = out[i] / unit;                                                \
+        norm  += in[i] * in[i];                                                \
+    }                                                                          \
+    /* A R, then R^T (A R), R = [cs -sn; sn cs] */                             \
+    m[0] = in[0] * lc + in[1] * ls;                                            \
+    m[1] = in[1] * lc - in[0] * ls;                                            \
+    m[2] = in[2] * lc + in[3] * ls;                                            \
+    m[3] = in[3] * lc - in[2] * ls;                                            \
+    r[0] = lc * m[0] + ls * m[2] - out[0];                                     \
+    r[1] = lc * m[1] + ls * m[3] - out[1];                                     \
+    r[2] = lc * m[2] - ls * m[0] - out[2];                                     \
+    r[3] = lc * m[3] - ls * m[1] - out[3];                                     \
+    for (i = 0; i < 4; ++i) err += r[i] * r[i];                                \
+    ok = ok && (d_math_ld_sqrt(err) <=                                         \
+                8.0L * (long double)EPS * d_math_ld_sqrt(norm));               \
+    /* the pair's imaginary part stored, so that the x87 compares it */        \
+    /* as stored                                                      */       \
+    im = d_math_##S##_sqrt(d_tests_abs_##S(b)) *                               \
+         d_math_##S##_sqrt(d_tests_abs_##S(c));                                \
+    if (c == (T)0)                                                             \
+        ok = ok && (v[0].part[0] == a) && (v[1].part[0] == d) &&               \
+             d_tests_plus_zero_##S(v[0].part[1]) &&                            \
+             d_tests_plus_zero_##S(v[1].part[1]);                              \
+    else                                                                       \
+        ok = ok && (a == d) &&                                                 \
+             (((b < (T)0) && (c > (T)0)) || ((b > (T)0) && (c < (T)0))) &&     \
+             (v[0].part[0] == a) && (v[1].part[0] == a) &&                     \
+             (v[0].part[1] == im) && (v[1].part[1] == -v[0].part[1]);          \
+    return ok;                                                                 \
+}                                                                              \
+                                                                               \
+/* a case of dlaln2's: scale in (0, 1], below 1 where expected; X */           \
+/* finite; xnorm its largest magnitude, |re| + |im| where complex, */          \
+/* to 2 epsilons; and each row's residual within 4 smin |X| and 8  */          \
+/* epsilons of |C| |X| + scale |B|                                 */          \
+static bool                                                                    \
+d_tests_guard_solve_##S(const struct d_tests_solve_##S* _c)                    \
+{                                                                              \
+    T xr[2] = { 0, 0 }, xi[2] = { 0, 0 }, scale = (T)0, xnorm = (T)0;          \
+    const T smini = (_c->smin > (T)2 * TMIN) ? _c->smin : (T)2 * TMIN;         \
+    const bool cx = (_c->nw == 2);                                             \
+    long double cr[4], ci[4], big = 0.0L, gap;                                 \
+    bool ok;                                                                   \
+    size_t i, j;                                                               \
+    d_internal_decomp_##S##_small_solve(_c->na, _c->nw, _c->smin, _c->t, 2,    \
+                                         _c->br, _c->bi, _c->wr, _c->wi, xr,   \
+                                         xi, &scale, &xnorm);                  \
+    ok = (scale > (T)0) && (scale <= (T)1) &&                                  \
+         (_c->scaled == (scale < (T)1));                                       \
+    for (i = 0; i < _c->na; ++i)                                               \
+    {                                                                          \
+        const long double m = (long double)d_tests_abs_##S(xr[i]) +            \
+                              (cx ? (long double)d_tests_abs_##S(xi[i])        \
+                                  : 0.0L);                                     \
+        ok = ok && d_tests_finite_##S(xr[i]) && d_tests_finite_##S(xi[i]);     \
+        if (m > big) big = m;                                                  \
+    }                                                                          \
+    gap = (long double)xnorm - big;                                            \
+    ok = ok && (((gap < 0.0L) ? -gap : gap) <=                                 \
+                2.0L * (long double)EPS * big);                                \
+    for (i = 0; i < _c->na; ++i)                                               \
+        for (j = 0; j < _c->na; ++j)                                           \
+        {                                                                      \
+            cr[i * 2 + j] = (long double)_c->t[i * 2 + j] -                    \
+                            ((i == j) ? (long double)_c->wr : 0.0L);           \
+            ci[i * 2 + j] = ((i == j) && cx) ? -(long double)_c->wi : 0.0L;    \
+        }                                                                      \
+    for (i = 0; i < _c->na; ++i)                                               \
+    {                                                                          \
+        long double rr = -(long double)scale * (long double)_c->br[i];         \
+        long double ri = cx ? -(long double)scale * (long double)_c->bi[i]     \
+                            : 0.0L;                                            \
+        long double cabs = 0.0L, babs, bound;                                  \
+        for (j = 0; j < _c->na; ++j)                                           \
+        {                                                                      \
+            const long double x1 = (long double)xr[j];                         \
+            const long double y1 = cx ? (long double)xi[j] : 0.0L;             \
+            rr += cr[i * 2 + j] * x1 - ci[i * 2 + j] * y1;                     \
+            ri += cr[i * 2 + j] * y1 + ci[i * 2 + j] * x1;                     \
+            cabs += ((cr[i * 2 + j] < 0.0L) ? -cr[i * 2 + j]                   \
+                                              : cr[i * 2 + j]) +               \
+                    ((ci[i * 2 + j] < 0.0L) ? -ci[i * 2 + j]                   \
+                                              : ci[i * 2 + j]);                \
+        }                                                                      \
+        if (rr < 0.0L) rr = -rr;                                               \
+        if (ri < 0.0L) ri = -ri;                                               \
+        babs = (long double)d_tests_abs_##S(_c->br[i]) +                       \
+               (cx ? (long double)d_tests_abs_##S(_c->bi[i]) : 0.0L);          \
+        bound = (4.0L * (long double)smini +                                   \
+                 8.0L * (long double)EPS * cabs) * (long double)xnorm +        \
+                8.0L * (long double)EPS * (long double)scale * babs;           \
+        ok = ok && (rr + ri <= bound);                                         \
+    }                                                                          \
+    return ok;                                                                 \
+}                                                                              \
+                                                                               \
+/* the reflector of (alpha, x), both forms: alike, and H (alpha, x) */         \
+/* beta e1 to 4 epsilons of |(alpha, x)|, in units of TMIN          */         \
+static bool                                                                    \
+d_tests_guard_reflector_##S(T _alpha, const T* _x, size_t _count)              \
+{                                                                              \
+    T al = _alpha, al2 = _alpha, x[4], x2[4], tau, tau2;                       \
+    long double v[5], w[5], dot = 0.0L, norm = 0.0L, err = 0.0L;               \
+    const long double unit = 1.0L / (long double)TMIN;                         \
+    bool ok;                                                                   \
+    size_t i;                                                                  \
+    memcpy(x, _x, sizeof(T) * _count);                                         \
+    memcpy(x2, _x, sizeof(T) * _count);                                        \
+    tau  = d_internal_decomp_##S##_reflector(&al, x, _count, 1);               \
+    tau2 = d_internal_decomp_##S##_reflector_c(&al2, x2, _count, 1);           \
+    ok = d_tests_same_##S(tau, tau2) && d_tests_same_##S(al, al2);             \
+    for (i = 0; i < _count; ++i) ok = ok && d_tests_same_##S(x[i], x2[i]);     \
+    w[0] = (long double)_alpha * unit;                                         \
+    v[0] = 1.0L;                                                               \
+    for (i = 0; i < _count; ++i)                                               \
+    {                                                                          \
+        w[i + 1] = (long double)_x[i] * unit;                                  \
+        v[i + 1] = (long double)x[i];                                          \
+    }                                                                          \
+    for (i = 0; i <= _count; ++i)                                              \
+    {                                                                          \
+        dot  += v[i] * w[i];                                                   \
+        norm += w[i] * w[i];                                                   \
+    }                                                                          \
+    for (i = 0; i <= _count; ++i)                                              \
+    {                                                                          \
+        const long double e = w[i] - (long double)tau * dot * v[i] -           \
+                              ((i == 0) ? (long double)al * unit : 0.0L);      \
+        err += e * e;                                                          \
+    }                                                                          \
+    return ok && (d_math_ld_sqrt(err) <=                                       \
+                  4.0L * (long double)EPS * d_math_ld_sqrt(norm));             \
+}                                                                              \
+                                                                               \
+/* the norms of _x, real and complex, both forms: alike, and, by    */         \
+/* _kind, an infinity (1), a NaN (2), or _want in units of _unit, a  */        \
+/* power of two, to 2 epsilons and the subnormals' spacing (0)       */        \
+static bool                                                                    \
+d_tests_guard_norm_##S(const T* _x, size_t _count, int _kind,                  \
+                       long double _want, T _unit)                             \
+{                                                                              \
+    struct d_cplx_##S cx[4], cy[4];                                            \
+    T rn, rnc, cn, cnc, cm, cmc;                                               \
+    long double got, gap, room;                                                \
+    size_t i;                                                                  \
+    for (i = 0; i < _count; ++i)                                               \
+    {                                                                          \
+        cx[i] = d_cplx_##S##_make(_x[i], (T)0);                                \
+        cy[i] = d_cplx_##S##_make((T)0, _x[i]);                                \
+    }                                                                          \
+    rn  = d_internal_decomp_##S##_norm(_x, _count, 1);                         \
+    rnc = d_internal_decomp_##S##_norm_c(_x, _count, 1);                       \
+    cn  = d_internal_decomp_##S##_cnorm(cx, _count, 1);                        \
+    cnc = d_internal_decomp_##S##_cnorm_c(cx, _count, 1);                      \
+    cm  = d_internal_decomp_##S##_cnorm(cy, _count, 1);                        \
+    cmc = d_internal_decomp_##S##_cnorm_c(cy, _count, 1);                      \
+    if (!(d_tests_same_##S(rn, rnc) && d_tests_same_##S(rn, cn) &&             \
+          d_tests_same_##S(rn, cnc) && d_tests_same_##S(rn, cm) &&             \
+          d_tests_same_##S(rn, cmc)))                                          \
+        return false;                                                          \
+    if (_kind == 1) return rn == (T)HUGE_VAL;                                  \
+    if (_kind == 2) return rn != rn;                                           \
+    got  = (long double)rn / (long double)_unit;                               \
+    gap  = got - _want;                                                        \
+    room = 2.0L * (long double)EPS * _want;                                    \
+    if ((long double)rn < (long double)TMIN)                                   \
+        room = room + (long double)TMIN * (long double)EPS /                   \
+                      (long double)_unit;                                      \
+    return ((gap < 0.0L) ? -gap : gap) <= room;                                \
+}                                                                              \
+                                                                               \
+/* _x _up / _down for powers of two _up and _down, in an order that */         \
+/* passes no intermediate beyond the result's side of _x: exact      */        \
+/* wherever the result is a normal number                            */        \
+static long double                                                             \
+d_tests_rescale_##S(long double _x, long double _up, long double _down)        \
+{                                                                              \
+    if (((_up >= 1.0L) && (_down < 1.0L)) ||                                   \
+        ((_up < 1.0L) && (_down >= 1.0L)))                                     \
+        return (_up >= 1.0L) ? (_x * _up) / _down : (_x / _down) * _up;        \
+    return _x * (_up / _down);                                                 \
+}                                                                              \
+                                                                               \
+/* the n-by-n _a balanced, both forms: alike; X = P D, the balancing */        \
+/* undone on the identity, one entry in each row and column; rows    */        \
+/* below ihi and columns above ilo triangular; and each entry of B   */        \
+/* D^-1 P^T A P D's exactly where _exact, else, as dgebal lets an    */        \
+/* entry that passes below the least normal on the way lose bits, to */        \
+/* within its own magnitude and the subnormals' spacing              */        \
+static bool                                                                    \
+d_tests_guard_balance_##S(const T* _a, size_t _n, bool _exact)                 \
+{                                                                              \
+    T b[144], bc[144], xb[144], scale[12], scalec[12], dcol[12];               \
+    size_t perm[12], permc[12], rowof[12], ilo, ihi, iloc, ihic, i, j;         \
+    bool ok;                                                                   \
+    memcpy(b, _a, sizeof(T) * _n * _n);                                        \
+    memcpy(bc, _a, sizeof(T) * _n * _n);                                       \
+    d_decomp_##S##_balance(b, _n, perm, scale, &ilo, &ihi);                    \
+    d_decomp_##S##_balance_c(bc, _n, permc, scalec, &iloc, &ihic);             \
+    ok = (ilo == iloc) && (ihi == ihic) && (ilo <= ihi) && (ihi < _n);         \
+    for (i = 0; i < _n; ++i)                                                   \
+        ok = ok && (perm[i] == permc[i]) &&                                    \
+             d_tests_same_##S(scale[i], scalec[i]);                            \
+    for (i = 0; i < _n * _n; ++i)                                              \
+    {                                                                          \
+        ok = ok && d_tests_same_##S(b[i], bc[i]);                              \
+        xb[i] = ((i / _n) == (i % _n)) ? (T)1 : (T)0;                          \
+    }                                                                          \
+    d_decomp_##S##_balance_back(xb, _n, _n, perm, scale, ilo, ihi);            \
+    for (j = 0; j < _n; ++j)                                                   \
+    {                                                                          \
+        size_t found = 0;                                                      \
+        for (i = 0; i < _n; ++i)                                               \
+            if (xb[i * _n + j] != (T)0)                                        \
+            {                                                                  \
+                ++found;                                                       \
+                rowof[j] = i;                                                  \
+                dcol[j]  = xb[i * _n + j];                                     \
+            }                                                                  \
+        ok = ok && (found == 1);                                               \
+    }                                                                          \
+    for (i = 0; ok && (i < _n); ++i)                                           \
+        for (j = 0; j < _n; ++j)                                               \
+        {                                                                      \
+            const long double e = d_tests_rescale_##S(                         \
+                                      (long double)_a[rowof[i] * _n +          \
+                                                      rowof[j]],               \
+                                      (long double)dcol[j],                    \
+                                      (long double)dcol[i]);                   \
+            const long double g = (long double)b[i * _n + j] - e;              \
+            const long double room = _exact ? 0.0L                             \
+                : ((e < 0.0L) ? -e : e) +                                      \
+                  (long double)TMIN * (long double)EPS;                        \
+            ok = ok && (((g < 0.0L) ? -g : g) <= room);                        \
+        }                                                                      \
+    for (i = 0; i < _n; ++i)                                                   \
+        for (j = 0; j < i; ++j)                                                \
+            if ((i > ihi) || (j < ilo)) ok = ok && (b[i * _n + j] == (T)0);    \
+    return ok;                                                                 \
+}                                                                              \
+                                                                               \
+static void                                                                    \
+d_tests_guard_##S(void)                                                        \
+{                                                                              \
+    const T H = d_internal_math_##S##_pow2((EMAX) / 2 + 6);                    \
+    const T G = d_internal_math_##S##_pow2((EMAX) / 2 - 8);                    \
+    const T B = d_internal_math_##S##_pow2((EMAX) - 4);                        \
+    const T tiny = TMIN * (T)16;                                               \
+    size_t i, j, k;                                                            \
+    bool ok;                                                                   \
+                                                                               \
+    /* dlaln2's paths: a pivot below smin, the solution's two scalings, */     \
+    /* 1 by 1 and 2 by 2, real and complex; H / 2 a right-hand side    */      \
+    /* where the matrix holds H                                         */     \
+    {                                                                          \
+        const T h2 = H / (T)2, m3 = (T)1e-3, s2 = (T)2 * TMIN;                 \
+        const T s4 = (T)4 * TMIN;                                              \
+        const struct d_tests_solve_##S c[] = {                                 \
+            { 1, 1, m3, { 2, 0, 0, 0 }, { 1, 0 }, { 0, 0 }, 2, 0, false },     \
+            { 1, 1, s2, { s4, 0, 0, 0 }, { 4, 0 }, { 0, 0 }, 0, 0, true },     \
+            { 1, 2, m3, { 1, 0, 0, 0 }, { 1, 0 }, { 1, 0 }, 1, 0, false },     \
+            { 1, 2, s2, { s4, 0, 0, 0 }, { 4, 0 }, { 1, 0 }, 0, 0, true },     \
+            { 2, 1, m3, { 0, 0, 0, 0 }, { 1, 2 }, { 0, 0 }, 0, 0, false },     \
+            { 2, 1, s4, { 0, 0, 0, 0 }, { 4, 1 }, { 0, 0 }, 0, 0, true },      \
+            { 2, 2, m3, { 0, 0, 0, 0 }, { 1, 2 }, { 1, -1 }, 0, 0, false },    \
+            { 2, 2, s4, { 0, 0, 0, 0 }, { 4, 1 }, { 1, 1 }, 0, 0, true },      \
+            { 2, 1, m3, { 1, 1, 1, 1 }, { 1, 2 }, { 0, 0 }, 0, 0, false },     \
+            { 2, 1, s2, { 1, 1, 1, 1 }, { 4, 1 }, { 0, 0 }, 0, 0, true },      \
+            { 2, 1, 1, { H, H, H, H }, { 0, h2 }, { 0, 0 }, 0, 0, true },      \
+            { 2, 2, m3, { 1, 1, 1, 1 }, { 1, 2 }, { 1, 0 }, 0, 0, true },      \
+            { 2, 2, s2, { 1, 1, 1, 1 }, { 4, 1 }, { 1, 0 }, 0, 0, true },      \
+            { 2, 2, 1, { H, H, H, H }, { 0, h2 }, { 0, h2 }, 0, 0, true },     \
+            { 2, 2, m3, { 1, 2, -3, 1 }, { 1, 2 }, { 1, 0 }, 1, 2, false },    \
+            { 2, 2, 1, { H, 0, 0, 1 }, { 0, h2 }, { 0, 0 }, 0, 0, true }       \
+        };                                                                     \
+        ok = true;                                                             \
+        for (k = 0; k < sizeof(c) / sizeof(c[0]); ++k)                         \
+            ok = ok && d_tests_guard_solve_##S(&c[k]);                         \
+        D_TESTS_EXPECT(ok, #S " small_solve: smin's pivots and the "           \
+                           "scalings, X to its residual");                     \
+    }                                                                          \
+                                                                               \
+    /* dlanv2's paths: triangular either way, already standard, real, */       \
+    /* complex, the sums scaled down and up, real after all; then     */       \
+    /* near-defective blocks R [s 0; c s] R^T, R a rotation by a      */       \
+    /* rational parameter, among which the rows swapped after the    */        \
+    /* rotation                                                       */       \
+    {                                                                          \
+        const T p[][4] = {                                                     \
+            { 1, 2, 0, 3 }, { 1, 0, 2, 3 }, { 1, 2, -3, 1 }, { 4, 1, 2, 3 },   \
+            { 1, -2, 3, 4 }, { 0, -1, 0.5, 0.125 }, { 1, -2, 3, 0 },           \
+            { 1, 1, 1, 1 }                                                     \
+        };                                                                     \
+        ok = true;                                                             \
+        for (k = 0; k < sizeof(p) / sizeof(p[0]); ++k)                         \
+        {                                                                      \
+            const T s = (k == 5) ? B : (k == 6) ? tiny : (T)1;                 \
+            const T e = (k == 7) ? EPS : (T)1;                                 \
+            ok = ok && d_tests_guard_pair_##S(p[k][0] * s, p[k][1] * s * e,    \
+                                              p[k][2] * s * e, p[k][3] * s);   \
+        }                                                                      \
+        for (k = 0; k < 20000; ++k)                                            \
+        {                                                                      \
+            const T u  = (T)(d_tests_random() / 4.0);                          \
+            const T co = ((T)1 - u * u) / ((T)1 + u * u);                      \
+            const T si = ((T)2 * u) / ((T)1 + u * u);                          \
+            const T s0 = (T)(d_tests_random() / 4.0);                          \
+            const T c0 = (T)(d_tests_random() / 4.0);                          \
+            const T m00 = co * s0 - si * c0, m01 = -si * s0;                   \
+            const T m10 = si * s0 + co * c0, m11 = co * s0;                    \
+            ok = ok && d_tests_guard_pair_##S(m00 * co - m01 * si,             \
+                                              m00 * si + m01 * co,             \
+                                              m10 * co - m11 * si,             \
+                                              m10 * si + m11 * co);            \
+        }                                                                      \
+        D_TESTS_EXPECT(ok, #S " standard_pair: every path, R^T A R the "       \
+                           "block, standard, its values");                     \
+    }                                                                          \
+                                                                               \
+    /* the scaled norms, real and complex: past the range, past the  */        \
+    /* safe minimum, subnormal, zero, infinite, NaN                  */        \
+    {                                                                          \
+        const T big[4]  = { B * 4, B * 4, B * 4, 0 };                          \
+        const T low[4]  = { TMIN, TMIN / 4, 0, 0 };                            \
+        const T sub[2]  = { TMIN / 8, TMIN / 16 };                             \
+        const T zero[2] = { 0, 0 };                                            \
+        T inf[2], nan[2];                                                      \
+        inf[0] = (T)HUGE_VAL;                                                  \
+        inf[1] = (T)1;                                                         \
+        nan[0] = (T)HUGE_VAL - (T)HUGE_VAL;                                    \
+        nan[1] = (T)1;                                                         \
+        ok = d_tests_guard_norm_##S(big, 4, 0, d_math_ld_sqrt(3.0L),           \
+                                    B * 4) &&                                  \
+             d_tests_guard_norm_##S(low, 4, 0,                                 \
+                                    d_math_ld_sqrt(17.0L) / 4.0L, TMIN) &&     \
+             d_tests_guard_norm_##S(sub, 2, 0,                                 \
+                                    d_math_ld_sqrt(5.0L) / 16.0L, TMIN) &&     \
+             d_tests_guard_norm_##S(zero, 2, 0, 0.0L, (T)1) &&                 \
+             d_tests_guard_norm_##S(inf, 2, 1, 0.0L, (T)1) &&                  \
+             d_tests_guard_norm_##S(nan, 2, 2, 0.0L, (T)1);                    \
+        D_TESTS_EXPECT(ok, #S " norm, cnorm: scaled at the range's ends, "     \
+                           "both forms");                                      \
+    }                                                                          \
+                                                                               \
+    /* the reflector of entries below the safe minimum: lifted, found, */      \
+    /* lowered                                                          */     \
+    {                                                                          \
+        const T x1[3] = { TMIN, TMIN, 0 };                                     \
+        const T x2[3] = { TMIN * EPS, 0, 0 };                                  \
+        ok = d_tests_guard_reflector_##S(TMIN / (T)2, x1, 3) &&                \
+             d_tests_guard_reflector_##S((T)0, x2, 3);                         \
+        D_TESTS_EXPECT(ok, #S " reflector: below the safe minimum, H x "       \
+                           "beta e1");                                         \
+    }                                                                          \
+                                                                               \
+    /* hypot of a NaN; the parts of order 0 */                                 \
+    {                                                                          \
+        T a[1] = { 0 }, scale[1], w[1];                                        \
+        struct d_cplx_##S v[1];                                                \
+        size_t perm[1], ilo = 7, ihi = 7, iloc = 7, ihic = 7;                  \
+        const T nan = (T)HUGE_VAL - (T)HUGE_VAL;                               \
+        ok = (d_internal_decomp_##S##_hypot(nan, (T)1) !=                      \
+              d_internal_decomp_##S##_hypot(nan, (T)1)) &&                     \
+             (d_internal_decomp_##S##_hypot_c(nan, (T)1) !=                    \
+              d_internal_decomp_##S##_hypot_c(nan, (T)1));                     \
+        D_TESTS_EXPECT(ok, #S " hypot: a NaN's, a NaN");                       \
+        d_decomp_##S##_balance(a, 0, perm, scale, &ilo, &ihi);                 \
+        d_decomp_##S##_balance_c(a, 0, perm, scale, &iloc, &ihic);             \
+        d_decomp_##S##_balance_back(a, 0, 0, perm, scale, 0, 0);               \
+        d_decomp_##S##_schur_vectors(a, 0, a, w);                              \
+        d_decomp_##S##_schur_vectors_c(a, 0, a, w);                            \
+        ok = (ilo == 0) && (ihi == 0) && (iloc == 0) && (ihic == 0) &&         \
+             d_decomp_##S##_schur(a, 0, 0, 0, a, v, 10u, (T)0) &&              \
+             d_decomp_##S##_schur_c(a, 0, 0, 0, a, v, 10u, (T)0) &&            \
+             (a[0] == (T)0);                                                   \
+        D_TESTS_EXPECT(ok, #S " balance, balance_back, schur, "                \
+                           "schur_vectors: order 0, nothing to do");           \
+    }                                                                          \
+                                                                               \
+    /* a subnormal matrix: lifted before its scaling; its values */            \
+    /* TMIN / 8 times 1 and 3, its vectors the unscaled matrix's */            \
+    {                                                                          \
+        const T m[4] = { 2, 1, 1, 2 };                                         \
+        T a[4];                                                                \
+        struct d_cplx_##S v[2], x[4], v1[2], x1[4];                            \
+        bool conv1 = false, conv = false;                                      \
+        ok = d_tests_eigen_both_##S(m, 2, v1, x1, &conv1, 1000u);              \
+        for (i = 0; i < 4; ++i) a[i] = m[i] * (TMIN / (T)8);                   \
+        ok = ok && d_tests_eigen_both_##S(a, 2, v, x, &conv, 1000u) &&         \
+             conv && conv1;                                                    \
+        for (i = 0; i < 4; ++i) ok = ok && d_tests_csame_##S(x[i], x1[i]);     \
+        for (k = 0; k < 2; ++k)                                                \
+        {                                                                      \
+            const long double want = (k == 0) ? 1.0L : 3.0L;                   \
+            const long double got  = (long double)v[k].part[0] /               \
+                                     ((long double)TMIN / 8.0L);               \
+            ok = ok && (((got - want < 0.0L) ? want - got : got - want) <=     \
+                        64.0L * (long double)EPS * want) &&                    \
+                 (v[k].part[1] == (T)0);                                       \
+        }                                                                      \
+        D_TESTS_EXPECT(ok, #S " eigen: a subnormal matrix's values and "       \
+                           "vectors");                                         \
+    }                                                                          \
+                                                                               \
+    /* Hessenberg matrices of 1, -1 and 0 found to need the exceptional */     \
+    /* shifts at the bottom, after twenty steps without a split, and   */      \
+    /* the rarer standard blocks                                        */     \
+    {                                                                          \
+        static const signed char hard[][49] = {                                \
+            { 0, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, -1, 1, 0, 0,      \
+              -1, -1, 0, 0, 1, 0, 1, -1, 0, 0, 0, 0, -1, 0, 1, -1, 0, 0, 0,    \
+              0, 0, 1, 1, 0, 0, 0, 0, 0, 0, -1 },                              \
+            { 1, 1, 1, 0, 0, 1, 0, 1, 1, -1, 0, 1, 0, 0, 0, -1, 0, 1, 0, 1,    \
+              -1, 0, 0, -1, 0, -1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,      \
+              1, -1, 0, 0, 0, 0, 0, 0, 1, 1 },                                 \
+            { 0, -1, 0, -1, 0, -1, 1, -1, 0, -1, 0, 0, 0, 0, -1, 1 },          \
+            { -1, 0, 1, 1, 0, 1, 1, 0, 0, -1, 1, 0, -1, -1, 0, 0, 1, 1, 0,     \
+              0, 1, 0, 0, 1, 1, -1, 0, 0, 0, 0, 0, 1, 1, -1, 0, 0, 0, 0, 0,    \
+              0, 0, -1, 0, 0, 0, 0, 0, 1, -1 },                                \
+            { 0, -1, 1, 0, -1, -1, 1, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 1, -1,    \
+              0, 0, 0, 0, 0, 0 },                                              \
+            { 0, 0, 0, 0, 1, 1, 1, 0, -1, -1, 0, -1, 1, 0, -1, 0, 0, 0, -1,    \
+              0, 0, 0, 0, -1, 1 },                                             \
+            { 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, -1, 0, 0, 1, 0 },               \
+            { -1, 1, 0, -1, 1, 0, -1, 0, -1, -1, 1, 0, 1, 1, 0, -1, -1, -1,    \
+              0, -1, 1, 0, 0, -1, 0, -1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,      \
+              0, 0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 1 },                          \
+            { 0, 1, 0, -1, 1, 0, -1, 0, -1, -1, 0, -1, 0, -1, 0, 0, 0, 1,      \
+              0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 },          \
+            { 1, -1, 0, -1, 0, 1, 0, -1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, -1,     \
+              0, 0, 0, 0, 1, 0 },                                              \
+            { 0, 1, 0, 1, 0, 0, 1, -1, 0, 1, 1, 0, 0, -1, -1, 0, -1, -1, 0,    \
+              0, -1, 0, 0, 1, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, -1, 1 },          \
+            { 1, 0, 0, -1, 0, 1, 0, 1, 0 }                                     \
+        };                                                                     \
+        static const unsigned char order[] = {                                 \
+            7, 7, 4, 7, 5, 5, 4, 7, 6, 5, 6, 3                                 \
+        };                                                                     \
+        T h[49];                                                               \
+        ok = true;                                                             \
+        for (k = 0; k < sizeof(order); ++k)                                    \
+        {                                                                      \
+            for (i = 0; i < (size_t)order[k] * order[k]; ++i)                  \
+                h[i] = (T)hard[k][i];                                          \
+            ok = ok && d_tests_guard_schur_##S(h, order[k]);                   \
+        }                                                                      \
+        D_TESTS_EXPECT(ok, #S " schur: the exceptional shifts at the "         \
+                           "bottom, Z T Z^T H");                               \
+    }                                                                          \
+                                                                               \
+    /* quasi-triangular T for the vectors, of entries G = 2^(EMAX/2-8): */     \
+    /* a Jordan chain, whose vector's last entry underflows through    */      \
+    /* the scalings; a real vector through a block of two; two equal   */      \
+    /* pairs; four equal pairs, the last's two entries underflowing    */      \
+    {                                                                          \
+        T t[144];                                                              \
+        const size_t ns[4] = { 6, 4, 5, 8 };                                   \
+        ok = true;                                                             \
+        for (k = 0; k < 4; ++k)                                                \
+        {                                                                      \
+            const size_t n = ns[k];                                            \
+            for (i = 0; i < n * n; ++i) t[i] = (T)0;                           \
+            if (k == 0)                                                        \
+                for (i = 0; i < n; ++i)                                        \
+                {                                                              \
+                    t[i * n + i] = (T)1;                                       \
+                    if (i + 1 < n) t[i * n + i + 1] = G;                       \
+                }                                                              \
+            else                                                               \
+            {                                                                  \
+                /* a first row of G, then blocks [1 2; -1/2 1] coupled */      \
+                /* by G above the diagonal                              */     \
+                t[0] = (T)0.5;                                                 \
+                for (j = 1; j < n; ++j) t[j] = G;                              \
+                for (i = 1; i + 1 < n; i += 2)                                 \
+                {                                                              \
+                    t[i * n + i] = t[(i + 1) * n + i + 1] = (T)1;              \
+                    t[i * n + i + 1] = (T)2;                                   \
+                    t[(i + 1) * n + i] = (T)-0.5;                              \
+                    for (j = i + 2; j < n; ++j)                                \
+                        t[i * n + j] = t[(i + 1) * n + j] = G;                 \
+                }                                                              \
+                if ((n % 2) == 0) t[(n - 1) * n + n - 1] = (T)1;               \
+            }                                                                  \
+            ok = ok && d_tests_guard_vectors_##S(t, n);                        \
+        }                                                                      \
+        /* and random ones: a block of two anywhere, G or 1 above it, */       \
+        /* diagonals equal to rounding or apart                       */       \
+        for (k = 0; k < 2000; ++k)                                             \
+        {                                                                      \
+            const size_t n = 3 + (k % 4), p = (k / 4) % (n - 1);               \
+            const int kind = (int)((k / 16) % 8);                              \
+            const T im = (T)d_tests_random() *                                 \
+                         ((kind & 1) ? EPS : (T)0.25);                         \
+            T bb = (T)0.25 + d_tests_abs_##S((T)d_tests_random());             \
+            for (i = 0; i < n; ++i)                                            \
+                for (j = 0; j < n; ++j)                                        \
+                {                                                              \
+                    T x = (T)0;                                                \
+                    if (j > i)                                                 \
+                        x = (T)d_tests_random() * ((kind & 2) ? G : (T)1);     \
+                    if (j == i)                                                \
+                        x = (kind & 4) ? (T)1 + (T)d_tests_random() * EPS      \
+                                       : (T)d_tests_random();                  \
+                    t[i * n + j] = x;                                          \
+                }                                                              \
+            t[p * n + p + 1] = bb;                                             \
+            t[(p + 1) * n + p] = -(im * im) / bb;                              \
+            if (t[(p + 1) * n + p] == (T)0) t[(p + 1) * n + p] = -TMIN;        \
+            t[(p + 1) * n + p + 1] = t[p * n + p];                             \
+            ok = ok && d_tests_guard_vectors_##S(t, n);                        \
+        }                                                                      \
+        D_TESTS_EXPECT(ok, #S " schur_vectors: the scalings, and a vector "    \
+                           "underflowing, eigenvectors still");                \
+    }                                                                          \
+                                                                               \
+    /* balancing matrices of entries from 2^-(EMAX-4) to 2^(EMAX-4), */        \
+    /* a third of them zero: the norms' and the factors' guards; and  */       \
+    /* of entries from 2^-(EMAX/8) to 2^(EMAX/8), where nothing        */      \
+    /* passes below the least normal, exactly                          */      \
+    {                                                                          \
+        T a[36];                                                               \
+        int range;                                                             \
+        for (range = 0; range < 2; ++range)                                    \
+        {                                                                      \
+            const double span = (range == 0) ? (double)((EMAX) - 4)            \
+                                             : (double)((EMAX) / 8);           \
+            ok = true;                                                         \
+            for (k = 0; k < 2000; ++k)                                         \
+            {                                                                  \
+                const size_t n = 2 + (k % 5);                                  \
+                for (i = 0; i < n * n; ++i)                                    \
+                {                                                              \
+                    const double r = d_tests_random() / 4.0;                   \
+                    const int e = (int)(d_tests_random() / 4.0 * span);        \
+                    a[i] = (r < -0.3) ? (T)0                                   \
+                         : (T)r * d_internal_math_##S##_pow2(e);               \
+                }                                                              \
+                ok = ok && d_tests_guard_balance_##S(a, n, range == 1);        \
+            }                                                                  \
+            D_TESTS_EXPECT(ok, (range == 0)                                    \
+                ? #S " balance: entries across the range, D^-1 P^T A P D "     \
+                     "but for entries passing below the least normal"          \
+                : #S " balance: entries across 2^(EMAX/4), D^-1 P^T A P D "    \
+                     "exactly");                                               \
+        }                                                                      \
+    }                                                                          \
+                                                                               \
+    /* the Jacobi tangent past 2^(EMAX/2), at a threshold of 0: the */         \
+    /* _c forms at run time, the plain forms' bits                   */        \
+    {                                                                          \
+        const T e = d_internal_math_##S##_pow2(-((EMAX) / 2) - 8);             \
+        T w[4], w2[4], val[2], val2[2], vec[4], vec2[4];                       \
+        T u[4], u2[4], sv[2], sv2[2], v[4], v2[4];                             \
+        w[0] = w2[0] = (T)1;                                                   \
+        w[1] = w2[1] = e;                                                      \
+        w[2] = w2[2] = e;                                                      \
+        w[3] = w2[3] = (T)2;                                                   \
+        for (i = 0; i < 4; ++i)                                                \
+            vec[i] = vec2[i] = v[i] = v2[i] = (T)((i % 3) == 0);               \
+        d_decomp_##S##_sym_eigen(w, val, vec, 2, (T)0);                        \
+        d_decomp_##S##_sym_eigen_c(w2, val2, vec2, 2, (T)0);                   \
+        w[0] = w2[0] = (T)1;                                                   \
+        w[1] = w2[1] = (T)0;                                                   \
+        w[2] = w2[2] = e;                                                      \
+        w[3] = w2[3] = (T)2;                                                   \
+        d_decomp_##S##_svd(w, u, sv, v, 2, 2, (T)0);                           \
+        d_decomp_##S##_svd_c(w2, u2, sv2, v2, 2, 2, (T)0);                     \
+        ok = (d_tests_abs_##S(vec[1]) == e);                                   \
+        for (i = 0; i < 4; ++i)                                                \
+            ok = ok && d_tests_same_##S(vec[i], vec2[i]) &&                    \
+                 d_tests_same_##S(u[i], u2[i]) &&                              \
+                 d_tests_same_##S(v[i], v2[i]);                                \
+        for (i = 0; i < 2; ++i)                                                \
+            ok = ok && d_tests_same_##S(val[i], val2[i]) &&                    \
+                 d_tests_same_##S(sv[i], sv2[i]);                              \
+        D_TESTS_EXPECT(ok, #S " sym_eigen_c, svd_c: the tangent past "         \
+                           "2^(EMAX/2), the plain forms' bits");               \
+    }                                                                          \
+                                                                               \
+    /* earlier chunks' paths: an entry already zero, a column with  */         \
+    /* nothing below it, a matrix not positive definite, and an    */          \
+    /* eigenvector of a NaN                                         */         \
+    {                                                                          \
+        const T sym[9] = { 2, 0, 1, 0, 3, 0, 1, 0, 4 };                        \
+        const T up[9]  = { 1, 2, 3, 0, 4, 5, 0, 0, 6 };                        \
+        const T npd[4] = { 1, 2, 2, 1 };                                       \
+        const T zc[9]  = { 0, 1, 2, 0, 3, 4, 0, 0, 5 };                        \
+        T w[9], w2[9], val[3], val2[3], vec[9], vec2[9], q[9], r[9];           \
+        T q2[9], r2[9], v[3], l[4];                                            \
+        const long double s2 = d_math_ld_sqrt(2.0L);                           \
+        bool found = true;                                                     \
+        memcpy(w, sym, sizeof(w));                                             \
+        memcpy(w2, sym, sizeof(w2));                                           \
+        for (i = 0; i < 9; ++i) vec[i] = vec2[i] = (T)((i % 4) == 0);          \
+        d_decomp_##S##_sym_eigen(w, val, vec, 3, (T)0);                        \
+        d_decomp_##S##_sym_eigen_c(w2, val2, vec2, 3, (T)0);                   \
+        ok = true;                                                             \
+        for (i = 0; i < 3; ++i)                                                \
+        {                                                                      \
+            const long double want = 3.0L + ((long double)i - 1.0L) * s2;      \
+            const long double gap = (long double)val[i] - want;                \
+            ok = ok && d_tests_same_##S(val[i], val2[i]) &&                    \
+                 (((gap < 0.0L) ? -gap : gap) <= 8.0L * (long double)EPS *     \
+                                                  5.0L);                       \
+        }                                                                      \
+        D_TESTS_EXPECT(ok, #S " sym_eigen: an entry already zero");            \
+        /* a first column zero: left as it is, Q R A */                        \
+        memcpy(r, zc, sizeof(r));                                              \
+        memcpy(r2, zc, sizeof(r2));                                            \
+        for (i = 0; i < 9; ++i) q[i] = q2[i] = (T)((i % 4) == 0);              \
+        d_decomp_##S##_qr(q, r, 3, 3, v);                                      \
+        d_decomp_##S##_qr_c(q2, r2, 3, 3, v);                                  \
+        ok = (r[0] == (T)0) && (r[3] == (T)0) && (r[6] == (T)0);               \
+        for (i = 0; i < 9; ++i)                                                \
+            ok = ok && d_tests_same_##S(r[i], r2[i]) &&                        \
+                 d_tests_same_##S(q[i], q2[i]);                                \
+        for (i = 0; i < 3; ++i)                                                \
+            for (j = 0; j < 3; ++j)                                            \
+            {                                                                  \
+                long double e = -(long double)zc[i * 3 + j];                   \
+                for (k = 0; k < 3; ++k)                                        \
+                    e += (long double)q[i * 3 + k] *                           \
+                         (long double)r[k * 3 + j];                            \
+                ok = ok && (((e < 0.0L) ? -e : e) <=                           \
+                            8.0L * (long double)EPS * 9.0L);                   \
+            }                                                                  \
+        D_TESTS_EXPECT(ok, #S " qr: a column already zero, Q R A");            \
+        memcpy(w, up, sizeof(w));                                              \
+        memcpy(w2, up, sizeof(w2));                                            \
+        d_decomp_##S##_hessenberg(w, 3);                                       \
+        d_decomp_##S##_hessenberg_c(w2, 3);                                    \
+        ok = true;                                                             \
+        for (i = 0; i < 9; ++i)                                                \
+            ok = ok && (w[i] == up[i]) && (w2[i] == up[i]);                    \
+        D_TESTS_EXPECT(ok, #S " hessenberg: nothing below, unchanged");        \
+        ok = !d_decomp_##S##_cholesky(l, npd, 2) &&                            \
+             !d_decomp_##S##_cholesky_c(l, npd, 2);                            \
+        D_TESTS_EXPECT(ok, #S " cholesky: not positive definite, both "        \
+                           "forms");                                           \
+        memcpy(w, npd, sizeof(T) * 4);                                         \
+        w[0] = (T)HUGE_VAL - (T)HUGE_VAL;                                      \
+        ok = d_tests_eigenvector_##S(w, 2, (T)1, v, &found) && !found;         \
+        D_TESTS_EXPECT(ok, #S " eigenvector: a NaN's, none");                  \
+    }                                                                          \
+}
+
+D_TESTS_GUARD_FAMILY(float,       f,  FLT_EPSILON,  FLT_MIN,  FLT_MAX_EXP)
+D_TESTS_GUARD_FAMILY(double,      d,  DBL_EPSILON,  DBL_MIN,  DBL_MAX_EXP)
+D_TESTS_GUARD_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MIN, LDBL_MAX_EXP)
+
 #if ( defined(__cplusplus) &&                                                 \
       (__cplusplus >= 201402L) )
 
@@ -1437,7 +2241,8 @@ D_TESTS_SCHUR_CONSTANT(long double, ld, LDBL_MAX_EXP)
 
 #endif
 
-int main(void)
+int
+main(void)
 {
     d_tests_decomp_f();
     d_tests_decomp_d();
@@ -1456,6 +2261,10 @@ int main(void)
            g_worst_value_f, g_worst_value_d, g_worst_value_ld,
            g_worst_vector_f, g_worst_vector_d, g_worst_vector_ld,
            g_worst_schur_f, g_worst_schur_d, g_worst_schur_ld);
+    /* the guards, last: they draw from the generator too */
+    d_tests_guard_f();
+    d_tests_guard_d();
+    d_tests_guard_ld();
 #if ( defined(__cplusplus) &&                                                 \
       (__cplusplus >= 201402L) )
     d_tests_schur_constant_f();

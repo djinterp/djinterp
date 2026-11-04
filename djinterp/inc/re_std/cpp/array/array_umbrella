@@ -20,7 +20,7 @@
 *     array_tuple_element.hpp         - tuple_element<I, array>
 *
 *
-* path:      /inc/re_std/array/array_umbrella
+* path:      /inc/re_std/cpp/array/array_umbrella
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.05.19
 *                                                            revised: 2026.10.01
@@ -29,22 +29,21 @@
 #ifndef RE_STD_ARRAY_ARRAY_UMBRELLA
 #define RE_STD_ARRAY_ARRAY_UMBRELLA 1
 
-// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
-// (README rule 5; re_std omits rather than degrades). The owner's ruling:
-// compile at every level first; port to C++98 only where something needs it.
+// FROM C++98: the array is C++98's now (array.hpp), for math's geometry,
+// whose floor is C++98.
 #include "../config.hpp"  // RE_STD_* configuration
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// every level: the array, its get<I>, comparisons and swap
 #include "./array.hpp"
 #include "./array_get.hpp"
 #include "./array_compare.hpp"
-#include "./array_compare_three_way.hpp"
 #include "./array_swap.hpp"
+// each of these keeps its own level (three-way comparison C++20's; to_array
+// C++11's; the tuple protocol C++11's, where re_std's tuple is)
+#include "./array_compare_three_way.hpp"
 #include "./to_array.hpp"
 #include "./array_tuple_size.hpp"
 #include "./array_tuple_element.hpp"
-
-#endif  // floor, for now
 
 
 #endif  // RE_STD_ARRAY_ARRAY_UMBRELLA

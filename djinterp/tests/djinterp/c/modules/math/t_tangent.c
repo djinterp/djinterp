@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    t_tangent.c
+* djinterp [c/math]                                                  t_tangent.c
 *
 *   Conformance harness for c/math/tangent.h. For float, tan_c and atan_c
 * must be the correctly rounded result -- the long double library's, rounded
@@ -34,11 +34,11 @@
 * expressions, for every family, with the bits they have at run time. It
 * needs no 64-bit integer -- its random numbers come from
 * math_tests_random.h, the same in every build -- so that ISO-strict C++98
-* on a 32-bit target, where dj_math_umax has 32 bits, builds it too.
+* on a 32-bit target, where d_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_tangent.c -o t_tangent -lm
+*        tests/djinterp/c/math/t_tangent.c -o t_tangent -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_tangent.c
@@ -75,8 +75,8 @@ static long double (*volatile g_atan2l)(long double,
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     long double _value,
@@ -104,8 +104,8 @@ void d_tests_expect(
 
 // d_tests_expect_pair
 //   d_tests_expect for a function of two arguments: a failure reports both.
-static
-void d_tests_expect_pair(
+static void
+d_tests_expect_pair(
     bool        _ok,
     const char* _what,
     long double _y,
@@ -134,18 +134,15 @@ void d_tests_expect_pair(
                         __LINE__)
 
 // a uniform double in [0, 1), from 53 random bits
-static
-double d_tests_unit(void)
+static double
+d_tests_unit(void)
 {
     return (double)d_tests_top(53) * DBL_EPSILON / 2.0;
 }
 
 // bit-for-bit, NaN equal to NaN, -0 distinct from +0
-static
-bool d_tests_same_f(
-    float _a,
-    float _b
-)
+static bool
+d_tests_same_f(float _a, float _b)
 {
     uint32_t a = 0u;
     uint32_t b = 0u;
@@ -156,21 +153,15 @@ bool d_tests_same_f(
     return ((a == b) || (isnan(_a) && isnan(_b)));
 }
 
-static
-bool d_tests_same_d(
-    double _a,
-    double _b
-)
+static bool
+d_tests_same_d(double _a, double _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_ld(
-    long double _a,
-    long double _b
-)
+static bool
+d_tests_same_ld(long double _a, long double _b)
 {
     // signbit's value is any nonzero for a negative: glibc's gives 1 for a
     // constant it folds and 512 for a long double at run time
@@ -181,13 +172,8 @@ bool d_tests_same_ld(
 // the distance of _got from _want in units of _want's last place, the
 // subnormals' spacing below the normal range; an infinity or NaN is 0 from
 // its like and 1e30 from anything else
-static
-double d_tests_ulps(
-    long double _got,
-    long double _want,
-    int         _mant,
-    int         _emin
-)
+static double
+d_tests_ulps(long double _got, long double _want, int _mant, int _emin)
 {
     long double scale = 0.0L;
     long double diff  = 0.0L;
@@ -217,12 +203,8 @@ double d_tests_ulps(
 //   one float: tan_c and atan_c against the long double library's result,
 // rounded to float, which is the correctly rounded one wherever long double
 // has eleven bits more than float; and within an ulp of tanf and atanf.
-static
-void d_tests_float_one(
-    float _x,
-    bool  _tan,
-    bool  _atan
-)
+static void
+d_tests_float_one(float _x, bool _tan, bool _atan)
 {
     if (_tan)
     {
@@ -247,10 +229,8 @@ void d_tests_float_one(
     return;
 }
 
-static
-void d_tests_float(
-    bool _exhaustive
-)
+static void
+d_tests_float(bool _exhaustive)
 {
     const uint32_t step = _exhaustive ? 1u : 1009u;
     uint32_t       bits = 0u;
@@ -295,8 +275,8 @@ void d_tests_float(
 // d_tests_double
 //   tan_c and atan_c within an ulp of tan and atan over random arguments;
 // prints how many differ at all, and the largest difference.
-static
-void d_tests_double(void)
+static void
+d_tests_double(void)
 {
     double worst_tan  = 0.0;
     double worst_atan = 0.0;
@@ -340,8 +320,8 @@ void d_tests_double(void)
 // tools/edge_values.py): the tangent about its pole and at huge arguments,
 // the arc-tangent at its table's boundaries and far out, and the arguments
 // whose result, rounded to long double, lies on a double's midpoint.
-static
-void d_tests_double_edges(void)
+static void
+d_tests_double_edges(void)
 {
     // x and tan(x), correctly rounded
     static const double tans[][2] = {
@@ -440,8 +420,8 @@ void d_tests_double_edges(void)
     return;
 }
 
-static
-void d_tests_long_double(void)
+static void
+d_tests_long_double(void)
 {
     double worst_tan  = 0.0;
     double worst_atan = 0.0;
@@ -488,8 +468,8 @@ void d_tests_long_double(void)
 
 // d_tests_specials
 //   NaN, the infinities, the zeros, the subnormals, every family.
-static
-void d_tests_specials(void)
+static void
+d_tests_specials(void)
 {
     const double inf  = (double)HUGE_VAL;
     const double tiny = 4.9406564584124654e-324;
@@ -558,8 +538,8 @@ void d_tests_specials(void)
 // the zeros and the subnormals among them, and mostly magnitudes so far
 // apart that the result is y/x, +-pi/2 or +-pi), the rest within twenty
 // binades of each other.
-static
-void d_tests_atan2_float(void)
+static void
+d_tests_atan2_float(void)
 {
     long i = 0;
 
@@ -603,8 +583,8 @@ void d_tests_atan2_float(void)
 // three in four within thirty binades of each other, x from 2^-60 to 2^60,
 // and every fourth from the whole range, the subnormals included. Prints
 // how many differ at all, and the largest difference.
-static
-void d_tests_atan2_double(void)
+static void
+d_tests_atan2_double(void)
 {
     double worst = 0.0;
     long   diff  = 0;
@@ -642,8 +622,8 @@ void d_tests_atan2_double(void)
 // range's extremes, where the quotient is subnormal or vanishes, and the
 // pairs whose result, rounded to long double, lies on a double's midpoint;
 // each with y negated too, which negates the result.
-static
-void d_tests_atan2_edges(void)
+static void
+d_tests_atan2_edges(void)
 {
     // y, x and atan2(y, x), correctly rounded
     static const double edges[][3] = {
@@ -702,8 +682,8 @@ void d_tests_atan2_edges(void)
 //   atan2_c within an ulp of atan2l at half a million random pairs, every
 // bit random: three in four within thirty binades of each other, every
 // fourth from the whole range, the subnormals included.
-static
-void d_tests_atan2_long_double(void)
+static void
+d_tests_atan2_long_double(void)
 {
     // every exponent a long double's least subnormal and largest value span
     const unsigned long span  = (unsigned long)(LDBL_MAX_EXP - LDBL_MIN_EXP +
@@ -751,8 +731,8 @@ void d_tests_atan2_long_double(void)
 // or 3 pi/4; and the result has y's sign, so that every row below is
 // checked with y negated too. Float and double against pi's multiples,
 // rounded; long double against atan2l.
-static
-void d_tests_atan2_specials(void)
+static void
+d_tests_atan2_specials(void)
 {
     // y, x, x's sign and the result, as kinds: an argument 0 for a zero,
     // 1 the least subnormal, 2 one, 3 the largest finite value, 4 infinity,
@@ -821,8 +801,8 @@ void d_tests_atan2_specials(void)
 
 // d_tests_overloads
 //   compiled as C++: one name for every family, chosen by argument type.
-static
-void d_tests_overloads(void)
+static void
+d_tests_overloads(void)
 {
     D_TESTS_EXPECT( (d_tests_same_f(d_math_tan_c(0.25f),
                                     d_math_f_tan_c(0.25f))) &&
@@ -924,8 +904,8 @@ static_assert(d_math_atan2_c(2.0f, 1.0f) > (float)1.107f,
 // d_tests_constant_evaluation
 //   the constants are the run time's results, bit for bit: the arguments
 // are read through volatiles, so the calls below are not folded.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     volatile float       one_f  = 1.0f;
     volatile double      one_d  = 1.0;
@@ -997,10 +977,8 @@ void d_tests_constant_evaluation(void)
 
 #endif  // C++14
 
-int main(
-    int    _argc,
-    char** _argv
-)
+int
+main(int _argc, char** _argv)
 {
     const bool exhaustive = (_argc > 1) &&
                             (strcmp(_argv[1], "exhaustive") == 0);

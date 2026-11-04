@@ -71,8 +71,8 @@ NS_INTERNAL
     // 1.1.1
     // expr_holds_variable
     //   function: whether a leaf of _term is the variable named _variable.
-    inline
-    bool expr_holds_variable(
+    inline bool
+    expr_holds_variable(
         const expr_term&   _term,
         const std::string& _variable
     )
@@ -122,7 +122,8 @@ NS_END  // internal
  *         _term holds no such variable; a term made by default where
  *         _replacement is one and _term holds the variable.
  */
-D_NODISCARD inline expr_term expr_substitute(
+D_NODISCARD inline expr_term
+expr_substitute(
     const expr_term&   _term,
     const std::string& _variable,
     const expr_term&   _replacement

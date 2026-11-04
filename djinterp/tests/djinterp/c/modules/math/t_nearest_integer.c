@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            t_nearest_integer.c
+* djinterp [c/math]                                          t_nearest_integer.c
 *
 *   Conformance harness for c/math/nearest_integer.h. floor_c, ceil_c,
 * trunc_c and round_c must be exact, and so the C library's floor, ceil,
@@ -19,11 +19,11 @@
 * overloads; from C++14, that the four are constant expressions, every
 * family -- far past 2^63 among them -- with the bits they have at run time.
 * It needs no 64-bit integer, so that ISO-strict C++98 on a 32-bit target,
-* where dj_math_umax has 32 bits, builds it too.
+* where d_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_nearest_integer.c -o t_nearest_integer -lm
+*        tests/djinterp/c/math/t_nearest_integer.c -o t_nearest_integer -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_nearest_integer.c
@@ -38,7 +38,7 @@
 #include <string.h>  // memcpy, strcmp
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/math/nearest_integer.h"  // unit under
-                                                              // test
+                                                                         // test
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 
@@ -62,8 +62,8 @@ static long     g_checks   = 0;
 static long     g_failures = 0;
 static uint32_t g_state    = 0x9E3779B9u;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     long double _value,
@@ -90,8 +90,8 @@ void d_tests_expect(
     d_tests_expect((ok), (what), (long double)(value), __LINE__)
 
 // xorshift on 32 bits, which every target has
-static
-uint32_t d_tests_random(void)
+static uint32_t
+d_tests_random(void)
 {
     g_state ^= g_state << 13;
     g_state ^= g_state >> 17;
@@ -102,8 +102,8 @@ uint32_t d_tests_random(void)
 
 // a uniform long double in [1, 2), from 128 random bits rounded to the
 // format's
-static
-long double d_tests_unit(void)
+static long double
+d_tests_unit(void)
 {
     const long double word = 4294967296.0L;   // 2^32
     long double       u    = 0.0L;
@@ -118,31 +118,22 @@ long double d_tests_unit(void)
 }
 
 // bit-for-bit, NaN equal to NaN, -0 distinct from +0
-static
-bool d_tests_same_f(
-    float _a,
-    float _b
-)
+static bool
+d_tests_same_f(float _a, float _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_d(
-    double _a,
-    double _b
-)
+static bool
+d_tests_same_d(double _a, double _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_ld(
-    long double _a,
-    long double _b
-)
+static bool
+d_tests_same_ld(long double _a, long double _b)
 {
     // signbit's value is any nonzero for a negative: glibc's gives 1 for a
     // constant it folds and 512 for a long double at run time
@@ -152,10 +143,8 @@ bool d_tests_same_ld(
 
 // d_tests_one_*
 //   the four at one value, against the library's, bit for bit.
-static
-void d_tests_one_f(
-    float _x
-)
+static void
+d_tests_one_f(float _x)
 {
     D_TESTS_EXPECT(d_tests_same_f(d_math_f_floor_c(_x), g_floorf(_x)),
                    "f floor_c is floorf", _x);
@@ -169,10 +158,8 @@ void d_tests_one_f(
     return;
 }
 
-static
-void d_tests_one_d(
-    double _x
-)
+static void
+d_tests_one_d(double _x)
 {
     D_TESTS_EXPECT(d_tests_same_d(d_math_d_floor_c(_x), g_floor(_x)),
                    "d floor_c is floor", _x);
@@ -186,10 +173,8 @@ void d_tests_one_d(
     return;
 }
 
-static
-void d_tests_one_ld(
-    long double _x
-)
+static void
+d_tests_one_ld(long double _x)
 {
     D_TESTS_EXPECT(d_tests_same_ld(d_math_ld_floor_c(_x), g_floorl(_x)),
                    "ld floor_c is floorl", _x);
@@ -218,8 +203,8 @@ static const long double g_edges[] = {
 //   two million random patterns; two million values below 2^25, any sign;
 // every float within 2,000 places of each edge, either sign; with
 // _exhaustive, every float.
-static
-void d_tests_float(
+static void
+d_tests_float(
     bool _exhaustive
 )
 {
@@ -295,8 +280,8 @@ void d_tests_float(
 // d_tests_double
 //   two million random patterns; two million values below 2^54, any sign;
 // every double within 2,000 places of each edge, either sign.
-static
-void d_tests_double(void)
+static void
+d_tests_double(void)
 {
     long   i = 0;
     size_t e = 0u;
@@ -357,8 +342,8 @@ void d_tests_double(void)
 //   in whatever format long double has: two hundred thousand values, most
 // below 2^(P+2) and one in eight of any exponent; every long double within
 // 2,000 places of each edge, either sign.
-static
-void d_tests_long_double(void)
+static void
+d_tests_long_double(void)
 {
     long   i = 0;
     size_t e = 0u;
@@ -484,8 +469,8 @@ void d_tests_long_double(void)
 //   every family's special values; the plain forms, the library's at every
 // level, C++98 included -- there trunc and round are the _c forms, which
 // agree with it.
-static
-void d_tests_specials(void)
+static void
+d_tests_specials(void)
 {
     volatile double v = -2.5;
     volatile float  w = 7.5f;
@@ -532,8 +517,8 @@ void d_tests_specials(void)
 
 // d_tests_overloads
 //   compiled as C++: one name for every family, chosen by argument type.
-static
-void d_tests_overloads(void)
+static void
+d_tests_overloads(void)
 {
     D_TESTS_EXPECT( (d_tests_same_f(d_math_floor_c(-7.5f),
                                     d_math_f_floor_c(-7.5f))) &&
@@ -589,8 +574,8 @@ static_assert(d_math_d_ceil_c(-(double)HUGE_VAL) == -(double)HUGE_VAL,
 //   the constants are the run time's results, bit for bit -- a zero's sign
 // included: the arguments are read through volatiles, so the calls below
 // are not folded.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     volatile double      half    = -0.5;
     volatile double      t       = -2.75;
@@ -616,10 +601,8 @@ void d_tests_constant_evaluation(void)
 
 #endif  // C++14
 
-int main(
-    int    _argc,
-    char** _argv
-)
+int
+main(int _argc, char** _argv)
 {
     const bool exhaustive = (_argc > 1) &&
                             (strcmp(_argv[1], "exhaustive") == 0);

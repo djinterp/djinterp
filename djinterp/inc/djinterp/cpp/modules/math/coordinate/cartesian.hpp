@@ -53,7 +53,7 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 
 

@@ -64,12 +64,12 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 #include "./geometry_common.hpp"                  // cartesian helpers
 // re_std
-#include "../../../../../re_std/cpp/array/array.hpp"        // re_std::array
+#include "../../../../../re_std/cpp/array/array.hpp"  // re_std::array
 // std, from C++11 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <array>                              // std::array
@@ -106,8 +106,8 @@ NS_INTERNAL
 
         // closed_form_area
         //   |(v1 - v0) x (v2 - v0)| / 2.
-        D_CONSTEXPR_CPP14
-        value_type closed_form_area() const D_NOEXCEPT
+        D_CONSTEXPR_CPP14 value_type
+        closed_form_area() const D_NOEXCEPT
         {
             const Derived&   self = static_cast<const Derived&>(*this);
             const point_type c0   = System::to_cartesian(self.m_v0);
@@ -121,8 +121,8 @@ NS_INTERNAL
         // normal
         //   the unit normal (v1 - v0) x (v2 - v0) / |...|; zero for a
         // degenerate triangle.
-        D_CONSTEXPR_CPP14
-        linalg::vector<value_type, 3> normal() const D_NOEXCEPT
+        D_CONSTEXPR_CPP14 linalg::vector<value_type, 3>
+        normal() const D_NOEXCEPT
         {
             const Derived&   self = static_cast<const Derived&>(*this);
             const point_type c0   = System::to_cartesian(self.m_v0);
@@ -153,8 +153,8 @@ NS_INTERNAL
         // closed_form_area
         //   half the length of the fan's summed cross products (v_i - v_0) x
         // (v_(i+1) - v_0), the polygon's vector area.
-        D_CONSTEXPR_CPP14
-        value_type closed_form_area() const D_NOEXCEPT
+        D_CONSTEXPR_CPP14 value_type
+        closed_form_area() const D_NOEXCEPT
         {
             const Derived&   self = static_cast<const Derived&>(*this);
             const point_type c0   = System::to_cartesian(self.m_vertices[0]);
@@ -327,26 +327,26 @@ struct planar_polygon_surface
     }
 #endif
 
-    D_CONSTEXPR
-    value_type parameter_min_u() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_min_u() const D_NOEXCEPT
     {
         return static_cast<value_type>(0);
     }
 
-    D_CONSTEXPR
-    value_type parameter_max_u() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_max_u() const D_NOEXCEPT
     {
         return static_cast<value_type>(1);
     }
 
-    D_CONSTEXPR
-    value_type parameter_min_v() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_min_v() const D_NOEXCEPT
     {
         return static_cast<value_type>(0);
     }
 
-    D_CONSTEXPR
-    value_type parameter_max_v() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_max_v() const D_NOEXCEPT
     {
         return static_cast<value_type>(1);
     }

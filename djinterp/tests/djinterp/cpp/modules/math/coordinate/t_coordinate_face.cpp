@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          t_coordinate_face.cpp
+* djinterp [cpp/math]                                      t_coordinate_face.cpp
 *
 *   Tests for the coordinate headers -- cartesian, polar, cylindrical,
 * spherical, coordinate -- at every level from C++98: each system's
@@ -12,7 +12,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/coordinate/t_coordinate_face.cpp -o t -lm
+*         tests/djinterp/math/coordinate/t_coordinate_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/coordinate/t_coordinate_face.cpp
@@ -32,7 +32,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -58,11 +59,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -72,7 +70,8 @@ namespace
 
     unsigned long g_state = 31337u;
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -81,9 +80,8 @@ namespace
     }
 
     template<typename Type>
-    void d_tests_family(
-        Type _tol
-    )
+    void
+    d_tests_family(Type _tol)
     {
         typedef dm::polar<Type>        pol;
         typedef dm::cylindrical<Type>  cyl;
@@ -181,7 +179,8 @@ namespace
         return;
     }
 
-    void d_tests_traits_and_generic()
+    void
+    d_tests_traits_and_generic()
     {
         D_TESTS_EXPECT( (dm::is_coord_system<dm::polar<double> >::value) &&
                         (dm::is_coord_system<dm::cartesian<4, float> >
@@ -229,7 +228,8 @@ static_assert(dm::spherical<double>::to_cartesian(
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-4f);
     d_tests_family<double>(1e-12);

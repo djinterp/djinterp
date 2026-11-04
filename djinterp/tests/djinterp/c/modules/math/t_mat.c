@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                        t_mat.c
+* djinterp [c/math]                                                      t_mat.c
 *
 *   Conformance harness for c/math/mat.h, all three families: every kernel
 * against the formula it implements, written out here in the same type and
@@ -20,7 +20,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_mat.c -o t_mat -lm
+*        tests/djinterp/c/math/t_mat.c -o t_mat -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_mat.c
@@ -39,8 +39,8 @@ static long          g_singular_missed = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 314159265u;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -65,8 +65,8 @@ void d_tests_expect(
 #define D_TESTS_EXPECT(ok, what)                                              \
     d_tests_expect((ok), (what), __LINE__)
 
-static
-double d_tests_random(void)
+static double
+d_tests_random(void)
 {
     g_state = (g_state * 1103515245u) + 12345u;
 
@@ -246,6 +246,14 @@ d_tests_mat_##S(void)                                                          \
             want[(i * r) + i] = v[i];                                          \
         }                                                                      \
         D_TESTS_EXPECT(d_tests_same_##S(out, want, r * r), #S " diagonal");    \
+    }                                                                          \
+                                                                               \
+    /* a matrix one entry from the identity is not the identity */             \
+    {                                                                          \
+        const T two[4] = { (T)1, (T)0, (T)0, (T)2 };                           \
+        D_TESTS_EXPECT( (!d_mat_##S##_is_identity(two, 2u, (T)0.5)) &&         \
+                        (d_mat_##S##_is_identity(two, 2u, (T)1)),              \
+                        #S " is_identity: within the tolerance, or not");      \
     }                                                                          \
                                                                                \
     return;                                                                    \

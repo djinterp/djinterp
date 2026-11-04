@@ -55,7 +55,7 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "./edge.hpp"                             // the edges
 #include "./geometry_common.hpp"                  // the traits, aabb,
@@ -90,9 +90,8 @@ NS_INTERNAL
               m_eps(_eps)
         {}
 
-        value_type operator()(
-            value_type _t
-        ) const
+        value_type
+        operator()(value_type _t) const
         {
             return cartesian_distance<system_type>(m_edge.at(_t - m_eps),
                                                    m_edge.at(_t + m_eps)) /
@@ -121,9 +120,8 @@ NS_INTERNAL
               m_eps(_eps)
         {}
 
-        value_type operator()(
-            value_type _t
-        ) const
+        value_type
+        operator()(value_type _t) const
         {
             const point_type p_cart  = system_type::to_cartesian(
                                            m_edge.at(_t));
@@ -171,8 +169,8 @@ NS_INTERNAL
     {
         typedef typename Edge::value_type value_type;
 
-        static
-        value_type compute(
+        static value_type
+        compute(
             const Edge& _e,
             std::size_t
         )
@@ -254,10 +252,8 @@ NS_INTERNAL
     template<typename Shape>
     struct perimeter_impl<Shape, true>
     {
-        static
-        typename Shape::value_type compute(
-            const Shape& _s
-        )
+        static typename Shape::value_type
+        compute(const Shape& _s)
         {
             return _s.closed_form_perimeter();
         }
@@ -276,10 +272,8 @@ NS_INTERNAL
     template<typename Shape>
     struct area_impl<Shape, true>
     {
-        static
-        typename Shape::value_type compute(
-            const Shape& _s
-        )
+        static typename Shape::value_type
+        compute(const Shape& _s)
         {
             return _s.closed_form_area();
         }
@@ -298,10 +292,8 @@ NS_INTERNAL
     template<typename Shape>
     struct centroid_impl<Shape, true>
     {
-        static
-        typename Shape::point_type compute(
-            const Shape& _s
-        )
+        static typename Shape::point_type
+        compute(const Shape& _s)
         {
             return _s.closed_form_centroid();
         }
@@ -322,7 +314,8 @@ NS_END  // internal
 //   function: an edge's arc length -- its closed form, or Simpson's rule
 // over _samples intervals of its speed.
 template<typename Edge>
-typename Edge::value_type curve_length(
+typename Edge::value_type
+curve_length(
     const Edge& _e,
     std::size_t _samples = 64
 )
@@ -338,9 +331,8 @@ typename Edge::value_type curve_length(
 // perimeter
 //   function: a 2D shape's boundary length, its closed form.
 template<typename Shape>
-typename Shape::value_type perimeter(
-    const Shape& _s
-)
+typename Shape::value_type
+perimeter(const Shape& _s)
 {
     (void)internal::measure_shape_2d_check<Shape>::ok;
 
@@ -359,9 +351,8 @@ typename Shape::value_type perimeter(
 // area
 //   function: a 2D shape's area, its closed form.
 template<typename Shape>
-typename Shape::value_type area(
-    const Shape& _s
-)
+typename Shape::value_type
+area(const Shape& _s)
 {
     (void)internal::measure_shape_2d_check<Shape>::ok;
 
@@ -375,7 +366,8 @@ typename Shape::value_type area(
 //   function: the area a closed 2D edge bounds, |∮ (x dy - y dx)| / 2 by
 // Simpson's rule over _samples intervals.
 template<typename Edge>
-typename Edge::value_type area_green(
+typename Edge::value_type
+area_green(
     const Edge& _boundary,
     std::size_t _samples = 256
 )
@@ -405,9 +397,8 @@ typename Edge::value_type area_green(
 // centroid
 //   function: a shape's centroid, its closed form.
 template<typename Shape>
-typename Shape::point_type centroid(
-    const Shape& _s
-)
+typename Shape::point_type
+centroid(const Shape& _s)
 {
     (void)internal::measure_shape_check<Shape>::ok;
 
@@ -423,7 +414,8 @@ typename Shape::point_type centroid(
 // bounding_box_of_edge
 //   function: the Cartesian box of _samples + 1 points along a 2D edge.
 template<typename Edge>
-aabb<2, typename Edge::value_type> bounding_box_of_edge(
+aabb<2, typename Edge::value_type>
+bounding_box_of_edge(
     const Edge& _e,
     std::size_t _samples = 64
 )
@@ -452,9 +444,8 @@ aabb<2, typename Edge::value_type> bounding_box_of_edge(
 //   function: the Cartesian box of a polygon's vertices.
 template<typename    System,
          std::size_t N>
-aabb<2, typename System::value_type> bounding_box_of_polygon(
-    const polygon<System, N>& _poly
-)
+aabb<2, typename System::value_type>
+bounding_box_of_polygon(const polygon<System, N>& _poly)
 {
     typedef typename System::value_type value_type;
 
@@ -472,9 +463,8 @@ aabb<2, typename System::value_type> bounding_box_of_polygon(
 //   function: a circle's Cartesian box, its centre plus and minus its
 // radius.
 template<typename System>
-aabb<2, typename System::value_type> bounding_box_of_circle(
-    const circle<System>& _c
-)
+aabb<2, typename System::value_type>
+bounding_box_of_circle(const circle<System>& _c)
 {
     typedef typename System::value_type value_type;
     typedef typename System::point_type point_type;

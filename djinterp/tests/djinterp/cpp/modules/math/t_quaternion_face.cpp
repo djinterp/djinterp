@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          t_quaternion_face.cpp
+* djinterp [cpp/math]                                      t_quaternion_face.cpp
 *
 *   Tests for both quaternion headers -- math/quaternion.hpp and
 * math/linear_algebra/quaternion.hpp -- at every level from C++98: from an
@@ -13,7 +13,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/t_quaternion_face.cpp -o t_quaternion -lm
+*         tests/djinterp/math/t_quaternion_face.cpp -o t_quaternion -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_quaternion_face.cpp
@@ -61,7 +61,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -87,10 +88,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_same(
-        Float _a,
-        Float _b
-    )
+    bool
+    d_tests_same(Float _a, Float _b)
     {
         volatile Float a = _a;
         volatile Float b = _b;
@@ -99,11 +98,8 @@ namespace
     }
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -113,7 +109,8 @@ namespace
 
     unsigned long g_state = 987654321u;
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -122,9 +119,8 @@ namespace
     }
 
     template<typename Type>
-    void d_tests_family(
-        Type _tol
-    )
+    void
+    d_tests_family(Type _tol)
     {
         typedef djinterp::math::linalg::quaternion<Type> lq;
         typedef djinterp::math::quaternion<Type>         q;
@@ -250,7 +246,8 @@ namespace
         return;
     }
 
-    void d_tests_generic_parity()
+    void
+    d_tests_generic_parity()
     {
         typedef djinterp::math::linalg::quaternion<double> lq;
         typedef djinterp::math::linalg::quaternion<t_real> lr;
@@ -330,7 +327,8 @@ static_assert(djinterp::math::linalg::from_axis_angle(
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-5f);
     d_tests_family<double>(1e-13);

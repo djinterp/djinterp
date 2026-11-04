@@ -67,11 +67,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
-#include "../../../../c/modules/math/decomp.h"                  // the C core: d_decomp_*
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
+#include "../../../djinterp.hpp"                  // framework root
+#include "../../../../c/modules/math/decomp.h"    // the C core: d_decomp_*
 #include "./decomposition.hpp"                    // lu, qr, cholesky
 #include "./linalg_common.hpp"                    // linalg_family_of
 #include "./matrix.hpp"                           // matrix
@@ -128,8 +125,8 @@ NS_END  // internal
 // diagonal).
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<T, N> forward_substitution(
+D_CONSTEXPR_CPP14 vector<T, N>
+forward_substitution(
     const matrix<T, N, N>& _l,
     const vector<T, N>&    _b
 ) D_NOEXCEPT
@@ -148,8 +145,8 @@ vector<T, N> forward_substitution(
 // diagonal).
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<T, N> back_substitution(
+D_CONSTEXPR_CPP14 vector<T, N>
+back_substitution(
     const matrix<T, N, N>& _u,
     const vector<T, N>&    _b
 ) D_NOEXCEPT
@@ -178,8 +175,8 @@ vector<T, N> back_substitution(
 // as inverse gives the zero matrix.
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<T, N> solve(
+D_CONSTEXPR_CPP14 vector<T, N>
+solve(
     const matrix<T, N, N>& _a,
     const vector<T, N>&    _b
 ) D_NOEXCEPT
@@ -208,8 +205,8 @@ vector<T, N> solve(
 template<typename    T,
          std::size_t N,
          std::size_t K>
-D_CONSTEXPR_CPP14
-matrix<T, N, K> solve(
+D_CONSTEXPR_CPP14 matrix<T, N, K>
+solve(
     const matrix<T, N, N>& _a,
     const matrix<T, N, K>& _b
 ) D_NOEXCEPT
@@ -236,8 +233,8 @@ matrix<T, N, K> solve(
 // Cholesky.
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<T, N> solve_spd(
+D_CONSTEXPR_CPP14 vector<T, N>
+solve_spd(
     const matrix<T, N, N>& _a,
     const vector<T, N>&    _b
 ) D_NOEXCEPT
@@ -259,8 +256,8 @@ vector<T, N> solve_spd(
 template<typename    T,
          std::size_t M,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<T, N> least_squares(
+D_CONSTEXPR_CPP14 vector<T, N>
+least_squares(
     const matrix<T, M, N>& _a,
     const vector<T, M>&    _b
 ) D_NOEXCEPT

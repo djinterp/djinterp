@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      t_dynamic_matrix_face.cpp
+* djinterp [cpp/math]                                  t_dynamic_matrix_face.cpp
 *
 *   Tests for linear_algebra/dynamic_matrix.hpp, at every level from C++98,
 * per family and for int: shapes chosen at run time -- construction,
@@ -10,7 +10,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_dynamic_matrix_face.cpp -o t -lm
+*         tests/djinterp/math/linear_algebra/t_dynamic_matrix_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_dynamic_matrix_face.cpp
@@ -31,7 +31,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -57,7 +58,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename T>
-    void d_tests_family()
+    void
+    d_tests_family()
     {
         typedef la::dynamic_matrix<T> dm;
         typedef la::matrix<T, 2, 3>   f23;
@@ -127,7 +129,8 @@ namespace
 }  // namespace
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>();
     d_tests_family<double>();

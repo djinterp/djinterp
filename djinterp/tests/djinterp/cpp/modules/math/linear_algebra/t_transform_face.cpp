@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           t_transform_face.cpp
+* djinterp [cpp/math]                                       t_transform_face.cpp
 *
 *   Tests for linear_algebra/transform.hpp, at every level from C++98: each
 * rotation's entries are the C library's cosine and sine of the angle, bit
@@ -13,7 +13,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_transform_face.cpp -o t -lm
+*         tests/djinterp/math/linear_algebra/t_transform_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_transform_face.cpp
@@ -24,8 +24,8 @@
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/transform.hpp"  // test
 // djinterp
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/square.hpp"  // is_
-                                                                    // ortho-
-                                                                    // gonal
+                                                                                      // ortho-
+                                                                                      // gonal
 // std
 #include <cmath>    // std::cos, std::sin
 #include <cstdio>   // std::printf
@@ -47,7 +47,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -73,10 +74,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_same(
-        Float _a,
-        Float _b
-    )
+    bool
+    d_tests_same(Float _a, Float _b)
     {
         volatile Float a = _a;
         volatile Float b = _b;
@@ -86,7 +85,8 @@ namespace
 
     unsigned long g_state = 123456789u;
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -95,9 +95,8 @@ namespace
     }
 
     template<typename Type>
-    void d_tests_family(
-        Type _tolerance
-    )
+    void
+    d_tests_family(Type _tolerance)
     {
         typedef matrix<Type, 3, 3> m3;
 
@@ -183,7 +182,8 @@ namespace
         return;
     }
 
-    void d_tests_integers()
+    void
+    d_tests_integers()
     {
         const matrix<int, 3, 3> t = djinterp::math::linalg::homogeneous(
             djinterp::math::linalg::scaling_2d(3),
@@ -202,7 +202,8 @@ namespace
     }
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    void d_tests_bridge()
+    void
+    d_tests_bridge()
     {
         const vector<double, 3>     v(1, 2, 3);
         const std::array<double, 3> a = djinterp::math::linalg::to_array(v);
@@ -235,7 +236,8 @@ static_assert(djinterp::math::linalg::rotation_z(0.0).is_identity(0.0),
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-4f);
     d_tests_family<double>(1e-12);

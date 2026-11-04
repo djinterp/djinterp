@@ -59,7 +59,7 @@ TABLE OF CONTENTS
 #include <cstddef>                                // std::size_t
 #include <vector>                                 // std::vector
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "./linalg_common.hpp"                    // linalg_kernel,
                                                   // default_tolerance
 #include "./matrix.hpp"                           // matrix
@@ -135,8 +135,8 @@ public:
 
     // ---- named factories --------------------------------------------------
 
-    static
-    dynamic_matrix zeros(
+    static dynamic_matrix
+    zeros(
         size_type _rows,
         size_type _cols
     )
@@ -144,21 +144,19 @@ public:
         return dynamic_matrix(_rows, _cols);
     }
 
-    static
-    dynamic_matrix filled(
+    static dynamic_matrix
+    filled(
         size_type _rows,
         size_type _cols,
-        T         _value
+        T        _value
     )
     {
         return dynamic_matrix(_rows, _cols, _value);
     }
 
     // identity: the _n x _n identity matrix.
-    static
-    dynamic_matrix identity(
-        size_type _n
-    )
+    static dynamic_matrix
+    identity(size_type _n)
     {
         dynamic_matrix m(_n, _n);
 
@@ -171,8 +169,8 @@ public:
     }
 
     // from_row_major: build from a flat, row-major buffer (size must be r*c).
-    static
-    dynamic_matrix from_row_major(
+    static dynamic_matrix
+    from_row_major(
         size_type           _rows,
         size_type           _cols,
         const storage_type& _entries
@@ -190,10 +188,8 @@ public:
     // from_fixed: copy a fixed-size matrix into a dynamic one.
     template<std::size_t Rows,
              std::size_t Cols>
-    static
-    dynamic_matrix from_fixed(
-        const matrix<T, Rows, Cols>& _m
-    )
+    static dynamic_matrix
+    from_fixed(const matrix<T, Rows, Cols>& _m)
     {
         dynamic_matrix out(Rows, Cols);
 
@@ -210,27 +206,32 @@ public:
 
     // ---- shape / access ---------------------------------------------------
 
-    size_type rows() const D_NOEXCEPT
+    size_type
+    rows() const D_NOEXCEPT
     {
         return m_rows;
     }
 
-    size_type cols() const D_NOEXCEPT
+    size_type
+    cols() const D_NOEXCEPT
     {
         return m_cols;
     }
 
-    size_type size() const D_NOEXCEPT
+    size_type
+    size() const D_NOEXCEPT
     {
         return m_rows * m_cols;
     }
 
-    bool is_square() const D_NOEXCEPT
+    bool
+    is_square() const D_NOEXCEPT
     {
         return (m_rows == m_cols);
     }
 
-    const T& operator()(
+    const T&
+    operator()(
         size_type _i,
         size_type _j
     ) const
@@ -241,7 +242,8 @@ public:
         return m_data[_i * m_cols + _j];
     }
 
-    T& operator()(
+    T&
+    operator()(
         size_type _i,
         size_type _j
     )
@@ -252,15 +254,15 @@ public:
         return m_data[_i * m_cols + _j];
     }
 
-    const storage_type& data() const D_NOEXCEPT
+    const storage_type&
+    data() const D_NOEXCEPT
     {
         return m_data;
     }
 
     // row: the _i-th row as a std::vector.
-    vector_type row(
-        size_type _i
-    ) const
+    vector_type
+    row(size_type _i) const
     {
         assert((_i < m_rows) && "dynamic_matrix::row: index out of range.");
 
@@ -275,9 +277,8 @@ public:
     }
 
     // col: the _j-th column as a std::vector.
-    vector_type col(
-        size_type _j
-    ) const
+    vector_type
+    col(size_type _j) const
     {
         assert((_j < m_cols) && "dynamic_matrix::col: index out of range.");
 
@@ -294,7 +295,8 @@ public:
     // to_fixed: convert to a fixed-size matrix (dimensions must match).
     template<std::size_t Rows,
              std::size_t Cols>
-    matrix<T, Rows, Cols> to_fixed() const
+    matrix<T, Rows, Cols>
+    to_fixed() const
     {
         assert((m_rows == Rows) && (m_cols == Cols) &&
                "dynamic_matrix::to_fixed: dimension mismatch.");
@@ -314,9 +316,8 @@ public:
 
     // ---- additive / scalar arithmetic (fluent) ----------------------------
 
-    dynamic_matrix plus(
-        const dynamic_matrix& _o
-    ) const
+    dynamic_matrix
+    plus(const dynamic_matrix& _o) const
     {
         assert((m_rows == _o.m_rows) && (m_cols == _o.m_cols) &&
                "dynamic_matrix::plus: dimension mismatch.");
@@ -333,9 +334,8 @@ public:
         return m;
     }
 
-    dynamic_matrix minus(
-        const dynamic_matrix& _o
-    ) const
+    dynamic_matrix
+    minus(const dynamic_matrix& _o) const
     {
         assert((m_rows == _o.m_rows) && (m_cols == _o.m_cols) &&
                "dynamic_matrix::minus: dimension mismatch.");
@@ -352,9 +352,8 @@ public:
         return m;
     }
 
-    dynamic_matrix scaled(
-        T _s
-    ) const
+    dynamic_matrix
+    scaled(T _s) const
     {
         dynamic_matrix m(m_rows, m_cols);
 
@@ -367,7 +366,8 @@ public:
         return m;
     }
 
-    dynamic_matrix negated() const
+    dynamic_matrix
+    negated() const
     {
         dynamic_matrix m(m_rows, m_cols);
 
@@ -380,9 +380,8 @@ public:
         return m;
     }
 
-    dynamic_matrix hadamard(
-        const dynamic_matrix& _o
-    ) const
+    dynamic_matrix
+    hadamard(const dynamic_matrix& _o) const
     {
         assert((m_rows == _o.m_rows) && (m_cols == _o.m_cols) &&
                "dynamic_matrix::hadamard: dimension mismatch.");
@@ -401,7 +400,8 @@ public:
 
     // ---- transpose / products ---------------------------------------------
 
-    dynamic_matrix transposed() const
+    dynamic_matrix
+    transposed() const
     {
         dynamic_matrix m(m_cols, m_rows);
 
@@ -415,9 +415,8 @@ public:
     }
 
     // times (matrix): the matrix product (*this) * _rhs.
-    dynamic_matrix times(
-        const dynamic_matrix& _rhs
-    ) const
+    dynamic_matrix
+    times(const dynamic_matrix& _rhs) const
     {
         assert((m_cols == _rhs.m_rows) &&
                "dynamic_matrix::times: inner dimensions must agree.");
@@ -436,9 +435,8 @@ public:
     }
 
     // times (vector): the matrix-vector product (*this) * _v.
-    vector_type times(
-        const vector_type& _v
-    ) const
+    vector_type
+    times(const vector_type& _v) const
     {
         assert((m_cols == _v.size()) &&
                "dynamic_matrix::times: vector length must equal column "
@@ -473,9 +471,8 @@ public:
     // identity; otherwise the C core's, by squaring (d_mat_power): from the
     // exponent's highest bit down, the power squared, then times A on the
     // left where the bit is 1.
-    dynamic_matrix power(
-        size_type _n
-    ) const
+    dynamic_matrix
+    power(size_type _n) const
     {
         assert(is_square() && "dynamic_matrix::power: matrix must be square.");
 
@@ -517,9 +514,8 @@ public:
 
     // map: a new matrix with _fn applied to each entry.
     template<typename Fn>
-    dynamic_matrix map(
-        Fn _fn
-    ) const
+    dynamic_matrix
+    map(Fn _fn) const
     {
         dynamic_matrix m(m_rows, m_cols);
 
@@ -536,9 +532,8 @@ public:
     // equals: same shape and entries within _tol (different shape -> false);
     // given none, within four of the largest epsilon the entries carry times
     // their largest magnitude, exactly where they are exact (S157, S158).
-    bool equals(
-        const dynamic_matrix& _o
-    ) const
+    bool
+    equals(const dynamic_matrix& _o) const
     {
         // a shape apart: unequal, whatever the tolerance
         if ((m_rows != _o.m_rows) || (m_cols != _o.m_cols))
@@ -555,9 +550,10 @@ public:
                                                          false) ));
     }
 
-    bool equals(
+    bool
+    equals(
         const dynamic_matrix& _o,
-        T                     _tol
+        T                    _tol
     ) const
     {
         if ((m_rows != _o.m_rows) || (m_cols != _o.m_cols))
@@ -588,7 +584,8 @@ private:
 //==============================================================================
 
 template<typename T>
-dynamic_matrix<T> operator+(
+dynamic_matrix<T>
+operator+(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -597,7 +594,8 @@ dynamic_matrix<T> operator+(
 }
 
 template<typename T>
-dynamic_matrix<T> operator-(
+dynamic_matrix<T>
+operator-(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -606,9 +604,8 @@ dynamic_matrix<T> operator-(
 }
 
 template<typename T>
-dynamic_matrix<T> operator-(
-    const dynamic_matrix<T>& _a
-)
+dynamic_matrix<T>
+operator-(const dynamic_matrix<T>& _a)
 {
     return _a.negated();
 }
@@ -638,7 +635,8 @@ operator*(
 }
 
 template<typename T>
-dynamic_matrix<T> operator*(
+dynamic_matrix<T>
+operator*(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -647,7 +645,8 @@ dynamic_matrix<T> operator*(
 }
 
 template<typename T>
-std::vector<T> operator*(
+std::vector<T>
+operator*(
     const dynamic_matrix<T>& _m,
     const std::vector<T>&    _v
 )
@@ -656,7 +655,8 @@ std::vector<T> operator*(
 }
 
 template<typename T>
-bool operator==(
+bool
+operator==(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -678,7 +678,8 @@ bool operator==(
 }
 
 template<typename T>
-bool operator!=(
+bool
+operator!=(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -692,15 +693,15 @@ bool operator!=(
 //==============================================================================
 
 template<typename T>
-dynamic_matrix<T> transpose(
-    const dynamic_matrix<T>& _m
-)
+dynamic_matrix<T>
+transpose(const dynamic_matrix<T>& _m)
 {
     return _m.transposed();
 }
 
 template<typename T>
-dynamic_matrix<T> multiply(
+dynamic_matrix<T>
+multiply(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -709,7 +710,8 @@ dynamic_matrix<T> multiply(
 }
 
 template<typename T>
-std::vector<T> multiply(
+std::vector<T>
+multiply(
     const dynamic_matrix<T>& _m,
     const std::vector<T>&    _v
 )
@@ -718,7 +720,8 @@ std::vector<T> multiply(
 }
 
 template<typename T>
-dynamic_matrix<T> add(
+dynamic_matrix<T>
+add(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -727,7 +730,8 @@ dynamic_matrix<T> add(
 }
 
 template<typename T>
-dynamic_matrix<T> subtract(
+dynamic_matrix<T>
+subtract(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -750,7 +754,8 @@ frobenius_norm(const dynamic_matrix<T>& _m)
 }
 
 template<typename T>
-bool approx_equal(
+bool
+approx_equal(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b
 )
@@ -759,7 +764,8 @@ bool approx_equal(
 }
 
 template<typename T>
-bool approx_equal(
+bool
+approx_equal(
     const dynamic_matrix<T>& _a,
     const dynamic_matrix<T>& _b,
     T                        _tol

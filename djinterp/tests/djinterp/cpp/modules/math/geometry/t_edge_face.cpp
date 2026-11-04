@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                t_edge_face.cpp
+* djinterp [cpp/math]                                            t_edge_face.cpp
 *
 *   Tests for geometry/edge.hpp, at every level from C++98: a segment's
 * points and length; a polyline's points, its parameter clamped at both
@@ -10,7 +10,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/geometry/t_edge_face.cpp -o t_edge -lm
+*         tests/djinterp/math/geometry/t_edge_face.cpp -o t_edge -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_edge_face.cpp
@@ -30,7 +30,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -56,11 +57,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -79,10 +77,8 @@ namespace
             double operator[](std::size_t _i) const { return c[_i]; }
         };
 
-        static
-        point evaluate(
-            double _t
-        )
+        static point
+        evaluate(double _t)
         {
             point p;
 
@@ -96,10 +92,8 @@ namespace
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     struct t_unit_circle
     {
-        static
-        double evaluate(
-            const std::tuple<double, double>& _t
-        )
+        static double
+        evaluate(const std::tuple<double, double>& _t)
         {
             return (std::get<0>(_t) * std::get<0>(_t)) +
                    (std::get<1>(_t) * std::get<1>(_t)) - 1.0;
@@ -108,9 +102,8 @@ namespace
 #endif
 
     template<typename T>
-    void d_tests_family(
-        T _tol
-    )
+    void
+    d_tests_family(T _tol)
     {
         typedef dm::cartesian<2, T>      car;
         typedef typename car::point_type p2;
@@ -182,7 +175,8 @@ D_STATIC_ASSERT((!dm::has_closed_form_length<
                 "a Bezier curve has none");
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-6f);
     d_tests_family<double>(1e-15);

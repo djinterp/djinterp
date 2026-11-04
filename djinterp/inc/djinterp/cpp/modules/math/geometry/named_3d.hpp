@@ -82,7 +82,7 @@ TABLE OF CONTENTS
                                                   // std::sin, std::cos
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 #include "./geometry_common.hpp"                  // cartesian_distance,

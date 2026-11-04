@@ -47,11 +47,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
-#include "../../../../c/modules/math/isect.h"                   // the C core: d_isect_*
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
+#include "../../../djinterp.hpp"                  // framework root
+#include "../../../../c/modules/math/isect.h"     // the C core: d_isect_*
 #include "../linear_algebra/linalg_common.hpp"    // linalg::internal::
                                                   // linalg_family_of
 #include "../linear_algebra/vector.hpp"           // linalg::vector
@@ -148,15 +145,13 @@ NS_INTERNAL
     template<typename T>
     struct ray_isect<T, 0>
     {
-        static D_CONSTEXPR_CPP14
-        bool aabb(
-            const T* _o,
-            const T* _d,
-            const T* _lo,
-            const T* _hi,
-            T*       _t_near,
-            T*       _t_far
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 bool
+        aabb(const T* _o,
+             const T* _d,
+             const T* _lo,
+             const T* _hi,
+             T*       _t_near,
+             T*       _t_far) D_NOEXCEPT
         {
             double o[3]  = { 0.0, 0.0, 0.0 };
             double d[3]  = { 0.0, 0.0, 0.0 };
@@ -185,16 +180,14 @@ NS_INTERNAL
             return hit;
         }
 
-        static D_CONSTEXPR_CPP14
-        bool triangle(
-            const T* _o,
-            const T* _d,
-            const T* _v0,
-            const T* _v1,
-            const T* _v2,
-            T        _epsilon,
-            T*       _t_out
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 bool
+        triangle(const T* _o,
+                 const T* _d,
+                 const T* _v0,
+                 const T* _v1,
+                 const T* _v2,
+                 T        _epsilon,
+                 T*       _t_out) D_NOEXCEPT
         {
             double o[3]  = { 0.0, 0.0, 0.0 };
             double d[3]  = { 0.0, 0.0, 0.0 };
@@ -243,12 +236,13 @@ NS_END  // internal
 // non-negative parameter, by the slab test; if so, _t_near and _t_far are
 // where it enters and leaves (an origin inside enters behind it).
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 bool intersect_aabb(
-    const ray<T>&                      _ray,
-    const typename ray<T>::point_type& _box_min,
-    const typename ray<T>::point_type& _box_max,
-    T&                                 _t_near,
-    T&                                 _t_far
+D_NODISCARD D_CONSTEXPR_CPP14 bool
+intersect_aabb(
+    const ray<T>&                       _ray,
+    const typename ray<T>::point_type&  _box_min,
+    const typename ray<T>::point_type&  _box_max,
+    T&                                  _t_near,
+    T&                                  _t_far
 ) D_NOEXCEPT
 {
     return internal::ray_isect<T>::aabb(_ray.m_origin.data(),
@@ -262,7 +256,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 bool intersect_aabb(
 // intersect_aabb
 //   function: the same against an aabb.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 bool intersect_aabb(
+D_NODISCARD D_CONSTEXPR_CPP14 bool
+intersect_aabb(
     const ray<T>&     _ray,
     const aabb<3, T>& _box,
     T&                _t_near,
@@ -279,13 +274,14 @@ D_NODISCARD D_CONSTEXPR_CPP14 bool intersect_aabb(
 //   function: whether _ray meets the triangle (_v0, _v1, _v2) at a parameter
 // above _epsilon, by Moller-Trumbore; if so, _t_out is the parameter.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 bool intersect_triangle(
-    const ray<T>&                      _ray,
-    const typename ray<T>::point_type& _v0,
-    const typename ray<T>::point_type& _v1,
-    const typename ray<T>::point_type& _v2,
-    T&                                 _t_out,
-    T                                  _epsilon = static_cast<T>(1e-9)
+D_NODISCARD D_CONSTEXPR_CPP14 bool
+intersect_triangle(
+    const ray<T>&                       _ray,
+    const typename ray<T>::point_type&  _v0,
+    const typename ray<T>::point_type&  _v1,
+    const typename ray<T>::point_type&  _v2,
+    T&                                  _t_out,
+    T                                   _epsilon = static_cast<T>(1e-9)
 ) D_NOEXCEPT
 {
     return internal::ray_isect<T>::triangle(_ray.m_origin.data(),

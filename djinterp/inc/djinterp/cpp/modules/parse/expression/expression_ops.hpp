@@ -31,7 +31,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expression/expression_ops.hpp
 * link(s):   ch-recursion.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 
 /*
@@ -96,10 +96,12 @@ template<typename Result,
          typename OnLeaf,
          typename OnApply>
 D_NODISCARD
-Result evaluate(
+Result
+evaluate
+(
     const expression<OpId, Atom>& _expression,
-    OnLeaf                        _on_leaf,
-    OnApply                       _on_apply
+    OnLeaf                          _on_leaf,
+    OnApply                         _on_apply
 )
 {
     return cata<Result>(
@@ -130,11 +132,13 @@ Result evaluate(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-std::size_t size(
+std::size_t
+size
+(
     const expression<OpId, Atom>& _expression
 )
 {
-    return evaluate<std::size_t>(
+    return evaluate<std::size_t, OpId, Atom>(
         _expression,
         [](const Atom&) -> std::size_t
         {
@@ -160,11 +164,13 @@ std::size_t size(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-std::size_t depth(
+std::size_t
+depth
+(
     const expression<OpId, Atom>& _expression
 )
 {
-    return evaluate<std::size_t>(
+    return evaluate<std::size_t, OpId, Atom>(
         _expression,
         [](const Atom&) -> std::size_t
         {
@@ -195,11 +201,13 @@ std::size_t depth(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-std::vector<Atom> atoms(
+std::vector<Atom>
+atoms
+(
     const expression<OpId, Atom>& _expression
 )
 {
-    return evaluate<std::vector<Atom> >(
+    return evaluate<std::vector<Atom>, OpId, Atom>(
         _expression,
         [](const Atom& _atom) -> std::vector<Atom>
         {
@@ -221,11 +229,13 @@ std::vector<Atom> atoms(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-std::vector<OpId> operators(
+std::vector<OpId>
+operators
+(
     const expression<OpId, Atom>& _expression
 )
 {
-    return evaluate<std::vector<OpId> >(
+    return evaluate<std::vector<OpId>, OpId, Atom>(
         _expression,
         [](const Atom&) -> std::vector<OpId>
         {
@@ -254,7 +264,9 @@ std::vector<OpId> operators(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-bool structural_equal(
+bool
+structural_equal
+(
     const expression<OpId, Atom>& _left,
     const expression<OpId, Atom>& _right
 )
@@ -287,7 +299,8 @@ bool structural_equal(
     // shapes agree at this node -- compare sub-terms pairwise
     for (std::size_t _i = 0; _i < _l.children().size(); ++_i)
     {
-        if (!structural_equal(_l.children()[_i], _r.children()[_i]))
+        if (!structural_equal<OpId, Atom>(_l.children()[_i],
+                                          _r.children()[_i]))
         {
             return false;
         }
@@ -306,12 +319,14 @@ bool structural_equal(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-bool contains_operator(
+bool
+contains_operator
+(
     const expression<OpId, Atom>& _expression,
-    const OpId&                   _target
+    const OpId&                    _target
 )
 {
-    return evaluate<bool>(
+    return evaluate<bool, OpId, Atom>(
         _expression,
         [](const Atom&) -> bool
         {
@@ -339,12 +354,14 @@ bool contains_operator(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-bool contains_atom(
+bool
+contains_atom
+(
     const expression<OpId, Atom>& _expression,
-    const Atom&                   _target
+    const Atom&                    _target
 )
 {
-    return evaluate<bool>(
+    return evaluate<bool, OpId, Atom>(
         _expression,
         [_target](const Atom& _atom) -> bool
         {
@@ -390,7 +407,7 @@ map_atoms
     using new_atom = typename std::decay<decltype(
         std::declval<Function&>()(std::declval<const Atom&>()))>::type;
 
-    return evaluate<expression<OpId, new_atom> >(
+    return evaluate<expression<OpId, new_atom>, OpId, Atom>(
         _expression,
         [_function](const Atom& _atom) -> expression<OpId, new_atom>
         {
@@ -423,7 +440,7 @@ map_operators
     using new_op = typename std::decay<decltype(
         std::declval<Function&>()(std::declval<const OpId&>()))>::type;
 
-    return evaluate<expression<new_op, Atom> >(
+    return evaluate<expression<new_op, Atom>, OpId, Atom>(
         _expression,
         [](const Atom& _atom) -> expression<new_op, Atom>
         {
@@ -451,12 +468,14 @@ template<typename OpId,
          typename Atom,
          typename Rule>
 D_NODISCARD
-expression<OpId, Atom> transform_bottom_up(
+expression<OpId, Atom>
+transform_bottom_up
+(
     const expression<OpId, Atom>& _expression,
-    Rule                          _rule
+    Rule                            _rule
 )
 {
-    return evaluate<expression<OpId, Atom> >(
+    return evaluate<expression<OpId, Atom>, OpId, Atom>(
         _expression,
         [_rule](const Atom& _atom) -> expression<OpId, Atom>
         {
@@ -485,10 +504,12 @@ template<typename OpId,
          typename Atom,
          typename Rule>
 D_NODISCARD
-expression<OpId, Atom> rewrite_to_fixpoint(
+expression<OpId, Atom>
+rewrite_to_fixpoint
+(
     const expression<OpId, Atom>& _expression,
-    Rule                          _rule,
-    std::size_t                   _max_passes = 1024
+    Rule                            _rule,
+    std::size_t                     _max_passes = 1024
 )
 {
     expression<OpId, Atom> _current = _expression;
@@ -496,10 +517,10 @@ expression<OpId, Atom> rewrite_to_fixpoint(
     for (std::size_t _pass = 0; _pass < _max_passes; ++_pass)
     {
         expression<OpId, Atom> _next =
-            transform_bottom_up(_current, _rule);
+            transform_bottom_up<OpId, Atom>(_current, _rule);
 
         // a fixed point -- the rule left every node unchanged this pass
-        if (structural_equal(_current, _next))
+        if (structural_equal<OpId, Atom>(_current, _next))
         {
             return _current;
         }
@@ -525,12 +546,14 @@ template<typename OpId,
          typename Atom,
          typename Binding>
 D_NODISCARD
-expression<OpId, Atom> substitute(
+expression<OpId, Atom>
+substitute
+(
     const expression<OpId, Atom>& _expression,
-    Binding                       _binding
+    Binding                         _binding
 )
 {
-    return evaluate<expression<OpId, Atom> >(
+    return evaluate<expression<OpId, Atom>, OpId, Atom>(
         _expression,
         [_binding](const Atom& _atom) -> expression<OpId, Atom>
         {

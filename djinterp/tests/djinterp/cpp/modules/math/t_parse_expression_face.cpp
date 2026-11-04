@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    t_parse_expression_face.cpp
+* djinterp [cpp/math]                                t_parse_expression_face.cpp
 *
 *   Tests for parse/expression/, the framework's shared expression core, on
 * which the math module's run-time expression language is to be built
@@ -29,7 +29,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++11 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/cpp/modules/math/t_parse_expression_face.cpp -o t_parse_expression
+*         tests/djinterp/math/t_parse_expression_face.cpp -o t_parse_expression
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_parse_expression_face.cpp
@@ -75,7 +75,8 @@ namespace
 
     // d_tests_expect
     //   one check, reported where it fails.
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -192,7 +193,8 @@ namespace
 
     // t_signature
     //   the language's signature, defined row by row.
-    dj::operator_signature<t_op> t_signature()
+    dj::operator_signature<t_op>
+    t_signature()
     {
         dj::operator_signature<t_op> signature;
 
@@ -219,21 +221,24 @@ namespace
 
     // L, A0, A1, A2
     //   a leaf, and an operator applied to none, one or two terms.
-    t_expr L(
+    t_expr
+    L(
         const char* _atom
     )
     {
         return dj::expr_leaf<t_op, t_atom>(t_atom(_atom));
     }
 
-    t_expr A0(
+    t_expr
+    A0(
         t_op _op
     )
     {
         return dj::expr_apply<t_op, t_atom>(_op);
     }
 
-    t_expr A1(
+    t_expr
+    A1(
         t_op          _op,
         const t_expr& _child
     )
@@ -241,7 +246,8 @@ namespace
         return dj::expr_apply<t_op, t_atom>(_op, _child);
     }
 
-    t_expr A2(
+    t_expr
+    A2(
         t_op          _op,
         const t_expr& _left,
         const t_expr& _right
@@ -252,7 +258,8 @@ namespace
 
     // t_same
     //   two terms of the same shape.
-    bool t_same(
+    bool
+    t_same(
         const t_expr& _a,
         const t_expr& _b
     )
@@ -266,7 +273,8 @@ namespace
 
     // t_atom_value
     //   an atom's value: a variable's (x 2, y 3, z 5), or a number's.
-    long t_atom_value(
+    long
+    t_atom_value(
         const t_atom& _atom
     )
     {
@@ -299,7 +307,8 @@ namespace
 
     // t_power
     //   _base to the whole power _exponent; 0 for a negative one.
-    long t_power(
+    long
+    t_power(
         long _base,
         long _exponent
     )
@@ -322,7 +331,8 @@ namespace
 
     // t_factorial
     //   _n!, and 0 for a negative _n.
-    long t_factorial(
+    long
+    t_factorial(
         long _n
     )
     {
@@ -344,7 +354,8 @@ namespace
 
     // t_apply_value
     //   an operator applied to its operands' values.
-    long t_apply_value(
+    long
+    t_apply_value(
         t_op                     _op,
         const std::vector<long>& _v
     )
@@ -389,7 +400,8 @@ namespace
 
     // t_value
     //   a term's value, by evaluate.
-    long t_value(
+    long
+    t_value(
         const t_expr& _e
     )
     {
@@ -426,7 +438,8 @@ namespace
 
     // t_is_keyword
     //   whether a word names an operator.
-    bool t_is_keyword(
+    bool
+    t_is_keyword(
         const std::string& _word
     )
     {
@@ -440,7 +453,8 @@ namespace
     // t_ends_operand
     //   whether a token ends an operand, so that a '-' after it is binary:
     // an atom, pi, a closing bracket, or a postfix operator.
-    bool t_ends_operand(
+    bool
+    t_ends_operand(
         const t_token& _token
     )
     {
@@ -459,7 +473,8 @@ namespace
     // t_tokenize
     //   text into tokens: runs of letters and of digits, and each other
     // character but a space on its own.
-    std::vector<t_token> t_tokenize(
+    std::vector<t_token>
+    t_tokenize(
         const std::string& _text
     )
     {
@@ -502,7 +517,8 @@ namespace
 
     // t_atom_of
     //   a token's atom: a number, or a word that names no operator.
-    dj::maybe<t_atom> t_atom_of(
+    dj::maybe<t_atom>
+    t_atom_of(
         const t_token& _token
     )
     {
@@ -522,7 +538,8 @@ namespace
     // t_op_of
     //   the operator a token names: a '-' by its place, a '?' the operator
     // no signature has, any other by its spelling.
-    dj::maybe<t_op> t_op_of(
+    dj::maybe<t_op>
+    t_op_of(
         const t_token& _token
     )
     {
@@ -575,7 +592,8 @@ namespace
 
     // t_parse
     //   text parsed: tokenized, then parsed by parse_expression.
-    dj::parse::parse_result<t_expr> t_parse(
+    dj::parse::parse_result<t_expr>
+    t_parse(
         const std::string& _text
     )
     {
@@ -586,7 +604,8 @@ namespace
 
     // t_parses_to
     //   whether text parses to the term _want.
-    bool t_parses_to(
+    bool
+    t_parses_to(
         const std::string& _text,
         const t_expr&      _want
     )
@@ -605,7 +624,8 @@ namespace
     // t_parsed_value
     //   the value of text parsed, or T_NO_VALUE where it does not parse: a
     // failed parse is a failed check, never a result read that is not there.
-    long t_parsed_value(
+    long
+    t_parsed_value(
         const std::string& _text
     )
     {
@@ -622,7 +642,8 @@ namespace
 
     // t_render
     //   a term's text, each atom as it is.
-    std::string t_render(
+    std::string
+    t_render(
         const t_expr& _e
     )
     {
@@ -644,7 +665,8 @@ namespace
     // lookups: describe, index_of and has, a hit and a miss each; the first
     // of two entries for one id wins; size, empty and entries; and the
     // constructor from a prebuilt sequence.
-    void d_tests_signature()
+    void
+    d_tests_signature()
     {
         const dj::operator_descriptor plain;
         const dj::operator_descriptor binary(2, 15);
@@ -740,7 +762,8 @@ namespace
     // the observers: is_leaf, atom_of, operator_of, children_of; a term
     // made by default is empty; the detection traits, and from C++14 and
     // C++20 their variable templates and concepts, by static assertion.
-    void d_tests_term()
+    void
+    d_tests_term()
     {
         const t_expr leaf = L("x");
         const t_expr pi   = A0(t_op_pi);
@@ -820,7 +843,8 @@ namespace
     // order it folds children in; size and depth; atoms in leaf order and
     // operators in pre-order; structural_equal, alike and unlike in each
     // way; contains_operator and contains_atom.
-    void d_tests_queries()
+    void
+    d_tests_queries()
     {
         // (2 * x ^ 2 + 1) - pi!, at x = 2: 9 - 6
         const t_expr term =
@@ -924,7 +948,8 @@ namespace
     //   a rule for rewrite_to_fixpoint: a sum or a product of two numbers
     // becomes the number. One step at a node; repeated, it folds a term of
     // numbers to one.
-    t_expr t_fold_rule(
+    t_expr
+    t_fold_rule(
         const t_expr& _e
     )
     {
@@ -956,7 +981,8 @@ namespace
     // regroups to the right, (a + b) + c to a + (b + c). The regrouped sum
     // is not seen again in the same pass, so a longer chain takes a pass
     // for each sum.
-    t_expr t_rotate_rule(
+    t_expr
+    t_rotate_rule(
         const t_expr& _e
     )
     {
@@ -986,7 +1012,8 @@ namespace
     // type; transform_bottom_up, its rule seeing each node once its
     // children are rewritten; rewrite_to_fixpoint, to its fixed point and
     // stopped by its cap; substitute, a variable bound and the rest kept.
-    void d_tests_transforms()
+    void
+    d_tests_transforms()
     {
         // x * (y + 1)
         const t_expr term = A2(t_op_mul, L("x"), A2(t_op_add, L("y"), L("1")));
@@ -1100,7 +1127,8 @@ namespace
 
     // t_annotate
     //   a term annotated with each node's size, built node by node.
-    t_annotated t_annotate(
+    t_annotated
+    t_annotate(
         const t_expr& _e
     )
     {
@@ -1134,7 +1162,8 @@ namespace
     //   annotated_expression, cofree over the term's own layer: built with
     // each node's size, read through head and unwrap, and mapped by
     // cofree_map.
-    void d_tests_annotated()
+    void
+    d_tests_annotated()
     {
         // x * (y + 1)
         const t_annotated sizes =
@@ -1188,7 +1217,8 @@ namespace
     // matchfix operator, an infix operator of one or three children, a
     // prefix one of two, and an operator the signature lacks; the atom
     // renderer's text.
-    void d_tests_render()
+    void
+    d_tests_render()
     {
         const t_expr a = L("a");
         const t_expr b = L("b");
@@ -1307,7 +1337,8 @@ namespace
     // it, which ends that operator's operand, brackets, the word-like
     // operators; values of parsed text; and over a cursor, from an offset
     // and to a length.
-    void d_tests_parse()
+    void
+    d_tests_parse()
     {
         const t_expr a = L("a");
         const t_expr b = L("b");
@@ -1416,7 +1447,8 @@ namespace
     //   each of the parser's four errors, at each place it can arise, an
     // operator id the signature does not describe among them: its status,
     // its offset (a token's index) and its message.
-    void d_tests_parse_errors()
+    void
+    d_tests_parse_errors()
     {
         const char* const EXPRESSION = "expected an expression";
         const char* const CLOSE      = "expected a closing bracket";
@@ -1478,7 +1510,8 @@ namespace
 
     // t_random
     //   a random number below _n, from the sequence's high bits.
-    unsigned long t_random(
+    unsigned long
+    t_random(
         unsigned long _n
     )
     {
@@ -1491,7 +1524,8 @@ namespace
     //   a random term of the operators the parser reads, at most five deep:
     // each subterm made in turn, so the sequence is the same whatever order
     // a compiler evaluates arguments in.
-    t_expr t_random_term(
+    t_expr
+    t_random_term(
         int _depth
     )
     {
@@ -1527,7 +1561,8 @@ namespace
     // d_tests_round_trips
     //   2,000 random terms: each rendered and parsed back is the term it
     // was, and the text parsed and rendered again is the text.
-    void d_tests_round_trips()
+    void
+    d_tests_round_trips()
     {
         long same_terms = 0;
         long same_texts = 0;
@@ -1606,9 +1641,7 @@ namespace
     //   struct: a static fold's leaf handler for atoms of text.
     struct t_static_name
     {
-        long operator()(
-            const char* const& _atom
-        ) const
+        long operator()(const char* const& _atom) const
         {
             return t_atom_value(_atom);
         }
@@ -1631,7 +1664,8 @@ namespace
         }
 
         D_CONSTEXPR_CPP14
-        long operator()(
+        long
+        operator()(
             t_op                       _op,
             const std::array<long, 1>& _operands
         ) const
@@ -1640,7 +1674,8 @@ namespace
         }
 
         D_CONSTEXPR_CPP14
-        long operator()(
+        long
+        operator()(
             t_op                       _op,
             const std::array<long, 2>& _operands
         ) const
@@ -1687,7 +1722,8 @@ namespace
     // included; reify to the dynamic term, its shape, text and value as the
     // static term's, and to another operator type; detection by the traits,
     // and from C++14 and C++20 by the variable templates and concepts.
-    void d_tests_static()
+    void
+    d_tests_static()
     {
         // 1 + 2 * -5, and pi
         const auto term =
@@ -1797,7 +1833,8 @@ namespace
 
     // d_tests_module
     //   every part of the module, from its floor.
-    void d_tests_module()
+    void
+    d_tests_module()
     {
         D_TESTS_EXPECT( (D_TESTS_MODULE_READ == 1),
                         "the module's five headers read");
@@ -1828,7 +1865,8 @@ namespace
     // d_tests_module
     //   below the module's floor: each header read, and nothing more to
     // test, as each is empty here.
-    void d_tests_module()
+    void
+    d_tests_module()
     {
         D_TESTS_EXPECT( (D_TESTS_MODULE_READ == 1),
                         "the module's five headers read");
@@ -1840,7 +1878,8 @@ namespace
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-int main()
+int
+main()
 {
     d_tests_module();
 

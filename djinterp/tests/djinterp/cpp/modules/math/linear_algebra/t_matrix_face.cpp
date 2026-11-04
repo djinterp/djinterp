@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              t_matrix_face.cpp
+* djinterp [cpp/math]                                          t_matrix_face.cpp
 *
 *   Tests for linear_algebra/matrix.hpp, at every level from C++98. The
 * compile-time half -- the traits, and from C++14 the operations as constant
@@ -17,7 +17,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_matrix_face.cpp -o t_matrix -lm
+*         tests/djinterp/math/linear_algebra/t_matrix_face.cpp -o t_matrix -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_matrix_face.cpp
@@ -62,7 +62,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -89,10 +90,8 @@ namespace
 
     // the same once stored: x87 can keep excess precision in a register
     template<typename Float>
-    bool d_tests_same(
-        Float _a,
-        Float _b
-    )
+    bool
+    d_tests_same(Float _a, Float _b)
     {
         volatile Float a = _a;
         volatile Float b = _b;
@@ -102,7 +101,8 @@ namespace
 
     unsigned long g_state = 362436069u;
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -111,7 +111,8 @@ namespace
     }
 
     template<std::size_t R, std::size_t C>
-    bool d_tests_parity(
+    bool
+    d_tests_parity(
         const matrix<double, R, C>& _d,
         const matrix<t_real, R, C>& _r
     )
@@ -133,7 +134,8 @@ namespace
     // d_tests_generic_parity
     //   t_real matrices (the generic path) against double ones (the C core),
     // every operation, bit for bit.
-    void d_tests_generic_parity()
+    void
+    d_tests_generic_parity()
     {
         for (int trial = 0; trial < 5000; ++trial)
         {
@@ -221,7 +223,8 @@ namespace
     // d_tests_family
     //   one C family against the identities.
     template<typename Type>
-    void d_tests_family()
+    void
+    d_tests_family()
     {
         for (int trial = 0; trial < 2000; ++trial)
         {
@@ -315,7 +318,8 @@ namespace
         double operator()(double _x) const { return _x * 2.0; }
     };
 
-    void d_tests_integers()
+    void
+    d_tests_integers()
     {
         const int            e[4] = { 1, 2, 3, 4 };
         const matrix<int, 2, 2> m(e);
@@ -336,7 +340,8 @@ namespace
     }
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    void d_tests_cpp11()
+    void
+    d_tests_cpp11()
     {
         const std::array<double, 4> parts = { { 1.0, 2.0, 3.0, 4.0 } };
         const djinterp::math::linalg::matrix2<> m2(parts);
@@ -374,7 +379,8 @@ static_assert(matrix<double, 2, 2>::identity().scaled(2).norm() ==
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_generic_parity();
     d_tests_family<float>();

@@ -55,7 +55,7 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                 // std::size_t
 // djinterp
-#include "../../djinterp.hpp"                         // framework root
+#include "../../djinterp.hpp"                      // framework root
 #include "./linear_algebra/linalg_common.hpp"      // internal::linalg_kernel
 #include "./linear_algebra/matrix.hpp"             // linalg::matrix
 #include "./linear_algebra/vector.hpp"             // linalg::vector
@@ -116,8 +116,8 @@ struct quaternion
     // ---- named factories ----------------------------------------------------
 
     // identity: the identity rotation.
-    static D_CONSTEXPR
-    quaternion identity() D_NOEXCEPT
+    static D_CONSTEXPR quaternion
+    identity() D_NOEXCEPT
     {
         return quaternion();
     }
@@ -128,8 +128,8 @@ NS_INTERNAL
     // quaternion_in, quaternion_out
     //   function: a quaternion as the C core's array [x, y, z, w], and back.
     template<typename Type>
-    D_CONSTEXPR_CPP14
-    void quaternion_in(
+    D_CONSTEXPR_CPP14 void
+    quaternion_in(
         const quaternion<Type>& _q,
         Type*                   _out
     ) D_NOEXCEPT
@@ -141,10 +141,8 @@ NS_INTERNAL
     }
 
     template<typename Type>
-    D_CONSTEXPR_CPP14
-    quaternion<Type> quaternion_out(
-        const Type* _q
-    ) D_NOEXCEPT
+    D_CONSTEXPR_CPP14 quaternion<Type>
+    quaternion_out(const Type* _q) D_NOEXCEPT
     {
         return quaternion<Type>(_q[0], _q[1], _q[2], _q[3]);
     }
@@ -162,7 +160,8 @@ NS_END  // internal
 // internally, so it need not be a unit vector (a zero one gives (0, 0, 0,
 // cos(angle / 2))).
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP20 quaternion<Type> from_axis_angle(
+D_NODISCARD D_CONSTEXPR_CPP20 quaternion<Type>
+from_axis_angle(
     const linalg::vector<Type, 3>& _axis,
     Type                           _angle
 ) D_NOEXCEPT
@@ -185,7 +184,8 @@ D_NODISCARD D_CONSTEXPR_CPP20 quaternion<Type> from_axis_angle(
 // operator*
 //   the Hamilton product, composing the rotation _a after _b.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP14 quaternion<Type> operator*(
+D_NODISCARD D_CONSTEXPR_CPP14 quaternion<Type>
+operator*(
     const quaternion<Type>& _a,
     const quaternion<Type>& _b
 ) D_NOEXCEPT
@@ -204,7 +204,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 quaternion<Type> operator*(
 //   the four-component inner product (the cosine of the angle between the two
 // orientations on the unit hypersphere).
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP14 Type dot(
+D_NODISCARD D_CONSTEXPR_CPP14 Type
+dot(
     const quaternion<Type>& _a,
     const quaternion<Type>& _b
 ) D_NOEXCEPT
@@ -222,7 +223,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 Type dot(
 //   the conjugate (x, y, z -> -x, -y, -z). For a unit quaternion this is the
 // inverse rotation.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR quaternion<Type> conjugate(
+D_NODISCARD D_CONSTEXPR quaternion<Type>
+conjugate(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
@@ -232,7 +234,8 @@ D_NODISCARD D_CONSTEXPR quaternion<Type> conjugate(
 // norm
 //   the Euclidean norm of the four components, correctly rounded.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP14 Type norm(
+D_NODISCARD D_CONSTEXPR_CPP14 Type
+norm(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
@@ -246,7 +249,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 Type norm(
 // normalize
 //   _q scaled to unit norm; a zero quaternion is returned as it is.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP14 quaternion<Type> normalize(
+D_NODISCARD D_CONSTEXPR_CPP14 quaternion<Type>
+normalize(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
@@ -267,7 +271,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 quaternion<Type> normalize(
 // rotate
 //   _v rotated by the unit quaternion _q: v + w t + u x t, t = 2 u x v.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP14 linalg::vector<Type, 3> rotate(
+D_NODISCARD D_CONSTEXPR_CPP14 linalg::vector<Type, 3>
+rotate(
     const quaternion<Type>&        _q,
     const linalg::vector<Type, 3>& _v
 ) D_NOEXCEPT
@@ -284,7 +289,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 linalg::vector<Type, 3> rotate(
 // to_matrix
 //   the 3x3 rotation matrix of the unit quaternion _q.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 3, 3> to_matrix(
+D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 3, 3>
+to_matrix(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
@@ -300,7 +306,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 3, 3> to_matrix(
 // to_matrix4
 //   the 4x4 homogeneous rotation matrix of the unit quaternion _q.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 4, 4> to_matrix4(
+D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 4, 4>
+to_matrix4(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
@@ -323,7 +330,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 4, 4> to_matrix4(
 //   spherical linear interpolation from _a (t = 0) to _b (t = 1) along the
 // shorter arc; both are unit quaternions.
 template<typename Type>
-D_NODISCARD D_CONSTEXPR_CPP20 quaternion<Type> slerp(
+D_NODISCARD D_CONSTEXPR_CPP20 quaternion<Type>
+slerp(
     const quaternion<Type>& _a,
     const quaternion<Type>& _b,
     Type                    _t

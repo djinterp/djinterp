@@ -161,8 +161,8 @@ struct expr_op
 
     // call
     //   a call of the function named.
-    static
-    expr_op call(
+    static expr_op
+    call(
         const std::string& _function
     )
     {
@@ -175,8 +175,8 @@ struct expr_op
 
 // operator==, operator!= (expr_op)
 //   function: two operators are equal when their kinds and functions are.
-inline
-bool operator==(
+inline bool
+operator==(
     const expr_op& _a,
     const expr_op& _b
 )
@@ -185,8 +185,8 @@ bool operator==(
              (_a.function == _b.function) );
 }
 
-inline
-bool operator!=(
+inline bool
+operator!=(
     const expr_op& _a,
     const expr_op& _b
 )
@@ -236,7 +236,8 @@ public:
     //   describes _kind by _descriptor, in place of any descriptor it had; a
     // kind out of range is left undescribed. Returns the table, for the
     // next.
-    expr_signature& define(
+    expr_signature&
+    define(
         expr_op_kind               _kind,
         const operator_descriptor& _descriptor
     )
@@ -263,7 +264,8 @@ public:
      * @return the descriptor of _op's kind, or null where the table has
      *         none.
      */
-    D_NODISCARD const operator_descriptor* describe(
+    D_NODISCARD const operator_descriptor*
+    describe(
         const expr_op& _op
     ) const
     {
@@ -281,7 +283,8 @@ public:
 
     // has
     //   whether the table describes the operator.
-    D_NODISCARD bool has(
+    D_NODISCARD bool
+    has(
         const expr_op& _op
     ) const
     {
@@ -293,8 +296,8 @@ public:
     // ^ and the unary - and +, from step 14 (2b); the factorial, from step
     // 15 (2c); the relations and logic, from step 16 (2d); the transpose,
     // from step 20 (3b).
-    static
-    const expr_signature& standard()
+    static const expr_signature&
+    standard()
     {
         static const expr_signature table = build_standard();
 
@@ -310,8 +313,8 @@ private:
     // relations infix and non-associative, = and != commutative; and and or
     // infix and left-associative, commutative, associative and idempotent;
     // not prefix.
-    static
-    expr_signature build_standard()
+    static expr_signature
+    build_standard()
     {
         expr_signature table;
 

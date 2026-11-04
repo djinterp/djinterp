@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           t_constants_face.cpp
+* djinterp [cpp/math]                                       t_constants_face.cpp
 *
 *   Tests for math/constants.hpp at every level from C++98: each of the
 * nineteen constants, in float and double, is the correctly rounded value,
@@ -15,7 +15,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/t_constants_face.cpp -o t_constants -lm
+*         tests/djinterp/math/t_constants_face.cpp -o t_constants -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_constants_face.cpp
@@ -26,9 +26,6 @@
 #include "../../../../../inc/djinterp/cpp/modules/math/constants.hpp"  // tested
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/math/exponential.h"  // d_math_*_exp_c,
-#if (defined(__cplusplus))
-    #include "../../../../../inc/re_std/cpp/cfloat/cfloat.hpp"
-#endif
                                                         // _log_c, _sqrt_c
 // std
 #include <cfloat>   // LDBL_MANT_DIG
@@ -46,7 +43,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -74,10 +72,8 @@ namespace
     // stored first, so that an x87's excess precision cannot tell two equal
     // values apart
     template<typename Float>
-    bool d_tests_same(
-        Float _a,
-        Float _b
-    )
+    bool
+    d_tests_same(Float _a, Float _b)
     {
         volatile Float a = _a;
         volatile Float b = _b;
@@ -139,9 +135,8 @@ namespace
     // d_tests_of
     //   of<Type>'s nineteen constants, in the table's order.
     template<typename Type>
-    void d_tests_of(
-        Type* _out
-    )
+    void
+    d_tests_of(Type* _out)
     {
         typedef dk::of<Type> k;
 
@@ -172,9 +167,8 @@ namespace
     //   the relations that hold exactly in binary: a power of two's scaling
     // of a correctly rounded value is the correctly rounded scaling.
     template<typename Type>
-    void d_tests_relations(
-        const char* _type
-    )
+    void
+    d_tests_relations(const char* _type)
     {
         typedef dk::of<Type> k;
 
@@ -189,7 +183,8 @@ namespace
         return;
     }
 
-    void d_tests_constants()
+    void
+    d_tests_constants()
     {
         const std::size_t count = sizeof(g_rows) / sizeof(g_rows[0]);
         float             f[19];
@@ -285,7 +280,8 @@ namespace
     //   the ten traits' values for Type, as one number: bit 9 is_rational ...
     // bit 0 is_floating_point_type, is_using_base at 7 between them.
     template<typename Type>
-    unsigned d_tests_traits_of()
+    unsigned
+    d_tests_traits_of()
     {
         return ( (dm::is_rational<Type>::value            ? 512u : 0u) |
                  (dm::has_number_base<Type>::value        ? 256u : 0u) |
@@ -299,7 +295,8 @@ namespace
                  (dm::is_floating_point_type<Type>::value ?   1u : 0u) );
     }
 
-    void d_tests_number_bases()
+    void
+    d_tests_number_bases()
     {
         typedef dm::number_base<int, 7>             b7;
         typedef dm::number_base<unsigned char, 16>  b16;
@@ -372,7 +369,8 @@ namespace
     // d_tests_variable_templates
     //   from C++14: each variable template is of's constant, for every type.
     template<typename Type>
-    bool d_tests_variable_templates()
+    bool
+    d_tests_variable_templates()
     {
         typedef dk::of<Type> k;
 
@@ -399,7 +397,8 @@ namespace
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    void d_tests_by_level()
+    void
+    d_tests_by_level()
     {
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
         D_TESTS_EXPECT( (d_tests_variable_templates<float>()) &&
@@ -475,7 +474,8 @@ static char g_traits_are_constants[
         djinterp::math::number_base<int, 16> >::value ? 1 : -1];
 
 
-int main()
+int
+main()
 {
     d_tests_constants();
     d_tests_number_bases();

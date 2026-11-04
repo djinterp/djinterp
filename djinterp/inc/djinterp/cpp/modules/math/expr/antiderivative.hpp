@@ -9,14 +9,14 @@
 * does not reach is the error no_closed_form. Symbolic integration in
 * general is large; this is its first, bounded part (the roadmap marks it
 * later work).
-*   STEPS. Step 25 (4d) fills expr_antiderivative. Until then it answers
+*   STEPS. Step 28 (4d) fills expr_antiderivative. Until then it answers
 * expr_status::not_yet.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/antiderivative.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 /*
@@ -61,14 +61,15 @@ NS_MATH
  * @brief An antiderivative of a term in a variable, from the table of
  *        elementary forms.
  *
- * @note Until step 25 (4d) a stub: it answers expr_status::not_yet.
+ * @note Until step 28 (4d) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the integrand.
  * @param[in] _variable  the variable of integration.
  * @return a term whose derivative by _variable is _term, with no constant
  *         of integration, simplified; or the error no_closed_form.
  */
-D_NODISCARD inline expr_result<expr_term> expr_antiderivative(
+D_NODISCARD inline expr_result<expr_term>
+expr_antiderivative(
     const expr_term&   _term,
     const std::string& _variable
 )
@@ -77,7 +78,7 @@ D_NODISCARD inline expr_result<expr_term> expr_antiderivative(
     static_cast<void>(_variable);
 
     return internal::expr_not_yet<expr_term>(
-        "expr_antiderivative: not yet (step 25, 4d)");
+        "expr_antiderivative: not yet (step 28, 4d)");
 }
 
 

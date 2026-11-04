@@ -2,13 +2,13 @@
 * djinterp [cpp/math]                                                  value.hpp
 *
 * The generic value in C++: math::value, one number of any kind the math
-* module computes with, over the C core's struct dj_math_value
+* module computes with, over the C core's struct d_math_value
 * (c/math/value.h); and math::inline_value, the kinds that need no box.
 *   THE KINDS AND THE TOWER are value.h's: none, an error, a boolean, an
 * integer and a rational, which are exact, a float, a double and a long
 * double; and boxed kinds, such as the wide integer (c/math/value_wide.h),
 * which register with value.h through a table each one fills in. Exact
-* operations stay exact; an exact result too wide for dj_math_imax is the
+* operations stay exact; an exact result too wide for d_math_imax is the
 * long double nearest it, flagged inexact (G2); errors are values that pass
 * through; comparison is exact across kinds. Every operation here is
 * value.h's.
@@ -22,7 +22,7 @@
 *   NOTHING THROWS: an error is a value, D_MATH_VALUE_ERROR_MEMORY included,
 * where a boxed kind had no storage for a result.
 *   CONSTRUCTION is implicit from the arithmetic types: a signed integer is
-* an integer; an unsigned one an integer where it fits dj_math_imax, and
+* an integer; an unsigned one an integer where it fits d_math_imax, and
 * past it G2's long double (d_math_value_from_uint); a float, double or long
 * double its own kind; a bool a boolean; and an error code an error. A
 * pointer is refused, so that none becomes a boolean. ratio(n, d) is n / d
@@ -35,14 +35,17 @@
 * with them is false but !=. compare gives the order itself.
 *   CONVERSION OUT is to(&out), true where the value has one of that type:
 * the nearest float, double or long double of a number, ties to even; the
-* rational of an exact one, or the dj_math_imax of an exact integer, where
+* rational of an exact one, or the d_math_imax of an exact integer, where
 * it fits; a boolean's truth; an error's code. Where it is false, out is as
 * it was.
 *   NUMBERS. Both classes are numbers to generic code (number_traits.hpp):
 * number_traits gives their zero and one, |x|, the conversions through
-* double, a root, exact for the square of a rational of the family, and a
+* double, a root, exact for the square of a rational of the family and a
+* domain error for a number of no real value, as a complex one is, and a
 * tolerance 0 where both operands are exact and else four epsilons of the
-* larger's kind times their larger magnitude (S158); common_number says an
+* larger's kind times their larger magnitude (S158); number_modulus_squared
+* gives |x|^2, a complex number's modulus squared, exact where it is, so
+* that generic norms are of the moduli (S355); common_number says an
 * inline value with a number stays inline, and with a value becomes one. So
 * vectors and matrices of values compute, and compare, exactly.
 *   LEVELS. Everything from C++98; from C++11, moves. inline_value is a
@@ -56,7 +59,7 @@
 * path:      /inc/djinterp/cpp/modules/math/value.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.02
 *******************************************************************************/
 
 /*
@@ -73,7 +76,8 @@ TABLE OF CONTENTS
     -------
     1.  The square root
     2.  number_traits
-    3.  common_number
+    3.  The modulus squared
+    4.  common_number
 */
 
 #ifndef DJINTERP_MATH_VALUE_HPP
@@ -83,13 +87,10 @@ TABLE OF CONTENTS
 #include <cfloat>                // FLT_EPSILON, DBL_EPSILON, LDBL_EPSILON
 #include <limits>                // std::numeric_limits
 // djinterp
-#include "../../djinterp.hpp"       // framework root
-#include "../../../c/modules/math/value.h"     // dj_math_value and its operations
-#if (defined(__cplusplus))
-    #include "../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
-#include "./math_common.hpp"     // NS_MATH
-#include "./number_traits.hpp"   // number_traits, common_number, number
+#include "../../djinterp.hpp"               // framework root
+#include "../../../c/modules/math/value.h"  // d_math_value and its operations
+#include "./math_common.hpp"                // NS_MATH
+#include "./number_traits.hpp"              // number_traits, common_number, number
 // std, from C++20 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     #include <compare>           // std::partial_ordering
@@ -102,8 +103,8 @@ NS_MATH
 
 #if D_ENV_HAS_LONG_LONG
 D_LONG_LONG_DIAG_PUSH
-D_STATIC_ASSERT( ( (sizeof(long long) <= sizeof(dj_math_imax)) &&
-                   (sizeof(unsigned long long) <= sizeof(dj_math_umax)) ),
+D_STATIC_ASSERT( ( (sizeof(long long) <= sizeof(d_math_imax)) &&
+                   (sizeof(unsigned long long) <= sizeof(d_math_umax)) ),
                 "math::value: long long must fit the C core's widest "
                 "integers.");
 D_LONG_LONG_DIAG_POP
@@ -130,10 +131,10 @@ NS_INTERNAL
     //   struct: value.h's operation on two values, as apply.
     struct value_add
     {
-        static D_CONSTEXPR_CPP14
-        dj_math_value apply(
-            const dj_math_value& _a,
-            const dj_math_value& _b
+        static D_CONSTEXPR_CPP14 d_math_value
+        apply(
+            const d_math_value& _a,
+            const d_math_value& _b
         ) D_NOEXCEPT
         {
             return d_math_value_add(_a, _b);
@@ -142,10 +143,10 @@ NS_INTERNAL
 
     struct value_sub
     {
-        static D_CONSTEXPR_CPP14
-        dj_math_value apply(
-            const dj_math_value& _a,
-            const dj_math_value& _b
+        static D_CONSTEXPR_CPP14 d_math_value
+        apply(
+            const d_math_value& _a,
+            const d_math_value& _b
         ) D_NOEXCEPT
         {
             return d_math_value_sub(_a, _b);
@@ -154,10 +155,10 @@ NS_INTERNAL
 
     struct value_mul
     {
-        static D_CONSTEXPR_CPP14
-        dj_math_value apply(
-            const dj_math_value& _a,
-            const dj_math_value& _b
+        static D_CONSTEXPR_CPP14 d_math_value
+        apply(
+            const d_math_value& _a,
+            const d_math_value& _b
         ) D_NOEXCEPT
         {
             return d_math_value_mul(_a, _b);
@@ -166,10 +167,10 @@ NS_INTERNAL
 
     struct value_div
     {
-        static D_CONSTEXPR_CPP14
-        dj_math_value apply(
-            const dj_math_value& _a,
-            const dj_math_value& _b
+        static D_CONSTEXPR_CPP14 d_math_value
+        apply(
+            const d_math_value& _a,
+            const d_math_value& _b
         ) D_NOEXCEPT
         {
             return d_math_value_div(_a, _b);
@@ -180,9 +181,9 @@ NS_INTERNAL
     //   struct: value.h's operation on one value, as apply.
     struct value_neg
     {
-        static D_CONSTEXPR_CPP14
-        dj_math_value apply(
-            const dj_math_value& _x
+        static D_CONSTEXPR_CPP14 d_math_value
+        apply(
+            const d_math_value& _x
         ) D_NOEXCEPT
         {
             return d_math_value_neg(_x);
@@ -191,9 +192,9 @@ NS_INTERNAL
 
     struct value_abs
     {
-        static D_CONSTEXPR_CPP14
-        dj_math_value apply(
-            const dj_math_value& _x
+        static D_CONSTEXPR_CPP14 d_math_value
+        apply(
+            const d_math_value& _x
         ) D_NOEXCEPT
         {
             return d_math_value_abs(_x);
@@ -225,7 +226,7 @@ private:
     D_CONSTEXPR_CPP14
     inline_value(
         Operation,
-        const dj_math_value& _x
+        const d_math_value& _x
     ) D_NOEXCEPT
         : m_value(Operation::apply(_x))
     {}
@@ -235,8 +236,8 @@ private:
     D_CONSTEXPR_CPP14
     inline_value(
         Operation,
-        const dj_math_value& _a,
-        const dj_math_value& _b
+        const d_math_value& _a,
+        const d_math_value& _b
     ) D_NOEXCEPT
         : m_value(Operation::apply(_a, _b))
     {}
@@ -255,14 +256,14 @@ public:
     inline_value(
         int _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_int(static_cast<dj_math_imax>(_n)))
+        : m_value(d_math_value_from_int(static_cast<d_math_imax>(_n)))
     {}
 
     D_CONSTEXPR_CPP14
     inline_value(
         long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_int(static_cast<dj_math_imax>(_n)))
+        : m_value(d_math_value_from_int(static_cast<d_math_imax>(_n)))
     {}
 
 #if D_ENV_HAS_LONG_LONG
@@ -271,25 +272,25 @@ public:
     inline_value(
         long long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_int(static_cast<dj_math_imax>(_n)))
+        : m_value(d_math_value_from_int(static_cast<d_math_imax>(_n)))
     {}
     D_LONG_LONG_DIAG_POP
 #endif
 
-    // an unsigned integer: an integer where it fits dj_math_imax, past it
+    // an unsigned integer: an integer where it fits d_math_imax, past it
     // the nearest long double, flagged inexact (G2).
     D_CONSTEXPR_CPP14
     inline_value(
         unsigned _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_uint(static_cast<dj_math_umax>(_n)))
+        : m_value(d_math_value_from_uint(static_cast<d_math_umax>(_n)))
     {}
 
     D_CONSTEXPR_CPP14
     inline_value(
         unsigned long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_uint(static_cast<dj_math_umax>(_n)))
+        : m_value(d_math_value_from_uint(static_cast<d_math_umax>(_n)))
     {}
 
 #if D_ENV_HAS_LONG_LONG
@@ -298,7 +299,7 @@ public:
     inline_value(
         unsigned long long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_uint(static_cast<dj_math_umax>(_n)))
+        : m_value(d_math_value_from_uint(static_cast<d_math_umax>(_n)))
     {}
     D_LONG_LONG_DIAG_POP
 #endif
@@ -336,7 +337,7 @@ public:
     // an error code: an error.
     D_CONSTEXPR_CPP14
     inline_value(
-        dj_math_value_error _error
+        d_math_value_error _error
     ) D_NOEXCEPT
         : m_value(d_math_value_from_error(_error))
     {}
@@ -345,17 +346,17 @@ public:
     // denominator is 1.
     D_CONSTEXPR_CPP14
     inline_value(
-        const dj_rational& _x
+        const d_rational& _x
     ) D_NOEXCEPT
         : m_value(d_math_value_from_rational(_x))
     {}
 
     // _num / _den exactly: an integer or a rational in the one form; over 0
     // a pole, or invalid for 0 / 0.
-    static D_CONSTEXPR_CPP14
-    inline_value ratio(
-        dj_math_imax _num,
-        dj_math_imax _den
+    static D_CONSTEXPR_CPP14 inline_value
+    ratio(
+        d_math_imax _num,
+        d_math_imax _den
     ) D_NOEXCEPT
     {
         return inline_value(d_math_value_from_ratio(_num, _den),
@@ -364,48 +365,48 @@ public:
 
     // ---- queries -------------------------------------------------------
 
-    D_CONSTEXPR_CPP14
-    dj_math_value_kind kind() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 d_math_value_kind
+    kind() const D_NOEXCEPT
     {
         return m_value.kind;
     }
 
     // D_MATH_VALUE_FLAG_INEXACT where an exact result did not fit (G2), or
     // came from one that did not.
-    D_CONSTEXPR_CPP14
-    unsigned flags() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 unsigned
+    flags() const D_NOEXCEPT
     {
         return m_value.flags;
     }
 
     // the place in the tower; 0 for none, an error or a boolean.
-    D_CONSTEXPR_CPP14
-    int rank() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 int
+    rank() const D_NOEXCEPT
     {
         return d_math_value_rank(m_value);
     }
 
-    D_CONSTEXPR_CPP14
-    const char* kind_name() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 const char*
+    kind_name() const D_NOEXCEPT
     {
         return d_math_value_kind_name(m_value);
     }
 
-    D_CONSTEXPR_CPP14
-    bool is_number() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    is_number() const D_NOEXCEPT
     {
         return d_math_value_is_number(m_value);
     }
 
-    D_CONSTEXPR_CPP14
-    bool is_exact() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    is_exact() const D_NOEXCEPT
     {
         return d_math_value_is_exact(m_value);
     }
 
     // the C core's value, lent.
-    D_CONSTEXPR_CPP14
-    const dj_math_value& c_value() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 const d_math_value&
+    c_value() const D_NOEXCEPT
     {
         return m_value;
     }
@@ -415,24 +416,24 @@ public:
     // false, and _out as it was, where not.
 
     // a number's nearest float, double or long double.
-    D_CONSTEXPR_CPP14
-    bool to(
+    D_CONSTEXPR_CPP14 bool
+    to(
         float& _out
     ) const D_NOEXCEPT
     {
         return d_math_value_to_f(&_out, m_value);
     }
 
-    D_CONSTEXPR_CPP14
-    bool to(
+    D_CONSTEXPR_CPP14 bool
+    to(
         double& _out
     ) const D_NOEXCEPT
     {
         return d_math_value_to_d(&_out, m_value);
     }
 
-    D_CONSTEXPR_CPP14
-    bool to(
+    D_CONSTEXPR_CPP14 bool
+    to(
         long double& _out
     ) const D_NOEXCEPT
     {
@@ -440,21 +441,21 @@ public:
     }
 
     // an exact number's rational.
-    D_CONSTEXPR_CPP14
-    bool to(
-        dj_rational& _out
+    D_CONSTEXPR_CPP14 bool
+    to(
+        d_rational& _out
     ) const D_NOEXCEPT
     {
         return d_math_value_to_rational(&_out, m_value);
     }
 
-    // an exact integer's dj_math_imax.
-    D_CONSTEXPR_CPP14
-    bool to(
-        dj_math_imax& _out
+    // an exact integer's d_math_imax.
+    D_CONSTEXPR_CPP14 bool
+    to(
+        d_math_imax& _out
     ) const D_NOEXCEPT
     {
-        dj_rational exact = { 0, 1 };
+        d_rational exact = { 0, 1 };
 
         // an exact number, and whole
         if ( (!d_math_value_to_rational(&exact, m_value)) ||
@@ -469,8 +470,8 @@ public:
     }
 
     // a boolean's truth.
-    D_CONSTEXPR_CPP14
-    bool to(
+    D_CONSTEXPR_CPP14 bool
+    to(
         bool& _out
     ) const D_NOEXCEPT
     {
@@ -486,9 +487,9 @@ public:
     }
 
     // an error's code.
-    D_CONSTEXPR_CPP14
-    bool to(
-        dj_math_value_error& _out
+    D_CONSTEXPR_CPP14 bool
+    to(
+        d_math_value_error& _out
     ) const D_NOEXCEPT
     {
         // an error
@@ -497,15 +498,15 @@ public:
             return false;
         }
 
-        _out = static_cast<dj_math_value_error>(m_value.code);
+        _out = static_cast<d_math_value_error>(m_value.code);
 
         return true;
     }
 
     // ---- arithmetic ----------------------------------------------------
 
-    D_CONSTEXPR_CPP14
-    inline_value& operator+=(
+    D_CONSTEXPR_CPP14 inline_value&
+    operator+=(
         const inline_value& _other
     ) D_NOEXCEPT
     {
@@ -514,8 +515,8 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP14
-    inline_value& operator-=(
+    D_CONSTEXPR_CPP14 inline_value&
+    operator-=(
         const inline_value& _other
     ) D_NOEXCEPT
     {
@@ -524,8 +525,8 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP14
-    inline_value& operator*=(
+    D_CONSTEXPR_CPP14 inline_value&
+    operator*=(
         const inline_value& _other
     ) D_NOEXCEPT
     {
@@ -534,8 +535,8 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP14
-    inline_value& operator/=(
+    D_CONSTEXPR_CPP14 inline_value&
+    operator/=(
         const inline_value& _other
     ) D_NOEXCEPT
     {
@@ -544,8 +545,8 @@ public:
         return *this;
     }
 
-    friend D_CONSTEXPR_CPP14
-    inline_value operator+(
+    friend D_CONSTEXPR_CPP14 inline_value
+    operator+(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -553,8 +554,8 @@ public:
         return inline_value(internal::value_add(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP14
-    inline_value operator-(
+    friend D_CONSTEXPR_CPP14 inline_value
+    operator-(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -562,8 +563,8 @@ public:
         return inline_value(internal::value_sub(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP14
-    inline_value operator*(
+    friend D_CONSTEXPR_CPP14 inline_value
+    operator*(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -571,8 +572,8 @@ public:
         return inline_value(internal::value_mul(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP14
-    inline_value operator/(
+    friend D_CONSTEXPR_CPP14 inline_value
+    operator/(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -580,24 +581,24 @@ public:
         return inline_value(internal::value_div(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP14
-    inline_value operator-(
+    friend D_CONSTEXPR_CPP14 inline_value
+    operator-(
         const inline_value& _x
     ) D_NOEXCEPT
     {
         return inline_value(internal::value_neg(), _x.m_value);
     }
 
-    friend D_CONSTEXPR_CPP14
-    inline_value operator+(
+    friend D_CONSTEXPR_CPP14 inline_value
+    operator+(
         const inline_value& _x
     ) D_NOEXCEPT
     {
         return _x;
     }
 
-    friend D_CONSTEXPR_CPP14
-    inline_value abs(
+    friend D_CONSTEXPR_CPP14 inline_value
+    abs(
         const inline_value& _x
     ) D_NOEXCEPT
     {
@@ -608,16 +609,16 @@ public:
 
     // how this value stands to _other, exactly: D_MATH_VALUE_LESS, _EQUAL,
     // _GREATER, or _UNORDERED.
-    D_CONSTEXPR_CPP14
-    dj_math_value_order compare(
+    D_CONSTEXPR_CPP14 d_math_value_order
+    compare(
         const inline_value& _other
     ) const D_NOEXCEPT
     {
         return d_math_value_cmp(m_value, _other.m_value);
     }
 
-    friend D_CONSTEXPR_CPP14
-    bool operator==(
+    friend D_CONSTEXPR_CPP14 bool
+    operator==(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -626,8 +627,8 @@ public:
                 D_MATH_VALUE_EQUAL);
     }
 
-    friend D_CONSTEXPR_CPP14
-    bool operator!=(
+    friend D_CONSTEXPR_CPP14 bool
+    operator!=(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -636,8 +637,8 @@ public:
                 D_MATH_VALUE_EQUAL);
     }
 
-    friend D_CONSTEXPR_CPP14
-    bool operator<(
+    friend D_CONSTEXPR_CPP14 bool
+    operator<(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -646,8 +647,8 @@ public:
                 D_MATH_VALUE_LESS);
     }
 
-    friend D_CONSTEXPR_CPP14
-    bool operator>(
+    friend D_CONSTEXPR_CPP14 bool
+    operator>(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -656,26 +657,26 @@ public:
                 D_MATH_VALUE_GREATER);
     }
 
-    friend D_CONSTEXPR_CPP14
-    bool operator<=(
+    friend D_CONSTEXPR_CPP14 bool
+    operator<=(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
     {
-        const dj_math_value_order order = d_math_value_cmp(_a.m_value,
+        const d_math_value_order order = d_math_value_cmp(_a.m_value,
                                                           _b.m_value);
 
         return ( (order == D_MATH_VALUE_LESS) ||
                  (order == D_MATH_VALUE_EQUAL) );
     }
 
-    friend D_CONSTEXPR_CPP14
-    bool operator>=(
+    friend D_CONSTEXPR_CPP14 bool
+    operator>=(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
     {
-        const dj_math_value_order order = d_math_value_cmp(_a.m_value,
+        const d_math_value_order order = d_math_value_cmp(_a.m_value,
                                                           _b.m_value);
 
         return ( (order == D_MATH_VALUE_GREATER) ||
@@ -685,13 +686,13 @@ public:
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // the order as a partial ordering: unordered for a NaN, an error and
     // unlike kinds.
-    friend D_CONSTEXPR
-    std::partial_ordering operator<=>(
+    friend D_CONSTEXPR std::partial_ordering
+    operator<=>(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
     {
-        const dj_math_value_order order = d_math_value_cmp(_a.m_value,
+        const d_math_value_order order = d_math_value_cmp(_a.m_value,
                                                           _b.m_value);
 
         // by order
@@ -720,7 +721,7 @@ private:
     // a C value of an inline kind, as it is.
     D_CONSTEXPR_CPP14
     inline_value(
-        const dj_math_value& _x,
+        const d_math_value& _x,
         from_c_tag
     ) D_NOEXCEPT
         : m_value(_x)
@@ -730,7 +731,7 @@ private:
     template<typename Type>
     D_DELETED_FN(inline_value(Type* _pointer))
 
-    dj_math_value m_value;
+    d_math_value m_value;
 };
 
 
@@ -759,7 +760,7 @@ private:
     D_CONSTEXPR_CPP20
     value(
         Operation,
-        const dj_math_value& _x
+        const d_math_value& _x
     ) D_NOEXCEPT
         : m_value(Operation::apply(_x))
     {}
@@ -769,8 +770,8 @@ private:
     D_CONSTEXPR_CPP20
     value(
         Operation,
-        const dj_math_value& _a,
-        const dj_math_value& _b
+        const d_math_value& _a,
+        const d_math_value& _b
     ) D_NOEXCEPT
         : m_value(Operation::apply(_a, _b))
     {}
@@ -789,14 +790,14 @@ public:
     value(
         int _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_int(static_cast<dj_math_imax>(_n)))
+        : m_value(d_math_value_from_int(static_cast<d_math_imax>(_n)))
     {}
 
     D_CONSTEXPR_CPP20
     value(
         long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_int(static_cast<dj_math_imax>(_n)))
+        : m_value(d_math_value_from_int(static_cast<d_math_imax>(_n)))
     {}
 
 #if D_ENV_HAS_LONG_LONG
@@ -805,25 +806,25 @@ public:
     value(
         long long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_int(static_cast<dj_math_imax>(_n)))
+        : m_value(d_math_value_from_int(static_cast<d_math_imax>(_n)))
     {}
     D_LONG_LONG_DIAG_POP
 #endif
 
-    // an unsigned integer: an integer where it fits dj_math_imax, past it
+    // an unsigned integer: an integer where it fits d_math_imax, past it
     // the nearest long double, flagged inexact (G2).
     D_CONSTEXPR_CPP20
     value(
         unsigned _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_uint(static_cast<dj_math_umax>(_n)))
+        : m_value(d_math_value_from_uint(static_cast<d_math_umax>(_n)))
     {}
 
     D_CONSTEXPR_CPP20
     value(
         unsigned long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_uint(static_cast<dj_math_umax>(_n)))
+        : m_value(d_math_value_from_uint(static_cast<d_math_umax>(_n)))
     {}
 
 #if D_ENV_HAS_LONG_LONG
@@ -832,7 +833,7 @@ public:
     value(
         unsigned long long _n
     ) D_NOEXCEPT
-        : m_value(d_math_value_from_uint(static_cast<dj_math_umax>(_n)))
+        : m_value(d_math_value_from_uint(static_cast<d_math_umax>(_n)))
     {}
     D_LONG_LONG_DIAG_POP
 #endif
@@ -870,7 +871,7 @@ public:
     // an error code: an error.
     D_CONSTEXPR_CPP20
     value(
-        dj_math_value_error _error
+        d_math_value_error _error
     ) D_NOEXCEPT
         : m_value(d_math_value_from_error(_error))
     {}
@@ -879,7 +880,7 @@ public:
     // denominator is 1.
     D_CONSTEXPR_CPP20
     value(
-        const dj_rational& _x
+        const d_rational& _x
     ) D_NOEXCEPT
         : m_value(d_math_value_from_rational(_x))
     {}
@@ -895,17 +896,17 @@ public:
     // a C value the caller keeps: a copy, one holder more of its box.
     D_CONSTEXPR_CPP20
     explicit value(
-        const dj_math_value& _x
+        const d_math_value& _x
     ) D_NOEXCEPT
         : m_value(d_math_value_retain(_x))
     {}
 
     // _num / _den exactly: an integer or a rational in the one form; over 0
     // a pole, or invalid for 0 / 0.
-    static D_CONSTEXPR_CPP20
-    value ratio(
-        dj_math_imax _num,
-        dj_math_imax _den
+    static D_CONSTEXPR_CPP20 value
+    ratio(
+        d_math_imax _num,
+        d_math_imax _den
     ) D_NOEXCEPT
     {
         return value(d_math_value_from_ratio(_num, _den), adopt_tag());
@@ -913,9 +914,9 @@ public:
 
     // a C value whose hold is the caller's, as a result of value.h's is:
     // the hold becomes this value's, with no holder more.
-    static D_CONSTEXPR_CPP20
-    value adopt(
-        const dj_math_value& _x
+    static D_CONSTEXPR_CPP20 value
+    adopt(
+        const d_math_value& _x
     ) D_NOEXCEPT
     {
         return value(_x, adopt_tag());
@@ -985,12 +986,12 @@ public:
     }
 #endif
 
-    D_CONSTEXPR_CPP20
-    void swap(
+    D_CONSTEXPR_CPP20 void
+    swap(
         value& _other
     ) D_NOEXCEPT
     {
-        const dj_math_value held = m_value;
+        const d_math_value held = m_value;
 
         m_value        = _other.m_value;
         _other.m_value = held;
@@ -998,8 +999,8 @@ public:
         return;
     }
 
-    friend D_CONSTEXPR_CPP20
-    void swap(
+    friend D_CONSTEXPR_CPP20 void
+    swap(
         value& _a,
         value& _b
     ) D_NOEXCEPT
@@ -1011,10 +1012,10 @@ public:
 
     // the C value, its hold now the caller's, to give back with
     // d_math_value_release; this value is left none.
-    D_CONSTEXPR_CPP20
-    dj_math_value detach() D_NOEXCEPT
+    D_CONSTEXPR_CPP20 d_math_value
+    detach() D_NOEXCEPT
     {
-        const dj_math_value held = m_value;
+        const d_math_value held = m_value;
 
         m_value = d_math_value_none();
 
@@ -1023,50 +1024,50 @@ public:
 
     // ---- queries -------------------------------------------------------
 
-    D_CONSTEXPR_CPP20
-    dj_math_value_kind kind() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 d_math_value_kind
+    kind() const D_NOEXCEPT
     {
         return m_value.kind;
     }
 
     // D_MATH_VALUE_FLAG_INEXACT where an exact result did not fit (G2), or
     // came from one that did not.
-    D_CONSTEXPR_CPP20
-    unsigned flags() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 unsigned
+    flags() const D_NOEXCEPT
     {
         return m_value.flags;
     }
 
     // the place in the tower: an inline number's, a boxed kind's own; 0 for
     // none, an error or a boolean.
-    D_CONSTEXPR_CPP20
-    int rank() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 int
+    rank() const D_NOEXCEPT
     {
         return d_math_value_rank(m_value);
     }
 
     // the kind's name: an inline kind's, or a boxed kind's own.
-    D_CONSTEXPR_CPP20
-    const char* kind_name() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 const char*
+    kind_name() const D_NOEXCEPT
     {
         return d_math_value_kind_name(m_value);
     }
 
-    D_CONSTEXPR_CPP20
-    bool is_number() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 bool
+    is_number() const D_NOEXCEPT
     {
         return d_math_value_is_number(m_value);
     }
 
-    D_CONSTEXPR_CPP20
-    bool is_exact() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 bool
+    is_exact() const D_NOEXCEPT
     {
         return d_math_value_is_exact(m_value);
     }
 
     // the C core's value, lent: its hold stays this value's.
-    D_CONSTEXPR_CPP20
-    const dj_math_value& c_value() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 const d_math_value&
+    c_value() const D_NOEXCEPT
     {
         return m_value;
     }
@@ -1077,24 +1078,24 @@ public:
     // kind converts it.
 
     // a number's nearest float, double or long double.
-    D_CONSTEXPR_CPP20
-    bool to(
+    D_CONSTEXPR_CPP20 bool
+    to(
         float& _out
     ) const D_NOEXCEPT
     {
         return d_math_value_to_f(&_out, m_value);
     }
 
-    D_CONSTEXPR_CPP20
-    bool to(
+    D_CONSTEXPR_CPP20 bool
+    to(
         double& _out
     ) const D_NOEXCEPT
     {
         return d_math_value_to_d(&_out, m_value);
     }
 
-    D_CONSTEXPR_CPP20
-    bool to(
+    D_CONSTEXPR_CPP20 bool
+    to(
         long double& _out
     ) const D_NOEXCEPT
     {
@@ -1102,21 +1103,21 @@ public:
     }
 
     // an exact number's rational.
-    D_CONSTEXPR_CPP20
-    bool to(
-        dj_rational& _out
+    D_CONSTEXPR_CPP20 bool
+    to(
+        d_rational& _out
     ) const D_NOEXCEPT
     {
         return d_math_value_to_rational(&_out, m_value);
     }
 
-    // an exact integer's dj_math_imax.
-    D_CONSTEXPR_CPP20
-    bool to(
-        dj_math_imax& _out
+    // an exact integer's d_math_imax.
+    D_CONSTEXPR_CPP20 bool
+    to(
+        d_math_imax& _out
     ) const D_NOEXCEPT
     {
-        dj_rational exact = { 0, 1 };
+        d_rational exact = { 0, 1 };
 
         // an exact number, and whole
         if ( (!d_math_value_to_rational(&exact, m_value)) ||
@@ -1131,8 +1132,8 @@ public:
     }
 
     // a boolean's truth.
-    D_CONSTEXPR_CPP20
-    bool to(
+    D_CONSTEXPR_CPP20 bool
+    to(
         bool& _out
     ) const D_NOEXCEPT
     {
@@ -1148,9 +1149,9 @@ public:
     }
 
     // an error's code.
-    D_CONSTEXPR_CPP20
-    bool to(
-        dj_math_value_error& _out
+    D_CONSTEXPR_CPP20 bool
+    to(
+        d_math_value_error& _out
     ) const D_NOEXCEPT
     {
         // an error
@@ -1159,14 +1160,14 @@ public:
             return false;
         }
 
-        _out = static_cast<dj_math_value_error>(m_value.code);
+        _out = static_cast<d_math_value_error>(m_value.code);
 
         return true;
     }
 
     // the same value as an inline value, where it is of an inline kind.
-    D_CONSTEXPR_CPP20
-    bool to(
+    D_CONSTEXPR_CPP20 bool
+    to(
         inline_value& _out
     ) const D_NOEXCEPT
     {
@@ -1185,8 +1186,8 @@ public:
     // each result a value of its own, value.h's made in place; an operand is
     // only lent.
 
-    D_CONSTEXPR_CPP20
-    value& operator+=(
+    D_CONSTEXPR_CPP20 value&
+    operator+=(
         const value& _other
     ) D_NOEXCEPT
     {
@@ -1197,8 +1198,8 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP20
-    value& operator-=(
+    D_CONSTEXPR_CPP20 value&
+    operator-=(
         const value& _other
     ) D_NOEXCEPT
     {
@@ -1209,8 +1210,8 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP20
-    value& operator*=(
+    D_CONSTEXPR_CPP20 value&
+    operator*=(
         const value& _other
     ) D_NOEXCEPT
     {
@@ -1221,8 +1222,8 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP20
-    value& operator/=(
+    D_CONSTEXPR_CPP20 value&
+    operator/=(
         const value& _other
     ) D_NOEXCEPT
     {
@@ -1233,8 +1234,8 @@ public:
         return *this;
     }
 
-    friend D_CONSTEXPR_CPP20
-    value operator+(
+    friend D_CONSTEXPR_CPP20 value
+    operator+(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1242,8 +1243,8 @@ public:
         return value(internal::value_add(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP20
-    value operator-(
+    friend D_CONSTEXPR_CPP20 value
+    operator-(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1251,8 +1252,8 @@ public:
         return value(internal::value_sub(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP20
-    value operator*(
+    friend D_CONSTEXPR_CPP20 value
+    operator*(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1260,8 +1261,8 @@ public:
         return value(internal::value_mul(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP20
-    value operator/(
+    friend D_CONSTEXPR_CPP20 value
+    operator/(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1269,24 +1270,24 @@ public:
         return value(internal::value_div(), _a.m_value, _b.m_value);
     }
 
-    friend D_CONSTEXPR_CPP20
-    value operator-(
+    friend D_CONSTEXPR_CPP20 value
+    operator-(
         const value& _x
     ) D_NOEXCEPT
     {
         return value(internal::value_neg(), _x.m_value);
     }
 
-    friend D_CONSTEXPR_CPP20
-    value operator+(
+    friend D_CONSTEXPR_CPP20 value
+    operator+(
         const value& _x
     ) D_NOEXCEPT
     {
         return _x;
     }
 
-    friend D_CONSTEXPR_CPP20
-    value abs(
+    friend D_CONSTEXPR_CPP20 value
+    abs(
         const value& _x
     ) D_NOEXCEPT
     {
@@ -1297,16 +1298,16 @@ public:
 
     // how this value stands to _other, exactly: D_MATH_VALUE_LESS, _EQUAL,
     // _GREATER, or _UNORDERED.
-    D_CONSTEXPR_CPP20
-    dj_math_value_order compare(
+    D_CONSTEXPR_CPP20 d_math_value_order
+    compare(
         const value& _other
     ) const D_NOEXCEPT
     {
         return d_math_value_cmp(m_value, _other.m_value);
     }
 
-    friend D_CONSTEXPR_CPP20
-    bool operator==(
+    friend D_CONSTEXPR_CPP20 bool
+    operator==(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1315,8 +1316,8 @@ public:
                 D_MATH_VALUE_EQUAL);
     }
 
-    friend D_CONSTEXPR_CPP20
-    bool operator!=(
+    friend D_CONSTEXPR_CPP20 bool
+    operator!=(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1325,8 +1326,8 @@ public:
                 D_MATH_VALUE_EQUAL);
     }
 
-    friend D_CONSTEXPR_CPP20
-    bool operator<(
+    friend D_CONSTEXPR_CPP20 bool
+    operator<(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1335,8 +1336,8 @@ public:
                 D_MATH_VALUE_LESS);
     }
 
-    friend D_CONSTEXPR_CPP20
-    bool operator>(
+    friend D_CONSTEXPR_CPP20 bool
+    operator>(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1345,26 +1346,26 @@ public:
                 D_MATH_VALUE_GREATER);
     }
 
-    friend D_CONSTEXPR_CPP20
-    bool operator<=(
+    friend D_CONSTEXPR_CPP20 bool
+    operator<=(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
     {
-        const dj_math_value_order order = d_math_value_cmp(_a.m_value,
+        const d_math_value_order order = d_math_value_cmp(_a.m_value,
                                                           _b.m_value);
 
         return ( (order == D_MATH_VALUE_LESS) ||
                  (order == D_MATH_VALUE_EQUAL) );
     }
 
-    friend D_CONSTEXPR_CPP20
-    bool operator>=(
+    friend D_CONSTEXPR_CPP20 bool
+    operator>=(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
     {
-        const dj_math_value_order order = d_math_value_cmp(_a.m_value,
+        const d_math_value_order order = d_math_value_cmp(_a.m_value,
                                                           _b.m_value);
 
         return ( (order == D_MATH_VALUE_GREATER) ||
@@ -1374,13 +1375,13 @@ public:
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // the order as a partial ordering: unordered for a NaN, an error and
     // unlike kinds.
-    friend D_CONSTEXPR
-    std::partial_ordering operator<=>(
+    friend D_CONSTEXPR std::partial_ordering
+    operator<=>(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
     {
-        const dj_math_value_order order = d_math_value_cmp(_a.m_value,
+        const d_math_value_order order = d_math_value_cmp(_a.m_value,
                                                           _b.m_value);
 
         // by order
@@ -1407,7 +1408,7 @@ private:
     // a C value whose hold this value takes, as it is.
     D_CONSTEXPR_CPP20
     value(
-        const dj_math_value& _x,
+        const d_math_value& _x,
         adopt_tag
     ) D_NOEXCEPT
         : m_value(_x)
@@ -1417,7 +1418,7 @@ private:
     template<typename Type>
     D_DELETED_FN(value(Type* _pointer))
 
-    dj_math_value m_value;
+    d_math_value m_value;
 };
 
 
@@ -1437,22 +1438,22 @@ NS_INTERNAL
     //   function: whether _n is a perfect square, and if so its root, in
     // _root: Newton's iteration on the integers, from above, exact; false
     // for a negative _n.
-    inline D_CONSTEXPR_CPP14
-    bool value_whole_root(
-        dj_math_imax  _n,
-        dj_math_imax& _root
+    inline D_CONSTEXPR_CPP14 bool
+    value_whole_root(
+        d_math_imax  _n,
+        d_math_imax& _root
     ) D_NOEXCEPT
     {
-        dj_math_umax n    = 0u;
-        dj_math_umax x    = 0u;
-        dj_math_umax next = 0u;
+        d_math_umax n    = 0u;
+        d_math_umax x    = 0u;
+        d_math_umax next = 0u;
 
         if (_n < 0)
         {
             return false;
         }
 
-        n = static_cast<dj_math_umax>(_n);
+        n = static_cast<d_math_umax>(_n);
 
         // 0 and 1 are their own roots
         if (n < 2u)
@@ -1478,7 +1479,7 @@ NS_INTERNAL
             return false;
         }
 
-        _root = static_cast<dj_math_imax>(x);
+        _root = static_cast<d_math_imax>(x);
 
         return true;
     }
@@ -1490,16 +1491,17 @@ NS_INTERNAL
     // domain error; any other number, the long double nearest the root of
     // the long double nearest _x, a NaN for a negative one, as for the
     // floating-point types. An error is its own root; what is no number has
-    // none: a domain error.
+    // none, nor a number of no real value, as a complex number with an
+    // imaginary part is (S331): a domain error.
     template<typename Value>
-    D_CONSTEXPR_CPP14
-    Value value_root_of(
+    D_CONSTEXPR_CPP14 Value
+    value_root_of(
         const Value& _x
     ) D_NOEXCEPT
     {
-        dj_rational  exact    = { 0, 1 };
-        dj_math_imax num_root = 0;
-        dj_math_imax den_root = 1;
+        d_rational  exact    = { 0, 1 };
+        d_math_imax num_root = 0;
+        d_math_imax den_root = 1;
         long double nearest  = 0.0L;
 
         // an error passes; what is no number has no root
@@ -1531,7 +1533,12 @@ NS_INTERNAL
             }
         }
 
-        (void)_x.to(nearest);
+        // a number of no real value, a complex number of an imaginary part
+        // among them: no real root (S331)
+        if (!_x.to(nearest))
+        {
+            return Value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
 
         return Value(number_root(nearest));
     }
@@ -1540,8 +1547,8 @@ NS_INTERNAL
     //   function: |_x|, the class's own abs, which argument-dependent lookup
     // finds; number_traits' member of that name would hide it.
     template<typename Value>
-    D_CONSTEXPR_CPP14
-    Value value_magnitude(
+    D_CONSTEXPR_CPP14 Value
+    value_magnitude(
         const Value& _x
     ) D_NOEXCEPT
     {
@@ -1554,8 +1561,8 @@ NS_INTERNAL
     // of those kinds; a long double's for any other inexact kind, G2's
     // (S158).
     template<typename Value>
-    D_CONSTEXPR_CPP14
-    Value value_epsilon(
+    D_CONSTEXPR_CPP14 Value
+    value_epsilon(
         const Value& _x
     ) D_NOEXCEPT
     {
@@ -1586,8 +1593,8 @@ NS_INTERNAL
     // exact (S158), else four of the larger epsilon times the larger
     // magnitude (S157).
     template<typename Value>
-    D_CONSTEXPR_CPP14
-    Value value_tolerance(
+    D_CONSTEXPR_CPP14 Value
+    value_tolerance(
         const Value& _a,
         const Value& _b
     ) D_NOEXCEPT
@@ -1612,8 +1619,8 @@ NS_INTERNAL
     // value_to_double
     //   function: the double nearest _x, and a NaN where _x is no number.
     template<typename Value>
-    D_CONSTEXPR_CPP14
-    double value_to_double(
+    D_CONSTEXPR_CPP14 double
+    value_to_double(
         const Value& _x
     ) D_NOEXCEPT
     {
@@ -1664,80 +1671,80 @@ struct number_traits<inline_value>
     static const bool is_commutative = true;
     static const bool is_ordered     = true;
 
-    static D_CONSTEXPR_CPP14
-    inline_value zero() D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 inline_value
+    zero() D_NOEXCEPT
     {
         return inline_value(0);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value one() D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 inline_value
+    one() D_NOEXCEPT
     {
         return inline_value(1);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value abs(
+    static D_CONSTEXPR_CPP14 inline_value
+    abs(
         const inline_value& _x
     ) D_NOEXCEPT
     {
         return internal::value_magnitude(_x);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value magnitude(
+    static D_CONSTEXPR_CPP14 inline_value
+    magnitude(
         const inline_value& _x
     ) D_NOEXCEPT
     {
         return internal::value_magnitude(_x);
     }
 
-    static D_CONSTEXPR_CPP14
-    double to_double(
+    static D_CONSTEXPR_CPP14 double
+    to_double(
         const inline_value& _x
     ) D_NOEXCEPT
     {
         return internal::value_to_double(_x);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value from_double(
+    static D_CONSTEXPR_CPP14 inline_value
+    from_double(
         double _x
     ) D_NOEXCEPT
     {
         return inline_value(_x);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value sqrt(
+    static D_CONSTEXPR_CPP14 inline_value
+    sqrt(
         const inline_value& _x
     ) D_NOEXCEPT
     {
         return internal::value_root_of(_x);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value epsilon() D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 inline_value
+    epsilon() D_NOEXCEPT
     {
         return inline_value(DBL_EPSILON);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value epsilon(
+    static D_CONSTEXPR_CPP14 inline_value
+    epsilon(
         const inline_value& _x
     ) D_NOEXCEPT
     {
         return internal::value_epsilon(_x);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value tolerance() D_NOEXCEPT
+    static D_CONSTEXPR_CPP14 inline_value
+    tolerance() D_NOEXCEPT
     {
         return inline_value(4.0 * DBL_EPSILON);
     }
 
-    static D_CONSTEXPR_CPP14
-    inline_value tolerance(
+    static D_CONSTEXPR_CPP14 inline_value
+    tolerance(
         const inline_value& _a,
         const inline_value& _b
     ) D_NOEXCEPT
@@ -1762,80 +1769,80 @@ struct number_traits<value>
     static const bool is_commutative = true;
     static const bool is_ordered     = true;
 
-    static D_CONSTEXPR_CPP20
-    value zero() D_NOEXCEPT
+    static D_CONSTEXPR_CPP20 value
+    zero() D_NOEXCEPT
     {
         return value(0);
     }
 
-    static D_CONSTEXPR_CPP20
-    value one() D_NOEXCEPT
+    static D_CONSTEXPR_CPP20 value
+    one() D_NOEXCEPT
     {
         return value(1);
     }
 
-    static D_CONSTEXPR_CPP20
-    value abs(
+    static D_CONSTEXPR_CPP20 value
+    abs(
         const value& _x
     ) D_NOEXCEPT
     {
         return internal::value_magnitude(_x);
     }
 
-    static D_CONSTEXPR_CPP20
-    value magnitude(
+    static D_CONSTEXPR_CPP20 value
+    magnitude(
         const value& _x
     ) D_NOEXCEPT
     {
         return internal::value_magnitude(_x);
     }
 
-    static D_CONSTEXPR_CPP20
-    double to_double(
+    static D_CONSTEXPR_CPP20 double
+    to_double(
         const value& _x
     ) D_NOEXCEPT
     {
         return internal::value_to_double(_x);
     }
 
-    static D_CONSTEXPR_CPP20
-    value from_double(
+    static D_CONSTEXPR_CPP20 value
+    from_double(
         double _x
     ) D_NOEXCEPT
     {
         return value(_x);
     }
 
-    static D_CONSTEXPR_CPP20
-    value sqrt(
+    static D_CONSTEXPR_CPP20 value
+    sqrt(
         const value& _x
     ) D_NOEXCEPT
     {
         return internal::value_root_of(_x);
     }
 
-    static D_CONSTEXPR_CPP20
-    value epsilon() D_NOEXCEPT
+    static D_CONSTEXPR_CPP20 value
+    epsilon() D_NOEXCEPT
     {
         return value(DBL_EPSILON);
     }
 
-    static D_CONSTEXPR_CPP20
-    value epsilon(
+    static D_CONSTEXPR_CPP20 value
+    epsilon(
         const value& _x
     ) D_NOEXCEPT
     {
         return internal::value_epsilon(_x);
     }
 
-    static D_CONSTEXPR_CPP20
-    value tolerance() D_NOEXCEPT
+    static D_CONSTEXPR_CPP20 value
+    tolerance() D_NOEXCEPT
     {
         return value(4.0 * DBL_EPSILON);
     }
 
-    static D_CONSTEXPR_CPP20
-    value tolerance(
+    static D_CONSTEXPR_CPP20 value
+    tolerance(
         const value& _a,
         const value& _b
     ) D_NOEXCEPT
@@ -1845,7 +1852,36 @@ struct number_traits<value>
     }
 };
 
-// 3.3    common_number
+// 3.3    The modulus squared
+//------------------------------------------------------------------------------
+// number_modulus_squared
+//   function: |_x|^2 of a value, number_traits.hpp's for the kinds that
+// hold numbers of no real value: _x * _x for every number of a real value,
+// exactly what generic code summed before; for a boxed number of no real
+// value, a complex one, |_x * _x|, which is |_x|^2 and exact where _x is,
+// the modulus of a Gaussian rational's square being the root of a
+// rational's square (S337, S355). An error passes, and what is no number
+// gives what _x * _x gives. An inline value has a real value always, so
+// number_traits.hpp's template serves it.
+inline D_CONSTEXPR_CPP20 value
+number_modulus_squared(
+    const value& _x
+) D_NOEXCEPT
+{
+    long double nearest = 0.0L;
+
+    // a boxed number of no real value: the modulus of its square
+    if ( (_x.kind() == D_MATH_VALUE_BOXED) &&
+         (_x.is_number())                  &&
+         (!_x.to(nearest)) )
+    {
+        return abs(_x * _x);
+    }
+
+    return (_x * _x);
+}
+
+// 3.4    common_number
 //------------------------------------------------------------------------------
 // An inline value with an inline value or an arithmetic type stays inline;
 // with a value, or a value with anything numeric, is a value: the classes'

@@ -22,14 +22,14 @@
 *   STEPS. Step 17 (2e) filled the handle and the entries, and step 18
 * (2f) the entries subs and simplify are: subs("x", t) puts t in place of x,
 * and simplify() folds constants, applies identities and collects like
-* terms (simplify.hpp). Until step 22 (4a), diff gives a handle of
+* terms (simplify.hpp). Until step 25 (4a), diff gives a handle of
 * expr_derivative's error not_yet.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/expr.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 /*
@@ -115,21 +115,24 @@ public:
 
     // ok
     //   whether it holds a term.
-    D_NODISCARD bool ok() const D_NOEXCEPT
+    D_NODISCARD bool
+    ok() const D_NOEXCEPT
     {
         return m_ok;
     }
 
     // term
     //   the term; asked only where ok().
-    D_NODISCARD const expr_term& term() const D_NOEXCEPT
+    D_NODISCARD const expr_term&
+    term() const D_NOEXCEPT
     {
         return m_term;
     }
 
     // error
     //   the error; asked only where !ok().
-    D_NODISCARD const expr_error& error() const D_NOEXCEPT
+    D_NODISCARD const expr_error&
+    error() const D_NOEXCEPT
     {
         return m_error;
     }
@@ -145,7 +148,8 @@ public:
      * @return the term rendered (expr_render), which parse reads back as
      *         the term where parse made it; or the error's message.
      */
-    D_NODISCARD std::string str() const
+    D_NODISCARD std::string
+    str() const
     {
         // an error: its message
         if (!m_ok)
@@ -163,7 +167,8 @@ public:
      * @return expr_evaluate<Type>'s answer, or the error the handle holds.
      */
     template<typename Type>
-    D_NODISCARD expr_result<Type> eval(
+    D_NODISCARD expr_result<Type>
+    eval(
         const expr_bindings& _bindings = expr_bindings()
     ) const
     {
@@ -186,9 +191,10 @@ public:
      * @return expr_evaluate's answer, exact where the value layer is; or
      *         the error the handle holds.
      */
-    D_NODISCARD expr_result<value> eval(
+    D_NODISCARD expr_result<value>
+    eval(
         const expr_bindings& _bindings = expr_bindings(),
-        const expr_context&  _context = expr_context()
+        const expr_context&  _context  = expr_context()
     ) const
     {
         // an error: passed on
@@ -210,7 +216,8 @@ public:
      * @return a handle of expr_substitute's term; or of the error this
      *         handle or _replacement holds, this one's first.
      */
-    D_NODISCARD expr subs(
+    D_NODISCARD expr
+    subs(
         const std::string& _variable,
         const expr&        _replacement
     ) const
@@ -236,7 +243,8 @@ public:
      *
      * @return a handle of expr_simplify's term, or of the error held.
      */
-    D_NODISCARD expr simplify() const
+    D_NODISCARD expr
+    simplify() const
     {
         // an error: passed on
         if (!m_ok)
@@ -250,14 +258,15 @@ public:
     /**
      * @brief The expression's derivative by a variable.
      *
-     * @note Until step 22 (4a) expr_derivative answers expr_status::not_yet,
+     * @note Until step 25 (4a) expr_derivative answers expr_status::not_yet,
      *       and this gives a handle holding that error.
      *
      * @param[in] _variable  the variable's name.
      * @return a handle of expr_derivative's term, or of its error, or of
      *         the error held.
      */
-    D_NODISCARD expr diff(
+    D_NODISCARD expr
+    diff(
         const std::string& _variable
     ) const
     {
@@ -278,7 +287,7 @@ public:
     /**
      * @brief The expression's derivative by a variable, _order times.
      *
-     * @note Until step 22 (4a) expr_derivative answers expr_status::not_yet,
+     * @note Until step 25 (4a) expr_derivative answers expr_status::not_yet,
      *       and this gives a handle holding that error.
      *
      * @param[in] _variable  the variable's name.
@@ -286,7 +295,8 @@ public:
      * @return a handle of expr_derivative's term, or of its error, or of
      *         the error held.
      */
-    D_NODISCARD expr diff(
+    D_NODISCARD expr
+    diff(
         const std::string& _variable,
         unsigned           _order
     ) const
@@ -324,7 +334,8 @@ private:
  * @return a handle of the term expr_parse reads, or of its error, which
  *         has its place in _text.
  */
-D_NODISCARD inline expr parse(
+D_NODISCARD inline expr
+parse(
     const std::string& _text,
     const expr_syntax& _syntax = expr_syntax()
 )
@@ -347,7 +358,8 @@ D_NODISCARD inline expr parse(
  * @return parse's handle, which holds a term; or the error it would hold,
  *         expr_parse's.
  */
-D_NODISCARD inline expr_result<expr> try_parse(
+D_NODISCARD inline expr_result<expr>
+try_parse(
     const std::string& _text,
     const expr_syntax& _syntax = expr_syntax()
 )

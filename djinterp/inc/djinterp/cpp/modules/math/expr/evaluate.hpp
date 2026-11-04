@@ -3,19 +3,24 @@
 *
 * The folds to numbers: a term's value at its variables' values, in a
 * floating-point type or as a math::value; the fourth layer's first half.
-*   TWO FOLDS. expr_evaluate<T>, for float, double and long double, is typed
-* and fast: each literal rounded once, from its text, to T (gate G3), each
-* function the C core's in T. expr_evaluate with an expr_context gives a
-* math::value, exact where the value layer is: 1/3 + 1/6 is exactly 1/2.
-* Both are one fold of parse/expression's over the term.
+*   TWO FOLDS. expr_evaluate<T>, for float, double and long double, and for
+* math::complex of each (S339), is typed and fast: each literal rounded
+* once, from its text, to T (gate G3), each function the C core's in T.
+* expr_evaluate with an expr_context gives a math::value, exact where the
+* value layer is: 1/3 + 1/6 is exactly 1/2. Both are one fold of
+* parse/expression's over the term.
 *   BINDINGS give the variables their values, by name: at("x", 2.0) binds
 * one, and its at(...) the next. A variable no binding gives a value is an
 * error, unbound_variable; an error of arithmetic is a value, a NaN in T or
 * an error value, as math::value's are.
-*   THE CONTEXT will carry what a computation at a chosen precision needs:
-* a big float's precision, the rounding mode and the error policy (roadmap
-* Phase 1). It has no field yet, since no kind reads one (as S70 left
-* value.h), and gains each with the first kind that does (Phase 8).
+*   THE CONTEXT says whether a fold to a value keeps its results real
+* (S272): by default a function of a real argument outside its real domain
+* gives its principal complex value, sqrt(-4) being 2im; with real_results
+* set, an operation of real operands whose value is complex alone,
+* complex(x, y) apart, is a domain error, as Julia's and C's are. It will
+* carry what a computation at a chosen precision needs too, a big float's
+* precision, the rounding mode and the error policy (roadmap Phase 1),
+* each with the first kind that reads it (Phase 8).
 *   IN A TYPE. + - * / are the type's own; ^ is the C core's pow in it, the
 * C library's (power.h); a mod b is the floored remainder, which has b's
 * sign, as in Python, MATLAB and Mathematica: the C core's fmod, plus b
@@ -23,13 +28,30 @@
 * whole n >= 0, a NaN for any other n. A variable is its bound value's
 * nearest in T, and a boolean 1 or 0; an error or none, which have neither,
 * is a NaN, as arithmetic's errors are in T. A constant is the constant
-* table's value in T, true and false 1 and 0; a call, its function's
-* evaluator in T (function.hpp). The relations are C's comparisons, 1 where
-* one holds and 0 where it does not, none holding of a NaN but !=; and, or
-* and not read 0 as false, a NaN as unknown and any other number as true,
-* as Kleene's logic: 0 and anything is 0, 1 or anything is 1. x' is x, as
-* a number is its own transpose, and indexing, which only a matrix takes, is
-* a NaN, as a domain error is in T (S249).
+* table's value in T, true and false 1 and 0, im a NaN, as every number in
+* T is real (S271); a call, its function's evaluator in T (function.hpp).
+* The relations are C's comparisons, 1 where one holds and 0 where it does
+* not, none holding of a NaN but !=; and, or and not read 0 as false, a NaN
+* as unknown and any other number as true, as Kleene's logic: 0 and
+* anything is 0, 1 or anything is 1. x' is x, as a number is its own
+* transpose, and indexing, which only a matrix takes, is a NaN, as a domain
+* error is in T (S249).
+*   IN A COMPLEX TYPE, math::complex<T> (S339), a real number stays real, as
+* a value's does, so that a term whose every number is real has there its
+* bits in T, plus +0i: a literal is real, a constant its complex value, pi
+* real and im 0 + 1i, a variable its bound value's nearest, real where the
+* value is. An operator of real operands is T's, and ^ of them, where T's
+* is a NaN of operands that are not, the principal complex power of x + 0i
+* (S272); of a complex operand the face's, so cplx.h's, a real operand
+* taken as itself (G.5); x' is the conjugate (S333); mod and ! of a complex
+* number a NaN; = and != compare the parts, and <, <=, > and >= of a
+* complex number are a NaN. A function of real arguments is its real
+* evaluator's, but where that is a NaN of arguments that are not, its
+* principal complex value at x + 0i, so that sqrt(-4) is 2i; of a complex
+* argument its complex evaluator's (function.hpp), exp2, log2, log10, log1p
+* and expm1 among them (S342); linear algebra's functions of a number,
+* scalars there too: det, trace and eig z itself, inv 1 / z, a real 1 taken
+* as itself, norm |z|, dot(a, b) conj(a) b, solve(a, b) b / a (S351).
 *   AS A VALUE. + - * / are value.h's, exact for exact operands. ^ is exact
 * for an exact base and an exact whole exponent, by repeated squaring, and
 * for an exact rational exponent p/q where the base's terms are whole q-th
@@ -57,7 +79,8 @@
 * is one of 1 by 1, so that a literal of numbers alone is the matrix of
 * them, as expr_vector and expr_matrix make it, each element kept as it is,
 * as values where any element is exact, and densely where every one is a
-* float, a double or a long double (S239); a matrix is one of its own shape,
+* float, a double or a long double, or a complex number of such parts
+* (S239, S348); a matrix is one of its own shape,
 * [A, b] A with b beside it, and the empty matrix one that is skipped; [] is
 * the empty matrix (S260). An element's error passes, the first; an element
 * that is no number and no matrix, a boolean or none, is a domain error
@@ -72,33 +95,53 @@
 * matrix is a NaN there, as one bound to none is.
 *   MATRICES, as values, take + - * / as the matrix kind has them (S246):
 * A + B and A - B of one shape, -A, A * s, s * A and A / s, and A * B where
-* A's columns are B's rows; any other is a domain error. A ^ n is the power
-* of a square matrix to a whole n, a negative one its inverse's, a pole for
-* a singular matrix (S248, S259); A' the transpose, and
-* of a number the number; A[i, j] an element, v[i] a vector's, A[i] the row
-* i of another matrix, each index from 1 and whole (S249); and A = B and
-* A != B compare two matrices element by element (S242). An error passes
-* first, as anywhere, and indexing a number, or by a number not whole or
-* out of the matrix, is a domain error (matrix.hpp has them all). A term
-* made by hand that indexes by none or by three is wrong_arity.
-*   CALLS AND CONSTANTS are looked up in the standard tables, when a fold
-* meets them: a function or a constant neither table has is unknown_name,
-* and a call of a number of arguments its function does not take
-* wrong_arity. An argument's error passes, the first, before either. Linear
-* algebra's functions take matrices as values, and numbers as scalars in a
-* type (function.hpp, S256).
+* A's columns are B's rows; any other is a domain error. A ^ n is the power of
+* a square matrix to a whole n, a negative one its inverse's, a pole for a
+* singular matrix (S248, S259); A' the conjugate transpose, and of a real
+* number the number (S273, S350); A[i, j] an element, v[i] a vector's, A[i]
+* the row i of another matrix, each index from 1 and whole (S249); and A = B
+* and A != B compare two matrices element by element (S242). An error passes
+* first, as anywhere, and indexing a number, or by a number not whole or out
+* of the matrix, is a domain error (matrix.hpp has them all). A term made by
+* hand that indexes by none or by three is wrong_arity.
+*   CALLS AND CONSTANTS are looked up in the standard tables, when a fold meets
+* them: a function or a constant neither table has is unknown_name, a call of a
+* number of arguments its function does not take wrong_arity, and jm and km
+* not_yet, until step 24 (3f) (S275). An argument's error passes, the first,
+* before either. Linear algebra's functions take matrices as values, and
+* numbers as scalars in a type (function.hpp, S256).
+*   COMPLEX NUMBERS are values (complex.hpp): im is the imaginary unit, so
+* that 3 + 4im is one, + - * / and the modulus are the kind's, exact for exact
+* parts, z' is the conjugate, as A' is the conjugate transpose
+* (S273), = and != compare the parts, and < <= > >= of one are a domain error
+* (S271). Each function and power of one is its principal value, exact where
+* it is a Gaussian rational (function.hpp, S336, S337); and so is one of a
+* real argument where no real value is (S272), unless the context asks real
+* results, log2 and log10 of a negative number and log1p of one below -1 among
+* them (S342). Complex numbers are matrices' elements (matrix.hpp, S348): a
+* literal may hold them, a matrix's arithmetic takes them, and linear
+* algebra's functions compute of them, eig giving complex eigenvalues; real,
+* imag, conj and arg of a matrix are its elements', and complex(A, B) of two
+* of one shape the matrix of complex(a_ij, b_ij) (S350). With real_results, a
+* complex result of real operands is a domain error, a matrix's eigenvalues
+* among them (S340, S352). The functions of the real line's order, floor and
+* the rest, are a domain error of one, as mod and ! are.
 *   STEPS. Step 14 (2b) filled both folds for numbers, variables and the
 * arithmetic, step 15 (2c) for calls, constants and the factorial, step 16
 * (2d) for the relations and logic, piecewise a call, step 19 (3a) for the
 * literals, step 20 (3b) for indexing, the transpose and the operators on
-* matrices, and step 21 (3c) for blocks and the empty matrix: no node of the
-* language answers expr_status::not_yet.
+* matrices, step 21 (3c) for blocks and the empty matrix, and step 23 (3e),
+* its first part, for complex numbers, its second, in chunks 41 and 42, for
+* their functions, the context's real_results and the folds in
+* math::complex<T>, and its third, chunk 43, for matrices of them: no node of
+* the language answers expr_status::not_yet but the constants jm and km, from
+* step 22 (3d), until step 24 (3f) (S353).
 *
 *
-* path:      /inc/djinterp/cpp/modules/math/expr/evaluate.hpp
+* path:      /inc/djinterp/math/expr/evaluate.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.02
 *******************************************************************************/
 
 /*
@@ -121,6 +164,12 @@ TABLE OF CONTENTS
          2.  The operators and the calls
     3.  As a value
          1.  The operators
+    4.  In each type
+         1.  expr_typed
+         2.  expr_complex_constant_in, expr_complex_evaluator_in
+         3.  expr_complex_carrier
+         4.  expr_typed<math::complex<Type> >
+         5.  expr_real_result
 3.  THE FOLDS
     ---------
     1.  In a floating-point type
@@ -183,7 +232,8 @@ public:
     // at
     //   binds _name to _value, in place of any value it had. Returns the
     // bindings, for the next.
-    expr_bindings& at(
+    expr_bindings&
+    at(
         const std::string& _name,
         const value&       _value
     )
@@ -207,7 +257,8 @@ public:
     // find
     //   the value bound to _name, or null where none is; the pointer is
     // good until the bindings next change.
-    D_NODISCARD const value* find(
+    D_NODISCARD const value*
+    find(
         const std::string& _name
     ) const
     {
@@ -223,12 +274,14 @@ public:
         return D_NULLPTR;
     }
 
-    D_NODISCARD std::size_t size() const D_NOEXCEPT
+    D_NODISCARD std::size_t
+    size() const D_NOEXCEPT
     {
         return m_entries.size();
     }
 
-    D_NODISCARD bool empty() const D_NOEXCEPT
+    D_NODISCARD bool
+    empty() const D_NOEXCEPT
     {
         return m_entries.empty();
     }
@@ -241,7 +294,8 @@ private:
 // at
 //   function: bindings of one variable, _name to _value, to which at adds
 // more: at("x", 2.0).at("y", 3).
-D_NODISCARD inline expr_bindings at(
+D_NODISCARD inline expr_bindings
+at(
     const std::string& _name,
     const value&       _value
 )
@@ -256,12 +310,29 @@ D_NODISCARD inline expr_bindings at(
 //------------------------------------------------------------------------------
 // 1.2.1
 // expr_context
-//   struct: what a fold to a value computes under. No field yet: a big
-// float's precision, the rounding mode and the error policy come with the
-// first kind that reads them.
+//   struct: what a fold to a value computes under: whether its results stay
+// real (S272). Where real_results is false, as by default, a function of a
+// real argument outside its real domain gives its principal complex value,
+// sqrt(-4) being 2im, log(-1) pi im and (-8) ^ (1/3) 1 + 1.732...im, as
+// MATLAB, Mathematica and Python's ** give them; where it is true, an
+// operation of real operands whose value is complex alone, complex(x, y)
+// apart, is a domain error instead, as Julia's and C's are, for a
+// computation meant to stay real. A big float's precision, the rounding
+// mode and the error policy come with the first kind that reads them.
 struct expr_context
 {
+    bool real_results;
+
+    // complex results where no real one is.
     expr_context() D_NOEXCEPT
+        : real_results(false)
+    {}
+
+    // real results only where _real_results is true.
+    explicit expr_context(
+        bool _real_results
+    ) D_NOEXCEPT
+        : real_results(_real_results)
     {}
 };
 
@@ -287,8 +358,8 @@ NS_INTERNAL
     // expr_fold_error
     //   function: as the item says, for an application of _op to _operands
     // operands, which no fold computes.
-    inline
-    expr_error expr_fold_error(
+    inline expr_error
+    expr_fold_error(
         const expr_op& _op,
         std::size_t    _operands
     )
@@ -316,8 +387,8 @@ NS_INTERNAL
 
     // expr_is_literal
     //   function: whether an operator is a literal's, vector, matrix or row.
-    inline
-    bool expr_is_literal(
+    inline bool
+    expr_is_literal(
         expr_op_kind _kind
     )
     {
@@ -328,8 +399,8 @@ NS_INTERNAL
 
     // expr_unbound
     //   function: the error of a variable no binding gives a value.
-    inline
-    expr_error expr_unbound(
+    inline expr_error
+    expr_unbound(
         const std::string& _name
     )
     {
@@ -341,8 +412,8 @@ NS_INTERNAL
     // expr_no_term
     //   function: the error of a term made by default, which is no term and
     // has no value: missing_operand.
-    inline
-    expr_error expr_no_term()
+    inline expr_error
+    expr_no_term()
     {
         return expr_error(expr_status::missing_operand,
                           expr_no_offset,
@@ -353,8 +424,8 @@ NS_INTERNAL
     //   function: whether an operator of the table's takes _operands
     // operands, its arity: two for the binary, one for the unary, the
     // factorial, the transpose and not.
-    inline
-    bool expr_takes(
+    inline bool
+    expr_takes(
         expr_op_kind _kind,
         std::size_t  _operands
     )
@@ -370,8 +441,8 @@ NS_INTERNAL
     //   function: the error of indexing of a number of indices it does not
     // take, one or two: wrong_arity. (Only a term made by hand has one; the
     // parser reads none.)
-    inline
-    expr_error expr_index_error(
+    inline expr_error
+    expr_index_error(
         std::size_t _operands
     )
     {
@@ -386,8 +457,8 @@ NS_INTERNAL
     // expr_index_takes
     //   function: whether indexing takes _operands operands: the indexed
     // one, and one index or two.
-    inline
-    bool expr_index_takes(
+    inline bool
+    expr_index_takes(
         std::size_t _operands
     )
     {
@@ -401,14 +472,15 @@ NS_INTERNAL
     // where it takes the call's arguments; and a constant's entry. Where
     // there is none, the error: unknown_name for a name the table has not,
     // wrong_arity for a call of a number of arguments its function does not
-    // take.
+    // take, and not_yet, with its entry's message, for a constant whose step
+    // has not come.
 
     // expr_arguments_text
     //   function: the numbers of arguments a standard function takes, in
     // words: 1 argument, 2 arguments, at least 1 argument. Each takes one
     // number of them, or any number from its least.
-    inline
-    std::string expr_arguments_text(
+    inline std::string
+    expr_arguments_text(
         const expr_function& _function
     )
     {
@@ -420,8 +492,8 @@ NS_INTERNAL
                ( (least == 1) ? " argument" : " arguments" );
     }
 
-    inline
-    expr_result<const expr_function*> expr_function_of(
+    inline expr_result<const expr_function*>
+    expr_function_of(
         const expr_op& _call,
         std::size_t    _arguments
     )
@@ -453,8 +525,8 @@ NS_INTERNAL
         return ok<const expr_function*, expr_error>(function);
     }
 
-    inline
-    expr_result<const expr_named_constant*> expr_constant_of(
+    inline expr_result<const expr_named_constant*>
+    expr_constant_of(
         const std::string& _name
     )
     {
@@ -468,6 +540,13 @@ NS_INTERNAL
                 expr_error(expr_status::unknown_name,
                            expr_no_offset,
                            "no constant of the language is named " + _name));
+        }
+
+        // a constant whose step has not come: jm and km (S275)
+        if (!constant->not_yet.empty())
+        {
+            return err<const expr_named_constant*, expr_error>(
+                internal::expr_not_yet_error(constant->not_yet.c_str()));
         }
 
         return ok<const expr_named_constant*, expr_error>(constant);
@@ -489,7 +568,8 @@ NS_INTERNAL
     //   function: a number atom in Type: its literal rounded once, or its
     // value's nearest.
     template<typename Type>
-    Type expr_number_in(
+    Type
+    expr_number_in(
         const expr_atom& _atom
     )
     {
@@ -508,7 +588,8 @@ NS_INTERNAL
     // expr_constant_in
     //   function: a constant's value in Type, as its entry holds it.
     template<typename Type>
-    Type expr_constant_in(
+    Type
+    expr_constant_in(
         const expr_named_constant& _constant
     );
 
@@ -548,7 +629,8 @@ NS_INTERNAL
     //   function: an operator of steps 14 to 16 applied to its operands in
     // Type, which it takes in their number.
     template<typename Type>
-    Type expr_apply_in(
+    Type
+    expr_apply_in(
         expr_op_kind             _kind,
         const std::vector<Type>& _x
     )
@@ -586,7 +668,8 @@ NS_INTERNAL
     // expr_evaluator_in
     //   function: a function's evaluator in Type.
     template<typename Type>
-    expr_evaluator<Type> expr_evaluator_in(
+    expr_evaluator<Type>
+    expr_evaluator_in(
         const expr_function& _function
     );
 
@@ -629,8 +712,8 @@ NS_INTERNAL
     // values, which it takes in their number: value.h's + - * / and -,
     // function.hpp's ^, mod and !, its relations and its logic; + an error or
     // a number itself, and a domain error for what is neither.
-    inline
-    value expr_apply_value(
+    inline value
+    expr_apply_value(
         expr_op_kind              _kind,
         const std::vector<value>& _x
     )
@@ -679,6 +762,548 @@ NS_INTERNAL
 
 NS_END  // internal
 
+// 2.4    In each type
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // 2.4.1
+    // expr_typed
+    //   struct: what the typed fold computes with in Type, a floating-point
+    // type: the number it carries, Type itself; a number atom, a constant, a
+    // bound value and a NaN in it; an operator of steps 14 to 16; a
+    // function's evaluator; and the fold's result of what it carried.
+    template<typename Type>
+    struct expr_typed
+    {
+        typedef Type              carrier;
+        typedef expr_result<Type> carried;
+        typedef expr_result<Type> answer;
+
+        static const bool is_type =
+            ( (std::is_same<Type, float>::value)  ||
+              (std::is_same<Type, double>::value) ||
+              (std::is_same<Type, long double>::value) );
+
+        static Type
+        number(
+            const expr_atom& _atom
+        )
+        {
+            return expr_number_in<Type>(_atom);
+        }
+
+        static Type
+        constant(
+            const expr_named_constant& _constant
+        )
+        {
+            return expr_constant_in<Type>(_constant);
+        }
+
+        static Type
+        bound(
+            const value& _value
+        )
+        {
+            return expr_value_in<Type>(_value);
+        }
+
+        static Type
+        nan()
+        {
+            return expr_nan_of<Type>::make();
+        }
+
+        static Type
+        apply(
+            expr_op_kind             _kind,
+            const std::vector<Type>& _x
+        )
+        {
+            return expr_apply_in<Type>(_kind, _x);
+        }
+
+        static Type
+        call(
+            const expr_function&     _function,
+            const std::vector<Type>& _x
+        )
+        {
+            return expr_evaluator_in<Type>(_function)(_x.data(), _x.size());
+        }
+
+
+        static answer
+        result(
+            const carried& _folded
+        )
+        {
+            return _folded;
+        }
+    };
+
+    // 2.4.2
+    // expr_complex_constant_in, expr_complex_evaluator_in
+    //   functions: a constant's value in math::complex<Type>, as its entry
+    // holds it, and a function's evaluator there.
+    template<typename Type>
+    math::complex<Type>
+    expr_complex_constant_in(
+        const expr_named_constant& _constant
+    );
+
+    template<>
+    inline math::complex<float>
+    expr_complex_constant_in<float>(
+        const expr_named_constant& _constant
+    )
+    {
+        return _constant.as_complex_float;
+    }
+
+    template<>
+    inline math::complex<double>
+    expr_complex_constant_in<double>(
+        const expr_named_constant& _constant
+    )
+    {
+        return _constant.as_complex_double;
+    }
+
+    template<>
+    inline math::complex<long double>
+    expr_complex_constant_in<long double>(
+        const expr_named_constant& _constant
+    )
+    {
+        return _constant.as_complex_long_double;
+    }
+
+    template<typename Type>
+    expr_evaluator<math::complex<Type> >
+    expr_complex_evaluator_in(
+        const expr_function& _function
+    );
+
+    template<>
+    inline expr_evaluator<math::complex<float> >
+    expr_complex_evaluator_in<float>(
+        const expr_function& _function
+    )
+    {
+        return _function.evaluate_complex_float;
+    }
+
+    template<>
+    inline expr_evaluator<math::complex<double> >
+    expr_complex_evaluator_in<double>(
+        const expr_function& _function
+    )
+    {
+        return _function.evaluate_complex_double;
+    }
+
+    template<>
+    inline expr_evaluator<math::complex<long double> >
+    expr_complex_evaluator_in<long double>(
+        const expr_function& _function
+    )
+    {
+        return _function.evaluate_complex_long_double;
+    }
+
+    // 2.4.3
+    // expr_complex_carrier
+    //   struct: a number of the fold in math::complex<Type>, and whether it
+    // is real: a real number has no imaginary part, its z's +0, as a value's
+    // real number has none (S339).
+    template<typename Type>
+    struct expr_complex_carrier
+    {
+        math::complex<Type> z;
+        bool                real;
+    };
+
+    // 2.4.4
+    // expr_typed<math::complex<Type> >
+    //   struct: the same in math::complex<Type> (S339), where a real number
+    // stays real, so that a term whose every number is real has there the
+    // bits it has in Type, plus +0i, as the value fold keeps a real number
+    // real: a literal rounded once to Type, real; a constant's complex
+    // value, real where its imaginary part is +0, im's 0 + 1i not; a bound
+    // value's nearest, real where it is a real number, a boolean 1 or 0, and
+    // an error, none or a matrix a NaN. An operator of real operands is
+    // Type's, but ^ where it gives a NaN of operands that are not, which is
+    // then the principal complex power of x + 0i (S272); of a complex
+    // operand the face's, a real operand taken as itself (G.5), so cplx.h's;
+    // x' the conjugate (S333); mod and ! of a complex number a NaN; = and !=
+    // by the parts; <, <=, > and >= of one a NaN; and logic as function.hpp
+    // has it. A function of real arguments is its real evaluator's, but
+    // where that gives a NaN of arguments that are not, its principal
+    // complex value at x + 0i (S272); of a complex argument its complex
+    // evaluator's, or a NaN where it has none, exp2, log2, log10, log1p and
+    // expm1 among them (S342); and a function of linear algebra of a number
+    // the scalar's (S351).
+    template<typename Type>
+    struct expr_typed<math::complex<Type> >
+    {
+        typedef math::complex<Type>          number_type;
+        typedef expr_complex_carrier<Type>   carrier;
+        typedef expr_result<carrier>         carried;
+        typedef expr_result<number_type>     answer;
+
+        static const bool is_type =
+            ( (std::is_same<Type, float>::value)  ||
+              (std::is_same<Type, double>::value) ||
+              (std::is_same<Type, long double>::value) );
+
+        static carrier
+        of_real(
+            Type _x
+        )
+        {
+            const carrier made = { number_type(_x), true };
+
+            return made;
+        }
+
+        static carrier
+        of_complex(
+            const number_type& _z
+        )
+        {
+            const carrier made = { _z, false };
+
+            return made;
+        }
+
+        static carrier
+        number(
+            const expr_atom& _atom
+        )
+        {
+            return of_real(expr_number_in<Type>(_atom));
+        }
+
+        static carrier
+        constant(
+            const expr_named_constant& _constant
+        )
+        {
+            const number_type z = expr_complex_constant_in<Type>(_constant);
+
+            // an imaginary part of +0: a real constant
+            if ( (z.imag() == Type(0)) &&
+                 (!std::signbit(z.imag())) )
+            {
+                return of_real(z.real());
+            }
+
+            return of_complex(z);
+        }
+
+        static carrier
+        bound(
+            const value& _value
+        )
+        {
+            number_type z;
+
+            // a complex number: its nearest
+            if ( (expr_is_complex(_value)) &&
+                 (expr_complex_to(_value, z)) )
+            {
+                return of_complex(z);
+            }
+
+            return of_real(expr_value_in<Type>(_value));
+        }
+
+        static carrier
+        nan()
+        {
+            return of_real(expr_nan_of<Type>::make());
+        }
+
+        // all_real, reals_of, complexes_of
+        //   whether every operand is real; their real parts; and each as a
+        // complex number, a real one's imaginary part +0.
+        static bool
+        all_real(
+            const std::vector<carrier>& _x
+        )
+        {
+            // each in turn
+            for (std::size_t i = 0; i < _x.size(); ++i)
+            {
+                if (!_x[i].real)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        static std::vector<Type>
+        reals_of(
+            const std::vector<carrier>& _x
+        )
+        {
+            std::vector<Type> reals;
+
+            // each real part
+            for (std::size_t i = 0; i < _x.size(); ++i)
+            {
+                reals.push_back(_x[i].z.real());
+            }
+
+            return reals;
+        }
+
+        static std::vector<number_type>
+        complexes_of(
+            const std::vector<carrier>& _x
+        )
+        {
+            std::vector<number_type> complexes;
+
+            // each complex number
+            for (std::size_t i = 0; i < _x.size(); ++i)
+            {
+                complexes.push_back(_x[i].z);
+            }
+
+            return complexes;
+        }
+
+        // nan_of_real
+        //   whether a real result is a NaN of real operands none of which
+        // is one: a function's value outside its real domain.
+        static bool
+        nan_of_real(
+            Type                     _result,
+            const std::vector<Type>& _x
+        )
+        {
+            // a NaN given
+            for (std::size_t i = 0; i < _x.size(); ++i)
+            {
+                if (std::isnan(_x[i]))
+                {
+                    return false;
+                }
+            }
+
+            return std::isnan(_result);
+        }
+
+        // truth_of
+        //   a number's truth in Type, as function.hpp's logic reads it: 0
+        // false, a NaN in either part unknown, any other true.
+        static Type
+        truth_of(
+            const carrier& _x
+        )
+        {
+            // unknown, false, true
+            if (expr_is_nan_of(_x.z))
+            {
+                return expr_nan_of<Type>::make();
+            }
+
+            return ( (_x.z == number_type(Type(0))) ? Type(0) : Type(1) );
+        }
+
+        static carrier
+        apply_complex(
+            expr_op_kind                _kind,
+            const std::vector<carrier>& _x
+        )
+        {
+            std::vector<Type> truths;
+
+            // each operand's truth, for logic
+            for (std::size_t i = 0; i < _x.size(); ++i)
+            {
+                truths.push_back(truth_of(_x[i]));
+            }
+
+            const number_type& a = _x[0].z;
+
+            // by kind: a real operand taken as itself
+            switch (_kind)
+            {
+                case expr_op_kind::add:
+                    return of_complex( (_x[0].real) ? (a.real() + _x[1].z)
+                                     : ( (_x[1].real) ? (a + _x[1].z.real())
+                                                      : (a + _x[1].z) ) );
+                case expr_op_kind::sub:
+                    return of_complex( (_x[0].real) ? (a.real() - _x[1].z)
+                                     : ( (_x[1].real) ? (a - _x[1].z.real())
+                                                      : (a - _x[1].z) ) );
+                case expr_op_kind::mul:
+                    return of_complex( (_x[0].real) ? (a.real() * _x[1].z)
+                                     : ( (_x[1].real) ? (a * _x[1].z.real())
+                                                      : (a * _x[1].z) ) );
+                case expr_op_kind::div:
+                    return of_complex( (_x[0].real) ? (a.real() / _x[1].z)
+                                     : ( (_x[1].real) ? (a / _x[1].z.real())
+                                                      : (a / _x[1].z) ) );
+                case expr_op_kind::pow:
+                    return of_complex(pow(a, _x[1].z));
+                case expr_op_kind::neg:
+                    return of_complex(-a);
+                case expr_op_kind::transpose:
+                    return of_complex(conj(a));
+                case expr_op_kind::eq:
+                    return of_real( (a == _x[1].z) ? Type(1) : Type(0) );
+                case expr_op_kind::ne:
+                    return of_real( (a != _x[1].z) ? Type(1) : Type(0) );
+                case expr_op_kind::logical_and:
+                    return of_real(expr_all_in(truths.data(), 2));
+                case expr_op_kind::logical_or:
+                    return of_real(expr_any_in(truths.data(), 2));
+                case expr_op_kind::logical_not:
+                    return of_real(expr_not_in(truths[0]));
+                case expr_op_kind::pos:
+                    return _x[0];
+                case expr_op_kind::mod:
+                case expr_op_kind::factorial:
+                    return of_complex(expr_nan_of<number_type>::make());
+                default:
+                    break;
+            }
+
+            // an order: none of a complex number
+            return nan();
+        }
+
+        static carrier
+        apply(
+            expr_op_kind                _kind,
+            const std::vector<carrier>& _x
+        )
+        {
+            // a complex operand
+            if (!all_real(_x))
+            {
+                return apply_complex(_kind, _x);
+            }
+
+            const std::vector<Type> reals  = reals_of(_x);
+            const Type              result = expr_apply_in<Type>(_kind,
+                                                                 reals);
+
+            // a real power with no real value: the principal complex one
+            if ( (_kind == expr_op_kind::pow) &&
+                 (nan_of_real(result, reals)) )
+            {
+                return of_complex(pow(_x[0].z, _x[1].z));
+            }
+
+            return of_real(result);
+        }
+
+        static carrier
+        call(
+            const expr_function&        _function,
+            const std::vector<carrier>& _x
+        )
+        {
+            const expr_evaluator<number_type> evaluator =
+                expr_complex_evaluator_in<Type>(_function);
+            const std::vector<number_type>    complexes = complexes_of(_x);
+
+            // real arguments: the real value, where there is one
+            if (all_real(_x))
+            {
+                const std::vector<Type> reals  = reals_of(_x);
+                const Type              result =
+                    expr_evaluator_in<Type>(_function)(reals.data(),
+                                                       reals.size());
+
+                if ( (!nan_of_real(result, reals)) ||
+                     (evaluator == D_NULLPTR) )
+                {
+                    return of_real(result);
+                }
+            }
+            else if (evaluator == D_NULLPTR)
+            {
+                return of_complex(expr_nan_of<number_type>::make());
+            }
+
+            return of_complex(evaluator(complexes.data(), complexes.size()));
+        }
+
+
+        static answer
+        result(
+            const carried& _folded
+        )
+        {
+            // an error passes
+            if (_folded.is_err())
+            {
+                return err<number_type, expr_error>(_folded.error());
+            }
+
+            return ok<number_type, expr_error>(
+                ( (_folded.value().real)
+                      ? number_type(_folded.value().z.real())
+                      : _folded.value().z ));
+        }
+    };
+
+    // 2.4.5
+    // expr_real_result
+    //   function: _answer, the value of _op of the operands _x, or a domain
+    // error where _context asks real results and real operands gave a
+    // complex number, or a matrix holding one, as eig of a real matrix with
+    // a complex pair does (S258, S352), complex(x, y) apart (S272).
+    inline bool
+    expr_holds_complex(
+        const value& _x
+    )
+    {
+        return ( (expr_is_complex(_x)) ||
+                 ( (expr_is_matrix(_x)) &&
+                   (expr_matrix_has_complex(_x)) ) );
+    }
+
+    inline value
+    expr_real_result(
+        const expr_context&       _context,
+        const expr_op&            _op,
+        const std::vector<value>& _x,
+        const value&              _answer
+    )
+    {
+        // real results not asked, or complex(x, y)
+        if ( (!_context.real_results) ||
+             ( (_op.kind == expr_op_kind::call) &&
+               (_op.function == "complex") ) )
+        {
+            return _answer;
+        }
+
+        // a complex operand: a complex answer is its own
+        for (std::size_t i = 0; i < _x.size(); ++i)
+        {
+            if (expr_holds_complex(_x[i]))
+            {
+                return _answer;
+            }
+        }
+
+        return ( (expr_holds_complex(_answer))
+                     ? value(D_MATH_VALUE_ERROR_DOMAIN)
+                     : _answer );
+    }
+
+NS_END  // internal
+
 
 //==============================================================================
 // 3.  THE FOLDS
@@ -694,7 +1319,8 @@ NS_END  // internal
 // 3.1.1
 // expr_evaluate<Type>
 /**
- * @brief The value of a term in float, double or long double.
+ * @brief The value of a term in float, double or long double, or in the
+ *        math::complex of one.
  *
  * @param[in] _term      the term.
  * @param[in] _bindings  the values of its variables.
@@ -704,21 +1330,25 @@ NS_END  // internal
  *         standard tables have not, or an operator of no kind the language
  *         has; wrong_arity for an operator or a function applied to a
  *         number of operands it does not take; bad_shape for a vector or a
- *         matrix, which has no value in a type; or missing_operand for a
- *         term made by default.
+ *         matrix, which has no value in a type; not_yet for the constants
+ *         jm and km, whose step has not come; or missing_operand for a term
+ *         made by default.
  */
 template<typename Type>
-D_NODISCARD expr_result<Type> expr_evaluate(
+D_NODISCARD expr_result<Type>
+expr_evaluate(
     const expr_term&     _term,
     const expr_bindings& _bindings = expr_bindings()
 )
 {
-    D_STATIC_ASSERT(internal::expr_floating<Type>::value,
+    D_STATIC_ASSERT(internal::expr_typed<Type>::is_type,
                     "expr_evaluate<Type>: Type is float, double or long "
-                    "double; a math::value comes from expr_evaluate with "
-                    "an expr_context.");
+                    "double, or the math::complex of one; a math::value "
+                    "comes from expr_evaluate with an expr_context.");
 
-    using answer = expr_result<Type>;
+    using typed   = internal::expr_typed<Type>;
+    using carrier = typename typed::carrier;
+    using answer  = typename typed::carried;
 
     // no term: a term made by default
     if (_term.empty())
@@ -726,7 +1356,7 @@ D_NODISCARD expr_result<Type> expr_evaluate(
         return err<Type, expr_error>(internal::expr_no_term());
     }
 
-    return ::djinterp::evaluate<answer, expr_op, expr_atom>(
+    return typed::result(::djinterp::evaluate<answer, expr_op, expr_atom>(
         _term,
         // a leaf: a number, a constant, or a bound variable
         [&_bindings](const expr_atom& _atom) -> answer
@@ -734,8 +1364,7 @@ D_NODISCARD expr_result<Type> expr_evaluate(
             // by kind
             if (_atom.kind == expr_atom_kind::number)
             {
-                return ok<Type, expr_error>(
-                    internal::expr_number_in<Type>(_atom));
+                return ok<carrier, expr_error>(typed::number(_atom));
             }
 
             if (_atom.kind == expr_atom_kind::constant)
@@ -746,11 +1375,11 @@ D_NODISCARD expr_result<Type> expr_evaluate(
                 // a name of no constant
                 if (constant.is_err())
                 {
-                    return err<Type, expr_error>(constant.error());
+                    return err<carrier, expr_error>(constant.error());
                 }
 
-                return ok<Type, expr_error>(
-                    internal::expr_constant_in<Type>(*constant.value()));
+                return ok<carrier, expr_error>(
+                    typed::constant(*constant.value()));
             }
 
             const value* bound = _bindings.find(_atom.text);
@@ -758,16 +1387,16 @@ D_NODISCARD expr_result<Type> expr_evaluate(
             // a variable no binding gives a value
             if (bound == D_NULLPTR)
             {
-                return err<Type, expr_error>(
+                return err<carrier, expr_error>(
                     internal::expr_unbound(_atom.text));
             }
 
-            return ok<Type, expr_error>(internal::expr_value_in<Type>(*bound));
+            return ok<carrier, expr_error>(typed::bound(*bound));
         },
         // an application: its operands' first error, or the operation
         [](const expr_op& _op, const std::vector<answer>& _operands) -> answer
         {
-            std::vector<Type> x;
+            std::vector<carrier> x;
 
             // an operand's error passes
             for (std::size_t i = 0; i < _operands.size(); ++i)
@@ -783,7 +1412,7 @@ D_NODISCARD expr_result<Type> expr_evaluate(
             // a literal: no value in a type
             if (internal::expr_is_literal(_op.kind))
             {
-                return err<Type, expr_error>(
+                return err<carrier, expr_error>(
                     expr_error(expr_status::bad_shape,
                                expr_no_offset,
                                "expr_evaluate<Type>: a vector or a matrix "
@@ -794,9 +1423,8 @@ D_NODISCARD expr_result<Type> expr_evaluate(
             if (_op.kind == expr_op_kind::index)
             {
                 return ( internal::expr_index_takes(x.size())
-                             ? ok<Type, expr_error>(
-                                   std::numeric_limits<Type>::quiet_NaN())
-                             : err<Type, expr_error>(
+                             ? ok<carrier, expr_error>(typed::nan())
+                             : err<carrier, expr_error>(
                                    internal::expr_index_error(x.size())) );
             }
 
@@ -808,27 +1436,24 @@ D_NODISCARD expr_result<Type> expr_evaluate(
 
                 if (function.is_err())
                 {
-                    return err<Type, expr_error>(function.error());
+                    return err<carrier, expr_error>(function.error());
                 }
 
-                return ok<Type, expr_error>(
-                    internal::expr_evaluator_in<Type>(*function.value())(
-                        x.data(),
-                        x.size()));
+                return ok<carrier, expr_error>(
+                    typed::call(*function.value(), x));
             }
 
             // an operator of the table's, on the operands it takes
             if (internal::expr_takes(_op.kind,
                                      x.size()))
             {
-                return ok<Type, expr_error>(
-                    internal::expr_apply_in<Type>(_op.kind, x));
+                return ok<carrier, expr_error>(typed::apply(_op.kind, x));
             }
 
-            return err<Type, expr_error>(
+            return err<carrier, expr_error>(
                 internal::expr_fold_error(_op,
                                           x.size()));
-        });
+        }));
 }
 
 // 3.2    As a value
@@ -849,18 +1474,17 @@ D_NODISCARD expr_result<Type> expr_evaluate(
  *         language has; wrong_arity for an operator or a function applied
  *         to a number of operands it does not take; bad_shape for a vector
  *         or a matrix of no element, or a matrix whose rows are not of as
- *         many elements each; or missing_operand for a term made by
- *         default.
+ *         many elements each; not_yet for the constants jm and km, whose
+ *         step has not come; or missing_operand for a term made by default.
  */
-D_NODISCARD inline expr_result<value> expr_evaluate(
+D_NODISCARD inline expr_result<value>
+expr_evaluate(
     const expr_term&     _term,
     const expr_bindings& _bindings,
     const expr_context&  _context
 )
 {
     using answer = expr_result<value>;
-
-    static_cast<void>(_context);
 
     // no term: a term made by default
     if (_term.empty())
@@ -905,7 +1529,8 @@ D_NODISCARD inline expr_result<value> expr_evaluate(
             return ok<value, expr_error>(*bound);
         },
         // an application: its operands' first error, or the operation
-        [](const expr_op& _op, const std::vector<answer>& _operands) -> answer
+        [&_context](const expr_op&             _op,
+                    const std::vector<answer>& _operands) -> answer
         {
             std::vector<value> x;
 
@@ -956,7 +1581,12 @@ D_NODISCARD inline expr_result<value> expr_evaluate(
                 }
 
                 return ok<value, expr_error>(
-                    function.value()->evaluate_value(x.data(), x.size()));
+                    internal::expr_real_result(
+                        _context,
+                        _op,
+                        x,
+                        function.value()->evaluate_value(x.data(),
+                                                         x.size())));
             }
 
             // an operator of the table's, on the operands it takes
@@ -964,7 +1594,11 @@ D_NODISCARD inline expr_result<value> expr_evaluate(
                                      x.size()))
             {
                 return ok<value, expr_error>(
-                    internal::expr_apply_value(_op.kind, x));
+                    internal::expr_real_result(
+                        _context,
+                        _op,
+                        x,
+                        internal::expr_apply_value(_op.kind, x)));
             }
 
             return err<value, expr_error>(

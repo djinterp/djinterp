@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    t_decimal.c
+* djinterp [c/math]                                                  t_decimal.c
 *
 *   Conformance harness for decimal text to binary floating point
 * (c/math/decimal.h): every result against an exact reference.
@@ -29,7 +29,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_decimal.c -o t_decimal -lm
+*        tests/djinterp/c/math/t_decimal.c -o t_decimal -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_decimal.c
@@ -68,8 +68,8 @@ static long g_failures = 0;
 // d_tests_expect
 //   counts a check, and reports the first few failures with their text, cut
 // to 72 characters.
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     const char* _text,
@@ -109,7 +109,7 @@ void d_tests_expect(
 // nonzero; 0 has none. A result that would pass the limbs sets
 // g_huge_overrun instead.
 
-struct dj_tests_huge
+struct d_tests_huge
 {
     long          length;                     // the limbs in use
     unsigned long limb[D_TESTS_HUGE_LIMBS];   // 16 bits each, low first
@@ -119,10 +119,10 @@ static bool g_huge_overrun = false;
 
 // d_tests_huge_set
 //   _h = _value, below 2^32.
-static
-void d_tests_huge_set(
-    struct dj_tests_huge* _h,
-    unsigned long         _value
+static void
+d_tests_huge_set(
+    struct d_tests_huge* _h,
+    unsigned long        _value
 )
 {
     unsigned long rest = _value & 0xFFFFFFFFUL;
@@ -142,10 +142,10 @@ void d_tests_huge_set(
 
 // d_tests_huge_copy
 //   _to = _from.
-static
-void d_tests_huge_copy(
-    struct dj_tests_huge*       _to,
-    const struct dj_tests_huge* _from
+static void
+d_tests_huge_copy(
+    struct d_tests_huge*       _to,
+    const struct d_tests_huge* _from
 )
 {
     _to->length = _from->length;
@@ -162,9 +162,9 @@ void d_tests_huge_copy(
 
 // d_tests_huge_trim
 //   drops zero limbs from the top.
-static
-void d_tests_huge_trim(
-    struct dj_tests_huge* _h
+static void
+d_tests_huge_trim(
+    struct d_tests_huge* _h
 )
 {
     // the zeros on top
@@ -179,9 +179,9 @@ void d_tests_huge_trim(
 
 // d_tests_huge_bits
 //   the bits _h needs: 0 for 0.
-static
-long d_tests_huge_bits(
-    const struct dj_tests_huge* _h
+static long
+d_tests_huge_bits(
+    const struct d_tests_huge* _h
 )
 {
     long          result = 0;
@@ -208,11 +208,11 @@ long d_tests_huge_bits(
 
 // d_tests_huge_mul_add
 //   _h = _h * _m + _a, _m and _a below 2^16.
-static
-void d_tests_huge_mul_add(
-    struct dj_tests_huge* _h,
-    unsigned long         _m,
-    unsigned long         _a
+static void
+d_tests_huge_mul_add(
+    struct d_tests_huge* _h,
+    unsigned long        _m,
+    unsigned long        _a
 )
 {
     unsigned long carry = _a;
@@ -250,10 +250,10 @@ void d_tests_huge_mul_add(
 
 // d_tests_huge_pow5
 //   _h = _h * 5^_count: by 5^6 = 15625 while it can, then by 5.
-static
-void d_tests_huge_pow5(
-    struct dj_tests_huge* _h,
-    long                  _count
+static void
+d_tests_huge_pow5(
+    struct d_tests_huge* _h,
+    long                 _count
 )
 {
     long left = _count;
@@ -277,10 +277,10 @@ void d_tests_huge_pow5(
 
 // d_tests_huge_shl
 //   _h = _h * 2^_bits, _bits 0 or more.
-static
-void d_tests_huge_shl(
-    struct dj_tests_huge* _h,
-    long                  _bits
+static void
+d_tests_huge_shl(
+    struct d_tests_huge* _h,
+    long                 _bits
 )
 {
     const long words = _bits / 16L;
@@ -343,9 +343,9 @@ void d_tests_huge_shl(
 
 // d_tests_huge_sub_one
 //   _h = _h - 1, _h positive.
-static
-void d_tests_huge_sub_one(
-    struct dj_tests_huge* _h
+static void
+d_tests_huge_sub_one(
+    struct d_tests_huge* _h
 )
 {
     long i = 0;
@@ -371,11 +371,11 @@ void d_tests_huge_sub_one(
 
 // d_tests_huge_mul
 //   _out = _a * _b, _out neither of them.
-static
-void d_tests_huge_mul(
-    struct dj_tests_huge*       _out,
-    const struct dj_tests_huge* _a,
-    const struct dj_tests_huge* _b
+static void
+d_tests_huge_mul(
+    struct d_tests_huge*       _out,
+    const struct d_tests_huge* _a,
+    const struct d_tests_huge* _b
 )
 {
     long i = 0;
@@ -430,10 +430,10 @@ void d_tests_huge_mul(
 
 // d_tests_huge_cmp
 //   the sign of _a - _b: -1, 0 or 1.
-static
-int d_tests_huge_cmp(
-    const struct dj_tests_huge* _a,
-    const struct dj_tests_huge* _b
+static int
+d_tests_huge_cmp(
+    const struct d_tests_huge* _a,
+    const struct d_tests_huge* _b
 )
 {
     long i = 0;
@@ -458,9 +458,9 @@ int d_tests_huge_cmp(
 
 // d_tests_huge_div_10000
 //   _h = _h / 10000; returns the remainder.
-static
-unsigned long d_tests_huge_div_10000(
-    struct dj_tests_huge* _h
+static unsigned long
+d_tests_huge_div_10000(
+    struct d_tests_huge* _h
 )
 {
     unsigned long rest = 0UL;
@@ -483,11 +483,11 @@ unsigned long d_tests_huge_div_10000(
 // d_tests_huge_digits
 //   _h's decimal digits into _buffer, of _size characters, the most
 // significant first, and a NUL; returns how many. _h is used up.
-static
-long d_tests_huge_digits(
-    struct dj_tests_huge* _h,
-    char*                 _buffer,
-    long                  _size
+static long
+d_tests_huge_digits(
+    struct d_tests_huge* _h,
+    char*                _buffer,
+    long                 _size
 )
 {
     long count = 0;
@@ -548,18 +548,18 @@ long d_tests_huge_digits(
 // 3.  THE TEXT'S VALUE, EXACTLY
 //==============================================================================
 
-// dj_tests_number
+// d_tests_number
 //   struct: a decimal number's magnitude as n * 10^e, n without trailing
 // zeros, ready to compare with any k * 2^j: scaled is n * 5^e where e is 0
 // or more, else n; fives is 5^-e where e is below 0, else 1.
-struct dj_tests_number
+struct d_tests_number
 {
     bool                negative;  // a minus sign
     bool                zero;      // no nonzero digit
     long                e;         // the power of ten
     long                bits;      // scaled's bits
-    struct dj_tests_huge scaled;    // n * 5^max(e, 0)
-    struct dj_tests_huge fives;     // 5^max(-e, 0)
+    struct d_tests_huge scaled;    // n * 5^max(e, 0)
+    struct d_tests_huge fives;     // 5^max(-e, 0)
 };
 
 static char g_digits[D_TESTS_LONG_SIZE];
@@ -567,11 +567,11 @@ static char g_digits[D_TESTS_LONG_SIZE];
 // d_tests_number_of
 //   _x from _text, a decimal number whose exponent, if any, is below 10^8 in
 // size: its own reading, apart from decimal.h's.
-static
-void d_tests_number_of(
-    struct dj_tests_number* _x,
-    const char*             _text,
-    size_t                  _length
+static void
+d_tests_number_of(
+    struct d_tests_number* _x,
+    const char*            _text,
+    size_t                 _length
 )
 {
     size_t i        = 0u;
@@ -702,15 +702,15 @@ void d_tests_number_of(
 //   the sign of |_x| - _k * 2^_j: -1, 0 or 1. Both sides are multiplied by
 // 5^-e where e is negative, then by the power of two that leaves both
 // integers; most comparisons end at the bits.
-static
-int d_tests_cmp_dyadic(
-    const struct dj_tests_number* _x,
-    const struct dj_tests_huge*   _k,
-    long                          _j
+static int
+d_tests_cmp_dyadic(
+    const struct d_tests_number* _x,
+    const struct d_tests_huge*   _k,
+    long                         _j
 )
 {
-    static struct dj_tests_huge left;
-    static struct dj_tests_huge right;
+    static struct d_tests_huge left;
+    static struct d_tests_huge right;
 
     long least      = 0;
     long left_bits  = 0;
@@ -756,8 +756,8 @@ int d_tests_cmp_dyadic(
 
 // d_tests_is_plus_zero
 //   whether _x is +0: 0, its reciprocal +infinity.
-static
-bool d_tests_is_plus_zero(
+static bool
+d_tests_is_plus_zero(
     long double _x
 )
 {
@@ -771,12 +771,12 @@ bool d_tests_is_plus_zero(
 //   struct: a result's magnitude as m * 2^u, m below 2^P and u at least
 // emin - P, so that m and u are those of the type's own grid, subnormals'
 // too.
-struct dj_tests_result
+struct d_tests_result
 {
     bool                nan;       // no number
     bool                infinite;  // an infinity
     bool                negative;  // a minus sign, a zero's too
-    struct dj_tests_huge m;         // the mantissa
+    struct d_tests_huge m;         // the mantissa
     long                u;         // the weight of its lowest bit
 };
 
@@ -784,12 +784,12 @@ struct dj_tests_result
 //   _r from _x, a value of a type with _precision bits and exponents from
 // _min_exp, as a long double: frexp's exponent, held at _min_exp, gives u;
 // _x * 2^-u is then m, split into limbs by exact divisions.
-static
-void d_tests_result_of(
-    struct dj_tests_result* _r,
-    long double             _x,
-    int                     _precision,
-    long                    _min_exp
+static void
+d_tests_result_of(
+    struct d_tests_result* _r,
+    long double            _x,
+    int                    _precision,
+    long                   _min_exp
 )
 {
     long double magnitude = 0.0L;
@@ -847,8 +847,8 @@ void d_tests_result_of(
 
 // d_tests_type_name ... d_tests_max_exp
 //   a type's name and parameters.
-static
-const char* d_tests_type_name(
+static const char*
+d_tests_type_name(
     int _type
 )
 {
@@ -857,8 +857,8 @@ const char* d_tests_type_name(
                : ( (_type == D_TESTS_DOUBLE) ? "double" : "long double" );
 }
 
-static
-int d_tests_precision(
+static int
+d_tests_precision(
     int _type
 )
 {
@@ -867,8 +867,8 @@ int d_tests_precision(
                : ( (_type == D_TESTS_DOUBLE) ? DBL_MANT_DIG : LDBL_MANT_DIG );
 }
 
-static
-long d_tests_min_exp(
+static long
+d_tests_min_exp(
     int _type
 )
 {
@@ -878,8 +878,8 @@ long d_tests_min_exp(
                                              : (long)LDBL_MIN_EXP );
 }
 
-static
-long d_tests_max_exp(
+static long
+d_tests_max_exp(
     int _type
 )
 {
@@ -898,18 +898,18 @@ long d_tests_max_exp(
 // mantissa sends a tie up.
 static void
 d_tests_check(
-    const struct dj_tests_number* _x,
+    const struct d_tests_number* _x,
     const char*                  _text,
     size_t                       _length,
     int                          _type,
     long double                  _r,
-    enum dj_math_decimal_status   _status,
+    enum d_math_decimal_status   _status,
     int                          _line
 )
 {
-    static struct dj_tests_result r;
-    static struct dj_tests_huge   k;
-    static struct dj_tests_huge   half;
+    static struct d_tests_result r;
+    static struct d_tests_huge   k;
+    static struct d_tests_huge   half;
 
     const int  precision = d_tests_precision(_type);
     const long min_exp   = d_tests_min_exp(_type);
@@ -1004,7 +1004,7 @@ d_tests_check(
 
 // d_tests_convert
 //   _text to _type, the result as a long double, which holds it exactly.
-static enum dj_math_decimal_status
+static enum d_math_decimal_status
 d_tests_convert(
     int          _type,
     const char*  _text,
@@ -1012,7 +1012,7 @@ d_tests_convert(
     long double* _out
 )
 {
-    enum dj_math_decimal_status status = D_MATH_DECIMAL_SYNTAX;
+    enum d_math_decimal_status status = D_MATH_DECIMAL_SYNTAX;
 
     // by type
     if (_type == D_TESTS_FLOAT)
@@ -1049,11 +1049,11 @@ d_tests_one(
     const char*                 _text,
     size_t                      _length,
     long double*                _value,
-    enum dj_math_decimal_status* _status,
+    enum d_math_decimal_status* _status,
     int                         _line
 )
 {
-    static struct dj_tests_number x;
+    static struct d_tests_number x;
 
     d_tests_number_of(&x, _text, _length);
     *_status = d_tests_convert(_type, _text, _length, _value);
@@ -1072,12 +1072,12 @@ d_tests_as(
     const char*                _text,
     size_t                     _length,
     long double                _value,
-    enum dj_math_decimal_status _status,
+    enum d_math_decimal_status _status,
     int                        _line
 )
 {
     long double                     value  = 0.0L;
-    const enum dj_math_decimal_status status =
+    const enum d_math_decimal_status status =
         d_tests_convert(_type, _text, _length, &value);
     char                            what[96];
 
@@ -1097,18 +1097,18 @@ d_tests_as(
 // d_tests_all
 //   _text, a decimal number, converted to each type and checked; and its
 // length measured, alone and with a character after it that ends it.
-static
-void d_tests_all(
+static void
+d_tests_all(
     const char* _text,
     size_t      _length,
     int         _line
 )
 {
-    static struct dj_tests_number x;
+    static struct d_tests_number x;
     static char                  longer[D_TESTS_TEXT_SIZE];
 
     long double                value  = 0.0L;
-    enum dj_math_decimal_status status = D_MATH_DECIMAL_OK;
+    enum d_math_decimal_status status = D_MATH_DECIMAL_OK;
     int                        type   = 0;
 
     d_tests_number_of(&x, _text, _length);
@@ -1148,15 +1148,15 @@ void d_tests_all(
 // 6.1    The syntax
 //------------------------------------------------------------------------------
 
-// dj_tests_syntax_case
+// d_tests_syntax_case
 //   struct: a text and the length of the decimal number it starts with.
-struct dj_tests_syntax_case
+struct d_tests_syntax_case
 {
     const char* text;
     size_t      length;
 };
 
-static const struct dj_tests_syntax_case g_syntax[] =
+static const struct d_tests_syntax_case g_syntax[] =
 {
     { "",          0u }, { "+",         0u }, { "-",         0u },
     { ".",         0u }, { "+.",        0u }, { "-.e1",      0u },
@@ -1181,8 +1181,8 @@ static const struct dj_tests_syntax_case g_syntax[] =
 //   each case: its length measured; the conversions, which must agree with
 // the reference where the whole text is the number, and must store nothing
 // otherwise; and prefixes of a text, the length limiting what is read.
-static
-void d_tests_syntax(void)
+static void
+d_tests_syntax(void)
 {
     const size_t cases = sizeof(g_syntax) / sizeof(g_syntax[0]);
 
@@ -1260,8 +1260,8 @@ void d_tests_syntax(void)
 //   _text as _type must be _want, the same sign included, with _status; then
 // the reference checks it in every type, unless _alone (an exponent too big
 // for the reference to read).
-static
-bool d_tests_same(
+static bool
+d_tests_same(
     long double _a,
     long double _b
 )
@@ -1274,7 +1274,7 @@ static void
 d_tests_known_f(
     const char*                _text,
     float                      _want,
-    enum dj_math_decimal_status _status,
+    enum d_math_decimal_status _status,
     bool                       _alone,
     int                        _line
 )
@@ -1283,7 +1283,7 @@ d_tests_known_f(
     float          got    = 0.0f;
     const size_t   length = strlen(_text);
 
-    const enum dj_math_decimal_status status =
+    const enum d_math_decimal_status status =
         d_math_decimal_to_f(&got, _text, length);
 
     d_tests_expect( (d_tests_same((long double)got, (long double)want)) &&
@@ -1304,7 +1304,7 @@ static void
 d_tests_known_d(
     const char*                _text,
     double                     _want,
-    enum dj_math_decimal_status _status,
+    enum d_math_decimal_status _status,
     bool                       _alone,
     int                        _line
 )
@@ -1313,7 +1313,7 @@ d_tests_known_d(
     double          got    = 0.0;
     const size_t    length = strlen(_text);
 
-    const enum dj_math_decimal_status status =
+    const enum d_math_decimal_status status =
         d_math_decimal_to_d(&got, _text, length);
 
     d_tests_expect( (d_tests_same((long double)got, (long double)want)) &&
@@ -1334,7 +1334,7 @@ static void
 d_tests_known_ld(
     const char*                _text,
     long double                _want,
-    enum dj_math_decimal_status _status,
+    enum d_math_decimal_status _status,
     bool                       _alone,
     int                        _line
 )
@@ -1343,7 +1343,7 @@ d_tests_known_ld(
     long double          got    = 0.0L;
     const size_t         length = strlen(_text);
 
-    const enum dj_math_decimal_status status =
+    const enum d_math_decimal_status status =
         d_math_decimal_to_ld(&got, _text, length);
 
     d_tests_expect( (d_tests_same(got, want)) &&
@@ -1366,8 +1366,8 @@ d_tests_known_ld(
 
 // d_tests_known
 //   ties, the ends of each range, famous hard cases, signs and zeros.
-static
-void d_tests_known(void)
+static void
+d_tests_known(void)
 {
     const float       f_inf  = (float)HUGE_VAL;
     const double      d_inf  = (double)HUGE_VAL;
@@ -1478,8 +1478,8 @@ static unsigned long g_state = 2718281828UL;
 
 // d_tests_random32
 //   32 random bits: xorshift, in an unsigned long.
-static
-unsigned long d_tests_random32(void)
+static unsigned long
+d_tests_random32(void)
 {
     g_state = g_state ^ ((g_state << 13) & 0xFFFFFFFFUL);
     g_state = g_state ^ (g_state >> 17);
@@ -1491,8 +1491,8 @@ unsigned long d_tests_random32(void)
 
 // d_tests_below
 //   a random number from 0 to _n - 1.
-static
-long d_tests_below(
+static long
+d_tests_below(
     long _n
 )
 {
@@ -1501,10 +1501,10 @@ long d_tests_below(
 
 // d_tests_random_bits
 //   _h = a random number of exactly _bits bits, _bits from 1.
-static
-void d_tests_random_bits(
-    struct dj_tests_huge* _h,
-    long                  _bits
+static void
+d_tests_random_bits(
+    struct d_tests_huge* _h,
+    long                 _bits
 )
 {
     const long limbs = (_bits + 15L) / 16L;
@@ -1528,15 +1528,15 @@ void d_tests_random_bits(
 // d_tests_dyadic_digits
 //   the decimal digits of _k * 2^_j into _digits, *_exponent set so that
 // the value is the digits times 10^*_exponent; returns how many.
-static
-long d_tests_dyadic_digits(
-    char*                       _digits,
-    const struct dj_tests_huge* _k,
-    long                        _j,
-    long*                       _exponent
+static long
+d_tests_dyadic_digits(
+    char*                      _digits,
+    const struct d_tests_huge* _k,
+    long                       _j,
+    long*                      _exponent
 )
 {
-    static struct dj_tests_huge n;
+    static struct d_tests_huge n;
 
     d_tests_huge_copy(&n, _k);
 
@@ -1560,8 +1560,8 @@ long d_tests_dyadic_digits(
 // _times, then _last where not NUL; then an exponent, so that the text's
 // value is the digits written times 10^_exponent. Every third text puts a
 // point after the first digit. Returns the text's length.
-static
-size_t d_tests_compose(
+static size_t
+d_tests_compose(
     char*       _text,
     char        _sign,
     const char* _digits,
@@ -1627,8 +1627,8 @@ size_t d_tests_compose(
 // d_tests_decrement
 //   _digits minus 1 in its last place, into _out: the same count, a leading
 // zero kept.
-static
-void d_tests_decrement(
+static void
+d_tests_decrement(
     char*       _out,
     const char* _digits,
     long        _count
@@ -1660,15 +1660,15 @@ void d_tests_decrement(
 //   _count values of _type and their midpoints, as texts, each converted and
 // checked; _wide is the share of them whose binade is drawn from the whole
 // range, the rest within 2^200 of 1.
-static
-void d_tests_points(
+static void
+d_tests_points(
     int  _type,
     long _count,
     long _wide
 )
 {
-    static struct dj_tests_huge m;
-    static struct dj_tests_huge k;
+    static struct d_tests_huge m;
+    static struct d_tests_huge k;
     static char                digits[D_TESTS_TEXT_SIZE];
     static char                lower[D_TESTS_TEXT_SIZE];
     static char                text[D_TESTS_TEXT_SIZE];
@@ -1698,10 +1698,10 @@ void d_tests_points(
         long double                tie         = 0.0L;
         long double                up          = 0.0L;
         long double                down        = 0.0L;
-        enum dj_math_decimal_status status      = D_MATH_DECIMAL_OK;
-        enum dj_math_decimal_status tie_status  = D_MATH_DECIMAL_OK;
-        enum dj_math_decimal_status up_status   = D_MATH_DECIMAL_OK;
-        enum dj_math_decimal_status down_status = D_MATH_DECIMAL_OK;
+        enum d_math_decimal_status status      = D_MATH_DECIMAL_OK;
+        enum d_math_decimal_status tie_status  = D_MATH_DECIMAL_OK;
+        enum d_math_decimal_status up_status   = D_MATH_DECIMAL_OK;
+        enum d_math_decimal_status down_status = D_MATH_DECIMAL_OK;
 
         // the mantissa and the binade
         if ( (kind == 0) &&
@@ -1845,8 +1845,8 @@ void d_tests_points(
 // few nonzero digits among zeros, runs of nines, a 5 among zeros, or any --
 // with a point anywhere or none, maybe leading zeros and a sign, and an
 // exponent putting the value near 10^_place. Returns its length.
-static
-size_t d_tests_random_text(
+static size_t
+d_tests_random_text(
     char* _text,
     long  _digits,
     long  _place
@@ -1949,8 +1949,8 @@ size_t d_tests_random_text(
 //   _count random texts, each converted to every type and checked: values
 // near 10^_low to 10^_high, of up to 19 digits mostly, up to 40 often, and
 // up to _most now and then.
-static
-void d_tests_random_texts(
+static void
+d_tests_random_texts(
     long _count,
     long _low,
     long _high,
@@ -1988,8 +1988,8 @@ static char g_long[D_TESTS_LONG_SIZE];
 
 // d_tests_long_text
 //   _head, then _zeros zeros, then _tail, into g_long; returns its length.
-static
-size_t d_tests_long_text(
+static size_t
+d_tests_long_text(
     const char* _head,
     long        _zeros,
     const char* _tail
@@ -2011,10 +2011,10 @@ size_t d_tests_long_text(
 // away, for each type: 2^P + 1 is a tie between 2^P and 2^P + 2. The
 // reference reads the texts whose digits, past their zeros, and whose power
 // of ten fit its bits; the others have known values.
-static
-void d_tests_long_texts(void)
+static void
+d_tests_long_texts(void)
 {
-    static struct dj_tests_huge h;
+    static struct d_tests_huge h;
     static char                tie[64];
 
     const long        zeros = D_TESTS_LONG_ZEROS;
@@ -2022,7 +2022,7 @@ void d_tests_long_texts(void)
     const double      d_inf = (double)HUGE_VAL;
 
     long double                value  = 0.0L;
-    enum dj_math_decimal_status status = D_MATH_DECIMAL_OK;
+    enum d_math_decimal_status status = D_MATH_DECIMAL_OK;
     int                        type   = 0;
 
     // opposite signs, each past the limit: 1, exactly
@@ -2093,8 +2093,8 @@ void d_tests_long_texts(void)
 #if ( defined(__cplusplus) &&                                                 \
       (__cplusplus >= 201402L) )
 
-static constexpr
-float d_tests_constexpr_f(
+static constexpr float
+d_tests_constexpr_f(
     const char* _text,
     size_t      _length
 )
@@ -2106,8 +2106,8 @@ float d_tests_constexpr_f(
     return result;
 }
 
-static constexpr
-double d_tests_constexpr_d(
+static constexpr double
+d_tests_constexpr_d(
     const char* _text,
     size_t      _length
 )
@@ -2119,8 +2119,8 @@ double d_tests_constexpr_d(
     return result;
 }
 
-static constexpr
-long double d_tests_constexpr_ld(
+static constexpr long double
+d_tests_constexpr_ld(
     const char* _text,
     size_t      _length
 )
@@ -2132,7 +2132,7 @@ long double d_tests_constexpr_ld(
     return result;
 }
 
-static constexpr enum dj_math_decimal_status
+static constexpr enum d_math_decimal_status
 d_tests_constexpr_status(
     const char* _text,
     size_t      _length
@@ -2167,8 +2167,8 @@ static_assert( d_math_decimal_length("12.5e+3x", 8u) == 7u,
 
 // d_tests_constant_evaluation
 //   the same at run time.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     D_TESTS_EXPECT( (d_tests_constexpr_f("0.1", 3u) == 0.1f) &&
                     (d_tests_constexpr_d("9007199254740993", 16u) ==
@@ -2185,7 +2185,8 @@ void d_tests_constant_evaluation(void)
 #endif  // C++14
 
 
-int main(void)
+int
+main(void)
 {
     d_tests_syntax();
     d_tests_known();

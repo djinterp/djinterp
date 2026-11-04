@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             t_interval_float.c
+* djinterp [c/math]                                           t_interval_float.c
 *
 *   Conformance harness for the floating-point interval families
 * (c/math/interval_float.h). The float family against brute force: every
@@ -14,7 +14,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -Wall -Wextra -Werror -pedantic-errors -Iinc                 \
-*        tests/djinterp/c/modules/math/t_interval_float.c -o t_interval_float -lm
+*        tests/djinterp/c/math/t_interval_float.c -o t_interval_float -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_interval_float.c
@@ -36,8 +36,8 @@
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     double      _a,
@@ -69,10 +69,8 @@ void d_tests_expect(
 // interval among them found by brute force
 static float g_window[D_TESTS_WINDOW + 8];
 
-static
-void d_tests_window_fill(
-    float _start
-)
+static void
+d_tests_window_fill(float _start)
 {
     float  x = nextafterf(nextafterf(nextafterf(nextafterf(_start, -HUGE_VAL),
                                                 -HUGE_VAL),
@@ -92,16 +90,16 @@ void d_tests_window_fill(
 
 // (a stride of the smaller spacing below a binade edge can fit twice as
 // many members as the window has floats, so room for 64)
-struct dj_tests_members
+struct d_tests_members
 {
     float  values[64];
     size_t count;
 };
 
-static
-void d_tests_members_of(
-    struct dj_tests_members* _out,
-    struct dj_interval_f     _iv
+static void
+d_tests_members_of(
+    struct d_tests_members* _out,
+    struct d_interval_f     _iv
 )
 {
     size_t i = 0u;
@@ -113,7 +111,7 @@ void d_tests_members_of(
     {
         float       first = 0.0f;
         bool        found = false;
-        dj_math_umax k     = 0u;
+        d_math_umax k     = 0u;
 
         for (i = 0u; i < D_TESTS_WINDOW + 8u; ++i)
         {
@@ -177,10 +175,10 @@ void d_tests_members_of(
     return;
 }
 
-static
-bool d_tests_members_has(
-    const struct dj_tests_members* _m,
-    float                          _x
+static bool
+d_tests_members_has(
+    const struct d_tests_members* _m,
+    float                         _x
 )
 {
     size_t i = 0u;
@@ -200,10 +198,8 @@ bool d_tests_members_has(
 //   _x stored, and read back: a float kept in an x87 register can hold more
 // range and precision than a float, which clang does not drop where C says
 // it must; the stored value is the float.
-static
-float d_tests_stored(
-    float _x
-)
+static float
+d_tests_stored(float _x)
 {
     volatile float stored = _x;
 
@@ -212,12 +208,10 @@ float d_tests_stored(
 
 // d_tests_one
 //   one interval: every single-interval kernel against brute force.
-static
-void d_tests_one(
-    struct dj_interval_f _iv
-)
+static void
+d_tests_one(struct d_interval_f _iv)
 {
-    struct dj_tests_members m;
+    struct d_tests_members m;
     size_t                 i = 0u;
 
     d_tests_members_of(&m, _iv);
@@ -341,14 +335,14 @@ void d_tests_one(
 
 // d_tests_pair
 //   the three relations of two intervals against brute force.
-static
-void d_tests_pair(
-    struct dj_interval_f _a,
-    struct dj_interval_f _b
+static void
+d_tests_pair(
+    struct d_interval_f _a,
+    struct d_interval_f _b
 )
 {
-    struct dj_tests_members ma;
-    struct dj_tests_members mb;
+    struct d_tests_members ma;
+    struct d_tests_members mb;
     bool                   shared = false;
     bool                   real   = false;
     size_t                 i      = 0u;
@@ -418,12 +412,10 @@ void d_tests_pair(
     return;
 }
 
-static
-void d_tests_window_run(
-    float _start
-)
+static void
+d_tests_window_run(float _start)
 {
-    struct dj_interval_f ivs[600];
+    struct d_interval_f ivs[600];
     size_t              n = 0u;
     size_t              i = 0u;
     size_t              j = 0u;
@@ -445,7 +437,7 @@ void d_tests_window_run(
 
                 for (s = 0u; s < 4u; ++s)
                 {
-                    const struct dj_interval_f iv =
+                    const struct d_interval_f iv =
                         d_interval_f_make(g_window[i], g_window[j], kind,
                                           steps[s]);
 
@@ -474,23 +466,23 @@ void d_tests_window_run(
     return;
 }
 
-static
-void d_tests_wider_types(void)
+static void
+d_tests_wider_types(void)
 {
     // a decimal stride: 0, 0.1, ..., 1 is eleven members, the last exactly 1
-    const struct dj_interval_d tenths =
+    const struct d_interval_d tenths =
         d_interval_d_make(0.0, 1.0, D_INTERVAL_CLOSED, 0.1);
-    const struct dj_interval_f tenths_f =
+    const struct d_interval_f tenths_f =
         d_interval_f_make(0.0f, 1.0f, D_INTERVAL_CLOSED, 0.1f);
-    const struct dj_interval_ld tenths_ld =
+    const struct d_interval_ld tenths_ld =
         d_interval_ld_make(0.0L, 1.0L, D_INTERVAL_CLOSED, 0.1L);
     // a binade's doubles, and an open interval's neighbours
-    const struct dj_interval_d binade =
+    const struct d_interval_d binade =
         d_interval_d_make(1.0, 2.0, D_INTERVAL_RIGHT_OPEN, 0.0);
-    const struct dj_interval_d open =
+    const struct d_interval_d open =
         d_interval_d_make(0.5, 2.5, D_INTERVAL_OPEN, 0.0);
     // every double from -inf to 0
-    const struct dj_interval_d below =
+    const struct d_interval_d below =
         d_interval_d_make(-HUGE_VAL, 0.0, D_INTERVAL_CLOSED, 0.0);
     char text[128];
 
@@ -507,11 +499,11 @@ void d_tests_wider_types(void)
                    (double)d_interval_f_count(tenths_f), 0);
     D_TESTS_EXPECT(d_interval_ld_count(tenths_ld) == 11u, "ld tenths count",
                    (double)d_interval_ld_count(tenths_ld), 0);
-    // (a 32-bit dj_math_umax, ISO strict C++98 on a 32-bit target, holds no
+    // (a 32-bit d_math_umax, ISO strict C++98 on a 32-bit target, holds no
     // binade's count: it saturates; the shift is reduced so it compiles)
     D_TESTS_EXPECT(d_interval_d_count(binade) ==
-                   ( (sizeof(dj_math_umax) >= 8u)
-                         ? ((dj_math_umax)1 << (52 % (sizeof(dj_math_umax) * 8u)))
+                   ( (sizeof(d_math_umax) >= 8u)
+                         ? ((d_math_umax)1 << (52 % (sizeof(d_math_umax) * 8u)))
                          : D_MATH_UMAX_MAX ),
                    "d a binade's doubles", 0, 0);
     D_TESTS_EXPECT(d_interval_d_first(open) == d_math_d_next_up(0.5),
@@ -544,7 +536,8 @@ void d_tests_wider_types(void)
     return;
 }
 
-int main(void)
+int
+main(void)
 {
     d_tests_window_run(1.0f);
     d_tests_window_run(-FLT_MIN * FLT_EPSILON * 6.0f);

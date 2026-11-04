@@ -45,13 +45,13 @@ TABLE OF CONTENTS
 1.  LAYOUT AND STATUS
     -----------------
     1.  Status
-         1.  dj_math_decimal_status
+         1.  d_math_decimal_status
     2.  The digits
          1.  D_INTERNAL_MATH_DECIMAL_DIGITS
          2.  D_INTERNAL_MATH_DECIMAL_MAX_SHIFT
          3.  D_INTERNAL_MATH_DECIMAL_PLACE_MAX
-         4.  dj_internal_math_decimal
-         5.  dj_internal_math_decimal_bits
+         4.  d_internal_math_decimal
+         5.  d_internal_math_decimal_bits
 2.  THE DIGITS' ARITHMETIC
     ----------------------
     1.  Shifts
@@ -74,7 +74,7 @@ TABLE OF CONTENTS
 #include <math.h>            // HUGE_VAL
 #include <stddef.h>          // size_t, NULL
 // djinterp
-#include "./math_common.h"   // D_MATH_FN, dj_math_umax
+#include "./math_common.h"   // D_MATH_FN, d_math_umax
 #include "./float_order.h"   // d_internal_math_f_pow2 ... _ld_pow2
 #include "./rational.h"      // the two-word helpers
 
@@ -87,10 +87,10 @@ TABLE OF CONTENTS
 // 1.1    Status
 //------------------------------------------------------------------------------
 // 1.1.1
-// dj_math_decimal_status
+// d_math_decimal_status
 //   enum: what a conversion came to. Only D_MATH_DECIMAL_SYNTAX stores
 // nothing.
-enum dj_math_decimal_status
+enum d_math_decimal_status
 {
     D_MATH_DECIMAL_OK        = 0,  // the nearest value, stored
     D_MATH_DECIMAL_SYNTAX    = 1,  // the text is no decimal number
@@ -136,11 +136,11 @@ D_STATIC_ASSERT( ( (((long)LDBL_MAX_10_EXP + 2L) <
                  "decimal.h: every type's range must lie inside the place's" );
 
 // 1.2.4
-// dj_internal_math_decimal
+// d_internal_math_decimal
 //   struct: a nonnegative number as decimal digits:
 // 0.digit[0] digit[1] ... digit[count - 1] * 10^point. No leading or
 // trailing zero digit is kept; 0 has no digits, and its point at 0.
-struct dj_internal_math_decimal
+struct d_internal_math_decimal
 {
     unsigned char digit[D_INTERNAL_MATH_DECIMAL_DIGITS];  // 0 to 9, the most
                                                           // significant first
@@ -150,14 +150,14 @@ struct dj_internal_math_decimal
 };
 
 // 1.2.5
-// dj_internal_math_decimal_bits
+// d_internal_math_decimal_bits
 //   struct: a decimal number rounded to a type's precision P: mantissa *
 // 2^(exponent - P), the mantissa below 2^P, and with its top bit set where
 // the value is normal.
-struct dj_internal_math_decimal_bits
+struct d_internal_math_decimal_bits
 {
-    enum dj_math_decimal_status      status;    // OK, OVERFLOW or UNDERFLOW
-    struct dj_internal_rational_wide mantissa;  // P bits at most, two words
+    enum d_math_decimal_status      status;    // OK, OVERFLOW or UNDERFLOW
+    struct d_internal_rational_wide mantissa;  // P bits at most, two words
     long                            exponent;  // as frexp's: 2^(e-1) <= x
                                                // < 2^e for a normal x
 };
@@ -173,9 +173,9 @@ struct dj_internal_math_decimal_bits
 
 // d_internal_math_decimal_trim
 //   drops trailing zero digits; 0 has no digits and its point at 0.
-D_MATH_FN
-void d_internal_math_decimal_trim(
-    struct dj_internal_math_decimal* _d
+D_MATH_FN void
+d_internal_math_decimal_trim(
+    struct d_internal_math_decimal* _d
 )
 {
     // the zeros at the end
@@ -198,17 +198,17 @@ void d_internal_math_decimal_trim(
 //   _d / 2^_k, _k from 1 to D_INTERNAL_MATH_DECIMAL_MAX_SHIFT: long division
 // from the left, each quotient digit written where the digits already read
 // were. A remainder n stays below 2^_k, so n * 10 + 9 fits a word.
-D_MATH_FN
-void d_internal_math_decimal_shift_right(
-    struct dj_internal_math_decimal* _d,
-    unsigned                         _k
+D_MATH_FN void
+d_internal_math_decimal_shift_right(
+    struct d_internal_math_decimal* _d,
+    unsigned                        _k
 )
 {
-    const dj_math_umax mask = ((dj_math_umax)1 << _k) - 1u;
+    const d_math_umax mask = ((d_math_umax)1 << _k) - 1u;
 
     long        read  = 0;
     long        write = 0;
-    dj_math_umax n     = 0u;
+    d_math_umax n     = 0u;
 
     // enough leading digits for the first quotient digit
     while ((n >> _k) == 0u)
@@ -235,7 +235,7 @@ void d_internal_math_decimal_shift_right(
             break;
         }
 
-        n = (n * 10u) + (dj_math_umax)_d->digit[read];
+        n = (n * 10u) + (d_math_umax)_d->digit[read];
         ++read;
     }
 
@@ -244,7 +244,7 @@ void d_internal_math_decimal_shift_right(
     // a digit read, a digit written
     for (; read < _d->count; ++read)
     {
-        const dj_math_umax next = (dj_math_umax)_d->digit[read];
+        const d_math_umax next = (d_math_umax)_d->digit[read];
 
         _d->digit[write] = (unsigned char)(n >> _k);
         ++write;
@@ -254,7 +254,7 @@ void d_internal_math_decimal_shift_right(
     // the remainder's digits, while there is room
     while (n > 0u)
     {
-        const dj_math_umax quotient = n >> _k;
+        const d_math_umax quotient = n >> _k;
 
         n = n & mask;
 
@@ -282,14 +282,14 @@ void d_internal_math_decimal_shift_right(
 //   _d * 2^_k, _k from 1 to D_INTERNAL_MATH_DECIMAL_MAX_SHIFT: the carry out
 // of the top found first, which says how many digits the product gains;
 // then each digit multiplied, from the right, into its place.
-D_MATH_FN
-void d_internal_math_decimal_shift_left(
-    struct dj_internal_math_decimal* _d,
-    unsigned                         _k
+D_MATH_FN void
+d_internal_math_decimal_shift_left(
+    struct d_internal_math_decimal* _d,
+    unsigned                        _k
 )
 {
-    dj_math_umax carry = 0u;
-    dj_math_umax n     = 0u;
+    d_math_umax carry = 0u;
+    d_math_umax n     = 0u;
     long        gain  = 0;
     long        read  = 0;
     long        write = 0;
@@ -297,7 +297,7 @@ void d_internal_math_decimal_shift_left(
     // the carry out of the top digit
     for (read = _d->count - 1; read >= 0; --read)
     {
-        carry = (carry + ((dj_math_umax)_d->digit[read] << _k)) / 10u;
+        carry = (carry + ((d_math_umax)_d->digit[read] << _k)) / 10u;
     }
 
     // its digits, new at the top
@@ -312,7 +312,7 @@ void d_internal_math_decimal_shift_left(
     // each digit, from the right; past the buffer, dropped
     for (read = _d->count - 1; read >= 0; --read)
     {
-        n = n + ((dj_math_umax)_d->digit[read] << _k);
+        n = n + ((d_math_umax)_d->digit[read] << _k);
         --write;
 
         // room for it, or a nonzero digit dropped
@@ -353,10 +353,10 @@ void d_internal_math_decimal_shift_left(
 // d_internal_math_decimal_shift
 //   _d * 2^_k, _k of either sign, in shifts of at most
 // D_INTERNAL_MATH_DECIMAL_MAX_SHIFT bits.
-D_MATH_FN
-void d_internal_math_decimal_shift(
-    struct dj_internal_math_decimal* _d,
-    long                             _k
+D_MATH_FN void
+d_internal_math_decimal_shift(
+    struct d_internal_math_decimal* _d,
+    long                            _k
 )
 {
     const long most = (long)D_INTERNAL_MATH_DECIMAL_MAX_SHIFT;
@@ -389,8 +389,8 @@ void d_internal_math_decimal_shift(
 // toward 1 without passing it: with 2^n at most 10^_i, the largest such n
 // that one shift may move, and 1 for a point at 0. 3321/1000 is a little
 // under log2(10), so n never passes floor(_i log2(10)).
-D_MATH_FN
-unsigned d_internal_math_decimal_pow_shift(
+D_MATH_FN unsigned
+d_internal_math_decimal_pow_shift(
     long _i
 )
 {
@@ -415,10 +415,10 @@ unsigned d_internal_math_decimal_pow_shift(
 // does, a 5 with anything after it does, and a lone 5 does where the digit
 // before it is odd, ties to even. A dropped nonzero digit is something
 // after. A cut before the first digit leaves less than 1/10: no.
-D_MATH_FN
-bool d_internal_math_decimal_round_up(
-    const struct dj_internal_math_decimal* _d,
-    long                                   _cut
+D_MATH_FN bool
+d_internal_math_decimal_round_up(
+    const struct d_internal_math_decimal* _d,
+    long                                  _cut
 )
 {
     // nothing after the cut, or too little
@@ -444,24 +444,24 @@ bool d_internal_math_decimal_round_up(
 //   _d's integer part, in two words; the caller keeps it below 2^(2w).
 // *_exact says whether nothing follows it, *_up whether what follows rounds
 // it up, to nearest, ties to even.
-D_MATH_FN
-struct dj_internal_rational_wide d_internal_math_decimal_integer(
-    const struct dj_internal_math_decimal* _d,
-    bool*                                  _exact,
-    bool*                                  _up
+D_MATH_FN struct d_internal_rational_wide
+d_internal_math_decimal_integer(
+    const struct d_internal_math_decimal* _d,
+    bool*                                 _exact,
+    bool*                                 _up
 )
 {
-    struct dj_internal_rational_wide result = { 0u, 0u };
+    struct d_internal_rational_wide result = { 0u, 0u };
     long                            i      = 0;
 
     // each digit of the integer part, then its zeros: times 10, plus it
     for (i = 0; i < _d->point; ++i)
     {
-        const struct dj_internal_rational_wide low =
+        const struct d_internal_rational_wide low =
             d_internal_rational_mul_wide(result.lo, 10u);
-        const dj_math_umax                     digit =
-            (i < _d->count) ? (dj_math_umax)_d->digit[i] : 0u;
-        const struct dj_internal_rational_wide add = { 0u, digit };
+        const d_math_umax                     digit =
+            (i < _d->count) ? (d_math_umax)_d->digit[i] : 0u;
+        const struct d_internal_rational_wide add = { 0u, digit };
 
         result.hi = (result.hi * 10u) + low.hi;
         result.lo = low.lo;
@@ -482,8 +482,8 @@ struct dj_internal_rational_wide d_internal_math_decimal_integer(
 
 // d_internal_math_decimal_is_digit
 //   whether _c is a decimal digit, 0 to 9.
-D_MATH_FN
-bool d_internal_math_decimal_is_digit(
+D_MATH_FN bool
+d_internal_math_decimal_is_digit(
     char _c
 )
 {
@@ -497,8 +497,8 @@ bool d_internal_math_decimal_is_digit(
 // exponent. _a is at most the text's length, so it cannot overflow; _b is
 // held at the largest size_t. The place is held within
 // D_INTERNAL_MATH_DECIMAL_PLACE_MAX of 0.
-D_MATH_FN
-long d_internal_math_decimal_place(
+D_MATH_FN long
+d_internal_math_decimal_place(
     size_t _a,
     bool   _a_below,
     size_t _b,
@@ -540,12 +540,12 @@ long d_internal_math_decimal_place(
 // where not NULL. Returns the length of the longest decimal number there, 0
 // if there is none. An e is part of the number only where a digit follows
 // it, its sign between.
-D_MATH_FN
-size_t d_internal_math_decimal_read(
-    struct dj_internal_math_decimal* _d,
-    bool*                            _negative,
-    const char*                      _text,
-    size_t                           _length
+D_MATH_FN size_t
+d_internal_math_decimal_read(
+    struct d_internal_math_decimal* _d,
+    bool*                           _negative,
+    const char*                     _text,
+    size_t                          _length
 )
 {
     const size_t most = ~(size_t)0;
@@ -697,21 +697,21 @@ size_t d_internal_math_decimal_read(
 // counted; below the normal range, down onto the subnormal grid; then P bits
 // up, and its integer part, rounded, is the mantissa. A mantissa of P ones
 // that rounds up is 2^(P - 1), a binade up.
-D_MATH_FN
-struct dj_internal_math_decimal_bits d_internal_math_decimal_round(
-    struct dj_internal_math_decimal* _d,
-    unsigned                         _precision,
-    long                             _min_exp,
-    long                             _max_exp,
-    long                             _min_10_exp,
-    long                             _max_10_exp
+D_MATH_FN struct d_internal_math_decimal_bits
+d_internal_math_decimal_round(
+    struct d_internal_math_decimal* _d,
+    unsigned                        _precision,
+    long                            _min_exp,
+    long                            _max_exp,
+    long                            _min_10_exp,
+    long                            _max_10_exp
 )
 {
-    const struct dj_internal_rational_wide one = { 0u, 1u };
+    const struct d_internal_rational_wide one = { 0u, 1u };
     const long low = _min_10_exp - ( (((long)_precision * 30103L) / 100000L)
                                      + 2L );
 
-    struct dj_internal_math_decimal_bits result   = { D_MATH_DECIMAL_OK,
+    struct d_internal_math_decimal_bits result   = { D_MATH_DECIMAL_OK,
                                                      { 0u, 0u }, 0 };
     long                                exponent = 0;
     bool                                exact    = true;
@@ -826,8 +826,8 @@ struct dj_internal_math_decimal_bits d_internal_math_decimal_round(
 // the length of the decimal number at the start of _text, the longest
 // there; 0 where there is none.
 
-D_MATH_FN
-size_t d_math_decimal_length(
+D_MATH_FN size_t
+d_math_decimal_length(
     const char* _text,
     size_t      _length
 )
@@ -846,15 +846,15 @@ size_t d_math_decimal_length(
 // exactly: the mantissa's two words each convert without rounding, and two
 // powers of two, each normal, put it in place, subnormal or not.
 
-D_MATH_FN enum dj_math_decimal_status
+D_MATH_FN enum d_math_decimal_status
 d_math_decimal_to_f(
     float*      _out,
     const char* _text,
     size_t      _length
 )
 {
-    struct dj_internal_math_decimal      decimal  = { { 0u }, 0, 0, false };
-    struct dj_internal_math_decimal_bits bits     = { D_MATH_DECIMAL_OK,
+    struct d_internal_math_decimal      decimal  = { { 0u }, 0, 0, false };
+    struct d_internal_math_decimal_bits bits     = { D_MATH_DECIMAL_OK,
                                                      { 0u, 0u }, 0 };
     size_t                              used     = 0u;
     bool                                negative = false;
@@ -898,15 +898,15 @@ d_math_decimal_to_f(
     return bits.status;
 }
 
-D_MATH_FN enum dj_math_decimal_status
+D_MATH_FN enum d_math_decimal_status
 d_math_decimal_to_d(
     double*     _out,
     const char* _text,
     size_t      _length
 )
 {
-    struct dj_internal_math_decimal      decimal  = { { 0u }, 0, 0, false };
-    struct dj_internal_math_decimal_bits bits     = { D_MATH_DECIMAL_OK,
+    struct d_internal_math_decimal      decimal  = { { 0u }, 0, 0, false };
+    struct d_internal_math_decimal_bits bits     = { D_MATH_DECIMAL_OK,
                                                      { 0u, 0u }, 0 };
     size_t                              used     = 0u;
     bool                                negative = false;
@@ -950,15 +950,15 @@ d_math_decimal_to_d(
     return bits.status;
 }
 
-D_MATH_FN enum dj_math_decimal_status
+D_MATH_FN enum d_math_decimal_status
 d_math_decimal_to_ld(
     long double* _out,
     const char*  _text,
     size_t       _length
 )
 {
-    struct dj_internal_math_decimal      decimal  = { { 0u }, 0, 0, false };
-    struct dj_internal_math_decimal_bits bits     = { D_MATH_DECIMAL_OK,
+    struct d_internal_math_decimal      decimal  = { { 0u }, 0, 0, false };
+    struct d_internal_math_decimal_bits bits     = { D_MATH_DECIMAL_OK,
                                                      { 0u, 0u }, 0 };
     size_t                              used     = 0u;
     bool                                negative = false;

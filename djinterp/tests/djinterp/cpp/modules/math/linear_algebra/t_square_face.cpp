@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              t_square_face.cpp
+* djinterp [cpp/math]                                          t_square_face.cpp
 *
 *   Tests for linear_algebra/square.hpp, at every level from C++98: the
 * generic path (t_real, a user's type wrapping a double) against the C core,
@@ -12,7 +12,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_square_face.cpp -o t_square -lm
+*         tests/djinterp/math/linear_algebra/t_square_face.cpp -o t_square -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_square_face.cpp
@@ -54,7 +54,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -80,10 +81,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_same(
-        Float _a,
-        Float _b
-    )
+    bool
+    d_tests_same(Float _a, Float _b)
     {
         volatile Float a = _a;
         volatile Float b = _b;
@@ -94,7 +93,8 @@ namespace
     unsigned long g_state = 521288629u;
 
     // a small integer in [-4, 4], zero a third of the time
-    int d_tests_small()
+    int
+    d_tests_small()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -103,7 +103,8 @@ namespace
                    : (static_cast<int>((g_state >> 12) % 9u) - 4);
     }
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = (g_state * 1103515245u) + 12345u;
 
@@ -112,7 +113,8 @@ namespace
     }
 
     template<std::size_t N>
-    bool d_tests_parity(
+    bool
+    d_tests_parity(
         const matrix<double, N, N>& _d,
         const matrix<t_real, N, N>& _r
     )
@@ -131,7 +133,8 @@ namespace
         return true;
     }
 
-    void d_tests_generic_parity()
+    void
+    d_tests_generic_parity()
     {
         for (int trial = 0; trial < 5000; ++trial)
         {
@@ -167,7 +170,8 @@ namespace
     }
 
     template<typename Type, std::size_t N>
-    matrix<Type, N, N> d_tests_small_matrix()
+    matrix<Type, N, N>
+    d_tests_small_matrix()
     {
         matrix<Type, N, N> m;
 
@@ -183,7 +187,8 @@ namespace
     }
 
     template<typename Type>
-    void d_tests_family()
+    void
+    d_tests_family()
     {
         typedef matrix<Type, 3, 3> m3;
 
@@ -234,7 +239,8 @@ namespace
         return;
     }
 
-    void d_tests_integers()
+    void
+    d_tests_integers()
     {
         for (int trial = 0; trial < 3000; ++trial)
         {
@@ -265,7 +271,8 @@ static_assert(djinterp::math::linalg::inverse(
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_generic_parity();
     d_tests_family<float>();

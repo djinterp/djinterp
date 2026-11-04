@@ -62,13 +62,13 @@
 * term of matrices drops nothing, and keeps its value as a matrix.
 *   STEPS. Step 18 (2f) filled expr_simplify, step 20 (3b) kept the order
 * of its matrices, and step 21 (3c) took no literal of blocks for square;
-* step 22 (4a) adds what the derivative needs.
+* step 25 (4a) adds what the derivative needs.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/simplify.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 /*
@@ -147,8 +147,8 @@ NS_INTERNAL
     //   functions: whether _term is a number of an exact value, an integer or
     // a rational, its value then written to _out; and whether _value is
     // exact and the whole number _whole.
-    inline
-    bool expr_exact_number(
+    inline bool
+    expr_exact_number(
         const expr_term& _term,
         value&           _out
     )
@@ -165,13 +165,13 @@ NS_INTERNAL
         return true;
     }
 
-    inline
-    bool expr_is_exactly(
+    inline bool
+    expr_is_exactly(
         const value& _value,
-        dj_math_imax _whole
+        d_math_imax  _whole
     )
     {
-        dj_math_imax whole = 0;
+        d_math_imax whole = 0;
 
         return ( (_value.is_exact()) &&
                  (_value.to(whole)) &&
@@ -181,8 +181,8 @@ NS_INTERNAL
     // 1.1.2
     // expr_is_truth
     //   function: whether _term is the constant true or the constant false.
-    inline
-    bool expr_is_truth(
+    inline bool
+    expr_is_truth(
         const expr_term& _term
     )
     {
@@ -201,8 +201,8 @@ NS_INTERNAL
     // expr_holds_matrix
     //   function: whether _term holds a vector or a matrix: a literal, or a
     // number a fold made that is a matrix (S251).
-    inline
-    bool expr_holds_matrix(
+    inline bool
+    expr_holds_matrix(
         const expr_term& _term
     )
     {
@@ -237,8 +237,8 @@ NS_INTERNAL
     // [x] among them, no element of which holds a matrix, a block; or a
     // square matrix a fold made. Of a term whose shape only a fold tells, as
     // A * B's, or a literal of blocks (S261), it says nothing: false.
-    inline
-    bool expr_square_matrix(
+    inline bool
+    expr_square_matrix(
         const expr_term& _term
     )
     {
@@ -298,8 +298,8 @@ NS_INTERNAL
     // vector or matrix, which has no value in a type. The fold in double
     // fails for nothing else, so that this is whether it answers, each
     // variable of _term bound to 0, and _term holds no matrix.
-    inline
-    bool expr_well_formed(
+    inline bool
+    expr_well_formed(
         const expr_term& _term
     )
     {
@@ -348,8 +348,8 @@ NS_INTERNAL
     // exact, a number of its own, or a boolean, the constant true or false;
     // otherwise _term, as where its value is inexact or an error, or its
     // fold fails.
-    inline
-    expr_term expr_fold_constants(
+    inline expr_term
+    expr_fold_constants(
         const expr_term& _term
     )
     {
@@ -401,8 +401,8 @@ NS_INTERNAL
     // no matrix or is a square one, as A ^ 1 is an error of any other
     // matrix (S248); and, where x is well formed, x ^ 0 = 1 and 1 ^ x = 1;
     // otherwise _term.
-    inline
-    expr_term expr_power_identities(
+    inline expr_term
+    expr_power_identities(
         const expr_term& _term
     )
     {
@@ -493,8 +493,8 @@ NS_INTERNAL
     // where it is not 0, each - negating it, and each other term a factor.
     // False where the coefficient is no longer exact, as where it passes the
     // family's integers.
-    inline
-    bool expr_factors_of(
+    inline bool
+    expr_factors_of(
         const expr_term& _term,
         bool             _divides,
         expr_monomial&   _monomial
@@ -568,8 +568,8 @@ NS_INTERNAL
     //   function: the terms of _term, as a term of a sum, negated where
     // _negative, added to _summands, each a monomial: through + and - and
     // the unary - and +. False where a coefficient is no longer exact.
-    inline
-    bool expr_summands_of(
+    inline bool
+    expr_summands_of(
         const expr_term&            _term,
         bool                        _negative,
         std::vector<expr_monomial>& _summands
@@ -629,8 +629,8 @@ NS_INTERNAL
     // same as one of the other's, by parse/expression's structural equality,
     // and dividing as it does; those that hold a matrix in the same order,
     // as matrices do not commute, and the others in any order (S251).
-    inline
-    bool expr_same_factor(
+    inline bool
+    expr_same_factor(
         const expr_factor& _a,
         const expr_factor& _b
     )
@@ -641,8 +641,8 @@ NS_INTERNAL
                       _b.term)) );
     }
 
-    inline
-    bool expr_same_factors(
+    inline bool
+    expr_same_factors(
         const std::vector<expr_factor>& _a,
         const std::vector<expr_factor>& _b
     )
@@ -723,8 +723,8 @@ NS_INTERNAL
 
     // expr_well_formed_factors
     //   function: whether each of _factors is well formed.
-    inline
-    bool expr_well_formed_factors(
+    inline bool
+    expr_well_formed_factors(
         const std::vector<expr_factor>& _factors
     )
     {
@@ -746,8 +746,8 @@ NS_INTERNAL
     // first where it is neither 1 nor -1, then each factor in its order,
     // multiplying or dividing; a minus before them where it is -1, and 1
     // over the first where it divides; with no factor, the coefficient.
-    inline
-    expr_term expr_monomial_term(
+    inline expr_term
+    expr_monomial_term(
         const value&                    _coefficient,
         const std::vector<expr_factor>& _factors
     )
@@ -812,8 +812,8 @@ NS_INTERNAL
     // (S246): x - x + A is 0 + A, and A + 0 stays. The collected sum
     // where it is smaller than _term, or as small with fewer terms; _term
     // otherwise, or where a coefficient is no longer exact.
-    inline
-    expr_term expr_collect_sum(
+    inline expr_term
+    expr_collect_sum(
         const expr_term& _term
     )
     {
@@ -945,8 +945,8 @@ NS_INTERNAL
     // first, and a coefficient of 0 the product 0, where the other factors
     // are well formed. The collected product where it is smaller than
     // _term; _term otherwise, or where the coefficient is no longer exact.
-    inline
-    expr_term expr_collect_product(
+    inline expr_term
+    expr_collect_product(
         const expr_term& _term
     )
     {
@@ -1007,8 +1007,8 @@ NS_INTERNAL
 
     // expr_chain_of
     //   function: the chain of an operator of _kind.
-    inline
-    expr_chain expr_chain_of(
+    inline expr_chain
+    expr_chain_of(
         expr_op_kind _kind
     )
     {
@@ -1043,8 +1043,8 @@ NS_INTERNAL
     // first, then at its node the constants folded and the powers'
     // identities, and, where the node is the root of a chain, its parent's
     // chain, _parent, another, the chain collected.
-    inline
-    expr_term expr_simplify_pass(
+    inline expr_term
+    expr_simplify_pass(
         const expr_term& _term,
         expr_chain       _parent
     )
@@ -1109,7 +1109,8 @@ NS_END  // internal
  *         which each part of _term has a finite value: the same exact
  *         number where that is exact, else the same real number.
  */
-D_NODISCARD inline expr_term expr_simplify(
+D_NODISCARD inline expr_term
+expr_simplify(
     const expr_term& _term
 )
 {

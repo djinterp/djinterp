@@ -11,4 +11,4 @@
 *                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/numeric_compare.hpp"  // corresponding
-                                                              // header
+                                                                             // header

@@ -60,7 +60,7 @@ TABLE OF CONTENTS
 #include <cmath>                                  // std::sqrt
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "./geometry_common.hpp"                  // the traits, aabb,
                                                   // integrate_simpson
@@ -147,10 +147,9 @@ NS_INTERNAL
               m_eps_v(_eps_v)
         {}
 
-        value_type operator()(
-            value_type _u,
-            value_type _v
-        ) const
+        value_type
+        operator()(value_type _u,
+                   value_type _v) const
         {
             const surface_tangents<Surface> t(m_s, _u, _v, m_eps_u, m_eps_v);
 
@@ -182,10 +181,9 @@ NS_INTERNAL
               m_eps_v(_eps_v)
         {}
 
-        value_type operator()(
-            value_type _u,
-            value_type _v
-        ) const
+        value_type
+        operator()(value_type _u,
+                   value_type _v) const
         {
             const point_type                p = system_type::to_cartesian(
                                                     m_s.at(_u, _v));
@@ -215,9 +213,8 @@ NS_INTERNAL
               m_u(_u)
         {}
 
-        value_type operator()(
-            value_type _v
-        ) const
+        value_type
+        operator()(value_type _v) const
         {
             return m_f(m_u, _v);
         }
@@ -245,9 +242,8 @@ NS_INTERNAL
               m_nv(_nv)
         {}
 
-        value_type operator()(
-            value_type _u
-        ) const
+        value_type
+        operator()(value_type _u) const
         {
             return integrate_simpson(simpson_inner<Integrand>(m_f, _u),
                                      m_v_min,
@@ -261,7 +257,8 @@ NS_INTERNAL
     // parameter rectangle, _nu by _nv intervals.
     template<typename Integrand,
              typename Surface>
-    typename Surface::value_type simpson_2d(
+    typename Surface::value_type
+    simpson_2d(
         const Integrand& _f,
         const Surface&   _s,
         std::size_t      _nu,
@@ -280,7 +277,8 @@ NS_INTERNAL
 
     // the central differences' half-widths: 1/64 of a Simpson interval
     template<typename Surface>
-    typename Surface::value_type surface_eps_u(
+    typename Surface::value_type
+    surface_eps_u(
         const Surface& _s,
         std::size_t    _nu
     )
@@ -292,7 +290,8 @@ NS_INTERNAL
     }
 
     template<typename Surface>
-    typename Surface::value_type surface_eps_v(
+    typename Surface::value_type
+    surface_eps_v(
         const Surface& _s,
         std::size_t    _nv
     )
@@ -307,7 +306,8 @@ NS_INTERNAL
     //   function: a patch's area, the iterated Simpson integral of |r_u x
     // r_v|.
     template<typename Surface>
-    typename Surface::value_type surface_area_simpson_2d(
+    typename Surface::value_type
+    surface_area_simpson_2d(
         const Surface& _s,
         std::size_t    _nu,
         std::size_t    _nv
@@ -387,8 +387,8 @@ NS_INTERNAL
     template<typename Surface>
     struct patch_area_impl<Surface, true>
     {
-        static
-        typename Surface::value_type compute(
+        static typename Surface::value_type
+        compute(
             const Surface& _s,
             std::size_t,
             std::size_t
@@ -412,10 +412,8 @@ NS_INTERNAL
     template<typename Shape>
     struct volume_impl<Shape, true>
     {
-        static
-        typename Shape::value_type compute(
-            const Shape& _s
-        )
+        static typename Shape::value_type
+        compute(const Shape& _s)
         {
             return _s.closed_form_volume();
         }
@@ -435,10 +433,8 @@ NS_INTERNAL
     template<typename Shape>
     struct surface_area_impl<Shape, true>
     {
-        static
-        typename Shape::value_type compute(
-            const Shape& _s
-        )
+        static typename Shape::value_type
+        compute(const Shape& _s)
         {
             return _s.closed_form_surface_area();
         }
@@ -457,10 +453,8 @@ NS_INTERNAL
     template<typename Shape>
     struct centroid_3d_impl<Shape, true>
     {
-        static
-        typename Shape::point_type compute(
-            const Shape& _s
-        )
+        static typename Shape::point_type
+        compute(const Shape& _s)
         {
             return _s.closed_form_centroid();
         }
@@ -481,7 +475,8 @@ NS_END  // internal
 //   function: a surface patch's area -- its closed form, or the iterated
 // Simpson integral of |r_u x r_v| over _nu by _nv intervals.
 template<typename Surface>
-typename Surface::value_type patch_area(
+typename Surface::value_type
+patch_area(
     const Surface& _s,
     std::size_t    _nu = 32,
     std::size_t    _nv = 32
@@ -498,9 +493,8 @@ typename Surface::value_type patch_area(
 // surface_area
 //   function: a 3D shape's surface area, its closed form.
 template<typename Shape>
-typename Shape::value_type surface_area(
-    const Shape& _s
-)
+typename Shape::value_type
+surface_area(const Shape& _s)
 {
     (void)internal::measure_shape_3d_check<Shape>::ok;
 
@@ -519,9 +513,8 @@ typename Shape::value_type surface_area(
 // volume
 //   function: a 3D shape's volume, its closed form.
 template<typename Shape>
-typename Shape::value_type volume(
-    const Shape& _s
-)
+typename Shape::value_type
+volume(const Shape& _s)
 {
     (void)internal::measure_shape_3d_check<Shape>::ok;
 
@@ -535,7 +528,8 @@ typename Shape::value_type volume(
 //   function: the volume a closed surface bounds, |∬ p · (r_u x r_v) / 3|
 // by the iterated Simpson rule over _nu by _nv intervals.
 template<typename Surface>
-typename Surface::value_type volume_divergence(
+typename Surface::value_type
+volume_divergence(
     const Surface& _boundary,
     std::size_t    _nu = 32,
     std::size_t    _nv = 32
@@ -564,9 +558,8 @@ typename Surface::value_type volume_divergence(
 //   function: a 3D shape's centroid, its closed form (present only for 3D
 // shapes).
 template<typename Shape>
-typename re_std::enable_if<Shape::is_3d, typename Shape::point_type>::type centroid_3d(
-    const Shape& _s
-)
+typename re_std::enable_if<Shape::is_3d, typename Shape::point_type>::type
+centroid_3d(const Shape& _s)
 {
     (void)internal::measure_shape_3d_check<Shape>::ok;
 
@@ -582,7 +575,8 @@ typename re_std::enable_if<Shape::is_3d, typename Shape::point_type>::type centr
 // bounding_box_of_surface
 //   function: the Cartesian box of (_nu + 1)(_nv + 1) points on a surface.
 template<typename Surface>
-aabb<3, typename Surface::value_type> bounding_box_of_surface(
+aabb<3, typename Surface::value_type>
+bounding_box_of_surface(
     const Surface& _s,
     std::size_t    _nu = 16,
     std::size_t    _nv = 16
@@ -618,9 +612,8 @@ aabb<3, typename Surface::value_type> bounding_box_of_surface(
 // bounding_box_of_sphere, _of_box, _of_cylinder
 //   function: the exact Cartesian boxes of the named solids.
 template<typename System>
-aabb<3, typename System::value_type> bounding_box_of_sphere(
-    const sphere<System>& _sph
-)
+aabb<3, typename System::value_type>
+bounding_box_of_sphere(const sphere<System>& _sph)
 {
     typedef typename System::value_type value_type;
     typedef typename System::point_type point_type;
@@ -636,9 +629,8 @@ aabb<3, typename System::value_type> bounding_box_of_sphere(
 }
 
 template<typename System>
-aabb<3, typename System::value_type> bounding_box_of_box(
-    const box<System>& _b
-)
+aabb<3, typename System::value_type>
+bounding_box_of_box(const box<System>& _b)
 {
     typedef typename System::value_type value_type;
     typedef typename System::point_type point_type;
@@ -652,9 +644,8 @@ aabb<3, typename System::value_type> bounding_box_of_box(
 }
 
 template<typename System>
-aabb<3, typename System::value_type> bounding_box_of_cylinder(
-    const cylinder<System>& _cyl
-)
+aabb<3, typename System::value_type>
+bounding_box_of_cylinder(const cylinder<System>& _cyl)
 {
     typedef typename System::value_type value_type;
     typedef typename System::point_type point_type;

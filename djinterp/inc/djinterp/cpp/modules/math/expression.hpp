@@ -75,8 +75,8 @@ struct expression_base
 {
     using derived_type = _Derived;
 
-    D_CONSTEXPR
-    const _Derived& self() const noexcept
+    D_CONSTEXPR const _Derived&
+    self() const noexcept
     {
         return static_cast<const _Derived&>(*this);
     }
@@ -118,18 +118,14 @@ struct vec3
     double y;
     double z;
 
-    D_CONSTEXPR
-    double operator[](
-        std::size_t _i
-    ) const noexcept
+    D_CONSTEXPR double
+    operator[](std::size_t _i) const noexcept
     {
         return (_i == 0) ? x : (_i == 1) ? y : z;
     }
 
-    friend D_CONSTEXPR
-    vec3 operator-(
-        const vec3& _v
-    ) noexcept
+    friend D_CONSTEXPR vec3
+    operator-(const vec3& _v) noexcept
     {
         return vec3{ -_v.x, -_v.y, -_v.z };
     }
@@ -145,19 +141,15 @@ NS_INTERNAL
     // ---- constexpr scalar kernel (compile-time fallback for <cmath>) -------
 
     // cabs
-    inline D_CONSTEXPR
-    double cabs(
-        double _x
-    ) noexcept
+    inline D_CONSTEXPR double
+    cabs(double _x) noexcept
     {
         return (_x < 0.0) ? -_x : _x;
     }
 
     // csqrt: Newton-Raphson.
-    inline D_CONSTEXPR
-    double csqrt(
-        double _x
-    ) noexcept
+    inline D_CONSTEXPR double
+    csqrt(double _x) noexcept
     {
         if (_x <= 0.0)
         {
@@ -175,10 +167,8 @@ NS_INTERNAL
     }
 
     // cexp: range-halve to |a| <= 0.5, Maclaurin series, then re-square.
-    inline D_CONSTEXPR
-    double cexp(
-        double _x
-    ) noexcept
+    inline D_CONSTEXPR double
+    cexp(double _x) noexcept
     {
         const bool neg = (_x < 0.0);
         double     a   = neg ? -_x : _x;
@@ -208,10 +198,8 @@ NS_INTERNAL
     }
 
     // creduce: bring an angle into approximately [-pi, pi].
-    inline D_CONSTEXPR
-    double creduce(
-        double _x
-    ) noexcept
+    inline D_CONSTEXPR double
+    creduce(double _x) noexcept
     {
         const double two_pi = 6.283185307179586476925286766559;
         const double q      = _x / two_pi;
@@ -222,10 +210,8 @@ NS_INTERNAL
     }
 
     // csin
-    inline D_CONSTEXPR
-    double csin(
-        double _x
-    ) noexcept
+    inline D_CONSTEXPR double
+    csin(double _x) noexcept
     {
         const double y  = creduce(_x);
         const double y2 = y * y;
@@ -242,10 +228,8 @@ NS_INTERNAL
     }
 
     // ccos
-    inline D_CONSTEXPR
-    double ccos(
-        double _x
-    ) noexcept
+    inline D_CONSTEXPR double
+    ccos(double _x) noexcept
     {
         const double y  = creduce(_x);
         const double y2 = y * y;
@@ -263,20 +247,15 @@ NS_INTERNAL
 
     // vec_dot
     //   helper: dot product of two vec3 values.
-    inline D_CONSTEXPR
-    double vec_dot(
-        const vec3& _a,
-        const vec3& _b
-    ) noexcept
+    inline D_CONSTEXPR double
+    vec_dot(const vec3& _a, const vec3& _b) noexcept
     {
         return (_a.x * _b.x) + (_a.y * _b.y) + (_a.z * _b.z);
     }
 
     // ctan
-    inline D_CONSTEXPR
-    double ctan(
-        double _x
-    ) noexcept
+    inline D_CONSTEXPR double
+    ctan(double _x) noexcept
     {
         return csin(_x) / ccos(_x);
     }
@@ -334,10 +313,7 @@ NS_INTERNAL
     struct fn_exp
     {
         template<typename _X>
-        static D_CONSTEXPR
-        double apply(
-            _X _x
-        )
+        static D_CONSTEXPR double apply(_X _x)
         {
             return D_MATH_DISPATCH(cexp, std::exp, static_cast<double>(_x));
         }
@@ -346,10 +322,7 @@ NS_INTERNAL
     struct fn_sin
     {
         template<typename _X>
-        static D_CONSTEXPR
-        double apply(
-            _X _x
-        )
+        static D_CONSTEXPR double apply(_X _x)
         {
             return D_MATH_DISPATCH(csin, std::sin, static_cast<double>(_x));
         }
@@ -358,10 +331,7 @@ NS_INTERNAL
     struct fn_cos
     {
         template<typename _X>
-        static D_CONSTEXPR
-        double apply(
-            _X _x
-        )
+        static D_CONSTEXPR double apply(_X _x)
         {
             return D_MATH_DISPATCH(ccos, std::cos, static_cast<double>(_x));
         }
@@ -370,10 +340,7 @@ NS_INTERNAL
     struct fn_tan
     {
         template<typename _X>
-        static D_CONSTEXPR
-        double apply(
-            _X _x
-        )
+        static D_CONSTEXPR double apply(_X _x)
         {
             return D_MATH_DISPATCH(ctan, std::tan, static_cast<double>(_x));
         }
@@ -382,10 +349,7 @@ NS_INTERNAL
     struct fn_sqrt
     {
         template<typename _X>
-        static D_CONSTEXPR
-        double apply(
-            _X _x
-        )
+        static D_CONSTEXPR double apply(_X _x)
         {
             return D_MATH_DISPATCH(csqrt, std::sqrt, static_cast<double>(_x));
         }
@@ -394,10 +358,7 @@ NS_INTERNAL
     struct fn_abs
     {
         template<typename _X>
-        static D_CONSTEXPR
-        double apply(
-            _X _x
-        )
+        static D_CONSTEXPR double apply(_X _x)
         {
             return cabs(static_cast<double>(_x));
         }
@@ -430,10 +391,8 @@ struct constant_node : expression_base<constant_node<_ValueType>>
     }
 
     template<typename... _Args>
-    D_CONSTEXPR
-    value_type operator()(
-        _Args&&...
-    ) const noexcept
+    D_CONSTEXPR value_type
+    operator()(_Args&&...) const noexcept
     {
         return value;
     }
@@ -444,10 +403,8 @@ struct constant_node : expression_base<constant_node<_ValueType>>
 // (a vec3). The factory once also named value is gone: math::value
 // (value.hpp) is the generic value's class.
 template<typename _T>
-D_CONSTEXPR
-constant_node<typename std::decay<_T>::type> constant(
-    _T _v
-)
+D_CONSTEXPR constant_node<typename std::decay<_T>::type>
+constant(_T _v)
 {
     return constant_node<typename std::decay<_T>::type>(_v);
 }
@@ -511,9 +468,8 @@ NS_INTERNAL
     // as_expr: pass expressions through; wrap non-expressions in constant().
     template<typename _T>
     D_CONSTEXPR
-    typename std::enable_if<is_expression<_T>::value, _T>::type as_expr(
-        _T _e
-    )
+    typename std::enable_if<is_expression<_T>::value, _T>::type
+    as_expr(_T _e)
     {
         return _e;
     }
@@ -562,10 +518,8 @@ struct binary_node : expression_base<binary_node<_Op, _Left, _Right>>
     }
 
     template<typename... _Args>
-    D_CONSTEXPR
-    auto operator()(
-        _Args&&... _args
-    ) const
+    D_CONSTEXPR auto
+    operator()(_Args&&... _args) const
     {
         return _Op::apply(left(_args...), right(_args...));
     }
@@ -593,10 +547,8 @@ struct unary_node : expression_base<unary_node<_Op, _Arg>>
     }
 
     template<typename... _Args>
-    D_CONSTEXPR
-    auto operator()(
-        _Args&&... _args
-    ) const
+    D_CONSTEXPR auto
+    operator()(_Args&&... _args) const
     {
         return _Op::apply(arg(_args...));
     }
@@ -684,10 +636,8 @@ D_EXPR_UNARY_FN(abs,  fn_abs)
 //   rather than `square` so it does not collide with the geometry square<>
 //   shape, which shares the djinterp::math namespace.
 template<typename _A>
-D_CONSTEXPR
-auto squared(
-    _A _a
-)
+D_CONSTEXPR auto
+squared(_A _a)
 {
     auto e = internal::as_expr(_a);
     return e * e;
@@ -701,11 +651,8 @@ auto squared(
 // dot
 //   combinator: dot product of two vector-valued sub-expressions -> scalar.
 template<typename _A, typename _B>
-D_CONSTEXPR
-auto dot(
-    _A _a,
-    _B _b
-)
+D_CONSTEXPR auto
+dot(_A _a, _B _b)
 {
     auto ea = internal::as_expr(_a);
     auto eb = internal::as_expr(_b);

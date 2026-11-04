@@ -53,7 +53,7 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                 // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"      // framework root
+#include "../../../djinterp.hpp"   // framework root
 #include "./linalg_common.hpp"     // internal::linalg_kernel
 #include "./matrix.hpp"            // matrix<T, 3, 3>, matrix<T, 4, 4>
 #include "./vector.hpp"            // vector<T, 3>
@@ -127,8 +127,8 @@ NS_INTERNAL
     // quat_in, quat_out
     //   function: a quaternion as the C core's array [x, y, z, w], and back.
     template<typename T>
-    D_CONSTEXPR_CPP14
-    void quat_in(
+    D_CONSTEXPR_CPP14 void
+    quat_in(
         const quaternion<T>& _q,
         T*                   _out
     ) D_NOEXCEPT
@@ -140,10 +140,8 @@ NS_INTERNAL
     }
 
     template<typename T>
-    D_CONSTEXPR_CPP14
-    quaternion<T> quat_out(
-        const T* _q
-    ) D_NOEXCEPT
+    D_CONSTEXPR_CPP14 quaternion<T>
+    quat_out(const T* _q) D_NOEXCEPT
     {
         return quaternion<T>(_q[0], _q[1], _q[2], _q[3]);
     }
@@ -164,7 +162,8 @@ NS_END  // internal
 // normalized here, so any non-zero length will do; a zero axis gives the
 // identity.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP20 quaternion<T> from_axis_angle(
+D_NODISCARD D_CONSTEXPR_CPP20 quaternion<T>
+from_axis_angle(
     const vector<T, 3>& _axis,
     T                   _angle
 ) D_NOEXCEPT
@@ -184,7 +183,8 @@ D_NODISCARD D_CONSTEXPR_CPP20 quaternion<T> from_axis_angle(
 // operator*
 //   function: the Hamilton product; _a * _b rotates by _b, then by _a.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T> operator*(
+D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T>
+operator*(
     const quaternion<T>& _a,
     const quaternion<T>& _b
 ) D_NOEXCEPT
@@ -203,7 +203,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T> operator*(
 // conjugate
 //   function: (-x, -y, -z, w); the inverse of a unit quaternion.
 template<typename T>
-D_NODISCARD D_CONSTEXPR quaternion<T> conjugate(
+D_NODISCARD D_CONSTEXPR quaternion<T>
+conjugate(
     const quaternion<T>& _q
 ) D_NOEXCEPT
 {
@@ -214,7 +215,8 @@ D_NODISCARD D_CONSTEXPR quaternion<T> conjugate(
 // norm
 //   function: the Euclidean norm of (x, y, z, w), correctly rounded.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 T norm(
+D_NODISCARD D_CONSTEXPR_CPP14 T
+norm(
     const quaternion<T>& _q
 ) D_NOEXCEPT
 {
@@ -229,7 +231,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 T norm(
 // normalize
 //   function: _q scaled to unit norm; a zero quaternion is returned as is.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T> normalize(
+D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T>
+normalize(
     const quaternion<T>& _q
 ) D_NOEXCEPT
 {
@@ -248,7 +251,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T> normalize(
 //   function: _v rotated by the unit quaternion _q, v + w t + u x t with t =
 // 2 u x v, without building a matrix.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 vector<T, 3> rotate(
+D_NODISCARD D_CONSTEXPR_CPP14 vector<T, 3>
+rotate(
     const quaternion<T>& _q,
     const vector<T, 3>&  _v
 ) D_NOEXCEPT
@@ -266,7 +270,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 vector<T, 3> rotate(
 // to_matrix3
 //   function: the 3x3 rotation matrix of the unit quaternion _q.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 3, 3> to_matrix3(
+D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 3, 3>
+to_matrix3(
     const quaternion<T>& _q
 ) D_NOEXCEPT
 {
@@ -283,7 +288,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 3, 3> to_matrix3(
 // to_matrix4
 //   function: the 4x4 homogeneous rotation matrix of the unit quaternion _q.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 4, 4> to_matrix4(
+D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 4, 4>
+to_matrix4(
     const quaternion<T>& _q
 ) D_NOEXCEPT
 {
@@ -303,7 +309,8 @@ D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 4, 4> to_matrix4(
 //   function: spherical linear interpolation from _a (t = 0) to _b (t = 1)
 // along the shorter arc; both are unit quaternions.
 template<typename T>
-D_NODISCARD D_CONSTEXPR_CPP20 quaternion<T> slerp(
+D_NODISCARD D_CONSTEXPR_CPP20 quaternion<T>
+slerp(
     const quaternion<T>& _a,
     const quaternion<T>& _b,
     T                    _t

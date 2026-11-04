@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             math_tests_exact.h
+* djinterp [c/math]                                           math_tests_exact.h
 *
 *   The math harnesses' exact reference: signed integers of 256 bits or more,
 * exact rationals over them, an oracle for the floating-point value nearest an
@@ -34,7 +34,7 @@
 #include <math.h>    // frexpf, frexp, frexpl, nextafterf, nextafter,
                      // nextafterl, ldexpl, floorl
 // djinterp
-#include "../../../../../inc/djinterp/c/modules/math/rational.h"  // dj_rational, words
+#include "../../../../../inc/djinterp/c/modules/math/rational.h"  // d_rational, words
 
 
 //==============================================================================
@@ -45,28 +45,28 @@
 // could sets g_reference_overrun, and a harness that finds it set fails.
 
 // d_tests_magnitude
-//   |_x| as a dj_math_umax, exact for every value, D_MATH_IMAX_MIN included.
-static inline
-dj_math_umax d_tests_magnitude(
-    dj_math_imax _x
+//   |_x| as a d_math_umax, exact for every value, D_MATH_IMAX_MIN included.
+static inline d_math_umax
+d_tests_magnitude(
+    d_math_imax _x
 )
 {
-    return (_x < 0) ? ((dj_math_umax)0 - (dj_math_umax)_x)
-                    : (dj_math_umax)_x;
+    return (_x < 0) ? ((d_math_umax)0 - (d_math_umax)_x)
+                    : (d_math_umax)_x;
 }
 
 // d_tests_text_umax
 //   _x in decimal, into _buffer (at least 24 characters), returned.
-static inline
-const char* d_tests_text_umax(
-    dj_math_umax _x,
-    char*        _buffer
+static inline const char*
+d_tests_text_umax(
+    d_math_umax _x,
+    char*       _buffer
 )
 {
     char        digits[24];
     int         count = 0;
     int         at    = 0;
-    dj_math_umax rest  = _x;
+    d_math_umax rest  = _x;
 
     // the digits, least significant first
     do
@@ -92,10 +92,10 @@ const char* d_tests_text_umax(
 // d_tests_text
 //   _x in decimal, its sign first, into _buffer (at least 24 characters),
 // returned.
-static inline
-const char* d_tests_text(
-    dj_math_imax _x,
-    char*        _buffer
+static inline const char*
+d_tests_text(
+    d_math_imax _x,
+    char*       _buffer
 )
 {
     // below zero: the sign, then the magnitude
@@ -119,20 +119,20 @@ const char* d_tests_text(
 #define D_TESTS_LIMBS      D_TESTS_EXACT_LIMBS
 #define D_TESTS_LIMB_MASK  0xFFFFUL
 
-// dj_tests_big
+// d_tests_big
 //   struct: a signed integer, its magnitude in D_TESTS_LIMBS limbs.
-struct dj_tests_big
+struct d_tests_big
 {
     unsigned long limb[D_TESTS_LIMBS];  // the magnitude, low limb first
     int           negative;             // 1 below zero; never for zero
 };
 
-// dj_tests_exact
+// d_tests_exact
 //   struct: an exact rational n / d, d > 0, not necessarily reduced.
-struct dj_tests_exact
+struct d_tests_exact
 {
-    struct dj_tests_big n;  // the numerator, which carries the sign
-    struct dj_tests_big d;  // the denominator, positive
+    struct d_tests_big n;  // the numerator, which carries the sign
+    struct d_tests_big d;  // the denominator, positive
 };
 
 // set when a value could pass the reference's limbs
@@ -140,9 +140,9 @@ static bool g_reference_overrun = false;
 
 // d_tests_big_length
 //   the limbs _x uses: those up to its highest nonzero one.
-static inline
-int d_tests_big_length(
-    struct dj_tests_big _x
+static inline int
+d_tests_big_length(
+    struct d_tests_big _x
 )
 {
     int length = D_TESTS_LIMBS;
@@ -157,9 +157,9 @@ int d_tests_big_length(
     return length;
 }
 
-static inline
-bool d_tests_big_is_zero(
-    struct dj_tests_big _x
+static inline bool
+d_tests_big_is_zero(
+    struct d_tests_big _x
 )
 {
     return (d_tests_big_length(_x) == 0);
@@ -167,14 +167,14 @@ bool d_tests_big_is_zero(
 
 // d_tests_big_of_umax
 //   _magnitude, negative where _negative and it is not 0.
-static inline
-struct dj_tests_big d_tests_big_of_umax(
-    dj_math_umax _magnitude,
-    bool         _negative
+static inline struct d_tests_big
+d_tests_big_of_umax(
+    d_math_umax _magnitude,
+    bool        _negative
 )
 {
-    struct dj_tests_big result = { { 0UL }, 0 };
-    dj_math_umax        rest   = _magnitude;
+    struct d_tests_big result = { { 0UL }, 0 };
+    d_math_umax        rest   = _magnitude;
     int                i      = 0;
 
     // sixteen bits at a time, the low ones first
@@ -192,9 +192,9 @@ struct dj_tests_big d_tests_big_of_umax(
 
 // d_tests_big_of
 //   _value, exactly, D_MATH_IMAX_MIN included.
-static inline
-struct dj_tests_big d_tests_big_of(
-    dj_math_imax _value
+static inline struct d_tests_big
+d_tests_big_of(
+    d_math_imax _value
 )
 {
     return d_tests_big_of_umax(d_tests_magnitude(_value), (_value < 0));
@@ -202,24 +202,24 @@ struct dj_tests_big d_tests_big_of(
 
 // d_tests_big_neg
 //   -_x; 0 stays 0, never negative.
-static inline
-struct dj_tests_big d_tests_big_neg(
-    struct dj_tests_big _x
+static inline struct d_tests_big
+d_tests_big_neg(
+    struct d_tests_big _x
 )
 {
-    struct dj_tests_big result = _x;
+    struct d_tests_big result = _x;
 
     result.negative = d_tests_big_is_zero(_x) ? 0 : (1 - _x.negative);
 
     return result;
 }
 
-static inline
-struct dj_tests_big d_tests_big_abs(
-    struct dj_tests_big _x
+static inline struct d_tests_big
+d_tests_big_abs(
+    struct d_tests_big _x
 )
 {
-    struct dj_tests_big result = _x;
+    struct d_tests_big result = _x;
 
     result.negative = 0;
 
@@ -228,10 +228,10 @@ struct dj_tests_big d_tests_big_abs(
 
 // d_tests_big_cmp_mag
 //   -1, 0 or 1 as |_a| is below, equal to or above |_b|.
-static inline
-int d_tests_big_cmp_mag(
-    struct dj_tests_big _a,
-    struct dj_tests_big _b
+static inline int
+d_tests_big_cmp_mag(
+    struct d_tests_big _a,
+    struct d_tests_big _b
 )
 {
     int i = 0;
@@ -250,10 +250,10 @@ int d_tests_big_cmp_mag(
 
 // d_tests_big_cmp
 //   -1, 0 or 1 as _a is below, equal to or above _b.
-static inline
-int d_tests_big_cmp(
-    struct dj_tests_big _a,
-    struct dj_tests_big _b
+static inline int
+d_tests_big_cmp(
+    struct d_tests_big _a,
+    struct d_tests_big _b
 )
 {
     const int order = d_tests_big_cmp_mag(_a, _b);
@@ -270,18 +270,18 @@ int d_tests_big_cmp(
 // d_tests_big_add
 //   _a + _b: like signs add the magnitudes, unlike ones take the smaller
 // from the larger; either way the larger's sign.
-static inline
-struct dj_tests_big d_tests_big_add(
-    struct dj_tests_big _a,
-    struct dj_tests_big _b
+static inline struct d_tests_big
+d_tests_big_add(
+    struct d_tests_big _a,
+    struct d_tests_big _b
 )
 {
     const bool               like    = (_a.negative == _b.negative);
     const bool               a_more  = (d_tests_big_cmp_mag(_a, _b) >= 0);
-    const struct dj_tests_big larger  = a_more ? _a : _b;
-    const struct dj_tests_big smaller = a_more ? _b : _a;
+    const struct d_tests_big larger  = a_more ? _a : _b;
+    const struct d_tests_big smaller = a_more ? _b : _a;
 
-    struct dj_tests_big result = { { 0UL }, 0 };
+    struct d_tests_big result = { { 0UL }, 0 };
     unsigned long      carry  = 0UL;
     int                i      = 0;
 
@@ -319,16 +319,16 @@ struct dj_tests_big d_tests_big_add(
 
 // d_tests_big_mul
 //   _a * _b, schoolbook over the limbs in use.
-static inline
-struct dj_tests_big d_tests_big_mul(
-    struct dj_tests_big _a,
-    struct dj_tests_big _b
+static inline struct d_tests_big
+d_tests_big_mul(
+    struct d_tests_big _a,
+    struct d_tests_big _b
 )
 {
     const int a_length = d_tests_big_length(_a);
     const int b_length = d_tests_big_length(_b);
 
-    struct dj_tests_big result = { { 0UL }, 0 };
+    struct d_tests_big result = { { 0UL }, 0 };
     int                i      = 0;
     int                j      = 0;
 
@@ -366,12 +366,12 @@ struct dj_tests_big d_tests_big_mul(
 
 // d_tests_big_halve
 //   |_x| / 2, rounded down.
-static inline
-struct dj_tests_big d_tests_big_halve(
-    struct dj_tests_big _x
+static inline struct d_tests_big
+d_tests_big_halve(
+    struct d_tests_big _x
 )
 {
-    struct dj_tests_big result = { { 0UL }, 0 };
+    struct d_tests_big result = { { 0UL }, 0 };
     int                i      = 0;
 
     // each limb takes the low bit of the one above as its top bit
@@ -389,12 +389,12 @@ struct dj_tests_big d_tests_big_halve(
 
 // d_tests_big_twice
 //   |_x| * 2.
-static inline
-struct dj_tests_big d_tests_big_twice(
-    struct dj_tests_big _x
+static inline struct d_tests_big
+d_tests_big_twice(
+    struct d_tests_big _x
 )
 {
-    struct dj_tests_big result = { { 0UL }, 0 };
+    struct d_tests_big result = { { 0UL }, 0 };
     int                i      = 0;
 
     // each limb takes the top bit of the one below as its low bit
@@ -416,9 +416,9 @@ struct dj_tests_big d_tests_big_twice(
 
 // d_tests_big_bits
 //   the bits |_x| needs: 0 for 0.
-static inline
-int d_tests_big_bits(
-    struct dj_tests_big _x
+static inline int
+d_tests_big_bits(
+    struct d_tests_big _x
 )
 {
     const int     length = d_tests_big_length(_x);
@@ -437,17 +437,17 @@ int d_tests_big_bits(
 
 // d_tests_big_shl
 //   |_x| * 2^_k, _k >= 0: whole limbs moved up, then the bits left over.
-static inline
-struct dj_tests_big d_tests_big_shl(
-    struct dj_tests_big _x,
-    int                 _k
+static inline struct d_tests_big
+d_tests_big_shl(
+    struct d_tests_big _x,
+    int                _k
 )
 {
     const int limbs  = _k / 16;
     const int bits   = _k % 16;
     const int length = d_tests_big_length(_x);
 
-    struct dj_tests_big result = { { 0UL }, 0 };
+    struct d_tests_big result = { { 0UL }, 0 };
     int                i      = 0;
 
     // past the reference's bits
@@ -479,14 +479,14 @@ struct dj_tests_big d_tests_big_shl(
 //   the greatest common divisor of |_a| and |_b|, both nonzero, by Stein's
 // binary method: shifts and subtractions only, so the reference needs no
 // division.
-static inline
-struct dj_tests_big d_tests_big_gcd(
-    struct dj_tests_big _a,
-    struct dj_tests_big _b
+static inline struct d_tests_big
+d_tests_big_gcd(
+    struct d_tests_big _a,
+    struct d_tests_big _b
 )
 {
-    struct dj_tests_big a    = d_tests_big_abs(_a);
-    struct dj_tests_big b    = d_tests_big_abs(_b);
+    struct d_tests_big a    = d_tests_big_abs(_a);
+    struct d_tests_big b    = d_tests_big_abs(_b);
     int                twos = 0;
     int                i    = 0;
 
@@ -516,7 +516,7 @@ struct dj_tests_big d_tests_big_gcd(
         // a the smaller
         if (d_tests_big_cmp_mag(a, b) > 0)
         {
-            const struct dj_tests_big larger = a;
+            const struct d_tests_big larger = a;
 
             a = b;
             b = larger;
@@ -536,42 +536,42 @@ struct dj_tests_big d_tests_big_gcd(
 
 // d_tests_exact_from
 //   _n / _d, as they are; _d positive.
-static inline
-struct dj_tests_exact d_tests_exact_from(
-    struct dj_tests_big _n,
-    struct dj_tests_big _d
+static inline struct d_tests_exact
+d_tests_exact_from(
+    struct d_tests_big _n,
+    struct d_tests_big _d
 )
 {
-    struct dj_tests_exact result = { _n, _d };
+    struct d_tests_exact result = { _n, _d };
 
     return result;
 }
 
 // d_tests_exact_of
 //   _num / _den, _den nonzero, the sign moved to the numerator.
-static inline
-struct dj_tests_exact d_tests_exact_of(
-    dj_math_imax _num,
-    dj_math_imax _den
+static inline struct d_tests_exact
+d_tests_exact_of(
+    d_math_imax _num,
+    d_math_imax _den
 )
 {
-    const struct dj_tests_big num = d_tests_big_of(_num);
+    const struct d_tests_big num = d_tests_big_of(_num);
 
     return d_tests_exact_from((_den < 0) ? d_tests_big_neg(num) : num,
                               d_tests_big_abs(d_tests_big_of(_den)));
 }
 
-static inline
-struct dj_tests_exact d_tests_exact_neg(
-    struct dj_tests_exact _x
+static inline struct d_tests_exact
+d_tests_exact_neg(
+    struct d_tests_exact _x
 )
 {
     return d_tests_exact_from(d_tests_big_neg(_x.n), _x.d);
 }
 
-static inline
-struct dj_tests_exact d_tests_exact_abs(
-    struct dj_tests_exact _x
+static inline struct d_tests_exact
+d_tests_exact_abs(
+    struct d_tests_exact _x
 )
 {
     return d_tests_exact_from(d_tests_big_abs(_x.n), _x.d);
@@ -579,9 +579,9 @@ struct dj_tests_exact d_tests_exact_abs(
 
 // d_tests_exact_inv
 //   1 / _x, _x nonzero: the terms swapped, the sign kept on the numerator.
-static inline
-struct dj_tests_exact d_tests_exact_inv(
-    struct dj_tests_exact _x
+static inline struct d_tests_exact
+d_tests_exact_inv(
+    struct d_tests_exact _x
 )
 {
     return d_tests_exact_from((_x.n.negative != 0) ? d_tests_big_neg(_x.d)
@@ -591,10 +591,10 @@ struct dj_tests_exact d_tests_exact_inv(
 
 // d_tests_exact_add
 //   _x + _y, over the product of the denominators.
-static inline
-struct dj_tests_exact d_tests_exact_add(
-    struct dj_tests_exact _x,
-    struct dj_tests_exact _y
+static inline struct d_tests_exact
+d_tests_exact_add(
+    struct d_tests_exact _x,
+    struct d_tests_exact _y
 )
 {
     return d_tests_exact_from(d_tests_big_add(d_tests_big_mul(_x.n, _y.d),
@@ -602,10 +602,10 @@ struct dj_tests_exact d_tests_exact_add(
                               d_tests_big_mul(_x.d, _y.d));
 }
 
-static inline
-struct dj_tests_exact d_tests_exact_mul(
-    struct dj_tests_exact _x,
-    struct dj_tests_exact _y
+static inline struct d_tests_exact
+d_tests_exact_mul(
+    struct d_tests_exact _x,
+    struct d_tests_exact _y
 )
 {
     return d_tests_exact_from(d_tests_big_mul(_x.n, _y.n),
@@ -615,10 +615,10 @@ struct dj_tests_exact d_tests_exact_mul(
 // d_tests_exact_cmp
 //   -1, 0 or 1 as _x is below, equal to or above _y: the cross products,
 // the denominators being positive.
-static inline
-int d_tests_exact_cmp(
-    struct dj_tests_exact _x,
-    struct dj_tests_exact _y
+static inline int
+d_tests_exact_cmp(
+    struct d_tests_exact _x,
+    struct d_tests_exact _y
 )
 {
     return d_tests_big_cmp(d_tests_big_mul(_x.n, _y.d),
@@ -626,17 +626,17 @@ int d_tests_exact_cmp(
 }
 
 // d_tests_exact_fits
-//   whether _x, reduced, lies within dj_math_imax. With g the greatest common
+//   whether _x, reduced, lies within d_math_imax. With g the greatest common
 // divisor of |n| and d, the reduced terms are |n| / g and d / g, so without
 // a division: d <= D_MATH_IMAX_MAX * g, and |n| <= D_MATH_IMAX_MAX * g, or
 // (D_MATH_IMAX_MAX + 1) * g below zero.
-static inline
-bool d_tests_exact_fits(
-    struct dj_tests_exact _x
+static inline bool
+d_tests_exact_fits(
+    struct d_tests_exact _x
 )
 {
-    const dj_math_umax most   = (dj_math_umax)D_MATH_IMAX_MAX;
-    const dj_math_umax n_most = (_x.n.negative != 0) ? (most + 1u) : most;
+    const d_math_umax most   = (d_math_umax)D_MATH_IMAX_MAX;
+    const d_math_umax n_most = (_x.n.negative != 0) ? (most + 1u) : most;
 
     // 0 is 0/1
     if (d_tests_big_is_zero(_x.n))
@@ -644,10 +644,10 @@ bool d_tests_exact_fits(
         return true;
     }
 
-    const struct dj_tests_big g = d_tests_big_gcd(_x.n, _x.d);
-    const struct dj_tests_big d_bound =
+    const struct d_tests_big g = d_tests_big_gcd(_x.n, _x.d);
+    const struct d_tests_big d_bound =
         d_tests_big_mul(d_tests_big_of_umax(most, false), g);
-    const struct dj_tests_big n_bound =
+    const struct d_tests_big n_bound =
         d_tests_big_mul(d_tests_big_of_umax(n_most, false), g);
 
     return ( (d_tests_big_cmp_mag(_x.d, d_bound) <= 0) &&
@@ -656,19 +656,19 @@ bool d_tests_exact_fits(
 
 // d_tests_gcd
 //   the greatest common divisor of two words: the harness's own Euclid.
-static inline
-dj_math_umax d_tests_gcd(
-    dj_math_umax _a,
-    dj_math_umax _b
+static inline d_math_umax
+d_tests_gcd(
+    d_math_umax _a,
+    d_math_umax _b
 )
 {
-    dj_math_umax a = _a;
-    dj_math_umax b = _b;
+    d_math_umax a = _a;
+    d_math_umax b = _b;
 
     // the remainder replaces the larger until it vanishes
     while (b != 0u)
     {
-        const dj_math_umax rest = a % b;
+        const d_math_umax rest = a % b;
 
         a = b;
         b = rest;
@@ -679,26 +679,26 @@ dj_math_umax d_tests_gcd(
 
 // d_tests_in_one_form
 //   a positive denominator and no common factor.
-static inline
-bool d_tests_in_one_form(
-    struct dj_rational _x
+static inline bool
+d_tests_in_one_form(
+    struct d_rational _x
 )
 {
     return ( (_x.den > 0) &&
              (d_tests_gcd(d_tests_magnitude(_x.num),
-                          (dj_math_umax)_x.den) == 1u) );
+                          (d_math_umax)_x.den) == 1u) );
 }
 
 // d_tests_big_of_wide
 //   _x, hi * 2^w + lo, exactly.
-static inline
-struct dj_tests_big d_tests_big_of_wide(
-    struct dj_internal_rational_wide _x
+static inline struct d_tests_big
+d_tests_big_of_wide(
+    struct d_internal_rational_wide _x
 )
 {
-    const dj_math_umax top = (dj_math_umax)1
+    const d_math_umax top = (d_math_umax)1
                                 << (D_INTERNAL_RATIONAL_WORD_BITS - 1u);
-    const struct dj_tests_big base =
+    const struct d_tests_big base =
         d_tests_big_twice(d_tests_big_of_umax(top, false));
 
     return d_tests_big_add(
@@ -708,10 +708,10 @@ struct dj_tests_big d_tests_big_of_wide(
 
 // d_tests_big_of_product
 //   _a * _b, exactly.
-static inline
-struct dj_tests_big d_tests_big_of_product(
-    dj_math_umax _a,
-    dj_math_umax _b
+static inline struct d_tests_big
+d_tests_big_of_product(
+    d_math_umax _a,
+    d_math_umax _b
 )
 {
     return d_tests_big_mul(d_tests_big_of_umax(_a, false),
@@ -730,12 +730,12 @@ struct dj_tests_big d_tests_big_of_product(
 // the type's precision: 2^193 with 64-bit words and the x87's 64 bits, and
 // 2^242 where a long double has 113 bits.
 
-// dj_tests_parts
+// d_tests_parts
 //   struct: a positive finite value, or 0, as m * 2^e, m an integer below
 // 2^P.
-struct dj_tests_parts
+struct d_tests_parts
 {
-    struct dj_tests_big mantissa;  // m
+    struct d_tests_big mantissa;  // m
     int                exponent;  // e
 };
 
@@ -743,14 +743,14 @@ struct dj_tests_parts
 //   the parts of _fraction * 2^_exponent, as frexp gave them for a value of
 // a type with _precision bits: _fraction is 0 or in [1/2, 1), so _fraction *
 // 2^_precision is an integer, split here into limbs by exact divisions.
-static inline
-struct dj_tests_parts d_tests_parts_of(
+static inline struct d_tests_parts
+d_tests_parts_of(
     long double _fraction,
     int         _exponent,
     int         _precision
 )
 {
-    struct dj_tests_parts result = { { { 0UL }, 0 }, 0 };
+    struct d_tests_parts result = { { { 0UL }, 0 }, 0 };
     long double          rest   = ldexpl(_fraction, _precision);
     int                  i      = 0;
 
@@ -774,16 +774,16 @@ struct dj_tests_parts d_tests_parts_of(
 // d_tests_distance
 //   |_n * 2^_s - m * _d * 2^(e + _s)|, for e + _s >= 0: how far _n / _d
 // lies from m * 2^e, times _d * 2^_s.
-static inline
-struct dj_tests_big d_tests_distance(
-    struct dj_tests_big   _n,
-    struct dj_tests_big   _d,
-    struct dj_tests_parts _v,
-    int                   _s
+static inline struct d_tests_big
+d_tests_distance(
+    struct d_tests_big   _n,
+    struct d_tests_big   _d,
+    struct d_tests_parts _v,
+    int                  _s
 )
 {
-    const struct dj_tests_big scaled = d_tests_big_shl(_n, _s);
-    const struct dj_tests_big value  =
+    const struct d_tests_big scaled = d_tests_big_shl(_n, _s);
+    const struct d_tests_big value  =
         d_tests_big_shl(d_tests_big_mul(_v.mantissa, _d), _v.exponent + _s);
 
     return d_tests_big_abs(d_tests_big_add(scaled, d_tests_big_neg(value)));
@@ -793,13 +793,13 @@ struct dj_tests_big d_tests_distance(
 //   whether _r is the value of its type nearest _n / _d, both positive, ties
 // to even: neither neighbour, _below nor _above, nearer, and on a tie with
 // one of them, _r's mantissa even.
-static inline
-bool d_tests_nearest(
-    struct dj_tests_big   _n,
-    struct dj_tests_big   _d,
-    struct dj_tests_parts _r,
-    struct dj_tests_parts _below,
-    struct dj_tests_parts _above
+static inline bool
+d_tests_nearest(
+    struct d_tests_big   _n,
+    struct d_tests_big   _d,
+    struct d_tests_parts _r,
+    struct d_tests_parts _below,
+    struct d_tests_parts _above
 )
 {
     const int lower = (_below.exponent < _r.exponent) ? _below.exponent
@@ -807,7 +807,7 @@ bool d_tests_nearest(
     const int least = (_above.exponent < lower) ? _above.exponent : lower;
     const int scale = (least < 0) ? -least : 0;
 
-    const struct dj_tests_big at = d_tests_distance(_n, _d, _r, scale);
+    const struct d_tests_big at = d_tests_distance(_n, _d, _r, scale);
     const int to_below = d_tests_big_cmp_mag(
         at, d_tests_distance(_n, _d, _below, scale));
     const int to_above = d_tests_big_cmp_mag(
@@ -824,12 +824,12 @@ bool d_tests_nearest(
 // d_tests_nearest_f
 //   whether _r is the float nearest -(_n / _d) where _negative, else
 // _n / _d; _n and _d positive.
-static inline
-bool d_tests_nearest_f(
-    bool                _negative,
-    struct dj_tests_big _n,
-    struct dj_tests_big _d,
-    float               _r
+static inline bool
+d_tests_nearest_f(
+    bool               _negative,
+    struct d_tests_big _n,
+    struct d_tests_big _d,
+    float              _r
 )
 {
     const float magnitude = _negative ? -_r : _r;
@@ -858,12 +858,12 @@ bool d_tests_nearest_f(
 
 // d_tests_nearest_d
 //   the same for a double.
-static inline
-bool d_tests_nearest_d(
-    bool                _negative,
-    struct dj_tests_big _n,
-    struct dj_tests_big _d,
-    double              _r
+static inline bool
+d_tests_nearest_d(
+    bool               _negative,
+    struct d_tests_big _n,
+    struct d_tests_big _d,
+    double             _r
 )
 {
     const double magnitude = _negative ? -_r : _r;
@@ -892,12 +892,12 @@ bool d_tests_nearest_d(
 
 // d_tests_nearest_ld
 //   the same for a long double.
-static inline
-bool d_tests_nearest_ld(
-    bool                _negative,
-    struct dj_tests_big _n,
-    struct dj_tests_big _d,
-    long double         _r
+static inline bool
+d_tests_nearest_ld(
+    bool               _negative,
+    struct d_tests_big _n,
+    struct d_tests_big _d,
+    long double        _r
 )
 {
     const long double magnitude = _negative ? -_r : _r;
@@ -935,18 +935,18 @@ bool d_tests_nearest_ld(
 // Past 2^w, or below 2^(-w), a nonzero _f is beyond every nonzero rational's
 // magnitude, or within; between, _r = n/d against f = m * 2^e (frexpl's
 // mantissa and exponent), as n * 2^s against m * d * 2^(e + s), exactly.
-static inline
-int d_tests_exact_cmp_real(
-    struct dj_rational _r,
-    long double        _f
+static inline int
+d_tests_exact_cmp_real(
+    struct d_rational _r,
+    long double       _f
 )
 {
     const int width  = (int)D_INTERNAL_RATIONAL_WORD_BITS;
     const int r_sign = (_r.num > 0) ? 1 : ((_r.num < 0) ? -1 : 0);
     const int f_sign = (_f > 0.0L) ? 1 : ((_f < 0.0L) ? -1 : 0);
 
-    struct dj_tests_big left     = { { 0UL }, 0 };
-    struct dj_tests_big right    = { { 0UL }, 0 };
+    struct d_tests_big left     = { { 0UL }, 0 };
+    struct d_tests_big right    = { { 0UL }, 0 };
     int                exponent = 0;
     int                order    = 0;
     long double        fraction = 0.0L;
@@ -987,7 +987,7 @@ int d_tests_exact_cmp_real(
 
     // exactly: |n| * 2^s against m * d * 2^(e + s)
     {
-        const struct dj_tests_parts parts =
+        const struct d_tests_parts parts =
             d_tests_parts_of(fraction, exponent, LDBL_MANT_DIG);
         const int shift = (parts.exponent < 0) ? -parts.exponent : 0;
 
@@ -995,7 +995,7 @@ int d_tests_exact_cmp_real(
             d_tests_big_of_umax(d_tests_magnitude(_r.num), false), shift);
         right = d_tests_big_shl(
             d_tests_big_mul(parts.mantissa,
-                            d_tests_big_of_umax((dj_math_umax)_r.den, false)),
+                            d_tests_big_of_umax((d_math_umax)_r.den, false)),
             parts.exponent + shift);
         order = d_tests_big_cmp_mag(left, right);
     }

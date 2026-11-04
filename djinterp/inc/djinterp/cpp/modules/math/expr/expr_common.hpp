@@ -73,7 +73,7 @@ TABLE OF CONTENTS
 #include <string>       // std::string
 #include <type_traits>  // std::is_same
 // djinterp
-#include "../../../functional/result.hpp"  // result, ok, err
+#include "../../../functional/result.hpp"    // result, ok, err
 #include "../math_common.hpp"                 // NS_MATH
 
 
@@ -163,8 +163,8 @@ struct expr_error
 // operator==, operator!= (expr_error)
 //   function: two errors are equal when their statuses, offsets and messages
 // are.
-inline
-bool operator==(
+inline bool
+operator==(
     const expr_error& _a,
     const expr_error& _b
 )
@@ -174,8 +174,8 @@ bool operator==(
              (_a.message == _b.message) );
 }
 
-inline
-bool operator!=(
+inline bool
+operator!=(
     const expr_error& _a,
     const expr_error& _b
 )
@@ -199,8 +199,8 @@ using expr_result = result<Type, expr_error>;
 // it, and each goes with its step.
 NS_INTERNAL
 
-    inline
-    expr_error expr_not_yet_error(
+    inline expr_error
+    expr_not_yet_error(
         const char* _what
     )
     {
@@ -210,7 +210,8 @@ NS_INTERNAL
     }
 
     template<typename Type>
-    D_NODISCARD expr_result<Type> expr_not_yet(
+    D_NODISCARD expr_result<Type>
+    expr_not_yet(
         const char* _what
     )
     {

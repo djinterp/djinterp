@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               t_solid_face.cpp
+* djinterp [cpp/math]                                           t_solid_face.cpp
 *
 *   Tests for geometry/solid.hpp, at every level from C++98: a unit cube as
 * a triangle mesh -- its surface area 6, volume 1, centroid its centre,
@@ -10,7 +10,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/geometry/t_solid_face.cpp -o t_solid -lm
+*         tests/djinterp/math/geometry/t_solid_face.cpp -o t_solid -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_solid_face.cpp
@@ -30,7 +30,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -56,11 +57,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -79,7 +77,8 @@ namespace
     };
 
     template<typename System>
-    dm::triangle_mesh<System, 8, 12> d_tests_cube()
+    dm::triangle_mesh<System, 8, 12>
+    d_tests_cube()
     {
         typedef dm::triangle_mesh<System, 8, 12>        mesh;
         typedef typename System::value_type             T;
@@ -110,9 +109,8 @@ namespace
     }
 
     template<typename T>
-    void d_tests_family(
-        T _tol
-    )
+    void
+    d_tests_family(T _tol)
     {
         typedef dm::cartesian<3, T>       car;
         typedef typename car::point_type  p3;
@@ -143,7 +141,8 @@ D_STATIC_ASSERT((dm::has_closed_form_volume<
                 "with a closed-form volume");
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-6f);
     d_tests_family<double>(1e-15);

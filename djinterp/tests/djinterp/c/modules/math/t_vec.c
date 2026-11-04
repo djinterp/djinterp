@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                        t_vec.c
+* djinterp [c/math]                                                      t_vec.c
 *
 *   Conformance harness for c/math/vec.h, all three families: every kernel
 * against the formula it implements, written out here in the same type and
@@ -19,7 +19,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_vec.c -o t_vec -lm
+*        tests/djinterp/c/math/t_vec.c -o t_vec -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_vec.c
@@ -40,8 +40,8 @@ static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 88172645u;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     int         _line
@@ -69,8 +69,8 @@ void d_tests_expect(
 // a value in [-4, 4) with a random fraction, stored, so that it is a
 // double: clang on x87 hands inlined code the quotient's 64-bit register
 // value otherwise
-static
-double d_tests_random(void)
+static double
+d_tests_random(void)
 {
     volatile double value = 0.0;
 
@@ -277,6 +277,9 @@ d_tests_vec_##S(void)                                                          \
                         #S " parallel vectors are at angle 0");                \
         D_TESTS_EXPECT(d_vec_##S##_cos_angle(x, zero, 3u) == (T)0,             \
                        #S " the zero vector's cosine is 0");                   \
+        D_TESTS_EXPECT( (!d_vec_##S##_equal(x, y, 3u)) &&                      \
+                        (!d_vec_##S##_equals(x, x2, (T)1, 3u)),                \
+                        #S " unequal vectors are not equal");                  \
         d_vec_##S##_cross(out, x, y);                                          \
         D_TESTS_EXPECT( (out[0] == (T)0) && (out[1] == (T)0) &&                \
                         (out[2] == (T)6),                                      \
@@ -353,6 +356,39 @@ d_tests_vec_##S(void)                                                          \
                                               : ((T)24 / (T)25 - c)) <=        \
                          (T)4 * EPSILON),                                      \
                         #S " cos_angle past the squares' overflow: 24/25");    \
+                                                                               \
+        /* a NaN or an infinity: the cosine as ever, (d > 0) ? dot / d */      \
+        /* : 0, both forms; a zero vector's 0 in the _c form too        */     \
+        {                                                                      \
+            const T ones[2] = { (T)1, (T)1 };                                  \
+            const T zv[2]   = { (T)0, (T)0 };                                  \
+            T       nanv[2];                                                   \
+            T       infv[2];                                                   \
+            T       cn;                                                        \
+            T       cnc;                                                       \
+            T       ci;                                                        \
+            T       cic;                                                       \
+                                                                               \
+            nanv[0] = (T)HUGE_VAL - (T)HUGE_VAL;                               \
+            nanv[1] = (T)1;                                                    \
+            infv[0] = (T)HUGE_VAL;                                             \
+            infv[1] = (T)1;                                                    \
+            cn  = d_tests_stored_##S(d_vec_##S##_cos_angle(nanv, ones, 2u));   \
+            cnc = d_tests_stored_##S(d_vec_##S##_cos_angle_c(nanv, ones,       \
+                                                             2u));             \
+            ci  = d_tests_stored_##S(d_vec_##S##_cos_angle(infv, ones, 2u));   \
+            cic = d_tests_stored_##S(d_vec_##S##_cos_angle_c(infv, ones,       \
+                                                             2u));             \
+            D_TESTS_EXPECT( (cn == (T)0) && (cnc == (T)0) &&                   \
+                            (ci != ci) && (cic != cic),                        \
+                            #S " cos_angle of a NaN or an infinity, as "       \
+                               "ever");                                        \
+            D_TESTS_EXPECT( (d_vec_##S##_cos_angle_c(zv, ones, 2u) ==          \
+                             (T)0) &&                                          \
+                            (d_vec_##S##_cos_angle_c(ones, zv, 2u) ==          \
+                             (T)0),                                            \
+                            #S " cos_angle_c of the zero vector, 0");          \
+        }                                                                      \
     }                                                                          \
                                                                                \
     return;                                                                    \

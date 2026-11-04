@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  t_remainder.c
+* djinterp [c/math]                                                t_remainder.c
 *
 *   Conformance harness for c/math/remainder.h. fmod_c, remainder_c and
 * remquo_c must be exact, and so the C library's fmod, remainder and
@@ -28,11 +28,11 @@
 * among the calls -- with the bits they have at run time. It needs no 64-bit
 * integer -- its random numbers come from math_tests_random.h, the same in
 * every build -- so that ISO-strict C++98 on a 32-bit target, where
-* dj_math_umax has 32 bits, builds it too.
+* d_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_remainder.c -o t_remainder -lm
+*        tests/djinterp/c/math/t_remainder.c -o t_remainder -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_remainder.c
@@ -72,8 +72,8 @@ static long double (*volatile g_remquol)(long double,
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     long double _value,
@@ -100,18 +100,15 @@ void d_tests_expect(
     d_tests_expect((ok), (what), (long double)(value), __LINE__)
 
 // a uniform double in [0, 1), from 53 random bits
-static
-double d_tests_unit(void)
+static double
+d_tests_unit(void)
 {
     return (double)d_tests_top(53) * DBL_EPSILON / 2.0;
 }
 
 // bit-for-bit, NaN equal to NaN, -0 distinct from +0
-static
-bool d_tests_same_f(
-    float _a,
-    float _b
-)
+static bool
+d_tests_same_f(float _a, float _b)
 {
     uint32_t a = 0u;
     uint32_t b = 0u;
@@ -122,21 +119,15 @@ bool d_tests_same_f(
     return ((a == b) || (isnan(_a) && isnan(_b)));
 }
 
-static
-bool d_tests_same_d(
-    double _a,
-    double _b
-)
+static bool
+d_tests_same_d(double _a, double _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_ld(
-    long double _a,
-    long double _b
-)
+static bool
+d_tests_same_ld(long double _a, long double _b)
 {
     // signbit's value is any nonzero for a negative: glibc's gives 1 for a
     // constant it folds and 512 for a long double at run time
@@ -337,8 +328,8 @@ d_tests_args(
 // bit for bit: two million argument pairs, each rounded to float, and in
 // range 5 the neighbours of x too; with _exhaustive, besides, every positive
 // float against four divisors.
-static
-void d_tests_float(
+static void
+d_tests_float(
     bool _exhaustive
 )
 {
@@ -417,8 +408,8 @@ void d_tests_float(
 // d_tests_double
 //   fmod_c, remainder_c and remquo_c against fmod, remainder and remquo,
 // bit for bit, at two million argument pairs.
-static
-void d_tests_double(void)
+static void
+d_tests_double(void)
 {
     long i = 0;
 
@@ -474,8 +465,8 @@ void d_tests_double(void)
 // long double has: the longest reductions -- x in the top binade over y
 // about the least subnormal, some 33,000 halvings on an x87 -- at one pair
 // in sixty, the others in range 1's place.
-static
-void d_tests_long_double(void)
+static void
+d_tests_long_double(void)
 {
     long i = 0;
 
@@ -516,8 +507,8 @@ void d_tests_long_double(void)
 // quotient the last three bits of the even one of k and k + 1: a hundred
 // thousand ties a family, y's mantissa short enough that (2k + 1) y fits the
 // family.
-static
-void d_tests_ties(void)
+static void
+d_tests_ties(void)
 {
     long i = 0;
 
@@ -578,8 +569,8 @@ void d_tests_ties(void)
 // with the sign of x / y -- and against the library's: a hundred thousand a
 // family, y the subnormals among it, its mantissa short enough that n y
 // fits the family.
-static
-void d_tests_multiples(void)
+static void
+d_tests_multiples(void)
 {
     long i = 0;
 
@@ -829,8 +820,8 @@ D_TESTS_REMQUO_IS(long double, ld, d_tests_same_ld)
 //   every family's special values and extremes; the plain forms, the
 // library's at every level -- before C++11, remainder_c and remquo_c, which
 // agree -- and a null _quo, which stores nothing.
-static
-void d_tests_specials(void)
+static void
+d_tests_specials(void)
 {
     volatile double ten     = 10.0;
     volatile double third   = 0.3;
@@ -907,8 +898,8 @@ void d_tests_specials(void)
 
 // d_tests_overloads
 //   compiled as C++: one name for every family, chosen by argument type.
-static
-void d_tests_overloads(void)
+static void
+d_tests_overloads(void)
 {
     int q1 = 99;
     int q2 = 99;
@@ -1056,8 +1047,8 @@ static_assert(d_math_remquo_c(9.0f, 4.0f, NULL) == 1.0f, "the C++ overloads");
 // d_tests_constant_evaluation
 //   the constants are the run time's results, bit for bit: the arguments
 // are read through volatiles, so the calls below are not folded.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     volatile double      hundred  = 100.0;
     volatile float       big      = 1e30f;
@@ -1115,10 +1106,8 @@ void d_tests_constant_evaluation(void)
 
 #endif  // C++14
 
-int main(
-    int    _argc,
-    char** _argv
-)
+int
+main(int _argc, char** _argv)
 {
     const bool exhaustive = (_argc > 1) &&
                             (strcmp(_argv[1], "exhaustive") == 0);

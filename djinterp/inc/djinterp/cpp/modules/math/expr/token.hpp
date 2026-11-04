@@ -60,11 +60,8 @@ TABLE OF CONTENTS
 #include <vector>   // std::vector
 // djinterp
 #include "../../../../c/modules/math/decimal.h"  // d_math_decimal_length, _to_*
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
-#include "../math_common.hpp"      // NS_MATH
-#include "./expr_common.hpp"       // expr_result, expr_syntax
+#include "../math_common.hpp"                    // NS_MATH
+#include "./expr_common.hpp"                     // expr_result, expr_syntax
 
 
 NS_DJINTERP
@@ -125,8 +122,8 @@ struct expr_token
 
 // operator==, operator!= (expr_token)
 //   function: two tokens are equal when their kinds, texts and offsets are.
-inline
-bool operator==(
+inline bool
+operator==(
     const expr_token& _a,
     const expr_token& _b
 )
@@ -136,8 +133,8 @@ bool operator==(
              (_a.offset == _b.offset) );
 }
 
-inline
-bool operator!=(
+inline bool
+operator!=(
     const expr_token& _a,
     const expr_token& _b
 )
@@ -156,8 +153,8 @@ NS_INTERNAL
     // expr_is_space
     //   function: whether a character is a space between tokens: one of the
     // six spaces of C, as isspace's in the "C" locale.
-    inline
-    bool expr_is_space(
+    inline bool
+    expr_is_space(
         char _c
     )
     {
@@ -171,8 +168,8 @@ NS_INTERNAL
 
     // expr_is_digit
     //   function: whether a character is a decimal digit.
-    inline
-    bool expr_is_digit(
+    inline bool
+    expr_is_digit(
         char _c
     )
     {
@@ -183,8 +180,8 @@ NS_INTERNAL
     // expr_is_name_start, expr_is_name_part
     //   functions: whether a character begins a name, a letter or _, and
     // whether it goes on with one, a letter, a digit or _.
-    inline
-    bool expr_is_name_start(
+    inline bool
+    expr_is_name_start(
         char _c
     )
     {
@@ -195,8 +192,8 @@ NS_INTERNAL
                  (_c == '_') );
     }
 
-    inline
-    bool expr_is_name_part(
+    inline bool
+    expr_is_name_part(
         char _c
     )
     {
@@ -208,8 +205,8 @@ NS_INTERNAL
     //   function: the length of the symbol at _at in _text, 0 where none
     // begins there: two for != <= >=, one for + - * / ^ ! ' = < >, and one
     // for | where the bars are on.
-    inline
-    std::size_t expr_symbol_length(
+    inline std::size_t
+    expr_symbol_length(
         const std::string& _text,
         std::size_t        _at,
         const expr_syntax& _syntax
@@ -251,8 +248,8 @@ NS_INTERNAL
     // expr_character_name
     //   function: a character as an error's message names it: in quotes
     // where it is printable ASCII, by its code otherwise.
-    inline
-    std::string expr_character_name(
+    inline std::string
+    expr_character_name(
         char _c
     )
     {
@@ -274,8 +271,8 @@ NS_INTERNAL
     // expr_no_token
     //   function: the answer for a character at _at that no token begins:
     // bad_character, at its place.
-    inline
-    expr_error expr_no_token(
+    inline expr_error
+    expr_no_token(
         char        _c,
         std::size_t _at
     )
@@ -288,8 +285,8 @@ NS_INTERNAL
     // expr_token_length
     //   function: the length of the token at _at, which is no space, and its
     // kind; 0 where no token begins there.
-    inline
-    std::size_t expr_token_length(
+    inline std::size_t
+    expr_token_length(
         const std::string& _text,
         std::size_t        _at,
         const expr_syntax& _syntax,
@@ -372,7 +369,8 @@ NS_END  // internal
  *         token after them; or the error bad_character, at the first
  *         character that no token begins with.
  */
-D_NODISCARD inline expr_result<std::vector<expr_token> > expr_tokenize(
+D_NODISCARD inline expr_result<std::vector<expr_token> >
+expr_tokenize(
     const std::string& _text,
     const expr_syntax& _syntax = expr_syntax()
 )
@@ -421,8 +419,8 @@ NS_INTERNAL
     // expr_unsigned_decimal
     //   function: whether a text is one unsigned decimal number, as the
     // tokenizer reads one: from a digit or a point, wholly decimal.h's.
-    inline
-    bool expr_unsigned_decimal(
+    inline bool
+    expr_unsigned_decimal(
         const std::string& _text
     )
     {
@@ -438,8 +436,8 @@ NS_INTERNAL
     //   functions: a decimal text as the nearest float, double or long
     // double, ties to even, into _out, by decimal.h, and true; false, and
     // _out as it was, where the text is no decimal number.
-    inline
-    bool expr_read_decimal(
+    inline bool
+    expr_read_decimal(
         float&             _out,
         const std::string& _text
     )
@@ -448,8 +446,8 @@ NS_INTERNAL
                     D_MATH_DECIMAL_SYNTAX);
     }
 
-    inline
-    bool expr_read_decimal(
+    inline bool
+    expr_read_decimal(
         double&            _out,
         const std::string& _text
     )
@@ -458,8 +456,8 @@ NS_INTERNAL
                     D_MATH_DECIMAL_SYNTAX);
     }
 
-    inline
-    bool expr_read_decimal(
+    inline bool
+    expr_read_decimal(
         long double&       _out,
         const std::string& _text
     )

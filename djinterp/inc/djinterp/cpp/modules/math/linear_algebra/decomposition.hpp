@@ -72,11 +72,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
-#include "../../../../c/modules/math/decomp.h"                  // the C core: d_decomp_*,
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
+#include "../../../djinterp.hpp"                  // framework root
+#include "../../../../c/modules/math/decomp.h"    // the C core: d_decomp_*,
                                                   // struct d_cplx_* through
                                                   // cplx.h
 #include "./linalg_common.hpp"                    // linalg_family_of
@@ -99,26 +96,26 @@ NS_INTERNAL
     // decomp_complex
     //   trait: the C core's complex number of a floating-point type, the
     // general eigensolver's eigenvalues and eigenvectors: cplx.h's struct
-    // dj_cplx_f, dj_cplx_d or dj_cplx_ld.
+    // d_cplx_f, d_cplx_d or d_cplx_ld.
     template<typename T>
     struct decomp_complex;
 
     template<>
     struct decomp_complex<float>
     {
-        typedef dj_cplx_f type;
+        typedef d_cplx_f type;
     };
 
     template<>
     struct decomp_complex<double>
     {
-        typedef dj_cplx_d type;
+        typedef d_cplx_d type;
     };
 
     template<>
     struct decomp_complex<long double>
     {
-        typedef dj_cplx_ld type;
+        typedef d_cplx_ld type;
     };
 
     // decomp_roots
@@ -130,14 +127,8 @@ NS_INTERNAL
     struct decomp_roots
     {
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        static constexpr
-        void qr(
-            T*          _q,
-            T*          _r,
-            std::size_t _m,
-            std::size_t _n,
-            T*          _v
-        ) noexcept
+        static constexpr void
+        qr(T* _q, T* _r, std::size_t _m, std::size_t _n, T* _v) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -151,12 +142,8 @@ NS_INTERNAL
             return;
         }
 
-        static constexpr
-        bool cholesky(
-            T*          _l,
-            const T*    _a,
-            std::size_t _n
-        ) noexcept
+        static constexpr bool
+        cholesky(T* _l, const T* _a, std::size_t _n) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -166,16 +153,9 @@ NS_INTERNAL
             return d_decomp_cholesky(_l, _a, _n);
         }
 
-        static constexpr
-        void svd(
-            T*          _w,
-            T*          _u,
-            T*          _s,
-            T*          _v,
-            std::size_t _m,
-            std::size_t _n,
-            T           _tol
-        ) noexcept
+        static constexpr void
+        svd(T* _w, T* _u, T* _s, T* _v, std::size_t _m, std::size_t _n,
+            T _tol) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -189,14 +169,9 @@ NS_INTERNAL
             return;
         }
 
-        static constexpr
-        void sym_eigen(
-            T*          _w,
-            T*          _values,
-            T*          _vectors,
-            std::size_t _n,
-            T           _threshold
-        ) noexcept
+        static constexpr void
+        sym_eigen(T* _w, T* _values, T* _vectors, std::size_t _n,
+                  T _threshold) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -210,14 +185,9 @@ NS_INTERNAL
             return;
         }
 
-        static constexpr
-        bool eigenvalues(
-            T*          _h,
-            std::size_t _n,
-            T*          _values,
-            std::size_t _max_iter,
-            T           _tol
-        ) noexcept
+        static constexpr bool
+        eigenvalues(T* _h, std::size_t _n, T* _values, std::size_t _max_iter,
+                    T _tol) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -228,16 +198,9 @@ NS_INTERNAL
             return d_decomp_eigenvalues(_h, _n, _values, _max_iter, _tol);
         }
 
-        static constexpr
-        bool eigenvector(
-            const T*     _a,
-            std::size_t  _n,
-            T            _lambda,
-            T*           _lu,
-            std::size_t* _perm,
-            T*           _x,
-            T*           _y
-        ) noexcept
+        static constexpr bool
+        eigenvector(const T* _a, std::size_t _n, T _lambda, T* _lu,
+                    std::size_t* _perm, T* _x, T* _y) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -248,17 +211,15 @@ NS_INTERNAL
             return d_decomp_eigenvector(_a, _n, _lambda, _lu, _perm, _x, _y);
         }
 
-        static constexpr
-        bool eigen(
-            T*                                _a,
-            std::size_t                       _n,
-            typename decomp_complex<T>::type* _values,
-            typename decomp_complex<T>::type* _vectors,
-            T*                                _work,
-            std::size_t*                      _perm,
-            std::size_t                       _max_iter,
-            T                                 _tol
-        ) noexcept
+        static constexpr bool
+        eigen(T*                                   _a,
+              std::size_t                          _n,
+              typename decomp_complex<T>::type*    _values,
+              typename decomp_complex<T>::type*    _vectors,
+              T*                                   _work,
+              std::size_t*                         _perm,
+              std::size_t                          _max_iter,
+              T                                    _tol) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -270,194 +231,122 @@ NS_INTERNAL
                                   _max_iter, _tol);
         }
 #elif D_ENV_LANG_IS_CPP14_OR_HIGHER
-        static constexpr
-        void qr(
-            T*          _q,
-            T*          _r,
-            std::size_t _m,
-            std::size_t _n,
-            T*          _v
-        ) noexcept
+        static constexpr void
+        qr(T* _q, T* _r, std::size_t _m, std::size_t _n, T* _v) noexcept
         {
             d_decomp_qr_c(_q, _r, _m, _n, _v);
 
             return;
         }
 
-        static constexpr
-        bool cholesky(
-            T*          _l,
-            const T*    _a,
-            std::size_t _n
-        ) noexcept
+        static constexpr bool
+        cholesky(T* _l, const T* _a, std::size_t _n) noexcept
         {
             return d_decomp_cholesky_c(_l, _a, _n);
         }
 
-        static constexpr
-        void svd(
-            T*          _w,
-            T*          _u,
-            T*          _s,
-            T*          _v,
-            std::size_t _m,
-            std::size_t _n,
-            T           _tol
-        ) noexcept
+        static constexpr void
+        svd(T* _w, T* _u, T* _s, T* _v, std::size_t _m, std::size_t _n,
+            T _tol) noexcept
         {
             d_decomp_svd_c(_w, _u, _s, _v, _m, _n, _tol);
 
             return;
         }
 
-        static constexpr
-        void sym_eigen(
-            T*          _w,
-            T*          _values,
-            T*          _vectors,
-            std::size_t _n,
-            T           _threshold
-        ) noexcept
+        static constexpr void
+        sym_eigen(T* _w, T* _values, T* _vectors, std::size_t _n,
+                  T _threshold) noexcept
         {
             d_decomp_sym_eigen_c(_w, _values, _vectors, _n, _threshold);
 
             return;
         }
 
-        static constexpr
-        bool eigenvalues(
-            T*          _h,
-            std::size_t _n,
-            T*          _values,
-            std::size_t _max_iter,
-            T           _tol
-        ) noexcept
+        static constexpr bool
+        eigenvalues(T* _h, std::size_t _n, T* _values, std::size_t _max_iter,
+                    T _tol) noexcept
         {
             return d_decomp_eigenvalues_c(_h, _n, _values, _max_iter, _tol);
         }
 
-        static constexpr
-        bool eigenvector(
-            const T*     _a,
-            std::size_t  _n,
-            T            _lambda,
-            T*           _lu,
-            std::size_t* _perm,
-            T*           _x,
-            T*           _y
-        ) noexcept
+        static constexpr bool
+        eigenvector(const T* _a, std::size_t _n, T _lambda, T* _lu,
+                    std::size_t* _perm, T* _x, T* _y) noexcept
         {
             return d_decomp_eigenvector_c(_a, _n, _lambda, _lu, _perm, _x,
                                           _y);
         }
 
-        static constexpr
-        bool eigen(
-            T*                                _a,
-            std::size_t                       _n,
-            typename decomp_complex<T>::type* _values,
-            typename decomp_complex<T>::type* _vectors,
-            T*                                _work,
-            std::size_t*                      _perm,
-            std::size_t                       _max_iter,
-            T                                 _tol
-        ) noexcept
+        static constexpr bool
+        eigen(T*                                   _a,
+              std::size_t                          _n,
+              typename decomp_complex<T>::type*    _values,
+              typename decomp_complex<T>::type*    _vectors,
+              T*                                   _work,
+              std::size_t*                         _perm,
+              std::size_t                          _max_iter,
+              T                                    _tol) noexcept
         {
             return d_decomp_eigen_c(_a, _n, _values, _vectors, _work, _perm,
                                     _max_iter, _tol);
         }
 #else
-        static
-        void qr(
-            T*          _q,
-            T*          _r,
-            std::size_t _m,
-            std::size_t _n,
-            T*          _v
-        ) D_NOEXCEPT
+        static void
+        qr(T* _q, T* _r, std::size_t _m, std::size_t _n, T* _v) D_NOEXCEPT
         {
             d_decomp_qr(_q, _r, _m, _n, _v);
 
             return;
         }
 
-        static
-        bool cholesky(
-            T*          _l,
-            const T*    _a,
-            std::size_t _n
-        ) D_NOEXCEPT
+        static bool
+        cholesky(T* _l, const T* _a, std::size_t _n) D_NOEXCEPT
         {
             return d_decomp_cholesky(_l, _a, _n);
         }
 
-        static
-        void svd(
-            T*          _w,
-            T*          _u,
-            T*          _s,
-            T*          _v,
-            std::size_t _m,
-            std::size_t _n,
-            T           _tol
-        ) D_NOEXCEPT
+        static void
+        svd(T* _w, T* _u, T* _s, T* _v, std::size_t _m, std::size_t _n,
+            T _tol) D_NOEXCEPT
         {
             d_decomp_svd(_w, _u, _s, _v, _m, _n, _tol);
 
             return;
         }
 
-        static
-        void sym_eigen(
-            T*          _w,
-            T*          _values,
-            T*          _vectors,
-            std::size_t _n,
-            T           _threshold
-        ) D_NOEXCEPT
+        static void
+        sym_eigen(T* _w, T* _values, T* _vectors, std::size_t _n,
+                  T _threshold) D_NOEXCEPT
         {
             d_decomp_sym_eigen(_w, _values, _vectors, _n, _threshold);
 
             return;
         }
 
-        static
-        bool eigenvalues(
-            T*          _h,
-            std::size_t _n,
-            T*          _values,
-            std::size_t _max_iter,
-            T           _tol
-        ) D_NOEXCEPT
+        static bool
+        eigenvalues(T* _h, std::size_t _n, T* _values, std::size_t _max_iter,
+                    T _tol) D_NOEXCEPT
         {
             return d_decomp_eigenvalues(_h, _n, _values, _max_iter, _tol);
         }
 
-        static
-        bool eigenvector(
-            const T*     _a,
-            std::size_t  _n,
-            T            _lambda,
-            T*           _lu,
-            std::size_t* _perm,
-            T*           _x,
-            T*           _y
-        ) D_NOEXCEPT
+        static bool
+        eigenvector(const T* _a, std::size_t _n, T _lambda, T* _lu,
+                    std::size_t* _perm, T* _x, T* _y) D_NOEXCEPT
         {
             return d_decomp_eigenvector(_a, _n, _lambda, _lu, _perm, _x, _y);
         }
 
-        static
-        bool eigen(
-            T*                                _a,
-            std::size_t                       _n,
-            typename decomp_complex<T>::type* _values,
-            typename decomp_complex<T>::type* _vectors,
-            T*                                _work,
-            std::size_t*                      _perm,
-            std::size_t                       _max_iter,
-            T                                 _tol
-        ) D_NOEXCEPT
+        static bool
+        eigen(T*                                   _a,
+              std::size_t                          _n,
+              typename decomp_complex<T>::type*    _values,
+              typename decomp_complex<T>::type*    _vectors,
+              T*                                   _work,
+              std::size_t*                         _perm,
+              std::size_t                          _max_iter,
+              T                                    _tol) D_NOEXCEPT
         {
             return d_decomp_eigen(_a, _n, _values, _vectors, _work, _perm,
                                   _max_iter, _tol);
@@ -531,8 +420,8 @@ public:
 
     // l
     //   the unit lower triangle.
-    D_CONSTEXPR_CPP14
-    matrix_type l() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 matrix_type
+    l() const D_NOEXCEPT
     {
         matrix_type out;
 
@@ -556,8 +445,8 @@ public:
 
     // u
     //   the upper triangle.
-    D_CONSTEXPR_CPP14
-    matrix_type u() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 matrix_type
+    u() const D_NOEXCEPT
     {
         matrix_type out;
 
@@ -574,8 +463,8 @@ public:
 
     // p
     //   the permutation matrix, P(i, perm[i]) = 1.
-    D_CONSTEXPR_CPP14
-    matrix_type p() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 matrix_type
+    p() const D_NOEXCEPT
     {
         matrix_type out;
 
@@ -587,32 +476,30 @@ public:
         return out;
     }
 
-    D_CONSTEXPR
-    T pivot_sign() const D_NOEXCEPT
+    D_CONSTEXPR T
+    pivot_sign() const D_NOEXCEPT
     {
         return m_sign;
     }
 
-    D_CONSTEXPR
-    bool is_singular() const D_NOEXCEPT
+    D_CONSTEXPR bool
+    is_singular() const D_NOEXCEPT
     {
         return m_singular;
     }
 
     // determinant
     //   the parity times U's diagonal, in order; 0 for a singular matrix.
-    D_CONSTEXPR_CPP14
-    T determinant() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 T
+    determinant() const D_NOEXCEPT
     {
         return d_decomp_lu_det(m_lu, N, m_sign);
     }
 
     // solve
     //   x with A x = _b.
-    D_CONSTEXPR_CPP14
-    vector_type solve(
-        const vector_type& _b
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector_type
+    solve(const vector_type& _b) const D_NOEXCEPT
     {
         vector_type x;
 
@@ -623,8 +510,8 @@ public:
 
     // inverse
     //   A^-1, column by column from the solves of the unit vectors.
-    D_CONSTEXPR_CPP14
-    matrix_type inverse() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 matrix_type
+    inverse() const D_NOEXCEPT
     {
         matrix_type out;
 
@@ -659,10 +546,8 @@ private:
 //   function: the LU decomposition of _a.
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-lu_decomposition<T, N> lu(
-    const matrix<T, N, N>& _a
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 lu_decomposition<T, N>
+lu(const matrix<T, N, N>& _a) D_NOEXCEPT
 {
     return lu_decomposition<T, N>(_a);
 }
@@ -720,14 +605,14 @@ public:
         internal::decomp_roots<T>::qr(m_q, m_r, M, N, v);
     }
 
-    D_CONSTEXPR_CPP14
-    q_type q() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 q_type
+    q() const D_NOEXCEPT
     {
         return q_type(m_q);
     }
 
-    D_CONSTEXPR_CPP14
-    r_type r() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 r_type
+    r() const D_NOEXCEPT
     {
         return r_type(m_r);
     }
@@ -745,10 +630,8 @@ private:
 template<typename    T,
          std::size_t M,
          std::size_t N>
-D_CONSTEXPR_CPP14
-qr_decomposition<T, M, N> qr(
-    const matrix<T, M, N>& _a
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 qr_decomposition<T, M, N>
+qr(const matrix<T, M, N>& _a) D_NOEXCEPT
 {
     return qr_decomposition<T, M, N>(_a);
 }
@@ -791,38 +674,36 @@ public:
         m_spd = internal::decomp_roots<T>::cholesky(m_l, _a.data(), N);
     }
 
-    D_CONSTEXPR_CPP14
-    matrix_type l() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 matrix_type
+    l() const D_NOEXCEPT
     {
         return matrix_type(m_l);
     }
 
-    D_CONSTEXPR
-    bool is_spd() const D_NOEXCEPT
+    D_CONSTEXPR bool
+    is_spd() const D_NOEXCEPT
     {
         return m_spd;
     }
 
-    D_CONSTEXPR
-    bool success() const D_NOEXCEPT
+    D_CONSTEXPR bool
+    success() const D_NOEXCEPT
     {
         return m_spd;
     }
 
     // determinant
     //   L's diagonal product, squared.
-    D_CONSTEXPR_CPP14
-    T determinant() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 T
+    determinant() const D_NOEXCEPT
     {
         return d_decomp_cholesky_det(m_l, N);
     }
 
     // solve
     //   x with A x = _b, through L and L^T.
-    D_CONSTEXPR_CPP14
-    vector_type solve(
-        const vector_type& _b
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 vector_type
+    solve(const vector_type& _b) const D_NOEXCEPT
     {
         vector_type x;
 
@@ -843,10 +724,8 @@ private:
 //   function: the Cholesky decomposition of _a.
 template<typename    T,
          std::size_t N>
-D_CONSTEXPR_CPP14
-cholesky_decomposition<T, N> cholesky(
-    const matrix<T, N, N>& _a
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 cholesky_decomposition<T, N>
+cholesky(const matrix<T, N, N>& _a) D_NOEXCEPT
 {
     return cholesky_decomposition<T, N>(_a);
 }

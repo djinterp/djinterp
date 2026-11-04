@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [test]                                            math_tests_random.h
+* djinterp [c/math]                                          math_tests_random.h
 *
 * The math harnesses' random numbers.
 *   Marsaglia's xorshift on 64 bits -- shifts of 13, 7 and 17 -- kept as two
 * 32-bit halves, which every target has. ISO-strict C++98 on a 32-bit target
-* has no 64-bit integer at all (dstdint.h declares none, and dj_math_umax has
+* has no 64-bit integer at all (dstdint.h declares none, and d_math_umax has
 * 32 bits there), and the generator still draws the very numbers a 64-bit
 * build draws: each harness tests the same arguments in every build.
 *   Each draw steps the generator once and reads the new 64-bit word w, as the
@@ -30,19 +30,19 @@
 
 // d_tests_random_word
 //   struct: a 64-bit word as two 32-bit halves, high 2^32 + low.
-struct dj_tests_random_word
+struct d_tests_random_word
 {
     uint32_t high;  // the first 32 bits
     uint32_t low;   // the last 32 bits
 };
 
 // the generator's word: never 0 once seeded
-static struct dj_tests_random_word g_d_tests_random = { 0u, 1u };
+static struct d_tests_random_word g_d_tests_random = { 0u, 1u };
 
 // d_tests_seed
 //   starts the generator at the word _high 2^32 + _low, which must not be 0.
-static inline
-void d_tests_seed(
+static inline void
+d_tests_seed(
     uint32_t _high,
     uint32_t _low
 )
@@ -56,8 +56,8 @@ void d_tests_seed(
 // d_tests_step
 //   one step -- w ^= w << 13, w ^= w >> 7, w ^= w << 17 -- each shift
 // carrying bits from one half to the other; returns the new word.
-static inline
-struct dj_tests_random_word d_tests_step(void)
+static inline struct d_tests_random_word
+d_tests_step(void)
 {
     uint32_t high = g_d_tests_random.high;
     uint32_t low  = g_d_tests_random.low;
@@ -83,12 +83,12 @@ struct dj_tests_random_word d_tests_step(void)
 // d_tests_below
 //   w mod _n, for _n from 1 to 2^24: the remainder taken a byte at a time,
 // from the first, so that nothing passes 2^32.
-static inline
-unsigned long d_tests_below(
+static inline unsigned long
+d_tests_below(
     unsigned long _n
 )
 {
-    const struct dj_tests_random_word w = d_tests_step();
+    const struct d_tests_random_word w = d_tests_step();
     unsigned long                    r = 0u;
     int                              k = 0;
 
@@ -107,16 +107,16 @@ unsigned long d_tests_below(
 
 // d_tests_bit
 //   w's last bit, 0 or 1.
-static inline
-unsigned d_tests_bit(void)
+static inline unsigned
+d_tests_bit(void)
 {
     return (unsigned)(d_tests_step().low & 1u);
 }
 
 // d_tests_low32
 //   w's last 32 bits.
-static inline
-uint32_t d_tests_low32(void)
+static inline uint32_t
+d_tests_low32(void)
 {
     return d_tests_step().low;
 }
@@ -125,12 +125,12 @@ uint32_t d_tests_low32(void)
 //   w's first _bits bits, 1 to 64, as a number: w >> (64 - _bits), exact
 // where long double holds _bits bits, and else rounded once, as a conversion
 // of the integer would be.
-static inline
-long double d_tests_top(
+static inline long double
+d_tests_top(
     int _bits
 )
 {
-    const struct dj_tests_random_word w     = d_tests_step();
+    const struct d_tests_random_word w     = d_tests_step();
     const int                        shift = 64 - _bits;
 
     // within the first half: its first _bits bits
@@ -155,13 +155,13 @@ long double d_tests_top(
 // 31: the bytes a 64-bit integer of that value has in memory, in the order
 // this target keeps one. Stored, not returned: a 32-bit x87 returns a double
 // in a register, and loading a signaling NaN there quiets it.
-static inline
-void d_tests_pattern_d(
+static inline void
+d_tests_pattern_d(
     double* _out,
     int     _shift
 )
 {
-    const struct dj_tests_random_word w        = d_tests_step();
+    const struct d_tests_random_word w        = d_tests_step();
     const uint32_t                   one      = 1u;
     unsigned char                    first    = 0u;
     unsigned char                    bytes[8] = { 0u };

@@ -58,18 +58,15 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
-#include "../../../../c/modules/math/coord.h"                   // d_coord_polar_to_
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
+#include "../../../djinterp.hpp"                  // framework root
+#include "../../../../c/modules/math/coord.h"     // d_coord_polar_to_
                                                   // cartesian_auto
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 #include "./geometry_common.hpp"                  // cartesian_lerp,
                                                   // cartesian_distance
 // re_std
-#include "../../../../../re_std/cpp/array/array.hpp"        // re_std::array
+#include "../../../../../re_std/cpp/array/array.hpp"  // re_std::array
 // std, from C++11 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <array>                              // std::array
@@ -124,44 +121,42 @@ struct line_segment
           m_end(_end_point)
     {}
 
-    D_CONSTEXPR
-    value_type parameter_min() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_min() const D_NOEXCEPT
     {
         return static_cast<value_type>(0);
     }
 
-    D_CONSTEXPR
-    value_type parameter_max() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_max() const D_NOEXCEPT
     {
         return static_cast<value_type>(1);
     }
 
-    D_CONSTEXPR
-    point_type start() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    start() const D_NOEXCEPT
     {
         return m_start;
     }
 
-    D_CONSTEXPR
-    point_type end() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    end() const D_NOEXCEPT
     {
         return m_end;
     }
 
     // at
     //   the point a fraction _t of the way along, in Cartesian space.
-    D_CONSTEXPR_CPP14
-    point_type at(
-        value_type _t
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 point_type
+    at(value_type _t) const D_NOEXCEPT
     {
         return cartesian_lerp<System>(m_start, m_end, _t);
     }
 
     // closed_form_length
     //   the straight-line distance between the endpoints.
-    D_CONSTEXPR_CPP14
-    value_type closed_form_length() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    closed_form_length() const D_NOEXCEPT
     {
         return cartesian_distance<System>(m_start, m_end);
     }
@@ -224,14 +219,14 @@ struct polyline_edge
     }
 #endif
 
-    D_CONSTEXPR
-    value_type parameter_min() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_min() const D_NOEXCEPT
     {
         return static_cast<value_type>(0);
     }
 
-    D_CONSTEXPR
-    value_type parameter_max() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_max() const D_NOEXCEPT
     {
         return static_cast<value_type>(N - 1);
     }
@@ -239,10 +234,8 @@ struct polyline_edge
     // at
     //   the point at _t, clamped into [0, N - 1]: segment floor(_t), the
     // last for _t = N - 1, lerped in Cartesian space.
-    D_CONSTEXPR_CPP14
-    point_type at(
-        value_type _t
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 point_type
+    at(value_type _t) const D_NOEXCEPT
     {
         const value_type last = static_cast<value_type>(N - 1);
         const value_type t    = (_t < static_cast<value_type>(0))
@@ -261,22 +254,22 @@ struct polyline_edge
                                       t - static_cast<value_type>(seg));
     }
 
-    D_CONSTEXPR
-    point_type start() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    start() const D_NOEXCEPT
     {
         return m_points[0];
     }
 
-    D_CONSTEXPR
-    point_type end() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    end() const D_NOEXCEPT
     {
         return m_points[N - 1];
     }
 
     // closed_form_length
     //   the segments' lengths, summed in order.
-    D_CONSTEXPR_CPP14
-    value_type closed_form_length() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    closed_form_length() const D_NOEXCEPT
     {
         value_type total = static_cast<value_type>(0);
 
@@ -353,14 +346,14 @@ struct arc
           m_end_angle(_end_a)
     {}
 
-    D_CONSTEXPR
-    value_type parameter_min() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_min() const D_NOEXCEPT
     {
         return static_cast<value_type>(0);
     }
 
-    D_CONSTEXPR
-    value_type parameter_max() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_max() const D_NOEXCEPT
     {
         return static_cast<value_type>(1);
     }
@@ -368,10 +361,8 @@ struct arc
     // at
     //   centre + radius (cos a, sin a), a = start + t (end - start), in
     // Cartesian space.
-    D_CONSTEXPR_CPP20
-    point_type at(
-        value_type _t
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 point_type
+    at(value_type _t) const D_NOEXCEPT
     {
         const value_type angle = m_start_angle +
                                  (_t * (m_end_angle - m_start_angle));
@@ -384,22 +375,22 @@ struct arc
             System::to_cartesian(m_center).plus(offset));
     }
 
-    D_CONSTEXPR_CPP20
-    point_type start() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 point_type
+    start() const D_NOEXCEPT
     {
         return at(static_cast<value_type>(0));
     }
 
-    D_CONSTEXPR_CPP20
-    point_type end() const D_NOEXCEPT
+    D_CONSTEXPR_CPP20 point_type
+    end() const D_NOEXCEPT
     {
         return at(static_cast<value_type>(1));
     }
 
     // closed_form_length
     //   radius times the sweep.
-    D_CONSTEXPR_CPP14
-    value_type closed_form_length() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    closed_form_length() const D_NOEXCEPT
     {
         const value_type sweep = m_end_angle - m_start_angle;
 
@@ -409,8 +400,8 @@ struct arc
 
     // is_full_circle
     //   whether the sweep is a whole turn, within _epsilon.
-    D_CONSTEXPR_CPP14
-    bool is_full_circle(
+    D_CONSTEXPR_CPP14 bool
+    is_full_circle(
         value_type _epsilon = static_cast<value_type>(1e-9)
     ) const D_NOEXCEPT
     {
@@ -473,24 +464,22 @@ struct quadratic_bezier
           m_p2(_p2)
     {}
 
-    D_CONSTEXPR
-    value_type parameter_min() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_min() const D_NOEXCEPT
     {
         return static_cast<value_type>(0);
     }
 
-    D_CONSTEXPR
-    value_type parameter_max() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_max() const D_NOEXCEPT
     {
         return static_cast<value_type>(1);
     }
 
     // at
     //   the Bernstein weights' combination, summed in order.
-    D_CONSTEXPR_CPP14
-    point_type at(
-        value_type _t
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 point_type
+    at(value_type _t) const D_NOEXCEPT
     {
         const value_type u  = static_cast<value_type>(1) - _t;
         const value_type w0 = u * u;
@@ -503,14 +492,14 @@ struct quadratic_bezier
                 .plus(System::to_cartesian(m_p2).scaled(w2)));
     }
 
-    D_CONSTEXPR
-    point_type start() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    start() const D_NOEXCEPT
     {
         return m_p0;
     }
 
-    D_CONSTEXPR
-    point_type end() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    end() const D_NOEXCEPT
     {
         return m_p2;
     }
@@ -569,24 +558,22 @@ struct cubic_bezier
           m_p3(_p3)
     {}
 
-    D_CONSTEXPR
-    value_type parameter_min() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_min() const D_NOEXCEPT
     {
         return static_cast<value_type>(0);
     }
 
-    D_CONSTEXPR
-    value_type parameter_max() const D_NOEXCEPT
+    D_CONSTEXPR value_type
+    parameter_max() const D_NOEXCEPT
     {
         return static_cast<value_type>(1);
     }
 
     // at
     //   the Bernstein weights' combination, summed in order.
-    D_CONSTEXPR_CPP14
-    point_type at(
-        value_type _t
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 point_type
+    at(value_type _t) const D_NOEXCEPT
     {
         const value_type u  = static_cast<value_type>(1) - _t;
         const value_type uu = u * u;
@@ -603,14 +590,14 @@ struct cubic_bezier
                 .plus(System::to_cartesian(m_p3).scaled(w3)));
     }
 
-    D_CONSTEXPR
-    point_type start() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    start() const D_NOEXCEPT
     {
         return m_p0;
     }
 
-    D_CONSTEXPR
-    point_type end() const D_NOEXCEPT
+    D_CONSTEXPR point_type
+    end() const D_NOEXCEPT
     {
         return m_p3;
     }

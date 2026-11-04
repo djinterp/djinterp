@@ -22,6 +22,9 @@
 * types have their own; math::value and math::inline_value theirs, in
 * value.hpp; any other type, a bignum, a complex number or a quaternion
 * among them, joins by specializing it.
+*   NUMBER_MODULUS_SQUARED(x) is |x|^2, x * x for a number of a real value;
+* a type that holds numbers of no real value overloads it, as value.hpp
+* does for a value's complex numbers, so that generic norms are of moduli.
 *   COMMON_NUMBER<A, B> is the type of a + b: for two arithmetic types their
 * usual arithmetic conversions, from C++98; for a value or an inline value
 * with each other or an arithmetic type, value.hpp's, from C++98; for any
@@ -34,7 +37,7 @@
 * path:      /inc/djinterp/cpp/modules/math/number_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.02
 *******************************************************************************/
 
 /*
@@ -45,6 +48,7 @@ TABLE OF CONTENTS
     1.  Roots and epsilons, chosen by level and type
     2.  number_traits
     3.  The arithmetic types
+    4.  The modulus squared
 2.  COMMON NUMBER
     -------------
     1.  The arithmetic types
@@ -61,12 +65,9 @@ TABLE OF CONTENTS
 #include <float.h>                    // FLT_EPSILON, DBL_EPSILON,
                                       // LDBL_EPSILON
 // djinterp
-#include "../../djinterp.hpp"            // framework root
-#include "../../../c/modules/math/elementary.h"     // d_math_sqrt, d_math_sqrt_c
-#if (defined(__cplusplus))
-    #include "../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
-#include "./math_common.hpp"          // NS_MATH
+#include "../../djinterp.hpp"                    // framework root
+#include "../../../c/modules/math/elementary.h"  // d_math_sqrt, d_math_sqrt_c
+#include "./math_common.hpp"                     // NS_MATH
 // re_std
 #include "../../../../re_std/cpp/type_traits/is_arithmetic.hpp"  // is_arithmetic
 #include "../../../../re_std/cpp/type_traits/is_integral.hpp"    // is_integral
@@ -100,8 +101,8 @@ NS_INTERNAL
     // C++20 whichever the evaluation asks for. The two are the same bit for
     // bit.
     template<typename Type>
-    D_CONSTEXPR_CPP14
-    Type number_root(
+    D_CONSTEXPR_CPP14 Type
+    number_root(
         Type _x
     ) D_NOEXCEPT
     {
@@ -126,8 +127,8 @@ NS_INTERNAL
     // which no product overflows (S157). 0 for a negative _x, which has no
     // root an integer type holds.
     template<typename Type>
-    D_CONSTEXPR_CPP14
-    Type integer_root(
+    D_CONSTEXPR_CPP14 Type
+    integer_root(
         Type _x
     ) D_NOEXCEPT
     {
@@ -180,8 +181,8 @@ NS_INTERNAL
     template<typename Type>
     struct primary_root<Type, true>
     {
-        static D_CONSTEXPR_CPP14
-        Type of(
+        static D_CONSTEXPR_CPP14 Type
+        of(
             const Type& _x
         )
         {
@@ -198,8 +199,8 @@ NS_INTERNAL
     template<>
     struct floating_epsilon<float>
     {
-        static D_CONSTEXPR
-        float value() D_NOEXCEPT
+        static D_CONSTEXPR float
+        value() D_NOEXCEPT
         {
             return FLT_EPSILON;
         }
@@ -208,8 +209,8 @@ NS_INTERNAL
     template<>
     struct floating_epsilon<double>
     {
-        static D_CONSTEXPR
-        double value() D_NOEXCEPT
+        static D_CONSTEXPR double
+        value() D_NOEXCEPT
         {
             return DBL_EPSILON;
         }
@@ -218,8 +219,8 @@ NS_INTERNAL
     template<>
     struct floating_epsilon<long double>
     {
-        static D_CONSTEXPR
-        long double value() D_NOEXCEPT
+        static D_CONSTEXPR long double
+        value() D_NOEXCEPT
         {
             return LDBL_EPSILON;
         }
@@ -262,21 +263,21 @@ struct number_traits
     static const bool is_ordered     = true;
 
     // the additive and multiplicative identities.
-    static D_CONSTEXPR
-    Type zero()
+    static D_CONSTEXPR Type
+    zero()
     {
         return static_cast<Type>(0);
     }
 
-    static D_CONSTEXPR
-    Type one()
+    static D_CONSTEXPR Type
+    one()
     {
         return static_cast<Type>(1);
     }
 
     // |_x|.
-    static D_CONSTEXPR
-    Type abs(
+    static D_CONSTEXPR Type
+    abs(
         const Type& _x
     )
     {
@@ -284,8 +285,8 @@ struct number_traits
     }
 
     // what a pivot is chosen by: |_x|.
-    static D_CONSTEXPR
-    Type magnitude(
+    static D_CONSTEXPR Type
+    magnitude(
         const Type& _x
     )
     {
@@ -293,16 +294,16 @@ struct number_traits
     }
 
     // the nearest double, and back.
-    static D_CONSTEXPR
-    double to_double(
+    static D_CONSTEXPR double
+    to_double(
         const Type& _x
     )
     {
         return static_cast<double>(_x);
     }
 
-    static D_CONSTEXPR
-    Type from_double(
+    static D_CONSTEXPR Type
+    from_double(
         double _x
     )
     {
@@ -311,8 +312,8 @@ struct number_traits
 
     // the square root: an integral type's exact, rounded down; any other's
     // through double.
-    static D_CONSTEXPR_CPP14
-    Type sqrt(
+    static D_CONSTEXPR_CPP14 Type
+    sqrt(
         const Type& _x
     )
     {
@@ -321,16 +322,16 @@ struct number_traits
 
     // the type's precision, and a value's: a double's, through which the
     // type goes, or 0 for an integral type.
-    static D_CONSTEXPR
-    Type epsilon()
+    static D_CONSTEXPR Type
+    epsilon()
     {
         return re_std::is_integral<Type>::value ? static_cast<Type>(0)
                                                 : static_cast<Type>(
                                                       DBL_EPSILON);
     }
 
-    static D_CONSTEXPR
-    Type epsilon(
+    static D_CONSTEXPR Type
+    epsilon(
         const Type& _x
     )
     {
@@ -338,16 +339,16 @@ struct number_traits
     }
 
     // the relative tolerance of a comparison given none: four epsilons.
-    static D_CONSTEXPR
-    Type tolerance()
+    static D_CONSTEXPR Type
+    tolerance()
     {
         return static_cast<Type>(4) * epsilon();
     }
 
     // the tolerance for comparing _a and _b: four of the larger epsilon,
     // times the larger magnitude.
-    static D_CONSTEXPR_CPP14
-    Type tolerance(
+    static D_CONSTEXPR_CPP14 Type
+    tolerance(
         const Type& _a,
         const Type& _b
     )
@@ -380,20 +381,20 @@ NS_INTERNAL
         static const bool is_commutative = true;
         static const bool is_ordered     = true;
 
-        static D_CONSTEXPR
-        Type zero() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        zero() D_NOEXCEPT
         {
             return static_cast<Type>(0);
         }
 
-        static D_CONSTEXPR
-        Type one() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        one() D_NOEXCEPT
         {
             return static_cast<Type>(1);
         }
 
-        static D_CONSTEXPR
-        Type abs(
+        static D_CONSTEXPR Type
+        abs(
             Type _x
         ) D_NOEXCEPT
         {
@@ -402,60 +403,60 @@ NS_INTERNAL
                           : _x;
         }
 
-        static D_CONSTEXPR
-        Type magnitude(
+        static D_CONSTEXPR Type
+        magnitude(
             Type _x
         ) D_NOEXCEPT
         {
             return abs(_x);
         }
 
-        static D_CONSTEXPR
-        double to_double(
+        static D_CONSTEXPR double
+        to_double(
             Type _x
         ) D_NOEXCEPT
         {
             return static_cast<double>(_x);
         }
 
-        static D_CONSTEXPR
-        Type from_double(
+        static D_CONSTEXPR Type
+        from_double(
             double _x
         ) D_NOEXCEPT
         {
             return static_cast<Type>(_x);
         }
 
-        static D_CONSTEXPR_CPP14
-        Type sqrt(
+        static D_CONSTEXPR_CPP14 Type
+        sqrt(
             Type _x
         ) D_NOEXCEPT
         {
             return integer_root(_x);
         }
 
-        static D_CONSTEXPR
-        Type epsilon() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        epsilon() D_NOEXCEPT
         {
             return static_cast<Type>(0);
         }
 
-        static D_CONSTEXPR
-        Type epsilon(
+        static D_CONSTEXPR Type
+        epsilon(
             Type _x
         ) D_NOEXCEPT
         {
             return (static_cast<void>(_x), static_cast<Type>(0));
         }
 
-        static D_CONSTEXPR
-        Type tolerance() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        tolerance() D_NOEXCEPT
         {
             return static_cast<Type>(0);
         }
 
-        static D_CONSTEXPR
-        Type tolerance(
+        static D_CONSTEXPR Type
+        tolerance(
             Type _a,
             Type _b
         ) D_NOEXCEPT
@@ -483,80 +484,80 @@ NS_INTERNAL
         static const bool is_commutative = true;
         static const bool is_ordered     = true;
 
-        static D_CONSTEXPR
-        Type zero() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        zero() D_NOEXCEPT
         {
             return static_cast<Type>(0);
         }
 
-        static D_CONSTEXPR
-        Type one() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        one() D_NOEXCEPT
         {
             return static_cast<Type>(1);
         }
 
-        static D_CONSTEXPR
-        Type abs(
+        static D_CONSTEXPR Type
+        abs(
             Type _x
         ) D_NOEXCEPT
         {
             return (_x < static_cast<Type>(0)) ? -_x : _x;
         }
 
-        static D_CONSTEXPR
-        Type magnitude(
+        static D_CONSTEXPR Type
+        magnitude(
             Type _x
         ) D_NOEXCEPT
         {
             return abs(_x);
         }
 
-        static D_CONSTEXPR
-        double to_double(
+        static D_CONSTEXPR double
+        to_double(
             Type _x
         ) D_NOEXCEPT
         {
             return static_cast<double>(_x);
         }
 
-        static D_CONSTEXPR
-        Type from_double(
+        static D_CONSTEXPR Type
+        from_double(
             double _x
         ) D_NOEXCEPT
         {
             return static_cast<Type>(_x);
         }
 
-        static D_CONSTEXPR_CPP14
-        Type sqrt(
+        static D_CONSTEXPR_CPP14 Type
+        sqrt(
             Type _x
         ) D_NOEXCEPT
         {
             return number_root(_x);
         }
 
-        static D_CONSTEXPR
-        Type epsilon() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        epsilon() D_NOEXCEPT
         {
             return floating_epsilon<Type>::value();
         }
 
-        static D_CONSTEXPR
-        Type epsilon(
+        static D_CONSTEXPR Type
+        epsilon(
             Type _x
         ) D_NOEXCEPT
         {
             return (static_cast<void>(_x), floating_epsilon<Type>::value());
         }
 
-        static D_CONSTEXPR
-        Type tolerance() D_NOEXCEPT
+        static D_CONSTEXPR Type
+        tolerance() D_NOEXCEPT
         {
             return static_cast<Type>(4) * floating_epsilon<Type>::value();
         }
 
-        static D_CONSTEXPR_CPP14
-        Type tolerance(
+        static D_CONSTEXPR_CPP14 Type
+        tolerance(
             Type _a,
             Type _b
         ) D_NOEXCEPT
@@ -640,6 +641,24 @@ struct number_traits<long double>
 {};
 
 
+// 1.4    The modulus squared
+//------------------------------------------------------------------------------
+// number_modulus_squared
+//   function: |_x|^2, of _x's type, Julia's abs2: _x * _x, which is |_x|^2
+// for every number of a real value. A type that holds numbers of no real
+// value, as math::value holds complex ones, gives an overload of this name
+// beside it, which argument-dependent lookup finds; so generic code's norms
+// and distances, which sum it, are of the moduli for every such type (S355).
+template<typename Type>
+D_CONSTEXPR Type
+number_modulus_squared(
+    const Type& _x
+)
+{
+    return (_x * _x);
+}
+
+
 //==============================================================================
 // 2.  COMMON NUMBER
 //==============================================================================
@@ -663,37 +682,19 @@ NS_INTERNAL
 
     // number_rank
     //   function: declared only, for sizeof: the rank of a + b's type.
-    number_rank_of<1>::type number_rank(
-        int
-    );
-    number_rank_of<2>::type number_rank(
-        unsigned
-    );
-    number_rank_of<3>::type number_rank(
-        long
-    );
-    number_rank_of<4>::type number_rank(
-        unsigned long
-    );
+    number_rank_of<1>::type number_rank(int);
+    number_rank_of<2>::type number_rank(unsigned);
+    number_rank_of<3>::type number_rank(long);
+    number_rank_of<4>::type number_rank(unsigned long);
 #if D_ENV_HAS_LONG_LONG
 D_LONG_LONG_DIAG_PUSH
-    number_rank_of<5>::type number_rank(
-        long long
-    );
-    number_rank_of<6>::type number_rank(
-        unsigned long long
-    );
+    number_rank_of<5>::type number_rank(long long);
+    number_rank_of<6>::type number_rank(unsigned long long);
 D_LONG_LONG_DIAG_POP
 #endif
-    number_rank_of<7>::type number_rank(
-        float
-    );
-    number_rank_of<8>::type number_rank(
-        double
-    );
-    number_rank_of<9>::type number_rank(
-        long double
-    );
+    number_rank_of<7>::type number_rank(float);
+    number_rank_of<8>::type number_rank(double);
+    number_rank_of<9>::type number_rank(long double);
 
     // number_of_rank
     //   trait: the arithmetic type a rank names.

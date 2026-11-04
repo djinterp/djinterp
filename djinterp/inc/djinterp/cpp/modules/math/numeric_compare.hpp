@@ -73,13 +73,10 @@ TABLE OF CONTENTS
 #include <cstring>                  // std::strlen
 #include <string>                   // std::string
 // djinterp
-#include "../../djinterp.hpp"          // framework root
-#include "../../../c/modules/math/literal.h"      // d_math_literal_length, and
-#if (defined(__cplusplus))
-    #include "../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
-                                    // dj_math_value_order through value.h
-#include "./math_common.hpp"        // NS_MATH
+#include "../../djinterp.hpp"                 // framework root
+#include "../../../c/modules/math/literal.h"  // d_math_literal_length, and
+                                              // d_math_value_order through value.h
+#include "./math_common.hpp"                  // NS_MATH
 // std, from C++17 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     #include <string_view>          // std::string_view
@@ -104,20 +101,12 @@ NS_MATH
 class numeric_text
 {
 public:
-    numeric_text(
-        const char* _text
-    );
-    numeric_text(
-        const char* _text,
-        std::size_t _length
-    );
-    numeric_text(
-        const std::string& _text
-    );
+    numeric_text(const char* _text);
+    numeric_text(const char* _text,
+                 std::size_t _length);
+    numeric_text(const std::string& _text);
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    numeric_text(
-        std::string_view _text
-    );
+    numeric_text(std::string_view _text);
 #endif
 
     const char* data() const;
@@ -165,14 +154,14 @@ numeric_text::numeric_text(
 
 #endif
 
-inline
-const char* numeric_text::data() const
+inline const char*
+numeric_text::data() const
 {
     return m_data;
 }
 
-inline
-std::size_t numeric_text::size() const
+inline std::size_t
+numeric_text::size() const
 {
     return m_size;
 }
@@ -197,62 +186,32 @@ public:
     typedef std::size_t size_type;
 
     integer_value();
-    integer_value(
-        dj_math_umax _value
-    );
-    integer_value(
-        numeric_text _digits
-    );
+    integer_value(d_math_umax _value);
+    integer_value(numeric_text _digits);
 
-    bool is_zero() const;
-    size_type digits() const;
+    bool        is_zero() const;
+    size_type   digits() const;
     std::string to_string() const;
-    int compare(
-        const integer_value& _other
-    ) const;
+    int         compare(const integer_value& _other) const;
 
-    integer_value operator+(
-        const integer_value& _other
-    ) const;
-    integer_value operator-(
-        const integer_value& _other
-    ) const;
-    integer_value operator*(
-        const integer_value& _other
-    ) const;
-    integer_value& operator+=(
-        const integer_value& _other
-    );
-    bool operator<(
-        const integer_value& _other
-    ) const;
-    bool operator>(
-        const integer_value& _other
-    ) const;
-    bool operator==(
-        const integer_value& _other
-    ) const;
-    bool operator!=(
-        const integer_value& _other
-    ) const;
-    bool operator<=(
-        const integer_value& _other
-    ) const;
-    bool operator>=(
-        const integer_value& _other
-    ) const;
+    integer_value  operator+(const integer_value& _other) const;
+    integer_value  operator-(const integer_value& _other) const;
+    integer_value  operator*(const integer_value& _other) const;
+    integer_value& operator+=(const integer_value& _other);
+    bool           operator<(const integer_value& _other) const;
+    bool           operator>(const integer_value& _other) const;
+    bool           operator==(const integer_value& _other) const;
+    bool           operator!=(const integer_value& _other) const;
+    bool           operator<=(const integer_value& _other) const;
+    bool           operator>=(const integer_value& _other) const;
 
 private:
     friend class rational_value;
 
-    void m_trim();
+    void      m_trim();
     size_type m_low_zeros() const;
-    void m_shift_up(
-        size_type _places
-    );
-    void m_shift_down(
-        size_type _places
-    );
+    void      m_shift_up(size_type _places);
+    void      m_shift_down(size_type _places);
 
     std::string m_digits;
 };
@@ -266,15 +225,15 @@ integer_value::integer_value()
     : m_digits()
 {}
 
-// integer_value(dj_math_umax)
+// integer_value(d_math_umax)
 //   the value of an unsigned integer, the widest the build can spell.
 inline
 integer_value::integer_value(
-    dj_math_umax _value
+    d_math_umax _value
 )
     : m_digits()
 {
-    dj_math_umax rest = _value;
+    d_math_umax rest = _value;
 
     // each digit, the least significant first
     while (rest != 0u)
@@ -312,24 +271,24 @@ integer_value::integer_value(
 
 // is_zero
 //   whether this is 0.
-inline
-bool integer_value::is_zero() const
+inline bool
+integer_value::is_zero() const
 {
     return m_digits.empty();
 }
 
 // digits
 //   how many decimal digits this has: 1 for 0.
-inline
-integer_value::size_type integer_value::digits() const
+inline integer_value::size_type
+integer_value::digits() const
 {
     return (m_digits.empty()) ? 1u : m_digits.size();
 }
 
 // to_string
 //   the decimal digits, the most significant first: "0" for 0.
-inline
-std::string integer_value::to_string() const
+inline std::string
+integer_value::to_string() const
 {
     std::string result(m_digits.rbegin(), m_digits.rend());
 
@@ -344,8 +303,8 @@ std::string integer_value::to_string() const
 
 // m_trim
 //   drops the zeros above the most significant nonzero digit.
-inline
-void integer_value::m_trim()
+inline void
+integer_value::m_trim()
 {
     std::string::size_type length = m_digits.size();
 
@@ -363,8 +322,8 @@ void integer_value::m_trim()
 
 // m_low_zeros
 //   how many zeros this ends with: 0 for 0.
-inline
-integer_value::size_type integer_value::m_low_zeros() const
+inline integer_value::size_type
+integer_value::m_low_zeros() const
 {
     size_type count = 0u;
 
@@ -380,8 +339,8 @@ integer_value::size_type integer_value::m_low_zeros() const
 
 // m_shift_up
 //   this times 10^_places.
-inline
-void integer_value::m_shift_up(
+inline void
+integer_value::m_shift_up(
     size_type _places
 )
 {
@@ -398,8 +357,8 @@ void integer_value::m_shift_up(
 
 // m_shift_down
 //   this divided by 10^_places, which it must end with that many zeros of.
-inline
-void integer_value::m_shift_down(
+inline void
+integer_value::m_shift_down(
     size_type _places
 )
 {
@@ -412,8 +371,8 @@ void integer_value::m_shift_down(
 //------------------------------------------------------------------------------
 // operator+=
 //   adds _other, which may be this.
-inline
-integer_value& integer_value::operator+=(
+inline integer_value&
+integer_value::operator+=(
     const integer_value& _other
 )
 {
@@ -450,8 +409,8 @@ integer_value& integer_value::operator+=(
 
 // operator+
 //   the sum.
-inline
-integer_value integer_value::operator+(
+inline integer_value
+integer_value::operator+(
     const integer_value& _other
 ) const
 {
@@ -464,8 +423,8 @@ integer_value integer_value::operator+(
 
 // operator-
 //   the difference, where _other is not more than this; 0 where it is.
-inline
-integer_value integer_value::operator-(
+inline integer_value
+integer_value::operator-(
     const integer_value& _other
 ) const
 {
@@ -500,8 +459,8 @@ integer_value integer_value::operator-(
 // operator*
 //   the product, by long multiplication: time in the product of the two
 // numbers' digits.
-inline
-integer_value integer_value::operator*(
+inline integer_value
+integer_value::operator*(
     const integer_value& _other
 ) const
 {
@@ -554,8 +513,8 @@ integer_value integer_value::operator*(
 //------------------------------------------------------------------------------
 // compare
 //   -1, 0 or 1 as this is less than, equal to or greater than _other.
-inline
-int integer_value::compare(
+inline int
+integer_value::compare(
     const integer_value& _other
 ) const
 {
@@ -582,48 +541,48 @@ int integer_value::compare(
     return 0;
 }
 
-inline
-bool integer_value::operator<(
+inline bool
+integer_value::operator<(
     const integer_value& _other
 ) const
 {
     return (compare(_other) < 0);
 }
 
-inline
-bool integer_value::operator>(
+inline bool
+integer_value::operator>(
     const integer_value& _other
 ) const
 {
     return (compare(_other) > 0);
 }
 
-inline
-bool integer_value::operator==(
+inline bool
+integer_value::operator==(
     const integer_value& _other
 ) const
 {
     return (m_digits == _other.m_digits);
 }
 
-inline
-bool integer_value::operator!=(
+inline bool
+integer_value::operator!=(
     const integer_value& _other
 ) const
 {
     return (m_digits != _other.m_digits);
 }
 
-inline
-bool integer_value::operator<=(
+inline bool
+integer_value::operator<=(
     const integer_value& _other
 ) const
 {
     return (compare(_other) <= 0);
 }
 
-inline
-bool integer_value::operator>=(
+inline bool
+integer_value::operator>=(
     const integer_value& _other
 ) const
 {
@@ -669,9 +628,9 @@ NS_INTERNAL
 
     // 3.1.2
     // numeric_integer_of_size
-    //   the integer_value of a size_t, which may be wider than dj_math_umax.
-    inline
-    integer_value numeric_integer_of_size(
+    //   the integer_value of a size_t, which may be wider than d_math_umax.
+    inline integer_value
+    numeric_integer_of_size(
         std::size_t _count
     )
     {
@@ -695,8 +654,8 @@ NS_INTERNAL
     // numeric_size_of
     //   _x as a size_t, into *_out: false, storing nothing, where it does
     // not fit.
-    inline
-    bool numeric_size_of(
+    inline bool
+    numeric_size_of(
         const integer_value& _x,
         std::size_t*         _out
     )
@@ -729,8 +688,8 @@ NS_INTERNAL
     // 3.1.4
     // numeric_signed_add
     //   _a + _b.
-    inline
-    numeric_signed numeric_signed_add(
+    inline numeric_signed
+    numeric_signed_add(
         const numeric_signed& _a,
         const numeric_signed& _b
     )
@@ -756,8 +715,8 @@ NS_INTERNAL
     // 3.1.5
     // numeric_signed_sub
     //   _a - _b.
-    inline
-    numeric_signed numeric_signed_sub(
+    inline numeric_signed
+    numeric_signed_sub(
         const numeric_signed& _a,
         const numeric_signed& _b
     )
@@ -775,10 +734,7 @@ class rational_value;
 
 // parse_number, declared here for rational_value to befriend; section 4
 // defines it.
-inline
-rational_value parse_number(
-    numeric_text _text
-);
+inline rational_value parse_number(numeric_text _text);
 
 // rational_value
 //   class: a signed rational number of any size, held as n / d times 10^k:
@@ -789,31 +745,23 @@ class rational_value
 {
 public:
     rational_value();
-    rational_value(
-        const integer_value& _numerator,
-        const integer_value& _denominator,
-        bool                 _negative
-    );
+    rational_value(const integer_value& _numerator,
+                   const integer_value& _denominator,
+                   bool                 _negative);
 
-    int compare(
-        const rational_value& _other
-    ) const;
+    int  compare(const rational_value& _other) const;
     bool is_negative() const;
     bool is_zero() const;
     bool is_number() const;
 
 private:
-    friend
-    rational_value parse_number(
-        numeric_text _text
-    );
+    friend rational_value parse_number(numeric_text _text);
 
-    void m_normalize();
-    int m_sign() const;
+    void                     m_normalize();
+    int                      m_sign() const;
     internal::numeric_signed m_order() const;
-    int m_compare_magnitude(
-        const rational_value& _other
-    ) const;
+    int                      m_compare_magnitude(
+                                 const rational_value& _other) const;
 
     integer_value            m_numerator;
     integer_value            m_denominator;
@@ -829,7 +777,7 @@ private:
 inline
 rational_value::rational_value()
     : m_numerator(),
-      m_denominator(static_cast<dj_math_umax>(1u)),
+      m_denominator(static_cast<d_math_umax>(1u)),
       m_exponent(),
       m_negative(false),
       m_number(true)
@@ -856,8 +804,8 @@ rational_value::rational_value(
 // m_normalize
 //   over 0, not a number; 0 with no sign; otherwise the zeros that the
 // numerator and the denominator end with moved into the power of ten.
-inline
-void rational_value::m_normalize()
+inline void
+rational_value::m_normalize()
 {
     // over 0
     if (m_denominator.is_zero())
@@ -872,7 +820,7 @@ void rational_value::m_normalize()
     if (m_numerator.is_zero())
     {
         m_negative    = false;
-        m_denominator = integer_value(static_cast<dj_math_umax>(1u));
+        m_denominator = integer_value(static_cast<d_math_umax>(1u));
         m_exponent    = internal::numeric_signed();
 
         return;
@@ -899,8 +847,8 @@ void rational_value::m_normalize()
 
 // is_negative
 //   whether this is a number below 0.
-inline
-bool rational_value::is_negative() const
+inline bool
+rational_value::is_negative() const
 {
     return ( (m_number) &&
              (m_negative) );
@@ -908,8 +856,8 @@ bool rational_value::is_negative() const
 
 // is_zero
 //   whether this is the number 0.
-inline
-bool rational_value::is_zero() const
+inline bool
+rational_value::is_zero() const
 {
     return ( (m_number) &&
              (m_numerator.is_zero()) );
@@ -918,8 +866,8 @@ bool rational_value::is_zero() const
 // is_number
 //   whether this is a number: false for a text that was not one literal,
 // and for a fraction over 0.
-inline
-bool rational_value::is_number() const
+inline bool
+rational_value::is_number() const
 {
     return m_number;
 }
@@ -930,8 +878,8 @@ bool rational_value::is_number() const
 //   -1, 0 or 1 as this is less than, equal to or greater than _other,
 // exactly: D_MATH_VALUE_LESS, _EQUAL and _GREATER. Where either is not a
 // number, unordered: D_MATH_VALUE_UNORDERED, 2.
-inline
-int rational_value::compare(
+inline int
+rational_value::compare(
     const rational_value& _other
 ) const
 {
@@ -961,8 +909,8 @@ int rational_value::compare(
 
 // m_sign
 //   -1, 0 or 1: this number's sign.
-inline
-int rational_value::m_sign() const
+inline int
+rational_value::m_sign() const
 {
     // 0
     if (m_numerator.is_zero())
@@ -976,8 +924,8 @@ int rational_value::m_sign() const
 // m_order
 //   k + digits(n) - digits(d): a nonzero number's magnitude lies strictly
 // between 10^(m_order() - 1) and 10^(m_order() + 1).
-inline
-internal::numeric_signed rational_value::m_order() const
+inline internal::numeric_signed
+rational_value::m_order() const
 {
     const internal::numeric_signed up(
         internal::numeric_integer_of_size(m_numerator.digits()),
@@ -998,8 +946,8 @@ internal::numeric_signed rational_value::m_order() const
 // over the other moved across as zeros: then k1 - k2 is the orders'
 // difference, at most 1, plus the digit counts' differences, so the zeros
 // are no more than the digits already held.
-inline
-int rational_value::m_compare_magnitude(
+inline int
+rational_value::m_compare_magnitude(
     const rational_value& _other
 ) const
 {
@@ -1008,7 +956,7 @@ int rational_value::m_compare_magnitude(
 
     // orders two or more apart
     if (apart.magnitude.compare(
-            integer_value(static_cast<dj_math_umax>(2u))) >= 0)
+            integer_value(static_cast<d_math_umax>(2u))) >= 0)
     {
         return (apart.negative) ? 1 : -1;
     }
@@ -1046,8 +994,8 @@ int rational_value::m_compare_magnitude(
 //   the number _text is: a decimal number, a fraction or a mixed number, as
 // literal.h reads one, the whole text, exactly. Not a number where the text
 // is not one literal, or is a fraction over 0.
-inline
-rational_value parse_number(
+inline rational_value
+parse_number(
     numeric_text _text
 )
 {
@@ -1195,8 +1143,8 @@ rational_value parse_number(
 // number _b, exactly: D_MATH_VALUE_LESS, _EQUAL and _GREATER. Where either
 // text is not a number, unordered: D_MATH_VALUE_UNORDERED, 2, so a test of
 // compare's sign is not a test of order; the predicates below are.
-inline
-int compare(
+inline int
+compare(
     numeric_text _a,
     numeric_text _b
 )
@@ -1209,8 +1157,8 @@ int compare(
 // Each is false where either text is not a number, except not_equal, which
 // is true there, as with a NaN.
 
-inline
-bool equal(
+inline bool
+equal(
     numeric_text _a,
     numeric_text _b
 )
@@ -1218,8 +1166,8 @@ bool equal(
     return (compare(_a, _b) == static_cast<int>(D_MATH_VALUE_EQUAL));
 }
 
-inline
-bool not_equal(
+inline bool
+not_equal(
     numeric_text _a,
     numeric_text _b
 )
@@ -1227,8 +1175,8 @@ bool not_equal(
     return (compare(_a, _b) != static_cast<int>(D_MATH_VALUE_EQUAL));
 }
 
-inline
-bool less_than(
+inline bool
+less_than(
     numeric_text _a,
     numeric_text _b
 )
@@ -1236,8 +1184,8 @@ bool less_than(
     return (compare(_a, _b) == static_cast<int>(D_MATH_VALUE_LESS));
 }
 
-inline
-bool greater_than(
+inline bool
+greater_than(
     numeric_text _a,
     numeric_text _b
 )
@@ -1245,8 +1193,8 @@ bool greater_than(
     return (compare(_a, _b) == static_cast<int>(D_MATH_VALUE_GREATER));
 }
 
-inline
-bool less_than_or_equal(
+inline bool
+less_than_or_equal(
     numeric_text _a,
     numeric_text _b
 )
@@ -1257,8 +1205,8 @@ bool less_than_or_equal(
              (order == static_cast<int>(D_MATH_VALUE_EQUAL)) );
 }
 
-inline
-bool greater_than_or_equal(
+inline bool
+greater_than_or_equal(
     numeric_text _a,
     numeric_text _b
 )

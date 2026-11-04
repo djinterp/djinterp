@@ -72,13 +72,13 @@ TABLE OF CONTENTS
 #include <cmath>                                  // std::sqrt
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
+#include "../../../djinterp.hpp"                  // framework root
 #include "../coordinate/coordinate.hpp"           // cartesian
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 #include "./geometry_common.hpp"                  // is_shape, pi_of
 #include "./solid.hpp"                            // triangle_mesh
 // re_std
-#include "../../../../../re_std/cpp/array/array.hpp"        // re_std::array
+#include "../../../../../re_std/cpp/array/array.hpp"  // re_std::array
 
 
 NS_DJINTERP
@@ -113,7 +113,8 @@ NS_INTERNAL
     // star3d_vertex
     //   function: the vertex _centre + _s (_x, _y, _z), in System.
     template<typename System>
-    typename System::point_type star3d_vertex(
+    typename System::point_type
+    star3d_vertex(
         const typename System::point_type& _centre,
         typename System::value_type        _s,
         typename System::value_type        _x,
@@ -130,7 +131,8 @@ NS_INTERNAL
     // star3d_face
     //   function: the face (_a, _b, _c), C++98's spelling of a braced face.
     template<typename Face>
-    Face star3d_face(
+    Face
+    star3d_face(
         std::size_t _a,
         std::size_t _b,
         std::size_t _c
@@ -176,9 +178,10 @@ NS_INTERNAL
 NS_END  // internal
 
 template<typename Mesh>
-typename stellate_result<Mesh>::type stellate(
-    const Mesh&               _base,
-    typename Mesh::value_type _height
+typename stellate_result<Mesh>::type
+stellate(
+    const Mesh&                _base,
+    typename Mesh::value_type  _height
 ) D_NOEXCEPT
 {
     typedef typename Mesh::coordinate_system      sys;
@@ -1058,8 +1061,9 @@ NS_INTERNAL
     // golden_ratio
     //   helper: returns (1 + sqrt(5)) / 2 in the given value type.
     template<typename T>
-    inline
-    T golden_ratio() D_NOEXCEPT
+    inline T
+    golden_ratio
+    () D_NOEXCEPT
     {
         return ( static_cast<T>(1) +
                  std::sqrt(static_cast<T>(5)) ) /
@@ -1073,9 +1077,10 @@ NS_INTERNAL
     // Icosahedron vertices (with phi = golden ratio, edge = 2):
     //   (0, ±1, ±phi), (±1, ±phi, 0), (±phi, 0, ±1)
     template<typename System>
-    triangle_mesh<System, 12, 20> make_icosahedron_mesh(
-        const typename System::point_type& _center,
-        typename System::value_type        _edge
+    triangle_mesh<System, 12, 20>
+    make_icosahedron_mesh(
+        const typename System::point_type&  _center,
+        typename System::value_type         _edge
     ) D_NOEXCEPT
     {
         typedef triangle_mesh<System, 12, 20> mesh_type;
@@ -1168,9 +1173,10 @@ NS_INTERNAL
     //   (±phi, 0, ±1/phi)
     // This gives edge length 2/phi; we scale to the requested edge.
     template<typename System>
-    triangle_mesh<System, 20, 36> make_dodecahedron_mesh(
-        const typename System::point_type& _center,
-        typename System::value_type        _edge
+    triangle_mesh<System, 20, 36>
+    make_dodecahedron_mesh(
+        const typename System::point_type&  _center,
+        typename System::value_type         _edge
     ) D_NOEXCEPT
     {
         typedef triangle_mesh<System, 20, 36> mesh_type;
@@ -1298,7 +1304,9 @@ NS_END  // internal
 
 // small_stellated_dodecahedron::as_triangle_mesh
 template<typename System>
-triangle_mesh<System, 12, 20> small_stellated_dodecahedron<System>::as_triangle_mesh() const D_NOEXCEPT
+triangle_mesh<System, 12, 20>
+small_stellated_dodecahedron<System>::as_triangle_mesh
+() const D_NOEXCEPT
 {
     // convex hull = icosahedron with edge = a * phi
     value_type hull_edge = m_edge_length *
@@ -1310,7 +1318,9 @@ triangle_mesh<System, 12, 20> small_stellated_dodecahedron<System>::as_triangle_
 
 // great_dodecahedron::as_triangle_mesh
 template<typename System>
-triangle_mesh<System, 12, 20> great_dodecahedron<System>::as_triangle_mesh() const D_NOEXCEPT
+triangle_mesh<System, 12, 20>
+great_dodecahedron<System>::as_triangle_mesh
+() const D_NOEXCEPT
 {
     // convex hull = icosahedron with edge = a (same as formal solid)
     return internal::make_icosahedron_mesh<System>(
@@ -1319,7 +1329,9 @@ triangle_mesh<System, 12, 20> great_dodecahedron<System>::as_triangle_mesh() con
 
 // great_stellated_dodecahedron::as_triangle_mesh
 template<typename System>
-triangle_mesh<System, 20, 36> great_stellated_dodecahedron<System>::as_triangle_mesh() const D_NOEXCEPT
+triangle_mesh<System, 20, 36>
+great_stellated_dodecahedron<System>::as_triangle_mesh
+() const D_NOEXCEPT
 {
     // convex hull = dodecahedron with edge = a * phi^2 = a * (phi + 1)
     value_type phi = internal::golden_ratio<value_type>();
@@ -1331,7 +1343,9 @@ triangle_mesh<System, 20, 36> great_stellated_dodecahedron<System>::as_triangle_
 
 // great_icosahedron::as_triangle_mesh
 template<typename System>
-triangle_mesh<System, 12, 20> great_icosahedron<System>::as_triangle_mesh() const D_NOEXCEPT
+triangle_mesh<System, 12, 20>
+great_icosahedron<System>::as_triangle_mesh
+() const D_NOEXCEPT
 {
     // convex hull = icosahedron with edge = a * phi^2
     value_type phi = internal::golden_ratio<value_type>();

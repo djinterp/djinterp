@@ -9,14 +9,14 @@
 * rule; then the result simplified (simplify.hpp). A function with no rule is
 * the error not_differentiable. The n-th derivative is the first, n times;
 * the gradient, the derivative by each variable named.
-*   STEPS. Step 22 (4a) fills every entry. Until then each answers
+*   STEPS. Step 25 (4a) fills every entry. Until then each answers
 * expr_status::not_yet.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/derivative.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 /*
@@ -62,14 +62,15 @@ NS_MATH
 /**
  * @brief The derivative of a term by a variable.
  *
- * @note Until step 22 (4a) a stub: it answers expr_status::not_yet.
+ * @note Until step 25 (4a) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the term.
  * @param[in] _variable  the variable's name.
  * @return the derivative, simplified; or the error not_differentiable,
  *         where a function of _term has no rule for it, or unknown_name.
  */
-D_NODISCARD inline expr_result<expr_term> expr_derivative(
+D_NODISCARD inline expr_result<expr_term>
+expr_derivative(
     const expr_term&   _term,
     const std::string& _variable
 )
@@ -78,13 +79,13 @@ D_NODISCARD inline expr_result<expr_term> expr_derivative(
     static_cast<void>(_variable);
 
     return internal::expr_not_yet<expr_term>(
-        "expr_derivative: not yet (step 22, 4a)");
+        "expr_derivative: not yet (step 25, 4a)");
 }
 
 /**
  * @brief The derivative of a term by a variable, _order times.
  *
- * @note Until step 22 (4a) a stub: it answers expr_status::not_yet.
+ * @note Until step 25 (4a) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term      the term.
  * @param[in] _variable  the variable's name.
@@ -92,7 +93,8 @@ D_NODISCARD inline expr_result<expr_term> expr_derivative(
  * @return the derivative of that order, simplified; or the error
  *         not_differentiable or unknown_name.
  */
-D_NODISCARD inline expr_result<expr_term> expr_derivative(
+D_NODISCARD inline expr_result<expr_term>
+expr_derivative(
     const expr_term&   _term,
     const std::string& _variable,
     unsigned           _order
@@ -103,7 +105,7 @@ D_NODISCARD inline expr_result<expr_term> expr_derivative(
     static_cast<void>(_order);
 
     return internal::expr_not_yet<expr_term>(
-        "expr_derivative: not yet (step 22, 4a)");
+        "expr_derivative: not yet (step 25, 4a)");
 }
 
 // 1.1.2
@@ -111,14 +113,15 @@ D_NODISCARD inline expr_result<expr_term> expr_derivative(
 /**
  * @brief The gradient of a term: its derivative by each variable named.
  *
- * @note Until step 22 (4a) a stub: it answers expr_status::not_yet.
+ * @note Until step 25 (4a) a stub: it answers expr_status::not_yet.
  *
  * @param[in] _term       the term.
  * @param[in] _variables  the variables' names, in the gradient's order.
  * @return the derivatives, one for each name, in its order; or the first
  *         error a derivative gives.
  */
-D_NODISCARD inline expr_result<std::vector<expr_term> > expr_gradient(
+D_NODISCARD inline expr_result<std::vector<expr_term> >
+expr_gradient(
     const expr_term&                _term,
     const std::vector<std::string>& _variables
 )
@@ -127,7 +130,7 @@ D_NODISCARD inline expr_result<std::vector<expr_term> > expr_gradient(
     static_cast<void>(_variables);
 
     return internal::expr_not_yet<std::vector<expr_term> >(
-        "expr_gradient: not yet (step 22, 4a)");
+        "expr_gradient: not yet (step 25, 4a)");
 }
 
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                t_value_boxed.c
+* djinterp [c/math]                                              t_value_boxed.c
 *
 *   Conformance harness for value.h's boxed kinds (c/math/value.h): dispatch
 * through a kind's table, ownership, and the inline paths a boxed operand
@@ -38,17 +38,21 @@
 * boxed and not, with the floating-point values nearest them and their
 * neighbours. From C++14 the new queries are also checked as constant
 * expressions.
+*   A kind's exact entry, asked only of a number whose traits leave its
+* exactness to each value (S325), is checked with kinds of each trait; and
+* value.h's count of a box's holders, atomic as cfg_value.h resolves it
+* (S326).
 *   The same file compiles as C++ (-x c++), at any level from C++98.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_value_boxed.c -o t_value_boxed -lm
+*        tests/djinterp/c/math/t_value_boxed.c -o t_value_boxed -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_value_boxed.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.31
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MAX
@@ -66,7 +70,7 @@
 #define D_TESTS_MOST   D_MATH_IMAX_MAX
 #define D_TESTS_LEAST  D_MATH_IMAX_MIN
 #define D_TESTS_HALF                                                           \
-    ((dj_math_imax)((dj_math_umax)1 << D_INTERNAL_RATIONAL_HALF_BITS))
+    ((d_math_imax)((d_math_umax)1 << D_INTERNAL_RATIONAL_HALF_BITS))
 
 // the random trials
 #define D_TESTS_TRIALS  4000L
@@ -101,7 +105,7 @@ static long g_failures = 0;
 
 // the calls into each kind's entries, and each kind's last conversion's kind
 static long                   g_calls[D_TESTS_KINDS][D_TESTS_ENTRIES];
-static enum dj_math_value_kind g_target[D_TESTS_KINDS];
+static enum d_math_value_kind g_target[D_TESTS_KINDS];
 
 // boxes held and made; operands the protocol should not have given a kind;
 // allocations to come before one is refused, -1 for none
@@ -117,137 +121,107 @@ static long g_refuse   = -1;
 // A box holds two values: a mirror kind's in part[0], a pair's in both. Its
 // holders are counted; the last release frees it and its parts.
 
-// dj_tests_box
+// d_tests_box
 //   struct: a box of one of the harness's kinds.
-struct dj_tests_box
+struct d_tests_box
 {
     long                refs;     // its holders
     int                 kind;     // D_TESTS_SMALL ... D_TESTS_PAIR
-    struct dj_math_value part[2];  // what it holds
+    struct d_math_value part[2];  // what it holds
 };
 
 // the entries, defined below
-static
-void d_tests_box_retain(
-    void* _box
-);
-static
-void d_tests_box_release(
-    void* _box
-);
-static
-struct dj_math_value d_tests_mirror_unary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _x
-);
-static
-struct dj_math_value d_tests_box_small_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
-);
-static
-struct dj_math_value d_tests_box_exact_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
-);
-static
-struct dj_math_value d_tests_box_inexact_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
-);
-static
-enum dj_math_value_order d_tests_box_small_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
-);
-static
-enum dj_math_value_order d_tests_box_exact_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
-);
-static
-enum dj_math_value_order d_tests_box_inexact_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
-);
-static
-bool d_tests_mirror_convert(
-    struct dj_math_value*   _out,
-    int*                    _direction,
-    struct dj_math_value    _x,
-    enum dj_math_value_kind _to
-);
-static
-struct dj_math_value d_tests_pair_unary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _x
-);
-static
-struct dj_math_value d_tests_pair_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
-);
-static
-enum dj_math_value_order d_tests_pair_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
-);
-static
-bool d_tests_pair_convert(
-    struct dj_math_value*   _out,
-    int*                    _direction,
-    struct dj_math_value    _x,
-    enum dj_math_value_kind _to
-);
-static
-size_t d_tests_box_text(
-    char*                _buffer,
-    size_t               _size,
-    struct dj_math_value _x
-);
+static void
+d_tests_box_retain(void* _box);
+static void
+d_tests_box_release(void* _box);
+static struct d_math_value
+d_tests_mirror_unary(enum d_math_value_op _op,
+                     struct d_math_value  _x);
+static struct d_math_value
+d_tests_box_small_binary(enum d_math_value_op _op,
+                         struct d_math_value  _a,
+                         struct d_math_value  _b);
+static struct d_math_value
+d_tests_box_exact_binary(enum d_math_value_op _op,
+                         struct d_math_value  _a,
+                         struct d_math_value  _b);
+static struct d_math_value
+d_tests_box_inexact_binary(enum d_math_value_op _op,
+                           struct d_math_value  _a,
+                           struct d_math_value  _b);
+static enum d_math_value_order
+d_tests_box_small_cmp(struct d_math_value _a,
+                      struct d_math_value _b);
+static enum d_math_value_order
+d_tests_box_exact_cmp(struct d_math_value _a,
+                      struct d_math_value _b);
+static enum d_math_value_order
+d_tests_box_inexact_cmp(struct d_math_value _a,
+                        struct d_math_value _b);
+static bool
+d_tests_mirror_convert(struct d_math_value*   _out,
+                       int*                   _direction,
+                       struct d_math_value    _x,
+                       enum d_math_value_kind _to);
+static struct d_math_value
+d_tests_pair_unary(enum d_math_value_op _op,
+                   struct d_math_value  _x);
+static struct d_math_value
+d_tests_pair_binary(enum d_math_value_op _op,
+                    struct d_math_value  _a,
+                    struct d_math_value  _b);
+static enum d_math_value_order
+d_tests_pair_cmp(struct d_math_value _a,
+                 struct d_math_value _b);
+static bool
+d_tests_pair_convert(struct d_math_value*   _out,
+                     int*                   _direction,
+                     struct d_math_value    _x,
+                     enum d_math_value_kind _to);
+static size_t
+d_tests_box_text(char*               _buffer,
+                 size_t              _size,
+                 struct d_math_value _x);
 
 // the four tables; and a second copy of exact's, as a second translation
 // unit would hold in C
-static const struct dj_math_boxed_kind g_kind_small = {
+static const struct d_math_boxed_kind g_kind_small = {
     "small", D_TESTS_RANK_SMALL, D_MATH_BOXED_NUMBER | D_MATH_BOXED_EXACT,
     d_tests_box_retain, d_tests_box_release, d_tests_mirror_unary,
     d_tests_box_small_binary, d_tests_box_small_cmp, d_tests_mirror_convert,
-    d_tests_box_text
+    d_tests_box_text, NULL
 };
 
-static const struct dj_math_boxed_kind g_kind_exact = {
+static const struct d_math_boxed_kind g_kind_exact = {
     "exact", D_TESTS_RANK_EXACT, D_MATH_BOXED_NUMBER | D_MATH_BOXED_EXACT,
     d_tests_box_retain, d_tests_box_release, d_tests_mirror_unary,
     d_tests_box_exact_binary, d_tests_box_exact_cmp, d_tests_mirror_convert,
-    d_tests_box_text
+    d_tests_box_text, NULL
 };
 
-static const struct dj_math_boxed_kind g_kind_inexact = {
+static const struct d_math_boxed_kind g_kind_inexact = {
     "inexact", D_TESTS_RANK_INEXACT, D_MATH_BOXED_NUMBER,
     d_tests_box_retain, d_tests_box_release, d_tests_mirror_unary,
     d_tests_box_inexact_binary, d_tests_box_inexact_cmp, d_tests_mirror_convert,
-    d_tests_box_text
+    d_tests_box_text, NULL
 };
 
-static const struct dj_math_boxed_kind g_kind_pair = {
+static const struct d_math_boxed_kind g_kind_pair = {
     "pair", D_TESTS_RANK_PAIR, 0u,
     d_tests_box_retain, d_tests_box_release, d_tests_pair_unary,
     d_tests_pair_binary, d_tests_pair_cmp, d_tests_pair_convert,
-    d_tests_box_text
+    d_tests_box_text, NULL
 };
 
-static const struct dj_math_boxed_kind g_kind_exact_copy = {
+static const struct d_math_boxed_kind g_kind_exact_copy = {
     "exact", D_TESTS_RANK_EXACT, D_MATH_BOXED_NUMBER | D_MATH_BOXED_EXACT,
     d_tests_box_retain, d_tests_box_release, d_tests_mirror_unary,
     d_tests_box_exact_binary, d_tests_box_exact_cmp, d_tests_mirror_convert,
-    d_tests_box_text
+    d_tests_box_text, NULL
 };
 
-static const struct dj_math_boxed_kind* const g_tables[D_TESTS_KINDS] = {
+static const struct d_math_boxed_kind* const g_tables[D_TESTS_KINDS] = {
     &g_kind_small, &g_kind_exact, &g_kind_inexact, &g_kind_pair
 };
 
@@ -257,21 +231,21 @@ static const struct dj_math_boxed_kind* const g_tables[D_TESTS_KINDS] = {
 
 // d_tests_box_of
 //   _x's box: _x is of one of the harness's kinds.
-static
-struct dj_tests_box* d_tests_box_of(
-    struct dj_math_value _x
+static struct d_tests_box*
+d_tests_box_of(
+    struct d_math_value _x
 )
 {
-    return (struct dj_tests_box*)_x.box;
+    return (struct d_tests_box*)_x.box;
 }
 
 // d_tests_index
 //   which of the harness's kinds _x is, known by its rank as the kinds know
 // their own; -1 for anything else, a boxed value without a table or a box
 // among them.
-static
-int d_tests_index(
-    struct dj_math_value _x
+static int
+d_tests_index(
+    struct d_math_value _x
 )
 {
     int k = 0;
@@ -300,9 +274,9 @@ int d_tests_index(
 //   a result given back, and none in its place; one that is boxed but none
 // of the harness's, which only a fault can make, is left as it is, since
 // releasing it would read what is not there.
-static
-void d_tests_drop(
-    struct dj_math_value* _x
+static void
+d_tests_drop(
+    struct d_math_value* _x
 )
 {
     // whole, or not
@@ -321,16 +295,16 @@ void d_tests_drop(
 //   a value of the harness's kind _kind, under _table, holding _first and
 // _second, with one holder; the box takes the caller's holds on them. A
 // memory error, taking nothing, where storage is refused.
-static
-struct dj_math_value d_tests_new_box(
-    int                              _kind,
-    const struct dj_math_boxed_kind* _table,
-    struct dj_math_value             _first,
-    struct dj_math_value             _second
+static struct d_math_value
+d_tests_new_box(
+    int                             _kind,
+    const struct d_math_boxed_kind* _table,
+    struct d_math_value             _first,
+    struct d_math_value             _second
 )
 {
-    struct dj_math_value result = d_math_value_none();
-    struct dj_tests_box* box    = NULL;
+    struct d_math_value result = d_math_value_none();
+    struct d_tests_box* box    = NULL;
 
     // refused on purpose
     if (g_refuse == 0)
@@ -345,7 +319,7 @@ struct dj_math_value d_tests_new_box(
         --g_refuse;
     }
 
-    box = (struct dj_tests_box*)malloc(sizeof(struct dj_tests_box));
+    box = (struct d_tests_box*)malloc(sizeof(struct d_tests_box));
 
     // refused by the system
     if (box == NULL)
@@ -367,12 +341,12 @@ struct dj_math_value d_tests_new_box(
     return result;
 }
 
-static
-void d_tests_box_retain(
+static void
+d_tests_box_retain(
     void* _box
 )
 {
-    struct dj_tests_box* box = (struct dj_tests_box*)_box;
+    struct d_tests_box* box = (struct d_tests_box*)_box;
 
     ++g_calls[box->kind][D_TESTS_RETAIN];
     ++box->refs;
@@ -380,12 +354,12 @@ void d_tests_box_retain(
     return;
 }
 
-static
-void d_tests_box_release(
+static void
+d_tests_box_release(
     void* _box
 )
 {
-    struct dj_tests_box* box = (struct dj_tests_box*)_box;
+    struct d_tests_box* box = (struct d_tests_box*)_box;
 
     ++g_calls[box->kind][D_TESTS_RELEASE];
     --box->refs;
@@ -404,9 +378,9 @@ void d_tests_box_release(
 
 // d_tests_refs
 //   the holders of _x's box; 0 for an inline value.
-static
-long d_tests_refs(
-    struct dj_math_value _x
+static long
+d_tests_refs(
+    struct d_math_value _x
 )
 {
     return (d_tests_index(_x) >= 0) ? d_tests_box_of(_x)->refs : 0L;
@@ -414,9 +388,9 @@ long d_tests_refs(
 
 // d_tests_boxes_in
 //   the boxes _x holds: its own, and a pair's parts'.
-static
-long d_tests_boxes_in(
-    struct dj_math_value _x
+static long
+d_tests_boxes_in(
+    struct d_math_value _x
 )
 {
     // inline, or none of the harness's
@@ -434,11 +408,11 @@ long d_tests_boxes_in(
 
 // d_tests_apply
 //   value.h's _a _op _b.
-static struct dj_math_value
+static struct d_math_value
 d_tests_apply(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
     // the operation
@@ -461,9 +435,9 @@ d_tests_apply(
 // d_tests_rank_of
 //   _x's rank, as the harness states the ranks: the inline numbers' 100 to
 // 500, a boxed kind's own, 0 for none, an error or a boolean.
-static
-int d_tests_rank_of(
-    struct dj_math_value _x
+static int
+d_tests_rank_of(
+    struct d_math_value _x
 )
 {
     // by kind
@@ -495,10 +469,10 @@ int d_tests_rank_of(
 // d_tests_keeps
 //   whether the kind _kind keeps a result like _r in a box: small an
 // integer, exact an integer or a rational, inexact a long double.
-static
-bool d_tests_keeps(
-    int                  _kind,
-    struct dj_math_value _r
+static bool
+d_tests_keeps(
+    int                 _kind,
+    struct d_math_value _r
 )
 {
     // by kind
@@ -520,14 +494,14 @@ bool d_tests_keeps(
 // d_tests_mirror_result
 //   the result _r as the kind _kind gives it: in a box of its own, with _r's
 // flags on the value, where it keeps such results; as it is otherwise.
-static
-struct dj_math_value d_tests_mirror_result(
-    int                  _kind,
-    struct dj_math_value _r
+static struct d_math_value
+d_tests_mirror_result(
+    int                 _kind,
+    struct d_math_value _r
 )
 {
-    struct dj_math_value held   = _r;
-    struct dj_math_value result = _r;
+    struct d_math_value held   = _r;
+    struct d_math_value result = _r;
 
     // kept
     if (d_tests_keeps(_kind, _r))
@@ -547,13 +521,13 @@ struct dj_math_value d_tests_mirror_result(
 // lower boxed number, through that kind's table, exactly where it is exact,
 // else as the nearest long double. Anything else is an operand the protocol
 // would not give the kind: a breach, and none.
-static
-struct dj_math_value d_tests_inline_of(
-    struct dj_math_value _x,
-    int                  _rank
+static struct d_math_value
+d_tests_inline_of(
+    struct d_math_value _x,
+    int                 _rank
 )
 {
-    struct dj_math_value result    = d_math_value_none();
+    struct d_math_value result    = d_math_value_none();
     int                 direction = 0;
 
     // an inline number, no higher
@@ -596,12 +570,12 @@ struct dj_math_value d_tests_inline_of(
 // d_tests_mirror_binary
 //   a mirror kind's _a _op _b: value.h's, on the inline numbers they stand
 // for.
-static struct dj_math_value
+static struct d_math_value
 d_tests_mirror_binary(
     int                  _kind,
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
     const int rank = g_tables[_kind]->rank;
@@ -622,11 +596,11 @@ d_tests_mirror_binary(
 
 // d_tests_mirror_cmp
 //   a mirror kind's _a against _b: value.h's, on the inline numbers.
-static enum dj_math_value_order
+static enum d_math_value_order
 d_tests_mirror_cmp(
     int                 _kind,
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     const int rank = g_tables[_kind]->rank;
@@ -644,58 +618,58 @@ d_tests_mirror_cmp(
                             d_tests_inline_of(_b, rank));
 }
 
-static struct dj_math_value
+static struct d_math_value
 d_tests_box_small_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
     return d_tests_mirror_binary(D_TESTS_SMALL, _op, _a, _b);
 }
 
-static struct dj_math_value
+static struct d_math_value
 d_tests_box_exact_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
     return d_tests_mirror_binary(D_TESTS_EXACT, _op, _a, _b);
 }
 
-static struct dj_math_value
+static struct d_math_value
 d_tests_box_inexact_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
     return d_tests_mirror_binary(D_TESTS_INEXACT, _op, _a, _b);
 }
 
-static enum dj_math_value_order
+static enum d_math_value_order
 d_tests_box_small_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return d_tests_mirror_cmp(D_TESTS_SMALL, _a, _b);
 }
 
-static enum dj_math_value_order
+static enum d_math_value_order
 d_tests_box_exact_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return d_tests_mirror_cmp(D_TESTS_EXACT, _a, _b);
 }
 
-static enum dj_math_value_order
+static enum d_math_value_order
 d_tests_box_inexact_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     return d_tests_mirror_cmp(D_TESTS_INEXACT, _a, _b);
@@ -703,14 +677,14 @@ d_tests_box_inexact_cmp(
 
 // d_tests_mirror_unary
 //   a mirror kind's -_x or |_x|: value.h's, on what it holds.
-static struct dj_math_value
+static struct d_math_value
 d_tests_mirror_unary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _x
+    enum d_math_value_op _op,
+    struct d_math_value  _x
 )
 {
     const int                 kind = d_tests_box_of(_x)->kind;
-    const struct dj_math_value held = d_tests_box_of(_x)->part[0];
+    const struct d_math_value held = d_tests_box_of(_x)->part[0];
 
     ++g_calls[kind][D_TESTS_UNARY];
 
@@ -733,10 +707,10 @@ d_tests_mirror_unary(
 // d_tests_direction
 //   how _r, a rounding of the inline number _held, stands to it: -1 below,
 // 0 equal, 1 above; 0 for a NaN. An exact number by the exact reference.
-static
-int d_tests_direction(
-    long double          _r,
-    struct dj_math_value _held
+static int
+d_tests_direction(
+    long double         _r,
+    struct d_math_value _held
 )
 {
     // a NaN
@@ -760,14 +734,14 @@ int d_tests_direction(
 // conversion of a long double, and the rounding's direction.
 static bool
 d_tests_mirror_convert(
-    struct dj_math_value*   _out,
+    struct d_math_value*   _out,
     int*                   _direction,
-    struct dj_math_value    _x,
-    enum dj_math_value_kind _to
+    struct d_math_value    _x,
+    enum d_math_value_kind _to
 )
 {
     const int                 kind  = d_tests_box_of(_x)->kind;
-    const struct dj_math_value held  = d_tests_box_of(_x)->part[0];
+    const struct d_math_value held  = d_tests_box_of(_x)->part[0];
     const bool                exact = d_math_value_is_exact(held);
 
     ++g_calls[kind][D_TESTS_CONVERT];
@@ -825,10 +799,10 @@ d_tests_mirror_convert(
 
 // d_tests_part
 //   part _i of _x where it is a pair; _x itself otherwise.
-static
-struct dj_math_value d_tests_part(
-    struct dj_math_value _x,
-    int                  _i
+static struct d_math_value
+d_tests_part(
+    struct d_math_value _x,
+    int                 _i
 )
 {
     return (d_tests_index(_x) == D_TESTS_PAIR) ? d_tests_box_of(_x)->part[_i]
@@ -838,15 +812,15 @@ struct dj_math_value d_tests_part(
 // d_tests_pair_of
 //   a pair of _first and _second, with holds of its own on them; a memory
 // error, and the holds given back, where storage is refused.
-static
-struct dj_math_value d_tests_pair_of(
-    struct dj_math_value _first,
-    struct dj_math_value _second
+static struct d_math_value
+d_tests_pair_of(
+    struct d_math_value _first,
+    struct d_math_value _second
 )
 {
-    struct dj_math_value first  = d_math_value_retain(_first);
-    struct dj_math_value second = d_math_value_retain(_second);
-    struct dj_math_value result =
+    struct d_math_value first  = d_math_value_retain(_first);
+    struct d_math_value second = d_math_value_retain(_second);
+    struct d_math_value result =
         d_tests_new_box(D_TESTS_PAIR, &g_kind_pair, first, second);
 
     // no storage: the holds given back
@@ -862,13 +836,13 @@ struct dj_math_value d_tests_pair_of(
 // d_tests_pair_made
 //   a pair of the results _first and _second, taking them; a memory error,
 // and both released, where storage is refused.
-static
-struct dj_math_value d_tests_pair_made(
-    struct dj_math_value _first,
-    struct dj_math_value _second
+static struct d_math_value
+d_tests_pair_made(
+    struct d_math_value _first,
+    struct d_math_value _second
 )
 {
-    struct dj_math_value result =
+    struct d_math_value result =
         d_tests_new_box(D_TESTS_PAIR, &g_kind_pair, _first, _second);
 
     // no storage: the results given back
@@ -881,15 +855,15 @@ struct dj_math_value d_tests_pair_made(
     return result;
 }
 
-static struct dj_math_value
+static struct d_math_value
 d_tests_pair_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
-    struct dj_math_value first  = d_math_value_none();
-    struct dj_math_value second = d_math_value_none();
+    struct d_math_value first  = d_math_value_none();
+    struct d_math_value second = d_math_value_none();
 
     ++g_calls[D_TESTS_PAIR][D_TESTS_BINARY];
 
@@ -906,13 +880,13 @@ d_tests_pair_binary(
     return d_tests_pair_made(first, second);
 }
 
-static struct dj_math_value
+static struct d_math_value
 d_tests_pair_unary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _x
+    enum d_math_value_op _op,
+    struct d_math_value  _x
 )
 {
-    const struct dj_tests_box* box = d_tests_box_of(_x);
+    const struct d_tests_box* box = d_tests_box_of(_x);
 
     ++g_calls[D_TESTS_PAIR][D_TESTS_UNARY];
 
@@ -936,10 +910,10 @@ d_tests_pair_unary(
 
 // d_tests_pair_cmp
 //   two pairs are equal where their parts are; nothing else is ordered.
-static enum dj_math_value_order
+static enum d_math_value_order
 d_tests_pair_cmp(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     ++g_calls[D_TESTS_PAIR][D_TESTS_CMP];
@@ -963,10 +937,10 @@ d_tests_pair_cmp(
 //   a pair is no number: value.h must never ask.
 static bool
 d_tests_pair_convert(
-    struct dj_math_value*   _out,
+    struct d_math_value*   _out,
     int*                   _direction,
-    struct dj_math_value    _x,
-    enum dj_math_value_kind _to
+    struct d_math_value    _x,
+    enum d_math_value_kind _to
 )
 {
     ++g_calls[D_TESTS_PAIR][D_TESTS_CONVERT];
@@ -985,10 +959,10 @@ d_tests_pair_convert(
 //   an inline value as text, into _buffer, returned: none, false, true,
 // "error n", an integer's digits, "n/d", or a floating-point value's 21
 // significant digits.
-static
-const char* d_tests_inline_text(
-    struct dj_math_value _x,
-    char*                _buffer
+static const char*
+d_tests_inline_text(
+    struct d_math_value _x,
+    char*               _buffer
 )
 {
     char num[24];
@@ -1027,8 +1001,8 @@ const char* d_tests_inline_text(
 // d_tests_put
 //   _text into _buffer as snprintf puts it: at most _size characters, the
 // NUL among them; its whole length.
-static
-size_t d_tests_put(
+static size_t
+d_tests_put(
     char*       _buffer,
     size_t      _size,
     const char* _text
@@ -1051,10 +1025,10 @@ size_t d_tests_put(
 // d_tests_any_text
 //   any value as its text, into _buffer (D_TESTS_TEXT_ROOM), returned: a
 // boxed one through its table.
-static
-const char* d_tests_any_text(
-    struct dj_math_value _x,
-    char*                _buffer
+static const char*
+d_tests_any_text(
+    struct d_math_value _x,
+    char*               _buffer
 )
 {
     // boxed, whole or not; or inline
@@ -1077,14 +1051,14 @@ const char* d_tests_any_text(
 
 // d_tests_box_text
 //   a mirror kind's value as the value it holds; a pair as "(first, second)".
-static
-size_t d_tests_box_text(
-    char*                _buffer,
-    size_t               _size,
-    struct dj_math_value _x
+static size_t
+d_tests_box_text(
+    char*               _buffer,
+    size_t              _size,
+    struct d_math_value _x
 )
 {
-    const struct dj_tests_box* box = d_tests_box_of(_x);
+    const struct d_tests_box* box = d_tests_box_of(_x);
 
     char text[D_TESTS_TEXT_ROOM];
     char first[D_TESTS_TEXT_ROOM];
@@ -1115,10 +1089,10 @@ size_t d_tests_box_text(
 // d_tests_value_text
 //   _x for a report, into _buffer (at least 2 * D_TESTS_TEXT_ROOM): its
 // kind's name, its text, its flags.
-static
-const char* d_tests_value_text(
-    struct dj_math_value _x,
-    char*                _buffer
+static const char*
+d_tests_value_text(
+    struct d_math_value _x,
+    char*               _buffer
 )
 {
     char text[D_TESTS_TEXT_ROOM];
@@ -1141,13 +1115,13 @@ const char* d_tests_value_text(
 
 // d_tests_expect
 //   counts a check, and reports the first few failures with their operands.
-static
-void d_tests_expect(
-    bool                 _ok,
-    const char*          _what,
-    struct dj_math_value _a,
-    struct dj_math_value _b,
-    int                  _line
+static void
+d_tests_expect(
+    bool                _ok,
+    const char*         _what,
+    struct d_math_value _a,
+    struct d_math_value _b,
+    int                 _line
 )
 {
     char text[2][2 * D_TESTS_TEXT_ROOM];
@@ -1175,8 +1149,8 @@ void d_tests_expect(
 
 // d_tests_is_plus_zero
 //   whether _x is +0: 0, its reciprocal +infinity.
-static
-bool d_tests_is_plus_zero(
+static bool
+d_tests_is_plus_zero(
     long double _x
 )
 {
@@ -1189,8 +1163,8 @@ bool d_tests_is_plus_zero(
 // d_tests_same_real
 //   whether _a and _b are the same floating-point value: both NaN, or equal
 // with the same sign, -0 and +0 told apart.
-static
-bool d_tests_same_real(
+static bool
+d_tests_same_real(
     long double _a,
     long double _b
 )
@@ -1216,10 +1190,10 @@ bool d_tests_same_real(
 // d_tests_same
 //   whether _a and _b are the same value: the same kind, flags and fields;
 // boxed, of the same kind of the harness's, holding the same values.
-static
-bool d_tests_same(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static bool
+d_tests_same(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     // the fields
@@ -1254,11 +1228,11 @@ bool d_tests_same(
 // d_tests_is_boxed_as
 //   whether _r is a value of the harness's kind _kind, its fields outside
 // the box 0 but its flags, _flags, its box new and alone.
-static
-bool d_tests_is_boxed_as(
-    struct dj_math_value _r,
-    int                  _kind,
-    unsigned             _flags
+static bool
+d_tests_is_boxed_as(
+    struct d_math_value _r,
+    int                 _kind,
+    unsigned            _flags
 )
 {
     return ( (_r.kind == D_MATH_VALUE_BOXED) &&
@@ -1276,14 +1250,14 @@ bool d_tests_is_boxed_as(
 //   whether _r is _want as the kind _kind gives it: in a box, holding _want
 // without its flags, which are on _r, where the kind keeps such a result;
 // _want itself otherwise.
-static
-bool d_tests_is_kept(
-    struct dj_math_value _r,
-    int                  _kind,
-    struct dj_math_value _want
+static bool
+d_tests_is_kept(
+    struct d_math_value _r,
+    int                 _kind,
+    struct d_math_value _want
 )
 {
-    struct dj_math_value held = _want;
+    struct d_math_value held = _want;
 
     // inline
     if (!d_tests_keeps(_kind, _want))
@@ -1302,12 +1276,12 @@ bool d_tests_is_kept(
 // d_tests_plain
 //   the inline value a mirror kind's _x stands for, with _x's flags; an
 // inline _x itself.
-static
-struct dj_math_value d_tests_plain(
-    struct dj_math_value _x
+static struct d_math_value
+d_tests_plain(
+    struct d_math_value _x
 )
 {
-    struct dj_math_value result = _x;
+    struct d_math_value result = _x;
 
     // what the box holds
     if (_x.kind == D_MATH_VALUE_BOXED)
@@ -1324,10 +1298,10 @@ struct dj_math_value d_tests_plain(
 // or boxed, one boxed: the harness's index of the operand of the higher
 // rank where it is boxed, a boxed one where the ranks tie; -1 where an
 // inline number is the higher.
-static
-int d_tests_handler(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static int
+d_tests_handler(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     const int a_rank = d_tests_rank_of(_a);
@@ -1351,9 +1325,9 @@ int d_tests_handler(
 
 // d_tests_is_other
 //   whether _x is none, an error or a boolean.
-static
-bool d_tests_is_other(
-    struct dj_math_value _x
+static bool
+d_tests_is_other(
+    struct d_math_value _x
 )
 {
     return ( (_x.kind == D_MATH_VALUE_NONE)  ||
@@ -1363,11 +1337,11 @@ bool d_tests_is_other(
 
 // d_tests_count
 //   struct: the counters at one moment.
-struct dj_tests_count
+struct d_tests_count
 {
     long                   calls[D_TESTS_KINDS][D_TESTS_ENTRIES];  // the
                                                     // calls into the tables
-    enum dj_math_value_kind target[D_TESTS_KINDS];   // each kind's last
+    enum d_math_value_kind target[D_TESTS_KINDS];   // each kind's last
                                                     // conversion's kind
     long                   live;                    // the boxes held
     long                   breaches;                // the breaches
@@ -1375,10 +1349,10 @@ struct dj_tests_count
 
 // d_tests_counted
 //   the counters now.
-static
-struct dj_tests_count d_tests_counted(void)
+static struct d_tests_count
+d_tests_counted(void)
 {
-    struct dj_tests_count result;
+    struct d_tests_count result;
 
     memcpy(result.calls, g_calls, sizeof(g_calls));
     memcpy(result.target, g_target, sizeof(g_target));
@@ -1390,12 +1364,12 @@ struct dj_tests_count d_tests_counted(void)
 
 // d_tests_calls
 //   the calls into the kind _kind's entry _entry from _before to _after.
-static
-long d_tests_calls(
-    const struct dj_tests_count* _before,
-    const struct dj_tests_count* _after,
-    int                          _kind,
-    int                          _entry
+static long
+d_tests_calls(
+    const struct d_tests_count* _before,
+    const struct d_tests_count* _after,
+    int                         _kind,
+    int                         _entry
 )
 {
     return _after->calls[_kind][_entry] - _before->calls[_kind][_entry];
@@ -1405,13 +1379,13 @@ long d_tests_calls(
 //   whether, from _before to _after, the only calls into any table are
 // _count calls into the entry _entry of the kind _kind; _kind -1 for none
 // at all.
-static
-bool d_tests_calls_only(
-    const struct dj_tests_count* _before,
-    const struct dj_tests_count* _after,
-    int                          _kind,
-    int                          _entry,
-    long                         _count
+static bool
+d_tests_calls_only(
+    const struct d_tests_count* _before,
+    const struct d_tests_count* _after,
+    int                         _kind,
+    int                         _entry,
+    long                        _count
 )
 {
     int k = 0;
@@ -1439,13 +1413,13 @@ bool d_tests_calls_only(
 //   whether, from _before to _after, the entry _entry was called _count
 // times in the kind _kind and never in another; the other entries are not
 // counted.
-static
-bool d_tests_entry_calls_only(
-    const struct dj_tests_count* _before,
-    const struct dj_tests_count* _after,
-    int                          _kind,
-    int                          _entry,
-    long                         _count
+static bool
+d_tests_entry_calls_only(
+    const struct d_tests_count* _before,
+    const struct d_tests_count* _after,
+    int                         _kind,
+    int                         _entry,
+    long                        _count
 )
 {
     int k = 0;
@@ -1466,10 +1440,10 @@ bool d_tests_entry_calls_only(
 // d_tests_no_holds_moved
 //   whether, from _before to _after, no hold was taken or given back in any
 // table.
-static
-bool d_tests_no_holds_moved(
-    const struct dj_tests_count* _before,
-    const struct dj_tests_count* _after
+static bool
+d_tests_no_holds_moved(
+    const struct d_tests_count* _before,
+    const struct d_tests_count* _after
 )
 {
     int k = 0;
@@ -1495,11 +1469,11 @@ bool d_tests_no_holds_moved(
 // d_tests_check_settled
 //   whether _r is the error or domain error value.h must give _a _op _b
 // itself, where an operand is none, an error or a boolean.
-static
-bool d_tests_check_settled(
-    struct dj_math_value _r,
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static bool
+d_tests_check_settled(
+    struct d_math_value _r,
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     const unsigned flags = _a.flags | _b.flags;
@@ -1508,7 +1482,7 @@ bool d_tests_check_settled(
     if ( (_a.kind == D_MATH_VALUE_ERROR) ||
          (_b.kind == D_MATH_VALUE_ERROR) )
     {
-        const struct dj_math_value first =
+        const struct d_math_value first =
             (_a.kind == D_MATH_VALUE_ERROR) ? _a : _b;
 
         return ( (_r.kind == D_MATH_VALUE_ERROR) &&
@@ -1529,12 +1503,12 @@ bool d_tests_check_settled(
 // d_tests_check_pair_result
 //   whether _r is a pair of _first and _second, flagged _flags, as the pair
 // kind gives it; both released after.
-static
-bool d_tests_check_pair_result(
-    struct dj_math_value _r,
-    struct dj_math_value _first,
-    struct dj_math_value _second,
-    unsigned             _flags
+static bool
+d_tests_check_pair_result(
+    struct d_math_value _r,
+    struct d_math_value _first,
+    struct d_math_value _second,
+    unsigned            _flags
 )
 {
     const bool ok = ( (d_tests_is_boxed_as(_r, D_TESTS_PAIR, _flags)) &&
@@ -1552,9 +1526,9 @@ bool d_tests_check_pair_result(
 // result, the kind that handled it, the holds and the boxes.
 static void
 d_tests_check_binary(
-    enum dj_math_value_op _op,
-    struct dj_math_value  _a,
-    struct dj_math_value  _b
+    enum d_math_value_op _op,
+    struct d_math_value  _a,
+    struct d_math_value  _b
 )
 {
     static const char* const names[4] = { "add", "sub", "mul", "div" };
@@ -1563,9 +1537,9 @@ d_tests_check_binary(
     const long     b_refs = d_tests_refs(_b);
     const unsigned flags  = _a.flags | _b.flags;
 
-    struct dj_tests_count before;
-    struct dj_tests_count after;
-    struct dj_math_value  r;
+    struct d_tests_count before;
+    struct d_tests_count after;
+    struct d_math_value  r;
     bool                 ok = false;
 
     // only where a boxed operand is: the rest is t_value.c's
@@ -1603,7 +1577,7 @@ d_tests_check_binary(
     // two numbers: the operand of the higher rank
     else
     {
-        const struct dj_math_value want =
+        const struct d_math_value want =
             d_tests_apply(_op, d_tests_plain(_a), d_tests_plain(_b));
         const int handler = d_tests_handler(_a, _b);
 
@@ -1617,9 +1591,9 @@ d_tests_check_binary(
         // an inline number's: the boxed operand converted to its kind
         else
         {
-            const struct dj_math_value boxed =
+            const struct d_math_value boxed =
                 (_a.kind == D_MATH_VALUE_BOXED) ? _a : _b;
-            const struct dj_math_value other =
+            const struct d_math_value other =
                 (_a.kind == D_MATH_VALUE_BOXED) ? _b : _a;
             const int low = d_tests_index(boxed);
 
@@ -1649,18 +1623,18 @@ d_tests_check_binary(
 
 // d_tests_check_unary
 //   neg and abs of a boxed _x against what they must be, one check.
-static
-void d_tests_check_unary(
-    struct dj_math_value _x
+static void
+d_tests_check_unary(
+    struct d_math_value _x
 )
 {
     const int  kind = d_tests_index(_x);
     const long refs = d_tests_refs(_x);
 
-    struct dj_tests_count before;
-    struct dj_tests_count after;
-    struct dj_math_value  negated;
-    struct dj_math_value  absolute;
+    struct d_tests_count before;
+    struct d_tests_count after;
+    struct d_math_value  negated;
+    struct d_math_value  absolute;
     bool                 ok = false;
 
     // only a boxed value
@@ -1717,18 +1691,18 @@ void d_tests_check_unary(
 // d_tests_check_compare
 //   cmp both ways and eq on (_a, _b), one of them boxed, against what they
 // must be, one check; and which kind compared them.
-static
-void d_tests_check_compare(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static void
+d_tests_check_compare(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
-    enum dj_math_value_order want  = D_MATH_VALUE_UNORDERED;
-    enum dj_math_value_order got   = D_MATH_VALUE_UNORDERED;
-    enum dj_math_value_order back  = D_MATH_VALUE_UNORDERED;
-    enum dj_math_value_order turn  = D_MATH_VALUE_UNORDERED;
-    struct dj_tests_count    before;
-    struct dj_tests_count    after;
+    enum d_math_value_order want  = D_MATH_VALUE_UNORDERED;
+    enum d_math_value_order got   = D_MATH_VALUE_UNORDERED;
+    enum d_math_value_order back  = D_MATH_VALUE_UNORDERED;
+    enum d_math_value_order turn  = D_MATH_VALUE_UNORDERED;
+    struct d_tests_count    before;
+    struct d_tests_count    after;
     bool                    ok    = false;
 
     // only where a boxed operand is
@@ -1781,9 +1755,9 @@ void d_tests_check_compare(
         }
         else
         {
-            const struct dj_math_value boxed =
+            const struct d_math_value boxed =
                 (_a.kind == D_MATH_VALUE_BOXED) ? _a : _b;
-            const struct dj_math_value other =
+            const struct d_math_value other =
                 (_a.kind == D_MATH_VALUE_BOXED) ? _b : _a;
             const int low = d_tests_index(boxed);
 
@@ -1820,9 +1794,9 @@ void d_tests_check_compare(
 // inline number it stands for gives; to_rational of an inexact kind, and
 // every conversion of a pair, refused without a call, the destination as
 // it was.
-static
-void d_tests_check_convert(
-    struct dj_math_value _x
+static void
+d_tests_check_convert(
+    struct d_math_value _x
 )
 {
     const int kind = d_tests_index(_x);
@@ -1830,13 +1804,13 @@ void d_tests_check_convert(
     float                f    = 12345.0f;
     double               d    = 12345.0;
     long double          ld   = 12345.0L;
-    struct dj_rational    r    = { 12345, 0 };
+    struct d_rational    r    = { 12345, 0 };
     float                wf   = 12345.0f;
     double               wd   = 12345.0;
     long double          wld  = 12345.0L;
-    struct dj_rational    wr   = { 12345, 0 };
-    struct dj_tests_count before;
-    struct dj_tests_count after;
+    struct d_rational    wr   = { 12345, 0 };
+    struct d_tests_count before;
+    struct d_tests_count after;
     bool                 ok   = true;
 
     // only a boxed value
@@ -1937,9 +1911,9 @@ void d_tests_check_convert(
 // d_tests_check_queries
 //   is_number, is_exact, rank and kind_name of any _x against the
 // harness's own statement of them, one check.
-static
-void d_tests_check_queries(
-    struct dj_math_value _x
+static void
+d_tests_check_queries(
+    struct d_math_value _x
 )
 {
     static const char* const inline_names[8] = {
@@ -1985,18 +1959,18 @@ void d_tests_check_queries(
 // d_tests_check_holds
 //   retain and release of any _x, one check: a copy of _x, its box held once
 // more, then given back, the copy left none.
-static
-void d_tests_check_holds(
-    struct dj_math_value _x
+static void
+d_tests_check_holds(
+    struct d_math_value _x
 )
 {
     const bool boxed = (_x.kind == D_MATH_VALUE_BOXED);
     const int  kind  = d_tests_index(_x);
     const long refs  = d_tests_refs(_x);
 
-    struct dj_tests_count before = d_tests_counted();
-    struct dj_math_value  copy   = d_math_value_retain(_x);
-    struct dj_tests_count after  = d_tests_counted();
+    struct d_tests_count before = d_tests_counted();
+    struct d_math_value  copy   = d_math_value_retain(_x);
+    struct d_tests_count after  = d_tests_counted();
     bool                 ok     = false;
 
     // the copy, and one hold more
@@ -2033,14 +2007,14 @@ void d_tests_check_holds(
 // the operands, each held once by the harness
 #define D_TESTS_MAX_VALUES  160
 
-static struct dj_math_value g_values[D_TESTS_MAX_VALUES];
+static struct d_math_value g_values[D_TESTS_MAX_VALUES];
 static int                 g_count = 0;
 
 // d_tests_add_value
 //   _x among the operands; the harness's hold on it is the operands'.
-static
-void d_tests_add_value(
-    struct dj_math_value _x
+static void
+d_tests_add_value(
+    struct d_math_value _x
 )
 {
     // room for it, or given back
@@ -2060,26 +2034,26 @@ void d_tests_add_value(
 // d_tests_boxed_small, d_tests_boxed_exact, d_tests_boxed_inexact
 //   a value of a mirror kind standing for an integer, an exact number, or a
 // long double.
-static
-struct dj_math_value d_tests_boxed_small(
-    dj_math_imax _n
+static struct d_math_value
+d_tests_boxed_small(
+    d_math_imax _n
 )
 {
     return d_tests_new_box(D_TESTS_SMALL, &g_kind_small,
                            d_math_value_from_int(_n), d_math_value_none());
 }
 
-static
-struct dj_math_value d_tests_boxed_exact(
-    struct dj_math_value _x
+static struct d_math_value
+d_tests_boxed_exact(
+    struct d_math_value _x
 )
 {
     return d_tests_new_box(D_TESTS_EXACT, &g_kind_exact, _x,
                            d_math_value_none());
 }
 
-static
-struct dj_math_value d_tests_boxed_inexact(
+static struct d_math_value
+d_tests_boxed_inexact(
     long double _x
 )
 {
@@ -2089,9 +2063,9 @@ struct dj_math_value d_tests_boxed_inexact(
 
 // d_tests_flagged
 //   _x with the inexact flag.
-static
-struct dj_math_value d_tests_flagged(
-    struct dj_math_value _x
+static struct d_math_value
+d_tests_flagged(
+    struct d_math_value _x
 )
 {
     _x.flags = D_MATH_VALUE_FLAG_INEXACT;
@@ -2101,11 +2075,11 @@ struct dj_math_value d_tests_flagged(
 
 // d_tests_make_values
 //   the operands: inline values of every kind, and the boxed ones.
-static
-void d_tests_make_values(void)
+static void
+d_tests_make_values(void)
 {
     // each in the one form; integers as n/1
-    static const dj_math_imax exact[][2] = {
+    static const d_math_imax exact[][2] = {
         { 0, 1 },          { 1, 1 },               { -1, 1 },
         { 2, 1 },          { -3, 1 },              { 7, 1 },
         { 1, 2 },          { -1, 3 },              { 2, 3 },
@@ -2131,7 +2105,7 @@ void d_tests_make_values(void)
     // the exact numbers, inline, in exact's box, and in small's for integers
     for (i = 0; i < exact_count; ++i)
     {
-        const struct dj_math_value x =
+        const struct d_math_value x =
             d_math_value_from_ratio(exact[i][0], exact[i][1]);
 
         d_tests_add_value(x);
@@ -2186,7 +2160,7 @@ void d_tests_make_values(void)
     // the nearest float, double and long double of rationals that none of
     // them equals: where a comparison must not settle for the rounding
     {
-        const struct dj_math_value odd[2] = {
+        const struct d_math_value odd[2] = {
             d_math_value_from_ratio(-1, 3),
             d_math_value_from_ratio(D_TESTS_MOST, 3)
         };
@@ -2218,10 +2192,10 @@ void d_tests_make_values(void)
     // flagged: an exact sum past the family, an error made from it, and
     // boxed values; one shares its box with an operand already there
     {
-        const struct dj_math_value past =
+        const struct d_math_value past =
             d_math_value_add(d_math_value_from_int(D_TESTS_MOST),
                              d_math_value_from_int(1));
-        const struct dj_math_value third =
+        const struct d_math_value third =
             d_tests_boxed_exact(d_math_value_from_ratio(1, 3));
 
         d_tests_add_value(past);
@@ -2235,12 +2209,12 @@ void d_tests_make_values(void)
     // pairs: numbers inline and boxed, a non-number and an error, and a pair
     // within a pair
     {
-        struct dj_math_value one  = d_math_value_from_int(1);
-        struct dj_math_value half =
+        struct d_math_value one  = d_math_value_from_int(1);
+        struct d_math_value half =
             d_tests_boxed_exact(d_math_value_from_ratio(1, 2));
-        struct dj_math_value two  = d_tests_boxed_small(2);
-        struct dj_math_value tiny = d_tests_boxed_inexact(0.25L);
-        struct dj_math_value in   = d_tests_pair_of(one, two);
+        struct d_math_value two  = d_tests_boxed_small(2);
+        struct d_math_value tiny = d_tests_boxed_inexact(0.25L);
+        struct d_math_value in   = d_tests_pair_of(one, two);
 
         d_tests_add_value(d_tests_pair_of(one, half));
         d_tests_add_value(d_tests_pair_of(two, tiny));
@@ -2261,8 +2235,8 @@ void d_tests_make_values(void)
 
 // d_tests_release_values
 //   the operands given back.
-static
-void d_tests_release_values(void)
+static void
+d_tests_release_values(void)
 {
     int i = 0;
 
@@ -2285,8 +2259,8 @@ void d_tests_release_values(void)
 // d_tests_pairs
 //   every operand alone, and each pair with a boxed one, for every
 // operation and the comparison.
-static
-void d_tests_pairs(void)
+static void
+d_tests_pairs(void)
 {
     int i  = 0;
     int j  = 0;
@@ -2306,7 +2280,7 @@ void d_tests_pairs(void)
             for (op = (int)D_MATH_VALUE_OP_ADD;
                  op <= (int)D_MATH_VALUE_OP_DIV; ++op)
             {
-                d_tests_check_binary((enum dj_math_value_op)op, g_values[i],
+                d_tests_check_binary((enum d_math_value_op)op, g_values[i],
                                      g_values[j]);
             }
 
@@ -2319,19 +2293,19 @@ void d_tests_pairs(void)
 
 // d_tests_named
 //   results worth naming.
-static
-void d_tests_named(void)
+static void
+d_tests_named(void)
 {
-    const struct dj_math_value third = d_math_value_from_ratio(1, 3);
-    const struct dj_math_value sixth = d_math_value_from_ratio(1, 6);
+    const struct d_math_value third = d_math_value_from_ratio(1, 3);
+    const struct d_math_value sixth = d_math_value_from_ratio(1, 6);
 
-    struct dj_math_value boxed_third = d_tests_boxed_exact(third);
-    struct dj_math_value copy_sixth  =
+    struct d_math_value boxed_third = d_tests_boxed_exact(third);
+    struct d_math_value copy_sixth  =
         d_tests_new_box(D_TESTS_EXACT, &g_kind_exact_copy, sixth,
                         d_math_value_none());
-    struct dj_math_value most        = d_tests_boxed_small(D_TESTS_MOST);
-    struct dj_math_value tiny        = d_tests_boxed_inexact(0.25L);
-    struct dj_math_value r           = d_math_value_none();
+    struct d_math_value most        = d_tests_boxed_small(D_TESTS_MOST);
+    struct d_math_value tiny        = d_tests_boxed_inexact(0.25L);
+    struct d_math_value r           = d_math_value_none();
     long double         near        = 0.0L;
 
     // a boxed 1/3 plus an inline 1/6: exact's box holding 1/2
@@ -2395,7 +2369,7 @@ void d_tests_named(void)
 
     // a pair times 2, part by part
     {
-        struct dj_math_value pair =
+        struct d_math_value pair =
             d_tests_pair_of(d_math_value_from_int(1), boxed_third);
 
         r = d_math_value_mul(pair, d_math_value_from_int(3));
@@ -2436,17 +2410,17 @@ void d_tests_named(void)
 // d_tests_memory
 //   storage refused: a kind's result is a memory error, with the operands'
 // flags, and nothing leaks; a pair whose parts' or own storage is refused.
-static
-void d_tests_memory(void)
+static void
+d_tests_memory(void)
 {
     const long live = g_live;
 
-    struct dj_math_value two   = d_tests_flagged(d_tests_boxed_small(2));
-    struct dj_math_value third =
+    struct d_math_value two   = d_tests_flagged(d_tests_boxed_small(2));
+    struct d_math_value third =
         d_tests_boxed_exact(d_math_value_from_ratio(1, 3));
-    struct dj_math_value tiny  = d_tests_boxed_inexact(0.25L);
-    struct dj_math_value pair  = d_tests_pair_of(two, third);
-    struct dj_math_value r     = d_math_value_none();
+    struct d_math_value tiny  = d_tests_boxed_inexact(0.25L);
+    struct d_math_value pair  = d_tests_pair_of(two, third);
+    struct d_math_value r     = d_math_value_none();
     long                held  = 0;
     int                 k     = 0;
 
@@ -2523,16 +2497,16 @@ void d_tests_memory(void)
 
 // d_tests_text_entries
 //   each kind's text, through its table, and its room respected.
-static
-void d_tests_text_entries(void)
+static void
+d_tests_text_entries(void)
 {
-    struct dj_math_value small = d_tests_boxed_small(-42);
-    struct dj_math_value exact =
+    struct d_math_value small = d_tests_boxed_small(-42);
+    struct d_math_value exact =
         d_tests_boxed_exact(d_math_value_from_ratio(-5, 6));
-    struct dj_math_value tiny  = d_tests_boxed_inexact(0.25L);
-    struct dj_math_value in    =
+    struct d_math_value tiny  = d_tests_boxed_inexact(0.25L);
+    struct d_math_value in    =
         d_tests_pair_of(d_math_value_from_int(1), small);
-    struct dj_math_value pair  = d_tests_pair_of(in, exact);
+    struct d_math_value pair  = d_tests_pair_of(in, exact);
 
     char   text[D_TESTS_TEXT_ROOM];
     char   room[8];
@@ -2568,13 +2542,166 @@ void d_tests_text_entries(void)
     return;
 }
 
+// Exactness by value, and holders: a kind whose values are exact or not one
+// by one says which by its exact entry, asked only of a number whose traits
+// do not say it for all; and the holders' count, value.h's for every kind.
+
+// the box of the kinds below: whether it is exact; and the calls of the
+// exact entry
+struct d_tests_marked
+{
+    bool exact;
+};
+
+static long g_exact_calls = 0;
+
+// d_tests_marked_exact
+//   the exact entry: the box's mark, each call counted.
+static bool
+d_tests_marked_exact(
+    struct d_math_value _x
+)
+{
+    ++g_exact_calls;
+
+    return ((const struct d_tests_marked*)_x.box)->exact;
+}
+
+// d_tests_marked_kind
+//   a kind of the traits _traits and the exact entry _exact, its other
+// entries the pair's, never called here.
+static struct d_math_boxed_kind
+d_tests_marked_kind(
+    unsigned              _traits,
+    d_math_boxed_exact_fn _exact
+)
+{
+    struct d_math_boxed_kind kind = g_kind_pair;
+
+    kind.name   = "marked";
+    kind.rank   = 700;
+    kind.traits = _traits;
+    kind.exact  = _exact;
+
+    return kind;
+}
+
+// d_tests_marked_value
+//   a value of _kind holding _box, made by hand: no holder is counted.
+static struct d_math_value
+d_tests_marked_value(
+    const struct d_math_boxed_kind* _kind,
+    struct d_tests_marked*          _box
+)
+{
+    struct d_math_value x = d_math_value_none();
+
+    x.kind = D_MATH_VALUE_BOXED;
+    x.type = _kind;
+    x.box  = _box;
+
+    return x;
+}
+
+// d_tests_exactness
+//   d_math_value_is_exact of a boxed value: the exact entry's answer for a
+// number whose traits say no D_MATH_BOXED_EXACT, asked once; true for one
+// whose traits say it, and false for no number or for no entry, none of
+// them asking; and d_math_boxed_hold and d_math_boxed_unhold, one holder
+// more and one fewer, the last said, atomically as cfg_value.h resolves.
+static void
+d_tests_exactness(void)
+{
+    const struct d_math_value none = d_math_value_none();
+
+    struct d_tests_marked    exact     = { true };
+    struct d_tests_marked    inexact   = { false };
+    struct d_math_boxed_kind by_value  =
+        d_tests_marked_kind(D_MATH_BOXED_NUMBER, d_tests_marked_exact);
+    struct d_math_boxed_kind no_entry  =
+        d_tests_marked_kind(D_MATH_BOXED_NUMBER, NULL);
+    struct d_math_boxed_kind all_exact =
+        d_tests_marked_kind(D_MATH_BOXED_NUMBER | D_MATH_BOXED_EXACT,
+                            d_tests_marked_exact);
+    struct d_math_boxed_kind no_number =
+        d_tests_marked_kind(0u, d_tests_marked_exact);
+    size_t                   holders   = 1u;
+    bool                     last_1    = true;
+    bool                     last_2    = false;
+
+    // asked of each value: its mark, once each
+    g_exact_calls = 0;
+    D_TESTS_EXPECT( (d_math_value_is_number(
+                         d_tests_marked_value(&by_value, &exact))) &&
+                    (d_math_value_is_exact(
+                         d_tests_marked_value(&by_value, &exact))) &&
+                    (!d_math_value_is_exact(
+                         d_tests_marked_value(&by_value, &inexact))) &&
+                    (g_exact_calls == 2),
+                    "exact: the entry's answer, value by value, asked once "
+                    "each", none, none);
+
+    // not asked: the traits say it, or no number, or no entry
+    g_exact_calls = 0;
+    D_TESTS_EXPECT( (d_math_value_is_exact(
+                         d_tests_marked_value(&all_exact, &inexact))) &&
+                    (!d_math_value_is_exact(
+                         d_tests_marked_value(&no_number, &exact))) &&
+                    (!d_math_value_is_number(
+                         d_tests_marked_value(&no_number, &exact))) &&
+                    (!d_math_value_is_exact(
+                         d_tests_marked_value(&no_entry, &exact))) &&
+                    (g_exact_calls == 0),
+                    "exact: the traits' answer for every value, none for no "
+                    "number or no entry, and the entry not asked",
+                    none, none);
+
+    // the harness's own kinds and the wide integer have no entry
+    D_TESTS_EXPECT( (g_kind_small.exact == NULL) &&
+                    (g_kind_exact.exact == NULL) &&
+                    (g_kind_inexact.exact == NULL) &&
+                    (g_kind_pair.exact == NULL),
+                    "exact: no entry in a table written without one",
+                    none, none);
+
+    // the holders: one more, then the last two given back
+    d_math_boxed_hold(&holders);
+    last_1 = d_math_boxed_unhold(&holders);
+    last_2 = d_math_boxed_unhold(&holders);
+    D_TESTS_EXPECT( (!last_1) &&
+                    (last_2) &&
+                    (holders == 0u),
+                    "holders: 1, 2, 1, 0, the last said", none, none);
+
+    // the knob on by default, where the build does not set it
+#ifndef D_TESTS_HOLDERS_SET
+    D_TESTS_EXPECT(D_CFG_IS_ON(D_CFG_MATH_VALUE_ATOMIC_HOLDERS),
+                   "holders: the knob on by default", none, none);
+#endif
+
+    // atomic as cfg_value.h resolves it
+    D_TESTS_EXPECT( (D_MATH_BOXED_HOLDERS_ATOMIC ==
+                     ( (D_INTERNAL_MATH_VALUE_HOLDERS != 0) ? 1 : 0 )) &&
+                    ( (D_CFG_IS_OFF(D_CFG_MATH_VALUE_ATOMIC_HOLDERS))
+                          ? (D_MATH_BOXED_HOLDERS_ATOMIC == 0)
+                          : (D_MATH_BOXED_HOLDERS_ATOMIC ==
+                             ( ( (D_CFG_IS_ON(
+                                      D_ENV_COMPILER_HAS_ATOMIC_BUILTINS)) ||
+                                 (D_CFG_IS_ON(D_ENV_COMPILER_MSVC_FAMILY)) )
+                                   ? 1 : 0 )) ),
+                    "holders: atomic where the knob is on and the compiler "
+                    "can", none, none);
+
+    return;
+}
+
 static unsigned long g_state = 27182818UL;
 
 // d_tests_random16
 //   16 bits from a 32-bit linear congruential generator: the same in every
 // build.
-static
-unsigned long d_tests_random16(void)
+static unsigned long
+d_tests_random16(void)
 {
     g_state = ((g_state * 1103515245UL) + 12345UL) & 0xFFFFFFFFUL;
 
@@ -2582,19 +2709,19 @@ unsigned long d_tests_random16(void)
 }
 
 // d_tests_random_bits
-//   a dj_math_umax below 2^_bits, _bits at most the word's.
-static
-dj_math_umax d_tests_random_bits(
+//   a d_math_umax below 2^_bits, _bits at most the word's.
+static d_math_umax
+d_tests_random_bits(
     unsigned _bits
 )
 {
-    dj_math_umax value = 0u;
+    d_math_umax value = 0u;
     unsigned    have  = 0u;
 
     // sixteen bits at a time, then the excess shifted away
     while (have < _bits)
     {
-        value = (value << 16) | (dj_math_umax)d_tests_random16();
+        value = (value << 16) | (d_math_umax)d_tests_random16();
         have  = have + 16u;
     }
 
@@ -2604,33 +2731,33 @@ dj_math_umax d_tests_random_bits(
 // d_tests_random_exact
 //   an exact value: a numerator below 2^n, either sign, over a denominator
 // below 2^m, each length drawn up to w - 1; one time in four an integer.
-static
-struct dj_math_value d_tests_random_exact(void)
+static struct d_math_value
+d_tests_random_exact(void)
 {
     const unsigned    width = D_INTERNAL_RATIONAL_WORD_BITS;
     const unsigned    nbits = (unsigned)(d_tests_random16() % width);
     const unsigned    dbits =
         1u + (unsigned)(d_tests_random16() % (width - 1u));
     const bool        whole = ((d_tests_random16() & 3UL) == 0UL);
-    const dj_math_umax n     = d_tests_random_bits(nbits);
-    const dj_math_umax drawn = d_tests_random_bits(dbits);
+    const d_math_umax n     = d_tests_random_bits(nbits);
+    const d_math_umax drawn = d_tests_random_bits(dbits);
     const bool        neg   = ((d_tests_random16() & 1UL) != 0UL);
-    const dj_math_umax d     = ( (whole) ||
+    const d_math_umax d     = ( (whole) ||
                                 (drawn == 0u) ) ? 1u : drawn;
 
-    return d_math_value_from_ratio(neg ? -(dj_math_imax)n : (dj_math_imax)n,
-                                   (dj_math_imax)d);
+    return d_math_value_from_ratio(neg ? -(d_math_imax)n : (d_math_imax)n,
+                                   (d_math_imax)d);
 }
 
 // d_tests_random_near
 //   a floating-point value at or next to _x's nearest one: its float, double
 // or long double as _type is 0, 1 or 2, and as _step is 0, 1 or 2, that
 // value, the next one up, or the next one down.
-static
-struct dj_math_value d_tests_random_near(
-    struct dj_math_value _x,
-    unsigned long        _type,
-    unsigned long        _step
+static struct d_math_value
+d_tests_random_near(
+    struct d_math_value _x,
+    unsigned long       _type,
+    unsigned long       _step
 )
 {
     float       f  = 0.0f;
@@ -2669,8 +2796,8 @@ struct dj_math_value d_tests_random_near(
 // box, y inline and boxed, n in small's box, the floating-point value
 // inline and in inexact's box. Each pair with a boxed one, both ways, for
 // every operation and the comparison.
-static
-void d_tests_random(void)
+static void
+d_tests_random(void)
 {
     long trial = 0;
     int  i     = 0;
@@ -2680,14 +2807,14 @@ void d_tests_random(void)
     // each draw
     for (trial = 0; trial < D_TESTS_TRIALS; ++trial)
     {
-        const struct dj_math_value x    = d_tests_random_exact();
-        const struct dj_math_value y    = d_tests_random_exact();
+        const struct d_math_value x    = d_tests_random_exact();
+        const struct d_math_value y    = d_tests_random_exact();
         const unsigned long       type = d_tests_random16() % 3UL;
         const unsigned long       step = d_tests_random16() % 3UL;
-        const struct dj_math_value near = d_tests_random_near(x, type, step);
+        const struct d_math_value near = d_tests_random_near(x, type, step);
 
         long double         as_ld     = 0.0L;
-        struct dj_math_value values[7];
+        struct d_math_value values[7];
 
         (void)d_math_value_to_ld(&as_ld, near);
         values[0] = d_tests_boxed_exact(x);
@@ -2705,7 +2832,7 @@ void d_tests_random(void)
                 for (op = (int)D_MATH_VALUE_OP_ADD;
                      op <= (int)D_MATH_VALUE_OP_DIV; ++op)
                 {
-                    d_tests_check_binary((enum dj_math_value_op)op, values[i],
+                    d_tests_check_binary((enum d_math_value_op)op, values[i],
                                          values[j]);
                 }
 
@@ -2733,8 +2860,8 @@ void d_tests_random(void)
 #if ( defined(__cplusplus) &&                                                 \
       (__cplusplus >= 201402L) )
 
-static constexpr
-bool d_tests_constexpr_same_text(
+static constexpr bool
+d_tests_constexpr_same_text(
     const char* _a,
     const char* _b
 )
@@ -2750,10 +2877,10 @@ bool d_tests_constexpr_same_text(
     return (*_a == *_b);
 }
 
-static constexpr
-struct dj_math_value d_tests_constexpr_released()
+static constexpr struct d_math_value
+d_tests_constexpr_released()
 {
-    struct dj_math_value x = d_math_value_retain(d_math_value_from_ratio(1, 3));
+    struct d_math_value x = d_math_value_retain(d_math_value_from_ratio(1, 3));
 
     d_math_value_release(&x);
 
@@ -2781,10 +2908,10 @@ static_assert(d_math_value_eq(d_math_value_from_ratio(1, 2),
 
 // d_tests_constant_evaluation
 //   the same at run time.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
-    const struct dj_math_value released = d_tests_constexpr_released();
+    const struct d_math_value released = d_tests_constexpr_released();
 
     D_TESTS_EXPECT( (d_math_value_rank(d_math_value_from_ld(0.5L)) == 500) &&
                     (d_tests_constexpr_same_text(
@@ -2802,9 +2929,10 @@ void d_tests_constant_evaluation(void)
 #endif  // C++14
 
 
-int main(void)
+int
+main(void)
 {
-    const struct dj_math_value none = d_math_value_none();
+    const struct d_math_value none = d_math_value_none();
 
     // the ranks value.h states, as the harness states them
     D_TESTS_EXPECT( (D_MATH_VALUE_RANK_INTEGER == 100) &&
@@ -2819,6 +2947,7 @@ int main(void)
     d_tests_named();
     d_tests_memory();
     d_tests_text_entries();
+    d_tests_exactness();
     d_tests_random();
 #if ( defined(__cplusplus) &&                                                 \
       (__cplusplus >= 201402L) )

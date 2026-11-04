@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [test]                                                      t_value.c
+* djinterp [c/math]                                                    t_value.c
 *
 *   Conformance harness for the value layer (c/math/value.h): every operation
 * on every pairing of kinds, against the exact reference of
 * math_tests_exact.h.
 *   An exact result must be exact: an integer where its reduced denominator
 * is 1, a rational otherwise, equal to the exact value by cross-multiplication
-* and in the one form; or, where it does not fit dj_math_imax, the long double
+* and in the one form; or, where it does not fit d_math_imax, the long double
 * nearest it, ties to even, flagged inexact. An exact division by exact zero
 * must be a pole, or invalid for 0 / 0. An inexact result must be the
 * operation done in the wider of the operands' floating-point types, an exact
@@ -29,7 +29,7 @@
 * and an error made from it: each pair, for every operation and the
 * comparison. Then 20,000 pairs of exact numbers drawn at
 * random, each term of a random length. from_uint is checked against the
-* reference too, an integer up to dj_math_imax's top and the long double
+* reference too, an integer up to d_math_imax's top and the long double
 * nearest past it, flagged inexact: every power of two in the word and its
 * neighbours, and 2,000 drawn at random. From C++14 the operations are also
 * checked as constant expressions.
@@ -38,7 +38,7 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_value.c -o t_value -lm
+*        tests/djinterp/c/math/t_value.c -o t_value -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_value.c
@@ -60,7 +60,7 @@
 #define D_TESTS_MOST   D_MATH_IMAX_MAX
 #define D_TESTS_LEAST  D_MATH_IMAX_MIN
 #define D_TESTS_HALF                                                           \
-    ((dj_math_imax)((dj_math_umax)1 << D_INTERNAL_RATIONAL_HALF_BITS))
+    ((d_math_imax)((d_math_umax)1 << D_INTERNAL_RATIONAL_HALF_BITS))
 
 // the pairs of exact numbers drawn at random
 #define D_TESTS_TRIALS  20000L
@@ -81,10 +81,10 @@ static long g_failures = 0;
 
 // d_tests_value_text
 //   _x as text, into _buffer (at least 80 characters), returned.
-static
-const char* d_tests_value_text(
-    struct dj_math_value _x,
-    char*                _buffer
+static const char*
+d_tests_value_text(
+    struct d_math_value _x,
+    char*               _buffer
 )
 {
     char num[24];
@@ -132,13 +132,13 @@ const char* d_tests_value_text(
 
 // d_tests_expect
 //   counts a check, and reports the first few failures with their operands.
-static
-void d_tests_expect(
-    bool                 _ok,
-    const char*          _what,
-    struct dj_math_value _a,
-    struct dj_math_value _b,
-    int                  _line
+static void
+d_tests_expect(
+    bool                _ok,
+    const char*         _what,
+    struct d_math_value _a,
+    struct d_math_value _b,
+    int                 _line
 )
 {
     char text[2][80];
@@ -171,8 +171,8 @@ void d_tests_expect(
 
 // d_tests_is_plus_zero
 //   whether _x is +0: 0, its reciprocal +infinity.
-static
-bool d_tests_is_plus_zero(
+static bool
+d_tests_is_plus_zero(
     long double _x
 )
 {
@@ -185,8 +185,8 @@ bool d_tests_is_plus_zero(
 // d_tests_same_real
 //   whether _a and _b are the same floating-point value: both NaN, or equal
 // with the same sign, -0 and +0 told apart.
-static
-bool d_tests_same_real(
+static bool
+d_tests_same_real(
     long double _a,
     long double _b
 )
@@ -212,9 +212,9 @@ bool d_tests_same_real(
 // d_tests_canonical
 //   whether the fields _x's kind does not use hold 0 (exact 0/1), and the
 // ones it uses hold what the kind allows.
-static
-bool d_tests_canonical(
-    struct dj_math_value _x
+static bool
+d_tests_canonical(
+    struct d_math_value _x
 )
 {
     const bool no_code  = (_x.code == 0);
@@ -281,9 +281,9 @@ bool d_tests_canonical(
 
 // d_tests_exact_of_value
 //   an exact value's number, for the reference.
-static
-struct dj_tests_exact d_tests_exact_of_value(
-    struct dj_math_value _x
+static struct d_tests_exact
+d_tests_exact_of_value(
+    struct d_math_value _x
 )
 {
     return d_tests_exact_of(_x.exact.num, _x.exact.den);
@@ -293,13 +293,13 @@ struct dj_tests_exact d_tests_exact_of_value(
 //   whether _r, a value an exact operation gave with operands flagged
 // _flags, is the exact number _want: an integer where _want's reduced
 // denominator is 1, a rational where not, equal to _want and in the one
-// form; or, where _want does not fit dj_math_imax, the long double nearest
+// form; or, where _want does not fit d_math_imax, the long double nearest
 // it, ties to even, flagged inexact.
-static
-bool d_tests_is_exactly(
-    struct dj_math_value  _r,
-    struct dj_tests_exact _want,
-    unsigned              _flags
+static bool
+d_tests_is_exactly(
+    struct d_math_value  _r,
+    struct d_tests_exact _want,
+    unsigned             _flags
 )
 {
     // too wide for the exact kinds
@@ -329,15 +329,15 @@ bool d_tests_is_exactly(
 
 // d_tests_exact_want
 //   _a _op _b by the reference, _b nonzero for a quotient.
-static
-struct dj_tests_exact d_tests_exact_want(
-    int                  _op,
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static struct d_tests_exact
+d_tests_exact_want(
+    int                 _op,
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
-    const struct dj_tests_exact a = d_tests_exact_of_value(_a);
-    const struct dj_tests_exact b = d_tests_exact_of_value(_b);
+    const struct d_tests_exact a = d_tests_exact_of_value(_a);
+    const struct d_tests_exact b = d_tests_exact_of_value(_b);
 
     // the operation
     switch (_op)
@@ -359,27 +359,27 @@ struct dj_tests_exact d_tests_exact_want(
 // d_tests_real_f, _d, _ld
 //   a number in a type at least its kind's: exact, as rational.h converts
 // it; inexact, exactly.
-static
-float d_tests_real_f(
-    struct dj_math_value _x
+static float
+d_tests_real_f(
+    struct d_math_value _x
 )
 {
     return d_math_value_is_exact(_x) ? d_rational_to_f(_x.exact)
                                      : (float)_x.real;
 }
 
-static
-double d_tests_real_d(
-    struct dj_math_value _x
+static double
+d_tests_real_d(
+    struct d_math_value _x
 )
 {
     return d_math_value_is_exact(_x) ? d_rational_to_d(_x.exact)
                                      : (double)_x.real;
 }
 
-static
-long double d_tests_real_ld(
-    struct dj_math_value _x
+static long double
+d_tests_real_ld(
+    struct d_math_value _x
 )
 {
     return d_math_value_is_exact(_x) ? d_rational_to_ld(_x.exact)
@@ -392,9 +392,9 @@ long double d_tests_real_ld(
 static long double
 d_tests_real_want(
     int                    _op,
-    enum dj_math_value_kind _kind,
-    struct dj_math_value    _a,
-    struct dj_math_value    _b
+    enum d_math_value_kind _kind,
+    struct d_math_value    _a,
+    struct d_math_value    _b
 )
 {
     // float
@@ -445,24 +445,24 @@ d_tests_real_want(
 // d_tests_cmp_exact_real
 //   the reference's order of the exact number _r against the finite or
 // infinite _f (math_tests_exact.h), as value.h gives an order.
-static enum dj_math_value_order
+static enum d_math_value_order
 d_tests_cmp_exact_real(
-    struct dj_rational _r,
+    struct d_rational _r,
     long double       _f
 )
 {
     const int order = d_tests_exact_cmp_real(_r, _f);
 
     return (order == 2) ? D_MATH_VALUE_UNORDERED
-                        : (enum dj_math_value_order)order;
+                        : (enum d_math_value_order)order;
 }
 
 // d_tests_cmp_want
 //   the order the reference gives _a and _b.
-static enum dj_math_value_order
+static enum d_math_value_order
 d_tests_cmp_want(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     // two numbers
@@ -487,7 +487,7 @@ d_tests_cmp_want(
 
         if (d_math_value_is_exact(_b))
         {
-            const enum dj_math_value_order order =
+            const enum d_math_value_order order =
                 d_tests_cmp_exact_real(_b.exact, _a.real);
 
             return (order == D_MATH_VALUE_LESS)
@@ -535,11 +535,11 @@ d_tests_cmp_want(
 
 // d_tests_apply
 //   value.h's _a _op _b.
-static
-struct dj_math_value d_tests_apply(
-    int                  _op,
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static struct d_math_value
+d_tests_apply(
+    int                 _op,
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     // the operation
@@ -561,16 +561,16 @@ struct dj_math_value d_tests_apply(
 
 // d_tests_check_binary
 //   _a _op _b against what it must be, one check.
-static
-void d_tests_check_binary(
-    int                  _op,
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static void
+d_tests_check_binary(
+    int                 _op,
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
     static const char* const names[4] = { "add", "sub", "mul", "div" };
 
-    const struct dj_math_value r     = d_tests_apply(_op, _a, _b);
+    const struct d_math_value r     = d_tests_apply(_op, _a, _b);
     const unsigned            flags = _a.flags | _b.flags;
 
     bool ok = false;
@@ -579,7 +579,7 @@ void d_tests_check_binary(
     if ( (_a.kind == D_MATH_VALUE_ERROR) ||
          (_b.kind == D_MATH_VALUE_ERROR) )
     {
-        const struct dj_math_value first =
+        const struct d_math_value first =
             (_a.kind == D_MATH_VALUE_ERROR) ? _a : _b;
 
         ok = ( (r.kind == D_MATH_VALUE_ERROR) &&
@@ -618,7 +618,7 @@ void d_tests_check_binary(
     // inexact: the wider type's own arithmetic
     else
     {
-        const enum dj_math_value_kind kind = (_a.kind > _b.kind) ? _a.kind
+        const enum d_math_value_kind kind = (_a.kind > _b.kind) ? _a.kind
                                                                 : _b.kind;
 
         ok = ( (r.kind == kind) &&
@@ -635,13 +635,13 @@ void d_tests_check_binary(
 
 // d_tests_check_unary
 //   neg and abs of _x against what they must be, one check.
-static
-void d_tests_check_unary(
-    struct dj_math_value _x
+static void
+d_tests_check_unary(
+    struct d_math_value _x
 )
 {
-    const struct dj_math_value negated  = d_math_value_neg(_x);
-    const struct dj_math_value absolute = d_math_value_abs(_x);
+    const struct d_math_value negated  = d_math_value_neg(_x);
+    const struct d_math_value absolute = d_math_value_abs(_x);
 
     bool ok = false;
 
@@ -668,7 +668,7 @@ void d_tests_check_unary(
     // exact: -x and |x| by the reference
     else if (d_math_value_is_exact(_x))
     {
-        const struct dj_tests_exact x = d_tests_exact_of_value(_x);
+        const struct d_tests_exact x = d_tests_exact_of_value(_x);
 
         ok = ( (d_tests_is_exactly(negated, d_tests_exact_neg(x),
                                    _x.flags)) &&
@@ -703,14 +703,14 @@ void d_tests_check_unary(
 
 // d_tests_check_compare
 //   cmp both ways and eq on (_a, _b) against the reference, one check.
-static
-void d_tests_check_compare(
-    struct dj_math_value _a,
-    struct dj_math_value _b
+static void
+d_tests_check_compare(
+    struct d_math_value _a,
+    struct d_math_value _b
 )
 {
-    const enum dj_math_value_order want = d_tests_cmp_want(_a, _b);
-    const enum dj_math_value_order back =
+    const enum d_math_value_order want = d_tests_cmp_want(_a, _b);
+    const enum d_math_value_order back =
         (want == D_MATH_VALUE_LESS)
             ? D_MATH_VALUE_GREATER
             : ( (want == D_MATH_VALUE_GREATER) ? D_MATH_VALUE_LESS : want );
@@ -727,9 +727,9 @@ void d_tests_check_compare(
 //   to_f, to_d, to_ld and to_rational of _x, one check: a number converts,
 // an exact one as rational.h converts it; anything else is refused, and
 // the destination left as it was.
-static
-void d_tests_check_convert(
-    struct dj_math_value _x
+static void
+d_tests_check_convert(
+    struct d_math_value _x
 )
 {
     const bool number = d_math_value_is_number(_x);
@@ -738,7 +738,7 @@ void d_tests_check_convert(
     float             f   = 12345.0f;
     double            d   = 12345.0;
     long double       ld  = 12345.0L;
-    struct dj_rational r   = { 12345, 0 };
+    struct d_rational r   = { 12345, 0 };
     const bool        got = ( (d_math_value_to_f(&f, _x) == number) &&
                               (d_math_value_to_d(&d, _x) == number) &&
                               (d_math_value_to_ld(&ld, _x) == number) &&
@@ -794,12 +794,12 @@ void d_tests_check_convert(
 // infinities and NaN come from IEEE arithmetic
 #define D_TESTS_MAX_VALUES  128
 
-static struct dj_math_value g_values[D_TESTS_MAX_VALUES];
+static struct d_math_value g_values[D_TESTS_MAX_VALUES];
 static int                 g_count = 0;
 
-static
-void d_tests_add_value(
-    struct dj_math_value _x
+static void
+d_tests_add_value(
+    struct d_math_value _x
 )
 {
     // room for it
@@ -815,11 +815,11 @@ void d_tests_add_value(
 // d_tests_make_values
 //   the operands: exact numbers, floating-point ones of each type, and the
 // other kinds.
-static
-void d_tests_make_values(void)
+static void
+d_tests_make_values(void)
 {
     // each in the one form; integers as n/1
-    static const dj_math_imax exact[][2] = {
+    static const d_math_imax exact[][2] = {
         { 0, 1 },          { 1, 1 },               { -1, 1 },
         { 2, 1 },          { -3, 1 },              { 7, 1 },
         { 1, 2 },          { -1, 3 },              { 2, 3 },
@@ -933,7 +933,7 @@ void d_tests_make_values(void)
     // the nearest float, double and long double of two rationals that none
     // of them equals: where the comparison must not settle for the rounding
     {
-        const struct dj_math_value odd[2] = {
+        const struct d_math_value odd[2] = {
             d_math_value_from_ratio(-1, 3),
             d_math_value_from_ratio(D_TESTS_MOST, 3)
         };
@@ -955,7 +955,7 @@ void d_tests_make_values(void)
 
     // flagged: an exact sum past the family, and an error made from it
     {
-        const struct dj_math_value past =
+        const struct d_math_value past =
             d_math_value_add(d_math_value_from_int(D_TESTS_MOST),
                              d_math_value_from_int(1));
 
@@ -970,16 +970,16 @@ void d_tests_make_values(void)
 //   what each construction gives: from_ratio over every numerator and
 // denominator in [-12, 12] and the ends, against the reference; from_int,
 // the floating-point kinds, the booleans, none and the errors.
-static
-void d_tests_construction(void)
+static void
+d_tests_construction(void)
 {
-    static const dj_math_imax ends[] = { D_TESTS_MOST, D_TESTS_LEAST,
+    static const d_math_imax ends[] = { D_TESTS_MOST, D_TESTS_LEAST,
                                         D_TESTS_MOST - 1, D_TESTS_LEAST + 1,
                                         D_TESTS_HALF, -1, 1, 2, -2 };
     const int ends_count = (int)(sizeof(ends) / sizeof(ends[0]));
 
-    dj_math_imax num = 0;
-    dj_math_imax den = 0;
+    d_math_imax num = 0;
+    d_math_imax den = 0;
     int         i   = 0;
     int         j   = 0;
 
@@ -988,8 +988,8 @@ void d_tests_construction(void)
     {
         for (den = -12; den <= 12; ++den)
         {
-            const struct dj_math_value x    = d_math_value_from_ratio(num, den);
-            struct dj_math_value       args = d_math_value_from_int(num);
+            const struct d_math_value x    = d_math_value_from_ratio(num, den);
+            struct d_math_value       args = d_math_value_from_int(num);
 
             // the arguments, for a failure's report
             args.exact.den = den;
@@ -1020,9 +1020,9 @@ void d_tests_construction(void)
     {
         for (j = 0; j < ends_count; ++j)
         {
-            const struct dj_math_value x =
+            const struct d_math_value x =
                 d_math_value_from_ratio(ends[i], ends[j]);
-            struct dj_math_value       args = d_math_value_from_int(ends[i]);
+            struct d_math_value       args = d_math_value_from_int(ends[i]);
 
             // the arguments, for a failure's report
             args.exact.den = ends[j];
@@ -1040,16 +1040,16 @@ void d_tests_construction(void)
     // the double 0.1 stored first, as a constant may be held wider
     {
         volatile double           tenth = 0.1;
-        const struct dj_math_value most  = d_math_value_from_int(D_TESTS_MOST);
-        const struct dj_math_value f     = d_math_value_from_f(0.25f);
-        const struct dj_math_value d     = d_math_value_from_d(tenth);
-        const struct dj_math_value ld    = d_math_value_from_ld(0.1L);
-        const struct dj_math_value yes   = d_math_value_from_bool(true);
-        const struct dj_math_value no    = d_math_value_from_bool(false);
-        const struct dj_math_value none  = d_math_value_none();
-        const struct dj_math_value range =
+        const struct d_math_value most  = d_math_value_from_int(D_TESTS_MOST);
+        const struct d_math_value f     = d_math_value_from_f(0.25f);
+        const struct d_math_value d     = d_math_value_from_d(tenth);
+        const struct d_math_value ld    = d_math_value_from_ld(0.1L);
+        const struct d_math_value yes   = d_math_value_from_bool(true);
+        const struct d_math_value no    = d_math_value_from_bool(false);
+        const struct d_math_value none  = d_math_value_none();
+        const struct d_math_value range =
             d_math_value_from_error(D_MATH_VALUE_ERROR_RANGE);
-        const struct dj_math_value third =
+        const struct d_math_value third =
             d_math_value_from_rational(d_rational_from_int(3));
 
         D_TESTS_EXPECT( (most.kind == D_MATH_VALUE_INTEGER) &&
@@ -1086,22 +1086,22 @@ void d_tests_construction(void)
 // d_tests_named
 //   results worth naming: the tower's steps, G2's overflow and its flag
 // carried on, and the exact comparisons that a conversion would get wrong.
-static
-void d_tests_named(void)
+static void
+d_tests_named(void)
 {
-    const struct dj_math_value third = d_math_value_from_ratio(1, 3);
-    const struct dj_math_value sixth = d_math_value_from_ratio(1, 6);
-    const struct dj_math_value one   = d_math_value_from_int(1);
-    const struct dj_math_value two   = d_math_value_from_int(2);
-    const struct dj_math_value most  = d_math_value_from_int(D_TESTS_MOST);
-    const struct dj_math_value half  = d_math_value_from_d(0.5);
+    const struct d_math_value third = d_math_value_from_ratio(1, 3);
+    const struct d_math_value sixth = d_math_value_from_ratio(1, 6);
+    const struct d_math_value one   = d_math_value_from_int(1);
+    const struct d_math_value two   = d_math_value_from_int(2);
+    const struct d_math_value most  = d_math_value_from_int(D_TESTS_MOST);
+    const struct d_math_value half  = d_math_value_from_d(0.5);
 
-    const struct dj_math_value sum   = d_math_value_add(third, sixth);
-    const struct dj_math_value whole =
+    const struct d_math_value sum   = d_math_value_add(third, sixth);
+    const struct d_math_value whole =
         d_math_value_add(third, d_math_value_from_ratio(2, 3));
-    const struct dj_math_value past  = d_math_value_add(most, one);
-    const struct dj_math_value on    = d_math_value_mul(past, two);
-    const struct dj_math_value mixed = d_math_value_add(one, half);
+    const struct d_math_value past  = d_math_value_add(most, one);
+    const struct d_math_value on    = d_math_value_mul(past, two);
+    const struct d_math_value mixed = d_math_value_add(one, half);
 
     // 1/3 + 1/6 is the rational 1/2; 1/3 + 2/3 the integer 1
     D_TESTS_EXPECT( (sum.kind == D_MATH_VALUE_RATIONAL) &&
@@ -1129,7 +1129,7 @@ void d_tests_named(void)
     // own nearest double and float: the conversion rounds them, the
     // comparison does not
     {
-        const struct dj_math_value odd[3] = {
+        const struct d_math_value odd[3] = {
             d_math_value_from_ratio(1, 3),
             d_math_value_from_ratio(-2, 3),
             d_math_value_from_ratio(D_TESTS_MOST, 3)
@@ -1168,8 +1168,8 @@ void d_tests_named(void)
 // d_tests_pairs
 //   every operand alone, and each pair, for every operation and the
 // comparison.
-static
-void d_tests_pairs(void)
+static void
+d_tests_pairs(void)
 {
     int i  = 0;
     int j  = 0;
@@ -1201,8 +1201,8 @@ static unsigned long g_state = 31415926UL;
 // d_tests_random16
 //   16 bits from a 32-bit linear congruential generator: the same in every
 // build.
-static
-unsigned long d_tests_random16(void)
+static unsigned long
+d_tests_random16(void)
 {
     g_state = ((g_state * 1103515245UL) + 12345UL) & 0xFFFFFFFFUL;
 
@@ -1210,19 +1210,19 @@ unsigned long d_tests_random16(void)
 }
 
 // d_tests_random_bits
-//   a dj_math_umax below 2^_bits, _bits at most the word's.
-static
-dj_math_umax d_tests_random_bits(
+//   a d_math_umax below 2^_bits, _bits at most the word's.
+static d_math_umax
+d_tests_random_bits(
     unsigned _bits
 )
 {
-    dj_math_umax value = 0u;
+    d_math_umax value = 0u;
     unsigned    have  = 0u;
 
     // sixteen bits at a time, then the excess shifted away
     while (have < _bits)
     {
-        value = (value << 16) | (dj_math_umax)d_tests_random16();
+        value = (value << 16) | (d_math_umax)d_tests_random16();
         have  = have + 16u;
     }
 
@@ -1231,12 +1231,12 @@ dj_math_umax d_tests_random_bits(
 
 // d_tests_check_from_uint
 //   from_uint(_n) against the reference, _n exactly over 1.
-static
-void d_tests_check_from_uint(
-    dj_math_umax _n
+static void
+d_tests_check_from_uint(
+    d_math_umax _n
 )
 {
-    const struct dj_math_value x = d_math_value_from_uint(_n);
+    const struct d_math_value x = d_math_value_from_uint(_n);
 
     D_TESTS_EXPECT(d_tests_is_exactly(x,
                                       d_tests_exact_from(
@@ -1249,16 +1249,16 @@ void d_tests_check_from_uint(
 }
 
 // d_tests_from_uint
-//   from_uint against the reference: an integer up to dj_math_imax's top,
+//   from_uint against the reference: an integer up to d_math_imax's top,
 // and past it the long double nearest, flagged inexact (G2). Every power of
 // two in the word and its neighbours, the top's, and 2,000 drawn at random,
 // of every length.
-static
-void d_tests_from_uint(void)
+static void
+d_tests_from_uint(void)
 {
     const unsigned width = D_INTERNAL_RATIONAL_WORD_BITS;
 
-    dj_math_umax around[3] = { 0u, 0u, 0u };
+    d_math_umax around[3] = { 0u, 0u, 0u };
     unsigned    k         = 0u;
     int         i         = 0;
     long        trial     = 0;
@@ -1266,7 +1266,7 @@ void d_tests_from_uint(void)
     // 2^k - 1, 2^k and 2^k + 1, and at the top the word's last values
     for (k = 0u; k <= width; ++k)
     {
-        const dj_math_umax power = (k < width) ? ((dj_math_umax)1 << k) : 0u;
+        const d_math_umax power = (k < width) ? ((d_math_umax)1 << k) : 0u;
 
         around[0] = power - 1u;
         around[1] = (k < width) ? power : D_MATH_UMAX_MAX - 1u;
@@ -1291,29 +1291,29 @@ void d_tests_from_uint(void)
 // d_tests_random_exact
 //   an exact value: a numerator below 2^n, either sign, over a denominator
 // below 2^m, each length drawn up to w - 1; one time in four an integer.
-static
-struct dj_math_value d_tests_random_exact(void)
+static struct d_math_value
+d_tests_random_exact(void)
 {
     const unsigned    width = D_INTERNAL_RATIONAL_WORD_BITS;
     const unsigned    nbits = (unsigned)(d_tests_random16() % width);
     const unsigned    dbits =
         1u + (unsigned)(d_tests_random16() % (width - 1u));
     const bool        whole = ((d_tests_random16() & 3UL) == 0UL);
-    const dj_math_umax n     = d_tests_random_bits(nbits);
-    const dj_math_umax drawn = d_tests_random_bits(dbits);
+    const d_math_umax n     = d_tests_random_bits(nbits);
+    const d_math_umax drawn = d_tests_random_bits(dbits);
     const bool        neg   = ((d_tests_random16() & 1UL) != 0UL);
-    const dj_math_umax d     = ( (whole) ||
+    const d_math_umax d     = ( (whole) ||
                                 (drawn == 0u) ) ? 1u : drawn;
 
-    return d_math_value_from_ratio(neg ? -(dj_math_imax)n : (dj_math_imax)n,
-                                   (dj_math_imax)d);
+    return d_math_value_from_ratio(neg ? -(d_math_imax)n : (d_math_imax)n,
+                                   (d_math_imax)d);
 }
 
 // d_tests_random
 //   D_TESTS_TRIALS pairs of exact values, every operation and the
 // comparison on each.
-static
-void d_tests_random(void)
+static void
+d_tests_random(void)
 {
     long trial = 0;
     int  op    = 0;
@@ -1321,8 +1321,8 @@ void d_tests_random(void)
     // each pair
     for (trial = 0; trial < D_TESTS_TRIALS; ++trial)
     {
-        const struct dj_math_value a = d_tests_random_exact();
-        const struct dj_math_value b = d_tests_random_exact();
+        const struct d_math_value a = d_tests_random_exact();
+        const struct d_math_value b = d_tests_random_exact();
 
         for (op = D_TESTS_ADD; op <= D_TESTS_DIV; ++op)
         {
@@ -1344,44 +1344,44 @@ void d_tests_random(void)
 #if ( defined(__cplusplus) &&                                                 \
       (__cplusplus >= 201402L) )
 
-static constexpr
-struct dj_math_value d_tests_constexpr_sum()
+static constexpr struct d_math_value
+d_tests_constexpr_sum()
 {
     return d_math_value_add(d_math_value_from_ratio(1, 3),
                             d_math_value_from_ratio(1, 6));
 }
 
-static constexpr
-struct dj_math_value d_tests_constexpr_past()
+static constexpr struct d_math_value
+d_tests_constexpr_past()
 {
     return d_math_value_add(d_math_value_from_int(D_TESTS_MOST),
                             d_math_value_from_int(1));
 }
 
-static constexpr
-struct dj_math_value d_tests_constexpr_mixed()
+static constexpr struct d_math_value
+d_tests_constexpr_mixed()
 {
     return d_math_value_add(d_math_value_from_int(1),
                             d_math_value_from_d(0.5));
 }
 
-static constexpr enum dj_math_value_order
+static constexpr enum d_math_value_order
 d_tests_constexpr_order()
 {
     return d_math_value_cmp(
-        d_math_value_from_int(((dj_math_imax)1 << 53) + 1),
+        d_math_value_from_int(((d_math_imax)1 << 53) + 1),
         d_math_value_from_d(9007199254740992.0));
 }
 
-static constexpr
-struct dj_math_value d_tests_constexpr_pole()
+static constexpr struct d_math_value
+d_tests_constexpr_pole()
 {
     return d_math_value_div(d_math_value_from_int(1),
                             d_math_value_from_int(0));
 }
 
-static constexpr
-struct dj_math_value d_tests_constexpr_uint()
+static constexpr struct d_math_value
+d_tests_constexpr_uint()
 {
     return d_math_value_from_uint(D_MATH_UMAX_MAX);
 }
@@ -1411,16 +1411,16 @@ static_assert( (d_tests_constexpr_uint().kind ==
                 D_MATH_VALUE_FLAG_INEXACT) &&
                (d_tests_constexpr_uint().real ==
                 (long double)D_MATH_UMAX_MAX),
-               "the greatest dj_math_umax is a flagged long double as a "
+               "the greatest d_math_umax is a flagged long double as a "
                "constant expression");
 
 // d_tests_constant_evaluation
 //   the same at run time.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
-    const struct dj_math_value sum  = d_tests_constexpr_sum();
-    const struct dj_math_value past = d_tests_constexpr_past();
+    const struct d_math_value sum  = d_tests_constexpr_sum();
+    const struct d_math_value past = d_tests_constexpr_past();
 
     D_TESTS_EXPECT( (sum.kind == D_MATH_VALUE_RATIONAL) &&
                     (sum.exact.den == 2) &&
@@ -1439,9 +1439,10 @@ void d_tests_constant_evaluation(void)
 #endif  // C++14
 
 
-int main(void)
+int
+main(void)
 {
-    const struct dj_math_value none = d_math_value_none();
+    const struct d_math_value none = d_math_value_none();
 
     d_tests_make_values();
     d_tests_construction();

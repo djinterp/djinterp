@@ -51,11 +51,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
-#include "../../../../c/modules/math/plane.h"                   // the C core: d_plane_*
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
+#include "../../../djinterp.hpp"                  // framework root
+#include "../../../../c/modules/math/plane.h"     // the C core: d_plane_*
 #include "../coordinate/coordinate.hpp"           // the coordinate systems
 #include "../linear_algebra/linalg_common.hpp"    // linalg::internal::
                                                   // linalg_family_of
@@ -64,16 +61,16 @@ TABLE OF CONTENTS
 #include "./geometry_common.hpp"                  // cartesian_distance,
                                                   // is_edge
 // re_std
-#include "../../../../../re_std/cpp/array/array.hpp"        // re_std::array
+#include "../../../../../re_std/cpp/array/array.hpp"  // re_std::array
 // std and re_std, from C++11 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <array>                              // std::array
     #include <tuple>                              // std::tuple, std::get
     #include "../../../../../re_std/cpp/utility/integer_sequence.hpp"       // index_
-                                                                  // sequence
+                                                                            // sequence
     #include "../../../../../re_std/cpp/utility/make_integer_sequence.hpp"  // make_
-                                                                  // index_
-                                                                  // sequence
+                                                                            // index_
+                                                                            // sequence
 #endif
 
 
@@ -125,12 +122,10 @@ NS_INTERNAL
     template<typename T>
     struct plane_kernel<T, 0>
     {
-        static D_CONSTEXPR_CPP14
-        bool ray_crosses(
-            const T* _p,
-            const T* _a,
-            const T* _b
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 bool
+        ray_crosses(const T* _p,
+                    const T* _a,
+                    const T* _b) D_NOEXCEPT
         {
             const double p[2] = { static_cast<double>(_p[0]),
                                   static_cast<double>(_p[1]) };
@@ -145,11 +140,9 @@ NS_INTERNAL
         // the polygon kernels take the vertices through double, n at most
         // the shape's own count, which the face passes
         template<std::size_t N>
-        static D_CONSTEXPR_CPP14
-        bool polygon_contains_n(
-            const T* _xy,
-            const T* _p
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 bool
+        polygon_contains_n(const T* _xy,
+                           const T* _p) D_NOEXCEPT
         {
             double       xy[2 * N] = {};
             const double p[2]      = { static_cast<double>(_p[0]),
@@ -164,10 +157,8 @@ NS_INTERNAL
         }
 
         template<std::size_t N>
-        static D_CONSTEXPR_CPP14
-        T polygon_area_n(
-            const T* _xy
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 T
+        polygon_area_n(const T* _xy) D_NOEXCEPT
         {
             double xy[2 * N] = {};
 
@@ -180,11 +171,9 @@ NS_INTERNAL
         }
 
         template<std::size_t N>
-        static D_CONSTEXPR_CPP14
-        bool polygon_centroid_n(
-            T*       _out,
-            const T* _xy
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 bool
+        polygon_centroid_n(T*       _out,
+                           const T* _xy) D_NOEXCEPT
         {
             double xy[2 * N] = {};
             double c[2]      = { 0.0, 0.0 };
@@ -239,28 +228,22 @@ NS_INTERNAL
              std::size_t N>
     struct plane_polygon<T, N, 0>
     {
-        static D_CONSTEXPR_CPP14
-        bool contains(
-            const T* _xy,
-            const T* _p
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 bool
+        contains(const T* _xy,
+                 const T* _p) D_NOEXCEPT
         {
             return plane_kernel<T>::template polygon_contains_n<N>(_xy, _p);
         }
 
-        static D_CONSTEXPR_CPP14
-        T area(
-            const T* _xy
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 T
+        area(const T* _xy) D_NOEXCEPT
         {
             return plane_kernel<T>::template polygon_area_n<N>(_xy);
         }
 
-        static D_CONSTEXPR_CPP14
-        bool centroid(
-            T*       _out,
-            const T* _xy
-        ) D_NOEXCEPT
+        static D_CONSTEXPR_CPP14 bool
+        centroid(T*       _out,
+                 const T* _xy) D_NOEXCEPT
         {
             return plane_kernel<T>::template polygon_centroid_n<N>(_out, _xy);
         }
@@ -272,7 +255,8 @@ NS_INTERNAL
     template<std::size_t Samples,
              typename    System,
              typename    Edge>
-    std::size_t plane_edge_crossings(
+    std::size_t
+    plane_edge_crossings(
         const Edge&                        _edge,
         const typename System::point_type& _cart_p
     )
@@ -366,10 +350,8 @@ struct polygon
     // contains
     //   whether _p lies inside: the +x ray from it crosses an odd number of
     // edges.
-    D_CONSTEXPR_CPP14
-    bool contains(
-        const point_type& _p
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 bool
+    contains(const point_type& _p) const D_NOEXCEPT
     {
         value_type       xy[2 * N] = {};
         const point_type cart_p    = System::to_cartesian(_p);
@@ -382,8 +364,8 @@ struct polygon
 
     // closed_form_perimeter
     //   the edges' lengths, summed in order.
-    D_CONSTEXPR_CPP14
-    value_type closed_form_perimeter() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    closed_form_perimeter() const D_NOEXCEPT
     {
         value_type total = static_cast<value_type>(0);
 
@@ -398,8 +380,8 @@ struct polygon
 
     // closed_form_area
     //   the shoelace formula's magnitude.
-    D_CONSTEXPR_CPP14
-    value_type closed_form_area() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 value_type
+    closed_form_area() const D_NOEXCEPT
     {
         value_type xy[2 * N] = {};
 
@@ -411,8 +393,8 @@ struct polygon
     // closed_form_centroid
     //   the area-weighted centroid; the first vertex for a polygon of no
     // area.
-    D_CONSTEXPR_CPP14
-    point_type closed_form_centroid() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 point_type
+    closed_form_centroid() const D_NOEXCEPT
     {
         value_type xy[2 * N] = {};
         point_type c;
@@ -431,10 +413,8 @@ struct polygon
 private:
     // cartesian_vertices
     //   the vertices' Cartesian forms, interleaved into _xy.
-    D_CONSTEXPR_CPP14
-    void cartesian_vertices(
-        value_type* _xy
-    ) const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 void
+    cartesian_vertices(value_type* _xy) const D_NOEXCEPT
     {
         for (std::size_t i = 0; i < N; ++i)
         {
@@ -501,7 +481,8 @@ struct parametric_region
         : m_boundary(_b)
     {}
 
-    const boundary_type& boundary() const D_NOEXCEPT
+    const boundary_type&
+    boundary() const D_NOEXCEPT
     {
         return m_boundary;
     }
@@ -511,18 +492,16 @@ struct parametric_region
     // sampled as Samples straight pieces, are odd (Samples 256 by default;
     // contains<N>(p) for another).
     template<std::size_t Samples>
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return ((internal::plane_edge_crossings<Samples, coordinate_system>(
                      m_boundary, coordinate_system::to_cartesian(_p)) % 2)
                 == 1);
     }
 
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return contains<256>(_p);
     }
@@ -655,7 +634,8 @@ struct shape_from_edges
         : m_edges(_e...)
     {}
 
-    const edges_type& edges() const noexcept
+    const edges_type&
+    edges() const noexcept
     {
         return m_edges;
     }
@@ -664,9 +644,8 @@ struct shape_from_edges
     //   whether _p lies inside: the +x ray's crossings of every edge, each
     // sampled as SamplesPerEdge pieces, are odd in sum.
     template<std::size_t SamplesPerEdge>
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return ((count_crossings<SamplesPerEdge>(
                      coordinate_system::to_cartesian(_p),
@@ -674,9 +653,8 @@ struct shape_from_edges
                  2) == 1);
     }
 
-    bool contains(
-        const point_type& _p
-    ) const
+    bool
+    contains(const point_type& _p) const
     {
         return contains<32>(_p);
     }
@@ -686,8 +664,9 @@ private:
     //   each edge's crossings, in order, summed.
     template<std::size_t SPE,
              std::size_t... Is>
-    std::size_t count_crossings(
-        const point_type& _cart_p,
+    std::size_t
+    count_crossings(
+        const point_type&             _cart_p,
         re_std::index_sequence<Is...>
     ) const
     {

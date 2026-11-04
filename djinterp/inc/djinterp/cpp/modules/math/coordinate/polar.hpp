@@ -54,11 +54,8 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                                // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"                     // framework root
-#include "../../../../c/modules/math/coord.h"                   // the C core: d_coord_*
-#if (defined(__cplusplus))
-    #include "../../../../../re_std/cpp/cfloat/cfloat.hpp"
-#endif
+#include "../../../djinterp.hpp"                  // framework root
+#include "../../../../c/modules/math/coord.h"     // the C core: d_coord_*
 #include "../linear_algebra/vector.hpp"           // linalg::vector
 
 

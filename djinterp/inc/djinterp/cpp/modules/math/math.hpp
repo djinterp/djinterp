@@ -21,9 +21,11 @@
 *                     rational, number_base / radix system
 *   values.hpp      - compile-time sampling of an expression over points
 *   value.hpp       - the generic value: math::value, one number of any
-*                     kind over the C core's dj_math_value, and inline_value
+*                     kind over the C core's d_math_value, and inline_value
 *   number_traits.hpp - what generic code needs of a number type, the type
 *                     two numbers combine to, and the concept number
+*   complex.hpp     - complex numbers: math::complex<T>, of float, double
+*                     and long double, the C core's cplx.h's face
 *   geometry/       - geometry subframework (edges, surfaces, solids, measures)
 *   calculus/       - calculus subframework (differentiation, integration,
 *                     sequences, series, elementary functions)
@@ -32,7 +34,7 @@
 * path:      /inc/djinterp/cpp/modules/math/math.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.24
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_MATH_HPP
@@ -43,19 +45,20 @@
 #include "./math_common.hpp"
 // expression core + functions
 #include "./expression.hpp"
-#include "function/function.hpp"
+#include "./function/function.hpp"
 // coordinate systems
-#include "coordinate/coordinate.hpp"
-#include "coordinate/cartesian.hpp"
-#include "coordinate/polar.hpp"
-#include "coordinate/cylindrical.hpp"
-#include "coordinate/spherical.hpp"
+#include "./coordinate/coordinate.hpp"
+#include "./coordinate/cartesian.hpp"
+#include "./coordinate/polar.hpp"
+#include "./coordinate/cylindrical.hpp"
+#include "./coordinate/spherical.hpp"
 // numeric support
-#include "interval/interval.hpp"
+#include "./interval/interval.hpp"
 #include "./constants.hpp"
 #include "./values.hpp"
 #include "./number_traits.hpp"
 #include "./value.hpp"
+#include "./complex.hpp"
 // subframeworks
 #include "./geometry/geometry.hpp"
 #include "./calculus/calculus.hpp"

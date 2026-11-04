@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          t_measure_2d_face.cpp
+* djinterp [cpp/math]                                      t_measure_2d_face.cpp
 *
 *   Tests for geometry/measure_2d.hpp, at every level from C++98 -- the
 * header compiled at no level before, missing named_2d.hpp: a segment's
@@ -9,7 +9,7 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/geometry/t_measure_2d_face.cpp -o t -lm
+*         tests/djinterp/math/geometry/t_measure_2d_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_measure_2d_face.cpp
@@ -29,7 +29,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -55,11 +56,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -68,9 +66,8 @@ namespace
     }
 
     template<typename T>
-    void d_tests_family(
-        T _tol
-    )
+    void
+    d_tests_family(T _tol)
     {
         typedef dm::cartesian<2, T>      car;
         typedef typename car::point_type p2;
@@ -130,7 +127,8 @@ namespace
 }  // namespace
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-5f);
     d_tests_family<double>(1e-12);

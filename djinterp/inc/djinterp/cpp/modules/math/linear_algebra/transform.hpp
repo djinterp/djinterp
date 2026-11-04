@@ -77,18 +77,18 @@ TABLE OF CONTENTS
 // std
 #include <cstddef>                 // std::size_t
 // djinterp
-#include "../../../djinterp.hpp"      // framework root
+#include "../../../djinterp.hpp"   // framework root
 #include "./linalg_common.hpp"     // internal::linalg_kernel,
                                    // internal::linalg_elementary
 #include "./matrix.hpp"            // matrix
 #include "./vector.hpp"            // vector
 // re_std
 #include "../../../../../re_std/cpp/type_traits/is_floating_point.hpp"  // is_floating_
-                                                              // point
+                                                                        // point
 #include "../../../../../re_std/cpp/utility/integer_sequence.hpp"       // index_
-                                                              // sequence
+                                                                        // sequence
 #include "../../../../../re_std/cpp/utility/make_integer_sequence.hpp"  // make_index_
-                                                              // sequence
+                                                                        // sequence
 // std, from C++11 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <array>               // std::array
@@ -109,8 +109,8 @@ namespace linalg
 // scaling_2d
 //   function: a 2x2 non-uniform scaling matrix.
 template<typename Type>
-D_CONSTEXPR_CPP14
-matrix<Type, 2, 2> scaling_2d(
+D_CONSTEXPR_CPP14 matrix<Type, 2, 2>
+scaling_2d(
     Type _sx,
     Type _sy
 ) D_NOEXCEPT
@@ -121,10 +121,8 @@ matrix<Type, 2, 2> scaling_2d(
 // scaling_2d
 //   function: a 2x2 uniform scaling matrix.
 template<typename Type>
-D_CONSTEXPR_CPP14
-matrix<Type, 2, 2> scaling_2d(
-    Type _s
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, 2, 2>
+scaling_2d(Type _s) D_NOEXCEPT
 {
     return matrix<Type, 2, 2>::diagonal(vector<Type, 2>(_s, _s));
 }
@@ -132,8 +130,8 @@ matrix<Type, 2, 2> scaling_2d(
 // scaling_3d
 //   function: a 3x3 non-uniform scaling matrix.
 template<typename Type>
-D_CONSTEXPR_CPP14
-matrix<Type, 3, 3> scaling_3d(
+D_CONSTEXPR_CPP14 matrix<Type, 3, 3>
+scaling_3d(
     Type _sx,
     Type _sy,
     Type _sz
@@ -145,10 +143,8 @@ matrix<Type, 3, 3> scaling_3d(
 // scaling_3d
 //   function: a 3x3 uniform scaling matrix.
 template<typename Type>
-D_CONSTEXPR_CPP14
-matrix<Type, 3, 3> scaling_3d(
-    Type _s
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, 3, 3>
+scaling_3d(Type _s) D_NOEXCEPT
 {
     return matrix<Type, 3, 3>::diagonal(vector<Type, 3>(_s, _s, _s));
 }
@@ -189,10 +185,8 @@ NS_END  // internal
 // rotation_2d
 //   function: a 2x2 counter-clockwise rotation by _angle radians.
 template<typename Type>
-D_CONSTEXPR_CPP20
-matrix<Type, 2, 2> rotation_2d(
-    Type _angle
-) D_NOEXCEPT
+D_CONSTEXPR_CPP20 matrix<Type, 2, 2>
+rotation_2d(Type _angle) D_NOEXCEPT
 {
     D_STATIC_ASSERT((re_std::is_floating_point<Type>::value),
                     "rotation_2d: requires a floating-point element type.");
@@ -208,10 +202,8 @@ matrix<Type, 2, 2> rotation_2d(
 // rotation_x
 //   function: a 3x3 rotation about the x axis by _angle radians.
 template<typename Type>
-D_CONSTEXPR_CPP20
-matrix<Type, 3, 3> rotation_x(
-    Type _angle
-) D_NOEXCEPT
+D_CONSTEXPR_CPP20 matrix<Type, 3, 3>
+rotation_x(Type _angle) D_NOEXCEPT
 {
     D_STATIC_ASSERT((re_std::is_floating_point<Type>::value),
                     "rotation_x: requires a floating-point element type.");
@@ -227,10 +219,8 @@ matrix<Type, 3, 3> rotation_x(
 // rotation_y
 //   function: a 3x3 rotation about the y axis by _angle radians.
 template<typename Type>
-D_CONSTEXPR_CPP20
-matrix<Type, 3, 3> rotation_y(
-    Type _angle
-) D_NOEXCEPT
+D_CONSTEXPR_CPP20 matrix<Type, 3, 3>
+rotation_y(Type _angle) D_NOEXCEPT
 {
     D_STATIC_ASSERT((re_std::is_floating_point<Type>::value),
                     "rotation_y: requires a floating-point element type.");
@@ -246,10 +236,8 @@ matrix<Type, 3, 3> rotation_y(
 // rotation_z
 //   function: a 3x3 rotation about the z axis by _angle radians.
 template<typename Type>
-D_CONSTEXPR_CPP20
-matrix<Type, 3, 3> rotation_z(
-    Type _angle
-) D_NOEXCEPT
+D_CONSTEXPR_CPP20 matrix<Type, 3, 3>
+rotation_z(Type _angle) D_NOEXCEPT
 {
     D_STATIC_ASSERT((re_std::is_floating_point<Type>::value),
                     "rotation_z: requires a floating-point element type.");
@@ -266,8 +254,8 @@ matrix<Type, 3, 3> rotation_z(
 //   function: a 3x3 rotation by _angle radians about _axis (normalized
 // here), by Rodrigues's formula.
 template<typename Type>
-D_CONSTEXPR_CPP20
-matrix<Type, 3, 3> rotation_axis(
+D_CONSTEXPR_CPP20 matrix<Type, 3, 3>
+rotation_axis(
     const vector<Type, 3>& _axis,
     Type                   _angle
 ) D_NOEXCEPT
@@ -298,10 +286,8 @@ matrix<Type, 3, 3> rotation_axis(
 // transform with zero translation.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N + 1, N + 1> homogeneous(
-    const matrix<Type, N, N>& _linear
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, N + 1, N + 1>
+homogeneous(const matrix<Type, N, N>& _linear) D_NOEXCEPT
 {
     matrix<Type, N + 1, N + 1> m = matrix<Type, N + 1, N + 1>::identity();
 
@@ -321,8 +307,8 @@ matrix<Type, N + 1, N + 1> homogeneous(
 // translation as an (N+1) x (N+1) homogeneous transform.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N + 1, N + 1> homogeneous(
+D_CONSTEXPR_CPP14 matrix<Type, N + 1, N + 1>
+homogeneous(
     const matrix<Type, N, N>& _linear,
     const vector<Type, N>&    _translation
 ) D_NOEXCEPT
@@ -341,10 +327,8 @@ matrix<Type, N + 1, N + 1> homogeneous(
 //   function: an (N+1) x (N+1) homogeneous pure-translation transform.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-matrix<Type, N + 1, N + 1> translation(
-    const vector<Type, N>& _t
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 matrix<Type, N + 1, N + 1>
+translation(const vector<Type, N>& _t) D_NOEXCEPT
 {
     matrix<Type, N + 1, N + 1> m = matrix<Type, N + 1, N + 1>::identity();
 
@@ -359,8 +343,8 @@ matrix<Type, N + 1, N + 1> translation(
 // translation_2d
 //   function: a 3x3 homogeneous translation.
 template<typename Type>
-D_CONSTEXPR_CPP14
-matrix<Type, 3, 3> translation_2d(
+D_CONSTEXPR_CPP14 matrix<Type, 3, 3>
+translation_2d(
     Type _tx,
     Type _ty
 ) D_NOEXCEPT
@@ -371,8 +355,8 @@ matrix<Type, 3, 3> translation_2d(
 // translation_3d
 //   function: a 4x4 homogeneous translation.
 template<typename Type>
-D_CONSTEXPR_CPP14
-matrix<Type, 4, 4> translation_3d(
+D_CONSTEXPR_CPP14 matrix<Type, 4, 4>
+translation_3d(
     Type _tx,
     Type _ty,
     Type _tz
@@ -392,10 +376,8 @@ matrix<Type, 4, 4> translation_3d(
 // (w = 1).
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N + 1> to_homogeneous(
-    const vector<Type, N>& _v
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, N + 1>
+to_homogeneous(const vector<Type, N>& _v) D_NOEXCEPT
 {
     vector<Type, N + 1> h;
 
@@ -414,10 +396,8 @@ vector<Type, N + 1> to_homogeneous(
 // final component (the perspective divide), or left alone when it is zero.
 template<typename    Type,
          std::size_t M>
-D_CONSTEXPR_CPP14
-vector<Type, M - 1> from_homogeneous(
-    const vector<Type, M>& _h
-) D_NOEXCEPT
+D_CONSTEXPR_CPP14 vector<Type, M - 1>
+from_homogeneous(const vector<Type, M>& _h) D_NOEXCEPT
 {
     D_STATIC_ASSERT((re_std::is_floating_point<Type>::value),
                     "from_homogeneous: requires a floating-point element "
@@ -448,8 +428,8 @@ vector<Type, M - 1> from_homogeneous(
 // embedded as (p, 1), multiplied, then perspective-divided.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> transform_point(
+D_CONSTEXPR_CPP14 vector<Type, N>
+transform_point(
     const matrix<Type, N + 1, N + 1>& _m,
     const vector<Type, N>&            _p
 ) D_NOEXCEPT
@@ -466,8 +446,8 @@ vector<Type, N> transform_point(
 // has no effect).
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> transform_direction(
+D_CONSTEXPR_CPP14 vector<Type, N>
+transform_direction(
     const matrix<Type, N + 1, N + 1>& _m,
     const vector<Type, N>&            _d
 ) D_NOEXCEPT
@@ -506,8 +486,8 @@ NS_INTERNAL
     template<typename    Type,
              std::size_t N,
              std::size_t... Is>
-    D_CONSTEXPR
-    std::array<Type, N> to_array_helper(
+    D_CONSTEXPR std::array<Type, N>
+    to_array_helper(
         const vector<Type, N>& _v,
         re_std::index_sequence<Is...>
     ) noexcept
@@ -522,10 +502,8 @@ NS_END  // internal
 // subframework's point_type (cartesian::point_type, point_2d, point_3d).
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR
-std::array<Type, N> to_array(
-    const vector<Type, N>& _v
-) noexcept
+D_CONSTEXPR std::array<Type, N>
+to_array(const vector<Type, N>& _v) noexcept
 {
     return internal::to_array_helper(_v, re_std::make_index_sequence<N>());
 }
@@ -534,10 +512,8 @@ std::array<Type, N> to_array(
 //   function: a std::array (a geometry point_type) as a linalg vector.
 template<typename    Type,
          std::size_t N>
-D_CONSTEXPR_CPP14
-vector<Type, N> to_vector(
-    const std::array<Type, N>& _a
-) noexcept
+D_CONSTEXPR_CPP14 vector<Type, N>
+to_vector(const std::array<Type, N>& _a) noexcept
 {
     return vector<Type, N>::from_array(_a);
 }

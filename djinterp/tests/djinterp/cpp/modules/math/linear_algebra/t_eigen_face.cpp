@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               t_eigen_face.cpp
+* djinterp [cpp/math]                                           t_eigen_face.cpp
 *
 *   Tests for linear_algebra/eigen.hpp, at every level from C++98, per
 * family: the symmetric eigendecomposition of a known matrix -- its
@@ -10,21 +10,26 @@
 * non-symmetric 3-by-3 with eigenvalues 1, 2, 3, and random symmetric
 * 5-by-5s against the Jacobi solver's, converged() set; a cyclic shift's
 * (a complex pair) and a NaN's, converged() clear; 2^20 A's, 2^20 times A's
-* exactly; and the general solver's eigenvectors, in float too: A x = l x,
-* unit, e_k for a diagonal, +-(1, -1)/sqrt 2 for [[2 1] [1 2]], its larger
-* entry positive. From C++14, the 3-by-3's eigenvalues as a constant
-* expression, equal to the run time's bit for bit, and the 2-by-2's
-* eigenvector as one.
+* exactly; and the general solver's eigenpairs as math::complex<T> (chunk
+* 39), in float too: each eigenvalue's real part eigenvalues_qr's bit for
+* bit, A x = l x, x unit with an entry of the largest modulus real and
+* positive, a pair exactly conjugate, its vectors too -- of [[4 1] [2 3]],
+* the non-symmetric 3-by-3, the cyclic shift's pair, -i and i of a right
+* angle's rotation, and 50 random 5-by-5s, most with pairs; a NaN's every
+* eigenvalue and vector NaNs, converged() clear; e_k for a diagonal, and
+* +-(1, -1)/sqrt 2 for [[2 1] [1 2]], its larger entry positive. From
+* C++14, the 3-by-3's eigenvalues as a constant expression, equal to the
+* run time's bit for bit, and the 2-by-2's eigenvector as one.
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/cpp/modules/math/linear_algebra/t_eigen_face.cpp -o t -lm
+*         tests/djinterp/math/linear_algebra/t_eigen_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_eigen_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.10.30
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/eigen.hpp"  // tested
 // std
@@ -39,7 +44,8 @@ namespace
     long g_checks   = 0;
     long g_failures = 0;
 
-    void d_tests_expect(
+    void
+    d_tests_expect(
         bool        _ok,
         const char* _what,
         int         _line
@@ -65,11 +71,8 @@ namespace
         d_tests_expect((ok), (what), __LINE__)
 
     template<typename Float>
-    bool d_tests_near(
-        Float _a,
-        Float _b,
-        Float _tol
-    )
+    bool
+    d_tests_near(Float _a, Float _b, Float _tol)
     {
         const Float d = _a - _b;
 
@@ -80,17 +83,95 @@ namespace
     // a value in [-1, 1) from a 32-bit linear congruential generator
     unsigned long g_state = 12345UL;
 
-    double d_tests_random()
+    double
+    d_tests_random()
     {
         g_state = ((g_state * 1103515245UL) + 12345UL) & 0xFFFFFFFFUL;
 
         return (static_cast<double>(g_state >> 8) / 8388608.0) - 1.0;
     }
 
-    template<typename T>
-    void d_tests_family(
-        T _tol
+    // the general solver's eigenpairs of _a (S308): every eigenvalue
+    // found, its real part eigenvalues_qr's bit for bit; a pair's two side
+    // by side, the negative first, exactly conjugate, their vectors too;
+    // each eigenvector of unit length, an entry of the largest modulus real
+    // and positive, and A x within _bound of l x, entry by entry
+    template<typename    T,
+             std::size_t N>
+    bool
+    d_tests_general(
+        const la::matrix<T, N, N>& _a,
+        T                          _bound
     )
+    {
+        typedef djinterp::math::complex<T> C;
+
+        const T                        eps = std::numeric_limits<T>::epsilon();
+        const la::general_eigen<T, N>  g   = la::eigen_general(_a);
+        const la::eigenvalue_set<T, N> q   = la::eigenvalues_qr(_a);
+        la::matrix<C, N, N>            ac;
+        bool                           ok  = g.converged();
+
+        for (std::size_t k = 0; k < (N * N); ++k)
+        {
+            ac(k / N, k % N) = C(_a(k / N, k % N));
+        }
+
+        for (std::size_t k = 0; k < N; ++k)
+        {
+            const C                l    = g.eigenvalue(k);
+            const la::vector<C, N> x    = g.eigenvector(k);
+            const la::vector<C, N> ax   = ac.times(x);
+            T                      unit = T(0);
+            T                      big  = T(0);
+            bool                   lead = false;
+
+            ok = ( (ok) &&
+                   (l.real() == q.values()[k]) );
+
+            // a pair: its conjugate next, and the conjugate vector
+            if (l.imag() < T(0))
+            {
+                ok = ( (ok) &&
+                       (k + 1 < N) &&
+                       (g.eigenvalue(k + 1) == conj(l)) );
+
+                for (std::size_t i = 0; ( (ok) && (i < N) ); ++i)
+                {
+                    ok = (g.eigenvector(k + 1)[i] == conj(x[i]));
+                }
+            }
+
+            for (std::size_t i = 0; i < N; ++i)
+            {
+                const T m = abs(x[i]);
+
+                ok    = ( (ok) &&
+                          (abs(ax[i] - (l * x[i])) <= _bound) );
+                unit += m * m;
+                big   = (m > big) ? m : big;
+            }
+
+            // an entry of the largest modulus, to rounding, real and positive
+            for (std::size_t i = 0; i < N; ++i)
+            {
+                lead = ( (lead) ||
+                         ( (x[i].imag() == T(0)) &&
+                           (x[i].real() > T(0)) &&
+                           (abs(x[i]) >= big * (T(1) - (T(4) * eps))) ) );
+            }
+
+            ok = ( (ok) &&
+                   (lead) &&
+                   (d_tests_near(unit, T(1), T(8) * eps)) );
+        }
+
+        return ok;
+    }
+
+    template<typename T>
+    void
+    d_tests_family(T _tol)
     {
         typedef la::matrix<T, 3, 3> m3;
 
@@ -233,23 +314,94 @@ namespace
                         (qb.values()[2] != qb.values()[2]),
                         "a NaN: no eigenvalues, flagged");
 
-        // the general solver, every family: A x = l x for each eigenpair
-        const la::general_eigen<T, 2> g = la::eigen_general(m2(te));
-        bool                          gen_ok = g.converged();
+        // the general solver, every family (S308): [[4 1] [2 3]], the
+        // non-symmetric 3-by-3, the cyclic shift's complex pair, a rotation
+        // by a right angle's, and random 5-by-5s -- each eigenvalue's real
+        // part eigenvalues_qr's, A x = l x, x of unit length
+        typedef djinterp::math::complex<T> C;
 
-        for (std::size_t k = 0; k < 2; ++k)
+        const m2 t2(te);
+
+        D_TESTS_EXPECT( (d_tests_general(t2, T(32) * eps * t2.norm())) &&
+                        (la::eigen_general(t2).is_real()) &&
+                        (d_tests_general(n, T(32) * eps * n.norm())) &&
+                        (la::eigen_general(n).is_real()),
+                        "the general solver's real eigenpairs: A x = l x");
+
+        // the cyclic shift: -1/2 - i sqrt(3)/2, its conjugate, then 1
+        const m3                      cs(ce);
+        const la::general_eigen<T, 3> gc = la::eigen_general(cs);
+        const T                       r3 = T(0.86602540378443864676L);
+
+        D_TESTS_EXPECT( (d_tests_general(cs, T(32) * eps * cs.norm())) &&
+                        (!gc.is_real()) &&
+                        (d_tests_near(gc.eigenvalue(0).real(), T(-0.5),
+                                      8 * eps)) &&
+                        (d_tests_near(gc.eigenvalue(0).imag(), -r3,
+                                      8 * eps)) &&
+                        (gc.eigenvalue(1) == conj(gc.eigenvalue(0))) &&
+                        (d_tests_near(gc.eigenvalue(2).real(), T(1),
+                                      8 * eps)) &&
+                        (gc.eigenvalue(2).imag() == T(0)),
+                        "a complex pair: -1/2 -+ i sqrt(3)/2, conjugate, "
+                        "A x = l x");
+
+        // [[0 -1] [1 0]]: -i, then i, their vectors (1, +-i) / sqrt 2
+        const T                       qe[4] = { 0, -1, 1, 0 };
+        const la::general_eigen<T, 2> gq    = la::eigen_general(m2(qe));
+        const T                       h     = T(0.70710678118654752440L);
+        const C                       x0    = gq.eigenvector(0)[0];
+        const C                       x1    = gq.eigenvector(0)[1];
+
+        D_TESTS_EXPECT( (d_tests_general(m2(qe), T(32) * eps * T(2))) &&
+                        (gq.eigenvalue(0) == C(T(0), T(-1))) &&
+                        (gq.eigenvalue(1) == C(T(0), T(1))) &&
+                        (d_tests_near(abs(x0), h, T(4) * eps)) &&
+                        (d_tests_near(abs(x1), h, T(4) * eps)) &&
+                        (d_tests_near(abs(x1 - (C(T(0), T(1)) * x0)), T(0),
+                                      T(4) * eps)),
+                        "a rotation by a right angle: -+i, (1, +-i)/sqrt 2");
+
+        // random 5-by-5s, most with complex pairs
+        bool rand_ok = true;
+        int  pairs   = 0;
+
+        for (int trial = 0; trial < 50; ++trial)
         {
-            const la::vector<T, 2> x  = g.eigenvector(k);
-            const la::vector<T, 2> ax = m2(te).times(x);
-            const T                l  = g.eigenvalue(k);
+            m5 r;
 
-            gen_ok = gen_ok &&
-                     d_tests_near(ax[0], x[0] * l, T(16) * eps * T(5)) &&
-                     d_tests_near(ax[1], x[1] * l, T(16) * eps * T(5)) &&
-                     d_tests_near(x.dot(x), T(1), T(8) * eps);
+            for (std::size_t k = 0; k < 25; ++k)
+            {
+                r(k / 5, k % 5) = static_cast<T>(d_tests_random());
+            }
+
+            rand_ok = rand_ok &&
+                      d_tests_general(r, T(64) * eps * r.norm());
+            pairs  += la::eigen_general(r).is_real() ? 0 : 1;
         }
 
-        D_TESTS_EXPECT(gen_ok, "the general solver's eigenvectors: A x = l x");
+        D_TESTS_EXPECT( (rand_ok) &&
+                        (pairs > 25),
+                        "random 5-by-5s: A x = l x, pairs conjugate");
+
+        // a NaN: not every eigenvalue found, every eigenvalue and every
+        // vector's every entry a NaN, as the driver gives them
+        const la::general_eigen<T, 3> gb      = la::eigen_general(m3(be));
+        bool                          nan_ok  = !gb.converged();
+
+        for (std::size_t k = 0; k < 9; ++k)
+        {
+            const C x = gb.eigenvectors()(k / 3, k % 3);
+            const C l = gb.eigenvalue(k % 3);
+
+            nan_ok = ( (nan_ok) &&
+                       (!(x.real() == x.real())) &&
+                       (!(x.imag() == x.imag())) &&
+                       (!(l.real() == l.real())) );
+        }
+
+        D_TESTS_EXPECT(nan_ok, "a NaN: not converged, its values and vectors "
+                               "NaNs");
 
         // diag(1, 2, 3): e1, e2, e3, in float too
         const T  de[9] = { 1, 0, 0, 0, 2, 0, 0, 0, 3 };
@@ -263,7 +415,9 @@ namespace
                 const T want = (i == k) ? T(1) : T(0);
 
                 diag_ok = diag_ok &&
-                          d_tests_near(gd.eigenvector(k)[i], want, eps);
+                          d_tests_near(gd.eigenvector(k)[i].real(), want,
+                                       eps) &&
+                          (gd.eigenvector(k)[i].imag() == T(0));
             }
         }
 
@@ -274,14 +428,17 @@ namespace
         // larger magnitude, as rounding leaves them, positive
         const T  se2[4] = { 2, 1, 1, 2 };
         const la::general_eigen<T, 2> g2 = la::eigen_general(m2(se2));
-        const T  h  = T(0.70710678118654752440L);
-        const T  v0 = g2.eigenvector(0)[0];
-        const T  v1 = g2.eigenvector(0)[1];
+        const T  v0 = g2.eigenvector(0)[0].real();
+        const T  v1 = g2.eigenvector(0)[1].real();
         const T  a0 = (v0 < T(0)) ? -v0 : v0;
         const T  a1 = (v1 < T(0)) ? -v1 : v1;
 
         D_TESTS_EXPECT( (g2.converged()) &&
-                        (d_tests_near(g2.eigenvalue(0), T(1), T(8) * eps)) &&
+                        (g2.is_real()) &&
+                        (d_tests_near(g2.eigenvalue(0).real(), T(1),
+                                      T(8) * eps)) &&
+                        (g2.eigenvector(0)[0].imag() == T(0)) &&
+                        (g2.eigenvector(0)[1].imag() == T(0)) &&
                         (d_tests_near(a0, h, T(4) * eps)) &&
                         (d_tests_near(a1, h, T(4) * eps)) &&
                         (d_tests_near(v0, -v1, T(4) * eps)) &&
@@ -299,8 +456,8 @@ namespace
 {
     // the non-symmetric 3-by-3's eigenvalues, 1, 2, 3, as a constant
     // expression: the _c forms, from C++14
-    constexpr
-    la::vector<double, 3> d_tests_constexpr_eigenvalues()
+    constexpr la::vector<double, 3>
+    d_tests_constexpr_eigenvalues()
     {
         const double e[9] = { 0, 1, 0, -1, 2, 1, 2, -2, 4 };
 
@@ -319,12 +476,12 @@ namespace
 
     // [[2 1] [1 2]]'s eigenvector for 1, +-(1, -1) / sqrt 2, likewise: its
     // first entry's magnitude
-    constexpr
-    double d_tests_constexpr_eigenvector()
+    constexpr double
+    d_tests_constexpr_eigenvector()
     {
         const double e[4] = { 2, 1, 1, 2 };
         const double x    = la::eigen_general(la::matrix<double, 2, 2>(e))
-                                .eigenvector(0)[0];
+                                .eigenvector(0)[0].real();
 
         return (x < 0.0) ? -x : x;
     }
@@ -335,7 +492,8 @@ namespace
                    "C++14");
 
     // the constant's eigenvalues are the run time's, bit for bit
-    void d_tests_constant_evaluation()
+    void
+    d_tests_constant_evaluation()
     {
         const double e[9] = { 0, 1, 0, -1, 2, 1, 2, -2, 4 };
         const la::vector<double, 3> run =
@@ -352,7 +510,8 @@ namespace
 #endif
 
 
-int main()
+int
+main()
 {
     d_tests_family<float>(1e-6f);
     d_tests_family<double>(1e-14);

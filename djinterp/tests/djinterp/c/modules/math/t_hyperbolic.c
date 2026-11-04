@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 t_hyperbolic.c
+* djinterp [c/math]                                               t_hyperbolic.c
 *
 *   Conformance harness for c/math/hyperbolic.h. For float, sinh_c, cosh_c
 * and tanh_c must be the correctly rounded result -- the long double
@@ -38,12 +38,12 @@
 * from C++14, that all six functions are constant expressions, for every
 * family, with the bits they have at run time. It needs no 64-bit integer --
 * its random numbers come from math_tests_random.h, the same in every build
-* -- so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
+* -- so that ISO-strict C++98 on a 32-bit target, where d_math_umax has 32
 * bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/modules/math/t_hyperbolic.c -o t_hyperbolic -lm
+*        tests/djinterp/c/math/t_hyperbolic.c -o t_hyperbolic -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_hyperbolic.c
@@ -96,8 +96,8 @@ static double      (*volatile g_atanh)(double)            = atanh;
 static long g_checks   = 0;
 static long g_failures = 0;
 
-static
-void d_tests_expect(
+static void
+d_tests_expect(
     bool        _ok,
     const char* _what,
     long double _value,
@@ -124,18 +124,15 @@ void d_tests_expect(
     d_tests_expect((ok), (what), (long double)(value), __LINE__)
 
 // a uniform double in [0, 1), from 53 random bits
-static
-double d_tests_unit(void)
+static double
+d_tests_unit(void)
 {
     return (double)d_tests_top(53) * DBL_EPSILON / 2.0;
 }
 
 // bit-for-bit, NaN equal to NaN, -0 distinct from +0
-static
-bool d_tests_same_f(
-    float _a,
-    float _b
-)
+static bool
+d_tests_same_f(float _a, float _b)
 {
     uint32_t a = 0u;
     uint32_t b = 0u;
@@ -146,21 +143,15 @@ bool d_tests_same_f(
     return ((a == b) || (isnan(_a) && isnan(_b)));
 }
 
-static
-bool d_tests_same_d(
-    double _a,
-    double _b
-)
+static bool
+d_tests_same_d(double _a, double _b)
 {
     return ( (memcmp(&_a, &_b, sizeof(_a)) == 0) ||
              (isnan(_a) && isnan(_b)) );
 }
 
-static
-bool d_tests_same_ld(
-    long double _a,
-    long double _b
-)
+static bool
+d_tests_same_ld(long double _a, long double _b)
 {
     // signbit's value is any nonzero for a negative: glibc's gives 1 for a
     // constant it folds and 512 for a long double at run time
@@ -171,13 +162,8 @@ bool d_tests_same_ld(
 // the distance of _got from _want in units of _want's last place, the
 // subnormals' spacing below the normal range; an infinity or NaN is 0 from
 // its like and 1e30 from anything else
-static
-double d_tests_ulps(
-    long double _got,
-    long double _want,
-    int         _mant,
-    int         _emin
-)
+static double
+d_tests_ulps(long double _got, long double _want, int _mant, int _emin)
 {
     long double scale = 0.0L;
     long double diff  = 0.0L;
@@ -208,10 +194,8 @@ double d_tests_ulps(
 // result, rounded to float, which is the correctly rounded one wherever long
 // double has eleven bits more than float; and within two ulps of sinhf,
 // coshf and tanhf.
-static
-void d_tests_float_one(
-    float _x
-)
+static void
+d_tests_float_one(float _x)
 {
     const float s = d_math_f_sinh_c(_x);
     const float c = d_math_f_cosh_c(_x);
@@ -232,10 +216,8 @@ void d_tests_float_one(
     return;
 }
 
-static
-void d_tests_float(
-    bool _exhaustive
-)
+static void
+d_tests_float(bool _exhaustive)
 {
     const uint32_t step = _exhaustive ? 1u : 1009u;
     uint32_t       bits = 0u;
@@ -277,8 +259,8 @@ void d_tests_float(
 //   sinh_c, cosh_c and tanh_c within three ulps of sinh, cosh and tanh over
 // random arguments, either sign; prints how many differ at all, and the
 // largest difference.
-static
-void d_tests_double(void)
+static void
+d_tests_double(void)
 {
     double worst[3] = { 0.0, 0.0, 0.0 };
     long   diff[3]  = { 0, 0, 0 };
@@ -350,8 +332,8 @@ void d_tests_double(void)
 // cosh are finite; where tanh first rounds to 1; and the arguments whose
 // result, rounded to long double, lies on a double's midpoint. Each with x
 // negated too: sinh and tanh are odd, cosh even.
-static
-void d_tests_double_edges(void)
+static void
+d_tests_double_edges(void)
 {
     // x and sinh(x), correctly rounded
     static const double sines[][2] = {
@@ -480,8 +462,8 @@ void d_tests_double_edges(void)
     return;
 }
 
-static
-void d_tests_long_double(void)
+static void
+d_tests_long_double(void)
 {
     // the largest argument drawn: short of the overflow at LDBL_MAX_EXP ln 2
     const long double top      = (long double)(LDBL_MAX_EXP - 2) * 0.6931L;
@@ -544,8 +526,8 @@ void d_tests_long_double(void)
 // family: sinh and tanh keep a zero's sign and a subnormal, cosh is 1 there;
 // sinh is +-inf and cosh +inf at the infinities and past the largest finite
 // result, tanh +-1.
-static
-void d_tests_specials(void)
+static void
+d_tests_specials(void)
 {
     const double      inf   = (double)HUGE_VAL;
     const double      tiny  = 4.9406564584124654e-324;
@@ -622,8 +604,8 @@ void d_tests_specials(void)
 
 // d_tests_ref_point
 //   a reference's point, m 2^e, exactly.
-static
-long double d_tests_ref_point(
+static long double
+d_tests_ref_point(
     long _m,
     int  _e
 )
@@ -634,8 +616,8 @@ long double d_tests_ref_point(
 // d_tests_inverse_one
 //   the function _k (0 asinh, 1 acosh, 2 atanh) of the family _family at
 // _x, its _c form where _pure, widened.
-static
-long double d_tests_inverse_one(
+static long double
+d_tests_inverse_one(
     int         _k,
     int         _family,
     bool        _pure,
@@ -680,10 +662,10 @@ long double d_tests_inverse_one(
 // rounded value -- the long double kernel's error, below 0.52 ulp of long
 // double, rounded once more -- and the plain form, the C library's (before
 // C++11, _c), within 3; the largest distances printed.
-static
-void d_tests_inverse_refs(void)
+static void
+d_tests_inverse_refs(void)
 {
-    const struct dj_tests_real_ref* const tables[3] = { g_ref_asinh,
+    const struct d_tests_real_ref* const tables[3] = { g_ref_asinh,
                                                        g_ref_acosh,
                                                        g_ref_atanh };
     const size_t      counts[3] = { D_TESTS_COUNT(g_ref_asinh),
@@ -699,7 +681,7 @@ void d_tests_inverse_refs(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct dj_tests_real_ref* r = &tables[k][i];
+            const struct d_tests_real_ref* r = &tables[k][i];
             const long double x      = d_tests_ref_point(r->m, r->e);
             const size_t      length = strlen(r->value);
             float             wf     = 0.0f;
@@ -756,8 +738,8 @@ void d_tests_inverse_refs(void)
 // d_tests_wide_point
 //   a full-width point, (_m[0] 2^48 + _m[1] 2^24 + _m[2]) 2^_e, exactly: each
 // limb's term is exact, and each sum a prefix of the point's bits.
-static
-long double d_tests_wide_point(
+static long double
+d_tests_wide_point(
     const long* _m,
     int         _e
 )
@@ -774,10 +756,10 @@ long double d_tests_wide_point(
 // -- and the plain forms, the C library's, within 3 of the nearest; the
 // largest distances printed. A long double narrower than 64 bits takes no
 // such point exactly, and is left out.
-static
-void d_tests_inverse_wide(void)
+static void
+d_tests_inverse_wide(void)
 {
-    const struct dj_tests_real_wide* const tables[3] = { g_wide_asinh,
+    const struct d_tests_real_wide* const tables[3] = { g_wide_asinh,
                                                         g_wide_acosh,
                                                         g_wide_atanh };
     const size_t      counts[3] = { D_TESTS_COUNT(g_wide_asinh),
@@ -799,7 +781,7 @@ void d_tests_inverse_wide(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct dj_tests_real_wide* r = &tables[k][i];
+            const struct d_tests_real_wide* r = &tables[k][i];
             const long double x = d_tests_wide_point(r->m, r->e);
             long double       wl     = 0.0L;
             double            offset = 0.0;
@@ -840,8 +822,8 @@ void d_tests_inverse_wide(void)
 // edge -- 0 for asinh and atanh, 1 for acosh -- down to 2^-(_depth), a third
 // across its middle, a third far out (asinh and acosh to 2^(_far), atanh
 // within 2^-(_depth) of +-1); _u in [0, 1).
-static
-long double d_tests_inverse_argument(
+static long double
+d_tests_inverse_argument(
     int         _k,
     long double _u,
     int         _depth,
@@ -883,8 +865,8 @@ long double d_tests_inverse_argument(
 // double: 100,000 each, within 4 ulps of the library's: the kernel's own
 // error lies below 0.52 of an ulp, the library's above 2. The library is
 // reached through the volatile pointers, as everywhere here.
-static
-void d_tests_inverse_random(void)
+static void
+d_tests_inverse_random(void)
 {
     long double (*const library[3])(long double) = { g_asinhl, g_acoshl,
                                                      g_atanhl };
@@ -990,8 +972,8 @@ void d_tests_inverse_random(void)
 // infinities their own; acosh of 1 +0, below 1 and of -inf NaN, of +inf
 // +inf; atanh of the zeros their own, of +-1 +-inf, past them and of the
 // infinities NaN; a subnormal its own for asinh and atanh; NaN to NaN.
-static
-void d_tests_inverse_specials(void)
+static void
+d_tests_inverse_specials(void)
 {
     const long double inf  = (long double)HUGE_VAL;
     const long double nanv = (long double)nan("");
@@ -1051,8 +1033,8 @@ void d_tests_inverse_specials(void)
 
 // d_tests_overloads
 //   compiled as C++: one name for every family, chosen by argument type.
-static
-void d_tests_overloads(void)
+static void
+d_tests_overloads(void)
 {
     D_TESTS_EXPECT( (d_tests_same_f(d_math_sinh_c(0.75f),
                                     d_math_f_sinh_c(0.75f))) &&
@@ -1149,8 +1131,8 @@ static_assert(d_math_d_acosh_c(0.5) != d_math_d_acosh_c(0.5),
 // d_tests_constant_evaluation
 //   the constants are the run time's results, bit for bit: the arguments
 // are read through volatiles, so the calls below are not folded.
-static
-void d_tests_constant_evaluation(void)
+static void
+d_tests_constant_evaluation(void)
 {
     volatile float       f_sinh = 0.75f;
     volatile double      d_sinh = 0.49999999999999994;
@@ -1216,10 +1198,8 @@ void d_tests_constant_evaluation(void)
 
 #endif  // C++14
 
-int main(
-    int    _argc,
-    char** _argv
-)
+int
+main(int _argc, char** _argv)
 {
     const bool exhaustive = (_argc > 1) &&
                             (strcmp(_argv[1], "exhaustive") == 0);
