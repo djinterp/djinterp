@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/env/env_compiler.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -41,6 +41,8 @@ TABLE OF CONTENTS
          2.  D_ENV_COMPILER_VERSION_AT_MOST
     5.  Builtin families
          1.  D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
+         2.  D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS
+         3.  D_ENV_COMPILER_ADD_OVERFLOW and its kin
     6.  Keyword extensions
          1.  D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
          2.  D_ENV_COMPILER_RESTRICT
@@ -347,6 +349,54 @@ TABLE OF CONTENTS
         #define D_ENV_COMPILER_HAS_ATOMIC_BUILTINS 0
     #endif
 #endif  // D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
+
+// 1.5.2
+// D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS
+//   constant: 1 when the compiler provides __builtin_add_overflow,
+// __builtin_sub_overflow and __builtin_mul_overflow -- checked arithmetic on
+// any integer types, which GCC introduced in 5 and Clang in 3.8 -- and 0
+// otherwise; MSVC does not provide them. Where __has_builtin exists (GCC 10
+// and later, and Clang), it answers; below it, GCC's version does. Like the
+// atomic builtins, the answer is a property of the compiler and never of the
+// language level, C or C++. Pre-define it to 0 to simulate a compiler without
+// them.
+#ifndef D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS
+    #if defined(__has_builtin)
+        #if ( (__has_builtin(__builtin_add_overflow)) &&                       \
+              (__has_builtin(__builtin_sub_overflow)) &&                       \
+              (__has_builtin(__builtin_mul_overflow)) )
+            #define D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS 1
+        #else
+            #define D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS 0
+        #endif
+    #elif defined(D_ENV_COMPILER_GCC)
+        #if (D_ENV_COMPILER_MAJOR >= 5)
+            #define D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS 1
+        #else
+            #define D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS 0
+        #endif
+    #else
+        #define D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS 0
+    #endif
+#endif  // D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS
+
+// 1.5.3
+// D_ENV_COMPILER_ADD_OVERFLOW, D_ENV_COMPILER_SUB_OVERFLOW,
+// D_ENV_COMPILER_MUL_OVERFLOW
+//   macro: the builtins' spellings, defined only where
+// D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS is 1. Each computes a op b exactly,
+// stores it through result wrapped to *result's type, and is true when the
+// exact value does not fit there. Vendor extensions live in the env layer
+// (decision 6 of the register); the root's checked-arithmetic kit,
+// dckdint.h, is their user.
+#if D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS
+    #define D_ENV_COMPILER_ADD_OVERFLOW(a, b, result)                          \
+        __builtin_add_overflow((a), (b), (result))
+    #define D_ENV_COMPILER_SUB_OVERFLOW(a, b, result)                          \
+        __builtin_sub_overflow((a), (b), (result))
+    #define D_ENV_COMPILER_MUL_OVERFLOW(a, b, result)                          \
+        __builtin_mul_overflow((a), (b), (result))
+#endif  // D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS
 
 // 1.6    Keyword extensions
 //------------------------------------------------------------------------------

@@ -7,9 +7,10 @@
 * path:      /src/djinterp/c/container/array/array_common.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/array_common.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 /*
@@ -439,7 +440,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed.
+  - false, if _size elements of _element_size bytes do not fit in a size_t,
+    or memory allocation failed; the array is then empty.
 */
 bool d_array_common_init_fill(
     void**      _destination,
@@ -450,7 +452,8 @@ bool d_array_common_init_fill(
 )
 {
     size_t i;
-    char* elem_ptr;
+    size_t bytes;
+    char*  elem_ptr;
 
     if (_size == 0)
     {
@@ -468,7 +471,16 @@ bool d_array_common_init_fill(
         return D_FAILURE;
     }
 
-    *(_destination) = malloc(_size * _element_size);
+    // a size that wraps would allocate less than the loop below writes
+    if (d_ckd_mul(&bytes, _size, _element_size))
+    {
+        *(_destination) = NULL;
+        *(_count) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_destination) = malloc(bytes);
     if (!*(_destination))
     {
         *(_count) = 0;

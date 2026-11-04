@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/env/c/env_c_lib.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.08
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -50,6 +50,7 @@ TABLE OF CONTENTS
          3.  D_ENV_C_HAS_INTTYPES_H
          4.  D_ENV_C_HAS_STDALIGN_H
          5.  D_ENV_C_HAS_UCHAR_H
+         6.  D_ENV_C_HAS_STDCKDINT_H
     2.  POSIX headers
          1.  D_ENV_C_HAS_UNISTD_H
          2.  D_ENV_C_HAS_SYS_TYPES_H
@@ -322,6 +323,31 @@ TABLE OF CONTENTS
         #define D_ENV_C_HAS_UCHAR_H 0
     #endif
 #endif  // D_ENV_C_HAS_UCHAR_H
+
+// 2.1.6
+// D_ENV_C_HAS_STDCKDINT_H
+//   feature: detect if <stdckdint.h> is available: ckd_add, ckd_sub and
+// ckd_mul, checked integer arithmetic (C23; C++26, by P3370R1). 1 only at
+// those levels, and only where the header is there, which __has_include
+// answers: GCC adds it in 14, Clang in 18 and libstdc++, for C++26, in 15.
+// Below those levels the compilers' checked builtins do the same work
+// (D_ENV_COMPILER_HAS_OVERFLOW_BUILTINS); Clang ships the header in older
+// modes too, but this flag keeps to the standards that have it. C23 lists
+// the header among the freestanding ones, so it does not need a hosted
+// build. Pre-define it to 0 to simulate a library without it.
+#ifndef D_ENV_C_HAS_STDCKDINT_H
+    #if ( ( (D_ENV_LANG_IS_C23_OR_HIGHER) ||                                   \
+            (D_ENV_LANG_IS_CPP26_OR_HIGHER) ) &&                               \
+          (defined(__has_include)) )
+        #if __has_include(<stdckdint.h>)
+            #define D_ENV_C_HAS_STDCKDINT_H 1
+        #else
+            #define D_ENV_C_HAS_STDCKDINT_H 0
+        #endif
+    #else
+        #define D_ENV_C_HAS_STDCKDINT_H 0
+    #endif
+#endif  // D_ENV_C_HAS_STDCKDINT_H
 
 // 2.2    POSIX headers
 //------------------------------------------------------------------------------

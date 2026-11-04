@@ -7,9 +7,10 @@
 * path:      /src/djinterp/c/container/vector/vector_common.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/vector/vector_common.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
@@ -418,7 +419,9 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if reservation was successful (or already sufficient), or
-  - false, if reallocation failed or parameters are invalid.
+  - false, if _new_capacity elements of _element_size bytes do not fit in a
+    size_t, reallocation failed or parameters are invalid; the vector is
+    then unchanged.
 */
 bool d_vector_common_reserve(
     void**  _elements,
@@ -428,7 +431,11 @@ bool d_vector_common_reserve(
     size_t  _new_capacity
 )
 {
-    void* new_elements;
+    void*  new_elements;
+    size_t bytes;
+
+    // the count is the family's common parameter; reserving does not read it
+    (void)_count;
 
     if ( (!_elements) ||
          (!_capacity) ||
@@ -443,9 +450,15 @@ bool d_vector_common_reserve(
         return D_SUCCESS;
     }
 
-    new_elements = realloc(*(_elements), _new_capacity * _element_size);
+    // a size that wraps would shrink the buffer while the capacity grew
+    if (d_ckd_mul(&bytes, _new_capacity, _element_size))
+    {
+        return D_FAILURE;
+    }
 
-    // ensure that memory reallocation was susccessful
+    new_elements = realloc(*(_elements), bytes);
+
+    // ensure that memory reallocation was successful
     if (!new_elements)
     {
         return D_FAILURE;
